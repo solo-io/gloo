@@ -6,12 +6,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/solo-io/solo-projects/test/kube2e"
-
 	"github.com/solo-io/solo-projects/test/kubeutils"
 
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/anyvendor/pkg/modutils"
+	. "github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/k8s-utils/testutils/helper"
 	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
@@ -46,7 +45,7 @@ func NewGlooInstaller(config InstallConfig) (*GlooInstaller, error) {
 	if glooLicenseKey == "" {
 		return nil, errors.New("LicenseKey required, but not provided")
 	}
-	useVersion := kube2e.GetTestReleasedVersion(context.Background(), "solo-projects")
+	useVersion := GetTestReleasedVersion(context.Background(), "solo-projects")
 	testHelper, err := helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
 		defaults.RootDir = filepath.Dir(goModFile)
 		defaults.ReleasedVersion = useVersion

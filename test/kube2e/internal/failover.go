@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	. "github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/k8s-utils/testutils/helper"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -159,7 +160,7 @@ func FailoverBeforeEach(testHelper *helper.SoloTestHelper) *FailoverTest {
 					Containers: []corev1.Container{
 						{
 							Name:  "echo",
-							Image: kube2e.GetHttpEchoImage(),
+							Image: GetHttpEchoImage(),
 							Args:  []string{"-text=\"red-pod\""},
 						},
 						{

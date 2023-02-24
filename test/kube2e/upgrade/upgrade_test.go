@@ -1,30 +1,20 @@
 package upgrade_test
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"os/exec"
 	"path/filepath"
-	runtimeCheck "runtime"
-	"strings"
-	"text/template"
-	"time"
 
 	enterprisehelpers "github.com/solo-io/solo-projects/test/kube2e"
 
-	"github.com/solo-io/solo-projects/test/services"
-	yamlHelper "gopkg.in/yaml.v2"
-
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-
-	"github.com/rotisserie/eris"
+	. "github.com/solo-io/solo-projects/test/kube2e"
 	"github.com/solo-io/solo-projects/test/kube2e/upgrade"
+
+	"strings"
+	"time"
+
+	"github.com/solo-io/solo-projects/test/services"
 
 	"github.com/solo-io/k8s-utils/kubeutils"
 	corev1 "k8s.io/api/core/v1"
@@ -34,23 +24,17 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 
-	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/version"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	"github.com/solo-io/gloo/test/kube2e"
-	"github.com/solo-io/go-utils/versionutils"
+
 	"github.com/solo-io/k8s-utils/testutils/helper"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 const (
-	glooeRepoName    = "https://storage.googleapis.com/gloo-ee-helm"
 	yamlAssetDir     = "../upgrade/assets/"
 	gatewayProxyName = "gateway-proxy"
 	gatewayProxyPort = 80
@@ -69,46 +53,26 @@ const (
 var _ = Describe("Upgrade Tests", func() {
 
 	var (
-		chartUri   string
 		ctx        context.Context
 		cancel     context.CancelFunc
 		testHelper *helper.SoloTestHelper
-
-		// whether to set validation webhook's failurePolicy=Fail
-		strictValidation bool
-
-		// Versions to upgrade from
-		// ex: current branch is 1.13.10 - this would be the latest patch release of 1.12
-		LastPatchMostRecentMinorVersion *versionutils.Version
-
-		// ex:current branch is 1.13.10 - this would be 1.13.9
-		CurrentPatchMostRecentMinorVersion *versionutils.Version
 	)
 
 	// setup for all tests
 	BeforeEach(func() {
-		ctx, cancel = context.WithCancel(context.Background())
 		var err error
+		ctx, cancel = context.WithCancel(context.Background())
 		testHelper, err = enterprisehelpers.GetEnterpriseTestHelper(ctx, namespace)
-		Expect(err).NotTo(HaveOccurred())
-		if testHelper.ReleasedVersion == "" {
-			chartUri = filepath.Join(testHelper.RootDir, testHelper.TestAssetDir, testHelper.HelmChartName+"-"+testHelper.ChartVersion()+".tgz")
-		} else {
-			chartUri = "glooe/gloo-ee"
-		}
-		strictValidation = false
-
-		LastPatchMostRecentMinorVersion, CurrentPatchMostRecentMinorVersion, err = upgrade.GetUpgradeVersions(ctx, "solo-projects")
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Describe("Upgrading from a previous gloo version to current version", func() {
 		Context("When upgrading from LastPatchMostRecentMinorVersion to PR version of gloo", func() {
 			BeforeEach(func() {
-				installGloo(testHelper, LastPatchMostRecentMinorVersion.String(), strictValidation)
+				installGlooWithTests(testHelper, LastPatchMostRecentMinorVersion.String(), strictValidation)
 			})
 			AfterEach(func() {
-				uninstallGloo(testHelper, ctx, cancel)
+				UninstallGloo(testHelper, ctx, cancel)
 			})
 			//It("Used for local testing to check base case upgrades", func() {
 			//	baseUpgradeTest(ctx, crdDir, LastPatchMostRecentMinorVersion.String(), testHelper, chartUri, strictValidation)
@@ -118,15 +82,19 @@ var _ = Describe("Upgrade Tests", func() {
 			})
 		})
 		Context("When upgrading from CurrentPatchMostRecentMinorVersion to PR version of gloo", func() {
-			BeforeEach(func() {
-				installGloo(testHelper, CurrentPatchMostRecentMinorVersion.String(), strictValidation)
-			})
-			AfterEach(func() {
-				uninstallGloo(testHelper, ctx, cancel)
-			})
-			It("uses helm to update validationServerGrpcMaxSizeBytes without errors", func() {
-				updateSettingsWithoutErrors(ctx, testHelper, chartUri, strictValidation)
-			})
+			if firstReleaseOfMinor {
+				Skip("First Release of minor, cannot upgrade from a lower patch version to this version")
+			} else {
+				BeforeEach(func() {
+					installGlooWithTests(testHelper, CurrentPatchMostRecentMinorVersion.String(), strictValidation)
+				})
+				AfterEach(func() {
+					UninstallGloo(testHelper, ctx, cancel)
+				})
+				It("uses helm to update validationServerGrpcMaxSizeBytes without errors", func() {
+					updateSettingsWithoutErrors(ctx, testHelper, chartUri, strictValidation)
+				})
+			}
 		})
 	})
 
@@ -145,10 +113,10 @@ var _ = Describe("Upgrade Tests", func() {
 
 		Context("When upgrading from LastPatchMostRecentMinorVersion to PR version of gloo", func() {
 			BeforeEach(func() {
-				installGloo(testHelper, LastPatchMostRecentMinorVersion.String(), strictValidation)
+				installGlooWithTests(testHelper, LastPatchMostRecentMinorVersion.String(), strictValidation)
 			})
 			AfterEach(func() {
-				uninstallGloo(testHelper, ctx, cancel)
+				UninstallGloo(testHelper, ctx, cancel)
 			})
 			It("sets validation webhook caBundle on install and upgrade", func() {
 				updateValidationWebhookTests(ctx, kubeClientset, testHelper, chartUri, false)
@@ -156,15 +124,19 @@ var _ = Describe("Upgrade Tests", func() {
 		})
 
 		Context("When upgrading from CurrentPatchMostRecentMinorVersion to PR version of gloo", func() {
-			BeforeEach(func() {
-				installGloo(testHelper, CurrentPatchMostRecentMinorVersion.String(), strictValidation)
-			})
-			AfterEach(func() {
-				uninstallGloo(testHelper, ctx, cancel)
-			})
-			It("sets validation webhook caBundle on install and upgrade", func() {
-				updateValidationWebhookTests(ctx, kubeClientset, testHelper, chartUri, false)
-			})
+			if firstReleaseOfMinor {
+				Skip("First Release of minor, cannot upgrade from a lower patch version to this version")
+			} else {
+				BeforeEach(func() {
+					installGlooWithTests(testHelper, CurrentPatchMostRecentMinorVersion.String(), strictValidation)
+				})
+				AfterEach(func() {
+					UninstallGloo(testHelper, ctx, cancel)
+				})
+				It("sets validation webhook caBundle on install and upgrade", func() {
+					updateValidationWebhookTests(ctx, kubeClientset, testHelper, chartUri, false)
+				})
+			}
 		})
 	})
 })
@@ -178,7 +150,7 @@ func baseUpgradeTest(ctx context.Context, startingVersion string, testHelper *he
 	Expect(fmt.Sprintf("v%s", getGlooServerVersion(ctx, testHelper.InstallNamespace))).To(Equal(startingVersion))
 
 	// upgrade to the gloo version being tested
-	upgradeGloo(testHelper, chartUri, strictValidation, nil)
+	upgradeGlooWithTests(testHelper, chartUri, strictValidation, nil)
 
 	By("should have upgraded to the gloo version being tested")
 	Expect(getGlooServerVersion(ctx, testHelper.InstallNamespace)).To(Equal(testHelper.ChartVersion()))
@@ -191,7 +163,7 @@ func updateSettingsWithoutErrors(ctx context.Context, testHelper *helper.SoloTes
 	Expect(err).To(BeNil())
 	Expect(settings.GetGloo().GetInvalidConfigPolicy().GetInvalidRouteResponseCode()).To(Equal(uint32(404)))
 
-	upgradeGloo(testHelper, chartUri, strictValidation, []string{
+	upgradeGlooWithTests(testHelper, chartUri, strictValidation, []string{
 		"--set", "gloo.settings.replaceInvalidRoutes=true",
 		"--set", "gloo.settings.invalidConfigPolicy.invalidRouteResponseCode=400",
 		"--set", "gloo.gateway.validation.validationServerGrpcMaxSizeBytes=5000000",
@@ -215,7 +187,7 @@ func updateValidationWebhookTests(ctx context.Context, kubeClientset kubernetes.
 	Expect(err).NotTo(HaveOccurred())
 	Expect(webhookConfig.Webhooks[0].ClientConfig.CABundle).To(Equal(secret.Data[corev1.ServiceAccountRootCAKey]))
 
-	upgradeGloo(testHelper, chartUri, strictValidation, nil)
+	upgradeGlooWithTests(testHelper, chartUri, strictValidation, nil)
 
 	By("the webhook caBundle and secret's root ca value should still match after upgrade")
 	webhookConfig, err = webhookConfigClient.Get(ctx, "gloo-gateway-validation-webhook-"+testHelper.InstallNamespace, metav1.GetOptions{})
@@ -242,114 +214,35 @@ func getGlooServerVersion(ctx context.Context, namespace string) (v string) {
 	return v
 }
 
-func makeUnstructured(yam string) *unstructured.Unstructured {
-	jsn, err := yaml.YAMLToJSON([]byte(yam))
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	runtimeObj, err := runtime.Decode(unstructured.UnstructuredJSONScheme, jsn)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	return runtimeObj.(*unstructured.Unstructured)
-}
-
-func makeUnstructuredFromTemplateFile(fixtureName string, values interface{}) *unstructured.Unstructured {
-	tmpl, err := template.ParseFiles(fixtureName)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	var b bytes.Buffer
-	err = tmpl.Execute(&b, values)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	return makeUnstructured(b.String())
-}
-
-func installGloo(testHelper *helper.SoloTestHelper, fromRelease string, strictValidation bool) {
-	fmt.Printf("\n=============== Installing Gloo : %s ===============\n", fromRelease)
-	valueOverrideFile, cleanupFunc := getUpgradeHelmOverrides()
-	defer cleanupFunc()
-
-	// construct helm args
-	var args = []string{"install", testHelper.HelmChartName}
-
-	runAndCleanCommand("helm", "repo", "add", testHelper.HelmChartName, glooeRepoName,
-		"--force-update")
-	args = append(args, testHelper.HelmChartName+"/gloo-ee",
-		"--version", fromRelease)
-
-	args = append(args, "-n", testHelper.InstallNamespace,
-		"--create-namespace",
-		"--set-string", "license_key="+testHelper.LicenseKey,
-		"--values", valueOverrideFile)
+func installGlooWithTests(testHelper *helper.SoloTestHelper, fromRelease string, strictValidation bool) {
+	helmOverrideFilePath := filepath.Join(yamlAssetDir, "helmoverrides.yaml")
 	if strictValidation {
-		args = append(args, strictValidationArgs...)
-	}
-
-	fmt.Printf("running helm with args: %v\n", args)
-	runAndCleanCommand("helm", args...)
-
-	if err := testHelper.Deploy(5 * time.Minute); err != nil {
-		Expect(err).NotTo(HaveOccurred())
-	}
-
-	// Check that everything is OK
-	checkGlooHealthy(testHelper)
-	preUpgradeDataSetup(testHelper)
-	preUpgradeDataValidation(testHelper)
-}
-
-// CRDs are applied to a cluster when performing a `helm install` operation
-// However, `helm upgrade` intentionally does not apply CRDs (https://helm.sh/docs/topics/charts/#limitations-on-crds)
-// Before performing the upgrade, we must manually apply any CRDs that were introduced since v1.9.0
-func upgradeCrds(localChartUri string, publishedChartVersion string) {
-
-	// untar the chart into a temp dir
-	dir, err := os.MkdirTemp("", "unzipped-chart")
-	Expect(err).NotTo(HaveOccurred())
-	defer os.RemoveAll(dir)
-	if publishedChartVersion != "" {
-		// Download the crds from the released chart
-		runAndCleanCommand("helm", "repo", "add", "glooe", glooeRepoName, "--force-update")
-		runAndCleanCommand("helm", "pull", "glooe/gloo-ee", "--version", publishedChartVersion, "--untar", "--untardir", dir)
+		InstallGloo(testHelper, fromRelease, strictValidation, helmOverrideFilePath)
 	} else {
-		//untar the local chart to get the crds
-		runAndCleanCommand("tar", "-xvf", localChartUri, "--directory", dir)
+		InstallGlooWithArgs(testHelper, fromRelease, strictValidationArgs, helmOverrideFilePath)
 	}
-	// apply the crds
-	crdDir := dir + "/gloo-ee/charts/gloo/crds"
-	runAndCleanCommand("kubectl", "apply", "-f", crdDir)
-	// allow some time for the new crds to take effect
-	time.Sleep(time.Second * 5)
+	preUpgradeTests(testHelper)
 }
 
-func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool, additionalArgs []string) {
-	upgradeCrds(chartUri, testHelper.ReleasedVersion)
-
-	valueOverrideFile, cleanupFunc := getUpgradeHelmOverrides()
-	defer cleanupFunc()
-
-	var args = []string{"upgrade", testHelper.HelmChartName, chartUri,
-		"-n", testHelper.InstallNamespace,
-		"--set-string", "license_key=" + testHelper.LicenseKey,
-		"--values", valueOverrideFile}
+func upgradeGlooWithTests(testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool, additionalArgs []string) {
+	helmOverrideFilePath := filepath.Join(yamlAssetDir, "helmoverrides.yaml")
 	if strictValidation {
-		args = append(args, strictValidationArgs...)
+		allExtraArgs := append(strictValidationArgs, additionalArgs...)
+		upgrade.UpgradeGlooWithArgs(testHelper, chartUri, helmOverrideFilePath, allExtraArgs)
+	} else {
+		upgrade.UpgradeGloo(testHelper, chartUri, helmOverrideFilePath, additionalArgs)
 	}
-	args = append(args, additionalArgs...)
-
-	fmt.Printf("running helm with args: %v\n", args)
-	runAndCleanCommand("helm", args...)
-
-	//Check that everything is OK
-	checkGlooHealthy(testHelper)
-
 	bumpRedis(testHelper)
 	postUpgradeTests(testHelper)
 }
 
 func bumpRedis(testHelper *helper.SoloTestHelper) {
-	runAndCleanCommand("kubectl", "scale", "deployment", "redis", "--replicas=0", "-n", testHelper.InstallNamespace)
-
+	RunAndCleanCommand("kubectl", "scale", "deployment", "redis", "--replicas=0", "-n", testHelper.InstallNamespace)
 	Eventually(func() (string, error) {
 		return services.KubectlOut("get", "deploy/redis", "-n", testHelper.InstallNamespace, "-o", "jsonpath={.spec.replicas}")
 	}, time.Minute, time.Second*10).Should(Equal("0"))
 
-	runAndCleanCommand("kubectl", "scale", "deployment", "redis", "--replicas=1", "-n", testHelper.InstallNamespace)
+	RunAndCleanCommand("kubectl", "scale", "deployment", "redis", "--replicas=1", "-n", testHelper.InstallNamespace)
 
 	//make sure redis is in a good state after upgrade
 	Eventually(func() (string, error) {
@@ -357,59 +250,33 @@ func bumpRedis(testHelper *helper.SoloTestHelper) {
 	}, time.Minute, time.Second*10).Should(Equal(""))
 }
 
-func postUpgradeTests(testHelper *helper.SoloTestHelper) {
-	postUpgradeValidation(testHelper)
-	postUpgradeDataModification(testHelper)
-	dataModificationValidation(testHelper)
-}
-
-func uninstallGloo(testHelper *helper.SoloTestHelper, ctx context.Context, cancel context.CancelFunc) {
-	Expect(testHelper).ToNot(BeNil())
-	err := testHelper.UninstallGloo()
-	Expect(err).NotTo(HaveOccurred())
-	_, err = kube2e.MustKubeClient().CoreV1().Namespaces().Get(ctx, testHelper.InstallNamespace, metav1.GetOptions{})
-	Expect(apierrors.IsNotFound(err)).To(BeTrue())
-	cancel()
-}
-
-// Gets the kind and metadata of a yaml file - used for creation of resources
-func getYamlData(filename string) (kind string, name string, namespace string) {
-	type KubernetesStruct struct {
-		Kind     string `yaml:"kind"`
-		Metadata struct {
-			Name      string `yaml:"name"`
-			Namespace string `yaml:"namespace"`
-		} `yaml:"metadata"`
-	}
-
-	var kubernetesValues KubernetesStruct
-
-	file, err := ioutil.ReadFile(filepath.Join(yamlAssetDir, filename))
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-
-	err = yamlHelper.Unmarshal(file, &kubernetesValues)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	return kubernetesValues.Kind, kubernetesValues.Metadata.Name, kubernetesValues.Metadata.Namespace
-}
-
+// ===================================
+// Test Setup and Test Calling Functions
+// ===================================
+// Sets up resources before upgrading
 func preUpgradeDataSetup(testHelper *helper.SoloTestHelper) {
 	fmt.Printf("\n=============== Creating Resources ===============\n")
 	//hello world example
-	createResources("petstore")
-	createResources("ratelimit")
-	createResources("auth")
-	createResources("requestprocessing")
-	createResources("caching")
+
+	ApplyK8sResources(yamlAssetDir, "petstore")
+	ApplyK8sResources(yamlAssetDir, "ratelimit")
+	ApplyK8sResources(yamlAssetDir, "auth")
+	ApplyK8sResources(yamlAssetDir, "requestprocessing")
+	ApplyK8sResources(yamlAssetDir, "caching")
 
 	fmt.Printf("\n=============== Checking Resources ===============\n")
-	checkGlooHealthy(testHelper)
+	CheckGlooHealthy(testHelper)
 }
 
-// Sets up resources before upgrading
+func postUpgradeDataModification(testHelper *helper.SoloTestHelper) {
+	fmt.Printf("\n=============== Update Resources ===============\n")
+	ApplyK8sResources(yamlAssetDir, "authafter")
+	ApplyK8sResources(yamlAssetDir, "ratelimitafter")
+
+	fmt.Printf("\n=============== Checking Resource Modification ===============\n")
+	CheckGlooHealthy(testHelper)
+}
+
 func preUpgradeDataValidation(testHelper *helper.SoloTestHelper) {
 	validatePetstoreTraffic(testHelper)
 	validateRateLimitTraffic(testHelper)
@@ -418,7 +285,11 @@ func preUpgradeDataValidation(testHelper *helper.SoloTestHelper) {
 	validateCachingTraffic(testHelper)
 }
 
-// All Validation scenarios
+func preUpgradeTests(testHelper *helper.SoloTestHelper) {
+	preUpgradeDataSetup(testHelper)
+	preUpgradeDataValidation(testHelper)
+}
+
 func postUpgradeValidation(testHelper *helper.SoloTestHelper) {
 	validatePetstoreTraffic(testHelper)
 	validateRateLimitTraffic(testHelper)
@@ -427,266 +298,25 @@ func postUpgradeValidation(testHelper *helper.SoloTestHelper) {
 	validateCachingTrafficAfterUpgrade(testHelper)
 }
 
-func postUpgradeDataModification(testHelper *helper.SoloTestHelper) {
-	fmt.Printf("\n=============== Update Resources ===============\n")
-	createResources("authafter")
-	createResources("ratelimitafter")
-
-	fmt.Printf("\n=============== Checking Resource Modification ===============\n")
-	checkGlooHealthy(testHelper)
-}
-
 func dataModificationValidation(testHelper *helper.SoloTestHelper) {
-	rateLimitDataModValidation(testHelper)
-	authDataModValidation(testHelper)
+	rateLimitAfterDataModValidation(testHelper)
+	authAfterDataModValidation(testHelper)
 }
 
-// Get all yaml files from a specified directory in upgrade/assets
-// sort these files by kubernetes resource type and determine if there are architecture (arm vs amd) specific files
-// Then apply resources in a specific order
-func createResources(directory string) {
-	fmt.Printf("\n=============== %s Directory Resources ===============\n", directory)
-	files, err := ioutil.ReadDir(filepath.Join(yamlAssetDir, directory))
-	Expect(err).NotTo(HaveOccurred())
-
-	//final map of files for resources
-	fileMap := make(map[string][]string)
-
-	//map of deployments
-	deploymentMap := make(map[string][]string)
-	for _, f := range files {
-
-		//check filetype
-		fileEnding := strings.Split(f.Name(), ".")
-		if fileEnding[len(fileEnding)-1] != "yaml" {
-			continue
-		}
-		kind, _, _ := getYamlData(filepath.Join(directory, f.Name()))
-
-		if kind == "Deployment" {
-			splitName := strings.Split(f.Name(), "_")
-			if deploymentMap[splitName[0]] == nil {
-				deploymentMap[splitName[0]] = []string{f.Name()}
-			} else {
-				deploymentMap[splitName[0]] = append(deploymentMap[splitName[0]], f.Name())
-			}
-			//create a placeholder for the deployments
-			if fileMap[kind] == nil {
-				fileMap[kind] = []string{}
-			}
-		} else {
-			if fileMap[kind] == nil {
-				fileMap[kind] = []string{f.Name()}
-			} else {
-				fileMap[kind] = append(fileMap[kind], f.Name())
-			}
-		}
-	}
-
-	// handle deployment map
-	// there may be arm specific deployments - if arm, use those
-	// If there are not, use all deployments
-	for filenamePrefix, filesList := range deploymentMap {
-		if len(deploymentMap[filenamePrefix]) > 1 {
-			for _, file := range filesList {
-				splitName := strings.Split(file, "_")
-
-				if contains(splitName, "arm") && runtimeCheck.GOARCH == "arm64" {
-					fileMap["Deployment"] = append(fileMap["Deployment"], file)
-					break
-				} else {
-					fileMap["Deployment"] = append(fileMap["Deployment"], file)
-				}
-			}
-		} else { // there is only one deployment of this name so we assume not dependent on os
-			fileMap["Deployment"] = append(fileMap["Deployment"], filesList[0])
-		}
-	}
-
-	//order of resource creation
-	creationOrder := []string{"Deployment", "Service", "Upstream", "AuthConfig", "RateLimitConfig", "VirtualService"}
-	for _, kind := range creationOrder {
-		filePaths := fileMap[kind]
-		if nil != filePaths {
-			for _, filepath := range filePaths {
-				createResource(directory, filepath)
-			}
-		}
-	}
+func postUpgradeTests(testHelper *helper.SoloTestHelper) {
+	postUpgradeValidation(testHelper)
+	postUpgradeDataModification(testHelper)
+	dataModificationValidation(testHelper)
 }
 
-// Creates resources from yaml files in the upgrade/assets folder and validates they have been created
-func createResource(directory string, filename string) {
-	localFilePath := filepath.Join(directory, filename)
-	kind, name, namespace := getYamlData(localFilePath)
-	fmt.Printf("Creating %s %s in namespace: %s", kind, name, namespace)
-	runAndCleanCommand("kubectl", "apply", "-f", filepath.Join(yamlAssetDir, localFilePath))
-
-	//validate resource creation
-	switch kind {
-	case "Service":
-		Eventually(func() (string, error) {
-			return services.KubectlOut("get", "svc/"+name, "-n", namespace)
-		}, "20s", "1s").ShouldNot(BeEmpty())
-		fmt.Printf(" (✓)\n")
-	case "Deployment":
-		Eventually(func() (string, error) {
-			return services.KubectlOut("get", "deploy/"+name, "-n", namespace)
-		}, "20s", "1s").ShouldNot(BeEmpty())
-		fmt.Printf(" (✓)\n")
-	case "Upstream":
-		Eventually(func() (string, error) {
-			return services.KubectlOut("get", "us/"+name, "-n", namespace)
-		}, "20s", "1s").ShouldNot(BeEmpty())
-		fmt.Printf(" (✓)\n")
-	case "RateLimitConfig":
-		Eventually(func() (string, error) {
-			return services.KubectlOut("get", "ratelimitconfig/"+name, "-n", namespace, "-o", "jsonpath={.status.state}")
-		}, "20s", "1s").Should(Equal("ACCEPTED"))
-		fmt.Printf(" (✓)\n")
-	case "VirtualService":
-		Eventually(func() (string, error) {
-			return services.KubectlOut("get", "vs/"+name, "-n", namespace, "-o", "jsonpath={.status.statuses."+namespace+".state}")
-		}, "20s", "1s").Should(Equal("Accepted"))
-		fmt.Printf(" (✓)\n")
-	case "AuthConfig":
-		Eventually(func() (string, error) {
-			return services.KubectlOut("get", "AuthConfig/"+name, "-n", namespace, "-o", "jsonpath={.status.statuses."+namespace+".state}")
-		}, "20s", "1s").Should(Equal("Accepted"))
-		fmt.Printf(" (✓)\n")
-	default:
-		fmt.Printf(" : No validation found for yaml kind: %s\n", kind)
-	}
-}
+// ===================================
+// Traffic Validation Functions
+// ===================================
 
 // runs a curl against the petstore service to check routing is working - run before and after upgrade
 func validatePetstoreTraffic(testHelper *helper.SoloTestHelper) {
 	petString := "[{\"id\":1,\"name\":\"Dog\",\"status\":\"available\"},{\"id\":2,\"name\":\"Cat\",\"status\":\"pending\"}]"
-	curlAndAssertResponse(testHelper, petStoreHost, "/all-pets", petString)
-}
-
-// This function validates the traffic going to the rate limit vs
-// There are two routes - /posts1 which is not rate limited and /posts2 which is
-// The defined rate limit is 1 request per hour to the petstore domain on the route for /posts2
-// after the upgrade we run the same function as redis is bounced as part of the upgrade and all rate limiting gets reset.
-func validateRateLimitTraffic(testHelper *helper.SoloTestHelper) {
-	curlAndAssertResponse(testHelper, rateLimitHost, "/posts1", response200)
-	curlAndAssertResponse(testHelper, rateLimitHost, "/posts2", response200)
-	curlAndAssertResponse(testHelper, rateLimitHost, "/posts2", response429)
-}
-
-func validateAuthTraffic(testHelper *helper.SoloTestHelper) {
-	By("denying unauthenticated requests on both routes", func() {
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", nil, response401)
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", nil, response401)
-		//strict admin only on route
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("user:password"), response401)
-	})
-
-	By("allowing authenticated requests on both routes", func() {
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("user:password"), appName1)
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("admin:password"), appName1)
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("admin:password"), appName2)
-	})
-}
-
-func validateCachingTraffic(testHelper *helper.SoloTestHelper) {
-	By("sending an initial request to cache the response")
-	res := curlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
-
-	curlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
-
-	headers := getResponseHeadersFromCurlOutput(res)
-	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers should not contain an age header, because they are not yet cached")
-	// get date header
-	date, err := time.Parse(time.RFC1123, headers["date"])
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-	By("sending a second request to serve the response from cache")
-
-	// async insert into cache is not completed when previous curl completes - for the next 3 seconds check every half second
-	EventuallyWithOffset(1, func() bool {
-		res = curlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
-		headers = getResponseHeadersFromCurlOutput(res)
-		_, hasAgeHeader := headers["age"]
-		datesMatch := false
-		if hasAgeHeader {
-			datesMatch = headers["date"] == date.Format(time.RFC1123)
-		}
-		return datesMatch && hasAgeHeader
-	}, time.Minute, time.Second*3).Should(BeTrue(), "Check that headers contain age and that the dates match")
-
-	//wait for cache to expire
-	time.Sleep(time.Second * 15)
-
-	res = curlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
-	headers = getResponseHeadersFromCurlOutput(res)
-	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers to not contain an age header, because the cached response is expired")
-	ExpectWithOffset(1, headers["date"]).NotTo(Equal(date.Format(time.RFC1123)), "validation workflow should update the date header")
-}
-
-// due to the behavior of the test caching service we need to hit another endpoint after upgrade
-// The reason behind this is we are not guaranteed that redis will roll after upgrade and if there are values in redis the cache test service will not report a change
-func validateCachingTrafficAfterUpgrade(testHelper *helper.SoloTestHelper) {
-	By("sending an initial request to cache the response")
-	res := curlOnPath(testHelper, cachingHost, "/service/1/valid-for-five-seconds", response200)
-
-	headers := getResponseHeadersFromCurlOutput(res)
-	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers should not contain an age header, because they are not yet cached")
-	// get date header
-	date, err := time.Parse(time.RFC1123, headers["date"])
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-	By("sending a second request to serve the response from cache")
-
-	// async insert into cache is not completed when previous curl completes - for the next 3 seconds check every half second
-	EventuallyWithOffset(1, func() bool {
-		res = curlOnPath(testHelper, cachingHost, "/service/1/valid-for-five-seconds", response200)
-		headers = getResponseHeadersFromCurlOutput(res)
-		_, hasAgeHeader := headers["age"]
-		datesMatch := false
-		if hasAgeHeader {
-			datesMatch = headers["date"] == date.Format(time.RFC1123)
-		}
-		return datesMatch && hasAgeHeader
-	}, time.Minute, time.Second*3).Should(BeTrue(), "Check that headers contain age and that the dates match")
-
-	//wait for cache to expire
-	time.Sleep(time.Second * 15)
-
-	res = curlOnPath(testHelper, cachingHost, "/service/1/valid-for-five-seconds", response200)
-	headers = getResponseHeadersFromCurlOutput(res)
-	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers to not contain an age header, because the cached response is expired")
-	ExpectWithOffset(1, headers["date"]).NotTo(Equal(date.Format(time.RFC1123)), "validation workflow should update the date header")
-}
-
-// after modification the new rate limit for /posts2 is set to 3 requests an hour
-func rateLimitDataModValidation(testHelper *helper.SoloTestHelper) {
-	curlAndAssertResponse(testHelper, rateLimitHost, "/posts1", response200)
-	//100 requests should be allowed before hitting new rate limit - run ten to verify the new headroom
-	for i := 0; i < 10; i++ {
-		curlAndAssertResponse(testHelper, rateLimitHost, "/posts2", response200)
-	}
-}
-
-func authDataModValidation(testHelper *helper.SoloTestHelper) {
-	By("denying unauthenticated requests on both routes", func() {
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", nil, response401)
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", nil, response401)
-		//strict admin only on route
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("user:password"), response401)
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("user2:password"), response401)
-		//old admin can no longer call any endpoints
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("admin:password"), response401)
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("admin:password"), response401)
-	})
-
-	By("allowing authenticated requests on both routes", func() {
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("user:password"), appName1)
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("user2:password"), appName1)
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("admin2:password"), appName1)
-		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("admin2:password"), appName2)
-	})
+	CurlAndAssertResponse(testHelper, petStoreHost, "/all-pets", petString)
 }
 
 func buildAuthHeader(credentials string) map[string]string {
@@ -696,13 +326,142 @@ func buildAuthHeader(credentials string) map[string]string {
 	}
 }
 
+func validateAuthTraffic(testHelper *helper.SoloTestHelper) {
+	By("denying unauthenticated requests on both routes", func() {
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", nil, response401)
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", nil, response401)
+		//strict admin only on route
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("user:password"), response401)
+	})
+
+	By("allowing authenticated requests on both routes", func() {
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("user:password"), appName1)
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("admin:password"), appName1)
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("admin:password"), appName2)
+	})
+}
+
+func authAfterDataModValidation(testHelper *helper.SoloTestHelper) {
+	By("denying unauthenticated requests on both routes", func() {
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", nil, response401)
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", nil, response401)
+		//strict admin only on route
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("user:password"), response401)
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("user2:password"), response401)
+		//old admin can no longer call any endpoints
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("admin:password"), response401)
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("admin:password"), response401)
+	})
+
+	By("allowing authenticated requests on both routes", func() {
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("user:password"), appName1)
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("user2:password"), appName1)
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("admin2:password"), appName1)
+		CurlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("admin2:password"), appName2)
+	})
+}
+
+func validateCachingTraffic(testHelper *helper.SoloTestHelper) {
+	By("sending an initial request to cache the response")
+	res := CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
+
+	CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
+
+	headers := getResponseHeadersFromCurlOutput(res)
+	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers should not contain an age header, because they are not yet cached")
+	// get date header
+	date, err := time.Parse(time.RFC1123, headers["date"])
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	By("sending a second request to serve the response from cache")
+
+	// async insert into cache is not completed when previous curl completes - for the next 3 seconds check every half second
+	EventuallyWithOffset(1, func() bool {
+		res = CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
+		headers = getResponseHeadersFromCurlOutput(res)
+		_, hasAgeHeader := headers["age"]
+		datesMatch := false
+		if hasAgeHeader {
+			datesMatch = headers["date"] == date.Format(time.RFC1123)
+		}
+		return datesMatch && hasAgeHeader
+	}, time.Minute, time.Second*3).Should(BeTrue(), "Check that headers contain age and that the dates match")
+
+	//wait for cache to expire
+	time.Sleep(time.Second * 15)
+
+	res = CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
+	headers = getResponseHeadersFromCurlOutput(res)
+	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers to not contain an age header, because the cached response is expired")
+	ExpectWithOffset(1, headers["date"]).NotTo(Equal(date.Format(time.RFC1123)), "validation workflow should update the date header")
+}
+
+// due to the behavior of the test caching service we need to hit another endpoint after upgrade
+// The reason behind this is we are not guaranteed that redis will roll after upgrade and if there are values in redis the cache test service will not report a change
+func validateCachingTrafficAfterUpgrade(testHelper *helper.SoloTestHelper) {
+	By("sending an initial request to cache the response")
+	res := CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-five-seconds", response200)
+
+	headers := getResponseHeadersFromCurlOutput(res)
+	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers should not contain an age header, because they are not yet cached")
+	// get date header
+	date, err := time.Parse(time.RFC1123, headers["date"])
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	By("sending a second request to serve the response from cache")
+
+	// async insert into cache is not completed when previous curl completes - for the next 3 seconds check every half second
+	EventuallyWithOffset(1, func() bool {
+		res = CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-five-seconds", response200)
+		headers = getResponseHeadersFromCurlOutput(res)
+		_, hasAgeHeader := headers["age"]
+		datesMatch := false
+		if hasAgeHeader {
+			datesMatch = headers["date"] == date.Format(time.RFC1123)
+		}
+		return datesMatch && hasAgeHeader
+	}, time.Minute, time.Second*3).Should(BeTrue(), "Check that headers contain age and that the dates match")
+
+	//wait for cache to expire
+	time.Sleep(time.Second * 15)
+
+	res = CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-five-seconds", response200)
+	headers = getResponseHeadersFromCurlOutput(res)
+	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers to not contain an age header, because the cached response is expired")
+	ExpectWithOffset(1, headers["date"]).NotTo(Equal(date.Format(time.RFC1123)), "validation workflow should update the date header")
+}
+
+// This function validates the traffic going to the rate limit vs
+// There are two routes - /posts1 which is not rate limited and /posts2 which is
+// The defined rate limit is 1 request per hour to the petstore domain on the route for /posts2
+// after the upgrade we run the same function as redis is bounced as part of the upgrade and all rate limiting gets reset.
+func validateRateLimitTraffic(testHelper *helper.SoloTestHelper) {
+	CurlAndAssertResponse(testHelper, rateLimitHost, "/posts1", response200)
+	CurlAndAssertResponse(testHelper, rateLimitHost, "/posts2", response200)
+	CurlAndAssertResponse(testHelper, rateLimitHost, "/posts2", response429)
+}
+
+// after modification the new rate limit for /posts2 is set to 3 requests an hour
+func rateLimitAfterDataModValidation(testHelper *helper.SoloTestHelper) {
+	CurlAndAssertResponse(testHelper, rateLimitHost, "/posts1", response200)
+	//100 requests should be allowed before hitting new rate limit - run ten to verify the new headroom
+	for i := 0; i < 10; i++ {
+		CurlAndAssertResponse(testHelper, rateLimitHost, "/posts2", response200)
+	}
+}
+
 func validateRequestTransformTraffic(testHelper *helper.SoloTestHelper) {
 	// response contains json object with transformed request values - we want to get that and check it for headers
-	res := curlOnPath(testHelper, queryParamHost, "/get?foo=foo-value&bar=bar-value", "")
+	res := CurlOnPath(testHelper, queryParamHost, "/get?foo=foo-value&bar=bar-value", "")
 	Expect(res).WithOffset(1).To(ContainSubstring("\"foo\": \"foo-value\""))
 	Expect(res).WithOffset(1).To(ContainSubstring("\"bar\": \"bar-value\""))
 }
-func curlAndAssertResponse(testHelper *helper.SoloTestHelper, host string, path string, expectedResponseSubstring string) {
+
+// ===================================
+// Traffic Validation Curl Functions
+// ===================================
+
+func CurlAndAssertResponse(testHelper *helper.SoloTestHelper, host string, path string, expectedResponseSubstring string) {
 	testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 		Protocol:          "http",
 		Path:              path,
@@ -716,7 +475,7 @@ func curlAndAssertResponse(testHelper *helper.SoloTestHelper, host string, path 
 	}, expectedResponseSubstring, 1, time.Minute*1)
 }
 
-func curlWithHeadersAndAssertResponse(testHelper *helper.SoloTestHelper, host string, path string, headers map[string]string, expectedResponseSubstring string) {
+func CurlWithHeadersAndAssertResponse(testHelper *helper.SoloTestHelper, host string, path string, headers map[string]string, expectedResponseSubstring string) {
 	testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 		Protocol:          "http",
 		Path:              path,
@@ -733,7 +492,7 @@ func curlWithHeadersAndAssertResponse(testHelper *helper.SoloTestHelper, host st
 
 // Method used when further validation of the request is needed that is not supported by the test runner util methods
 // return the full verbose response after validation based on expectedResponseSubstring - general use would be to pass the expected response code (ex 200, 401.. etc)
-func curlOnPath(testHelper *helper.SoloTestHelper, host string, path string, expectedResponseSubstring string) string {
+func CurlOnPath(testHelper *helper.SoloTestHelper, host string, path string, expectedResponseSubstring string) string {
 	res, err := testHelper.Curl(helper.CurlOpts{
 		Protocol:          "http",
 		Path:              path,
@@ -763,109 +522,8 @@ func getResponseHeadersFromCurlOutput(res string) map[string]string {
 	return headers
 }
 
-func getUpgradeHelmOverrides() (filename string, cleanup func()) {
-	values, err := os.CreateTemp("", "*.yaml")
-	Expect(err).NotTo(HaveOccurred())
-	valuesYaml := `gloo:
-  gateway:
-    persistProxySpec: true
-  gatewayProxies:
-    gatewayProxy:
-      gatewaySettings:
-        # the KEYVALUE action type was first available in gloo-ee v1.11.11 (within the v1.11.x branch); this is a sanity
-        # check to ensure we can upgrade without errors from an older version to a version with these new fields (i.e.
-        # we can set the new fields on the Gateway CR during the helm upgrade, and that it will pass validation)
-        customHttpGateway:
-          options:
-            dlp:
-              dlpRules:
-              - actions:
-                - actionType: KEYVALUE
-                  keyValueAction:
-                    keyToMask: test
-                    name: test
-gloo-fed:
-  enabled: false
-  glooFedApiserver:
-    enable: false
-global:
-  extensions:
-    extAuth:
-      envoySidecar: true
-    caching:
-      enabled: true
-`
-	_, err = values.Write([]byte(valuesYaml))
-	Expect(err).NotTo(HaveOccurred())
-	err = values.Close()
-	Expect(err).NotTo(HaveOccurred())
-
-	return values.Name(), func() {
-		_ = os.Remove(values.Name())
-	}
-}
-
 var strictValidationArgs = []string{
 	"--set", "gateway.validation.failurePolicy=Fail",
 	"--set", "gateway.validation.allowWarnings=false",
 	"--set", "gateway.validation.alwaysAcceptResources=false",
-}
-
-func runAndCleanCommand(name string, arg ...string) []byte {
-	cmd := exec.Command(name, arg...)
-	b, err := cmd.Output()
-	// for debugging in Cloud Build
-	if err != nil {
-		if v, ok := err.(*exec.ExitError); ok {
-			fmt.Println("ExitError: ", string(v.Stderr))
-		}
-	}
-	ExpectWithOffset(1, err).To(BeNil())
-	cmd.Process.Kill()
-	cmd.Process.Release()
-	return b
-}
-
-func checkGlooHealthy(testHelper *helper.SoloTestHelper) {
-	deploymentNames := []string{"gloo", "discovery", "gateway-proxy", "extauth", "redis", "observability", "rate-limit",
-		"glooe-prometheus-kube-state-metrics", "glooe-prometheus-server", "glooe-grafana"}
-	for _, deploymentName := range deploymentNames {
-		runAndCleanCommand("kubectl", "rollout", "status", "deployment", "-n", testHelper.InstallNamespace, deploymentName)
-	}
-	glooctlCheckEventuallyHealthy(2, testHelper, "180s")
-}
-
-func glooctlCheckEventuallyHealthy(offset int, testHelper *helper.SoloTestHelper, timeoutInterval string) {
-	EventuallyWithOffset(offset, func() error {
-		contextWithCancel, cancel := context.WithCancel(context.Background())
-		opts := &options.Options{
-			Metadata: core.Metadata{
-				Namespace: testHelper.InstallNamespace,
-			},
-			Top: options.Top{
-				Ctx:       contextWithCancel,
-				CheckName: []string{
-					// TODO if glooctl check runs out of goroutines, try skipping some checks here
-					// https://github.com/solo-io/solo-projects/issues/3614
-					//"auth-configs",
-				},
-			},
-		}
-		err := check.CheckResources(opts)
-		cancel() //attempt to avoid hitting go-routine limit
-		if err != nil {
-			return eris.Wrap(err, "glooctl check detected a problem with the installation")
-		}
-		return nil
-	}, timeoutInterval, "5s").Should(BeNil())
-}
-
-func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-
-	return false
 }

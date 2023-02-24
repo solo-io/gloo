@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -12,16 +11,15 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
+
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/k8s-utils/testutils/helper"
 	gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+
 	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
-	enterprisehelpers "github.com/solo-io/solo-projects/test/kube2e"
+	osskube2e "github.com/solo-io/solo-projects/test/kube2e"
 	admission_v1 "k8s.io/api/admissionregistration/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -73,7 +71,7 @@ var _ = Describe("Installing and upgrading GlooEE via helm", func() {
 		kubeClientset, err = kubernetes.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
 
-		testHelper, err = enterprisehelpers.GetEnterpriseTestHelper(ctx, namespace)
+		testHelper, err = osskube2e.GetEnterpriseTestHelper(ctx, namespace)
 		Expect(err).NotTo(HaveOccurred())
 		targetReleasedVersion = testHelper.ReleasedVersion
 		if targetReleasedVersion != "" {
@@ -210,7 +208,7 @@ func installGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease
 	// construct helm args
 	var args = []string{"install", testHelper.HelmChartName}
 	if fromRelease != "" {
-		runAndCleanCommand("helm", "repo", "add", testHelper.HelmChartName, glooeeRepoName,
+		osskube2e.RunAndCleanCommand("helm", "repo", "add", testHelper.HelmChartName, glooeeRepoName,
 			"--force-update")
 		args = append(args, testHelper.HelmChartName+"/gloo-ee",
 			"--version", fmt.Sprintf("v%s", fromRelease))
@@ -226,10 +224,10 @@ func installGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease
 	}
 
 	fmt.Printf("running helm with args: %v\n", args)
-	runAndCleanCommand("helm", args...)
+	osskube2e.RunAndCleanCommand("helm", args...)
 
 	// Check that everything is OK
-	checkGlooHealthy(testHelper)
+	osskube2e.CheckGlooHealthy(testHelper)
 }
 
 func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease string, targetReleasedVersion string, strictValidation bool, additionalArgs []string) {
@@ -251,10 +249,10 @@ func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease
 	args = append(args, additionalArgs...)
 
 	fmt.Printf("running helm with args: %v\n", args)
-	runAndCleanCommand("helm", args...)
+	osskube2e.RunAndCleanCommand("helm", args...)
 
 	// Check that everything is OK
-	checkGlooHealthy(testHelper)
+	osskube2e.CheckGlooHealthy(testHelper)
 }
 
 func uninstallGloo(testHelper *helper.SoloTestHelper, ctx context.Context, cancel context.CancelFunc) {
@@ -299,15 +297,15 @@ func upgradeCrds(fromRelease string, localChartUri string, publishedChartVersion
 	defer os.RemoveAll(dir)
 	if publishedChartVersion != "" {
 		// Download the crds from the released chart
-		runAndCleanCommand("helm", "repo", "add", "glooe", glooeeRepoName, "--force-update")
-		runAndCleanCommand("helm", "pull", "glooe/gloo-ee", "--version", publishedChartVersion, "--untar", "--untardir", dir)
+		osskube2e.RunAndCleanCommand("helm", "repo", "add", "glooe", glooeeRepoName, "--force-update")
+		osskube2e.RunAndCleanCommand("helm", "pull", "glooe/gloo-ee", "--version", publishedChartVersion, "--untar", "--untardir", dir)
 	} else {
 		//untar the local chart to get the crds
-		runAndCleanCommand("tar", "-xvf", localChartUri, "--directory", dir)
+		osskube2e.RunAndCleanCommand("tar", "-xvf", localChartUri, "--directory", dir)
 	}
 	// apply the crds
 	crdDir := dir + "/gloo-ee/charts/gloo/crds"
-	runAndCleanCommand("kubectl", "apply", "-f", crdDir)
+	osskube2e.RunAndCleanCommand("kubectl", "apply", "-f", crdDir)
 	// allow some time for the new crds to take effect
 	time.Sleep(time.Second * 5)
 }
@@ -381,55 +379,6 @@ global:
 	return values.Name(), func() {
 		_ = os.Remove(values.Name())
 	}
-}
-
-func runAndCleanCommand(name string, arg ...string) []byte {
-	cmd := exec.Command(name, arg...)
-	b, err := cmd.Output()
-	// for debugging in Cloud Build
-	if err != nil {
-		if v, ok := err.(*exec.ExitError); ok {
-			fmt.Println("ExitError: ", string(v.Stderr))
-		}
-	}
-	Expect(err).To(BeNil())
-	cmd.Process.Kill()
-	cmd.Process.Release()
-	return b
-}
-
-func checkGlooHealthy(testHelper *helper.SoloTestHelper) {
-	deploymentNames := []string{"gloo", "discovery", "gateway-proxy", "extauth", "redis", "observability", "rate-limit",
-		"glooe-prometheus-kube-state-metrics", "glooe-prometheus-server", "glooe-grafana"}
-	for _, deploymentName := range deploymentNames {
-		runAndCleanCommand("kubectl", "rollout", "status", "deployment", "-n", testHelper.InstallNamespace, deploymentName)
-	}
-	glooctlCheckEventuallyHealthy(2, testHelper, "180s")
-}
-
-func glooctlCheckEventuallyHealthy(offset int, testHelper *helper.SoloTestHelper, timeoutInterval string) {
-	EventuallyWithOffset(offset, func() error {
-		contextWithCancel, cancel := context.WithCancel(context.Background())
-		defer cancel() //attempt to avoid hitting go-routine limit
-		opts := &options.Options{
-			Metadata: core.Metadata{
-				Namespace: testHelper.InstallNamespace,
-			},
-			Top: options.Top{
-				Ctx:       contextWithCancel,
-				CheckName: []string{
-					// TODO if glooctl check runs out of goroutines, try skipping some checks here
-					// https://github.com/solo-io/solo-projects/issues/3614
-					//"auth-configs",
-				},
-			},
-		}
-		err := check.CheckResources(opts)
-		if err != nil {
-			return eris.Wrap(err, "glooctl check detected a problem with the installation")
-		}
-		return nil
-	}, timeoutInterval, "5s").Should(BeNil())
 }
 
 // calling NewClientsetFromConfig multiple times results in a race condition due to the use of the global scheme.Scheme.

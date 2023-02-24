@@ -28,6 +28,7 @@ import (
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 
 	errors "github.com/rotisserie/eris"
+	osskube2e "github.com/solo-io/gloo/test/kube2e"
 	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -102,7 +103,7 @@ var _ = BeforeSuite(func() {
 
 	// This should not interfere with any test that is not LDAP related.
 	// If it does, we are doing something wrong
-	deployLdapServer(ctx, kube2e.MustKubeClient(), testHelper)
+	deployLdapServer(ctx, osskube2e.MustKubeClient(), testHelper)
 
 })
 
@@ -111,7 +112,7 @@ var _ = AfterSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	if os.Getenv("TEAR_DOWN") == "true" {
-		cleanupLdapServer(ctx, kube2e.MustKubeClient())
+		cleanupLdapServer(ctx, osskube2e.MustKubeClient())
 
 		err := testHelper.UninstallGlooAll()
 		Expect(err).NotTo(HaveOccurred())

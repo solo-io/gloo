@@ -28,6 +28,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
+	osskube2e "github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"k8s.io/client-go/rest"
@@ -197,7 +198,7 @@ var _ = Describe("Installing gloo", func() {
 			Service:           defaults.GatewayProxyName,
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-		}, kube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Second*20)
+		}, osskube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Second*20)
 	})
 
 	It("gets the same response with grpc-caching and does not break", func() {

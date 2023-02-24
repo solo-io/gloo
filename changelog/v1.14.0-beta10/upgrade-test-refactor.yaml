@@ -1,0 +1,5 @@
+CHANGELOG:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4522
+    resolvesIssue: false
+    description: clean up upgrade test code

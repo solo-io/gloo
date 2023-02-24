@@ -6,10 +6,13 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"time"
 
-	"github.com/solo-io/solo-projects/test/kube2e/upgrade"
+	. "github.com/solo-io/gloo/test/kube2e"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"os/exec"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/gomega"
@@ -26,22 +29,14 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.uber.org/zap"
-	"k8s.io/client-go/kubernetes"
 
 	kubetestutils "github.com/solo-io/solo-projects/test/kubeutils"
 )
 
 const (
 	TestMatcherPrefix = "/test"
+	GlooeRepoName     = "https://storage.googleapis.com/gloo-ee-helm"
 )
-
-func GetHttpEchoImage() string {
-	httpEchoImageRegistry := "hashicorp/http-echo"
-	if runtime.GOARCH == "arm64" {
-		httpEchoImageRegistry = "gcr.io/solo-test-236622/http-echo"
-	}
-	return httpEchoImageRegistry
-}
 
 func WriteVirtualService(
 	ctx context.Context,
@@ -170,24 +165,6 @@ func EnableStrictValidation(testHelper *helper.SoloTestHelper) {
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 }
 
-func MustKubeClient() kubernetes.Interface {
-	restConfig, err := kubeutils.GetConfig("", "")
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	kubeClient, err := kubernetes.NewForConfig(restConfig)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	return kubeClient
-}
-func GetTestReleasedVersion(ctx context.Context, repoName string) string {
-	var useVersion string
-	if useVersion = os.Getenv("RELEASED_VERSION"); useVersion != "" {
-		if useVersion == "LATEST" {
-			_, current, err := upgrade.GetUpgradeVersions(ctx, repoName)
-			Expect(err).NotTo(HaveOccurred())
-			useVersion = current.String()
-		}
-	}
-	return useVersion
-}
 func GetEnterpriseTestHelper(ctx context.Context, namespace string) (*helper.SoloTestHelper, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -219,82 +196,85 @@ func PrintGlooDebugLogs() {
 	fmt.Println("*** End Gloo debug logs ***")
 }
 
-// https://github.com/solo-io/gloo/issues/4043#issuecomment-772706604
-// We should move tests away from using the testrunner, and instead depend on EphemeralContainers.
-// The default response changed in later kube versions, which caused this value to change.
-// Ideally the test utilities used by Gloo are maintained in the Gloo repo, so I opted to move
-// this constant here.
-// This response is given by the testrunner when the SimpleServer is started
-func GetSimpleTestRunnerHttpResponse() string {
-	if runtime.GOARCH == "arm64" {
-		return SimpleTestRunnerHttpResponseArm
-	} else {
-		return SimpleTestRunnerHttpResponse
+func RunAndCleanCommand(name string, arg ...string) []byte {
+	cmd := exec.Command(name, arg...)
+	b, err := cmd.Output()
+	if err != nil {
+		if v, ok := err.(*exec.ExitError); ok {
+			fmt.Println("ExitError: ", string(v.Stderr))
+		}
 	}
+	ExpectWithOffset(1, err).To(BeNil())
+	cmd.Process.Kill()
+	cmd.Process.Release()
+	return b
 }
 
-const SimpleTestRunnerHttpResponse = `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"><html>
-<title>Directory listing for /</title>
-<body>
-<h2>Directory listing for /</h2>
-<hr>
-<ul>
-<li><a href="bin/">bin/</a>
-<li><a href="boot/">boot/</a>
-<li><a href="dev/">dev/</a>
-<li><a href="etc/">etc/</a>
-<li><a href="home/">home/</a>
-<li><a href="lib/">lib/</a>
-<li><a href="lib64/">lib64/</a>
-<li><a href="media/">media/</a>
-<li><a href="mnt/">mnt/</a>
-<li><a href="opt/">opt/</a>
-<li><a href="proc/">proc/</a>
-<li><a href="product_name">product_name</a>
-<li><a href="product_uuid">product_uuid</a>
-<li><a href="root/">root/</a>
-<li><a href="root.crt">root.crt</a>
-<li><a href="run/">run/</a>
-<li><a href="sbin/">sbin/</a>
-<li><a href="srv/">srv/</a>
-<li><a href="sys/">sys/</a>
-<li><a href="tmp/">tmp/</a>
-<li><a href="usr/">usr/</a>
-<li><a href="var/">var/</a>
-</ul>
-<hr>
-</body>
-</html>`
+func CheckGlooHealthy(testHelper *helper.SoloTestHelper) {
+	GlooctlCheckEventuallyHealthy(2, testHelper, "180s")
+}
 
-// I think this is for any local request
-const SimpleTestRunnerHttpResponseArm = `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"><html>
-<title>Directory listing for /</title>
-<body>
-<h2>Directory listing for /</h2>
-<hr>
-<ul>
-<li><a href="bin/">bin/</a>
-<li><a href="boot/">boot/</a>
-<li><a href="dev/">dev/</a>
-<li><a href="etc/">etc/</a>
-<li><a href="home/">home/</a>
-<li><a href="lib/">lib/</a>
-<li><a href="lib64/">lib64/</a>
-<li><a href="media/">media/</a>
-<li><a href="mnt/">mnt/</a>
-<li><a href="opt/">opt/</a>
-<li><a href="proc/">proc/</a>
-<li><a href="product_uuid">product_uuid</a>
-<li><a href="root/">root/</a>
-<li><a href="root.crt">root.crt</a>
-<li><a href="run/">run/</a>
-<li><a href="sbin/">sbin/</a>
-<li><a href="srv/">srv/</a>
-<li><a href="sys/">sys/</a>
-<li><a href="tmp/">tmp/</a>
-<li><a href="usr/">usr/</a>
-<li><a href="var/">var/</a>
-</ul>
-<hr>
-</body>
-</html>`
+func InstallGloo(testHelper *helper.SoloTestHelper, fromRelease string, strictValidation bool, helmOverrideFilePath string) {
+	fmt.Printf("\n=============== Installing Gloo : %s ===============\n", fromRelease)
+	// construct helm args
+	var args = []string{"install", testHelper.HelmChartName}
+
+	RunAndCleanCommand("helm", "repo", "add", testHelper.HelmChartName, GlooeRepoName,
+		"--force-update")
+	args = append(args, testHelper.HelmChartName+"/gloo-ee",
+		"--version", fromRelease)
+
+	args = append(args, "-n", testHelper.InstallNamespace,
+		"--create-namespace",
+		"--set-string", "license_key="+testHelper.LicenseKey,
+		"--values", helmOverrideFilePath)
+
+	fmt.Printf("running helm with args: %v\n", args)
+
+	RunAndCleanCommand("helm", args...)
+
+	if err := testHelper.Deploy(5 * time.Minute); err != nil {
+		Expect(err).NotTo(HaveOccurred())
+	}
+
+	// Check that everything is OK
+	CheckGlooHealthy(testHelper)
+}
+
+func InstallGlooWithArgs(testHelper *helper.SoloTestHelper, fromRelease string, additionalArgs []string, helmOverrideFilePath string) {
+	fmt.Printf("\n=============== Installing Gloo : %s ===============\n", fromRelease)
+	// construct helm args
+	var args = []string{"install", testHelper.HelmChartName}
+
+	RunAndCleanCommand("helm", "repo", "add", testHelper.HelmChartName, GlooeRepoName,
+		"--force-update")
+	args = append(args, testHelper.HelmChartName+"/gloo-ee",
+		"--version", fromRelease)
+
+	args = append(args, "-n", testHelper.InstallNamespace,
+		"--create-namespace",
+		"--set-string", "license_key="+testHelper.LicenseKey,
+		"--values", helmOverrideFilePath)
+
+	args = append(args, additionalArgs...)
+
+	fmt.Printf("running helm with args: %v\n", args)
+
+	RunAndCleanCommand("helm", args...)
+
+	if err := testHelper.Deploy(5 * time.Minute); err != nil {
+		Expect(err).NotTo(HaveOccurred())
+	}
+
+	// Check that everything is OK
+	CheckGlooHealthy(testHelper)
+}
+
+func UninstallGloo(testHelper *helper.SoloTestHelper, ctx context.Context, cancel context.CancelFunc) {
+	Expect(testHelper).ToNot(BeNil())
+	err := testHelper.UninstallGloo()
+	Expect(err).NotTo(HaveOccurred())
+	_, err = MustKubeClient().CoreV1().Namespaces().Get(ctx, testHelper.InstallNamespace, metav1.GetOptions{})
+	Expect(apierrors.IsNotFound(err)).To(BeTrue())
+	cancel()
+}

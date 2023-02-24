@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -36,6 +35,7 @@ import (
 	"github.com/solo-io/k8s-utils/kubeutils"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
+	osskube2e "github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
@@ -131,7 +131,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			Service:           defaults.GatewayProxyName,
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-		}, kube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*5)
+		}, osskube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*5)
 	})
 
 	Context("virtual service in configured with SSL", func() {
@@ -175,7 +175,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			}, "15s", "0.5s").Should(Not(BeNil()))
 
 			gatewayPort := 443
-			caFile := ToFile(helpers.Certificate())
+			caFile := osskube2e.ToFile(helpers.Certificate())
 			//noinspection GoUnhandledErrorResult
 			defer os.Remove(caFile)
 
@@ -191,7 +191,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				Port:              gatewayPort,
 				CaFile:            "/tmp/ca.crt",
 				ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-			}, kube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*2)
+			}, osskube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*2)
 		})
 	})
 
@@ -466,14 +466,4 @@ func getRouteWithDest(dest *gloov1.Destination, path string) *v1.Route {
 			},
 		},
 	}
-}
-
-func ToFile(content string) string {
-	f, err := ioutil.TempFile("", "")
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	n, err := f.WriteString(content)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	ExpectWithOffset(1, n).To(Equal(len(content)))
-	_ = f.Close()
-	return f.Name()
 }

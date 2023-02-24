@@ -57,6 +57,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
+	. "github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -1284,7 +1285,7 @@ func createHttpEchoDeploymentAndService(ctx context.Context, kubeClient kubernet
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
 						Name:  "http-echo",
-						Image: kube2e.GetHttpEchoImage(),
+						Image: GetHttpEchoImage(),
 						Args:  []string{fmt.Sprintf("-text=%s", expectedResponse(appName))},
 						Ports: []corev1.ContainerPort{{
 							Name:          "http",

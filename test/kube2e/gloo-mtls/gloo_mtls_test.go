@@ -17,6 +17,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
+	osskube2e "github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"k8s.io/client-go/rest"
@@ -86,7 +87,7 @@ var _ = Describe("Installing gloo in gloo mtls mode", func() {
 			Service:           defaults.GatewayProxyName,
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-		}, kube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*5)
+		}, osskube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*5)
 	})
 
 	It("can recover from the ext-auth sidecar container being deleted", func() {
