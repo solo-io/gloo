@@ -48,7 +48,7 @@ require (
 	github.com/solo-io/caching-service v0.1.17
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.30.0
+	github.com/solo-io/ext-auth-service v0.31.0
 	github.com/solo-io/external-apis v0.1.12-0.20220818213511-97f5ab3a6898
 	github.com/solo-io/gloo v1.14.0-beta14
 	github.com/solo-io/go-list-licenses v0.1.4
