@@ -364,14 +364,11 @@ func authAfterDataModValidation(testHelper *helper.SoloTestHelper) {
 func validateCachingTraffic(testHelper *helper.SoloTestHelper) {
 	By("sending an initial request to cache the response")
 	res := CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
-
-	CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
-
 	headers := getResponseHeadersFromCurlOutput(res)
 	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers should not contain an age header, because they are not yet cached")
 	// get date header
 	date, err := time.Parse(time.RFC1123, headers["date"])
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	ExpectWithOffset(1, err).NotTo(HaveOccurred(), fmt.Sprintf("Failed Response: \n%s", res))
 
 	By("sending a second request to serve the response from cache")
 
@@ -406,7 +403,7 @@ func validateCachingTrafficAfterUpgrade(testHelper *helper.SoloTestHelper) {
 	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers should not contain an age header, because they are not yet cached")
 	// get date header
 	date, err := time.Parse(time.RFC1123, headers["date"])
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	ExpectWithOffset(1, err).NotTo(HaveOccurred(), fmt.Sprintf("Failed Response: \n%s", res))
 
 	By("sending a second request to serve the response from cache")
 
