@@ -155,14 +155,6 @@ var _ = Describe("PluginRegistryFactory", func() {
 			// validate the only a single one has been loaded into the registry
 			Expect(awsPlugins).To(Equal(1))
 		})
-
-		It("does not register graphql plugins", func() {
-			graphQlPlugins := []string{
-				graphql.ExtensionName,
-			}
-			Expect(isSubset(pluginRegistry.GetPlugins(), graphQlPlugins)).To(BeFalse())
-		})
-
 	})
 
 	Context("Open Source + Enterprise + GraphQL", func() {

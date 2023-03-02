@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/4330
+    description: >
+      GraphQL plugin now logs during translation if graphql features are not enabled. Changed from guarding the 
+      enabling of the plugin behind the license key check to guarding the translation logic to allow this check.

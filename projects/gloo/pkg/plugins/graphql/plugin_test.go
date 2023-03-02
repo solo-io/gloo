@@ -1,10 +1,13 @@
 package graphql_test
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 
 	"github.com/rotisserie/eris"
+	skv2matchers "github.com/solo-io/skv2/test/matchers"
+	"github.com/solo-io/solo-projects/pkg/license"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/translation"
 	"google.golang.org/protobuf/types/known/structpb"
 	"k8s.io/utils/lru"
@@ -183,7 +186,7 @@ var _ = Describe("Graphql plugin", func() {
 		})
 
 		BeforeEach(func() {
-			plugin = schemas.NewPlugin()
+			plugin = schemas.NewPlugin(&license.FeatureState{Enabled: true})
 			plugin.Init(plugins.InitParams{})
 		})
 
@@ -702,6 +705,33 @@ var _ = Describe("Graphql plugin", func() {
 					},
 				})))
 			})
+		})
+	})
+
+	Context("no graphql license", func() {
+		BeforeEach(func() {
+			plugin = schemas.NewPlugin(&license.FeatureState{Enabled: false})
+			plugin.Init(plugins.InitParams{Ctx: context.Background()})
+		})
+
+		AfterEach(func() {
+			plugin = schemas.NewPlugin(&license.FeatureState{Enabled: true})
+			plugin.Init(plugins.InitParams{})
+		})
+
+		It("always registers graphql plugin", func() {
+
+			// When graphql license is not enabled, we expect the plugin to still get created but ProcessRoute/HttpFilters to not produce any output
+			outRoute := &envoy_config_route_v3.Route{}
+			err := plugin.(plugins.RoutePlugin).ProcessRoute(plugins.RouteParams{
+				VirtualHostParams: vhostParams,
+				VirtualHost:       virtualHost,
+			}, route, outRoute)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(outRoute).To(skv2matchers.MatchProto(&envoy_config_route_v3.Route{}))
+
+			outFilters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, httpListener)
+			Expect(len(outFilters)).To(Equal(0))
 		})
 	})
 })

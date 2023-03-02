@@ -1,7 +1,12 @@
 package graphql
 
 import (
+	"context"
 	"strings"
+
+	"github.com/solo-io/go-utils/contextutils"
+
+	"github.com/solo-io/solo-projects/pkg/license"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/rotisserie/eris"
@@ -37,13 +42,19 @@ type plugin struct {
 	processedSchemaLruCache *lru.Cache
 	// This cache prevents us from rerunning the stitching info JS script on every translation loop, which can be expensive
 	stitchingInfoLruCache *lru.Cache
+	// Is the graphQL plugin enabled
+	graphQLFeatureState *license.FeatureState
+	ctx                 context.Context
 }
 
 // NewPlugin creates the basic graphql plugin structure.
-func NewPlugin() *plugin {
+// context.Background() is used for ctx as we cant pass nil to contextutils.WithLogger() in Init
+func NewPlugin(graphQLFeatureState *license.FeatureState) *plugin {
 	return &plugin{
 		processedSchemaLruCache: lru.New(1024),
 		stitchingInfoLruCache:   lru.New(1024),
+		graphQLFeatureState:     graphQLFeatureState,
+		ctx:                     context.Background(),
 	}
 }
 
@@ -54,12 +65,24 @@ func (p *plugin) Name() string {
 
 // Init resets the plugin and creates the maps within the structure.
 func (p *plugin) Init(params plugins.InitParams) {
-	p.removeUnused = params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
-	p.filterRequiredForListener = make(map[*v1.HttpListener]struct{})
+	if params.Ctx != nil {
+		p.ctx = params.Ctx
+	}
+	p.ctx = contextutils.WithLogger(p.ctx, "graphql-plugin")
+	if p.graphQLFeatureState.Enabled {
+		p.removeUnused = params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
+		p.filterRequiredForListener = make(map[*v1.HttpListener]struct{})
+	}
+	if p.graphQLFeatureState.Reason != "" {
+		contextutils.LoggerFrom(p.ctx).Debug(p.graphQLFeatureState.Reason)
+	}
 }
 
 // HttpFilters sets up the filters for envoy if it is needed.
 func (p *plugin) HttpFilters(_ plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+	if !p.graphQLFeatureState.Enabled {
+		return []plugins.StagedHttpFilter{}, nil
+	}
 	var filters []plugins.StagedHttpFilter
 
 	_, ok := p.filterRequiredForListener[listener]
@@ -68,7 +91,7 @@ func (p *plugin) HttpFilters(_ plugins.Params, listener *v1.HttpListener) ([]plu
 	}
 
 	emptyConf := &v2.GraphQLConfig{}
-	stagedFilter, err := plugins.NewStagedFilterWithConfig(FilterName, emptyConf, FilterStage)
+	stagedFilter, err := plugins.NewStagedFilter(FilterName, emptyConf, FilterStage)
 	if err != nil {
 		return nil, err
 	}
@@ -85,6 +108,11 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	}
 
 	gql, err := params.Snapshot.GraphqlApis.Find(gqlRef.GetNamespace(), gqlRef.GetName())
+
+	if !p.graphQLFeatureState.Enabled {
+		contextutils.LoggerFrom(p.ctx).Errorf("Will not translate graphql api custom resource `%s` in namespace `%s`, no graphql features included with current license", gqlRef.GetName(), gqlRef.GetNamespace())
+		return nil
+	}
 	if err != nil {
 		ret := ""
 		for _, api := range params.Snapshot.GraphqlApis {

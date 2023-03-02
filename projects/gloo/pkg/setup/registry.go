@@ -43,20 +43,12 @@ func GetPluginRegistryFactory(
 
 		// Process Enterprise feature
 		enterpriseFeatureState := licensedFeatureProvider.GetStateForLicensedFeature(license.Enterprise)
+		graphqlFeatureState := licensedFeatureProvider.GetStateForLicensedFeature(license.GraphQL)
 		if enterpriseFeatureState.Enabled {
-			availablePlugins = reconcileEnterprisePlugins(availablePlugins, getEnterprisePlugins(apiEmitterChan))
+			availablePlugins = reconcileEnterprisePlugins(availablePlugins, getEnterprisePlugins(apiEmitterChan, graphqlFeatureState))
 		}
 		if enterpriseFeatureState.Reason != "" {
 			log.Debugf("%s", enterpriseFeatureState.Reason)
-		}
-
-		// Process GraphQL feature
-		graphQLFeatureState := licensedFeatureProvider.GetStateForLicensedFeature(license.GraphQL)
-		if graphQLFeatureState.Enabled {
-			availablePlugins = reconcileGraphQLPlugins(availablePlugins, getGraphQLPlugins())
-		}
-		if graphQLFeatureState.Reason != "" {
-			log.Debugf("%s", graphQLFeatureState.Reason)
 		}
 
 		// Load the reconciled set of plugins into the registry
@@ -68,7 +60,7 @@ func getOpenSourcePlugins(opts bootstrap.Opts) []plugins.Plugin {
 	return registry.Plugins(opts)
 }
 
-func getEnterprisePlugins(apiEmitterChan chan struct{}) []plugins.Plugin {
+func getEnterprisePlugins(apiEmitterChan chan struct{}, graphQLFeatureState *license.FeatureState) []plugins.Plugin {
 	return []plugins.Plugin{
 		ratelimit.NewPlugin(),
 		extauth.NewPlugin(),
@@ -90,12 +82,7 @@ func getEnterprisePlugins(apiEmitterChan chan struct{}) []plugins.Plugin {
 		leftmost_xff_address.NewPlugin(),
 		transformer.NewPlugin(),
 		proxyprotocol.NewPlugin(),
-	}
-}
-
-func getGraphQLPlugins() []plugins.Plugin {
-	return []plugins.Plugin{
-		graphql.NewPlugin(),
+		graphql.NewPlugin(graphQLFeatureState),
 	}
 }
 
@@ -122,9 +109,4 @@ func reconcileEnterprisePlugins(currentPlugins, enterprisePlugins []plugins.Plug
 
 	// Append all enterprise plugins to the end of the list
 	return append(currentPlugins, enterprisePlugins...)
-}
-
-func reconcileGraphQLPlugins(currentPlugins, graphQLPlugins []plugins.Plugin) []plugins.Plugin {
-	// GraphQL plugins are only defined in GlooE and thus can just be appended to the end of the list
-	return append(currentPlugins, graphQLPlugins...)
 }
