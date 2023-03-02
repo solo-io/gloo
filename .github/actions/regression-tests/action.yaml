@@ -63,6 +63,13 @@ runs:
       # see what's in the cluster if we failed
       kubectl get all -A
       kubectl get configmaps -A
+  - name: System Info
+    if: always()
+    shell: bash
+    run: |
+      df -h
+      docker ps -a
+      docker images
   - name: save results
     if: ${{ failure() }}
     shell: bash

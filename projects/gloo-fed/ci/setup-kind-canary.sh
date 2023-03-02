@@ -1,5 +1,7 @@
 #!/bin/bash -ex
 
+# REMOVE_CANARY_IMAGES - if set to "true", used to remove the images after they have been created and loaded on kind. Remove some of the canary images.
+
 # 0. Assign default values to some of our environment variables
 # Get directory this script is located in to access script local files
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
@@ -42,7 +44,7 @@ if [ "$GLOO_LICENSE_KEY" == "" ]; then
 fi
 
 # 2. Build the gloo command line tool, ensuring we have one in the `_output` folder
-make glooctl-$OS-$GOARCH
+make glooctl-$OS-$GOARCH -B
 shopt -s expand_aliases
 alias glooctl=_output/glooctl-$OS-$GOARCH
 
@@ -63,18 +65,22 @@ if [[ "$FROM_RELEASE" == "true" ]]; then
 fi
 # 4. Build local federation and enterprise images and helm charts used in these clusters
 # NOTE TO DEVELOPERS: This build step should only occur once, and we can load the images into separate clusters
-VERSION=$VERSION make build-test-chart
-VERSION=$VERSION make gloo-fed-docker gloo-fed-rbac-validating-webhook-docker
-VERSION=$VERSION make gloo-ee-docker gloo-ee-envoy-wrapper-docker discovery-ee-docker
+VERSION=$VERSION make build-test-chart -B
+VERSION=$VERSION make gloo-fed-docker gloo-fed-rbac-validating-webhook-docker -B
+VERSION=$VERSION make gloo-ee-docker gloo-ee-envoy-wrapper-docker discovery-ee-docker -B
 
 # 5. Seed the management cluster
 kubectl config use-context kind-"$MANAGEMENT_CLUSTER"
-CLUSTER_NAME=$MANAGEMENT_CLUSTER VERSION=$VERSION make kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-webhook
+CLUSTER_NAME=$MANAGEMENT_CLUSTER VERSION=$VERSION make kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-webhook -B
+
+if [[ $REMOVE_CANARY_IMAGES == "true" ]]; then
+  VERSION=$VERSION make remove-gloofed-controller-images -B
+fi
 
 # 6. Seed the remote-release cluster
 kubectl config use-context kind-"$REMOTE_RELEASE_CLUSTER"
-CLUSTER_NAME=$REMOTE_RELEASE_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee
+CLUSTER_NAME=$REMOTE_RELEASE_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee -B
 
 # 7. Seed the remote-canary cluster
 kubectl config use-context kind-"$REMOTE_CANARY_CLUSTER"
-CLUSTER_NAME=$REMOTE_CANARY_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee
+CLUSTER_NAME=$REMOTE_CANARY_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee -B

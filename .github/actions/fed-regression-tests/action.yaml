@@ -45,7 +45,21 @@ runs:
     env:
       MANAGEMENT_CLUSTER: management
       REMOTE_CLUSTER: remote
+      REMOVE_GLOO_FED_IMAGES: "true"
       CLUSTER_NODE_VERSION: ${{ matrix.kube-version.node }}
+  # should be the same as canary-regression-tests
+  - name: Clean Up Images
+    shell: bash
+    run: |
+      docker image rm node:14
+      docker image rm node:14-alpine
+      docker image rm node:16
+      docker image rm node:16-alpine
+      docker image rm node:18
+      docker image rm node:18-alpine
+      # remove the dangling images and containers
+      docker images | tail -n +2 | awk '$1 == "<none>" {print $3}' | xargs --no-run-if-empty docker rmi
+      docker ps -a | tail -n +2 | awk '$2 ~ "^[0-9a-f]+$" {print $1}' | xargs --no-run-if-empty docker rm --volumes=true
   - name: Run tests
     shell: bash
     run: make run-ci-gloo-fed-regression-tests
@@ -61,6 +75,14 @@ runs:
       kubectl get all -A
       kubectl get configmaps -A
       kubectl port-forward -n gloo-system deploy/gateway-proxy 19000 & sleep 5; curl localhost:19000/clusters; curl localhost:19000/config_dump;
+      # see the disk space of the test
+  - name: System Info
+    if: always()
+    shell: bash
+    run: |
+      df -h
+      docker ps -a
+      docker images
   - name: save results
     if: ${{ failure() }}
     shell: bash

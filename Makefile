@@ -353,6 +353,20 @@ gloofed-docker: gloo-fed-docker gloo-fed-rbac-validating-webhook-docker gloo-fed
 .PHONY: gloofed-load-kind-images
 gloofed-load-kind-images: kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-webhook kind-load-gloo-fed-apiserver kind-load-gloo-fed-apiserver-envoy kind-load-ui
 
+.PHONY: remove-all-gloofed-images
+remove-all-gloofed-images: remove-gloofed-ui-images remove-gloofed-controller-images
+
+.PHONY: remove-gloofed-ui-images 
+remove-gloofed-ui-images:
+	docker image rm $(IMAGE_REG)/gloo-fed-apiserver:$(VERSION)
+	docker image rm $(IMAGE_REG)/gloo-fed-apiserver-envoy:$(VERSION)
+	docker image rm $(IMAGE_REG)/gloo-federation-console:$(VERSION)
+
+.PHONY: remove-gloofed-controller-images
+remove-gloofed-controller-images:
+	docker image rm $(IMAGE_REG)/gloo-fed:$(VERSION)
+	docker image rm $(IMAGE_REG)/gloo-fed-rbac-validating-webhook:$(VERSION)
+
 #----------------------------------------------------------------------------------
 # Gloo Fed Apiserver
 #----------------------------------------------------------------------------------
