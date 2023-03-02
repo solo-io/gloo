@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4596
+    resolvesIssue: false
+    description: removed references to FORCE_CLEAN_TEST_ASSET_DIR to quiet CI logs

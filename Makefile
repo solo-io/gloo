@@ -1691,9 +1691,6 @@ build-test-chart: build-test-chart-fed
 
 .PHONY: build-test-chart-fed
 build-test-chart-fed: gloofed-helm-template
-	if [ $(FORCE_CLEAN_TEST_ASSET_DIR) = true ] ; then\
-		rm -rf $(TEST_ASSET_DIR);\
-	fi
 	mkdir -p $(TEST_ASSET_DIR)
 	helm repo add helm-hub https://charts.helm.sh/stable
 	helm repo add gloo-fed https://storage.googleapis.com/gloo-fed-helm
