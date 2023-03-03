@@ -5,11 +5,14 @@ package js
 import "C"
 
 import (
+	"sync"
 	"time"
 
 	"github.com/rotisserie/eris"
 	v8 "rogchap.com/v8go"
 )
+
+var v8goMutex = &sync.Mutex{}
 
 // Runner is any program that allows you to set the timeout and run the pogram. Use the Run() method to run the program.
 type Runner interface {
@@ -34,9 +37,29 @@ type V8RunnerInputOutput struct {
 	timeout time.Duration
 }
 
-func NewV8RunnerInputOutput(filename, sourceCode string) (*V8RunnerInputOutput, error) {
+func newIsolate() *v8.Isolate {
+	v8goMutex.Lock()
 	iso := v8.NewIsolate()
-	defer iso.Dispose()
+	v8goMutex.Unlock()
+	return iso
+}
+
+func disposeIsolate(iso *v8.Isolate) {
+	v8goMutex.Lock()
+	iso.Dispose()
+	v8goMutex.Unlock()
+}
+
+func newContext(iso *v8.Isolate, global *v8.ObjectTemplate) *v8.Context {
+	// needs to have mutex, if isolate is not applied
+	v8ctx := v8.NewContext(iso, global)
+	return v8ctx
+}
+
+func NewV8RunnerInputOutput(filename, sourceCode string) (*V8RunnerInputOutput, error) {
+	iso := newIsolate()
+	defer disposeIsolate(iso)
+
 	script, err := iso.CompileUnboundScript(sourceCode, filename, v8.CompileOptions{})
 	if err != nil {
 		return nil, eris.Wrapf(err, "unable to create V8RunnerInputOutput and compile %s", filename)
@@ -57,8 +80,8 @@ func (r *V8RunnerInputOutput) SetTimeout(timeout time.Duration) {
 
 // Run will run the JS program using v8go.
 func (r *V8RunnerInputOutput) Run(input string) (string, error) {
-	iso := v8.NewIsolate()
-	defer iso.Dispose()
+	iso := newIsolate()
+	defer disposeIsolate(iso)
 	global := v8.NewObjectTemplate(iso) // a template that represents a JS Object
 	if err := r.setInput(iso, global, input); err != nil {
 		return "", err
@@ -67,7 +90,7 @@ func (r *V8RunnerInputOutput) Run(input string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	v8ctx := v8.NewContext(iso, global)
+	v8ctx := newContext(iso, global)
 	completed, errs := r.runScript(v8ctx, iso, global)
 	defer close(completed)
 	defer close(errs)

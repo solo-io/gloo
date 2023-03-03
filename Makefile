@@ -61,7 +61,8 @@ ifneq ($(EMPTY_IF_NOT_DEFAULT),)
     ON_DEFAULT_BRANCH = "true"
 endif
 
-LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION) -X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore"
+LDFLAGS :="-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION) -X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore"
+LD_STATIC_LINKING_FLAGS:="-linkmode external -extldflags=-static -X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION) -X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore"
 GCFLAGS := 'all=-N -l'
 
 GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=$(DOCKER_GOARCH)
@@ -388,7 +389,7 @@ $(GLOO_FED_APISERVER_OUT_DIR)/.gloo-fed-apiserver-docker-build: $(GLOO_FED_SOURC
 		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
-		--build-arg LDFLAGS=$(LDFLAGS) \
+		--build-arg LDFLAGS=$(LD_STATIC_LINKING_FLAGS) \
 		--build-arg GITHUB_TOKEN \
 		--build-arg DOCKER_GOARCH=amd64 \
 		.
@@ -1042,7 +1043,7 @@ $(GLOO_OUT_DIR)/.gloo-ee-docker-build: install-node-packages $(GLOO_SOURCES) $(G
 		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
-		--build-arg LDFLAGS=$(LDFLAGS) \
+		--build-arg LDFLAGS=$(LD_STATIC_LINKING_FLAGS) \
 		--build-arg USE_APK=true \
 		--build-arg GITHUB_TOKEN \
 		${DOCKER_GO_AMD_64_ARGS} \
@@ -1093,7 +1094,7 @@ $(GLOO_RACE_OUT_DIR)/.gloo-ee-race-docker-build: $(GLOO_SOURCES) $(GLOO_RACE_OUT
 		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
-		--build-arg LDFLAGS=$(LDFLAGS) \
+		--build-arg LDFLAGS=$(LD_STATIC_LINKING_FLAGS) \
 		--build-arg USE_APK=true \
 		--build-arg GITHUB_TOKEN \
 		--build-arg RACE=-race \
@@ -1138,7 +1139,7 @@ $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker-build: $(GLOO_SOURCES) $(GLOO_FIPS_OUT_DIR)
 		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
-		--build-arg LDFLAGS=$(LDFLAGS) \
+		--build-arg LDFLAGS=$(LD_STATIC_LINKING_FLAGS) \
 		--build-arg USE_APK=true \
 		--build-arg GITHUB_TOKEN \
 		$(DOCKER_GO_BORING_ARGS) \

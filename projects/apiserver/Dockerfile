@@ -21,7 +21,8 @@ RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf https
 RUN go env -w GOPRIVATE=github.com/solo-io
 
 # get the cross compilers for both gcc and g++
-RUN if [ "${BUILDARCH}" = "arm64" ] && [ "${DOCKER_GOARCH}" = "amd64" ]; then apt-get update && apt-get install -y gcc-x86-64-linux-gnu g++-x86-64-linux-gnu; fi && \
+# symlink because the files are misplaced on arm64
+RUN if [ "${BUILDARCH}" = "arm64" ] && [ "${DOCKER_GOARCH}" = "amd64" ]; then apt-get update && apt-get install -y gcc-x86-64-linux-gnu g++-x86-64-linux-gnu; ln -s /usr/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu/; fi && \
     if [ "${BUILDARCH}" = "amd64" ] && [ "${DOCKER_GOARCH}" = "arm64" ]; then apt-get update && apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu; fi
 
 # set up go mod and download go resources, so that we can save this step for caching for performance reasons

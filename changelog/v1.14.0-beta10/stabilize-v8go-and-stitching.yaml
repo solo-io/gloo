@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/4569
+    description: >
+       Race condition occurs with `NewIsolate()` function in v8go. Adding mutex to prevent this from occuring.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4569
+    description: >
+      Add external flag static for ldflags when builiding CGO binaries, so that shared libraries are not linked.

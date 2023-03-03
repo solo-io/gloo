@@ -26,7 +26,8 @@ RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf https
 RUN go env -w GOPRIVATE=github.com/solo-io
 
 # get the cross compilers for both gcc and g++
-RUN if [ "${BUILDARCH}" = "arm64" ] && [ "${DOCKER_GOARCH}" = "amd64" ]; then apt-get update && apt-get install -y gcc-x86-64-linux-gnu g++-x86-64-linux-gnu; fi && \
+# symlink because the files are misplaced on arm64
+RUN if [ "${BUILDARCH}" = "arm64" ] && [ "${DOCKER_GOARCH}" = "amd64" ]; then apt-get update && apt-get install -y gcc-x86-64-linux-gnu g++-x86-64-linux-gnu; ln -s /usr/x86_64-linux-gnu/lib/* /usr/lib/x86_64-linux-gnu/; fi && \
     if [ "${BUILDARCH}" = "amd64" ] && [ "${DOCKER_GOARCH}" = "arm64" ]; then apt-get update && apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu; fi
 
 # set up go mod and download go resources, so that we can save this step for caching for performance reasons
@@ -48,10 +49,9 @@ RUN \
     CGO_ENABLED=1 GOARCH=${DOCKER_GOARCH} GOOS=linux go build \
     ${RACE} \
     -gcflags="$GCFLAGS" \
-    -ldflags="-X github.com/solo-io/solo-projects/pkg/version.Version=$VERSION $LDFLAGS" \
+    -ldflags="$LDFLAGS" \
     -o gloo-linux-${DOCKER_GOARCH} \
     projects/gloo/cmd/main.go
-
 
 FROM alpine:3.17.1
 ARG DOCKER_GOARCH
