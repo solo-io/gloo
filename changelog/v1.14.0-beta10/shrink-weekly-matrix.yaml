@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4626
+    resolvesIssue: false
+    description: removed k8s@1.24 as a matrix option from 1.11.x and 1.10.x LTS weeklies
+
