@@ -21,6 +21,7 @@ const (
 
 // LicensedFeatureProvider decides whether a provided license supports a set of Edge features
 // The purpose of this LicensedFeatureProvider is to:
+//
 //	(A) codify how the state of that license affects the behavior of our application.
 //	(B) decouple application logic from license logic. Now our application can be aware of
 //		features, and unaware of the state of the license

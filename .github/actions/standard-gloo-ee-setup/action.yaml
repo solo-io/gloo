@@ -9,7 +9,7 @@ inputs:
     description: access key for Quay Image repository
   GO_VERSION:
     description: Version of golang to build with
-    default: 1.18.2
+    default: 1.20.1
   GITHUB_TOKEN:
     required: true
     description: access token for use in CI
@@ -37,8 +37,9 @@ runs:
         sudo rm -rf /usr/share/dotnet
         sudo rm -rf /opt/ghc
         sudo rm -rf /usr/local/share/boost
+        sudo rm -rf /usr/local/lib/android || true
+        sudo rm -rf /opt/ghc || true
         sudo rm -rf $AGENT_TOOLSDIRECTORY
-
         echo "After clearing disk space:"
         df -h
     # enable ineraction with gcloud buckets

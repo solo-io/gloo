@@ -27,7 +27,7 @@ steps:
       git config --global url."ssh://git@github.com/solo-io".insteadOf https://github.com/solo-io
   id: "configure-git"
 
-- name: "golang:1.18.2"
+- name: "golang:1.20.1"
   args: ["go", "env", "-w", "GOPRIVATE=github.com/solo-io"]
   id: "set-private"
 
@@ -36,7 +36,7 @@ steps:
 
 # $COMMIT_SHA is a default gcloud env var, to run via cloudbuild submit use:
 # gcloud builds submit --substitutions COMMIT_SHA=<commitsha>,REPO_NAME=solo-io/solo-projects --project gloo-ee
-- name: "gcr.io/solo-public/prepare-go-workspace:0.4.28"
+- name: "gcr.io/solo-public/prepare-go-workspace:0.6.1"
   args:
     - "--repo-name"
     - "$REPO_NAME"
@@ -93,7 +93,7 @@ steps:
   waitFor: ["-"]
   id: "docker-login"
 
-- name: "gcr.io/solo-public/go-mod-make:0.4.28"
+- name: "gcr.io/solo-public/go-mod-make:0.6.1"
   args: ["docker-push"]
   dir: "/workspace/solo-projects"
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
@@ -108,7 +108,7 @@ steps:
   id: "gcr-auth"
 
   # go-make is produced from https://github.com/solo-io/cloud-builders/tree/master/go-mod-make
-- name: "gcr.io/solo-public/go-mod-make:0.4.28"
+- name: "gcr.io/solo-public/go-mod-make:0.6.1"
   args:
     [
       "init-helm",
@@ -122,7 +122,7 @@ steps:
   id: "release"
 
   # Run make targets to retag and push docker images to GCR
-- name: "gcr.io/solo-public/go-mod-make:0.4.28"
+- name: "gcr.io/solo-public/go-mod-make:0.6.1"
   args: ["docker-retag-images"]
   env:
     - "TEST_ASSET_ID=$_PR_NUM"

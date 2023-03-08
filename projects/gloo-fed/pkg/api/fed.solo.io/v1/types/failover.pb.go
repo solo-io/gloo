@@ -86,41 +86,40 @@ func (FailoverSchemeStatus_State) EnumDescriptor() ([]byte, []int) {
 	return file_github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_v1_failover_proto_rawDescGZIP(), []int{1, 0}
 }
 
+// FailoverSpec is the core portion of the API for enabling failover between Gloo Upstreams in gloo-fed.
+// This API is heavily inspired by the Failover API present in the Gloo Upstream which can be found in
+// `api/gloo/v1/upstream`.
 //
-//FailoverSpec is the core portion of the API for enabling failover between Gloo Upstreams in gloo-fed.
-//This API is heavily inspired by the Failover API present in the Gloo Upstream which can be found in
-//`api/gloo/v1/upstream`.
+// The source Upstream below is the initial primary target of traffic. The type of endpoints vary by the type
+// of Upstream specified. Each target specified is then configured as a failover endpoint in the case that
+// the prmiary Upstream becomes unhealthy. The priority of the failover endpoints is inferred from the
+// order in which the Upstreams are specified. source = [0], targets = [1-n].
 //
-//The source Upstream below is the initial primary target of traffic. The type of endpoints vary by the type
-//of Upstream specified. Each target specified is then configured as a failover endpoint in the case that
-//the prmiary Upstream becomes unhealthy. The priority of the failover endpoints is inferred from the
-//order in which the Upstreams are specified. source = [0], targets = [1-n].
+// Example:
 //
-//Example:
-//
-//primary:
-//cluster: primary
-//name: primary
-//namespace: primary
-//failover_groups:
-//- priority_group:
-//- cluster: A
-//upstreams:
-//- name: one
-//namespace: one
-//- cluster: B
-//upstreams:
-//- name: two
-//namespace: two
-//- priority_group:
-//- cluster: C
-//upstreams:
-//- name: one
-//namespace: one
-//- cluster: D
-//upstreams:
-//- name: two
-//namespace: two
+// primary:
+// cluster: primary
+// name: primary
+// namespace: primary
+// failover_groups:
+// - priority_group:
+// - cluster: A
+// upstreams:
+// - name: one
+// namespace: one
+// - cluster: B
+// upstreams:
+// - name: two
+// namespace: two
+// - priority_group:
+// - cluster: C
+// upstreams:
+// - name: one
+// namespace: one
+// - cluster: D
+// upstreams:
+// - name: two
+// namespace: two
 type FailoverSchemeSpec struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

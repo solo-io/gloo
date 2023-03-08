@@ -13,12 +13,9 @@ UNAME_M ?=$(shell uname -m)
 IMAGE_REG_DEFAULT_VALUE := quay.io/solo-io
 IMAGE_REG ?= $(IMAGE_REG_DEFAULT_VALUE)
 
-GOLANG_VERSION := golang:1.18.2-alpine
+GOLANG_VERSION := golang:1.20.1-alpine
 # the build image for GLOO is much different than for rate-limit and ext-auth
-GLOO_GOLANG_VERSION := golang:1.18.2
-# https://github.com/golang/go/tree/dev.boringcrypto/misc/boring#building-from-docker
-# repository can be found here https://go-boringcrypto.storage.googleapis.com/
-GOBORING_VERSION := us-docker.pkg.dev/google.com/api-project-999119582588/go-boringcrypto/golang:1.18.2b7
+GLOO_GOLANG_VERSION := golang:1.20.1
 
 RELEASE := "false"
 
@@ -68,7 +65,7 @@ ifeq ($(GOARCH), amd64)
 	GO_ENABLE_CGO=1
 endif
 
-DOCKER_GO_BORING_ARGS=--build-arg DOCKER_GOARCH=amd64 --build-arg DOCKER_CGO_ENABLED=1 --platform linux/amd64
+DOCKER_GO_BORING_ARGS=--build-arg GOEXPERIMENT=boringcrypto --build-arg DOCKER_GOARCH=amd64 --build-arg DOCKER_CGO_ENABLED=1 --platform linux/amd64 
 # to build an image that must be a AMD64 platform
 DOCKER_GO_AMD_64_ARGS=--build-arg DOCKER_GOARCH=amd64 --build-arg DOCKER_CGO_ENABLED=1
 

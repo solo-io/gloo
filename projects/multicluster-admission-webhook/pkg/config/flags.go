@@ -7,8 +7,8 @@ import (
 )
 
 /*
-	Viper offers a way to unify global config from multiple sources.
-	Part of that contract is having string keys to access the data, all known keys should be defined below.
+Viper offers a way to unify global config from multiple sources.
+Part of that contract is having string keys to access the data, all known keys should be defined below.
 */
 const (
 	PodNamespace                       = "pod_namespace"

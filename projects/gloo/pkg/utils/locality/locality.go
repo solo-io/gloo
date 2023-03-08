@@ -13,9 +13,9 @@ import (
 )
 
 /*
-	LocalityFinder aids in the discovery of the locality associated with kubernetes workloads.
-	It does this by checking well-known node labels https://kubernetes.io/docs/reference/kubernetes-api/labels-annotations-taints/.
-	If no locality can be found on the nodes, than an empty string will be returned for region, and an empty list for zones.
+LocalityFinder aids in the discovery of the locality associated with kubernetes workloads.
+It does this by checking well-known node labels https://kubernetes.io/docs/reference/kubernetes-api/labels-annotations-taints/.
+If no locality can be found on the nodes, than an empty string will be returned for region, and an empty list for zones.
 */
 type LocalityFinder interface {
 	// GetRegion attempts to get the region for a given kubernetes cluster. If no region can be found, will return ""

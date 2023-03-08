@@ -43,23 +43,23 @@ If not (the second action/generated descriptor), then the remote address is retr
 Given this envoy configuration, the appropriate server configuration would be:
 
 descriptors:
-- key: generic_key
-  value: <resource_name>
-  descriptors:
+  - key: generic_key
+    value: <resource_name>
+    descriptors:
   - key: header_match
     value: not-authenticated
     descriptors:
-    - key: remote_address
-      rate_limit:
-        unit: MINUTE
-        requests_per_unit: 3
+  - key: remote_address
+    rate_limit:
+    unit: MINUTE
+    requests_per_unit: 3
   - key: header_match
     value: is-authenticated
     descriptors:
-    - key: userid
-      rate_limit:
-        unit: MINUTE
-        requests_per_unit: 10
+  - key: userid
+    rate_limit:
+    unit: MINUTE
+    requests_per_unit: 10
 */
 type BasicRateLimitTranslator interface {
 	GenerateServerConfig(resourceName string, ingressRl rl_opts.IngressRateLimit) (*solo_api_rl_types.Descriptor, error)

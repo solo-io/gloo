@@ -30,8 +30,8 @@ Name|Version|License
 [jhump/protoreflect](https://github.com/jhump/protoreflect)|v1.6.1|Apache License 2.0
 [kelseyhightower/envconfig](https://github.com/kelseyhightower/envconfig)|v1.4.0|MIT License
 [olekukonko/tablewriter](https://github.com/olekukonko/tablewriter)|v0.0.5|MIT License
-[ginkgo/v2](https://github.com/onsi/ginkgo)|v2.5.0|MIT License
-[onsi/gomega](https://github.com/onsi/gomega)|v1.24.1|MIT License
+[ginkgo/v2](https://github.com/onsi/ginkgo)|v2.8.1|MIT License
+[onsi/gomega](https://github.com/onsi/gomega)|v1.26.0|MIT License
 [opencontainers/go-digest](https://github.com/opencontainers/go-digest)|v1.0.0-rc1|Apache License 2.0
 [pkg/errors](https://github.com/pkg/errors)|v0.9.1|BSD 2-clause "Simplified" License
 [prometheus/client_golang](https://github.com/prometheus/client_golang)|v1.13.0|Apache License 2.0
@@ -43,8 +43,8 @@ Name|Version|License
 [spf13/viper](https://github.com/spf13/viper)|v1.12.0|MIT License
 [go.opencensus.io](https://go.opencensus.io)|v0.24.0|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.21.0|MIT License
-[x/mod](https://golang.org/x/mod)|v0.7.0|BSD 3-clause "New" or "Revised" License
-[x/net](https://golang.org/x/net)|v0.5.0|BSD 3-clause "New" or "Revised" License
+[x/mod](https://golang.org/x/mod)|v0.8.0|BSD 3-clause "New" or "Revised" License
+[x/net](https://golang.org/x/net)|v0.6.0|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.1.0|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
 [google.golang.org/genproto](https://google.golang.org/genproto)|v0.0.0-20221201164419-0e50fba7f41c|Apache License 2.0

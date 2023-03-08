@@ -13,7 +13,8 @@ func main() {}
 var _ api.ExtAuthPlugin = &mockPlugin{}
 
 // This is the exported symbol that GlooE will look for.
-//noinspection GoUnusedGlobalVariable
+//
+//goland:noinspection  GoUnusedGlobalVariable
 var Plugin mockPlugin
 
 type mockPlugin struct{}

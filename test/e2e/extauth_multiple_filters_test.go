@@ -658,8 +658,9 @@ var _ = Describe("External auth with multiple auth servers", func() {
 })
 
 // Represents an external auth service that returns:
-// 	200 Ok - if presented with a Bearer token with the proper prefix
-// 	401 Unauthorized - Otherwise
+//
+//	200 Ok - if presented with a Bearer token with the proper prefix
+//	401 Unauthorized - Otherwise
 func startLocalGrpcExtAuthServer(port int, expectedBearerTokenPrefix string) *services.GrpcAuthServer {
 	authServer := &services.GrpcAuthServer{
 		AuthChecker: func(ctx context.Context, req *envoy_service_auth_v3.CheckRequest) (*envoy_service_auth_v3.CheckResponse, error) {

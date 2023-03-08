@@ -49,14 +49,14 @@ type multiClusterAdmissionValidator struct {
 }
 
 /*
-	An action is mapped to a list of placements.
+An action is mapped to a list of placements.
 
-	The action is allowed if and only if for each of its placements, there exists a rule whose placement
-	namespaces and clusters are either a wildcard or a superset of the resource's placement.
+The action is allowed if and only if for each of its placements, there exists a rule whose placement
+namespaces and clusters are either a wildcard or a superset of the resource's placement.
 
-	Note that all applicable placement rules must be defined within a single MultiClusterBinding, i.e.
-	a resource placement cannot be allowed if its placements are permitted by Rules that exist across
-	multiple MultiClusterRoleBindings.
+Note that all applicable placement rules must be defined within a single MultiClusterBinding, i.e.
+a resource placement cannot be allowed if its placements are permitted by Rules that exist across
+multiple MultiClusterRoleBindings.
 */
 func (m *multiClusterAdmissionValidator) ActionIsAllowed(
 	ctx context.Context,

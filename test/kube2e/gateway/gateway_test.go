@@ -176,7 +176,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 
 			gatewayPort := 443
 			caFile := osskube2e.ToFile(helpers.Certificate())
-			//noinspection GoUnhandledErrorResult
+			//goland:noinspection  GoUnhandledErrorResult
 			defer os.Remove(caFile)
 
 			err = testutils.Kubectl("cp", caFile, testHelper.InstallNamespace+"/testrunner:/tmp/ca.crt")

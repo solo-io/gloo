@@ -37,8 +37,8 @@ var (
 )
 
 /*
-	ExternalIpFinder takes a list of k8s services and the cluster they are located on, it can then find
-	the string address to communicate with the endpoints via an external network
+ExternalIpFinder takes a list of k8s services and the cluster they are located on, it can then find
+the string address to communicate with the endpoints via an external network
 */
 type ExternalIpFinder interface {
 	GetExternalIps(

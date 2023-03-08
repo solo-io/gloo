@@ -14,5 +14,6 @@ var _ api.ExtAuthPlugin = &plugin.IsHeaderPresentPlugin{}
 // IsHeaderPresent is the exported symbol that the ext auth server will look for.
 // In this case we export the struct, not a pointer to it. The resulting symbol will thus be of type *plugin.IsHeaderPresentPlugin,
 // which implements the ExtAuthPlugin interface.
-//noinspection GoUnusedGlobalVariable
+//
+//goland:noinspection  GoUnusedGlobalVariable
 var IsHeaderPresent plugin.IsHeaderPresentPlugin

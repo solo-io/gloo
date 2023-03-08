@@ -13,12 +13,12 @@ import (
 //go:generate mockgen -source ./matcher.go -destination ./mocks/mock_placement.go
 
 /*
-	Compute whether the placement of a resource is allowed by a given rule.
+Compute whether the placement of a resource is allowed by a given rule.
 
-	Checks whether the clusters defined by the rule are a superset of the ones on the resource. Followed by the
-	same process for the namespaces.
+Checks whether the clusters defined by the rule are a superset of the ones on the resource. Followed by the
+same process for the namespaces.
 
-	This function will return an error if the format of any of the lists is incorrect
+This function will return an error if the format of any of the lists is incorrect
 */
 type Matcher interface {
 	Matches(ctx context.Context, resource, rule *multicluster_types.Placement) bool

@@ -162,10 +162,9 @@ type PlacementStatus struct {
 	Message  string                              `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	// metadata.Generation of the resource which has been processed
 	ObservedGeneration int64 `protobuf:"varint,4,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
-	//
-	//A field indicating the entity responsible for writing this status.
-	//This is useful for determining if the pod has been restarted since the resource was processed.
-	//Typically this value will be set to metadata.name of the pod
+	// A field indicating the entity responsible for writing this status.
+	// This is useful for determining if the pod has been restarted since the resource was processed.
+	// Typically this value will be set to metadata.name of the pod
 	WrittenBy string `protobuf:"bytes,5,opt,name=written_by,json=writtenBy,proto3" json:"written_by,omitempty"`
 }
 

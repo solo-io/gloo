@@ -74,6 +74,11 @@ export namespace LoadBalancerConfig {
   }
 
   export class RoundRobin extends jspb.Message {
+    hasSlowStartConfig(): boolean;
+    clearSlowStartConfig(): void;
+    getSlowStartConfig(): LoadBalancerConfig.SlowStartConfig | undefined;
+    setSlowStartConfig(value?: LoadBalancerConfig.SlowStartConfig): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): RoundRobin.AsObject;
     static toObject(includeInstance: boolean, msg: RoundRobin): RoundRobin.AsObject;
@@ -86,12 +91,18 @@ export namespace LoadBalancerConfig {
 
   export namespace RoundRobin {
     export type AsObject = {
+      slowStartConfig?: LoadBalancerConfig.SlowStartConfig.AsObject,
     }
   }
 
   export class LeastRequest extends jspb.Message {
     getChoiceCount(): number;
     setChoiceCount(value: number): void;
+
+    hasSlowStartConfig(): boolean;
+    clearSlowStartConfig(): void;
+    getSlowStartConfig(): LoadBalancerConfig.SlowStartConfig | undefined;
+    setSlowStartConfig(value?: LoadBalancerConfig.SlowStartConfig): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): LeastRequest.AsObject;
@@ -106,6 +117,7 @@ export namespace LoadBalancerConfig {
   export namespace LeastRequest {
     export type AsObject = {
       choiceCount: number,
+      slowStartConfig?: LoadBalancerConfig.SlowStartConfig.AsObject,
     }
   }
 
@@ -184,6 +196,40 @@ export namespace LoadBalancerConfig {
 
   export namespace Maglev {
     export type AsObject = {
+    }
+  }
+
+  export class SlowStartConfig extends jspb.Message {
+    hasSlowStartWindow(): boolean;
+    clearSlowStartWindow(): void;
+    getSlowStartWindow(): google_protobuf_duration_pb.Duration | undefined;
+    setSlowStartWindow(value?: google_protobuf_duration_pb.Duration): void;
+
+    hasAggression(): boolean;
+    clearAggression(): void;
+    getAggression(): google_protobuf_wrappers_pb.DoubleValue | undefined;
+    setAggression(value?: google_protobuf_wrappers_pb.DoubleValue): void;
+
+    hasMinWeightPercent(): boolean;
+    clearMinWeightPercent(): void;
+    getMinWeightPercent(): google_protobuf_wrappers_pb.DoubleValue | undefined;
+    setMinWeightPercent(value?: google_protobuf_wrappers_pb.DoubleValue): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SlowStartConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: SlowStartConfig): SlowStartConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SlowStartConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SlowStartConfig;
+    static deserializeBinaryFromReader(message: SlowStartConfig, reader: jspb.BinaryReader): SlowStartConfig;
+  }
+
+  export namespace SlowStartConfig {
+    export type AsObject = {
+      slowStartWindow?: google_protobuf_duration_pb.Duration.AsObject,
+      aggression?: google_protobuf_wrappers_pb.DoubleValue.AsObject,
+      minWeightPercent?: google_protobuf_wrappers_pb.DoubleValue.AsObject,
     }
   }
 

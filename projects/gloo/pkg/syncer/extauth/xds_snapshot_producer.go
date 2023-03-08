@@ -43,12 +43,13 @@ type XdsSnapshotProducer interface {
 // as the source of truth for which AuthConfigs the Control Plane needs to translate and send to the ext-auth-service
 // over xDS.
 // The downside to this implementation is that:
-//	A: Each sync is distinct, so we reprocess the entire set of configuration each time
-//  B: If the Proxy CR is deleted (sometimes done to Debug), we will identify 0 AuthConfigs and send
-//		that to the ext-auth-service. The danger of this is outlined in https://github.com/solo-io/solo-projects/issues/3558
-//	C: Errors that exist on AuthConfig objects are reported on the objects themselves, but not the Proxy that references
-//		it. This means that an invalid AuthConfig can be referenced by a VirtualService and we will accept the VirtualService
-//		instead of rejecting it.
+//
+//		A: Each sync is distinct, so we reprocess the entire set of configuration each time
+//	 B: If the Proxy CR is deleted (sometimes done to Debug), we will identify 0 AuthConfigs and send
+//			that to the ext-auth-service. The danger of this is outlined in https://github.com/solo-io/solo-projects/issues/3558
+//		C: Errors that exist on AuthConfig objects are reported on the objects themselves, but not the Proxy that references
+//			it. This means that an invalid AuthConfig can be referenced by a VirtualService and we will accept the VirtualService
+//			instead of rejecting it.
 type proxySourcedXdsSnapshotProducer struct {
 	translatedConfigs map[string]*extauth.ExtAuthConfig
 }
@@ -207,10 +208,13 @@ func convertConfigMapToSortedList(configMap map[string]*extauth.ExtAuthConfig) [
 // as the source of truth for which AuthConfigs the Control Plane needs to translate and send to the ext-auth-service
 // over xDS.
 // The upside to this implementation is that:
+//
 //	A: We consistently send the entire set of AuthConfigs to the ext-auth-service, even if the Proxy object is deleted
 //	B: We report errors from AuthConfigs as errors on the Proxy. This will make validating AuthConfigs (https://github.com/solo-io/gloo/issues/7272)
 //		easier to implement.
+//
 // The downside to this implementation is that:
+//
 //	A: Each sync is distinct, so we reprocess the entire set of configuration each time. We can more easily add intelligence
 //		to avoid processing if the set of AuthConfigs are the same
 type snapshotSourcedXdsSnapshotProducer struct {

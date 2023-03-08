@@ -21,7 +21,7 @@ runs:
     with:
       GLOO_EE_GCR_KEY: ${{ inputs.GLOO_EE_GCR_KEY }}
       QUAY_IO_PASSWORD: ${{ inputs.QUAY_IO_PASSWORD }}
-      GO_VERSION: 1.18.2
+      GO_VERSION: 1.20.1
       GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
   - uses: engineerd/setup-kind@v0.5.0
     with:

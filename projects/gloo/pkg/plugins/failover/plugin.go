@@ -209,11 +209,11 @@ func (f *failoverPluginImpl) buildLocalityLBEndpoints(
 }
 
 /*
-	Create a unique name based on the details available while creating `LbEndpoints`
-	The priority comes from the index in the top most loop of the API.
-	idx is derived from the index of the endpoint in the list of `LbEndpoint`s.
-	These names are used for the `MetadataMatch` in the `Cluster_TransportSocketMatch`
-	https://www.envoyproxy.io/docs/envoy/v1.14.1/api-v2/api/v2/cluster.proto#envoy-api-msg-cluster-transportsocketmatch
+Create a unique name based on the details available while creating `LbEndpoints`
+The priority comes from the index in the top most loop of the API.
+idx is derived from the index of the endpoint in the list of `LbEndpoint`s.
+These names are used for the `MetadataMatch` in the `Cluster_TransportSocketMatch`
+https://www.envoyproxy.io/docs/envoy/v1.14.1/api-v2/api/v2/cluster.proto#envoy-api-msg-cluster-transportsocketmatch
 */
 func PrioritizedEndpointName(address string, port, priority uint32, idx int) string {
 	return fmt.Sprintf("%s_%d_p%d_idx%d", address, port, priority, idx)

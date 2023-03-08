@@ -153,13 +153,13 @@ func (p *plugin) getServerSettingsForListener(listener *v1.HttpListener) *rateli
 
 // HttpFilters returns Rate Limit Http Filters for the Gloo Enterprise API
 // There are 3 type of rate limit filters that can be configured:
-//  - Ingress
-//  - RateLimitConfig
-//  - SetAction
+//   - Ingress
+//   - RateLimitConfig
+//   - SetAction
 //
 // There are 2 filter stages that these filters can be placed in:
-//  - BeforeExtAuth
-//  - AfterExtAuth
+//   - BeforeExtAuth
+//   - AfterExtAuth
 //
 // To guarantee isolation between the configuration types, we generate separate
 // filters for each combination of {config type, filter stage}

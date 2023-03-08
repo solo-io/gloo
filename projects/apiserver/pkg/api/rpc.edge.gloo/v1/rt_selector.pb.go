@@ -36,6 +36,7 @@ type SubRouteTableRow struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Types that are assignable to Action:
+	//
 	//	*SubRouteTableRow_RouteAction
 	//	*SubRouteTableRow_RedirectAction
 	//	*SubRouteTableRow_DirectResponseAction

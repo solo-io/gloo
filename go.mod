@@ -1,6 +1,6 @@
 module github.com/solo-io/solo-projects
 
-go 1.18
+go 1.20
 
 require (
 	github.com/Masterminds/goutils v1.1.1
@@ -36,8 +36,8 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/onsi/ginkgo/v2 v2.5.0
-	github.com/onsi/gomega v1.24.1
+	github.com/onsi/ginkgo/v2 v2.8.1
+	github.com/onsi/gomega v1.26.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.13.0
@@ -50,7 +50,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.31.0
 	github.com/solo-io/external-apis v0.1.12-0.20220818213511-97f5ab3a6898
-	github.com/solo-io/gloo v1.14.0-beta14
+	github.com/solo-io/gloo v1.14.0-beta15
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.0
 	github.com/solo-io/k8s-utils v0.3.0
@@ -59,7 +59,7 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.7.4
 	github.com/solo-io/skv2 v0.26.1
-	github.com/solo-io/solo-apis v0.0.0-20230222213812-3a1975c40111
+	github.com/solo-io/solo-apis v0.0.0-20230302205600-5c930c0f05c2
 	github.com/solo-io/solo-kit v0.31.0
 	github.com/solo-io/wasm-kit v0.1.4
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -68,10 +68,10 @@ require (
 	github.com/spf13/viper v1.12.0
 	go.opencensus.io v0.24.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/mod v0.7.0
-	golang.org/x/net v0.5.0
+	golang.org/x/mod v0.8.0
+	golang.org/x/net v0.6.0
 	golang.org/x/sync v0.1.0
-	golang.org/x/tools v0.5.0
+	golang.org/x/tools v0.6.0
 	google.golang.org/genproto v0.0.0-20221201164419-0e50fba7f41c
 	google.golang.org/grpc v1.52.0
 	google.golang.org/protobuf v1.28.1
@@ -336,9 +336,9 @@ require (
 	golang.org/x/exp v0.0.0-20220921164117-439092de6870 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
-	golang.org/x/sys v0.4.0 // indirect
-	golang.org/x/term v0.4.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/term v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect

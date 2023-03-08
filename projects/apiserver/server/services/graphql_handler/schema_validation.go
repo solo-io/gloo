@@ -54,10 +54,10 @@ func ValidateSchemaDefinition(req *rpc_edge_v1.ValidateSchemaDefinitionRequest) 
 }
 
 // Validates the following:
-// 1. the schema definition string can be parsed
-// 2. all usages of supported directives are syntactically correct
-// 3. resolver names referenced via `@resolve` directives in the schema definition have a corresponding
-//    entry in the resolutions map.
+//  1. the schema definition string can be parsed
+//  2. all usages of supported directives are syntactically correct
+//  3. resolver names referenced via `@resolve` directives in the schema definition have a corresponding
+//     entry in the resolutions map.
 func validateInternal(schema string, resolutions map[string]*graphql_v1beta1.Resolution) error {
 	doc, err := parser.Parse(parser.ParseParams{Source: schema})
 	if err != nil {

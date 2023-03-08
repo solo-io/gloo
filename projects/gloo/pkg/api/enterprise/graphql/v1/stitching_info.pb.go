@@ -72,7 +72,7 @@ func (x *GraphQLToolsStitchingInput) GetSubschemas() []*GraphQLToolsStitchingInp
 	return nil
 }
 
-//------------- Graphql Tools JS Out ------------------
+// ------------- Graphql Tools JS Out ------------------
 // This is not user-facing and is only used to pass data back from the graphql-tools js script
 // The message that is the output of the graphql tools stitching info script
 type GraphQLToolsStitchingOutput struct {

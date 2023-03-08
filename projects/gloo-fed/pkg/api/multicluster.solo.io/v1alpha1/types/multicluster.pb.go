@@ -76,21 +76,18 @@ func (MultiClusterRoleSpec_Rule_Action) EnumDescriptor() ([]byte, []int) {
 	return file_github_com_solo_io_solo_projects_projects_gloo_fed_api_multicluster_v1alpha1_multicluster_proto_rawDescGZIP(), []int{1, 0, 0}
 }
 
-//
-//Object representing the clusters and namespaces on which resources are created/updated/deleted,
-//computed as the cartesian product of all declared namespace and cluster values.
+// Object representing the clusters and namespaces on which resources are created/updated/deleted,
+// computed as the cartesian product of all declared namespace and cluster values.
 type Placement struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	//
-	//List of namespaces within each placement cluster in which to create/update/delete resources.
-	//Wildcard ("*") represents any namespace.
+	// List of namespaces within each placement cluster in which to create/update/delete resources.
+	// Wildcard ("*") represents any namespace.
 	Namespaces []string `protobuf:"bytes,1,rep,name=namespaces,proto3" json:"namespaces,omitempty"`
-	//
-	//List of clusters (represented by a string) in which to create/update/delete resources.
-	//Wildcard ("*") represents any cluster.
+	// List of clusters (represented by a string) in which to create/update/delete resources.
+	// Wildcard ("*") represents any cluster.
 	Clusters []string `protobuf:"bytes,2,rep,name=clusters,proto3" json:"clusters,omitempty"`
 }
 

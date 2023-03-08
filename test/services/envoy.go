@@ -258,10 +258,10 @@ func (ei *EnvoyInstance) RunWithRole(role string, port int) error {
 /*
 func (ei *EnvoyInstance) DebugMode() error {
 
-	_, err := http.Get("http://localhost:19000/logging?level=debug")
+		_, err := http.Get("http://localhost:19000/logging?level=debug")
 
-	return err
-}
+		return err
+	}
 */
 func (ei *EnvoyInstance) runWithPort(port uint32) error {
 	if ei.ID == "" {

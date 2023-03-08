@@ -804,11 +804,12 @@ $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile.build: $(RATELIMIT_DIR)/Dockerfile
 $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker-build: $(RATELIMIT_SOURCES) $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile.build
 	docker buildx build --load -t $(IMAGE_REG)/rate-limit-ee-build-container-fips:$(VERSION) \
 		-f $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg GITHUB_TOKEN \
+		--build-arg USE_APK=true \
 		$(DOCKER_GO_BORING_ARGS) \
 		.
 	touch $@
@@ -925,11 +926,12 @@ $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile: $(EXTAUTH_DIR)/cmd/Dockerfile
 $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile.build
 	docker buildx build --load -t $(IMAGE_REG)/extauth-ee-build-container-fips:$(VERSION) \
 		-f $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg GITHUB_TOKEN \
+		--build-arg USE_APK=true \
 		$(DOCKER_GO_BORING_ARGS) \
 		.
 	touch $@
@@ -956,11 +958,12 @@ extauth-fips: $(EXTAUTH_FIPS_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_FIPS_OUT_DIR
 .PHONY: ext-auth-plugins-fips-docker
 ext-auth-plugins-fips-docker: $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64
 	docker buildx build --load -t $(IMAGE_REG)/ext-auth-plugins-fips:$(VERSION) -f projects/extauth/plugins/Dockerfile \
-		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg VERIFY_SCRIPT=$(DOCKER_EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64 \
 		--build-arg GITHUB_TOKEN \
+		--build-arg USE_APK=true \
 		 $(DOCKER_GO_BORING_ARGS) \
 		.
 
@@ -1140,8 +1143,8 @@ $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker-build: $(GLOO_SOURCES) $(GLOO_FIPS_OUT_DIR)
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LD_STATIC_LINKING_FLAGS) \
-		--build-arg USE_APK=true \
 		--build-arg GITHUB_TOKEN \
+		--build-arg USE_APK=true \
 		$(DOCKER_GO_BORING_ARGS) \
 		.
 	touch $@
@@ -1427,7 +1430,7 @@ $(DEPS_DIR)/go.sum: $(DEPS_DIR) go.sum
 
 $(DEPS_DIR)/build_env: $(DEPS_DIR)
 	echo "GO_BUILD_IMAGE=$(GOLANG_VERSION)" > $@
-	echo "FIPS_GO_BUILD_IMAGE=$(GOBORING_VERSION)" >> $@
+	echo "FIPS_GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION)" >> $@
 	echo "GC_FLAGS=$(GCFLAGS)" >> $@
 
 $(DEPS_DIR)/verify-plugins-linux-amd64: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)

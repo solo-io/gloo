@@ -160,6 +160,7 @@ type GraphqlApiSummary struct {
 	Status       *v1beta1.GraphQLApiStatus `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
 	GlooInstance *v1.ObjectRef             `protobuf:"bytes,3,opt,name=gloo_instance,json=glooInstance,proto3" json:"gloo_instance,omitempty"`
 	// Types that are assignable to ApiTypeSummary:
+	//
 	//	*GraphqlApiSummary_Executable
 	//	*GraphqlApiSummary_Stitched
 	ApiTypeSummary isGraphqlApiSummary_ApiTypeSummary `protobuf_oneof:"api_type_summary"`
@@ -962,16 +963,17 @@ func (*ValidateResolverYamlResponse) Descriptor() ([]byte, []int) {
 // - When editing an existing GraphQLApi, the full GraphQLApi spec should be passed in.
 //
 // This endpoint will currently validate the following:
-// 1. The schema definition string can be parsed.
-// 2. All usages of supported directives are syntactically correct.
-// 3. Resolver names referenced via `@resolve` directives in the schema definition have a corresponding
-//    entry in the GraphQLApi's resolutions map.
+//  1. The schema definition string can be parsed.
+//  2. All usages of supported directives are syntactically correct.
+//  3. Resolver names referenced via `@resolve` directives in the schema definition have a corresponding
+//     entry in the GraphQLApi's resolutions map.
 type ValidateSchemaDefinitionRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	// Types that are assignable to Input:
+	//
 	//	*ValidateSchemaDefinitionRequest_SchemaDefinition
 	//	*ValidateSchemaDefinitionRequest_Spec
 	Input isValidateSchemaDefinitionRequest_Input `protobuf_oneof:"input"`

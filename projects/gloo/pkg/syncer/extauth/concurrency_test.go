@@ -23,6 +23,7 @@ import (
 // This is a critical assumption, because they are utilized both by our translation and
 // validation pipelines. These tests exist to ensure that we don't break this assumption.
 // In the past, when we have not respected this, we have seen race conditions:
+//
 //	https://github.com/solo-io/gloo/pull/7207 is one example
 var _ = Describe("ExtAuth Translation - Concurrency Tests", func() {
 
