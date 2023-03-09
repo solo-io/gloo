@@ -104,7 +104,7 @@ init:
 	git config core.hooksPath .githooks
 
 .PHONY: mod-download
-mod-download:
+mod-download: check-go-version
 	go mod download all
 
 .PHONY: mod-tidy
@@ -260,6 +260,11 @@ generate-all:
 
 GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' ' -f2)
 
+# makes sure you are running codegen with the correct Go version
+.PHONY: check-go-version
+check-go-version:
+	./ci/check-go-version.sh
+
 .PHONY: check-solo-apis
 check-solo-apis:
 ifeq ($(GLOO_BRANCH_BUILD),)
@@ -268,7 +273,7 @@ ifeq ($(GLOO_BRANCH_BUILD),)
 endif
 
 .PHONY: generated-code
-generated-code: clean-vendor-any update-licenses ## Evaluate go generate
+generated-code: check-go-version clean-vendor-any update-licenses ## Evaluate go generate
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore GO111MODULE=on CGO_ENABLED=1 go generate ./...
 	ci/check-protoc.sh
 
