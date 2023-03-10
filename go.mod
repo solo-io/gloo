@@ -5,7 +5,8 @@ go 1.20
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/Netflix/go-expect v0.0.0-20180928190340-9d1f4485533b
-	github.com/avast/retry-go v2.4.3+incompatible
+	github.com/avast/retry-go v2.4.3+incompatible // indirect
+	github.com/avast/retry-go/v4 v4.3.3
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/census-instrumentation/opencensus-proto v0.4.1
 	github.com/cratonica/2goarray v0.0.0-20190331194516-514510793eaa

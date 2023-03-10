@@ -10,7 +10,7 @@ import (
 	"github.com/solo-io/gloo/projects/sds/pkg/server"
 	"github.com/solo-io/go-utils/contextutils"
 
-	"github.com/avast/retry-go"
+	"github.com/avast/retry-go/v4"
 	"github.com/kelseyhightower/envconfig"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"

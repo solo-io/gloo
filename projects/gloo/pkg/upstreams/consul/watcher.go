@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/avast/retry-go"
+	"github.com/avast/retry-go/v4"
 	consulapi "github.com/hashicorp/consul/api"
 	glooconsul "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/consul"
 	"github.com/solo-io/go-utils/errutils"

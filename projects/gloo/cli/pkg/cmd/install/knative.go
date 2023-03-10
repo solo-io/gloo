@@ -14,7 +14,7 @@ import (
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options/contextoptions"
 
-	"github.com/avast/retry-go"
+	"github.com/avast/retry-go/v4"
 
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/k8s-utils/kubeutils"

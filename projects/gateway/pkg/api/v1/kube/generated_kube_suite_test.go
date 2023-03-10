@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/avast/retry-go"
+	"github.com/avast/retry-go/v4"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/test/kube2e"

@@ -9,7 +9,7 @@ import (
 
 	kubeutils2 "github.com/solo-io/gloo/test/testutils"
 
-	"github.com/avast/retry-go"
+	"github.com/avast/retry-go/v4"
 
 	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 

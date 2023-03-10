@@ -1,0 +1,10 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: avast
+    dependencyRepo: retry-go
+    dependencyTag: v4.3.3
+    description: Update to latest retry-go version, which supports additional options like infinite retry.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/7814
+    resolvesIssue: false
+    description: Needed for Gloo Fed retries.

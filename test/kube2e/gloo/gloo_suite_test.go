@@ -9,7 +9,7 @@ import (
 
 	glootestutils "github.com/solo-io/gloo/test/testutils"
 
-	"github.com/avast/retry-go"
+	"github.com/avast/retry-go/v4"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/k8s-utils/kubeutils"
 
