@@ -6,19 +6,18 @@ package federation
 import (
 	"context"
 
-	"github.com/avast/retry-go"
+	"github.com/avast/retry-go/v4"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/skv2/pkg/multicluster"
 	fed_enterprise_gloo_solo_io_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.enterprise.gloo.solo.io/v1"
 	mc_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
+	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
-
-var ClusterHandlerRetryAttempts uint = 5
 
 type clusterHandler struct {
 	ctx     context.Context
@@ -74,7 +73,7 @@ func (f *clusterHandler) maybeUpdateFederatedAuthConfigStatusWithRetries(item *f
 			item = obj
 		}
 		return err
-	}, retry.Attempts(ClusterHandlerRetryAttempts))
+	}, federation.GetClusterWatcherLocalRetryOptions(f.ctx)...)
 }
 
 func (f *clusterHandler) maybeUpdateFederatedAuthConfigStatus(item *fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig, cluster string) error {

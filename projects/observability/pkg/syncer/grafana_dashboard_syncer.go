@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/avast/retry-go"
+	"github.com/avast/retry-go/v4"
 	"github.com/hashicorp/go-multierror"
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/contextutils"

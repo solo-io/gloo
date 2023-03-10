@@ -21,6 +21,7 @@ import (
 	ratelimitfed "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1/federation"
 	fed_bootstrap "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/bootstrap"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery"
+	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/fields"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/multicluster"
@@ -49,9 +50,14 @@ func Run(runCtx context.Context, settings *Settings) error {
 		return errors.Errorf("A fatal error occurred while adding cluster indexer to GlooInstance", zap.Error(err))
 	}
 
-	clusterWatcher := watch.NewClusterWatcher(runCtx, manager.Options{
-		Scheme: fed_bootstrap.MustRemoteScheme(runCtx),
-	}, []string{fed_bootstrap.GetInstallNamespace()})
+	clusterWatcher := watch.NewClusterWatcher(
+		runCtx,
+		manager.Options{
+			Scheme: fed_bootstrap.MustRemoteScheme(runCtx),
+		},
+		federation.GetClusterWatcherRemoteRetryOptions(runCtx),
+		[]string{fed_bootstrap.GetInstallNamespace()},
+	)
 
 	// Generate the set of cluster (names) that the cluster watcher will be registered with
 	clusterSet := multicluster.NewClusterSet()

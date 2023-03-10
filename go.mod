@@ -6,6 +6,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1
 	github.com/aerospike/aerospike-client-go v4.5.2+incompatible
 	github.com/avast/retry-go v2.4.3+incompatible
+	github.com/avast/retry-go/v4 v4.3.3
 	github.com/aws/aws-sdk-go v1.43.16
 	github.com/deislabs/oras v0.11.1
 	github.com/docker/distribution v2.8.1+incompatible
@@ -58,7 +59,7 @@ require (
 	github.com/solo-io/protoc-gen-ext v0.0.18
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.7.4
-	github.com/solo-io/skv2 v0.26.1
+	github.com/solo-io/skv2 v0.26.2
 	github.com/solo-io/solo-apis v0.0.0-20230302205600-5c930c0f05c2
 	github.com/solo-io/solo-kit v0.31.0
 	github.com/solo-io/wasm-kit v0.1.4

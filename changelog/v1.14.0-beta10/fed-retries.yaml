@@ -1,0 +1,18 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7814
+    description: >
+      Make the following retry options configurable when Gloo Fed encounters errors while handling
+      cluster events: retry type (backoff or fixed), delay between retries, max delay, max number of
+      attempts, and max jitter.
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: skv2
+    dependencyTag: v0.26.2
+    description: Bump skv2 to pick up cluster watcher retry options.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: avast
+    dependencyRepo: retry-go
+    dependencyTag: v4.3.3
+    description: Update to latest retry-go version, which supports additional options like infinite retry.

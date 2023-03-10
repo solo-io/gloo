@@ -9,6 +9,19 @@ glooFed:
     requests:
       cpu: 125m
       memory: 256Mi
+  retries:
+    clusterWatcherRemote:
+      type: backoff
+      delay: 1s
+      maxDelay: 0
+      maxJitter: 100ms
+      attempts: 0
+    clusterWatcherLocal:
+      type: backoff
+      delay: 100ms
+      maxDelay: 0
+      maxJitter: 100ms
+      attempts: 5
 # the UI can be enabled independently of gloo-fed
 glooFedApiserver:
   enable: true

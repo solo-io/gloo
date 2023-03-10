@@ -4426,6 +4426,111 @@ spec:
 
 		})
 
+		Context("gloo-fed deployment", func() {
+			DescribeTable("retry options",
+				func(values []string, expectedEnv map[string]string, expectedError string) {
+					testManifest, err := BuildTestManifest(install.GlooFedChartName, namespace, helmValues{
+						valuesArgs: values,
+					})
+					if expectedError != "" {
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring(expectedError))
+						return
+					}
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(testManifest).NotTo(BeNil())
+
+					// get the gloo-fed deployment
+					deployUns := testManifest.ExpectCustomResource("Deployment", namespace, "gloo-fed")
+					deployObj, err := kuberesource.ConvertUnstructured(deployUns)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(deployObj).To(BeAssignableToTypeOf(&appsv1.Deployment{}))
+					deploy := deployObj.(*appsv1.Deployment)
+					Expect(deploy).NotTo(BeNil())
+
+					// add all the CW_* (cluster watcher) env vars to a map
+					envMap := make(map[string]string)
+					for _, envVar := range deploy.Spec.Template.Spec.Containers[0].Env {
+						if strings.HasPrefix(envVar.Name, "CW_") {
+							envMap[envVar.Name] = envVar.Value
+						}
+					}
+
+					// compare the gloo-fed deployment's env variables to the expected ones
+					Expect(envMap).To(HaveLen(len(expectedEnv)))
+					for expectedKey, expectedVal := range expectedEnv {
+						actualVal, ok := envMap[expectedKey]
+						Expect(ok).To(BeTrue())
+						Expect(actualVal).To(Equal(expectedVal))
+					}
+				},
+				Entry("uses defaults if no values provided",
+					[]string{},
+					map[string]string{
+						"CW_REMOTE_RETRY_TYPE":       "backoff",
+						"CW_REMOTE_RETRY_DELAY":      "1s",
+						"CW_REMOTE_RETRY_MAX_DELAY":  "0",
+						"CW_REMOTE_RETRY_MAX_JITTER": "100ms",
+						"CW_REMOTE_RETRY_ATTEMPTS":   "0",
+						"CW_LOCAL_RETRY_TYPE":        "backoff",
+						"CW_LOCAL_RETRY_DELAY":       "100ms",
+						"CW_LOCAL_RETRY_MAX_DELAY":   "0",
+						"CW_LOCAL_RETRY_MAX_JITTER":  "100ms",
+						"CW_LOCAL_RETRY_ATTEMPTS":    "5",
+					},
+					""),
+				// note: this particular test works with the gloo-fed chart, but won't work with the gloo-ee chart
+				// (which uses gloo-fed as a subchart) due to https://github.com/helm/helm/issues/9027
+				Entry("can remove env variables by setting values to null",
+					[]string{
+						"glooFed.retries.clusterWatcherRemote.type=null",
+						"glooFed.retries.clusterWatcherRemote.delay=null",
+						"glooFed.retries.clusterWatcherRemote.maxDelay=null",
+						"glooFed.retries.clusterWatcherRemote.maxJitter=null",
+						"glooFed.retries.clusterWatcherRemote.attempts=null",
+						"glooFed.retries.clusterWatcherLocal.type=null",
+						"glooFed.retries.clusterWatcherLocal.delay=null",
+						"glooFed.retries.clusterWatcherLocal.maxDelay=null",
+						"glooFed.retries.clusterWatcherLocal.maxJitter=null",
+						"glooFed.retries.clusterWatcherLocal.attempts=null",
+					},
+					map[string]string{},
+					""),
+				Entry("throws error if invalid duration is provided",
+					[]string{
+						"glooFed.retries.clusterWatcherRemote.delay=abc",
+					},
+					map[string]string{},
+					"invalid duration"),
+				Entry("can override values",
+					[]string{
+						"glooFed.retries.clusterWatcherRemote.type=fixed",
+						"glooFed.retries.clusterWatcherRemote.delay=20ms",
+						"glooFed.retries.clusterWatcherRemote.maxDelay=5m",
+						"glooFed.retries.clusterWatcherRemote.maxJitter=3s",
+						"glooFed.retries.clusterWatcherRemote.attempts=9",
+						"glooFed.retries.clusterWatcherLocal.type=fixed",
+						"glooFed.retries.clusterWatcherLocal.delay=5s",
+						"glooFed.retries.clusterWatcherLocal.maxDelay=10m",
+						"glooFed.retries.clusterWatcherLocal.maxJitter=2s",
+						"glooFed.retries.clusterWatcherLocal.attempts=100"},
+					map[string]string{
+						"CW_REMOTE_RETRY_TYPE":       "fixed",
+						"CW_REMOTE_RETRY_DELAY":      "20ms",
+						"CW_REMOTE_RETRY_MAX_DELAY":  "5m",
+						"CW_REMOTE_RETRY_MAX_JITTER": "3s",
+						"CW_REMOTE_RETRY_ATTEMPTS":   "9",
+						"CW_LOCAL_RETRY_TYPE":        "fixed",
+						"CW_LOCAL_RETRY_DELAY":       "5s",
+						"CW_LOCAL_RETRY_MAX_DELAY":   "10m",
+						"CW_LOCAL_RETRY_MAX_JITTER":  "2s",
+						"CW_LOCAL_RETRY_ATTEMPTS":    "100",
+					},
+					""),
+			)
+		})
+
 		Context("gloo-fed apiserver deployment", func() {
 			const defaultBootstrapConfigMapName = "gloo-fed-default-apiserver-envoy-config"
 

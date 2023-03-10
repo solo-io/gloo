@@ -248,6 +248,8 @@ github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d/go.mod h1:W
 github.com/avast/retry-go v2.2.0+incompatible/go.mod h1:XtSnn+n/sHqQIpZ10K1qAevBhOOCWBLXXy3hyiqqBrY=
 github.com/avast/retry-go v2.4.3+incompatible h1:c/FTk2POrEQyZfaHBMkMrXdu3/6IESJUHwu8r3k1JEU=
 github.com/avast/retry-go v2.4.3+incompatible/go.mod h1:XtSnn+n/sHqQIpZ10K1qAevBhOOCWBLXXy3hyiqqBrY=
+github.com/avast/retry-go/v4 v4.3.3 h1:G56Bp6mU0b5HE1SkaoVjscZjlQb0oy4mezwY/cGH19w=
+github.com/avast/retry-go/v4 v4.3.3/go.mod h1:rg6XFaiuFYII0Xu3RDbZQkxCofFwruZKW8oEF1jpWiU=
 github.com/aws/aws-lambda-go v1.13.3/go.mod h1:4UKl9IzQMoD+QF79YdCuzCwp8VbmG4VAQwij/eHl5CU=
 github.com/aws/aws-sdk-go v1.15.11/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=
 github.com/aws/aws-sdk-go v1.15.27/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=
@@ -1732,8 +1734,8 @@ github.com/solo-io/skv2 v0.16.2/go.mod h1:VHaqcbvRTzPD/m5lCV+zBOQppbtEB5PTmkZkCm
 github.com/solo-io/skv2 v0.17.0/go.mod h1:52/0ETq6fkr/abuoUYd3qgV8DEFBI72Sd5frl2dFGJs=
 github.com/solo-io/skv2 v0.21.6/go.mod h1:8jNcMWuAkBxdGhlRFMSgsK94q/jZGPEas8VHTr/al/Y=
 github.com/solo-io/skv2 v0.22.11/go.mod h1:PYlP+s/zurQdh+5rTvPUGm81IvEaD30LYNWtgQGZnqs=
-github.com/solo-io/skv2 v0.26.1 h1:SdZwyAqQmommur+XzB1KAYs8vfoQobxzow2X+pbswbE=
-github.com/solo-io/skv2 v0.26.1/go.mod h1:i95sQw0o2ssDWBYSQ/jtm+B9DDGmabye6ICiid4ygFY=
+github.com/solo-io/skv2 v0.26.2 h1:P6QC0d1Xdpz1TKBHvz7atRkwftDuHiSytQarBCDebvE=
+github.com/solo-io/skv2 v0.26.2/go.mod h1:qm2wMBbvonXbcov6yAmdQEKT0DtPh2I/V61cw2eyeDs=
 github.com/solo-io/solo-apis v0.0.0-20210119160956-e52ac14025d3/go.mod h1:9tB/zzr7cGk308Y7tqwWRkccG8N4rSslS6s8mlKXd5s=
 github.com/solo-io/solo-apis v0.0.0-20230302205600-5c930c0f05c2 h1:XVyoQHzhph6aR84gZDfdwpp03pVx/XdvIB/D2+zcM20=
 github.com/solo-io/solo-apis v0.0.0-20230302205600-5c930c0f05c2/go.mod h1:uI4bJHWnTEjo3aBnJ1S1DGOLQ5Th4RsExnZadAmv95M=

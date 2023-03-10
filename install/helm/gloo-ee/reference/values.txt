@@ -1420,6 +1420,133 @@
 |grafana|interface|||
 |prometheus|interface|||
 |tags.NAME|string|||
+|gloo-fed.global.image.tag|string||The image tag for the container.|
+|gloo-fed.global.image.repository|string||The image repository (name) for the container.|
+|gloo-fed.global.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo-fed.global.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
+|gloo-fed.global.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo-fed.global.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo-fed.global.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo-fed.global.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo-fed.global.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|gloo-fed.global.extensions|interface|||
+|gloo-fed.global.glooRbac.create|bool||create rbac rules for the gloo-system service account|
+|gloo-fed.global.glooRbac.namespaced|bool||use Roles instead of ClusterRoles|
+|gloo-fed.global.glooRbac.nameSuffix|string||When nameSuffix is nonempty, append '-$nameSuffix' to the names of Gloo Edge RBAC resources; e.g. when nameSuffix is 'foo', the role 'gloo-resource-reader' will become 'gloo-resource-reader-foo'|
+|gloo-fed.global.glooStats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|gloo-fed.global.glooStats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
+|gloo-fed.global.glooStats.setDatadogAnnotations|bool||Sets the default datadog annotations|
+|gloo-fed.global.glooStats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
+|gloo-fed.global.glooStats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
+|gloo-fed.global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|gloo-fed.global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
+|gloo-fed.global.glooMtls.enabled|bool||Enables internal mtls authentication|
+|gloo-fed.global.glooMtls.sds.image.tag|string||The image tag for the container.|
+|gloo-fed.global.glooMtls.sds.image.repository|string||The image repository (name) for the container.|
+|gloo-fed.global.glooMtls.sds.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo-fed.global.glooMtls.sds.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
+|gloo-fed.global.glooMtls.sds.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo-fed.global.glooMtls.sds.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo-fed.global.glooMtls.sds.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo-fed.global.glooMtls.sds.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo-fed.global.glooMtls.sds.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|gloo-fed.global.glooMtls.sds.securityContext.capabilities.add[]|string|||
+|gloo-fed.global.glooMtls.sds.securityContext.capabilities.drop[]|string|||
+|gloo-fed.global.glooMtls.sds.securityContext.privileged|bool|||
+|gloo-fed.global.glooMtls.sds.securityContext.seLinuxOptions.user|string|||
+|gloo-fed.global.glooMtls.sds.securityContext.seLinuxOptions.role|string|||
+|gloo-fed.global.glooMtls.sds.securityContext.seLinuxOptions.type|string|||
+|gloo-fed.global.glooMtls.sds.securityContext.seLinuxOptions.level|string|||
+|gloo-fed.global.glooMtls.sds.securityContext.windowsOptions.gmsaCredentialSpecName|string|||
+|gloo-fed.global.glooMtls.sds.securityContext.windowsOptions.gmsaCredentialSpec|string|||
+|gloo-fed.global.glooMtls.sds.securityContext.windowsOptions.runAsUserName|string|||
+|gloo-fed.global.glooMtls.sds.securityContext.windowsOptions.hostProcess|bool|||
+|gloo-fed.global.glooMtls.sds.securityContext.runAsUser|int64|||
+|gloo-fed.global.glooMtls.sds.securityContext.runAsGroup|int64|||
+|gloo-fed.global.glooMtls.sds.securityContext.runAsNonRoot|bool|||
+|gloo-fed.global.glooMtls.sds.securityContext.readOnlyRootFilesystem|bool|||
+|gloo-fed.global.glooMtls.sds.securityContext.allowPrivilegeEscalation|bool|||
+|gloo-fed.global.glooMtls.sds.securityContext.procMount|string|||
+|gloo-fed.global.glooMtls.sds.securityContext.seccompProfile.type|string|||
+|gloo-fed.global.glooMtls.sds.securityContext.seccompProfile.localhostProfile|string|||
+|gloo-fed.global.glooMtls.envoy.image.tag|string||The image tag for the container.|
+|gloo-fed.global.glooMtls.envoy.image.repository|string||The image repository (name) for the container.|
+|gloo-fed.global.glooMtls.envoy.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo-fed.global.glooMtls.envoy.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
+|gloo-fed.global.glooMtls.envoy.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo-fed.global.glooMtls.envoy.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo-fed.global.glooMtls.envoy.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo-fed.global.glooMtls.envoy.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo-fed.global.glooMtls.envoy.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|gloo-fed.global.glooMtls.envoy.securityContext.capabilities.add[]|string|||
+|gloo-fed.global.glooMtls.envoy.securityContext.capabilities.drop[]|string|||
+|gloo-fed.global.glooMtls.envoy.securityContext.privileged|bool|||
+|gloo-fed.global.glooMtls.envoy.securityContext.seLinuxOptions.user|string|||
+|gloo-fed.global.glooMtls.envoy.securityContext.seLinuxOptions.role|string|||
+|gloo-fed.global.glooMtls.envoy.securityContext.seLinuxOptions.type|string|||
+|gloo-fed.global.glooMtls.envoy.securityContext.seLinuxOptions.level|string|||
+|gloo-fed.global.glooMtls.envoy.securityContext.windowsOptions.gmsaCredentialSpecName|string|||
+|gloo-fed.global.glooMtls.envoy.securityContext.windowsOptions.gmsaCredentialSpec|string|||
+|gloo-fed.global.glooMtls.envoy.securityContext.windowsOptions.runAsUserName|string|||
+|gloo-fed.global.glooMtls.envoy.securityContext.windowsOptions.hostProcess|bool|||
+|gloo-fed.global.glooMtls.envoy.securityContext.runAsUser|int64|||
+|gloo-fed.global.glooMtls.envoy.securityContext.runAsGroup|int64|||
+|gloo-fed.global.glooMtls.envoy.securityContext.runAsNonRoot|bool|||
+|gloo-fed.global.glooMtls.envoy.securityContext.readOnlyRootFilesystem|bool|||
+|gloo-fed.global.glooMtls.envoy.securityContext.allowPrivilegeEscalation|bool|||
+|gloo-fed.global.glooMtls.envoy.securityContext.procMount|string|||
+|gloo-fed.global.glooMtls.envoy.securityContext.seccompProfile.type|string|||
+|gloo-fed.global.glooMtls.envoy.securityContext.seccompProfile.localhostProfile|string|||
+|gloo-fed.global.glooMtls.istioProxy.image.tag|string||The image tag for the container.|
+|gloo-fed.global.glooMtls.istioProxy.image.repository|string||The image repository (name) for the container.|
+|gloo-fed.global.glooMtls.istioProxy.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo-fed.global.glooMtls.istioProxy.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
+|gloo-fed.global.glooMtls.istioProxy.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo-fed.global.glooMtls.istioProxy.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo-fed.global.glooMtls.istioProxy.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo-fed.global.glooMtls.istioProxy.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo-fed.global.glooMtls.istioProxy.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|gloo-fed.global.glooMtls.istioProxy.securityContext.capabilities.add[]|string|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.capabilities.drop[]|string|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.privileged|bool|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.seLinuxOptions.user|string|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.seLinuxOptions.role|string|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.seLinuxOptions.type|string|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.seLinuxOptions.level|string|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.windowsOptions.gmsaCredentialSpecName|string|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.windowsOptions.gmsaCredentialSpec|string|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.windowsOptions.runAsUserName|string|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.windowsOptions.hostProcess|bool|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.runAsUser|int64|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.runAsGroup|int64|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.runAsNonRoot|bool|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.readOnlyRootFilesystem|bool|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.allowPrivilegeEscalation|bool|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.procMount|string|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.seccompProfile.type|string|||
+|gloo-fed.global.glooMtls.istioProxy.securityContext.seccompProfile.localhostProfile|string|||
+|gloo-fed.global.glooMtls.envoySidecarResources.limits.memory|string||amount of memory|
+|gloo-fed.global.glooMtls.envoySidecarResources.limits.cpu|string||amount of CPUs|
+|gloo-fed.global.glooMtls.envoySidecarResources.requests.memory|string||amount of memory|
+|gloo-fed.global.glooMtls.envoySidecarResources.requests.cpu|string||amount of CPUs|
+|gloo-fed.global.glooMtls.sdsResources.limits.memory|string||amount of memory|
+|gloo-fed.global.glooMtls.sdsResources.limits.cpu|string||amount of CPUs|
+|gloo-fed.global.glooMtls.sdsResources.requests.memory|string||amount of memory|
+|gloo-fed.global.glooMtls.sdsResources.requests.cpu|string||amount of CPUs|
+|gloo-fed.global.istioSDS.enabled|bool||Enables SDS cert-rotator sidecar for istio mTLS cert rotation|
+|gloo-fed.global.istioSDS.customSidecars[]|interface||Override the default Istio sidecar in gateway-proxy with a custom container. Ignored if IstioSDS.enabled is false|
+|gloo-fed.global.istioIntegration.labelInstallNamespace|bool||If creating a namespace for Gloo, include the 'istio-injection: enabled' label (or 'istio.io/rev=' if 'istioSidecarRevTag' field is also set) to allow Istio sidecar injection for Gloo pods. Be aware that Istio's default injection behavior will auto-inject a sidecar into all pods in such a marked namespace. Disabling this behavior in Istio's configs or using gloo's global.istioIntegration.disableAutoinjection flag is recommended.|
+|gloo-fed.global.istioIntegration.whitelistDiscovery|bool||Annotate the discovery pod for Istio sidecar injection to ensure that it gets a sidecar even when namespace-wide auto-injection is disabled. Generally only needed for FDS is enabled.|
+|gloo-fed.global.istioIntegration.disableAutoinjection|bool||Annotate all pods (excluding those whitelisted by other config values) to with an explicit 'do not inject' annotation to prevent Istio from adding sidecars to all pods. It's recommended that this be set to true if Gloo's namespace is marked for Istio discovery, as some pods do not immediately work with an Istio sidecar without extra manual configuration.|
+|gloo-fed.global.istioIntegration.enableIstioSidecarOnGateway|bool||Enable Istio sidecar injection on the gateway-proxy deployment. Ignored if LabelInstallNamespace is not 'true'. Ignored if DisableAutoInjection is 'true'.|
+|gloo-fed.global.istioIntegration.istioSidecarRevTag|string||Value of revision tag for Istio sidecar injection on the gateway-proxy and discovery deployments (when enabled with LabelInstallNamespace, WhitelistDiscovery or EnableIstioSidecarOnGateway). If set, applies the label 'istio.io/rev:<rev>' instead of 'sidecar.istio.io/inject' or 'istio-injection:enabled'. Ignored if DisableAutoInjection is 'true'.|
+|gloo-fed.global.extraSpecs|bool||Add additional specs to include in the settings manifest, as defined by a helm partial. Defaults to false in open source, and true in enterprise.|
+|gloo-fed.global.extauthCustomYaml|bool||Inject whatever yaml exists in .Values.global.extensions.extAuth into settings.spec.extauth, instead of structured yaml (which is enterprise only). Defaults to true in open source, and false in enterprise|
+|gloo-fed.global.console|interface||Configuration options for the Enterprise Console (UI).|
+|gloo-fed.global.graphql|interface||(Enterprise Only): GraphQL configuration options.|
+|gloo-fed.global.configMaps[].name|string||Name of the ConfigMap to create (required).|
+|gloo-fed.global.configMaps[].namespace|string||Namespace in which to create the ConfigMap. If empty, defaults to Gloo Edge install namespace.|
+|gloo-fed.global.configMaps[].data.NAME|string||Key-value pairs of ConfigMap data.|
 |gloo-fed.global.console.readOnly|bool||If true, then custom resources can only be viewed in read-only mode in the UI. If false, then resources can be created, updated, and deleted via the UI (default false).|
 |gloo-fed.global.console.apiExplorerEnabled|bool||Whether the GraphQL API Explorer is enabled (default true).|
 |gloo-fed.enabled|bool||If true, deploy federation service (default true).|
@@ -1503,6 +1630,16 @@
 |gloo-fed.glooFed.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |gloo-fed.glooFed.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo-fed.glooFed.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
+|gloo-fed.glooFed.retries.clusterWatcherRemote.type|string||The type of delay to use when retrying. Must be either 'backoff' (for exponential backoff) or 'fixed' (for fixed intervals).|
+|gloo-fed.glooFed.retries.clusterWatcherRemote.delay|string||The delay between retries. For exponential backoff, this is the delay for the initial retry. This must be a [Duration string](https://pkg.go.dev/time#Duration.String), e.g. '100ms' or '1m5s'.|
+|gloo-fed.glooFed.retries.clusterWatcherRemote.maxDelay|string||The maximum delay between retries. This can be used to cap the retry interval when exponential backoff is used. If set to 0, there will be no maximum delay. This must be a [Duration string](https://pkg.go.dev/time#Duration.String), e.g. '100ms' or '1m5s'.|
+|gloo-fed.glooFed.retries.clusterWatcherRemote.maxJitter|string||The maximum amount of random jitter to add between retries. If this value is greater than 0, retries will be done with a random amount of jitter, up to maxJitter. If this value is 0, then no randomness will be added to retries. This must be a [Duration string](https://pkg.go.dev/time#Duration.String), e.g. '100ms' or '1m5s'.|
+|gloo-fed.glooFed.retries.clusterWatcherRemote.attempts|uint||The maximum number of attempts to make. Set to 0 to retry forever.|
+|gloo-fed.glooFed.retries.clusterWatcherLocal.type|string||The type of delay to use when retrying. Must be either 'backoff' (for exponential backoff) or 'fixed' (for fixed intervals).|
+|gloo-fed.glooFed.retries.clusterWatcherLocal.delay|string||The delay between retries. For exponential backoff, this is the delay for the initial retry. This must be a [Duration string](https://pkg.go.dev/time#Duration.String), e.g. '100ms' or '1m5s'.|
+|gloo-fed.glooFed.retries.clusterWatcherLocal.maxDelay|string||The maximum delay between retries. This can be used to cap the retry interval when exponential backoff is used. If set to 0, there will be no maximum delay. This must be a [Duration string](https://pkg.go.dev/time#Duration.String), e.g. '100ms' or '1m5s'.|
+|gloo-fed.glooFed.retries.clusterWatcherLocal.maxJitter|string||The maximum amount of random jitter to add between retries. If this value is greater than 0, retries will be done with a random amount of jitter, up to maxJitter. If this value is 0, then no randomness will be added to retries. This must be a [Duration string](https://pkg.go.dev/time#Duration.String), e.g. '100ms' or '1m5s'.|
+|gloo-fed.glooFed.retries.clusterWatcherLocal.attempts|uint||The maximum number of attempts to make. Set to 0 to retry forever.|
 |gloo-fed.rbac.create|bool|||
 |gloo-fed.rbacWebhook.image.tag|string||The image tag for the container.|
 |gloo-fed.rbacWebhook.image.repository|string||The image repository (name) for the container.|

@@ -6,19 +6,18 @@ package federation
 import (
 	"context"
 
-	"github.com/avast/retry-go"
+	"github.com/avast/retry-go/v4"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/skv2/pkg/multicluster"
 	fed_gateway_solo_io_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1"
 	mc_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
+	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
-
-var ClusterHandlerRetryAttempts uint = 5
 
 type clusterHandler struct {
 	ctx     context.Context
@@ -116,7 +115,7 @@ func (f *clusterHandler) maybeUpdateFederatedGatewayStatusWithRetries(item *fed_
 			item = obj
 		}
 		return err
-	}, retry.Attempts(ClusterHandlerRetryAttempts))
+	}, federation.GetClusterWatcherLocalRetryOptions(f.ctx)...)
 }
 
 func (f *clusterHandler) maybeUpdateFederatedGatewayStatus(item *fed_gateway_solo_io_v1.FederatedGateway, cluster string) error {
@@ -152,7 +151,7 @@ func (f *clusterHandler) maybeUpdateFederatedMatchableHttpGatewayStatusWithRetri
 			item = obj
 		}
 		return err
-	}, retry.Attempts(ClusterHandlerRetryAttempts))
+	}, federation.GetClusterWatcherLocalRetryOptions(f.ctx)...)
 }
 
 func (f *clusterHandler) maybeUpdateFederatedMatchableHttpGatewayStatus(item *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway, cluster string) error {
@@ -188,7 +187,7 @@ func (f *clusterHandler) maybeUpdateFederatedVirtualServiceStatusWithRetries(ite
 			item = obj
 		}
 		return err
-	}, retry.Attempts(ClusterHandlerRetryAttempts))
+	}, federation.GetClusterWatcherLocalRetryOptions(f.ctx)...)
 }
 
 func (f *clusterHandler) maybeUpdateFederatedVirtualServiceStatus(item *fed_gateway_solo_io_v1.FederatedVirtualService, cluster string) error {
@@ -224,7 +223,7 @@ func (f *clusterHandler) maybeUpdateFederatedRouteTableStatusWithRetries(item *f
 			item = obj
 		}
 		return err
-	}, retry.Attempts(ClusterHandlerRetryAttempts))
+	}, federation.GetClusterWatcherLocalRetryOptions(f.ctx)...)
 }
 
 func (f *clusterHandler) maybeUpdateFederatedRouteTableStatus(item *fed_gateway_solo_io_v1.FederatedRouteTable, cluster string) error {

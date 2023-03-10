@@ -6,9 +6,10 @@ package federation
 import (
     "context"
 
-    "github.com/avast/retry-go"
+    "github.com/avast/retry-go/v4"
     {{ $import_prefix }} "{{ group_import_path $ }}"
     "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
+    "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation"
     mc_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
     "github.com/solo-io/go-utils/contextutils"
     "github.com/solo-io/skv2/pkg/multicluster"
@@ -17,9 +18,6 @@ import (
     "sigs.k8s.io/controller-runtime/pkg/client"
     "sigs.k8s.io/controller-runtime/pkg/manager"
 )
-
-
-var ClusterHandlerRetryAttempts uint = 5
 
 type clusterHandler struct {
     ctx     context.Context
@@ -83,7 +81,7 @@ func (f *clusterHandler) maybeUpdate{{ $resource.Kind }}StatusWithRetries(item *
             item = obj
         }
         return err
-    }, retry.Attempts(ClusterHandlerRetryAttempts))
+    }, federation.GetClusterWatcherLocalRetryOptions(f.ctx)...)
 }
 
 func (f *clusterHandler) maybeUpdate{{ $resource.Kind }}Status(item *{{ $import_prefix }}.{{ $resource.Kind }}, cluster string) error {

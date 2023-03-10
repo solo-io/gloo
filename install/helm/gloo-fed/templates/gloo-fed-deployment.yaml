@@ -52,6 +52,46 @@ spec:
         - name: START_STATS_SERVER
           value: "true"
         {{- end }}
+        {{- with (($glooFed.retries).clusterWatcherRemote).type }}
+        - name: CW_REMOTE_RETRY_TYPE
+          value: {{ . | quote }}
+        {{- end }}
+        {{- with (include "gloofed.validateDuration" (($glooFed.retries).clusterWatcherRemote).delay) }}
+        - name: CW_REMOTE_RETRY_DELAY
+          value: {{ . | quote }}
+        {{- end }}
+        {{- with (include "gloofed.validateDuration" (($glooFed.retries).clusterWatcherRemote).maxDelay) }}
+        - name: CW_REMOTE_RETRY_MAX_DELAY
+          value: {{ . | quote }}
+        {{- end }}
+        {{- with (include "gloofed.validateDuration" (($glooFed.retries).clusterWatcherRemote).maxJitter) }}
+        - name: CW_REMOTE_RETRY_MAX_JITTER
+          value: {{ . | quote }}
+        {{- end }}
+        {{- if not (kindIs "invalid" (($glooFed.retries).clusterWatcherRemote).attempts) }}
+        - name: CW_REMOTE_RETRY_ATTEMPTS
+          value: {{ (($glooFed.retries).clusterWatcherRemote).attempts | quote }}
+        {{- end }}
+        {{- with (($glooFed.retries).clusterWatcherLocal).type }}
+        - name: CW_LOCAL_RETRY_TYPE
+          value: {{ . | quote }}
+        {{- end }}
+        {{- with (include "gloofed.validateDuration" (($glooFed.retries).clusterWatcherLocal).delay) }}
+        - name: CW_LOCAL_RETRY_DELAY
+          value: {{ . | quote }}
+        {{- end }}
+        {{- with (include "gloofed.validateDuration" (($glooFed.retries).clusterWatcherLocal).maxDelay) }}
+        - name: CW_LOCAL_RETRY_MAX_DELAY
+          value: {{ . | quote }}
+        {{- end }}
+        {{- with (include "gloofed.validateDuration" (($glooFed.retries).clusterWatcherLocal).maxJitter) }}
+        - name: CW_LOCAL_RETRY_MAX_JITTER
+          value: {{ . | quote }}
+        {{- end }}
+        {{- if not (kindIs "invalid" (($glooFed.retries).clusterWatcherLocal).attempts) }}
+        - name: CW_LOCAL_RETRY_ATTEMPTS
+          value: {{ (($glooFed.retries).clusterWatcherLocal).attempts | quote }}
+        {{- end }}
         imagePullPolicy: {{ $glooFedImage.pullPolicy }}
         name: gloo-fed
         {{- if $statsConfig.podMonitorEnabled }}
