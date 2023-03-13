@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4573
+    resolvesIssue: false
+    description: >
+      Add github workflows to create EKS clusters with released EE installed and remote clusters registered with fed. Creates n numnber of remotes and 1 management cluster

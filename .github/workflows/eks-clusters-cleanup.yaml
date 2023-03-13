@@ -1,0 +1,20 @@
+name: eks-cluster-deletion
+run-name: ${{ github.actor }} Cleanup up EKS clusters
+on:
+  workflow_dispatch:
+    inputs:
+      environment_id:
+        description: Environment ID - cicd-< Env id >
+        required: true
+        default: edge-scale
+
+jobs:
+  cleanup-environment:
+    uses: solo-io/gloo-eng-test-beds/.github/workflows/cleanup-eng-env.yaml@main
+    with:
+      environment: eks-developers-acct
+      cluster-group: cicd-${{ github.event.inputs.environment_id }}
+    secrets:
+      GIT_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
