@@ -212,9 +212,7 @@ func setupLicensedFeatureProvider(licenseState *model.License) *license2.License
 			RandomPayload: "",
 			LicenseType:   model.LicenseType_Enterprise,
 			Product:       model.Product_Gloo,
-			AddOns: model.AddOns{
-				GraphQL: false,
-			},
+			AddOns:        nil,
 		}
 	}
 

@@ -2,13 +2,23 @@ package license
 
 import (
 	"context"
+	"os"
+	"time"
 
+	"github.com/rotisserie/eris"
+	"github.com/solo-io/licensing/pkg/client"
 	"github.com/solo-io/licensing/pkg/model"
-	"github.com/solo-io/licensing/pkg/validate"
 )
 
 const (
 	EnvName = "GLOO_LICENSE_KEY"
+
+	ParseError     = "License is invalid: Could not parse license"
+	InvalidLicense = "License is invalid"
+	ExpiredLicense = "License expired, please contact support to renew."
+	ExpiredGraphql = "License does not support GraphQL"
+	MissingGloo    = "No license for Gloo Edge found"
+	MissingGraphql = "License does not support GraphQL"
 )
 
 // LicensedFeature represents the set of features that Gloo Edge Enterprise supports
@@ -49,15 +59,53 @@ func NewLicensedFeatureProvider() *LicensedFeatureProvider {
 	}
 }
 
-func (l *LicensedFeatureProvider) ValidateAndSetLicense(licenseString string) {
-	if licenseString == "" {
+func (l *LicensedFeatureProvider) validateLicense(ctx context.Context) (*model.License, error, error) {
+	// If a license is provided, validate the key and configure features based on the license state
+	if _, err := client.ParseLicenseInfo(ctx, os.Getenv(EnvName)); err != nil {
+		return nil, nil, eris.New(ParseError)
+	}
+	licenseClient, err := client.NewLicensingClient(ctx, "", EnvName, nil)
+	if err != nil {
+		return nil, nil, eris.Wrapf(err, "could not initialize licensing client")
+	}
+	foundLicenseForState := func(state client.LicenseState, products ...model.Product) *model.License {
+		for _, product := range products {
+			licenseState, license := licenseClient.GetLicense(product)
+			if licenseState == state {
+				return license
+			}
+		}
+		return nil
+	}
+	mainGlooProducts := []model.Product{model.Product_Gloo, model.Product_GlooTrial}
+	license := foundLicenseForState(client.LicenseStateOk, mainGlooProducts...)
+	if license != nil {
+		return license, nil, nil
+	}
+	license = foundLicenseForState(client.LicenseStateExpired, mainGlooProducts...)
+	if license != nil {
+		return license, eris.New(ExpiredLicense), nil
+	}
+	license = foundLicenseForState(client.LicenseStateInvalid, mainGlooProducts...)
+	if license != nil {
+		return license, nil, eris.New(InvalidLicense)
+	}
+	return nil, nil, eris.New(MissingGloo)
+}
+
+// ValidateAndSetLicense sets l.license based off of the license key provided in the GLOO_LICENSE_KEY env var.
+// If the license key is unparsable/ empty, an error is emitted. Otherwise, we look for the most valid license state for
+// each of these products in the following order: gloo, gloo-trial. If the license key is corrupted (i.e. validation
+// errors exist, it will be treated as invalid. If the license key is expired, a warning will be emitted with the date
+// of expiry. If a license is not found or the provided license isnt for gloo or gloo-trial (i.e. for gloo-mesh)), an
+// error will be emitted.
+func (l *LicensedFeatureProvider) ValidateAndSetLicense(ctx context.Context) {
+	if os.Getenv(EnvName) == "" {
 		// If a license is not provided, mark it as nil, which will be treated as disabling enterprise features
 		l.SetValidatedLicense(nil)
 		return
 	}
-
-	// If a license is provided, validate the key and configure features based on the license state
-	license, warn, err := validate.ValidateLicenseKey(context.TODO(), licenseString, model.Product_Gloo, model.AddOns{})
+	license, warn, err := l.validateLicense(ctx)
 	l.SetValidatedLicense(&ValidatedLicense{
 		License: license,
 		Warn:    warn,
@@ -125,15 +173,29 @@ func (l *LicensedFeatureProvider) setFeatureStateForGraphql(license *ValidatedLi
 		featureState.Reason = license.Err.Error()
 		return
 	}
+	foundGraphql := false
+	graphqlExpiration := time.Time{}
+	for _, addOn := range license.License.AddOns {
+		if addOn.AddOn == model.GraphQL {
+			graphqlExpiration = addOn.ExpiresAt
+			foundGraphql = true
+		}
+	}
 
-	if license.License == nil || license.License.AddOns.GraphQL == false {
+	if license.License == nil || !foundGraphql {
 		// If GraphQL is not explicitly enabled, disable the feature
-		featureState.Reason = "License does not support GraphQL"
+		featureState.Reason = MissingGraphql
 		return
 	}
 
 	featureState.Enabled = true
 	featureState.Reason = ""
+	if graphqlExpiration.Equal(time.Time{}) {
+		featureState.Reason = "GraphQL plugin license doesnt include expiration date, please contact support for an up to date license key."
+	} else if foundGraphql && time.Now().After(graphqlExpiration) {
+		featureState.Reason = ExpiredGraphql
+	}
+
 	if license.Warn != nil {
 		featureState.Reason = license.Warn.Error()
 	}

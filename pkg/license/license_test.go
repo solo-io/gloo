@@ -1,7 +1,11 @@
 package license_test
 
 import (
+	"context"
+	"os"
 	"time"
+
+	"github.com/solo-io/licensing/pkg/defaults"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -11,13 +15,15 @@ import (
 )
 
 var (
+	ctx          context.Context
+	cancel       context.CancelFunc
 	licenseState = &model.License{
 		IssuedAt:      time.Now(),
 		ExpiresAt:     time.Now(),
 		RandomPayload: "",
 		LicenseType:   "",
 		Product:       "",
-		AddOns:        model.AddOns{},
+		AddOns:        nil,
 	}
 	nilLicense     *license.ValidatedLicense
 	invalidLicense = &license.ValidatedLicense{
@@ -35,6 +41,8 @@ var (
 		Err:     nil,
 		Warn:    nil,
 	}
+	km = defaults.KeyManager()
+	kg = km.KeyGenerator()
 )
 
 var _ = Describe("LicensedFeatureProvider", func() {
@@ -44,7 +52,12 @@ var _ = Describe("LicensedFeatureProvider", func() {
 	)
 
 	BeforeEach(func() {
+		ctx, cancel = context.WithCancel(context.Background())
 		licensedFeatureProvider = license.NewLicensedFeatureProvider()
+	})
+
+	AfterEach(func() {
+		cancel()
 	})
 
 	DescribeTable("Enterprise",
@@ -74,6 +87,70 @@ var _ = Describe("LicensedFeatureProvider", func() {
 		Entry("expired license with add-on", getGraphQLLicense(true, false), true),
 		Entry("invalid license with add-on", getGraphQLLicense(true, true), true),
 	)
+
+	// getLicenseKey generates a license key string from the following:
+	// The license type, either enterprise or trial (licenseType)
+	// The product (product) and its days until expiration (days)
+	// The products addons (addons) and each of their days until expiration (daysToAddonExpiration)
+	getLicenseKey := func(licenseType model.LicenseType, product model.Product, days int, addons string, daysToAddonExpiration []int) string {
+		Expect(model.AreValidAddons(addons)).ToNot(HaveOccurred(), "invalid addons")
+		addOnLicensesWithoutExp, err := model.HandleLegacyAddons(addons)
+
+		Expect(err).ToNot(HaveOccurred())
+		Expect(len(daysToAddonExpiration)).To(Equal(len(addOnLicensesWithoutExp)))
+
+		var addOnLicenses []model.AddOnLicense
+		for i, lic := range addOnLicensesWithoutExp {
+			lic.ExpiresAt = time.Now().Add(time.Duration(daysToAddonExpiration[i]*24) * time.Hour)
+			lic.LicenseType = licenseType
+			addOnLicenses = append(addOnLicenses, lic)
+		}
+
+		key, err := kg.GenerateKey(ctx, time.Now(), time.Now().Add(time.Duration(days*24)*time.Hour), licenseType, product, addOnLicenses)
+		Expect(err).ToNot(HaveOccurred())
+		return key
+	}
+
+	testLicense := func(key string, enterpriseLicense license.FeatureState, graphqlLicense license.FeatureState) {
+		os.Setenv(license.EnvName, key)
+		licensedFeatureProvider.ValidateAndSetLicense(ctx)
+		featureState := licensedFeatureProvider.GetStateForLicensedFeature(license.Enterprise)
+		Expect(featureState).To(BeEquivalentTo(&enterpriseLicense))
+		featureState = licensedFeatureProvider.GetStateForLicensedFeature(license.GraphQL)
+		Expect(featureState).To(BeEquivalentTo(&graphqlLicense))
+		os.Unsetenv(license.EnvName)
+	}
+	DescribeTable("New Licensing Client", func(key string, enterpriseLicense license.FeatureState, graphqlLicense license.FeatureState) {
+		testLicense(key, enterpriseLicense, graphqlLicense)
+	},
+		Entry("no license", "",
+			license.FeatureState{Enabled: false, Reason: "License not found, Enterprise features not included"},
+			license.FeatureState{Enabled: false, Reason: "License not found, GraphQL features not included"}),
+		Entry("invalid license", "some invalid license key",
+			license.FeatureState{Enabled: true, Reason: license.ParseError},
+			license.FeatureState{Enabled: true, Reason: license.ParseError}),
+		Entry("license for wrong product", getLicenseKey(model.LicenseType_Enterprise, model.Product_GlooMesh, 1, "", nil),
+			license.FeatureState{Enabled: true, Reason: license.MissingGloo},
+			license.FeatureState{Enabled: true, Reason: license.MissingGloo}),
+		Entry("expired license", getLicenseKey(model.LicenseType_Enterprise, model.Product_Gloo, -1, "", nil),
+			license.FeatureState{Enabled: true, Reason: license.ExpiredLicense},
+			license.FeatureState{Enabled: false, Reason: license.MissingGraphql}),
+		Entry("expired trial license (treated as invalid)", getLicenseKey(model.LicenseType_Trial, model.Product_GlooTrial, -1, "", nil),
+			license.FeatureState{Enabled: true, Reason: license.InvalidLicense},
+			license.FeatureState{Enabled: true, Reason: license.InvalidLicense}),
+		Entry("valid license without add-on", getLicenseKey(model.LicenseType_Enterprise, model.Product_Gloo, 1, "", nil),
+			license.FeatureState{Enabled: true, Reason: ""},
+			license.FeatureState{Enabled: false, Reason: license.MissingGraphql}),
+		Entry("valid license with add-on", getLicenseKey(model.LicenseType_Enterprise, model.Product_Gloo, 1, model.GraphQL.String(), []int{1}),
+			license.FeatureState{Enabled: true, Reason: ""},
+			license.FeatureState{Enabled: true, Reason: ""}),
+		Entry("valid trial license with add-on", getLicenseKey(model.LicenseType_Trial, model.Product_GlooTrial, 1, model.GraphQL.String(), []int{1}),
+			license.FeatureState{Enabled: true, Reason: ""},
+			license.FeatureState{Enabled: true, Reason: ""}),
+		Entry("valid license with expired add-on", getLicenseKey(model.LicenseType_Enterprise, model.Product_Gloo, 1, model.GraphQL.String(), []int{-1}),
+			license.FeatureState{Enabled: true, Reason: ""},
+			license.FeatureState{Enabled: true, Reason: license.MissingGraphql}),
+	)
 })
 
 func getGraphQLLicense(isExpired, isInvalid bool) *license.ValidatedLicense {
@@ -84,8 +161,10 @@ func getGraphQLLicense(isExpired, isInvalid bool) *license.ValidatedLicense {
 			RandomPayload: "",
 			LicenseType:   "",
 			Product:       "",
-			AddOns: model.AddOns{
-				GraphQL: true,
+			AddOns: []model.AddOnLicense{
+				{
+					AddOn: model.GraphQL,
+				},
 			},
 		},
 		Err:  nil,

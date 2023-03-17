@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"os"
 
 	"go.uber.org/zap"
 
@@ -23,7 +22,7 @@ func main() {
 	logger := contextutils.LoggerFrom(ctx)
 
 	licensedFeatureProvider := license.NewLicensedFeatureProvider()
-	licensedFeatureProvider.ValidateAndSetLicense(os.Getenv(license.EnvName))
+	licensedFeatureProvider.ValidateAndSetLicense(ctx)
 
 	observabilityFeatureState := licensedFeatureProvider.GetStateForLicensedFeature(license.Enterprise)
 	if !observabilityFeatureState.Enabled {

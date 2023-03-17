@@ -36,7 +36,7 @@ import (
 func Run(runCtx context.Context, settings *Settings) error {
 	// Validate that the provided license supports Federation
 	licensedFeatureProvider := license.NewLicensedFeatureProvider()
-	licensedFeatureProvider.ValidateAndSetLicense(settings.LicenseKey)
+	licensedFeatureProvider.ValidateAndSetLicense(runCtx)
 	federationFeatureState := licensedFeatureProvider.GetStateForLicensedFeature(license.Enterprise)
 	if !federationFeatureState.Enabled {
 		return errors.Errorf("Federation is disabled", zap.String("reason", federationFeatureState.Reason))

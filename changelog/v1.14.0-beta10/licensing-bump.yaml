@@ -1,0 +1,11 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: licensing
+    dependencyTag: v0.3.13
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/4543
+    description: >
+      Old repo is creating UX issues where users are being given license keys that are too new for edge. Repo has been 
+      bumped and license now checked with a `NewLicensingClient` ( via `GetLicense` and `foundLicenseForState`) instead 
+      of `ValidateLicenseKey`.

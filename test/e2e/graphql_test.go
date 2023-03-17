@@ -628,8 +628,11 @@ func GetValidGraphqlLicense() *model.License {
 		ExpiresAt:   time.Now().Add(time.Minute * 100),
 		LicenseType: model.LicenseType_Trial,
 		Product:     model.Product_Gloo,
-		AddOns: model.AddOns{
-			GraphQL: true,
+		AddOns: []model.AddOnLicense{
+			{
+				ExpiresAt: time.Now().Add(time.Minute * 100),
+				AddOn:     model.GraphQL,
+			},
 		},
 	}
 }

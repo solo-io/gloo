@@ -2,7 +2,6 @@ package setup
 
 import (
 	"context"
-	"os"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	"github.com/solo-io/gloo/pkg/utils"
@@ -57,7 +56,7 @@ func NewSetupFuncWithRestControlPlaneAndExtensions(cancellableCtx context.Contex
 
 	// 1. Load Enterprise License
 	licensedFeatureProvider := license.NewLicensedFeatureProvider()
-	licensedFeatureProvider.ValidateAndSetLicense(os.Getenv(license.EnvName))
+	licensedFeatureProvider.ValidateAndSetLicense(cancellableCtx)
 
 	// 2. Prepare Enterprise extensions based on the state of the license
 	// These are evaluated by the RunFun

@@ -57,7 +57,7 @@ func main() {
 	apiserverSettings := settings.New()
 
 	licensedFeatureProvider := license.NewLicensedFeatureProvider()
-	licensedFeatureProvider.ValidateAndSetLicense(apiserverSettings.LicenseKey)
+	licensedFeatureProvider.ValidateAndSetLicense(rootCtx)
 
 	apiServerFeatureState := licensedFeatureProvider.GetStateForLicensedFeature(license.Enterprise)
 	if !apiServerFeatureState.Enabled {

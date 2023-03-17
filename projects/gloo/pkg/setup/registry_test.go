@@ -105,9 +105,7 @@ var _ = Describe("PluginRegistryFactory", func() {
 					RandomPayload: "",
 					LicenseType:   model.LicenseType_Enterprise,
 					Product:       model.Product_Gloo,
-					AddOns: model.AddOns{
-						GraphQL: false,
-					},
+					AddOns:        nil,
 				},
 				Err:  nil,
 				Warn: nil,
@@ -167,8 +165,10 @@ var _ = Describe("PluginRegistryFactory", func() {
 					RandomPayload: "",
 					LicenseType:   model.LicenseType_Enterprise,
 					Product:       model.Product_Gloo,
-					AddOns: model.AddOns{
-						GraphQL: true,
+					AddOns: []model.AddOnLicense{
+						{
+							AddOn: model.GraphQL,
+						},
 					},
 				},
 				Err:  nil,
@@ -210,8 +210,10 @@ var _ = Describe("PluginRegistryFactory", func() {
 					RandomPayload: "",
 					LicenseType:   model.LicenseType_Enterprise,
 					Product:       model.Product_Gloo,
-					AddOns: model.AddOns{
-						GraphQL: true,
+					AddOns: []model.AddOnLicense{
+						{
+							AddOn: model.GraphQL,
+						},
 					},
 				},
 				Err:  nil,
