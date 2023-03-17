@@ -12,17 +12,19 @@ import (
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/test/helpers"
 	. "github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/k8s-utils/testutils/helper"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	skcore "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-projects/test/kube2e"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	k8sv1 "k8s.io/api/core/v1"
 	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -266,46 +268,66 @@ func FailoverSpec(
 	// wait for upstream to be created
 	Eventually(getUpstream, "15s", "0.5s").ShouldNot(HaveOccurred())
 
-	// Create failover spec on redUpstream
-	redUpstream.Failover = &gloov1.Failover{
-		PrioritizedLocalities: []*gloov1.Failover_PrioritizedLocality{
-			{
-				LocalityEndpoints: []*gloov1.LocalityLbEndpoints{{
-					LbEndpoints: []*gloov1.LbEndpoint{{
-						Address: failoverTest.GreenService.Spec.ClusterIP,
-						Port:    10000,
-					}},
-				}},
-			},
-		},
-	}
-	timeout := ptypes.DurationProto(time.Second)
-	redUpstream.HealthChecks = []*core.HealthCheck{{
-		HealthChecker: &core.HealthCheck_HttpHealthCheck_{
-			HttpHealthCheck: &core.HealthCheck_HttpHealthCheck{
-				Path: "/health",
-			},
-		},
-		HealthyThreshold: &wrappers.UInt32Value{
-			Value: 1,
-		},
-		UnhealthyThreshold: &wrappers.UInt32Value{
-			Value: 1,
-		},
-		NoTrafficInterval: ptypes.DurationProto(time.Second / 2),
-		Timeout:           timeout,
-		Interval:          timeout,
-	}}
+	/*
+		This block is a workaround for this kube antipattern:
+			1. Download a resource with `kubectl` (or related tool)
+			2. Modify the resource
+			3. Apply the resource
+			(consulted https://stackoverflow.com/a/73639549, https://gist.github.com/udhos/447a72e462737c423edc89636ba6addb, and  https://github.com/argoproj/argo-cd/issues/3657#issuecomment-722706739)
 
-	Eventually(func() error {
-		_, err := failoverTest.UpstreamClient.Write(redUpstream, clients.WriteOpts{OverwriteExisting: true})
-		if errors.IsResourceVersion(err) {
-			existing, err := failoverTest.UpstreamClient.Read(redUpstream.Metadata.Namespace, redUpstream.Metadata.Name, clients.ReadOpts{})
-			Expect(err).NotTo(HaveOccurred())
-			redUpstream.Metadata.ResourceVersion = existing.Metadata.ResourceVersion
+		Since this is an _apply_ operation, rather than an _update_, Kube is rather particular with its dynamic fields.  Specifically:
+			* `kubectl.kubernetes.io/last-applied-configuration` is expected to _not_ exist
+			* `resourceVersion` is expected to _not_ conflict with the current resource version on the server
+
+		When Kube sees a conflict between these two items, it resolves the conflict by setting metadata.ResourceVersion=0x0, which causes
+		our discovery service to not detect an update/throw an error.
+
+		This solves this problem by both removing the `kubectl.kubernetes.io/last-applied-configuration` annotation _and_ reseting the resource version to match the server's
+	*/
+	patchErr := helpers.PatchResource(failoverTest.Ctx, redUpstream.GetMetadata().Ref(), func(resource resources.Resource) resources.Resource {
+		us := resource.(*gloov1.Upstream)
+
+		// modifications to upstream to convince kube to _not_ set resourceVersion=0x0
+		if us.GetMetadata().GetAnnotations() != nil {
+			us.Metadata.Annotations[k8sv1.LastAppliedConfigAnnotation] = ""
 		}
-		return err
-	}, "30m", "1s").ShouldNot(HaveOccurred())
+
+		// Create failover spec on upstream
+		us.Failover = &gloov1.Failover{
+			PrioritizedLocalities: []*gloov1.Failover_PrioritizedLocality{
+				{
+					LocalityEndpoints: []*gloov1.LocalityLbEndpoints{{
+						LbEndpoints: []*gloov1.LbEndpoint{{
+							Address: failoverTest.GreenService.Spec.ClusterIP,
+							Port:    10000,
+						}},
+					}},
+				},
+			},
+		}
+
+		timeout := ptypes.DurationProto(time.Second)
+		us.HealthChecks = []*core.HealthCheck{{
+			HealthChecker: &core.HealthCheck_HttpHealthCheck_{
+				HttpHealthCheck: &core.HealthCheck_HttpHealthCheck{
+					Path: "/health",
+				},
+			},
+			HealthyThreshold: &wrappers.UInt32Value{
+				Value: 1,
+			},
+			UnhealthyThreshold: &wrappers.UInt32Value{
+				Value: 1,
+			},
+			NoTrafficInterval: ptypes.DurationProto(time.Second / 2),
+			Timeout:           timeout,
+			Interval:          timeout,
+		}}
+
+		return us
+	}, failoverTest.UpstreamClient.BaseClient())
+	Expect(patchErr).NotTo(HaveOccurred())
+
 	kube2e.WriteCustomVirtualService(
 		failoverTest.Ctx,
 		1,
