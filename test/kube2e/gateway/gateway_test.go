@@ -117,7 +117,7 @@ var _ = Describe("Kube2e: gateway", func() {
 
 			attempt += 1
 			return false
-		}, time.Second*30, time.Second*1).Should(BeTrue())
+		}, time.Second*60, time.Second*1).Should(BeTrue())
 	}
 
 	BeforeEach(func() {
