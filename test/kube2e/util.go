@@ -103,11 +103,15 @@ func UpdateDisableTransformationValidationSetting(ctx context.Context, shouldDis
 }
 
 // enable/disable strict validation
-func UpdateAlwaysAcceptSetting(ctx context.Context, alwaysAccept bool, installNamespace string) {
+func UpdateAlwaysAcceptSetting(ctx context.Context, alwaysAccept bool, installNamespace string, verifyUpdate func()) {
 	UpdateSettings(ctx, func(settings *v1.Settings) {
 		Expect(settings.GetGateway().GetValidation()).NotTo(BeNil())
 		settings.GetGateway().GetValidation().AlwaysAccept = &wrappers.BoolValue{Value: alwaysAccept}
 	}, installNamespace)
+
+	if verifyUpdate != nil {
+		verifyUpdate()
+	}
 }
 
 func UpdateRestEdsSetting(ctx context.Context, enableRestEds bool, installNamespace string) {

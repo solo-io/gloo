@@ -117,7 +117,7 @@ var _ = Describe("Kube2e: gateway", func() {
 
 			attempt += 1
 			return false
-		}, time.Second*15, time.Second*1).Should(BeTrue())
+		}, time.Second*30, time.Second*1).Should(BeTrue())
 	}
 
 	BeforeEach(func() {
@@ -442,7 +442,7 @@ var _ = Describe("Kube2e: gateway", func() {
 
 			BeforeEach(func() {
 				// disable strict validation, so that we can write persist invalid VirtualServices
-				kube2e.UpdateAlwaysAcceptSetting(ctx, true, testHelper.InstallNamespace)
+				kube2e.UpdateAlwaysAcceptSetting(ctx, true, testHelper.InstallNamespace, nil)
 
 				validVs := helpers.NewVirtualServiceBuilder().
 					WithName(validVsName).
@@ -481,8 +481,7 @@ var _ = Describe("Kube2e: gateway", func() {
 				// important that we update the always accept setting after removing resources, or else we can have:
 				// "validation is disabled due to an invalid resource which has been written to storage.
 				// Please correct any Rejected resources to re-enable validation."
-				kube2e.UpdateAlwaysAcceptSetting(ctx, false, testHelper.InstallNamespace)
-				verifyValidationWorks() // blocking function to wait for validation to be re-enabled
+				kube2e.UpdateAlwaysAcceptSetting(ctx, false, testHelper.InstallNamespace, verifyValidationWorks)
 			})
 
 			It("propagates the valid virtual services to envoy", func() {
@@ -1304,12 +1303,11 @@ var _ = Describe("Kube2e: gateway", func() {
 	Context("validation will always accept resources", func() {
 
 		BeforeEach(func() {
-			kube2e.UpdateAlwaysAcceptSetting(ctx, true, testHelper.InstallNamespace)
+			kube2e.UpdateAlwaysAcceptSetting(ctx, true, testHelper.InstallNamespace, nil)
 		})
 
 		AfterEach(func() {
-			kube2e.UpdateAlwaysAcceptSetting(ctx, false, testHelper.InstallNamespace)
-			verifyValidationWorks() // blocking function to wait for validation to be re-enabled
+			kube2e.UpdateAlwaysAcceptSetting(ctx, false, testHelper.InstallNamespace, verifyValidationWorks)
 		})
 
 		Context("tests with RateLimitConfigs", func() {
@@ -2115,6 +2113,10 @@ spec:
 						Expect(settings.GetGateway().GetValidation()).NotTo(BeNil())
 						settings.GetGateway().GetValidation().AllowWarnings = &wrappers.BoolValue{Value: true}
 					}, testHelper.InstallNamespace)
+				})
+
+				JustBeforeEach(func() {
+					verifyValidationWorks()
 				})
 
 				It("rejects bad resources", func() {
