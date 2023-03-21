@@ -478,6 +478,12 @@ var _ = Describe("Kube2e: gateway", func() {
 			})
 
 			AfterEach(func() {
+				// don't *actually* delete anything, here--just verify that the delete from JustAfterEach's DeleteSnapshot has completed
+				Eventually(func() bool {
+					vsList, err := resourceClientset.VirtualServiceClient().List("", clients.ListOpts{})
+					return len(vsList) == 0 && err == nil
+				}, "15s", "0.5s").Should(BeTrue())
+
 				// important that we update the always accept setting after removing resources, or else we can have:
 				// "validation is disabled due to an invalid resource which has been written to storage.
 				// Please correct any Rejected resources to re-enable validation."
@@ -1307,6 +1313,12 @@ var _ = Describe("Kube2e: gateway", func() {
 		})
 
 		AfterEach(func() {
+			// don't *actually* delete anything, here--just verify that the delete from JustAfterEach's DeleteSnapshot has completed
+			Eventually(func() bool {
+				rlList, err := resourceClientset.RateLimitConfigClient().List("", clients.ListOpts{})
+				return len(rlList) == 0 && err == nil
+			}, "15s", "0.5s").Should(BeTrue())
+
 			kube2e.UpdateAlwaysAcceptSetting(ctx, false, testHelper.InstallNamespace, verifyValidationWorks)
 		})
 
