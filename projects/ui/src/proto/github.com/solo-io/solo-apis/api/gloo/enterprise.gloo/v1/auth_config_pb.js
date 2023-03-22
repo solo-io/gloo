@@ -12407,7 +12407,8 @@ proto.enterprise.gloo.solo.io.ApiKey.toObject = function(includeInstance, msg) {
   var f, obj = {
     apiKey: jspb.Message.getFieldWithDefault(msg, 2, ""),
     labelsList: jspb.Message.getRepeatedField(msg, 3),
-    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
+    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : [],
+    uuid: jspb.Message.getFieldWithDefault(msg, 5, "")
   };
 
   if (includeInstance) {
@@ -12458,6 +12459,10 @@ proto.enterprise.gloo.solo.io.ApiKey.deserializeBinaryFromReader = function(msg,
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
          });
       break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUuid(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -12504,6 +12509,13 @@ proto.enterprise.gloo.solo.io.ApiKey.serializeBinaryToWriter = function(message,
   f = message.getMetadataMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getUuid();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
+    );
   }
 };
 
@@ -12567,6 +12579,21 @@ proto.enterprise.gloo.solo.io.ApiKey.prototype.getMetadataMap = function(opt_noL
 
 proto.enterprise.gloo.solo.io.ApiKey.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
+};
+
+
+/**
+ * optional string uuid = 5;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ApiKey.prototype.getUuid = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ApiKey.prototype.setUuid = function(value) {
+  jspb.Message.setProto3StringField(this, 5, value);
 };
 
 

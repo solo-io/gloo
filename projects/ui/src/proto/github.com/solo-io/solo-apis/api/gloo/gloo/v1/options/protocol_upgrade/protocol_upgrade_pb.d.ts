@@ -12,6 +12,11 @@ export class ProtocolUpgradeConfig extends jspb.Message {
   getWebsocket(): ProtocolUpgradeConfig.ProtocolUpgradeSpec | undefined;
   setWebsocket(value?: ProtocolUpgradeConfig.ProtocolUpgradeSpec): void;
 
+  hasConnect(): boolean;
+  clearConnect(): void;
+  getConnect(): ProtocolUpgradeConfig.ProtocolUpgradeSpec | undefined;
+  setConnect(value?: ProtocolUpgradeConfig.ProtocolUpgradeSpec): void;
+
   getUpgradeTypeCase(): ProtocolUpgradeConfig.UpgradeTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ProtocolUpgradeConfig.AsObject;
@@ -26,6 +31,7 @@ export class ProtocolUpgradeConfig extends jspb.Message {
 export namespace ProtocolUpgradeConfig {
   export type AsObject = {
     websocket?: ProtocolUpgradeConfig.ProtocolUpgradeSpec.AsObject,
+    connect?: ProtocolUpgradeConfig.ProtocolUpgradeSpec.AsObject,
   }
 
   export class ProtocolUpgradeSpec extends jspb.Message {
@@ -53,5 +59,6 @@ export namespace ProtocolUpgradeConfig {
   export enum UpgradeTypeCase {
     UPGRADE_TYPE_NOT_SET = 0,
     WEBSOCKET = 1,
+    CONNECT = 2,
   }
 }

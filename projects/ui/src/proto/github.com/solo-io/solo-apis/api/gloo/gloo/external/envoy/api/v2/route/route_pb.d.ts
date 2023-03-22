@@ -331,6 +331,11 @@ export class RouteMatch extends jspb.Message {
   getRegex(): string;
   setRegex(value: string): void;
 
+  hasConnectMatcher(): boolean;
+  clearConnectMatcher(): void;
+  getConnectMatcher(): RouteMatch.ConnectMatcher | undefined;
+  setConnectMatcher(value?: RouteMatch.ConnectMatcher): void;
+
   hasCaseSensitive(): boolean;
   clearCaseSensitive(): void;
   getCaseSensitive(): google_protobuf_wrappers_pb.BoolValue | undefined;
@@ -372,11 +377,28 @@ export namespace RouteMatch {
     prefix: string,
     path: string,
     regex: string,
+    connectMatcher?: RouteMatch.ConnectMatcher.AsObject,
     caseSensitive?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     runtimeFraction?: github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb.RuntimeFractionalPercent.AsObject,
     headersList: Array<HeaderMatcher.AsObject>,
     queryParametersList: Array<QueryParameterMatcher.AsObject>,
     grpc?: RouteMatch.GrpcRouteMatchOptions.AsObject,
+  }
+
+  export class ConnectMatcher extends jspb.Message {
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ConnectMatcher.AsObject;
+    static toObject(includeInstance: boolean, msg: ConnectMatcher): ConnectMatcher.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ConnectMatcher, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ConnectMatcher;
+    static deserializeBinaryFromReader(message: ConnectMatcher, reader: jspb.BinaryReader): ConnectMatcher;
+  }
+
+  export namespace ConnectMatcher {
+    export type AsObject = {
+    }
   }
 
   export class GrpcRouteMatchOptions extends jspb.Message {
@@ -400,6 +422,7 @@ export namespace RouteMatch {
     PREFIX = 1,
     PATH = 2,
     REGEX = 3,
+    CONNECT_MATCHER = 10,
   }
 }
 

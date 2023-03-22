@@ -51,7 +51,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.31.0
 	github.com/solo-io/external-apis v0.1.12-0.20220818213511-97f5ab3a6898
-	github.com/solo-io/gloo v1.14.0-beta15
+	github.com/solo-io/gloo v1.14.0-beta16
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.0
 	github.com/solo-io/k8s-utils v0.3.0
@@ -60,7 +60,7 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.7.4
 	github.com/solo-io/skv2 v0.26.2
-	github.com/solo-io/solo-apis v0.0.0-20230302205600-5c930c0f05c2
+	github.com/solo-io/solo-apis v0.0.0-20230316212816-30b971112401
 	github.com/solo-io/solo-kit v0.31.0
 	github.com/solo-io/wasm-kit v0.1.4
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -69,10 +69,10 @@ require (
 	github.com/spf13/viper v1.12.0
 	go.opencensus.io v0.24.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/mod v0.8.0
-	golang.org/x/net v0.7.0
+	golang.org/x/mod v0.9.0
+	golang.org/x/net v0.8.0
 	golang.org/x/sync v0.1.0
-	golang.org/x/tools v0.6.0
+	golang.org/x/tools v0.7.0
 	google.golang.org/genproto v0.0.0-20221201164419-0e50fba7f41c
 	google.golang.org/grpc v1.52.0
 	google.golang.org/protobuf v1.28.1

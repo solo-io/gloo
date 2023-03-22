@@ -42,14 +42,15 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.oneofGroups_ = [[1]];
+proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.oneofGroups_ = [[1,2]];
 
 /**
  * @enum {number}
  */
 proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.UpgradeTypeCase = {
   UPGRADE_TYPE_NOT_SET: 0,
-  WEBSOCKET: 1
+  WEBSOCKET: 1,
+  CONNECT: 2
 };
 
 /**
@@ -88,7 +89,8 @@ proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.prototype.toOb
  */
 proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.toObject = function(includeInstance, msg) {
   var f, obj = {
-    websocket: (f = msg.getWebsocket()) && proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec.toObject(includeInstance, f)
+    websocket: (f = msg.getWebsocket()) && proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec.toObject(includeInstance, f),
+    connect: (f = msg.getConnect()) && proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -130,6 +132,11 @@ proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.deserializeBin
       reader.readMessage(value,proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec.deserializeBinaryFromReader);
       msg.setWebsocket(value);
       break;
+    case 2:
+      var value = new proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec;
+      reader.readMessage(value,proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec.deserializeBinaryFromReader);
+      msg.setConnect(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -163,6 +170,14 @@ proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.serializeBinar
   if (f != null) {
     writer.writeMessage(
       1,
+      f,
+      proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec.serializeBinaryToWriter
+    );
+  }
+  f = message.getConnect();
+  if (f != null) {
+    writer.writeMessage(
+      2,
       f,
       proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec.serializeBinaryToWriter
     );
@@ -356,6 +371,36 @@ proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.prototype.clea
  */
 proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.prototype.hasWebsocket = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional ProtocolUpgradeSpec connect = 2;
+ * @return {?proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec}
+ */
+proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.prototype.getConnect = function() {
+  return /** @type{?proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec} */ (
+    jspb.Message.getWrapperField(this, proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec, 2));
+};
+
+
+/** @param {?proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec|undefined} value */
+proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.prototype.setConnect = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.oneofGroups_[0], value);
+};
+
+
+proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.prototype.clearConnect = function() {
+  this.setConnect(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.prototype.hasConnect = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

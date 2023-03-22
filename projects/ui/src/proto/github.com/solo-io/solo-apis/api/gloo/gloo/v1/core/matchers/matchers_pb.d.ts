@@ -22,6 +22,11 @@ export class Matcher extends jspb.Message {
   getRegex(): string;
   setRegex(value: string): void;
 
+  hasConnectMatcher(): boolean;
+  clearConnectMatcher(): void;
+  getConnectMatcher(): Matcher.ConnectMatcher | undefined;
+  setConnectMatcher(value?: Matcher.ConnectMatcher): void;
+
   hasCaseSensitive(): boolean;
   clearCaseSensitive(): void;
   getCaseSensitive(): google_protobuf_wrappers_pb.BoolValue | undefined;
@@ -58,10 +63,27 @@ export namespace Matcher {
     prefix: string,
     exact: string,
     regex: string,
+    connectMatcher?: Matcher.ConnectMatcher.AsObject,
     caseSensitive?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     headersList: Array<HeaderMatcher.AsObject>,
     queryParametersList: Array<QueryParameterMatcher.AsObject>,
     methodsList: Array<string>,
+  }
+
+  export class ConnectMatcher extends jspb.Message {
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ConnectMatcher.AsObject;
+    static toObject(includeInstance: boolean, msg: ConnectMatcher): ConnectMatcher.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ConnectMatcher, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ConnectMatcher;
+    static deserializeBinaryFromReader(message: ConnectMatcher, reader: jspb.BinaryReader): ConnectMatcher;
+  }
+
+  export namespace ConnectMatcher {
+    export type AsObject = {
+    }
   }
 
   export enum PathSpecifierCase {
@@ -69,6 +91,7 @@ export namespace Matcher {
     PREFIX = 1,
     EXACT = 2,
     REGEX = 3,
+    CONNECT_MATCHER = 9,
   }
 }
 

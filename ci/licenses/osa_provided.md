@@ -44,8 +44,8 @@ Name|Version|License
 [spf13/viper](https://github.com/spf13/viper)|v1.12.0|MIT License
 [go.opencensus.io](https://go.opencensus.io)|v0.24.0|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.21.0|MIT License
-[x/mod](https://golang.org/x/mod)|v0.8.0|BSD 3-clause "New" or "Revised" License
-[x/net](https://golang.org/x/net)|v0.7.0|BSD 3-clause "New" or "Revised" License
+[x/mod](https://golang.org/x/mod)|v0.9.0|BSD 3-clause "New" or "Revised" License
+[x/net](https://golang.org/x/net)|v0.8.0|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.1.0|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
 [google.golang.org/genproto](https://google.golang.org/genproto)|v0.0.0-20221201164419-0e50fba7f41c|Apache License 2.0

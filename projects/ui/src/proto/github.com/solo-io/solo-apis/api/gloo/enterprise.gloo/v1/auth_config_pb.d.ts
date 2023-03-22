@@ -1807,6 +1807,9 @@ export class ApiKey extends jspb.Message {
 
   getMetadataMap(): jspb.Map<string, string>;
   clearMetadataMap(): void;
+  getUuid(): string;
+  setUuid(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ApiKey.AsObject;
   static toObject(includeInstance: boolean, msg: ApiKey): ApiKey.AsObject;
@@ -1822,6 +1825,7 @@ export namespace ApiKey {
     apiKey: string,
     labelsList: Array<string>,
     metadataMap: Array<[string, string]>,
+    uuid: string,
   }
 }
 
