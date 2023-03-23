@@ -322,7 +322,7 @@ $(GLOO_FED_OUT_DIR)/Dockerfile.build: $(GLOO_FED_DIR)/Dockerfile
 	cp $< $@
 
 $(GLOO_FED_OUT_DIR)/.gloo-fed-ee-docker-build: $(GLOO_FED_SOURCES) $(GLOO_FED_OUT_DIR)/Dockerfile.build
-	docker buildx build -t $(IMAGE_REG)/gloo-fed-ee-build-container:$(VERSION) \
+	docker buildx build --load -t $(IMAGE_REG)/gloo-fed-ee-build-container:$(VERSION) \
 		-f $(GLOO_FED_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
@@ -390,7 +390,7 @@ $(GLOO_FED_APISERVER_OUT_DIR)/Dockerfile.build: $(GLOO_FED_APISERVER_DIR)/Docker
 
 # the executable outputs as amd64 only because it is placed in an image that is amd64
 $(GLOO_FED_APISERVER_OUT_DIR)/.gloo-fed-apiserver-docker-build: $(GLOO_FED_SOURCES) $(GLOO_FED_APISERVER_OUT_DIR)/Dockerfile.build
-	docker buildx build -t $(IMAGE_REG)/gloo-fed-apiserver-build-container:$(VERSION) \
+	docker buildx build --load -t $(IMAGE_REG)/gloo-fed-apiserver-build-container:$(VERSION) \
 		-f $(GLOO_FED_APISERVER_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
@@ -1047,7 +1047,7 @@ $(GLOO_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
 
 # the executable outputs as amd64 only because it is placed in an image that is amd64
 $(GLOO_OUT_DIR)/.gloo-ee-docker-build: install-node-packages $(GLOO_SOURCES) $(GLOO_OUT_DIR)/Dockerfile.build
-	docker buildx build -t $(IMAGE_REG)/gloo-ee-build-container:$(VERSION) \
+	docker buildx build --load -t  $(IMAGE_REG)/gloo-ee-build-container:$(VERSION) \
 		-f $(GLOO_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
