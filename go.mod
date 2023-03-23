@@ -49,9 +49,9 @@ require (
 	github.com/solo-io/caching-service v0.1.17
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.31.0
+	github.com/solo-io/ext-auth-service v0.33.0
 	github.com/solo-io/external-apis v0.1.12-0.20220818213511-97f5ab3a6898
-	github.com/solo-io/gloo v1.14.0-beta16
+	github.com/solo-io/gloo v1.14.0-beta17
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.0
 	github.com/solo-io/k8s-utils v0.3.0
@@ -60,7 +60,7 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.7.4
 	github.com/solo-io/skv2 v0.26.2
-	github.com/solo-io/solo-apis v0.0.0-20230316212816-30b971112401
+	github.com/solo-io/solo-apis v0.0.0-20230322190023-66528239bfa3
 	github.com/solo-io/solo-kit v0.31.0
 	github.com/solo-io/wasm-kit v0.1.4
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3

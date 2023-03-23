@@ -25,6 +25,7 @@ import (
 var (
 	unknownConfigTypeError = errors.New("unknown ext auth configuration")
 	emptyQueryError        = errors.New("no query provided")
+	noValidUsersError      = errors.New("No valid users found")
 	NonApiKeySecretError   = func(secret *v1.Secret) error {
 		return errors.Errorf("secret [%s] is not an API key secret", secret.Metadata.Ref().Key())
 	}
@@ -183,6 +184,15 @@ func translateConfig(ctx context.Context, snap *v1snap.ApiSnapshot, cfg *extauth
 		}
 	case *extauth.AuthConfig_Config_Jwt:
 		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Jwt{}
+	case *extauth.AuthConfig_Config_HmacAuth:
+
+		cfg, err := translateHmacConfig(ctx, snap, config.HmacAuth)
+		if err != nil {
+			return nil, err
+		}
+		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_HmacAuth{
+			HmacAuth: cfg,
+		}
 	case *extauth.AuthConfig_Config_PassThroughAuth:
 		switch protocolConfig := config.PassThroughAuth.GetProtocol().(type) {
 		case *extauth.PassThroughAuth_Grpc:
@@ -526,6 +536,44 @@ func translateLdapConfig(snap *v1snap.ApiSnapshot, config *extauth.Ldap) (*extau
 		SearchFilter:            config.GetSearchFilter(),
 		DisableGroupChecking:    config.GetDisableGroupChecking(),
 		GroupLookupSettings:     translatedGroupLookupSettings,
+	}
+	return translatedConfig, nil
+}
+func translateHmacConfig(ctx context.Context, snap *v1snap.ApiSnapshot, config *extauth.HmacAuth) (*extauth.ExtAuthConfig_HmacAuthConfig, error) {
+	passwords := make(map[string]string, len(config.GetSecretRefs().GetSecretRefs()))
+	secretErrors := &multierror.Error{}
+	for _, secretRef := range config.GetSecretRefs().GetSecretRefs() {
+		secret, err := snap.Secrets.Find(secretRef.GetNamespace(), secretRef.GetName())
+		if err != nil {
+			secretErrors = multierror.Append(secretErrors, err)
+		} else if _, ok := secret.GetKind().(*v1.Secret_Credentials); !ok {
+			secretErrors = multierror.Append(secretErrors, NonAccountCredentialsSecretError(secret))
+		} else {
+			passwords[secret.GetCredentials().GetUsername()] = secret.GetCredentials().GetPassword()
+		}
+	}
+	if compiledError := secretErrors.ErrorOrNil(); compiledError != nil {
+		contextutils.LoggerFrom(ctx).Warnf("Some secrets could not be read. Any valid secrets will be avaiable for authentication. Errors %v", secretErrors)
+	}
+	if len(passwords) == 0 {
+		return nil, noValidUsersError
+	}
+	translatedConfig := &extauth.ExtAuthConfig_HmacAuthConfig{
+		SecretStorage: &extauth.ExtAuthConfig_HmacAuthConfig_SecretList{
+			SecretList: &extauth.ExtAuthConfig_InMemorySecretList{SecretList: passwords},
+		},
+	}
+	// When there is more than one implementation, there might be config from some of them to pass through
+	switch hmacImpl := config.GetImplementationType().(type) {
+	case *extauth.HmacAuth_ParametersInHeaders:
+		translatedConfig.ImplementationType = &extauth.ExtAuthConfig_HmacAuthConfig_ParametersInHeaders{
+			// this is always empty so it's not technically necessary
+			ParametersInHeaders: hmacImpl.ParametersInHeaders,
+		}
+	default:
+		translatedConfig.ImplementationType = &extauth.ExtAuthConfig_HmacAuthConfig_ParametersInHeaders{
+			ParametersInHeaders: &extauth.HmacParametersInHeaders{},
+		}
 	}
 	return translatedConfig, nil
 }

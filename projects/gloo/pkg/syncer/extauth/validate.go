@@ -163,8 +163,14 @@ func ErrorIfInvalidAuthConfig(ac *extauth.AuthConfig) *multierror.Error {
 			}
 		case *extauth.AuthConfig_Config_Jwt:
 			// no validation needed yet for dummy jwt service
+		case *extauth.AuthConfig_Config_HmacAuth:
+			secrets := cfg.HmacAuth.GetSecretRefs().GetSecretRefs()
+			if len(secrets) == 0 {
+				multiErr = multierror.Append(multiErr, errors.Errorf("No secrets provided to Hmac Auth for %v", ac.Metadata.Ref()))
+			}
+
 		default:
-			multiErr = multierror.Append(multiErr, errors.Errorf("Unknown Auth Config type for %v", ac.Metadata.Ref()))
+			multiErr = multierror.Append(multiErr, errors.Errorf("Unknown Auth Config type for %v %T", ac.Metadata.Ref(), cfg))
 		}
 	}
 	return multiErr

@@ -3291,6 +3291,81 @@ var _ = Describe("External auth", func() {
 					})
 				})
 			})
+			// If we add more configuration options we can separate them within this context
+			Context("hmac tests with sha1 and list of secret refs", func() {
+				var (
+					authConfig *extauth.AuthConfig
+					proxy      *gloov1.Proxy
+					secret     *gloov1.Secret
+				)
+				BeforeEach(func() {
+					// Create and persist the secret
+					secret = &gloov1.Secret{
+						Metadata: &core.Metadata{
+							Name:      "secret",
+							Namespace: "default",
+						},
+						Kind: &gloov1.Secret_Credentials{
+							Credentials: &gloov1.AccountCredentialsSecret{Username: "alice", Password: "secret123"},
+						},
+					}
+					_, err := testClients.SecretClient.Write(secret, clients.WriteOpts{Ctx: ctx})
+					Expect(err).NotTo(HaveOccurred())
+					// Create authconfig
+					hmacConfig := getHmacAuthConfig(secret.Metadata.Ref())
+					authConfig = &extauth.AuthConfig{
+						Metadata: &core.Metadata{
+							Name:      "hmac-auth",
+							Namespace: "gloo-system",
+						},
+						Configs: []*extauth.AuthConfig_Config{{AuthConfig: &extauth.AuthConfig_Config_HmacAuth{hmacConfig}}},
+					}
+					_, err = testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						return testClients.AuthConfigClient.Read(authConfig.Metadata.Namespace, authConfig.Metadata.Name, clients.ReadOpts{})
+					})
+					proxy = getProxyExtAuthHmac(envoyPort, testUpstream.Upstream.GetMetadata().Ref(), false)
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+					})
+					waitForHealthyExtauthService()
+				})
+
+				makeSingleRequest := func(user, signature string) (int, error) {
+					req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/requests", "localhost", envoyPort), nil)
+					if err != nil {
+						return 0, err
+					}
+					req.Header.Add("Host", "hmac.com")
+					req.Header.Add("date", "Thu, 22 Jun 2017 17:15:21 GMT")
+					req.Header.Add("authorization", fmt.Sprintf("hmac username=\"%s\", algorithm=\"hmac-sha256\", headers=\"date @request-target\", signature=\"%s\"", user, signature))
+					r, err := http.DefaultClient.Do(req)
+					if err != nil {
+						return 0, err
+					}
+					defer r.Body.Close()
+					_, _ = io.ReadAll(r.Body)
+					return r.StatusCode, nil
+				}
+				It("Allows requests with valid signature", func() {
+					Eventually(func() {
+						resp, err := makeSingleRequest("alice123", "ujWCGHeec9Xd6UD2zlyxiNMCiXnDOWeVFMu5VeRUxtw=")
+						Expect(err).NotTo(HaveOccurred())
+						Expect(resp).To(Equal(http.StatusOK))
+					})
+				})
+				It("Denies requests without valid signature", func() {
+					Eventually(func() {
+						resp, err := makeSingleRequest("alice123", "notreallyalice")
+						Expect(err).NotTo(HaveOccurred())
+						Expect(resp).To(Equal(http.StatusUnauthorized))
+					})
+				})
+			})
 		})
 
 		Context("using old config format", func() {
@@ -4227,7 +4302,29 @@ func getPassThroughAuthConfig(address string, failureModeAllow bool) *extauth.Pa
 		FailureModeAllow: failureModeAllow,
 	}
 }
-
+func getHmacAuthConfig(secretRef *core.ResourceRef) *extauth.HmacAuth {
+	return &extauth.HmacAuth{
+		ImplementationType: &extauth.HmacAuth_ParametersInHeaders{
+			ParametersInHeaders: &extauth.HmacParametersInHeaders{},
+		},
+		SecretStorage: &extauth.HmacAuth_SecretRefs{
+			SecretRefs: &extauth.SecretRefList{SecretRefs: []*core.ResourceRef{secretRef}},
+		},
+	}
+}
+func getHmacExtAuthExtension() *extauth.ExtAuthExtension {
+	return &extauth.ExtAuthExtension{
+		Spec: &extauth.ExtAuthExtension_ConfigRef{
+			ConfigRef: &core.ResourceRef{
+				Name:      "hmac-auth",
+				Namespace: defaults.GlooSystem,
+			},
+		},
+	}
+}
+func getProxyExtAuthHmac(envoyPort uint32, upstream *core.ResourceRef, zipkinTracing bool) *gloov1.Proxy {
+	return getProxyExtAuth(envoyPort, upstream, getHmacExtAuthExtension(), zipkinTracing)
+}
 func getProxyExtAuth(envoyPort uint32, upstream *core.ResourceRef, extauthCfg *extauth.ExtAuthExtension, zipkinTracing bool) *gloov1.Proxy {
 	var vhosts []*gloov1.VirtualHost
 

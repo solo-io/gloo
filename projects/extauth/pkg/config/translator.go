@@ -11,6 +11,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/ext-auth-service/pkg/config/hmac"
+
+	jwtextauth "github.com/solo-io/ext-auth-service/pkg/config/jwt"
+
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth2"
 
 	"github.com/golang/protobuf/ptypes/duration"
@@ -28,7 +32,6 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config"
 	"github.com/solo-io/ext-auth-service/pkg/config/apikeys"
 	"github.com/solo-io/ext-auth-service/pkg/config/apr"
-	jwtextauth "github.com/solo-io/ext-auth-service/pkg/config/jwt"
 	"github.com/solo-io/ext-auth-service/pkg/config/ldap"
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation/utils"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
@@ -483,6 +486,12 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			return nil, "", err
 		}
 		return ldapSvc, config.GetName().GetValue(), nil
+	case *extauthv1.ExtAuthConfig_Config_HmacAuth:
+		passwords := cfg.HmacAuth.GetSecretList().GetSecretList()
+		// When we add multiple implementations, there will need to be a check here for the implmentation type, but for now it's always HeadersRequestToHmac
+		hmacConversionFunc := hmac.HeadersRequestToHmac
+		hmacSvc := t.serviceFactory.NewHmacAuthService(passwords, hmacConversionFunc)
+		return hmacSvc, config.GetName().GetValue(), nil
 	case *extauthv1.ExtAuthConfig_Config_PassThroughAuth:
 		switch protocolConfig := cfg.PassThroughAuth.GetProtocol().(type) {
 		case *extauthv1.PassThroughAuth_Grpc:
@@ -578,6 +587,7 @@ func getLdapConnectionPoolParams(pool *extauthv1.Ldap_ConnectionPool) (int, int)
 	}
 	return initCap, maxCap
 }
+
 func getPassThroughGrpcAuthService(ctx context.Context, passthroughAuthCfg *structpb.Struct, grpcConfig *extauthv1.PassThroughGrpc, failureModeAllow bool) (api.AuthService, error) {
 	connectionTimeout := 5 * time.Second
 

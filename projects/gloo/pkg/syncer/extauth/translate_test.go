@@ -685,7 +685,7 @@ var _ = Describe("Translate", func() {
 		BeforeEach(func() {
 			authConfig = &extauth.AuthConfig{
 				Metadata: &core.Metadata{
-					Name:      "oauth",
+					Name:      "ldap",
 					Namespace: "gloo-system",
 				},
 				Configs: []*extauth.AuthConfig_Config{{
@@ -765,6 +765,56 @@ var _ = Describe("Translate", func() {
 			Expect(err).NotTo(HaveOccurred())
 			final := translated.Configs[0].GetLdap()
 			Expect(final).NotTo(BeNil(), "Old API should be used")
+		})
+	})
+	Context("HMAC extauth", func() {
+		BeforeEach(func() {
+			authConfig = &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "hmac",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_HmacAuth{
+						HmacAuth: &extauth.HmacAuth{
+							SecretStorage: &extauth.HmacAuth_SecretRefs{
+								SecretRefs: &extauth.SecretRefList{
+									SecretRefs: []*core.ResourceRef{
+										ldapSecret.Metadata.Ref(),
+									}},
+							},
+							ImplementationType: &extauth.HmacAuth_ParametersInHeaders{ParametersInHeaders: &extauth.HmacParametersInHeaders{}},
+						},
+					}},
+				}}
+			authConfigRef = authConfig.Metadata.Ref()
+			extAuthExtension = &extauth.ExtAuthExtension{
+				Spec: &extauth.ExtAuthExtension_ConfigRef{
+					ConfigRef: authConfigRef,
+				},
+			}
+			params.Snapshot = &v1snap.ApiSnapshot{
+				Upstreams:   v1.UpstreamList{upstream},
+				AuthConfigs: extauth.AuthConfigList{authConfig},
+			}
+		})
+		It("Translates valid HMAC config", func() {
+
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+			Expect(translated.Configs).To(HaveLen(1))
+			actual := translated.Configs[0].GetHmacAuth()
+			Expect(actual.GetSecretList().GetSecretList()[ldapSecret.GetCredentials().GetUsername()]).To(Equal(ldapSecret.GetCredentials().GetPassword()))
+		})
+		It("errors when no secrets are provided", func() {
+			authConfig.Configs[0].GetHmacAuth().SecretStorage = &extauth.HmacAuth_SecretRefs{
+				&extauth.SecretRefList{
+					SecretRefs: []*core.ResourceRef{},
+				},
+			}
+			_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(BeNil())
 		})
 	})
 })

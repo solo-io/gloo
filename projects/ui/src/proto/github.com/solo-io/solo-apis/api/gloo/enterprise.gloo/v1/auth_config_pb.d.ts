@@ -95,6 +95,11 @@ export namespace AuthConfigSpec {
     getPassThroughAuth(): PassThroughAuth | undefined;
     setPassThroughAuth(value?: PassThroughAuth): void;
 
+    hasHmacAuth(): boolean;
+    clearHmacAuth(): void;
+    getHmacAuth(): HmacAuth | undefined;
+    setHmacAuth(value?: HmacAuth): void;
+
     getAuthConfigCase(): Config.AuthConfigCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Config.AsObject;
@@ -118,6 +123,7 @@ export namespace AuthConfigSpec {
       ldap?: Ldap.AsObject,
       jwt?: google_protobuf_empty_pb.Empty.AsObject,
       passThroughAuth?: PassThroughAuth.AsObject,
+      hmacAuth?: HmacAuth.AsObject,
     }
 
     export enum AuthConfigCase {
@@ -131,6 +137,7 @@ export namespace AuthConfigSpec {
       LDAP = 7,
       JWT = 11,
       PASS_THROUGH_AUTH = 12,
+      HMAC_AUTH = 13,
     }
   }
 }
@@ -528,6 +535,84 @@ export namespace BasicAuth {
         hashedPassword: string,
       }
     }
+  }
+}
+
+export class HmacAuth extends jspb.Message {
+  hasSecretRefs(): boolean;
+  clearSecretRefs(): void;
+  getSecretRefs(): SecretRefList | undefined;
+  setSecretRefs(value?: SecretRefList): void;
+
+  hasParametersInHeaders(): boolean;
+  clearParametersInHeaders(): void;
+  getParametersInHeaders(): HmacParametersInHeaders | undefined;
+  setParametersInHeaders(value?: HmacParametersInHeaders): void;
+
+  getSecretStorageCase(): HmacAuth.SecretStorageCase;
+  getImplementationTypeCase(): HmacAuth.ImplementationTypeCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): HmacAuth.AsObject;
+  static toObject(includeInstance: boolean, msg: HmacAuth): HmacAuth.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: HmacAuth, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): HmacAuth;
+  static deserializeBinaryFromReader(message: HmacAuth, reader: jspb.BinaryReader): HmacAuth;
+}
+
+export namespace HmacAuth {
+  export type AsObject = {
+    secretRefs?: SecretRefList.AsObject,
+    parametersInHeaders?: HmacParametersInHeaders.AsObject,
+  }
+
+  export enum SecretStorageCase {
+    SECRET_STORAGE_NOT_SET = 0,
+    SECRET_REFS = 1,
+  }
+
+  export enum ImplementationTypeCase {
+    IMPLEMENTATION_TYPE_NOT_SET = 0,
+    PARAMETERS_IN_HEADERS = 2,
+  }
+}
+
+export class SecretRefList extends jspb.Message {
+  clearSecretRefsList(): void;
+  getSecretRefsList(): Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>;
+  setSecretRefsList(value: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>): void;
+  addSecretRefs(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef, index?: number): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SecretRefList.AsObject;
+  static toObject(includeInstance: boolean, msg: SecretRefList): SecretRefList.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SecretRefList, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SecretRefList;
+  static deserializeBinaryFromReader(message: SecretRefList, reader: jspb.BinaryReader): SecretRefList;
+}
+
+export namespace SecretRefList {
+  export type AsObject = {
+    secretRefsList: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject>,
+  }
+}
+
+export class HmacParametersInHeaders extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): HmacParametersInHeaders.AsObject;
+  static toObject(includeInstance: boolean, msg: HmacParametersInHeaders): HmacParametersInHeaders.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: HmacParametersInHeaders, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): HmacParametersInHeaders;
+  static deserializeBinaryFromReader(message: HmacParametersInHeaders, reader: jspb.BinaryReader): HmacParametersInHeaders;
+}
+
+export namespace HmacParametersInHeaders {
+  export type AsObject = {
   }
 }
 
@@ -2898,6 +2983,65 @@ export namespace ExtAuthConfig {
     }
   }
 
+  export class HmacAuthConfig extends jspb.Message {
+    hasSecretList(): boolean;
+    clearSecretList(): void;
+    getSecretList(): ExtAuthConfig.InMemorySecretList | undefined;
+    setSecretList(value?: ExtAuthConfig.InMemorySecretList): void;
+
+    hasParametersInHeaders(): boolean;
+    clearParametersInHeaders(): void;
+    getParametersInHeaders(): HmacParametersInHeaders | undefined;
+    setParametersInHeaders(value?: HmacParametersInHeaders): void;
+
+    getSecretStorageCase(): HmacAuthConfig.SecretStorageCase;
+    getImplementationTypeCase(): HmacAuthConfig.ImplementationTypeCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): HmacAuthConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: HmacAuthConfig): HmacAuthConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: HmacAuthConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): HmacAuthConfig;
+    static deserializeBinaryFromReader(message: HmacAuthConfig, reader: jspb.BinaryReader): HmacAuthConfig;
+  }
+
+  export namespace HmacAuthConfig {
+    export type AsObject = {
+      secretList?: ExtAuthConfig.InMemorySecretList.AsObject,
+      parametersInHeaders?: HmacParametersInHeaders.AsObject,
+    }
+
+    export enum SecretStorageCase {
+      SECRET_STORAGE_NOT_SET = 0,
+      SECRET_LIST = 1,
+    }
+
+    export enum ImplementationTypeCase {
+      IMPLEMENTATION_TYPE_NOT_SET = 0,
+      PARAMETERS_IN_HEADERS = 2,
+    }
+  }
+
+  export class InMemorySecretList extends jspb.Message {
+    getSecretListMap(): jspb.Map<string, string>;
+    clearSecretListMap(): void;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): InMemorySecretList.AsObject;
+    static toObject(includeInstance: boolean, msg: InMemorySecretList): InMemorySecretList.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: InMemorySecretList, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): InMemorySecretList;
+    static deserializeBinaryFromReader(message: InMemorySecretList, reader: jspb.BinaryReader): InMemorySecretList;
+  }
+
+  export namespace InMemorySecretList {
+    export type AsObject = {
+      secretListMap: Array<[string, string]>,
+    }
+  }
+
   export class Config extends jspb.Message {
     hasName(): boolean;
     clearName(): void;
@@ -2954,6 +3098,11 @@ export namespace ExtAuthConfig {
     getPassThroughAuth(): PassThroughAuth | undefined;
     setPassThroughAuth(value?: PassThroughAuth): void;
 
+    hasHmacAuth(): boolean;
+    clearHmacAuth(): void;
+    getHmacAuth(): ExtAuthConfig.HmacAuthConfig | undefined;
+    setHmacAuth(value?: ExtAuthConfig.HmacAuthConfig): void;
+
     getAuthConfigCase(): Config.AuthConfigCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Config.AsObject;
@@ -2978,6 +3127,7 @@ export namespace ExtAuthConfig {
       ldapInternal?: ExtAuthConfig.LdapConfig.AsObject,
       jwt?: google_protobuf_empty_pb.Empty.AsObject,
       passThroughAuth?: PassThroughAuth.AsObject,
+      hmacAuth?: ExtAuthConfig.HmacAuthConfig.AsObject,
     }
 
     export enum AuthConfigCase {
@@ -2992,6 +3142,7 @@ export namespace ExtAuthConfig {
       LDAP_INTERNAL = 14,
       JWT = 12,
       PASS_THROUGH_AUTH = 13,
+      HMAC_AUTH = 15,
     }
   }
 }

@@ -65,6 +65,8 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValida
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.KeyMetadata', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.Config', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.LdapConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.LdapServiceAccountConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config', null, global);
@@ -75,6 +77,8 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthExtension', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.GrpcService', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HeaderConfiguration', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.HmacAuth', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.HmacParametersInHeaders', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HttpService', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HttpService.Request', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HttpService.Response', null, global);
@@ -102,6 +106,7 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughHttp.Response', null
 goog.exportSymbol('proto.enterprise.gloo.solo.io.PlainOAuth2', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.RedisOptions', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.RedisOptions.SocketType', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.SecretRefList', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Settings', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Settings.ApiVersion', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.UserSession', null, global);
@@ -298,7 +303,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.oneofGroups_ = [[1,2,8,4,5,6,7,11,12]];
+proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.oneofGroups_ = [[1,2,8,4,5,6,7,11,12,13]];
 
 /**
  * @enum {number}
@@ -313,7 +318,8 @@ proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.AuthConfigCase = {
   OPA_AUTH: 6,
   LDAP: 7,
   JWT: 11,
-  PASS_THROUGH_AUTH: 12
+  PASS_THROUGH_AUTH: 12,
+  HMAC_AUTH: 13
 };
 
 /**
@@ -361,7 +367,8 @@ proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.toObject = function(includeI
     opaAuth: (f = msg.getOpaAuth()) && proto.enterprise.gloo.solo.io.OpaAuth.toObject(includeInstance, f),
     ldap: (f = msg.getLdap()) && proto.enterprise.gloo.solo.io.Ldap.toObject(includeInstance, f),
     jwt: (f = msg.getJwt()) && google_protobuf_empty_pb.Empty.toObject(includeInstance, f),
-    passThroughAuth: (f = msg.getPassThroughAuth()) && proto.enterprise.gloo.solo.io.PassThroughAuth.toObject(includeInstance, f)
+    passThroughAuth: (f = msg.getPassThroughAuth()) && proto.enterprise.gloo.solo.io.PassThroughAuth.toObject(includeInstance, f),
+    hmacAuth: (f = msg.getHmacAuth()) && proto.enterprise.gloo.solo.io.HmacAuth.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -447,6 +454,11 @@ proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.deserializeBinaryFromReader 
       var value = new proto.enterprise.gloo.solo.io.PassThroughAuth;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.PassThroughAuth.deserializeBinaryFromReader);
       msg.setPassThroughAuth(value);
+      break;
+    case 13:
+      var value = new proto.enterprise.gloo.solo.io.HmacAuth;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.HmacAuth.deserializeBinaryFromReader);
+      msg.setHmacAuth(value);
       break;
     default:
       reader.skipField();
@@ -555,6 +567,14 @@ proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.serializeBinaryToWriter = fu
       12,
       f,
       proto.enterprise.gloo.solo.io.PassThroughAuth.serializeBinaryToWriter
+    );
+  }
+  f = message.getHmacAuth();
+  if (f != null) {
+    writer.writeMessage(
+      13,
+      f,
+      proto.enterprise.gloo.solo.io.HmacAuth.serializeBinaryToWriter
     );
   }
 };
@@ -857,6 +877,36 @@ proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.prototype.clearPassThroughAu
  */
 proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.prototype.hasPassThroughAuth = function() {
   return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * optional HmacAuth hmac_auth = 13;
+ * @return {?proto.enterprise.gloo.solo.io.HmacAuth}
+ */
+proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.prototype.getHmacAuth = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.HmacAuth} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.HmacAuth, 13));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.HmacAuth|undefined} value */
+proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.prototype.setHmacAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 13, proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.prototype.clearHmacAuth = function() {
+  this.setHmacAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.prototype.hasHmacAuth = function() {
+  return jspb.Message.getField(this, 13) != null;
 };
 
 
@@ -3702,6 +3752,533 @@ proto.enterprise.gloo.solo.io.BasicAuth.prototype.clearApr = function() {
  */
 proto.enterprise.gloo.solo.io.BasicAuth.prototype.hasApr = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.HmacAuth = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.HmacAuth.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.HmacAuth, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.HmacAuth.displayName = 'proto.enterprise.gloo.solo.io.HmacAuth';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.oneofGroups_ = [[1],[2]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.SecretStorageCase = {
+  SECRET_STORAGE_NOT_SET: 0,
+  SECRET_REFS: 1
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.HmacAuth.SecretStorageCase}
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.prototype.getSecretStorageCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.HmacAuth.SecretStorageCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.HmacAuth.oneofGroups_[0]));
+};
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.ImplementationTypeCase = {
+  IMPLEMENTATION_TYPE_NOT_SET: 0,
+  PARAMETERS_IN_HEADERS: 2
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.HmacAuth.ImplementationTypeCase}
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.prototype.getImplementationTypeCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.HmacAuth.ImplementationTypeCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.HmacAuth.oneofGroups_[1]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.HmacAuth.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.HmacAuth} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    secretRefs: (f = msg.getSecretRefs()) && proto.enterprise.gloo.solo.io.SecretRefList.toObject(includeInstance, f),
+    parametersInHeaders: (f = msg.getParametersInHeaders()) && proto.enterprise.gloo.solo.io.HmacParametersInHeaders.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.HmacAuth}
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.HmacAuth;
+  return proto.enterprise.gloo.solo.io.HmacAuth.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.HmacAuth} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.HmacAuth}
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.enterprise.gloo.solo.io.SecretRefList;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.SecretRefList.deserializeBinaryFromReader);
+      msg.setSecretRefs(value);
+      break;
+    case 2:
+      var value = new proto.enterprise.gloo.solo.io.HmacParametersInHeaders;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.HmacParametersInHeaders.deserializeBinaryFromReader);
+      msg.setParametersInHeaders(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.HmacAuth.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.HmacAuth} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getSecretRefs();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.enterprise.gloo.solo.io.SecretRefList.serializeBinaryToWriter
+    );
+  }
+  f = message.getParametersInHeaders();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.enterprise.gloo.solo.io.HmacParametersInHeaders.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional SecretRefList secret_refs = 1;
+ * @return {?proto.enterprise.gloo.solo.io.SecretRefList}
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.prototype.getSecretRefs = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.SecretRefList} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.SecretRefList, 1));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.SecretRefList|undefined} value */
+proto.enterprise.gloo.solo.io.HmacAuth.prototype.setSecretRefs = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.enterprise.gloo.solo.io.HmacAuth.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.HmacAuth.prototype.clearSecretRefs = function() {
+  this.setSecretRefs(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.prototype.hasSecretRefs = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional HmacParametersInHeaders parameters_in_headers = 2;
+ * @return {?proto.enterprise.gloo.solo.io.HmacParametersInHeaders}
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.prototype.getParametersInHeaders = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.HmacParametersInHeaders} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.HmacParametersInHeaders, 2));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.HmacParametersInHeaders|undefined} value */
+proto.enterprise.gloo.solo.io.HmacAuth.prototype.setParametersInHeaders = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.enterprise.gloo.solo.io.HmacAuth.oneofGroups_[1], value);
+};
+
+
+proto.enterprise.gloo.solo.io.HmacAuth.prototype.clearParametersInHeaders = function() {
+  this.setParametersInHeaders(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.HmacAuth.prototype.hasParametersInHeaders = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.SecretRefList = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.SecretRefList.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.SecretRefList, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.SecretRefList.displayName = 'proto.enterprise.gloo.solo.io.SecretRefList';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.SecretRefList.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.SecretRefList.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.SecretRefList.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.SecretRefList} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.SecretRefList.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    secretRefsList: jspb.Message.toObjectList(msg.getSecretRefsList(),
+    github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.SecretRefList}
+ */
+proto.enterprise.gloo.solo.io.SecretRefList.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.SecretRefList;
+  return proto.enterprise.gloo.solo.io.SecretRefList.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.SecretRefList} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.SecretRefList}
+ */
+proto.enterprise.gloo.solo.io.SecretRefList.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.addSecretRefs(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.SecretRefList.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.SecretRefList.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.SecretRefList} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.SecretRefList.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getSecretRefsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * repeated core.solo.io.ResourceRef secret_refs = 1;
+ * @return {!Array<!proto.core.solo.io.ResourceRef>}
+ */
+proto.enterprise.gloo.solo.io.SecretRefList.prototype.getSecretRefsList = function() {
+  return /** @type{!Array<!proto.core.solo.io.ResourceRef>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
+};
+
+
+/** @param {!Array<!proto.core.solo.io.ResourceRef>} value */
+proto.enterprise.gloo.solo.io.SecretRefList.prototype.setSecretRefsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.core.solo.io.ResourceRef=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.core.solo.io.ResourceRef}
+ */
+proto.enterprise.gloo.solo.io.SecretRefList.prototype.addSecretRefs = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.core.solo.io.ResourceRef, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.SecretRefList.prototype.clearSecretRefsList = function() {
+  this.setSecretRefsList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.HmacParametersInHeaders = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.HmacParametersInHeaders, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.HmacParametersInHeaders.displayName = 'proto.enterprise.gloo.solo.io.HmacParametersInHeaders';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.HmacParametersInHeaders.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.HmacParametersInHeaders.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.HmacParametersInHeaders} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.HmacParametersInHeaders.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.HmacParametersInHeaders}
+ */
+proto.enterprise.gloo.solo.io.HmacParametersInHeaders.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.HmacParametersInHeaders;
+  return proto.enterprise.gloo.solo.io.HmacParametersInHeaders.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.HmacParametersInHeaders} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.HmacParametersInHeaders}
+ */
+proto.enterprise.gloo.solo.io.HmacParametersInHeaders.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.HmacParametersInHeaders.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.HmacParametersInHeaders.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.HmacParametersInHeaders} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.HmacParametersInHeaders.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
 };
 
 
@@ -20138,6 +20715,393 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.LdapServiceAccountConfig.prototype.s
  * @extends {jspb.Message}
  * @constructor
  */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.oneofGroups_ = [[1],[2]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.SecretStorageCase = {
+  SECRET_STORAGE_NOT_SET: 0,
+  SECRET_LIST: 1
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.SecretStorageCase}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.prototype.getSecretStorageCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.SecretStorageCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.oneofGroups_[0]));
+};
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.ImplementationTypeCase = {
+  IMPLEMENTATION_TYPE_NOT_SET: 0,
+  PARAMETERS_IN_HEADERS: 2
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.ImplementationTypeCase}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.prototype.getImplementationTypeCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.ImplementationTypeCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.oneofGroups_[1]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    secretList: (f = msg.getSecretList()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.toObject(includeInstance, f),
+    parametersInHeaders: (f = msg.getParametersInHeaders()) && proto.enterprise.gloo.solo.io.HmacParametersInHeaders.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.deserializeBinaryFromReader);
+      msg.setSecretList(value);
+      break;
+    case 2:
+      var value = new proto.enterprise.gloo.solo.io.HmacParametersInHeaders;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.HmacParametersInHeaders.deserializeBinaryFromReader);
+      msg.setParametersInHeaders(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getSecretList();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.serializeBinaryToWriter
+    );
+  }
+  f = message.getParametersInHeaders();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.enterprise.gloo.solo.io.HmacParametersInHeaders.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional InMemorySecretList secret_list = 1;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.prototype.getSecretList = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList, 1));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.prototype.setSecretList = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.prototype.clearSecretList = function() {
+  this.setSecretList(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.prototype.hasSecretList = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional HmacParametersInHeaders parameters_in_headers = 2;
+ * @return {?proto.enterprise.gloo.solo.io.HmacParametersInHeaders}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.prototype.getParametersInHeaders = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.HmacParametersInHeaders} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.HmacParametersInHeaders, 2));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.HmacParametersInHeaders|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.prototype.setParametersInHeaders = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.oneofGroups_[1], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.prototype.clearParametersInHeaders = function() {
+  this.setParametersInHeaders(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.prototype.hasParametersInHeaders = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    secretListMap: (f = msg.getSecretListMap()) ? f.toObject(includeInstance, undefined) : []
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = msg.getSecretListMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getSecretListMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+};
+
+
+/**
+ * map<string, string> secret_list = 1;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.prototype.getSecretListMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
+      null));
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList.prototype.clearSecretListMap = function() {
+  this.getSecretListMap().clear();
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.Config = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.oneofGroups_);
 };
@@ -20153,7 +21117,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.oneofGroups_ = [[3,9,4,5,6,7,8,14,12,13]];
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.oneofGroups_ = [[3,9,4,5,6,7,8,14,12,13,15]];
 
 /**
  * @enum {number}
@@ -20169,7 +21133,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.AuthConfigCase = {
   LDAP: 8,
   LDAP_INTERNAL: 14,
   JWT: 12,
-  PASS_THROUGH_AUTH: 13
+  PASS_THROUGH_AUTH: 13,
+  HMAC_AUTH: 15
 };
 
 /**
@@ -20218,7 +21183,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.toObject = function(includeIn
     ldap: (f = msg.getLdap()) && proto.enterprise.gloo.solo.io.Ldap.toObject(includeInstance, f),
     ldapInternal: (f = msg.getLdapInternal()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.LdapConfig.toObject(includeInstance, f),
     jwt: (f = msg.getJwt()) && google_protobuf_empty_pb.Empty.toObject(includeInstance, f),
-    passThroughAuth: (f = msg.getPassThroughAuth()) && proto.enterprise.gloo.solo.io.PassThroughAuth.toObject(includeInstance, f)
+    passThroughAuth: (f = msg.getPassThroughAuth()) && proto.enterprise.gloo.solo.io.PassThroughAuth.toObject(includeInstance, f),
+    hmacAuth: (f = msg.getHmacAuth()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -20309,6 +21275,11 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.deserializeBinaryFromReader =
       var value = new proto.enterprise.gloo.solo.io.PassThroughAuth;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.PassThroughAuth.deserializeBinaryFromReader);
       msg.setPassThroughAuth(value);
+      break;
+    case 15:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.deserializeBinaryFromReader);
+      msg.setHmacAuth(value);
       break;
     default:
       reader.skipField();
@@ -20425,6 +21396,14 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.serializeBinaryToWriter = fun
       13,
       f,
       proto.enterprise.gloo.solo.io.PassThroughAuth.serializeBinaryToWriter
+    );
+  }
+  f = message.getHmacAuth();
+  if (f != null) {
+    writer.writeMessage(
+      15,
+      f,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig.serializeBinaryToWriter
     );
   }
 };
@@ -20757,6 +21736,36 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.clearPassThroughAut
  */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.hasPassThroughAuth = function() {
   return jspb.Message.getField(this, 13) != null;
+};
+
+
+/**
+ * optional HmacAuthConfig hmac_auth = 15;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.getHmacAuth = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig, 15));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.setHmacAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 15, proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.clearHmacAuth = function() {
+  this.setHmacAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.hasHmacAuth = function() {
+  return jspb.Message.getField(this, 15) != null;
 };
 
 

@@ -5,6 +5,8 @@
 import * as jspb from "google-protobuf";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_rest_rest_pb from "../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/rest/rest_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_grpc_grpc_pb from "../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/grpc/grpc_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_graphql_graphql_pb from "../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/graphql/graphql_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb from "../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/grpc_json/grpc_json_pb";
 import * as extproto_ext_pb from "../../../../../../../../extproto/ext_pb";
 
 export class ServiceSpec extends jspb.Message {
@@ -17,6 +19,16 @@ export class ServiceSpec extends jspb.Message {
   clearGrpc(): void;
   getGrpc(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_grpc_grpc_pb.ServiceSpec | undefined;
   setGrpc(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_grpc_grpc_pb.ServiceSpec): void;
+
+  hasGrpcJsonTranscoder(): boolean;
+  clearGrpcJsonTranscoder(): void;
+  getGrpcJsonTranscoder(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder | undefined;
+  setGrpcJsonTranscoder(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder): void;
+
+  hasGraphql(): boolean;
+  clearGraphql(): void;
+  getGraphql(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_graphql_graphql_pb.ServiceSpec | undefined;
+  setGraphql(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_graphql_graphql_pb.ServiceSpec): void;
 
   getPluginTypeCase(): ServiceSpec.PluginTypeCase;
   serializeBinary(): Uint8Array;
@@ -33,11 +45,15 @@ export namespace ServiceSpec {
   export type AsObject = {
     rest?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_rest_rest_pb.ServiceSpec.AsObject,
     grpc?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_grpc_grpc_pb.ServiceSpec.AsObject,
+    grpcJsonTranscoder?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.AsObject,
+    graphql?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_graphql_graphql_pb.ServiceSpec.AsObject,
   }
 
   export enum PluginTypeCase {
     PLUGIN_TYPE_NOT_SET = 0,
     REST = 1,
     GRPC = 2,
+    GRPC_JSON_TRANSCODER = 3,
+    GRAPHQL = 4,
   }
 }

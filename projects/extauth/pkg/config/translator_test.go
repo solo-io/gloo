@@ -282,6 +282,11 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			authService, err := translator.Translate(ctx, authCfg)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(authService).NotTo(BeNil())
+			authServiceChain, ok := authService.(chain.AuthServiceChain)
+			Expect(ok).To(BeTrue())
+			Expect(authServiceChain).NotTo(BeNil())
+			services := authServiceChain.ListAuthServices()
+			Expect(services).To(HaveLen(1))
 		})
 	})
 
@@ -366,7 +371,32 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			Expect(services).To(HaveLen(1))
 		})
 	})
-
+	Describe("translate HMAC config", func() {
+		It("Translates config for ParametersInHeaders ", func() {
+			expectedUsers := map[string]string{"user": "pass"}
+			serviceFactory.EXPECT().NewHmacAuthService(expectedUsers, gomock.Any()).Return(authServiceMock)
+			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
+				AuthConfigRefName: "default.ldap-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{{
+					AuthConfig: &extauthv1.ExtAuthConfig_Config_HmacAuth{
+						HmacAuth: &extauthv1.ExtAuthConfig_HmacAuthConfig{
+							SecretStorage: &extauthv1.ExtAuthConfig_HmacAuthConfig_SecretList{SecretList: &extauthv1.ExtAuthConfig_InMemorySecretList{
+								SecretList: expectedUsers,
+							}},
+							ImplementationType: &extauthv1.ExtAuthConfig_HmacAuthConfig_ParametersInHeaders{ParametersInHeaders: &extauthv1.HmacParametersInHeaders{}}},
+					},
+				},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(authService).NotTo(BeNil())
+			authServiceChain, ok := authService.(chain.AuthServiceChain)
+			Expect(ok).To(BeTrue())
+			Expect(authServiceChain).NotTo(BeNil())
+			services := authServiceChain.ListAuthServices()
+			Expect(services).To(HaveLen(1))
+		})
+	})
 	Describe("translating OAuth2.0 access token IntrospectionUrl config", func() {
 
 		var oAuthConfig *extauthv1.ExtAuthConfig

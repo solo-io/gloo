@@ -29,7 +29,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/v1helpers"
-	glootest "github.com/solo-io/gloo/test/v1helpers/test_grpc_service/glootest/protos"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -387,18 +386,17 @@ var _ = Describe("graphql", func() {
 						Expect(err).ToNot(HaveOccurred())
 
 					})
-
 					It("resolves graphql queries to GRPC upstreams with artifacts", func() {
 						testRequest(`{"data":{"f":{"str":"foo"}}}`)
 						Eventually(grpcUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
-							"GRPCRequest": PointTo(Equal(glootest.TestRequest{Str: "foo"})),
+							"GRPCRequest": PointTo(MatchFields(IgnoreExtras, Fields{"Str": Equal("foo")})),
 						}))))
 					})
 				})
 				It("resolves graphql queries to GRPC upstreams", func() {
 					testRequest(`{"data":{"f":{"str":"foo"}}}`)
 					Eventually(grpcUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
-						"GRPCRequest": PointTo(Equal(glootest.TestRequest{Str: "foo"})),
+						"GRPCRequest": PointTo(MatchFields(IgnoreExtras, Fields{"Str": Equal("foo")})),
 					}))))
 				})
 			})

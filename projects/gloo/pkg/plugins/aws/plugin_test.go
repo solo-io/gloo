@@ -179,7 +179,7 @@ var _ = Describe("Plugin", func() {
 			Expect(cfg.TransformerConfig).ToNot(BeNil())
 		})
 
-		It("should not set route transformer when unwrapAsApiGateway=True && unwrapAsAlb=True", func() {
+		It("should error when unwrapAsApiGateway=True && unwrapAsAlb=True", func() {
 			route.Action.(*v1.Route_RouteAction).RouteAction.Destination.(*v1.RouteAction_Single).Single.DestinationSpec.DestinationType = &v1.DestinationSpec_Aws{
 				Aws: &awsapi.DestinationSpec{
 					UnwrapAsApiGateway: true,
@@ -188,12 +188,7 @@ var _ = Describe("Plugin", func() {
 				},
 			}
 			err := awsPlugin.(plugins.RoutePlugin).ProcessRoute(plugins.RouteParams{VirtualHostParams: vhostParams}, route, envoyRoute)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(envoyRoute.TypedPerFilterConfig).To(HaveKey(FilterName))
-			cfg := &envoyaws.AWSLambdaPerRoute{}
-			err = ptypes.UnmarshalAny(envoyRoute.TypedPerFilterConfig[FilterName], cfg)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(cfg.TransformerConfig).To(BeNil())
+			Expect(err).To(MatchError("only one of unwrapAsAlb and unwrapAsApiGateway/responseTransformation may be set"))
 		})
 
 		It("should not set route transformer when unwrapAsApiGateway=False", func() {

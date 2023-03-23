@@ -157,7 +157,7 @@ check-format:
 # Tests
 #----------------------------------------------------------------------------------
 
-GINKGO_VERSION ?= 2.5.0 # match our go.mod
+GINKGO_VERSION ?= 2.8.1 # match our go.mod
 GINKGO_ENV ?= GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore ACK_GINKGO_RC=true ACK_GINKGO_DEPRECATIONS=$(GINKGO_VERSION) VERSION=$(VERSION)
 GINKGO_FLAGS ?= -fail-fast -trace -progress -compilers=4 -fail-on-pending
 GINKGO_RANDOMIZE_FLAGS ?= -randomize-all # Not yet actively supported

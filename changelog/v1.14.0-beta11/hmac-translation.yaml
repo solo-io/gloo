@@ -1,0 +1,14 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/7472
+    description: Add translation required to use HMAC Auth with ext-auth.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.33.0
+    description: Bump extauth version to get HMAC auth.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.14.0-beta17
+    description: Get latest OSS changes.

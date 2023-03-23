@@ -14,6 +14,8 @@ var global = Function('return this')();
 
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_rest_rest_pb = require('../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/rest/rest_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_grpc_pb = require('../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/grpc/grpc_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_graphql_graphql_pb = require('../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/graphql/graphql_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb = require('../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/grpc_json/grpc_json_pb.js');
 var extproto_ext_pb = require('../../../../../../../../extproto/ext_pb.js');
 goog.exportSymbol('proto.options.gloo.solo.io.ServiceSpec', null, global);
 
@@ -42,7 +44,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.options.gloo.solo.io.ServiceSpec.oneofGroups_ = [[1,2]];
+proto.options.gloo.solo.io.ServiceSpec.oneofGroups_ = [[1,2,3,4]];
 
 /**
  * @enum {number}
@@ -50,7 +52,9 @@ proto.options.gloo.solo.io.ServiceSpec.oneofGroups_ = [[1,2]];
 proto.options.gloo.solo.io.ServiceSpec.PluginTypeCase = {
   PLUGIN_TYPE_NOT_SET: 0,
   REST: 1,
-  GRPC: 2
+  GRPC: 2,
+  GRPC_JSON_TRANSCODER: 3,
+  GRAPHQL: 4
 };
 
 /**
@@ -90,7 +94,9 @@ proto.options.gloo.solo.io.ServiceSpec.prototype.toObject = function(opt_include
 proto.options.gloo.solo.io.ServiceSpec.toObject = function(includeInstance, msg) {
   var f, obj = {
     rest: (f = msg.getRest()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_rest_rest_pb.ServiceSpec.toObject(includeInstance, f),
-    grpc: (f = msg.getGrpc()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_grpc_pb.ServiceSpec.toObject(includeInstance, f)
+    grpc: (f = msg.getGrpc()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_grpc_pb.ServiceSpec.toObject(includeInstance, f),
+    grpcJsonTranscoder: (f = msg.getGrpcJsonTranscoder()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.toObject(includeInstance, f),
+    graphql: (f = msg.getGraphql()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_graphql_graphql_pb.ServiceSpec.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -137,6 +143,16 @@ proto.options.gloo.solo.io.ServiceSpec.deserializeBinaryFromReader = function(ms
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_grpc_pb.ServiceSpec.deserializeBinaryFromReader);
       msg.setGrpc(value);
       break;
+    case 3:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.deserializeBinaryFromReader);
+      msg.setGrpcJsonTranscoder(value);
+      break;
+    case 4:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_graphql_graphql_pb.ServiceSpec;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_graphql_graphql_pb.ServiceSpec.deserializeBinaryFromReader);
+      msg.setGraphql(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -180,6 +196,22 @@ proto.options.gloo.solo.io.ServiceSpec.serializeBinaryToWriter = function(messag
       2,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_grpc_pb.ServiceSpec.serializeBinaryToWriter
+    );
+  }
+  f = message.getGrpcJsonTranscoder();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.serializeBinaryToWriter
+    );
+  }
+  f = message.getGraphql();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_graphql_graphql_pb.ServiceSpec.serializeBinaryToWriter
     );
   }
 };
@@ -242,6 +274,66 @@ proto.options.gloo.solo.io.ServiceSpec.prototype.clearGrpc = function() {
  */
 proto.options.gloo.solo.io.ServiceSpec.prototype.hasGrpc = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional grpc_json.options.gloo.solo.io.GrpcJsonTranscoder grpc_json_transcoder = 3;
+ * @return {?proto.grpc_json.options.gloo.solo.io.GrpcJsonTranscoder}
+ */
+proto.options.gloo.solo.io.ServiceSpec.prototype.getGrpcJsonTranscoder = function() {
+  return /** @type{?proto.grpc_json.options.gloo.solo.io.GrpcJsonTranscoder} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder, 3));
+};
+
+
+/** @param {?proto.grpc_json.options.gloo.solo.io.GrpcJsonTranscoder|undefined} value */
+proto.options.gloo.solo.io.ServiceSpec.prototype.setGrpcJsonTranscoder = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.options.gloo.solo.io.ServiceSpec.oneofGroups_[0], value);
+};
+
+
+proto.options.gloo.solo.io.ServiceSpec.prototype.clearGrpcJsonTranscoder = function() {
+  this.setGrpcJsonTranscoder(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.options.gloo.solo.io.ServiceSpec.prototype.hasGrpcJsonTranscoder = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional graphql.options.gloo.solo.io.ServiceSpec graphql = 4;
+ * @return {?proto.graphql.options.gloo.solo.io.ServiceSpec}
+ */
+proto.options.gloo.solo.io.ServiceSpec.prototype.getGraphql = function() {
+  return /** @type{?proto.graphql.options.gloo.solo.io.ServiceSpec} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_graphql_graphql_pb.ServiceSpec, 4));
+};
+
+
+/** @param {?proto.graphql.options.gloo.solo.io.ServiceSpec|undefined} value */
+proto.options.gloo.solo.io.ServiceSpec.prototype.setGraphql = function(value) {
+  jspb.Message.setOneofWrapperField(this, 4, proto.options.gloo.solo.io.ServiceSpec.oneofGroups_[0], value);
+};
+
+
+proto.options.gloo.solo.io.ServiceSpec.prototype.clearGraphql = function() {
+  this.setGraphql(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.options.gloo.solo.io.ServiceSpec.prototype.hasGraphql = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
