@@ -1,0 +1,16 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/7685
+    resolvesIssue: false
+    description: |
+      You can now Discover Remote Executors for GraphQL and generate GraphQLAPI custom resources in Gloo.
+      This will also generate the schema for the remote GraphQL server.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: wundergraph
+    dependencyRepo: graphql-go-tools 
+    dependencyTag: v1.61.0
+    description: Introspection to Schema transformation.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo-graphql-example
+    dependencyTag: v0.1.0

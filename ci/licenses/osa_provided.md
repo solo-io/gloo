@@ -19,7 +19,7 @@ Name|Version|License
 [go-logr/zapr](https://github.com/go-logr/zapr)|v1.2.3|Apache License 2.0
 [go-openapi/inflect](https://github.com/go-openapi/inflect)|v0.19.0|MIT License
 [go-openapi/swag](https://github.com/go-openapi/swag)|v0.22.3|Apache License 2.0
-[go-test/deep](https://github.com/go-test/deep)|v1.0.7|MIT License
+[go-test/deep](https://github.com/go-test/deep)|v1.0.8|MIT License
 [gobuffalo/packr](https://github.com/gobuffalo/packr)|v1.30.1|MIT License
 [gogo/googleapis](https://github.com/gogo/googleapis)|v1.4.0|Apache License 2.0
 [golang/protobuf](https://github.com/golang/protobuf)|v1.5.2|BSD 3-clause "New" or "Revised" License
@@ -42,6 +42,7 @@ Name|Version|License
 [spf13/cobra](https://github.com/spf13/cobra)|v1.5.0|Apache License 2.0
 [spf13/pflag](https://github.com/spf13/pflag)|v1.0.5|BSD 3-clause "New" or "Revised" License
 [spf13/viper](https://github.com/spf13/viper)|v1.12.0|MIT License
+[wundergraph/graphql-go-tools](https://github.com/wundergraph/graphql-go-tools)|v1.61.0|MIT License
 [go.opencensus.io](https://go.opencensus.io)|v0.24.0|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.21.0|MIT License
 [x/mod](https://golang.org/x/mod)|v0.9.0|BSD 3-clause "New" or "Revised" License

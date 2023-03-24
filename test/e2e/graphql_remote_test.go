@@ -2,26 +2,23 @@ package e2e_test
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
 	"github.com/solo-io/solo-projects/test/v1helpers"
 
 	"github.com/fgrosse/zaptest"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	todo "github.com/solo-io/gloo-graphql-example/code/todo-app/server"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -31,12 +28,15 @@ import (
 	"github.com/solo-io/solo-projects/test/services"
 )
 
-var _ = Describe("Graphql E2E test", func() {
+var _ = Describe("Graphql Remote E2E test", func() {
+
+	const graphqlPort = "8280"
 
 	var (
 		ctx         context.Context
 		cancel      context.CancelFunc
 		testClients services.TestClients
+		server      *todo.TodoApp
 	)
 
 	BeforeEach(func() {
@@ -71,10 +71,9 @@ var _ = Describe("Graphql E2E test", func() {
 	Context("With envoy", func() {
 		var (
 			envoyInstance *services.EnvoyInstance
-			testUpstream1 *v1helpers.TestUpstream
+			testUpstream  *v1helpers.TestUpstream
 			envoyPort     = uint32(8080)
-
-			proxy *gloov1.Proxy
+			proxy         *gloov1.Proxy
 		)
 
 		var getProxy = func(envoyPort uint32) *gloov1.Proxy {
@@ -103,8 +102,8 @@ var _ = Describe("Graphql E2E test", func() {
 											}},
 											Action: &gloov1.Route_GraphqlApiRef{
 												GraphqlApiRef: &core.ResourceRef{
-													Name:      testUpstream1.Upstream.Metadata.Name,
-													Namespace: testUpstream1.Upstream.Metadata.Namespace,
+													Name:      testUpstream.Upstream.Metadata.Name,
+													Namespace: testUpstream.Upstream.Metadata.Namespace,
 												},
 											},
 										},
@@ -146,17 +145,32 @@ var _ = Describe("Graphql E2E test", func() {
 
 			err = envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
-			router := NewOpenapiBackend()
-			testUpstream1 = v1helpers.NewTestHttpUpstreamWithHandler(ctx, envoyInstance.LocalAddr(), func(w http.ResponseWriter, r *http.Request) bool {
-				router.ServeHTTP(w, r)
-				return false
-			})
-			_, err = testClients.UpstreamClient.Write(testUpstream1.Upstream, clients.WriteOpts{})
+
+			server = todo.NewTodoServer(graphqlPort)
+			errs, err := server.Start(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			if errs != nil {
+				go func() {
+					select {
+					case er := <-errs:
+						fmt.Println(er.Error())
+						break
+					case <-ctx.Done():
+						break
+					}
+				}()
+			}
+
+			port, err := strconv.Atoi(graphqlPort)
+			Expect(err).ToNot(HaveOccurred())
+			testUpstream = v1helpers.NewTestHttpUpstreamWithAddress(envoyInstance.LocalAddr(), uint32(port))
+
+			_, err = testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
 			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
-				return testClients.UpstreamClient.Read(testUpstream1.Upstream.Metadata.Namespace,
-					testUpstream1.Upstream.Metadata.Name, clients.ReadOpts{})
+				return testClients.UpstreamClient.Read(testUpstream.Upstream.Metadata.Namespace,
+					testUpstream.Upstream.Metadata.Name, clients.ReadOpts{})
 			})
 
 		})
@@ -165,16 +179,18 @@ var _ = Describe("Graphql E2E test", func() {
 			if envoyInstance != nil {
 				envoyInstance.Clean()
 			}
+			err := server.Kill(ctx)
+			Expect(err).ToNot(HaveOccurred())
 		})
 
-		Context("OpenAPI Discovery Function", func() {
+		Context("GraphQL Discovery Function", func() {
 
 			doQuery := func(query string) string {
-				graphqlAddress := fmt.Sprintf("http://localhost:%d/graphql", envoyPort)
-				req, err := http.NewRequest(http.MethodPost, graphqlAddress, strings.NewReader(query))
-				ExpectWithOffset(1, err).NotTo(HaveOccurred())
 				var bodyStr string
 				EventuallyWithOffset(1, func() (int, error) {
+					graphqlAddress := fmt.Sprintf("http://localhost:%d/graphql", envoyPort)
+					req, err := http.NewRequest(http.MethodPost, graphqlAddress, strings.NewReader(query))
+					ExpectWithOffset(1, err).NotTo(HaveOccurred())
 					res, err := http.DefaultClient.Do(req)
 					if err != nil {
 						return 0, err
@@ -190,10 +206,10 @@ var _ = Describe("Graphql E2E test", func() {
 				return bodyStr
 			}
 
-			It("discovers openapi schema and translates to graphql schema", func() {
-				By("Ensure that discovery discovers openapi", func() {
+			It("discovers graphql schema", func() {
+				By("Ensure that discovery discovers graphql", func() {
 					Eventually(func() (string, error) {
-						m := testUpstream1.Upstream.Metadata
+						m := testUpstream.Upstream.Metadata
 						u, err := testClients.UpstreamClient.Read(m.GetNamespace(), m.GetName(), clients.ReadOpts{})
 						if err != nil {
 							return "", err
@@ -202,28 +218,25 @@ var _ = Describe("Graphql E2E test", func() {
 							return "", fmt.Errorf("no service spec found on upstream %s.%s, %s", u.Metadata.Namespace, u.Metadata.Name, u.String())
 						}
 
-						return u.GetStatic().GetServiceSpec().GetRest().GetSwaggerInfo().GetUrl(), nil
-
-					}, 20*time.Second, 1*time.Second).Should(Equal(fmt.Sprintf("http://%s/openapi.json", testUpstream1.Address)))
+						url := u.GetStatic().GetServiceSpec().GetGraphql().GetEndpoint().GetUrl()
+						return url, nil
+					}, 1*time.Minute, 1*time.Second).Should(Equal(fmt.Sprintf("http://%s/graphql", testUpstream.Address)))
 
 					By("creates graphql schema from discovered openapi", func() {
-
-						m := testUpstream1.Upstream.GetMetadata()
+						m := testUpstream.Upstream.GetMetadata()
+						var graphqlResource *GraphQLApi
 						Eventually(func() (*GraphQLApi, error) {
-							a, err := testClients.
+							graphqlResource, err := testClients.
 								GraphQLApiClient.
 								Read(m.Namespace, m.Name, clients.ReadOpts{})
 							if err != nil {
 								return nil, err
 							}
-
-							//resolutions, _ := yaml.Marshal(a.GetResolutions())
-							//fmt.Printf("schema:\n %s\n resolvers:\n %s\n", a.GetSchema(), resolutions)
-
-							return a, err
+							return graphqlResource, err
 
 						}, 15*time.Second, 1*time.Second).ShouldNot(BeNil())
-
+						schema := graphqlResource.GetExecutableSchema().GetSchemaDefinition()
+						Expect(schema).ToNot(BeNil())
 					})
 
 					By("proxy gets accepted with graphql route referencing schema", func() {
@@ -232,141 +245,27 @@ var _ = Describe("Graphql E2E test", func() {
 					})
 
 					By("Basic Query", func() {
-						// Queries existing pet
-						basicQuery := `{"query":"query {  getPetById(petId: 1) {tags {name } name}}","variables":{}}`
+						// Queries existing todo
+						basicQuery := `{"query":"{todo(id:\"b\"){id,text,done}}"}`
 						resBody := doQuery(basicQuery)
-						Expect(resBody).To(Equal(`{"data":{"getPetById":{"tags":[{"name":"Tag 2"},{"name":"Tag 2"}],"name":"Pet 2"}}}`))
+						Expect(resBody).To(Equal(`{"data":{"todo":{"done":false,"id":"b","text":"This is the most important"}}}`))
 					})
 
 					By("Basic Mutation", func() {
-						// Creates Pet 3 via mutation and reads created pet's name
-						graphqlQuery := `mutation Mutation {  addPet(petInput: {name: \"Pet 3\", id: 3, photoUrls:[\"url1\", \"url2\"], tags: []}){ name id }}`
-						basicQuery := fmt.Sprintf(`{"query":"%s","variables":{},"operationName":"Mutation"}`, graphqlQuery)
+						basicQuery := `{"query":"mutation _{createTodo(text:\"My new todo\"){id,text,done}}","variables":{},"operationName":"_"}`
 						resBody := doQuery(basicQuery)
-						Expect(resBody).To(Equal(`{"data":{"addPet":{"name":"Pet 3","id":3}}}`))
+						Expect(resBody).To(ContainSubstring(`{"data":{"createTodo":{"done":false,"id":"`))
+						Expect(resBody).To(ContainSubstring(`","text":"My new todo"}}}`))
 					})
 
-					By("Update Pet with mutation", func() {
-						updateMutation := `{"query":"mutation Mutation { updatePet(petInput: {id: 3, name: \"Cat 3\", photoUrls:[\"hi\"], tags: []})}"}`
-						doQuery(updateMutation)
-						basicQuery := `{"query":"query {  getPetById(petId: 3) { name photoUrls }}","variables":{}}`
-						resBody := doQuery(basicQuery)
-						Expect(resBody).To(Equal(`{"data":{"getPetById":{"name":"Cat 3","photoUrls":["hi"]}}}`))
+					By("Update Todo with mutation", func() {
+						updateMutation := `{"query":"mutation _{updateTodo(id:\"b\",done:true){id,text,done}}"}`
+						resBody := doQuery(updateMutation)
+						Expect(resBody).To(Equal(`{"data":{"updateTodo":{"done":true,"id":"b","text":"This is the most important"}}}`))
 					})
 
 				})
 			})
-
 		})
-
 	})
 })
-
-// Setup backend for testing
-func NewOpenapiBackend() http.Handler {
-	router := gin.Default()
-	data := NewData()
-	router.GET("/openapi.json", func(c *gin.Context) {
-		c.String(http.StatusOK, graphql.GetFullJsonSchema())
-	})
-
-	v3 := router.Group("/v3")
-	{
-		v3.GET("/pet/:id", func(c *gin.Context) {
-			idParam, _ := c.Params.Get("id")
-			petToReturn, ok := data.Pets[idParam]
-			if !ok {
-				c.String(405, "Pet with id %s not found", idParam)
-			}
-			c.JSON(200, petToReturn)
-		})
-		v3.POST("/pet", func(c *gin.Context) {
-			body, _ := ioutil.ReadAll(c.Request.Body)
-			p := NewPet()
-			err := json.Unmarshal(body, p)
-			if err != nil {
-				c.String(405, "Invalid Pet JSON: %s", err)
-				return
-			}
-			data.Pets[strconv.Itoa(p.ID)] = p
-			c.JSON(200, p)
-		})
-		v3.PUT("/pet", func(c *gin.Context) {
-			body, _ := ioutil.ReadAll(c.Request.Body)
-			petUpdateMsg := NewPet()
-			err := json.Unmarshal(body, petUpdateMsg)
-			if err != nil {
-				c.String(405, "Invalid Pet JSON input")
-			}
-			p, ok := data.Pets[strconv.Itoa(petUpdateMsg.ID)]
-			if !ok {
-				c.String(405, "Cannot update pet with id %d because it does not exist", petUpdateMsg.ID)
-			}
-			if petUpdateMsg.Name != "" {
-				p.Name = petUpdateMsg.Name
-			}
-			if petUpdateMsg.PhotoURLs != nil {
-				p.PhotoURLs = petUpdateMsg.PhotoURLs
-			}
-
-		})
-	}
-	return router
-}
-
-type Data struct {
-	Pets map[string]*Pet
-}
-
-func NewPet() *Pet {
-	return &Pet{
-		PhotoURLs: []string{""},
-	}
-}
-
-func NewData() *Data {
-	return &Data{
-		Pets: map[string]*Pet{
-			"0": {
-				ID:        0,
-				Name:      "Pet 0",
-				PhotoURLs: []string{"pet 0 url"},
-				Tags: []Tag{{
-					ID:   0,
-					Name: "Tag 1",
-				},
-					{
-						ID:   1,
-						Name: "Tag 2",
-					}},
-			},
-			"1": {
-				ID:        1,
-				Name:      "Pet 2",
-				PhotoURLs: []string{"pet 1 url"},
-				Tags: []Tag{{
-					ID:   0,
-					Name: "Tag 2",
-				},
-					{
-						ID:   1,
-						Name: "Tag 2",
-					}},
-			},
-		},
-	}
-}
-
-// Tag the tag model
-type Tag struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-// Pet the pet model
-type Pet struct {
-	ID        int      `json:"id"`
-	Name      string   `json:"name"`
-	PhotoURLs []string `json:"photoUrls,omitempty"`
-	Tags      []Tag    `json:"tags,omitempty"`
-}

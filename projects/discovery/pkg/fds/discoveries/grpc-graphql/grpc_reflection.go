@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	printer2 "github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/printer"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries"
 
 	"github.com/hashicorp/go-multierror"
 
@@ -17,7 +17,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/jhump/protoreflect/desc"
@@ -57,7 +56,6 @@ func NewFunctionDiscoveryFactory(opts bootstrap.Opts) fds.FunctionDiscoveryFacto
 	}
 	return &FunctionDiscoveryFactory{
 		DetectionTimeout: time.Second * 15,
-		FunctionPollTime: time.Second * 15,
 	}
 }
 
@@ -69,10 +67,8 @@ func (f *FunctionDiscoveryFactory) FunctionDiscoveryFactoryName() string {
 
 // FunctionDiscoveryFactory returns a FunctionDiscovery that can be used to discover functions
 type FunctionDiscoveryFactory struct {
-	DetectionTimeout   time.Duration
-	DetectionRetryBase time.Duration
-	FunctionPollTime   time.Duration
-	Artifacts          v1.ArtifactClient
+	DetectionTimeout time.Duration
+	Artifacts        v1.ArtifactClient
 }
 
 // NewFunctionDiscovery returns a FunctionDiscovery that can be used to discover functions
@@ -83,6 +79,8 @@ func (f *FunctionDiscoveryFactory) NewFunctionDiscovery(u *v1.Upstream, clients 
 		detectionTimeout: f.DetectionTimeout,
 	}
 }
+
+var _ fds.UpstreamFunctionDiscovery = new(GraphqlSchemaDiscovery)
 
 // GraphqlSchemaDiscovery represents a function discovery for upstream
 type GraphqlSchemaDiscovery struct {
@@ -131,8 +129,8 @@ func (f *GraphqlSchemaDiscovery) DetectFunctions(ctx context.Context, url *url.U
 		err := f.DetectFunctionsOnce(ctx, url, updatecb)
 		if err != nil {
 			contextutils.LoggerFrom(ctx).Warnf("Unable to create GraphQLApis from gRPC reflection for upstream %s in namespace %s: %s",
-				f.upstream.GetMetadata().GetName(),
 				f.upstream.GetMetadata().GetNamespace(),
+				f.upstream.GetMetadata().GetName(),
 				err)
 		}
 		return err
@@ -150,18 +148,22 @@ func (f *GraphqlSchemaDiscovery) DetectFunctions(ctx context.Context, url *url.U
 	return nil
 }
 
-// Creating an interface here for the sake of mocking in tests
+// GrpcReflectionClient is a subset of the protoreflect grpc Client made into a interface for gRPC reflection.
+// This interface is used for mocks in tests.
 type GrpcReflectionClient interface {
+	// ListServices returns the functional operations of the client. This can be API endpoints, gRPC services, ect...
+	// Asks the server for the fully-qualified names of all exposed services.
 	ListServices() ([]string, error)
+	// FileContainingSymbol asks the server for a file descriptor for the proto file
+	// that declares the given fully-qualified symbol.
 	FileContainingSymbol(symbol string) (*desc.FileDescriptor, error)
 }
 
-func (f *GraphqlSchemaDiscovery) GetSchemaBuilderForProtoFileDescriptor(refClient GrpcReflectionClient, descriptors *descriptor.FileDescriptorSet, services []string) (*SchemaBuilder, *v1beta1.Executor_Local, error) {
+// GetSchemaBuilderForProtoFileDescriptor will return the schema and the executor. This also appends files from the root services
+// to the descriptor set.
+func (f *GraphqlSchemaDiscovery) GetSchemaBuilderForProtoFileDescriptor(refClient GrpcReflectionClient, descriptors *descriptor.FileDescriptorSet, services []string) (*SchemaBuilder, map[string]*v1beta1.Resolution, error) {
 	sb := NewSchemaBuilder()
-	executor := &v1beta1.Executor_Local{
-		EnableIntrospection: true,
-		Resolutions:         map[string]*v1beta1.Resolution{},
-	}
+	resolutions := map[string]*v1beta1.Resolution{}
 	for _, s := range services {
 		// ignore the reflection descriptor
 		if s == "grpc.reflection.v1alpha.ServerReflection" {
@@ -211,30 +213,33 @@ func (f *GraphqlSchemaDiscovery) GetSchemaBuilderForProtoFileDescriptor(refClien
 							},
 						},
 					}
-					executor.Resolutions[resolverName] = resolution
+					resolutions[resolverName] = resolution
 
 				}
 			}
 		}
 	}
-	return sb, executor, nil
+	return sb, resolutions, nil
 }
 
+// BuildGraphQLApiFromGrpcReflection will generate the GraphQL schema given a gRPC reference, and return the GraphQlAPI resource.
+// This will complete the gRPC reflection to GraphQL, so that GraphQL queries can be performed on the gRPC resource.
+// Particularly the GraphQLAPI is made up of the schema definition, description, executor, and the metadata.
 func (f *GraphqlSchemaDiscovery) BuildGraphQLApiFromGrpcReflection(refClient GrpcReflectionClient) (*v1beta1.GraphQLApi, error) {
 	services, err := refClient.ListServices()
 	if err != nil {
-		return nil, errors.Wrapf(err, "listing services. are you sure upstream %s.%s implements reflection?", f.upstream.GetMetadata().GetName(), f.upstream.GetMetadata().GetNamespace())
+		return nil, errors.Wrapf(err, "listing services. are you sure upstream %s.%s implements reflection?", f.upstream.GetMetadata().GetNamespace(), f.upstream.GetMetadata().GetName())
 	}
 	descriptors := &descriptor.FileDescriptorSet{}
 
-	schemaBuilder, executor, err := f.GetSchemaBuilderForProtoFileDescriptor(refClient, descriptors, services)
+	schemaBuilder, resolutions, err := f.GetSchemaBuilderForProtoFileDescriptor(refClient, descriptors, services)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error in translating gRPC reflection for upstream %s in namespace %s to GraphQLApi",
-			f.upstream.GetMetadata().GetName(), f.upstream.GetMetadata().GetNamespace())
+			f.upstream.GetMetadata().GetNamespace(), f.upstream.GetMetadata().GetName())
 	}
 
 	doc := schemaBuilder.Build()
-	schemaDef := printer2.PrettyPrintKubeString(printer.Print(doc).(string))
+	schemaDef := printer.Print(doc).(string)
 	d, err := proto.Marshal(descriptors)
 	if err != nil {
 		return nil, errors.Wrap(err, "error marshalling descriptors")
@@ -242,30 +247,16 @@ func (f *GraphqlSchemaDiscovery) BuildGraphQLApiFromGrpcReflection(refClient Grp
 	dest := make([]byte, base64.StdEncoding.EncodedLen(len(d)))
 	base64.StdEncoding.Encode(dest, d)
 
-	schema := &v1beta1.GraphQLApi{
-		Metadata: &core.Metadata{
-			Name:      f.upstream.GetMetadata().GetName(),
-			Namespace: f.upstream.GetMetadata().GetNamespace(),
+	options := discoveries.GraphQLApiOptions{
+		Local: &discoveries.LocalExecutor{
+			Resolutions: resolutions,
 		},
-		Schema: &v1beta1.GraphQLApi_ExecutableSchema{
-			ExecutableSchema: &v1beta1.ExecutableSchema{
-				SchemaDefinition: schemaDef,
-				Executor: &v1beta1.Executor{
-					Executor: &v1beta1.Executor_Local_{
-						Local: executor,
-					},
-				},
-				GrpcDescriptorRegistry: &v1beta1.GrpcDescriptorRegistry{
-					DescriptorSet: &v1beta1.GrpcDescriptorRegistry_ProtoDescriptorBin{
-						ProtoDescriptorBin: d,
-					},
-				},
-			},
-		},
+		Schema: schemaDef,
 	}
-	return schema, nil
+	return discoveries.NewGraphQLApi(f.upstream, options)
 }
 
+// DetectFunctionsOnce will get the client and build out the endpoint's GraphQLAPI Custom Resource (CR). It will then write out the CR.
 func (f *GraphqlSchemaDiscovery) DetectFunctionsOnce(ctx context.Context, url *url.URL, updatecb func(fds.UpstreamMutator) error) error {
 	refClient, closeConn, err := getClient(ctx, url)
 	if err != nil {

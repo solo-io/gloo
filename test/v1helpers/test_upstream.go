@@ -35,10 +35,9 @@ func NewTestHttpUpstream(ctx context.Context, addr string) *TestUpstream {
 	return NewTestHttpUpstreamWithHandler(ctx, addr, nil)
 }
 
-//func NewTestHttpUpstreamWithHandler(ctx context.Context, addr string, httpHandler http.Handler) *TestUpstream {
-//	backendport, responses := RunTestServer(ctx, &HttpServer{}, handlerFunc)
-//	return newTestUpstream(addr, backendport, responses)
-//}
+func NewTestHttpUpstreamWithAddress(addr string, port uint32) *TestUpstream {
+	return newTestUpstream(addr, port, nil)
+}
 
 func NewTestHttpUpstreamWithHandler(ctx context.Context, addr string, handlerFunc ExtraHandlerFunc) *TestUpstream {
 	backendport, responses := RunTestServer(ctx, &HttpServer{}, handlerFunc)

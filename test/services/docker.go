@@ -26,6 +26,8 @@ type DockerOptions struct {
 	Env []string
 }
 
+// todo-(jake): lets build a nice factory of containers with an abstraction like in graphql_container.go
+
 func RunContainer(containerName string, args []string) error {
 	updatedContainerName := getUpdatedContainerName(containerName)
 	runArgs := []string{"run", "--name", updatedContainerName}

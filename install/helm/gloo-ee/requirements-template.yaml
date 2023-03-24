@@ -1,5 +1,7 @@
 dependencies:
   - name: gloo
+    # keep for referencing gloo-branches
+    # repository: https://storage.googleapis.com/solo-pubic-tagged-helm
     repository: https://storage.googleapis.com/solo-public-helm
   - name: prometheus
     repository: https://prometheus-community.github.io/helm-charts

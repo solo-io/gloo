@@ -8,15 +8,12 @@ import (
 	"net/url"
 	"time"
 
-	printer2 "github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/printer"
-
 	"github.com/go-openapi/swag"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/printer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	graphql "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql/graphqlschematranslation"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -28,8 +25,10 @@ import (
 	plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
 	rest_plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/rest"
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries"
 )
 
+// these are the default OpenAPI schema object locations.
 var commonOpenApiURIs = []string{
 	"/openapi.json",
 	"/swagger.json",
@@ -47,13 +46,11 @@ func NewFunctionDiscoveryFactory(opts bootstrap.Opts) fds.FunctionDiscoveryFacto
 	}
 	return &OpenApiFunctionDiscoveryFactory{
 		DetectionTimeout: time.Second * 75,
-		FunctionPollTime: time.Second,
 	}
 }
 
 type OpenApiFunctionDiscoveryFactory struct {
 	DetectionTimeout time.Duration
-	FunctionPollTime time.Duration
 }
 
 var _ fds.FunctionDiscoveryFactory = new(OpenApiFunctionDiscoveryFactory)
@@ -65,16 +62,16 @@ func (f *OpenApiFunctionDiscoveryFactory) FunctionDiscoveryFactoryName() string 
 func (f *OpenApiFunctionDiscoveryFactory) NewFunctionDiscovery(u *v1.Upstream, clients fds.AdditionalClients) fds.UpstreamFunctionDiscovery {
 	return &OpenApiFunctionDiscovery{
 		detectionTimeout: f.DetectionTimeout,
-		functionPollTime: f.FunctionPollTime,
 		openApiUrisToTry: commonOpenApiURIs,
 		upstream:         u,
 		graphqlClient:    clients.GraphqlClient,
 	}
 }
 
+var _ fds.UpstreamFunctionDiscovery = new(OpenApiFunctionDiscovery)
+
 type OpenApiFunctionDiscovery struct {
 	detectionTimeout time.Duration
-	functionPollTime time.Duration
 	upstream         *v1.Upstream
 	openApiUrisToTry []string
 
@@ -104,10 +101,13 @@ func (f *OpenApiFunctionDiscovery) IsFunctional() bool {
 	return a
 }
 
+// DetectType will detect if the URL is able to support OpenAPI.
 func (f *OpenApiFunctionDiscovery) DetectType(ctx context.Context, baseurl *url.URL) (*plugins.ServiceSpec, error) {
 	return f.detectUpstreamTypeOnce(ctx, baseurl)
 }
 
+// detectUpstreamTypeOnce will check the url for the common Open API files, and then try to resolve them. If the url
+// is resolvable with any OpenAPI files, then it will return the service spec for that URL.
 func (f *OpenApiFunctionDiscovery) detectUpstreamTypeOnce(ctx context.Context, baseUrl *url.URL) (*plugins.ServiceSpec, error) {
 	// run detection and get functions
 	var errs error
@@ -117,7 +117,7 @@ func (f *OpenApiFunctionDiscovery) detectUpstreamTypeOnce(ctx context.Context, b
 
 	switch baseUrl.Scheme {
 	case "http":
-		fallthrough
+		// do nothing
 	case "https":
 		// nothing to do as this baseurl already has an http address.
 	case "tcp":
@@ -184,11 +184,14 @@ func GetOpenApi3Doc(body []byte) (*openapi3.T, error) {
 
 }
 
+// DetectFunctions will take a detected the OpenAPI schema of the upstream and generate
+// the GraphQL schema based off the OpenAPI schema.
 func (f *OpenApiFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, _ func() fds.Dependencies, updatecb func(fds.UpstreamMutator) error) error {
 	in := f.upstream
 	spec := getswagspec(in)
+	nn := fmt.Sprintf("%s.%s", f.upstream.GetMetadata().GetNamespace(), f.upstream.GetMetadata().GetName())
 	if spec == nil || spec.GetSwaggerSpec() == nil {
-		return errors.New("upstream doesn't have a openApi spec")
+		return errors.New(fmt.Sprintf("upstream [%s] doesn't have a openApi spec", nn))
 	}
 	switch document := spec.GetSwaggerSpec().(type) {
 	case *rest_plugins.ServiceSpec_SwaggerInfo_Url:
@@ -196,23 +199,18 @@ func (f *OpenApiFunctionDiscovery) DetectFunctions(ctx context.Context, url *url
 	case *rest_plugins.ServiceSpec_SwaggerInfo_Inline:
 		return f.detectFunctionsFromInline(ctx, document.Inline, in, updatecb)
 	}
-	return errors.New("upstream doesn't have a openApi source")
+	return errors.New(fmt.Sprintf("upstream [%s] doesn't have a openApi source", nn))
 }
 
 func (f *OpenApiFunctionDiscovery) detectFunctionsFromUrl(ctx context.Context, url string, in *v1.Upstream) error {
-	err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{
+	err := contextutils.NewExponentialBackoff(contextutils.ExponentioalBackoff{
 		MaxDuration: &f.detectionTimeout,
 	}).Backoff(ctx, func(ctx context.Context) error {
-
 		spec, err := RetrieveOpenApiDocFromUrl(ctx, url)
 		if err != nil {
 			return err
 		}
-		err = f.detectFunctionsFromSpec(ctx, spec)
-		if err != nil {
-			return err
-		}
-		return nil
+		return f.writeGraphQLApiResource(ctx, spec)
 	})
 	if err != nil {
 		if ctx.Err() != nil {
@@ -231,35 +229,27 @@ func (f *OpenApiFunctionDiscovery) detectFunctionsFromInline(ctx context.Context
 	if err != nil {
 		return err
 	}
-	return f.detectFunctionsFromSpec(ctx, spec)
+	return f.writeGraphQLApiResource(ctx, spec)
 }
 
-func (f *OpenApiFunctionDiscovery) detectFunctionsFromSpec(ctx context.Context, openApiSpec *openapi3.T) error {
+// writeGraphQLApiResource will generate the GraphQLAPI custom resource (CR) and write it.
+func (f *OpenApiFunctionDiscovery) writeGraphQLApiResource(ctx context.Context, openApiSpec *openapi3.T) error {
 	translator := graphql.NewOasToGqlTranslator(f.upstream)
 	schemaAst, _, resolutions, err := translator.CreateGraphqlSchema([]*openapi3.T{openApiSpec})
 	if err != nil {
 		return err
 	}
 	schema := ast.Node(schemaAst)
-	printedSchema := printer2.PrettyPrintKubeString(printer.Print(schema).(string))
-	schemaCrd := &v1beta1.GraphQLApi{
-		Metadata: &core.Metadata{
-			Name:      f.upstream.GetMetadata().GetName(),
-			Namespace: f.upstream.GetMetadata().GetNamespace(),
+	printedSchema := printer.Print(schema).(string)
+	options := discoveries.GraphQLApiOptions{
+		Local: &discoveries.LocalExecutor{
+			Resolutions: resolutions,
 		},
-		Schema: &v1beta1.GraphQLApi_ExecutableSchema{
-			ExecutableSchema: &v1beta1.ExecutableSchema{
-				Executor: &v1beta1.Executor{
-					Executor: &v1beta1.Executor_Local_{
-						Local: &v1beta1.Executor_Local{
-							Resolutions:         resolutions,
-							EnableIntrospection: true,
-						},
-					},
-				},
-				SchemaDefinition: printedSchema,
-			},
-		},
+		Schema: printedSchema,
+	}
+	schemaCrd, err := discoveries.NewGraphQLApi(f.upstream, options)
+	if err != nil {
+		return errors.Wrapf(err, "unable to instantiate the OpenAPI GraphQLApi: namespace [%s] name [%s]", f.upstream.GetMetadata().GetNamespace(), f.upstream.GetMetadata().GetName())
 	}
 	_, err = f.graphqlClient.Write(schemaCrd, clients.WriteOpts{})
 	if err != nil {
@@ -268,6 +258,7 @@ func (f *OpenApiFunctionDiscovery) detectFunctionsFromSpec(ctx context.Context, 
 	return nil
 }
 
+// RetrieveOpenApiDocFromUrl will retrieve the Open API doc from the url endpoint.
 func RetrieveOpenApiDocFromUrl(ctx context.Context, url string) (*openapi3.T, error) {
 	docBytes, err := LoadFromFileOrHTTP(ctx, url)
 	if err != nil {
