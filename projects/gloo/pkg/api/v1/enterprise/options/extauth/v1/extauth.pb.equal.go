@@ -890,6 +890,16 @@ func (m *UserSession) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetCipherConfig()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetCipherConfig()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetCipherConfig(), target.GetCipherConfig()) {
+			return false
+		}
+	}
+
 	switch m.Session.(type) {
 
 	case *UserSession_Cookie:
@@ -3519,6 +3529,44 @@ func (m *UserSession_CookieOptions) Equal(that interface{}) bool {
 	}
 
 	if strings.Compare(m.GetDomain(), target.GetDomain()) != 0 {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *UserSession_CipherConfig) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*UserSession_CipherConfig)
+	if !ok {
+		that2, ok := that.(UserSession_CipherConfig)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetKeyRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetKeyRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetKeyRef(), target.GetKeyRef()) {
+			return false
+		}
+	}
+
+	if m.GetType() != target.GetType() {
 		return false
 	}
 

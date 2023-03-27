@@ -945,6 +945,26 @@ func (m *UserSession) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
+	if h, ok := interface{}(m.GetCipherConfig()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("CipherConfig")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetCipherConfig(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("CipherConfig")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
 	switch m.Session.(type) {
 
 	case *UserSession_Cookie:
@@ -3884,6 +3904,47 @@ func (m *UserSession_CookieOptions) Hash(hasher hash.Hash64) (uint64, error) {
 	}
 
 	if _, err = hasher.Write([]byte(m.GetDomain())); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *UserSession_CipherConfig) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("enterprise.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1.UserSession_CipherConfig")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetKeyRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("KeyRef")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetKeyRef(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("KeyRef")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	err = binary.Write(hasher, binary.LittleEndian, m.GetType())
+	if err != nil {
 		return 0, err
 	}
 

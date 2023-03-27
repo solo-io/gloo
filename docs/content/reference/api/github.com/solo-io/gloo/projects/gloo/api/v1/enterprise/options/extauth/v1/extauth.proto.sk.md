@@ -38,6 +38,8 @@ weight: 5
 - [RedisSession](#redissession)
 - [CookieOptions](#cookieoptions)
 - [SameSite](#samesite)
+- [CipherConfig](#cipherconfig)
+- [CipherType](#ciphertype)
 - [HeaderConfiguration](#headerconfiguration)
 - [DiscoveryOverride](#discoveryoverride)
 - [JwksOnDemandCacheRefreshPolicy](#jwksondemandcacherefreshpolicy)
@@ -604,6 +606,7 @@ redis socket types
 "cookieOptions": .enterprise.gloo.solo.io.UserSession.CookieOptions
 "cookie": .enterprise.gloo.solo.io.UserSession.InternalSession
 "redis": .enterprise.gloo.solo.io.UserSession.RedisSession
+"cipherConfig": .enterprise.gloo.solo.io.UserSession.CipherConfig
 
 ```
 
@@ -613,6 +616,7 @@ redis socket types
 | `cookieOptions` | [.enterprise.gloo.solo.io.UserSession.CookieOptions](../extauth.proto.sk/#cookieoptions) | Set-Cookie options. |
 | `cookie` | [.enterprise.gloo.solo.io.UserSession.InternalSession](../extauth.proto.sk/#internalsession) | Set the tokens in the cookie itself. No need for server side state. Only one of `cookie` or `redis` can be set. |
 | `redis` | [.enterprise.gloo.solo.io.UserSession.RedisSession](../extauth.proto.sk/#redissession) | Use redis to store the tokens and just store a random id in the cookie. Only one of `redis` or `cookie` can be set. |
+| `cipherConfig` | [.enterprise.gloo.solo.io.UserSession.CipherConfig](../extauth.proto.sk/#cipherconfig) |  |
 
 
 
@@ -706,6 +710,38 @@ The SameSite options. The default value is LaxMode.
 | `LaxMode` | Cookies are not sent on normal cross-site subrequests, but are sent when navigating to the origin site. |
 | `StrictMode` | Only be sent in a first-party context and not be sent along with requests initiated by third party websites. |
 | `NoneMode` | Cookies are sent in all contexts. Cookie NotSecure must be unset. |
+
+
+
+
+---
+### CipherConfig
+
+
+
+```yaml
+"keyRef": .core.solo.io.ResourceRef
+"type": .enterprise.gloo.solo.io.UserSession.CipherConfig.CipherType
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `keyRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | TODO-JAKE get some comments in for the referencing. This value enables the symmetric encryption. The key reference used for the cipher. |
+| `type` | [.enterprise.gloo.solo.io.UserSession.CipherConfig.CipherType](../extauth.proto.sk/#ciphertype) | (optional) The type of cipher that will be used to create the symmetric encryption. CFB cipher is the default. |
+
+
+
+
+---
+### CipherType
+
+
+
+| Name | Description |
+| ----- | ----------- | 
+| `CFB` |  |
+| `GCM` |  |
 
 
 

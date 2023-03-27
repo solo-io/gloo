@@ -521,6 +521,12 @@ func (m *UserSession) Clone() proto.Message {
 		target.CookieOptions = proto.Clone(m.GetCookieOptions()).(*UserSession_CookieOptions)
 	}
 
+	if h, ok := interface{}(m.GetCipherConfig()).(clone.Cloner); ok {
+		target.CipherConfig = h.Clone().(*UserSession_CipherConfig)
+	} else {
+		target.CipherConfig = proto.Clone(m.GetCipherConfig()).(*UserSession_CipherConfig)
+	}
+
 	switch m.Session.(type) {
 
 	case *UserSession_Cookie:
@@ -2101,6 +2107,25 @@ func (m *UserSession_CookieOptions) Clone() proto.Message {
 	target.SameSite = m.GetSameSite()
 
 	target.Domain = m.GetDomain()
+
+	return target
+}
+
+// Clone function
+func (m *UserSession_CipherConfig) Clone() proto.Message {
+	var target *UserSession_CipherConfig
+	if m == nil {
+		return target
+	}
+	target = &UserSession_CipherConfig{}
+
+	if h, ok := interface{}(m.GetKeyRef()).(clone.Cloner); ok {
+		target.KeyRef = h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
+	} else {
+		target.KeyRef = proto.Clone(m.GetKeyRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
+	}
+
+	target.Type = m.GetType()
 
 	return target
 }

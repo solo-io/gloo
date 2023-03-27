@@ -444,6 +444,18 @@ message UserSession {
         // Use redis to store the tokens and just store a random id in the cookie.
         RedisSession redis = 4;
     }
+    message CipherConfig {
+        enum CipherType {
+            CFB = 0;
+            GCM = 1;
+        }
+        // TODO-JAKE get some comments in for the referencing.
+        // This value enables the symmetric encryption. The key reference used for the cipher.
+        core.solo.io.ResourceRef key_ref = 1;
+        // (optional) The type of cipher that will be used to create the symmetric encryption. CFB cipher is the default. 
+        CipherType type = 2;
+    }
+    CipherConfig cipher_config = 5;
 }
 
 message HeaderConfiguration {
