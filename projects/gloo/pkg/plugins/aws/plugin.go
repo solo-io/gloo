@@ -41,16 +41,6 @@ func GenerateEnterpriseAWSLambdaRouteConfig(options *v1.GlooOptions_AWSOptions, 
 		return lambdaPerRoute, err
 	}
 
-	var transformerConfig *v3.TypedExtensionConfig
-	if destination.GetUnwrapAsApiGateway() && !destination.GetUnwrapAsAlb() {
-		transformerConfig = &v3.TypedExtensionConfig{
-			Name: ResponseTransformationName,
-			TypedConfig: &any.Any{
-				TypeUrl: ResponseTransformationTypeUrl,
-			},
-		}
-	}
-
 	var requestTransformerConfig *v3.TypedExtensionConfig
 	if destination.GetWrapAsApiGateway() {
 		requestTransformerConfig = &v3.TypedExtensionConfig{
@@ -61,7 +51,6 @@ func GenerateEnterpriseAWSLambdaRouteConfig(options *v1.GlooOptions_AWSOptions, 
 		}
 	}
 
-	lambdaPerRoute.TransformerConfig = transformerConfig
 	lambdaPerRoute.RequestTransformerConfig = requestTransformerConfig
 	return lambdaPerRoute, nil
 }

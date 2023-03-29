@@ -363,7 +363,7 @@ gloofed-load-kind-images: kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-
 .PHONY: remove-all-gloofed-images
 remove-all-gloofed-images: remove-gloofed-ui-images remove-gloofed-controller-images
 
-.PHONY: remove-gloofed-ui-images 
+.PHONY: remove-gloofed-ui-images
 remove-gloofed-ui-images:
 	docker image rm $(IMAGE_REG)/gloo-fed-apiserver:$(VERSION)
 	docker image rm $(IMAGE_REG)/gloo-fed-apiserver-envoy:$(VERSION)
@@ -641,7 +641,7 @@ generated-gloo-fed-ui-deps:
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \
-	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/*.proto	
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/*.proto
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \
