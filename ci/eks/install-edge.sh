@@ -48,8 +48,8 @@ install_fed() {
 }
 
 register_clusters() {
-  kubectl config set-context ${FED_CONTEXT}
-  echo "Register Cluster "
+  kubectl config use-context ${FED_CONTEXT}
+  echo "Register Cluster"
   for CLUSTER_CONTEXT in "${CLUSTER_CONTEXTS[@]}"; do
     echo "Register Cluster ${CLUSTER_CONTEXT}"
     glooctl cluster register\

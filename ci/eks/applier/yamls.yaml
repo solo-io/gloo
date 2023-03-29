@@ -1,0 +1,209 @@
+
+apiVersion: enterprise.gloo.solo.io/v1
+kind: AuthConfig
+metadata:
+  name: ac-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  configs:
+  - oauth2:
+      oidcAuthorizationCode:
+        appUrl: https://ab9ade4e124974f55a47a906e8ff9070-2009971879.us-west-1.elb.amazonaws.com
+        callbackPath: /callback
+        clientId: solo
+        clientSecretRef:
+          name: keycloak-client-secret
+          namespace: gloo-system
+        issuerUrl: http://a9ef341cdcc0f4a5ab2c5c8a14b18940-177396470.us-west-1.elb.amazonaws.com:8080/auth/realms/solo/
+        scopes:
+        - openid
+        session:
+          cookieOptions: {}
+---
+apiVersion: ratelimit.solo.io/v1alpha1
+kind: RateLimitConfig
+metadata:
+  name: rlc-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  raw:
+    descriptors:
+    - key: remote_address
+      rateLimit:
+        requestsPerUnit: 3
+        unit: MINUTE
+    rateLimits:
+    - actions:
+      - remoteAddress: {}
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: upstream-1-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  sslConfig:
+    secretRef:
+      name: client-tls-secret
+      namespace: gloo-system
+  static:
+    hosts:
+    - addr: postman-echo.com
+      port: 443
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: upstream-2-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  sslConfig:
+    secretRef:
+      name: client-tls-secret
+      namespace: gloo-system
+  static:
+    hosts:
+    - addr: postman-echo.com
+      port: 443
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appd-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: "100%"
+  selector:
+    matchLabels:
+      app: app-{{.Index}}
+      test: test1
+  template:
+    metadata:
+      labels:
+        app: app-{{.Index}}
+        test: test1
+    spec:
+      containers:
+      - name: app
+        image: registry.k8s.io/pause:3.6
+#        image: docker.io/library/busybox:1.34.1
+#        command: ["/bin/sh"]
+#        args: ["-c", "while true; do sleep 1000; done"]
+        resources:
+          requests:
+            memory: "10Mi"
+            cpu: "10m"
+          limits:
+            memory: "100Mi"
+            cpu: "100m"
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-service-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  type: ClusterIP
+  selector:
+    app: app-{{.Index}}
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: upstream-3-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  sslConfig:
+    secretRef:
+      name: client-tls-secret
+      namespace: gloo-system
+  kube:
+    selector:
+      app: app-{{.Index}}
+    serviceName: app-service-{{.Index}}
+    serviceNamespace: gloo-system
+    servicePort: 8080
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: vs-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  sslConfig:
+    secretRef:
+      name: client-tls-secret
+      namespace: gloo-system
+  virtualHost:
+    domains:
+    - 'foo-{{.Index}}-gloo-system.solo.com'
+    options:
+      extauth:
+        configRef:
+          name: ac-{{.Index}}
+          namespace: gloo-system
+    routes:
+    - matchers:
+      - prefix: /foo-1-{{.Index}}
+      options:
+        prefixRewrite: /api-{{.Index}}
+        rateLimitConfigs:
+          refs:
+          - name: rlc-{{.Index}}
+            namespace: gloo-system
+      routeAction:
+        single:
+          upstream:
+            name: upstream-1-{{.Index}}
+            namespace: gloo-system
+    - matchers:
+      - prefix: /foo-2-{{.Index}}
+      options:
+        prefixRewrite: /api-{{.Index}}
+        rateLimitConfigs:
+          refs:
+          - name: rlc-{{.Index}}
+            namespace: gloo-system
+      routeAction:
+        single:
+          upstream:
+            name: upstream-2-{{.Index}}
+            namespace: gloo-system
+    - matchers:
+      - prefix: /foo-3-{{.Index}}
+      options:
+        prefixRewrite: /api-{{.Index}}
+        rateLimitConfigs:
+          refs:
+          - name: rlc-{{.Index}}
+            namespace: gloo-system
+      routeAction:
+        single:
+          upstream:
+            name: upstream-3-{{.Index}}
+            namespace: gloo-system

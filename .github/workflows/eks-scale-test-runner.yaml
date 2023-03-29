@@ -1,5 +1,5 @@
-name: eks-cluster-creation
-run-name: ${{ github.actor }} creating eks clusters
+name: eks-scale-tests
+run-name: ${{ github.actor }} Run scales tests - 20 eks clusters - 300 upstreams per cluster
 on:
   workflow_dispatch:
     inputs:
@@ -11,10 +11,6 @@ on:
         description: Environment ID - the name of the environment you want to create
         required: true
         default: edge-scale
-      num-remote-clusters:
-        description: Number of EKS clusters including managment cluster
-        required: true
-        default: 1
       destroy_infra:
         description: Destroy cloud infrastructure on completion
         type: boolean
@@ -25,7 +21,7 @@ jobs:
     uses: solo-io/gloo-eng-test-beds/.github/workflows/build-eng-cicd-env.yaml@main
     with:
       environment: eks-developers-acct
-      num-remote-clusters: ${{ github.event.inputs.num-remote-clusters }}
+      num-remote-clusters: 20
       job-reference: ${{ github.event.inputs.environment_id }}
       cluster-env-params: "EKS_MGMT_INSTANCE_TYPE=c6a.4xlarge EKS_WORKER_INSTANCE_TYPE=c6a.2xlarge"
       component: gloo-edge
@@ -39,7 +35,7 @@ jobs:
     needs: setup-environment
     environment: eks-developers-acct
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       KUBECONFIG_FILE: kubeconfig.cicd-${{ github.event.inputs.environment_id }}
@@ -48,8 +44,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-#       Download kubeconfig from the setup-environment job:
-#       https://github.com/solo-io/gloo-eng-test-beds/blob/de4c361ed04bb514b4c5db4533f15685aadb1c6f/.github/workflows/build-eng-cicd-env.yaml#L145-L152
+      #       Download kubeconfig from the setup-environment job:
+      #       https://github.com/solo-io/gloo-eng-test-beds/blob/de4c361ed04bb514b4c5db4533f15685aadb1c6f/.github/workflows/build-eng-cicd-env.yaml#L145-L152
       - name: Download kubeconfig
         uses: actions/download-artifact@v3
         id: kubeconfig
@@ -71,9 +67,26 @@ jobs:
         env:
           GLOO_EDGE_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
           GLOO_EE_VERSION: ${{ github.event.inputs.edge_enterprise_version }}
-          NUM_REMOTE_CLUSTERS: ${{ github.event.inputs.num-remote-clusters }}
+          NUM_REMOTE_CLUSTERS: 20
         run: |
           ./ci/eks/install-edge.sh
+
+      - name: Run Scale Tests
+        id: scale
+        env:
+          GLOO_EDGE_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
+          NUM_REMOTE_CLUSTERS: 20
+          ITERATIONS: 100
+        run: |
+          ./ci/eks/data-creation.sh
+            
+      - name: Upload results file
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ github.event.inputs.environment_id }}-run-output.csv
+          path: |
+            ${{ env.POST_PROCESS_LOCATION }}
+          retention-days: 7
 
   cleanup-environment:
     uses: solo-io/gloo-eng-test-beds/.github/workflows/cleanup-eng-env.yaml@main
