@@ -2119,13 +2119,28 @@ func (m *UserSession_CipherConfig) Clone() proto.Message {
 	}
 	target = &UserSession_CipherConfig{}
 
+	if h, ok := interface{}(m.GetKey()).(clone.Cloner); ok {
+		target.Key = h.Clone().(*UserSession_CipherConfig_CipherKey)
+	} else {
+		target.Key = proto.Clone(m.GetKey()).(*UserSession_CipherConfig_CipherKey)
+	}
+
+	return target
+}
+
+// Clone function
+func (m *UserSession_CipherConfig_CipherKey) Clone() proto.Message {
+	var target *UserSession_CipherConfig_CipherKey
+	if m == nil {
+		return target
+	}
+	target = &UserSession_CipherConfig_CipherKey{}
+
 	if h, ok := interface{}(m.GetKeyRef()).(clone.Cloner); ok {
 		target.KeyRef = h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
 	} else {
 		target.KeyRef = proto.Clone(m.GetKeyRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
 	}
-
-	target.Type = m.GetType()
 
 	return target
 }

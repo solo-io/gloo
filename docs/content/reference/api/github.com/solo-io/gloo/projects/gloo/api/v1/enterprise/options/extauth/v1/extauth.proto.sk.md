@@ -39,7 +39,7 @@ weight: 5
 - [CookieOptions](#cookieoptions)
 - [SameSite](#samesite)
 - [CipherConfig](#cipherconfig)
-- [CipherType](#ciphertype)
+- [CipherKey](#cipherkey)
 - [HeaderConfiguration](#headerconfiguration)
 - [DiscoveryOverride](#discoveryoverride)
 - [JwksOnDemandCacheRefreshPolicy](#jwksondemandcacherefreshpolicy)
@@ -720,28 +720,30 @@ The SameSite options. The default value is LaxMode.
 
 
 ```yaml
-"keyRef": .core.solo.io.ResourceRef
-"type": .enterprise.gloo.solo.io.UserSession.CipherConfig.CipherType
+"key": .enterprise.gloo.solo.io.UserSession.CipherConfig.CipherKey
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `keyRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | TODO-JAKE get some comments in for the referencing. This value enables the symmetric encryption. The key reference used for the cipher. |
-| `type` | [.enterprise.gloo.solo.io.UserSession.CipherConfig.CipherType](../extauth.proto.sk/#ciphertype) | (optional) The type of cipher that will be used to create the symmetric encryption. CFB cipher is the default. |
+| `key` | [.enterprise.gloo.solo.io.UserSession.CipherConfig.CipherKey](../extauth.proto.sk/#cipherkey) | This is the value used for the key. |
 
 
 
 
 ---
-### CipherType
+### CipherKey
 
 
 
-| Name | Description |
-| ----- | ----------- | 
-| `CFB` |  |
-| `GCM` |  |
+```yaml
+"keyRef": .core.solo.io.ResourceRef
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `keyRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | This value enables the symmetric encryption. The key reference used for the cipher. |
 
 
 

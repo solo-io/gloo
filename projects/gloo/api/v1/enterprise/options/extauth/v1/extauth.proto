@@ -445,15 +445,12 @@ message UserSession {
         RedisSession redis = 4;
     }
     message CipherConfig {
-        enum CipherType {
-            CFB = 0;
-            GCM = 1;
+        message CipherKey {
+            // This value enables the symmetric encryption. The key reference used for the cipher. 
+            core.solo.io.ResourceRef key_ref = 1;
         }
-        // TODO-JAKE get some comments in for the referencing.
-        // This value enables the symmetric encryption. The key reference used for the cipher.
-        core.solo.io.ResourceRef key_ref = 1;
-        // (optional) The type of cipher that will be used to create the symmetric encryption. CFB cipher is the default. 
-        CipherType type = 2;
+        // This is the value used for the key
+        CipherKey key = 1; 
     }
     CipherConfig cipher_config = 5;
 }

@@ -349,16 +349,16 @@ spec:
                               properties:
                                 cipherConfig:
                                   properties:
-                                    keyRef:
+                                    key:
                                       properties:
-                                        name:
-                                          type: string
-                                        namespace:
-                                          type: string
+                                        keyRef:
+                                          properties:
+                                            name:
+                                              type: string
+                                            namespace:
+                                              type: string
+                                          type: object
                                       type: object
-                                    type:
-                                      type: string
-                                      x-kubernetes-int-or-string: true
                                   type: object
                                 cookie:
                                   properties:
@@ -540,16 +540,16 @@ spec:
                               properties:
                                 cipherConfig:
                                   properties:
-                                    keyRef:
+                                    key:
                                       properties:
-                                        name:
-                                          type: string
-                                        namespace:
-                                          type: string
+                                        keyRef:
+                                          properties:
+                                            name:
+                                              type: string
+                                            namespace:
+                                              type: string
+                                          type: object
                                       type: object
-                                    type:
-                                      type: string
-                                      x-kubernetes-int-or-string: true
                                   type: object
                                 cookie:
                                   properties:
