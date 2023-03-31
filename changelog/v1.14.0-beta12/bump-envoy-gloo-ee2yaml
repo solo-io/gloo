@@ -1,0 +1,11 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    issueLink: https://github.com/solo-io/envoy-gloo-ee/issues/482
+    resolvesIssue: false
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo-ee
+    dependencyTag: v1.25.1-patch1
+    description: >
+      Bump envoy-gloo-ee to v1.25.1-patch1 to incorporate fixes for issues
+      reported by clang-asan
+

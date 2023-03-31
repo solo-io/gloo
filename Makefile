@@ -42,7 +42,7 @@ GCS_BUCKET := glooctl-plugins
 WASM_GCS_PATH := glooctl-wasm
 FED_GCS_PATH := glooctl-fed
 
-ENVOY_GLOO_IMAGE_VERSION ?= 1.24.1-patch4
+ENVOY_GLOO_IMAGE_VERSION ?= 1.25.1-patch1
 ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:$(ENVOY_GLOO_IMAGE_VERSION)
 ENVOY_GLOO_DEBUG_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-debug:$(ENVOY_GLOO_IMAGE_VERSION)
 ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:$(ENVOY_GLOO_IMAGE_VERSION)
