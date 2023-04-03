@@ -2136,10 +2136,26 @@ func (m *UserSession_CipherConfig_CipherKey) Clone() proto.Message {
 	}
 	target = &UserSession_CipherConfig_CipherKey{}
 
-	if h, ok := interface{}(m.GetKeyRef()).(clone.Cloner); ok {
-		target.KeyRef = h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
-	} else {
-		target.KeyRef = proto.Clone(m.GetKeyRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
+	switch m.Key.(type) {
+
+	case *UserSession_CipherConfig_CipherKey_KeyRef:
+
+		if h, ok := interface{}(m.GetKeyRef()).(clone.Cloner); ok {
+			target.Key = &UserSession_CipherConfig_CipherKey_KeyRef{
+				KeyRef: h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
+			}
+		} else {
+			target.Key = &UserSession_CipherConfig_CipherKey_KeyRef{
+				KeyRef: proto.Clone(m.GetKeyRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
+			}
+		}
+
+	case *UserSession_CipherConfig_CipherKey_KeyValue:
+
+		target.Key = &UserSession_CipherConfig_CipherKey_KeyValue{
+			KeyValue: m.GetKeyValue(),
+		}
+
 	}
 
 	return target
@@ -2554,8 +2570,6 @@ func (m *ExtAuthConfig_OidcAuthorizationCodeConfig) Clone() proto.Message {
 	} else {
 		target.EndSessionProperties = proto.Clone(m.GetEndSessionProperties()).(*EndSessionProperties)
 	}
-
-	target.UserSessionEncryptionKey = m.GetUserSessionEncryptionKey()
 
 	return target
 }

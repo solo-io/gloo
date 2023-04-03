@@ -3590,12 +3590,35 @@ func (m *UserSession_CipherConfig_CipherKey) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetKeyRef()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetKeyRef()) {
+	switch m.Key.(type) {
+
+	case *UserSession_CipherConfig_CipherKey_KeyRef:
+		if _, ok := target.Key.(*UserSession_CipherConfig_CipherKey_KeyRef); !ok {
 			return false
 		}
-	} else {
-		if !proto.Equal(m.GetKeyRef(), target.GetKeyRef()) {
+
+		if h, ok := interface{}(m.GetKeyRef()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetKeyRef()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetKeyRef(), target.GetKeyRef()) {
+				return false
+			}
+		}
+
+	case *UserSession_CipherConfig_CipherKey_KeyValue:
+		if _, ok := target.Key.(*UserSession_CipherConfig_CipherKey_KeyValue); !ok {
+			return false
+		}
+
+		if strings.Compare(m.GetKeyValue(), target.GetKeyValue()) != 0 {
+			return false
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.Key != target.Key {
 			return false
 		}
 	}
@@ -4333,10 +4356,6 @@ func (m *ExtAuthConfig_OidcAuthorizationCodeConfig) Equal(that interface{}) bool
 		if !proto.Equal(m.GetEndSessionProperties(), target.GetEndSessionProperties()) {
 			return false
 		}
-	}
-
-	if strings.Compare(m.GetUserSessionEncryptionKey(), target.GetUserSessionEncryptionKey()) != 0 {
-		return false
 	}
 
 	return true

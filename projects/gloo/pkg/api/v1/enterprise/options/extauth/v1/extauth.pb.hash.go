@@ -3959,24 +3959,36 @@ func (m *UserSession_CipherConfig_CipherKey) Hash(hasher hash.Hash64) (uint64, e
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetKeyRef()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("KeyRef")); err != nil {
-			return 0, err
-		}
-		if _, err = h.Hash(hasher); err != nil {
-			return 0, err
-		}
-	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetKeyRef(), nil); err != nil {
-			return 0, err
-		} else {
+	switch m.Key.(type) {
+
+	case *UserSession_CipherConfig_CipherKey_KeyRef:
+
+		if h, ok := interface{}(m.GetKeyRef()).(safe_hasher.SafeHasher); ok {
 			if _, err = hasher.Write([]byte("KeyRef")); err != nil {
 				return 0, err
 			}
-			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+			if _, err = h.Hash(hasher); err != nil {
 				return 0, err
 			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetKeyRef(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("KeyRef")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
 		}
+
+	case *UserSession_CipherConfig_CipherKey_KeyValue:
+
+		if _, err = hasher.Write([]byte(m.GetKeyValue())); err != nil {
+			return 0, err
+		}
+
 	}
 
 	return hasher.Sum64(), nil
@@ -4710,10 +4722,6 @@ func (m *ExtAuthConfig_OidcAuthorizationCodeConfig) Hash(hasher hash.Hash64) (ui
 				return 0, err
 			}
 		}
-	}
-
-	if _, err = hasher.Write([]byte(m.GetUserSessionEncryptionKey())); err != nil {
-		return 0, err
 	}
 
 	return hasher.Sum64(), nil

@@ -358,6 +358,8 @@ spec:
                                             namespace:
                                               type: string
                                           type: object
+                                        keyValue:
+                                          type: string
                                       type: object
                                   type: object
                                 cookie:
@@ -549,6 +551,8 @@ spec:
                                             namespace:
                                               type: string
                                           type: object
+                                        keyValue:
+                                          type: string
                                       type: object
                                   type: object
                                 cookie:

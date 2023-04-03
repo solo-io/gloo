@@ -446,8 +446,12 @@ message UserSession {
     }
     message CipherConfig {
         message CipherKey {
-            // This value enables the symmetric encryption. The key reference used for the cipher. 
-            core.solo.io.ResourceRef key_ref = 1;
+            oneof key {
+                // This value enables the symmetric encryption. The key reference used for the cipher. 
+                core.solo.io.ResourceRef key_ref = 1;
+                // This is the key value.
+                string key_value = 2;
+            }
         }
         // This is the value used for the key
         CipherKey key = 1; 
@@ -1372,12 +1376,6 @@ message ExtAuthConfig {
         // specifications. Noted [here](https://openid.net/specs/openid-connect-rpinitiated-1_0.html)
         // in the OIDC documentation.
         EndSessionProperties end_session_properties = 19;
-
-        // TODO-JAKE is there a better way to add this property, I do not like how this is executed,
-        // but it seems to be the same pattern used by others as well
-
-        // If set, this will be the encryption key used for the UserSession.
-        string user_session_encryption_key = 20;
     }
 
     message AccessTokenValidationConfig {
