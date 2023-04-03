@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"net/http"
 
 	"github.com/solo-io/gloo/test/testutils"
@@ -97,5 +98,26 @@ var _ = Describe("GRPC to JSON Transcoding Plugin - Discovery", func() {
 		Eventually(testContext.TestUpstream().C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
 			"GRPCRequest": PointTo(MatchFields(IgnoreExtras, Fields{"Str": Equal("foo")})),
 		}))))
+	})
+	Context("Deprecated API", func() {
+		JustBeforeEach(func() {
+			testContext.PatchDefaultUpstream(func(us *gloov1.Upstream) *gloov1.Upstream {
+				return populateDeprecatedApi(us).(*gloov1.Upstream)
+			})
+			testContext.PatchDefaultVirtualService(func(vs *v1.VirtualService) *v1.VirtualService {
+				return getGrpcVs(e2e.WriteNamespace, testContext.TestUpstream().Upstream.GetMetadata().Ref())
+			})
+		})
+		FIt("Does not overwrite existing upstreams with the deprecated API", func() {
+
+			body := `"foo"`
+			testRequest := basicReq(body, `{"str":"foo"}`)
+
+			Eventually(testRequest, 30, 1).Should(Succeed())
+
+			Eventually(testContext.TestUpstream().C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+				"GRPCRequest": PointTo(MatchFields(IgnoreExtras, Fields{"Str": Equal("foo")})),
+			}))))
+		})
 	})
 })

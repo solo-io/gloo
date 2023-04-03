@@ -39,6 +39,22 @@ func getGrpcspec(u *v1.Upstream) *grpc_json_plugins.GrpcJsonTranscoder {
 	}
 	return grpcWrapper.GrpcJsonTranscoder
 }
+func isDeprecatedGrpcspec(u *v1.Upstream) bool {
+
+	upstreamType, ok := u.GetUpstreamType().(v1.ServiceSpecGetter)
+	if !ok {
+		return false
+	}
+
+	if upstreamType.GetServiceSpec() == nil {
+		return false
+	}
+	_, ok = upstreamType.GetServiceSpec().GetPluginType().(*plugins.ServiceSpec_Grpc)
+	if ok {
+		return true
+	}
+	return false
+}
 func getDeprecatedGrpcspec(u *v1.Upstream) *grpc_plugins.ServiceSpec {
 	upstreamType, ok := u.GetUpstreamType().(v1.ServiceSpecGetter)
 	if !ok {
@@ -93,7 +109,7 @@ func (f *UpstreamFunctionDiscovery) IsFunctional() bool {
 	if getGrpcspec(f.upstream) != nil {
 		return true
 	}
-	return getDeprecatedGrpcspec(f.upstream) != nil
+	return isDeprecatedGrpcspec(f.upstream)
 }
 
 func (f *UpstreamFunctionDiscovery) DetectType(ctx context.Context, url *url.URL) (*plugins.ServiceSpec, error) {
@@ -190,6 +206,11 @@ func (f *UpstreamFunctionDiscovery) DetectFunctionsOnce(ctx context.Context, url
 	return updatecb(func(out *v1.Upstream) error {
 		svcSpec := getGrpcspec(out)
 		if svcSpec == nil {
+			if isDeprecatedGrpcspec(out) {
+				//TODO: description of how to find migration guide
+				contextutils.LoggerFrom(ctx).Warn("Existing upstream with deprecated API found. Follow the migration guide to begin using the updated API. Changes to this service will not continue to be discovered.")
+				return nil
+			}
 			return errors.New("not a GRPC upstream")
 		}
 		svcSpec.DescriptorSet = &grpc_json_plugins.GrpcJsonTranscoder_ProtoDescriptorBin{ProtoDescriptorBin: rawDescriptors}

@@ -329,6 +329,18 @@ func (u *updaterUpdater) Run() error {
 				if !ok {
 					return errors.New("can't set spec")
 				}
+				existingUs, ok := upstream.GetUpstreamType().(v1.ServiceSpecGetter)
+				// Check to see if the upstream already has a service spec and if we are trying to apply the new grpc API over the old one
+				if ok {
+					if existingUs.GetServiceSpec() != nil {
+						if _, ok := existingUs.GetServiceSpec().GetPluginType().(*plugins.ServiceSpec_Grpc); ok {
+							if _, ok = r.spec.GetPluginType().(*plugins.ServiceSpec_GrpcJsonTranscoder); ok {
+								// Don't error in case there are other plugins to run but don't overwrite the ServiceSpec
+								return nil
+							}
+						}
+					}
+				}
 				serviceSpecUpstream.SetServiceSpec(r.spec)
 				return nil
 			})
