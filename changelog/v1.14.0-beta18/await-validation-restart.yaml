@@ -1,5 +1,0 @@
-changelog:
-- type: NON_USER_FACING
-  issueLink: https://github.com/solo-io/gloo/issues/7795
-  resolvesIssue: false
-  description: update gateway_test suite to wait for validation server to fully resrtart when toggling on/off
