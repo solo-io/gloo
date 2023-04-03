@@ -4712,6 +4712,10 @@ func (m *ExtAuthConfig_OidcAuthorizationCodeConfig) Hash(hasher hash.Hash64) (ui
 		}
 	}
 
+	if _, err = hasher.Write([]byte(m.GetUserSessionEncryptionKey())); err != nil {
+		return 0, err
+	}
+
 	return hasher.Sum64(), nil
 }
 

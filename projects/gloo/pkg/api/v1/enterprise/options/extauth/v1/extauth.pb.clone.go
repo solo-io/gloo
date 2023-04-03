@@ -2555,6 +2555,8 @@ func (m *ExtAuthConfig_OidcAuthorizationCodeConfig) Clone() proto.Message {
 		target.EndSessionProperties = proto.Clone(m.GetEndSessionProperties()).(*EndSessionProperties)
 	}
 
+	target.UserSessionEncryptionKey = m.GetUserSessionEncryptionKey()
+
 	return target
 }
 

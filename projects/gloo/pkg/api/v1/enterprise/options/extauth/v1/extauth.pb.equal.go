@@ -4335,6 +4335,10 @@ func (m *ExtAuthConfig_OidcAuthorizationCodeConfig) Equal(that interface{}) bool
 		}
 	}
 
+	if strings.Compare(m.GetUserSessionEncryptionKey(), target.GetUserSessionEncryptionKey()) != 0 {
+		return false
+	}
+
 	return true
 }
 

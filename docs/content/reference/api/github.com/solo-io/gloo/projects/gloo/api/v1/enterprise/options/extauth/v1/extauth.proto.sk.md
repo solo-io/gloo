@@ -1742,6 +1742,7 @@ Deprecated, prefer OAuth2Config
 "parseCallbackPathAsRegex": bool
 "autoMapFromMetadata": .enterprise.gloo.solo.io.AutoMapFromMetadata
 "endSessionProperties": .enterprise.gloo.solo.io.EndSessionProperties
+"userSessionEncryptionKey": string
 
 ```
 
@@ -1766,6 +1767,7 @@ Deprecated, prefer OAuth2Config
 | `parseCallbackPathAsRegex` | `bool` | If set, CallbackPath will be evaluated as a regular expression. |
 | `autoMapFromMetadata` | [.enterprise.gloo.solo.io.AutoMapFromMetadata](../extauth.proto.sk/#automapfrommetadata) | If specified, authEndpointQueryParams and tokenEndpointQueryParams will be populated using dynamic metadata values. By default parameters will be extracted from the solo_authconfig_oidc namespace this behavior can be overridden by explicitly specifying a namespace. |
 | `endSessionProperties` | [.enterprise.gloo.solo.io.EndSessionProperties](../extauth.proto.sk/#endsessionproperties) | If specified, these are properties defined for the end session endpoint specifications. Noted [here](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) in the OIDC documentation. |
+| `userSessionEncryptionKey` | `string` | If set, this will be the encryption key used for the UserSession. |
 
 
 
