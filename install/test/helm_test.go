@@ -330,17 +330,31 @@ var _ = Describe("Helm Test", func() {
 
 				It("should support setting the log level env", func() {
 					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-						valuesArgs: []string{"observability.deployment.logLevel=DEBUG"},
+						valuesArgs: []string{"observability.deployment.logLevel=debug"},
 					})
 					Expect(err).NotTo(HaveOccurred())
 
-					logLevel := "DEBUG"
-					envs := observabilityDeployment.Spec.Template.Spec.Containers[0].Env
-					for i, env := range envs {
-						if env.Name == "LOG_LEVEL" {
-							envs[i].Value = logLevel
-						}
-					}
+					logLevel := "debug"
+					observabilityDeployment.Spec.Template.Spec.Containers[0].Env = append(observabilityDeployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
+						Name:  "LOG_LEVEL",
+						Value: logLevel,
+					})
+
+					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
+				})
+
+				// Added for backwards compatibility
+				It("should support setting the log level env", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{"observability.deployment.loglevel=debug"},
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					logLevel := "debug"
+					observabilityDeployment.Spec.Template.Spec.Containers[0].Env = append(observabilityDeployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
+						Name:  "LOG_LEVEL",
+						Value: logLevel,
+					})
 
 					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
 				})
@@ -2200,6 +2214,21 @@ spec:
 
 				testManifest.ExpectUnstructured("PodDisruptionBudget", namespace, "ext-auth-pdb").To(BeEquivalentTo(pdb))
 			})
+
+			It("should support setting the log level env", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"global.extensions.extAuth.deployment.logLevel=debug"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				logLevel := "debug"
+				expectedDeployment.Spec.Template.Spec.Containers[0].Env = append(expectedDeployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
+					Name:  "LOG_LEVEL",
+					Value: logLevel,
+				})
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
 		})
 
 		Context("gateway-proxy deployment", func() {
@@ -3905,17 +3934,31 @@ spec:
 
 			It("should support setting the log level env", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{"global.extensions.rateLimit.deployment.logLevel=DEBUG"},
+					valuesArgs: []string{"global.extensions.rateLimit.deployment.logLevel=debug"},
 				})
 				Expect(err).NotTo(HaveOccurred())
 
-				logLevel := "DEBUG"
-				envs := expectedDeployment.Spec.Template.Spec.Containers[0].Env
-				for i, env := range envs {
-					if env.Name == "LOG_LEVEL" {
-						envs[i].Value = logLevel
-					}
-				}
+				logLevel := "debug"
+				expectedDeployment.Spec.Template.Spec.Containers[0].Env = append(expectedDeployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
+					Name:  "LOG_LEVEL",
+					Value: logLevel,
+				})
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			// Added for backwards compatibility
+			It("should support setting the log level env", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"global.extensions.rateLimit.deployment.loglevel=debug"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				logLevel := "debug"
+				expectedDeployment.Spec.Template.Spec.Containers[0].Env = append(expectedDeployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
+					Name:  "LOG_LEVEL",
+					Value: logLevel,
+				})
 
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
@@ -4424,6 +4467,23 @@ spec:
 				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
+			It("should support setting the log level env", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.caching.enabled=true",
+						"global.extensions.caching.deployment.logLevel=debug",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				logLevel := "debug"
+				expectedDeployment.Spec.Template.Spec.Containers[0].Env = append(expectedDeployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
+					Name:  "LOG_LEVEL",
+					Value: logLevel,
+				})
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
 		})
 
 		Context("gloo-fed deployment", func() {

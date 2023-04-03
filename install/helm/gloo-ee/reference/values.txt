@@ -1823,6 +1823,7 @@
 |global.extensions.extAuth.deployment.podDisruptionBudget.maxUnavailable|int32||An eviction is allowed if at most "maxUnavailable" pods selected by "selector" are unavailable after the eviction, i.e. even in absence of the evicted pod. For example, one can prevent all voluntary evictions by specifying 0. This is a mutually exclusive setting with "minAvailable".|
 |global.extensions.extAuth.deployment.redis.certs[].secretName|string||This is the name to the Opaque kubernetes secret containing the cert. The secret data key names should be 'ca.crt', 'tls.crt', and 'tls.key'.|
 |global.extensions.extAuth.deployment.redis.certs[].mountPath|string||Path used to mount the secret. This should be a unique path, for each secret.|
+|global.extensions.extAuth.deployment.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
 |global.extensions.extAuth.deployment.replicas|int||number of instances to deploy|
 |global.extensions.extAuth.deployment.customEnv[].name|string|||
 |global.extensions.extAuth.deployment.customEnv[].value|string|||

@@ -173,6 +173,10 @@ Expand the name of the chart.
     - name: HEADERS_TO_REDACT
       value: {{ $extAuth.headersToRedact | quote }}
     {{- end }}
+    {{- if $extAuth.deployment.logLevel }}
+    - name: LOG_LEVEL
+      value: {{ $extAuth.deployment.logLevel | quote }}
+    {{- end }}
   readinessProbe:
     httpGet:
       port: 8082

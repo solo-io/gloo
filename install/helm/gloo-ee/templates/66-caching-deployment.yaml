@@ -86,6 +86,10 @@ spec:
               value: "18080"
             - name: READY_PATH
               value: "/ready"
+            {{- if .Values.global.extensions.caching.deployment.logLevel }}
+            - name: LOG_LEVEL
+              value: {{ .Values.global.extensions.caching.deployment.logLevel }}
+            {{- end }}
             {{- if .Values.global.extensions.caching.deployment.customEnv }}
 {{ toYaml .Values.global.extensions.caching.deployment.customEnv | indent 12 }}
             {{- end }}

@@ -80,9 +80,9 @@ spec:
             - name: custom-dashboards
               mountPath: /observability/defaults
               readOnly: true
-          {{- if $.Values.observability.deployment.resources }}
+          {{- if .Values.observability.deployment.resources }}
           resources:
-{{ toYaml $.Values.observability.deployment.resources | indent 12}}
+{{ toYaml .Values.observability.deployment.resources | indent 12}}
           {{- end}}
           env:
             - name: GLOO_LICENSE_KEY
@@ -98,9 +98,9 @@ spec:
             - name: START_STATS_SERVER
               value: "true"
             {{- end}}
-            {{- if .Values.observability.deployment.loglevel}}
+            {{- if or .Values.observability.deployment.logLevel .Values.observability.deployment.loglevel }}
             - name: LOG_LEVEL
-              value: {{ .Values.observability.deployment.loglevel }}
+              value: {{ coalesce .Values.observability.deployment.logLevel .Values.observability.deployment.loglevel }}
             {{- end }}
           envFrom:
             - configMapRef:

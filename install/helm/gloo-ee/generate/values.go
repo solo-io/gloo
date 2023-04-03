@@ -289,6 +289,7 @@ type ExtAuthDeployment struct {
 	ExtraVolumeMount     []map[string]interface{} `json:"extraVolumeMount,omitempty" desc:"custom defined yaml for allowing extra volume mounts on the extauth container"`
 	PodDisruptionBudget  *PodDisruptionBudget     `json:"podDisruptionBudget,omitempty" desc:"PodDisruptionBudget is an object to define the max disruption that can be caused to the ExtAuth pods"`
 	Redis                *ExtAuthRedisConfig      `json:"redis,omitempty" desc:"this is the redis configurations."`
+	LogLevel             *string                  `json:"logLevel,omitempty" desc:"Level at which the pod should log. Options include \"info\", \"debug\", \"warn\", \"error\", \"panic\" and \"fatal\". Default level is info"`
 	*glooGen.DeploymentSpec
 	*glooGen.KubeResourceOverride
 }

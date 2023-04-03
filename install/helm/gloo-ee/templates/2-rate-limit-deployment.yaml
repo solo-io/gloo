@@ -180,16 +180,16 @@ spec:
                   name: redis
                   key: redis-password
             {{- end }}
-            {{- if .Values.global.extensions.rateLimit.deployment.loglevel}}
-            - name: LOG_LEVEL
-              value: {{ .Values.global.extensions.rateLimit.deployment.loglevel }}
-            {{- end }}
             - name: READY_PORT_HTTP
               value: "18080"
             - name: READY_PATH_HTTP
               value: "/ready"
             - name: ALIVE_PATH_HTTP
               value: "/alive"
+            {{- if or .Values.global.extensions.rateLimit.deployment.logLevel .Values.global.extensions.rateLimit.deployment.loglevel }}
+            - name: LOG_LEVEL
+              value: {{ coalesce .Values.global.extensions.rateLimit.deployment.logLevel .Values.global.extensions.rateLimit.deployment.loglevel }}
+            {{- end }}
             {{- if .Values.global.extensions.rateLimit.deployment.customEnv }}
 {{ toYaml .Values.global.extensions.rateLimit.deployment.customEnv | indent 12 }}
             {{- end }}

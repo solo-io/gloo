@@ -1,0 +1,9 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/solo-projects/issues/4699
+    resolvesIssue: false
+    description: >
+      Fixes in the Enterprise Helm charts to standardise the exposure of `logLevel` flag.
+      The log level for exauth, rate-limit, caching, and observability deployments can be set using the helm values
+      `global.extensions.extAuth.deployment.logLevel`, `global.extensions.rateLimit.deployment.logLevel`,
+      `global.extensions.caching.deployment.logLevel`, and `observability.deployment.logLevel`, respectively.
