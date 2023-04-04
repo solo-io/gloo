@@ -18,7 +18,7 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth2"
 
 	"github.com/golang/protobuf/ptypes/duration"
-	"github.com/solo-io/ext-auth-service/pkg/config/apikeys/aerospike"
+	"github.com/solo-io/ext-auth-service/pkg/config/apikeys/externalstorage"
 	"github.com/solo-io/ext-auth-service/pkg/config/apikeys/secrets"
 	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
 	"github.com/solo-io/ext-auth-service/pkg/controller/translation"
@@ -353,94 +353,11 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			}
 		case *extauthv1.ExtAuthConfig_ApiKeyAuthConfig_AerospikeApikeyStorage:
 			{
-				inConf := cfg.ApiKeyAuth.GetAerospikeApikeyStorage()
-				soloApisAerospikeConf := &extauthSoloApis.AerospikeApiKeyStorage{
-					Hostname:      cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetHostname(),
-					Namespace:     cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetNamespace(),
-					Set:           cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetSet(),
-					Port:          cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetPort(),
-					BatchSize:     cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetBatchSize(),
-					NodeTlsName:   cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetNodeTlsName(),
-					CertPath:      cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetCertPath(),
-					KeyPath:       cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetKeyPath(),
-					AllowInsecure: cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetAllowInsecure(),
-					RootCaPath:    cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetRootCaPath(),
-					TlsVersion:    cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetTlsVersion(),
+				aerospikeConf, err := TranslateAerospikeConfig(cfg)
+				apiKeyAuthService, err := externalstorage.NewAPIKeyService(ctx, aerospikeConf)
+				if err != nil {
+					return nil, config.GetName().GetValue(), err
 				}
-
-				if _, ok := inConf.GetCommitLevel().(*extauthv1.AerospikeApiKeyStorage_CommitMaster); ok {
-					soloApisAerospikeConf.CommitLevel = &extauthSoloApis.AerospikeApiKeyStorage_CommitMaster{}
-				} else {
-					soloApisAerospikeConf.CommitLevel = &extauthSoloApis.AerospikeApiKeyStorage_CommitAll{}
-				}
-
-				switch inConf.GetReadModeSc().GetReadModeSc().(type) {
-				case *extauthv1.AerospikeApiKeyStorageReadModeSc_ReadModeScAllowUnavailable:
-					soloApisAerospikeConf.ReadModeSc = &extauthSoloApis.AerospikeApiKeyStorageReadModeSc{
-						ReadModeSc: &extauthSoloApis.AerospikeApiKeyStorageReadModeSc_ReadModeScAllowUnavailable{},
-					}
-				case *extauthv1.AerospikeApiKeyStorageReadModeSc_ReadModeScLinearize:
-					soloApisAerospikeConf.ReadModeSc = &extauthSoloApis.AerospikeApiKeyStorageReadModeSc{
-						ReadModeSc: &extauthSoloApis.AerospikeApiKeyStorageReadModeSc_ReadModeScLinearize{},
-					}
-				case *extauthv1.AerospikeApiKeyStorageReadModeSc_ReadModeScReplica:
-					soloApisAerospikeConf.ReadModeSc = &extauthSoloApis.AerospikeApiKeyStorageReadModeSc{
-						ReadModeSc: &extauthSoloApis.AerospikeApiKeyStorageReadModeSc_ReadModeScReplica{},
-					}
-				default:
-					soloApisAerospikeConf.ReadModeSc = &extauthSoloApis.AerospikeApiKeyStorageReadModeSc{
-						ReadModeSc: &extauthSoloApis.AerospikeApiKeyStorageReadModeSc_ReadModeScSession{},
-					}
-				}
-
-				switch inConf.GetReadModeAp().GetReadModeAp().(type) {
-				case *extauthv1.AerospikeApiKeyStorageReadModeAp_ReadModeApAll:
-					soloApisAerospikeConf.ReadModeAp = &extauthSoloApis.AerospikeApiKeyStorageReadModeAp{
-						ReadModeAp: &extauthSoloApis.AerospikeApiKeyStorageReadModeAp_ReadModeApAll{},
-					}
-				default:
-					soloApisAerospikeConf.ReadModeAp = &extauthSoloApis.AerospikeApiKeyStorageReadModeAp{
-						ReadModeAp: &extauthSoloApis.AerospikeApiKeyStorageReadModeAp_ReadModeApOne{},
-					}
-				}
-
-				for _, tlsCurveGroup := range inConf.GetTlsCurveGroups() {
-					switch tlsCurveGroup.GetCurveId().(type) {
-					case *extauthv1.AerospikeApiKeyStorageTlsCurveID_CurveP256:
-						soloApisAerospikeConf.TlsCurveGroups =
-							append(soloApisAerospikeConf.TlsCurveGroups,
-								&extauthSoloApis.AerospikeApiKeyStorageTlsCurveID{
-									CurveId: &extauthSoloApis.AerospikeApiKeyStorageTlsCurveID_CurveP256{},
-								})
-					case *extauthv1.AerospikeApiKeyStorageTlsCurveID_CurveP384:
-						soloApisAerospikeConf.TlsCurveGroups =
-							append(soloApisAerospikeConf.TlsCurveGroups,
-								&extauthSoloApis.AerospikeApiKeyStorageTlsCurveID{
-									CurveId: &extauthSoloApis.AerospikeApiKeyStorageTlsCurveID_CurveP384{},
-								})
-					case *extauthv1.AerospikeApiKeyStorageTlsCurveID_CurveP521:
-						soloApisAerospikeConf.TlsCurveGroups =
-							append(soloApisAerospikeConf.TlsCurveGroups,
-								&extauthSoloApis.AerospikeApiKeyStorageTlsCurveID{
-									CurveId: &extauthSoloApis.AerospikeApiKeyStorageTlsCurveID_CurveP521{},
-								})
-					case *extauthv1.AerospikeApiKeyStorageTlsCurveID_X_25519:
-						soloApisAerospikeConf.TlsCurveGroups =
-							append(soloApisAerospikeConf.TlsCurveGroups,
-								&extauthSoloApis.AerospikeApiKeyStorageTlsCurveID{
-									CurveId: &extauthSoloApis.AerospikeApiKeyStorageTlsCurveID_X_25519{},
-								})
-					default:
-						return nil, "", eris.New("invalid tls curve id")
-					}
-				}
-
-				aerospikeConf := &aerospike.Config{
-					ApiKeyHeaderName:       cfg.ApiKeyAuth.GetHeaderName(),
-					HeadersFromKeyMetadata: cfg.ApiKeyAuth.GetHeadersFromKeyMetadata(),
-					StorageConfig:          soloApisAerospikeConf,
-				}
-				apiKeyAuthService := aerospike.NewAPIKeyService(aerospikeConf)
 				return apiKeyAuthService, config.GetName().GetValue(), nil
 			}
 		default:
@@ -521,6 +438,103 @@ func addTrailingSlash(url string) string {
 	return url + "/"
 }
 
+// TranslateAerospikeConfig receives an ExtAuthConfig and produces a ServiceStorageConfig configured with Aerospike connection details
+// This function is extracted to unit test Aerospike config translation since the call to NewAPIKeyService now attempts to
+// establish the database connection, where previously this was the responsibility of the Start method.
+func TranslateAerospikeConfig(cfg *extauthv1.ExtAuthConfig_Config_ApiKeyAuth) (*externalstorage.ServiceStorageConfig, error) {
+	inConf := cfg.ApiKeyAuth.GetAerospikeApikeyStorage()
+	soloApisAerospikeConf := &extauthSoloApis.AerospikeApiKeyStorage{
+		Hostname:      cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetHostname(),
+		Namespace:     cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetNamespace(),
+		Set:           cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetSet(),
+		Port:          cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetPort(),
+		BatchSize:     cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetBatchSize(),
+		NodeTlsName:   cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetNodeTlsName(),
+		CertPath:      cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetCertPath(),
+		KeyPath:       cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetKeyPath(),
+		AllowInsecure: cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetAllowInsecure(),
+		RootCaPath:    cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetRootCaPath(),
+		TlsVersion:    cfg.ApiKeyAuth.GetAerospikeApikeyStorage().GetTlsVersion(),
+	}
+
+	if _, ok := inConf.GetCommitLevel().(*extauthv1.AerospikeApiKeyStorage_CommitMaster); ok {
+		soloApisAerospikeConf.CommitLevel = &extauthSoloApis.AerospikeApiKeyStorage_CommitMaster{}
+	} else {
+		soloApisAerospikeConf.CommitLevel = &extauthSoloApis.AerospikeApiKeyStorage_CommitAll{}
+	}
+
+	switch inConf.GetReadModeSc().GetReadModeSc().(type) {
+	case *extauthv1.AerospikeApiKeyStorageReadModeSc_ReadModeScAllowUnavailable:
+		soloApisAerospikeConf.ReadModeSc = &extauthSoloApis.AerospikeApiKeyStorageReadModeSc{
+			ReadModeSc: &extauthSoloApis.AerospikeApiKeyStorageReadModeSc_ReadModeScAllowUnavailable{},
+		}
+	case *extauthv1.AerospikeApiKeyStorageReadModeSc_ReadModeScLinearize:
+		soloApisAerospikeConf.ReadModeSc = &extauthSoloApis.AerospikeApiKeyStorageReadModeSc{
+			ReadModeSc: &extauthSoloApis.AerospikeApiKeyStorageReadModeSc_ReadModeScLinearize{},
+		}
+	case *extauthv1.AerospikeApiKeyStorageReadModeSc_ReadModeScReplica:
+		soloApisAerospikeConf.ReadModeSc = &extauthSoloApis.AerospikeApiKeyStorageReadModeSc{
+			ReadModeSc: &extauthSoloApis.AerospikeApiKeyStorageReadModeSc_ReadModeScReplica{},
+		}
+	default:
+		soloApisAerospikeConf.ReadModeSc = &extauthSoloApis.AerospikeApiKeyStorageReadModeSc{
+			ReadModeSc: &extauthSoloApis.AerospikeApiKeyStorageReadModeSc_ReadModeScSession{},
+		}
+	}
+
+	switch inConf.GetReadModeAp().GetReadModeAp().(type) {
+	case *extauthv1.AerospikeApiKeyStorageReadModeAp_ReadModeApAll:
+		soloApisAerospikeConf.ReadModeAp = &extauthSoloApis.AerospikeApiKeyStorageReadModeAp{
+			ReadModeAp: &extauthSoloApis.AerospikeApiKeyStorageReadModeAp_ReadModeApAll{},
+		}
+	default:
+		soloApisAerospikeConf.ReadModeAp = &extauthSoloApis.AerospikeApiKeyStorageReadModeAp{
+			ReadModeAp: &extauthSoloApis.AerospikeApiKeyStorageReadModeAp_ReadModeApOne{},
+		}
+	}
+
+	for _, tlsCurveGroup := range inConf.GetTlsCurveGroups() {
+		switch tlsCurveGroup.GetCurveId().(type) {
+		case *extauthv1.AerospikeApiKeyStorageTlsCurveID_CurveP256:
+			soloApisAerospikeConf.TlsCurveGroups =
+				append(soloApisAerospikeConf.TlsCurveGroups,
+					&extauthSoloApis.AerospikeApiKeyStorageTlsCurveID{
+						CurveId: &extauthSoloApis.AerospikeApiKeyStorageTlsCurveID_CurveP256{},
+					})
+		case *extauthv1.AerospikeApiKeyStorageTlsCurveID_CurveP384:
+			soloApisAerospikeConf.TlsCurveGroups =
+				append(soloApisAerospikeConf.TlsCurveGroups,
+					&extauthSoloApis.AerospikeApiKeyStorageTlsCurveID{
+						CurveId: &extauthSoloApis.AerospikeApiKeyStorageTlsCurveID_CurveP384{},
+					})
+		case *extauthv1.AerospikeApiKeyStorageTlsCurveID_CurveP521:
+			soloApisAerospikeConf.TlsCurveGroups =
+				append(soloApisAerospikeConf.TlsCurveGroups,
+					&extauthSoloApis.AerospikeApiKeyStorageTlsCurveID{
+						CurveId: &extauthSoloApis.AerospikeApiKeyStorageTlsCurveID_CurveP521{},
+					})
+		case *extauthv1.AerospikeApiKeyStorageTlsCurveID_X_25519:
+			soloApisAerospikeConf.TlsCurveGroups =
+				append(soloApisAerospikeConf.TlsCurveGroups,
+					&extauthSoloApis.AerospikeApiKeyStorageTlsCurveID{
+						CurveId: &extauthSoloApis.AerospikeApiKeyStorageTlsCurveID_X_25519{},
+					})
+		default:
+			return nil, eris.New("invalid tls curve id")
+		}
+	}
+
+	return &externalstorage.ServiceStorageConfig{
+		StorageConfig: &externalstorage.StorageConfig{
+			AerospikeStorageConfig: soloApisAerospikeConf,
+			BackendType:            apikeys.AerospikeBackend,
+		},
+		ServiceConfig: &externalstorage.ServiceConfig{
+			ApiKeyHeaderName:       cfg.ApiKeyAuth.GetHeaderName(),
+			HeadersFromKeyMetadata: cfg.ApiKeyAuth.GetHeadersFromKeyMetadata(),
+		},
+	}, nil
+}
 func getLdapAuthService(ctx context.Context, ldapCfg *extauthv1.Ldap) (api.AuthService, error) {
 	poolInitCap, poolMaxCap := getLdapConnectionPoolParams(ldapCfg.GetPool())
 

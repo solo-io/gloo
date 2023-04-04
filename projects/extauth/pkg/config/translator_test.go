@@ -210,33 +210,24 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			Expect(services).To(HaveLen(1))
 		})
 
+		// We require the aerospike connection to succeed in order to return a valid APIKey AuthService
+		// so we unit test the translation to the config that goes into NewAPIKeyService
 		It("translates aerospike config", func() {
-			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
-				AuthConfigRefName: "default.api-keys-authconfig",
-				Configs: []*extauthv1.ExtAuthConfig_Config{
-					{
-						AuthConfig: &extauthv1.ExtAuthConfig_Config_ApiKeyAuth{
-							ApiKeyAuth: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig{
-								StorageBackend: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig_AerospikeApikeyStorage{
-									AerospikeApikeyStorage: &extauthv1.AerospikeApiKeyStorage{
-										Hostname:  "host",
-										Namespace: "ns",
-										Set:       "set",
-										Port:      3000,
-									},
-								},
-							},
+			translatedConfig, err := config.TranslateAerospikeConfig(&extauthv1.ExtAuthConfig_Config_ApiKeyAuth{
+				ApiKeyAuth: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig{
+					StorageBackend: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig_AerospikeApikeyStorage{
+						AerospikeApikeyStorage: &extauthv1.AerospikeApiKeyStorage{
+							Hostname:  "host",
+							Namespace: "ns",
+							Set:       "set",
+							Port:      3000,
 						},
 					},
 				},
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(authService).NotTo(BeNil())
-			authServiceChain, ok := authService.(chain.AuthServiceChain)
-			Expect(ok).To(BeTrue())
-			Expect(authServiceChain).NotTo(BeNil())
-			services := authServiceChain.ListAuthServices()
-			Expect(services).To(HaveLen(1))
+			Expect(translatedConfig).NotTo(BeNil())
+			Expect(translatedConfig.AerospikeStorageConfig.Hostname).To(Equal("host"))
 		})
 	})
 

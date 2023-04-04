@@ -49,7 +49,7 @@ require (
 	github.com/solo-io/caching-service v0.1.17
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.33.0
+	github.com/solo-io/ext-auth-service v0.34.3
 	github.com/solo-io/external-apis v0.1.12-0.20220818213511-97f5ab3a6898
 	github.com/solo-io/gloo v1.14.0-beta17
 	github.com/solo-io/gloo-graphql-example v0.1.0
@@ -137,7 +137,7 @@ require (
 	github.com/bugsnag/bugsnag-go v1.5.0 // indirect
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5 // indirect
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
 	github.com/cncf/xds/go v0.0.0-20220314180256-7f1daf1720fc // indirect
