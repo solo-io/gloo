@@ -299,7 +299,6 @@ func (u *updaterUpdater) Run() error {
 	upstreamSave := func(m UpstreamMutator) error {
 		return u.saveUpstream(m)
 	}
-
 	resolvedUrl, resolvedErr := u.parent.resolver.Resolve(u.upstream)
 	if len(discoveriesForUpstream) == 0 {
 		// TODO: this is probably not going to work unless the upstream type will also have the method required
@@ -335,8 +334,8 @@ func (u *updaterUpdater) Run() error {
 					if existingUs.GetServiceSpec() != nil {
 						if _, ok := existingUs.GetServiceSpec().GetPluginType().(*plugins.ServiceSpec_Grpc); ok {
 							if _, ok = r.spec.GetPluginType().(*plugins.ServiceSpec_GrpcJsonTranscoder); ok {
-								// Don't error in case there are other plugins to run but don't overwrite the ServiceSpec
-								return nil
+								//TODO error should have migration instructions
+								return errors.New("Upstream using deprecated GRPC API found, will not update")
 							}
 						}
 					}

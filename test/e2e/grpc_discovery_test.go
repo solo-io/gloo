@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/solo-io/gloo/test/testutils"
@@ -31,7 +32,8 @@ var _ = Describe("GRPC to JSON Transcoding Plugin - Discovery", func() {
 	)
 
 	BeforeEach(func() {
-		testContext = testContextFactory.NewTestContext(testutils.LinuxOnly("Relies on FDS"))
+		testContext = testContextFactory.NewTestContext()
+		//testContext = testContextFactory.NewTestContext(testutils.LinuxOnly("Relies on FDS"))
 		testContext.SetUpstreamGenerator(func(ctx context.Context, addr string) *v1helpers.TestUpstream {
 			return v1helpers.NewTestGRPCUpstream(ctx, addr, 1)
 		})
@@ -69,6 +71,7 @@ var _ = Describe("GRPC to JSON Transcoding Plugin - Discovery", func() {
 			req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s:%d/test", "localhost", defaults.HttpPort), bytes.NewBufferString(body))
 			g.Expect(err).NotTo(HaveOccurred())
 			req.Host = e2e.DefaultHost
+			req.Header = map[string][]string{"Content-Type": {"application/json"}}
 			g.Expect(testutils.DefaultHttpClient.Do(req)).Should(testmatchers.HaveExactResponseBody(expected))
 		}
 	}
@@ -100,20 +103,36 @@ var _ = Describe("GRPC to JSON Transcoding Plugin - Discovery", func() {
 		}))))
 	})
 	Context("Deprecated API", func() {
-		JustBeforeEach(func() {
+		BeforeEach(func() {
+		})
+		basicReqOld := func(b []byte) func() (string, error) {
+			return func() (string, error) {
+				// send a request with a body
+				var buf bytes.Buffer
+				buf.Write(b)
+				res, err := http.Post(fmt.Sprintf("http://%s:%d/test", "localhost", defaults.HttpPort), "application/json", &buf)
+				if err != nil {
+					return "", err
+				}
+				defer res.Body.Close()
+				body, err := ioutil.ReadAll(res.Body)
+				return string(body), err
+			}
+		}
+		FIt("Does not overwrite existing upstreams with the deprecated API", func() {
 			testContext.PatchDefaultUpstream(func(us *gloov1.Upstream) *gloov1.Upstream {
 				return populateDeprecatedApi(us).(*gloov1.Upstream)
 			})
 			testContext.PatchDefaultVirtualService(func(vs *v1.VirtualService) *v1.VirtualService {
 				return getGrpcVs(e2e.WriteNamespace, testContext.TestUpstream().Upstream.GetMetadata().Ref())
 			})
-		})
-		FIt("Does not overwrite existing upstreams with the deprecated API", func() {
+			testContext.EventuallyProxyAccepted()
 
-			body := `"foo"`
-			testRequest := basicReq(body, `{"str":"foo"}`)
+			body := []byte(`{"str": "foo"}`)
 
-			Eventually(testRequest, 30, 1).Should(Succeed())
+			testRequest := basicReqOld(body)
+
+			Eventually(testRequest, 30, 1).Should(Equal(`{"str":"foo"}`))
 
 			Eventually(testContext.TestUpstream().C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
 				"GRPCRequest": PointTo(MatchFields(IgnoreExtras, Fields{"Str": Equal("foo")})),

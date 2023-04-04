@@ -19,7 +19,6 @@ import (
 	"github.com/solo-io/gloo/projects/discovery/pkg/fds"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
-	grpc_plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc"
 	grpc_json_plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc_json"
 )
 
@@ -54,22 +53,6 @@ func isDeprecatedGrpcspec(u *v1.Upstream) bool {
 		return true
 	}
 	return false
-}
-func getDeprecatedGrpcspec(u *v1.Upstream) *grpc_plugins.ServiceSpec {
-	upstreamType, ok := u.GetUpstreamType().(v1.ServiceSpecGetter)
-	if !ok {
-		return nil
-	}
-
-	if upstreamType.GetServiceSpec() == nil {
-		return nil
-	}
-
-	grpcWrapper, ok := upstreamType.GetServiceSpec().GetPluginType().(*plugins.ServiceSpec_Grpc)
-	if !ok {
-		return nil
-	}
-	return grpcWrapper.Grpc
 }
 
 func NewFunctionDiscoveryFactory() fds.FunctionDiscoveryFactory {
@@ -109,7 +92,7 @@ func (f *UpstreamFunctionDiscovery) IsFunctional() bool {
 	if getGrpcspec(f.upstream) != nil {
 		return true
 	}
-	return isDeprecatedGrpcspec(f.upstream)
+	return false
 }
 
 func (f *UpstreamFunctionDiscovery) DetectType(ctx context.Context, url *url.URL) (*plugins.ServiceSpec, error) {
@@ -208,8 +191,7 @@ func (f *UpstreamFunctionDiscovery) DetectFunctionsOnce(ctx context.Context, url
 		if svcSpec == nil {
 			if isDeprecatedGrpcspec(out) {
 				//TODO: description of how to find migration guide
-				contextutils.LoggerFrom(ctx).Warn("Existing upstream with deprecated API found. Follow the migration guide to begin using the updated API. Changes to this service will not continue to be discovered.")
-				return nil
+				return errors.New("Existing upstream with deprecated API found")
 			}
 			return errors.New("not a GRPC upstream")
 		}

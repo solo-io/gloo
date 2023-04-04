@@ -265,6 +265,20 @@ func (c *TestContext) PatchDefaultUpstream(mutator func(us *gloov1.Upstream) *gl
 func (c *TestContext) SetUpstreamGenerator(generator func(ctx context.Context, addr string) *v1helpers.TestUpstream) {
 	c.testUpstreamGenerator = generator
 }
+func (c *TestContext) EventuallyUpstreamAccepted(offset int) {
+	helpers.EventuallyResourceAcceptedWithOffset(offset+1, func() (resources.InputResource, error) {
+		return c.testClients.UpstreamClient.Read(c.testUpstream.Upstream.GetMetadata().GetNamespace(), c.testUpstream.Upstream.GetMetadata().GetName(), clients.ReadOpts{
+			Ctx: c.Ctx(),
+		})
+	})
+}
+func (c *TestContext) EventuallyProxyAccepted() {
+
+	// Wait for a proxy to be accepted
+	helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+		return c.testClients.ProxyClient.Read(WriteNamespace, DefaultProxyName, clients.ReadOpts{Ctx: c.ctx})
+	})
+}
 
 // GetHttpRequestBuilder returns an HttpRequestBuilder to easily build http requests used in e2e tests
 func (c *TestContext) GetHttpRequestBuilder() *testutils.HttpRequestBuilder {
