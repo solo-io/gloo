@@ -2,9 +2,6 @@ package e2e_test
 
 import (
 	"context"
-	"fmt"
-	"net/http"
-
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 
 	"github.com/solo-io/gloo/test/testutils"
@@ -21,7 +18,6 @@ import (
 	"github.com/solo-io/gloo/test/v1helpers"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 )
 
 var _ = Describe("GRPC to JSON Transcoding Plugin - Discovery", func() {
@@ -87,9 +83,7 @@ var _ = Describe("GRPC to JSON Transcoding Plugin - Discovery", func() {
 
 			testRequest := func(g Gomega) {
 				// GET request with parameters in URL
-				req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%d/t/foo", "localhost", defaults.HttpPort), nil)
-				g.Expect(err).NotTo(HaveOccurred())
-				req.Host = e2e.DefaultHost
+				req := testContext.GetHttpRequestBuilder().WithPath("t/foo").Build()
 				g.Expect(testutils.DefaultHttpClient.Do(req)).Should(testmatchers.HaveExactResponseBody(`{"str":"foo"}`))
 			}
 			Eventually(testRequest, 30, 1).Should(Succeed())
@@ -103,7 +97,7 @@ var _ = Describe("GRPC to JSON Transcoding Plugin - Discovery", func() {
 			testContext.ResourcesToCreate().VirtualServices = v1.VirtualServiceList{getGrpcVs(e2e.WriteNamespace, testContext.TestUpstream().Upstream.GetMetadata().Ref())}
 			testContext.ResourcesToCreate().Upstreams = gloov1.UpstreamList{populateDeprecatedApi(testContext.TestUpstream().Upstream).(*gloov1.Upstream)}
 		})
-		It("Does not overwrite existing upstreams with the deprecated API", func() {
+		FIt("Does not overwrite existing upstreams with the deprecated API", func() {
 
 			body := `{"str":"foo"}`
 

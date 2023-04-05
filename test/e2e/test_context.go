@@ -158,9 +158,7 @@ func (c *TestContext) JustBeforeEach() {
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 	// Wait for a proxy to be accepted
-	helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
-		return c.testClients.ProxyClient.Read(WriteNamespace, DefaultProxyName, clients.ReadOpts{Ctx: c.ctx})
-	})
+	c.EventuallyProxyAccepted()
 }
 
 func (c *TestContext) JustAfterEach() {
