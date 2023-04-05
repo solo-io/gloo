@@ -32,8 +32,9 @@ var _ = Describe("GRPC to JSON Transcoding Plugin - Discovery", func() {
 	)
 
 	BeforeEach(func() {
+		// This test seems to work locally without linux and we don't remember why it used to require linux,
+		// but if it starts failing locally, that might be the issue.
 		testContext = testContextFactory.NewTestContext()
-		//testContext = testContextFactory.NewTestContext(testutils.LinuxOnly("Relies on FDS"))
 		testContext.SetUpstreamGenerator(func(ctx context.Context, addr string) *v1helpers.TestUpstream {
 			return v1helpers.NewTestGRPCUpstream(ctx, addr, 1)
 		})
@@ -119,7 +120,7 @@ var _ = Describe("GRPC to JSON Transcoding Plugin - Discovery", func() {
 				return string(body), err
 			}
 		}
-		FIt("Does not overwrite existing upstreams with the deprecated API", func() {
+		It("Does not overwrite existing upstreams with the deprecated API", func() {
 			testContext.PatchDefaultUpstream(func(us *gloov1.Upstream) *gloov1.Upstream {
 				return populateDeprecatedApi(us).(*gloov1.Upstream)
 			})

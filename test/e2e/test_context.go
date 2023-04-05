@@ -276,13 +276,8 @@ func (c *TestContext) PatchDefaultUpstream(mutator func(us *gloov1.Upstream) *gl
 func (c *TestContext) SetUpstreamGenerator(generator func(ctx context.Context, addr string) *v1helpers.TestUpstream) {
 	c.testUpstreamGenerator = generator
 }
-func (c *TestContext) EventuallyUpstreamAccepted(offset int) {
-	helpers.EventuallyResourceAcceptedWithOffset(offset+1, func() (resources.InputResource, error) {
-		return c.testClients.UpstreamClient.Read(c.testUpstream.Upstream.GetMetadata().GetNamespace(), c.testUpstream.Upstream.GetMetadata().GetName(), clients.ReadOpts{
-			Ctx: c.Ctx(),
-		})
-	})
-}
+
+// For tests that rely on changing an existing configuration.
 func (c *TestContext) EventuallyProxyAccepted() {
 
 	// Wait for a proxy to be accepted
