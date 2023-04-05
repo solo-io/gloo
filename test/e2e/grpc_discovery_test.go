@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"io/ioutil"
 	"net/http"
+
+	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 
 	"github.com/solo-io/gloo/test/testutils"
 
