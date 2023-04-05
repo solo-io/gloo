@@ -1,10 +1,8 @@
 package e2e_test
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -66,75 +64,52 @@ var _ = Describe("GRPC to JSON Transcoding Plugin - Discovery", func() {
 	AfterEach(func() {
 		testContext.AfterEach()
 	})
-
 	basicReq := func(body string, expected string) func(g Gomega) {
 		return func(g Gomega) {
-			// send a POST request with grpc parameters in the body
-			req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s:%d/test", "localhost", defaults.HttpPort), bytes.NewBufferString(body))
-			g.Expect(err).NotTo(HaveOccurred())
-			req.Host = e2e.DefaultHost
-			req.Header = map[string][]string{"Content-Type": {"application/json"}}
-			g.Expect(testutils.DefaultHttpClient.Do(req)).Should(testmatchers.HaveExactResponseBody(expected))
+			req := testContext.GetHttpRequestBuilder().WithPostBody(body).WithContentType("application/json").WithPath("test")
+			g.Expect(testutils.DefaultHttpClient.Do(req.Build())).Should(testmatchers.HaveExactResponseBody(expected))
 		}
 	}
+	Context("New API", func() {
+		It("Routes to GRPC Functions", func() {
 
-	It("Routes to GRPC Functions", func() {
+			body := `"foo"`
+			testRequest := basicReq(body, `{"str":"foo"}`)
 
-		body := `"foo"`
-		testRequest := basicReq(body, `{"str":"foo"}`)
+			Eventually(testRequest, 30, 1).Should(Succeed())
 
-		Eventually(testRequest, 30, 1).Should(Succeed())
+			Eventually(testContext.TestUpstream().C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+				"GRPCRequest": PointTo(MatchFields(IgnoreExtras, Fields{"Str": Equal("foo")})),
+			}))))
+		})
 
-		Eventually(testContext.TestUpstream().C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
-			"GRPCRequest": PointTo(MatchFields(IgnoreExtras, Fields{"Str": Equal("foo")})),
-		}))))
-	})
+		It("Routes to GRPC Functions with parameters in URL", func() {
 
-	It("Routes to GRPC Functions with parameters in URL", func() {
-
-		testRequest := func(g Gomega) {
-			// GET request with parameters in URL
-			req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%d/t/foo", "localhost", defaults.HttpPort), nil)
-			g.Expect(err).NotTo(HaveOccurred())
-			req.Host = e2e.DefaultHost
-			g.Expect(testutils.DefaultHttpClient.Do(req)).Should(testmatchers.HaveExactResponseBody(`{"str":"foo"}`))
-		}
-		Eventually(testRequest, 30, 1).Should(Succeed())
-		Eventually(testContext.TestUpstream().C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
-			"GRPCRequest": PointTo(MatchFields(IgnoreExtras, Fields{"Str": Equal("foo")})),
-		}))))
+			testRequest := func(g Gomega) {
+				// GET request with parameters in URL
+				req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%d/t/foo", "localhost", defaults.HttpPort), nil)
+				g.Expect(err).NotTo(HaveOccurred())
+				req.Host = e2e.DefaultHost
+				g.Expect(testutils.DefaultHttpClient.Do(req)).Should(testmatchers.HaveExactResponseBody(`{"str":"foo"}`))
+			}
+			Eventually(testRequest, 30, 1).Should(Succeed())
+			Eventually(testContext.TestUpstream().C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+				"GRPCRequest": PointTo(MatchFields(IgnoreExtras, Fields{"Str": Equal("foo")})),
+			}))))
+		})
 	})
 	Context("Deprecated API", func() {
 		BeforeEach(func() {
+			testContext.ResourcesToCreate().VirtualServices = v1.VirtualServiceList{getGrpcVs(e2e.WriteNamespace, testContext.TestUpstream().Upstream.GetMetadata().Ref())}
+			testContext.ResourcesToCreate().Upstreams = gloov1.UpstreamList{populateDeprecatedApi(testContext.TestUpstream().Upstream).(*gloov1.Upstream)}
 		})
-		basicReqOld := func(b []byte) func() (string, error) {
-			return func() (string, error) {
-				// send a request with a body
-				var buf bytes.Buffer
-				buf.Write(b)
-				res, err := http.Post(fmt.Sprintf("http://%s:%d/test", "localhost", defaults.HttpPort), "application/json", &buf)
-				if err != nil {
-					return "", err
-				}
-				defer res.Body.Close()
-				body, err := ioutil.ReadAll(res.Body)
-				return string(body), err
-			}
-		}
 		It("Does not overwrite existing upstreams with the deprecated API", func() {
-			testContext.PatchDefaultUpstream(func(us *gloov1.Upstream) *gloov1.Upstream {
-				return populateDeprecatedApi(us).(*gloov1.Upstream)
-			})
-			testContext.PatchDefaultVirtualService(func(vs *v1.VirtualService) *v1.VirtualService {
-				return getGrpcVs(e2e.WriteNamespace, testContext.TestUpstream().Upstream.GetMetadata().Ref())
-			})
-			testContext.EventuallyProxyAccepted()
 
-			body := []byte(`{"str": "foo"}`)
+			body := `{"str":"foo"}`
 
-			testRequest := basicReqOld(body)
+			testRequest := basicReq(body, body)
 
-			Eventually(testRequest, 30, 1).Should(Equal(`{"str":"foo"}`))
+			Eventually(testRequest, 30, 1).Should(Succeed())
 
 			Eventually(testContext.TestUpstream().C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
 				"GRPCRequest": PointTo(MatchFields(IgnoreExtras, Fields{"Str": Equal("foo")})),

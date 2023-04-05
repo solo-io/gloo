@@ -330,6 +330,8 @@ func (u *updaterUpdater) Run() error {
 				}
 				existingUs, ok := upstream.GetUpstreamType().(v1.ServiceSpecGetter)
 				// Check to see if the upstream already has a service spec and if we are trying to apply the new grpc API over the old one
+				// This is currently specific to the case where we are upgrading to 1.14
+				// In the future we might want general case handling of not changing the type on previously discovered upstreams
 				if ok {
 					if existingUs.GetServiceSpec() != nil {
 						if _, ok := existingUs.GetServiceSpec().GetPluginType().(*plugins.ServiceSpec_Grpc); ok {

@@ -181,7 +181,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 
 			upstream := p.recordedUpstreams[translator.UpstreamToClusterName(upstreamRef)]
 			if upstream == nil {
-				return nil, errors.New(fmt.Sprintf("upstream %V %V was not recorded for grpc route", upstreamRef, translator.UpstreamToClusterName(upstreamRef)))
+				return nil, errors.New(fmt.Sprintf("upstream %v was not recorded for grpc route", upstreamRef))
 			}
 
 			// create the transformation for the route
