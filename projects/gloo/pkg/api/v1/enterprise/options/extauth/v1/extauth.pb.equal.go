@@ -3556,44 +3556,10 @@ func (m *UserSession_CipherConfig) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetKey()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetKey()) {
-			return false
-		}
-	} else {
-		if !proto.Equal(m.GetKey(), target.GetKey()) {
-			return false
-		}
-	}
-
-	return true
-}
-
-// Equal function
-func (m *UserSession_CipherConfig_CipherKey) Equal(that interface{}) bool {
-	if that == nil {
-		return m == nil
-	}
-
-	target, ok := that.(*UserSession_CipherConfig_CipherKey)
-	if !ok {
-		that2, ok := that.(UserSession_CipherConfig_CipherKey)
-		if ok {
-			target = &that2
-		} else {
-			return false
-		}
-	}
-	if target == nil {
-		return m == nil
-	} else if m == nil {
-		return false
-	}
-
 	switch m.Key.(type) {
 
-	case *UserSession_CipherConfig_CipherKey_KeyRef:
-		if _, ok := target.Key.(*UserSession_CipherConfig_CipherKey_KeyRef); !ok {
+	case *UserSession_CipherConfig_KeyRef:
+		if _, ok := target.Key.(*UserSession_CipherConfig_KeyRef); !ok {
 			return false
 		}
 
@@ -3607,8 +3573,8 @@ func (m *UserSession_CipherConfig_CipherKey) Equal(that interface{}) bool {
 			}
 		}
 
-	case *UserSession_CipherConfig_CipherKey_KeyValue:
-		if _, ok := target.Key.(*UserSession_CipherConfig_CipherKey_KeyValue); !ok {
+	case *UserSession_CipherConfig_KeyValue:
+		if _, ok := target.Key.(*UserSession_CipherConfig_KeyValue); !ok {
 			return false
 		}
 

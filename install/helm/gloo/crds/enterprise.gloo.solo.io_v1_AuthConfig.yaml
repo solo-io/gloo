@@ -349,18 +349,15 @@ spec:
                               properties:
                                 cipherConfig:
                                   properties:
-                                    key:
+                                    keyRef:
                                       properties:
-                                        keyRef:
-                                          properties:
-                                            name:
-                                              type: string
-                                            namespace:
-                                              type: string
-                                          type: object
-                                        keyValue:
+                                        name:
+                                          type: string
+                                        namespace:
                                           type: string
                                       type: object
+                                    keyValue:
+                                      type: string
                                   type: object
                                 cookie:
                                   properties:
@@ -542,18 +539,15 @@ spec:
                               properties:
                                 cipherConfig:
                                   properties:
-                                    key:
+                                    keyRef:
                                       properties:
-                                        keyRef:
-                                          properties:
-                                            name:
-                                              type: string
-                                            namespace:
-                                              type: string
-                                          type: object
-                                        keyValue:
+                                        name:
+                                          type: string
+                                        namespace:
                                           type: string
                                       type: object
+                                    keyValue:
+                                      type: string
                                   type: object
                                 cookie:
                                   properties:

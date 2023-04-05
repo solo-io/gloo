@@ -2119,40 +2119,23 @@ func (m *UserSession_CipherConfig) Clone() proto.Message {
 	}
 	target = &UserSession_CipherConfig{}
 
-	if h, ok := interface{}(m.GetKey()).(clone.Cloner); ok {
-		target.Key = h.Clone().(*UserSession_CipherConfig_CipherKey)
-	} else {
-		target.Key = proto.Clone(m.GetKey()).(*UserSession_CipherConfig_CipherKey)
-	}
-
-	return target
-}
-
-// Clone function
-func (m *UserSession_CipherConfig_CipherKey) Clone() proto.Message {
-	var target *UserSession_CipherConfig_CipherKey
-	if m == nil {
-		return target
-	}
-	target = &UserSession_CipherConfig_CipherKey{}
-
 	switch m.Key.(type) {
 
-	case *UserSession_CipherConfig_CipherKey_KeyRef:
+	case *UserSession_CipherConfig_KeyRef:
 
 		if h, ok := interface{}(m.GetKeyRef()).(clone.Cloner); ok {
-			target.Key = &UserSession_CipherConfig_CipherKey_KeyRef{
+			target.Key = &UserSession_CipherConfig_KeyRef{
 				KeyRef: h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
 			}
 		} else {
-			target.Key = &UserSession_CipherConfig_CipherKey_KeyRef{
+			target.Key = &UserSession_CipherConfig_KeyRef{
 				KeyRef: proto.Clone(m.GetKeyRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
 			}
 		}
 
-	case *UserSession_CipherConfig_CipherKey_KeyValue:
+	case *UserSession_CipherConfig_KeyValue:
 
-		target.Key = &UserSession_CipherConfig_CipherKey_KeyValue{
+		target.Key = &UserSession_CipherConfig_KeyValue{
 			KeyValue: m.GetKeyValue(),
 		}
 

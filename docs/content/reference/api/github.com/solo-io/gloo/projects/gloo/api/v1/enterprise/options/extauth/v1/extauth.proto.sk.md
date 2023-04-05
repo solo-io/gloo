@@ -39,7 +39,6 @@ weight: 5
 - [CookieOptions](#cookieoptions)
 - [SameSite](#samesite)
 - [CipherConfig](#cipherconfig)
-- [CipherKey](#cipherkey)
 - [HeaderConfiguration](#headerconfiguration)
 - [DiscoveryOverride](#discoveryoverride)
 - [JwksOnDemandCacheRefreshPolicy](#jwksondemandcacherefreshpolicy)
@@ -716,23 +715,6 @@ The SameSite options. The default value is LaxMode.
 
 ---
 ### CipherConfig
-
-
-
-```yaml
-"key": .enterprise.gloo.solo.io.UserSession.CipherConfig.CipherKey
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `key` | [.enterprise.gloo.solo.io.UserSession.CipherConfig.CipherKey](../extauth.proto.sk/#cipherkey) | This is the value used for the key. |
-
-
-
-
----
-### CipherKey
 
 
 

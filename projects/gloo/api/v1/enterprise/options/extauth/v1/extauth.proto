@@ -445,17 +445,13 @@ message UserSession {
         RedisSession redis = 4;
     }
     message CipherConfig {
-        message CipherKey {
-            // to enable the cipher encryption, the key has to be present.
-            oneof key {
-                // The key reference used for the cipher. The reference must be a gloo.solo.io.EncryptionKeySecret custom resource.
-                core.solo.io.ResourceRef key_ref = 1;
-                // This is the raw key value. It is not recommended to set this value.
-                string key_value = 2;
-            }
+        // to enable the cipher encryption, the key has to be present.
+        oneof key {
+            // The key reference used for the cipher. The reference must be a gloo.solo.io.EncryptionKeySecret custom resource.
+            core.solo.io.ResourceRef key_ref = 1;
+            // This is the raw key value. It is not recommended to set this value.
+            string key_value = 2;
         }
-        // This is the value used for the key
-        CipherKey key = 1; 
     }
     // the cipher config enables the symmetric key encryption of the cookie values of the user session.
     CipherConfig cipher_config = 5;
