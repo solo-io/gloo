@@ -616,7 +616,7 @@ redis socket types
 | `cookieOptions` | [.enterprise.gloo.solo.io.UserSession.CookieOptions](../extauth.proto.sk/#cookieoptions) | Set-Cookie options. |
 | `cookie` | [.enterprise.gloo.solo.io.UserSession.InternalSession](../extauth.proto.sk/#internalsession) | Set the tokens in the cookie itself. No need for server side state. Only one of `cookie` or `redis` can be set. |
 | `redis` | [.enterprise.gloo.solo.io.UserSession.RedisSession](../extauth.proto.sk/#redissession) | Use redis to store the tokens and just store a random id in the cookie. Only one of `redis` or `cookie` can be set. |
-| `cipherConfig` | [.enterprise.gloo.solo.io.UserSession.CipherConfig](../extauth.proto.sk/#cipherconfig) |  |
+| `cipherConfig` | [.enterprise.gloo.solo.io.UserSession.CipherConfig](../extauth.proto.sk/#cipherconfig) | the cipher config enables the symmetric key encryption of the cookie values of the user session. |
 
 
 
@@ -744,8 +744,8 @@ The SameSite options. The default value is LaxMode.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `keyRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | This value enables the symmetric encryption. The key reference used for the cipher. Only one of `keyRef` or `keyValue` can be set. |
-| `keyValue` | `string` | This is the key value. Only one of `keyValue` or `keyRef` can be set. |
+| `keyRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | The key reference used for the cipher. The reference must be a gloo.solo.io.EncryptionKeySecret custom resource. Only one of `keyRef` or `keyValue` can be set. |
+| `keyValue` | `string` | This is the raw key value. It is not recommended to set this value. Only one of `keyValue` or `keyRef` can be set. |
 
 
 

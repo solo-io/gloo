@@ -1525,7 +1525,8 @@ type UserSession struct {
 	//
 	//	*UserSession_Cookie
 	//	*UserSession_Redis
-	Session      isUserSession_Session     `protobuf_oneof:"session"`
+	Session isUserSession_Session `protobuf_oneof:"session"`
+	// the cipher config enables the symmetric key encryption of the cookie values of the user session.
 	CipherConfig *UserSession_CipherConfig `protobuf:"bytes,5,opt,name=cipher_config,json=cipherConfig,proto3" json:"cipher_config,omitempty"`
 }
 
@@ -5334,6 +5335,8 @@ type UserSession_CipherConfig_CipherKey struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// to enable the cipher encryption, the key has to be present.
+	//
 	// Types that are assignable to Key:
 	//
 	//	*UserSession_CipherConfig_CipherKey_KeyRef
@@ -5399,12 +5402,12 @@ type isUserSession_CipherConfig_CipherKey_Key interface {
 }
 
 type UserSession_CipherConfig_CipherKey_KeyRef struct {
-	// This value enables the symmetric encryption. The key reference used for the cipher.
+	// The key reference used for the cipher. The reference must be a gloo.solo.io.EncryptionKeySecret custom resource.
 	KeyRef *core.ResourceRef `protobuf:"bytes,1,opt,name=key_ref,json=keyRef,proto3,oneof"`
 }
 
 type UserSession_CipherConfig_CipherKey_KeyValue struct {
-	// This is the key value.
+	// This is the raw key value. It is not recommended to set this value.
 	KeyValue string `protobuf:"bytes,2,opt,name=key_value,json=keyValue,proto3,oneof"`
 }
 

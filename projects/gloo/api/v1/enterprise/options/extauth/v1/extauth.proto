@@ -446,16 +446,18 @@ message UserSession {
     }
     message CipherConfig {
         message CipherKey {
+            // to enable the cipher encryption, the key has to be present.
             oneof key {
-                // This value enables the symmetric encryption. The key reference used for the cipher. 
+                // The key reference used for the cipher. The reference must be a gloo.solo.io.EncryptionKeySecret custom resource.
                 core.solo.io.ResourceRef key_ref = 1;
-                // This is the key value.
+                // This is the raw key value. It is not recommended to set this value.
                 string key_value = 2;
             }
         }
         // This is the value used for the key
         CipherKey key = 1; 
     }
+    // the cipher config enables the symmetric key encryption of the cookie values of the user session.
     CipherConfig cipher_config = 5;
 }
 
@@ -1243,7 +1245,6 @@ message ExtAuthConfig {
     // Any request to the external auth server includes an identifier that is matched against this field to determine
     // which AuthConfig should be applied to it.
     string auth_config_ref_name = 1;
-
     // Deprecated, prefer OAuth2Config
     message OAuthConfig {
         // your client id as registered with the issuer
