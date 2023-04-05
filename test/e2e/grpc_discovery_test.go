@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 
 	"github.com/solo-io/gloo/test/testutils"
