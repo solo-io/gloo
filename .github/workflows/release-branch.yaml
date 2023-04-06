@@ -27,7 +27,6 @@ jobs:
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GO_VERSION: 1.20.1
           GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
       - name: build and publish
         run: .github/workflows/helpers/build-and-publish-gloo-ee.sh
@@ -49,7 +48,6 @@ jobs:
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GO_VERSION: 1.20.1
           GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
       - name: build and publish
         run: .github/workflows/helpers/build-and-publish-gloo-fed.sh
@@ -74,7 +72,6 @@ jobs:
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GO_VERSION: 1.20.1
           GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
       - name: build and publish
         run: .github/workflows/helpers/build-and-publish-gloo.sh

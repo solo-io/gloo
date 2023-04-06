@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    crd.solo.io/specHash: 3178916e889c4346
+    crd.solo.io/specHash: 7f57424d13b68767
   labels:
     app: gloo-fed
     app.kubernetes.io/name: gloo-fed
@@ -33,7 +33,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    crd.solo.io/specHash: 283590c73022e570
+    crd.solo.io/specHash: 661a43e4ab082151
   labels:
     app: gloo-fed
     app.kubernetes.io/name: gloo-fed
@@ -62,7 +62,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    crd.solo.io/specHash: 737f24beaf107458
+    crd.solo.io/specHash: 3d50f79d343ab079
   labels:
     app: gloo-fed
     app.kubernetes.io/name: gloo-fed

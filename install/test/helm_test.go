@@ -664,7 +664,7 @@ var _ = Describe("Helm Test", func() {
 							},
 						},
 						ReadinessProbe: &v1.Probe{
-							Handler: v1.Handler{
+							ProbeHandler: v1.ProbeHandler{
 								HTTPGet: &v1.HTTPGetAction{
 									Path: "/healthcheck",
 									Port: intstr.IntOrString{
@@ -731,7 +731,7 @@ var _ = Describe("Helm Test", func() {
 					"gateway",
 					"gateway-proxy",
 					"glooe-grafana",
-					"glooe-prometheus-kube-state-metrics",
+					"glooe-prometheus-kube-state-metrics-v2",
 					"glooe-prometheus-server",
 					"gloo-fed",
 					"gloo-fed-console",
@@ -833,7 +833,7 @@ var _ = Describe("Helm Test", func() {
 					"gateway",
 					"gateway-proxy",
 					"glooe-grafana",
-					"glooe-prometheus-kube-state-metrics",
+					"glooe-prometheus-kube-state-metrics-v2",
 					"glooe-prometheus-server",
 					"gloo-fed",
 				}
@@ -2176,7 +2176,7 @@ global:
 				Expect(err).To(BeNil())
 
 				pdb := makeUnstructured(`
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: ext-auth-pdb
@@ -2200,7 +2200,7 @@ spec:
 				Expect(err).To(BeNil())
 
 				pdb := makeUnstructured(`
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: ext-auth-pdb
@@ -2993,7 +2993,7 @@ spec:
 							},
 						},
 						ReadinessProbe: &v1.Probe{
-							Handler: v1.Handler{
+							ProbeHandler: v1.ProbeHandler{
 								HTTPGet: &v1.HTTPGetAction{
 									Path: "/healthcheck",
 									Port: intstr.IntOrString{
@@ -3125,7 +3125,7 @@ spec:
 							},
 						},
 						ReadinessProbe: &v1.Probe{
-							Handler: v1.Handler{
+							ProbeHandler: v1.ProbeHandler{
 								HTTPGet: &v1.HTTPGetAction{
 									Path: "/healthcheck",
 									Port: intstr.IntOrString{
@@ -3892,7 +3892,7 @@ spec:
 							},
 						},
 						ReadinessProbe: &v1.Probe{
-							Handler: v1.Handler{
+							ProbeHandler: v1.ProbeHandler{
 								HTTPGet: &v1.HTTPGetAction{
 									Path: "/ready",
 									Port: intstr.IntOrString{
@@ -4022,7 +4022,7 @@ spec:
 							},
 						},
 						ReadinessProbe: &v1.Probe{
-							Handler: v1.Handler{
+							ProbeHandler: v1.ProbeHandler{
 								HTTPGet: &v1.HTTPGetAction{
 									Path: "/ready",
 									Port: intstr.IntOrString{
@@ -4240,7 +4240,7 @@ global:
 				Expect(err).To(BeNil())
 
 				pdb := makeUnstructured(`
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: rate-limit-pdb
@@ -4264,7 +4264,7 @@ spec:
 				Expect(err).To(BeNil())
 
 				pdb := makeUnstructured(`
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: rate-limit-pdb
@@ -4426,7 +4426,7 @@ spec:
 							},
 						},
 						ReadinessProbe: &v1.Probe{
-							Handler: v1.Handler{
+							ProbeHandler: v1.ProbeHandler{
 								HTTPGet: &v1.HTTPGetAction{
 									Path: "/ready",
 									Port: intstr.IntOrString{
@@ -4717,10 +4717,11 @@ spec:
 						AllowPrivilegeEscalation: &falsez,
 					},
 					ReadinessProbe: &v1.Probe{
-						Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
-							Path: "/",
-							Port: intstr.IntOrString{IntVal: 8090},
-						}},
+						ProbeHandler: v1.ProbeHandler{
+							HTTPGet: &v1.HTTPGetAction{
+								Path: "/",
+								Port: intstr.IntOrString{IntVal: 8090},
+							}},
 						InitialDelaySeconds: 5,
 						PeriodSeconds:       10,
 					},

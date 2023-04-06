@@ -83,12 +83,11 @@ var _ = Describe("wasm filter handler", func() {
 		ctrl.Finish()
 	})
 
-	buildGateway := func(cluster string) gatewayv1.Gateway {
+	buildGateway := func() gatewayv1.Gateway {
 		return gatewayv1.Gateway{
 			ObjectMeta: meta_v1.ObjectMeta{
-				Name:        "test-gateway",
-				Namespace:   "test-namespace",
-				ClusterName: cluster,
+				Name:      "test-gateway",
+				Namespace: "test-namespace",
 			},
 			Spec: gatewayv1.GatewaySpec{
 				GatewayType: &gatewayv1.GatewaySpec_HttpGateway{
@@ -120,10 +119,10 @@ var _ = Describe("wasm filter handler", func() {
 
 	It("can list wasm filters", func() {
 		mockGatewayClient1.EXPECT().ListGateway(ctx).Return(&gatewayv1.GatewayList{
-			Items: []gatewayv1.Gateway{buildGateway("local-cluster")},
+			Items: []gatewayv1.Gateway{buildGateway()},
 		}, nil)
 		mockGatewayClient2.EXPECT().ListGateway(ctx).Return(&gatewayv1.GatewayList{
-			Items: []gatewayv1.Gateway{buildGateway("remote-cluster")},
+			Items: []gatewayv1.Gateway{buildGateway()},
 		}, nil)
 
 		wasmFilterServer := wasmfilter_handler.NewFedWasmFilterHandler(instanceClient, mcGatewayCRDClientset)
@@ -166,10 +165,10 @@ var _ = Describe("wasm filter handler", func() {
 	})
 
 	It("can get wasm filter", func() {
-		localGateway := buildGateway("local-cluster")
+		localGateway := buildGateway()
 		mockGatewayClient1.EXPECT().GetGateway(ctx, client.ObjectKey{Name: "test-gateway", Namespace: "test-namespace"}).
 			Return(&localGateway, nil)
-		remoteGateway := buildGateway("local-cluster")
+		remoteGateway := buildGateway()
 		mockGatewayClient2.EXPECT().GetGateway(ctx, client.ObjectKey{Name: "test-gateway", Namespace: "test-namespace"}).
 			Return(&remoteGateway, nil)
 

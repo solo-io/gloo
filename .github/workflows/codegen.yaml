@@ -31,29 +31,20 @@ jobs:
 
           echo "After clearing disk space:"
           df -h
-      - name: Set up Go
-        uses: actions/setup-go@v3
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v3
         with:
-          go-version: 1.20.1
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
         id: go
       - name: Install Protoc
         uses: arduino/setup-protoc@v1.1.2
         with:
           version: '3.6.1'
           repo-token: ${{ env.GITHUB_TOKEN }}
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: actions/cache@v3
-        env:
-          # https://github.com/actions/cache#cache-segment-restore-timeout
-          SEGMENT_DOWNLOAD_TIMEOUT_MIN: 5
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
       - name: Configure git for private modules
         env:
           # matches the GITHUB_ACTION secret used in the cloudbuild, but named CI_ADMIN_GITHUB_TOKEN here

@@ -39,7 +39,6 @@ z := $(shell mkdir -p $(OUTPUT_DIR))
 SOURCES := $(shell find . -name "*.go" | grep -v test.go)
 
 GCS_BUCKET := glooctl-plugins
-WASM_GCS_PATH := glooctl-wasm
 FED_GCS_PATH := glooctl-fed
 
 ENVOY_GLOO_IMAGE_VERSION ?= 1.25.1-patch1

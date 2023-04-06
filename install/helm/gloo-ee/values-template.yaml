@@ -223,7 +223,7 @@ prometheus:
   nodeExporter:
     enabled: false
   kube-state-metrics:
-    fullnameOverride: glooe-prometheus-kube-state-metrics
+    fullnameOverride: glooe-prometheus-kube-state-metrics-v2
   server:
     fullnameOverride: glooe-prometheus-server
     persistentVolume:
@@ -231,6 +231,8 @@ prometheus:
     global:
       scrape_interval: 10s
       evaluation_interval: 10s
+    strategy:
+      type: Recreate
   ## Prometheus server ConfigMap entries
   serverFiles:
     prometheus.yml:

@@ -532,7 +532,7 @@ func (s *snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multic
 
 	if opts.Gateway {
 		for _, obj := range s.Gateways().List() {
-			clusterClient, err := mcClient.Cluster(obj.ClusterName)
+			clusterClient, err := mcClient.Cluster(ezkube.GetClusterName(obj))
 			if err != nil {
 				errs = multierror.Append(errs, err)
 				continue
@@ -544,7 +544,7 @@ func (s *snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multic
 	}
 	if opts.MatchableHttpGateway {
 		for _, obj := range s.MatchableHttpGateways().List() {
-			clusterClient, err := mcClient.Cluster(obj.ClusterName)
+			clusterClient, err := mcClient.Cluster(ezkube.GetClusterName(obj))
 			if err != nil {
 				errs = multierror.Append(errs, err)
 				continue
@@ -556,7 +556,7 @@ func (s *snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multic
 	}
 	if opts.VirtualService {
 		for _, obj := range s.VirtualServices().List() {
-			clusterClient, err := mcClient.Cluster(obj.ClusterName)
+			clusterClient, err := mcClient.Cluster(ezkube.GetClusterName(obj))
 			if err != nil {
 				errs = multierror.Append(errs, err)
 				continue
@@ -568,7 +568,7 @@ func (s *snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multic
 	}
 	if opts.RouteTable {
 		for _, obj := range s.RouteTables().List() {
-			clusterClient, err := mcClient.Cluster(obj.ClusterName)
+			clusterClient, err := mcClient.Cluster(ezkube.GetClusterName(obj))
 			if err != nil {
 				errs = multierror.Append(errs, err)
 				continue
@@ -581,7 +581,7 @@ func (s *snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multic
 
 	if opts.Upstream {
 		for _, obj := range s.Upstreams().List() {
-			clusterClient, err := mcClient.Cluster(obj.ClusterName)
+			clusterClient, err := mcClient.Cluster(ezkube.GetClusterName(obj))
 			if err != nil {
 				errs = multierror.Append(errs, err)
 				continue
@@ -593,7 +593,7 @@ func (s *snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multic
 	}
 	if opts.UpstreamGroup {
 		for _, obj := range s.UpstreamGroups().List() {
-			clusterClient, err := mcClient.Cluster(obj.ClusterName)
+			clusterClient, err := mcClient.Cluster(ezkube.GetClusterName(obj))
 			if err != nil {
 				errs = multierror.Append(errs, err)
 				continue
@@ -605,7 +605,7 @@ func (s *snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multic
 	}
 	if opts.Settings {
 		for _, obj := range s.Settings().List() {
-			clusterClient, err := mcClient.Cluster(obj.ClusterName)
+			clusterClient, err := mcClient.Cluster(ezkube.GetClusterName(obj))
 			if err != nil {
 				errs = multierror.Append(errs, err)
 				continue
@@ -617,7 +617,7 @@ func (s *snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multic
 	}
 	if opts.Proxy {
 		for _, obj := range s.Proxies().List() {
-			clusterClient, err := mcClient.Cluster(obj.ClusterName)
+			clusterClient, err := mcClient.Cluster(ezkube.GetClusterName(obj))
 			if err != nil {
 				errs = multierror.Append(errs, err)
 				continue
@@ -630,7 +630,7 @@ func (s *snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multic
 
 	if opts.AuthConfig {
 		for _, obj := range s.AuthConfigs().List() {
-			clusterClient, err := mcClient.Cluster(obj.ClusterName)
+			clusterClient, err := mcClient.Cluster(ezkube.GetClusterName(obj))
 			if err != nil {
 				errs = multierror.Append(errs, err)
 				continue
@@ -643,7 +643,7 @@ func (s *snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multic
 
 	if opts.RateLimitConfig {
 		for _, obj := range s.RateLimitConfigs().List() {
-			clusterClient, err := mcClient.Cluster(obj.ClusterName)
+			clusterClient, err := mcClient.Cluster(ezkube.GetClusterName(obj))
 			if err != nil {
 				errs = multierror.Append(errs, err)
 				continue

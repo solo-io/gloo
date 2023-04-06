@@ -7,6 +7,10 @@ on:
         description: Edge Enterprise version
         required: false
         default: 1.13.9
+      helm-version:
+        description: Helm version
+        required: true
+        default: v3.8.2
       environment_id:
         description: Environment ID - the name of the environment you want to create
         required: true
@@ -58,7 +62,7 @@ jobs:
 
       - name: Install cli dependencies (helm, kubectl and istioctl)
         env:
-          HELM_VERSION: v3.8.2
+          HELM_VERSION: ${{ github.event.inputs.helm-version }}
           GLOO_EE_VERSION: ${{ github.event.inputs.edge_enterprise_version }}
         run: |
           ./ci/eks/install-dependencies.sh

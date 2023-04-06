@@ -1,0 +1,84 @@
+changelog:
+  - type: BREAKING_CHANGE
+    description: >
+      Adds support for running Gloo Edge Enterprise on Kubernetes 1.25 and removes support for 1.22 and below.
+      Note that if you are using the Prometheus charts included with Gloo Edge, the default kube-state-metrics deployment name has been changed from `glooe-prometheus-kube-state-metrics` to `glooe-prometheus-kube-state-metrics-v2` to get around the [chart's breaking change](https://github.com/prometheus-community/helm-charts/issues/1542). If you are overriding the deployment name with a custom name (via the `prometheus.kube-state-metrics.fullnameOverride` helm value), you may need to either rename it before upgrading, or use the [documented workaround](https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus/README.md#to-150) of deleting the existing kube-state-metrics deployment first.
+    issueLink: https://github.com/solo-io/gloo/issues/6833
+  - type: NON_USER_FACING
+    description: Use `go-version-file` with `actions/setup-go`
+    issueLink: https://github.com/solo-io/gloo/issues/7926
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: api
+    dependencyTag: v0.25.8
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: apiextensions-apiserver
+    dependencyTag: v0.25.8
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: apimachinery
+    dependencyTag: v0.25.8
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: cli-runtime
+    dependencyTag: v0.25.8
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: client-go
+    dependencyTag: v0.25.8
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: code-generator
+    dependencyTag: v0.25.8
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: component-base
+    dependencyTag: v0.25.8
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: kubectl
+    dependencyTag: v0.25.8
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: metrics
+    dependencyTag: v0.25.8
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: kube-openapi
+    dependencyTag: v0.0.0-20220803162953-67bda5d908f1
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: helm
+    dependencyRepo: helm
+    dependencyTag: v3.11.2
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: anyvendor
+    dependencyTag: v0.1.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.14.0-rc1
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.14.0-rc1
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: skv2
+    dependencyTag: v0.29.5
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: caching-service
+    dependencyTag: v0.2.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.35.1
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: rate-limiter
+    dependencyTag: v0.8.0
+  - type: NON_USER_FACING
+    descriptiong: Remove wasm-kit dependency that we never exposed to customers

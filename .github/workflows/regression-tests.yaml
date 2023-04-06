@@ -23,7 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         name-helper: ['Gloo Fed E2E Tests']
-        kube-version: [{ node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' }]
+        kube-version: [{ node: 'v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1', kubectl: 'v1.25.8', kind: 'v0.17.0', helm: 'v3.11.2' }]
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/fed-regression-tests
@@ -43,7 +43,7 @@ jobs:
       fail-fast: false
       matrix:
         name-helper: ['Gloo Fed Canary Tests']
-        kube-version: [{ node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' }]
+        kube-version: [{ node: 'v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1', kubectl: 'v1.25.8', kind: 'v0.17.0', helm: 'v3.11.2' }]
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/canary-regression-tests
@@ -60,7 +60,7 @@ jobs:
       fail-fast: false
       matrix:
         kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'helm', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}, {test: 'caching', use-fips: 'false'}, {test: 'upgrade', use-fips: 'false'}]
-        kube-version: [{ node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' }]
+        kube-version: [{ node: 'v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1', kubectl: 'v1.25.8', kind: 'v0.17.0', helm: 'v3.11.2' }]
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/regression-tests

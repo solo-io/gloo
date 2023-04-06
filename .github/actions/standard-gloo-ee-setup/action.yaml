@@ -7,9 +7,6 @@ inputs:
   QUAY_IO_PASSWORD:
     required: true
     description: access key for Quay Image repository
-  GO_VERSION:
-    description: Version of golang to build with
-    default: 1.20.1
   GITHUB_TOKEN:
     required: true
     description: access token for use in CI
@@ -62,20 +59,10 @@ runs:
       run: gcloud auth configure-docker
     # pre-load the go mod dependencies, and set up `go run` to function
     - name: Set up Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v4
       with:
-        go-version: ${{ inputs.GO_VERSION }}
+        go-version-file: go.mod
     # enable a few private dependencies to be reachable
     - name: Configure git for private modules
       shell: bash
       run: git config --global url."https://soloio_bot:${{ inputs.GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
-    # save money by caching go dependency downloads
-    - uses: actions/cache@v3
-      env:
-        # https://github.com/actions/cache#cache-segment-restore-timeout
-        SEGMENT_DOWNLOAD_TIMEOUT_MIN: "5"
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-

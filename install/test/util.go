@@ -218,199 +218,205 @@ func ApplyPermissionsForPrometheusServiceAccounts(permissions *manifesttestutils
 
 	// Kube state metrics
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{""},
 		[]string{"configmaps"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{""},
 		[]string{"endpoints"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{""},
 		[]string{"limitranges"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{""},
 		[]string{"namespaces"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{""},
 		[]string{"nodes"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{""},
 		[]string{"persistentvolumeclaims"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{""},
 		[]string{"persistentvolumes"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{""},
 		[]string{"pods"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{""},
 		[]string{"replicationcontrollers"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{""},
 		[]string{"resourcequotas"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{""},
 		[]string{"secrets"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{""},
 		[]string{"services"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"admissionregistration.k8s.io"},
 		[]string{"mutatingwebhookconfigurations"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"admissionregistration.k8s.io"},
 		[]string{"validatingwebhookconfigurations"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"apps"},
 		[]string{"daemonsets"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"apps"},
 		[]string{"deployments"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"apps"},
 		[]string{"replicasets"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"apps"},
 		[]string{"statefulsets"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"apps"},
 		[]string{"replicasets"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"autoscaling"},
 		[]string{"horizontalpodautoscalers"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"batch"},
 		[]string{"cronjobs"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"batch"},
 		[]string{"jobs"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
+		"",
+		[]string{"coordination.k8s.io"},
+		[]string{"leases"},
+		[]string{"list", "watch"})
+	permissions.AddExpectedPermission(
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"certificates.k8s.io"},
 		[]string{"certificatesigningrequests"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"extensions"},
 		[]string{"daemonsets"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"extensions"},
 		[]string{"deployments"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"extensions"},
 		[]string{"ingresses"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"extensions"},
 		[]string{"replicasets"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"apps"},
 		[]string{"replicasets"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"networking.k8s.io"},
 		[]string{"ingresses"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"networking.k8s.io"},
 		[]string{"networkpolicies"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"policy"},
 		[]string{"poddisruptionbudgets"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"storage.k8s.io"},
 		[]string{"storageclasses"},
 		[]string{"list", "watch"})
 	permissions.AddExpectedPermission(
-		"gloo-system.glooe-prometheus-kube-state-metrics",
+		"gloo-system.glooe-prometheus-kube-state-metrics-v2",
 		"",
 		[]string{"storage.k8s.io"},
 		[]string{"volumeattachments"},

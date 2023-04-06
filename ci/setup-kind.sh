@@ -8,7 +8,7 @@
 # The name of the kind cluster to deploy to
 CLUSTER_NAME="${CLUSTER_NAME:-kind}"
 # The version of the Node Docker image to use for booting the cluster
-CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.24.7}"
+CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.25.3}"
 # The version used to tag images
 VERSION="${VERSION:-1.0.0-ci}"
 # Whether or not to use fips compliant data plane images

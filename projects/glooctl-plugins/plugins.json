@@ -20,11 +20,6 @@
       "build_target": "manager/cmd/plugin/main.go"
     },
     {
-      "name": "wasm",
-      "description": "Utility to manage Gloo WASM filters",
-      "build_target": "wasm/cmd/main.go"
-    },
-    {
       "name": "fed",
       "description": "Utility to manage Gloo Federation",
       "build_target": "fed/cmd/main.go"
