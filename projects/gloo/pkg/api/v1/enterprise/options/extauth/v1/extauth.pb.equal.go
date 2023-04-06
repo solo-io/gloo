@@ -3573,15 +3573,6 @@ func (m *UserSession_CipherConfig) Equal(that interface{}) bool {
 			}
 		}
 
-	case *UserSession_CipherConfig_KeyValue:
-		if _, ok := target.Key.(*UserSession_CipherConfig_KeyValue); !ok {
-			return false
-		}
-
-		if strings.Compare(m.GetKeyValue(), target.GetKeyValue()) != 0 {
-			return false
-		}
-
 	default:
 		// m is nil but target is not nil
 		if m.Key != target.Key {
@@ -4165,6 +4156,93 @@ func (m *ExtAuthConfig_OAuthConfig) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *ExtAuthConfig_UserSessionConfig) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ExtAuthConfig_UserSessionConfig)
+	if !ok {
+		that2, ok := that.(ExtAuthConfig_UserSessionConfig)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if m.GetFailOnFetchFailure() != target.GetFailOnFetchFailure() {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetCookieOptions()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetCookieOptions()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetCookieOptions(), target.GetCookieOptions()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetCipherConfig()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetCipherConfig()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetCipherConfig(), target.GetCipherConfig()) {
+			return false
+		}
+	}
+
+	switch m.Session.(type) {
+
+	case *ExtAuthConfig_UserSessionConfig_Cookie:
+		if _, ok := target.Session.(*ExtAuthConfig_UserSessionConfig_Cookie); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetCookie()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetCookie()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetCookie(), target.GetCookie()) {
+				return false
+			}
+		}
+
+	case *ExtAuthConfig_UserSessionConfig_Redis:
+		if _, ok := target.Session.(*ExtAuthConfig_UserSessionConfig_Redis); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetRedis()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetRedis()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetRedis(), target.GetRedis()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.Session != target.Session {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *ExtAuthConfig_OidcAuthorizationCodeConfig) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -4320,6 +4398,16 @@ func (m *ExtAuthConfig_OidcAuthorizationCodeConfig) Equal(that interface{}) bool
 		}
 	} else {
 		if !proto.Equal(m.GetEndSessionProperties(), target.GetEndSessionProperties()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetUserSession()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetUserSession()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetUserSession(), target.GetUserSession()) {
 			return false
 		}
 	}
@@ -4535,6 +4623,16 @@ func (m *ExtAuthConfig_PlainOAuth2Config) Equal(that interface{}) bool {
 
 	if strings.Compare(m.GetRevocationEndpoint(), target.GetRevocationEndpoint()) != 0 {
 		return false
+	}
+
+	if h, ok := interface{}(m.GetUserSession()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetUserSession()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetUserSession(), target.GetUserSession()) {
+			return false
+		}
 	}
 
 	return true
@@ -5183,6 +5281,34 @@ func (m *ExtAuthConfig_Config) Equal(that interface{}) bool {
 		if m.AuthConfig != target.AuthConfig {
 			return false
 		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *ExtAuthConfig_UserSessionConfig_CipherConfig) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ExtAuthConfig_UserSessionConfig_CipherConfig)
+	if !ok {
+		that2, ok := that.(ExtAuthConfig_UserSessionConfig_CipherConfig)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetKeyValue(), target.GetKeyValue()) != 0 {
+		return false
 	}
 
 	return true

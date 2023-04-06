@@ -449,8 +449,6 @@ message UserSession {
         oneof key {
             // The key reference used for the cipher. The reference must be a gloo.solo.io.EncryptionKeySecret custom resource.
             core.solo.io.ResourceRef key_ref = 1;
-            // This is the raw key value. It is not recommended to set this value.
-            string key_value = 2;
         }
     }
     // the cipher config enables the symmetric key encryption of the cookie values of the user session.
@@ -1269,6 +1267,26 @@ message ExtAuthConfig {
 
     }
 
+    message UserSessionConfig {
+        // should we fail auth flow when failing to get a session from redis, or allow it to continue,
+        // potentially starting a new auth flow and setting a new session.
+        bool fail_on_fetch_failure = 1;
+        // Set-Cookie options
+        UserSession.CookieOptions cookie_options = 2;
+        oneof session {
+            // Set the tokens in the cookie itself. No need for server side state.
+            UserSession.InternalSession cookie = 3;
+            // Use redis to store the tokens and just store a random id in the cookie.
+            UserSession.RedisSession redis = 4;
+        }
+        message CipherConfig {
+            // to enable the cipher encryption, the key has to be present. Note that the key has to be 32 bytes.
+            string key_value = 1;
+        }
+        // the cipher config enables the symmetric key encryption of the cookie values of the user session.
+        CipherConfig cipher_config = 5;
+    }
+
     message OidcAuthorizationCodeConfig {
 
         // your client id as registered with the issuer
@@ -1311,7 +1329,7 @@ message ExtAuthConfig {
         // scopes to request in addition to the openid scope.
         repeated string scopes = 7;
 
-        UserSession session = 8;
+        UserSession session = 8 [deprecated = true];
 
         // Configures headers added to requests.
         HeaderConfiguration headers = 10;
@@ -1373,6 +1391,9 @@ message ExtAuthConfig {
         // specifications. Noted [here](https://openid.net/specs/openid-connect-rpinitiated-1_0.html)
         // in the OIDC documentation.
         EndSessionProperties end_session_properties = 19;
+
+        // Configuration related to the user session.
+        UserSessionConfig userSession = 20;
     }
 
     message AccessTokenValidationConfig {
@@ -1525,8 +1546,7 @@ message ExtAuthConfig {
         // Scopes to request for.
         repeated string scopes = 6;
 
-        // Configuration related to the user session.
-        UserSession session = 7;
+        UserSession session = 7 [deprecated = true];
 
         // A path relative to the app URL to use for logging out from an OAuth2 session.
         // Do not use this path in the application itself.
@@ -1551,6 +1571,9 @@ message ExtAuthConfig {
         // The URL of the provider token revocation endpoint.
         // For more information, refer to https://www.rfc-editor.org/rfc/rfc7009.
         string revocation_endpoint = 13;
+
+        // Configuration related to the user session.
+        UserSessionConfig userSession = 14;
     }
 
     message OAuth2Config {

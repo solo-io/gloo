@@ -77,6 +77,8 @@ weight: 5
 - [Response](#response)
 - [ExtAuthConfig](#extauthconfig)
 - [OAuthConfig](#oauthconfig)
+- [UserSessionConfig](#usersessionconfig)
+- [CipherConfig](#cipherconfig)
 - [OidcAuthorizationCodeConfig](#oidcauthorizationcodeconfig)
 - [AccessTokenValidationConfig](#accesstokenvalidationconfig)
 - [JwtValidation](#jwtvalidation)
@@ -720,14 +722,12 @@ The SameSite options. The default value is LaxMode.
 
 ```yaml
 "keyRef": .core.solo.io.ResourceRef
-"keyValue": string
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `keyRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | The key reference used for the cipher. The reference must be a gloo.solo.io.EncryptionKeySecret custom resource. Only one of `keyRef` or `keyValue` can be set. |
-| `keyValue` | `string` | This is the raw key value. It is not recommended to set this value. Only one of `keyValue` or `keyRef` can be set. |
+| `keyRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | The key reference used for the cipher. The reference must be a gloo.solo.io.EncryptionKeySecret custom resource. |
 
 
 
@@ -1702,6 +1702,48 @@ Deprecated, prefer OAuth2Config
 
 
 ---
+### UserSessionConfig
+
+
+
+```yaml
+"failOnFetchFailure": bool
+"cookieOptions": .enterprise.gloo.solo.io.UserSession.CookieOptions
+"cookie": .enterprise.gloo.solo.io.UserSession.InternalSession
+"redis": .enterprise.gloo.solo.io.UserSession.RedisSession
+"cipherConfig": .enterprise.gloo.solo.io.ExtAuthConfig.UserSessionConfig.CipherConfig
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `failOnFetchFailure` | `bool` | should we fail auth flow when failing to get a session from redis, or allow it to continue, potentially starting a new auth flow and setting a new session. |
+| `cookieOptions` | [.enterprise.gloo.solo.io.UserSession.CookieOptions](../extauth.proto.sk/#cookieoptions) | Set-Cookie options. |
+| `cookie` | [.enterprise.gloo.solo.io.UserSession.InternalSession](../extauth.proto.sk/#internalsession) | Set the tokens in the cookie itself. No need for server side state. Only one of `cookie` or `redis` can be set. |
+| `redis` | [.enterprise.gloo.solo.io.UserSession.RedisSession](../extauth.proto.sk/#redissession) | Use redis to store the tokens and just store a random id in the cookie. Only one of `redis` or `cookie` can be set. |
+| `cipherConfig` | [.enterprise.gloo.solo.io.ExtAuthConfig.UserSessionConfig.CipherConfig](../extauth.proto.sk/#cipherconfig) | the cipher config enables the symmetric key encryption of the cookie values of the user session. |
+
+
+
+
+---
+### CipherConfig
+
+
+
+```yaml
+"keyValue": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `keyValue` | `string` | to enable the cipher encryption, the key has to be present. Note that the key has to be 32 bytes. |
+
+
+
+
+---
 ### OidcAuthorizationCodeConfig
 
 
@@ -1726,6 +1768,7 @@ Deprecated, prefer OAuth2Config
 "parseCallbackPathAsRegex": bool
 "autoMapFromMetadata": .enterprise.gloo.solo.io.AutoMapFromMetadata
 "endSessionProperties": .enterprise.gloo.solo.io.EndSessionProperties
+"userSession": .enterprise.gloo.solo.io.ExtAuthConfig.UserSessionConfig
 
 ```
 
@@ -1750,6 +1793,7 @@ Deprecated, prefer OAuth2Config
 | `parseCallbackPathAsRegex` | `bool` | If set, CallbackPath will be evaluated as a regular expression. |
 | `autoMapFromMetadata` | [.enterprise.gloo.solo.io.AutoMapFromMetadata](../extauth.proto.sk/#automapfrommetadata) | If specified, authEndpointQueryParams and tokenEndpointQueryParams will be populated using dynamic metadata values. By default parameters will be extracted from the solo_authconfig_oidc namespace this behavior can be overridden by explicitly specifying a namespace. |
 | `endSessionProperties` | [.enterprise.gloo.solo.io.EndSessionProperties](../extauth.proto.sk/#endsessionproperties) | If specified, these are properties defined for the end session endpoint specifications. Noted [here](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) in the OIDC documentation. |
+| `userSession` | [.enterprise.gloo.solo.io.ExtAuthConfig.UserSessionConfig](../extauth.proto.sk/#usersessionconfig) | Configuration related to the user session. |
 
 
 
@@ -1923,6 +1967,7 @@ These values will be encoded in a basic auth header in order to authenticate the
 "authEndpoint": string
 "tokenEndpoint": string
 "revocationEndpoint": string
+"userSession": .enterprise.gloo.solo.io.ExtAuthConfig.UserSessionConfig
 
 ```
 
@@ -1934,13 +1979,14 @@ These values will be encoded in a basic auth header in order to authenticate the
 | `appUrl` | `string` | Where to redirect after successful auth, if Gloo can't determine the original URL. Set this field to your publicly available app URL. |
 | `callbackPath` | `string` | A callback path relative to the app URL to be used for OAuth2 callbacks. Do not use this path in the application itself. |
 | `scopes` | `[]string` | Scopes to request for. |
-| `session` | [.enterprise.gloo.solo.io.UserSession](../extauth.proto.sk/#usersession) | Configuration related to the user session. |
+| `session` | [.enterprise.gloo.solo.io.UserSession](../extauth.proto.sk/#usersession) |  |
 | `logoutPath` | `string` | A path relative to the app URL to use for logging out from an OAuth2 session. Do not use this path in the application itself. If not provided, logout functionality is disabled. |
 | `tokenEndpointQueryParams` | `map<string, string>` | Extra query parameters to apply to the Ext-Auth service's token request to the identity provider. These parameters can be useful for flows such as [PKCE](https://www.oauth.com/oauth2-servers/pkce/authorization-request/) to set the `code_verifier`. |
 | `afterLogoutUrl` | `string` | URL to redirect to after logout. Set this field to a publicly available URL. If not provided, this value defaults to the `app_url` value. |
 | `authEndpoint` | `string` | The URL of the provider authorization endpoint. |
 | `tokenEndpoint` | `string` | The URL of the provider token endpoint. |
 | `revocationEndpoint` | `string` | The URL of the provider token revocation endpoint. For more information, refer to https://www.rfc-editor.org/rfc/rfc7009. |
+| `userSession` | [.enterprise.gloo.solo.io.ExtAuthConfig.UserSessionConfig](../extauth.proto.sk/#usersessionconfig) | Configuration related to the user session. |
 
 
 
