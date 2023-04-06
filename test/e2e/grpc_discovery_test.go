@@ -98,7 +98,7 @@ var _ = Describe("GRPC to JSON Transcoding Plugin - Discovery", func() {
 			testContext.ResourcesToCreate().VirtualServices = v1.VirtualServiceList{getGrpcVs(e2e.WriteNamespace, testContext.TestUpstream().Upstream.GetMetadata().Ref())}
 			testContext.ResourcesToCreate().Upstreams = gloov1.UpstreamList{populateDeprecatedApi(testContext.TestUpstream().Upstream).(*gloov1.Upstream)}
 		})
-		FIt("Does not overwrite existing upstreams with the deprecated API", func() {
+		It("Does not overwrite existing upstreams with the deprecated API", func() {
 
 			body := `{"str":"foo"}`
 
