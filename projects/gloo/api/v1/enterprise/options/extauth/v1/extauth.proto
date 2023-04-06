@@ -1281,7 +1281,7 @@ message ExtAuthConfig {
         }
         message CipherConfig {
             // to enable the cipher encryption, the key has to be present. Note that the key has to be 32 bytes.
-            string key_value = 1;
+            string key_value = 1 [(extproto.sensitive) = true];
         }
         // the cipher config enables the symmetric key encryption of the cookie values of the user session.
         CipherConfig cipher_config = 5;
