@@ -1329,6 +1329,7 @@ message ExtAuthConfig {
         // scopes to request in addition to the openid scope.
         repeated string scopes = 7;
 
+        // DEPRECATED: use userSessionConfig [userSession]
         UserSession session = 8 [deprecated = true];
 
         // Configures headers added to requests.
@@ -1393,7 +1394,7 @@ message ExtAuthConfig {
         EndSessionProperties end_session_properties = 19;
 
         // Configuration related to the user session.
-        UserSessionConfig userSession = 20;
+        UserSessionConfig user_session = 20;
     }
 
     message AccessTokenValidationConfig {
@@ -1546,6 +1547,7 @@ message ExtAuthConfig {
         // Scopes to request for.
         repeated string scopes = 6;
 
+        // DEPRECATED: use userSessionConfig [userSession]
         UserSession session = 7 [deprecated = true];
 
         // A path relative to the app URL to use for logging out from an OAuth2 session.
@@ -1573,7 +1575,7 @@ message ExtAuthConfig {
         string revocation_endpoint = 13;
 
         // Configuration related to the user session.
-        UserSessionConfig userSession = 14;
+        UserSessionConfig user_session = 14;
     }
 
     message OAuth2Config {

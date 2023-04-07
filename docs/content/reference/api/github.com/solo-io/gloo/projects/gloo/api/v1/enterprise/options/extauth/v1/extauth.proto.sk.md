@@ -1784,7 +1784,7 @@ Deprecated, prefer OAuth2Config
 | `logoutPath` | `string` | a path relative to app url that will be used for logging out from an OIDC session. should not be used by the application. If not provided, logout functionality will be disabled. |
 | `afterLogoutUrl` | `string` | url to redirect to after logout. This should be a publicly available URL. If not provided, will default to the `app_url`. |
 | `scopes` | `[]string` | scopes to request in addition to the openid scope. |
-| `session` | [.enterprise.gloo.solo.io.UserSession](../extauth.proto.sk/#usersession) |  |
+| `session` | [.enterprise.gloo.solo.io.UserSession](../extauth.proto.sk/#usersession) | DEPRECATED: use userSessionConfig [userSession]. |
 | `headers` | [.enterprise.gloo.solo.io.HeaderConfiguration](../extauth.proto.sk/#headerconfiguration) | Configures headers added to requests. |
 | `discoveryOverride` | [.enterprise.gloo.solo.io.DiscoveryOverride](../extauth.proto.sk/#discoveryoverride) | OIDC configuration is discovered at <issuerUrl>/.well-known/openid-configuration The configuration override defines any properties that should override this discovery configuration For example, the following AuthConfig CRD could be defined as: ```yaml apiVersion: enterprise.gloo.solo.io/v1 kind: AuthConfig metadata: name: google-oidc namespace: gloo-system spec: configs: - oauth: app_url: http://localhost:8080 callback_path: /callback client_id: $CLIENT_ID client_secret_ref: name: google namespace: gloo-system issuer_url: https://accounts.google.com discovery_override: token_endpoint: "https://token.url/gettoken" ``` And this will ensure that regardless of what value is discovered at <issuerUrl>/.well-known/openid-configuration, "https://token.url/gettoken" will be used as the token endpoint. |
 | `discoveryPollInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | The interval at which OIDC configuration is discovered at <issuerUrl>/.well-known/openid-configuration If not specified, the default value is 30 minutes. |
@@ -1979,7 +1979,7 @@ These values will be encoded in a basic auth header in order to authenticate the
 | `appUrl` | `string` | Where to redirect after successful auth, if Gloo can't determine the original URL. Set this field to your publicly available app URL. |
 | `callbackPath` | `string` | A callback path relative to the app URL to be used for OAuth2 callbacks. Do not use this path in the application itself. |
 | `scopes` | `[]string` | Scopes to request for. |
-| `session` | [.enterprise.gloo.solo.io.UserSession](../extauth.proto.sk/#usersession) |  |
+| `session` | [.enterprise.gloo.solo.io.UserSession](../extauth.proto.sk/#usersession) | DEPRECATED: use userSessionConfig [userSession]. |
 | `logoutPath` | `string` | A path relative to the app URL to use for logging out from an OAuth2 session. Do not use this path in the application itself. If not provided, logout functionality is disabled. |
 | `tokenEndpointQueryParams` | `map<string, string>` | Extra query parameters to apply to the Ext-Auth service's token request to the identity provider. These parameters can be useful for flows such as [PKCE](https://www.oauth.com/oauth2-servers/pkce/authorization-request/) to set the `code_verifier`. |
 | `afterLogoutUrl` | `string` | URL to redirect to after logout. Set this field to a publicly available URL. If not provided, this value defaults to the `app_url` value. |
