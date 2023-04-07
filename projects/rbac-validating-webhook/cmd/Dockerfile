@@ -1,4 +1,4 @@
-FROM alpine:3.17.1
+FROM alpine:3.17.3
 ARG GOARCH
 
 RUN apk -U upgrade

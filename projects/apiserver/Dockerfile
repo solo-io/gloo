@@ -43,7 +43,7 @@ RUN if [ "${BUILDARCH}" = "arm64" ] && [ "${DOCKER_GOARCH}" = "amd64" ]; then ex
     go build -ldflags="$LDFLAGS" -gcflags="$GCFLAGS" -o gloo-fed-apiserver-linux-${DOCKER_GOARCH} \
     projects/apiserver/cmd/main.go
 
-FROM alpine:3.17.1
+FROM alpine:3.17.3
 ARG DOCKER_GOARCH
 
 COPY --from=build-env /go/src/github.com/solo-io/solo-projects/gloo-fed-apiserver-linux-${DOCKER_GOARCH} /

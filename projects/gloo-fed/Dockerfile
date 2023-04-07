@@ -34,7 +34,7 @@ go build -ldflags="$LDFLAGS" -gcflags="$GCFLAGS" -o gloo-fed-linux-${DOCKER_GOAR
 projects/gloo-fed/cmd/main.go
 
 
-FROM alpine:3.17.1
+FROM alpine:3.17.3
 ARG DOCKER_GOARCH
 
 COPY --from=build-env /go/src/github.com/solo-io/solo-projects/gloo-fed-linux-${DOCKER_GOARCH} /

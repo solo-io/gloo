@@ -39,6 +39,6 @@ RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=${DOCKER_GOARCH} GOOS=linux go buil
     projects/rate-limit/cmd/main.go
 
 
-FROM alpine:3.17.1
+FROM alpine:3.17.3
 ARG DOCKER_GOARCH
 COPY --from=build-env /go/src/github.com/solo-io/solo-projects/rate-limit-linux-${DOCKER_GOARCH} /
