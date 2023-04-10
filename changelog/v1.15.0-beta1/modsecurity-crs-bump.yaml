@@ -1,0 +1,12 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: coreruleset
+  dependencyRepo: coreruleset
+  dependencyTag: v3.2.1
+  description: Bump the ModSecurity Core Rule Set to v3.2.1
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/solo-projects/issues/4676
+  resolvesIssue: false
+  description: >
+    Update the envoyinit image to pull the ModSecurity Core Rule Set from
+    github.com/coreruleset/coreruleset instead of github.com/SpiderLabs/owasp-modsecurity-crs

@@ -4,21 +4,22 @@ ARG DOCKER_GOARCH
 COPY envoyinit-linux-${DOCKER_GOARCH} /usr/local/bin/envoyinit
 COPY docker-entrypoint.sh /
 
-ARG COMMIT=v3.2.0
-ARG REPO=SpiderLabs/owasp-modsecurity-crs
+ARG COMMIT=v3.2.1
+ARG REPO_OWNER=coreruleset
+ARG REPO_NAME=coreruleset
 
 RUN apk upgrade --update-cache \
     && apk add git \
     && rm -rf /var/cache/apk/* \
     && mkdir -p /modsecurity \
     && cd /modsecurity \
-    && git clone https://github.com/${REPO}.git owasp-modsecurity-crs \
-    && cd owasp-modsecurity-crs \
+    && git clone https://github.com/${REPO_OWNER}/${REPO_NAME}.git ${REPO_NAME} \
+    && cd ${REPO_NAME} \
     && git checkout -qf ${COMMIT} \
     && cd /modsecurity \
-    && mkdir -p rules/crs && cp owasp-modsecurity-crs/rules/*.conf rules/crs \
-    && mkdir data && cp owasp-modsecurity-crs/rules/*.data data \
-    && rm -rf owasp-modsecurity-crs
+    && mkdir -p rules/crs && cp ${REPO_NAME}/rules/*.conf rules/crs \
+    && mkdir data && cp ${REPO_NAME}/rules/*.data data \
+    && rm -rf ${REPO_NAME}
 
 WORKDIR /modsecurity/data
 
