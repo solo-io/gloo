@@ -89,10 +89,7 @@ type UpstreamFunctionDiscovery struct {
 
 // IsFunctional returns true if the upstream is functional
 func (f *UpstreamFunctionDiscovery) IsFunctional() bool {
-	if getGrpcspec(f.upstream) != nil {
-		return true
-	}
-	return false
+	return getGrpcspec(f.upstream) != nil
 }
 
 func (f *UpstreamFunctionDiscovery) DetectType(ctx context.Context, url *url.URL) (*plugins.ServiceSpec, error) {
