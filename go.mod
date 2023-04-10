@@ -23,11 +23,9 @@ require (
 	github.com/go-openapi/swag v0.22.3
 	github.com/go-test/deep v1.0.8
 	github.com/gobuffalo/packr v1.30.1
-	github.com/gogo/googleapis v1.4.0
 	github.com/golang/mock v1.7.0-rc.1
 	github.com/golang/protobuf v1.5.2
 	github.com/google/wire v0.4.0
-	github.com/gorilla/mux v1.8.0
 	github.com/graphql-go/graphql v0.8.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/hashicorp/go-multierror v1.1.1
@@ -71,7 +69,6 @@ require (
 	golang.org/x/net v0.8.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/tools v0.7.0
-	google.golang.org/genproto v0.0.0-20221201164419-0e50fba7f41c
 	google.golang.org/grpc v1.52.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/square/go-jose.v2 v2.6.0
@@ -186,6 +183,7 @@ require (
 	github.com/gobuffalo/envy v1.8.1 // indirect
 	github.com/gobuffalo/packd v1.0.1 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gogo/googleapis v1.4.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -204,6 +202,7 @@ require (
 	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
 	github.com/goph/emperror v0.17.1 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gosuri/uitable v0.0.4 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/consul/api v1.14.0 // indirect
@@ -350,6 +349,7 @@ require (
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/api v0.103.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/genproto v0.0.0-20221201164419-0e50fba7f41c // indirect
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7 // indirect
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect

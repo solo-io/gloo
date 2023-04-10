@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Now that ext-auth-service is on ginkgo v2, we can remove the duplicate test code that was copied over.
+    issueLink: https://github.com/solo-io/solo-projects/issues/4590

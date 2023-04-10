@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	passthrough_utils "github.com/solo-io/ext-auth-service/pkg/config/passthrough/test_utils"
 	"github.com/solo-io/gloo/test/helpers"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -113,17 +114,17 @@ var _ = Describe("External auth with multiple auth servers", func() {
 			proxy        *gloov1.Proxy
 
 			// A running instance of an authServer
-			authServerDefault         *services.GrpcAuthServer
+			authServerDefault         *passthrough_utils.GrpcAuthServer
 			authServerDefaultPort     = 5556
 			authServerDefaultUpstream *gloov1.Upstream
 
 			// A running instance of an authServer
-			authServerNamedA         *services.GrpcAuthServer
+			authServerNamedA         *passthrough_utils.GrpcAuthServer
 			authServerNamedAPort     = 5557
 			authServerNamedAUpstream *gloov1.Upstream
 
 			// A running instance of an authServer
-			authServerNamedB         *services.GrpcAuthServer
+			authServerNamedB         *passthrough_utils.GrpcAuthServer
 			authServerNamedBPort     = 5558
 			authServerNamedBUpstream *gloov1.Upstream
 		)
@@ -661,23 +662,23 @@ var _ = Describe("External auth with multiple auth servers", func() {
 //
 //	200 Ok - if presented with a Bearer token with the proper prefix
 //	401 Unauthorized - Otherwise
-func startLocalGrpcExtAuthServer(port int, expectedBearerTokenPrefix string) *services.GrpcAuthServer {
-	authServer := &services.GrpcAuthServer{
+func startLocalGrpcExtAuthServer(port int, expectedBearerTokenPrefix string) *passthrough_utils.GrpcAuthServer {
+	authServer := &passthrough_utils.GrpcAuthServer{
 		AuthChecker: func(ctx context.Context, req *envoy_service_auth_v3.CheckRequest) (*envoy_service_auth_v3.CheckResponse, error) {
 			authorizationHeaders, ok := req.GetAttributes().GetRequest().GetHttp().GetHeaders()["authorization"]
 
 			if !ok {
-				return services.DeniedResponse(), nil
+				return passthrough_utils.DeniedResponse(), nil
 			}
 
 			extracted := strings.Fields(authorizationHeaders)
 			if len(extracted) == 2 && extracted[0] == "Bearer" {
 				token := extracted[1]
 				if strings.HasPrefix(token, expectedBearerTokenPrefix) {
-					return services.OkResponse(), nil
+					return passthrough_utils.OkResponse(), nil
 				}
 			}
-			return services.DeniedResponse(), nil
+			return passthrough_utils.DeniedResponse(), nil
 		},
 	}
 

@@ -50,11 +50,12 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	. "github.com/onsi/gomega/gstruct"
-
+	oauth_utils "github.com/solo-io/ext-auth-service/pkg/config/oauth/test_utils"
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation"
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
 	oauth2Service "github.com/solo-io/ext-auth-service/pkg/config/oauth2"
 	grpcPassthrough "github.com/solo-io/ext-auth-service/pkg/config/passthrough/grpc"
+	passthrough_utils "github.com/solo-io/ext-auth-service/pkg/config/passthrough/test_utils"
 	"github.com/solo-io/ext-auth-service/pkg/controller/translation"
 	"github.com/solo-io/ext-auth-service/pkg/server"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/trace/v3"
@@ -1786,7 +1787,7 @@ var _ = Describe("External auth", func() {
 
 				var (
 					proxy      *gloov1.Proxy
-					authServer *services.AuthServer
+					authServer *oauth_utils.AuthServer
 					authConfig *extauth.AuthConfig
 				)
 
@@ -1837,13 +1838,13 @@ var _ = Describe("External auth", func() {
 				Context("using IntrospectionUrl", func() {
 
 					BeforeEach(func() {
-						authServer = services.NewAuthServer(
+						authServer = oauth_utils.NewAuthServer(
 							fmt.Sprintf(":%d", 5556),
-							&services.AuthEndpoints{
+							&oauth_utils.AuthEndpoints{
 								TokenIntrospectionEndpoint: "/introspection",
 								UserInfoEndpoint:           "/userinfo",
 							},
-							&services.AuthHandlers{
+							&oauth_utils.AuthHandlers{
 								// Use default auth handlers
 							},
 							sets.NewString("valid-access-token"),
@@ -1941,13 +1942,13 @@ var _ = Describe("External auth", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						// Create an auth server that requires clients to provide credentials (client-id and client-secret)
-						authServer = services.NewAuthServer(
+						authServer = oauth_utils.NewAuthServer(
 							fmt.Sprintf(":%d", 5556),
-							&services.AuthEndpoints{
+							&oauth_utils.AuthEndpoints{
 								TokenIntrospectionEndpoint: "/introspection",
 								UserInfoEndpoint:           "/userinfo",
 							},
-							&services.AuthHandlers{
+							&oauth_utils.AuthHandlers{
 								TokenIntrospectionHandler: createBasicAuthHandler("valid-access-token", "client-id", "client-secret"),
 							},
 							sets.NewString("valid-access-token"),
@@ -2041,13 +2042,13 @@ var _ = Describe("External auth", func() {
 					When("auth config is missing credentials and auth server doesn't require credentials", func() {
 
 						BeforeEach(func() {
-							authServer = services.NewAuthServer(
+							authServer = oauth_utils.NewAuthServer(
 								fmt.Sprintf(":%d", 5556),
-								&services.AuthEndpoints{
+								&oauth_utils.AuthEndpoints{
 									TokenIntrospectionEndpoint: "/introspection",
 									UserInfoEndpoint:           "/userinfo",
 								},
-								&services.AuthHandlers{
+								&oauth_utils.AuthHandlers{
 									// Use the default handlers, which do not require client credentials in the introspection request
 								},
 								sets.NewString("valid-access-token"),
@@ -2809,7 +2810,7 @@ var _ = Describe("External auth", func() {
 				Context("passthrough sanity", func() {
 					var (
 						proxy          *gloov1.Proxy
-						authServer     *services.GrpcAuthServer
+						authServer     *passthrough_utils.GrpcAuthServer
 						authServerPort = 5556
 						zipkinTracing  bool
 					)
@@ -2879,8 +2880,8 @@ var _ = Describe("External auth", func() {
 
 						Context("when auth server returns denied response", func() {
 							BeforeEach(func() {
-								authServerResponse := services.DeniedResponse()
-								authServer = services.NewGrpcAuthServerWithResponse(authServerResponse, nil)
+								authServerResponse := passthrough_utils.DeniedResponse()
+								authServer = passthrough_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
 							})
 
 							It("should deny extauth passthrough", func() {
@@ -2890,8 +2891,8 @@ var _ = Describe("External auth", func() {
 
 						Context("when auth server returns a 5XX server error", func() {
 							BeforeEach(func() {
-								resp := services.ServerErrorResponse()
-								authServer = services.NewGrpcAuthServerWithResponse(resp, nil)
+								resp := passthrough_utils.ServerErrorResponse()
+								authServer = passthrough_utils.NewGrpcAuthServerWithResponse(resp, nil)
 							})
 
 							It("should allow extauth passthrough", func() {
@@ -2902,8 +2903,8 @@ var _ = Describe("External auth", func() {
 						Context("when auth server has errors", func() {
 							BeforeEach(func() {
 								authServerError := errors.New("lorem ipsum, this causes a Check to return an err")
-								resp := services.ServerErrorResponse()
-								authServer = services.NewGrpcAuthServerWithResponse(resp, authServerError)
+								resp := passthrough_utils.ServerErrorResponse()
+								authServer = passthrough_utils.NewGrpcAuthServerWithResponse(resp, authServerError)
 							})
 
 							It("should allow extauth passthrough", func() {
@@ -2924,8 +2925,8 @@ var _ = Describe("External auth", func() {
 						Context("when auth server returns ok response", func() {
 
 							BeforeEach(func() {
-								authServerResponse := services.OkResponse()
-								authServer = services.NewGrpcAuthServerWithResponse(authServerResponse, nil)
+								authServerResponse := passthrough_utils.OkResponse()
+								authServer = passthrough_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
 							})
 
 							It("should accept extauth passthrough", func() {
@@ -2937,8 +2938,8 @@ var _ = Describe("External auth", func() {
 						Context("when auth server returns denied response", func() {
 
 							BeforeEach(func() {
-								authServerResponse := services.DeniedResponse()
-								authServer = services.NewGrpcAuthServerWithResponse(authServerResponse, nil)
+								authServerResponse := passthrough_utils.DeniedResponse()
+								authServer = passthrough_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
 							})
 
 							It("should deny extauth passthrough", func() {
@@ -2951,7 +2952,7 @@ var _ = Describe("External auth", func() {
 
 							BeforeEach(func() {
 								authServerError := errors.New("auth server internal server error")
-								authServer = services.NewGrpcAuthServerWithResponse(nil, authServerError)
+								authServer = passthrough_utils.NewGrpcAuthServerWithResponse(nil, authServerError)
 							})
 
 							It("should deny extauth passthrough", func() {
@@ -2963,7 +2964,7 @@ var _ = Describe("External auth", func() {
 						Context("when auth server returns ok response with valid dynamic metadata properties", func() {
 
 							BeforeEach(func() {
-								authServerResponse := services.OkResponseWithDynamicMetadata(&structpb.Struct{
+								authServerResponse := passthrough_utils.OkResponseWithDynamicMetadata(&structpb.Struct{
 									Fields: map[string]*structpb.Value{
 										"current-state-key": {
 											Kind: &structpb.Value_StringValue{
@@ -2977,7 +2978,7 @@ var _ = Describe("External auth", func() {
 										},
 									},
 								})
-								authServer = services.NewGrpcAuthServerWithResponse(authServerResponse, nil)
+								authServer = passthrough_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
 							})
 
 							It("should accept extauth passthrough", func() {
@@ -3010,7 +3011,7 @@ var _ = Describe("External auth", func() {
 								Expect(err).NotTo(HaveOccurred())
 
 								zipkinTracing = true
-								authServer = services.NewGrpcAuthServerWithTracingRequired()
+								authServer = passthrough_utils.NewGrpcAuthServerWithTracingRequired()
 							})
 
 							AfterEach(func() {
@@ -3029,10 +3030,10 @@ var _ = Describe("External auth", func() {
 				Context("passthrough chaining sanity", func() {
 					var (
 						proxy           *gloov1.Proxy
-						authServerA     *services.GrpcAuthServer
+						authServerA     *passthrough_utils.GrpcAuthServer
 						authServerAPort = 5556
 
-						authServerB     *services.GrpcAuthServer
+						authServerB     *passthrough_utils.GrpcAuthServer
 						authServerBPort = 5557
 					)
 
@@ -3109,7 +3110,7 @@ var _ = Describe("External auth", func() {
 					Context("first auth server writes metadata, second requires it", func() {
 						BeforeEach(func() {
 							// Configure AuthServerA (first in chain) to return DynamicMetadata.
-							authServerAResponse := services.OkResponseWithDynamicMetadata(&structpb.Struct{
+							authServerAResponse := passthrough_utils.OkResponseWithDynamicMetadata(&structpb.Struct{
 								Fields: map[string]*structpb.Value{
 									"key": {
 										Kind: &structpb.Value_StringValue{
@@ -3131,10 +3132,10 @@ var _ = Describe("External auth", func() {
 									},
 								},
 							})
-							authServerA = services.NewGrpcAuthServerWithResponse(authServerAResponse, nil)
+							authServerA = passthrough_utils.NewGrpcAuthServerWithResponse(authServerAResponse, nil)
 
 							// Configure AuthServerB (second in chain) to expect those dynamic metadata keys
-							authServerB = services.NewGrpcAuthServerWithRequiredMetadata([]string{
+							authServerB = passthrough_utils.NewGrpcAuthServerWithRequiredMetadata([]string{
 								"key",
 								"non-string-value",
 							})
@@ -3153,11 +3154,11 @@ var _ = Describe("External auth", func() {
 					Context("first auth server does not write metadata, second requires it", func() {
 						BeforeEach(func() {
 							// Configure AuthServerA (first in chain) to NOT return DynamicMetadata.
-							authServerAResponse := services.OkResponse()
-							authServerA = services.NewGrpcAuthServerWithResponse(authServerAResponse, nil)
+							authServerAResponse := passthrough_utils.OkResponse()
+							authServerA = passthrough_utils.NewGrpcAuthServerWithResponse(authServerAResponse, nil)
 
 							// Configure AuthServerB (second in chain) to expect dynamic metadata keys
-							authServerB = services.NewGrpcAuthServerWithRequiredMetadata([]string{
+							authServerB = passthrough_utils.NewGrpcAuthServerWithRequiredMetadata([]string{
 								"key",
 								"non-string-value",
 							})
@@ -3175,12 +3176,12 @@ var _ = Describe("External auth", func() {
 
 					Context("first auth server has server issues", func() {
 						BeforeEach(func() {
-							authServerAResponse := services.ServerErrorResponse()
-							authServerA = services.NewGrpcAuthServerWithResponse(authServerAResponse, nil)
+							authServerAResponse := passthrough_utils.ServerErrorResponse()
+							authServerA = passthrough_utils.NewGrpcAuthServerWithResponse(authServerAResponse, nil)
 
 							// Configure AuthServerB (second in chain) to not need any metadata to pass
-							authServerBResponse := services.DeniedResponse()
-							authServerB = services.NewGrpcAuthServerWithResponse(authServerBResponse, nil)
+							authServerBResponse := passthrough_utils.DeniedResponse()
+							authServerB = passthrough_utils.NewGrpcAuthServerWithResponse(authServerBResponse, nil)
 						})
 
 						DescribeTable("should return expected response, depending on failure_mode_allow", func(failureModeAllowA, failureModeAllowB bool, expectedResponse int) {
@@ -3200,7 +3201,7 @@ var _ = Describe("External auth", func() {
 
 					var (
 						proxy           *gloov1.Proxy
-						authServerA     *services.GrpcAuthServer
+						authServerA     *passthrough_utils.GrpcAuthServer
 						authServerAPort = 5556
 					)
 
@@ -3221,21 +3222,21 @@ var _ = Describe("External auth", func() {
 						}, "5s", "0.5s").Should(Equal(responseCode))
 					}
 
-					newGrpcAuthServerwithRequiredConfig := func() *services.GrpcAuthServer {
-						return &services.GrpcAuthServer{
+					newGrpcAuthServerwithRequiredConfig := func() *passthrough_utils.GrpcAuthServer {
+						return &passthrough_utils.GrpcAuthServer{
 							AuthChecker: func(ctx context.Context, req *envoy_service_auth_v3.CheckRequest) (*envoy_service_auth_v3.CheckResponse, error) {
 								// Check if config exists in the FilterMetadata under the MetadataConfigKey.
 								if passThroughFilterMetadata, ok := req.GetAttributes().GetMetadataContext().GetFilterMetadata()[grpcPassthrough.MetadataConfigKey]; ok {
 									passThroughFields := passThroughFilterMetadata.GetFields()
 									if value, ok := passThroughFields["customConfig1"]; ok && value.GetBoolValue() == true {
 										// Required key was in FilterMetadata, succeed request
-										return services.OkResponse(), nil
+										return passthrough_utils.OkResponse(), nil
 									}
 									// Required key was not in FilterMetadata, deny fail request
-									return services.DeniedResponse(), nil
+									return passthrough_utils.DeniedResponse(), nil
 								}
 								// No passthrough properties were sent in FilterMetadata, fail request
-								return services.DeniedResponse(), nil
+								return passthrough_utils.DeniedResponse(), nil
 							},
 						}
 					}

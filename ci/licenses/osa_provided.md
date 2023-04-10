@@ -20,10 +20,8 @@ Name|Version|License
 [go-openapi/swag](https://github.com/go-openapi/swag)|v0.22.3|Apache License 2.0
 [go-test/deep](https://github.com/go-test/deep)|v1.0.8|MIT License
 [gobuffalo/packr](https://github.com/gobuffalo/packr)|v1.30.1|MIT License
-[gogo/googleapis](https://github.com/gogo/googleapis)|v1.4.0|Apache License 2.0
 [golang/protobuf](https://github.com/golang/protobuf)|v1.5.2|BSD 3-clause "New" or "Revised" License
 [google/wire](https://github.com/google/wire)|v0.4.0|Apache License 2.0
-[gorilla/mux](https://github.com/gorilla/mux)|v1.8.0|BSD 3-clause "New" or "Revised" License
 [graphql-go/graphql](https://github.com/graphql-go/graphql)|v0.8.0|MIT License
 [grpc-ecosystem/go-grpc-middleware](https://github.com/grpc-ecosystem/go-grpc-middleware)|v1.3.0|Apache License 2.0
 [iancoleman/strcase](https://github.com/iancoleman/strcase)|v0.2.0|MIT License
@@ -46,7 +44,6 @@ Name|Version|License
 [x/net](https://golang.org/x/net)|v0.8.0|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.1.0|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
-[google.golang.org/genproto](https://google.golang.org/genproto)|v0.0.0-20221201164419-0e50fba7f41c|Apache License 2.0
 [google.golang.org/grpc](https://google.golang.org/grpc)|v1.52.0|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.28.1|BSD 3-clause "New" or "Revised" License
 [square/go-jose.v2](https://gopkg.in/square/go-jose.v2)|v2.6.0|Apache License 2.0
