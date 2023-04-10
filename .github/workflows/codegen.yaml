@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Cancel Previous Actions
-        uses: styfle/cancel-workflow-action@0.4.1
+        uses: styfle/cancel-workflow-action@0.11.0
         with:
           access_token: ${{ github.token }}
       - name: Free disk space
@@ -41,7 +41,7 @@ jobs:
           go-version-file: go.mod
         id: go
       - name: Install Protoc
-        uses: arduino/setup-protoc@v1.1.2
+        uses: arduino/setup-protoc@master
         with:
           version: '3.6.1'
           repo-token: ${{ env.GITHUB_TOKEN }}
@@ -52,7 +52,7 @@ jobs:
           TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
         run: git config --global url."https://soloio_bot:${TOKEN}@github.com".insteadOf "https://github.com"
       - name: Yarn Install
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '14'
       - run: yarn --cwd projects/ui install

@@ -235,7 +235,7 @@ jobs:
               preamble="Gloo Fed nightlies (dev)"
           fi
           echo "Setting PREAMBLE as $preamble"
-          echo "::set-output name=preamble::$(echo $preamble)"
+          echo "preamble=$(echo $preamble)" >> $GITHUB_OUTPUT
       - uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
