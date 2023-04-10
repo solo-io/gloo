@@ -23,6 +23,7 @@ var GlooSecretConverterChain = NewSecretConverterChain(
 	// the header converter needs to run last because it has a fall-back to convert any opaque k8s secret with
 	// non-empty data into a gloo header secret
 	new(HeaderSecretConverter),
+	new(EncryptionSecretConverter),
 )
 
 type SecretConverterChain struct {
