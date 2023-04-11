@@ -15,7 +15,7 @@ import (
 var _ = Describe("Encryption Key converters", func() {
 	const encryptionValue = "This is the encryption key"
 
-	FIt("should convert secret to encryption key secret and back preserving all information", func() {
+	It("should convert secret to encryption key secret and back preserving all information", func() {
 		encryptionSecret := &v1.EncryptionKeySecret{
 			Key: encryptionValue,
 		}
