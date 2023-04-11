@@ -28,7 +28,7 @@ func (t *EncryptionSecretConverter) FromKubeSecret(ctx context.Context, rc *kube
 	}
 
 	encryptionKey, hasEncryptionKey := secret.Data[EncryptionDataKey]
-	if hasEncryptionKey && secret.Type == kubev1.SecretTypeOpaque {
+	if hasEncryptionKey && secret.Type == EncryptionKeySecretType {
 		encryptionSecret := &v1.EncryptionKeySecret{
 			Key: string(encryptionKey),
 		}
@@ -67,7 +67,7 @@ func (t *EncryptionSecretConverter) ToKubeSecret(_ context.Context, rc *kubesecr
 
 	return &kubev1.Secret{
 		ObjectMeta: objectMeta,
-		Type:       kubev1.SecretTypeOpaque,
+		Type:       EncryptionKeySecretType,
 		Data: map[string][]byte{
 			EncryptionDataKey: []byte(encryptionSecret.Encryption.GetKey()),
 		},
