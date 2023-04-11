@@ -5282,7 +5282,7 @@ func (x *UserSession_CookieOptions) GetDomain() string {
 	return ""
 }
 
-// the cipher config is used to encryption session cookie values.  This is currently only available for OIDC.
+// the cipher config is used to encrypt session cookie values.  This is currently only available for OIDC.
 type UserSession_CipherConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
