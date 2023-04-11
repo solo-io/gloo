@@ -719,7 +719,7 @@ The SameSite options. The default value is LaxMode.
 ### CipherConfig
 
  
-the cipher config is used to encryption session cookie values.  This is currently only available for OIDC.
+the cipher config is used to encrypt session cookie values.  This is currently only available for OIDC.
 
 ```yaml
 "keyRef": .core.solo.io.ResourceRef
