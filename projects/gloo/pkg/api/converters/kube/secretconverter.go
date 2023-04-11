@@ -23,6 +23,8 @@ var GlooSecretConverterChain = NewSecretConverterChain(
 	// the header converter needs to run last because it has a fall-back to convert any opaque k8s secret with
 	// non-empty data into a gloo header secret
 	new(HeaderSecretConverter),
+	// added the encryption secret primarly for usersession cookie encryption. This enables us to
+	// create and the key used for encryption.
 	new(EncryptionSecretConverter),
 )
 

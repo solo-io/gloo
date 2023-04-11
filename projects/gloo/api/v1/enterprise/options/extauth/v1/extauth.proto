@@ -444,6 +444,7 @@ message UserSession {
         // Use redis to store the tokens and just store a random id in the cookie.
         RedisSession redis = 4;
     }
+    // the cipher config is used to encryption session cookie values.  This is currently only available for OIDC.
     message CipherConfig {
         // to enable the cipher encryption, the key has to be present.
         oneof key {
