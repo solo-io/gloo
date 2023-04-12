@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/gloo/issues/8026
+  resolvesIssue: true
+  description: place kube dumps into saved artifacts, rather than stdout
