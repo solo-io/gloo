@@ -67,7 +67,7 @@ func (t *EncryptionSecretConverter) ToKubeSecret(_ context.Context, rc *kubesecr
 
 	return &kubev1.Secret{
 		ObjectMeta: objectMeta,
-		Type:       EncryptionKeySecretType,
+		Type:       kubev1.SecretTypeOpaque,
 		Data: map[string][]byte{
 			EncryptionDataKey: []byte(encryptionSecret.Encryption.GetKey()),
 		},
