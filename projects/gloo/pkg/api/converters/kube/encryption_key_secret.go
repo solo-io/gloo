@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	EncryptionDataKey                         = "encryptionKey"
+	EncryptionDataKey                         = "key"
 	EncryptionKeySecretType kubev1.SecretType = "gloo.solo.io.EncryptionKeySecret"
 )
 

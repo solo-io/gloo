@@ -20,7 +20,7 @@ var _ = Describe("Encryption Key converters", func() {
 			Key: encryptionValue,
 		}
 		kubeSecret := &kubev1.Secret{
-			Type: kubev1.SecretTypeOpaque,
+			Type: EncryptionKeySecretType,
 			ObjectMeta: metav1.ObjectMeta{
 				Name:            "s1",
 				Namespace:       "ns",
