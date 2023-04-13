@@ -8,7 +8,7 @@ make update-all-deps
 
 set +e
 
-make generate-all check-solo-apis -B  > /dev/null
+make generate-all check-solo-apis check-envoy-version -B  > /dev/null
 
 if [[ $? -ne 0 ]]; then
   echo "Code generation failed"

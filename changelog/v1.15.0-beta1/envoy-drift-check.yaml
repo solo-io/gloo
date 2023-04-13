@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4717
+    resolvesIssue: false
+    description: add a CI check to keep minor versions of OSS and EE envoy in lockstep

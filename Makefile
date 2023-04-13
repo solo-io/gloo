@@ -272,6 +272,10 @@ ifeq ($(GLOO_BRANCH_BUILD),)
 	go get github.com/solo-io/solo-apis@gloo-$(GLOO_VERSION)
 endif
 
+.PHONY: check-envoy-version
+check-envoy-version:
+	./ci/check-envoy-version.sh $(ENVOY_GLOO_IMAGE_VERSION)
+
 .PHONY: generated-code
 generated-code: check-go-version clean-vendor-any update-licenses ## Evaluate go generate
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore GO111MODULE=on CGO_ENABLED=1 go generate ./...
