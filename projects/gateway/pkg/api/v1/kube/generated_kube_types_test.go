@@ -85,16 +85,20 @@ var _ = FDescribe("Generated Kube Code", func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 		err = glooV1Client.Upstreams("default").Delete(ctx, "petstore-static", v1.DeleteOptions{})
-		notFound := strings.Contains(err.Error(), "not found")
-		alreadyExists := strings.Contains(err.Error(), "already exists")
-		if !(alreadyExists || notFound) {
-			Expect(err).ToNot(HaveOccurred())
+		if err != nil {
+			notFound := strings.Contains(err.Error(), "not found")
+			alreadyExists := strings.Contains(err.Error(), "already exists")
+			if !(alreadyExists || notFound) {
+				Expect(err).ToNot(HaveOccurred())
+			}
 		}
 		err = gatewayV1Client.VirtualServices("default").Delete(ctx, "my-routes", v1.DeleteOptions{})
-		notFound = strings.Contains(err.Error(), "not found")
-		alreadyExists = strings.Contains(err.Error(), "already exists")
-		if !(notFound || alreadyExists) {
-			Expect(err).ToNot(HaveOccurred())
+		if err != nil {
+			notFound := strings.Contains(err.Error(), "not found")
+			alreadyExists := strings.Contains(err.Error(), "already exists")
+			if !(notFound || alreadyExists) {
+				Expect(err).ToNot(HaveOccurred())
+			}
 		}
 	})
 	AfterEach(func() {
