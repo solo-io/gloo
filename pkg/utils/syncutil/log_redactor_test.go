@@ -187,6 +187,22 @@ var _ = Describe("Log Redactor", func() {
 			},
 		},
 		},
+	}), Entry("hides the encryption key value from logs", "encryptionKey", &xdsproto.ExtAuthConfig{
+		Configs: []*xdsproto.ExtAuthConfig_Config{{
+			AuthConfig: &xdsproto.ExtAuthConfig_Config_Oauth2{
+				Oauth2: &xdsproto.ExtAuthConfig_OAuth2Config{
+					OauthType: &xdsproto.ExtAuthConfig_OAuth2Config_OidcAuthorizationCode{
+						OidcAuthorizationCode: &xdsproto.ExtAuthConfig_OidcAuthorizationCodeConfig{
+							UserSession: &xdsproto.ExtAuthConfig_UserSessionConfig{
+								CipherConfig: &xdsproto.ExtAuthConfig_UserSessionConfig_CipherConfig{
+									Key: "encryptionKey",
+								},
+							},
+						},
+					},
+				},
+			},
+		}},
 	}),
 	)
 })

@@ -330,6 +330,16 @@ spec:
                               type: array
                             session:
                               properties:
+                                cipherConfig:
+                                  properties:
+                                    keyRef:
+                                      properties:
+                                        name:
+                                          type: string
+                                        namespace:
+                                          type: string
+                                      type: object
+                                  type: object
                                 cookie:
                                   properties:
                                     allowRefreshing:
@@ -508,6 +518,16 @@ spec:
                               type: array
                             session:
                               properties:
+                                cipherConfig:
+                                  properties:
+                                    keyRef:
+                                      properties:
+                                        name:
+                                          type: string
+                                        namespace:
+                                          type: string
+                                      type: object
+                                  type: object
                                 cookie:
                                   properties:
                                     allowRefreshing:
