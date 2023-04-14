@@ -3,8 +3,7 @@ package kube_test
 import (
 	"context"
 	"os"
-
-	"github.com/solo-io/solo-kit/test/helpers"
+	"strings"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
@@ -17,6 +16,7 @@ import (
 	gloov1kube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/client/clientset/versioned/typed/gloo.solo.io/v1"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/test/helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -29,7 +29,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var _ = Describe("Generated Kube Code", func() {
+var _ = FDescribe("Generated Kube Code", func() {
 	var (
 		apiExts         apiext.Interface
 		glooV1Client    gloov1kube.GlooV1Interface       // upstreams
@@ -84,6 +84,18 @@ var _ = Describe("Generated Kube Code", func() {
 			SharedCache: kubeCache,
 		})
 		Expect(err).NotTo(HaveOccurred())
+		err = glooV1Client.Upstreams("default").Delete(ctx, "petstore-static", v1.DeleteOptions{})
+		notFound := strings.Contains(err.Error(), "not found")
+		alreadyExists := strings.Contains(err.Error(), "already exists")
+		if !(alreadyExists || notFound) {
+			Expect(err).ToNot(HaveOccurred())
+		}
+		err = gatewayV1Client.VirtualServices("default").Delete(ctx, "my-routes", v1.DeleteOptions{})
+		notFound = strings.Contains(err.Error(), "not found")
+		alreadyExists = strings.Contains(err.Error(), "already exists")
+		if !(notFound || alreadyExists) {
+			Expect(err).ToNot(HaveOccurred())
+		}
 	})
 	AfterEach(func() {
 		if os.Getenv("RUN_KUBE_TESTS") != "1" {
