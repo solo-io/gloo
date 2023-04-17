@@ -29,7 +29,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var _ = FDescribe("Generated Kube Code", func() {
+var _ = Describe("Generated Kube Code", func() {
 	var (
 		apiExts         apiext.Interface
 		glooV1Client    gloov1kube.GlooV1Interface       // upstreams
