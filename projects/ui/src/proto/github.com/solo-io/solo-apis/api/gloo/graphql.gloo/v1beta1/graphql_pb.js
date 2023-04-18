@@ -724,7 +724,8 @@ proto.graphql.gloo.solo.io.RESTResolver.toObject = function(includeInstance, msg
     upstreamRef: (f = msg.getUpstreamRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     request: (f = msg.getRequest()) && proto.graphql.gloo.solo.io.RequestTemplate.toObject(includeInstance, f),
     response: (f = msg.getResponse()) && proto.graphql.gloo.solo.io.ResponseTemplate.toObject(includeInstance, f),
-    spanName: jspb.Message.getFieldWithDefault(msg, 4, "")
+    spanName: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    timeout: (f = msg.getTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -779,6 +780,11 @@ proto.graphql.gloo.solo.io.RESTResolver.deserializeBinaryFromReader = function(m
     case 4:
       var value = /** @type {string} */ (reader.readString());
       msg.setSpanName(value);
+      break;
+    case 5:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setTimeout(value);
       break;
     default:
       reader.skipField();
@@ -838,6 +844,14 @@ proto.graphql.gloo.solo.io.RESTResolver.serializeBinaryToWriter = function(messa
     writer.writeString(
       4,
       f
+    );
+  }
+  f = message.getTimeout();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -945,6 +959,36 @@ proto.graphql.gloo.solo.io.RESTResolver.prototype.getSpanName = function() {
 /** @param {string} value */
 proto.graphql.gloo.solo.io.RESTResolver.prototype.setSpanName = function(value) {
   jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional google.protobuf.Duration timeout = 5;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.graphql.gloo.solo.io.RESTResolver.prototype.getTimeout = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 5));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.graphql.gloo.solo.io.RESTResolver.prototype.setTimeout = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.graphql.gloo.solo.io.RESTResolver.prototype.clearTimeout = function() {
+  this.setTimeout(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.graphql.gloo.solo.io.RESTResolver.prototype.hasTimeout = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 
@@ -1457,7 +1501,8 @@ proto.graphql.gloo.solo.io.GrpcResolver.toObject = function(includeInstance, msg
   var f, obj = {
     upstreamRef: (f = msg.getUpstreamRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     requestTransform: (f = msg.getRequestTransform()) && proto.graphql.gloo.solo.io.GrpcRequestTemplate.toObject(includeInstance, f),
-    spanName: jspb.Message.getFieldWithDefault(msg, 4, "")
+    spanName: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    timeout: (f = msg.getTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1507,6 +1552,11 @@ proto.graphql.gloo.solo.io.GrpcResolver.deserializeBinaryFromReader = function(m
     case 4:
       var value = /** @type {string} */ (reader.readString());
       msg.setSpanName(value);
+      break;
+    case 5:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setTimeout(value);
       break;
     default:
       reader.skipField();
@@ -1558,6 +1608,14 @@ proto.graphql.gloo.solo.io.GrpcResolver.serializeBinaryToWriter = function(messa
     writer.writeString(
       4,
       f
+    );
+  }
+  f = message.getTimeout();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -1635,6 +1693,36 @@ proto.graphql.gloo.solo.io.GrpcResolver.prototype.getSpanName = function() {
 /** @param {string} value */
 proto.graphql.gloo.solo.io.GrpcResolver.prototype.setSpanName = function(value) {
   jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional google.protobuf.Duration timeout = 5;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.graphql.gloo.solo.io.GrpcResolver.prototype.getTimeout = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 5));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.graphql.gloo.solo.io.GrpcResolver.prototype.setTimeout = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.graphql.gloo.solo.io.GrpcResolver.prototype.clearTimeout = function() {
+  this.setTimeout(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.graphql.gloo.solo.io.GrpcResolver.prototype.hasTimeout = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

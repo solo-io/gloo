@@ -197,7 +197,7 @@ var _ = Describe("Translate", func() {
 		// most likely needs to change.
 
 		Expect(reflect.TypeOf(extauth.ExtAuthConfig_OidcAuthorizationCodeConfig{}).NumField()).To(
-			Equal(22),
+			Equal(23),
 			"wrong number of fields found",
 		)
 	})
@@ -260,7 +260,7 @@ var _ = Describe("Translate", func() {
 		// If so, the `translatePlainOAuth2` function most likely needs to be updated
 		It("will fail if the plain oauth2 proto has a new top level field", func() {
 			Expect(reflect.TypeOf(extauth.ExtAuthConfig_PlainOAuth2Config{}).NumField()).To(
-				Equal(16),
+				Equal(17),
 				"wrong number of fields found")
 		})
 

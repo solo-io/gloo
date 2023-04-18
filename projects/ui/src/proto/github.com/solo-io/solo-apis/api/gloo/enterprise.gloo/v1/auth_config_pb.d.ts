@@ -767,6 +767,11 @@ export class UserSession extends jspb.Message {
   getRedis(): UserSession.RedisSession | undefined;
   setRedis(value?: UserSession.RedisSession): void;
 
+  hasCipherConfig(): boolean;
+  clearCipherConfig(): void;
+  getCipherConfig(): UserSession.CipherConfig | undefined;
+  setCipherConfig(value?: UserSession.CipherConfig): void;
+
   getSessionCase(): UserSession.SessionCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UserSession.AsObject;
@@ -784,6 +789,7 @@ export namespace UserSession {
     cookieOptions?: UserSession.CookieOptions.AsObject,
     cookie?: UserSession.InternalSession.AsObject,
     redis?: UserSession.RedisSession.AsObject,
+    cipherConfig?: UserSession.CipherConfig.AsObject,
   }
 
   export class InternalSession extends jspb.Message {
@@ -919,6 +925,34 @@ export namespace UserSession {
     }
 
     export const SameSite: SameSiteMap;
+  }
+
+  export class CipherConfig extends jspb.Message {
+    hasKeyRef(): boolean;
+    clearKeyRef(): void;
+    getKeyRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+    setKeyRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+    getKeyCase(): CipherConfig.KeyCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): CipherConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: CipherConfig): CipherConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: CipherConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): CipherConfig;
+    static deserializeBinaryFromReader(message: CipherConfig, reader: jspb.BinaryReader): CipherConfig;
+  }
+
+  export namespace CipherConfig {
+    export type AsObject = {
+      keyRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    }
+
+    export enum KeyCase {
+      KEY_NOT_SET = 0,
+      KEY_REF = 1,
+    }
   }
 
   export enum SessionCase {
@@ -2383,6 +2417,77 @@ export namespace ExtAuthConfig {
     }
   }
 
+  export class UserSessionConfig extends jspb.Message {
+    getFailOnFetchFailure(): boolean;
+    setFailOnFetchFailure(value: boolean): void;
+
+    hasCookieOptions(): boolean;
+    clearCookieOptions(): void;
+    getCookieOptions(): UserSession.CookieOptions | undefined;
+    setCookieOptions(value?: UserSession.CookieOptions): void;
+
+    hasCookie(): boolean;
+    clearCookie(): void;
+    getCookie(): UserSession.InternalSession | undefined;
+    setCookie(value?: UserSession.InternalSession): void;
+
+    hasRedis(): boolean;
+    clearRedis(): void;
+    getRedis(): UserSession.RedisSession | undefined;
+    setRedis(value?: UserSession.RedisSession): void;
+
+    hasCipherConfig(): boolean;
+    clearCipherConfig(): void;
+    getCipherConfig(): ExtAuthConfig.UserSessionConfig.CipherConfig | undefined;
+    setCipherConfig(value?: ExtAuthConfig.UserSessionConfig.CipherConfig): void;
+
+    getSessionCase(): UserSessionConfig.SessionCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): UserSessionConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: UserSessionConfig): UserSessionConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: UserSessionConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): UserSessionConfig;
+    static deserializeBinaryFromReader(message: UserSessionConfig, reader: jspb.BinaryReader): UserSessionConfig;
+  }
+
+  export namespace UserSessionConfig {
+    export type AsObject = {
+      failOnFetchFailure: boolean,
+      cookieOptions?: UserSession.CookieOptions.AsObject,
+      cookie?: UserSession.InternalSession.AsObject,
+      redis?: UserSession.RedisSession.AsObject,
+      cipherConfig?: ExtAuthConfig.UserSessionConfig.CipherConfig.AsObject,
+    }
+
+    export class CipherConfig extends jspb.Message {
+      getKey(): string;
+      setKey(value: string): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): CipherConfig.AsObject;
+      static toObject(includeInstance: boolean, msg: CipherConfig): CipherConfig.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: CipherConfig, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): CipherConfig;
+      static deserializeBinaryFromReader(message: CipherConfig, reader: jspb.BinaryReader): CipherConfig;
+    }
+
+    export namespace CipherConfig {
+      export type AsObject = {
+        key: string,
+      }
+    }
+
+    export enum SessionCase {
+      SESSION_NOT_SET = 0,
+      COOKIE = 3,
+      REDIS = 4,
+    }
+  }
+
   export class OidcAuthorizationCodeConfig extends jspb.Message {
     getClientId(): string;
     setClientId(value: string): void;
@@ -2455,6 +2560,11 @@ export namespace ExtAuthConfig {
     getEndSessionProperties(): EndSessionProperties | undefined;
     setEndSessionProperties(value?: EndSessionProperties): void;
 
+    hasUserSession(): boolean;
+    clearUserSession(): void;
+    getUserSession(): ExtAuthConfig.UserSessionConfig | undefined;
+    setUserSession(value?: ExtAuthConfig.UserSessionConfig): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
     static toObject(includeInstance: boolean, msg: OidcAuthorizationCodeConfig): OidcAuthorizationCodeConfig.AsObject;
@@ -2486,6 +2596,7 @@ export namespace ExtAuthConfig {
       parseCallbackPathAsRegex: boolean,
       autoMapFromMetadata?: AutoMapFromMetadata.AsObject,
       endSessionProperties?: EndSessionProperties.AsObject,
+      userSession?: ExtAuthConfig.UserSessionConfig.AsObject,
     }
   }
 
@@ -2734,6 +2845,11 @@ export namespace ExtAuthConfig {
     getRevocationEndpoint(): string;
     setRevocationEndpoint(value: string): void;
 
+    hasUserSession(): boolean;
+    clearUserSession(): void;
+    getUserSession(): ExtAuthConfig.UserSessionConfig | undefined;
+    setUserSession(value?: ExtAuthConfig.UserSessionConfig): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): PlainOAuth2Config.AsObject;
     static toObject(includeInstance: boolean, msg: PlainOAuth2Config): PlainOAuth2Config.AsObject;
@@ -2759,6 +2875,7 @@ export namespace ExtAuthConfig {
       authEndpoint: string,
       tokenEndpoint: string,
       revocationEndpoint: string,
+      userSession?: ExtAuthConfig.UserSessionConfig.AsObject,
     }
   }
 

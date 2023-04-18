@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"time"
 
 	"github.com/rotisserie/eris"
 	skv2matchers "github.com/solo-io/skv2/test/matchers"
 	"github.com/solo-io/solo-projects/pkg/license"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/translation"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/structpb"
 	"k8s.io/utils/lru"
 
@@ -77,6 +79,7 @@ var _ = Describe("Graphql plugin", func() {
 		params       plugins.Params
 		vhostParams  plugins.VirtualHostParams
 		virtualHost  *v1.VirtualHost
+		upstream     *v1.Upstream
 		route        *v1.Route
 		routeAction  *v1.Route_GraphqlApiRef
 		httpListener *v1.HttpListener
@@ -109,6 +112,12 @@ var _ = Describe("Graphql plugin", func() {
 				},
 			},
 		}
+		upstream = &v1.Upstream{
+			Metadata: &core.Metadata{
+				Name:      "us",
+				Namespace: "gloo-system",
+			},
+		}
 	})
 
 	JustBeforeEach(func() {
@@ -139,14 +148,7 @@ var _ = Describe("Graphql plugin", func() {
 			GraphqlApis: GraphQLApiList{
 				gqlApiSpec,
 			},
-			Upstreams: v1.UpstreamList{
-				{
-					Metadata: &core.Metadata{
-						Name:      "us",
-						Namespace: "gloo-system",
-					},
-				},
-			},
+			Upstreams: v1.UpstreamList{upstream},
 		}
 		messages := (make(map[*core.ResourceRef][]string))
 		params.Messages = messages
@@ -378,7 +380,6 @@ var _ = Describe("Graphql plugin", func() {
 				})
 
 				Context("translate resolutions", func() {
-
 					BeforeEach(func() {
 						body := `{"k1": {"k2": "val"}}`
 						bodyStruct := &structpb.Value{}
@@ -420,19 +421,90 @@ var _ = Describe("Graphql plugin", func() {
 	field1: String @resolve(name: "resolver1")
 }`
 							})
+							Context("timeouts", func() {
+								var (
+									upstreamTimeout = durationpb.New(time.Second * 2)
+									resolverTimeout = durationpb.New(time.Millisecond * 500)
+									defaultTimeout  = durationpb.New(time.Second)
+								)
+
+								var setUpstreamTimeout = func() {
+									if upstream.GetConnectionConfig() == nil {
+										upstream.ConnectionConfig = &v1.ConnectionConfig{
+											ConnectTimeout: upstreamTimeout,
+										}
+									}
+									upstream.GetConnectionConfig().ConnectTimeout = upstreamTimeout
+								}
+
+								var setResolverTimeout = func() {
+									resolver := gqlApiSpec.GetExecutableSchema().Executor.GetLocal().GetResolutions()["resolver1"].GetRestResolver()
+									Expect(resolver).NotTo(BeNil())
+									resolver.Timeout = resolverTimeout
+								}
+
+								translateAndCheckTimeout := func(expected *durationpb.Duration) {
+									perRouteGql := translateRoute()
+									resolutions := perRouteGql.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()
+									Expect(len(resolutions)).NotTo(BeZero())
+									resolution := resolutions[0]
+
+									anyResolver := resolution.GetResolver()
+									Expect(anyResolver).NotTo(BeNil())
+
+									msg, err := utils.AnyToMessage(anyResolver.TypedConfig)
+									Expect(err).NotTo(HaveOccurred())
+
+									restResolver := msg.(*v2.RESTResolver)
+									actual := restResolver.GetServerUri().GetTimeout()
+									Expect(actual.AsDuration()).To(Equal(expected.AsDuration()), actual.AsDuration().String(), expected.AsDuration().String())
+								}
+								Context("without upstream timeout, without resolver timeout", func() {
+									It("should use default timeout", func() {
+										translateAndCheckTimeout(defaultTimeout)
+									})
+								})
+								Context("with upstream timeout, without resolver timeout", func() {
+									BeforeEach(func() {
+										setUpstreamTimeout()
+									})
+									It("should use upstream timeout", func() {
+										translateAndCheckTimeout(upstreamTimeout)
+									})
+								})
+								Context("with upstream timeout, with resolver timeout", func() {
+									BeforeEach(func() {
+										setUpstreamTimeout()
+										setResolverTimeout()
+									})
+									It("should use resolver timeout", func() {
+										translateAndCheckTimeout(resolverTimeout)
+									})
+								})
+								Context("without upstream timeout, with resolver timeout", func() {
+									BeforeEach(func() {
+										setResolverTimeout()
+									})
+									It("should use resolver timeout", func() {
+										translateAndCheckTimeout(resolverTimeout)
+									})
+								})
+							})
 							It("sets resolvers and cache control defaults", func() {
 								perRouteGql := translateRoute()
 								resolutions := perRouteGql.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()
-								Expect(resolutions[0].Matcher.GetFieldMatcher().GetType()).To(Equal("Query"))
-								Expect(resolutions[0].Matcher.GetFieldMatcher().GetField()).To(Equal("field1"))
+								Expect(len(resolutions)).NotTo(BeZero())
+								resolution := resolutions[0]
+								Expect(resolution.Matcher.GetFieldMatcher().GetType()).To(Equal("Query"))
+								Expect(resolution.Matcher.GetFieldMatcher().GetField()).To(Equal("field1"))
 
-								Expect(resolutions[0].GetCacheControl().GetMaxAge().GetValue()).To(Equal(uint32(70)))
-								Expect(resolutions[0].GetCacheControl().GetInheritMaxAge()).To(Equal(false))
-								Expect(resolutions[0].GetCacheControl().GetScope().String()).To(Equal("PRIVATE"))
+								Expect(resolution.GetCacheControl().GetMaxAge().GetValue()).To(Equal(uint32(70)))
+								Expect(resolution.GetCacheControl().GetInheritMaxAge()).To(Equal(false))
+								Expect(resolution.GetCacheControl().GetScope().String()).To(Equal("PRIVATE"))
 
-								any := resolutions[0].GetResolver()
-								Expect(any).NotTo(BeNil())
-								msg, err := utils.AnyToMessage(any.TypedConfig)
+								anyResolver := resolution.GetResolver()
+								Expect(anyResolver).NotTo(BeNil())
+								msg, err := utils.AnyToMessage(anyResolver.TypedConfig)
 								Expect(err).NotTo(HaveOccurred())
 								restResolver := msg.(*v2.RESTResolver)
 

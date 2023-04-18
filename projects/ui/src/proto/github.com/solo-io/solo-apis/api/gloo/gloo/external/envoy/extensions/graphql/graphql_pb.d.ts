@@ -3,6 +3,7 @@
 // file: github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/graphql/graphql.proto
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as validate_validate_pb from "../../../../../../../../../../validate/validate_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/http_uri_pb";

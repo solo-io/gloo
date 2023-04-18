@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -14,6 +13,7 @@ import (
 	"time"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/solo-io/licensing/pkg/model"
 
@@ -218,14 +218,14 @@ var _ = Describe("graphql", func() {
 		var testRequestWithHeaders = func(result string, headers map[string]string) {
 			var bodyStr string
 			var respHeaders http.Header
-			Eventually(func() (int, error) {
+			Eventually(func(g Gomega) (int, error) {
 				client := http.DefaultClient
 				reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/testroute", "localhost", envoyPort))
-				Expect(err).NotTo(HaveOccurred())
+				g.Expect(err).NotTo(HaveOccurred())
 				resp, err := client.Do(&http.Request{
 					Method: http.MethodPost,
 					URL:    reqUrl,
-					Body:   ioutil.NopCloser(strings.NewReader(query)),
+					Body:   io.NopCloser(strings.NewReader(query)),
 					Header: map[string][]string{
 						"bar":           []string{"bam"},
 						"queryparamkey": []string{"queryparamvalue"},
@@ -302,6 +302,9 @@ var _ = Describe("graphql", func() {
 			query = `{"query":"{ f:field1(intArg:2,boolArg:true,floatArg:9.99993,stringArg:\"this is a string arg\",mapArg:{a: 9},listArg:[21, 22, 23]){ simple } }","variables":{}}`
 
 			restUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "{\"simple\":\"foo\"}")
+			restUpstream.Upstream.ConnectionConfig = &gloov1.ConnectionConfig{
+				ConnectTimeout: durationpb.New(time.Second * 3),
+			}
 			_, err = testClients.UpstreamClient.Write(restUpstream.Upstream, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
@@ -340,6 +343,84 @@ var _ = Describe("graphql", func() {
 			}
 		})
 		Context("route rules", func() {
+			Context("with timeout", func() {
+				var (
+					// the response from the test upstream should match this response pattern for
+					// requests that do not time out
+					okRequestRegex = `[\s\t]*':status', '200'
+[\s\t]*'date', '.*'
+[\s\t]*'content-length', '16'
+[\s\t]*'content-type', 'text/plain; charset=utf-8'
+[\s\t]*'x-envoy-upstream-service-time', '10\d\d'`
+				)
+				JustBeforeEach(func() {
+					go func() {
+						for req := range restUpstream.C {
+							fmt.Fprint(GinkgoWriter, req.String())
+						}
+					}()
+					go func() {
+						for resp := range restUpstream.CResp {
+							fmt.Fprint(GinkgoWriter, resp.String())
+						}
+					}()
+				})
+
+				Context("without per-resolver timeout", func() {
+					When("response time exceeds upstream timeout", func() {
+						BeforeEach(func() {
+							resolver := graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver()
+							// make test upstream server wait 4 seconds to exceed our 3 second timeout configured by the upstream connection config
+							resolver.Request.QueryParams = map[string]string{"wait": "4000"}
+						})
+						It("times out on slow request", func() {
+							testRequest("")
+							Expect(envoyInstance.Logs()).To(ContainSubstring("upstream timeout"))
+						})
+					})
+
+					When("response time does not exceed upstream timeout", func() {
+						BeforeEach(func() {
+							resolver := graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver()
+							// make test upstream server wait 1 seconds to remain within our 3 second timeout configured by the upstream connection config
+							resolver.Request.QueryParams = map[string]string{"wait": "1000"}
+						})
+						It("does not time out on acceptable request", func() {
+							testRequest("")
+							Expect(envoyInstance.Logs()).NotTo(ContainSubstring("upstream timeout"))
+							Expect(envoyInstance.Logs()).To(MatchRegexp(okRequestRegex), func() string { s, _ := envoyInstance.Logs(); return s }())
+						})
+					})
+				})
+				Context("with per-resolver timeout", func() {
+					When("response time exceeds resolver timeout", func() {
+						BeforeEach(func() {
+							resolver := graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver()
+							// make test upstream server wait 1 second to exceed our 500 millisecond timeout configured by the resolver
+							resolver.Request.QueryParams = map[string]string{"wait": "1000"}
+							resolver.Timeout = durationpb.New(time.Millisecond * 500)
+						})
+						It("times out on slow request", func() {
+							testRequest("")
+							Expect(envoyInstance.Logs()).To(ContainSubstring("upstream timeout"))
+						})
+					})
+
+					When("response time does not exceed resolver timeout", func() {
+						BeforeEach(func() {
+							resolver := graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver()
+							// make test upstream server wait 1 second to remain within our 2 second timeout configured by the resolver
+							resolver.Request.QueryParams = map[string]string{"wait": "1000"}
+							resolver.Timeout = durationpb.New(time.Second * 2)
+						})
+						It("does not time out on acceptable request", func() {
+							testRequest("")
+							Expect(envoyInstance.Logs()).NotTo(ContainSubstring("upstream timeout"))
+							Expect(envoyInstance.Logs()).To(MatchRegexp(okRequestRegex), func() string { s, _ := envoyInstance.Logs(); return s }())
+						})
+					})
+				})
+			})
 			It("resolves graphql queries to REST upstreams", func() {
 				testRequest(`{"data":{"f":{"simple":"foo"}}}`)
 				Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{

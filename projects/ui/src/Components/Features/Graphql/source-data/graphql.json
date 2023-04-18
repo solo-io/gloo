@@ -86,6 +86,10 @@
                         "spanName": {
                           "type": "string",
                           "id": 4
+                        },
+                        "timeout": {
+                          "type": "google.protobuf.Duration",
+                          "id": 5
                         }
                       }
                     },
@@ -141,8 +145,18 @@
                         "spanName": {
                           "type": "string",
                           "id": 4
+                        },
+                        "timeout": {
+                          "type": "google.protobuf.Duration",
+                          "id": 5
                         }
-                      }
+                      },
+                      "reserved": [
+                        [
+                          3,
+                          3
+                        ]
+                      ]
                     },
                     "StitchedSchema": {
                       "fields": {

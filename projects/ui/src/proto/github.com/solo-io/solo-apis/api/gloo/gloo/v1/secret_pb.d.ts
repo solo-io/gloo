@@ -45,6 +45,11 @@ export class Secret extends jspb.Message {
   getCredentials(): AccountCredentialsSecret | undefined;
   setCredentials(value?: AccountCredentialsSecret): void;
 
+  hasEncryption(): boolean;
+  clearEncryption(): void;
+  getEncryption(): EncryptionKeySecret | undefined;
+  setEncryption(value?: EncryptionKeySecret): void;
+
   hasExtensions(): boolean;
   clearExtensions(): void;
   getExtensions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_extensions_pb.Extensions | undefined;
@@ -75,6 +80,7 @@ export namespace Secret {
     apiKey?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKey.AsObject,
     header?: HeaderSecret.AsObject,
     credentials?: AccountCredentialsSecret.AsObject,
+    encryption?: EncryptionKeySecret.AsObject,
     extensions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_extensions_pb.Extensions.AsObject,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,
   }
@@ -88,6 +94,7 @@ export namespace Secret {
     API_KEY = 6,
     HEADER = 8,
     CREDENTIALS = 9,
+    ENCRYPTION = 10,
     EXTENSIONS = 4,
   }
 }
@@ -207,5 +214,25 @@ export namespace AccountCredentialsSecret {
   export type AsObject = {
     username: string,
     password: string,
+  }
+}
+
+export class EncryptionKeySecret extends jspb.Message {
+  getKey(): string;
+  setKey(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EncryptionKeySecret.AsObject;
+  static toObject(includeInstance: boolean, msg: EncryptionKeySecret): EncryptionKeySecret.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EncryptionKeySecret, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EncryptionKeySecret;
+  static deserializeBinaryFromReader(message: EncryptionKeySecret, reader: jspb.BinaryReader): EncryptionKeySecret;
+}
+
+export namespace EncryptionKeySecret {
+  export type AsObject = {
+    key: string,
   }
 }

@@ -115,6 +115,11 @@ export class RESTResolver extends jspb.Message {
   getSpanName(): string;
   setSpanName(value: string): void;
 
+  hasTimeout(): boolean;
+  clearTimeout(): void;
+  getTimeout(): google_protobuf_duration_pb.Duration | undefined;
+  setTimeout(value?: google_protobuf_duration_pb.Duration): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RESTResolver.AsObject;
   static toObject(includeInstance: boolean, msg: RESTResolver): RESTResolver.AsObject;
@@ -131,6 +136,7 @@ export namespace RESTResolver {
     request?: RequestTemplate.AsObject,
     response?: ResponseTemplate.AsObject,
     spanName: string,
+    timeout?: google_protobuf_duration_pb.Duration.AsObject,
   }
 }
 
@@ -214,6 +220,11 @@ export class GrpcResolver extends jspb.Message {
   getSpanName(): string;
   setSpanName(value: string): void;
 
+  hasTimeout(): boolean;
+  clearTimeout(): void;
+  getTimeout(): google_protobuf_duration_pb.Duration | undefined;
+  setTimeout(value?: google_protobuf_duration_pb.Duration): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GrpcResolver.AsObject;
   static toObject(includeInstance: boolean, msg: GrpcResolver): GrpcResolver.AsObject;
@@ -229,6 +240,7 @@ export namespace GrpcResolver {
     upstreamRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     requestTransform?: GrpcRequestTemplate.AsObject,
     spanName: string,
+    timeout?: google_protobuf_duration_pb.Duration.AsObject,
   }
 }
 

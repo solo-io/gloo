@@ -2,7 +2,6 @@ package rest
 
 import (
 	"strings"
-	"time"
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/types"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/dot_notation"
 	resolver_utils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/utils"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 const (
@@ -37,13 +35,26 @@ func TranslateRestResolver(upstreams types.UpstreamList, r *RESTResolver) (*v3.T
 	if err != nil {
 		return nil, eris.Wrapf(err, "unable to find upstream `%s` in namespace `%s` to resolve schema", r.UpstreamRef.GetName(), r.UpstreamRef.GetNamespace())
 	}
+
+	timeout := resolver_utils.DefaultTimeout
+
+	if connTimeout := us.GetConnectionConfig().GetConnectTimeout(); connTimeout != nil {
+		// This is a decent solution for initial config, but the REST resolver config will not update if the
+		// upstream connection config changes
+		timeout = connTimeout
+	}
+	// Use per-resolution timeout if we have one
+	if resolverTimeout := r.GetTimeout(); resolverTimeout != nil {
+		timeout = resolverTimeout
+	}
+
 	restResolver := &v2.RESTResolver{
 		ServerUri: &v3.HttpUri{
 			Uri: "ignored", // ignored by graphql filter
 			HttpUpstreamType: &v3.HttpUri_Cluster{
 				Cluster: translator.UpstreamToClusterName(us.GetMetadata().Ref()),
 			},
-			Timeout: durationpb.New(1 * time.Second),
+			Timeout: timeout,
 		},
 		RequestTransform:      requestTransform,
 		PreExecutionTransform: responseTransform,

@@ -12,6 +12,7 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var validate_validate_pb = require('../../../../../../../../../../validate/validate_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/http_uri_pb.js');
