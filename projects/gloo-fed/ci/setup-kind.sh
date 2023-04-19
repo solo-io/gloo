@@ -1,7 +1,5 @@
 #!/bin/bash -ex
 
-# REMOVE_GLOO_FED_IMAGES - if set to "true", used to remove the images after they have been created and loaded on kind. Remove some, not all, of the fed images.
-
 # 0. Assign default values to some of our environment variables
 # The name of the management kind cluster to deploy to
 MANAGEMENT_CLUSTER="${MANAGEMENT_CLUSTER:-management}"
@@ -98,21 +96,12 @@ EOF
 # 5. Set context to management cluster
 kubectl config use-context kind-"$MANAGEMENT_CLUSTER"
 if [[ $FROM_RELEASE != "true" ]]; then
-  # 5a. Build local federation and enterprise images used in these clusters
+  # 5. Build local federation and enterprise images used in these clusters and load them into the kind cluster
   VERSION=$VERSION make package-gloo-fed-chart package-gloo-edge-chart -B
-  VERSION=$VERSION make gloo-ee-docker gloo-ee-envoy-wrapper-docker discovery-ee-docker -B
-
-  yarn --cwd projects/ui build
-
-  # 6. Load federation and enterprise images used in this test
-  CLUSTER_NAME=$MANAGEMENT_CLUSTER VERSION=$VERSION make gloofed-load-kind-images -B
-
-  if [[ $REMOVE_GLOO_FED_IMAGES == "true" ]]; then
-    VERSION=$VERSION make remove-all-gloofed-images -B
-  fi
-
-  CLUSTER_NAME=$MANAGEMENT_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee -B
+  VERSION=$VERSION make kind-build-federation-images -B
+  VERSION=$VERSION CLUSTER_NAME=$MANAGEMENT_CLUSTER make kind-load-federation-control-plane-images kind-load-federation-management-plane-images -B
 fi
+
 # 6a. Install gloo-fed and gloo-ee to management kind cluster
 cat > management-helm-values.yaml << EOF
 global:
@@ -187,7 +176,7 @@ if [[ $FROM_RELEASE == "true" ]]; then
   glooctl install gateway enterprise --license-key="$GLOO_LICENSE_KEY" --version "$VERSION" --values remote-helm-values.yaml
 else
   # Load enterprise images used in this test
-  CLUSTER_NAME=$REMOTE_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee -B
+  CLUSTER_NAME=$REMOTE_CLUSTER VERSION=$VERSION make kind-load-federation-control-plane-images -B
   glooctl install gateway enterprise --license-key="$GLOO_LICENSE_KEY" --file _output/helm/gloo-ee-"$VERSION".tgz --values remote-helm-values.yaml
 fi
 rm remote-helm-values.yaml

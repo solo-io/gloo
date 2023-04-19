@@ -5,13 +5,11 @@
 UNAME_M ?=$(shell uname -m)
 
 # If you just put your username, then that refers to your account at hub.docker.com
-# To use quay images, set the IMAGE_REG to "quay.io/solo-io" (or leave unset)
-# To use dockerhub images, set the IMAGE_REG to "soloio"
-# To use gcr images, set the IMAGE_REG to "gcr.io/$PROJECT_NAME"
+# To use quay images, set the IMAGE_REGISTRY to "quay.io/solo-io" (or leave unset)
+# To use dockerhub images, set the IMAGE_REGISTRY to "soloio"
+# To use gcr images, set the IMAGE_REGISTRY to "gcr.io/$PROJECT_NAME"
 # leave default value unset
-
-IMAGE_REG_DEFAULT_VALUE := quay.io/solo-io
-IMAGE_REG ?= $(IMAGE_REG_DEFAULT_VALUE)
+IMAGE_REGISTRY ?= quay.io/solo-io
 
 GOLANG_VERSION := golang:1.20.1-alpine
 # the build image for GLOO is much different than for rate-limit and ext-auth
@@ -32,12 +30,6 @@ else
 	VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
 endif
 
-ifeq ($(PUSH_TESTS_ARM), true)
-	RELEASE := "true"
-	IMAGE_REG ?= localhost:5000
-endif
-
-
 # if `GO_ARCH` is set, then it will keep its value. Else, it will be changed based off the machine's host architecture.
 # if the machines architecture is set to arm64 then we want to set the appropriate values, else we only support amd64
 IS_ARM_MACHINE := $(or	$(filter $(UNAME_M), arm64), $(filter $(UNAME_M), aarch64))
@@ -56,6 +48,8 @@ else
 	endif
 endif
 
+GOOS ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')
+
 DOCKER_BUILD_ARGS :=--build-arg DOCKER_GOARCH=$(GOARCH) $(PLATFORM)
 DOCKER_GOARCH := $(GOARCH)
 
@@ -68,38 +62,3 @@ endif
 DOCKER_GO_BORING_ARGS=--build-arg GOEXPERIMENT=boringcrypto --build-arg DOCKER_GOARCH=amd64 --build-arg DOCKER_CGO_ENABLED=1 --platform linux/amd64 
 # to build an image that must be a AMD64 platform
 DOCKER_GO_AMD_64_ARGS=--build-arg DOCKER_GOARCH=amd64 --build-arg DOCKER_CGO_ENABLED=1
-
-#----------------------------------------------------------------------------------
-# Kind Load Images
-#----------------------------------------------------------------------------------
-
-CLUSTER_NAME ?= kind
-
-kind-load-%:
-	kind load docker-image $(IMAGE_REG)/$*:$(VERSION) --name $(CLUSTER_NAME)
-
-kind-load-%-debug:
-	kind load docker-image $(IMAGE_REG)/$*:$(VERSION)-debug --name $(CLUSTER_NAME)
-
-kind-load-%-extended:
-	kind load docker-image $(IMAGE_REG)/$*:$(VERSION)-extended --name $(CLUSTER_NAME)
-
-# Useful utility for listing images loaded into the kind cluster
-.PHONY: kind-list-images
-kind-list-images: ## List solo-io images in the kind cluster named {CLUSTER_NAME}
-	docker exec -ti $(CLUSTER_NAME)-control-plane crictl images | grep "solo-io"
-
-# Useful utility for pruning images that were previously loaded into the kind cluster
-.PHONY: kind-prune-images
-kind-prune-images: ## Remove images in the kind cluster named {CLUSTER_NAME}
-	docker exec -ti $(CLUSTER_NAME)-control-plane crictl rmi --prune
-
-#----------------------------------------------------------------------------------
-# Push Images
-#----------------------------------------------------------------------------------
-
-push-image-%: ## Docker push image, according to {IMAGE_REG, VERSION}
-	docker push $(IMAGE_REG)/$*:$(VERSION)
-
-push-image-%-extended:
-	docker push $(IMAGE_REG)/$*:$(VERSION)-extended

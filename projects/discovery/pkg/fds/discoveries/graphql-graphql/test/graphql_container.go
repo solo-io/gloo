@@ -46,7 +46,7 @@ func (c *ContainerBase) Start() error {
 	}
 
 	// this image can be updated in github.com/solo-io/gloo-graphql-example
-	// IMAGE_REPO=gcr.io/solo-test-236622 VERSION=0.0.3 ./build-todo-app.sh
+	// IMAGE_REGISTRY=gcr.io/solo-test-236622 VERSION=0.0.3 ./build-todo-app.sh
 	// you can use the following
 	// docker push gcr.io/solo-test-236622/graphql-todo:0.0.3-amd64
 	// docker push gcr.io/solo-test-236622/graphql-todo:0.0.3-arm64"

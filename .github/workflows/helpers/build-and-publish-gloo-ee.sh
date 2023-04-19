@@ -1,4 +1,4 @@
-# !/bin/bash
+# !/bin/bash -ex
 # --------------------------------------
 # This script builds and publishes a gloo-ee release...
 #   * images:           https://quay.io/organization/solo-io
@@ -27,8 +27,8 @@ fi
 
 # build and push images
 make install-node-packages -B
-VERSION=$VERSION make build-kind-images-non-fips -B
-VERSION=$VERSION TAGGED_VERSION=$VERSION make docker-push-non-fips -B
+VERSION=$VERSION make docker -B
+VERSION=$VERSION make docker-push -B
 
 # create appropriate Values.yaml and Chart.yaml files
 helm repo update

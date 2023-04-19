@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"reflect"
-	"runtime"
 	"strings"
 
 	"github.com/solo-io/gloo/install/helm/gloo/generate"
@@ -21,10 +20,7 @@ import (
 const (
 	devPullPolicy          = string(v1.PullAlways)
 	distributionPullPolicy = string(v1.PullIfNotPresent)
-	// this is the default arm image repo for the arm work around
-	defaultArmImageRegistry = "localhost:5000"
-	// this is the default image registry
-	defaultImageRegistry = "quay.io/solo-io"
+	defaultImageRegistry   = "quay.io/solo-io"
 )
 
 // We produce two helm artifacts: GlooE and Gloo with a read-only version of the GlooE UI
@@ -110,21 +106,13 @@ func GetGenerationConfig(args *GenerationArguments, osGlooVersion string, genera
 	if args.Version == "dev" {
 		pullPolicyForVersion = devPullPolicy
 	}
-	// when running in arm64, use work around settings
-	imageRepo := args.RepoPrefixOverride
-	if runtime.GOARCH == "arm64" && imageRepo == "" && os.Getenv("RUNNING_REGRESSION_TESTS") == "true" {
-		imageRepo = os.Getenv("IMAGE_REG")
-		if imageRepo == "" {
-			imageRepo = defaultArmImageRegistry
-		}
-		pullPolicyForVersion = devPullPolicy
-	}
+
 	return &GenerationConfig{
 		Arguments:            args,
 		OsGlooVersion:        osGlooVersion,
 		PullPolicyForVersion: pullPolicyForVersion,
 		GenerationFiles:      generationFiles,
-		ArmImageRegistry:     imageRepo,
+		ArmImageRegistry:     args.RepoPrefixOverride,
 	}
 }
 

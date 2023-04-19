@@ -1,4 +1,4 @@
-# !/bin/bash
+# !/bin/bash -ex
 # --------------------------------------
 # This script builds and publishes a gloo-fed release...
 #   * images:           https://quay.io/organization/solo-io
@@ -14,8 +14,8 @@ HELM_DIR="install/helm"
 
 # build and push images
 make install-node-packages -B
-VERSION=$VERSION make gloofed-docker -B
-VERSION=$VERSION TAGGED_VERSION=$VERSION make docker-push-fed -B
+VERSION=$VERSION make docker-fed -B
+VERSION=$VERSION make docker-fed-push -B
 
 # create appropriate Values.yaml and Chart.yaml files
 VERSION=$VERSION make init-helm

@@ -1,4 +1,4 @@
-# !/bin/bash
+# !/bin/bash -ex
 # --------------------------------------
 # This script builds and publishes a gloo release...
 #   * images:           https://quay.io/organization/solo-io
@@ -15,8 +15,8 @@ HELM_DIR="install/helm/gloo"
 # build and push images
 cd gloo
 make install-node-packages -B
-VERSION=$VERSION make docker-local -B
-VERSION=$VERSION TAGGED_VERSION=$VERSION make docker-push -B
+VERSION=$VERSION make docker -B
+VERSION=$VERSION make docker-push -B
 
 # create appropriate Values.yaml and Chart.yaml files
 VERSION=$VERSION make generate-helm-files
@@ -46,5 +46,5 @@ echo "  Image Repo: https://quay.io/organization/solo-io" >> published-gloo.txt
 echo "Can Install Via:" >> published-gloo.txt
 echo "❯ helm repo add gloo-test https://storage.googleapis.com/gloo-ee-test-helm" >> published-gloo.txt
 echo "❯ helm repo update" >> published-gloo.txt
-echo "❯ helm install -n gloo-system gloo-test gloo-test/gloo --create-namespace --version $VERSION --set-string license_key=\$GLOO_LICENSE_KEY" >> published-gloo.txt
+echo "❯ helm install -n gloo-system gloo-test gloo-test/gloo --create-namespace --version $VERSION" >> published-gloo.txt
 cat published-gloo.txt

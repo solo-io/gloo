@@ -1,7 +1,5 @@
 #!/bin/bash -ex
 
-# REMOVE_CANARY_IMAGES - if set to "true", used to remove the images after they have been created and loaded on kind. Remove some of the canary images.
-
 # 0. Assign default values to some of our environment variables
 # Get directory this script is located in to access script local files
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
@@ -73,14 +71,10 @@ VERSION=$VERSION make gloo-ee-docker gloo-ee-envoy-wrapper-docker discovery-ee-d
 kubectl config use-context kind-"$MANAGEMENT_CLUSTER"
 CLUSTER_NAME=$MANAGEMENT_CLUSTER VERSION=$VERSION make kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-webhook -B
 
-if [[ $REMOVE_CANARY_IMAGES == "true" ]]; then
-  VERSION=$VERSION make remove-gloofed-controller-images -B
-fi
-
 # 6. Seed the remote-release cluster
 kubectl config use-context kind-"$REMOTE_RELEASE_CLUSTER"
-CLUSTER_NAME=$REMOTE_RELEASE_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee -B
+CLUSTER_NAME=$REMOTE_RELEASE_CLUSTER VERSION=$VERSION make kind-load-federation-control-plane-images -B
 
 # 7. Seed the remote-canary cluster
 kubectl config use-context kind-"$REMOTE_CANARY_CLUSTER"
-CLUSTER_NAME=$REMOTE_CANARY_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee -B
+CLUSTER_NAME=$REMOTE_CANARY_CLUSTER VERSION=$VERSION make kind-load-federation-control-plane-images -B
