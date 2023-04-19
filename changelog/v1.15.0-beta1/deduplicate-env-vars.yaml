@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Deduplicate EnvVars in our rate limit deployment to fix potential crashes when deploying helm charts with ArgoCI
+    issueLink: https://github.com/solo-io/gloo/issues/7992

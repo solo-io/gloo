@@ -59,140 +59,106 @@ spec:
           resources:
 {{ toYaml .Values.global.extensions.rateLimit.deployment.resources | indent 12}}
           {{- end}}{{/* .Values.global.extensions.rateLimit.deployment.resources */}}
+          {{- $envVars := list }}
           env:
-            - name: POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: GLOO_ADDRESS
-              {{- if .Values.global.glooMtls.enabled }}
-              value: "127.0.0.1:9955"
-              {{- else }}
-              value: {{ .Values.global.extensions.rateLimit.deployment.glooAddress }}:{{ .Values.global.extensions.rateLimit.deployment.glooPort }}
-              {{- end }}{{/* .Values.global.glooMtls.enabled */}}
+            {{- $envVars = append $envVars (dict "name" "POD_NAMESPACE" "valueFrom" (dict "fieldRef" (dict "fieldPath" "metadata.namespace"))) }}
+            {{- if .Values.global.glooMtls.enabled }}
+              {{- $envVars = append $envVars (dict "name" "GLOO_ADDRESS" "value" "127.0.0.1:9955") }}
+            {{- else }}
+              {{- $envVars = append $envVars (dict "name" "GLOO_ADDRESS" "value" (printf "%s:%.0f" .Values.global.extensions.rateLimit.deployment.glooAddress .Values.global.extensions.rateLimit.deployment.glooPort))  }}
+            {{- end }}{{/* .Values.global.glooMtls.enabled */}}
             {{- if $statsConfig.enabled }}
-            - name: START_STATS_SERVER
-              value: "true"
+              {{- $envVars = append $envVars (dict "name" "START_STATS_SERVER" "value" "true") }}
             {{- end}}{{/* $statsConfig.enabled */}}
             {{- if .Values.global.extensions.rateLimit.deployment.dynamodb.secretName }}
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.secretName }}
-                  key: aws_access_key_id
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.secretName }}
-                  key: aws_secret_access_key
-            - name: AWS_REGION
-              value: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.region }}
-            - name: DYNAMODB_RATE_LIMIT_TABLE_NAME
-              value: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.tableName }}
-            - name: DYNAMODB_CONSISTENT_READS
-              value: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.consistentReads | quote }}
-            - name: DYNAMODB_BATCH_SIZE
-              value: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.batchSize | quote }}
+              {{- $envVars = append $envVars (dict "name" "AWS_ACCESS_KEY_ID" "valueFrom" (dict "secretKeyRef" (dict "name" .Values.global.extensions.rateLimit.deployment.dynamodb.secretName "key" "aws_access_key_id"))) }}
+              {{- $envVars = append $envVars (dict "name" "AWS_SECRET_ACCESS_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" .Values.global.extensions.rateLimit.deployment.dynamodb.secretName "key" "aws_secret_access_key"))) }}
+              {{- $envVars = append $envVars (dict "name" "AWS_REGION" "value" .Values.global.extensions.rateLimit.deployment.dynamodb.region) }}
+              {{- $envVars = append $envVars (dict "name" "DYNAMODB_RATE_LIMIT_TABLE_NAME" "value" .Values.global.extensions.rateLimit.deployment.dynamodb.tableName) }}
+              {{- $envVars = append $envVars (dict "name" "DYNAMODB_CONSISTENT_READS" "value" .Values.global.extensions.rateLimit.deployment.dynamodb.consistentReads) }}
+              {{- $envVars = append $envVars (dict "name" "DYNAMODB_BATCH_SIZE" "value" .Values.global.extensions.rateLimit.deployment.dynamodb.batchSize) }}
             {{- else if .Values.global.extensions.rateLimit.deployment.aerospike.address }}
             {{- $aero := .Values.global.extensions.rateLimit.deployment.aerospike }}
-            - name: AEROSPIKE_ADDRESS
-              value: {{ $aero.address }}
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_ADDRESS" "value" (printf "%v" $aero.address)) }}
             {{- if $aero.namespace }}
-            - name: AEROSPIKE_NAMESPACE
-              value: {{ $aero.namespace }}
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_NAMESPACE" "value" (printf "%v" $aero.namespace)) }}
             {{- end }}
             {{- if $aero.set }}
-            - name: AEROSPIKE_SET
-              value: {{ $aero.set }}
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_SET" "value" (printf "%v" $aero.set)) }}
             {{- end }}
             {{- if $aero.port }}
-            - name: AEROSPIKE_PORT
-              value: {{ $aero.port | quote}}
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_PORT" "value" (printf "%v" $aero.port)) }}
             {{- end }}
             {{- if $aero.batchSize }}
-            - name: AEROSPIKE_BATCH_SIZE
-              value: {{ $aero.batchSize | quote }}
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_BATCH_SIZE" "value" (printf "%v" $aero.batchSize)) }}
             {{- end }}
             {{- if $aero.commitLevel }}
-            - name: AEROSPIKE_COMMIT_LEVEL
-              value: {{ $aero.commitLevel | quote }}
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_COMMIT_LEVEL" "value" (printf "%v" $aero.commitLevel)) }}
             {{- end }}
             {{- if $aero.readModeSC }}
-            - name: AEROSPIKE_READMODE_SC
-              value: {{ $aero.readModeSC | quote }}
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_READMODE_SC" "value" (printf "%v" $aero.readModeSC)) }}
             {{- end }}
             {{- if $aero.readModeAP }}
-            - name: AEROSPIKE_READMODE_AP
-              value: {{ $aero.readModeAP | quote }}
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_READMODE_AP" "value" (printf "%v" $aero.readModeAP)) }}
             {{- end }}
             {{- if $aero.tls }}
             {{- if $aero.tls.name }}
-            - name: AEROSPIKE_NODE_TLS_NAME
-              value: {{ $aero.tls.name }}
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_NODE_TLS_NAME" "value" (printf "%v" $aero.tls.name)) }}
             {{- end }}
             {{- if $aero.tls.insecure }}
-            - name: AEROSPIKE_INSECURE_SKIP_VERIFY
-              value: {{ $aero.tls.insecure | quote }}
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_INSECURE_SKIP_VERIFY" "value" (printf "%v" $aero.tls.insecure)) }}
             {{- end }}
             {{- if $aero.tls.version }}
-            - name: AEROSPIKE_TLS_VERSION
-              value: {{ $aero.tls.version | quote }}
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_TLS_VERSION" "value" (printf "%v" $aero.tls.version)) }}
             {{- end }}
             {{- if $aero.tls.curveGroups }}
-            - name: AEROSPIKE_TLS_CURVE_GROUPS
-              value: '{{ join "," $aero.tls.curveGroups }}'
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_TLS_CURVE_GROUPS" "value" (printf "%v" (join "," $aero.tls.curveGroups))) }}
             {{- end }}
             {{- if $aero.tls.certSecretName }}
-            - name: AEROSPIKE_CERT_FILE
-              value: "/etc/aerospike/tls/tls.crt"
-            - name: AEROSPIKE_KEY_FILE
-              value: "/etc/aerospike/tls/tls.key"
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_CERT_FILE" "value" "/etc/aerospike/tls/tls.crt") }}
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_KEY_FILE" "value" "/etc/aerospike/tls/tls.key") }}
             {{- end }}
             {{- if $aero.tls.rootCASecretName }}
-            - name: AEROSPIKE_ROOT_CA_FILE
-              value: "/etc/aerospike/root-tls/tls.crt"
+              {{- $envVars = append $envVars (dict "name" "AEROSPIKE_ROOT_CA_FILE" "value" "/etc/aerospike/root-tls/tls.crt") }}
             {{- end }}
             {{- end }}{{/* $aero.tls */}}
             {{- else if .Values.redis.clientSideShardingEnabled }}{{/* end .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
-            - name: REDIS_URL
-              value: /var/run/envoy/ratelimit.sock
-            - name: REDIS_SOCKET_TYPE
-              value: unix
+              {{- $envVars = append $envVars (dict "name" "REDIS_URL" "value" "/var/run/envoy/ratelimit.sock") }}
+              {{- $envVars = append $envVars (dict "name" "REDIS_SOCKET_TYPE" "value" "unix") }}
             {{- else }}
-            - name: REDIS_URL
-              value: {{ printf "%s:%v" $redisName .Values.redis.service.port }}
+              {{- $envVars = append $envVars (dict "name" "REDIS_URL" "value" (printf "%s:%v" $redisName .Values.redis.service.port)) }}
             {{- if .Values.redis.cert.enabled }}
-            - name: REDIS_CA_CERT
-              value: /etc/tls/ca.crt
-            - name: REDIS_SOCKET_TYPE
-              value: tls
+              {{- $envVars = append $envVars (dict "name" "REDIS_CA_CERT" "value" "/etc/tls/ca.crt") }}
+              {{- $envVars = append $envVars (dict "name" "REDIS_SOCKET_TYPE" "value" "tls") }}
             {{- else }}
-            - name: REDIS_SOCKET_TYPE
-              value: tcp
+              {{- $envVars = append $envVars (dict "name" "REDIS_SOCKET_TYPE" "value" "tcp") }}
             {{- end }}{{/* .Values.redis.cert.enabled */}}
-            - name: REDIS_CLUSTERED_MODE
-              value: {{ .Values.redis.clustered | quote }}
+              {{- $envVars = append $envVars (dict "name" "REDIS_CLUSTERED_MODE" "value" (printf "%v" .Values.redis.clustered))}}
             {{- end }}{{/* .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
             {{- if .Values.global.extensions.glooRedis.enableAcl }}
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: redis
-                  key: redis-password
+              {{- $envVars = append $envVars (dict "name" "REDIS_PASSWORD" "valueFrom" (dict "secretKeyRef" (dict "name" "redis" "key" "redis-password"))) }}
             {{- end }}
-            - name: READY_PORT_HTTP
-              value: "18080"
-            - name: READY_PATH_HTTP
-              value: "/ready"
-            - name: ALIVE_PATH_HTTP
-              value: "/alive"
+              {{- $envVars = append $envVars (dict "name" "READY_PORT_HTTP" "value" "18080") }}
+              {{- $envVars = append $envVars (dict "name" "READY_PATH_HTTP" "value" "/ready") }}
+              {{- $envVars = append $envVars (dict "name" "ALIVE_PATH_HTTP" "value" "/alive") }}
             {{- if or .Values.global.extensions.rateLimit.deployment.logLevel .Values.global.extensions.rateLimit.deployment.loglevel }}
-            - name: LOG_LEVEL
-              value: {{ coalesce .Values.global.extensions.rateLimit.deployment.logLevel .Values.global.extensions.rateLimit.deployment.loglevel }}
+              {{- $envVars = append $envVars (dict "name" "LOG_LEVEL" "value" (coalesce .Values.global.extensions.rateLimit.deployment.logLevel .Values.global.extensions.rateLimit.deployment.loglevel)) }}
             {{- end }}
-            {{- if .Values.global.extensions.rateLimit.deployment.customEnv }}
-{{ toYaml .Values.global.extensions.rateLimit.deployment.customEnv | indent 12 }}
-            {{- end }}
+{{- $mergedEnvVars := list }}
+{{- $keys := list }}
+{{- if not .Values.global.extensions.rateLimit.deployment.customEnv }}
+{{ toYaml $envVars | indent 12 }}
+{{- else }}
+  # We iterate over the lists in reverse order since the last declared EnvVar should take precedence
+  # CustomEnv will take precedence over our default env
+  {{- range $envVar := (reverse (concat $envVars .Values.global.extensions.rateLimit.deployment.customEnv)) }}
+    {{- if not (has $envVar.name $keys) }}
+      {{- $keys = append $keys $envVar.name}}
+      {{- $mergedEnvVars = append $mergedEnvVars $envVar}}
+    {{- end }}
+  {{- end }}
+{{ toYaml (reverse $mergedEnvVars) | indent 12 }}
+{{- end }}
           readinessProbe:
             httpGet:
               port: 18080

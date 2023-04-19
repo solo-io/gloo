@@ -4298,6 +4298,43 @@ spec:
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
+			It("can deduplicate env vars if overwritten by customEnv", func() {
+				expectedEnv := &expectedDeployment.Spec.Template.Spec.Containers[0].Env
+				newEnvs := []v1.EnvVar{}
+
+				for _, envVar := range *expectedEnv {
+					if envVar.Name != "READY_PORT_HTTP" {
+						newEnvs = append(newEnvs, envVar)
+					}
+				}
+
+				newEnvs = append(newEnvs, v1.EnvVar{
+					Name:  "READY_PORT_HTTP",
+					Value: "someVal",
+				})
+
+				*expectedEnv = newEnvs
+
+				Expect(*expectedEnv).To(ContainElement(v1.EnvVar{
+					Name:  "READY_PORT_HTTP",
+					Value: "someVal",
+				}))
+
+				Expect(*expectedEnv).NotTo(ContainElement(v1.EnvVar{
+					Name:  "READY_PORT_HTTP",
+					Value: "18080",
+				}))
+
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.rateLimit.deployment.customEnv[0].name=READY_PORT_HTTP",
+						"global.extensions.rateLimit.deployment.customEnv[0].value=someVal",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
 			It("can override rate limit security context", func() {
 				podSecurityRoot := "global.extensions.rateLimit.deployment.podSecurityContext"
 				containerSecurityRoot := "global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext"
