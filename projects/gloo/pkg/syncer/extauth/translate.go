@@ -451,6 +451,24 @@ func translatePlainOAuth2(snap *v1snap.ApiSnapshot, config *extauth.PlainOAuth2)
 	if err != nil {
 		return nil, err
 	}
+	var session *extauth.UserSession
+	// userSession will be set to nil if the cipher config is set. This needs to be applied to any new features as well.
+	userSession, err := translateUserSession(snap, config.Session)
+	if err != nil {
+		return nil, err
+	}
+	// if the cipher config is set to nil, we want to pass the session as is for backwards compatibility.
+	// NOTE: changes to the UserSession must be relected in this conditional as well.
+	if config.Session.GetCipherConfig() == nil {
+		// session is deprecated, use userSession.
+		session, err = userSessionToSession(userSession)
+		if err != nil {
+			return nil, err
+		}
+		// if the client sets the cipherConfig, we do not want to set uncrypted cookies for the client. Client
+		// should receive 400 errors because they can not authenticate with identity providers.
+		userSession = nil
+	}
 
 	return &extauth.ExtAuthConfig_PlainOAuth2Config{
 		AppUrl:                   config.AppUrl,
@@ -462,15 +480,41 @@ func translatePlainOAuth2(snap *v1snap.ApiSnapshot, config *extauth.PlainOAuth2)
 		AfterLogoutUrl:           config.AfterLogoutUrl,
 		LogoutPath:               config.LogoutPath,
 		Scopes:                   config.Scopes,
-		Session:                  config.Session,
-		TokenEndpoint:            config.TokenEndpoint,
-		AuthEndpoint:             config.AuthEndpoint,
-		RevocationEndpoint:       config.RevocationEndpoint,
+		// Session is deprecated, use UserSession. setting session here because upgrades could neglect UserSession from race condition
+		Session:            session,
+		UserSession:        userSession,
+		TokenEndpoint:      config.TokenEndpoint,
+		AuthEndpoint:       config.AuthEndpoint,
+		RevocationEndpoint: config.RevocationEndpoint,
 	}, nil
 }
 
-func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.OidcAuthorizationCode) (*extauth.ExtAuthConfig_OidcAuthorizationCodeConfig, error) {
+// userSessionToSession will construct a deprecated user session to a session store.
+// The userSession is used to construct the redis or cookie session store.
+func userSessionToSession(userSession *extauth.ExtAuthConfig_UserSessionConfig) (*extauth.UserSession, error) {
+	if userSession == nil {
+		return nil, nil
+	}
+	session := &extauth.UserSession{
+		FailOnFetchFailure: userSession.FailOnFetchFailure,
+		CookieOptions:      userSession.CookieOptions,
+	}
+	switch u := userSession.Session.(type) {
+	case *extauth.ExtAuthConfig_UserSessionConfig_Cookie:
+		session.Session = &extauth.UserSession_Cookie{
+			Cookie: u.Cookie,
+		}
+	case *extauth.ExtAuthConfig_UserSessionConfig_Redis:
+		session.Session = &extauth.UserSession_Redis{
+			Redis: u.Redis,
+		}
+	default:
+		return nil, errors.Errorf("unknown user session type [%T] cannot convert to session", u)
+	}
+	return session, nil
+}
 
+func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.OidcAuthorizationCode) (*extauth.ExtAuthConfig_OidcAuthorizationCodeConfig, error) {
 	secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
 	if err != nil {
 		return nil, err
@@ -483,6 +527,24 @@ func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.Oi
 		if headerName := session.Redis.GetHeaderName(); headerName != "" {
 			sessionIdHeaderName = headerName
 		}
+	}
+	var session *extauth.UserSession
+	userSessionConfig, err := translateUserSession(snap, config.GetSession())
+	if err != nil {
+		return nil, err
+	}
+	// if the cipher config is set to nil, we want to pass the session as is for backwards compatibility.
+	// NOTE: changes to the UserSession must be relected in this conditional as well.
+	if config.GetSession().GetCipherConfig() == nil {
+		// session is deprecated, use userSession.
+		// If userSession is nil, there might be an old API that is being used, in this case default to session.
+		session, err = userSessionToSession(userSessionConfig)
+		if err != nil {
+			return nil, err
+		}
+		// if the client sets the cipherConfig, we do not want to set uncrypted cookies for the client. Client
+		// should receive 400 errors because they can not authenticate with identity providers.
+		userSessionConfig = nil
 	}
 
 	return &extauth.ExtAuthConfig_OidcAuthorizationCodeConfig{
@@ -497,7 +559,9 @@ func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.Oi
 		SessionIdHeaderName:      sessionIdHeaderName,
 		LogoutPath:               config.LogoutPath,
 		Scopes:                   config.Scopes,
-		Session:                  config.Session,
+		// Session is deprecated, use UserSession. setting session here because upgrades could neglect UserSession from race condition
+		Session:                  session,
+		UserSession:              userSessionConfig,
 		Headers:                  config.Headers,
 		DiscoveryOverride:        config.DiscoveryOverride,
 		DiscoveryPollInterval:    config.GetDiscoveryPollInterval(),
@@ -506,6 +570,64 @@ func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.Oi
 		AutoMapFromMetadata:      config.AutoMapFromMetadata,
 	}, nil
 }
+
+// translateUserSession will create the UserSessionConfig used in the deprecated UserSession.
+// NOTE: changes to the UserSession must be relected in this conditional as well when building the UserSession.
+func translateUserSession(snap *v1snap.ApiSnapshot, config *extauth.UserSession) (*extauth.ExtAuthConfig_UserSessionConfig, error) {
+	if config == nil {
+		return nil, nil
+	}
+	userSessionConfig := &extauth.ExtAuthConfig_UserSessionConfig{
+		FailOnFetchFailure: config.FailOnFetchFailure,
+		CookieOptions:      config.CookieOptions,
+	}
+	if err := translateUserSessionCipherConfig(snap, config, userSessionConfig); err != nil {
+		return nil, err
+	}
+	if err := translateUserSessionSession(snap, config, userSessionConfig); err != nil {
+		return nil, err
+	}
+	return userSessionConfig, nil
+}
+
+func translateUserSessionCipherConfig(snap *v1snap.ApiSnapshot, config *extauth.UserSession, userSessionConfig *extauth.ExtAuthConfig_UserSessionConfig) error {
+	const encryptionKeyLength = 32
+	cipherKeyRef := config.GetCipherConfig().GetKeyRef()
+	if cipherKeyRef != nil {
+		cipherSecret, err := snap.Secrets.Find(cipherKeyRef.GetNamespace(), cipherKeyRef.GetName())
+		if err != nil {
+			return err
+		}
+		encryptionKey := cipherSecret.GetEncryption().GetKey()
+		if len(encryptionKey) != encryptionKeyLength {
+			return fmt.Errorf("the encryption key needs to be %d characters in length", encryptionKeyLength)
+		}
+		userSessionConfig.CipherConfig = &extauth.ExtAuthConfig_UserSessionConfig_CipherConfig{
+			Key: encryptionKey,
+		}
+	}
+	return nil
+}
+
+func translateUserSessionSession(snap *v1snap.ApiSnapshot, config *extauth.UserSession, userSessionConfig *extauth.ExtAuthConfig_UserSessionConfig) error {
+	if config.GetSession() == nil {
+		return nil
+	}
+	switch t := config.GetSession().(type) {
+	case *extauth.UserSession_Cookie:
+		userSessionConfig.Session = &extauth.ExtAuthConfig_UserSessionConfig_Cookie{
+			Cookie: t.Cookie,
+		}
+	case *extauth.UserSession_Redis:
+		userSessionConfig.Session = &extauth.ExtAuthConfig_UserSessionConfig_Redis{
+			Redis: t.Redis,
+		}
+	default:
+		return fmt.Errorf("this is not a valid type to for the userSession session: %t", t)
+	}
+	return nil
+}
+
 func translateLdapConfig(snap *v1snap.ApiSnapshot, config *extauth.Ldap) (*extauth.ExtAuthConfig_LdapConfig, error) {
 	var translatedGroupLookupSettings *extauth.ExtAuthConfig_LdapServiceAccountConfig
 	if config.GroupLookupSettings != nil {

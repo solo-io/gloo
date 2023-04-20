@@ -2,10 +2,12 @@ package config_test
 
 import (
 	"context"
+	"net/http"
 	"reflect"
 	"time"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth2"
+	"github.com/solo-io/ext-auth-service/pkg/utils/cipher"
 
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
@@ -557,17 +559,19 @@ var _ = Describe("Ext Auth Config Translator", func() {
 	})
 
 	Context("translating PlainOAuth2 config", func() {
-		Context("session", func() {
+		Context("UserSession", func() {
 			path := "/foo"
 			var extAuthCookie *extauthv1.UserSession
 			BeforeEach(func() {
-				extAuthCookie = &extauthv1.UserSession{CookieOptions: &extauthv1.UserSession_CookieOptions{
-					MaxAge:    &wrappers.UInt32Value{Value: 1},
-					Domain:    "foo.com",
-					NotSecure: true,
-					Path:      &wrappers.StringValue{Value: path},
-					SameSite:  extauthv1.UserSession_CookieOptions_LaxMode,
-				}}
+				extAuthCookie = &extauthv1.UserSession{
+					CookieOptions: &extauthv1.UserSession_CookieOptions{
+						MaxAge:    &wrappers.UInt32Value{Value: 1},
+						Domain:    "foo.com",
+						NotSecure: true,
+						Path:      &wrappers.StringValue{Value: path},
+						SameSite:  extauthv1.UserSession_CookieOptions_LaxMode,
+					},
+				}
 			})
 
 			It("should translate nil session", func() {
@@ -590,102 +594,289 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				}))
 			})
 		})
+		Context("UserSessionConfig", func() {
+			path := "/foo"
+			var extAuthCookie *extauthv1.ExtAuthConfig_UserSessionConfig
+			BeforeEach(func() {
+				extAuthCookie = &extauthv1.ExtAuthConfig_UserSessionConfig{
+					CookieOptions: &extauthv1.UserSession_CookieOptions{
+						MaxAge:    &wrappers.UInt32Value{Value: 1},
+						Domain:    "foo.com",
+						NotSecure: true,
+						Path:      &wrappers.StringValue{Value: path},
+						SameSite:  extauthv1.UserSession_CookieOptions_LaxMode,
+					},
+				}
+			})
+
+			It("should translate nil session", func() {
+				params, err := config.ToSessionParametersOAuth2(nil)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params).To(Equal(oauth2.SessionParameters{}))
+			})
+			It("should translate CookieOptions", func() {
+				params, err := config.UserSessionConfigToSessionParametersOAuth2(extAuthCookie)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params).To(Equal(oauth2.SessionParameters{
+					Options: &session.Options{
+						Path:     &path,
+						Domain:   "foo.com",
+						HttpOnly: true,
+						MaxAge:   1,
+						Secure:   false,
+						SameSite: session.SameSiteLaxMode,
+					},
+				}))
+			})
+		})
 	})
 
 	Context("OIDC session", func() {
-		path := "/foo"
-		var extAuthCookie *extauthv1.UserSession
-		BeforeEach(func() {
-			extAuthCookie = &extauthv1.UserSession{CookieOptions: &extauthv1.UserSession_CookieOptions{
-				MaxAge:    &wrappers.UInt32Value{Value: 1},
-				Domain:    "foo.com",
-				NotSecure: true,
-				Path:      &wrappers.StringValue{Value: path},
-				SameSite:  extauthv1.UserSession_CookieOptions_LaxMode,
-			}}
-		})
+		Context("UserSession", func() {
+			path := "/foo"
+			var extAuthCookie *extauthv1.UserSession
+			BeforeEach(func() {
+				extAuthCookie = &extauthv1.UserSession{
+					CookieOptions: &extauthv1.UserSession_CookieOptions{
+						MaxAge:    &wrappers.UInt32Value{Value: 1},
+						Domain:    "foo.com",
+						NotSecure: true,
+						Path:      &wrappers.StringValue{Value: path},
+						SameSite:  extauthv1.UserSession_CookieOptions_LaxMode,
+					},
+				}
+			})
 
-		It("should translate nil session", func() {
-			params, err := config.ToSessionParameters(nil)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(params).To(Equal(oidc.SessionParameters{}))
-		})
-		It("should translate FailOnFetchFailure", func() {
-			params, err := config.ToSessionParameters(&extauthv1.UserSession{FailOnFetchFailure: true})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(params).To(Equal(oidc.SessionParameters{ErrOnSessionFetch: true}))
-		})
-		It("should translate CookieOptions", func() {
-			params, err := config.ToSessionParameters(extAuthCookie)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(params).To(Equal(oidc.SessionParameters{Options: &session.Options{
-				Path:     &path,
-				Domain:   "foo.com",
-				HttpOnly: true,
-				MaxAge:   1,
-				Secure:   false,
-				SameSite: session.SameSiteLaxMode,
-			}}))
-		})
-		It("should translate CookieOptions - Only http and SameSite DefaultMode", func() {
-			co := extAuthCookie.CookieOptions
-			co.HttpOnly = &wrapperspb.BoolValue{Value: false}
-			co.SameSite = extauthv1.UserSession_CookieOptions_DefaultMode
-			params, err := config.ToSessionParameters(extAuthCookie)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(params).To(Equal(oidc.SessionParameters{Options: &session.Options{
-				Path:     &path,
-				Domain:   "foo.com",
-				HttpOnly: false,
-				MaxAge:   1,
-				Secure:   false,
-			}}))
-		})
-		It("should translate CookieSessionStore", func() {
-			params, err := config.ToSessionParameters(&extauthv1.UserSession{
-				Session: &extauthv1.UserSession_Cookie{},
+			It("should translate nil session", func() {
+				params, err := config.ToSessionParameters(nil)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params).To(Equal(oidc.SessionParameters{}))
 			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(params.Store).To(HaveField("KeyPrefix", ""))
-		})
-		It("should translate CookieSessionStore - creating a store for the cookie KeyPrefix", func() {
-			params, err := config.ToSessionParameters(&extauthv1.UserSession{
-				Session: &extauthv1.UserSession_Cookie{
-					Cookie: &extauthv1.UserSession_InternalSession{
-						KeyPrefix: "prefix",
+			It("should translate FailOnFetchFailure", func() {
+				params, err := config.ToSessionParameters(&extauthv1.UserSession{FailOnFetchFailure: true})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params).To(Equal(oidc.SessionParameters{ErrOnSessionFetch: true, TargetDomain: "", PreExpiryBuffer: 0, RefreshIfExpired: false}))
+			})
+			It("should translate CookieOptions", func() {
+				params, err := config.ToSessionParameters(extAuthCookie)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params).To(Equal(oidc.SessionParameters{Options: &session.Options{
+					Path:     &path,
+					Domain:   "foo.com",
+					HttpOnly: true,
+					MaxAge:   1,
+					Secure:   false,
+					SameSite: session.SameSiteLaxMode,
+				}}))
+			})
+			It("should translate CookieOptions - Only http and SameSite DefaultMode", func() {
+				co := extAuthCookie.CookieOptions
+				co.HttpOnly = &wrapperspb.BoolValue{Value: false}
+				co.SameSite = extauthv1.UserSession_CookieOptions_DefaultMode
+				params, err := config.ToSessionParameters(extAuthCookie)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params).To(Equal(oidc.SessionParameters{Options: &session.Options{
+					Path:     &path,
+					Domain:   "foo.com",
+					HttpOnly: false,
+					MaxAge:   1,
+					Secure:   false,
+				}}))
+			})
+			It("should translate CookieSessionStore", func() {
+				params, err := config.ToSessionParameters(&extauthv1.UserSession{
+					Session: &extauthv1.UserSession_Cookie{},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params.Store).To(HaveField("KeyPrefix", ""))
+			})
+			It("should translate CookieSessionStore - creating a store for the cookie KeyPrefix", func() {
+				params, err := config.ToSessionParameters(&extauthv1.UserSession{
+					Session: &extauthv1.UserSession_Cookie{
+						Cookie: &extauthv1.UserSession_InternalSession{
+							KeyPrefix: "prefix",
+						},
 					},
-				},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params.Store).ToNot(BeNil())
+				Expect(params.Store).To(HaveField("KeyPrefix", "prefix"))
 			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(params.Store).ToNot(BeNil())
-			Expect(params.Store).To(HaveField("KeyPrefix", "prefix"))
-		})
-		It("should translate RedisSessionStore", func() {
-			params, err := config.ToSessionParameters(&extauthv1.UserSession{
-				Session: &extauthv1.UserSession_Redis{
-					Redis: &extauthv1.UserSession_RedisSession{},
-				},
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(params.Store).To(BeAssignableToTypeOf(&redis.RedisSession{}))
-		})
-		It("should default PreExpiryBuffer to 2s", func() {
-			params, err := config.ToSessionParameters(&extauthv1.UserSession{
-				Session: &extauthv1.UserSession_Redis{
-					Redis: &extauthv1.UserSession_RedisSession{},
-				}})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(params.PreExpiryBuffer).To(Equal(time.Second * 2))
-		})
-		It("should translate PreExpiryBuffer", func() {
-			params, err := config.ToSessionParameters(&extauthv1.UserSession{
-				Session: &extauthv1.UserSession_Redis{
-					Redis: &extauthv1.UserSession_RedisSession{
-						PreExpiryBuffer: &duration.Duration{Seconds: 5, Nanos: 0},
+			It("should translate RedisSessionStore", func() {
+				params, err := config.ToSessionParameters(&extauthv1.UserSession{
+					Session: &extauthv1.UserSession_Redis{
+						Redis: &extauthv1.UserSession_RedisSession{},
 					},
-				}})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(params.PreExpiryBuffer).To(Equal(time.Second * 5))
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params.Store).To(BeAssignableToTypeOf(&redis.RedisSession{}))
+			})
+			It("should default PreExpiryBuffer to 2s", func() {
+				params, err := config.ToSessionParameters(&extauthv1.UserSession{
+					Session: &extauthv1.UserSession_Redis{
+						Redis: &extauthv1.UserSession_RedisSession{},
+					}})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params.PreExpiryBuffer).To(Equal(time.Second * 2))
+			})
+			It("should translate PreExpiryBuffer", func() {
+				params, err := config.ToSessionParameters(&extauthv1.UserSession{
+					Session: &extauthv1.UserSession_Redis{
+						Redis: &extauthv1.UserSession_RedisSession{
+							PreExpiryBuffer: &duration.Duration{Seconds: 5, Nanos: 0},
+						},
+					}})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params.PreExpiryBuffer).To(Equal(time.Second * 5))
+			})
+		})
+		Context("UserSessionConfig", func() {
+			path := "/foo"
+			var extAuthCookie *extauthv1.ExtAuthConfig_UserSessionConfig
+			BeforeEach(func() {
+				extAuthCookie = &extauthv1.ExtAuthConfig_UserSessionConfig{
+					CookieOptions: &extauthv1.UserSession_CookieOptions{
+						MaxAge:    &wrappers.UInt32Value{Value: 1},
+						Domain:    "foo.com",
+						NotSecure: true,
+						Path:      &wrappers.StringValue{Value: path},
+						SameSite:  extauthv1.UserSession_CookieOptions_LaxMode,
+					},
+				}
+			})
+
+			It("should translate UserSessionConfig over UserSession", func() {
+
+			})
+
+			It("should translate nil session", func() {
+				params, err := config.ToSessionParameters(nil)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params).To(Equal(oidc.SessionParameters{}))
+			})
+			It("should translate FailOnFetchFailure", func() {
+				params, err := config.UserSessionConfigToSessionParameters(&extauthv1.ExtAuthConfig_UserSessionConfig{FailOnFetchFailure: true})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params).To(Equal(oidc.SessionParameters{ErrOnSessionFetch: true, TargetDomain: "", PreExpiryBuffer: 0, RefreshIfExpired: false}))
+			})
+			It("should translate CookieOptions", func() {
+				params, err := config.UserSessionConfigToSessionParameters(extAuthCookie)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params).To(Equal(oidc.SessionParameters{Options: &session.Options{
+					Path:     &path,
+					Domain:   "foo.com",
+					HttpOnly: true,
+					MaxAge:   1,
+					Secure:   false,
+					SameSite: session.SameSiteLaxMode,
+				}}))
+			})
+			It("should translate CookieOptions - Only http and SameSite DefaultMode", func() {
+				co := extAuthCookie.CookieOptions
+				co.HttpOnly = &wrapperspb.BoolValue{Value: false}
+				co.SameSite = extauthv1.UserSession_CookieOptions_DefaultMode
+				params, err := config.UserSessionConfigToSessionParameters(extAuthCookie)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params).To(Equal(oidc.SessionParameters{Options: &session.Options{
+					Path:     &path,
+					Domain:   "foo.com",
+					HttpOnly: false,
+					MaxAge:   1,
+					Secure:   false,
+				}}))
+			})
+			It("should translate CookieSessionStore", func() {
+				params, err := config.UserSessionConfigToSessionParameters(&extauthv1.ExtAuthConfig_UserSessionConfig{
+					Session: &extauthv1.ExtAuthConfig_UserSessionConfig_Cookie{},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params.Store).To(HaveField("KeyPrefix", ""))
+			})
+			It("should translate CookieSessionStore - creating a store for the cookie KeyPrefix", func() {
+				params, err := config.UserSessionConfigToSessionParameters(&extauthv1.ExtAuthConfig_UserSessionConfig{
+					Session: &extauthv1.ExtAuthConfig_UserSessionConfig_Cookie{
+						Cookie: &extauthv1.UserSession_InternalSession{
+							KeyPrefix: "prefix",
+						},
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params.Store).ToNot(BeNil())
+				Expect(params.Store).To(HaveField("KeyPrefix", "prefix"))
+			})
+			It("should translate RedisSessionStore", func() {
+				params, err := config.UserSessionConfigToSessionParameters(&extauthv1.ExtAuthConfig_UserSessionConfig{
+					Session: &extauthv1.ExtAuthConfig_UserSessionConfig_Redis{
+						Redis: &extauthv1.UserSession_RedisSession{},
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params.Store).To(BeAssignableToTypeOf(&redis.RedisSession{}))
+			})
+			It("should default PreExpiryBuffer to 2s", func() {
+				params, err := config.UserSessionConfigToSessionParameters(&extauthv1.ExtAuthConfig_UserSessionConfig{
+					Session: &extauthv1.ExtAuthConfig_UserSessionConfig_Redis{
+						Redis: &extauthv1.UserSession_RedisSession{},
+					}})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params.PreExpiryBuffer).To(Equal(time.Second * 2))
+			})
+			It("should translate PreExpiryBuffer", func() {
+				params, err := config.UserSessionConfigToSessionParameters(&extauthv1.ExtAuthConfig_UserSessionConfig{
+					Session: &extauthv1.ExtAuthConfig_UserSessionConfig_Redis{
+						Redis: &extauthv1.UserSession_RedisSession{
+							PreExpiryBuffer: &duration.Duration{Seconds: 5, Nanos: 0},
+						},
+					}})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params.PreExpiryBuffer).To(Equal(time.Second * 5))
+			})
+			It("should translate adding cipher config, and beable to decrypt an encrypted cookie value", func() {
+				// Have to encrypt the cookie value and test that the session can decrypt it
+				encryptionKey := "this is an encryption key exampl"
+				value := "cookieValue"
+				cookieName := "id_token"
+				encryptionCipher, err := cipher.NewGCMEncryption([]byte(encryptionKey))
+				Expect(err).ToNot(HaveOccurred())
+				encryptedValue, err := encryptionCipher.Encrypt(value)
+				Expect(err).ToNot(HaveOccurred())
+				cookie := http.Cookie{
+					Name:  cookieName,
+					Value: encryptedValue,
+				}
+				params, err := config.UserSessionConfigToSessionParameters(&extauthv1.ExtAuthConfig_UserSessionConfig{
+					Session: &extauthv1.ExtAuthConfig_UserSessionConfig_Cookie{
+						Cookie: &extauthv1.UserSession_InternalSession{
+							KeyPrefix: "",
+						},
+					},
+					CipherConfig: &extauthv1.ExtAuthConfig_UserSessionConfig_CipherConfig{
+						Key: encryptionKey,
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params.Store).ToNot(BeNil())
+				sess, err := params.Store.Get(context.Background(), func(cookiename string) (*http.Cookie, error) {
+					return &cookie, nil
+				})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(sess.GetValue(cookieName)).To(Equal(value))
+			})
+			It("should error when adding an invalid encryption key", func() {
+				invalidEncryptionKey := "this is an encryption key examp"
+				_, err := config.UserSessionConfigToSessionParameters(&extauthv1.ExtAuthConfig_UserSessionConfig{
+					Session: &extauthv1.ExtAuthConfig_UserSessionConfig_Cookie{
+						Cookie: &extauthv1.UserSession_InternalSession{
+							KeyPrefix: "",
+						},
+					},
+					CipherConfig: &extauthv1.ExtAuthConfig_UserSessionConfig_CipherConfig{
+						Key: invalidEncryptionKey,
+					},
+				})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("invalid key size 31"))
+			})
 		})
 	})
 
@@ -932,5 +1123,130 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			),
 		)
 
+	})
+	Describe("translating deprecated Session with UserSession", func() {
+		Describe("Oauth2", func() {
+			It("works as expected", func() {
+				authCfg := &extauthv1.ExtAuthConfig{
+					AuthConfigRefName: "default.oauth-authconfig",
+					Configs: []*extauthv1.ExtAuthConfig_Config{
+						{
+							AuthConfig: &extauthv1.ExtAuthConfig_Config_Oauth2{
+								Oauth2: &extauthv1.ExtAuthConfig_OAuth2Config{
+									OauthType: &extauthv1.ExtAuthConfig_OAuth2Config_Oauth2Config{
+										Oauth2Config: &extauthv1.ExtAuthConfig_PlainOAuth2Config{
+											ClientId:                 "client-id",
+											ClientSecret:             "client-secret",
+											TokenEndpointQueryParams: map[string]string{"token": "param"},
+											AppUrl:                   "app-url",
+											AfterLogoutUrl:           "after-logout-url",
+											CallbackPath:             "/callback",
+											Scopes:                   []string{"foo", "bar"},
+											AuthEndpointQueryParams:  map[string]string{"auth": "param"},
+											Session: &extauthv1.UserSession{
+												// will not match the value in the call to NewPlainOAuth2AuthService in the
+												// SessionParameters
+												FailOnFetchFailure: false,
+											},
+											UserSession: &extauthv1.ExtAuthConfig_UserSessionConfig{
+												// will match value in the expected call to NewPlainOAuth2AuthService in the
+												// SessionParameters
+												FailOnFetchFailure: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+
+				serviceFactory.EXPECT().NewPlainOAuth2AuthService(
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					oauth2.SessionParameters{
+						// value must be true to match UserSessionConfig
+						ErrOnSessionFetch: true,
+					},
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+				).Return(authServiceMock, nil)
+
+				authService, err := translator.Translate(ctx, authCfg)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(authService).NotTo(BeNil())
+			})
+		})
+		Describe("OIDC", func() {
+			It("correctly defaults the default", func() {
+				oAuthConfig := &extauthv1.ExtAuthConfig{
+					AuthConfigRefName: "default.oauth2-authconfig",
+					Configs: []*extauthv1.ExtAuthConfig_Config{
+						{
+							AuthConfig: &extauthv1.ExtAuthConfig_Config_Oauth2{
+								Oauth2: &extauthv1.ExtAuthConfig_OAuth2Config{
+									OauthType: &extauthv1.ExtAuthConfig_OAuth2Config_OidcAuthorizationCode{
+										OidcAuthorizationCode: &extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig{
+											ClientId:                 "client-id",
+											IssuerUrl:                "https://solo.io/",
+											AuthEndpointQueryParams:  map[string]string{"auth": "param"},
+											TokenEndpointQueryParams: map[string]string{"token": "param"},
+											AppUrl:                   "app-url",
+											AfterLogoutUrl:           "after-logout-url",
+											CallbackPath:             "/callback",
+											Scopes:                   []string{"foo", "bar"},
+											UserSession: &extauthv1.ExtAuthConfig_UserSessionConfig{
+												FailOnFetchFailure: true,
+											},
+											Session: &extauthv1.UserSession{
+												FailOnFetchFailure: false,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+				serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					oidc.SessionParameters{
+						ErrOnSessionFetch: true,
+					},
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+				).Return(authServiceMock, nil)
+
+				authService, err := translator.Translate(ctx, oAuthConfig)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(authService).NotTo(BeNil())
+			})
+		})
 	})
 })

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	extauthsyncer "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 
@@ -15,6 +16,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -30,6 +32,7 @@ var _ = Describe("Translate", func() {
 		virtualHost       *v1.VirtualHost
 		upstream          *v1.Upstream
 		secret            *v1.Secret
+		cipherSecret      *v1.Secret
 		route             *v1.Route
 		authConfig        *extauth.AuthConfig
 		authConfigRef     *core.ResourceRef
@@ -38,9 +41,11 @@ var _ = Describe("Translate", func() {
 		apiKey            *extauth.ApiKey
 		credentialsSecret *v1.AccountCredentialsSecret
 		ldapSecret        *v1.Secret
+		encryptionKey     string
 	)
 
 	BeforeEach(func() {
+		encryptionKey = "an example encryption key1234567"
 		upstream = &v1.Upstream{
 			Metadata: &core.Metadata{
 				Name:      "extauth",
@@ -126,12 +131,33 @@ var _ = Describe("Translate", func() {
 								AutoMapFromMetadata: &extauth.AutoMapFromMetadata{
 									Namespace: "test_namespace",
 								},
+								Session: &extauth.UserSession{
+									FailOnFetchFailure: true,
+									CookieOptions: &extauth.UserSession_CookieOptions{
+										MaxAge: &wrapperspb.UInt32Value{Value: 20},
+									},
+									Session: &extauth.UserSession_Cookie{
+										Cookie: &extauth.UserSession_InternalSession{
+											AllowRefreshing: &wrapperspb.BoolValue{Value: true},
+											KeyPrefix:       "prefix",
+										},
+									},
+									CipherConfig: &extauth.UserSession_CipherConfig{
+										Key: &extauth.UserSession_CipherConfig_KeyRef{
+											KeyRef: &core.ResourceRef{
+												Name:      "cipher-key-name",
+												Namespace: "cipher-key-namespace",
+											},
+										},
+									},
+								},
 							},
 						},
 					},
 				},
 			}},
 		}
+
 		authConfigRef = authConfig.Metadata.Ref()
 		extAuthExtension = &extauth.ExtAuthExtension{
 			Spec: &extauth.ExtAuthExtension_ConfigRef{
@@ -142,6 +168,7 @@ var _ = Describe("Translate", func() {
 		params.Snapshot = &v1snap.ApiSnapshot{
 			Upstreams:   v1.UpstreamList{upstream},
 			AuthConfigs: extauth.AuthConfigList{authConfig},
+			Secrets:     v1.SecretList{cipherSecret},
 		}
 	})
 
@@ -170,8 +197,20 @@ var _ = Describe("Translate", func() {
 			}},
 		}
 
+		cipherSecret = &gloov1.Secret{
+			Metadata: &core.Metadata{
+				Name:      "cipher-key-name",
+				Namespace: "cipher-key-namespace",
+			},
+			Kind: &gloov1.Secret_Encryption{
+				Encryption: &gloov1.EncryptionKeySecret{
+					Key: encryptionKey,
+				},
+			},
+		}
+
 		params.Snapshot.Proxies = v1.ProxyList{proxy}
-		params.Snapshot.Secrets = v1.SecretList{secret, ldapSecret}
+		params.Snapshot.Secrets = v1.SecretList{secret, ldapSecret, cipherSecret}
 	})
 
 	It("should translate oauth config for extauth server", func() {
@@ -181,14 +220,64 @@ var _ = Describe("Translate", func() {
 		Expect(translated.Configs).To(HaveLen(1))
 		actual := translated.Configs[0].GetOauth2()
 		expected := authConfig.Configs[0].GetOauth2()
-		Expect(actual.GetOidcAuthorizationCode().IssuerUrl).To(Equal(expected.GetOidcAuthorizationCode().IssuerUrl))
-		Expect(actual.GetOidcAuthorizationCode().AuthEndpointQueryParams).To(Equal(expected.GetOidcAuthorizationCode().AuthEndpointQueryParams))
-		Expect(actual.GetOidcAuthorizationCode().TokenEndpointQueryParams).To(Equal(expected.GetOidcAuthorizationCode().TokenEndpointQueryParams))
-		Expect(actual.GetOidcAuthorizationCode().ClientId).To(Equal(expected.GetOidcAuthorizationCode().ClientId))
-		Expect(actual.GetOidcAuthorizationCode().ClientSecret).To(Equal(clientSecret.ClientSecret))
-		Expect(actual.GetOidcAuthorizationCode().AppUrl).To(Equal(expected.GetOidcAuthorizationCode().AppUrl))
-		Expect(actual.GetOidcAuthorizationCode().CallbackPath).To(Equal(expected.GetOidcAuthorizationCode().CallbackPath))
-		Expect(actual.GetOidcAuthorizationCode().AutoMapFromMetadata.Namespace).To(Equal("test_namespace"))
+		actualOidc := actual.GetOidcAuthorizationCode()
+		expectedOidc := expected.GetOidcAuthorizationCode()
+		Expect(actualOidc.IssuerUrl).To(Equal(expectedOidc.IssuerUrl))
+		Expect(actualOidc.AuthEndpointQueryParams).To(Equal(expectedOidc.AuthEndpointQueryParams))
+		Expect(actualOidc.TokenEndpointQueryParams).To(Equal(expectedOidc.TokenEndpointQueryParams))
+		Expect(actualOidc.ClientId).To(Equal(expectedOidc.ClientId))
+		Expect(actualOidc.ClientSecret).To(Equal(clientSecret.ClientSecret))
+		Expect(actualOidc.AppUrl).To(Equal(expectedOidc.AppUrl))
+		Expect(actualOidc.CallbackPath).To(Equal(expectedOidc.CallbackPath))
+		Expect(actualOidc.AutoMapFromMetadata.Namespace).To(Equal("test_namespace"))
+		// verify translation of the User Session
+		//lint:ignore SA1019 testing for upgrades
+		Expect(actualOidc.Session).To(BeNil())
+		Expect(actualOidc.UserSession.FailOnFetchFailure).To(Equal(expectedOidc.Session.FailOnFetchFailure))
+		Expect(actualOidc.UserSession.CookieOptions).To(Equal(expectedOidc.Session.CookieOptions))
+		Expect(actualOidc.UserSession.CipherConfig.Key).To(Equal(cipherSecret.GetEncryption().GetKey()))
+		Expect(actualOidc.UserSession.GetCookie()).To(Equal(expectedOidc.Session.GetCookie()))
+	})
+	It("should translate session when cipher is not included", func() {
+		// set the cipher to nil
+		params.Snapshot.AuthConfigs[0].GetConfigs()[0].GetOauth2().GetOidcAuthorizationCode().GetSession().CipherConfig = nil
+		translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+		Expect(translated.Configs).To(HaveLen(1))
+		actual := translated.Configs[0].GetOauth2()
+		expected := authConfig.Configs[0].GetOauth2()
+		actualOidc := actual.GetOidcAuthorizationCode()
+		expectedOidc := expected.GetOidcAuthorizationCode()
+		Expect(actualOidc.IssuerUrl).To(Equal(expectedOidc.IssuerUrl))
+		Expect(actualOidc.AuthEndpointQueryParams).To(Equal(expectedOidc.AuthEndpointQueryParams))
+		Expect(actualOidc.TokenEndpointQueryParams).To(Equal(expectedOidc.TokenEndpointQueryParams))
+		Expect(actualOidc.ClientId).To(Equal(expectedOidc.ClientId))
+		Expect(actualOidc.ClientSecret).To(Equal(clientSecret.ClientSecret))
+		Expect(actualOidc.AppUrl).To(Equal(expectedOidc.AppUrl))
+		Expect(actualOidc.CallbackPath).To(Equal(expectedOidc.CallbackPath))
+		Expect(actualOidc.AutoMapFromMetadata.Namespace).To(Equal("test_namespace"))
+		// verify translation of the User Session
+		//lint:ignore SA1019 testing for upgrades
+		Expect(actualOidc.Session.GetCookie()).To(Equal(expectedOidc.Session.GetCookie()))
+		//lint:ignore SA1019 testing for upgrades
+		Expect(actualOidc.Session.FailOnFetchFailure).To(Equal(expectedOidc.Session.GetFailOnFetchFailure()))
+		//lint:ignore SA1019 testing for upgrades
+		Expect(actualOidc.Session.CookieOptions).To(Equal(expectedOidc.Session.CookieOptions))
+		//lint:ignore SA1019 testing to ensure that the Session is Nil
+		Expect(actualOidc.Session.GetCipherConfig()).To(BeNil())
+		Expect(actualOidc.UserSession).To(BeNil())
+	})
+
+	Context("Encryption Key error", func() {
+		BeforeEach(func() {
+			encryptionKey = "an example encryption key"
+		})
+		It("should error because it does not meet the key length", func() {
+			_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("32 characters in length"))
+		})
 	})
 
 	It("will fail if the oidc auth proto has a new top level field", func() {
@@ -237,6 +326,26 @@ var _ = Describe("Translate", func() {
 									AuthEndpoint:       "login.url/auth",
 									TokenEndpoint:      "login.url/token",
 									RevocationEndpoint: "login.url/revoke",
+									Session: &extauth.UserSession{
+										FailOnFetchFailure: true,
+										CookieOptions: &extauth.UserSession_CookieOptions{
+											MaxAge: &wrapperspb.UInt32Value{Value: 20},
+										},
+										Session: &extauth.UserSession_Cookie{
+											Cookie: &extauth.UserSession_InternalSession{
+												AllowRefreshing: &wrapperspb.BoolValue{Value: true},
+												KeyPrefix:       "prefix",
+											},
+										},
+										CipherConfig: &extauth.UserSession_CipherConfig{
+											Key: &extauth.UserSession_CipherConfig_KeyRef{
+												KeyRef: &core.ResourceRef{
+													Name:      "cipher-key-name",
+													Namespace: "cipher-key-namespace",
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -284,6 +393,50 @@ var _ = Describe("Translate", func() {
 			Expect(actualPlainOAuth2.AuthEndpoint).To(Equal(expectedPlainOAuth2.AuthEndpoint))
 			Expect(actualPlainOAuth2.TokenEndpoint).To(Equal(expectedPlainOAuth2.TokenEndpoint))
 			Expect(actualPlainOAuth2.RevocationEndpoint).To(Equal(expectedPlainOAuth2.RevocationEndpoint))
+			// verify translation of the Session is nil, when the cipher config is set
+			//lint:ignore SA1019 testing for upgrades
+			Expect(actualPlainOAuth2.Session).To(BeNil())
+			//lint:ignore SA1019 testing for upgrades
+			Expect(actualPlainOAuth2.Session.GetCipherConfig()).To(BeNil())
+			Expect(actualPlainOAuth2.UserSession.FailOnFetchFailure).To(Equal(expectedPlainOAuth2.Session.FailOnFetchFailure))
+			Expect(actualPlainOAuth2.UserSession.CookieOptions).To(Equal(expectedPlainOAuth2.Session.CookieOptions))
+			Expect(actualPlainOAuth2.UserSession.CipherConfig.Key).To(Equal(cipherSecret.GetEncryption().GetKey()))
+			Expect(actualPlainOAuth2.UserSession.GetCookie()).To(Equal(expectedPlainOAuth2.Session.GetCookie()))
+		})
+		It("should translate session if not using cipherConfig", func() {
+			authConfigs := params.Snapshot.AuthConfigs
+			// set the cipherConfig to nil for translation of the session
+			authConfigs[0].Configs[0].GetOauth2().GetOauth2().Session.CipherConfig = nil
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+			Expect(translated.Configs).To(HaveLen(1))
+			actual := translated.Configs[0].GetOauth2()
+			actualPlainOAuth2 := actual.GetOauth2Config()
+			expected := authConfig.Configs[0].GetOauth2()
+			expectedPlainOAuth2 := expected.GetOauth2()
+
+			Expect(actualPlainOAuth2.AppUrl).To(Equal(expectedPlainOAuth2.AppUrl))
+			Expect(actualPlainOAuth2.CallbackPath).To(Equal(expectedPlainOAuth2.CallbackPath))
+			Expect(actualPlainOAuth2.ClientId).To(Equal(expectedPlainOAuth2.ClientId))
+			Expect(actualPlainOAuth2.ClientSecret).To(Equal(clientSecret.ClientSecret))
+			Expect(actualPlainOAuth2.AuthEndpointQueryParams).To(Equal(expectedPlainOAuth2.AuthEndpointQueryParams))
+			Expect(actualPlainOAuth2.TokenEndpointQueryParams).To(Equal(expectedPlainOAuth2.TokenEndpointQueryParams))
+			Expect(actualPlainOAuth2.Scopes).To(Equal(expectedPlainOAuth2.Scopes))
+			Expect(actualPlainOAuth2.AuthEndpoint).To(Equal(expectedPlainOAuth2.AuthEndpoint))
+			Expect(actualPlainOAuth2.TokenEndpoint).To(Equal(expectedPlainOAuth2.TokenEndpoint))
+			Expect(actualPlainOAuth2.RevocationEndpoint).To(Equal(expectedPlainOAuth2.RevocationEndpoint))
+			// verify translation of the Session, because the cipher config is nil
+			//lint:ignore SA1019 testing for upgrades
+			Expect(actualPlainOAuth2.Session.GetCookie()).To(Equal(expectedPlainOAuth2.Session.GetCookie()))
+			//lint:ignore SA1019 testing for upgrades
+			Expect(actualPlainOAuth2.Session.FailOnFetchFailure).To(Equal(expectedPlainOAuth2.Session.GetFailOnFetchFailure()))
+			//lint:ignore SA1019 testing for upgrades
+			Expect(actualPlainOAuth2.Session.CookieOptions).To(Equal(expectedPlainOAuth2.Session.CookieOptions))
+			//lint:ignore SA1019 testing to ensure that the Session Cipher Config is Nil
+			Expect(actualPlainOAuth2.Session.GetCipherConfig()).To(BeNil())
+			// verify translation of the User Session, which is nil when the cipher config is set
+			Expect(actualPlainOAuth2.UserSession).To(BeNil())
 		})
 	})
 

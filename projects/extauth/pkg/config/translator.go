@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/hmac"
+	"github.com/solo-io/ext-auth-service/pkg/utils/cipher"
 
 	jwtextauth "github.com/solo-io/ext-auth-service/pkg/config/jwt"
 
@@ -182,8 +183,14 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			}
 
 			oidcCfg.IssuerUrl = addTrailingSlash(oidcCfg.IssuerUrl)
-
-			sessionParameters, err := ToSessionParameters(oidcCfg.GetSession())
+			var sessionParameters oidc.SessionParameters
+			if oidcCfg.GetUserSession() != nil {
+				sessionParameters, err = UserSessionConfigToSessionParameters(oidcCfg.GetUserSession())
+			} else {
+				// GetSession() is deprecated, but we still need to support it in case APIs are not in sync
+				// GetSession() for backwards compatibility
+				sessionParameters, err = ToSessionParameters(oidcCfg.GetSession())
+			}
 			if err != nil {
 				return nil, config.GetName().GetValue(), err
 			}
@@ -299,14 +306,23 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				cb = DefaultCallback
 			}
 
-			sessionParameters, err := ToSessionParametersOAuth2(plainOAuth2Cfg.GetSession())
+			sessionIdHeader := ""
+			var sessionParameters oauth2.SessionParameters
+			if plainOAuth2Cfg.GetUserSession() != nil {
+				sessionParameters, err = UserSessionConfigToSessionParametersOAuth2(plainOAuth2Cfg.GetUserSession())
+				if redisSession := plainOAuth2Cfg.GetUserSession().GetRedis(); redisSession != nil {
+					sessionIdHeader = redisSession.GetHeaderName()
+				}
+			} else {
+				// GetSession() is deprecated, but we still need to support it in case APIs are not in sync
+				// GetSession() for backwards compatibility
+				sessionParameters, err = ToSessionParametersOAuth2(plainOAuth2Cfg.GetSession())
+				if redisSession := plainOAuth2Cfg.GetSession().GetRedis(); redisSession != nil {
+					sessionIdHeader = redisSession.GetHeaderName()
+				}
+			}
 			if err != nil {
 				return nil, config.GetName().GetValue(), err
-			}
-
-			sessionIdHeader := ""
-			if redisSession := plainOAuth2Cfg.GetSession().GetRedis(); redisSession != nil {
-				sessionIdHeader = redisSession.GetHeaderName()
 			}
 
 			authService, err := t.serviceFactory.NewPlainOAuth2AuthService(
@@ -694,7 +710,66 @@ func convertAprUsers(users map[string]*extauthv1.BasicAuth_Apr_SaltedHashedPassw
 // If it is redis, it will create a redis client store.
 // If it is a cookie, it will create a cookie store.
 // throws an error if the user session is unknown.
-func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, bool, time.Duration, error) {
+func sessionToStore(us *extauthv1.ExtAuthConfig_UserSessionConfig) (*translation.StoreParameters, error) {
+	usersession := us.GetSession()
+	if usersession == nil {
+		return nil, nil
+	}
+
+	encryptionKey := us.GetCipherConfig().GetKey()
+	var err error
+	var encryptionCipher cipher.Cipher
+	if encryptionKey != "" {
+		encryptionCipher, err = cipher.NewGCMEncryption([]byte(encryptionKey))
+		if err != nil {
+			return nil, eris.Wrapf(err, "failed to create encryption cipher for user session")
+		}
+	}
+
+	switch s := usersession.(type) {
+	case *extauthv1.ExtAuthConfig_UserSessionConfig_Cookie:
+		allowRefreshing := false
+		if allowRefreshSetting := s.Cookie.GetAllowRefreshing(); allowRefreshSetting != nil {
+			allowRefreshing = allowRefreshSetting.Value
+		}
+		store := translation.StoreParameters{
+			Session:          oidc.NewCookieSessionStore(s.Cookie.GetKeyPrefix(), encryptionCipher),
+			RefreshIfExpired: allowRefreshing,
+			TargetDomain:     s.Cookie.GetTargetDomain(),
+			PreExpiryBuffer:  0,
+		}
+		return &store, nil
+	case *extauthv1.ExtAuthConfig_UserSessionConfig_Redis:
+		options := s.Redis.GetOptions()
+		client, err := extRedis.NewRedisUniversalClient(getSoloApisRedisOptions(options))
+		// there is an error creating the TLS Config
+		if err != nil {
+			return nil, err
+		}
+		rs := redissession.NewRedisSession(client, s.Redis.CookieName, s.Redis.KeyPrefix)
+
+		allowRefreshing := true
+		if allowRefreshSetting := s.Redis.AllowRefreshing; allowRefreshSetting != nil {
+			allowRefreshing = allowRefreshSetting.Value
+		}
+
+		preExpiryBuffer := &duration.Duration{Seconds: 2, Nanos: 0}
+		if preExpiryBufferSetting := s.Redis.PreExpiryBuffer; preExpiryBufferSetting != nil {
+			preExpiryBuffer = preExpiryBufferSetting
+		}
+		store := translation.StoreParameters{
+			Session:          rs,
+			RefreshIfExpired: allowRefreshing,
+			PreExpiryBuffer:  preExpiryBuffer.AsDuration(),
+			TargetDomain:     s.Redis.GetTargetDomain(),
+		}
+		return &store, nil
+	}
+	return nil, fmt.Errorf("no matching session config")
+}
+
+// userSessionToStore is deprecated, use sessionToStore() instead.
+func userSessionToStore(us *extauthv1.UserSession) (session.SessionStore, bool, time.Duration, error) {
 	if us == nil {
 		return nil, false, 0, nil
 	}
@@ -709,7 +784,7 @@ func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, bool, time
 		if allowRefreshSetting := s.Cookie.GetAllowRefreshing(); allowRefreshSetting != nil {
 			allowRefreshing = allowRefreshSetting.Value
 		}
-		return oidc.NewCookieSessionStore(s.Cookie.GetKeyPrefix()), allowRefreshing, 0, nil
+		return oidc.NewCookieSessionStore(s.Cookie.GetKeyPrefix(), nil), allowRefreshing, 0, nil
 	case *extauthv1.UserSession_Redis:
 		options := s.Redis.GetOptions()
 		client, err := extRedis.NewRedisUniversalClient(getSoloApisRedisOptions(options))
@@ -801,10 +876,34 @@ func ToDiscoveryDataOverride(discoveryOverride *extauthv1.DiscoveryOverride) *oi
 	return discoveryDataOverride
 }
 
-// toSessionParameters sets the Session Parameters and the store
+// UserSessionConfigToSessionParameters sets the Session Parameters and the store
+func UserSessionConfigToSessionParameters(userSession *extauthv1.ExtAuthConfig_UserSessionConfig) (oidc.SessionParameters, error) {
+	if userSession == nil {
+		return oidc.SessionParameters{}, nil
+	}
+	sessionOptions := cookieConfigToSessionOptions(userSession.GetCookieOptions())
+	store, err := sessionToStore(userSession)
+	if err != nil {
+		return oidc.SessionParameters{}, err
+	}
+	var sessionParams oidc.SessionParameters
+	if store != nil {
+		sessionParams = oidc.SessionParameters{
+			Store:            store.Session,
+			RefreshIfExpired: store.RefreshIfExpired,
+			PreExpiryBuffer:  store.PreExpiryBuffer,
+			TargetDomain:     store.TargetDomain,
+		}
+	}
+	sessionParams.Options = sessionOptions
+	sessionParams.ErrOnSessionFetch = userSession.GetFailOnFetchFailure()
+	return sessionParams, nil
+}
+
+// toSessionParameters is deprecated: use UserSessionConfigToSessionParameters instead.
 func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParameters, error) {
 	sessionOptions := cookieConfigToSessionOptions(userSession.GetCookieOptions())
-	sessionStore, refreshIfExpired, preExpiryBuffer, err := sessionToStore(userSession)
+	sessionStore, refreshIfExpired, preExpiryBuffer, err := userSessionToStore(userSession)
 	if err != nil {
 		return oidc.SessionParameters{}, err
 	}
@@ -817,9 +916,36 @@ func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParame
 	}, nil
 }
 
+// UserSessionConfigToSessionParametersOAuth2 will convert the user session config to a SessionParameters struct.
+// configuration for the session store, cipher, and session options.
+func UserSessionConfigToSessionParametersOAuth2(userSession *extauthv1.ExtAuthConfig_UserSessionConfig) (oauth2.SessionParameters, error) {
+	if userSession == nil {
+		return oauth2.SessionParameters{}, nil
+	}
+	sessionOptions := cookieConfigToSessionOptions(userSession.GetCookieOptions())
+	store, err := sessionToStore(userSession)
+	if err != nil {
+		return oauth2.SessionParameters{}, err
+	}
+
+	var sessionParams oauth2.SessionParameters
+	if store != nil {
+		sessionParams = oauth2.SessionParameters{
+			Store:            store.Session,
+			RefreshIfExpired: store.RefreshIfExpired,
+			PreExpiryBuffer:  store.PreExpiryBuffer,
+			TargetDomain:     store.TargetDomain,
+		}
+	}
+	sessionParams.ErrOnSessionFetch = userSession.GetFailOnFetchFailure()
+	sessionParams.Options = sessionOptions
+	return sessionParams, nil
+}
+
+// ToSessionParametersOAuth2 is deprecated use UserSessionConfigToSessionParametersOAuth2 instead.
 func ToSessionParametersOAuth2(userSession *extauthv1.UserSession) (oauth2.SessionParameters, error) {
 	sessionOptions := cookieConfigToSessionOptions(userSession.GetCookieOptions())
-	sessionStore, refreshIfExpired, preExpiryBuffer, err := sessionToStore(userSession)
+	sessionStore, refreshIfExpired, preExpiryBuffer, err := userSessionToStore(userSession)
 	if err != nil {
 		return oauth2.SessionParameters{}, err
 	}

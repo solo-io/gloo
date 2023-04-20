@@ -17,6 +17,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -29,6 +30,7 @@ import (
 	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
+	"github.com/solo-io/ext-auth-service/pkg/utils/cipher"
 
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 
@@ -96,6 +98,11 @@ var _ = Describe("External auth", func() {
 		glooSettings  *gloov1.Settings
 		cache         memory.InMemoryResourceCache
 		extAuthServer *gloov1.Upstream
+		jwtRegex      = regexp.MustCompile("(\\w*.\\w*.\\w*)")
+	)
+	const (
+		accessTokenValue  = "SlAV32hkKG"
+		refreshTokenValue = "8xLOxBtZp8"
 	)
 
 	BeforeEach(func() {
@@ -327,7 +334,9 @@ var _ = Describe("External auth", func() {
 					cookies = nil
 					handlerStats = make(map[string]int)
 					discoveryServer = fakeDiscoveryServer{
-						handlerStats: handlerStats,
+						handlerStats:      handlerStats,
+						accessTokenValue:  accessTokenValue,
+						refreshTokenValue: refreshTokenValue,
 					}
 					privateKey = discoveryServer.Start()
 
@@ -451,10 +460,67 @@ var _ = Describe("External auth", func() {
 					Expect(err).NotTo(HaveOccurred())
 					defer resp.Body.Close()
 					_, _ = io.ReadAll(resp.Body)
-					Expect(resp.StatusCode).To(Equal(http.StatusOK))
+					Expect(resp).To(testmatchers.HaveOkResponse())
 					// Verify that the logout resulted in a redirect to the default url
 					Expect(finalurl).NotTo(BeNil())
 					Expect(finalurl.Path).To(Equal("/"))
+				}
+
+				ExpectHappyPathToWorkWithGomega := func(makeSingleRequest func(client *http.Client) (int, error), loginSuccessExpectation func(g Gomega), g Gomega) {
+					// do auth flow and make sure we have a cookie named cookie:
+					appPage, err := url.Parse(fmt.Sprintf("http://%s:%d/", "localhost", envoyPort))
+					g.Expect(err).NotTo(HaveOccurred())
+
+					var finalurl *url.URL
+					jar, err := cookiejar.New(nil)
+					g.Expect(err).NotTo(HaveOccurred())
+					cookieJar := &unsecureCookieJar{CookieJar: jar}
+					client := &http.Client{
+						Jar: cookieJar,
+						CheckRedirect: func(req *http.Request, via []*http.Request) error {
+							finalurl = req.URL
+							if len(via) > 10 {
+								return errors.New("stopped after 10 redirects")
+							}
+							return nil
+						},
+					}
+
+					g.Eventually(func() (int, error) {
+						return makeSingleRequest(client)
+					}, "5s", "0.5s").Should(Equal(http.StatusOK))
+
+					g.Expect(finalurl).NotTo(BeNil())
+					g.Expect(finalurl.Path).To(Equal("/success"))
+					// make sure query is passed through as well
+					Expect(finalurl.RawQuery).To(Equal("foo=bar"))
+
+					// check the cookie jar
+					tmpCookies := jar.Cookies(appPage)
+					g.Expect(tmpCookies).NotTo(BeEmpty())
+
+					// grab the original cookies for these cookies, as jar.Cookies doesn't return
+					// all the properties of the cookies
+					for _, c := range tmpCookies {
+						cookies = append(cookies, cookieJar.OriginalCookies[c.Name])
+					}
+
+					// make sure login is successful
+					loginSuccessExpectation(g)
+
+					// try to logout:
+
+					logout := fmt.Sprintf("http://%s:%d/logout", "localhost", envoyPort)
+					req, err := http.NewRequest("GET", logout, nil)
+					g.Expect(err).NotTo(HaveOccurred())
+					resp, err := client.Do(req)
+					g.Expect(err).NotTo(HaveOccurred())
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
+					g.Expect(resp).To(testmatchers.HaveOkResponse())
+					// Verify that the logout resulted in a redirect to the default url
+					g.Expect(finalurl).NotTo(BeNil())
+					g.Expect(finalurl.Path).To(Equal("/"))
 				}
 
 				Context("redis for session store", func() {
@@ -597,7 +663,7 @@ var _ = Describe("External auth", func() {
 						select {
 						case r := <-testUpstream.C:
 							Expect(r.Headers.Get("foo")).To(Equal(discoveryServer.token))
-							Expect(r.Headers.Get("Authorization")).To(Equal("Bearer SlAV32hkKG"))
+							Expect(r.Headers.Get("Authorization")).To(Equal(fmt.Sprintf("Bearer %s", accessTokenValue)))
 						case <-time.After(time.Second):
 							Fail("timedout")
 						}
@@ -620,7 +686,7 @@ var _ = Describe("External auth", func() {
 						select {
 						case r := <-testUpstream.C:
 							Expect(r.Headers.Get("foo")).To(Equal(discoveryServer.token))
-							Expect(r.Headers.Get("Authorization")).To(Equal("SlAV32hkKG"))
+							Expect(r.Headers.Get("Authorization")).To(Equal(accessTokenValue))
 						case <-time.After(time.Second):
 							Fail("timedout")
 						}
@@ -643,7 +709,7 @@ var _ = Describe("External auth", func() {
 						select {
 						case r := <-testUpstream.C:
 							Expect(r.Headers.Get("foo")).To(Equal(discoveryServer.token))
-							Expect(r.Headers.Get("bar")).To(Equal("SlAV32hkKG"))
+							Expect(r.Headers.Get("bar")).To(Equal(accessTokenValue))
 						case <-time.After(time.Second):
 							Fail("timedout")
 						}
@@ -666,7 +732,7 @@ var _ = Describe("External auth", func() {
 						select {
 						case r := <-testUpstream.C:
 							Expect(r.Headers.Get("foo")).To(Equal(discoveryServer.token))
-							Expect(r.Headers.Get("bar")).To(Equal("SlAV32hkKG"))
+							Expect(r.Headers.Get("bar")).To(Equal(accessTokenValue))
 						case <-time.After(time.Second):
 							Fail("timedout")
 						}
@@ -987,6 +1053,126 @@ var _ = Describe("External auth", func() {
 							Expect(cookienames).To(ConsistOf("access_token", "id_token", "refresh_token"))
 						})
 					})
+				})
+
+				Context("happy path encryption session cookie", func() {
+					var cookieValues = map[string]string{
+						"id_token":      "eyJhbGciOiJSUzI1NiIsImtpZCI6ImtpZC0xIiwidHlwIjoiSldUIn0",
+						"access_token":  accessTokenValue,
+						"refresh_token": refreshTokenValue,
+					}
+					const (
+						encryptionKey  = "this is a example encryption key"
+						encryptionKey2 = "this is the second encryption ke"
+					)
+					validateEncryptedKeys := func(encryptionKey string) {
+						ExpectHappyPathToWork(makeSingleRequest, func() {
+							Expect(cookies).ToNot(BeEmpty())
+							cookieMap := make(map[string]string)
+							var cookieNames []string
+							for _, c := range cookies {
+								cookieMap[c.Name] = c.Value
+								cookieNames = append(cookieNames, c.Name)
+								Expect(c.HttpOnly).To(BeFalse())
+							}
+							Expect(cookieNames).To(ConsistOf("id_token", "access_token", "refresh_token"))
+							c, err := cipher.NewGCMEncryption([]byte(encryptionKey))
+							Expect(err).ToNot(HaveOccurred())
+							for name, value := range cookieMap {
+								expectedValue := cookieValues[name]
+								unencryptedValue, err := c.Decrypt(value)
+								Expect(err).ToNot(HaveOccurred())
+								if name == "id_token" {
+									// id_token is a jwt so the only thing that should match is the first portion of the jwt(header)
+									// since the header will not change and is just a base64 of the json used
+									// because of this we also check that the value is has a jwt format
+									splits := strings.Split(unencryptedValue, ".")
+									Expect(splits[0]).To(Equal(expectedValue))
+									Expect(jwtRegex.Match([]byte(unencryptedValue))).To(BeTrue())
+								} else {
+									Expect(unencryptedValue).To(Equal(expectedValue))
+								}
+							}
+						})
+					}
+					validateEncryptedKeysWithGomega := func(encryptionKey string, g Gomega) {
+						ExpectHappyPathToWorkWithGomega(makeSingleRequest, func(g Gomega) {
+							g.Expect(cookies).ToNot(BeEmpty())
+							cookieMap := make(map[string]string)
+							var cookieNames []string
+							for _, c := range cookies {
+								cookieMap[c.Name] = c.Value
+								cookieNames = append(cookieNames, c.Name)
+								g.Expect(c.HttpOnly).To(BeFalse())
+							}
+							g.Expect(cookieNames).To(ConsistOf("id_token", "access_token", "refresh_token"))
+							c, err := cipher.NewGCMEncryption([]byte(encryptionKey))
+							g.Expect(err).ToNot(HaveOccurred())
+							for name, value := range cookieMap {
+								expectedValue := cookieValues[name]
+								unencryptedValue, err := c.Decrypt(value)
+								g.Expect(err).ToNot(HaveOccurred())
+								if name == "id_token" {
+									// id_token is a jwt so the only thing that should match is the first portion of the jwt(header)
+									// since the header will not change and is just a base64 of the json used
+									// because of this we also check that the value is has a jwt format
+									splits := strings.Split(unencryptedValue, ".")
+									g.Expect(splits[0]).To(Equal(expectedValue))
+									g.Expect(jwtRegex.Match([]byte(unencryptedValue))).To(BeTrue())
+								} else {
+									g.Expect(unencryptedValue).To(Equal(expectedValue))
+								}
+							}
+						}, g)
+					}
+					Context("using Cipher Key Ref", func() {
+						var secret *gloov1.Secret
+						BeforeEach(func() {
+							secret = &gloov1.Secret{
+								Metadata: &core.Metadata{
+									Name:      "encryption-secret",
+									Namespace: "default",
+								},
+								Kind: &gloov1.Secret_Encryption{
+									Encryption: &gloov1.EncryptionKeySecret{
+										Key: encryptionKey,
+									},
+								},
+							}
+							newSecret, err := testClients.SecretClient.Write(secret, clients.WriteOpts{})
+							Expect(err).NotTo(HaveOccurred())
+							secret = newSecret
+
+							oauth2.OidcAuthorizationCode.Session = &extauth.UserSession{
+								Session: &extauth.UserSession_Cookie{Cookie: &extauth.UserSession_InternalSession{
+									AllowRefreshing: &wrappers.BoolValue{Value: true},
+								}},
+								CipherConfig: &extauth.UserSession_CipherConfig{
+									Key: &extauth.UserSession_CipherConfig_KeyRef{
+										KeyRef: &core.ResourceRef{
+											Name:      "encryption-secret",
+											Namespace: "default",
+										},
+									},
+								},
+								CookieOptions: &extauth.UserSession_CookieOptions{
+									HttpOnly: &wrappers.BoolValue{Value: false},
+								},
+							}
+						})
+						It("should work with the secret, and rotating the secrets", func() {
+							validateEncryptedKeys(encryptionKey)
+							secret.GetEncryption().Key = encryptionKey2
+							newSecret, err := testClients.SecretClient.Write(secret, clients.WriteOpts{OverwriteExisting: true})
+							Expect(err).ToNot(HaveOccurred())
+							secret = newSecret
+							Eventually(func(g Gomega) {
+								cookies = nil
+								validateEncryptedKeysWithGomega(encryptionKey2, g)
+							}, "5s", "1s").Should(Succeed())
+						})
+					})
+
 				})
 
 				Context("Oidc callbackPath test", func() {
@@ -1416,7 +1602,8 @@ var _ = Describe("External auth", func() {
 
 				BeforeEach(func() {
 					cookies = nil
-
+					oauth2Server.accessTokenValue = accessTokenValue
+					oauth2Server.refreshTokenValue = refreshTokenValue
 					oauth2Server.Start()
 
 					clientSecret := &extauth.OauthSecret{
@@ -1594,7 +1781,7 @@ var _ = Describe("External auth", func() {
 
 						select {
 						case r := <-testUpstream.C:
-							Expect(r.Headers.Get("Set-Cookie")).To(ContainSubstring("access_token=SlAV32hkKG"))
+							Expect(r.Headers.Get("Set-Cookie")).To(ContainSubstring(fmt.Sprintf("access_token=%s", accessTokenValue)))
 						case <-time.After(time.Second):
 							Fail("timedout")
 						}
@@ -3397,7 +3584,10 @@ var _ = Describe("External auth", func() {
 				}
 
 				BeforeEach(func() {
-					discoveryServer = fakeDiscoveryServer{}
+					discoveryServer = fakeDiscoveryServer{
+						accessTokenValue:  accessTokenValue,
+						refreshTokenValue: refreshTokenValue,
+					}
 					privateKey = discoveryServer.Start()
 
 					clientSecret := &extauth.OauthSecret{
@@ -3785,6 +3975,8 @@ type fakeDiscoveryServer struct {
 	createExpiredToken       bool
 	createNearlyExpiredToken bool
 	token                    string
+	accessTokenValue         string
+	refreshTokenValue        string
 	lastGrant                string
 	handlerStats             map[string]int
 	handlerStatsMutex        sync.Mutex
@@ -3924,9 +4116,9 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 			}
 			_, _ = rw.Write([]byte(`
 			{
-				"access_token": "SlAV32hkKG",
+				"access_token": "` + f.accessTokenValue + `",
 				"token_type": "Bearer",
-				"refresh_token": "8xLOxBtZp8",
+				"refresh_token": "` + f.refreshTokenValue + `",
 				"expires_in": 3600,
 				"id_token": "` + f.token + `"
 			 }
@@ -4001,8 +4193,10 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 }
 
 type fakeOAuth2Server struct {
-	s     http.Server
-	token string
+	s                 http.Server
+	token             string
+	refreshTokenValue string
+	accessTokenValue  string
 }
 
 func (f *fakeOAuth2Server) Stop() {
@@ -4039,8 +4233,8 @@ func (f *fakeOAuth2Server) Start() {
 		case "/token":
 			r.ParseForm()
 			fmt.Fprintln(GinkgoWriter, "got request for token. query:", r.URL.RawQuery, r.URL.String(), "form:", r.Form.Encode())
-			f.token = "SlAV32hkKG"
-			refreshToken := "8xLOxBtZp8"
+			f.token = f.accessTokenValue
+			refreshToken := f.refreshTokenValue
 
 			_, _ = rw.Write([]byte(fmt.Sprintf("access_token=%s&refresh_token=%s", f.token, refreshToken)))
 		case "/revoke":

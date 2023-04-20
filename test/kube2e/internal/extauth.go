@@ -1265,6 +1265,115 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			})
 
 		})
+		Context("applying resources", func() {
+			Context("Encryption Key secret (kube secret converter)", func() {
+				const (
+					oauthName              = "client-secret"
+					encryptionKeyName      = "encryption-key"
+					correctEncryptionKey   = "an example of an encryption key1"
+					incorrectEncryptionKey = "an example of an encryption"
+					authConfigName         = "encryption-key-auth-config"
+				)
+				var (
+					encryptionKeyUsed = ""
+				)
+				JustBeforeEach(func() {
+					namespace := testHelper.InstallNamespace
+					authConfig := extauthapi.AuthConfig{
+						Metadata: &core.Metadata{
+							Name:      authConfigName,
+							Namespace: namespace,
+						},
+						Configs: []*extauthapi.AuthConfig_Config{
+							{
+								AuthConfig: &extauthapi.AuthConfig_Config_Oauth2{
+									Oauth2: &extauthapi.OAuth2{
+										OauthType: &extauthapi.OAuth2_OidcAuthorizationCode{
+											OidcAuthorizationCode: &extauthapi.OidcAuthorizationCode{
+												AppUrl:       "http://localhost",
+												CallbackPath: "/callback",
+												ClientSecretRef: &core.ResourceRef{
+													Name:      oauthName,
+													Namespace: namespace,
+												},
+												IssuerUrl: "https://localhost.com/oauth2/dummy",
+												ClientId:  "someclientId",
+												Session: &extauthapi.UserSession{
+													CipherConfig: &extauthapi.UserSession_CipherConfig{
+														Key: &extauthapi.UserSession_CipherConfig_KeyRef{
+															KeyRef: &core.ResourceRef{
+																Name:      encryptionKeyName,
+																Namespace: namespace,
+															},
+														},
+													},
+													Session: &extauthapi.UserSession_Cookie{
+														Cookie: &extauthapi.UserSession_InternalSession{
+															KeyPrefix: "my-prefix",
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					}
+					encryptionKey := gloov1.Secret{
+						Metadata: &core.Metadata{
+							Name:      encryptionKeyName,
+							Namespace: namespace,
+						},
+						Kind: &gloov1.Secret_Encryption{
+							Encryption: &gloov1.EncryptionKeySecret{
+								Key: encryptionKeyUsed,
+							},
+						},
+					}
+					oauthSecret := gloov1.Secret{
+						Metadata: &core.Metadata{
+							Name:      oauthName,
+							Namespace: namespace,
+						},
+						Kind: &gloov1.Secret_Oauth{
+							Oauth: &extauthapi.OauthSecret{
+								ClientSecret: "this is the client secret",
+							},
+						},
+					}
+					glooResources.AuthConfigs = extauthapi.AuthConfigList{&authConfig}
+					glooResources.Secrets = append(glooResources.Secrets, &encryptionKey)
+					glooResources.Secrets = append(glooResources.Secrets, &oauthSecret)
+					err = snapshotWriter.WriteSnapshot(glooResources, clients.WriteOpts{Ctx: ctx})
+					Expect(err).NotTo(HaveOccurred())
+				})
+				AfterEach(func() {
+					err = snapshotWriter.DeleteSnapshot(glooResources, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+					Expect(err).NotTo(HaveOccurred())
+				})
+				Context("correct encryption key", func() {
+					BeforeEach(func() {
+						encryptionKeyUsed = correctEncryptionKey
+					})
+					It("it will apply a Encryption Key secret and will not Error in Gloo or Ext-Auth", func() {
+						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+							return authConfigClient.Read(testHelper.InstallNamespace, authConfigName, clients.ReadOpts{Ctx: ctx})
+						})
+					})
+				})
+				Context("incorrect encryption key", func() {
+					BeforeEach(func() {
+						encryptionKeyUsed = incorrectEncryptionKey
+					})
+					It("it will apply a Encryption Key incorrect secret and be rejected", func() {
+						helpers.EventuallyResourceRejected(func() (resources.InputResource, error) {
+							return authConfigClient.Read(testHelper.InstallNamespace, authConfigName, clients.ReadOpts{Ctx: ctx})
+						})
+					})
+				})
+			})
+		})
 	})
 }
 
