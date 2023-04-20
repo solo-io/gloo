@@ -4,12 +4,12 @@ steps:
   # if TAG_NAME is set then this is a release and we don't run tests
   args:
     - '-c'
-    - 'if [ -z "$TAG_NAME" ]; then gcloud builds submit --config=cloudbuild-tests.yaml --substitutions TAG_NAME=$TAG_NAME,COMMIT_SHA=$COMMIT_SHA,REPO_NAME=$REPO_NAME; fi'
+    - 'if [ -z "$TAG_NAME" ]; then gcloud builds submit --config=cloudbuild-tests.yaml --substitutions TAG_NAME=$TAG_NAME,COMMIT_SHA=$COMMIT_SHA,REPO_NAME=$REPO_NAME,_GO_VERSION=1.20.1; fi'
   waitFor: [ '-' ]
   id: "tests"
 
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: [ 'builds','submit','--config=cloudbuild-build-docker-images.yaml','--substitutions','TAG_NAME=$TAG_NAME,COMMIT_SHA=$COMMIT_SHA,REPO_NAME=$REPO_NAME,_PR_NUM=$_PR_NUM' ]
+  args: [ 'builds','submit','--config=cloudbuild-build-docker-images.yaml','--substitutions','TAG_NAME=$TAG_NAME,COMMIT_SHA=$COMMIT_SHA,REPO_NAME=$REPO_NAME,_PR_NUM=$_PR_NUM,_GO_VERSION=1.20.1' ]
   waitFor: [ '-' ]
   id: "docker-builds"
 

@@ -2,6 +2,9 @@ module github.com/solo-io/solo-projects
 
 go 1.20
 
+// Note for developers: upgrading go will also require upgrading go in the following files:
+// ./cloudbuild.yaml, ./cloudbuild-cache.yaml,
+
 require (
 	github.com/Masterminds/goutils v1.1.1
 	github.com/aerospike/aerospike-client-go v4.5.2+incompatible

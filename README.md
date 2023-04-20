@@ -6,7 +6,7 @@ The following programs must be installed in order to follow the subsequent guide
  - Make 
    - Install on Mac OS using `brew install make`
    - Install on Ubuntu using `sudo apt-get install -y make`
- - Golang v1.17
+ - Golang v1.20
    - Follow the instructions for your operating system at https://golang.org/doc/install to install
  - Docker v20.10.x
    - Follow the instructions for your operating system at https://docs.docker.com/get-docker/ to install

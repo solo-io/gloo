@@ -43,26 +43,17 @@ steps:
     path: /root/.ssh
   id: 'untar-mod-cache'
 
-- name: 'golang:1.20.1'
-  args: ['go', 'env', '-w', 'GOPRIVATE=github.com/solo-io']
-  volumes: *vol
-  id: 'set-private'
-
-- name: 'golang:1.20.1'
-  args: ['go', 'mod', 'download']
-  volumes: *vol
-  id: 'download'
-
-- name: 'golang:1.20.1'
-  args: ['go', 'mod', 'tidy']
-  volumes: *vol
-  id: 'tidy'
-
-- name: 'golang:1.20.1'
+- name: 'golang:${_GO_VERSION}'
   entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      go env -w GOPRIVATE=github.com/solo-io && \
+      go mod download && \
+      go mod tidy && \
+      cd /go/pkg && tar -zvcf solo-projects-mod.tar.gz mod
   volumes: *vol
-  args: ['-c', ' cd /go/pkg && tar -zvcf solo-projects-mod.tar.gz mod']
-  id: 'tar-cache'
+  id: 'update-and-cache-tar'
 
 - name: gcr.io/cloud-builders/gsutil
   args: ['cp', '/go/pkg/solo-projects-mod.tar.gz', 'gs://$PROJECT_ID-cache/solo-projects/solo-projects-mod.tar.gz']
@@ -72,3 +63,4 @@ steps:
 options:
   env:
   - "GO111MODULE=on"
+  - "_GO_VERSION=1.20.1"

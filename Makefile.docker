@@ -11,9 +11,9 @@ UNAME_M ?=$(shell uname -m)
 # leave default value unset
 IMAGE_REGISTRY ?= quay.io/solo-io
 
-GOLANG_VERSION := golang:1.20.1-alpine
-# the build image for GLOO is much different than for rate-limit and ext-auth
-GLOO_GOLANG_VERSION := golang:1.20.1
+# the build image for GLOO is Debian based whereas for rate-limit and ext-auth it's Alpine based
+GOLANG_IMAGE_NAME = golang:$(shell go version | egrep -o '([0-9]+\.[0-9]+)')
+GOLANG_ALPINE_IMAGE_NAME = $(GOLANG_IMAGE_NAME)-alpine
 
 RELEASE := "false"
 

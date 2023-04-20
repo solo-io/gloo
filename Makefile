@@ -320,7 +320,7 @@ $(GLOO_FED_OUT_DIR)/Dockerfile.build: $(GLOO_FED_DIR)/Dockerfile
 $(GLOO_FED_OUT_DIR)/.gloo-fed-ee-docker-build: $(GLOO_FED_SOURCES) $(GLOO_FED_OUT_DIR)/Dockerfile.build
 	docker buildx build --load -t $(IMAGE_REGISTRY)/gloo-fed-ee-build-container:$(VERSION) \
 		-f $(GLOO_FED_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_IMAGE_NAME) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
@@ -384,7 +384,7 @@ $(GLOO_FED_APISERVER_OUT_DIR)/Dockerfile.build: $(GLOO_FED_APISERVER_DIR)/Docker
 $(GLOO_FED_APISERVER_OUT_DIR)/.gloo-fed-apiserver-docker-build: $(GLOO_FED_SOURCES) $(GLOO_FED_APISERVER_OUT_DIR)/Dockerfile.build
 	docker buildx build --load -t $(IMAGE_REGISTRY)/gloo-fed-apiserver-build-container:$(VERSION) \
 		-f $(GLOO_FED_APISERVER_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_IMAGE_NAME) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LD_STATIC_LINKING_FLAGS) \
@@ -737,7 +737,7 @@ $(RATELIMIT_OUT_DIR)/Dockerfile.build: $(RATELIMIT_DIR)/Dockerfile
 $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker-build: $(RATELIMIT_SOURCES) $(RATELIMIT_OUT_DIR)/Dockerfile.build
 	docker buildx build --load -t $(IMAGE_REGISTRY)/rate-limit-ee-build-container:$(VERSION) \
 		-f $(RATELIMIT_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_ALPINE_IMAGE_NAME) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
@@ -784,7 +784,7 @@ $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile.build: $(RATELIMIT_DIR)/Dockerfile
 $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker-build: $(RATELIMIT_SOURCES) $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile.build
 	docker buildx build --load -t $(IMAGE_REGISTRY)/rate-limit-ee-build-container-fips:$(VERSION) \
 		-f $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_ALPINE_IMAGE_NAME) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
@@ -836,7 +836,7 @@ $(EXTAUTH_OUT_DIR)/Dockerfile: $(EXTAUTH_DIR)/cmd/Dockerfile
 $(EXTAUTH_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_OUT_DIR)/Dockerfile.build
 	docker buildx build --load -t $(IMAGE_REGISTRY)/extauth-ee-build-container:$(VERSION) \
 		-f $(EXTAUTH_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_ALPINE_IMAGE_NAME) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
@@ -868,7 +868,7 @@ extauth: $(EXTAUTH_OUT_DIR)/extauth-linux-$(DOCKER_GOARCH) $(EXTAUTH_OUT_DIR)/ve
 .PHONY: ext-auth-plugins-docker
 ext-auth-plugins-docker: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 	docker buildx build --load -t $(IMAGE_REGISTRY)/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
-		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_ALPINE_IMAGE_NAME) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg VERIFY_SCRIPT=$(DOCKER_EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 \
@@ -904,7 +904,7 @@ $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile: $(EXTAUTH_DIR)/cmd/Dockerfile
 $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile.build
 	docker buildx build --load -t $(IMAGE_REGISTRY)/extauth-ee-build-container-fips:$(VERSION) \
 		-f $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_ALPINE_IMAGE_NAME) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
@@ -936,7 +936,7 @@ extauth-fips: $(EXTAUTH_FIPS_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_FIPS_OUT_DIR
 .PHONY: ext-auth-plugins-fips-docker
 ext-auth-plugins-fips-docker: $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64
 	docker buildx build --load -t $(IMAGE_REGISTRY)/ext-auth-plugins-fips:$(VERSION) -f projects/extauth/plugins/Dockerfile \
-		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_ALPINE_IMAGE_NAME) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg VERIFY_SCRIPT=$(DOCKER_EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64 \
@@ -1021,7 +1021,7 @@ $(GLOO_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
 $(GLOO_OUT_DIR)/.gloo-ee-docker-build: install-node-packages $(GLOO_SOURCES) $(GLOO_OUT_DIR)/Dockerfile.build
 	docker buildx build --load -t $(IMAGE_REGISTRY)/gloo-ee-build-container:$(VERSION) \
 		-f $(GLOO_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_IMAGE_NAME) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LD_STATIC_LINKING_FLAGS) \
@@ -1072,7 +1072,7 @@ $(GLOO_RACE_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
 $(GLOO_RACE_OUT_DIR)/.gloo-ee-race-docker-build: $(GLOO_SOURCES) $(GLOO_RACE_OUT_DIR)/Dockerfile.build
 	docker build -t $(IMAGE_REGISTRY)/gloo-race-ee-build-container:$(VERSION) \
 		-f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_IMAGE_NAME) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LD_STATIC_LINKING_FLAGS) \
@@ -1117,7 +1117,7 @@ $(GLOO_FIPS_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
 $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker-build: $(GLOO_SOURCES) $(GLOO_FIPS_OUT_DIR)/Dockerfile.build
 	docker build -t $(IMAGE_REGISTRY)/gloo-ee-fips-build-container:$(VERSION) \
 		-f $(GLOO_FIPS_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_IMAGE_NAME) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LD_STATIC_LINKING_FLAGS) \
@@ -1410,8 +1410,8 @@ $(DEPS_DIR)/go.sum: $(DEPS_DIR) go.sum
 	cp go.sum $(DEPS_DIR)
 
 $(DEPS_DIR)/build_env: $(DEPS_DIR)
-	echo "GO_BUILD_IMAGE=$(GOLANG_VERSION)" > $@
-	echo "FIPS_GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION)" >> $@
+	echo "GO_BUILD_IMAGE=$(GOLANG_ALPINE_IMAGE_NAME)" > $@
+	echo "FIPS_GO_BUILD_IMAGE=$(GOLANG_IMAGE_NAME)" >> $@
 	echo "GC_FLAGS=$(GCFLAGS)" >> $@
 
 $(DEPS_DIR)/verify-plugins-linux-amd64: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
