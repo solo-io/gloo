@@ -2,6 +2,14 @@
 set -e
 export PATH=$HOME/.gloo/bin:$PATH
 
+export AWS_ACCESS_KEY_ID="ASIA3VU3PCIYCZ6YCE3Z"
+export AWS_SECRET_ACCESS_KEY="ZYU5/cR2WhCnC0TKfM0aAaqSrw17e3wumTZQ0RVn"
+export AWS_SESSION_TOKEN="IQoJb3JpZ2luX2VjEJr//////////wEaCXVzLWVhc3QtMSJHMEUCIEehUX+0RMaQmCYPIzVn6rUJJfzDMBpJb588yxNDZAONAiEA8c74/9sceD03ixh7nZtdNLb8rvD5CozBtQv6EOoT4zgqnQMIk///////////ARAAGgw4MDI0MTExODg3ODQiDEBdYe3L20K2o8C//yrxAgnNqNG3pz6O/3+qDWQiAKGQ/gTA0uM1ArUUosLRLOjEI2qQKF1Y8Oo7T3p3Vi/pFt16V6JEcPecboi4f1hqcRHa11u9F7p52liiz8EemsetLPRVHrGYkhxlVzJ/ssygX++LJ5q4lm99QmfTpbI9h08j8RBVTvIejkbGObCyoK+lQBgvZ/ybzAyq1ZmBIH5fHTt2Xr1ZgFFBU79il0E+iTXDcynXLQfjUWO5BGRgtio7Sii2GqVm9tX/Ynj2j58Qc2zti0xtzDtSOK/HyNomNw/wwZewrQ8ayV5zkp12ZtFKnWhOFGp+i0yvrQVXXJJkum4f7sr2LojYCJjUVXk0PELEGEMZsOIrHA2yS47OXktY1MN9DzM3Fyu0QcB9le272dKI3TZJH58fAMahVJxeYvGRpU1AJe60t2NtkGinGUHwCzckVV5QVbv7GWFgykW4j9r9V+aglFbN0gmesAvFcyIA1ttvbY4TZDzCBZc+JLUz4zDF+oWiBjqmAVfivamGH2v4RTrUnELuUbOKo0BKAUlGx2tat0ju+puJqg2aLC+imONfh+AAAT+Yy82AKKX4xdyaMm37ldpuIwbHdFGFeA3fNdZK6/vd2RhxqhPOsTa9ZT+OEl7KSxvpMv3nVCEWltEHuu0ZbTTxfwI8HgZ8ScLEtSfGSiPCBTeVdlwZ8iduLd9MnHmPpvZ5r5mBKpelA+geFjEnBh4soxzNg2Mdzhk="
+export KUBECONFIG=/Users/ianmacclancy/Downloads/cicd-testNewScripts
+NUM_REMOTE_CLUSTERS=1
+GLOO_EDGE_LICENSE_KEY="eyJhZGRPbnMiOiIiLCJleHAiOjE2ODM4OTc3NzksImlhdCI6MTY1MjM2MTc3OSwiayI6IjhhL1pqUSIsImx0IjoiZW50IiwicHJvZHVjdCI6Imdsb28ifQ.M33cSptpUqE5R4hZUIm8RHwwQSZGvbiEYpXshPUpEAk"
+GLOO_EE_VERSION=1.13.15
+
 init_args() {
   MGMT_CONTEXT="mgmt-cluster"
   NAMESPACE="gloo-system"
@@ -17,12 +25,15 @@ init_helm() {
   helm repo update
 }
 
+
+
+
 # install edge on the specified cluster call with install_edge_on_cluster <cluster-name> <override file location>
 # will not be used for the fed management cluster
 install_edge_on_cluster() {
   cluster=$1
   overrideLocation=$2
-  echo "Installing edge on cluster ${CLUSTER_CONTEXT}..."
+  echo "Installing edge on cluster $cluster..."
   DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
   echo "create namespace"
@@ -34,6 +45,7 @@ install_edge_on_cluster() {
   # Build out helm command by each value -makes adding and removing as we change the tests easier
   HELM_OPTIONS="-n ${NAMESPACE} gloo-ee gloo-ee/gloo-ee"
   HELM_OPTIONS="$HELM_OPTIONS --kube-context=$cluster"
+
   HELM_OPTIONS="$HELM_OPTIONS --version ${GLOO_EE_VERSION}"
   HELM_OPTIONS="$HELM_OPTIONS --set-string license_key=${GLOO_EDGE_LICENSE_KEY}"
   HELM_OPTIONS="$HELM_OPTIONS --set gloo-fed.enabled=false"
@@ -66,7 +78,7 @@ install_fed_on_management_cluster() {
   kubectl --context "${MGMT_CONTEXT}" create namespace ${NAMESPACE}
 
   echo "create secret for TLS"
-  kubectl --context "${MGMT_CONTEXT}" create secret tls client-tls-secret --key "$DIR/certs/key.pem" --cert "$DIR/certs/cert.pem" --namespace ${NAMESPACE}
+  kubectl --context "${CLUSTER_CONTEXT}" create secret tls client-tls-secret --key "$DIR/certs/key.pem" --cert "$DIR/certs/cert.pem" --namespace ${NAMESPACE}
 
   HELM_OPTIONS="-n ${NAMESPACE} gloo-ee gloo-ee/gloo-ee"
   HELM_OPTIONS="$HELM_OPTIONS --kube-context=${MGMT_CONTEXT}"
@@ -80,11 +92,8 @@ install_fed_on_management_cluster() {
   if [ $WEBHOOK_VALIDATION == 'false' ]; then
     HELM_OPTIONS="$HELM_OPTIONS --set gloo.gateway.validation.enabled=false"
   fi
- # Split the HELM_OPTIONS variable into an array of arguments
-  IFS=' ' read -r -a HELM_ARGS <<< "${HELM_OPTIONS}"
 
-  # Pass the array of arguments to helm install
-  helm install "${HELM_ARGS[@]}"
+  helm install $HELM_OPTIONS
 }
 
 register_clusters() {

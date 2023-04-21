@@ -1,0 +1,427 @@
+apiVersion: enterprise.gloo.solo.io/v1
+kind: AuthConfig
+metadata:
+  name: ac-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  configs:
+  - basicAuth:
+      apr:
+        users:
+          user:
+            salt: "apr1$V4Fj6lyZ"
+            hashedPassword: "0wxG5rzLiyX44D6mmHH6B0"
+---
+apiVersion: ratelimit.solo.io/v1alpha1
+kind: RateLimitConfig
+metadata:
+  name: rlc-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  raw:
+    descriptors:
+    - key: remote_address
+      rateLimit:
+        requestsPerUnit: 3
+        unit: MINUTE
+    rateLimits:
+    - actions:
+      - remoteAddress: {}
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: upstream-1-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  static:
+    hosts:
+    - addr: "34.193.132.77"
+      healthCheckConfig:
+        path: /my/healthz
+      port: 80
+      sniAddr: httpbin.org
+    useTls: true
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  annotations:
+  name: upstream-2-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  connectionConfig:
+    connectTimeout: 20s
+    tcpKeepalive:
+      keepaliveProbes: 5
+      keepaliveTime: 20s
+  static:
+    hosts:
+      - addr: "34.193.132.77"
+        healthCheckConfig:
+          path: /my/healthz
+        port: 80
+        sniAddr: httpbin.org
+    useTls: true
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  annotations:
+  name: upstream-3-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  connectionConfig:
+    connectTimeout: 20s
+    tcpKeepalive:
+      keepaliveProbes: 5
+      keepaliveTime: 20s
+  static:
+    hosts:
+      - addr: "34.193.132.77"
+        healthCheckConfig:
+          path: /my/healthz
+        port: 80
+        sniAddr: httpbin.org
+    useTls: true
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: vs-{{.Index}}
+  namespace: gloo-system
+  labels:
+    test: test1
+spec:
+  sslConfig:
+    parameters:
+      cipherSuites:
+      - '[ECDHE-ECDSA-AES128-GCM-SHA256|ECDHE-ECDSA-CHACHA20-POLY1305]'
+      - '[ECDHE-RSA-AES128-GCM-SHA256|ECDHE-RSA-CHACHA20-POLY1305]'
+      - AES128-GCM-SHA256
+      - ECDHE-ECDSA-AES256-GCM-SHA384
+      - ECDHE-RSA-AES256-GCM-SHA384
+      - AES256-GCM-SHA384
+      minimumProtocolVersion: TLSv1_2
+    secretRef:
+      name: client-tls-secret
+      namespace: gloo-system
+    sniDomains:
+    - 'foo-{{.Index}}-gloo-system.solo.com'
+  virtualHost:
+    domains:
+    - 'foo-{{.Index}}-gloo-system.solo.com'
+    options:
+      cors:
+        allowCredentials: true
+        allowHeaders:
+        - Accept
+        - limit
+        - radius
+        - Content-Type
+        - latitude
+        - longitude
+        - Authorization
+        - Origin
+        - senderid
+        - channelid
+        - applicationid
+        - locale
+        - liveAreaLists
+        - subsLiveAreaLists
+        - accountNumber
+        - PUID
+        - Accept-Encoding
+        - Accept-Language
+        - Connection
+        - Host
+        - Referer
+        - User-Agent
+        - activityid
+        - applicationuserid
+        - Authorization
+        - dealercode
+        - interactionid
+        - Okta_Access_Token
+        - Okta_Refresh_Token
+        - masterdealercode
+        - Refresh_Token
+        - sessionid
+        - senderid
+        - TIMESTAMP
+        - UserGroup
+        - workflowid
+        - limit
+        - radius
+        - storeid
+        - timezone
+        - userstoreid
+        - ajax
+        - x-xsrf-token
+        - PATCH
+        - application
+        - consumerType
+        - If-Modified-Since
+        - documentId
+        - CCD-Authorization
+        - user-id
+        - application-id
+        - timestamp
+        - userid
+        - usedocumentversion
+        - storeId
+        - x-auth-originator
+        - user-id
+        - operatorid
+        - x-requested-with
+        - activity-id
+        - X-Authorizations
+        - x-isp-eligibility-strategy
+        - X-Authorization
+        allowMethods:
+        - GET
+        - PUT
+        - POST
+        - DELETE
+        - OPTIONS
+        - PATCH
+        allowOrigin:
+        - www.t-mobile.com
+        allowOriginRegex:
+        - '[a-zA-Z0-9\\-\\.]*'
+        exposeHeaders:
+        - Okta_Access_Token
+        - Okta_Refresh_Token
+        - Date
+        - timezone
+        - userstoreid
+        maxAge: 1d
+      extauth:
+        configRef:
+          name: ac-{{.Index}}
+          namespace: gloo-system
+      headerManipulation:
+        requestHeadersToAdd:
+        - append: false
+          header:
+            key: req-hdr-key
+            value: req-hdr-val
+        responseHeadersToAdd:
+        - append: false
+          header:
+            key: res-hdr-key
+            value: res-hdr-val
+        responseHeadersToRemove:
+        - x-envoy-upstream-service-time
+        - taap-auth-service-http-status-code
+        - taap-auth-service-response-body
+        - x-envoy-upstream-service-time
+      rateLimitConfigs:
+        refs:
+        - name: rlc-{{.Index}}
+          namespace: gloo-system
+        - name: rlc-{{.Index}}
+          namespace: gloo-system
+      retries:
+        numRetries: 3
+        perTryTimeout: 10s
+        retryOn: connect-failure
+      stagedTransformations:
+        early:
+          requestTransforms:
+          - requestTransformation:
+              transformationTemplate:
+                headers:
+                  :original-host:
+                    text: 'test'
+                  :original-path:
+                    text: 'test1'
+                  api-type:
+                    text: REST
+                  proxyName:
+                    text: ace-edge-gw-pipeline-test-proxy-dev
+                  service-transaction-id:
+                    text: 'test2'
+                  splunk-index:
+                    text: meg_dataplane
+                  traffic-type:
+                    text: API
+                parseBodyBehavior: DontParse
+          responseTransforms:
+          - responseTransformation:
+              transformationTemplate:
+                body:
+                  text: test3
+                dynamicMetadataValues:
+                - key: target_response_payload
+                  value:
+                    text: 'test4'
+                - key: additional_data
+                  value:
+                    text: 'test5'
+                headers:
+                  Cache-Control:
+                    text: 'test6'
+                  Strict-Transport-Security:
+                    text: max-age=31536000; includeSubDomains
+                  service-transaction-id:
+                    text: 'test7'
+                parseBodyBehavior: DontParse
+        regular:
+          requestTransforms:
+          - requestTransformation:
+              transformationTemplate:
+                parseBodyBehavior: DontParse
+    routes:
+    - directResponseAction:
+        body: OK
+        status: 200
+      matchers:
+      - exact: /meg/healthz
+        methods:
+        - GET
+      options:
+        extauth:
+          disable: true
+        tracing:
+          propagate: false
+          routeDescriptor: ace-edge-gw-pipeline-test-proxy-dev:/meg/healthz-GET
+    - directResponseAction:
+        body: "20220629223203"
+        status: 200
+      matchers:
+      - exact: /meg/info
+        methods:
+        - GET
+      options:
+        extauth:
+          disable: true
+        tracing:
+          propagate: false
+          routeDescriptor: ace-edge-gw-pipeline-test-proxy-dev:/meg/info-GET
+    - matchers:
+      - prefix: /foo-1-{{.Index}}
+      options:
+        rateLimitConfigs:
+          refs:
+          - name: rlc-{{.Index}}
+            namespace: gloo-system
+      routeAction:
+        single:
+          upstream:
+            name: upstream-1-{{.Index}}
+            namespace: gloo-system
+    - matchers:
+      - prefix: /foo-2-{{.Index}}
+      options:
+        prefixRewrite: /api-{{.Index}}
+        rateLimitConfigs:
+          refs:
+          - name: rlc-{{.Index}}
+            namespace: gloo-system
+      routeAction:
+        single:
+          upstream:
+            name: upstream-2-{{.Index}}
+            namespace: gloo-system
+    - matchers:
+      - prefix: /foo-3-{{.Index}}
+      options:
+        prefixRewrite: /api-{{.Index}}
+        rateLimitConfigs:
+          refs:
+          - name: rlc-{{.Index}}
+            namespace: gloo-system
+      routeAction:
+        single:
+          upstream:
+            name: upstream-3-{{.Index}}
+            namespace: gloo-system
+    - matchers:
+      - exact: /testing/v1/resources
+        headers:
+        - name: applicationId
+          value: IFM
+        methods:
+        - GET
+        queryParameters:
+        - name: channelid
+          value: retail
+      name: /testing/v1/resources-GET
+      options:
+        autoHostRewrite: true
+        cors:
+          allowCredentials: true
+          allowHeaders:
+          - origin
+          allowMethods:
+          - GET
+          - POST
+          allowOrigin:
+          - www.t-mobile.com
+          allowOriginRegex:
+          - '[a-zA-Z0-9]*.t-mobile.com'
+          exposeHeaders:
+          - origin
+          maxAge: 1d
+        extauth:
+          disable: true
+        headerManipulation:
+          requestHeadersToAdd:
+          - append: false
+            header:
+              key: req-hdr-key
+              value: req-hdr-val
+          responseHeadersToAdd:
+          - append: false
+            header:
+              key: res-hdr-key
+              value: res-hdr-val
+          responseHeadersToRemove:
+          - x-envoy-upstream-service-time
+          - taap-auth-service-http-status-code
+          - taap-auth-service-response-body
+          - x-envoy-upstream-service-time
+        prefixRewrite: /ace-edge-gw-testing-apis/v1/test
+        rateLimitConfigs:
+          refs:
+          - name: rlc-{{.Index}}
+            namespace: gloo-system
+        retries:
+          numRetries: 3
+          perTryTimeout: 10s
+          retryOn: connect-failure
+        timeout: 32s
+        tracing:
+          routeDescriptor: /ace-edge-gw-testing-apis/v1/resources-GET
+      routeAction:
+        multi:
+          destinations:
+          - destination:
+              upstream:
+                name: upstream-3-{{.Index}}
+                namespace: gloo-system
+            weight: 100
+          - destination:
+              upstream:
+                name: upstream-3-{{.Index}}
+                namespace: gloo-system
+            weight: 100
+          - destination:
+              upstream:
+                name: upstream-3-{{.Index}}
+                namespace: gloo-system
+          - destination:
+              upstream:
+                name: upstream-3-{{.Index}}
+                namespace: gloo-system

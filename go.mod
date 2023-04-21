@@ -20,6 +20,7 @@ require (
 	github.com/getkin/kin-openapi v0.80.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/gin-gonic/gin v1.7.7
+	github.com/go-errors/errors v1.0.1
 	github.com/go-logr/logr v1.2.3
 	github.com/go-logr/zapr v1.2.3
 	github.com/go-openapi/inflect v0.19.0
@@ -69,6 +70,7 @@ require (
 	github.com/wundergraph/graphql-go-tools v1.61.0
 	go.opencensus.io v0.24.0
 	go.uber.org/zap v1.24.0
+	golang.org/x/exp v0.0.0-20220921164117-439092de6870
 	golang.org/x/net v0.8.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/tools v0.7.0
@@ -162,7 +164,6 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/fvbommel/sortorder v1.0.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-git/go-git/v5 v5.4.1 // indirect
@@ -340,7 +341,6 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	gocloud.dev v0.18.0 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
-	golang.org/x/exp v0.0.0-20220921164117-439092de6870 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect

@@ -19,7 +19,7 @@ def shell(cmd):
 
 # quick kube command to query all upstreams from kube_context
 def count_upstreams():
-    cmd = "kubectl --context=" + kube_context +  " --namespace=gloo-system get upstream"
+    cmd = "kubectl --context=" + kube_context +  ' --namespace=gloo-system get upstream --no-headers --selector=fed.solo.io/owner'
     out = shell(cmd)
     return len(out.decode("utf-8").split('\n'))
 

@@ -1,8 +1,16 @@
-name: eks-scale-tests
-run-name: ${{ github.actor }} Run scales tests - 20 eks clusters - 300 upstreams per cluster
+name: eks-resource-scale-tests
+run-name: ${{ github.actor }} Run scales tests - resource creation based on iteration
 on:
   workflow_dispatch:
     inputs:
+      cluster_base_name:
+        description: The base name of the clusters that will be created cicd-<base name>-<cluster num>
+        required: true
+        default: edgeFedTests
+      iterations:
+        description: "The number of resources you want to create - 3x US, 1x VS, AuthConfig, RateLimit"
+        required: false
+        default: 1000
       edge_enterprise_version:
         description: Edge Enterprise version
         required: false
@@ -11,30 +19,35 @@ on:
         description: Helm version
         required: true
         default: v3.8.2
-      environment_id:
-        description: Environment ID - the name of the environment you want to create
-        required: true
-        default: edge-scale
+      kubernetes_version:
+        description: Kubernetes Version
+        default: 1.25
+        type: choice
+        options:
+          - 1.23
+          - 1.24
+          - 1.25
       destroy_infra:
         description: Destroy cloud infrastructure on completion
         type: boolean
         default: false
 
+# hardcoded to 0 remote clusters so that only one cluster is spun up
 jobs:
   setup-environment:
     uses: solo-io/gloo-eng-test-beds/.github/workflows/build-eng-cicd-env.yaml@main
     with:
       environment: eks-developers-acct
-      num-remote-clusters: 20
-      job-reference: ${{ github.event.inputs.environment_id }}
-      cluster-env-params: "EKS_MGMT_INSTANCE_TYPE=c6a.4xlarge EKS_WORKER_INSTANCE_TYPE=c6a.2xlarge"
+      num-remote-clusters: 0
+      job-reference: ${{ github.event.inputs.cluster_base_name }}
+      cluster-env-params: "EKS_KUBERNETES_VERSION=${{ github.event.inputs.num-remote-clusters }} EKS_MGMT_INSTANCE_TYPE=c6a.4xlarge EKS_WORKER_INSTANCE_TYPE=c6a.2xlarge"
       component: gloo-edge
     secrets:
       GIT_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-  scale-tests:
+  resource-scale-tests:
     runs-on: ubuntu-latest
     needs: setup-environment
     environment: eks-developers-acct
@@ -42,7 +55,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      KUBECONFIG_FILE: kubeconfig.cicd-${{ github.event.inputs.environment_id }}
+      KUBECONFIG_FILE: kubeconfig.cicd-${{ github.event.inputs.cluster_base_name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -71,34 +84,41 @@ jobs:
         env:
           GLOO_EDGE_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
           GLOO_EE_VERSION: ${{ github.event.inputs.edge_enterprise_version }}
-          NUM_REMOTE_CLUSTERS: 20
+          NUM_REMOTE_CLUSTERS: 0
+          TMOBILE_HELM_VALUES: true
         run: |
           ./ci/eks/install-edge.sh
 
-      - name: Run Scale Tests
+      - name: Run Resource Scale Tests
         id: scale
         env:
-          GLOO_EDGE_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
-          NUM_REMOTE_CLUSTERS: 20
-          ITERATIONS: 100
+          ITERATIONS: ${{ github.event.inputs.iterations }}
         run: |
-          ./ci/eks/data-creation.sh
-            
+          ./ci/eks/resource-scale.sh
+
       - name: Upload results file
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ github.event.inputs.environment_id }}-run-output.csv
+          name: ${{ github.event.inputs.cluster_base_name }}-creation-time-output.csv
           path: |
-            ${{ env.POST_PROCESS_LOCATION }}
+            ${{ env.CREATION_TIMES_OUTPUT }}
+          retention-days: 7
+
+      - name: Upload results file
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ github.event.inputs.cluster_base_name }}-deletion-time-output.csv
+          path: |
+            ${{ env.DELETION_TIMES_OUTPUT }}
           retention-days: 7
 
   cleanup-environment:
     uses: solo-io/gloo-eng-test-beds/.github/workflows/cleanup-eng-env.yaml@main
-    needs: scale-tests
+    needs: resource-scale-tests
     if: ${{ github.event.inputs.destroy_infra == 'true' }}
     with:
       environment: eks-developers-acct
-      cluster-group: cicd-${{ github.event.inputs.environment_id }}
+      cluster-group: cicd-${{ github.event.inputs.cluster_base_name }}
     secrets:
       GIT_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

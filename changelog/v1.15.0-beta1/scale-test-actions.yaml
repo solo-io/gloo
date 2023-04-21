@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4724
+    resolvesIssue: false
+    description: >-
+      Add in test actions so that we can easily run scale tests through github and eks

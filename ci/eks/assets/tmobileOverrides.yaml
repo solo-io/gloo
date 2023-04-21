@@ -1,0 +1,32 @@
+gloo-fed:
+  enabled: false
+  glooFedApiserver:
+    enable: false
+prometheus:
+  enabled: false
+grafana:
+  defaultInstallationEnabled: false
+gloo:
+  discovery:
+    enabled: false
+  gloo:
+    deployment:
+      resources:
+        requests:
+          memory: 16Gi
+          cpu: 8
+  gatewayProxies:
+    gatewayProxy:
+      kind:
+        deployment:
+          replicas: 2
+      podTemplate:
+        resources:
+          requests:
+            cpu: 2000m
+            memory: 4Gi
+  settings:
+    disableKubernetesDestinations: true
+  gateway:
+    validation:
+      enabled: false

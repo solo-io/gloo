@@ -14,6 +14,7 @@ Name|Version|License
 [getkin/kin-openapi](https://github.com/getkin/kin-openapi)|v0.80.0|MIT License
 [ghodss/yaml](https://github.com/ghodss/yaml)|v1.0.1-0.20190212211648-25d852aebe32|MIT License
 [gin-gonic/gin](https://github.com/gin-gonic/gin)|v1.7.7|MIT License
+[go-errors/errors](https://github.com/go-errors/errors)|v1.0.1|MIT License
 [go-logr/logr](https://github.com/go-logr/logr)|v1.2.3|Apache License 2.0
 [go-logr/zapr](https://github.com/go-logr/zapr)|v1.2.3|Apache License 2.0
 [go-openapi/inflect](https://github.com/go-openapi/inflect)|v0.19.0|MIT License
@@ -41,6 +42,7 @@ Name|Version|License
 [wundergraph/graphql-go-tools](https://github.com/wundergraph/graphql-go-tools)|v1.61.0|MIT License
 [go.opencensus.io](https://go.opencensus.io)|v0.24.0|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.24.0|MIT License
+[x/exp](https://golang.org/x/exp)|v0.0.0-20220921164117-439092de6870|BSD 3-clause "New" or "Revised" License
 [x/net](https://golang.org/x/net)|v0.8.0|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.1.0|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
