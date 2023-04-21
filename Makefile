@@ -16,9 +16,10 @@ include Makefile.docker
 # As you encounter make targets that are frequently used, please make them self-documenting
 
 .PHONY: help
-help: FIRST_COLUMN_WIDTH=35
+help: NAME_COLUMN_WIDTH=35
+help: LINE_COLUMN_WIDTH=5
 help: ## Output the self-documenting make targets
-	@grep -hE '^[%a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-$(FIRST_COLUMN_WIDTH)s\033[0m %s\n", $$1, $$2}'
+	@grep -hnE '^[%a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = "[:]|(## )"}; {printf "\033[36mL%-$(LINE_COLUMN_WIDTH)s%-$(NAME_COLUMN_WIDTH)s\033[0m %s\n", $$1, $$2, $$4}'
 
 #----------------------------------------------------------------------------------
 # Base
@@ -1594,14 +1595,16 @@ kind-load-%-debug:
 
 # Build an image and load it into the KinD cluster
 # Depends on: IMAGE_REGISTRY, VERSION, CLUSTER_NAME
-kind-build-and-load-%: %-docker kind-load-% ;
+# Envoy image may be specified via ENVOY_GLOO_IMAGE on the command line or at the top of this file
+kind-build-and-load-%: %-docker kind-load-% ; ## Use to build specified image and load it into kind
 
 # Reload an image in KinD
 # This is useful to developers when changing a single component
 # You can reload an image, which means it will be rebuilt and reloaded into the kind cluster
 # using the same tag so that tests can be re-run
 # Depends on: IMAGE_REGISTRY, VERSION, INSTALL_NAMESPACE , CLUSTER_NAME
-kind-reload-%: kind-build-and-load-%
+# Envoy image may be specified via ENVOY_GLOO_IMAGE on the command line or at the top of this file
+kind-reload-%: kind-build-and-load-% ## Use to build specified image, load it into kind, and restart its deployment
 	kubectl rollout restart deployment/$* -n $(INSTALL_NAMESPACE)
 
 # Useful utility for listing images loaded into the kind cluster
@@ -1615,6 +1618,7 @@ kind-prune-images:
 	docker exec -ti $(CLUSTER_NAME)-control-plane crictl rmi --prune
 
 .PHONY: kind-build-and-load
+kind-build-and-load: ## Use to build all images and load them into kind
 ifeq ($(USE_FIPS),true)
 kind-build-and-load: kind-build-and-load-gloo-ee-fips
 kind-build-and-load: kind-build-and-load-gloo-ee-envoy-wrapper-fips
@@ -1638,6 +1642,17 @@ ifeq  ($(IS_ARM_MACHINE), )
 kind-build-and-load: kind-build-and-load-ext-auth-plugins
 endif # ARM support
 endif # non-fips support
+
+define kind_reload_msg
+The kind-reload-% targets exist in order to assist developers with the work cycle of
+build->test->change->build->test. To that end, rebuilding/reloading every image, then
+restarting every deployment is seldom necessary. Consider using kind-reload-% to do so
+for a specific component, or kind-build-and-load to push new images for every component.
+endef
+export kind_reload_msg
+.PHONY: kind-reload
+kind-reload:
+	@echo "$$kind_reload_msg"
 
 .PHONY: build-test-chart
 build-test-chart: build-test-chart-fed

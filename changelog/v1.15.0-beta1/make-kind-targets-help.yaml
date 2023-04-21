@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  description: >-
+    Add generalized `kind-reload` target, self-documenting comments for new utility commands,
+    and instruction on how to specify custom Envoy image.
