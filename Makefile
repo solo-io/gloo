@@ -108,10 +108,6 @@ init:
 mod-download: check-go-version
 	go mod download all
 
-.PHONY: mod-tidy
-mod-tidy:
-	go mod tidy
-
 # https://github.com/go-modules-by-example/index/blob/master/010_tools/README.md
 .PHONY: install-go-tools
 install-go-tools: mod-download ## Download and install Go dependencies
@@ -170,6 +166,7 @@ TEST_PKG ?= ./... # Default to run all tests
 GINKGO_USER_FLAGS ?=
 
 .PHONY: install-test-tools
+install-test-tools: check-go-version
 install-test-tools:
 	go install github.com/onsi/ginkgo/v2/ginkgo@v$(GINKGO_VERSION)
 
@@ -1166,7 +1163,7 @@ $(DISCOVERY_OUTPUT_DIR)/discovery-ee-linux-$(DOCKER_GOARCH): $(DISCOVERY_SOURCES
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(DISCOVERY_DIR)/cmd/main.go
 
 .PHONY: discovery-ee
-discovery: $(DISCOVERY_OUTPUT_DIR)/discovery-ee-linux-$(DOCKER_GOARCH)
+discovery-ee: $(DISCOVERY_OUTPUT_DIR)/discovery-ee-linux-$(DOCKER_GOARCH)
 $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery: $(DISCOVERY_DIR)/cmd/Dockerfile
 	cp $< $@
 
@@ -1478,6 +1475,7 @@ docker-retag-%:
 
 # Build Gloo Enterprise docker images using the defined IMAGE_REGISTRY, VERSION
 .PHONY: docker
+docker: check-go-version
 docker: # Build Control Plane images
 docker: gloo-ee-docker
 docker: gloo-ee-fips-docker
