@@ -1,0 +1,6 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: graphql-go
+  dependencyRepo: graphql
+  dependencyTag: v0.8.1
+  description: Bump to fix CVE-2022-37315
