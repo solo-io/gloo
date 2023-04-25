@@ -56,7 +56,7 @@ require (
 
 	// Pinned to the `gloo-edge-safe-hasher` tag of solo-apis
 	github.com/solo-io/solo-apis v0.0.0-20220923183548-9746539fc625
-	github.com/solo-io/solo-kit v0.30.9
+	github.com/solo-io/solo-kit v0.30.10-0.20230425232629-b8d59ca8a247
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
