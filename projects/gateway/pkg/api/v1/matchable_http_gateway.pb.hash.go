@@ -158,5 +158,13 @@ func (m *MatchableHttpGateway_Matcher) Hash(hasher hash.Hash64) (uint64, error) 
 		}
 	}
 
+	for _, v := range m.GetPassthroughCipherSuites() {
+
+		if _, err = hasher.Write([]byte(v)); err != nil {
+			return 0, err
+		}
+
+	}
+
 	return hasher.Sum64(), nil
 }
