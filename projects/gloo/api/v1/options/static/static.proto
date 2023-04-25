@@ -23,7 +23,7 @@ message UpstreamSpec {
 
     // Attempt to use outbound TLS
     // Gloo will automatically set this to true for port 443
-    bool use_tls = 3;
+    google.protobuf.BoolValue use_tls = 3;
 
     // An optional Service Spec describing the service listening at this address
     .options.gloo.solo.io.ServiceSpec service_spec = 5;

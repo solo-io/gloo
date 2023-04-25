@@ -1565,6 +1565,7 @@ spec:
                         type: object
                     type: object
                   useTls:
+                    nullable: true
                     type: boolean
                 type: object
               useHttp2:

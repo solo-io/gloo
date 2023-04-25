@@ -143,7 +143,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	}
 
 	// if host port is 443 or if the user wants it, we will use TLS
-	if spec.GetUseTls() || foundSslPort {
+	if spec.GetUseTls().GetValue() || (spec.GetUseTls() == nil && foundSslPort) {
 		// tell envoy to use TLS to connect to this upstream
 		// TODO: support client certificates
 		if out.GetTransportSocket() == nil {
