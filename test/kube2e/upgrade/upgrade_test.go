@@ -82,19 +82,16 @@ var _ = Describe("Upgrade Tests", func() {
 			})
 		})
 		Context("When upgrading from CurrentPatchMostRecentMinorVersion to PR version of gloo", func() {
-			if firstReleaseOfMinor {
-				Skip("First Release of minor, cannot upgrade from a lower patch version to this version")
-			} else {
-				BeforeEach(func() {
-					installGlooWithTests(testHelper, CurrentPatchMostRecentMinorVersion.String(), strictValidation)
-				})
-				AfterEach(func() {
-					UninstallGloo(testHelper, ctx, cancel)
-				})
-				It("uses helm to update validationServerGrpcMaxSizeBytes without errors", func() {
-					updateSettingsWithoutErrors(ctx, testHelper, chartUri, strictValidation)
-				})
-			}
+			BeforeEach(func() {
+				skipIfFirstMinorFunc()
+				installGlooWithTests(testHelper, CurrentPatchMostRecentMinorVersion.String(), strictValidation)
+			})
+			AfterEach(func() {
+				UninstallGloo(testHelper, ctx, cancel)
+			})
+			It("uses helm to update validationServerGrpcMaxSizeBytes without errors", func() {
+				updateSettingsWithoutErrors(ctx, testHelper, chartUri, strictValidation)
+			})
 		})
 	})
 
@@ -124,19 +121,16 @@ var _ = Describe("Upgrade Tests", func() {
 		})
 
 		Context("When upgrading from CurrentPatchMostRecentMinorVersion to PR version of gloo", func() {
-			if firstReleaseOfMinor {
-				Skip("First Release of minor, cannot upgrade from a lower patch version to this version")
-			} else {
-				BeforeEach(func() {
-					installGlooWithTests(testHelper, CurrentPatchMostRecentMinorVersion.String(), strictValidation)
-				})
-				AfterEach(func() {
-					UninstallGloo(testHelper, ctx, cancel)
-				})
-				It("sets validation webhook caBundle on install and upgrade", func() {
-					updateValidationWebhookTests(ctx, kubeClientset, testHelper, chartUri, false)
-				})
-			}
+			BeforeEach(func() {
+				skipIfFirstMinorFunc()
+				installGlooWithTests(testHelper, CurrentPatchMostRecentMinorVersion.String(), strictValidation)
+			})
+			AfterEach(func() {
+				UninstallGloo(testHelper, ctx, cancel)
+			})
+			It("sets validation webhook caBundle on install and upgrade", func() {
+				updateValidationWebhookTests(ctx, kubeClientset, testHelper, chartUri, false)
+			})
 		})
 	})
 })

@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4312
+    resolvesIssue: false
+    description: >-
+      Update upgrade test to not fail on first of new version.

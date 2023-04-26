@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/solo-io/go-utils/versionutils"
@@ -57,30 +56,36 @@ var (
 
 	// ex:current branch is 1.13.10 - this would be 1.13.9
 	CurrentPatchMostRecentMinorVersion *versionutils.Version
-	firstReleaseOfMinor                bool
+
+	skipIfFirstMinorFunc func()
 )
 
 var _ = BeforeSuite(func() {
-	var err error
-	err = os.Setenv(statusutils.PodNamespaceEnvName, namespace)
+	err := os.Setenv(statusutils.PodNamespaceEnvName, namespace)
 	Expect(err).NotTo(HaveOccurred())
+
 	beforeSuiteCtx, beforeSuiteCtxCancel := context.WithCancel(context.Background())
 	testHelper, err = enterprisehelpers.GetEnterpriseTestHelper(beforeSuiteCtx, namespace)
 	Expect(err).NotTo(HaveOccurred())
+
+	chartUri = "glooe/gloo-ee"
 	if testHelper.ReleasedVersion == "" {
 		chartUri = filepath.Join(testHelper.RootDir, testHelper.TestAssetDir, testHelper.HelmChartName+"-"+testHelper.ChartVersion()+".tgz")
-	} else {
-		chartUri = "glooe/gloo-ee"
 	}
+
 	strictValidation = false
+
 	LastPatchMostRecentMinorVersion, CurrentPatchMostRecentMinorVersion, err = osskube2e.GetUpgradeVersions(beforeSuiteCtx, "solo-projects")
-	if err != nil {
-		if !strings.Contains(err.Error(), FirstReleaseError) {
-			fmt.Println(err.Error())
-			Fail(err.Error())
+	Expect(err).NotTo(HaveOccurred())
+
+	skipIfFirstMinorFunc = func() {}
+	if CurrentPatchMostRecentMinorVersion == nil {
+		CurrentPatchMostRecentMinorVersion = versionutils.NewVersion(0, 0, 0, "", 0)
+		skipIfFirstMinorFunc = func() {
+			Skip("First release of minor")
 		}
-		firstReleaseOfMinor = true
 	}
+
 	fmt.Println("============================================================")
 	fmt.Println("lastPatchMostRecentMinorVersion: " + LastPatchMostRecentMinorVersion.String())
 	fmt.Println("currentPatchMostRecentMinorVersion: " + CurrentPatchMostRecentMinorVersion.String())
