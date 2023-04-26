@@ -10,9 +10,19 @@ import (
 
 // GraphQLApiOptions should only have one Local or Remote executor.
 type GraphQLApiOptions struct {
-	Local  *LocalExecutor
-	Remote *RemoteExecutor
-	Schema string
+	Local              *LocalExecutor
+	Remote             *RemoteExecutor
+	DescriptorRegistry *v1beta1.GrpcDescriptorRegistry
+	Schema             string
+}
+
+// SetProtoDescriptorBinwill set the ProtoDescriptorBin
+func (g *GraphQLApiOptions) SetProtoDescriptorBin(data []byte) {
+	g.DescriptorRegistry = &v1beta1.GrpcDescriptorRegistry{
+		DescriptorSet: &v1beta1.GrpcDescriptorRegistry_ProtoDescriptorBin{
+			ProtoDescriptorBin: data,
+		},
+	}
 }
 
 // LocalExecutor is used for options for constructing the local executor.
@@ -64,8 +74,9 @@ func NewGraphQLApi(upstream *v1.Upstream, options GraphQLApiOptions) (*v1beta1.G
 		},
 		Schema: &v1beta1.GraphQLApi_ExecutableSchema{
 			ExecutableSchema: &v1beta1.ExecutableSchema{
-				Executor:         executor,
-				SchemaDefinition: printer2.PrettyPrintKubeString(options.Schema),
+				Executor:               executor,
+				SchemaDefinition:       printer2.PrettyPrintKubeString(options.Schema),
+				GrpcDescriptorRegistry: options.DescriptorRegistry,
 			},
 		},
 	}, nil

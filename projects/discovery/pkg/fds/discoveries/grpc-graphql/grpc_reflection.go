@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"net/url"
 	"strings"
@@ -244,15 +243,13 @@ func (f *GraphqlSchemaDiscovery) BuildGraphQLApiFromGrpcReflection(refClient Grp
 	if err != nil {
 		return nil, errors.Wrap(err, "error marshalling descriptors")
 	}
-	dest := make([]byte, base64.StdEncoding.EncodedLen(len(d)))
-	base64.StdEncoding.Encode(dest, d)
-
 	options := discoveries.GraphQLApiOptions{
 		Local: &discoveries.LocalExecutor{
 			Resolutions: resolutions,
 		},
 		Schema: schemaDef,
 	}
+	options.SetProtoDescriptorBin(d)
 	return discoveries.NewGraphQLApi(f.upstream, options)
 }
 

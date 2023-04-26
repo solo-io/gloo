@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	glooV1helpers "github.com/solo-io/gloo/test/v1helpers"
 	"github.com/solo-io/solo-projects/test/v1helpers"
 
 	"github.com/fgrosse/zaptest"
@@ -19,6 +20,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
+	plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -28,7 +30,7 @@ import (
 	"github.com/solo-io/solo-projects/test/services"
 )
 
-var _ = Describe("Graphql Remote E2E test", func() {
+var _ = Describe("Graphql Remote and gRPC E2E test", func() {
 
 	const graphqlPort = "8280"
 
@@ -68,7 +70,57 @@ var _ = Describe("Graphql Remote E2E test", func() {
 	AfterEach(func() {
 		cancel()
 	})
-	Context("With envoy", func() {
+	Context("finding a gRPC service", func() {
+		var (
+			envoyInstance *services.EnvoyInstance
+			grpcUpstream  *glooV1helpers.TestUpstream
+		)
+		BeforeEach(func() {
+			var err error
+			envoyInstance, err = envoyFactory.NewEnvoyInstance()
+			Expect(err).NotTo(HaveOccurred())
+
+			err = envoyInstance.Run(testClients.GlooPort)
+			Expect(err).NotTo(HaveOccurred())
+
+			grpcUpstream = glooV1helpers.NewTestGRPCUpstream(ctx, envoyInstance.LocalAddr(), 1)
+			_, err = testClients.UpstreamClient.Write(grpcUpstream.Upstream, clients.WriteOpts{})
+			Expect(err).NotTo(HaveOccurred())
+			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				return testClients.UpstreamClient.Read(grpcUpstream.Upstream.Metadata.Namespace,
+					grpcUpstream.Upstream.Metadata.Name, clients.ReadOpts{})
+			})
+		})
+
+		AfterEach(func() {
+			if envoyInstance != nil {
+				envoyInstance.Clean()
+			}
+		})
+
+		It("should discover the gRPC service", func() {
+			Eventually(func() ([]byte, error) {
+				m := grpcUpstream.Upstream.Metadata
+				u, err := testClients.UpstreamClient.Read(m.GetNamespace(), m.GetName(), clients.ReadOpts{})
+				if err != nil {
+					return nil, err
+				}
+				grpcServiceSpec, ok := u.GetStatic().GetServiceSpec().GetPluginType().(*plugins.ServiceSpec_Grpc)
+				if grpcServiceSpec == nil && !ok {
+					return nil, fmt.Errorf("no grpc service spec found on upstream %s.%s, %s", u.Metadata.Namespace, u.Metadata.Name, u.String())
+				}
+				graphqlResource, err := testClients.
+					GraphQLApiClient.
+					Read(m.Namespace, m.Name, clients.ReadOpts{})
+				if err != nil {
+					return nil, err
+				}
+				return graphqlResource.GetExecutableSchema().GetGrpcDescriptorRegistry().GetProtoDescriptorBin(), nil
+			}, 1*time.Minute, 1*time.Second).ShouldNot(BeNil())
+		})
+	})
+
+	Context("finding a graphql remote service", func() {
 		var (
 			envoyInstance *services.EnvoyInstance
 			testUpstream  *v1helpers.TestUpstream
@@ -222,7 +274,7 @@ var _ = Describe("Graphql Remote E2E test", func() {
 						return url, nil
 					}, 1*time.Minute, 1*time.Second).Should(Equal(fmt.Sprintf("http://%s/graphql", testUpstream.Address)))
 
-					By("creates graphql schema from discovered openapi", func() {
+					By("creates graphql schema from discovered graphql server", func() {
 						m := testUpstream.Upstream.GetMetadata()
 						var graphqlResource *GraphQLApi
 						Eventually(func() (*GraphQLApi, error) {

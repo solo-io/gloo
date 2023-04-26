@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: gRPC will now generate the `grpcDescriptorRegistry.protoDescriptorBin` when a gRPC graphQLAPI resource is discovered.
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/gloo/issues/8031
