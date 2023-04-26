@@ -1721,6 +1721,9 @@ apis:
   solo.io.envoy.extensions.filters.http.wasm.v3.Wasm:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/wasm/v3/wasm.proto.sk/#Wasm
     package: solo.io.envoy.extensions.filters.http.wasm.v3
+  solo.io.envoy.extensions.transport_sockets.proxy_protocol.v3.ProxyProtocolUpstreamTransport:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/envoy/extensions/transport_sockets/proxy_protocol/v3/upstream_proxy_protocol.proto.sk/#ProxyProtocolUpstreamTransport
+    package: solo.io.envoy.extensions.transport_sockets.proxy_protocol.v3
   solo.io.envoy.extensions.wasm.v3.PluginConfig:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/wasm/v3/wasm.proto.sk/#PluginConfig
     package: solo.io.envoy.extensions.wasm.v3

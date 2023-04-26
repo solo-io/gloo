@@ -10,7 +10,9 @@ import (
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+	"github.com/golang/protobuf/ptypes/any"
 	pbgostruct "github.com/golang/protobuf/ptypes/struct"
+
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -26,6 +28,10 @@ var (
 const (
 	// TODO: make solo-projects use this constant
 	TransportSocketMatchKey = "envoy.transport_socket_match"
+
+	//
+	ProxyProtocolUpstreamClusterName = "envoy.extensions.transport_sockets.proxy_protocol.v3.ProxyProtocolUpstreamTransport"
+	upstreamProxySocketName          = "envoy.transport_sockets.upstream_proxy_protocol"
 
 	AdvancedHttpCheckerName = "io.solo.health_checkers.advanced_http"
 	PathFieldName           = "path"
@@ -176,6 +182,32 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 			if err != nil {
 				return err
 			}
+
+			if in.GetProxyProtocolVersion() != nil {
+				ppVal := in.GetProxyProtocolVersion().GetValue()
+				if ppVal > 1 {
+					return errors.Errorf("proxy protocol version %d is not supported", ppVal)
+				}
+
+				typCfg := &any.Any{
+					TypeUrl: "type.googleapis.com/" + ProxyProtocolUpstreamClusterName, // As of writing this is not in go-control-plane's well known
+					// Value: &uptransport.ProxyProtocolUpstreamTransport{
+					// 	TransportSocket: ts,
+					// 	Config: &envoy_config_core_v3.ProxyProtocolConfig{
+					// 		Version: envoy_config_core_v3.ProxyProtocolConfig_Version(ppVal),
+					// 	},
+					// },
+				}
+
+				ts = &envoy_config_core_v3.TransportSocket{
+					Name: upstreamProxySocketName,
+					// https://github.com/envoyproxy/envoy/blob/29b46144739578a72a8f18eb8eb0855e23426f6e/api/envoy/extensions/transport_sockets/proxy_protocol/v3/upstream_proxy_protocol.proto#L21
+					ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{
+						TypedConfig: typCfg,
+					},
+				}
+			}
+
 			out.TransportSocketMatches = append(out.GetTransportSocketMatches(), &envoy_config_cluster_v3.Cluster_TransportSocketMatch{
 				Name:            name(spec, host),
 				Match:           metadataMatch(spec, host),
