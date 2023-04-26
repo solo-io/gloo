@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/solo-io/solo-projects/pkg/xds"
+
 	glooAuthSyncer "github.com/solo-io/gloo/projects/gloo/pkg/syncer/extauth"
 
 	extauthconfig "github.com/solo-io/ext-auth-service/pkg/config"
@@ -22,7 +24,6 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
 )
 
 var (
@@ -127,9 +128,7 @@ func (x *configSource) Run(ctx context.Context, service service.ExtAuthService) 
 			},
 		)
 
-		// We are using non secure gRPC to Gloo with the assumption that it will be secured by envoy.
-		// If this assumption is not correct this needs to change.
-		conn, err := grpc.DialContext(ctx, settings.GlooAddress, grpc.WithInsecure())
+		conn, err := xds.GetXdsClientConnection(ctx, settings.GlooAddress)
 		if err != nil {
 			contextutils.LoggerFrom(ctx).Errorw("failed to create gRPC client connection to Gloo", zap.Any("error", err))
 			return err

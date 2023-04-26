@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/solo-io/solo-projects/pkg/xds"
+
 	glooRatelimitSyncer "github.com/solo-io/gloo/projects/gloo/pkg/syncer/ratelimit"
 
 	"go.opencensus.io/stats"
@@ -22,7 +24,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
 )
 
 var (
@@ -105,9 +106,7 @@ func (x *configSource) Run(ctx context.Context, service ratelimit.RateLimitServi
 			return nil
 		})
 
-		// We are using non secure gRPC to gloo with the assumption that it will be
-		// secured by envoy. if this assumption is not correct this needs to change.
-		conn, err := grpc.DialContext(ctx, x.glooAddress, grpc.WithInsecure(), grpc.WithBlock())
+		conn, err := xds.GetXdsClientConnection(ctx, x.glooAddress)
 		if err != nil {
 			logger.Errorw("failed to establish connection to gloo xDS server", zap.String("glooAddress", x.glooAddress), zap.Error(err))
 			return err

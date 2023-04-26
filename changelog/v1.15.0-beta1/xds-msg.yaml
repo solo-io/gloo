@@ -1,0 +1,8 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/8135
+    resolvesIssue: false
+    description: >-
+      Configure the gRPC connections from the enterprise ext-auth and rate-limit services to
+      support large xDS responses from the Gloo Control Plane. Previously, when the default value was exceeded,
+      the connection would fail causing updates to not be sent to the services.
