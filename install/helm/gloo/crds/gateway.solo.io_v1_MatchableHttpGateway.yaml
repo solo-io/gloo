@@ -1102,10 +1102,6 @@ spec:
                 type: object
               matcher:
                 properties:
-                  passthroughCipherSuites:
-                    items:
-                      type: string
-                    type: array
                   sourcePrefixRanges:
                     items:
                       properties:

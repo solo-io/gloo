@@ -49,8 +49,6 @@ message MatchableHttpGateway {
     //  - FilterChainMatch: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/listener/v3/listener_components.proto#config-listener-v3-filterchainmatch)
     //  - TransportSocket: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/base.proto#envoy-v3-api-msg-config-core-v3-transportsocket
     gloo.solo.io.SslConfig ssl_config = 2;
-
-    repeated string passthrough_cipher_suites = 3;
   }
 
   // Matcher creates a FilterChainMatch and TransportSocket for a FilterChain

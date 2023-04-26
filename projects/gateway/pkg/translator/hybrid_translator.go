@@ -83,9 +83,8 @@ func (t *HybridTranslator) computeHybridListenerFromMatchedGateways(
 	for _, matchedGateway := range matchedGateways {
 		matchedListener := &gloov1.MatchedListener{
 			Matcher: &gloov1.Matcher{
-				SslConfig:               matchedGateway.GetMatcher().GetSslConfig(),
-				SourcePrefixRanges:      matchedGateway.GetMatcher().GetSourcePrefixRanges(),
-				PassthroughCipherSuites: matchedGateway.GetMatcher().GetPassthroughCipherSuites(),
+				SslConfig:          matchedGateway.GetMatcher().GetSslConfig(),
+				SourcePrefixRanges: matchedGateway.GetMatcher().GetSourcePrefixRanges(),
 			},
 		}
 
@@ -118,6 +117,7 @@ func (t *HybridTranslator) computeHybridListenerFromMatchedGateways(
 			}
 
 		case *v1.MatchedGateway_TcpGateway:
+			matchedListener.GetMatcher().PassthroughCipherSuites = matchedGateway.GetMatcher().GetPassthroughCipherSuites()
 			matchedListener.ListenerType = &gloov1.MatchedListener_TcpListener{
 				TcpListener: t.TcpTranslator.ComputeTcpListener(gt.TcpGateway),
 			}
@@ -177,7 +177,7 @@ func (t *HybridTranslator) computeMatchedListener(
 		Matcher: &gloov1.Matcher{
 			SslConfig:               sslConfig,
 			SourcePrefixRanges:      matchableHttpGateway.GetMatcher().GetSourcePrefixRanges(),
-			PassthroughCipherSuites: matchableHttpGateway.GetMatcher().GetPassthroughCipherSuites(),
+			PassthroughCipherSuites: nil, // not applicable to http gateways
 		},
 	}
 
