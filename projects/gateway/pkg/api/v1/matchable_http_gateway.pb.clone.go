@@ -93,14 +93,5 @@ func (m *MatchableHttpGateway_Matcher) Clone() proto.Message {
 		target.SslConfig = proto.Clone(m.GetSslConfig()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl.SslConfig)
 	}
 
-	if m.GetPassthroughCipherSuites() != nil {
-		target.PassthroughCipherSuites = make([]string, len(m.GetPassthroughCipherSuites()))
-		for idx, v := range m.GetPassthroughCipherSuites() {
-
-			target.PassthroughCipherSuites[idx] = v
-
-		}
-	}
-
 	return target
 }
