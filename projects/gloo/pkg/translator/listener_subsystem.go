@@ -231,11 +231,12 @@ func (l *ListenerSubsystemTranslatorFactory) GetHybridListenerTranslators(ctx co
 			// Our current TcpFilterChainPlugins have a 1-many relationship,
 			// meaning that a single TcpListener produces many FilterChains
 			filterChainTranslator = &tcpFilterChainTranslator{
-				plugins:            l.pluginRegistry.GetTcpFilterChainPlugins(),
-				parentListener:     listener,
-				listener:           listenerType.TcpListener,
-				report:             hybridListenerReport.GetMatchedListenerReports()[utils.MatchedRouteConfigName(listener, matcher)].GetTcpListenerReport(),
-				sourcePrefixRanges: matcher.GetSourcePrefixRanges(), // HybridGateway only feature
+				plugins:                 l.pluginRegistry.GetTcpFilterChainPlugins(),
+				parentListener:          listener,
+				listener:                listenerType.TcpListener,
+				report:                  hybridListenerReport.GetMatchedListenerReports()[utils.MatchedRouteConfigName(listener, matcher)].GetTcpListenerReport(),
+				sourcePrefixRanges:      matcher.GetSourcePrefixRanges(), // HybridGateway only feature
+				passthroughCipherSuites: matcher.GetPassthroughCipherSuites(),
 			}
 
 			// A TcpListener does not produce any RouteConfiguration

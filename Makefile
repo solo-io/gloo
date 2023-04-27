@@ -93,7 +93,7 @@ else
   endif
 endif
 
-ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.25.4-patch1
+ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.25.4-patch3
 
 # The full SHA of the currently checked out commit
 CHECKED_OUT_SHA := $(shell git rev-parse HEAD)
@@ -863,7 +863,7 @@ build-test-chart: ## Build the Helm chart and place it in the _test directory
 SCAN_DIR ?= $(OUTPUT_DIR)/scans
 SCAN_BUCKET ?= solo-gloo-security-scans
 # The minimum version to scan with trivy
-MIN_SCANNED_VERSION ?= v1.10.0
+MIN_SCANNED_VERSION ?= v1.11.0
 
 .PHONY: run-security-scans
 run-security-scan:
