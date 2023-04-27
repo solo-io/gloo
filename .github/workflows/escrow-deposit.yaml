@@ -3,6 +3,8 @@ on:
   release:
     types:
       - created
+  workflow_dispatch:
+  
 jobs:
   deposit:
     name: Create Escrow Deposit
@@ -35,10 +37,11 @@ jobs:
         with:
           entrypoint: sh
           # This step is needed to avoid MITM attacks. The public key here has been verified (same output from
-          # `ssh-keyscan -t rsa ftpipm.ironmountain.com` from machines on separate networks) -- LFTP will fail to copy
+          # `ssh-keyscan -t rsa $host` from machines on separate networks) -- LFTP will fail to copy
           # the files over if the public key fails to validate with the server's private key. The public key may need
           # to be updated in the event the server key (private key) is rotated. In that event, it will be important to
           # validate that Iron Mountain didn't have a breach and verify the new public key before blindly updating it
           # here. Since this backup is all our closed source code and IP, DO NOT SKIP validation.
           args: |
-            -c "echo 'ftpipm.ironmountain.com,216.229.154.50 ssh-rsa AAAAB3NzaC1yc2EAAAABEQAAAQEAt++DDUTeZzIlO5nNnwfUNSteVHqsWaswlT4MirWq6sfZdVkdGzRaKkIQ5/r+Z01RAFjudsmb3Ra14ZyU91VRArzXk8D0RsQUd979yqMs/uYglOEwEGsA5lldxWxVWZ/WqIa3kBVg/DEM8v7ufya7RqS8DyBlQgpEncJWDWZTxhtIrGmXExw24sIBR5FDAE0NS9Yyn9oab22iMNVnJGI4HN8vs3SQNxzMUTerA7uCk+ImvYC9jyP60wNgnAzUNyre3EkCXO3ZrQvelaqLX4mhoeCuPajDH37zMJxHFUQxnw5H5a+izQWOb2SBQoCMibo8QTxdR1Ly99ssn5JSXijcOQ==' >> known_hosts; lftp sftp://ftpipm.ironmountain.com:22 -u Solo.ioINC --env-password -e 'set sftp:connect-program ssh -o UserKnownHostsFile=known_hosts; mirror -R _gloo-ee-source/. 53312/; quit';"
+            -c "echo '${{ var.ESCROWHOSTENTRY }}' >> known_hosts; lftp sftp://ftpipm.nccgroup.com:22 -u Solo.ioINC --env-password -e 'set sftp:connect-program ssh -o UserKnownHostsFile=known_hosts; mirror -R _gloo-ee-source/. 53312/; quit';"
+
