@@ -7,7 +7,6 @@ on:
     - cron: "6 6 * * 1"     # monday   @ 01:06 EST, run expanded tests against v1.13.x 
     - cron: "7 7 * * 1"     # monday   @ 02:07 EST, run expanded tests against v1.12.x
     - cron: "8 8 * * 1"     # monday   @ 03:08 EST, run expanded tests against v1.11.x
-    - cron: "9 9 * * 1"     # monday   @ 04:09 EST, run expanded tests against v1.10.x
   workflow_dispatch:
 
 env:
@@ -119,30 +118,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
           TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
 
-  regression_tests_10:
-    name: v1.10.x regression tests (${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}})
-    if: github.event.schedule == '9 9 * * 1'
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}]
-        kube-version: [ { node: 'v1.21.14@sha256:9d9eb5fb26b4fbc0c6d95fa8c790414f9750dd583f5d7cee45d92e8c26670aa1', kubectl: 'v1.21.14', kind: 'v0.17.0', helm: 'v3.9.4' } ]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: v1.10.x
-      - uses: ./.github/actions/regression-tests
-        with:
-          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
-          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
-
   publish_results:
     runs-on: ubuntu-22.04
     if: ${{ always() }}
-    needs: [ regression_tests_dev, regression_tests_14, regression_tests_13, regression_tests_12, regression_tests_11, regression_tests_10 ]
+    needs: [ regression_tests_dev, regression_tests_14, regression_tests_13, regression_tests_12, regression_tests_11 ]
     steps:
       - uses: actions/checkout@v3
       - name: compute-preamble
@@ -153,8 +132,6 @@ jobs:
           if [[ ${{github.event_name == 'workflow_dispatch'}} = true ]]; then
             preamble="Gloo EE nightlies (manual run)"
             echo "SLACK_CHANNEL=C0314KESVNV" >> $GITHUB_ENV   #slack-integration-testing if manually run
-          elif [[ ${{github.event.schedule == '9 9 * * 1'}} = true ]]; then
-              preamble="Gloo EE weeklies (v1.10.x)"
           elif [[ ${{github.event.schedule == '8 8 * * 1'}} = true ]]; then
               preamble="Gloo EE weeklies (v1.11.x)"
           elif [[ ${{github.event.schedule == '7 7 * * 1'}} = true ]]; then
