@@ -93,7 +93,7 @@ else
   endif
 endif
 
-ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.25.4-patch3
+ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.25.6-patch1
 
 # The full SHA of the currently checked out commit
 CHECKED_OUT_SHA := $(shell git rev-parse HEAD)
@@ -325,7 +325,7 @@ $(OUTPUT_DIR)/.generated-code:
 verify-enterprise-protos:
 	@echo Verifying validity of generated enterprise files...
 	$(GO_BUILD_FLAGS) GOOS=linux go build projects/gloo/pkg/api/v1/enterprise/verify.go $(STDERR_SILENCE_REDIRECT)
-	
+
 # makes sure you are running codegen with the correct Go version
 .PHONY: check-go-version
 check-go-version:
@@ -863,7 +863,7 @@ build-test-chart: ## Build the Helm chart and place it in the _test directory
 SCAN_DIR ?= $(OUTPUT_DIR)/scans
 SCAN_BUCKET ?= solo-gloo-security-scans
 # The minimum version to scan with trivy
-MIN_SCANNED_VERSION ?= v1.10.0
+MIN_SCANNED_VERSION ?= v1.11.0
 
 .PHONY: run-security-scans
 run-security-scan:
