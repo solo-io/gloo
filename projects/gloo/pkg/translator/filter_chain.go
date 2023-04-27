@@ -42,7 +42,8 @@ type tcpFilterChainTranslator struct {
 	report *validationapi.TcpListenerReport
 
 	// These values are optional (currently only available for HybridGateways)
-	sourcePrefixRanges []*v3.CidrRange
+	sourcePrefixRanges      []*v3.CidrRange
+	passthroughCipherSuites []string
 }
 
 func (t *tcpFilterChainTranslator) ComputeFilterChains(params plugins.Params) []*envoy_config_listener_v3.FilterChain {
