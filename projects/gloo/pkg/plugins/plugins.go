@@ -134,6 +134,11 @@ type ListenerPlugin interface {
 	ProcessListener(params Params, in *v1.Listener, out *envoy_config_listener_v3.Listener) error
 }
 
+type FilterChainMutatorPlugin interface {
+	ListenerPlugin
+	ProcessFilterChain(params Params, in *v1.Listener, inFilters []*ExtendedFilterChain, out *envoy_config_listener_v3.Listener) error
+}
+
 type TcpFilterChainPlugin interface {
 	Plugin
 	CreateTcpFilterChains(params Params, parentListener *v1.Listener, in *v1.TcpListener) ([]*envoy_config_listener_v3.FilterChain, error)
@@ -192,3 +197,13 @@ type PluginRegistry interface {
 // A PluginRegistryFactory generates a PluginRegistry
 // It is executed each translation loop, ensuring we have up to date configuration of all plugins
 type PluginRegistryFactory func(ctx context.Context) PluginRegistry
+
+// ExtendedFilterChain is a FilterChain with additional information
+// This extra information may not end up on the final filter chain
+// But may be used to compute other aspects of the listener that are
+// pulled along with filter chain.
+// TODO(nfuden): Is this the right place for this?
+type ExtendedFilterChain struct {
+	FilterChain             *envoy_config_listener_v3.FilterChain
+	PassthroughCipherSuites []uint32
+}

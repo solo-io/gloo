@@ -25,7 +25,7 @@ import (
 )
 
 type FilterChainTranslator interface {
-	ComputeFilterChains(params plugins.Params) []*envoy_config_listener_v3.FilterChain
+	ComputeFilterChains(params plugins.Params) []*plugins.ExtendedFilterChain
 }
 
 var _ FilterChainTranslator = new(tcpFilterChainTranslator)
@@ -46,7 +46,7 @@ type tcpFilterChainTranslator struct {
 	passthroughCipherSuites []string
 }
 
-func (t *tcpFilterChainTranslator) ComputeFilterChains(params plugins.Params) []*envoy_config_listener_v3.FilterChain {
+func (t *tcpFilterChainTranslator) ComputeFilterChains(params plugins.Params) []*plugins.ExtendedFilterChain {
 	var filterChains []*envoy_config_listener_v3.FilterChain
 
 	// 1. Run the tcp filter chain plugins
@@ -69,7 +69,13 @@ func (t *tcpFilterChainTranslator) ComputeFilterChains(params plugins.Params) []
 		}
 	}
 
-	return filterChains
+	// TODO(nfuden): Actually get this from tcp filters
+	extFilters := make([]*plugins.ExtendedFilterChain, len(filterChains))
+	for _, fc := range filterChains {
+		fc := fc
+		extFilters = append(extFilters, &plugins.ExtendedFilterChain{FilterChain: fc})
+	}
+	return extFilters
 }
 
 // An httpFilterChainTranslator configures a single set of NetworkFilters
@@ -85,7 +91,7 @@ type httpFilterChainTranslator struct {
 	sourcePrefixRanges []*v3.CidrRange
 }
 
-func (h *httpFilterChainTranslator) ComputeFilterChains(params plugins.Params) []*envoy_config_listener_v3.FilterChain {
+func (h *httpFilterChainTranslator) ComputeFilterChains(params plugins.Params) []*plugins.ExtendedFilterChain {
 	// 1. Generate all the network filters (including the HttpConnectionManager)
 	networkFilters, err := h.networkFilterTranslator.ComputeNetworkFilters(params)
 	if err != nil {
@@ -108,8 +114,12 @@ func (h *httpFilterChainTranslator) ComputeFilterChains(params plugins.Params) [
 			applySourcePrefixRangesToFilterChain(fc, h.sourcePrefixRanges)
 		}
 	}
-
-	return filterChains
+	extFilters := make([]*plugins.ExtendedFilterChain, len(filterChains))
+	for _, fc := range filterChains {
+		fc := fc
+		extFilters = append(extFilters, &plugins.ExtendedFilterChain{FilterChain: fc})
+	}
+	return extFilters
 }
 
 func (h *httpFilterChainTranslator) getSslConfigurationWithDefaults() []*ssl.SslConfig {
@@ -229,8 +239,8 @@ type multiFilterChainTranslator struct {
 	translators []FilterChainTranslator
 }
 
-func (m *multiFilterChainTranslator) ComputeFilterChains(params plugins.Params) []*envoy_config_listener_v3.FilterChain {
-	var outFilterChains []*envoy_config_listener_v3.FilterChain
+func (m *multiFilterChainTranslator) ComputeFilterChains(params plugins.Params) []*plugins.ExtendedFilterChain {
+	var outFilterChains []*plugins.ExtendedFilterChain
 
 	for _, translator := range m.translators {
 		newFilterChains := translator.ComputeFilterChains(params)
