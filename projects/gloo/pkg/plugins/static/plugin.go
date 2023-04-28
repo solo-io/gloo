@@ -8,9 +8,11 @@ import (
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
+	proxyproto "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/proxy_protocol/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	pbgostruct "github.com/golang/protobuf/ptypes/struct"
+
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -26,6 +28,9 @@ var (
 const (
 	// TODO: make solo-projects use this constant
 	TransportSocketMatchKey = "envoy.transport_socket_match"
+
+	proxyProtocolUpstreamClusterName = "envoy.extensions.transport_sockets.proxy_protocol.v3.ProxyProtocolUpstreamTransport"
+	upstreamProxySocketName          = "envoy.transport_sockets.upstream_proxy_protocol"
 
 	AdvancedHttpCheckerName = "io.solo.health_checkers.advanced_http"
 	PathFieldName           = "path"
@@ -176,6 +181,37 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 			if err != nil {
 				return err
 			}
+
+			if in.GetProxyProtocolVersion() != nil {
+				pPVerValStr := in.GetProxyProtocolVersion().GetValue()
+
+				pPVerVal, ok := envoy_config_core_v3.ProxyProtocolConfig_Version_value[pPVerValStr]
+				if !ok {
+					return errors.Errorf("proxy protocol version %s is not supported", pPVerValStr)
+				}
+
+				pput := &proxyproto.ProxyProtocolUpstreamTransport{
+					TransportSocket: ts,
+					Config: &envoy_config_core_v3.ProxyProtocolConfig{
+						Version: envoy_config_core_v3.ProxyProtocolConfig_Version(pPVerVal),
+					},
+				}
+				// Convert so it can be set as typed config
+				typCfg, err := utils.MessageToAny(pput)
+				if err != nil {
+					return err
+				}
+				typCfg.TypeUrl = "type.googleapis.com/" + proxyProtocolUpstreamClusterName // As of writing this is not in go-control-plane's well known
+
+				ts = &envoy_config_core_v3.TransportSocket{
+					Name: upstreamProxySocketName,
+					// https://github.com/envoyproxy/envoy/blob/29b46144739578a72a8f18eb8eb0855e23426f6e/api/envoy/extensions/transport_sockets/proxy_protocol/v3/upstream_proxy_protocol.proto#L21
+					ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{
+						TypedConfig: typCfg,
+					},
+				}
+			}
+
 			out.TransportSocketMatches = append(out.GetTransportSocketMatches(), &envoy_config_cluster_v3.Cluster_TransportSocketMatch{
 				Name:            name(spec, host),
 				Match:           metadataMatch(spec, host),
