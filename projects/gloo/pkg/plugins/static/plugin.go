@@ -8,11 +8,10 @@ import (
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
+	proxyproto "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/proxy_protocol/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	pbgostruct "github.com/golang/protobuf/ptypes/struct"
-	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
-	proxyproto "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transport_sockets/proxy_protocol/v3"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
@@ -184,20 +183,18 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 			}
 
 			if in.GetProxyProtocolVersion() != nil {
-				ppVal := in.GetProxyProtocolVersion().GetValue()
-				if ppVal > 1 {
-					return errors.Errorf("proxy protocol version %d is not supported", ppVal)
+				pPVerVal := in.GetProxyProtocolVersion().GetValue()
+				if pPVerVal > 1 {
+					return errors.Errorf("proxy protocol version %d is not supported", pPVerVal)
 				}
 
 				pput := &proxyproto.ProxyProtocolUpstreamTransport{
-					TransportSocket: &v3.TransportSocket{
-						Name:       ts.GetName(),
-						ConfigType: &v3.TransportSocket_TypedConfig{TypedConfig: ts.GetTypedConfig()},
-					},
-					Config: &v3.ProxyProtocolConfig{
-						Version: v3.ProxyProtocolConfig_Version(ppVal),
+					TransportSocket: ts,
+					Config: &envoy_config_core_v3.ProxyProtocolConfig{
+						Version: envoy_config_core_v3.ProxyProtocolConfig_Version(pPVerVal),
 					},
 				}
+				// Convert so it can be set as typed config
 				typCfg, err := utils.MessageToAny(pput)
 				if err != nil {
 					return err

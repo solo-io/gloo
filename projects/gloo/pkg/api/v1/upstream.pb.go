@@ -192,7 +192,10 @@ type Upstream struct {
 	// Service Discovery DNS Refresh Rate.
 	// Minimum value is 1 ms. Values below the minimum are considered invalid.
 	// Only valid for STRICT_DNS and LOGICAL_DNS cluster types. All other cluster types are considered invalid.
-	DnsRefreshRate       *duration.Duration   `protobuf:"bytes,30,opt,name=dns_refresh_rate,json=dnsRefreshRate,proto3" json:"dns_refresh_rate,omitempty"`
+	DnsRefreshRate *duration.Duration `protobuf:"bytes,30,opt,name=dns_refresh_rate,json=dnsRefreshRate,proto3" json:"dns_refresh_rate,omitempty"`
+	// Proxy Protocol Version to add when communicating with the upstream.
+	// If unset will not wrap the transport socket.
+	// Currently only implemented on Static Upstreams.
 	ProxyProtocolVersion *wrappers.Int32Value `protobuf:"bytes,31,opt,name=proxy_protocol_version,json=proxyProtocolVersion,proto3" json:"proxy_protocol_version,omitempty"`
 }
 
