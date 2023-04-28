@@ -1,0 +1,26 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    issueLink: https://github.com/solo-io/gloo/issues/8108
+    resolvesIssue: false
+    dependencyOwner: redis
+    dependencyRepo: go-redis
+    dependencyTag: v9.0.3+(notquitepatch4)
+    description: >-
+      Update Redis package to v9 to support redis v7 https://github.com/redis/go-redis/issues/2085#issuecomment-1181357149
+      Note that this does make 2 major changes to the package but neither seem to affect us.
+      First it changes the vanity url pathing (in other words import looks different but isnt).
+      Second it makes Pipelines no longer thread safe. Fortunately on a transaction we create a new pipeline.
+      Pipeline() returns a new pipeline making our implementation safe.
+      This allows for redis v7 while also not breaking v6 per https://github.com/redis/go-redis/commit/7b4f2179cb5dba3d3c6b0c6f10db52b837c912c8
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: caching-service
+    dependencyTag: v0.2.1
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: rate-limiter
+    dependencyTag: v0.8.2
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.35.4

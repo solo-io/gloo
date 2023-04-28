@@ -57,7 +57,7 @@ redis:
   deployment:
     name: redis
     image:
-      tag: "6.2.4"
+      tag: "7.0.11"
       repository: redis
       registry: docker.io
     staticPort: 6379

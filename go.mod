@@ -46,10 +46,10 @@ require (
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/rotisserie/eris v0.5.0
 	github.com/solo-io/anyvendor v0.1.0
-	github.com/solo-io/caching-service v0.2.0
+	github.com/solo-io/caching-service v0.2.1
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.35.3
+	github.com/solo-io/ext-auth-service v0.35.4
 	github.com/solo-io/external-apis v0.1.17
 	github.com/solo-io/gloo v1.15.0-beta4
 	github.com/solo-io/gloo-graphql-example v0.1.0
@@ -59,7 +59,7 @@ require (
 	github.com/solo-io/licensing v0.3.13
 	github.com/solo-io/protoc-gen-ext v0.0.18
 	github.com/solo-io/protoc-gen-openapi v0.1.0
-	github.com/solo-io/rate-limiter v0.8.0
+	github.com/solo-io/rate-limiter v0.8.2
 	github.com/solo-io/skv2 v0.29.5
 	github.com/solo-io/solo-apis v0.0.0-20230425163937-765af35f63f2
 	github.com/solo-io/solo-kit v0.31.0
@@ -182,7 +182,6 @@ require (
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
-	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-swagger/go-swagger v0.30.3 // indirect
 	github.com/gobuffalo/envy v1.8.1 // indirect
 	github.com/gobuffalo/packd v1.0.1 // indirect
@@ -303,6 +302,7 @@ require (
 	github.com/pseudomuto/protokit v0.2.0 // indirect
 	github.com/radovskyb/watcher v1.0.7 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
+	github.com/redis/go-redis/v9 v9.0.4-0.20230419143741-6ecbcf6c9091 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/rubenv/sql-migrate v1.3.1 // indirect

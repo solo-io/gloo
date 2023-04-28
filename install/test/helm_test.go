@@ -3602,7 +3602,7 @@ spec:
 				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{
 					{
 						Name:            "redis",
-						Image:           "docker.io/redis:6.2.4",
+						Image:           "docker.io/redis:7.0.11",
 						ImagePullPolicy: getPullPolicy(),
 						Args:            []string{"redis-server", "/redis-acl/users.acl"},
 						Ports: []v1.ContainerPort{

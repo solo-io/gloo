@@ -1332,7 +1332,7 @@
 |redis.deployment.redisContainerSecurityContext.procMount|string|||
 |redis.deployment.redisContainerSecurityContext.seccompProfile.type|string|||
 |redis.deployment.redisContainerSecurityContext.seccompProfile.localhostProfile|string|||
-|redis.deployment.image.tag|string|6.2.4|The image tag for the container.|
+|redis.deployment.image.tag|string|7.0.11|The image tag for the container.|
 |redis.deployment.image.repository|string|redis|The image repository (name) for the container.|
 |redis.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |redis.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
