@@ -15,6 +15,7 @@ weight: 5
 - [TcpGateway](#tcpgateway)
 - [HybridGateway](#hybridgateway)
 - [DelegatedHttpGateway](#delegatedhttpgateway)
+- [DelegatedTcpGateway](#delegatedtcpgateway)
 - [MatchedGateway](#matchedgateway)
 - [Matcher](#matcher)
   
@@ -95,13 +96,15 @@ and the routing configuration to upstreams that are reachable via a specific por
 ```yaml
 "matchedGateways": []gateway.solo.io.MatchedGateway
 "delegatedHttpGateways": .gateway.solo.io.DelegatedHttpGateway
+"delegatedTcpGateways": .gateway.solo.io.DelegatedTcpGateway
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `matchedGateways` | [[]gateway.solo.io.MatchedGateway](../gateway.proto.sk/#matchedgateway) | MatchedGateways can be used to define both HttpGateways and TcpGateways directly on the Gateway resource. Only one of `MatchedGateways` or `DelegatedHttpGateways` should be provided. If more than one is provided only one will be checked with priority MatchedGateways, DelegatedHttpGateways. |
-| `delegatedHttpGateways` | [.gateway.solo.io.DelegatedHttpGateway](../gateway.proto.sk/#delegatedhttpgateway) | DelegatedHttpGateways can be used to configure multiple HttpGateways using the MatchableHttpGateway CR and select them on this Gateway using a resourceRef or label selection Only one of `MatchedGateways` or `DelegatedHttpGateways` should be provided. If more than one is provided only one will be checked with priority MatchedGateways, DelegatedHttpGateways. |
+| `matchedGateways` | [[]gateway.solo.io.MatchedGateway](../gateway.proto.sk/#matchedgateway) | MatchedGateways can be used to define both HttpGateways and TcpGateways directly on the Gateway resource. If `MatchedGateways` is provided, then `DelegatedHttpGateways` and `DelegatedTcpGateways` are ignored. |
+| `delegatedHttpGateways` | [.gateway.solo.io.DelegatedHttpGateway](../gateway.proto.sk/#delegatedhttpgateway) | DelegatedHttpGateways can be used to configure multiple HttpGateways using the MatchableHttpGateway CR and select them on this Gateway using a resourceRef or label selection. If `MatchedGateways` is provided, then `DelegatedHttpGateways` is ignored. |
+| `delegatedTcpGateways` | [.gateway.solo.io.DelegatedTcpGateway](../gateway.proto.sk/#delegatedtcpgateway) | DelegatedTcpGateways can be used to configure multiple TcpGateways using the MatchableTcpGateway CR and select them on this Gateway using a resourceRef or label selection. If `MatchedGateways` is provided, then `DelegatedTcpGateways` is ignored. |
 
 
 
@@ -123,10 +126,29 @@ and the routing configuration to upstreams that are reachable via a specific por
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | Delegate to the resource with the given `name` and `namespace. Only one of `ref` or `selector` can be set. |
-| `selector` | [.selectors.core.gloo.solo.io.Selector](../../../../gloo/api/v1/core/selectors/selectors.proto.sk/#selector) | Delegate to the MatchableHttpGateway that match the given selector. Only one of `selector` or `ref` can be set. |
+| `selector` | [.selectors.core.gloo.solo.io.Selector](../../../../gloo/api/v1/core/selectors/selectors.proto.sk/#selector) | Delegate to the MatchableHttpGateways that match the given selector. Only one of `selector` or `ref` can be set. |
 | `preventChildOverrides` | `bool` | Used as a meta modifier to the `http_connection_manager_settings` and `ssl_config` fields in a DelegatedHttpGateway. When set, provided ancestor config cannot be overriden by matched HttpGateways. Useful in a multi-team context, where a controlling team managing a primary Gateway file may want to lock down specific functionality from other teams. For example: (DelegatedHttpGateway, MatchableHttpGateway) = {"a": "a1", "b": "b1"}, {"b": "b2", "c": "c2"} When true: get_config(MatchableHttpGateway) --> {"a": "a1", "b": "b1", "c": "c2"} When false: get_config(MatchableHttpGateway) --> {"a": "a1", "b": "b2", "c": "c2"}. |
 | `httpConnectionManagerSettings` | [.hcm.options.gloo.solo.io.HttpConnectionManagerSettings](../../../../gloo/api/v1/options/hcm/hcm.proto.sk/#httpconnectionmanagersettings) | Anscestry-level HTTP Gateway configuration. Options specified here will be passed down to each `MatchableHttpGateway` that is matched via `selector` or `ref`. Ultimately, said options will be consumed by instances of `MatchableHttpGateway.http_gateway`. |
 | `sslConfig` | [.gloo.solo.io.SslConfig](../../../../gloo/api/v1/ssl/ssl.proto.sk/#sslconfig) | Anscestry-level TLS/SSL traffic configuration. Options specified here will be passed down to each `MatchableHttpGateway` that is matched via `selector` or `ref`. From there, they are passed to all VirtualServices associated with said `MatchableHttpGateway`s. |
+
+
+
+
+---
+### DelegatedTcpGateway
+
+
+
+```yaml
+"ref": .core.solo.io.ResourceRef
+"selector": .selectors.core.gloo.solo.io.Selector
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | Delegate to the resource with the given `name` and `namespace. Only one of `ref` or `selector` can be set. |
+| `selector` | [.selectors.core.gloo.solo.io.Selector](../../../../gloo/api/v1/core/selectors/selectors.proto.sk/#selector) | Delegate to the MatchableTcpGateways that match the given selector. Only one of `selector` or `ref` can be set. |
 
 
 
