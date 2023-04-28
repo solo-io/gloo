@@ -141,7 +141,7 @@ type FilterChainMutatorPlugin interface {
 
 type TcpFilterChainPlugin interface {
 	Plugin
-	CreateTcpFilterChains(params Params, parentListener *v1.Listener, in *v1.TcpListener) ([]*ExtendedFilterChain, error)
+	CreateTcpFilterChains(params Params, parentListener *v1.Listener, in *v1.TcpListener) ([]*envoy_config_listener_v3.FilterChain, error)
 }
 
 // HttpConnectionManager Plugins

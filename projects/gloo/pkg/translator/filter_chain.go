@@ -47,7 +47,7 @@ type tcpFilterChainTranslator struct {
 }
 
 func (t *tcpFilterChainTranslator) ComputeFilterChains(params plugins.Params) []*plugins.ExtendedFilterChain {
-	var extFilterChains []*plugins.ExtendedFilterChain
+	var filterChains []*envoy_config_listener_v3.FilterChain
 
 	// 1. Run the tcp filter chain plugins
 	for _, plug := range t.plugins {
@@ -59,15 +59,22 @@ func (t *tcpFilterChainTranslator) ComputeFilterChains(params plugins.Params) []
 			continue
 		}
 
-		extFilterChains = append(extFilterChains, pluginFilterChains...)
+		filterChains = append(filterChains, pluginFilterChains...)
 	}
 
 	// 2. Apply SourcePrefixRange to FilterChainMatch, if defined
 	if len(t.sourcePrefixRanges) > 0 {
-		for _, fc := range extFilterChains {
-			applySourcePrefixRangesToFilterChain(fc.FilterChain, t.sourcePrefixRanges)
+		for _, fc := range filterChains {
+			applySourcePrefixRangesToFilterChain(fc, t.sourcePrefixRanges)
 		}
 	}
+
+	extFilterChains := make([]*plugins.ExtendedFilterChain, 0, len(filterChains))
+	for _, fc := range filterChains {
+		fc := fc
+		extFilterChains = append(extFilterChains, &plugins.ExtendedFilterChain{FilterChain: fc, PassthroughCipherSuites: t.passthroughCipherSuites})
+	}
+
 	return extFilterChains
 }
 

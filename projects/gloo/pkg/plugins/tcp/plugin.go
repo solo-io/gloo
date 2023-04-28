@@ -61,8 +61,8 @@ func (p *plugin) Name() string {
 func (p *plugin) Init(_ plugins.InitParams) {
 }
 
-func (p *plugin) CreateTcpFilterChains(params plugins.Params, parentListener *v1.Listener, in *v1.TcpListener) ([]*plugins.ExtendedFilterChain, error) {
-	var filterChains []*plugins.ExtendedFilterChain
+func (p *plugin) CreateTcpFilterChains(params plugins.Params, parentListener *v1.Listener, in *v1.TcpListener) ([]*envoy_config_listener_v3.FilterChain, error) {
+	var filterChains []*envoy_config_listener_v3.FilterChain
 	multiErr := multierror.Error{}
 
 	alsSettings := parentListener.GetOptions().GetAccessLoggingService()
@@ -88,7 +88,7 @@ func (p *plugin) CreateTcpFilterChains(params plugins.Params, parentListener *v1
 			multiErr.Errors = append(multiErr.Errors, err)
 			continue
 		}
-		filterChains = append(filterChains, &plugins.ExtendedFilterChain{FilterChain: filterChain})
+		filterChains = append(filterChains, filterChain)
 	}
 	return filterChains, multiErr.ErrorOrNil()
 }
