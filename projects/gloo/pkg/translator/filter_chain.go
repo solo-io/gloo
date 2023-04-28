@@ -69,11 +69,13 @@ func (t *tcpFilterChainTranslator) ComputeFilterChains(params plugins.Params) []
 		}
 	}
 
-	// TODO(nfuden): Actually get this from tcp filters
 	extFilters := make([]*plugins.ExtendedFilterChain, len(filterChains))
 	for _, fc := range filterChains {
 		fc := fc
-		extFilters = append(extFilters, &plugins.ExtendedFilterChain{FilterChain: fc})
+		extFilters = append(extFilters, &plugins.ExtendedFilterChain{
+			FilterChain:             fc,
+			PassthroughCipherSuites: t.passthroughCipherSuites,
+		})
 	}
 	return extFilters
 }
