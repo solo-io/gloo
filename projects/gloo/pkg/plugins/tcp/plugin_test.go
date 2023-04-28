@@ -6,8 +6,6 @@ import (
 	envoy_extensions_filters_network_sni_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/sni_cluster/v3"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 
-	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
-
 	envoytcp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/golang/mock/gomock"
@@ -131,7 +129,7 @@ var _ = Describe("Plugin", func() {
 			}
 		})
 
-		createFilterChains := func() ([]*envoy_config_listener_v3.FilterChain, error) {
+		createFilterChains := func() ([]*plugins.ExtendedFilterChain, error) {
 			p := NewPlugin(sslTranslator)
 			return p.CreateTcpFilterChains(plugins.Params{Snapshot: snap}, listener, tcpListener)
 		}
@@ -158,7 +156,7 @@ var _ = Describe("Plugin", func() {
 			Expect(filterChains).To(HaveLen(1))
 
 			var cfg envoytcp.TcpProxy
-			err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
+			err = translatorutil.ParseTypedConfig(filterChains[0].FilterChain.Filters[0], &cfg)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(cfg.IdleTimeout).To(matchers.MatchProto(tcps.IdleTimeout))
@@ -196,7 +194,7 @@ var _ = Describe("Plugin", func() {
 			Expect(filterChains).To(HaveLen(1))
 
 			var cfg envoytcp.TcpProxy
-			err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
+			err = translatorutil.ParseTypedConfig(filterChains[0].FilterChain.Filters[0], &cfg)
 			Expect(err).NotTo(HaveOccurred())
 			cluster := cfg.GetCluster()
 			Expect(cluster).To(Equal(translatorutil.UpstreamToClusterName(&core.ResourceRef{Namespace: ns, Name: "one"})))
@@ -219,7 +217,7 @@ var _ = Describe("Plugin", func() {
 			Expect(filterChains).To(HaveLen(1))
 
 			var cfg envoytcp.TcpProxy
-			err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
+			err = translatorutil.ParseTypedConfig(filterChains[0].FilterChain.Filters[0], &cfg)
 			Expect(err).NotTo(HaveOccurred())
 			clusters := cfg.GetWeightedClusters()
 			Expect(clusters.Clusters).To(HaveLen(2))
@@ -254,7 +252,7 @@ var _ = Describe("Plugin", func() {
 			Expect(filterChains).To(HaveLen(1))
 
 			var cfg envoytcp.TcpProxy
-			err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
+			err = translatorutil.ParseTypedConfig(filterChains[0].FilterChain.Filters[0], &cfg)
 			Expect(err).NotTo(HaveOccurred())
 			clusters := cfg.GetWeightedClusters()
 			Expect(clusters.Clusters).To(HaveLen(2))
@@ -291,13 +289,13 @@ var _ = Describe("Plugin", func() {
 			filterChains, err := createFilterChains()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filterChains).To(HaveLen(1))
-			Expect(filterChains[0].Filters).To(HaveLen(2))
-			Expect(filterChains[0].Filters[0].Name).To(Equal(SniFilter))
-			sniClusterConfig := utils.MustAnyToMessage(filterChains[0].Filters[0].GetTypedConfig()).(*envoy_extensions_filters_network_sni_cluster_v3.SniCluster)
+			Expect(filterChains[0].FilterChain.Filters).To(HaveLen(2))
+			Expect(filterChains[0].FilterChain.Filters[0].Name).To(Equal(SniFilter))
+			sniClusterConfig := utils.MustAnyToMessage(filterChains[0].FilterChain.Filters[0].GetTypedConfig()).(*envoy_extensions_filters_network_sni_cluster_v3.SniCluster)
 			Expect(sniClusterConfig).NotTo(BeNil())
 
 			var cfg envoytcp.TcpProxy
-			err = translatorutil.ParseTypedConfig(filterChains[0].Filters[1], &cfg)
+			err = translatorutil.ParseTypedConfig(filterChains[0].FilterChain.Filters[1], &cfg)
 			Expect(err).NotTo(HaveOccurred())
 			cluster, ok := cfg.GetClusterSpecifier().(*envoytcp.TcpProxy_Cluster)
 			Expect(ok).To(BeTrue(), "must be a single cluster type")
@@ -337,8 +335,8 @@ var _ = Describe("Plugin", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filterChains).To(HaveLen(1))
 
-			Expect(filterChains[0].TransportSocketConnectTimeout.Seconds).To(Equal(int64(3)))
-			Expect(filterChains[0].TransportSocketConnectTimeout.Nanos).To(Equal(int32(0)))
+			Expect(filterChains[0].FilterChain.TransportSocketConnectTimeout.Seconds).To(Equal(int64(3)))
+			Expect(filterChains[0].FilterChain.TransportSocketConnectTimeout.Nanos).To(Equal(int32(0)))
 		})
 	})
 
