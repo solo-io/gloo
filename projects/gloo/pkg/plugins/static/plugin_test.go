@@ -294,7 +294,7 @@ var _ = Describe("Plugin", func() {
 
 		It("should set proxy protocol", func() {
 			upstreamSpec.UseTls = wrapperspb.Bool(true)
-			upstream.ProxyProtocolVersion = wrapperspb.Int32(1)
+			upstream.ProxyProtocolVersion = &wrapperspb.StringValue{Value: "V1"}
 			initParams.Settings = &v1.Settings{
 				UpstreamOptions: &v1.UpstreamOptions{
 					SslParameters: &ssl.SslParameters{

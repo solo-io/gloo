@@ -174,9 +174,10 @@ message Upstream {
 
 
     // Proxy Protocol Version to add when communicating with the upstream.
-    // If unset will not wrap the transport socket.
+    // If unset will not wrap the transport socket. 
+    // These are of the format "V1" or "V2"
     // Currently only implemented on Static Upstreams.
-    google.protobuf.Int32Value proxy_protocol_version= 31;
+    google.protobuf.StringValue proxy_protocol_version= 31;
 
 }
 

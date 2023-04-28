@@ -183,9 +183,11 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 			}
 
 			if in.GetProxyProtocolVersion() != nil {
-				pPVerVal := in.GetProxyProtocolVersion().GetValue()
-				if pPVerVal > 1 {
-					return errors.Errorf("proxy protocol version %d is not supported", pPVerVal)
+				pPVerValStr := in.GetProxyProtocolVersion().GetValue()
+
+				pPVerVal, ok := envoy_config_core_v3.ProxyProtocolConfig_Version_value[pPVerValStr]
+				if !ok {
+					return errors.Errorf("proxy protocol version %s is not supported", pPVerValStr)
 				}
 
 				pput := &proxyproto.ProxyProtocolUpstreamTransport{

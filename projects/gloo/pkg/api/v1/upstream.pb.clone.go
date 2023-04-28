@@ -202,9 +202,9 @@ func (m *Upstream) Clone() proto.Message {
 	}
 
 	if h, ok := interface{}(m.GetProxyProtocolVersion()).(clone.Cloner); ok {
-		target.ProxyProtocolVersion = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.Int32Value)
+		target.ProxyProtocolVersion = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.StringValue)
 	} else {
-		target.ProxyProtocolVersion = proto.Clone(m.GetProxyProtocolVersion()).(*github_com_golang_protobuf_ptypes_wrappers.Int32Value)
+		target.ProxyProtocolVersion = proto.Clone(m.GetProxyProtocolVersion()).(*github_com_golang_protobuf_ptypes_wrappers.StringValue)
 	}
 
 	switch m.UpstreamType.(type) {

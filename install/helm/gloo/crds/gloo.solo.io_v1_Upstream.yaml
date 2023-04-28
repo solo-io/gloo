@@ -1307,10 +1307,8 @@ spec:
                 type: string
                 x-kubernetes-int-or-string: true
               proxyProtocolVersion:
-                maximum: 2147483647
-                minimum: -2147483648
                 nullable: true
-                type: integer
+                type: string
               respectDnsTtl:
                 nullable: true
                 type: boolean
