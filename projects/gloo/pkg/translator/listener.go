@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	v32 "github.com/cncf/xds/go/xds/type/matcher/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	validationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
@@ -39,17 +40,44 @@ type listenerTranslatorInstance struct {
 func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *envoy_config_listener_v3.Listener {
 	params.Ctx = contextutils.WithLogger(params.Ctx, "compute_listener."+l.listener.GetName())
 
-	filterChains := l.filterChainTranslator.ComputeFilterChains(params)
+	extFilterChains := l.filterChainTranslator.ComputeFilterChains(params)
+
+	// unwrap all filterChains before putting into envoy listener
+	filterChains := make([]*envoy_config_listener_v3.FilterChain, 0, len(extFilterChains))
+	for _, extFilterChain := range extFilterChains {
+		if extFilterChain != nil && extFilterChain.FilterChain != nil {
+			filterChains = append(filterChains, extFilterChain.FilterChain)
+		}
+	}
 	CheckForDuplicateFilterChainMatches(filterChains, l.report)
 
+	// This is upstream envoy definition we cannot mutate this struct
 	out := &envoy_config_listener_v3.Listener{
-		Name:         l.listener.GetName(),
-		Address:      l.computeListenerAddress(),
-		FilterChains: filterChains,
+		Name:               l.listener.GetName(),
+		Address:            l.computeListenerAddress(),
+		FilterChains:       filterChains,
+		FilterChainMatcher: &v32.Matcher{},
+	}
+
+	for _, plug := range l.plugins {
+		filterConverterPlug, ok := plug.(plugins.FilterChainMutatorPlugin)
+		if !ok {
+			continue
+		}
+		if err := filterConverterPlug.ProcessFilterChain(params, l.listener, extFilterChains, out); err != nil {
+			validation.AppendListenerError(l.report,
+				validationapi.ListenerReport_Error_ProcessingError,
+				err.Error())
+		}
 	}
 
 	// run the Listener Plugins
-	for _, listenerPlugin := range l.plugins {
+	for _, plug := range l.plugins {
+		listenerPlugin, ok := plug.(plugins.ListenerPlugin)
+		if !ok {
+			continue
+		}
+		// Need to have the deprecated cipher information still available at this point in time
 		if err := listenerPlugin.ProcessListener(params, l.listener, out); err != nil {
 			validation.AppendListenerError(l.report,
 				validationapi.ListenerReport_Error_ProcessingError,
