@@ -599,6 +599,9 @@ apis:
   gateway.solo.io.DelegatedHttpGateway:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gateway/api/v1/gateway.proto.sk/#DelegatedHttpGateway
     package: gateway.solo.io
+  gateway.solo.io.DelegatedTcpGateway:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gateway/api/v1/gateway.proto.sk/#DelegatedTcpGateway
+    package: gateway.solo.io
   gateway.solo.io.Gateway:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gateway/api/v1/gateway.proto.sk/#Gateway
     package: gateway.solo.io
@@ -610,6 +613,9 @@ apis:
     package: gateway.solo.io
   gateway.solo.io.MatchableHttpGateway:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gateway/api/v1/matchable_http_gateway.proto.sk/#MatchableHttpGateway
+    package: gateway.solo.io
+  gateway.solo.io.MatchableTcpGateway:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gateway/api/v1/matchable_tcp_gateway.proto.sk/#MatchableTcpGateway
     package: gateway.solo.io
   gateway.solo.io.MatchedGateway:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gateway/api/v1/gateway.proto.sk/#MatchedGateway

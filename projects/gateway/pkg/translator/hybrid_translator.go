@@ -32,12 +32,13 @@ func (t *HybridTranslator) ComputeListener(params Params, proxyName string, gate
 	var hybridListener *gloov1.HybridListener
 
 	matchedGateways := hybridGateway.GetMatchedGateways()
-	delegatedGateways := hybridGateway.GetDelegatedHttpGateways()
-	if matchedGateways == nil && delegatedGateways == nil {
+	delegatedHttpGateways := hybridGateway.GetDelegatedHttpGateways()
+	delegatedTcpGateways := hybridGateway.GetDelegatedTcpGateways()
+	if matchedGateways == nil && delegatedHttpGateways == nil && delegatedTcpGateways == nil {
 		return nil
 	}
 
-	// MatchedGateways take precedence over DelegatedHttpGateways
+	// MatchedGateways take precedence over DelegatedHttpGateways/DelegatedTcpGateways
 	if matchedGateways != nil {
 		hybridListener = t.computeHybridListenerFromMatchedGateways(params, proxyName, gateway, matchedGateways)
 		if len(hybridListener.GetMatchedListeners()) == 0 {
@@ -47,8 +48,8 @@ func (t *HybridTranslator) ComputeListener(params Params, proxyName string, gate
 			return nil
 		}
 	} else {
-		// DelegatedHttpGateways is only processed if there are no MatchedGateways defined
-		hybridListener = t.computeHybridListenerFromDelegatedGateway(params, proxyName, gateway, delegatedGateways)
+		// DelegatedHttpGateways/DelegatedTcpGateways are only processed if there are no MatchedGateways defined
+		hybridListener = t.computeHybridListenerFromDelegatedGateways(params, proxyName, gateway, delegatedHttpGateways, delegatedTcpGateways)
 		if len(hybridListener.GetMatchedListeners()) == 0 {
 			// missing refs should only result in a warning
 			// this allows resources to be applied asynchronously if the validation webhook is configured to allow warnings
@@ -129,25 +130,38 @@ func (t *HybridTranslator) computeHybridListenerFromMatchedGateways(
 	return hybridListener
 }
 
-func (t *HybridTranslator) computeHybridListenerFromDelegatedGateway(
+func (t *HybridTranslator) computeHybridListenerFromDelegatedGateways(
 	params Params,
 	proxyName string,
 	gateway *v1.Gateway,
-	delegatedGateway *v1.DelegatedHttpGateway,
+	delegatedHttpGateway *v1.DelegatedHttpGateway,
+	delegatedTcpGateway *v1.DelegatedTcpGateway,
 ) *gloov1.HybridListener {
-	httpGatewaySelector := NewHttpGatewaySelector(params.snapshot.HttpGateways)
+
 	onSelectionError := func(err error) {
 		params.reports.AddError(gateway, err)
 	}
-	matchableHttpGateways := httpGatewaySelector.SelectMatchableHttpGateways(delegatedGateway, onSelectionError)
-	if len(matchableHttpGateways) == 0 {
+
+	httpGatewaySelector := NewHttpGatewaySelector(params.snapshot.HttpGateways)
+	matchableHttpGateways := httpGatewaySelector.SelectMatchableHttpGateways(delegatedHttpGateway, onSelectionError)
+
+	tcpGatewaySelector := NewTcpGatewaySelector(params.snapshot.TcpGateways)
+	matchableTcpGateways := tcpGatewaySelector.SelectMatchableTcpGateways(delegatedTcpGateway, onSelectionError)
+
+	if len(matchableHttpGateways) == 0 && len(matchableTcpGateways) == 0 {
 		return nil
 	}
 
 	hybridListener := &gloov1.HybridListener{}
 
-	matchableHttpGateways.Each(func(element *v1.MatchableHttpGateway) {
-		matchedListener := t.computeMatchedListener(params, proxyName, gateway, element)
+	matchableHttpGateways.Each(func(httpGw *v1.MatchableHttpGateway) {
+		matchedListener := t.computeMatchedHttpListener(params, proxyName, gateway, httpGw)
+		if matchedListener != nil {
+			hybridListener.MatchedListeners = append(hybridListener.GetMatchedListeners(), matchedListener)
+		}
+	})
+	matchableTcpGateways.Each(func(tcpGw *v1.MatchableTcpGateway) {
+		matchedListener := t.computeMatchedTcpListener(tcpGw)
 		if matchedListener != nil {
 			hybridListener.MatchedListeners = append(hybridListener.GetMatchedListeners(), matchedListener)
 		}
@@ -156,7 +170,7 @@ func (t *HybridTranslator) computeHybridListenerFromDelegatedGateway(
 	return hybridListener
 }
 
-func (t *HybridTranslator) computeMatchedListener(
+func (t *HybridTranslator) computeMatchedHttpListener(
 	params Params,
 	proxyName string,
 	parentGateway *v1.Gateway,
@@ -198,4 +212,19 @@ func (t *HybridTranslator) computeMatchedListener(
 	}
 
 	return matchedListener
+}
+
+func (t *HybridTranslator) computeMatchedTcpListener(
+	matchableTcpGateway *v1.MatchableTcpGateway,
+) *gloov1.MatchedListener {
+	return &gloov1.MatchedListener{
+		Matcher: &gloov1.Matcher{
+			SslConfig:               matchableTcpGateway.GetMatcher().GetSslConfig(),
+			SourcePrefixRanges:      matchableTcpGateway.GetMatcher().GetSourcePrefixRanges(),
+			PassthroughCipherSuites: matchableTcpGateway.GetMatcher().GetPassthroughCipherSuites(),
+		},
+		ListenerType: &gloov1.MatchedListener_TcpListener{
+			TcpListener: t.TcpTranslator.ComputeTcpListener(matchableTcpGateway.GetTcpGateway()),
+		},
+	}
 }
