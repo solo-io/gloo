@@ -204,6 +204,6 @@ type PluginRegistryFactory func(ctx context.Context) PluginRegistry
 // pulled along with filter chain.
 // TODO(nfuden): Is this the right place for this?
 type ExtendedFilterChain struct {
-	FilterChain             *envoy_config_listener_v3.FilterChain
+	*envoy_config_listener_v3.FilterChain
 	PassthroughCipherSuites []string
 }
