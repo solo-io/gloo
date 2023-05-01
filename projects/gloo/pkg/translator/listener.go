@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	v32 "github.com/cncf/xds/go/xds/type/matcher/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	validationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
@@ -53,10 +52,9 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 
 	// This is upstream envoy definition we cannot mutate this struct
 	out := &envoy_config_listener_v3.Listener{
-		Name:               l.listener.GetName(),
-		Address:            l.computeListenerAddress(),
-		FilterChains:       filterChains,
-		FilterChainMatcher: &v32.Matcher{},
+		Name:         l.listener.GetName(),
+		Address:      l.computeListenerAddress(),
+		FilterChains: filterChains,
 	}
 
 	for _, plug := range l.plugins {
