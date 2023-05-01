@@ -38,6 +38,7 @@ func init() {
 	GlooCrdNames = []string{
 		"gateways.gateway.solo.io",
 		"httpgateways.gateway.solo.io",
+		"tcpgateways.gateway.solo.io",
 		"proxies.gloo.solo.io",
 		"settings.gloo.solo.io",
 		"upstreams.gloo.solo.io",
