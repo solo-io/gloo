@@ -965,6 +965,7 @@ export const createSslConfigurations = (
     oneWayTls: meta.oneWayTls,
     disableTlsSessionResumption: meta.disableTlsSessionResumption,
     transportSocketConnectTimeout: meta.transportSocketConnectTimeout,
+    ocspStaplePolicy: meta.ocspStaplePolicy ?? 0,
   };
 };
 

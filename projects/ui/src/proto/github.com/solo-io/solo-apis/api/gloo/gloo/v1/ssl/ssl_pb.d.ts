@@ -59,6 +59,9 @@ export class SslConfig extends jspb.Message {
   getTransportSocketConnectTimeout(): google_protobuf_duration_pb.Duration | undefined;
   setTransportSocketConnectTimeout(value?: google_protobuf_duration_pb.Duration): void;
 
+  getOcspStaplePolicy(): SslConfig.OcspStaplePolicyMap[keyof SslConfig.OcspStaplePolicyMap];
+  setOcspStaplePolicy(value: SslConfig.OcspStaplePolicyMap[keyof SslConfig.OcspStaplePolicyMap]): void;
+
   getSslSecretsCase(): SslConfig.SslSecretsCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SslConfig.AsObject;
@@ -82,7 +85,16 @@ export namespace SslConfig {
     oneWayTls?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     disableTlsSessionResumption?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     transportSocketConnectTimeout?: google_protobuf_duration_pb.Duration.AsObject,
+    ocspStaplePolicy: SslConfig.OcspStaplePolicyMap[keyof SslConfig.OcspStaplePolicyMap],
   }
+
+  export interface OcspStaplePolicyMap {
+    LENIENT_STAPLING: 0;
+    STRICT_STAPLING: 1;
+    MUST_STAPLE: 2;
+  }
+
+  export const OcspStaplePolicy: OcspStaplePolicyMap;
 
   export enum SslSecretsCase {
     SSL_SECRETS_NOT_SET = 0,
@@ -102,6 +114,9 @@ export class SSLFiles extends jspb.Message {
   getRootCa(): string;
   setRootCa(value: string): void;
 
+  getOcspStaple(): string;
+  setOcspStaple(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SSLFiles.AsObject;
   static toObject(includeInstance: boolean, msg: SSLFiles): SSLFiles.AsObject;
@@ -117,6 +132,7 @@ export namespace SSLFiles {
     tlsCert: string,
     tlsKey: string,
     rootCa: string,
+    ocspStaple: string,
   }
 }
 

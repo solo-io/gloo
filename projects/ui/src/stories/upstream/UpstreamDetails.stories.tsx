@@ -67,6 +67,7 @@ const getMockUpstream = (args: any) => {
           rootCa: 'test-root-ca',
           tlsCert: 'test-tls-cert',
           tlsKey: 'test-tls-key',
+          ocspStaple: 'test-ocsp-staple',
         },
       },
     },

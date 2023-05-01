@@ -1001,7 +1001,8 @@ proto.gloo.solo.io.TlsSecret.toObject = function(includeInstance, msg) {
   var f, obj = {
     certChain: jspb.Message.getFieldWithDefault(msg, 1, ""),
     privateKey: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    rootCa: jspb.Message.getFieldWithDefault(msg, 3, "")
+    rootCa: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    ocspStaple: msg.getOcspStaple_asB64()
   };
 
   if (includeInstance) {
@@ -1049,6 +1050,10 @@ proto.gloo.solo.io.TlsSecret.deserializeBinaryFromReader = function(msg, reader)
     case 3:
       var value = /** @type {string} */ (reader.readString());
       msg.setRootCa(value);
+      break;
+    case 4:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setOcspStaple(value);
       break;
     default:
       reader.skipField();
@@ -1100,6 +1105,13 @@ proto.gloo.solo.io.TlsSecret.serializeBinaryToWriter = function(message, writer)
       f
     );
   }
+  f = message.getOcspStaple_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      4,
+      f
+    );
+  }
 };
 
 
@@ -1145,6 +1157,45 @@ proto.gloo.solo.io.TlsSecret.prototype.getRootCa = function() {
 /** @param {string} value */
 proto.gloo.solo.io.TlsSecret.prototype.setRootCa = function(value) {
   jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional bytes ocsp_staple = 4;
+ * @return {!(string|Uint8Array)}
+ */
+proto.gloo.solo.io.TlsSecret.prototype.getOcspStaple = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * optional bytes ocsp_staple = 4;
+ * This is a type-conversion wrapper around `getOcspStaple()`
+ * @return {string}
+ */
+proto.gloo.solo.io.TlsSecret.prototype.getOcspStaple_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getOcspStaple()));
+};
+
+
+/**
+ * optional bytes ocsp_staple = 4;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getOcspStaple()`
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.TlsSecret.prototype.getOcspStaple_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getOcspStaple()));
+};
+
+
+/** @param {!(string|Uint8Array)} value */
+proto.gloo.solo.io.TlsSecret.prototype.setOcspStaple = function(value) {
+  jspb.Message.setProto3BytesField(this, 4, value);
 };
 
 

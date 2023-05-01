@@ -156,6 +156,11 @@ export class TlsSecret extends jspb.Message {
   getRootCa(): string;
   setRootCa(value: string): void;
 
+  getOcspStaple(): Uint8Array | string;
+  getOcspStaple_asU8(): Uint8Array;
+  getOcspStaple_asB64(): string;
+  setOcspStaple(value: Uint8Array | string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TlsSecret.AsObject;
   static toObject(includeInstance: boolean, msg: TlsSecret): TlsSecret.AsObject;
@@ -171,6 +176,7 @@ export namespace TlsSecret {
     certChain: string,
     privateKey: string,
     rootCa: string,
+    ocspStaple: Uint8Array | string,
   }
 }
 

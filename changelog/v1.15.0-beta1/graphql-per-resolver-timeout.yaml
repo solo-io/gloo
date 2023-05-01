@@ -1,12 +1,4 @@
 changelog:
-- type: DEPENDENCY_BUMP
-  dependencyOwner: solo-io
-  dependencyRepo: gloo
-  dependencyTag: v1.15.0-beta2
-- type: DEPENDENCY_BUMP
-  dependencyOwner: solo-io
-  dependencyRepo: solo-apis
-  dependencyTag: gloo-v1.15.0-beta2
 - type: NEW_FEATURE
   issueLink: https://github.com/solo-io/gloo/issues/7950
   resolvesIssue: false

@@ -6,15 +6,3 @@ changelog:
       Can now add symmetric key encryption to Ext-Auth-Service cookie sessions. By adding a
       encryptionkey, `glooctl create secret encryptionkey --name <name> --key <key>` and the corresponding configuration
       `session.cipherConfig.keyRef` to the AuthConfig.
-  - dependencyOwner: solo-io
-    dependencyRepo: solo-apis
-    dependencyTag: gloo-v1.15.0-beta2
-    type: DEPENDENCY_BUMP
-  - dependencyOwner: solo-io
-    dependencyRepo: gloo
-    dependencyTag: v1.15.0-beta2
-    type: DEPENDENCY_BUMP
-  - dependencyOwner: solo-io
-    dependencyRepo: ext-auth-service
-    dependencyTag: v0.35.3
-    type: DEPENDENCY_BUMP

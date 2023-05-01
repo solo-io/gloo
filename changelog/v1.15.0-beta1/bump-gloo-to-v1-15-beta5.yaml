@@ -1,0 +1,12 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.15.0-beta5
+    issueLink: https://github.com/solo-io/gloo/issues/5605
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.15.0-beta5
+  - type: NON_USER_FACING
+    description: Updated existing changelogs by only keeping the latest DEPENDENCY_BUMP versions for each dependency.
