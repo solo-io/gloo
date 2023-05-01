@@ -135,7 +135,7 @@ type ListenerPlugin interface {
 }
 
 type FilterChainMutatorPlugin interface {
-	ListenerPlugin
+	ListenerPlugin // TODO change this to Plugin, and update the places it's used
 	ProcessFilterChain(params Params, in *v1.Listener, inFilters []*ExtendedFilterChain, out *envoy_config_listener_v3.Listener) error
 }
 
