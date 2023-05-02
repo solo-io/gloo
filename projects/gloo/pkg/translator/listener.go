@@ -41,11 +41,16 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 
 	extFilterChains := l.filterChainTranslator.ComputeFilterChains(params)
 
+	// our format for setting up filterchains to be extended has a non-zero chance
+	// of having nil filterchains which makes follow up  logic more complex
+	// as we are already iterating over the list we add this as well.
+	cleanedExtendedChains := make([]*plugins.ExtendedFilterChain, 0, len(extFilterChains))
 	// unwrap all filterChains before putting into envoy listener
 	filterChains := make([]*envoy_config_listener_v3.FilterChain, 0, len(extFilterChains))
 	for _, extFilterChain := range extFilterChains {
 		if extFilterChain != nil && extFilterChain.FilterChain != nil {
 			filterChains = append(filterChains, extFilterChain.FilterChain)
+			cleanedExtendedChains = append(cleanedExtendedChains, extFilterChain)
 		}
 	}
 	CheckForDuplicateFilterChainMatches(filterChains, l.report)
@@ -62,7 +67,7 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 		if !ok {
 			continue
 		}
-		if err := filterConverterPlug.ProcessFilterChain(params, l.listener, extFilterChains, out); err != nil {
+		if err := filterConverterPlug.ProcessFilterChain(params, l.listener, cleanedExtendedChains, out); err != nil {
 			validation.AppendListenerError(l.report,
 				validationapi.ListenerReport_Error_ProcessingError,
 				err.Error())
