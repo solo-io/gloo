@@ -1460,6 +1460,19 @@ endif
 # It is our long-term goal to support these, but since they are not critical to everyday development,
 # we have not completed the support. In the meantime, we are tracking these in the above list.
 
+# Note: Order matters. We want the matcher to match the most specific (ex. `race` and `debug`) first.
+docker-push-%-race:
+	docker push $(IMAGE_REGISTRY)/$*:$(VERSION)-race
+
+docker-retag-%-race:
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/$*:$(VERSION)-race $(IMAGE_REGISTRY)/$*:$(VERSION)-race
+
+docker-push-%-debug:
+	docker push $(IMAGE_REGISTRY)/$*:$(VERSION)-debug
+
+docker-retag-%-debug:
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/$*:$(VERSION)-debug $(IMAGE_REGISTRY)/$*:$(VERSION)-debug
+
 docker-push-%:
 	docker push $(IMAGE_REGISTRY)/$*:$(VERSION)
 
