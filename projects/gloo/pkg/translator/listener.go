@@ -53,7 +53,6 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 			cleanedExtendedChains = append(cleanedExtendedChains, extFilterChain)
 		}
 	}
-	CheckForDuplicateFilterChainMatches(filterChains, l.report)
 
 	// This is upstream envoy definition we cannot mutate this struct
 	out := &envoy_config_listener_v3.Listener{
@@ -74,12 +73,10 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 		}
 	}
 
+	CheckForFilterChainConsistency(filterChains, l.report, out)
+
 	// run the Listener Plugins
-	for _, plug := range l.plugins {
-		listenerPlugin, ok := plug.(plugins.ListenerPlugin)
-		if !ok {
-			continue
-		}
+	for _, listenerPlugin := range l.plugins {
 		// Need to have the deprecated cipher information still available at this point in time
 		if err := listenerPlugin.ProcessListener(params, l.listener, out); err != nil {
 			validation.AppendListenerError(l.report,
@@ -138,22 +135,39 @@ func validateListenerPorts(proxy *v1.Proxy, listenerReport *validationapi.Listen
 	}
 }
 
-// Check for identical FilterChains to avoid the envoy error that occurs here:
+// CheckForFilterChainConsistency to avoid the envoy error that occurs here:
 // https://github.com/envoyproxy/envoy/blob/v1.15.0/source/server/filter_chain_manager_impl.cc#L162-L166
 // Note: this is NOT address non-equal but overlapping FilterChainMatches, which is a separate check here:
 // https://github.com/envoyproxy/envoy/blob/50ef0945fa2c5da4bff7627c3abf41fdd3b7cffd/source/server/filter_chain_manager_impl.cc#L218-L354
 // Given the complexity of the overlap detection implementation, we don't want to duplicate that behavior here.
 // We may want to consider invoking envoy from a library to detect overlapping and other issues, which would build
 // off this discussion: https://github.com/solo-io/gloo/issues/2114
+// This also checks that if we are using matchers we have the required names on all filterchains
 // Visible for testing
-func CheckForDuplicateFilterChainMatches(filterChains []*envoy_config_listener_v3.FilterChain, listenerReport *validationapi.ListenerReport) {
+func CheckForFilterChainConsistency(filterChains []*envoy_config_listener_v3.FilterChain, listenerReport *validationapi.ListenerReport, out *envoy_config_listener_v3.Listener) {
+	usingListenerLevelMatcher := out.GetFilterChainMatcher() != nil
 	for idx1, filterChain := range filterChains {
+		if usingListenerLevelMatcher && filterChain.Name == "" {
+			// only need to validate that the filterchain has a name
+
+			validation.AppendListenerError(listenerReport,
+				validationapi.ListenerReport_Error_ProcessingError, fmt.Sprintf("Tried to make a filter chain without a name "+
+					"with the same FilterChainMatch {%v}. This is usually caused by overlapping sniDomains or multiple empty sniDomains in virtual services", filterChain.GetFilterChainMatch()))
+
+		}
+
 		for idx2, otherFilterChain := range filterChains {
+
 			// only need to compare each pair once
 			if idx2 <= idx1 {
 				continue
 			}
-			if reflect.DeepEqual(filterChain.GetFilterChainMatch(), otherFilterChain.GetFilterChainMatch()) {
+			if usingListenerLevelMatcher && filterChain.Name == otherFilterChain.Name {
+				validation.AppendListenerError(listenerReport,
+					validationapi.ListenerReport_Error_NameNotUniqueError, fmt.Sprintf("Tried to make a filter chain with the same name as another "+
+						" FilterChain {%v}", otherFilterChain.Name))
+
+			} else if reflect.DeepEqual(filterChain.GetFilterChainMatch(), otherFilterChain.GetFilterChainMatch()) {
 				validation.AppendListenerError(listenerReport,
 					validationapi.ListenerReport_Error_SSLConfigError, fmt.Sprintf("Tried to apply multiple filter chains "+
 						"with the same FilterChainMatch {%v}. This is usually caused by overlapping sniDomains or multiple empty sniDomains in virtual services", filterChain.GetFilterChainMatch()))
