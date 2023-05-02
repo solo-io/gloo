@@ -9,6 +9,7 @@ import (
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	proxyproto "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/proxy_protocol/v3"
+	socketsRaw "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/raw_buffer/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	pbgostruct "github.com/golang/protobuf/ptypes/struct"
@@ -171,52 +172,42 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 			}
 		}
 	}
-	if out.GetTransportSocket() != nil {
+	if out.GetTransportSocket() != nil || in.GetProxyProtocolVersion() != nil {
 		for _, host := range spec.GetHosts() {
-			sniname := sniAddr(spec, host)
-			if sniname == "" {
-				continue
+			var err error
+			// if unset envoy defaults to a rawbuffer so it is safe to construct one here/
+			typedConfig, _ := utils.MessageToAny(&socketsRaw.RawBuffer{})
+			ts := &envoy_config_core_v3.TransportSocket{Name: wellknown.TransportSocketRawBuffer,
+				ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{TypedConfig: typedConfig},
 			}
-			ts, err := mutateSni(out.GetTransportSocket(), sniname)
-			if err != nil {
-				return err
+			// if we were given a transport socket actually use that one
+			if out.GetTransportSocket() != nil {
+				sniname := sniAddr(spec, host)
+				if sniname != "" {
+					ts, err = mutateSni(out.GetTransportSocket(), sniname)
+					if err != nil {
+						return err
+					}
+				}
 			}
 
 			if in.GetProxyProtocolVersion() != nil {
-				pPVerValStr := in.GetProxyProtocolVersion().GetValue()
 
-				pPVerVal, ok := envoy_config_core_v3.ProxyProtocolConfig_Version_value[pPVerValStr]
-				if !ok {
-					return errors.Errorf("proxy protocol version %s is not supported", pPVerValStr)
-				}
-
-				pput := &proxyproto.ProxyProtocolUpstreamTransport{
-					TransportSocket: ts,
-					Config: &envoy_config_core_v3.ProxyProtocolConfig{
-						Version: envoy_config_core_v3.ProxyProtocolConfig_Version(pPVerVal),
-					},
-				}
-				// Convert so it can be set as typed config
-				typCfg, err := utils.MessageToAny(pput)
+				newTs, err := wrapWithPProtocol(ts, in.GetProxyProtocolVersion().GetValue())
 				if err != nil {
 					return err
 				}
-				typCfg.TypeUrl = "type.googleapis.com/" + proxyProtocolUpstreamClusterName // As of writing this is not in go-control-plane's well known
-
-				ts = &envoy_config_core_v3.TransportSocket{
-					Name: upstreamProxySocketName,
-					// https://github.com/envoyproxy/envoy/blob/29b46144739578a72a8f18eb8eb0855e23426f6e/api/envoy/extensions/transport_sockets/proxy_protocol/v3/upstream_proxy_protocol.proto#L21
-					ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{
-						TypedConfig: typCfg,
-					},
-				}
+				ts = newTs
 			}
-
-			out.TransportSocketMatches = append(out.GetTransportSocketMatches(), &envoy_config_cluster_v3.Cluster_TransportSocketMatch{
-				Name:            name(spec, host),
-				Match:           metadataMatch(spec, host),
-				TransportSocket: ts,
-			})
+			// only add if this is not just a default raw buffer
+			// this will decrease configuration size
+			if ts.Name != wellknown.TransportSocketRawBuffer {
+				out.TransportSocketMatches = append(out.GetTransportSocketMatches(), &envoy_config_cluster_v3.Cluster_TransportSocketMatch{
+					Name:            name(spec, host),
+					Match:           metadataMatch(spec, host),
+					TransportSocket: ts,
+				})
+			}
 		}
 	}
 
@@ -233,6 +224,39 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 
 	return nil
 }
+
+func wrapWithPProtocol(oldTs *envoy_config_core_v3.TransportSocket, pPVerValStr string) (*envoy_config_core_v3.TransportSocket, error) {
+	if pPVerValStr == "" {
+		return oldTs, nil
+	}
+	pPVerVal, ok := envoy_config_core_v3.ProxyProtocolConfig_Version_value[pPVerValStr]
+	if !ok {
+		return nil, errors.Errorf("proxy protocol version %s is not supported", pPVerValStr)
+	}
+
+	pput := &proxyproto.ProxyProtocolUpstreamTransport{
+		TransportSocket: oldTs,
+		Config: &envoy_config_core_v3.ProxyProtocolConfig{
+			Version: envoy_config_core_v3.ProxyProtocolConfig_Version(pPVerVal),
+		},
+	}
+	// Convert so it can be set as typed config
+	typCfg, err := utils.MessageToAny(pput)
+	if err != nil {
+		return nil, err
+	}
+	typCfg.TypeUrl = "type.googleapis.com/" + proxyProtocolUpstreamClusterName // As of writing this is not in go-control-plane's well known
+
+	newTs := &envoy_config_core_v3.TransportSocket{
+		Name: upstreamProxySocketName,
+		// https://github.com/envoyproxy/envoy/blob/29b46144739578a72a8f18eb8eb0855e23426f6e/api/envoy/extensions/transport_sockets/proxy_protocol/v3/upstream_proxy_protocol.proto#L21
+		ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{
+			TypedConfig: typCfg,
+		},
+	}
+	return newTs, nil
+}
+
 func mutateSni(in *envoy_config_core_v3.TransportSocket, sni string) (*envoy_config_core_v3.TransportSocket, error) {
 	copy := *in
 
