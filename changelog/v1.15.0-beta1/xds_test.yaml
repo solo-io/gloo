@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/8135
+    resolvesIssue: false
+    description: Add tests (that are not run by default) to demonstrate that we can handle large grpc calls between gloo and extauth/rate-limiter.

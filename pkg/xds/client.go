@@ -4,9 +4,8 @@ import (
 	"context"
 	"math"
 
-	"google.golang.org/grpc/credentials/insecure"
-
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // GetXdsClientConnection returns a gRPC connection to an xDS server

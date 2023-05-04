@@ -26,6 +26,8 @@ You can use the following flags for the `ratelimit_test.go` to turn off key feat
 - DO_NOT_RUN_REDIS=1
 - DO_NOT_RUN_DYNAMO=1
 
-
+Also, you can run a test to validate that we can handle sending large xds snapshots over GRPC with the flag: `RUN_XDS_SCALE_TESTS`. 
+These tests are disabled by default for performance reasons but should be run on changes to the xds clients and added to any 
+nightly suites. 
 
 
