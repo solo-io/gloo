@@ -1550,7 +1550,7 @@ docker-retag: docker-retag-extauth-ee
 docker-retag: docker-retag-extauth-ee-fips
 docker-retag: docker-retag-rate-limit-ee
 docker-retag: docker-retag-rate-limit-ee-fips
-docker-retag: docker-retag-caching-ee-docker
+docker-retag: docker-retag-caching-ee
 docker-retag: # Re-tag AMD64-only supported images
 ifeq ($(IS_ARM_MACHINE), )
 docker-retag: docker-retag-gloo-ee-race

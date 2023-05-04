@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4878
+    resolvesIssue: false
+    description: Correctly retag the caching-ee docker image
