@@ -190,9 +190,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 					}
 				}
 			}
-
 			if in.GetProxyProtocolVersion() != nil {
-
 				newTs, err := wrapWithPProtocol(ts, in.GetProxyProtocolVersion().GetValue())
 				if err != nil {
 					return err
