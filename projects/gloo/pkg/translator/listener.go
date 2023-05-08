@@ -147,7 +147,7 @@ func validateListenerPorts(proxy *v1.Proxy, listenerReport *validationapi.Listen
 func CheckForFilterChainConsistency(filterChains []*envoy_config_listener_v3.FilterChain, listenerReport *validationapi.ListenerReport, out *envoy_config_listener_v3.Listener) {
 	usingListenerLevelMatcher := out.GetFilterChainMatcher() != nil
 	for idx1, filterChain := range filterChains {
-		if usingListenerLevelMatcher && filterChain.Name == "" {
+		if usingListenerLevelMatcher && filterChain.GetName() == "" {
 			// only need to validate that the filterchain has a name
 
 			validation.AppendListenerError(listenerReport,
@@ -161,10 +161,10 @@ func CheckForFilterChainConsistency(filterChains []*envoy_config_listener_v3.Fil
 			if idx2 <= idx1 {
 				continue
 			}
-			if usingListenerLevelMatcher && filterChain.Name == otherFilterChain.Name {
+			if usingListenerLevelMatcher && filterChain.GetName() == otherFilterChain.GetName() {
 				validation.AppendListenerError(listenerReport,
 					validationapi.ListenerReport_Error_NameNotUniqueError, fmt.Sprintf("Tried to make a filter chain with the same name as another "+
-						" FilterChain {%v}", otherFilterChain.Name))
+						" FilterChain {%v}", otherFilterChain.GetName()))
 
 			} else if !usingListenerLevelMatcher && reflect.DeepEqual(filterChain.GetFilterChainMatch(), otherFilterChain.GetFilterChainMatch()) {
 				validation.AppendListenerError(listenerReport,
