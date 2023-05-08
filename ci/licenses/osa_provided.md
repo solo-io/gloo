@@ -9,7 +9,6 @@ Name|Version|License
 [envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.11.0|Apache License 2.0
 [envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v0.9.1|Apache License 2.0
 [fgrosse/zaptest](https://github.com/fgrosse/zaptest)|v1.1.0|MIT License
-[form3tech-oss/jwt-go](https://github.com/form3tech-oss/jwt-go)|v3.2.3+incompatible|MIT License
 [gertd/go-pluralize](https://github.com/gertd/go-pluralize)|v0.1.1|MIT License
 [getkin/kin-openapi](https://github.com/getkin/kin-openapi)|v0.80.0|MIT License
 [ghodss/yaml](https://github.com/ghodss/yaml)|v1.0.1-0.20190212211648-25d852aebe32|MIT License
@@ -21,6 +20,7 @@ Name|Version|License
 [go-openapi/swag](https://github.com/go-openapi/swag)|v0.22.3|Apache License 2.0
 [go-test/deep](https://github.com/go-test/deep)|v1.0.8|MIT License
 [gobuffalo/packr](https://github.com/gobuffalo/packr)|v1.30.1|MIT License
+[golang-jwt/jwt](https://github.com/golang-jwt/jwt)|v3.2.2+incompatible|MIT License
 [golang/protobuf](https://github.com/golang/protobuf)|v1.5.2|BSD 3-clause "New" or "Revised" License
 [google/wire](https://github.com/google/wire)|v0.4.0|Apache License 2.0
 [graphql-go/graphql](https://github.com/graphql-go/graphql)|v0.8.1|MIT License

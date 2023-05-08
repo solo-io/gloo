@@ -2,6 +2,9 @@ package e2e_test
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/json"
@@ -11,6 +14,7 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/test/ginkgo/parallel"
 
 	errors "github.com/rotisserie/eris"
@@ -19,7 +23,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
 	"github.com/fgrosse/zaptest"
-	"github.com/form3tech-oss/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -56,17 +60,27 @@ const (
 	noDelimiterAdmin = "noDelimiterAdmin"
 )
 
-func jwks(ctx context.Context) (uint32, *rsa.PrivateKey) {
-	priv, err := rsa.GenerateKey(rand.Reader, 512)
+func jwks(ctx context.Context) (uint32, *rsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey) {
+	rsaPriv, err := rsa.GenerateKey(rand.Reader, 512)
 	Expect(err).NotTo(HaveOccurred())
-	key := jose.JSONWebKey{
-		Key:       priv.Public(),
-		Algorithm: "RS256",
-		Use:       "sig",
-	}
-
+	ecdsaPriv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	Expect(err).NotTo(HaveOccurred())
+	ed25519Pub, ed25519Priv, err := ed25519.GenerateKey(rand.Reader)
+	Expect(err).NotTo(HaveOccurred())
 	keySet := jose.JSONWebKeySet{
-		Keys: []jose.JSONWebKey{key},
+		Keys: []jose.JSONWebKey{{
+			Key:       rsaPriv.Public(),
+			Algorithm: "RS256",
+			Use:       "sig",
+		}, {
+			Key:       ecdsaPriv.Public(),
+			Algorithm: "ES256",
+			Use:       "sig",
+		}, {
+			Key:       ed25519Pub,
+			Algorithm: "EdDSA",
+			Use:       "sig",
+		}},
 	}
 
 	jwksBytes, err := json.Marshal(keySet)
@@ -91,19 +105,29 @@ func jwks(ctx context.Context) (uint32, *rsa.PrivateKey) {
 	}()
 
 	// serialize json and show
-	return jwksPort, priv
+	return jwksPort, rsaPriv, ecdsaPriv, ed25519Priv
 }
 
-func getToken(claims jwt.Claims, key *rsa.PrivateKey) string {
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	s, err := token.SignedString(key)
+func getToken(claims jwt.Claims, key interface{}, method jwt.SigningMethod) string {
+	var s string
+	var err error
+	switch key.(type) {
+	case *rsa.PublicKey:
+		s, err = jwt.NewWithClaims(method, claims).SignedString(key.(*rsa.PublicKey))
+	case *ecdsa.PublicKey:
+		s, err = jwt.NewWithClaims(method, claims).SignedString(key.(*ecdsa.PublicKey))
+	case *ed25519.PublicKey:
+		s, err = jwt.NewWithClaims(method, claims).SignedString(key.(*ed25519.PublicKey))
+	default:
+		err = eris.New("Unsupported token type")
+	}
+	s, err = jwt.NewWithClaims(method, claims).SignedString(key)
 	Expect(err).NotTo(HaveOccurred())
 	return s
 }
 
 func getMapToken(claims jwt.MapClaims, key *rsa.PrivateKey) string {
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	s, err := token.SignedString(key)
+	s, err := jwt.NewWithClaims(jwt.SigningMethodRS256, claims).SignedString(key)
 	ExpectWithOffset(2, err).NotTo(HaveOccurred())
 	return s
 }
@@ -111,15 +135,17 @@ func getMapToken(claims jwt.MapClaims, key *rsa.PrivateKey) string {
 var _ = Describe("JWT_RBAC", func() {
 
 	var (
-		ctx            context.Context
-		cancel         context.CancelFunc
-		testClients    services.TestClients
-		jwksPort       uint32
-		privateKey     *rsa.PrivateKey
-		jwtksServerRef *core.ResourceRef
-		envoyInstance  *services.EnvoyInstance
-		testUpstream   *v1helpers.TestUpstream
-		envoyPort      = uint32(8080)
+		ctx               context.Context
+		cancel            context.CancelFunc
+		testClients       services.TestClients
+		jwksPort          uint32
+		rsaPrivateKey     *rsa.PrivateKey
+		ecdsaPrivateKey   *ecdsa.PrivateKey
+		ed25519PrivateKey ed25519.PrivateKey
+		jwtksServerRef    *core.ResourceRef
+		envoyInstance     *services.EnvoyInstance
+		testUpstream      *v1helpers.TestUpstream
+		envoyPort         = uint32(8080)
 	)
 
 	BeforeEach(func() {
@@ -132,7 +158,7 @@ var _ = Describe("JWT_RBAC", func() {
 		testClients = services.GetTestClients(ctx, cache)
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
-		jwksPort, privateKey = jwks(ctx)
+		jwksPort, rsaPrivateKey, ecdsaPrivateKey, ed25519PrivateKey = jwks(ctx)
 
 		var err error
 		envoyInstance, err = envoyFactory.NewEnvoyInstance()
@@ -243,13 +269,15 @@ var _ = Describe("JWT_RBAC", func() {
 		}
 	}
 
-	getTokenFor := func(sub string) string {
-		claims := jwt.StandardClaims{
+	getClaims := func(sub string) jwt.StandardClaims {
+		return jwt.StandardClaims{
 			Issuer:   issuer,
-			Audience: []string{audience},
+			Audience: audience,
 			Subject:  sub,
 		}
-		tok := getToken(claims, privateKey)
+	}
+	getRsaTokenFor := func(sub string) string {
+		tok := getToken(getClaims(sub), rsaPrivateKey, jwt.SigningMethodRS256)
 		By("using token " + tok)
 		return tok
 	}
@@ -257,7 +285,7 @@ var _ = Describe("JWT_RBAC", func() {
 	getAdvancedClaimTokenFor := func(sub string, emailVerified bool, hobbies []string) string {
 		claims := jwt.MapClaims{
 			"iss": issuer,
-			"aud": []string{audience},
+			"aud": audience,
 			"sub": sub,
 			"metadata": map[string]interface{}{
 				"foo": map[string]interface{}{
@@ -267,7 +295,7 @@ var _ = Describe("JWT_RBAC", func() {
 				"hobbies":        hobbies,
 			},
 		}
-		tok := getToken(claims, privateKey)
+		tok := getToken(claims, rsaPrivateKey, jwt.SigningMethodRS256)
 		By("using token " + tok)
 		return tok
 	}
@@ -285,7 +313,7 @@ var _ = Describe("JWT_RBAC", func() {
 				"name": "test",
 			},
 		}
-		tok := getMapToken(claims, privateKey)
+		tok := getMapToken(claims, rsaPrivateKey)
 		By("using token " + tok)
 		return tok
 	}
@@ -294,7 +322,7 @@ var _ = Describe("JWT_RBAC", func() {
 		req.Header.Add("Authorization", "Bearer "+token)
 	}
 	addToken := func(req *http.Request, sub string) {
-		addBearer(req, getTokenFor(sub))
+		addBearer(req, getRsaTokenFor(sub))
 	}
 	addAdvancedClaimToken := func(req *http.Request, sub string, emailVerified bool, hobbies []string) {
 		addBearer(req, getAdvancedClaimTokenFor(sub, emailVerified, hobbies))
@@ -319,32 +347,43 @@ var _ = Describe("JWT_RBAC", func() {
 		})
 
 		Context("forward token", func() {
-			It("should forward token upstream", func() {
-				token := getTokenFor("user")
+			Context("should forward token upsteam", func() {
+				testWithToken := func(token string) {
+					Eventually(func() (int, error) {
+						url := fmt.Sprintf("http://%s:%d/authnonly", "localhost", envoyPort)
+						By("Querying " + url)
+						req, err := http.NewRequest("GET", url, nil)
+						Expect(err).NotTo(HaveOccurred())
+						req.Header.Add("x-jwt", "JWT "+token)
+						resp, err := http.DefaultClient.Do(req)
+						if err != nil {
+							return 0, err
+						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
+						return resp.StatusCode, nil
+					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 
-				Eventually(func() (int, error) {
-					url := fmt.Sprintf("http://%s:%d/authnonly", "localhost", envoyPort)
-					By("Querying " + url)
-					req, err := http.NewRequest("GET", url, nil)
-					Expect(err).NotTo(HaveOccurred())
-					req.Header.Add("x-jwt", "JWT "+token)
-					resp, err := http.DefaultClient.Do(req)
-					if err != nil {
-						return 0, err
+					select {
+					case received := <-testUpstream.C:
+						Expect(received.Headers).To(HaveKeyWithValue("X-Jwt", []string{"JWT " + token}))
+					default:
+						Fail("request didnt make it upstream")
 					}
-					defer resp.Body.Close()
-					_, _ = io.ReadAll(resp.Body)
-					return resp.StatusCode, nil
-				}, "5s", "0.5s").Should(Equal(http.StatusOK))
-
-				select {
-				case received := <-testUpstream.C:
-					Expect(received.Headers).To(HaveKeyWithValue("X-Jwt", []string{"JWT " + token}))
-				default:
-					Fail("request didnt make it upstream")
 				}
 
+				// Test has the additional purpose of checking support for rsa, ecdsa, and ed25519 encodings
+				It("rsa token", func() {
+					testWithToken(getRsaTokenFor("user"))
+				})
+				It("ecdsa token", func() {
+					testWithToken(getToken(getClaims("user"), ecdsaPrivateKey, jwt.SigningMethodES256))
+				})
+				It("ed25519 token", func() {
+					testWithToken(getToken(getClaims("user"), ed25519PrivateKey, jwt.SigningMethodEdDSA))
+				})
 			})
+
 		})
 		Context("token source", func() {
 
@@ -354,7 +393,7 @@ var _ = Describe("JWT_RBAC", func() {
 					By("Querying " + url)
 					req, err := http.NewRequest("GET", url, nil)
 					Expect(err).NotTo(HaveOccurred())
-					token := getTokenFor("user")
+					token := getRsaTokenFor("user")
 					req.Header.Add("x-jwt", "JWT "+token)
 					resp, err := http.DefaultClient.Do(req)
 					if err != nil {
@@ -367,7 +406,7 @@ var _ = Describe("JWT_RBAC", func() {
 			})
 			It("should get token from custom query param", func() {
 				Eventually(func() (int, error) {
-					token := getTokenFor("user")
+					token := getRsaTokenFor("user")
 
 					url := fmt.Sprintf("http://%s:%d/authnonly?jwttoken="+token, "localhost", envoyPort)
 					By("Querying " + url)
@@ -389,7 +428,7 @@ var _ = Describe("JWT_RBAC", func() {
 					By("Querying " + url)
 					req, err := http.NewRequest("GET", url, nil)
 					Expect(err).NotTo(HaveOccurred())
-					token := getTokenFor("user")
+					token := getRsaTokenFor("user")
 					req.Header.Add("x-jwt", "JWT "+token)
 					resp, err := http.DefaultClient.Do(req)
 					if err != nil {
@@ -486,7 +525,7 @@ var _ = Describe("JWT_RBAC", func() {
 
 		Context("bad token user", func() {
 			It("should only allow public route", func() {
-				token := getTokenFor("admin")
+				token := getRsaTokenFor("admin")
 				// remove some stuff to make the signature invalid
 				badToken := token[:len(token)-10]
 				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized, -1, -1,
@@ -548,7 +587,7 @@ var _ = Describe("JWT_RBAC", func() {
 
 		Context("bad token user", func() {
 			It("should only allow public route", func() {
-				token := getTokenFor("admin")
+				token := getRsaTokenFor("admin")
 				// remove some stuff to make the signature invalid
 				badToken := token[:len(token)-10]
 				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,

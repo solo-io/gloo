@@ -1,6 +1,8 @@
 package jwt
 
 import (
+	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/json"
@@ -532,7 +534,7 @@ func parsePem(key string) (*jose.JSONWebKeySet, error) {
 	var publicKey interface{}
 	publicKey, err = x509.ParsePKCS1PublicKey(block.Bytes)
 	if err != nil {
-		publicKey, err = x509.ParsePKIXPublicKey(block.Bytes)
+		publicKey, err = x509.ParsePKIXPublicKey(block.Bytes) // Parses both RS256 and PS256
 		if err != nil {
 			return nil, err
 		}
@@ -544,12 +546,15 @@ func parsePem(key string) (*jose.JSONWebKeySet, error) {
 	case *rsa.PublicKey:
 		alg = "RS256"
 
-	// envoy doesn't support this; uncomment when it does.
-	// case *ecdsa.PublicKey:
-	// 	alg = "ES256"
+	case *ecdsa.PublicKey:
+		alg = "ES256"
+
+	case ed25519.PublicKey:
+		alg = "EdDSA"
 
 	default:
-		return nil, errors.New("unsupported public key. only RSA public key is supported in PEM format")
+		// HS256 is not supported as this is only used by HMAC, which doesn't use public keys
+		return nil, errors.New("unsupported public key. only RSA, ECDSA, and Ed25519 public keys are supported in PEM format")
 	}
 
 	jwk := jose.JSONWebKey{

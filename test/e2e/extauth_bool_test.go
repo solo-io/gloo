@@ -20,7 +20,7 @@ import (
 	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 
 	"github.com/fgrosse/zaptest"
-	"github.com/form3tech-oss/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -112,7 +112,7 @@ var _ = Describe("Staged JWT + extauth ", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		// JWT authentication server (jwksServer) setup
-		jwksPort, privateKey = jwks(ctx)
+		jwksPort, privateKey, _, _ = jwks(ctx)
 
 		jwksServer := &gloov1.Upstream{
 			Metadata: &core.Metadata{
@@ -498,10 +498,10 @@ func getJwtVhostCfg(jwtksServerRef *core.ResourceRef, allowMissingFailed, keepTo
 func getJwtTokenFor(sub string, privateKey *rsa.PrivateKey) string {
 	claims := jwt.StandardClaims{
 		Issuer:   issuer,
-		Audience: []string{audience},
+		Audience: audience,
 		Subject:  sub,
 	}
-	tok := getToken(claims, privateKey)
+	tok := getToken(claims, privateKey, jwt.SigningMethodRS256)
 	By("using token " + tok)
 	return tok
 }

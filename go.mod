@@ -15,7 +15,6 @@ require (
 	github.com/envoyproxy/go-control-plane v0.11.0
 	github.com/envoyproxy/protoc-gen-validate v0.9.1
 	github.com/fgrosse/zaptest v1.1.0
-	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
 	github.com/gertd/go-pluralize v0.1.1
 	github.com/getkin/kin-openapi v0.80.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
@@ -27,6 +26,7 @@ require (
 	github.com/go-openapi/swag v0.22.3
 	github.com/go-test/deep v1.0.8
 	github.com/gobuffalo/packr v1.30.1
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/mock v1.7.0-rc.1
 	github.com/golang/protobuf v1.5.2
 	github.com/google/wire v0.4.0

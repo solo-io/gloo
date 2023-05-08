@@ -95,7 +95,7 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 	setupJwt := func() {
 		// JWT authentication server (jwksServer) setup
 		// jwksPort, privateKey = jwks(ctx)
-		jwksPort, _ = jwks(ctx)
+		jwksPort, _, _, _ = jwks(ctx)
 
 		Eventually(envoyInstance.GlooAddr, 20*time.Second, 1*time.Second).Should(Not(BeNil()))
 

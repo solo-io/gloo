@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7993
+    description: ECDSA and EdDSA (as ED25519) public keys are now supported for JWT auth.
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7993
+    description: Move from unmaintained form3tech-oss/jwt-go to golang-jwt/jwt.

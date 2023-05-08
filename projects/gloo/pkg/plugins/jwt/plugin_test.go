@@ -1,12 +1,13 @@
 package jwt_test
 
 import (
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/elliptic"
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-
-	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/jwt_authn/v3"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	"math/big"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/ptypes"
@@ -16,8 +17,10 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	envoycore "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
+	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/jwt_authn/v3"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -40,7 +43,7 @@ var _ = Describe("JWT Plugin", func() {
 	)
 
 	const (
-		publicKey = `-----BEGIN PUBLIC KEY-----
+		rsaPublicKey = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4XbzUpqbgKbDLngsLp4b
 pjf04WkMzXx8QsZAorkuGprIc2BYVwAmWD2tZvez4769QfXsohu85NRviYsrqbyC
 w/NTs3fMlcgld+ayfb/1X3+6u4f1Q8JsDm4fkSWoBUlTkWO7Mcts2hF8OJ8LlGSw
@@ -48,6 +51,15 @@ zUDj3TJLQXwtfM0Ty1VzGJQMJELeBuOYHl/jaTdGogI8zbhDZ986CaIfO+q/UM5u
 kDA3NJ7oBQEH78N6BTsFpjDUKeTae883CCsRDbsytWgfKT8oA7C4BFkvRqVMSek7
 FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 7QIDAQAB
+-----END PUBLIC KEY-----
+	`
+		ecdsaPublicKey = `-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE/Idk38k+TlsnU50UyEZKE+zrW2Xb
+DcCqoj/vX0v2LY14/JA5RrDvH92T9oTcDoiwgmDU/bTpb9X7sowfoXZsug==
+-----END PUBLIC KEY-----
+	`
+		ed25519PublicKey = `-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAKyBn+P7ILKX9k6WzKZm0l0UzJ6U+i+/8f+Fd0puK21A=
 -----END PUBLIC KEY-----
 	`
 		jwk  = `{"use":"sig","kty":"RSA","alg":"RS256","n":"4XbzUpqbgKbDLngsLp4bpjf04WkMzXx8QsZAorkuGprIc2BYVwAmWD2tZvez4769QfXsohu85NRviYsrqbyCw_NTs3fMlcgld-ayfb_1X3-6u4f1Q8JsDm4fkSWoBUlTkWO7Mcts2hF8OJ8LlGSwzUDj3TJLQXwtfM0Ty1VzGJQMJELeBuOYHl_jaTdGogI8zbhDZ986CaIfO-q_UM5ukDA3NJ7oBQEH78N6BTsFpjDUKeTae883CCsRDbsytWgfKT8oA7C4BFkvRqVMSek7FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC17Q","e":"AQAB"}`
@@ -590,8 +602,8 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 
 		Context("translate key", func() {
 
-			It("should translate PEM", func() {
-				jwks, err := TranslateKey(publicKey)
+			It("should translate RSA PEM", func() {
+				jwks, err := TranslateKey(rsaPublicKey)
 				Expect(err).NotTo(HaveOccurred())
 				// make certs empty and not nil for comparison
 				jwks.Keys[0].Certificates = make([]*x509.Certificate, 0)
@@ -600,6 +612,45 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				jwks.Keys[0].CertificateThumbprintSHA256 = []byte{}
 				Expect(*jwks).To(BeEquivalentTo(keySet))
 			})
+
+			It("should translate ECDSA PEM", func() {
+				jwks, err := TranslateKey(ecdsaPublicKey)
+				Expect(err).NotTo(HaveOccurred())
+				newBigInt := func(val string) *big.Int {
+					temp := new(big.Int)
+					temp.UnmarshalText([]byte(val))
+					return temp
+				}
+				Expect(*jwks).To(BeEquivalentTo(jose.JSONWebKeySet{
+					Keys: []jose.JSONWebKey{
+						{
+							Key: &ecdsa.PublicKey{
+								Curve: elliptic.P256(),
+								// The X and Y represent points on the elliptic curve and are the foundation of the public key
+								X: newBigInt("114222058404624399444909320367388175225224270862282704527687713935482772925837"),
+								Y: newBigInt("54723782685951664200162693193230858036742482193796309221705235711702919965882"),
+							},
+							Algorithm: "ES256",
+							Use:       "sig",
+						},
+					},
+				}))
+			})
+
+			It("should translate Ed25519 PEM", func() {
+				jwks, err := TranslateKey(ed25519PublicKey)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(*jwks).To(BeEquivalentTo(jose.JSONWebKeySet{
+					Keys: []jose.JSONWebKey{
+						{
+							Key:       ed25519.PublicKey{43, 32, 103, 248, 254, 200, 44, 165, 253, 147, 165, 179, 41, 153, 180, 151, 69, 51, 39, 165, 62, 139, 239, 252, 127, 225, 93, 210, 155, 138, 219, 80},
+							Algorithm: "EdDSA",
+							Use:       "sig",
+						},
+					},
+				}))
+			})
+
 			It("should translate key", func() {
 				jwks, err := TranslateKey(jwk)
 				Expect(err).NotTo(HaveOccurred())
