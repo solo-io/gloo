@@ -1,3 +1,12 @@
 changelog:
   - type: NON_USER_FACING
     description: Add DCP API
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/4760
+    description: >-
+      Static upstream support for setting proxy protocol
+      https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/transport_sockets/http_11_proxy/v3/upstream_http_11_connect.proto.html
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/4795
+    description: >-
+      Allow static upstreams to disable tls autodetection based on port.
