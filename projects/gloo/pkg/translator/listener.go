@@ -48,6 +48,7 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 	// unwrap all filterChains before putting into envoy listener
 	filterChains := make([]*envoy_config_listener_v3.FilterChain, 0, len(extFilterChains))
 	for _, extFilterChain := range extFilterChains {
+		extFilterChain := extFilterChain
 		if extFilterChain != nil && extFilterChain.FilterChain != nil {
 			filterChains = append(filterChains, extFilterChain.FilterChain)
 			cleanedExtendedChains = append(cleanedExtendedChains, extFilterChain)
