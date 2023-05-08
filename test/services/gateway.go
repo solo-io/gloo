@@ -443,6 +443,7 @@ func constructTestOpts(ctx context.Context, runOptions *RunOptions, settings *gl
 		GraphQLApis:             f,
 		Gateways:                f,
 		MatchableHttpGateways:   f,
+		MatchableTcpGateways:    f,
 		VirtualServices:         f,
 		RouteTables:             f,
 		RouteOptions:            f,
