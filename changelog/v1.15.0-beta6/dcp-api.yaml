@@ -1,6 +1,6 @@
 changelog:
   - type: NON_USER_FACING
-    description: Add DCP API
+    description: Add DCP API for enterprise
   - type: NEW_FEATURE
     issueLink: https://github.com/solo-io/solo-projects/issues/4760
     description: >-
