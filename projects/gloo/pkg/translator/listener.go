@@ -151,8 +151,7 @@ func CheckForFilterChainConsistency(filterChains []*envoy_config_listener_v3.Fil
 			// only need to validate that the filterchain has a name
 
 			validation.AppendListenerError(listenerReport,
-				validationapi.ListenerReport_Error_ProcessingError, fmt.Sprintf("Tried to make a filter chain without a name "+
-					"with the same FilterChainMatch {%v}. This is usually caused by overlapping sniDomains or multiple empty sniDomains in virtual services", filterChain.GetFilterChainMatch()))
+				validationapi.ListenerReport_Error_ProcessingError, "Tried to make a filter chain without a name ")
 
 		}
 
@@ -167,7 +166,7 @@ func CheckForFilterChainConsistency(filterChains []*envoy_config_listener_v3.Fil
 					validationapi.ListenerReport_Error_NameNotUniqueError, fmt.Sprintf("Tried to make a filter chain with the same name as another "+
 						" FilterChain {%v}", otherFilterChain.Name))
 
-			} else if reflect.DeepEqual(filterChain.GetFilterChainMatch(), otherFilterChain.GetFilterChainMatch()) {
+			} else if !usingListenerLevelMatcher && reflect.DeepEqual(filterChain.GetFilterChainMatch(), otherFilterChain.GetFilterChainMatch()) {
 				validation.AppendListenerError(listenerReport,
 					validationapi.ListenerReport_Error_SSLConfigError, fmt.Sprintf("Tried to apply multiple filter chains "+
 						"with the same FilterChainMatch {%v}. This is usually caused by overlapping sniDomains or multiple empty sniDomains in virtual services", filterChain.GetFilterChainMatch()))
