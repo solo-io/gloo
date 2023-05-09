@@ -71,6 +71,7 @@ import (
 type TestClients struct {
 	GatewayClient        gatewayv1.GatewayClient
 	HttpGatewayClient    gatewayv1.MatchableHttpGatewayClient
+	TcpGatewayClient     gatewayv1.MatchableTcpGatewayClient
 	VirtualServiceClient gatewayv1.VirtualServiceClient
 	ProxyClient          gloov1.ProxyClient
 	UpstreamClient       gloov1.UpstreamClient
@@ -258,6 +259,8 @@ func getTestClients(ctx context.Context, bootstrapOpts bootstrap.Opts) TestClien
 	Expect(err).NotTo(HaveOccurred())
 	httpGatewayClient, err := gatewayv1.NewMatchableHttpGatewayClient(ctx, bootstrapOpts.MatchableHttpGateways)
 	Expect(err).NotTo(HaveOccurred())
+	tcpGatewayClient, err := gatewayv1.NewMatchableTcpGatewayClient(ctx, bootstrapOpts.MatchableHttpGateways)
+	Expect(err).NotTo(HaveOccurred())
 	virtualServiceClient, err := gatewayv1.NewVirtualServiceClient(ctx, bootstrapOpts.VirtualServices)
 	Expect(err).NotTo(HaveOccurred())
 	upstreamClient, err := gloov1.NewUpstreamClient(ctx, bootstrapOpts.Upstreams)
@@ -272,6 +275,7 @@ func getTestClients(ctx context.Context, bootstrapOpts bootstrap.Opts) TestClien
 	return TestClients{
 		GatewayClient:        gatewayClient,
 		HttpGatewayClient:    httpGatewayClient,
+		TcpGatewayClient:     tcpGatewayClient,
 		VirtualServiceClient: virtualServiceClient,
 		UpstreamClient:       upstreamClient,
 		SecretClient:         secretClient,
