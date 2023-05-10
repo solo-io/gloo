@@ -1,0 +1,4 @@
+changelog:
+    - type: NON_USER_FACING
+      description: Fix test flakes related to inconsistent output formatting of curl utilities.
+      issueLink: https://github.com/solo-io/solo-projects/issues/4312

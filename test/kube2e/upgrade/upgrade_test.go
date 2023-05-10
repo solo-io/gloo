@@ -4,14 +4,16 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"net/http"
 	"path/filepath"
 
-	enterprisehelpers "github.com/solo-io/solo-projects/test/kube2e"
+	"github.com/onsi/gomega/types"
+	"github.com/solo-io/gloo/pkg/cliutil"
+	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
 
 	. "github.com/solo-io/solo-projects/test/kube2e"
 	"github.com/solo-io/solo-projects/test/kube2e/upgrade"
 
-	"strings"
 	"time"
 
 	"github.com/solo-io/solo-projects/test/services"
@@ -26,7 +28,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/version"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 
 	"github.com/solo-io/k8s-utils/testutils/helper"
@@ -62,7 +63,7 @@ var _ = Describe("Upgrade Tests", func() {
 	BeforeEach(func() {
 		var err error
 		ctx, cancel = context.WithCancel(context.Background())
-		testHelper, err = enterprisehelpers.GetEnterpriseTestHelper(ctx, namespace)
+		testHelper, err = GetEnterpriseTestHelper(ctx, namespace)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -74,9 +75,6 @@ var _ = Describe("Upgrade Tests", func() {
 			AfterEach(func() {
 				UninstallGloo(testHelper, ctx, cancel)
 			})
-			//It("Used for local testing to check base case upgrades", func() {
-			//	baseUpgradeTest(ctx, crdDir, LastPatchMostRecentMinorVersion.String(), testHelper, chartUri, strictValidation)
-			//})
 			It("uses helm to update validationServerGrpcMaxSizeBytes without errors", func() {
 				updateSettingsWithoutErrors(ctx, testHelper, chartUri, strictValidation)
 			})
@@ -139,17 +137,6 @@ var _ = Describe("Upgrade Tests", func() {
 // Repeated Test Code
 // ===================================
 // Based case test for local runs to help narrow down failures
-func baseUpgradeTest(ctx context.Context, startingVersion string, testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool) {
-	By(fmt.Sprintf("should start with gloo version %s", startingVersion))
-	Expect(fmt.Sprintf("v%s", getGlooServerVersion(ctx, testHelper.InstallNamespace))).To(Equal(startingVersion))
-
-	// upgrade to the gloo version being tested
-	upgradeGlooWithTests(testHelper, chartUri, strictValidation, nil)
-
-	By("should have upgraded to the gloo version being tested")
-	Expect(getGlooServerVersion(ctx, testHelper.InstallNamespace)).To(Equal(testHelper.ChartVersion()))
-}
-
 func updateSettingsWithoutErrors(ctx context.Context, testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool) {
 	By("should start with the settings.invalidConfigPolicy.invalidRouteResponseCode=404")
 	client := helpers.MustSettingsClient(ctx)
@@ -194,18 +181,10 @@ func updateValidationWebhookTests(ctx context.Context, kubeClientset kubernetes.
 // ===================================
 // Util methods
 // ===================================
-func getGlooServerVersion(ctx context.Context, namespace string) (v string) {
-	glooVersion, err := version.GetClientServerVersions(ctx, version.NewKube(namespace, ""))
-	Expect(err).To(BeNil())
-	Expect(len(glooVersion.GetServer())).To(Equal(1))
-	for _, container := range glooVersion.GetServer()[0].GetKubernetes().GetContainers() {
-		if v == "" {
-			v = container.OssTag
-		} else {
-			Expect(container.OssTag).To(Equal(v))
-		}
-	}
-	return v
+var strictValidationArgs = []string{
+	"--set", "gateway.validation.failurePolicy=Fail",
+	"--set", "gateway.validation.allowWarnings=false",
+	"--set", "gateway.validation.alwaysAcceptResources=false",
 }
 
 func installGlooWithTests(testHelper *helper.SoloTestHelper, fromRelease string, strictValidation bool) {
@@ -215,7 +194,12 @@ func installGlooWithTests(testHelper *helper.SoloTestHelper, fromRelease string,
 	} else {
 		InstallGlooWithArgs(testHelper, fromRelease, strictValidationArgs, helmOverrideFilePath)
 	}
+
+	portFwd, err := cliutil.PortForward(testHelper.InstallNamespace, "deploy/"+gatewayProxyName, "8080", "8080", false)
+	Expect(err).NotTo(HaveOccurred())
 	preUpgradeTests(testHelper)
+	portFwd.Process.Kill()
+	portFwd.Process.Release()
 }
 
 func upgradeGlooWithTests(testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool, additionalArgs []string) {
@@ -227,7 +211,12 @@ func upgradeGlooWithTests(testHelper *helper.SoloTestHelper, chartUri string, st
 		upgrade.UpgradeGloo(testHelper, chartUri, helmOverrideFilePath, additionalArgs)
 	}
 	bumpRedis(testHelper)
+
+	portFwd, err := cliutil.PortForward(testHelper.InstallNamespace, "deploy/"+gatewayProxyName, "8080", "8080", false)
+	Expect(err).NotTo(HaveOccurred())
 	postUpgradeTests(testHelper)
+	portFwd.Process.Kill()
+	portFwd.Process.Release()
 }
 
 func bumpRedis(testHelper *helper.SoloTestHelper) {
@@ -276,7 +265,7 @@ func preUpgradeDataValidation(testHelper *helper.SoloTestHelper) {
 	validateRateLimitTraffic(testHelper)
 	validateAuthTraffic(testHelper)
 	validateRequestTransformTraffic(testHelper)
-	validateCachingTraffic(testHelper)
+	validateCachingTraffic(testHelper, "/service/1/valid-for-ten-seconds")
 }
 
 func preUpgradeTests(testHelper *helper.SoloTestHelper) {
@@ -289,7 +278,7 @@ func postUpgradeValidation(testHelper *helper.SoloTestHelper) {
 	validateRateLimitTraffic(testHelper)
 	validateAuthTraffic(testHelper)
 	validateRequestTransformTraffic(testHelper)
-	validateCachingTrafficAfterUpgrade(testHelper)
+	validateCachingTraffic(testHelper, "/service/1/valid-for-five-seconds")
 }
 
 func dataModificationValidation(testHelper *helper.SoloTestHelper) {
@@ -355,71 +344,29 @@ func authAfterDataModValidation(testHelper *helper.SoloTestHelper) {
 	})
 }
 
-func validateCachingTraffic(testHelper *helper.SoloTestHelper) {
+// due to the behavior of the test caching service we need to be able to hit different endpoints:
+// one before, and one after upgrade.  The reason behind this is we are not guaranteed that redis will roll
+// after upgrade and if there are values in redis the cache test service will not report a change
+func validateCachingTraffic(testHelper *helper.SoloTestHelper, route string) {
 	By("sending an initial request to cache the response")
-	res := CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
-	headers := getResponseHeadersFromCurlOutput(res)
-	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers should not contain an age header, because they are not yet cached")
-	// get date header
-	date, err := time.Parse(time.RFC1123, headers["date"])
-	ExpectWithOffset(1, err).NotTo(HaveOccurred(), fmt.Sprintf("Failed Response: \n%s", res))
+	res := requestOnPath(cachingHost, route)
+	ExpectWithOffset(1, res).NotTo(haveAgeHeader(), "headers should not contain an age header, because they are not yet cached")
+	firstDate, err := time.Parse(time.RFC1123, res.Header.Get("date"))
+	ExpectWithOffset(1, err).NotTo(HaveOccurred(), fmt.Sprintf("Failed Response: \n%s", res.Status))
 
 	By("sending a second request to serve the response from cache")
-
-	// async insert into cache is not completed when previous curl completes - for the next 3 seconds check every half second
+	// async insert into cache is not completed when previous curl completes - for the next minute check every three seconds
 	EventuallyWithOffset(1, func() bool {
-		res = CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
-		headers = getResponseHeadersFromCurlOutput(res)
-		_, hasAgeHeader := headers["age"]
-		datesMatch := false
-		if hasAgeHeader {
-			datesMatch = headers["date"] == date.Format(time.RFC1123)
-		}
-		return datesMatch && hasAgeHeader
+		res = requestOnPath(cachingHost, route)
+		return res.Header.Get("age") != "" && res.Header.Get("date") == firstDate.Format(time.RFC1123)
 	}, time.Minute, time.Second*3).Should(BeTrue(), "Check that headers contain age and that the dates match")
 
 	//wait for cache to expire
+	By("sending a third request to serve the response from cache")
 	time.Sleep(time.Second * 15)
-
-	res = CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
-	headers = getResponseHeadersFromCurlOutput(res)
-	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers to not contain an age header, because the cached response is expired")
-	ExpectWithOffset(1, headers["date"]).NotTo(Equal(date.Format(time.RFC1123)), "validation workflow should update the date header")
-}
-
-// due to the behavior of the test caching service we need to hit another endpoint after upgrade
-// The reason behind this is we are not guaranteed that redis will roll after upgrade and if there are values in redis the cache test service will not report a change
-func validateCachingTrafficAfterUpgrade(testHelper *helper.SoloTestHelper) {
-	By("sending an initial request to cache the response")
-	res := CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-five-seconds", response200)
-
-	headers := getResponseHeadersFromCurlOutput(res)
-	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers should not contain an age header, because they are not yet cached")
-	// get date header
-	date, err := time.Parse(time.RFC1123, headers["date"])
-	ExpectWithOffset(1, err).NotTo(HaveOccurred(), fmt.Sprintf("Failed Response: \n%s", res))
-
-	By("sending a second request to serve the response from cache")
-
-	// async insert into cache is not completed when previous curl completes - for the next 3 seconds check every half second
-	EventuallyWithOffset(1, func() bool {
-		res = CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-five-seconds", response200)
-		headers = getResponseHeadersFromCurlOutput(res)
-		_, hasAgeHeader := headers["age"]
-		datesMatch := false
-		if hasAgeHeader {
-			datesMatch = headers["date"] == date.Format(time.RFC1123)
-		}
-		return datesMatch && hasAgeHeader
-	}, time.Minute, time.Second*3).Should(BeTrue(), "Check that headers contain age and that the dates match")
-
-	//wait for cache to expire
-	time.Sleep(time.Second * 15)
-
-	res = CurlOnPath(testHelper, cachingHost, "/service/1/valid-for-five-seconds", response200)
-	headers = getResponseHeadersFromCurlOutput(res)
-	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers to not contain an age header, because the cached response is expired")
-	ExpectWithOffset(1, headers["date"]).NotTo(Equal(date.Format(time.RFC1123)), "validation workflow should update the date header")
+	res = requestOnPath(cachingHost, route)
+	ExpectWithOffset(1, res).NotTo(haveAgeHeader(), "headers to not contain an age header, because the cached response is expired")
+	ExpectWithOffset(1, res.Header.Get("date")).NotTo(Equal(firstDate.Format(time.RFC1123)), "validation workflow should update the date header")
 }
 
 // This function validates the traffic going to the rate limit vs
@@ -443,9 +390,15 @@ func rateLimitAfterDataModValidation(testHelper *helper.SoloTestHelper) {
 
 func validateRequestTransformTraffic(testHelper *helper.SoloTestHelper) {
 	// response contains json object with transformed request values - we want to get that and check it for headers
-	res := CurlOnPath(testHelper, queryParamHost, "/get?foo=foo-value&bar=bar-value", "")
-	Expect(res).WithOffset(1).To(ContainSubstring("\"foo\": \"foo-value\""))
-	Expect(res).WithOffset(1).To(ContainSubstring("\"bar\": \"bar-value\""))
+	res := requestOnPath(queryParamHost, "/get?foo=foo-value&bar=bar-value")
+
+	Expect(res).Should(testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
+		StatusCode: http.StatusOK,
+		Body: testmatchers.ContainSubstrings([]string{
+			"\"foo\": \"foo-value\"",
+			"\"bar\": \"bar-value\"",
+		}),
+	}))
 }
 
 // ===================================
@@ -481,40 +434,20 @@ func CurlWithHeadersAndAssertResponse(testHelper *helper.SoloTestHelper, host st
 	}, expectedResponseSubstring, 1, time.Minute*1)
 }
 
-// Method used when further validation of the request is needed that is not supported by the test runner util methods
-// return the full verbose response after validation based on expectedResponseSubstring - general use would be to pass the expected response code (ex 200, 401.. etc)
-func CurlOnPath(testHelper *helper.SoloTestHelper, host string, path string, expectedResponseSubstring string) string {
-	res, err := testHelper.Curl(helper.CurlOpts{
-		Protocol:          "http",
-		Path:              path,
-		Method:            "GET",
-		Host:              host,
-		Service:           gatewayProxyName,
-		Port:              gatewayProxyPort,
-		ConnectionTimeout: 3, // this is important, as the first curl call sometimes hangs indefinitely
-		Verbose:           true,
-		LogResponses:      false,
-	})
+func requestOnPath(host string, path string) *http.Response {
+	req, err := http.NewRequest("GET", "http://localhost:8080"+path, nil)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	ExpectWithOffset(1, res).To(ContainSubstring(expectedResponseSubstring))
+	req.Host = host
+	res, err := http.DefaultClient.Do(req)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 	return res
 }
 
-func getResponseHeadersFromCurlOutput(res string) map[string]string {
-	headers := map[string]string{}
-	// response headers start with "< "
-	for _, header := range strings.Split(res, "< ") {
-		headerParts := strings.Split(header, ": ")
-		if len(headerParts) == 2 {
-			// strip "\r\n" from the end of the value
-			headers[headerParts[0]] = strings.TrimSuffix(headerParts[1], "\r\n")
-		}
-	}
-	return headers
-}
-
-var strictValidationArgs = []string{
-	"--set", "gateway.validation.failurePolicy=Fail",
-	"--set", "gateway.validation.allowWarnings=false",
-	"--set", "gateway.validation.alwaysAcceptResources=false",
+func haveAgeHeader() types.GomegaMatcher {
+	return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
+		StatusCode: http.StatusOK,
+		Headers: map[string]interface{}{
+			"age": Not(BeEmpty()),
+		},
+	})
 }
