@@ -1,6 +1,8 @@
 package translator
 
 import (
+	"fmt"
+
 	errors "github.com/rotisserie/eris"
 
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -118,10 +120,41 @@ func (t *HybridTranslator) computeHybridListenerFromMatchedGateways(
 			}
 
 		case *v1.MatchedGateway_TcpGateway:
+
 			matchedListener.GetMatcher().PassthroughCipherSuites = matchedGateway.GetMatcher().GetPassthroughCipherSuites()
 			matchedListener.ListenerType = &gloov1.MatchedListener_TcpListener{
 				TcpListener: t.TcpTranslator.ComputeTcpListener(gt.TcpGateway),
 			}
+
+			// mimick validateVirtualServiceDomains that httpgateways go through
+			tcpSSL := matchedGateway.GetMatcher().GetSslConfig()
+
+			matcherSNIDomains := tcpSSL.GetSniDomains()
+			domainMap := make(map[string]struct{})
+			for _, msd := range matcherSNIDomains {
+				domainMap[msd] = struct{}{}
+			}
+			conflictingHostDomains := make([]string, 0)
+			for _, host := range gt.TcpGateway.GetTcpHosts() {
+
+				domains := host.GetSslConfig().GetSniDomains()
+				for _, d := range domains {
+					_, ok := domainMap[d]
+					if !ok {
+						if len(matcherSNIDomains) > 0 {
+							conflictingHostDomains = append(conflictingHostDomains, fmt.Sprintf("%s:%s", host.GetName(), d))
+						} else {
+							domainMap[d] = struct{}{}
+						}
+					}
+				}
+			}
+			// mimick the behavior for http gateways and virtual hosts
+			// if we specify matcher info then dont allow conflicting sni domains otherwise dont worry about it
+			if len(conflictingHostDomains) > 0 {
+				params.reports.AddError(gateway, errors.Errorf("gateway has conflicting sni domains %v", conflictingHostDomains))
+			}
+
 		}
 
 		hybridListener.MatchedListeners = append(hybridListener.GetMatchedListeners(), matchedListener)
