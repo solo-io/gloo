@@ -1609,15 +1609,6 @@ kind-load-%-debug:
 # Envoy image may be specified via ENVOY_GLOO_IMAGE on the command line or at the top of this file
 kind-build-and-load-%: %-docker kind-load-% ; ## Use to build specified image and load it into kind
 
-# Reload an image in KinD
-# This is useful to developers when changing a single component
-# You can reload an image, which means it will be rebuilt and reloaded into the kind cluster
-# using the same tag so that tests can be re-run
-# Depends on: IMAGE_REGISTRY, VERSION, INSTALL_NAMESPACE , CLUSTER_NAME
-# Envoy image may be specified via ENVOY_GLOO_IMAGE on the command line or at the top of this file
-kind-reload-%: kind-build-and-load-% ## Use to build specified image, load it into kind, and restart its deployment
-	kubectl rollout restart deployment/$* -n $(INSTALL_NAMESPACE)
-
 # Useful utility for listing images loaded into the kind cluster
 .PHONY: kind-list-images
 kind-list-images:
@@ -1654,16 +1645,12 @@ kind-build-and-load: kind-build-and-load-ext-auth-plugins
 endif # ARM support
 endif # non-fips support
 
-define kind_reload_msg
-The kind-reload-% targets exist in order to assist developers with the work cycle of
-build->test->change->build->test. To that end, rebuilding/reloading every image, then
-restarting every deployment is seldom necessary. Consider using kind-reload-% to do so
-for a specific component, or kind-build-and-load to push new images for every component.
-endef
-export kind_reload_msg
 .PHONY: kind-reload
 kind-reload:
-	@echo "$$kind_reload_msg"
+	@echo "The kind-reload-% targets are not implemented in this repo due to complicated naming inconsistencies. If you firmly believe this target should be fixed in this repo, please comment on and/or raise attention to https://github.com/solo-io/solo-projects/issues/4928."
+
+kind-reload-%:
+	@echo "The kind-reload-% targets are not implemented in this repo due to complicated naming inconsistencies. If you firmly believe this target should be fixed in this repo, please comment on and/or raise attention to https://github.com/solo-io/solo-projects/issues/4928."
 
 .PHONY: build-test-chart
 build-test-chart: build-test-chart-fed
