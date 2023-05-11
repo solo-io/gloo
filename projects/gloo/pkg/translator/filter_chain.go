@@ -63,7 +63,7 @@ func (t *tcpFilterChainTranslator) ComputeFilterChains(params plugins.Params) []
 		for _, pfc := range pluginFilterChains {
 			pfc := pfc
 			if t.defaultSslConfig != nil && len(pfc.GetFilterChainMatch().GetServerNames()) == 0 {
-				pfc.FilterChainMatch.ServerNames = t.defaultSslConfig.SniDomains
+				pfc.GetFilterChainMatch().ServerNames = t.defaultSslConfig.GetSniDomains()
 			}
 			filterChains = append(filterChains, pfc)
 		}
