@@ -143,12 +143,11 @@ func (t *HybridTranslator) computeHybridListenerFromMatchedGateways(
 					if !ok {
 						if len(matcherSNIDomains) > 0 {
 							conflictingHostDomains = append(conflictingHostDomains, fmt.Sprintf("%s:%s", host.GetName(), d))
-						} else {
-							domainMap[d] = struct{}{}
 						}
 					}
 				}
 			}
+
 			// mimick the behavior for http gateways and virtual hosts
 			// if we specify matcher info then dont allow conflicting sni domains otherwise dont worry about it
 			if len(conflictingHostDomains) > 0 {
@@ -194,7 +193,7 @@ func (t *HybridTranslator) computeHybridListenerFromDelegatedGateways(
 		}
 	})
 	matchableTcpGateways.Each(func(tcpGw *v1.MatchableTcpGateway) {
-		matchedListener := t.computeMatchedTcpListener(tcpGw)
+		matchedListener := t.computeMatchedTcpListener(params, proxyName, gateway, tcpGw)
 		if matchedListener != nil {
 			hybridListener.MatchedListeners = append(hybridListener.GetMatchedListeners(), matchedListener)
 		}
@@ -248,8 +247,13 @@ func (t *HybridTranslator) computeMatchedHttpListener(
 }
 
 func (t *HybridTranslator) computeMatchedTcpListener(
+	params Params,
+	proxyName string,
+	parentGateway *v1.Gateway,
 	matchableTcpGateway *v1.MatchableTcpGateway,
+
 ) *gloov1.MatchedListener {
+	// for now the parent gateway does not provide inheritable aspects so ignore it
 	return &gloov1.MatchedListener{
 		Matcher: &gloov1.Matcher{
 			SslConfig:               matchableTcpGateway.GetMatcher().GetSslConfig(),

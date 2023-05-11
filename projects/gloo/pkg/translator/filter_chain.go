@@ -42,6 +42,7 @@ type tcpFilterChainTranslator struct {
 	report *validationapi.TcpListenerReport
 
 	// These values are optional (currently only available for HybridGateways)
+	defaultSslConfig        *ssl.SslConfig
 	sourcePrefixRanges      []*v3.CidrRange
 	passthroughCipherSuites []string
 }
@@ -59,7 +60,13 @@ func (t *tcpFilterChainTranslator) ComputeFilterChains(params plugins.Params) []
 			continue
 		}
 
-		filterChains = append(filterChains, pluginFilterChains...)
+		for _, pfc := range pluginFilterChains {
+			pfc := pfc
+			if t.defaultSslConfig != nil && len(pfc.GetFilterChainMatch().GetServerNames()) == 0 {
+				pfc.FilterChainMatch.ServerNames = t.defaultSslConfig.SniDomains
+			}
+			filterChains = append(filterChains, pfc)
+		}
 	}
 
 	// 2. Apply SourcePrefixRange to FilterChainMatch, if defined
