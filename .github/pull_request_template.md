@@ -14,7 +14,7 @@ Summary of testing:
   - [ ] I commented my code, particularly in hard-to-understand areas
   - [ ] I made corresponding changes to the documentation
   - [ ] I added tests that prove my fix is effective or that my feature works
-  - [ ] I included a changelog [Changelog Reference](https://github.com/solo-io/go-utils/tree/master/changelogutils)
+  - [ ] I included a changelog [Changelog Reference](https://github.com/solo-io/go-utils/tree/main/changelogutils)
   - [ ] I checked for focused tests, unwanted changes, extra lines etc
 - [ ] If there is a change to our APIs (Protos) or helm values, I ran `make update-all-deps generate-all -B` to ensure there will be no code diff
 - [ ] I followed PR guidelines [contribution guide](https://soloio.slab.com/posts/pull-request-guidelines-injh63y7)

@@ -50,10 +50,10 @@ ENVOY_GLOO_FIPS_DEBUG_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips-debug:$(ENVOY_G
 
 # The full SHA of the currently checked out commit
 CHECKED_OUT_SHA := $(shell git rev-parse HEAD)
-# Returns the name of the default branch in the remote `origin` repository, e.g. `master`
+# Returns the name of the default branch in the remote `origin` repository, e.g. `main`
 DEFAULT_BRANCH_NAME := $(shell git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
 # Print the branches that contain the current commit and keep only the one that
-# EXACTLY matches the name of the default branch (avoid matching e.g. `master-2`).
+# EXACTLY matches the name of the default branch (avoid matching e.g. `main-2`).
 # If we get back a result, it mean we are on the default branch.
 EMPTY_IF_NOT_DEFAULT := $(shell git branch --contains $(CHECKED_OUT_SHA) | grep -ow $(DEFAULT_BRANCH_NAME))
 

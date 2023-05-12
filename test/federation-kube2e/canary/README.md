@@ -4,7 +4,7 @@
 These tests validate that Gloo Edge can perform a canary upgrade of Gloo Federation, and simultaneously have two Gloo Federation installs reconcile the same Federated resources.
 
 ## CI
-These tests are run by a [GitHub action](https://github.com/solo-io/solo-projects/blob/master/.github/workflows/regression-tests.yaml) as part of our CI pipeline.
+These tests are run by a [GitHub action](https://github.com/solo-io/solo-projects/blob/main/.github/workflows/regression-tests.yaml) as part of our CI pipeline.
 
 If a test fails, you can retry it from a [browser window](https://docs.github.com/en/actions/managing-workflow-runs/re-running-workflows-and-jobs#reviewing-previous-workflow-runs). If you do this, please make sure to comment on the Pull Request with a link to the failed logs for debugging purposes.
 

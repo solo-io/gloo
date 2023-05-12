@@ -1,4 +1,4 @@
-// largely stolen from https://github.com/solo-io/gloo/blob/master/hack/find_latest_enterprise_version.go
+// largely stolen from https://github.com/solo-io/gloo/blob/main/hack/find_latest_enterprise_version.go
 package main
 
 import (

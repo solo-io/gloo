@@ -50,11 +50,11 @@ runs:
     with:
       domain: solo-io.testspace.com
       token: ${{ inputs.TESTSPACE_TOKEN }}
-    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
   - name: Push result to Testspace server
     shell: bash
     run: testspace push --verbose "**/junit.xml"
-    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
   - name: System Info
     if: always()
     shell: bash

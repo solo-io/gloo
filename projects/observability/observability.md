@@ -77,5 +77,5 @@ spec:
 ```
 
 Another option for exposing these stats to prometheus is using our helm chart. Instruction on how to install Gloo via our helm chart
-can be found [here](https://github.com/solo-io/gloo/blob/master/docs/installation/install_with_helm.md). The same rules outlined in 
+can be found [here](https://github.com/solo-io/gloo/blob/main/docs/installation/install_with_helm.md). The same rules outlined in 
 that doc apply to GlooE, as well as more customization options for our enterprise features.

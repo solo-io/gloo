@@ -13,9 +13,9 @@ if [ -n "${VERSION}" ]; then
         IS_VERSION_2="false"
     fi
 fi
-INSTALL_SCRIPT="https://raw.githubusercontent.com/helm/helm/master/scripts/get"
+INSTALL_SCRIPT="https://raw.githubusercontent.com/helm/helm/main/scripts/get"
 if [ "${IS_VERSION_2}" == "false" ]; then
-    INSTALL_SCRIPT="https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3"
+    INSTALL_SCRIPT="https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
 fi
 
 curl "${INSTALL_SCRIPT}" > get_helm.sh

@@ -393,7 +393,7 @@ func setDigest(img *generate.Image, config HelmConfig) {
 		img.Digest = &digest
 	}
 
-	// FIPS exceptions pulled from "gloo.image": https://github.com/solo-io/gloo/blob/master/install/helm/gloo/templates/_helpers.tpl#L22-L24
+	// FIPS exceptions pulled from "gloo.image": https://github.com/solo-io/gloo/blob/main/install/helm/gloo/templates/_helpers.tpl#L22-L24
 	if *img.Repository == "gloo-ee" || *img.Repository == "extauth-ee" ||
 		*img.Repository == "gloo-ee-envoy-wrapper" || *img.Repository == "rate-limit-ee" || *img.Repository == "ext-auth-plugins" {
 

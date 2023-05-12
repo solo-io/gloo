@@ -3,18 +3,18 @@
 ## Release model
 Under the Gloo Enterprise [release model](https://docs.solo.io/gloo/latest/reference/support/), 
 a new stable X.Y.0 release will be published every 3 months. 
-New feature development occurs on the master branch, and a new stable version will be released from master
+New feature development occurs on the main branch, and a new stable version will be released from main
 at the end of each quarter. After it has been published, a stable release will be patched only to address 
 security vulnerabilities and fix bugs that critically impact existing features or the stability of the product.
 
 ### Envoy
 Gloo ships with a custom Envoy distribution that includes additional filters while leaving the core Envoy components untouched. 
-The Envoy project recently introduced a [stable release model](https://github.com/envoyproxy/envoy/blob/master/RELEASES.md), 
+The Envoy project recently introduced a [stable release model](https://github.com/envoyproxy/envoy/blob/main/RELEASES.md), 
 which aims at publishing quarterly stable releases, with 1 year of support for each stable release. 
 Gloo Enterprise will always track the latest stable Envoy release. 
 In case the expected quarterly stable release of Envoy is not available when a new stable version of Gloo Enterprise 
-is released, Gloo Enterprise will temporarily track the master branch of Envoy until said release is available. Since 
-Envoy makes strong guarantees of stability and backwards compatibility on the master branch, the solo.io team deems this 
+is released, Gloo Enterprise will temporarily track the main branch of Envoy until said release is available. Since 
+Envoy makes strong guarantees of stability and backwards compatibility on the main branch, the solo.io team deems this 
 approach to be acceptable.
 
 When starting the release process for a new stable version of Gloo Enterprise, one of two scenarios 
@@ -22,7 +22,7 @@ can occur with respect to the upstream Envoy project:
 1. The new quarterly stable Envoy version **has already been released**: in this case, the new stable 
 Gloo Enterprise release will track this release.
 2. The new quarterly stable Envoy version **has not yet been released** due to delays (up to 3 weeks): 
-in this case, the new stable Gloo Enterprise release will track the upstream Envoy master branch 
+in this case, the new stable Gloo Enterprise release will track the upstream Envoy main branch 
 until the stable Envoy release has been published; at that point, the stable Gloo Enterprise 
 release will be patched to track it.
 
@@ -32,7 +32,7 @@ bugs and vulnerabilities in the Gloo components, as well as in Envoy and in othe
 
 ### Gloo components
 When there is a critical bug or vulnerability in a Gloo component (`gloo`, `gateway`, `discovery`, `extauth`, 
-`rate-limit`, or `observability`), the Solo.io team will prepare a fix for the master branch, and backport 
+`rate-limit`, or `observability`), the Solo.io team will prepare a fix for the main branch, and backport 
 the fix to all supported stable release branches. 
 
 Once all of these releases have been prepared and made available, then the Solo team will send notifications 
@@ -47,7 +47,7 @@ track the corresponding patches stable Envoy versions;
 
 Once all the supported stable versions of Gloo have been updated, the releases will be prepared and communicated as above. 
 
-The [12 months support window](https://github.com/envoyproxy/envoy/blob/master/RELEASES.md#stable-releases) for Envoy 
+The [12 months support window](https://github.com/envoyproxy/envoy/blob/main/RELEASES.md#stable-releases) for Envoy 
 means that security vulnerabilities and critical bug fixes will be ported to the 4 last quarterly stable releases on Envoy. 
 In turn, given the release model outlined earlier in this document and the Gloo Enterprise 
 [support policy](https://docs.solo.io/gloo/latest/reference/support/#support-will-be-release-n-through-n-2), 

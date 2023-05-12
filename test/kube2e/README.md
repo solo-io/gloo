@@ -35,7 +35,7 @@ dependencies:
 
 ### Use the CI Install Script (preferred)
 
-[`ci/kind/setup-kind.sh`](`https://github.com/solo-io/solo-projects/blob/master/ci/kind/setup-kind.sh`) gets run in CI to setup the test environment for the above requirements.
+[`ci/kind/setup-kind.sh`](`https://github.com/solo-io/solo-projects/blob/main/ci/kind/setup-kind.sh`) gets run in CI to setup the test environment for the above requirements.
 It accepts a number of environment variables, to control the creation of a kind cluster and deployment of Gloo resources to that kind cluster.
 
 | Name                  | Default    | Description |

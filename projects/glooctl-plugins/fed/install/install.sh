@@ -24,5 +24,5 @@ echo "  export PATH=\$HOME/.gloo/bin:\$PATH"
 echo ""
 echo "Now run:"
 echo "  glooctl fed --help     # see the commands available to you"
-echo "Please see visit the Gloo Edge website for more info:  https://docs.solo.io/gloo-edge/master/introduction/gloo_federation/"
+echo "Please see visit the Gloo Edge website for more info:  https://docs.solo.io/gloo-edge/main/introduction/gloo_federation/"
 exit 0

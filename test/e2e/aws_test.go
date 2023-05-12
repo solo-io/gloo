@@ -76,7 +76,7 @@ var _ = Describe("AWS Lambda ", func() {
 
 		// Look in ~/.aws/credentials for local AWS credentials
 		// see the gloo OSS e2e test README for more information about configuring credentials for AWS e2e tests
-		// https://github.com/solo-io/gloo/blob/master/test/e2e/README.md
+		// https://github.com/solo-io/gloo/blob/main/test/e2e/README.md
 		localAwsCredentials := credentials.NewSharedCredentials("", "")
 		v, err := localAwsCredentials.Get()
 		if err != nil {
