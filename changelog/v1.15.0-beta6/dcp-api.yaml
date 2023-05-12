@@ -19,3 +19,12 @@ changelog:
     description: >
       Changed the static upstream `useTls` field from a `bool` to `google.protobuf.BoolValue`, to allow explicitly disabling
       TLS autodetection based on port.
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/4895
+    resolvesIssue: true
+    description: >
+      Expose the access log flush duration option in Envoy to enable flushing
+      to the access log on a periodic basis. The default behaviour is to only
+      write to the access log when a connection is closed meaning that
+      long-running tcp connections may take a long time to get written to the
+      access log.
