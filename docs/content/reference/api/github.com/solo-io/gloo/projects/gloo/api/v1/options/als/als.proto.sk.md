@@ -48,12 +48,14 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v
 
 ```yaml
 "accessLog": []als.options.gloo.solo.io.AccessLog
+"accessLogFlushInterval": .google.protobuf.Duration
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `accessLog` | [[]als.options.gloo.solo.io.AccessLog](../als.proto.sk/#accesslog) |  |
+| `accessLogFlushInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | If set, Envoy will flush the access log on this time interval. Must be a minimum of 1 ms. By default, will only write to the access log when a connection is closed. |
 
 
 

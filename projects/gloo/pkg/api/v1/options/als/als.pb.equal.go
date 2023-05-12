@@ -63,6 +63,16 @@ func (m *AccessLoggingService) Equal(that interface{}) bool {
 
 	}
 
+	if h, ok := interface{}(m.GetAccessLogFlushInterval()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetAccessLogFlushInterval()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetAccessLogFlushInterval(), target.GetAccessLogFlushInterval()) {
+			return false
+		}
+	}
+
 	return true
 }
 

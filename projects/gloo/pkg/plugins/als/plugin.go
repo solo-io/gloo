@@ -1,19 +1,24 @@
 package als
 
 import (
+	"errors"
 	"fmt"
+	"time"
 
 	envoyal "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoyalfile "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/file/v3"
 	envoygrpc "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/grpc/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	envoytcp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 	envoy_req_without_query "github.com/envoyproxy/go-control-plane/envoy/extensions/formatter/req_without_query/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/rotisserie/eris"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/pkg/utils/prototime"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -57,6 +62,16 @@ func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parentListener *
 	var err error
 	out.AccessLog, err = ProcessAccessLogPlugins(alsSettings, out.GetAccessLog())
 	return err
+}
+
+// Write the access log flush interval for Envoy (after performing some basic sanitisation checks)
+func ProcessAccessLogFlushInterval(flushInterval *durationpb.Duration, envoyCfg *envoytcp.TcpProxy) error {
+	if prototime.DurationFromProto(flushInterval) < 1*time.Millisecond {
+		return errors.New("access log flush interval must have minimum of 1ms")
+	}
+	fmt.Printf("envoyCfg is %#v\n", envoyCfg)
+	envoyCfg.AccessLogFlushInterval = flushInterval
+	return nil
 }
 
 // The AccessLogging plugin configures access logging for envoy, regardless of whether it will be applied to

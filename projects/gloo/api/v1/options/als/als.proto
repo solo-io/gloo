@@ -16,12 +16,18 @@ import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/type/v3/percent.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/route/v3/route_components.proto";
 
+import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";
 
 // Contains various settings for Envoy's access logging service.
 // See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/filter/accesslog/v2/accesslog.proto#envoy-api-msg-config-filter-accesslog-v2-accesslog
 message AccessLoggingService {
     repeated AccessLog access_log = 1;
+
+    // If set, Envoy will flush the access log on this time interval. Must be a
+    // minimum of 1 ms. By default, will only write to the access log when a
+    // connection is closed.
+    google.protobuf.Duration access_log_flush_interval = 2;
 }
 
 message AccessLog {

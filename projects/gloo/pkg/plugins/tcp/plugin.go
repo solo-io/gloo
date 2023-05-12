@@ -177,6 +177,11 @@ func (p *plugin) tcpProxyFilters(
 	}
 	cfg.AccessLog = tcpAccessLogConfig
 
+	err = als.ProcessAccessLogFlushInterval(alsSettings.GetAccessLogFlushInterval(), cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	tcpFilter, err := translatorutil.NewFilterWithTypedConfig(wellknown.TCPProxy, cfg)
 	if err != nil {
 		return nil, err
