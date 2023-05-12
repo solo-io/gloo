@@ -48,6 +48,7 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 	// unwrap all filterChains before putting into envoy listener
 	filterChains := make([]*envoy_config_listener_v3.FilterChain, 0, len(extFilterChains))
 	for _, extFilterChain := range extFilterChains {
+		extFilterChain := extFilterChain
 		if extFilterChain != nil && extFilterChain.FilterChain != nil {
 			filterChains = append(filterChains, extFilterChain.FilterChain)
 			cleanedExtendedChains = append(cleanedExtendedChains, extFilterChain)
@@ -147,12 +148,11 @@ func validateListenerPorts(proxy *v1.Proxy, listenerReport *validationapi.Listen
 func CheckForFilterChainConsistency(filterChains []*envoy_config_listener_v3.FilterChain, listenerReport *validationapi.ListenerReport, out *envoy_config_listener_v3.Listener) {
 	usingListenerLevelMatcher := out.GetFilterChainMatcher() != nil
 	for idx1, filterChain := range filterChains {
-		if usingListenerLevelMatcher && filterChain.Name == "" {
+		if usingListenerLevelMatcher && filterChain.GetName() == "" {
 			// only need to validate that the filterchain has a name
 
 			validation.AppendListenerError(listenerReport,
-				validationapi.ListenerReport_Error_ProcessingError, fmt.Sprintf("Tried to make a filter chain without a name "+
-					"with the same FilterChainMatch {%v}. This is usually caused by overlapping sniDomains or multiple empty sniDomains in virtual services", filterChain.GetFilterChainMatch()))
+				validationapi.ListenerReport_Error_ProcessingError, "Tried to make a filter chain without a name ")
 
 		}
 
@@ -162,12 +162,12 @@ func CheckForFilterChainConsistency(filterChains []*envoy_config_listener_v3.Fil
 			if idx2 <= idx1 {
 				continue
 			}
-			if usingListenerLevelMatcher && filterChain.Name == otherFilterChain.Name {
+			if usingListenerLevelMatcher && filterChain.GetName() == otherFilterChain.GetName() {
 				validation.AppendListenerError(listenerReport,
 					validationapi.ListenerReport_Error_NameNotUniqueError, fmt.Sprintf("Tried to make a filter chain with the same name as another "+
-						" FilterChain {%v}", otherFilterChain.Name))
+						" FilterChain {%v}", otherFilterChain.GetName()))
 
-			} else if reflect.DeepEqual(filterChain.GetFilterChainMatch(), otherFilterChain.GetFilterChainMatch()) {
+			} else if !usingListenerLevelMatcher && reflect.DeepEqual(filterChain.GetFilterChainMatch(), otherFilterChain.GetFilterChainMatch()) {
 				validation.AppendListenerError(listenerReport,
 					validationapi.ListenerReport_Error_SSLConfigError, fmt.Sprintf("Tried to apply multiple filter chains "+
 						"with the same FilterChainMatch {%v}. This is usually caused by overlapping sniDomains or multiple empty sniDomains in virtual services", filterChain.GetFilterChainMatch()))

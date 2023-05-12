@@ -190,9 +190,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 					}
 				}
 			}
-
 			if in.GetProxyProtocolVersion() != nil {
-
 				newTs, err := wrapWithPProtocol(ts, in.GetProxyProtocolVersion().GetValue())
 				if err != nil {
 					return err
@@ -201,7 +199,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 			}
 			// only add if this is not just a default raw buffer
 			// this will decrease configuration size
-			if ts.Name != wellknown.TransportSocketRawBuffer {
+			if ts.GetName() != wellknown.TransportSocketRawBuffer {
 				out.TransportSocketMatches = append(out.GetTransportSocketMatches(), &envoy_config_cluster_v3.Cluster_TransportSocketMatch{
 					Name:            name(spec, host),
 					Match:           metadataMatch(spec, host),

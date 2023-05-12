@@ -11,6 +11,7 @@ require (
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/census-instrumentation/opencensus-proto v0.4.1
+	github.com/cncf/xds/go v0.0.0-20220314180256-7f1daf1720fc
 	github.com/cratonica/2goarray v0.0.0-20190331194516-514510793eaa
 	github.com/envoyproxy/go-control-plane v0.11.0
 	github.com/envoyproxy/protoc-gen-validate v0.9.1
@@ -88,8 +89,6 @@ require (
 	sigs.k8s.io/controller-runtime v0.13.1
 	sigs.k8s.io/yaml v1.3.0
 )
-
-require github.com/cncf/xds/go v0.0.0-20220314180256-7f1daf1720fc
 
 require (
 	cloud.google.com/go/compute v1.12.1 // indirect

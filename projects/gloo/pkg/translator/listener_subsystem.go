@@ -235,6 +235,7 @@ func (l *ListenerSubsystemTranslatorFactory) GetHybridListenerTranslators(ctx co
 				parentListener:          listener,
 				listener:                listenerType.TcpListener,
 				report:                  hybridListenerReport.GetMatchedListenerReports()[utils.MatchedRouteConfigName(listener, matcher)].GetTcpListenerReport(),
+				defaultSslConfig:        matcher.GetSslConfig(),          // HybridGateway only feature
 				sourcePrefixRanges:      matcher.GetSourcePrefixRanges(), // HybridGateway only feature
 				passthroughCipherSuites: matcher.GetPassthroughCipherSuites(),
 			}

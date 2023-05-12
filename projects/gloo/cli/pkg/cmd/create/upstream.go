@@ -307,13 +307,19 @@ func upstreamFromOpts(opts *options.Options) (*v1.Upstream, error) {
 				Port: port,
 			})
 		}
-		upstream.UpstreamType = &v1.Upstream_Static{
+		upType := &v1.Upstream_Static{
 			Static: &static.UpstreamSpec{
 				Hosts:       hosts,
-				UseTls:      &wrappers.BoolValue{Value: input.Static.UseTls},
 				ServiceSpec: svcSpec,
 			},
 		}
+		if input.Static.UseTls {
+			// old behavior was to only enable tls if the user explicitly set it to true
+			// so only add this nullable field in this way.
+			// TODO(nfuden): Decide how to expose the ability to turn it off.
+			upType.Static.UseTls = &wrappers.BoolValue{Value: input.Static.UseTls}
+		}
+		upstream.UpstreamType = upType
 	}
 	return upstream, nil
 }
