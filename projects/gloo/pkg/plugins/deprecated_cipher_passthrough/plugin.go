@@ -37,6 +37,7 @@ func (p *plugin) ProcessListener(params plugins.Params, in *v1.Listener, out *en
 	return nil
 }
 
+// usesEnterpriseOnlyFeatures returns true if the listener uses passthrough ciphers
 func usesEnterpriseOnlyFeatures(in *v1.Listener) bool {
 	matchedListeners := in.GetHybridListener().GetMatchedListeners()
 	for _, matchedListener := range matchedListeners {
