@@ -1,6 +1,7 @@
 package tcp_test
 
 import (
+	"strings"
 	"time"
 
 	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
@@ -204,7 +205,7 @@ var _ = Describe("Plugin", func() {
 
 				_, err := createFilterChains()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("access log flush interval must have minimum of 1ms"))
+				Expect(strings.Contains(err.Error(), "access log flush interval must have minimum of 1ms")).To(BeTrue())
 
 			})
 		})
