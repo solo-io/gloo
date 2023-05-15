@@ -3,8 +3,7 @@ defaults:
   run:
     shell: bash
     working-directory: projects/ui
-on:
-  pull_request:
+on: pull_request
 jobs:
   storybook-test:
     timeout-minutes: 60
