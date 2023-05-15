@@ -20,11 +20,11 @@ import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/
 
 
 /*
-A MatchableTcpGateway ...
+A MatchableTcpGateway describes a single FilterChain configured with the TcpProxy network filter and a matcher.
 
 A Gateway CR may select one or more MatchableTcpGateways on a single listener.
 This enables separate teams to own Listener configuration (Gateway CR)
-and FilterChain configuration (MatchableTcpGateway CR)
+and FilterChain configuration (MatchableTcpGateway CR).
 */
 message MatchableTcpGateway {
 
@@ -48,6 +48,9 @@ message MatchableTcpGateway {
     //  - TransportSocket: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/base.proto#envoy-v3-api-msg-config-core-v3-transportsocket
     gloo.solo.io.SslConfig ssl_config = 2;
 
+    // Enterprise-only: Passthrough cipher suites is an allow-list of OpenSSL cipher suite names for which TLS passthrough will be enabled.
+    // If a client does not support any ciphers that are natively supported by Envoy, but does support one of the ciphers in the passthrough list,
+    // then traffic will be routed via TCP Proxy to a destination specified by the TcpGateway, where TLS can then be terminated.
     repeated string passthrough_cipher_suites = 3;
   }
 
@@ -58,5 +61,6 @@ message MatchableTcpGateway {
   // effectively matching all incoming connections
   Matcher matcher = 3;
 
+  // TcpGateway creates a FilterChain with a TcpProxy.
   TcpGateway tcp_gateway = 4;
 }

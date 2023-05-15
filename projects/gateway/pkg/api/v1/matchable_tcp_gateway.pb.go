@@ -25,11 +25,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// A MatchableTcpGateway ...
+// A MatchableTcpGateway describes a single FilterChain configured with the TcpProxy network filter and a matcher.
 //
 // A Gateway CR may select one or more MatchableTcpGateways on a single listener.
 // This enables separate teams to own Listener configuration (Gateway CR)
-// and FilterChain configuration (MatchableTcpGateway CR)
+// and FilterChain configuration (MatchableTcpGateway CR).
 type MatchableTcpGateway struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -45,8 +45,9 @@ type MatchableTcpGateway struct {
 	// If there are any identical matchers, the Gateway will be rejected.
 	// An empty matcher will produce an empty FilterChainMatch (https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/listener/v3/listener_components.proto#envoy-v3-api-msg-config-listener-v3-filterchainmatch)
 	// effectively matching all incoming connections
-	Matcher    *MatchableTcpGateway_Matcher `protobuf:"bytes,3,opt,name=matcher,proto3" json:"matcher,omitempty"`
-	TcpGateway *TcpGateway                  `protobuf:"bytes,4,opt,name=tcp_gateway,json=tcpGateway,proto3" json:"tcp_gateway,omitempty"`
+	Matcher *MatchableTcpGateway_Matcher `protobuf:"bytes,3,opt,name=matcher,proto3" json:"matcher,omitempty"`
+	// TcpGateway creates a FilterChain with a TcpProxy.
+	TcpGateway *TcpGateway `protobuf:"bytes,4,opt,name=tcp_gateway,json=tcpGateway,proto3" json:"tcp_gateway,omitempty"`
 }
 
 func (x *MatchableTcpGateway) Reset() {
@@ -120,8 +121,11 @@ type MatchableTcpGateway_Matcher struct {
 	// Ssl configuration applied to the FilterChain:
 	//   - FilterChainMatch: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/listener/v3/listener_components.proto#config-listener-v3-filterchainmatch)
 	//   - TransportSocket: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/base.proto#envoy-v3-api-msg-config-core-v3-transportsocket
-	SslConfig               *ssl.SslConfig `protobuf:"bytes,2,opt,name=ssl_config,json=sslConfig,proto3" json:"ssl_config,omitempty"`
-	PassthroughCipherSuites []string       `protobuf:"bytes,3,rep,name=passthrough_cipher_suites,json=passthroughCipherSuites,proto3" json:"passthrough_cipher_suites,omitempty"`
+	SslConfig *ssl.SslConfig `protobuf:"bytes,2,opt,name=ssl_config,json=sslConfig,proto3" json:"ssl_config,omitempty"`
+	// Enterprise-only: Passthrough cipher suites is an allow-list of OpenSSL cipher suite names for which TLS passthrough will be enabled.
+	// If a client does not support any ciphers that are natively supported by Envoy, but does support one of the ciphers in the passthrough list,
+	// then traffic will be routed via TCP Proxy to a destination specified by the TcpGateway, where TLS can then be terminated.
+	PassthroughCipherSuites []string `protobuf:"bytes,3,rep,name=passthrough_cipher_suites,json=passthroughCipherSuites,proto3" json:"passthrough_cipher_suites,omitempty"`
 }
 
 func (x *MatchableTcpGateway_Matcher) Reset() {

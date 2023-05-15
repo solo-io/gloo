@@ -673,8 +673,12 @@ type Matcher struct {
 	SslConfig *ssl.SslConfig `protobuf:"bytes,1,opt,name=ssl_config,json=sslConfig,proto3" json:"ssl_config,omitempty"`
 	// CidrRange specifies an IP Address and a prefix length to construct the subnet mask for a CIDR range.
 	// See https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-cidrrange
-	SourcePrefixRanges      []*v3.CidrRange `protobuf:"bytes,2,rep,name=source_prefix_ranges,json=sourcePrefixRanges,proto3" json:"source_prefix_ranges,omitempty"`
-	PassthroughCipherSuites []string        `protobuf:"bytes,3,rep,name=passthrough_cipher_suites,json=passthroughCipherSuites,proto3" json:"passthrough_cipher_suites,omitempty"`
+	SourcePrefixRanges []*v3.CidrRange `protobuf:"bytes,2,rep,name=source_prefix_ranges,json=sourcePrefixRanges,proto3" json:"source_prefix_ranges,omitempty"`
+	// Enterprise-only: Passthrough cipher suites is an allow-list of OpenSSL cipher suite names for which TLS passthrough will be enabled.
+	// If a client does not support any ciphers that are natively supported by Envoy, but does support one of the ciphers in the passthrough list,
+	// then traffic will be routed via TCP Proxy to a destination specified by the TcpGateway, where TLS can then be terminated.
+	// This field is only applicable to TcpGateways.
+	PassthroughCipherSuites []string `protobuf:"bytes,3,rep,name=passthrough_cipher_suites,json=passthroughCipherSuites,proto3" json:"passthrough_cipher_suites,omitempty"`
 }
 
 func (x *Matcher) Reset() {
