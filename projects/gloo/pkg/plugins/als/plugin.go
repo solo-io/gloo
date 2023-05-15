@@ -64,12 +64,14 @@ func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parentListener *
 	return err
 }
 
-// Write the access log flush interval for Envoy (after performing some basic sanitisation checks)
+// ProcessAccessLogFlushInterval the access log flush interval for Envoy (after performing some basic sanitisation checks)
 func ProcessAccessLogFlushInterval(flushInterval *durationpb.Duration, envoyCfg *envoytcp.TcpProxy) error {
+	if flushInterval == nil {
+		return nil
+	}
 	if prototime.DurationFromProto(flushInterval) < 1*time.Millisecond {
 		return errors.New("access log flush interval must have minimum of 1ms")
 	}
-	fmt.Printf("envoyCfg is %#v\n", envoyCfg)
 	envoyCfg.AccessLogFlushInterval = flushInterval
 	return nil
 }

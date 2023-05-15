@@ -314,9 +314,8 @@ func upstreamFromOpts(opts *options.Options) (*v1.Upstream, error) {
 			},
 		}
 		if input.Static.UseTls {
-			// old behavior was to only enable tls if the user explicitly set it to true
-			// so only add this nullable field in this way.
-			// TODO(nfuden): Decide how to expose the ability to turn it off.
+			// if left null then the static upstream will attempt to detect if it should use TLS
+			// based on whether its using port 443 or not
 			upType.Static.UseTls = &wrappers.BoolValue{Value: input.Static.UseTls}
 		}
 		upstream.UpstreamType = upType
