@@ -56,6 +56,7 @@ func init() {
 		"federatedauthconfigs.fed.enterprise.gloo.solo.io",
 		"federatedgateways.fed.gateway.solo.io",
 		"federatedmatchablehttpgateways.fed.gateway.solo.io",
+		"federatedmatchabletcpgateways.fed.gateway.solo.io",
 		"federatedroutetables.fed.gateway.solo.io",
 		"federatedsettings.fed.gloo.solo.io",
 		"federatedupstreamgroups.fed.gloo.solo.io",
