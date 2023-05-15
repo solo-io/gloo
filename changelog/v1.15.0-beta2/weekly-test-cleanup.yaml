@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Exclude 1.11 and 1.12 from Gloo Fed weekly tests
+    issueLink: https://github.com/solo-io/solo-projects/issues/4900
+    resolvesIssue: true

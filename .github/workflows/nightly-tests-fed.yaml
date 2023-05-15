@@ -4,9 +4,7 @@ on:
   schedule:
     - cron: "0 5 * * 1-5"   # weekdays @ 00:00 EST, run tests against latest dev
     - cron: "10 10 * * 1"   # monday   @ 05:10 EST, run expanded tests against v1.14.x
-    - cron: "6 6 * * 1"     # monday   @ 01:06 EST, run expanded tests against v1.13.x 
-    - cron: "7 7 * * 1"     # monday   @ 02:07 EST, run expanded tests against v1.12.x
-    - cron: "8 8 * * 1"     # monday   @ 03:08 EST, run expanded tests against v1.11.x
+    - cron: "6 6 * * 1"     # monday   @ 01:06 EST, run expanded tests against v1.13.x
   workflow_dispatch:
 
 env:
@@ -129,68 +127,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
           TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
 
-  fed_tests_12:
-    name: fed regression tests (fed@k8s${{matrix.kube-version.kubectl}})
-    if: github.event.schedule == '7 7 * * 1'
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        kube-version: [ { node: 'v1.21.14@sha256:9d9eb5fb26b4fbc0c6d95fa8c790414f9750dd583f5d7cee45d92e8c26670aa1', kubectl: 'v1.21.14', kind: 'v0.17.0', helm: 'v3.9.4' },
-                        { node: 'v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315', kubectl: 'v1.24.7', kind: 'v0.17.0', helm: 'v3.9.4' } ]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: v1.12.x
-      - uses: ./.github/actions/fed-regression-tests
-        with:
-          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
-          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
-  canary_tests_12:
-    name: fed regression tests (fed-canary@k8s${{matrix.kube-version.kubectl}})
-    if: github.event.schedule == '7 7 * * 1'
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        kube-version: [ { node: 'v1.21.14@sha256:9d9eb5fb26b4fbc0c6d95fa8c790414f9750dd583f5d7cee45d92e8c26670aa1', kubectl: 'v1.21.14', kind: 'v0.17.0', helm: 'v3.9.4' },
-                        { node: 'v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315', kubectl: 'v1.24.7', kind: 'v0.17.0', helm: 'v3.9.4' } ]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: v1.12.x
-      - uses: ./.github/actions/canary-regression-tests
-        with:
-          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
-          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
-
-  fed_tests_11:
-    name: fed regression tests (fed@k8s${{matrix.kube-version.kubectl}})
-    if: github.event.schedule == '8 8 * * 1'
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        kube-version: [ { node: 'v1.21.14@sha256:9d9eb5fb26b4fbc0c6d95fa8c790414f9750dd583f5d7cee45d92e8c26670aa1', kubectl: 'v1.21.14', kind: 'v0.17.0', helm: 'v3.9.4' } ]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: v1.11.x
-      - uses: ./.github/actions/fed-regression-tests
-        with:
-          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
-          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
-
   publish_results:
     runs-on: ubuntu-22.04
     if: ${{ always() }}
-    needs: [ fed_tests_dev, canary_tests_dev, fed_tests_14, canary_tests_14, fed_tests_13, canary_tests_13, fed_tests_12, canary_tests_12, fed_tests_11 ]
+    needs: [ fed_tests_dev, canary_tests_dev, fed_tests_14, canary_tests_14, fed_tests_13, canary_tests_13 ]
     steps:
       - uses: actions/checkout@v3
       - name: compute-preamble
@@ -201,10 +141,6 @@ jobs:
           if [[ ${{github.event_name == 'workflow_dispatch'}} = true ]]; then
             preamble="Gloo Fed nightlies (manual run)"
             echo "SLACK_CHANNEL=C0314KESVNV" >> $GITHUB_ENV   #slack-integration-testing if manually run
-          elif [[ ${{github.event.schedule == '8 8 * * 1'}} = true ]]; then
-              preamble="Gloo Fed weeklies (v1.11.x)"
-          elif [[ ${{github.event.schedule == '7 7 * * 1'}} = true ]]; then
-              preamble="Gloo Fed weeklies (v1.12.x)"
           elif [[ ${{github.event.schedule == '6 6 * * 1'}} = true ]]; then
               preamble="Gloo Fed weeklies (v1.13.x)"
           elif [[ ${{github.event.schedule == '10 10 * * 1'}} = true ]]; then
