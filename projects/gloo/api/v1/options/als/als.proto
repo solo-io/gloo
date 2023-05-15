@@ -23,11 +23,6 @@ import "google/protobuf/struct.proto";
 // See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/filter/accesslog/v2/accesslog.proto#envoy-api-msg-config-filter-accesslog-v2-accesslog
 message AccessLoggingService {
     repeated AccessLog access_log = 1;
-
-    // If set, Envoy will flush the access log on this time interval. Must be a
-    // minimum of 1 ms. By default, will only write to the access log when a
-    // connection is closed.
-    google.protobuf.Duration access_log_flush_interval = 2;
 }
 
 message AccessLog {

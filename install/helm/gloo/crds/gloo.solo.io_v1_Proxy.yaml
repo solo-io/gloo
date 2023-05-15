@@ -228,8 +228,6 @@ spec:
                                     type: object
                                 type: object
                               type: array
-                            accessLogFlushInterval:
-                              type: string
                           type: object
                         connectionBalanceConfig:
                           properties:

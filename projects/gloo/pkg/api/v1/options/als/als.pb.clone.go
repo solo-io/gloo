@@ -13,8 +13,6 @@ import (
 	"github.com/solo-io/protoc-gen-ext/pkg/clone"
 	"google.golang.org/protobuf/proto"
 
-	github_com_golang_protobuf_ptypes_duration "github.com/golang/protobuf/ptypes/duration"
-
 	github_com_golang_protobuf_ptypes_struct "github.com/golang/protobuf/ptypes/struct"
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_external_envoy_config_core_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
@@ -54,12 +52,6 @@ func (m *AccessLoggingService) Clone() proto.Message {
 			}
 
 		}
-	}
-
-	if h, ok := interface{}(m.GetAccessLogFlushInterval()).(clone.Cloner); ok {
-		target.AccessLogFlushInterval = h.Clone().(*github_com_golang_protobuf_ptypes_duration.Duration)
-	} else {
-		target.AccessLogFlushInterval = proto.Clone(m.GetAccessLogFlushInterval()).(*github_com_golang_protobuf_ptypes_duration.Duration)
 	}
 
 	return target

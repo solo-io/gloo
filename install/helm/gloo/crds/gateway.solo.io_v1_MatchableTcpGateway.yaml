@@ -138,6 +138,8 @@ spec:
                     properties:
                       tcpProxySettings:
                         properties:
+                          accessLogFlushInterval:
+                            type: string
                           idleTimeout:
                             type: string
                           maxConnectAttempts:

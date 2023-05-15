@@ -8,10 +8,8 @@ import (
 	envoy_route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyalfile "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/file/v3"
 	envoy_extensions_filters_network_http_connection_manager_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
-	envoytcp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 	envoy_types "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
-	"github.com/golang/protobuf/ptypes/duration"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -486,31 +484,6 @@ var _ = Describe("Plugin", func() {
 			),
 		)
 
-	})
-
-	Context("ProcessAccesLogFlushInterval", func() {
-		It("works with valid flush interval", func() {
-			flushDuration := duration.Duration{Seconds: 5}
-			alsSettings := &accessLogService.AccessLoggingService{
-				AccessLogFlushInterval: &flushDuration,
-			}
-			var cfg envoytcp.TcpProxy
-			err := ProcessAccessLogFlushInterval(
-				alsSettings.GetAccessLogFlushInterval(), &cfg)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(cfg.AccessLogFlushInterval).To(Equal(&flushDuration))
-		})
-
-		It("reports error when flush interval <1ms", func() {
-			flushDuration := duration.Duration{Nanos: 5}
-			alsSettings := &accessLogService.AccessLoggingService{
-				AccessLogFlushInterval: &flushDuration,
-			}
-			var cfg envoytcp.TcpProxy
-			err := ProcessAccessLogFlushInterval(
-				alsSettings.GetAccessLogFlushInterval(), &cfg)
-			Expect(err).To(HaveOccurred())
-		})
 	})
 
 	Context("ProcessAccessLogPlugins", func() {

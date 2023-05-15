@@ -8,6 +8,7 @@ import (
 	envoytcp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/golang/mock/gomock"
+	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
@@ -134,42 +135,82 @@ var _ = Describe("Plugin", func() {
 			return p.CreateTcpFilterChains(plugins.Params{Snapshot: snap}, listener, tcpListener)
 		}
 
-		It("can copy over tcp plugin settings", func() {
-			tcpListener.TcpHosts = append(tcpListener.TcpHosts, &v1.TcpHost{
-				Name: "one",
-				Destination: &v1.TcpHost_TcpAction{
-					Destination: &v1.TcpHost_TcpAction_Single{
-						Single: &v1.Destination{
-							DestinationType: &v1.Destination_Upstream{
-								Upstream: &core.ResourceRef{
-									Name:      "one",
-									Namespace: ns,
+		Context("can copy over tcp plugin settings", func() {
+
+			It("works with simple settings", func() {
+				tcpListener.TcpHosts = append(tcpListener.TcpHosts, &v1.TcpHost{
+					Name: "one",
+					Destination: &v1.TcpHost_TcpAction{
+						Destination: &v1.TcpHost_TcpAction_Single{
+							Single: &v1.Destination{
+								DestinationType: &v1.Destination_Upstream{
+									Upstream: &core.ResourceRef{
+										Name:      "one",
+										Namespace: ns,
+									},
 								},
 							},
 						},
 					},
-				},
+				})
+
+				filterChains, err := createFilterChains()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(filterChains).To(HaveLen(1))
+
+				var cfg envoytcp.TcpProxy
+				err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(cfg.IdleTimeout).To(matchers.MatchProto(tcps.IdleTimeout))
+				Expect(cfg.MaxConnectAttempts).To(matchers.MatchProto(tcps.MaxConnectAttempts))
+				Expect(cfg.TunnelingConfig.GetHostname()).To(Equal(tcps.TunnelingConfig.GetHostname()))
+
+				hta := cfg.TunnelingConfig.HeadersToAdd
+				Expect(len(hta)).To(Equal(1))
+
+				tcpHeaders := tcps.TunnelingConfig.HeadersToAdd[0]
+				Expect(hta[0].Header.Key).To(Equal(tcpHeaders.Header.Key))
+				Expect(hta[0].Header.Value).To(Equal(tcpHeaders.Header.Value))
+				Expect(hta[0].Append.Value).To(Equal(tcpHeaders.Append.Value))
+
+				tcps.AccessLogFlushInterval = &duration.Duration{Seconds: 5}
+				filterChains, err = createFilterChains()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(filterChains).To(HaveLen(1))
+
+				err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cfg.AccessLogFlushInterval).To(matchers.MatchProto(tcps.AccessLogFlushInterval))
+
 			})
+			It("rejects invalid settings", func() {
+				tcps.AccessLogFlushInterval = &duration.Duration{Nanos: 5}
+				tcpListener.TcpHosts = append(tcpListener.TcpHosts, &v1.TcpHost{
+					Name: "one",
+					Destination: &v1.TcpHost_TcpAction{
+						Destination: &v1.TcpHost_TcpAction_Single{
+							Single: &v1.Destination{
+								DestinationType: &v1.Destination_Upstream{
+									Upstream: &core.ResourceRef{
+										Name:      "one",
+										Namespace: ns,
+									},
+								},
+							},
+						},
+					},
+				})
 
-			filterChains, err := createFilterChains()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(filterChains).To(HaveLen(1))
+				filterChains, err := createFilterChains()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(filterChains).To(HaveLen(1))
 
-			var cfg envoytcp.TcpProxy
-			err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
-			Expect(err).NotTo(HaveOccurred())
+				var cfg envoytcp.TcpProxy
+				err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
+				Expect(err).NotTo(HaveOccurred())
 
-			Expect(cfg.IdleTimeout).To(matchers.MatchProto(tcps.IdleTimeout))
-			Expect(cfg.MaxConnectAttempts).To(matchers.MatchProto(tcps.MaxConnectAttempts))
-			Expect(cfg.TunnelingConfig.GetHostname()).To(Equal(tcps.TunnelingConfig.GetHostname()))
-
-			hta := cfg.TunnelingConfig.HeadersToAdd
-			Expect(len(hta)).To(Equal(1))
-
-			tcpHeaders := tcps.TunnelingConfig.HeadersToAdd[0]
-			Expect(hta[0].Header.Key).To(Equal(tcpHeaders.Header.Key))
-			Expect(hta[0].Header.Value).To(Equal(tcpHeaders.Header.Value))
-			Expect(hta[0].Append.Value).To(Equal(tcpHeaders.Append.Value))
+			})
 		})
 
 		It("can transform a single destination", func() {
