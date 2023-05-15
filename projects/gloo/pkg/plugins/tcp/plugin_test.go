@@ -202,13 +202,9 @@ var _ = Describe("Plugin", func() {
 					},
 				})
 
-				filterChains, err := createFilterChains()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(filterChains).To(HaveLen(1))
-
-				var cfg envoytcp.TcpProxy
-				err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
-				Expect(err).NotTo(HaveOccurred())
+				_, err := createFilterChains()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("access log flush interval must have minimum of 1ms"))
 
 			})
 		})
