@@ -43,5 +43,5 @@ jobs:
           # validate that Iron Mountain didn't have a breach and verify the new public key before blindly updating it
           # here. Since this backup is all our closed source code and IP, DO NOT SKIP validation.
           args: |
-            -c "echo '${{ var.ESCROWHOSTENTRY }}' >> known_hosts; lftp sftp://ftpipm.nccgroup.com:22 -u Solo.ioINC --env-password -e 'set sftp:connect-program ssh -o UserKnownHostsFile=known_hosts; mirror -R _gloo-ee-source/. 53312/; quit';"
+            -c "echo '${{ vars.ESCROWHOSTENTRY }}' >> known_hosts; lftp sftp://ftpipm.nccgroup.com:22 -u Solo.ioINC --env-password -e 'set sftp:connect-program ssh -o UserKnownHostsFile=known_hosts; mirror -R _gloo-ee-source/. 53312/; quit';"
 
