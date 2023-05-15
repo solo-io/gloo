@@ -25,11 +25,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// A MatchableTcpGateway ...
+// A MatchableTcpGateway describes a single FilterChain configured with the TcpProxy network filter and a matcher.
 //
 // A Gateway CR may select one or more MatchableTcpGateways on a single listener.
 // This enables separate teams to own Listener configuration (Gateway CR)
-// and FilterChain configuration (MatchableTcpGateway CR)
+// and FilterChain configuration (MatchableTcpGateway CR).
 type MatchableTcpGateway struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -45,8 +45,9 @@ type MatchableTcpGateway struct {
 	// If there are any identical matchers, the Gateway will be rejected.
 	// An empty matcher will produce an empty FilterChainMatch (https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/listener/v3/listener_components.proto#envoy-v3-api-msg-config-listener-v3-filterchainmatch)
 	// effectively matching all incoming connections
-	Matcher    *MatchableTcpGateway_Matcher `protobuf:"bytes,3,opt,name=matcher,proto3" json:"matcher,omitempty"`
-	TcpGateway *TcpGateway                  `protobuf:"bytes,4,opt,name=tcp_gateway,json=tcpGateway,proto3" json:"tcp_gateway,omitempty"`
+	Matcher *MatchableTcpGateway_Matcher `protobuf:"bytes,3,opt,name=matcher,proto3" json:"matcher,omitempty"`
+	// TcpGateway creates a FilterChain with a TcpProxy.
+	TcpGateway *TcpGateway `protobuf:"bytes,4,opt,name=tcp_gateway,json=tcpGateway,proto3" json:"tcp_gateway,omitempty"`
 }
 
 func (x *MatchableTcpGateway) Reset() {

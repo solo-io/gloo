@@ -27,11 +27,11 @@ weight: 5
 ### MatchableTcpGateway
 
  
-A MatchableTcpGateway ...
+A MatchableTcpGateway describes a single FilterChain configured with the TcpProxy network filter and a matcher.
 
 A Gateway CR may select one or more MatchableTcpGateways on a single listener.
 This enables separate teams to own Listener configuration (Gateway CR)
-and FilterChain configuration (MatchableTcpGateway CR)
+and FilterChain configuration (MatchableTcpGateway CR).
 
 ```yaml
 "namespacedStatuses": .core.solo.io.NamespacedStatuses
@@ -46,7 +46,7 @@ and FilterChain configuration (MatchableTcpGateway CR)
 | `namespacedStatuses` | [.core.solo.io.NamespacedStatuses](../../../../../../solo-kit/api/v1/status.proto.sk/#namespacedstatuses) | NamespacedStatuses indicates the validation status of this resource. NamespacedStatuses is read-only by clients, and set by gateway during validation. |
 | `metadata` | [.core.solo.io.Metadata](../../../../../../solo-kit/api/v1/metadata.proto.sk/#metadata) | Metadata contains the object metadata for this resource. |
 | `matcher` | [.gateway.solo.io.MatchableTcpGateway.Matcher](../matchable_http_gateway.proto.sk/#matcher) | Matcher creates a FilterChainMatch and TransportSocket for a FilterChain For each MatchableTcpGateway on a Gateway CR, the matcher must be unique. If there are any identical matchers, the Gateway will be rejected. An empty matcher will produce an empty FilterChainMatch (https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/listener/v3/listener_components.proto#envoy-v3-api-msg-config-listener-v3-filterchainmatch) effectively matching all incoming connections. |
-| `tcpGateway` | [.gateway.solo.io.TcpGateway](../gateway.proto.sk/#tcpgateway) |  |
+| `tcpGateway` | [.gateway.solo.io.TcpGateway](../gateway.proto.sk/#tcpgateway) | TcpGateway creates a FilterChain with a TcpProxy. |
 
 
 
