@@ -120,8 +120,11 @@ type MatchableTcpGateway_Matcher struct {
 	// Ssl configuration applied to the FilterChain:
 	//   - FilterChainMatch: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/listener/v3/listener_components.proto#config-listener-v3-filterchainmatch)
 	//   - TransportSocket: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/base.proto#envoy-v3-api-msg-config-core-v3-transportsocket
-	SslConfig               *ssl.SslConfig `protobuf:"bytes,2,opt,name=ssl_config,json=sslConfig,proto3" json:"ssl_config,omitempty"`
-	PassthroughCipherSuites []string       `protobuf:"bytes,3,rep,name=passthrough_cipher_suites,json=passthroughCipherSuites,proto3" json:"passthrough_cipher_suites,omitempty"`
+	SslConfig *ssl.SslConfig `protobuf:"bytes,2,opt,name=ssl_config,json=sslConfig,proto3" json:"ssl_config,omitempty"`
+	// Enterprise-only: Passthrough cipher suites is an allow-list of OpenSSL cipher suite names for which TLS passthrough will be enabled.
+	// If a client does not support any ciphers that are natively supported by Envoy, but does support one of the ciphers in the passthrough list,
+	// then traffic will be routed via TCP Proxy to a destination specified by the TcpGateway, where TLS can then be terminated.
+	PassthroughCipherSuites []string `protobuf:"bytes,3,rep,name=passthrough_cipher_suites,json=passthroughCipherSuites,proto3" json:"passthrough_cipher_suites,omitempty"`
 }
 
 func (x *MatchableTcpGateway_Matcher) Reset() {
