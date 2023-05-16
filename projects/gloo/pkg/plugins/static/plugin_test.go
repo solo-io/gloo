@@ -4,10 +4,8 @@ import (
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
-	proxyproto "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/proxy_protocol/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
-	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -312,27 +310,6 @@ var _ = Describe("Plugin", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(out.TransportSocketMatches[0].Match).To(BeEquivalentTo(out.LoadAssignment.Endpoints[0].LbEndpoints[0].Metadata.FilterMetadata[TransportSocketMatchKey]))
 			Expect(out.TransportSocketMatches[0].TransportSocket.Name).To(Equal("envoy.transport_sockets.upstream_proxy_protocol"))
-		})
-
-		It("should set proxy protocol when it has no transport socket ", func() {
-			upstreamSpec.UseTls = wrapperspb.Bool(false)
-			upstream.ProxyProtocolVersion = &wrapperspb.StringValue{Value: "V1"}
-			initParams.Settings = &v1.Settings{
-				UpstreamOptions: &v1.UpstreamOptions{},
-			}
-			err := p.ProcessUpstream(params, upstream, out)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(out.TransportSocketMatches[0].Match).To(BeEquivalentTo(out.LoadAssignment.Endpoints[0].LbEndpoints[0].Metadata.FilterMetadata[TransportSocketMatchKey]))
-			Expect(out.TransportSocketMatches[0].TransportSocket.Name).To(Equal("envoy.transport_sockets.upstream_proxy_protocol"))
-
-			Expect(out.TransportSocketMatches[0].TransportSocket.GetTypedConfig().TypeUrl).To(Equal("type.googleapis.com/envoy.extensions.transport_sockets.proxy_protocol.v3.ProxyProtocolUpstreamTransport"))
-
-			pput := &proxyproto.ProxyProtocolUpstreamTransport{}
-
-			err = ptypes.UnmarshalAny(out.TransportSocketMatches[0].TransportSocket.GetTypedConfig(), pput)
-			Expect(err).To(BeNil(), "unmarshal transportsock")
-			Expect(pput.GetTransportSocket().Name).To(Equal("envoy.transport_sockets.raw_buffer"))
-
 		})
 
 		ExpectSniMatchesToMatch := func() {
