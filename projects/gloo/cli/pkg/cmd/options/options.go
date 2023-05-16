@@ -343,7 +343,7 @@ type Selector struct {
 type InputStaticSpec struct {
 	Hosts []string
 	// Attempt to use outbound TLS
-	// Gloo will automatically set this to true for port 443
+	// If not explicitly set, Gloo will automatically set this to true for port 443
 	UseTls UseTls
 }
 
