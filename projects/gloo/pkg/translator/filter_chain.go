@@ -68,7 +68,7 @@ func (t *tcpFilterChainTranslator) ComputeFilterChains(params plugins.Params) []
 				}
 
 				if pfc.GetFilterChainMatch().GetServerNames() == nil {
-					pfc.FilterChainMatch.ServerNames = []string{}
+					pfc.GetFilterChainMatch().ServerNames = []string{}
 				}
 
 				if len(pfc.GetFilterChainMatch().GetServerNames()) == 0 {
