@@ -335,7 +335,7 @@ func (m *MockFederatedUpstreamStatusWriter) EXPECT() *MockFederatedUpstreamStatu
 }
 
 // PatchFederatedUpstreamStatus mocks base method.
-func (m *MockFederatedUpstreamStatusWriter) PatchFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockFederatedUpstreamStatusWriter) PatchFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -354,7 +354,7 @@ func (mr *MockFederatedUpstreamStatusWriterMockRecorder) PatchFederatedUpstreamS
 }
 
 // UpdateFederatedUpstreamStatus mocks base method.
-func (m *MockFederatedUpstreamStatusWriter) UpdateFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.UpdateOption) error {
+func (m *MockFederatedUpstreamStatusWriter) UpdateFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {
@@ -507,7 +507,7 @@ func (mr *MockFederatedUpstreamClientMockRecorder) PatchFederatedUpstream(ctx, o
 }
 
 // PatchFederatedUpstreamStatus mocks base method.
-func (m *MockFederatedUpstreamClient) PatchFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockFederatedUpstreamClient) PatchFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -545,7 +545,7 @@ func (mr *MockFederatedUpstreamClientMockRecorder) UpdateFederatedUpstream(ctx, 
 }
 
 // UpdateFederatedUpstreamStatus mocks base method.
-func (m *MockFederatedUpstreamClient) UpdateFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.UpdateOption) error {
+func (m *MockFederatedUpstreamClient) UpdateFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {
@@ -839,7 +839,7 @@ func (m *MockFederatedUpstreamGroupStatusWriter) EXPECT() *MockFederatedUpstream
 }
 
 // PatchFederatedUpstreamGroupStatus mocks base method.
-func (m *MockFederatedUpstreamGroupStatusWriter) PatchFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockFederatedUpstreamGroupStatusWriter) PatchFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -858,7 +858,7 @@ func (mr *MockFederatedUpstreamGroupStatusWriterMockRecorder) PatchFederatedUpst
 }
 
 // UpdateFederatedUpstreamGroupStatus mocks base method.
-func (m *MockFederatedUpstreamGroupStatusWriter) UpdateFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.UpdateOption) error {
+func (m *MockFederatedUpstreamGroupStatusWriter) UpdateFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {
@@ -1011,7 +1011,7 @@ func (mr *MockFederatedUpstreamGroupClientMockRecorder) PatchFederatedUpstreamGr
 }
 
 // PatchFederatedUpstreamGroupStatus mocks base method.
-func (m *MockFederatedUpstreamGroupClient) PatchFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockFederatedUpstreamGroupClient) PatchFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -1049,7 +1049,7 @@ func (mr *MockFederatedUpstreamGroupClientMockRecorder) UpdateFederatedUpstreamG
 }
 
 // UpdateFederatedUpstreamGroupStatus mocks base method.
-func (m *MockFederatedUpstreamGroupClient) UpdateFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.UpdateOption) error {
+func (m *MockFederatedUpstreamGroupClient) UpdateFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {
@@ -1343,7 +1343,7 @@ func (m *MockFederatedSettingsStatusWriter) EXPECT() *MockFederatedSettingsStatu
 }
 
 // PatchFederatedSettingsStatus mocks base method.
-func (m *MockFederatedSettingsStatusWriter) PatchFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockFederatedSettingsStatusWriter) PatchFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -1362,7 +1362,7 @@ func (mr *MockFederatedSettingsStatusWriterMockRecorder) PatchFederatedSettingsS
 }
 
 // UpdateFederatedSettingsStatus mocks base method.
-func (m *MockFederatedSettingsStatusWriter) UpdateFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, opts ...client.UpdateOption) error {
+func (m *MockFederatedSettingsStatusWriter) UpdateFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {
@@ -1515,7 +1515,7 @@ func (mr *MockFederatedSettingsClientMockRecorder) PatchFederatedSettings(ctx, o
 }
 
 // PatchFederatedSettingsStatus mocks base method.
-func (m *MockFederatedSettingsClient) PatchFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockFederatedSettingsClient) PatchFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -1553,7 +1553,7 @@ func (mr *MockFederatedSettingsClientMockRecorder) UpdateFederatedSettings(ctx, 
 }
 
 // UpdateFederatedSettingsStatus mocks base method.
-func (m *MockFederatedSettingsClient) UpdateFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, opts ...client.UpdateOption) error {
+func (m *MockFederatedSettingsClient) UpdateFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {

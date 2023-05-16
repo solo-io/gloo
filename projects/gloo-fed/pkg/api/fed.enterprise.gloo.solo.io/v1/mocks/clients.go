@@ -307,7 +307,7 @@ func (m *MockFederatedAuthConfigStatusWriter) EXPECT() *MockFederatedAuthConfigS
 }
 
 // PatchFederatedAuthConfigStatus mocks base method.
-func (m *MockFederatedAuthConfigStatusWriter) PatchFederatedAuthConfigStatus(ctx context.Context, obj *v1.FederatedAuthConfig, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockFederatedAuthConfigStatusWriter) PatchFederatedAuthConfigStatus(ctx context.Context, obj *v1.FederatedAuthConfig, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -326,7 +326,7 @@ func (mr *MockFederatedAuthConfigStatusWriterMockRecorder) PatchFederatedAuthCon
 }
 
 // UpdateFederatedAuthConfigStatus mocks base method.
-func (m *MockFederatedAuthConfigStatusWriter) UpdateFederatedAuthConfigStatus(ctx context.Context, obj *v1.FederatedAuthConfig, opts ...client.UpdateOption) error {
+func (m *MockFederatedAuthConfigStatusWriter) UpdateFederatedAuthConfigStatus(ctx context.Context, obj *v1.FederatedAuthConfig, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {
@@ -479,7 +479,7 @@ func (mr *MockFederatedAuthConfigClientMockRecorder) PatchFederatedAuthConfig(ct
 }
 
 // PatchFederatedAuthConfigStatus mocks base method.
-func (m *MockFederatedAuthConfigClient) PatchFederatedAuthConfigStatus(ctx context.Context, obj *v1.FederatedAuthConfig, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockFederatedAuthConfigClient) PatchFederatedAuthConfigStatus(ctx context.Context, obj *v1.FederatedAuthConfig, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -517,7 +517,7 @@ func (mr *MockFederatedAuthConfigClientMockRecorder) UpdateFederatedAuthConfig(c
 }
 
 // UpdateFederatedAuthConfigStatus mocks base method.
-func (m *MockFederatedAuthConfigClient) UpdateFederatedAuthConfigStatus(ctx context.Context, obj *v1.FederatedAuthConfig, opts ...client.UpdateOption) error {
+func (m *MockFederatedAuthConfigClient) UpdateFederatedAuthConfigStatus(ctx context.Context, obj *v1.FederatedAuthConfig, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {

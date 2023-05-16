@@ -2406,6 +2406,7 @@ spec:
       warnRouteShortCircuiting: false
       validationServerGrpcMaxSizeBytes: 104857600
   gloo:
+    regexMaxProgramSize: 1024
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
@@ -2481,6 +2482,7 @@ spec:
       warnRouteShortCircuiting: false
       validationServerGrpcMaxSizeBytes: 104857600
   gloo:
+    regexMaxProgramSize: 1024
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
@@ -2551,6 +2553,7 @@ spec:
       warnRouteShortCircuiting: false
       validationServerGrpcMaxSizeBytes: 104857600
   gloo:
+    regexMaxProgramSize: 1024
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
@@ -2621,6 +2624,7 @@ spec:
       warnRouteShortCircuiting: false
       validationServerGrpcMaxSizeBytes: 104857600
   gloo:
+    regexMaxProgramSize: 1024
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
@@ -2696,6 +2700,7 @@ spec:
       warnRouteShortCircuiting: false
       validationServerGrpcMaxSizeBytes: 104857600
   gloo:
+    regexMaxProgramSize: 1024
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
@@ -2774,6 +2779,7 @@ spec:
       warnRouteShortCircuiting: false
       validationServerGrpcMaxSizeBytes: 104857600
   gloo:
+    regexMaxProgramSize: 1024
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
@@ -4087,6 +4093,7 @@ spec:
       warnRouteShortCircuiting: false
       validationServerGrpcMaxSizeBytes: 104857600
   gloo:
+    regexMaxProgramSize: 1024
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
@@ -5094,6 +5101,7 @@ spec:
       warnRouteShortCircuiting: false
       validationServerGrpcMaxSizeBytes: 104857600
   gloo:
+    regexMaxProgramSize: 1024
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
@@ -5164,6 +5172,7 @@ spec:
       warnRouteShortCircuiting: false
       validationServerGrpcMaxSizeBytes: 104857600
   gloo:
+    regexMaxProgramSize: 1024
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
@@ -5234,6 +5243,7 @@ spec:
       warnRouteShortCircuiting: false
       validationServerGrpcMaxSizeBytes: 104857600
   gloo:
+    regexMaxProgramSize: 1024
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
@@ -5305,6 +5315,7 @@ spec:
       warnRouteShortCircuiting: false
       validationServerGrpcMaxSizeBytes: 104857600
   gloo:
+    regexMaxProgramSize: 1024
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
@@ -5378,6 +5389,7 @@ spec:
       warnRouteShortCircuiting: false
       validationServerGrpcMaxSizeBytes: 104857600
   gloo:
+    regexMaxProgramSize: 1024
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976

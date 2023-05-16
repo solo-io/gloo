@@ -21,7 +21,7 @@ Name|Version|License
 [go-test/deep](https://github.com/go-test/deep)|v1.0.8|MIT License
 [gobuffalo/packr](https://github.com/gobuffalo/packr)|v1.30.1|MIT License
 [golang-jwt/jwt](https://github.com/golang-jwt/jwt)|v3.2.2+incompatible|MIT License
-[golang/protobuf](https://github.com/golang/protobuf)|v1.5.2|BSD 3-clause "New" or "Revised" License
+[golang/protobuf](https://github.com/golang/protobuf)|v1.5.3|BSD 3-clause "New" or "Revised" License
 [google/wire](https://github.com/google/wire)|v0.4.0|Apache License 2.0
 [graphql-go/graphql](https://github.com/graphql-go/graphql)|v0.8.1|MIT License
 [grpc-ecosystem/go-grpc-middleware](https://github.com/grpc-ecosystem/go-grpc-middleware)|v1.3.0|Apache License 2.0
@@ -29,8 +29,8 @@ Name|Version|License
 [jhump/protoreflect](https://github.com/jhump/protoreflect)|v1.6.1|Apache License 2.0
 [kelseyhightower/envconfig](https://github.com/kelseyhightower/envconfig)|v1.4.0|MIT License
 [olekukonko/tablewriter](https://github.com/olekukonko/tablewriter)|v0.0.5|MIT License
-[ginkgo/v2](https://github.com/onsi/ginkgo)|v2.8.1|MIT License
-[onsi/gomega](https://github.com/onsi/gomega)|v1.26.0|MIT License
+[ginkgo/v2](https://github.com/onsi/ginkgo)|v2.9.1|MIT License
+[onsi/gomega](https://github.com/onsi/gomega)|v1.27.4|MIT License
 [opencontainers/go-digest](https://github.com/opencontainers/go-digest)|v1.0.0-rc1|Apache License 2.0
 [pkg/errors](https://github.com/pkg/errors)|v0.9.1|BSD 2-clause "Simplified" License
 [prometheus/client_golang](https://github.com/prometheus/client_golang)|v1.14.0|Apache License 2.0
@@ -53,15 +53,15 @@ Name|Version|License
 [helm/v3](https://helm.sh/helm/v3)|v3.11.2|Apache License 2.0
 [istio.io/pkg](https://istio.io/pkg)|v0.0.0-20221101233122-4857dc812933|Apache License 2.0
 [istio.io/tools](https://istio.io/tools)|v0.0.0-20210420211536-9c0f48df3262|Apache License 2.0
-[k8s.io/api](https://k8s.io/api)|v0.25.8|Apache License 2.0
-[k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.25.8|Apache License 2.0
-[k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.25.8|Apache License 2.0
-[k8s.io/client-go](https://k8s.io/client-go)|v0.25.8|Apache License 2.0
-[k8s.io/code-generator](https://k8s.io/code-generator)|v0.25.8|Apache License 2.0
-[k8s.io/utils](https://k8s.io/utils)|v0.0.0-20221107191617-1a15be271d1d|Apache License 2.0
+[k8s.io/api](https://k8s.io/api)|v0.26.4|Apache License 2.0
+[k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.26.4|Apache License 2.0
+[k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.26.4|Apache License 2.0
+[k8s.io/client-go](https://k8s.io/client-go)|v0.26.4|Apache License 2.0
+[k8s.io/code-generator](https://k8s.io/code-generator)|v0.26.4|Apache License 2.0
+[k8s.io/utils](https://k8s.io/utils)|v0.0.0-20221128185143-99ec85e7a448|Apache License 2.0
 [knative.dev/pkg](https://knative.dev/pkg)|v0.0.0-20211206113427-18589ac7627e|Apache License 2.0
 [rogchap.com/v8go](https://rogchap.com/v8go)|v0.7.1-0.20221102201510-1f00b5007d95|BSD 3-clause "New" or "Revised" License
-[sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.13.1|Apache License 2.0
+[sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.14.6|Apache License 2.0
 [sigs.k8s.io/yaml](https://sigs.k8s.io/yaml)|v1.3.0|MIT License
 [cmd/goimports](https://golang.org/x/tools/cmd/goimports)|latest|MIT License
 [gogo/protobuf](https://github.com/gogo/protobuf)|latest|MIT License

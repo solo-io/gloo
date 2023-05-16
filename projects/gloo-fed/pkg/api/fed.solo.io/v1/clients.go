@@ -115,10 +115,10 @@ type GlooInstanceWriter interface {
 type GlooInstanceStatusWriter interface {
 	// Update updates the fields corresponding to the status subresource for the
 	// given GlooInstance object.
-	UpdateGlooInstanceStatus(ctx context.Context, obj *GlooInstance, opts ...client.UpdateOption) error
+	UpdateGlooInstanceStatus(ctx context.Context, obj *GlooInstance, opts ...client.SubResourceUpdateOption) error
 
 	// Patch patches the given GlooInstance object's subresource.
-	PatchGlooInstanceStatus(ctx context.Context, obj *GlooInstance, patch client.Patch, opts ...client.PatchOption) error
+	PatchGlooInstanceStatus(ctx context.Context, obj *GlooInstance, patch client.Patch, opts ...client.SubResourcePatchOption) error
 }
 
 // Client knows how to perform CRUD operations on GlooInstances.
@@ -189,11 +189,11 @@ func (c *glooInstanceClient) UpsertGlooInstance(ctx context.Context, obj *GlooIn
 	return err
 }
 
-func (c *glooInstanceClient) UpdateGlooInstanceStatus(ctx context.Context, obj *GlooInstance, opts ...client.UpdateOption) error {
+func (c *glooInstanceClient) UpdateGlooInstanceStatus(ctx context.Context, obj *GlooInstance, opts ...client.SubResourceUpdateOption) error {
 	return c.client.Status().Update(ctx, obj, opts...)
 }
 
-func (c *glooInstanceClient) PatchGlooInstanceStatus(ctx context.Context, obj *GlooInstance, patch client.Patch, opts ...client.PatchOption) error {
+func (c *glooInstanceClient) PatchGlooInstanceStatus(ctx context.Context, obj *GlooInstance, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	return c.client.Status().Patch(ctx, obj, patch, opts...)
 }
 
@@ -257,10 +257,10 @@ type FailoverSchemeWriter interface {
 type FailoverSchemeStatusWriter interface {
 	// Update updates the fields corresponding to the status subresource for the
 	// given FailoverScheme object.
-	UpdateFailoverSchemeStatus(ctx context.Context, obj *FailoverScheme, opts ...client.UpdateOption) error
+	UpdateFailoverSchemeStatus(ctx context.Context, obj *FailoverScheme, opts ...client.SubResourceUpdateOption) error
 
 	// Patch patches the given FailoverScheme object's subresource.
-	PatchFailoverSchemeStatus(ctx context.Context, obj *FailoverScheme, patch client.Patch, opts ...client.PatchOption) error
+	PatchFailoverSchemeStatus(ctx context.Context, obj *FailoverScheme, patch client.Patch, opts ...client.SubResourcePatchOption) error
 }
 
 // Client knows how to perform CRUD operations on FailoverSchemes.
@@ -331,11 +331,11 @@ func (c *failoverSchemeClient) UpsertFailoverScheme(ctx context.Context, obj *Fa
 	return err
 }
 
-func (c *failoverSchemeClient) UpdateFailoverSchemeStatus(ctx context.Context, obj *FailoverScheme, opts ...client.UpdateOption) error {
+func (c *failoverSchemeClient) UpdateFailoverSchemeStatus(ctx context.Context, obj *FailoverScheme, opts ...client.SubResourceUpdateOption) error {
 	return c.client.Status().Update(ctx, obj, opts...)
 }
 
-func (c *failoverSchemeClient) PatchFailoverSchemeStatus(ctx context.Context, obj *FailoverScheme, patch client.Patch, opts ...client.PatchOption) error {
+func (c *failoverSchemeClient) PatchFailoverSchemeStatus(ctx context.Context, obj *FailoverScheme, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	return c.client.Status().Patch(ctx, obj, patch, opts...)
 }
 

@@ -122,10 +122,10 @@ type FederatedUpstreamWriter interface {
 type FederatedUpstreamStatusWriter interface {
 	// Update updates the fields corresponding to the status subresource for the
 	// given FederatedUpstream object.
-	UpdateFederatedUpstreamStatus(ctx context.Context, obj *FederatedUpstream, opts ...client.UpdateOption) error
+	UpdateFederatedUpstreamStatus(ctx context.Context, obj *FederatedUpstream, opts ...client.SubResourceUpdateOption) error
 
 	// Patch patches the given FederatedUpstream object's subresource.
-	PatchFederatedUpstreamStatus(ctx context.Context, obj *FederatedUpstream, patch client.Patch, opts ...client.PatchOption) error
+	PatchFederatedUpstreamStatus(ctx context.Context, obj *FederatedUpstream, patch client.Patch, opts ...client.SubResourcePatchOption) error
 }
 
 // Client knows how to perform CRUD operations on FederatedUpstreams.
@@ -196,11 +196,11 @@ func (c *federatedUpstreamClient) UpsertFederatedUpstream(ctx context.Context, o
 	return err
 }
 
-func (c *federatedUpstreamClient) UpdateFederatedUpstreamStatus(ctx context.Context, obj *FederatedUpstream, opts ...client.UpdateOption) error {
+func (c *federatedUpstreamClient) UpdateFederatedUpstreamStatus(ctx context.Context, obj *FederatedUpstream, opts ...client.SubResourceUpdateOption) error {
 	return c.client.Status().Update(ctx, obj, opts...)
 }
 
-func (c *federatedUpstreamClient) PatchFederatedUpstreamStatus(ctx context.Context, obj *FederatedUpstream, patch client.Patch, opts ...client.PatchOption) error {
+func (c *federatedUpstreamClient) PatchFederatedUpstreamStatus(ctx context.Context, obj *FederatedUpstream, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	return c.client.Status().Patch(ctx, obj, patch, opts...)
 }
 
@@ -264,10 +264,10 @@ type FederatedUpstreamGroupWriter interface {
 type FederatedUpstreamGroupStatusWriter interface {
 	// Update updates the fields corresponding to the status subresource for the
 	// given FederatedUpstreamGroup object.
-	UpdateFederatedUpstreamGroupStatus(ctx context.Context, obj *FederatedUpstreamGroup, opts ...client.UpdateOption) error
+	UpdateFederatedUpstreamGroupStatus(ctx context.Context, obj *FederatedUpstreamGroup, opts ...client.SubResourceUpdateOption) error
 
 	// Patch patches the given FederatedUpstreamGroup object's subresource.
-	PatchFederatedUpstreamGroupStatus(ctx context.Context, obj *FederatedUpstreamGroup, patch client.Patch, opts ...client.PatchOption) error
+	PatchFederatedUpstreamGroupStatus(ctx context.Context, obj *FederatedUpstreamGroup, patch client.Patch, opts ...client.SubResourcePatchOption) error
 }
 
 // Client knows how to perform CRUD operations on FederatedUpstreamGroups.
@@ -338,11 +338,11 @@ func (c *federatedUpstreamGroupClient) UpsertFederatedUpstreamGroup(ctx context.
 	return err
 }
 
-func (c *federatedUpstreamGroupClient) UpdateFederatedUpstreamGroupStatus(ctx context.Context, obj *FederatedUpstreamGroup, opts ...client.UpdateOption) error {
+func (c *federatedUpstreamGroupClient) UpdateFederatedUpstreamGroupStatus(ctx context.Context, obj *FederatedUpstreamGroup, opts ...client.SubResourceUpdateOption) error {
 	return c.client.Status().Update(ctx, obj, opts...)
 }
 
-func (c *federatedUpstreamGroupClient) PatchFederatedUpstreamGroupStatus(ctx context.Context, obj *FederatedUpstreamGroup, patch client.Patch, opts ...client.PatchOption) error {
+func (c *federatedUpstreamGroupClient) PatchFederatedUpstreamGroupStatus(ctx context.Context, obj *FederatedUpstreamGroup, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	return c.client.Status().Patch(ctx, obj, patch, opts...)
 }
 
@@ -406,10 +406,10 @@ type FederatedSettingsWriter interface {
 type FederatedSettingsStatusWriter interface {
 	// Update updates the fields corresponding to the status subresource for the
 	// given FederatedSettings object.
-	UpdateFederatedSettingsStatus(ctx context.Context, obj *FederatedSettings, opts ...client.UpdateOption) error
+	UpdateFederatedSettingsStatus(ctx context.Context, obj *FederatedSettings, opts ...client.SubResourceUpdateOption) error
 
 	// Patch patches the given FederatedSettings object's subresource.
-	PatchFederatedSettingsStatus(ctx context.Context, obj *FederatedSettings, patch client.Patch, opts ...client.PatchOption) error
+	PatchFederatedSettingsStatus(ctx context.Context, obj *FederatedSettings, patch client.Patch, opts ...client.SubResourcePatchOption) error
 }
 
 // Client knows how to perform CRUD operations on FederatedSettingss.
@@ -480,11 +480,11 @@ func (c *federatedSettingsClient) UpsertFederatedSettings(ctx context.Context, o
 	return err
 }
 
-func (c *federatedSettingsClient) UpdateFederatedSettingsStatus(ctx context.Context, obj *FederatedSettings, opts ...client.UpdateOption) error {
+func (c *federatedSettingsClient) UpdateFederatedSettingsStatus(ctx context.Context, obj *FederatedSettings, opts ...client.SubResourceUpdateOption) error {
 	return c.client.Status().Update(ctx, obj, opts...)
 }
 
-func (c *federatedSettingsClient) PatchFederatedSettingsStatus(ctx context.Context, obj *FederatedSettings, patch client.Patch, opts ...client.PatchOption) error {
+func (c *federatedSettingsClient) PatchFederatedSettingsStatus(ctx context.Context, obj *FederatedSettings, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	return c.client.Status().Patch(ctx, obj, patch, opts...)
 }
 

@@ -108,10 +108,10 @@ type FederatedRateLimitConfigWriter interface {
 type FederatedRateLimitConfigStatusWriter interface {
 	// Update updates the fields corresponding to the status subresource for the
 	// given FederatedRateLimitConfig object.
-	UpdateFederatedRateLimitConfigStatus(ctx context.Context, obj *FederatedRateLimitConfig, opts ...client.UpdateOption) error
+	UpdateFederatedRateLimitConfigStatus(ctx context.Context, obj *FederatedRateLimitConfig, opts ...client.SubResourceUpdateOption) error
 
 	// Patch patches the given FederatedRateLimitConfig object's subresource.
-	PatchFederatedRateLimitConfigStatus(ctx context.Context, obj *FederatedRateLimitConfig, patch client.Patch, opts ...client.PatchOption) error
+	PatchFederatedRateLimitConfigStatus(ctx context.Context, obj *FederatedRateLimitConfig, patch client.Patch, opts ...client.SubResourcePatchOption) error
 }
 
 // Client knows how to perform CRUD operations on FederatedRateLimitConfigs.
@@ -182,11 +182,11 @@ func (c *federatedRateLimitConfigClient) UpsertFederatedRateLimitConfig(ctx cont
 	return err
 }
 
-func (c *federatedRateLimitConfigClient) UpdateFederatedRateLimitConfigStatus(ctx context.Context, obj *FederatedRateLimitConfig, opts ...client.UpdateOption) error {
+func (c *federatedRateLimitConfigClient) UpdateFederatedRateLimitConfigStatus(ctx context.Context, obj *FederatedRateLimitConfig, opts ...client.SubResourceUpdateOption) error {
 	return c.client.Status().Update(ctx, obj, opts...)
 }
 
-func (c *federatedRateLimitConfigClient) PatchFederatedRateLimitConfigStatus(ctx context.Context, obj *FederatedRateLimitConfig, patch client.Patch, opts ...client.PatchOption) error {
+func (c *federatedRateLimitConfigClient) PatchFederatedRateLimitConfigStatus(ctx context.Context, obj *FederatedRateLimitConfig, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	return c.client.Status().Patch(ctx, obj, patch, opts...)
 }
 

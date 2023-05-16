@@ -321,7 +321,7 @@ func (m *MockGlooInstanceStatusWriter) EXPECT() *MockGlooInstanceStatusWriterMoc
 }
 
 // PatchGlooInstanceStatus mocks base method.
-func (m *MockGlooInstanceStatusWriter) PatchGlooInstanceStatus(ctx context.Context, obj *v1.GlooInstance, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockGlooInstanceStatusWriter) PatchGlooInstanceStatus(ctx context.Context, obj *v1.GlooInstance, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -340,7 +340,7 @@ func (mr *MockGlooInstanceStatusWriterMockRecorder) PatchGlooInstanceStatus(ctx,
 }
 
 // UpdateGlooInstanceStatus mocks base method.
-func (m *MockGlooInstanceStatusWriter) UpdateGlooInstanceStatus(ctx context.Context, obj *v1.GlooInstance, opts ...client.UpdateOption) error {
+func (m *MockGlooInstanceStatusWriter) UpdateGlooInstanceStatus(ctx context.Context, obj *v1.GlooInstance, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {
@@ -493,7 +493,7 @@ func (mr *MockGlooInstanceClientMockRecorder) PatchGlooInstance(ctx, obj, patch 
 }
 
 // PatchGlooInstanceStatus mocks base method.
-func (m *MockGlooInstanceClient) PatchGlooInstanceStatus(ctx context.Context, obj *v1.GlooInstance, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockGlooInstanceClient) PatchGlooInstanceStatus(ctx context.Context, obj *v1.GlooInstance, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -531,7 +531,7 @@ func (mr *MockGlooInstanceClientMockRecorder) UpdateGlooInstance(ctx, obj interf
 }
 
 // UpdateGlooInstanceStatus mocks base method.
-func (m *MockGlooInstanceClient) UpdateGlooInstanceStatus(ctx context.Context, obj *v1.GlooInstance, opts ...client.UpdateOption) error {
+func (m *MockGlooInstanceClient) UpdateGlooInstanceStatus(ctx context.Context, obj *v1.GlooInstance, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {
@@ -825,7 +825,7 @@ func (m *MockFailoverSchemeStatusWriter) EXPECT() *MockFailoverSchemeStatusWrite
 }
 
 // PatchFailoverSchemeStatus mocks base method.
-func (m *MockFailoverSchemeStatusWriter) PatchFailoverSchemeStatus(ctx context.Context, obj *v1.FailoverScheme, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockFailoverSchemeStatusWriter) PatchFailoverSchemeStatus(ctx context.Context, obj *v1.FailoverScheme, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -844,7 +844,7 @@ func (mr *MockFailoverSchemeStatusWriterMockRecorder) PatchFailoverSchemeStatus(
 }
 
 // UpdateFailoverSchemeStatus mocks base method.
-func (m *MockFailoverSchemeStatusWriter) UpdateFailoverSchemeStatus(ctx context.Context, obj *v1.FailoverScheme, opts ...client.UpdateOption) error {
+func (m *MockFailoverSchemeStatusWriter) UpdateFailoverSchemeStatus(ctx context.Context, obj *v1.FailoverScheme, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {
@@ -997,7 +997,7 @@ func (mr *MockFailoverSchemeClientMockRecorder) PatchFailoverScheme(ctx, obj, pa
 }
 
 // PatchFailoverSchemeStatus mocks base method.
-func (m *MockFailoverSchemeClient) PatchFailoverSchemeStatus(ctx context.Context, obj *v1.FailoverScheme, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockFailoverSchemeClient) PatchFailoverSchemeStatus(ctx context.Context, obj *v1.FailoverScheme, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -1035,7 +1035,7 @@ func (mr *MockFailoverSchemeClientMockRecorder) UpdateFailoverScheme(ctx, obj in
 }
 
 // UpdateFailoverSchemeStatus mocks base method.
-func (m *MockFailoverSchemeClient) UpdateFailoverSchemeStatus(ctx context.Context, obj *v1.FailoverScheme, opts ...client.UpdateOption) error {
+func (m *MockFailoverSchemeClient) UpdateFailoverSchemeStatus(ctx context.Context, obj *v1.FailoverScheme, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {

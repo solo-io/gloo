@@ -129,10 +129,10 @@ type FederatedGatewayWriter interface {
 type FederatedGatewayStatusWriter interface {
 	// Update updates the fields corresponding to the status subresource for the
 	// given FederatedGateway object.
-	UpdateFederatedGatewayStatus(ctx context.Context, obj *FederatedGateway, opts ...client.UpdateOption) error
+	UpdateFederatedGatewayStatus(ctx context.Context, obj *FederatedGateway, opts ...client.SubResourceUpdateOption) error
 
 	// Patch patches the given FederatedGateway object's subresource.
-	PatchFederatedGatewayStatus(ctx context.Context, obj *FederatedGateway, patch client.Patch, opts ...client.PatchOption) error
+	PatchFederatedGatewayStatus(ctx context.Context, obj *FederatedGateway, patch client.Patch, opts ...client.SubResourcePatchOption) error
 }
 
 // Client knows how to perform CRUD operations on FederatedGateways.
@@ -203,11 +203,11 @@ func (c *federatedGatewayClient) UpsertFederatedGateway(ctx context.Context, obj
 	return err
 }
 
-func (c *federatedGatewayClient) UpdateFederatedGatewayStatus(ctx context.Context, obj *FederatedGateway, opts ...client.UpdateOption) error {
+func (c *federatedGatewayClient) UpdateFederatedGatewayStatus(ctx context.Context, obj *FederatedGateway, opts ...client.SubResourceUpdateOption) error {
 	return c.client.Status().Update(ctx, obj, opts...)
 }
 
-func (c *federatedGatewayClient) PatchFederatedGatewayStatus(ctx context.Context, obj *FederatedGateway, patch client.Patch, opts ...client.PatchOption) error {
+func (c *federatedGatewayClient) PatchFederatedGatewayStatus(ctx context.Context, obj *FederatedGateway, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	return c.client.Status().Patch(ctx, obj, patch, opts...)
 }
 
@@ -271,10 +271,10 @@ type FederatedMatchableHttpGatewayWriter interface {
 type FederatedMatchableHttpGatewayStatusWriter interface {
 	// Update updates the fields corresponding to the status subresource for the
 	// given FederatedMatchableHttpGateway object.
-	UpdateFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *FederatedMatchableHttpGateway, opts ...client.UpdateOption) error
+	UpdateFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *FederatedMatchableHttpGateway, opts ...client.SubResourceUpdateOption) error
 
 	// Patch patches the given FederatedMatchableHttpGateway object's subresource.
-	PatchFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *FederatedMatchableHttpGateway, patch client.Patch, opts ...client.PatchOption) error
+	PatchFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *FederatedMatchableHttpGateway, patch client.Patch, opts ...client.SubResourcePatchOption) error
 }
 
 // Client knows how to perform CRUD operations on FederatedMatchableHttpGateways.
@@ -345,11 +345,11 @@ func (c *federatedMatchableHttpGatewayClient) UpsertFederatedMatchableHttpGatewa
 	return err
 }
 
-func (c *federatedMatchableHttpGatewayClient) UpdateFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *FederatedMatchableHttpGateway, opts ...client.UpdateOption) error {
+func (c *federatedMatchableHttpGatewayClient) UpdateFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *FederatedMatchableHttpGateway, opts ...client.SubResourceUpdateOption) error {
 	return c.client.Status().Update(ctx, obj, opts...)
 }
 
-func (c *federatedMatchableHttpGatewayClient) PatchFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *FederatedMatchableHttpGateway, patch client.Patch, opts ...client.PatchOption) error {
+func (c *federatedMatchableHttpGatewayClient) PatchFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *FederatedMatchableHttpGateway, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	return c.client.Status().Patch(ctx, obj, patch, opts...)
 }
 
@@ -413,10 +413,10 @@ type FederatedVirtualServiceWriter interface {
 type FederatedVirtualServiceStatusWriter interface {
 	// Update updates the fields corresponding to the status subresource for the
 	// given FederatedVirtualService object.
-	UpdateFederatedVirtualServiceStatus(ctx context.Context, obj *FederatedVirtualService, opts ...client.UpdateOption) error
+	UpdateFederatedVirtualServiceStatus(ctx context.Context, obj *FederatedVirtualService, opts ...client.SubResourceUpdateOption) error
 
 	// Patch patches the given FederatedVirtualService object's subresource.
-	PatchFederatedVirtualServiceStatus(ctx context.Context, obj *FederatedVirtualService, patch client.Patch, opts ...client.PatchOption) error
+	PatchFederatedVirtualServiceStatus(ctx context.Context, obj *FederatedVirtualService, patch client.Patch, opts ...client.SubResourcePatchOption) error
 }
 
 // Client knows how to perform CRUD operations on FederatedVirtualServices.
@@ -487,11 +487,11 @@ func (c *federatedVirtualServiceClient) UpsertFederatedVirtualService(ctx contex
 	return err
 }
 
-func (c *federatedVirtualServiceClient) UpdateFederatedVirtualServiceStatus(ctx context.Context, obj *FederatedVirtualService, opts ...client.UpdateOption) error {
+func (c *federatedVirtualServiceClient) UpdateFederatedVirtualServiceStatus(ctx context.Context, obj *FederatedVirtualService, opts ...client.SubResourceUpdateOption) error {
 	return c.client.Status().Update(ctx, obj, opts...)
 }
 
-func (c *federatedVirtualServiceClient) PatchFederatedVirtualServiceStatus(ctx context.Context, obj *FederatedVirtualService, patch client.Patch, opts ...client.PatchOption) error {
+func (c *federatedVirtualServiceClient) PatchFederatedVirtualServiceStatus(ctx context.Context, obj *FederatedVirtualService, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	return c.client.Status().Patch(ctx, obj, patch, opts...)
 }
 
@@ -555,10 +555,10 @@ type FederatedRouteTableWriter interface {
 type FederatedRouteTableStatusWriter interface {
 	// Update updates the fields corresponding to the status subresource for the
 	// given FederatedRouteTable object.
-	UpdateFederatedRouteTableStatus(ctx context.Context, obj *FederatedRouteTable, opts ...client.UpdateOption) error
+	UpdateFederatedRouteTableStatus(ctx context.Context, obj *FederatedRouteTable, opts ...client.SubResourceUpdateOption) error
 
 	// Patch patches the given FederatedRouteTable object's subresource.
-	PatchFederatedRouteTableStatus(ctx context.Context, obj *FederatedRouteTable, patch client.Patch, opts ...client.PatchOption) error
+	PatchFederatedRouteTableStatus(ctx context.Context, obj *FederatedRouteTable, patch client.Patch, opts ...client.SubResourcePatchOption) error
 }
 
 // Client knows how to perform CRUD operations on FederatedRouteTables.
@@ -629,11 +629,11 @@ func (c *federatedRouteTableClient) UpsertFederatedRouteTable(ctx context.Contex
 	return err
 }
 
-func (c *federatedRouteTableClient) UpdateFederatedRouteTableStatus(ctx context.Context, obj *FederatedRouteTable, opts ...client.UpdateOption) error {
+func (c *federatedRouteTableClient) UpdateFederatedRouteTableStatus(ctx context.Context, obj *FederatedRouteTable, opts ...client.SubResourceUpdateOption) error {
 	return c.client.Status().Update(ctx, obj, opts...)
 }
 
-func (c *federatedRouteTableClient) PatchFederatedRouteTableStatus(ctx context.Context, obj *FederatedRouteTable, patch client.Patch, opts ...client.PatchOption) error {
+func (c *federatedRouteTableClient) PatchFederatedRouteTableStatus(ctx context.Context, obj *FederatedRouteTable, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	return c.client.Status().Patch(ctx, obj, patch, opts...)
 }
 

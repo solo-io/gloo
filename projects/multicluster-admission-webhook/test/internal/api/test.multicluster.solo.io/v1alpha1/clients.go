@@ -106,10 +106,10 @@ type TestWriter interface {
 type TestStatusWriter interface {
 	// Update updates the fields corresponding to the status subresource for the
 	// given Test object.
-	UpdateTestStatus(ctx context.Context, obj *Test, opts ...client.UpdateOption) error
+	UpdateTestStatus(ctx context.Context, obj *Test, opts ...client.SubResourceUpdateOption) error
 
 	// Patch patches the given Test object's subresource.
-	PatchTestStatus(ctx context.Context, obj *Test, patch client.Patch, opts ...client.PatchOption) error
+	PatchTestStatus(ctx context.Context, obj *Test, patch client.Patch, opts ...client.SubResourcePatchOption) error
 }
 
 // Client knows how to perform CRUD operations on Tests.
@@ -180,11 +180,11 @@ func (c *testClient) UpsertTest(ctx context.Context, obj *Test, transitionFuncs 
 	return err
 }
 
-func (c *testClient) UpdateTestStatus(ctx context.Context, obj *Test, opts ...client.UpdateOption) error {
+func (c *testClient) UpdateTestStatus(ctx context.Context, obj *Test, opts ...client.SubResourceUpdateOption) error {
 	return c.client.Status().Update(ctx, obj, opts...)
 }
 
-func (c *testClient) PatchTestStatus(ctx context.Context, obj *Test, patch client.Patch, opts ...client.PatchOption) error {
+func (c *testClient) PatchTestStatus(ctx context.Context, obj *Test, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	return c.client.Status().Patch(ctx, obj, patch, opts...)
 }
 

@@ -108,10 +108,10 @@ type FederatedAuthConfigWriter interface {
 type FederatedAuthConfigStatusWriter interface {
 	// Update updates the fields corresponding to the status subresource for the
 	// given FederatedAuthConfig object.
-	UpdateFederatedAuthConfigStatus(ctx context.Context, obj *FederatedAuthConfig, opts ...client.UpdateOption) error
+	UpdateFederatedAuthConfigStatus(ctx context.Context, obj *FederatedAuthConfig, opts ...client.SubResourceUpdateOption) error
 
 	// Patch patches the given FederatedAuthConfig object's subresource.
-	PatchFederatedAuthConfigStatus(ctx context.Context, obj *FederatedAuthConfig, patch client.Patch, opts ...client.PatchOption) error
+	PatchFederatedAuthConfigStatus(ctx context.Context, obj *FederatedAuthConfig, patch client.Patch, opts ...client.SubResourcePatchOption) error
 }
 
 // Client knows how to perform CRUD operations on FederatedAuthConfigs.
@@ -182,11 +182,11 @@ func (c *federatedAuthConfigClient) UpsertFederatedAuthConfig(ctx context.Contex
 	return err
 }
 
-func (c *federatedAuthConfigClient) UpdateFederatedAuthConfigStatus(ctx context.Context, obj *FederatedAuthConfig, opts ...client.UpdateOption) error {
+func (c *federatedAuthConfigClient) UpdateFederatedAuthConfigStatus(ctx context.Context, obj *FederatedAuthConfig, opts ...client.SubResourceUpdateOption) error {
 	return c.client.Status().Update(ctx, obj, opts...)
 }
 
-func (c *federatedAuthConfigClient) PatchFederatedAuthConfigStatus(ctx context.Context, obj *FederatedAuthConfig, patch client.Patch, opts ...client.PatchOption) error {
+func (c *federatedAuthConfigClient) PatchFederatedAuthConfigStatus(ctx context.Context, obj *FederatedAuthConfig, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	return c.client.Status().Patch(ctx, obj, patch, opts...)
 }
 

@@ -307,7 +307,7 @@ func (m *MockFederatedRateLimitConfigStatusWriter) EXPECT() *MockFederatedRateLi
 }
 
 // PatchFederatedRateLimitConfigStatus mocks base method.
-func (m *MockFederatedRateLimitConfigStatusWriter) PatchFederatedRateLimitConfigStatus(ctx context.Context, obj *v1alpha1.FederatedRateLimitConfig, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockFederatedRateLimitConfigStatusWriter) PatchFederatedRateLimitConfigStatus(ctx context.Context, obj *v1alpha1.FederatedRateLimitConfig, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -326,7 +326,7 @@ func (mr *MockFederatedRateLimitConfigStatusWriterMockRecorder) PatchFederatedRa
 }
 
 // UpdateFederatedRateLimitConfigStatus mocks base method.
-func (m *MockFederatedRateLimitConfigStatusWriter) UpdateFederatedRateLimitConfigStatus(ctx context.Context, obj *v1alpha1.FederatedRateLimitConfig, opts ...client.UpdateOption) error {
+func (m *MockFederatedRateLimitConfigStatusWriter) UpdateFederatedRateLimitConfigStatus(ctx context.Context, obj *v1alpha1.FederatedRateLimitConfig, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {
@@ -479,7 +479,7 @@ func (mr *MockFederatedRateLimitConfigClientMockRecorder) PatchFederatedRateLimi
 }
 
 // PatchFederatedRateLimitConfigStatus mocks base method.
-func (m *MockFederatedRateLimitConfigClient) PatchFederatedRateLimitConfigStatus(ctx context.Context, obj *v1alpha1.FederatedRateLimitConfig, patch client.Patch, opts ...client.PatchOption) error {
+func (m *MockFederatedRateLimitConfigClient) PatchFederatedRateLimitConfigStatus(ctx context.Context, obj *v1alpha1.FederatedRateLimitConfig, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
 	for _, a := range opts {
@@ -517,7 +517,7 @@ func (mr *MockFederatedRateLimitConfigClientMockRecorder) UpdateFederatedRateLim
 }
 
 // UpdateFederatedRateLimitConfigStatus mocks base method.
-func (m *MockFederatedRateLimitConfigClient) UpdateFederatedRateLimitConfigStatus(ctx context.Context, obj *v1alpha1.FederatedRateLimitConfig, opts ...client.UpdateOption) error {
+func (m *MockFederatedRateLimitConfigClient) UpdateFederatedRateLimitConfigStatus(ctx context.Context, obj *v1alpha1.FederatedRateLimitConfig, opts ...client.SubResourceUpdateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
 	for _, a := range opts {
