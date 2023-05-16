@@ -313,10 +313,10 @@ func upstreamFromOpts(opts *options.Options) (*v1.Upstream, error) {
 				ServiceSpec: svcSpec,
 			},
 		}
-		if input.Static.UseTls {
+		if input.Static.UseTls.Value != nil {
 			// if left null then the static upstream will attempt to detect if it should use TLS
 			// based on whether its using port 443 or not
-			upType.Static.UseTls = &wrappers.BoolValue{Value: input.Static.UseTls}
+			upType.Static.UseTls = &wrappers.BoolValue{Value: *input.Static.UseTls.Value}
 		}
 		upstream.UpstreamType = upType
 	}
