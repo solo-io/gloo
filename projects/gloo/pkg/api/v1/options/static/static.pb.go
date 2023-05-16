@@ -38,7 +38,7 @@ type UpstreamSpec struct {
 	// at least one must be specified
 	Hosts []*Host `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts,omitempty"`
 	// Attempt to use outbound TLS
-	// Gloo will automatically set this to true for port 443
+	// If not explicitly set, Gloo will automatically set this to true for port 443
 	UseTls *wrappers.BoolValue `protobuf:"bytes,3,opt,name=use_tls,json=useTls,proto3" json:"use_tls,omitempty"`
 	// An optional Service Spec describing the service listening at this address
 	ServiceSpec *options.ServiceSpec `protobuf:"bytes,5,opt,name=service_spec,json=serviceSpec,proto3" json:"service_spec,omitempty"`
