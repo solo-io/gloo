@@ -63,7 +63,15 @@ func (t *tcpFilterChainTranslator) ComputeFilterChains(params plugins.Params) []
 		for _, pfc := range pluginFilterChains {
 			pfc := pfc
 			if t.defaultSslConfig != nil {
-				if pfc.GetFilterChainMatch() == nil || (pfc.GetFilterChainMatch().GetServerNames() != nil && len(pfc.GetFilterChainMatch().GetServerNames()) == 0) {
+				if pfc.GetFilterChainMatch() == nil {
+					pfc.FilterChainMatch = &envoy_config_listener_v3.FilterChainMatch{}
+				}
+
+				if pfc.GetFilterChainMatch().GetServerNames() == nil {
+					pfc.FilterChainMatch.ServerNames = []string{}
+				}
+
+				if len(pfc.GetFilterChainMatch().GetServerNames()) == 0 {
 					pfc.GetFilterChainMatch().ServerNames = t.defaultSslConfig.GetSniDomains()
 				}
 			}
