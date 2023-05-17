@@ -132,7 +132,7 @@ func (t *translatorInstance) initializeCluster(
 	// see static and failover at time of writing.
 	if upstreamProxyProtocol := upstream.GetProxyProtocolVersion(); upstreamProxyProtocol != nil {
 
-		tp, err := upstream_proxy_protocol.WrapWithPProtocol(out.TransportSocket, upstreamProxyProtocol.String())
+		tp, err := upstream_proxy_protocol.WrapWithPProtocol(out.GetTransportSocket(), upstreamProxyProtocol.String())
 		if err != nil {
 			reports.AddError(upstream, err)
 		} else {
