@@ -4,6 +4,7 @@ import (
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
+	proxyproto "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/proxy_protocol/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -295,6 +296,7 @@ var _ = Describe("Plugin", func() {
 
 		It("should set proxy protocol", func() {
 			upstreamSpec.UseTls = wrapperspb.Bool(true)
+			upstreamSpec.Hosts[0].SniAddr = "test"
 			upstream.ProxyProtocolVersion = &wrapperspb.StringValue{Value: "V1"}
 			initParams.Settings = &v1.Settings{
 				UpstreamOptions: &v1.UpstreamOptions{
@@ -310,6 +312,12 @@ var _ = Describe("Plugin", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(out.TransportSocketMatches[0].Match).To(BeEquivalentTo(out.LoadAssignment.Endpoints[0].LbEndpoints[0].Metadata.FilterMetadata[TransportSocketMatchKey]))
 			Expect(out.TransportSocketMatches[0].TransportSocket.Name).To(Equal("envoy.transport_sockets.upstream_proxy_protocol"))
+
+			pMsg := utils.MustAnyToMessage(out.TransportSocketMatches[0].GetTransportSocket().GetTypedConfig()).(*proxyproto.ProxyProtocolUpstreamTransport)
+			tlsMsg := utils.MustAnyToMessage(pMsg.GetTransportSocket().GetTypedConfig()).(*envoyauth.UpstreamTlsContext)
+
+			Expect(tlsMsg.Sni).To(Equal("test"))
+
 		})
 
 		ExpectSniMatchesToMatch := func() {
