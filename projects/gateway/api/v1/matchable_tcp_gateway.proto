@@ -43,7 +43,7 @@ message MatchableTcpGateway {
     // See https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-cidrrange
     repeated .solo.io.envoy.config.core.v3.CidrRange source_prefix_ranges = 1;
 
-    // Ssl configuration applied to the FilterChain:
+    // Ssl configuration applied to the FilterChain, if using passthrough should not include secrets :
     //  - FilterChainMatch: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/listener/v3/listener_components.proto#config-listener-v3-filterchainmatch)
     //  - TransportSocket: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/base.proto#envoy-v3-api-msg-config-core-v3-transportsocket
     gloo.solo.io.SslConfig ssl_config = 2;

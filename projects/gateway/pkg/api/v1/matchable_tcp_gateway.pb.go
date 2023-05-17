@@ -118,7 +118,7 @@ type MatchableTcpGateway_Matcher struct {
 	// CidrRange specifies an IP Address and a prefix length to construct the subnet mask for a CIDR range.
 	// See https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-cidrrange
 	SourcePrefixRanges []*v3.CidrRange `protobuf:"bytes,1,rep,name=source_prefix_ranges,json=sourcePrefixRanges,proto3" json:"source_prefix_ranges,omitempty"`
-	// Ssl configuration applied to the FilterChain:
+	// Ssl configuration applied to the FilterChain, if using passthrough should not include secrets :
 	//   - FilterChainMatch: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/listener/v3/listener_components.proto#config-listener-v3-filterchainmatch)
 	//   - TransportSocket: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/base.proto#envoy-v3-api-msg-config-core-v3-transportsocket
 	SslConfig *ssl.SslConfig `protobuf:"bytes,2,opt,name=ssl_config,json=sslConfig,proto3" json:"ssl_config,omitempty"`

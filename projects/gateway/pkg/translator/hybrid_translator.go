@@ -126,33 +126,7 @@ func (t *HybridTranslator) computeHybridListenerFromMatchedGateways(
 				TcpListener: t.TcpTranslator.ComputeTcpListener(gt.TcpGateway),
 			}
 
-			// mimick validateVirtualServiceDomains that httpgateways go through
-			tcpSSL := matchedGateway.GetMatcher().GetSslConfig()
-
-			matcherSNIDomains := tcpSSL.GetSniDomains()
-			domainMap := make(map[string]struct{})
-			for _, msd := range matcherSNIDomains {
-				domainMap[msd] = struct{}{}
-			}
-			conflictingHostDomains := make([]string, 0)
-			for _, host := range gt.TcpGateway.GetTcpHosts() {
-
-				domains := host.GetSslConfig().GetSniDomains()
-				for _, d := range domains {
-					_, ok := domainMap[d]
-					if !ok {
-						if len(matcherSNIDomains) > 0 {
-							conflictingHostDomains = append(conflictingHostDomains, fmt.Sprintf("%s:%s", host.GetName(), d))
-						}
-					}
-				}
-			}
-
-			// mimick the behavior for http gateways and virtual hosts
-			// if we specify matcher info then dont allow conflicting sni domains otherwise dont worry about it
-			if len(conflictingHostDomains) > 0 {
-				params.reports.AddError(gateway, errors.Errorf("gateway has conflicting sni domains %v", conflictingHostDomains))
-			}
+			validateTcpHosts(params, gateway, gt.TcpGateway, matchedGateway.GetMatcher().GetSslConfig())
 
 		}
 
@@ -160,6 +134,38 @@ func (t *HybridTranslator) computeHybridListenerFromMatchedGateways(
 	}
 
 	return hybridListener
+}
+
+func validateTcpHosts(params Params, gateway *v1.Gateway, matchedgateway *v1.TcpGateway, tcpSSL *ssl.SslConfig) {
+	// mimick validateVirtualServiceDomains that httpgateways go through
+	if tcpSSL == nil || gateway == nil || matchedgateway == nil {
+		return
+	}
+	matcherSNIDomains := tcpSSL.GetSniDomains()
+	domainMap := make(map[string]struct{})
+	for _, msd := range matcherSNIDomains {
+
+		domainMap[msd] = struct{}{}
+	}
+	conflictingHostDomains := make([]string, 0)
+	for _, host := range matchedgateway.GetTcpHosts() {
+
+		domains := host.GetSslConfig().GetSniDomains()
+		for _, d := range domains {
+			_, ok := domainMap[d]
+			if !ok {
+				if len(matcherSNIDomains) > 0 {
+					conflictingHostDomains = append(conflictingHostDomains, fmt.Sprintf("%s:%s", host.GetName(), d))
+				}
+			}
+		}
+	}
+
+	// mimick the behavior for http gateways and virtual hosts
+	// if we specify matcher info then dont allow conflicting sni domains otherwise dont worry about it
+	if len(conflictingHostDomains) > 0 {
+		params.reports.AddError(gateway, errors.Errorf("gateway has conflicting sni domains %v", conflictingHostDomains))
+	}
 }
 
 func (t *HybridTranslator) computeHybridListenerFromDelegatedGateways(
@@ -253,6 +259,7 @@ func (t *HybridTranslator) computeMatchedTcpListener(
 	matchableTcpGateway *v1.MatchableTcpGateway,
 
 ) *gloov1.MatchedListener {
+	validateTcpHosts(params, parentGateway, matchableTcpGateway.GetTcpGateway(), matchableTcpGateway.GetMatcher().GetSslConfig())
 	// for now the parent gateway does not provide inheritable aspects so ignore it
 	return &gloov1.MatchedListener{
 		Matcher: &gloov1.Matcher{
