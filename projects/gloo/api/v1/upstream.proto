@@ -176,7 +176,6 @@ message Upstream {
     // Proxy Protocol Version to add when communicating with the upstream.
     // If unset will not wrap the transport socket. 
     // These are of the format "V1" or "V2"
-    // 
     google.protobuf.StringValue proxy_protocol_version= 31;
 
 }

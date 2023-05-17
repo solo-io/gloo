@@ -196,7 +196,6 @@ type Upstream struct {
 	// Proxy Protocol Version to add when communicating with the upstream.
 	// If unset will not wrap the transport socket.
 	// These are of the format "V1" or "V2"
-	// 
 	ProxyProtocolVersion *wrappers.StringValue `protobuf:"bytes,31,opt,name=proxy_protocol_version,json=proxyProtocolVersion,proto3" json:"proxy_protocol_version,omitempty"`
 }
 
