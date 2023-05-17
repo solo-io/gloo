@@ -686,9 +686,7 @@ var _ = Describe("Gateway", func() {
 
 			Context("proxyProtocol", func() {
 				var (
-					secret        *gloov1.Secret
-					envoyInstance *services.EnvoyInstance
-					tu            *v1helpers.TestUpstream
+					secret *gloov1.Secret
 				)
 
 				BeforeEach(func() {
@@ -760,7 +758,8 @@ var _ = Describe("Gateway", func() {
 
 					// Check tls inspector is correctly configured
 					Eventually(envoyInstance.ConfigDump, "10s", "0.1s").Should(MatchRegexp(tlsInspectorType))
-					Expect(envoyInstance.ConfigDump).To(ContainSubstring("envoy.extensions.transport_sockets.proxy_protocol.v3.ProxyProtocolUpstreamTransport"))
+					cd, _ := envoyInstance.ConfigDump()
+					Expect(cd).To(ContainSubstring("envoy.extensions.transport_sockets.proxy_protocol.v3.ProxyProtocolUpstreamTransport"))
 				})
 
 			})
