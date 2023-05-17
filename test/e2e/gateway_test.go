@@ -692,7 +692,7 @@ var _ = Describe("Gateway", func() {
 				)
 
 				BeforeEach(func() {
-					tu.Upstream.ProxyProtocolVersion = &wrapperspb.StringValue{Value: "V1"}
+
 					secret = &gloov1.Secret{
 						Metadata: &core.Metadata{
 							Name:      "secret",
@@ -710,6 +710,7 @@ var _ = Describe("Gateway", func() {
 				JustBeforeEach(func() {
 					_, err := testClients.SecretClient.Write(secret, clients.WriteOpts{Ctx: ctx})
 					Expect(err).NotTo(HaveOccurred())
+					tu.Upstream.ProxyProtocolVersion = &wrapperspb.StringValue{Value: "V1"}
 				})
 
 				JustAfterEach(func() {
