@@ -16,7 +16,7 @@ const (
 )
 
 // WrapWithPPortocol wraps the upstream with a proxy protocol transport socket
-// this is different from the listener level proxy protocol filter
+// this is different from the listener level proxy protocol filter as it ends up on the cluster
 func WrapWithPProtocol(oldTs *envoy_config_core_v3.TransportSocket, pPVerValStr string) (*envoy_config_core_v3.TransportSocket, error) {
 	if pPVerValStr == "" {
 		return oldTs, nil
