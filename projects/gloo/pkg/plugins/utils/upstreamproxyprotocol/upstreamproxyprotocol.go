@@ -3,9 +3,11 @@ package upstream_proxy_protocol
 import (
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	proxyproto "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/proxy_protocol/v3"
+	"github.com/pkg/errors"
 
+	socketsRaw "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/raw_buffer/v3"
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/solo-kit/pkg/errors"
 )
 
 const (
@@ -21,7 +23,16 @@ func WrapWithPProtocol(oldTs *envoy_config_core_v3.TransportSocket, pPVerValStr 
 	}
 	pPVerVal, ok := envoy_config_core_v3.ProxyProtocolConfig_Version_value[pPVerValStr]
 	if !ok {
-		return nil, errors.Errorf("proxy protocol version %s is not supported", pPVerValStr)
+		return oldTs, errors.Errorf("proxy protocol version %s is not supported", pPVerValStr)
+	}
+
+	// if unset envoy uses a raw buffer transport socket
+	// so explicitly make it here
+	if oldTs == nil {
+		typedConfig, _ := utils.MessageToAny(&socketsRaw.RawBuffer{})
+		oldTs = &envoy_config_core_v3.TransportSocket{Name: wellknown.TransportSocketRawBuffer,
+			ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{TypedConfig: typedConfig},
+		}
 	}
 
 	pput := &proxyproto.ProxyProtocolUpstreamTransport{

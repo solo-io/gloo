@@ -1,4 +1,4 @@
-package upstreamproxyprotocol_test
+package upstream_proxy_protocol
 
 import (
 	"testing"
