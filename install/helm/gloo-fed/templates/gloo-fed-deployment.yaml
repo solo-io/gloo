@@ -30,6 +30,7 @@ spec:
       {{- end }}
     spec:
       serviceAccountName: gloo-fed
+{{- include "gloofed.podSpecStandardFields" .Values.glooFed | nindent 6 -}}
       containers:
       - image: {{ $glooFedImage.registry }}/{{ $glooFedImage.repository }}:{{ $glooFedImage.tag }}
         env:
@@ -99,26 +100,38 @@ spec:
           - name: http-monitoring
             containerPort: 9091
         {{- end }}
+        {{- with $glooFed.glooFed }}
+          {{- with .volumeMounts }}
+        volumeMounts:
+{{ toYaml . | indent 10 }}
+          {{- end }}
+        {{- end }}
 {{- if $glooFed.resources }}
         resources:
-{{ toYaml $glooFed.resources | indent 10}}
+{{ toYaml $glooFed.resources | indent 10 }}
 {{- else}}
         resources:
           requests:
             cpu: 500m
             memory: 256Mi
-        {{- end}}
-        securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
+        {{- end }}
+        {{- $capabilities := dict "drop" (list "ALL") }}
+        {{- $securityDefaults := dict "readOnlyRootFilesystem" true "allowPrivilegeEscalation" false  "capabilities" $capabilities }}
+        {{- $securityValues := (dict) }}
+        {{- if $glooFed.glooFed }}
+          {{- if $glooFed.glooFed.securityContext -}}
+            {{- $securityValues = $glooFed.glooFed.securityContext -}}
+          {{- end }}
+        {{- end }}
+{{- include "gloofed.securityContext" (dict "values" $securityValues "defaults" $securityDefaults) | nindent 8 }}
       {{- if $glooFedImage.pullSecret }}
       imagePullSecrets:
       - name: {{ $glooFedImage.pullSecret }}
   {{- end}}
-
+  {{- with $glooFed.volumes }}
+      volumes:
+{{ toYaml . | indent 6 }}
+  {{- end }}
 
 ---
 

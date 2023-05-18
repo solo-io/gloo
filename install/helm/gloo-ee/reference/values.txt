@@ -1257,6 +1257,7 @@
 |redis.deployment.initContainer.securityContext.procMount|string|||
 |redis.deployment.initContainer.securityContext.seccompProfile.type|string|||
 |redis.deployment.initContainer.securityContext.seccompProfile.localhostProfile|string|||
+|redis.deployment.initContainer.securityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this values to false. Default value is "".|
 |redis.deployment.name|string|redis||
 |redis.deployment.staticPort|uint|6379||
 |redis.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as in the podSecurityContext. Default is 999. If a podSecurityContext is defined for the pod , this value is not applied.|
@@ -1283,6 +1284,7 @@
 |redis.deployment.podSecurityContext.fsGroupChangePolicy|string|||
 |redis.deployment.podSecurityContext.seccompProfile.type|string|||
 |redis.deployment.podSecurityContext.seccompProfile.localhostProfile|string|||
+|redis.deployment.podSecurityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this values to false. Default value is "".|
 |redis.deployment.replicas|int||number of instances to deploy|
 |redis.deployment.customEnv[].name|string|||
 |redis.deployment.customEnv[].value|string|||
@@ -1340,6 +1342,7 @@
 |redis.deployment.redisContainerSecurityContext.procMount|string|||
 |redis.deployment.redisContainerSecurityContext.seccompProfile.type|string|||
 |redis.deployment.redisContainerSecurityContext.seccompProfile.localhostProfile|string|||
+|redis.deployment.redisContainerSecurityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this values to false. Default value is "".|
 |redis.deployment.image.tag|string|7.0.11|The image tag for the container.|
 |redis.deployment.image.repository|string|redis|The image repository (name) for the container.|
 |redis.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
@@ -1629,11 +1632,43 @@
 |gloo-fed.glooFedApiserver.envoy.resources.requests.cpu|string||amount of CPUs|
 |gloo-fed.glooFedApiserver.envoy.bootstrapConfig.configMapName|string|||
 |gloo-fed.glooFedApiserver.namespaceRestrictedMode|bool||If true:  Convert the ClusterRole used in apiserver to Role.  Useful in single-namespace deployments of gloo-ee where permissions can be more restrictive--recommended to not set in a multi-cluster deployment.  Default is false.|
-|gloo-fed.glooFed.replicas|int|||
-|gloo-fed.glooFed.resources.limits.memory|string||amount of memory|
-|gloo-fed.glooFed.resources.limits.cpu|string||amount of CPUs|
-|gloo-fed.glooFed.resources.requests.memory|string||amount of memory|
-|gloo-fed.glooFed.resources.requests.cpu|string||amount of CPUs|
+|gloo-fed.glooFedApiserver.replicas|int||number of instances to deploy|
+|gloo-fed.glooFedApiserver.customEnv[].name|string|||
+|gloo-fed.glooFedApiserver.customEnv[].value|string|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.fieldRef.apiVersion|string|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.fieldRef.fieldPath|string|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.resourceFieldRef.containerName|string|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.resourceFieldRef.resource|string|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.resourceFieldRef.divisor|int64|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.resourceFieldRef.divisor|int32|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.resourceFieldRef.divisor|bool|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.resourceFieldRef.divisor[]|uint|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.resourceFieldRef.divisor[]|int32|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.configMapKeyRef.name|string|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.configMapKeyRef.key|string|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.configMapKeyRef.optional|bool|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.secretKeyRef.name|string|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.secretKeyRef.key|string|||
+|gloo-fed.glooFedApiserver.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|gloo-fed.glooFedApiserver.restartPolicy|string||restart policy to use when the pod exits|
+|gloo-fed.glooFedApiserver.priorityClassName|string||name of a defined priority class|
+|gloo-fed.glooFedApiserver.nodeName|string||name of node to run on|
+|gloo-fed.glooFedApiserver.nodeSelector.NAME|string||label selector for nodes|
+|gloo-fed.glooFedApiserver.tolerations[].key|string|||
+|gloo-fed.glooFedApiserver.tolerations[].operator|string|||
+|gloo-fed.glooFedApiserver.tolerations[].value|string|||
+|gloo-fed.glooFedApiserver.tolerations[].effect|string|||
+|gloo-fed.glooFedApiserver.tolerations[].tolerationSeconds|int64|||
+|gloo-fed.glooFedApiserver.affinity.NAME|interface|||
+|gloo-fed.glooFedApiserver.hostAliases[]|interface|||
+|gloo-fed.glooFedApiserver.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
+|gloo-fed.glooFedApiserver.resources.limits.memory|string||amount of memory|
+|gloo-fed.glooFedApiserver.resources.limits.cpu|string||amount of CPUs|
+|gloo-fed.glooFedApiserver.resources.requests.memory|string||amount of memory|
+|gloo-fed.glooFedApiserver.resources.requests.cpu|string||amount of CPUs|
+|gloo-fed.glooFedApiserver.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo-fed.glooFed.image.tag|string||The image tag for the container.|
 |gloo-fed.glooFed.image.repository|string||The image repository (name) for the container.|
 |gloo-fed.glooFed.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
@@ -1643,6 +1678,7 @@
 |gloo-fed.glooFed.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |gloo-fed.glooFed.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |gloo-fed.glooFed.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|gloo-fed.glooFed.replicas|int|||
 |gloo-fed.glooFed.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
 |gloo-fed.glooFed.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |gloo-fed.glooFed.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
@@ -1660,6 +1696,343 @@
 |gloo-fed.glooFed.retries.clusterWatcherLocal.maxDelay|string||The maximum delay between retries. This can be used to cap the retry interval when exponential backoff is used. If set to 0, there will be no maximum delay. This must be a [Duration string](https://pkg.go.dev/time#Duration.String), e.g. '100ms' or '1m5s'.|
 |gloo-fed.glooFed.retries.clusterWatcherLocal.maxJitter|string||The maximum amount of random jitter to add between retries. If this value is greater than 0, retries will be done with a random amount of jitter, up to maxJitter. If this value is 0, then no randomness will be added to retries. This must be a [Duration string](https://pkg.go.dev/time#Duration.String), e.g. '100ms' or '1m5s'.|
 |gloo-fed.glooFed.retries.clusterWatcherLocal.attempts|uint||The maximum number of attempts to make. Set to 0 to retry forever.|
+|gloo-fed.glooFed.roleRules[].verbs[]|string|||
+|gloo-fed.glooFed.roleRules[].apiGroups[]|string|||
+|gloo-fed.glooFed.roleRules[].resources[]|string|||
+|gloo-fed.glooFed.roleRules[].resourceNames[]|string|||
+|gloo-fed.glooFed.roleRules[].nonResourceURLs[]|string|||
+|gloo-fed.glooFed.volumes[].name|string|||
+|gloo-fed.glooFed.volumes[].hostPath.path|string|||
+|gloo-fed.glooFed.volumes[].hostPath.type|string|||
+|gloo-fed.glooFed.volumes[].emptyDir.medium|string|||
+|gloo-fed.glooFed.volumes[].emptyDir.sizeLimit|int64|||
+|gloo-fed.glooFed.volumes[].emptyDir.sizeLimit|int32|||
+|gloo-fed.glooFed.volumes[].emptyDir.sizeLimit|bool|||
+|gloo-fed.glooFed.volumes[].emptyDir.sizeLimit[]|uint|||
+|gloo-fed.glooFed.volumes[].emptyDir.sizeLimit[]|int32|||
+|gloo-fed.glooFed.volumes[].emptyDir.sizeLimit[]|string|||
+|gloo-fed.glooFed.volumes[].emptyDir.sizeLimit[]|string|||
+|gloo-fed.glooFed.volumes[].gcePersistentDisk.pdName|string|||
+|gloo-fed.glooFed.volumes[].gcePersistentDisk.fsType|string|||
+|gloo-fed.glooFed.volumes[].gcePersistentDisk.partition|int32|||
+|gloo-fed.glooFed.volumes[].gcePersistentDisk.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].awsElasticBlockStore.volumeID|string|||
+|gloo-fed.glooFed.volumes[].awsElasticBlockStore.fsType|string|||
+|gloo-fed.glooFed.volumes[].awsElasticBlockStore.partition|int32|||
+|gloo-fed.glooFed.volumes[].awsElasticBlockStore.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].gitRepo.repository|string|||
+|gloo-fed.glooFed.volumes[].gitRepo.revision|string|||
+|gloo-fed.glooFed.volumes[].gitRepo.directory|string|||
+|gloo-fed.glooFed.volumes[].secret.secretName|string|||
+|gloo-fed.glooFed.volumes[].secret.items[].key|string|||
+|gloo-fed.glooFed.volumes[].secret.items[].path|string|||
+|gloo-fed.glooFed.volumes[].secret.items[].mode|int32|||
+|gloo-fed.glooFed.volumes[].secret.defaultMode|int32|||
+|gloo-fed.glooFed.volumes[].secret.optional|bool|||
+|gloo-fed.glooFed.volumes[].nfs.server|string|||
+|gloo-fed.glooFed.volumes[].nfs.path|string|||
+|gloo-fed.glooFed.volumes[].nfs.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].iscsi.targetPortal|string|||
+|gloo-fed.glooFed.volumes[].iscsi.iqn|string|||
+|gloo-fed.glooFed.volumes[].iscsi.lun|int32|||
+|gloo-fed.glooFed.volumes[].iscsi.iscsiInterface|string|||
+|gloo-fed.glooFed.volumes[].iscsi.fsType|string|||
+|gloo-fed.glooFed.volumes[].iscsi.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].iscsi.portals[]|string|||
+|gloo-fed.glooFed.volumes[].iscsi.chapAuthDiscovery|bool|||
+|gloo-fed.glooFed.volumes[].iscsi.chapAuthSession|bool|||
+|gloo-fed.glooFed.volumes[].iscsi.secretRef.name|string|||
+|gloo-fed.glooFed.volumes[].iscsi.initiatorName|string|||
+|gloo-fed.glooFed.volumes[].glusterfs.endpoints|string|||
+|gloo-fed.glooFed.volumes[].glusterfs.path|string|||
+|gloo-fed.glooFed.volumes[].glusterfs.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].persistentVolumeClaim.claimName|string|||
+|gloo-fed.glooFed.volumes[].persistentVolumeClaim.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].rbd.monitors[]|string|||
+|gloo-fed.glooFed.volumes[].rbd.image|string|||
+|gloo-fed.glooFed.volumes[].rbd.fsType|string|||
+|gloo-fed.glooFed.volumes[].rbd.pool|string|||
+|gloo-fed.glooFed.volumes[].rbd.user|string|||
+|gloo-fed.glooFed.volumes[].rbd.keyring|string|||
+|gloo-fed.glooFed.volumes[].rbd.secretRef.name|string|||
+|gloo-fed.glooFed.volumes[].rbd.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].flexVolume.driver|string|||
+|gloo-fed.glooFed.volumes[].flexVolume.fsType|string|||
+|gloo-fed.glooFed.volumes[].flexVolume.secretRef.name|string|||
+|gloo-fed.glooFed.volumes[].flexVolume.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].flexVolume.options.NAME|string|||
+|gloo-fed.glooFed.volumes[].cinder.volumeID|string|||
+|gloo-fed.glooFed.volumes[].cinder.fsType|string|||
+|gloo-fed.glooFed.volumes[].cinder.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].cinder.secretRef.name|string|||
+|gloo-fed.glooFed.volumes[].cephfs.monitors[]|string|||
+|gloo-fed.glooFed.volumes[].cephfs.path|string|||
+|gloo-fed.glooFed.volumes[].cephfs.user|string|||
+|gloo-fed.glooFed.volumes[].cephfs.secretFile|string|||
+|gloo-fed.glooFed.volumes[].cephfs.secretRef.name|string|||
+|gloo-fed.glooFed.volumes[].cephfs.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].flocker.datasetName|string|||
+|gloo-fed.glooFed.volumes[].flocker.datasetUUID|string|||
+|gloo-fed.glooFed.volumes[].downwardAPI.items[].path|string|||
+|gloo-fed.glooFed.volumes[].downwardAPI.items[].fieldRef.apiVersion|string|||
+|gloo-fed.glooFed.volumes[].downwardAPI.items[].fieldRef.fieldPath|string|||
+|gloo-fed.glooFed.volumes[].downwardAPI.items[].resourceFieldRef.containerName|string|||
+|gloo-fed.glooFed.volumes[].downwardAPI.items[].resourceFieldRef.resource|string|||
+|gloo-fed.glooFed.volumes[].downwardAPI.items[].resourceFieldRef.divisor|int64|||
+|gloo-fed.glooFed.volumes[].downwardAPI.items[].resourceFieldRef.divisor|int32|||
+|gloo-fed.glooFed.volumes[].downwardAPI.items[].resourceFieldRef.divisor|bool|||
+|gloo-fed.glooFed.volumes[].downwardAPI.items[].resourceFieldRef.divisor[]|uint|||
+|gloo-fed.glooFed.volumes[].downwardAPI.items[].resourceFieldRef.divisor[]|int32|||
+|gloo-fed.glooFed.volumes[].downwardAPI.items[].resourceFieldRef.divisor[]|string|||
+|gloo-fed.glooFed.volumes[].downwardAPI.items[].resourceFieldRef.divisor[]|string|||
+|gloo-fed.glooFed.volumes[].downwardAPI.items[].mode|int32|||
+|gloo-fed.glooFed.volumes[].downwardAPI.defaultMode|int32|||
+|gloo-fed.glooFed.volumes[].fc.targetWWNs[]|string|||
+|gloo-fed.glooFed.volumes[].fc.lun|int32|||
+|gloo-fed.glooFed.volumes[].fc.fsType|string|||
+|gloo-fed.glooFed.volumes[].fc.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].fc.wwids[]|string|||
+|gloo-fed.glooFed.volumes[].azureFile.secretName|string|||
+|gloo-fed.glooFed.volumes[].azureFile.shareName|string|||
+|gloo-fed.glooFed.volumes[].azureFile.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].configMap.name|string|||
+|gloo-fed.glooFed.volumes[].configMap.items[].key|string|||
+|gloo-fed.glooFed.volumes[].configMap.items[].path|string|||
+|gloo-fed.glooFed.volumes[].configMap.items[].mode|int32|||
+|gloo-fed.glooFed.volumes[].configMap.defaultMode|int32|||
+|gloo-fed.glooFed.volumes[].configMap.optional|bool|||
+|gloo-fed.glooFed.volumes[].vsphereVolume.volumePath|string|||
+|gloo-fed.glooFed.volumes[].vsphereVolume.fsType|string|||
+|gloo-fed.glooFed.volumes[].vsphereVolume.storagePolicyName|string|||
+|gloo-fed.glooFed.volumes[].vsphereVolume.storagePolicyID|string|||
+|gloo-fed.glooFed.volumes[].quobyte.registry|string|||
+|gloo-fed.glooFed.volumes[].quobyte.volume|string|||
+|gloo-fed.glooFed.volumes[].quobyte.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].quobyte.user|string|||
+|gloo-fed.glooFed.volumes[].quobyte.group|string|||
+|gloo-fed.glooFed.volumes[].quobyte.tenant|string|||
+|gloo-fed.glooFed.volumes[].azureDisk.diskName|string|||
+|gloo-fed.glooFed.volumes[].azureDisk.diskURI|string|||
+|gloo-fed.glooFed.volumes[].azureDisk.cachingMode|string|||
+|gloo-fed.glooFed.volumes[].azureDisk.fsType|string|||
+|gloo-fed.glooFed.volumes[].azureDisk.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].azureDisk.kind|string|||
+|gloo-fed.glooFed.volumes[].photonPersistentDisk.pdID|string|||
+|gloo-fed.glooFed.volumes[].photonPersistentDisk.fsType|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].secret.name|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].secret.items[].key|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].secret.items[].path|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].secret.items[].mode|int32|||
+|gloo-fed.glooFed.volumes[].projected.sources[].secret.optional|bool|||
+|gloo-fed.glooFed.volumes[].projected.sources[].downwardAPI.items[].path|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].downwardAPI.items[].fieldRef.apiVersion|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].downwardAPI.items[].fieldRef.fieldPath|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].downwardAPI.items[].resourceFieldRef.containerName|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].downwardAPI.items[].resourceFieldRef.resource|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].downwardAPI.items[].resourceFieldRef.divisor|int64|||
+|gloo-fed.glooFed.volumes[].projected.sources[].downwardAPI.items[].resourceFieldRef.divisor|int32|||
+|gloo-fed.glooFed.volumes[].projected.sources[].downwardAPI.items[].resourceFieldRef.divisor|bool|||
+|gloo-fed.glooFed.volumes[].projected.sources[].downwardAPI.items[].resourceFieldRef.divisor[]|uint|||
+|gloo-fed.glooFed.volumes[].projected.sources[].downwardAPI.items[].resourceFieldRef.divisor[]|int32|||
+|gloo-fed.glooFed.volumes[].projected.sources[].downwardAPI.items[].resourceFieldRef.divisor[]|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].downwardAPI.items[].resourceFieldRef.divisor[]|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].downwardAPI.items[].mode|int32|||
+|gloo-fed.glooFed.volumes[].projected.sources[].configMap.name|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].configMap.items[].key|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].configMap.items[].path|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].configMap.items[].mode|int32|||
+|gloo-fed.glooFed.volumes[].projected.sources[].configMap.optional|bool|||
+|gloo-fed.glooFed.volumes[].projected.sources[].serviceAccountToken.audience|string|||
+|gloo-fed.glooFed.volumes[].projected.sources[].serviceAccountToken.expirationSeconds|int64|||
+|gloo-fed.glooFed.volumes[].projected.sources[].serviceAccountToken.path|string|||
+|gloo-fed.glooFed.volumes[].projected.defaultMode|int32|||
+|gloo-fed.glooFed.volumes[].portworxVolume.volumeID|string|||
+|gloo-fed.glooFed.volumes[].portworxVolume.fsType|string|||
+|gloo-fed.glooFed.volumes[].portworxVolume.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].scaleIO.gateway|string|||
+|gloo-fed.glooFed.volumes[].scaleIO.system|string|||
+|gloo-fed.glooFed.volumes[].scaleIO.secretRef.name|string|||
+|gloo-fed.glooFed.volumes[].scaleIO.sslEnabled|bool|||
+|gloo-fed.glooFed.volumes[].scaleIO.protectionDomain|string|||
+|gloo-fed.glooFed.volumes[].scaleIO.storagePool|string|||
+|gloo-fed.glooFed.volumes[].scaleIO.storageMode|string|||
+|gloo-fed.glooFed.volumes[].scaleIO.volumeName|string|||
+|gloo-fed.glooFed.volumes[].scaleIO.fsType|string|||
+|gloo-fed.glooFed.volumes[].scaleIO.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].storageos.volumeName|string|||
+|gloo-fed.glooFed.volumes[].storageos.volumeNamespace|string|||
+|gloo-fed.glooFed.volumes[].storageos.fsType|string|||
+|gloo-fed.glooFed.volumes[].storageos.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].storageos.secretRef.name|string|||
+|gloo-fed.glooFed.volumes[].csi.driver|string|||
+|gloo-fed.glooFed.volumes[].csi.readOnly|bool|||
+|gloo-fed.glooFed.volumes[].csi.fsType|string|||
+|gloo-fed.glooFed.volumes[].csi.volumeAttributes.NAME|string|||
+|gloo-fed.glooFed.volumes[].csi.nodePublishSecretRef.name|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.name|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.generateName|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.namespace|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.selfLink|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.uid|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.resourceVersion|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.generation|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp|uint64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp[]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp[]|int|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp[]|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp[][]|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp[][]|uint8|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp[][]|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp[][]|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp[][]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp[][]|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp[][]|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp[][]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp[][]|int|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.creationTimestamp[][]|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp|uint64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp[]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp[]|int|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp[]|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp[][]|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp[][]|uint8|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp[][]|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp[][]|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp[][]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp[][]|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp[][]|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp[][]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp[][]|int|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionTimestamp[][]|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.deletionGracePeriodSeconds|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.labels.NAME|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.annotations.NAME|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.ownerReferences[].apiVersion|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.ownerReferences[].kind|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.ownerReferences[].name|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.ownerReferences[].uid|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.ownerReferences[].controller|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.ownerReferences[].blockOwnerDeletion|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.finalizers[]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].manager|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].operation|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].apiVersion|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time|uint64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time[]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time[]|int|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time[]|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time[][]|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time[][]|uint8|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time[][]|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time[][]|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time[][]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time[][]|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time[][]|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time[][]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time[][]|int|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].time[][]|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].fieldsType|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].fieldsV1.-[]|uint8|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.metadata.managedFields[].subresource|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.accessModes[]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.selector.matchLabels.NAME|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.selector.matchExpressions[].key|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.selector.matchExpressions[].operator|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.selector.matchExpressions[].values[]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.limits.NAME|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.limits.NAME|int32|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.limits.NAME|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.limits.NAME[]|uint|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.limits.NAME[]|int32|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.limits.NAME[]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.limits.NAME[]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.requests.NAME|int64|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.requests.NAME|int32|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.requests.NAME|bool|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.requests.NAME[]|uint|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.requests.NAME[]|int32|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.requests.NAME[]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.requests.NAME[]|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.resources.claims[].name|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.volumeName|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.storageClassName|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.volumeMode|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.dataSource.apiGroup|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.dataSource.kind|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.dataSource.name|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.dataSourceRef.apiGroup|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.dataSourceRef.kind|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.dataSourceRef.name|string|||
+|gloo-fed.glooFed.volumes[].ephemeral.volumeClaimTemplate.spec.dataSourceRef.namespace|string|||
+|gloo-fed.glooFed.glooFed.securityContext.capabilities.add[]|string|||
+|gloo-fed.glooFed.glooFed.securityContext.capabilities.drop[]|string|||
+|gloo-fed.glooFed.glooFed.securityContext.privileged|bool|||
+|gloo-fed.glooFed.glooFed.securityContext.seLinuxOptions.user|string|||
+|gloo-fed.glooFed.glooFed.securityContext.seLinuxOptions.role|string|||
+|gloo-fed.glooFed.glooFed.securityContext.seLinuxOptions.type|string|||
+|gloo-fed.glooFed.glooFed.securityContext.seLinuxOptions.level|string|||
+|gloo-fed.glooFed.glooFed.securityContext.windowsOptions.gmsaCredentialSpecName|string|||
+|gloo-fed.glooFed.glooFed.securityContext.windowsOptions.gmsaCredentialSpec|string|||
+|gloo-fed.glooFed.glooFed.securityContext.windowsOptions.runAsUserName|string|||
+|gloo-fed.glooFed.glooFed.securityContext.windowsOptions.hostProcess|bool|||
+|gloo-fed.glooFed.glooFed.securityContext.runAsUser|int64|||
+|gloo-fed.glooFed.glooFed.securityContext.runAsGroup|int64|||
+|gloo-fed.glooFed.glooFed.securityContext.runAsNonRoot|bool|||
+|gloo-fed.glooFed.glooFed.securityContext.readOnlyRootFilesystem|bool|||
+|gloo-fed.glooFed.glooFed.securityContext.allowPrivilegeEscalation|bool|||
+|gloo-fed.glooFed.glooFed.securityContext.procMount|string|||
+|gloo-fed.glooFed.glooFed.securityContext.seccompProfile.type|string|||
+|gloo-fed.glooFed.glooFed.securityContext.seccompProfile.localhostProfile|string|||
+|gloo-fed.glooFed.glooFed.securityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this values to false. Default value is "".|
+|gloo-fed.glooFed.glooFed.volumeMounts[].name|string|||
+|gloo-fed.glooFed.glooFed.volumeMounts[].readOnly|bool|||
+|gloo-fed.glooFed.glooFed.volumeMounts[].mountPath|string|||
+|gloo-fed.glooFed.glooFed.volumeMounts[].subPath|string|||
+|gloo-fed.glooFed.glooFed.volumeMounts[].mountPropagation|string|||
+|gloo-fed.glooFed.glooFed.volumeMounts[].subPathExpr|string|||
+|gloo-fed.glooFed.replicas|int||number of instances to deploy|
+|gloo-fed.glooFed.customEnv[].name|string|||
+|gloo-fed.glooFed.customEnv[].value|string|||
+|gloo-fed.glooFed.customEnv[].valueFrom.fieldRef.apiVersion|string|||
+|gloo-fed.glooFed.customEnv[].valueFrom.fieldRef.fieldPath|string|||
+|gloo-fed.glooFed.customEnv[].valueFrom.resourceFieldRef.containerName|string|||
+|gloo-fed.glooFed.customEnv[].valueFrom.resourceFieldRef.resource|string|||
+|gloo-fed.glooFed.customEnv[].valueFrom.resourceFieldRef.divisor|int64|||
+|gloo-fed.glooFed.customEnv[].valueFrom.resourceFieldRef.divisor|int32|||
+|gloo-fed.glooFed.customEnv[].valueFrom.resourceFieldRef.divisor|bool|||
+|gloo-fed.glooFed.customEnv[].valueFrom.resourceFieldRef.divisor[]|uint|||
+|gloo-fed.glooFed.customEnv[].valueFrom.resourceFieldRef.divisor[]|int32|||
+|gloo-fed.glooFed.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
+|gloo-fed.glooFed.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
+|gloo-fed.glooFed.customEnv[].valueFrom.configMapKeyRef.name|string|||
+|gloo-fed.glooFed.customEnv[].valueFrom.configMapKeyRef.key|string|||
+|gloo-fed.glooFed.customEnv[].valueFrom.configMapKeyRef.optional|bool|||
+|gloo-fed.glooFed.customEnv[].valueFrom.secretKeyRef.name|string|||
+|gloo-fed.glooFed.customEnv[].valueFrom.secretKeyRef.key|string|||
+|gloo-fed.glooFed.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|gloo-fed.glooFed.restartPolicy|string||restart policy to use when the pod exits|
+|gloo-fed.glooFed.priorityClassName|string||name of a defined priority class|
+|gloo-fed.glooFed.nodeName|string||name of node to run on|
+|gloo-fed.glooFed.nodeSelector.NAME|string||label selector for nodes|
+|gloo-fed.glooFed.tolerations[].key|string|||
+|gloo-fed.glooFed.tolerations[].operator|string|||
+|gloo-fed.glooFed.tolerations[].value|string|||
+|gloo-fed.glooFed.tolerations[].effect|string|||
+|gloo-fed.glooFed.tolerations[].tolerationSeconds|int64|||
+|gloo-fed.glooFed.affinity.NAME|interface|||
+|gloo-fed.glooFed.hostAliases[]|interface|||
+|gloo-fed.glooFed.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
+|gloo-fed.glooFed.resources.limits.memory|string||amount of memory|
+|gloo-fed.glooFed.resources.limits.cpu|string||amount of CPUs|
+|gloo-fed.glooFed.resources.requests.memory|string||amount of memory|
+|gloo-fed.glooFed.resources.requests.cpu|string||amount of CPUs|
+|gloo-fed.glooFed.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo-fed.rbac.create|bool|||
 |gloo-fed.rbacWebhook.image.tag|string||The image tag for the container.|
 |gloo-fed.rbacWebhook.image.repository|string||The image repository (name) for the container.|
@@ -1971,6 +2344,7 @@
 |global.extensions.rateLimit.deployment.podSecurityContext.fsGroupChangePolicy|string|||
 |global.extensions.rateLimit.deployment.podSecurityContext.seccompProfile.type|string|||
 |global.extensions.rateLimit.deployment.podSecurityContext.seccompProfile.localhostProfile|string|||
+|global.extensions.rateLimit.deployment.podSecurityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this values to false. Default value is "".|
 |global.extensions.rateLimit.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |global.extensions.rateLimit.deployment.replicas|int||number of instances to deploy|
 |global.extensions.rateLimit.deployment.customEnv[].name|string|||
@@ -2028,6 +2402,7 @@
 |global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.procMount|string|||
 |global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.seccompProfile.type|string|||
 |global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.seccompProfile.localhostProfile|string|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this values to false. Default value is "".|
 |global.extensions.rateLimit.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |global.extensions.rateLimit.deployment.image.repository|string|rate-limit-ee|The image repository (name) for the container.|
 |global.extensions.rateLimit.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|

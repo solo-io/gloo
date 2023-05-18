@@ -3,7 +3,6 @@ package generate
 import (
 	glooGen "github.com/solo-io/gloo/install/helm/gloo/generate"
 	glooFedGen "github.com/solo-io/solo-projects/install/helm/gloo-fed/generate"
-	appsv1 "k8s.io/api/core/v1"
 )
 
 type HelmConfig struct {
@@ -131,27 +130,27 @@ type AerospikeTLS struct {
 }
 
 type RateLimitDeployment struct {
-	Name                 string                     `json:"name"`
-	GlooAddress          string                     `json:"glooAddress"`
-	GlooPort             uint                       `json:"glooPort" desc:"Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config"`
-	DynamoDb             DynamoDb                   `json:"dynamodb"`
-	AerospikeDb          AerospikeDb                `json:"aerospike"`
-	Stats                *glooGen.Stats             `json:"stats"`
-	RunAsUser            float64                    `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as in the podSecurityContext. Default is 10101. If podSecurityContext is defined, this value is not applied."`
-	LivenessProbeEnabled *bool                      `json:"livenessProbeEnabled,omitempty" desc:"Set to true to enable a liveness probe for RateLimit (default is false)."`
-	FloatingUserId       bool                       `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID in the podSecurityContext. If podSecurityContext is defined, this value is not applied."`
-	ExtraRateLimitLabels map[string]string          `json:"extraRateLimitLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the rateLimit deployment."`
-	LogLevel             *string                    `json:"logLevel,omitempty" desc:"Level at which the pod should log. Options include \"info\", \"debug\", \"warn\", \"error\", \"panic\" and \"fatal\". Default level is info."`
-	PodDisruptionBudget  *PodDisruptionBudget       `json:"podDisruptionBudget,omitempty" desc:"PodDisruptionBudget is an object to define the max disruption that can be caused to the rate-limit pods."`
-	PodSecurityContext   *appsv1.PodSecurityContext `json:"podSecurityContext,omitempty" desc:"podSecurityContext for the pod. If this is defined it supercedes any values set in FloatingUserId or RunAsUser. See [pod security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core) for details."`
+	Name                 string                      `json:"name"`
+	GlooAddress          string                      `json:"glooAddress"`
+	GlooPort             uint                        `json:"glooPort" desc:"Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config"`
+	DynamoDb             DynamoDb                    `json:"dynamodb"`
+	AerospikeDb          AerospikeDb                 `json:"aerospike"`
+	Stats                *glooGen.Stats              `json:"stats"`
+	RunAsUser            float64                     `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as in the podSecurityContext. Default is 10101. If podSecurityContext is defined, this value is not applied."`
+	LivenessProbeEnabled *bool                       `json:"livenessProbeEnabled,omitempty" desc:"Set to true to enable a liveness probe for RateLimit (default is false)."`
+	FloatingUserId       bool                        `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID in the podSecurityContext. If podSecurityContext is defined, this value is not applied."`
+	ExtraRateLimitLabels map[string]string           `json:"extraRateLimitLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the rateLimit deployment."`
+	LogLevel             *string                     `json:"logLevel,omitempty" desc:"Level at which the pod should log. Options include \"info\", \"debug\", \"warn\", \"error\", \"panic\" and \"fatal\". Default level is info."`
+	PodDisruptionBudget  *PodDisruptionBudget        `json:"podDisruptionBudget,omitempty" desc:"PodDisruptionBudget is an object to define the max disruption that can be caused to the rate-limit pods."`
+	PodSecurityContext   *glooGen.PodSecurityContext `json:"podSecurityContext,omitempty" desc:"podSecurityContext for the pod. If this is defined it supercedes any values set in FloatingUserId or RunAsUser. See [pod security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core) for details."`
 	*glooGen.KubeResourceOverride
 	*glooGen.DeploymentSpec
 	*RateLimitDeploymentContainer
 }
 
 type RateLimitDeploymentContainer struct {
-	RateLimitContainerSecurityContext *appsv1.SecurityContext `json:"rateLimitContainerSecurityContext,omitempty" desc:"securityContext for rate limit container. See [security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core) for details"`
-	Image                             *glooGen.Image          `json:"image,omitempty"`
+	RateLimitContainerSecurityContext *glooGen.SecurityContext `json:"rateLimitContainerSecurityContext,omitempty" desc:"securityContext for rate limit container. See [security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core) for details"`
+	Image                             *glooGen.Image           `json:"image,omitempty"`
 }
 
 type RateLimitService struct {
@@ -176,29 +175,29 @@ type RedisMountCert struct {
 }
 
 type RedisInitContainer struct {
-	Image           *glooGen.Image          `json:"image,omitempty"`
-	SecurityContext *appsv1.SecurityContext `json:"securityContext,omitempty" desc:"securityContext for the redis init container. See [security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core) for details."`
+	Image           *glooGen.Image           `json:"image,omitempty"`
+	SecurityContext *glooGen.SecurityContext `json:"securityContext,omitempty" desc:"securityContext for the redis init container. See [security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core) for details."`
 }
 
 type RedisDeployment struct {
-	InitContainer            *RedisInitContainer        `json:"initContainer,omitempty" desc:"Override the image used in the initContainer."`
-	Name                     string                     `json:"name"`
-	StaticPort               uint                       `json:"staticPort"`
-	RunAsUser                float64                    `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as in the podSecurityContext. Default is 999. If a podSecurityContext is defined for the pod , this value is not applied."`
-	RunAsGroup               float64                    `json:"runAsGroup" desc:"Explicitly set the group ID for the container to run as in the podSecurityContext. Default is 999. If a podSecurityContext is defined for the pod, this value is not applied."`
-	FsGroup                  float64                    `json:"fsGroup" desc:"Explicitly set the fsGroup ID for the container to run as in the podSecurityContext. Default is 999. If a podSecurityContext is defined for the pod, this value is not applied."`
-	FloatingUserId           bool                       `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID. If podSecurityContext is defined, this value is not applied."`
-	ExtraRedisLabels         map[string]string          `json:"extraRedisLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the redis deployment."`
-	EnablePodSecurityContext *bool                      `json:"enablePodSecurityContext,omitempty" desc:"Whether or not to render the pod security context. Default is true."`
-	PodSecurityContext       *appsv1.PodSecurityContext `json:"podSecurityContext,omitempty" desc:"podSecurityContext for the pod. If this is defined it supercedes any values set in FloatingUserId, RunAsUser, RunAsGroup or FsGroup. See [pod security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core) for details."`
+	InitContainer            *RedisInitContainer         `json:"initContainer,omitempty" desc:"Override the image used in the initContainer."`
+	Name                     string                      `json:"name"`
+	StaticPort               uint                        `json:"staticPort"`
+	RunAsUser                float64                     `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as in the podSecurityContext. Default is 999. If a podSecurityContext is defined for the pod , this value is not applied."`
+	RunAsGroup               float64                     `json:"runAsGroup" desc:"Explicitly set the group ID for the container to run as in the podSecurityContext. Default is 999. If a podSecurityContext is defined for the pod, this value is not applied."`
+	FsGroup                  float64                     `json:"fsGroup" desc:"Explicitly set the fsGroup ID for the container to run as in the podSecurityContext. Default is 999. If a podSecurityContext is defined for the pod, this value is not applied."`
+	FloatingUserId           bool                        `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID. If podSecurityContext is defined, this value is not applied."`
+	ExtraRedisLabels         map[string]string           `json:"extraRedisLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the redis deployment."`
+	EnablePodSecurityContext *bool                       `json:"enablePodSecurityContext,omitempty" desc:"Whether or not to render the pod security context. Default is true."`
+	PodSecurityContext       *glooGen.PodSecurityContext `json:"podSecurityContext,omitempty" desc:"podSecurityContext for the pod. If this is defined it supercedes any values set in FloatingUserId, RunAsUser, RunAsGroup or FsGroup. See [pod security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core) for details."`
 	*glooGen.DeploymentSpec
 	*glooGen.KubeResourceOverride
 	*RedisDeploymentContainer
 }
 
 type RedisDeploymentContainer struct {
-	RedisContainerSecurityContext *appsv1.SecurityContext `json:"redisContainerSecurityContext,omitempty" desc:"securityContext for the redis container. See [security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core) for details."`
-	Image                         *glooGen.Image          `json:"image,omitempty"`
+	RedisContainerSecurityContext *glooGen.SecurityContext `json:"redisContainerSecurityContext,omitempty" desc:"securityContext for the redis container. See [security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core) for details."`
+	Image                         *glooGen.Image           `json:"image,omitempty"`
 }
 
 type RedisService struct {

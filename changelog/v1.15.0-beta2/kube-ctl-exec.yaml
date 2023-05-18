@@ -1,0 +1,19 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/7912
+    resolvesIssue: false
+    description: >-
+      Allow custom securityContext definitions to be merged with the default definition instead of overwriting with the use of the `mergePolicy` field. 
+      This is useful, for example, for setting the `runAsNonRoot` field to `true` without overwriting the default securityContext. 
+      The default, which is also indicated by the attribute `mergePolicy` value of `no-merge` results in the defined securityContext being used in the chart. 
+      If the value is set to `helm-merge` the defined securityContext will be merged with the default securityContext with the helm merge command, 
+      with defined values overriding the defaults. If the value is unrecognized, an error is thrown.
+      
+      Add custom securityContexts to gloo-fed deployments
+
+      Add gloo's DeploymentSpec to gloo-fed deployment containers (gloo-fed and gloo-fed-api)
+
+      Add the ability to define custom gloo-fed RBAC roles. This is done by defining the roles in gloo-fed.glooFed.roleRules
+
+      Add the ability to define volumes/volume mounts for gloo-fed deployments. This is done with the values 
+      gloo-fed.glooFed.volumes to define the volumes and gloo-fed.glooFed.glooFed.volumeMounts to define the glooFed container's volume mounts.

@@ -41,6 +41,7 @@ spec:
       {{- end }}
     spec:
       serviceAccountName: gloo-fed-console
+      {{- include "gloofed.podSpecStandardFields" $glooFedApiserver | nindent 6 -}}
       containers:
       - image: {{ $glooFedApiserverImage.registry }}/{{ $glooFedApiserverImage.repository }}:{{ $glooFedApiserverImage.tag }}
         env:

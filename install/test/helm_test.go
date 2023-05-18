@@ -4364,42 +4364,221 @@ spec:
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
-			DescribeTable("Container securityContexts can be set in redis and rate-limit deployment charts",
-				func(podGlooName string, containerName string, containerSecurityRoot string) {
-					valuesArgs := append([]string{
-						"global.glooMtls.enabled=true"},
-						getContainerSecurityContextValues(containerSecurityRoot, containerName)...,
+			It("can merge rate limit security context", func() {
+				podSecurityRoot := "global.extensions.rateLimit.deployment.podSecurityContext"
+				containerSecurityRoot := "global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext"
+				valuesArgs := append([]string{
+					podSecurityRoot + ".fsGroup=121212",
+					podSecurityRoot + ".runAsUser=323232",
+					podSecurityRoot + ".mergePolicy=helm-merge",
+				}, getContainerSecurityContextValues(containerSecurityRoot, "rateLimit")...)
+
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: valuesArgs,
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				// The default security policy is nil, so we can just set the expected to the values we set
+				expectedDeployment.Spec.Template.Spec.SecurityContext = &v1.PodSecurityContext{
+					FSGroup:      pointer.Int64(121212),
+					RunAsUser:    pointer.Int64(323232),
+					RunAsNonRoot: pointer.Bool(true),
+				}
+				expectedDeployment.Spec.Template.Spec.Containers[0].SecurityContext = getContainerSecurityContext("rateLimit")
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			DescribeTable("Container securityContexts can be overriden",
+				func(podGlooName string, containerName string, containerSecurityRoot string, isFed bool) {
+
+					helmValuesA := securityContextFieldsStripeGroupA(containerSecurityRoot, "global.glooMtls.enabled=true")
+
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValuesA)
+					Expect(err).NotTo(HaveOccurred())
+
+					var structuredDeployment *appsv1.Deployment
+
+					if isFed {
+						structuredDeployment = getFedStructuredDeployment(testManifest, podGlooName)
+					} else {
+						structuredDeployment = getStructuredDeployment(testManifest, podGlooName)
+					}
+					ex := ExpectContainer{
+						Containers: structuredDeployment.Spec.Template.Spec.Containers,
+						Name:       containerName,
+					}
+					ex.ExpectToHaveSecurityContext(getContainerSecurityContextA())
+
+					helmValuesB := securityContextFieldsStripeGroupB(
+						containerSecurityRoot,
+						containerSecurityRoot+".mergePolicy=no-merge",
+						"global.glooMtls.enabled=true",
 					)
 
+					testManifest, err = BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValuesB)
+					Expect(err).NotTo(HaveOccurred())
+
+					if isFed {
+						structuredDeployment = getFedStructuredDeployment(testManifest, podGlooName)
+					} else {
+						structuredDeployment = getStructuredDeployment(testManifest, podGlooName)
+					}
+
+					ex = ExpectContainer{
+						Containers: structuredDeployment.Spec.Template.Spec.Containers,
+						Name:       containerName,
+					}
+					ex.ExpectToHaveSecurityContext(getContainerSecurityContextB())
+
+				},
+				Entry("2-rate-limit-deployment-sds", "rate-limit", "sds", "global.glooMtls.sds.securityContext", false),
+				Entry("2-rate-limit-deployment-sds", "rate-limit", "envoy-sidecar", "global.glooMtls.envoy.securityContext", false),
+				Entry("2-rate-limit-deployment-rate-limit", "rate-limit", "rate-limit", "global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext", false),
+				Entry("1-redis-deployment-sds", "redis", "redis", "redis.deployment.redisContainerSecurityContext", false),
+				Entry("gloo-fed-deployment", "gloo-fed", "gloo-fed", "gloo-fed.glooFed.glooFed.securityContext", true),
+			)
+
+			DescribeTable("Container securityContexts can be merged",
+				func(podGlooName string, containerName string, containerSecurityRoot string, initiallyNull bool, isFed bool) {
+					// Get the initial security context
 					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-						valuesArgs: valuesArgs,
+						valuesArgs: []string{"global.glooMtls.enabled=true"},
 					})
 					Expect(err).NotTo(HaveOccurred())
 
-					foundContainerCount := 0
-					testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
-						return resource.GetKind() == "Deployment" && resource.GetLabels()["gloo"] == podGlooName
-					}).ExpectAll(func(deployment *unstructured.Unstructured) {
-						deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
-						Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured.", deployment))
-						structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
-						Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment.", deployment))
+					var structuredDeployment *appsv1.Deployment
 
-						foundContainerCount++
-						ex := ExpectContainer{
-							Containers: structuredDeployment.Spec.Template.Spec.Containers,
-							Name:       containerName,
-						}
-						ex.ExpectToHaveSecurityContext(getContainerSecurityContext(containerName))
-					})
+					if isFed {
+						structuredDeployment = getFedStructuredDeployment(testManifest, podGlooName)
+					} else {
+						structuredDeployment = getStructuredDeployment(testManifest, podGlooName)
+					}
 
-					Expect(foundContainerCount).To(Equal(1))
+					ex := ExpectContainer{
+						Containers: structuredDeployment.Spec.Template.Spec.Containers,
+						Name:       containerName,
+					}
+
+					initialSecurityContext := ex.getSecurityContext()
+
+					if initiallyNull {
+						Expect(initialSecurityContext).To(BeNil())
+					}
+					if initialSecurityContext == nil {
+						initialSecurityContext = &v1.SecurityContext{}
+					}
+					// Make a copy so we can restore it later
+					var initialSecurityContextClean *v1.SecurityContext
+					deepCopy(&initialSecurityContext, &initialSecurityContextClean)
+
+					//
+					// Stripe group A
+					helmValuesA := securityContextFieldsStripeGroupA(
+						containerSecurityRoot,
+						containerSecurityRoot+".mergePolicy=helm-merge",
+						"global.glooMtls.enabled=true",
+					)
+
+					testManifest, err = BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValuesA)
+					Expect(err).NotTo(HaveOccurred())
+					if isFed {
+						structuredDeployment = getFedStructuredDeployment(testManifest, podGlooName)
+					} else {
+						structuredDeployment = getStructuredDeployment(testManifest, podGlooName)
+					}
+
+					ex = ExpectContainer{
+						Containers: structuredDeployment.Spec.Template.Spec.Containers,
+						Name:       containerName,
+					}
+
+					securityContext := ex.getSecurityContext()
+
+					// Test that all the values are set
+					Expect(securityContext.RunAsNonRoot).To(Equal(pointer.Bool(true)))
+					initialSecurityContext.RunAsNonRoot = pointer.Bool(true)
+					Expect(securityContext.RunAsUser).To(Equal(pointer.Int64(int64(1234))))
+					initialSecurityContext.RunAsUser = pointer.Int64(int64(1234))
+					Expect(securityContext.AllowPrivilegeEscalation).To(Equal(pointer.Bool(true)))
+					initialSecurityContext.AllowPrivilegeEscalation = pointer.Bool(true)
+					Expect(securityContext.ReadOnlyRootFilesystem).To(Equal(pointer.Bool(true)))
+					initialSecurityContext.ReadOnlyRootFilesystem = pointer.Bool(true)
+					expectedSELinuxOptions := &v1.SELinuxOptions{
+						Level: "seLevel",
+						Role:  "seRole",
+						Type:  "seType",
+						User:  "seUser",
+					}
+					Expect(securityContext.SELinuxOptions).To(Equal(expectedSELinuxOptions))
+					initialSecurityContext.SELinuxOptions = expectedSELinuxOptions
+
+					// We've test/updated all the fields we passed, so now we can compare the whole thing
+					Expect(securityContext).To(Equal(initialSecurityContext))
+
+					//
+					// Stripe group B
+					initialSecurityContext = &v1.SecurityContext{}
+					deepCopy(&initialSecurityContextClean, &initialSecurityContext)
+					helmValuesB := securityContextFieldsStripeGroupB(
+						containerSecurityRoot,
+						containerSecurityRoot+".mergePolicy=helm-merge",
+						"global.glooMtls.enabled=true",
+					)
+
+					testManifest, err = BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValuesB)
+					Expect(err).NotTo(HaveOccurred())
+					if isFed {
+						structuredDeployment = getFedStructuredDeployment(testManifest, podGlooName)
+					} else {
+						structuredDeployment = getStructuredDeployment(testManifest, podGlooName)
+					}
+
+					ex = ExpectContainer{
+						Containers: structuredDeployment.Spec.Template.Spec.Containers,
+						Name:       containerName,
+					}
+					securityContext = ex.getSecurityContext()
+
+					// Test that all the values are set
+					expectedCapabilities := &v1.Capabilities{
+						Add:  []v1.Capability{"ADD"},
+						Drop: []v1.Capability{"DROP"},
+					}
+					Expect(securityContext.Capabilities).To(Equal(expectedCapabilities))
+					initialSecurityContext.Capabilities = expectedCapabilities
+
+					expectedSeccompProfile := &v1.SeccompProfile{
+						LocalhostProfile: pointer.String("seccompLHP"),
+						Type:             "seccompType",
+					}
+					Expect(securityContext.SeccompProfile).To(Equal(expectedSeccompProfile))
+					initialSecurityContext.SeccompProfile = expectedSeccompProfile
+
+					expectedWindowsOptions := &v1.WindowsSecurityContextOptions{
+						GMSACredentialSpecName: pointer.String("winGmsaCredSpecName"),
+						GMSACredentialSpec:     pointer.String("winGmsaCredSpec"),
+						RunAsUserName:          pointer.String("winUser"),
+						HostProcess:            pointer.Bool(true),
+					}
+					Expect(securityContext.WindowsOptions).To(Equal(expectedWindowsOptions))
+					initialSecurityContext.WindowsOptions = expectedWindowsOptions
+
+					// If the initial security context was nil because of a lack of passed values, then these end up as the defaults if otehr values are set
+					if initiallyNull {
+						initialSecurityContext.RunAsUser = pointer.Int64(int64(10101))
+						initialSecurityContext.RunAsNonRoot = pointer.Bool(true)
+					}
+					Expect(securityContext).To(Equal(initialSecurityContext))
+
 				},
-				Entry("2-rate-limit-deployment-sds", "rate-limit", "sds", "global.glooMtls.sds.securityContext"),
-				Entry("2-rate-limit-deployment-sds", "rate-limit", "envoy-sidecar", "global.glooMtls.envoy.securityContext"),
-				Entry("2-rate-limit-deployment-rate-limit", "rate-limit", "rate-limit", "global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext"),
-				Entry("1-redis-deployment-sds", "redis", "redis", "redis.deployment.redisContainerSecurityContext"),
+				Entry("2-rate-limit-deployment-sds", "rate-limit", "sds", "global.glooMtls.sds.securityContext", true, false),
+				Entry("2-rate-limit-deployment-sds", "rate-limit", "envoy-sidecar", "global.glooMtls.envoy.securityContext", true, false),
+				Entry("2-rate-limit-deployment-rate-limit", "rate-limit", "rate-limit", "global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext", false, false),
+				Entry("1-redis-deployment-sds", "redis", "redis", "redis.deployment.redisContainerSecurityContext", false, false),
+				Entry("gloo-fed-deployment", "gloo-fed", "gloo-fed", "gloo-fed.glooFed.glooFed.securityContext", false, true),
 			)
+
 		})
 
 		Context("caching deployment", func() {
@@ -4543,6 +4722,7 @@ spec:
 					testManifest, err := BuildTestManifest(install.GlooFedChartName, namespace, helmValues{
 						valuesArgs: values,
 					})
+
 					if expectedError != "" {
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring(expectedError))
@@ -4640,6 +4820,54 @@ spec:
 					},
 					""),
 			)
+
+			It("gloo-fed volume mounts", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"gloo-fed.glooFed.glooFed.volumeMounts[0].mountPath=/etc/from-volume-mounts",
+						"gloo-fed.glooFed.glooFed.volumeMounts[0].name=from-volume-mounts",
+						"gloo-fed.glooFed.volumes[0].name=from-volumes",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				structuredDeployment := getFedStructuredDeployment(testManifest, "gloo-fed")
+				container := getContainer(testManifest, "Deployment", "gloo-fed", "gloo-fed")
+
+				Expect(container.VolumeMounts).To(BeEquivalentTo([]v1.VolumeMount{
+					{
+						Name:      "from-volume-mounts",
+						MountPath: "/etc/from-volume-mounts",
+					},
+				}))
+				Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(BeEquivalentTo([]v1.Volume{
+					{
+						Name: "from-volumes",
+					},
+				}))
+			})
+
+			It("gloo-fed roles", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"gloo-fed.glooFed.roleRules[0].apiGroups[0]=test-group",
+						"gloo-fed.glooFed.roleRules[0].resources[0]=test-resource",
+						"gloo-fed.glooFed.roleRules[0].verbs[0]=test-verb",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				roleResource := getFedStructuredRole(testManifest, "gloo-fed")
+
+				Expect(roleResource.Rules).To(BeEquivalentTo([]rbacv1.PolicyRule{
+					{
+						APIGroups: []string{"test-group"},
+						Resources: []string{"test-resource"},
+						Verbs:     []string{"test-verb"},
+					},
+				}))
+
+			})
 		})
 
 		Context("gloo-fed apiserver deployment", func() {
@@ -5475,6 +5703,8 @@ spec:
 				Entry("rate limit deployment", "Deployment", "rate-limit", "global.extensions.rateLimit.deployment"),
 				Entry("observability deployment", "Deployment", "observability", "observability.deployment"),
 				Entry("extauth deployment", "Deployment", "extauth", "global.extensions.extAuth.deployment"),
+				Entry("gloo fed delpoyment", "Deployment", "gloo-fed", "gloo-fed.glooFed"),
+				Entry("gloo fed apiseerver deployment", "Deployment", "gloo-fed-console", "gloo-fed.glooFedApiserver"),
 			)
 		})
 
@@ -5793,6 +6023,40 @@ func getContainerSecurityContext(id_token string) *v1.SecurityContext {
 	}
 }
 
+func getContainerSecurityContextA() *v1.SecurityContext {
+	return &v1.SecurityContext{
+		RunAsUser:                pointer.Int64(int64(1234)),
+		AllowPrivilegeEscalation: pointer.Bool(true),
+		ReadOnlyRootFilesystem:   pointer.Bool(true),
+		RunAsNonRoot:             pointer.Bool(true),
+		SELinuxOptions: &v1.SELinuxOptions{
+			Level: "seLevel",
+			Role:  "seRole",
+			Type:  "seType",
+			User:  "seUser",
+		},
+	}
+}
+
+func getContainerSecurityContextB() *v1.SecurityContext {
+	return &v1.SecurityContext{
+		Capabilities: &v1.Capabilities{
+			Add:  []v1.Capability{"ADD"},
+			Drop: []v1.Capability{"DROP"},
+		},
+		SeccompProfile: &v1.SeccompProfile{
+			LocalhostProfile: pointer.String("seccompLHP"),
+			Type:             "seccompType",
+		},
+		WindowsOptions: &v1.WindowsSecurityContextOptions{
+			GMSACredentialSpecName: pointer.String("winGmsaCredSpecName"),
+			GMSACredentialSpec:     pointer.String("winGmsaCredSpec"),
+			RunAsUserName:          pointer.String("winUser"),
+			HostProcess:            pointer.Bool(true),
+		},
+	}
+}
+
 func getContainerSecurityContextValues(securityRoot string, id_token string) []string {
 	return []string{
 		securityRoot + ".runAsNonRoot=true",
@@ -5812,4 +6076,174 @@ func getContainerSecurityContextValues(securityRoot string, id_token string) []s
 		securityRoot + ".windowsOptions.hostProcess=true",
 		securityRoot + ".windowsOptions.runAsUserName=winUser",
 	}
+}
+
+// deepCopy deepcopies a to b using json marshaling
+// https://stackoverflow.com/questions/46790190/quicker-way-to-deepCopy-objects-in-golang-json-vs-gob
+func deepCopy(a, b interface{}) {
+	byt, _ := json.Marshal(a)
+	json.Unmarshal(byt, b)
+}
+
+/*
+podSecurityContextFieldsStripeGroupA/B are used to generate the values.yaml for the podSecurityContext tests.
+
+	We use the stripe groups so that with two tests we can cover all the fields in the podSecurityContext struct both with and without
+	overriding the default values. We do this in 2 places, to test the merge and the overwrite, so we'll just define them once here
+*/
+func podSecurityContextFieldsStripeGroupA(securityRoot string, extraArgs ...string) helmValues {
+	return helmValues{
+		valuesArgs: append([]string{
+			securityRoot + ".fsGroup=101010",
+			securityRoot + ".fsGroupChangePolicy=fsGroupChangePolicyValue",
+			securityRoot + ".runAsGroup=202020",
+			securityRoot + ".runAsNonRoot=true",
+			securityRoot + ".runAsUser=303030",
+			securityRoot + ".supplementalGroups={11,22,33}",
+			securityRoot + ".seLinuxOptions.level=seLevel",
+			securityRoot + ".seLinuxOptions.role=seRole",
+			securityRoot + ".seLinuxOptions.type=seType",
+			securityRoot + ".seLinuxOptions.user=seUser",
+		}, extraArgs...),
+	}
+}
+
+func podSecurityContextFieldsStripeGroupB(securityRoot string, extraArgs ...string) helmValues {
+	return helmValues{
+		valuesArgs: append([]string{
+			securityRoot + ".seccompProfile.localhostProfile=seccompLHP",
+			securityRoot + ".seccompProfile.type=seccompType",
+			securityRoot + ".windowsOptions.gmsaCredentialSpec=winGmsaCredSpec",
+			securityRoot + ".windowsOptions.gmsaCredentialSpecName=winGmsaCredSpecName",
+			securityRoot + ".windowsOptions.hostProcess=true",
+			securityRoot + ".windowsOptions.runAsUserName=winUser",
+			securityRoot + ".sysctls[0].name=sysctlName",
+			securityRoot + ".sysctls[0].value=sysctlValue",
+		}, extraArgs...),
+	}
+}
+
+func securityContextFieldsStripeGroupA(securityRoot string, extraArgs ...string) helmValues {
+	return helmValues{
+		valuesArgs: append([]string{
+			securityRoot + ".runAsNonRoot=true",
+			securityRoot + ".runAsUser=1234",
+			securityRoot + ".allowPrivilegeEscalation=true",
+			securityRoot + ".readOnlyRootFilesystem=true",
+			securityRoot + ".seLinuxOptions.level=seLevel",
+			securityRoot + ".seLinuxOptions.role=seRole",
+			securityRoot + ".seLinuxOptions.type=seType",
+			securityRoot + ".seLinuxOptions.user=seUser",
+		}, extraArgs...),
+	}
+}
+
+func securityContextFieldsStripeGroupB(securityRoot string, extraArgs ...string) helmValues {
+	return helmValues{
+		valuesArgs: append([]string{
+			securityRoot + ".capabilities.add={ADD}",
+			securityRoot + ".capabilities.drop={DROP}",
+			securityRoot + ".seccompProfile.localhostProfile=seccompLHP",
+			securityRoot + ".seccompProfile.type=seccompType",
+			securityRoot + ".windowsOptions.gmsaCredentialSpec=winGmsaCredSpec",
+			securityRoot + ".windowsOptions.gmsaCredentialSpecName=winGmsaCredSpecName",
+			securityRoot + ".windowsOptions.hostProcess=true",
+			securityRoot + ".windowsOptions.runAsUserName=winUser",
+		}, extraArgs...),
+	}
+}
+
+func getContainer(t TestManifest, kind string, resourceName string, containerName string) *v1.Container {
+	resources := t.SelectResources(func(u *unstructured.Unstructured) bool {
+		if u.GetKind() == kind && u.GetName() == resourceName {
+			return true
+		}
+		return false
+	})
+	Expect(resources.NumResources()).To(Equal(1))
+	var foundContainer v1.Container
+	resources.ExpectAll(func(deployment *unstructured.Unstructured) {
+		foundExpected := false
+		deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+		ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to render manifest")
+		structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+		Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+		for _, container := range structuredDeployment.Spec.Template.Spec.Containers {
+			if container.Name == containerName {
+				foundExpected = true
+				foundContainer = container
+			}
+		}
+
+		Expect(foundExpected).To(Equal(true))
+	})
+
+	return &foundContainer
+}
+
+func getStructuredDeployment(t TestManifest, podGlooName string) *appsv1.Deployment {
+
+	structuredDeployment := &appsv1.Deployment{}
+
+	resources := t.SelectResources(func(u *unstructured.Unstructured) bool {
+		if u.GetKind() == "Deployment" {
+			if u.GetLabels()["gloo"] == podGlooName {
+				deploymentObject, err := kuberesource.ConvertUnstructured(u)
+				ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to render manifest")
+				var ok bool
+				structuredDeployment, ok = deploymentObject.(*appsv1.Deployment)
+				Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", u))
+				return true
+			}
+		}
+		return false
+	})
+	Expect(resources.NumResources()).To(Equal(1))
+
+	return structuredDeployment
+}
+
+func getFedStructuredDeployment(t TestManifest, name string) *appsv1.Deployment {
+
+	structuredDeployment := &appsv1.Deployment{}
+
+	resources := t.SelectResources(func(u *unstructured.Unstructured) bool {
+		if u.GetKind() == "Deployment" {
+			if u.GetName() == name {
+				deploymentObject, err := kuberesource.ConvertUnstructured(u)
+				ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to render manifest")
+				var ok bool
+				structuredDeployment, ok = deploymentObject.(*appsv1.Deployment)
+				Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", u))
+				return true
+			}
+		}
+		return false
+	})
+	Expect(resources.NumResources()).To(Equal(1))
+
+	return structuredDeployment
+}
+
+func getFedStructuredRole(t TestManifest, name string) *rbacv1.Role {
+
+	structuredRole := &rbacv1.Role{}
+
+	resources := t.SelectResources(func(u *unstructured.Unstructured) bool {
+		if u.GetKind() == "Role" {
+			if u.GetName() == name {
+				deploymentObject, err := kuberesource.ConvertUnstructured(u)
+				ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to render manifest")
+				var ok bool
+				structuredRole, ok = deploymentObject.(*rbacv1.Role)
+				Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", u))
+				return true
+			}
+		}
+		return false
+	})
+	Expect(resources.NumResources()).To(Equal(1))
+
+	return structuredRole
 }

@@ -2,6 +2,8 @@ package generate
 
 import (
 	glooGen "github.com/solo-io/gloo/install/helm/gloo/generate"
+	appsv1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 )
 
 type HelmConfig struct {
@@ -23,12 +25,23 @@ type GlobalConfig struct {
 }
 
 type GlooFedDeployment struct {
-	Replicas  *int                          `json:"replicas,omitempty"`
-	Resources *glooGen.ResourceRequirements `json:"resources,omitempty"`
-	Image     *glooGen.Image                `json:"image,omitempty"`
-	Stats     *glooGen.Stats                `json:"stats,omitempty"`
+	Image    *glooGen.Image `json:"image,omitempty" desc:"Istio-proxy image to use for mTLS"`
+	Replicas *int           `json:"replicas,omitempty"`
+	Stats    *glooGen.Stats `json:"stats,omitempty"`
 
-	Retries *GlooFedRetries `json:"retries,omitempty" desc:"Retry options for failures reconciling cluster events."`
+	Retries   *GlooFedRetries      `json:"retries,omitempty" desc:"Retry options for failures reconciling cluster events."`
+	RoleRules []*rbacv1.PolicyRule `json:"roleRules,omitempty" desc:"Role rules for the Gloo Federation deployment."`
+	Volumes   []*appsv1.Volume     `json:"volumes,omitempty" desc:"Volumes for the Gloo Federation deployment."`
+
+	GlooFedContainer *GlooFedContainer `json:"glooFed,omitempty" desc:"Container options for the glooFed container."`
+
+	// Supports Resources and DeploymentSpec
+	*glooGen.DeploymentSpec
+}
+
+type GlooFedContainer struct {
+	SecurityContext *glooGen.SecurityContext `json:"securityContext,omitempty" desc:"securityContext for istio-proxy deployment container. If this is defined it supercedes any values set in FloatingUserId, RunAsUser, DisableNetBind, RunUnprivileged. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core for details."`
+	VolumeMounts    []*appsv1.VolumeMount    `json:"volumeMounts,omitempty" desc:"Volume mounts for the Gloo Federation deployment."`
 }
 
 type GlooFedRetries struct {
@@ -57,6 +70,7 @@ type ApiServerDeployment struct {
 	Console                 *ConsoleContainer             `json:"console,omitempty"`
 	Envoy                   *EnvoyContainer               `json:"envoy,omitempty"`
 	NamespaceRestrictedMode *bool                         `json:"namespaceRestrictedMode,omitempty" desc:"If true:  Convert the ClusterRole used in apiserver to Role.  Useful in single-namespace deployments of gloo-ee where permissions can be more restrictive--recommended to not set in a multi-cluster deployment.  Default is false."`
+	*glooGen.DeploymentSpec
 }
 
 type ConsoleContainer struct {

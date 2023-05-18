@@ -122,5 +122,36 @@ roleRef:
   kind: ClusterRole
   name: gloo-fed-{{ .Release.Namespace }}
   apiGroup: rbac.authorization.k8s.io
+
+  {{- if .Values.glooFed.roleRules }}
+---
+
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-fed
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: gloo-fed
+rules:
+{{ toYaml .Values.glooFed.roleRules }}
+
+---
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-fed
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: gloo-fed
+subjects:
+- kind: ServiceAccount
+  name: gloo-fed
+roleRef:
+  kind: Role
+  name: gloo-fed
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
 {{- end }}
 {{- end }} {{/* .Values.enabled */}}

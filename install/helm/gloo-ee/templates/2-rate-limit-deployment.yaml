@@ -51,10 +51,9 @@ spec:
         - image: {{ template "gloo.image" $image}}
           imagePullPolicy: {{ $image.pullPolicy }}
           name: rate-limit
-          {{- with .Values.global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext }}
-          securityContext:
-          {{- toYaml . | nindent 12  }}
-          {{- end }}
+          {{- with .Values.global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext -}}
+{{ include "gloo.securityContext" (dict "values" . "defaults" (dict)) | nindent 10 }}
+          {{ end -}}
           {{- if .Values.global.extensions.rateLimit.deployment.resources }}
           resources:
 {{ toYaml .Values.global.extensions.rateLimit.deployment.resources | indent 12}}
@@ -208,10 +207,7 @@ spec:
             - name: ENVOY_SIDECAR
               value: "true"
           image: {{ template "gloo.image" $envoyImage }}
-          {{- with .Values.global.glooMtls.envoy.securityContext }}}
-          securityContext:
-          {{- toYaml . | nindent 12  }}
-          {{- end }}
+{{ include "gloo.securityContext" (dict "values" .Values.global.glooMtls.envoy.securityContext "defaults" (dict)) | nindent 10 }}
           imagePullPolicy: {{ $envoyImage.pullPolicy }}
           volumeMounts:
             - mountPath: /etc/envoy
@@ -234,10 +230,7 @@ spec:
         {{- $sdsImage := merge .Values.global.glooMtls.sds.image .Values.global.image }}
         - name: sds
           image: {{ template "gloo.image" $sdsImage }}
-          {{- with .Values.global.glooMtls.sds.securityContext }}
-          securityContext:
-          {{- toYaml . | nindent 12  }}
-          {{- end }}
+{{ include "gloo.securityContext" (dict "values" .Values.global.glooMtls.sds.securityContext "defaults" (dict)) | nindent 10 }}
           imagePullPolicy: {{ $sdsImage.pullPolicy }}
           env:
             - name: GLOO_MTLS_SDS_ENABLED
@@ -259,11 +252,7 @@ spec:
         {{- $fmtRunAsUser := int64 (printf "%.0f" (float64 .Values.global.extensions.rateLimit.deployment.runAsUser)) }}
         {{- $_ := set $securityDefaults "runAsUser" $fmtRunAsUser }}
       {{- end -}}
-      {{- $securityContext := or  .Values.global.extensions.rateLimit.deployment.podSecurityContext $securityDefaults }}
-      {{- with $securityContext }}
-      securityContext:
-        {{- toYaml . | nindent 8  }}
-      {{- end }}
+{{ include "gloo.securityContext" (dict "values" .Values.global.extensions.rateLimit.deployment.podSecurityContext "defaults" $securityDefaults) | nindent 6 }}
       {{ if or (.Values.global.extensions.rateLimit.antiAffinity) (.Values.global.extensions.rateLimit.affinity) }}
       affinity:
       {{- end}}

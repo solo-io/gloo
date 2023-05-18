@@ -42,10 +42,9 @@ spec:
       initContainers:
         - name: createconf
           image: {{template "glooe.imagenonextended" $initImage}}
-          {{- with .Values.redis.deployment.initContainer.securityContext }}
-          securityContext:
-            {{- toYaml . | nindent 12  }}
-          {{- end }}
+{{ with .Values.redis.deployment.initContainer.securityContext -}}
+{{ include "gloo.securityContext" (dict "values" . "defaults" (dict)) | indent 10 }}
+{{ end }}
           command: [ "/bin/sh", "-c", "echo 'aclfile /redis-acl/users.acl' > /conf/redis.conf" ]
           volumeMounts:
             - name: conf
@@ -55,10 +54,9 @@ spec:
         - image: {{template "glooe.imagenonextended" $image}}
           imagePullPolicy:  {{ $image.pullPolicy }}
           name: redis
-          {{- with .Values.redis.deployment.redisContainerSecurityContext }}
-          securityContext:
-          {{- toYaml . | nindent 12  }}
-          {{- end }}
+{{ with .Values.redis.deployment.redisContainerSecurityContext -}}
+{{ include "gloo.securityContext" (dict "values" . "defaults" (dict)) | indent 10 }}
+{{ end }}
           {{- if or .Values.redis.cert.enabled .Values.global.extensions.glooRedis.enableAcl }}
           args:
             {{- if .Values.redis.cert.enabled }}
@@ -106,11 +104,7 @@ spec:
         {{- if not .Values.redis.deployment.floatingUserId -}}
           {{- $_ := set $securityDefaults "runAsUser" $fmtRunAsUser }}
         {{- end -}}
-        {{- $securityContext := or  .Values.redis.deployment.podSecurityContext $securityDefaults }}
-        {{- with $securityContext }}
-      securityContext:
-        {{- toYaml . | nindent 8  }}
-        {{- end }}
+{{ include "gloo.securityContext" (dict "values" .Values.redis.deployment.podSecurityContext "defaults" $securityDefaults) | nindent 6 }}
       {{- end }}
       volumes:
         - name: data
