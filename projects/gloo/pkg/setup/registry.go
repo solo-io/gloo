@@ -14,6 +14,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/advanced_http"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/aws"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/caching"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/deprecated_cipher_passthrough"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
@@ -83,6 +84,7 @@ func getEnterprisePlugins(apiEmitterChan chan struct{}, graphQLFeatureState *lic
 		transformer.NewPlugin(),
 		proxyprotocol.NewPlugin(),
 		graphql.NewPlugin(graphQLFeatureState),
+		deprecated_cipher_passthrough.NewPlugin(),
 	}
 }
 

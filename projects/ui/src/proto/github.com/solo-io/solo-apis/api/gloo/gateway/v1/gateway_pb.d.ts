@@ -133,6 +133,11 @@ export class HybridGateway extends jspb.Message {
   getDelegatedHttpGateways(): DelegatedHttpGateway | undefined;
   setDelegatedHttpGateways(value?: DelegatedHttpGateway): void;
 
+  hasDelegatedTcpGateways(): boolean;
+  clearDelegatedTcpGateways(): void;
+  getDelegatedTcpGateways(): DelegatedTcpGateway | undefined;
+  setDelegatedTcpGateways(value?: DelegatedTcpGateway): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HybridGateway.AsObject;
   static toObject(includeInstance: boolean, msg: HybridGateway): HybridGateway.AsObject;
@@ -147,6 +152,7 @@ export namespace HybridGateway {
   export type AsObject = {
     matchedGatewaysList: Array<MatchedGateway.AsObject>,
     delegatedHttpGateways?: DelegatedHttpGateway.AsObject,
+    delegatedTcpGateways?: DelegatedTcpGateway.AsObject,
   }
 }
 
@@ -198,6 +204,41 @@ export namespace DelegatedHttpGateway {
     SELECTION_TYPE_NOT_SET = 0,
     REF = 3,
     SELECTOR = 4,
+  }
+}
+
+export class DelegatedTcpGateway extends jspb.Message {
+  hasRef(): boolean;
+  clearRef(): void;
+  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+  hasSelector(): boolean;
+  clearSelector(): void;
+  getSelector(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector | undefined;
+  setSelector(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector): void;
+
+  getSelectionTypeCase(): DelegatedTcpGateway.SelectionTypeCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DelegatedTcpGateway.AsObject;
+  static toObject(includeInstance: boolean, msg: DelegatedTcpGateway): DelegatedTcpGateway.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DelegatedTcpGateway, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DelegatedTcpGateway;
+  static deserializeBinaryFromReader(message: DelegatedTcpGateway, reader: jspb.BinaryReader): DelegatedTcpGateway;
+}
+
+export namespace DelegatedTcpGateway {
+  export type AsObject = {
+    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    selector?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector.AsObject,
+  }
+
+  export enum SelectionTypeCase {
+    SELECTION_TYPE_NOT_SET = 0,
+    REF = 1,
+    SELECTOR = 2,
   }
 }
 
@@ -253,6 +294,11 @@ export class Matcher extends jspb.Message {
   setSourcePrefixRangesList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange>): void;
   addSourcePrefixRanges(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange, index?: number): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange;
 
+  clearPassthroughCipherSuitesList(): void;
+  getPassthroughCipherSuitesList(): Array<string>;
+  setPassthroughCipherSuitesList(value: Array<string>): void;
+  addPassthroughCipherSuites(value: string, index?: number): string;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Matcher.AsObject;
   static toObject(includeInstance: boolean, msg: Matcher): Matcher.AsObject;
@@ -267,6 +313,7 @@ export namespace Matcher {
   export type AsObject = {
     sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.AsObject,
     sourcePrefixRangesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.AsObject>,
+    passthroughCipherSuitesList: Array<string>,
   }
 }
 

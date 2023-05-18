@@ -157,6 +157,11 @@ export class UpstreamSpec extends jspb.Message {
   getDnsRefreshRate(): google_protobuf_duration_pb.Duration | undefined;
   setDnsRefreshRate(value?: google_protobuf_duration_pb.Duration): void;
 
+  hasProxyProtocolVersion(): boolean;
+  clearProxyProtocolVersion(): void;
+  getProxyProtocolVersion(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setProxyProtocolVersion(value?: google_protobuf_wrappers_pb.StringValue): void;
+
   getUpstreamTypeCase(): UpstreamSpec.UpstreamTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamSpec.AsObject;
@@ -197,6 +202,7 @@ export namespace UpstreamSpec {
     ignoreHealthOnHostRemoval?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     respectDnsTtl?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     dnsRefreshRate?: google_protobuf_duration_pb.Duration.AsObject,
+    proxyProtocolVersion?: google_protobuf_wrappers_pb.StringValue.AsObject,
   }
 
   export interface ClusterProtocolSelectionMap {

@@ -53,6 +53,7 @@ var GatewayGroup = makeGroup(
 	[]resourceToGenerate{
 		{kind: "Gateway"},
 		{kind: "MatchableHttpGateway"},
+		{kind: "MatchableTcpGateway"},
 		{kind: "VirtualService"},
 		{kind: "RouteTable"},
 	})
@@ -65,6 +66,7 @@ var FedGatewayGroup = makeGroup(
 	[]resourceToGenerate{
 		{kind: "FederatedGateway"},
 		{kind: "FederatedMatchableHttpGateway"},
+		{kind: "FederatedMatchableTcpGateway"},
 		{kind: "FederatedVirtualService"},
 		{kind: "FederatedRouteTable"},
 	})
@@ -172,6 +174,7 @@ func fedTemplates() []model.CustomTemplates {
 		}: {
 			"Gateway",
 			"MatchableHttpGateway",
+			"MatchableTcpGateway",
 			"VirtualService",
 			"RouteTable",
 		},

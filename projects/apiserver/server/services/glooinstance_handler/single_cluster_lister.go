@@ -299,6 +299,7 @@ func (l *singleClusterGlooInstanceLister) addCrdSummaries(ctx context.Context, i
 	instance.Spec.Check.VirtualServices = gateway_resource_handler.GetVirtualServiceSummary(ctx, l.gatewayClientset.VirtualServices(), watchedNamespaces)
 	instance.Spec.Check.RouteTables = gateway_resource_handler.GetRouteTableSummary(ctx, l.gatewayClientset.RouteTables(), watchedNamespaces)
 	instance.Spec.Check.MatchableHttpGateways = gateway_resource_handler.GetMatchableHttpGatewaySummary(ctx, l.gatewayClientset.MatchableHttpGateways(), watchedNamespaces)
+	instance.Spec.Check.MatchableTcpGateways = gateway_resource_handler.GetMatchableTcpGatewaySummary(ctx, l.gatewayClientset.MatchableTcpGateways(), watchedNamespaces)
 }
 
 // Convert from the generic structs to the GlooEE apiserver types

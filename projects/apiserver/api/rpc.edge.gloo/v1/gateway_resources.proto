@@ -9,6 +9,7 @@ option (extproto.equal_all) = true;
 option (extproto.hash_all) = true;
 import "github.com/solo-io/solo-apis/api/gloo/gateway/v1/gateway.proto";
 import "github.com/solo-io/solo-apis/api/gloo/gateway/v1/matchable_http_gateway.proto";
+import "github.com/solo-io/solo-apis/api/gloo/gateway/v1/matchable_tcp_gateway.proto";
 import "github.com/solo-io/solo-apis/api/gloo/gateway/v1/virtual_service.proto";
 import "github.com/solo-io/solo-apis/api/gloo/gateway/v1/route_table.proto";
 import "github.com/solo-io/skv2/api/core/v1/core.proto";
@@ -25,6 +26,13 @@ message MatchableHttpGateway {
     .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
     .gateway.solo.io.MatchableHttpGatewaySpec spec = 2;
     .gateway.solo.io.MatchableHttpGatewayStatus status = 3;
+    .core.skv2.solo.io.ObjectRef gloo_instance = 4;
+}
+
+message MatchableTcpGateway {
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .gateway.solo.io.MatchableTcpGatewaySpec spec = 2;
+    .gateway.solo.io.MatchableTcpGatewayStatus status = 3;
     .core.skv2.solo.io.ObjectRef gloo_instance = 4;
 }
 
@@ -100,6 +108,35 @@ message GetMatchableHttpGatewayDetailsResponse {
     MatchableHttpGateway matchable_http_gateway = 1;
 }
 
+message ListMatchableTcpGatewaysRequest {
+    .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+    .rpc.edge.gloo.solo.io.Pagination pagination = 2;
+    string query_string = 3;
+    .rpc.edge.gloo.solo.io.StatusFilter status_filter = 4;
+    .rpc.edge.gloo.solo.io.SortOptions sort_options = 5;
+}
+
+message ListMatchableTcpGatewaysResponse {
+    repeated MatchableTcpGateway matchable_tcp_gateways = 1;
+    int32 total = 2;
+}
+
+message GetMatchableTcpGatewayYamlRequest {
+    .core.skv2.solo.io.ClusterObjectRef matchable_tcp_gateway_ref = 1;
+}
+
+message GetMatchableTcpGatewayYamlResponse {
+    .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
+}
+
+message GetMatchableTcpGatewayDetailsRequest {
+    .core.skv2.solo.io.ClusterObjectRef matchable_tcp_gateway_ref = 1;
+}
+
+message GetMatchableTcpGatewayDetailsResponse {
+    MatchableTcpGateway matchable_tcp_gateway = 1;
+}
+
 message ListVirtualServicesRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
     .rpc.edge.gloo.solo.io.Pagination pagination = 2;
@@ -167,6 +204,10 @@ service GatewayResourceApi {
     rpc ListMatchableHttpGateways (ListMatchableHttpGatewaysRequest) returns (ListMatchableHttpGatewaysResponse) {}
     rpc GetMatchableHttpGatewayYaml (GetMatchableHttpGatewayYamlRequest) returns (GetMatchableHttpGatewayYamlResponse) {}
     rpc GetMatchableHttpGatewayDetails (GetMatchableHttpGatewayDetailsRequest) returns (GetMatchableHttpGatewayDetailsResponse) {}
+
+    rpc ListMatchableTcpGateways (ListMatchableTcpGatewaysRequest) returns (ListMatchableTcpGatewaysResponse) {}
+    rpc GetMatchableTcpGatewayYaml (GetMatchableTcpGatewayYamlRequest) returns (GetMatchableTcpGatewayYamlResponse) {}
+    rpc GetMatchableTcpGatewayDetails (GetMatchableTcpGatewayDetailsRequest) returns (GetMatchableTcpGatewayDetailsResponse) {}
 
     rpc ListVirtualServices (ListVirtualServicesRequest) returns (ListVirtualServicesResponse) {}
     rpc GetVirtualServiceYaml (GetVirtualServiceYamlRequest) returns (GetVirtualServiceYamlResponse) {}

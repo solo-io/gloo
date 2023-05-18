@@ -53,6 +53,7 @@ webhooks:
     resources:
     - federatedgateways
     - federatedmatchablehttpgateways
+    - federatedmatchabletcpgateways
     - federatedvirtualservices
     - federatedroutetables
   - apiGroups:

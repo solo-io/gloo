@@ -62,6 +62,35 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
+    crd.solo.io/specHash: 782b81dd89a7833f
+  labels:
+    app: gloo-fed
+    app.kubernetes.io/name: gloo-fed
+  name: federatedmatchabletcpgateways.fed.gateway.solo.io
+spec:
+  group: fed.gateway.solo.io
+  names:
+    kind: FederatedMatchableTcpGateway
+    listKind: FederatedMatchableTcpGatewayList
+    plural: federatedmatchabletcpgateways
+    singular: federatedmatchabletcpgateway
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: true
+    storage: true
+    subresources:
+      status: {}
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
     crd.solo.io/specHash: cef07d5aed2fa429
   labels:
     app: gloo-fed

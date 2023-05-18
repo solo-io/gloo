@@ -151,7 +151,8 @@ proto.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance, msg) {
     proto.gloo.solo.io.HeaderValue.toObject, includeInstance),
     ignoreHealthOnHostRemoval: (f = msg.getIgnoreHealthOnHostRemoval()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     respectDnsTtl: (f = msg.getRespectDnsTtl()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    dnsRefreshRate: (f = msg.getDnsRefreshRate()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+    dnsRefreshRate: (f = msg.getDnsRefreshRate()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    proxyProtocolVersion: (f = msg.getProxyProtocolVersion()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -321,6 +322,11 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
       msg.setDnsRefreshRate(value);
+      break;
+    case 31:
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
+      msg.setProxyProtocolVersion(value);
       break;
     default:
       reader.skipField();
@@ -564,6 +570,14 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
       30,
       f,
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getProxyProtocolVersion();
+  if (f != null) {
+    writer.writeMessage(
+      31,
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
 };
@@ -1371,6 +1385,36 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearDnsRefreshRate = function() {
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasDnsRefreshRate = function() {
   return jspb.Message.getField(this, 30) != null;
+};
+
+
+/**
+ * optional google.protobuf.StringValue proxy_protocol_version = 31;
+ * @return {?proto.google.protobuf.StringValue}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getProxyProtocolVersion = function() {
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 31));
+};
+
+
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setProxyProtocolVersion = function(value) {
+  jspb.Message.setWrapperField(this, 31, value);
+};
+
+
+proto.gloo.solo.io.UpstreamSpec.prototype.clearProxyProtocolVersion = function() {
+  this.setProxyProtocolVersion(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.hasProxyProtocolVersion = function() {
+  return jspb.Message.getField(this, 31) != null;
 };
 
 

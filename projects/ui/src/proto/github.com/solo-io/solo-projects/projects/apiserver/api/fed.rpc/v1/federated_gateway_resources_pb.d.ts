@@ -6,6 +6,7 @@ import * as jspb from "google-protobuf";
 import * as extproto_ext_pb from "../../../../../../../../extproto/ext_pb";
 import * as github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gateway_v1_gateway_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/gateway_pb";
 import * as github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gateway_v1_matchable_http_gateway_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/matchable_http_gateway_pb";
+import * as github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gateway_v1_matchable_tcp_gateway_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/matchable_tcp_gateway_pb";
 import * as github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gateway_v1_virtual_service_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/virtual_service_pb";
 import * as github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gateway_v1_route_table_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/route_table_pb";
 import * as github_com_solo_io_skv2_api_core_v1_core_pb from "../../../../../../../../github.com/solo-io/skv2/api/core/v1/core_pb";
@@ -76,6 +77,40 @@ export namespace FederatedMatchableHttpGateway {
     metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.AsObject,
     spec?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gateway_v1_matchable_http_gateway_pb.FederatedMatchableHttpGatewaySpec.AsObject,
     status?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gateway_v1_matchable_http_gateway_pb.FederatedMatchableHttpGatewayStatus.AsObject,
+  }
+}
+
+export class FederatedMatchableTcpGateway extends jspb.Message {
+  hasMetadata(): boolean;
+  clearMetadata(): void;
+  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta | undefined;
+  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta): void;
+
+  hasSpec(): boolean;
+  clearSpec(): void;
+  getSpec(): github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gateway_v1_matchable_tcp_gateway_pb.FederatedMatchableTcpGatewaySpec | undefined;
+  setSpec(value?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gateway_v1_matchable_tcp_gateway_pb.FederatedMatchableTcpGatewaySpec): void;
+
+  hasStatus(): boolean;
+  clearStatus(): void;
+  getStatus(): github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gateway_v1_matchable_tcp_gateway_pb.FederatedMatchableTcpGatewayStatus | undefined;
+  setStatus(value?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gateway_v1_matchable_tcp_gateway_pb.FederatedMatchableTcpGatewayStatus): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): FederatedMatchableTcpGateway.AsObject;
+  static toObject(includeInstance: boolean, msg: FederatedMatchableTcpGateway): FederatedMatchableTcpGateway.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: FederatedMatchableTcpGateway, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): FederatedMatchableTcpGateway;
+  static deserializeBinaryFromReader(message: FederatedMatchableTcpGateway, reader: jspb.BinaryReader): FederatedMatchableTcpGateway;
+}
+
+export namespace FederatedMatchableTcpGateway {
+  export type AsObject = {
+    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.AsObject,
+    spec?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gateway_v1_matchable_tcp_gateway_pb.FederatedMatchableTcpGatewaySpec.AsObject,
+    status?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gateway_v1_matchable_tcp_gateway_pb.FederatedMatchableTcpGatewayStatus.AsObject,
   }
 }
 
@@ -306,6 +341,88 @@ export class GetFederatedMatchableHttpGatewayYamlResponse extends jspb.Message {
 }
 
 export namespace GetFederatedMatchableHttpGatewayYamlResponse {
+  export type AsObject = {
+    yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
+  }
+}
+
+export class ListFederatedMatchableTcpGatewaysRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ListFederatedMatchableTcpGatewaysRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ListFederatedMatchableTcpGatewaysRequest): ListFederatedMatchableTcpGatewaysRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ListFederatedMatchableTcpGatewaysRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ListFederatedMatchableTcpGatewaysRequest;
+  static deserializeBinaryFromReader(message: ListFederatedMatchableTcpGatewaysRequest, reader: jspb.BinaryReader): ListFederatedMatchableTcpGatewaysRequest;
+}
+
+export namespace ListFederatedMatchableTcpGatewaysRequest {
+  export type AsObject = {
+  }
+}
+
+export class ListFederatedMatchableTcpGatewaysResponse extends jspb.Message {
+  clearFederatedMatchableTcpGatewaysList(): void;
+  getFederatedMatchableTcpGatewaysList(): Array<FederatedMatchableTcpGateway>;
+  setFederatedMatchableTcpGatewaysList(value: Array<FederatedMatchableTcpGateway>): void;
+  addFederatedMatchableTcpGateways(value?: FederatedMatchableTcpGateway, index?: number): FederatedMatchableTcpGateway;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ListFederatedMatchableTcpGatewaysResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ListFederatedMatchableTcpGatewaysResponse): ListFederatedMatchableTcpGatewaysResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ListFederatedMatchableTcpGatewaysResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ListFederatedMatchableTcpGatewaysResponse;
+  static deserializeBinaryFromReader(message: ListFederatedMatchableTcpGatewaysResponse, reader: jspb.BinaryReader): ListFederatedMatchableTcpGatewaysResponse;
+}
+
+export namespace ListFederatedMatchableTcpGatewaysResponse {
+  export type AsObject = {
+    federatedMatchableTcpGatewaysList: Array<FederatedMatchableTcpGateway.AsObject>,
+  }
+}
+
+export class GetFederatedMatchableTcpGatewayYamlRequest extends jspb.Message {
+  hasFederatedMatchableTcpGatewayRef(): boolean;
+  clearFederatedMatchableTcpGatewayRef(): void;
+  getFederatedMatchableTcpGatewayRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef | undefined;
+  setFederatedMatchableTcpGatewayRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetFederatedMatchableTcpGatewayYamlRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetFederatedMatchableTcpGatewayYamlRequest): GetFederatedMatchableTcpGatewayYamlRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetFederatedMatchableTcpGatewayYamlRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetFederatedMatchableTcpGatewayYamlRequest;
+  static deserializeBinaryFromReader(message: GetFederatedMatchableTcpGatewayYamlRequest, reader: jspb.BinaryReader): GetFederatedMatchableTcpGatewayYamlRequest;
+}
+
+export namespace GetFederatedMatchableTcpGatewayYamlRequest {
+  export type AsObject = {
+    federatedMatchableTcpGatewayRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef.AsObject,
+  }
+}
+
+export class GetFederatedMatchableTcpGatewayYamlResponse extends jspb.Message {
+  hasYamlData(): boolean;
+  clearYamlData(): void;
+  getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml | undefined;
+  setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetFederatedMatchableTcpGatewayYamlResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetFederatedMatchableTcpGatewayYamlResponse): GetFederatedMatchableTcpGatewayYamlResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetFederatedMatchableTcpGatewayYamlResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetFederatedMatchableTcpGatewayYamlResponse;
+  static deserializeBinaryFromReader(message: GetFederatedMatchableTcpGatewayYamlResponse, reader: jspb.BinaryReader): GetFederatedMatchableTcpGatewayYamlResponse;
+}
+
+export namespace GetFederatedMatchableTcpGatewayYamlResponse {
   export type AsObject = {
     yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
   }

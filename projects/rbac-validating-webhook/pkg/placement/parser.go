@@ -55,6 +55,10 @@ func (t *typedParserImpl) ParseFederatedMatchableHttpGateway(ctx context.Context
 	return []*multicluster_types.Placement{obj.Spec.GetPlacement()}, nil
 }
 
+func (t *typedParserImpl) ParseFederatedMatchableTcpGateway(ctx context.Context, obj *fed_gateway_v1.FederatedMatchableTcpGateway) ([]*multicluster_types.Placement, error) {
+	return []*multicluster_types.Placement{obj.Spec.GetPlacement()}, nil
+}
+
 func (t *typedParserImpl) ParseFederatedVirtualService(_ context.Context, obj *fed_gateway_v1.FederatedVirtualService) ([]*multicluster_types.Placement, error) {
 	return []*multicluster_types.Placement{obj.Spec.GetPlacement()}, nil
 }

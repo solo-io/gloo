@@ -32,6 +32,7 @@ var (
 		}: {
 			"FederatedGateway",
 			"FederatedMatchableHttpGateway",
+			"FederatedMatchableTcpGateway",
 			"FederatedRouteTable",
 			"FederatedVirtualService",
 		},

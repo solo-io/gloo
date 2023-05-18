@@ -9,6 +9,7 @@
 // * DaemonSets
 // * Gateways
 // * MatchableHttpGateways
+// * MatchableTcpGateways
 // * VirtualServices
 // * RouteTables
 // * Upstreams
@@ -97,6 +98,11 @@ var SnapshotGVKs = []schema.GroupVersionKind{
 	schema.GroupVersionKind{
 		Group:   "gateway.solo.io",
 		Version: "v1",
+		Kind:    "MatchableTcpGateway",
+	},
+	schema.GroupVersionKind{
+		Group:   "gateway.solo.io",
+		Version: "v1",
 		Kind:    "VirtualService",
 	},
 	schema.GroupVersionKind{
@@ -153,6 +159,8 @@ type Snapshot interface {
 	Gateways() sk_sets.ResourceSet[*gateway_solo_io_v1_types.Gateway]
 	// return the set of input MatchableHttpGateways
 	MatchableHttpGateways() sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway]
+	// return the set of input MatchableTcpGateways
+	MatchableTcpGateways() sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableTcpGateway]
 	// return the set of input VirtualServices
 	VirtualServices() sk_sets.ResourceSet[*gateway_solo_io_v1_types.VirtualService]
 	// return the set of input RouteTables
@@ -206,6 +214,8 @@ type SyncStatusOptions struct {
 	Gateway bool
 	// sync status of MatchableHttpGateway objects
 	MatchableHttpGateway bool
+	// sync status of MatchableTcpGateway objects
+	MatchableTcpGateway bool
 	// sync status of VirtualService objects
 	VirtualService bool
 	// sync status of RouteTable objects
@@ -235,6 +245,7 @@ type snapshot struct {
 
 	gateways              sk_sets.ResourceSet[*gateway_solo_io_v1_types.Gateway]
 	matchableHttpGateways sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway]
+	matchableTcpGateways  sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableTcpGateway]
 	virtualServices       sk_sets.ResourceSet[*gateway_solo_io_v1_types.VirtualService]
 	routeTables           sk_sets.ResourceSet[*gateway_solo_io_v1_types.RouteTable]
 
@@ -259,6 +270,7 @@ func NewSnapshot(
 
 	gateways sk_sets.ResourceSet[*gateway_solo_io_v1_types.Gateway],
 	matchableHttpGateways sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway],
+	matchableTcpGateways sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableTcpGateway],
 	virtualServices sk_sets.ResourceSet[*gateway_solo_io_v1_types.VirtualService],
 	routeTables sk_sets.ResourceSet[*gateway_solo_io_v1_types.RouteTable],
 
@@ -281,6 +293,7 @@ func NewSnapshot(
 		daemonSets:            daemonSets,
 		gateways:              gateways,
 		matchableHttpGateways: matchableHttpGateways,
+		matchableTcpGateways:  matchableTcpGateways,
 		virtualServices:       virtualServices,
 		routeTables:           routeTables,
 		upstreams:             upstreams,
@@ -305,6 +318,7 @@ func NewSnapshotFromGeneric(
 
 	gatewaySet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.Gateway]()
 	matchableHttpGatewaySet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway]()
+	matchableTcpGatewaySet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableTcpGateway]()
 	virtualServiceSet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.VirtualService]()
 	routeTableSet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.RouteTable]()
 
@@ -374,6 +388,15 @@ func NewSnapshotFromGeneric(
 
 		for _, matchableHttpGateway := range matchableHttpGateways {
 			matchableHttpGatewaySet.Insert(matchableHttpGateway.(*gateway_solo_io_v1_types.MatchableHttpGateway))
+		}
+		matchableTcpGateways := snapshot[schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "MatchableTcpGateway",
+		}]
+
+		for _, matchableTcpGateway := range matchableTcpGateways {
+			matchableTcpGatewaySet.Insert(matchableTcpGateway.(*gateway_solo_io_v1_types.MatchableTcpGateway))
 		}
 		virtualServices := snapshot[schema.GroupVersionKind{
 			Group:   "gateway.solo.io",
@@ -460,6 +483,7 @@ func NewSnapshotFromGeneric(
 		daemonSetSet,
 		gatewaySet,
 		matchableHttpGatewaySet,
+		matchableTcpGatewaySet,
 		virtualServiceSet,
 		routeTableSet,
 		upstreamSet,
@@ -493,6 +517,10 @@ func (s *snapshot) Gateways() sk_sets.ResourceSet[*gateway_solo_io_v1_types.Gate
 
 func (s *snapshot) MatchableHttpGateways() sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway] {
 	return s.matchableHttpGateways
+}
+
+func (s *snapshot) MatchableTcpGateways() sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableTcpGateway] {
+	return s.matchableTcpGateways
 }
 
 func (s *snapshot) VirtualServices() sk_sets.ResourceSet[*gateway_solo_io_v1_types.VirtualService] {
@@ -544,6 +572,18 @@ func (s *snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multic
 	}
 	if opts.MatchableHttpGateway {
 		for _, obj := range s.MatchableHttpGateways().List() {
+			clusterClient, err := mcClient.Cluster(ezkube.GetClusterName(obj))
+			if err != nil {
+				errs = multierror.Append(errs, err)
+				continue
+			}
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, clusterClient, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
+	if opts.MatchableTcpGateway {
+		for _, obj := range s.MatchableTcpGateways().List() {
 			clusterClient, err := mcClient.Cluster(ezkube.GetClusterName(obj))
 			if err != nil {
 				errs = multierror.Append(errs, err)
@@ -673,6 +713,13 @@ func (s *snapshot) SyncStatuses(ctx context.Context, c client.Client, opts SyncS
 			}
 		}
 	}
+	if opts.MatchableTcpGateway {
+		for _, obj := range s.MatchableTcpGateways().List() {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, c, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
 	if opts.VirtualService {
 		for _, obj := range s.VirtualServices().List() {
 			if _, err := controllerutils.UpdateStatusImmutable(ctx, c, obj); err != nil {
@@ -780,6 +827,13 @@ func (s *snapshot) MarshalJSON() ([]byte, error) {
 		matchableHttpGatewaySet.Insert(obj.(*gateway_solo_io_v1_types.MatchableHttpGateway))
 	}
 	snapshotMap["matchableHttpGateways"] = matchableHttpGatewaySet.List()
+	matchableTcpGatewaySet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableTcpGateway]()
+	for _, obj := range s.matchableTcpGateways.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		matchableTcpGatewaySet.Insert(obj.(*gateway_solo_io_v1_types.MatchableTcpGateway))
+	}
+	snapshotMap["matchableTcpGateways"] = matchableTcpGatewaySet.List()
 	virtualServiceSet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.VirtualService]()
 	for _, obj := range s.virtualServices.UnsortedList() {
 		// redact secret data from the snapshot
@@ -849,6 +903,7 @@ func (s *snapshot) Clone() Snapshot {
 		daemonSets:            s.daemonSets.Clone(),
 		gateways:              s.gateways.Clone(),
 		matchableHttpGateways: s.matchableHttpGateways.Clone(),
+		matchableTcpGateways:  s.matchableTcpGateways.Clone(),
 		virtualServices:       s.virtualServices.Clone(),
 		routeTables:           s.routeTables.Clone(),
 		upstreams:             s.upstreams.Clone(),
@@ -922,6 +977,15 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 			Group:   "gateway.solo.io",
 			Version: "v1",
 			Kind:    "MatchableHttpGateway",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+	for _, obj := range s.matchableTcpGateways.List() {
+		cluster := ezkube.GetClusterName(obj)
+		gvk := schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "MatchableTcpGateway",
 		}
 		handleObject(cluster, gvk, obj)
 	}
@@ -1021,6 +1085,8 @@ type BuildOptions struct {
 	Gateways ResourceBuildOptions
 	// List options for composing a snapshot from MatchableHttpGateways
 	MatchableHttpGateways ResourceBuildOptions
+	// List options for composing a snapshot from MatchableTcpGateways
+	MatchableTcpGateways ResourceBuildOptions
 	// List options for composing a snapshot from VirtualServices
 	VirtualServices ResourceBuildOptions
 	// List options for composing a snapshot from RouteTables
@@ -1077,6 +1143,7 @@ func (b *multiClusterBuilder) BuildSnapshot(ctx context.Context, name string, op
 	daemonSets := sk_sets.NewResourceSet[*apps_v1_types.DaemonSet]()
 	gateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.Gateway]()
 	matchableHttpGateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway]()
+	matchableTcpGateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableTcpGateway]()
 	virtualServices := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.VirtualService]()
 	routeTables := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.RouteTable]()
 	upstreams := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Upstream]()
@@ -1106,6 +1173,9 @@ func (b *multiClusterBuilder) BuildSnapshot(ctx context.Context, name string, op
 			errs = multierror.Append(errs, err)
 		}
 		if err := b.insertMatchableHttpGatewaysFromCluster(ctx, cluster, matchableHttpGateways, opts.MatchableHttpGateways); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+		if err := b.insertMatchableTcpGatewaysFromCluster(ctx, cluster, matchableTcpGateways, opts.MatchableTcpGateways); err != nil {
 			errs = multierror.Append(errs, err)
 		}
 		if err := b.insertVirtualServicesFromCluster(ctx, cluster, virtualServices, opts.VirtualServices); err != nil {
@@ -1144,6 +1214,7 @@ func (b *multiClusterBuilder) BuildSnapshot(ctx context.Context, name string, op
 		daemonSets,
 		gateways,
 		matchableHttpGateways,
+		matchableTcpGateways,
 		virtualServices,
 		routeTables,
 		upstreams,
@@ -1423,6 +1494,51 @@ func (b *multiClusterBuilder) insertMatchableHttpGatewaysFromCluster(ctx context
 
 		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		matchableHttpGateways.Insert(item)
+	}
+
+	return nil
+}
+func (b *multiClusterBuilder) insertMatchableTcpGatewaysFromCluster(ctx context.Context, cluster string, matchableTcpGateways sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableTcpGateway], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
+	if err != nil {
+		return err
+	}
+
+	matchableTcpGatewayClient := sk_client.NewGenericClient(clusterClient, &gateway_solo_io_v1_types.MatchableTcpGateway{}, &gateway_solo_io_v1_types.MatchableTcpGatewayList{})
+
+	if opts.Verifier != nil {
+		mgr, err := b.clusters.Cluster(cluster)
+		if err != nil {
+			return err
+		}
+
+		gvk := schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "MatchableTcpGateway",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			cluster,
+			mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	matchableTcpGatewayList, err := matchableTcpGatewayClient.List(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range matchableTcpGatewayList.Items {
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
+		matchableTcpGateways.Insert(item)
 	}
 
 	return nil
@@ -1821,6 +1937,7 @@ func (b *singleClusterBuilder) BuildSnapshot(ctx context.Context, name string, o
 	daemonSets := sk_sets.NewResourceSet[*apps_v1_types.DaemonSet]()
 	gateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.Gateway]()
 	matchableHttpGateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway]()
+	matchableTcpGateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableTcpGateway]()
 	virtualServices := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.VirtualService]()
 	routeTables := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.RouteTable]()
 	upstreams := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Upstream]()
@@ -1848,6 +1965,9 @@ func (b *singleClusterBuilder) BuildSnapshot(ctx context.Context, name string, o
 		errs = multierror.Append(errs, err)
 	}
 	if err := b.insertMatchableHttpGateways(ctx, matchableHttpGateways, opts.MatchableHttpGateways); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	if err := b.insertMatchableTcpGateways(ctx, matchableTcpGateways, opts.MatchableTcpGateways); err != nil {
 		errs = multierror.Append(errs, err)
 	}
 	if err := b.insertVirtualServices(ctx, virtualServices, opts.VirtualServices); err != nil {
@@ -1884,6 +2004,7 @@ func (b *singleClusterBuilder) BuildSnapshot(ctx context.Context, name string, o
 		daemonSets,
 		gateways,
 		matchableHttpGateways,
+		matchableTcpGateways,
 		virtualServices,
 		routeTables,
 		upstreams,
@@ -2103,6 +2224,41 @@ func (b *singleClusterBuilder) insertMatchableHttpGateways(ctx context.Context, 
 		item := item.DeepCopy()                    // pike + own the item.
 		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		matchableHttpGateways.Insert(item)
+	}
+
+	return nil
+}
+func (b *singleClusterBuilder) insertMatchableTcpGateways(ctx context.Context, matchableTcpGateways sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableTcpGateway], opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "MatchableTcpGateway",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	matchableTcpGatewayClient := sk_client.NewGenericClient(b.mgr.GetClient(), &gateway_solo_io_v1_types.MatchableTcpGateway{}, &gateway_solo_io_v1_types.MatchableTcpGatewayList{})
+
+	matchableTcpGatewayList, err := matchableTcpGatewayClient.List(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range matchableTcpGatewayList.Items {
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
+		matchableTcpGateways.Insert(item)
 	}
 
 	return nil
@@ -2414,6 +2570,7 @@ func (i *inMemoryBuilder) BuildSnapshot(ctx context.Context, name string, opts B
 	daemonSets := sk_sets.NewResourceSet[*apps_v1_types.DaemonSet]()
 	gateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.Gateway]()
 	matchableHttpGateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway]()
+	matchableTcpGateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableTcpGateway]()
 	virtualServices := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.VirtualService]()
 	routeTables := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.RouteTable]()
 	upstreams := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Upstream]()
@@ -2443,6 +2600,9 @@ func (i *inMemoryBuilder) BuildSnapshot(ctx context.Context, name string, opts B
 		// insert MatchableHttpGateways
 		case *gateway_solo_io_v1_types.MatchableHttpGateway:
 			i.insertMatchableHttpGateway(ctx, obj, matchableHttpGateways, opts)
+		// insert MatchableTcpGateways
+		case *gateway_solo_io_v1_types.MatchableTcpGateway:
+			i.insertMatchableTcpGateway(ctx, obj, matchableTcpGateways, opts)
 		// insert VirtualServices
 		case *gateway_solo_io_v1_types.VirtualService:
 			i.insertVirtualService(ctx, obj, virtualServices, opts)
@@ -2479,6 +2639,7 @@ func (i *inMemoryBuilder) BuildSnapshot(ctx context.Context, name string, opts B
 		daemonSets,
 		gateways,
 		matchableHttpGateways,
+		matchableTcpGateways,
 		virtualServices,
 		routeTables,
 		upstreams,
@@ -2664,6 +2825,35 @@ func (i *inMemoryBuilder) insertMatchableHttpGateway(
 
 	if !filteredOut {
 		matchableHttpGatewaySet.Insert(matchableHttpGateway)
+	}
+}
+func (i *inMemoryBuilder) insertMatchableTcpGateway(
+	ctx context.Context,
+	matchableTcpGateway *gateway_solo_io_v1_types.MatchableTcpGateway,
+	matchableTcpGatewaySet sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableTcpGateway],
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.MatchableTcpGateways.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = matchableTcpGateway.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(matchableTcpGateway.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		matchableTcpGatewaySet.Insert(matchableTcpGateway)
 	}
 }
 func (i *inMemoryBuilder) insertVirtualService(

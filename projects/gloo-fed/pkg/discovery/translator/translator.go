@@ -115,6 +115,7 @@ func (t *translator) FromSnapshot(ctx context.Context, snapshot input.Snapshot) 
 		instance.Spec.Check.VirtualServices = gateway_check.GetVirtualServiceSummary(ctx, snapshot.VirtualServices(), watchedNamespaces, cluster)
 		instance.Spec.Check.RouteTables = gateway_check.GetRouteTableSummary(ctx, snapshot.RouteTables(), watchedNamespaces, cluster)
 		instance.Spec.Check.MatchableHttpGateways = gateway_check.GetMatchableHttpGatewaySummary(ctx, snapshot.MatchableHttpGateways(), watchedNamespaces, cluster)
+		instance.Spec.Check.MatchableTcpGateways = gateway_check.GetMatchableTcpGatewaySummary(ctx, snapshot.MatchableTcpGateways(), watchedNamespaces, cluster)
 
 		instances = append(instances, instance)
 	}

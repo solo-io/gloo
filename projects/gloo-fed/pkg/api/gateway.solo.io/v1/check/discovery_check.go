@@ -103,6 +103,50 @@ func GetMatchableHttpGatewaySummary(ctx context.Context, set sk_sets.ResourceSet
 	return summary
 }
 
+func GetMatchableTcpGatewaySummary(ctx context.Context, set sk_sets.ResourceSet[*gateway_solo_io_v1.MatchableTcpGateway], watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
+	summary := &types.GlooInstanceSpec_Check_Summary{}
+
+	for _, matchableTcpGatewayIter := range set.List() {
+		matchableTcpGateway := matchableTcpGatewayIter
+
+		// If the resource is not in the right cluster, continue
+		if ezkube.GetClusterName(matchableTcpGateway) != cluster {
+			continue
+		}
+
+		// If the resource is not in a watched namespace, continue
+		if len(watchedNamespaces) > 0 && !stringutils.ContainsString(matchableTcpGateway.Namespace, watchedNamespaces) {
+			continue
+		}
+
+		summary.Total += 1
+
+		if matchableTcpGateway.Status.GetState() == types2.MatchableTcpGatewayStatus_Rejected {
+			summary.Errors = append(summary.Errors, &types.GlooInstanceSpec_Check_Summary_ResourceReport{
+				Ref: &corev1.ObjectRef{
+					Name:      matchableTcpGateway.Name,
+					Namespace: matchableTcpGateway.Namespace,
+				},
+				Message: matchableTcpGateway.Status.Reason,
+			})
+		}
+
+		if matchableTcpGateway.Status.GetState() == types2.MatchableTcpGatewayStatus_Warning {
+			summary.Warnings = append(summary.Warnings, &types.GlooInstanceSpec_Check_Summary_ResourceReport{
+				Ref: &corev1.ObjectRef{
+					Name:      matchableTcpGateway.Name,
+					Namespace: matchableTcpGateway.Namespace,
+				},
+				Message: matchableTcpGateway.Status.Reason,
+			})
+		}
+
+	}
+
+	summarize.SortLists(summary)
+	return summary
+}
+
 func GetVirtualServiceSummary(ctx context.Context, set sk_sets.ResourceSet[*gateway_solo_io_v1.VirtualService], watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
 	summary := &types.GlooInstanceSpec_Check_Summary{}
 

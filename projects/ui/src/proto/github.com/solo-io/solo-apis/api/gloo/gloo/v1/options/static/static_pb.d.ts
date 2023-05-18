@@ -14,8 +14,10 @@ export class UpstreamSpec extends jspb.Message {
   setHostsList(value: Array<Host>): void;
   addHosts(value?: Host, index?: number): Host;
 
-  getUseTls(): boolean;
-  setUseTls(value: boolean): void;
+  hasUseTls(): boolean;
+  clearUseTls(): void;
+  getUseTls(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setUseTls(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   hasServiceSpec(): boolean;
   clearServiceSpec(): void;
@@ -40,7 +42,7 @@ export class UpstreamSpec extends jspb.Message {
 export namespace UpstreamSpec {
   export type AsObject = {
     hostsList: Array<Host.AsObject>,
-    useTls: boolean,
+    useTls?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     serviceSpec?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_service_spec_pb.ServiceSpec.AsObject,
     autoSniRewrite?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }

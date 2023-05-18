@@ -53,6 +53,28 @@ func (in *FederatedMatchableHttpGatewayStatus) DeepCopyInto(out *FederatedMatcha
 	*out = *p
 }
 
+// DeepCopyInto for the FederatedMatchableTcpGateway.Spec
+func (in *FederatedMatchableTcpGatewaySpec) DeepCopyInto(out *FederatedMatchableTcpGatewaySpec) {
+	var p *FederatedMatchableTcpGatewaySpec
+	if h, ok := interface{}(in).(clone.Cloner); ok {
+		p = h.Clone().(*FederatedMatchableTcpGatewaySpec)
+	} else {
+		p = proto.Clone(in).(*FederatedMatchableTcpGatewaySpec)
+	}
+	*out = *p
+}
+
+// DeepCopyInto for the FederatedMatchableTcpGateway.Status
+func (in *FederatedMatchableTcpGatewayStatus) DeepCopyInto(out *FederatedMatchableTcpGatewayStatus) {
+	var p *FederatedMatchableTcpGatewayStatus
+	if h, ok := interface{}(in).(clone.Cloner); ok {
+		p = h.Clone().(*FederatedMatchableTcpGatewayStatus)
+	} else {
+		p = proto.Clone(in).(*FederatedMatchableTcpGatewayStatus)
+	}
+	*out = *p
+}
+
 // DeepCopyInto for the FederatedVirtualService.Spec
 func (in *FederatedVirtualServiceSpec) DeepCopyInto(out *FederatedVirtualServiceSpec) {
 	var p *FederatedVirtualServiceSpec

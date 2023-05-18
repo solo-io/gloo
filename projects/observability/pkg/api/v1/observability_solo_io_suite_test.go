@@ -55,6 +55,8 @@ var (
 		testutils.ErrorNotOccuredOrNotFound(err)
 		err = clientset.ApiextensionsV1().CustomResourceDefinitions().Delete(ctx, "httpgateways.gateway.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
+		err = clientset.ApiextensionsV1().CustomResourceDefinitions().Delete(ctx, "tcpgateways.gateway.solo.io", metav1.DeleteOptions{})
+		testutils.ErrorNotOccuredOrNotFound(err)
 		err = clientset.ApiextensionsV1().CustomResourceDefinitions().Delete(ctx, "proxies.gloo.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
 		err = clientset.ApiextensionsV1().CustomResourceDefinitions().Delete(ctx, "routeoptions.gateway.solo.io", metav1.DeleteOptions{})

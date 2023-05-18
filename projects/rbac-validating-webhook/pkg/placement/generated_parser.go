@@ -38,6 +38,7 @@ type TypedParser interface {
 	// Parsers for fed.gateway.solo.io/v1 types.
 	ParseFederatedGateway(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedGateway) ([]*multicluster_types.Placement, error)
 	ParseFederatedMatchableHttpGateway(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedMatchableHttpGateway) ([]*multicluster_types.Placement, error)
+	ParseFederatedMatchableTcpGateway(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedMatchableTcpGateway) ([]*multicluster_types.Placement, error)
 	ParseFederatedVirtualService(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedVirtualService) ([]*multicluster_types.Placement, error)
 	ParseFederatedRouteTable(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedRouteTable) ([]*multicluster_types.Placement, error)
 
@@ -83,6 +84,9 @@ func (p *parser) Parse(ctx context.Context, rawObj []byte) ([]*multicluster_type
 
 	case *fed_gateway_solo_io_v1_types.FederatedMatchableHttpGateway:
 		return p.typedParser.ParseFederatedMatchableHttpGateway(ctx, obj.(*fed_gateway_solo_io_v1_types.FederatedMatchableHttpGateway))
+
+	case *fed_gateway_solo_io_v1_types.FederatedMatchableTcpGateway:
+		return p.typedParser.ParseFederatedMatchableTcpGateway(ctx, obj.(*fed_gateway_solo_io_v1_types.FederatedMatchableTcpGateway))
 
 	case *fed_gateway_solo_io_v1_types.FederatedVirtualService:
 		return p.typedParser.ParseFederatedVirtualService(ctx, obj.(*fed_gateway_solo_io_v1_types.FederatedVirtualService))

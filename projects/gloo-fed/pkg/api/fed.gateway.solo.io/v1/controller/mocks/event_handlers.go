@@ -256,6 +256,127 @@ func (mr *MockFederatedMatchableHttpGatewayEventWatcherMockRecorder) AddEventHan
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEventHandler", reflect.TypeOf((*MockFederatedMatchableHttpGatewayEventWatcher)(nil).AddEventHandler), varargs...)
 }
 
+// MockFederatedMatchableTcpGatewayEventHandler is a mock of FederatedMatchableTcpGatewayEventHandler interface.
+type MockFederatedMatchableTcpGatewayEventHandler struct {
+	ctrl     *gomock.Controller
+	recorder *MockFederatedMatchableTcpGatewayEventHandlerMockRecorder
+}
+
+// MockFederatedMatchableTcpGatewayEventHandlerMockRecorder is the mock recorder for MockFederatedMatchableTcpGatewayEventHandler.
+type MockFederatedMatchableTcpGatewayEventHandlerMockRecorder struct {
+	mock *MockFederatedMatchableTcpGatewayEventHandler
+}
+
+// NewMockFederatedMatchableTcpGatewayEventHandler creates a new mock instance.
+func NewMockFederatedMatchableTcpGatewayEventHandler(ctrl *gomock.Controller) *MockFederatedMatchableTcpGatewayEventHandler {
+	mock := &MockFederatedMatchableTcpGatewayEventHandler{ctrl: ctrl}
+	mock.recorder = &MockFederatedMatchableTcpGatewayEventHandlerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFederatedMatchableTcpGatewayEventHandler) EXPECT() *MockFederatedMatchableTcpGatewayEventHandlerMockRecorder {
+	return m.recorder
+}
+
+// CreateFederatedMatchableTcpGateway mocks base method.
+func (m *MockFederatedMatchableTcpGatewayEventHandler) CreateFederatedMatchableTcpGateway(obj *v1.FederatedMatchableTcpGateway) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateFederatedMatchableTcpGateway", obj)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateFederatedMatchableTcpGateway indicates an expected call of CreateFederatedMatchableTcpGateway.
+func (mr *MockFederatedMatchableTcpGatewayEventHandlerMockRecorder) CreateFederatedMatchableTcpGateway(obj interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedMatchableTcpGateway", reflect.TypeOf((*MockFederatedMatchableTcpGatewayEventHandler)(nil).CreateFederatedMatchableTcpGateway), obj)
+}
+
+// DeleteFederatedMatchableTcpGateway mocks base method.
+func (m *MockFederatedMatchableTcpGatewayEventHandler) DeleteFederatedMatchableTcpGateway(obj *v1.FederatedMatchableTcpGateway) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteFederatedMatchableTcpGateway", obj)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFederatedMatchableTcpGateway indicates an expected call of DeleteFederatedMatchableTcpGateway.
+func (mr *MockFederatedMatchableTcpGatewayEventHandlerMockRecorder) DeleteFederatedMatchableTcpGateway(obj interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedMatchableTcpGateway", reflect.TypeOf((*MockFederatedMatchableTcpGatewayEventHandler)(nil).DeleteFederatedMatchableTcpGateway), obj)
+}
+
+// GenericFederatedMatchableTcpGateway mocks base method.
+func (m *MockFederatedMatchableTcpGatewayEventHandler) GenericFederatedMatchableTcpGateway(obj *v1.FederatedMatchableTcpGateway) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GenericFederatedMatchableTcpGateway", obj)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// GenericFederatedMatchableTcpGateway indicates an expected call of GenericFederatedMatchableTcpGateway.
+func (mr *MockFederatedMatchableTcpGatewayEventHandlerMockRecorder) GenericFederatedMatchableTcpGateway(obj interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenericFederatedMatchableTcpGateway", reflect.TypeOf((*MockFederatedMatchableTcpGatewayEventHandler)(nil).GenericFederatedMatchableTcpGateway), obj)
+}
+
+// UpdateFederatedMatchableTcpGateway mocks base method.
+func (m *MockFederatedMatchableTcpGatewayEventHandler) UpdateFederatedMatchableTcpGateway(old, new *v1.FederatedMatchableTcpGateway) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateFederatedMatchableTcpGateway", old, new)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedMatchableTcpGateway indicates an expected call of UpdateFederatedMatchableTcpGateway.
+func (mr *MockFederatedMatchableTcpGatewayEventHandlerMockRecorder) UpdateFederatedMatchableTcpGateway(old, new interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedMatchableTcpGateway", reflect.TypeOf((*MockFederatedMatchableTcpGatewayEventHandler)(nil).UpdateFederatedMatchableTcpGateway), old, new)
+}
+
+// MockFederatedMatchableTcpGatewayEventWatcher is a mock of FederatedMatchableTcpGatewayEventWatcher interface.
+type MockFederatedMatchableTcpGatewayEventWatcher struct {
+	ctrl     *gomock.Controller
+	recorder *MockFederatedMatchableTcpGatewayEventWatcherMockRecorder
+}
+
+// MockFederatedMatchableTcpGatewayEventWatcherMockRecorder is the mock recorder for MockFederatedMatchableTcpGatewayEventWatcher.
+type MockFederatedMatchableTcpGatewayEventWatcherMockRecorder struct {
+	mock *MockFederatedMatchableTcpGatewayEventWatcher
+}
+
+// NewMockFederatedMatchableTcpGatewayEventWatcher creates a new mock instance.
+func NewMockFederatedMatchableTcpGatewayEventWatcher(ctrl *gomock.Controller) *MockFederatedMatchableTcpGatewayEventWatcher {
+	mock := &MockFederatedMatchableTcpGatewayEventWatcher{ctrl: ctrl}
+	mock.recorder = &MockFederatedMatchableTcpGatewayEventWatcherMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFederatedMatchableTcpGatewayEventWatcher) EXPECT() *MockFederatedMatchableTcpGatewayEventWatcherMockRecorder {
+	return m.recorder
+}
+
+// AddEventHandler mocks base method.
+func (m *MockFederatedMatchableTcpGatewayEventWatcher) AddEventHandler(ctx context.Context, h controller.FederatedMatchableTcpGatewayEventHandler, predicates ...predicate.Predicate) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, h}
+	for _, a := range predicates {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "AddEventHandler", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddEventHandler indicates an expected call of AddEventHandler.
+func (mr *MockFederatedMatchableTcpGatewayEventWatcherMockRecorder) AddEventHandler(ctx, h interface{}, predicates ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, h}, predicates...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEventHandler", reflect.TypeOf((*MockFederatedMatchableTcpGatewayEventWatcher)(nil).AddEventHandler), varargs...)
+}
+
 // MockFederatedVirtualServiceEventHandler is a mock of FederatedVirtualServiceEventHandler interface.
 type MockFederatedVirtualServiceEventHandler struct {
 	ctrl     *gomock.Controller

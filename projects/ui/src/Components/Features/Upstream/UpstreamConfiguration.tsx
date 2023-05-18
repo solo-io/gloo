@@ -153,7 +153,7 @@ const getUpstreamTypeConfig = (
         : [];
       fields.push({
         title: 'Use TLS',
-        value: upstream?.spec?.pb_static?.useTls,
+        value: upstream?.spec?.pb_static?.useTls?.value,
       });
       return { fields, cols: 2 };
     }

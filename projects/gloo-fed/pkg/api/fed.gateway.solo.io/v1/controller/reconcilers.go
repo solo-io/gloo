@@ -251,6 +251,123 @@ func (r genericFederatedMatchableHttpGatewayFinalizer) Finalize(object ezkube.Ob
 	return r.finalizingReconciler.FinalizeFederatedMatchableHttpGateway(obj)
 }
 
+// Reconcile Upsert events for the FederatedMatchableTcpGateway Resource.
+// implemented by the user
+type FederatedMatchableTcpGatewayReconciler interface {
+	ReconcileFederatedMatchableTcpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) (reconcile.Result, error)
+}
+
+// Reconcile deletion events for the FederatedMatchableTcpGateway Resource.
+// Deletion receives a reconcile.Request as we cannot guarantee the last state of the object
+// before being deleted.
+// implemented by the user
+type FederatedMatchableTcpGatewayDeletionReconciler interface {
+	ReconcileFederatedMatchableTcpGatewayDeletion(req reconcile.Request) error
+}
+
+type FederatedMatchableTcpGatewayReconcilerFuncs struct {
+	OnReconcileFederatedMatchableTcpGateway         func(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) (reconcile.Result, error)
+	OnReconcileFederatedMatchableTcpGatewayDeletion func(req reconcile.Request) error
+}
+
+func (f *FederatedMatchableTcpGatewayReconcilerFuncs) ReconcileFederatedMatchableTcpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) (reconcile.Result, error) {
+	if f.OnReconcileFederatedMatchableTcpGateway == nil {
+		return reconcile.Result{}, nil
+	}
+	return f.OnReconcileFederatedMatchableTcpGateway(obj)
+}
+
+func (f *FederatedMatchableTcpGatewayReconcilerFuncs) ReconcileFederatedMatchableTcpGatewayDeletion(req reconcile.Request) error {
+	if f.OnReconcileFederatedMatchableTcpGatewayDeletion == nil {
+		return nil
+	}
+	return f.OnReconcileFederatedMatchableTcpGatewayDeletion(req)
+}
+
+// Reconcile and finalize the FederatedMatchableTcpGateway Resource
+// implemented by the user
+type FederatedMatchableTcpGatewayFinalizer interface {
+	FederatedMatchableTcpGatewayReconciler
+
+	// name of the finalizer used by this handler.
+	// finalizer names should be unique for a single task
+	FederatedMatchableTcpGatewayFinalizerName() string
+
+	// finalize the object before it is deleted.
+	// Watchers created with a finalizing handler will a
+	FinalizeFederatedMatchableTcpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) error
+}
+
+type FederatedMatchableTcpGatewayReconcileLoop interface {
+	RunFederatedMatchableTcpGatewayReconciler(ctx context.Context, rec FederatedMatchableTcpGatewayReconciler, predicates ...predicate.Predicate) error
+}
+
+type federatedMatchableTcpGatewayReconcileLoop struct {
+	loop reconcile.Loop
+}
+
+func NewFederatedMatchableTcpGatewayReconcileLoop(name string, mgr manager.Manager, options reconcile.Options) FederatedMatchableTcpGatewayReconcileLoop {
+	return &federatedMatchableTcpGatewayReconcileLoop{
+		// empty cluster indicates this reconciler is built for the local cluster
+		loop: reconcile.NewLoop(name, "", mgr, &fed_gateway_solo_io_v1.FederatedMatchableTcpGateway{}, options),
+	}
+}
+
+func (c *federatedMatchableTcpGatewayReconcileLoop) RunFederatedMatchableTcpGatewayReconciler(ctx context.Context, reconciler FederatedMatchableTcpGatewayReconciler, predicates ...predicate.Predicate) error {
+	genericReconciler := genericFederatedMatchableTcpGatewayReconciler{
+		reconciler: reconciler,
+	}
+
+	var reconcilerWrapper reconcile.Reconciler
+	if finalizingReconciler, ok := reconciler.(FederatedMatchableTcpGatewayFinalizer); ok {
+		reconcilerWrapper = genericFederatedMatchableTcpGatewayFinalizer{
+			genericFederatedMatchableTcpGatewayReconciler: genericReconciler,
+			finalizingReconciler:                          finalizingReconciler,
+		}
+	} else {
+		reconcilerWrapper = genericReconciler
+	}
+	return c.loop.RunReconciler(ctx, reconcilerWrapper, predicates...)
+}
+
+// genericFederatedMatchableTcpGatewayHandler implements a generic reconcile.Reconciler
+type genericFederatedMatchableTcpGatewayReconciler struct {
+	reconciler FederatedMatchableTcpGatewayReconciler
+}
+
+func (r genericFederatedMatchableTcpGatewayReconciler) Reconcile(object ezkube.Object) (reconcile.Result, error) {
+	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedMatchableTcpGateway)
+	if !ok {
+		return reconcile.Result{}, errors.Errorf("internal error: FederatedMatchableTcpGateway handler received event for %T", object)
+	}
+	return r.reconciler.ReconcileFederatedMatchableTcpGateway(obj)
+}
+
+func (r genericFederatedMatchableTcpGatewayReconciler) ReconcileDeletion(request reconcile.Request) error {
+	if deletionReconciler, ok := r.reconciler.(FederatedMatchableTcpGatewayDeletionReconciler); ok {
+		return deletionReconciler.ReconcileFederatedMatchableTcpGatewayDeletion(request)
+	}
+	return nil
+}
+
+// genericFederatedMatchableTcpGatewayFinalizer implements a generic reconcile.FinalizingReconciler
+type genericFederatedMatchableTcpGatewayFinalizer struct {
+	genericFederatedMatchableTcpGatewayReconciler
+	finalizingReconciler FederatedMatchableTcpGatewayFinalizer
+}
+
+func (r genericFederatedMatchableTcpGatewayFinalizer) FinalizerName() string {
+	return r.finalizingReconciler.FederatedMatchableTcpGatewayFinalizerName()
+}
+
+func (r genericFederatedMatchableTcpGatewayFinalizer) Finalize(object ezkube.Object) error {
+	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedMatchableTcpGateway)
+	if !ok {
+		return errors.Errorf("internal error: FederatedMatchableTcpGateway handler received event for %T", object)
+	}
+	return r.finalizingReconciler.FinalizeFederatedMatchableTcpGateway(obj)
+}
+
 // Reconcile Upsert events for the FederatedVirtualService Resource.
 // implemented by the user
 type FederatedVirtualServiceReconciler interface {

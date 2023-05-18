@@ -90,6 +90,7 @@ func convertToRpcCheck(check *fedv1types.GlooInstanceSpec_Check) *rpc_edge_v1.Gl
 	return &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check{
 		Gateways:              convertToRpcSummary(check.GetGateways()),
 		MatchableHttpGateways: convertToRpcSummary(check.GetMatchableHttpGateways()),
+		MatchableTcpGateways:  convertToRpcSummary(check.GetMatchableTcpGateways()),
 		RateLimitConfigs:      convertToRpcSummary(check.GetRateLimitConfigs()),
 		VirtualServices:       convertToRpcSummary(check.GetVirtualServices()),
 		RouteTables:           convertToRpcSummary(check.GetRouteTables()),

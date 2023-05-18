@@ -51,6 +51,19 @@ func Initialize(
 		return err
 	}
 
+	federatedMatchableTcpGateways := NewFederatedMatchableTcpGatewayReconciler(
+		ctx,
+		fed_gateway_solo_io_v1.NewClientset(localManager.GetClient()).FederatedMatchableTcpGateways(),
+		baseMCClientset,
+		placementManager,
+		clusterSet,
+	)
+	federatedMatchableTcpGatewayReconciler := fed_gateway_solo_io_v1_controller.NewFederatedMatchableTcpGatewayReconcileLoop("federatedMatchableTcpGateway", localManager, reconcile.Options{})
+	if err := federatedMatchableTcpGatewayReconciler.RunFederatedMatchableTcpGatewayReconciler(ctx, federatedMatchableTcpGateways); err != nil {
+		contextutils.LoggerFrom(ctx).Errorw("Error running FederatedMatchableTcpGateway reconciler", zap.Error(err))
+		return err
+	}
+
 	federatedVirtualServices := NewFederatedVirtualServiceReconciler(
 		ctx,
 		fed_gateway_solo_io_v1.NewClientset(localManager.GetClient()).FederatedVirtualServices(),

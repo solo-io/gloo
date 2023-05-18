@@ -372,6 +372,11 @@ export class Matcher extends jspb.Message {
   setSourcePrefixRangesList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange>): void;
   addSourcePrefixRanges(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange, index?: number): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange;
 
+  clearPassthroughCipherSuitesList(): void;
+  getPassthroughCipherSuitesList(): Array<string>;
+  setPassthroughCipherSuitesList(value: Array<string>): void;
+  addPassthroughCipherSuites(value: string, index?: number): string;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Matcher.AsObject;
   static toObject(includeInstance: boolean, msg: Matcher): Matcher.AsObject;
@@ -386,6 +391,7 @@ export namespace Matcher {
   export type AsObject = {
     sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.AsObject,
     sourcePrefixRangesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.AsObject>,
+    passthroughCipherSuitesList: Array<string>,
   }
 }
 

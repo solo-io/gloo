@@ -527,6 +527,262 @@ func (mr *MockFederatedMatchableHttpGatewaySetMockRecorder) UnsortedList(filterR
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsortedList", reflect.TypeOf((*MockFederatedMatchableHttpGatewaySet)(nil).UnsortedList), filterResource...)
 }
 
+// MockFederatedMatchableTcpGatewaySet is a mock of FederatedMatchableTcpGatewaySet interface.
+type MockFederatedMatchableTcpGatewaySet struct {
+	ctrl     *gomock.Controller
+	recorder *MockFederatedMatchableTcpGatewaySetMockRecorder
+}
+
+// MockFederatedMatchableTcpGatewaySetMockRecorder is the mock recorder for MockFederatedMatchableTcpGatewaySet.
+type MockFederatedMatchableTcpGatewaySetMockRecorder struct {
+	mock *MockFederatedMatchableTcpGatewaySet
+}
+
+// NewMockFederatedMatchableTcpGatewaySet creates a new mock instance.
+func NewMockFederatedMatchableTcpGatewaySet(ctrl *gomock.Controller) *MockFederatedMatchableTcpGatewaySet {
+	mock := &MockFederatedMatchableTcpGatewaySet{ctrl: ctrl}
+	mock.recorder = &MockFederatedMatchableTcpGatewaySetMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFederatedMatchableTcpGatewaySet) EXPECT() *MockFederatedMatchableTcpGatewaySetMockRecorder {
+	return m.recorder
+}
+
+// Clone mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Clone() v1sets.FederatedMatchableTcpGatewaySet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clone")
+	ret0, _ := ret[0].(v1sets.FederatedMatchableTcpGatewaySet)
+	return ret0
+}
+
+// Clone indicates an expected call of Clone.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Clone() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Clone))
+}
+
+// Delete mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Delete(federatedMatchableTcpGateway ezkube.ResourceId) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Delete", federatedMatchableTcpGateway)
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Delete(federatedMatchableTcpGateway interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Delete), federatedMatchableTcpGateway)
+}
+
+// Delta mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Delta(newSet v1sets.FederatedMatchableTcpGatewaySet) sets.ResourceDelta {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delta", newSet)
+	ret0, _ := ret[0].(sets.ResourceDelta)
+	return ret0
+}
+
+// Delta indicates an expected call of Delta.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Delta(newSet interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delta", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Delta), newSet)
+}
+
+// Difference mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Difference(set v1sets.FederatedMatchableTcpGatewaySet) v1sets.FederatedMatchableTcpGatewaySet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Difference", set)
+	ret0, _ := ret[0].(v1sets.FederatedMatchableTcpGatewaySet)
+	return ret0
+}
+
+// Difference indicates an expected call of Difference.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Difference(set interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Difference", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Difference), set)
+}
+
+// Equal mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Equal(federatedMatchableTcpGatewaySet v1sets.FederatedMatchableTcpGatewaySet) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Equal", federatedMatchableTcpGatewaySet)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Equal indicates an expected call of Equal.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Equal(federatedMatchableTcpGatewaySet interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Equal", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Equal), federatedMatchableTcpGatewaySet)
+}
+
+// Find mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Find(id ezkube.ResourceId) (*v1.FederatedMatchableTcpGateway, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Find", id)
+	ret0, _ := ret[0].(*v1.FederatedMatchableTcpGateway)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Find indicates an expected call of Find.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Find(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Find), id)
+}
+
+// Generic mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Generic() sets.ResourceSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Generic")
+	ret0, _ := ret[0].(sets.ResourceSet)
+	return ret0
+}
+
+// Generic indicates an expected call of Generic.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Generic() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generic", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Generic))
+}
+
+// Has mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Has(federatedMatchableTcpGateway ezkube.ResourceId) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Has", federatedMatchableTcpGateway)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Has indicates an expected call of Has.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Has(federatedMatchableTcpGateway interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Has", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Has), federatedMatchableTcpGateway)
+}
+
+// Insert mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Insert(federatedMatchableTcpGateway ...*v1.FederatedMatchableTcpGateway) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range federatedMatchableTcpGateway {
+		varargs = append(varargs, a)
+	}
+	m.ctrl.Call(m, "Insert", varargs...)
+}
+
+// Insert indicates an expected call of Insert.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Insert(federatedMatchableTcpGateway ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Insert), federatedMatchableTcpGateway...)
+}
+
+// Intersection mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Intersection(set v1sets.FederatedMatchableTcpGatewaySet) v1sets.FederatedMatchableTcpGatewaySet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Intersection", set)
+	ret0, _ := ret[0].(v1sets.FederatedMatchableTcpGatewaySet)
+	return ret0
+}
+
+// Intersection indicates an expected call of Intersection.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Intersection(set interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Intersection", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Intersection), set)
+}
+
+// Keys mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Keys() sets0.String {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Keys")
+	ret0, _ := ret[0].(sets0.String)
+	return ret0
+}
+
+// Keys indicates an expected call of Keys.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Keys() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Keys", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Keys))
+}
+
+// Length mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Length() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Length")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// Length indicates an expected call of Length.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Length() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Length))
+}
+
+// List mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) List(filterResource ...func(*v1.FederatedMatchableTcpGateway) bool) []*v1.FederatedMatchableTcpGateway {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range filterResource {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "List", varargs...)
+	ret0, _ := ret[0].([]*v1.FederatedMatchableTcpGateway)
+	return ret0
+}
+
+// List indicates an expected call of List.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) List(filterResource ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).List), filterResource...)
+}
+
+// Map mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Map() map[string]*v1.FederatedMatchableTcpGateway {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Map")
+	ret0, _ := ret[0].(map[string]*v1.FederatedMatchableTcpGateway)
+	return ret0
+}
+
+// Map indicates an expected call of Map.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Map() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Map", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Map))
+}
+
+// Union mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) Union(set v1sets.FederatedMatchableTcpGatewaySet) v1sets.FederatedMatchableTcpGatewaySet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Union", set)
+	ret0, _ := ret[0].(v1sets.FederatedMatchableTcpGatewaySet)
+	return ret0
+}
+
+// Union indicates an expected call of Union.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) Union(set interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Union", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).Union), set)
+}
+
+// UnsortedList mocks base method.
+func (m *MockFederatedMatchableTcpGatewaySet) UnsortedList(filterResource ...func(*v1.FederatedMatchableTcpGateway) bool) []*v1.FederatedMatchableTcpGateway {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range filterResource {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UnsortedList", varargs...)
+	ret0, _ := ret[0].([]*v1.FederatedMatchableTcpGateway)
+	return ret0
+}
+
+// UnsortedList indicates an expected call of UnsortedList.
+func (mr *MockFederatedMatchableTcpGatewaySetMockRecorder) UnsortedList(filterResource ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsortedList", reflect.TypeOf((*MockFederatedMatchableTcpGatewaySet)(nil).UnsortedList), filterResource...)
+}
+
 // MockFederatedVirtualServiceSet is a mock of FederatedVirtualServiceSet interface.
 type MockFederatedVirtualServiceSet struct {
 	ctrl     *gomock.Controller

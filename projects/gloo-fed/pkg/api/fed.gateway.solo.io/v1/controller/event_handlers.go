@@ -231,6 +231,113 @@ func (h genericFederatedMatchableHttpGatewayHandler) Generic(object client.Objec
 	return h.handler.GenericFederatedMatchableHttpGateway(obj)
 }
 
+// Handle events for the FederatedMatchableTcpGateway Resource
+// DEPRECATED: Prefer reconciler pattern.
+type FederatedMatchableTcpGatewayEventHandler interface {
+	CreateFederatedMatchableTcpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) error
+	UpdateFederatedMatchableTcpGateway(old, new *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) error
+	DeleteFederatedMatchableTcpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) error
+	GenericFederatedMatchableTcpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) error
+}
+
+type FederatedMatchableTcpGatewayEventHandlerFuncs struct {
+	OnCreate  func(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) error
+	OnUpdate  func(old, new *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) error
+	OnDelete  func(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) error
+	OnGeneric func(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) error
+}
+
+func (f *FederatedMatchableTcpGatewayEventHandlerFuncs) CreateFederatedMatchableTcpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) error {
+	if f.OnCreate == nil {
+		return nil
+	}
+	return f.OnCreate(obj)
+}
+
+func (f *FederatedMatchableTcpGatewayEventHandlerFuncs) DeleteFederatedMatchableTcpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) error {
+	if f.OnDelete == nil {
+		return nil
+	}
+	return f.OnDelete(obj)
+}
+
+func (f *FederatedMatchableTcpGatewayEventHandlerFuncs) UpdateFederatedMatchableTcpGateway(objOld, objNew *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) error {
+	if f.OnUpdate == nil {
+		return nil
+	}
+	return f.OnUpdate(objOld, objNew)
+}
+
+func (f *FederatedMatchableTcpGatewayEventHandlerFuncs) GenericFederatedMatchableTcpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) error {
+	if f.OnGeneric == nil {
+		return nil
+	}
+	return f.OnGeneric(obj)
+}
+
+type FederatedMatchableTcpGatewayEventWatcher interface {
+	AddEventHandler(ctx context.Context, h FederatedMatchableTcpGatewayEventHandler, predicates ...predicate.Predicate) error
+}
+
+type federatedMatchableTcpGatewayEventWatcher struct {
+	watcher events.EventWatcher
+}
+
+func NewFederatedMatchableTcpGatewayEventWatcher(name string, mgr manager.Manager) FederatedMatchableTcpGatewayEventWatcher {
+	return &federatedMatchableTcpGatewayEventWatcher{
+		watcher: events.NewWatcher(name, mgr, &fed_gateway_solo_io_v1.FederatedMatchableTcpGateway{}),
+	}
+}
+
+func (c *federatedMatchableTcpGatewayEventWatcher) AddEventHandler(ctx context.Context, h FederatedMatchableTcpGatewayEventHandler, predicates ...predicate.Predicate) error {
+	handler := genericFederatedMatchableTcpGatewayHandler{handler: h}
+	if err := c.watcher.Watch(ctx, handler, predicates...); err != nil {
+		return err
+	}
+	return nil
+}
+
+// genericFederatedMatchableTcpGatewayHandler implements a generic events.EventHandler
+type genericFederatedMatchableTcpGatewayHandler struct {
+	handler FederatedMatchableTcpGatewayEventHandler
+}
+
+func (h genericFederatedMatchableTcpGatewayHandler) Create(object client.Object) error {
+	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedMatchableTcpGateway)
+	if !ok {
+		return errors.Errorf("internal error: FederatedMatchableTcpGateway handler received event for %T", object)
+	}
+	return h.handler.CreateFederatedMatchableTcpGateway(obj)
+}
+
+func (h genericFederatedMatchableTcpGatewayHandler) Delete(object client.Object) error {
+	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedMatchableTcpGateway)
+	if !ok {
+		return errors.Errorf("internal error: FederatedMatchableTcpGateway handler received event for %T", object)
+	}
+	return h.handler.DeleteFederatedMatchableTcpGateway(obj)
+}
+
+func (h genericFederatedMatchableTcpGatewayHandler) Update(old, new client.Object) error {
+	objOld, ok := old.(*fed_gateway_solo_io_v1.FederatedMatchableTcpGateway)
+	if !ok {
+		return errors.Errorf("internal error: FederatedMatchableTcpGateway handler received event for %T", old)
+	}
+	objNew, ok := new.(*fed_gateway_solo_io_v1.FederatedMatchableTcpGateway)
+	if !ok {
+		return errors.Errorf("internal error: FederatedMatchableTcpGateway handler received event for %T", new)
+	}
+	return h.handler.UpdateFederatedMatchableTcpGateway(objOld, objNew)
+}
+
+func (h genericFederatedMatchableTcpGatewayHandler) Generic(object client.Object) error {
+	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedMatchableTcpGateway)
+	if !ok {
+		return errors.Errorf("internal error: FederatedMatchableTcpGateway handler received event for %T", object)
+	}
+	return h.handler.GenericFederatedMatchableTcpGateway(obj)
+}
+
 // Handle events for the FederatedVirtualService Resource
 // DEPRECATED: Prefer reconciler pattern.
 type FederatedVirtualServiceEventHandler interface {

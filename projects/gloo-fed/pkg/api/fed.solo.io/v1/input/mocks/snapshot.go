@@ -171,6 +171,20 @@ func (mr *MockSnapshotMockRecorder) MatchableHttpGateways() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MatchableHttpGateways", reflect.TypeOf((*MockSnapshot)(nil).MatchableHttpGateways))
 }
 
+// MatchableTcpGateways mocks base method.
+func (m *MockSnapshot) MatchableTcpGateways() sets_v2.ResourceSet[*v10.MatchableTcpGateway] {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MatchableTcpGateways")
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v10.MatchableTcpGateway])
+	return ret0
+}
+
+// MatchableTcpGateways indicates an expected call of MatchableTcpGateways.
+func (mr *MockSnapshotMockRecorder) MatchableTcpGateways() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MatchableTcpGateways", reflect.TypeOf((*MockSnapshot)(nil).MatchableTcpGateways))
+}
+
 // Pods mocks base method.
 func (m *MockSnapshot) Pods() sets_v2.ResourceSet[*v13.Pod] {
 	m.ctrl.T.Helper()

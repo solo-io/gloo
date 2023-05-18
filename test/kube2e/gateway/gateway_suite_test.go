@@ -3,7 +3,6 @@ package gateway_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -129,7 +128,7 @@ var _ = AfterSuite(func() {
 })
 
 func getHelmOverrides(fips bool) (filename string, cleanup func()) {
-	values, err := ioutil.TempFile("", "*.yaml")
+	values, err := os.CreateTemp("", "*.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	valuesYaml := `gloo:
   gatewayProxies:

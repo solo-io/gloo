@@ -422,6 +422,16 @@ func (m *GlooInstanceSpec_Check) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetMatchableTcpGateways()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMatchableTcpGateways()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMatchableTcpGateways(), target.GetMatchableTcpGateways()) {
+			return false
+		}
+	}
+
 	if h, ok := interface{}(m.GetDeployments()).(equality.Equalizer); ok {
 		if !h.Equal(target.GetDeployments()) {
 			return false

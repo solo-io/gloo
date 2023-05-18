@@ -69,7 +69,8 @@ proto.tcp.options.gloo.solo.io.TcpProxySettings.toObject = function(includeInsta
   var f, obj = {
     maxConnectAttempts: (f = msg.getMaxConnectAttempts()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     idleTimeout: (f = msg.getIdleTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
-    tunnelingConfig: (f = msg.getTunnelingConfig()) && proto.tcp.options.gloo.solo.io.TcpProxySettings.TunnelingConfig.toObject(includeInstance, f)
+    tunnelingConfig: (f = msg.getTunnelingConfig()) && proto.tcp.options.gloo.solo.io.TcpProxySettings.TunnelingConfig.toObject(includeInstance, f),
+    accessLogFlushInterval: (f = msg.getAccessLogFlushInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -120,6 +121,11 @@ proto.tcp.options.gloo.solo.io.TcpProxySettings.deserializeBinaryFromReader = fu
       var value = new proto.tcp.options.gloo.solo.io.TcpProxySettings.TunnelingConfig;
       reader.readMessage(value,proto.tcp.options.gloo.solo.io.TcpProxySettings.TunnelingConfig.deserializeBinaryFromReader);
       msg.setTunnelingConfig(value);
+      break;
+    case 15:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setAccessLogFlushInterval(value);
       break;
     default:
       reader.skipField();
@@ -172,6 +178,14 @@ proto.tcp.options.gloo.solo.io.TcpProxySettings.serializeBinaryToWriter = functi
       12,
       f,
       proto.tcp.options.gloo.solo.io.TcpProxySettings.TunnelingConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getAccessLogFlushInterval();
+  if (f != null) {
+    writer.writeMessage(
+      15,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -459,6 +473,36 @@ proto.tcp.options.gloo.solo.io.TcpProxySettings.prototype.clearTunnelingConfig =
  */
 proto.tcp.options.gloo.solo.io.TcpProxySettings.prototype.hasTunnelingConfig = function() {
   return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * optional google.protobuf.Duration access_log_flush_interval = 15;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.tcp.options.gloo.solo.io.TcpProxySettings.prototype.getAccessLogFlushInterval = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 15));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.tcp.options.gloo.solo.io.TcpProxySettings.prototype.setAccessLogFlushInterval = function(value) {
+  jspb.Message.setWrapperField(this, 15, value);
+};
+
+
+proto.tcp.options.gloo.solo.io.TcpProxySettings.prototype.clearAccessLogFlushInterval = function() {
+  this.setAccessLogFlushInterval(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.tcp.options.gloo.solo.io.TcpProxySettings.prototype.hasAccessLogFlushInterval = function() {
+  return jspb.Message.getField(this, 15) != null;
 };
 
 

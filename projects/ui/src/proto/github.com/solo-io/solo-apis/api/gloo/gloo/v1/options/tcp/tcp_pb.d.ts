@@ -24,6 +24,11 @@ export class TcpProxySettings extends jspb.Message {
   getTunnelingConfig(): TcpProxySettings.TunnelingConfig | undefined;
   setTunnelingConfig(value?: TcpProxySettings.TunnelingConfig): void;
 
+  hasAccessLogFlushInterval(): boolean;
+  clearAccessLogFlushInterval(): void;
+  getAccessLogFlushInterval(): google_protobuf_duration_pb.Duration | undefined;
+  setAccessLogFlushInterval(value?: google_protobuf_duration_pb.Duration): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TcpProxySettings.AsObject;
   static toObject(includeInstance: boolean, msg: TcpProxySettings): TcpProxySettings.AsObject;
@@ -39,6 +44,7 @@ export namespace TcpProxySettings {
     maxConnectAttempts?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     idleTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     tunnelingConfig?: TcpProxySettings.TunnelingConfig.AsObject,
+    accessLogFlushInterval?: google_protobuf_duration_pb.Duration.AsObject,
   }
 
   export class TunnelingConfig extends jspb.Message {

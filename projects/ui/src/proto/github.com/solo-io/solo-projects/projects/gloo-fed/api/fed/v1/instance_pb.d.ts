@@ -290,6 +290,11 @@ export namespace GlooInstanceSpec {
     getMatchableHttpGateways(): GlooInstanceSpec.Check.Summary | undefined;
     setMatchableHttpGateways(value?: GlooInstanceSpec.Check.Summary): void;
 
+    hasMatchableTcpGateways(): boolean;
+    clearMatchableTcpGateways(): void;
+    getMatchableTcpGateways(): GlooInstanceSpec.Check.Summary | undefined;
+    setMatchableTcpGateways(value?: GlooInstanceSpec.Check.Summary): void;
+
     hasDeployments(): boolean;
     clearDeployments(): void;
     getDeployments(): GlooInstanceSpec.Check.Summary | undefined;
@@ -322,6 +327,7 @@ export namespace GlooInstanceSpec {
       proxies?: GlooInstanceSpec.Check.Summary.AsObject,
       rateLimitConfigs?: GlooInstanceSpec.Check.Summary.AsObject,
       matchableHttpGateways?: GlooInstanceSpec.Check.Summary.AsObject,
+      matchableTcpGateways?: GlooInstanceSpec.Check.Summary.AsObject,
       deployments?: GlooInstanceSpec.Check.Summary.AsObject,
       pods?: GlooInstanceSpec.Check.Summary.AsObject,
     }

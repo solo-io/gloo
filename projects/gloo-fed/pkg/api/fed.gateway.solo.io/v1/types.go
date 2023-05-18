@@ -84,6 +84,41 @@ type FederatedMatchableHttpGatewayList struct {
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 
+// GroupVersionKind for FederatedMatchableTcpGateway
+var FederatedMatchableTcpGatewayGVK = schema.GroupVersionKind{
+	Group:   "fed.gateway.solo.io",
+	Version: "v1",
+	Kind:    "FederatedMatchableTcpGateway",
+}
+
+// FederatedMatchableTcpGateway is the Schema for the federatedMatchableTcpGateway API
+type FederatedMatchableTcpGateway struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   i9e8d98f5d505710fab19de87d4cbe590.FederatedMatchableTcpGatewaySpec   `json:"spec,omitempty"`
+	Status i9e8d98f5d505710fab19de87d4cbe590.FederatedMatchableTcpGatewayStatus `json:"status,omitempty"`
+}
+
+// GVK returns the GroupVersionKind associated with the resource type.
+func (FederatedMatchableTcpGateway) GVK() schema.GroupVersionKind {
+	return FederatedMatchableTcpGatewayGVK
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// FederatedMatchableTcpGatewayList contains a list of FederatedMatchableTcpGateway
+type FederatedMatchableTcpGatewayList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []FederatedMatchableTcpGateway `json:"items"`
+}
+
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
+
 // GroupVersionKind for FederatedVirtualService
 var FederatedVirtualServiceGVK = schema.GroupVersionKind{
 	Group:   "fed.gateway.solo.io",
@@ -152,6 +187,7 @@ type FederatedRouteTableList struct {
 func init() {
 	SchemeBuilder.Register(&FederatedGateway{}, &FederatedGatewayList{})
 	SchemeBuilder.Register(&FederatedMatchableHttpGateway{}, &FederatedMatchableHttpGatewayList{})
+	SchemeBuilder.Register(&FederatedMatchableTcpGateway{}, &FederatedMatchableTcpGatewayList{})
 	SchemeBuilder.Register(&FederatedVirtualService{}, &FederatedVirtualServiceList{})
 	SchemeBuilder.Register(&FederatedRouteTable{}, &FederatedRouteTableList{})
 }

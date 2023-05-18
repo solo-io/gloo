@@ -61,7 +61,7 @@ var _ = Describe("Deployment Reconciler Test", func() {
 				},
 			}
 
-			snap := input.NewSnapshot(discovery.SnapshotName, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+			snap := input.NewSnapshot(discovery.SnapshotName, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 			snapshotBuilder.EXPECT().
 				BuildSnapshot(ctx, discovery.SnapshotName, input.BuildOptions{}).
 				Return(snap, nil)
@@ -99,7 +99,7 @@ var _ = Describe("Deployment Reconciler Test", func() {
 				},
 			}
 
-			snap := input.NewSnapshot(discovery.SnapshotName, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+			snap := input.NewSnapshot(discovery.SnapshotName, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 			snapshotBuilder.EXPECT().
 				BuildSnapshot(ctx, discovery.SnapshotName, input.BuildOptions{}).
 				Return(snap, nil)

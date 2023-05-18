@@ -8,6 +8,7 @@
 // * DaemonSets
 // * Gateways
 // * MatchableHttpGateways
+// * MatchableTcpGateways
 // * VirtualServices
 // * RouteTables
 // * Upstreams
@@ -70,6 +71,8 @@ type ReconcileOptions struct {
 	Gateways reconcile.Options
 	// Options for reconciling MatchableHttpGateways
 	MatchableHttpGateways reconcile.Options
+	// Options for reconciling MatchableTcpGateways
+	MatchableTcpGateways reconcile.Options
 	// Options for reconciling VirtualServices
 	VirtualServices reconcile.Options
 	// Options for reconciling RouteTables
@@ -201,6 +204,23 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.MatchableHttpGateway{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gateway_solo_io_v1_types.MatchableHttpGateway]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gateway_solo_io_v1_types.MatchableHttpGateway) (reconcile.Result, error) {
+				ezkube.SetClusterName(obj, clusterName)
+				return r.base.ReconcileRemoteGeneric(obj)
+			},
+			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
+				ref := &sk_core_v1.ClusterObjectRef{
+					Name:        obj.Name,
+					Namespace:   obj.Namespace,
+					ClusterName: clusterName,
+				}
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
+				return err
+			},
+		}, predicates...)
+
+	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.MatchableTcpGateway{}, reconcile_v2.Options{}).
+		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gateway_solo_io_v1_types.MatchableTcpGateway]{
+			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gateway_solo_io_v1_types.MatchableTcpGateway) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
@@ -467,6 +487,22 @@ func RegisterSingleClusterReconciler(
 	if err := reconcile_v2.NewLoop("Service", "", mgr, &gateway_solo_io_v1_types.MatchableHttpGateway{}, options).
 		RunReconciler(ctx, &reconcile_v2.ReconcileFuncs[*gateway_solo_io_v1_types.MatchableHttpGateway]{
 			ReconcileFunc: func(ctx context.Context, object *gateway_solo_io_v1_types.MatchableHttpGateway) (reconcile.Result, error) {
+				return r.base.ReconcileRemoteGeneric(object)
+			},
+			DeletionReconcilerFunc: func(ctx context.Context, obj reconcile_v2.Request) error {
+				ref := &sk_core_v1.ObjectRef{
+					Name:      obj.Name,
+					Namespace: obj.Namespace,
+				}
+				_, err := r.base.ReconcileLocalGeneric(ref)
+				return err
+			},
+		}, predicates...); err != nil {
+		return nil, err
+	}
+	if err := reconcile_v2.NewLoop("Service", "", mgr, &gateway_solo_io_v1_types.MatchableTcpGateway{}, options).
+		RunReconciler(ctx, &reconcile_v2.ReconcileFuncs[*gateway_solo_io_v1_types.MatchableTcpGateway]{
+			ReconcileFunc: func(ctx context.Context, object *gateway_solo_io_v1_types.MatchableTcpGateway) (reconcile.Result, error) {
 				return r.base.ReconcileRemoteGeneric(object)
 			},
 			DeletionReconcilerFunc: func(ctx context.Context, obj reconcile_v2.Request) error {

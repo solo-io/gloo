@@ -2410,6 +2410,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
@@ -2486,6 +2487,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
@@ -2557,6 +2559,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
@@ -2628,6 +2631,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
@@ -2704,6 +2708,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
@@ -2783,6 +2788,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
@@ -4097,6 +4103,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
@@ -5105,6 +5112,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
@@ -5176,6 +5184,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
@@ -5247,6 +5256,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
@@ -5319,6 +5329,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
@@ -5393,6 +5404,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false

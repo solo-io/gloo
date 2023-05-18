@@ -130,6 +130,9 @@ message GlooInstanceSpec {
         // MatchableHttpGateways describes the MatchableHttpGateways available to the GlooInstance.
         Summary matchable_http_gateways = 10;
 
+        // MatchableTcpGateways describes the MatchableTcpGateways available to the GlooInstance.
+        Summary matchable_tcp_gateways = 11;
+
         // Deployments describes the Deployments in the GlooInstance's install namespace.
         Summary deployments = 20;
 

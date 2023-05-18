@@ -73,6 +73,34 @@ func FederatedMatchableHttpGatewayClientFromConfigFactoryProvider() FederatedMat
 	}
 }
 
+// Provider for FederatedMatchableTcpGatewayClient from Clientset
+func FederatedMatchableTcpGatewayClientFromClientsetProvider(clients fed_gateway_solo_io_v1.Clientset) fed_gateway_solo_io_v1.FederatedMatchableTcpGatewayClient {
+	return clients.FederatedMatchableTcpGateways()
+}
+
+// Provider for FederatedMatchableTcpGateway Client from Client
+func FederatedMatchableTcpGatewayClientProvider(client client.Client) fed_gateway_solo_io_v1.FederatedMatchableTcpGatewayClient {
+	return fed_gateway_solo_io_v1.NewFederatedMatchableTcpGatewayClient(client)
+}
+
+type FederatedMatchableTcpGatewayClientFactory func(client client.Client) fed_gateway_solo_io_v1.FederatedMatchableTcpGatewayClient
+
+func FederatedMatchableTcpGatewayClientFactoryProvider() FederatedMatchableTcpGatewayClientFactory {
+	return FederatedMatchableTcpGatewayClientProvider
+}
+
+type FederatedMatchableTcpGatewayClientFromConfigFactory func(cfg *rest.Config) (fed_gateway_solo_io_v1.FederatedMatchableTcpGatewayClient, error)
+
+func FederatedMatchableTcpGatewayClientFromConfigFactoryProvider() FederatedMatchableTcpGatewayClientFromConfigFactory {
+	return func(cfg *rest.Config) (fed_gateway_solo_io_v1.FederatedMatchableTcpGatewayClient, error) {
+		clients, err := fed_gateway_solo_io_v1.NewClientsetFromConfig(cfg)
+		if err != nil {
+			return nil, err
+		}
+		return clients.FederatedMatchableTcpGateways(), nil
+	}
+}
+
 // Provider for FederatedVirtualServiceClient from Clientset
 func FederatedVirtualServiceClientFromClientsetProvider(clients fed_gateway_solo_io_v1.Clientset) fed_gateway_solo_io_v1.FederatedVirtualServiceClient {
 	return clients.FederatedVirtualServices()

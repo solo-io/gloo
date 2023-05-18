@@ -10,6 +10,7 @@ option (extproto.hash_all) = true;
 option go_package = "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1";
 import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/gateway.proto";
 import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/matchable_http_gateway.proto";
+import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/matchable_tcp_gateway.proto";
 import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/virtual_service.proto";
 import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/route_table.proto";
 import "github.com/solo-io/skv2/api/core/v1/core.proto";
@@ -25,6 +26,12 @@ message FederatedMatchableHttpGateway {
     .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
     .fed.gateway.solo.io.FederatedMatchableHttpGatewaySpec spec = 2;
     .fed.gateway.solo.io.FederatedMatchableHttpGatewayStatus status = 3;
+}
+
+message FederatedMatchableTcpGateway {
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .fed.gateway.solo.io.FederatedMatchableTcpGatewaySpec spec = 2;
+    .fed.gateway.solo.io.FederatedMatchableTcpGatewayStatus status = 3;
 }
 
 message FederatedVirtualService {
@@ -67,6 +74,20 @@ message GetFederatedMatchableHttpGatewayYamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
+message ListFederatedMatchableTcpGatewaysRequest {}
+
+message ListFederatedMatchableTcpGatewaysResponse {
+    repeated FederatedMatchableTcpGateway federated_matchable_tcp_gateways = 1;
+}
+
+message GetFederatedMatchableTcpGatewayYamlRequest {
+    .core.skv2.solo.io.ObjectRef federated_matchable_tcp_gateway_ref = 1;
+}
+
+message GetFederatedMatchableTcpGatewayYamlResponse {
+    .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
+}
+
 message ListFederatedVirtualServicesRequest {}
 
 message ListFederatedVirtualServicesResponse {
@@ -102,6 +123,9 @@ service FederatedGatewayResourceApi {
 
     rpc ListFederatedMatchableHttpGateways (ListFederatedMatchableHttpGatewaysRequest) returns (ListFederatedMatchableHttpGatewaysResponse) {}
     rpc GetFederatedMatchableHttpGatewayYaml (GetFederatedMatchableHttpGatewayYamlRequest) returns (GetFederatedMatchableHttpGatewayYamlResponse) {}
+
+    rpc ListFederatedMatchableTcpGateways (ListFederatedMatchableTcpGatewaysRequest) returns (ListFederatedMatchableTcpGatewaysResponse) {}
+    rpc GetFederatedMatchableTcpGatewayYaml (GetFederatedMatchableTcpGatewayYamlRequest) returns (GetFederatedMatchableTcpGatewayYamlResponse) {}
 
     rpc ListFederatedVirtualServices (ListFederatedVirtualServicesRequest) returns (ListFederatedVirtualServicesResponse) {}
     rpc GetFederatedVirtualServiceYaml (GetFederatedVirtualServiceYamlRequest) returns (GetFederatedVirtualServiceYamlResponse) {}

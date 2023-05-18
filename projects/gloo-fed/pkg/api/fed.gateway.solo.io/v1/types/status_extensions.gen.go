@@ -36,6 +36,20 @@ func (x *FederatedMatchableHttpGatewayStatus) SetNamespacedPlacementStatuses(sta
 	}
 }
 
+// SetPlacementStatus assigns the PlacementStatus for FederatedMatchableTcpGatewayStatus
+func (x *FederatedMatchableTcpGatewayStatus) SetPlacementStatus(status *v1.PlacementStatus) {
+	if x != nil {
+		x.PlacementStatus = status
+	}
+}
+
+// SetNamespacedPlacementStatuses assigns the PlacementStatuses for FederatedMatchableTcpGatewayStatus
+func (x *FederatedMatchableTcpGatewayStatus) SetNamespacedPlacementStatuses(statuses map[string]*v1.PlacementStatus) {
+	if x != nil {
+		x.NamespacedPlacementStatuses = statuses
+	}
+}
+
 // SetPlacementStatus assigns the PlacementStatus for FederatedVirtualServiceStatus
 func (x *FederatedVirtualServiceStatus) SetPlacementStatus(status *v1.PlacementStatus) {
 	if x != nil {

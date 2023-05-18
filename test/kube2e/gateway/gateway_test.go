@@ -5,26 +5,31 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
+
 	"time"
 
 	"github.com/avast/retry-go"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/pkg/cliutil/install"
+	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	glooStatic "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	glootransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
+
+	defaults2 "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	glooKube2e "github.com/solo-io/gloo/test/kube2e"
+
 	"github.com/solo-io/solo-projects/test/kube2e"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
-	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-
+	kubernetes2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/testutils"
-
 	"github.com/solo-io/k8s-utils/testutils/helper"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -38,6 +43,10 @@ import (
 	osskube2e "github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/test/setup"
+
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("Installing gloo in gateway mode", func() {
@@ -430,6 +439,153 @@ spec:
 
 		})
 	})
+
+	Context("matchable hybrid gateway", func() {
+
+		var (
+			hybridProxyServicePort = corev1.ServicePort{
+				Name:       "hybrid-proxy",
+				Port:       int32(defaults2.HybridPort),
+				TargetPort: intstr.FromInt(int(defaults2.HybridPort)),
+				Protocol:   "TCP",
+			}
+			tcpEchoClusterName string
+		)
+
+		exposePortOnGwProxyService := func(servicePort corev1.ServicePort) {
+			gwSvc, err := resourceClientset.KubeClients().CoreV1().Services(testHelper.InstallNamespace).Get(ctx, defaults.GatewayProxyName, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+
+			// Append servicePort if not found already
+			found := false
+			for _, v := range gwSvc.Spec.Ports {
+				if v.Name == hybridProxyServicePort.Name || v.Port == hybridProxyServicePort.Port {
+					found = true
+					break
+				}
+			}
+			if !found {
+				gwSvc.Spec.Ports = append(gwSvc.Spec.Ports, hybridProxyServicePort)
+			}
+
+			_, err = resourceClientset.KubeClients().CoreV1().Services(testHelper.InstallNamespace).Update(ctx, gwSvc, metav1.UpdateOptions{})
+			Expect(err).NotTo(HaveOccurred())
+		}
+		var httpEcho helper.TestRunner
+		var err error
+		BeforeEach(func() {
+			Skip("to merge other 1.15 code")
+
+			caFile := glooKube2e.ToFile(helpers.Certificate())
+			//goland:noinspection GoUnhandledErrorResult
+			defer os.Remove(caFile)
+			err = setup.Kubectl("cp", caFile, testHelper.InstallNamespace+"/testrunner:/tmp/ca.crt")
+			Expect(err).NotTo(HaveOccurred())
+			exposePortOnGwProxyService(hybridProxyServicePort)
+
+			httpEcho, err = helper.NewEchoHttp(testHelper.InstallNamespace)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = httpEcho.Deploy(2 * time.Minute) // mimick transformations test
+			Expect(err).NotTo(HaveOccurred())
+
+			tcpEchoClusterName = translator.UpstreamToClusterName(&core.ResourceRef{
+				Namespace: testHelper.InstallNamespace,
+				Name:      kubernetes2.UpstreamName(testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
+			})
+
+			// Create a MatchableHttpGateway
+			matchableHttpGateway := &v1.MatchableHttpGateway{
+				Metadata: &core.Metadata{
+					Name:      "matchable-http-gateway",
+					Namespace: testHelper.InstallNamespace,
+				},
+				HttpGateway: &v1.HttpGateway{
+					// match all virtual services
+				},
+			}
+
+			// Create a MatchableTcpGateway
+			matchableTcpGateway := &v1.MatchableTcpGateway{
+				Metadata: &core.Metadata{
+					Name:      "matchable-tcp-gateway",
+					Namespace: testHelper.InstallNamespace,
+				},
+				Matcher: &v1.MatchableTcpGateway_Matcher{
+
+					PassthroughCipherSuites: []string{"AES128-SHA256"},
+				},
+				TcpGateway: &v1.TcpGateway{
+					TcpHosts: []*gloov1.TcpHost{{
+						Name: tcpEchoClusterName,
+						Destination: &gloov1.TcpHost_TcpAction{
+							Destination: &gloov1.TcpHost_TcpAction_Single{
+								Single: &gloov1.Destination{
+									DestinationType: &gloov1.Destination_Upstream{
+										Upstream: &core.ResourceRef{
+											Namespace: testHelper.InstallNamespace,
+											Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
+										},
+									},
+								},
+							},
+						},
+					}},
+				},
+			}
+
+			// Create a HybridGateway that references that MatchableHttpGateway
+			hybridGateway := &v1.Gateway{
+				Metadata: &core.Metadata{
+					Name:      fmt.Sprintf("%s-hybrid", defaults.GatewayProxyName),
+					Namespace: testHelper.InstallNamespace,
+				},
+				GatewayType: &v1.Gateway_HybridGateway{
+					HybridGateway: &v1.HybridGateway{
+						DelegatedHttpGateways: &v1.DelegatedHttpGateway{
+							SelectionType: &v1.DelegatedHttpGateway_Ref{
+								Ref: &core.ResourceRef{
+									Name:      matchableHttpGateway.GetMetadata().GetName(),
+									Namespace: matchableHttpGateway.GetMetadata().GetNamespace(),
+								},
+							},
+						},
+						DelegatedTcpGateways: &v1.DelegatedTcpGateway{
+							SelectionType: &v1.DelegatedTcpGateway_Ref{
+								Ref: &core.ResourceRef{
+									Name:      matchableTcpGateway.GetMetadata().GetName(),
+									Namespace: matchableTcpGateway.GetMetadata().GetNamespace(),
+								},
+							},
+						},
+					},
+				},
+				ProxyNames:    []string{defaults.GatewayProxyName},
+				BindAddress:   defaults.GatewayBindAddress,
+				BindPort:      defaults2.HybridPort,
+				UseProxyProto: &wrappers.BoolValue{Value: false},
+			}
+
+			glooResources.HttpGateways = v1.MatchableHttpGatewayList{matchableHttpGateway}
+			glooResources.TcpGateways = v1.MatchableTcpGatewayList{matchableTcpGateway}
+			glooResources.Gateways = v1.GatewayList{hybridGateway}
+		})
+		AfterEach(func() {
+			httpEcho.Terminate()
+
+		})
+		It("works", func() {
+
+			checkCmd := exec.Command("curl", "--http0.9", "-sv", "--request", "POST", "--ciphers", "AES128-SHA256", tcpEchoClusterName, "-d", "something ")
+			err = checkCmd.Run()
+			checkCmd.Stdout = GinkgoWriter
+			checkCmd.Stderr = GinkgoWriter
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+
+	})
+
 })
 
 func getVirtualService(dest *gloov1.Destination, sslConfig *gloossl.SslConfig) *v1.VirtualService {

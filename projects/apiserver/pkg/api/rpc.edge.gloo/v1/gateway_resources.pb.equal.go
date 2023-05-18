@@ -154,6 +154,70 @@ func (m *MatchableHttpGateway) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *MatchableTcpGateway) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*MatchableTcpGateway)
+	if !ok {
+		that2, ok := that.(MatchableTcpGateway)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetMetadata()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMetadata()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMetadata(), target.GetMetadata()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetSpec()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSpec()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSpec(), target.GetSpec()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetStatus()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetStatus()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetStatus(), target.GetStatus()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetGlooInstance()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGlooInstance()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGlooInstance(), target.GetGlooInstance()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *VirtualService) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -772,6 +836,255 @@ func (m *GetMatchableHttpGatewayDetailsResponse) Equal(that interface{}) bool {
 		}
 	} else {
 		if !proto.Equal(m.GetMatchableHttpGateway(), target.GetMatchableHttpGateway()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *ListMatchableTcpGatewaysRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ListMatchableTcpGatewaysRequest)
+	if !ok {
+		that2, ok := that.(ListMatchableTcpGatewaysRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetGlooInstanceRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGlooInstanceRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGlooInstanceRef(), target.GetGlooInstanceRef()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetPagination()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetPagination()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetPagination(), target.GetPagination()) {
+			return false
+		}
+	}
+
+	if strings.Compare(m.GetQueryString(), target.GetQueryString()) != 0 {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetStatusFilter()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetStatusFilter()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetStatusFilter(), target.GetStatusFilter()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetSortOptions()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSortOptions()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSortOptions(), target.GetSortOptions()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *ListMatchableTcpGatewaysResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ListMatchableTcpGatewaysResponse)
+	if !ok {
+		that2, ok := that.(ListMatchableTcpGatewaysResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if len(m.GetMatchableTcpGateways()) != len(target.GetMatchableTcpGateways()) {
+		return false
+	}
+	for idx, v := range m.GetMatchableTcpGateways() {
+
+		if h, ok := interface{}(v).(equality.Equalizer); ok {
+			if !h.Equal(target.GetMatchableTcpGateways()[idx]) {
+				return false
+			}
+		} else {
+			if !proto.Equal(v, target.GetMatchableTcpGateways()[idx]) {
+				return false
+			}
+		}
+
+	}
+
+	if m.GetTotal() != target.GetTotal() {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetMatchableTcpGatewayYamlRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetMatchableTcpGatewayYamlRequest)
+	if !ok {
+		that2, ok := that.(GetMatchableTcpGatewayYamlRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetMatchableTcpGatewayRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMatchableTcpGatewayRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMatchableTcpGatewayRef(), target.GetMatchableTcpGatewayRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetMatchableTcpGatewayYamlResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetMatchableTcpGatewayYamlResponse)
+	if !ok {
+		that2, ok := that.(GetMatchableTcpGatewayYamlResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetYamlData()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetYamlData()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetYamlData(), target.GetYamlData()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetMatchableTcpGatewayDetailsRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetMatchableTcpGatewayDetailsRequest)
+	if !ok {
+		that2, ok := that.(GetMatchableTcpGatewayDetailsRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetMatchableTcpGatewayRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMatchableTcpGatewayRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMatchableTcpGatewayRef(), target.GetMatchableTcpGatewayRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetMatchableTcpGatewayDetailsResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetMatchableTcpGatewayDetailsResponse)
+	if !ok {
+		that2, ok := that.(GetMatchableTcpGatewayDetailsResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetMatchableTcpGateway()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMatchableTcpGateway()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMatchableTcpGateway(), target.GetMatchableTcpGateway()) {
 			return false
 		}
 	}

@@ -336,6 +336,7 @@ export const createGlooCheck = (
     proxies: meta.proxies ?? createCheckSummary(),
     rateLimitConfigs: meta.rateLimitConfigs ?? createCheckSummary(),
     matchableHttpGateways: meta.matchableHttpGateways ?? createCheckSummary(),
+    matchableTcpGateways: meta.matchableTcpGateways ?? createCheckSummary(),
     deployments: meta.deployments ?? createCheckSummary(),
     pods: meta.pods ?? createCheckSummary(),
     ...meta,

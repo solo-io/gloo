@@ -75,7 +75,7 @@ proto.static.options.gloo.solo.io.UpstreamSpec.toObject = function(includeInstan
   var f, obj = {
     hostsList: jspb.Message.toObjectList(msg.getHostsList(),
     proto.static.options.gloo.solo.io.Host.toObject, includeInstance),
-    useTls: jspb.Message.getFieldWithDefault(msg, 3, false),
+    useTls: (f = msg.getUseTls()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     serviceSpec: (f = msg.getServiceSpec()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_service_spec_pb.ServiceSpec.toObject(includeInstance, f),
     autoSniRewrite: (f = msg.getAutoSniRewrite()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
@@ -120,7 +120,8 @@ proto.static.options.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = fun
       msg.addHosts(value);
       break;
     case 3:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setUseTls(value);
       break;
     case 5:
@@ -171,10 +172,11 @@ proto.static.options.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = functio
     );
   }
   f = message.getUseTls();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       3,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getServiceSpec();
@@ -228,19 +230,32 @@ proto.static.options.gloo.solo.io.UpstreamSpec.prototype.clearHostsList = functi
 
 
 /**
- * optional bool use_tls = 3;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * optional google.protobuf.BoolValue use_tls = 3;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.static.options.gloo.solo.io.UpstreamSpec.prototype.getUseTls = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 3, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 3));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.static.options.gloo.solo.io.UpstreamSpec.prototype.setUseTls = function(value) {
-  jspb.Message.setProto3BooleanField(this, 3, value);
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.static.options.gloo.solo.io.UpstreamSpec.prototype.clearUseTls = function() {
+  this.setUseTls(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.static.options.gloo.solo.io.UpstreamSpec.prototype.hasUseTls = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

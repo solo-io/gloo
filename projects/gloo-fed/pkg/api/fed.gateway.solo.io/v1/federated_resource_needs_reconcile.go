@@ -29,6 +29,16 @@ func (obj *FederatedMatchableHttpGateway) NeedsReconcile(placementStatus *mc_typ
 // NeedsReconcile returns true if the object has not been observed or is in some state where a retry is needed
 // This implementation is not ideal, as it relies on using the Status of the resource, which should
 // be a read-only field. Instead, we could compare the resource hash to the last observed hash
+func (obj *FederatedMatchableTcpGateway) NeedsReconcile(placementStatus *mc_types.PlacementStatus) bool {
+	// If the FederatedMatchableTcpGateway has not been observed or is in some state where a retry is needed, it needs reconcile
+	return obj.Generation != placementStatus.GetObservedGeneration() ||
+		placementStatus.GetState() != mc_types.PlacementStatus_PLACED ||
+		placementStatus.GetState() != mc_types.PlacementStatus_FAILED
+}
+
+// NeedsReconcile returns true if the object has not been observed or is in some state where a retry is needed
+// This implementation is not ideal, as it relies on using the Status of the resource, which should
+// be a read-only field. Instead, we could compare the resource hash to the last observed hash
 func (obj *FederatedVirtualService) NeedsReconcile(placementStatus *mc_types.PlacementStatus) bool {
 	// If the FederatedVirtualService has not been observed or is in some state where a retry is needed, it needs reconcile
 	return obj.Generation != placementStatus.GetObservedGeneration() ||

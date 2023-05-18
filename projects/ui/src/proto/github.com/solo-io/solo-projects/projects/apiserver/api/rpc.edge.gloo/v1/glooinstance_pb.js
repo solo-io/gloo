@@ -1526,6 +1526,7 @@ proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.toObject = funct
     proxies: (f = msg.getProxies()) && proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
     rateLimitConfigs: (f = msg.getRateLimitConfigs()) && proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
     matchableHttpGateways: (f = msg.getMatchableHttpGateways()) && proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
+    matchableTcpGateways: (f = msg.getMatchableTcpGateways()) && proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
     deployments: (f = msg.getDeployments()) && proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
     pods: (f = msg.getPods()) && proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f)
   };
@@ -1613,6 +1614,11 @@ proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.deserializeBinar
       var value = new proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary;
       reader.readMessage(value,proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.deserializeBinaryFromReader);
       msg.setMatchableHttpGateways(value);
+      break;
+    case 11:
+      var value = new proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary;
+      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.deserializeBinaryFromReader);
+      msg.setMatchableTcpGateways(value);
       break;
     case 20:
       var value = new proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary;
@@ -1729,6 +1735,14 @@ proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.serializeBinaryT
   if (f != null) {
     writer.writeMessage(
       10,
+      f,
+      proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.serializeBinaryToWriter
+    );
+  }
+  f = message.getMatchableTcpGateways();
+  if (f != null) {
+    writer.writeMessage(
+      11,
       f,
       proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.serializeBinaryToWriter
     );
@@ -2476,6 +2490,36 @@ proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.clearM
  */
 proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.hasMatchableHttpGateways = function() {
   return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional Summary matchable_tcp_gateways = 11;
+ * @return {?proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary}
+ */
+proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.getMatchableTcpGateways = function() {
+  return /** @type{?proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary} */ (
+    jspb.Message.getWrapperField(this, proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary, 11));
+};
+
+
+/** @param {?proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary|undefined} value */
+proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.setMatchableTcpGateways = function(value) {
+  jspb.Message.setWrapperField(this, 11, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.clearMatchableTcpGateways = function() {
+  this.setMatchableTcpGateways(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.hasMatchableTcpGateways = function() {
+  return jspb.Message.getField(this, 11) != null;
 };
 
 

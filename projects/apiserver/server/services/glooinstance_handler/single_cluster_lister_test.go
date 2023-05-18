@@ -52,6 +52,14 @@ var (
 						},
 					},
 				},
+				MatchableTcpGateways: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+					Total: 1,
+					Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{
+						{
+							Ref: &v1.ObjectRef{Name: "tcpgw1", Namespace: "gloo-system"},
+						},
+					},
+				},
 				RateLimitConfigs: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
 					Total: 2,
 					Errors: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{
@@ -115,6 +123,7 @@ var _ = Describe("single cluster gloo instance lister", func() {
 		mockVirtualServiceClient       *mock_gateway_v1.MockVirtualServiceClient
 		mockRouteTableClient           *mock_gateway_v1.MockRouteTableClient
 		mockMatchableHttpGatewayClient *mock_gateway_v1.MockMatchableHttpGatewayClient
+		mockMatchableTcpGatewayClient  *mock_gateway_v1.MockMatchableTcpGatewayClient
 		mockSettingsClient             *mock_gloo_v1.MockSettingsClient
 		mockUpstreamClient             *mock_gloo_v1.MockUpstreamClient
 		mockUpstreamGroupClient        *mock_gloo_v1.MockUpstreamGroupClient
@@ -148,10 +157,12 @@ var _ = Describe("single cluster gloo instance lister", func() {
 		mockVirtualServiceClient = mock_gateway_v1.NewMockVirtualServiceClient(ctrl)
 		mockRouteTableClient = mock_gateway_v1.NewMockRouteTableClient(ctrl)
 		mockMatchableHttpGatewayClient = mock_gateway_v1.NewMockMatchableHttpGatewayClient(ctrl)
+		mockMatchableTcpGatewayClient = mock_gateway_v1.NewMockMatchableTcpGatewayClient(ctrl)
 		mockGatewayClientset.EXPECT().Gateways().Return(mockGatewayClient)
 		mockGatewayClientset.EXPECT().VirtualServices().Return(mockVirtualServiceClient)
 		mockGatewayClientset.EXPECT().RouteTables().Return(mockRouteTableClient)
 		mockGatewayClientset.EXPECT().MatchableHttpGateways().Return(mockMatchableHttpGatewayClient)
+		mockGatewayClientset.EXPECT().MatchableTcpGateways().Return(mockMatchableTcpGatewayClient)
 
 		// gloo clientset
 		mockGlooClientset = mock_gloo_v1.NewMockClientset(ctrl)
@@ -255,6 +266,19 @@ var _ = Describe("single cluster gloo instance lister", func() {
 					},
 					Status: gateway_v1.MatchableHttpGatewayStatus{
 						State: gateway_v1.MatchableHttpGatewayStatus_Warning,
+					},
+				},
+			},
+		}, nil)
+		mockMatchableTcpGatewayClient.EXPECT().ListMatchableTcpGateway(ctx).Return(&gateway_v1.MatchableTcpGatewayList{
+			Items: []gateway_v1.MatchableTcpGateway{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "tcpgw1",
+						Namespace: "gloo-system",
+					},
+					Status: gateway_v1.MatchableTcpGatewayStatus{
+						State: gateway_v1.MatchableTcpGatewayStatus_Warning,
 					},
 				},
 			},

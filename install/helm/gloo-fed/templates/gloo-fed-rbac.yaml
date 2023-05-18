@@ -52,6 +52,8 @@ rules:
   - federatedgateways/status
   - federatedmatchablehttpgateways
   - federatedmatchablehttpgateways/status
+  - federatedmatchabletcpgateways
+  - federatedmatchabletcpgateways/status
   - federatedroutetables
   - federatedroutetables/status
   verbs:

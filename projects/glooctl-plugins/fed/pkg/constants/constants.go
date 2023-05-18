@@ -50,6 +50,11 @@ var (
 		Aliases: []string{"hgw", "matchablehttpgateways"},
 	}
 
+	MATCHABLE_TCP_GATEWAY_COMMAND = cobra.Command{
+		Use:     "matchabletcpgateway",
+		Aliases: []string{"hgw", "matchabletcpgateways"},
+	}
+
 	AUTH_CONFIG_COMMAND = cobra.Command{
 		Use:     "authconfig",
 		Aliases: []string{"ac", "authconfig"},

@@ -1556,6 +1556,7 @@ proto.fed.solo.io.GlooInstanceSpec.Check.toObject = function(includeInstance, ms
     proxies: (f = msg.getProxies()) && proto.fed.solo.io.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
     rateLimitConfigs: (f = msg.getRateLimitConfigs()) && proto.fed.solo.io.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
     matchableHttpGateways: (f = msg.getMatchableHttpGateways()) && proto.fed.solo.io.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
+    matchableTcpGateways: (f = msg.getMatchableTcpGateways()) && proto.fed.solo.io.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
     deployments: (f = msg.getDeployments()) && proto.fed.solo.io.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
     pods: (f = msg.getPods()) && proto.fed.solo.io.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f)
   };
@@ -1643,6 +1644,11 @@ proto.fed.solo.io.GlooInstanceSpec.Check.deserializeBinaryFromReader = function(
       var value = new proto.fed.solo.io.GlooInstanceSpec.Check.Summary;
       reader.readMessage(value,proto.fed.solo.io.GlooInstanceSpec.Check.Summary.deserializeBinaryFromReader);
       msg.setMatchableHttpGateways(value);
+      break;
+    case 11:
+      var value = new proto.fed.solo.io.GlooInstanceSpec.Check.Summary;
+      reader.readMessage(value,proto.fed.solo.io.GlooInstanceSpec.Check.Summary.deserializeBinaryFromReader);
+      msg.setMatchableTcpGateways(value);
       break;
     case 20:
       var value = new proto.fed.solo.io.GlooInstanceSpec.Check.Summary;
@@ -1759,6 +1765,14 @@ proto.fed.solo.io.GlooInstanceSpec.Check.serializeBinaryToWriter = function(mess
   if (f != null) {
     writer.writeMessage(
       10,
+      f,
+      proto.fed.solo.io.GlooInstanceSpec.Check.Summary.serializeBinaryToWriter
+    );
+  }
+  f = message.getMatchableTcpGateways();
+  if (f != null) {
+    writer.writeMessage(
+      11,
       f,
       proto.fed.solo.io.GlooInstanceSpec.Check.Summary.serializeBinaryToWriter
     );
@@ -2506,6 +2520,36 @@ proto.fed.solo.io.GlooInstanceSpec.Check.prototype.clearMatchableHttpGateways = 
  */
 proto.fed.solo.io.GlooInstanceSpec.Check.prototype.hasMatchableHttpGateways = function() {
   return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional Summary matchable_tcp_gateways = 11;
+ * @return {?proto.fed.solo.io.GlooInstanceSpec.Check.Summary}
+ */
+proto.fed.solo.io.GlooInstanceSpec.Check.prototype.getMatchableTcpGateways = function() {
+  return /** @type{?proto.fed.solo.io.GlooInstanceSpec.Check.Summary} */ (
+    jspb.Message.getWrapperField(this, proto.fed.solo.io.GlooInstanceSpec.Check.Summary, 11));
+};
+
+
+/** @param {?proto.fed.solo.io.GlooInstanceSpec.Check.Summary|undefined} value */
+proto.fed.solo.io.GlooInstanceSpec.Check.prototype.setMatchableTcpGateways = function(value) {
+  jspb.Message.setWrapperField(this, 11, value);
+};
+
+
+proto.fed.solo.io.GlooInstanceSpec.Check.prototype.clearMatchableTcpGateways = function() {
+  this.setMatchableTcpGateways(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.fed.solo.io.GlooInstanceSpec.Check.prototype.hasMatchableTcpGateways = function() {
+  return jspb.Message.getField(this, 11) != null;
 };
 
 

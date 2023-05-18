@@ -58,6 +58,33 @@ type GatewayResourceApiGetMatchableHttpGatewayDetails = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayDetailsResponse;
 };
 
+type GatewayResourceApiListMatchableTcpGateways = {
+  readonly methodName: string;
+  readonly service: typeof GatewayResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableTcpGatewaysRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableTcpGatewaysResponse;
+};
+
+type GatewayResourceApiGetMatchableTcpGatewayYaml = {
+  readonly methodName: string;
+  readonly service: typeof GatewayResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableTcpGatewayYamlRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableTcpGatewayYamlResponse;
+};
+
+type GatewayResourceApiGetMatchableTcpGatewayDetails = {
+  readonly methodName: string;
+  readonly service: typeof GatewayResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableTcpGatewayDetailsRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableTcpGatewayDetailsResponse;
+};
+
 type GatewayResourceApiListVirtualServices = {
   readonly methodName: string;
   readonly service: typeof GatewayResourceApi;
@@ -120,6 +147,9 @@ export class GatewayResourceApi {
   static readonly ListMatchableHttpGateways: GatewayResourceApiListMatchableHttpGateways;
   static readonly GetMatchableHttpGatewayYaml: GatewayResourceApiGetMatchableHttpGatewayYaml;
   static readonly GetMatchableHttpGatewayDetails: GatewayResourceApiGetMatchableHttpGatewayDetails;
+  static readonly ListMatchableTcpGateways: GatewayResourceApiListMatchableTcpGateways;
+  static readonly GetMatchableTcpGatewayYaml: GatewayResourceApiGetMatchableTcpGatewayYaml;
+  static readonly GetMatchableTcpGatewayDetails: GatewayResourceApiGetMatchableTcpGatewayDetails;
   static readonly ListVirtualServices: GatewayResourceApiListVirtualServices;
   static readonly GetVirtualServiceYaml: GatewayResourceApiGetVirtualServiceYaml;
   static readonly GetVirtualServiceDetails: GatewayResourceApiGetVirtualServiceDetails;
@@ -213,6 +243,33 @@ export class GatewayResourceApiClient {
   getMatchableHttpGatewayDetails(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayDetailsRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayDetailsResponse|null) => void
+  ): UnaryResponse;
+  listMatchableTcpGateways(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableTcpGatewaysRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableTcpGatewaysResponse|null) => void
+  ): UnaryResponse;
+  listMatchableTcpGateways(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableTcpGatewaysRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableTcpGatewaysResponse|null) => void
+  ): UnaryResponse;
+  getMatchableTcpGatewayYaml(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableTcpGatewayYamlRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableTcpGatewayYamlResponse|null) => void
+  ): UnaryResponse;
+  getMatchableTcpGatewayYaml(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableTcpGatewayYamlRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableTcpGatewayYamlResponse|null) => void
+  ): UnaryResponse;
+  getMatchableTcpGatewayDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableTcpGatewayDetailsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableTcpGatewayDetailsResponse|null) => void
+  ): UnaryResponse;
+  getMatchableTcpGatewayDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableTcpGatewayDetailsRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableTcpGatewayDetailsResponse|null) => void
   ): UnaryResponse;
   listVirtualServices(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListVirtualServicesRequest,

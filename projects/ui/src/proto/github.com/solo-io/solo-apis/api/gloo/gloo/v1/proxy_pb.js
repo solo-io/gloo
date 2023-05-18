@@ -2485,7 +2485,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.gloo.solo.io.Matcher.repeatedFields_ = [2];
+proto.gloo.solo.io.Matcher.repeatedFields_ = [2,3];
 
 
 
@@ -2518,7 +2518,8 @@ proto.gloo.solo.io.Matcher.toObject = function(includeInstance, msg) {
   var f, obj = {
     sslConfig: (f = msg.getSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.toObject(includeInstance, f),
     sourcePrefixRangesList: jspb.Message.toObjectList(msg.getSourcePrefixRangesList(),
-    github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.toObject, includeInstance)
+    github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.toObject, includeInstance),
+    passthroughCipherSuitesList: jspb.Message.getRepeatedField(msg, 3)
   };
 
   if (includeInstance) {
@@ -2565,6 +2566,10 @@ proto.gloo.solo.io.Matcher.deserializeBinaryFromReader = function(msg, reader) {
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.deserializeBinaryFromReader);
       msg.addSourcePrefixRanges(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addPassthroughCipherSuites(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2608,6 +2613,13 @@ proto.gloo.solo.io.Matcher.serializeBinaryToWriter = function(message, writer) {
       2,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.serializeBinaryToWriter
+    );
+  }
+  f = message.getPassthroughCipherSuitesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      3,
+      f
     );
   }
 };
@@ -2671,6 +2683,35 @@ proto.gloo.solo.io.Matcher.prototype.addSourcePrefixRanges = function(opt_value,
 
 proto.gloo.solo.io.Matcher.prototype.clearSourcePrefixRangesList = function() {
   this.setSourcePrefixRangesList([]);
+};
+
+
+/**
+ * repeated string passthrough_cipher_suites = 3;
+ * @return {!Array<string>}
+ */
+proto.gloo.solo.io.Matcher.prototype.getPassthroughCipherSuitesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
+};
+
+
+/** @param {!Array<string>} value */
+proto.gloo.solo.io.Matcher.prototype.setPassthroughCipherSuitesList = function(value) {
+  jspb.Message.setField(this, 3, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.gloo.solo.io.Matcher.prototype.addPassthroughCipherSuites = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+};
+
+
+proto.gloo.solo.io.Matcher.prototype.clearPassthroughCipherSuitesList = function() {
+  this.setPassthroughCipherSuitesList([]);
 };
 
 

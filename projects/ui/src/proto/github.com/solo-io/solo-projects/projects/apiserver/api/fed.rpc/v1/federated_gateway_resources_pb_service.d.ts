@@ -40,6 +40,24 @@ type FederatedGatewayResourceApiGetFederatedMatchableHttpGatewayYaml = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.GetFederatedMatchableHttpGatewayYamlResponse;
 };
 
+type FederatedGatewayResourceApiListFederatedMatchableTcpGateways = {
+  readonly methodName: string;
+  readonly service: typeof FederatedGatewayResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.ListFederatedMatchableTcpGatewaysRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.ListFederatedMatchableTcpGatewaysResponse;
+};
+
+type FederatedGatewayResourceApiGetFederatedMatchableTcpGatewayYaml = {
+  readonly methodName: string;
+  readonly service: typeof FederatedGatewayResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.GetFederatedMatchableTcpGatewayYamlRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.GetFederatedMatchableTcpGatewayYamlResponse;
+};
+
 type FederatedGatewayResourceApiListFederatedVirtualServices = {
   readonly methodName: string;
   readonly service: typeof FederatedGatewayResourceApi;
@@ -82,6 +100,8 @@ export class FederatedGatewayResourceApi {
   static readonly GetFederatedGatewayYaml: FederatedGatewayResourceApiGetFederatedGatewayYaml;
   static readonly ListFederatedMatchableHttpGateways: FederatedGatewayResourceApiListFederatedMatchableHttpGateways;
   static readonly GetFederatedMatchableHttpGatewayYaml: FederatedGatewayResourceApiGetFederatedMatchableHttpGatewayYaml;
+  static readonly ListFederatedMatchableTcpGateways: FederatedGatewayResourceApiListFederatedMatchableTcpGateways;
+  static readonly GetFederatedMatchableTcpGatewayYaml: FederatedGatewayResourceApiGetFederatedMatchableTcpGatewayYaml;
   static readonly ListFederatedVirtualServices: FederatedGatewayResourceApiListFederatedVirtualServices;
   static readonly GetFederatedVirtualServiceYaml: FederatedGatewayResourceApiGetFederatedVirtualServiceYaml;
   static readonly ListFederatedRouteTables: FederatedGatewayResourceApiListFederatedRouteTables;
@@ -155,6 +175,24 @@ export class FederatedGatewayResourceApiClient {
   getFederatedMatchableHttpGatewayYaml(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.GetFederatedMatchableHttpGatewayYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.GetFederatedMatchableHttpGatewayYamlResponse|null) => void
+  ): UnaryResponse;
+  listFederatedMatchableTcpGateways(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.ListFederatedMatchableTcpGatewaysRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.ListFederatedMatchableTcpGatewaysResponse|null) => void
+  ): UnaryResponse;
+  listFederatedMatchableTcpGateways(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.ListFederatedMatchableTcpGatewaysRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.ListFederatedMatchableTcpGatewaysResponse|null) => void
+  ): UnaryResponse;
+  getFederatedMatchableTcpGatewayYaml(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.GetFederatedMatchableTcpGatewayYamlRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.GetFederatedMatchableTcpGatewayYamlResponse|null) => void
+  ): UnaryResponse;
+  getFederatedMatchableTcpGatewayYaml(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.GetFederatedMatchableTcpGatewayYamlRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.GetFederatedMatchableTcpGatewayYamlResponse|null) => void
   ): UnaryResponse;
   listFederatedVirtualServices(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.ListFederatedVirtualServicesRequest,

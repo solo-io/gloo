@@ -160,6 +160,77 @@ func (g genericFederatedMatchableHttpGatewayMulticlusterReconciler) Reconcile(cl
 	return g.reconciler.ReconcileFederatedMatchableHttpGateway(cluster, obj)
 }
 
+// Reconcile Upsert events for the FederatedMatchableTcpGateway Resource across clusters.
+// implemented by the user
+type MulticlusterFederatedMatchableTcpGatewayReconciler interface {
+	ReconcileFederatedMatchableTcpGateway(clusterName string, obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) (reconcile.Result, error)
+}
+
+// Reconcile deletion events for the FederatedMatchableTcpGateway Resource across clusters.
+// Deletion receives a reconcile.Request as we cannot guarantee the last state of the object
+// before being deleted.
+// implemented by the user
+type MulticlusterFederatedMatchableTcpGatewayDeletionReconciler interface {
+	ReconcileFederatedMatchableTcpGatewayDeletion(clusterName string, req reconcile.Request) error
+}
+
+type MulticlusterFederatedMatchableTcpGatewayReconcilerFuncs struct {
+	OnReconcileFederatedMatchableTcpGateway         func(clusterName string, obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) (reconcile.Result, error)
+	OnReconcileFederatedMatchableTcpGatewayDeletion func(clusterName string, req reconcile.Request) error
+}
+
+func (f *MulticlusterFederatedMatchableTcpGatewayReconcilerFuncs) ReconcileFederatedMatchableTcpGateway(clusterName string, obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) (reconcile.Result, error) {
+	if f.OnReconcileFederatedMatchableTcpGateway == nil {
+		return reconcile.Result{}, nil
+	}
+	return f.OnReconcileFederatedMatchableTcpGateway(clusterName, obj)
+}
+
+func (f *MulticlusterFederatedMatchableTcpGatewayReconcilerFuncs) ReconcileFederatedMatchableTcpGatewayDeletion(clusterName string, req reconcile.Request) error {
+	if f.OnReconcileFederatedMatchableTcpGatewayDeletion == nil {
+		return nil
+	}
+	return f.OnReconcileFederatedMatchableTcpGatewayDeletion(clusterName, req)
+}
+
+type MulticlusterFederatedMatchableTcpGatewayReconcileLoop interface {
+	// AddMulticlusterFederatedMatchableTcpGatewayReconciler adds a MulticlusterFederatedMatchableTcpGatewayReconciler to the MulticlusterFederatedMatchableTcpGatewayReconcileLoop.
+	AddMulticlusterFederatedMatchableTcpGatewayReconciler(ctx context.Context, rec MulticlusterFederatedMatchableTcpGatewayReconciler, predicates ...predicate.Predicate)
+}
+
+type multiclusterFederatedMatchableTcpGatewayReconcileLoop struct {
+	loop multicluster.Loop
+}
+
+func (m *multiclusterFederatedMatchableTcpGatewayReconcileLoop) AddMulticlusterFederatedMatchableTcpGatewayReconciler(ctx context.Context, rec MulticlusterFederatedMatchableTcpGatewayReconciler, predicates ...predicate.Predicate) {
+	genericReconciler := genericFederatedMatchableTcpGatewayMulticlusterReconciler{reconciler: rec}
+
+	m.loop.AddReconciler(ctx, genericReconciler, predicates...)
+}
+
+func NewMulticlusterFederatedMatchableTcpGatewayReconcileLoop(name string, cw multicluster.ClusterWatcher, options reconcile.Options) MulticlusterFederatedMatchableTcpGatewayReconcileLoop {
+	return &multiclusterFederatedMatchableTcpGatewayReconcileLoop{loop: mc_reconcile.NewLoop(name, cw, &fed_gateway_solo_io_v1.FederatedMatchableTcpGateway{}, options)}
+}
+
+type genericFederatedMatchableTcpGatewayMulticlusterReconciler struct {
+	reconciler MulticlusterFederatedMatchableTcpGatewayReconciler
+}
+
+func (g genericFederatedMatchableTcpGatewayMulticlusterReconciler) ReconcileDeletion(cluster string, req reconcile.Request) error {
+	if deletionReconciler, ok := g.reconciler.(MulticlusterFederatedMatchableTcpGatewayDeletionReconciler); ok {
+		return deletionReconciler.ReconcileFederatedMatchableTcpGatewayDeletion(cluster, req)
+	}
+	return nil
+}
+
+func (g genericFederatedMatchableTcpGatewayMulticlusterReconciler) Reconcile(cluster string, object ezkube.Object) (reconcile.Result, error) {
+	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedMatchableTcpGateway)
+	if !ok {
+		return reconcile.Result{}, errors.Errorf("internal error: FederatedMatchableTcpGateway handler received event for %T", object)
+	}
+	return g.reconciler.ReconcileFederatedMatchableTcpGateway(cluster, obj)
+}
+
 // Reconcile Upsert events for the FederatedVirtualService Resource across clusters.
 // implemented by the user
 type MulticlusterFederatedVirtualServiceReconciler interface {

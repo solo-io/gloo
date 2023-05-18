@@ -25,6 +25,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb = require('../../..
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_selectors_selectors_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/selectors/selectors_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb.js');
 goog.exportSymbol('proto.gateway.solo.io.DelegatedHttpGateway', null, global);
+goog.exportSymbol('proto.gateway.solo.io.DelegatedTcpGateway', null, global);
 goog.exportSymbol('proto.gateway.solo.io.GatewayNamespacedStatuses', null, global);
 goog.exportSymbol('proto.gateway.solo.io.GatewaySpec', null, global);
 goog.exportSymbol('proto.gateway.solo.io.GatewayStatus', null, global);
@@ -838,7 +839,8 @@ proto.gateway.solo.io.HybridGateway.toObject = function(includeInstance, msg) {
   var f, obj = {
     matchedGatewaysList: jspb.Message.toObjectList(msg.getMatchedGatewaysList(),
     proto.gateway.solo.io.MatchedGateway.toObject, includeInstance),
-    delegatedHttpGateways: (f = msg.getDelegatedHttpGateways()) && proto.gateway.solo.io.DelegatedHttpGateway.toObject(includeInstance, f)
+    delegatedHttpGateways: (f = msg.getDelegatedHttpGateways()) && proto.gateway.solo.io.DelegatedHttpGateway.toObject(includeInstance, f),
+    delegatedTcpGateways: (f = msg.getDelegatedTcpGateways()) && proto.gateway.solo.io.DelegatedTcpGateway.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -885,6 +887,11 @@ proto.gateway.solo.io.HybridGateway.deserializeBinaryFromReader = function(msg, 
       reader.readMessage(value,proto.gateway.solo.io.DelegatedHttpGateway.deserializeBinaryFromReader);
       msg.setDelegatedHttpGateways(value);
       break;
+    case 3:
+      var value = new proto.gateway.solo.io.DelegatedTcpGateway;
+      reader.readMessage(value,proto.gateway.solo.io.DelegatedTcpGateway.deserializeBinaryFromReader);
+      msg.setDelegatedTcpGateways(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -928,6 +935,14 @@ proto.gateway.solo.io.HybridGateway.serializeBinaryToWriter = function(message, 
       2,
       f,
       proto.gateway.solo.io.DelegatedHttpGateway.serializeBinaryToWriter
+    );
+  }
+  f = message.getDelegatedTcpGateways();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.gateway.solo.io.DelegatedTcpGateway.serializeBinaryToWriter
     );
   }
 };
@@ -991,6 +1006,36 @@ proto.gateway.solo.io.HybridGateway.prototype.clearDelegatedHttpGateways = funct
  */
 proto.gateway.solo.io.HybridGateway.prototype.hasDelegatedHttpGateways = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional DelegatedTcpGateway delegated_tcp_gateways = 3;
+ * @return {?proto.gateway.solo.io.DelegatedTcpGateway}
+ */
+proto.gateway.solo.io.HybridGateway.prototype.getDelegatedTcpGateways = function() {
+  return /** @type{?proto.gateway.solo.io.DelegatedTcpGateway} */ (
+    jspb.Message.getWrapperField(this, proto.gateway.solo.io.DelegatedTcpGateway, 3));
+};
+
+
+/** @param {?proto.gateway.solo.io.DelegatedTcpGateway|undefined} value */
+proto.gateway.solo.io.HybridGateway.prototype.setDelegatedTcpGateways = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.gateway.solo.io.HybridGateway.prototype.clearDelegatedTcpGateways = function() {
+  this.setDelegatedTcpGateways(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.HybridGateway.prototype.hasDelegatedTcpGateways = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
@@ -1351,6 +1396,235 @@ proto.gateway.solo.io.DelegatedHttpGateway.prototype.hasSslConfig = function() {
  * @extends {jspb.Message}
  * @constructor
  */
+proto.gateway.solo.io.DelegatedTcpGateway = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.gateway.solo.io.DelegatedTcpGateway.oneofGroups_);
+};
+goog.inherits(proto.gateway.solo.io.DelegatedTcpGateway, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gateway.solo.io.DelegatedTcpGateway.displayName = 'proto.gateway.solo.io.DelegatedTcpGateway';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.gateway.solo.io.DelegatedTcpGateway.oneofGroups_ = [[1,2]];
+
+/**
+ * @enum {number}
+ */
+proto.gateway.solo.io.DelegatedTcpGateway.SelectionTypeCase = {
+  SELECTION_TYPE_NOT_SET: 0,
+  REF: 1,
+  SELECTOR: 2
+};
+
+/**
+ * @return {proto.gateway.solo.io.DelegatedTcpGateway.SelectionTypeCase}
+ */
+proto.gateway.solo.io.DelegatedTcpGateway.prototype.getSelectionTypeCase = function() {
+  return /** @type {proto.gateway.solo.io.DelegatedTcpGateway.SelectionTypeCase} */(jspb.Message.computeOneofCase(this, proto.gateway.solo.io.DelegatedTcpGateway.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gateway.solo.io.DelegatedTcpGateway.prototype.toObject = function(opt_includeInstance) {
+  return proto.gateway.solo.io.DelegatedTcpGateway.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gateway.solo.io.DelegatedTcpGateway} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gateway.solo.io.DelegatedTcpGateway.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    selector: (f = msg.getSelector()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gateway.solo.io.DelegatedTcpGateway}
+ */
+proto.gateway.solo.io.DelegatedTcpGateway.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gateway.solo.io.DelegatedTcpGateway;
+  return proto.gateway.solo.io.DelegatedTcpGateway.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gateway.solo.io.DelegatedTcpGateway} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gateway.solo.io.DelegatedTcpGateway}
+ */
+proto.gateway.solo.io.DelegatedTcpGateway.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setRef(value);
+      break;
+    case 2:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector.deserializeBinaryFromReader);
+      msg.setSelector(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gateway.solo.io.DelegatedTcpGateway.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gateway.solo.io.DelegatedTcpGateway.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gateway.solo.io.DelegatedTcpGateway} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gateway.solo.io.DelegatedTcpGateway.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRef();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getSelector();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional core.solo.io.ResourceRef ref = 1;
+ * @return {?proto.core.solo.io.ResourceRef}
+ */
+proto.gateway.solo.io.DelegatedTcpGateway.prototype.getRef = function() {
+  return /** @type{?proto.core.solo.io.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
+};
+
+
+/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
+proto.gateway.solo.io.DelegatedTcpGateway.prototype.setRef = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.gateway.solo.io.DelegatedTcpGateway.oneofGroups_[0], value);
+};
+
+
+proto.gateway.solo.io.DelegatedTcpGateway.prototype.clearRef = function() {
+  this.setRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.DelegatedTcpGateway.prototype.hasRef = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional selectors.core.gloo.solo.io.Selector selector = 2;
+ * @return {?proto.selectors.core.gloo.solo.io.Selector}
+ */
+proto.gateway.solo.io.DelegatedTcpGateway.prototype.getSelector = function() {
+  return /** @type{?proto.selectors.core.gloo.solo.io.Selector} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector, 2));
+};
+
+
+/** @param {?proto.selectors.core.gloo.solo.io.Selector|undefined} value */
+proto.gateway.solo.io.DelegatedTcpGateway.prototype.setSelector = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.gateway.solo.io.DelegatedTcpGateway.oneofGroups_[0], value);
+};
+
+
+proto.gateway.solo.io.DelegatedTcpGateway.prototype.clearSelector = function() {
+  this.setSelector(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.DelegatedTcpGateway.prototype.hasSelector = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.gateway.solo.io.MatchedGateway = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, proto.gateway.solo.io.MatchedGateway.oneofGroups_);
 };
@@ -1636,7 +1910,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.gateway.solo.io.Matcher.repeatedFields_ = [2];
+proto.gateway.solo.io.Matcher.repeatedFields_ = [2,3];
 
 
 
@@ -1669,7 +1943,8 @@ proto.gateway.solo.io.Matcher.toObject = function(includeInstance, msg) {
   var f, obj = {
     sslConfig: (f = msg.getSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.toObject(includeInstance, f),
     sourcePrefixRangesList: jspb.Message.toObjectList(msg.getSourcePrefixRangesList(),
-    github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.toObject, includeInstance)
+    github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.toObject, includeInstance),
+    passthroughCipherSuitesList: jspb.Message.getRepeatedField(msg, 3)
   };
 
   if (includeInstance) {
@@ -1716,6 +1991,10 @@ proto.gateway.solo.io.Matcher.deserializeBinaryFromReader = function(msg, reader
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.deserializeBinaryFromReader);
       msg.addSourcePrefixRanges(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addPassthroughCipherSuites(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1759,6 +2038,13 @@ proto.gateway.solo.io.Matcher.serializeBinaryToWriter = function(message, writer
       2,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.serializeBinaryToWriter
+    );
+  }
+  f = message.getPassthroughCipherSuitesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      3,
+      f
     );
   }
 };
@@ -1822,6 +2108,35 @@ proto.gateway.solo.io.Matcher.prototype.addSourcePrefixRanges = function(opt_val
 
 proto.gateway.solo.io.Matcher.prototype.clearSourcePrefixRangesList = function() {
   this.setSourcePrefixRangesList([]);
+};
+
+
+/**
+ * repeated string passthrough_cipher_suites = 3;
+ * @return {!Array<string>}
+ */
+proto.gateway.solo.io.Matcher.prototype.getPassthroughCipherSuitesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
+};
+
+
+/** @param {!Array<string>} value */
+proto.gateway.solo.io.Matcher.prototype.setPassthroughCipherSuitesList = function(value) {
+  jspb.Message.setField(this, 3, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.gateway.solo.io.Matcher.prototype.addPassthroughCipherSuites = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+};
+
+
+proto.gateway.solo.io.Matcher.prototype.clearPassthroughCipherSuitesList = function() {
+  this.setPassthroughCipherSuitesList([]);
 };
 
 

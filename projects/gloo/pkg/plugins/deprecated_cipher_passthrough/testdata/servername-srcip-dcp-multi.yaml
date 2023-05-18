@@ -1,0 +1,57 @@
+matcherTree:
+  customMatch:
+      name: envoy.matching.custom_matchers.server_name_matcher
+      typedConfig:
+          '@type': type.googleapis.com/envoy.config.matching.custom_matchers.server_name.v3.ServerNameMatcher
+          serverNameMatchers:
+              - onMatch:
+                  matcher:
+                      matcherTree:
+                          customMatch:
+                              name: envoy.matching.custom_matchers.trie_matcher
+                              typedConfig:
+                                  '@type': type.googleapis.com/xds.type.matcher.v3.IPMatcher
+                                  rangeMatchers:
+                                      - exclusive: true
+                                        onMatch:
+                                          matcher:
+                                              matcherTree:
+                                                  exactMatchMap:
+                                                      map:
+                                                          PASSTHROUGH_FILTER_CHAIN:
+                                                              action:
+                                                                  name: string
+                                                                  typedConfig:
+                                                                      '@type': type.googleapis.com/google.protobuf.StringValue
+                                                                      value: filter_chain_0
+                                                  input:
+                                                      name: envoy.matching.inputs.cipher_detection_input
+                                                      typedConfig:
+                                                          '@type': type.googleapis.com/envoy.config.matching.cipher_detection_input.v3.CipherDetectionInput
+                                                          passthroughCiphers:
+                                                              - 60
+                                              onNoMatch:
+                                                  action:
+                                                      name: string
+                                                      typedConfig:
+                                                          '@type': type.googleapis.com/google.protobuf.StringValue
+                                                          value: filter_chain_1
+                                        ranges:
+                                          - addressPrefix: 127.0.0.1
+                                            prefixLen: 32
+                          input:
+                              name: envoy.matching.inputs.source_ip
+                              typedConfig:
+                                  '@type': type.googleapis.com/envoy.extensions.matching.common_inputs.network.v3.SourceIPInput
+                serverNames:
+                  - foo
+  input:
+      name: envoy.matching.inputs.server_name
+      typedConfig:
+          '@type': type.googleapis.com/envoy.extensions.matching.common_inputs.network.v3.ServerNameInput
+onNoMatch:
+    action:
+        name: string
+        typedConfig:
+            '@type': type.googleapis.com/google.protobuf.StringValue
+            value: filter_chain_2
