@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -117,7 +117,7 @@ func RunTestServer(ctx context.Context, server Server, extraHandler ExtraHandler
 			echoBody = extraHandler(rw, r)
 		}
 		if r.Body != nil {
-			body, _ := ioutil.ReadAll(r.Body)
+			body, _ := io.ReadAll(r.Body)
 			r.Body.Close()
 			if len(body) != 0 {
 				rr.Body = body

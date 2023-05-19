@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -119,7 +119,7 @@ var _ = Describe("AWS Lambda ", func() {
 			defer res.Body.Close()
 			g.Expect(res.StatusCode).To(Equal(http.StatusOK))
 
-			body, err := ioutil.ReadAll(res.Body)
+			body, err := io.ReadAll(res.Body)
 			g.Expect(err).NotTo(HaveOccurred())
 
 			g.Expect(string(body)).To(ContainSubstring(substring))
@@ -292,7 +292,7 @@ var _ = Describe("AWS Lambda ", func() {
 					Expect(response.StatusCode).To(Equal(statusCode))
 
 					defer response.Body.Close()
-					responseBody, err := ioutil.ReadAll(response.Body)
+					responseBody, err := io.ReadAll(response.Body)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(responseBody)).To(Equal(body))
 					for k, v := range headers {
@@ -332,7 +332,7 @@ var _ = Describe("AWS Lambda ", func() {
 						Expect(response.StatusCode).To(Equal(statusCode))
 
 						defer response.Body.Close()
-						responseBody, err := ioutil.ReadAll(response.Body)
+						responseBody, err := io.ReadAll(response.Body)
 						Expect(err).NotTo(HaveOccurred())
 
 						jsonResponseBody := make(map[string]interface{})
@@ -380,7 +380,7 @@ var _ = Describe("AWS Lambda ", func() {
 								Path:     "/1",
 								RawQuery: "param_a=value_1&param_b=value_b&param_b=value_2",
 							},
-							Body:   ioutil.NopCloser(&buf),
+							Body:   io.NopCloser(&buf),
 							Header: headers,
 						})
 						g.Expect(err).NotTo(HaveOccurred())
@@ -396,7 +396,7 @@ var _ = Describe("AWS Lambda ", func() {
 						Expect(response.StatusCode).To(Equal(statusCode))
 
 						defer response.Body.Close()
-						responseBody, err := ioutil.ReadAll(response.Body)
+						responseBody, err := io.ReadAll(response.Body)
 						Expect(err).NotTo(HaveOccurred())
 
 						jsonResponseBody := make(map[string]interface{})

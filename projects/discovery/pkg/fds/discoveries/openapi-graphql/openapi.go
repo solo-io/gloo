@@ -3,9 +3,10 @@ package openApi
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/go-openapi/swag"
@@ -145,7 +146,7 @@ func (f *OpenApiFunctionDiscovery) detectUpstreamTypeOnce(ctx context.Context, b
 		}
 		// might have found a openApi service
 		if res.StatusCode == http.StatusOK {
-			b, err := ioutil.ReadAll(res.Body)
+			b, err := io.ReadAll(res.Body)
 			if err != nil {
 				return nil, errors.Wrapf(err, "unable to read response body")
 			}
@@ -268,7 +269,7 @@ func RetrieveOpenApiDocFromUrl(ctx context.Context, url string) (*openapi3.T, er
 }
 
 func LoadFromFileOrHTTP(ctx context.Context, url string) ([]byte, error) {
-	return swag.LoadStrategy(url, ioutil.ReadFile, loadHTTPBytes(ctx))(url)
+	return swag.LoadStrategy(url, os.ReadFile, loadHTTPBytes(ctx))(url)
 }
 
 func loadHTTPBytes(ctx context.Context) func(path string) ([]byte, error) {
@@ -294,6 +295,6 @@ func loadHTTPBytes(ctx context.Context) func(path string) ([]byte, error) {
 			return nil, fmt.Errorf("could not access document at %q [%s] ", path, resp.Status)
 		}
 
-		return ioutil.ReadAll(resp.Body)
+		return io.ReadAll(resp.Body)
 	}
 }

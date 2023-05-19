@@ -2,16 +2,13 @@ package services
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
-
-	"os"
-	"path/filepath"
-
-	"io/ioutil"
 
 	"github.com/onsi/gomega/gexec"
 	promapi "github.com/prometheus/client_golang/api"
@@ -72,7 +69,7 @@ type PrometheusInstance struct {
 
 func newPrometheusInstance(port int32) *PrometheusInstance {
 
-	tmpdir, err := ioutil.TempDir(os.Getenv("HELPER_TMP"), "prometheus")
+	tmpdir, err := os.MkdirTemp(os.Getenv("HELPER_TMP"), "prometheus")
 	Expect(err).NotTo(HaveOccurred())
 
 	// create config dir
@@ -87,7 +84,7 @@ func newPrometheusInstance(port int32) *PrometheusInstance {
 
 	cfg := fmt.Sprintf(configTemplate, staticconfigs)
 	promyaml := filepath.Join(tmpdir, "prometheus.yml")
-	err = ioutil.WriteFile(promyaml, []byte(cfg), 0400)
+	err = os.WriteFile(promyaml, []byte(cfg), 0400)
 	Expect(err).NotTo(HaveOccurred())
 
 	cmd := exec.Command("prometheus", "--config.file="+promyaml, fmt.Sprintf("--web.listen-address=127.0.0.1:%d", port))
@@ -123,7 +120,7 @@ func (pi *PrometheusInstance) AddEnvoy(ei *EnvoyInstance) {
 
 	envoyDs := fmt.Sprintf(jase, ei.AdminPort)
 
-	err := ioutil.WriteFile(fname, []byte(envoyDs), 0400)
+	err := os.WriteFile(fname, []byte(envoyDs), 0400)
 	Expect(err).NotTo(HaveOccurred())
 }
 

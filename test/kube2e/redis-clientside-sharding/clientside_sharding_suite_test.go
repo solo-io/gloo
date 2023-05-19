@@ -2,7 +2,6 @@ package clientside_sharding_test
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -109,7 +108,7 @@ var _ = AfterSuite(func() {
 })
 
 func getHelmOverrides() (filename string, cleanup func()) {
-	values, err := ioutil.TempFile("", "*.yaml")
+	values, err := os.CreateTemp("", "*.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	// Set up gloo with mTLS enabled, clientSideSharding enabled, and redis scaled to 2
 	_, err = values.Write([]byte(`

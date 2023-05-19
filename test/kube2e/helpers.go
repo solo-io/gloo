@@ -3,7 +3,6 @@ package kube2e
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -190,7 +189,7 @@ func GetEnterpriseTestHelper(ctx context.Context, namespace string) (*helper.Sol
 	}
 }
 func PrintGlooDebugLogs() {
-	logs, _ := ioutil.ReadFile(cliutil.GetLogsPath())
+	logs, _ := os.ReadFile(cliutil.GetLogsPath())
 	fmt.Println("*** Gloo debug logs ***")
 	fmt.Println(string(logs))
 	fmt.Println("*** End Gloo debug logs ***")

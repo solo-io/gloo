@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
@@ -112,7 +111,7 @@ func (r *restClient) doRequest(method, query string, params url.Values, buf io.R
 	if err != nil {
 		return nil, 0, err
 	}
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 
 	return data, resp.StatusCode, err

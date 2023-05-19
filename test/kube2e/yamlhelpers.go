@@ -2,7 +2,7 @@ package kube2e
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	runtimeCheck "runtime"
 	"strings"
@@ -26,7 +26,7 @@ func GetYamlData(yamlAssetsPath string, filename string) (kind string, name stri
 
 	var kubernetesValues KubernetesStruct
 
-	file, err := ioutil.ReadFile(filepath.Join(yamlAssetsPath, filename))
+	file, err := os.ReadFile(filepath.Join(yamlAssetsPath, filename))
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -45,7 +45,7 @@ func GetYamlData(yamlAssetsPath string, filename string) (kind string, name stri
 // Then apply resources in a specific order
 func ApplyK8sResources(yamlAssetsPath string, directory string) {
 	fmt.Printf("\n=============== %s Directory Resources ===============\n", directory)
-	files, err := ioutil.ReadDir(filepath.Join(yamlAssetsPath, directory))
+	files, err := os.ReadDir(filepath.Join(yamlAssetsPath, directory))
 	Expect(err).NotTo(HaveOccurred())
 
 	// final map of files for resources

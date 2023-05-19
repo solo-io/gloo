@@ -1,7 +1,7 @@
 package placement
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/solo-io/skv2/codegen/model"
 	"github.com/solo-io/skv2/codegen/util"
@@ -14,7 +14,7 @@ const (
 
 // Returns the skv2 code template for generating typed placement parsers.
 func TypedParser(params contrib.SnapshotTemplateParameters) model.CustomTemplates {
-	templateContentsBytes, err := ioutil.ReadFile(util.MustGetThisDir() + "/" + typedParserCustomTemplatePath)
+	templateContentsBytes, err := os.ReadFile(util.MustGetThisDir() + "/" + typedParserCustomTemplatePath)
 	if err != nil {
 		panic(err)
 	}

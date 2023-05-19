@@ -2,7 +2,7 @@ package installer
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -86,7 +86,7 @@ func (g *GlooInstaller) Install(ctx context.Context) error {
 }
 
 func (g *GlooInstaller) validateHelmValuesFile() error {
-	valueBytes, err := ioutil.ReadFile(g.config.HelmValuesFile)
+	valueBytes, err := os.ReadFile(g.config.HelmValuesFile)
 	if err != nil {
 		return err
 	}

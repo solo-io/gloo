@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -248,14 +247,14 @@ var _ = Describe("Helm Test", func() {
 
 			It("has valid default dashboards", func() {
 				dashboardsDir := "../helm/gloo-ee/dashboards/"
-				files, err := ioutil.ReadDir(dashboardsDir)
+				files, err := os.ReadDir(dashboardsDir)
 				Expect(err).NotTo(HaveOccurred(), "Should be able to list files")
 				Expect(files).NotTo(HaveLen(0), "Should have dashboard files")
 				for _, f := range files {
 					if !strings.HasSuffix(f.Name(), ".json") {
 						continue // not a JSON file
 					}
-					bytes, err := ioutil.ReadFile(path.Join(dashboardsDir, f.Name()))
+					bytes, err := os.ReadFile(path.Join(dashboardsDir, f.Name()))
 					Expect(err).NotTo(HaveOccurred(), "Should be able to read the Envoy dashboard json file")
 					err = json.Unmarshal(bytes, &map[string]interface{}{})
 					Expect(err).NotTo(HaveOccurred(), "Should be able to successfully unmarshal the envoy dashboard json")
@@ -264,14 +263,14 @@ var _ = Describe("Helm Test", func() {
 
 			It("has valid v2 default dashboards", func() {
 				dashboardsDir := "../helm/gloo-ee/dashboards/v2"
-				files, err := ioutil.ReadDir(dashboardsDir)
+				files, err := os.ReadDir(dashboardsDir)
 				Expect(err).NotTo(HaveOccurred(), "Should be able to list files")
 				Expect(files).NotTo(HaveLen(0), "Should have updated dashboard files")
 				for _, f := range files {
 					if !strings.HasSuffix(f.Name(), ".json") {
 						continue // not a JSON file
 					}
-					bytes, err := ioutil.ReadFile(path.Join(dashboardsDir, f.Name()))
+					bytes, err := os.ReadFile(path.Join(dashboardsDir, f.Name()))
 					Expect(err).NotTo(HaveOccurred(), "Should be able to read the Envoy dashboard json file")
 					err = json.Unmarshal(bytes, &map[string]interface{}{})
 					Expect(err).NotTo(HaveOccurred(), "Should be able to successfully unmarshal the envoy dashboard json")
@@ -974,7 +973,7 @@ gloo:
 				It("allows dataplane per proxy", func() {
 
 					helmOverrideFile := "helm-override-*.yaml"
-					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					tmpFile, err := os.CreateTemp("", helmOverrideFile)
 					Expect(err).ToNot(HaveOccurred())
 					_, err = tmpFile.Write([]byte(helmOverrideFileContents(true)))
 					Expect(err).NotTo(HaveOccurred())
@@ -1024,7 +1023,7 @@ gloo:
 
 				It("gateway proxy objects are not created when gatewayProxy is disabled", func() {
 					helmOverrideFile := "helm-override-*.yaml"
-					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					tmpFile, err := os.CreateTemp("", helmOverrideFile)
 					Expect(err).ToNot(HaveOccurred())
 					_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
 					Expect(err).NotTo(HaveOccurred())
@@ -1066,7 +1065,7 @@ gloo:
 				It("Redis objects are not created when .Values.redis.disabled is set", func() {
 					// file creation operations to support test
 					helmOverrideFile := "helm-override-*.yaml"
-					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					tmpFile, err := os.CreateTemp("", helmOverrideFile)
 					Expect(err).ToNot(HaveOccurred())
 					_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
 					Expect(err).NotTo(HaveOccurred())
@@ -1096,7 +1095,7 @@ gloo:
 				It("Redis objects are not built when .Values.redis.disabled is set but rate-limit sets up TLS when .Values.redis.cert.enabled is set", func() {
 					// file creation operations to support test
 					helmOverrideFile := "helm-override-*.yaml"
-					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					tmpFile, err := os.CreateTemp("", helmOverrideFile)
 					Expect(err).ToNot(HaveOccurred())
 					_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
 					Expect(err).NotTo(HaveOccurred())
@@ -1162,7 +1161,7 @@ gloo:
 
 				It("Be able to attach secret mounts to the ext-auth deployment", func() {
 					helmOverrideFile := "helm-override-*.yaml"
-					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					tmpFile, err := os.CreateTemp("", helmOverrideFile)
 					Expect(err).ToNot(HaveOccurred())
 					_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
 					Expect(err).NotTo(HaveOccurred())
@@ -1210,7 +1209,7 @@ gloo:
 				It("Redis objects are built when .Values.redis.disabled is not set and rate-limit sets up TLS when .Values.redis.cert.enabled is set", func() {
 					// file creation operations to support test
 					helmOverrideFile := "helm-override-*.yaml"
-					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					tmpFile, err := os.CreateTemp("", helmOverrideFile)
 					Expect(err).ToNot(HaveOccurred())
 					_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
 					Expect(err).NotTo(HaveOccurred())
@@ -1343,7 +1342,7 @@ gloo:
 					It("has aerospike with TLS configurations", func() {
 						// file creation operations to support test
 						helmOverrideFile := "helm-override-*.yaml"
-						tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+						tmpFile, err := os.CreateTemp("", helmOverrideFile)
 						Expect(err).ToNot(HaveOccurred())
 						_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
 						Expect(err).NotTo(HaveOccurred())
@@ -1439,7 +1438,7 @@ gloo:
 						}
 						// file creation operations to support test
 						helmOverrideFile := "helm-override-*.yaml"
-						tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+						tmpFile, err := os.CreateTemp("", helmOverrideFile)
 						Expect(err).ToNot(HaveOccurred())
 						_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
 						Expect(err).NotTo(HaveOccurred())
@@ -1515,7 +1514,7 @@ gloo:
 					It("should populate aerospike data without TLS settings", func() {
 						// file creation operations to support test
 						helmOverrideFile := "helm-override-*.yaml"
-						tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+						tmpFile, err := os.CreateTemp("", helmOverrideFile)
 						Expect(err).ToNot(HaveOccurred())
 						_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
 						Expect(err).NotTo(HaveOccurred())
@@ -1599,7 +1598,7 @@ gloo:
 						}
 						// file creation operations to support test
 						helmOverrideFile := "helm-override-*.yaml"
-						tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+						tmpFile, err := os.CreateTemp("", helmOverrideFile)
 						Expect(err).ToNot(HaveOccurred())
 						_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
 						Expect(err).NotTo(HaveOccurred())
@@ -1687,7 +1686,7 @@ gloo:
 				It("doesn't duplicate resources across proxies when dataplane per proxy is false", func() {
 
 					helmOverrideFile := "helm-override-*.yaml"
-					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					tmpFile, err := os.CreateTemp("", helmOverrideFile)
 					Expect(err).ToNot(HaveOccurred())
 					_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
 					Expect(err).NotTo(HaveOccurred())
@@ -1722,7 +1721,7 @@ gloo:
 
 				It("Redis/Extauth objects are built when default gwProxy is disabled and custom gwProxy has name starting with [a-f]", func() {
 					helmOverrideFile := "helm-override-*.yaml"
-					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					tmpFile, err := os.CreateTemp("", helmOverrideFile)
 					Expect(err).ToNot(HaveOccurred())
 					_, err = tmpFile.WriteString(`gloo:
   gatewayProxies:
@@ -1864,7 +1863,7 @@ global:
             pullPolicy: IfNotPresent
             tag: 1.2.3`
 				helmOverrideFile := "helm-override-*.yaml"
-				tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+				tmpFile, err := os.CreateTemp("", helmOverrideFile)
 				Expect(err).ToNot(HaveOccurred())
 				_, err = tmpFile.Write([]byte(helmOverrideFileContents))
 				Expect(err).NotTo(HaveOccurred())
@@ -2016,7 +2015,7 @@ global:
               topologyKey: kubernetes.io/hostname
 `
 					helmOverrideFile := "helm-override-*.yaml"
-					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					tmpFile, err := os.CreateTemp("", helmOverrideFile)
 					Expect(err).ToNot(HaveOccurred())
 					_, err = tmpFile.Write([]byte(helmOverrideFileContents))
 					Expect(err).NotTo(HaveOccurred())
@@ -2067,7 +2066,7 @@ global:
               topologyKey: kubernetes.io/hostname
 `
 					helmOverrideFile := "helm-override-*.yaml"
-					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					tmpFile, err := os.CreateTemp("", helmOverrideFile)
 					Expect(err).ToNot(HaveOccurred())
 					_, err = tmpFile.Write([]byte(helmOverrideFileContents))
 					Expect(err).NotTo(HaveOccurred())
@@ -4151,7 +4150,7 @@ global:
               topologyKey: kubernetes.io/hostname
 `
 					helmOverrideFile := "helm-override-*.yaml"
-					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					tmpFile, err := os.CreateTemp("", helmOverrideFile)
 					Expect(err).ToNot(HaveOccurred())
 					_, err = tmpFile.Write([]byte(helmOverrideFileContents))
 					Expect(err).NotTo(HaveOccurred())
@@ -4202,7 +4201,7 @@ global:
               topologyKey: kubernetes.io/hostname
 `
 					helmOverrideFile := "helm-override-*.yaml"
-					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					tmpFile, err := os.CreateTemp("", helmOverrideFile)
 					Expect(err).ToNot(HaveOccurred())
 					_, err = tmpFile.Write([]byte(helmOverrideFileContents))
 					Expect(err).NotTo(HaveOccurred())

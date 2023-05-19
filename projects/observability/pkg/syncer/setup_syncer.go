@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -128,7 +127,7 @@ func RunObservability(opts Opts) error {
 	dashboardClient := grafana.NewDashboardClient(restClient)
 	snapshotClient := grafana.NewSnapshotClient(restClient)
 
-	files, err := ioutil.ReadDir(defaultDashboardDir)
+	files, err := os.ReadDir(defaultDashboardDir)
 	if err != nil {
 		return err
 	}
@@ -199,7 +198,7 @@ func buildRestClient(ctx context.Context, grafanaApiUrl string) (grafana.RestCli
 
 		if caCrtEnvValue != "" {
 			pool := x509.NewCertPool()
-			caCert, err := ioutil.ReadFile(caCrtEnvValue)
+			caCert, err := os.ReadFile(caCrtEnvValue)
 			if err != nil {
 				caCert = []byte(caCrtEnvValue)
 				caCrtEnvValue = "customGrafana.caBundle"
@@ -261,7 +260,7 @@ func getGrafanaApiUrl() (string, error) {
 }
 
 func getDashboardJson(ctx context.Context, filename string) (string, error) {
-	bytes, err := ioutil.ReadFile(filename)
+	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		contextutils.LoggerFrom(ctx).Warnf("Error reading file %s - %s", filename, err.Error())
 		return "", nil

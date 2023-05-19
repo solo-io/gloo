@@ -2,17 +2,15 @@ package e2e_test
 
 import (
 	"context"
-	json2 "encoding/json"
+	"encoding/json"
 	"fmt"
-	"net"
-
-	"github.com/solo-io/gloo/test/v1helpers"
-
 	"io"
-	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/solo-io/gloo/test/v1helpers"
 
 	"github.com/fgrosse/zaptest"
 	structpb "github.com/golang/protobuf/ptypes/struct"
@@ -286,7 +284,7 @@ type Query {
 				resp, err := client.Do(&http.Request{
 					Method: http.MethodPost,
 					URL:    reqUrl,
-					Body:   ioutil.NopCloser(strings.NewReader(query)),
+					Body:   io.NopCloser(strings.NewReader(query)),
 				})
 				if err != nil {
 					return 0, err
@@ -380,7 +378,7 @@ type Query {
 
 func JsonToStructPbValue(js string) *structpb.Value {
 	ret := &structpb.Value{}
-	err := json2.Unmarshal([]byte(js), ret)
+	err := json.Unmarshal([]byte(js), ret)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 	return ret
 }

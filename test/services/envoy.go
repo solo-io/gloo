@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -77,7 +76,7 @@ dynamic_resources:
   lds_config:
     resource_api_version: {{ .ApiVersion }}
     ads: {}
-  
+
 admin:
   access_log_path: /dev/null
   address:
@@ -129,7 +128,7 @@ func NewEnvoyFactory() (*EnvoyFactory, error) {
 		return &EnvoyFactory{useDocker: true}, nil
 	case "linux":
 		// try to grab one form docker...
-		tmpdir, err := ioutil.TempDir(os.Getenv("HELPER_TMP"), "envoy")
+		tmpdir, err := os.MkdirTemp(os.Getenv("HELPER_TMP"), "envoy")
 		if err != nil {
 			return nil, err
 		}
@@ -153,7 +152,7 @@ docker rm $CID
     `, envoyImageTag, envoyImageTag)
 		scriptfile := filepath.Join(tmpdir, "getenvoy.sh")
 
-		ioutil.WriteFile(scriptfile, []byte(bash), 0755)
+		os.WriteFile(scriptfile, []byte(bash), 0755)
 
 		cmd := exec.Command("bash", scriptfile)
 		cmd.Dir = tmpdir

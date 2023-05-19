@@ -5,7 +5,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/ghodss/yaml"
@@ -18,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var pluginManifestFlagUsage = `A .yaml file containing information required to load the ext auth plugins. Must have the following format: 
+var pluginManifestFlagUsage = `A .yaml file containing information required to load the ext auth plugins. Must have the following format:
 
 	name: MyPlugin
 	pluginFileName: Plugin.so
@@ -70,7 +69,7 @@ func verifyPlugin(ctx context.Context, pluginDir, pluginManifestFile string) err
 }
 
 func parseManifestFile(filePath string) (*extauth.AuthPlugin, error) {
-	readFile, err := ioutil.ReadFile(filePath)
+	readFile, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}

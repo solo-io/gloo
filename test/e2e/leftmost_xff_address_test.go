@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -66,7 +65,7 @@ var _ = Describe("Leftmost x-forwarded-for address Local E2E", func() {
 		path := "/dev/stdout"
 
 		if !envoyInstance.UseDocker() {
-			tmpfile, err := ioutil.TempFile("", "")
+			tmpfile, err := os.CreateTemp("", "")
 			Expect(err).NotTo(HaveOccurred())
 			path = tmpfile.Name()
 			envoyInstance.AccessLogs = path
@@ -227,7 +226,7 @@ func checkAccessLogs(ei *services.EnvoyInstance, logsPresent func(logs string) b
 			return err
 		}
 		var byt []byte
-		byt, err = ioutil.ReadAll(file)
+		byt, err = io.ReadAll(file)
 		if err != nil {
 			return err
 		}

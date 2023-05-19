@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"time"
@@ -149,7 +148,7 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 					return err
 				}
 				defer response.Body.Close()
-				body, err := ioutil.ReadAll(response.Body)
+				body, err := io.ReadAll(response.Body)
 				if err != nil {
 					return err
 				}

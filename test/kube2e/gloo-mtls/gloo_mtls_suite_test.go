@@ -2,7 +2,6 @@ package gloo_mtls_test
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -110,7 +109,7 @@ var _ = AfterSuite(func() {
 })
 
 func getHelmOverrides() (filename string, cleanup func()) {
-	values, err := ioutil.TempFile("", "*.yaml")
+	values, err := os.CreateTemp("", "*.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	// Set global.glooMtls.enabled = true, and make sure to pull the quay.io/solo-io
 	_, err = values.Write([]byte(`

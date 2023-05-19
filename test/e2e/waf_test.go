@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -674,12 +673,12 @@ var _ = Describe("waf", func() {
 				tmpFileDMName string
 			)
 			BeforeEach(func() {
-				tmpFile, err := ioutil.TempFile("", "envoy-access-fs-log-*.txt")
+				tmpFile, err := os.CreateTemp("", "envoy-access-fs-log-*.txt")
 				Expect(err).NotTo(HaveOccurred())
 				tmpFileFSName, err = filepath.Abs(tmpFile.Name())
 				tmpFile.Close()
 				Expect(err).NotTo(HaveOccurred())
-				tmpFile, err = ioutil.TempFile("", "envoy-access-dm-log-*.txt")
+				tmpFile, err = os.CreateTemp("", "envoy-access-dm-log-*.txt")
 				Expect(err).NotTo(HaveOccurred())
 				tmpFileDMName, err = filepath.Abs(tmpFile.Name())
 				tmpFile.Close()
@@ -695,12 +694,12 @@ var _ = Describe("waf", func() {
 			})
 
 			getAccessFSLog := func() string {
-				b, err := ioutil.ReadFile(tmpFileFSName)
+				b, err := os.ReadFile(tmpFileFSName)
 				Expect(err).NotTo(HaveOccurred())
 				return string(b)
 			}
 			getAccessDMLog := func() string {
-				b, err := ioutil.ReadFile(tmpFileDMName)
+				b, err := os.ReadFile(tmpFileDMName)
 				Expect(err).NotTo(HaveOccurred())
 				return string(b)
 			}

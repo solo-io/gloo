@@ -2,7 +2,6 @@ package wasm_test
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -71,7 +70,7 @@ func StartTestHelper() {
 }
 
 func getHelmaWasmValuesOverrideFile() (filename string, cleanup func()) {
-	values, err := ioutil.TempFile("", "values-*.yaml")
+	values, err := os.CreateTemp("", "values-*.yaml")
 	Expect(err).NotTo(HaveOccurred())
 
 	// disabling usage statistics is not important to the functionality of the tests,

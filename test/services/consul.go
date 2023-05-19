@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"io/ioutil"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -43,7 +41,7 @@ func NewConsulFactory() (*ConsulFactory, error) {
 	}
 
 	// try to grab one form docker...
-	tmpdir, err := ioutil.TempDir(os.Getenv("HELPER_TMP"), "consul")
+	tmpdir, err := os.MkdirTemp(os.Getenv("HELPER_TMP"), "consul")
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +59,7 @@ docker rm -f $CID
     `, defaultConsulDockerImage, defaultConsulDockerImage)
 	scriptfile := filepath.Join(tmpdir, "getconsul.sh")
 
-	ioutil.WriteFile(scriptfile, []byte(bash), 0755)
+	os.WriteFile(scriptfile, []byte(bash), 0755)
 
 	cmd := exec.Command("bash", scriptfile)
 	cmd.Dir = tmpdir
@@ -99,7 +97,7 @@ type ConsulInstance struct {
 
 func (ef *ConsulFactory) NewConsulInstance() (*ConsulInstance, error) {
 	// try to grab one form docker...
-	tmpdir, err := ioutil.TempDir(os.Getenv("HELPER_TMP"), "consul")
+	tmpdir, err := os.MkdirTemp(os.Getenv("HELPER_TMP"), "consul")
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +120,7 @@ func (ef *ConsulFactory) NewConsulInstance() (*ConsulInstance, error) {
 
 func (i *ConsulInstance) AddConfig(name, content string) {
 	fname := filepath.Join(i.cfgdir, name)
-	ioutil.WriteFile(fname, []byte(content), 0644)
+	os.WriteFile(fname, []byte(content), 0644)
 	i.ReloadConfig()
 }
 

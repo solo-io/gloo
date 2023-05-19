@@ -1,19 +1,15 @@
 package services
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
-
-	"io/ioutil"
-
-	"time"
-
-	"bytes"
-	"io"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/pkg/errors"
@@ -36,7 +32,7 @@ func NewVaultFactory() (*VaultFactory, error) {
 	}
 
 	// try to grab one form docker...
-	tmpdir, err := ioutil.TempDir(os.Getenv("HELPER_TMP"), "vault")
+	tmpdir, err := os.MkdirTemp(os.Getenv("HELPER_TMP"), "vault")
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +50,7 @@ docker rm -f $CID
     `, defaultVaultDockerImage, defaultVaultDockerImage)
 	scriptfile := filepath.Join(tmpdir, "getvault.sh")
 
-	ioutil.WriteFile(scriptfile, []byte(bash), 0755)
+	os.WriteFile(scriptfile, []byte(bash), 0755)
 
 	cmd := exec.Command("bash", scriptfile)
 	cmd.Dir = tmpdir
@@ -90,7 +86,7 @@ type VaultInstance struct {
 
 func (ef *VaultFactory) NewVaultInstance() (*VaultInstance, error) {
 	// try to grab one form docker...
-	tmpdir, err := ioutil.TempDir(os.Getenv("HELPER_TMP"), "vault")
+	tmpdir, err := os.MkdirTemp(os.Getenv("HELPER_TMP"), "vault")
 	if err != nil {
 		return nil, err
 	}

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"strconv"
@@ -281,7 +280,7 @@ func NewOpenapiBackend() http.Handler {
 			c.JSON(200, petToReturn)
 		})
 		v3.POST("/pet", func(c *gin.Context) {
-			body, _ := ioutil.ReadAll(c.Request.Body)
+			body, _ := io.ReadAll(c.Request.Body)
 			p := NewPet()
 			err := json.Unmarshal(body, p)
 			if err != nil {
@@ -292,7 +291,7 @@ func NewOpenapiBackend() http.Handler {
 			c.JSON(200, p)
 		})
 		v3.PUT("/pet", func(c *gin.Context) {
-			body, _ := ioutil.ReadAll(c.Request.Body)
+			body, _ := io.ReadAll(c.Request.Body)
 			petUpdateMsg := NewPet()
 			err := json.Unmarshal(body, petUpdateMsg)
 			if err != nil {
