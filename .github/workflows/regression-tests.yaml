@@ -87,7 +87,7 @@ jobs:
       - name: Set pull_request_url
         run: echo "pull_request_url=$(cat ${{ github.event_path }} | jq --raw-output .pull_request._links.html.href)" >> $GITHUB_ENV
       - name: Set direct_message_id
-        run: echo "direct_message_id=$(cat ./.github/workflows/notify-on-regression-failure-list.json | jq -r '."${{ github.actor }}"')" >> $GITHUB_ENV
+        run: echo "direct_message_id=$(cat ./.github/workflows/notify-on-test-failure-list.json | jq -r '."${{ github.actor }}"')" >> $GITHUB_ENV
       - name: send slack message
         env:
           PARENT_JOB_URL: ${{ env.pull_request_url }}       # parent job hyperlink
