@@ -1479,8 +1479,8 @@ github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqn
 github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 h1:N/ElC8H3+5XpJzTSTfLsJV/mx9Q9g7kxmchpfZyxgzM=
 github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
-github.com/redis/go-redis/v9 v9.0.4-0.20230419143741-6ecbcf6c9091 h1:rLWZnwD5WQFf3kNMd2eKy2fPZRu4DytuhYO8gqs865k=
-github.com/redis/go-redis/v9 v9.0.4-0.20230419143741-6ecbcf6c9091/go.mod h1:WqMKv5vnQbRuZstUwxQI195wHy+t4PuXDOjzMvcuQHk=
+github.com/redis/go-redis/v9 v9.0.4 h1:FC82T+CHJ/Q/PdyLW++GeCO+Ol59Y4T7R4jbgjvktgc=
+github.com/redis/go-redis/v9 v9.0.4/go.mod h1:WqMKv5vnQbRuZstUwxQI195wHy+t4PuXDOjzMvcuQHk=
 github.com/remyoudompheng/bigfft v0.0.0-20190728182440-6a916e37a237/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/rivo/uniseg v0.1.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/rivo/uniseg v0.2.0 h1:S1pD9weZBuJdFmowNwbpi7BJ8TNftyUImj/0WQi72jY=
@@ -1555,8 +1555,8 @@ github.com/soheilhy/cmux v0.1.4/go.mod h1:IM3LyeVVIOuxMH7sFAkER9+bJ4dT7Ms6E4xg4k
 github.com/soheilhy/cmux v0.1.5/go.mod h1:T7TcVDs9LWfQgPlPsdngu6I6QIoyIFZDDC6sNE1GqG0=
 github.com/solo-io/anyvendor v0.1.0 h1:pzqilD2dxOJnosCe01gl7bU91EHrYjBnfB6W3lQmFx4=
 github.com/solo-io/anyvendor v0.1.0/go.mod h1:pm4oeT20nrF6moqurCc7U4fEC1oi1RzkqoD/Lp/z/4Y=
-github.com/solo-io/caching-service v0.2.1 h1:BB4nRpmnWsgA8lmS15yPqK4HPtaptCFsX0kJVwKcZxg=
-github.com/solo-io/caching-service v0.2.1/go.mod h1:i2dQPKVTsf9rgEiMHmOCcSQ+gA7FVmNEx9EwNtld4xg=
+github.com/solo-io/caching-service v0.3.0 h1:5C+hrjHss0SR/Euyiio3M6jnPYFehWzusPmfdnM3xgs=
+github.com/solo-io/caching-service v0.3.0/go.mod h1:idKtqM4Cte9F5fpEP5MpFahX9lUZtjuj2CCA2PsGfC0=
 github.com/solo-io/cli-kit v0.2.1 h1:Hc5EXi0ccP4yHmuBLHHr98Q/Jz0cQt7huRg9x/iH3qQ=
 github.com/solo-io/cli-kit v0.2.1/go.mod h1:l99zSPTfmt9KaSKQMGwju+IdVvw1HaVU8ZrO4q19meo=
 github.com/solo-io/cue v0.4.7 h1:X65mDmyBrS3ODvDvAgzIt9aTxbwBtdt+ayg4w9XKoaA=
@@ -1585,8 +1585,8 @@ github.com/solo-io/protoc-gen-ext v0.0.18 h1:zSAL8NzWpJUGYoA5IyjHiKASNyHjR0uxBQ7
 github.com/solo-io/protoc-gen-ext v0.0.18/go.mod h1:iGyCvmKmhJNXs5MgBcYFBF0om7LDnCVD2WwhOZGnqeA=
 github.com/solo-io/protoc-gen-openapi v0.1.0 h1:XBx0yAdjxoWxGQ+CiGcb29r+KAgyIkhdaB63uBvKzKY=
 github.com/solo-io/protoc-gen-openapi v0.1.0/go.mod h1:6d6gsEx74pW3UCA3G0al0GdMlYzGe/iCy2mPgGG9wI8=
-github.com/solo-io/rate-limiter v0.9.0 h1:0m981sNGFNtc8TiTA7QuGxUm7OutFGdFK/JcqWjj970=
-github.com/solo-io/rate-limiter v0.9.0/go.mod h1:1xOn8OQl9H/QI/nzHSzrmmY5Xrvmqh9gK+gzxMbj7Hc=
+github.com/solo-io/rate-limiter v0.9.1 h1:snAJRpSAHI9x/J03TJSp5191S8aPy20okNpBjAyrj8M=
+github.com/solo-io/rate-limiter v0.9.1/go.mod h1:1xOn8OQl9H/QI/nzHSzrmmY5Xrvmqh9gK+gzxMbj7Hc=
 github.com/solo-io/skv2 v0.30.0 h1:SZmtwEMm/uur3I/1uOcl8pC8zqar+e4lr6pIPocpjFo=
 github.com/solo-io/skv2 v0.30.0/go.mod h1:2+ySJOxcW5gn8XlJ96eihI9s7WKHVY+stxhRqS07TH0=
 github.com/solo-io/solo-apis v0.0.0-20230518002105-fd64b9bcc5d6 h1:pVi5ZFq6nIdxe87dxJJ68IQ1EjdNUOwUUJkpw684pGs=

@@ -93,7 +93,9 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		rlServerSettings.ReadyPort = int(atomic.AddUint32(&baseRateLimitPort, 1) + uint32(parallel.GetPortOffset()))
 
 		// Tests are responsible for managing these settings
-		rlServerSettings.RedisSettings = redis.Settings{}
+		rlServerSettings.RedisSettings = redis.Settings{
+			DB: rand.Intn(16),
+		}
 		rlServerSettings.DynamoDbSettings = dynamodb.Settings{}
 		rlServerSettings.AerospikeSettings = aerospike.Settings{}
 	})
@@ -1344,6 +1346,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 			DenyOnFail:         true, // ensures ConsistentlyNotRateLimited() calls will not pass unless server is healthy
 		}
 
+		// Run rate limit server and return a health check function
 		isServerHealthy = ratelimitservice.RunRateLimitServer(ctx, rateLimitAddr, testClients.GlooPort, rlServerSettings)
 
 		glooSettings.RatelimitServer = rlSettings

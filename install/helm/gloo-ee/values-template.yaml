@@ -73,6 +73,7 @@ redis:
   service:
     port: 6379
     name: redis
+    db: 0
   cert:
     enabled: false
 

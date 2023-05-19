@@ -2,6 +2,8 @@ package cachinggrpc
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
@@ -111,7 +113,9 @@ func getHelmOverrides() (filename string, cleanup func()) {
 	values, err := os.CreateTemp("", "*.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	// Set up gloo with mTLS enabled, clientSideSharding enabled, and redis scaled to 2
-	_, err = values.Write([]byte(overrideYaml))
+	dbNum := rand.Intn(16)
+	fmt.Printf("Selecting DB: %v for cachinggrpc tests", dbNum)
+	_, err = values.Write([]byte(getOverrideYaml(dbNum)))
 	Expect(err).NotTo(HaveOccurred())
 	err = values.Close()
 	Expect(err).NotTo(HaveOccurred())

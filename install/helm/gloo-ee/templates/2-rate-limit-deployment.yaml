@@ -122,16 +122,23 @@ spec:
             {{- end }}
             {{- end }}{{/* $aero.tls */}}
             {{- else if .Values.redis.clientSideShardingEnabled }}{{/* end .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
+              {{- if and .Values.redis.clientSideShardingEnabled .Values.redis.service.db }}
+                {{- fail "Cannot set redis DB while using Envoy Redis" }}
+              {{- end }}
               {{- $envVars = append $envVars (dict "name" "REDIS_URL" "value" "/var/run/envoy/ratelimit.sock") }}
               {{- $envVars = append $envVars (dict "name" "REDIS_SOCKET_TYPE" "value" "unix") }}
             {{- else }}
               {{- $envVars = append $envVars (dict "name" "REDIS_URL" "value" (printf "%s:%v" $redisName .Values.redis.service.port)) }}
+                {{- $envVars = append $envVars (dict "name" "REDIS_DB" "value" (printf "%v" .Values.redis.service.db)) }}
             {{- if .Values.redis.cert.enabled }}
               {{- $envVars = append $envVars (dict "name" "REDIS_CA_CERT" "value" "/etc/tls/ca.crt") }}
               {{- $envVars = append $envVars (dict "name" "REDIS_SOCKET_TYPE" "value" "tls") }}
             {{- else }}
               {{- $envVars = append $envVars (dict "name" "REDIS_SOCKET_TYPE" "value" "tcp") }}
             {{- end }}{{/* .Values.redis.cert.enabled */}}
+              {{- if and .Values.redis.clustered .Values.redis.service.db }}
+                {{- fail "Cannot set redis DB while using Clustered Redis" }}
+              {{- end }}
               {{- $envVars = append $envVars (dict "name" "REDIS_CLUSTERED_MODE" "value" (printf "%v" .Values.redis.clustered))}}
             {{- end }}{{/* .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
             {{- if .Values.global.extensions.glooRedis.enableAcl }}

@@ -203,6 +203,7 @@ type RedisDeploymentContainer struct {
 type RedisService struct {
 	Port uint   `json:"port" desc:"This is the port set for the redis service."`
 	Name string `json:"name" desc:"This is the name of the redis service. If there is an external service, this can be used to set the endpoint of the external service.  Set redis.disabled if setting the value of the redis service."`
+	DB   uint   `json:"db" desc:"This is the db number of the redis service, can be any int from 0 to 15, this field ignored when using clustered redis or when ClientSideShardingEnabled is true "`
 	*glooGen.KubeResourceOverride
 }
 

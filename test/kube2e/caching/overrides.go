@@ -1,5 +1,11 @@
 package cachinggrpc
 
+import "fmt"
+
+func getOverrideYaml(db int) string {
+	return fmt.Sprintf(overrideYaml, db)
+}
+
 const overrideYaml = `
 gloo:
   gatewayProxies:
@@ -24,4 +30,6 @@ gloo-fed:
 redis:
   deployment:
     replicas: 1
+  service:
+    db: %v
 `

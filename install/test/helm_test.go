@@ -3873,6 +3873,10 @@ spec:
 								Value: "redis:6379",
 							},
 							{
+								Name:  "REDIS_DB",
+								Value: "0",
+							},
+							{
 								Name:  "REDIS_SOCKET_TYPE",
 								Value: "tcp",
 							},
@@ -3974,6 +3978,42 @@ spec:
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
+			It("should support setting the db", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"redis.service.db=2",
+					},
+				})
+				for i, env := range expectedDeployment.Spec.Template.Spec.Containers[0].Env {
+					if env.Name == "REDIS_DB" {
+						expectedDeployment.Spec.Template.Spec.Containers[0].Env[i].Value = "2"
+						break
+					}
+				}
+				Expect(err).NotTo(HaveOccurred())
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("should not set db if client side sharding is enabled", func() {
+				_, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"redis.service.db=2",
+						"redis.clientSideShardingEnabled=true",
+					},
+				})
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("should not set db if client side sharding is enabled", func() {
+				_, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"redis.service.db=2",
+						"redis.clustered=true",
+					},
+				})
+				Expect(err).To(HaveOccurred())
+			})
+
 			It("should create clustered mode instance and sets corresponding env variable", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{"redis.clustered=true"},
@@ -4001,6 +4041,10 @@ spec:
 							{
 								Name:  "REDIS_URL",
 								Value: "redis:6379",
+							},
+							{
+								Name:  "REDIS_DB",
+								Value: "0",
 							},
 							{
 								Name:  "REDIS_SOCKET_TYPE",
@@ -4629,6 +4673,10 @@ spec:
 								Value: "redis:6379",
 							},
 							{
+								Name:  "REDIS_DB",
+								Value: "0",
+							},
+							{
 								Name:  "REDIS_SOCKET_TYPE",
 								Value: "tcp",
 							},
@@ -4713,6 +4761,24 @@ spec:
 
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
+
+			It("should support setting the db", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.caching.enabled=true",
+						"redis.service.db=2",
+					},
+				})
+				for i, env := range expectedDeployment.Spec.Template.Spec.Containers[0].Env {
+					if env.Name == "REDIS_DB" {
+						expectedDeployment.Spec.Template.Spec.Containers[0].Env[i].Value = "2"
+						break
+					}
+				}
+				Expect(err).NotTo(HaveOccurred())
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
 		})
 
 		Context("gloo-fed deployment", func() {

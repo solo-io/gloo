@@ -62,6 +62,8 @@ spec:
                   fieldPath: metadata.namespace
             - name: REDIS_URL
               value: {{ printf "%s:%v" $redisName .Values.redis.service.port }}
+            - name: REDIS_DB
+              value: "{{ .Values.redis.service.db }}"
             {{- if .Values.redis.cert.enabled }}
             - name: REDIS_CA_CERT
               value: /etc/tls/ca.crt

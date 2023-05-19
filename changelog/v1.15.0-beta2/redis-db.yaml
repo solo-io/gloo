@@ -1,0 +1,13 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/7959
+    description: Add an option to specify the Redis DB used (when not using clustered redis or client-side-sharding), can be set via .Values.redis.service.db.
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: rate-limiter
+    dependencyTag: v0.9.1
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: caching-service
+    dependencyTag: v0.3.0

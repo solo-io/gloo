@@ -47,7 +47,7 @@ require (
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/rotisserie/eris v0.5.0
 	github.com/solo-io/anyvendor v0.1.0
-	github.com/solo-io/caching-service v0.2.1
+	github.com/solo-io/caching-service v0.3.0
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.36.0
@@ -60,7 +60,7 @@ require (
 	github.com/solo-io/licensing v0.3.13
 	github.com/solo-io/protoc-gen-ext v0.0.18
 	github.com/solo-io/protoc-gen-openapi v0.1.0
-	github.com/solo-io/rate-limiter v0.9.0
+	github.com/solo-io/rate-limiter v0.9.1
 	github.com/solo-io/skv2 v0.30.0
 	github.com/solo-io/solo-apis v0.0.0-20230518002105-fd64b9bcc5d6
 	github.com/solo-io/solo-kit v0.31.0
@@ -298,7 +298,7 @@ require (
 	github.com/pseudomuto/protokit v0.2.0 // indirect
 	github.com/radovskyb/watcher v1.0.7 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
-	github.com/redis/go-redis/v9 v9.0.4-0.20230419143741-6ecbcf6c9091 // indirect
+	github.com/redis/go-redis/v9 v9.0.4 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/rubenv/sql-migrate v1.3.1 // indirect
