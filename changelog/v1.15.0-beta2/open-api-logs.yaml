@@ -1,0 +1,3 @@
+changelog:
+  - type: NON_USER_FACING
+    description: improve logs for openapi graphql translation.

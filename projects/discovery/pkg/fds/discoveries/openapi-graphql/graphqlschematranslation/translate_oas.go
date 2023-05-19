@@ -193,7 +193,7 @@ func (t *OasToGqlTranslator) TranslateOpenApiToGraphQL(oass []*openapi.T, option
 	*/
 	schema, err := graphql.NewSchema(schemaConfig)
 	if err != nil {
-		return nil, nil, nil, t.createErrorf(GRAPHQL_SCHEMA_CREATION_ERR, "", Location{Oas: oass[0]}, "Unable to create schema with schema config: %+v", schemaConfig)
+		return nil, nil, nil, t.createErrorf(GRAPHQL_SCHEMA_CREATION_ERR, "", Location{Oas: oass[0]}, "Unable to create schema with schema config: %+v: %v", schemaConfig, err.Error())
 	}
 
 	schemaAst, err := GraphqlGoSchematoGraphqlGoAst(schema)
