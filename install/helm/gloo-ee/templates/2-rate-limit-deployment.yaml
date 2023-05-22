@@ -129,9 +129,11 @@ spec:
               {{- $envVars = append $envVars (dict "name" "REDIS_SOCKET_TYPE" "value" "unix") }}
             {{- else }}
               {{- $envVars = append $envVars (dict "name" "REDIS_URL" "value" (printf "%s:%v" $redisName .Values.redis.service.port)) }}
-                {{- $envVars = append $envVars (dict "name" "REDIS_DB" "value" (printf "%v" .Values.redis.service.db)) }}
-            {{- if .Values.redis.cert.enabled }}
-              {{- $envVars = append $envVars (dict "name" "REDIS_CA_CERT" "value" "/etc/tls/ca.crt") }}
+              {{- $envVars = append $envVars (dict "name" "REDIS_DB" "value" (printf "%v" .Values.redis.service.db)) }}
+            {{- if or .Values.redis.cert.enabled .Values.redis.tlsEnabled }}
+              {{- if .Values.redis.cert.enabled }}
+                {{- $envVars = append $envVars (dict "name" "REDIS_CA_CERT" "value" "/etc/tls/ca.crt") }}
+              {{- end }}
               {{- $envVars = append $envVars (dict "name" "REDIS_SOCKET_TYPE" "value" "tls") }}
             {{- else }}
               {{- $envVars = append $envVars (dict "name" "REDIS_SOCKET_TYPE" "value" "tcp") }}

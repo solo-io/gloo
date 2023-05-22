@@ -162,6 +162,7 @@ type RateLimitService struct {
 type Redis struct {
 	Deployment                *RedisDeployment `json:"deployment,omitempty"`
 	Service                   *RedisService    `json:"service,omitempty"`
+	TlsEnabled                bool             `json:"tlsEnabled,omitempty" desc:"Enables tls for redis. Default is false."`
 	Cert                      *RedisCert       `json:"cert,omitempty"`
 	ClientSideShardingEnabled bool             `json:"clientSideShardingEnabled" desc:"If set to true, Envoy will be used as a Redis proxy and load balance requests between redis instances scaled via replicas. Default is false."`
 	Disabled                  bool             `json:"disabled" desc:"If set to true, Redis service creation will be blocked. Default is false."`

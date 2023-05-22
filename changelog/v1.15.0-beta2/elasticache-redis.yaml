@@ -1,0 +1,7 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/8033
+    resolvesIssue: false
+    description: |
+      Enable TLS directly through new helm value `redis.tls`. This fixes issue with rate-limit having issues connecting to TLS.
+
