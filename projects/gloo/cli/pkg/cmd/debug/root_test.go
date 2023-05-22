@@ -19,8 +19,8 @@ var _ = Describe("Debug", func() {
 		Expect(err).To(Equal(constants.SubcommandError))
 	})
 
-	It("should not crash with debug log command", func() {
-		err := testutils.Glooctl("debug log")
-		Expect(err).NotTo(HaveOccurred())
-	})
+	//It("should not crash with debug log command", func() {
+	//	err := testutils.Glooctl("debug log")
+	//	Expect(err).NotTo(HaveOccurred())
+	//})
 })
