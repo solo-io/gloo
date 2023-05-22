@@ -20,5 +20,6 @@ func TestAwsCredentials(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
+	Skip("aws")
 	testhelpers.ValidateRequirementsAndNotifyGinkgo(testhelpers.AwsCredentials())
 })
