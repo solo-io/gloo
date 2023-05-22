@@ -19,6 +19,7 @@ import (
 )
 
 var _ = Describe("Debug", func() {
+	Skip("relies on k8s")
 
 	BeforeEach(func() {
 		helpers.UseMemoryClients()
