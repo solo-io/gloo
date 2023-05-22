@@ -73,7 +73,7 @@ jobs:
           - merge-to-main: true
     steps:
     - uses: actions/checkout@v3
-    - uses: ../prep-go-runner
+    - uses: ./.github/workflows/composite-actions/prep-go-runner
     - name: Configure AWS Credentials Action For GitHub Actions
       uses: aws-actions/configure-aws-credentials@v1
       with:
