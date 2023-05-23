@@ -8,7 +8,7 @@ env:
   GITHUB_TOKEN: ${{ github.token }} # necessary to pass upgrade tests
   TAGGED_VERSION: $TAG_NAME # used to determine if this is a release, don't think it's necessary
   TEST_ASSET_ID: $_PR_NUM # not exactly sure where this is consumed or if it's important
-  ENVOY_BINARY: '/workspace/envoy' # I think we can use the tagged version from the Makefile
+#  ENVOY_BINARY: '/workspace/envoy' # I think we can use the tagged version from the Makefile
   AWS_SHARED_CREDENTIALS_FILE: '/workspace/aws_credentials'
   SKIP_TEMP_DISABLED: '1' # https://github.com/solo-io/solo-projects/issues/4515
 
