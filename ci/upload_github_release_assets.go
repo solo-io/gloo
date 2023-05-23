@@ -20,7 +20,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	versionBeingReleased := versionutils.GetReleaseVersionOrExitGracefully()
+	versionBeingReleased := GetReleaseVersionOrExitGracefully()
 	assetsOnly := false
 	if len(os.Args) > 1 {
 		var err error
@@ -191,4 +191,19 @@ func validateReleaseVersionOfCli() {
 	if !expectedVersion.Equal(foundVersion) {
 		log.Fatalf("Expected to release artifacts for version %s, glooctl binary reported version %s", expectedVersion, foundVersion)
 	}
+}
+
+// stolen from "github.com/solo-io/go-utils/versionutils", but changed the hardcoding of "TAGGED_VERSION" to "VERSION"
+func GetReleaseVersionOrExitGracefully() *versionutils.Version {
+	tag, present := os.LookupEnv("VERSION")
+	if !present || tag == "" {
+		fmt.Printf("VERSION not found in environment.\n")
+		os.Exit(0)
+	}
+	version, err := versionutils.ParseVersion(tag)
+	if err != nil {
+		fmt.Printf("VERSION %s is not a valid semver version.\n", tag)
+		os.Exit(0)
+	}
+	return version
 }
