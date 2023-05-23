@@ -1063,22 +1063,13 @@ gloo:
 				})
 
 				It("Redis objects are not created when .Values.redis.disabled is set", func() {
-					// file creation operations to support test
-					helmOverrideFile := "helm-override-*.yaml"
-					tmpFile, err := os.CreateTemp("", helmOverrideFile)
-					Expect(err).ToNot(HaveOccurred())
-					_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
-					Expect(err).NotTo(HaveOccurred())
-					defer tmpFile.Close()
-					defer os.Remove(tmpFile.Name())
-
 					proxyName := "gateway-proxy"
 
 					// assert no redis resources exist wtih "redis.disabled=true"
 					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-						valuesFile: tmpFile.Name(),
 						valuesArgs: []string{"redis.disabled=true"},
 					})
+					Expect(err).ToNot(HaveOccurred())
 
 					redisResources := testManifest.SelectResources(func(un *unstructured.Unstructured) bool {
 						match, _ := regexp.MatchString(redisRegex, un.GetName())
@@ -1090,6 +1081,11 @@ gloo:
 					})
 					Expect(gatewayProxyRedisResources.NumResources()).To(Equal(0), fmt.Sprintf("%s: Expecting Redis Deployment and Service to not be created", proxyName))
 					Expect(redisResources.NumResources()).To(Equal(0), fmt.Sprintf("%s: Expecting Redis secret to not be created", proxyName))
+					// should not creat the redis secret...
+					redisSecret := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetLabels()["gloo"] == "redis"
+					})
+					Expect(redisSecret.NumResources()).To(Equal(0), "Expecting Redis secret to not be created")
 				})
 
 				It("Redis objects are not built when .Values.redis.disabled is set but rate-limit sets up TLS when .Values.redis.tlsEnabled is set", func() {
@@ -3791,6 +3787,16 @@ spec:
 				}
 			)
 
+			It("should fail if redis.clientSideShardingEnabled and redis.disabled are both set", func() {
+				_, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.redis.disabled=true",
+						"redis.clientSideShardingEnabled=true",
+					},
+				})
+				Expect(err).To(HaveOccurred())
+			})
+
 			It("should add or change the correct components in the resulting helm chart", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
@@ -3841,7 +3847,7 @@ spec:
 						Expect(structuredService.Spec.ClusterIP).To(BeEquivalentTo("None"), "ClusterIP should be 'None' to indicate headless service")
 					}
 				})
-
+				builtConfigMap := false
 				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
 					return resource.GetKind() == "ConfigMap"
 				}).ExpectAll(func(cfgmap *unstructured.Unstructured) {
@@ -3851,6 +3857,7 @@ spec:
 					Expect(ok).To(BeTrue(), fmt.Sprintf("ConfigMap %+v should be able to cast to a structured config map", cfgmap))
 
 					if structuredConfigMap.GetName() == "rate-limit-sidecar-config" {
+						builtConfigMap = true
 						bootstrap := bootstrapv3.Bootstrap{}
 						Expect(structuredConfigMap.Data["envoy-sidecar.yaml"]).NotTo(BeEmpty())
 						jsn, err := yaml.YAMLToJSON([]byte(structuredConfigMap.Data["envoy-sidecar.yaml"]))
@@ -3864,6 +3871,7 @@ spec:
 						Expect(bootstrap.StaticResources.Clusters[0].LbPolicy).To(Equal(clusterv3.Cluster_MAGLEV), "it should use the maglev algorithm for load balancing")
 					}
 				})
+				Expect(builtConfigMap).To(BeTrue())
 			})
 		})
 

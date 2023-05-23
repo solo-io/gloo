@@ -63,7 +63,7 @@ type PodServiceMonitor struct {
 }
 
 type GlooRedis struct {
-	EnableAcl *bool `json:"enableAcl,omitempty" desc:"Whether to include the ACL policy on redis install. Defaults to true."`
+	EnableAcl *bool "json:\"enableAcl,omitempty\" desc:\"Whether to include the ACL policy on redis install. Set to `true` if you want to provide an external redis endpoint. If `redis.disabled` is set to `true`, you will have to create the redis secret, `redis`, to provide the password. The secret uses the key, `redis-password`, for the password value. Defaults to true.\""
 }
 
 type RateLimit struct {
@@ -165,7 +165,7 @@ type Redis struct {
 	TlsEnabled                bool             `json:"tlsEnabled,omitempty" desc:"Enables tls for redis. Default is false."`
 	Cert                      *RedisCert       `json:"cert,omitempty"`
 	ClientSideShardingEnabled bool             `json:"clientSideShardingEnabled" desc:"If set to true, Envoy will be used as a Redis proxy and load balance requests between redis instances scaled via replicas. Default is false."`
-	Disabled                  bool             `json:"disabled" desc:"If set to true, Redis service creation will be blocked. Default is false."`
+	Disabled                  bool             "json:\"disabled\" desc:\"If set to true, Redis service creation will be blocked. When set to `true` when `global.extensions.glooRedis.enableAcl` is set to `true` as well, the `redis` secret will not be created. The client you will have to create the secret to provide the password, the key used for the password is `redis-password`. Default is false.\""
 	Clustered                 bool             `json:"clustered" desc:"If true, we create the correct client to handle clustered redis. Default is false"`
 	AclPrefix                 *string          `json:"aclPrefix,omitempty" desc:"The ACL policy for the default redis user. This is the prefix only, and if overridden, should end with < to signal the password."`
 }

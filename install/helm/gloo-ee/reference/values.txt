@@ -1363,7 +1363,7 @@
 |redis.cert.cacrt|string||Optional. CA certificate.|
 |redis.cert.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |redis.clientSideShardingEnabled|bool|false|If set to true, Envoy will be used as a Redis proxy and load balance requests between redis instances scaled via replicas. Default is false.|
-|redis.disabled|bool|false|If set to true, Redis service creation will be blocked. Default is false.|
+|redis.disabled|bool|false|If set to true, Redis service creation will be blocked. When set to `true` when `global.extensions.glooRedis.enableAcl` is set to `true` as well, the `redis` secret will not be created. The client you will have to create the secret to provide the password, the key used for the password is `redis-password`. Default is false.|
 |redis.clustered|bool|false|If true, we create the correct client to handle clustered redis. Default is false|
 |redis.aclPrefix|string|user default +@all allkeys on >|The ACL policy for the default redis user. This is the prefix only, and if overridden, should end with < to signal the password.|
 |observability.enabled|bool|true|if true, deploy observability service (default true)|
@@ -2494,7 +2494,7 @@
 |global.extensions.caching.service.httpPort|int|8085|HTTP port for the knative/ingress proxy service|
 |global.extensions.caching.service.httpsPort|int||HTTPS port for the knative/ingress proxy service|
 |global.extensions.caching.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|global.extensions.glooRedis.enableAcl|bool|true|Whether to include the ACL policy on redis install. Defaults to true.|
+|global.extensions.glooRedis.enableAcl|bool|true|Whether to include the ACL policy on redis install. Set to `true` if you want to provide an external redis endpoint. If `redis.disabled` is set to `true`, you will have to create the redis secret, `redis`, to provide the password. The secret uses the key, `redis-password`, for the password value. Defaults to true.|
 |global.extensions.dataPlanePerProxy|bool|||
 |global.graphql.changeValidation.rejectBreaking|bool|false|Whether to reject breaking GraphQL schema updates (default false).|
 |global.graphql.changeValidation.rules.dangerousToBreaking|bool|false|Whether the RULE_DANGEROUS_TO_BREAKING processing rule is enabled (default false).|
