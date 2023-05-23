@@ -65,6 +65,8 @@ var _ = Describe("AWS Lambda", func() {
 	)
 
 	BeforeEach(func() {
+		Skip("need AWS credentials")
+
 		httpClient = http.DefaultClient
 		httpClient.Timeout = 10 * time.Second
 		runOptions = &services.RunOptions{
