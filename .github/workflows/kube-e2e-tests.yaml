@@ -73,6 +73,7 @@ jobs:
             kube-e2e-test-type: upgrade
     steps:
     - uses: actions/checkout@v3
+    - uses: ./.github/workflows/composite-actions/prep-go-runner
     - uses: ./.github/workflows/composite-actions/kube-e2e-tests
 
   notify_slack:
