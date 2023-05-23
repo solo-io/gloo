@@ -1,0 +1,132 @@
+name: CI - consul e2e
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+
+env:
+  VERSION: '1.0.0-ci'
+  GITHUB_TOKEN: ${{ github.token }} # necessary to pass upgrade tests
+  TAGGED_VERSION: $TAG_NAME # used to determine if this is a release, don't think it's necessary
+  TEST_ASSET_ID: $_PR_NUM # not exactly sure where this is consumed or if it's important
+  ENVOY_BINARY: '/workspace/envoy' # I think we can use the tagged version from the Makefile
+  AWS_SHARED_CREDENTIALS_FILE: '/workspace/aws_credentials'
+  SKIP_TEMP_DISABLED: '1' # https://github.com/solo-io/solo-projects/issues/4515
+
+jobs:
+  prepare_env:
+    name: Prepare Environment
+    runs-on: ubuntu-22.04
+    outputs:
+      should-run-consul-e2e-tests: ${{ steps.consul-e2e-tests.outputs.run_value }}
+      should-pass-consul-e2e-tests: ${{ steps.consul-e2e-tests.outputs.pass_value }}
+    steps:
+      - name: Cancel Previous Actions
+        uses: styfle/cancel-workflow-action@0.11.0
+        with:
+          access_token: ${{ github.token }}
+      - id: is-draft-pr
+        name: Process draft Pull Requests
+        if: ${{ github.event.pull_request.draft }}
+        run: echo "value=true" >> $GITHUB_OUTPUT
+      - id: signal-ci-comment
+        name: Process comments on Pull Request to signal CI
+        if:  ${{ github.event.issue.pull_request }}
+        run: echo "value=${{ contains(github.event.comment.body, '/sig-ci') }}" >> $GITHUB_OUTPUT
+      - id: skip-ci-comment
+        name: Process comments on Pull Request to skip CI
+        if: ${{ github.event.issue.pull_request }}
+        run: echo "value=${{ contains(github.event.comment.body, '/skip-ci') }}" >> $GITHUB_OUTPUT
+      - id: consul-e2e-tests
+        name: Determine how to run consul e2e tests
+        run: |
+          should_run=true
+          
+          is_draft_pr=${{ steps.is-draft-pr.outputs.value }}
+          if [[ ! -z $is_draft_pr && $is_draft_pr = true ]] ; then
+            should_run=false
+          fi
+          
+          pr_comment_signal=${{ steps.signal-ci-comment.outputs.value }}
+          if [[ ! -z $pr_comment_signal && $pr_comment_signal = true ]] ; then
+            should_run=true
+          fi
+          
+          pr_comment_skip=${{ steps.skip-ci-comment.outputs.value }}
+          if [[ ! -z $pr_comment_skip && $pr_comment_skip = true ]] ; then
+            should_run=false
+          fi
+          
+          echo "Should run consul e2e tests? $should_run"
+          echo "run_value=$should_run" >> $GITHUB_OUTPUT
+
+  consul_e2e_tests:
+    name: consul e2e tests
+    needs: prepare_env
+    runs-on: ubuntu-22.04
+    if: needs.prepare_env.outputs.should-run-consul-e2e-tests == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        merge-to-main:
+          - ${{ github.event.pull_request.base.ref == 'main' }}
+        exclude:
+          - merge-to-main: true
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/composite-actions/prep-go-runner
+      # Configure consul credentials
+
+      #    - name: Configure AWS Credentials Action For GitHub Actions
+      #      uses: aws-actions/configure-aws-credentials@v1
+      #      with:
+      #        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #        aws-region: us-east-2
+      - name: Testing - consul e2e tests
+        shell: bash
+        run: make install-test-tools run-tests
+      - uses: testspace-com/setup-testspace@v1
+        with:
+          domain: solo-io.testspace.com
+        if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      - name: Push result to Testspace server
+        shell: bash
+        run: testspace push --verbose "**/junit.xml"
+        if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      - name: save results
+        if: ${{ failure() }}
+        shell: bash
+        run: mkdir -p _output/consul-e2e-artifacts && echo '{"url":"https://github.com/solo-io/gloo/actions/runs/${{github.run_id}}",
+          "name":"consul-e2e"}' > _output/consul-e2e-artifacts/test-out.json
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: consul-e2e-dump
+          path: "_output/consul-e2e-artifacts"
+          if-no-files-found: warn
+
+  notify_slack:
+    name: Notify slack
+    runs-on: ubuntu-22.04
+    if: ${{ github.event_name == 'pull_request' && failure() }}
+    needs: [ consul_e2e_tests ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+      - uses: actions/download-artifact@v3
+      - name: Set pull_request_url
+        run: echo "pull_request_url=$(cat ${{ github.event_path }} | jq --raw-output .pull_request._links.html.href)" >> $GITHUB_ENV
+      - name: Set direct_message_id
+        run: echo "direct_message_id=$(cat ./.github/workflows/notify-on-test-failure-list.json | jq -r '."${{ github.actor }}"')" >> $GITHUB_ENV
+      - name: send slack message
+        env:
+          PARENT_JOB_URL: ${{ env.pull_request_url }}       # parent job hyperlink
+          PREAMBLE: "Your recent Gloo PR consul e2e tests"  # text to hyperlink at start of slack message
+          SLACK_CHANNEL: ${{ env.direct_message_id }}       # DM to the user who ran CI
+          SLACKBOT_BEARER: ${{ secrets.SLACKBOT_BEARER }}
+        run: |
+          test_results="$(cat */test-out.json | jq -c --slurp .)"
+          echo $test_results
+          go run .github/workflows/helpers/notify-from-json.go $test_results
