@@ -32,7 +32,7 @@ var _ = Describe("Vault Secret Store (AWS Auth)", func() {
 	)
 
 	BeforeEach(func() {
-		testContext = e2e.testContextFactory.NewTestContextWithVault(testutils.AwsCredentials())
+		testContext = testContextFactory.NewTestContextWithVault(testutils.AwsCredentials())
 		testContext.BeforeEach()
 
 		localAwsCredentials := credentials.NewSharedCredentials("", "")
@@ -88,7 +88,7 @@ var _ = Describe("Vault Secret Store (AWS Auth)", func() {
 			oauthSecret = &gloov1.Secret{
 				Metadata: &core.Metadata{
 					Name:      "oauth-secret",
-					Namespace: e2e.writeNamespace,
+					Namespace: writeNamespace,
 				},
 				Kind: &gloov1.Secret_Oauth{
 					Oauth: &v1.OauthSecret{
@@ -119,7 +119,7 @@ var _ = Describe("Vault Secret Store (AWS Auth)", func() {
 			newSecret := &gloov1.Secret{
 				Metadata: &core.Metadata{
 					Name:      "new-secret",
-					Namespace: e2e.writeNamespace,
+					Namespace: writeNamespace,
 				},
 				Kind: &gloov1.Secret_Oauth{
 					Oauth: &v1.OauthSecret{
