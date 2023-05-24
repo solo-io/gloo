@@ -259,7 +259,7 @@ run-e2e-tests: GINKGO_FLAGS += --label-filter="end-to-end && !nightly"
 run-e2e-tests: test
 
 .PHONY: run-hashicorp-e2e-tests
-run-hashicorp-e2e-tests: TEST_PKG = ./test/consulvaulte2e/
+run-hashicorp-e2e-tests: TEST_PKG = ./test/hashicorpe2e/
 run-hashicorp-e2e-tests: GINKGO_FLAGS += --label-filter="end-to-end && !nightly"
 run-hashicorp-e2e-tests: test
 

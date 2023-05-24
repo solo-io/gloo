@@ -1,4 +1,4 @@
-package e2e_test
+package hashicorpe2e_test
 
 import (
 	"context"

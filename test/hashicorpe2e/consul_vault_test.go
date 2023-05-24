@@ -1,4 +1,4 @@
-package consulvaulte2e_test
+package hashicorpe2e_test
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-name: CI - consul e2e
+name: CI - hashicorp e2e
 on:
   pull_request: {}
   workflow_dispatch: {}
@@ -11,14 +11,16 @@ env:
   ENVOY_BINARY: '/workspace/envoy' # I think we can use the tagged version from the Makefile
   AWS_SHARED_CREDENTIALS_FILE: '/workspace/aws_credentials'
   SKIP_TEMP_DISABLED: '1' # https://github.com/solo-io/solo-projects/issues/4515
+  RUN_CONSUL_TESTS: '1'
+  RUN_VAULT_TESTS: '1'
 
 jobs:
   prepare_env:
     name: Prepare Environment
     runs-on: ubuntu-22.04
     outputs:
-      should-run-consul-e2e-tests: ${{ steps.consul-e2e-tests.outputs.run_value }}
-      should-pass-consul-e2e-tests: ${{ steps.consul-e2e-tests.outputs.pass_value }}
+      should-run-hashicorp-e2e-tests: ${{ steps.hashicorp-e2e-tests.outputs.run_value }}
+      should-pass-hashicorp-e2e-tests: ${{ steps.hashicorp-e2e-tests.outputs.pass_value }}
     steps:
       - name: Cancel Previous Actions
         uses: styfle/cancel-workflow-action@0.11.0
@@ -36,8 +38,8 @@ jobs:
         name: Process comments on Pull Request to skip CI
         if: ${{ github.event.issue.pull_request }}
         run: echo "value=${{ contains(github.event.comment.body, '/skip-ci') }}" >> $GITHUB_OUTPUT
-      - id: consul-e2e-tests
-        name: Determine how to run consul e2e tests
+      - id: hashicorp-e2e-tests
+        name: Determine how to run hashicorp e2e tests
         run: |
           should_run=true
           
@@ -56,14 +58,14 @@ jobs:
             should_run=false
           fi
           
-          echo "Should run consul e2e tests? $should_run"
+          echo "Should run hashicorp e2e tests? $should_run"
           echo "run_value=$should_run" >> $GITHUB_OUTPUT
 
-  consul_e2e_tests:
-    name: consul e2e tests
+  hashicorp_e2e_tests:
+    name: hashicorp e2e tests
     needs: prepare_env
     runs-on: ubuntu-22.04
-    if: needs.prepare_env.outputs.should-run-consul-e2e-tests == 'true'
+    if: needs.prepare_env.outputs.should-run-hashicorp-e2e-tests == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -74,7 +76,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/workflows/composite-actions/prep-go-runner
-      # Configure consul credentials
+      # Configure hashicorp credentials
 
       #    - name: Configure AWS Credentials Action For GitHub Actions
       #      uses: aws-actions/configure-aws-credentials@v1
@@ -82,7 +84,7 @@ jobs:
       #        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       #        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       #        aws-region: us-east-2
-      - name: Testing - consul e2e tests
+      - name: Testing - hashicorp e2e tests
         shell: bash
         run: make install-test-tools run-tests
       - uses: testspace-com/setup-testspace@v1
@@ -96,20 +98,20 @@ jobs:
       - name: save results
         if: ${{ failure() }}
         shell: bash
-        run: mkdir -p _output/consul-e2e-artifacts && echo '{"url":"https://github.com/solo-io/gloo/actions/runs/${{github.run_id}}",
-          "name":"consul-e2e"}' > _output/consul-e2e-artifacts/test-out.json
+        run: mkdir -p _output/hashicorp-e2e-artifacts && echo '{"url":"https://github.com/solo-io/gloo/actions/runs/${{github.run_id}}",
+          "name":"hashicorp-e2e"}' > _output/hashicorp-e2e-artifacts/test-out.json
       - uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
-          name: consul-e2e-dump
-          path: "_output/consul-e2e-artifacts"
+          name: hashicorp-e2e-dump
+          path: "_output/hashicorp-e2e-artifacts"
           if-no-files-found: warn
 
   notify_slack:
     name: Notify slack
     runs-on: ubuntu-22.04
     if: ${{ github.event_name == 'pull_request' && failure() }}
-    needs: [ consul_e2e_tests ]
+    needs: [ hashicorp_e2e_tests ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -122,9 +124,9 @@ jobs:
         run: echo "direct_message_id=$(cat ./.github/workflows/notify-on-test-failure-list.json | jq -r '."${{ github.actor }}"')" >> $GITHUB_ENV
       - name: send slack message
         env:
-          PARENT_JOB_URL: ${{ env.pull_request_url }}       # parent job hyperlink
-          PREAMBLE: "Your recent Gloo PR consul e2e tests"  # text to hyperlink at start of slack message
-          SLACK_CHANNEL: ${{ env.direct_message_id }}       # DM to the user who ran CI
+          PARENT_JOB_URL: ${{ env.pull_request_url }}          # parent job hyperlink
+          PREAMBLE: "Your recent Gloo PR hashicorp e2e tests"  # text to hyperlink at start of slack message
+          SLACK_CHANNEL: ${{ env.direct_message_id }}          # DM to the user who ran CI
           SLACKBOT_BEARER: ${{ secrets.SLACKBOT_BEARER }}
         run: |
           test_results="$(cat */test-out.json | jq -c --slurp .)"

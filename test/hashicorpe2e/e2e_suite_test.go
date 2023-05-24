@@ -1,6 +1,8 @@
-package consulvaulte2e_test
+package hashicorpe2e_test
 
 import (
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/test/e2e"
 	"os"
 	"testing"
 
@@ -29,6 +31,10 @@ var (
 	envoyFactory  *services.EnvoyFactory
 	consulFactory *services.ConsulFactory
 	vaultFactory  *services.VaultFactory
+
+	testContextFactory *e2e.TestContextFactory
+
+	writeNamespace = defaults.GlooSystem
 )
 
 var _ = BeforeSuite(func() {
@@ -44,6 +50,12 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	vaultFactory, err = services.NewVaultFactory()
 	Expect(err).NotTo(HaveOccurred())
+
+	testContextFactory = &e2e.TestContextFactory{
+		EnvoyFactory:  envoyFactory,
+		VaultFactory:  vaultFactory,
+		ConsulFactory: consulFactory,
+	}
 })
 
 var _ = AfterSuite(func() {

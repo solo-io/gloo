@@ -1,4 +1,4 @@
-package e2e_test
+package hashicorpe2e_test
 
 import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"

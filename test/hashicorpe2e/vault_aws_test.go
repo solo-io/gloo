@@ -1,4 +1,4 @@
-package e2e_test
+package hashicorpe2e_test
 
 import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -32,7 +32,7 @@ var _ = Describe("Vault Secret Store (AWS Auth)", func() {
 	)
 
 	BeforeEach(func() {
-		testContext = testContextFactory.NewTestContextWithVault(testutils.AwsCredentials())
+		testContext = e2e.testContextFactory.NewTestContextWithVault(testutils.AwsCredentials())
 		testContext.BeforeEach()
 
 		localAwsCredentials := credentials.NewSharedCredentials("", "")
@@ -88,7 +88,7 @@ var _ = Describe("Vault Secret Store (AWS Auth)", func() {
 			oauthSecret = &gloov1.Secret{
 				Metadata: &core.Metadata{
 					Name:      "oauth-secret",
-					Namespace: writeNamespace,
+					Namespace: e2e.writeNamespace,
 				},
 				Kind: &gloov1.Secret_Oauth{
 					Oauth: &v1.OauthSecret{
@@ -119,7 +119,7 @@ var _ = Describe("Vault Secret Store (AWS Auth)", func() {
 			newSecret := &gloov1.Secret{
 				Metadata: &core.Metadata{
 					Name:      "new-secret",
-					Namespace: writeNamespace,
+					Namespace: e2e.writeNamespace,
 				},
 				Kind: &gloov1.Secret_Oauth{
 					Oauth: &v1.OauthSecret{
