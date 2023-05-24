@@ -86,7 +86,7 @@ jobs:
       #        aws-region: us-east-2
       - name: Testing - hashicorp e2e tests
         shell: bash
-        run: make install-test-tools run-tests
+        run: make install-test-tools run-hashicorp-e2e-tests
       - uses: testspace-com/setup-testspace@v1
         with:
           domain: solo-io.testspace.com
