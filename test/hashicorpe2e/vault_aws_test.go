@@ -32,6 +32,8 @@ var _ = Describe("Vault Secret Store (AWS Auth)", func() {
 	)
 
 	BeforeEach(func() {
+		Skip("need AWS credentials")
+
 		testContext = testContextFactory.NewTestContextWithVault(testutils.AwsCredentials())
 		testContext.BeforeEach()
 
