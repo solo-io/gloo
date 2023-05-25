@@ -244,8 +244,17 @@ func (l *ListenerSubsystemTranslatorFactory) GetHybridListenerTranslators(ctx co
 			routeConfigurationTranslator = &emptyRouteConfigurationTranslator{}
 		}
 
-		filterChainTranslators = append(filterChainTranslators, filterChainTranslator)
-		routeConfigurationTranslators = append(routeConfigurationTranslators, routeConfigurationTranslator)
+		// This should never happen unless the listener type is unknown or not fully supported
+		if filterChainTranslator != nil {
+			filterChainTranslators = append(filterChainTranslators, filterChainTranslator)
+		}
+		if routeConfigurationTranslator != nil {
+			routeConfigurationTranslators = append(routeConfigurationTranslators, routeConfigurationTranslator)
+		}
+		if routeConfigurationTranslator == nil && filterChainTranslator == nil {
+			contextutils.LoggerFrom(ctx).Warnf("listener (%v) had a matched listener with an unknown type (%T) ", listener.GetName(), matchedListener.GetListenerType())
+		}
+
 	}
 
 	listenerTranslator := &listenerTranslatorInstance{
