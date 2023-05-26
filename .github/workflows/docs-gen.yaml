@@ -71,7 +71,7 @@ jobs:
     needs: prepare_env
     if: needs.prepare_env.outputs.should-build-docs == 'true'
     env:
-      PUBLISH_CONTEXT: ${{ needs.prepare_env.outputs.version }}
+      VERSION: ${{ needs.prepare_env.outputs.version }}
     runs-on: ubuntu-22.04
     steps:
     - name: Check out code into the Go module directory

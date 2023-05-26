@@ -44,7 +44,7 @@ IMAGE_REGISTRY ?= quay.io/solo-io
 z := $(shell mkdir -p $(OUTPUT_DIR))
 
 SOURCES := $(shell find . -name "*.go" | grep -v test.go)
-VERSION 	?= 0.0.1-dev    # a basic version that can be overidden
+VERSION 	?= 1.0.1-dev    # a basic version that can be overidden
 ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.25.6-patch1
 LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
 GCFLAGS := all="-N -l"
@@ -579,18 +579,19 @@ package-chart: generate-helm-files
 #	- Pull Request (we publish unreleased artifacts to be consumed by our Enterprise project)
 #----------------------------------------------------------------------------------
 # Possible Values: NONE, RELEASE, PULL_REQUEST
-PUBLISH_CONTEXT ?= NONE
+PUBLISH_CONTEXT       ?= NONE                   # controller variable for the "Publish Artifacts" section.  Defines which targets exist.
+VERSION               ?=                        # a semver resembling 1.0.1-dev.  Most calling jobs customize this.  Ex:  v1.15.0-pr8278
+HELM_BUCKET           := gs://solo-public-helm	# specify which bucket to upload helm chart to
+QUAY_EXPIRATION_LABEL :=                        # modifier to docker builds which can auto-delete docker images after a set time
 
 # define empty publish targets so calls won't fail
 .PHONY: publish-docker-retag
-.PHONY: upload-github-release-assets
+.PHONY: publish-glooctl
 .PHONY: publish-docker
-.PHONY: fetch-package-and-save-helm
+.PHONY: publish-helm-chart
 
 # don't define Publish Artifacts Targets if we don't have a release context
 ifneq (,$(filter $(PUBLISH_CONTEXT),RELEASE PULL_REQUEST))
-
-HELM_BUCKET     := gs://solo-public-helm
 
 ifeq (PULL_REQUEST, $(PUBLISH_CONTEXT)) # PULL_REQUEST contexts have different configs for publishing
 QUAY_EXPIRATION_LABEL := --label "quay.expires-after=3w"
@@ -604,7 +605,7 @@ ifeq (RELEASE, $(PUBLISH_CONTEXT))      # RELEASE contexts have additional make 
 publish-docker-retag: docker-retag docker-push
 
 # publish glooctl
-upload-github-release-assets: build-cli
+publish-glooctl: build-cli
 	GO111MODULE=on go run ci/upload_github_release_assets.go true
 endif # RELEASE exclusive make targets
 
@@ -613,7 +614,7 @@ endif # RELEASE exclusive make targets
 publish-docker: docker docker-push
 
 # create a new helm chart and publish it to $(HELM_BUCKET)
-fetch-package-and-save-helm: generate-helm-files
+publish-helm-chart: generate-helm-files
 	@echo "Uploading helm chart to $(HELM_BUCKET) with name gloo-$(VERSION).tgz"
 	until $$(GENERATION=$$(gsutil ls -a $(HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
 					gsutil cp -v $(HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR)/index.yaml && \

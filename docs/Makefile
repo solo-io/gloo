@@ -11,7 +11,7 @@ HUGO_VERSION := 0.69.2
 
 SOLO_HUGO_THEME_REVISION := v0.0.25
 
-VERSION 	?= 0.0.1-dev    # a basic version that can be overidden
+VERSION 	?= 1.0.1-dev    # a basic version that can be overidden
 
 # The minimum version to maintain in our public docs
 MIN_SCANNED_VERSION ?= v1.11.0

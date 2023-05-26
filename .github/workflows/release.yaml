@@ -73,7 +73,7 @@ jobs:
       uses: google-github-actions/setup-gcloud@v0
       with:
         project_id: solo-public
-    - run: make fetch-package-and-save-helm
+    - run: make publish-helm-chart
   
   cli:
     name: Publish Glooctl
@@ -85,7 +85,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: ./.github/workflows/composite-actions/prep-go-runner
-    - run: make upload-github-release-assets
+    - run: make publish-glooctl
 
   tag:
     name: Create GitHub Tag/Release
