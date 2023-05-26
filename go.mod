@@ -47,23 +47,23 @@ require (
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/rotisserie/eris v0.5.0
 	github.com/solo-io/anyvendor v0.1.0
-	github.com/solo-io/caching-service v0.3.0
+	github.com/solo-io/caching-service v0.4.0
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.36.0
+	github.com/solo-io/ext-auth-service v0.38.0
 	github.com/solo-io/external-apis v0.2.0
-	github.com/solo-io/gloo v1.15.0-beta7
+	github.com/solo-io/gloo v1.15.0-beta8
 	github.com/solo-io/gloo-graphql-example v0.1.0
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.2
-	github.com/solo-io/k8s-utils v0.3.0
+	github.com/solo-io/k8s-utils v0.4.0
 	github.com/solo-io/licensing v0.3.13
 	github.com/solo-io/protoc-gen-ext v0.0.18
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.9.1
 	github.com/solo-io/skv2 v0.30.0
-	github.com/solo-io/solo-apis v0.0.0-20230518002105-fd64b9bcc5d6
-	github.com/solo-io/solo-kit v0.31.0
+	github.com/solo-io/solo-apis v0.0.0-20230526160211-b5390fa5fe18
+	github.com/solo-io/solo-kit v0.32.0
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
@@ -340,7 +340,7 @@ require (
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
-	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/term v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
@@ -387,7 +387,7 @@ replace (
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
 
-	// pin external-apis to Gloo Edge-specific branch gloo-v0.2.0
+	// pin external-apis to Gloo Edge-specific tag `gloo-v0.2.0` from base branch `gloo-master`
 	github.com/solo-io/external-apis => github.com/solo-io/external-apis v0.1.12-0.20230516154006-26324bdb2bb2
 
 	go.opentelemetry.io/otel => go.opentelemetry.io/otel v0.11.0 // (sam-heilbron)

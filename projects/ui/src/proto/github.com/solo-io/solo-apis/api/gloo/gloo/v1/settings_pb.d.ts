@@ -58,6 +58,11 @@ export class SettingsSpec extends jspb.Message {
   getDirectorySecretSource(): SettingsSpec.Directory | undefined;
   setDirectorySecretSource(value?: SettingsSpec.Directory): void;
 
+  hasSecretOptions(): boolean;
+  clearSecretOptions(): void;
+  getSecretOptions(): SettingsSpec.SecretOptions | undefined;
+  setSecretOptions(value?: SettingsSpec.SecretOptions): void;
+
   hasKubernetesArtifactSource(): boolean;
   clearKubernetesArtifactSource(): void;
   getKubernetesArtifactSource(): SettingsSpec.KubernetesConfigmaps | undefined;
@@ -194,6 +199,7 @@ export namespace SettingsSpec {
     kubernetesSecretSource?: SettingsSpec.KubernetesSecrets.AsObject,
     vaultSecretSource?: SettingsSpec.VaultSecrets.AsObject,
     directorySecretSource?: SettingsSpec.Directory.AsObject,
+    secretOptions?: SettingsSpec.SecretOptions.AsObject,
     kubernetesArtifactSource?: SettingsSpec.KubernetesConfigmaps.AsObject,
     directoryArtifactSource?: SettingsSpec.Directory.AsObject,
     consulKvArtifactSource?: SettingsSpec.ConsulKv.AsObject,
@@ -218,6 +224,70 @@ export namespace SettingsSpec {
     upstreamoptions?: UpstreamOptions.AsObject,
     consoleOptions?: ConsoleOptions.AsObject,
     graphqlOptions?: GraphqlOptions.AsObject,
+  }
+
+  export class SecretOptions extends jspb.Message {
+    clearSourcesList(): void;
+    getSourcesList(): Array<SettingsSpec.SecretOptions.Source>;
+    setSourcesList(value: Array<SettingsSpec.SecretOptions.Source>): void;
+    addSources(value?: SettingsSpec.SecretOptions.Source, index?: number): SettingsSpec.SecretOptions.Source;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SecretOptions.AsObject;
+    static toObject(includeInstance: boolean, msg: SecretOptions): SecretOptions.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SecretOptions, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SecretOptions;
+    static deserializeBinaryFromReader(message: SecretOptions, reader: jspb.BinaryReader): SecretOptions;
+  }
+
+  export namespace SecretOptions {
+    export type AsObject = {
+      sourcesList: Array<SettingsSpec.SecretOptions.Source.AsObject>,
+    }
+
+    export class Source extends jspb.Message {
+      hasKubernetes(): boolean;
+      clearKubernetes(): void;
+      getKubernetes(): SettingsSpec.KubernetesSecrets | undefined;
+      setKubernetes(value?: SettingsSpec.KubernetesSecrets): void;
+
+      hasVault(): boolean;
+      clearVault(): void;
+      getVault(): SettingsSpec.VaultSecrets | undefined;
+      setVault(value?: SettingsSpec.VaultSecrets): void;
+
+      hasDirectory(): boolean;
+      clearDirectory(): void;
+      getDirectory(): SettingsSpec.Directory | undefined;
+      setDirectory(value?: SettingsSpec.Directory): void;
+
+      getSourceCase(): Source.SourceCase;
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): Source.AsObject;
+      static toObject(includeInstance: boolean, msg: Source): Source.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: Source, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): Source;
+      static deserializeBinaryFromReader(message: Source, reader: jspb.BinaryReader): Source;
+    }
+
+    export namespace Source {
+      export type AsObject = {
+        kubernetes?: SettingsSpec.KubernetesSecrets.AsObject,
+        vault?: SettingsSpec.VaultSecrets.AsObject,
+        directory?: SettingsSpec.Directory.AsObject,
+      }
+
+      export enum SourceCase {
+        SOURCE_NOT_SET = 0,
+        KUBERNETES = 1,
+        VAULT = 2,
+        DIRECTORY = 3,
+      }
+    }
   }
 
   export class KubernetesCrds extends jspb.Message {
