@@ -57,14 +57,16 @@ func New{{ $resource.Kind }}Reconciler(
 
 func (f *{{ $kindLowerCamel }}Reconciler) Reconcile{{ $resource.Kind }}(obj *{{ $import_prefix }}.{{ $resource.Kind }}) (reconcile.Result, error) {
     currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
-    if !obj.NeedsReconcile(currentPlacementStatus) {
+    needsReconcile := obj.NeedsReconcile(currentPlacementStatus)
+    allClusters := f.clusterSet.ListClusters()
+    contextutils.LoggerFrom(f.ctx).Debugw("Reconcile{{ $resource.Kind }}", zap.Any("{{ $resource.Kind }}", obj), zap.Any("needsReconcile", needsReconcile),
+        zap.Any("allClusters", allClusters))
+
+    if !needsReconcile {
         return reconcile.Result{}, nil
     }
 
-    contextutils.LoggerFrom(f.ctx).Debugw("processing federated {{ $baseKindLowerCamel }}", zap.Any("{{ $resource.Kind }}", obj))
     statusBuilder := f.placementManager.GetBuilder()
-
-    allClusters := f.clusterSet.ListClusters()
 
     // Validate resource
     if obj.Spec.GetPlacement() == nil {
@@ -173,7 +175,7 @@ func (f *{{ $kindLowerCamel }}Reconciler) ensureCluster(cluster string, statusBu
             namespaces = append(namespaces, obj.GetNamespace())
         }
 
-        contextutils.LoggerFrom(f.ctx).Errorw("Failed to list {{ $baseKindLowerCamel }}s", zap.Error(err))
+        contextutils.LoggerFrom(f.ctx).Errorw("Failed to list {{ $baseKindLowerCamel }}s", zap.String("cluster", cluster), zap.Error(err))
         statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
             State:   mc_types.PlacementStatus_FAILED,
             Message: placement.FailedToListResource("{{ $baseKindLowerCamel }}", cluster),

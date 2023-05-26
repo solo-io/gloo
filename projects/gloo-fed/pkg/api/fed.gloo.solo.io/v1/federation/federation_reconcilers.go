@@ -50,14 +50,16 @@ func NewFederatedUpstreamReconciler(
 
 func (f *federatedUpstreamReconciler) ReconcileFederatedUpstream(obj *fed_gloo_solo_io_v1.FederatedUpstream) (reconcile.Result, error) {
 	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
-	if !obj.NeedsReconcile(currentPlacementStatus) {
+	needsReconcile := obj.NeedsReconcile(currentPlacementStatus)
+	allClusters := f.clusterSet.ListClusters()
+	contextutils.LoggerFrom(f.ctx).Debugw("ReconcileFederatedUpstream", zap.Any("FederatedUpstream", obj), zap.Any("needsReconcile", needsReconcile),
+		zap.Any("allClusters", allClusters))
+
+	if !needsReconcile {
 		return reconcile.Result{}, nil
 	}
 
-	contextutils.LoggerFrom(f.ctx).Debugw("processing federated upstream", zap.Any("FederatedUpstream", obj))
 	statusBuilder := f.placementManager.GetBuilder()
-
-	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
@@ -166,7 +168,7 @@ func (f *federatedUpstreamReconciler) ensureCluster(cluster string, statusBuilde
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
-		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list upstreams", zap.Error(err))
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list upstreams", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("upstream", cluster),
@@ -274,14 +276,16 @@ func NewFederatedUpstreamGroupReconciler(
 
 func (f *federatedUpstreamGroupReconciler) ReconcileFederatedUpstreamGroup(obj *fed_gloo_solo_io_v1.FederatedUpstreamGroup) (reconcile.Result, error) {
 	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
-	if !obj.NeedsReconcile(currentPlacementStatus) {
+	needsReconcile := obj.NeedsReconcile(currentPlacementStatus)
+	allClusters := f.clusterSet.ListClusters()
+	contextutils.LoggerFrom(f.ctx).Debugw("ReconcileFederatedUpstreamGroup", zap.Any("FederatedUpstreamGroup", obj), zap.Any("needsReconcile", needsReconcile),
+		zap.Any("allClusters", allClusters))
+
+	if !needsReconcile {
 		return reconcile.Result{}, nil
 	}
 
-	contextutils.LoggerFrom(f.ctx).Debugw("processing federated upstreamGroup", zap.Any("FederatedUpstreamGroup", obj))
 	statusBuilder := f.placementManager.GetBuilder()
-
-	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
@@ -390,7 +394,7 @@ func (f *federatedUpstreamGroupReconciler) ensureCluster(cluster string, statusB
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
-		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list upstreamGroups", zap.Error(err))
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list upstreamGroups", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("upstreamGroup", cluster),
@@ -498,14 +502,16 @@ func NewFederatedSettingsReconciler(
 
 func (f *federatedSettingsReconciler) ReconcileFederatedSettings(obj *fed_gloo_solo_io_v1.FederatedSettings) (reconcile.Result, error) {
 	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
-	if !obj.NeedsReconcile(currentPlacementStatus) {
+	needsReconcile := obj.NeedsReconcile(currentPlacementStatus)
+	allClusters := f.clusterSet.ListClusters()
+	contextutils.LoggerFrom(f.ctx).Debugw("ReconcileFederatedSettings", zap.Any("FederatedSettings", obj), zap.Any("needsReconcile", needsReconcile),
+		zap.Any("allClusters", allClusters))
+
+	if !needsReconcile {
 		return reconcile.Result{}, nil
 	}
 
-	contextutils.LoggerFrom(f.ctx).Debugw("processing federated settings", zap.Any("FederatedSettings", obj))
 	statusBuilder := f.placementManager.GetBuilder()
-
-	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
@@ -614,7 +620,7 @@ func (f *federatedSettingsReconciler) ensureCluster(cluster string, statusBuilde
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
-		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list settingss", zap.Error(err))
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list settingss", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("settings", cluster),

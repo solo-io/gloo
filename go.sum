@@ -1592,8 +1592,8 @@ github.com/solo-io/protoc-gen-openapi v0.1.0 h1:XBx0yAdjxoWxGQ+CiGcb29r+KAgyIkhd
 github.com/solo-io/protoc-gen-openapi v0.1.0/go.mod h1:6d6gsEx74pW3UCA3G0al0GdMlYzGe/iCy2mPgGG9wI8=
 github.com/solo-io/rate-limiter v0.9.1 h1:snAJRpSAHI9x/J03TJSp5191S8aPy20okNpBjAyrj8M=
 github.com/solo-io/rate-limiter v0.9.1/go.mod h1:1xOn8OQl9H/QI/nzHSzrmmY5Xrvmqh9gK+gzxMbj7Hc=
-github.com/solo-io/skv2 v0.30.0 h1:SZmtwEMm/uur3I/1uOcl8pC8zqar+e4lr6pIPocpjFo=
-github.com/solo-io/skv2 v0.30.0/go.mod h1:2+ySJOxcW5gn8XlJ96eihI9s7WKHVY+stxhRqS07TH0=
+github.com/solo-io/skv2 v0.30.1 h1:xbq2K4NiJ5HrsXt8sZie7CxEYOsHRBxTd92MirV5y2c=
+github.com/solo-io/skv2 v0.30.1/go.mod h1:2+ySJOxcW5gn8XlJ96eihI9s7WKHVY+stxhRqS07TH0=
 github.com/solo-io/solo-apis v0.0.0-20230526160211-b5390fa5fe18 h1:iEsYe+2rmz+Ek4P58dHWRvS6TMBcRU8rbvX8tbbg+yQ=
 github.com/solo-io/solo-apis v0.0.0-20230526160211-b5390fa5fe18/go.mod h1:KHAYb/KEn9ysnagXIa5Hz8YwCShyZyzFnL3QP29PdEM=
 github.com/solo-io/solo-kit v0.32.0 h1:UeGgLQLZqEN5mNGi1zcK7qXX7GmqgCiifrAh5PKRPPs=

@@ -1,0 +1,11 @@
+changelog:
+  - type: FIX
+    description: >
+      Ignore missing CRDs on remote clusters during Gloo Fed discovery. This allows us to continue reconciling in the case where a
+      remote cluster is on an older Gloo Edge version that does not have all the CRDs that are on the management cluster.
+    issueLink: https://github.com/solo-io/solo-projects/issues/4990
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: skv2
+    dependencyTag: v0.30.1

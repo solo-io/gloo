@@ -116,7 +116,7 @@ func RegisterMultiClusterReconciler(
 
 	// initialize reconcile loops
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &v1_types.Service{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &v1_types.Service{}, reconcile_v2.Options(options.Services)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*v1_types.Service]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *v1_types.Service) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -133,7 +133,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &v1_types.Pod{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &v1_types.Pod{}, reconcile_v2.Options(options.Pods)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*v1_types.Pod]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *v1_types.Pod) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -150,7 +150,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &apps_v1_types.Deployment{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &apps_v1_types.Deployment{}, reconcile_v2.Options(options.Deployments)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*apps_v1_types.Deployment]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *apps_v1_types.Deployment) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -167,7 +167,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &apps_v1_types.DaemonSet{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &apps_v1_types.DaemonSet{}, reconcile_v2.Options(options.DaemonSets)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*apps_v1_types.DaemonSet]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *apps_v1_types.DaemonSet) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -184,7 +184,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.Gateway{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.Gateway{}, reconcile_v2.Options(options.Gateways)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gateway_solo_io_v1_types.Gateway]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gateway_solo_io_v1_types.Gateway) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -201,7 +201,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.MatchableHttpGateway{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.MatchableHttpGateway{}, reconcile_v2.Options(options.MatchableHttpGateways)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gateway_solo_io_v1_types.MatchableHttpGateway]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gateway_solo_io_v1_types.MatchableHttpGateway) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -218,7 +218,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.MatchableTcpGateway{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.MatchableTcpGateway{}, reconcile_v2.Options(options.MatchableTcpGateways)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gateway_solo_io_v1_types.MatchableTcpGateway]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gateway_solo_io_v1_types.MatchableTcpGateway) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -235,7 +235,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.VirtualService{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.VirtualService{}, reconcile_v2.Options(options.VirtualServices)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gateway_solo_io_v1_types.VirtualService]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gateway_solo_io_v1_types.VirtualService) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -252,7 +252,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.RouteTable{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.RouteTable{}, reconcile_v2.Options(options.RouteTables)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gateway_solo_io_v1_types.RouteTable]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gateway_solo_io_v1_types.RouteTable) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -269,7 +269,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &gloo_solo_io_v1_types.Upstream{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &gloo_solo_io_v1_types.Upstream{}, reconcile_v2.Options(options.Upstreams)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gloo_solo_io_v1_types.Upstream]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gloo_solo_io_v1_types.Upstream) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -286,7 +286,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &gloo_solo_io_v1_types.UpstreamGroup{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &gloo_solo_io_v1_types.UpstreamGroup{}, reconcile_v2.Options(options.UpstreamGroups)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gloo_solo_io_v1_types.UpstreamGroup]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gloo_solo_io_v1_types.UpstreamGroup) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -303,7 +303,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &gloo_solo_io_v1_types.Settings{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &gloo_solo_io_v1_types.Settings{}, reconcile_v2.Options(options.Settings)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gloo_solo_io_v1_types.Settings]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gloo_solo_io_v1_types.Settings) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -320,7 +320,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &gloo_solo_io_v1_types.Proxy{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &gloo_solo_io_v1_types.Proxy{}, reconcile_v2.Options(options.Proxies)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gloo_solo_io_v1_types.Proxy]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gloo_solo_io_v1_types.Proxy) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -337,7 +337,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &enterprise_gloo_solo_io_v1_types.AuthConfig{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &enterprise_gloo_solo_io_v1_types.AuthConfig{}, reconcile_v2.Options(options.AuthConfigs)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*enterprise_gloo_solo_io_v1_types.AuthConfig]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *enterprise_gloo_solo_io_v1_types.AuthConfig) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)
@@ -354,7 +354,7 @@ func RegisterMultiClusterReconciler(
 			},
 		}, predicates...)
 
-	multicluster_reconcile_v2.NewLoop("das", clusters, &ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig{}, reconcile_v2.Options{}).
+	multicluster_reconcile_v2.NewLoop("das", clusters, &ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig{}, reconcile_v2.Options(options.RateLimitConfigs)).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig) (reconcile.Result, error) {
 				ezkube.SetClusterName(obj, clusterName)

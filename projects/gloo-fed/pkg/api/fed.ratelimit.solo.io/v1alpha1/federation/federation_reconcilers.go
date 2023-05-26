@@ -50,14 +50,16 @@ func NewFederatedRateLimitConfigReconciler(
 
 func (f *federatedRateLimitConfigReconciler) ReconcileFederatedRateLimitConfig(obj *fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig) (reconcile.Result, error) {
 	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
-	if !obj.NeedsReconcile(currentPlacementStatus) {
+	needsReconcile := obj.NeedsReconcile(currentPlacementStatus)
+	allClusters := f.clusterSet.ListClusters()
+	contextutils.LoggerFrom(f.ctx).Debugw("ReconcileFederatedRateLimitConfig", zap.Any("FederatedRateLimitConfig", obj), zap.Any("needsReconcile", needsReconcile),
+		zap.Any("allClusters", allClusters))
+
+	if !needsReconcile {
 		return reconcile.Result{}, nil
 	}
 
-	contextutils.LoggerFrom(f.ctx).Debugw("processing federated rateLimitConfig", zap.Any("FederatedRateLimitConfig", obj))
 	statusBuilder := f.placementManager.GetBuilder()
-
-	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
@@ -166,7 +168,7 @@ func (f *federatedRateLimitConfigReconciler) ensureCluster(cluster string, statu
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
-		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list rateLimitConfigs", zap.Error(err))
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list rateLimitConfigs", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("rateLimitConfig", cluster),

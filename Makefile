@@ -348,7 +348,7 @@ gloo-fed-docker: $(GLOO_FED_OUT_DIR)/gloo-fed-linux-$(DOCKER_GOARCH)
 gloofed-docker: gloo-fed-docker gloo-fed-rbac-validating-webhook-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker gloo-federation-console-docker
 
 .PHONY: gloofed-load-kind-images
-gloofed-load-kind-images: kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-webhook kind-load-gloo-fed-apiserver kind-load-gloo-fed-apiserver-envoy kind-load-ui
+gloofed-load-kind-images: kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-webhook kind-load-gloo-fed-apiserver kind-load-gloo-fed-apiserver-envoy kind-load-gloo-federation-console
 
 .PHONY: remove-all-gloofed-images
 remove-all-gloofed-images: remove-gloofed-ui-images remove-gloofed-controller-images

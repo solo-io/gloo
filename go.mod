@@ -61,7 +61,7 @@ require (
 	github.com/solo-io/protoc-gen-ext v0.0.18
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.9.1
-	github.com/solo-io/skv2 v0.30.0
+	github.com/solo-io/skv2 v0.30.1
 	github.com/solo-io/solo-apis v0.0.0-20230526160211-b5390fa5fe18
 	github.com/solo-io/solo-kit v0.32.0
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3

@@ -50,14 +50,16 @@ func NewFederatedAuthConfigReconciler(
 
 func (f *federatedAuthConfigReconciler) ReconcileFederatedAuthConfig(obj *fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig) (reconcile.Result, error) {
 	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
-	if !obj.NeedsReconcile(currentPlacementStatus) {
+	needsReconcile := obj.NeedsReconcile(currentPlacementStatus)
+	allClusters := f.clusterSet.ListClusters()
+	contextutils.LoggerFrom(f.ctx).Debugw("ReconcileFederatedAuthConfig", zap.Any("FederatedAuthConfig", obj), zap.Any("needsReconcile", needsReconcile),
+		zap.Any("allClusters", allClusters))
+
+	if !needsReconcile {
 		return reconcile.Result{}, nil
 	}
 
-	contextutils.LoggerFrom(f.ctx).Debugw("processing federated authConfig", zap.Any("FederatedAuthConfig", obj))
 	statusBuilder := f.placementManager.GetBuilder()
-
-	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
@@ -166,7 +168,7 @@ func (f *federatedAuthConfigReconciler) ensureCluster(cluster string, statusBuil
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
-		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list authConfigs", zap.Error(err))
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list authConfigs", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("authConfig", cluster),

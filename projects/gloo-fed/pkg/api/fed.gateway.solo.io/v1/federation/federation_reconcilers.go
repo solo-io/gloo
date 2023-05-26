@@ -50,14 +50,16 @@ func NewFederatedGatewayReconciler(
 
 func (f *federatedGatewayReconciler) ReconcileFederatedGateway(obj *fed_gateway_solo_io_v1.FederatedGateway) (reconcile.Result, error) {
 	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
-	if !obj.NeedsReconcile(currentPlacementStatus) {
+	needsReconcile := obj.NeedsReconcile(currentPlacementStatus)
+	allClusters := f.clusterSet.ListClusters()
+	contextutils.LoggerFrom(f.ctx).Debugw("ReconcileFederatedGateway", zap.Any("FederatedGateway", obj), zap.Any("needsReconcile", needsReconcile),
+		zap.Any("allClusters", allClusters))
+
+	if !needsReconcile {
 		return reconcile.Result{}, nil
 	}
 
-	contextutils.LoggerFrom(f.ctx).Debugw("processing federated gateway", zap.Any("FederatedGateway", obj))
 	statusBuilder := f.placementManager.GetBuilder()
-
-	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
@@ -166,7 +168,7 @@ func (f *federatedGatewayReconciler) ensureCluster(cluster string, statusBuilder
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
-		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list gateways", zap.Error(err))
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list gateways", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("gateway", cluster),
@@ -274,14 +276,16 @@ func NewFederatedMatchableHttpGatewayReconciler(
 
 func (f *federatedMatchableHttpGatewayReconciler) ReconcileFederatedMatchableHttpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway) (reconcile.Result, error) {
 	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
-	if !obj.NeedsReconcile(currentPlacementStatus) {
+	needsReconcile := obj.NeedsReconcile(currentPlacementStatus)
+	allClusters := f.clusterSet.ListClusters()
+	contextutils.LoggerFrom(f.ctx).Debugw("ReconcileFederatedMatchableHttpGateway", zap.Any("FederatedMatchableHttpGateway", obj), zap.Any("needsReconcile", needsReconcile),
+		zap.Any("allClusters", allClusters))
+
+	if !needsReconcile {
 		return reconcile.Result{}, nil
 	}
 
-	contextutils.LoggerFrom(f.ctx).Debugw("processing federated matchableHttpGateway", zap.Any("FederatedMatchableHttpGateway", obj))
 	statusBuilder := f.placementManager.GetBuilder()
-
-	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
@@ -390,7 +394,7 @@ func (f *federatedMatchableHttpGatewayReconciler) ensureCluster(cluster string, 
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
-		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list matchableHttpGateways", zap.Error(err))
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list matchableHttpGateways", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("matchableHttpGateway", cluster),
@@ -498,14 +502,16 @@ func NewFederatedMatchableTcpGatewayReconciler(
 
 func (f *federatedMatchableTcpGatewayReconciler) ReconcileFederatedMatchableTcpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) (reconcile.Result, error) {
 	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
-	if !obj.NeedsReconcile(currentPlacementStatus) {
+	needsReconcile := obj.NeedsReconcile(currentPlacementStatus)
+	allClusters := f.clusterSet.ListClusters()
+	contextutils.LoggerFrom(f.ctx).Debugw("ReconcileFederatedMatchableTcpGateway", zap.Any("FederatedMatchableTcpGateway", obj), zap.Any("needsReconcile", needsReconcile),
+		zap.Any("allClusters", allClusters))
+
+	if !needsReconcile {
 		return reconcile.Result{}, nil
 	}
 
-	contextutils.LoggerFrom(f.ctx).Debugw("processing federated matchableTcpGateway", zap.Any("FederatedMatchableTcpGateway", obj))
 	statusBuilder := f.placementManager.GetBuilder()
-
-	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
@@ -614,7 +620,7 @@ func (f *federatedMatchableTcpGatewayReconciler) ensureCluster(cluster string, s
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
-		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list matchableTcpGateways", zap.Error(err))
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list matchableTcpGateways", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("matchableTcpGateway", cluster),
@@ -722,14 +728,16 @@ func NewFederatedVirtualServiceReconciler(
 
 func (f *federatedVirtualServiceReconciler) ReconcileFederatedVirtualService(obj *fed_gateway_solo_io_v1.FederatedVirtualService) (reconcile.Result, error) {
 	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
-	if !obj.NeedsReconcile(currentPlacementStatus) {
+	needsReconcile := obj.NeedsReconcile(currentPlacementStatus)
+	allClusters := f.clusterSet.ListClusters()
+	contextutils.LoggerFrom(f.ctx).Debugw("ReconcileFederatedVirtualService", zap.Any("FederatedVirtualService", obj), zap.Any("needsReconcile", needsReconcile),
+		zap.Any("allClusters", allClusters))
+
+	if !needsReconcile {
 		return reconcile.Result{}, nil
 	}
 
-	contextutils.LoggerFrom(f.ctx).Debugw("processing federated virtualService", zap.Any("FederatedVirtualService", obj))
 	statusBuilder := f.placementManager.GetBuilder()
-
-	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
@@ -838,7 +846,7 @@ func (f *federatedVirtualServiceReconciler) ensureCluster(cluster string, status
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
-		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list virtualServices", zap.Error(err))
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list virtualServices", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("virtualService", cluster),
@@ -946,14 +954,16 @@ func NewFederatedRouteTableReconciler(
 
 func (f *federatedRouteTableReconciler) ReconcileFederatedRouteTable(obj *fed_gateway_solo_io_v1.FederatedRouteTable) (reconcile.Result, error) {
 	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
-	if !obj.NeedsReconcile(currentPlacementStatus) {
+	needsReconcile := obj.NeedsReconcile(currentPlacementStatus)
+	allClusters := f.clusterSet.ListClusters()
+	contextutils.LoggerFrom(f.ctx).Debugw("ReconcileFederatedRouteTable", zap.Any("FederatedRouteTable", obj), zap.Any("needsReconcile", needsReconcile),
+		zap.Any("allClusters", allClusters))
+
+	if !needsReconcile {
 		return reconcile.Result{}, nil
 	}
 
-	contextutils.LoggerFrom(f.ctx).Debugw("processing federated routeTable", zap.Any("FederatedRouteTable", obj))
 	statusBuilder := f.placementManager.GetBuilder()
-
-	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
@@ -1062,7 +1072,7 @@ func (f *federatedRouteTableReconciler) ensureCluster(cluster string, statusBuil
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
-		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list routeTables", zap.Error(err))
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list routeTables", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("routeTable", cluster),
