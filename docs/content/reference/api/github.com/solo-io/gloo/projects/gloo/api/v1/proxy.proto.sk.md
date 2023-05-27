@@ -286,6 +286,7 @@ An AggregateListener defines a set of Gloo configuration which will map to a uni
 ```yaml
 "httpResources": .gloo.solo.io.AggregateListener.HttpResources
 "httpFilterChains": []gloo.solo.io.AggregateListener.HttpFilterChain
+"tcpListeners": []gloo.solo.io.MatchedListener
 
 ```
 
@@ -293,6 +294,7 @@ An AggregateListener defines a set of Gloo configuration which will map to a uni
 | ----- | ---- | ----------- | 
 | `httpResources` | [.gloo.solo.io.AggregateListener.HttpResources](../proxy.proto.sk/#httpresources) | The aggregate set of resources available on this listener. |
 | `httpFilterChains` | [[]gloo.solo.io.AggregateListener.HttpFilterChain](../proxy.proto.sk/#httpfilterchain) | The set of HttpFilterChains to create on this listener. |
+| `tcpListeners` | [[]gloo.solo.io.MatchedListener](../proxy.proto.sk/#matchedlistener) | The set of TcpListeners to create on this listener. |
 
 
 

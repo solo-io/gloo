@@ -245,6 +245,10 @@ message AggregateListener {
 
     // The set of HttpFilterChains to create on this listener
     repeated HttpFilterChain http_filter_chains = 2;
+
+    // The set of TcpListeners to create on this listener
+    repeated MatchedListener tcp_listeners = 3;
+
 }
 
 /*

@@ -446,6 +446,19 @@ func (m *AggregateListener) Clone() proto.Message {
 		}
 	}
 
+	if m.GetTcpListeners() != nil {
+		target.TcpListeners = make([]*MatchedListener, len(m.GetTcpListeners()))
+		for idx, v := range m.GetTcpListeners() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.TcpListeners[idx] = h.Clone().(*MatchedListener)
+			} else {
+				target.TcpListeners[idx] = proto.Clone(v).(*MatchedListener)
+			}
+
+		}
+	}
+
 	return target
 }
 

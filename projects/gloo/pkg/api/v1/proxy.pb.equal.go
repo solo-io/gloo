@@ -680,6 +680,23 @@ func (m *AggregateListener) Equal(that interface{}) bool {
 
 	}
 
+	if len(m.GetTcpListeners()) != len(target.GetTcpListeners()) {
+		return false
+	}
+	for idx, v := range m.GetTcpListeners() {
+
+		if h, ok := interface{}(v).(equality.Equalizer); ok {
+			if !h.Equal(target.GetTcpListeners()[idx]) {
+				return false
+			}
+		} else {
+			if !proto.Equal(v, target.GetTcpListeners()[idx]) {
+				return false
+			}
+		}
+
+	}
+
 	return true
 }
 
