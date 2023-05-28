@@ -611,23 +611,6 @@ func (m *MatchedTcpListener) Equal(that interface{}) bool {
 		}
 	}
 
-	if len(m.GetSslConfigurations()) != len(target.GetSslConfigurations()) {
-		return false
-	}
-	for idx, v := range m.GetSslConfigurations() {
-
-		if h, ok := interface{}(v).(equality.Equalizer); ok {
-			if !h.Equal(target.GetSslConfigurations()[idx]) {
-				return false
-			}
-		} else {
-			if !proto.Equal(v, target.GetSslConfigurations()[idx]) {
-				return false
-			}
-		}
-
-	}
-
 	return true
 }
 

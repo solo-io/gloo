@@ -265,7 +265,6 @@ Some traffic policies can be configured to work both on the listener and virtual
 ```yaml
 "matcher": .gloo.solo.io.Matcher
 "tcpListener": .gloo.solo.io.TcpListener
-"sslConfigurations": []gloo.solo.io.SslConfig
 
 ```
 
@@ -273,7 +272,6 @@ Some traffic policies can be configured to work both on the listener and virtual
 | ----- | ---- | ----------- | 
 | `matcher` | [.gloo.solo.io.Matcher](../proxy.proto.sk/#matcher) | Matchers are used to define unique matching criteria for each MatchedListener These are overridden by tcphost sni mutators. |
 | `tcpListener` | [.gloo.solo.io.TcpListener](../proxy.proto.sk/#tcplistener) | The actual tcp listener to be used for this matcher in the aggregate listener. |
-| `sslConfigurations` | [[]gloo.solo.io.SslConfig](../ssl/ssl.proto.sk/#sslconfig) | SSL Config is optional for the MatchedListener. If provided, the listener will serve TLS for connections. Multiple SslConfigs are supported for the purpose of SNI. Be aware that the SNI domain provided in the SSL Config. This is set to the aggregated list of SslConfigs that are defined on the selected VirtualServices. |
 
 
 

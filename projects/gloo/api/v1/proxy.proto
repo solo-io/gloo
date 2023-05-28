@@ -216,11 +216,6 @@ message MatchedTcpListener {
 
     // The actual tcp listener to be used for this matcher in the aggregate listener
     TcpListener tcp_listener = 2;
-
-    // SSL Config is optional for the MatchedListener. If provided, the listener will serve TLS for connections.
-    // Multiple SslConfigs are supported for the purpose of SNI. Be aware that the SNI domain provided in the SSL Config.
-    // This is set to the aggregated list of SslConfigs that are defined on the selected VirtualServices
-    repeated SslConfig ssl_configurations = 3;
 }
 
 message Matcher {

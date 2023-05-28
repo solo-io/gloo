@@ -400,19 +400,6 @@ func (m *MatchedTcpListener) Clone() proto.Message {
 		target.TcpListener = proto.Clone(m.GetTcpListener()).(*TcpListener)
 	}
 
-	if m.GetSslConfigurations() != nil {
-		target.SslConfigurations = make([]*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl.SslConfig, len(m.GetSslConfigurations()))
-		for idx, v := range m.GetSslConfigurations() {
-
-			if h, ok := interface{}(v).(clone.Cloner); ok {
-				target.SslConfigurations[idx] = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl.SslConfig)
-			} else {
-				target.SslConfigurations[idx] = proto.Clone(v).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl.SslConfig)
-			}
-
-		}
-	}
-
 	return target
 }
 
