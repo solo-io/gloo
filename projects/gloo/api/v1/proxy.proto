@@ -208,6 +208,21 @@ message MatchedListener {
     repeated SslConfig ssl_configurations = 4;
 }
 
+
+message MatchedTcpListener {
+    // Matchers are used to define unique matching criteria for each MatchedListener
+    // These are overridden by tcphost sni mutators
+    Matcher matcher = 1;
+
+    // The actual tcp listener to be used for this matcher in the aggregate listener
+    TcpListener tcp_listener = 2;
+
+    // SSL Config is optional for the MatchedListener. If provided, the listener will serve TLS for connections.
+    // Multiple SslConfigs are supported for the purpose of SNI. Be aware that the SNI domain provided in the SSL Config.
+    // This is set to the aggregated list of SslConfigs that are defined on the selected VirtualServices
+    repeated SslConfig ssl_configurations = 3;
+}
+
 message Matcher {
     gloo.solo.io.SslConfig ssl_config = 1;
 
@@ -247,7 +262,8 @@ message AggregateListener {
     repeated HttpFilterChain http_filter_chains = 2;
 
     // The set of TcpListeners to create on this listener
-    repeated MatchedListener tcp_listeners = 3;
+    repeated MatchedTcpListener tcp_listeners = 3;
+
 
 }
 

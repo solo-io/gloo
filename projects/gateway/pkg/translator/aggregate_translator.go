@@ -163,18 +163,16 @@ func (a *AggregateTranslator) computeListenerFromMatchedGateways(
 		switch gt := matchedGateway.GetGatewayType().(type) {
 		case *v1.MatchedGateway_TcpGateway:
 			// for now the parent gateway does not provide inheritable aspects so ignore it
-			tcpListener := &gloov1.MatchedListener{
+			tcpListener := &gloov1.MatchedTcpListener{
 				Matcher: &gloov1.Matcher{
 					SslConfig:               matchedGateway.GetMatcher().GetSslConfig(),
 					SourcePrefixRanges:      matchedGateway.GetMatcher().GetSourcePrefixRanges(),
 					PassthroughCipherSuites: matchedGateway.GetMatcher().GetPassthroughCipherSuites(),
 				},
-				ListenerType: &gloov1.MatchedListener_TcpListener{
-					TcpListener: a.TcpTranslator.ComputeTcpListener(matchedGateway.GetTcpGateway()),
-				},
+				TcpListener: a.TcpTranslator.ComputeTcpListener(matchedGateway.GetTcpGateway()),
 			}
 			if builder.tcpListeners == nil {
-				builder.tcpListeners = make([]*gloov1.MatchedListener, 0)
+				builder.tcpListeners = make([]*gloov1.MatchedTcpListener, 0)
 			}
 			builder.tcpListeners = append(builder.tcpListeners, tcpListener)
 
@@ -323,18 +321,16 @@ func (a *AggregateTranslator) processMatchableTcpGateway(
 ) {
 	validateTcpHosts(params, parentGateway, matchableTcpGateway.GetTcpGateway(), matchableTcpGateway.GetMatcher().GetSslConfig())
 	// for now the parent gateway does not provide inheritable aspects so ignore it
-	tcpListener := &gloov1.MatchedListener{
+	tcpListener := &gloov1.MatchedTcpListener{
 		Matcher: &gloov1.Matcher{
 			SslConfig:               matchableTcpGateway.GetMatcher().GetSslConfig(),
 			SourcePrefixRanges:      matchableTcpGateway.GetMatcher().GetSourcePrefixRanges(),
 			PassthroughCipherSuites: matchableTcpGateway.GetMatcher().GetPassthroughCipherSuites(),
 		},
-		ListenerType: &gloov1.MatchedListener_TcpListener{
-			TcpListener: a.TcpTranslator.ComputeTcpListener(matchableTcpGateway.GetTcpGateway()),
-		},
+		TcpListener: a.TcpTranslator.ComputeTcpListener(matchableTcpGateway.GetTcpGateway()),
 	}
 	if builder.tcpListeners == nil {
-		builder.tcpListeners = make([]*gloov1.MatchedListener, 0)
+		builder.tcpListeners = make([]*gloov1.MatchedTcpListener, 0)
 	}
 	builder.tcpListeners = append(builder.tcpListeners, tcpListener)
 }
@@ -388,7 +384,7 @@ type aggregateListenerBuilder struct {
 	httpOptionsByName  map[string]*gloov1.HttpListenerOptions
 	httpFilterChains   []*gloov1.AggregateListener_HttpFilterChain
 
-	tcpListeners []*gloov1.MatchedListener
+	tcpListeners []*gloov1.MatchedTcpListener
 }
 
 func newBuilder() *aggregateListenerBuilder {
