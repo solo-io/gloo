@@ -58,7 +58,7 @@ func (a *AggregateTranslator) ComputeListener(params Params, proxyName string, g
 			}
 			if !hasTCP {
 				snapHash := hashutils.MustHash(snap)
-				contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services", snapHash)
+				contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services or tcp gateways", snapHash)
 				return nil
 			}
 		}
