@@ -41,11 +41,11 @@ runs:
         df -h
     # enable ineraction with gcloud buckets
     - name: Setup - gcloud / gsutil
-      uses: 'google-github-actions/auth@v0'
+      uses: 'google-github-actions/auth@v1'
       with:
         credentials_json: '${{ inputs.GLOO_EE_GCR_KEY }}'
     - name: Setup Google Cloud SDK
-      uses: google-github-actions/setup-gcloud@v0
+      uses: google-github-actions/setup-gcloud@v1
       with:
         project_id: gloo-ee
     # enable pushing built images to quay repo
