@@ -4232,6 +4232,86 @@ spec:
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 
+			It("gloo.settings.ratelimitServer should override default ratelimitServer values", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.rateLimit.enabled=true",
+						"global.extensions.rateLimit.beforeAuth=false",
+						// if ratelimitServer settings are specified, they should override the rateLimitBeforeAuth /
+						// ratelimitServerRef we set in the "gloo.extraSpecs" helper
+						"gloo.settings.ratelimitServer.ratelimitServerRef.name=myratelimit",
+						"gloo.settings.ratelimitServer.ratelimitServerRef.namespace=mynamespace",
+						"gloo.settings.ratelimitServer.denyOnFail=true",
+						"gloo.settings.ratelimitServer.rateLimitBeforeAuth=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				settings := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Settings
+metadata:
+  labels:
+    app: gloo
+    gloo: settings
+  name: default
+  namespace: ` + namespace + `
+spec:
+  discovery:
+    fdsMode: WHITELIST
+  extauth:
+    transportApiVersion: V3
+    extauthzServerRef:
+      name: extauth
+      namespace: ` + namespace + `
+    userIdHeader: "x-user-id"
+  gateway:
+    enableGatewayController: true
+    readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
+    validation:
+      alwaysAccept: true
+      proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
+      disableTransformationValidation: false
+      allowWarnings: true
+      warnRouteShortCircuiting: false
+      validationServerGrpcMaxSizeBytes: 104857600
+  gloo:
+    regexMaxProgramSize: 1024
+    enableRestEds: false
+    xdsBindAddr: 0.0.0.0:9977
+    restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
+    proxyDebugBindAddr: 0.0.0.0:9966
+    disableKubernetesDestinations: false
+    disableProxyGarbageCollection: false
+    invalidConfigPolicy:
+      replaceInvalidRoutes: false
+      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
+      invalidRouteResponseCode: 404
+      replaceInvalidRoutes: false
+  ratelimitServer:
+    rateLimitBeforeAuth: true
+    ratelimitServerRef:
+      namespace: mynamespace
+      name: myratelimit
+    denyOnFail: true
+  kubernetesArtifactSource: {}
+  kubernetesConfigSource: {}
+  kubernetesSecretSource: {}
+  refreshRate: 60s
+  discoveryNamespace: ` + namespace + `
+  consoleOptions:
+    readOnly: false
+    apiExplorerEnabled: true
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: false
+      processingRules: []
+`)
+				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+			})
+
 			Describe("affinity and antiAffinity", func() {
 
 				It("affinity rules can be set", func() {

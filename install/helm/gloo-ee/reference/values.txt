@@ -2420,7 +2420,7 @@
 |global.extensions.rateLimit.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |global.extensions.rateLimit.upstream.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |global.extensions.rateLimit.customRateLimit|interface|||
-|global.extensions.rateLimit.beforeAuth|bool|false|If true, rate limiting checks occur before auth (default false).|
+|global.extensions.rateLimit.beforeAuth|bool|false|If true, rate limiting checks occur before auth (default false). If gloo.settings.ratelimitServer is set, this value will be ignored.|
 |global.extensions.rateLimit.affinity.NAME|interface||Affinity rules to be applied|
 |global.extensions.rateLimit.antiAffinity.NAME|interface||Anti-affinity rules to be applied|
 |global.extensions.caching.enabled|bool|false|if true, deploy caching service (default false)|

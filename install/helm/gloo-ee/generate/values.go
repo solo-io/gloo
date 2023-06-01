@@ -72,7 +72,7 @@ type RateLimit struct {
 	Service         *RateLimitService             `json:"service,omitempty"`
 	Upstream        *glooGen.KubeResourceOverride `json:"upstream,omitempty"`
 	CustomRateLimit interface{}                   `json:"customRateLimit,omitempty"`
-	BeforeAuth      bool                          `json:"beforeAuth,omitempty" desc:"If true, rate limiting checks occur before auth (default false)."`
+	BeforeAuth      bool                          `json:"beforeAuth,omitempty" desc:"If true, rate limiting checks occur before auth (default false). If gloo.settings.ratelimitServer is set, this value will be ignored."`
 	Affinity        map[string]interface{}        `json:"affinity,omitempty" desc:"Affinity rules to be applied"`
 	AntiAffinity    map[string]interface{}        `json:"antiAffinity,omitempty" desc:"Anti-affinity rules to be applied"`
 }

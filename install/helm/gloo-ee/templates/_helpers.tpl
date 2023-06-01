@@ -289,7 +289,7 @@ Injection point for enterprise-exclusive settings into the settings manifest
   {{- end }}
 {{- end}}
 {{- end}}
-{{- if $.Values.global.extensions.rateLimit.enabled }}
+{{- if and $.Values.global.extensions.rateLimit.enabled (not $.Values.settings.ratelimitServer) }}
   ratelimitServer:
     rateLimitBeforeAuth: {{ .Values.global.extensions.rateLimit.beforeAuth | default "false" }}
     ratelimitServerRef:
