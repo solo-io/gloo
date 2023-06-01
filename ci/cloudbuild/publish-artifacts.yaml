@@ -70,6 +70,7 @@ steps:
   dir: *dir
   args:
   - 'publish-helm-chart'
+  - 'render-manifests'
   - 'publish-glooctl'
   env:
   - 'HELM_REPOSITORY_CACHE=/builder/home/.cache/helm/registry'

@@ -604,12 +604,15 @@ PUBLISH_CONTEXT ?= NONE
 HELM_BUCKET ?= gs://solo-public-tagged-helm
 # modifier to docker builds which can auto-delete docker images after a set time
 QUAY_EXPIRATION_LABEL ?= --label quay.expires-after=3w
+# default installation namespace for a built glooctl version
+INSTALL_NAMESPACE ?= gloo-system
 
 # define empty publish targets so calls won't fail
 .PHONY: publish-docker
 .PHONY: publish-docker-retag
 .PHONY: publish-glooctl
 .PHONY: publish-helm-chart
+.PHONY: render-manifests
 
 # don't define Publish Artifacts Targets if we don't have a release context
 ifneq (,$(filter $(PUBLISH_CONTEXT),RELEASE PULL_REQUEST))
@@ -624,6 +627,35 @@ publish-docker-retag: docker-retag docker-push
 # publish glooctl
 publish-glooctl: build-cli
 	VERSION=$(VERSION) GO111MODULE=on go run ci/upload_github_release_assets.go true
+
+BUILD_ID := $(BUILD_ID)
+MANIFEST_OUTPUT = > /dev/null
+ifneq ($(BUILD_ID),)
+MANIFEST_OUTPUT =
+endif
+
+define HELM_VALUES
+namespace:
+  create: true
+endef
+
+# Export as a shell variable, make variables do not play well with multiple lines
+export HELM_VALUES
+$(OUTPUT_DIR)/release-manifest-values.yaml:
+	@echo "$$HELM_VALUES" > $@
+
+install/gloo-gateway.yaml: $(OUTPUT_DIR)/glooctl-linux-$(GOARCH) $(OUTPUT_DIR)/release-manifest-values.yaml package-chart
+	$(OUTPUT_DIR)/glooctl-linux-$(GOARCH) install gateway -n $(INSTALL_NAMESPACE) -f $(HELM_SYNC_DIR)/charts/gloo-$(VERSION).tgz \
+		--values $(OUTPUT_DIR)/release-manifest-values.yaml --dry-run | tee $@ $(OUTPUT_YAML) $(MANIFEST_OUTPUT)
+
+install/gloo-knative.yaml: $(OUTPUT_DIR)/glooctl-linux-$(GOARCH) $(OUTPUT_DIR)/release-manifest-values.yaml package-chart
+	$(OUTPUT_DIR)/glooctl-linux-$(GOARCH) install knative -n $(INSTALL_NAMESPACE) -f $(HELM_SYNC_DIR)/charts/gloo-$(VERSION).tgz \
+		--values $(OUTPUT_DIR)/release-manifest-values.yaml --dry-run | tee $@ $(OUTPUT_YAML) $(MANIFEST_OUTPUT)
+
+install/gloo-ingress.yaml: $(OUTPUT_DIR)/glooctl-linux-$(GOARCH) $(OUTPUT_DIR)/release-manifest-values.yaml package-chart
+	$(OUTPUT_DIR)/glooctl-linux-$(GOARCH) install ingress -n $(INSTALL_NAMESPACE) -f $(HELM_SYNC_DIR)/charts/gloo-$(VERSION).tgz \
+		--values $(OUTPUT_DIR)/release-manifest-values.yaml --dry-run | tee $@ $(OUTPUT_YAML) $(MANIFEST_OUTPUT)
+
 endif # RELEASE exclusive make targets
 
 
@@ -697,7 +729,6 @@ docker-retag: docker-retag-kubectl
 # The Kube2e tests will use the generated Gloo Edge Chart to install Gloo Edge to the KinD test cluster.
 
 CLUSTER_NAME ?= kind
-INSTALL_NAMESPACE ?= gloo-system
 
 kind-load-%:
 	kind load docker-image $(IMAGE_REGISTRY)/$*:$(VERSION) --name $(CLUSTER_NAME)
