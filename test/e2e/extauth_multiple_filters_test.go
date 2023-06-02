@@ -93,7 +93,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 			DisableFds:     true,
 		}
 
-		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, nil, settings, nil})
+		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, settings, nil})
 	})
 
 	Context("default auth service and 1 named auth service", func() {

@@ -50,7 +50,6 @@ import (
 	uds_syncer "github.com/solo-io/gloo/projects/discovery/pkg/uds/syncer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	syncer_setup "github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
-	"k8s.io/client-go/kubernetes"
 )
 
 type TestClients struct {
@@ -68,33 +67,6 @@ type TestClients struct {
 }
 
 var glooPort int32 = 8100
-
-func RunGateway(ctx context.Context, justgloo bool) TestClients {
-	return RunGatewayWithNamespaceAndKubeClient(ctx, justgloo, defaults.GlooSystem, nil)
-}
-
-func RunGatewayWithNamespaceAndKubeClient(ctx context.Context, justgloo bool, ns string, kubeclient kubernetes.Interface) TestClients {
-	return RunGatewayWithKubeClientAndSettings(ctx, justgloo, ns, kubeclient, nil)
-}
-
-func RunGatewayWithSettings(ctx context.Context, justgloo bool, extensions *v1.Extensions) TestClients {
-	return RunGatewayWithKubeClientAndSettings(ctx, justgloo, defaults.GlooSystem, nil, extensions)
-}
-
-func RunGatewayWithKubeClientAndSettings(ctx context.Context, justgloo bool, ns string, kubeclient kubernetes.Interface, extensions *v1.Extensions) TestClients {
-	cache := memory.NewInMemoryResourceCache()
-
-	testclients := GetTestClients(ctx, cache)
-	testclients.GlooPort = RunGlooGatewayUdsFds(RunGlooGatewayOpts{
-		Ctx:        ctx,
-		Cache:      cache,
-		What:       What{DisableGateway: justgloo},
-		Namespace:  ns,
-		KubeClient: kubeclient,
-		Extensions: extensions,
-	})
-	return testclients
-}
 
 func GetTestClients(ctx context.Context, cache memory.InMemoryResourceCache) TestClients {
 
@@ -141,13 +113,6 @@ type What struct {
 	DisableFds     bool
 }
 
-func RunGlooGatewayUdsFds(opts RunGlooGatewayOpts) int {
-	port := AllocateGlooPort()
-	opts.LocalGlooPort = port
-	RunGlooGatewayUdsFdsOnPort(opts)
-	return int(port)
-}
-
 func AllocateGlooPort() int32 {
 	return atomic.AddInt32(&glooPort, 1)
 
@@ -159,14 +124,13 @@ type RunGlooGatewayOpts struct {
 	LocalGlooPort int32
 	What          What
 	Namespace     string
-	KubeClient    kubernetes.Interface
 	Extensions    *v1.Extensions
 	Settings      *gloov1.Settings
 	License       *model.License
 }
 
 func RunGlooGatewayUdsFdsOnPort(runOpts RunGlooGatewayOpts) {
-	ctx, cache, ns, what, s, extensions, kubeclient, localglooPort, licenseState := runOpts.Ctx, runOpts.Cache, runOpts.Namespace, runOpts.What, runOpts.Settings, runOpts.Extensions, runOpts.KubeClient, runOpts.LocalGlooPort, runOpts.License
+	ctx, cache, ns, what, s, extensions, localglooPort, licenseState := runOpts.Ctx, runOpts.Cache, runOpts.Namespace, runOpts.What, runOpts.Settings, runOpts.Extensions, runOpts.LocalGlooPort, runOpts.License
 	// no gateway for now
 	opts := DefaultTestConstructOpts(ctx, cache, ns)
 	settings := v1.Settings{}
@@ -179,7 +143,7 @@ func RunGlooGatewayUdsFdsOnPort(runOpts RunGlooGatewayOpts) {
 
 	ctx = settingsutil.WithSettings(ctx, &settings)
 
-	glooOpts := defaultGlooOpts(ctx, cache, ns, kubeclient)
+	glooOpts := defaultGlooOpts(ctx, cache, ns)
 	glooOpts.ControlPlane.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
 	glooOpts.Settings = &settings
 	glooOpts.ControlPlane.StartGrpcServer = true
@@ -251,7 +215,7 @@ func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResource
 	}
 }
 
-func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns string, kubeclient kubernetes.Interface) bootstrap.Opts {
+func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns string) bootstrap.Opts {
 	ctx = contextutils.WithLogger(ctx, "gloo")
 	logger := contextutils.LoggerFrom(ctx)
 	grpcServer := grpc.NewServer(grpc.StreamInterceptor(
@@ -312,8 +276,7 @@ func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 			IP:   net.IPv4zero,
 			Port: 8081,
 		}, false),
-		KubeClient: kubeclient,
-		DevMode:    true,
-		Identity:   singlereplica.Identity(),
+		DevMode:  true,
+		Identity: singlereplica.Identity(),
 	}
 }

@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Remove unused test code which included a k8s client for non-k8s tests
+    issueLink: https://github.com/solo-io/solo-projects/issues/4967
