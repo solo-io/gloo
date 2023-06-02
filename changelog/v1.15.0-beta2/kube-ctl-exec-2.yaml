@@ -1,0 +1,6 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/7912
+    resolvesIssue: false
+    description: >-
+      Adding  PodSecurityContext to gloo-fed deployment pod. Values are set at with gloo-fed.glooFed.podSecurityContext.

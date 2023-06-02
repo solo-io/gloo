@@ -4568,6 +4568,205 @@ spec:
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
+			DescribeTable("Pod security contexts can be overriden", func(resourceName string, securityRoot string, isFed bool, extraArgs ...string) {
+				helmValuesA := podSecurityContextFieldsStripeGroupA(securityRoot, extraArgs...)
+
+				// 2nd group of fields to test. Switch up the default 'no-merge' to the explict version
+				extraArgs = append([]string{
+					securityRoot + ".mergePolicy=no-merge",
+				}, extraArgs...)
+				helmValuesB := podSecurityContextFieldsStripeGroupB(securityRoot, extraArgs...)
+
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValuesA)
+				Expect(err).NotTo(HaveOccurred())
+
+				var structuredDeployment *appsv1.Deployment
+				if isFed {
+					structuredDeployment = getFedStructuredDeployment(testManifest, resourceName)
+				} else {
+					structuredDeployment = getStructuredDeployment(testManifest, resourceName)
+				}
+
+				fsGroupChangePolicy := v1.PodFSGroupChangePolicy("fsGroupChangePolicyValue")
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext).To(Equal(
+					&v1.PodSecurityContext{
+						FSGroup:             pointer.Int64(int64(101010)),
+						FSGroupChangePolicy: &fsGroupChangePolicy,
+						RunAsGroup:          pointer.Int64(int64(202020)),
+						RunAsNonRoot:        pointer.Bool(true),
+						RunAsUser:           pointer.Int64(int64(303030)),
+						SupplementalGroups:  []int64{int64(11), int64(22), int64(33)},
+						SELinuxOptions: &v1.SELinuxOptions{
+							Level: "seLevel",
+							Role:  "seRole",
+							Type:  "seType",
+							User:  "seUser",
+						},
+					},
+				))
+
+				testManifest, err = BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValuesB)
+				Expect(err).NotTo(HaveOccurred())
+				if isFed {
+					structuredDeployment = getFedStructuredDeployment(testManifest, resourceName)
+				} else {
+					structuredDeployment = getStructuredDeployment(testManifest, resourceName)
+				}
+
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext).To(Equal(
+					&v1.PodSecurityContext{
+						SeccompProfile: &v1.SeccompProfile{
+							LocalhostProfile: pointer.String("seccompLHP"),
+							Type:             "seccompType",
+						},
+						WindowsOptions: &v1.WindowsSecurityContextOptions{
+							GMSACredentialSpecName: pointer.String("winGmsaCredSpecName"),
+							GMSACredentialSpec:     pointer.String("winGmsaCredSpec"),
+							RunAsUserName:          pointer.String("winUser"),
+							HostProcess:            pointer.Bool(true),
+						},
+						Sysctls: []v1.Sysctl{
+							{
+								Name:  "sysctlName",
+								Value: "sysctlValue",
+							},
+						},
+					},
+				))
+
+			},
+				Entry("1-redis-deployment-sds", "redis", "redis.deployment.podSecurityContext", false, "redis.deployment.enablePodSecurityContext=true"),
+				Entry("2-rate-limit-deployment-sds", "rate-limit", "global.extensions.rateLimit.deployment.podSecurityContext", false),
+				Entry("gloo-fed-deployment", "gloo-fed", "gloo-fed.glooFed.podSecurityContext", true),
+			)
+
+			DescribeTable("merges resources for pod security contexts", func(resourceName string, securityRoot string, isFed bool, extraArgs ...string) {
+				// First run with no extra helm security context values
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: extraArgs,
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				var structuredDeployment *appsv1.Deployment
+				if isFed {
+					structuredDeployment = getFedStructuredDeployment(testManifest, resourceName)
+				} else {
+					structuredDeployment = getStructuredDeployment(testManifest, resourceName)
+				}
+
+				initialSecurityContext := structuredDeployment.Spec.Template.Spec.SecurityContext
+				if initialSecurityContext == nil {
+					initialSecurityContext = &v1.PodSecurityContext{}
+				}
+
+				var initialSecurityContextClean *v1.PodSecurityContext
+				deepCopy(&initialSecurityContext, &initialSecurityContextClean)
+
+				extraArgs = append([]string{
+					securityRoot + ".mergePolicy=helm-merge",
+				}, extraArgs...)
+
+				fsGroupChangePolicy := v1.PodFSGroupChangePolicy("fsGroupChangePolicyValue")
+				// Test every field, so split it up so each is set in one test and not in the other
+				helmValuesA := podSecurityContextFieldsStripeGroupA(securityRoot, extraArgs...)
+				helmValuesB := podSecurityContextFieldsStripeGroupB(securityRoot, extraArgs...)
+
+				//
+				// Stripe group A
+				//
+				// Find the relevant resource and test that its values were updated
+				// Apply the new values to the initial security context and compare. They should be the same
+				testManifest, err = BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValuesA)
+				Expect(err).NotTo(HaveOccurred())
+
+				if isFed {
+					structuredDeployment = getFedStructuredDeployment(testManifest, resourceName)
+				} else {
+					structuredDeployment = getStructuredDeployment(testManifest, resourceName)
+				}
+				// Check the fields individually:
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext.FSGroup).To(Equal(pointer.Int64(int64(101010))))
+				initialSecurityContext.FSGroup = pointer.Int64(int64(101010))
+
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext.FSGroupChangePolicy).To(Equal(&fsGroupChangePolicy))
+				initialSecurityContext.FSGroupChangePolicy = &fsGroupChangePolicy
+
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext.RunAsGroup).To(Equal(pointer.Int64(int64(202020))))
+				initialSecurityContext.RunAsGroup = pointer.Int64(int64(202020))
+
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext.RunAsNonRoot).To(Equal(pointer.Bool(true)))
+				initialSecurityContext.RunAsNonRoot = pointer.Bool(true)
+
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext.RunAsUser).To(Equal(pointer.Int64(int64(303030))))
+				initialSecurityContext.RunAsUser = pointer.Int64(int64(303030))
+
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext.SupplementalGroups).To(Equal(
+					[]int64{11, 22, 33}))
+				initialSecurityContext.SupplementalGroups = []int64{11, 22, 33}
+
+				expectedSELinuxOptions := &v1.SELinuxOptions{
+					Level: "seLevel",
+					Role:  "seRole",
+					Type:  "seType",
+					User:  "seUser",
+				}
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext.SELinuxOptions).To(Equal(expectedSELinuxOptions))
+				initialSecurityContext.SELinuxOptions = expectedSELinuxOptions
+
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext).To(Equal(initialSecurityContext))
+
+				//
+				// Stripe Group B
+				//
+				initialSecurityContext = &v1.PodSecurityContext{}
+				deepCopy(&initialSecurityContextClean, &initialSecurityContext)
+
+				// Find the relevant resource and test that its values were updated
+				// Apply the new values to the initial security context and compare. They should be the same
+				testManifest, err = BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValuesB)
+				Expect(err).NotTo(HaveOccurred())
+
+				if isFed {
+					structuredDeployment = getFedStructuredDeployment(testManifest, resourceName)
+				} else {
+					structuredDeployment = getStructuredDeployment(testManifest, resourceName)
+				}
+
+				// Check the fields individually:
+				expectedSeccompProfile := &v1.SeccompProfile{
+					LocalhostProfile: pointer.String("seccompLHP"),
+					Type:             "seccompType",
+				}
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext.SeccompProfile).To(Equal(expectedSeccompProfile))
+				initialSecurityContext.SeccompProfile = expectedSeccompProfile
+
+				expectedWindowsOptions := &v1.WindowsSecurityContextOptions{
+					GMSACredentialSpec:     pointer.String("winGmsaCredSpec"),
+					GMSACredentialSpecName: pointer.String("winGmsaCredSpecName"),
+					HostProcess:            pointer.Bool(true),
+					RunAsUserName:          pointer.String("winUser"),
+				}
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext.WindowsOptions).To(Equal(expectedWindowsOptions))
+				initialSecurityContext.WindowsOptions = expectedWindowsOptions
+
+				expectedSysctls := []v1.Sysctl{
+					{
+						Name:  "sysctlName",
+						Value: "sysctlValue",
+					},
+				}
+
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext.Sysctls).To(Equal(expectedSysctls))
+				initialSecurityContext.Sysctls = expectedSysctls
+
+				Expect(structuredDeployment.Spec.Template.Spec.SecurityContext).To(Equal(initialSecurityContext))
+
+			},
+				Entry("1-redis-deployment-sds", "redis", "redis.deployment.podSecurityContext", false, "redis.deployment.enablePodSecurityContext=true"),
+				Entry("2-rate-limit-deployment-sds", "rate-limit", "global.extensions.rateLimit.deployment.podSecurityContext", false),
+				Entry("gloo-fed-deployment", "gloo-fed", "gloo-fed.glooFed.podSecurityContext", true),
+			)
+
 			DescribeTable("Container securityContexts can be overriden",
 				func(podGlooName string, containerName string, containerSecurityRoot string, isFed bool) {
 

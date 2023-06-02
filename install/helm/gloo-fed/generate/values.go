@@ -33,8 +33,8 @@ type GlooFedDeployment struct {
 	RoleRules []*rbacv1.PolicyRule `json:"roleRules,omitempty" desc:"Role rules for the Gloo Federation deployment."`
 	Volumes   []*appsv1.Volume     `json:"volumes,omitempty" desc:"Volumes for the Gloo Federation deployment."`
 
-	GlooFedContainer *GlooFedContainer `json:"glooFed,omitempty" desc:"Container options for the glooFed container."`
-
+	GlooFedContainer   *GlooFedContainer           `json:"glooFed,omitempty" desc:"Container options for the glooFed container."`
+	PodSecurityContext *glooGen.PodSecurityContext `json:"podSecurityContext,omitempty" desc:"Pod security context for the Gloo Federation deployment."`
 	// Supports Resources and DeploymentSpec
 	*glooGen.DeploymentSpec
 }

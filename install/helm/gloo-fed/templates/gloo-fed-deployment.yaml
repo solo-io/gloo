@@ -127,7 +127,8 @@ spec:
       {{- if $glooFedImage.pullSecret }}
       imagePullSecrets:
       - name: {{ $glooFedImage.pullSecret }}
-  {{- end}}
+  {{- end }}
+{{- include "gloofed.securityContext" (dict "values" $glooFed.podSecurityContext "defaults" dict) | nindent 6 }}
   {{- with $glooFed.volumes }}
       volumes:
 {{ toYaml . | indent 6 }}
