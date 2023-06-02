@@ -26,7 +26,7 @@ jobs:
                         { node: 'v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1', kubectl: 'v1.25.8',  kind: 'v0.17.0', helm: 'v3.11.2' }]
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/regression-tests
+      - uses: ./.github/workflows/composite-actions/regression-tests
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           ref: v1.14.x
-      - uses: ./.github/actions/regression-tests
+      - uses: ./.github/workflows/composite-actions/regression-tests
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
@@ -68,7 +68,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           ref: v1.13.x
-      - uses: ./.github/actions/regression-tests
+      - uses: ./.github/workflows/composite-actions/regression-tests
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}

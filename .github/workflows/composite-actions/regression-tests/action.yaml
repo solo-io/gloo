@@ -17,7 +17,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-  - uses: ./.github/actions/standard-gloo-ee-setup
+  - uses: ./.github/workflows/composite-actions/standard-gloo-ee-setup
     with:
       GLOO_EE_GCR_KEY: ${{ inputs.GLOO_EE_GCR_KEY }}
       QUAY_IO_PASSWORD: ${{ inputs.QUAY_IO_PASSWORD }}

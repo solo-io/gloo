@@ -22,7 +22,7 @@ jobs:
         kube-version: [{ node: 'v1.26.3@sha256:61b92f38dff6ccc29969e7aa154d34e38b89443af1a2c14e6cfbd2df6419c66f', kubectl: 'v1.26.4', kind: 'v0.18.0', helm: 'v3.11.2' }]
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/fed-regression-tests
+      - uses: ./.github/workflows/composite-actions/fed-regression-tests
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
@@ -42,7 +42,7 @@ jobs:
         kube-version: [{ node: 'v1.26.3@sha256:61b92f38dff6ccc29969e7aa154d34e38b89443af1a2c14e6cfbd2df6419c66f', kubectl: 'v1.26.4', kind: 'v0.18.0', helm: 'v3.11.2' }]
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/canary-regression-tests
+      - uses: ./.github/workflows/composite-actions/canary-regression-tests
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
@@ -65,7 +65,7 @@ jobs:
             kube-e2e-test-type: {test: 'upgrade', use-fips: 'false'}
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/regression-tests
+      - uses: ./.github/workflows/composite-actions/regression-tests
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}

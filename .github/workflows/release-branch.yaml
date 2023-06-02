@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/standard-gloo-ee-setup
+      - uses: ./.github/workflows/composite-actions/standard-gloo-ee-setup
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/standard-gloo-ee-setup
+      - uses: ./.github/workflows/composite-actions/standard-gloo-ee-setup
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
@@ -68,7 +68,7 @@ jobs:
           repository: solo-io/gloo
           ref: ${{ inputs.gloo_sha }}
           path: gloo
-      - uses: ./.github/actions/standard-gloo-ee-setup
+      - uses: ./.github/workflows/composite-actions/standard-gloo-ee-setup
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
