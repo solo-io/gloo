@@ -1,48 +1,356 @@
 package translator_test
 
 import (
+	"context"
 	"fmt"
+
+	"github.com/golang/mock/gomock"
+	"github.com/golang/protobuf/ptypes/wrappers"
+	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
+	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/upstreams/consul/mocks"
+	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	gloohelpers "github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gmeasure"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	. "github.com/solo-io/gloo/projects/gloo/pkg/translator"
+
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	v1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/gloo/test/ginkgo/labels"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+
 	"sort"
 	"time"
 )
 
+type benchmarkEntry struct {
+	// Name for this test
+	desc string
+
+	// Parameters for configuring the snapshot to translate
+	numUpstreams int
+	numEndpoints int
+
+	// Configuration for the benchmarking
+	tries              int
+	maxDur             time.Duration
+	target90percentile time.Duration
+}
+
 var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
+	var (
+		ctrl              *gomock.Controller
+		settings          *v1.Settings
+		translator        Translator
+		upstream          *v1.Upstream
+		upName            *core.Metadata
+		proxy             *v1.Proxy
+		registeredPlugins []plugins.Plugin
+		matcher           *matchers.Matcher
+		routes            []*v1.Route
+
+		virtualHostName string
+	)
+
+	BeforeEach(func() {
+
+		ctrl = gomock.NewController(T)
+
+		settings = &v1.Settings{}
+		memoryClientFactory := &factory.MemoryResourceClientFactory{
+			Cache: memory.NewInMemoryResourceCache(),
+		}
+		opts := bootstrap.Opts{
+			Settings:  settings,
+			Secrets:   memoryClientFactory,
+			Upstreams: memoryClientFactory,
+			Consul: bootstrap.Consul{
+				ConsulWatcher: mock_consul.NewMockConsulWatcher(ctrl), // just needed to activate the consul plugin
+			},
+		}
+		registeredPlugins = registry.Plugins(opts)
+
+		upName = &core.Metadata{
+			Name:      "test",
+			Namespace: "gloo-system",
+		}
+		upstream = &v1.Upstream{
+			Metadata: upName,
+			UpstreamType: &v1.Upstream_Static{
+				Static: &v1static.UpstreamSpec{
+					Hosts: []*v1static.Host{
+						{
+							Addr: "Test",
+							Port: 124,
+						},
+					},
+				},
+			},
+		}
+
+		matcher = &matchers.Matcher{
+			PathSpecifier: &matchers.Matcher_Prefix{
+				Prefix: "/",
+			},
+		}
+		routes = []*v1.Route{{
+			Name:     "testRouteName",
+			Matchers: []*matchers.Matcher{matcher},
+			Action: &v1.Route_RouteAction{
+				RouteAction: &v1.RouteAction{
+					Destination: &v1.RouteAction_Single{
+						Single: &v1.Destination{
+							DestinationType: &v1.Destination_Upstream{
+								Upstream: upName.Ref(),
+							},
+						},
+					},
+				},
+			},
+		}}
+		virtualHostName = "virt1"
+
+		pluginRegistry := registry.NewPluginRegistry(registeredPlugins)
+
+		translator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
+		httpListener := &v1.Listener{
+			Name:        "http-listener",
+			BindAddress: "127.0.0.1",
+			BindPort:    80,
+			ListenerType: &v1.Listener_HttpListener{
+				HttpListener: &v1.HttpListener{
+					VirtualHosts: []*v1.VirtualHost{{
+						Name:    virtualHostName,
+						Domains: []string{"*"},
+						Routes:  routes,
+					}},
+				},
+			},
+		}
+		tcpListener := &v1.Listener{
+			Name:        "tcp-listener",
+			BindAddress: "127.0.0.1",
+			BindPort:    8080,
+			ListenerType: &v1.Listener_TcpListener{
+				TcpListener: &v1.TcpListener{
+					TcpHosts: []*v1.TcpHost{
+						{
+							Destination: &v1.TcpHost_TcpAction{
+								Destination: &v1.TcpHost_TcpAction_Single{
+									Single: &v1.Destination{
+										DestinationType: &v1.Destination_Upstream{
+											Upstream: &core.ResourceRef{
+												Name:      "test",
+												Namespace: "gloo-system",
+											},
+										},
+									},
+								},
+							},
+							SslConfig: &ssl.SslConfig{
+								SslSecrets: &ssl.SslConfig_SslFiles{
+									SslFiles: &ssl.SSLFiles{
+										TlsCert: gloohelpers.Certificate(),
+										TlsKey:  gloohelpers.PrivateKey(),
+									},
+								},
+								SniDomains: []string{
+									"sni1",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		hybridListener := &v1.Listener{
+			Name:        "hybrid-listener",
+			BindAddress: "127.0.0.1",
+			BindPort:    8888,
+			ListenerType: &v1.Listener_HybridListener{
+				HybridListener: &v1.HybridListener{
+					MatchedListeners: []*v1.MatchedListener{
+						{
+							Matcher: &v1.Matcher{
+								SslConfig: &ssl.SslConfig{
+									SslSecrets: &ssl.SslConfig_SslFiles{
+										SslFiles: &ssl.SSLFiles{
+											TlsCert: gloohelpers.Certificate(),
+											TlsKey:  gloohelpers.PrivateKey(),
+										},
+									},
+									SniDomains: []string{
+										"sni1",
+									},
+								},
+								SourcePrefixRanges: []*v3.CidrRange{
+									{
+										AddressPrefix: "1.2.3.4",
+										PrefixLen: &wrappers.UInt32Value{
+											Value: 32,
+										},
+									},
+								},
+							},
+							ListenerType: &v1.MatchedListener_TcpListener{
+								TcpListener: &v1.TcpListener{
+									TcpHosts: []*v1.TcpHost{
+										{
+											Destination: &v1.TcpHost_TcpAction{
+												Destination: &v1.TcpHost_TcpAction_Single{
+													Single: &v1.Destination{
+														DestinationType: &v1.Destination_Upstream{
+															Upstream: &core.ResourceRef{
+																Name:      "test",
+																Namespace: "gloo-system",
+															},
+														},
+													},
+												},
+											},
+											SslConfig: &ssl.SslConfig{
+												SslSecrets: &ssl.SslConfig_SslFiles{
+													SslFiles: &ssl.SSLFiles{
+														TlsCert: gloohelpers.Certificate(),
+														TlsKey:  gloohelpers.PrivateKey(),
+													},
+												},
+												SniDomains: []string{
+													"sni1",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						{
+							Matcher: &v1.Matcher{
+								SslConfig: &ssl.SslConfig{
+									SslSecrets: &ssl.SslConfig_SslFiles{
+										SslFiles: &ssl.SSLFiles{
+											TlsCert: gloohelpers.Certificate(),
+											TlsKey:  gloohelpers.PrivateKey(),
+										},
+									},
+									SniDomains: []string{
+										"sni2",
+									},
+								},
+								SourcePrefixRanges: []*v3.CidrRange{
+									{
+										AddressPrefix: "5.6.7.8",
+										PrefixLen: &wrappers.UInt32Value{
+											Value: 32,
+										},
+									},
+								},
+							},
+							ListenerType: &v1.MatchedListener_HttpListener{
+								HttpListener: &v1.HttpListener{
+									VirtualHosts: []*v1.VirtualHost{{
+										Name:    virtualHostName,
+										Domains: []string{"*"},
+										Routes:  routes,
+									}},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		proxy = &v1.Proxy{
+			Metadata: &core.Metadata{
+				Name:      "test",
+				Namespace: "gloo-system",
+			},
+			Listeners: []*v1.Listener{
+				httpListener,
+				tcpListener,
+				hybridListener,
+			},
+		}
+	})
 
 	DescribeTable("Translate",
-		func(desc, s string, max90Dur time.Duration) {
-			experiment := gmeasure.NewExperiment("print strings")
+		func(ent benchmarkEntry) {
 
-			n := 20
+			upstreamList := v1.UpstreamList{}
+			for i := 0; i < ent.numUpstreams; i++ {
+				upstreamList = append(upstreamList, upstream)
+			}
+
+			endpointList := v1.EndpointList{}
+			for i := 0; i < ent.numEndpoints; i++ {
+				endpointList = append(endpointList, &v1.Endpoint{
+					Upstreams: []*core.ResourceRef{upName.Ref()},
+					Address:   "1.2.3.4",
+					Port:      32,
+					Metadata: &core.Metadata{
+						Name:      "test-ep",
+						Namespace: "gloo-system",
+					},
+				})
+			}
+
+			params := plugins.Params{
+				Ctx: context.Background(),
+				Snapshot: &v1snap.ApiSnapshot{
+					Endpoints: endpointList,
+					Upstreams: upstreamList,
+				},
+			}
+
+			var (
+				snap   cache.Snapshot
+				errs   reporter.ResourceReports
+				report *validation.ProxyReport
+			)
+
+			experiment := gmeasure.NewExperiment("translate")
+
 			AddReportEntry(experiment.Name, experiment)
 
-			statName := fmt.Sprintf("printing %s", desc)
+			statName := fmt.Sprintf("translating %s", ent.desc)
 			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration(statName, func() { print(s) })
-			}, gmeasure.SamplingConfig{N: n, Duration: time.Minute})
+
+				// Time translation
+				experiment.MeasureDuration(statName, func() {
+					snap, errs, report = translator.Translate(params, proxy)
+				})
+
+				// Assert expected results
+				Expect(errs.Validate()).NotTo(HaveOccurred())
+				Expect(snap).NotTo(BeNil())
+				Expect(report).To(Equal(validationutils.MakeReport(proxy)))
+			}, gmeasure.SamplingConfig{N: ent.tries, Duration: ent.maxDur})
 
 			durations := experiment.Get(statName).Durations
 			sort.Slice(durations, func(i, j int) bool { return durations[i] < durations[j] })
-			ninetyPct := experiment.Get(statName).Durations[int(float64(n)*.9)]
-			Expect(ninetyPct).To(BeNumerically("<", max90Dur))
+			ninetyPct := durations[int(float64(len(durations))*.9)]
+			Expect(ninetyPct).To(BeNumerically("<", ent.target90percentile))
 		},
-		Entry("foo", "foo", "foo", time.Millisecond),
-		Entry("bar", "bar", "bar", 10*time.Nanosecond),
-		Entry("100", "100", longString(100), time.Millisecond),
-		Entry("1000", "1000", longString(1000), time.Millisecond),
-		Entry("10000", "10000", longString(10000), time.Millisecond),
-		Entry("100000", "100000", longString(100000), 10*time.Millisecond),
+		Entry("basic", benchmarkEntry{"basic", 1, 1, 1000, time.Second, 10 * time.Millisecond}),
+		Entry("10 upstreams", benchmarkEntry{"10 upstreams", 10, 1, 1000, time.Second, 10 * time.Millisecond}),
+		Entry("100 upstreams", benchmarkEntry{"100 upstreams", 100, 1, 1000, time.Second, 10 * time.Millisecond}),
+		Entry("1000 upstreams", benchmarkEntry{"1000 upstreams", 1000, 1, 1000, time.Second, 10 * time.Millisecond}),
+		Entry("10 endpoints", benchmarkEntry{"10 endpoints", 1, 10, 1000, time.Second, 10 * time.Millisecond}),
+		Entry("100 endpointss", benchmarkEntry{"100 endpoints", 1, 100, 1000, time.Second, 10 * time.Millisecond}),
+		Entry("1000 endpoints", benchmarkEntry{"1000 endpoints", 1, 1000, 1000, time.Second, 10 * time.Millisecond}),
 	)
 })
-
-func longString(size int) string {
-	s := ""
-	for i := 0; i < size; i++ {
-		s += "s"
-	}
-
-	return s
-}
