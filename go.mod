@@ -322,6 +322,10 @@ replace (
 	// using the pseudo version of github.com/form3tech-oss/jwt-go@v3.2.3 instead of the version directly,
 	// to avoid error about it being used for two different module paths
 	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v0.0.0-20210511163231-5b2d2b5f6c34
+
+	// bumped to mitigate a cve that our dependencies have not updated for yet
+	// affects any server that exposes /v2/_catalog API endpoint
+	github.com/docker/distribution => github.com/docker/distribution v2.8.2+incompatible
 	github.com/docker/docker => github.com/moby/moby v20.10.14+incompatible
 	// Newer versions result in changes to the names of generated metrics
 	// remove this when we fix https://github.com/solo-io/solo-kit/issues/516
