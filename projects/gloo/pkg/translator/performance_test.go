@@ -3,6 +3,8 @@ package translator_test
 import (
 	"context"
 	"fmt"
+	"github.com/onsi/gomega/types"
+	"github.com/solo-io/gloo/test/gomega/matchers"
 
 	"github.com/golang/mock/gomock"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
@@ -26,7 +28,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/gloo/test/ginkgo/labels"
-	"sort"
 	"time"
 )
 
@@ -38,9 +39,9 @@ type benchmarkEntry struct {
 	snapshot *v1snap.ApiSnapshot
 
 	// Configuration for the benchmarking
-	tries          int
-	maxDur         time.Duration
-	benchmarkFuncs []benchmarkFunc
+	tries             int
+	maxDur            time.Duration
+	benchmarkMatchers []types.GomegaMatcher
 }
 
 type benchmarkFunc func(durations []time.Duration)
@@ -111,9 +112,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 
 			durations := experiment.Get(statName).Durations
 
-			for _, bench := range ent.benchmarkFuncs {
-				bench(durations)
-			}
+			Expect(durations).Should(And(ent.benchmarkMatchers...))
 		},
 		Entry("basic", basicCase),
 		Entry("10 upstreams", upstreamScale(10)),
@@ -133,9 +132,9 @@ var basicCase = benchmarkEntry{
 	},
 	tries:  1000,
 	maxDur: time.Second,
-	benchmarkFuncs: []benchmarkFunc{
-		median(5 * time.Millisecond),
-		percentile(90, 10*time.Millisecond),
+	benchmarkMatchers: []types.GomegaMatcher{
+		matchers.Median(5 * time.Millisecond),
+		matchers.Percentile(90, 10*time.Millisecond),
 	},
 }
 
@@ -148,9 +147,9 @@ var upstreamScale = func(numUpstreams int) benchmarkEntry {
 		}),
 		tries:  1000,
 		maxDur: time.Second,
-		benchmarkFuncs: []benchmarkFunc{
-			median(5 * time.Millisecond),
-			percentile(90, 10*time.Millisecond),
+		benchmarkMatchers: []types.GomegaMatcher{
+			matchers.Median(5 * time.Millisecond),
+			matchers.Percentile(90, 10*time.Millisecond),
 		},
 	}
 }
@@ -164,30 +163,9 @@ var endpointScale = func(numEndpoints int) benchmarkEntry {
 		}),
 		tries:  1000,
 		maxDur: time.Second,
-		benchmarkFuncs: []benchmarkFunc{
-			median(5 * time.Millisecond),
-			percentile(90, 10*time.Millisecond),
+		benchmarkMatchers: []types.GomegaMatcher{
+			matchers.Median(5 * time.Millisecond),
+			matchers.Percentile(90, 10*time.Millisecond),
 		},
-	}
-}
-
-var median = func(target time.Duration) benchmarkFunc {
-	return func(durations []time.Duration) {
-		sort.Slice(durations, func(i, j int) bool { return durations[i] < durations[j] })
-		var median time.Duration
-		if l := len(durations); l%2 == 1 {
-			median = durations[l/2]
-		} else {
-			median = (durations[l/2] + durations[l/2-1]) / 2
-		}
-		Expect(median).To(BeNumerically("<", target))
-	}
-}
-
-var percentile = func(percentile int, target time.Duration) benchmarkFunc {
-	return func(durations []time.Duration) {
-		sort.Slice(durations, func(i, j int) bool { return durations[i] < durations[j] })
-		pct := durations[int(float64(len(durations))*(float64(percentile)/float64(100)))]
-		Expect(pct).To(BeNumerically("<", target))
 	}
 }
