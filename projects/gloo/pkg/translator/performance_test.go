@@ -3,9 +3,10 @@ package translator_test
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/onsi/gomega/types"
 	"github.com/solo-io/gloo/test/gomega/matchers"
-	"strings"
 
 	"github.com/golang/mock/gomock"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
@@ -24,18 +25,19 @@ import (
 	"github.com/onsi/gomega/gmeasure"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 
+	"time"
+
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/gloo/test/ginkgo/labels"
-	"time"
 )
 
 type benchmarkConfig struct {
-	tries             int
-	maxDur            time.Duration
-	benchmarkMatchers []types.GomegaMatcher
+	iterations        int                   // the number of iterations to attempt for a particular entry
+	maxDur            time.Duration         // the maximum time to spend on a particular entry even if not all iterations are complete
+	benchmarkMatchers []types.GomegaMatcher // matchers representing the assertions we wish to make for a particular entry
 }
 
 var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
@@ -70,7 +72,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 		translator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
 	})
 
-	DescribeTable("Translate",
+	DescribeTable("Benchmark table",
 		func(apiSnap *v1snap.ApiSnapshot, config benchmarkConfig, labels ...string) {
 
 			params := plugins.Params{
@@ -84,15 +86,16 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 				report *validation.ProxyReport
 			)
 
-			experiment := gmeasure.NewExperiment("translate")
+			desc := generateDesc(apiSnap, config, labels...)
+
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("Experiment - %s", desc))
 
 			AddReportEntry(experiment.Name, experiment)
 
-			statName := generateDescfunc(apiSnap, config, labels...)
 			experiment.Sample(func(idx int) {
 
 				// Time translation
-				experiment.MeasureDuration(statName, func() {
+				experiment.MeasureDuration(desc, func() {
 					snap, errs, report = translator.Translate(params, gloohelpers.Proxy())
 				})
 
@@ -100,13 +103,13 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 				Expect(errs.Validate()).NotTo(HaveOccurred())
 				Expect(snap).NotTo(BeNil())
 				Expect(report).To(Equal(validationutils.MakeReport(gloohelpers.Proxy())))
-			}, gmeasure.SamplingConfig{N: config.tries, Duration: config.maxDur})
+			}, gmeasure.SamplingConfig{N: config.iterations, Duration: config.maxDur})
 
-			durations := experiment.Get(statName).Durations
+			durations := experiment.Get(desc).Durations
 
 			Expect(durations).Should(And(config.benchmarkMatchers...))
 		},
-		generateDescfunc,
+		generateDesc, // generate descriptions for entries with nil descriptions
 		Entry(nil, basicSnap, basicConfig, "basic"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 10,
@@ -139,25 +142,26 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 	)
 })
 
-var basicSnap = &v1snap.ApiSnapshot{
-	Endpoints: []*v1.Endpoint{gloohelpers.Endpoint},
-	Upstreams: []*v1.Upstream{gloohelpers.Upstream},
-}
-
-var basicConfig = benchmarkConfig{
-	tries:  1000,
-	maxDur: time.Second,
-	benchmarkMatchers: []types.GomegaMatcher{
-		matchers.Median(5 * time.Millisecond),
-		matchers.Percentile(90, 10*time.Millisecond),
-	},
-}
-
-func generateDescfunc(apiSnap *v1snap.ApiSnapshot, _ benchmarkConfig, labels ...string) string {
+func generateDesc(apiSnap *v1snap.ApiSnapshot, _ benchmarkConfig, labels ...string) string {
 	labelPrefix := ""
 	if len(labels) > 0 {
 		labelPrefix = fmt.Sprintf("(%s) ", strings.Join(labels, ", "))
 	}
 
 	return fmt.Sprintf("%s%d endpoint(s), %d upstream(s)", labelPrefix, len(apiSnap.Endpoints), len(apiSnap.Upstreams))
+}
+
+/* Basic Tests */
+var basicSnap = &v1snap.ApiSnapshot{
+	Endpoints: []*v1.Endpoint{gloohelpers.Endpoint},
+	Upstreams: []*v1.Upstream{gloohelpers.Upstream},
+}
+
+var basicConfig = benchmarkConfig{
+	iterations: 1000,
+	maxDur:     time.Second,
+	benchmarkMatchers: []types.GomegaMatcher{
+		matchers.Median(5 * time.Millisecond),
+		matchers.Percentile(90, 10*time.Millisecond),
+	},
 }
