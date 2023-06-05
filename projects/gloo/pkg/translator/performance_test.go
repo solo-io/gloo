@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/onsi/gomega/types"
 	"github.com/solo-io/gloo/test/gomega/matchers"
+	"strings"
 
 	"github.com/golang/mock/gomock"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
@@ -70,7 +71,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 	})
 
 	DescribeTable("Translate",
-		func(desc string, apiSnap *v1snap.ApiSnapshot, config benchmarkConfig) {
+		func(apiSnap *v1snap.ApiSnapshot, config benchmarkConfig, labels ...string) {
 
 			params := plugins.Params{
 				Ctx:      context.Background(),
@@ -87,7 +88,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 
 			AddReportEntry(experiment.Name, experiment)
 
-			statName := fmt.Sprintf("translating %s", desc)
+			statName := generateDescfunc(apiSnap, config, labels...)
 			experiment.Sample(func(idx int) {
 
 				// Time translation
@@ -105,35 +106,36 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 
 			Expect(durations).Should(And(config.benchmarkMatchers...))
 		},
-		Entry("basic", "basic", basicSnap, basicConfig),
-		Entry("10 upstreams", "10 upstreams", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+		generateDescfunc,
+		Entry(nil, basicSnap, basicConfig, "basic"),
+		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 10,
 			Endpoints: 1,
-		}), basicConfig),
-		Entry("100 upstreams", "100 upstreams", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+		}), basicConfig, "upstream scale"),
+		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 100,
 			Endpoints: 1,
-		}), basicConfig),
-		Entry("1000 upstreams", "1000 upstreams", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+		}), basicConfig, "upstream scale"),
+		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1000,
 			Endpoints: 1,
-		}), basicConfig),
-		Entry("10 endpoints", "10 endpoints", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+		}), basicConfig, "upstream scale"),
+		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 10,
-		}), basicConfig),
-		Entry("100 endpoints", "100 endpoints", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+		}), basicConfig, "endpoint scale"),
+		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 100,
-		}), basicConfig),
-		Entry("1000 endpoints", "1000 endpoints", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+		}), basicConfig, "endpoint scale"),
+		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 1000,
-		}), basicConfig),
-		Entry("10 of everything", "10 of everything", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+		}), basicConfig, "endpoint scale"),
+		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 10,
 			Endpoints: 10,
-		}), basicConfig),
+		}), basicConfig, "endpoint scale", "upstream scale"),
 	)
 })
 
@@ -149,4 +151,13 @@ var basicConfig = benchmarkConfig{
 		matchers.Median(5 * time.Millisecond),
 		matchers.Percentile(90, 10*time.Millisecond),
 	},
+}
+
+func generateDescfunc(apiSnap *v1snap.ApiSnapshot, _ benchmarkConfig, labels ...string) string {
+	labelPrefix := ""
+	if len(labels) > 0 {
+		labelPrefix = fmt.Sprintf("(%s) ", strings.Join(labels, ", "))
+	}
+
+	return fmt.Sprintf("%s%d endpoint(s), %d upstream(s)", labelPrefix, len(apiSnap.Endpoints), len(apiSnap.Upstreams))
 }
