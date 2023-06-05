@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	soloHelm "github.com/solo-io/go-utils/helmutils"
 	"github.com/solo-io/go-utils/testutils"
 	. "github.com/solo-io/k8s-utils/manifesttestutils"
 	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
@@ -101,6 +102,12 @@ func BuildTestManifest(chartName string, namespace string, values helmValues) (T
 		_, err = f.Write([]byte("\n---\n" + manifest))
 		Expect(err).NotTo(HaveOccurred(), "Should be able to write the hook manifest to the temp file for the helm unit tests")
 	}
+
+	// check the manifest for lines that are not correctly parsed
+	manifestData, err := os.ReadFile(f.Name())
+	Expect(err).ToNot(HaveOccurred())
+	windowsFound := soloHelm.FindHelmChartWhiteSpaces(string(manifestData), soloHelm.HelmDetectOptions{})
+	Expect(windowsFound).To(BeEmpty(), "Windows line endings found in the manifest file")
 
 	return NewTestManifest(f.Name()), nil
 }
