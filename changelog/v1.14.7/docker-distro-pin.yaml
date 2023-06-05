@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/8346
+    resolvesIssue: false
+    description: >-
+      Pin a mostly unused transitive dep to avoid a cve that shouldnt really affect gloo
