@@ -45,6 +45,8 @@ type benchmarkEntry struct {
 	numUpstreams int
 	numEndpoints int
 
+	snapshot *v1snap.ApiSnapshot
+
 	// Configuration for the benchmarking
 	tries              int
 	maxDur             time.Duration
@@ -57,6 +59,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 		settings          *v1.Settings
 		translator        Translator
 		upstream          *v1.Upstream
+		endpoint          *v1.Endpoint
 		upName            *core.Metadata
 		proxy             *v1.Proxy
 		registeredPlugins []plugins.Plugin
@@ -99,6 +102,15 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 						},
 					},
 				},
+			},
+		}
+		endpoint = &v1.Endpoint{
+			Upstreams: []*core.ResourceRef{upName.Ref()},
+			Address:   "1.2.3.4",
+			Port:      32,
+			Metadata: &core.Metadata{
+				Name:      "test-ep",
+				Namespace: "gloo-system",
 			},
 		}
 
@@ -287,33 +299,59 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 		}
 	})
 
+	basicCase := benchmarkEntry{
+		desc: "basic",
+		snapshot: &v1snap.ApiSnapshot{
+			Endpoints: []*v1.Endpoint{endpoint},
+			Upstreams: []*v1.Upstream{upstream},
+		},
+		tries:              1000,
+		maxDur:             time.Second,
+		target90percentile: 10 * time.Millisecond,
+	}
+
+	upstreamScale := func(numUpstreams int) benchmarkEntry {
+		upstreamList := v1.UpstreamList{}
+		for i := 0; i < numUpstreams; i++ {
+			upstreamList = append(upstreamList, upstream)
+		}
+
+		return benchmarkEntry{
+			desc: fmt.Sprintf("%d upstreams", numUpstreams),
+			snapshot: &v1snap.ApiSnapshot{
+				Endpoints: []*v1.Endpoint{endpoint},
+				Upstreams: upstreamList,
+			},
+			tries:              1000,
+			maxDur:             time.Second,
+			target90percentile: 10 * time.Millisecond,
+		}
+	}
+
+	endpointScale := func(numEndpoints int) benchmarkEntry {
+		endpointList := v1.EndpointList{}
+		for i := 0; i < numEndpoints; i++ {
+			endpointList = append(endpointList, endpoint)
+		}
+
+		return benchmarkEntry{
+			desc: fmt.Sprintf("%d endpoints", numEndpoints),
+			snapshot: &v1snap.ApiSnapshot{
+				Endpoints: endpointList,
+				Upstreams: []*v1.Upstream{upstream},
+			},
+			tries:              1000,
+			maxDur:             time.Second,
+			target90percentile: 10 * time.Millisecond,
+		}
+	}
+
 	DescribeTable("Translate",
 		func(ent benchmarkEntry) {
 
-			upstreamList := v1.UpstreamList{}
-			for i := 0; i < ent.numUpstreams; i++ {
-				upstreamList = append(upstreamList, upstream)
-			}
-
-			endpointList := v1.EndpointList{}
-			for i := 0; i < ent.numEndpoints; i++ {
-				endpointList = append(endpointList, &v1.Endpoint{
-					Upstreams: []*core.ResourceRef{upName.Ref()},
-					Address:   "1.2.3.4",
-					Port:      32,
-					Metadata: &core.Metadata{
-						Name:      "test-ep",
-						Namespace: "gloo-system",
-					},
-				})
-			}
-
 			params := plugins.Params{
-				Ctx: context.Background(),
-				Snapshot: &v1snap.ApiSnapshot{
-					Endpoints: endpointList,
-					Upstreams: upstreamList,
-				},
+				Ctx:      context.Background(),
+				Snapshot: ent.snapshot,
 			}
 
 			var (
@@ -345,12 +383,12 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 			ninetyPct := durations[int(float64(len(durations))*.9)]
 			Expect(ninetyPct).To(BeNumerically("<", ent.target90percentile))
 		},
-		Entry("basic", benchmarkEntry{"basic", 1, 1, 1000, time.Second, 10 * time.Millisecond}),
-		Entry("10 upstreams", benchmarkEntry{"10 upstreams", 10, 1, 1000, time.Second, 10 * time.Millisecond}),
-		Entry("100 upstreams", benchmarkEntry{"100 upstreams", 100, 1, 1000, time.Second, 10 * time.Millisecond}),
-		Entry("1000 upstreams", benchmarkEntry{"1000 upstreams", 1000, 1, 1000, time.Second, 10 * time.Millisecond}),
-		Entry("10 endpoints", benchmarkEntry{"10 endpoints", 1, 10, 1000, time.Second, 10 * time.Millisecond}),
-		Entry("100 endpointss", benchmarkEntry{"100 endpoints", 1, 100, 1000, time.Second, 10 * time.Millisecond}),
-		Entry("1000 endpoints", benchmarkEntry{"1000 endpoints", 1, 1000, 1000, time.Second, 10 * time.Millisecond}),
+		Entry("basic", basicCase),
+		Entry("10 upstreams", upstreamScale(10)),
+		Entry("100 upstreams", upstreamScale(100)),
+		Entry("1000 upstreams", upstreamScale(1000)),
+		Entry("10 endpoints", endpointScale(10)),
+		Entry("100 endpoints", endpointScale(100)),
+		Entry("1000 endpoints", endpointScale(1000)),
 	)
 })
