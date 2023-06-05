@@ -88,93 +88,119 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 			},
 		}
 		registeredPlugins = registry.Plugins(opts)
+	})
 
-		upName = &core.Metadata{
-			Name:      "test",
+	upName = &core.Metadata{
+		Name:      "test",
+		Namespace: "gloo-system",
+	}
+	upstream = &v1.Upstream{
+		Metadata: upName,
+		UpstreamType: &v1.Upstream_Static{
+			Static: &v1static.UpstreamSpec{
+				Hosts: []*v1static.Host{
+					{
+						Addr: "Test",
+						Port: 124,
+					},
+				},
+			},
+		},
+	}
+	endpoint = &v1.Endpoint{
+		Upstreams: []*core.ResourceRef{upName.Ref()},
+		Address:   "1.2.3.4",
+		Port:      32,
+		Metadata: &core.Metadata{
+			Name:      "test-ep",
 			Namespace: "gloo-system",
-		}
-		upstream = &v1.Upstream{
-			Metadata: upName,
-			UpstreamType: &v1.Upstream_Static{
-				Static: &v1static.UpstreamSpec{
-					Hosts: []*v1static.Host{
-						{
-							Addr: "Test",
-							Port: 124,
+		},
+	}
+
+	matcher = &matchers.Matcher{
+		PathSpecifier: &matchers.Matcher_Prefix{
+			Prefix: "/",
+		},
+	}
+	routes = []*v1.Route{{
+		Name:     "testRouteName",
+		Matchers: []*matchers.Matcher{matcher},
+		Action: &v1.Route_RouteAction{
+			RouteAction: &v1.RouteAction{
+				Destination: &v1.RouteAction_Single{
+					Single: &v1.Destination{
+						DestinationType: &v1.Destination_Upstream{
+							Upstream: upName.Ref(),
 						},
 					},
 				},
 			},
-		}
-		endpoint = &v1.Endpoint{
-			Upstreams: []*core.ResourceRef{upName.Ref()},
-			Address:   "1.2.3.4",
-			Port:      32,
-			Metadata: &core.Metadata{
-				Name:      "test-ep",
-				Namespace: "gloo-system",
-			},
-		}
+		},
+	}}
+	virtualHostName = "virt1"
 
-		matcher = &matchers.Matcher{
-			PathSpecifier: &matchers.Matcher_Prefix{
-				Prefix: "/",
-			},
-		}
-		routes = []*v1.Route{{
-			Name:     "testRouteName",
-			Matchers: []*matchers.Matcher{matcher},
-			Action: &v1.Route_RouteAction{
-				RouteAction: &v1.RouteAction{
-					Destination: &v1.RouteAction_Single{
-						Single: &v1.Destination{
-							DestinationType: &v1.Destination_Upstream{
-								Upstream: upName.Ref(),
-							},
-						},
-					},
-				},
-			},
-		}}
-		virtualHostName = "virt1"
+	pluginRegistry := registry.NewPluginRegistry(registeredPlugins)
 
-		pluginRegistry := registry.NewPluginRegistry(registeredPlugins)
-
-		translator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
-		httpListener := &v1.Listener{
-			Name:        "http-listener",
-			BindAddress: "127.0.0.1",
-			BindPort:    80,
-			ListenerType: &v1.Listener_HttpListener{
-				HttpListener: &v1.HttpListener{
-					VirtualHosts: []*v1.VirtualHost{{
-						Name:    virtualHostName,
-						Domains: []string{"*"},
-						Routes:  routes,
-					}},
-				},
+	translator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
+	httpListener := &v1.Listener{
+		Name:        "http-listener",
+		BindAddress: "127.0.0.1",
+		BindPort:    80,
+		ListenerType: &v1.Listener_HttpListener{
+			HttpListener: &v1.HttpListener{
+				VirtualHosts: []*v1.VirtualHost{{
+					Name:    virtualHostName,
+					Domains: []string{"*"},
+					Routes:  routes,
+				}},
 			},
-		}
-		tcpListener := &v1.Listener{
-			Name:        "tcp-listener",
-			BindAddress: "127.0.0.1",
-			BindPort:    8080,
-			ListenerType: &v1.Listener_TcpListener{
-				TcpListener: &v1.TcpListener{
-					TcpHosts: []*v1.TcpHost{
-						{
-							Destination: &v1.TcpHost_TcpAction{
-								Destination: &v1.TcpHost_TcpAction_Single{
-									Single: &v1.Destination{
-										DestinationType: &v1.Destination_Upstream{
-											Upstream: &core.ResourceRef{
-												Name:      "test",
-												Namespace: "gloo-system",
-											},
+		},
+	}
+	tcpListener := &v1.Listener{
+		Name:        "tcp-listener",
+		BindAddress: "127.0.0.1",
+		BindPort:    8080,
+		ListenerType: &v1.Listener_TcpListener{
+			TcpListener: &v1.TcpListener{
+				TcpHosts: []*v1.TcpHost{
+					{
+						Destination: &v1.TcpHost_TcpAction{
+							Destination: &v1.TcpHost_TcpAction_Single{
+								Single: &v1.Destination{
+									DestinationType: &v1.Destination_Upstream{
+										Upstream: &core.ResourceRef{
+											Name:      "test",
+											Namespace: "gloo-system",
 										},
 									},
 								},
 							},
+						},
+						SslConfig: &ssl.SslConfig{
+							SslSecrets: &ssl.SslConfig_SslFiles{
+								SslFiles: &ssl.SSLFiles{
+									TlsCert: gloohelpers.Certificate(),
+									TlsKey:  gloohelpers.PrivateKey(),
+								},
+							},
+							SniDomains: []string{
+								"sni1",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	hybridListener := &v1.Listener{
+		Name:        "hybrid-listener",
+		BindAddress: "127.0.0.1",
+		BindPort:    8888,
+		ListenerType: &v1.Listener_HybridListener{
+			HybridListener: &v1.HybridListener{
+				MatchedListeners: []*v1.MatchedListener{
+					{
+						Matcher: &v1.Matcher{
 							SslConfig: &ssl.SslConfig{
 								SslSecrets: &ssl.SslConfig_SslFiles{
 									SslFiles: &ssl.SSLFiles{
@@ -186,121 +212,94 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 									"sni1",
 								},
 							},
-						},
-					},
-				},
-			},
-		}
-		hybridListener := &v1.Listener{
-			Name:        "hybrid-listener",
-			BindAddress: "127.0.0.1",
-			BindPort:    8888,
-			ListenerType: &v1.Listener_HybridListener{
-				HybridListener: &v1.HybridListener{
-					MatchedListeners: []*v1.MatchedListener{
-						{
-							Matcher: &v1.Matcher{
-								SslConfig: &ssl.SslConfig{
-									SslSecrets: &ssl.SslConfig_SslFiles{
-										SslFiles: &ssl.SSLFiles{
-											TlsCert: gloohelpers.Certificate(),
-											TlsKey:  gloohelpers.PrivateKey(),
-										},
-									},
-									SniDomains: []string{
-										"sni1",
-									},
-								},
-								SourcePrefixRanges: []*v3.CidrRange{
-									{
-										AddressPrefix: "1.2.3.4",
-										PrefixLen: &wrappers.UInt32Value{
-											Value: 32,
-										},
+							SourcePrefixRanges: []*v3.CidrRange{
+								{
+									AddressPrefix: "1.2.3.4",
+									PrefixLen: &wrappers.UInt32Value{
+										Value: 32,
 									},
 								},
 							},
-							ListenerType: &v1.MatchedListener_TcpListener{
-								TcpListener: &v1.TcpListener{
-									TcpHosts: []*v1.TcpHost{
-										{
-											Destination: &v1.TcpHost_TcpAction{
-												Destination: &v1.TcpHost_TcpAction_Single{
-													Single: &v1.Destination{
-														DestinationType: &v1.Destination_Upstream{
-															Upstream: &core.ResourceRef{
-																Name:      "test",
-																Namespace: "gloo-system",
-															},
+						},
+						ListenerType: &v1.MatchedListener_TcpListener{
+							TcpListener: &v1.TcpListener{
+								TcpHosts: []*v1.TcpHost{
+									{
+										Destination: &v1.TcpHost_TcpAction{
+											Destination: &v1.TcpHost_TcpAction_Single{
+												Single: &v1.Destination{
+													DestinationType: &v1.Destination_Upstream{
+														Upstream: &core.ResourceRef{
+															Name:      "test",
+															Namespace: "gloo-system",
 														},
 													},
 												},
 											},
-											SslConfig: &ssl.SslConfig{
-												SslSecrets: &ssl.SslConfig_SslFiles{
-													SslFiles: &ssl.SSLFiles{
-														TlsCert: gloohelpers.Certificate(),
-														TlsKey:  gloohelpers.PrivateKey(),
-													},
+										},
+										SslConfig: &ssl.SslConfig{
+											SslSecrets: &ssl.SslConfig_SslFiles{
+												SslFiles: &ssl.SSLFiles{
+													TlsCert: gloohelpers.Certificate(),
+													TlsKey:  gloohelpers.PrivateKey(),
 												},
-												SniDomains: []string{
-													"sni1",
-												},
+											},
+											SniDomains: []string{
+												"sni1",
 											},
 										},
 									},
 								},
 							},
 						},
-						{
-							Matcher: &v1.Matcher{
-								SslConfig: &ssl.SslConfig{
-									SslSecrets: &ssl.SslConfig_SslFiles{
-										SslFiles: &ssl.SSLFiles{
-											TlsCert: gloohelpers.Certificate(),
-											TlsKey:  gloohelpers.PrivateKey(),
-										},
-									},
-									SniDomains: []string{
-										"sni2",
+					},
+					{
+						Matcher: &v1.Matcher{
+							SslConfig: &ssl.SslConfig{
+								SslSecrets: &ssl.SslConfig_SslFiles{
+									SslFiles: &ssl.SSLFiles{
+										TlsCert: gloohelpers.Certificate(),
+										TlsKey:  gloohelpers.PrivateKey(),
 									},
 								},
-								SourcePrefixRanges: []*v3.CidrRange{
-									{
-										AddressPrefix: "5.6.7.8",
-										PrefixLen: &wrappers.UInt32Value{
-											Value: 32,
-										},
+								SniDomains: []string{
+									"sni2",
+								},
+							},
+							SourcePrefixRanges: []*v3.CidrRange{
+								{
+									AddressPrefix: "5.6.7.8",
+									PrefixLen: &wrappers.UInt32Value{
+										Value: 32,
 									},
 								},
 							},
-							ListenerType: &v1.MatchedListener_HttpListener{
-								HttpListener: &v1.HttpListener{
-									VirtualHosts: []*v1.VirtualHost{{
-										Name:    virtualHostName,
-										Domains: []string{"*"},
-										Routes:  routes,
-									}},
-								},
+						},
+						ListenerType: &v1.MatchedListener_HttpListener{
+							HttpListener: &v1.HttpListener{
+								VirtualHosts: []*v1.VirtualHost{{
+									Name:    virtualHostName,
+									Domains: []string{"*"},
+									Routes:  routes,
+								}},
 							},
 						},
 					},
 				},
 			},
-		}
-		proxy = &v1.Proxy{
-			Metadata: &core.Metadata{
-				Name:      "test",
-				Namespace: "gloo-system",
-			},
-			Listeners: []*v1.Listener{
-				httpListener,
-				tcpListener,
-				hybridListener,
-			},
-		}
-
-	})
+		},
+	}
+	proxy = &v1.Proxy{
+		Metadata: &core.Metadata{
+			Name:      "test",
+			Namespace: "gloo-system",
+		},
+		Listeners: []*v1.Listener{
+			httpListener,
+			tcpListener,
+			hybridListener,
+		},
+	}
 
 	basicCase := benchmarkEntry{
 		desc: "basic",
