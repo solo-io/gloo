@@ -48,10 +48,12 @@ type benchmarkEntry struct {
 	snapshot *v1snap.ApiSnapshot
 
 	// Configuration for the benchmarking
-	tries              int
-	maxDur             time.Duration
-	target90percentile time.Duration
+	tries          int
+	maxDur         time.Duration
+	benchmarkFuncs []benchmarkFunc
 }
+
+type benchmarkFunc func(durations []time.Duration)
 
 var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
 	var (
@@ -297,6 +299,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 				hybridListener,
 			},
 		}
+
 	})
 
 	basicCase := benchmarkEntry{
@@ -305,9 +308,12 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 			Endpoints: []*v1.Endpoint{endpoint},
 			Upstreams: []*v1.Upstream{upstream},
 		},
-		tries:              1000,
-		maxDur:             time.Second,
-		target90percentile: 10 * time.Millisecond,
+		tries:  1000,
+		maxDur: time.Second,
+		benchmarkFuncs: []benchmarkFunc{
+			median(5 * time.Millisecond),
+			ninetiethPercentile(10 * time.Millisecond),
+		},
 	}
 
 	upstreamScale := func(numUpstreams int) benchmarkEntry {
@@ -322,9 +328,12 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 				Endpoints: []*v1.Endpoint{endpoint},
 				Upstreams: upstreamList,
 			},
-			tries:              1000,
-			maxDur:             time.Second,
-			target90percentile: 10 * time.Millisecond,
+			tries:  1000,
+			maxDur: time.Second,
+			benchmarkFuncs: []benchmarkFunc{
+				median(5 * time.Millisecond),
+				ninetiethPercentile(10 * time.Millisecond),
+			},
 		}
 	}
 
@@ -340,9 +349,12 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 				Endpoints: endpointList,
 				Upstreams: []*v1.Upstream{upstream},
 			},
-			tries:              1000,
-			maxDur:             time.Second,
-			target90percentile: 10 * time.Millisecond,
+			tries:  1000,
+			maxDur: time.Second,
+			benchmarkFuncs: []benchmarkFunc{
+				median(5 * time.Millisecond),
+				ninetiethPercentile(10 * time.Millisecond),
+			},
 		}
 	}
 
@@ -379,9 +391,10 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 			}, gmeasure.SamplingConfig{N: ent.tries, Duration: ent.maxDur})
 
 			durations := experiment.Get(statName).Durations
-			sort.Slice(durations, func(i, j int) bool { return durations[i] < durations[j] })
-			ninetyPct := durations[int(float64(len(durations))*.9)]
-			Expect(ninetyPct).To(BeNumerically("<", ent.target90percentile))
+
+			for _, bench := range ent.benchmarkFuncs {
+				bench(durations)
+			}
 		},
 		Entry("basic", basicCase),
 		Entry("10 upstreams", upstreamScale(10)),
@@ -392,3 +405,24 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 		Entry("1000 endpoints", endpointScale(1000)),
 	)
 })
+
+var median = func(target time.Duration) benchmarkFunc {
+	return func(durations []time.Duration) {
+		sort.Slice(durations, func(i, j int) bool { return durations[i] < durations[j] })
+		var median time.Duration
+		if l := len(durations); l%2 == 1 {
+			median = durations[l/2]
+		} else {
+			median = (durations[l/2] + durations[l/2-1]) / 2
+		}
+		Expect(median).To(BeNumerically("<", target))
+	}
+}
+
+var ninetiethPercentile = func(target time.Duration) benchmarkFunc {
+	return func(durations []time.Duration) {
+		sort.Slice(durations, func(i, j int) bool { return durations[i] < durations[j] })
+		ninetyPct := durations[int(float64(len(durations))*.9)]
+		Expect(ninetyPct).To(BeNumerically("<", target))
+	}
+}
