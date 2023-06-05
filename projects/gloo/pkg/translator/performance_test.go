@@ -311,7 +311,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 		maxDur: time.Second,
 		benchmarkFuncs: []benchmarkFunc{
 			median(5 * time.Millisecond),
-			ninetiethPercentile(10 * time.Millisecond),
+			percentile(90, 10*time.Millisecond),
 		},
 	}
 
@@ -331,7 +331,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 			maxDur: time.Second,
 			benchmarkFuncs: []benchmarkFunc{
 				median(5 * time.Millisecond),
-				ninetiethPercentile(10 * time.Millisecond),
+				percentile(90, 10*time.Millisecond),
 			},
 		}
 	}
@@ -352,7 +352,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 			maxDur: time.Second,
 			benchmarkFuncs: []benchmarkFunc{
 				median(5 * time.Millisecond),
-				ninetiethPercentile(10 * time.Millisecond),
+				percentile(90, 10*time.Millisecond),
 			},
 		}
 	}
@@ -418,10 +418,10 @@ var median = func(target time.Duration) benchmarkFunc {
 	}
 }
 
-var ninetiethPercentile = func(target time.Duration) benchmarkFunc {
+var percentile = func(percentile int, target time.Duration) benchmarkFunc {
 	return func(durations []time.Duration) {
 		sort.Slice(durations, func(i, j int) bool { return durations[i] < durations[j] })
-		ninetyPct := durations[int(float64(len(durations))*.9)]
-		Expect(ninetyPct).To(BeNumerically("<", target))
+		pct := durations[int(float64(len(durations))*(float64(percentile)/float64(100)))]
+		Expect(pct).To(BeNumerically("<", target))
 	}
 }
