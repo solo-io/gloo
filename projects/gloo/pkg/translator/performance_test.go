@@ -31,20 +31,11 @@ import (
 	"time"
 )
 
-type benchmarkEntry struct {
-	// Name for this test
-	desc string
-
-	// The snapshot to translate
-	snapshot *v1snap.ApiSnapshot
-
-	// Configuration for the benchmarking
+type benchmarkConfig struct {
 	tries             int
 	maxDur            time.Duration
 	benchmarkMatchers []types.GomegaMatcher
 }
-
-type benchmarkFunc func(durations []time.Duration)
 
 var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
 	var (
@@ -79,11 +70,11 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 	})
 
 	DescribeTable("Translate",
-		func(ent benchmarkEntry) {
+		func(desc string, apiSnap *v1snap.ApiSnapshot, config benchmarkConfig) {
 
 			params := plugins.Params{
 				Ctx:      context.Background(),
-				Snapshot: ent.snapshot,
+				Snapshot: apiSnap,
 			}
 
 			var (
@@ -96,7 +87,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 
 			AddReportEntry(experiment.Name, experiment)
 
-			statName := fmt.Sprintf("translating %s", ent.desc)
+			statName := fmt.Sprintf("translating %s", desc)
 			experiment.Sample(func(idx int) {
 
 				// Time translation
@@ -108,64 +99,54 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 				Expect(errs.Validate()).NotTo(HaveOccurred())
 				Expect(snap).NotTo(BeNil())
 				Expect(report).To(Equal(validationutils.MakeReport(gloohelpers.Proxy())))
-			}, gmeasure.SamplingConfig{N: ent.tries, Duration: ent.maxDur})
+			}, gmeasure.SamplingConfig{N: config.tries, Duration: config.maxDur})
 
 			durations := experiment.Get(statName).Durations
 
-			Expect(durations).Should(And(ent.benchmarkMatchers...))
+			Expect(durations).Should(And(config.benchmarkMatchers...))
 		},
-		Entry("basic", basicCase),
-		Entry("10 upstreams", upstreamScale(10)),
-		Entry("100 upstreams", upstreamScale(100)),
-		Entry("1000 upstreams", upstreamScale(1000)),
-		Entry("10 endpoints", endpointScale(10)),
-		Entry("100 endpoints", endpointScale(100)),
-		Entry("1000 endpoints", endpointScale(1000)),
+		Entry("basic", "basic", basicSnap, basicConfig),
+		Entry("10 upstreams", "10 upstreams", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+			Upstreams: 10,
+			Endpoints: 1,
+		}), basicConfig),
+		Entry("100 upstreams", "100 upstreams", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+			Upstreams: 100,
+			Endpoints: 1,
+		}), basicConfig),
+		Entry("1000 upstreams", "1000 upstreams", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+			Upstreams: 1000,
+			Endpoints: 1,
+		}), basicConfig),
+		Entry("10 endpoints", "10 endpoints", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+			Upstreams: 1,
+			Endpoints: 10,
+		}), basicConfig),
+		Entry("100 endpoints", "100 endpoints", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+			Upstreams: 1,
+			Endpoints: 100,
+		}), basicConfig),
+		Entry("1000 endpoints", "1000 endpoints", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+			Upstreams: 1,
+			Endpoints: 1000,
+		}), basicConfig),
+		Entry("10 of everything", "10 of everything", gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+			Upstreams: 10,
+			Endpoints: 10,
+		}), basicConfig),
 	)
 })
 
-var basicCase = benchmarkEntry{
-	desc: "basic",
-	snapshot: &v1snap.ApiSnapshot{
-		Endpoints: []*v1.Endpoint{gloohelpers.Endpoint},
-		Upstreams: []*v1.Upstream{gloohelpers.Upstream},
-	},
+var basicSnap = &v1snap.ApiSnapshot{
+	Endpoints: []*v1.Endpoint{gloohelpers.Endpoint},
+	Upstreams: []*v1.Upstream{gloohelpers.Upstream},
+}
+
+var basicConfig = benchmarkConfig{
 	tries:  1000,
 	maxDur: time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
 		matchers.Median(5 * time.Millisecond),
 		matchers.Percentile(90, 10*time.Millisecond),
 	},
-}
-
-var upstreamScale = func(numUpstreams int) benchmarkEntry {
-	return benchmarkEntry{
-		desc: fmt.Sprintf("%d upstreams", numUpstreams),
-		snapshot: gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
-			Upstreams: numUpstreams,
-			Endpoints: 1,
-		}),
-		tries:  1000,
-		maxDur: time.Second,
-		benchmarkMatchers: []types.GomegaMatcher{
-			matchers.Median(5 * time.Millisecond),
-			matchers.Percentile(90, 10*time.Millisecond),
-		},
-	}
-}
-
-var endpointScale = func(numEndpoints int) benchmarkEntry {
-	return benchmarkEntry{
-		desc: fmt.Sprintf("%d endpoints", numEndpoints),
-		snapshot: gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
-			Endpoints: numEndpoints,
-			Upstreams: 1,
-		}),
-		tries:  1000,
-		maxDur: time.Second,
-		benchmarkMatchers: []types.GomegaMatcher{
-			matchers.Median(5 * time.Millisecond),
-			matchers.Percentile(90, 10*time.Millisecond),
-		},
-	}
 }
