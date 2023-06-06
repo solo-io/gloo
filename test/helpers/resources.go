@@ -24,6 +24,7 @@ var upName = &core.Metadata{
 	Namespace: "gloo-system",
 }
 
+// Upstream is a generic upstream included in snapshots generated from ScaledSnapshot
 var Upstream = &v1.Upstream{
 	Metadata: upName,
 	UpstreamType: &v1.Upstream_Static{
@@ -38,6 +39,7 @@ var Upstream = &v1.Upstream{
 	},
 }
 
+// Endpoint is a generic endpoint included in snapshots generated from ScaledSnapshot
 var Endpoint = &v1.Endpoint{
 	Upstreams: []*core.ResourceRef{upName.Ref()},
 	Address:   "1.2.3.4",
@@ -227,6 +229,7 @@ func hybridListener() *v1.Listener {
 	}
 }
 
+// Proxy returns a generic proxy that can be used for translation benchmarking
 // Proxy invokes functions that contain assertions and therefore can only be invoked from within a test block
 func Proxy() *v1.Proxy {
 	return &v1.Proxy{

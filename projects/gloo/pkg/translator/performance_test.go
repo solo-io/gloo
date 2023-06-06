@@ -34,6 +34,8 @@ import (
 	"github.com/solo-io/gloo/test/ginkgo/labels"
 )
 
+// benchmarkConfig allows configuration for benchmarking tests to be reused for similar cases
+// This struct can be factored out to an accessible location should additional benchmarking suites be added
 type benchmarkConfig struct {
 	iterations        int                   // the number of iterations to attempt for a particular entry
 	maxDur            time.Duration         // the maximum time to spend on a particular entry even if not all iterations are complete
@@ -72,6 +74,9 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 		translator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
 	})
 
+	// The Benchmark table takes entries consisting of an ApiSnapshot, benchmarkConfig, and labels
+	// We measure the duration of the translation of the snapshot, benchmarking according to the benchmarkConfig
+	// Labels are used to add context to the entry description
 	DescribeTable("Benchmark table",
 		func(apiSnap *v1snap.ApiSnapshot, config benchmarkConfig, labels ...string) {
 
@@ -109,8 +114,8 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 
 			Expect(durations).Should(And(config.benchmarkMatchers...))
 		},
-		generateDesc, // generate descriptions for entries with nil descriptions
-		Entry(nil, basicSnap, basicConfig, "basic"),
+		generateDesc, // generate descriptions for table entries with nil descriptions
+		Entry("basic", basicSnap, basicConfig),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 10,
 			Endpoints: 1,
@@ -122,7 +127,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1000,
 			Endpoints: 1,
-		}), basicConfig, "upstream scale"),
+		}), oneKConfig, "upstream scale"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 10,
@@ -134,7 +139,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 1000,
-		}), basicConfig, "endpoint scale"),
+		}), oneKConfig, "endpoint scale"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 10,
 			Endpoints: 10,
@@ -148,8 +153,13 @@ func generateDesc(apiSnap *v1snap.ApiSnapshot, _ benchmarkConfig, labels ...stri
 		labelPrefix = fmt.Sprintf("(%s) ", strings.Join(labels, ", "))
 	}
 
+	// If/when additional Snapshot fields are included in testing, the description should be updated accordingly
 	return fmt.Sprintf("%s%d endpoint(s), %d upstream(s)", labelPrefix, len(apiSnap.Endpoints), len(apiSnap.Upstreams))
 }
+
+// Test assets: Add blocks for logical groupings of tests, including:
+// - in-line snapshot definitions for tests that require granularly-configured/heterogeneous resources (ie testing a particular field or feature)
+// - benchmarkConfigs for particular groups of use cases depending on processing time requirements/expectations
 
 /* Basic Tests */
 var basicSnap = &v1snap.ApiSnapshot{
@@ -163,5 +173,15 @@ var basicConfig = benchmarkConfig{
 	benchmarkMatchers: []types.GomegaMatcher{
 		matchers.Median(5 * time.Millisecond),
 		matchers.Percentile(90, 10*time.Millisecond),
+	},
+}
+
+/* 1k scale Tests */
+var oneKConfig = benchmarkConfig{
+	iterations: 500,
+	maxDur:     2 * time.Second,
+	benchmarkMatchers: []types.GomegaMatcher{
+		matchers.Median(10 * time.Millisecond),
+		matchers.Percentile(90, 20*time.Millisecond),
 	},
 }
