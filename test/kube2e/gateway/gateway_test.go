@@ -363,40 +363,41 @@ spec:
 				}
 			})
 
-			checkThatVSRefCantBeDeleted := func(resourceYaml, vsYaml string) string {
-				err := install.KubectlApply([]byte(resourceYaml))
-				Expect(err).ToNot(HaveOccurred())
-				Eventually(func() error {
-					// eventually the resource will be applied and we can apply the virtual service
-					err = install.KubectlApply([]byte(vsYaml))
-					return err
-				}, "5s", "1s").Should(BeNil())
-				var out []byte
-				// we should get an error saying that the admission webhook can not find the resource this is because the VS
-				// references the resource, and the allowWarnings property is not set.  The warning for a resource missing should
-				// error in the reports
-				// adding a sleep here, because it seems that the snapshot take time to pick up the new VS, and RLC
-				time.Sleep(5 * time.Second)
-				Eventually(func() error {
-					out, err = install.KubectlOut(bytes.NewBuffer([]byte(resourceYaml)), []string{"delete", "-f", "-"}...)
-					return err
-				}, "5s", "1s").Should(Not(BeNil()))
+			Context("rate limit config referenced by virtual service", func() {
+				checkThatVSRefCantBeDeleted := func(resourceYaml, vsYaml string) string {
+					err := install.KubectlApply([]byte(resourceYaml))
+					Expect(err).ToNot(HaveOccurred())
+					Eventually(func() error {
+						// eventually the resource will be applied and we can apply the virtual service
+						err = install.KubectlApply([]byte(vsYaml))
+						return err
+					}, "5s", "1s").Should(BeNil())
+					var out []byte
+					// we should get an error saying that the admission webhook can not find the resource this is because the VS
+					// references the resource, and the allowWarnings property is not set.  The warning for a resource missing should
+					// error in the reports
+					// adding a sleep here, because it seems that the snapshot take time to pick up the new VS, and RLC
+					time.Sleep(5 * time.Second)
+					Eventually(func() error {
+						out, err = install.KubectlOut(bytes.NewBuffer([]byte(resourceYaml)), []string{"delete", "-f", "-"}...)
+						return err
+					}, "5s", "1s").Should(Not(BeNil()))
 
-				// delete the VS and the resource that the VS references have to wait for the snapshot to sync in the gateway
-				// validator for the resource to be deleted
-				Eventually(func(g Gomega) {
-					err = install.KubectlDelete([]byte(vsYaml))
-					g.Expect(err).ToNot(HaveOccurred())
-				}, "5s", "1s")
-				Eventually(func(g Gomega) {
-					err = install.KubectlDelete([]byte(resourceYaml))
-					g.Expect(err).ToNot(HaveOccurred())
-				}, "5s", "1s")
-				return string(out)
-			}
+					// delete the VS and the resource that the VS references have to wait for the snapshot to sync in the gateway
+					// validator for the resource to be deleted
+					Eventually(func(g Gomega) {
+						err = install.KubectlDelete([]byte(vsYaml))
+						g.Expect(err).ToNot(HaveOccurred())
+					}, "5s", "1s")
+					Eventually(func(g Gomega) {
+						err = install.KubectlDelete([]byte(resourceYaml))
+						g.Expect(err).ToNot(HaveOccurred())
+					}, "5s", "1s")
+					return string(out)
+				}
 
-			It("rejects deleting rate limit config referenced on a Virtual Service", func() {
-				rateLimitYaml := `
+				getRateLimitYaml := func(requestsPerUnit int) string {
+					rateLimitYaml := `
 apiVersion: ratelimit.solo.io/v1alpha1
 kind: RateLimitConfig
 metadata:
@@ -408,13 +409,16 @@ spec:
       - key: foo
         value: foo
         rateLimit:
-          requestsPerUnit: 1
+          requestsPerUnit: %d
           unit: MINUTE
     rateLimits:
       - actions:
         - genericKey:
             descriptorValue: bar
 `
+					return fmt.Sprintf(rateLimitYaml, requestsPerUnit)
+				}
+
 				vsYaml := `
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
@@ -431,10 +435,37 @@ spec:
           - name: rlc
             namespace: gloo-system
 `
-				out := checkThatVSRefCantBeDeleted(rateLimitYaml, vsYaml)
-				Expect(out).To(ContainSubstring("Error from server"))
-				Expect(out).To(ContainSubstring("admission webhook"))
-				Expect(out).To(ContainSubstring("could not find RateLimitConfig resource with name"))
+
+				It("rejects deleting rate limit config referenced on a Virtual Service", func() {
+					out := checkThatVSRefCantBeDeleted(getRateLimitYaml(1), vsYaml)
+					Expect(out).To(ContainSubstring("Error from server"))
+					Expect(out).To(ContainSubstring("admission webhook"))
+					Expect(out).To(ContainSubstring("could not find RateLimitConfig resource with name"))
+				})
+
+				It("accepts updating rate limit config referenced by a Virtual Service", func() {
+					var out []byte
+					var err error
+
+					Eventually(func() error {
+						out, err = install.KubectlApplyOut([]byte(getRateLimitYaml(100)))
+						return err
+					}, "5s", "1s").Should(BeNil())
+					Expect(string(out)).ToNot(ContainSubstring("Error from server"))
+
+					Eventually(func() error {
+						out, err = install.KubectlApplyOut([]byte(vsYaml))
+						return err
+					}, "5s", "1s").Should(BeNil())
+					Expect(string(out)).ToNot(ContainSubstring("Error from server"))
+
+					Eventually(func() error {
+						out, err = install.KubectlApplyOut([]byte(getRateLimitYaml(200)))
+						return err
+					}, "5s", "1s").Should(BeNil())
+					Expect(string(out)).ToNot(And(ContainSubstring("Error from server"), ContainSubstring("unchanged")))
+
+				})
 			})
 
 		})
