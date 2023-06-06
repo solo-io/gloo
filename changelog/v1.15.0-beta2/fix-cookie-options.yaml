@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/5072
+    resolvesIssue: false
+    description: >-
+      Fix issue with ext-auth config having failed status, when only `session.cookieOptions` are set.

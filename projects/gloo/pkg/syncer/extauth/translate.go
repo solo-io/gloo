@@ -508,6 +508,8 @@ func userSessionToSession(userSession *extauth.ExtAuthConfig_UserSessionConfig) 
 		session.Session = &extauth.UserSession_Redis{
 			Redis: u.Redis,
 		}
+	case nil: // no option set which is ok
+		break
 	default:
 		return nil, errors.Errorf("unknown user session type [%T] cannot convert to session", u)
 	}

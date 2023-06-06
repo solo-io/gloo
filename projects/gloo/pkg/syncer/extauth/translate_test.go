@@ -438,6 +438,44 @@ var _ = Describe("Translate", func() {
 			// verify translation of the User Session, which is nil when the cipher config is set
 			Expect(actualPlainOAuth2.UserSession).To(BeNil())
 		})
+		It("should translate session if not using cipherConfig, and only setting Cookie Options", func() {
+			authConfigs := params.Snapshot.AuthConfigs
+			// set the cipherConfig to nil for translation of the session
+			session := authConfigs[0].Configs[0].GetOauth2().GetOauth2().Session
+			session.CipherConfig = nil
+			session.Session = nil
+			Expect(session.CookieOptions).NotTo(BeNil())
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+			Expect(translated.Configs).To(HaveLen(1))
+			actual := translated.Configs[0].GetOauth2()
+			actualPlainOAuth2 := actual.GetOauth2Config()
+			expected := authConfig.Configs[0].GetOauth2()
+			expectedPlainOAuth2 := expected.GetOauth2()
+
+			Expect(actualPlainOAuth2.AppUrl).To(Equal(expectedPlainOAuth2.AppUrl))
+			Expect(actualPlainOAuth2.CallbackPath).To(Equal(expectedPlainOAuth2.CallbackPath))
+			Expect(actualPlainOAuth2.ClientId).To(Equal(expectedPlainOAuth2.ClientId))
+			Expect(actualPlainOAuth2.ClientSecret).To(Equal(clientSecret.ClientSecret))
+			Expect(actualPlainOAuth2.AuthEndpointQueryParams).To(Equal(expectedPlainOAuth2.AuthEndpointQueryParams))
+			Expect(actualPlainOAuth2.TokenEndpointQueryParams).To(Equal(expectedPlainOAuth2.TokenEndpointQueryParams))
+			Expect(actualPlainOAuth2.Scopes).To(Equal(expectedPlainOAuth2.Scopes))
+			Expect(actualPlainOAuth2.AuthEndpoint).To(Equal(expectedPlainOAuth2.AuthEndpoint))
+			Expect(actualPlainOAuth2.TokenEndpoint).To(Equal(expectedPlainOAuth2.TokenEndpoint))
+			Expect(actualPlainOAuth2.RevocationEndpoint).To(Equal(expectedPlainOAuth2.RevocationEndpoint))
+			// verify translation of the Session, because the cipher config is nil
+			//lint:ignore SA1019 testing for upgrades
+			Expect(actualPlainOAuth2.Session.GetCookie()).To(Equal(expectedPlainOAuth2.Session.GetCookie()))
+			//lint:ignore SA1019 testing for upgrades
+			Expect(actualPlainOAuth2.Session.FailOnFetchFailure).To(Equal(expectedPlainOAuth2.Session.GetFailOnFetchFailure()))
+			//lint:ignore SA1019 testing for upgrades
+			Expect(actualPlainOAuth2.Session.CookieOptions).To(Equal(expectedPlainOAuth2.Session.CookieOptions))
+			//lint:ignore SA1019 testing to ensure that the Session Cipher Config is Nil
+			Expect(actualPlainOAuth2.Session.GetCipherConfig()).To(BeNil())
+			// verify translation of the User Session, which is nil when the cipher config is set
+			Expect(actualPlainOAuth2.UserSession).To(BeNil())
+		})
 	})
 
 	Context("with api key extauth", func() {
