@@ -259,6 +259,8 @@ func ScaledSnapshot(config ScaleConfig) *gloosnapshot.ApiSnapshot {
 	}
 
 	return &gloosnapshot.ApiSnapshot{
+		Proxies: []*v1.Proxy{Proxy()},
+
 		Endpoints: endpointList,
 		Upstreams: upstreamList,
 	}

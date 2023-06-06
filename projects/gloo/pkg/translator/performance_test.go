@@ -79,17 +79,24 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 	// Labels are used to add context to the entry description
 	DescribeTable("Benchmark table",
 		func(apiSnap *v1snap.ApiSnapshot, config benchmarkConfig, labels ...string) {
+			var (
+				proxy *v1.Proxy
+
+				snap   cache.Snapshot
+				errs   reporter.ResourceReports
+				report *validation.ProxyReport
+			)
 
 			params := plugins.Params{
 				Ctx:      context.Background(),
 				Snapshot: apiSnap,
 			}
 
-			var (
-				snap   cache.Snapshot
-				errs   reporter.ResourceReports
-				report *validation.ProxyReport
-			)
+			if len(apiSnap.Proxies) > 0 {
+				proxy = apiSnap.Proxies[0]
+			} else {
+				proxy = gloohelpers.Proxy()
+			}
 
 			desc := generateDesc(apiSnap, config, labels...)
 
@@ -101,7 +108,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 
 				// Time translation
 				experiment.MeasureDuration(desc, func() {
-					snap, errs, report = translator.Translate(params, gloohelpers.Proxy())
+					snap, errs, report = translator.Translate(params, proxy)
 				})
 
 				// Assert expected results
