@@ -43,11 +43,25 @@ import (
 	"k8s.io/utils/pointer"
 )
 
+var backtick = "`"
+
+// Some of these fields are expected to start with a newline. This is to make it easier to read in the tests.
+// Since this is YAML, the indentation is important and by starting the first line of text at first column of display
+// the indentation and structure of the YAML is clearer
+type unstructuredSettingsStringArgs struct {
+	transportApiVersion              string
+	extraExtAuth                     string // Should start with newline if defined
+	extraGloo                        string // Should start with newline if defined
+	extraSpec                        string // Should start with newline if defined
+	customRateLimit                  string // Should start with newline if defined
+	consoleOptionsReadOnly           string // "true" or "false" - using strings becuase it makes using defaults easier
+	consoleOptionsApiExplorerEnabled string // "true" or "false" - using strings becuase it makes using defaults easier
+	schemaChangeValidationOptions    string // Should start with newline if defined
+}
+
 var _ = Describe("Helm Test", func() {
 	var (
 		version string
-
-		backtick = "`"
 
 		normalPromAnnotations = map[string]string{
 			"prometheus.io/port":   "9091",
@@ -2417,69 +2431,15 @@ spec:
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				settings := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Settings
-metadata:
-  labels:
-    app: gloo
-    gloo: settings
-  name: default
-  namespace: ` + namespace + `
-spec:
-  discovery:
-    fdsMode: WHITELIST
-  extauth:
-    transportApiVersion: V3
-    extauthzServerRef:
-      name: extauth
-      namespace: ` + namespace + `
-    requestTimeout: "1s"
-    userIdHeader: "x-user-id"
-  gateway:
-    enableGatewayController: true
-    readGatewaysFromAllNamespaces: false
-    isolateVirtualHostsBySslConfig: false
-    validation:
-      alwaysAccept: true
-      proxyValidationServerAddr: gloo:9988
-      serverEnabled: true
-      disableTransformationValidation: false
-      allowWarnings: true
-      warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 104857600
-  gloo:
-    regexMaxProgramSize: 1024
-    enableRestEds: false
-    xdsBindAddr: 0.0.0.0:9977
-    restXdsBindAddr: 0.0.0.0:9976
-    regexMaxProgramSize: 1024
-    proxyDebugBindAddr: 0.0.0.0:9966
-    disableKubernetesDestinations: false
-    disableProxyGarbageCollection: false
-    invalidConfigPolicy:
-      replaceInvalidRoutes: false
-      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
-      invalidRouteResponseCode: 404
-      replaceInvalidRoutes: false
-  ratelimitServer:
-    rateLimitBeforeAuth: false
-    ratelimitServerRef:
-      namespace: ` + namespace + `
-      name: rate-limit
-  kubernetesArtifactSource: {}
-  kubernetesConfigSource: {}
-  kubernetesSecretSource: {}
-  refreshRate: 60s
-  discoveryNamespace: ` + namespace + `
-  consoleOptions:
-    readOnly: false
-    apiExplorerEnabled: true
-  graphqlOptions:
-    schemaChangeValidationOptions:
-      rejectBreakingChanges: false
-      processingRules: []
-`)
+
+				unstructuredSettingsString := getUnstructuredSettingsString(
+					unstructuredSettingsStringArgs{
+						extraExtAuth: `
+    requestTimeout: "1s"`,
+					},
+				)
+
+				settings := makeUnstructured(unstructuredSettingsString)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 
@@ -2492,71 +2452,17 @@ spec:
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				settings := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Settings
-metadata:
-  labels:
-    app: gloo
-    gloo: settings
-  name: default
-  namespace: ` + namespace + `
-spec:
-  discovery:
-    fdsMode: WHITELIST
-  extauth:
-    transportApiVersion: V3
-    extauthzServerRef:
-      name: extauth
-      namespace: ` + namespace + `
+
+				unstructuredSettingsString := getUnstructuredSettingsString(
+					unstructuredSettingsStringArgs{
+						extraExtAuth: `
     requestBody:
       maxRequestBytes: 64000
-      packAsBytes: true
-    userIdHeader: "x-user-id"
-  gateway:
-    enableGatewayController: true
-    readGatewaysFromAllNamespaces: false
-    isolateVirtualHostsBySslConfig: false
-    validation:
-      alwaysAccept: true
-      proxyValidationServerAddr: gloo:9988
-      serverEnabled: true
-      disableTransformationValidation: false
-      allowWarnings: true
-      warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 104857600
-  gloo:
-    regexMaxProgramSize: 1024
-    enableRestEds: false
-    xdsBindAddr: 0.0.0.0:9977
-    restXdsBindAddr: 0.0.0.0:9976
-    regexMaxProgramSize: 1024
-    proxyDebugBindAddr: 0.0.0.0:9966
-    disableKubernetesDestinations: false
-    disableProxyGarbageCollection: false
-    invalidConfigPolicy:
-      replaceInvalidRoutes: false
-      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
-      invalidRouteResponseCode: 404
-      replaceInvalidRoutes: false
-  ratelimitServer:
-    rateLimitBeforeAuth: false
-    ratelimitServerRef:
-      namespace: ` + namespace + `
-      name: rate-limit
-  kubernetesArtifactSource: {}
-  kubernetesConfigSource: {}
-  kubernetesSecretSource: {}
-  refreshRate: 60s
-  discoveryNamespace: ` + namespace + `
-  consoleOptions:
-    readOnly: false
-    apiExplorerEnabled: true
-  graphqlOptions:
-    schemaChangeValidationOptions:
-      rejectBreakingChanges: false
-      processingRules: []
-`)
+      packAsBytes: true`,
+					},
+				)
+				settings := makeUnstructured(unstructuredSettingsString)
+
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 
@@ -2567,68 +2473,31 @@ spec:
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				settings := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Settings
-metadata:
-  labels:
-    app: gloo
-    gloo: settings
-  name: default
-  namespace: ` + namespace + `
-spec:
-  discovery:
-    fdsMode: WHITELIST
-  extauth:
-    transportApiVersion: V2
-    extauthzServerRef:
-      name: extauth
-      namespace: ` + namespace + `
-    userIdHeader: "x-user-id"
-  gateway:
-    enableGatewayController: true
-    readGatewaysFromAllNamespaces: false
-    isolateVirtualHostsBySslConfig: false
-    validation:
-      alwaysAccept: true
-      proxyValidationServerAddr: gloo:9988
-      serverEnabled: true
-      disableTransformationValidation: false
-      allowWarnings: true
-      warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 104857600
-  gloo:
-    regexMaxProgramSize: 1024
-    enableRestEds: false
-    xdsBindAddr: 0.0.0.0:9977
-    restXdsBindAddr: 0.0.0.0:9976
-    regexMaxProgramSize: 1024
-    proxyDebugBindAddr: 0.0.0.0:9966
-    disableKubernetesDestinations: false
-    disableProxyGarbageCollection: false
-    invalidConfigPolicy:
-      replaceInvalidRoutes: false
-      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
-      invalidRouteResponseCode: 404
-      replaceInvalidRoutes: false
-  ratelimitServer:
-    rateLimitBeforeAuth: false
-    ratelimitServerRef:
-      namespace: ` + namespace + `
-      name: rate-limit
-  kubernetesArtifactSource: {}
-  kubernetesConfigSource: {}
-  kubernetesSecretSource: {}
-  refreshRate: 60s
-  discoveryNamespace: ` + namespace + `
-  consoleOptions:
-    readOnly: false
-    apiExplorerEnabled: true
-  graphqlOptions:
-    schemaChangeValidationOptions:
-      rejectBreakingChanges: false
-      processingRules: []
-`)
+
+				unstructuredSettingsString := getUnstructuredSettingsString(unstructuredSettingsStringArgs{
+					transportApiVersion: "V2",
+				})
+				settings := makeUnstructured(unstructuredSettingsString)
+				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+			})
+
+			It("correctly adds namedExtAuth", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.extAuth.namedExtAuth.myNamedExtAuth.name=extAuthName",
+						"global.extensions.extAuth.namedExtAuth.myNamedExtAuth.namespace=extAuthNamespace",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				unstructuredSettingsString := getUnstructuredSettingsString(unstructuredSettingsStringArgs{
+					extraSpec: `
+  namedExtauth:
+    myNamedExtAuth:
+      name: extAuthName
+      namespace: extAuthNamespace`,
+				})
+				settings := makeUnstructured(unstructuredSettingsString)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 
@@ -2639,70 +2508,14 @@ spec:
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				settings := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Settings
-metadata:
-  labels:
-    app: gloo
-    gloo: settings
-  name: default
-  namespace: ` + namespace + `
-spec:
-  discovery:
-    fdsMode: WHITELIST
-  extauth:
-    transportApiVersion: V3
-    extauthzServerRef:
-      name: extauth
-      namespace: ` + namespace + `
-    userIdHeader: "x-user-id"
-  gateway:
-    enableGatewayController: true
-    readGatewaysFromAllNamespaces: false
-    isolateVirtualHostsBySslConfig: false
-    validation:
-      alwaysAccept: true
-      proxyValidationServerAddr: gloo:9988
-      serverEnabled: true
-      disableTransformationValidation: false
-      allowWarnings: true
-      warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 104857600
-  gloo:
-    regexMaxProgramSize: 1024
-    enableRestEds: false
-    xdsBindAddr: 0.0.0.0:9977
-    restXdsBindAddr: 0.0.0.0:9976
-    regexMaxProgramSize: 1024
-    proxyDebugBindAddr: 0.0.0.0:9966
-    disableKubernetesDestinations: false
-    disableProxyGarbageCollection: false
-    invalidConfigPolicy:
-      replaceInvalidRoutes: false
-      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
-      invalidRouteResponseCode: 404
-      replaceInvalidRoutes: false
+
+				unstructuredSettingsString := getUnstructuredSettingsString(unstructuredSettingsStringArgs{
+					extraGloo: `
     awsOptions:
-      enableCredentialsDiscovey: true
-  ratelimitServer:
-    rateLimitBeforeAuth: false
-    ratelimitServerRef:
-      namespace: ` + namespace + `
-      name: rate-limit
-  kubernetesArtifactSource: {}
-  kubernetesConfigSource: {}
-  kubernetesSecretSource: {}
-  refreshRate: 60s
-  discoveryNamespace: ` + namespace + `
-  consoleOptions:
-    readOnly: false
-    apiExplorerEnabled: true
-  graphqlOptions:
-    schemaChangeValidationOptions:
-      rejectBreakingChanges: false
-      processingRules: []
-`)
+      enableCredentialsDiscovey: true`,
+				})
+				settings := makeUnstructured(unstructuredSettingsString)
+
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 
@@ -2716,75 +2529,19 @@ spec:
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				settings := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Settings
-metadata:
-  labels:
-    app: gloo
-    gloo: settings
-  name: default
-  namespace: ` + namespace + `
-spec:
-  discovery:
-    fdsMode: WHITELIST
-  extauth:
-    transportApiVersion: V3
-    extauthzServerRef:
-      name: extauth
-      namespace: ` + namespace + `
-    userIdHeader: "x-user-id"
-  gateway:
-    enableGatewayController: true
-    readGatewaysFromAllNamespaces: false
-    isolateVirtualHostsBySslConfig: false
-    validation:
-      alwaysAccept: true
-      proxyValidationServerAddr: gloo:9988
-      serverEnabled: true
-      disableTransformationValidation: false
-      allowWarnings: true
-      warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 104857600
-  gloo:
-    regexMaxProgramSize: 1024
-    enableRestEds: false
-    xdsBindAddr: 0.0.0.0:9977
-    restXdsBindAddr: 0.0.0.0:9976
-    regexMaxProgramSize: 1024
-    proxyDebugBindAddr: 0.0.0.0:9966
-    disableKubernetesDestinations: false
-    disableProxyGarbageCollection: false
-    invalidConfigPolicy:
-      replaceInvalidRoutes: false
-      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
-      invalidRouteResponseCode: 404
-      replaceInvalidRoutes: false
-  ratelimitServer:
-    rateLimitBeforeAuth: false
-    ratelimitServerRef:
-      namespace: ` + namespace + `
-      name: rate-limit
-  kubernetesArtifactSource: {}
-  kubernetesConfigSource: {}
-  kubernetesSecretSource: {}
-  refreshRate: 60s
-  discoveryNamespace: ` + namespace + `
+
+				unstructuredSettingsString := getUnstructuredSettingsString(unstructuredSettingsStringArgs{
+					extraSpec: `
   ratelimit:
     descriptors:
-      - key: generic_key
-        value: "per-second"
-        rateLimit:
-          requestsPerUnit: 2
-          unit: SECOND
-  consoleOptions:
-    readOnly: false
-    apiExplorerEnabled: true
-  graphqlOptions:
-    schemaChangeValidationOptions:
-      rejectBreakingChanges: false
-      processingRules: []
-`)
+    - key: generic_key
+      value: "per-second"
+      rateLimit:
+        requestsPerUnit: 2
+        unit: SECOND`,
+				})
+				settings := makeUnstructured(unstructuredSettingsString)
+
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 
@@ -2796,72 +2553,16 @@ spec:
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				settings := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Settings
-metadata:
-  labels:
-    app: gloo
-    gloo: settings
-  name: default
-  namespace: ` + namespace + `
-spec:
-  discovery:
-    fdsMode: WHITELIST
-  extauth:
-    transportApiVersion: V3
-    extauthzServerRef:
-      name: extauth
-      namespace: ` + namespace + `
-    userIdHeader: "x-user-id"
-  gateway:
-    enableGatewayController: true
-    readGatewaysFromAllNamespaces: false
-    isolateVirtualHostsBySslConfig: false
-    validation:
-      alwaysAccept: true
-      proxyValidationServerAddr: gloo:9988
-      serverEnabled: true
-      disableTransformationValidation: false
-      allowWarnings: true
-      warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 104857600
-  gloo:
-    regexMaxProgramSize: 1024
-    enableRestEds: false
-    xdsBindAddr: 0.0.0.0:9977
-    restXdsBindAddr: 0.0.0.0:9976
-    regexMaxProgramSize: 1024
-    proxyDebugBindAddr: 0.0.0.0:9966
-    disableKubernetesDestinations: false
-    disableProxyGarbageCollection: false
+
+				unstructuredSettingsString := getUnstructuredSettingsString(unstructuredSettingsStringArgs{
+					extraGloo: `
     awsOptions:
       serviceAccountCredentials:
         cluster: aws_sts_cluster
-        uri: sts.us-east-2.amazonaws.com
-    invalidConfigPolicy:
-      replaceInvalidRoutes: false
-      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
-      invalidRouteResponseCode: 404
-      replaceInvalidRoutes: false
-  ratelimitServer:
-    rateLimitBeforeAuth: false
-    ratelimitServerRef:
-      namespace: ` + namespace + `
-      name: rate-limit
-  kubernetesArtifactSource: {}
-  kubernetesConfigSource: {}
-  kubernetesSecretSource: {}
-  refreshRate: 60s
-  discoveryNamespace: ` + namespace + `
-  consoleOptions:
-    readOnly: false
-    apiExplorerEnabled: true
-  graphqlOptions:
-    schemaChangeValidationOptions:
-      rejectBreakingChanges: false
-      processingRules: []
-`)
+        uri: sts.us-east-2.amazonaws.com`,
+				})
+				settings := makeUnstructured(unstructuredSettingsString)
+
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 
@@ -4167,68 +3868,13 @@ spec:
 					valuesArgs: []string{"global.extensions.rateLimit.beforeAuth=true"},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				settings := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Settings
-metadata:
-  labels:
-    app: gloo
-    gloo: settings
-  name: default
-  namespace: ` + namespace + `
-spec:
-  discovery:
-    fdsMode: WHITELIST
-  extauth:
-    transportApiVersion: V3
-    extauthzServerRef:
-      name: extauth
-      namespace: ` + namespace + `
-    userIdHeader: "x-user-id"
-  gateway:
-    enableGatewayController: true
-    readGatewaysFromAllNamespaces: false
-    isolateVirtualHostsBySslConfig: false
-    validation:
-      alwaysAccept: true
-      proxyValidationServerAddr: gloo:9988
-      serverEnabled: true
-      disableTransformationValidation: false
-      allowWarnings: true
-      warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 104857600
-  gloo:
-    regexMaxProgramSize: 1024
-    enableRestEds: false
-    xdsBindAddr: 0.0.0.0:9977
-    restXdsBindAddr: 0.0.0.0:9976
-    regexMaxProgramSize: 1024
-    proxyDebugBindAddr: 0.0.0.0:9966
-    disableKubernetesDestinations: false
-    disableProxyGarbageCollection: false
-    invalidConfigPolicy:
-      replaceInvalidRoutes: false
-      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
-      invalidRouteResponseCode: 404
-      replaceInvalidRoutes: false
-  ratelimitServer:
-    rateLimitBeforeAuth: true
-    ratelimitServerRef:
-      namespace: ` + namespace + `
-      name: rate-limit
-  kubernetesArtifactSource: {}
-  kubernetesConfigSource: {}
-  kubernetesSecretSource: {}
-  refreshRate: 60s
-  discoveryNamespace: ` + namespace + `
-  consoleOptions:
-    readOnly: false
-    apiExplorerEnabled: true
-  graphqlOptions:
-    schemaChangeValidationOptions:
-      rejectBreakingChanges: false
-      processingRules: []
-`)
+				unstructuredSettingsString := getUnstructuredSettingsString(unstructuredSettingsStringArgs{
+					customRateLimit: `    rateLimitBeforeAuth: true	
+    ratelimitServerRef:	
+      namespace: ` + namespace + `	
+      name: rate-limit`,
+				})
+				settings := makeUnstructured(unstructuredSettingsString)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 
@@ -4246,69 +3892,15 @@ spec:
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				settings := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Settings
-metadata:
-  labels:
-    app: gloo
-    gloo: settings
-  name: default
-  namespace: ` + namespace + `
-spec:
-  discovery:
-    fdsMode: WHITELIST
-  extauth:
-    transportApiVersion: V3
-    extauthzServerRef:
-      name: extauth
-      namespace: ` + namespace + `
-    userIdHeader: "x-user-id"
-  gateway:
-    enableGatewayController: true
-    readGatewaysFromAllNamespaces: false
-    isolateVirtualHostsBySslConfig: false
-    validation:
-      alwaysAccept: true
-      proxyValidationServerAddr: gloo:9988
-      serverEnabled: true
-      disableTransformationValidation: false
-      allowWarnings: true
-      warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 104857600
-  gloo:
-    regexMaxProgramSize: 1024
-    enableRestEds: false
-    xdsBindAddr: 0.0.0.0:9977
-    restXdsBindAddr: 0.0.0.0:9976
-    regexMaxProgramSize: 1024
-    proxyDebugBindAddr: 0.0.0.0:9966
-    disableKubernetesDestinations: false
-    disableProxyGarbageCollection: false
-    invalidConfigPolicy:
-      replaceInvalidRoutes: false
-      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
-      invalidRouteResponseCode: 404
-      replaceInvalidRoutes: false
-  ratelimitServer:
-    rateLimitBeforeAuth: true
-    ratelimitServerRef:
-      namespace: mynamespace
+				unstructuredSettingsString := getUnstructuredSettingsString(unstructuredSettingsStringArgs{
+					customRateLimit: `    rateLimitBeforeAuth: true	
+    ratelimitServerRef:	
+      namespace: mynamespace	
       name: myratelimit
-    denyOnFail: true
-  kubernetesArtifactSource: {}
-  kubernetesConfigSource: {}
-  kubernetesSecretSource: {}
-  refreshRate: 60s
-  discoveryNamespace: ` + namespace + `
-  consoleOptions:
-    readOnly: false
-    apiExplorerEnabled: true
-  graphqlOptions:
-    schemaChangeValidationOptions:
-      rejectBreakingChanges: false
-      processingRules: []
-`)
+    denyOnFail: true`,
+				})
+				settings := makeUnstructured(unstructuredSettingsString)
+
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 
@@ -5705,68 +5297,7 @@ spec:
 					valuesArgs: []string{},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				settings := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Settings
-metadata:
-  labels:
-    app: gloo
-    gloo: settings
-  name: default
-  namespace: ` + namespace + `
-spec:
-  discovery:
-    fdsMode: WHITELIST
-  extauth:
-    transportApiVersion: V3
-    extauthzServerRef:
-      name: extauth
-      namespace: ` + namespace + `
-    userIdHeader: "x-user-id"
-  gateway:
-    enableGatewayController: true
-    readGatewaysFromAllNamespaces: false
-    isolateVirtualHostsBySslConfig: false
-    validation:
-      alwaysAccept: true
-      proxyValidationServerAddr: gloo:9988
-      serverEnabled: true
-      disableTransformationValidation: false
-      allowWarnings: true
-      warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 104857600
-  gloo:
-    regexMaxProgramSize: 1024
-    enableRestEds: false
-    xdsBindAddr: 0.0.0.0:9977
-    restXdsBindAddr: 0.0.0.0:9976
-    regexMaxProgramSize: 1024
-    proxyDebugBindAddr: 0.0.0.0:9966
-    disableKubernetesDestinations: false
-    disableProxyGarbageCollection: false
-    invalidConfigPolicy:
-      replaceInvalidRoutes: false
-      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
-      invalidRouteResponseCode: 404
-      replaceInvalidRoutes: false
-  ratelimitServer:
-    rateLimitBeforeAuth: false
-    ratelimitServerRef:
-      namespace: ` + namespace + `
-      name: rate-limit
-  kubernetesArtifactSource: {}
-  kubernetesConfigSource: {}
-  kubernetesSecretSource: {}
-  refreshRate: 60s
-  discoveryNamespace: ` + namespace + `
-  consoleOptions:
-    readOnly: false
-    apiExplorerEnabled: true
-  graphqlOptions:
-    schemaChangeValidationOptions:
-      rejectBreakingChanges: false
-      processingRules: []
-`)
+				settings := makeUnstructured(getUnstructuredSettingsString(unstructuredSettingsStringArgs{}))
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 			It("can override console options", func() {
@@ -5777,68 +5308,14 @@ spec:
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				settings := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Settings
-metadata:
-  labels:
-    app: gloo
-    gloo: settings
-  name: default
-  namespace: ` + namespace + `
-spec:
-  discovery:
-    fdsMode: WHITELIST
-  extauth:
-    transportApiVersion: V3
-    extauthzServerRef:
-      name: extauth
-      namespace: ` + namespace + `
-    userIdHeader: "x-user-id"
-  gateway:
-    enableGatewayController: true
-    readGatewaysFromAllNamespaces: false
-    isolateVirtualHostsBySslConfig: false
-    validation:
-      alwaysAccept: true
-      proxyValidationServerAddr: gloo:9988
-      serverEnabled: true
-      disableTransformationValidation: false
-      allowWarnings: true
-      warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 104857600
-  gloo:
-    regexMaxProgramSize: 1024
-    enableRestEds: false
-    xdsBindAddr: 0.0.0.0:9977
-    restXdsBindAddr: 0.0.0.0:9976
-    regexMaxProgramSize: 1024
-    proxyDebugBindAddr: 0.0.0.0:9966
-    disableKubernetesDestinations: false
-    disableProxyGarbageCollection: false
-    invalidConfigPolicy:
-      replaceInvalidRoutes: false
-      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
-      invalidRouteResponseCode: 404
-      replaceInvalidRoutes: false
-  ratelimitServer:
-    rateLimitBeforeAuth: false
-    ratelimitServerRef:
-      namespace: ` + namespace + `
-      name: rate-limit
-  kubernetesArtifactSource: {}
-  kubernetesConfigSource: {}
-  kubernetesSecretSource: {}
-  refreshRate: 60s
-  discoveryNamespace: ` + namespace + `
-  consoleOptions:
-    readOnly: true
-    apiExplorerEnabled: false
-  graphqlOptions:
-    schemaChangeValidationOptions:
-      rejectBreakingChanges: false
-      processingRules: []
-`)
+				unstructuredSettingsString := getUnstructuredSettingsString(
+					unstructuredSettingsStringArgs{
+						consoleOptionsReadOnly:           "true",
+						consoleOptionsApiExplorerEnabled: "false",
+					},
+				)
+
+				settings := makeUnstructured(unstructuredSettingsString)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 		})
@@ -5849,68 +5326,8 @@ spec:
 					valuesArgs: []string{},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				settings := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Settings
-metadata:
-  labels:
-    app: gloo
-    gloo: settings
-  name: default
-  namespace: ` + namespace + `
-spec:
-  discovery:
-    fdsMode: WHITELIST
-  extauth:
-    transportApiVersion: V3
-    extauthzServerRef:
-      name: extauth
-      namespace: ` + namespace + `
-    userIdHeader: "x-user-id"
-  gateway:
-    enableGatewayController: true
-    readGatewaysFromAllNamespaces: false
-    isolateVirtualHostsBySslConfig: false
-    validation:
-      alwaysAccept: true
-      proxyValidationServerAddr: gloo:9988
-      serverEnabled: true
-      disableTransformationValidation: false
-      allowWarnings: true
-      warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 104857600
-  gloo:
-    regexMaxProgramSize: 1024
-    enableRestEds: false
-    xdsBindAddr: 0.0.0.0:9977
-    restXdsBindAddr: 0.0.0.0:9976
-    regexMaxProgramSize: 1024
-    proxyDebugBindAddr: 0.0.0.0:9966
-    disableKubernetesDestinations: false
-    disableProxyGarbageCollection: false
-    invalidConfigPolicy:
-      replaceInvalidRoutes: false
-      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
-      invalidRouteResponseCode: 404
-      replaceInvalidRoutes: false
-  ratelimitServer:
-    rateLimitBeforeAuth: false
-    ratelimitServerRef:
-      namespace: ` + namespace + `
-      name: rate-limit
-  kubernetesArtifactSource: {}
-  kubernetesConfigSource: {}
-  kubernetesSecretSource: {}
-  refreshRate: 60s
-  discoveryNamespace: ` + namespace + `
-  consoleOptions:
-    readOnly: false
-    apiExplorerEnabled: true
-  graphqlOptions:
-    schemaChangeValidationOptions:
-      rejectBreakingChanges: false
-      processingRules: []
-`)
+				settings := makeUnstructured(getUnstructuredSettingsString(unstructuredSettingsStringArgs{}))
+
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 			It("can override graphql options", func() {
@@ -5922,70 +5339,18 @@ spec:
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				settings := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Settings
-metadata:
-  labels:
-    app: gloo
-    gloo: settings
-  name: default
-  namespace: ` + namespace + `
-spec:
-  discovery:
-    fdsMode: WHITELIST
-  extauth:
-    transportApiVersion: V3
-    extauthzServerRef:
-      name: extauth
-      namespace: ` + namespace + `
-    userIdHeader: "x-user-id"
-  gateway:
-    enableGatewayController: true
-    readGatewaysFromAllNamespaces: false
-    isolateVirtualHostsBySslConfig: false
-    validation:
-      alwaysAccept: true
-      proxyValidationServerAddr: gloo:9988
-      serverEnabled: true
-      disableTransformationValidation: false
-      allowWarnings: true
-      warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 104857600
-  gloo:
-    regexMaxProgramSize: 1024
-    enableRestEds: false
-    xdsBindAddr: 0.0.0.0:9977
-    restXdsBindAddr: 0.0.0.0:9976
-    regexMaxProgramSize: 1024
-    proxyDebugBindAddr: 0.0.0.0:9966
-    disableKubernetesDestinations: false
-    disableProxyGarbageCollection: false
-    invalidConfigPolicy:
-      replaceInvalidRoutes: false
-      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
-      invalidRouteResponseCode: 404
-      replaceInvalidRoutes: false
-  ratelimitServer:
-    rateLimitBeforeAuth: false
-    ratelimitServerRef:
-      namespace: ` + namespace + `
-      name: rate-limit
-  kubernetesArtifactSource: {}
-  kubernetesConfigSource: {}
-  kubernetesSecretSource: {}
-  refreshRate: 60s
-  discoveryNamespace: ` + namespace + `
-  consoleOptions:
-    readOnly: false
-    apiExplorerEnabled: true
-  graphqlOptions:
-    schemaChangeValidationOptions:
+
+				unstructuredSettingsString := getUnstructuredSettingsString(
+					unstructuredSettingsStringArgs{
+						schemaChangeValidationOptions: `
       rejectBreakingChanges: true
       processingRules:
       - RULE_DEPRECATED_FIELD_REMOVAL_DANGEROUS
-      - RULE_IGNORE_UNREACHABLE
-`)
+      - RULE_IGNORE_UNREACHABLE`,
+					},
+				)
+				settings := makeUnstructured(unstructuredSettingsString)
+
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 			It("does not add rules that are set to false", func() {
@@ -5997,70 +5362,17 @@ spec:
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				settings := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Settings
-metadata:
-  labels:
-    app: gloo
-    gloo: settings
-  name: default
-  namespace: ` + namespace + `
-spec:
-  discovery:
-    fdsMode: WHITELIST
-  extauth:
-    transportApiVersion: V3
-    extauthzServerRef:
-      name: extauth
-      namespace: ` + namespace + `
-    userIdHeader: "x-user-id"
-  gateway:
-    enableGatewayController: true
-    readGatewaysFromAllNamespaces: false
-    isolateVirtualHostsBySslConfig: false
-    validation:
-      alwaysAccept: true
-      proxyValidationServerAddr: gloo:9988
-      serverEnabled: true
-      disableTransformationValidation: false
-      allowWarnings: true
-      warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 104857600
-  gloo:
-    regexMaxProgramSize: 1024
-    enableRestEds: false
-    xdsBindAddr: 0.0.0.0:9977
-    restXdsBindAddr: 0.0.0.0:9976
-    regexMaxProgramSize: 1024
-    proxyDebugBindAddr: 0.0.0.0:9966
-    disableKubernetesDestinations: false
-    disableProxyGarbageCollection: false
-    invalidConfigPolicy:
-      replaceInvalidRoutes: false
-      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
-      invalidRouteResponseCode: 404
-      replaceInvalidRoutes: false
-  ratelimitServer:
-    rateLimitBeforeAuth: false
-    ratelimitServerRef:
-      namespace: ` + namespace + `
-      name: rate-limit
-  kubernetesArtifactSource: {}
-  kubernetesConfigSource: {}
-  kubernetesSecretSource: {}
-  refreshRate: 60s
-  discoveryNamespace: ` + namespace + `
-  consoleOptions:
-    readOnly: false
-    apiExplorerEnabled: true
-  graphqlOptions:
-    schemaChangeValidationOptions:
+
+				unstructuredSettingsString := getUnstructuredSettingsString(
+					unstructuredSettingsStringArgs{
+						schemaChangeValidationOptions: `
       rejectBreakingChanges: false
       processingRules:
       - RULE_DANGEROUS_TO_BREAKING
-      - RULE_IGNORE_DESCRIPTION_CHANGES
-`)
+      - RULE_IGNORE_DESCRIPTION_CHANGES`,
+					},
+				)
+				settings := makeUnstructured(unstructuredSettingsString)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 		})
@@ -6646,4 +5958,98 @@ func getFedStructuredRole(t TestManifest, name string) *rbacv1.Role {
 	Expect(resources.NumResources()).To(Equal(1))
 
 	return structuredRole
+}
+
+func getUnstructuredSettingsString(args unstructuredSettingsStringArgs) string {
+	transportApiVersion := args.transportApiVersion
+	if transportApiVersion == "" {
+		transportApiVersion = "V3"
+	}
+
+	customRateLimit := args.customRateLimit
+	if customRateLimit == "" {
+		customRateLimit = `    rateLimitBeforeAuth: false
+    ratelimitServerRef:
+      namespace: ` + namespace + `
+      name: rate-limit`
+	}
+
+	consoleOptionsReadOnly := args.consoleOptionsReadOnly
+	if consoleOptionsReadOnly == "" {
+		consoleOptionsReadOnly = "false"
+	}
+
+	consoleOptionsApiExplorerEnabled := args.consoleOptionsApiExplorerEnabled
+	if consoleOptionsApiExplorerEnabled == "" {
+		consoleOptionsApiExplorerEnabled = "true"
+	}
+
+	schemaChangeValidationOptions := args.schemaChangeValidationOptions
+	if schemaChangeValidationOptions == "" {
+		schemaChangeValidationOptions = `
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: false
+      processingRules: []` +
+			args.extraSpec
+	}
+
+	return `
+apiVersion: gloo.solo.io/v1
+kind: Settings
+metadata:
+  labels:
+    app: gloo
+    gloo: settings
+  name: default
+  namespace: ` + namespace + `
+spec:
+  discovery:
+    fdsMode: WHITELIST
+  extauth:
+    transportApiVersion: ` + transportApiVersion + `
+    extauthzServerRef:
+      name: extauth
+      namespace: ` + namespace +
+		args.extraExtAuth + `
+    userIdHeader: "x-user-id"
+  gateway:
+    enableGatewayController: true
+    readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
+    validation:
+      alwaysAccept: true
+      proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
+      disableTransformationValidation: false
+      allowWarnings: true
+      warnRouteShortCircuiting: false
+      validationServerGrpcMaxSizeBytes: 104857600
+  gloo:
+    regexMaxProgramSize: 1024
+    enableRestEds: false
+    xdsBindAddr: 0.0.0.0:9977
+    restXdsBindAddr: 0.0.0.0:9976
+    regexMaxProgramSize: 1024
+    proxyDebugBindAddr: 0.0.0.0:9966
+    disableKubernetesDestinations: false
+    disableProxyGarbageCollection: false
+    invalidConfigPolicy:
+      replaceInvalidRoutes: false
+      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
+      invalidRouteResponseCode: 404
+      replaceInvalidRoutes: false` +
+		args.extraGloo + `
+  ratelimitServer:
+` + customRateLimit + `
+  kubernetesArtifactSource: {}
+  kubernetesConfigSource: {}
+  kubernetesSecretSource: {}
+  refreshRate: 60s
+  discoveryNamespace: ` + namespace + `
+  consoleOptions:
+    readOnly: ` + consoleOptionsReadOnly + `
+    apiExplorerEnabled: ` + consoleOptionsApiExplorerEnabled + `
+  graphqlOptions:
+    schemaChangeValidationOptions:  ` + schemaChangeValidationOptions + `
+`
 }

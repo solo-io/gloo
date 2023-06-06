@@ -2311,6 +2311,8 @@
 |global.extensions.extAuth.requestBody.packAsBytes|bool||if true, Envoy will send the body sent to the external authorization service with raw bytes|
 |global.extensions.extAuth.affinity.NAME|interface||Affinity rules to be applied. If unset, require extAuth pods to be scheduled on nodes with already-running gateway-proxy pods|
 |global.extensions.extAuth.antiAffinity.NAME|interface||Anti-affinity rules to be applied|
+|global.extensions.extAuth.namedExtAuth.NAME.namespace|string||The namespace of this resource.|
+|global.extensions.extAuth.namedExtAuth.NAME.name|string||The name of this resource.|
 |global.extensions.rateLimit.enabled|bool|true|if true, deploy rate limit service (default true)|
 |global.extensions.rateLimit.deployment.name|string|rate-limit||
 |global.extensions.rateLimit.deployment.glooAddress|string|gloo||

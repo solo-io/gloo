@@ -251,27 +251,28 @@ type CustomGrafana struct {
 }
 
 type ExtAuth struct {
-	Enabled              bool                          `json:"enabled,omitempty" desc:"if true, deploy ExtAuth service (default true)"`
-	UserIdHeader         string                        `json:"userIdHeader,omitempty"`
-	Deployment           *ExtAuthDeployment            `json:"deployment,omitempty"`
-	Service              *ExtAuthService               `json:"service,omitempty"`
-	SigningKey           *ExtAuthSigningKey            `json:"signingKey,omitempty"`
-	TlsEnabled           bool                          `json:"tlsEnabled" desc:"if true, have extauth terminate TLS itself (whereas Gloo mTLS mode runs an Envoy and SDS sidecars to do TLS termination and cert rotation)"`
-	SecretName           *string                       `json:"secretName" desc:"the name of the tls secret used to secure connections to the extauth service"`
-	CertPath             string                        `json:"certPath,omitempty" desc:"location of tls termination cert, if omitted defaults to /etc/envoy/ssl/tls.crt"`
-	KeyPath              string                        `json:"keyPath,omitempty" desc:"location of tls termination key, if omitted defaults to /etc/envoy/ssl/tls.key"`
-	Plugins              map[string]*ExtAuthPlugin     `json:"plugins,omitempty"`
-	EnvoySidecar         bool                          `json:"envoySidecar" desc:"if true, deploy ExtAuth as a sidecar with envoy (defaults to false)"`
-	StandaloneDeployment bool                          `json:"standaloneDeployment" desc:"if true, create a standalone ExtAuth deployment (defaults to true)"`
-	TransportApiVersion  string                        `json:"transportApiVersion" desc:"Determines the API version for the ext_authz transport protocol that will be used by Envoy to communicate with the auth server. Defaults to 'V3''"`
-	ServiceName          string                        `json:"serviceName,omitempty"`
-	RequestTimeout       string                        `json:"requestTimeout,omitempty" desc:"Timeout for the ext auth service to respond (defaults to 200ms)"`
-	HeadersToRedact      string                        `json:"headersToRedact,omitempty" desc:"Space separated list of headers to redact from the logs. To avoid the default redactions, specify '-' as the value"`
-	Secret               *glooGen.KubeResourceOverride `json:"secret,omitempty"`
-	Upstream             *glooGen.KubeResourceOverride `json:"upstream,omitempty"`
-	RequestBody          *BufferSettings               `json:"requestBody,omitempty" desc:"Set in order to send the body of the request, and not just the headers"`
-	Affinity             map[string]interface{}        `json:"affinity,omitempty" desc:"Affinity rules to be applied. If unset, require extAuth pods to be scheduled on nodes with already-running gateway-proxy pods"`
-	AntiAffinity         map[string]interface{}        `json:"antiAffinity,omitempty" desc:"Anti-affinity rules to be applied"`
+	Enabled              bool                           `json:"enabled,omitempty" desc:"if true, deploy ExtAuth service (default true)"`
+	UserIdHeader         string                         `json:"userIdHeader,omitempty"`
+	Deployment           *ExtAuthDeployment             `json:"deployment,omitempty"`
+	Service              *ExtAuthService                `json:"service,omitempty"`
+	SigningKey           *ExtAuthSigningKey             `json:"signingKey,omitempty"`
+	TlsEnabled           bool                           `json:"tlsEnabled" desc:"if true, have extauth terminate TLS itself (whereas Gloo mTLS mode runs an Envoy and SDS sidecars to do TLS termination and cert rotation)"`
+	SecretName           *string                        `json:"secretName" desc:"the name of the tls secret used to secure connections to the extauth service"`
+	CertPath             string                         `json:"certPath,omitempty" desc:"location of tls termination cert, if omitted defaults to /etc/envoy/ssl/tls.crt"`
+	KeyPath              string                         `json:"keyPath,omitempty" desc:"location of tls termination key, if omitted defaults to /etc/envoy/ssl/tls.key"`
+	Plugins              map[string]*ExtAuthPlugin      `json:"plugins,omitempty"`
+	EnvoySidecar         bool                           `json:"envoySidecar" desc:"if true, deploy ExtAuth as a sidecar with envoy (defaults to false)"`
+	StandaloneDeployment bool                           `json:"standaloneDeployment" desc:"if true, create a standalone ExtAuth deployment (defaults to true)"`
+	TransportApiVersion  string                         `json:"transportApiVersion" desc:"Determines the API version for the ext_authz transport protocol that will be used by Envoy to communicate with the auth server. Defaults to 'V3''"`
+	ServiceName          string                         `json:"serviceName,omitempty"`
+	RequestTimeout       string                         `json:"requestTimeout,omitempty" desc:"Timeout for the ext auth service to respond (defaults to 200ms)"`
+	HeadersToRedact      string                         `json:"headersToRedact,omitempty" desc:"Space separated list of headers to redact from the logs. To avoid the default redactions, specify '-' as the value"`
+	Secret               *glooGen.KubeResourceOverride  `json:"secret,omitempty"`
+	Upstream             *glooGen.KubeResourceOverride  `json:"upstream,omitempty"`
+	RequestBody          *BufferSettings                `json:"requestBody,omitempty" desc:"Set in order to send the body of the request, and not just the headers"`
+	Affinity             map[string]interface{}         `json:"affinity,omitempty" desc:"Affinity rules to be applied. If unset, require extAuth pods to be scheduled on nodes with already-running gateway-proxy pods"`
+	AntiAffinity         map[string]interface{}         `json:"antiAffinity,omitempty" desc:"Anti-affinity rules to be applied"`
+	NamedExtAuth         map[string]glooGen.ResourceRef `json:"namedExtAuth,omitempty" desc:"Settings to configure additional external auth servers"`
 }
 
 type ExtAuthDeployment struct {

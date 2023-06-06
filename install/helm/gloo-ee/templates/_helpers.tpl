@@ -287,6 +287,10 @@ Injection point for enterprise-exclusive settings into the settings manifest
     userIdHeader: {{ quote $extauth.userIdHeader }}
     {{- end }}
   {{- end }}
+  {{- with .Values.global.extensions.extAuth.namedExtAuth }}
+  namedExtauth:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{- end}}
 {{- end}}
 {{- if and $.Values.global.extensions.rateLimit.enabled (not $.Values.settings.ratelimitServer) }}

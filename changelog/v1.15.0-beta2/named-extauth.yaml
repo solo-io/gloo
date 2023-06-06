@@ -1,0 +1,6 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/solo-projects/issues/5030
+    resolvesIssue: false
+    description: |
+      Allow namedExtAuth references to be defined in Settings by setting the global.extensions.extAuth.namedExtAuth value.
