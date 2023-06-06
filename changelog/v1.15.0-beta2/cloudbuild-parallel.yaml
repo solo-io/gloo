@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5068
+    resolvesIssue: false
+    description: >-
+      Cleanup the Cloudbuild definitions to mirror Gloo Edge OSS. This allows some of our tests
+      to run in parallel, which improves the execution time.

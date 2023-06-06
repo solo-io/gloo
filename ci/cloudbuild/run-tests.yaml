@@ -122,30 +122,41 @@ steps:
   waitFor: ["set-test-zone"]
   id: "get-test-credentials"
 
+- name: "gcr.io/solo-public/go-mod-make:0.6.2"
+  id: "prepare-test-tools"
+  dir: *dir
+  args:
+  - "install-test-tools"
+  waitFor:
+  - "prepare-workspace"
+  - "get-envoy"
+  - "setup-aws-creds"
+  - "get-test-credentials"
+
 # e2e-go-mod-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-go-mod-ginkgo
 # sets up redis, consul, kubectl, go with required environment variables
 # need to use the provided entrypoint
 # This step HAS to run after codegen, because codegen also runs `go generate` and might overwrite existing plugin files.
 # Can't run gingko with -race because this changes the go runtime dependency and extauth plugin dependency test will fail
+
 - name: "gcr.io/solo-public/e2e-go-mod-ginkgo:0.6.2"
+  id: "run-tests"
   dir: *dir
-  entrypoint: make
-  args: ["run-tests"]
-  env:
-    - "ENVOY_BINARY=/workspace/envoy"
-    - "LIBSAXON_SHARED_OBJECT_PATH=/workspace/libsaxon-solo.so"
-    - "AWS_SHARED_CREDENTIALS_FILE=/workspace/aws_credentials"
-    - "RUN_KUBE_TESTS=1"
-    - "GCLOUD_BUILD_ID=$BUILD_ID"
+  entrypoint: "make"
+  args:
+  - "run-tests"
   waitFor:
-    [
-      "prepare-workspace",
-      "get-envoy",
-      "yarn-build",
-      "setup-aws-creds",
-      "get-test-credentials",
-    ]
-  id: "test"
+  - "yarn-build"
+  - "prepare-test-tools"
+
+- name: "gcr.io/solo-public/e2e-go-mod-ginkgo:0.6.2"
+  id: "run-e2e-tests"
+  dir: *dir
+  entrypoint: "make"
+  args:
+  - "run-e2e-tests"
+  waitFor:
+  - "prepare-test-tools"
 
 secrets:
 - kmsKeyName: projects/gloo-ee/locations/global/keyRings/build/cryptoKeys/build-key
@@ -163,6 +174,11 @@ options:
     - "TAGGED_VERSION=$TAG_NAME"
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
     - "HELM_HOME=/root/.helm"
+    - "GCLOUD_BUILD_ID=$BUILD_ID"
+    - "ENVOY_BINARY=/workspace/envoy"
+    - "LIBSAXON_SHARED_OBJECT_PATH=/workspace/libsaxon-solo.so"
+    - "AWS_SHARED_CREDENTIALS_FILE=/workspace/aws_credentials"
+    - "RUN_KUBE_TESTS=1"
   volumes:
     - name: "gopath"
       path: "/go"

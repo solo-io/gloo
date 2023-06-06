@@ -4,14 +4,14 @@ steps:
   # if TAG_NAME is set then this is a release and we don't run tests
   args:
     - '-c'
-    - 'if [ -z "$TAG_NAME" ]; then gcloud builds submit --config=cloudbuild-tests.yaml --substitutions TAG_NAME=$TAG_NAME,COMMIT_SHA=$COMMIT_SHA,REPO_NAME=$REPO_NAME,_GO_VERSION=1.20.1; fi'
+    - 'if [ -z "$TAG_NAME" ]; then gcloud builds submit --config=ci/cloudbuild/run-tests.yaml --substitutions TAG_NAME=$TAG_NAME,COMMIT_SHA=$COMMIT_SHA,REPO_NAME=$REPO_NAME,_GO_VERSION=1.20.1; fi'
   waitFor: [ '-' ]
-  id: "tests"
+  id: 'run-tests'
 
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: [ 'builds','submit','--config=cloudbuild-build-docker-images.yaml','--substitutions','TAG_NAME=$TAG_NAME,COMMIT_SHA=$COMMIT_SHA,REPO_NAME=$REPO_NAME,_PR_NUM=$_PR_NUM,_GO_VERSION=1.20.1' ]
+  args: [ 'builds','submit','--config=ci/cloudbuild/publish-artifacts.yaml','--substitutions','TAG_NAME=$TAG_NAME,COMMIT_SHA=$COMMIT_SHA,REPO_NAME=$REPO_NAME,_PR_NUM=$_PR_NUM,_GO_VERSION=1.20.1' ]
   waitFor: [ '-' ]
-  id: "docker-builds"
+  id: 'publish-artifacts'
 
 # Overall build timeout of 60m. The release builds take extra time for uploading and pushing artifacts. We can
 # set timeouts on specific steps (prepare-workspace, tests, etc) if we want to limit the time in sections, but want a forgiving

@@ -153,7 +153,7 @@ check-format:
 # Tests
 #----------------------------------------------------------------------------------
 
-GINKGO_VERSION ?= 2.8.1 # match our go.mod
+GINKGO_VERSION ?= $(shell echo $(shell go list -m github.com/onsi/ginkgo/v2) | cut -d' ' -f2)
 GINKGO_ENV ?= GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore ACK_GINKGO_RC=true ACK_GINKGO_DEPRECATIONS=$(GINKGO_VERSION) VERSION=$(VERSION)
 GINKGO_FLAGS ?= -fail-fast -trace -progress -compilers=4 -fail-on-pending
 GINKGO_RANDOMIZE_FLAGS ?= -randomize-all # Not yet actively supported
@@ -167,11 +167,10 @@ GINKGO_USER_FLAGS ?=
 
 .PHONY: install-test-tools
 install-test-tools: check-go-version
-install-test-tools:
-	go install github.com/onsi/ginkgo/v2/ginkgo@v$(GINKGO_VERSION)
+	go install github.com/onsi/ginkgo/v2/ginkgo@$(GINKGO_VERSION)
 
 .PHONY: test
-test: install-test-tools ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
+test: ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
 	$(GINKGO_ENV) ginkgo -ldflags=$(LDFLAGS) \
 	$(GINKGO_FLAGS) $(GINKGO_REPORT_FLAGS) $(GINKGO_USER_FLAGS) \
 	$(TEST_PKG)
@@ -182,11 +181,9 @@ test-with-coverage: test
 	go tool cover -html $(OUTPUT_DIR)/coverage.cov
 
 .PHONY: run-tests
-run-tests: GINKGO_FLAGS += -skip-package=kube2e,federation-kube2e ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
-ifneq ($(RELEASE), "true")
+run-tests: GINKGO_FLAGS += -skip-package=e2e ## Run all non E2E tests, or only run the test package at {TEST_PKG} if it is specified
 run-tests: generate-extauth-test-plugins
 run-tests: test
-endif
 
 # requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
 .PHONY: run-ci-regression-tests
@@ -201,7 +198,7 @@ run-ci-gloo-fed-regression-tests: test
 # command to run e2e tests
 # requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run
 .PHONY: run-e2e-tests
-run-e2e-tests: TEST_PKG = ./test/e2e/ ## Run the in memory Envoy e2e tests (ENVOY_IMAGE_TAG)
+run-e2e-tests: TEST_PKG = ./test/e2e/ /projects/multicluster-admission-webhook/test/e2e ## Run the in memory Envoy e2e tests (ENVOY_IMAGE_TAG)
 run-e2e-tests: test
 
 #----------------------------------------------------------------------------------
@@ -1420,12 +1417,10 @@ $(DEPS_DIR)/fips-verify-plugins-linux-amd64: $(EXTAUTH_FIPS_OUT_DIR)/verify-plug
 # Intended only to be run by CI
 # Build and push docker images to the defined IMAGE_REGISTRY
 .PHONY: publish-docker
-ifeq ($(RELEASE), "true")
 publish-docker: docker
 publish-docker: docker-push
 publish-docker: docker-fed
 publish-docker: docker-fed-push
-endif
 
 # Intended only to be run by CI
 # Re-tag docker images previously pushed to the ORIGINAL_IMAGE_REGISTRY,
