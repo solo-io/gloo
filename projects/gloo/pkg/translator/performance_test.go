@@ -171,8 +171,8 @@ var basicConfig = benchmarkConfig{
 	iterations: 1000,
 	maxDur:     time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
-		matchers.Median(5 * time.Millisecond),
-		matchers.Percentile(90, 10*time.Millisecond),
+		matchers.HaveMedianLessThan(5 * time.Millisecond),
+		matchers.HavePercentileLessThan(90, 10*time.Millisecond),
 	},
 }
 
@@ -181,7 +181,7 @@ var oneKConfig = benchmarkConfig{
 	iterations: 500,
 	maxDur:     2 * time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
-		matchers.Median(10 * time.Millisecond),
-		matchers.Percentile(90, 20*time.Millisecond),
+		matchers.HaveMedianLessThan(10 * time.Millisecond),
+		matchers.HavePercentileLessThan(90, 20*time.Millisecond),
 	},
 }
