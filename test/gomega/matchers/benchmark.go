@@ -1,8 +1,9 @@
 package matchers
 
 import (
-	"github.com/solo-io/gloo/test/gomega/transforms"
 	"time"
+
+	"github.com/solo-io/gloo/test/gomega/transforms"
 
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
