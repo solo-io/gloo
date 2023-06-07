@@ -133,7 +133,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1000,
 			Endpoints: 1,
-		}), oneKConfig, "upstream scale"),
+		}), oneKResourcesConfig, "upstream scale"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 10,
@@ -141,7 +141,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 1000,
-		}), oneKConfig, "endpoint scale"),
+		}), oneKResourcesConfig, "endpoint scale"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 10,
 			Endpoints: 10,
@@ -178,8 +178,8 @@ var basicConfig = benchmarkConfig{
 	},
 }
 
-/* 1k scale Tests */
-var oneKConfig = benchmarkConfig{
+/* 1k Resources Scale Tests */
+var oneKResourcesConfig = benchmarkConfig{
 	iterations: 500,
 	maxDur:     2 * time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
