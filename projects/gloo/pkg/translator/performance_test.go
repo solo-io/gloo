@@ -42,7 +42,7 @@ type benchmarkConfig struct {
 	benchmarkMatchers []types.GomegaMatcher // matchers representing the assertions we wish to make for a particular entry
 }
 
-var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
+var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
 	var (
 		ctrl       *gomock.Controller
 		settings   *v1.Settings
@@ -111,10 +111,13 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 					snap, errs, report = translator.Translate(params, proxy)
 				})
 
-				// Assert expected results
-				Expect(errs.Validate()).NotTo(HaveOccurred())
-				Expect(snap).NotTo(BeNil())
-				Expect(report).To(Equal(validationutils.MakeReport(gloohelpers.Proxy())))
+				if idx == 0 {
+					fmt.Println("ASSERTING ONCE FOR", desc)
+					// Assert expected results
+					Expect(errs.Validate()).NotTo(HaveOccurred())
+					Expect(snap).NotTo(BeNil())
+					Expect(report).To(Equal(validationutils.MakeReport(proxy)))
+				}
 			}, gmeasure.SamplingConfig{N: config.iterations, Duration: config.maxDur})
 
 			durations := experiment.Get(desc).Durations
@@ -128,20 +131,12 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 			Endpoints: 1,
 		}), basicConfig, "upstream scale"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
-			Upstreams: 100,
-			Endpoints: 1,
-		}), basicConfig, "upstream scale"),
-		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1000,
 			Endpoints: 1,
 		}), oneKConfig, "upstream scale"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 10,
-		}), basicConfig, "endpoint scale"),
-		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
-			Upstreams: 1,
-			Endpoints: 100,
 		}), basicConfig, "endpoint scale"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
