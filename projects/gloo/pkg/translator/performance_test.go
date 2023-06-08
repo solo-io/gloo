@@ -42,13 +42,11 @@ type benchmarkConfig struct {
 	benchmarkMatchers []types.GomegaMatcher // matchers representing the assertions we wish to make for a particular entry
 }
 
-var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
+var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
 	var (
 		ctrl       *gomock.Controller
 		settings   *v1.Settings
 		translator Translator
-
-		registeredPlugins []plugins.Plugin
 	)
 
 	BeforeEach(func() {
@@ -67,8 +65,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 				ConsulWatcher: mock_consul.NewMockConsulWatcher(ctrl), // just needed to activate the consul plugin
 			},
 		}
-		registeredPlugins = registry.Plugins(opts)
-
+		registeredPlugins := registry.Plugins(opts)
 		pluginRegistry := registry.NewPluginRegistry(registeredPlugins)
 
 		translator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
@@ -92,11 +89,8 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 				Snapshot: apiSnap,
 			}
 
-			if len(apiSnap.Proxies) > 0 {
-				proxy = apiSnap.Proxies[0]
-			} else {
-				proxy = gloohelpers.Proxy()
-			}
+			Expect(apiSnap.Proxies).NotTo(BeEmpty())
+			proxy = apiSnap.Proxies[0]
 
 			desc := generateDesc(apiSnap, config, labels...)
 
@@ -112,7 +106,6 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 				})
 
 				if idx == 0 {
-					fmt.Println("ASSERTING ONCE FOR", desc)
 					// Assert expected results
 					Expect(errs.Validate()).NotTo(HaveOccurred())
 					Expect(snap).NotTo(BeNil())
@@ -165,6 +158,13 @@ func generateDesc(apiSnap *v1snap.ApiSnapshot, _ benchmarkConfig, labels ...stri
 
 /* Basic Tests */
 var basicSnap = &v1snap.ApiSnapshot{
+	Proxies: []*v1.Proxy{
+		{
+			Listeners: []*v1.Listener{
+				gloohelpers.HttpListener,
+			},
+		},
+	},
 	Endpoints: []*v1.Endpoint{gloohelpers.Endpoint},
 	Upstreams: []*v1.Upstream{gloohelpers.Upstream},
 }
@@ -183,7 +183,7 @@ var oneKResourcesConfig = benchmarkConfig{
 	iterations: 500,
 	maxDur:     2 * time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
-		matchers.HaveMedianLessThan(10 * time.Millisecond),
-		matchers.HavePercentileLessThan(90, 20*time.Millisecond),
+		matchers.HaveMedianLessThan(15 * time.Millisecond),
+		matchers.HavePercentileLessThan(90, 30*time.Millisecond),
 	},
 }

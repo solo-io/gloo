@@ -73,7 +73,7 @@ var routes = []*v1.Route{{
 }}
 var virtualHostName = "virt1"
 
-var httpListener = &v1.Listener{
+var HttpListener = &v1.Listener{
 	Name:        "http-listener",
 	BindAddress: "127.0.0.1",
 	BindPort:    80,
@@ -238,7 +238,7 @@ func Proxy() *v1.Proxy {
 			Namespace: "gloo-system",
 		},
 		Listeners: []*v1.Listener{
-			httpListener,
+			HttpListener,
 			tcpListener(),
 			hybridListener(),
 		},
