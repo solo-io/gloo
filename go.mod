@@ -12,7 +12,7 @@ require (
 	github.com/avast/retry-go/v4 v4.3.3
 	github.com/aws/aws-sdk-go v1.43.16
 	github.com/cncf/xds/go v0.0.0-20220520190051-1e77728a1eaa
-	github.com/docker/distribution v2.8.1+incompatible
+	github.com/docker/distribution v2.8.2+incompatible
 	github.com/envoyproxy/go-control-plane v0.11.0
 	github.com/envoyproxy/protoc-gen-validate v0.9.1
 	github.com/fgrosse/zaptest v1.1.0
@@ -37,14 +37,11 @@ require (
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jhump/protoreflect v1.6.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo/v2 v2.9.1
 	github.com/onsi/gomega v1.27.4
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.14.0
-	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/rotisserie/eris v0.5.0
 	github.com/solo-io/anyvendor v0.1.0
 	github.com/solo-io/caching-service v0.4.0
@@ -52,7 +49,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.38.0
 	github.com/solo-io/external-apis v0.2.0
-	github.com/solo-io/gloo v1.15.0-beta10
+	github.com/solo-io/gloo v1.15.0-beta11
 	github.com/solo-io/gloo-graphql-example v0.1.0
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.3
@@ -62,7 +59,7 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.9.1
 	github.com/solo-io/skv2 v0.30.1
-	github.com/solo-io/solo-apis v0.0.0-20230605161047-2133feccd013
+	github.com/solo-io/solo-apis v0.0.0-20230609145846-8087fcb16a7f
 	github.com/solo-io/solo-kit v0.32.0
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/spf13/cobra v1.6.1
@@ -162,7 +159,6 @@ require (
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-git/go-git/v5 v5.4.1 // indirect
 	github.com/go-gorp/gorp/v3 v3.0.5 // indirect
-	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-ldap/ldap v3.0.3+incompatible // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
@@ -171,8 +167,10 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
 	github.com/go-openapi/loads v0.21.2 // indirect
+	github.com/go-openapi/runtime v0.24.1 // indirect
 	github.com/go-openapi/spec v0.20.7 // indirect
 	github.com/go-openapi/strfmt v0.21.3 // indirect
+	github.com/go-openapi/validate v0.22.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
@@ -289,11 +287,11 @@ require (
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/prometheus/statsd_exporter v0.21.0 // indirect
-	github.com/prometheus/tsdb v0.10.0 // indirect
 	github.com/pseudomuto/protoc-gen-doc v1.5.1 // indirect
 	github.com/pseudomuto/protokit v0.2.0 // indirect
 	github.com/radovskyb/watcher v1.0.7 // indirect

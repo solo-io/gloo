@@ -14,6 +14,8 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/test/ginkgo/parallel"
 
@@ -143,7 +145,7 @@ var _ = Describe("JWT_RBAC", func() {
 		ecdsaPrivateKey   *ecdsa.PrivateKey
 		ed25519PrivateKey ed25519.PrivateKey
 		jwtksServerRef    *core.ResourceRef
-		envoyInstance     *services.EnvoyInstance
+		envoyInstance     *envoy.Instance
 		testUpstream      *v1helpers.TestUpstream
 		envoyPort         = uint32(8080)
 	)
@@ -160,9 +162,7 @@ var _ = Describe("JWT_RBAC", func() {
 
 		jwksPort, rsaPrivateKey, ecdsaPrivateKey, ed25519PrivateKey = jwks(ctx)
 
-		var err error
-		envoyInstance, err = envoyFactory.NewEnvoyInstance()
-		Expect(err).NotTo(HaveOccurred())
+		envoyInstance = envoyFactory.NewInstance()
 
 		jwksServer := &gloov1.Upstream{
 			Metadata: &core.Metadata{
@@ -196,7 +196,7 @@ var _ = Describe("JWT_RBAC", func() {
 
 		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem, Settings: settings})
 
-		err = envoyInstance.Run(testClients.GlooPort)
+		err := envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 
 		testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
@@ -212,10 +212,8 @@ var _ = Describe("JWT_RBAC", func() {
 	})
 
 	AfterEach(func() {
+		envoyInstance.Clean()
 		cancel()
-		if envoyInstance != nil {
-			envoyInstance.Clean()
-		}
 	})
 
 	ExpectAccess := func(bar, fooget, foopost int, getBookRecommendations int, getVerifiedEmail int, augmentRequest func(*http.Request)) {

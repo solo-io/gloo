@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
 
 	"github.com/fgrosse/zaptest"
@@ -31,7 +33,7 @@ var _ = Describe("Leftmost x-forwarded-for address Local E2E", func() {
 		ctx           context.Context
 		cancel        context.CancelFunc
 		testClients   services.TestClients
-		envoyInstance *services.EnvoyInstance
+		envoyInstance *envoy.Instance
 		envoyPort     uint32
 	)
 
@@ -57,14 +59,13 @@ var _ = Describe("Leftmost x-forwarded-for address Local E2E", func() {
 	})
 
 	setupProxy := func(leftmostXffAddress bool) {
-		var err error
-		envoyInstance, err = envoyFactory.NewEnvoyInstance()
-		Expect(err).NotTo(HaveOccurred())
-		err = envoyInstance.Run(testClients.GlooPort)
+		envoyInstance = envoyFactory.NewInstance()
+
+		err := envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 		path := "/dev/stdout"
 
-		if !envoyInstance.UseDocker() {
+		if !envoyInstance.UseDocker {
 			tmpfile, err := os.CreateTemp("", "")
 			Expect(err).NotTo(HaveOccurred())
 			path = tmpfile.Name()
@@ -93,10 +94,8 @@ var _ = Describe("Leftmost x-forwarded-for address Local E2E", func() {
 	}
 
 	AfterEach(func() {
+		envoyInstance.Clean()
 		cancel()
-		if envoyInstance != nil {
-			_ = envoyInstance.Clean()
-		}
 	})
 
 	Context("With envoy", func() {
@@ -209,13 +208,13 @@ func getProxy(envoyPort uint32, leftmostXffAddress bool, accessLogPath string) *
 	return p
 }
 
-func checkAccessLogs(ei *services.EnvoyInstance, logsPresent func(logs string) bool) error {
+func checkAccessLogs(ei *envoy.Instance, logsPresent func(logs string) bool) error {
 	var (
 		logs string
 		err  error
 	)
 
-	if ei.UseDocker() {
+	if ei.UseDocker {
 		logs, err = ei.Logs()
 		if err != nil {
 			return err

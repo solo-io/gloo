@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"io"
 	"net"
 	"net/http"
@@ -50,7 +52,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 		ctx           context.Context
 		cancel        context.CancelFunc
 		testClients   services.TestClients
-		envoyInstance *services.EnvoyInstance
+		envoyInstance *envoy.Instance
 		envoyPort     uint32
 
 		cache    memory.InMemoryResourceCache
@@ -69,20 +71,15 @@ var _ = Describe("External auth with multiple auth servers", func() {
 		testClients = services.GetTestClients(ctx, cache)
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
-		var err error
-		envoyInstance, err = envoyFactory.NewEnvoyInstance()
-		Expect(err).NotTo(HaveOccurred())
-
-		err = envoyInstance.Run(testClients.GlooPort)
+		envoyInstance = envoyFactory.NewInstance()
+		err := envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 
 		envoyPort = defaults.HttpPort
 	})
 
 	AfterEach(func() {
-		if envoyInstance != nil {
-			_ = envoyInstance.Clean()
-		}
+		envoyInstance.Clean()
 		cancel()
 	})
 

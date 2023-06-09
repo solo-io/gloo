@@ -6,7 +6,7 @@ Name|Version|License
 [retry-go/v4](https://github.com/avast/retry-go)|v4.3.3|MIT License
 [aws/aws-sdk-go](https://github.com/aws/aws-sdk-go)|v1.43.16|Apache License 2.0
 [xds/go](https://github.com/cncf/xds)|v0.0.0-20220520190051-1e77728a1eaa|Apache License 2.0
-[docker/distribution](https://github.com/docker/distribution)|v2.8.1+incompatible|Apache License 2.0
+[docker/distribution](https://github.com/docker/distribution)|v2.8.2+incompatible|Apache License 2.0
 [envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.11.0|Apache License 2.0
 [envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v0.9.1|Apache License 2.0
 [fgrosse/zaptest](https://github.com/fgrosse/zaptest)|v1.1.0|MIT License
@@ -34,8 +34,6 @@ Name|Version|License
 [onsi/gomega](https://github.com/onsi/gomega)|v1.27.4|MIT License
 [opencontainers/go-digest](https://github.com/opencontainers/go-digest)|v1.0.0-rc1|Apache License 2.0
 [pkg/errors](https://github.com/pkg/errors)|v0.9.1|BSD 2-clause "Simplified" License
-[prometheus/client_golang](https://github.com/prometheus/client_golang)|v1.14.0|Apache License 2.0
-[prometheus/prometheus](https://github.com/prometheus/prometheus)|v2.5.0+incompatible|Apache License 2.0
 [rotisserie/eris](https://github.com/rotisserie/eris)|v0.5.0|MIT License
 [spf13/cobra](https://github.com/spf13/cobra)|v1.6.1|Apache License 2.0
 [spf13/pflag](https://github.com/spf13/pflag)|v1.0.5|BSD 3-clause "New" or "Revised" License

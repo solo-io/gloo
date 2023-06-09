@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	glooV1helpers "github.com/solo-io/gloo/test/v1helpers"
 	"github.com/solo-io/solo-projects/test/v1helpers"
 
@@ -72,15 +74,12 @@ var _ = Describe("Graphql Remote and gRPC E2E test", func() {
 	})
 	Context("finding a gRPC service", func() {
 		var (
-			envoyInstance *services.EnvoyInstance
+			envoyInstance *envoy.Instance
 			grpcUpstream  *glooV1helpers.TestUpstream
 		)
 		BeforeEach(func() {
-			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
-			Expect(err).NotTo(HaveOccurred())
-
-			err = envoyInstance.Run(testClients.GlooPort)
+			envoyInstance = envoyFactory.NewInstance()
+			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
 			grpcUpstream = glooV1helpers.NewTestGRPCUpstream(ctx, envoyInstance.LocalAddr(), 1)
@@ -93,9 +92,7 @@ var _ = Describe("Graphql Remote and gRPC E2E test", func() {
 		})
 
 		AfterEach(func() {
-			if envoyInstance != nil {
-				envoyInstance.Clean()
-			}
+			envoyInstance.Clean()
 		})
 
 		It("should discover the gRPC service", func() {
@@ -122,7 +119,7 @@ var _ = Describe("Graphql Remote and gRPC E2E test", func() {
 
 	Context("finding a graphql remote service", func() {
 		var (
-			envoyInstance *services.EnvoyInstance
+			envoyInstance *envoy.Instance
 			testUpstream  *v1helpers.TestUpstream
 			envoyPort     = uint32(8080)
 			proxy         *gloov1.Proxy
@@ -191,11 +188,8 @@ var _ = Describe("Graphql Remote and gRPC E2E test", func() {
 		}
 
 		BeforeEach(func() {
-			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
-			Expect(err).NotTo(HaveOccurred())
-
-			err = envoyInstance.Run(testClients.GlooPort)
+			envoyInstance = envoyFactory.NewInstance()
+			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
 			server = todo.NewTodoServer(graphqlPort)
@@ -228,9 +222,7 @@ var _ = Describe("Graphql Remote and gRPC E2E test", func() {
 		})
 
 		AfterEach(func() {
-			if envoyInstance != nil {
-				envoyInstance.Clean()
-			}
+			envoyInstance.Clean()
 			err := server.Kill(ctx)
 			Expect(err).ToNot(HaveOccurred())
 		})

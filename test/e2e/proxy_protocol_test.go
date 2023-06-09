@@ -10,6 +10,8 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/proxy_protocol"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-projects/test/services"
@@ -38,7 +40,7 @@ var _ = Describe("Proxy Protocol", func() {
 		ctx           context.Context
 		cancel        context.CancelFunc
 		testClients   services.TestClients
-		envoyInstance *services.EnvoyInstance
+		envoyInstance *envoy.Instance
 
 		gateway        *gatewayv1.Gateway
 		virtualService *gatewayv1.VirtualService
@@ -69,9 +71,8 @@ var _ = Describe("Proxy Protocol", func() {
 		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem})
 
 		// run envoy
-		envoyInstance, err = envoyFactory.NewEnvoyInstance()
-		Expect(err).NotTo(HaveOccurred())
-		err = envoyInstance.RunWithRole(defaults.GlooSystem+"~"+gatewaydefaults.GatewayProxyName, testClients.GlooPort)
+		envoyInstance = envoyFactory.NewInstance()
+		err := envoyInstance.RunWithRole(defaults.GlooSystem+"~"+gatewaydefaults.GatewayProxyName, testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 
 		// prepare default resources
@@ -118,9 +119,7 @@ var _ = Describe("Proxy Protocol", func() {
 	})
 
 	AfterEach(func() {
-		if envoyInstance != nil {
-			_ = envoyInstance.Clean()
-		}
+		envoyInstance.Clean()
 		cancel()
 	})
 

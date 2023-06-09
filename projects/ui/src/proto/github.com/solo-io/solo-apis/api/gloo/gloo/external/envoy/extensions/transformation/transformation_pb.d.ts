@@ -5,6 +5,7 @@
 import * as jspb from "google-protobuf";
 import * as extproto_ext_pb from "../../../../../../../../../../extproto/ext_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as validate_validate_pb from "../../../../../../../../../../validate/validate_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/route/v3/route_components_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/matcher/v3/string_pb";
@@ -18,6 +19,9 @@ export class FilterTransformations extends jspb.Message {
 
   getStage(): number;
   setStage(value: number): void;
+
+  getLogRequestResponseInfo(): boolean;
+  setLogRequestResponseInfo(value: boolean): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): FilterTransformations.AsObject;
@@ -33,6 +37,7 @@ export namespace FilterTransformations {
   export type AsObject = {
     transformationsList: Array<TransformationRule.AsObject>,
     stage: number,
+    logRequestResponseInfo: boolean,
   }
 }
 
@@ -317,6 +322,11 @@ export class Transformation extends jspb.Message {
   getTransformerConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig | undefined;
   setTransformerConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig): void;
 
+  hasLogRequestResponseInfo(): boolean;
+  clearLogRequestResponseInfo(): void;
+  getLogRequestResponseInfo(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setLogRequestResponseInfo(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   getTransformationTypeCase(): Transformation.TransformationTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Transformation.AsObject;
@@ -333,6 +343,7 @@ export namespace Transformation {
     transformationTemplate?: TransformationTemplate.AsObject,
     headerBodyTransform?: HeaderBodyTransform.AsObject,
     transformerConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.AsObject,
+    logRequestResponseInfo?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export enum TransformationTypeCase {

@@ -14,6 +14,7 @@ var global = Function('return this')();
 
 var extproto_ext_pb = require('../../../../../../../../../../extproto/ext_pb.js');
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
+var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var validate_validate_pb = require('../../../../../../../../../../validate/validate_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/route/v3/route_components_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/matcher/v3/string_pb.js');
@@ -93,7 +94,8 @@ proto.envoy.api.v2.filter.http.FilterTransformations.toObject = function(include
   var f, obj = {
     transformationsList: jspb.Message.toObjectList(msg.getTransformationsList(),
     proto.envoy.api.v2.filter.http.TransformationRule.toObject, includeInstance),
-    stage: jspb.Message.getFieldWithDefault(msg, 2, 0)
+    stage: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    logRequestResponseInfo: jspb.Message.getFieldWithDefault(msg, 3, false)
   };
 
   if (includeInstance) {
@@ -139,6 +141,10 @@ proto.envoy.api.v2.filter.http.FilterTransformations.deserializeBinaryFromReader
       var value = /** @type {number} */ (reader.readUint32());
       msg.setStage(value);
       break;
+    case 3:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setLogRequestResponseInfo(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -180,6 +186,13 @@ proto.envoy.api.v2.filter.http.FilterTransformations.serializeBinaryToWriter = f
   if (f !== 0) {
     writer.writeUint32(
       2,
+      f
+    );
+  }
+  f = message.getLogRequestResponseInfo();
+  if (f) {
+    writer.writeBool(
+      3,
       f
     );
   }
@@ -229,6 +242,23 @@ proto.envoy.api.v2.filter.http.FilterTransformations.prototype.getStage = functi
 /** @param {number} value */
 proto.envoy.api.v2.filter.http.FilterTransformations.prototype.setStage = function(value) {
   jspb.Message.setProto3IntField(this, 2, value);
+};
+
+
+/**
+ * optional bool log_request_response_info = 3;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.api.v2.filter.http.FilterTransformations.prototype.getLogRequestResponseInfo = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 3, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.api.v2.filter.http.FilterTransformations.prototype.setLogRequestResponseInfo = function(value) {
+  jspb.Message.setProto3BooleanField(this, 3, value);
 };
 
 
@@ -2222,7 +2252,8 @@ proto.envoy.api.v2.filter.http.Transformation.toObject = function(includeInstanc
   var f, obj = {
     transformationTemplate: (f = msg.getTransformationTemplate()) && proto.envoy.api.v2.filter.http.TransformationTemplate.toObject(includeInstance, f),
     headerBodyTransform: (f = msg.getHeaderBodyTransform()) && proto.envoy.api.v2.filter.http.HeaderBodyTransform.toObject(includeInstance, f),
-    transformerConfig: (f = msg.getTransformerConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.toObject(includeInstance, f)
+    transformerConfig: (f = msg.getTransformerConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.toObject(includeInstance, f),
+    logRequestResponseInfo: (f = msg.getLogRequestResponseInfo()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2273,6 +2304,11 @@ proto.envoy.api.v2.filter.http.Transformation.deserializeBinaryFromReader = func
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.deserializeBinaryFromReader);
       msg.setTransformerConfig(value);
+      break;
+    case 4:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setLogRequestResponseInfo(value);
       break;
     default:
       reader.skipField();
@@ -2325,6 +2361,14 @@ proto.envoy.api.v2.filter.http.Transformation.serializeBinaryToWriter = function
       3,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getLogRequestResponseInfo();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -2417,6 +2461,36 @@ proto.envoy.api.v2.filter.http.Transformation.prototype.clearTransformerConfig =
  */
 proto.envoy.api.v2.filter.http.Transformation.prototype.hasTransformerConfig = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue log_request_response_info = 4;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.envoy.api.v2.filter.http.Transformation.prototype.getLogRequestResponseInfo = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 4));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.envoy.api.v2.filter.http.Transformation.prototype.setLogRequestResponseInfo = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.envoy.api.v2.filter.http.Transformation.prototype.clearLogRequestResponseInfo = function() {
+  this.setLogRequestResponseInfo(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.api.v2.filter.http.Transformation.prototype.hasLogRequestResponseInfo = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 

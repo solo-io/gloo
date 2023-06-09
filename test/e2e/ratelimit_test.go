@@ -12,6 +12,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/solo-io/gloo/test/ginkgo/parallel"
 
 	"github.com/fgrosse/zaptest"
@@ -71,7 +73,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		rlAddr           string
 		isServerHealthy  func() (bool, error)
 		rlServerSettings ratelimitserver.Settings
-		envoyInstance    *services.EnvoyInstance
+		envoyInstance    *envoy.Instance
 		testUpstream     *v1helpers.TestUpstream
 		envoyPort        = uint32(8080)
 		redisPort        = uint32(6379)
@@ -102,15 +104,13 @@ var _ = Describe("Rate Limit Local E2E", func() {
 
 	runClusteredTest := func() {
 		BeforeEach(func() {
-			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
-			Expect(err).NotTo(HaveOccurred())
+			envoyInstance = envoyFactory.NewInstance()
 
 			envoyInstance.RatelimitAddr = rateLimitAddr
 			envoyInstance.RatelimitPort = uint32(rlServerSettings.RateLimitPort)
 			rlAddr = envoyInstance.LocalAddr()
 
-			err = envoyInstance.Run(testClients.GlooPort)
+			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
 			testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
@@ -128,9 +128,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		})
 
 		AfterEach(func() {
-			if envoyInstance != nil {
-				_ = envoyInstance.Clean()
-			}
+			envoyInstance.Clean()
 		})
 
 		It("should error when using clustered redis where unclustered redis shold be used", func() {
@@ -149,15 +147,13 @@ var _ = Describe("Rate Limit Local E2E", func() {
 	runAllTests := func() {
 		Context("With envoy", func() {
 			BeforeEach(func() {
-				var err error
-				envoyInstance, err = envoyFactory.NewEnvoyInstance()
-				Expect(err).NotTo(HaveOccurred())
+				envoyInstance = envoyFactory.NewInstance()
 
 				envoyInstance.RatelimitAddr = rateLimitAddr
 				envoyInstance.RatelimitPort = uint32(rlServerSettings.RateLimitPort)
 				rlAddr = envoyInstance.LocalAddr()
 
-				err = envoyInstance.Run(testClients.GlooPort)
+				err := envoyInstance.Run(testClients.GlooPort)
 				Expect(err).NotTo(HaveOccurred())
 
 				testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
@@ -181,9 +177,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 			})
 
 			AfterEach(func() {
-				if envoyInstance != nil {
-					_ = envoyInstance.Clean()
-				}
+				envoyInstance.Clean()
 			})
 
 			It("should rate limit envoy", func() {

@@ -4,6 +4,8 @@ import (
 	"net"
 	"time"
 
+	"github.com/solo-io/gloo/test/services"
+
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector/singlereplica"
 
 	license2 "github.com/solo-io/solo-projects/pkg/license"
@@ -23,7 +25,6 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
 
 	"context"
-	"sync/atomic"
 
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 
@@ -37,7 +38,6 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
-	skkube "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	"google.golang.org/grpc"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -51,22 +51,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	syncer_setup "github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 )
-
-type TestClients struct {
-	GatewayClient         gatewayv1.GatewayClient
-	VirtualServiceClient  gatewayv1.VirtualServiceClient
-	ProxyClient           gloov1.ProxyClient
-	UpstreamClient        gloov1.UpstreamClient
-	SecretClient          gloov1.SecretClient
-	ArtifactClient        gloov1.ArtifactClient
-	ServiceClient         skkube.ServiceClient
-	AuthConfigClient      extauthv1.AuthConfigClient
-	RateLimitConfigClient v1alpha1.RateLimitConfigClient
-	GraphQLApiClient      graphqlv1beta1.GraphQLApiClient
-	GlooPort              int
-}
-
-var glooPort int32 = 8100
 
 func GetTestClients(ctx context.Context, cache memory.InMemoryResourceCache) TestClients {
 
@@ -107,15 +91,8 @@ func GetTestClients(ctx context.Context, cache memory.InMemoryResourceCache) Tes
 	}
 }
 
-type What struct {
-	DisableGateway bool
-	DisableUds     bool
-	DisableFds     bool
-}
-
 func AllocateGlooPort() int32 {
-	return atomic.AddInt32(&glooPort, 1)
-
+	return services.AllocateGlooPort()
 }
 
 type RunGlooGatewayOpts struct {

@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"google.golang.org/protobuf/types/known/durationpb"
 
@@ -206,7 +208,7 @@ var _ = Describe("graphql", func() {
 	})
 	Context("With envoy", func() {
 		var (
-			envoyInstance                             *services.EnvoyInstance
+			envoyInstance                             *envoy.Instance
 			restUpstream, grpcUpstream, graphqlServer *v1helpers.TestUpstream
 			envoyPort                                 = uint32(8080)
 			query                                     string
@@ -292,11 +294,8 @@ var _ = Describe("graphql", func() {
 		}
 
 		BeforeEach(func() {
-			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
-			Expect(err).NotTo(HaveOccurred())
-
-			err = envoyInstance.Run(testClients.GlooPort)
+			envoyInstance = envoyFactory.NewInstance()
+			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
 			query = `{"query":"{ f:field1(intArg:2,boolArg:true,floatArg:9.99993,stringArg:\"this is a string arg\",mapArg:{a: 9},listArg:[21, 22, 23]){ simple } }","variables":{}}`
@@ -338,9 +337,7 @@ var _ = Describe("graphql", func() {
 			configureProxy()
 		})
 		AfterEach(func() {
-			if envoyInstance != nil {
-				envoyInstance.Clean()
-			}
+			envoyInstance.Clean()
 		})
 		Context("route rules", func() {
 			Context("with timeout", func() {

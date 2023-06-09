@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/solo-io/gloo/test/ginkgo/parallel"
 
 	"github.com/solo-io/gloo/test/helpers"
@@ -38,7 +40,7 @@ var _ = Describe("External http", func() {
 		extauthSettings *extauth.Settings
 		extauthServer   *gloov1.Upstream
 
-		envoyInstance *services.EnvoyInstance
+		envoyInstance *envoy.Instance
 		testUpstream  *v1helpers.TestUpstream
 		envoyPort     = uint32(8080)
 		cache         memory.InMemoryResourceCache
@@ -96,9 +98,7 @@ var _ = Describe("External http", func() {
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
 		// Start Envoy
-		envoyInstance, err = envoyFactory.NewEnvoyInstance()
-		Expect(err).NotTo(HaveOccurred())
-
+		envoyInstance = envoyFactory.NewInstance()
 		err = envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -153,10 +153,8 @@ var _ = Describe("External http", func() {
 	})
 
 	AfterEach(func() {
+		envoyInstance.Clean()
 		cancel()
-		if envoyInstance != nil {
-			_ = envoyInstance.Clean()
-		}
 	})
 
 	Context("custom sanity tests", func() {

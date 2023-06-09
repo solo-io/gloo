@@ -153,6 +153,11 @@ export class TransformationStages extends jspb.Message {
   getInheritTransformation(): boolean;
   setInheritTransformation(value: boolean): void;
 
+  hasLogRequestResponseInfo(): boolean;
+  clearLogRequestResponseInfo(): void;
+  getLogRequestResponseInfo(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setLogRequestResponseInfo(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TransformationStages.AsObject;
   static toObject(includeInstance: boolean, msg: TransformationStages): TransformationStages.AsObject;
@@ -168,6 +173,7 @@ export namespace TransformationStages {
     early?: RequestResponseTransformations.AsObject,
     regular?: RequestResponseTransformations.AsObject,
     inheritTransformation: boolean,
+    logRequestResponseInfo?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
 
@@ -187,6 +193,9 @@ export class Transformation extends jspb.Message {
   getXsltTransformation(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb.XsltTransformation | undefined;
   setXsltTransformation(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb.XsltTransformation): void;
 
+  getLogRequestResponseInfo(): boolean;
+  setLogRequestResponseInfo(value: boolean): void;
+
   getTransformationTypeCase(): Transformation.TransformationTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Transformation.AsObject;
@@ -203,6 +212,7 @@ export namespace Transformation {
     transformationTemplate?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate.AsObject,
     headerBodyTransform?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform.AsObject,
     xsltTransformation?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb.XsltTransformation.AsObject,
+    logRequestResponseInfo: boolean,
   }
 
   export enum TransformationTypeCase {

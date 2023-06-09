@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -39,7 +41,7 @@ var _ = Describe("AWS Lambda ", func() {
 		cancel context.CancelFunc
 
 		testClients   services.TestClients
-		envoyInstance *services.EnvoyInstance
+		envoyInstance *envoy.Instance
 		secret        *gloov1.Secret
 		upstream      *gloov1.Upstream
 		envoyPort     uint32
@@ -52,9 +54,7 @@ var _ = Describe("AWS Lambda ", func() {
 		testClients = services.GetTestClients(ctx, cache)
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
-		var err error
-		envoyInstance, err = envoyFactory.NewEnvoyInstance()
-		Expect(err).NotTo(HaveOccurred())
+		envoyInstance = envoyFactory.NewInstance()
 
 		settings := &gloov1.Settings{}
 
@@ -66,7 +66,7 @@ var _ = Describe("AWS Lambda ", func() {
 
 		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem, Settings: settings})
 
-		err = envoyInstance.Run(testClients.GlooPort)
+		err := envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 
 		envoyPort = defaults.HttpPort

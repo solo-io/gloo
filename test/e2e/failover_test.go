@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -118,7 +120,7 @@ var _ = Describe("Failover", func() {
 
 	Context("Local Envoy", func() {
 		var (
-			envoyInstance *services.EnvoyInstance
+			envoyInstance *envoy.Instance
 			testUpstream  *v1helpers.TestUpstream
 			envoyPort     = uint32(8080)
 		)
@@ -224,18 +226,13 @@ var _ = Describe("Failover", func() {
 			}
 
 			BeforeEach(func() {
-				var err error
-				envoyInstance, err = envoyFactory.NewEnvoyInstance()
-				Expect(err).NotTo(HaveOccurred())
-
-				err = envoyInstance.Run(testClients.GlooPort)
+				envoyInstance = envoyFactory.NewInstance()
+				err := envoyInstance.Run(testClients.GlooPort)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			AfterEach(func() {
-				if envoyInstance != nil {
-					envoyInstance.Clean()
-				}
+				envoyInstance.Clean()
 			})
 
 			It("Will use health check path specified on failover endpoint", func() {
@@ -463,20 +460,15 @@ var _ = Describe("Failover", func() {
 			}
 
 			BeforeEach(func() {
-				var err error
-				envoyInstance, err = envoyFactory.NewEnvoyInstance()
-				Expect(err).NotTo(HaveOccurred())
-
-				err = envoyInstance.Run(testClients.GlooPort)
+				envoyInstance = envoyFactory.NewInstance()
+				err := envoyInstance.Run(testClients.GlooPort)
 				Expect(err).NotTo(HaveOccurred())
 
 				unhealthyCtx, unhealthyCancel = context.WithCancel(context.Background())
 			})
 
 			AfterEach(func() {
-				if envoyInstance != nil {
-					envoyInstance.Clean()
-				}
+				envoyInstance.Clean()
 			})
 
 			It("Will distribute load equally across localities when locality_weighted_lb_config is not set", func() {

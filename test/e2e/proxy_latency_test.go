@@ -6,6 +6,8 @@ import (
 	"net"
 	"strings"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
@@ -13,10 +15,8 @@ import (
 
 	envoy_admin_v3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	envoy_listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
-	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/router/v3"
 	envoy_hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/fgrosse/zaptest"
-	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/ptypes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -81,17 +81,14 @@ var _ = Describe("Proxy latency", func() {
 	Context("With envoy", func() {
 
 		var (
-			envoyInstance *services.EnvoyInstance
+			envoyInstance *envoy.Instance
 			testUpstream  *v1helpers.TestUpstream
 			envoyPort     = uint32(8080)
 		)
 
 		BeforeEach(func() {
-			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
-			Expect(err).NotTo(HaveOccurred())
-
-			err = envoyInstance.Run(testClients.GlooPort)
+			envoyInstance = envoyFactory.NewInstance()
+			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
 			testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
@@ -103,7 +100,7 @@ var _ = Describe("Proxy latency", func() {
 		})
 
 		AfterEach(func() {
-			_ = envoyInstance.Clean()
+			envoyInstance.Clean()
 		})
 
 		Context("proxy latency", func() {
@@ -137,24 +134,9 @@ var _ = Describe("Proxy latency", func() {
 
 })
 
-func getFilters(envoyInstance *services.EnvoyInstance) ([]string, error) {
-	resp, err := envoyInstance.GetConfigDump()
+func getFilters(envoyInstance *envoy.Instance) ([]string, error) {
+	cfgDump, err := envoyInstance.StructuredConfigDump()
 	if err != nil {
-		return nil, err
-	}
-
-	jsonpbMarshaler := &jsonpb.Unmarshaler{
-		// Ever since upgrading the go-control-plane to v0.10.1 this test fails with the following error:
-		// unknown field \"hidden_envoy_deprecated_build_version\" in envoy.config.core.v3.Node"
-		// Set AllowUnknownFields to true to get around this
-		AllowUnknownFields: true,
-	}
-
-	var cfgDump envoy_admin_v3.ConfigDump
-	if err = jsonpbMarshaler.Unmarshal(resp.Body, &cfgDump); err != nil {
-		return nil, err
-	}
-	if err = resp.Body.Close(); err != nil {
 		return nil, err
 	}
 

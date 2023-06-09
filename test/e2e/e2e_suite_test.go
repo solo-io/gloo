@@ -1,47 +1,35 @@
 package e2e_test
 
 import (
-	"os"
 	"testing"
 
-	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
+	"github.com/solo-io/gloo/test/services/envoy"
+	glooe_envoy "github.com/solo-io/solo-projects/test/services/envoy"
+
+	"github.com/solo-io/solo-projects/test/e2e"
 
 	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
-	"github.com/solo-io/solo-kit/test/helpers"
-	"github.com/solo-io/solo-projects/test/services"
-
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/test/helpers"
 )
 
 var (
-	envoyFactory  *services.EnvoyFactory
-	consulFactory *services.ConsulFactory
+	envoyFactory       envoy.Factory
+	testContextFactory *e2e.TestContextFactory
 
 	namespace = defaults.GlooSystem
 )
 
 var _ = BeforeSuite(func() {
-	var err error
+	envoyFactory = glooe_envoy.NewFactory()
 
-	err = os.Setenv(statusutils.PodNamespaceEnvName, namespace)
-	Expect(err).NotTo(HaveOccurred())
-
-	envoyFactory, err = services.NewEnvoyFactory()
-	Expect(err).NotTo(HaveOccurred())
-	consulFactory, err = services.NewConsulFactory()
-	Expect(err).NotTo(HaveOccurred())
-
+	testContextFactory = &e2e.TestContextFactory{
+		EnvoyFactory: envoyFactory,
+	}
 })
 
 var _ = AfterSuite(func() {
-	err := os.Unsetenv(statusutils.PodNamespaceEnvName)
-	Expect(err).NotTo(HaveOccurred())
-
-	_ = envoyFactory.Clean()
-	_ = consulFactory.Clean()
-
+	envoyFactory.Clean()
 })
 
 // NOTE: Please read the README.md for these tests

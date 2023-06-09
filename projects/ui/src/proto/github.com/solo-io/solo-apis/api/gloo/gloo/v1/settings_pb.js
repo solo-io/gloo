@@ -6872,7 +6872,8 @@ proto.gloo.solo.io.GlooOptions.toObject = function(includeInstance, msg) {
     enableRestEds: (f = msg.getEnableRestEds()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     failoverUpstreamDnsPollingInterval: (f = msg.getFailoverUpstreamDnsPollingInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     removeUnusedFilters: (f = msg.getRemoveUnusedFilters()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    proxyDebugBindAddr: jspb.Message.getFieldWithDefault(msg, 15, "")
+    proxyDebugBindAddr: jspb.Message.getFieldWithDefault(msg, 15, ""),
+    logTransformationRequestResponseInfo: (f = msg.getLogTransformationRequestResponseInfo()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -6978,6 +6979,11 @@ proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader = function(msg, reade
     case 15:
       var value = /** @type {string} */ (reader.readString());
       msg.setProxyDebugBindAddr(value);
+      break;
+    case 16:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setLogTransformationRequestResponseInfo(value);
       break;
     default:
       reader.skipField();
@@ -7121,6 +7127,14 @@ proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter = function(message, write
     writer.writeString(
       15,
       f
+    );
+  }
+  f = message.getLogTransformationRequestResponseInfo();
+  if (f != null) {
+    writer.writeMessage(
+      16,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -8058,6 +8072,36 @@ proto.gloo.solo.io.GlooOptions.prototype.getProxyDebugBindAddr = function() {
 /** @param {string} value */
 proto.gloo.solo.io.GlooOptions.prototype.setProxyDebugBindAddr = function(value) {
   jspb.Message.setProto3StringField(this, 15, value);
+};
+
+
+/**
+ * optional google.protobuf.BoolValue log_transformation_request_response_info = 16;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getLogTransformationRequestResponseInfo = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 16));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GlooOptions.prototype.setLogTransformationRequestResponseInfo = function(value) {
+  jspb.Message.setWrapperField(this, 16, value);
+};
+
+
+proto.gloo.solo.io.GlooOptions.prototype.clearLogTransformationRequestResponseInfo = function() {
+  this.setLogTransformationRequestResponseInfo(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.hasLogTransformationRequestResponseInfo = function() {
+  return jspb.Message.getField(this, 16) != null;
 };
 
 

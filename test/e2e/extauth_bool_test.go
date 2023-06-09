@@ -11,6 +11,8 @@ import (
 	"runtime"
 	"sync/atomic"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/solo-io/gloo/test/ginkgo/parallel"
 
 	"github.com/solo-io/ext-auth-service/pkg/server"
@@ -41,7 +43,7 @@ var _ = Describe("Staged JWT + extauth ", func() {
 		ctx           context.Context
 		cancel        context.CancelFunc
 		testClients   services.TestClients
-		envoyInstance *services.EnvoyInstance
+		envoyInstance *envoy.Instance
 		testUpstream  *v1helpers.TestUpstream
 		envoyPort     = uint32(8080)
 
@@ -99,8 +101,7 @@ var _ = Describe("Staged JWT + extauth ", func() {
 			DisableFds:     true,
 		}
 		var err error
-		envoyInstance, err = envoyFactory.NewEnvoyInstance()
-		Expect(err).NotTo(HaveOccurred())
+		envoyInstance = envoyFactory.NewInstance()
 
 		_, err = testClients.UpstreamClient.Write(extAuthServer, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -171,10 +172,7 @@ var _ = Describe("Staged JWT + extauth ", func() {
 	})
 
 	AfterEach(func() {
-		// clean up envoy
-		if envoyInstance != nil {
-			envoyInstance.Clean()
-		}
+		envoyInstance.Clean()
 		cancel()
 	})
 

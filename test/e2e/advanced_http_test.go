@@ -5,6 +5,8 @@ import (
 	"net"
 	"time"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 
 	"github.com/fgrosse/zaptest"
@@ -32,7 +34,7 @@ var _ = Describe("Happy path", func() {
 		ctx               context.Context
 		cancel            context.CancelFunc
 		testClients       services.TestClients
-		envoyInstance     *services.EnvoyInstance
+		envoyInstance     *envoy.Instance
 		envoyPort         uint32
 		noHealthyUpstream = "no healthy upstream"
 	)
@@ -49,9 +51,7 @@ var _ = Describe("Happy path", func() {
 		testClients = services.GetTestClients(ctx, cache)
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
-		var err error
-		envoyInstance, err = envoyFactory.NewEnvoyInstance()
-		Expect(err).NotTo(HaveOccurred())
+		envoyInstance = envoyFactory.NewInstance()
 
 		settings := &gloov1.Settings{}
 
@@ -63,14 +63,14 @@ var _ = Describe("Happy path", func() {
 
 		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem, Settings: settings})
 
-		err = envoyInstance.Run(testClients.GlooPort)
+		err := envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 
 		envoyPort = defaults.HttpPort
 	})
 
 	AfterEach(func() {
-		_ = envoyInstance.Clean()
+		envoyInstance.Clean()
 
 		cancel()
 	})

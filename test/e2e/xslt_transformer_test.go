@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
@@ -37,7 +39,7 @@ var _ = Describe("XSLT Transformer E2E", func() {
 		ctx           context.Context
 		cancel        context.CancelFunc
 		testClients   services.TestClients
-		envoyInstance *services.EnvoyInstance
+		envoyInstance *envoy.Instance
 		testUpstream  *v1helpers.TestUpstream
 		envoyPort     uint32
 		transform     *transformation.TransformationStages
@@ -70,10 +72,8 @@ var _ = Describe("XSLT Transformer E2E", func() {
 	})
 
 	setupProxy := func() {
-		var err error
-		envoyInstance, err = envoyFactory.NewEnvoyInstance()
-		Expect(err).NotTo(HaveOccurred())
-		err = envoyInstance.Run(testClients.GlooPort)
+		envoyInstance = envoyFactory.NewInstance()
+		err := envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 
 		testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
@@ -111,9 +111,7 @@ var _ = Describe("XSLT Transformer E2E", func() {
 	}
 
 	AfterEach(func() {
-		if envoyInstance != nil {
-			_ = envoyInstance.Clean()
-		}
+		envoyInstance.Clean()
 		cancel()
 	})
 

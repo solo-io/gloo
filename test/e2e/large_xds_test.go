@@ -12,6 +12,8 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/fgrosse/zaptest"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
@@ -66,7 +68,7 @@ var _ = Describe("XDS interfaces", func() {
 		redisPort        = uint32(6380)
 		redisSession     *gexec.Session
 		testUpstream     *v1helpers.TestUpstream
-		envoyInstance    *services.EnvoyInstance
+		envoyInstance    *envoy.Instance
 		rlServerSettings ratelimitserver.Settings
 	)
 	// Set up envoy and test clients which is used for both rate limit and extauth
@@ -82,9 +84,7 @@ var _ = Describe("XDS interfaces", func() {
 		testClients = services.GetTestClients(ctx, cache)
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
-		envoyInstance, err = envoyFactory.NewEnvoyInstance()
-		Expect(err).NotTo(HaveOccurred())
-
+		envoyInstance = envoyFactory.NewInstance()
 		err = envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 		testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
@@ -100,10 +100,8 @@ var _ = Describe("XDS interfaces", func() {
 		})
 	})
 	AfterEach(func() {
+		envoyInstance.Clean()
 		cancel()
-		if envoyInstance != nil {
-			_ = envoyInstance.Clean()
-		}
 	})
 	// Show that we can send very large configuration to Ext-Auth via xds
 	// Create a very large API key (which is read and sent over xds) and show that requests still work as expected.

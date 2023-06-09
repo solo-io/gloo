@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/gloo/test/services/envoy"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
 	"github.com/fgrosse/zaptest"
@@ -118,7 +119,7 @@ var _ = Describe("dlp", func() {
 	})
 	Context("With envoy", func() {
 		var (
-			envoyInstance *services.EnvoyInstance
+			envoyInstance *envoy.Instance
 			testUpstream  *v1helpers.TestUpstream
 			envoyPort     = uint32(8080)
 
@@ -141,11 +142,10 @@ var _ = Describe("dlp", func() {
 
 		BeforeEach(func() {
 			proxy = nil
-			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
-			Expect(err).NotTo(HaveOccurred())
 
-			err = envoyInstance.Run(testClients.GlooPort)
+			envoyInstance = envoyFactory.NewInstance()
+
+			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
 			testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "hello")
@@ -154,9 +154,7 @@ var _ = Describe("dlp", func() {
 		})
 
 		AfterEach(func() {
-			if envoyInstance != nil {
-				envoyInstance.Clean()
-			}
+			envoyInstance.Clean()
 		})
 
 		Context("listener rules", func() {

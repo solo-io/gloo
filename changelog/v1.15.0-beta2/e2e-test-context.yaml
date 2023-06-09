@@ -1,0 +1,16 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/7577
+    resolvesIssue: false
+    description: Ensure e2e tests run with recommended settings
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5057
+    resolvesIssue: false
+    description: >- 
+      Introduce a TestContext to be used by e2e tests. This is used by an example_test
+      to demonstrate that it works. There will likely be enhancements to this in the future
+      when we incorporate it into more e2e tests.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.15.0-beta11

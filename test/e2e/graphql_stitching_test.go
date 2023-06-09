@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/solo-io/gloo/test/v1helpers"
 
 	"github.com/fgrosse/zaptest"
@@ -268,7 +270,7 @@ type Query {
 	})
 	Context("With envoy", func() {
 		var (
-			envoyInstance     *services.EnvoyInstance
+			envoyInstance     *envoy.Instance
 			envoyPort         = uint32(8080)
 			query             string
 			proxy             *gloov1.Proxy
@@ -312,11 +314,8 @@ type Query {
 		}
 
 		BeforeEach(func() {
-			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
-			Expect(err).NotTo(HaveOccurred())
-
-			err = envoyInstance.Run(testClients.GlooPort)
+			envoyInstance = envoyFactory.NewInstance()
+			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
 			query = `
@@ -352,9 +351,7 @@ type Query {
 		})
 
 		AfterEach(func() {
-			if envoyInstance != nil {
-				envoyInstance.Clean()
-			}
+			envoyInstance.Clean()
 		})
 
 		Context("request to stitched schema", func() {

@@ -248,11 +248,14 @@ PROTOC_IMPORT_PATH:=$(ROOTDIR)/vendor_any
 # When this is not set, the host machine executing codegen may run out of available file descriptors
 MAX_CONCURRENT_PROTOCS ?= 10
 
+.PHONY: tidy
+tidy:
+	go mod tidy
+
 .PHONY: generate-all
 generate-all: generated-code generate-gloo-fed generate-helm-docs build-stitching-bundles
 generate-all: fmt
-generate-all:
-	go mod tidy
+generate-all: tidy
 
 GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' ' -f2)
 
@@ -263,10 +266,10 @@ check-go-version:
 
 .PHONY: check-solo-apis
 check-solo-apis:
-ifeq ($(GLOO_BRANCH_BUILD),)
 	# Ensure that the gloo and solo-apis dependencies are in lockstep
+	# This is intended to only be run by the ci/check-code-gen script and it will produce
+	# a diff if the versions are not in lockstep
 	go get github.com/solo-io/solo-apis@gloo-$(GLOO_VERSION)
-endif
 
 .PHONY: check-envoy-version
 check-envoy-version:

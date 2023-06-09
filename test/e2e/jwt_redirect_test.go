@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/fgrosse/zaptest"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
@@ -31,7 +33,7 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 		ctx           context.Context
 		cancel        context.CancelFunc
 		testClients   services.TestClients
-		envoyInstance *services.EnvoyInstance
+		envoyInstance *envoy.Instance
 		testUpstream  *v1helpers.TestUpstream
 		envoyPort     uint32
 		vhosts        []*gloov1.VirtualHost
@@ -62,10 +64,8 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 	})
 
 	runEnvoy := func() {
-		var err error
-		envoyInstance, err = envoyFactory.NewEnvoyInstance()
-		Expect(err).NotTo(HaveOccurred())
-		err = envoyInstance.Run(testClients.GlooPort)
+		envoyInstance = envoyFactory.NewInstance()
+		err := envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -127,10 +127,8 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 	}
 
 	AfterEach(func() {
+		envoyInstance.Clean()
 		cancel()
-		if envoyInstance != nil {
-			_ = envoyInstance.Clean()
-		}
 	})
 
 	Context("With vhost-level jwt config", func() {

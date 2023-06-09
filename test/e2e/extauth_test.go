@@ -25,6 +25,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/solo-io/gloo/test/ginkgo/parallel"
 
 	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
@@ -219,17 +221,14 @@ var _ = Describe("External auth", func() {
 	Context("With envoy", func() {
 
 		var (
-			envoyInstance *services.EnvoyInstance
+			envoyInstance *envoy.Instance
 			testUpstream  *v1helpers.TestUpstream
 			envoyPort     = uint32(8080)
 		)
 
 		BeforeEach(func() {
-			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
-			Expect(err).NotTo(HaveOccurred())
-
-			err = envoyInstance.Run(testClients.GlooPort)
+			envoyInstance = envoyFactory.NewInstance()
+			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
 			testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
@@ -244,7 +243,7 @@ var _ = Describe("External auth", func() {
 		})
 
 		AfterEach(func() {
-			_ = envoyInstance.Clean()
+			envoyInstance.Clean()
 		})
 
 		var basicConfigSetup = func() {
@@ -1400,7 +1399,7 @@ var _ = Describe("External auth", func() {
 									return http.ErrUseLastResponse
 								}
 
-								req, err := http.NewRequest("GET", fmt.Sprintf("https://%s:%d/", "localhost", 8443), nil)
+								req, err := http.NewRequest("GET", fmt.Sprintf("https://%s:%d/", "localhost", envoyInstance.HttpsPort), nil)
 								Expect(err).NotTo(HaveOccurred())
 
 								// There is a delay between when we write configuration using our resource clients,

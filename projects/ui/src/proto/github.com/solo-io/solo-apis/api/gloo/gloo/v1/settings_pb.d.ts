@@ -1049,6 +1049,11 @@ export class GlooOptions extends jspb.Message {
   getProxyDebugBindAddr(): string;
   setProxyDebugBindAddr(value: string): void;
 
+  hasLogTransformationRequestResponseInfo(): boolean;
+  clearLogTransformationRequestResponseInfo(): void;
+  getLogTransformationRequestResponseInfo(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setLogTransformationRequestResponseInfo(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GlooOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GlooOptions): GlooOptions.AsObject;
@@ -1076,6 +1081,7 @@ export namespace GlooOptions {
     failoverUpstreamDnsPollingInterval?: google_protobuf_duration_pb.Duration.AsObject,
     removeUnusedFilters?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     proxyDebugBindAddr: string,
+    logTransformationRequestResponseInfo?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export class AWSOptions extends jspb.Message {

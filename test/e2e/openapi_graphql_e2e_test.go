@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/gin-gonic/gin"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
@@ -69,7 +71,7 @@ var _ = Describe("Graphql E2E test", func() {
 	})
 	Context("With envoy", func() {
 		var (
-			envoyInstance *services.EnvoyInstance
+			envoyInstance *envoy.Instance
 			testUpstream1 *v1helpers.TestUpstream
 			envoyPort     = uint32(8080)
 
@@ -139,11 +141,8 @@ var _ = Describe("Graphql E2E test", func() {
 		}
 
 		BeforeEach(func() {
-			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
-			Expect(err).NotTo(HaveOccurred())
-
-			err = envoyInstance.Run(testClients.GlooPort)
+			envoyInstance = envoyFactory.NewInstance()
+			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 			router := NewOpenapiBackend()
 			testUpstream1 = v1helpers.NewTestHttpUpstreamWithHandler(ctx, envoyInstance.LocalAddr(), func(w http.ResponseWriter, r *http.Request) bool {
@@ -161,9 +160,7 @@ var _ = Describe("Graphql E2E test", func() {
 		})
 
 		AfterEach(func() {
-			if envoyInstance != nil {
-				envoyInstance.Clean()
-			}
+			envoyInstance.Clean()
 		})
 
 		Context("OpenAPI Discovery Function", func() {

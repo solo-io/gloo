@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/solo-io/gloo/test/services/envoy"
+
 	"github.com/fgrosse/zaptest"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
@@ -288,17 +290,14 @@ var _ = Describe("waf", func() {
 	})
 	Context("With envoy", func() {
 		var (
-			envoyInstance *services.EnvoyInstance
+			envoyInstance *envoy.Instance
 			testUpstream  *v1helpers.TestUpstream
 			envoyPort     = uint32(8080)
 		)
 
 		BeforeEach(func() {
-			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
-			Expect(err).NotTo(HaveOccurred())
-
-			err = envoyInstance.Run(testClients.GlooPort)
+			envoyInstance = envoyFactory.NewInstance()
+			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
 			testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
@@ -325,9 +324,7 @@ var _ = Describe("waf", func() {
 		AfterEach(func() {
 			err := testClients.ArtifactClient.Delete("gloo-system", "configmapname", clients.DeleteOpts{})
 			Expect(err).ToNot(HaveOccurred())
-			if envoyInstance != nil {
-				envoyInstance.Clean()
-			}
+			envoyInstance.Clean()
 		})
 
 		Context("no body processing rules", func() {
