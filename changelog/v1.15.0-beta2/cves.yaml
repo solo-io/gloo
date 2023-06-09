@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/solo-projects/issues/5062
+  description: >
+    Run apk upgrade in apiserver image to fix CVE-2023-2650.

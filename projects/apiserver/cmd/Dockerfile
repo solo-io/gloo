@@ -3,6 +3,7 @@ FROM $ENVOY_IMAGE
 ARG GOARCH
 
 RUN apk update;
+RUN apk -U upgrade
 
 COPY gloo-fed-apiserver-linux-${GOARCH} /usr/local/bin/gloo-fed-apiserver
 
