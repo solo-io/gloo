@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5037
+    resolvesIssue: true
+    description: >-
+      Adjusted Makefile to bring targets in line with recent OSS simplifications in https://github.com/solo-io/gloo/pull/8299

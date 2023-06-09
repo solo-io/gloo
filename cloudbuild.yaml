@@ -9,7 +9,11 @@ steps:
   id: 'run-tests'
 
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: [ 'builds','submit','--config=ci/cloudbuild/publish-artifacts.yaml','--substitutions','TAG_NAME=$TAG_NAME,COMMIT_SHA=$COMMIT_SHA,REPO_NAME=$REPO_NAME,_PR_NUM=$_PR_NUM,_GO_VERSION=1.20.1' ]
+  entrypoint: 'bash'
+  # if TAG_NAME is not set, then we don't want to run any of the release steps
+  args:
+    - '-c'
+    - 'if [ ! -z "$TAG_NAME" ]; then gcloud builds submit --config=ci/cloudbuild/publish-artifacts.yaml --substitutions TAG_NAME=$TAG_NAME,COMMIT_SHA=$COMMIT_SHA,REPO_NAME=$REPO_NAME,_PR_NUM=$_PR_NUM,_GO_VERSION=1.20.1; fi'
   waitFor: [ '-' ]
   id: 'publish-artifacts'
 

@@ -1,4 +1,5 @@
 include Makefile.docker
+include $(shell pwd)/projects/glooctl-plugins/plugins.mk
 
 # https://www.gnu.org/software/make/manual/html_node/Special-Variables.html#Special-Variables
 .DEFAULT_GOAL := help
@@ -1204,13 +1205,6 @@ build-cli-local: glooctl-$(GOOS)-$(GOARCH) ## Build the CLI according to your lo
 build-cli: glooctl-linux-$(GOARCH) glooctl-darwin-$(GOARCH) glooctl-windows
 
 #----------------------------------------------------------------------------------
-# Glooctl Plugins
-#----------------------------------------------------------------------------------
-
-# Include helm makefile so its targets can be ran from the root of this repo
-include $(ROOTDIR)/projects/glooctl-plugins/plugins.mk
-
-#----------------------------------------------------------------------------------
 # Envoy init (BASE/SIDECAR)
 #----------------------------------------------------------------------------------
 
@@ -1298,11 +1292,6 @@ GLOOE_HELM_BUCKET := gs://gloo-ee-helm
 GLOO_FED_HELM_BUCKET := gs://gloo-fed-helm
 
 # creates Chart.yaml, values.yaml, and requirements.yaml
-USE_DIGESTS:=""
-ifeq ($(RELEASE), "true")
-		USE_DIGESTS="--use-digests"
-endif
-
 .PHONY: helm-template
 helm-template:
 	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)
@@ -1322,44 +1311,15 @@ $(OUTPUT_DIR)/.helm-initialized:
 package-gloo-edge-chart: init-helm
 	helm package --destination $(HELM_SYNC_DIR_FOR_GLOO_EE) $(GLOOE_CHART_DIR)
 
-.PHONY: fetch-package-and-save-helm
-fetch-package-and-save-helm: init-helm
-ifeq ($(RELEASE),"true")
-	until $$(GENERATION=$$(gsutil ls -a $(GLOOE_HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
-					gsutil cp -v $(GLOOE_HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml && \
-					helm package --destination $(HELM_SYNC_DIR_FOR_GLOO_EE)/charts $(HELM_DIR)/gloo-ee >> /dev/null && \
-					helm repo index $(HELM_SYNC_DIR_FOR_GLOO_EE) --merge $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml && \
-					gsutil -m rsync $(HELM_SYNC_DIR_FOR_GLOO_EE)/charts $(GLOOE_HELM_BUCKET)/charts && \
-					gsutil -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml $(GLOOE_HELM_BUCKET)/index.yaml); do \
-		echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
-		sleep 2; \
-	done
-	until $$(GENERATION=$$(gsutil ls -a $(GLOO_FED_HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
-		  gsutil cp -v $(GLOO_FED_HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR_GLOO_FED)/index.yaml && \
-		  helm package --destination $(HELM_SYNC_DIR_GLOO_FED)/charts $(HELM_DIR)/gloo-fed >> /dev/null && \
-		  helm repo index $(HELM_SYNC_DIR_GLOO_FED) --merge $(HELM_SYNC_DIR_GLOO_FED)/index.yaml && \
-		  gsutil -m rsync $(HELM_SYNC_DIR_GLOO_FED)/charts $(GLOO_FED_HELM_BUCKET)/charts && \
-		  gsutil -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR_GLOO_FED)/index.yaml $(GLOO_FED_HELM_BUCKET)/index.yaml); do \
-	echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
-	sleep 2; \
-	done
-endif
-
 #----------------------------------------------------------------------------------
 # Gloo Fed Deployment Manifests / Helm
 #----------------------------------------------------------------------------------
+USE_DIGESTS:=""
 GLOO_FED_VERSION=$(VERSION)
 GLOO_FED_APISERVER_VERSION=$(VERSION)
 GLOO_FED_APISERVER_ENVOY_VERSION=$(VERSION)
 GLOO_FEDERATION_CONSOLE_VERSION=$(VERSION)
 GLOO_FED_RBAC_VALIDATING_WEBHOOK_VERSION=$(VERSION)
-ifeq ($(RELEASE), "true")
-		GLOO_FED_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-fed:$(VERSION)" -v | jq ".Descriptor.digest")
-		GLOO_FED_APISERVER_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-apiserver:$(VERSION)" -v | jq ".Descriptor.digest")
-		GLOO_FED_APISERVER_ENVOY_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-apiserver-envoy:$(VERSION)" -v | jq ".Descriptor.digest")
-		GLOO_FEDERATION_CONSOLE_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-federation-console:$(VERSION)" -v | jq ".Descriptor.digest")
-		GLOO_FED_RBAC_VALIDATING_WEBHOOK_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-rbac-validating-webhook:$(VERSION)" -v | jq ".Descriptor.digest")
-endif
 
 # creates Chart.yaml, values.yaml, and requirements.yaml
 .PHONY: gloofed-helm-template
@@ -1380,58 +1340,83 @@ package-gloo-fed-chart: gloofed-helm-template
 #----------------------------------------------------------------------------------
 # Release
 #----------------------------------------------------------------------------------
+.PHONY: publish-dependencies
+.PHONY: publish-docker
+.PHONY: publish-docker-retag
+.PHONY: publish-helm-chart
+.PHONY: publish-glooctl-plugins
+
+# controller variable for the "Publish Artifacts" section.  Defines which targets exist.  Possible Values: NONE, RELEASE
+PUBLISH_CONTEXT ?= NONE
+
+# gate all release target definitions in one place
+ifeq ($(PUBLISH_CONTEXT), RELEASE)
+
+# on a release, helm charts should reference image digests rather than tags
+USE_DIGESTS="--use-digests"
+GLOO_FED_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-fed:$(VERSION)" -v | jq ".Descriptor.digest")
+GLOO_FED_APISERVER_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-apiserver:$(VERSION)" -v | jq ".Descriptor.digest")
+GLOO_FED_APISERVER_ENVOY_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-apiserver-envoy:$(VERSION)" -v | jq ".Descriptor.digest")
+GLOO_FEDERATION_CONSOLE_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-federation-console:$(VERSION)" -v | jq ".Descriptor.digest")
+GLOO_FED_RBAC_VALIDATING_WEBHOOK_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-rbac-validating-webhook:$(VERSION)" -v | jq ".Descriptor.digest")
 
 DEPS_DIR=$(OUTPUT_DIR)/dependencies/$(VERSION)
 DEPS_BUCKET=gloo-ee-dependencies
-
-.PHONY: publish-dependencies
-publish-dependencies: $(DEPS_DIR)/go.mod $(DEPS_DIR)/go.sum $(DEPS_DIR)/dependencies $(DEPS_DIR)/dependencies.json \
-	$(DEPS_DIR)/build_env $(DEPS_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)/fips-verify-plugins-linux-amd64
-	gsutil cp -r $(DEPS_DIR) gs://$(DEPS_BUCKET)
-
-$(DEPS_DIR):
+publish-dependencies:
 	mkdir -p $(DEPS_DIR)
 
-$(DEPS_DIR)/dependencies: $(DEPS_DIR) go.mod
-	GO111MODULE=on go list -m all > $@
-
-$(DEPS_DIR)/dependencies.json: $(DEPS_DIR) go.mod
-	GO111MODULE=on go list -m --json all > $@
-
-$(DEPS_DIR)/go.mod: $(DEPS_DIR) go.mod
-	cp go.mod $(DEPS_DIR)
-
-$(DEPS_DIR)/go.sum: $(DEPS_DIR) go.sum
-	cp go.sum $(DEPS_DIR)
-
-$(DEPS_DIR)/build_env: $(DEPS_DIR)
-	echo "GO_BUILD_IMAGE=$(GOLANG_ALPINE_IMAGE_NAME)" > $@
-	echo "FIPS_GO_BUILD_IMAGE=$(GOLANG_IMAGE_NAME)" >> $@
-	echo "GC_FLAGS=$(GCFLAGS)" >> $@
-
-$(DEPS_DIR)/verify-plugins-linux-amd64: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
-	cp $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
-$(DEPS_DIR)/fips-verify-plugins-linux-amd64: $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
+	cp go.mod go.sum $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
 	cp $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)/fips-verify-plugins-linux-amd64
 
-# Intended only to be run by CI
-# Build and push docker images to the defined IMAGE_REGISTRY
-.PHONY: publish-docker
-publish-docker: docker
-publish-docker: docker-push
-publish-docker: docker-fed
-publish-docker: docker-fed-push
+	GO111MODULE=on go list -m all                     > $(DEPS_DIR)/dependencies
+	GO111MODULE=on go list -m --json all              > $(DEPS_DIR)/dependencies.json
 
-# Intended only to be run by CI
+	echo "GO_BUILD_IMAGE=$(GOLANG_ALPINE_IMAGE_NAME)" > $(DEPS_DIR)/build_env
+	echo "FIPS_GO_BUILD_IMAGE=$(GOLANG_IMAGE_NAME)"   >> $(DEPS_DIR)/build_env
+	echo "GC_FLAGS=$(GCFLAGS)"                        >> $(DEPS_DIR)/build_env
+
+	gsutil cp -r $(DEPS_DIR) gs://$(DEPS_BUCKET)
+
+# Build and push docker images to the defined $(IMAGE_REGISTRY)
+publish-docker: docker docker-push docker-fed docker-fed-push
+
 # Re-tag docker images previously pushed to the ORIGINAL_IMAGE_REGISTRY,
 # and push them to a secondary repository, defined at IMAGE_REGISTRY
-.PHONY: publish-docker-retag
-ifeq ($(RELEASE),"true")
-publish-docker-retag: docker-retag
-publish-docker-retag: docker-push
-publish-docker-retag: docker-fed-retag
-publish-docker-retag: docker-fed-push
+publish-docker-retag: docker-retag docker-push docker-fed-retag docker-fed-push
+
+publish-helm-chart: init-helm
+	until $$(GENERATION=$$(gsutil ls -a $(GLOOE_HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
+					gsutil cp -v $(GLOOE_HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml && \
+					helm package --destination $(HELM_SYNC_DIR_FOR_GLOO_EE)/charts $(HELM_DIR)/gloo-ee >> /dev/null && \
+					helm repo index $(HELM_SYNC_DIR_FOR_GLOO_EE) --merge $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml && \
+					gsutil -m rsync $(HELM_SYNC_DIR_FOR_GLOO_EE)/charts $(GLOOE_HELM_BUCKET)/charts && \
+					gsutil -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml $(GLOOE_HELM_BUCKET)/index.yaml); do \
+		echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
+		sleep 2; \
+	done
+	until $$(GENERATION=$$(gsutil ls -a $(GLOO_FED_HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
+		  gsutil cp -v $(GLOO_FED_HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR_GLOO_FED)/index.yaml && \
+		  helm package --destination $(HELM_SYNC_DIR_GLOO_FED)/charts $(HELM_DIR)/gloo-fed >> /dev/null && \
+		  helm repo index $(HELM_SYNC_DIR_GLOO_FED) --merge $(HELM_SYNC_DIR_GLOO_FED)/index.yaml && \
+		  gsutil -m rsync $(HELM_SYNC_DIR_GLOO_FED)/charts $(GLOO_FED_HELM_BUCKET)/charts && \
+		  gsutil -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR_GLOO_FED)/index.yaml $(GLOO_FED_HELM_BUCKET)/index.yaml); do \
+	echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
+	sleep 2; \
+	done
+
+publish-glooctl-plugins: check-gsutil build-fed-cli
+	gsutil -m cp \
+	$(OUTPUT_DIR)/glooctl-fed-linux-$(GOARCH) \
+	$(OUTPUT_DIR)/glooctl-fed-darwin-$(GOARCH) \
+	$(OUTPUT_DIR)/glooctl-fed-windows-$(GOARCH).exe \
+	gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/$(VERSION)/
+ifeq ($(ON_DEFAULT_BRANCH), "true")
+	# We're on latest default git branch, so push /latest and updated install script
+	gsutil -m cp -r gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/$(VERSION)/* gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/latest/
+	gsutil cp projects/glooctl-plugins/fed/install/install.sh gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/install.sh
 endif
+
+endif # release target definitions
 
 #----------------------------------------------------------------------------------
 # Docker

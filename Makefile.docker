@@ -15,9 +15,7 @@ IMAGE_REGISTRY ?= quay.io/solo-io
 GOLANG_IMAGE_NAME = golang:$(shell go version | egrep -o '([0-9]+\.[0-9]+)')
 GOLANG_ALPINE_IMAGE_NAME = $(GOLANG_IMAGE_NAME)-alpine
 
-RELEASE := "false"
-
-# If TAGGED_VERSION does not exist, this is not a release in CI
+# TODO(gunnar-solo): remove translation between TAGGED_VERSION and PUBLISH_CONTEXT
 ifeq ($(TAGGED_VERSION),)
 	ifeq ($(TEST_ASSET_ID),)
 	  VERSION ?= $(shell git describe --tags --dirty | cut -c 2-)
@@ -26,7 +24,7 @@ ifeq ($(TAGGED_VERSION),)
 	  VERSION ?= $(shell git describe --tags --abbrev=0 | cut -c 2-)-$(TEST_ASSET_ID)
 	endif
 else
-	RELEASE := "true"
+	PUBLISH_CONTEXT := "RELEASE"
 	VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
 endif
 

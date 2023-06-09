@@ -111,9 +111,8 @@ steps:
 - name: "gcr.io/solo-public/go-mod-make:0.6.2"
   args:
     [
-      "init-helm",
-      "build-and-upload-gcs-release-assets",
-      "fetch-package-and-save-helm",
+      "publish-glooctl-plugins",
+      "publish-helm-chart",
       "publish-dependencies",
     ]
   dir: *dir
