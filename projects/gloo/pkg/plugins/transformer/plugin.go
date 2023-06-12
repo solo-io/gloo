@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	osTransformation "github.com/solo-io/gloo/projects/gloo/pkg/plugins/transformation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var (
@@ -92,6 +93,8 @@ func translateTransformation(glooTransform *transformation.Transformation) (*env
 					TypedConfig: any,
 				},
 			}
+
+			out.LogRequestResponseInfo = &wrapperspb.BoolValue{Value: glooTransform.GetLogRequestResponseInfo()}
 		}
 	default:
 		return osTransformation.TranslateTransformation(glooTransform)

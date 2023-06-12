@@ -24,6 +24,8 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	testMatchers "github.com/solo-io/gloo/test/gomega/matchers"
+	"github.com/solo-io/gloo/test/testutils"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -193,6 +195,23 @@ var _ = Describe("XSLT Transformer E2E", func() {
 			// Invalid body
 			expectBadRequest(`<This is invalid xml />`)
 			expectBadRequest("")
+		})
+
+		It("can enable enhanced logging", func() {
+			transform = getXsltTransform(XmlToJsonTransform, "application/xml", false)
+			// set LogRequestResponseInfo on the transformation
+			transform.GetRegular().GetRequestTransforms()[0].GetRequestTransformation().LogRequestResponseInfo = true
+			setupProxy()
+			requestBuilder := testutils.DefaultRequestBuilder().WithPort(envoyPort).WithBody(CarsXml)
+
+			Eventually(func(g Gomega) {
+				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(testMatchers.HaveExactResponseBody(CarsJson))
+			}, 10*time.Second, 1*time.Second).Should(Succeed())
+
+			logs, err := envoyInstance.Logs()
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(logs).To(ContainSubstring("body before transformation: <?xml version=\"1.0\" encoding=\"UTF-8\"?>"), "logs should contain expected xml")
 		})
 	})
 

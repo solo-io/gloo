@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: envoy-gloo-ee
+    dependencyRepo: solo-io
+    dependencyTag: v1.25.7-patch1
+    description: >-
+      Upgrade envoy-gloo-ee version to support new transformation logging functionality.
