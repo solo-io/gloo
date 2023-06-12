@@ -14,7 +14,7 @@ func HavePercentileLessThan(percentile int, upperBound time.Duration) types.Gome
 	return gomega.WithTransform(transforms.WithPercentile(percentile), gomega.BeNumerically("<", upperBound))
 }
 
-// HaveMedianLessThan returns a matcher requiring the given slice of durations have a median valude less than the given upperBound
+// HaveMedianLessThan returns a matcher requiring the given slice of durations have a median value less than the given upperBound
 func HaveMedianLessThan(upperBound time.Duration) types.GomegaMatcher {
 	return gomega.WithTransform(transforms.WithMedian(), gomega.BeNumerically("<", upperBound))
 }
