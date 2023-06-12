@@ -385,6 +385,7 @@ func convertResourceReports(resourceReports []*checker.ResourceReport) []*rpc_ed
 func newDeploymentSetFromList(deploymentList *k8s_apps_types.DeploymentList) sk_sets.ResourceSet[*k8s_apps_types.Deployment] {
 	set := sk_sets.NewResourceSet[*k8s_apps_types.Deployment]()
 	for _, item := range deploymentList.Items {
+		item := item
 		set.Insert(&item)
 	}
 	return set
@@ -392,6 +393,7 @@ func newDeploymentSetFromList(deploymentList *k8s_apps_types.DeploymentList) sk_
 func newPodSetFromList(serviceList *k8s_core_types.PodList) sk_sets.ResourceSet[*k8s_core_types.Pod] {
 	set := sk_sets.NewResourceSet[*k8s_core_types.Pod]()
 	for _, item := range serviceList.Items {
+		item := item
 		set.Insert(&item)
 	}
 	return set
@@ -399,6 +401,7 @@ func newPodSetFromList(serviceList *k8s_core_types.PodList) sk_sets.ResourceSet[
 func newServiceSetFromList(serviceList *k8s_core_types.ServiceList) sk_sets.ResourceSet[*k8s_core_types.Service] {
 	set := sk_sets.NewResourceSet[*k8s_core_types.Service]()
 	for _, item := range serviceList.Items {
+		item := item
 		set.Insert(&item)
 	}
 	return set
@@ -406,6 +409,7 @@ func newServiceSetFromList(serviceList *k8s_core_types.ServiceList) sk_sets.Reso
 func newDaemonSetSetFromList(deploymentList *k8s_apps_types.DaemonSetList) sk_sets.ResourceSet[*k8s_apps_types.DaemonSet] {
 	set := sk_sets.NewResourceSet[*k8s_apps_types.DaemonSet]()
 	for _, item := range deploymentList.Items {
+		item := item
 		set.Insert(&item)
 	}
 	return set

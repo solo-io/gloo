@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: Fix UI bug falsely stating no Envoy proxies exist when Gloo Federation is not enabled.
+    issueLink: https://github.com/solo-io/gloo/issues/8285
+    resolvesIssue: false

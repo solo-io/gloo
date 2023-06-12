@@ -2,6 +2,7 @@ package glooinstance_handler_test
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
@@ -20,6 +21,7 @@ import (
 	. "github.com/solo-io/solo-kit/test/matchers"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/glooinstance_handler"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/images"
 	apps_v1 "k8s.io/api/apps/v1"
 	core_v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,7 +41,20 @@ var (
 				Namespace:         "gloo-system",
 				WatchedNamespaces: []string{"ns1", "ns2", "gloo-system"},
 			},
-			Proxies: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy{},
+			Proxies: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy{
+				{
+					Name:                   "gateway-proxy-2",
+					Namespace:              "gloo-system",
+					Version:                "1.2.3",
+					WorkloadControllerType: rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy_DEPLOYMENT,
+				},
+				{
+					Name:                   "gateway-proxy",
+					Namespace:              "gloo-system",
+					Version:                "1.2.3",
+					WorkloadControllerType: rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy_DEPLOYMENT,
+				},
+			},
 			Check: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check{
 				Gateways: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
 					Total: 2,
@@ -90,9 +105,11 @@ var (
 					},
 				},
 				UpstreamGroups: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
-				Proxies:        &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
-				Deployments: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+				Proxies: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
 					Total: 2,
+				},
+				Deployments: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+					Total: 4,
 				},
 				Pods: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
 			},
@@ -186,11 +203,36 @@ var _ = Describe("single cluster gloo instance lister", func() {
 		mockRateLimitClientset.EXPECT().RateLimitConfigs().Return(mockRateLimitConfigClient)
 
 		// mock data
+		proxyPodSpec := core_v1.PodSpec{
+			ServiceAccountName: "gateway-proxy",
+			Containers: []core_v1.Container{
+				{
+					Name:  "gateway-proxy",
+					Image: fmt.Sprintf("quay.io/solo-io/%s:1.2.3", images.EnterpriseGatewayProxyImageName),
+				},
+			},
+		}
+		proxy2PodSpec := core_v1.PodSpec{
+			ServiceAccountName: "gateway-proxy-2",
+			Containers: []core_v1.Container{
+				{
+					Name:  "gateway-proxy-2",
+					Image: fmt.Sprintf("quay.io/solo-io/%s:1.2.3", images.EnterpriseGatewayProxyImageName),
+				},
+			},
+		}
 		mockServiceClient.EXPECT().ListService(ctx).Return(&core_v1.ServiceList{
 			Items: []core_v1.Service{},
 		}, nil).AnyTimes()
-		mockPodClient.EXPECT().ListPod(ctx).Return(&core_v1.PodList{
-			Items: []core_v1.Pod{},
+		mockPodClient.EXPECT().ListPod(ctx, gomock.Any()).Return(&core_v1.PodList{
+			Items: []core_v1.Pod{
+				{
+					Spec: proxyPodSpec,
+				},
+				{
+					Spec: proxy2PodSpec,
+				},
+			},
 		}, nil).AnyTimes()
 		mockNodeClient.EXPECT().GetNode(ctx, gomock.Any()).Return(&core_v1.Node{
 			ObjectMeta: metav1.ObjectMeta{},
@@ -222,6 +264,36 @@ var _ = Describe("single cluster gloo instance lister", func() {
 		mockDeploymentClient.EXPECT().ListDeployment(ctx).Return(&apps_v1.DeploymentList{
 			Items: []apps_v1.Deployment{
 				*deployment,
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "gateway-proxy",
+						Namespace: "gloo-system",
+						Labels:    map[string]string{"app": "gloo", "gloo": "gateway-proxy"},
+					},
+					Spec: apps_v1.DeploymentSpec{
+						Template: core_v1.PodTemplateSpec{
+							ObjectMeta: metav1.ObjectMeta{
+								Labels: map[string]string{"gloo": "gateway-proxy"},
+							},
+							Spec: proxyPodSpec,
+						},
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "gateway-proxy-2",
+						Namespace: "gloo-system",
+						Labels:    map[string]string{"app": "gloo", "gloo": "gateway-proxy"},
+					},
+					Spec: apps_v1.DeploymentSpec{
+						Template: core_v1.PodTemplateSpec{
+							ObjectMeta: metav1.ObjectMeta{
+								Labels: map[string]string{"gloo": "gateway-proxy"},
+							},
+							Spec: proxy2PodSpec,
+						},
+					},
+				},
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "another-gloo",
@@ -356,7 +428,28 @@ var _ = Describe("single cluster gloo instance lister", func() {
 			Items: []gloo_v1.UpstreamGroup{},
 		}, nil)
 		mockProxyClient.EXPECT().ListProxy(ctx).Return(&gloo_v1.ProxyList{
-			Items: []gloo_v1.Proxy{},
+			Items: []gloo_v1.Proxy{
+				{
+					Spec: gloo_v1.ProxySpec{},
+					Status: gloo_v1.ProxyStatus{
+						State: gloo_v1.ProxyStatus_Accepted,
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "gateway-proxy",
+						Namespace: "gloo-system",
+					},
+				},
+				{
+					Spec: gloo_v1.ProxySpec{},
+					Status: gloo_v1.ProxyStatus{
+						State: gloo_v1.ProxyStatus_Accepted,
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "gateway-proxy-2",
+						Namespace: "gloo-system",
+					},
+				},
+			},
 		}, nil)
 		mockAuthConfigClient.EXPECT().ListAuthConfig(ctx).Return(&enterprise_gloo_v1.AuthConfigList{
 			Items: []enterprise_gloo_v1.AuthConfig{},
