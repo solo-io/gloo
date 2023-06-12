@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -19,35 +20,41 @@ type ScaleConfig struct {
 	Upstreams int
 }
 
-var upName = &core.Metadata{
-	Name:      "test",
-	Namespace: "gloo-system",
+func upName(i int) *core.Metadata {
+	return &core.Metadata{
+		Name:      fmt.Sprintf("test-%06d", i),
+		Namespace: "gloo-system",
+	}
 }
 
 // Upstream is a generic upstream included in snapshots generated from ScaledSnapshot
-var Upstream = &v1.Upstream{
-	Metadata: upName,
-	UpstreamType: &v1.Upstream_Static{
-		Static: &v1static.UpstreamSpec{
-			Hosts: []*v1static.Host{
-				{
-					Addr: "Test",
-					Port: 124,
+func Upstream(i int) *v1.Upstream {
+	return &v1.Upstream{
+		Metadata: upName(i),
+		UpstreamType: &v1.Upstream_Static{
+			Static: &v1static.UpstreamSpec{
+				Hosts: []*v1static.Host{
+					{
+						Addr: "Test",
+						Port: 124,
+					},
 				},
 			},
 		},
-	},
+	}
 }
 
 // Endpoint is a generic endpoint included in snapshots generated from ScaledSnapshot
-var Endpoint = &v1.Endpoint{
-	Upstreams: []*core.ResourceRef{upName.Ref()},
-	Address:   "1.2.3.4",
-	Port:      32,
-	Metadata: &core.Metadata{
-		Name:      "test-ep",
-		Namespace: "gloo-system",
-	},
+func Endpoint(i int) *v1.Endpoint {
+	return &v1.Endpoint{
+		Upstreams: []*core.ResourceRef{upName(i).Ref()},
+		Address:   "1.2.3.4",
+		Port:      32,
+		Metadata: &core.Metadata{
+			Name:      fmt.Sprintf("test-ep-%06d", i),
+			Namespace: "gloo-system",
+		},
+	}
 }
 
 var matcher = &matchers.Matcher{
@@ -56,36 +63,49 @@ var matcher = &matchers.Matcher{
 	},
 }
 
-var routes = []*v1.Route{{
-	Name:     "testRouteName",
-	Matchers: []*matchers.Matcher{matcher},
-	Action: &v1.Route_RouteAction{
-		RouteAction: &v1.RouteAction{
-			Destination: &v1.RouteAction_Single{
-				Single: &v1.Destination{
-					DestinationType: &v1.Destination_Upstream{
-						Upstream: upName.Ref(),
+func route(i int) *v1.Route {
+	return &v1.Route{
+		Name:     "testRouteName",
+		Matchers: []*matchers.Matcher{matcher},
+		Action: &v1.Route_RouteAction{
+			RouteAction: &v1.RouteAction{
+				Destination: &v1.RouteAction_Single{
+					Single: &v1.Destination{
+						DestinationType: &v1.Destination_Upstream{
+							Upstream: upName(i).Ref(),
+						},
 					},
 				},
 			},
 		},
-	},
-}}
+	}
+}
+
+func routes(n int) []*v1.Route {
+	routes := make([]*v1.Route, n)
+	for i := 0; i < n; i++ {
+		routes[i] = route(i + 1) // names are 1-indexed
+	}
+	return routes
+}
+
 var virtualHostName = "virt1"
 
-var HttpListener = &v1.Listener{
-	Name:        "http-listener",
-	BindAddress: "127.0.0.1",
-	BindPort:    80,
-	ListenerType: &v1.Listener_HttpListener{
-		HttpListener: &v1.HttpListener{
-			VirtualHosts: []*v1.VirtualHost{{
-				Name:    virtualHostName,
-				Domains: []string{"*"},
-				Routes:  routes,
-			}},
+func HttpListener(numRoutes int) *v1.Listener {
+	return &v1.Listener{
+		Name:        "http-listener",
+		BindAddress: "127.0.0.1",
+		BindPort:    80,
+		ListenerType: &v1.Listener_HttpListener{
+			HttpListener: &v1.HttpListener{
+				VirtualHosts: []*v1.VirtualHost{{
+					Name:    virtualHostName,
+					Domains: []string{"*"},
+					Routes:  routes(numRoutes),
+				}},
+			},
 		},
-	},
+	}
 }
 
 // tcpListener invokes functions that contain assertions and therefore can only be invoked from within a test block
@@ -103,8 +123,8 @@ func tcpListener() *v1.Listener {
 								Single: &v1.Destination{
 									DestinationType: &v1.Destination_Upstream{
 										Upstream: &core.ResourceRef{
-											Name:      "test",
-											Namespace: "gloo-system",
+											Name:      upName(1).GetName(),
+											Namespace: upName(1).GetNamespace(),
 										},
 									},
 								},
@@ -129,7 +149,7 @@ func tcpListener() *v1.Listener {
 }
 
 // hybridListener invokes functions that contain assertions and therefore can only be invoked from within a test block
-func hybridListener() *v1.Listener {
+func hybridListener(numRoutes int) *v1.Listener {
 	return &v1.Listener{
 		Name:        "hybrid-listener",
 		BindAddress: "127.0.0.1",
@@ -160,35 +180,7 @@ func hybridListener() *v1.Listener {
 							},
 						},
 						ListenerType: &v1.MatchedListener_TcpListener{
-							TcpListener: &v1.TcpListener{
-								TcpHosts: []*v1.TcpHost{
-									{
-										Destination: &v1.TcpHost_TcpAction{
-											Destination: &v1.TcpHost_TcpAction_Single{
-												Single: &v1.Destination{
-													DestinationType: &v1.Destination_Upstream{
-														Upstream: &core.ResourceRef{
-															Name:      "test",
-															Namespace: "gloo-system",
-														},
-													},
-												},
-											},
-										},
-										SslConfig: &ssl.SslConfig{
-											SslSecrets: &ssl.SslConfig_SslFiles{
-												SslFiles: &ssl.SSLFiles{
-													TlsCert: Certificate(),
-													TlsKey:  PrivateKey(),
-												},
-											},
-											SniDomains: []string{
-												"sni1",
-											},
-										},
-									},
-								},
-							},
+							TcpListener: tcpListener().GetTcpListener(),
 						},
 					},
 					{
@@ -214,13 +206,7 @@ func hybridListener() *v1.Listener {
 							},
 						},
 						ListenerType: &v1.MatchedListener_HttpListener{
-							HttpListener: &v1.HttpListener{
-								VirtualHosts: []*v1.VirtualHost{{
-									Name:    virtualHostName,
-									Domains: []string{"*"},
-									Routes:  routes,
-								}},
-							},
+							HttpListener: HttpListener(numRoutes).GetHttpListener(),
 						},
 					},
 				},
@@ -231,16 +217,16 @@ func hybridListener() *v1.Listener {
 
 // Proxy returns a generic proxy that can be used for translation benchmarking
 // Proxy invokes functions that contain assertions and therefore can only be invoked from within a test block
-func Proxy() *v1.Proxy {
+func Proxy(numRoutes int) *v1.Proxy {
 	return &v1.Proxy{
 		Metadata: &core.Metadata{
 			Name:      "test",
 			Namespace: "gloo-system",
 		},
 		Listeners: []*v1.Listener{
-			HttpListener,
+			HttpListener(numRoutes),
 			tcpListener(),
-			hybridListener(),
+			hybridListener(numRoutes),
 		},
 	}
 }
@@ -248,18 +234,19 @@ func Proxy() *v1.Proxy {
 // ScaledSnapshot generates a snapshot populated with particular numbers of each resource types as determined by the
 // passed config
 func ScaledSnapshot(config ScaleConfig) *gloosnapshot.ApiSnapshot {
-	endpointList := v1.EndpointList{}
+	endpointList := make(v1.EndpointList, config.Endpoints)
 	for i := 0; i < config.Endpoints; i++ {
-		endpointList = append(endpointList, Endpoint)
+		endpointList[i] = Endpoint(i + 1) // names are 1-indexed
 	}
 
-	upstreamList := v1.UpstreamList{}
+	upstreamList := make(v1.UpstreamList, config.Upstreams)
 	for i := 0; i < config.Upstreams; i++ {
-		upstreamList = append(upstreamList, Upstream)
+		upstreamList[i] = Upstream(i + 1) // names are 1-indexed
 	}
 
 	return &gloosnapshot.ApiSnapshot{
-		Proxies: []*v1.Proxy{Proxy()},
+		// The proxy should contain a route for each upstream
+		Proxies: []*v1.Proxy{Proxy(config.Upstreams)},
 
 		Endpoints: endpointList,
 		Upstreams: upstreamList,

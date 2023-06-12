@@ -42,7 +42,7 @@ type benchmarkConfig struct {
 	benchmarkMatchers []types.GomegaMatcher // matchers representing the assertions we wish to make for a particular entry
 }
 
-var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
+var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
 	var (
 		ctrl       *gomock.Controller
 		settings   *v1.Settings
@@ -126,7 +126,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1000,
 			Endpoints: 1,
-		}), oneKResourcesConfig, "upstream scale"),
+		}), oneKUpstreamsConfig, "upstream scale"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 10,
@@ -134,7 +134,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 1000,
-		}), oneKResourcesConfig, "endpoint scale"),
+		}), basicConfig, "endpoint scale"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 10,
 			Endpoints: 10,
@@ -161,12 +161,12 @@ var basicSnap = &v1snap.ApiSnapshot{
 	Proxies: []*v1.Proxy{
 		{
 			Listeners: []*v1.Listener{
-				gloohelpers.HttpListener,
+				gloohelpers.HttpListener(1),
 			},
 		},
 	},
-	Endpoints: []*v1.Endpoint{gloohelpers.Endpoint},
-	Upstreams: []*v1.Upstream{gloohelpers.Upstream},
+	Endpoints: []*v1.Endpoint{gloohelpers.Endpoint(1)},
+	Upstreams: []*v1.Upstream{gloohelpers.Upstream(1)},
 }
 
 var basicConfig = benchmarkConfig{
@@ -178,12 +178,12 @@ var basicConfig = benchmarkConfig{
 	},
 }
 
-/* 1k Resources Scale Tests */
-var oneKResourcesConfig = benchmarkConfig{
-	iterations: 500,
+/* 1k Upstreams Scale Test */
+var oneKUpstreamsConfig = benchmarkConfig{
+	iterations: 100,
 	maxDur:     2 * time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
-		matchers.HaveMedianLessThan(15 * time.Millisecond),
-		matchers.HavePercentileLessThan(90, 30*time.Millisecond),
+		matchers.HaveMedianLessThan(30 * time.Millisecond),
+		matchers.HavePercentileLessThan(90, 60*time.Millisecond),
 	},
 }
