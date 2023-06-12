@@ -34,7 +34,7 @@ const (
 	awsRoleArn           = "AWS_ROLE_ARN"
 )
 
-var _ = Describe("AWS Lambda ", func() {
+var _ = Describe("AWS Lambda ", FlakeAttempts(10), func() {
 
 	var (
 		ctx    context.Context

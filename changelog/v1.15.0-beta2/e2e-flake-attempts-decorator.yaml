@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5087
+    description: >-
+      Add the FlakeAttempts decorator to the most flaky tests in the e2e suite.
+      Our hope is that this alleviates some of the pains that developers experience,
+      by having these tests re-run automatically. Our goal, is that once tests are not
+      flaky, we are able to remove this decorator.

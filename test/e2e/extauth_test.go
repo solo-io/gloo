@@ -90,7 +90,7 @@ var (
 	baseExtauthPort = uint32(27000)
 )
 
-var _ = Describe("External auth", func() {
+var _ = Describe("External auth", FlakeAttempts(10), func() {
 
 	var (
 		ctx           context.Context

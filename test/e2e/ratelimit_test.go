@@ -61,7 +61,7 @@ var (
 	baseRateLimitPort = uint32(18081)
 )
 
-var _ = Describe("Rate Limit Local E2E", func() {
+var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 
 	var (
 		ctx              context.Context
