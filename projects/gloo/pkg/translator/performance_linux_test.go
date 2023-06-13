@@ -3,6 +3,7 @@ package translator_test
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/go-utils/testutils/benchmarking"
 	"strings"
 
 	"github.com/onsi/gomega/types"
@@ -42,6 +43,8 @@ type benchmarkConfig struct {
 	benchmarkMatchers []types.GomegaMatcher // matchers representing the assertions we wish to make for a particular entry
 }
 
+// These tests only compile and run on Linux machines due to the use of the go-utils benchmarking package which is only
+// compatible with Linux
 var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
 	var (
 		ctrl       *gomock.Controller
@@ -101,9 +104,15 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 			experiment.Sample(func(idx int) {
 
 				// Time translation
-				experiment.MeasureDuration(desc, func() {
+				res, err := benchmarking.Measure(func() {
 					snap, errs, report = translator.Translate(params, proxy)
 				})
+				Expect(err).NotTo(HaveOccurred())
+
+				// Benchmark total time spent
+				// If desired, a field can be added to benchmarkConfig to allow benchmarking according to User and/or
+				// System time
+				experiment.RecordDuration(desc, res.Total)
 
 				if idx == 0 {
 					// Assert expected results
