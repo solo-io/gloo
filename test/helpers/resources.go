@@ -21,17 +21,18 @@ type ScaleConfig struct {
 	Upstreams int
 }
 
-func upName(i int) *core.Metadata {
+func upMeta(i int) *core.Metadata {
 	return &core.Metadata{
 		Name:      fmt.Sprintf("test-%06d", i),
 		Namespace: "gloo-system",
 	}
 }
 
-// Upstream is a generic upstream included in snapshots generated from ScaledSnapshot
+// Upstream returns a generic upstream included in snapshots generated from ScaledSnapshot
+// The integer argument is used to create a uniquely-named resource
 func Upstream(i int) *v1.Upstream {
 	return &v1.Upstream{
-		Metadata: upName(i),
+		Metadata: upMeta(i),
 		UpstreamType: &v1.Upstream_Static{
 			Static: &v1static.UpstreamSpec{
 				Hosts: []*v1static.Host{
@@ -45,10 +46,11 @@ func Upstream(i int) *v1.Upstream {
 	}
 }
 
-// Endpoint is a generic endpoint included in snapshots generated from ScaledSnapshot
+// Endpoint returns a generic endpoint included in snapshots generated from ScaledSnapshot
+// The integer argument is used to create a uniquely-named resource which references a corresponding Upstream
 func Endpoint(i int) *v1.Endpoint {
 	return &v1.Endpoint{
-		Upstreams: []*core.ResourceRef{upName(i).Ref()},
+		Upstreams: []*core.ResourceRef{upMeta(i).Ref()},
 		Address:   "1.2.3.4",
 		Port:      32,
 		Metadata: &core.Metadata{
@@ -73,7 +75,7 @@ func route(i int) *v1.Route {
 				Destination: &v1.RouteAction_Single{
 					Single: &v1.Destination{
 						DestinationType: &v1.Destination_Upstream{
-							Upstream: upName(i).Ref(),
+							Upstream: upMeta(i).Ref(),
 						},
 					},
 				},
@@ -92,6 +94,7 @@ func routes(n int) []*v1.Route {
 
 var virtualHostName = "virt1"
 
+// HttpListener returns a generic Listener with HttpListener ListenerType and the specified number of routes
 func HttpListener(numRoutes int) *v1.Listener {
 	return &v1.Listener{
 		Name:        "http-listener",
@@ -124,8 +127,8 @@ func tcpListener() *v1.Listener {
 								Single: &v1.Destination{
 									DestinationType: &v1.Destination_Upstream{
 										Upstream: &core.ResourceRef{
-											Name:      upName(1).GetName(),
-											Namespace: upName(1).GetNamespace(),
+											Name:      upMeta(1).GetName(),
+											Namespace: upMeta(1).GetNamespace(),
 										},
 									},
 								},
