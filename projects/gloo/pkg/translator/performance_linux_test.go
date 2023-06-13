@@ -32,7 +32,6 @@ import (
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
-	"github.com/solo-io/gloo/test/ginkgo/labels"
 )
 
 // benchmarkConfig allows configuration for benchmarking tests to be reused for similar cases
@@ -45,11 +44,11 @@ type benchmarkConfig struct {
 
 // These tests only compile and run on Linux machines due to the use of the go-utils benchmarking package which is only
 // compatible with Linux
-var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
+var _ = FDescribe("Translation - Benchmarking Tests", Serial, func() { // TODO: re-add performance label
 	var (
-		ctrl       *gomock.Controller
-		settings   *v1.Settings
-		translator Translator
+		ctrl                                   *gomock.Controller
+		settings                               *v1.Settings
+		fnvTranslator, hashStructureTranslator Translator
 	)
 
 	BeforeEach(func() {
@@ -71,7 +70,9 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 		registeredPlugins := registry.Plugins(opts)
 		pluginRegistry := registry.NewPluginRegistry(registeredPlugins)
 
-		translator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
+		fnvTranslator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
+		hashstructureTranslator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, MustEnvoyCacheResourcesListToHash)
+
 	})
 
 	// The Benchmark table takes entries consisting of an ApiSnapshot, benchmarkConfig, and labels
