@@ -176,6 +176,7 @@ run-tests: test
 
 .PHONY: run-performance-tests
 run-performance-tests: GINKGO_FLAGS += --label-filter="performance" ## Run only tests with the Performance label
+run-performance-tests: TEST_PKG = ./projects/gloo/pkg/translator
 run-performance-tests: test
 
 .PHONY: run-e2e-tests
