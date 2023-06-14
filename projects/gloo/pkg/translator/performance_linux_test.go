@@ -3,8 +3,9 @@ package translator_test
 import (
 	"context"
 	"fmt"
-	"github.com/solo-io/gloo/test/ginkgo/labels"
 	"strings"
+
+	"github.com/solo-io/gloo/test/ginkgo/labels"
 
 	"github.com/solo-io/go-utils/testutils/benchmarking"
 

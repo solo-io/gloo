@@ -3,8 +3,9 @@ package translator_test
 import (
 	"context"
 	"encoding/json"
-	"github.com/solo-io/gloo/test/ginkgo/labels"
 	"time"
+
+	"github.com/solo-io/gloo/test/ginkgo/labels"
 
 	"github.com/onsi/gomega/gmeasure"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
@@ -329,7 +330,7 @@ var _ = Describe("Hashing Benchmarks", Serial, Label(labels.Performance), func()
 					Expect(snap).NotTo(BeNil())
 					Expect(report).To(gloo_matchers.BeEquivalentToDiff(validationutils.MakeReport(proxy)))
 				}
-			}, gmeasure.SamplingConfig{N: 20, Duration: 2 * time.Second})
+			}, gmeasure.SamplingConfig{N: 20, Duration: 20 * time.Second})
 
 			// We expect the FNV translator to be more efficient
 			ranking := gmeasure.RankStats(gmeasure.LowerMedianIsBetter, experiment.GetStats(fnvName), experiment.GetStats(hashstructureName))
