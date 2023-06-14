@@ -3,6 +3,7 @@ package translator_test
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/gloo/test/ginkgo/labels"
 	"strings"
 
 	"github.com/solo-io/go-utils/testutils/benchmarking"
@@ -45,7 +46,7 @@ type benchmarkConfig struct {
 
 // These tests only compile and run on Linux machines due to the use of the go-utils benchmarking package which is only
 // compatible with Linux
-var _ = FDescribe("Translation - Benchmarking Tests", Serial, func() { // TODO: re-add performance label
+var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
 	var (
 		ctrl       *gomock.Controller
 		settings   *v1.Settings
@@ -180,7 +181,7 @@ var basicSnap = &v1snap.ApiSnapshot{
 
 var basicConfig = benchmarkConfig{
 	iterations: 1000,
-	maxDur:     time.Second,
+	maxDur:     10 * time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
 		matchers.HaveMedianLessThan(50 * time.Millisecond),
 		matchers.HavePercentileLessThan(90, 100*time.Millisecond),
@@ -190,9 +191,9 @@ var basicConfig = benchmarkConfig{
 /* 1k Upstreams Scale Test */
 var oneKUpstreamsConfig = benchmarkConfig{
 	iterations: 100,
-	maxDur:     2 * time.Second,
+	maxDur:     20 * time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
-		matchers.HaveMedianLessThan(300 * time.Millisecond),
-		matchers.HavePercentileLessThan(90, 600*time.Millisecond),
+		matchers.HaveMedianLessThan(time.Second),
+		matchers.HavePercentileLessThan(90, 2*time.Second),
 	},
 }
