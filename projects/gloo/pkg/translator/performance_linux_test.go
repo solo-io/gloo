@@ -46,9 +46,9 @@ type benchmarkConfig struct {
 // compatible with Linux
 var _ = FDescribe("Translation - Benchmarking Tests", Serial, func() { // TODO: re-add performance label
 	var (
-		ctrl                                   *gomock.Controller
-		settings                               *v1.Settings
-		fnvTranslator, hashStructureTranslator Translator
+		ctrl       *gomock.Controller
+		settings   *v1.Settings
+		translator Translator
 	)
 
 	BeforeEach(func() {
@@ -70,9 +70,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, func() { // TODO: 
 		registeredPlugins := registry.Plugins(opts)
 		pluginRegistry := registry.NewPluginRegistry(registeredPlugins)
 
-		fnvTranslator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
-		hashstructureTranslator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, MustEnvoyCacheResourcesListToHash)
-
+		translator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
 	})
 
 	// The Benchmark table takes entries consisting of an ApiSnapshot, benchmarkConfig, and labels
