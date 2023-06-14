@@ -73,7 +73,7 @@ var _ = Describe("Graphql E2E test", func() {
 		var (
 			envoyInstance *envoy.Instance
 			testUpstream1 *v1helpers.TestUpstream
-			envoyPort     = uint32(8080)
+			envoyPort     uint32
 
 			proxy *gloov1.Proxy
 		)
@@ -142,6 +142,7 @@ var _ = Describe("Graphql E2E test", func() {
 
 		BeforeEach(func() {
 			envoyInstance = envoyFactory.NewInstance()
+			envoyPort = envoyInstance.HttpPort
 			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 			router := NewOpenapiBackend()

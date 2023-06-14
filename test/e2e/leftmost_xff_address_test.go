@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/gloo/test/testutils"
+
 	"github.com/solo-io/gloo/test/services/envoy"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
@@ -19,7 +21,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -38,6 +39,7 @@ var _ = Describe("Leftmost x-forwarded-for address Local E2E", func() {
 	)
 
 	BeforeEach(func() {
+		testutils.ValidateRequirementsAndNotifyGinkgo(testutils.LinuxOnly("AccessLogs do not work with Docker"))
 
 		logger := zaptest.LoggerWriter(GinkgoWriter)
 		contextutils.SetFallbackLogger(logger.Sugar())
@@ -60,6 +62,7 @@ var _ = Describe("Leftmost x-forwarded-for address Local E2E", func() {
 
 	setupProxy := func(leftmostXffAddress bool) {
 		envoyInstance = envoyFactory.NewInstance()
+		envoyPort = envoyInstance.HttpPort
 
 		err := envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
@@ -72,7 +75,6 @@ var _ = Describe("Leftmost x-forwarded-for address Local E2E", func() {
 			envoyInstance.AccessLogs = path
 		}
 
-		envoyPort = defaults.HttpPort
 		proxy := getProxy(envoyPort, leftmostXffAddress, path)
 
 		_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})

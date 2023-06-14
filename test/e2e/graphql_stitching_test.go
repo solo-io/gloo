@@ -271,7 +271,7 @@ type Query {
 	Context("With envoy", func() {
 		var (
 			envoyInstance     *envoy.Instance
-			envoyPort         = uint32(8080)
+			envoyPort         uint32
 			query             string
 			proxy             *gloov1.Proxy
 			testingRemoteExec bool
@@ -315,6 +315,7 @@ type Query {
 
 		BeforeEach(func() {
 			envoyInstance = envoyFactory.NewInstance()
+			envoyPort = envoyInstance.HttpPort
 			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 

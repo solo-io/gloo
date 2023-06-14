@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/solo-io/gloo/test/testutils"
+
 	"github.com/solo-io/gloo/test/services/envoy"
 
 	"github.com/fgrosse/zaptest"
@@ -41,8 +43,6 @@ import (
 	"github.com/solo-io/solo-projects/test/v1helpers"
 )
 
-// NOTE: To run waf e2e tests locally, specify the
-// env var ENVOY_IMAGE_TAG=v1.x.x (your gloo ee version)
 var _ = Describe("waf", func() {
 
 	var (
@@ -292,11 +292,12 @@ var _ = Describe("waf", func() {
 		var (
 			envoyInstance *envoy.Instance
 			testUpstream  *v1helpers.TestUpstream
-			envoyPort     = uint32(8080)
+			envoyPort     uint32
 		)
 
 		BeforeEach(func() {
 			envoyInstance = envoyFactory.NewInstance()
+			envoyPort = envoyInstance.HttpPort
 			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -670,6 +671,8 @@ var _ = Describe("waf", func() {
 				tmpFileDMName string
 			)
 			BeforeEach(func() {
+				testutils.ValidateRequirementsAndNotifyGinkgo(testutils.LinuxOnly("Audit logging does not work with Docker"))
+
 				tmpFile, err := os.CreateTemp("", "envoy-access-fs-log-*.txt")
 				Expect(err).NotTo(HaveOccurred())
 				tmpFileFSName, err = filepath.Abs(tmpFile.Name())

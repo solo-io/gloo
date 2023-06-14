@@ -45,7 +45,7 @@ var _ = Describe("Staged JWT + extauth ", func() {
 		testClients   services.TestClients
 		envoyInstance *envoy.Instance
 		testUpstream  *v1helpers.TestUpstream
-		envoyPort     = uint32(8080)
+		envoyPort     uint32
 
 		jwksPort       uint32
 		privateKey     *rsa.PrivateKey
@@ -102,6 +102,7 @@ var _ = Describe("Staged JWT + extauth ", func() {
 		}
 		var err error
 		envoyInstance = envoyFactory.NewInstance()
+		envoyPort = envoyInstance.HttpPort
 
 		_, err = testClients.UpstreamClient.Write(extAuthServer, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())

@@ -54,8 +54,6 @@ var _ = Describe("Proxy Protocol", func() {
 
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
-		defaults.HttpPort = 8080
-		defaults.HttpsPort = 8443
 
 		// run gloo
 		cache := memory.NewInMemoryResourceCache()

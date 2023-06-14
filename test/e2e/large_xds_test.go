@@ -64,7 +64,7 @@ var _ = Describe("XDS interfaces", func() {
 		cache            memory.InMemoryResourceCache
 		extAuthServer    *gloov1.Upstream
 		baseExtauthPort  = uint32(27000)
-		envoyPort        = uint32(8080)
+		envoyPort        uint32
 		redisPort        = uint32(6380)
 		redisSession     *gexec.Session
 		testUpstream     *v1helpers.TestUpstream
@@ -85,6 +85,7 @@ var _ = Describe("XDS interfaces", func() {
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
 		envoyInstance = envoyFactory.NewInstance()
+		envoyPort = envoyInstance.HttpPort
 		err = envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 		testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())

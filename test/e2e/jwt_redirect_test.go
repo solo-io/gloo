@@ -18,7 +18,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	jwtplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -27,7 +26,7 @@ import (
 	"github.com/solo-io/solo-projects/test/v1helpers"
 )
 
-var _ = Describe("Http Sanitize Headers Local E2E", func() {
+var _ = Describe("JWT Redirect E2E", func() {
 
 	var (
 		ctx           context.Context
@@ -65,13 +64,12 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 
 	runEnvoy := func() {
 		envoyInstance = envoyFactory.NewInstance()
+		envoyPort = envoyInstance.HttpPort
 		err := envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
 	setupProxy := func(headerSanitation bool) {
-
-		envoyPort = defaults.HttpPort
 		proxy := getProxyWithVhosts(envoyPort, vhosts)
 
 		_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})

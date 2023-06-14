@@ -72,10 +72,9 @@ var _ = Describe("External auth with multiple auth servers", func() {
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
 		envoyInstance = envoyFactory.NewInstance()
+		envoyPort = envoyInstance.HttpPort
 		err := envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
-
-		envoyPort = defaults.HttpPort
 	})
 
 	AfterEach(func() {

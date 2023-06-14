@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/solo-io/gloo/test/testutils"
+
 	"github.com/solo-io/gloo/test/services/envoy"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -261,6 +263,8 @@ var _ = Describe("AWS Lambda ", FlakeAttempts(10), func() {
 	Context("Enterprise Lambda plugin", func() {
 
 		BeforeEach(func() {
+			testutils.ValidateRequirementsAndNotifyGinkgo(testutils.AwsCredentials())
+
 			setupEnvoy()
 			addBasicCredentials()
 			addUpstream()

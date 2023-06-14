@@ -7,6 +7,8 @@ import (
 	"net"
 	"sort"
 
+	"github.com/solo-io/gloo/test/testutils"
+
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/services/envoy"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -95,6 +97,7 @@ var _ = Describe("dlp", func() {
 	}
 
 	BeforeEach(func() {
+		testutils.ValidateRequirementsAndNotifyGinkgo(testutils.LinuxOnly("Uses linux-only benchmarking method"))
 
 		logger := zaptest.LoggerWriter(GinkgoWriter)
 		contextutils.SetFallbackLogger(logger.Sugar())

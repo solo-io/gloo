@@ -18,7 +18,6 @@ import (
 	. "github.com/onsi/gomega"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -61,12 +60,12 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 
 	setupProxy := func(headerSanitation bool) {
 		envoyInstance = envoyFactory.NewInstance()
+		envoyPort = envoyInstance.HttpPort
 		err := envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 
 		testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
 
-		envoyPort = defaults.HttpPort
 		proxy := getProxyWithHeaderSanitation(envoyPort, headerSanitation)
 
 		_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})

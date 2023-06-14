@@ -210,7 +210,7 @@ var _ = Describe("graphql", func() {
 		var (
 			envoyInstance                             *envoy.Instance
 			restUpstream, grpcUpstream, graphqlServer *v1helpers.TestUpstream
-			envoyPort                                 = uint32(8080)
+			envoyPort                                 uint32
 			query                                     string
 
 			proxy      *gloov1.Proxy
@@ -295,6 +295,7 @@ var _ = Describe("graphql", func() {
 
 		BeforeEach(func() {
 			envoyInstance = envoyFactory.NewInstance()
+			envoyPort = envoyInstance.HttpPort
 			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 

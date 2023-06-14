@@ -76,7 +76,7 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 		rlServerSettings ratelimitserver.Settings
 		envoyInstance    *envoy.Instance
 		testUpstream     *v1helpers.TestUpstream
-		envoyPort        = uint32(8080)
+		envoyPort        uint32
 
 		anonymousLimits, authorizedLimits *ratelimit.IngressRateLimit
 	)
@@ -104,6 +104,7 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 	runClusteredTest := func() {
 		BeforeEach(func() {
 			envoyInstance = envoyFactory.NewInstance()
+			envoyPort = envoyInstance.HttpPort
 
 			envoyInstance.RatelimitAddr = rateLimitAddr
 			envoyInstance.RatelimitPort = uint32(rlServerSettings.RateLimitPort)
@@ -147,6 +148,7 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 		Context("With envoy", func() {
 			BeforeEach(func() {
 				envoyInstance = envoyFactory.NewInstance()
+				envoyPort = envoyInstance.HttpPort
 
 				envoyInstance.RatelimitAddr = rateLimitAddr
 				envoyInstance.RatelimitPort = uint32(rlServerSettings.RateLimitPort)

@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5099
+    resolvesIssue: false
+    description: >-
+      Ensure e2e tests can all pass locally, and the tests that do not, explain clearly why they do not.

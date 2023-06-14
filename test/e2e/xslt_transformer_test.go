@@ -23,7 +23,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformers/xslt"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	testMatchers "github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/testutils"
 	"github.com/solo-io/go-utils/contextutils"
@@ -75,6 +74,7 @@ var _ = Describe("XSLT Transformer E2E", func() {
 
 	setupProxy := func() {
 		envoyInstance = envoyFactory.NewInstance()
+		envoyPort = envoyInstance.HttpPort
 		err := envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -87,7 +87,6 @@ var _ = Describe("XSLT Transformer E2E", func() {
 			return testClients.UpstreamClient.Read(testUpstream.Upstream.Metadata.Namespace, testUpstream.Upstream.Metadata.Name, clients.ReadOpts{})
 		})
 
-		envoyPort = defaults.HttpPort
 		proxy := getProxyXsltTransform(envoyPort, transform, testUpstream.Upstream.Metadata.Ref())
 
 		_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
@@ -198,6 +197,8 @@ var _ = Describe("XSLT Transformer E2E", func() {
 		})
 
 		It("can enable enhanced logging", func() {
+			testutils.ValidateRequirementsAndNotifyGinkgo(testutils.LinuxOnly("Acess Logs are not supported on Docker"))
+
 			transform = getXsltTransform(XmlToJsonTransform, "application/xml", false)
 			// set LogRequestResponseInfo on the transformation
 			transform.GetRegular().GetRequestTransforms()[0].GetRequestTransformation().LogRequestResponseInfo = true

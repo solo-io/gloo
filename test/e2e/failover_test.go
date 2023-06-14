@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/solo-io/gloo/test/testutils"
+
 	"github.com/solo-io/gloo/test/services/envoy"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -122,7 +124,7 @@ var _ = Describe("Failover", func() {
 		var (
 			envoyInstance *envoy.Instance
 			testUpstream  *v1helpers.TestUpstream
-			envoyPort     = uint32(8080)
+			envoyPort     uint32
 		)
 
 		var testRequest = func() string {
@@ -227,6 +229,7 @@ var _ = Describe("Failover", func() {
 
 			BeforeEach(func() {
 				envoyInstance = envoyFactory.NewInstance()
+				envoyPort = envoyInstance.HttpPort
 				err := envoyInstance.Run(testClients.GlooPort)
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -317,6 +320,11 @@ var _ = Describe("Failover", func() {
 			})
 
 			It("Will failover to testUpstream2 when the first is unhealthy with DNS resolution", func() {
+				// In e2e tests, the IP of the gloo pod is guaranteed to be 127.0.0.1 when running outside of docker (I.E. on linux),
+				// whereas it cannot be guaranteed to be a specific IP when running inside of docker (I.E. on mac).
+				// therefore, we only expect this test to pass on linux.
+				// See here for more details: https://github.com/solo-io/gloo/pull/8385#discussion_r1228455477
+				testutils.ValidateRequirementsAndNotifyGinkgo(testutils.LinuxOnly("127.0.0.1"))
 				if envoyInstance.LocalAddr() == "127.0.0.1" {
 					// Domain which resolves to "127.0.0.1"
 					testFailover("thing.solo.io")
@@ -461,6 +469,7 @@ var _ = Describe("Failover", func() {
 
 			BeforeEach(func() {
 				envoyInstance = envoyFactory.NewInstance()
+				envoyPort = envoyInstance.HttpPort
 				err := envoyInstance.Run(testClients.GlooPort)
 				Expect(err).NotTo(HaveOccurred())
 
