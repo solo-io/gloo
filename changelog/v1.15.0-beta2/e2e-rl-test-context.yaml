@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5059
+    resolvesIssue: false
+    description: >-
+      Create a TestContext for ratelimit e2e tests, and use it with a single test to demonstrate
+      how it works. In a follow-up PR, we will migrate more of the tests to use this context.

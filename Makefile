@@ -199,7 +199,7 @@ run-ci-gloo-fed-regression-tests: test
 # command to run e2e tests
 # requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run
 .PHONY: run-e2e-tests
-run-e2e-tests: TEST_PKG = ./test/e2e/ /projects/multicluster-admission-webhook/test/e2e ## Run the in memory Envoy e2e tests (ENVOY_IMAGE_TAG)
+run-e2e-tests: TEST_PKG = ./test/e2e/... /projects/multicluster-admission-webhook/test/e2e ## Run the in memory Envoy e2e tests (ENVOY_IMAGE_TAG)
 run-e2e-tests: test
 
 #----------------------------------------------------------------------------------

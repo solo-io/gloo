@@ -4,11 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/golang/protobuf/ptypes/duration"
+
+	ratelimit2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
+	"github.com/solo-io/solo-projects/test/services/ratelimit"
+
 	"github.com/solo-io/gloo/test/services/envoy"
 
 	"github.com/solo-io/gloo/test/services"
 	"github.com/solo-io/gloo/test/testutils"
-	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 	glooe_services "github.com/solo-io/solo-projects/test/services"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -27,7 +31,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 )
 
-// This file is a mirror of the Open Source implementation of TestContext
+// This file is (almost) a mirror of the Open Source implementation of TestContext
 // In the future, we would like to consolidate these two implementations, but for now
 // we want to keep them separate to avoid breaking changes to the Open Source implementation
 
@@ -50,7 +54,8 @@ var (
 )
 
 type TestContextFactory struct {
-	EnvoyFactory envoy.Factory
+	EnvoyFactory     envoy.Factory
+	RateLimitFactory *ratelimit.Factory
 }
 
 func (f *TestContextFactory) NewTestContext(testRequirements ...testutils.Requirement) *TestContext {
@@ -63,11 +68,12 @@ func (f *TestContextFactory) NewTestContext(testRequirements ...testutils.Requir
 	}
 }
 
-func (f *TestContextFactory) NewTestContextWithExtAuth(testRequirements ...testutils.Requirement) *TestContextWithExtAuth {
+func (f *TestContextFactory) NewTestContextWithRateLimit(testRequirements ...testutils.Requirement) *TestContextWithRateLimit {
 	testContext := f.NewTestContext(testRequirements...)
 
-	return &TestContextWithExtAuth{
-		TestContext: testContext,
+	return &TestContextWithRateLimit{
+		TestContext:       testContext,
+		rateLimitInstance: f.RateLimitFactory.NewInstance(testContext.EnvoyInstance().GlooAddr),
 	}
 }
 
@@ -262,12 +268,6 @@ func (c *TestContext) PatchDefaultUpstream(mutator func(*gloov1.Upstream) *gloov
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 }
 
-// SetUpstreamGenerator Use a different function to create a test upstream call before testContext.BeforeEach()
-// Used for example with helpers.NewTestGrpcUpstream which has the side effect of also starting a grpc service
-func (c *TestContext) SetUpstreamGenerator(generator func(ctx context.Context, addr string) *v1helpers.TestUpstream) {
-	c.testUpstreamGenerator = generator
-}
-
 // EventuallyProxyAccepted is useful for tests that rely on changing an existing configuration.
 func (c *TestContext) EventuallyProxyAccepted() {
 	// Wait for a proxy to be accepted
@@ -296,26 +296,65 @@ func (c *TestContext) GetHttpsRequestBuilder() *testutils.HttpRequestBuilder {
 		WithHost(DefaultHost)         // The default Virtual Service routes traffic only with a particular Host header
 }
 
-// TestContextWithExtAuth represents the aggregate set of configuration needed to run a single e2e test
+// TestContextWithRateLimit represents the aggregate set of configuration needed to run a single e2e test
 // using an external auth service
-type TestContextWithExtAuth struct {
+type TestContextWithRateLimit struct {
 	*TestContext
 
-	runnerSettings extauthrunner.Settings
+	rateLimitInstance *ratelimit.Instance
 }
 
-func (e *TestContextWithExtAuth) SetExtAuthRunSettings(settings extauthrunner.Settings) {
-	e.runnerSettings = settings
+func (r *TestContextWithRateLimit) BeforeEach() {
+	r.TestContext.BeforeEach()
+
+	serverUpstream := r.RateLimitInstance().GetServerUpstream()
+
+	// Define some default values for the RateLimitServer Settings
+	r.TestContext.SetRunSettings(&gloov1.Settings{
+		RatelimitServer: &ratelimit2.Settings{
+			RatelimitServerRef: serverUpstream.GetMetadata().Ref(),
+			DenyOnFail:         true, // ensures ConsistentlyNotRateLimited() calls will not pass unless server is healthy
+			RequestTimeout: &duration.Duration{
+				Seconds: 2,
+			},
+		},
+	})
+
+	r.resourcesToCreate.Upstreams = append(r.resourcesToCreate.Upstreams, serverUpstream)
 }
 
-// RunExtAuthService starts running the ExtAuth Service and blocks until it has successfully started
-func (e *TestContextWithExtAuth) RunExtAuthService() {
-	ginkgo.By("TestContextWithExtAuth: Running ExtAuth")
+func (r *TestContextWithRateLimit) JustBeforeEach() {
+	r.TestContext.JustBeforeEach()
+
+	// The RateLimitService will only report healthy once it connects to Gloo
+	// Therefore we must run this after starting Gloo in the testContext.JustBeforeEach
+	r.runRateLimitService()
+}
+
+func (r *TestContextWithRateLimit) UpdateRateLimitSettings(mutator func(*ratelimit2.Settings) *ratelimit2.Settings) {
+	r.SetRunSettings(&gloov1.Settings{
+		RatelimitServer: mutator(r.runOptions.Settings.RatelimitServer),
+	})
+}
+
+// RateLimitInstance returns an Instance of the RateLimit Service
+func (r *TestContextWithRateLimit) RateLimitInstance() *ratelimit.Instance {
+	return r.rateLimitInstance
+}
+
+// runRateLimitService starts running the RateLimit Service
+func (r *TestContextWithRateLimit) runRateLimitService() {
+	ginkgo.By("TestContextWithRateLimit: Running RateLimit")
+
+	// The EnvoyInstance is similar to the RateLimitService, in that it receives its configuration from Gloo via xDS.
+	// As a result, we ensure the RateLimitService uses the same port for connecting to Gloo
+	ExpectWithOffset(1, r.EnvoyInstance().Port).NotTo(BeZero(), "EnvoyInstance.Port must be set before running RateLimitService")
 
 	go func(testCtx context.Context) {
 		defer ginkgo.GinkgoRecover()
-		_ = extauthrunner.RunWithSettings(testCtx, e.runnerSettings)
-	}(e.Ctx())
 
-	// TODO: Wait for the extauth service to be ready
+		r.rateLimitInstance.RunWithXds(testCtx, r.EnvoyInstance().Port)
+	}(r.Ctx())
+
+	r.rateLimitInstance.EventuallyIsHealthy()
 }

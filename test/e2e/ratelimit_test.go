@@ -7,10 +7,13 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/solo-io/solo-projects/test/gomega/assertions"
+
+	redis_service "github.com/solo-io/solo-projects/test/services/redis"
 
 	"github.com/solo-io/gloo/test/services/envoy"
 
@@ -38,8 +41,6 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
-	"github.com/onsi/gomega/gexec"
 	"github.com/solo-io/ext-auth-service/pkg/server"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -67,7 +68,7 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 		ctx              context.Context
 		cancel           context.CancelFunc
 		testClients      services.TestClients
-		redisSession     *gexec.Session
+		redisInstance    *redis_service.Instance
 		glooSettings     *gloov1.Settings
 		cache            memory.InMemoryResourceCache
 		rlAddr           string
@@ -76,13 +77,11 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 		envoyInstance    *envoy.Instance
 		testUpstream     *v1helpers.TestUpstream
 		envoyPort        = uint32(8080)
-		redisPort        = uint32(6379)
 
 		anonymousLimits, authorizedLimits *ratelimit.IngressRateLimit
 	)
 
 	const (
-		redisAddr     = "127.0.0.1"
 		rateLimitAddr = "127.0.0.1"
 	)
 
@@ -153,6 +152,9 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 				envoyInstance.RatelimitPort = uint32(rlServerSettings.RateLimitPort)
 				rlAddr = envoyInstance.LocalAddr()
 
+				// https://github.com/solo-io/solo-projects/issues/5099
+				envoyPort = envoyInstance.HttpPort
+
 				err := envoyInstance.Run(testClients.GlooPort)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -181,15 +183,8 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 			})
 
 			It("should rate limit envoy", func() {
-				proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
-					withVirtualHost("host1", virtualHostConfig{rateLimitConfig: anonymousLimits}).
-					build()
-
-				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-				Expect(err).NotTo(HaveOccurred())
-
-				Eventually(isServerHealthy, "5s").Should(BeTrue())
-				EventuallyRateLimited("host1", envoyPort)
+				// This test has been migrated to e2e/ratelimit/redis_test.go
+				// We will be moving all tests in this file into the ratelimit package
 			})
 
 			It("should not rate limit envoy with X-RateLimit headers", func() {
@@ -1361,22 +1356,16 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 		logger := zaptest.LoggerWriter(GinkgoWriter)
 
 		BeforeEach(func() {
-			redisPort++
+			ctx, cancel = context.WithCancel(context.Background())
 
-			var err error
+			redisInstance = redisFactory.NewInstance()
+			redisInstance.Run(ctx)
+
 			rlServerSettings.RedisSettings = redis.NewSettings()
-			rlServerSettings.RedisSettings.Url = fmt.Sprintf("%s:%d", redisAddr, redisPort)
+			rlServerSettings.RedisSettings.Url = fmt.Sprintf("%s:%d", redisInstance.Address(), redisInstance.Port())
 			rlServerSettings.RedisSettings.SocketType = "tcp"
 			rlServerSettings.RedisSettings.Clustered = clustered
 
-			command := exec.Command(getRedisPath(), "--port", fmt.Sprintf("%d", redisPort))
-			redisSession, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
-			// give redis a chance to start
-			Eventually(redisSession.Out, "5s").Should(gbytes.Say("Ready to accept connections"))
-
-			ctx, cancel = context.WithCancel(context.Background())
 			cache = memory.NewInMemoryResourceCache()
 
 			testClients = services.GetTestClients(ctx, cache)
@@ -1387,9 +1376,7 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 		JustBeforeEach(justBeforeEach)
 
 		AfterEach(func() {
-			redisSession.Terminate().Wait("5s")
 			cancel()
-			logger.Info("Redis instance successfully destroyed")
 		})
 
 		if clustered {
@@ -1483,91 +1470,21 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 })
 
 func ConsistentlyNotRateLimited(hostname string, port uint32) {
-	// waiting for envoy to start, so that consistently works.
-	// wait for three seconds so gloo race can be waited out
-	// it's possible gloo upstreams hit after the proxy does
-	// (gloo resyncs once per second)
-	time.Sleep(3 * time.Second)
-	testStatus(hostname, port, nil, http.StatusOK, 2, false)
-
-	testStatus(hostname, port, nil, http.StatusOK, 2, true)
+	assertions.ConsistentlyNotRateLimited(hostname, port)
 }
 
 func EventuallyRateLimited(hostname string, port uint32) {
-	testStatus(hostname, port, nil, http.StatusTooManyRequests, 2, false)
+	assertions.EventuallyRateLimited(hostname, port)
 }
 
 func EventuallyRateLimitedWithHeaders(hostname string, port uint32, headers http.Header) {
-	testStatus(hostname, port, headers, http.StatusTooManyRequests, 2, false)
+	assertions.EventuallyRateLimitedWithHeaders(hostname, port, headers)
 }
 
 func EventuallyRateLimitedWithExpectedHeaders(hostname string, port uint32, expectedHeaders http.Header) {
-	testHeaders(hostname, port, nil, http.StatusTooManyRequests, 2, false, expectedHeaders)
+	assertions.EventuallyRateLimitedWithExpectedHeaders(hostname, port, expectedHeaders)
 }
 
-func testHeaders(hostname string, port uint32, requestHeaders http.Header, expectedStatus int,
-	offset int, consistently bool, expectedHeaders http.Header) {
-	parts := strings.SplitN(hostname, "/", 2)
-	hostname = parts[0]
-	path := "1"
-	if len(parts) > 1 {
-		path = parts[1]
-	}
-
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/%s", "localhost", port, path), nil)
-	Expect(err).NotTo(HaveOccurred())
-	if len(requestHeaders) > 0 {
-		req.Header = requestHeaders
-	}
-
-	// remove password part if exists
-	parts = strings.SplitN(hostname, "@", 2)
-	if len(parts) > 1 {
-		hostname = parts[1]
-		auth := strings.Split(parts[0], ":")
-		req.SetBasicAuth(auth[0], auth[1])
-	}
-
-	req.Host = hostname
-
-	if consistently {
-		ConsistentlyWithOffset(offset, func() (bool, error) {
-			resp, err := http.DefaultClient.Do(req)
-			if err != nil {
-				return false, err
-			}
-			defer resp.Body.Close()
-			_, _ = io.ReadAll(resp.Body)
-			isok := resp.StatusCode == expectedStatus
-			for hk := range expectedHeaders {
-				if resp.Header.Get(hk) != expectedHeaders.Get(hk) {
-					fmt.Println("got ", hk, resp.Header.Get(hk))
-					fmt.Println("wanted ", hk, expectedHeaders.Get(hk))
-					isok = false
-				}
-			}
-			return isok, nil
-		}, "5s", ".1s").Should(BeTrue())
-	} else {
-		EventuallyWithOffset(offset, func() (bool, error) {
-			resp, err := http.DefaultClient.Do(req)
-			if err != nil {
-				return false, err
-			}
-			defer resp.Body.Close()
-			_, _ = io.ReadAll(resp.Body)
-			isok := resp.StatusCode == expectedStatus
-			for hk := range expectedHeaders {
-				if resp.Header.Get(hk) != expectedHeaders.Get(hk) {
-					fmt.Println("got ", hk, resp.Header.Get(hk))
-					fmt.Println("wanted ", hk, expectedHeaders.Get(hk))
-					isok = false
-				}
-			}
-			return isok, nil
-		}, "5s", ".1s").Should(BeTrue())
-	}
-}
 func testStatus(hostname string, port uint32, headers http.Header, expectedStatus int,
 	offset int, consistently bool) {
 	parts := strings.SplitN(hostname, "/", 2)
