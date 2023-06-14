@@ -1,4 +1,4 @@
-package benchmark_test
+package translator_test
 
 import (
 	"context"
@@ -18,7 +18,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
@@ -27,13 +26,16 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	. "github.com/solo-io/gloo/projects/gloo/pkg/translator"
+
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/protoc-gen-ext/pkg/hasher/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 )
 
-var _ = Describe("SnapshotBenchmark", func() {
+// These tests are meant to demonstrate that FNV hashing is more efficient than hashstructure
+var _ = Describe("Hashing Benchmarks", func() {
 	var allUpstreams v1.UpstreamList
 	BeforeEach(func() {
 		var upstreams []interface{}
@@ -93,8 +95,8 @@ var _ = Describe("SnapshotBenchmark", func() {
 
 		var (
 			settings                *v1.Settings
-			fnvTranslator           translator.Translator
-			hashstructureTranslator translator.Translator
+			fnvTranslator           Translator
+			hashstructureTranslator Translator
 			upName                  *core.Metadata
 			proxy                   *v1.Proxy
 			params                  plugins.Params
@@ -163,8 +165,8 @@ var _ = Describe("SnapshotBenchmark", func() {
 		JustBeforeEach(func() {
 			pluginRegistry := registry.NewPluginRegistry(registeredPlugins)
 
-			fnvTranslator = translator.NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, translator.EnvoyCacheResourcesListToFnvHash)
-			hashstructureTranslator = translator.NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, translator.EnvoyCacheResourcesListToFnvHash)
+			fnvTranslator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
+			hashstructureTranslator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
 
 			httpListener := &v1.Listener{
 				Name:        "http-listener",
