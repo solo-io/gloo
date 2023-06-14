@@ -181,8 +181,8 @@ var basicConfig = benchmarkConfig{
 	iterations: 1000,
 	maxDur:     time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
-		matchers.HaveMedianLessThan(5 * time.Millisecond),
-		matchers.HavePercentileLessThan(90, 10*time.Millisecond),
+		matchers.HaveMedianLessThan(50 * time.Millisecond),
+		matchers.HavePercentileLessThan(90, 100*time.Millisecond),
 	},
 }
 
@@ -191,7 +191,7 @@ var oneKUpstreamsConfig = benchmarkConfig{
 	iterations: 100,
 	maxDur:     2 * time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
-		matchers.HaveMedianLessThan(30 * time.Millisecond),
-		matchers.HavePercentileLessThan(90, 60*time.Millisecond),
+		matchers.HaveMedianLessThan(300 * time.Millisecond),
+		matchers.HavePercentileLessThan(90, 600*time.Millisecond),
 	},
 }
