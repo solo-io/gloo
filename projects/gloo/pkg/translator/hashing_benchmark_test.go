@@ -3,7 +3,11 @@ package translator_test
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"github.com/onsi/gomega/gmeasure"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
+	"time"
 
 	gloo_matchers "github.com/solo-io/gloo/test/gomega/matchers"
 
@@ -34,8 +38,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 )
 
-// These tests are meant to demonstrate that FNV hashing is more efficient than hashstructure
-var _ = Describe("Hashing Benchmarks", func() {
+// These tests are meant to demonstrate that FNV hashing is more efficient than hashstructure hashing
+var _ = Describe("Hashing Benchmarks", Serial, func() { // TODO: add performance label
 	var allUpstreams v1.UpstreamList
 	BeforeEach(func() {
 		var upstreams []interface{}
@@ -54,27 +58,34 @@ var _ = Describe("Hashing Benchmarks", func() {
 		allUpstreams.Sort()
 	})
 
-	Measure("it should do something hard efficiently", func(b Benchmarker) {
-		const times = 1
-		reflectionBased := b.Time(fmt.Sprintf("runtime of %d reflect-based hash calls", times), func() {
-			for i := 0; i < times; i++ {
-				for _, us := range allUpstreams {
-					hashstructure.Hash(us, nil)
-				}
-			}
-		})
-		generated := b.Time(fmt.Sprintf("runtime of %d generated hash calls", times), func() {
-			for i := 0; i < times; i++ {
-				for _, us := range allUpstreams {
-					us.Hash(nil)
-				}
-			}
-		})
-		// divide by 1e3 to get time in micro seconds instead of nano seconds
-		b.RecordValue("Runtime per reflection call in µ seconds", float64(int64(reflectionBased)/times)/1e3)
-		b.RecordValue("Runtime per generated call in µ seconds", float64(int64(generated)/times)/1e3)
+	It("should demonstrate that generated hashing is more efficient than reflection-based", func() {
+		reflectionName, generatedName := "reflection-based", "generated"
 
-	}, 10)
+		experiment := gmeasure.NewExperiment("hash comparison")
+		AddReportEntry(experiment.Name, experiment)
+
+		experiment.Sample(func(idx int) {
+			// Measure the time it takes to hash all upstreams via each method
+			experiment.MeasureDuration(reflectionName, func() {
+				for _, us := range allUpstreams {
+					_, _ = hashstructure.Hash(us, nil)
+				}
+			})
+
+			experiment.MeasureDuration(generatedName, func() {
+				for _, us := range allUpstreams {
+					_, _ = us.Hash(nil)
+				}
+			})
+
+		}, gmeasure.SamplingConfig{N: 20, Duration: time.Second})
+
+		ranking := gmeasure.RankStats(gmeasure.LowerMedianIsBetter, experiment.GetStats(reflectionName), experiment.GetStats(generatedName))
+		AddReportEntry("Ranking", ranking)
+
+		// We expect the generated hashing method to be more efficient
+		Expect(ranking.Winner().MeasurementName).To(Equal(generatedName))
+	})
 
 	Context("accuracy", func() {
 		It("Exhaustive", func() {
@@ -91,7 +102,7 @@ var _ = Describe("Hashing Benchmarks", func() {
 		})
 	})
 
-	Context("Benchmark Gloo Translation", func() {
+	Context("Benchmark Translation With Different Hashers", func() {
 
 		var (
 			settings                *v1.Settings
@@ -166,7 +177,7 @@ var _ = Describe("Hashing Benchmarks", func() {
 			pluginRegistry := registry.NewPluginRegistry(registeredPlugins)
 
 			fnvTranslator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
-			hashstructureTranslator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
+			hashstructureTranslator = NewTranslatorWithHasher(glooutils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToHash)
 
 			httpListener := &v1.Listener{
 				Name:        "http-listener",
@@ -279,23 +290,51 @@ var _ = Describe("Hashing Benchmarks", func() {
 			}
 		})
 
-		Measure("it should perform translation efficiently", func(b Benchmarker) {
+		It("should demonstrate that FNV translator is more efficient than hashstructure translator", func() {
+			var (
+				snap                       cache.Snapshot
+				errs                       reporter.ResourceReports
+				report                     *validation.ProxyReport
+				fnvName, hashstructureName = "fnv", "hashstructure"
+			)
+
 			proxyClone := proto.Clone(proxy).(*v1.Proxy)
 			proxyClone.GetListeners()[0].Options = &v1.ListenerOptions{PerConnectionBufferLimitBytes: &wrappers.UInt32Value{Value: 4096}}
 
-			b.Time(fmt.Sprintf("runtime of fnv hash translate"), func() {
-				snap, errs, report := fnvTranslator.Translate(params, proxyClone)
-				Expect(errs.Validate()).NotTo(HaveOccurred())
-				Expect(snap).NotTo(BeNil())
-				Expect(report).To(gloo_matchers.BeEquivalentToDiff(validationutils.MakeReport(proxy)))
-			})
-			b.Time(fmt.Sprintf("runtime of hashstructure translate"), func() {
-				snap, errs, report := hashstructureTranslator.Translate(params, proxyClone)
-				Expect(errs.Validate()).NotTo(HaveOccurred())
-				Expect(snap).NotTo(BeNil())
-				Expect(report).To(gloo_matchers.BeEquivalentToDiff(validationutils.MakeReport(proxy)))
-			})
-		}, 15)
+			experiment := gmeasure.NewExperiment("hash comparison")
+			AddReportEntry(experiment.Name, experiment)
+
+			experiment.Sample(func(idx int) {
+				// Measure how long translation takes using each translator
+				experiment.MeasureDuration(fnvName, func() {
+					snap, errs, report = fnvTranslator.Translate(params, proxyClone)
+				})
+
+				// Assert correctness on the first pass
+				if idx == 0 {
+					Expect(errs.Validate()).NotTo(HaveOccurred())
+					Expect(snap).NotTo(BeNil())
+					Expect(report).To(gloo_matchers.BeEquivalentToDiff(validationutils.MakeReport(proxy)))
+				}
+
+				experiment.MeasureDuration(hashstructureName, func() {
+					snap, errs, report = hashstructureTranslator.Translate(params, proxyClone)
+				})
+
+				// Assert correctness on the first pass
+				if idx == 0 {
+					Expect(errs.Validate()).NotTo(HaveOccurred())
+					Expect(snap).NotTo(BeNil())
+					Expect(report).To(gloo_matchers.BeEquivalentToDiff(validationutils.MakeReport(proxy)))
+				}
+			}, gmeasure.SamplingConfig{N: 20, Duration: 2 * time.Second})
+
+			// We expect the FNV translator to be more efficient
+			ranking := gmeasure.RankStats(gmeasure.LowerMedianIsBetter, experiment.GetStats(fnvName), experiment.GetStats(hashstructureName))
+			AddReportEntry("Ranking", ranking)
+
+			Expect(ranking.Winner().MeasurementName).To(Equal(fnvName))
+		})
 	})
 
 })
