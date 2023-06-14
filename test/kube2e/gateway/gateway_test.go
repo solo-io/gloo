@@ -3,9 +3,9 @@ package gateway_test
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 
 	"time"
@@ -19,15 +19,17 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	glooStatic "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	glootransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
+	kubernetes2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+	corev1 "k8s.io/api/core/v1"
 
+	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	defaults2 "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	glooKube2e "github.com/solo-io/gloo/test/kube2e"
 
 	"github.com/solo-io/solo-projects/test/kube2e"
-	"k8s.io/apimachinery/pkg/util/intstr"
 
-	kubernetes2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/k8s-utils/testutils/helper"
@@ -38,6 +40,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloossl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/k8s-utils/kubeutils"
+	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	osskube2e "github.com/solo-io/gloo/test/kube2e"
@@ -45,8 +48,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/test/setup"
 
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 var _ = Describe("Installing gloo in gateway mode", func() {
@@ -480,7 +483,9 @@ spec:
 				TargetPort: intstr.FromInt(int(defaults2.HybridPort)),
 				Protocol:   "TCP",
 			}
-			tcpEchoClusterName string
+			tcpEchoClusterName  string
+			tcpEchoShutdownFunc func()
+			httpEcho            helper.TestRunner
 		)
 
 		exposePortOnGwProxyService := func(servicePort corev1.ServicePort) {
@@ -502,11 +507,9 @@ spec:
 			_, err = resourceClientset.KubeClients().CoreV1().Services(testHelper.InstallNamespace).Update(ctx, gwSvc, metav1.UpdateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		}
-		var httpEcho helper.TestRunner
+
 		var err error
 		BeforeEach(func() {
-			Skip("to merge other 1.15 code")
-
 			caFile := glooKube2e.ToFile(helpers.Certificate())
 			//goland:noinspection GoUnhandledErrorResult
 			defer os.Remove(caFile)
@@ -514,25 +517,89 @@ spec:
 			Expect(err).NotTo(HaveOccurred())
 			exposePortOnGwProxyService(hybridProxyServicePort)
 
-			httpEcho, err = helper.NewEchoHttp(testHelper.InstallNamespace)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = httpEcho.Deploy(2 * time.Minute) // mimick transformations test
-			Expect(err).NotTo(HaveOccurred())
-
 			tcpEchoClusterName = translator.UpstreamToClusterName(&core.ResourceRef{
 				Namespace: testHelper.InstallNamespace,
 				Name:      kubernetes2.UpstreamName(testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
 			})
 
-			// Create a MatchableHttpGateway
+			httpEchoUpstream := &gloov1.Upstream{
+				Metadata: &core.Metadata{
+					Name:      "http-echo",
+					Namespace: testHelper.InstallNamespace,
+				},
+				UpstreamType: &gloov1.Upstream_Static{
+					Static: &static_plugin_gloo.UpstreamSpec{
+						Hosts: []*static_plugin_gloo.Host{{
+							Addr: helper.HttpEchoName,
+							Port: helper.HttpEchoPort,
+						}},
+						UseTls: wrapperspb.Bool(false),
+					},
+				},
+			}
+
+			sslSecret := helpers.GetKubeSecret("secret", testHelper.InstallNamespace)
+			createdSecret, err := resourceClientset.KubeClients().CoreV1().Secrets(testHelper.InstallNamespace).Create(ctx, sslSecret, metav1.CreateOptions{})
+			Expect(err).NotTo(HaveOccurred())
+
+			domain := fmt.Sprintf("%s:%d", defaults.GatewayProxyName, defaults2.HybridPort)
+			virtualservice := helpers.NewVirtualServiceBuilder().
+				WithName(defaults.GatewayProxyName).
+				WithNamespace(testHelper.InstallNamespace).
+				WithDomain(domain).
+				WithRoutePrefixMatcher("route", "/").
+				WithRouteActionToUpstream("route", httpEchoUpstream).
+				WithSslConfig(&gloossl.SslConfig{
+					SslSecrets: &gloossl.SslConfig_SecretRef{
+						SecretRef: &core.ResourceRef{
+							Name:      createdSecret.ObjectMeta.Name,
+							Namespace: createdSecret.ObjectMeta.Namespace,
+						},
+					},
+				}).
+				Build()
+
+			// Create a tcp upstream pointing to tcp-echo-tls
+			tcpBinUp := &gloov1.Upstream{
+				Metadata: &core.Metadata{
+					Name:      "tcpb",
+					Namespace: testHelper.InstallNamespace,
+				},
+				UpstreamType: &gloov1.Upstream_Static{
+					Static: &static_plugin_gloo.UpstreamSpec{
+						Hosts: []*static_plugin_gloo.Host{{
+							Addr: "tcp-echo-tls",
+							Port: 443,
+						}},
+						UseTls: wrapperspb.Bool(false),
+					},
+				},
+			}
+			tcpRef := &core.ResourceRef{
+				Namespace: testHelper.InstallNamespace,
+				Name:      "tcpb",
+			}
+
+			// Create a MatchableHttpGateway. Since this gateway will proxy an
+			// ssl-enabled virtual serivce, we *must* specify an SslConfig
+			// object to indicate that ssl-enabled virtual services can be
+			// matched by this gateway. see
+			// https://github.com/solo-io/gloo/blob/dd1db73fb4b3bee1dfbd01d685982b3995325ecc/projects/gateway/pkg/translator/gateway_selector.go#L73
 			matchableHttpGateway := &v1.MatchableHttpGateway{
 				Metadata: &core.Metadata{
 					Name:      "matchable-http-gateway",
 					Namespace: testHelper.InstallNamespace,
 				},
 				HttpGateway: &v1.HttpGateway{
-					// match all virtual services
+					VirtualServices: []*core.ResourceRef{
+						{
+							Name:      virtualservice.Metadata.Name,
+							Namespace: virtualservice.Metadata.Namespace,
+						},
+					},
+				},
+				Matcher: &v1.MatchableHttpGateway_Matcher{
+					SslConfig: &gloossl.SslConfig{},
 				},
 			}
 
@@ -553,10 +620,7 @@ spec:
 							Destination: &gloov1.TcpHost_TcpAction_Single{
 								Single: &gloov1.Destination{
 									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: &core.ResourceRef{
-											Namespace: testHelper.InstallNamespace,
-											Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
-										},
+										Upstream: tcpRef,
 									},
 								},
 							},
@@ -580,6 +644,10 @@ spec:
 									Namespace: matchableHttpGateway.GetMetadata().GetNamespace(),
 								},
 							},
+							// see comment above on the MatchableHttpGateway
+							// about why SslConfig is needed here
+							SslConfig:             &gloossl.SslConfig{},
+							PreventChildOverrides: true,
 						},
 						DelegatedTcpGateways: &v1.DelegatedTcpGateway{
 							SelectionType: &v1.DelegatedTcpGateway_Ref{
@@ -597,24 +665,111 @@ spec:
 				UseProxyProto: &wrappers.BoolValue{Value: false},
 			}
 
+			glooKube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
+				Expect(settings.GetGateway().IsolateVirtualHostsBySslConfig).NotTo(BeNil())
+				settings.GetGateway().IsolateVirtualHostsBySslConfig = wrapperspb.Bool(true)
+			}, testHelper.InstallNamespace)
 			glooResources.HttpGateways = v1.MatchableHttpGatewayList{matchableHttpGateway}
 			glooResources.TcpGateways = v1.MatchableTcpGatewayList{matchableTcpGateway}
 			glooResources.Gateways = v1.GatewayList{hybridGateway}
+			glooResources.Upstreams = gloov1.UpstreamList{tcpBinUp, httpEchoUpstream}
+			glooResources.VirtualServices = append(glooResources.VirtualServices, virtualservice)
+			httpEcho, err = helper.NewEchoHttp(testHelper.InstallNamespace)
+			Expect(err).NotTo(HaveOccurred())
+			err = httpEcho.Deploy(2 * time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+			tcpEchoShutdownFunc = createTcpEchoTls()
 		})
+
 		AfterEach(func() {
+			glooKube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
+				Expect(settings.GetGateway().IsolateVirtualHostsBySslConfig).NotTo(BeNil())
+				settings.GetGateway().IsolateVirtualHostsBySslConfig = wrapperspb.Bool(false)
+			}, testHelper.InstallNamespace)
+			tcpEchoShutdownFunc()
 			httpEcho.Terminate()
 
-		})
-		It("works", func() {
-
-			checkCmd := exec.Command("curl", "--http0.9", "-sv", "--request", "POST", "--ciphers", "AES128-SHA256", tcpEchoClusterName, "-d", "something ")
-			err = checkCmd.Run()
-			checkCmd.Stdout = GinkgoWriter
-			checkCmd.Stderr = GinkgoWriter
+			// delete the ssl secret
+			err := resourceClientset.KubeClients().CoreV1().Secrets(testHelper.InstallNamespace).Delete(ctx, "secret", metav1.DeleteOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
+			// Delete http echo service
+			err = testutils.Kubectl("delete", "service", "-n", testHelper.InstallNamespace, helper.HttpEchoName, "--grace-period=0")
+			Expect(err).NotTo(HaveOccurred())
+			cancel()
 		})
 
+		It("properly tunnels tls-encrypted traffic with deprecated ciphers over tcp", func() {
+
+			// testHelper.Curl does not support the `--ciphers` flag so let's
+			// just build the command manually
+			curlCmd := fmt.Sprintf("curl -s --ciphers AES128-SHA256 https://%s:%d/ -k", defaults.GatewayProxyName, defaults2.HybridPort)
+			Eventually(func(g Gomega) {
+				result, err := testHelper.Exec(strings.Split(curlCmd, " ")...)
+				g.Expect(err).NotTo(HaveOccurred())
+				/* sample response:
+				{
+				  "name": "Service",
+				  "uri": "/",
+				  "type": "HTTP",
+				  "ip_addresses": [
+					"10.244.0.155"
+				  ],
+				  "start_time": "2023-05-24T15:34:26.834787",
+				  "end_time": "2023-05-24T15:34:26.834813",
+				  "duration": "26.615µs",
+				  "body": "Hello World",
+				  "code": 200
+				}
+				*/
+				var jsonData map[string]any
+				err = json.Unmarshal([]byte(result), &jsonData)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(jsonData["code"]).To(Equal(float64(200)))
+				g.Expect(jsonData["body"]).To(Equal("Hello World"))
+			}, "1m", "15s").Should(Succeed())
+		})
+
+		It("does not perform tls passthrough if ssl ciphers are recognised", func() {
+			/* sample response:
+			{
+			  "path": "/",
+			  "headers": {
+				"host": "gateway-proxy:8087",
+				"user-agent": "curl/7.58.0",
+				"accept": "*\/*",
+				"content-length": "15",
+				"content-type": "application/x-www-form-urlencoded",
+				"x-forwarded-proto": "https",
+				"x-request-id": "9bf32163-57ce-4035-a26c-1b622dcbe752",
+				"x-envoy-expected-rq-timeout-ms": "15000"
+			  },
+			  "method": "POST",
+			  "body": {
+				"something": "value"
+			  },
+			  "fresh": false,
+			  "hostname": "gateway-proxy",
+			  "ip": "::ffff:10.244.0.121",
+			  "ips": [],
+			  "protocol": "http",
+			  "query": {},
+			  "subdomains": [],
+			  "xhr": false
+			}
+			*/
+			curlCmd := fmt.Sprintf("curl -s https://%s:%d/ -k -d test_key=test_value", defaults.GatewayProxyName, defaults2.HybridPort)
+			Eventually(func(g Gomega) {
+				result, err := testHelper.Exec(strings.Split(curlCmd, " ")...)
+				g.Expect(err).NotTo(HaveOccurred())
+
+				var jsonData map[string]any
+				err = json.Unmarshal([]byte(result), &jsonData)
+				g.Expect(err).NotTo(HaveOccurred())
+				bodyData := jsonData["body"].(map[string]any)
+				g.Expect(bodyData["test_key"]).To(Equal("test_value"))
+			}, "1m", "15s").Should(Succeed())
+		})
 	})
 
 })
@@ -652,5 +807,66 @@ func getRouteWithDest(dest *gloov1.Destination, path string) *v1.Route {
 				},
 			},
 		},
+	}
+}
+
+/* Create a TCP-based echo server that operates over TLS. Return a function to
+* clean the services up */
+func createTcpEchoTls() func() {
+	tcpEchoTls := "tcp-echo-tls"
+	cfg, err := kubeutils.GetConfig("", "")
+	Expect(err).NotTo(HaveOccurred())
+	kube, err := kubernetes.NewForConfig(cfg)
+	Expect(err).NotTo(HaveOccurred())
+
+	labels := map[string]string{}
+	labels["gloo"] = tcpEchoTls
+	metadata := metav1.ObjectMeta{
+		Name:      tcpEchoTls,
+		Namespace: testHelper.InstallNamespace,
+		Labels:    labels,
+	}
+	zero := int64(0)
+	pod, err := kube.CoreV1().Pods(testHelper.InstallNamespace).Create(context.TODO(), &corev1.Pod{
+		ObjectMeta: metadata,
+		Spec: corev1.PodSpec{
+			TerminationGracePeriodSeconds: &zero,
+			Containers: []corev1.Container{
+				{
+					Image:           "gcr.io/solo-test-236622/tcp-echo-tls:0.1.0",
+					ImagePullPolicy: corev1.PullIfNotPresent,
+					Name:            tcpEchoTls,
+				},
+			},
+		},
+	}, metav1.CreateOptions{})
+	Expect(err).NotTo(HaveOccurred())
+
+	service, err := kube.CoreV1().Services(testHelper.InstallNamespace).Create(context.Background(), &corev1.Service{
+		ObjectMeta: metadata,
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{
+				"gloo": tcpEchoTls,
+			},
+			Ports: []corev1.ServicePort{
+				{
+					Name:     tcpEchoTls,
+					Protocol: corev1.ProtocolTCP,
+					Port:     443,
+				},
+			},
+		},
+	}, metav1.CreateOptions{})
+	Expect(err).NotTo(HaveOccurred())
+
+	timeout := 2 * time.Minute
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	err = testutils.WaitPodsRunning(ctx, time.Second, testHelper.InstallNamespace, "gloo="+tcpEchoTls)
+	Expect(err).NotTo(HaveOccurred())
+
+	return func() {
+		kube.CoreV1().Pods(testHelper.InstallNamespace).Delete(context.Background(), pod.GetObjectMeta().GetName(), metav1.DeleteOptions{})
+		kube.CoreV1().Services(testHelper.InstallNamespace).Delete(context.Background(), service.GetObjectMeta().GetName(), metav1.DeleteOptions{})
 	}
 }

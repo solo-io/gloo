@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: finalise tests for deprecated cipher passthrough
+    issueLink: https://github.com/solo-io/solo-projects/issues/4936
