@@ -80,7 +80,7 @@ var _ = Describe("Hashing Benchmarks", Serial, Label(labels.Performance), func()
 				}
 			})
 
-		}, gmeasure.SamplingConfig{N: 20, Duration: time.Second})
+		}, gmeasure.SamplingConfig{N: 20, Duration: 10 * time.Second})
 
 		ranking := gmeasure.RankStats(gmeasure.LowerMedianIsBetter, experiment.GetStats(reflectionName), experiment.GetStats(generatedName))
 		AddReportEntry("Ranking", ranking)

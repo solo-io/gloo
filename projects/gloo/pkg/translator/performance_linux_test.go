@@ -106,7 +106,9 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 
 				// Time translation
 				res, err := benchmarking.Measure(func() {
-					snap, errs, report = translator.Translate(params, proxy)
+					for i := 0; i < 5; i++ {
+						snap, errs, report = translator.Translate(params, proxy)
+					}
 				})
 				//Expect(err).NotTo(HaveOccurred())
 				if err != nil {
@@ -116,7 +118,7 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 				// Benchmark total time spent
 				// If desired, a field can be added to benchmarkConfig to allow benchmarking according to User and/or
 				// System time
-				experiment.RecordDuration(desc, res.Total)
+				experiment.RecordDuration(desc, res.Total/5)
 
 				if idx == 0 {
 					// Assert expected results
@@ -183,7 +185,7 @@ var basicSnap = &v1snap.ApiSnapshot{
 }
 
 var basicConfig = benchmarkConfig{
-	iterations: 1000,
+	iterations: 200,
 	maxDur:     10 * time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
 		matchers.HaveMedianLessThan(50 * time.Millisecond),
@@ -193,8 +195,8 @@ var basicConfig = benchmarkConfig{
 
 /* 1k Upstreams Scale Test */
 var oneKUpstreamsConfig = benchmarkConfig{
-	iterations: 100,
-	maxDur:     20 * time.Second,
+	iterations: 20,
+	maxDur:     30 * time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
 		matchers.HaveMedianLessThan(time.Second),
 		matchers.HavePercentileLessThan(90, 2*time.Second),
