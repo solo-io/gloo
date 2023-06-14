@@ -13,6 +13,7 @@ import (
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
+	"github.com/hashicorp/go-multierror"
 	server_name_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/matching/custom_matchers/server_name/v3"
 	cipher_inputs_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/matching/inputs/cipher_detection_input/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -49,10 +50,13 @@ type comparableCidrRange struct {
 
 // As we only support 2 matchings for deprecated ciphers, no map is needed here
 // just a struct with 2 options default and passthrough.
+// Additionally this needs to specify passthrough ciphers and optionally
+// terminating ciphers to override the default native support checks
 //
 //	This is the leaf of the IR.
 type deprecatedCipherMapping struct {
 	PassthroughCipherSuites            []uint32
+	TerminatingCipherSuites            []uint32
 	PassthroughCipherSuitesFilterChain *envoy_config_listener_v3.FilterChain
 	DefaultFilterChain                 *envoy_config_listener_v3.FilterChain
 }
@@ -175,7 +179,7 @@ func ConvertFilterChain(ctx context.Context, fcm []*plugins.ExtendedFilterChain)
 	}
 
 	// Convert existing filter chains matchers to temporary intermediate representation that will be easy to convert to the new matcher framework
-	serverNameMap, filterChains, err := filterChainsToMatcherIR(fcm)
+	serverNameMap, filterChains, err := filterChainsToMatcherIR(ctx, fcm)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -184,12 +188,12 @@ func ConvertFilterChain(ctx context.Context, fcm []*plugins.ExtendedFilterChain)
 	return m, filterChains, err
 }
 
-func filterChainsToMatcherIR(fcm []*plugins.ExtendedFilterChain) (serverNameMap, []*envoy_config_listener_v3.FilterChain, error) {
+func filterChainsToMatcherIR(ctx context.Context, fcm []*plugins.ExtendedFilterChain) (serverNameMap, []*envoy_config_listener_v3.FilterChain, error) {
 	serverNameMap := make(serverNameMap)
 	var filterChains []*envoy_config_listener_v3.FilterChain
 	for i, fc := range fcm {
 		fc := fc
-		err := addFilterChainServerNamesToMap(serverNameMap, fc)
+		err := addFilterChainServerNamesToMap(ctx, serverNameMap, fc)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -302,6 +306,7 @@ func deprecatedCipherOnMatch(ctx context.Context, deprecatedCipherMap *deprecate
 		}
 	}
 
+	// dont add the node if its not needed
 	if deprecatedCipherMap.PassthroughCipherSuitesFilterChain == nil {
 		return defaultChainAction
 	}
@@ -328,6 +333,7 @@ func deprecatedCipherOnMatch(ctx context.Context, deprecatedCipherMap *deprecate
 		MatcherTree: &matcher_v3.Matcher_MatcherTree{
 			Input: toTypedExtensionConfig(ctx, "envoy.matching.inputs.cipher_detection_input", &cipher_inputs_v3.CipherDetectionInput{
 				PassthroughCiphers: deprecatedCipherMap.PassthroughCipherSuites,
+				TerminatingCiphers: deprecatedCipherMap.TerminatingCipherSuites,
 			}),
 			TreeType: &matcher_v3.Matcher_MatcherTree_ExactMatchMap{
 				ExactMatchMap: &matcher_v3.Matcher_MatcherTree_MatchMap{
@@ -341,60 +347,101 @@ func deprecatedCipherOnMatch(ctx context.Context, deprecatedCipherMap *deprecate
 	return onMatch
 }
 
-// // TODO(nfuden): remove as we will now be on strings
-// func convertU16ToU32(u16 []uint16) []uint32 {
-// 	u32 := make([]uint32, len(u16))
-// 	for i, v := range u16 {
-// 		u32[i] = uint32(v)
-// 	}
-// 	return u32
-// }
-
+// Command to generate this table:
+// openssl ciphers -V | awk '{print "\x22"$3"\x22"": "$1","}' | sed -r 's/,0x//g'
 var nameConversion = map[string]uint32{
-	"AES128-GCM-SHA256":             0x009C,
-	"AES128-SHA256":                 0x003c,
-	"AES256-GCM-SHA384":             0x009D,
-	"AES256-SHA256":                 0x003d,
-	"DHE-RSA-AES128-GCM-SHA256":     0x009E,
-	"DHE-RSA-AES128-SHA256":         0x0067,
-	"DHE-RSA-AES256-GCM-SHA384":     0x009F,
-	"DHE-RSA-AES256-SHA256":         0x006B,
-	"ECDHE-ECDSA-AES128-GCM-SHA256": 0xC02B,
-	"ECDHE-ECDSA-AES128-SHA256":     0xC023,
+	"TLS_AES_256_GCM_SHA384":        0x1302,
+	"TLS_CHACHA20_POLY1305_SHA256":  0x1303,
+	"TLS_AES_128_GCM_SHA256":        0x1301,
 	"ECDHE-ECDSA-AES256-GCM-SHA384": 0xC02C,
-	"ECDHE-ECDSA-AES256-SHA384":     0xC024,
-	"ECDHE-ECDSA-CHACHA20-POLY1305": 0xCCA9,
-	"ECDHE-RSA-AES128-GCM-SHA256":   0xC02F,
-	"ECDHE-RSA-AES128-SHA256":       0xC027,
 	"ECDHE-RSA-AES256-GCM-SHA384":   0xC030,
-	"ECDHE-RSA-AES256-SHA384":       0xC028,
+	"DHE-RSA-AES256-GCM-SHA384":     0x009F,
+	"ECDHE-ECDSA-CHACHA20-POLY1305": 0xCCA9,
 	"ECDHE-RSA-CHACHA20-POLY1305":   0xCCA8,
+	"DHE-RSA-CHACHA20-POLY1305":     0xCCAA,
+	"ECDHE-ECDSA-AES128-GCM-SHA256": 0xC02B,
+	"ECDHE-RSA-AES128-GCM-SHA256":   0xC02F,
+	"DHE-RSA-AES128-GCM-SHA256":     0x009E,
+	"ECDHE-ECDSA-AES256-SHA384":     0xC024,
+	"ECDHE-RSA-AES256-SHA384":       0xC028,
+	"DHE-RSA-AES256-SHA256":         0x006B,
+	"ECDHE-ECDSA-AES128-SHA256":     0xC023,
+	"ECDHE-RSA-AES128-SHA256":       0xC027,
+	"DHE-RSA-AES128-SHA256":         0x0067,
+	"ECDHE-ECDSA-AES256-SHA":        0xC00A,
+	"ECDHE-RSA-AES256-SHA":          0xC014,
+	"DHE-RSA-AES256-SHA":            0x0039,
+	"ECDHE-ECDSA-AES128-SHA":        0xC009,
+	"ECDHE-RSA-AES128-SHA":          0xC013,
+	"DHE-RSA-AES128-SHA":            0x0033,
+	"RSA-PSK-AES256-GCM-SHA384":     0x00AD,
+	"DHE-PSK-AES256-GCM-SHA384":     0x00AB,
+	"RSA-PSK-CHACHA20-POLY1305":     0xCCAE,
+	"DHE-PSK-CHACHA20-POLY1305":     0xCCAD,
+	"ECDHE-PSK-CHACHA20-POLY1305":   0xCCAC,
+	"AES256-GCM-SHA384":             0x009D,
+	"PSK-AES256-GCM-SHA384":         0x00A9,
+	"PSK-CHACHA20-POLY1305":         0xCCAB,
+	"RSA-PSK-AES128-GCM-SHA256":     0x00AC,
+	"DHE-PSK-AES128-GCM-SHA256":     0x00AA,
+	"AES128-GCM-SHA256":             0x009C,
+	"PSK-AES128-GCM-SHA256":         0x00A8,
+	"AES256-SHA256":                 0x003D,
+	"AES128-SHA256":                 0x003C,
+	"ECDHE-PSK-AES256-CBC-SHA384":   0xC038,
+	"ECDHE-PSK-AES256-CBC-SHA":      0xC036,
+	"SRP-RSA-AES-256-CBC-SHA":       0xC021,
+	"SRP-AES-256-CBC-SHA":           0xC020,
+	"RSA-PSK-AES256-CBC-SHA384":     0x00B7,
+	"DHE-PSK-AES256-CBC-SHA384":     0x00B3,
+	"RSA-PSK-AES256-CBC-SHA":        0x0095,
+	"DHE-PSK-AES256-CBC-SHA":        0x0091,
+	"AES256-SHA":                    0x0035,
+	"PSK-AES256-CBC-SHA384":         0x00AF,
+	"PSK-AES256-CBC-SHA":            0x008D,
+	"ECDHE-PSK-AES128-CBC-SHA256":   0xC037,
+	"ECDHE-PSK-AES128-CBC-SHA":      0xC035,
+	"SRP-RSA-AES-128-CBC-SHA":       0xC01E,
+	"SRP-AES-128-CBC-SHA":           0xC01D,
+	"RSA-PSK-AES128-CBC-SHA256":     0x00B6,
+	"DHE-PSK-AES128-CBC-SHA256":     0x00B2,
+	"RSA-PSK-AES128-CBC-SHA":        0x0094,
+	"DHE-PSK-AES128-CBC-SHA":        0x0090,
+	"AES128-SHA":                    0x002F,
+	"PSK-AES128-CBC-SHA256":         0x00AE,
+	"PSK-AES128-CBC-SHA":            0x008C,
 }
 
 func convertCipherNameToU32(cipherNames []string) ([]uint32, error) {
-	u32 := make([]uint32, len(cipherNames))
-	for i, name := range cipherNames {
-		// TODO(nfuden): Real conversion
+	// preallocate space but in the terminating cipher instance we may have partial
+	// sucess so we dont want any nils in the slice returned
+	u32 := make([]uint32, 0, len(cipherNames))
+	var multiErr *multierror.Error
+	for _, name := range cipherNames {
 		intRep, ok := nameConversion[name]
 		if !ok {
 			rep64, err := strconv.ParseUint(name, 0, 32)
 			if err != nil {
-				return nil, fmt.Errorf("unsupported cipher name %s", name)
+				multiErr = multierror.Append(multiErr, fmt.Errorf("unsupported cipher name %s", name))
+			} else {
+				intRep = uint32(rep64)
 			}
-			intRep = uint32(rep64)
 		}
-		u32[i] = intRep
+		// ie if its valid
+		if intRep != 0 {
+			u32 = append(u32, intRep)
+		}
 	}
-	return u32, nil
+	return u32, multiErr.ErrorOrNil()
 }
 
-func addFilterChainServerNamesToMap(serverNameMap serverNameMap, fc *plugins.ExtendedFilterChain) error {
+func addFilterChainServerNamesToMap(ctx context.Context, serverNameMap serverNameMap, fc *plugins.ExtendedFilterChain) error {
 	serverNames := fc.GetFilterChainMatch().GetServerNames()
 	if len(serverNames) == 0 {
-		return serverNameMap.addServerNameToMap("", fc)
+		return serverNameMap.addServerNameToMap(ctx, "", fc)
 	}
 	for _, serverName := range serverNames {
-		err := serverNameMap.addServerNameToMap(serverName, fc)
+		err := serverNameMap.addServerNameToMap(ctx, serverName, fc)
 		if err != nil {
 			return err
 		}
@@ -402,20 +449,20 @@ func addFilterChainServerNamesToMap(serverNameMap serverNameMap, fc *plugins.Ext
 	return nil
 }
 
-func (m serverNameMap) addServerNameToMap(srvname string, fc *plugins.ExtendedFilterChain) error {
+func (m serverNameMap) addServerNameToMap(ctx context.Context, srvname string, fc *plugins.ExtendedFilterChain) error {
 	if m[srvname] == nil {
 		m[srvname] = make(sourceIpCidrMap)
 	}
 	sourceIpRanges := fc.GetFilterChainMatch().GetSourcePrefixRanges()
 	if len(sourceIpRanges) == 0 {
-		return m[srvname].addSourceIpToMap(noIpRanges, fc)
+		return m[srvname].addSourceIpToMap(ctx, noIpRanges, fc)
 	}
 	for _, ipRange := range sourceIpRanges {
 		cirdRange := comparableCidrRange{
 			AddressPrefix: ipRange.GetAddressPrefix(),
 			PrefixLen:     ipRange.GetPrefixLen().GetValue(),
 		}
-		err := m[srvname].addSourceIpToMap(cirdRange, fc)
+		err := m[srvname].addSourceIpToMap(ctx, cirdRange, fc)
 		if err != nil {
 			return err
 		}
@@ -423,20 +470,31 @@ func (m serverNameMap) addServerNameToMap(srvname string, fc *plugins.ExtendedFi
 	return nil
 }
 
-func (m sourceIpCidrMap) addSourceIpToMap(prefix comparableCidrRange, fc *plugins.ExtendedFilterChain) error {
+func (m sourceIpCidrMap) addSourceIpToMap(ctx context.Context,
+	prefix comparableCidrRange, fc *plugins.ExtendedFilterChain) error {
 	if m[prefix] == nil {
 		m[prefix] = &deprecatedCipherMapping{}
 	}
 
-	return m[prefix].addPassthroughCiphers(fc.PassthroughCipherSuites, fc)
+	return m[prefix].addPassthroughCiphers(ctx, fc.PassthroughCipherSuites, fc)
 }
 
-func (m *deprecatedCipherMapping) addPassthroughCiphers(passthroughCipherSuites []string, fc *plugins.ExtendedFilterChain) error {
+func (m *deprecatedCipherMapping) addPassthroughCiphers(ctx context.Context,
+	passthroughCipherSuites []string, fc *plugins.ExtendedFilterChain) error {
 	if len(passthroughCipherSuites) == 0 {
 		if m.DefaultFilterChain != nil {
 			return fmt.Errorf("multiple filter chains with overlapping matching rules are defined")
 		}
 		m.DefaultFilterChain = fc.FilterChain
+		// if the terminating ciphers are specified, we need to override the default
+		terminatingCiphers, err := convertCipherNameToU32(fc.TerminatingCipherSuites)
+		if err != nil {
+			// for now dont log until we get logger plumbed in
+			contextutils.LoggerFrom(ctx).Errorf(
+				"unable to convert sslconfig's noted cipher based on lookup: %s", err.Error())
+		}
+		m.TerminatingCipherSuites = terminatingCiphers
+
 	} else {
 		if m.PassthroughCipherSuitesFilterChain != nil {
 			return fmt.Errorf("multiple filter chains with overlapping matching rules are defined")
@@ -448,6 +506,17 @@ func (m *deprecatedCipherMapping) addPassthroughCiphers(passthroughCipherSuites 
 		}
 		m.PassthroughCipherSuites = passthroughCiphers
 		m.PassthroughCipherSuitesFilterChain = fc.FilterChain
+	}
+
+	// check that we dont have overlap
+	if m.PassthroughCipherSuites != nil && m.TerminatingCipherSuites != nil {
+		for _, cipher := range m.PassthroughCipherSuites {
+			for _, termCipher := range m.TerminatingCipherSuites {
+				if cipher == termCipher {
+					return fmt.Errorf("multiple filter chains have shared ciphers between passthrough and non, cipher:%v", cipher)
+				}
+			}
+		}
 	}
 	return nil
 }

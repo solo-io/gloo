@@ -1602,8 +1602,8 @@ github.com/solo-io/ext-auth-service v0.38.0 h1:jvpl451x3tIQ2JL3ghw0HCkPlsBZ7FUQF
 github.com/solo-io/ext-auth-service v0.38.0/go.mod h1:7CzpPHBi31pLJUaJ//2j+05t9n3emkpOKsthkqVoiQk=
 github.com/solo-io/external-apis v0.1.12-0.20230516154006-26324bdb2bb2 h1:BrmvXzKgd4XsesUazCQ832rqWVMKletc6XhypdG6HT4=
 github.com/solo-io/external-apis v0.1.12-0.20230516154006-26324bdb2bb2/go.mod h1:LIV/UuadKT4c5E/9pxf1B6xZoeE5Wgl73epNhKrBJUM=
-github.com/solo-io/gloo v1.15.0-beta11 h1:PhQcwjUj8JE1up9JYG+TaRVYvEzzju5ULux5Q/lx5hk=
-github.com/solo-io/gloo v1.15.0-beta11/go.mod h1:5K5fiFZLGT5SGq5a5pQRjJYyydtJqRfzwJJBBXTHQE8=
+github.com/solo-io/gloo v1.15.0-beta12 h1:R5eB2bwKXnz/hbnw7BFG6NAbRzHwLoo5qnsKfMiVu6A=
+github.com/solo-io/gloo v1.15.0-beta12/go.mod h1:5K5fiFZLGT5SGq5a5pQRjJYyydtJqRfzwJJBBXTHQE8=
 github.com/solo-io/gloo-graphql-example v0.1.0 h1:vFfQ0eXoJ5gXdBjuMU2VfN2zf+vXbFcpdqnwd6+q8Gk=
 github.com/solo-io/gloo-graphql-example v0.1.0/go.mod h1:tF/6JrJvq1kVFuWePAiW6tH5AEgtuh2+mRsfCaITbVg=
 github.com/solo-io/go-list-licenses v0.1.4 h1:u4xh1OUORT4iSWuAp3Q4NsfHcDaeUV8QRDH8ACQqbxw=
@@ -1624,8 +1624,8 @@ github.com/solo-io/rate-limiter v0.9.1 h1:snAJRpSAHI9x/J03TJSp5191S8aPy20okNpBjA
 github.com/solo-io/rate-limiter v0.9.1/go.mod h1:1xOn8OQl9H/QI/nzHSzrmmY5Xrvmqh9gK+gzxMbj7Hc=
 github.com/solo-io/skv2 v0.30.1 h1:xbq2K4NiJ5HrsXt8sZie7CxEYOsHRBxTd92MirV5y2c=
 github.com/solo-io/skv2 v0.30.1/go.mod h1:2+ySJOxcW5gn8XlJ96eihI9s7WKHVY+stxhRqS07TH0=
-github.com/solo-io/solo-apis v0.0.0-20230609145846-8087fcb16a7f h1:xK8cnSnrdn6JOUCeuMfvAOfke4eC49be2I/IEkBwXn0=
-github.com/solo-io/solo-apis v0.0.0-20230609145846-8087fcb16a7f/go.mod h1:KHAYb/KEn9ysnagXIa5Hz8YwCShyZyzFnL3QP29PdEM=
+github.com/solo-io/solo-apis v0.0.0-20230613182524-5e99dcdc4042 h1:GujlOKnpZueFFfwKuZVkzYeX664IdLLujbMfyYOrbGk=
+github.com/solo-io/solo-apis v0.0.0-20230613182524-5e99dcdc4042/go.mod h1:KHAYb/KEn9ysnagXIa5Hz8YwCShyZyzFnL3QP29PdEM=
 github.com/solo-io/solo-kit v0.32.0 h1:UeGgLQLZqEN5mNGi1zcK7qXX7GmqgCiifrAh5PKRPPs=
 github.com/solo-io/solo-kit v0.32.0/go.mod h1:b2N00xEJ9pTPZTgt7JXBDqqAISzMs1DZFQLnw4LyhlU=
 github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3 h1:Am1RMaWH7jOug0ys4gUeBCgwR/94NSfZqu90j9u8eTA=

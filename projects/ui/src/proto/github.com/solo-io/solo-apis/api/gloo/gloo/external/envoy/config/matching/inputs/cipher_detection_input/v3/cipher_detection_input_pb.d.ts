@@ -13,6 +13,11 @@ export class CipherDetectionInput extends jspb.Message {
   setPassthroughCiphersList(value: Array<number>): void;
   addPassthroughCiphers(value: number, index?: number): number;
 
+  clearTerminatingCiphersList(): void;
+  getTerminatingCiphersList(): Array<number>;
+  setTerminatingCiphersList(value: Array<number>): void;
+  addTerminatingCiphers(value: number, index?: number): number;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CipherDetectionInput.AsObject;
   static toObject(includeInstance: boolean, msg: CipherDetectionInput): CipherDetectionInput.AsObject;
@@ -26,5 +31,6 @@ export class CipherDetectionInput extends jspb.Message {
 export namespace CipherDetectionInput {
   export type AsObject = {
     passthroughCiphersList: Array<number>,
+    terminatingCiphersList: Array<number>,
   }
 }

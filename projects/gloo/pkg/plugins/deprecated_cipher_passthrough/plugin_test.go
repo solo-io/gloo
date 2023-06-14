@@ -68,7 +68,7 @@ var _ = Describe("Plugin", func() {
 				},
 			},
 		}
-		serverNames, filterChains, err := filterChainsToMatcherIR(fcm)
+		serverNames, filterChains, err := filterChainsToMatcherIR(context.Background(), fcm)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(serverNames).To(HaveLen(1))
 		Expect(serverNames["foo"]).To(HaveLen(1))
@@ -138,6 +138,43 @@ var _ = Describe("Plugin", func() {
 		Expect(fc).To(HaveLen(1))
 		Expect(fc[0].FilterChainMatch).To(BeNil())
 		Expect(fc[0].Name).NotTo(BeNil())
+	})
+
+	It("should disallow passthrough and terminating with same ciphers", func() {
+		fcm := []*plugins.ExtendedFilterChain{
+			{
+				FilterChain: &envoy_config_listener_v3.FilterChain{
+					FilterChainMatch: &envoy_config_listener_v3.FilterChainMatch{
+						ServerNames: []string{"foo"},
+						SourcePrefixRanges: []*envoy_core_v3.CidrRange{
+							{
+								AddressPrefix: "127.0.0.1",
+								PrefixLen:     wrapperspb.UInt32(32),
+							},
+						},
+					},
+				},
+				PassthroughCipherSuites: []string{"AES128-SHA256"},
+			}, {
+				FilterChain: &envoy_config_listener_v3.FilterChain{
+					FilterChainMatch: &envoy_config_listener_v3.FilterChainMatch{
+						ServerNames: []string{"foo"},
+						SourcePrefixRanges: []*envoy_core_v3.CidrRange{
+							{
+								AddressPrefix: "127.0.0.1",
+								PrefixLen:     wrapperspb.UInt32(32),
+							},
+						},
+					},
+				},
+				TerminatingCipherSuites: []string{"AES128-SHA256"},
+			},
+		}
+		m, _, err := ConvertFilterChain(context.Background(), fcm)
+		Expect(err).To(HaveOccurred())
+		Expect(m).To(BeNil())
+
+		Expect(err.Error()).To(ContainSubstring("have shared ciphers between passthrough "))
 	})
 
 	It("should translate server and a mix of passthrough ciphers with server names and source ips", func() {
@@ -210,6 +247,54 @@ var _ = Describe("Plugin", func() {
 		Expect(fc[2].Name).NotTo(BeNil())
 		format.MaxLength = 40000
 		Expect(proto2json(m)).To(MatchYAML(testData("servername-srcip-dcp-multi.yaml")))
+
+	})
+
+	// same as last test but with specified ciphers
+	It("should translate server and passthrough+terminating ciphers with server names and source ips and another filterchain with no ciphers", func() {
+		fcm := []*plugins.ExtendedFilterChain{
+			{
+				FilterChain: &envoy_config_listener_v3.FilterChain{
+					FilterChainMatch: &envoy_config_listener_v3.FilterChainMatch{
+						ServerNames: []string{"foo"},
+						SourcePrefixRanges: []*envoy_core_v3.CidrRange{
+							{
+								AddressPrefix: "127.0.0.1",
+								PrefixLen:     wrapperspb.UInt32(32),
+							},
+						},
+					},
+				},
+				PassthroughCipherSuites: []string{"AES128-SHA256"},
+			}, {
+				FilterChain: &envoy_config_listener_v3.FilterChain{
+					FilterChainMatch: &envoy_config_listener_v3.FilterChainMatch{
+						ServerNames: []string{"foo"},
+						SourcePrefixRanges: []*envoy_core_v3.CidrRange{
+							{
+								AddressPrefix: "127.0.0.1",
+								PrefixLen:     wrapperspb.UInt32(32),
+							},
+						},
+					},
+				},
+				TerminatingCipherSuites: []string{"ECDHE-RSA-AES256-GCM-SHA384"},
+			}, {
+				FilterChain: &envoy_config_listener_v3.FilterChain{},
+			},
+		}
+		m, fc, err := ConvertFilterChain(context.Background(), fcm)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(m).NotTo(BeNil())
+		Expect(fc).To(HaveLen(3))
+		Expect(fc[0].FilterChainMatch).To(BeNil())
+		Expect(fc[0].Name).NotTo(BeNil())
+		Expect(fc[1].FilterChainMatch).To(BeNil())
+		Expect(fc[1].Name).NotTo(BeNil())
+		Expect(fc[2].FilterChainMatch).To(BeNil())
+		Expect(fc[2].Name).NotTo(BeNil())
+		format.MaxLength = 40000
+		Expect(proto2json(m)).To(MatchYAML(testData("servername-srcip-dcp-withterm-multi.yaml")))
 
 	})
 

@@ -1,0 +1,15 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/5044
+    resolvesIssue: false
+    description: >-
+      Add support for an optional parameter `terminatingCiphers` for deprecated cipher passthrough.
+      Ciphers for this feature can be added in the `sslConfig` of an httpgateway or virtualservice (if using the isolate by vsfunctionality).
+      If set only these ciphers will be considered as native for passthrough decisions.
+      This resolves an issue where clients that offer native but disallowed ciphers would not be eligible for passthrough.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.15.0-beta12
+    description: >-
+      Bump Gloo OSS to pick up passthrough api changes.

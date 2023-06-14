@@ -361,6 +361,34 @@ export namespace MatchedListener {
   }
 }
 
+export class MatchedTcpListener extends jspb.Message {
+  hasMatcher(): boolean;
+  clearMatcher(): void;
+  getMatcher(): Matcher | undefined;
+  setMatcher(value?: Matcher): void;
+
+  hasTcpListener(): boolean;
+  clearTcpListener(): void;
+  getTcpListener(): TcpListener | undefined;
+  setTcpListener(value?: TcpListener): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MatchedTcpListener.AsObject;
+  static toObject(includeInstance: boolean, msg: MatchedTcpListener): MatchedTcpListener.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MatchedTcpListener, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MatchedTcpListener;
+  static deserializeBinaryFromReader(message: MatchedTcpListener, reader: jspb.BinaryReader): MatchedTcpListener;
+}
+
+export namespace MatchedTcpListener {
+  export type AsObject = {
+    matcher?: Matcher.AsObject,
+    tcpListener?: TcpListener.AsObject,
+  }
+}
+
 export class Matcher extends jspb.Message {
   hasSslConfig(): boolean;
   clearSslConfig(): void;
@@ -406,6 +434,11 @@ export class AggregateListener extends jspb.Message {
   setHttpFilterChainsList(value: Array<AggregateListener.HttpFilterChain>): void;
   addHttpFilterChains(value?: AggregateListener.HttpFilterChain, index?: number): AggregateListener.HttpFilterChain;
 
+  clearTcpListenersList(): void;
+  getTcpListenersList(): Array<MatchedTcpListener>;
+  setTcpListenersList(value: Array<MatchedTcpListener>): void;
+  addTcpListeners(value?: MatchedTcpListener, index?: number): MatchedTcpListener;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AggregateListener.AsObject;
   static toObject(includeInstance: boolean, msg: AggregateListener): AggregateListener.AsObject;
@@ -420,6 +453,7 @@ export namespace AggregateListener {
   export type AsObject = {
     httpResources?: AggregateListener.HttpResources.AsObject,
     httpFilterChainsList: Array<AggregateListener.HttpFilterChain.AsObject>,
+    tcpListenersList: Array<MatchedTcpListener.AsObject>,
   }
 
   export class HttpResources extends jspb.Message {

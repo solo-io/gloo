@@ -39,7 +39,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.envoy.config.matching.cipher_detection_input.v3.CipherDetectionInput.repeatedFields_ = [1];
+proto.envoy.config.matching.cipher_detection_input.v3.CipherDetectionInput.repeatedFields_ = [1,2];
 
 
 
@@ -70,7 +70,8 @@ proto.envoy.config.matching.cipher_detection_input.v3.CipherDetectionInput.proto
  */
 proto.envoy.config.matching.cipher_detection_input.v3.CipherDetectionInput.toObject = function(includeInstance, msg) {
   var f, obj = {
-    passthroughCiphersList: jspb.Message.getRepeatedField(msg, 1)
+    passthroughCiphersList: jspb.Message.getRepeatedField(msg, 1),
+    terminatingCiphersList: jspb.Message.getRepeatedField(msg, 2)
   };
 
   if (includeInstance) {
@@ -111,6 +112,10 @@ proto.envoy.config.matching.cipher_detection_input.v3.CipherDetectionInput.deser
       var value = /** @type {!Array<number>} */ (reader.readPackedUint32());
       msg.setPassthroughCiphersList(value);
       break;
+    case 2:
+      var value = /** @type {!Array<number>} */ (reader.readPackedUint32());
+      msg.setTerminatingCiphersList(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -147,6 +152,13 @@ proto.envoy.config.matching.cipher_detection_input.v3.CipherDetectionInput.seria
       f
     );
   }
+  f = message.getTerminatingCiphersList();
+  if (f.length > 0) {
+    writer.writePackedUint32(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -176,6 +188,35 @@ proto.envoy.config.matching.cipher_detection_input.v3.CipherDetectionInput.proto
 
 proto.envoy.config.matching.cipher_detection_input.v3.CipherDetectionInput.prototype.clearPassthroughCiphersList = function() {
   this.setPassthroughCiphersList([]);
+};
+
+
+/**
+ * repeated uint32 terminating_ciphers = 2;
+ * @return {!Array<number>}
+ */
+proto.envoy.config.matching.cipher_detection_input.v3.CipherDetectionInput.prototype.getTerminatingCiphersList = function() {
+  return /** @type {!Array<number>} */ (jspb.Message.getRepeatedField(this, 2));
+};
+
+
+/** @param {!Array<number>} value */
+proto.envoy.config.matching.cipher_detection_input.v3.CipherDetectionInput.prototype.setTerminatingCiphersList = function(value) {
+  jspb.Message.setField(this, 2, value || []);
+};
+
+
+/**
+ * @param {!number} value
+ * @param {number=} opt_index
+ */
+proto.envoy.config.matching.cipher_detection_input.v3.CipherDetectionInput.prototype.addTerminatingCiphers = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+};
+
+
+proto.envoy.config.matching.cipher_detection_input.v3.CipherDetectionInput.prototype.clearTerminatingCiphersList = function() {
+  this.setTerminatingCiphersList([]);
 };
 
 

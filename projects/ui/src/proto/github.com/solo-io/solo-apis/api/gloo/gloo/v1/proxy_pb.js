@@ -36,6 +36,7 @@ goog.exportSymbol('proto.gloo.solo.io.HybridListener', null, global);
 goog.exportSymbol('proto.gloo.solo.io.KubernetesServiceDestination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Listener', null, global);
 goog.exportSymbol('proto.gloo.solo.io.MatchedListener', null, global);
+goog.exportSymbol('proto.gloo.solo.io.MatchedTcpListener', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Matcher', null, global);
 goog.exportSymbol('proto.gloo.solo.io.MultiDestination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.ProxyNamespacedStatuses', null, global);
@@ -2473,6 +2474,209 @@ proto.gloo.solo.io.MatchedListener.prototype.clearSslConfigurationsList = functi
  * @extends {jspb.Message}
  * @constructor
  */
+proto.gloo.solo.io.MatchedTcpListener = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.MatchedTcpListener, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.MatchedTcpListener.displayName = 'proto.gloo.solo.io.MatchedTcpListener';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.MatchedTcpListener.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.MatchedTcpListener.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.MatchedTcpListener} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.MatchedTcpListener.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    matcher: (f = msg.getMatcher()) && proto.gloo.solo.io.Matcher.toObject(includeInstance, f),
+    tcpListener: (f = msg.getTcpListener()) && proto.gloo.solo.io.TcpListener.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.MatchedTcpListener}
+ */
+proto.gloo.solo.io.MatchedTcpListener.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.MatchedTcpListener;
+  return proto.gloo.solo.io.MatchedTcpListener.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.MatchedTcpListener} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.MatchedTcpListener}
+ */
+proto.gloo.solo.io.MatchedTcpListener.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.gloo.solo.io.Matcher;
+      reader.readMessage(value,proto.gloo.solo.io.Matcher.deserializeBinaryFromReader);
+      msg.setMatcher(value);
+      break;
+    case 2:
+      var value = new proto.gloo.solo.io.TcpListener;
+      reader.readMessage(value,proto.gloo.solo.io.TcpListener.deserializeBinaryFromReader);
+      msg.setTcpListener(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.MatchedTcpListener.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.MatchedTcpListener.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.MatchedTcpListener} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.MatchedTcpListener.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getMatcher();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.gloo.solo.io.Matcher.serializeBinaryToWriter
+    );
+  }
+  f = message.getTcpListener();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.gloo.solo.io.TcpListener.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional Matcher matcher = 1;
+ * @return {?proto.gloo.solo.io.Matcher}
+ */
+proto.gloo.solo.io.MatchedTcpListener.prototype.getMatcher = function() {
+  return /** @type{?proto.gloo.solo.io.Matcher} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.Matcher, 1));
+};
+
+
+/** @param {?proto.gloo.solo.io.Matcher|undefined} value */
+proto.gloo.solo.io.MatchedTcpListener.prototype.setMatcher = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.gloo.solo.io.MatchedTcpListener.prototype.clearMatcher = function() {
+  this.setMatcher(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.MatchedTcpListener.prototype.hasMatcher = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional TcpListener tcp_listener = 2;
+ * @return {?proto.gloo.solo.io.TcpListener}
+ */
+proto.gloo.solo.io.MatchedTcpListener.prototype.getTcpListener = function() {
+  return /** @type{?proto.gloo.solo.io.TcpListener} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.TcpListener, 2));
+};
+
+
+/** @param {?proto.gloo.solo.io.TcpListener|undefined} value */
+proto.gloo.solo.io.MatchedTcpListener.prototype.setTcpListener = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.gloo.solo.io.MatchedTcpListener.prototype.clearTcpListener = function() {
+  this.setTcpListener(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.MatchedTcpListener.prototype.hasTcpListener = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.gloo.solo.io.Matcher = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.Matcher.repeatedFields_, null);
 };
@@ -2738,7 +2942,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.gloo.solo.io.AggregateListener.repeatedFields_ = [2];
+proto.gloo.solo.io.AggregateListener.repeatedFields_ = [2,3];
 
 
 
@@ -2771,7 +2975,9 @@ proto.gloo.solo.io.AggregateListener.toObject = function(includeInstance, msg) {
   var f, obj = {
     httpResources: (f = msg.getHttpResources()) && proto.gloo.solo.io.AggregateListener.HttpResources.toObject(includeInstance, f),
     httpFilterChainsList: jspb.Message.toObjectList(msg.getHttpFilterChainsList(),
-    proto.gloo.solo.io.AggregateListener.HttpFilterChain.toObject, includeInstance)
+    proto.gloo.solo.io.AggregateListener.HttpFilterChain.toObject, includeInstance),
+    tcpListenersList: jspb.Message.toObjectList(msg.getTcpListenersList(),
+    proto.gloo.solo.io.MatchedTcpListener.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -2818,6 +3024,11 @@ proto.gloo.solo.io.AggregateListener.deserializeBinaryFromReader = function(msg,
       reader.readMessage(value,proto.gloo.solo.io.AggregateListener.HttpFilterChain.deserializeBinaryFromReader);
       msg.addHttpFilterChains(value);
       break;
+    case 3:
+      var value = new proto.gloo.solo.io.MatchedTcpListener;
+      reader.readMessage(value,proto.gloo.solo.io.MatchedTcpListener.deserializeBinaryFromReader);
+      msg.addTcpListeners(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2861,6 +3072,14 @@ proto.gloo.solo.io.AggregateListener.serializeBinaryToWriter = function(message,
       2,
       f,
       proto.gloo.solo.io.AggregateListener.HttpFilterChain.serializeBinaryToWriter
+    );
+  }
+  f = message.getTcpListenersList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      3,
+      f,
+      proto.gloo.solo.io.MatchedTcpListener.serializeBinaryToWriter
     );
   }
 };
@@ -3331,6 +3550,37 @@ proto.gloo.solo.io.AggregateListener.prototype.addHttpFilterChains = function(op
 
 proto.gloo.solo.io.AggregateListener.prototype.clearHttpFilterChainsList = function() {
   this.setHttpFilterChainsList([]);
+};
+
+
+/**
+ * repeated MatchedTcpListener tcp_listeners = 3;
+ * @return {!Array<!proto.gloo.solo.io.MatchedTcpListener>}
+ */
+proto.gloo.solo.io.AggregateListener.prototype.getTcpListenersList = function() {
+  return /** @type{!Array<!proto.gloo.solo.io.MatchedTcpListener>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.gloo.solo.io.MatchedTcpListener, 3));
+};
+
+
+/** @param {!Array<!proto.gloo.solo.io.MatchedTcpListener>} value */
+proto.gloo.solo.io.AggregateListener.prototype.setTcpListenersList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 3, value);
+};
+
+
+/**
+ * @param {!proto.gloo.solo.io.MatchedTcpListener=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.gloo.solo.io.MatchedTcpListener}
+ */
+proto.gloo.solo.io.AggregateListener.prototype.addTcpListeners = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 3, opt_value, proto.gloo.solo.io.MatchedTcpListener, opt_index);
+};
+
+
+proto.gloo.solo.io.AggregateListener.prototype.clearTcpListenersList = function() {
+  this.setTcpListenersList([]);
 };
 
 
