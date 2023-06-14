@@ -3,8 +3,9 @@ package translator_test
 import (
 	"context"
 	"fmt"
-	"github.com/solo-io/go-utils/testutils/benchmarking"
 	"strings"
+
+	"github.com/solo-io/go-utils/testutils/benchmarking"
 
 	"github.com/onsi/gomega/types"
 	"github.com/solo-io/gloo/test/gomega/matchers"

@@ -3,11 +3,12 @@ package translator_test
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/onsi/gomega/gmeasure"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
-	"time"
 
 	gloo_matchers "github.com/solo-io/gloo/test/gomega/matchers"
 
