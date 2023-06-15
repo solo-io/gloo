@@ -80,7 +80,7 @@ func ErrorIfInvalidAuthConfig(ac *extauth.AuthConfig) *multierror.Error {
 				oidcCfg := oauthCfg.OidcAuthorizationCode
 				if oidcCfg.GetAppUrl() == "" ||
 					oidcCfg.GetClientId() == "" ||
-					oidcCfg.GetClientSecretRef() == nil ||
+					(!oidcCfg.GetDisableClientSecret().GetValue() && oidcCfg.GetClientSecretRef() == nil) ||
 					oidcCfg.GetAppUrl() == "" ||
 					oidcCfg.GetIssuerUrl() == "" ||
 					oidcCfg.GetCallbackPath() == "" {
@@ -102,11 +102,12 @@ func ErrorIfInvalidAuthConfig(ac *extauth.AuthConfig) *multierror.Error {
 					} else if !IsIntrospectionUrlParsable(introspectionUrl) {
 						multiErr = multierror.Append(multiErr, OAuth2InvalidIntrospectionUrlErr)
 					}
-
-					// XOR clientId and clientSecretRef
+					// We should have one of clientSecret and clientId, neither clientSecret nor clientId,
+					// clientId and clientSecret disabled
 					clientIdExists := validation.Introspection.GetClientId() != ""
 					clientSecretExists := validation.Introspection.GetClientSecretRef() != nil
-					if clientIdExists != clientSecretExists {
+					if (clientIdExists && !clientSecretExists && !validation.Introspection.GetDisableClientSecret().GetValue()) ||
+						(clientSecretExists && !clientIdExists) {
 						multiErr = multierror.Append(multiErr, OAuth2IncompleteIntrospectionCredentialsErr)
 					}
 				case *extauth.AccessTokenValidation_Jwt:
@@ -127,7 +128,7 @@ func ErrorIfInvalidAuthConfig(ac *extauth.AuthConfig) *multierror.Error {
 					oauth2Cfg.GetClientId() == "" ||
 					oauth2Cfg.GetAuthEndpoint() == "" ||
 					oauth2Cfg.GetTokenEndpoint() == "" ||
-					oauth2Cfg.GetClientSecretRef() == nil ||
+					(!oauth2Cfg.GetDisableClientSecret().GetValue() && oauth2Cfg.GetClientSecretRef() == nil) ||
 					oauth2Cfg.GetCallbackPath() == "" {
 					multiErr = multierror.Append(multiErr, OAuth2IncompletePlainInfoErr)
 				}

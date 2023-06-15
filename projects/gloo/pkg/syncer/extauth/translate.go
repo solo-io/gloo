@@ -447,9 +447,14 @@ func translateOauth(snap *v1snap.ApiSnapshot, config *extauth.OAuth) (*extauth.E
 }
 
 func translatePlainOAuth2(snap *v1snap.ApiSnapshot, config *extauth.PlainOAuth2) (*extauth.ExtAuthConfig_PlainOAuth2Config, error) {
-	secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
-	if err != nil {
-		return nil, err
+	secretDisabled := config.GetDisableClientSecret().GetValue()
+	clientSecret := ""
+	if !secretDisabled {
+		secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
+		if err != nil {
+			return nil, err
+		}
+		clientSecret = secret.GetOauth().GetClientSecret()
 	}
 	var session *extauth.UserSession
 	// userSession will be set to nil if the cipher config is set. This needs to be applied to any new features as well.
@@ -473,7 +478,7 @@ func translatePlainOAuth2(snap *v1snap.ApiSnapshot, config *extauth.PlainOAuth2)
 	return &extauth.ExtAuthConfig_PlainOAuth2Config{
 		AppUrl:                   config.AppUrl,
 		ClientId:                 config.ClientId,
-		ClientSecret:             secret.GetOauth().GetClientSecret(),
+		ClientSecret:             clientSecret,
 		AuthEndpointQueryParams:  config.AuthEndpointQueryParams,
 		TokenEndpointQueryParams: config.TokenEndpointQueryParams,
 		CallbackPath:             config.CallbackPath,
@@ -517,9 +522,14 @@ func userSessionToSession(userSession *extauth.ExtAuthConfig_UserSessionConfig) 
 }
 
 func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.OidcAuthorizationCode) (*extauth.ExtAuthConfig_OidcAuthorizationCodeConfig, error) {
-	secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
-	if err != nil {
-		return nil, err
+	secretDisabled := config.GetDisableClientSecret().GetValue()
+	clientSecret := ""
+	if !secretDisabled {
+		secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
+		if err != nil {
+			return nil, errors.New("client secret expected and not found")
+		}
+		clientSecret = secret.GetOauth().GetClientSecret()
 	}
 
 	sessionIdHeaderName := config.GetSessionIdHeaderName()
@@ -552,7 +562,7 @@ func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.Oi
 	return &extauth.ExtAuthConfig_OidcAuthorizationCodeConfig{
 		AppUrl:                   config.AppUrl,
 		ClientId:                 config.ClientId,
-		ClientSecret:             secret.GetOauth().GetClientSecret(),
+		ClientSecret:             clientSecret,
 		IssuerUrl:                config.IssuerUrl,
 		AuthEndpointQueryParams:  config.AuthEndpointQueryParams,
 		TokenEndpointQueryParams: config.TokenEndpointQueryParams,

@@ -1227,6 +1227,13 @@ export class OidcAuthorizationCode extends jspb.Message {
   getEndSessionProperties(): EndSessionProperties | undefined;
   setEndSessionProperties(value?: EndSessionProperties): void;
 
+  getDynamicMetadataFromClaimsMap(): jspb.Map<string, string>;
+  clearDynamicMetadataFromClaimsMap(): void;
+  hasDisableClientSecret(): boolean;
+  clearDisableClientSecret(): void;
+  getDisableClientSecret(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setDisableClientSecret(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
   static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
@@ -1258,6 +1265,8 @@ export namespace OidcAuthorizationCode {
     parseCallbackPathAsRegex: boolean,
     autoMapFromMetadata?: AutoMapFromMetadata.AsObject,
     endSessionProperties?: EndSessionProperties.AsObject,
+    dynamicMetadataFromClaimsMap: Array<[string, string]>,
+    disableClientSecret?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
 
@@ -1305,6 +1314,11 @@ export class PlainOAuth2 extends jspb.Message {
   getRevocationEndpoint(): string;
   setRevocationEndpoint(value: string): void;
 
+  hasDisableClientSecret(): boolean;
+  clearDisableClientSecret(): void;
+  getDisableClientSecret(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setDisableClientSecret(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PlainOAuth2.AsObject;
   static toObject(includeInstance: boolean, msg: PlainOAuth2): PlainOAuth2.AsObject;
@@ -1330,6 +1344,7 @@ export namespace PlainOAuth2 {
     authEndpoint: string,
     tokenEndpoint: string,
     revocationEndpoint: string,
+    disableClientSecret?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
 
@@ -1433,6 +1448,11 @@ export class IntrospectionValidation extends jspb.Message {
   getUserIdAttributeName(): string;
   setUserIdAttributeName(value: string): void;
 
+  hasDisableClientSecret(): boolean;
+  clearDisableClientSecret(): void;
+  getDisableClientSecret(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setDisableClientSecret(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): IntrospectionValidation.AsObject;
   static toObject(includeInstance: boolean, msg: IntrospectionValidation): IntrospectionValidation.AsObject;
@@ -1449,6 +1469,7 @@ export namespace IntrospectionValidation {
     clientId: string,
     clientSecretRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     userIdAttributeName: string,
+    disableClientSecret?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
 
@@ -1481,6 +1502,8 @@ export class AccessTokenValidation extends jspb.Message {
   getRequiredScopes(): AccessTokenValidation.ScopeList | undefined;
   setRequiredScopes(value?: AccessTokenValidation.ScopeList): void;
 
+  getDynamicMetadataFromClaimsMap(): jspb.Map<string, string>;
+  clearDynamicMetadataFromClaimsMap(): void;
   getValidationTypeCase(): AccessTokenValidation.ValidationTypeCase;
   getScopeValidationCase(): AccessTokenValidation.ScopeValidationCase;
   serializeBinary(): Uint8Array;
@@ -1501,6 +1524,7 @@ export namespace AccessTokenValidation {
     userinfoUrl: string,
     cacheTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     requiredScopes?: AccessTokenValidation.ScopeList.AsObject,
+    dynamicMetadataFromClaimsMap: Array<[string, string]>,
   }
 
   export class ScopeList extends jspb.Message {

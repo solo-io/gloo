@@ -87,7 +87,8 @@ import (
 )
 
 var (
-	baseExtauthPort = uint32(27000)
+	baseExtauthPort       = uint32(27000)
+	expectedIdsAndSecrets = map[string]string{"test-clientid": "test", "no-secret-id": ""}
 )
 
 var _ = Describe("External auth", FlakeAttempts(10), func() {
@@ -1824,7 +1825,30 @@ var _ = Describe("External auth", FlakeAttempts(10), func() {
 						})
 					})
 				})
+				Context("happy path with default settings and client secret disabled", func() {
+					BeforeEach(func() {
+						oauth2.Oauth2.DisableClientSecret = &wrappers.BoolValue{Value: true}
+						oauth2.Oauth2.ClientId = "no-secret-id"
+						oauth2.Oauth2.Session = &extauth.UserSession{
+							Session: &extauth.UserSession_Cookie{Cookie: &extauth.UserSession_InternalSession{}},
+							CookieOptions: &extauth.UserSession_CookieOptions{
+								HttpOnly: &wrappers.BoolValue{Value: false},
+							},
+						}
+					})
 
+					It("should work", func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {
+							Expect(cookies).ToNot(BeEmpty())
+							var cookienames []string
+							for _, c := range cookies {
+								cookienames = append(cookienames, c.Name)
+								Expect(c.HttpOnly).To(BeFalse())
+							}
+							Expect(cookienames).To(ConsistOf("access_token", "id_token"))
+						})
+					})
+				})
 				Context("happy path with default settings and allowing refreshing", func() {
 					BeforeEach(func() {
 						oauth2.Oauth2.Session = &extauth.UserSession{
@@ -2091,7 +2115,7 @@ var _ = Describe("External auth", FlakeAttempts(10), func() {
 							requestedToken := request.Form.Get("token")
 							requestedClientId := request.Form.Get("client_id")
 							requestedClientSecret := request.Form.Get("client_secret")
-
+							fmt.Fprintln(GinkgoWriter, "token request", request.Form)
 							response := &token_validation.IntrospectionResponse{}
 
 							// Request is only validated if all criteria match
@@ -2150,7 +2174,7 @@ var _ = Describe("External auth", FlakeAttempts(10), func() {
 							Configs: []*extauth.AuthConfig_Config{{
 								AuthConfig: &extauth.AuthConfig_Config_Oauth2{
 									Oauth2: &extauth.OAuth2{
-										OauthType: getOauthTokenIntrospectionConfig("client-id", secret.Metadata.Ref()),
+										OauthType: getOauthTokenIntrospectionConfig("client-id", secret.Metadata.Ref(), false),
 									},
 								},
 							}},
@@ -2200,7 +2224,7 @@ var _ = Describe("External auth", FlakeAttempts(10), func() {
 								Configs: []*extauth.AuthConfig_Config{{
 									AuthConfig: &extauth.AuthConfig_Config_Oauth2{
 										Oauth2: &extauth.OAuth2{
-											OauthType: getOauthTokenIntrospectionConfig("client-id", invalidSecret.Metadata.Ref()),
+											OauthType: getOauthTokenIntrospectionConfig("client-id", invalidSecret.Metadata.Ref(), false),
 										},
 									},
 								}},
@@ -2215,7 +2239,6 @@ var _ = Describe("External auth", FlakeAttempts(10), func() {
 								return requestWithAccessToken("invalid-access-token")
 							}, "3s", "0.5s").Should(Equal(http.StatusForbidden))
 						})
-
 						It("should deny introspection with invalid access token", func() {
 							Eventually(func() (int, error) {
 								return requestWithAccessToken("invalid-access-token")
@@ -2249,13 +2272,60 @@ var _ = Describe("External auth", FlakeAttempts(10), func() {
 								Configs: []*extauth.AuthConfig_Config{{
 									AuthConfig: &extauth.AuthConfig_Config_Oauth2{
 										Oauth2: &extauth.OAuth2{
-											OauthType: getOauthTokenIntrospectionConfig("", nil),
+											OauthType: getOauthTokenIntrospectionConfig("", nil, false),
 										},
 									},
 								}},
 							}
 						})
 
+						It("should accept introspection with valid access token", func() {
+							Eventually(func() (int, error) {
+								return requestWithAccessToken("valid-access-token")
+							}, "5s", "0.5s").Should(Equal(http.StatusOK))
+							Consistently(func() (int, error) {
+								return requestWithAccessToken("valid-access-token")
+							}, "3s", "0.5s").Should(Equal(http.StatusOK))
+						})
+
+						It("should deny introspection with invalid access token", func() {
+							Eventually(func() (int, error) {
+								return requestWithAccessToken("invalid-access-token")
+							}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+							Consistently(func() (int, error) {
+								return requestWithAccessToken("invalid-access-token")
+							}, "3s", "0.5s").Should(Equal(http.StatusForbidden))
+						})
+					})
+
+					When("Client secret is disabled", func() {
+						BeforeEach(func() {
+							authServer = oauth_utils.NewAuthServer(
+								fmt.Sprintf(":%d", 5556),
+								&oauth_utils.AuthEndpoints{
+									TokenIntrospectionEndpoint: "/introspection",
+									UserInfoEndpoint:           "/userinfo",
+								},
+								&oauth_utils.AuthHandlers{
+									TokenIntrospectionHandler: createBasicAuthHandler("valid-access-token", "no-secret-id", ""),
+								},
+								sets.NewString("valid-access-token"),
+								map[string]user_info.UserInfo{})
+							// Create an auth config, with proper references to the client credentials
+							authConfig = &extauth.AuthConfig{
+								Metadata: &core.Metadata{
+									Name:      getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Name,
+									Namespace: getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Namespace,
+								},
+								Configs: []*extauth.AuthConfig_Config{{
+									AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+										Oauth2: &extauth.OAuth2{
+											OauthType: getOauthTokenIntrospectionConfig("no-secret-id", nil, true),
+										},
+									},
+								}},
+							}
+						})
 						It("should accept introspection with valid access token", func() {
 							Eventually(func() (int, error) {
 								return requestWithAccessToken("valid-access-token")
@@ -4110,7 +4180,7 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 		`))
 		case "/token":
 			r.ParseForm()
-			fmt.Fprintln(GinkgoWriter, "got request for token. query:", r.URL.RawQuery, r.URL.String(), "form:", r.Form.Encode())
+			fmt.Fprintln(GinkgoWriter, "got request for token. query:", r.URL.RawQuery, r.URL.String(), "form:", r.Form.Encode(), "\n full request", r)
 			if r.URL.Query().Get("grant_type") == "refresh_token" || r.Form.Get("grant_type") == "refresh_token" {
 				f.updateToken("refresh_token")
 			}
@@ -4147,7 +4217,6 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 			`
 			_, _ = rw.Write([]byte(keysResponse))
 		case "/revoke":
-			r.ParseForm()
 			tokenTypeHint := r.Form.Get("token_type_hint")
 
 			httpReply := ""
@@ -4222,7 +4291,6 @@ func (f *fakeOAuth2Server) Start() {
 			glooUrlRedirect := r.URL.Query().Get("gloo_urlToRedirect")
 			u, err := url.Parse(redirectUri)
 			Expect(err).NotTo(HaveOccurred())
-
 			u.RawQuery = fmt.Sprintf("code=1234&state=%s&gloo_urlToRedirect=%s", state, glooUrlRedirect)
 			fmt.Fprintf(GinkgoWriter, "redirecting to %s\n", u.String())
 			rw.Header().Add("Location", u.String())
@@ -4232,11 +4300,16 @@ func (f *fakeOAuth2Server) Start() {
 			_, _ = rw.Write([]byte(`auth`))
 		case "/token":
 			r.ParseForm()
-			fmt.Fprintln(GinkgoWriter, "got request for token. query:", r.URL.RawQuery, r.URL.String(), "form:", r.Form.Encode())
-			f.token = f.accessTokenValue
-			refreshToken := f.refreshTokenValue
+			clientId, clientSecret, _ := r.BasicAuth()
+			expectedSecret, ok := expectedIdsAndSecrets[clientId]
+			if !ok || expectedSecret != clientSecret {
+				rw.WriteHeader(http.StatusUnauthorized)
+			} else {
+				f.token = f.accessTokenValue
+				refreshToken := f.refreshTokenValue
 
-			_, _ = rw.Write([]byte(fmt.Sprintf("access_token=%s&refresh_token=%s", f.token, refreshToken)))
+				_, _ = rw.Write([]byte(fmt.Sprintf("access_token=%s&refresh_token=%s", f.token, refreshToken)))
+			}
 		case "/revoke":
 			r.ParseForm()
 			tokenTypeHint := r.Form.Get("token_type_hint")
@@ -4276,14 +4349,15 @@ func getOauthTokenIntrospectionUrlConfig() *extauth.OAuth2_AccessTokenValidation
 	}
 }
 
-func getOauthTokenIntrospectionConfig(clientId string, clientSecretRef *core.ResourceRef) *extauth.OAuth2_AccessTokenValidation {
+func getOauthTokenIntrospectionConfig(clientId string, clientSecretRef *core.ResourceRef, disableClientSecret bool) *extauth.OAuth2_AccessTokenValidation {
 	return &extauth.OAuth2_AccessTokenValidation{
 		AccessTokenValidation: &extauth.AccessTokenValidation{
 			ValidationType: &extauth.AccessTokenValidation_Introspection{
 				Introspection: &extauth.IntrospectionValidation{
-					IntrospectionUrl: "http://localhost:5556/introspection",
-					ClientId:         clientId,
-					ClientSecretRef:  clientSecretRef,
+					IntrospectionUrl:    "http://localhost:5556/introspection",
+					ClientId:            clientId,
+					ClientSecretRef:     clientSecretRef,
+					DisableClientSecret: &wrappers.BoolValue{Value: disableClientSecret},
 				},
 			},
 			UserinfoUrl:  "http://localhost:5556/userinfo",

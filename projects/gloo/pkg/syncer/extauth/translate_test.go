@@ -268,7 +268,30 @@ var _ = Describe("Translate", func() {
 		Expect(actualOidc.Session.GetCipherConfig()).To(BeNil())
 		Expect(actualOidc.UserSession).To(BeNil())
 	})
+	It("should translate oidc config without a clientSecret", func() {
+		oidcConfig := authConfig.GetConfigs()[0].GetOauth2().GetOauthType().(*extauth.OAuth2_OidcAuthorizationCode).OidcAuthorizationCode
+		oidcConfig.DisableClientSecret = &wrappers.BoolValue{Value: true}
+		oidcConfig.ClientSecretRef = nil
 
+		translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+		Expect(translated.Configs).To(HaveLen(1))
+		actual := translated.Configs[0].GetOauth2()
+		expected := authConfig.Configs[0].GetOauth2()
+		actualOidc := actual.GetOidcAuthorizationCode()
+		expectedOidc := expected.GetOidcAuthorizationCode()
+		// Verify that the client secret is empty
+		Expect(actualOidc.ClientSecret).To(BeEmpty())
+		// Verify the rest of the translation
+		Expect(actualOidc.IssuerUrl).To(Equal(expectedOidc.IssuerUrl))
+		Expect(actualOidc.AuthEndpointQueryParams).To(Equal(expectedOidc.AuthEndpointQueryParams))
+		Expect(actualOidc.TokenEndpointQueryParams).To(Equal(expectedOidc.TokenEndpointQueryParams))
+		Expect(actualOidc.ClientId).To(Equal(expectedOidc.ClientId))
+		Expect(actualOidc.AppUrl).To(Equal(expectedOidc.AppUrl))
+		Expect(actualOidc.CallbackPath).To(Equal(expectedOidc.CallbackPath))
+		Expect(actualOidc.AutoMapFromMetadata.Namespace).To(Equal("test_namespace"))
+	})
 	Context("Encryption Key error", func() {
 		BeforeEach(func() {
 			encryptionKey = "an example encryption key"
@@ -387,6 +410,41 @@ var _ = Describe("Translate", func() {
 			Expect(actualPlainOAuth2.CallbackPath).To(Equal(expectedPlainOAuth2.CallbackPath))
 			Expect(actualPlainOAuth2.ClientId).To(Equal(expectedPlainOAuth2.ClientId))
 			Expect(actualPlainOAuth2.ClientSecret).To(Equal(clientSecret.ClientSecret))
+			Expect(actualPlainOAuth2.AuthEndpointQueryParams).To(Equal(expectedPlainOAuth2.AuthEndpointQueryParams))
+			Expect(actualPlainOAuth2.TokenEndpointQueryParams).To(Equal(expectedPlainOAuth2.TokenEndpointQueryParams))
+			Expect(actualPlainOAuth2.Scopes).To(Equal(expectedPlainOAuth2.Scopes))
+			Expect(actualPlainOAuth2.AuthEndpoint).To(Equal(expectedPlainOAuth2.AuthEndpoint))
+			Expect(actualPlainOAuth2.TokenEndpoint).To(Equal(expectedPlainOAuth2.TokenEndpoint))
+			Expect(actualPlainOAuth2.RevocationEndpoint).To(Equal(expectedPlainOAuth2.RevocationEndpoint))
+			// verify translation of the Session is nil, when the cipher config is set
+			//lint:ignore SA1019 testing for upgrades
+			Expect(actualPlainOAuth2.Session).To(BeNil())
+			//lint:ignore SA1019 testing for upgrades
+			Expect(actualPlainOAuth2.Session.GetCipherConfig()).To(BeNil())
+			Expect(actualPlainOAuth2.UserSession.FailOnFetchFailure).To(Equal(expectedPlainOAuth2.Session.FailOnFetchFailure))
+			Expect(actualPlainOAuth2.UserSession.CookieOptions).To(Equal(expectedPlainOAuth2.Session.CookieOptions))
+			Expect(actualPlainOAuth2.UserSession.CipherConfig.Key).To(Equal(cipherSecret.GetEncryption().GetKey()))
+			Expect(actualPlainOAuth2.UserSession.GetCookie()).To(Equal(expectedPlainOAuth2.Session.GetCookie()))
+		})
+		It("should translate plain oauth2 config without a secretRef", func() {
+			plainOauthConfig := authConfig.Configs[0].GetOauth2().GetOauthType().(*extauth.OAuth2_Oauth2).Oauth2
+			plainOauthConfig.DisableClientSecret = &wrappers.BoolValue{Value: true}
+			plainOauthConfig.ClientSecretRef = nil
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+			Expect(translated.Configs).To(HaveLen(1))
+			actual := translated.Configs[0].GetOauth2()
+			actualPlainOAuth2 := actual.GetOauth2Config()
+			expected := authConfig.Configs[0].GetOauth2()
+			expectedPlainOAuth2 := expected.GetOauth2()
+
+			// Expect an empty client secret
+			Expect(actualPlainOAuth2.ClientSecret).To(BeEmpty())
+			//validate the rest of the translation for good measure
+			Expect(actualPlainOAuth2.AppUrl).To(Equal(expectedPlainOAuth2.AppUrl))
+			Expect(actualPlainOAuth2.CallbackPath).To(Equal(expectedPlainOAuth2.CallbackPath))
+			Expect(actualPlainOAuth2.ClientId).To(Equal(expectedPlainOAuth2.ClientId))
 			Expect(actualPlainOAuth2.AuthEndpointQueryParams).To(Equal(expectedPlainOAuth2.AuthEndpointQueryParams))
 			Expect(actualPlainOAuth2.TokenEndpointQueryParams).To(Equal(expectedPlainOAuth2.TokenEndpointQueryParams))
 			Expect(actualPlainOAuth2.Scopes).To(Equal(expectedPlainOAuth2.Scopes))

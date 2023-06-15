@@ -1,6 +1,7 @@
 package extauth
 
 import (
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
@@ -387,5 +388,61 @@ var _ = Describe("ValidateAuthConfig", func() {
 				},
 			},
 		}, OAuth2IncompleteOIDCInfoErr),
+	)
+	DescribeTable("Valid configs for Oauth2 config",
+		func(cfg *extauth.OAuth2) {
+			authConfig := &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "test-oauth-2",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_Oauth2{Oauth2: cfg},
+				}},
+			}
+			apiSnapshot.AuthConfigs = extauth.AuthConfigList{authConfig}
+
+			reports := make(reporter.ResourceReports)
+			reports.Accept(apiSnapshot.AuthConfigs.AsInputResources()...)
+
+			ValidateAuthConfig(authConfig, reports)
+
+			Expect(reports.ValidateStrict()).NotTo(HaveOccurred())
+		},
+		Entry("Plain Oauth2 with client secret disabled", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_Oauth2{
+				Oauth2: &extauth.PlainOAuth2{
+					ClientId:            "0000",
+					CallbackPath:        "/callback",
+					AppUrl:              "some.url",
+					TokenEndpoint:       "some.endpoint",
+					AuthEndpoint:        "other.endpoint",
+					DisableClientSecret: &wrappers.BoolValue{Value: true},
+				},
+			},
+		}),
+		Entry("Oidc with client secret disabled", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+					ClientId:            "0000",
+					CallbackPath:        "/callback",
+					AppUrl:              "some.url",
+					IssuerUrl:           "other.url",
+					DisableClientSecret: &wrappers.BoolValue{Value: true},
+				}}}),
+		Entry("Introspection with client secret disabled", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_AccessTokenValidation{
+				AccessTokenValidation: &extauth.AccessTokenValidation{
+					ValidationType: &extauth.AccessTokenValidation_Introspection{Introspection: &extauth.IntrospectionValidation{
+						IntrospectionUrl:    "someUrl",
+						ClientId:            "validClientId",
+						ClientSecretRef:     nil,
+						UserIdAttributeName: "some name",
+						DisableClientSecret: &wrappers.BoolValue{Value: true},
+					}},
+					UserinfoUrl:     "otherurl",
+					CacheTimeout:    nil,
+					ScopeValidation: nil,
+				}}}),
 	)
 })
