@@ -3,9 +3,10 @@ package translator_test
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/go-utils/contextutils"
-	"strings"
 
 	"github.com/solo-io/gloo/test/ginkgo/labels"
 
