@@ -48,7 +48,7 @@ type benchmarkConfig struct {
 
 // These tests only compile and run on Linux machines due to the use of the go-utils benchmarking package which is only
 // compatible with Linux
-var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
+var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
 	var (
 		ctrl       *gomock.Controller
 		settings   *v1.Settings
@@ -192,7 +192,7 @@ var basicSnap = &v1snap.ApiSnapshot{
 }
 
 var basicConfig = benchmarkConfig{
-	iterations: 200,
+	iterations: 1000,
 	maxDur:     10 * time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
 		matchers.HaveMedianLessThan(50 * time.Millisecond),
@@ -202,7 +202,7 @@ var basicConfig = benchmarkConfig{
 
 /* 1k Upstreams Scale Test */
 var oneKUpstreamsConfig = benchmarkConfig{
-	iterations: 20,
+	iterations: 100,
 	maxDur:     30 * time.Second,
 	benchmarkMatchers: []types.GomegaMatcher{
 		matchers.HaveMedianLessThan(time.Second),
