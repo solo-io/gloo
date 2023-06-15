@@ -3,6 +3,8 @@ package translator_test
 import (
 	"context"
 	"fmt"
+	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
+	"github.com/solo-io/go-utils/contextutils"
 	"strings"
 
 	"github.com/solo-io/gloo/test/ginkgo/labels"
@@ -34,7 +36,6 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 )
 
 // benchmarkConfig allows configuration for benchmarking tests to be reused for similar cases
@@ -87,6 +88,8 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 				snap   cache.Snapshot
 				errs   reporter.ResourceReports
 				report *validation.ProxyReport
+
+				tooFastWarning bool
 			)
 
 			params := plugins.Params{
@@ -107,26 +110,29 @@ var _ = FDescribe("Translation - Benchmarking Tests", Serial, Label(labels.Perfo
 
 				// Time translation
 				res, err := benchmarking.Measure(func() {
-					for i := 0; i < 5; i++ {
-						snap, errs, report = translator.Translate(params, proxy)
-					}
+					snap, errs, report = translator.Translate(params, proxy)
 				})
-				//Expect(err).NotTo(HaveOccurred())
-				if err != nil {
+
+				if idx == 0 {
+					// Assert expected results on the first sample
+					Expect(errs.Validate()).NotTo(HaveOccurred())
+					Expect(snap).NotTo(BeNil())
+					Expect(report).To(Equal(validationutils.MakeReport(proxy)))
+				}
+
+				if err != nil && strings.Contains(err.Error(), "total execution time was 0 ns") {
+					if !tooFastWarning {
+						logger := contextutils.LoggerFrom(params.Ctx)
+						logger.Warnf("entry %s registered at least one 0ns measurement; consider increasing the scale of the proxy being tested for more accurate results", desc)
+						tooFastWarning = true
+					}
 					return
 				}
 
 				// Benchmark total time spent
 				// If desired, a field can be added to benchmarkConfig to allow benchmarking according to User and/or
 				// System time
-				experiment.RecordDuration(desc, res.Total/5)
-
-				if idx == 0 {
-					// Assert expected results
-					Expect(errs.Validate()).NotTo(HaveOccurred())
-					Expect(snap).NotTo(BeNil())
-					Expect(report).To(Equal(validationutils.MakeReport(proxy)))
-				}
+				experiment.RecordDuration(desc, res.Total)
 			}, gmeasure.SamplingConfig{N: config.iterations, Duration: config.maxDur})
 
 			durations := experiment.Get(desc).Durations
