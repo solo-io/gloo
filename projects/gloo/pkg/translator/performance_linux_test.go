@@ -3,6 +3,7 @@ package translator_test
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/gloo/test/testutils"
 	"strings"
 
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
@@ -57,6 +58,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 	)
 
 	BeforeEach(func() {
+		testutils.LinuxOnly("uses go-utils benchmarking.Measure() which only compiles on Linux")
 
 		ctrl = gomock.NewController(T)
 
