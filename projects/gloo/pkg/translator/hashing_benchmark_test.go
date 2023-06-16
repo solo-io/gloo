@@ -61,7 +61,7 @@ var _ = Describe("Hashing Benchmarks", Serial, Label(labels.Performance), func()
 		allUpstreams.Sort()
 	})
 
-	FIt("should demonstrate that generated hashing is more efficient than reflection-based", func() {
+	It("should demonstrate that generated hashing is more efficient than reflection-based", func() {
 		reflectionName, generatedName := "reflection-based", "generated"
 
 		experiment := gmeasure.NewExperiment("hash comparison")

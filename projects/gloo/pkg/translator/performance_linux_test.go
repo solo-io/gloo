@@ -3,13 +3,12 @@ package translator_test
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/go-utils/contextutils"
 	"strings"
 
 	"github.com/solo-io/gloo/test/testutils"
 
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
-	"github.com/solo-io/go-utils/contextutils"
-
 	"github.com/solo-io/gloo/test/ginkgo/labels"
 
 	"github.com/solo-io/go-utils/testutils/benchmarking"
@@ -98,7 +97,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 				errs   reporter.ResourceReports
 				report *validation.ProxyReport
 
-				tooFastWarning bool
+				tooFastWarningCount int
 			)
 
 			params := plugins.Params{
@@ -130,11 +129,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 				}
 
 				if err != nil && strings.Contains(err.Error(), "total execution time was 0 ns") {
-					if !tooFastWarning {
-						logger := contextutils.LoggerFrom(params.Ctx)
-						logger.Warnf("entry %s registered at least one 0ns measurement; consider increasing the scale of the proxy being tested for more accurate results", desc)
-						tooFastWarning = true
-					}
+					tooFastWarningCount++
 					return
 				}
 
@@ -143,6 +138,11 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 				// System time
 				experiment.RecordDuration(desc, res.Total)
 			}, gmeasure.SamplingConfig{N: config.iterations, Duration: config.maxDur})
+
+			if tooFastWarningCount > 0 {
+				logger := contextutils.LoggerFrom(params.Ctx)
+				logger.Warnf("entry %s registered %d 0ns measurements; consider increasing the scale of the proxy being tested for more accurate results", desc, tooFastWarningCount)
+			}
 
 			durations := experiment.Get(desc).Durations
 
