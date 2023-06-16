@@ -11,8 +11,6 @@ import (
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/gloo/test/ginkgo/labels"
 
-	"github.com/solo-io/go-utils/testutils/benchmarking"
-
 	"github.com/onsi/gomega/types"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 
@@ -117,9 +115,10 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 			experiment.Sample(func(idx int) {
 
 				// Time translation
-				res, err := benchmarking.Measure(func() {
+				res, ignore, err := gloohelpers.MeasureIgnore0ns(func() {
 					snap, errs, report = translator.Translate(params, proxy)
 				})
+				Expect(err).NotTo(HaveOccurred())
 
 				if idx == 0 {
 					// Assert expected results on the first sample
@@ -128,7 +127,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 					Expect(report).To(Equal(validationutils.MakeReport(proxy)))
 				}
 
-				if err != nil && strings.Contains(err.Error(), "total execution time was 0 ns") {
+				if ignore {
 					tooFastWarningCount++
 					return
 				}
