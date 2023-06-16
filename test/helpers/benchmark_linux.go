@@ -1,8 +1,9 @@
 package helpers
 
 import (
-	"github.com/solo-io/go-utils/testutils/benchmarking"
 	"strings"
+
+	"github.com/solo-io/go-utils/testutils/benchmarking"
 )
 
 func MeasureIgnore0ns(f func()) (benchmarking.Result, bool, error) {
