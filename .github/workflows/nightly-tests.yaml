@@ -20,7 +20,7 @@ on:
 jobs:
   regression_tests_latest_main:
     name: latest main regression tests
-    if: (github.event_name == 'workflow_dispatch' && !${{ inputs.skip-regression }}) || github.event.schedule == '0 5 * * 1-5'
+    if: (github.event_name == 'workflow_dispatch' && ${{ !inputs.skip-regression }}) || github.event.schedule == '0 5 * * 1-5'
     runs-on: ubuntu-22.04
     # Previously, there was an environment variable, RELEASED_VERSION="LATEST" set.  This made use of some internal code:
     #       https://github.com/solo-io/gloo/blob/main/test/kube2e/util.go#L229-L241
@@ -35,22 +35,14 @@ jobs:
                         { node: 'v1.26.3@sha256:61b92f38dff6ccc29969e7aa154d34e38b89443af1a2c14e6cfbd2df6419c66f', kubectl: 'v1.26.4', kind: 'v0.18.0', helm: 'v3.11.2' }]
     steps:
     - uses: actions/checkout@v3
-    - name: print input
-      run: echo skip-regression set to ${{ inputs.skip-regression }}
-    - name: print should run based on input
-      run: echo should run based on input ${{ !inputs.skip-regression }}
-    - name: print should run based on dispatch clause
-      run: echo should run based on input clause ${{ (github.event_name == 'workflow_dispatch' && !inputs.skip-regression) }}
     - uses: ./.github/workflows/composite-actions/regression-tests
 
   performance_tests_latest_main:
     name: latest performance tests
-    if: (github.event_name == 'workflow_dispatch' && !${{ github.event.inputs.skip-performance }}) || github.event.schedule == '0 5 * * 1-5'
+    if: (github.event_name == 'workflow_dispatch' && ${{ !github.event.inputs.skip-performance }}) || github.event.schedule == '0 5 * * 1-5'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - name: print input
-        run: echo skip-regression set to ${{ inputs.skip-performance }}
       - uses: ./.github/workflows/composite-actions/prep-go-runner
       - uses: ./.github/workflows/composite-actions/performance-tests
 
