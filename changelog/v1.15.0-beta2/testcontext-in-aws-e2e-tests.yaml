@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Use TestContext in AWS e2e tests.
+    issueLink: https://github.com/solo-io/solo-projects/issues/5096
+    resolvesIssue: false

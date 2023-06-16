@@ -1,138 +1,76 @@
 package e2e_test
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"net/url"
+	"os"
 
-	"github.com/solo-io/gloo/test/testutils"
+	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-projects/test/services"
 
-	"github.com/solo-io/gloo/test/services/envoy"
+	"github.com/solo-io/gloo/test/gomega/transforms"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-
+	v1gw "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
-
-	"github.com/solo-io/solo-projects/test/services"
+	"github.com/solo-io/gloo/test/gomega/matchers"
+	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/gloo/test/testutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-projects/test/e2e"
 )
 
 const (
-	region               = "us-east-1"
-	webIdentityTokenFile = "AWS_WEB_IDENTITY_TOKEN_FILE"
-	jwtPrivateKey        = "JWT_PRIVATE_KEY"
-	awsRoleArnSts        = "AWS_ROLE_ARN_STS"
-	awsRoleArn           = "AWS_ROLE_ARN"
+	region = "us-east-1"
 )
 
-var _ = Describe("AWS Lambda ", FlakeAttempts(10), func() {
-
+var _ = Describe("AWS Lambda", FlakeAttempts(5), func() {
 	var (
-		ctx    context.Context
-		cancel context.CancelFunc
-
-		testClients   services.TestClients
-		envoyInstance *envoy.Instance
-		secret        *gloov1.Secret
-		upstream      *gloov1.Upstream
-		envoyPort     uint32
+		testContext *e2e.TestContext
+		upstream    *gloov1.Upstream
 	)
 
-	setupEnvoy := func() {
-		ctx, cancel = context.WithCancel(context.Background())
-		cache := memory.NewInMemoryResourceCache()
-
-		testClients = services.GetTestClients(ctx, cache)
-		testClients.GlooPort = int(services.AllocateGlooPort())
-
-		envoyInstance = envoyFactory.NewInstance()
-
-		settings := &gloov1.Settings{}
-
-		what := services.What{
-			DisableGateway: true,
+	BeforeEach(func() {
+		testContext = testContextFactory.NewTestContext(testutils.AwsCredentials())
+		testContext.BeforeEach()
+		testContext.SetRunServices(services.What{
+			DisableGateway: false,
 			DisableUds:     true,
-			DisableFds:     false,
-		}
-
-		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem, Settings: settings})
-
-		err := envoyInstance.Run(testClients.GlooPort)
-		Expect(err).NotTo(HaveOccurred())
-
-		envoyPort = defaults.HttpPort
-	}
-
-	addBasicCredentials := func() {
+			// Enabling FDS to discover the lambda functions
+			DisableFds: false,
+		})
 
 		// Look in ~/.aws/credentials for local AWS credentials
 		// see the gloo OSS e2e test README for more information about configuring credentials for AWS e2e tests
 		// https://github.com/solo-io/gloo/blob/main/test/e2e/README.md
 		localAwsCredentials := credentials.NewSharedCredentials("", "")
 		v, err := localAwsCredentials.Get()
-		if err != nil {
-			Fail("no AWS creds available")
-		}
+		Expect(err).NotTo(HaveOccurred(), "No AWS credentials available")
 
-		var opts clients.WriteOpts
-
-		accesskey := v.AccessKeyID
-		secretkey := v.SecretAccessKey
-
-		secret = &gloov1.Secret{
+		secret := &gloov1.Secret{
 			Metadata: &core.Metadata{
 				Namespace: "default",
 				Name:      region,
 			},
 			Kind: &gloov1.Secret_Aws{
 				Aws: &gloov1.AwsSecret{
-					AccessKey: accesskey,
-					SecretKey: secretkey,
+					AccessKey: v.AccessKeyID,
+					SecretKey: v.SecretAccessKey,
 				},
 			},
 		}
 
-		_, err = testClients.SecretClient.Write(secret, opts)
-		Expect(err).NotTo(HaveOccurred())
-	}
+		// Some users may require a session token as part of their credentials, so we set the session token (if any) when running locally.
+		if os.Getenv("GCLOUD_BUILD_ID") == "" {
+			secret.Kind.(*gloov1.Secret_Aws).Aws.SessionToken = v.SessionToken
+		}
 
-	validateLambda := func(offset int, envoyPort uint32, substring string) {
-		body := []byte("\"solo.io\"")
-
-		Eventually(func(g Gomega) {
-			// send a request with a body
-			var buf bytes.Buffer
-			buf.Write(body)
-
-			url := fmt.Sprintf("http://%s:%d/1?param_a=value_1&param_b=value_b", "localhost", envoyPort)
-			res, err := http.Post(url, "application/octet-stream", &buf)
-			g.Expect(err).NotTo(HaveOccurred())
-			defer res.Body.Close()
-			g.Expect(res.StatusCode).To(Equal(http.StatusOK))
-
-			body, err := io.ReadAll(res.Body)
-			g.Expect(err).NotTo(HaveOccurred())
-
-			g.Expect(string(body)).To(ContainSubstring(substring))
-		}, "10s", "1s").Should(Succeed())
-	}
-
-	validateLambdaUppercase := func(envoyPort uint32) {
-		validateLambda(2, envoyPort, "SOLO.IO")
-	}
-
-	addUpstream := func() {
 		upstream = &gloov1.Upstream{
 			Metadata: &core.Metadata{
 				Namespace: "default",
@@ -146,303 +84,177 @@ var _ = Describe("AWS Lambda ", FlakeAttempts(10), func() {
 			},
 		}
 
-		var opts clients.WriteOpts
-		_, err := testClients.UpstreamClient.Write(upstream, opts)
-		Expect(err).NotTo(HaveOccurred())
+		// appending because setting it to just the upstream breaks since the test_context expects the default test upstream to exist
+		testContext.ResourcesToCreate().Upstreams = append(testContext.ResourcesToCreate().Upstreams, upstream)
+		testContext.ResourcesToCreate().Secrets = v1.SecretList{
+			secret,
+		}
+	})
 
-		Eventually(func() []*aws.LambdaFunctionSpec {
-			us, err := testClients.UpstreamClient.Read(
-				upstream.GetMetadata().Namespace,
-				upstream.GetMetadata().Name,
-				clients.ReadOpts{},
-			)
-			if err != nil {
-				return nil
-			}
-			return us.GetAws().GetLambdaFunctions()
-		}, "15s", "1s").ShouldNot(BeEmpty())
-	}
+	JustBeforeEach(func() {
+		testContext.JustBeforeEach()
+	})
 
-	testProxy := func() {
-		proxy := &gloov1.Proxy{
-			Metadata: &core.Metadata{
-				Name:      "proxy",
-				Namespace: "default",
+	AfterEach(func() {
+		testContext.AfterEach()
+	})
+
+	JustAfterEach(func() {
+		testContext.JustAfterEach()
+	})
+
+	lambdaDestination := func(functionName string, unwrapAsApiGateway, wrapAsApiGateway bool) *gloov1.Destination {
+		return &gloov1.Destination{
+			DestinationType: &gloov1.Destination_Upstream{
+				Upstream: upstream.Metadata.Ref(),
 			},
-			Listeners: []*gloov1.Listener{{
-				Name:        "listener",
-				BindAddress: "::",
-				BindPort:    envoyPort,
-				ListenerType: &gloov1.Listener_HttpListener{
-					HttpListener: &gloov1.HttpListener{
-						VirtualHosts: []*gloov1.VirtualHost{{
-							Name:    "virt1",
-							Domains: []string{"*"},
-							Routes: []*gloov1.Route{{
-								Action: &gloov1.Route_RouteAction{
-									RouteAction: &gloov1.RouteAction{
-										Destination: &gloov1.RouteAction_Single{
-											Single: &gloov1.Destination{
-												DestinationType: &gloov1.Destination_Upstream{
-													Upstream: upstream.Metadata.Ref(),
-												},
-												DestinationSpec: &gloov1.DestinationSpec{
-													DestinationType: &gloov1.DestinationSpec_Aws{
-														Aws: &aws.DestinationSpec{
-															LogicalName: "uppercase",
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							}},
-						}},
+			DestinationSpec: &gloov1.DestinationSpec{
+				DestinationType: &gloov1.DestinationSpec_Aws{
+					Aws: &aws.DestinationSpec{
+						LogicalName:        functionName,
+						UnwrapAsApiGateway: unwrapAsApiGateway,
+						WrapAsApiGateway:   wrapAsApiGateway,
 					},
 				},
-			}},
-		}
-
-		var opts clients.WriteOpts
-		_, err := testClients.ProxyClient.Write(proxy, opts)
-		Expect(err).NotTo(HaveOccurred())
-
-		validateLambdaUppercase(defaults.HttpPort)
-	}
-
-	createEchoProxy := func(unwrapAsApiGateway bool, wrapAsApiGateway bool) {
-		proxy := &gloov1.Proxy{
-			Metadata: &core.Metadata{
-				Name:      "proxy",
-				Namespace: "default",
 			},
-			Listeners: []*gloov1.Listener{{
-				Name:        "listener",
-				BindAddress: "::",
-				BindPort:    envoyPort,
-				ListenerType: &gloov1.Listener_HttpListener{
-					HttpListener: &gloov1.HttpListener{
-						VirtualHosts: []*gloov1.VirtualHost{{
-							Name:    "virt1",
-							Domains: []string{"*"},
-							Routes: []*gloov1.Route{{
-								Action: &gloov1.Route_RouteAction{
-									RouteAction: &gloov1.RouteAction{
-										Destination: &gloov1.RouteAction_Single{
-											Single: &gloov1.Destination{
-												DestinationType: &gloov1.Destination_Upstream{
-													Upstream: upstream.Metadata.Ref(),
-												},
-												DestinationSpec: &gloov1.DestinationSpec{
-													DestinationType: &gloov1.DestinationSpec_Aws{
-														Aws: &aws.DestinationSpec{
-															LogicalName:        "echo",
-															UnwrapAsApiGateway: unwrapAsApiGateway,
-															WrapAsApiGateway:   wrapAsApiGateway,
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							}},
-						},
-						},
-					},
-				},
-			}},
 		}
-
-		var opts clients.WriteOpts
-		_, err := testClients.ProxyClient.Write(proxy, opts)
-		Expect(err).NotTo(HaveOccurred())
 	}
 
 	Context("Enterprise Lambda plugin", func() {
+		JustBeforeEach(func() {
+			// Ensure that the upstream has been accepted and the lambda functions have been discovered
+			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				us, err := testContext.TestClients().UpstreamClient.Read(
+					upstream.GetMetadata().GetNamespace(),
+					upstream.GetMetadata().GetName(),
+					clients.ReadOpts{})
+				if err != nil {
+					return nil, err
+				}
+				if len(us.GetAws().GetLambdaFunctions()) == 0 {
+					return nil, errors.New("no lambda functions discovered")
+				}
 
-		BeforeEach(func() {
-			testutils.ValidateRequirementsAndNotifyGinkgo(testutils.AwsCredentials())
-
-			setupEnvoy()
-			addBasicCredentials()
-			addUpstream()
-		})
-
-		AfterEach(func() {
-			envoyInstance.Clean()
-			cancel()
+				return us, nil
+			})
 		})
 
 		It("Can configure simple Lambda upstream", func() {
-			testProxy()
+			// Update the virtual service to route to the lambda upstream "uppercase" function
+			testContext.PatchDefaultVirtualService(func(vs *v1gw.VirtualService) *v1gw.VirtualService {
+				vsBuilder := helpers.BuilderFromVirtualService(vs)
+				vsBuilder.WithRouteActionToSingleDestination(e2e.DefaultRouteName, lambdaDestination("uppercase", false, false))
+				return vsBuilder.Build()
+			})
+			httpRequestBuilder := testContext.GetHttpRequestBuilder().WithPostBody(`"solo.io"`)
+			expectedResponse := &matchers.HttpResponse{
+				StatusCode: http.StatusOK,
+				Body: WithTransform(transforms.WithJsonBody(),
+					And(
+						HaveKeyWithValue("body", "SOLO.IO"),
+						HaveKeyWithValue("statusCode", float64(http.StatusOK)),
+					),
+				),
+			}
+			Eventually(func(g Gomega) {
+				response, err := testutils.DefaultHttpClient.Do(httpRequestBuilder.Build())
+				Expect(err).NotTo(HaveOccurred())
+				g.Expect(response).To(matchers.HaveHttpResponse(expectedResponse))
+			}, "10s", "1s").Should(Succeed())
 		})
 
 		Context("Enterprise-specific functionality", func() {
 			It("Can configure unwrapAsApiGateway", func() {
-				createEchoProxy(true, false)
+				testContext.PatchDefaultVirtualService(func(vs *v1gw.VirtualService) *v1gw.VirtualService {
+					vsBuilder := helpers.BuilderFromVirtualService(vs)
+					vsBuilder.WithRouteActionToSingleDestination(e2e.DefaultRouteName, lambdaDestination("echo", true, false))
+					return vsBuilder.Build()
+				})
 
-				// format API gateway response.
 				bodyString := "test"
-				statusCode := 200
-				headers := map[string]string{"Foo": "bar"}
-				jsonHeaderStr, err := json.Marshal(headers)
-				Expect(err).NotTo(HaveOccurred())
-				apiGatewayResponse := fmt.Sprintf("{\"body\": \"%s\", \"statusCode\": %d, \"headers\":%s}", bodyString, statusCode, string(jsonHeaderStr))
-
-				body := []byte(apiGatewayResponse)
-				expectResponse := func(response *http.Response, body string, statusCode int, headers map[string]string) {
-					Expect(response.StatusCode).To(Equal(statusCode))
-
-					defer response.Body.Close()
-					responseBody, err := io.ReadAll(response.Body)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(string(responseBody)).To(Equal(body))
-					for k, v := range headers {
-						Expect(response.Header.Get(k)).To(Equal(v))
-					}
+				httpRequestBuilder := testContext.GetHttpRequestBuilder().
+					WithPath("1?param_a=value_1&param_b=value_b").WithHeader("Foo", "bar").
+					WithPostBody(fmt.Sprintf(`{"statusCode": %v, "body": "%v"}`, http.StatusOK, bodyString))
+				expectedResponse := &matchers.HttpResponse{
+					StatusCode: http.StatusOK,
+					Body: WithTransform(transforms.WithJsonBody(),
+						And(
+							HaveKeyWithValue("body", bodyString),
+							HaveKeyWithValue("statusCode", float64(http.StatusOK)),
+							Not(HaveKey("headers")),
+							Not(HaveKey("queryStringParameters")),
+						),
+					),
 				}
-
 				Eventually(func(g Gomega) {
-					// send a request with a body
-					var err error
-					var buf bytes.Buffer
-					buf.Write(body)
-
-					// send request to echo lambda, mimicking a service that generates an API gateway response.
-					url := fmt.Sprintf("http://%s:%d/1?param_a=value_1&param_b=value_b", "localhost", defaults.HttpPort)
-					res, err := http.Post(url, "application/octet-stream", &buf)
-					g.Expect(err).NotTo(HaveOccurred())
-					g.Expect(res.StatusCode).To(Equal(200))
-					expectResponse(res, bodyString, statusCode, headers)
-				}, "5s", "1s").Should(Succeed())
+					g.Expect(testutils.DefaultHttpClient.Do(httpRequestBuilder.Build())).Should(matchers.HaveHttpResponse(expectedResponse))
+				}, "10s", "1s").Should(Succeed())
 			})
 
 			Context("Can configure wrapAsApiGateway", func() {
-				It("works with a simple request", func() {
-					createEchoProxy(false, true)
+				JustBeforeEach(func() {
+					testContext.PatchDefaultVirtualService(func(vs *v1gw.VirtualService) *v1gw.VirtualService {
+						vsBuilder := helpers.BuilderFromVirtualService(vs)
+						vsBuilder.WithRouteActionToSingleDestination(e2e.DefaultRouteName, lambdaDestination("echo", false, true))
+						return vsBuilder.Build()
+					})
+				})
 
-					// format API gateway request.
-					bodyString := "test"
-					body := []byte(bodyString)
+				It("works with a simple request", func() {
+					body := "test"
 					headers := map[string][]string{
 						"single-value-header": {"value"},
 						"multi-value-header":  {"value1", "value2"},
 					}
-
-					// expect that the response (which is identical to the payload sent to the lambda) is transformed appropriately.
-					expectResponse := func(response *http.Response, body string, statusCode int, headers map[string][]string) {
-						Expect(response.StatusCode).To(Equal(statusCode))
-
-						defer response.Body.Close()
-						responseBody, err := io.ReadAll(response.Body)
-						Expect(err).NotTo(HaveOccurred())
-
-						jsonResponseBody := make(map[string]interface{})
-						err = json.Unmarshal(responseBody, &jsonResponseBody)
-						Expect(err).NotTo(HaveOccurred())
-
-						Expect(jsonResponseBody["body"]).To(Equal(bodyString))
-						Expect(jsonResponseBody["httpMethod"]).To(Equal("GET"))
-						Expect(jsonResponseBody["path"]).To(Equal("/1"))
-
-						responseHeaders := jsonResponseBody["headers"].(map[string]interface{})
-						Expect(responseHeaders["single-value-header"]).To(Equal(headers["single-value-header"][0]))
-
-						responseMultiValueHeaders := jsonResponseBody["multiValueHeaders"].(map[string]interface{})
-						responseMultiValueHeader := responseMultiValueHeaders["multi-value-header"].([]interface{})
-						Expect(len(responseMultiValueHeader)).To(Equal(len(headers["multi-value-header"])))
-						for i, v := range responseMultiValueHeader {
-							Expect(v).To(Equal(headers["multi-value-header"][i]))
-						}
-
-						responseQueryStringParameters := jsonResponseBody["queryStringParameters"].(map[string]interface{})
-						Expect(responseQueryStringParameters["param_a"]).To(Equal("value_1"))
-						// note that we expect the value of param_b to be the last value assigned to it in the query string.
-						Expect(responseQueryStringParameters["param_b"]).To(Equal("value_2"))
-
-						responseMultiValueQueryStringParameters := jsonResponseBody["multiValueQueryStringParameters"].(map[string]interface{})
-						responseMultiValueQueryStringParameter := responseMultiValueQueryStringParameters["param_b"].([]interface{})
-						Expect(len(responseMultiValueQueryStringParameter)).To(Equal(2))
-						Expect(responseMultiValueQueryStringParameter[0]).To(Equal("value_b"))
-						Expect(responseMultiValueQueryStringParameter[1]).To(Equal("value_2"))
+					httpRequestBuilder := testContext.GetHttpRequestBuilder().
+						WithPath("1?param_a=value_1&param_b=value_b&param_b=value_2").WithBody(body).
+						WithHeader("single-value-header", "value").WithHeader("multi-value-header", "value1,value2")
+					expectedResponse := &matchers.HttpResponse{
+						StatusCode: http.StatusOK,
+						Body: WithTransform(transforms.WithJsonBody(),
+							And(
+								HaveKeyWithValue("body", body),
+								HaveKeyWithValue("httpMethod", "GET"),
+								HaveKeyWithValue("path", "/1"),
+								HaveKeyWithValue("headers", HaveKeyWithValue("single-value-header", headers["single-value-header"][0])),
+								HaveKeyWithValue("multiValueHeaders", HaveKeyWithValue("multi-value-header", HaveExactElements(headers["multi-value-header"][0], headers["multi-value-header"][1]))),
+								HaveKeyWithValue("multiValueQueryStringParameters", HaveKeyWithValue("param_b", HaveExactElements("value_b", "value_2"))),
+								// note that we expect the value of param_b to be the last value assigned to it in the query string.
+								HaveKeyWithValue("queryStringParameters", SatisfyAll(HaveKeyWithValue("param_a", "value_1"), HaveKeyWithValue("param_b", "value_2"))),
+							),
+						),
 					}
-
 					Eventually(func(g Gomega) {
-						var buf bytes.Buffer
-						buf.Write(body)
-
-						client := http.DefaultClient
-						var err error
-						// send request to echo lambda, mimicking a service that generates an API gateway response.
-						res, err := client.Do(&http.Request{
-							Method: "GET",
-							URL: &url.URL{
-								Scheme:   "http",
-								Host:     fmt.Sprintf("localhost:%d", defaults.HttpPort),
-								Path:     "/1",
-								RawQuery: "param_a=value_1&param_b=value_b&param_b=value_2",
-							},
-							Body:   io.NopCloser(&buf),
-							Header: headers,
-						})
+						response, err := testutils.DefaultHttpClient.Do(httpRequestBuilder.Build())
 						g.Expect(err).NotTo(HaveOccurred())
-						expectResponse(res, bodyString, 200, headers)
-					}, "5s", "1s").Should(Succeed())
+						g.Expect(response).To(matchers.HaveHttpResponse(expectedResponse))
+					}, "10s", "1s").Should(Succeed())
 				})
 
 				It("works with a request with no body", func() {
-					createEchoProxy(false, true)
-
 					// expect that the response (which is identical to the payload sent to the lambda) is transformed appropriately.
-					expectResponse := func(response *http.Response, statusCode int) {
-						Expect(response.StatusCode).To(Equal(statusCode))
-
-						defer response.Body.Close()
-						responseBody, err := io.ReadAll(response.Body)
-						Expect(err).NotTo(HaveOccurred())
-
-						jsonResponseBody := make(map[string]interface{})
-						err = json.Unmarshal(responseBody, &jsonResponseBody)
-						Expect(err).NotTo(HaveOccurred())
-
-						Expect(jsonResponseBody["body"]).To(Equal(""))
-						Expect(jsonResponseBody["httpMethod"]).To(Equal("GET"))
-						Expect(jsonResponseBody["path"]).To(Equal("/1"))
-
-						responseQueryStringParameters := jsonResponseBody["queryStringParameters"].(map[string]interface{})
-						Expect(responseQueryStringParameters["param_a"]).To(Equal("value_1"))
-						// note that we expect the value of param_b to be the last value assigned to it in the query string.
-						Expect(responseQueryStringParameters["param_b"]).To(Equal("value_2"))
-
-						responseMultiValueQueryStringParameters := jsonResponseBody["multiValueQueryStringParameters"].(map[string]interface{})
-						responseMultiValueQueryStringParameter := responseMultiValueQueryStringParameters["param_b"].([]interface{})
-						Expect(len(responseMultiValueQueryStringParameter)).To(Equal(2))
-						Expect(responseMultiValueQueryStringParameter[0]).To(Equal("value_b"))
-						Expect(responseMultiValueQueryStringParameter[1]).To(Equal("value_2"))
+					httpRequestBuilder := testContext.GetHttpRequestBuilder().
+						WithPath("1?param_a=value_1&param_b=value_b&param_b=value_2")
+					expectedResponse := &matchers.HttpResponse{
+						StatusCode: http.StatusOK,
+						Body: WithTransform(transforms.WithJsonBody(),
+							And(
+								HaveKeyWithValue("body", ""),
+								HaveKeyWithValue("httpMethod", "GET"),
+								HaveKeyWithValue("path", "/1"),
+								HaveKeyWithValue("multiValueQueryStringParameters", HaveKeyWithValue("param_b", HaveExactElements("value_b", "value_2"))),
+								// note that we expect the value of param_b to be the last value assigned to it in the query string.
+								HaveKeyWithValue("queryStringParameters", SatisfyAll(HaveKeyWithValue("param_a", "value_1"), HaveKeyWithValue("param_b", "value_2"))),
+							),
+						),
 					}
-
 					Eventually(func(g Gomega) {
-						client := http.DefaultClient
-						var err error
-
-						res, err := client.Do(&http.Request{
-							Method: "GET",
-							URL: &url.URL{
-								Scheme:   "http",
-								Host:     fmt.Sprintf("localhost:%d", defaults.HttpPort),
-								Path:     "/1",
-								RawQuery: "param_a=value_1&param_b=value_b&param_b=value_2",
-							},
-						})
-
+						response, err := testutils.DefaultHttpClient.Do(httpRequestBuilder.Build())
 						g.Expect(err).NotTo(HaveOccurred())
-						expectResponse(res, 200)
+						g.Expect(response).To(matchers.HaveHttpResponse(expectedResponse))
 					}, "5s", "1s").Should(Succeed())
 				})
 			})
 		})
-
 	})
 })
