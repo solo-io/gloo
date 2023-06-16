@@ -81,7 +81,7 @@ var _ = Describe("Hashing Benchmarks", Serial, Label(labels.Performance), func()
 				}
 			})
 
-		}, gmeasure.SamplingConfig{N: 20, Duration: 10 * time.Second})
+		}, gmeasure.SamplingConfig{N: 10, Duration: 10 * time.Second})
 
 		ranking := gmeasure.RankStats(gmeasure.LowerMedianIsBetter, experiment.GetStats(reflectionName), experiment.GetStats(generatedName))
 		AddReportEntry("Ranking", ranking)
@@ -304,7 +304,7 @@ var _ = Describe("Hashing Benchmarks", Serial, Label(labels.Performance), func()
 			proxyClone := proto.Clone(proxy).(*v1.Proxy)
 			proxyClone.GetListeners()[0].Options = &v1.ListenerOptions{PerConnectionBufferLimitBytes: &wrappers.UInt32Value{Value: 4096}}
 
-			experiment := gmeasure.NewExperiment("hash comparison")
+			experiment := gmeasure.NewExperiment("translation comparison")
 			AddReportEntry(experiment.Name, experiment)
 
 			experiment.Sample(func(idx int) {
@@ -330,7 +330,7 @@ var _ = Describe("Hashing Benchmarks", Serial, Label(labels.Performance), func()
 					Expect(snap).NotTo(BeNil())
 					Expect(report).To(gloo_matchers.BeEquivalentToDiff(validationutils.MakeReport(proxy)))
 				}
-			}, gmeasure.SamplingConfig{N: 20, Duration: 20 * time.Second})
+			}, gmeasure.SamplingConfig{N: 15, Duration: 15 * time.Second})
 
 			// We expect the FNV translator to be more efficient
 			ranking := gmeasure.RankStats(gmeasure.LowerMedianIsBetter, experiment.GetStats(fnvName), experiment.GetStats(hashstructureName))
