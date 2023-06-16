@@ -65,7 +65,6 @@ var _ = Describe("Hashing Benchmarks", Serial, Label(labels.Performance), func()
 		reflectionName, generatedName := "reflection-based", "generated"
 
 		experiment := gmeasure.NewExperiment("hash comparison")
-		AddReportEntry(experiment.Name, experiment)
 
 		experiment.Sample(func(idx int) {
 			// Measure the time it takes to hash all upstreams via each method
@@ -84,7 +83,7 @@ var _ = Describe("Hashing Benchmarks", Serial, Label(labels.Performance), func()
 		}, gmeasure.SamplingConfig{N: 10, Duration: 10 * time.Second})
 
 		ranking := gmeasure.RankStats(gmeasure.LowerMedianIsBetter, experiment.GetStats(reflectionName), experiment.GetStats(generatedName))
-		AddReportEntry("Ranking", ranking)
+		AddReportEntry("hash ranking", ranking)
 
 		Expect(ranking.Winner().MeasurementName).To(Equal(generatedName), "expect the generated hashing method to be more efficient")
 	})
@@ -304,7 +303,6 @@ var _ = Describe("Hashing Benchmarks", Serial, Label(labels.Performance), func()
 			proxyClone.GetListeners()[0].Options = &v1.ListenerOptions{PerConnectionBufferLimitBytes: &wrappers.UInt32Value{Value: 4096}}
 
 			experiment := gmeasure.NewExperiment("translation comparison")
-			AddReportEntry(experiment.Name, experiment)
 
 			experiment.Sample(func(idx int) {
 				// Measure how long translation takes using each translator
@@ -332,7 +330,7 @@ var _ = Describe("Hashing Benchmarks", Serial, Label(labels.Performance), func()
 			}, gmeasure.SamplingConfig{N: 15, Duration: 15 * time.Second})
 
 			ranking := gmeasure.RankStats(gmeasure.LowerMedianIsBetter, experiment.GetStats(fnvName), experiment.GetStats(hashstructureName))
-			AddReportEntry("Ranking", ranking)
+			AddReportEntry("translation hasher ranking", ranking)
 
 			Expect(ranking.Winner().MeasurementName).To(Equal(fnvName), "expect the FNV translator to be more efficient")
 		})
