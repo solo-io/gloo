@@ -38,9 +38,9 @@ jobs:
     - name: print input
       run: echo skip-regression set to ${{ inputs.skip-regression }}
     - name: print should run based on input
-      run: echo should run based on input ${{ !${{ inputs.skip-regression }} }}
+      run: echo should run based on input ${{ !inputs.skip-regression }}
     - name: print should run based on dispatch clause
-      run: echo should run based on input clause ${{ (github.event_name == 'workflow_dispatch' && !${{ inputs.skip-regression }}) }}
+      run: echo should run based on input clause ${{ (github.event_name == 'workflow_dispatch' && !inputs.skip-regression) }}
     - uses: ./.github/workflows/composite-actions/regression-tests
 
   performance_tests_latest_main:
