@@ -51,6 +51,11 @@ type benchmarkConfig struct {
 
 // These tests only compile and run on Linux machines due to the use of the go-utils benchmarking package which is only
 // compatible with Linux
+
+// Tests are run as part of the "Nightly" action in a GHA using the default Linux runner
+// More info on that machine can be found here: https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
+// When developing new tests, users should manually run that action in order to test performance under the same parameters
+// Results can then be found in the logs for that instance of the action
 var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
 	var (
 		ctrl       *gomock.Controller
