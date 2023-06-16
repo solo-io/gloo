@@ -83,7 +83,7 @@ var _ = Describe("Hashing Benchmarks", Serial, Label(labels.Performance), func()
 		}, gmeasure.SamplingConfig{N: 10, Duration: 10 * time.Second})
 
 		ranking := gmeasure.RankStats(gmeasure.LowerMedianIsBetter, experiment.GetStats(reflectionName), experiment.GetStats(generatedName))
-		AddReportEntry("hash ranking", ranking)
+		AddReportEntry("hash comparison ranking", ranking)
 
 		Expect(ranking.Winner().MeasurementName).To(Equal(generatedName), "expect the generated hashing method to be more efficient")
 	})
@@ -330,7 +330,7 @@ var _ = Describe("Hashing Benchmarks", Serial, Label(labels.Performance), func()
 			}, gmeasure.SamplingConfig{N: 15, Duration: 15 * time.Second})
 
 			ranking := gmeasure.RankStats(gmeasure.LowerMedianIsBetter, experiment.GetStats(fnvName), experiment.GetStats(hashstructureName))
-			AddReportEntry("translation hasher ranking", ranking)
+			AddReportEntry("translation comparison ranking", ranking)
 
 			Expect(ranking.Winner().MeasurementName).To(Equal(fnvName), "expect the FNV translator to be more efficient")
 		})
