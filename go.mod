@@ -49,7 +49,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.2
 	github.com/solo-io/ext-auth-service v0.39.0
 	github.com/solo-io/external-apis v0.2.0
-	github.com/solo-io/gloo v1.15.0-beta13
+	github.com/solo-io/gloo v1.15.0-beta14
 	github.com/solo-io/gloo-graphql-example v0.1.0
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.3
@@ -59,7 +59,7 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.9.1
 	github.com/solo-io/skv2 v0.30.1
-	github.com/solo-io/solo-apis v0.0.0-20230614191208-9c28e790480c
+	github.com/solo-io/solo-apis v0.0.0-20230616125813-717600b902b1
 	github.com/solo-io/solo-kit v0.32.0
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/spf13/cobra v1.6.1
