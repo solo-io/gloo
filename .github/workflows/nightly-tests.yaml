@@ -20,7 +20,7 @@ on:
 jobs:
   regression_tests_latest_main:
     name: latest main regression tests
-    if: (github.event_name == 'workflow_dispatch' && ${{ !inputs.skip-regression }}) || github.event.schedule == '0 5 * * 1-5'
+    if: (github.event_name == 'workflow_dispatch' && ${{ !github.event.inputs.skip-regression }}) || github.event.schedule == '0 5 * * 1-5'
     runs-on: ubuntu-22.04
     # Previously, there was an environment variable, RELEASED_VERSION="LATEST" set.  This made use of some internal code:
     #       https://github.com/solo-io/gloo/blob/main/test/kube2e/util.go#L229-L241
