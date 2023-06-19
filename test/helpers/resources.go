@@ -23,6 +23,11 @@ type ScaleConfig struct {
 	Upstreams int
 }
 
+func (sc ScaleConfig) String() string {
+	return fmt.Sprintf("{Endpoints: %d, Upstreams: %d}",
+		sc.Endpoints, sc.Upstreams)
+}
+
 func upMeta(i int) *core.Metadata {
 	return &core.Metadata{
 		Name:      fmt.Sprintf("test-%06d", i),
@@ -257,4 +262,22 @@ func ScaledSnapshot(config ScaleConfig) *gloosnapshot.ApiSnapshot {
 		Endpoints: endpointList,
 		Upstreams: upstreamList,
 	}
+}
+
+// SnapMutator is a function that mutates a snapshot in place
+type SnapMutator func(snap *gloosnapshot.ApiSnapshot) *gloosnapshot.ApiSnapshot
+
+// MutateSnapUpstreams is a wrapper for updating all upstreams in a snap.
+// Really just because reflection semantics are a bit annoying to get fully correct
+// Therefore this is upstream mutation specific
+func MutateSnapUpstreams(snap *gloosnapshot.ApiSnapshot,
+	mutateAnUp func(u *v1.Upstream)) *gloosnapshot.ApiSnapshot {
+	snap.Upstreams.Each(mutateAnUp)
+	return snap
+}
+
+// lazySlice: ya this should be a generic but we are dealing with historical things
+// and its such effort
+type lazySlice interface {
+	AsInterfaces() []interface{}
 }
