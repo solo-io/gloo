@@ -32,7 +32,7 @@ func (i *Instance) Run(ctx context.Context) {
 }
 
 func (i *Instance) Clean() {
-	i.session.Terminate().Wait("3s")
+	i.session.Terminate().Wait("1s")
 	GinkgoWriter.Println("Redis instance successfully destroyed")
 }
 

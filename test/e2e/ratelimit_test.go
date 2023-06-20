@@ -13,23 +13,15 @@ import (
 
 	"github.com/solo-io/solo-projects/test/gomega/assertions"
 
-	redis_service "github.com/solo-io/solo-projects/test/services/redis"
-
 	"github.com/solo-io/gloo/test/services/envoy"
 
 	"github.com/solo-io/gloo/test/ginkgo/parallel"
-
-	"github.com/fgrosse/zaptest"
 
 	"github.com/solo-io/rate-limiter/pkg/cache/aerospike"
 	"github.com/solo-io/rate-limiter/pkg/cache/dynamodb"
 	"github.com/solo-io/rate-limiter/pkg/cache/redis"
 
 	ratelimitserver "github.com/solo-io/rate-limiter/pkg/server"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/metadata"
-
 	"k8s.io/apimachinery/pkg/util/rand"
 
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
@@ -68,7 +60,6 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 		ctx              context.Context
 		cancel           context.CancelFunc
 		testClients      services.TestClients
-		redisInstance    *redis_service.Instance
 		glooSettings     *gloov1.Settings
 		cache            memory.InMemoryResourceCache
 		rlAddr           string
@@ -100,49 +91,6 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 		rlServerSettings.DynamoDbSettings = dynamodb.Settings{}
 		rlServerSettings.AerospikeSettings = aerospike.Settings{}
 	})
-
-	runClusteredTest := func() {
-		BeforeEach(func() {
-			envoyInstance = envoyFactory.NewInstance()
-			envoyPort = envoyInstance.HttpPort
-
-			envoyInstance.RatelimitAddr = rateLimitAddr
-			envoyInstance.RatelimitPort = uint32(rlServerSettings.RateLimitPort)
-			rlAddr = envoyInstance.LocalAddr()
-
-			err := envoyInstance.Run(testClients.GlooPort)
-			Expect(err).NotTo(HaveOccurred())
-
-			testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
-			var opts clients.WriteOpts
-			up := testUpstream.Upstream
-			_, err = testClients.UpstreamClient.Write(up, opts)
-			Expect(err).NotTo(HaveOccurred())
-
-			anonymousLimits = &ratelimit.IngressRateLimit{
-				AnonymousLimits: &rlv1alpha1.RateLimit{
-					RequestsPerUnit: 1,
-					Unit:            rlv1alpha1.RateLimit_SECOND,
-				},
-			}
-		})
-
-		AfterEach(func() {
-			envoyInstance.Clean()
-		})
-
-		It("should error when using clustered redis where unclustered redis shold be used", func() {
-			proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
-				withVirtualHost("host1", virtualHostConfig{rateLimitConfig: anonymousLimits}).
-				build()
-
-			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(isServerHealthy, "5s").Should(BeTrue())
-			testStatus("host1", envoyPort, nil, http.StatusInternalServerError, 2, false)
-		})
-	}
 
 	runAllTests := func() {
 		Context("With envoy", func() {
@@ -185,8 +133,15 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 			})
 
 			It("should rate limit envoy", func() {
-				// This test has been migrated to e2e/ratelimit/redis_test.go
-				// We will be moving all tests in this file into the ratelimit package
+				proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+					withVirtualHost("host1", virtualHostConfig{rateLimitConfig: anonymousLimits}).
+					build()
+
+				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+
+				Eventually(isServerHealthy, "5s").Should(BeTrue())
+				EventuallyRateLimited("host1", envoyPort)
 			})
 
 			It("should not rate limit envoy with X-RateLimit headers", func() {
@@ -1248,65 +1203,6 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 				})
 
 			})
-
-			Context("health checker", func() {
-
-				Context("should pass after receiving xDS config from gloo", func() {
-
-					It("without rate limit configs", func() {
-						Eventually(isServerHealthy, "10s", ".1s").Should(BeTrue())
-						Consistently(isServerHealthy, "3s", ".1s").Should(BeTrue())
-					})
-
-					It("with rate limit configs", func() {
-						// Creates a proxy with a rate limit configuration
-						proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
-							withVirtualHost("host1", virtualHostConfig{rateLimitConfig: anonymousLimits}).
-							build()
-
-						_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-						Expect(err).NotTo(HaveOccurred())
-
-						Eventually(isServerHealthy, "10s", ".1s").Should(BeTrue())
-						Consistently(isServerHealthy, "3s", ".1s").Should(BeTrue())
-					})
-
-				})
-
-				Context("shutdown", func() {
-
-					It("should fail healthcheck immediately on shutdown", func() {
-						Eventually(isServerHealthy, "10s", ".1s").Should(BeTrue())
-
-						conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", rlServerSettings.RateLimitPort), grpc.WithInsecure())
-						Expect(err).NotTo(HaveOccurred())
-						defer conn.Close()
-						healthCheckClient := grpc_health_v1.NewHealthClient(conn)
-
-						// Start sending health checking requests continuously
-						waitForHealthcheckFail := make(chan struct{})
-						go func(waitForHealthcheckFail chan struct{}) {
-							defer GinkgoRecover()
-							Eventually(func() (bool, error) {
-								ctx = context.Background()
-								var header metadata.MD
-								healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
-									Service: rlServerSettings.GrpcServiceName,
-								}, grpc.Header(&header))
-								return len(header.Get("x-envoy-immediate-health-check-fail")) == 1, nil
-							}, "5s", ".1s").Should(BeTrue())
-							waitForHealthcheckFail <- struct{}{}
-						}(waitForHealthcheckFail)
-
-						// Start the health checker first, then cancel
-						time.Sleep(200 * time.Millisecond)
-						cancel()
-						Eventually(waitForHealthcheckFail, "5s", ".1s").Should(Receive())
-					})
-
-				})
-
-			})
 		})
 	}
 
@@ -1350,50 +1246,6 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 
 		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem, Settings: glooSettings})
 	}
-
-	runRedisTests := func(clustered bool) {
-		if os.Getenv("DO_NOT_RUN_REDIS") == "1" {
-			return
-		}
-		logger := zaptest.LoggerWriter(GinkgoWriter)
-
-		BeforeEach(func() {
-			ctx, cancel = context.WithCancel(context.Background())
-
-			redisInstance = redisFactory.NewInstance()
-			redisInstance.Run(ctx)
-
-			rlServerSettings.RedisSettings = redis.NewSettings()
-			rlServerSettings.RedisSettings.Url = fmt.Sprintf("%s:%d", redisInstance.Address(), redisInstance.Port())
-			rlServerSettings.RedisSettings.SocketType = "tcp"
-			rlServerSettings.RedisSettings.Clustered = clustered
-
-			cache = memory.NewInMemoryResourceCache()
-
-			testClients = services.GetTestClients(ctx, cache)
-			testClients.GlooPort = int(services.AllocateGlooPort())
-			logger.Info("Redis instance successfully created")
-		})
-
-		JustBeforeEach(justBeforeEach)
-
-		AfterEach(func() {
-			cancel()
-		})
-
-		if clustered {
-			runClusteredTest()
-		} else {
-			runAllTests()
-		}
-	}
-	Context("Redis-backed rate limiting", func() {
-		runRedisTests(false)
-	})
-
-	Context("Clustered Redis-backed rate limiting", func() {
-		runRedisTests(true)
-	})
 
 	Context("DynamoDb-backed rate limiting", func() {
 		if os.Getenv("DO_NOT_RUN_DYNAMO") == "1" {

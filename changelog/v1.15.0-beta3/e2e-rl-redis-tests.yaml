@@ -1,0 +1,25 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5059
+    resolvesIssue: false
+    description: >-
+      Migrate redis-backed ratelimit e2e tests out of the ratelimit_test and into
+      a ratelimit package. These tests use a new TestContext framework to reduce
+      flakes, and remove unnecessary Eventually and time.Sleep to improve
+      execution time by 25s.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4958
+    resolvesIssue: false
+    description: De-flake redis-backed ratelimit e2e tests
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4881
+    resolvesIssue: false
+    description: De-flake redis-backed ratelimit e2e tests
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4836
+    resolvesIssue: false
+    description: De-flake redis-backed ratelimit e2e tests
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4604
+    resolvesIssue: false
+    description: De-flake redis-backed ratelimit e2e tests

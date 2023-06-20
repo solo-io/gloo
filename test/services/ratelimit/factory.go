@@ -12,6 +12,8 @@ import (
 )
 
 const (
+	// basePort is the starting port for the rate limit server
+	// This was the previous static port used in tests, but it is not a special value
 	basePort = uint32(18081)
 )
 
@@ -27,7 +29,11 @@ func NewFactory() *Factory {
 
 func (f Factory) NewInstance(address string) *Instance {
 	serverSettings := ratelimitserver.NewSettings()
-	serverSettings.HealthFailTimeout = 2 // seconds
+	// The number of seconds that the server will remain alive, but actively failing health checks
+	// After this time elapses, the server will exit
+	// This is useful for testing that the server will exit when it fails health checks
+	// This is useful in production to ensure that the server will handle in flight requests before exiting
+	serverSettings.HealthFailTimeout = 0 // seconds
 	serverSettings.RateLimitPort = int(advancePort(&f.basePort))
 	serverSettings.ReadyPort = int(advancePort(&f.basePort))
 	serverSettings.LogSettings = ratelimitserver.LogSettings{

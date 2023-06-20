@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
 
 	. "github.com/onsi/gomega"
 )
@@ -18,11 +17,6 @@ import (
 */
 
 func ConsistentlyNotRateLimited(hostname string, port uint32) {
-	// waiting for envoy to start, so that consistently works.
-	// wait for three seconds so gloo race can be waited out
-	// it's possible gloo upstreams hit after the proxy does
-	// (gloo resyncs once per second)
-	time.Sleep(3 * time.Second)
 	testStatus(hostname, port, nil, http.StatusOK, 2, false)
 
 	testStatus(hostname, port, nil, http.StatusOK, 2, true)
@@ -82,7 +76,7 @@ func testHeaders(hostname string, port uint32, requestHeaders http.Header, expec
 				}
 			}
 			return isok, nil
-		}, "5s", ".1s").Should(BeTrue())
+		}, "3s", ".1s").Should(BeTrue())
 	} else {
 		EventuallyWithOffset(offset, func() (bool, error) {
 			resp, err := http.DefaultClient.Do(req)

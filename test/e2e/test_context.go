@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/golang/protobuf/ptypes/duration"
+	"github.com/solo-io/solo-projects/test/services/extauth"
 
-	ratelimit2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	"github.com/solo-io/solo-projects/test/services/ratelimit"
 
 	"github.com/solo-io/gloo/test/services/envoy"
@@ -56,6 +55,7 @@ var (
 type TestContextFactory struct {
 	EnvoyFactory     envoy.Factory
 	RateLimitFactory *ratelimit.Factory
+	ExtAuthFactory   *extauth.Factory
 }
 
 func (f *TestContextFactory) NewTestContext(testRequirements ...testutils.Requirement) *TestContext {
@@ -68,13 +68,30 @@ func (f *TestContextFactory) NewTestContext(testRequirements ...testutils.Requir
 	}
 }
 
-func (f *TestContextFactory) NewTestContextWithRateLimit(testRequirements ...testutils.Requirement) *TestContextWithRateLimit {
-	testContext := f.NewTestContext(testRequirements...)
+// TestContextExtensions is a set of extensions that can be enabled on a TestContext
+// These represent the Enterprise-only service which may be used in a test
+type TestContextExtensions struct {
+	ExtAuth   bool
+	RateLimit bool
+}
 
-	return &TestContextWithRateLimit{
-		TestContext:       testContext,
-		rateLimitInstance: f.RateLimitFactory.NewInstance(testContext.EnvoyInstance().GlooAddr),
+func (f *TestContextFactory) NewTestContextWithExtensions(extensions TestContextExtensions, testRequirements ...testutils.Requirement) *TestContextWithExtensions {
+	testContext := &TestContextWithExtensions{
+		TestContext: f.NewTestContext(testRequirements...),
 	}
+
+	if extensions.ExtAuth {
+		testContext.extAuthExtension = &extAuthExtension{
+			extAuthInstance: f.ExtAuthFactory.NewInstance(testContext.EnvoyInstance().GlooAddr),
+		}
+	}
+	if extensions.RateLimit {
+		testContext.rateLimitExtension = &rateLimitExtension{
+			rateLimitInstance: f.RateLimitFactory.NewInstance(testContext.EnvoyInstance().GlooAddr),
+		}
+	}
+
+	return testContext
 }
 
 // TestContext represents the aggregate set of configuration needed to run a single e2e test
@@ -140,7 +157,7 @@ func (c *TestContext) AfterEach() {
 	// Stop Envoy
 	c.envoyInstance.Clean()
 
-	c.cancel()
+	c.CancelContext()
 }
 
 func (c *TestContext) JustBeforeEach() {
@@ -184,6 +201,12 @@ func (c *TestContext) SetRunServices(services services.What) {
 // The Context is cancelled during the AfterEach portion of tests
 func (c *TestContext) Ctx() context.Context {
 	return c.ctx
+}
+
+// CancelContext cancels the Context maintained by the TestContext
+// This is invoked during the AfterEach portion of tests
+func (c *TestContext) CancelContext() {
+	c.cancel()
 }
 
 // ResourcesToCreate returns the ApiSnapshot of resources the TestContext maintains
@@ -282,8 +305,8 @@ func (c *TestContext) GetHttpRequestBuilder() *testutils.HttpRequestBuilder {
 		WithScheme("http").
 		WithHostname("localhost").
 		WithContentType("application/octet-stream").
-		WithPort(defaults.HttpPort). // When running Envoy locally, we port-forward this port to accept http traffic locally
-		WithHost(DefaultHost)        // The default Virtual Service routes traffic only with a particular Host header
+		WithPort(c.EnvoyInstance().HttpPort). // When running Envoy locally, we port-forward this port to accept http traffic locally
+		WithHost(DefaultHost)                 // The default Virtual Service routes traffic only with a particular Host header
 }
 
 // GetHttpsRequestBuilder returns an HttpRequestBuilder to easily build https requests used in e2e tests
@@ -292,69 +315,77 @@ func (c *TestContext) GetHttpsRequestBuilder() *testutils.HttpRequestBuilder {
 		WithScheme("https").
 		WithHostname("localhost").
 		WithContentType("application/octet-stream").
-		WithPort(defaults.HttpsPort). // When running Envoy locally, we port-forward this port to accept https traffic locally
-		WithHost(DefaultHost)         // The default Virtual Service routes traffic only with a particular Host header
+		WithPort(c.EnvoyInstance().HttpsPort). // When running Envoy locally, we port-forward this port to accept https traffic locally
+		WithHost(DefaultHost)                  // The default Virtual Service routes traffic only with a particular Host header
 }
 
-// TestContextWithRateLimit represents the aggregate set of configuration needed to run a single e2e test
-// using an external auth service
-type TestContextWithRateLimit struct {
+// TestContextWithExtensions represents the aggregate set of configuration needed to run a single e2e test
+// using a set of external services (extensions). The currently supported extensions are:
+//   - rate limiting
+//   - ext auth
+type TestContextWithExtensions struct {
 	*TestContext
 
-	rateLimitInstance *ratelimit.Instance
+	runSettings *gloov1.Settings
+
+	// The set of extensions that this test is using
+	// If an extension is not used, it will be nil
+	rateLimitExtension *rateLimitExtension
+	extAuthExtension   *extAuthExtension
 }
 
-func (r *TestContextWithRateLimit) BeforeEach() {
-	r.TestContext.BeforeEach()
-
-	serverUpstream := r.RateLimitInstance().GetServerUpstream()
-
-	// Define some default values for the RateLimitServer Settings
-	r.TestContext.SetRunSettings(&gloov1.Settings{
-		RatelimitServer: &ratelimit2.Settings{
-			RatelimitServerRef: serverUpstream.GetMetadata().Ref(),
-			DenyOnFail:         true, // ensures ConsistentlyNotRateLimited() calls will not pass unless server is healthy
-			RequestTimeout: &duration.Duration{
-				Seconds: 2,
-			},
-		},
-	})
-
-	r.resourcesToCreate.Upstreams = append(r.resourcesToCreate.Upstreams, serverUpstream)
+func (e *TestContextWithExtensions) UpdateRunSettings(mutator func(*gloov1.Settings)) {
+	if e.runSettings == nil {
+		e.runSettings = &gloov1.Settings{}
+	}
+	mutator(e.runSettings)
 }
 
-func (r *TestContextWithRateLimit) JustBeforeEach() {
-	r.TestContext.JustBeforeEach()
+func (e *TestContextWithExtensions) BeforeEach() {
+	e.TestContext.BeforeEach()
 
-	// The RateLimitService will only report healthy once it connects to Gloo
-	// Therefore we must run this after starting Gloo in the testContext.JustBeforeEach
-	r.runRateLimitService()
+	if e.rateLimitExtension != nil {
+		e.rateLimitExtension.setupDefaults(e)
+	}
+	if e.extAuthExtension != nil {
+		e.extAuthExtension.setupDefaults(e)
+	}
 }
 
-func (r *TestContextWithRateLimit) UpdateRateLimitSettings(mutator func(*ratelimit2.Settings) *ratelimit2.Settings) {
-	r.SetRunSettings(&gloov1.Settings{
-		RatelimitServer: mutator(r.runOptions.Settings.RatelimitServer),
-	})
+func (e *TestContextWithExtensions) JustBeforeEach() {
+	e.SetRunSettings(e.runSettings)
+
+	e.TestContext.JustBeforeEach()
+
+	// The Extension services will only report healthy once they connect to Gloo
+	// Therefore we must run these after starting Gloo in the testContext.JustBeforeEach
+	ginkgo.By("TestContextWithExtensions: Running Extension Services")
+
+	if e.rateLimitExtension != nil {
+		e.rateLimitExtension.runRateLimitService(e)
+	}
+
+	if e.extAuthExtension != nil {
+		e.extAuthExtension.runExtAuthService(e)
+	}
 }
 
 // RateLimitInstance returns an Instance of the RateLimit Service
-func (r *TestContextWithRateLimit) RateLimitInstance() *ratelimit.Instance {
-	return r.rateLimitInstance
+func (e *TestContextWithExtensions) RateLimitInstance() *ratelimit.Instance {
+	if e.rateLimitExtension == nil {
+		// This means that you are writing a test that does not configure a TestContextWithExtensions
+		// with the proper RateLimit extension
+		ginkgo.Fail("Attempting to access RateLimitInstance when no RateLimitExtension is configured")
+	}
+	return e.rateLimitExtension.RateLimitInstance()
 }
 
-// runRateLimitService starts running the RateLimit Service
-func (r *TestContextWithRateLimit) runRateLimitService() {
-	ginkgo.By("TestContextWithRateLimit: Running RateLimit")
-
-	// The EnvoyInstance is similar to the RateLimitService, in that it receives its configuration from Gloo via xDS.
-	// As a result, we ensure the RateLimitService uses the same port for connecting to Gloo
-	ExpectWithOffset(1, r.EnvoyInstance().Port).NotTo(BeZero(), "EnvoyInstance.Port must be set before running RateLimitService")
-
-	go func(testCtx context.Context) {
-		defer ginkgo.GinkgoRecover()
-
-		r.rateLimitInstance.RunWithXds(testCtx, r.EnvoyInstance().Port)
-	}(r.Ctx())
-
-	r.rateLimitInstance.EventuallyIsHealthy()
+// ExtAuthInstance returns an Instance of the ExtAuth Service
+func (e *TestContextWithExtensions) ExtAuthInstance() *extauth.Instance {
+	if e.extAuthExtension == nil {
+		// This means that you are writing a test that does not configure a TestContextWithExtensions
+		// with the proper ExtAuth extension
+		ginkgo.Fail("Attempting to access ExtAuthInstance when no ExtAuthExtension is configured")
+	}
+	return e.extAuthExtension.ExtAuthInstance()
 }

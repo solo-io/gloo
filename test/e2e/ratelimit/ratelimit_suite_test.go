@@ -3,6 +3,8 @@ package ratelimit_test
 import (
 	"testing"
 
+	"github.com/solo-io/solo-projects/test/services/extauth"
+
 	"github.com/solo-io/solo-projects/test/services/ratelimit"
 
 	"github.com/solo-io/solo-projects/test/services/redis"
@@ -20,6 +22,7 @@ var (
 	envoyFactory       envoy.Factory
 	redisFactory       *redis.Factory
 	rateLimitFactory   *ratelimit.Factory
+	extAuthFactory     *extauth.Factory
 	testContextFactory *e2e.TestContextFactory
 )
 
@@ -27,10 +30,12 @@ var _ = BeforeSuite(func() {
 	envoyFactory = glooe_envoy.NewFactory()
 	redisFactory = redis.NewFactory()
 	rateLimitFactory = ratelimit.NewFactory()
+	extAuthFactory = extauth.NewFactory()
 
 	testContextFactory = &e2e.TestContextFactory{
 		EnvoyFactory:     envoyFactory,
 		RateLimitFactory: rateLimitFactory,
+		ExtAuthFactory:   extAuthFactory,
 	}
 })
 

@@ -25,6 +25,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	envoy2 "github.com/solo-io/solo-projects/test/services/envoy"
+
 	"github.com/solo-io/gloo/test/services/envoy"
 
 	"github.com/solo-io/gloo/test/ginkgo/parallel"
@@ -4019,7 +4021,7 @@ var _ = Describe("External auth", FlakeAttempts(10), func() {
 							getHealthCheckClient().Check(ctx, &grpc_health_v1.HealthCheckRequest{
 								Service: settings.ExtAuthSettings.ServiceName,
 							}, grpc.Header(&header))
-							return len(header.Get("x-envoy-immediate-health-check-fail")) == 1
+							return len(header.Get(envoy2.HealthCheckFailHeader)) == 1
 						}, "5s", ".1s").Should(BeTrue())
 						waitForHealthcheck <- struct{}{}
 					}(waitForHealthcheck)
