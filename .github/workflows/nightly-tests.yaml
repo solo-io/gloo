@@ -37,6 +37,8 @@ jobs:
     - uses: actions/checkout@v3
     - name: troubleshooting
       run: echo if clause evaluation ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.run-regression) }}
+    - name: troubleshooting input
+      run: echo input run-regression ${{ github.event.inputs.run-regression }}
     - uses: ./.github/workflows/composite-actions/regression-tests
 
   performance_tests_latest_main:
