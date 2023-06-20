@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/go-utils/contextutils"
 
-	"github.com/solo-io/gloo/test/ginkgo/labels"
+	"github.com/solo-io/gloo/test/testutils"
 
-	"github.com/solo-io/go-utils/testutils/benchmarking"
+	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
+	"github.com/solo-io/gloo/test/ginkgo/labels"
 
 	"github.com/onsi/gomega/types"
 	"github.com/solo-io/gloo/test/gomega/matchers"
@@ -49,6 +49,11 @@ type benchmarkConfig struct {
 
 // These tests only compile and run on Linux machines due to the use of the go-utils benchmarking package which is only
 // compatible with Linux
+
+// Tests are run as part of the "Nightly" action in a GHA using the default Linux runner
+// More info on that machine can be found here: https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
+// When developing new tests, users should manually run that action in order to test performance under the same parameters
+// Results can then be found in the logs for that instance of the action
 var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Performance), func() {
 	var (
 		ctrl       *gomock.Controller
@@ -57,6 +62,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 	)
 
 	BeforeEach(func() {
+		testutils.LinuxOnly("uses go-utils benchmarking.Measure() which only compiles on Linux")
 
 		ctrl = gomock.NewController(T)
 
@@ -90,7 +96,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 				errs   reporter.ResourceReports
 				report *validation.ProxyReport
 
-				tooFastWarning bool
+				tooFastWarningCount int
 			)
 
 			params := plugins.Params{
@@ -110,9 +116,10 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 			experiment.Sample(func(idx int) {
 
 				// Time translation
-				res, err := benchmarking.Measure(func() {
+				res, ignore, err := gloohelpers.MeasureIgnore0ns(func() {
 					snap, errs, report = translator.Translate(params, proxy)
 				})
+				Expect(err).NotTo(HaveOccurred())
 
 				if idx == 0 {
 					// Assert expected results on the first sample
@@ -121,12 +128,8 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 					Expect(report).To(Equal(validationutils.MakeReport(proxy)))
 				}
 
-				if err != nil && strings.Contains(err.Error(), "total execution time was 0 ns") {
-					if !tooFastWarning {
-						logger := contextutils.LoggerFrom(params.Ctx)
-						logger.Warnf("entry %s registered at least one 0ns measurement; consider increasing the scale of the proxy being tested for more accurate results", desc)
-						tooFastWarning = true
-					}
+				if ignore {
+					tooFastWarningCount++
 					return
 				}
 
@@ -135,6 +138,11 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 				// System time
 				experiment.RecordDuration(desc, res.Total)
 			}, gmeasure.SamplingConfig{N: config.iterations, Duration: config.maxDur})
+
+			if tooFastWarningCount > 0 {
+				logger := contextutils.LoggerFrom(params.Ctx)
+				logger.Warnf("entry %s registered %d 0ns measurements; consider increasing the scale of the proxy being tested for more accurate results", desc, tooFastWarningCount)
+			}
 
 			durations := experiment.Get(desc).Durations
 
