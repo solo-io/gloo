@@ -150,6 +150,13 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 			Upstreams: 1000,
 			Endpoints: 1,
 		}), oneKUpstreamsConfig, "upstream scale"),
+		Entry(nil, gloohelpers.MutateSnapUpstreams(
+			gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+				Upstreams: 1000,
+				Endpoints: 1,
+			}), func(up *v1.Upstream) {
+				up.SslConfig = &ssl.UpsteamSslConfig{Sni: "test"}
+			}), basicConfig, "ssl upstream scale"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 10,
