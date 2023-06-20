@@ -35,7 +35,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
-	
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"time"
 )
@@ -165,7 +165,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 				Endpoints: 1,
 			}), func(up *v1.Upstream) {
 				up.SslConfig = &ssl.UpstreamSslConfig{Sni: "test"}
-			}), basicConfig, "ssl upstream scale"),
+			}), oneKUpstreamsConfig, "ssl upstream scale"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 10,
