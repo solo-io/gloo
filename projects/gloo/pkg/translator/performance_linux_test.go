@@ -36,8 +36,9 @@ import (
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"time"
+
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 )
 
 // benchmarkConfig allows configuration for benchmarking tests to be reused for similar cases
