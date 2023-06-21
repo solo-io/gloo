@@ -9,10 +9,10 @@ import (
 
 	"github.com/solo-io/gloo/test/testutils"
 
+	"github.com/google/uuid"
+	"github.com/onsi/gomega/types"
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/gloo/test/ginkgo/labels"
-
-	"github.com/onsi/gomega/types"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 
 	"github.com/golang/mock/gomock"
@@ -165,8 +165,25 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 				Upstreams: 1000,
 				Endpoints: 1,
 			}), func(up *v1.Upstream) {
-				up.SslConfig = &ssl.UpstreamSslConfig{Sni: "test"}
-			}), oneKUpstreamsConfig, "ssl upstream scale"),
+				up.SslConfig = &ssl.UpstreamSslConfig{
+					Sni: "test",
+					SslParameters: &ssl.SslParameters{
+						CipherSuites: []string{"ECDHE-RSA-AES128-GCM-SHA256", "ECDHE-RSA-AES256-GCM-SHA384"},
+					},
+				}
+			}), oneKUpstreamsConfig, "ssl same sni upstream scale"),
+		Entry(nil, gloohelpers.MutateSnapUpstreams(
+			gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
+				Upstreams: 1000,
+				Endpoints: 1,
+			}), func(up *v1.Upstream) {
+				up.SslConfig = &ssl.UpstreamSslConfig{
+					Sni: NewUUID(),
+					SslParameters: &ssl.SslParameters{
+						CipherSuites: []string{"ECDHE-RSA-AES128-GCM-SHA256", "ECDHE-RSA-AES256-GCM-SHA384"},
+					},
+				}
+			}), oneKUpstreamsConfig, "ssl different sni upstream scale"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 10,
