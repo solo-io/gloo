@@ -90,7 +90,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 	// We measure the duration of the translation of the snapshot, benchmarking according to the benchmarkConfig
 	// Labels are used to add context to the entry description
 	DescribeTable("Benchmark table",
-		func(apiSnap *v1snap.ApiSnapshot, config benchmarkConfig, labels ...string) {
+		func(wrappedSnap TestGlooSnapshot, config benchmarkConfig, labels ...string) {
 			var (
 				proxy *v1.Proxy
 
@@ -100,6 +100,8 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 
 				tooFastWarningCount int
 			)
+
+			apiSnap := wrappedSnap.ApiSnapshot
 
 			params := plugins.Params{
 				Ctx:      context.Background(),
@@ -160,30 +162,16 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 			Upstreams: 1000,
 			Endpoints: 1,
 		}), oneKUpstreamsConfig, "upstream scale"),
-		Entry(nil, gloohelpers.MutateSnapUpstreams(
+		Entry(nil,
 			gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 				Upstreams: 1000,
 				Endpoints: 1,
-			}), func(up *v1.Upstream) {
-				up.SslConfig = &ssl.UpstreamSslConfig{
-					Sni: "test",
-					SslParameters: &ssl.SslParameters{
-						CipherSuites: []string{"ECDHE-RSA-AES128-GCM-SHA256", "ECDHE-RSA-AES256-GCM-SHA384"},
-					},
-				}
-			}), oneKUpstreamsConfig, "ssl same sni upstream scale"),
-		Entry(nil, gloohelpers.MutateSnapUpstreams(
+			}).SetUpstreamSSLDefaults(defaultUpSSLCfg), oneKUpstreamsConfig, "ssl same sni upstream scale"),
+		Entry(nil,
 			gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 				Upstreams: 1000,
 				Endpoints: 1,
-			}), func(up *v1.Upstream) {
-				up.SslConfig = &ssl.UpstreamSslConfig{
-					Sni: NewUUID(),
-					SslParameters: &ssl.SslParameters{
-						CipherSuites: []string{"ECDHE-RSA-AES128-GCM-SHA256", "ECDHE-RSA-AES256-GCM-SHA384"},
-					},
-				}
-			}), oneKUpstreamsConfig, "ssl different sni upstream scale"),
+			}).SetUpstreamSSLDefaults(defaultUpSSLCfg).SetUpstreamUniqueSNIs(), oneKUpstreamsConfig, "ssl different sni upstream scale"),
 		Entry(nil, gloohelpers.ScaledSnapshot(gloohelpers.ScaleConfig{
 			Upstreams: 1,
 			Endpoints: 10,
@@ -242,5 +230,12 @@ var oneKUpstreamsConfig = benchmarkConfig{
 	benchmarkMatchers: []types.GomegaMatcher{
 		matchers.HaveMedianLessThan(time.Second),
 		matchers.HavePercentileLessThan(90, 2*time.Second),
+	},
+}
+
+var defaultUpSSLCfg = ssl.UpstreamSslConfig{
+	SNI: "sni",
+	Parameters: &ssl.SslParameters{
+		CipherSuites: []string{"ECDHE-RSA-AES128-GCM-SHA256", "ECDHE-RSA-AES256-GCM-SHA384"},
 	},
 }

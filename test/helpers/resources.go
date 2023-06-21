@@ -243,9 +243,17 @@ func Proxy(numRoutes int) *v1.Proxy {
 	}
 }
 
+type TestGlooSnapshot struct {
+	*gloosnapshot.ApiSnapshot
+}
+
+func (tgs *TestGlooSnapshot) UnWrap() *gloosnapshot.ApiSnapshot {
+	return tgs.ApiSnapshot
+}
+
 // ScaledSnapshot generates a snapshot populated with particular numbers of each resource types as determined by the
 // passed config
-func ScaledSnapshot(config ScaleConfig) *gloosnapshot.ApiSnapshot {
+func ScaledSnapshot(config ScaleConfig) TestGlooSnapshot {
 	endpointList := make(v1.EndpointList, config.Endpoints)
 	for i := 0; i < config.Endpoints; i++ {
 		endpointList[i] = Endpoint(i + 1) // names are 1-indexed
@@ -256,12 +264,38 @@ func ScaledSnapshot(config ScaleConfig) *gloosnapshot.ApiSnapshot {
 		upstreamList[i] = Upstream(i + 1) // names are 1-indexed
 	}
 
-	return &gloosnapshot.ApiSnapshot{
+	return TestGlooSnapshot{&gloosnapshot.ApiSnapshot{
 		// The proxy should contain a route for each upstream
 		Proxies: []*v1.Proxy{Proxy(config.Upstreams)},
 
 		Endpoints: endpointList,
 		Upstreams: upstreamList,
+	},
+	}
+}
+
+func (tgs TestGlooSnapshot) SetUpstreamSSLDefaults(sslCfg *ssl.UpstreamSslConfig) {
+	for _, us := range tgs.Upstreams {
+		us.SslConfig = sslCfg.Clone().(*ssl.UpstreamSslConfig)
+	}
+}
+
+func (tgs TestGlooSnapshot) SetUpstreamUniqueSNIs() {
+	for _, us := range tgs.Upstreams {
+		us.SslConfig.Sni = NewUUID()
+	}
+}
+
+func (tgs TestGlooSnapshot) SetUpstreamCiphers() {
+	for _, us := range tgs.Upstreams {
+		if us.SslConfig == nil {
+			us.SslConfig = &ssl.UpstreamSslConfig{}
+		}
+		us.SslConfig = &ssl.UpstreamSslConfig{
+			Parameters: &ssl.SslParameters{
+				CipherSuites: []string{"ECDHE-RSA-AES128-GCM-SHA256", "ECDHE-RSA-AES256-GCM-SHA384"},
+			},
+		}
 	}
 }
 
