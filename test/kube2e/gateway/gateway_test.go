@@ -3,7 +3,6 @@ package gateway_test
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -26,6 +25,7 @@ import (
 	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	defaults2 "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/gloo/test/gomega/transforms"
 	glooKube2e "github.com/solo-io/gloo/test/kube2e"
 
 	"github.com/solo-io/solo-projects/test/kube2e"
@@ -45,6 +45,7 @@ import (
 
 	osskube2e "github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/test/setup"
 
@@ -100,7 +101,9 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				testRunnerVs,
 			},
 		}
-		snapshotWriter = helpers.NewSnapshotWriter(resourceClientset, []retry.Option{})
+		// Add more retry delay in attempt to mitigate some flakes, possibly
+		// caused by resources deleted in the wrong order
+		snapshotWriter = helpers.NewSnapshotWriter(resourceClientset, []retry.Option{retry.Delay(5 * time.Second)})
 	})
 
 	AfterEach(func() {
@@ -122,6 +125,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			IgnoreNotExist: true,
 		})
 		Expect(err).NotTo(HaveOccurred())
+
 	})
 
 	It("can route request to upstream", func() {
@@ -486,6 +490,23 @@ spec:
 			tcpEchoClusterName  string
 			tcpEchoShutdownFunc func()
 			httpEcho            helper.TestRunner
+
+			// define some ciphers which we will use both for configuration in
+			// the server and defining test requests that will be sent by the
+			// client
+
+			// passthroughCipher: configured in envoy for passthrough - must be
+			// supported by the tcp-echo-tls server, but does not need to be
+			// supported by envoy
+			passthroughCipher = "AES128-SHA"
+			// terminatedCipher: configure for TLS termination in envoy
+			// (must be supported by envoy)
+			terminatedCipher = "ECDHE-RSA-AES256-GCM-SHA384"
+			// nonTerminatedCipher: a cipher used for testing that's not
+			// configured for passthrough or tls termination in envoy.
+			// connections made with this cipher and no others should be
+			// terminated if dcp is enabled
+			nonTerminatedCipher = "ECDHE-RSA-CHACHA20-POLY1305"
 		)
 
 		exposePortOnGwProxyService := func(servicePort corev1.ServicePort) {
@@ -509,6 +530,8 @@ spec:
 		}
 
 		var err error
+		var virtualservice *v1.VirtualService
+		var hybridGateway *v1.Gateway
 		BeforeEach(func() {
 			caFile := glooKube2e.ToFile(helpers.Certificate())
 			//goland:noinspection GoUnhandledErrorResult
@@ -543,13 +566,17 @@ spec:
 			Expect(err).NotTo(HaveOccurred())
 
 			domain := fmt.Sprintf("%s:%d", defaults.GatewayProxyName, defaults2.HybridPort)
-			virtualservice := helpers.NewVirtualServiceBuilder().
+			virtualservice = helpers.NewVirtualServiceBuilder().
 				WithName(defaults.GatewayProxyName).
 				WithNamespace(testHelper.InstallNamespace).
 				WithDomain(domain).
 				WithRoutePrefixMatcher("route", "/").
 				WithRouteActionToUpstream("route", httpEchoUpstream).
 				WithSslConfig(&gloossl.SslConfig{
+					Parameters: &gloossl.SslParameters{
+						// only treat these ciphers as natively supported
+						CipherSuites: []string{terminatedCipher},
+					},
 					SslSecrets: &gloossl.SslConfig_SecretRef{
 						SecretRef: &core.ResourceRef{
 							Name:      createdSecret.ObjectMeta.Name,
@@ -611,7 +638,7 @@ spec:
 				},
 				Matcher: &v1.MatchableTcpGateway_Matcher{
 
-					PassthroughCipherSuites: []string{"AES128-SHA256"},
+					PassthroughCipherSuites: []string{passthroughCipher},
 				},
 				TcpGateway: &v1.TcpGateway{
 					TcpHosts: []*gloov1.TcpHost{{
@@ -630,7 +657,7 @@ spec:
 			}
 
 			// Create a HybridGateway that references that MatchableHttpGateway
-			hybridGateway := &v1.Gateway{
+			hybridGateway = &v1.Gateway{
 				Metadata: &core.Metadata{
 					Name:      fmt.Sprintf("%s-hybrid", defaults.GatewayProxyName),
 					Namespace: testHelper.InstallNamespace,
@@ -699,13 +726,16 @@ spec:
 			cancel()
 		})
 
-		It("properly tunnels tls-encrypted traffic with deprecated ciphers over tcp", func() {
-
+		executeRequest := func(ciphers []string, expectedResult func([]string)) {
+			cipherString := strings.Join(ciphers, ":")
+			curlCmd := fmt.Sprintf("curl -sk --tlsv1.2 https://%s:%d --ciphers %s", defaults.GatewayProxyName, defaults2.HybridPort, cipherString)
+			expectedResult(strings.Split(curlCmd, " "))
+		}
+		expectTcpPassthrough := func(curlArgs []string) {
 			// testHelper.Curl does not support the `--ciphers` flag so let's
 			// just build the command manually
-			curlCmd := fmt.Sprintf("curl -s --ciphers AES128-SHA256 https://%s:%d/ -k", defaults.GatewayProxyName, defaults2.HybridPort)
 			Eventually(func(g Gomega) {
-				result, err := testHelper.Exec(strings.Split(curlCmd, " ")...)
+				result, err := testHelper.Exec(curlArgs...)
 				g.Expect(err).NotTo(HaveOccurred())
 				/* sample response:
 				{
@@ -722,54 +752,151 @@ spec:
 				  "code": 200
 				}
 				*/
-				var jsonData map[string]any
-				err = json.Unmarshal([]byte(result), &jsonData)
-				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(jsonData["code"]).To(Equal(float64(200)))
-				g.Expect(jsonData["body"]).To(Equal("Hello World"))
-			}, "1m", "15s").Should(Succeed())
-		})
-
-		It("does not perform tls passthrough if ssl ciphers are recognised", func() {
-			/* sample response:
-			{
-			  "path": "/",
-			  "headers": {
-				"host": "gateway-proxy:8087",
-				"user-agent": "curl/7.58.0",
-				"accept": "*\/*",
-				"content-length": "15",
-				"content-type": "application/x-www-form-urlencoded",
-				"x-forwarded-proto": "https",
-				"x-request-id": "9bf32163-57ce-4035-a26c-1b622dcbe752",
-				"x-envoy-expected-rq-timeout-ms": "15000"
-			  },
-			  "method": "POST",
-			  "body": {
-				"something": "value"
-			  },
-			  "fresh": false,
-			  "hostname": "gateway-proxy",
-			  "ip": "::ffff:10.244.0.121",
-			  "ips": [],
-			  "protocol": "http",
-			  "query": {},
-			  "subdomains": [],
-			  "xhr": false
-			}
-			*/
-			curlCmd := fmt.Sprintf("curl -s https://%s:%d/ -k -d test_key=test_value", defaults.GatewayProxyName, defaults2.HybridPort)
+				g.Expect(transforms.WithJsonBody()([]byte(result))).To(And(
+					HaveKeyWithValue("code", float64(200)),
+					HaveKeyWithValue("body", "Hello World"),
+				))
+			}, "90s", "5s").Should(Succeed())
+		}
+		expectTlsTermination := func(curlArgs []string) {
+			curlArgs = append(curlArgs, "-d", "test_key=test_value")
 			Eventually(func(g Gomega) {
-				result, err := testHelper.Exec(strings.Split(curlCmd, " ")...)
+				result, err := testHelper.Exec(curlArgs...)
 				g.Expect(err).NotTo(HaveOccurred())
+				/* sample response:
+				{
+				  "path": "/",
+				  "headers": {
+					"host": "gateway-proxy:8087",
+					"user-agent": "curl/7.58.0",
+					"accept": "* /*",
+					"content-length": "15",
+					"content-type": "application/x-www-form-urlencoded",
+					"x-forwarded-proto": "https",
+					"x-request-id": "9bf32163-57ce-4035-a26c-1b622dcbe752",
+					"x-envoy-expected-rq-timeout-ms": "15000"
+				  },
+				  "method": "POST",
+				  "body": {
+					"test_key": "test_value"
+				  },
+				  "fresh": false,
+				  "hostname": "gateway-proxy",
+				  "ip": "::ffff:10.244.0.121",
+				  "ips": [],
+				  "protocol": "http",
+				  "query": {},
+				  "subdomains": [],
+				  "xhr": false
+				}
+				*/
+				g.Expect(transforms.WithJsonBody()([]byte(result))).To(HaveKeyWithValue("body", map[string]any{"test_key": "test_value"}))
+			}, "90s", "5s").Should(Succeed())
+		}
+		expectSslHandshakeFailure := func(curlArgs []string) {
+			// wait for TLS termination case to complete - once it does, the
+			// test should be set up properly. then expect the test with
+			// curlArgs to fail
+			executeRequest([]string{terminatedCipher}, expectTlsTermination)
+			_, err := testHelper.Exec(curlArgs...)
+			Expect(err).To(MatchError(ContainSubstring("command terminated with exit code 35")))
+		}
 
-				var jsonData map[string]any
-				err = json.Unmarshal([]byte(result), &jsonData)
-				g.Expect(err).NotTo(HaveOccurred())
-				bodyData := jsonData["body"].(map[string]any)
-				g.Expect(bodyData["test_key"]).To(Equal("test_value"))
-			}, "1m", "15s").Should(Succeed())
-		})
+		// helper to add nonTerminatedCipher to the list of terminated ciphers
+		addNonTerminatedCipher := func() {
+			helpers.PatchResourceWithOffset(1, ctx, virtualservice.GetMetadata().Ref(), func(resource resources.Resource) resources.Resource {
+				virtualservice := resource.(*v1.VirtualService)
+
+				virtualservice.SslConfig.Parameters.CipherSuites = append(
+					virtualservice.SslConfig.Parameters.CipherSuites, nonTerminatedCipher)
+				return virtualservice
+			}, resourceClientset.VirtualServiceClient().BaseClient())
+		}
+
+		// helper to disable dcp by deleting DelegatedTcpGateway from the hybrid gateway
+		disableDcp := func() {
+			helpers.PatchResourceWithOffset(1, ctx, hybridGateway.GetMetadata().Ref(), func(resource resources.Resource) resources.Resource {
+				gateway := resource.(*v1.Gateway)
+				gateway.GetHybridGateway().DelegatedTcpGateways = nil
+				return gateway
+			}, resourceClientset.GatewayClient().BaseClient())
+		}
+
+		DescribeTable("dcp cipher combination tests",
+			/* Table of tests for DCP cipher combinations
+
+			We initialise the server with a DCP configuration and then test
+			combinations of ciphers and how we expect them to be handled.
+
+			Configured ciphers:
+			* passthroughCipher (AES128-SHA): configured for passthrough
+			* terminatedCipher (ECDHE-RSA-AES256-GCM-SHA384): configured for
+			    tls termination in envoy
+			* nonTerminatedCipher (ECDHE-RSA-CHACHA20-POLY1305): not configured
+			    (should be rejected by Envoy)
+
+			Possible results:
+			* expectTcpPassthrough: Envoy should proxy the request to the
+			    configured tcp-echo-tls server
+			* expectTlsTermination: Envoy should terminate TLS and send the
+			    request to the configured HTTP echo server
+			* expectSslHandshakeFailure: connection should error. This callback
+			    first performs the expectTlsTermination test to ensure that the
+			    server has been configured and then performs the requested test
+
+			In the cases of the expectTlsTermination and expectTcpPassthrough,
+			the response bodies of the 2 configured servers are slightly
+			different, so the different assertions on the response bodies are
+			sufficient to determine which server received the request.
+
+			Then, we test combinations of ciphers as well. When all 3 ciphers
+			are present, we expect TLS termination in Envoy. When
+			passthroughCipher and nonTerminatedCipher are present, we expect
+			passthrough.
+
+			Finally, we can also change the server with different
+			configurations (namely, disabling DCP and re-enabling
+			nonTerminatedCipher) to ensure the correct behaviour in different
+			server configurations.
+			*/
+			func(ciphers []string, expectedResult func([]string), beforeTest []func()) {
+				// --tlsv1.2 flag is necessary because without it, curl
+				// automatically adds all tlsv1.3 ciphers
+
+				// run any additional setup functions before testing the
+				// requests. there is no current check to ensure that
+				// configurations are fully applied (with the exception of the
+				// call to expectTlsTermination in expectSslHandshakeFailure),
+				// so the assertions themselves should be formulated such that
+				// they only pass once the configuration has been fully applied
+				for _, beforeTestFunc := range beforeTest {
+					beforeTestFunc()
+				}
+				executeRequest(ciphers, expectedResult)
+			},
+			Entry("passthrough cipher should be passed through",
+				[]string{passthroughCipher}, expectTcpPassthrough, nil),
+			Entry("terminated cipher should be terminated in envoy",
+				[]string{terminatedCipher}, expectTlsTermination, nil),
+			Entry("nonTerminatedCipher (not configured for passthrough or termination) should result in a ssl handshake failure",
+				[]string{nonTerminatedCipher}, expectSslHandshakeFailure, nil),
+			Entry("client provides all 3 kinds of ciphers; TLS termination should be preferred over passthrough or failure",
+				[]string{passthroughCipher, terminatedCipher, nonTerminatedCipher}, expectTlsTermination, nil),
+			Entry("client provides passthrough and non-terminated ciphers; passthrough should occur",
+				[]string{passthroughCipher, nonTerminatedCipher}, expectTcpPassthrough, nil),
+			Entry("TLS termination occurs for nonTerminatedCipher after it is added to the terminated cipher list",
+				[]string{nonTerminatedCipher}, expectTlsTermination,
+				[]func(){addNonTerminatedCipher},
+			),
+			Entry("still cannot connect with nonTerminatedCipher when dcp is disabled",
+				[]string{nonTerminatedCipher}, expectSslHandshakeFailure,
+				[]func(){disableDcp},
+			),
+			Entry("can connect with nonTerminatedCipher when dcp is disabled and it is added to the terminated cipher list",
+				[]string{nonTerminatedCipher}, expectTlsTermination,
+				[]func(){disableDcp, addNonTerminatedCipher},
+			),
+		)
 	})
 
 })

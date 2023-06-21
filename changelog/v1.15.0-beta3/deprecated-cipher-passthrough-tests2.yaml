@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4936
+    resolvesIssue: false
+    description: |
+        Add many more kube2e tests for deprecated cipher passthrough including
+        terminated cipher tests and combinations of ciphers configured for
+        passthrough, termination, or neither
