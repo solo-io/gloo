@@ -12,6 +12,8 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/solo-io/solo-projects/test/gomega/assertions"
+
 	"github.com/solo-io/gloo/test/services/envoy"
 
 	"github.com/fgrosse/zaptest"
@@ -420,7 +422,7 @@ var _ = Describe("XDS interfaces", func() {
 			gloohelpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 				return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 			}, "90s", "3s")
-			EventuallyRateLimited("host1", envoyPort)
+			assertions.EventuallyRateLimited("host1", envoyPort)
 		})
 
 	})
