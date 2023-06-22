@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	enterprisetestutils "github.com/solo-io/solo-projects/test/testutils"
+
 	"github.com/golang/protobuf/ptypes/wrappers"
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	multicluster_v1alpha1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1"
@@ -46,7 +48,7 @@ func TestCanary(t *testing.T) {
 	}
 
 	requiredEnvForTest := []string{
-		kubeutils.GlooLicenseKey,
+		enterprisetestutils.GlooLicenseKey,
 		managementClusterEnvName,
 		remoteReleaseClusterEnvName,
 		remoteCanaryClusterEnvName,

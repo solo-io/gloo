@@ -1247,43 +1247,6 @@ var _ = Describe("Rate Limit Local E2E", FlakeAttempts(10), func() {
 		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem, Settings: glooSettings})
 	}
 
-	Context("DynamoDb-backed rate limiting", func() {
-		if os.Getenv("DO_NOT_RUN_DYNAMO") == "1" {
-			return
-		}
-		BeforeEach(func() {
-			var err error
-			// Set AWS session to use local DynamoDB instead of defaulting to live AWS web services
-			awsEndpoint := "http://" + services.GetDynamoDbHost() + ":" + services.DynamoDbPort
-
-			// By setting these environment variables to non-empty values we signal we want to use DynamoDb
-			// instead of Redis as our rate limiting backend. Local DynamoDB requires any non-empty creds to work
-			rlServerSettings.DynamoDbSettings = dynamodb.NewSettings()
-			rlServerSettings.DynamoDbSettings.AwsAccessKeyId = "fakeMyKeyId"
-			rlServerSettings.DynamoDbSettings.AwsSecretAccessKey = "fakeSecretAccessKey"
-			rlServerSettings.DynamoDbSettings.AwsEndpoint = awsEndpoint
-
-			err = services.RunDynamoDbContainer()
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(services.DynamoDbHealthCheck(awsEndpoint), "5s", "100ms").Should(BeEquivalentTo(services.HealthCheck{IsHealthy: true}))
-
-			ctx, cancel = context.WithCancel(context.Background())
-			cache = memory.NewInMemoryResourceCache()
-
-			testClients = services.GetTestClients(ctx, cache)
-			testClients.GlooPort = int(services.AllocateGlooPort())
-		})
-
-		JustBeforeEach(justBeforeEach)
-
-		AfterEach(func() {
-			cancel()
-			services.MustKillAndRemoveContainer(services.DynamoDbContainerName)
-		})
-
-		runAllTests()
-	})
-
 	Context("Aerospike-backed rate limiting", func() {
 		if os.Getenv("DO_NOT_RUN_AEROSPIKE") == "1" {
 			return

@@ -2,30 +2,21 @@ package kubeutils
 
 import (
 	"os"
-	"strconv"
-)
 
-const (
-	TearDown       = "TEAR_DOWN"
-	KubeTestType   = "KUBE2E_TESTS"
-	GlooLicenseKey = "GLOO_LICENSE_KEY"
+	"github.com/solo-io/gloo/test/testutils"
+	enterprisetestutils "github.com/solo-io/solo-projects/test/testutils"
 )
 
 func ShouldTearDown() bool {
-	return IsEnvTruthy(TearDown)
+	return testutils.ShouldTearDown()
 }
 
 func LicenseKey() string {
-	return os.Getenv(GlooLicenseKey)
+	return os.Getenv(enterprisetestutils.GlooLicenseKey)
 }
 
 func IsKubeTestType(expectedType string) bool {
-	return expectedType == os.Getenv(KubeTestType)
-}
-
-func IsEnvTruthy(envVarName string) bool {
-	envValue, _ := strconv.ParseBool(os.Getenv(envVarName))
-	return envValue
+	return expectedType == os.Getenv(testutils.KubeTestType)
 }
 
 func IsEnvDefined(envSlice []string) bool {

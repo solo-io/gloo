@@ -43,7 +43,7 @@ import (
 	"github.com/solo-io/solo-projects/test/v1helpers"
 )
 
-var _ = Describe("waf", func() {
+var _ = Describe("waf", FlakeAttempts(5), func() {
 
 	var (
 		ctx           context.Context

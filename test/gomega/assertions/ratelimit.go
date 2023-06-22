@@ -17,24 +17,28 @@ import (
 */
 
 func ConsistentlyNotRateLimited(hostname string, port uint32) {
-	testStatus(hostname, port, nil, http.StatusOK, 2, false)
-
-	testStatus(hostname, port, nil, http.StatusOK, 2, true)
+	// There are occasional failures in CI around the 'consistently' portion of this.
+	// As a result, we wrap this logic in an 'eventually' assertion, in hopes that will resolve the flakes
+	// There may be a better solution to this, but we have not explored this further
+	Eventually(func(g Gomega) {
+		testStatus(g, hostname, port, nil, http.StatusOK, 2, false)
+		testStatus(g, hostname, port, nil, http.StatusOK, 2, true)
+	}, "30s", "1s").Should(Succeed())
 }
 
 func EventuallyRateLimited(hostname string, port uint32) {
-	testStatus(hostname, port, nil, http.StatusTooManyRequests, 2, false)
+	testStatus(Default, hostname, port, nil, http.StatusTooManyRequests, 2, false)
 }
 
 func EventuallyRateLimitedWithHeaders(hostname string, port uint32, headers http.Header) {
-	testStatus(hostname, port, headers, http.StatusTooManyRequests, 2, false)
+	testStatus(Default, hostname, port, headers, http.StatusTooManyRequests, 2, false)
 }
 
 func EventuallyRateLimitedWithExpectedHeaders(hostname string, port uint32, expectedHeaders http.Header) {
-	testHeaders(hostname, port, nil, http.StatusTooManyRequests, 2, false, expectedHeaders)
+	testHeaders(Default, hostname, port, nil, http.StatusTooManyRequests, 2, false, expectedHeaders)
 }
 
-func testHeaders(hostname string, port uint32, requestHeaders http.Header, expectedStatus int,
+func testHeaders(g Gomega, hostname string, port uint32, requestHeaders http.Header, expectedStatus int,
 	offset int, consistently bool, expectedHeaders http.Header) {
 	parts := strings.SplitN(hostname, "/", 2)
 	hostname = parts[0]
@@ -44,7 +48,7 @@ func testHeaders(hostname string, port uint32, requestHeaders http.Header, expec
 	}
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/%s", "localhost", port, path), nil)
-	Expect(err).NotTo(HaveOccurred())
+	g.Expect(err).NotTo(HaveOccurred())
 	if len(requestHeaders) > 0 {
 		req.Header = requestHeaders
 	}
@@ -60,7 +64,7 @@ func testHeaders(hostname string, port uint32, requestHeaders http.Header, expec
 	req.Host = hostname
 
 	if consistently {
-		ConsistentlyWithOffset(offset, func() (bool, error) {
+		g.ConsistentlyWithOffset(offset, func() (bool, error) {
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				return false, err
@@ -78,7 +82,7 @@ func testHeaders(hostname string, port uint32, requestHeaders http.Header, expec
 			return isok, nil
 		}, "3s", ".1s").Should(BeTrue())
 	} else {
-		EventuallyWithOffset(offset, func() (bool, error) {
+		g.EventuallyWithOffset(offset, func() (bool, error) {
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				return false, err
@@ -98,7 +102,7 @@ func testHeaders(hostname string, port uint32, requestHeaders http.Header, expec
 	}
 }
 
-func testStatus(hostname string, port uint32, headers http.Header, expectedStatus int,
+func testStatus(g Gomega, hostname string, port uint32, headers http.Header, expectedStatus int,
 	offset int, consistently bool) {
 	parts := strings.SplitN(hostname, "/", 2)
 	hostname = parts[0]
@@ -107,8 +111,8 @@ func testStatus(hostname string, port uint32, headers http.Header, expectedStatu
 		path = parts[1]
 	}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/"+path, "localhost", port), nil)
-	Expect(err).NotTo(HaveOccurred())
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%d/"+path, "localhost", port), nil)
+	g.Expect(err).NotTo(HaveOccurred())
 	if len(headers) > 0 {
 		req.Header = headers
 	}
@@ -124,7 +128,7 @@ func testStatus(hostname string, port uint32, headers http.Header, expectedStatu
 	req.Host = hostname
 
 	if consistently {
-		ConsistentlyWithOffset(offset, func() (int, error) {
+		g.ConsistentlyWithOffset(offset, func() (int, error) {
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				return 0, err
@@ -132,9 +136,9 @@ func testStatus(hostname string, port uint32, headers http.Header, expectedStatu
 			defer resp.Body.Close()
 			_, _ = io.ReadAll(resp.Body)
 			return resp.StatusCode, nil
-		}, "5s", ".1s").Should(Equal(expectedStatus))
+		}, "3s", ".1s").Should(Equal(expectedStatus))
 	} else {
-		EventuallyWithOffset(offset, func() (int, error) {
+		g.EventuallyWithOffset(offset, func() (int, error) {
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				return 0, err

@@ -20,16 +20,6 @@ Example:
 ENVOY_IMAGE_TAG=<version-name> make run-e2e-tests
 ```
 
-### Flags
-You can use the following flags for the `ratelimit_test.go` to turn off key features.  This is done because the Focus will be ignored and run all `BeforeEach` functions, thus creating the containers, but not tearing them down. Set to `1`.
-- DO_NOT_RUN_AEROSPIKE=1
-- DO_NOT_RUN_REDIS=1
-- DO_NOT_RUN_DYNAMO=1
-
-Also, you can run a test to validate that we can handle sending large xds snapshots over GRPC with the flag: `RUN_XDS_SCALE_TESTS`. 
-These tests are disabled by default for performance reasons but should be run on changes to the xds clients and added to any 
-nightly suites. 
-
 ### AWS Tests
 We have a setup guide for configuring the AWS credentials needed for the tests in our [Gloo E2E README](https://github.com/solo-io/gloo/blob/main/test/e2e/README.md).
 

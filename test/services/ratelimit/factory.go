@@ -27,7 +27,7 @@ func NewFactory() *Factory {
 	}
 }
 
-func (f Factory) NewInstance(address string) *Instance {
+func (f *Factory) NewInstance(address string) *Instance {
 	serverSettings := ratelimitserver.NewSettings()
 	// The number of seconds that the server will remain alive, but actively failing health checks
 	// After this time elapses, the server will exit

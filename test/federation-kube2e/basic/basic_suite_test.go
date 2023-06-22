@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/solo-io/solo-projects/test/kubeutils"
+	"github.com/solo-io/solo-projects/test/testutils"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -38,7 +39,7 @@ func TestE2e(t *testing.T) {
 	}
 
 	requiredEnvForTest := []string{
-		kubeutils.GlooLicenseKey,
+		testutils.GlooLicenseKey,
 		managementClusterEnvName,
 		remoteClusterEnvName,
 	}

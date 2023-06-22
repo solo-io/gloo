@@ -27,7 +27,7 @@ func NewFactory() *Factory {
 	}
 }
 
-func (f Factory) NewInstance(address string) *Instance {
+func (f *Factory) NewInstance(address string) *Instance {
 	serverSettings, err := extauthserver.NewSettings()
 	Expect(err).NotTo(HaveOccurred(), "failed to create extauth server settings")
 

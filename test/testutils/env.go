@@ -9,4 +9,7 @@ const (
 	// RedisBinary is used in e2e tests to specify the path to the consul binary to use for the tests
 	// See redis/factory.go for more details
 	RedisBinary = "REDIS_BINARY"
+
+	// GlooLicenseKey is the environment variable used to specify the Gloo Enterprise license key
+	GlooLicenseKey = "GLOO_LICENSE_KEY"
 )

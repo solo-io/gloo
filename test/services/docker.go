@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	. "github.com/onsi/gomega"
@@ -13,23 +12,18 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	dockerDefaultNetwork = "bridge" // if unspecified, docker containers are created on the default bridge network
+const (
+	// defaultNetwork is the default docker network driver
+	// https://docs.docker.com/network/drivers/bridge/
+	defaultNetwork = "bridge"
+
+	// cloudbuildNetwork is the docker network driver used by Google Cloudbuild
+	// https://cloud.google.com/build/docs/build-config-file-schema#network
+	cloudbuildNetwork = "cloudbuild"
 )
 
-// Extra options for running in docker
-type DockerOptions struct {
-	// Extra volume arguments
-	Volumes []string
-	// Extra env arguments.
-	// see https://docs.docker.com/engine/reference/run/#env-environment-variables for more info
-	Env []string
-}
-
-// todo-(jake): lets build a nice factory of containers with an abstraction like in graphql_container.go
-
 func RunContainer(containerName string, args []string) error {
-	updatedContainerName := getUpdatedContainerName(containerName)
+	updatedContainerName := GetUpdatedContainerName(containerName)
 	runArgs := []string{"run", "--name", updatedContainerName}
 	runArgs = append(runArgs, args...)
 	fmt.Fprintln(ginkgo.GinkgoWriter, args)
@@ -43,9 +37,9 @@ func RunContainer(containerName string, args []string) error {
 	return nil
 }
 
-// Returns an empty string if the container does not exist
+// ContainerExistsWithName returns an empty string if the container does not exist
 func ContainerExistsWithName(containerName string) string {
-	updatedContainerName := getUpdatedContainerName(containerName)
+	updatedContainerName := GetUpdatedContainerName(containerName)
 	cmd := exec.Command("docker", "ps", "-aq", "-f", "name=^/"+updatedContainerName+"$")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -55,7 +49,7 @@ func ContainerExistsWithName(containerName string) string {
 }
 
 func ExecOnContainer(containerName string, args []string) ([]byte, error) {
-	updatedContainerName := getUpdatedContainerName(containerName)
+	updatedContainerName := GetUpdatedContainerName(containerName)
 	arguments := []string{"exec", updatedContainerName}
 	arguments = append(arguments, args...)
 	cmd := exec.Command("docker", arguments...)
@@ -76,7 +70,7 @@ func MustKillAndRemoveContainer(containerName string) {
 }
 
 func KillAndRemoveContainer(containerName string) error {
-	updatedContainerName := getUpdatedContainerName(containerName)
+	updatedContainerName := GetUpdatedContainerName(containerName)
 	cmd := exec.Command("docker", "rm", "-f", updatedContainerName)
 	cmd.Stdout = ginkgo.GinkgoWriter
 	cmd.Stderr = ginkgo.GinkgoWriter
@@ -84,12 +78,12 @@ func KillAndRemoveContainer(containerName string) error {
 	if err != nil {
 		return errors.Wrap(err, "Error stopping and removing container "+containerName)
 	}
-	return waitUntilContainerRemoved(containerName)
+	return WaitUntilContainerRemoved(containerName)
 }
 
 // poll docker for removal of the container named containerName - block until
 // successful or fail after a small number of retries
-func waitUntilContainerRemoved(containerName string) error {
+func WaitUntilContainerRemoved(containerName string) error {
 	// if this function returns nil, it means the container is still running
 	isContainerRemoved := func() bool {
 		cmd := exec.Command("docker", "inspect", containerName)
@@ -115,22 +109,30 @@ func RunningInDocker() bool {
 
 func GetDockerHost(containerName string) string {
 	if RunningInDocker() {
-		return getUpdatedContainerName(containerName)
+		return GetUpdatedContainerName(containerName)
 	} else {
 		return "127.0.0.1"
 	}
 }
 
 func GetContainerNetwork() string {
-	network := dockerDefaultNetwork
+	network := defaultNetwork
 	if RunningInDocker() {
-		// assume in CI
-		network = "cloudbuild"
+		if !runningInCloudbuild() {
+			// We error loudly here so that if/when we move off of Google Cloudbuild, we can clean up this logic
+			ginkgo.Fail("Running in docker but not in cloudbuild. Could not determine docker network")
+		}
+		network = cloudbuildNetwork
 	}
 	return network
 }
 
-func getUpdatedContainerName(containerName string) string {
+func runningInCloudbuild() bool {
+	gcloudId := os.Getenv("GCLOUD_BUILD_ID")
+	return len(gcloudId) > 0
+}
+
+func GetUpdatedContainerName(containerName string) string {
 	gcloudId := os.Getenv("GCLOUD_BUILD_ID")
 	if len(gcloudId) > 0 {
 		// we are running in CI - let's suffix our container with gcloud build ID
@@ -139,22 +141,4 @@ func getUpdatedContainerName(containerName string) string {
 		return containerName + "_" + gcloudId
 	}
 	return containerName
-}
-
-// If docker containers are running on the same host and their own docker cli is configured on the same
-// docker daemon (e.g., google cloudbuild), we can determine their IPs (even if they're on the default bridge network)
-
-// This function is unused for now -- obsolete because docker containers started on the same network
-// (except the default bridge network) are addressable by hostname (i.e., their container name)
-func GetSiblingDockerIp(containerName, containerNetwork string) string {
-	inspect := "docker inspect " + containerName + " -f \"{{json .NetworkSettings.Networks." + containerNetwork + ".IPAddress }}\""
-	cmd := exec.Command("bash", "-c", inspect)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Printf("cmd.Run() [%s] failed with %s\n", inspect, err)
-	}
-	siblingIp := strings.TrimSuffix(strings.TrimSpace(string(out)), "\n")
-	siblingIp = strings.ReplaceAll(siblingIp, "\"", "")
-	fmt.Printf("determined sibling docker ip: %s for container %s\n", siblingIp, containerName)
-	return siblingIp
 }
