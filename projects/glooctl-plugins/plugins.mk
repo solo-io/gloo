@@ -37,3 +37,15 @@ check-gsutil:
 ifeq (, $(shell which gsutil))
 	$(error "No gsutil in $(PATH), follow the instructions at https://cloud.google.com/sdk/docs/install to install")
 endif
+
+upload-glooctl-plugins: check-gsutil build-fed-cli
+	gsutil -m cp \
+	$(OUTPUT_DIR)/glooctl-fed-linux-$(GOARCH) \
+	$(OUTPUT_DIR)/glooctl-fed-darwin-$(GOARCH) \
+	$(OUTPUT_DIR)/glooctl-fed-windows-$(GOARCH).exe \
+	gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/$(VERSION)/
+ifeq ($(ON_DEFAULT_BRANCH), "true")
+	# We're on latest default git branch, so push /latest and updated install script
+	gsutil -m cp -r gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/$(VERSION)/* gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/latest/
+	gsutil cp projects/glooctl-plugins/fed/install/install.sh gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/install.sh
+endif

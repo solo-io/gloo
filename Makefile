@@ -1,5 +1,4 @@
 include Makefile.docker
-include $(shell pwd)/projects/glooctl-plugins/plugins.mk
 
 # https://www.gnu.org/software/make/manual/html_node/Special-Variables.html#Special-Variables
 .DEFAULT_GOAL := help
@@ -1341,6 +1340,13 @@ package-gloo-fed-chart: gloofed-helm-template
 	helm package --destination $(HELM_SYNC_DIR_GLOO_FED) $(GLOO_FED_CHART_DIR)
 
 #----------------------------------------------------------------------------------
+# Imports
+#----------------------------------------------------------------------------------
+# We intentionally import plugins.mk AFTER defining variables in this Makefile
+# It is an anti-pattern, but plugins.mk relies on certain variables being defined/initialized
+include $(shell pwd)/projects/glooctl-plugins/plugins.mk
+
+#----------------------------------------------------------------------------------
 # Release
 #----------------------------------------------------------------------------------
 .PHONY: publish-dependencies
@@ -1408,17 +1414,7 @@ publish-helm-chart: init-helm
 	sleep 2; \
 	done
 
-publish-glooctl-plugins: check-gsutil build-fed-cli
-	gsutil -m cp \
-	$(OUTPUT_DIR)/glooctl-fed-linux-$(GOARCH) \
-	$(OUTPUT_DIR)/glooctl-fed-darwin-$(GOARCH) \
-	$(OUTPUT_DIR)/glooctl-fed-windows-$(GOARCH).exe \
-	gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/$(VERSION)/
-ifeq ($(ON_DEFAULT_BRANCH), "true")
-	# We're on latest default git branch, so push /latest and updated install script
-	gsutil -m cp -r gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/$(VERSION)/* gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/latest/
-	gsutil cp projects/glooctl-plugins/fed/install/install.sh gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/install.sh
-endif
+publish-glooctl-plugins: upload-glooctl-plugins
 
 endif # release target definitions
 
