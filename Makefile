@@ -1349,7 +1349,7 @@ package-gloo-fed-chart: gloofed-helm-template
 .PHONY: publish-helm-chart
 .PHONY: publish-glooctl-plugins
 
-# controller variable for the "Publish Artifacts" section.  Defines which targets exist.  Possible Values: NONE, RELEASE
+# controller variable for the "Publish Artifacts" section.  Defines which targets exist.  Possible Values: NONE, PULL_REQUEST, RELEASE
 PUBLISH_CONTEXT ?= NONE
 
 # gate all release target definitions in one place
@@ -1365,6 +1365,7 @@ GLOO_FED_RBAC_VALIDATING_WEBHOOK_VERSION=$(VERSION)@$(shell docker manifest insp
 
 DEPS_DIR=$(OUTPUT_DIR)/dependencies/$(VERSION)
 DEPS_BUCKET=gloo-ee-dependencies
+
 publish-dependencies:
 	mkdir -p $(DEPS_DIR)
 

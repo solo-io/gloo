@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5114
+    resolvesIssue: true
+    description: >-
+      Fix the logic to set the PUBLISH_CONTEXT variable properly so that our
+      conditional publishing logic works as expected. Added a test which failed before
+      this change, and passes after this change.

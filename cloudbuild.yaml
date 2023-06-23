@@ -22,15 +22,5 @@ steps:
 # timeout for the final step, and the default (10m) is not enough.
 timeout: 3600s
 
-tags: ["solo-projects"]
-options:
-  machineType: "N1_HIGHCPU_32"
-  env:
-    - "TAGGED_VERSION=$TAG_NAME"
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
-    - "HELM_HOME=/root/.helm"
-  volumes:
-    - name: "gopath"
-      path: "/go"
-    - name: "ssh"
-      path: "/root/.ssh"
+tags:
+- "solo-projects"

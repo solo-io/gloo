@@ -124,7 +124,6 @@ steps:
 - name: "gcr.io/solo-public/go-mod-make:0.6.2"
   args: ["publish-docker-retag"]
   env:
-    - "TEST_ASSET_ID=$_PR_NUM"
     - "ORIGINAL_IMAGE_REGISTRY=quay.io/solo-io"
     - "IMAGE_REGISTRY=gcr.io/gloo-edge"
   dir: *dir
@@ -143,11 +142,14 @@ secrets:
 # timeout for the final step, and the default (10m) is not enough.
 timeout: 3600s
 
-tags: ["solo-projects"]
+tags:
+  - "solo-projects"
+
 options:
   machineType: "N1_HIGHCPU_32"
   env:
     - "TAGGED_VERSION=$TAG_NAME"
+    - "TEST_ASSET_ID=$_PR_NUM"
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
     - "HELM_HOME=/root/.helm"
   volumes:

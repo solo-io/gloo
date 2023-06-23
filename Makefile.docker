@@ -15,16 +15,16 @@ IMAGE_REGISTRY ?= quay.io/solo-io
 GOLANG_IMAGE_NAME = golang:$(shell go version | egrep -o '([0-9]+\.[0-9]+)')
 GOLANG_ALPINE_IMAGE_NAME = $(GOLANG_IMAGE_NAME)-alpine
 
-# TODO(gunnar-solo): remove translation between TAGGED_VERSION and PUBLISH_CONTEXT
 ifeq ($(TAGGED_VERSION),)
 	ifeq ($(TEST_ASSET_ID),)
 	  VERSION ?= $(shell git describe --tags --dirty | cut -c 2-)
 	else
 	  # If we want to create test assets, set version to be PR-unique rather than commit-unique for charts and images
+	  PUBLISH_CONTEXT := PULL_REQUEST
 	  VERSION ?= $(shell git describe --tags --abbrev=0 | cut -c 2-)-$(TEST_ASSET_ID)
 	endif
 else
-	PUBLISH_CONTEXT := "RELEASE"
+	PUBLISH_CONTEXT := RELEASE
 	VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
 endif
 
