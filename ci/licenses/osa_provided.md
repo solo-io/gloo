@@ -5,17 +5,17 @@ Name|Version|License
 [avast/retry-go](https://github.com/avast/retry-go)|v2.4.3+incompatible|MIT License
 [retry-go/v4](https://github.com/avast/retry-go)|v4.3.3|MIT License
 [aws/aws-sdk-go](https://github.com/aws/aws-sdk-go)|v1.43.16|Apache License 2.0
-[xds/go](https://github.com/cncf/xds)|v0.0.0-20220520190051-1e77728a1eaa|Apache License 2.0
+[xds/go](https://github.com/cncf/xds)|v0.0.0-20230310173818-32f1caf87195|Apache License 2.0
 [docker/distribution](https://github.com/docker/distribution)|v2.8.2+incompatible|Apache License 2.0
 [envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.11.0|Apache License 2.0
-[envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v0.9.1|Apache License 2.0
+[envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v0.10.0|Apache License 2.0
 [fgrosse/zaptest](https://github.com/fgrosse/zaptest)|v1.1.0|MIT License
 [gertd/go-pluralize](https://github.com/gertd/go-pluralize)|v0.1.1|MIT License
 [getkin/kin-openapi](https://github.com/getkin/kin-openapi)|v0.80.0|MIT License
 [ghodss/yaml](https://github.com/ghodss/yaml)|v1.0.1-0.20190212211648-25d852aebe32|MIT License
 [gin-gonic/gin](https://github.com/gin-gonic/gin)|v1.7.7|MIT License
 [go-errors/errors](https://github.com/go-errors/errors)|v1.0.1|MIT License
-[go-logr/logr](https://github.com/go-logr/logr)|v1.2.3|Apache License 2.0
+[go-logr/logr](https://github.com/go-logr/logr)|v1.2.4|Apache License 2.0
 [go-logr/zapr](https://github.com/go-logr/zapr)|v1.2.3|Apache License 2.0
 [go-openapi/inflect](https://github.com/go-openapi/inflect)|v0.19.0|MIT License
 [go-openapi/swag](https://github.com/go-openapi/swag)|v0.22.3|Apache License 2.0
@@ -27,7 +27,7 @@ Name|Version|License
 [graphql-go/graphql](https://github.com/graphql-go/graphql)|v0.8.1|MIT License
 [grpc-ecosystem/go-grpc-middleware](https://github.com/grpc-ecosystem/go-grpc-middleware)|v1.3.0|Apache License 2.0
 [iancoleman/strcase](https://github.com/iancoleman/strcase)|v0.2.0|MIT License
-[jhump/protoreflect](https://github.com/jhump/protoreflect)|v1.6.1|Apache License 2.0
+[jhump/protoreflect](https://github.com/jhump/protoreflect)|v1.15.1|Apache License 2.0
 [kelseyhightower/envconfig](https://github.com/kelseyhightower/envconfig)|v1.4.0|MIT License
 [olekukonko/tablewriter](https://github.com/olekukonko/tablewriter)|v0.0.5|MIT License
 [ginkgo/v2](https://github.com/onsi/ginkgo)|v2.9.1|MIT License
@@ -35,18 +35,18 @@ Name|Version|License
 [opencontainers/go-digest](https://github.com/opencontainers/go-digest)|v1.0.0-rc1|Apache License 2.0
 [pkg/errors](https://github.com/pkg/errors)|v0.9.1|BSD 2-clause "Simplified" License
 [rotisserie/eris](https://github.com/rotisserie/eris)|v0.5.0|MIT License
-[spf13/cobra](https://github.com/spf13/cobra)|v1.6.1|Apache License 2.0
+[spf13/cobra](https://github.com/spf13/cobra)|v1.7.0|Apache License 2.0
 [spf13/pflag](https://github.com/spf13/pflag)|v1.0.5|BSD 3-clause "New" or "Revised" License
 [spf13/viper](https://github.com/spf13/viper)|v1.12.0|MIT License
 [wundergraph/graphql-go-tools](https://github.com/wundergraph/graphql-go-tools)|v1.61.0|MIT License
 [go.opencensus.io](https://go.opencensus.io)|v0.24.0|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.24.0|MIT License
 [x/exp](https://golang.org/x/exp)|v0.0.0-20220921164117-439092de6870|BSD 3-clause "New" or "Revised" License
-[x/net](https://golang.org/x/net)|v0.8.0|BSD 3-clause "New" or "Revised" License
-[x/sync](https://golang.org/x/sync)|v0.1.0|BSD 3-clause "New" or "Revised" License
+[x/net](https://golang.org/x/net)|v0.10.0|BSD 3-clause "New" or "Revised" License
+[x/sync](https://golang.org/x/sync)|v0.2.0|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
-[google.golang.org/grpc](https://google.golang.org/grpc)|v1.52.0|Apache License 2.0
-[google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.28.1|BSD 3-clause "New" or "Revised" License
+[google.golang.org/grpc](https://google.golang.org/grpc)|v1.55.0|Apache License 2.0
+[google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.30.0|BSD 3-clause "New" or "Revised" License
 [square/go-jose.v2](https://gopkg.in/square/go-jose.v2)|v2.6.0|Apache License 2.0
 [gopkg.in/yaml.v2](https://gopkg.in/yaml.v2)|v2.4.0|Apache License 2.0
 [helm/v3](https://helm.sh/helm/v3)|v3.11.2|Apache License 2.0
