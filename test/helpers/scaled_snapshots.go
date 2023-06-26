@@ -210,8 +210,8 @@ func tcpListener() *v1.Listener {
 								Single: &v1.Destination{
 									DestinationType: &v1.Destination_Upstream{
 										Upstream: &core.ResourceRef{
-											Name:      upMeta(1).GetName(),
-											Namespace: upMeta(1).GetNamespace(),
+											Name:      upMeta(0).GetName(),
+											Namespace: upMeta(0).GetNamespace(),
 										},
 									},
 								},
