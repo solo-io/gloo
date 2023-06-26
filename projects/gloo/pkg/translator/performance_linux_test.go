@@ -192,8 +192,8 @@ var basicSnap = &v1snap.ApiSnapshot{
 			},
 		},
 	},
-	Endpoints: []*v1.Endpoint{gloohelpers.Endpoint(1)},
-	Upstreams: []*v1.Upstream{gloohelpers.Upstream(1)},
+	Endpoints: []*v1.Endpoint{gloohelpers.Endpoint(0)},
+	Upstreams: []*v1.Upstream{gloohelpers.Upstream(0)},
 }
 
 var basicConfig = benchmarkConfig{
