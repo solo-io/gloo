@@ -36,6 +36,8 @@ func NewScaledSnapshotBuilder() *ScaledSnapshotBuilder {
 	}
 }
 
+// WithInjectedSnapshot takes a snapshot object to be returned directly by Build()
+// All other settings on a builder with an InjectedSnapshot will be ignored
 func (b *ScaledSnapshotBuilder) WithInjectedSnapshot(snap *gloosnapshot.ApiSnapshot) *ScaledSnapshotBuilder {
 	b.injectedSnap = snap
 
@@ -61,6 +63,8 @@ func (b *ScaledSnapshotBuilder) WithEndpointBuilder(eb *EndpointBuilder) *Scaled
 	b.epBuilder = eb
 	return b
 }
+
+/* Getter funcs to be used by the description generator */
 
 func (b *ScaledSnapshotBuilder) HasInjectedSnapshot() bool {
 	return b.injectedSnap != nil
