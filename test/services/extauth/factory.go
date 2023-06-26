@@ -3,6 +3,8 @@ package extauth
 import (
 	"sync/atomic"
 
+	"github.com/solo-io/gloo/test/services"
+
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/ext-auth-service/pkg/service"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
@@ -15,6 +17,8 @@ const (
 	// basePort is the starting port for the ext auth server
 	// This was the previous static port used in tests, but it is not a special value
 	basePort = uint32(9100)
+
+	ServiceName = "ext-auth-service"
 )
 
 type Factory struct {
@@ -48,8 +52,8 @@ func (f *Factory) NewInstance(address string) *Instance {
 		UserIdKey: "authUserId",
 	}
 	serverSettings.LogSettings = extauthserver.LogSettings{
-		LoggerName: "ext-auth-service",
-		DebugMode:  "true",
+		LoggerName: ServiceName,
+		LogLevel:   services.GetLogLevel(ServiceName).String(),
 	}
 
 	return &Instance{

@@ -1,0 +1,23 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.15.0-beta15
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5006
+    resolvesIssue: false
+    description: >-
+      Expose configuration to control verbosity of service logging in e2e tests
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5126
+    resolvesIssue: true
+    description: >-
+      Demonstrate kube tests do not run on draft PRs, and that we can auto-succeed
+      then with a comment in the changelog
+      skipCI-kube-tests:true
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4960
+    resolvesIssue: false
+    description: >-
+      Add do-not-submit.sh to prevent PRs from being submitted to the main branch.
+      This will run as part of codegen, just like its solved in Gloo OSS

@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"go.uber.org/zap/zapcore"
+
 	"github.com/solo-io/gloo/test/services/envoy"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -30,6 +32,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/helpers"
+	glooservices "github.com/solo-io/gloo/test/services"
 	"github.com/solo-io/gloo/test/v1helpers"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -206,6 +209,7 @@ var _ = Describe("graphql", func() {
 	AfterEach(func() {
 		cancel()
 	})
+
 	Context("With envoy", func() {
 		var (
 			envoyInstance                             *envoy.Instance
@@ -215,6 +219,10 @@ var _ = Describe("graphql", func() {
 
 			proxy      *gloov1.Proxy
 			graphqlApi *v1beta1.GraphQLApi
+
+			// This test relies on running the gateway-proxy with debug logging enabled
+			// This variable allows us to reset the original log level after the test
+			customAfterEach func()
 		)
 
 		var testRequestWithHeaders = func(result string, headers map[string]string) {
@@ -294,6 +302,12 @@ var _ = Describe("graphql", func() {
 		}
 
 		BeforeEach(func() {
+			originalProxyLogLevel := glooservices.GetLogLevel(envoy.ServiceName)
+			glooservices.SetLogLevel(envoy.ServiceName, zapcore.DebugLevel)
+			customAfterEach = func() {
+				glooservices.SetLogLevel(envoy.ServiceName, originalProxyLogLevel)
+			}
+
 			envoyInstance = envoyFactory.NewInstance()
 			envoyPort = envoyInstance.HttpPort
 			err := envoyInstance.Run(testClients.GlooPort)
@@ -338,6 +352,8 @@ var _ = Describe("graphql", func() {
 			configureProxy()
 		})
 		AfterEach(func() {
+			customAfterEach()
+
 			envoyInstance.Clean()
 		})
 		Context("route rules", func() {

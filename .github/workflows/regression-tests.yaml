@@ -9,11 +9,41 @@ env:
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
 jobs:
+  prepare_env:
+    name: Prepare Environment
+    runs-on: ubuntu-22.04
+    outputs:
+      should-auto-succeed-regression-tests: ${{ steps.run-strategy.outputs.auto_succeed }}
+    steps:
+      - name: Cancel Previous Actions
+        uses: styfle/cancel-workflow-action@0.11.0
+        with:
+          access_token: ${{ github.token }}
+      - id: checkout-code
+        uses: actions/checkout@v3
+        with:
+          # We require gathering the branch and tag history since we rely on a `git diff`
+          # which compares the state of two branches
+          fetch-depth: 0
+      - id: process-skip-directives
+        uses: ./.github/workflows/composite-actions/process-skip-directives
+        with:
+          base-ref: ${{ github.base_ref }}
+      - id: run-strategy
+        name: Determine Test Run Strategy
+        run: |
+          skip_kube_tests=${{ steps.process-skip-directives.outputs.skip-kube-tests }}
+          if [[ ! -z $skip_kube_tests && $skip_kube_tests = true ]] ; then
+            echo "auto_succeed=true" >> $GITHUB_OUTPUT
+          fi
+
   gloo_fed_e2e_tests:
     # when a job runs with a matrix, its name changes automatically.  HOWEVER, it can be dynamically computed
     # based on matrix variables.  Doing this (below) lets us satisfy the admin requirement of a test called
     # "Gloo Fed E2E Tests" to run during a PR's CI
     name: ${{matrix.name-helper}}
+    needs: prepare_env
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -22,7 +52,13 @@ jobs:
         kube-version: [{ node: 'v1.26.3@sha256:61b92f38dff6ccc29969e7aa154d34e38b89443af1a2c14e6cfbd2df6419c66f', kubectl: 'v1.26.4', kind: 'v0.18.0', helm: 'v3.11.2' }]
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/workflows/composite-actions/fed-regression-tests
+      - id: auto-succeed-tests
+        if: needs.prepare_env.outputs.should-auto-succeed-regression-tests == 'true'
+        run: |
+          echo "Gloo Fed Regression tests auto-succeeded"
+      - id: run-tests
+        if: needs.prepare_env.outputs.should-auto-succeed-regression-tests != 'true'
+        uses: ./.github/workflows/composite-actions/fed-regression-tests
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
@@ -34,6 +70,8 @@ jobs:
     # based on matrix variables.  Doing this (below) lets us satisfy the admin requirement of a test called
     # "Gloo Fed Canary Tests" to run during a PR's CI
     name: ${{matrix.name-helper}}
+    needs: prepare_env
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -42,7 +80,13 @@ jobs:
         kube-version: [{ node: 'v1.26.3@sha256:61b92f38dff6ccc29969e7aa154d34e38b89443af1a2c14e6cfbd2df6419c66f', kubectl: 'v1.26.4', kind: 'v0.18.0', helm: 'v3.11.2' }]
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/workflows/composite-actions/canary-regression-tests
+      - id: auto-succeed-tests
+        if: needs.prepare_env.outputs.should-auto-succeed-regression-tests == 'true'
+        run: |
+          echo "Gloo Fed Canary tests auto-succeeded"
+      - id: run-tests
+        if: needs.prepare_env.outputs.should-auto-succeed-regression-tests != 'true'
+        uses: ./.github/workflows/composite-actions/canary-regression-tests
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
@@ -51,6 +95,8 @@ jobs:
 
   regression_tests:
     name: k8s regression tests (${{matrix.kube-e2e-test-type.test}}, ${{matrix.kube-e2e-test-type.use-fips}})
+    needs: prepare_env
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -65,7 +111,13 @@ jobs:
             kube-e2e-test-type: {test: 'upgrade', use-fips: 'false'}
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/workflows/composite-actions/regression-tests
+      - id: auto-succeed-tests
+        if: needs.prepare_env.outputs.should-auto-succeed-regression-tests == 'true'
+        run: |
+          echo "Regression tests auto-succeeded"
+      - id: run-tests
+        if: needs.prepare_env.outputs.should-auto-succeed-regression-tests != 'true'
+        uses: ./.github/workflows/composite-actions/regression-tests
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}

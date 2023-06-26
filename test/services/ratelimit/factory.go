@@ -3,6 +3,8 @@ package ratelimit
 import (
 	"sync/atomic"
 
+	"github.com/solo-io/gloo/test/services"
+
 	"github.com/solo-io/rate-limiter/pkg/cache/aerospike"
 	"github.com/solo-io/rate-limiter/pkg/cache/dynamodb"
 	"github.com/solo-io/rate-limiter/pkg/cache/redis"
@@ -15,6 +17,8 @@ const (
 	// basePort is the starting port for the rate limit server
 	// This was the previous static port used in tests, but it is not a special value
 	basePort = uint32(18081)
+
+	ServiceName = "rate-limit-service"
 )
 
 type Factory struct {
@@ -37,8 +41,8 @@ func (f *Factory) NewInstance(address string) *Instance {
 	serverSettings.RateLimitPort = int(advancePort(&f.basePort))
 	serverSettings.ReadyPort = int(advancePort(&f.basePort))
 	serverSettings.LogSettings = ratelimitserver.LogSettings{
-		LoggerName: "rate-limit-service",
-		DebugMode:  "true",
+		LoggerName: ServiceName,
+		LogLevel:   services.GetLogLevel(ServiceName).String(),
 	}
 	serverSettings.RedisSettings = redis.Settings{}
 	serverSettings.DynamoDbSettings = dynamodb.Settings{}

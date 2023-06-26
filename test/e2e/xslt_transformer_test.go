@@ -9,6 +9,9 @@ import (
 	"strings"
 	"time"
 
+	glooservices "github.com/solo-io/gloo/test/services"
+	"go.uber.org/zap/zapcore"
+
 	"github.com/solo-io/gloo/test/services/envoy"
 
 	"github.com/solo-io/gloo/test/helpers"
@@ -44,9 +47,18 @@ var _ = Describe("XSLT Transformer E2E", func() {
 		testUpstream  *v1helpers.TestUpstream
 		envoyPort     uint32
 		transform     *transformation.TransformationStages
+
+		// This test relies on running the gateway-proxy with debug logging enabled
+		// This variable allows us to reset the original log level after the test
+		customAfterEach func()
 	)
 
 	BeforeEach(func() {
+		originalProxyLogLevel := glooservices.GetLogLevel(envoy.ServiceName)
+		glooservices.SetLogLevel(envoy.ServiceName, zapcore.DebugLevel)
+		customAfterEach = func() {
+			glooservices.SetLogLevel(envoy.ServiceName, originalProxyLogLevel)
+		}
 
 		logger := zaptest.LoggerWriter(GinkgoWriter)
 		contextutils.SetFallbackLogger(logger.Sugar())
@@ -112,6 +124,8 @@ var _ = Describe("XSLT Transformer E2E", func() {
 	}
 
 	AfterEach(func() {
+		customAfterEach()
+
 		envoyInstance.Clean()
 		cancel()
 	})
