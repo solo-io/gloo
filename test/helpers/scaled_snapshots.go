@@ -170,7 +170,7 @@ func route(i int) *v1.Route {
 func routes(n int) []*v1.Route {
 	routes := make([]*v1.Route, n)
 	for i := 0; i < n; i++ {
-		routes[i] = route(i + 1) // names are 1-indexed
+		routes[i] = route(i)
 	}
 	return routes
 }
