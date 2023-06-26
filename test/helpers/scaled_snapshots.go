@@ -20,6 +20,8 @@ import (
 // contains a builder for each sub-resource type which is responsible for building instances of that resource
 // Additional fields should be added as needed
 type ScaledSnapshotBuilder struct {
+	injectedSnap *gloosnapshot.ApiSnapshot
+
 	epCount int
 	usCount int
 
@@ -32,6 +34,12 @@ func NewScaledSnapshotBuilder() *ScaledSnapshotBuilder {
 		epBuilder: NewEndpointBuilder(),
 		usBuilder: NewUpstreamBuilder(),
 	}
+}
+
+func (b *ScaledSnapshotBuilder) WithInjectedSnapshot(snap *gloosnapshot.ApiSnapshot) *ScaledSnapshotBuilder {
+	b.injectedSnap = snap
+
+	return b
 }
 
 func (b *ScaledSnapshotBuilder) WithUpstreamCount(n int) *ScaledSnapshotBuilder {
@@ -54,9 +62,25 @@ func (b *ScaledSnapshotBuilder) WithEndpointBuilder(eb *EndpointBuilder) *Scaled
 	return b
 }
 
+func (b *ScaledSnapshotBuilder) HasInjectedSnapshot() bool {
+	return b.injectedSnap != nil
+}
+
+func (b *ScaledSnapshotBuilder) UpstreamCount() int {
+	return b.usCount
+}
+
+func (b *ScaledSnapshotBuilder) EndpointCount() int {
+	return b.epCount
+}
+
 // Build generates a snapshot populated with the specified number of each resource for the builder, using the
 // sub-resource builders to build each sub-resource
 func (b *ScaledSnapshotBuilder) Build() *gloosnapshot.ApiSnapshot {
+	if b.injectedSnap != nil {
+		return b.injectedSnap
+	}
+
 	endpointList := make(v1.EndpointList, b.epCount)
 	for i := 0; i < b.epCount; i++ {
 		endpointList[i] = b.epBuilder.Build(i)

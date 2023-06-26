@@ -9,21 +9,21 @@ import (
 
 	"github.com/solo-io/gloo/test/testutils"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
+	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/upstreams/consul/mocks"
+	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/gloo/test/ginkgo/labels"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 
 	"github.com/onsi/gomega/types"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 
 	"github.com/golang/mock/gomock"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
-	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
-	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/upstreams/consul/mocks"
-	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	gloohelpers "github.com/solo-io/gloo/test/helpers"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
@@ -110,7 +110,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 			Expect(apiSnap.Proxies).NotTo(BeEmpty())
 			proxy = apiSnap.Proxies[0]
 
-			desc := generateDesc(apiSnap, config, labels...)
+			desc := generateDesc(snapBuilder, config, labels...)
 
 			experiment := gmeasure.NewExperiment(fmt.Sprintf("Experiment - %s", desc))
 
@@ -152,7 +152,7 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 			Expect(durations).Should(And(config.benchmarkMatchers...))
 		},
 		generateDesc, // generate descriptions for table entries with nil descriptions
-		Entry("basic", basicSnap, basicConfig),
+		Entry("basic", gloohelpers.NewScaledSnapshotBuilder().WithInjectedSnapshot(basicSnap), basicConfig),
 		Entry(nil, gloohelpers.NewScaledSnapshotBuilder().WithUpstreamCount(10).WithEndpointCount(1), basicConfig, "upstream scale"),
 		Entry(nil, gloohelpers.NewScaledSnapshotBuilder().WithUpstreamCount(1000).WithEndpointCount(1), oneKUpstreamsConfig, "upstream scale"),
 		Entry(nil, gloohelpers.NewScaledSnapshotBuilder().WithUpstreamCount(1).WithEndpointCount(10), basicConfig, "endpoint scale"),
@@ -165,14 +165,18 @@ var _ = Describe("Translation - Benchmarking Tests", Serial, Label(labels.Perfor
 	)
 })
 
-func generateDesc(apiSnap *v1snap.ApiSnapshot, _ benchmarkConfig, labels ...string) string {
+func generateDesc(b *gloohelpers.ScaledSnapshotBuilder, _ benchmarkConfig, labels ...string) string {
 	labelPrefix := ""
 	if len(labels) > 0 {
 		labelPrefix = fmt.Sprintf("(%s) ", strings.Join(labels, ", "))
 	}
 
+	if b.HasInjectedSnapshot() {
+		return fmt.Sprintf("%sinjected snapshot", labelPrefix)
+	}
+
 	// If/when additional Snapshot fields are included in testing, the description should be updated accordingly
-	return fmt.Sprintf("%s%d endpoint(s), %d upstream(s)", labelPrefix, len(apiSnap.Endpoints), len(apiSnap.Upstreams))
+	return fmt.Sprintf("%s%d endpoint(s), %d upstream(s)", labelPrefix, b.EndpointCount(), b.UpstreamCount())
 }
 
 // Test assets: Add blocks for logical groupings of tests, including:
