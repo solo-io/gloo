@@ -103,6 +103,7 @@ type TestContext struct {
 	cancel        context.CancelFunc
 	envoyInstance *envoy.Instance
 
+	runSettings *gloov1.Settings
 	runOptions  *services.RunOptions
 	testClients services.TestClients
 
@@ -127,6 +128,7 @@ func (c *TestContext) BeforeEach() {
 			DisableUds:     true,
 		},
 	}
+	c.runSettings = &gloov1.Settings{}
 
 	vsToTestUpstream := helpers.NewVirtualServiceBuilder().
 		WithName(DefaultVirtualServiceName).
@@ -163,6 +165,8 @@ func (c *TestContext) AfterEach() {
 func (c *TestContext) JustBeforeEach() {
 	ginkgo.By("TestContext.JustBeforeEach: Running Gloo and Envoy, writing resource snapshot to storage")
 
+	c.runOptions.Settings = c.runSettings
+
 	// Run Gloo
 	c.testClients = glooe_services.RunGlooGatewayUdsFds(c.Ctx(), c.runOptions)
 
@@ -183,11 +187,14 @@ func (c *TestContext) JustAfterEach() {
 	// That is because each test uses its own InMemoryCache
 }
 
-// SetRunSettings can be used to modify the runtime Settings object for a test
+// UpdateRunSettings can be used to modify the runtime Settings object for a test
 // This should be called after the TestContext.BeforeEach (when the default settings are applied)
 // and before the TestContext.JustBeforeEach (when the settings are consumed)
-func (c *TestContext) SetRunSettings(settings *gloov1.Settings) {
-	c.runOptions.Settings = settings
+func (c *TestContext) UpdateRunSettings(mutator func(*gloov1.Settings)) {
+	if c.runSettings == nil {
+		c.runSettings = &gloov1.Settings{}
+	}
+	mutator(c.runSettings)
 }
 
 // SetRunServices can be used to modify the services (gloo, fds, uds) which will run for a test
@@ -326,19 +333,10 @@ func (c *TestContext) GetHttpsRequestBuilder() *testutils.HttpRequestBuilder {
 type TestContextWithExtensions struct {
 	*TestContext
 
-	runSettings *gloov1.Settings
-
 	// The set of extensions that this test is using
 	// If an extension is not used, it will be nil
 	rateLimitExtension *rateLimitExtension
 	extAuthExtension   *extAuthExtension
-}
-
-func (e *TestContextWithExtensions) UpdateRunSettings(mutator func(*gloov1.Settings)) {
-	if e.runSettings == nil {
-		e.runSettings = &gloov1.Settings{}
-	}
-	mutator(e.runSettings)
 }
 
 func (e *TestContextWithExtensions) BeforeEach() {
@@ -353,8 +351,6 @@ func (e *TestContextWithExtensions) BeforeEach() {
 }
 
 func (e *TestContextWithExtensions) JustBeforeEach() {
-	e.SetRunSettings(e.runSettings)
-
 	e.TestContext.JustBeforeEach()
 
 	// The Extension services will only report healthy once they connect to Gloo

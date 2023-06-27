@@ -1,13 +1,13 @@
-package e2e_test
+package extauth_test
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/solo-io/gloo/test/services/envoy"
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/gloo/test/testutils"
+	"github.com/solo-io/solo-projects/test/e2e"
 
-	"io"
-	"net"
 	"net/http"
 	"strings"
 
@@ -17,22 +17,13 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 
 	envoy_service_auth_v3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
-	"github.com/fgrosse/zaptest"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-projects/test/v1helpers"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	"github.com/solo-io/solo-projects/test/services"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 var _ = Describe("External auth with multiple auth servers", func() {
@@ -49,50 +40,27 @@ var _ = Describe("External auth with multiple auth servers", func() {
 	// (meaning that only a single ext_authz filter was enabled)
 
 	var (
-		ctx           context.Context
-		cancel        context.CancelFunc
-		testClients   services.TestClients
-		envoyInstance *envoy.Instance
-		envoyPort     uint32
-
-		cache    memory.InMemoryResourceCache
-		settings *gloov1.Settings
+		testContext *e2e.TestContext
 	)
 
 	BeforeEach(func() {
-		ctx, cancel = context.WithCancel(context.Background())
-
-		logger := zaptest.LoggerWriter(GinkgoWriter)
-		contextutils.SetFallbackLogger(logger.Sugar())
-
-		ctx, cancel = context.WithCancel(context.Background())
-		cache = memory.NewInMemoryResourceCache()
-
-		testClients = services.GetTestClients(ctx, cache)
-		testClients.GlooPort = int(services.AllocateGlooPort())
-
-		envoyInstance = envoyFactory.NewInstance()
-		envoyPort = envoyInstance.HttpPort
-		err := envoyInstance.Run(testClients.GlooPort)
-		Expect(err).NotTo(HaveOccurred())
+		testContext = testContextFactory.NewTestContext()
+		testContext.BeforeEach()
 	})
 
 	AfterEach(func() {
-		envoyInstance.Clean()
-		cancel()
+		testContext.AfterEach()
 	})
 
 	JustBeforeEach(func() {
-		what := services.What{
-			DisableGateway: true,
-			DisableUds:     true,
-			DisableFds:     true,
-		}
-
-		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, settings, nil})
+		testContext.JustBeforeEach()
 	})
 
-	Context("default auth service and 1 named auth service", func() {
+	JustAfterEach(func() {
+		testContext.JustAfterEach()
+	})
+
+	Context("default auth service and 2 named auth services", func() {
 
 		const (
 			invalidToken = "invalid-token"
@@ -105,10 +73,6 @@ var _ = Describe("External auth with multiple auth servers", func() {
 		)
 
 		var (
-			// The upstream that handles requests
-			testUpstream *v1helpers.TestUpstream
-			proxy        *gloov1.Proxy
-
 			// A running instance of an authServer
 			authServerDefault         *passthrough_utils.GrpcAuthServer
 			authServerDefaultPort     = 5556
@@ -126,21 +90,12 @@ var _ = Describe("External auth with multiple auth servers", func() {
 		)
 
 		expectRequestEventuallyReturnsResponseCodeOffset := func(offset int, path, bearerToken string, responseCode int) {
-			EventuallyWithOffset(offset+1, func() (int, error) {
-				req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/%s", "localhost", envoyPort, path), nil)
-				if err != nil {
-					return 0, nil
-				}
-				req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", bearerToken))
-
-				resp, err := http.DefaultClient.Do(req)
-				if err != nil {
-					return 0, err
-				}
-				defer resp.Body.Close()
-				_, _ = io.ReadAll(resp.Body)
-				return resp.StatusCode, nil
-			}, "5s", "0.5s").Should(Equal(responseCode))
+			httpRequestBuilder := testContext.GetHttpRequestBuilder().WithPath(path).WithHeader("Authorization", fmt.Sprintf("Bearer %s", bearerToken))
+			EventuallyWithOffset(offset+1, func(g Gomega) *http.Response {
+				resp, err := testutils.DefaultHttpClient.Do(httpRequestBuilder.Build())
+				g.Expect(err).NotTo(HaveOccurred())
+				return resp
+			}, "5s", "0.5s").Should(HaveHTTPStatus(responseCode))
 		}
 
 		expectRequestEventuallyReturnsResponseCode := func(bearerToken string, responseCode int) {
@@ -152,8 +107,6 @@ var _ = Describe("External auth with multiple auth servers", func() {
 		}
 
 		BeforeEach(func() {
-			testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
-
 			authServerDefaultUpstream = &gloov1.Upstream{
 				Metadata: &core.Metadata{
 					Name:      "extauth-default",
@@ -165,7 +118,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 				UpstreamType: &gloov1.Upstream_Static{
 					Static: &gloov1static.UpstreamSpec{
 						Hosts: []*gloov1static.Host{{
-							Addr: envoyInstance.LocalAddr(),
+							Addr: testContext.EnvoyInstance().LocalAddr(),
 							Port: uint32(authServerDefaultPort),
 						}},
 					},
@@ -183,7 +136,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 				UpstreamType: &gloov1.Upstream_Static{
 					Static: &gloov1static.UpstreamSpec{
 						Hosts: []*gloov1static.Host{{
-							Addr: envoyInstance.LocalAddr(),
+							Addr: testContext.EnvoyInstance().LocalAddr(),
 							Port: uint32(authServerNamedAPort),
 						}},
 					},
@@ -201,23 +154,9 @@ var _ = Describe("External auth with multiple auth servers", func() {
 				UpstreamType: &gloov1.Upstream_Static{
 					Static: &gloov1static.UpstreamSpec{
 						Hosts: []*gloov1static.Host{{
-							Addr: envoyInstance.LocalAddr(),
+							Addr: testContext.EnvoyInstance().LocalAddr(),
 							Port: uint32(authServerNamedBPort),
 						}},
-					},
-				},
-			}
-
-			settings = &gloov1.Settings{
-				Extauth: &v1.Settings{
-					ExtauthzServerRef: authServerDefaultUpstream.Metadata.Ref(),
-				},
-				NamedExtauth: map[string]*v1.Settings{
-					namedAuthServerA: {
-						ExtauthzServerRef: authServerNamedAUpstream.Metadata.Ref(),
-					},
-					namedAuthServerB: {
-						ExtauthzServerRef: authServerNamedBUpstream.Metadata.Ref(),
 					},
 				},
 			}
@@ -230,6 +169,22 @@ var _ = Describe("External auth with multiple auth servers", func() {
 
 			// authServerNamedB accepts tokens with the `named-B-` bearer token prefix
 			authServerNamedB = startLocalGrpcExtAuthServer(authServerNamedBPort, "named-B-")
+
+			// configure upstream for authServerDefault
+			testContext.ResourcesToCreate().Upstreams = append(testContext.ResourcesToCreate().Upstreams, authServerDefaultUpstream, authServerNamedAUpstream, authServerNamedBUpstream)
+			testContext.UpdateRunSettings(func(settings *gloov1.Settings) {
+				settings.Extauth = &v1.Settings{
+					ExtauthzServerRef: authServerDefaultUpstream.Metadata.Ref(),
+				}
+				settings.NamedExtauth = map[string]*v1.Settings{
+					namedAuthServerA: {
+						ExtauthzServerRef: authServerNamedAUpstream.Metadata.Ref(),
+					},
+					namedAuthServerB: {
+						ExtauthzServerRef: authServerNamedBUpstream.Metadata.Ref(),
+					},
+				}
+			})
 		})
 
 		AfterEach(func() {
@@ -238,69 +193,27 @@ var _ = Describe("External auth with multiple auth servers", func() {
 			authServerNamedB.Stop()
 		})
 
-		JustBeforeEach(func() {
-			// configure upstream for authServerDefault
-			_, err := testClients.UpstreamClient.Write(authServerDefaultUpstream, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
-
-			// Configure upstream for authServerNamed
-			_, err = testClients.UpstreamClient.Write(authServerNamedAUpstream, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
-
-			// Configure upstream for authServerFallback
-			_, err = testClients.UpstreamClient.Write(authServerNamedBUpstream, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
-
-			// configure upstream to handle all requests
-			_, err = testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
-
-			// write proxy and ensure it is accepted
-			_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
-			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
-				return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-			})
-		})
-
 		Context("auth config is set on virtual host", func() {
 
 			When("vhost=unset", func() {
-
-				BeforeEach(func() {
-					vhost := &gloov1.VirtualHost{
-						Name:    "virt1",
-						Domains: []string{"*"},
-						Routes: []*gloov1.Route{
-							getRouteToUpstream("/", testUpstream.Upstream.Metadata.Ref()),
-						},
-					}
-					proxy = getProxyWithVirtualHost(envoyPort, vhost)
-				})
-
 				It("auth should be disabled", func() {
 					expectRequestEventuallyReturnsResponseCode(invalidToken, http.StatusOK)
 				})
 			})
 
 			When("vhost=disabled", func() {
-
-				BeforeEach(func() {
-					vhost := &gloov1.VirtualHost{
-						Name:    "virt1",
-						Domains: []string{"*"},
-						Routes: []*gloov1.Route{
-							getRouteToUpstream("/", testUpstream.Upstream.Metadata.Ref()),
-						},
-						Options: &gloov1.VirtualHostOptions{
+				JustBeforeEach(func() {
+					testContext.PatchDefaultVirtualService(func(vs *gatewayv1.VirtualService) *gatewayv1.VirtualService {
+						vsBuilder := helpers.BuilderFromVirtualService(vs)
+						vsBuilder.WithVirtualHostOptions(&gloov1.VirtualHostOptions{
 							Extauth: &v1.ExtAuthExtension{
 								Spec: &v1.ExtAuthExtension_Disable{
 									Disable: true,
 								},
 							},
-						},
-					}
-					proxy = getProxyWithVirtualHost(envoyPort, vhost)
+						})
+						return vsBuilder.Build()
+					})
 				})
 
 				It("auth should be disabled", func() {
@@ -310,27 +223,25 @@ var _ = Describe("External auth with multiple auth servers", func() {
 
 			When("vhost=custom (default)", func() {
 
-				BeforeEach(func() {
-					vhost := &gloov1.VirtualHost{
-						Name:    "virt1",
-						Domains: []string{"*"},
-						Routes: []*gloov1.Route{
-							getRouteToUpstream("/", testUpstream.Upstream.Metadata.Ref()),
-						},
-						Options: &gloov1.VirtualHostOptions{
+				JustBeforeEach(func() {
+					testContext.PatchDefaultVirtualService(func(vs *gatewayv1.VirtualService) *gatewayv1.VirtualService {
+						vsBuilder := helpers.BuilderFromVirtualService(vs)
+						vsBuilder.WithVirtualHostOptions(&gloov1.VirtualHostOptions{
 							Extauth: &v1.ExtAuthExtension{
 								Spec: &v1.ExtAuthExtension_CustomAuth{
 									CustomAuth: &v1.CustomAuth{},
 								},
 							},
-						},
-					}
-					proxy = getProxyWithVirtualHost(envoyPort, vhost)
+						}).WithRoute(
+							e2e.DefaultRouteName,
+							getRouteToUpstream("/", testContext.TestUpstream().Upstream.GetMetadata().Ref(), nil),
+						)
+						return vsBuilder.Build()
+					})
 				})
 
 				It("token should be validated against default server", func() {
 					expectRequestEventuallyReturnsResponseCode(defaultToken, http.StatusOK)
-
 					expectRequestEventuallyReturnsResponseCode(invalidToken, http.StatusUnauthorized)
 					expectRequestEventuallyReturnsResponseCode(namedTokenA, http.StatusUnauthorized)
 				})
@@ -338,14 +249,10 @@ var _ = Describe("External auth with multiple auth servers", func() {
 
 			When("vhost=custom (named)", func() {
 
-				BeforeEach(func() {
-					vhost := &gloov1.VirtualHost{
-						Name:    "virt1",
-						Domains: []string{"*"},
-						Routes: []*gloov1.Route{
-							getRouteToUpstream("/", testUpstream.Upstream.Metadata.Ref()),
-						},
-						Options: &gloov1.VirtualHostOptions{
+				JustBeforeEach(func() {
+					testContext.PatchDefaultVirtualService(func(vs *gatewayv1.VirtualService) *gatewayv1.VirtualService {
+						vsBuilder := helpers.BuilderFromVirtualService(vs)
+						vsBuilder.WithVirtualHostOptions(&gloov1.VirtualHostOptions{
 							Extauth: &v1.ExtAuthExtension{
 								Spec: &v1.ExtAuthExtension_CustomAuth{
 									CustomAuth: &v1.CustomAuth{
@@ -353,9 +260,12 @@ var _ = Describe("External auth with multiple auth servers", func() {
 									},
 								},
 							},
-						},
-					}
-					proxy = getProxyWithVirtualHost(envoyPort, vhost)
+						}).WithRoute(
+							e2e.DefaultRouteName,
+							getRouteToUpstream("/", testContext.TestUpstream().Upstream.GetMetadata().Ref(), nil),
+						)
+						return vsBuilder.Build()
+					})
 				})
 
 				It("token should be validated against named server", func() {
@@ -372,17 +282,16 @@ var _ = Describe("External auth with multiple auth servers", func() {
 
 			When("route=unset", func() {
 
-				BeforeEach(func() {
+				JustBeforeEach(func() {
 					var routeAuthConfig *v1.ExtAuthExtension // unset
-
-					vhost := &gloov1.VirtualHost{
-						Name:    "virt1",
-						Domains: []string{"*"},
-						Routes: []*gloov1.Route{
-							getRouteToUpstreamWithAuth("/", testUpstream.Upstream.Metadata.Ref(), routeAuthConfig),
-						},
-					}
-					proxy = getProxyWithVirtualHost(envoyPort, vhost)
+					testContext.PatchDefaultVirtualService(func(vs *gatewayv1.VirtualService) *gatewayv1.VirtualService {
+						vsBuilder := helpers.BuilderFromVirtualService(vs)
+						vsBuilder.WithRoute(
+							e2e.DefaultRouteName,
+							getRouteToUpstream("/", testContext.TestUpstream().Upstream.GetMetadata().Ref(), routeAuthConfig),
+						)
+						return vsBuilder.Build()
+					})
 				})
 
 				It("auth should be disabled", func() {
@@ -392,20 +301,21 @@ var _ = Describe("External auth with multiple auth servers", func() {
 
 			When("route=disabled", func() {
 
-				BeforeEach(func() {
+				JustBeforeEach(func() {
 					routeAuthConfig := &v1.ExtAuthExtension{
 						Spec: &v1.ExtAuthExtension_Disable{
 							Disable: true,
 						},
 					}
-					vhost := &gloov1.VirtualHost{
-						Name:    "virt1",
-						Domains: []string{"*"},
-						Routes: []*gloov1.Route{
-							getRouteToUpstreamWithAuth("/", testUpstream.Upstream.Metadata.Ref(), routeAuthConfig),
-						},
-					}
-					proxy = getProxyWithVirtualHost(envoyPort, vhost)
+
+					testContext.PatchDefaultVirtualService(func(vs *gatewayv1.VirtualService) *gatewayv1.VirtualService {
+						vsBuilder := helpers.BuilderFromVirtualService(vs)
+						vsBuilder.WithRoute(
+							e2e.DefaultRouteName,
+							getRouteToUpstream("/", testContext.TestUpstream().Upstream.GetMetadata().Ref(), routeAuthConfig),
+						)
+						return vsBuilder.Build()
+					})
 				})
 
 				It("auth should be disabled", func() {
@@ -415,20 +325,20 @@ var _ = Describe("External auth with multiple auth servers", func() {
 
 			When("route=custom (default)", func() {
 
-				BeforeEach(func() {
+				JustBeforeEach(func() {
 					routeAuthConfig := &v1.ExtAuthExtension{
 						Spec: &v1.ExtAuthExtension_CustomAuth{
 							CustomAuth: &v1.CustomAuth{},
 						},
 					}
-					vhost := &gloov1.VirtualHost{
-						Name:    "virt1",
-						Domains: []string{"*"},
-						Routes: []*gloov1.Route{
-							getRouteToUpstreamWithAuth("/", testUpstream.Upstream.Metadata.Ref(), routeAuthConfig),
-						},
-					}
-					proxy = getProxyWithVirtualHost(envoyPort, vhost)
+					testContext.PatchDefaultVirtualService(func(vs *gatewayv1.VirtualService) *gatewayv1.VirtualService {
+						vsBuilder := helpers.BuilderFromVirtualService(vs)
+						vsBuilder.WithRoute(
+							e2e.DefaultRouteName,
+							getRouteToUpstream("/", testContext.TestUpstream().Upstream.GetMetadata().Ref(), routeAuthConfig),
+						)
+						return vsBuilder.Build()
+					})
 				})
 
 				It("token should be validated against default server", func() {
@@ -441,7 +351,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 
 			When("route=custom (named)", func() {
 
-				BeforeEach(func() {
+				JustBeforeEach(func() {
 					routeAuthConfig := &v1.ExtAuthExtension{
 						Spec: &v1.ExtAuthExtension_CustomAuth{
 							CustomAuth: &v1.CustomAuth{
@@ -449,14 +359,14 @@ var _ = Describe("External auth with multiple auth servers", func() {
 							},
 						},
 					}
-					vhost := &gloov1.VirtualHost{
-						Name:    "virt1",
-						Domains: []string{"*"},
-						Routes: []*gloov1.Route{
-							getRouteToUpstreamWithAuth("/", testUpstream.Upstream.Metadata.Ref(), routeAuthConfig),
-						},
-					}
-					proxy = getProxyWithVirtualHost(envoyPort, vhost)
+					testContext.PatchDefaultVirtualService(func(vs *gatewayv1.VirtualService) *gatewayv1.VirtualService {
+						vsBuilder := helpers.BuilderFromVirtualService(vs)
+						vsBuilder.WithRoute(
+							e2e.DefaultRouteName,
+							getRouteToUpstream("/", testContext.TestUpstream().Upstream.GetMetadata().Ref(), routeAuthConfig),
+						)
+						return vsBuilder.Build()
+					})
 				})
 
 				It("token should be validated against named server", func() {
@@ -472,8 +382,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 		Context("auth config is set on virtual host and route", func() {
 			When("vhost=CustomAuth(named), route=ConfigRef", func() {
 				BeforeEach(func() {
-					// create and write an AuthConfig object
-					_, err := testClients.AuthConfigClient.Write(&v1.AuthConfig{
+					authConfig := &v1.AuthConfig{
 						Metadata: &core.Metadata{
 							Name:      GetBasicAuthExtension().GetConfigRef().Name,
 							Namespace: GetBasicAuthExtension().GetConfigRef().Namespace,
@@ -483,9 +392,13 @@ var _ = Describe("External auth with multiple auth servers", func() {
 								BasicAuth: getBasicAuthConfig(),
 							},
 						}},
-					}, clients.WriteOpts{})
-					ExpectWithOffset(1, err).NotTo(HaveOccurred())
+					}
+					testContext.ResourcesToCreate().AuthConfigs = v1.AuthConfigList{
+						authConfig,
+					}
+				})
 
+				JustBeforeEach(func() {
 					authConfigToExtension := &v1.ExtAuthExtension{
 						Spec: &v1.ExtAuthExtension_ConfigRef{
 							ConfigRef: &core.ResourceRef{
@@ -495,14 +408,15 @@ var _ = Describe("External auth with multiple auth servers", func() {
 						},
 					}
 
-					vhost := &gloov1.VirtualHost{
-						Name:    "virt1",
-						Domains: []string{"*"},
-						Routes: []*gloov1.Route{
-							getRouteToUpstreamWithAuth("/default", testUpstream.Upstream.Metadata.Ref(), authConfigToExtension),
-							getRouteToUpstream("/other", testUpstream.Upstream.Metadata.Ref()),
-						},
-						Options: &gloov1.VirtualHostOptions{
+					testContext.PatchDefaultVirtualService(func(vs *gatewayv1.VirtualService) *gatewayv1.VirtualService {
+						vsBuilder := helpers.BuilderFromVirtualService(vs)
+						vsBuilder.WithRoute(
+							e2e.DefaultRouteName,
+							getRouteToUpstream("/default", testContext.TestUpstream().Upstream.GetMetadata().Ref(), authConfigToExtension),
+						).WithRoute(
+							"other",
+							getRouteToUpstream("/other", testContext.TestUpstream().Upstream.GetMetadata().Ref(), nil),
+						).WithVirtualHostOptions(&gloov1.VirtualHostOptions{
 							Extauth: &v1.ExtAuthExtension{
 								Spec: &v1.ExtAuthExtension_CustomAuth{
 									CustomAuth: &v1.CustomAuth{
@@ -510,9 +424,9 @@ var _ = Describe("External auth with multiple auth servers", func() {
 									},
 								},
 							},
-						},
-					}
-					proxy = getProxyWithVirtualHost(envoyPort, vhost)
+						})
+						return vsBuilder.Build()
+					})
 				})
 
 				It("/ route should validate token against default server", func() {
@@ -528,7 +442,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 			// ensure that using a default customauth server at the virtualhost level does not override extauth config at the route level
 			When("vhost=custom (default), routeA=custom (default), routeB=custom (named)", func() {
 
-				BeforeEach(func() {
+				JustBeforeEach(func() {
 					defaultRouteAuthConfig := &v1.ExtAuthExtension{
 						Spec: &v1.ExtAuthExtension_CustomAuth{
 							CustomAuth: &v1.CustomAuth{},
@@ -542,23 +456,21 @@ var _ = Describe("External auth with multiple auth servers", func() {
 						},
 					}
 
-					vhost := &gloov1.VirtualHost{
-						Name:    "virt1",
-						Domains: []string{"*"},
-						Routes: []*gloov1.Route{
-							getRouteToUpstreamWithAuth("/default", testUpstream.Upstream.Metadata.Ref(), defaultRouteAuthConfig),
-							getRouteToUpstreamWithAuth("/named", testUpstream.Upstream.Metadata.Ref(), namedRouteAuthConfig),
-							getRouteToUpstream("/other", testUpstream.Upstream.Metadata.Ref()),
-						},
-						Options: &gloov1.VirtualHostOptions{
-							Extauth: &v1.ExtAuthExtension{
-								Spec: &v1.ExtAuthExtension_CustomAuth{
-									CustomAuth: &v1.CustomAuth{},
+					testContext.PatchDefaultVirtualService(func(vs *gatewayv1.VirtualService) *gatewayv1.VirtualService {
+						vsBuilder := helpers.BuilderFromVirtualService(vs)
+						vsBuilder.
+							WithRoute(e2e.DefaultRouteName, getRouteToUpstream("/default", testContext.TestUpstream().Upstream.GetMetadata().Ref(), defaultRouteAuthConfig)).
+							WithRoute("named", getRouteToUpstream("/named", testContext.TestUpstream().Upstream.GetMetadata().Ref(), namedRouteAuthConfig)).
+							WithRoute("other", getRouteToUpstream("/other", testContext.TestUpstream().Upstream.GetMetadata().Ref(), nil)).
+							WithVirtualHostOptions(&gloov1.VirtualHostOptions{
+								Extauth: &v1.ExtAuthExtension{
+									Spec: &v1.ExtAuthExtension_CustomAuth{
+										CustomAuth: &v1.CustomAuth{},
+									},
 								},
-							},
-						},
-					}
-					proxy = getProxyWithVirtualHost(envoyPort, vhost)
+							})
+						return vsBuilder.Build()
+					})
 				})
 
 				It("/default route should validate token against default server", func() {
@@ -588,7 +500,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 
 			// ensure that using a named customauth server at the virtualhost level does not override extauth config at the route level
 			When("vhost=custom (named), routeA=custom (default), routeB=custom (named)", func() {
-				BeforeEach(func() {
+				JustBeforeEach(func() {
 					defaultRouteAuthConfig := &v1.ExtAuthExtension{
 						Spec: &v1.ExtAuthExtension_CustomAuth{
 							CustomAuth: &v1.CustomAuth{},
@@ -602,25 +514,23 @@ var _ = Describe("External auth with multiple auth servers", func() {
 						},
 					}
 
-					vhost := &gloov1.VirtualHost{
-						Name:    "virt1",
-						Domains: []string{"*"},
-						Routes: []*gloov1.Route{
-							getRouteToUpstreamWithAuth("/default", testUpstream.Upstream.Metadata.Ref(), defaultRouteAuthConfig),
-							getRouteToUpstreamWithAuth("/named", testUpstream.Upstream.Metadata.Ref(), namedRouteAuthConfig),
-							getRouteToUpstream("/other", testUpstream.Upstream.Metadata.Ref()),
-						},
-						Options: &gloov1.VirtualHostOptions{
-							Extauth: &v1.ExtAuthExtension{
-								Spec: &v1.ExtAuthExtension_CustomAuth{
-									CustomAuth: &v1.CustomAuth{
-										Name: namedAuthServerB,
+					testContext.PatchDefaultVirtualService(func(vs *gatewayv1.VirtualService) *gatewayv1.VirtualService {
+						vsBuilder := helpers.BuilderFromVirtualService(vs)
+						vsBuilder.
+							WithRoute(e2e.DefaultRouteName, getRouteToUpstream("/default", testContext.TestUpstream().Upstream.GetMetadata().Ref(), defaultRouteAuthConfig)).
+							WithRoute("named", getRouteToUpstream("/named", testContext.TestUpstream().Upstream.GetMetadata().Ref(), namedRouteAuthConfig)).
+							WithRoute("other", getRouteToUpstream("/other", testContext.TestUpstream().Upstream.GetMetadata().Ref(), nil)).
+							WithVirtualHostOptions(&gloov1.VirtualHostOptions{
+								Extauth: &v1.ExtAuthExtension{
+									Spec: &v1.ExtAuthExtension_CustomAuth{
+										CustomAuth: &v1.CustomAuth{
+											Name: namedAuthServerB,
+										},
 									},
 								},
-							},
-						},
-					}
-					proxy = getProxyWithVirtualHost(envoyPort, vhost)
+							})
+						return vsBuilder.Build()
+					})
 				})
 
 				It("/default route should validate token against default server", func() {
@@ -683,37 +593,14 @@ func startLocalGrpcExtAuthServer(port int, expectedBearerTokenPrefix string) *pa
 	return authServer
 }
 
-func getProxyWithVirtualHost(envoyPort uint32, vhost *gloov1.VirtualHost) *gloov1.Proxy {
-	return &gloov1.Proxy{
-		Metadata: &core.Metadata{
-			Name:      "proxy",
-			Namespace: "default",
-		},
-		Listeners: []*gloov1.Listener{{
-			Name:        "listener",
-			BindAddress: net.IPv4zero.String(),
-			BindPort:    envoyPort,
-			ListenerType: &gloov1.Listener_HttpListener{
-				HttpListener: &gloov1.HttpListener{
-					VirtualHosts: []*gloov1.VirtualHost{vhost},
-				},
-			},
-		}},
-	}
-}
-
-func getRouteToUpstream(prefix string, upstreamRef *core.ResourceRef) *gloov1.Route {
-	return getRouteToUpstreamWithAuth(prefix, upstreamRef, nil)
-}
-
-func getRouteToUpstreamWithAuth(prefix string, upstreamRef *core.ResourceRef, extAuthExtension *v1.ExtAuthExtension) *gloov1.Route {
-	return &gloov1.Route{
+func getRouteToUpstream(prefix string, upstreamRef *core.ResourceRef, extAuthExtension *v1.ExtAuthExtension) *gatewayv1.Route {
+	return &gatewayv1.Route{
 		Matchers: []*matchers.Matcher{{
 			PathSpecifier: &matchers.Matcher_Prefix{
 				Prefix: prefix,
 			},
 		}},
-		Action: &gloov1.Route_RouteAction{
+		Action: &gatewayv1.Route_RouteAction{
 			RouteAction: &gloov1.RouteAction{
 				Destination: &gloov1.RouteAction_Single{
 					Single: &gloov1.Destination{

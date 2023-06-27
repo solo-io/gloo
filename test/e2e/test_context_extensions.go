@@ -105,7 +105,7 @@ func (r *extAuthExtension) ExtAuthInstance() *extauth.Instance {
 	return r.extAuthInstance
 }
 
-// runExtAuthService starts running the RateLimit Service
+// runExtAuthService starts running the ExtAuth Service
 func (r *extAuthExtension) runExtAuthService(testContext *TestContextWithExtensions) {
 	ginkgo.By("ExtAuthExtension: Running ExtAuth")
 

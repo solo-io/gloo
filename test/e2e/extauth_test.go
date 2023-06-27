@@ -25,8 +25,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	envoy2 "github.com/solo-io/solo-projects/test/services/envoy"
-
 	"github.com/solo-io/gloo/test/services/envoy"
 
 	"github.com/solo-io/gloo/test/ginkgo/parallel"
@@ -250,74 +248,7 @@ var _ = Describe("External auth", FlakeAttempts(10), func() {
 			envoyInstance.Clean()
 		})
 
-		var basicConfigSetup = func() {
-			_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
-				Metadata: &core.Metadata{
-					Name:      GetBasicAuthExtension().GetConfigRef().Name,
-					Namespace: GetBasicAuthExtension().GetConfigRef().Namespace,
-				},
-				Configs: []*extauth.AuthConfig_Config{{
-					AuthConfig: &extauth.AuthConfig_Config_BasicAuth{
-						BasicAuth: getBasicAuthConfig(),
-					},
-				}},
-			}, clients.WriteOpts{Ctx: ctx})
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-			proxy := getProxyExtAuthBasicAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
-
-			_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
-				return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-			})
-		}
-
 		Context("using new config format", func() {
-
-			Context("basic auth sanity tests", func() {
-
-				BeforeEach(func() {
-					basicConfigSetup()
-				})
-
-				It("should deny ext auth envoy", func() {
-					Eventually(func() (int, error) {
-						resp, err := http.Get(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort))
-						if err != nil {
-							return 0, err
-						}
-						defer resp.Body.Close()
-						_, _ = io.ReadAll(resp.Body)
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
-				})
-
-				It("should allow ext auth envoy", func() {
-					Eventually(func() (int, error) {
-						resp, err := http.Get(fmt.Sprintf("http://user:password@%s:%d/1", "localhost", envoyPort))
-						if err != nil {
-							return 0, err
-						}
-						defer resp.Body.Close()
-						_, _ = io.ReadAll(resp.Body)
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusOK))
-				})
-
-				It("should deny ext auth with wrong password", func() {
-					Eventually(func() (int, error) {
-						resp, err := http.Get(fmt.Sprintf("http://user:password2@%s:%d/1", "localhost", envoyPort))
-						if err != nil {
-							return 0, err
-						}
-						defer resp.Body.Close()
-						_, _ = io.ReadAll(resp.Body)
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
-				})
-			})
 
 			Context("oidc sanity", func() {
 
@@ -3948,93 +3879,6 @@ var _ = Describe("External auth", FlakeAttempts(10), func() {
 
 		})
 
-		Context("health checker", func() {
-
-			var healthCheckClient grpc_health_v1.HealthClient
-
-			getHealthCheckClient := func() grpc_health_v1.HealthClient {
-				if healthCheckClient != nil {
-					return healthCheckClient
-				}
-
-				extAuthHealthServerAddr := "localhost:" + strconv.Itoa(settings.ExtAuthSettings.ServerPort)
-				conn, err := grpc.Dial(extAuthHealthServerAddr, grpc.WithInsecure())
-				Expect(err).ToNot(HaveOccurred())
-
-				healthCheckClient = grpc_health_v1.NewHealthClient(conn)
-
-				go func() {
-					select {
-					case <-ctx.Done():
-						healthCheckClient = nil
-						conn.Close()
-
-						return
-					}
-				}()
-
-				return healthCheckClient
-			}
-
-			getServiceHealthStatus := func() (grpc_health_v1.HealthCheckResponse_ServingStatus, error) {
-				client := getHealthCheckClient()
-
-				var header metadata.MD
-				resp, err := client.Check(ctx, &grpc_health_v1.HealthCheckRequest{
-					Service: settings.ExtAuthSettings.ServiceName,
-				}, grpc.Header(&header))
-
-				return resp.GetStatus(), err
-			}
-
-			Context("should pass after receiving xDS config from gloo", func() {
-
-				It("without auth configs", func() {
-					Eventually(getServiceHealthStatus, "10s", ".1s").Should(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
-					Consistently(getServiceHealthStatus, "3s", ".1s").Should(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
-				})
-
-				It("with auth configs", func() {
-					// Creates a proxy with an auth configuration
-					basicConfigSetup()
-
-					Eventually(getServiceHealthStatus, "10s", ".1s").Should(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
-					Consistently(getServiceHealthStatus, "3s", ".1s").Should(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
-				})
-
-			})
-
-			// NOTE: This test MUST run last, since it runs cancel()
-			Context("shutdown", func() {
-
-				It("should fail healthcheck immediately on shutdown", func() {
-
-					Eventually(getServiceHealthStatus, "10s", ".1s").Should(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
-
-					// Start sending health checking requests continuously
-					waitForHealthcheck := make(chan struct{})
-					go func(waitForHealthcheck chan struct{}) {
-						defer GinkgoRecover()
-						Eventually(func() bool {
-							ctx = context.Background()
-							var header metadata.MD
-							getHealthCheckClient().Check(ctx, &grpc_health_v1.HealthCheckRequest{
-								Service: settings.ExtAuthSettings.ServiceName,
-							}, grpc.Header(&header))
-							return len(header.Get(envoy2.HealthCheckFailHeader)) == 1
-						}, "5s", ".1s").Should(BeTrue())
-						waitForHealthcheck <- struct{}{}
-					}(waitForHealthcheck)
-
-					// Start the health checker first, then cancel
-					time.Sleep(200 * time.Millisecond)
-					cancel()
-					Eventually(waitForHealthcheck, "5s", ".1s").Should(Receive())
-				})
-			})
-
-		})
-
 	})
 
 })
@@ -4472,36 +4316,6 @@ func getOpaConfig(modules []*core.ResourceRef, options *extauth.OpaAuthOptions) 
 		Modules: modules,
 		Query:   "data.test.allow == true",
 		Options: options,
-	}
-}
-
-func getProxyExtAuthBasicAuth(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
-	return getProxyExtAuth(envoyPort, upstream, GetBasicAuthExtension(), false)
-}
-
-func GetBasicAuthExtension() *extauth.ExtAuthExtension {
-	return &extauth.ExtAuthExtension{
-		Spec: &extauth.ExtAuthExtension_ConfigRef{
-			ConfigRef: &core.ResourceRef{
-				Name:      "basic-auth",
-				Namespace: defaults.GlooSystem,
-			},
-		},
-	}
-}
-
-func getBasicAuthConfig() *extauth.BasicAuth {
-	return &extauth.BasicAuth{
-		Realm: "gloo",
-		Apr: &extauth.BasicAuth_Apr{
-			Users: map[string]*extauth.BasicAuth_Apr_SaltedHashedPassword{
-				"user": {
-					// Password is password
-					Salt:           "0adzfifo",
-					HashedPassword: "14o4fMw/Pm2L34SvyyA2r.",
-				},
-			},
-		},
 	}
 }
 

@@ -345,3 +345,41 @@ func expectStatusCode(envoyPort uint32, statusCode int) {
 		return response.StatusCode
 	}, 10*time.Second, 1*time.Second).Should(Equal(statusCode))
 }
+
+// Returns Jwt Config for virtual host perfilterconfig, taken from rbac_jwt_test
+func getJwtVhostCfg(jwtksServerRef *core.ResourceRef, allowMissingFailed, keepToken bool) *jwtplugin.VhostExtension {
+	return &jwtplugin.VhostExtension{
+		AllowMissingOrFailedJwt: allowMissingFailed,
+		Providers: map[string]*jwtplugin.Provider{
+			"provider1": {
+				Jwks: &jwtplugin.Jwks{
+					Jwks: &jwtplugin.Jwks_Remote{
+						Remote: &jwtplugin.RemoteJwks{
+							Url:         "http://test/keys",
+							UpstreamRef: jwtksServerRef,
+						},
+					},
+				},
+				Issuer:           issuer,
+				ClockSkewSeconds: &wrappers.UInt32Value{Value: 120},
+				Audiences:        []string{audience},
+				KeepToken:        keepToken,
+				TokenSource: &jwtplugin.TokenSource{
+					Headers: []*jwtplugin.TokenSource_HeaderSource{{
+						Header: "x-jwt",
+						Prefix: "JWT ",
+					}},
+					QueryParams: []string{"jwttoken"},
+				},
+				ClaimsToHeaders: []*jwtplugin.ClaimToHeader{{
+					Claim:  "sub",
+					Header: "x-sub",
+				}, {
+					Claim:  "sub",
+					Header: "x-sub",
+					Append: true,
+				}},
+			},
+		},
+	}
+}
