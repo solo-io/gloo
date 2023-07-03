@@ -1,0 +1,13 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/7729
+    description: >-
+      Allow extauth to log to a file by setting the global.extensions.extAuth.deployment.logToFileLocation Helm value to the desired file location.
+      This is done to support AWS Fargate, which cannot collect logs from stdout.  The end user is responsible for ensuring the necessary volume is mounted
+      and for log rotation and maintenance.
+    resolvesIssue: false
+  - dependencyOwner: solo-io
+    dependencyRepo: go-utils
+    dependencyTag: v0.24.5
+    description: Update go-utils to version v0.24.4 to pull in updated logging changes
+    type: DEPENDENCY_BUMP

@@ -177,6 +177,10 @@ Expand the name of the chart.
     - name: LOG_LEVEL
       value: {{ $extAuth.deployment.logLevel | quote }}
     {{- end }}
+    {{- if $extAuth.deployment.logToFileLocation }}
+    - name: LOG_TO_FILE_LOCATION
+      value: {{ $extAuth.deployment.logToFileLocation | quote }}
+    {{- end }}
   readinessProbe:
     httpGet:
       port: 8082

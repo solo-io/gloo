@@ -292,6 +292,7 @@ type ExtAuthDeployment struct {
 	PodDisruptionBudget  *PodDisruptionBudget     `json:"podDisruptionBudget,omitempty" desc:"PodDisruptionBudget is an object to define the max disruption that can be caused to the ExtAuth pods"`
 	Redis                *ExtAuthRedisConfig      `json:"redis,omitempty" desc:"this is the redis configurations."`
 	LogLevel             *string                  `json:"logLevel,omitempty" desc:"Level at which the pod should log. Options include \"info\", \"debug\", \"warn\", \"error\", \"panic\" and \"fatal\". Default level is info"`
+	LogToFileLocation    string                   `json:"logToFileLocation,omitempty" desc:"If set, the extauth pod will log to this file instead of stdout"`
 	*glooGen.DeploymentSpec
 	*glooGen.KubeResourceOverride
 }

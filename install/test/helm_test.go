@@ -2272,20 +2272,23 @@ spec:
 				testManifest.ExpectUnstructured("PodDisruptionBudget", namespace, "ext-auth-pdb").To(BeEquivalentTo(pdb))
 			})
 
-			It("should support setting the log level env", func() {
+			DescribeTable("extauth deployment container ENV vars", func(valuesArg string, envVarName string, envVarValue string) {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{"global.extensions.extAuth.deployment.logLevel=debug"},
+					valuesArgs: []string{valuesArg},
 				})
 				Expect(err).NotTo(HaveOccurred())
 
-				logLevel := "debug"
 				expectedDeployment.Spec.Template.Spec.Containers[0].Env = append(expectedDeployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
-					Name:  "LOG_LEVEL",
-					Value: logLevel,
+					Name:  envVarName,
+					Value: envVarValue,
 				})
 
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-			})
+			},
+				Entry("LOG_LEVEL", "global.extensions.extAuth.deployment.logLevel=debug", "LOG_LEVEL", "debug"),
+				Entry("LOG_TO_FILE_LOCATION", "global.extensions.extAuth.deployment.logToFileLocation=/var/log/extauth.log", "LOG_TO_FILE_LOCATION", "/var/log/extauth.log"),
+			)
+
 		})
 
 		Context("gateway-proxy deployment", func() {

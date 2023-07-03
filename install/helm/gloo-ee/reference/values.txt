@@ -2242,6 +2242,7 @@
 |global.extensions.extAuth.deployment.redis.certs[].secretName|string||This is the name to the Opaque kubernetes secret containing the cert. The secret data key names should be 'ca.crt', 'tls.crt', and 'tls.key'.|
 |global.extensions.extAuth.deployment.redis.certs[].mountPath|string||Path used to mount the secret. This should be a unique path, for each secret.|
 |global.extensions.extAuth.deployment.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
+|global.extensions.extAuth.deployment.logToFileLocation|string||If set, the extauth pod will log to this file instead of stdout|
 |global.extensions.extAuth.deployment.replicas|int||number of instances to deploy|
 |global.extensions.extAuth.deployment.customEnv[].name|string|||
 |global.extensions.extAuth.deployment.customEnv[].value|string|||
