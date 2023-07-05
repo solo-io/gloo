@@ -1,7 +1,11 @@
 package extauth_test
 
 import (
+	"net/http"
+	"net/url"
 	"testing"
+
+	"github.com/solo-io/solo-projects/test/services/redis"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -21,12 +25,14 @@ import (
 var (
 	envoyFactory       envoy.Factory
 	extAuthFactory     *extauth.Factory
+	redisFactory       *redis.Factory
 	testContextFactory *e2e.TestContextFactory
 )
 
 var _ = BeforeSuite(func() {
 	envoyFactory = glooe_envoy.NewFactory()
 	extAuthFactory = extauth.NewFactory()
+	redisFactory = redis.NewFactory()
 
 	testContextFactory = &e2e.TestContextFactory{
 		EnvoyFactory:   envoyFactory,
@@ -73,4 +79,24 @@ func getBasicAuthConfig() *v1.BasicAuth {
 			},
 		},
 	}
+}
+
+type unsecureCookieJar struct {
+	http.CookieJar
+	OriginalCookies map[string]*http.Cookie
+}
+
+func (j *unsecureCookieJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
+	if j.OriginalCookies == nil {
+		j.OriginalCookies = make(map[string]*http.Cookie)
+	}
+	for _, c := range cookies {
+		// hack to work around go client impl that doesn't consider localhost secure.
+		c.Secure = false
+		// the Cookies() method from the cookie jar removes the properties of the original cookie.
+		j.OriginalCookies[c.Name] = c
+	}
+
+	j.CookieJar.SetCookies(u, cookies)
+
 }

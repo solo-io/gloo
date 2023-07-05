@@ -3,17 +3,17 @@ package ratelimit_test
 import (
 	"context"
 
+	. "github.com/solo-io/solo-projects/test/gomega/matchers"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/xds"
 
+	"github.com/rotisserie/eris"
 	rlPluginOS "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	rlPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/translation"
-	. "github.com/solo-io/solo-projects/test/matchers"
-
-	"github.com/rotisserie/eris"
 
 	"github.com/golang/mock/gomock"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"

@@ -9,7 +9,7 @@ import (
 	solo_apis "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	solo_apis_types "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims/internal"
-	. "github.com/solo-io/solo-projects/test/matchers"
+	. "github.com/solo-io/solo-projects/test/gomega/matchers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

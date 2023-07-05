@@ -50,7 +50,7 @@ func NewTestHttpsUpstream(ctx context.Context, addr string) ([]byte, *TestUpstre
 
 func NewTestHttpsUpstreamWithHandler(ctx context.Context, addr string, handlerFunc ExtraHandlerFunc) ([]byte, *TestUpstream) {
 	cert, privKey := helpers.GetCerts(helpers.Params{
-		Hosts:      "127.0.0.1",
+		Hosts:      addr,
 		IsCA:       true,
 		EcdsaCurve: "P256",
 	})

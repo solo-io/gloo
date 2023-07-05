@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -11,6 +12,10 @@ import (
 	"strconv"
 	"strings"
 	"sync/atomic"
+
+	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/trace/v3"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tracing"
 
 	"github.com/solo-io/solo-projects/test/gomega/assertions"
 
@@ -503,5 +508,97 @@ func getApiKeyAuthConfigLarge() *extauth.ApiKeyAuth {
 			},
 		},
 		LabelSelector: map[string]string{"team": "infrastructure"},
+	}
+}
+
+func getProxyExtAuth(envoyPort uint32, upstream *core.ResourceRef, extauthCfg *extauth.ExtAuthExtension, zipkinTracing bool) *gloov1.Proxy {
+	var vhosts []*gloov1.VirtualHost
+
+	vhost := &gloov1.VirtualHost{
+		Name:    "gloo-system.virt1",
+		Domains: []string{"*"},
+		Options: &gloov1.VirtualHostOptions{
+			Extauth: extauthCfg,
+		},
+		Routes: []*gloov1.Route{{
+			Action: &gloov1.Route_RouteAction{
+				RouteAction: &gloov1.RouteAction{
+					Destination: &gloov1.RouteAction_Single{
+						Single: &gloov1.Destination{
+							DestinationType: &gloov1.Destination_Upstream{
+								Upstream: upstream,
+							},
+						},
+					},
+				},
+			},
+		}},
+	}
+
+	vhosts = append(vhosts, vhost)
+
+	p := &gloov1.Proxy{
+		Metadata: &core.Metadata{
+			Name:      "proxy",
+			Namespace: "default",
+		},
+		Listeners: []*gloov1.Listener{{
+			Name:        "listener",
+			BindAddress: net.IPv4zero.String(),
+			BindPort:    envoyPort,
+			ListenerType: &gloov1.Listener_HttpListener{
+				HttpListener: &gloov1.HttpListener{
+					VirtualHosts: vhosts,
+				},
+			},
+		}},
+	}
+
+	if zipkinTracing {
+		p.Listeners[0] = &gloov1.Listener{
+			Name:        "listener",
+			BindAddress: net.IPv4zero.String(),
+			BindPort:    envoyPort,
+			ListenerType: &gloov1.Listener_HttpListener{
+				HttpListener: &gloov1.HttpListener{
+					VirtualHosts: vhosts,
+					Options: &gloov1.HttpListenerOptions{
+						HttpConnectionManagerSettings: &hcm.HttpConnectionManagerSettings{
+							Tracing: &tracing.ListenerTracingSettings{
+								ProviderConfig: &tracing.ListenerTracingSettings_ZipkinConfig{
+									ZipkinConfig: &v3.ZipkinConfig{
+										CollectorCluster: &v3.ZipkinConfig_CollectorUpstreamRef{
+											CollectorUpstreamRef: &core.ResourceRef{
+												Namespace: "default",
+												Name:      "zipkin",
+											},
+										},
+										CollectorEndpoint:        "/api/v2/spans",
+										CollectorEndpointVersion: v3.ZipkinConfig_HTTP_JSON,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+
+	return p
+}
+
+func getProxyExtAuthApiKeyAuth(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
+	return getProxyExtAuth(envoyPort, upstream, getApiKeyExtAuthExtension(), false)
+}
+
+func getApiKeyExtAuthExtension() *extauth.ExtAuthExtension {
+	return &extauth.ExtAuthExtension{
+		Spec: &extauth.ExtAuthExtension_ConfigRef{
+			ConfigRef: &core.ResourceRef{
+				Name:      "apikey-auth",
+				Namespace: defaults.GlooSystem,
+			},
+		},
 	}
 }

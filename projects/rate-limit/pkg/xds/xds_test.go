@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	envoy_extensions_common_ratelimit_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/common/ratelimit/v3"
-	. "github.com/solo-io/solo-projects/test/matchers"
+	. "github.com/solo-io/solo-projects/test/gomega/matchers"
 
+	envoy_extensions_common_ratelimit_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/common/ratelimit/v3"
 	ratelimit2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 
 	"github.com/golang/mock/gomock"

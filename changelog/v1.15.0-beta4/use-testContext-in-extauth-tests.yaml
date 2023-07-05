@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Use `TestContext` for extauth e2e tests, and place them in their own subdirectory.
+      skipCI-kube-tests:true
+    issueLink: https://github.com/solo-io/solo-projects/issues/5058
+    resolvesIssue: false

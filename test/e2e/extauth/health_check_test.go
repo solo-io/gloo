@@ -17,7 +17,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-var _ = Describe("Health Checker", func() {
+var _ = Describe("Health Checks", func() {
 
 	var (
 		testContext *e2e.TestContextWithExtensions
@@ -42,74 +42,71 @@ var _ = Describe("Health Checker", func() {
 		testContext.JustAfterEach()
 	})
 
-	Context("health checker", func() {
+	Context("without auth configs", func() {
+		// This test is redundant due to how we run the ExtAuth service locally
+		// Our new TestContextWithExtensions validates that the ExtAuth service is healthy
+		// before proceeding.
+	})
 
-		Context("without auth configs", func() {
-			// This test is redundant due to how we run the ExtAuth service locally
-			// Our new TestContextWithExtensions validates that the ExtAuth service is healthy
-			// before proceeding.
-		})
-
-		Context("with auth configs", func() {
-			BeforeEach(func() {
-				authConfig := &extauth.AuthConfig{
-					Metadata: &core.Metadata{
-						Name:      GetBasicAuthExtension().GetConfigRef().Name,
-						Namespace: GetBasicAuthExtension().GetConfigRef().Namespace,
+	Context("with auth configs", func() {
+		BeforeEach(func() {
+			authConfig := &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      GetBasicAuthExtension().GetConfigRef().Name,
+					Namespace: GetBasicAuthExtension().GetConfigRef().Namespace,
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_BasicAuth{
+						BasicAuth: getBasicAuthConfig(),
 					},
-					Configs: []*extauth.AuthConfig_Config{{
-						AuthConfig: &extauth.AuthConfig_Config_BasicAuth{
-							BasicAuth: getBasicAuthConfig(),
-						},
-					}},
-				}
-				testContext.ResourcesToCreate().AuthConfigs = extauth.AuthConfigList{authConfig}
-			})
+				}},
+			}
+			testContext.ResourcesToCreate().AuthConfigs = extauth.AuthConfigList{authConfig}
+		})
 
-			JustBeforeEach(func() {
-				testContext.PatchDefaultVirtualService(func(vs *v1.VirtualService) *v1.VirtualService {
-					builder := helpers.BuilderFromVirtualService(vs)
-					builder.WithVirtualHostOptions(&gloov1.VirtualHostOptions{
-						Extauth: GetBasicAuthExtension(),
-					})
-					return builder.Build()
+		JustBeforeEach(func() {
+			testContext.PatchDefaultVirtualService(func(vs *v1.VirtualService) *v1.VirtualService {
+				builder := helpers.BuilderFromVirtualService(vs)
+				builder.WithVirtualHostOptions(&gloov1.VirtualHostOptions{
+					Extauth: GetBasicAuthExtension(),
 				})
-			})
-
-			It("should pass after receiving xDS config from gloo", func() {
-				testContext.ExtAuthInstance().EventuallyIsHealthy()
-				Consistently(testContext.ExtAuthInstance().IsHealthy(), "3s", ".1s").Should(Equal(true))
+				return builder.Build()
 			})
 		})
 
-		Context("shutdown", func() {
-			BeforeEach(func() {
-				// Allow the health check to return `envoy2.HealthCheckFailHeader` for two seconds, before shutting down
-				testContext.ExtAuthInstance().UpdateServerSettings(func(settings *server.Settings) {
-					settings.HealthCheckFailTimeout = 2 // seconds
-				})
+		It("should pass after receiving xDS config from gloo", func() {
+			testContext.ExtAuthInstance().EventuallyIsHealthy()
+			Consistently(testContext.ExtAuthInstance().IsHealthy(), "3s", ".1s").Should(Equal(true))
+		})
+	})
+
+	Context("shutdown", func() {
+		BeforeEach(func() {
+			// Allow the health check to return `envoy2.HealthCheckFailHeader` for two seconds, before shutting down
+			testContext.ExtAuthInstance().UpdateServerSettings(func(settings *server.Settings) {
+				settings.HealthCheckFailTimeout = 2 // seconds
 			})
+		})
 
-			It("should fail healthcheck immediately on shutdown", func() {
-				testContext.ExtAuthInstance().EventuallyIsHealthy()
+		It("should fail healthcheck immediately on shutdown", func() {
+			testContext.ExtAuthInstance().EventuallyIsHealthy()
 
-				// Start sending health checking requests continuously
-				waitForHealthcheck := make(chan struct{})
-				go func(waitForHealthcheck chan struct{}) {
-					defer GinkgoRecover()
-					Eventually(func() bool {
-						var header metadata.MD
-						testContext.ExtAuthInstance().GetHealthCheckResponse(grpc.Header(&header))
-						return len(header.Get(envoy2.HealthCheckFailHeader)) == 1
-					}, "5s", ".1s").Should(BeTrue())
-					waitForHealthcheck <- struct{}{}
-				}(waitForHealthcheck)
+			// Start sending health checking requests continuously
+			waitForHealthcheck := make(chan struct{})
+			go func(waitForHealthcheck chan struct{}) {
+				defer GinkgoRecover()
+				Eventually(func() bool {
+					var header metadata.MD
+					testContext.ExtAuthInstance().GetHealthCheckResponse(grpc.Header(&header))
+					return len(header.Get(envoy2.HealthCheckFailHeader)) == 1
+				}, "5s", ".1s").Should(BeTrue())
+				waitForHealthcheck <- struct{}{}
+			}(waitForHealthcheck)
 
-				// Start the health checker first, then cancel
-				time.Sleep(200 * time.Millisecond)
-				testContext.CancelContext()
-				Eventually(waitForHealthcheck, "5s", ".1s").Should(Receive())
-			})
+			// Start the health checker first, then cancel
+			time.Sleep(200 * time.Millisecond)
+			testContext.CancelContext()
+			Eventually(waitForHealthcheck, "5s", ".1s").Should(Receive())
 		})
 	})
 
