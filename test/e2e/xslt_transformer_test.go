@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	glooservices "github.com/solo-io/gloo/test/services"
 	"go.uber.org/zap/zapcore"
 
 	"github.com/solo-io/gloo/test/services/envoy"
@@ -47,19 +46,9 @@ var _ = Describe("XSLT Transformer E2E", func() {
 		testUpstream  *v1helpers.TestUpstream
 		envoyPort     uint32
 		transform     *transformation.TransformationStages
-
-		// This test relies on running the gateway-proxy with debug logging enabled
-		// This variable allows us to reset the original log level after the test
-		customAfterEach func()
 	)
 
 	BeforeEach(func() {
-		originalProxyLogLevel := glooservices.GetLogLevel(envoy.ServiceName)
-		glooservices.SetLogLevel(envoy.ServiceName, zapcore.DebugLevel)
-		customAfterEach = func() {
-			glooservices.SetLogLevel(envoy.ServiceName, originalProxyLogLevel)
-		}
-
 		logger := zaptest.LoggerWriter(GinkgoWriter)
 		contextutils.SetFallbackLogger(logger.Sugar())
 
@@ -86,6 +75,8 @@ var _ = Describe("XSLT Transformer E2E", func() {
 
 	setupProxy := func() {
 		envoyInstance = envoyFactory.NewInstance()
+		// This test relies on running the gateway-proxy with debug logging enabled
+		envoyInstance.LogLevel = zapcore.DebugLevel.String()
 		envoyPort = envoyInstance.HttpPort
 		err := envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
@@ -107,25 +98,9 @@ var _ = Describe("XSLT Transformer E2E", func() {
 		helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 			return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 		})
-
-		request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", envoyInstance.AdminPort), nil)
-		Expect(err).NotTo(HaveOccurred())
-		client := &http.Client{}
-		Eventually(func() (int, error) {
-			response, err := client.Do(request)
-			if err != nil {
-				return 0, err
-			}
-			defer response.Body.Close()
-			_, _ = io.ReadAll(response.Body)
-			return response.StatusCode, err
-		}, 20*time.Second, 1*time.Second).Should(Equal(200))
-
 	}
 
 	AfterEach(func() {
-		customAfterEach()
-
 		envoyInstance.Clean()
 		cancel()
 	})

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"sync/atomic"
 
 	"github.com/solo-io/solo-projects/test/testutils"
 
@@ -38,7 +37,7 @@ func NewFactory() *Factory {
 }
 
 func (f *Factory) NewInstance() *Instance {
-	instancePort := atomic.AddUint32(&f.basePort, 1) + uint32(parallel.GetPortOffset())
+	instancePort := parallel.AdvancePortSafeListen(&f.basePort)
 
 	command := exec.Command(f.binaryPath, "--port", fmt.Sprintf("%d", instancePort))
 

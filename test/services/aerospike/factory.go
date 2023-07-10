@@ -2,9 +2,8 @@ package aerospike
 
 import (
 	"fmt"
-	"sync/atomic"
 
-	"github.com/solo-io/solo-projects/test/services"
+	"github.com/solo-io/gloo/test/services"
 
 	"github.com/solo-io/gloo/test/ginkgo/parallel"
 )
@@ -37,27 +36,20 @@ func (f *Factory) NewInstance() *Instance {
 		return &Instance{
 			dockerRunArgs: []string{
 				"-d",
-				"--rm",
 				"-p", fmt.Sprintf("%d:%d", aerospikeServicePort, aerospikeServicePort),
 				"--net", services.GetContainerNetwork(),
 				imageName,
 			},
 			containerName: containerName,
 			port:          aerospikeServicePort,
-			// At the moment, the Aerospike Instance relies on the services/docker.go file
-			// That file adds a suffix to the container name to include an ID from cloudbuild
-			// To properly connect to the aerospike instance, we need to add the suffix to the address
-			// It's not ideal that we need to do this, but it is a temporary solution
-			// In the future, it would be preferred if the Factory owned the container name
-			address:   services.GetUpdatedContainerName(containerName),
-			namespace: "test",
+			address:       containerName,
+			namespace:     "test",
 		}
 	}
 
 	return &Instance{
 		dockerRunArgs: []string{
 			"-d",
-			"--rm",
 			"-p", fmt.Sprintf("%d:%d", instancePort, aerospikeServicePort),
 			"--net", services.GetContainerNetwork(),
 			imageName,
@@ -70,5 +62,5 @@ func (f *Factory) NewInstance() *Instance {
 }
 
 func advancePort(p *uint32) uint32 {
-	return atomic.AddUint32(p, 2) + uint32(parallel.GetPortOffset())
+	return parallel.AdvancePortSafeListen(p)
 }

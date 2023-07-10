@@ -176,15 +176,6 @@ var _ = Describe("Graphql Remote and gRPC E2E test", func() {
 				p, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 				return p, err
 			})
-			EventuallyWithOffset(1, func() (int, error) {
-				resp, err := http.Get(fmt.Sprintf("http://%s:%d", "localhost", envoyInstance.AdminPort))
-				if err != nil {
-					return 0, err
-				}
-				defer resp.Body.Close()
-				_, _ = io.ReadAll(resp.Body)
-				return resp.StatusCode, nil
-			}, "5s", "0.5s").Should(Equal(http.StatusOK))
 		}
 
 		BeforeEach(func() {

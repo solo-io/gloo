@@ -12,7 +12,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"sync/atomic"
 
 	"github.com/solo-io/gloo/test/services/envoy"
 
@@ -88,7 +87,7 @@ func jwks(ctx context.Context) (uint32, *rsa.PrivateKey, *ecdsa.PrivateKey, ed25
 	jwksBytes, err := json.Marshal(keySet)
 	Expect(err).NotTo(HaveOccurred())
 
-	jwksPort := atomic.AddUint32(&baseJwksPort, 1) + uint32(parallel.GetPortOffset())
+	jwksPort := parallel.AdvancePortSafeListen(&baseJwksPort)
 	jwtHandler := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("content-type", "application/json")
 		w.Write(jwksBytes)

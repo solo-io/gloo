@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"runtime"
 
+	"github.com/solo-io/gloo/test/services"
 	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/graphql-graphql"
-	"github.com/solo-io/solo-projects/test/services"
 )
 
 /*
@@ -60,7 +60,8 @@ func (c *ContainerBase) Start() error {
 }
 
 func (c *ContainerBase) Kill() error {
-	return services.KillAndRemoveContainer(c.containerName)
+	services.MustStopAndRemoveContainer(c.containerName)
+	return nil
 }
 
 func (c *ContainerBase) GetHost() string {

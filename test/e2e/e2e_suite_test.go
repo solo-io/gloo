@@ -3,8 +3,6 @@ package e2e_test
 import (
 	"testing"
 
-	"github.com/solo-io/solo-projects/test/services/redis"
-
 	"github.com/solo-io/gloo/test/services/envoy"
 	glooe_envoy "github.com/solo-io/solo-projects/test/services/envoy"
 
@@ -17,7 +15,6 @@ import (
 
 var (
 	envoyFactory       envoy.Factory
-	redisFactory       *redis.Factory
 	testContextFactory *e2e.TestContextFactory
 
 	namespace = defaults.GlooSystem
@@ -25,7 +22,6 @@ var (
 
 var _ = BeforeSuite(func() {
 	envoyFactory = glooe_envoy.NewFactory()
-	redisFactory = redis.NewFactory()
 
 	testContextFactory = &e2e.TestContextFactory{
 		EnvoyFactory: envoyFactory,

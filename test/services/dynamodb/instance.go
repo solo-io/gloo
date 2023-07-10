@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/solo-io/solo-projects/test/services"
+	"github.com/solo-io/gloo/test/services"
 
 	"k8s.io/utils/pointer"
 
@@ -29,13 +29,15 @@ func (i *Instance) Run(ctx context.Context) {
 		i.Clean()
 	}()
 
-	err := services.RunContainer(i.containerName, i.dockerRunArgs)
-	Expect(err).NotTo(HaveOccurred(), "should be able to run container")
+	Eventually(func(g Gomega) {
+		err := services.RunContainer(i.containerName, i.dockerRunArgs)
+		g.Expect(err).NotTo(HaveOccurred(), "should be able to run container")
+	}, "5s", "1s").Should(Succeed())
 	i.EventuallyIsHealthy()
 }
 
 func (i *Instance) Clean() {
-	services.MustKillAndRemoveContainer(i.containerName)
+	services.MustStopAndRemoveContainer(i.containerName)
 }
 
 func (i *Instance) Port() uint32 {

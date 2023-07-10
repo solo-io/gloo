@@ -1,8 +1,6 @@
 package ratelimit
 
 import (
-	"sync/atomic"
-
 	"github.com/solo-io/gloo/test/services"
 
 	"github.com/solo-io/rate-limiter/pkg/cache/aerospike"
@@ -55,5 +53,5 @@ func (f *Factory) NewInstance(address string) *Instance {
 }
 
 func advancePort(p *uint32) uint32 {
-	return atomic.AddUint32(p, 1) + uint32(parallel.GetPortOffset())
+	return parallel.AdvancePortSafeListen(p)
 }

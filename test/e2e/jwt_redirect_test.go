@@ -74,20 +74,6 @@ var _ = Describe("JWT Redirect E2E", func() {
 
 		_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
-
-		request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", envoyInstance.AdminPort), nil)
-		Expect(err).NotTo(HaveOccurred())
-		client := &http.Client{}
-		Eventually(func() (int, error) {
-			response, err := client.Do(request)
-			if err != nil {
-				return 0, err
-			}
-			defer response.Body.Close()
-			_, _ = io.ReadAll(response.Body)
-			return response.StatusCode, nil
-		}, 20*time.Second, 1*time.Second).Should(Equal(200))
-
 	}
 
 	setupJwt := func() {

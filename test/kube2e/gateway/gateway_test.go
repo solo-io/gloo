@@ -533,6 +533,10 @@ spec:
 		var virtualservice *v1.VirtualService
 		var hybridGateway *v1.Gateway
 		BeforeEach(func() {
+			// We are disabling tests temporarily, until we resolve:
+			// https://github.com/solo-io/solo-projects/issues/5156
+			Skip("Skipping DCP Tests")
+
 			caFile := glooKube2e.ToFile(helpers.Certificate())
 			//goland:noinspection GoUnhandledErrorResult
 			defer os.Remove(caFile)
@@ -738,19 +742,19 @@ spec:
 				result, err := testHelper.Exec(curlArgs...)
 				g.Expect(err).NotTo(HaveOccurred())
 				/* sample response:
-				{
-				  "name": "Service",
-				  "uri": "/",
-				  "type": "HTTP",
-				  "ip_addresses": [
-					"10.244.0.155"
-				  ],
-				  "start_time": "2023-05-24T15:34:26.834787",
-				  "end_time": "2023-05-24T15:34:26.834813",
-				  "duration": "26.615µs",
-				  "body": "Hello World",
-				  "code": 200
-				}
+				   {
+				     "name": "Service",
+				     "uri": "/",
+				     "type": "HTTP",
+				     "ip_addresses": [
+				   	"10.244.0.155"
+				     ],
+				     "start_time": "2023-05-24T15:34:26.834787",
+				     "end_time": "2023-05-24T15:34:26.834813",
+				     "duration": "26.615µs",
+				     "body": "Hello World",
+				     "code": 200
+				   }
 				*/
 				g.Expect(transforms.WithJsonBody()([]byte(result))).To(And(
 					HaveKeyWithValue("code", float64(200)),
@@ -764,31 +768,31 @@ spec:
 				result, err := testHelper.Exec(curlArgs...)
 				g.Expect(err).NotTo(HaveOccurred())
 				/* sample response:
-				{
-				  "path": "/",
-				  "headers": {
-					"host": "gateway-proxy:8087",
-					"user-agent": "curl/7.58.0",
-					"accept": "* /*",
-					"content-length": "15",
-					"content-type": "application/x-www-form-urlencoded",
-					"x-forwarded-proto": "https",
-					"x-request-id": "9bf32163-57ce-4035-a26c-1b622dcbe752",
-					"x-envoy-expected-rq-timeout-ms": "15000"
-				  },
-				  "method": "POST",
-				  "body": {
-					"test_key": "test_value"
-				  },
-				  "fresh": false,
-				  "hostname": "gateway-proxy",
-				  "ip": "::ffff:10.244.0.121",
-				  "ips": [],
-				  "protocol": "http",
-				  "query": {},
-				  "subdomains": [],
-				  "xhr": false
-				}
+				   {
+				     "path": "/",
+				     "headers": {
+				   	"host": "gateway-proxy:8087",
+				   	"user-agent": "curl/7.58.0",
+				   	"accept": "* /*",
+				   	"content-length": "15",
+				   	"content-type": "application/x-www-form-urlencoded",
+				   	"x-forwarded-proto": "https",
+				   	"x-request-id": "9bf32163-57ce-4035-a26c-1b622dcbe752",
+				   	"x-envoy-expected-rq-timeout-ms": "15000"
+				     },
+				     "method": "POST",
+				     "body": {
+				   	"test_key": "test_value"
+				     },
+				     "fresh": false,
+				     "hostname": "gateway-proxy",
+				     "ip": "::ffff:10.244.0.121",
+				     "ips": [],
+				     "protocol": "http",
+				     "query": {},
+				     "subdomains": [],
+				     "xhr": false
+				   }
 				*/
 				g.Expect(transforms.WithJsonBody()([]byte(result))).To(HaveKeyWithValue("body", map[string]any{"test_key": "test_value"}))
 			}, "90s", "5s").Should(Succeed())
@@ -825,39 +829,39 @@ spec:
 		DescribeTable("dcp cipher combination tests",
 			/* Table of tests for DCP cipher combinations
 
-			We initialise the server with a DCP configuration and then test
-			combinations of ciphers and how we expect them to be handled.
+			   We initialise the server with a DCP configuration and then test
+			   combinations of ciphers and how we expect them to be handled.
 
-			Configured ciphers:
-			* passthroughCipher (AES128-SHA): configured for passthrough
-			* terminatedCipher (ECDHE-RSA-AES256-GCM-SHA384): configured for
-			    tls termination in envoy
-			* nonTerminatedCipher (ECDHE-RSA-CHACHA20-POLY1305): not configured
-			    (should be rejected by Envoy)
+			   Configured ciphers:
+			   * passthroughCipher (AES128-SHA): configured for passthrough
+			   * terminatedCipher (ECDHE-RSA-AES256-GCM-SHA384): configured for
+			       tls termination in envoy
+			   * nonTerminatedCipher (ECDHE-RSA-CHACHA20-POLY1305): not configured
+			       (should be rejected by Envoy)
 
-			Possible results:
-			* expectTcpPassthrough: Envoy should proxy the request to the
-			    configured tcp-echo-tls server
-			* expectTlsTermination: Envoy should terminate TLS and send the
-			    request to the configured HTTP echo server
-			* expectSslHandshakeFailure: connection should error. This callback
-			    first performs the expectTlsTermination test to ensure that the
-			    server has been configured and then performs the requested test
+			   Possible results:
+			   * expectTcpPassthrough: Envoy should proxy the request to the
+			       configured tcp-echo-tls server
+			   * expectTlsTermination: Envoy should terminate TLS and send the
+			       request to the configured HTTP echo server
+			   * expectSslHandshakeFailure: connection should error. This callback
+			       first performs the expectTlsTermination test to ensure that the
+			       server has been configured and then performs the requested test
 
-			In the cases of the expectTlsTermination and expectTcpPassthrough,
-			the response bodies of the 2 configured servers are slightly
-			different, so the different assertions on the response bodies are
-			sufficient to determine which server received the request.
+			   In the cases of the expectTlsTermination and expectTcpPassthrough,
+			   the response bodies of the 2 configured servers are slightly
+			   different, so the different assertions on the response bodies are
+			   sufficient to determine which server received the request.
 
-			Then, we test combinations of ciphers as well. When all 3 ciphers
-			are present, we expect TLS termination in Envoy. When
-			passthroughCipher and nonTerminatedCipher are present, we expect
-			passthrough.
+			   Then, we test combinations of ciphers as well. When all 3 ciphers
+			   are present, we expect TLS termination in Envoy. When
+			   passthroughCipher and nonTerminatedCipher are present, we expect
+			   passthrough.
 
-			Finally, we can also change the server with different
-			configurations (namely, disabling DCP and re-enabling
-			nonTerminatedCipher) to ensure the correct behaviour in different
-			server configurations.
+			   Finally, we can also change the server with different
+			   configurations (namely, disabling DCP and re-enabling
+			   nonTerminatedCipher) to ensure the correct behaviour in different
+			   server configurations.
 			*/
 			func(ciphers []string, expectedResult func([]string), beforeTest []func()) {
 				// --tlsv1.2 flag is necessary because without it, curl

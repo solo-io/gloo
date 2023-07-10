@@ -1,8 +1,6 @@
 package extauth
 
 import (
-	"sync/atomic"
-
 	"github.com/solo-io/gloo/test/services"
 
 	. "github.com/onsi/gomega"
@@ -63,5 +61,5 @@ func (f *Factory) NewInstance(address string) *Instance {
 }
 
 func advancePort(p *uint32) uint32 {
-	return atomic.AddUint32(p, 1) + uint32(parallel.GetPortOffset())
+	return parallel.AdvancePortSafeListen(p)
 }

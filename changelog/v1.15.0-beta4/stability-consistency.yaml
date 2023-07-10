@@ -1,0 +1,21 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.15.0-beta16
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4625
+    resolvesIssue: true
+    description: >-
+      Fix e2e proxy_protocol test by using the TestContext framework.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4548
+    resolvesIssue: true
+    description: >-
+      GraphQL e2e test flakes are a result of the restXds BindPort being re-used.
+      Newer forms of tests (using TestContext) will advance this port.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/2798
+    resolvesIssue: true
+    description: >-
+      Fix e2e leftmost_xff_address test by using the TestContext framework.

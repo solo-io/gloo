@@ -156,9 +156,7 @@ func (c *TestContext) BeforeEach() {
 
 func (c *TestContext) AfterEach() {
 	ginkgo.By("TestContext.AfterEach: Stopping Envoy and cancelling test context")
-	// Stop Envoy
-	c.envoyInstance.Clean()
-
+	// All services connected to the TestContext are tied to the context, so cancelling it will clean those up
 	c.CancelContext()
 }
 
@@ -171,7 +169,11 @@ func (c *TestContext) JustBeforeEach() {
 	c.testClients = glooe_services.RunGlooGatewayUdsFds(c.Ctx(), c.runOptions)
 
 	// Run Envoy
-	err := c.envoyInstance.RunWithRole(envoyRole, c.testClients.GlooPort)
+	err := c.envoyInstance.RunWith(envoy.RunConfig{
+		Context: c.ctx,
+		Role:    envoyRole,
+		Port:    uint32(c.testClients.GlooPort),
+	})
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 	// Create Resources

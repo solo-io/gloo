@@ -26,8 +26,10 @@ func (i *Instance) Run(ctx context.Context) {
 	}()
 
 	var err error
-	i.session, err = gexec.Start(i.startCmd, GinkgoWriter, GinkgoWriter)
-	Expect(err).NotTo(HaveOccurred())
+	Eventually(func(g Gomega) {
+		i.session, err = gexec.Start(i.startCmd, GinkgoWriter, GinkgoWriter)
+		g.Expect(err).NotTo(HaveOccurred(), "should be able to start redis")
+	}, "5s", "1s").Should(Succeed())
 	Eventually(i.session.Out, "5s").Should(gbytes.Say("Ready to accept connections"))
 }
 
