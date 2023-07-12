@@ -8,30 +8,26 @@ import (
 	"os"
 	"time"
 
+	structpb "github.com/golang/protobuf/ptypes/struct"
+	"github.com/solo-io/ext-auth-service/pkg/controller/translation"
+	"github.com/solo-io/gloo/test/gomega/transforms"
+	skmatchers "github.com/solo-io/solo-kit/test/matchers"
+
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/test/helpers"
 
-	"github.com/solo-io/ext-auth-service/pkg/controller/translation"
-
 	"github.com/golang/protobuf/ptypes/duration"
-	structpb "github.com/golang/protobuf/ptypes/struct"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/test/gomega/matchers"
-	"github.com/solo-io/gloo/test/gomega/transforms"
 	"github.com/solo-io/gloo/test/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	skmatchers "github.com/solo-io/solo-kit/test/matchers"
 	"github.com/solo-io/solo-projects/test/e2e"
 	"github.com/solo-io/solo-projects/test/v1helpers"
 )
-
-/*
-	TODO Move chaining tests into their own file(s).
-*/
 
 var _ = Describe("HTTP Passthrough", func() {
 
@@ -88,36 +84,16 @@ var _ = Describe("HTTP Passthrough", func() {
 		}, "5s", "0.5s").Should(Succeed())
 	}
 
-	Context("http passthrough sanity", func() {
+	Context("passthrough sanity", func() {
 		var (
+			authServerUpstream    *v1helpers.TestUpstream
 			httpPassthroughConfig *extauth.PassThroughHttp
-			httpAuthServer        *v1helpers.TestUpstream
 			authConfig            *extauth.AuthConfig
-			authServerUpstream    *gloov1.Upstream
 			authconfigCfg         *structpb.Struct
-			authConfigRequestPath string
 		)
 
-		BeforeEach(func() {
-			httpPassthroughConfig = &extauth.PassThroughHttp{
-				Request:  &extauth.PassThroughHttp_Request{},
-				Response: &extauth.PassThroughHttp_Response{},
-				ConnectionTimeout: &duration.Duration{
-					Seconds: 10,
-				},
-			}
-			authconfigCfg = nil
-			authConfigRequestPath = ""
-		})
-
-		// This should be run AFTER the parent's testContext.JustBeforeEach()
-		setupServerWithFailureModeAllow := func(failureModeAllow bool, handler v1helpers.ExtraHandlerFunc) {
-			// Create the auth server and upstream with handler functions
-			httpAuthServer = v1helpers.NewTestHttpUpstreamWithHandler(testContext.Ctx(), testContext.EnvoyInstance().LocalAddr(), handler)
-			authServerUpstream = httpAuthServer.Upstream
-
-			httpPassthroughConfig.Url = fmt.Sprintf("http://%s%s", httpAuthServer.Address, authConfigRequestPath)
-			authConfig = &extauth.AuthConfig{
+		getHttpPassthroughAuthConfig := func() *extauth.AuthConfig {
+			return &extauth.AuthConfig{
 				Metadata: &core.Metadata{
 					Name:      GetPassThroughExtAuthExtension().GetConfigRef().Name,
 					Namespace: GetPassThroughExtAuthExtension().GetConfigRef().Namespace,
@@ -128,301 +104,367 @@ var _ = Describe("HTTP Passthrough", func() {
 							Protocol: &extauth.PassThroughAuth_Http{
 								Http: httpPassthroughConfig,
 							},
-							Config:           authconfigCfg,
-							FailureModeAllow: failureModeAllow,
+							Config: authconfigCfg,
 						},
 					},
 				}},
 			}
-
-			// These resources are dynamically created and modified in the tests, so we need to manually write them AFTER the JustBeforeEach.
-			_, err := testContext.TestClients().AuthConfigClient.Write(authConfig, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
-			_, err = testContext.TestClients().UpstreamClient.Write(authServerUpstream, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
-
-			testContext.EventuallyProxyAccepted()
 		}
 
-		It("works", func() {
-			setupServerWithFailureModeAllow(false, nil)
-			expectStatusCodeWithHeaders(http.StatusOK, nil, nil)
-
-			select {
-			case received := <-httpAuthServer.C:
-				Expect(received.Method).To(Equal(http.MethodPost))
-			case <-time.After(defaultUpstreamRequestTimeout):
-				Fail("request didn't make it upstream")
-			}
-		})
-
-		// The failure_mode_allow feature allows for a user to be authorized even if the auth service is unavailable, BUT NOT when they are unauthorized.
-		DescribeTable("failure_mode_allow sanity tests", func(failureModeAllow bool, clientResponse, expectedServiceResponse int) {
-			handler := func(rw http.ResponseWriter, r *http.Request) bool {
-				rw.WriteHeader(clientResponse)
-				return true
-			}
-			setupServerWithFailureModeAllow(failureModeAllow, handler)
-			// Any non-200 response from the client results in the passthrough service to return a 401
-			expectStatusCodeWithHeaders(expectedServiceResponse, nil, nil)
-
-			select {
-			case received := <-httpAuthServer.C:
-				Expect(received.Method).To(Equal(http.MethodPost))
-			case <-time.After(defaultUpstreamRequestTimeout):
-				Fail("request didn't make it upstream")
-			}
-		},
-			Entry("unauthorized when failure_mode_allow=false and the service is unavailable", false, http.StatusServiceUnavailable, http.StatusUnauthorized),
-			Entry("authorized when failure_mode_allow=true, but service is unavailable", true, http.StatusServiceUnavailable, http.StatusOK),
-			Entry("unauthorized when failure_mode_allow=false and the user is unauthorized", false, http.StatusUnauthorized, http.StatusUnauthorized),
-			Entry("unauthorized when failure_mode_allow=true, but the user is unauthorized", true, http.StatusUnauthorized, http.StatusUnauthorized),
-		)
-
-		Context("setting path on URL", func() {
-			// We are running the server setup in the JustBeforeEach because we are writing configs, onto the clients which are created in the testContext.JustBeforeEach.
-			JustBeforeEach(func() {
-				authConfigRequestPath += "/auth"
-				setupServerWithFailureModeAllow(false, nil)
+		Context("http", func() {
+			BeforeEach(func() {
+				httpPassthroughConfig = &extauth.PassThroughHttp{
+					Request:  &extauth.PassThroughHttp_Request{},
+					Response: &extauth.PassThroughHttp_Response{},
+					ConnectionTimeout: &duration.Duration{
+						Seconds: 10,
+					},
+				}
+				authconfigCfg = nil
 			})
 
-			It("has correct path to auth server", func() {
+			// This should be run AFTER the parent's testContext.JustBeforeEach()
+			setupServerWithFailureModeAllow := func(requestPath string, failureModeAllow bool, handler v1helpers.ExtraHandlerFunc) {
+				// Create the auth server and upstream with handler functions
+				authServerUpstream = v1helpers.NewTestHttpUpstreamWithHandler(testContext.Ctx(), testContext.EnvoyInstance().LocalAddr(), handler)
+
+				httpPassthroughConfig.Url = fmt.Sprintf("http://%s%s", authServerUpstream.Address, requestPath)
+				authConfig := getHttpPassthroughAuthConfig()
+				authConfig.Configs[0].GetPassThroughAuth().FailureModeAllow = failureModeAllow
+
+				// These resources are dynamically created and modified in the tests, so we need to manually write them AFTER the JustBeforeEach.
+				_, err := testContext.TestClients().AuthConfigClient.Write(authConfig, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+				_, err = testContext.TestClients().UpstreamClient.Write(authServerUpstream.Upstream, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+
+				testContext.EventuallyProxyAccepted()
+			}
+
+			It("works", func() {
+				setupServerWithFailureModeAllow("", false, nil)
 				expectStatusCodeWithHeaders(http.StatusOK, nil, nil)
 
 				select {
-				case received := <-httpAuthServer.C:
+				case received := <-authServerUpstream.C:
 					Expect(received.Method).To(Equal(http.MethodPost))
-					Expect(received.URL.Path).To(Equal("/auth"))
 				case <-time.After(defaultUpstreamRequestTimeout):
 					Fail("request didn't make it upstream")
 				}
 			})
-		})
 
-		Context("request", func() {
-			JustBeforeEach(func() {
-				httpPassthroughConfig.Request = &extauth.PassThroughHttp_Request{
-					AllowedHeaders: []string{"x-passthrough-1", "x-passthrough-2"},
-					HeadersToAdd: map[string]string{
-						"x-added-header-1": "net new header",
-					},
+			// The failure_mode_allow feature allows for a user to be authorized even if the auth service is unavailable, BUT NOT when they are unauthorized.
+			DescribeTable("failure_mode_allow sanity tests", func(failureModeAllow bool, clientResponse, expectedServiceResponse int) {
+				handler := func(rw http.ResponseWriter, r *http.Request) bool {
+					rw.WriteHeader(clientResponse)
+					return true
 				}
-
-				setupServerWithFailureModeAllow(false, nil)
-			})
-
-			It("copies `allowed_headers` request headers and adds `headers_to_add` headers to auth request", func() {
-				expectStatusCodeWithHeaders(http.StatusOK, map[string][]string{
-					"x-passthrough-1":    {"some header from request"},
-					"x-passthrough-2":    {"some header from request 2"},
-					"x-dont-passthrough": {"some header from request that shouldn't be passed through to auth server"},
-				}, nil)
+				setupServerWithFailureModeAllow("", failureModeAllow, handler)
+				// Any non-200 response from the client results in the passthrough service returning a 401
+				expectStatusCodeWithHeaders(expectedServiceResponse, nil, nil)
 
 				select {
-				case received := <-httpAuthServer.C:
-					Expect(received.Method).To(Equal("POST"))
-					Expect(received.Headers).To(And(
-						HaveKeyWithValue("X-Passthrough-1", ContainElements("some header from request")),
-						HaveKeyWithValue("X-Passthrough-2", ContainElements("some header from request 2")),
-						HaveKeyWithValue("X-Added-Header-1", ContainElements("net new header")),
-						Not(HaveKey("X-Dont-Passthrough")),
-					))
+				case received := <-authServerUpstream.C:
+					Expect(received.Method).To(Equal(http.MethodPost))
 				case <-time.After(defaultUpstreamRequestTimeout):
 					Fail("request didn't make it upstream")
 				}
-			})
-		})
-
-		Context("response", func() {
-			var (
-				handler v1helpers.ExtraHandlerFunc
+			},
+				Entry("unauthorized when failure_mode_allow=false and the service is unavailable", false, http.StatusServiceUnavailable, http.StatusUnauthorized),
+				Entry("authorized when failure_mode_allow=true, but service is unavailable", true, http.StatusServiceUnavailable, http.StatusOK),
+				Entry("unauthorized when failure_mode_allow=false and the user is unauthorized", false, http.StatusUnauthorized, http.StatusUnauthorized),
+				Entry("unauthorized when failure_mode_allow=true, but the user is unauthorized", true, http.StatusUnauthorized, http.StatusUnauthorized),
 			)
 
-			JustBeforeEach(func() {
-				httpPassthroughConfig.Response = &extauth.PassThroughHttp_Response{
-					AllowedUpstreamHeaders:       []string{"x-auth-header-1", "x-auth-header-2"},
-					AllowedClientHeadersOnDenied: []string{"x-auth-header-1"},
-				}
+			Context("setting path on URL", func() {
+				// We are running the server setup in the JustBeforeEach because we are writing configs, onto the clients which are created in the testContext.JustBeforeEach.
+				JustBeforeEach(func() {
+					setupServerWithFailureModeAllow("/auth", false, nil)
+				})
 
-				setupServerWithFailureModeAllow(false, handler)
+				It("has correct path to auth server", func() {
+					expectStatusCodeWithHeaders(http.StatusOK, nil, nil)
+
+					select {
+					case received := <-authServerUpstream.C:
+						Expect(received.Method).To(Equal(http.MethodPost))
+						Expect(received.URL.Path).To(Equal("/auth"))
+					case <-time.After(defaultUpstreamRequestTimeout):
+						Fail("request didn't make it upstream")
+					}
+				})
 			})
 
-			Context("On authorized response", func() {
-				BeforeEach(func() {
-					handler = func(rw http.ResponseWriter, r *http.Request) bool {
-						rw.Header().Set("x-auth-header-1", "some value")
-						rw.Header().Set("x-auth-header-2", "some value 2")
-						rw.Header().Set("x-shouldnt-upstream", "shouldn't upstream")
-						return true
+			Context("request", func() {
+				JustBeforeEach(func() {
+					httpPassthroughConfig.Request = &extauth.PassThroughHttp_Request{
+						AllowedHeaders: []string{"x-passthrough-1", "x-passthrough-2"},
+						HeadersToAdd: map[string]string{
+							"x-added-header-1": "net new header",
+						},
 					}
+
+					setupServerWithFailureModeAllow("", false, nil)
 				})
 
 				It("copies `allowed_headers` request headers and adds `headers_to_add` headers to auth request", func() {
 					expectStatusCodeWithHeaders(http.StatusOK, map[string][]string{
-						"x-auth-header-1": {"hello"},
-						"x-passthrough-1": {"some header from request that should go to upstream"},
+						"x-passthrough-1":    {"some header from request"},
+						"x-passthrough-2":    {"some header from request 2"},
+						"x-dont-passthrough": {"some header from request that shouldn't be passed through to auth server"},
 					}, nil)
 
 					select {
-					case received := <-testContext.TestUpstream().C:
-						Expect(received.Method).To(Equal(http.MethodGet))
+					case received := <-authServerUpstream.C:
+						Expect(received.Method).To(Equal("POST"))
 						Expect(received.Headers).To(And(
-							// This header should have an appended value since it exists on the original request
-							HaveKeyWithValue("X-Auth-Header-1", ContainElements("hello,some value")),
-							HaveKeyWithValue("X-Auth-Header-2", ContainElements("some value 2")),
-							Not(HaveKey("X-Shouldnt-Upstream")),
+							HaveKeyWithValue("X-Passthrough-1", ContainElements("some header from request")),
+							HaveKeyWithValue("X-Passthrough-2", ContainElements("some header from request 2")),
+							HaveKeyWithValue("X-Added-Header-1", ContainElements("net new header")),
+							Not(HaveKey("X-Dont-Passthrough")),
 						))
-
 					case <-time.After(defaultUpstreamRequestTimeout):
 						Fail("request didn't make it upstream")
 					}
 				})
 			})
 
-			Context("on authorized response", func() {
+			Context("response", func() {
+				var (
+					handler v1helpers.ExtraHandlerFunc
+				)
+
+				JustBeforeEach(func() {
+					httpPassthroughConfig.Response = &extauth.PassThroughHttp_Response{
+						AllowedUpstreamHeaders:       []string{"x-auth-header-1", "x-auth-header-2"},
+						AllowedClientHeadersOnDenied: []string{"x-auth-header-1"},
+					}
+
+					setupServerWithFailureModeAllow("", false, handler)
+				})
+
+				Context("On authorized response", func() {
+					BeforeEach(func() {
+						handler = func(rw http.ResponseWriter, r *http.Request) bool {
+							rw.Header().Set("x-auth-header-1", "some value")
+							rw.Header().Set("x-auth-header-2", "some value 2")
+							rw.Header().Set("x-shouldnt-upstream", "shouldn't upstream")
+							return true
+						}
+					})
+
+					It("copies `allowed_headers` request headers and adds `headers_to_add` headers to auth request", func() {
+						expectStatusCodeWithHeaders(http.StatusOK, map[string][]string{
+							"x-auth-header-1": {"hello"},
+							"x-passthrough-1": {"some header from request that should go to upstream"},
+						}, nil)
+
+						select {
+						case received := <-testContext.TestUpstream().C:
+							Expect(received.Method).To(Equal(http.MethodGet))
+							Expect(received.Headers).To(And(
+								// This header should have an appended value since it exists on the original request
+								HaveKeyWithValue("X-Auth-Header-1", ContainElements("hello,some value")),
+								HaveKeyWithValue("X-Auth-Header-2", ContainElements("some value 2")),
+								Not(HaveKey("X-Shouldnt-Upstream")),
+							))
+
+						case <-time.After(defaultUpstreamRequestTimeout):
+							Fail("request didn't make it upstream")
+						}
+					})
+				})
+
+				Context("on authorized response", func() {
+					BeforeEach(func() {
+						handler = func(rw http.ResponseWriter, r *http.Request) bool {
+							rw.Header().Set("x-auth-header-1", "some value")
+							rw.WriteHeader(http.StatusUnauthorized)
+							return true
+						}
+					})
+
+					It("sends allowed authorization headers back to downstream", func() {
+						expectStatusCodeWithHeaders(http.StatusUnauthorized, nil, map[string]interface{}{"x-auth-header-1": "some value"})
+					})
+				})
+			})
+
+			Context("request to Auth Server Body", func() {
 				BeforeEach(func() {
-					handler = func(rw http.ResponseWriter, r *http.Request) bool {
-						rw.Header().Set("x-auth-header-1", "some value")
-						rw.WriteHeader(http.StatusUnauthorized)
-						return true
-					}
+					// We need these settings so envoy buffers the request body and sends it to the ext-auth-service
+					testContext.UpdateRunSettings(func(settings *gloov1.Settings) {
+						settings.Extauth.RequestBody = &extauth.BufferSettings{
+							MaxRequestBytes:     uint32(1024),
+							AllowPartialMessage: true,
+						}
+					})
+				})
+				JustBeforeEach(func() {
+					setupServerWithFailureModeAllow("", false, nil)
 				})
 
-				It("sends allowed authorization headers back to downstream", func() {
-					expectStatusCodeWithHeaders(http.StatusUnauthorized, nil, map[string]interface{}{"x-auth-header-1": "some value"})
-				})
-			})
-		})
+				expectStatusCodeWithBody := func(responseCode int, body string) {
+					httpReqBuilder := testContext.GetHttpRequestBuilder().WithContentType("text/plain").WithPostBody(body)
+					EventuallyWithOffset(1, func(g Gomega) *http.Response {
+						resp, err := testutils.DefaultHttpClient.Do(httpReqBuilder.Build())
+						g.Expect(err).NotTo(HaveOccurred())
+						return resp
+					}, "15s", "0.5s").Should(HaveHTTPStatus(responseCode))
+				}
 
-		Context("request to Auth Server Body", func() {
-			BeforeEach(func() {
-				// We need these settings so envoy buffers the request body and sends it to the ext-auth-service
-				testContext.UpdateRunSettings(func(settings *gloov1.Settings) {
-					settings.Extauth.RequestBody = &extauth.BufferSettings{
-						MaxRequestBytes:     uint32(1024),
-						AllowPartialMessage: true,
-					}
-				})
-			})
-			JustBeforeEach(func() {
-				setupServerWithFailureModeAllow(false, nil)
-			})
+				Context("with PassThroughBody=true", func() {
+					BeforeEach(func() {
+						httpPassthroughConfig.Request.PassThroughBody = true
+					})
 
-			expectStatusCodeWithBody := func(responseCode int, body string) {
-				httpReqBuilder := testContext.GetHttpRequestBuilder().WithContentType("text/plain").WithPostBody(body)
-				EventuallyWithOffset(1, func(g Gomega) *http.Response {
-					resp, err := testutils.DefaultHttpClient.Do(httpReqBuilder.Build())
-					g.Expect(err).NotTo(HaveOccurred())
-					return resp
-				}, "15s", "0.5s").Should(HaveHTTPStatus(responseCode))
-			}
+					It("passes the request body correctly", func() {
+						expectStatusCodeWithBody(http.StatusOK, "some body")
 
-			Context("with PassThroughBody=true", func() {
-				BeforeEach(func() {
-					httpPassthroughConfig.Request.PassThroughBody = true
+						select {
+						case received := <-authServerUpstream.C:
+							// The received body is in json format, so transforming it into a map to assert a key/value on it.
+							Expect(received.Body).To(WithTransform(transforms.WithJsonBody(), HaveKeyWithValue("body", "some body")))
+						case <-time.After(defaultUpstreamRequestTimeout):
+							Fail("request didn't make it upstream")
+						}
+					})
 				})
 
-				It("passes the request body correctly", func() {
-					expectStatusCodeWithBody(http.StatusOK, "some body")
+				Context("with PassThroughBody=false", func() {
+					BeforeEach(func() {
+						httpPassthroughConfig.Request.PassThroughBody = false
+					})
 
-					select {
-					case received := <-httpAuthServer.C:
-						// The received body is in json format, so transforming it into a map to assert a key/value on it.
-						Expect(received.Body).To(WithTransform(transforms.WithJsonBody(), HaveKeyWithValue("body", "some body")))
-					case <-time.After(defaultUpstreamRequestTimeout):
-						Fail("request didn't make it upstream")
-					}
-				})
-			})
+					It("body is empty if no body, config, state, or filtermetadata passthrough is set", func() {
+						expectStatusCodeWithBody(http.StatusOK, "some body")
 
-			Context("with PassThroughBody=false", func() {
-				BeforeEach(func() {
-					httpPassthroughConfig.Request.PassThroughBody = false
-				})
-
-				It("body is empty if no body, config, state, or filtermetadata passthrough is set", func() {
-					expectStatusCodeWithBody(http.StatusOK, "some body")
-
-					select {
-					case received := <-httpAuthServer.C:
-						Expect(string(received.Body)).To(BeEmpty())
-					case <-time.After(defaultUpstreamRequestTimeout):
-						Fail("request didn't make it upstream")
-					}
+						select {
+						case received := <-authServerUpstream.C:
+							Expect(string(received.Body)).To(BeEmpty())
+						case <-time.After(defaultUpstreamRequestTimeout):
+							Fail("request didn't make it upstream")
+						}
+					})
 				})
 			})
-		})
 
-		Context("pass config specified on auth config in auth request body", func() {
-			JustBeforeEach(func() {
-				authconfigCfg = &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"nestedStruct": {
-							Kind: &structpb.Value_StructValue{
-								StructValue: &structpb.Struct{
-									Fields: map[string]*structpb.Value{
-										"list": {
-											Kind: &structpb.Value_ListValue{
-												ListValue: &structpb.ListValue{
-													Values: []*structpb.Value{
-														{
-															Kind: &structpb.Value_StringValue{
-																StringValue: "some string",
+			Context("pass config specified on auth config in auth request body", func() {
+				JustBeforeEach(func() {
+					authconfigCfg = &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"nestedStruct": {
+								Kind: &structpb.Value_StructValue{
+									StructValue: &structpb.Struct{
+										Fields: map[string]*structpb.Value{
+											"list": {
+												Kind: &structpb.Value_ListValue{
+													ListValue: &structpb.ListValue{
+														Values: []*structpb.Value{
+															{
+																Kind: &structpb.Value_StringValue{
+																	StringValue: "some string",
+																},
 															},
-														},
-														{
-															Kind: &structpb.Value_NumberValue{
-																NumberValue: float64(23),
+															{
+																Kind: &structpb.Value_NumberValue{
+																	NumberValue: float64(23),
+																},
 															},
 														},
 													},
 												},
 											},
-										},
-										"string": {
-											Kind: &structpb.Value_StringValue{
-												StringValue: "some string",
+											"string": {
+												Kind: &structpb.Value_StringValue{
+													StringValue: "some string",
+												},
 											},
-										},
-										"int": {
-											Kind: &structpb.Value_NumberValue{
-												NumberValue: float64(23),
+											"int": {
+												Kind: &structpb.Value_NumberValue{
+													NumberValue: float64(23),
+												},
 											},
-										},
-										"bool": {
-											Kind: &structpb.Value_BoolValue{
-												BoolValue: true,
+											"bool": {
+												Kind: &structpb.Value_BoolValue{
+													BoolValue: true,
+												},
 											},
 										},
 									},
 								},
 							},
 						},
-					},
-				}
-				setupServerWithFailureModeAllow(false, nil)
+					}
+					setupServerWithFailureModeAllow("", false, nil)
+				})
+				It("passes through config from auth config to passthrough server", func() {
+					type ConfigStruct struct {
+						Config *structpb.Struct `json:"config"`
+					}
+					expectStatusCodeWithHeaders(http.StatusOK, nil, nil)
+
+					select {
+					case received := <-authServerUpstream.C:
+						cfgStruct := &ConfigStruct{}
+						err := json.Unmarshal(received.Body, cfgStruct)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(cfgStruct.Config).To(skmatchers.MatchProto(authconfigCfg))
+					case <-time.After(defaultUpstreamRequestTimeout):
+						Fail("request didn't make it upstream")
+					}
+				})
 			})
-			It("passes through config from auth config to passthrough server", func() {
-				type ConfigStruct struct {
-					Config *structpb.Struct `json:"config"`
+		})
+
+		Context("https", func() {
+			var (
+				rootCaBytes []byte
+			)
+
+			BeforeEach(func() {
+				rootCaBytes, authServerUpstream = v1helpers.NewTestHttpsUpstreamWithHandler(testContext.Ctx(), testContext.EnvoyInstance().LocalAddr(), nil)
+				// set environment variable for ext auth server https passthrough
+				err := os.Setenv(translation.HttpsPassthroughCaCert, base64.StdEncoding.EncodeToString(rootCaBytes))
+				Expect(err).NotTo(HaveOccurred())
+
+				authconfigCfg = nil
+				httpPassthroughConfig = &extauth.PassThroughHttp{
+					Request:  &extauth.PassThroughHttp_Request{},
+					Response: &extauth.PassThroughHttp_Response{},
+					ConnectionTimeout: &duration.Duration{
+						Seconds: 10,
+					},
+					Url: fmt.Sprintf("https://%s", authServerUpstream.Address),
 				}
+				authConfig = getHttpPassthroughAuthConfig()
+
+				testContext.ResourcesToCreate().AuthConfigs = extauth.AuthConfigList{
+					authConfig,
+				}
+				testContext.ResourcesToCreate().Upstreams = append(testContext.ResourcesToCreate().Upstreams, authServerUpstream.Upstream)
+			})
+
+			AfterEach(func() {
+				err := os.Unsetenv(translation.HttpsPassthroughCaCert)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("works", func() {
 				expectStatusCodeWithHeaders(http.StatusOK, nil, nil)
 
 				select {
-				case received := <-httpAuthServer.C:
-					cfgStruct := &ConfigStruct{}
-					err := json.Unmarshal(received.Body, cfgStruct)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(cfgStruct.Config).To(skmatchers.MatchProto(authconfigCfg))
+				case received := <-authServerUpstream.C:
+					Expect(received.Method).To(Equal(http.MethodPost))
 				case <-time.After(defaultUpstreamRequestTimeout):
 					Fail("request didn't make it upstream")
 				}
 			})
 		})
-
 	})
 
-	Context("http passthrough chaining sanity", func() {
+	// TODO: move chaining tests to their own file
+	Context("passthrough chaining sanity", func() {
 		var (
 			authConfig *extauth.AuthConfig
 			httpAuthServerA,
@@ -552,65 +594,6 @@ var _ = Describe("HTTP Passthrough", func() {
 					Fail("request didn't make it upstream")
 				}
 			})
-		})
-	})
-
-	Context("https", func() {
-		var (
-			httpAuthServer *v1helpers.TestUpstream
-			rootCaBytes    []byte
-		)
-
-		BeforeEach(func() {
-			httpPassthroughConfig := &extauth.PassThroughHttp{
-				Request:  &extauth.PassThroughHttp_Request{},
-				Response: &extauth.PassThroughHttp_Response{},
-				ConnectionTimeout: &duration.Duration{
-					Seconds: 10,
-				},
-			}
-			rootCaBytes, httpAuthServer = v1helpers.NewTestHttpsUpstreamWithHandler(testContext.Ctx(), testContext.EnvoyInstance().LocalAddr(), nil)
-			// set environment variable for ext auth server https passthrough
-			err := os.Setenv(translation.HttpsPassthroughCaCert, base64.StdEncoding.EncodeToString(rootCaBytes))
-			Expect(err).NotTo(HaveOccurred())
-			httpPassthroughConfig.Url = fmt.Sprintf("https://%s", httpAuthServer.Address)
-			authConfig := &extauth.AuthConfig{
-				Metadata: &core.Metadata{
-					Name:      GetPassThroughExtAuthExtension().GetConfigRef().Name,
-					Namespace: GetPassThroughExtAuthExtension().GetConfigRef().Namespace,
-				},
-				Configs: []*extauth.AuthConfig_Config{{
-					AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
-						PassThroughAuth: &extauth.PassThroughAuth{
-							Protocol: &extauth.PassThroughAuth_Http{
-								Http: httpPassthroughConfig,
-							},
-							Config: nil,
-						},
-					},
-				}},
-			}
-
-			testContext.ResourcesToCreate().AuthConfigs = extauth.AuthConfigList{
-				authConfig,
-			}
-			testContext.ResourcesToCreate().Upstreams = append(testContext.ResourcesToCreate().Upstreams, httpAuthServer.Upstream)
-		})
-
-		AfterEach(func() {
-			err := os.Unsetenv(translation.HttpsPassthroughCaCert)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		It("works", func() {
-			expectStatusCodeWithHeaders(http.StatusOK, nil, nil)
-
-			select {
-			case received := <-httpAuthServer.C:
-				Expect(received.Method).To(Equal(http.MethodPost))
-			case <-time.After(defaultUpstreamRequestTimeout):
-				Fail("request didn't make it upstream")
-			}
 		})
 	})
 })

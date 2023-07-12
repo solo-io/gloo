@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"sync/atomic"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -34,7 +33,7 @@ func (f *FakeOAuth2Server) Stop() {
 }
 
 func (f *FakeOAuth2Server) Start() {
-	f.Port = atomic.AddUint32(&baseOauth2Port, 1) + uint32(parallel.GetPortOffset())
+	f.Port = parallel.AdvancePortSafeListen(&baseOauth2Port)
 	f.s = http.Server{
 		Addr: fmt.Sprintf(":%d", f.Port),
 	}

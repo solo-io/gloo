@@ -1,0 +1,16 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Fix HMAC test and unskip it.
+      Use `AdvancePortSafeListen` in extauth e2e test services.
+      skipCI-kube-tests:true
+    issueLink: https://github.com/solo-io/solo-projects/issues/5058
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.15.0-beta17
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.15.0-beta17

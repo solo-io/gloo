@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -93,7 +92,7 @@ func (f *FakeDiscoveryServer) GetValidKeyId() string {
 }
 
 func (f *FakeDiscoveryServer) Start(serverAddress string) *rsa.PrivateKey {
-	f.Port = atomic.AddUint32(&baseOauth2Port, 1) + uint32(parallel.GetPortOffset())
+	f.Port = parallel.AdvancePortSafeListen(&baseOauth2Port)
 	f.ServerAddress = serverAddress
 	// Initialize the server with 1 valid kid
 	f.keyIds = []string{"kid-1"}

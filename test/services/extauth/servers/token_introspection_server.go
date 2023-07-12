@@ -2,7 +2,6 @@ package extauth_test_server
 
 import (
 	"fmt"
-	"sync/atomic"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	oauth_utils "github.com/solo-io/ext-auth-service/pkg/config/oauth/test_utils"
@@ -24,7 +23,7 @@ type TokenIntrospectionServer struct {
 }
 
 func NewTokenIntrospectionServer() *TokenIntrospectionServer {
-	port := atomic.AddUint32(&baseOauth2Port, 1) + uint32(parallel.GetPortOffset())
+	port := parallel.AdvancePortSafeListen(&baseOauth2Port)
 	return &TokenIntrospectionServer{
 		port:         port,
 		AuthHandlers: &oauth_utils.AuthHandlers{},
@@ -35,7 +34,7 @@ func (t *TokenIntrospectionServer) Start() {
 	if t.port == 0 {
 		// If port has not been set yet, generate a new one.
 		// It's possible that the port has been set with `NewTokenIntrospectionServer`.
-		t.port = atomic.AddUint32(&baseOauth2Port, 1) + uint32(parallel.GetPortOffset())
+		t.port = parallel.AdvancePortSafeListen(&baseOauth2Port)
 	}
 
 	t.s = oauth_utils.NewAuthServer(
