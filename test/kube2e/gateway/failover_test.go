@@ -1,30 +1,40 @@
 package gateway_test
 
 import (
-	"context"
-
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/solo-io/solo-projects/test/kube2e/internal"
 )
 
 var _ = Describe("Failover Regression", func() {
+
 	var (
-		failoverTest *internal.FailoverTest
-		ctx          context.Context
-		cancel       context.CancelFunc
+		failoverTestContext *internal.FailoverTestContext
 	)
+
 	BeforeEach(func() {
-		ctx, cancel = context.WithCancel(context.Background())
-		failoverTest = internal.FailoverBeforeEach(testHelper)
+		failoverTestContext = &internal.FailoverTestContext{
+			TestHelper:        testHelper,
+			ResourceClientset: resourceClientset,
+			SnapshotWriter:    snapshotWriter,
+		}
+
+		failoverTestContext.BeforeEach()
 	})
 
 	AfterEach(func() {
-		internal.FailoverAfterEach(ctx, failoverTest, testHelper)
-		cancel()
+		failoverTestContext.AfterEach()
 	})
 
-	It("can failover to kubernetes EDS endpoints", func() {
-		internal.FailoverSpec(failoverTest, testHelper)
+	JustBeforeEach(func() {
+		failoverTestContext.JustBeforeEach()
+	})
+
+	JustAfterEach(func() {
+		failoverTestContext.JustAfterEach()
+	})
+
+	internal.FailoverTests(func() *internal.FailoverTestContext {
+		return failoverTestContext
 	})
 
 })

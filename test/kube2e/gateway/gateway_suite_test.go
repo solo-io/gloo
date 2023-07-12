@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/avast/retry-go"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
 	"github.com/solo-io/solo-projects/test/kube2e"
@@ -56,9 +58,11 @@ const (
 )
 
 var (
-	testHelper *helper.SoloTestHelper
-	ctx        context.Context
-	cancel     context.CancelFunc
+	testHelper        *helper.SoloTestHelper
+	resourceClientset *osskube2e.KubeResourceClientSet
+	snapshotWriter    helpers.SnapshotWriter
+	ctx               context.Context
+	cancel            context.CancelFunc
 )
 
 var _ = BeforeSuite(func() {
@@ -104,6 +108,10 @@ var _ = BeforeSuite(func() {
 	// If it does, we are doing something wrong
 	deployLdapServer(ctx, osskube2e.MustKubeClient(), testHelper)
 
+	resourceClientset, err = osskube2e.NewDefaultKubeResourceClientSet(ctx)
+	Expect(err).NotTo(HaveOccurred(), "no error creating kube resource client set")
+
+	snapshotWriter = helpers.NewSnapshotWriter(resourceClientset, []retry.Option{})
 })
 
 var _ = AfterSuite(func() {

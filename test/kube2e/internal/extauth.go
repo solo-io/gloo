@@ -145,7 +145,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			proxyClient = resourceClientset.ProxyClient()
 			settingsClient = resourceClientset.SettingsClient()
 
-			// Not all tests in this file use the snapshotWriter or glooResources snapshot
+			// Not all tests in this file use the SnapshotWriter or glooResources snapshot
 			// The idea is to progressively move towards this model, because it's used in oss
 			// and is easier to set up/teardown resources consistently
 			snapshotWriter = helpers.NewSnapshotWriter(resourceClientset, []retry.Option{})

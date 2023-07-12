@@ -1,0 +1,13 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/solo-projects/issues/2891
+  resolvesIssue: true
+  description: >-
+    Update failover tests to use the standard TestContext format, to ensure
+    we are writing, updating and deleting resources in a consistent manner.
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/solo-projects/issues/4733
+  resolvesIssue: true
+  description: >-
+    De-flake the failover tests, which were the main culprit in the gloo-mtls
+    test suite.
