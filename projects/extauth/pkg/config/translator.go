@@ -122,18 +122,18 @@ func (t *extAuthConfigTranslator) getConfigs(
 
 func (t *extAuthConfigTranslator) authConfigToService(
 	ctx context.Context,
-	config *extauthv1.ExtAuthConfig_Config,
+	eaconfig *extauthv1.ExtAuthConfig_Config,
 ) (svc api.AuthService, name string, err error) {
-	switch cfg := config.AuthConfig.(type) {
+	switch cfg := eaconfig.AuthConfig.(type) {
 	case *extauthv1.ExtAuthConfig_Config_Jwt:
-		return &jwtextauth.JwtAuthService{}, config.GetName().GetValue(), nil
+		return &jwtextauth.JwtAuthService{}, eaconfig.GetName().GetValue(), nil
 	case *extauthv1.ExtAuthConfig_Config_BasicAuth:
 		aprCfg := apr.Config{
 			Realm:                            cfg.BasicAuth.Realm,
 			SaltAndHashedPasswordPerUsername: convertAprUsers(cfg.BasicAuth.GetApr().GetUsers()),
 		}
 
-		return &aprCfg, config.GetName().GetValue(), nil
+		return &aprCfg, eaconfig.GetName().GetValue(), nil
 
 	// support deprecated config
 	case *extauthv1.ExtAuthConfig_Config_Oauth:
@@ -145,31 +145,25 @@ func (t *extAuthConfigTranslator) authConfigToService(
 
 		authService, err := t.serviceFactory.NewOidcAuthorizationCodeAuthService(
 			ctx,
-			cfg.Oauth.GetClientId(),
-			cfg.Oauth.GetClientSecret(),
-			issuerUrl,
-			cfg.Oauth.GetAppUrl(),
-			cb,
-			"",
-			"", // not supported in deprecated API, net-new feature
-			"", // not supported in deprecated API, net-new feature
-			cfg.Oauth.GetAuthEndpointQueryParams(),
-			nil, // not supported in deprecated API, net-new feature
-			cfg.Oauth.GetScopes(),
-			oidc.SessionParameters{},
-			&oidc.HeaderConfig{},
-			&oidc.DiscoveryData{},
-			DefaultOIDCDiscoveryPollInterval,
-			jwks.NewNilKeySourceFactory(),
-			false,
-			nil, // not supported in deprecated API, net-new feature
-			nil, // not supported in deprecated API, net-new feature
-		)
+			&config.OidcAuthorizationCodeAuthServiceParams{
+				ClientId:                    cfg.Oauth.GetClientId(),
+				ClientSecret:                cfg.Oauth.GetClientSecret(),
+				IssuerUrl:                   issuerUrl,
+				AppUri:                      cfg.Oauth.GetAppUrl(),
+				CallbackPath:                cb,
+				AuthEndpointQueryParams:     cfg.Oauth.GetAuthEndpointQueryParams(),
+				Scopes:                      cfg.Oauth.GetScopes(),
+				SessionParams:               oidc.SessionParameters{},
+				Headers:                     &oidc.HeaderConfig{},
+				DiscoveryDataOverride:       &oidc.DiscoveryData{},
+				DiscoveryPollInterval:       DefaultOIDCDiscoveryPollInterval,
+				InvalidJwksOnDemandStrategy: jwks.NewNilKeySourceFactory(),
+			})
 
 		if err != nil {
-			return nil, config.GetName().GetValue(), err
+			return nil, eaconfig.GetName().GetValue(), err
 		}
-		return authService, config.GetName().GetValue(), nil
+		return authService, eaconfig.GetName().GetValue(), nil
 
 	case *extauthv1.ExtAuthConfig_Config_Oauth2:
 
@@ -192,7 +186,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				sessionParameters, err = ToSessionParameters(oidcCfg.GetSession())
 			}
 			if err != nil {
-				return nil, config.GetName().GetValue(), err
+				return nil, eaconfig.GetName().GetValue(), err
 			}
 
 			headersConfig := ToHeaderConfig(oidcCfg.GetHeaders())
@@ -221,31 +215,32 @@ func (t *extAuthConfigTranslator) authConfigToService(
 
 			authService, err := t.serviceFactory.NewOidcAuthorizationCodeAuthService(
 				ctx,
-				oidcCfg.GetClientId(),
-				oidcCfg.GetClientSecret(),
-				oidcCfg.GetIssuerUrl(),
-				oidcCfg.GetAppUrl(),
-				cb,
-				oidcCfg.GetLogoutPath(),
-				oidcCfg.GetAfterLogoutUrl(),
-				oidcCfg.GetSessionIdHeaderName(),
-				oidcCfg.GetAuthEndpointQueryParams(),
-				oidcCfg.GetTokenEndpointQueryParams(),
-				oidcCfg.GetScopes(),
-				sessionParameters,
-				headersConfig,
-				discoveryDataOverride,
-				discoveryPollInterval.AsDuration(),
-				jwksOnDemandCacheRefreshPolicy,
-				oidcCfg.GetParseCallbackPathAsRegex(),
-				autoMapFromMetadata,
-				endSessionProperties,
-			)
+				&config.OidcAuthorizationCodeAuthServiceParams{
+					ClientId:                    oidcCfg.GetClientId(),
+					ClientSecret:                oidcCfg.GetClientSecret(),
+					IssuerUrl:                   oidcCfg.GetIssuerUrl(),
+					AppUri:                      oidcCfg.GetAppUrl(),
+					CallbackPath:                cb,
+					LogoutPath:                  oidcCfg.GetLogoutPath(),
+					AfterLogoutUri:              oidcCfg.GetAfterLogoutUrl(),
+					SessionIdHeaderName:         oidcCfg.GetSessionIdHeaderName(),
+					AuthEndpointQueryParams:     oidcCfg.GetAuthEndpointQueryParams(),
+					TokenEndpointQueryParams:    oidcCfg.GetTokenEndpointQueryParams(),
+					Scopes:                      oidcCfg.GetScopes(),
+					SessionParams:               sessionParameters,
+					Headers:                     headersConfig,
+					DiscoveryDataOverride:       discoveryDataOverride,
+					DiscoveryPollInterval:       discoveryPollInterval.AsDuration(),
+					InvalidJwksOnDemandStrategy: jwksOnDemandCacheRefreshPolicy,
+					ParseCallbackPathAsRegex:    oidcCfg.GetParseCallbackPathAsRegex(),
+					AutoMapFromMetadata:         autoMapFromMetadata,
+					EndSessionProperties:        endSessionProperties,
+				})
 
 			if err != nil {
-				return nil, config.GetName().GetValue(), err
+				return nil, eaconfig.GetName().GetValue(), err
 			}
-			return authService, config.GetName().GetValue(), nil
+			return authService, eaconfig.GetName().GetValue(), nil
 
 		case *extauthv1.ExtAuthConfig_OAuth2Config_AccessTokenValidationConfig:
 			userInfoUrl := oauthCfg.AccessTokenValidationConfig.GetUserinfoUrl()
@@ -259,44 +254,45 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			switch validationType := oauthCfg.AccessTokenValidationConfig.GetValidationType().(type) {
 			case *extauthv1.ExtAuthConfig_AccessTokenValidationConfig_IntrospectionUrl:
 				authService := t.serviceFactory.NewOAuth2TokenIntrospectionAuthService(
-					"", "",
-					validationType.IntrospectionUrl,
-					scopeValidator,
-					userInfoUrl,
-					cacheTtl.AsDuration(),
-					"",
-				)
-				return authService, config.GetName().GetValue(), nil
+					&config.OAuth2TokenIntrospectionAuthServiceParams{
+						IntrospectionUrl: validationType.IntrospectionUrl,
+						ScopeValidator:   scopeValidator,
+						UserInfoUrl:      userInfoUrl,
+						CacheTtl:         cacheTtl.AsDuration(),
+					})
+				return authService, eaconfig.GetName().GetValue(), nil
 			case *extauthv1.ExtAuthConfig_AccessTokenValidationConfig_Introspection:
 				authService := t.serviceFactory.NewOAuth2TokenIntrospectionAuthService(
-					validationType.Introspection.GetClientId(),
-					validationType.Introspection.GetClientSecret(),
-					validationType.Introspection.GetIntrospectionUrl(),
-					scopeValidator,
-					userInfoUrl,
-					cacheTtl.AsDuration(),
-					validationType.Introspection.GetUserIdAttributeName(),
-				)
-				return authService, config.GetName().GetValue(), nil
+					&config.OAuth2TokenIntrospectionAuthServiceParams{
+						ClientId:         validationType.Introspection.GetClientId(),
+						ClientSecret:     validationType.Introspection.GetClientSecret(),
+						IntrospectionUrl: validationType.Introspection.GetIntrospectionUrl(),
+						ScopeValidator:   scopeValidator,
+						UserInfoUrl:      userInfoUrl,
+						CacheTtl:         cacheTtl.AsDuration(),
+						UserIdAttribute:  validationType.Introspection.GetUserIdAttributeName(),
+					})
+				return authService, eaconfig.GetName().GetValue(), nil
 
 			case *extauthv1.ExtAuthConfig_AccessTokenValidationConfig_Jwt:
-				authService, err := t.serviceFactory.NewOAuth2JwtAccessToken(
+				authService, err := t.serviceFactory.NewOAuth2JwtAccessTokenAuthService(
 					ctx,
-					validationType.Jwt.GetLocalJwks().GetInlineString(),
-					validationType.Jwt.GetRemoteJwks().GetUrl(),
-					validationType.Jwt.GetRemoteJwks().GetRefreshInterval().AsDuration(),
-					validationType.Jwt.GetIssuer(),
-					scopeValidator,
-					userInfoUrl,
-					cacheTtl.AsDuration(),
-				)
+					&config.OAuth2JwtAccessTokenAuthServiceParams{
+						JwksStr:                   validationType.Jwt.GetLocalJwks().GetInlineString(),
+						RemoteJwksUri:             validationType.Jwt.GetRemoteJwks().GetUrl(),
+						RemoteJwksRefreshInterval: validationType.Jwt.GetRemoteJwks().GetRefreshInterval().AsDuration(),
+						Issuer:                    validationType.Jwt.GetIssuer(),
+						ScopeValidator:            scopeValidator,
+						UserInfoUrl:               userInfoUrl,
+						CacheTtl:                  cacheTtl.AsDuration(),
+					})
 				if err != nil {
 					return nil, "", err
 				}
-				return authService, config.GetName().GetValue(), nil
+				return authService, eaconfig.GetName().GetValue(), nil
 
 			default:
-				return nil, config.GetName().GetValue(), errors.Errorf("Unhandled access token validation type: %+v", oauthCfg.AccessTokenValidationConfig.ValidationType)
+				return nil, eaconfig.GetName().GetValue(), errors.Errorf("Unhandled access token validation type: %+v", oauthCfg.AccessTokenValidationConfig.ValidationType)
 			}
 		case *extauthv1.ExtAuthConfig_OAuth2Config_Oauth2Config:
 			plainOAuth2Cfg := oauthCfg.Oauth2Config
@@ -322,28 +318,29 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				}
 			}
 			if err != nil {
-				return nil, config.GetName().GetValue(), err
+				return nil, eaconfig.GetName().GetValue(), err
 			}
 
 			authService, err := t.serviceFactory.NewPlainOAuth2AuthService(
 				ctx,
-				plainOAuth2Cfg.GetClientId(),
-				plainOAuth2Cfg.GetClientSecret(),
-				plainOAuth2Cfg.GetAppUrl(),
-				cb,
-				plainOAuth2Cfg.GetLogoutPath(),
-				plainOAuth2Cfg.GetAfterLogoutUrl(),
-				sessionIdHeader,
-				plainOAuth2Cfg.GetAuthEndpointQueryParams(),
-				plainOAuth2Cfg.GetTokenEndpointQueryParams(),
-				plainOAuth2Cfg.GetScopes(),
-				sessionParameters,
-				plainOAuth2Cfg.GetAuthEndpoint(),
-				plainOAuth2Cfg.GetTokenEndpoint(),
-				plainOAuth2Cfg.GetRevocationEndpoint(),
-			)
+				&config.PlainOAuth2AuthServiceParams{
+					ClientId:                 plainOAuth2Cfg.GetClientId(),
+					ClientSecret:             plainOAuth2Cfg.GetClientSecret(),
+					AppUri:                   plainOAuth2Cfg.GetAppUrl(),
+					CallbackPath:             cb,
+					LogoutPath:               plainOAuth2Cfg.GetLogoutPath(),
+					AfterLogoutUri:           plainOAuth2Cfg.GetAfterLogoutUrl(),
+					SessionIdHeaderName:      sessionIdHeader,
+					AuthEndpointQueryParams:  plainOAuth2Cfg.GetAuthEndpointQueryParams(),
+					TokenEndpointQueryParams: plainOAuth2Cfg.GetTokenEndpointQueryParams(),
+					Scopes:                   plainOAuth2Cfg.GetScopes(),
+					SessionParams:            sessionParameters,
+					AuthEndpoint:             plainOAuth2Cfg.GetAuthEndpoint(),
+					TokenEndpoint:            plainOAuth2Cfg.GetTokenEndpoint(),
+					RevocationEndpoint:       plainOAuth2Cfg.GetRevocationEndpoint(),
+				})
 
-			return authService, config.GetName().GetValue(), err
+			return authService, eaconfig.GetName().GetValue(), err
 		}
 
 	case *extauthv1.ExtAuthConfig_Config_ApiKeyAuth:
@@ -365,16 +362,16 @@ func (t *extAuthConfigTranslator) authConfigToService(
 					ApiKeySecretRefs:       cfg.ApiKeyAuth.GetK8SSecretApikeyStorage().GetApiKeySecretRefs(),
 				}
 				apiKeyAuthService := secrets.NewAPIKeyService(secretsConf)
-				return apiKeyAuthService, config.GetName().GetValue(), nil
+				return apiKeyAuthService, eaconfig.GetName().GetValue(), nil
 			}
 		case *extauthv1.ExtAuthConfig_ApiKeyAuthConfig_AerospikeApikeyStorage:
 			{
 				aerospikeConf, err := TranslateAerospikeConfig(cfg)
 				apiKeyAuthService, err := externalstorage.NewAPIKeyService(ctx, aerospikeConf)
 				if err != nil {
-					return nil, config.GetName().GetValue(), err
+					return nil, eaconfig.GetName().GetValue(), err
 				}
-				return apiKeyAuthService, config.GetName().GetValue(), nil
+				return apiKeyAuthService, eaconfig.GetName().GetValue(), nil
 			}
 		default:
 			{
@@ -391,7 +388,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 					ValidApiKeys:           validApiKeys,
 				}
 				apiKeyAuthService := secrets.NewAPIKeyService(secretsConf)
-				return apiKeyAuthService, config.GetName().GetValue(), nil
+				return apiKeyAuthService, eaconfig.GetName().GetValue(), nil
 			}
 		}
 
@@ -406,25 +403,29 @@ func (t *extAuthConfigTranslator) authConfigToService(
 		if err != nil {
 			return nil, "", err
 		}
-		return opaCfg, config.GetName().GetValue(), nil
+		return opaCfg, eaconfig.GetName().GetValue(), nil
 	case *extauthv1.ExtAuthConfig_Config_LdapInternal:
 		ldapSvc, err := getLdapAuthServiceWithSecret(ctx, cfg.LdapInternal)
 		if err != nil {
 			return nil, "", err
 		}
-		return ldapSvc, config.GetName().GetValue(), nil
+		return ldapSvc, eaconfig.GetName().GetValue(), nil
 	case *extauthv1.ExtAuthConfig_Config_Ldap:
 		ldapSvc, err := getLdapAuthService(ctx, cfg.Ldap)
 		if err != nil {
 			return nil, "", err
 		}
-		return ldapSvc, config.GetName().GetValue(), nil
+		return ldapSvc, eaconfig.GetName().GetValue(), nil
 	case *extauthv1.ExtAuthConfig_Config_HmacAuth:
 		passwords := cfg.HmacAuth.GetSecretList().GetSecretList()
 		// When we add multiple implementations, there will need to be a check here for the implmentation type, but for now it's always HeadersRequestToHmac
 		hmacConversionFunc := hmac.HeadersRequestToHmac
-		hmacSvc := t.serviceFactory.NewHmacAuthService(passwords, hmacConversionFunc)
-		return hmacSvc, config.GetName().GetValue(), nil
+		hmacSvc := t.serviceFactory.NewHmacAuthService(
+			&config.HmacAuthServiceParams{
+				HmacPasswords: passwords,
+				Unwrapper:     hmacConversionFunc,
+			})
+		return hmacSvc, eaconfig.GetName().GetValue(), nil
 	case *extauthv1.ExtAuthConfig_Config_PassThroughAuth:
 		switch protocolConfig := cfg.PassThroughAuth.GetProtocol().(type) {
 		case *extauthv1.PassThroughAuth_Grpc:
@@ -432,15 +433,15 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			if err != nil {
 				return nil, "", err
 			}
-			return grpcSvc, config.GetName().GetValue(), nil
+			return grpcSvc, eaconfig.GetName().GetValue(), nil
 		case *extauthv1.PassThroughAuth_Http:
 			svc, err := getPassThroughHttpService(ctx, cfg.PassThroughAuth.GetConfig(), protocolConfig.Http, cfg.PassThroughAuth.GetFailureModeAllow())
 			if err != nil {
 				return nil, "", err
 			}
-			return svc, config.GetName().GetValue(), nil
+			return svc, eaconfig.GetName().GetValue(), nil
 		default:
-			return nil, config.GetName().GetValue(), errors.Errorf("Unhandled pass through auth protocol: %+v", cfg.PassThroughAuth.Protocol)
+			return nil, eaconfig.GetName().GetValue(), errors.Errorf("Unhandled pass through auth protocol: %+v", cfg.PassThroughAuth.Protocol)
 		}
 
 	}

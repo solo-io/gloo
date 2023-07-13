@@ -23,13 +23,13 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/chain"
 	"github.com/solo-io/ext-auth-service/pkg/config/apr"
 	mock_config "github.com/solo-io/ext-auth-service/pkg/config/mocks"
-	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation/utils"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
 	"github.com/solo-io/ext-auth-service/pkg/session"
 	"github.com/solo-io/ext-auth-service/pkg/session/redis"
 	mocks_auth_service "github.com/solo-io/ext-auth-service/test/mocks/auth"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 
+	ea_config "github.com/solo-io/ext-auth-service/pkg/config"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/config"
 )
 
@@ -251,26 +251,10 @@ var _ = Describe("Ext Auth Config Translator", func() {
 
 			serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(
 				gomock.Any(),
-				"",
-				"",
-				"test/", // include trailing slash
-				"",
-				config.DefaultCallback,
-				"",
-				"",
-				"",
-				nil,
-				nil,
-				nil,
-				oidc.SessionParameters{},
-				&oidc.HeaderConfig{},
-				&oidc.DiscoveryData{},
-				config.DefaultOIDCDiscoveryPollInterval,
-				jwks.NewNilKeySourceFactory(),
-				false,
-				nil,
-				nil,
-			).Return(authServiceMock, nil)
+				gomock.Any(),
+			).Return(authServiceMock, nil).Do(func(ctx context.Context, params *ea_config.OidcAuthorizationCodeAuthServiceParams) {
+				Expect(params.IssuerUrl).To(Equal("test/"))
+			})
 
 			authService, err := translator.Translate(ctx, authCfg)
 			Expect(err).NotTo(HaveOccurred())
@@ -367,7 +351,10 @@ var _ = Describe("Ext Auth Config Translator", func() {
 	Describe("translate HMAC config", func() {
 		It("Translates config for ParametersInHeaders ", func() {
 			expectedUsers := map[string]string{"user": "pass"}
-			serviceFactory.EXPECT().NewHmacAuthService(expectedUsers, gomock.Any()).Return(authServiceMock)
+			serviceFactory.EXPECT().NewHmacAuthService(gomock.Any()).Return(authServiceMock).Do(
+				func(params *ea_config.HmacAuthServiceParams) {
+					Expect(params.HmacPasswords).To(Equal(expectedUsers))
+				})
 			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
 				AuthConfigRefName: "default.ldap-authconfig",
 				Configs: []*extauthv1.ExtAuthConfig_Config{{
@@ -421,19 +408,12 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				},
 			}
 		})
-
 		When("no cache expiration timeout has been configured", func() {
 			It("correctly defaults the timeout", func() {
-				expectedScopeValidator := utils.NewMatchAllValidator([]string{"foo", "bar"})
-
 				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(
-					"", "",
-					"introspection-url",
-					expectedScopeValidator,
-					"user-info-url",
-					config.DefaultOAuthCacheTtl,
-					"",
-				).Return(authServiceMock)
+					gomock.Any()).Return(authServiceMock).Do(func(params *ea_config.OAuth2TokenIntrospectionAuthServiceParams) {
+					Expect(params.CacheTtl).To(Equal(config.DefaultOAuthCacheTtl))
+				})
 
 				authService, err := translator.Translate(ctx, oAuthConfig)
 				Expect(err).NotTo(HaveOccurred())
@@ -444,16 +424,11 @@ var _ = Describe("Ext Auth Config Translator", func() {
 		When("the cache expiration timeout has been configured", func() {
 			It("works as expected", func() {
 				oAuthConfig.Configs[0].GetOauth2().GetAccessTokenValidationConfig().CacheTimeout = ptypes.DurationProto(time.Second)
-				expectedScopeValidator := utils.NewMatchAllValidator([]string{"foo", "bar"})
 
-				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(
-					"", "",
-					"introspection-url",
-					expectedScopeValidator,
-					"user-info-url",
-					time.Second,
-					"",
-				).Return(authServiceMock)
+				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(gomock.Any()).Return(authServiceMock).Do(
+					func(params *ea_config.OAuth2TokenIntrospectionAuthServiceParams) {
+						Expect(params.CacheTtl).To(Equal(time.Second))
+					})
 
 				authService, err := translator.Translate(ctx, oAuthConfig)
 				Expect(err).NotTo(HaveOccurred())
@@ -500,16 +475,10 @@ var _ = Describe("Ext Auth Config Translator", func() {
 
 		When("no cache expiration timeout has been configured", func() {
 			It("correctly defaults the timeout", func() {
-				expectedScopeValidator := utils.NewMatchAllValidator([]string{"foo", "bar"})
-
-				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(
-					"client-id", "client-secret",
-					"introspection-url",
-					expectedScopeValidator,
-					"user-info-url",
-					config.DefaultOAuthCacheTtl,
-					"",
-				).Return(authServiceMock)
+				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(gomock.Any()).Return(authServiceMock).Do(
+					func(params *ea_config.OAuth2TokenIntrospectionAuthServiceParams) {
+						Expect(params.CacheTtl).To(Equal(config.DefaultOAuthCacheTtl))
+					})
 
 				authService, err := translator.Translate(ctx, oAuthConfig)
 				Expect(err).NotTo(HaveOccurred())
@@ -520,16 +489,11 @@ var _ = Describe("Ext Auth Config Translator", func() {
 		When("the cache expiration timeout has been configured", func() {
 			It("works as expected", func() {
 				oAuthConfig.Configs[0].GetOauth2().GetAccessTokenValidationConfig().CacheTimeout = ptypes.DurationProto(time.Second)
-				expectedScopeValidator := utils.NewMatchAllValidator([]string{"foo", "bar"})
 
-				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(
-					"client-id", "client-secret",
-					"introspection-url",
-					expectedScopeValidator,
-					"user-info-url",
-					time.Second,
-					"",
-				).Return(authServiceMock)
+				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(gomock.Any()).Return(authServiceMock).Do(
+					func(params *ea_config.OAuth2TokenIntrospectionAuthServiceParams) {
+						Expect(params.CacheTtl).To(Equal(time.Second))
+					})
 
 				authService, err := translator.Translate(ctx, oAuthConfig)
 				Expect(err).NotTo(HaveOccurred())
@@ -540,16 +504,11 @@ var _ = Describe("Ext Auth Config Translator", func() {
 		When("a user ID attribute name has been configured", func() {
 			It("works as expected", func() {
 				oAuthConfig.Configs[0].GetOauth2().GetAccessTokenValidationConfig().GetIntrospection().UserIdAttributeName = "sub"
-				expectedScopeValidator := utils.NewMatchAllValidator([]string{"foo", "bar"})
 
-				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(
-					"client-id", "client-secret",
-					"introspection-url",
-					expectedScopeValidator,
-					"user-info-url",
-					config.DefaultOAuthCacheTtl,
-					"sub",
-				).Return(authServiceMock)
+				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(gomock.Any()).Return(authServiceMock).Do(
+					func(params *ea_config.OAuth2TokenIntrospectionAuthServiceParams) {
+						Expect(params.UserIdAttribute).To(Equal("sub"))
+					})
 
 				authService, err := translator.Translate(ctx, oAuthConfig)
 				Expect(err).NotTo(HaveOccurred())
@@ -743,10 +702,6 @@ var _ = Describe("Ext Auth Config Translator", func() {
 						SameSite:  extauthv1.UserSession_CookieOptions_LaxMode,
 					},
 				}
-			})
-
-			It("should translate UserSessionConfig over UserSession", func() {
-
 			})
 
 			It("should translate nil session", func() {
@@ -977,29 +932,12 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			}
 		})
 
-		It("correctly defaults the default", func() {
-			serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(
-				gomock.Any(),
-				"client-id",
-				"",
-				"https://solo.io/",
-				"app-url",
-				"/callback",
-				"",
-				"after-logout-url",
-				"",
-				map[string]string{"auth": "param"},
-				map[string]string{"token": "param"},
-				[]string{"foo", "bar"},
-				oidc.SessionParameters{},
-				&oidc.HeaderConfig{},
-				&oidc.DiscoveryData{},
-				config.DefaultOIDCDiscoveryPollInterval,
-				jwks.NewNilKeySourceFactory(),
-				false,
-				config.ToAutoMapFromMetadata(nil),
-				config.ToEndSessionEndpointProperties(nil),
-			).Return(authServiceMock, nil)
+		It("correctly defaults the discovery poll interval", func() {
+			serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(gomock.Any(), gomock.Any()).
+				Return(authServiceMock, nil).
+				Do(func(ctx context.Context, params *ea_config.OidcAuthorizationCodeAuthServiceParams) {
+					Expect(params.DiscoveryPollInterval).To(Equal(config.DefaultOIDCDiscoveryPollInterval))
+				})
 
 			authService, err := translator.Translate(ctx, oAuthConfig)
 			Expect(err).NotTo(HaveOccurred())
@@ -1009,29 +947,11 @@ var _ = Describe("Ext Auth Config Translator", func() {
 		It("correctly overrides the default", func() {
 			oneMinute := ptypes.DurationProto(time.Minute)
 			oAuthConfig.Configs[0].GetOauth2().GetOidcAuthorizationCode().DiscoveryPollInterval = oneMinute
-
-			serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(
-				gomock.Any(),
-				"client-id",
-				"",
-				"https://solo.io/",
-				"app-url",
-				"/callback",
-				"",
-				"after-logout-url",
-				"",
-				map[string]string{"auth": "param"},
-				map[string]string{"token": "param"},
-				[]string{"foo", "bar"},
-				oidc.SessionParameters{},
-				&oidc.HeaderConfig{},
-				&oidc.DiscoveryData{},
-				oneMinute.AsDuration(),
-				jwks.NewNilKeySourceFactory(),
-				false,
-				config.ToAutoMapFromMetadata(nil),
-				config.ToEndSessionEndpointProperties(nil),
-			).Return(authServiceMock, nil)
+			serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(gomock.Any(), gomock.Any()).
+				Return(authServiceMock, nil).
+				Do(func(ctx context.Context, params *ea_config.OidcAuthorizationCodeAuthServiceParams) {
+					Expect(params.DiscoveryPollInterval).To(Equal(oneMinute.AsDuration()))
+				})
 
 			authService, err := translator.Translate(ctx, oAuthConfig)
 			Expect(err).NotTo(HaveOccurred())
@@ -1070,28 +990,11 @@ var _ = Describe("Ext Auth Config Translator", func() {
 					},
 				}
 
-				serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(
-					gomock.Any(),
-					"client-id",
-					"",
-					"https://solo.io/",
-					"app-url",
-					"/callback",
-					"",
-					"after-logout-url",
-					"",
-					map[string]string{"auth": "param"},
-					map[string]string{"token": "param"},
-					[]string{"foo", "bar"},
-					oidc.SessionParameters{},
-					&oidc.HeaderConfig{},
-					&oidc.DiscoveryData{},
-					config.DefaultOIDCDiscoveryPollInterval,
-					expectedCacheRefreshPolicy,
-					false,
-					config.ToAutoMapFromMetadata(&extauthv1.AutoMapFromMetadata{Namespace: "test"}),
-					config.ToEndSessionEndpointProperties(&extauthv1.EndSessionProperties{MethodType: extauthv1.EndSessionProperties_PostMethod}),
-				).Return(authServiceMock, nil)
+				serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(gomock.Any(), gomock.Any()).
+					Return(authServiceMock, nil).
+					Do(func(ctx context.Context, params *ea_config.OidcAuthorizationCodeAuthServiceParams) {
+						Expect(params.InvalidJwksOnDemandStrategy).To(Equal(expectedCacheRefreshPolicy))
+					})
 
 				authService, err := translator.Translate(ctx, oAuthConfig)
 				Expect(err).NotTo(HaveOccurred())
@@ -1161,26 +1064,15 @@ var _ = Describe("Ext Auth Config Translator", func() {
 					},
 				}
 
-				serviceFactory.EXPECT().NewPlainOAuth2AuthService(
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					oauth2.SessionParameters{
-						// value must be true to match UserSessionConfig
-						ErrOnSessionFetch: true,
-					},
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-				).Return(authServiceMock, nil)
+				expected := oauth2.SessionParameters{
+					// value must be true to match UserSessionConfig
+					ErrOnSessionFetch: true,
+				}
+				serviceFactory.EXPECT().NewPlainOAuth2AuthService(gomock.Any(), gomock.Any()).
+					Return(authServiceMock, nil).
+					Do(func(ctx context.Context, params *ea_config.PlainOAuth2AuthServiceParams) {
+						Expect(params.SessionParams).To(Equal(expected))
+					})
 
 				authService, err := translator.Translate(ctx, authCfg)
 				Expect(err).NotTo(HaveOccurred())
@@ -1218,35 +1110,59 @@ var _ = Describe("Ext Auth Config Translator", func() {
 						},
 					},
 				}
-				serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					oidc.SessionParameters{
-						ErrOnSessionFetch: true,
-					},
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-				).Return(authServiceMock, nil)
+				expected := oidc.SessionParameters{
+					ErrOnSessionFetch: true,
+				}
+				serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(gomock.Any(), gomock.Any()).
+					Return(authServiceMock, nil).
+					Do(func(ctx context.Context, params *ea_config.OidcAuthorizationCodeAuthServiceParams) {
+						Expect(params.SessionParams).To(Equal(expected))
+					})
 
 				authService, err := translator.Translate(ctx, oAuthConfig)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(authService).NotTo(BeNil())
 			})
 		})
+	})
+	Context("AuthService factory params", func() {
+		It("has the expected number of fields for each struct", func() {
+			var apiKeyParams ea_config.APIKeyAuthServiceParams
+			Expect(reflect.TypeOf(apiKeyParams).NumField()).To(Equal(2))
+
+			var basicParams ea_config.BasicAuthServiceParams
+			Expect(reflect.TypeOf(basicParams).NumField()).To(Equal(2))
+
+			var hmacParams ea_config.HmacAuthServiceParams
+			Expect(reflect.TypeOf(hmacParams).NumField()).To(Equal(2))
+
+			var jwtParams ea_config.JwtAuthServiceParams
+			Expect(reflect.TypeOf(jwtParams).NumField()).To(Equal(0))
+
+			var ldapParams ea_config.LdapAuthServiceParams
+			Expect(reflect.TypeOf(ldapParams).NumField()).To(Equal(2))
+
+			var opaParams ea_config.OpaAuthServiceParams
+			Expect(reflect.TypeOf(opaParams).NumField()).To(Equal(3))
+
+			var oidcAuthorizationCodeParams ea_config.OidcAuthorizationCodeAuthServiceParams
+			Expect(reflect.TypeOf(oidcAuthorizationCodeParams).NumField()).To(Equal(20))
+
+			var plainOauth2 ea_config.PlainOAuth2AuthServiceParams
+			Expect(reflect.TypeOf(plainOauth2).NumField()).To(Equal(14))
+
+			var oauth2TokenIntrospectionParams ea_config.OAuth2TokenIntrospectionAuthServiceParams
+			Expect(reflect.TypeOf(oauth2TokenIntrospectionParams).NumField()).To(Equal(8))
+
+			var oauth2JwtAccessTokenParams ea_config.OAuth2JwtAccessTokenAuthServiceParams
+			Expect(reflect.TypeOf(oauth2JwtAccessTokenParams).NumField()).To(Equal(8))
+
+			var passthroughGrpcParams ea_config.PassThroughGrpcAuthServiceParams
+			Expect(reflect.TypeOf(passthroughGrpcParams).NumField()).To(Equal(2))
+
+			var passthroughHttpParams ea_config.PassThroughHttpAuthServiceParams
+			Expect(reflect.TypeOf(passthroughHttpParams).NumField()).To(Equal(2))
+		})
+
 	})
 })
