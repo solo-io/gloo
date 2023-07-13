@@ -17,7 +17,7 @@ import (
 	"github.com/solo-io/solo-projects/test/gomega/matchers"
 	"github.com/solo-io/solo-projects/test/gomega/transforms"
 
-	testServers "github.com/solo-io/solo-projects/test/services/extauth/servers"
+	. "github.com/solo-io/solo-projects/test/services/extauth/servers"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/golang/protobuf/ptypes"
@@ -48,7 +48,7 @@ var _ = Describe("OIDC", func() {
 		authConfig            *extauth.AuthConfig
 		oauth2                *extauth.OAuth2_OidcAuthorizationCode
 		privateKey            *rsa.PrivateKey
-		discoveryServer       testServers.FakeDiscoveryServer
+		discoveryServer       FakeDiscoveryServer
 		handlerStats          map[string]int
 		secret                *gloov1.Secret
 		token                 string
@@ -72,7 +72,7 @@ var _ = Describe("OIDC", func() {
 
 		cookies = nil
 		handlerStats = make(map[string]int)
-		discoveryServer = testServers.FakeDiscoveryServer{
+		discoveryServer = FakeDiscoveryServer{
 			HandlerStats:      handlerStats,
 			AccessTokenValue:  accessTokenValue,
 			RefreshTokenValue: refreshTokenValue,
@@ -328,7 +328,7 @@ var _ = Describe("OIDC", func() {
 					discoveryServer.CreateNearlyExpiredToken = true
 					discoveryServer.UpdateToken("")
 					discoveryServer.CreateNearlyExpiredToken = false
-					Expect(handlerStats["/token"]).To(BeEquivalentTo(0))
+					Expect(handlerStats[TokenEndpoint]).To(BeEquivalentTo(0))
 
 					// execute first request.
 					Eventually(func() (*http.Response, error) {
@@ -343,10 +343,10 @@ var _ = Describe("OIDC", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// execute third request. We should not hit the /token handler, because the refreshed token should be in the store.
-					baseRefreshes := handlerStats["/token"]
+					baseRefreshes := handlerStats[TokenEndpoint]
 					resp, err = makeSingleRequest(client)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(handlerStats["/token"]).To(BeNumerically("==", baseRefreshes))
+					Expect(handlerStats[TokenEndpoint]).To(BeNumerically("==", baseRefreshes))
 
 					return resp, nil
 				}
@@ -1079,7 +1079,6 @@ var _ = Describe("OIDC", func() {
 				Context("listener is https, appUrl is http", func() {
 					BeforeEach(func() {
 						// overwrite the default gateway with a TLS gateway
-						// todo (fabian) ~ the default one has more data. should we use that one wand add ssl config manually?
 						httpsGateway := gatewaydefaults.DefaultSslGateway(e2e.WriteNamespace)
 						testContext.ResourcesToCreate().Gateways = gatewayv1.GatewayList{
 							httpsGateway,
@@ -1153,6 +1152,43 @@ var _ = Describe("OIDC", func() {
 		Context("Oidc tests that do forward to upstream", func() {
 			It("should allow access with proper jwt token", func() {
 				ExpectUpstreamRequest()
+			})
+		})
+
+		Context("end session properties", func() {
+			var (
+				postLogoutUrl = fmt.Sprintf("%s:%s", http.MethodPost, LogoutEndpoint)
+				getLogoutUrl  = fmt.Sprintf("%s:%s", http.MethodGet, LogoutEndpoint)
+			)
+
+			When("end session properties are set to POST", func() {
+				BeforeEach(func() {
+					oauth2.OidcAuthorizationCode.EndSessionProperties = &extauth.EndSessionProperties{
+						MethodType: extauth.EndSessionProperties_PostMethod,
+					}
+				})
+
+				It("does a POST request to the logout endpoint", func() {
+					ExpectHappyPathToWork(makeSingleRequest, func() {})
+					// the internal handler should have done a POST request to the /logout endpoint
+					Expect(handlerStats[postLogoutUrl]).To(BeEquivalentTo(1))
+					Expect(handlerStats[getLogoutUrl]).To(BeEquivalentTo(0))
+				})
+			})
+
+			When("end session properties are set to GET (default)", func() {
+				BeforeEach(func() {
+					oauth2.OidcAuthorizationCode.EndSessionProperties = &extauth.EndSessionProperties{
+						MethodType: extauth.EndSessionProperties_GetMethod,
+					}
+				})
+
+				It("does a GET request to the logout endpoint", func() {
+					ExpectHappyPathToWork(makeSingleRequest, func() {})
+					// the internal handler should have done a GET request to the /logout endpoint
+					Expect(handlerStats[getLogoutUrl]).To(BeEquivalentTo(1))
+					Expect(handlerStats[postLogoutUrl]).To(BeEquivalentTo(0))
+				})
 			})
 		})
 	})

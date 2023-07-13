@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"math/big"
 	"net/http"
 	"net/url"
@@ -44,6 +45,14 @@ type FakeDiscoveryServer struct {
 	// The set of key IDs that are supported by the server
 	keyIds []string
 }
+
+const (
+	AuthEndpoint       = "/auth"
+	LogoutEndpoint     = "/logout"
+	TokenEndpoint      = "/token"
+	RevocationEndpoint = "/revoke"
+	KeysEndpoint       = "/keys"
+)
 
 func (f *FakeDiscoveryServer) Stop() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
@@ -115,7 +124,7 @@ func (f *FakeDiscoveryServer) Start(serverAddress string) *rsa.PrivateKey {
 		}
 		f.handlerStatsMutex.Unlock()
 		switch r.URL.Path {
-		case "/auth":
+		case AuthEndpoint:
 			// redirect back immediately. This simulates a user that's already logged in by the IDP.
 			redirectUri := r.URL.Query().Get("redirect_uri")
 			state := r.URL.Query().Get("state")
@@ -144,17 +153,20 @@ func (f *FakeDiscoveryServer) Start(serverAddress string) *rsa.PrivateKey {
 
 			_, _ = rw.Write([]byte(`alternate-auth`))
 		case "/.well-known/openid-configuration":
-			appUrl := fmt.Sprintf("%s:%d", f.ServerAddress, f.Port)
-			// the following get called when a OAuth Logout Path request has been made
-			// revocation_endpoint, end_session_endpoint
+			appUrl := fmt.Sprintf("http://%s:%d", f.ServerAddress, f.Port)
+			authUrl := fmt.Sprintf("%s%s", appUrl, AuthEndpoint)
+			tokenUrl := fmt.Sprintf("%s%s", appUrl, TokenEndpoint)
+			revocationUrl := fmt.Sprintf("%s%s", appUrl, RevocationEndpoint)
+			logoutUrl := fmt.Sprintf("%s%s", appUrl, LogoutEndpoint)
+			keysUrl := fmt.Sprintf("%s%s", appUrl, KeysEndpoint)
 			_, _ = rw.Write([]byte(fmt.Sprintf(`
 		{
-			"issuer": "http://%s",
-			"authorization_endpoint": "http://%s/auth",
-			"token_endpoint": "http://%s/token",
-			"revocation_endpoint": "http://%s/revoke",
-			"end_session_endpoint": "http://%s/logout",
-			"jwks_uri": "http://%s/keys",
+			"issuer": "%s",
+			"authorization_endpoint": "%s",
+			"token_endpoint": "%s",
+			"revocation_endpoint": "%s",
+			"end_session_endpoint": "%s",
+			"jwks_uri": "%s",
 			"response_types_supported": [
 			  "code"
 			],
@@ -170,8 +182,8 @@ func (f *FakeDiscoveryServer) Start(serverAddress string) *rsa.PrivateKey {
 			  "profile"
 			]
 		  }
-		`, appUrl, appUrl, appUrl, appUrl, appUrl, appUrl)))
-		case "/token":
+		`, appUrl, authUrl, tokenUrl, revocationUrl, logoutUrl, keysUrl)))
+		case TokenEndpoint:
 			err := r.ParseForm()
 			Expect(err).NotTo(HaveOccurred())
 			_, _ = fmt.Fprintln(GinkgoWriter, "got request for token. query:", r.URL.RawQuery, r.URL.String(), "form:", r.Form.Encode(), "\n full request", r)
@@ -187,7 +199,7 @@ func (f *FakeDiscoveryServer) Start(serverAddress string) *rsa.PrivateKey {
 				"id_token": "` + f.Token + `"
 			 }
 	`))
-		case "/keys":
+		case KeysEndpoint:
 			var keyListBuffer bytes.Buffer
 			for _, kid := range f.keyIds {
 				keyListBuffer.WriteString(`
@@ -210,7 +222,7 @@ func (f *FakeDiscoveryServer) Start(serverAddress string) *rsa.PrivateKey {
 			}
 			`
 			_, _ = rw.Write([]byte(keysResponse))
-		case "/revoke":
+		case RevocationEndpoint:
 			tokenTypeHint := r.Form.Get("token_type_hint")
 
 			httpReply := ""
@@ -224,17 +236,44 @@ func (f *FakeDiscoveryServer) Start(serverAddress string) *rsa.PrivateKey {
 
 			rw.WriteHeader(http.StatusOK)
 			_, _ = rw.Write([]byte(httpReply))
-		case "/logout": // this should match the end_session_endpoint path noted
+		case LogoutEndpoint: // this should match the end_session_endpoint path noted
 			// in the /.well-known/openid-configuration above.
 			// This should be invoked by the Ext-Auth service when the client
 			// calls the logoutPath on the OAuth Configuration, and has a session.
-			// with the current setting a GET request should be made by the Ext-Auth
-			// service. A GET request will add the client_id and the id_token_hint
-			// onto the query parameters. A POST request will add them to the
-			// request's Form.
-			queryParams := r.URL.Query()
-			clientId := queryParams.Get("client_id")
-			token := queryParams.Get("id_token_hint")
+			// A GET request will add the client_id and the id_token_hint onto the query parameters.
+			// A POST request will add them to the request's Form.
+			var clientId, token string
+			switch r.Method {
+			case http.MethodGet:
+				queryParams := r.URL.Query()
+				clientId = queryParams.Get("client_id")
+				token = queryParams.Get("id_token_hint")
+			case http.MethodPost:
+				defer r.Body.Close()
+				body, err := io.ReadAll(r.Body)
+				Expect(err).NotTo(HaveOccurred())
+
+				// The response is in the form of `client_id=...&id_token_hint=...`, so we need to parse it to extract those fields.
+				bodyStr := string(body)
+				bodyData := strings.Split(bodyStr, "&")
+
+				bodyDataMap := make(map[string]string)
+				for _, data := range bodyData {
+					dataParts := strings.Split(data, "=")
+					bodyDataMap[dataParts[0]] = dataParts[1]
+				}
+
+				clientId = bodyDataMap["client_id"]
+				token = bodyDataMap["id_token_hint"]
+			}
+
+			// Update the handler stats with a (fake) hit to `{REQUEST_METHOD}:{logoutEndpoint}`.
+			// This allows our tests can verify that the correct method was used.
+			f.handlerStatsMutex.Lock()
+			if f.HandlerStats != nil {
+				f.HandlerStats[fmt.Sprintf("%s:%s", r.Method, r.URL.Path)] += 1
+			}
+			f.handlerStatsMutex.Unlock()
 
 			// "test-clientid"
 			Expect(len(clientId)).Should(BeNumerically(">", 0))
@@ -263,7 +302,7 @@ func (f *FakeDiscoveryServer) GetOidcAuthCodeConfig(envoyPort uint32, appUrl str
 			IssuerUrl:       fmt.Sprintf("http://%s:%d/", f.ServerAddress, f.Port),
 			AppUrl:          fmt.Sprintf("http://%s:%d", appUrl, envoyPort),
 			CallbackPath:    "/callback",
-			LogoutPath:      "/logout",
+			LogoutPath:      LogoutEndpoint,
 			Scopes:          []string{"email"},
 		},
 	}

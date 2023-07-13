@@ -1,0 +1,12 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Add tests for EndSessionParameters.
+      skipCI-kube-tests:true
+    issueLink: https://github.com/solo-io/solo-projects/issues/3927
+    resolvesIssue: false
+  - type: FIX
+    description: >-
+      OIDC's EndSessionParameters were not being translated and used in ext-auth-service, and has now been fixed.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3927
+    resolvesIssue: false

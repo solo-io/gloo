@@ -272,6 +272,9 @@ var _ = Describe("Translate", func() {
 		oidcConfig := authConfig.GetConfigs()[0].GetOauth2().GetOauthType().(*extauth.OAuth2_OidcAuthorizationCode).OidcAuthorizationCode
 		oidcConfig.DisableClientSecret = &wrappers.BoolValue{Value: true}
 		oidcConfig.ClientSecretRef = nil
+		oidcConfig.EndSessionProperties = &extauth.EndSessionProperties{
+			MethodType: extauth.EndSessionProperties_PostMethod,
+		}
 
 		translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 		Expect(err).NotTo(HaveOccurred())
@@ -291,6 +294,7 @@ var _ = Describe("Translate", func() {
 		Expect(actualOidc.AppUrl).To(Equal(expectedOidc.AppUrl))
 		Expect(actualOidc.CallbackPath).To(Equal(expectedOidc.CallbackPath))
 		Expect(actualOidc.AutoMapFromMetadata.Namespace).To(Equal("test_namespace"))
+		Expect(actualOidc.EndSessionProperties).To(Equal(expectedOidc.EndSessionProperties))
 	})
 	Context("Encryption Key error", func() {
 		BeforeEach(func() {
