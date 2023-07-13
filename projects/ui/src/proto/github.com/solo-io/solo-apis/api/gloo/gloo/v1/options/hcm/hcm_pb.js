@@ -148,7 +148,8 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     normalizePath: (f = msg.getNormalizePath()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     uuidRequestIdConfig: (f = msg.getUuidRequestIdConfig()) && proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.UuidRequestIdConfigSettings.toObject(includeInstance, f),
     http2ProtocolOptions: (f = msg.getHttp2ProtocolOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions.toObject(includeInstance, f),
-    internalAddressConfig: (f = msg.getInternalAddressConfig()) && proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.toObject(includeInstance, f)
+    internalAddressConfig: (f = msg.getInternalAddressConfig()) && proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.toObject(includeInstance, f),
+    appendXForwardedPort: (f = msg.getAppendXForwardedPort()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -374,6 +375,11 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
       var value = new proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig;
       reader.readMessage(value,proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.deserializeBinaryFromReader);
       msg.setInternalAddressConfig(value);
+      break;
+    case 40:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setAppendXForwardedPort(value);
       break;
     default:
       reader.skipField();
@@ -709,6 +715,14 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
       38,
       f,
       proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getAppendXForwardedPort();
+  if (f != null) {
+    writer.writeMessage(
+      40,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -2792,6 +2806,36 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearInte
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasInternalAddressConfig = function() {
   return jspb.Message.getField(this, 38) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue append_x_forwarded_port = 40;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getAppendXForwardedPort = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 40));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setAppendXForwardedPort = function(value) {
+  jspb.Message.setWrapperField(this, 40, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearAppendXForwardedPort = function() {
+  this.setAppendXForwardedPort(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasAppendXForwardedPort = function() {
+  return jspb.Message.getField(this, 40) != null;
 };
 
 

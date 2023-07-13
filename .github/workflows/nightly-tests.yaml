@@ -2,10 +2,17 @@ name: Enterprise Nightly Tests
 
 on:
   schedule:
-    - cron: "0 5 * * 1-5"   # weekdays @ 00:00 EST, run tests against latest dev
+    - cron: "0 5 * * 1-5"   # weekdays @ 00:00 EST, run tests against latest main
     - cron: "10 10 * * 1"   # monday   @ 05:10 EST, run expanded tests against v1.14.x
     - cron: "6 6 * * 1"     # monday   @ 01:06 EST, run expanded tests against v1.13.x
   workflow_dispatch:
+    inputs:
+      run-regression:
+        description: "Run regression tests"
+        type: boolean
+      run-performance:
+        description: "Run performance tests"
+        type: boolean
 
 env:
   VERSION: '1.0.0-ci'
@@ -14,9 +21,9 @@ env:
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
 jobs:
-  regression_tests_dev:
-    name: dev regression tests (${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}})
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 5 * * 1-5'
+  regression_tests_latest_main:
+    name: latest main regression tests (${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}})
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression) || github.event.schedule == '0 5 * * 1-5' }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -27,6 +34,24 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/workflows/composite-actions/regression-tests
+        with:
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+
+  performance_tests_latest_main:
+    name: latest performance tests
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance) || github.event.schedule == '0 5 * * 1-5' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/composite-actions/standard-gloo-ee-setup
+        with:
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+      - uses: ./.github/workflows/composite-actions/performance-tests
         with:
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
@@ -78,7 +103,7 @@ jobs:
   publish_results:
     runs-on: ubuntu-22.04
     if: ${{ always() }}
-    needs: [ regression_tests_dev, regression_tests_14, regression_tests_13 ]
+    needs: [ regression_tests_latest_main, performance_tests_latest_main, regression_tests_14, regression_tests_13 ]
     steps:
       - uses: actions/checkout@v3
       - name: compute-preamble
@@ -94,7 +119,7 @@ jobs:
           elif [[ ${{github.event.schedule == '10 10 * * 1'}} = true ]]; then
               preamble="Gloo EE weeklies (v1.14.x)"
           elif [[ ${{github.event.schedule == '0 5 * * 1-5'}} = true ]]; then
-              preamble="Gloo EE nightlies (dev)"
+              preamble="Gloo EE nightlies (main)"
           fi
           echo "Setting PREAMBLE as $preamble"
           echo "preamble=$(echo $preamble)" >> $GITHUB_OUTPUT

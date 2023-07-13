@@ -560,6 +560,11 @@ export class RouteOptions extends jspb.Message {
   getHostRewritePathRegex(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute | undefined;
   setHostRewritePathRegex(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute): void;
 
+  hasAppendXForwardedHost(): boolean;
+  clearAppendXForwardedHost(): void;
+  getAppendXForwardedHost(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setAppendXForwardedHost(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   hasCors(): boolean;
   clearCors(): void;
   getCors(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_cors_cors_pb.CorsPolicy | undefined;
@@ -701,6 +706,7 @@ export namespace RouteOptions {
     hostRewrite: string,
     autoHostRewrite?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     hostRewritePathRegex?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.AsObject,
+    appendXForwardedHost?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     cors?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_cors_cors_pb.CorsPolicy.AsObject,
     lbHash?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_lbhash_lbhash_pb.RouteActionHashConfig.AsObject,
     upgradesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.AsObject>,

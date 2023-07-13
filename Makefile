@@ -182,23 +182,31 @@ test-with-coverage: test
 
 .PHONY: run-tests
 run-tests: GINKGO_FLAGS += -skip-package=e2e ## Run all non E2E tests, or only run the test package at {TEST_PKG} if it is specified
+run-tests: GINKGO_FLAGS += --label-filter="!performance"
 run-tests: generate-extauth-test-plugins
 run-tests: test
+
+.PHONY: run-performance-tests
+run-performance-tests: GINKGO_FLAGS += --label-filter="performance"
+run-performance-tests: test
 
 # requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
 .PHONY: run-ci-regression-tests
 run-ci-regression-tests: TEST_PKG = ./test/kube2e/$(KUBE2E_TESTS) ## Run the Kubernetes E2E Tests in the {KUBE2E_TESTS} package
+run-ci-regression-tests: GINKGO_FLAGS += --label-filter="!performance"
 run-ci-regression-tests: test
 
 # requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
 .PHONY: run-ci-gloo-fed-regression-tests
 run-ci-gloo-fed-regression-tests: TEST_PKG = ./test/federation-kube2e/$(KUBE2E_TESTS) ## Run the Federation Kubernetes E2E Tests in the {KUBE2E_TESTS} package
+run-ci-gloo-fed-regression-tests: GINKGO_FLAGS += --label-filter="!performance"
 run-ci-gloo-fed-regression-tests: test
 
 # command to run e2e tests
 # requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run
 .PHONY: run-e2e-tests
 run-e2e-tests: TEST_PKG = ./test/e2e/... /projects/multicluster-admission-webhook/test/e2e ## Run the in memory Envoy e2e tests (ENVOY_IMAGE_TAG)
+run-e2e-tests: GINKGO_FLAGS += --label-filter="!performance"
 run-e2e-tests: test
 
 #----------------------------------------------------------------------------------

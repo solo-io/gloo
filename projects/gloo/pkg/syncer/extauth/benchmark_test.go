@@ -2,9 +2,16 @@ package extauth_test
 
 import (
 	"context"
+	"fmt"
 	"os"
-	"sort"
 	"time"
+
+	"github.com/solo-io/gloo/test/testutils"
+
+	"github.com/onsi/gomega/gmeasure"
+	"github.com/solo-io/gloo/test/gomega/matchers"
+
+	"github.com/solo-io/gloo/test/ginkgo/labels"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -15,17 +22,21 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	extauthsyncer "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth/test_fixtures"
+
+	gloohelpers "github.com/solo-io/gloo/test/helpers"
+)
+
+type xdsSnapshotProducerType int
+
+const (
+	proxySourced xdsSnapshotProducerType = iota
+	snapshotSourced
 )
 
 // syncer.TranslatorSyncerExtension Sync methods are a frequently executed code path.
 // We are progressively adding micro-benchmarking to this area of the code to ensure
 // we don't introduce unintended latency to this space.
-//
-// At the moment, these tests (and our benchmarking approach) are not stable, so while
-// we define the tests here, they are skipped in CI. The hope is that running locally
-// we can see the measured difference now, and in the future we except to flush out
-// our benchmarking tests.
-var _ = Describe("ExtAuth Translation - Benchmarking Tests", func() {
+var _ = Describe("ExtAuth Translation - Benchmarking Tests", Label(labels.Performance), func() {
 
 	var (
 		ctx    context.Context
@@ -34,10 +45,6 @@ var _ = Describe("ExtAuth Translation - Benchmarking Tests", func() {
 
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
-
-		if os.Getenv("GCLOUD_BUILD_ID") != "" {
-			Skip("Skip Benchmark as they are not yet stable")
-		}
 	})
 
 	AfterEach(func() {
@@ -49,7 +56,10 @@ var _ = Describe("ExtAuth Translation - Benchmarking Tests", func() {
 	// I opted to adjust them to fit within the 1-minute window for now, though am leaving this as a note
 	// in case we want to expand the test in the future
 	DescribeTable("xDS Snapshot Producer",
-		func(producer extauthsyncer.XdsSnapshotProducer, resourceFrequency test_fixtures.ResourceFrequency, durationAssertion types.GomegaMatcher) {
+		func(producerType xdsSnapshotProducerType, resourceFrequency test_fixtures.ResourceFrequency, durationAssertion types.GomegaMatcher) {
+			producer := getProducer(producerType)
+			desc := generateDesc(producerType, resourceFrequency, durationAssertion)
+
 			By("Seed Snapshot with resources")
 			snapshot := &gloov1snap.ApiSnapshot{
 				AuthConfigs: test_fixtures.AuthConfigSlice(writeNamespace, resourceFrequency.AuthConfigs),
@@ -68,44 +78,60 @@ var _ = Describe("ExtAuth Translation - Benchmarking Tests", func() {
 			reports.Accept(snapshot.Proxies.AsInputResources()...)
 
 			By("Execute ProduceXdsSnapshot")
-			functionToBenchmark := func() {
-				producer.ProduceXdsSnapshot(ctx, settings, snapshot, reports)
-			}
-			samples := 5
-			results := make([]float64, samples)
-			for i := 0; i < samples; i++ {
-				results[i] = timeForFuncToComplete(functionToBenchmark)
-			}
-			sort.Float64s(results)
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("Experiment - %s", desc))
+			AddReportEntry(experiment.Name, experiment)
 
-			By("Assert 80th percentile of ProduceXdsSnapshot completes within expected window")
-			// 0:sample-1, 1:sample-2, 2:sample-3 [3:sample-4], 4:sample5
-			eightyPercentile := results[samples-2]
-			print(eightyPercentile) // Helpful to gather details about results in CI
-			Expect(eightyPercentile).To(durationAssertion)
+			experiment.Sample(func(idx int) {
+				// Time ProduceXdsSnapshot
+				res, err := gloohelpers.Measure(func() {
+					producer.ProduceXdsSnapshot(ctx, settings, snapshot, reports)
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				experiment.RecordDuration(desc, res.Total)
+			}, gmeasure.SamplingConfig{N: 5})
+
+			durations := experiment.Get(desc).Durations
+
+			Expect(durations).Should(durationAssertion, "Assert ProduceXdsSnapshot meets expected performance targets")
 		},
+		generateDesc,
 		getBenchmarkingTestEntries(),
 	)
 
 })
 
-// timeForFuncToComplete is a trivial replica of our benchmarking.TimeForFuncToComplete
-// that benchmarking utility is going to be changed in the future and the purpose of this
-// test is not to create strict benchmarking rules, but more demonstrate performance gains of
-// some code changes. We expect to improve this benchmarking in the future
-func timeForFuncToComplete(f func()) float64 {
-	before := time.Now()
-	f()
-	return time.Since(before).Seconds()
+func generateDesc(producerType xdsSnapshotProducerType, rf test_fixtures.ResourceFrequency, _ types.GomegaMatcher) string {
+	var typeString string
+	switch producerType {
+	case proxySourced:
+		typeString = "proxySourcedXdsSnapshotProducer"
+	case snapshotSourced:
+		typeString = "snapshotSourcedXdsSnapshotProducer"
+	}
 
+	return fmt.Sprintf("%s (AC=%d, PXY=%d, VH=%d, R=%d)", typeString, rf.AuthConfigs, rf.Proxies, rf.VirtualHostsPerProxy, rf.RoutesPerVirtualHost)
+}
+
+func getProducer(producerType xdsSnapshotProducerType) extauthsyncer.XdsSnapshotProducer {
+	switch producerType {
+	case proxySourced:
+		return extauthsyncer.NewProxySourcedXdsSnapshotProducer()
+	case snapshotSourced:
+		return extauthsyncer.NewSnapshotSourcedXdsSnapshotProducer()
+	}
+	return nil
 }
 
 func getBenchmarkingTestEntries() []TableEntry {
-	if os.Getenv("GCLOUD_BUILD_ID") != "" {
-		// We're running in CI
+	// As of #5142 we do not expect to run performance tests in cloudbuild
+	// These targets are left so that there are appropriate targets if for whatever reason the tests are run in
+	// cloudbuild in the future
+	if os.Getenv(testutils.GcloudBuildId) != "" {
+		// We're running a cloudbuild
 		return []TableEntry{
-			Entry("proxySourcedXdsSnapshotProducer",
-				extauthsyncer.NewProxySourcedXdsSnapshotProducer(),
+			Entry(nil,
+				proxySourced,
 				test_fixtures.ResourceFrequency{
 					AuthConfigs:          1000,
 					Proxies:              50,
@@ -115,7 +141,28 @@ func getBenchmarkingTestEntries() []TableEntry {
 				// Should take 12 +- 2 seconds
 				// Recent CI results:
 				// 12.230412642
-				BeNumerically("~", 12, 2),
+				matchers.HavePercentileWithin(80, 12*time.Second, 2*time.Second),
+			),
+		}
+	}
+
+	if os.Getenv(testutils.GithubAction) != "" {
+		// We're running a GHA
+		return []TableEntry{
+			// (AC=1000, PXY=50, VH=100, R=1000)
+			Entry(nil,
+				snapshotSourced,
+				test_fixtures.ResourceFrequency{
+					AuthConfigs:          1000,
+					Proxies:              50,
+					VirtualHostsPerProxy: 100,
+					RoutesPerVirtualHost: 1000,
+				},
+				// Recent CI results:
+				// 2.3182s
+				// 3.9611s
+				// 6.5916s
+				matchers.HavePercentileWithin(80, 4*time.Second, 3*time.Second),
 			),
 		}
 	}
@@ -123,8 +170,8 @@ func getBenchmarkingTestEntries() []TableEntry {
 	// We're running locally
 	return []TableEntry{
 		// (AC=1000, PXY=50, VH=100, R=1000)
-		Entry("snapshotSourcedXdsSnapshotProducer (AC=1000, PXY=50, VH=100, R=1000)",
-			extauthsyncer.NewSnapshotSourcedXdsSnapshotProducer(),
+		Entry(nil,
+			snapshotSourced,
 			test_fixtures.ResourceFrequency{
 				AuthConfigs:          1000,
 				Proxies:              50,
@@ -138,10 +185,10 @@ func getBenchmarkingTestEntries() []TableEntry {
 			// +1.680145e+000
 			// +1.847926e+000
 			// +2.005645e+000
-			BeNumerically("~", 2, 1),
+			matchers.HavePercentileWithin(80, 2*time.Second, time.Second),
 		),
-		Entry("proxySourcedXdsSnapshotProducer (AC=1000, PXY=50, VH=100, R=1000)",
-			extauthsyncer.NewProxySourcedXdsSnapshotProducer(),
+		Entry(nil,
+			proxySourced,
 			test_fixtures.ResourceFrequency{
 				AuthConfigs:          1000,
 				Proxies:              50,
@@ -157,7 +204,7 @@ func getBenchmarkingTestEntries() []TableEntry {
 			// +7.087994e+000
 			// +8.308528e+000
 			// +6.692507e+000
-			BeNumerically("~", 7, 2),
+			matchers.HavePercentileWithin(80, 7*time.Second, 2*time.Second),
 		),
 	}
 }

@@ -1,14 +1,14 @@
-//go:build linux
-
 package e2e_test
 
 import (
 	"context"
+	"fmt"
 	"net"
-	"sort"
+	"time"
 
-	"github.com/solo-io/gloo/test/testutils"
-
+	"github.com/onsi/gomega/gmeasure"
+	"github.com/solo-io/gloo/test/ginkgo/labels"
+	gloomatchers "github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/services/envoy"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -22,14 +22,13 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/v1helpers"
 	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/go-utils/testutils/benchmarking"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/test/services"
 )
 
-var _ = Describe("dlp", func() {
+var _ = Describe("dlp", Label(labels.Performance), func() {
 
 	var (
 		ctx         context.Context
@@ -97,8 +96,6 @@ var _ = Describe("dlp", func() {
 	}
 
 	BeforeEach(func() {
-		testutils.ValidateRequirementsAndNotifyGinkgo(testutils.LinuxOnly("Uses linux-only benchmarking method"))
-
 		logger := zaptest.LoggerWriter(GinkgoWriter)
 		contextutils.SetFallbackLogger(logger.Sugar())
 
@@ -120,6 +117,7 @@ var _ = Describe("dlp", func() {
 	AfterEach(func() {
 		cancel()
 	})
+
 	Context("With envoy", func() {
 		var (
 			envoyInstance *envoy.Instance
@@ -189,6 +187,7 @@ var _ = Describe("dlp", func() {
 				})
 
 				It("ALL_CREDIT_CARDS action benchmarking", func() {
+					desc := "ALL_CREDIT_CARDS"
 					configureListenerProxy([]*dlp.Action{{
 						ActionType: dlp.Action_ALL_CREDIT_CARDS,
 					}}, nil)
@@ -200,16 +199,21 @@ var _ = Describe("dlp", func() {
 						}
 					}
 
-					samples := 10
-					results := make([]float64, samples)
-					sum := float64(0)
-					for i := 0; i < samples; i++ {
-						results[i] = benchmarking.TimeForFuncToComplete(f)
-						sum += results[i]
-					}
-					sort.Float64s(results)
-					Expect(sum / float64(samples)).To(BeNumerically("<=", 0.25))
-					Expect(results[samples-2]).To(BeNumerically("<=", 0.375))
+					experiment := gmeasure.NewExperiment(fmt.Sprintf("Experiment - %s", desc))
+					AddReportEntry(experiment.Name, experiment)
+
+					experiment.Sample(func(idx int) {
+						res, err := helpers.Measure(f)
+						Expect(err).NotTo(HaveOccurred())
+
+						experiment.RecordDuration(desc, res.Total)
+					}, gmeasure.SamplingConfig{N: 10})
+
+					mean := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMean]
+					Expect(mean).Should(BeNumerically("<=", 250*time.Millisecond))
+
+					durations := experiment.Get(desc).Durations
+					Expect(durations).Should(gloomatchers.HavePercentileLessThan(80, 375*time.Millisecond))
 					// reference values for each benchmark sample:
 					// utime: 0.040102
 					// utime: 0.032279
@@ -238,7 +242,6 @@ var _ = Describe("dlp", func() {
 					// utime: 0.039377
 				})
 			})
-
 		})
 	})
 })

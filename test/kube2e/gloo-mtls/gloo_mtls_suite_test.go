@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/avast/retry-go"
 	osskube2e "github.com/solo-io/gloo/test/kube2e"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -95,7 +94,7 @@ var _ = BeforeSuite(func() {
 	resourceClientset, err = osskube2e.NewDefaultKubeResourceClientSet(ctx)
 	Expect(err).NotTo(HaveOccurred(), "no error creating kube resource client set")
 
-	snapshotWriter = helpers.NewSnapshotWriter(resourceClientset, []retry.Option{})
+	snapshotWriter = helpers.NewSnapshotWriter(resourceClientset)
 })
 
 var _ = AfterSuite(func() {

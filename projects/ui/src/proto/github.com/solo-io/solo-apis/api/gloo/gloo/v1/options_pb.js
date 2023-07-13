@@ -3400,6 +3400,7 @@ proto.gloo.solo.io.RouteOptions.toObject = function(includeInstance, msg) {
     hostRewrite: jspb.Message.getFieldWithDefault(msg, 10, ""),
     autoHostRewrite: (f = msg.getAutoHostRewrite()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     hostRewritePathRegex: (f = msg.getHostRewritePathRegex()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.toObject(includeInstance, f),
+    appendXForwardedHost: (f = msg.getAppendXForwardedHost()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     cors: (f = msg.getCors()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_cors_cors_pb.CorsPolicy.toObject(includeInstance, f),
     lbHash: (f = msg.getLbHash()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_lbhash_lbhash_pb.RouteActionHashConfig.toObject(includeInstance, f),
     upgradesList: jspb.Message.toObjectList(msg.getUpgradesList(),
@@ -3518,6 +3519,11 @@ proto.gloo.solo.io.RouteOptions.deserializeBinaryFromReader = function(msg, read
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.deserializeBinaryFromReader);
       msg.setHostRewritePathRegex(value);
+      break;
+    case 146:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setAppendXForwardedHost(value);
       break;
     case 11:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_cors_cors_pb.CorsPolicy;
@@ -3757,6 +3763,14 @@ proto.gloo.solo.io.RouteOptions.serializeBinaryToWriter = function(message, writ
       101,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.serializeBinaryToWriter
+    );
+  }
+  f = message.getAppendXForwardedHost();
+  if (f != null) {
+    writer.writeMessage(
+      146,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getCors();
@@ -4545,6 +4559,36 @@ proto.gloo.solo.io.RouteOptions.prototype.clearHostRewritePathRegex = function()
  */
 proto.gloo.solo.io.RouteOptions.prototype.hasHostRewritePathRegex = function() {
   return jspb.Message.getField(this, 101) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue append_x_forwarded_host = 146;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.getAppendXForwardedHost = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 146));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.RouteOptions.prototype.setAppendXForwardedHost = function(value) {
+  jspb.Message.setWrapperField(this, 146, value);
+};
+
+
+proto.gloo.solo.io.RouteOptions.prototype.clearAppendXForwardedHost = function() {
+  this.setAppendXForwardedHost(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.hasAppendXForwardedHost = function() {
+  return jspb.Message.getField(this, 146) != null;
 };
 
 

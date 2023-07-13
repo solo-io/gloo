@@ -197,6 +197,11 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getInternalAddressConfig(): HttpConnectionManagerSettings.InternalAddressConfig | undefined;
   setInternalAddressConfig(value?: HttpConnectionManagerSettings.InternalAddressConfig): void;
 
+  hasAppendXForwardedPort(): boolean;
+  clearAppendXForwardedPort(): void;
+  getAppendXForwardedPort(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setAppendXForwardedPort(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   getHeaderFormatCase(): HttpConnectionManagerSettings.HeaderFormatCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpConnectionManagerSettings.AsObject;
@@ -249,6 +254,7 @@ export namespace HttpConnectionManagerSettings {
     uuidRequestIdConfig?: HttpConnectionManagerSettings.UuidRequestIdConfigSettings.AsObject,
     http2ProtocolOptions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions.AsObject,
     internalAddressConfig?: HttpConnectionManagerSettings.InternalAddressConfig.AsObject,
+    appendXForwardedPort?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export class SetCurrentClientCertDetails extends jspb.Message {

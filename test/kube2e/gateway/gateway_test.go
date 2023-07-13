@@ -9,7 +9,6 @@ import (
 
 	"time"
 
-	"github.com/avast/retry-go"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/pkg/cliutil/install"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -101,9 +100,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				testRunnerVs,
 			},
 		}
-		// Add more retry delay in attempt to mitigate some flakes, possibly
-		// caused by resources deleted in the wrong order
-		snapshotWriter = helpers.NewSnapshotWriter(resourceClientset, []retry.Option{retry.Delay(5 * time.Second)})
+		snapshotWriter = helpers.NewSnapshotWriter(resourceClientset)
 	})
 
 	AfterEach(func() {

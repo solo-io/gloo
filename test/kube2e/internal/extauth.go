@@ -15,7 +15,6 @@ import (
 	"github.com/solo-io/gloo/test/gomega/transforms"
 	"github.com/solo-io/go-utils/stats"
 
-	"github.com/avast/retry-go"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	defaults2 "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -148,7 +147,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			// Not all tests in this file use the SnapshotWriter or glooResources snapshot
 			// The idea is to progressively move towards this model, because it's used in oss
 			// and is easier to set up/teardown resources consistently
-			snapshotWriter = helpers.NewSnapshotWriter(resourceClientset, []retry.Option{})
+			snapshotWriter = helpers.NewSnapshotWriter(resourceClientset)
 			glooResources = &gloosnapshot.ApiSnapshot{}
 		})
 

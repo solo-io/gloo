@@ -17,7 +17,7 @@ if [[ $? -ne 0 ]]; then
 fi
 if [[ $(git status --porcelain | wc -l) -ne 0 ]]; then
   echo "Generating code produced a non-empty diff."
-  echo "Try running 'make update-all-deps generate-all -B' then re-pushing."
+  echo "Try running 'make update-all-deps generate-all check-solo-apis check-envoy-version tidy -B' then re-pushing."
   git status --porcelain
   git diff | cat
   exit 1;

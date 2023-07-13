@@ -39,7 +39,7 @@ runs:
         sudo rm -rf $AGENT_TOOLSDIRECTORY
         echo "After clearing disk space:"
         df -h
-    # enable ineraction with gcloud buckets
+    # enable interaction with gcloud buckets
     - name: Setup - gcloud / gsutil
       uses: 'google-github-actions/auth@v1'
       with:
