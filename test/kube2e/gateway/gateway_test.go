@@ -530,10 +530,6 @@ spec:
 		var virtualservice *v1.VirtualService
 		var hybridGateway *v1.Gateway
 		BeforeEach(func() {
-			// We are disabling tests temporarily, until we resolve:
-			// https://github.com/solo-io/solo-projects/issues/5156
-			Skip("Skipping DCP Tests")
-
 			caFile := glooKube2e.ToFile(helpers.Certificate())
 			//goland:noinspection GoUnhandledErrorResult
 			defer os.Remove(caFile)

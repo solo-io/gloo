@@ -8,7 +8,7 @@ type CookieData struct {
 	HttpOnly bool
 }
 
-// CookieMapper returns a Gomega Transform that maps an array of HTTP cookies the to the form <cookieName>: <CookieMapData>
+// CookieDataMapper returns a Gomega Transform that maps an array of HTTP cookies the to the form <cookieName>: <CookieMapData>
 func CookieDataMapper() func(c []*http.Cookie) map[string]*CookieData {
 	return func(c []*http.Cookie) map[string]*CookieData {
 		cookieMap := make(map[string]*CookieData)

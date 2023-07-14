@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4755
+    resolvesIssue: true
+    description: >-
+      De-flake Caching kube2e tests, by transforming curl responses into an http.Response so that we
+      can use the more advanced HaveHttpResponse Matcher, to properly assert the presence of the age header.

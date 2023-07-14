@@ -1163,12 +1163,18 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				glooResources.AuthConfigs = extauthapi.AuthConfigList{acEast, acWest}
 				glooResources.VirtualServices = gatewayv2.VirtualServiceList{vsEast, vsWest}
 
-				err = snapshotWriter.WriteSnapshot(glooResources, clients.WriteOpts{Ctx: ctx})
+				err = snapshotWriter.WriteSnapshot(glooResources, clients.WriteOpts{
+					Ctx:               ctx,
+					OverwriteExisting: false,
+				})
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			AfterEach(func() {
-				err = snapshotWriter.DeleteSnapshot(glooResources, clients.DeleteOpts{Ctx: ctx})
+				err = snapshotWriter.DeleteSnapshot(glooResources, clients.DeleteOpts{
+					Ctx:            ctx,
+					IgnoreNotExist: true,
+				})
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -1344,11 +1350,17 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					glooResources.AuthConfigs = extauthapi.AuthConfigList{&authConfig}
 					glooResources.Secrets = append(glooResources.Secrets, &encryptionKey)
 					glooResources.Secrets = append(glooResources.Secrets, &oauthSecret)
-					err = snapshotWriter.WriteSnapshot(glooResources, clients.WriteOpts{Ctx: ctx})
+					err = snapshotWriter.WriteSnapshot(glooResources, clients.WriteOpts{
+						Ctx:               ctx,
+						OverwriteExisting: false,
+					})
 					Expect(err).NotTo(HaveOccurred())
 				})
 				AfterEach(func() {
-					err = snapshotWriter.DeleteSnapshot(glooResources, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+					err = snapshotWriter.DeleteSnapshot(glooResources, clients.DeleteOpts{
+						Ctx:            ctx,
+						IgnoreNotExist: true,
+					})
 					Expect(err).NotTo(HaveOccurred())
 				})
 				Context("correct encryption key", func() {

@@ -87,7 +87,6 @@ var _ = BeforeSuite(func() {
 	_, err = exec.RunCommandOutput(testHelper.RootDir, true, glooctlVersionCommand...)
 	Expect(err).NotTo(HaveOccurred())
 	kube2e.EnableStrictValidation(testHelper)
-
 })
 
 var _ = AfterSuite(func() {
