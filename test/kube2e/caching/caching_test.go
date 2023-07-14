@@ -460,6 +460,6 @@ func expectRequestOnPathReturns(path string, responseMatcher types.GomegaMatcher
 		})
 		g.Expect(curlErr).NotTo(HaveOccurred(), "request on path should succeed")
 		g.Expect(responseString).NotTo(BeEmpty(), "response should not be empty")
-		g.Expect(responseString).To(WithTransform(transforms.WithCurlHttpResponse, responseMatcher), responseMatcherDescription)
+		g.Expect(responseString).To(WithTransform(transforms.WithCurlHttpResponse, responseMatcher), responseMatcherDescription...)
 	}, "20s", ".5s").Should(Succeed())
 }
