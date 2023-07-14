@@ -98,7 +98,7 @@ func (p *plugin) Init(params plugins.InitParams) {
 	p.filterRequiredForListener = make(map[*v1.HttpListener]struct{})
 }
 
-// ProcessRoute aplying any needed configurations related to jwt.
+// ProcessRoute applying any needed configurations related to jwt.
 // If any configs are found then mark us needing this filter in our chain.
 func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	jwtRoute := p.convertRouteJwtConfig(in.GetOptions())

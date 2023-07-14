@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5038
+    resolvesIssue: false
+    description: >-
+      Add performance suite with basic translation tests as a template for future tests to be added
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
