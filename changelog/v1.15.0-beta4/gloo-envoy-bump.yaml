@@ -1,0 +1,21 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  description: Bump envoy-gloo-ee to latest v1.25.8-patch1
+  dependencyOwner: solo-io
+  dependencyRepo: envoy-gloo-ee
+  dependencyTag: v1.25.8-patch1
+- type: DEPENDENCY_BUMP
+  description: Bump Gloo OSS to latest v1.15.0-beta19
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.15.0-beta19
+- type: DEPENDENCY_BUMP
+  description: Bump solo-apis to latest v1.15.0-beta19
+  dependencyOwner: solo-io
+  dependencyRepo: solo-apis
+  dependencyTag: gloo-v1.15.0-beta19
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/5138
+  resolvesIssue: false
+  description: >
+    Pulls in upstream Envoy v1.25.8-patch1, which includes a fix for CVE-2023-35945
