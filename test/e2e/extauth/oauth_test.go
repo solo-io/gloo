@@ -46,8 +46,6 @@ var _ = Describe("Deprecated OAuth", func() {
 	const (
 		accessTokenValue  = "SlAV32hkKG"
 		refreshTokenValue = "8xLOxBtZp8"
-		// The id_token is a jwt so the only thing that would match is the first portion of the jwt(header)
-		idTokenSubstring = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImtpZC0xIiwidHlwIjoiSldUIn0"
 	)
 
 	BeforeEach(func() {

@@ -29,6 +29,61 @@ var (
 	baseOauth2Port           = uint32(5556)
 )
 
+type endpointDataFields struct {
+	// A map counting the number of times each method has been called
+	methodMap map[string]int
+}
+
+type endpointData struct {
+	data  map[string]*endpointDataFields
+	mutex sync.RWMutex
+}
+
+func (e *endpointData) incrementMethodCount(path, method string) {
+	e.mutex.Lock()
+	defer e.mutex.Unlock()
+	if e.data[path] == nil {
+		e.data[path] = &endpointDataFields{
+			methodMap: make(map[string]int),
+		}
+	}
+	e.getEndpointDataFields(path).methodMap[method] += 1
+}
+
+func (e *endpointData) getEndpointDataFields(path string) *endpointDataFields {
+	if e.data[path] == nil {
+		e.data[path] = &endpointDataFields{
+			methodMap: make(map[string]int),
+		}
+	}
+	return e.data[path]
+}
+
+// GetMethodCount returns the number of times a given HTTP method was invoked on a given path.
+func (e *endpointData) GetMethodCount(path, method string) int {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
+	return e.getEndpointDataFields(path).methodMap[method]
+}
+
+type handlerStats struct {
+	stats map[string]int
+	mutex sync.RWMutex
+}
+
+func (h *handlerStats) increment(path string) {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
+	h.stats[path] += 1
+}
+
+// Get returns the number of times a path was invoked.
+func (h *handlerStats) Get(path string) int {
+	h.mutex.RLock()
+	defer h.mutex.RUnlock()
+	return h.stats[path]
+}
+
 type FakeDiscoveryServer struct {
 	s                        http.Server
 	Port                     uint32
@@ -39,8 +94,8 @@ type FakeDiscoveryServer struct {
 	AccessTokenValue         string
 	RefreshTokenValue        string
 	LastGrant                string
-	HandlerStats             map[string]int
-	handlerStatsMutex        sync.Mutex
+	HandlerStats             *handlerStats
+	EndpointData             *endpointData
 
 	// The set of key IDs that are supported by the server
 	keyIds []string
@@ -52,6 +107,8 @@ const (
 	TokenEndpoint      = "/token"
 	RevocationEndpoint = "/revoke"
 	KeysEndpoint       = "/keys"
+	AlternateAuthPath  = "/alternate-auth"
+	ConfigurationPath  = "/.well-known/openid-configuration"
 )
 
 func (f *FakeDiscoveryServer) Stop() {
@@ -101,6 +158,12 @@ func (f *FakeDiscoveryServer) GetValidKeyId() string {
 }
 
 func (f *FakeDiscoveryServer) Start(serverAddress string) *rsa.PrivateKey {
+	f.HandlerStats = &handlerStats{
+		stats: make(map[string]int),
+	}
+	f.EndpointData = &endpointData{
+		data: make(map[string]*endpointDataFields),
+	}
 	f.Port = parallel.AdvancePortSafeListen(&baseOauth2Port)
 	f.ServerAddress = serverAddress
 	// Initialize the server with 1 valid kid
@@ -118,11 +181,7 @@ func (f *FakeDiscoveryServer) Start(serverAddress string) *rsa.PrivateKey {
 		defer GinkgoRecover()
 		rw.Header().Set("content-type", "application/json")
 
-		f.handlerStatsMutex.Lock()
-		if f.HandlerStats != nil {
-			f.HandlerStats[r.URL.Path] += 1
-		}
-		f.handlerStatsMutex.Unlock()
+		f.HandlerStats.increment(r.URL.Path)
 		switch r.URL.Path {
 		case AuthEndpoint:
 			// redirect back immediately. This simulates a user that's already logged in by the IDP.
@@ -138,7 +197,7 @@ func (f *FakeDiscoveryServer) Start(serverAddress string) *rsa.PrivateKey {
 			rw.WriteHeader(http.StatusFound)
 
 			_, _ = rw.Write([]byte(`auth`))
-		case "/alternate-auth":
+		case AlternateAuthPath:
 			// redirect back immediately. This simulates a user that's already logged in by the IDP.
 			redirectUri := r.URL.Query().Get("redirect_uri")
 			state := r.URL.Query().Get("state")
@@ -152,7 +211,7 @@ func (f *FakeDiscoveryServer) Start(serverAddress string) *rsa.PrivateKey {
 			rw.WriteHeader(http.StatusFound)
 
 			_, _ = rw.Write([]byte(`alternate-auth`))
-		case "/.well-known/openid-configuration":
+		case ConfigurationPath:
 			appUrl := fmt.Sprintf("http://%s:%d", f.ServerAddress, f.Port)
 			authUrl := fmt.Sprintf("%s%s", appUrl, AuthEndpoint)
 			tokenUrl := fmt.Sprintf("%s%s", appUrl, TokenEndpoint)
@@ -267,17 +326,11 @@ func (f *FakeDiscoveryServer) Start(serverAddress string) *rsa.PrivateKey {
 				token = bodyDataMap["id_token_hint"]
 			}
 
-			// Update the handler stats with a (fake) hit to `{REQUEST_METHOD}:{logoutEndpoint}`.
-			// This allows our tests can verify that the correct method was used.
-			f.handlerStatsMutex.Lock()
-			if f.HandlerStats != nil {
-				f.HandlerStats[fmt.Sprintf("%s:%s", r.Method, r.URL.Path)] += 1
-			}
-			f.handlerStatsMutex.Unlock()
-
 			// "test-clientid"
 			Expect(len(clientId)).Should(BeNumerically(">", 0))
 			Expect(len(token)).Should(BeNumerically(">", 0))
+
+			f.EndpointData.incrementMethodCount(LogoutEndpoint, r.Method)
 			rw.WriteHeader(http.StatusOK)
 			_, _ = rw.Write([]byte(""))
 		}

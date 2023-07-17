@@ -49,7 +49,6 @@ var _ = Describe("OIDC", func() {
 		oauth2                *extauth.OAuth2_OidcAuthorizationCode
 		privateKey            *rsa.PrivateKey
 		discoveryServer       FakeDiscoveryServer
-		handlerStats          map[string]int
 		secret                *gloov1.Secret
 		token                 string
 		cookies               []*http.Cookie
@@ -71,9 +70,7 @@ var _ = Describe("OIDC", func() {
 		testContext.BeforeEach()
 
 		cookies = nil
-		handlerStats = make(map[string]int)
 		discoveryServer = FakeDiscoveryServer{
-			HandlerStats:      handlerStats,
 			AccessTokenValue:  accessTokenValue,
 			RefreshTokenValue: refreshTokenValue,
 		}
@@ -328,7 +325,7 @@ var _ = Describe("OIDC", func() {
 					discoveryServer.CreateNearlyExpiredToken = true
 					discoveryServer.UpdateToken("")
 					discoveryServer.CreateNearlyExpiredToken = false
-					Expect(handlerStats[TokenEndpoint]).To(BeEquivalentTo(0))
+					Expect(discoveryServer.HandlerStats.Get(TokenEndpoint)).To(BeEquivalentTo(0))
 
 					// execute first request.
 					Eventually(func() (*http.Response, error) {
@@ -343,10 +340,10 @@ var _ = Describe("OIDC", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// execute third request. We should not hit the /token handler, because the refreshed token should be in the store.
-					baseRefreshes := handlerStats[TokenEndpoint]
+					baseRefreshes := discoveryServer.HandlerStats.Get(TokenEndpoint)
 					resp, err = makeSingleRequest(client)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(handlerStats[TokenEndpoint]).To(BeNumerically("==", baseRefreshes))
+					Expect(discoveryServer.HandlerStats.Get(TokenEndpoint)).To(BeNumerically("==", baseRefreshes))
 
 					return resp, nil
 				}
@@ -497,7 +494,7 @@ var _ = Describe("OIDC", func() {
 
 			BeforeEach(func() {
 				oauth2.OidcAuthorizationCode.DiscoveryOverride = &extauth.DiscoveryOverride{
-					AuthEndpoint: fmt.Sprintf("http://%s:%d/alternate-auth", discoveryServer.ServerAddress, discoveryServer.Port),
+					AuthEndpoint: fmt.Sprintf("http://%s:%d%s", discoveryServer.ServerAddress, discoveryServer.Port, AlternateAuthPath),
 				}
 			})
 
@@ -1141,7 +1138,7 @@ var _ = Describe("OIDC", func() {
 
 							// state URI has not been downgraded to http:
 							g.Expect(stateClaim.State).To(ContainSubstring("https://"))
-						}, time.Second*3, time.Millisecond*250).Should(Succeed()) // todo originally ShouldNot(HaveOccurred())
+						}, time.Second*3, time.Millisecond*250).Should(Succeed())
 
 					})
 
@@ -1156,11 +1153,6 @@ var _ = Describe("OIDC", func() {
 		})
 
 		Context("end session properties", func() {
-			var (
-				postLogoutUrl = fmt.Sprintf("%s:%s", http.MethodPost, LogoutEndpoint)
-				getLogoutUrl  = fmt.Sprintf("%s:%s", http.MethodGet, LogoutEndpoint)
-			)
-
 			When("end session properties are set to POST", func() {
 				BeforeEach(func() {
 					oauth2.OidcAuthorizationCode.EndSessionProperties = &extauth.EndSessionProperties{
@@ -1171,8 +1163,8 @@ var _ = Describe("OIDC", func() {
 				It("does a POST request to the logout endpoint", func() {
 					ExpectHappyPathToWork(makeSingleRequest, func() {})
 					// the internal handler should have done a POST request to the /logout endpoint
-					Expect(handlerStats[postLogoutUrl]).To(BeEquivalentTo(1))
-					Expect(handlerStats[getLogoutUrl]).To(BeEquivalentTo(0))
+					Expect(discoveryServer.HandlerStats.Get(LogoutEndpoint)).To(BeEquivalentTo(1))
+					Expect(discoveryServer.EndpointData.GetMethodCount(LogoutEndpoint, http.MethodPost)).To(Equal(1))
 				})
 			})
 
@@ -1186,8 +1178,8 @@ var _ = Describe("OIDC", func() {
 				It("does a GET request to the logout endpoint", func() {
 					ExpectHappyPathToWork(makeSingleRequest, func() {})
 					// the internal handler should have done a GET request to the /logout endpoint
-					Expect(handlerStats[getLogoutUrl]).To(BeEquivalentTo(1))
-					Expect(handlerStats[postLogoutUrl]).To(BeEquivalentTo(0))
+					Expect(discoveryServer.HandlerStats.Get(LogoutEndpoint)).To(BeEquivalentTo(1))
+					Expect(discoveryServer.EndpointData.GetMethodCount(LogoutEndpoint, http.MethodGet)).To(Equal(1))
 				})
 			})
 		})

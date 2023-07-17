@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/3927
+    resolvesIssue: false
+    description: >-
+      Add `EndpointData` to `FakeDiscoveryServer` so tests can view data consumed when endpoints are invoked.
