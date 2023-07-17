@@ -1,0 +1,40 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: envoy-gloo-ee
+  dependencyTag: v1.26.2-patch2
+  issueLink: https://github.com/solo-io/gloo/issues/8177
+  resolvesIssue: false
+  description: >-
+    Use latest envoy-gloo-ee which brings us onto 1.26. This also gives us access
+    to the changes which use the latest version of Inja.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: envoyproxy
+  dependencyRepo: go-control-plane
+  dependencyTag: v0.11.1
+  description: >-
+    Match version which has definitions for 1.26
+- type: DEPENDENCY_BUMP
+  dependencyOwner: envoyproxy
+  dependencyRepo: protoc-gen-validate
+  dependencyTag: v1.0.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.15.0-beta21
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: solo-apis
+  dependencyTag: gloo-v1.15.0-beta21
+- type: NON_USER_FACING
+  description: >-
+    Update caching tests to not reuse GomegaMatchers in async Eventually assertion
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/gloo/issues/8177
+  resolvesIssue: false
+  description: >-
+    Use later version of Inja for transformations (Version 3.4) which provides
+    access to numerous new templating features.
+- type: NON_USER_FACING
+  description: >-
+    Change implementations of proxy_protocol filter to the upstream Envoy one.

@@ -1,8 +1,9 @@
 dependencies:
   - name: gloo
+    repository: https://storage.googleapis.com/solo-public-helm
     # keep for referencing gloo-branches
     # repository: https://storage.googleapis.com/solo-public-tagged-helm
-    repository: https://storage.googleapis.com/solo-public-helm
+    # version: 1.15.0-beta16-8440 # format: <version>-<gloo PR>. Search through above url for your PR to find the full version string
   - name: prometheus
     repository: https://prometheus-community.github.io/helm-charts
     version: 15.18.0

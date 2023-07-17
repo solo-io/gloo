@@ -206,104 +206,114 @@ var _ = Describe("Installing gloo", func() {
 
 		waitForGateway()
 
-		expectRequestOnPathReturns("/HealthCheck", testmatchers.HaveOkResponse(), "service should be responding to health checks")
+		expectRequestOnPathReturns("/HealthCheck", testmatchers.HaveOkResponse, "service should be responding to health checks")
 	})
 
 	happyPathTest := func() {
 		By("sending an inital request to cache the response")
 		var date time.Time
 
-		expectRequestOnPathReturns("/service/1/valid-for-three-seconds", testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
-			StatusCode: http.StatusOK,
-			Headers: map[string]interface{}{
-				"age": BeEmpty(),
-				// We don't actually peform an assertion against the date header
-				// Instead we just use the value to initalize the date variable in
-				// a transform, since we will compare future results against that value
-				"date": WithTransform(func(headerValue string) string {
-					var err error
-					date, err = time.Parse(time.RFC1123, headerValue)
-					Expect(err).NotTo(HaveOccurred(), "can parse date header")
-					return headerValue
-				}, gstruct.Ignore()),
-			},
-		}))
+		expectRequestOnPathReturns("/service/1/valid-for-three-seconds", func() types.GomegaMatcher {
+			return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
+				StatusCode: http.StatusOK,
+				Headers: map[string]interface{}{
+					"age": BeEmpty(),
+					// We don't actually peform an assertion against the date header
+					// Instead we just use the value to initalize the date variable in
+					// a transform, since we will compare future results against that value
+					"date": WithTransform(func(headerValue string) string {
+						var err error
+						date, err = time.Parse(time.RFC1123, headerValue)
+						Expect(err).NotTo(HaveOccurred(), "can parse date header")
+						return headerValue
+					}, gstruct.Ignore()),
+				},
+			})
+		})
 
 		By("sending a second request to serve the response from cache")
 		// sleep for 1 second so we can ensure that the date header timestamp of the second
 		// request is different from the first
 		time.Sleep(time.Second)
 
-		expectRequestOnPathReturns("/service/1/valid-for-three-seconds", testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
-			StatusCode: http.StatusOK,
-			Headers: map[string]interface{}{
-				"age": And(
-					Not(BeEmpty()), // age header should now be populated
-					WithTransform(func(headerValue string) int {
-						headerIntValue, err := strconv.Atoi(headerValue)
-						Expect(err).NotTo(HaveOccurred(), "can convert string to int")
-						return headerIntValue
-					}, And(
-						BeNumerically("<=", 3),
-						BeNumerically(">=", 0),
-					)),
-				),
-				"date": Equal(date.Format(time.RFC1123)), // date header should be same as the first request
-			},
-		}))
+		expectRequestOnPathReturns("/service/1/valid-for-three-seconds", func() types.GomegaMatcher {
+			return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
+				StatusCode: http.StatusOK,
+				Headers: map[string]interface{}{
+					"age": And(
+						Not(BeEmpty()), // age header should now be populated
+						WithTransform(func(headerValue string) int {
+							headerIntValue, err := strconv.Atoi(headerValue)
+							Expect(err).NotTo(HaveOccurred(), "can convert string to int")
+							return headerIntValue
+						}, And(
+							BeNumerically("<=", 3),
+							BeNumerically(">=", 0),
+						)),
+					),
+					"date": Equal(date.Format(time.RFC1123)), // date header should be same as the first request
+				},
+			})
+		})
 	}
 
 	validationTest := func() {
 		By("sending an inital request to cache the response")
 		var date time.Time
 
-		expectRequestOnPathReturns("/service/1/valid-for-three-seconds", testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
-			StatusCode: http.StatusOK,
-			Headers: map[string]interface{}{
-				"age": BeEmpty(),
-				"date": WithTransform(func(headerValue string) string {
-					var err error
-					date, err = time.Parse(time.RFC1123, headerValue)
-					Expect(err).NotTo(HaveOccurred(), "can parse date header")
-					return headerValue
-				}, gstruct.Ignore()),
-			},
-		}))
+		expectRequestOnPathReturns("/service/1/valid-for-three-seconds", func() types.GomegaMatcher {
+			return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
+				StatusCode: http.StatusOK,
+				Headers: map[string]interface{}{
+					"age": BeEmpty(),
+					"date": WithTransform(func(headerValue string) string {
+						var err error
+						date, err = time.Parse(time.RFC1123, headerValue)
+						Expect(err).NotTo(HaveOccurred(), "can parse date header")
+						return headerValue
+					}, gstruct.Ignore()),
+				},
+			})
+		})
 
 		By("sending a second request to serve the response from cache")
 		// sleep for 1 second so we can ensure that the date header timestamp of the second
 		// request is different from the first
 		time.Sleep(time.Second)
 
-		expectRequestOnPathReturns("/service/1/valid-for-three-seconds", testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
-			StatusCode: http.StatusOK,
-			Headers: map[string]interface{}{
-				"age": And(
-					Not(BeEmpty()), // age header should now be populated
-					WithTransform(func(headerValue string) int {
-						headerIntValue, err := strconv.Atoi(headerValue)
-						Expect(err).NotTo(HaveOccurred(), "can convert string to int")
-						return headerIntValue
-					}, And(
-						BeNumerically("<=", 3),
-						BeNumerically(">=", 0),
-					)),
-				),
-				"date": Equal(date.Format(time.RFC1123)), // date header should be same as the first request
-			},
-		}))
+		expectRequestOnPathReturns("/service/1/valid-for-three-seconds", func() types.GomegaMatcher {
+			return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
+				StatusCode: http.StatusOK,
+				Headers: map[string]interface{}{
+					"age": And(
+						Not(BeEmpty()), // age header should now be populated
+						WithTransform(func(headerValue string) int {
+							headerIntValue, err := strconv.Atoi(headerValue)
+							Expect(err).NotTo(HaveOccurred(), "can convert string to int")
+							return headerIntValue
+						}, And(
+							BeNumerically("<=", 3),
+							BeNumerically(">=", 0),
+						)),
+					),
+					"date": Equal(date.Format(time.RFC1123)), // date header should be same as the first request
+				},
+			})
+		})
 
 		By("sending a third request to serve the response from cache")
 		// sleep for 5 seconds so we can ensure that the cached response is expired
 		time.Sleep(time.Second * 5)
 
-		expectRequestOnPathReturns("/service/1/valid-for-three-seconds", testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
-			StatusCode: http.StatusOK,
-			Headers: map[string]interface{}{
-				"age":  BeEmpty(),                             //should not contain an age header, because the cached response is expired
-				"date": Not(Equal(date.Format(time.RFC1123))), // date header should be updated since first request
-			},
-		}))
+		expectRequestOnPathReturns("/service/1/valid-for-three-seconds", func() types.GomegaMatcher {
+			return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
+				StatusCode: http.StatusOK,
+				Headers: map[string]interface{}{
+					"age":  BeEmpty(),                             //should not contain an age header, because the cached response is expired
+					"date": Not(Equal(date.Format(time.RFC1123))), // date header should be updated since first request
+				},
+			})
+		})
 	}
 
 	Context("Using the redis cache service implementation", func() {
@@ -311,7 +321,7 @@ var _ = Describe("Installing gloo", func() {
 			createCachingTestResources()
 			waitForGateway()
 
-			expectRequestOnPathReturns("/service/1/no-cache", testmatchers.HaveOkResponse(), "service should be responding")
+			expectRequestOnPathReturns("/service/1/no-cache", testmatchers.HaveOkResponse, "service should be responding")
 		})
 
 		AfterEach(func() {
@@ -330,7 +340,7 @@ var _ = Describe("Installing gloo", func() {
 			createCachingTestResources()
 			waitForGateway()
 
-			expectRequestOnPathReturns("/service/1/no-cache", testmatchers.HaveOkResponse(), "service should be responding")
+			expectRequestOnPathReturns("/service/1/no-cache", testmatchers.HaveOkResponse, "service should be responding")
 		})
 
 		AfterEach(func() {
@@ -445,8 +455,9 @@ func generateHealthCheckRoute() *v1.Route {
 	}
 }
 
-func expectRequestOnPathReturns(path string, responseMatcher types.GomegaMatcher, responseMatcherDescription ...interface{}) {
+func expectRequestOnPathReturns(path string, responseMatcher func() types.GomegaMatcher, responseMatcherDescription ...interface{}) {
 	EventuallyWithOffset(1, func(g Gomega) {
+		match := responseMatcher()
 		responseString, curlErr := testHelper.Curl(helper.CurlOpts{
 			Protocol:          "http",
 			Path:              path,
@@ -460,6 +471,6 @@ func expectRequestOnPathReturns(path string, responseMatcher types.GomegaMatcher
 		})
 		g.Expect(curlErr).NotTo(HaveOccurred(), "request on path should succeed")
 		g.Expect(responseString).NotTo(BeEmpty(), "response should not be empty")
-		g.Expect(responseString).To(WithTransform(transforms.WithCurlHttpResponse, responseMatcher), responseMatcherDescription...)
+		g.Expect(responseString).To(WithTransform(transforms.WithCurlHttpResponse, match), responseMatcherDescription...)
 	}, "20s", ".5s").Should(Succeed())
 }

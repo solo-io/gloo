@@ -2037,6 +2037,9 @@ export class OpaAuthOptions extends jspb.Message {
   getFastInputConversion(): boolean;
   setFastInputConversion(value: boolean): void;
 
+  getReturnDecisionReason(): boolean;
+  setReturnDecisionReason(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OpaAuthOptions.AsObject;
   static toObject(includeInstance: boolean, msg: OpaAuthOptions): OpaAuthOptions.AsObject;
@@ -2050,6 +2053,7 @@ export class OpaAuthOptions extends jspb.Message {
 export namespace OpaAuthOptions {
   export type AsObject = {
     fastInputConversion: boolean,
+    returnDecisionReason: boolean,
   }
 }
 

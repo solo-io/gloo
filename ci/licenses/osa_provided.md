@@ -4,10 +4,10 @@ Name|Version|License
 [aerospike/aerospike-client-go](https://github.com/aerospike/aerospike-client-go)|v4.5.2+incompatible|Apache License 2.0
 [retry-go/v4](https://github.com/avast/retry-go)|v4.3.3|MIT License
 [aws/aws-sdk-go](https://github.com/aws/aws-sdk-go)|v1.43.16|Apache License 2.0
-[xds/go](https://github.com/cncf/xds)|v0.0.0-20230310173818-32f1caf87195|Apache License 2.0
+[xds/go](https://github.com/cncf/xds)|v0.0.0-20230428030218-4003588d1b74|Apache License 2.0
 [docker/distribution](https://github.com/docker/distribution)|v2.8.2+incompatible|Apache License 2.0
-[envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.11.0|Apache License 2.0
-[envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v0.10.0|Apache License 2.0
+[envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.11.1|Apache License 2.0
+[envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v1.0.1|Apache License 2.0
 [fgrosse/zaptest](https://github.com/fgrosse/zaptest)|v1.1.0|MIT License
 [gertd/go-pluralize](https://github.com/gertd/go-pluralize)|v0.1.1|MIT License
 [getkin/kin-openapi](https://github.com/getkin/kin-openapi)|v0.80.0|MIT License

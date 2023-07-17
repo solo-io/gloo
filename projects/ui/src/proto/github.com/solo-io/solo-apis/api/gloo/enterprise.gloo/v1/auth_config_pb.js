@@ -14100,7 +14100,8 @@ proto.enterprise.gloo.solo.io.OpaAuthOptions.prototype.toObject = function(opt_i
  */
 proto.enterprise.gloo.solo.io.OpaAuthOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
-    fastInputConversion: jspb.Message.getFieldWithDefault(msg, 1, false)
+    fastInputConversion: jspb.Message.getFieldWithDefault(msg, 1, false),
+    returnDecisionReason: jspb.Message.getFieldWithDefault(msg, 2, false)
   };
 
   if (includeInstance) {
@@ -14141,6 +14142,10 @@ proto.enterprise.gloo.solo.io.OpaAuthOptions.deserializeBinaryFromReader = funct
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setFastInputConversion(value);
       break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setReturnDecisionReason(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -14177,6 +14182,13 @@ proto.enterprise.gloo.solo.io.OpaAuthOptions.serializeBinaryToWriter = function(
       f
     );
   }
+  f = message.getReturnDecisionReason();
+  if (f) {
+    writer.writeBool(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -14194,6 +14206,23 @@ proto.enterprise.gloo.solo.io.OpaAuthOptions.prototype.getFastInputConversion = 
 /** @param {boolean} value */
 proto.enterprise.gloo.solo.io.OpaAuthOptions.prototype.setFastInputConversion = function(value) {
   jspb.Message.setProto3BooleanField(this, 1, value);
+};
+
+
+/**
+ * optional bool return_decision_reason = 2;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.enterprise.gloo.solo.io.OpaAuthOptions.prototype.getReturnDecisionReason = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 2, false));
+};
+
+
+/** @param {boolean} value */
+proto.enterprise.gloo.solo.io.OpaAuthOptions.prototype.setReturnDecisionReason = function(value) {
+  jspb.Message.setProto3BooleanField(this, 2, value);
 };
 
 

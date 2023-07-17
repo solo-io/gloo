@@ -2,9 +2,11 @@ package proxyprotocol
 
 import (
 	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	envoy_proxy_protocol "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/listener/proxy_protocol/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+
 	"github.com/golang/protobuf/proto"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/proxy_protocol"
+
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/proxyprotocol"
@@ -17,7 +19,9 @@ var (
 )
 
 const (
-	FilterName = "io.solo.envoy.filters.listener.proxy_protocol"
+	// FilterName to pass to envoy. This was originally a solo specific version
+	// now that our change are accepted up stream use the upstream name
+	FilterName = wellknown.ProxyProtocol
 )
 
 type plugin struct{}
@@ -44,7 +48,7 @@ func (p *plugin) ProcessListener(params plugins.Params, in *v1.Listener, out *en
 	// only use our custom filter if we use enterprise-only features to limit blast radius if there's an issue
 	// with our proxy protocol filter
 	if proxyprotocol.UsesEnterpriseOnlyFeatures(in) {
-		listenerFilter, err = GenerateCustomProxyProtocolListenerFilter(in)
+		listenerFilter, err = GenerateProxyProtocolListenerFilter(in)
 		if err != nil {
 			return err
 		}
@@ -79,30 +83,34 @@ func (p *plugin) ProcessListener(params plugins.Params, in *v1.Listener, out *en
 	return nil
 }
 
-func GenerateCustomProxyProtocolListenerFilter(in *v1.Listener) (*envoy_config_listener_v3.ListenerFilter, error) {
-	customProxyProtocol := proxy_protocol.CustomProxyProtocol{}
+// GenerateProxyProtocolListenerFilter generates a proxy protocol listener filter
+// This is not to be confused with the upstream setting as this unwraps proxy protocol
+// rather than setting it on the request upstream which is done in another location.
+func GenerateProxyProtocolListenerFilter(in *v1.Listener) (*envoy_config_listener_v3.ListenerFilter, error) {
+
+	proxyProtocol := envoy_proxy_protocol.ProxyProtocol{}
 	if pp := in.GetOptions().GetProxyProtocol(); pp != nil {
-		customProxyProtocol.AllowRequestsWithoutProxyProtocol = pp.AllowRequestsWithoutProxyProtocol
-		var rules []*proxy_protocol.CustomProxyProtocol_Rule
+		proxyProtocol.AllowRequestsWithoutProxyProtocol = pp.AllowRequestsWithoutProxyProtocol
+		var rules []*envoy_proxy_protocol.ProxyProtocol_Rule
 		for _, rule := range pp.GetRules() {
 
-			var tlvPresent *proxy_protocol.CustomProxyProtocol_KeyValuePair
+			var tlvPresent *envoy_proxy_protocol.ProxyProtocol_KeyValuePair
 			if rule.OnTlvPresent != nil {
-				tlvPresent = &proxy_protocol.CustomProxyProtocol_KeyValuePair{
+				tlvPresent = &envoy_proxy_protocol.ProxyProtocol_KeyValuePair{
 					MetadataNamespace: rule.GetOnTlvPresent().GetMetadataNamespace(),
 					Key:               rule.GetOnTlvPresent().GetKey(),
 				}
 			}
 
-			rules = append(rules, &proxy_protocol.CustomProxyProtocol_Rule{
+			rules = append(rules, &envoy_proxy_protocol.ProxyProtocol_Rule{
 				TlvType:      rule.TlvType,
 				OnTlvPresent: tlvPresent,
 			})
 		}
-		customProxyProtocol.Rules = rules
+		proxyProtocol.Rules = rules
 	}
 
-	msg, err := utils.MessageToAny(&customProxyProtocol)
+	msg, err := utils.MessageToAny(&proxyProtocol)
 	if err != nil {
 		return nil, err
 	}

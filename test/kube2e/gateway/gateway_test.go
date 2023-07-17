@@ -246,7 +246,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 
 		_, err = resourceClientset.VirtualServiceClient().Write(vs, clients.WriteOpts{Ctx: ctx})
 		Expect(err).To(MatchError(ContainSubstring("Failed to parse response template: Failed to parse " +
-			"header template ':status': [inja.exception.parser_error] expected statement close, got '%'")))
+			"header template ':status': [inja.exception.parser_error] (at 1:92) expected statement close, got '%'")))
 	})
 
 	Context("tests for validation", func() {
