@@ -35,7 +35,7 @@ jobs:
                         { node: 'v1.26.3@sha256:61b92f38dff6ccc29969e7aa154d34e38b89443af1a2c14e6cfbd2df6419c66f', kubectl: 'v1.26.4', kind: 'v0.18.0', helm: 'v3.11.2' }]
     steps:
     - uses: actions/checkout@v3
-    - uses: ./.github/workflows/composite-actions/regression-tests
+    - uses: ./.github/workflows/composite-actions/regression-tests-BAD
 
   performance_tests_latest_main:
     name: latest performance tests
@@ -60,7 +60,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         ref: v1.14.x
-    - uses: ./.github/actions/regression-tests
+    - uses: ./.github/actions/regression-tests-BAD
 
   regression_tests_13:
     name: v1.13.x regression tests
@@ -76,7 +76,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         ref: v1.13.x
-    - uses: ./.github/actions/regression-tests
+    - uses: ./.github/actions/regression-tests-BAD
 
   publish_results:
     runs-on: ubuntu-22.04
