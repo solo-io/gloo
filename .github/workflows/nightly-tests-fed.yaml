@@ -1,4 +1,5 @@
 name: Fed Nightly Tests
+run-name: EE Fed Nightly ${{github.event.schedule}} by @${{ github.actor }}
 
 on:
   schedule:

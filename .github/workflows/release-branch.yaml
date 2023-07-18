@@ -1,5 +1,5 @@
 name: Create Test Release
-
+run-name: Test ${{ github.ref_name }}  Rel by @${{ github.actor }}
 on:
   workflow_dispatch:
     inputs:
