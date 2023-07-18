@@ -1,18 +1,13 @@
-package cachinggrpc
-
-import "fmt"
-
-func getOverrideYaml(db int) string {
-	return fmt.Sprintf(overrideYaml, db)
-}
-
-const overrideYaml = `
 gloo:
   gatewayProxies:
     gatewayProxy:
       healthyPanicThreshold: 0
   gateway:
     persistProxySpec: true
+    logLevel: info
+    validation:
+      allowWarnings: true
+      alwaysAcceptResources: false
   rbac:
     namespaced: true
     nameSuffix: e2e-test-rbac-suffix
@@ -23,6 +18,10 @@ global:
   extensions:
     caching:
       enabled: true
+      cachingServer:
+        cachingServiceRef:
+          name: caching-service
+          namespace: gloo-system
 gloo-fed:
   enabled: false
   glooFedApiserver:
@@ -31,5 +30,4 @@ redis:
   deployment:
     replicas: 1
   service:
-    db: %v
-`
+    db: 1 # A non-zero Redis DB https://github.com/solo-io/solo-projects/pull/4931

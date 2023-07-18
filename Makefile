@@ -193,7 +193,6 @@ run-performance-tests: test
 # requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
 .PHONY: run-ci-regression-tests
 run-ci-regression-tests: TEST_PKG = ./test/kube2e/$(KUBE2E_TESTS) ## Run the Kubernetes E2E Tests in the {KUBE2E_TESTS} package
-run-ci-regression-tests: GINKGO_FLAGS += --label-filter="!performance"
 run-ci-regression-tests: test
 
 # requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
