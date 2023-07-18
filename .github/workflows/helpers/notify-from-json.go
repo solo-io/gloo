@@ -40,6 +40,9 @@ type Payload struct {
 }
 
 func main() {
+	jobsEnv := os.Getenv("JOBS")
+	print(jobsEnv)
+
 	var failedJobs []Job
 	err := json.Unmarshal([]byte(os.Args[1]), &failedJobs)
 	if err != nil {

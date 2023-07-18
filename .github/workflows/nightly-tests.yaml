@@ -111,8 +111,8 @@ jobs:
           PARENT_JOB_URL: https://github.com/solo-io/gloo/actions/runs/${{github.run_id}} # parent job hyperlink
           PREAMBLE: ${{ steps.compute-preamble.outputs.preamble }}  # text to hyperlink at start of slack message
           SLACKBOT_BEARER: ${{ secrets.SLACKBOT_BEARER }}
+          JOBS: ${{ jobs }}
         run: |
           failed_job_outputs="$(cat */test-out.json | jq -c --slurp .)"
-          echo ${{ jobs }}
           echo $failed_job_outputs
           go run .github/workflows/helpers/notify-from-json.go $failed_job_outputs
