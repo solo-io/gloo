@@ -25,6 +25,10 @@ import (
 	"time"
 )
 
+const (
+	slackApiUrl = "https://slack.com/api/chat.postMessage"
+)
+
 type Job struct {
 	Url  string
 	Name string
@@ -36,43 +40,46 @@ type Payload struct {
 }
 
 func main() {
-	var jobs []Job
-	json.Unmarshal([]byte(os.Args[1]), &jobs)
-
-	if len(jobs) == 0 {
-		send_success()
-	} else {
-		send_failure(jobs)
+	var failedJobs []Job
+	err := json.Unmarshal([]byte(os.Args[1]), &failedJobs)
+	if err != nil {
+		panic(err)
 	}
+
+	if len(failedJobs) == 0 {
+		sendSuccess()
+	}
+
+	sendFailure(failedJobs)
 }
 
-func send_success() {
-	message_slack(Payload{
+func sendSuccess() {
+	sendSlackMessage(Payload{
 		Channel: os.ExpandEnv("$SLACK_CHANNEL"),
 		Text:    os.ExpandEnv(":large_green_circle: <$PARENT_JOB_URL|$PREAMBLE> have all passed!"),
 	})
 }
-func send_failure(jobs []Job) {
+func sendFailure(jobs []Job) {
 	text := fmt.Sprintf(":red_circle: <$PARENT_JOB_URL|$PREAMBLE> have failed in %v test suites: (", len(jobs))
 	for _, job := range jobs {
 		text += fmt.Sprintf("<%s|%s>, ", job.Url, job.Name)
 	}
 	text = text[:len(text)-2] + ")"
 
-	message_slack(Payload{
+	sendSlackMessage(Payload{
 		Channel: os.ExpandEnv("$SLACK_CHANNEL"),
 		Text:    os.ExpandEnv(text),
 	})
 }
 
-func message_slack(data Payload) {
+func sendSlackMessage(data Payload) {
 	payloadBytes, err := json.Marshal(data)
 	if err != nil {
 		panic(err)
 	}
 	body := bytes.NewReader(payloadBytes)
 
-	req, err := http.NewRequest("POST", "https://slack.com/api/chat.postMessage", body)
+	req, err := http.NewRequest(http.MethodPost, slackApiUrl, body)
 	if err != nil {
 		panic(err)
 	}
