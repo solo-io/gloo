@@ -43,7 +43,7 @@ jobs:
   performance_tests_latest_main:
     name: latest performance tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance) || github.event.schedule == '0 5 * * 1-5' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04-8core
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/workflows/composite-actions/standard-gloo-ee-setup

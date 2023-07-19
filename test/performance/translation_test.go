@@ -205,8 +205,8 @@ var basicConfig = &gloohelpers.BenchmarkConfig{
 	Iterations: 1000,
 	MaxDur:     10 * time.Second,
 	GhaMatchers: []types.GomegaMatcher{
-		matchers.HaveMedianLessThan(50 * time.Millisecond),
-		matchers.HavePercentileLessThan(90, 100*time.Millisecond),
+		matchers.HaveMedianLessThan(10 * time.Millisecond),
+		matchers.HavePercentileLessThan(90, 20*time.Millisecond),
 	},
 }
 
@@ -215,8 +215,8 @@ var oneKUpstreamsConfig = &gloohelpers.BenchmarkConfig{
 	Iterations: 100,
 	MaxDur:     30 * time.Second,
 	GhaMatchers: []types.GomegaMatcher{
-		matchers.HaveMedianLessThan(time.Second),
-		matchers.HavePercentileLessThan(90, 2*time.Second),
+		matchers.HaveMedianLessThan(100 * time.Millisecond),
+		matchers.HavePercentileLessThan(90, 200*time.Millisecond),
 	},
 }
 

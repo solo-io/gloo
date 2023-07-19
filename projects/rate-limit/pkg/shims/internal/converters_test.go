@@ -185,8 +185,8 @@ var _ = Describe("Converters", func() {
 				}
 			}, gmeasure.SamplingConfig{N: 10})
 
-			min := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMin]
-			Expect(min).Should(BeNumerically("<", 75*time.Millisecond))
+			max := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMax]
+			Expect(max).Should(BeNumerically("<", 10*time.Millisecond))
 		})
 	})
 
@@ -340,8 +340,8 @@ var _ = Describe("Converters", func() {
 				}
 			}, gmeasure.SamplingConfig{N: 10})
 
-			min := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMin]
-			Expect(min).Should(BeNumerically("<", 75*time.Millisecond))
+			max := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMax]
+			Expect(max).Should(BeNumerically("<", 10*time.Millisecond))
 		})
 
 		It("should successfully convert the resource to solo-apis", func() {
@@ -372,8 +372,8 @@ var _ = Describe("Converters", func() {
 				}
 			}, gmeasure.SamplingConfig{N: 10})
 
-			min := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMin]
-			Expect(min).Should(BeNumerically("<", 75*time.Millisecond))
+			max := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMax]
+			Expect(max).Should(BeNumerically("<", 10*time.Millisecond))
 		})
 	})
 
@@ -482,8 +482,8 @@ var _ = Describe("Converters", func() {
 				}
 			}, gmeasure.SamplingConfig{N: 10})
 
-			min := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMin]
-			Expect(min).Should(BeNumerically("<", 75*time.Millisecond))
+			max := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMax]
+			Expect(max).Should(BeNumerically("<", 10*time.Millisecond))
 		})
 
 		It("should successfully convert the resources to rate-limiter", func() {
@@ -514,8 +514,8 @@ var _ = Describe("Converters", func() {
 				}
 			}, gmeasure.SamplingConfig{N: 10})
 
-			min := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMin]
-			Expect(min).Should(BeNumerically("<", 75*time.Millisecond))
+			max := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMax]
+			Expect(max).Should(BeNumerically("<", 10*time.Millisecond))
 		})
 
 	})
@@ -617,8 +617,8 @@ var _ = Describe("Converters", func() {
 				}
 			}, gmeasure.SamplingConfig{N: 10})
 
-			min := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMin]
-			Expect(min).Should(BeNumerically("<", 75*time.Millisecond))
+			max := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMax]
+			Expect(max).Should(BeNumerically("<", 10*time.Millisecond))
 		})
 
 	})
@@ -710,8 +710,8 @@ var _ = Describe("Converters", func() {
 				}
 			}, gmeasure.SamplingConfig{N: 10})
 
-			min := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMin]
-			Expect(min).Should(BeNumerically("<", 75*time.Millisecond))
+			max := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMax]
+			Expect(max).Should(BeNumerically("<", 10*time.Millisecond))
 		})
 
 		It("should successfully convert the resources to rate-limiter", func() {
@@ -742,8 +742,8 @@ var _ = Describe("Converters", func() {
 				}
 			}, gmeasure.SamplingConfig{N: 10})
 
-			min := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMin]
-			Expect(min).Should(BeNumerically("<", 75*time.Millisecond))
+			max := experiment.Get(desc).Stats().DurationBundle[gmeasure.StatMax]
+			Expect(max).Should(BeNumerically("<", 10*time.Millisecond))
 		})
 
 	})

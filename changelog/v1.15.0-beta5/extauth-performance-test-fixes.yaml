@@ -1,0 +1,10 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5184
+    resolvesIssue: true
+    description: >-
+      Performance tests run on the 8-core GHA runner
+      Update performance targets for the xDS Snapshot Producer benchmark test and log memory usage in that test
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
