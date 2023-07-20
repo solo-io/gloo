@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/solo-io/gloo/test/testutils"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
@@ -28,6 +30,14 @@ import (
 	"github.com/solo-io/k8s-utils/testutils/helper"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+const (
+	// uniqueTestResourceLabel is assigned to the default VirtualService used by kube2e tests
+	// This unique label per test run ensures that the generated snapshot is different on subsequent runs
+	// We have previously seen flakes where a resource is deleted and re-created with the same hash and thus
+	// the emitter can miss the update
+	uniqueTestResourceLabel = "gloo-kube2e-test-id"
 )
 
 type TestContextFactory struct {
@@ -75,7 +85,6 @@ func (f *TestContextFactory) waitForGlooHealthy() {
 	kube2e.GlooctlCheckEventuallyHealthy(1, f.TestHelper, "90s")
 
 	// Ensure gloo reaches valid state and doesn't continually resync
-	// we can consider doing the same for leaking go-routines after resyncs
 	kube2e.EventuallyReachesConsistentState(f.TestHelper.InstallNamespace)
 }
 
@@ -108,13 +117,18 @@ func (t *TestContext) BeforeEach() {
 	t.ctx, t.cancel = context.WithCancel(context.Background())
 
 	defaultVs := helpers.NewVirtualServiceBuilder().
-		WithName(DefaultVirtualServiceName).WithNamespace(t.InstallNamespace()).
+		WithNamespace(t.InstallNamespace()).
+		WithName(DefaultVirtualServiceName).
 		WithDomain(defaults.GatewayProxyName).
 		WithRoutePrefixMatcher(DefaultRouteName, TestMatcherPrefix).
 		WithRouteOptions(DefaultRouteName, &gloov1.RouteOptions{
 			PrefixRewrite: &wrappers.StringValue{Value: "/"},
 		}).
-		WithRouteActionToUpstreamRef(DefaultRouteName, t.TestRunnerUpstreamRef()).Build()
+		WithRouteActionToUpstreamRef(DefaultRouteName, t.TestRunnerUpstreamRef()).
+		Build()
+	defaultVs.Metadata.Labels = map[string]string{
+		uniqueTestResourceLabel: uuid.New().String(),
+	}
 
 	t.resourcesToWrite = &gloosnapshot.ApiSnapshot{
 		VirtualServices: v1.VirtualServiceList{defaultVs},
@@ -146,7 +160,7 @@ func (t *TestContext) JustAfterEach() {
 func (t *TestContext) EventuallyProxyAccepted() {
 	// Wait for a proxy to be accepted
 	helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
-		return t.resourceClientSet.ProxyClient().Read("gloo-system", "gateway-proxy", clients.ReadOpts{Ctx: t.ctx})
+		return t.resourceClientSet.ProxyClient().Read(t.InstallNamespace(), defaults.GatewayProxyName, clients.ReadOpts{Ctx: t.ctx})
 	})
 }
 

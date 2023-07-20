@@ -35,14 +35,14 @@ function create_kind_cluster_or_skip() {
 create_kind_cluster_or_skip
 
 if [[ $FROM_RELEASE == "true" ]]; then
-  echo "FROM_RELEASE=true: not building docker images, helm chart, or gloo cli"
+  echo "FROM_RELEASE=true: not building docker images, helm chart"
+else
+  # Make all the docker images and load them to the kind cluster
+  VERSION=$VERSION CLUSTER_NAME=$CLUSTER_NAME USE_FIPS=$USE_FIPS make kind-build-and-load -B
+
+  # Build the test helm chart, ensuring we have a chart in the `_test` folder
+  VERSION=$VERSION make build-test-chart
 fi
-
-# Make all the docker images and load them to the kind cluster
-VERSION=$VERSION CLUSTER_NAME=$CLUSTER_NAME USE_FIPS=$USE_FIPS make kind-build-and-load -B
-
-# Build the test helm chart, ensuring we have a chart in the `_test` folder
-VERSION=$VERSION make build-test-chart
 
 # Build the gloo command line tool, ensuring we have one in the `_output` folder
 VERSION=$VERSION make build-cli-local

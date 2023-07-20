@@ -13,7 +13,13 @@ inputs:
   TESTSPACE_TOKEN:
     required: true
     description: access token uploading test results
-  
+  RELEASED_VERSION:
+    # This is useful for debugging purposes
+    # By supplying this value, tests will not build the assets they need and instead run tests
+    # using a previously released version of Gloo Edge
+    required: false
+    description: a previously released version of Gloo Edge to test against
+
 runs:
   using: "composite"
   steps:
@@ -39,10 +45,12 @@ runs:
     env:
       USE_FIPS: ${{ matrix.kube-e2e-test-type.use-fips }}
       CLUSTER_NODE_VERSION: ${{ matrix.kube-version.node }}
+      FROM_RELEASE: ${{ inputs.RELEASED_VERSION != '' && 'true' || 'false' }}
     run: ./ci/kind/setup-kind.sh
   - name: Testing - kube e2e regression tests
     shell: bash
     env:
+      RELEASED_VERSION: ${{ inputs.RELEASED_VERSION }}
       KUBE2E_TESTS: ${{ matrix.kube-e2e-test-type.test }}
       USE_FIPS: ${{ matrix.kube-e2e-test-type.use-fips }}
     run: make install-test-tools run-ci-regression-tests

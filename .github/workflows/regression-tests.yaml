@@ -101,7 +101,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # update tests are not run on PRs
+        # upgrade tests are not run on PRs
         kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'helm', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}, {test: 'caching', use-fips: 'false'}, {test: 'upgrade', use-fips: 'false'}]
         kube-version: [{ node: 'v1.26.3@sha256:61b92f38dff6ccc29969e7aa154d34e38b89443af1a2c14e6cfbd2df6419c66f', kubectl: 'v1.26.4', kind: 'v0.18.0', helm: 'v3.11.2' }]
         merge-to-main:
@@ -119,6 +119,10 @@ jobs:
         if: needs.prepare_env.outputs.should-auto-succeed-regression-tests != 'true'
         uses: ./.github/workflows/composite-actions/regression-tests
         with:
+          # In CI we do not want to test against a released version
+          # However, while developing work, you may want to set this to a previously
+          # released version of Gloo Edge (ie 1.15.0-beta1) to avoid rebuilding images on each run
+          RELEASED_VERSION: ""
           GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
           GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}

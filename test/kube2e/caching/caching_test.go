@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onsi/gomega/gstruct"
 	"github.com/solo-io/gloo/test/helpers"
 
 	"github.com/onsi/gomega/types"
@@ -43,12 +42,12 @@ var _ = Describe("Installing gloo", func() {
 		testContext.BeforeEach()
 	})
 
-	JustBeforeEach(func() {
-		testContext.JustBeforeEach()
-	})
-
 	AfterEach(func() {
 		testContext.AfterEach()
+	})
+
+	JustBeforeEach(func() {
+		testContext.JustBeforeEach()
 	})
 
 	JustAfterEach(func() {
@@ -56,18 +55,28 @@ var _ = Describe("Installing gloo", func() {
 	})
 
 	It("can route request to upstream without blocking on cache", func() {
-		curlOpts := testContext.DefaultCurlOptsBuilder().WithConnectionTimeout(10).Build()
-		testContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, osskube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Second*20)
+		curlOpts := testContext.DefaultCurlOptsBuilder().WithConnectionTimeout(2).Build()
+		testContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, osskube2e.GetSimpleTestRunnerHttpResponse(), 0, time.Second*20)
 	})
 
 	It("gets the same response with grpc-caching and does not break", func() {
+		expectRequestOnPathReturns(testContext, "/HealthCheck", func() types.GomegaMatcher {
+			return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
+				StatusCode: http.StatusNotFound,
+			})
+		}, "no route created for health checks initially")
+
 		testContext.PatchDefaultVirtualService(func(vs *v1.VirtualService) *v1.VirtualService {
 			newVs := helpers.BuilderFromVirtualService(vs).WithRoute("health-check-route", generateHealthCheckRoute(testContext.InstallNamespace())).WithDomain(domain).Build()
 			return newVs
 		})
 		testContext.EventuallyProxyAccepted()
 
-		expectRequestOnPathReturns(testContext, "/HealthCheck", testmatchers.HaveOkResponse, "service should be responding to health checks")
+		expectRequestOnPathReturns(testContext, "/HealthCheck", func() types.GomegaMatcher {
+			return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
+				StatusCode: http.StatusOK,
+			})
+		}, "service should be responding to health checks")
 	})
 
 	happyPathTest := func() {
@@ -79,15 +88,11 @@ var _ = Describe("Installing gloo", func() {
 				StatusCode: http.StatusOK,
 				Headers: map[string]interface{}{
 					"age": BeEmpty(),
-					// We don't actually peform an assertion against the date header
-					// Instead we just use the value to initalize the date variable in
-					// a transform, since we will compare future results against that value
-					"date": WithTransform(func(headerValue string) string {
+					"date": WithTransform(func(headerValue string) error {
 						var err error
 						date, err = time.Parse(time.RFC1123, headerValue)
-						Expect(err).NotTo(HaveOccurred(), "can parse date header")
-						return headerValue
-					}, gstruct.Ignore()),
+						return err
+					}, Not(HaveOccurred())),
 				},
 			})
 		})
@@ -103,11 +108,11 @@ var _ = Describe("Installing gloo", func() {
 				Headers: map[string]interface{}{
 					"age": And(
 						Not(BeEmpty()), // age header should now be populated
-						WithTransform(func(headerValue string) int {
-							headerIntValue, err := strconv.Atoi(headerValue)
-							Expect(err).NotTo(HaveOccurred(), "can convert string to int")
-							return headerIntValue
-						}, And(
+						WithTransform(strconv.Atoi, And(
+							// We do not assert that no error occurred, because Gomega will provide that assertion for us:
+							// https://pkg.go.dev/github.com/onsi/gomega#Succeed
+							// "Gomega's Ω and Expect functions automatically trigger failure if any return values
+							// after the first return value are non-zero/non-nil."
 							BeNumerically("<=", 3),
 							BeNumerically(">=", 0),
 						)),
@@ -127,12 +132,11 @@ var _ = Describe("Installing gloo", func() {
 				StatusCode: http.StatusOK,
 				Headers: map[string]interface{}{
 					"age": BeEmpty(),
-					"date": WithTransform(func(headerValue string) string {
+					"date": WithTransform(func(headerValue string) error {
 						var err error
 						date, err = time.Parse(time.RFC1123, headerValue)
-						Expect(err).NotTo(HaveOccurred(), "can parse date header")
-						return headerValue
-					}, gstruct.Ignore()),
+						return err
+					}, Not(HaveOccurred())),
 				},
 			})
 		})
@@ -148,11 +152,11 @@ var _ = Describe("Installing gloo", func() {
 				Headers: map[string]interface{}{
 					"age": And(
 						Not(BeEmpty()), // age header should now be populated
-						WithTransform(func(headerValue string) int {
-							headerIntValue, err := strconv.Atoi(headerValue)
-							Expect(err).NotTo(HaveOccurred(), "can convert string to int")
-							return headerIntValue
-						}, And(
+						WithTransform(strconv.Atoi, And(
+							// We do not assert that no error occurred, because Gomega will provide that assertion for us:
+							// https://pkg.go.dev/github.com/onsi/gomega#Succeed
+							// "Gomega's Ω and Expect functions automatically trigger failure if any return values
+							// after the first return value are non-zero/non-nil."
 							BeNumerically("<=", 3),
 							BeNumerically(">=", 0),
 						)),
@@ -220,13 +224,9 @@ var _ = Describe("Installing gloo", func() {
 	}
 
 	Context("Using the redis cache service implementation", func() {
+
 		BeforeEach(func() {
 			createCachingTestResources(testContext.InstallNamespace())
-		})
-
-		JustBeforeEach(func() {
-			testContext.EventuallyProxyAccepted()
-			expectRequestOnPathReturns(testContext, "/service/1/no-cache", testmatchers.HaveOkResponse, "service should be responding")
 		})
 
 		AfterEach(func() {
@@ -234,24 +234,28 @@ var _ = Describe("Installing gloo", func() {
 			restartRedis(testContext.InstallNamespace())
 		})
 
+		JustBeforeEach(func() {
+			expectRequestOnPathReturns(testContext, "/service/1/no-cache", testmatchers.HaveOkResponse, "service should be responding")
+		})
+
 		It("can cache a response", happyPathTest)
 		It("can validate expired cached responses", validationTest)
 	})
 
 	Context("Using the inmemory cache service implementation", func() {
+
 		BeforeEach(func() {
 			patchCachingServiceToUseInmemoryCache(testContext.InstallNamespace())
 			restartCachingService(testContext.InstallNamespace())
 			createCachingTestResources(testContext.InstallNamespace())
 		})
 
-		JustBeforeEach(func() {
-			testContext.EventuallyProxyAccepted()
-			expectRequestOnPathReturns(testContext, "/service/1/no-cache", testmatchers.HaveOkResponse, "service should be responding")
-		})
-
 		AfterEach(func() {
 			deleteCachingTestResources()
+		})
+
+		JustBeforeEach(func() {
+			expectRequestOnPathReturns(testContext, "/service/1/no-cache", testmatchers.HaveOkResponse, "service should be responding")
 		})
 
 		It("can cache a response", happyPathTest)

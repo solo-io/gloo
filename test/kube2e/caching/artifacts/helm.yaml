@@ -8,6 +8,10 @@ gloo:
     validation:
       allowWarnings: true
       alwaysAcceptResources: false
+  gloo:
+    logLevel: info
+    # This test is not concerned with leader election
+    disableLeaderElection: true
   rbac:
     namespaced: true
     nameSuffix: e2e-test-rbac-suffix

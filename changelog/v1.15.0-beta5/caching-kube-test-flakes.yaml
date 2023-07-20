@@ -1,0 +1,18 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Add support for running CI with a previously released version of Gloo Edge. This can be useful when testing
+      changes that only affect the test suite itself.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4131
+    resolvesIssue: false
+    description: >-
+      Update the recently added TestContext to create resources (specifically the VS) with a unique label.
+      This will help avoid flakes when tests delete/create the same resource in quick succession.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4755
+    resolvesIssue: false
+    description: >-
+      Update the caching test to not flake by removing assertions from the transforms and instead
+      return the error. This will allow the matcher to fail and the assertion to be retried in the
+      Eventually.
