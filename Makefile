@@ -123,7 +123,7 @@ install-go-tools: mod-download ## Download and install Go dependencies
 	go install github.com/solo-io/protoc-gen-openapi
 
 .PHONY: update-all-deps
-update-all-deps: install-go-tools install-node-packages ## install-go-tools and install-node-packages
+update-all-deps: install-go-tools install-node-packages ## Update both backend and frontend dependencies
 
 .PHONY: install-node-packages
 install-node-packages:
@@ -183,7 +183,7 @@ test-with-coverage: test
 .PHONY: run-tests
 run-tests: GINKGO_FLAGS += -skip-package=e2e ## Run all non E2E tests, or only run the test package at {TEST_PKG} if it is specified
 run-tests: GINKGO_FLAGS += --label-filter="!performance"
-run-tests: generate-extauth-test-plugins
+run-tests: go-generate-extauth-test-plugins
 run-tests: test
 
 .PHONY: run-performance-tests
@@ -254,14 +254,14 @@ PROTOC_IMPORT_PATH:=$(ROOTDIR)/vendor_any
 # When this is not set, the host machine executing codegen may run out of available file descriptors
 MAX_CONCURRENT_PROTOCS ?= 10
 
-.PHONY: tidy
-tidy:
+.PHONY: mod-tidy
+mod-tidy:
 	go mod tidy
 
-.PHONY: generate-all
-generate-all: generated-code generate-gloo-fed generate-helm-docs build-stitching-bundles
-generate-all: fmt
-generate-all: tidy
+.PHONY: generated-code
+generated-code: check-all ## Run all checks, codegen, and formatting as required by CI
+generated-code: go-generate-all generate-gloo-fed generate-helm-docs build-stitching-bundles
+generated-code: generated-code-cleanup
 
 GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' ' -f2)
 
@@ -281,20 +281,34 @@ check-solo-apis:
 check-envoy-version:
 	./ci/check-envoy-version.sh $(ENVOY_GLOO_IMAGE_VERSION)
 
-.PHONY: generated-code
-generated-code: check-go-version clean-vendor-any update-licenses ## Evaluate go generate
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore GO111MODULE=on CGO_ENABLED=1 go generate ./...
+.PHONY: check-protoc
+check-protoc:
 	ci/check-protoc.sh
 
-.PHONY: generate-gloo-fed
-generate-gloo-fed: generate-gloo-fed-code generated-gloo-fed-ui
+.PHONY: check-all
+check-all: check-go-version check-protoc check-solo-apis check-envoy-version ## Run all checks
 
-# Generated Code - Required to update Codgen Templates
-.PHONY: generate-gloo-fed-code
-generate-gloo-fed-code: clean-fed
+.PHONY: generate-gloo-fed
+generate-gloo-fed: go-generate-gloo-fed-code generated-gloo-fed-ui
+
+# Generated Code - Required to update Codegen Templates
+.PHONY: go-generate-all
+go-generate-all: clean-vendor-any ## Run all go generate directives in the repo, including codegen for protos, mockgen, and more
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore GO111MODULE=on CGO_ENABLED=1 go generate ./...
+
+.PHONY: go-generate-apis
+go-generate-apis: clean-vendor-any ## Runs the generate directive in generate.go, which executes codegen for protos
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore GO111MODULE=on CGO_ENABLED=1 go generate generate.go
+
+.PHONY: go-generate-mocks
+go-generate-mocks: clean-vendor-any ## Runs all generate directives for mockgen in the repo
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore GO111MODULE=on CGO_ENABLED=1 go generate -run="mockgen" ./...
+
+.PHONY: go-generate-gloo-fed-code
+go-generate-gloo-fed-code: clean-fed
 	go run $(ROOTDIR)/projects/gloo-fed/generate.go # Generates clients, controllers, etc
 	$(ROOTDIR)/projects/gloo-fed/ci/hack-fix-marshal.sh # TODO: figure out a more permanent way to deal with this
-	go run projects/gloo-fed/generate.go -apiserver # Generates apiserver protos into go code
+	go run $(ROOTDIR)/projects/gloo-fed/generate.go -apiserver # Generates apiserver protos into go code
 	go generate $(ROOTDIR)/projects/... # Generates mocks
 
 .PHONY: generate-helm-docs
@@ -302,9 +316,15 @@ generate-helm-docs:
 	go run $(ROOTDIR)/install/helm/gloo-ee/generate.go $(VERSION) --generate-helm-docs $(USE_DIGESTS) # Generate Helm Documentation
 
 
-.PHONY: generate-extauth-test-plugins
-generate-extauth-test-plugins:
+.PHONY: go-generate-extauth-test-plugins
+go-generate-extauth-test-plugins:
 	go generate $(ROOTDIR)/test/extauth/plugins/... $(ROOTDIR)/projects/extauth/plugins/...
+
+.PHONY: generated-code-apis
+generated-code-apis: go-generate-apis fmt ## Executes the targets necessary to generate formatted code from all protos
+
+.PHONY: generated-code-cleanup
+generated-code-cleanup: mod-tidy fmt update-licenses ## Executes the targets necessary to cleanup and format code
 
 #################
 #     Build     #

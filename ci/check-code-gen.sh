@@ -8,8 +8,7 @@ make update-all-deps
 
 set +e
 
-make generate-all check-solo-apis check-envoy-version -B > /dev/null
-make tidy
+make generated-code -B > /dev/null
 
 if [[ $? -ne 0 ]]; then
   echo "Code generation failed"
@@ -17,7 +16,7 @@ if [[ $? -ne 0 ]]; then
 fi
 if [[ $(git status --porcelain | wc -l) -ne 0 ]]; then
   echo "Generating code produced a non-empty diff."
-  echo "Try running 'make update-all-deps generate-all check-solo-apis check-envoy-version tidy -B' then re-pushing."
+  echo "Try running 'make update-all-deps generated-code -B' then re-pushing."
   git status --porcelain
   git diff | cat
   exit 1;
