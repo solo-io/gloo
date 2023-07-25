@@ -47,15 +47,16 @@ If a test failure is deemed to be a flake, we take the following steps:
 
 ## Codegen
 
-To run the full codegen process, use `make -B install-go-tools generated-code`. In most cases it is not necessary to run all sub-targets within `generated-code`.
+To run the full codegen process, use `make -B generate-all`. In most cases it is not necessary to run all sub-targets within `generate-all`.
 Here is a description of each sub-target and its purpose:
 
 | Target                      | Description                                                                                                                    | Use when...                                                                           | Approximate runtime                 |
 |-----------------------------|:-------------------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------|-------------------------------------|
 | `install-go-tools`          | Invokes `mod-download` and `go install`s a number of tools used by `generated-code`                                            | The `_output` dir is not present or you are otherwise unsure deps are installed       | 5s (if mod download is up-to-date)  |
 | `mod-download`              | Calls `go mod download all`                                                                                                    | Deps are not all present locally                                                      | 3s (if deps are already downloaded) |
-| `generated-code`            | Runs checks and generates all required code, cleaning and formatting as well; this target is executed in CI                    | You need to run all codegen steps without human error (ie prior to PR merge)          | 5-7m                                |
- | `check-all`                 | Executes all checks                                                                                                            | You want to ensure go, protoc, envoy, and solo-apis are on the expected versions      | 8s                                  |
+| `generate-all`              | Runs checks and generates all required code, cleaning and formatting as well; this target is executed in CI                    | You need to run all codegen steps without human error (ie prior to PR merge)          | 6:30m                               |
+| `generated-code`            | Generates all required code, skipping checks, formatting, and doc generation                                                   | You want to generate all code, but are not ready for merge                            | 4:30m                               |
+| `check-all`                 | Executes all checks                                                                                                            | You want to ensure go, protoc, envoy, and solo-apis are on the expected versions      | 8s                                  |
 | `check-go-version`          | Validates that local Go version matches go.mod                                                                                 | You need a sanity check                                                               | 3s                                  |
 | `check-protoc`              | Validates that local protoc version matches version used in CI                                                                 | You need a sanity check                                                               | 3s                                  |
 | `check-solo-apis`           | Validates that solo-apis and gloo dependencies are in lockstep                                                                 | You need a sanity check                                                               | 6s                                  |
@@ -75,6 +76,6 @@ Here is a description of each sub-target and its purpose:
 | `update-licenses`           | Generates docs files containing attribution for all dependencies which require it                                              | There is a new dependency or a dependency bump                                        | 55s                                 |
 
 **Note:** Some checks will not pass locally if developing locally against an unreleased version of gloo. 
-If running any checks while consuming unreleased gloo, including as part of `generated-code`, use the `-i` flag to swallow resulting errors. 
+If running any checks while consuming unreleased gloo, including as part of `generate-all`, use the `-i` flag to swallow resulting errors. 
 It should always be possible to one or more of the targets documented here to achieve the desired code generation and/or formatting locally without having to run checks prematurely.
 PRs will be required to pass all checks prior to merging.

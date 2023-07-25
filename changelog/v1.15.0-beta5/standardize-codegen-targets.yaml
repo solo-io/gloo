@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5173
+    description: |
+      Update codegen Make targets to be consistent in name and behavior with other solo repos
+      
+      skipCI-kube-tests:true
+      skipCI-docs-build:true

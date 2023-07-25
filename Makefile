@@ -214,10 +214,9 @@ run-e2e-tests: test
 
 # Important to clean before pushing new releases. Dockerfiles and binaries may not update properly
 .PHONY: clean
-clean: clean-artifacts
+clean: clean-artifacts clean-vendor-any
 	rm -rf $(TEST_ASSET_DIR)
 	rm -rf $(APISERVER_UI_DIR)/build
-	rm -rf $(ROOTDIR)/vendor_any
 	git clean -xdf install
 
 .PHONY: clean-artifacts
@@ -226,7 +225,7 @@ clean-artifacts:
 
 .PHONY: clean-vendor-any
 clean-vendor-any:
-	rm -rf vendor_any
+	rm -rf $(ROOTDIR)/vendor_any
 
 .PHONY: clean-generated-protos
 clean-generated-protos:
@@ -258,10 +257,10 @@ MAX_CONCURRENT_PROTOCS ?= 10
 mod-tidy:
 	go mod tidy
 
-.PHONY: generated-code
-generated-code: check-all ## Run all checks, codegen, and formatting as required by CI
-generated-code: go-generate-all generate-gloo-fed generate-helm-docs build-stitching-bundles
-generated-code: generated-code-cleanup
+.PHONY: generate-all
+generate-all: check-all ## Run all checks, codegen, formatting, and docs generation as required by CI
+generate-all: generated-code generated-code-cleanup
+generate-all: generate-helm-docs
 
 GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' ' -f2)
 
@@ -292,6 +291,10 @@ check-all: check-go-version check-protoc check-solo-apis check-envoy-version ## 
 generate-gloo-fed: go-generate-gloo-fed-code generated-gloo-fed-ui
 
 # Generated Code - Required to update Codegen Templates
+.PHONY: generated-code
+generated-code: clean update-all-deps ## Clean the repo, update dependencies, and run all code generation, including all generate directives in the repo, gloo fed code, and stitching bundles
+generated-code: go-generate-all generate-gloo-fed build-stitching-bundles
+
 .PHONY: go-generate-all
 go-generate-all: clean-vendor-any ## Run all go generate directives in the repo, including codegen for protos, mockgen, and more
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore GO111MODULE=on CGO_ENABLED=1 go generate ./...
