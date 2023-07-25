@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 
@@ -226,9 +227,29 @@ func (b *ScaledSnapshotBuilder) description() string {
 	}
 
 	// If/when additional Snapshot fields are included in testing, the description should be updated accordingly
-	return fmt.Sprintf("%d endpoint(s), %d upstream(s), %d gateway(s), %d virtual service(s), %d tcp gateway(s),  %d http gateway(s),  %d secret(s)",
-		b.EndpointCount(), b.UpstreamCount(), b.GatewayCount(), b.VirtualServiceCount(), b.MatchableTcpGatewayCount(),
-		b.MatchableHttpGatewayCount(), b.SecretCount())
+	resourceCounts := []string{}
+	if b.EndpointCount() > 0 {
+		resourceCounts = append(resourceCounts, fmt.Sprintf("%d endpoint(s)", b.EndpointCount()))
+	}
+	if b.UpstreamCount() > 0 {
+		resourceCounts = append(resourceCounts, fmt.Sprintf("%d upstream(s)", b.UpstreamCount()))
+	}
+	if b.GatewayCount() > 0 {
+		resourceCounts = append(resourceCounts, fmt.Sprintf("%d gateway(s)", b.GatewayCount()))
+	}
+	if b.VirtualServiceCount() > 0 {
+		resourceCounts = append(resourceCounts, fmt.Sprintf("%d virtual services(s)", b.VirtualServiceCount()))
+	}
+	if b.MatchableTcpGatewayCount() > 0 {
+		resourceCounts = append(resourceCounts, fmt.Sprintf("%d tcp gateway(s)", b.MatchableTcpGatewayCount()))
+	}
+	if b.MatchableHttpGatewayCount() > 0 {
+		resourceCounts = append(resourceCounts, fmt.Sprintf("%d http gateway(s)", b.MatchableHttpGatewayCount()))
+	}
+	if b.SecretCount() > 0 {
+		resourceCounts = append(resourceCounts, fmt.Sprintf("%d secret(s)", b.SecretCount()))
+	}
+	return strings.Join(resourceCounts, ", ")
 }
 
 func upMeta(i int) *core.Metadata {
