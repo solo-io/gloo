@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -22,17 +23,32 @@ import (
 type ScaledSnapshotBuilder struct {
 	injectedSnap *gloosnapshot.ApiSnapshot
 
-	epCount int
-	usCount int
+	epCount     int
+	usCount     int
+	gwCount     int
+	vsCount     int
+	tcpGwCount  int
+	httpGwCount int
+	secretCount int
 
-	epBuilder *EndpointBuilder
-	usBuilder *UpstreamBuilder
+	epBuilder     *EndpointBuilder
+	usBuilder     *UpstreamBuilder
+	gwBuilder     *GatewayBuilder
+	vsBuilder     *VirtualServiceBuilder
+	tcpGwBuilder  *MatchableTcpGatewayBuilder
+	httpGwBuilder *MatchableHttpGatewayBuilder
+	secretBuilder *SecretBuilder
 }
 
 func NewScaledSnapshotBuilder() *ScaledSnapshotBuilder {
 	return &ScaledSnapshotBuilder{
-		epBuilder: NewEndpointBuilder(),
-		usBuilder: NewUpstreamBuilder(),
+		epBuilder:     NewEndpointBuilder(),
+		usBuilder:     NewUpstreamBuilder(),
+		gwBuilder:     NewGatewayBuilder(),
+		vsBuilder:     NewVirtualServiceBuilder(),
+		tcpGwBuilder:  NewMatchableTcpGatewayBuilder(),
+		httpGwBuilder: NewMatchableHttpGatewayBuilder(),
+		secretBuilder: NewSecretBuilder(),
 	}
 }
 
@@ -64,6 +80,56 @@ func (b *ScaledSnapshotBuilder) WithEndpointBuilder(eb *EndpointBuilder) *Scaled
 	return b
 }
 
+func (b *ScaledSnapshotBuilder) WithGatewayCount(n int) *ScaledSnapshotBuilder {
+	b.gwCount = n
+	return b
+}
+
+func (b *ScaledSnapshotBuilder) WithGatewayBuilder(gb *GatewayBuilder) *ScaledSnapshotBuilder {
+	b.gwBuilder = gb
+	return b
+}
+
+func (b *ScaledSnapshotBuilder) WithVirtualServiceCount(n int) *ScaledSnapshotBuilder {
+	b.vsCount = n
+	return b
+}
+
+func (b *ScaledSnapshotBuilder) WithVirtualServiceBuilder(vb *VirtualServiceBuilder) *ScaledSnapshotBuilder {
+	b.vsBuilder = vb
+	return b
+}
+
+func (b *ScaledSnapshotBuilder) WithMatchableTcpGatewayCount(n int) *ScaledSnapshotBuilder {
+	b.tcpGwCount = n
+	return b
+}
+
+func (b *ScaledSnapshotBuilder) WithMatchableTcpGatewayBuilder(tb *MatchableTcpGatewayBuilder) *ScaledSnapshotBuilder {
+	b.tcpGwBuilder = tb
+	return b
+}
+
+func (b *ScaledSnapshotBuilder) WithMatchableHttpGatewayCount(n int) *ScaledSnapshotBuilder {
+	b.httpGwCount = n
+	return b
+}
+
+func (b *ScaledSnapshotBuilder) WithMatchableHttpGatewayBuilder(hb *MatchableHttpGatewayBuilder) *ScaledSnapshotBuilder {
+	b.httpGwBuilder = hb
+	return b
+}
+
+func (b *ScaledSnapshotBuilder) WithSecretCount(n int) *ScaledSnapshotBuilder {
+	b.secretCount = n
+	return b
+}
+
+func (b *ScaledSnapshotBuilder) WithSecretuilder(sb *SecretBuilder) *ScaledSnapshotBuilder {
+	b.secretBuilder = sb
+	return b
+}
+
 /* Getter funcs to be used by the description generator */
 
 func (b *ScaledSnapshotBuilder) HasInjectedSnapshot() bool {
@@ -76,6 +142,26 @@ func (b *ScaledSnapshotBuilder) UpstreamCount() int {
 
 func (b *ScaledSnapshotBuilder) EndpointCount() int {
 	return b.epCount
+}
+
+func (b *ScaledSnapshotBuilder) GatewayCount() int {
+	return b.gwCount
+}
+
+func (b *ScaledSnapshotBuilder) VirtualServiceCount() int {
+	return b.vsCount
+}
+
+func (b *ScaledSnapshotBuilder) MatchableTcpGatewayCount() int {
+	return b.tcpGwCount
+}
+
+func (b *ScaledSnapshotBuilder) MatchableHttpGatewayCount() int {
+	return b.httpGwCount
+}
+
+func (b *ScaledSnapshotBuilder) SecretCount() int {
+	return b.secretCount
 }
 
 // Build generates a snapshot populated with the specified number of each resource for the builder, using the
@@ -95,12 +181,42 @@ func (b *ScaledSnapshotBuilder) Build() *gloosnapshot.ApiSnapshot {
 		upstreamList[i] = b.usBuilder.Build(i)
 	}
 
+	gatewayList := make(gatewayv1.GatewayList, b.gwCount)
+	for i := 0; i < b.gwCount; i++ {
+		gatewayList[i] = b.gwBuilder.Build(i)
+	}
+
+	virtualServiceList := make(gatewayv1.VirtualServiceList, b.vsCount)
+	for i := 0; i < b.vsCount; i++ {
+		virtualServiceList[i] = b.vsBuilder.Build() // TODO pass in i
+	}
+
+	tcpGwList := make(gatewayv1.MatchableTcpGatewayList, b.tcpGwCount)
+	for i := 0; i < b.tcpGwCount; i++ {
+		tcpGwList[i] = b.tcpGwBuilder.Build(i)
+	}
+
+	httpGwList := make(gatewayv1.MatchableHttpGatewayList, b.httpGwCount)
+	for i := 0; i < b.httpGwCount; i++ {
+		httpGwList[i] = b.httpGwBuilder.Build(i)
+	}
+
+	secretList := make(v1.SecretList, b.secretCount)
+	for i := 0; i < b.secretCount; i++ {
+		secretList[i] = b.secretBuilder.Build(i)
+	}
+
 	return &gloosnapshot.ApiSnapshot{
 		// The proxy should contain a route for each upstream
 		Proxies: []*v1.Proxy{Proxy(b.usCount)},
 
-		Endpoints: endpointList,
-		Upstreams: upstreamList,
+		Endpoints:       endpointList,
+		Upstreams:       upstreamList,
+		Gateways:        gatewayList,
+		VirtualServices: virtualServiceList,
+		TcpGateways:     tcpGwList,
+		HttpGateways:    httpGwList,
+		Secrets:         secretList,
 	}
 }
 
@@ -110,7 +226,9 @@ func (b *ScaledSnapshotBuilder) description() string {
 	}
 
 	// If/when additional Snapshot fields are included in testing, the description should be updated accordingly
-	return fmt.Sprintf("%d endpoint(s), %d upstream(s)", b.EndpointCount(), b.UpstreamCount())
+	return fmt.Sprintf("%d endpoint(s), %d upstream(s), %d gateway(s), %d virtual service(s), %d tcp gateway(s),  %d http gateway(s),  %d secret(s)",
+		b.EndpointCount(), b.UpstreamCount(), b.GatewayCount(), b.VirtualServiceCount(), b.MatchableTcpGatewayCount(),
+		b.MatchableHttpGatewayCount(), b.SecretCount())
 }
 
 func upMeta(i int) *core.Metadata {
