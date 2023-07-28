@@ -13,8 +13,6 @@ import (
 	"github.com/solo-io/gloo/pkg/cliutil/install"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	glooStatic "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	glootransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	kubernetes2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
@@ -42,7 +40,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
-	osskube2e "github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -55,117 +52,57 @@ import (
 var _ = Describe("Installing gloo in gateway mode", func() {
 
 	var (
-		ctx               context.Context
-		cancel            context.CancelFunc
-		resourceClientset *glooKube2e.KubeResourceClientSet
-		snapshotWriter    helpers.SnapshotWriter
-		glooResources     *gloosnapshot.ApiSnapshot
+		testContext *kube2e.TestContext
 	)
 
 	BeforeEach(func() {
-		ctx, cancel = context.WithCancel(context.Background())
-		cfg, err := kubeutils.GetConfig("", "")
-		Expect(err).NotTo(HaveOccurred())
-
-		resourceClientset, err = glooKube2e.NewKubeResourceClientSet(ctx, cfg)
-		Expect(err).NotTo(HaveOccurred())
-
-		// Create a VirtualService routing directly to the testrunner kubernetes service
-		// A virtual service has to be created to test the gloo validations
-		testRunnerDestination := &gloov1.Destination{
-			DestinationType: &gloov1.Destination_Kube{
-				Kube: &gloov1.KubernetesServiceDestination{
-					Ref: &core.ResourceRef{
-						Namespace: testHelper.InstallNamespace,
-						Name:      helper.TestrunnerName,
-					},
-					Port: uint32(helper.TestRunnerPort),
-				},
-			},
-		}
-		testRunnerVs := helpers.NewVirtualServiceBuilder().
-			WithName(helper.TestrunnerName).
-			WithNamespace(testHelper.InstallNamespace).
-			WithDomain(helper.TestrunnerName).
-			WithRoutePrefixMatcher(helper.TestrunnerName, "/").
-			WithRouteActionToSingleDestination(helper.TestrunnerName, testRunnerDestination).
-			Build()
-
-		// The set of resources that these tests will generate
-		glooResources = &gloosnapshot.ApiSnapshot{
-			VirtualServices: v1.VirtualServiceList{
-				// many tests route to the TestRunner Service so it makes sense to just
-				// always create it
-				// the other benefit is this ensures that all tests start with a valid Proxy CR
-				testRunnerVs,
-			},
-		}
-		snapshotWriter = helpers.NewSnapshotWriter(resourceClientset)
+		testContext = testContextFactory.NewTestContext()
+		testContext.BeforeEach()
 	})
 
 	AfterEach(func() {
-		kube2e.DeleteVirtualService(resourceClientset.VirtualServiceClient(), testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
-		cancel()
+		testContext.AfterEach()
 	})
 
 	JustBeforeEach(func() {
-		err := snapshotWriter.WriteSnapshot(glooResources, clients.WriteOpts{
-			Ctx:               ctx,
-			OverwriteExisting: false,
-		})
-		Expect(err).NotTo(HaveOccurred())
+		testContext.JustBeforeEach()
 	})
 
 	JustAfterEach(func() {
-		err := snapshotWriter.DeleteSnapshot(glooResources, clients.DeleteOpts{
-			Ctx:            ctx,
-			IgnoreNotExist: true,
-		})
-		Expect(err).NotTo(HaveOccurred())
-
+		testContext.JustAfterEach()
 	})
 
 	It("can route request to upstream", func() {
+		testContext.PatchDefaultVirtualService(func(service *v1.VirtualService) *v1.VirtualService {
+			return helpers.BuilderFromVirtualService(service).WithRouteOptions(kube2e.DefaultRouteName, &gloov1.RouteOptions{
+				PrefixRewrite: &wrappers.StringValue{
+					Value: "/",
+				},
+			}).Build()
+		})
 
-		kube2e.WriteVirtualService(ctx, testHelper, resourceClientset.VirtualServiceClient(), nil, nil, nil)
-
-		defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
-		// wait for default gateway to be created
-		Eventually(func() (*v1.Gateway, error) {
-			return resourceClientset.GatewayClient().Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{Ctx: ctx})
-		}, "15s", "0.5s").Should(Not(BeNil()))
-
-		gatewayPort := 80
-		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-			Protocol:          "http",
-			Path:              kube2e.TestMatcherPrefix,
-			Method:            "GET",
-			Host:              defaults.GatewayProxyName,
-			Service:           defaults.GatewayProxyName,
-			Port:              gatewayPort,
-			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-		}, osskube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*5)
+		curlOpts := testContext.DefaultCurlOptsBuilder().WithConnectionTimeout(10).Build()
+		testContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, glooKube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*5)
 	})
 
 	Context("virtual service in configured with SSL", func() {
-
 		BeforeEach(func() {
 			// get the certificate so it is generated in the background
 			go helpers.Certificate()
 		})
 
 		AfterEach(func() {
-			err := resourceClientset.KubeClients().CoreV1().Secrets(testHelper.InstallNamespace).Delete(ctx, "secret", metav1.DeleteOptions{})
+			err := testContext.ResourceClientSet().KubeClients().CoreV1().Secrets(testContext.InstallNamespace()).Delete(testContext.Ctx(), "secret", metav1.DeleteOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("can route https request to upstream", func() {
-			sslSecret := helpers.GetKubeSecret("secret", testHelper.InstallNamespace)
-			createdSecret, err := resourceClientset.KubeClients().CoreV1().Secrets(testHelper.InstallNamespace).Create(ctx, sslSecret, metav1.CreateOptions{})
+			sslSecret := helpers.GetKubeSecret("secret", testContext.InstallNamespace())
+			createdSecret, err := testContext.ResourceClientSet().KubeClients().CoreV1().Secrets(testContext.InstallNamespace()).Create(testContext.Ctx(), sslSecret, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(func() error {
-				_, err := resourceClientset.KubeClients().CoreV1().Secrets(sslSecret.Namespace).Get(ctx, sslSecret.Name, metav1.GetOptions{})
+				_, err := testContext.ResourceClientSet().KubeClients().CoreV1().Secrets(sslSecret.Namespace).Get(testContext.Ctx(), sslSecret.Name, metav1.GetOptions{})
 				return err
 			}, "10s", "0.5s").Should(BeNil())
 			time.Sleep(3 * time.Second) // Wait a few seconds so Gloo can pick up the secret, otherwise the webhook validation might fail
@@ -179,80 +116,77 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				},
 			}
 
-			kube2e.WriteVirtualService(ctx, testHelper, resourceClientset.VirtualServiceClient(), nil, nil, sslConfig)
+			testContext.PatchDefaultVirtualService(func(service *v1.VirtualService) *v1.VirtualService {
+				return helpers.BuilderFromVirtualService(service).WithRouteOptions(kube2e.DefaultRouteName, &gloov1.RouteOptions{
+					PrefixRewrite: &wrappers.StringValue{
+						Value: "/",
+					},
+				}).WithSslConfig(sslConfig).Build()
+			})
+			testContext.EventuallyProxyAccepted()
 
-			defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
-			// wait for default gateway to be created
-			Eventually(func() (*v1.Gateway, error) {
-				return resourceClientset.GatewayClient().Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
-			}, "15s", "0.5s").Should(Not(BeNil()))
-
-			gatewayPort := 443
-			caFile := osskube2e.ToFile(helpers.Certificate())
+			caFile := glooKube2e.ToFile(helpers.Certificate())
 			//goland:noinspection  GoUnhandledErrorResult
 			defer os.Remove(caFile)
 
-			err = testutils.Kubectl("cp", caFile, testHelper.InstallNamespace+"/testrunner:/tmp/ca.crt")
+			err = testutils.Kubectl("cp", caFile, testContext.InstallNamespace()+"/testrunner:/tmp/ca.crt")
 			Expect(err).NotTo(HaveOccurred())
 
-			testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-				Protocol:          "https",
-				Path:              kube2e.TestMatcherPrefix,
-				Method:            "GET",
-				Host:              defaults.GatewayProxyName,
-				Service:           defaults.GatewayProxyName,
-				Port:              gatewayPort,
-				CaFile:            "/tmp/ca.crt",
-				ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-			}, osskube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*2)
+			curlOpts := testContext.DefaultCurlOptsBuilder().
+				WithProtocol("https").WithPort(443).
+				WithConnectionTimeout(10).WithCaFile("/tmp/ca.crt").
+				Build()
+			testContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, glooKube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*2)
 		})
 	})
 
 	It("rejects invalid inja template in transformation", func() {
-		injaTransform := `{% if default(data.error.message, "") != "" %}400{% else %}{{ header(":status") }}{% endif %}`
-		t := &glootransformation.Transformations{
-			ClearRouteCache: true,
-			ResponseTransformation: &glootransformation.Transformation{
-				TransformationType: &glootransformation.Transformation_TransformationTemplate{
-					TransformationTemplate: &transformation.TransformationTemplate{
-						Headers: map[string]*transformation.InjaTemplate{
-							":status": {Text: injaTransform},
+		originalVs, err := testContext.ResourceClientSet().VirtualServiceClient().Read(testContext.InstallNamespace(), kube2e.DefaultVirtualServiceName, clients.ReadOpts{Ctx: testContext.Ctx()})
+		Expect(err).NotTo(HaveOccurred())
+
+		newVsWithTransform := func(injaTransform string) error {
+			// We delete the default virtualService, because we want to get back an error during write regarding the transformation.
+			err := testContext.ResourceClientSet().VirtualServiceClient().Delete(originalVs.GetMetadata().Namespace, originalVs.GetMetadata().Name, clients.DeleteOpts{Ctx: testContext.Ctx()})
+			Expect(err).ToNot(HaveOccurred())
+			helpers.EventuallyResourceDeleted(func() (resources.InputResource, error) {
+				return testContext.ResourceClientSet().VirtualServiceClient().Read(originalVs.GetMetadata().Namespace, originalVs.GetMetadata().Name, clients.ReadOpts{Ctx: testContext.Ctx()})
+			})
+
+			t := &glootransformation.Transformations{
+				ClearRouteCache: true,
+				ResponseTransformation: &glootransformation.Transformation{
+					TransformationType: &glootransformation.Transformation_TransformationTemplate{
+						TransformationTemplate: &transformation.TransformationTemplate{
+							Headers: map[string]*transformation.InjaTemplate{
+								":status": {Text: injaTransform},
+							},
 						},
 					},
 				},
-			},
+			}
+			vs := helpers.BuilderFromVirtualService(originalVs).
+				WithRoutePrefixMatcher(kube2e.DefaultRouteName, "/").
+				WithVirtualHostOptions(&gloov1.VirtualHostOptions{
+					Transformations: t,
+				}).Build()
+			_, err = testContext.ResourceClientSet().VirtualServiceClient().Write(vs, clients.WriteOpts{Ctx: testContext.Ctx()})
+			return err
 		}
 
-		dest := &gloov1.Destination{
-			DestinationType: &gloov1.Destination_Upstream{
-				Upstream: &core.ResourceRef{
-					Namespace: testHelper.InstallNamespace,
-					Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, helper.TestrunnerName, helper.TestRunnerPort),
-				},
-			},
-		}
+		By("accepting a valid inja transformation")
+		validInjaTransform := `{% if default(data.error.message, "") != "" %}400{% else %}{{ header(":status") }}{% endif %}`
+		err = newVsWithTransform(validInjaTransform)
+		Expect(err).NotTo(HaveOccurred())
 
-		vs := getVirtualService(dest, nil)
-		vs.VirtualHost.Options = &gloov1.VirtualHostOptions{Transformations: t}
-
-		_, err := resourceClientset.VirtualServiceClient().Write(vs, clients.WriteOpts{Ctx: ctx})
-		Expect(err).ToNot(HaveOccurred())
-
-		err = resourceClientset.VirtualServiceClient().Delete(vs.Metadata.Namespace, vs.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
-		Expect(err).ToNot(HaveOccurred())
-
-		// trim trailing "}", which should invalidate our inja template
-		t.ResponseTransformation.GetTransformationTemplate().Headers[":status"].Text = strings.TrimSuffix(injaTransform, "}")
-
-		_, err = resourceClientset.VirtualServiceClient().Write(vs, clients.WriteOpts{Ctx: ctx})
+		By("rejecting an invalid inja transformation")
+		// remove the trailing "}", which should invalidate our inja template
+		invalidInjaTransform := validInjaTransform[:len(validInjaTransform)-1]
+		err = newVsWithTransform(invalidInjaTransform)
 		Expect(err).To(MatchError(ContainSubstring("Failed to parse response template: Failed to parse " +
 			"header template ':status': [inja.exception.parser_error] (at 1:92) expected statement close, got '%'")))
 	})
 
 	Context("tests for validation", func() {
-		BeforeEach(func() {
-			glooKube2e.UpdateAlwaysAcceptSetting(ctx, false, testHelper.InstallNamespace)
-		})
 		testValidation := func(yaml, expectedErr string) {
 			out, err := install.KubectlApplyOut([]byte(yaml))
 
@@ -285,17 +219,17 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			BeforeEach(func() {
 				// Set the validation settings to be as strict as possible so that we can trigger
 				// rejections by just producing a warning on the resource
-				glooKube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
-					Expect(settings.GetGateway().GetValidation()).NotTo(BeNil())
-					settings.GetGateway().GetValidation().AllowWarnings = &wrappers.BoolValue{Value: false}
-				}, testHelper.InstallNamespace)
+				glooKube2e.UpdateSettings(testContext.Ctx(), func(settings *gloov1.Settings) {
+					settings.Gateway.Validation.AlwaysAccept = &wrappers.BoolValue{Value: false}
+					settings.Gateway.Validation.AllowWarnings = &wrappers.BoolValue{Value: false}
+				}, testContext.InstallNamespace())
 			})
 
 			AfterEach(func() {
-				glooKube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
-					Expect(settings.GetGateway().GetValidation()).NotTo(BeNil())
-					settings.GetGateway().GetValidation().AllowWarnings = &wrappers.BoolValue{Value: true}
-				}, testHelper.InstallNamespace)
+				glooKube2e.UpdateSettings(testContext.Ctx(), func(settings *gloov1.Settings) {
+					settings.Gateway.Validation.AlwaysAccept = &wrappers.BoolValue{Value: false}
+					settings.Gateway.Validation.AllowWarnings = &wrappers.BoolValue{Value: true}
+				}, testContext.InstallNamespace())
 			})
 
 			JustBeforeEach(func() {
@@ -307,7 +241,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				upstream := &gloov1.Upstream{
 					Metadata: &core.Metadata{
 						Name:      "",
-						Namespace: testHelper.InstallNamespace,
+						Namespace: testContext.InstallNamespace(),
 					},
 					UpstreamType: &gloov1.Upstream_Static{
 						Static: &glooStatic.UpstreamSpec{
@@ -320,7 +254,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				attempt := 0
 				Eventually(func(g Gomega) bool {
 					upstream.Metadata.Name = fmt.Sprintf("invalid-placeholder-upstream-%d", attempt)
-					_, err := resourceClientset.UpstreamClient().Write(upstream, clients.WriteOpts{Ctx: ctx})
+					_, err := testContext.ResourceClientSet().UpstreamClient().Write(upstream, clients.WriteOpts{Ctx: testContext.Ctx()})
 					if err != nil {
 						serr := err.Error()
 						g.Expect(serr).Should(ContainSubstring("admission webhook"))
@@ -330,10 +264,10 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 						return true
 					}
 
-					err = resourceClientset.UpstreamClient().Delete(
+					err = testContext.ResourceClientSet().UpstreamClient().Delete(
 						upstream.GetMetadata().GetNamespace(),
 						upstream.GetMetadata().GetName(),
-						clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+						clients.DeleteOpts{Ctx: testContext.Ctx(), IgnoreNotExist: true})
 					g.Expect(err).NotTo(HaveOccurred())
 
 					attempt += 1
@@ -507,7 +441,7 @@ spec:
 		)
 
 		exposePortOnGwProxyService := func(servicePort corev1.ServicePort) {
-			gwSvc, err := resourceClientset.KubeClients().CoreV1().Services(testHelper.InstallNamespace).Get(ctx, defaults.GatewayProxyName, metav1.GetOptions{})
+			gwSvc, err := testContext.ResourceClientSet().KubeClients().CoreV1().Services(testContext.InstallNamespace()).Get(testContext.Ctx(), defaults.GatewayProxyName, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			// Append servicePort if not found already
@@ -522,7 +456,7 @@ spec:
 				gwSvc.Spec.Ports = append(gwSvc.Spec.Ports, hybridProxyServicePort)
 			}
 
-			_, err = resourceClientset.KubeClients().CoreV1().Services(testHelper.InstallNamespace).Update(ctx, gwSvc, metav1.UpdateOptions{})
+			_, err = testContext.ResourceClientSet().KubeClients().CoreV1().Services(testContext.InstallNamespace()).Update(testContext.Ctx(), gwSvc, metav1.UpdateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		}
 
@@ -533,19 +467,19 @@ spec:
 			caFile := glooKube2e.ToFile(helpers.Certificate())
 			//goland:noinspection GoUnhandledErrorResult
 			defer os.Remove(caFile)
-			err = setup.Kubectl("cp", caFile, testHelper.InstallNamespace+"/testrunner:/tmp/ca.crt")
+			err = setup.Kubectl("cp", caFile, testContext.InstallNamespace()+"/testrunner:/tmp/ca.crt")
 			Expect(err).NotTo(HaveOccurred())
 			exposePortOnGwProxyService(hybridProxyServicePort)
 
 			tcpEchoClusterName = translator.UpstreamToClusterName(&core.ResourceRef{
-				Namespace: testHelper.InstallNamespace,
-				Name:      kubernetes2.UpstreamName(testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
+				Namespace: testContext.InstallNamespace(),
+				Name:      kubernetes2.UpstreamName(testContext.InstallNamespace(), helper.HttpEchoName, helper.HttpEchoPort),
 			})
 
 			httpEchoUpstream := &gloov1.Upstream{
 				Metadata: &core.Metadata{
 					Name:      "http-echo",
-					Namespace: testHelper.InstallNamespace,
+					Namespace: testContext.InstallNamespace(),
 				},
 				UpstreamType: &gloov1.Upstream_Static{
 					Static: &static_plugin_gloo.UpstreamSpec{
@@ -558,17 +492,15 @@ spec:
 				},
 			}
 
-			sslSecret := helpers.GetKubeSecret("secret", testHelper.InstallNamespace)
-			createdSecret, err := resourceClientset.KubeClients().CoreV1().Secrets(testHelper.InstallNamespace).Create(ctx, sslSecret, metav1.CreateOptions{})
+			sslSecret := helpers.GetKubeSecret("secret", testContext.InstallNamespace())
+			createdSecret, err := testContext.ResourceClientSet().KubeClients().CoreV1().Secrets(testContext.InstallNamespace()).Create(testContext.Ctx(), sslSecret, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			domain := fmt.Sprintf("%s:%d", defaults.GatewayProxyName, defaults2.HybridPort)
-			virtualservice = helpers.NewVirtualServiceBuilder().
-				WithName(defaults.GatewayProxyName).
-				WithNamespace(testHelper.InstallNamespace).
+			virtualservice = helpers.BuilderFromVirtualService(testContext.ResourcesToWrite().VirtualServices[0]).
 				WithDomain(domain).
-				WithRoutePrefixMatcher("route", "/").
-				WithRouteActionToUpstream("route", httpEchoUpstream).
+				WithRoutePrefixMatcher(kube2e.DefaultRouteName, "/").
+				WithRouteActionToUpstream(kube2e.DefaultRouteName, httpEchoUpstream).
 				WithSslConfig(&gloossl.SslConfig{
 					Parameters: &gloossl.SslParameters{
 						// only treat these ciphers as natively supported
@@ -587,7 +519,7 @@ spec:
 			tcpBinUp := &gloov1.Upstream{
 				Metadata: &core.Metadata{
 					Name:      "tcpb",
-					Namespace: testHelper.InstallNamespace,
+					Namespace: testContext.InstallNamespace(),
 				},
 				UpstreamType: &gloov1.Upstream_Static{
 					Static: &static_plugin_gloo.UpstreamSpec{
@@ -599,10 +531,6 @@ spec:
 					},
 				},
 			}
-			tcpRef := &core.ResourceRef{
-				Namespace: testHelper.InstallNamespace,
-				Name:      "tcpb",
-			}
 
 			// Create a MatchableHttpGateway. Since this gateway will proxy an
 			// ssl-enabled virtual serivce, we *must* specify an SslConfig
@@ -612,7 +540,7 @@ spec:
 			matchableHttpGateway := &v1.MatchableHttpGateway{
 				Metadata: &core.Metadata{
 					Name:      "matchable-http-gateway",
-					Namespace: testHelper.InstallNamespace,
+					Namespace: testContext.InstallNamespace(),
 				},
 				HttpGateway: &v1.HttpGateway{
 					VirtualServices: []*core.ResourceRef{
@@ -631,7 +559,7 @@ spec:
 			matchableTcpGateway := &v1.MatchableTcpGateway{
 				Metadata: &core.Metadata{
 					Name:      "matchable-tcp-gateway",
-					Namespace: testHelper.InstallNamespace,
+					Namespace: testContext.InstallNamespace(),
 				},
 				Matcher: &v1.MatchableTcpGateway_Matcher{
 
@@ -644,7 +572,7 @@ spec:
 							Destination: &gloov1.TcpHost_TcpAction_Single{
 								Single: &gloov1.Destination{
 									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: tcpRef,
+										Upstream: tcpBinUp.GetMetadata().Ref(),
 									},
 								},
 							},
@@ -657,7 +585,7 @@ spec:
 			hybridGateway = &v1.Gateway{
 				Metadata: &core.Metadata{
 					Name:      fmt.Sprintf("%s-hybrid", defaults.GatewayProxyName),
-					Namespace: testHelper.InstallNamespace,
+					Namespace: testContext.InstallNamespace(),
 				},
 				GatewayType: &v1.Gateway_HybridGateway{
 					HybridGateway: &v1.HybridGateway{
@@ -689,38 +617,41 @@ spec:
 				UseProxyProto: &wrappers.BoolValue{Value: false},
 			}
 
-			glooKube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
-				Expect(settings.GetGateway().IsolateVirtualHostsBySslConfig).NotTo(BeNil())
-				settings.GetGateway().IsolateVirtualHostsBySslConfig = wrapperspb.Bool(true)
-			}, testHelper.InstallNamespace)
-			glooResources.HttpGateways = v1.MatchableHttpGatewayList{matchableHttpGateway}
-			glooResources.TcpGateways = v1.MatchableTcpGatewayList{matchableTcpGateway}
-			glooResources.Gateways = v1.GatewayList{hybridGateway}
-			glooResources.Upstreams = gloov1.UpstreamList{tcpBinUp, httpEchoUpstream}
-			glooResources.VirtualServices = append(glooResources.VirtualServices, virtualservice)
-			httpEcho, err = helper.NewEchoHttp(testHelper.InstallNamespace)
+			testContext.ResourcesToWrite().HttpGateways = v1.MatchableHttpGatewayList{matchableHttpGateway}
+			testContext.ResourcesToWrite().TcpGateways = v1.MatchableTcpGatewayList{matchableTcpGateway}
+			testContext.ResourcesToWrite().Gateways = v1.GatewayList{hybridGateway}
+			testContext.ResourcesToWrite().Upstreams = gloov1.UpstreamList{tcpBinUp, httpEchoUpstream}
+			testContext.ResourcesToWrite().VirtualServices = v1.VirtualServiceList{virtualservice}
+			httpEcho, err = helper.NewEchoHttp(testContext.InstallNamespace())
 			Expect(err).NotTo(HaveOccurred())
 			err = httpEcho.Deploy(2 * time.Minute)
 			Expect(err).NotTo(HaveOccurred())
-			tcpEchoShutdownFunc = createTcpEchoTls()
+			tcpEchoShutdownFunc = createTcpEchoTls(testContext.InstallNamespace())
+
+			settings := testContext.GetDefaultSettings()
+			Expect(settings.GetGateway().IsolateVirtualHostsBySslConfig).NotTo(BeNil())
+			settings.GetGateway().IsolateVirtualHostsBySslConfig = wrapperspb.Bool(true)
+			_, err = testContext.ResourceClientSet().SettingsClient().Write(settings, clients.WriteOpts{Ctx: testContext.Ctx(), OverwriteExisting: true})
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		AfterEach(func() {
-			glooKube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
-				Expect(settings.GetGateway().IsolateVirtualHostsBySslConfig).NotTo(BeNil())
-				settings.GetGateway().IsolateVirtualHostsBySslConfig = wrapperspb.Bool(false)
-			}, testHelper.InstallNamespace)
+			settings := testContext.GetDefaultSettings()
+			Expect(settings.GetGateway().IsolateVirtualHostsBySslConfig).NotTo(BeNil())
+			settings.GetGateway().IsolateVirtualHostsBySslConfig = wrapperspb.Bool(false)
+			_, err = testContext.ResourceClientSet().SettingsClient().Write(settings, clients.WriteOpts{Ctx: testContext.Ctx(), OverwriteExisting: true})
+			Expect(err).ToNot(HaveOccurred())
+
 			tcpEchoShutdownFunc()
-			httpEcho.Terminate()
+			_ = httpEcho.Terminate()
 
 			// delete the ssl secret
-			err := resourceClientset.KubeClients().CoreV1().Secrets(testHelper.InstallNamespace).Delete(ctx, "secret", metav1.DeleteOptions{})
+			err = testContext.ResourceClientSet().KubeClients().CoreV1().Secrets(testContext.InstallNamespace()).Delete(testContext.Ctx(), "secret", metav1.DeleteOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			// Delete http echo service
-			err = testutils.Kubectl("delete", "service", "-n", testHelper.InstallNamespace, helper.HttpEchoName, "--grace-period=0")
+			err = testutils.Kubectl("delete", "service", "-n", testContext.InstallNamespace(), helper.HttpEchoName, "--grace-period=0")
 			Expect(err).NotTo(HaveOccurred())
-			cancel()
 		})
 
 		executeRequest := func(ciphers []string, expectedResult func([]string)) {
@@ -732,7 +663,7 @@ spec:
 			// testHelper.Curl does not support the `--ciphers` flag so let's
 			// just build the command manually
 			Eventually(func(g Gomega) {
-				result, err := testHelper.Exec(curlArgs...)
+				result, err := testContext.TestHelper().Exec(curlArgs...)
 				g.Expect(err).NotTo(HaveOccurred())
 				/* sample response:
 				   {
@@ -758,7 +689,7 @@ spec:
 		expectTlsTermination := func(curlArgs []string) {
 			curlArgs = append(curlArgs, "-d", "test_key=test_value")
 			Eventually(func(g Gomega) {
-				result, err := testHelper.Exec(curlArgs...)
+				result, err := testContext.TestHelper().Exec(curlArgs...)
 				g.Expect(err).NotTo(HaveOccurred())
 				/* sample response:
 				   {
@@ -795,31 +726,34 @@ spec:
 			// test should be set up properly. then expect the test with
 			// curlArgs to fail
 			executeRequest([]string{terminatedCipher}, expectTlsTermination)
-			_, err := testHelper.Exec(curlArgs...)
+			_, err := testContext.TestHelper().Exec(curlArgs...)
 			Expect(err).To(MatchError(ContainSubstring("command terminated with exit code 35")))
 		}
 
 		// helper to add nonTerminatedCipher to the list of terminated ciphers
 		addNonTerminatedCipher := func() {
-			helpers.PatchResourceWithOffset(1, ctx, virtualservice.GetMetadata().Ref(), func(resource resources.Resource) resources.Resource {
+			_ = helpers.PatchResourceWithOffset(1, testContext.Ctx(), virtualservice.GetMetadata().Ref(), func(resource resources.Resource) resources.Resource {
 				virtualservice := resource.(*v1.VirtualService)
 
 				virtualservice.SslConfig.Parameters.CipherSuites = append(
 					virtualservice.SslConfig.Parameters.CipherSuites, nonTerminatedCipher)
 				return virtualservice
-			}, resourceClientset.VirtualServiceClient().BaseClient())
+			}, testContext.ResourceClientSet().VirtualServiceClient().BaseClient())
+			testContext.EventuallyProxyAccepted()
 		}
 
 		// helper to disable dcp by deleting DelegatedTcpGateway from the hybrid gateway
 		disableDcp := func() {
-			helpers.PatchResourceWithOffset(1, ctx, hybridGateway.GetMetadata().Ref(), func(resource resources.Resource) resources.Resource {
+			_ = helpers.PatchResourceWithOffset(1, testContext.Ctx(), hybridGateway.GetMetadata().Ref(), func(resource resources.Resource) resources.Resource {
 				gateway := resource.(*v1.Gateway)
 				gateway.GetHybridGateway().DelegatedTcpGateways = nil
 				return gateway
-			}, resourceClientset.GatewayClient().BaseClient())
+			}, testContext.ResourceClientSet().GatewayClient().BaseClient())
+			testContext.EventuallyProxyAccepted()
 		}
 
-		DescribeTable("dcp cipher combination tests",
+		DescribeTable("dcp cipher combination tests", FlakeAttempts(5),
+			// These tests have flaked due to the `gateway-proxy` Proxy status not being updated.
 			/* Table of tests for DCP cipher combinations
 
 			   We initialise the server with a DCP configuration and then test
@@ -898,45 +832,9 @@ spec:
 
 })
 
-func getVirtualService(dest *gloov1.Destination, sslConfig *gloossl.SslConfig) *v1.VirtualService {
-	return getVirtualServiceWithRoute(getRouteWithDest(dest, "/"), sslConfig)
-}
-
-func getVirtualServiceWithRoute(route *v1.Route, sslConfig *gloossl.SslConfig) *v1.VirtualService {
-	return &v1.VirtualService{
-		Metadata: &core.Metadata{
-			Name:      "vs",
-			Namespace: testHelper.InstallNamespace,
-		},
-		SslConfig: sslConfig,
-		VirtualHost: &v1.VirtualHost{
-			Domains: []string{"*"},
-
-			Routes: []*v1.Route{route},
-		},
-	}
-}
-
-func getRouteWithDest(dest *gloov1.Destination, path string) *v1.Route {
-	return &v1.Route{
-		Matchers: []*matchers.Matcher{{
-			PathSpecifier: &matchers.Matcher_Prefix{
-				Prefix: path,
-			},
-		}},
-		Action: &v1.Route_RouteAction{
-			RouteAction: &gloov1.RouteAction{
-				Destination: &gloov1.RouteAction_Single{
-					Single: dest,
-				},
-			},
-		},
-	}
-}
-
 /* Create a TCP-based echo server that operates over TLS. Return a function to
 * clean the services up */
-func createTcpEchoTls() func() {
+func createTcpEchoTls(namespace string) func() {
 	tcpEchoTls := "tcp-echo-tls"
 	cfg, err := kubeutils.GetConfig("", "")
 	Expect(err).NotTo(HaveOccurred())
@@ -947,11 +845,11 @@ func createTcpEchoTls() func() {
 	labels["gloo"] = tcpEchoTls
 	metadata := metav1.ObjectMeta{
 		Name:      tcpEchoTls,
-		Namespace: testHelper.InstallNamespace,
+		Namespace: namespace,
 		Labels:    labels,
 	}
 	zero := int64(0)
-	pod, err := kube.CoreV1().Pods(testHelper.InstallNamespace).Create(context.TODO(), &corev1.Pod{
+	pod, err := kube.CoreV1().Pods(namespace).Create(context.TODO(), &corev1.Pod{
 		ObjectMeta: metadata,
 		Spec: corev1.PodSpec{
 			TerminationGracePeriodSeconds: &zero,
@@ -966,7 +864,7 @@ func createTcpEchoTls() func() {
 	}, metav1.CreateOptions{})
 	Expect(err).NotTo(HaveOccurred())
 
-	service, err := kube.CoreV1().Services(testHelper.InstallNamespace).Create(context.Background(), &corev1.Service{
+	service, err := kube.CoreV1().Services(namespace).Create(context.Background(), &corev1.Service{
 		ObjectMeta: metadata,
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
@@ -986,11 +884,11 @@ func createTcpEchoTls() func() {
 	timeout := 2 * time.Minute
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	err = testutils.WaitPodsRunning(ctx, time.Second, testHelper.InstallNamespace, "gloo="+tcpEchoTls)
+	err = testutils.WaitPodsRunning(ctx, time.Second, namespace, "gloo="+tcpEchoTls)
 	Expect(err).NotTo(HaveOccurred())
 
 	return func() {
-		kube.CoreV1().Pods(testHelper.InstallNamespace).Delete(context.Background(), pod.GetObjectMeta().GetName(), metav1.DeleteOptions{})
-		kube.CoreV1().Services(testHelper.InstallNamespace).Delete(context.Background(), service.GetObjectMeta().GetName(), metav1.DeleteOptions{})
+		_ = kube.CoreV1().Pods(namespace).Delete(context.Background(), pod.GetObjectMeta().GetName(), metav1.DeleteOptions{})
+		_ = kube.CoreV1().Services(namespace).Delete(context.Background(), service.GetObjectMeta().GetName(), metav1.DeleteOptions{})
 	}
 }

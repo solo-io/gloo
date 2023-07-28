@@ -16,10 +16,7 @@ import (
 	"github.com/solo-io/go-utils/stats"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	defaults2 "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	glooKube2e "github.com/solo-io/gloo/test/kube2e"
-
 	"github.com/solo-io/solo-projects/test/kube2e"
 	"github.com/solo-io/solo-projects/test/services"
 
@@ -42,21 +39,16 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/solo-io/k8s-utils/testutils/helper"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gatewayv2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/k8s-utils/kubeutils"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"k8s.io/client-go/rest"
 
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/solo-io/gloo/test/kube2e"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -65,7 +57,7 @@ import (
 type cleanupFunc func()
 
 type ExtAuthTestInputs struct {
-	TestHelper *helper.SoloTestHelper
+	TestContext *kube2e.TestContext
 
 	// ShouldTestLDAP should be set to true if you're
 	// testing in a cluster with an LDAP server available
@@ -74,35 +66,19 @@ type ExtAuthTestInputs struct {
 }
 
 func RunExtAuthTests(inputs *ExtAuthTestInputs) {
-	var testHelper *helper.SoloTestHelper
+	var testContext *kube2e.TestContext
 
 	var _ = Describe("External auth", func() {
 
 		const (
-			gatewayPort = int(80)
 			response401 = "HTTP/1.1 401 Unauthorized"
 			response403 = "HTTP/1.1 403 Forbidden"
 			response200 = "HTTP/1.1 200 OK"
 		)
 
 		var (
-			ctx        context.Context
-			cancel     context.CancelFunc
-			cfg        *rest.Config
-			kubeClient kubernetes.Interface
-
-			gatewayClient        gatewayv2.GatewayClient
-			proxyClient          gloov1.ProxyClient
-			virtualServiceClient gatewayv1.VirtualServiceClient
-			authConfigClient     extauthapi.AuthConfigClient
-			settingsClient       gloov1.SettingsClient
-			origSettings         *gloov1.Settings // used to capture & restore initial Settings so each test can modify them
-
-			resourceClientset *glooKube2e.KubeResourceClientSet
-			snapshotWriter    helpers.SnapshotWriter
-			glooResources     *gloosnapshot.ApiSnapshot
-
-			err error
+			origSettings *gloov1.Settings // used to capture & restore initial Settings so each test can modify them
+			err          error
 		)
 
 		// Credentials must be in the <username>:<password> format
@@ -113,59 +89,29 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			}
 		}
 		curlAndAssertResponse := func(path string, headers map[string]string, expectedResponseSubstring string) {
-			testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-				Protocol:          "http",
-				Path:              path,
-				Method:            "GET",
-				Headers:           headers,
-				Host:              defaults.GatewayProxyName,
-				Service:           defaults.GatewayProxyName,
-				Port:              gatewayPort,
-				ConnectionTimeout: 3,    // this is important, as the first curl call sometimes hangs indefinitely
-				Verbose:           true, // this is important, as curl will only output status codes with verbose output
-			}, expectedResponseSubstring, 1, 2*time.Minute)
+			// Connection timeout is set to 3, as the first curl call sometimes hangs indefinitely
+			// We enable verbose logging, as curl only outputs status code with verbose output
+			curlOpts := testContext.DefaultCurlOptsBuilder().WithPath(path).
+				WithConnectionTimeout(3).WithVerbose(true).WithHeaders(headers).Build()
+			testContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, expectedResponseSubstring, 1, 2*time.Minute)
 		}
 
-		// This just registers the clients that we will need during the tests
 		BeforeEach(func() {
-			testHelper = inputs.TestHelper
-			ctx, cancel = context.WithCancel(context.Background())
+			testContext = inputs.TestContext
 
-			cfg, err = kubeutils.GetConfig("", "")
-			Expect(err).NotTo(HaveOccurred())
-
-			resourceClientset, err = glooKube2e.NewKubeResourceClientSet(ctx, cfg)
-			Expect(err).NotTo(HaveOccurred())
-
-			kubeClient = resourceClientset.KubeClients()
-			authConfigClient = resourceClientset.AuthConfigClient()
-			gatewayClient = resourceClientset.GatewayClient()
-			virtualServiceClient = resourceClientset.VirtualServiceClient()
-			proxyClient = resourceClientset.ProxyClient()
-			settingsClient = resourceClientset.SettingsClient()
-
-			// Not all tests in this file use the SnapshotWriter or glooResources snapshot
-			// The idea is to progressively move towards this model, because it's used in oss
-			// and is easier to set up/teardown resources consistently
-			snapshotWriter = helpers.NewSnapshotWriter(resourceClientset)
-			glooResources = &gloosnapshot.ApiSnapshot{}
-		})
-
-		BeforeEach(func() {
-			origSettings, err = settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
+			origSettings, err = testContext.ResourceClientSet().SettingsClient().Read(testContext.InstallNamespace(), "default", clients.ReadOpts{Ctx: testContext.Ctx()})
 			Expect(err).NotTo(HaveOccurred(), "Should be able to read initial settings")
 		})
 
 		AfterEach(func() {
-			currentSettings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
+			currentSettings, err := testContext.ResourceClientSet().SettingsClient().Read(testContext.InstallNamespace(), "default", clients.ReadOpts{Ctx: testContext.Ctx()})
 			Expect(err).NotTo(HaveOccurred(), "Should be able to read current settings")
 
 			if origSettings.Metadata.ResourceVersion != currentSettings.Metadata.ResourceVersion {
 				origSettings.Metadata.ResourceVersion = currentSettings.Metadata.ResourceVersion // so we can overwrite settings
-				_, err = settingsClient.Write(origSettings, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+				_, err = testContext.ResourceClientSet().SettingsClient().Write(origSettings, clients.WriteOpts{Ctx: testContext.Ctx(), OverwriteExisting: true})
 				Expect(err).ToNot(HaveOccurred())
 			}
-			cancel()
 		})
 
 		// Only run LDAP tests if explicitly set to true. Otherwise cluster may not have an LDAP server running.
@@ -188,18 +134,12 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				)
 
 				JustBeforeEach(func() {
-
 					By("make sure we can still reach the LDAP server", func() {
 						// Make sure we can query the LDAP server
-						testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-							Protocol:          "ldap",
-							Path:              "/",
-							Method:            "GET",
-							Service:           fmt.Sprintf("ldap.%s.svc.cluster.local", testHelper.InstallNamespace),
-							Port:              389,
-							ConnectionTimeout: 3,
-							Verbose:           true,
-						}, "OpenLDAProotDSE", 1, time.Minute)
+						curlOpts := testContext.DefaultCurlOptsBuilder().
+							WithPath("/").WithProtocol("ldap").WithPort(389).WithVerbose(true).WithConnectionTimeout(3).
+							WithService(fmt.Sprintf("ldap.%s.svc.cluster.local", testContext.InstallNamespace())).Build()
+						testContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, "OpenLDAProotDSE", 1, time.Minute)
 					})
 
 					By("create an LDAP-secured route to the test upstream", func() {
@@ -208,17 +148,15 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 							Extauth: extAuthConfigProto,
 						}
 
-						kube2e.WriteVirtualService(ctx, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil)
-
-						defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
-						Eventually(func() (*gatewayv2.Gateway, error) {
-							return gatewayClient.Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
-						}, "15s", "0.5s").Should(Not(BeNil()))
+						testContext.PatchDefaultVirtualService(func(service *gatewayv2.VirtualService) *gatewayv2.VirtualService {
+							return helpers.BuilderFromVirtualService(service).WithRouteOptions(kube2e.DefaultRouteName, &gloov1.RouteOptions{
+								PrefixRewrite: &wrappers.StringValue{
+									Value: "/",
+								},
+							}).WithVirtualHostOptions(virtualHostPlugins).Build()
+						})
+						testContext.EventuallyProxyAccepted()
 					})
-				})
-
-				AfterEach(func() {
-					kube2e.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 				})
 
 				allTests := func(groupCheckingDisabled bool) {
@@ -248,17 +186,17 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				}
 
 				BeforeEach(func() {
-					authConfig, err := authConfigClient.Write(&extauthapi.AuthConfig{
+					authConfig, err := testContext.ResourceClientSet().AuthConfigClient().Write(&extauthapi.AuthConfig{
 						Metadata: &core.Metadata{
 							Name:      "ldap",
-							Namespace: testHelper.InstallNamespace,
+							Namespace: testContext.InstallNamespace(),
 						},
 						Configs: []*extauthapi.AuthConfig_Config{{
 							AuthConfig: &extauthapi.AuthConfig_Config_Ldap{
-								Ldap: ldapConfig(testHelper.InstallNamespace, disableGroupChecking),
+								Ldap: ldapConfig(testContext.InstallNamespace(), disableGroupChecking),
 							},
 						}},
-					}, clients.WriteOpts{Ctx: ctx})
+					}, clients.WriteOpts{Ctx: testContext.Ctx()})
 					Expect(err).NotTo(HaveOccurred())
 
 					authConfigRef := authConfig.Metadata.Ref()
@@ -270,7 +208,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				})
 
 				AfterEach(func() {
-					err := authConfigClient.Delete(testHelper.InstallNamespace, "ldap", clients.DeleteOpts{Ctx: ctx})
+					err := testContext.ResourceClientSet().AuthConfigClient().Delete(testContext.InstallNamespace(), "ldap", clients.DeleteOpts{Ctx: testContext.Ctx()})
 					Expect(err).NotTo(HaveOccurred())
 				})
 
@@ -281,19 +219,19 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 
 				Context("as a sidecar", func() {
 					JustBeforeEach(func() {
-						settings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
+						settings, err := testContext.ResourceClientSet().SettingsClient().Read(testContext.InstallNamespace(), "default", clients.ReadOpts{Ctx: testContext.Ctx()})
 						Expect(err).NotTo(HaveOccurred(), "Should be able to read settings to switch ext auth mode")
 
 						newRef := core.ResourceRef{
 							Name:      extauth.SidecarUpstreamName,
-							Namespace: testHelper.InstallNamespace,
+							Namespace: testContext.InstallNamespace(),
 						}
 						extauthSettings := &extauthapi.Settings{
 							ExtauthzServerRef: &newRef,
 						}
 						settings.Extauth = extauthSettings
 
-						_, err = settingsClient.Write(settings, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+						_, err = testContext.ResourceClientSet().SettingsClient().Write(settings, clients.WriteOpts{Ctx: testContext.Ctx(), OverwriteExisting: true})
 						Expect(err).NotTo(HaveOccurred(), "Should be able to write new ext auth settings")
 					})
 
@@ -320,6 +258,13 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 		// a 401 instead of the standard 403, allowing us to distinguish between legitimate denials and fallback behavior
 		// if some error in the auth flow occurred.
 		Describe("multiple authentication configs defined at different levels", func() {
+			JustBeforeEach(func() {
+				// Deleting the default VS as it causes routing issues, where requests don't get routed: `/test/{1,2}` > echo service.
+				testContext.ResourceClientSet().VirtualServiceClient().Delete(testContext.InstallNamespace(), kube2e.DefaultVirtualServiceName, clients.DeleteOpts{})
+				helpers.EventuallyResourceDeleted(func() (resources.InputResource, error) {
+					return testContext.ResourceClientSet().VirtualServiceClient().Read(testContext.InstallNamespace(), kube2e.DefaultVirtualServiceName, clients.ReadOpts{})
+				})
+			})
 
 			const (
 				appName1    = "test-app-1"
@@ -335,17 +280,17 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			)
 
 			writeAuthConfig := func(authConfig *extauthapi.AuthConfig) (*core.ResourceRef, cleanupFunc) {
-				ac, err := authConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
+				ac, err := testContext.ResourceClientSet().AuthConfigClient().Write(authConfig, clients.WriteOpts{Ctx: testContext.Ctx()})
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 				// Wait for auth config to be created
 				helpers.EventuallyResourceStatusMatchesState(1, func() (resources.InputResource, error) {
-					return authConfigClient.Read(testHelper.InstallNamespace, ac.Metadata.Name, clients.ReadOpts{Ctx: ctx})
+					return testContext.ResourceClientSet().AuthConfigClient().Read(testContext.InstallNamespace(), ac.Metadata.Name, clients.ReadOpts{Ctx: testContext.Ctx()})
 				}, core.Status_Accepted)
 
 				authConfigRef := ac.Metadata.Ref()
 				return authConfigRef, func() {
-					err := authConfigClient.Delete(ac.Metadata.Namespace, ac.Metadata.Name, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+					err := testContext.ResourceClientSet().AuthConfigClient().Delete(ac.Metadata.Namespace, ac.Metadata.Name, clients.DeleteOpts{Ctx: testContext.Ctx(), IgnoreNotExist: true})
 					Expect(err).NotTo(HaveOccurred())
 				}
 			}
@@ -371,17 +316,17 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				// We wrap this in a eventually because the validating webhook may reject the virtual service if one of the
 				// resources the VS depends on is not yet available.
 				EventuallyWithOffset(1, func() error {
-					_, err := virtualServiceClient.Write(vs, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+					_, err := testContext.ResourceClientSet().VirtualServiceClient().Write(vs, clients.WriteOpts{Ctx: testContext.Ctx(), OverwriteExisting: true})
 					return err
 				}, "30s", "1s").Should(BeNil())
 
 				// Wait for proxy to be accepted
 				helpers.EventuallyResourceStatusMatchesState(1, func() (resources.InputResource, error) {
-					return proxyClient.Read(testHelper.InstallNamespace, defaults.GatewayProxyName, clients.ReadOpts{Ctx: ctx})
+					return testContext.ResourceClientSet().ProxyClient().Read(testContext.InstallNamespace(), defaults.GatewayProxyName, clients.ReadOpts{Ctx: testContext.Ctx()})
 				}, core.Status_Accepted)
 
 				return func() {
-					kube2e.DeleteVirtualService(virtualServiceClient, vs.Metadata.Namespace, vs.Metadata.Name, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+					kube2e.DeleteVirtualService(testContext.ResourceClientSet().VirtualServiceClient(), vs.Metadata.Namespace, vs.Metadata.Name, clients.DeleteOpts{Ctx: testContext.Ctx(), IgnoreNotExist: true})
 				}
 			}
 
@@ -395,24 +340,24 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				cleanUpFuncs = nil
 
 				// Create two target http-echo deployments/services
-				cleanUp1, err := createHttpEchoDeploymentAndService(ctx, kubeClient, testHelper.InstallNamespace, appName1, echoAppPort)
+				cleanUp1, err := createHttpEchoDeploymentAndService(testContext.Ctx(), testContext.ResourceClientSet().KubeClients(), testContext.InstallNamespace(), appName1, echoAppPort)
 				Expect(err).NotTo(HaveOccurred())
 				cleanUpFuncs = append(cleanUpFuncs, cleanUp1)
 
-				cleanUp2, err := createHttpEchoDeploymentAndService(ctx, kubeClient, testHelper.InstallNamespace, appName2, echoAppPort)
+				cleanUp2, err := createHttpEchoDeploymentAndService(testContext.Ctx(), testContext.ResourceClientSet().KubeClients(), testContext.InstallNamespace(), appName2, echoAppPort)
 				Expect(err).NotTo(HaveOccurred())
 				cleanUpFuncs = append(cleanUpFuncs, cleanUp2)
 
 				// Wait for both target http-echo deployments to be ready
 				Eventually(func() (bool, error) {
-					return isRolloutComplete(appName1, testHelper.InstallNamespace)
+					return isRolloutComplete(appName1, testContext.InstallNamespace())
 				}, "30s", "1s").Should(BeTrue())
 				Eventually(func() (bool, error) {
-					return isRolloutComplete(appName2, testHelper.InstallNamespace)
+					return isRolloutComplete(appName2, testContext.InstallNamespace())
 				}, "30s", "1s").Should(BeTrue())
 
 				// Define the three types of auth configuration we will use
-				allowUser = buildBasicAuthConfig("basic-auth-user", testHelper.InstallNamespace,
+				allowUser = buildBasicAuthConfig("basic-auth-user", testContext.InstallNamespace(),
 					map[string]*extauthapi.BasicAuth_Apr_SaltedHashedPassword{
 						"user": {
 							// generated with: `htpasswd -nbm user password`
@@ -422,7 +367,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 						},
 					},
 				)
-				allowAdmin = buildBasicAuthConfig("basic-auth-admin", testHelper.InstallNamespace,
+				allowAdmin = buildBasicAuthConfig("basic-auth-admin", testContext.InstallNamespace(),
 					map[string]*extauthapi.BasicAuth_Apr_SaltedHashedPassword{
 						"admin": {
 							// generated with: `htpasswd -nbm admin password`
@@ -432,7 +377,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 						},
 					},
 				)
-				allowUserAndAdmin = buildBasicAuthConfig("basic-auth-user-and-admin", testHelper.InstallNamespace,
+				allowUserAndAdmin = buildBasicAuthConfig("basic-auth-user-and-admin", testContext.InstallNamespace(),
 					map[string]*extauthapi.BasicAuth_Apr_SaltedHashedPassword{
 						"user": {
 							// generated with: `htpasswd -nbm user password`
@@ -450,10 +395,10 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				)
 
 				// bounce envoy, get a clean state (draining listener can break this test). see https://github.com/solo-io/solo-projects/issues/2921 for more.
-				out, err := services.KubectlOut(strings.Split("rollout restart -n "+testHelper.InstallNamespace+" deploy/gateway-proxy", " ")...)
+				out, err := services.KubectlOut(strings.Split("rollout restart -n "+testContext.InstallNamespace()+" deploy/gateway-proxy", " ")...)
 				fmt.Println(out)
 				Expect(err).ToNot(HaveOccurred())
-				out, err = services.KubectlOut(strings.Split("rollout status -n "+testHelper.InstallNamespace+" deploy/gateway-proxy", " ")...)
+				out, err = services.KubectlOut(strings.Split("rollout status -n "+testContext.InstallNamespace()+" deploy/gateway-proxy", " ")...)
 				fmt.Println(out)
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -479,7 +424,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					return &gatewayv1.VirtualService{
 						Metadata: &core.Metadata{
 							Name:      "echo-vs",
-							Namespace: testHelper.InstallNamespace,
+							Namespace: testContext.InstallNamespace(),
 						},
 						VirtualHost: &gatewayv1.VirtualHost{
 							Options: vhPlugins,
@@ -499,7 +444,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 													DestinationType: &gloov1.Destination_Kube{
 														Kube: &gloov1.KubernetesServiceDestination{
 															Ref: &core.ResourceRef{
-																Namespace: testHelper.InstallNamespace,
+																Namespace: testContext.InstallNamespace(),
 																Name:      appName1,
 															},
 															Port: uint32(echoAppPort),
@@ -524,7 +469,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 													DestinationType: &gloov1.Destination_Kube{
 														Kube: &gloov1.KubernetesServiceDestination{
 															Ref: &core.ResourceRef{
-																Namespace: testHelper.InstallNamespace,
+																Namespace: testContext.InstallNamespace(),
 																Name:      appName2,
 															},
 															Port: uint32(echoAppPort),
@@ -668,7 +613,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					return &gatewayv1.VirtualService{
 						Metadata: &core.Metadata{
 							Name:      "echo-vs",
-							Namespace: testHelper.InstallNamespace,
+							Namespace: testContext.InstallNamespace(),
 						},
 						VirtualHost: &gatewayv1.VirtualHost{
 							Domains: []string{"*"},
@@ -691,7 +636,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 																DestinationType: &gloov1.Destination_Kube{
 																	Kube: &gloov1.KubernetesServiceDestination{
 																		Ref: &core.ResourceRef{
-																			Namespace: testHelper.InstallNamespace,
+																			Namespace: testContext.InstallNamespace(),
 																			Name:      appName1,
 																		},
 																		Port: uint32(echoAppPort),
@@ -706,7 +651,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 																DestinationType: &gloov1.Destination_Kube{
 																	Kube: &gloov1.KubernetesServiceDestination{
 																		Ref: &core.ResourceRef{
-																			Namespace: testHelper.InstallNamespace,
+																			Namespace: testContext.InstallNamespace(),
 																			Name:      appName2,
 																		},
 																		Port: uint32(echoAppPort),
@@ -836,7 +781,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					return &gatewayv1.VirtualService{
 						Metadata: &core.Metadata{
 							Name:      "echo-vs",
-							Namespace: testHelper.InstallNamespace,
+							Namespace: testContext.InstallNamespace(),
 						},
 						VirtualHost: &gatewayv1.VirtualHost{
 							Options: vhPlugins,
@@ -861,7 +806,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 													DestinationType: &gloov1.Destination_Kube{
 														Kube: &gloov1.KubernetesServiceDestination{
 															Ref: &core.ResourceRef{
-																Namespace: testHelper.InstallNamespace,
+																Namespace: testContext.InstallNamespace(),
 																Name:      appName1,
 															},
 															Port: uint32(echoAppPort),
@@ -885,27 +830,20 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					// Therefore, for now, we use FailureModeAllow, which indicates that if we fail to connect
 					// to the extauth server, allow the request.
 
-					settings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
+					settings, err := testContext.ResourceClientSet().SettingsClient().Read(testContext.InstallNamespace(), "default", clients.ReadOpts{Ctx: testContext.Ctx()})
 					Expect(err).NotTo(HaveOccurred(), "Should be able to read settings to switch ext auth StatusOnError")
 
 					settings.Extauth.FailureModeAllow = true
 
-					_, err = settingsClient.Write(settings, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+					_, err = testContext.ResourceClientSet().SettingsClient().Write(settings, clients.WriteOpts{Ctx: testContext.Ctx(), OverwriteExisting: true})
 					Expect(err).NotTo(HaveOccurred(), "Should be able to write new ext auth settings")
 				}
 
 				endpointPollingWorker := func() {
-					response, err := testHelper.Curl(helper.CurlOpts{
-						Protocol:          "http",
-						Path:              kube2e.TestMatcherPrefix + "/1",
-						Method:            "GET",
-						Headers:           buildAuthHeader("user:password"),
-						Host:              defaults.GatewayProxyName,
-						Service:           defaults.GatewayProxyName,
-						Port:              gatewayPort,
-						ConnectionTimeout: 5,    // this is important, as the first curl call sometimes hangs indefinitely
-						Verbose:           true, // this is important, as curl will only output status codes with verbose output
-					})
+					curlOpts := testContext.DefaultCurlOptsBuilder().
+						WithPath(kube2e.TestMatcherPrefix + "/1").WithVerbose(true).
+						WithConnectionTimeout(5).WithHeaders(buildAuthHeader("user:password")).Build()
+					response, err := testContext.TestHelper().Curl(curlOpts)
 
 					// Modify the response for expected results
 					if err != nil {
@@ -948,22 +886,22 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				})
 
 				modifyDeploymentReplicas := func(replicas int32) error {
-					deploymentClient := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace)
+					deploymentClient := testContext.ResourceClientSet().KubeClients().AppsV1().Deployments(testContext.InstallNamespace())
 
-					d, err := deploymentClient.Get(ctx, "extauth", metav1.GetOptions{})
+					d, err := deploymentClient.Get(testContext.Ctx(), "extauth", metav1.GetOptions{})
 					if err != nil {
 						return err
 					}
 
 					d.Spec.Replicas = &replicas
-					_, err = deploymentClient.Update(ctx, d, metav1.UpdateOptions{})
+					_, err = deploymentClient.Update(testContext.Ctx(), d, metav1.UpdateOptions{})
 					return err
 				}
 
 				getDeploymentReplicas := func() (int, error) {
-					deploymentClient := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace)
+					deploymentClient := testContext.ResourceClientSet().KubeClients().AppsV1().Deployments(testContext.InstallNamespace())
 
-					d, err := deploymentClient.Get(ctx, "extauth", metav1.GetOptions{})
+					d, err := deploymentClient.Get(testContext.Ctx(), "extauth", metav1.GetOptions{})
 					if err != nil {
 						return 0, err
 					}
@@ -980,15 +918,15 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				}
 
 				modifyDeploymentEnv := func(envVar corev1.EnvVar) error {
-					deploymentClient := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace)
+					deploymentClient := testContext.ResourceClientSet().KubeClients().AppsV1().Deployments(testContext.InstallNamespace())
 
-					d, err := deploymentClient.Get(ctx, "extauth", metav1.GetOptions{})
+					d, err := deploymentClient.Get(testContext.Ctx(), "extauth", metav1.GetOptions{})
 					if err != nil {
 						return err
 					}
 
 					d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, envVar)
-					_, err = deploymentClient.Update(ctx, d, metav1.UpdateOptions{})
+					_, err = deploymentClient.Update(testContext.Ctx(), d, metav1.UpdateOptions{})
 					return err
 				}
 
@@ -1018,7 +956,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					// Ensure that the upstream is reachable
 					curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
 
-					pollingRunner.StartPolling(ctx)
+					pollingRunner.StartPolling(testContext.Ctx())
 
 					// Do nothing for 1 second to allow time for successful polling requests
 					time.Sleep(time.Second * 1)
@@ -1036,7 +974,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					// Ensure that the upstream is reachable
 					curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
 
-					pollingRunner.StartPolling(ctx)
+					pollingRunner.StartPolling(testContext.Ctx())
 
 					// Modify the deployment, causing the pods to be brought up again
 					err := modifyDeploymentEnv(corev1.EnvVar{
@@ -1059,7 +997,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					// Ensure that the upstream is reachable
 					curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
 
-					pollingRunner.StartPolling(ctx)
+					pollingRunner.StartPolling(testContext.Ctx())
 
 					// Scale up the extauth deployment to 4 pods and wait for them all to be ready
 					err := modifyDeploymentReplicas(4)
@@ -1079,7 +1017,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					// Ensure that the upstream is reachable
 					curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
 
-					pollingRunner.StartPolling(ctx)
+					pollingRunner.StartPolling(testContext.Ctx())
 
 					// Do nothing for 1 second to allow time for successful polling requests
 					time.Sleep(time.Second * 1)
@@ -1160,22 +1098,8 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					}).
 					Build()
 
-				glooResources.AuthConfigs = extauthapi.AuthConfigList{acEast, acWest}
-				glooResources.VirtualServices = gatewayv2.VirtualServiceList{vsEast, vsWest}
-
-				err = snapshotWriter.WriteSnapshot(glooResources, clients.WriteOpts{
-					Ctx:               ctx,
-					OverwriteExisting: false,
-				})
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			AfterEach(func() {
-				err = snapshotWriter.DeleteSnapshot(glooResources, clients.DeleteOpts{
-					Ctx:            ctx,
-					IgnoreNotExist: true,
-				})
-				Expect(err).NotTo(HaveOccurred())
+				testContext.ResourcesToWrite().AuthConfigs = extauthapi.AuthConfigList{acEast, acWest}
+				testContext.ResourcesToWrite().VirtualServices = gatewayv2.VirtualServiceList{vsEast, vsWest}
 			})
 
 			JustBeforeEach(func() {
@@ -1188,11 +1112,11 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			})
 
 			It("updates to non-authconfig resources do not change xDS request count", func() {
-				vsRefToUpdate := glooResources.VirtualServices[0].GetMetadata().Ref()
+				vsRefToUpdate := testContext.ResourcesToWrite().VirtualServices[0].GetMetadata().Ref()
 
 				By("Patch the resource to trigger a snapshot sync in the Gloo controller")
 				patchErr := helpers.PatchResource(
-					ctx,
+					testContext.Ctx(),
 					vsRefToUpdate,
 					func(resource resources.Resource) resources.Resource {
 						resource.GetMetadata().Labels = map[string]string{
@@ -1200,7 +1124,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 						}
 						return resource
 					},
-					resourceClientset.VirtualServiceClient().BaseClient(),
+					testContext.ResourceClientSet().VirtualServiceClient().BaseClient(),
 				)
 				Expect(patchErr).NotTo(HaveOccurred())
 
@@ -1226,11 +1150,11 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			// The test is valuable so I decided to keep it to demonstrate how we should be verifying this statistic
 			// For now however, it doesn't perform the assertion that the metric increases
 			It("updates to authconfig resources change xDS request count", func() {
-				authRefToUpdate := glooResources.AuthConfigs[0].GetMetadata().Ref()
+				authRefToUpdate := testContext.ResourcesToWrite().AuthConfigs[0].GetMetadata().Ref()
 
 				By("Patch the resource to trigger a snapshot sync in the Gloo controller")
 				patchErr := helpers.PatchResource(
-					ctx,
+					testContext.Ctx(),
 					authRefToUpdate,
 					func(resource resources.Resource) resources.Resource {
 						authConfig := resource.(*extauthapi.AuthConfig)
@@ -1238,7 +1162,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 						authConfig.Configs[1].GetOauth2().GetAccessTokenValidation().GetIntrospection().IntrospectionUrl = "introspection-url-modified"
 						return authConfig
 					},
-					resourceClientset.AuthConfigClient().BaseClient(),
+					testContext.ResourceClientSet().AuthConfigClient().BaseClient(),
 				)
 				Expect(patchErr).NotTo(HaveOccurred())
 
@@ -1270,6 +1194,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			})
 
 		})
+
 		Context("applying resources", func() {
 			Context("Encryption Key secret (kube secret converter)", func() {
 				const (
@@ -1281,10 +1206,14 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				)
 				var (
 					encryptionKeyUsed = ""
+					authConfig        *extauthapi.AuthConfig
+					encryptionKey     *gloov1.Secret
+					oauthSecret       *gloov1.Secret
 				)
+
 				JustBeforeEach(func() {
-					namespace := testHelper.InstallNamespace
-					authConfig := extauthapi.AuthConfig{
+					namespace := testContext.InstallNamespace()
+					authConfig = &extauthapi.AuthConfig{
 						Metadata: &core.Metadata{
 							Name:      authConfigName,
 							Namespace: namespace,
@@ -1325,7 +1254,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 							},
 						},
 					}
-					encryptionKey := gloov1.Secret{
+					encryptionKey = &gloov1.Secret{
 						Metadata: &core.Metadata{
 							Name:      encryptionKeyName,
 							Namespace: namespace,
@@ -1336,7 +1265,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 							},
 						},
 					}
-					oauthSecret := gloov1.Secret{
+					oauthSecret = &gloov1.Secret{
 						Metadata: &core.Metadata{
 							Name:      oauthName,
 							Namespace: namespace,
@@ -1347,29 +1276,32 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 							},
 						},
 					}
-					glooResources.AuthConfigs = extauthapi.AuthConfigList{&authConfig}
-					glooResources.Secrets = append(glooResources.Secrets, &encryptionKey)
-					glooResources.Secrets = append(glooResources.Secrets, &oauthSecret)
-					err = snapshotWriter.WriteSnapshot(glooResources, clients.WriteOpts{
-						Ctx:               ctx,
-						OverwriteExisting: false,
-					})
+
+					_, err = testContext.ResourceClientSet().AuthConfigClient().Write(authConfig, clients.WriteOpts{Ctx: testContext.Ctx()})
+					Expect(err).NotTo(HaveOccurred())
+					_, err = testContext.ResourceClientSet().SecretClient().Write(oauthSecret, clients.WriteOpts{Ctx: testContext.Ctx()})
+					Expect(err).NotTo(HaveOccurred())
+					_, err = testContext.ResourceClientSet().SecretClient().Write(encryptionKey, clients.WriteOpts{Ctx: testContext.Ctx()})
 					Expect(err).NotTo(HaveOccurred())
 				})
+
 				AfterEach(func() {
-					err = snapshotWriter.DeleteSnapshot(glooResources, clients.DeleteOpts{
-						Ctx:            ctx,
-						IgnoreNotExist: true,
-					})
+					// Delete the resources
+					err = testContext.ResourceClientSet().AuthConfigClient().Delete(authConfig.Metadata.Namespace, authConfig.Metadata.Name, clients.DeleteOpts{Ctx: testContext.Ctx()})
+					Expect(err).NotTo(HaveOccurred())
+					err = testContext.ResourceClientSet().SecretClient().Delete(encryptionKey.Metadata.Namespace, encryptionKey.Metadata.Name, clients.DeleteOpts{Ctx: testContext.Ctx()})
+					Expect(err).NotTo(HaveOccurred())
+					err = testContext.ResourceClientSet().SecretClient().Delete(oauthSecret.Metadata.Namespace, oauthSecret.Metadata.Name, clients.DeleteOpts{Ctx: testContext.Ctx()})
 					Expect(err).NotTo(HaveOccurred())
 				})
+
 				Context("correct encryption key", func() {
 					BeforeEach(func() {
 						encryptionKeyUsed = correctEncryptionKey
 					})
 					It("it will apply a Encryption Key secret and will not Error in Gloo or Ext-Auth", func() {
 						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
-							return authConfigClient.Read(testHelper.InstallNamespace, authConfigName, clients.ReadOpts{Ctx: ctx})
+							return testContext.ResourceClientSet().AuthConfigClient().Read(testContext.InstallNamespace(), authConfigName, clients.ReadOpts{Ctx: testContext.Ctx()})
 						})
 					})
 				})
@@ -1379,7 +1311,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					})
 					It("it will apply a Encryption Key incorrect secret and be rejected", func() {
 						helpers.EventuallyResourceRejected(func() (resources.InputResource, error) {
-							return authConfigClient.Read(testHelper.InstallNamespace, authConfigName, clients.ReadOpts{Ctx: ctx})
+							return testContext.ResourceClientSet().AuthConfigClient().Read(testContext.InstallNamespace(), authConfigName, clients.ReadOpts{Ctx: testContext.Ctx()})
 						})
 					})
 				})

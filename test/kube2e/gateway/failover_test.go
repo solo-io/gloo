@@ -12,10 +12,10 @@ var _ = Describe("Failover Regression", func() {
 	)
 
 	BeforeEach(func() {
+		// The internal FailoverTestContext handles calling the TestContext's Before/AfterEach.
+		testContext := testContextFactory.NewTestContext()
 		failoverTestContext = &internal.FailoverTestContext{
-			TestHelper:        testHelper,
-			ResourceClientset: resourceClientset,
-			SnapshotWriter:    snapshotWriter,
+			TestContext: testContext,
 		}
 
 		failoverTestContext.BeforeEach()

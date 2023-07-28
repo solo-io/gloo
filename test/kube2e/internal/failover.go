@@ -1,12 +1,12 @@
 package internal
 
 import (
-	"context"
 	"net/http"
 	"time"
 
+	"github.com/solo-io/solo-projects/test/kube2e"
+
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	kubernetes2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	"google.golang.org/protobuf/types/known/durationpb"
 
@@ -15,12 +15,10 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/test/helpers"
 	. "github.com/solo-io/gloo/test/kube2e"
-	"github.com/solo-io/k8s-utils/testutils/helper"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -114,21 +112,16 @@ admin:
 // that we are validating
 // It is inspired by the e2e/test_context.go
 type FailoverTestContext struct {
-	TestHelper        *helper.SoloTestHelper
-	ResourceClientset *KubeResourceClientSet
-	SnapshotWriter    helpers.SnapshotWriter
+	*kube2e.TestContext
 
-	Ctx                            context.Context
-	Cancel                         context.CancelFunc
 	RedDeployment, GreenDeployment *appsv1.Deployment
 	RedService, GreenService       *corev1.Service
-	ResourcesToCreate              *gloosnapshot.ApiSnapshot
 }
 
 func (f *FailoverTestContext) BeforeEach() {
+	f.TestContext.BeforeEach()
 	By("FailoverTestContext.BeforeEach: Creating Services and Deployments")
 	var err error
-	f.Ctx, f.Cancel = context.WithCancel(context.Background())
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -162,8 +155,8 @@ func (f *FailoverTestContext) BeforeEach() {
 		Status: appsv1.DeploymentStatus{},
 	}
 
-	kubeClient := f.ResourceClientset.KubeClients()
-	f.RedDeployment, err = kubeClient.AppsV1().Deployments(f.TestHelper.InstallNamespace).Create(f.Ctx, deployment, metav1.CreateOptions{})
+	kubeClient := f.ResourceClientSet().KubeClients()
+	f.RedDeployment, err = kubeClient.AppsV1().Deployments(f.InstallNamespace()).Create(f.Ctx(), deployment, metav1.CreateOptions{})
 	Expect(err).NotTo(HaveOccurred())
 
 	// green pod - no label
@@ -172,7 +165,7 @@ func (f *FailoverTestContext) BeforeEach() {
 	deployment.Spec.Template.Labels["text"] = "green"
 	deployment.Spec.Template.Spec.Containers[0].Args = []string{"-text=\"green-pod\""}
 
-	f.GreenDeployment, err = kubeClient.AppsV1().Deployments(f.TestHelper.InstallNamespace).Create(f.Ctx, deployment, metav1.CreateOptions{})
+	f.GreenDeployment, err = kubeClient.AppsV1().Deployments(f.InstallNamespace()).Create(f.Ctx(), deployment, metav1.CreateOptions{})
 	Expect(err).NotTo(HaveOccurred())
 
 	service := &corev1.Service{
@@ -188,18 +181,12 @@ func (f *FailoverTestContext) BeforeEach() {
 			Type: corev1.ServiceTypeClusterIP,
 		},
 	}
-	f.RedService, err = kubeClient.CoreV1().Services(f.TestHelper.InstallNamespace).Create(f.Ctx, service, metav1.CreateOptions{})
+	f.RedService, err = kubeClient.CoreV1().Services(f.InstallNamespace()).Create(f.Ctx(), service, metav1.CreateOptions{})
 	Expect(err).NotTo(HaveOccurred())
 
 	service.Spec.Selector["text"] = "green"
-	f.GreenService, err = kubeClient.CoreV1().Services(f.TestHelper.InstallNamespace).Create(f.Ctx, service, metav1.CreateOptions{})
+	f.GreenService, err = kubeClient.CoreV1().Services(f.InstallNamespace()).Create(f.Ctx(), service, metav1.CreateOptions{})
 	Expect(err).NotTo(HaveOccurred())
-
-	f.ResourcesToCreate = &gloosnapshot.ApiSnapshot{
-		VirtualServices: v1.VirtualServiceList{
-			// We will create VirtualService within inner contexts
-		},
-	}
 }
 
 func (f *FailoverTestContext) AfterEach() {
@@ -210,17 +197,12 @@ func (f *FailoverTestContext) AfterEach() {
 	f.deleteService(f.RedService)
 	f.deleteService(f.GreenService)
 
-	f.Cancel()
+	f.TestContext.AfterEach()
 }
 
 func (f *FailoverTestContext) JustBeforeEach() {
 	By("FailoverTestContext.JustBeforeEach: Writing Snapshot and waiting for discovered resources")
-
-	err := f.SnapshotWriter.WriteSnapshot(f.ResourcesToCreate, clients.WriteOpts{
-		Ctx:               f.Ctx,
-		OverwriteExisting: false,
-	})
-	Expect(err).NotTo(HaveOccurred())
+	f.TestContext.JustBeforeEach()
 
 	expectedDiscoveredUpstreamNames := []string{
 		f.ServiceUpstreamName(f.RedService),
@@ -228,8 +210,8 @@ func (f *FailoverTestContext) JustBeforeEach() {
 	}
 	Eventually(func(g Gomega) {
 		for _, upstreamName := range expectedDiscoveredUpstreamNames {
-			_, upstreamErr := f.ResourceClientset.UpstreamClient().Read(f.TestHelper.InstallNamespace, upstreamName, clients.ReadOpts{
-				Ctx: f.Ctx,
+			_, upstreamErr := f.ResourceClientSet().UpstreamClient().Read(f.InstallNamespace(), upstreamName, clients.ReadOpts{
+				Ctx: f.Ctx(),
 			})
 			g.Expect(upstreamErr).NotTo(HaveOccurred())
 		}
@@ -238,11 +220,7 @@ func (f *FailoverTestContext) JustBeforeEach() {
 
 func (f *FailoverTestContext) JustAfterEach() {
 	By("FailoverTestContext.JustAfterEach: Deleting ApiSnapshot")
-	err := f.SnapshotWriter.DeleteSnapshot(f.ResourcesToCreate, clients.DeleteOpts{
-		Ctx:            f.Ctx,
-		IgnoreNotExist: true,
-	})
-	Expect(err).NotTo(HaveOccurred())
+	f.TestContext.JustAfterEach()
 }
 
 func (f *FailoverTestContext) deleteDeployment(deployment *appsv1.Deployment) {
@@ -250,7 +228,7 @@ func (f *FailoverTestContext) deleteDeployment(deployment *appsv1.Deployment) {
 		return
 	}
 
-	err := f.ResourceClientset.KubeClients().AppsV1().Deployments(deployment.Namespace).Delete(f.Ctx, deployment.Name, metav1.DeleteOptions{GracePeriodSeconds: proto.Int64(0)})
+	err := f.ResourceClientSet().KubeClients().AppsV1().Deployments(deployment.Namespace).Delete(f.Ctx(), deployment.Name, metav1.DeleteOptions{GracePeriodSeconds: proto.Int64(0)})
 	if !kubeerrors.IsNotFound(err) {
 		Expect(err).NotTo(HaveOccurred())
 	}
@@ -261,7 +239,7 @@ func (f *FailoverTestContext) deleteService(service *corev1.Service) {
 		return
 	}
 
-	err := f.ResourceClientset.KubeClients().CoreV1().Services(service.Namespace).Delete(f.Ctx, service.Name, metav1.DeleteOptions{GracePeriodSeconds: proto.Int64(0)})
+	err := f.ResourceClientSet().KubeClients().CoreV1().Services(service.Namespace).Delete(f.Ctx(), service.Name, metav1.DeleteOptions{GracePeriodSeconds: proto.Int64(0)})
 	if !kubeerrors.IsNotFound(err) {
 		Expect(err).NotTo(HaveOccurred())
 	}
@@ -290,12 +268,12 @@ func (f *FailoverTestContext) PatchServiceUpstream(service *corev1.Service, muta
 	}
 	err := helpers.PatchResourceWithOffset(
 		1,
-		f.Ctx,
+		f.Ctx(),
 		usRef,
 		func(resource resources.Resource) resources.Resource {
 			return mutator(resource.(*gloov1.Upstream))
 		},
-		f.ResourceClientset.UpstreamClient().BaseClient(),
+		f.ResourceClientSet().UpstreamClient().BaseClient(),
 	)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 }
@@ -317,19 +295,18 @@ func FailoverTests(testContextSupplier func() *FailoverTestContext) bool {
 		BeforeEach(func() {
 			testContext = testContextSupplier()
 
-			testContext.ResourcesToCreate.VirtualServices = v1.VirtualServiceList{
-				helpers.NewVirtualServiceBuilder().
-					WithName("vs-to-red-service-upstream").
-					WithNamespace(testContext.TestHelper.InstallNamespace).
-					WithDomain(defaults.GatewayProxyName).
-					WithRoutePrefixMatcher("route-test", "/test/").
-					WithRouteActionToUpstreamRef("route-test", testContext.ServiceUpstreamRef(testContext.RedService)).
-					WithRouteOptions("route-test", &gloov1.RouteOptions{
-						PrefixRewrite: &wrappers.StringValue{
-							Value: "/",
-						},
-					}).
-					Build(),
+			defaultVs := testContext.ResourcesToWrite().VirtualServices[0]
+			vs := helpers.BuilderFromVirtualService(defaultVs).
+				WithName("vs-to-red-service-upstream").
+				WithRoutePrefixMatcher(kube2e.DefaultRouteName, "/test/").
+				WithRouteActionToUpstreamRef(kube2e.DefaultRouteName, testContext.ServiceUpstreamRef(testContext.RedService)).
+				WithRouteOptions(kube2e.DefaultRouteName, &gloov1.RouteOptions{
+					PrefixRewrite: &wrappers.StringValue{
+						Value: "/",
+					},
+				}).Build()
+			testContext.ResourcesToWrite().VirtualServices = v1.VirtualServiceList{
+				vs,
 			}
 		})
 
@@ -373,40 +350,15 @@ func FailoverTests(testContextSupplier func() *FailoverTestContext) bool {
 			})
 
 			// make sure we get primary red endpoint:
-			testContext.TestHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-				Protocol:          "http",
-				Path:              "/test/",
-				Method:            http.MethodGet,
-				Host:              defaults.GatewayProxyName,
-				Service:           defaults.GatewayProxyName,
-				Port:              80,
-				ConnectionTimeout: 1,
-				WithoutStats:      true,
-			}, "red-pod", 0, 120*time.Second, 1*time.Second)
+			curlOpts := testContext.DefaultCurlOptsBuilder().WithPath("/test/").Build()
+			testContext.TestContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, "red-pod", 0, 120*time.Second, 1*time.Second)
 
 			// fail the healthchecks on the red pod:
-			testContext.TestHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-				Protocol:          "http",
-				Path:              "/test/healthcheck/fail",
-				Method:            http.MethodPost,
-				Host:              defaults.GatewayProxyName,
-				Service:           defaults.GatewayProxyName,
-				Port:              80,
-				ConnectionTimeout: 1,
-				WithoutStats:      true,
-			}, "OK", 0, 120*time.Second, 1*time.Second)
+			curlOptsHealthCheck := testContext.DefaultCurlOptsBuilder().WithMethod(http.MethodPost).WithPath("/test/healthcheck/fail").Build()
+			testContext.TestContext.TestHelper().CurlEventuallyShouldRespond(curlOptsHealthCheck, "OK", 0, 120*time.Second, 1*time.Second)
 
 			// make sure we get failover green endpoint:
-			testContext.TestHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-				Protocol:          "http",
-				Path:              "/test/",
-				Method:            http.MethodGet,
-				Host:              defaults.GatewayProxyName,
-				Service:           defaults.GatewayProxyName,
-				Port:              80,
-				ConnectionTimeout: 1,
-				WithoutStats:      true,
-			}, "green-pod", 0, 120*time.Second, 1*time.Second)
+			testContext.TestContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, "green-pod", 0, 120*time.Second, 1*time.Second)
 		})
 
 	})

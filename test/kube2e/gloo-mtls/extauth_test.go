@@ -10,10 +10,29 @@ import (
 
 // Regular extAuth as run in other suites
 var _ = Describe("ExtAuth tests", func() {
-	sharedInputs := ExtAuthTestInputs{}
+	var (
+		sharedInputs ExtAuthTestInputs
+	)
 
 	BeforeEach(func() {
-		sharedInputs.TestHelper = testHelper
+		testContext := testContextFactory.NewTestContext()
+		testContext.BeforeEach()
+
+		sharedInputs = ExtAuthTestInputs{
+			TestContext: testContext,
+		}
+	})
+
+	AfterEach(func() {
+		sharedInputs.TestContext.AfterEach()
+	})
+
+	JustBeforeEach(func() {
+		sharedInputs.TestContext.JustBeforeEach()
+	})
+
+	JustAfterEach(func() {
+		sharedInputs.TestContext.JustAfterEach()
 	})
 
 	Context("running ExtAuth tests", func() {

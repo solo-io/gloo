@@ -1,12 +1,18 @@
 package gateway_test
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/golang/protobuf/ptypes/wrappers"
+	glooKube2e "github.com/solo-io/gloo/test/kube2e"
+
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
+
+	"github.com/solo-io/gloo/test/helpers"
 
 	"github.com/solo-io/solo-projects/test/kube2e"
 	"github.com/solo-io/solo-projects/test/services"
@@ -19,7 +25,6 @@ import (
 	envoy_type "github.com/solo-io/solo-kit/pkg/api/external/envoy/type"
 	"github.com/solo-io/solo-projects/test/e2e/transformation_helpers"
 
-	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/k8s-utils/testutils/helper"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
@@ -28,115 +33,75 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/k8s-utils/kubeutils"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
-	"k8s.io/client-go/rest"
 )
 
 var _ = Describe("dlp tests", func() {
 
 	var (
-		ctx    context.Context
-		cancel context.CancelFunc
-		cfg    *rest.Config
-
-		cache                kube.SharedCache
-		gatewayClient        v2.GatewayClient
-		virtualServiceClient v1.VirtualServiceClient
-
-		httpEcho helper.TestRunner
-
+		testContext      *kube2e.TestContext
+		httpEcho         helper.TestRunner
 		preservedGateway *v1.Gateway
 	)
 
 	BeforeEach(func() {
-		ctx, cancel = context.WithCancel(context.Background())
+		testContext = testContextFactory.NewTestContext()
+		testContext.BeforeEach()
 
 		var err error
-		cfg, err = kubeutils.GetConfig("", "")
-		Expect(err).NotTo(HaveOccurred())
-
-		cache = kube.NewKubeCache(ctx)
-		gatewayClientFactory := &factory.KubeResourceClientFactory{
-			Crd:         v2.GatewayCrd,
-			Cfg:         cfg,
-			SharedCache: cache,
-		}
-		virtualServiceClientFactory := &factory.KubeResourceClientFactory{
-			Crd:         v1.VirtualServiceCrd,
-			Cfg:         cfg,
-			SharedCache: cache,
-		}
-		gatewayClient, err = v2.NewGatewayClient(ctx, gatewayClientFactory)
-		Expect(err).NotTo(HaveOccurred())
-
-		virtualServiceClient, err = v1.NewVirtualServiceClient(ctx, virtualServiceClientFactory)
-		Expect(err).NotTo(HaveOccurred())
-
-		httpEcho, err = helper.NewEchoHttp(testHelper.InstallNamespace)
+		httpEcho, err = helper.NewEchoHttp(testContext.InstallNamespace())
 		Expect(err).NotTo(HaveOccurred())
 
 		err = httpEcho.Deploy(2 * time.Minute)
 		Expect(err).NotTo(HaveOccurred())
 
 		// the gateway may be modified during the test, so we retrieve it beforehand and return it to the previous state after
-		preservedGateway, err = gatewayClient.Read(testHelper.InstallNamespace, defaults.DefaultGateway(testHelper.InstallNamespace).GetMetadata().GetName(), clients.ReadOpts{})
+		preservedGateway, err = testContext.ResourceClientSet().GatewayClient().Read(testContext.InstallNamespace(), defaults.DefaultGateway(testContext.InstallNamespace()).GetMetadata().GetName(), clients.ReadOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		preservedGateway.Metadata.ResourceVersion = ""
 
 		// bounce envoy, get a clean state (draining listener can break this test). see https://github.com/solo-io/solo-projects/issues/2921 for more.
-		out, err := services.KubectlOut(strings.Split("rollout restart -n "+testHelper.InstallNamespace+" deploy/gateway-proxy", " ")...)
+		out, err := services.KubectlOut(strings.Split("rollout restart -n "+testContext.InstallNamespace()+" deploy/gateway-proxy", " ")...)
 		fmt.Println(out)
 		Expect(err).ToNot(HaveOccurred())
-		out, err = services.KubectlOut(strings.Split("rollout status -n "+testHelper.InstallNamespace+" deploy/gateway-proxy", " ")...)
+		out, err = services.KubectlOut(strings.Split("rollout status -n "+testContext.InstallNamespace()+" deploy/gateway-proxy", " ")...)
 		fmt.Println(out)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
 	AfterEach(func() {
-		kube2e.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+		testContext.AfterEach()
 		err := httpEcho.Terminate()
 		Expect(err).NotTo(HaveOccurred())
 
 		// return the gateway to previous state, deleting previous gateway to avoid resource version conflict
-		err = gatewayClient.Delete(testHelper.InstallNamespace, preservedGateway.Metadata.GetName(), clients.DeleteOpts{IgnoreNotExist: true})
+		err = testContext.ResourceClientSet().GatewayClient().Delete(testContext.InstallNamespace(), preservedGateway.Metadata.GetName(), clients.DeleteOpts{IgnoreNotExist: true})
 		Expect(err).NotTo(HaveOccurred())
-		_, err = gatewayClient.Write(preservedGateway, clients.WriteOpts{OverwriteExisting: true})
+		_, err = testContext.ResourceClientSet().GatewayClient().Write(preservedGateway, clients.WriteOpts{OverwriteExisting: true})
 		Expect(err).NotTo(HaveOccurred())
 
 		// Delete http echo service
-		err = testutils.Kubectl("delete", "service", "-n", testHelper.InstallNamespace, helper.HttpEchoName, "--grace-period=0")
+		err = testutils.Kubectl("delete", "service", "-n", testContext.InstallNamespace(), helper.HttpEchoName, "--grace-period=0")
 		Expect(err).NotTo(HaveOccurred())
-		cancel()
 	})
 
-	waitForGateway := func() {
-		defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
-		// wait for default gateway to be created
-		EventuallyWithOffset(2, func() (*v2.Gateway, error) {
-			return gatewayClient.Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
-		}, "15s", "0.5s").Should(Not(BeNil()))
-	}
+	JustBeforeEach(func() {
+		testContext.JustBeforeEach()
+	})
+
+	JustAfterEach(func() {
+		testContext.JustAfterEach()
+	})
 
 	checkConnection := func(path, body string) {
-		waitForGateway()
+		testContext.EventuallyProxyAccepted()
 
-		gatewayPort := 80
-		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-			Protocol:          "http",
-			Path:              path,
-			Method:            "GET",
-			Headers:           map[string]string{"hello": "world"},
-			Host:              defaults.GatewayProxyName,
-			Service:           defaults.GatewayProxyName,
-			Port:              gatewayPort,
-			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-			Verbose:           true,
-		}, body, 1, time.Minute*5)
+		curlOpts := testContext.DefaultCurlOptsBuilder().
+			WithPath(path).WithHeaders(map[string]string{"hello": "world"}).
+			WithConnectionTimeout(10).WithVerbose(true).Build()
+		testContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, body, 1, time.Minute*5)
 	}
 
 	Context("data loss prevention", func() {
@@ -159,88 +124,103 @@ var _ = Describe("dlp tests", func() {
 				},
 			}
 
-			virtualHostPlugins := &gloov1.VirtualHostOptions{
-				Dlp: dlpVhost,
-			}
-
 			httpEchoRef := &core.ResourceRef{
-				Namespace: testHelper.InstallNamespace,
-				Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
+				Namespace: testContext.InstallNamespace(),
+				Name:      kubernetes.UpstreamName(testContext.InstallNamespace(), helper.HttpEchoName, helper.HttpEchoPort),
 			}
-			kube2e.WriteCustomVirtualService(ctx, 1, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil, httpEchoRef, kube2e.TestMatcherPrefix)
+			testContext.PatchDefaultVirtualService(func(service *v1.VirtualService) *v1.VirtualService {
+				virtualHostPlugins := &gloov1.VirtualHostOptions{
+					Dlp: dlpVhost,
+				}
+
+				return helpers.BuilderFromVirtualService(service).WithVirtualHostOptions(virtualHostPlugins).WithRouteActionToUpstreamRef(kube2e.DefaultRouteName, httpEchoRef).Build()
+			})
 			checkConnection(kube2e.TestMatcherPrefix, `"YYYlo":"YYYld"`)
 		})
 
 		It("will only apply to matched routes on gateway-level dlp option", func() {
 			unmatchedPath := "/unmatched"
-			gateway, err := gatewayClient.Read(testHelper.InstallNamespace, defaults.DefaultGateway(testHelper.InstallNamespace).GetMetadata().GetName(), clients.ReadOpts{})
-			Expect(err).NotTo(HaveOccurred())
-			gateway.GatewayType = &v1.Gateway_HttpGateway{
-				HttpGateway: &v1.HttpGateway{
-					Options: &gloov1.HttpListenerOptions{
-						Dlp: &dlp.FilterConfig{
-							DlpRules: []*dlp.DlpRule{
-								{
-									Matcher: &matchers.Matcher{
-										PathSpecifier: &matchers.Matcher_Regex{
-											Regex: "\\/t.*t",
-										},
-									},
-									Actions: []*dlp.Action{
-										{
-											ActionType: dlp.Action_CUSTOM,
-											CustomAction: &dlp.CustomAction{
-												Name:     "test",
-												Regex:    []string{"hello", "world"},
-												MaskChar: "Y",
-												Percent: &envoy_type.Percent{
-													Value: 60,
-												},
-											},
+			matcher := &matchers.Matcher{
+				PathSpecifier: &matchers.Matcher_Regex{
+					Regex: "\\/t.*t",
+				},
+			}
+			action := &dlp.Action{
+				ActionType: dlp.Action_CUSTOM,
+				CustomAction: &dlp.CustomAction{
+					Name:     "test",
+					Regex:    []string{"hello", "world"},
+					MaskChar: "Y",
+					Percent: &envoy_type.Percent{
+						Value: 60,
+					},
+				},
+			}
+			testContext.PatchDefaultGateway(func(gateway *v1.Gateway) *v1.Gateway {
+				gateway.GatewayType = &v1.Gateway_HttpGateway{
+					HttpGateway: &v1.HttpGateway{
+						Options: &gloov1.HttpListenerOptions{
+							Dlp: &dlp.FilterConfig{
+								DlpRules: []*dlp.DlpRule{
+									{
+										Matcher: matcher,
+										Actions: []*dlp.Action{
+											action,
 										},
 									},
 								},
 							},
 						},
 					},
-				},
-			}
-			_, err = gatewayClient.Write(gateway, clients.WriteOpts{OverwriteExisting: true})
-			Expect(err).NotTo(HaveOccurred())
+				}
+				return gateway
+			})
+			testContext.EventuallyProxyAccepted()
 
 			httpEchoRef := &core.ResourceRef{
-				Namespace: testHelper.InstallNamespace,
-				Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
+				Namespace: testContext.InstallNamespace(),
+				Name:      kubernetes.UpstreamName(testContext.InstallNamespace(), helper.HttpEchoName, helper.HttpEchoPort),
 			}
 
 			// we expect DLP to apply when requesting a path, /test, that matches the matcher in the DlpRule
-			kube2e.WriteCustomVirtualService(ctx, 1, testHelper, virtualServiceClient, nil, nil, nil, httpEchoRef, kube2e.TestMatcherPrefix)
+			testContext.PatchDefaultVirtualService(func(service *v1.VirtualService) *v1.VirtualService {
+				return helpers.BuilderFromVirtualService(service).WithRouteActionToUpstreamRef(kube2e.DefaultRouteName, httpEchoRef).Build()
+			})
 			checkConnection(kube2e.TestMatcherPrefix, `"YYYlo":"YYYld"`)
 
 			// we do not expect DLP to apply when requesting a path, /unmatched, that does not match the matcher in the DlpRule
-			kube2e.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
-			kube2e.WriteCustomVirtualService(ctx, 1, testHelper, virtualServiceClient, nil, nil, nil, httpEchoRef, unmatchedPath)
+			testContext.PatchDefaultVirtualService(func(service *v1.VirtualService) *v1.VirtualService {
+				return helpers.BuilderFromVirtualService(service).WithRouteActionToUpstreamRef(kube2e.DefaultRouteName, httpEchoRef).WithRoutePrefixMatcher(kube2e.DefaultRouteName, unmatchedPath).Build()
+			})
 			checkConnection(unmatchedPath, `"hello":"world"`)
-
 		})
 	})
 
-	Context("xslt transformer", func() {
+	// These tests are `Ordered` so the settings are only updated once, and not per-test.
+	Context("xslt transformer", Ordered, func() {
+		BeforeAll(func() {
+			// Strict validation is enabled by default, but we need to disable it for these tests.
+			glooKube2e.UpdateSettings(testContext.Ctx(), func(settings *gloov1.Settings) {
+				settings.Gateway.Validation.AlwaysAccept = &wrappers.BoolValue{Value: true}
+				settings.Gateway.Validation.AllowWarnings = &wrappers.BoolValue{Value: true}
+			}, testContext.InstallNamespace())
+		})
+
+		AfterAll(func() {
+			// Reset settings to default values
+			glooKube2e.UpdateSettings(testContext.Ctx(), func(settings *gloov1.Settings) {
+				settings.Gateway.Validation.AlwaysAccept = &wrappers.BoolValue{Value: false}
+				settings.Gateway.Validation.AllowWarnings = &wrappers.BoolValue{Value: true}
+			}, testContext.InstallNamespace())
+		})
+
 		expectBody := func(body, expectedBody string) {
-			waitForGateway()
+			testContext.EventuallyProxyAccepted()
 			expectedString := regexp.MustCompile("[\\r\\n\\s]+").ReplaceAllString(expectedBody, "")
-			gatewayPort := 80
-			testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-				Protocol:          "http",
-				Path:              kube2e.TestMatcherPrefix,
-				Headers:           map[string]string{"hello": "world"},
-				Host:              defaults.GatewayProxyName,
-				Service:           defaults.GatewayProxyName,
-				Port:              gatewayPort,
-				ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-				Verbose:           true,
-				Body:              body,
-			}, expectedString, 1, time.Second*20)
+			curlOpts := testContext.DefaultCurlOptsBuilder().
+				WithHeaders(map[string]string{"hello": "world"}).WithConnectionTimeout(10).
+				WithVerbose(true).WithBody(body).Build()
+			testContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, expectedString, 1, time.Second*20)
 		}
 
 		It("will transform xml -> json", func() {
@@ -269,10 +249,12 @@ var _ = Describe("dlp tests", func() {
 			}
 
 			httpEchoRef := &core.ResourceRef{
-				Namespace: testHelper.InstallNamespace,
-				Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
+				Namespace: testContext.InstallNamespace(),
+				Name:      kubernetes.UpstreamName(testContext.InstallNamespace(), helper.HttpEchoName, helper.HttpEchoPort),
 			}
-			kube2e.WriteCustomVirtualService(ctx, 1, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil, httpEchoRef, kube2e.TestMatcherPrefix)
+			testContext.PatchDefaultVirtualService(func(service *v1.VirtualService) *v1.VirtualService {
+				return helpers.BuilderFromVirtualService(service).WithVirtualHostOptions(virtualHostPlugins).WithRouteActionToUpstreamRef(kube2e.DefaultRouteName, httpEchoRef).Build()
+			})
 			expectBody(transformation_helpers.CarsXml, transformation_helpers.CarsJson)
 		})
 	})

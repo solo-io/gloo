@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4131
+    resolvesIssue: false
+    description: >-
+      Use the newly-created `TestContext` in Kube2e tests.

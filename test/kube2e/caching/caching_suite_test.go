@@ -42,8 +42,8 @@ var _ = BeforeSuite(func() {
 
 	skhelpers.RegisterPreFailHandler(helpers.KubeDumpOnFail(GinkgoWriter, testHelper.InstallNamespace))
 
-	testContextFactory.InstallGloo(suiteCtx)
-	testContextFactory.SetupSnapshotAndClientset(suiteCtx)
+	testContextFactory.InstallGloo(suiteCtx, "helm.yaml")
+	testContextFactory.SetupSnapshotAndClientSet(suiteCtx)
 })
 
 var _ = AfterSuite(func() {

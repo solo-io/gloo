@@ -9,10 +9,29 @@ import (
 )
 
 var _ = Describe("RateLimit tests", func() {
-	sharedInputs := RateLimitTestInputs{}
+	var (
+		sharedInputs RateLimitTestInputs
+	)
 
 	BeforeEach(func() {
-		sharedInputs.TestHelper = testHelper
+		testContext := testContextFactory.NewTestContext()
+		testContext.BeforeEach()
+
+		sharedInputs = RateLimitTestInputs{
+			TestContext: testContext,
+		}
+	})
+
+	AfterEach(func() {
+		sharedInputs.TestContext.AfterEach()
+	})
+
+	JustBeforeEach(func() {
+		sharedInputs.TestContext.JustBeforeEach()
+	})
+
+	JustAfterEach(func() {
+		sharedInputs.TestContext.JustAfterEach()
 	})
 
 	Context("running rateLimit tests", func() {

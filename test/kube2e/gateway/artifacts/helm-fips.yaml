@@ -1,0 +1,47 @@
+gloo:
+  gatewayProxies:
+    gatewayProxy:
+      healthyPanicThreshold: 0
+  gateway:
+    persistProxySpec: true
+    logLevel: info
+    validation:
+      allowWarnings: true
+      alwaysAcceptResources: false
+  gloo:
+    logLevel: info
+    deployment:
+      replicas: 2
+      customEnv:
+        # We scale the Gloo component frequently in tests, and need leadership to be established quickly
+        # Therefore, we set values to lower thresholds than the defaults
+        - name: LEADER_ELECTION_LEASE_DURATION
+          value: 4s
+        - name: LEADER_ELECTION_RENEW_PERIOD
+          value: 3s
+        - name: LEADER_ELECTION_RETRY_PERIOD
+          value: 1s
+      livenessProbeEnabled: true
+  rbac:
+    namespaced: true
+    nameSuffix: e2e-test-rbac-suffix
+settings:
+  singleNamespace: true
+  create: true
+prometheus:
+  podSecurityPolicy:
+    enabled: true
+grafana:
+  testFramework:
+    enabled: false
+gloo-fed:
+  enabled: false
+  glooFedApiserver:
+    enable: false
+global:
+  extensions:
+    extAuth:
+      # we want to deploy extauth as both a standalone deployment (the default) and as a sidecar in the envoy pod, so we can test both
+      envoySidecar: true
+  image:
+    fips: true

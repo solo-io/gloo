@@ -4,7 +4,7 @@ DOCKER_BUILDKIT=0 docker build https://github.com/envoyproxy/envoy.git\#main:exa
 
 # Step 2: build final docker image from intermediate image
 
-# if you build a version of this image with a new tag, update ./resources/pod.yaml
+# if you build a version of this image with a new tag, update the pod in caching test
 # to use the new image in the caching tests
 # image tag defaults to 0.0.0 if not set
 

@@ -2,8 +2,9 @@ package wasm_test
 
 import (
 	"context"
-	"fmt"
 	"time"
+
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -89,7 +90,7 @@ var _ = Describe("Kube2e: wasm", func() {
 				DestinationType: &gloov1.Destination_Upstream{
 					Upstream: &core.ResourceRef{
 						Namespace: testHelper.InstallNamespace,
-						Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, helper.TestrunnerName, helper.TestRunnerPort),
+						Name:      kubernetes.UpstreamName(testHelper.InstallNamespace, helper.TestrunnerName, helper.TestRunnerPort),
 					},
 				},
 			}
