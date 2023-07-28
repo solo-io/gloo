@@ -1,0 +1,86 @@
+name: Bug Report
+description: Create a report to help us improve
+labels: ["Type: Bug"]
+body:
+  - type: dropdown
+    id: product
+    attributes:
+      label: Gloo Edge Product
+      description: Which Edge product are you using?
+      options:
+        - Open Source
+        - Enterprise
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Gloo Edge Version
+      description: What version of your product are you using? Please specify a specific patch version
+      placeholder: eg v1.14.2
+    validations:
+      required: true
+  - type: input
+    id: kube-version
+    attributes:
+      label: Kubernetes Version
+      description: What version of Kubernetes are you using with Gloo Edge?
+      placeholder: eg v1.26.6
+    validations:
+      required: true
+  - type: textarea
+    id: describe-bug
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is
+      placeholder: |
+        The x resource enters a failed state when I set field foo to bar
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what is expected to happen
+      placeholder: |
+        Resource x should be accepted. 
+        Or, if "bar" is not a valid possible value for field "foo", then an error message should say so.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce-steps
+    attributes:
+      label: Steps to reproduce the bug
+      description: |
+        Enumerate steps one might take to reproduce the bug from scratch, with as much detail as possible
+      placeholder: |
+        eg:
+        1. kubectl apply '...'
+        2. kubectl get -oyaml '....'
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: additional-environment-detail
+    attributes:
+      label: Additional Environment Detail
+      description: Please include details about any other tools or integrations that may be relevant, and their versions
+      placeholder: |
+        eg:
+        Using keycloak v21.1.0 as IDP
+        Using argo CD v2.7.5 to manage cluster
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Please include any additional context in the form of logs, screenshots, links, etc.
+      placeholder: |
+        eg:
+        Logs can be found [here](my-logs.com?runid=123)
+
+        Relevant section:
+        ```
+        line 12
+        line 13
+        ...
+        ```
