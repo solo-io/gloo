@@ -3,7 +3,6 @@ package extauth_test
 import (
 	"time"
 
-	envoytransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	glooTransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	extauth2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
 
@@ -324,40 +323,40 @@ var _ = Describe("Plugin", func() {
 							{
 								RequestTransformation: &glooTransformation.Transformation{
 									TransformationType: &glooTransformation.Transformation_TransformationTemplate{
-										TransformationTemplate: &envoytransformation.TransformationTemplate{
-											DynamicMetadataValues: []*envoytransformation.TransformationTemplate_DynamicMetadataValue{
+										TransformationTemplate: &glooTransformation.TransformationTemplate{
+											DynamicMetadataValues: []*glooTransformation.TransformationTemplate_DynamicMetadataValue{
 												{
 													Key:               "key1",
 													MetadataNamespace: "zNamespace", // ensure that the final value is sorted
-													Value: &envoytransformation.InjaTemplate{
+													Value: &glooTransformation.InjaTemplate{
 														Text: "testZ",
 													},
 												},
 												{
 													Key:               "key1",
 													MetadataNamespace: "namespace1",
-													Value: &envoytransformation.InjaTemplate{
+													Value: &glooTransformation.InjaTemplate{
 														Text: "test1",
 													},
 												},
 												{
 													Key:               "key2",
 													MetadataNamespace: "namespace2",
-													Value: &envoytransformation.InjaTemplate{
+													Value: &glooTransformation.InjaTemplate{
 														Text: "test2",
 													},
 												},
 												{
 													Key:               "Key3",
 													MetadataNamespace: "namespace3",
-													Value: &envoytransformation.InjaTemplate{
+													Value: &glooTransformation.InjaTemplate{
 														Text: "test3",
 													},
 												},
 												{
 													Key:               "Key4",
 													MetadataNamespace: "namespace3", //duplicate to make sure dupes are removed
-													Value: &envoytransformation.InjaTemplate{
+													Value: &glooTransformation.InjaTemplate{
 														Text: "test4",
 													},
 												},
@@ -406,40 +405,40 @@ var _ = Describe("Plugin", func() {
 							{
 								RequestTransformation: &glooTransformation.Transformation{
 									TransformationType: &glooTransformation.Transformation_TransformationTemplate{
-										TransformationTemplate: &envoytransformation.TransformationTemplate{
-											DynamicMetadataValues: []*envoytransformation.TransformationTemplate_DynamicMetadataValue{
+										TransformationTemplate: &glooTransformation.TransformationTemplate{
+											DynamicMetadataValues: []*glooTransformation.TransformationTemplate_DynamicMetadataValue{
 												{
 													Key:               "key1",
 													MetadataNamespace: "zNamespace", // ensure that the final value is sorted
-													Value: &envoytransformation.InjaTemplate{
+													Value: &glooTransformation.InjaTemplate{
 														Text: "testZ",
 													},
 												},
 												{
 													Key:               "key1",
 													MetadataNamespace: "namespace1",
-													Value: &envoytransformation.InjaTemplate{
+													Value: &glooTransformation.InjaTemplate{
 														Text: "test1",
 													},
 												},
 												{
 													Key:               "key2",
 													MetadataNamespace: "namespace2",
-													Value: &envoytransformation.InjaTemplate{
+													Value: &glooTransformation.InjaTemplate{
 														Text: "test2",
 													},
 												},
 												{
 													Key:               "Key3",
 													MetadataNamespace: "namespace3",
-													Value: &envoytransformation.InjaTemplate{
+													Value: &glooTransformation.InjaTemplate{
 														Text: "test3",
 													},
 												},
 												{
 													Key:               "Key4",
 													MetadataNamespace: "namespace3", //duplicate to make sure dupes are removed
-													Value: &envoytransformation.InjaTemplate{
+													Value: &glooTransformation.InjaTemplate{
 														Text: "test4",
 													},
 												},

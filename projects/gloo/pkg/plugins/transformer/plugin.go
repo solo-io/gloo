@@ -73,7 +73,7 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 }
 
 // Translates transformations that can include enterprise transformers, such as the XSLT transformer.
-func translateTransformation(glooTransform *transformation.Transformation) (*envoytransformation.Transformation, error) {
+func translateTransformation(glooTransform *transformation.Transformation, settingsEscapeCharacters, stagedEscapeCharacters *wrapperspb.BoolValue) (*envoytransformation.Transformation, error) {
 	if glooTransform == nil {
 		return nil, nil
 	}
@@ -97,7 +97,7 @@ func translateTransformation(glooTransform *transformation.Transformation) (*env
 			out.LogRequestResponseInfo = &wrapperspb.BoolValue{Value: glooTransform.GetLogRequestResponseInfo()}
 		}
 	default:
-		return osTransformation.TranslateTransformation(glooTransform)
+		return osTransformation.TranslateTransformation(glooTransform, settingsEscapeCharacters, stagedEscapeCharacters)
 	}
 	return out, nil
 }

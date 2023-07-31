@@ -28,7 +28,6 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	jwtplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
@@ -921,9 +920,9 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream *c
 					Transformations: &glootransformation.Transformations{
 						RequestTransformation: &glootransformation.Transformation{
 							TransformationType: &glootransformation.Transformation_TransformationTemplate{
-								TransformationTemplate: &transformation.TransformationTemplate{
-									Headers:            map[string]*transformation.InjaTemplate{"x-new-header": {Text: "new"}},
-									BodyTransformation: &transformation.TransformationTemplate_Passthrough{Passthrough: &transformation.Passthrough{}},
+								TransformationTemplate: &glootransformation.TransformationTemplate{
+									Headers:            map[string]*glootransformation.InjaTemplate{"x-new-header": {Text: "new"}},
+									BodyTransformation: &glootransformation.TransformationTemplate_Passthrough{Passthrough: &glootransformation.Passthrough{}},
 								},
 							},
 						},

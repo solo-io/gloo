@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"strconv"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -89,9 +91,17 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *gloov1.Upstream, out
 
 	secretList := params.Snapshot.Secrets
 	out.HealthChecks = make([]*envoy_config_core_v3.HealthCheck, len(in.GetHealthChecks()))
-
+	shouldEnforceNamespaceMatch := false
+	shouldEnforceStr := os.Getenv(api_conversion.MatchingNamespaceEnv)
+	if shouldEnforceStr != "" {
+		var err error
+		shouldEnforceNamespaceMatch, err = strconv.ParseBool(shouldEnforceStr)
+		if err != nil {
+			return err
+		}
+	}
 	for i, hcCfg := range in.GetHealthChecks() {
-		envoyHc, err := api_conversion.ToEnvoyHealthCheck(hcCfg, &secretList)
+		envoyHc, err := api_conversion.ToEnvoyHealthCheck(hcCfg, &secretList, api_conversion.HeaderSecretOptions{EnforceNamespaceMatch: shouldEnforceNamespaceMatch, UpstreamNamespace: in.GetMetadata().GetNamespace()})
 		if err != nil {
 			return err
 		}

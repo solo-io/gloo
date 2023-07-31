@@ -6873,7 +6873,8 @@ proto.gloo.solo.io.GlooOptions.toObject = function(includeInstance, msg) {
     failoverUpstreamDnsPollingInterval: (f = msg.getFailoverUpstreamDnsPollingInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     removeUnusedFilters: (f = msg.getRemoveUnusedFilters()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     proxyDebugBindAddr: jspb.Message.getFieldWithDefault(msg, 15, ""),
-    logTransformationRequestResponseInfo: (f = msg.getLogTransformationRequestResponseInfo()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    logTransformationRequestResponseInfo: (f = msg.getLogTransformationRequestResponseInfo()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    transformationEscapeCharacters: (f = msg.getTransformationEscapeCharacters()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -6984,6 +6985,11 @@ proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader = function(msg, reade
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setLogTransformationRequestResponseInfo(value);
+      break;
+    case 17:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setTransformationEscapeCharacters(value);
       break;
     default:
       reader.skipField();
@@ -7133,6 +7139,14 @@ proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter = function(message, write
   if (f != null) {
     writer.writeMessage(
       16,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getTransformationEscapeCharacters();
+  if (f != null) {
+    writer.writeMessage(
+      17,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
@@ -8102,6 +8116,36 @@ proto.gloo.solo.io.GlooOptions.prototype.clearLogTransformationRequestResponseIn
  */
 proto.gloo.solo.io.GlooOptions.prototype.hasLogTransformationRequestResponseInfo = function() {
   return jspb.Message.getField(this, 16) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue transformation_escape_characters = 17;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getTransformationEscapeCharacters = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 17));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GlooOptions.prototype.setTransformationEscapeCharacters = function(value) {
+  jspb.Message.setWrapperField(this, 17, value);
+};
+
+
+proto.gloo.solo.io.GlooOptions.prototype.clearTransformationEscapeCharacters = function() {
+  this.setTransformationEscapeCharacters(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.hasTransformationEscapeCharacters = function() {
+  return jspb.Message.getField(this, 17) != null;
 };
 
 

@@ -441,6 +441,9 @@ export class TransformationTemplate extends jspb.Message {
   setDynamicMetadataValuesList(value: Array<TransformationTemplate.DynamicMetadataValue>): void;
   addDynamicMetadataValues(value?: TransformationTemplate.DynamicMetadataValue, index?: number): TransformationTemplate.DynamicMetadataValue;
 
+  getEscapeCharacters(): boolean;
+  setEscapeCharacters(value: boolean): void;
+
   getBodyTransformationCase(): TransformationTemplate.BodyTransformationCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TransformationTemplate.AsObject;
@@ -465,6 +468,7 @@ export namespace TransformationTemplate {
     parseBodyBehavior: TransformationTemplate.RequestBodyParseMap[keyof TransformationTemplate.RequestBodyParseMap],
     ignoreErrorOnParse: boolean,
     dynamicMetadataValuesList: Array<TransformationTemplate.DynamicMetadataValue.AsObject>,
+    escapeCharacters: boolean,
   }
 
   export class HeaderToAppend extends jspb.Message {

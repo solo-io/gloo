@@ -1,0 +1,29 @@
+changelog:
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/solo-projects/issues/5155
+  resolvesIssue: false
+  description: >-
+    Add option to preserve escaped characters within an entire TransformationTemplate
+    and a new Inja function for fine-grained control within a template.
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/gloo/issues/7428
+  resolvesIssue: false
+  description: >-
+    Gloo now supports connection limiting. This restricts the number of active connections per gateway. Useful to protect resources, ensure fair share of resources across gateways, and prevent DoS attacks.
+    Both HTTP and TCP Gateways can now be configured via the `options.ConnectionLimit` parameter to restrict the number of active connections and wait for an optional delay before closing them.
+    This is based off the envoy Connection Limit Filter (https://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/network_filters/connection_limit_filter)
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/solo-projects/issues/5007
+  resolvesIssue: false
+  description: >-
+    Add an environment variable "HEADER_SECRET_REF_NS_MATCHES_US" that when set in the gloo pod requires that secrets
+    sent in headers to an upstream are in the same namespace as that upstream. This defaults to false and when it is not set,
+    resources can be in any namespaces watched by Gloo.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.15.0-beta23
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: solo-apis
+  dependencyTag: gloo-v1.15.0-beta23

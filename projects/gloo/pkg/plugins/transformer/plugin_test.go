@@ -8,7 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
-	v32 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
+	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	envoytransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	xslt "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformers/xslt"
 	osTransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
@@ -38,11 +38,12 @@ var _ = Describe("Plugin", func() {
 		})
 
 		It("translates header body transform", func() {
+			headerBodyTransformIn := &osTransformation.HeaderBodyTransform{}
 			headerBodyTransform := &envoytransformation.HeaderBodyTransform{}
 
 			input := &osTransformation.Transformation{
 				TransformationType: &osTransformation.Transformation_HeaderBodyTransform{
-					HeaderBodyTransform: headerBodyTransform,
+					HeaderBodyTransform: headerBodyTransformIn,
 				},
 			}
 
@@ -51,7 +52,7 @@ var _ = Describe("Plugin", func() {
 					HeaderBodyTransform: headerBodyTransform,
 				},
 			}
-			output, err := transformation.TranslateTransformation(input)
+			output, err := transformation.TranslateTransformation(input, nil, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(expectedOutput))
 		})
@@ -74,7 +75,7 @@ var _ = Describe("Plugin", func() {
 
 				expectedOutput = &envoytransformation.Transformation{
 					TransformationType: &envoytransformation.Transformation_TransformerConfig{
-						TransformerConfig: &v32.TypedExtensionConfig{
+						TransformerConfig: &v3.TypedExtensionConfig{
 							// Arbitrary name for TypedExtension, will error if left empty
 							Name: XsltTransformerFactoryName,
 							TypedConfig: &anypb.Any{
@@ -90,7 +91,7 @@ var _ = Describe("Plugin", func() {
 			It("can set log_request_response_info on transformation level", func() {
 				inputTransformation.LogRequestResponseInfo = true
 				expectedOutput.LogRequestResponseInfo = &wrapperspb.BoolValue{Value: true}
-				output, err := p.plugin.TranslateTransformation(inputTransformation)
+				output, err := p.plugin.TranslateTransformation(inputTransformation, nil, nil)
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(output).To(Equal(expectedOutput))

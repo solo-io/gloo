@@ -56,7 +56,7 @@ var _ = Describe("Plugin", func() {
 			},
 		}
 
-		healthCheck, _ := api_conversion.ToEnvoyHealthCheck(check, nil)
+		healthCheck, _ := api_conversion.ToEnvoyHealthCheck(check, nil, api_conversion.HeaderSecretOptions{EnforceNamespaceMatch: false})
 		baseHealthCheck = healthCheck.GetHttpHealthCheck()
 
 		out.HealthChecks = []*envoy_config_core_v3.HealthCheck{

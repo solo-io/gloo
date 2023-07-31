@@ -12,7 +12,6 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/pkg/cliutil/install"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	glooStatic "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	glootransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	kubernetes2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
@@ -156,8 +155,8 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				ClearRouteCache: true,
 				ResponseTransformation: &glootransformation.Transformation{
 					TransformationType: &glootransformation.Transformation_TransformationTemplate{
-						TransformationTemplate: &transformation.TransformationTemplate{
-							Headers: map[string]*transformation.InjaTemplate{
+						TransformationTemplate: &glootransformation.TransformationTemplate{
+							Headers: map[string]*glootransformation.InjaTemplate{
 								":status": {Text: injaTransform},
 							},
 						},

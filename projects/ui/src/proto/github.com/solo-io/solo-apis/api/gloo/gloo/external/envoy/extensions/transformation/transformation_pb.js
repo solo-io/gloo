@@ -2867,7 +2867,8 @@ proto.envoy.api.v2.filter.http.TransformationTemplate.toObject = function(includ
     parseBodyBehavior: jspb.Message.getFieldWithDefault(msg, 7, 0),
     ignoreErrorOnParse: jspb.Message.getFieldWithDefault(msg, 8, false),
     dynamicMetadataValuesList: jspb.Message.toObjectList(msg.getDynamicMetadataValuesList(),
-    proto.envoy.api.v2.filter.http.TransformationTemplate.DynamicMetadataValue.toObject, includeInstance)
+    proto.envoy.api.v2.filter.http.TransformationTemplate.DynamicMetadataValue.toObject, includeInstance),
+    escapeCharacters: jspb.Message.getFieldWithDefault(msg, 12, false)
   };
 
   if (includeInstance) {
@@ -2956,6 +2957,10 @@ proto.envoy.api.v2.filter.http.TransformationTemplate.deserializeBinaryFromReade
       var value = new proto.envoy.api.v2.filter.http.TransformationTemplate.DynamicMetadataValue;
       reader.readMessage(value,proto.envoy.api.v2.filter.http.TransformationTemplate.DynamicMetadataValue.deserializeBinaryFromReader);
       msg.addDynamicMetadataValues(value);
+      break;
+    case 12:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setEscapeCharacters(value);
       break;
     default:
       reader.skipField();
@@ -3060,6 +3065,13 @@ proto.envoy.api.v2.filter.http.TransformationTemplate.serializeBinaryToWriter = 
       9,
       f,
       proto.envoy.api.v2.filter.http.TransformationTemplate.DynamicMetadataValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getEscapeCharacters();
+  if (f) {
+    writer.writeBool(
+      12,
+      f
     );
   }
 };
@@ -3735,6 +3747,23 @@ proto.envoy.api.v2.filter.http.TransformationTemplate.prototype.addDynamicMetada
 
 proto.envoy.api.v2.filter.http.TransformationTemplate.prototype.clearDynamicMetadataValuesList = function() {
   this.setDynamicMetadataValuesList([]);
+};
+
+
+/**
+ * optional bool escape_characters = 12;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.api.v2.filter.http.TransformationTemplate.prototype.getEscapeCharacters = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 12, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.api.v2.filter.http.TransformationTemplate.prototype.setEscapeCharacters = function(value) {
+  jspb.Message.setProto3BooleanField(this, 12, value);
 };
 
 

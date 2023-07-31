@@ -12,16 +12,25 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_matchers_matchers_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb.js');
-var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/transformation/transformation_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/transformers/xslt/xslt_transformer_pb.js');
 var extproto_ext_pb = require('../../../../../../../../../extproto/ext_pb.js');
+goog.exportSymbol('proto.transformation.options.gloo.solo.io.Extraction', null, global);
+goog.exportSymbol('proto.transformation.options.gloo.solo.io.HeaderBodyTransform', null, global);
+goog.exportSymbol('proto.transformation.options.gloo.solo.io.InjaTemplate', null, global);
+goog.exportSymbol('proto.transformation.options.gloo.solo.io.MergeExtractorsToBody', null, global);
+goog.exportSymbol('proto.transformation.options.gloo.solo.io.Passthrough', null, global);
 goog.exportSymbol('proto.transformation.options.gloo.solo.io.RequestMatch', null, global);
 goog.exportSymbol('proto.transformation.options.gloo.solo.io.RequestResponseTransformations', null, global);
 goog.exportSymbol('proto.transformation.options.gloo.solo.io.ResponseMatch', null, global);
 goog.exportSymbol('proto.transformation.options.gloo.solo.io.Transformation', null, global);
 goog.exportSymbol('proto.transformation.options.gloo.solo.io.TransformationStages', null, global);
+goog.exportSymbol('proto.transformation.options.gloo.solo.io.TransformationTemplate', null, global);
+goog.exportSymbol('proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue', null, global);
+goog.exportSymbol('proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend', null, global);
+goog.exportSymbol('proto.transformation.options.gloo.solo.io.TransformationTemplate.RequestBodyParse', null, global);
 goog.exportSymbol('proto.transformation.options.gloo.solo.io.Transformations', null, global);
 
 /**
@@ -1034,7 +1043,8 @@ proto.transformation.options.gloo.solo.io.TransformationStages.toObject = functi
     early: (f = msg.getEarly()) && proto.transformation.options.gloo.solo.io.RequestResponseTransformations.toObject(includeInstance, f),
     regular: (f = msg.getRegular()) && proto.transformation.options.gloo.solo.io.RequestResponseTransformations.toObject(includeInstance, f),
     inheritTransformation: jspb.Message.getFieldWithDefault(msg, 3, false),
-    logRequestResponseInfo: (f = msg.getLogRequestResponseInfo()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    logRequestResponseInfo: (f = msg.getLogRequestResponseInfo()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    escapeCharacters: (f = msg.getEscapeCharacters()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1089,6 +1099,11 @@ proto.transformation.options.gloo.solo.io.TransformationStages.deserializeBinary
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setLogRequestResponseInfo(value);
+      break;
+    case 5:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setEscapeCharacters(value);
       break;
     default:
       reader.skipField();
@@ -1146,6 +1161,14 @@ proto.transformation.options.gloo.solo.io.TransformationStages.serializeBinaryTo
   if (f != null) {
     writer.writeMessage(
       4,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getEscapeCharacters();
+  if (f != null) {
+    writer.writeMessage(
+      5,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
@@ -1260,6 +1283,36 @@ proto.transformation.options.gloo.solo.io.TransformationStages.prototype.hasLogR
 };
 
 
+/**
+ * optional google.protobuf.BoolValue escape_characters = 5;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.transformation.options.gloo.solo.io.TransformationStages.prototype.getEscapeCharacters = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 5));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.transformation.options.gloo.solo.io.TransformationStages.prototype.setEscapeCharacters = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.transformation.options.gloo.solo.io.TransformationStages.prototype.clearEscapeCharacters = function() {
+  this.setEscapeCharacters(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.transformation.options.gloo.solo.io.TransformationStages.prototype.hasEscapeCharacters = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
 
 /**
  * Generated by JsPbCodeGenerator.
@@ -1334,8 +1387,8 @@ proto.transformation.options.gloo.solo.io.Transformation.prototype.toObject = fu
  */
 proto.transformation.options.gloo.solo.io.Transformation.toObject = function(includeInstance, msg) {
   var f, obj = {
-    transformationTemplate: (f = msg.getTransformationTemplate()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate.toObject(includeInstance, f),
-    headerBodyTransform: (f = msg.getHeaderBodyTransform()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform.toObject(includeInstance, f),
+    transformationTemplate: (f = msg.getTransformationTemplate()) && proto.transformation.options.gloo.solo.io.TransformationTemplate.toObject(includeInstance, f),
+    headerBodyTransform: (f = msg.getHeaderBodyTransform()) && proto.transformation.options.gloo.solo.io.HeaderBodyTransform.toObject(includeInstance, f),
     xsltTransformation: (f = msg.getXsltTransformation()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb.XsltTransformation.toObject(includeInstance, f),
     logRequestResponseInfo: jspb.Message.getFieldWithDefault(msg, 4, false)
   };
@@ -1375,13 +1428,13 @@ proto.transformation.options.gloo.solo.io.Transformation.deserializeBinaryFromRe
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate.deserializeBinaryFromReader);
+      var value = new proto.transformation.options.gloo.solo.io.TransformationTemplate;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.TransformationTemplate.deserializeBinaryFromReader);
       msg.setTransformationTemplate(value);
       break;
     case 2:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform.deserializeBinaryFromReader);
+      var value = new proto.transformation.options.gloo.solo.io.HeaderBodyTransform;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.HeaderBodyTransform.deserializeBinaryFromReader);
       msg.setHeaderBodyTransform(value);
       break;
     case 3:
@@ -1427,7 +1480,7 @@ proto.transformation.options.gloo.solo.io.Transformation.serializeBinaryToWriter
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate.serializeBinaryToWriter
+      proto.transformation.options.gloo.solo.io.TransformationTemplate.serializeBinaryToWriter
     );
   }
   f = message.getHeaderBodyTransform();
@@ -1435,7 +1488,7 @@ proto.transformation.options.gloo.solo.io.Transformation.serializeBinaryToWriter
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform.serializeBinaryToWriter
+      proto.transformation.options.gloo.solo.io.HeaderBodyTransform.serializeBinaryToWriter
     );
   }
   f = message.getXsltTransformation();
@@ -1457,16 +1510,16 @@ proto.transformation.options.gloo.solo.io.Transformation.serializeBinaryToWriter
 
 
 /**
- * optional envoy.api.v2.filter.http.TransformationTemplate transformation_template = 1;
- * @return {?proto.envoy.api.v2.filter.http.TransformationTemplate}
+ * optional TransformationTemplate transformation_template = 1;
+ * @return {?proto.transformation.options.gloo.solo.io.TransformationTemplate}
  */
 proto.transformation.options.gloo.solo.io.Transformation.prototype.getTransformationTemplate = function() {
-  return /** @type{?proto.envoy.api.v2.filter.http.TransformationTemplate} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate, 1));
+  return /** @type{?proto.transformation.options.gloo.solo.io.TransformationTemplate} */ (
+    jspb.Message.getWrapperField(this, proto.transformation.options.gloo.solo.io.TransformationTemplate, 1));
 };
 
 
-/** @param {?proto.envoy.api.v2.filter.http.TransformationTemplate|undefined} value */
+/** @param {?proto.transformation.options.gloo.solo.io.TransformationTemplate|undefined} value */
 proto.transformation.options.gloo.solo.io.Transformation.prototype.setTransformationTemplate = function(value) {
   jspb.Message.setOneofWrapperField(this, 1, proto.transformation.options.gloo.solo.io.Transformation.oneofGroups_[0], value);
 };
@@ -1487,16 +1540,16 @@ proto.transformation.options.gloo.solo.io.Transformation.prototype.hasTransforma
 
 
 /**
- * optional envoy.api.v2.filter.http.HeaderBodyTransform header_body_transform = 2;
- * @return {?proto.envoy.api.v2.filter.http.HeaderBodyTransform}
+ * optional HeaderBodyTransform header_body_transform = 2;
+ * @return {?proto.transformation.options.gloo.solo.io.HeaderBodyTransform}
  */
 proto.transformation.options.gloo.solo.io.Transformation.prototype.getHeaderBodyTransform = function() {
-  return /** @type{?proto.envoy.api.v2.filter.http.HeaderBodyTransform} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform, 2));
+  return /** @type{?proto.transformation.options.gloo.solo.io.HeaderBodyTransform} */ (
+    jspb.Message.getWrapperField(this, proto.transformation.options.gloo.solo.io.HeaderBodyTransform, 2));
 };
 
 
-/** @param {?proto.envoy.api.v2.filter.http.HeaderBodyTransform|undefined} value */
+/** @param {?proto.transformation.options.gloo.solo.io.HeaderBodyTransform|undefined} value */
 proto.transformation.options.gloo.solo.io.Transformation.prototype.setHeaderBodyTransform = function(value) {
   jspb.Message.setOneofWrapperField(this, 2, proto.transformation.options.gloo.solo.io.Transformation.oneofGroups_[0], value);
 };
@@ -1560,6 +1613,1812 @@ proto.transformation.options.gloo.solo.io.Transformation.prototype.getLogRequest
 /** @param {boolean} value */
 proto.transformation.options.gloo.solo.io.Transformation.prototype.setLogRequestResponseInfo = function(value) {
   jspb.Message.setProto3BooleanField(this, 4, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.transformation.options.gloo.solo.io.Extraction = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.transformation.options.gloo.solo.io.Extraction.oneofGroups_);
+};
+goog.inherits(proto.transformation.options.gloo.solo.io.Extraction, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.transformation.options.gloo.solo.io.Extraction.displayName = 'proto.transformation.options.gloo.solo.io.Extraction';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.transformation.options.gloo.solo.io.Extraction.oneofGroups_ = [[1,4]];
+
+/**
+ * @enum {number}
+ */
+proto.transformation.options.gloo.solo.io.Extraction.SourceCase = {
+  SOURCE_NOT_SET: 0,
+  HEADER: 1,
+  BODY: 4
+};
+
+/**
+ * @return {proto.transformation.options.gloo.solo.io.Extraction.SourceCase}
+ */
+proto.transformation.options.gloo.solo.io.Extraction.prototype.getSourceCase = function() {
+  return /** @type {proto.transformation.options.gloo.solo.io.Extraction.SourceCase} */(jspb.Message.computeOneofCase(this, proto.transformation.options.gloo.solo.io.Extraction.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.transformation.options.gloo.solo.io.Extraction.prototype.toObject = function(opt_includeInstance) {
+  return proto.transformation.options.gloo.solo.io.Extraction.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.transformation.options.gloo.solo.io.Extraction} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.Extraction.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    header: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    body: (f = msg.getBody()) && google_protobuf_empty_pb.Empty.toObject(includeInstance, f),
+    regex: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    subgroup: jspb.Message.getFieldWithDefault(msg, 3, 0)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.transformation.options.gloo.solo.io.Extraction}
+ */
+proto.transformation.options.gloo.solo.io.Extraction.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.transformation.options.gloo.solo.io.Extraction;
+  return proto.transformation.options.gloo.solo.io.Extraction.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.transformation.options.gloo.solo.io.Extraction} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.transformation.options.gloo.solo.io.Extraction}
+ */
+proto.transformation.options.gloo.solo.io.Extraction.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setHeader(value);
+      break;
+    case 4:
+      var value = new google_protobuf_empty_pb.Empty;
+      reader.readMessage(value,google_protobuf_empty_pb.Empty.deserializeBinaryFromReader);
+      msg.setBody(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRegex(value);
+      break;
+    case 3:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setSubgroup(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.transformation.options.gloo.solo.io.Extraction.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.transformation.options.gloo.solo.io.Extraction.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.transformation.options.gloo.solo.io.Extraction} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.Extraction.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getBody();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      google_protobuf_empty_pb.Empty.serializeBinaryToWriter
+    );
+  }
+  f = message.getRegex();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getSubgroup();
+  if (f !== 0) {
+    writer.writeUint32(
+      3,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string header = 1;
+ * @return {string}
+ */
+proto.transformation.options.gloo.solo.io.Extraction.prototype.getHeader = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.transformation.options.gloo.solo.io.Extraction.prototype.setHeader = function(value) {
+  jspb.Message.setOneofField(this, 1, proto.transformation.options.gloo.solo.io.Extraction.oneofGroups_[0], value);
+};
+
+
+proto.transformation.options.gloo.solo.io.Extraction.prototype.clearHeader = function() {
+  jspb.Message.setOneofField(this, 1, proto.transformation.options.gloo.solo.io.Extraction.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.transformation.options.gloo.solo.io.Extraction.prototype.hasHeader = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional google.protobuf.Empty body = 4;
+ * @return {?proto.google.protobuf.Empty}
+ */
+proto.transformation.options.gloo.solo.io.Extraction.prototype.getBody = function() {
+  return /** @type{?proto.google.protobuf.Empty} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_empty_pb.Empty, 4));
+};
+
+
+/** @param {?proto.google.protobuf.Empty|undefined} value */
+proto.transformation.options.gloo.solo.io.Extraction.prototype.setBody = function(value) {
+  jspb.Message.setOneofWrapperField(this, 4, proto.transformation.options.gloo.solo.io.Extraction.oneofGroups_[0], value);
+};
+
+
+proto.transformation.options.gloo.solo.io.Extraction.prototype.clearBody = function() {
+  this.setBody(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.transformation.options.gloo.solo.io.Extraction.prototype.hasBody = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional string regex = 2;
+ * @return {string}
+ */
+proto.transformation.options.gloo.solo.io.Extraction.prototype.getRegex = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.transformation.options.gloo.solo.io.Extraction.prototype.setRegex = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional uint32 subgroup = 3;
+ * @return {number}
+ */
+proto.transformation.options.gloo.solo.io.Extraction.prototype.getSubgroup = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/** @param {number} value */
+proto.transformation.options.gloo.solo.io.Extraction.prototype.setSubgroup = function(value) {
+  jspb.Message.setProto3IntField(this, 3, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.transformation.options.gloo.solo.io.TransformationTemplate.repeatedFields_, proto.transformation.options.gloo.solo.io.TransformationTemplate.oneofGroups_);
+};
+goog.inherits(proto.transformation.options.gloo.solo.io.TransformationTemplate, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.transformation.options.gloo.solo.io.TransformationTemplate.displayName = 'proto.transformation.options.gloo.solo.io.TransformationTemplate';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.repeatedFields_ = [10,11,9];
+
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.oneofGroups_ = [[4,5,6]];
+
+/**
+ * @enum {number}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.BodyTransformationCase = {
+  BODY_TRANSFORMATION_NOT_SET: 0,
+  BODY: 4,
+  PASSTHROUGH: 5,
+  MERGE_EXTRACTORS_TO_BODY: 6
+};
+
+/**
+ * @return {proto.transformation.options.gloo.solo.io.TransformationTemplate.BodyTransformationCase}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.getBodyTransformationCase = function() {
+  return /** @type {proto.transformation.options.gloo.solo.io.TransformationTemplate.BodyTransformationCase} */(jspb.Message.computeOneofCase(this, proto.transformation.options.gloo.solo.io.TransformationTemplate.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.toObject = function(opt_includeInstance) {
+  return proto.transformation.options.gloo.solo.io.TransformationTemplate.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.transformation.options.gloo.solo.io.TransformationTemplate} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    advancedTemplates: jspb.Message.getFieldWithDefault(msg, 1, false),
+    extractorsMap: (f = msg.getExtractorsMap()) ? f.toObject(includeInstance, proto.transformation.options.gloo.solo.io.Extraction.toObject) : [],
+    headersMap: (f = msg.getHeadersMap()) ? f.toObject(includeInstance, proto.transformation.options.gloo.solo.io.InjaTemplate.toObject) : [],
+    headersToAppendList: jspb.Message.toObjectList(msg.getHeadersToAppendList(),
+    proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.toObject, includeInstance),
+    headersToRemoveList: jspb.Message.getRepeatedField(msg, 11),
+    body: (f = msg.getBody()) && proto.transformation.options.gloo.solo.io.InjaTemplate.toObject(includeInstance, f),
+    passthrough: (f = msg.getPassthrough()) && proto.transformation.options.gloo.solo.io.Passthrough.toObject(includeInstance, f),
+    mergeExtractorsToBody: (f = msg.getMergeExtractorsToBody()) && proto.transformation.options.gloo.solo.io.MergeExtractorsToBody.toObject(includeInstance, f),
+    parseBodyBehavior: jspb.Message.getFieldWithDefault(msg, 7, 0),
+    ignoreErrorOnParse: jspb.Message.getFieldWithDefault(msg, 8, false),
+    dynamicMetadataValuesList: jspb.Message.toObjectList(msg.getDynamicMetadataValuesList(),
+    proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.toObject, includeInstance),
+    escapeCharacters: (f = msg.getEscapeCharacters()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.transformation.options.gloo.solo.io.TransformationTemplate}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.transformation.options.gloo.solo.io.TransformationTemplate;
+  return proto.transformation.options.gloo.solo.io.TransformationTemplate.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.transformation.options.gloo.solo.io.TransformationTemplate} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.transformation.options.gloo.solo.io.TransformationTemplate}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setAdvancedTemplates(value);
+      break;
+    case 2:
+      var value = msg.getExtractorsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.transformation.options.gloo.solo.io.Extraction.deserializeBinaryFromReader, "");
+         });
+      break;
+    case 3:
+      var value = msg.getHeadersMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.transformation.options.gloo.solo.io.InjaTemplate.deserializeBinaryFromReader, "");
+         });
+      break;
+    case 10:
+      var value = new proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.deserializeBinaryFromReader);
+      msg.addHeadersToAppend(value);
+      break;
+    case 11:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addHeadersToRemove(value);
+      break;
+    case 4:
+      var value = new proto.transformation.options.gloo.solo.io.InjaTemplate;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.InjaTemplate.deserializeBinaryFromReader);
+      msg.setBody(value);
+      break;
+    case 5:
+      var value = new proto.transformation.options.gloo.solo.io.Passthrough;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.Passthrough.deserializeBinaryFromReader);
+      msg.setPassthrough(value);
+      break;
+    case 6:
+      var value = new proto.transformation.options.gloo.solo.io.MergeExtractorsToBody;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.MergeExtractorsToBody.deserializeBinaryFromReader);
+      msg.setMergeExtractorsToBody(value);
+      break;
+    case 7:
+      var value = /** @type {!proto.transformation.options.gloo.solo.io.TransformationTemplate.RequestBodyParse} */ (reader.readEnum());
+      msg.setParseBodyBehavior(value);
+      break;
+    case 8:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setIgnoreErrorOnParse(value);
+      break;
+    case 9:
+      var value = new proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.deserializeBinaryFromReader);
+      msg.addDynamicMetadataValues(value);
+      break;
+    case 12:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setEscapeCharacters(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.transformation.options.gloo.solo.io.TransformationTemplate.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.transformation.options.gloo.solo.io.TransformationTemplate} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getAdvancedTemplates();
+  if (f) {
+    writer.writeBool(
+      1,
+      f
+    );
+  }
+  f = message.getExtractorsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.transformation.options.gloo.solo.io.Extraction.serializeBinaryToWriter);
+  }
+  f = message.getHeadersMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(3, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.transformation.options.gloo.solo.io.InjaTemplate.serializeBinaryToWriter);
+  }
+  f = message.getHeadersToAppendList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      10,
+      f,
+      proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.serializeBinaryToWriter
+    );
+  }
+  f = message.getHeadersToRemoveList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      11,
+      f
+    );
+  }
+  f = message.getBody();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      proto.transformation.options.gloo.solo.io.InjaTemplate.serializeBinaryToWriter
+    );
+  }
+  f = message.getPassthrough();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      proto.transformation.options.gloo.solo.io.Passthrough.serializeBinaryToWriter
+    );
+  }
+  f = message.getMergeExtractorsToBody();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      proto.transformation.options.gloo.solo.io.MergeExtractorsToBody.serializeBinaryToWriter
+    );
+  }
+  f = message.getParseBodyBehavior();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      7,
+      f
+    );
+  }
+  f = message.getIgnoreErrorOnParse();
+  if (f) {
+    writer.writeBool(
+      8,
+      f
+    );
+  }
+  f = message.getDynamicMetadataValuesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      9,
+      f,
+      proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getEscapeCharacters();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * @enum {number}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.RequestBodyParse = {
+  PARSEASJSON: 0,
+  DONTPARSE: 1
+};
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.displayName = 'proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.prototype.toObject = function(opt_includeInstance) {
+  return proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    key: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    value: (f = msg.getValue()) && proto.transformation.options.gloo.solo.io.InjaTemplate.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend;
+  return proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKey(value);
+      break;
+    case 2:
+      var value = new proto.transformation.options.gloo.solo.io.InjaTemplate;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.InjaTemplate.deserializeBinaryFromReader);
+      msg.setValue(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getKey();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getValue();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.transformation.options.gloo.solo.io.InjaTemplate.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string key = 1;
+ * @return {string}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.prototype.getKey = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.prototype.setKey = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional InjaTemplate value = 2;
+ * @return {?proto.transformation.options.gloo.solo.io.InjaTemplate}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.prototype.getValue = function() {
+  return /** @type{?proto.transformation.options.gloo.solo.io.InjaTemplate} */ (
+    jspb.Message.getWrapperField(this, proto.transformation.options.gloo.solo.io.InjaTemplate, 2));
+};
+
+
+/** @param {?proto.transformation.options.gloo.solo.io.InjaTemplate|undefined} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.prototype.setValue = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.prototype.clearValue = function() {
+  this.setValue(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.prototype.hasValue = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.displayName = 'proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.prototype.toObject = function(opt_includeInstance) {
+  return proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    metadataNamespace: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    key: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    value: (f = msg.getValue()) && proto.transformation.options.gloo.solo.io.InjaTemplate.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue;
+  return proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMetadataNamespace(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKey(value);
+      break;
+    case 3:
+      var value = new proto.transformation.options.gloo.solo.io.InjaTemplate;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.InjaTemplate.deserializeBinaryFromReader);
+      msg.setValue(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getMetadataNamespace();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getKey();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getValue();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.transformation.options.gloo.solo.io.InjaTemplate.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string metadata_namespace = 1;
+ * @return {string}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.prototype.getMetadataNamespace = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.prototype.setMetadataNamespace = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string key = 2;
+ * @return {string}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.prototype.getKey = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.prototype.setKey = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional InjaTemplate value = 3;
+ * @return {?proto.transformation.options.gloo.solo.io.InjaTemplate}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.prototype.getValue = function() {
+  return /** @type{?proto.transformation.options.gloo.solo.io.InjaTemplate} */ (
+    jspb.Message.getWrapperField(this, proto.transformation.options.gloo.solo.io.InjaTemplate, 3));
+};
+
+
+/** @param {?proto.transformation.options.gloo.solo.io.InjaTemplate|undefined} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.prototype.setValue = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.prototype.clearValue = function() {
+  this.setValue(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.prototype.hasValue = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional bool advanced_templates = 1;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.getAdvancedTemplates = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 1, false));
+};
+
+
+/** @param {boolean} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.setAdvancedTemplates = function(value) {
+  jspb.Message.setProto3BooleanField(this, 1, value);
+};
+
+
+/**
+ * map<string, Extraction> extractors = 2;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.transformation.options.gloo.solo.io.Extraction>}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.getExtractorsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.transformation.options.gloo.solo.io.Extraction>} */ (
+      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
+      proto.transformation.options.gloo.solo.io.Extraction));
+};
+
+
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.clearExtractorsMap = function() {
+  this.getExtractorsMap().clear();
+};
+
+
+/**
+ * map<string, InjaTemplate> headers = 3;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.transformation.options.gloo.solo.io.InjaTemplate>}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.getHeadersMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.transformation.options.gloo.solo.io.InjaTemplate>} */ (
+      jspb.Message.getMapField(this, 3, opt_noLazyCreate,
+      proto.transformation.options.gloo.solo.io.InjaTemplate));
+};
+
+
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.clearHeadersMap = function() {
+  this.getHeadersMap().clear();
+};
+
+
+/**
+ * repeated HeaderToAppend headers_to_append = 10;
+ * @return {!Array<!proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend>}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.getHeadersToAppendList = function() {
+  return /** @type{!Array<!proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend, 10));
+};
+
+
+/** @param {!Array<!proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend>} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.setHeadersToAppendList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 10, value);
+};
+
+
+/**
+ * @param {!proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.addHeadersToAppend = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 10, opt_value, proto.transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend, opt_index);
+};
+
+
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.clearHeadersToAppendList = function() {
+  this.setHeadersToAppendList([]);
+};
+
+
+/**
+ * repeated string headers_to_remove = 11;
+ * @return {!Array<string>}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.getHeadersToRemoveList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 11));
+};
+
+
+/** @param {!Array<string>} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.setHeadersToRemoveList = function(value) {
+  jspb.Message.setField(this, 11, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.addHeadersToRemove = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 11, value, opt_index);
+};
+
+
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.clearHeadersToRemoveList = function() {
+  this.setHeadersToRemoveList([]);
+};
+
+
+/**
+ * optional InjaTemplate body = 4;
+ * @return {?proto.transformation.options.gloo.solo.io.InjaTemplate}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.getBody = function() {
+  return /** @type{?proto.transformation.options.gloo.solo.io.InjaTemplate} */ (
+    jspb.Message.getWrapperField(this, proto.transformation.options.gloo.solo.io.InjaTemplate, 4));
+};
+
+
+/** @param {?proto.transformation.options.gloo.solo.io.InjaTemplate|undefined} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.setBody = function(value) {
+  jspb.Message.setOneofWrapperField(this, 4, proto.transformation.options.gloo.solo.io.TransformationTemplate.oneofGroups_[0], value);
+};
+
+
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.clearBody = function() {
+  this.setBody(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.hasBody = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional Passthrough passthrough = 5;
+ * @return {?proto.transformation.options.gloo.solo.io.Passthrough}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.getPassthrough = function() {
+  return /** @type{?proto.transformation.options.gloo.solo.io.Passthrough} */ (
+    jspb.Message.getWrapperField(this, proto.transformation.options.gloo.solo.io.Passthrough, 5));
+};
+
+
+/** @param {?proto.transformation.options.gloo.solo.io.Passthrough|undefined} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.setPassthrough = function(value) {
+  jspb.Message.setOneofWrapperField(this, 5, proto.transformation.options.gloo.solo.io.TransformationTemplate.oneofGroups_[0], value);
+};
+
+
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.clearPassthrough = function() {
+  this.setPassthrough(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.hasPassthrough = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional MergeExtractorsToBody merge_extractors_to_body = 6;
+ * @return {?proto.transformation.options.gloo.solo.io.MergeExtractorsToBody}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.getMergeExtractorsToBody = function() {
+  return /** @type{?proto.transformation.options.gloo.solo.io.MergeExtractorsToBody} */ (
+    jspb.Message.getWrapperField(this, proto.transformation.options.gloo.solo.io.MergeExtractorsToBody, 6));
+};
+
+
+/** @param {?proto.transformation.options.gloo.solo.io.MergeExtractorsToBody|undefined} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.setMergeExtractorsToBody = function(value) {
+  jspb.Message.setOneofWrapperField(this, 6, proto.transformation.options.gloo.solo.io.TransformationTemplate.oneofGroups_[0], value);
+};
+
+
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.clearMergeExtractorsToBody = function() {
+  this.setMergeExtractorsToBody(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.hasMergeExtractorsToBody = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional RequestBodyParse parse_body_behavior = 7;
+ * @return {!proto.transformation.options.gloo.solo.io.TransformationTemplate.RequestBodyParse}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.getParseBodyBehavior = function() {
+  return /** @type {!proto.transformation.options.gloo.solo.io.TransformationTemplate.RequestBodyParse} */ (jspb.Message.getFieldWithDefault(this, 7, 0));
+};
+
+
+/** @param {!proto.transformation.options.gloo.solo.io.TransformationTemplate.RequestBodyParse} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.setParseBodyBehavior = function(value) {
+  jspb.Message.setProto3EnumField(this, 7, value);
+};
+
+
+/**
+ * optional bool ignore_error_on_parse = 8;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.getIgnoreErrorOnParse = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 8, false));
+};
+
+
+/** @param {boolean} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.setIgnoreErrorOnParse = function(value) {
+  jspb.Message.setProto3BooleanField(this, 8, value);
+};
+
+
+/**
+ * repeated DynamicMetadataValue dynamic_metadata_values = 9;
+ * @return {!Array<!proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue>}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.getDynamicMetadataValuesList = function() {
+  return /** @type{!Array<!proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue, 9));
+};
+
+
+/** @param {!Array<!proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue>} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.setDynamicMetadataValuesList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 9, value);
+};
+
+
+/**
+ * @param {!proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.addDynamicMetadataValues = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 9, opt_value, proto.transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue, opt_index);
+};
+
+
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.clearDynamicMetadataValuesList = function() {
+  this.setDynamicMetadataValuesList([]);
+};
+
+
+/**
+ * optional google.protobuf.BoolValue escape_characters = 12;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.getEscapeCharacters = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 12));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.setEscapeCharacters = function(value) {
+  jspb.Message.setWrapperField(this, 12, value);
+};
+
+
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.clearEscapeCharacters = function() {
+  this.setEscapeCharacters(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.transformation.options.gloo.solo.io.TransformationTemplate.prototype.hasEscapeCharacters = function() {
+  return jspb.Message.getField(this, 12) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.transformation.options.gloo.solo.io.InjaTemplate = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.transformation.options.gloo.solo.io.InjaTemplate, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.transformation.options.gloo.solo.io.InjaTemplate.displayName = 'proto.transformation.options.gloo.solo.io.InjaTemplate';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.transformation.options.gloo.solo.io.InjaTemplate.prototype.toObject = function(opt_includeInstance) {
+  return proto.transformation.options.gloo.solo.io.InjaTemplate.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.transformation.options.gloo.solo.io.InjaTemplate} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.InjaTemplate.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    text: jspb.Message.getFieldWithDefault(msg, 1, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.transformation.options.gloo.solo.io.InjaTemplate}
+ */
+proto.transformation.options.gloo.solo.io.InjaTemplate.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.transformation.options.gloo.solo.io.InjaTemplate;
+  return proto.transformation.options.gloo.solo.io.InjaTemplate.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.transformation.options.gloo.solo.io.InjaTemplate} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.transformation.options.gloo.solo.io.InjaTemplate}
+ */
+proto.transformation.options.gloo.solo.io.InjaTemplate.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setText(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.transformation.options.gloo.solo.io.InjaTemplate.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.transformation.options.gloo.solo.io.InjaTemplate.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.transformation.options.gloo.solo.io.InjaTemplate} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.InjaTemplate.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getText();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string text = 1;
+ * @return {string}
+ */
+proto.transformation.options.gloo.solo.io.InjaTemplate.prototype.getText = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.transformation.options.gloo.solo.io.InjaTemplate.prototype.setText = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.transformation.options.gloo.solo.io.Passthrough = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.transformation.options.gloo.solo.io.Passthrough, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.transformation.options.gloo.solo.io.Passthrough.displayName = 'proto.transformation.options.gloo.solo.io.Passthrough';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.transformation.options.gloo.solo.io.Passthrough.prototype.toObject = function(opt_includeInstance) {
+  return proto.transformation.options.gloo.solo.io.Passthrough.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.transformation.options.gloo.solo.io.Passthrough} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.Passthrough.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.transformation.options.gloo.solo.io.Passthrough}
+ */
+proto.transformation.options.gloo.solo.io.Passthrough.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.transformation.options.gloo.solo.io.Passthrough;
+  return proto.transformation.options.gloo.solo.io.Passthrough.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.transformation.options.gloo.solo.io.Passthrough} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.transformation.options.gloo.solo.io.Passthrough}
+ */
+proto.transformation.options.gloo.solo.io.Passthrough.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.transformation.options.gloo.solo.io.Passthrough.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.transformation.options.gloo.solo.io.Passthrough.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.transformation.options.gloo.solo.io.Passthrough} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.Passthrough.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.transformation.options.gloo.solo.io.MergeExtractorsToBody = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.transformation.options.gloo.solo.io.MergeExtractorsToBody, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.transformation.options.gloo.solo.io.MergeExtractorsToBody.displayName = 'proto.transformation.options.gloo.solo.io.MergeExtractorsToBody';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.transformation.options.gloo.solo.io.MergeExtractorsToBody.prototype.toObject = function(opt_includeInstance) {
+  return proto.transformation.options.gloo.solo.io.MergeExtractorsToBody.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.transformation.options.gloo.solo.io.MergeExtractorsToBody} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.MergeExtractorsToBody.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.transformation.options.gloo.solo.io.MergeExtractorsToBody}
+ */
+proto.transformation.options.gloo.solo.io.MergeExtractorsToBody.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.transformation.options.gloo.solo.io.MergeExtractorsToBody;
+  return proto.transformation.options.gloo.solo.io.MergeExtractorsToBody.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.transformation.options.gloo.solo.io.MergeExtractorsToBody} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.transformation.options.gloo.solo.io.MergeExtractorsToBody}
+ */
+proto.transformation.options.gloo.solo.io.MergeExtractorsToBody.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.transformation.options.gloo.solo.io.MergeExtractorsToBody.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.transformation.options.gloo.solo.io.MergeExtractorsToBody.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.transformation.options.gloo.solo.io.MergeExtractorsToBody} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.MergeExtractorsToBody.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.transformation.options.gloo.solo.io.HeaderBodyTransform = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.transformation.options.gloo.solo.io.HeaderBodyTransform, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.transformation.options.gloo.solo.io.HeaderBodyTransform.displayName = 'proto.transformation.options.gloo.solo.io.HeaderBodyTransform';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.transformation.options.gloo.solo.io.HeaderBodyTransform.prototype.toObject = function(opt_includeInstance) {
+  return proto.transformation.options.gloo.solo.io.HeaderBodyTransform.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.transformation.options.gloo.solo.io.HeaderBodyTransform} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.HeaderBodyTransform.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    addRequestMetadata: jspb.Message.getFieldWithDefault(msg, 1, false)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.transformation.options.gloo.solo.io.HeaderBodyTransform}
+ */
+proto.transformation.options.gloo.solo.io.HeaderBodyTransform.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.transformation.options.gloo.solo.io.HeaderBodyTransform;
+  return proto.transformation.options.gloo.solo.io.HeaderBodyTransform.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.transformation.options.gloo.solo.io.HeaderBodyTransform} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.transformation.options.gloo.solo.io.HeaderBodyTransform}
+ */
+proto.transformation.options.gloo.solo.io.HeaderBodyTransform.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setAddRequestMetadata(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.transformation.options.gloo.solo.io.HeaderBodyTransform.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.transformation.options.gloo.solo.io.HeaderBodyTransform.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.transformation.options.gloo.solo.io.HeaderBodyTransform} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.HeaderBodyTransform.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getAddRequestMetadata();
+  if (f) {
+    writer.writeBool(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional bool add_request_metadata = 1;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.transformation.options.gloo.solo.io.HeaderBodyTransform.prototype.getAddRequestMetadata = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 1, false));
+};
+
+
+/** @param {boolean} value */
+proto.transformation.options.gloo.solo.io.HeaderBodyTransform.prototype.setAddRequestMetadata = function(value) {
+  jspb.Message.setProto3BooleanField(this, 1, value);
 };
 
 

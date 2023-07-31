@@ -1054,6 +1054,11 @@ export class GlooOptions extends jspb.Message {
   getLogTransformationRequestResponseInfo(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setLogTransformationRequestResponseInfo(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasTransformationEscapeCharacters(): boolean;
+  clearTransformationEscapeCharacters(): void;
+  getTransformationEscapeCharacters(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setTransformationEscapeCharacters(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GlooOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GlooOptions): GlooOptions.AsObject;
@@ -1082,6 +1087,7 @@ export namespace GlooOptions {
     removeUnusedFilters?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     proxyDebugBindAddr: string,
     logTransformationRequestResponseInfo?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    transformationEscapeCharacters?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export class AWSOptions extends jspb.Message {

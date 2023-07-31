@@ -37,6 +37,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_azure_azure_pb = requi
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_healthcheck_healthcheck_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/healthcheck/healthcheck_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/protocol_upgrade/protocol_upgrade_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_router_router_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/router/router_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/connection_limit/connection_limit_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_proxylatency_proxylatency_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/proxylatency/proxylatency_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_buffer_v3_buffer_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/filters/http/buffer/v3/buffer_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_csrf_v3_csrf_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/filters/http/csrf/v3/csrf_pb.js');
@@ -953,6 +954,7 @@ proto.gloo.solo.io.HttpListenerOptions.toObject = function(includeInstance, msg)
     sanitizeClusterHeader: (f = msg.getSanitizeClusterHeader()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     leftmostXffAddress: (f = msg.getLeftmostXffAddress()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     dynamicForwardProxy: (f = msg.getDynamicForwardProxy()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig.toObject(includeInstance, f),
+    connectionLimit: (f = msg.getConnectionLimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.toObject(includeInstance, f),
     router: (f = msg.getRouter()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_router_router_pb.Router.toObject(includeInstance, f)
   };
 
@@ -1079,6 +1081,11 @@ proto.gloo.solo.io.HttpListenerOptions.deserializeBinaryFromReader = function(ms
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig.deserializeBinaryFromReader);
       msg.setDynamicForwardProxy(value);
+      break;
+    case 29:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.deserializeBinaryFromReader);
+      msg.setConnectionLimit(value);
       break;
     case 18:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_router_router_pb.Router;
@@ -1256,6 +1263,14 @@ proto.gloo.solo.io.HttpListenerOptions.serializeBinaryToWriter = function(messag
       28,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getConnectionLimit();
+  if (f != null) {
+    writer.writeMessage(
+      29,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.serializeBinaryToWriter
     );
   }
   f = message.getRouter();
@@ -1810,6 +1825,36 @@ proto.gloo.solo.io.HttpListenerOptions.prototype.hasDynamicForwardProxy = functi
 
 
 /**
+ * optional connection_limit.options.gloo.solo.io.ConnectionLimit connection_limit = 29;
+ * @return {?proto.connection_limit.options.gloo.solo.io.ConnectionLimit}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getConnectionLimit = function() {
+  return /** @type{?proto.connection_limit.options.gloo.solo.io.ConnectionLimit} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit, 29));
+};
+
+
+/** @param {?proto.connection_limit.options.gloo.solo.io.ConnectionLimit|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setConnectionLimit = function(value) {
+  jspb.Message.setWrapperField(this, 29, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearConnectionLimit = function() {
+  this.setConnectionLimit(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasConnectionLimit = function() {
+  return jspb.Message.getField(this, 29) != null;
+};
+
+
+/**
  * optional Router router = 18;
  * @return {?proto.gloo.solo.io.Router}
  */
@@ -1886,7 +1931,8 @@ proto.gloo.solo.io.TcpListenerOptions.prototype.toObject = function(opt_includeI
  */
 proto.gloo.solo.io.TcpListenerOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
-    tcpProxySettings: (f = msg.getTcpProxySettings()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_tcp_tcp_pb.TcpProxySettings.toObject(includeInstance, f)
+    tcpProxySettings: (f = msg.getTcpProxySettings()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_tcp_tcp_pb.TcpProxySettings.toObject(includeInstance, f),
+    connectionLimit: (f = msg.getConnectionLimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1928,6 +1974,11 @@ proto.gloo.solo.io.TcpListenerOptions.deserializeBinaryFromReader = function(msg
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_tcp_tcp_pb.TcpProxySettings.deserializeBinaryFromReader);
       msg.setTcpProxySettings(value);
       break;
+    case 4:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.deserializeBinaryFromReader);
+      msg.setConnectionLimit(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1965,6 +2016,14 @@ proto.gloo.solo.io.TcpListenerOptions.serializeBinaryToWriter = function(message
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_tcp_tcp_pb.TcpProxySettings.serializeBinaryToWriter
     );
   }
+  f = message.getConnectionLimit();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -1995,6 +2054,36 @@ proto.gloo.solo.io.TcpListenerOptions.prototype.clearTcpProxySettings = function
  */
 proto.gloo.solo.io.TcpListenerOptions.prototype.hasTcpProxySettings = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional connection_limit.options.gloo.solo.io.ConnectionLimit connection_limit = 4;
+ * @return {?proto.connection_limit.options.gloo.solo.io.ConnectionLimit}
+ */
+proto.gloo.solo.io.TcpListenerOptions.prototype.getConnectionLimit = function() {
+  return /** @type{?proto.connection_limit.options.gloo.solo.io.ConnectionLimit} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit, 4));
+};
+
+
+/** @param {?proto.connection_limit.options.gloo.solo.io.ConnectionLimit|undefined} value */
+proto.gloo.solo.io.TcpListenerOptions.prototype.setConnectionLimit = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.gloo.solo.io.TcpListenerOptions.prototype.clearConnectionLimit = function() {
+  this.setConnectionLimit(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.TcpListenerOptions.prototype.hasConnectionLimit = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
