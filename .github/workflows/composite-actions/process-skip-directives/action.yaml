@@ -11,6 +11,9 @@ outputs:
   skip-kube-tests:
     description: "Whether or not to skip the kube2e tests"
     value: ${{ steps.process-skip-directives.outputs.skip-kube-tests }}
+  skip-storybook-tests:
+    description: "Whether or not to skip the storybook tests"
+    value: ${{ steps.process-skip-directives.outputs.skip-storybook-tests }}
 
 runs:
   using: "composite"

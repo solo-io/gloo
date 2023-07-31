@@ -24,6 +24,8 @@
 
 **Skip Kubernetes E2E Tests**: Include `skipCI-kube-tests:true` in the changelog entry of the PR.
 
+**Skip Storybook Tests**: Include `skipCI-storybook-tests:true` in the changelog entry of the PR.
+
 ### What if a test fails on a Pull Request?
 
 Tests must account for the eventually consistent nature of Gloo Edge. Writing deterministic end-to-end tests can be challenging, and at times a test will fail in our CI pipeline non-deterministically. We refer to these failures as flakes. We have found the most common flakes occur as a result of:

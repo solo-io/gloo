@@ -4,16 +4,37 @@ defaults:
     shell: bash
     working-directory: projects/ui
 on: pull_request
+
+# So that concurrency only affects this workflow, the group name is prepended with the workflow name.
+# On PRs, this workflow will be grouped with "workflow-pr_branch", and only one instance in the group (the latest commit) will run at a time per-PR.
+# On pushes to main, the group name falls back to "workflow-run_id", where run_id is unique per run, thus it will not cancel other runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   storybook-test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - id: process-skip-directives
+        uses: ./.github/workflows/composite-actions/process-skip-directives
+        with:
+          base-ref: ${{ github.base_ref }}
+      - id: auto-succeed-tests
+        if: steps.process-skip-directives.outputs.skip-storybook-tests == 'true'
+        run: |
+          echo "Storybook tests auto-succeeded"
       - uses: actions/setup-node@v3
+        if: steps.process-skip-directives.outputs.skip-storybook-tests != 'true'
         with:
           node-version: '16.x'
       - name: Install dependencies
+        if: steps.process-skip-directives.outputs.skip-storybook-tests != 'true'
         run: yarn
       - name: Run Storybook tests
+        if: steps.process-skip-directives.outputs.skip-storybook-tests != 'true'
         run: yarn test-storybook:ci

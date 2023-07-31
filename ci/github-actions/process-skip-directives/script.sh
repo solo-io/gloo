@@ -6,6 +6,7 @@
 #
 # This script supports the following fields:
 #   skipCI-kube-tests
+#   skipCI-storybook-tests
 #
 # For each field that we support, the script will output the value
 # into the $GITHUB_OUTPUT variable, which then can be consumed
@@ -20,6 +21,9 @@ set -ex
 skipKubeTestsDirective="skipCI-kube-tests:true"
 shouldSkipKubeTests=false
 
+skipStorybookTestsDirective="skipCI-storybook-tests:true"
+shouldSkipStorybookTests=false
+
 githubBaseRef=$1
 
 if [[ $(git diff origin/$githubBaseRef HEAD --name-only | grep "changelog/" | wc -l) = "1" ]]; then
@@ -29,8 +33,12 @@ if [[ $(git diff origin/$githubBaseRef HEAD --name-only | grep "changelog/" | wc
     if [[ $(cat $changelogFileName | grep $skipKubeTestsDirective) ]]; then
         shouldSkipKubeTests=true
     fi
+    if [[ $(cat $changelogFileName | grep $skipStorybookTestsDirective) ]]; then
+        shouldSkipStorybookTests=true
+    fi
 else
     echo "no changelog found (or more than one changelog found) - not skipping CI"
 fi
 
 echo "skip-kube-tests=${shouldSkipKubeTests}" >> $GITHUB_OUTPUT
+echo "skip-storybook-tests=${shouldSkipStorybookTests}" >> $GITHUB_OUTPUT

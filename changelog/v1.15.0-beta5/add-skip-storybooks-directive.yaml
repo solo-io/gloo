@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    description: |
+      Add support to skip storybooks tests ran with new directive.
+      Add `concurrency` so storybook tests only have one (latest) instance running per pull request.
+      
+      skipCI-kube-tests:true
+      skipCI-storybook-tests:true
