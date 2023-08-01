@@ -1,0 +1,7 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: cloudbuilders
+  dependencyTag: v0.6.3
+  description: >
+    Bump cloudbuilders to build with newer golang.
