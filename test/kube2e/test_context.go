@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/avast/retry-go"
+
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
 	"github.com/google/uuid"
@@ -50,7 +52,12 @@ func (f *TestContextFactory) SetupSnapshotAndClientSet(ctx context.Context) {
 	resourceClientSet, err := kube2e.NewDefaultKubeResourceClientSet(ctx)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred(), "can create kube resource client set")
 
-	snapshotWriter := helpers.NewSnapshotWriter(resourceClientSet).WithWriteNamespace(f.InstallNamespace())
+	snapshotWriter := helpers.NewSnapshotWriter(resourceClientSet).
+		WithWriteNamespace(f.InstallNamespace()).
+		WithRetryOptions([]retry.Option{
+			// Some tests modify multiple resources so giving a lenient retry amount when writing snapshots
+			retry.Attempts(6),
+		})
 	f.snapshotWriter = snapshotWriter
 	f.resourceClientSet = resourceClientSet
 }

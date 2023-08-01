@@ -297,7 +297,6 @@ func FailoverTests(testContextSupplier func() *FailoverTestContext) bool {
 
 			defaultVs := testContext.ResourcesToWrite().VirtualServices[0]
 			vs := helpers.BuilderFromVirtualService(defaultVs).
-				WithName("vs-to-red-service-upstream").
 				WithRoutePrefixMatcher(kube2e.DefaultRouteName, "/test/").
 				WithRouteActionToUpstreamRef(kube2e.DefaultRouteName, testContext.ServiceUpstreamRef(testContext.RedService)).
 				WithRouteOptions(kube2e.DefaultRouteName, &gloov1.RouteOptions{

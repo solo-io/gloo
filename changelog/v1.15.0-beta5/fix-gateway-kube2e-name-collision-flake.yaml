@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4131
+    resolvesIssue: false
+    description: |
+      Keep the default VirtualService name when creating it in failover tests.
+      This avoids a possible domain collision during tests, where it's created and another test creates a VS with the default name and both domains match.

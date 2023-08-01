@@ -8,6 +8,7 @@ go 1.20
 require (
 	github.com/Masterminds/goutils v1.1.1
 	github.com/aerospike/aerospike-client-go v4.5.2+incompatible
+	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/avast/retry-go/v4 v4.3.3
 	github.com/aws/aws-sdk-go v1.43.16
 	github.com/cncf/xds/go v0.0.0-20230428030218-4003588d1b74
@@ -121,7 +122,6 @@ require (
 	github.com/armon/go-metrics v0.3.11 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
-	github.com/avast/retry-go v2.4.3+incompatible // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/bshuster-repo/logrus-logstash-hook v1.0.2 // indirect
