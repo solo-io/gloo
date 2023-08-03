@@ -6,13 +6,14 @@ MANAGEMENT_CLUSTER="${MANAGEMENT_CLUSTER:-management}"
 # The name of the remote kind cluster to deploy to
 REMOTE_CLUSTER="${REMOTE_CLUSTER:-remote}"
 # The version of the Node Docker image to use for booting the clusters
-CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.25.3}"
+CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.27.3}"
 # The version used to tag images
 VERSION="${VERSION:-1.0.0-ci}"
 # If true, use a released chart with the version in $VERSION
 FROM_RELEASE="${FROM_RELEASE:-false}"
 # The license key used to support enterprise features
 GLOO_LICENSE_KEY="${GLOO_LICENSE_KEY:-}"
+INPUT_KUBECTL_VERSION="${INPUT_KUBECTL_VERSION:-v1.27.3}"
 # Automatically (lazily) determine OS type
 if [[ $OSTYPE == 'darwin'* ]]; then
   OS='darwin'
@@ -70,26 +71,6 @@ kubeadmConfigPatches:
     kubeletExtraArgs:
       node-labels: "topology.kubernetes.io/region=us-east-1,topology.kubernetes.io/zone=us-east-1c"
   apiVersion: kubeadm.k8s.io/v1beta3
-  kind: ClusterConfiguration
-  metadata:
-    name: config
-  apiServer:
-    extraArgs:
-      "feature-gates": "EphemeralContainers=true"
-  scheduler:
-    extraArgs:
-      "feature-gates": "EphemeralContainers=true"
-  controllerManager:
-    extraArgs:
-      "feature-gates": "EphemeralContainers=true"
-- |
-  apiVersion: kubeadm.k8s.io/v1beta3
-  kind: InitConfiguration
-  metadata:
-    name: config
-  nodeRegistration:
-    kubeletExtraArgs:
-      "feature-gates": "EphemeralContainers=true"
 EOF
 )
 

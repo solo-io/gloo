@@ -10,12 +10,13 @@ REMOTE_RELEASE_CLUSTER="${REMOTE_RELEASE_CLUSTER_NAME:-remote-release}"
 # The name of the remote kind cluster to deploy to
 REMOTE_CANARY_CLUSTER="${REMOTE_CANARY_CLUSTER:-remote-canary}"
 # The version of the Node Docker image to use for booting the clusters
-CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.25.3}"
+CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.27.3}"
 # The version used to tag images
 VERSION="${VERSION:-1.0.0-ci}"
 # The license key used to support enterprise features
 GLOO_LICENSE_KEY="${GLOO_LICENSE_KEY:-}"
 FROM_RELEASE="${FROM_RELEASE:-false}"
+INPUT_KUBECTL_VERSION="${INPUT_KUBECTL_VERSION:-v1.27.3}"
 # Automatically (lazily) determine OS type
 if [[ $OSTYPE == 'darwin'* ]]; then
   OS='darwin'

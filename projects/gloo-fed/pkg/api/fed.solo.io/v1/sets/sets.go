@@ -17,8 +17,10 @@ type GlooInstanceSet interface {
 	// Get the set stored keys
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	List(filterResource ...func(*fed_solo_io_v1.GlooInstance) bool) []*fed_solo_io_v1.GlooInstance
 	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	UnsortedList(filterResource ...func(*fed_solo_io_v1.GlooInstance) bool) []*fed_solo_io_v1.GlooInstance
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_solo_io_v1.GlooInstance
@@ -238,8 +240,10 @@ type FailoverSchemeSet interface {
 	// Get the set stored keys
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	List(filterResource ...func(*fed_solo_io_v1.FailoverScheme) bool) []*fed_solo_io_v1.FailoverScheme
 	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	UnsortedList(filterResource ...func(*fed_solo_io_v1.FailoverScheme) bool) []*fed_solo_io_v1.FailoverScheme
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_solo_io_v1.FailoverScheme

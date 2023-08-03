@@ -44,7 +44,7 @@ func Run(runCtx context.Context, settings *Settings) error {
 
 	// Initialize the NewManager
 	// This is the component responsible for managing clients and caches and supplying them to controllers
-	mgr := fed_bootstrap.MustLocalManager(runCtx)
+	mgr := fed_bootstrap.MustLocalManager(runCtx, &manager.Options{})
 
 	if err := fields.AddGlooInstanceIndexer(runCtx, mgr); err != nil {
 		return errors.Errorf("A fatal error occurred while adding cluster indexer to GlooInstance", zap.Error(err))
@@ -83,8 +83,6 @@ func Run(runCtx context.Context, settings *Settings) error {
 		return errors.Errorf("A fatal error occurred while starting the cluster watcher", zap.Error(err))
 	}
 
-	// Start starts all registered Controllers and blocks until the context is cancelled.
-	// Returns an error if there is an error starting any controller.
 	return mgr.Start(runCtx)
 }
 

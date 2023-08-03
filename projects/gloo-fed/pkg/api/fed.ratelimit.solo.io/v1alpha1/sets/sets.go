@@ -17,8 +17,10 @@ type FederatedRateLimitConfigSet interface {
 	// Get the set stored keys
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	List(filterResource ...func(*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig) bool) []*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig
 	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	UnsortedList(filterResource ...func(*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig) bool) []*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig

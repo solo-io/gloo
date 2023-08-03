@@ -75,7 +75,7 @@ func main() {
 
 	var mgr manager.Manager
 	if glooFedEnabled {
-		mgr = fed_bootstrap.MustLocalManagerFromConfig(rootCtx, cfg)
+		mgr = fed_bootstrap.MustLocalManagerFromConfig(rootCtx, cfg, &manager.Options{})
 		initializeGlooFed(rootCtx, mgr, apiserverSettings, licensedFeatureProvider)
 	} else {
 		if os.Getenv("NAMESPACE_RESTRICTED_MODE") == "true" {

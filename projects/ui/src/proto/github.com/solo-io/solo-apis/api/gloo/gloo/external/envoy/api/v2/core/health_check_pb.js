@@ -1402,12 +1402,19 @@ proto.solo.io.envoy.api.v2.core.HealthCheck.RedisHealthCheck.prototype.setKey = 
  * @constructor
  */
 proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck.repeatedFields_, null);
 };
 goog.inherits(proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck.displayName = 'proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck.repeatedFields_ = [3];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -1438,7 +1445,9 @@ proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck.prototype.toObject =
 proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck.toObject = function(includeInstance, msg) {
   var f, obj = {
     serviceName: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    authority: jspb.Message.getFieldWithDefault(msg, 2, "")
+    authority: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    initialMetadataList: jspb.Message.toObjectList(msg.getInitialMetadataList(),
+    github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb.HeaderValueOption.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -1483,6 +1492,11 @@ proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck.deserializeBinaryFro
       var value = /** @type {string} */ (reader.readString());
       msg.setAuthority(value);
       break;
+    case 3:
+      var value = new github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb.HeaderValueOption;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb.HeaderValueOption.deserializeBinaryFromReader);
+      msg.addInitialMetadata(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1526,6 +1540,14 @@ proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck.serializeBinaryToWri
       f
     );
   }
+  f = message.getInitialMetadataList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      3,
+      f,
+      github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb.HeaderValueOption.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -1556,6 +1578,37 @@ proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck.prototype.getAuthori
 /** @param {string} value */
 proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck.prototype.setAuthority = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * repeated HeaderValueOption initial_metadata = 3;
+ * @return {!Array<!proto.solo.io.envoy.api.v2.core.HeaderValueOption>}
+ */
+proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck.prototype.getInitialMetadataList = function() {
+  return /** @type{!Array<!proto.solo.io.envoy.api.v2.core.HeaderValueOption>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb.HeaderValueOption, 3));
+};
+
+
+/** @param {!Array<!proto.solo.io.envoy.api.v2.core.HeaderValueOption>} value */
+proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck.prototype.setInitialMetadataList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 3, value);
+};
+
+
+/**
+ * @param {!proto.solo.io.envoy.api.v2.core.HeaderValueOption=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.solo.io.envoy.api.v2.core.HeaderValueOption}
+ */
+proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck.prototype.addInitialMetadata = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 3, opt_value, proto.solo.io.envoy.api.v2.core.HeaderValueOption, opt_index);
+};
+
+
+proto.solo.io.envoy.api.v2.core.HealthCheck.GrpcHealthCheck.prototype.clearInitialMetadataList = function() {
+  this.setInitialMetadataList([]);
 };
 
 

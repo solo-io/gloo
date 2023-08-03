@@ -49,7 +49,7 @@ jobs:
       fail-fast: false
       matrix:
         name-helper: ['Gloo Fed E2E Tests']
-        kube-version: [{ node: 'v1.26.3@sha256:61b92f38dff6ccc29969e7aa154d34e38b89443af1a2c14e6cfbd2df6419c66f', kubectl: 'v1.26.4', kind: 'v0.18.0', helm: 'v3.11.2' }]
+        kube-version: [{ node: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72', kubectl: 'v1.27.3', kind: 'v0.20.0', helm: 'v3.12.2' }]
     steps:
       - uses: actions/checkout@v3
       - id: auto-succeed-tests
@@ -77,7 +77,7 @@ jobs:
       fail-fast: false
       matrix:
         name-helper: ['Gloo Fed Canary Tests']
-        kube-version: [{ node: 'v1.26.3@sha256:61b92f38dff6ccc29969e7aa154d34e38b89443af1a2c14e6cfbd2df6419c66f', kubectl: 'v1.26.4', kind: 'v0.18.0', helm: 'v3.11.2' }]
+        kube-version: [{ node: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72', kubectl: 'v1.27.3', kind: 'v0.20.0', helm: 'v3.12.2' }]
     steps:
       - uses: actions/checkout@v3
       - id: auto-succeed-tests
@@ -103,7 +103,7 @@ jobs:
       matrix:
         # upgrade tests are not run on PRs
         kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'helm', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}, {test: 'caching', use-fips: 'false'}, {test: 'upgrade', use-fips: 'false'}]
-        kube-version: [{ node: 'v1.26.3@sha256:61b92f38dff6ccc29969e7aa154d34e38b89443af1a2c14e6cfbd2df6419c66f', kubectl: 'v1.26.4', kind: 'v0.18.0', helm: 'v3.11.2' }]
+        kube-version: [{ node: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72', kubectl: 'v1.27.3', kind: 'v0.20.0', helm: 'v3.12.2' }]
         merge-to-main:
           - ${{ github.event.pull_request.base.ref == 'main' }}
         exclude:

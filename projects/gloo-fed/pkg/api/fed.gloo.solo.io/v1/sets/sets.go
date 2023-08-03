@@ -17,8 +17,10 @@ type FederatedUpstreamSet interface {
 	// Get the set stored keys
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	List(filterResource ...func(*fed_gloo_solo_io_v1.FederatedUpstream) bool) []*fed_gloo_solo_io_v1.FederatedUpstream
 	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	UnsortedList(filterResource ...func(*fed_gloo_solo_io_v1.FederatedUpstream) bool) []*fed_gloo_solo_io_v1.FederatedUpstream
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_gloo_solo_io_v1.FederatedUpstream
@@ -238,8 +240,10 @@ type FederatedUpstreamGroupSet interface {
 	// Get the set stored keys
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	List(filterResource ...func(*fed_gloo_solo_io_v1.FederatedUpstreamGroup) bool) []*fed_gloo_solo_io_v1.FederatedUpstreamGroup
 	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	UnsortedList(filterResource ...func(*fed_gloo_solo_io_v1.FederatedUpstreamGroup) bool) []*fed_gloo_solo_io_v1.FederatedUpstreamGroup
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_gloo_solo_io_v1.FederatedUpstreamGroup
@@ -459,8 +463,10 @@ type FederatedSettingsSet interface {
 	// Get the set stored keys
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	List(filterResource ...func(*fed_gloo_solo_io_v1.FederatedSettings) bool) []*fed_gloo_solo_io_v1.FederatedSettings
 	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	UnsortedList(filterResource ...func(*fed_gloo_solo_io_v1.FederatedSettings) bool) []*fed_gloo_solo_io_v1.FederatedSettings
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_gloo_solo_io_v1.FederatedSettings

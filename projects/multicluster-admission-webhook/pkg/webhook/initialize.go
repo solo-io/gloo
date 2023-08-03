@@ -43,14 +43,16 @@ func InitializeWebhook(
 		}
 		webhookServer := mgr.GetWebhookServer()
 
-		// Set the cert directory to the one specified
-		webhookServer.CertDir = cfg.GetString(config.CertDir)
-
-		// Override default webhook port of 443 to run as non-root user.
-		webhookServer.Port = chart.WebhookPort
 		webhookServer.Register(cfg.GetString(config.AdmissionWebhookPath), admissionWebhook)
 		return nil
 	}))
+}
+
+func GetWebhookOptions(cfg *config.Config) *manager.Options {
+	return &manager.Options{
+		CertDir: cfg.GetString(config.CertDir),
+		Port:    chart.WebhookPort,
+	}
 }
 
 // Ensure a CA bundle for TLS when communicating to the webhook.

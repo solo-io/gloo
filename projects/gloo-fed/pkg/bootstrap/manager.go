@@ -51,7 +51,7 @@ func MustSingleClusterManagerFromConfig(ctx context.Context, cfg *rest.Config, n
 		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while getting single cluster manager", zap.Error(err))
 	}
 
-	mgr := MustManager(cfg, die, namespace)
+	mgr := MustManager(cfg, die, namespace, &manager.Options{})
 	if err := singleClusterSchemes.AddToScheme(mgr.GetScheme()); err != nil {
 		die(err)
 	}
@@ -61,12 +61,12 @@ func MustSingleClusterManagerFromConfig(ctx context.Context, cfg *rest.Config, n
 
 // MustLocalManagerFromConfig creates a new manager from a config, adds local Gloo Fed resources to the scheme,
 // and returns the manager.
-func MustLocalManagerFromConfig(ctx context.Context, cfg *rest.Config) manager.Manager {
+func MustLocalManagerFromConfig(ctx context.Context, cfg *rest.Config, options *manager.Options) manager.Manager {
 	die := func(err error) {
 		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while getting local manager", zap.Error(err))
 	}
 
-	mgr := MustManager(cfg, die, "")
+	mgr := MustManager(cfg, die, "", options)
 	if err := fedSchemes.AddToScheme(mgr.GetScheme()); err != nil {
 		die(err)
 	}
@@ -75,16 +75,16 @@ func MustLocalManagerFromConfig(ctx context.Context, cfg *rest.Config) manager.M
 }
 
 // MustLocalManager creates a new manager, adds local Gloo Fed resources to the scheme, and returns the manager.
-func MustLocalManager(ctx context.Context) manager.Manager {
+func MustLocalManager(ctx context.Context, options *manager.Options) manager.Manager {
 	cfg, err := config.GetConfig()
 	if err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while getting config", zap.Error(err))
 	}
 
-	return MustLocalManagerFromConfig(ctx, cfg)
+	return MustLocalManagerFromConfig(ctx, cfg, options)
 }
 
-func MustManager(cfg *rest.Config, onError func(err error), namespace string) manager.Manager {
+func MustManager(cfg *rest.Config, onError func(err error), namespace string, options *manager.Options) manager.Manager {
 	// Replaces the stats server functionality used by other control plane components:
 	//	stats.ConditionallyStartStatsServer()
 	// We use the same env variable as other control plane components
@@ -93,19 +93,12 @@ func MustManager(cfg *rest.Config, onError func(err error), namespace string) ma
 		metricsBindAddress = "0"
 	}
 
-	var mgr manager.Manager
-	var err error
-
+	// Add additional options to passed in options
+	options.MetricsBindAddress = metricsBindAddress
 	if namespace != "" {
-		mgr, err = manager.New(cfg, manager.Options{
-			MetricsBindAddress: metricsBindAddress,
-			Namespace:          namespace,
-		})
-	} else {
-		mgr, err = manager.New(cfg, manager.Options{
-			MetricsBindAddress: metricsBindAddress,
-		})
+		options.Namespace = namespace
 	}
+	mgr, err := manager.New(cfg, *options)
 
 	if err != nil {
 		onError(err)

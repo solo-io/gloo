@@ -275,6 +275,11 @@ export namespace HealthCheck {
     getAuthority(): string;
     setAuthority(value: string): void;
 
+    clearInitialMetadataList(): void;
+    getInitialMetadataList(): Array<github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb.HeaderValueOption>;
+    setInitialMetadataList(value: Array<github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb.HeaderValueOption>): void;
+    addInitialMetadata(value?: github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb.HeaderValueOption, index?: number): github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb.HeaderValueOption;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GrpcHealthCheck.AsObject;
     static toObject(includeInstance: boolean, msg: GrpcHealthCheck): GrpcHealthCheck.AsObject;
@@ -289,6 +294,7 @@ export namespace HealthCheck {
     export type AsObject = {
       serviceName: string,
       authority: string,
+      initialMetadataList: Array<github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb.HeaderValueOption.AsObject>,
     }
   }
 

@@ -17,8 +17,10 @@ type FederatedGatewaySet interface {
 	// Get the set stored keys
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	List(filterResource ...func(*fed_gateway_solo_io_v1.FederatedGateway) bool) []*fed_gateway_solo_io_v1.FederatedGateway
 	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	UnsortedList(filterResource ...func(*fed_gateway_solo_io_v1.FederatedGateway) bool) []*fed_gateway_solo_io_v1.FederatedGateway
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_gateway_solo_io_v1.FederatedGateway
@@ -238,8 +240,10 @@ type FederatedMatchableHttpGatewaySet interface {
 	// Get the set stored keys
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	List(filterResource ...func(*fed_gateway_solo_io_v1.FederatedMatchableHttpGateway) bool) []*fed_gateway_solo_io_v1.FederatedMatchableHttpGateway
 	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	UnsortedList(filterResource ...func(*fed_gateway_solo_io_v1.FederatedMatchableHttpGateway) bool) []*fed_gateway_solo_io_v1.FederatedMatchableHttpGateway
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_gateway_solo_io_v1.FederatedMatchableHttpGateway
@@ -459,8 +463,10 @@ type FederatedMatchableTcpGatewaySet interface {
 	// Get the set stored keys
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	List(filterResource ...func(*fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) bool) []*fed_gateway_solo_io_v1.FederatedMatchableTcpGateway
 	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	UnsortedList(filterResource ...func(*fed_gateway_solo_io_v1.FederatedMatchableTcpGateway) bool) []*fed_gateway_solo_io_v1.FederatedMatchableTcpGateway
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_gateway_solo_io_v1.FederatedMatchableTcpGateway
@@ -680,8 +686,10 @@ type FederatedVirtualServiceSet interface {
 	// Get the set stored keys
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	List(filterResource ...func(*fed_gateway_solo_io_v1.FederatedVirtualService) bool) []*fed_gateway_solo_io_v1.FederatedVirtualService
 	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	UnsortedList(filterResource ...func(*fed_gateway_solo_io_v1.FederatedVirtualService) bool) []*fed_gateway_solo_io_v1.FederatedVirtualService
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_gateway_solo_io_v1.FederatedVirtualService
@@ -901,8 +909,10 @@ type FederatedRouteTableSet interface {
 	// Get the set stored keys
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	List(filterResource ...func(*fed_gateway_solo_io_v1.FederatedRouteTable) bool) []*fed_gateway_solo_io_v1.FederatedRouteTable
 	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	UnsortedList(filterResource ...func(*fed_gateway_solo_io_v1.FederatedRouteTable) bool) []*fed_gateway_solo_io_v1.FederatedRouteTable
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_gateway_solo_io_v1.FederatedRouteTable

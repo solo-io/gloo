@@ -17,8 +17,10 @@ type FederatedAuthConfigSet interface {
 	// Get the set stored keys
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	List(filterResource ...func(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig) bool) []*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig
 	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	// The filter function should return false to keep the resource, true to drop it.
 	UnsortedList(filterResource ...func(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig) bool) []*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig

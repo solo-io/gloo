@@ -33,7 +33,7 @@ func Start(rootCtx context.Context, rbacCfg *rbacconfig.Config) error {
 	ctx := CreateRootContext(rootCtx, "multicluster-admission-webhook")
 	logger := contextutils.LoggerFrom(ctx)
 
-	mgr, err := initMasterManager(rbacCfg)
+	mgr, err := initMasterManager(rbacCfg, webhook.GetWebhookOptions(rbacCfg))
 	if err != nil {
 		return err
 	}
@@ -53,12 +53,12 @@ func initPlacementParser(mgr manager.Manager) rbac.Parser {
 }
 
 // get the manager for the local cluster; we will use this as our "master" cluster
-func initMasterManager(rbacCfg *rbacconfig.Config) (manager.Manager, error) {
+func initMasterManager(rbacCfg *rbacconfig.Config, options *manager.Options) (manager.Manager, error) {
 	cfg, err := config.GetConfig()
 	if err != nil {
 		return nil, err
 	}
-	mgr, err := manager.New(cfg, manager.Options{})
+	mgr, err := manager.New(cfg, *options)
 	if err != nil {
 		return nil, err
 	}

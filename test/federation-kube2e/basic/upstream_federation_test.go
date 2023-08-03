@@ -49,7 +49,21 @@ var _ = Describe("Upstream federation", func() {
 				Namespace: fedUpstream.GetNamespace(),
 				Name:      fedUpstream.GetName(),
 			})
+
+			Eventually(func(g Gomega) {
+				checkFedUpstream, err := clientset.FederatedUpstreams().GetFederatedUpstream(
+					ctx,
+					types.NamespacedName{
+						Name:      fedUpstream.GetObjectMeta().GetName(),
+						Namespace: fedUpstream.GetObjectMeta().GetNamespace(),
+					},
+				)
+				g.Expect(err).To(HaveOccurred())
+				g.Expect(checkFedUpstream).To(BeNil())
+			}, 10*time.Second).Should(Succeed())
+
 		}
+
 	})
 
 	It("throws validation error when missing Placement", func() {

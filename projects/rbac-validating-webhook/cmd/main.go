@@ -15,8 +15,8 @@ import (
 
 func main() {
 	rootCtx := bootstrap.CreateRootContext(context.Background(), "gloo-fed-rbac-validation")
-	mgr := fed_bootstrap.MustLocalManager(rootCtx)
 	rbacCfg := rbacconfig.NewConfig()
+	mgr := fed_bootstrap.MustLocalManager(rootCtx, webhook.GetWebhookOptions(rbacCfg))
 
 	if err := webhook.InitializeWebhook(
 		rootCtx,
