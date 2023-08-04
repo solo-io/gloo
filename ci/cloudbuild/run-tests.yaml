@@ -91,10 +91,17 @@ steps:
   args:
     - "-ce"
     - |
-      ENVOY_VERSION=v$$(make print-ENVOY_GLOO_IMAGE | cut -d: -f2)
-      gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION//envoy.stripped /workspace/envoy
-      gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION//libsaxon-solo.so /workspace/libsaxon-solo.so
-      chmod +x /workspace/envoy
+      { # try to pull release assets first
+        ENVOY_VERSION=v$$(make print-ENVOY_GLOO_IMAGE | cut -d: -f2) && \
+        gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION//envoy.stripped /workspace/envoy && \
+        gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION//libsaxon-solo.so /workspace/libsaxon-solo.so && \
+        chmod +x /workspace/envoy
+      } || { # if that fails, pull from CI
+        ENVOY_VERSION=$$(make print-ENVOY_GLOO_IMAGE | cut -d: -f2) && \
+        gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION/envoy /workspace/envoy && \
+        gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION/libsaxon-solo.so /workspace/libsaxon-solo.so && \
+        chmod +x /workspace/envoy
+      }
   dir: &dir "/workspace/solo-projects"
   waitFor: ["prepare-workspace"]
   id: "get-envoy"
