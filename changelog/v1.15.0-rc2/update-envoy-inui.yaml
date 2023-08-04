@@ -7,3 +7,7 @@ changelog:
   - type: NON_USER_FACING
     description: -| 
       Fix npm issues that prevented build.
+      Revert skipped Makefile checks.
+      Add back missing comment in fed runner/run.go.
+      Fix to prevent "SetLogger" error in fed tests.
+      Check options in runner before overwriting.

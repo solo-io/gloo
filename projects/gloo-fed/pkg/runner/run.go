@@ -83,6 +83,8 @@ func Run(runCtx context.Context, settings *Settings) error {
 		return errors.Errorf("A fatal error occurred while starting the cluster watcher", zap.Error(err))
 	}
 
+	// Start starts all registered Controllers and blocks until the context is cancelled.
+	// Returns an error if there is an error starting any controller.
 	return mgr.Start(runCtx)
 }
 

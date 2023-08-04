@@ -93,9 +93,12 @@ func MustManager(cfg *rest.Config, onError func(err error), namespace string, op
 		metricsBindAddress = "0"
 	}
 
-	// Add additional options to passed in options
-	options.MetricsBindAddress = metricsBindAddress
-	if namespace != "" {
+	// Add additional options to passed in options if they are not already set
+	if options.MetricsBindAddress == "" {
+		options.MetricsBindAddress = metricsBindAddress
+	}
+
+	if options.Namespace == "" && namespace != "" {
 		options.Namespace = namespace
 	}
 	mgr, err := manager.New(cfg, *options)

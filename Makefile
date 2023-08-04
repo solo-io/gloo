@@ -269,16 +269,13 @@ GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' 
 check-go-version:
 	./ci/check-go-version.sh
 
-# TODO before merging: uncomment
 .PHONY: check-solo-apis
 check-solo-apis:
 	# Ensure that the gloo and solo-apis dependencies are in lockstep
 	# This is intended to only be run by the ci/check-code-gen script and it will produce
 	# a diff if the versions are not in lockstep
-	# go get github.com/solo-io/solo-apis@gloo-$(GLOO_VERSION)
-	echo "Skipping solo-apis check"
+	go get github.com/solo-io/solo-apis@gloo-$(GLOO_VERSION)
 
-# TODO: uncomment before merging
 .PHONY: check-envoy-version
 check-envoy-version:
 	./ci/check-envoy-version.sh $(ENVOY_GLOO_IMAGE_VERSION)

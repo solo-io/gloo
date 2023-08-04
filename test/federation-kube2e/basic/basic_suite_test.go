@@ -25,6 +25,9 @@ import (
 	multicluster_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 const (
@@ -68,6 +71,8 @@ var (
 )
 
 var _ = SynchronizedBeforeSuite(func() []byte {
+	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
+
 	remoteClusterConfig = kubeutils.CreateClusterConfigFromKubeClusterNameEnv(remoteClusterEnvName)
 	managementClusterConfig = kubeutils.CreateClusterConfigFromKubeClusterNameEnv(managementClusterEnvName)
 

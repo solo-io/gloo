@@ -28,6 +28,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/go-utils/log"
+
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 const (
@@ -77,6 +80,8 @@ var (
 )
 
 var _ = SynchronizedBeforeSuite(func() []byte {
+	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
+
 	managementClusterConfig = kubeutils.CreateClusterConfigFromKubeClusterNameEnv(managementClusterEnvName)
 	remoteReleaseClusterConfig = kubeutils.CreateClusterConfigFromKubeClusterNameEnv(remoteReleaseClusterEnvName)
 	remoteCanaryClusterConfig = kubeutils.CreateClusterConfigFromKubeClusterNameEnv(remoteCanaryClusterEnvName)
