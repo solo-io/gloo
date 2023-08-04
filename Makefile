@@ -281,8 +281,7 @@ check-solo-apis:
 # TODO: uncomment before merging
 .PHONY: check-envoy-version
 check-envoy-version:
-	# ./ci/check-envoy-version.sh $(ENVOY_GLOO_IMAGE_VERSION)
-	echo "skipping envoy version check"
+	./ci/check-envoy-version.sh $(ENVOY_GLOO_IMAGE_VERSION)
 
 .PHONY: check-protoc
 check-protoc:
@@ -735,7 +734,9 @@ endif
 
 .PHONY: build-ui
 build-ui: update-ui-deps
+ifneq ($(LOCAL_BUILD),)
 	yarn --cwd $(APISERVER_UI_DIR) build
+endif
 
 .PHONY: gloo-federation-console-docker
 gloo-federation-console-docker: build-ui

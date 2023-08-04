@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/5260
+    resolvesIssue: false
+    description: -| 
+      Updates ui envoy sidecar version
+  - type: NON_USER_FACING
+    description: -| 
+      Fix npm issues that prevented build.

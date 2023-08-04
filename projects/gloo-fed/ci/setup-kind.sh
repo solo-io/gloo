@@ -13,7 +13,6 @@ VERSION="${VERSION:-1.0.0-ci}"
 FROM_RELEASE="${FROM_RELEASE:-false}"
 # The license key used to support enterprise features
 GLOO_LICENSE_KEY="${GLOO_LICENSE_KEY:-}"
-INPUT_KUBECTL_VERSION="${INPUT_KUBECTL_VERSION:-v1.27.3}"
 # Automatically (lazily) determine OS type
 if [[ $OSTYPE == 'darwin'* ]]; then
   OS='darwin'
@@ -77,6 +76,8 @@ EOF
 # 5. Set context to management cluster
 kubectl config use-context kind-"$MANAGEMENT_CLUSTER"
 if [[ $FROM_RELEASE != "true" ]]; then
+  # 5. create the ui for semi local
+  yarn --cwd projects/ui build
   # 5. Build local federation and enterprise images used in these clusters and load them into the kind cluster
   VERSION=$VERSION make package-gloo-fed-chart package-gloo-edge-chart -B
   VERSION=$VERSION make kind-build-federation-images -B
@@ -329,7 +330,7 @@ spec:
             - "1"
             - --file-flush-interval-msec
             - "10"
-          image: envoyproxy/envoy:v1.22.0
+          image: envoyproxy/envoy:v1.26.4
           imagePullPolicy: IfNotPresent
           name: envoy
           resources: {}
@@ -465,7 +466,7 @@ spec:
             - "1"
             - --file-flush-interval-msec
             - "10"
-          image: envoyproxy/envoy:v1.22.0
+          image: envoyproxy/envoy:v1.26.4
           imagePullPolicy: IfNotPresent
           name: envoy
           resources: {}

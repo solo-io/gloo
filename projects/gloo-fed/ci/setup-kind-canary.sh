@@ -16,7 +16,6 @@ VERSION="${VERSION:-1.0.0-ci}"
 # The license key used to support enterprise features
 GLOO_LICENSE_KEY="${GLOO_LICENSE_KEY:-}"
 FROM_RELEASE="${FROM_RELEASE:-false}"
-INPUT_KUBECTL_VERSION="${INPUT_KUBECTL_VERSION:-v1.27.3}"
 # Automatically (lazily) determine OS type
 if [[ $OSTYPE == 'darwin'* ]]; then
   OS='darwin'

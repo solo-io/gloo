@@ -145,7 +145,7 @@ func (f *FailoverTestContext) BeforeEach() {
 						},
 						{
 							Name:  "envoy",
-							Image: "envoyproxy/envoy:v1.14.2",
+							Image: "envoyproxy/envoy:v1.26.4",
 							Args:  []string{"--config-yaml", FailoverAdminConfig, "--disable-hot-restart", "--log-level", "debug", "--concurrency", "1", "--file-flush-interval-msec", "10"},
 						},
 					},
