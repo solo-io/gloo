@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Update developer documentation to discuss how to use
+      unreleased versions of envoy to build gloo
+      skipCI-kube-tests:true
+      skipCI-storybook-tests:true
