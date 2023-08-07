@@ -17,6 +17,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/deprecated_cipher_passthrough"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extproc"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
@@ -85,6 +86,7 @@ func getEnterprisePlugins(apiEmitterChan chan struct{}, graphQLFeatureState *lic
 		proxyprotocol.NewPlugin(),
 		graphql.NewPlugin(graphQLFeatureState),
 		deprecated_cipher_passthrough.NewPlugin(),
+		extproc.NewPlugin(),
 	}
 }
 

@@ -1,0 +1,16 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/8320
+    resolvesIssue: false
+    description: >
+      Add support for External Processing filters. External processor settings can be configured on `HttpListenerOptions`,
+      and overrides can be specified on `VirtualHostOptions` and `RouteOptions`. Default global settings can be configured
+      via the `global.extensions.extProc` helm value.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.15.0-rc2
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.15.0-rc2

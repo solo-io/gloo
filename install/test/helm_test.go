@@ -24,12 +24,23 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/duration"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/format"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	envoy_mutation_rules_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/common/mutation_rules/v3"
+	gloo_config_core_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
+	gloo_ext_proc_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/ext_proc/v3"
+	envoy_matcher_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extproc"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/filters"
+	glookubev1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
+	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/k8s-utils/installutils/kuberesource"
 	. "github.com/solo-io/k8s-utils/manifesttestutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	. "github.com/solo-io/solo-kit/test/matchers"
 	"github.com/solo-io/solo-projects/pkg/install"
 	appsv1 "k8s.io/api/apps/v1"
@@ -5380,6 +5391,99 @@ spec:
 			})
 		})
 
+		Context("extproc settings", func() {
+			It("does not render extproc settings by default", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				settings := getSettings(testManifest)
+				Expect(settings.Spec.GetExtProc()).To(BeNil())
+			})
+
+			It("can set extproc settings", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.extProc.grpcService.extProcServerRef.name=my-extproc-upstream",
+						"global.extensions.extProc.grpcService.extProcServerRef.namespace=ns",
+						"global.extensions.extProc.grpcService.authority=xyz",
+						"global.extensions.extProc.grpcService.retryPolicy.retryBackOff.baseInterval=2s",
+						"global.extensions.extProc.grpcService.retryPolicy.retryBackOff.maxInterval=3s",
+						"global.extensions.extProc.grpcService.retryPolicy.numRetries=5",
+						"global.extensions.extProc.grpcService.timeout=1m",
+						"global.extensions.extProc.grpcService.initialMetadata[0].key=headerKey1",
+						"global.extensions.extProc.grpcService.initialMetadata[0].value=headerValue1",
+						"global.extensions.extProc.grpcService.initialMetadata[1].key=headerKey2",
+						"global.extensions.extProc.grpcService.initialMetadata[1].value=headerValue2",
+						"global.extensions.extProc.filterStage.stage=AuthZStage",
+						"global.extensions.extProc.filterStage.predicate=Before",
+						"global.extensions.extProc.failureModeAllow=true",
+						"global.extensions.extProc.processingMode.requestHeaderMode=SEND",
+						"global.extensions.extProc.processingMode.responseBodyMode=BUFFERED",
+						"global.extensions.extProc.asyncMode=true",
+						"global.extensions.extProc.requestAttributes[0]=a",
+						"global.extensions.extProc.requestAttributes[1]=b",
+						"global.extensions.extProc.responseAttributes[0]=c",
+						"global.extensions.extProc.messageTimeout=3s",
+						"global.extensions.extProc.maxMessageTimeout=10s",
+						"global.extensions.extProc.statPrefix=hello",
+						"global.extensions.extProc.mutationRules.disallowAll=true",
+						"global.extensions.extProc.disableClearRouteCache=false",
+						"global.extensions.extProc.forwardRules.allowedHeaders.patterns[0].prefix=abc",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				settings := getSettings(testManifest)
+				Expect(settings.Spec.GetExtProc()).NotTo(BeNil())
+				Expect(settings.Spec.GetExtProc()).To(MatchProto(&extproc.Settings{
+					GrpcService: &extproc.GrpcService{
+						ExtProcServerRef: &core.ResourceRef{Name: "my-extproc-upstream", Namespace: "ns"},
+						Authority:        &wrappers.StringValue{Value: "xyz"},
+						RetryPolicy: &gloo_config_core_v3.RetryPolicy{
+							RetryBackOff: &gloo_config_core_v3.BackoffStrategy{
+								BaseInterval: &duration.Duration{Seconds: 2},
+								MaxInterval:  &duration.Duration{Seconds: 3},
+							},
+							NumRetries: &wrappers.UInt32Value{Value: 5},
+						},
+						Timeout: &duration.Duration{Seconds: 60},
+						InitialMetadata: []*gloo_config_core_v3.HeaderValue{
+							{Key: "headerKey1", Value: "headerValue1"},
+							{Key: "headerKey2", Value: "headerValue2"},
+						},
+					},
+					FilterStage: &filters.FilterStage{
+						Stage:     filters.FilterStage_AuthZStage,
+						Predicate: filters.FilterStage_Before,
+					},
+					FailureModeAllow: &wrappers.BoolValue{Value: true},
+					ProcessingMode: &gloo_ext_proc_v3.ProcessingMode{
+						RequestHeaderMode: gloo_ext_proc_v3.ProcessingMode_SEND,
+						ResponseBodyMode:  gloo_ext_proc_v3.ProcessingMode_BUFFERED,
+					},
+					AsyncMode:          &wrappers.BoolValue{Value: true},
+					MessageTimeout:     &duration.Duration{Seconds: 3},
+					MaxMessageTimeout:  &duration.Duration{Seconds: 10},
+					RequestAttributes:  []string{"a", "b"},
+					ResponseAttributes: []string{"c"},
+					StatPrefix:         &wrappers.StringValue{Value: "hello"},
+					MutationRules: &envoy_mutation_rules_v3.HeaderMutationRules{
+						DisallowAll: &wrappers.BoolValue{Value: true},
+					},
+					DisableClearRouteCache: &wrappers.BoolValue{Value: false},
+					ForwardRules: &extproc.HeaderForwardingRules{
+						AllowedHeaders: &envoy_matcher_v3.ListStringMatcher{
+							Patterns: []*envoy_matcher_v3.StringMatcher{
+								{MatchPattern: &envoy_matcher_v3.StringMatcher_Prefix{Prefix: "abc"}},
+							},
+						},
+					},
+				}))
+			})
+		})
+
 		Describe("Standard k8s values", func() {
 			DescribeTable("PodSpec affinity, tolerations, nodeName, hostAliases, nodeSelector, restartPolicy on Deployments and Jobs",
 				func(kind string, resourceName string, value string, extraArgs ...string) {
@@ -5639,17 +5743,32 @@ func getFieldFromUnstructured(uns *unstructured.Unstructured, fieldPath ...strin
 func getJob(testManifest TestManifest, jobNamespace string, jobName string) *jobsv1.Job {
 	jobUns := testManifest.ExpectCustomResource("Job", jobNamespace, jobName)
 	jobObj, err := kuberesource.ConvertUnstructured(jobUns)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(jobObj).To(BeAssignableToTypeOf(&jobsv1.Job{}))
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	ExpectWithOffset(1, jobObj).To(BeAssignableToTypeOf(&jobsv1.Job{}))
 	return jobObj.(*jobsv1.Job)
 }
 
 func getConfigMap(testManifest TestManifest, namespace string, name string) *v1.ConfigMap {
 	configMapUns := testManifest.ExpectCustomResource("ConfigMap", namespace, name)
 	configMapObj, err := kuberesource.ConvertUnstructured(configMapUns)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(configMapObj).To(BeAssignableToTypeOf(&v1.ConfigMap{}))
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	ExpectWithOffset(1, configMapObj).To(BeAssignableToTypeOf(&v1.ConfigMap{}))
 	return configMapObj.(*v1.ConfigMap)
+}
+
+func getSettings(testManifest TestManifest) *glookubev1.Settings {
+	settingsUns := testManifest.ExpectCustomResource("Settings", namespace, gloodefaults.SettingsName)
+
+	// logic copied from https://github.com/solo-io/k8s-utils/blob/5a61ba2ea8e90a9e4f1fc162a6b01d042f589659/installutils/kuberesource/unstructured.go#L137
+	rawJson, err := json.Marshal(settingsUns.Object)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	var typeMeta k8s.TypeMeta
+	err = json.Unmarshal(rawJson, &typeMeta)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	obj := &glookubev1.Settings{TypeMeta: typeMeta}
+	err = json.Unmarshal(rawJson, obj)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	return obj
 }
 
 func getPodSecurityContext() *v1.PodSecurityContext {

@@ -11,6 +11,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_extensions_pb from "..
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/ratelimit/ratelimit_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/caching/caching_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/extproc/extproc_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/rbac/rbac_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_circuit_breaker_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/circuit_breaker_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb";
@@ -176,6 +177,11 @@ export class SettingsSpec extends jspb.Message {
   getGraphqlOptions(): GraphqlOptions | undefined;
   setGraphqlOptions(value?: GraphqlOptions): void;
 
+  hasExtProc(): boolean;
+  clearExtProc(): void;
+  getExtProc(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings | undefined;
+  setExtProc(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings): void;
+
   getConfigSourceCase(): SettingsSpec.ConfigSourceCase;
   getSecretSourceCase(): SettingsSpec.SecretSourceCase;
   getArtifactSourceCase(): SettingsSpec.ArtifactSourceCase;
@@ -224,6 +230,7 @@ export namespace SettingsSpec {
     upstreamoptions?: UpstreamOptions.AsObject,
     consoleOptions?: ConsoleOptions.AsObject,
     graphqlOptions?: GraphqlOptions.AsObject,
+    extProc?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings.AsObject,
   }
 
   export class SecretOptions extends jspb.Message {

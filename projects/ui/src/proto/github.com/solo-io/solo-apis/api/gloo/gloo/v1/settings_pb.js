@@ -20,6 +20,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_extensions_pb = require('../..
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/ratelimit/ratelimit_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/caching/caching_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/extproc/extproc_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/rbac/rbac_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_circuit_breaker_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/circuit_breaker_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb.js');
@@ -212,7 +213,8 @@ proto.gloo.solo.io.SettingsSpec.toObject = function(includeInstance, msg) {
     observabilityoptions: (f = msg.getObservabilityoptions()) && proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.toObject(includeInstance, f),
     upstreamoptions: (f = msg.getUpstreamoptions()) && proto.gloo.solo.io.UpstreamOptions.toObject(includeInstance, f),
     consoleOptions: (f = msg.getConsoleOptions()) && proto.gloo.solo.io.ConsoleOptions.toObject(includeInstance, f),
-    graphqlOptions: (f = msg.getGraphqlOptions()) && proto.gloo.solo.io.GraphqlOptions.toObject(includeInstance, f)
+    graphqlOptions: (f = msg.getGraphqlOptions()) && proto.gloo.solo.io.GraphqlOptions.toObject(includeInstance, f),
+    extProc: (f = msg.getExtProc()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -410,6 +412,11 @@ proto.gloo.solo.io.SettingsSpec.deserializeBinaryFromReader = function(msg, read
       var value = new proto.gloo.solo.io.GraphqlOptions;
       reader.readMessage(value,proto.gloo.solo.io.GraphqlOptions.deserializeBinaryFromReader);
       msg.setGraphqlOptions(value);
+      break;
+    case 39:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings.deserializeBinaryFromReader);
+      msg.setExtProc(value);
       break;
     default:
       reader.skipField();
@@ -694,6 +701,14 @@ proto.gloo.solo.io.SettingsSpec.serializeBinaryToWriter = function(message, writ
       37,
       f,
       proto.gloo.solo.io.GraphqlOptions.serializeBinaryToWriter
+    );
+  }
+  f = message.getExtProc();
+  if (f != null) {
+    writer.writeMessage(
+      39,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings.serializeBinaryToWriter
     );
   }
 };
@@ -6620,6 +6635,36 @@ proto.gloo.solo.io.SettingsSpec.prototype.clearGraphqlOptions = function() {
  */
 proto.gloo.solo.io.SettingsSpec.prototype.hasGraphqlOptions = function() {
   return jspb.Message.getField(this, 37) != null;
+};
+
+
+/**
+ * optional extproc.options.gloo.solo.io.Settings ext_proc = 39;
+ * @return {?proto.extproc.options.gloo.solo.io.Settings}
+ */
+proto.gloo.solo.io.SettingsSpec.prototype.getExtProc = function() {
+  return /** @type{?proto.extproc.options.gloo.solo.io.Settings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings, 39));
+};
+
+
+/** @param {?proto.extproc.options.gloo.solo.io.Settings|undefined} value */
+proto.gloo.solo.io.SettingsSpec.prototype.setExtProc = function(value) {
+  jspb.Message.setWrapperField(this, 39, value);
+};
+
+
+proto.gloo.solo.io.SettingsSpec.prototype.clearExtProc = function() {
+  this.setExtProc(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.SettingsSpec.prototype.hasExtProc = function() {
+  return jspb.Message.getField(this, 39) != null;
 };
 
 

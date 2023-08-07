@@ -45,11 +45,12 @@ type Rbac struct {
 // Gloo-ee
 
 type GlooEeExtensions struct {
-	ExtAuth           *ExtAuth   `json:"extAuth,omitempty"`
-	RateLimit         *RateLimit `json:"rateLimit,omitempty"`
-	Caching           *Caching   `json:"caching,omitempty"`
-	GlooRedis         *GlooRedis `json:"glooRedis,omitempty"`
-	DataPlanePerProxy *bool      `json:"dataPlanePerProxy,omitempty"`
+	ExtAuth           *ExtAuth    `json:"extAuth,omitempty"`
+	RateLimit         *RateLimit  `json:"rateLimit,omitempty"`
+	ExtProc           interface{} `json:"extProc,omitempty" desc:"Global configuration for External Processing filter."`
+	Caching           *Caching    `json:"caching,omitempty"`
+	GlooRedis         *GlooRedis  `json:"glooRedis,omitempty"`
+	DataPlanePerProxy *bool       `json:"dataPlanePerProxy,omitempty"`
 }
 
 type GlooEEStats struct {

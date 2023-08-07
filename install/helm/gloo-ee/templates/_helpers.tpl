@@ -294,9 +294,9 @@ Injection point for enterprise-exclusive settings into the settings manifest
   {{- with .Values.global.extensions.extAuth.namedExtAuth }}
   namedExtauth:
     {{- toYaml . | nindent 4 }}
-  {{- end }}
-{{- end}}
-{{- end}}
+  {{- end }}{{/* if or $extauth.envoySidecar $extauth.standaloneDeployment */}}
+{{- end}}{{/* if $extauth.enabled */}}
+{{- end}}{{/* if not $.Values.global.extauthCustomYaml */}}
 {{- if and $.Values.global.extensions.rateLimit.enabled (not $.Values.settings.ratelimitServer) }}
   ratelimitServer:
     rateLimitBeforeAuth: {{ .Values.global.extensions.rateLimit.beforeAuth | default "false" }}
@@ -304,6 +304,10 @@ Injection point for enterprise-exclusive settings into the settings manifest
       name: rate-limit
       namespace: {{ .Release.Namespace }}
 {{- end }} {{/* if $.Values.global.extensions.rateLimit.enabled */}}
+{{- with $.Values.global.extensions.extProc }}
+  extProc:
+    {{- toYaml . | nindent 4 }}
+{{- end }} {{/* with $.Values.global.extensions.extProc */}}
 {{- if $.Values.global.extensions.caching.enabled }}
   cachingServer:
     cachingServiceRef:

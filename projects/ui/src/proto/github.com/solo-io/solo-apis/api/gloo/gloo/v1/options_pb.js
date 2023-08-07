@@ -44,6 +44,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_filter_http_gzip_v2_gzip_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/filter/http/gzip/v2/gzip_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/matcher/v3/regex_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/extproc/extproc_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_jwt_jwt_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/jwt/jwt_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/ratelimit/ratelimit_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/caching/caching_pb.js');
@@ -901,12 +902,38 @@ proto.gloo.solo.io.RouteConfigurationOptions.prototype.hasMaxDirectResponseBodyS
  * @constructor
  */
 proto.gloo.solo.io.HttpListenerOptions = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.gloo.solo.io.HttpListenerOptions.oneofGroups_);
 };
 goog.inherits(proto.gloo.solo.io.HttpListenerOptions, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.gloo.solo.io.HttpListenerOptions.displayName = 'proto.gloo.solo.io.HttpListenerOptions';
 }
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.gloo.solo.io.HttpListenerOptions.oneofGroups_ = [[30,31]];
+
+/**
+ * @enum {number}
+ */
+proto.gloo.solo.io.HttpListenerOptions.ExtProcConfigCase = {
+  EXT_PROC_CONFIG_NOT_SET: 0,
+  DISABLE_EXT_PROC: 30,
+  EXT_PROC: 31
+};
+
+/**
+ * @return {proto.gloo.solo.io.HttpListenerOptions.ExtProcConfigCase}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getExtProcConfigCase = function() {
+  return /** @type {proto.gloo.solo.io.HttpListenerOptions.ExtProcConfigCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.HttpListenerOptions.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -946,6 +973,8 @@ proto.gloo.solo.io.HttpListenerOptions.toObject = function(includeInstance, msg)
     extauth: (f = msg.getExtauth()) && github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings.toObject(includeInstance, f),
     ratelimitServer: (f = msg.getRatelimitServer()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.toObject(includeInstance, f),
     caching: (f = msg.getCaching()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings.toObject(includeInstance, f),
+    disableExtProc: (f = msg.getDisableExtProc()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    extProc: (f = msg.getExtProc()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings.toObject(includeInstance, f),
     gzip: (f = msg.getGzip()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.toObject(includeInstance, f),
     proxyLatency: (f = msg.getProxyLatency()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.toObject(includeInstance, f),
     buffer: (f = msg.getBuffer()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.toObject(includeInstance, f),
@@ -1041,6 +1070,16 @@ proto.gloo.solo.io.HttpListenerOptions.deserializeBinaryFromReader = function(ms
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings.deserializeBinaryFromReader);
       msg.setCaching(value);
+      break;
+    case 30:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setDisableExtProc(value);
+      break;
+    case 31:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings.deserializeBinaryFromReader);
+      msg.setExtProc(value);
       break;
     case 8:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip;
@@ -1199,6 +1238,22 @@ proto.gloo.solo.io.HttpListenerOptions.serializeBinaryToWriter = function(messag
       17,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings.serializeBinaryToWriter
+    );
+  }
+  f = message.getDisableExtProc();
+  if (f != null) {
+    writer.writeMessage(
+      30,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getExtProc();
+  if (f != null) {
+    writer.writeMessage(
+      31,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings.serializeBinaryToWriter
     );
   }
   f = message.getGzip();
@@ -1581,6 +1636,66 @@ proto.gloo.solo.io.HttpListenerOptions.prototype.clearCaching = function() {
  */
 proto.gloo.solo.io.HttpListenerOptions.prototype.hasCaching = function() {
   return jspb.Message.getField(this, 17) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue disable_ext_proc = 30;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getDisableExtProc = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 30));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setDisableExtProc = function(value) {
+  jspb.Message.setOneofWrapperField(this, 30, proto.gloo.solo.io.HttpListenerOptions.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearDisableExtProc = function() {
+  this.setDisableExtProc(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasDisableExtProc = function() {
+  return jspb.Message.getField(this, 30) != null;
+};
+
+
+/**
+ * optional extproc.options.gloo.solo.io.Settings ext_proc = 31;
+ * @return {?proto.extproc.options.gloo.solo.io.Settings}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getExtProc = function() {
+  return /** @type{?proto.extproc.options.gloo.solo.io.Settings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings, 31));
+};
+
+
+/** @param {?proto.extproc.options.gloo.solo.io.Settings|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setExtProc = function(value) {
+  jspb.Message.setOneofWrapperField(this, 31, proto.gloo.solo.io.HttpListenerOptions.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearExtProc = function() {
+  this.setExtProc(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasExtProc = function() {
+  return jspb.Message.getField(this, 31) != null;
 };
 
 
@@ -2231,7 +2346,8 @@ proto.gloo.solo.io.VirtualHostOptions.toObject = function(includeInstance, msg) 
     csrf: (f = msg.getCsrf()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.toObject(includeInstance, f),
     includeRequestAttemptCount: (f = msg.getIncludeRequestAttemptCount()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     includeAttemptCountInResponse: (f = msg.getIncludeAttemptCountInResponse()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    stagedTransformations: (f = msg.getStagedTransformations()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_transformation_transformation_pb.TransformationStages.toObject(includeInstance, f)
+    stagedTransformations: (f = msg.getStagedTransformations()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_transformation_transformation_pb.TransformationStages.toObject(includeInstance, f),
+    extProc: (f = msg.getExtProc()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2387,6 +2503,11 @@ proto.gloo.solo.io.VirtualHostOptions.deserializeBinaryFromReader = function(msg
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_transformation_transformation_pb.TransformationStages;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_transformation_transformation_pb.TransformationStages.deserializeBinaryFromReader);
       msg.setStagedTransformations(value);
+      break;
+    case 30:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings.deserializeBinaryFromReader);
+      msg.setExtProc(value);
       break;
     default:
       reader.skipField();
@@ -2607,6 +2728,14 @@ proto.gloo.solo.io.VirtualHostOptions.serializeBinaryToWriter = function(message
       17,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_transformation_transformation_pb.TransformationStages.serializeBinaryToWriter
+    );
+  }
+  f = message.getExtProc();
+  if (f != null) {
+    writer.writeMessage(
+      30,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings.serializeBinaryToWriter
     );
   }
 };
@@ -3332,6 +3461,36 @@ proto.gloo.solo.io.VirtualHostOptions.prototype.hasStagedTransformations = funct
 };
 
 
+/**
+ * optional extproc.options.gloo.solo.io.RouteSettings ext_proc = 30;
+ * @return {?proto.extproc.options.gloo.solo.io.RouteSettings}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.getExtProc = function() {
+  return /** @type{?proto.extproc.options.gloo.solo.io.RouteSettings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings, 30));
+};
+
+
+/** @param {?proto.extproc.options.gloo.solo.io.RouteSettings|undefined} value */
+proto.gloo.solo.io.VirtualHostOptions.prototype.setExtProc = function(value) {
+  jspb.Message.setWrapperField(this, 30, value);
+};
+
+
+proto.gloo.solo.io.VirtualHostOptions.prototype.clearExtProc = function() {
+  this.setExtProc(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.hasExtProc = function() {
+  return jspb.Message.getField(this, 30) != null;
+};
+
+
 
 /**
  * Generated by JsPbCodeGenerator.
@@ -3513,7 +3672,8 @@ proto.gloo.solo.io.RouteOptions.toObject = function(includeInstance, msg) {
     envoyMetadataMap: (f = msg.getEnvoyMetadataMap()) ? f.toObject(includeInstance, proto.google.protobuf.Struct.toObject) : [],
     regexRewrite: (f = msg.getRegexRewrite()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.toObject(includeInstance, f),
     maxStreamDuration: (f = msg.getMaxStreamDuration()) && proto.gloo.solo.io.RouteOptions.MaxStreamDuration.toObject(includeInstance, f),
-    idleTimeout: (f = msg.getIdleTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+    idleTimeout: (f = msg.getIdleTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    extProc: (f = msg.getExtProc()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3729,6 +3889,11 @@ proto.gloo.solo.io.RouteOptions.deserializeBinaryFromReader = function(msg, read
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
       msg.setIdleTimeout(value);
+      break;
+    case 30:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings.deserializeBinaryFromReader);
+      msg.setExtProc(value);
       break;
     default:
       reader.skipField();
@@ -4040,6 +4205,14 @@ proto.gloo.solo.io.RouteOptions.serializeBinaryToWriter = function(message, writ
       29,
       f,
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getExtProc();
+  if (f != null) {
+    writer.writeMessage(
+      30,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings.serializeBinaryToWriter
     );
   }
 };
@@ -5357,6 +5530,36 @@ proto.gloo.solo.io.RouteOptions.prototype.clearIdleTimeout = function() {
  */
 proto.gloo.solo.io.RouteOptions.prototype.hasIdleTimeout = function() {
   return jspb.Message.getField(this, 29) != null;
+};
+
+
+/**
+ * optional extproc.options.gloo.solo.io.RouteSettings ext_proc = 30;
+ * @return {?proto.extproc.options.gloo.solo.io.RouteSettings}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.getExtProc = function() {
+  return /** @type{?proto.extproc.options.gloo.solo.io.RouteSettings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings, 30));
+};
+
+
+/** @param {?proto.extproc.options.gloo.solo.io.RouteSettings|undefined} value */
+proto.gloo.solo.io.RouteOptions.prototype.setExtProc = function(value) {
+  jspb.Message.setWrapperField(this, 30, value);
+};
+
+
+proto.gloo.solo.io.RouteOptions.prototype.clearExtProc = function() {
+  this.setExtProc(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.hasExtProc = function() {
+  return jspb.Message.getField(this, 30) != null;
 };
 
 

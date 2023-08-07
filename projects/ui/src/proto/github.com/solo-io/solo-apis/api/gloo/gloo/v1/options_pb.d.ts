@@ -35,6 +35,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_filter_http_gzip_v2_gzip_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/filter/http/gzip/v2/gzip_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/matcher/v3/regex_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/extproc/extproc_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_jwt_jwt_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/jwt/jwt_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/ratelimit/ratelimit_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/caching/caching_pb";
@@ -211,6 +212,16 @@ export class HttpListenerOptions extends jspb.Message {
   getCaching(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings | undefined;
   setCaching(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings): void;
 
+  hasDisableExtProc(): boolean;
+  clearDisableExtProc(): void;
+  getDisableExtProc(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setDisableExtProc(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+  hasExtProc(): boolean;
+  clearExtProc(): void;
+  getExtProc(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings | undefined;
+  setExtProc(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings): void;
+
   hasGzip(): boolean;
   clearGzip(): void;
   getGzip(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip | undefined;
@@ -261,6 +272,7 @@ export class HttpListenerOptions extends jspb.Message {
   getRouter(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_router_router_pb.Router | undefined;
   setRouter(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_router_router_pb.Router): void;
 
+  getExtProcConfigCase(): HttpListenerOptions.ExtProcConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListenerOptions.AsObject;
   static toObject(includeInstance: boolean, msg: HttpListenerOptions): HttpListenerOptions.AsObject;
@@ -283,6 +295,8 @@ export namespace HttpListenerOptions {
     extauth?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings.AsObject,
     ratelimitServer?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.AsObject,
     caching?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings.AsObject,
+    disableExtProc?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    extProc?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.Settings.AsObject,
     gzip?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.AsObject,
     proxyLatency?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.AsObject,
     buffer?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.AsObject,
@@ -293,6 +307,12 @@ export namespace HttpListenerOptions {
     dynamicForwardProxy?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig.AsObject,
     connectionLimit?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.AsObject,
     router?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_router_router_pb.Router.AsObject,
+  }
+
+  export enum ExtProcConfigCase {
+    EXT_PROC_CONFIG_NOT_SET = 0,
+    DISABLE_EXT_PROC = 30,
+    EXT_PROC = 31,
   }
 }
 
@@ -445,6 +465,11 @@ export class VirtualHostOptions extends jspb.Message {
   getStagedTransformations(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_transformation_transformation_pb.TransformationStages | undefined;
   setStagedTransformations(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_transformation_transformation_pb.TransformationStages): void;
 
+  hasExtProc(): boolean;
+  clearExtProc(): void;
+  getExtProc(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings | undefined;
+  setExtProc(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings): void;
+
   getRateLimitEarlyConfigTypeCase(): VirtualHostOptions.RateLimitEarlyConfigTypeCase;
   getRateLimitConfigTypeCase(): VirtualHostOptions.RateLimitConfigTypeCase;
   getRateLimitRegularConfigTypeCase(): VirtualHostOptions.RateLimitRegularConfigTypeCase;
@@ -485,6 +510,7 @@ export namespace VirtualHostOptions {
     includeRequestAttemptCount?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     includeAttemptCountInResponse?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     stagedTransformations?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_transformation_transformation_pb.TransformationStages.AsObject,
+    extProc?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings.AsObject,
   }
 
   export enum RateLimitEarlyConfigTypeCase {
@@ -690,6 +716,11 @@ export class RouteOptions extends jspb.Message {
   getIdleTimeout(): google_protobuf_duration_pb.Duration | undefined;
   setIdleTimeout(value?: google_protobuf_duration_pb.Duration): void;
 
+  hasExtProc(): boolean;
+  clearExtProc(): void;
+  getExtProc(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings | undefined;
+  setExtProc(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings): void;
+
   getHostRewriteTypeCase(): RouteOptions.HostRewriteTypeCase;
   getRateLimitEarlyConfigTypeCase(): RouteOptions.RateLimitEarlyConfigTypeCase;
   getRateLimitConfigTypeCase(): RouteOptions.RateLimitConfigTypeCase;
@@ -743,6 +774,7 @@ export namespace RouteOptions {
     regexRewrite?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.AsObject,
     maxStreamDuration?: RouteOptions.MaxStreamDuration.AsObject,
     idleTimeout?: google_protobuf_duration_pb.Duration.AsObject,
+    extProc?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_extproc_extproc_pb.RouteSettings.AsObject,
   }
 
   export class MaxStreamDuration extends jspb.Message {
