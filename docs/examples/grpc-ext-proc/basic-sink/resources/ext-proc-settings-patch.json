@@ -1,0 +1,36 @@
+{
+    "spec": {
+        "extProc": {
+            "processingMode": {
+                "requestHeaderMode": "SEND",
+                "responseBodyMode": "BUFFERED"
+            },
+            "grpcService": {
+                "extProcServerRef": {
+                    "name": "default-example-grpc-ext-proc-18080",
+                    "namespace": "gloo-system"
+                },
+                "authority": "xyz",
+                "retryPolicy": {
+                    "retryBackOff": {
+                        "baseInterval": "2s",
+                        "maxInterval": "3s"
+                    },
+                    "numRetries": 2
+                },
+                "timeout": "1m",
+                "initialMetadata": [
+                    {
+                        "key": "headerKey1",
+                        "value": "headerValue1"
+                    }
+                ]
+            },
+            "filterStage": {
+                "stage": "AuthZStage",
+                "predicate": "Before"
+            },
+            "failureModeAllow": false
+        }
+    }
+}
