@@ -2,7 +2,9 @@ package builders
 
 import (
 	"github.com/golang/protobuf/ptypes/duration"
+	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/golang/protobuf/ptypes/wrappers"
+	gloo_mutation_rules_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/common/mutation_rules/v3"
 	gloo_ext_proc_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/ext_proc/v3"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extproc"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/filters"
@@ -28,14 +30,21 @@ func GetDefaultExtProcBuilder() *ExtProcBuilder {
 }
 
 type ExtProcBuilder struct {
-	grpcServiceBuilder *GrpcServiceBuilder
-	stage              *filters.FilterStage
-	failureModeAllow   *wrappers.BoolValue
-	processingMode     *gloo_ext_proc_v3.ProcessingMode
-	messageTimeout     *duration.Duration
-	maxMessageTimeout  *duration.Duration
-	requestAttributes  []string
-	responseAttributes []string
+	grpcServiceBuilder     *GrpcServiceBuilder
+	stage                  *filters.FilterStage
+	failureModeAllow       *wrappers.BoolValue
+	processingMode         *gloo_ext_proc_v3.ProcessingMode
+	asyncMode              *wrappers.BoolValue
+	statPrefix             *wrappers.StringValue
+	mutationRules          *gloo_mutation_rules_v3.HeaderMutationRules
+	disableClearRouteCache *wrappers.BoolValue
+	forwardRules           *extproc.HeaderForwardingRules
+	filterMetadata         *structpb.Struct
+	allowModeOverride      *wrappers.BoolValue
+	messageTimeout         *duration.Duration
+	maxMessageTimeout      *duration.Duration
+	requestAttributes      []string
+	responseAttributes     []string
 }
 
 func NewExtProcBuilder() *ExtProcBuilder {
@@ -62,6 +71,41 @@ func (b *ExtProcBuilder) WithProcessingMode(mode *gloo_ext_proc_v3.ProcessingMod
 	return b
 }
 
+func (b *ExtProcBuilder) WithAsyncMode(asyncMode *wrappers.BoolValue) *ExtProcBuilder {
+	b.asyncMode = asyncMode
+	return b
+}
+
+func (b *ExtProcBuilder) WithStatPrefix(statPrefix *wrappers.StringValue) *ExtProcBuilder {
+	b.statPrefix = statPrefix
+	return b
+}
+
+func (b *ExtProcBuilder) WithMutationRules(mutationRules *gloo_mutation_rules_v3.HeaderMutationRules) *ExtProcBuilder {
+	b.mutationRules = mutationRules
+	return b
+}
+
+func (b *ExtProcBuilder) WithDisableClearRouteCache(disable *wrappers.BoolValue) *ExtProcBuilder {
+	b.disableClearRouteCache = disable
+	return b
+}
+
+func (b *ExtProcBuilder) WithForwardRules(rules *extproc.HeaderForwardingRules) *ExtProcBuilder {
+	b.forwardRules = rules
+	return b
+}
+
+func (b *ExtProcBuilder) WithFilterMetadata(md *structpb.Struct) *ExtProcBuilder {
+	b.filterMetadata = md
+	return b
+}
+
+func (b *ExtProcBuilder) WithAllowModeOverride(allow *wrappers.BoolValue) *ExtProcBuilder {
+	b.allowModeOverride = allow
+	return b
+}
+
 func (b *ExtProcBuilder) WithMessageTimeout(timeout *duration.Duration) *ExtProcBuilder {
 	b.messageTimeout = timeout
 	return b
@@ -84,21 +128,20 @@ func (b *ExtProcBuilder) WithResponseAttributes(attr []string) *ExtProcBuilder {
 
 func (b *ExtProcBuilder) Build() *extproc.Settings {
 	s := &extproc.Settings{
-		FilterStage:        b.stage,
-		FailureModeAllow:   b.failureModeAllow,
-		ProcessingMode:     b.processingMode,
-		MessageTimeout:     b.messageTimeout,
-		MaxMessageTimeout:  b.maxMessageTimeout,
-		RequestAttributes:  b.requestAttributes,
-		ResponseAttributes: b.responseAttributes,
-		// other fields not currently tested
-		// AsyncMode:              nil,
-		// StatPrefix:             nil,
-		// MutationRules:          nil,
-		// DisableClearRouteCache: nil,
-		// ForwardRules:           nil,
-		// FilterMetadata:         nil,
-		// AllowModeOverride:      nil,
+		FilterStage:            b.stage,
+		FailureModeAllow:       b.failureModeAllow,
+		ProcessingMode:         b.processingMode,
+		AsyncMode:              b.asyncMode,
+		MessageTimeout:         b.messageTimeout,
+		MaxMessageTimeout:      b.maxMessageTimeout,
+		RequestAttributes:      b.requestAttributes,
+		ResponseAttributes:     b.responseAttributes,
+		StatPrefix:             b.statPrefix,
+		MutationRules:          b.mutationRules,
+		DisableClearRouteCache: b.disableClearRouteCache,
+		ForwardRules:           b.forwardRules,
+		FilterMetadata:         b.filterMetadata,
+		AllowModeOverride:      b.allowModeOverride,
 	}
 
 	if b.grpcServiceBuilder != nil {

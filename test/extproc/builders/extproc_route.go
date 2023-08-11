@@ -37,10 +37,14 @@ func NewExtProcRouteBuilder() *ExtProcRouteBuilder {
 	return &ExtProcRouteBuilder{}
 }
 
+// WithDisabled sets the disabled value to the given BoolValue, and sets all other fields to nil.
+// The envoy ExtProcPerRoute only allows one of `disabled` or `overrides` to be set, and this is
+// just a convenience so we don't leave unused fields set on the builder.
+// Likewise, setting any of the overrides using the With* functions below will set `disabled` to nil.
 func (b *ExtProcRouteBuilder) WithDisabled(disabled *wrappers.BoolValue) *ExtProcRouteBuilder {
 	b.disabled = disabled
 
-	// set everything else to nil, since only one of `disabled` or `overrides` can be set
+	// set everything else to nil
 	b.processingMode = nil
 	b.asyncMode = nil
 	b.requestAttributes = nil

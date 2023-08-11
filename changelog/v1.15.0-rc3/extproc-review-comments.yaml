@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/8320
+    resolvesIssue: false
+    description: >
+      Support remaining fields in test extproc builder, add comment.
