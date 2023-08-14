@@ -1,12 +1,34 @@
 name: Enterprise Nightly Tests
 run-name: EE Nightly ${{github.event.schedule}} by @${{ github.actor }}
+
+env:
+  VERSION: '1.0.0-ci'
+  GLOO_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
+  GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+  GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+  QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+  TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+
 on:
+  # https://pubs.opengroup.org/onlinepubs/9699919799/utilities/crontab.html#tag_20_25_07
+  # Minute [0,59]
+  # Hour [0,23]
+  # Day of the month [1,31]
+  # Month of the year [1,12]
+  # Day of the week ([0,6] with 0=Sunday)
   schedule:
-    - cron: "0 5 * * 1-5"   # weekdays @ 00:00 EST, run tests against latest main
-    - cron: "10 10 * * 1"   # monday   @ 05:10 EST, run expanded tests against v1.14.x
-    - cron: "6 6 * * 1"     # monday   @ 01:06 EST, run expanded tests against v1.13.x
+    - cron: "0 5 * * 1-5" # weekdays @ 05:00 UTC, run tests against latest main
+    - cron: "0 6 * * 1"   # monday   @ 06:00 UTC, run expanded tests against v1.15.x
+    - cron: "0 7 * * 1"   # monday   @ 07:00 UTC, run expanded tests against v1.14.x
   workflow_dispatch:
     inputs:
+      branch:
+        description: "The branch to run tests against"
+        type: choice
+        options:
+          - main
+          - v1.15.x
+          - v1.14.x
       run-regression:
         description: "Run regression tests"
         type: boolean
@@ -14,74 +36,52 @@ on:
         description: "Run performance tests"
         type: boolean
 
-env:
-  VERSION: '1.0.0-ci'
-  GLOO_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
-  GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
 jobs:
-  regression_tests_latest_main:
-    name: latest main regression tests (${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}})
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression) || github.event.schedule == '0 5 * * 1-5' }}
+  regression_tests_main:
+    name: main regression tests (${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}})
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'main') || github.event.schedule == '0 5 * * 1-5' }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'helm', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}, {test: 'caching', use-fips: 'false'}, {test: 'upgrade', use-fips: 'false'}]
         kube-version: [ { node: 'v1.23.13@sha256:ef453bb7c79f0e3caba88d2067d4196f427794086a7d0df8df4f019d5e336b61', kubectl: 'v1.23.17', kind: 'v0.17.0', helm: 'v3.11.2' },
-                        { node: 'v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1', kubectl: 'v1.25.8',  kind: 'v0.17.0', helm: 'v3.11.2' }]
+                        { node: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72', kubectl: 'v1.27.3', kind: 'v0.20.0', helm: 'v3.12.2' }]
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: main
       - uses: ./.github/workflows/composite-actions/regression-tests
         with:
-          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
-          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+          GLOO_EE_GCR_KEY: ${{ env.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ env.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ env.TESTSPACE_TOKEN }}
 
-  performance_tests_latest_main:
-    name: latest performance tests
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance) || github.event.schedule == '0 5 * * 1-5' }}
-    runs-on: ubuntu-20.04-8core
+  regression_tests_15:
+    name: v1.15.x regression tests (${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}})
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.15.x') || github.event.schedule == '0 6 * * 1' }}
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'helm', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}, {test: 'caching', use-fips: 'false'}, {test: 'upgrade', use-fips: 'false'}]
+        kube-version: [ { node: 'v1.23.13@sha256:ef453bb7c79f0e3caba88d2067d4196f427794086a7d0df8df4f019d5e336b61', kubectl: 'v1.23.17', kind: 'v0.17.0', helm: 'v3.11.2' },
+                        { node: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72', kubectl: 'v1.27.3', kind: 'v0.20.0', helm: 'v3.12.2' }]
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/workflows/composite-actions/standard-gloo-ee-setup
         with:
-          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
-          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-      - uses: ./.github/workflows/composite-actions/performance-tests
+          ref: v1.15.x
+      - uses: ./.github/workflows/composite-actions/regression-tests
         with:
-          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
-          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+          GLOO_EE_GCR_KEY: ${{ env.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ env.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ env.TESTSPACE_TOKEN }}
 
   regression_tests_14:
     name: v1.14.x regression tests (${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}})
-    if: github.event.schedule == '10 10 * * 1'
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'helm', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}, {test: 'caching', use-fips: 'false'}, {test: 'upgrade', use-fips: 'false'}]
-        kube-version: [ { node: 'v1.23.13@sha256:ef453bb7c79f0e3caba88d2067d4196f427794086a7d0df8df4f019d5e336b61', kubectl: 'v1.23.17', kind: 'v0.17.0', helm: 'v3.11.2' },
-                        { node: 'v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1', kubectl: 'v1.25.8',  kind: 'v0.17.0', helm: 'v3.11.2' }]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: v1.14.x
-      - uses: ./.github/workflows/composite-actions/regression-tests
-        with:
-          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
-          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
-
-  regression_tests_13:
-    name: v1.13.x regression tests (${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}})
-    if: github.event.schedule == '6 6 * * 1'
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.14.x') || github.event.schedule == '0 7 * * 1' }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -92,18 +92,64 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: v1.13.x
+          ref: v1.14.x
       - uses: ./.github/workflows/composite-actions/regression-tests
         with:
-          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
-          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+          GLOO_EE_GCR_KEY: ${{ env.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ env.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ env.TESTSPACE_TOKEN }}
+
+  performance_tests_main:
+    name: main performance tests
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'main') || github.event.schedule == '0 5 * * 1-5' }}
+    runs-on: ubuntu-20.04-8core
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: main
+      - uses: ./.github/workflows/composite-actions/standard-gloo-ee-setup
+        with:
+          GLOO_EE_GCR_KEY: ${{ env.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ env.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+      - uses: ./.github/workflows/composite-actions/performance-tests
+
+  performance_tests_15:
+    name: v1.15.x performance tests
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.15.x') || github.event.schedule == '0 6 * * 1' }}
+    runs-on: ubuntu-20.04-8core
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: v1.15.x
+      - uses: ./.github/workflows/composite-actions/standard-gloo-ee-setup
+        with:
+          GLOO_EE_GCR_KEY: ${{ env.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ env.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+      - uses: ./.github/workflows/composite-actions/performance-tests
+
+  performance_tests_14:
+    # There are no performance tests for v1.14.x.
+    # As a result, we don't use an 8core runner and don't include a schedule trigger
+    name: v1.14.x performance tests
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.14.x'}}
+    runs-on: ubuntu-20.04
+    steps:
+      - run: echo "v1.14.x performance tests do not exist"
+        shell: bash
 
   publish_results:
     runs-on: ubuntu-22.04
     if: ${{ always() }}
-    needs: [ regression_tests_latest_main, performance_tests_latest_main, regression_tests_14, regression_tests_13 ]
+    needs:
+      - regression_tests_main
+      - regression_tests_15
+      - regression_tests_14
+      - performance_tests_main
+      - performance_tests_15
+      - performance_tests_14
     steps:
       - uses: actions/checkout@v3
       - name: compute-preamble
@@ -112,19 +158,30 @@ jobs:
         run: |
           echo "SLACK_CHANNEL=C04CJMXAH7A" >> $GITHUB_ENV     #edge-nightly-results by default
           if [[ ${{github.event_name == 'workflow_dispatch'}} = true ]]; then
-            preamble="Gloo EE nightlies (manual run)"
+            trigger="Gloo EE Manual run"
+            branch=${{ inputs.branch }}
             echo "SLACK_CHANNEL=C0314KESVNV" >> $GITHUB_ENV   #slack-integration-testing if manually run
-          elif [[ ${{github.event.schedule == '6 6 * * 1'}} = true ]]; then
-              preamble="Gloo EE weeklies (v1.13.x)"
-          elif [[ ${{github.event.schedule == '10 10 * * 1'}} = true ]]; then
-              preamble="Gloo EE weeklies (v1.14.x)"
+          elif [[ ${{github.event.schedule == '0 7 * * 1'}} = true ]]; then
+            trigger="Gloo EE weeklies"
+            branch="v1.14.x"
+          elif [[ ${{github.event.schedule == '0 6 * * 1'}} = true ]]; then
+            trigger="Gloo EE weeklies"
+            branch="v1.15.x"
           elif [[ ${{github.event.schedule == '0 5 * * 1-5'}} = true ]]; then
-              preamble="Gloo EE nightlies (main)"
+            trigger="Gloo EE nightlies"
+            branch="main"
           fi
+
+          preamble="$trigger ($branch)"
           echo "Setting PREAMBLE as $preamble"
           echo "preamble=$(echo $preamble)" >> $GITHUB_OUTPUT
       - uses: actions/setup-go@v4
         with:
+          # Caching in setup-go is on by default
+          # In our prep-go-runner we use a more configurable cache https://github.com/actions/cache
+          # In this step, we don't need to store a new cache entry because it runs infrequently and
+          # will pollute the cache entries
+          cache: false
           go-version-file: go.mod
       - uses: actions/download-artifact@v3
       - name: send slack message
