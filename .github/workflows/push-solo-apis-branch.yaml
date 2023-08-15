@@ -114,6 +114,7 @@ jobs:
           GIT_USER_EMAIL: soloio-bot@github.com
         run: |
           cd solo-apis
+          ls -la
           make mod-download update-deps; ./hack/sync-gloo-apis.sh; make generate
           git config --local user.name $GIT_USER_NAME
           git config --local user.email $GIT_USER_EMAIL
