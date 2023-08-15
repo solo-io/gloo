@@ -59,4 +59,7 @@ runs:
     - name: Install Dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
-      run: make mod-download
+      run: |
+        pwd
+        ls -la
+        make mod-download
