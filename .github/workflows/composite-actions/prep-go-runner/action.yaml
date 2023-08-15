@@ -60,6 +60,6 @@ runs:
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
-        pwd
-        ls -la
+        echo "$(pwd)" >> $GITHUB_OUTPUT
+        echo "ls -la" >> $GITHUB_OUTPUT  
         make mod-download
