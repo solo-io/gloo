@@ -267,7 +267,12 @@ func (c *crdTranslator) getCrdRateLimits(ctx context.Context, configRefs []*rate
 				rl := &envoy_config_route_v3.RateLimit{
 					Stage: &wrappers.UInt32Value{Value: stage},
 				}
-				rl.Actions = rlplugin.ConvertActions(ctx, rateLimitActions.GetActions())
+				rl.Actions, err = rlplugin.ConvertActions(ctx, rateLimitActions.GetActions())
+				if err != nil {
+					errs = multierror.Append(errs, ReferencedConfigErr(err, configRef.GetNamespace(), configRef.GetName()))
+					continue
+				}
+
 				result = append(result, rl)
 			}
 
@@ -276,12 +281,15 @@ func (c *crdTranslator) getCrdRateLimits(ctx context.Context, configRefs []*rate
 					Stage: &wrappers.UInt32Value{Value: stage},
 				}
 				// rateLimitActions.SetActions has the prepended actions by now from rate-limiter ToActions() translation
-				rl.Actions = rlplugin.ConvertActions(ctx, rateLimitActions.GetSetActions())
+				rl.Actions, err = rlplugin.ConvertActions(ctx, rateLimitActions.GetSetActions())
+				if err != nil {
+					errs = multierror.Append(errs, ReferencedConfigErr(err, configRef.GetNamespace(), configRef.GetName()))
+					continue
+				}
 				result = append(result, rl)
 			}
 		}
 	}
-
 	return result, errs.ErrorOrNil()
 }
 
@@ -373,7 +381,10 @@ func (s *setActionTranslator) getSetActionRateLimits(ctx context.Context, soloAp
 				Stage: &wrappers.UInt32Value{Value: stage},
 			}
 			// rlAction.SetActions has the prepended action by now from rate-limiter ToActions() translation
-			rl.Actions = rlplugin.ConvertActions(ctx, rlAction.SetActions)
+			rl.Actions, err = rlplugin.ConvertActions(ctx, rlAction.SetActions)
+			if err != nil {
+				return nil, err
+			}
 			ret = append(ret, rl)
 		}
 	}
