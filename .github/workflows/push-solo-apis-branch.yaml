@@ -14,17 +14,16 @@ on:
         description: 'Release Branch'
         required: true
         default: ''
-  pull_request
 jobs:
   prepare-env:
     name: Prepare Environment Variables
     runs-on: ubuntu-22.04
     outputs:
       # The tag for the release commit (ie v1.8.0)
-      release-tag-name v1.14.15
+      release-tag-name: ${{ steps.release-tag-name.outputs.value }}
 
       # The LTS branch that was released (ie v1.8.x)
-      release-branch: v1.14.x
+      release-branch: ${{ steps.release-branch.outputs.value }}
 
       # The prefix used to differentiate LTS branches in solo-apis
       solo-apis-prefix: 'gloo'
@@ -115,8 +114,7 @@ jobs:
           GIT_USER_EMAIL: soloio-bot@github.com
         run: |
           cd solo-apis
-          ls -la
-          make mod-download update-deps; ./hack/sync-gloo-apis.sh; make generate
+          make update-deps; ./hack/sync-gloo-apis.sh; make generate
           git config --local user.name $GIT_USER_NAME
           git config --local user.email $GIT_USER_EMAIL
           git add .

@@ -48,6 +48,8 @@ runs:
       shell: bash
       run: |
         echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
+        echo "$(pwd)" >> $GITHUB_OUTPUT
+        echo "ls -la" >> $GITHUB_OUTPUT
     - name: Cache
       uses: actions/cache@v3
       id: cache
@@ -56,10 +58,10 @@ runs:
         path: |
           ${{ steps.go-cache-paths.outputs.go-mod }}
         key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-${{ hashFiles('**/go.sum') }}
-   # - name: Install Dependencies
-   #   if: steps.cache.outputs.cache-hit != 'true'
-   #   shell: bash
-   #   run: |
-   #     echo "$(pwd)" >> $GITHUB_OUTPUT
-   #     echo "ls -la" >> $GITHUB_OUTPUT
-   #     make mod-download
+    - name: Install Dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        echo "$(pwd)" >> $GITHUB_OUTPUT
+        echo "ls -la" >> $GITHUB_OUTPUT
+        make mod-download
