@@ -1,5 +1,6 @@
 name: Push API Changes to solo-apis
 on:
+  pull_request:
   release:
     types: [published]
   # This job has flaked on releases. We enable manually triggering the workflow
@@ -20,10 +21,10 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       # The tag for the release commit (ie v1.8.0)
-      release-tag-name: ${{ steps.release-tag-name.outputs.value }}
+      release-tag-name v1.14.15
 
       # The LTS branch that was released (ie v1.8.x)
-      release-branch: ${{ steps.release-branch.outputs.value }}
+      release-branch: v1.14.x
 
       # The prefix used to differentiate LTS branches in solo-apis
       solo-apis-prefix: 'gloo'
