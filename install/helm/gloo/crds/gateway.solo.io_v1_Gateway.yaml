@@ -76,12 +76,10 @@ spec:
                                 type: string
                             type: object
                           maxPayloadSize:
-                            properties:
-                              value:
-                                format: int64
-                                type: integer
-                                x-kubernetes-int-or-string: true
-                            type: object
+                            maximum: 4294967295
+                            minimum: 0
+                            nullable: true
+                            type: integer
                           timeout:
                             type: string
                         type: object
@@ -90,12 +88,10 @@ spec:
                           delayBeforeClose:
                             type: string
                           maxActiveConnections:
-                            properties:
-                              value:
-                                format: int64
-                                type: integer
-                                x-kubernetes-int-or-string: true
-                            type: object
+                            maximum: 4294967295
+                            minimum: 0
+                            nullable: true
+                            type: integer
                         type: object
                       csrf:
                         properties:
@@ -1894,12 +1890,10 @@ spec:
                                           type: string
                                       type: object
                                     maxPayloadSize:
-                                      properties:
-                                        value:
-                                          format: int64
-                                          type: integer
-                                          x-kubernetes-int-or-string: true
-                                      type: object
+                                      maximum: 4294967295
+                                      minimum: 0
+                                      nullable: true
+                                      type: integer
                                     timeout:
                                       type: string
                                   type: object
@@ -1908,12 +1902,10 @@ spec:
                                     delayBeforeClose:
                                       type: string
                                     maxActiveConnections:
-                                      properties:
-                                        value:
-                                          format: int64
-                                          type: integer
-                                          x-kubernetes-int-or-string: true
-                                      type: object
+                                      maximum: 4294967295
+                                      minimum: 0
+                                      nullable: true
+                                      type: integer
                                   type: object
                                 csrf:
                                   properties:
@@ -3268,12 +3260,10 @@ spec:
                                     delayBeforeClose:
                                       type: string
                                     maxActiveConnections:
-                                      properties:
-                                        value:
-                                          format: int64
-                                          type: integer
-                                          x-kubernetes-int-or-string: true
-                                      type: object
+                                      maximum: 4294967295
+                                      minimum: 0
+                                      nullable: true
+                                      type: integer
                                   type: object
                                 tcpProxySettings:
                                   properties:
@@ -5089,12 +5079,10 @@ spec:
                           delayBeforeClose:
                             type: string
                           maxActiveConnections:
-                            properties:
-                              value:
-                                format: int64
-                                type: integer
-                                x-kubernetes-int-or-string: true
-                            type: object
+                            maximum: 4294967295
+                            minimum: 0
+                            nullable: true
+                            type: integer
                         type: object
                       tcpProxySettings:
                         properties:
