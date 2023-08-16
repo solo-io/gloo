@@ -82,10 +82,6 @@ jobs:
           repository: solo-io/gloo
           path: gloo
           ref: ${{ env.RELEASE_TAG_NAME }}
-      - name: Prep Go Runner
-        uses: ./gloo/.github/workflows/composite-actions/prep-go-runner
-        with:
-          working-directory: gloo
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
         with:
@@ -114,7 +110,7 @@ jobs:
           GIT_USER_EMAIL: soloio-bot@github.com
         run: |
           cd solo-apis
-          make update-deps; ./hack/sync-gloo-apis.sh; make generate
+          make mod-download update-deps; ./hack/sync-gloo-apis.sh; make generate
           git config --local user.name $GIT_USER_NAME
           git config --local user.email $GIT_USER_EMAIL
           git add .
