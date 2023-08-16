@@ -59,7 +59,4 @@ runs:
     - name: Install Dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
-      run: |
-        cd ${{ inputs.working-directory }}
-        echo "ls -la" >> $GITHUB_OUTPUT
-      #  make mod-download
+      run: make mod-download
