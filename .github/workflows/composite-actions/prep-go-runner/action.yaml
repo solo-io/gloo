@@ -48,8 +48,6 @@ runs:
       shell: bash
       run: |
         echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
-        echo "$(pwd)" >> $GITHUB_OUTPUT
-        echo "ls -la" >> $GITHUB_OUTPUT
     - name: Cache
       uses: actions/cache@v3
       id: cache
@@ -63,6 +61,6 @@ runs:
       shell: bash
       run: |
         cd ${{ inputs.working-directory }}
-        echo "$(pwd)" >> $GITHUB_OUTPUT
+        echo " '$(pwd)' " >> $GITHUB_OUTPUT
         echo "ls -la" >> $GITHUB_OUTPUT
       #  make mod-download
