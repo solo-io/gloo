@@ -46,8 +46,9 @@ require (
 	github.com/rotisserie/eris v0.5.0
 	github.com/solo-io/anyvendor v0.1.0
 	github.com/solo-io/caching-service v0.5.0
+	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.2
-	github.com/solo-io/ext-auth-service v0.43.0
+	github.com/solo-io/ext-auth-service v0.43.1
 	github.com/solo-io/external-apis v0.2.0
 	github.com/solo-io/gloo v1.16.0-beta2
 	github.com/solo-io/gloo-graphql-example v0.1.0
@@ -88,12 +89,8 @@ require (
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2
 	knative.dev/pkg v0.0.0-20211206113427-18589ac7627e
 	rogchap.com/v8go v0.7.1-0.20221102201510-1f00b5007d95
+	sigs.k8s.io/controller-runtime v0.15.2-0.20230808150016-0269522a418c
 	sigs.k8s.io/yaml v1.3.0
-)
-
-require (
-	github.com/solo-io/cli-kit v0.2.1
-	sigs.k8s.io/controller-runtime v0.15.0
 )
 
 require (
@@ -419,9 +416,6 @@ replace (
 	k8s.io/kubectl => k8s.io/kubectl v0.27.3
 	k8s.io/metrics => k8s.io/metrics v0.27.3
 	k8s.io/utils => k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
-
-	// Use a forked version of the runtime controller to deal with a panic based off of 0.15.0 of upstream
-	sigs.k8s.io/controller-runtime => github.com/solo-io/controller-runtime v0.0.0-20230803090518-09be8ddb9663
 )
 
 exclude (
