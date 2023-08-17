@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"k8s.io/apimachinery/pkg/util/rand"
 
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
@@ -327,7 +329,31 @@ func RateLimitWithoutExtAuthTests(testContextSupplier func() *e2e.TestContextWit
 					}
 				})
 			})
-
+			It("should reject a rate limit with missing fields", func() {
+				// add rate limit setActions such that the rule requires only a subset of the actions
+				rateLimits := []*rlv1alpha1.RateLimitActions{{
+					SetActions: []*rlv1alpha1.Action{{
+						//This should have a DescriptorValue
+						ActionSpecifier: &rlv1alpha1.Action_GenericKey_{}},
+					},
+				}}
+				testContext.PatchDefaultVirtualService(func(virtualService *gatewayv1.VirtualService) *gatewayv1.VirtualService {
+					builder := helpers.BuilderFromVirtualService(virtualService).
+						WithDomain("host1").
+						WithVirtualHostOptions(&gloov1.VirtualHostOptions{
+							RateLimitConfigType: &gloov1.VirtualHostOptions_Ratelimit{
+								Ratelimit: &ratelimit.RateLimitVhostExtension{
+									RateLimits: rateLimits,
+								},
+							},
+						})
+					return builder.Build()
+				})
+				// eventually the virtual service is rejected
+				helpers.EventuallyResourceRejected(func() (resources.InputResource, error) {
+					return testContext.TestClients().VirtualServiceClient.Read(e2e.WriteNamespace, e2e.DefaultVirtualServiceName, clients.ReadOpts{})
+				})
+			})
 			It("should honor rate limit rules with a subset of the SetActions", func() {
 				// add rate limit setActions such that the rule requires only a subset of the actions
 				rateLimits := []*rlv1alpha1.RateLimitActions{{

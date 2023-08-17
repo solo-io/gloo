@@ -767,7 +767,18 @@ var _ = Describe("RateLimit Plugin", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring(IllegalActionsErr.Error())))
 		})
+		It("should reject a ratelimit with a missing field", func() {
+			virtualHostParams := vhostParamsWithLimits([]*rl_api.RateLimitActions{{
+				SetActions: []*rl_api.Action{{
+					ActionSpecifier: &rl_api.Action_GenericKey_{
+						GenericKey: &rl_api.Action_GenericKey{},
+					}},
+				}},
+			})
 
+			err := rlPlugin.ProcessVirtualHost(virtualHostParams, &inVHost, &outVHost)
+			Expect(err).To(MatchError(ContainSubstring("failed to process RateLimitConfig resource with name [myRlConfig] in namespace [gloo-system]: 1 error occurred:")))
+		})
 		It("should properly set several rate limits", func() {
 			virtualHostParams := vhostParamsWithLimits([]*rl_api.RateLimitActions{
 				{
