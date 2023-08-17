@@ -1,0 +1,16 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/8543
+    resolvesIssue: false
+    description: >
+      Switch off of fork off controller-runtime to a pinned version on the upstream with the changeset we need
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.43.1
+    description: Update auth to version v0.43.1 which also is coming off the controller-runtime fork
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: sigs.k8s.io
+    dependencyRepo: controller-runtime
+    dependencyTag: v0.15.2-0.20230808150016-0269522a418c
+    description: Update controller-runtime to backported commit of our upstream fix
