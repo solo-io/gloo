@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Create a "Release Request" issue template, to standardize the process of requesting a release,
+      and clarify the ownership of the release process.
+      
+      skipCI-kube-tests:true
+      skipCI-storybook-tests:true

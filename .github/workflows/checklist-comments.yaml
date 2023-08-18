@@ -1,0 +1,38 @@
+name: Add Checklist Comment
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  release_request_comment:
+    name: Release Request Comment
+    # Only run if the comment starts with /checklist and on an issue, not a PR
+    if: github.event.issue.pull_request == null && startsWith(github.event.comment.body, '/checklist')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add checklist
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          # Add checklist to the comment
+          body: |
+            **Open Source Changes (if applicable)**:
+            - [ ] Release Gloo Edge Open Source
+            - [ ] Merge Automated Solo-Apis PR
+            - [ ] Open an Enterprise PR, which updates Gloo and Solo-Apis dependencies
+            - [ ] Request approvals from 2 Engineers in the #edge-team-prs channel
+            - [ ] Merge Enterprise PR
+
+             **Validate Assets**:
+            _Note: In the future we will formalize the process of validating performance of newer builds, but for now this is not required_
+
+            **Publish Assets**:
+            - [ ] Release Gloo Edge Enterprise
+
+            **Communicate**:
+            - [ ] In @edge-team, announce the release, and tag `@product`, `@edge-leads`, and `@Neeraj Poddar`
+
+            Once the checklist above is complete, close this issue.
+          issue-number: ${{ github.event.issue.number }}
+          repository: solo-io/solo-projects
+          token: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}

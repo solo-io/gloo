@@ -1,0 +1,55 @@
+name: Request Gloo Edge Enterprise Release
+description: Request a new Gloo Edge Enterprise Release
+title: "Request Gloo Edge Enterprise Release: X.Y.Z"
+labels: ["release-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This form is for requesting a new Gloo Edge Enterprise release. These are typically for:
+        - Security releases
+        - Bugfix releases
+        - Backports of features from newer releases
+        - Other customer requested builds
+
+        Note: If you are requesting multiple builds across minor versions (ie, 1.15 and 1.14), an issue must be opened for each version.
+  - type: input
+    id: version
+    attributes:
+      label: Requested Version
+      description: The version of Gloo Edge to publish
+      placeholder: 1.15.0
+    validations:
+      required: true
+  - type: input
+    id: customer
+    attributes:
+      label: Customer Name
+      description: The name of the customer requesting this build
+      placeholder: Solo.io
+    validations:
+      required: false
+  - type: textarea
+    id: reason
+    attributes:
+      label: Reason for Release
+      description: The reason for this release
+      placeholder: "Security release for CVE-2021-1234"
+    validations:
+      required: true
+  - type: textarea
+    id: urgency
+    attributes:
+      label: Urgency/Timeline
+      description: How urgent is this build and/or the requested timeline?
+      placeholder: "This is a security release, we need this ASAP"
+    validations:
+      required: true
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: Any additional information that may be helpful
+      placeholder: "Please release this..."
+    validations:
+      required: false
