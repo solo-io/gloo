@@ -23,14 +23,15 @@ TEMPLATE_PATH_RESOURCE_SCALE="${SOLO_PROJECTS_PATH}""${SCRIPTS_RELATIVE_PATH}"/t
 # run tests at given scale
 echo "$TEMPLATE_PATH"
 kubectl config use-context mgmt-cluster
-go run main.go apply -f "$TEMPLATE_PATH_RESOURCE_SCALE" --start 1 --iterations "$ITERATIONS" --async true --workers 20
+go run main.go apply -f "$TEMPLATE_PATH_RESOURCE_SCALE" --start 1 --scale-multiplier "$SCALE_MULTIPLIER" --async true --workers 20
 
 
 # run creation
 cd "${SOLO_PROJECTS_PATH}"/ci/eks/scalescripts
 
 #set to correct folder
-go run main.go scaleup -f "$CREATION_TIMES_OUTPUT" -r 11 --test-request true
+go run main.go scaleup -f "$CREATION_TIMES_OUTPUT" -i "$ITERATIONS" --test-request true
 
 # run deletion
-go run main.go scaledown -f "$DELETION_TIMES_OUTPUT" -r 10
+DELETION_ITERATIONS=$((ITERATIONS - 1))
+go run main.go scaledown -f "$DELETION_TIMES_OUTPUT" -i "$DELETION_ITERATIONS"

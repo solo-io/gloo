@@ -1,5 +1,5 @@
-name: eks-cluster-creation
-run-name: ${{ github.actor }} creating eks clusters
+name: Create EKS Clusters
+run-name: Creating EKS clusters
 on:
   workflow_dispatch:
     inputs:

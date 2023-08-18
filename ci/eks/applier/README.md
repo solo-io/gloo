@@ -4,7 +4,7 @@ see example in yamls.yaml
 Run like so
 
 ```
-go run main.go apply -f yamls.yaml --iterations 3000
+go run main.go apply -f yamls.yaml --scale-multiplier 3000
 ```
 This will apply the template in yamls.yaml 3000 times.
 The template has an `.Index` variable you can use.

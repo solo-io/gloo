@@ -60,7 +60,6 @@ install_edge_on_cluster() {
 install_fed_on_management_cluster() {
   echo "Installing edge on cluster ${MGMT_CONTEXT}..."
   DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-  TMOBILE_HELM_OVERRIDES="$DIR/assets/tmobileOverrides.yaml"
 
   echo "create namespace"
   kubectl --context "${MGMT_CONTEXT}" create namespace ${NAMESPACE}

@@ -19,11 +19,11 @@ import (
 var (
 	fileNameFlags *genericclioptions.FileNameFlags
 
-	dryRun        bool
-	startIndex    int
-	endIndex      int
-	numIterations int
-	force         bool
+	dryRun          bool
+	startIndex      int
+	endIndex        int
+	scaleMultiplier int
+	force           bool
 
 	delete bool
 
@@ -88,8 +88,8 @@ to quickly create a Cobra application.`,
 		}
 		filenameOptions := fileNameFlags.ToOptions()
 
-		if numIterations > 0 {
-			endIndex = startIndex + numIterations
+		if scaleMultiplier > 0 {
+			endIndex = startIndex + scaleMultiplier
 		}
 
 		a := applier.Applier{
@@ -119,7 +119,7 @@ func init() {
 	cmdutil.AddValidateFlags(applyCmd)
 
 	applyCmd.Flags().IntVar(&startIndex, "start", 0, "Start index for the loop")
-	applyCmd.Flags().IntVar(&numIterations, "iterations", 0, "If set, end index will be set to start+this")
+	applyCmd.Flags().IntVar(&scaleMultiplier, "scale-multiplier", 0, "If set, end index will be set to start+this")
 	applyCmd.Flags().IntVar(&endIndex, "end", 3000, "End index for the loop. (If start is 0, this is the number times to apply the manifest)")
 	applyCmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "Dry run - print yamls to stdout")
 	applyCmd.Flags().BoolVar(&force, "force", false, "Force apply - delete and recreate objects")

@@ -42,7 +42,7 @@ metadata:
 spec:
   static:
     hosts:
-    - addr: "34.193.132.77"
+    - addr: "httpbin.org"
       healthCheckConfig:
         path: /my/healthz
       port: 80
@@ -65,7 +65,7 @@ spec:
       keepaliveTime: 20s
   static:
     hosts:
-      - addr: "34.193.132.77"
+      - addr: "httpbin.org"
         healthCheckConfig:
           path: /my/healthz
         port: 80
@@ -88,7 +88,7 @@ spec:
       keepaliveTime: 20s
   static:
     hosts:
-      - addr: "34.193.132.77"
+      - addr: "httpbin.org"
         healthCheckConfig:
           path: /my/healthz
         port: 80

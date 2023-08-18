@@ -51,7 +51,7 @@ type options struct {
 	testRequest bool
 	testStatus  bool
 	filename    string
-	runs        uint32
+	iterations  uint32
 	namespace   string
 }
 
@@ -60,7 +60,7 @@ func (r *options) addToFlags(fs *pflag.FlagSet) {
 	fs.BoolVar(&r.testStatus, "test-status", false, "set to true to test status")
 	fs.StringVarP(&r.filename, "filename", "f", "data.csv", "filename to save data to")
 	fs.StringVarP(&r.namespace, "namespace", "n", "gloo-system", "namespace to look for gloo assets")
-	fs.Uint32VarP(&r.runs, "runs", "r", 10, "number of runs")
+	fs.Uint32VarP(&r.iterations, "iterations", "i", 20, "number of test iterations")
 }
 
 func scaleUp(opts *options) *cobra.Command {
@@ -79,7 +79,7 @@ func scaleUp(opts *options) *cobra.Command {
 
 			defer f.Close()
 
-			for i := 0; i < int(opts.runs); i++ {
+			for i := 0; i < int(opts.iterations); i++ {
 				if err := testCreationTime(cmd.Context(), constantLabels, testClient, f, opts); err != nil {
 					return err
 				}
@@ -109,7 +109,7 @@ func scaleDown(opts *options) *cobra.Command {
 
 			defer f.Close()
 
-			for i := 0; i < int(opts.runs); i++ {
+			for i := 0; i < int(opts.iterations); i++ {
 				if err := testDeletionTime(cmd.Context(), constantLabels, testClient, f, opts); err != nil {
 					return err
 				}
@@ -265,14 +265,14 @@ func doRequest(
 			if err != nil {
 				continue
 			}
-			defer res.Body.Close()
+
+			res.Body.Close()
 			if res.StatusCode == http.StatusOK {
 				break
 			}
 
 			// Just a little break
 			time.Sleep(50 * time.Millisecond)
-
 		}
 		timeToRequest := time.Since(before).Seconds()
 		fmt.Printf("Time to request: %f\n", timeToRequest)

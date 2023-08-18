@@ -1,10 +1,10 @@
-name: eks-cluster-deletion
-run-name: ${{ github.actor }} Cleanup up EKS clusters
+name: EKS Cluster Deletion
+run-name: Delete CI EKS clusters
 on:
   workflow_dispatch:
     inputs:
       environment_id:
-        description: Environment ID - cicd-< Env id >
+        description: "Environment ID - Found as part of the cluster name: 'cicd-< Environment ID >:<region>'"
         required: true
         default: edge-scale
 

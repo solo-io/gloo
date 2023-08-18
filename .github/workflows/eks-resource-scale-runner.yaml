@@ -1,36 +1,42 @@
-name: eks-resource-scale-tests
-run-name: ${{ github.actor }} Run scales tests - resource creation based on iteration
+name: EKS Resource Scale Tests
+run-name: Resource Scale Tests - ${{ inputs.edge_enterprise_version }}, k8s ${{ inputs.kubernetes-version }}, mult=${{ inputs.scale-multiplier }}, ${{ inputs.iterations }} iterations
 on:
   workflow_dispatch:
     inputs:
       cluster_base_name:
         description: The base name of the clusters that will be created cicd-<base name>-<cluster num>
         required: true
-        default: edgeFedTests
-      iterations:
-        description: "The number of resources you want to create - 3x US, 1x VS, AuthConfig, RateLimit"
+        default: edgeScaleTests
+      scale-multiplier:
+        description: "The multiplier you want against the resources created - 3x US, 1x VS, AuthConfig, RateLimit"
         required: false
-        default: 1000
+        default: 1000  # A default multiplier of 1000 creates 3000 US, 1000 VS, 1000 AC, 1000 RL
+      iterations:
+        description: "The number of times to iterate over the scale tests." # The tests will scale up N times, and scale down N-1 times.
+        required: true
+        default: 21
       edge_enterprise_version:
         description: Edge Enterprise version
         required: false
-        default: 1.13.9
+        default: 1.15.0-rc2
       helm-version:
         description: Helm version
         required: true
-        default: v3.8.2
-      kubernetes_version:
+        default: v3.12.2
+      kubernetes-version:
         description: Kubernetes Version
-        default: 1.25
+        default: 1.27
         type: choice
         options:
           - 1.23
           - 1.24
-          - 1.25
+          - 1.25 # We usually use helm v3.11.2
+          - 1.26
+          - 1.27 # We usually use helm v3.12.2
       destroy_infra:
         description: Destroy cloud infrastructure on completion
         type: boolean
-        default: false
+        default: true
 
 # hardcoded to 0 remote clusters so that only one cluster is spun up
 jobs:
@@ -40,7 +46,7 @@ jobs:
       environment: eks-developers-acct
       num-remote-clusters: 0
       job-reference: ${{ github.event.inputs.cluster_base_name }}
-      cluster-env-params: "EKS_KUBERNETES_VERSION=${{ github.event.inputs.num-remote-clusters }} EKS_MGMT_INSTANCE_TYPE=c6a.4xlarge EKS_WORKER_INSTANCE_TYPE=c6a.2xlarge"
+      cluster-env-params: "EKS_KUBERNETES_VERSION=${{ github.event.inputs.kubernetes-version }} EKS_MGMT_INSTANCE_TYPE=c6a.4xlarge EKS_WORKER_INSTANCE_TYPE=c6a.2xlarge"
       component: gloo-edge
     secrets:
       GIT_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -92,6 +98,7 @@ jobs:
       - name: Run Resource Scale Tests
         id: scale
         env:
+          SCALE_MULTIPLIER: ${{ github.event.inputs.scale-multiplier }}
           ITERATIONS: ${{ github.event.inputs.iterations }}
         run: |
           ./ci/eks/resource-scale.sh

@@ -90,7 +90,7 @@ func CreateStaticUpstream(
 ) ([]*gloov1.Upstream, error) {
 	hosts := make([]*static.Host, 1)
 	hosts[0] = &static.Host{
-		Addr:    "34.193.132.77",
+		Addr:    "httpbin.org",
 		Port:    80,
 		SniAddr: "httpbin.org",
 	}

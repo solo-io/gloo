@@ -1,0 +1,13 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5270
+    resolvesIssue: false
+    description: |
+      - Use `httpbin.org` as the upstream for resource scale tests.
+      - Fix response body closure `defer`s being endlessly stacked in a possibly-endless loop during resource scale tests.
+      - Remove `${{ github.actor }}` from scale test workflow run names.
+      - Add k8s 1.26 and 1.27 to list of k8s to scale test against.
+      - Fix k8s version not being passed and used in our cluster builders.
+      - Add documentation regarding the scale test workflows.
+      skipCI-kube-tests:true
+      skipCI-storybook-tests:true

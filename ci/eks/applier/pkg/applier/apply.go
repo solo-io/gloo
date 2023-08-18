@@ -57,11 +57,11 @@ func (a *Applier) Apply(dynamicClient dynamic.Interface, factory cmdutil.Factory
 	} else {
 
 		errs := []error{}
-		iterations := (a.End - a.Start)
-		expectedNumObjs := iterations * len(templateObjects)
-		fmt.Println("We have", iterations, "iterations and", len(templateObjects), "objects to apply in each iteration. For a total of", expectedNumObjs, "objects to apply.")
-		fmt.Println("objects start: ", time.Now().Format(time.RFC3339))
-		defer func() { fmt.Println("objects done: ", time.Now().Format(time.RFC3339)) }()
+		scaleMultiplier := a.End - a.Start
+		expectedNumObjs := scaleMultiplier * len(templateObjects)
+		fmt.Printf("We are creating %d objects %d times for a total of %d objects to apply.\n", len(templateObjects), scaleMultiplier, expectedNumObjs)
+		fmt.Printf("objects start: %s\n", time.Now().Format(time.RFC3339))
+		defer func() { fmt.Printf("objects done: %s\n", time.Now().Format(time.RFC3339)) }()
 
 		bar := pb.StartNew(expectedNumObjs)
 		bar.SetTemplate(pb.Full)
