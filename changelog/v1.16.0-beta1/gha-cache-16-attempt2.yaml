@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4903
+    resolvesIssue: false
+    description: >-
+      Introduce cache setup and eviction automation, ensure that only Go ModCache is cached elsewhere in CI.
+      
+      skipCI-kube-tests:true
+      skipCI-storybook-tests:true

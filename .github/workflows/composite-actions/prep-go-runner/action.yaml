@@ -1,0 +1,73 @@
+name: Prep Go Runner
+
+description: Common setup steps for Gloo actions
+
+inputs:
+  working-directory:
+    description: directory to run setup steps in
+    required: false
+    default: '.'
+  github-token:
+    # You should pass the ${{ secrets.CI_ADMIN_GITHUB_TOKEN }} secret into this input
+    # This matches the GITHUB_ACTION secret used in the cloudbuild,
+    # but is named CI_ADMIN_GITHUB_TOKEN here because secrets.GITHUB_ACTION is reserved in github workflows
+    description: GitHub token used to configure git for private modules
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Cancel Previous Actions
+      uses: styfle/cancel-workflow-action@0.11.0
+      with:
+        access_token: ${{ github.token }}
+    - name: Free disk space
+      shell: bash
+      run: |
+        echo "Before clearing disk space:"
+        df -h
+        
+        # https://github.com/actions/virtual-environments/issues/709
+        sudo apt-get clean
+        
+        # Clean up pre-installed tools
+        # https://github.com/actions/virtual-environments/issues/1918
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /usr/local/share/boost
+        sudo rm -rf $AGENT_TOOLSDIRECTORY
+        
+        echo "After clearing disk space:"
+        df -h
+    - name: Configure git for private modules
+      shell: bash
+      run: git config --global url."https://${{ inputs.github-token }}@github.com/solo-io/".insteadOf "https://github.com/solo-io/"
+
+    - name: Set up Go
+      id: setup-go
+      uses: actions/setup-go@v4
+      with:
+        # https://github.com/actions/setup-go/blob/main/action.yml
+        go-version-file: ${{ inputs.working-directory }}/go.mod
+        # Using the go-version-file, we will build with the latest go patch version
+        check-latest: true
+        # Caching in setup-go is limited, so we opt to use the more configurable https://github.com/actions/cache
+        cache: false
+    - name: Go Cache Paths
+      id: go-cache-paths
+      shell: bash
+      run: |
+        echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
+    - name: Cache
+      uses: actions/cache@v3
+      id: cache
+      with:
+        # https://github.com/actions/cache/blob/main/examples.md#go---modules
+        path: |
+          ${{ steps.go-cache-paths.outputs.go-mod }}
+        key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-${{ hashFiles('**/go.sum') }}
+    - name: Install Dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: make mod-download
