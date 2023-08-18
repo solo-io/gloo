@@ -6,18 +6,21 @@ on:
       edge_enterprise_version:
         description: Edge Enterprise version
         required: false
-        default: 1.13.9
-      kubernetes_version:
+        default: 1.15.0-rc2
+      kubernetes-version:
         description: Kubernetes Version
         type: choice
+        default: 1.27
         options:
           - 1.23
           - 1.24
           - 1.25
+          - 1.26
+          - 1.27
       helm-version:
         description: Helm version
         required: true
-        default: v3.8.2
+        default: v3.12.2
       environment_id:
         description: Environment ID - the name of the environment you want to create
         required: true
@@ -45,7 +48,7 @@ jobs:
       environment: eks-developers-acct
       num-remote-clusters: ${{ github.event.inputs.num-remote-clusters }}
       job-reference: ${{ github.event.inputs.environment_id }}
-      cluster-env-params: "EKS_KUBERNETES_VERSION=${{ github.event.inputs.num-remote-clusters }} EKS_MGMT_INSTANCE_TYPE=c6a.4xlarge EKS_WORKER_INSTANCE_TYPE=c6a.2xlarge"
+      cluster-env-params: "EKS_KUBERNETES_VERSION=${{ github.event.inputs.kubernetes-version }} EKS_MGMT_INSTANCE_TYPE=c6a.4xlarge EKS_WORKER_INSTANCE_TYPE=c6a.2xlarge"
       component: gloo-edge
     secrets:
       GIT_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}

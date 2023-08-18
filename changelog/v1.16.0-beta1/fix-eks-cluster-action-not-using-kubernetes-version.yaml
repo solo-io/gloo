@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5270
+    resolvesIssue: false
+    description: |
+      CI fix to use the correct `kubernetes-version` input for the EKS cluster creation workflow.
+      Add latest supported k8s versions and release as default variables for EKS cluster creation workflow.
+      skipCI-kube-tests:true
+      skipCI-storybook-tests:true
