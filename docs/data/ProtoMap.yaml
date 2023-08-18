@@ -1766,15 +1766,6 @@ apis:
   solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf.proto.sk/#CsrfPolicy
     package: solo.io.envoy.extensions.filters.http.csrf.v3
-  solo.io.envoy.extensions.filters.http.ext_proc.v3.ExtProcOverrides:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/ext_proc/v3/ext_proc.proto.sk/#ExtProcOverrides
-    package: solo.io.envoy.extensions.filters.http.ext_proc.v3
-  solo.io.envoy.extensions.filters.http.ext_proc.v3.ExtProcPerRoute:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/ext_proc/v3/ext_proc.proto.sk/#ExtProcPerRoute
-    package: solo.io.envoy.extensions.filters.http.ext_proc.v3
-  solo.io.envoy.extensions.filters.http.ext_proc.v3.ExternalProcessor:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/ext_proc/v3/ext_proc.proto.sk/#ExternalProcessor
-    package: solo.io.envoy.extensions.filters.http.ext_proc.v3
   solo.io.envoy.extensions.filters.http.ext_proc.v3.ProcessingMode:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/ext_proc/v3/processing_mode.proto.sk/#ProcessingMode
     package: solo.io.envoy.extensions.filters.http.ext_proc.v3
