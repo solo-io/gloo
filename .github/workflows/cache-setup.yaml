@@ -8,7 +8,7 @@ on:
       - 'v1.**.x'
 
 env:
-  GH_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
 
 jobs:
   setup-mod-cache:

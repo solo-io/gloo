@@ -1,0 +1,10 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4903
+    resolvesIssue: false
+    description: >-
+      Fix the environment variable name for the github token. Before, the variable we set was not
+      the one we read, so the token was empty and the job failed.
+
+      skipCI-kube-tests:true
+      skipCI-storybook-tests:true
