@@ -90,7 +90,7 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 
 	grpcConfig := &grpc.GrpcCacheConfig{
 		Service:        svc,
-		MaxPayloadSize: maxSize, // set the max size as enforced by the grpc cache
+		MaxPayloadSize: uint64(maxSize), // set the max size as enforced by the grpc cache
 	}
 
 	marshalledGRPCConfig, err := utils.MessageToAny(grpcConfig)

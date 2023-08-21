@@ -64,7 +64,7 @@ proto.connection_limit.options.gloo.solo.io.ConnectionLimit.prototype.toObject =
  */
 proto.connection_limit.options.gloo.solo.io.ConnectionLimit.toObject = function(includeInstance, msg) {
   var f, obj = {
-    maxActiveConnections: (f = msg.getMaxActiveConnections()) && google_protobuf_wrappers_pb.UInt64Value.toObject(includeInstance, f),
+    maxActiveConnections: (f = msg.getMaxActiveConnections()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     delayBeforeClose: (f = msg.getDelayBeforeClose()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
@@ -103,8 +103,8 @@ proto.connection_limit.options.gloo.solo.io.ConnectionLimit.deserializeBinaryFro
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new google_protobuf_wrappers_pb.UInt64Value;
-      reader.readMessage(value,google_protobuf_wrappers_pb.UInt64Value.deserializeBinaryFromReader);
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
       msg.setMaxActiveConnections(value);
       break;
     case 2:
@@ -146,7 +146,7 @@ proto.connection_limit.options.gloo.solo.io.ConnectionLimit.serializeBinaryToWri
     writer.writeMessage(
       1,
       f,
-      google_protobuf_wrappers_pb.UInt64Value.serializeBinaryToWriter
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
   f = message.getDelayBeforeClose();
@@ -161,16 +161,16 @@ proto.connection_limit.options.gloo.solo.io.ConnectionLimit.serializeBinaryToWri
 
 
 /**
- * optional google.protobuf.UInt64Value max_active_connections = 1;
- * @return {?proto.google.protobuf.UInt64Value}
+ * optional google.protobuf.UInt32Value max_active_connections = 1;
+ * @return {?proto.google.protobuf.UInt32Value}
  */
 proto.connection_limit.options.gloo.solo.io.ConnectionLimit.prototype.getMaxActiveConnections = function() {
-  return /** @type{?proto.google.protobuf.UInt64Value} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt64Value, 1));
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 1));
 };
 
 
-/** @param {?proto.google.protobuf.UInt64Value|undefined} value */
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
 proto.connection_limit.options.gloo.solo.io.ConnectionLimit.prototype.setMaxActiveConnections = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };

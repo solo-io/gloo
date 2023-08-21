@@ -11,8 +11,8 @@ import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wr
 export class ConnectionLimit extends jspb.Message {
   hasMaxActiveConnections(): boolean;
   clearMaxActiveConnections(): void;
-  getMaxActiveConnections(): google_protobuf_wrappers_pb.UInt64Value | undefined;
-  setMaxActiveConnections(value?: google_protobuf_wrappers_pb.UInt64Value): void;
+  getMaxActiveConnections(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setMaxActiveConnections(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
   hasDelayBeforeClose(): boolean;
   clearDelayBeforeClose(): void;
@@ -31,7 +31,7 @@ export class ConnectionLimit extends jspb.Message {
 
 export namespace ConnectionLimit {
   export type AsObject = {
-    maxActiveConnections?: google_protobuf_wrappers_pb.UInt64Value.AsObject,
+    maxActiveConnections?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     delayBeforeClose?: google_protobuf_duration_pb.Duration.AsObject,
   }
 }
