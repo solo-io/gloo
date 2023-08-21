@@ -1,0 +1,10 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Bump from an RC to full release.
+      skipCI-kube-tests:true
+      skipCI-storybook-tests:true
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.15.0
