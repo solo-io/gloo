@@ -8,6 +8,7 @@ import (
 	extauthsyncer "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
+	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/golang/protobuf/ptypes/wrappers"
 
 	"github.com/golang/protobuf/ptypes"
@@ -1068,6 +1069,61 @@ var _ = Describe("Translate", func() {
 			}
 			_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 			Expect(err).NotTo(BeNil())
+		})
+	})
+	Context("HTTP Passthrough", func() {
+		BeforeEach(func() {
+			authConfig = &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "http-passthrough",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
+						PassThroughAuth: &extauth.PassThroughAuth{
+							Protocol: &extauth.PassThroughAuth_Http{
+								Http: &extauth.PassThroughHttp{
+									Request:  &extauth.PassThroughHttp_Request{},
+									Response: &extauth.PassThroughHttp_Response{},
+									ConnectionTimeout: &duration.Duration{
+										Seconds: 10,
+									},
+									Url: "https://localhost",
+								},
+							},
+						},
+					},
+				}},
+			}
+
+			authConfigRef = authConfig.Metadata.Ref()
+			extAuthExtension = &extauth.ExtAuthExtension{
+				Spec: &extauth.ExtAuthExtension_ConfigRef{
+					ConfigRef: authConfigRef,
+				},
+			}
+			params.Snapshot = &v1snap.ApiSnapshot{
+				Upstreams:   v1.UpstreamList{upstream},
+				AuthConfigs: extauth.AuthConfigList{authConfig},
+			}
+		})
+		It("Translates valid HTTP Passthrough config", func() {
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+			Expect(translated.Configs).To(HaveLen(1))
+			actual := translated.Configs[0].GetPassThroughAuth().GetHttp()
+			Expect(actual).ToNot(BeNil())
+		})
+		It("errors when there are headers in both overwrite and append lists", func() {
+			authConfig.Configs[0].GetPassThroughAuth().GetHttp().Response = &extauth.PassThroughHttp_Response{
+				AllowedUpstreamHeaders:            []string{"x-auth-header-1", "x-auth-header-both"},
+				AllowedUpstreamHeadersToOverwrite: []string{"x-auth-header-2", "x-auth-header-both"},
+			}
+
+			_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(BeNil())
+			Expect(err).To(MatchError(ContainSubstring("The following headers are configured for both append and overwrite in the upstream: x-auth-header-both")))
 		})
 	})
 })

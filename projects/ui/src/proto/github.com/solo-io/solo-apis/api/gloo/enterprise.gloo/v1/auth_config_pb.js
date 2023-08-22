@@ -16124,7 +16124,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.enterprise.gloo.solo.io.PassThroughHttp.Response.repeatedFields_ = [1,2];
+proto.enterprise.gloo.solo.io.PassThroughHttp.Response.repeatedFields_ = [1,2,4];
 
 
 
@@ -16157,7 +16157,8 @@ proto.enterprise.gloo.solo.io.PassThroughHttp.Response.toObject = function(inclu
   var f, obj = {
     allowedUpstreamHeadersList: jspb.Message.getRepeatedField(msg, 1),
     allowedClientHeadersOnDeniedList: jspb.Message.getRepeatedField(msg, 2),
-    readStateFromResponse: jspb.Message.getFieldWithDefault(msg, 3, false)
+    readStateFromResponse: jspb.Message.getFieldWithDefault(msg, 3, false),
+    allowedUpstreamHeadersToOverwriteList: jspb.Message.getRepeatedField(msg, 4)
   };
 
   if (includeInstance) {
@@ -16206,6 +16207,10 @@ proto.enterprise.gloo.solo.io.PassThroughHttp.Response.deserializeBinaryFromRead
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setReadStateFromResponse(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addAllowedUpstreamHeadersToOverwrite(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -16253,6 +16258,13 @@ proto.enterprise.gloo.solo.io.PassThroughHttp.Response.serializeBinaryToWriter =
   if (f) {
     writer.writeBool(
       3,
+      f
+    );
+  }
+  f = message.getAllowedUpstreamHeadersToOverwriteList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      4,
       f
     );
   }
@@ -16331,6 +16343,35 @@ proto.enterprise.gloo.solo.io.PassThroughHttp.Response.prototype.getReadStateFro
 /** @param {boolean} value */
 proto.enterprise.gloo.solo.io.PassThroughHttp.Response.prototype.setReadStateFromResponse = function(value) {
   jspb.Message.setProto3BooleanField(this, 3, value);
+};
+
+
+/**
+ * repeated string allowed_upstream_headers_to_overwrite = 4;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.PassThroughHttp.Response.prototype.getAllowedUpstreamHeadersToOverwriteList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 4));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.PassThroughHttp.Response.prototype.setAllowedUpstreamHeadersToOverwriteList = function(value) {
+  jspb.Message.setField(this, 4, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.PassThroughHttp.Response.prototype.addAllowedUpstreamHeadersToOverwrite = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 4, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.PassThroughHttp.Response.prototype.clearAllowedUpstreamHeadersToOverwriteList = function() {
+  this.setAllowedUpstreamHeadersToOverwriteList([]);
 };
 
 

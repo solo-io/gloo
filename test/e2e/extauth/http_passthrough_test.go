@@ -236,8 +236,9 @@ var _ = Describe("HTTP Passthrough", func() {
 
 				JustBeforeEach(func() {
 					httpPassthroughConfig.Response = &extauth.PassThroughHttp_Response{
-						AllowedUpstreamHeaders:       []string{"x-auth-header-1", "x-auth-header-2"},
-						AllowedClientHeadersOnDenied: []string{"x-auth-header-1"},
+						AllowedUpstreamHeaders:            []string{"x-auth-header-1", "x-auth-header-2"},
+						AllowedUpstreamHeadersToOverwrite: []string{"x-auth-header-3", "x-auth-header-4", "x-not-in-response", "x-not-in-response-but-in-upstream"},
+						AllowedClientHeadersOnDenied:      []string{"x-auth-header-1"},
 					}
 
 					setupServerWithFailureModeAllow("", false, handler)
@@ -246,17 +247,23 @@ var _ = Describe("HTTP Passthrough", func() {
 				Context("On authorized response", func() {
 					BeforeEach(func() {
 						handler = func(rw http.ResponseWriter, r *http.Request) bool {
+							// These are the headers that come back from the auth server
 							rw.Header().Set("x-auth-header-1", "some value")
 							rw.Header().Set("x-auth-header-2", "some value 2")
+							rw.Header().Set("x-auth-header-3", "some value 3")
+							rw.Header().Set("x-auth-header-4", "some value 4")
 							rw.Header().Set("x-shouldnt-upstream", "shouldn't upstream")
 							return true
 						}
 					})
 
 					It("copies `allowed_headers` request headers and adds `headers_to_add` headers to auth request", func() {
+						// These are the headers for the originating request
 						expectStatusCodeWithHeaders(http.StatusOK, map[string][]string{
-							"x-auth-header-1": {"hello"},
-							"x-passthrough-1": {"some header from request that should go to upstream"},
+							"x-auth-header-1":                   {"keep me"},
+							"x-auth-header-3":                   {"overwrite me"},
+							"x-passthrough-1":                   {"some header from request that should go to upstream"},
+							"x-not-in-response-but-in-upstream": {"some header from request that we want to overwrite"},
 						}, nil)
 
 						select {
@@ -264,9 +271,22 @@ var _ = Describe("HTTP Passthrough", func() {
 							Expect(received.Method).To(Equal(http.MethodGet))
 							Expect(received.Headers).To(And(
 								// This header should have an appended value since it exists on the original request
-								HaveKeyWithValue("X-Auth-Header-1", ContainElements("hello,some value")),
+								HaveKeyWithValue("X-Auth-Header-1", ContainElements("keep me,some value")),
+								// This header did not exist on the original request so it should be "appended" to an empty list
 								HaveKeyWithValue("X-Auth-Header-2", ContainElements("some value 2")),
+								// This is an overwrite header that existed on the original request
+								HaveKeyWithValue("X-Auth-Header-3", ContainElements("some value 3")),
+								// This is an overwrite header that did not exist on the original request
+								HaveKeyWithValue("X-Auth-Header-4", ContainElements("some value 4")),
+								// This is an "overwrite" header that was on the original request but not in the auth response, so it should get "overwritten" to a empty string
+								HaveKeyWithValue("X-Not-In-Response-But-In-Upstream", ContainElements("")),
+								Not(HaveKeyWithValue("X-Not-In-Response-But-In-Upstream", ContainElements("some header from request that we want to overwrite"))),
+								// This is an "overwrite" header that was not on the original request and was also not in the auth response, so it should not get added
+								Not(HaveKey("X-Not-In-Response")),
+								// This is in AllowedUpstreamHeadersToOverwrite, but in neither the original request or the auth response. It will not appear
 								Not(HaveKey("X-Shouldnt-Upstream")),
+								// No empty header names
+								Not(HaveKey("")),
 							))
 
 						case <-time.After(defaultUpstreamRequestTimeout):

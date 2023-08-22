@@ -2346,6 +2346,11 @@ export namespace PassThroughHttp {
     getReadStateFromResponse(): boolean;
     setReadStateFromResponse(value: boolean): void;
 
+    clearAllowedUpstreamHeadersToOverwriteList(): void;
+    getAllowedUpstreamHeadersToOverwriteList(): Array<string>;
+    setAllowedUpstreamHeadersToOverwriteList(value: Array<string>): void;
+    addAllowedUpstreamHeadersToOverwrite(value: string, index?: number): string;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Response.AsObject;
     static toObject(includeInstance: boolean, msg: Response): Response.AsObject;
@@ -2361,6 +2366,7 @@ export namespace PassThroughHttp {
       allowedUpstreamHeadersList: Array<string>,
       allowedClientHeadersOnDeniedList: Array<string>,
       readStateFromResponse: boolean,
+      allowedUpstreamHeadersToOverwriteList: Array<string>,
     }
   }
 }

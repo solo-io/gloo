@@ -269,16 +269,21 @@ GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' 
 check-go-version:
 	./ci/check-go-version.sh
 
+# set SKIP_VERSION_CHECKS to any value to skip these checks in development, ie `SKIP_VERSION_CHECKS=1 make generate-all`
 .PHONY: check-solo-apis
 check-solo-apis:
 	# Ensure that the gloo and solo-apis dependencies are in lockstep
 	# This is intended to only be run by the ci/check-code-gen script and it will produce
 	# a diff if the versions are not in lockstep
+ifeq ($(SKIP_VERSION_CHECKS), )
 	go get github.com/solo-io/solo-apis@gloo-$(GLOO_VERSION)
+endif
 
 .PHONY: check-envoy-version
 check-envoy-version:
+ifeq ($(SKIP_VERSION_CHECKS), )
 	./ci/check-envoy-version.sh $(ENVOY_GLOO_IMAGE_VERSION)
+endif
 
 .PHONY: check-protoc
 check-protoc:

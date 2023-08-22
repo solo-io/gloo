@@ -8,9 +8,11 @@ import (
 
 	"github.com/solo-io/go-utils/contextutils"
 	"go.uber.org/zap"
+	"golang.org/x/exp/slices"
 
 	"github.com/hashicorp/go-multierror"
 
+	"github.com/rotisserie/eris"
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
@@ -206,14 +208,13 @@ func translateConfig(ctx context.Context, snap *v1snap.ApiSnapshot, cfg *extauth
 				},
 			}
 		case *extauth.PassThroughAuth_Http:
+			cfg, err := translateHttpPassthroughConfig(ctx, snap, config.PassThroughAuth)
+			if err != nil {
+				return nil, err
+			}
+
 			extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_PassThroughAuth{
-				PassThroughAuth: &extauth.PassThroughAuth{
-					Protocol: &extauth.PassThroughAuth_Http{
-						Http: protocolConfig.Http,
-					},
-					Config:           config.PassThroughAuth.Config,
-					FailureModeAllow: config.PassThroughAuth.GetFailureModeAllow(),
-				},
+				PassThroughAuth: cfg,
 			}
 		default:
 			return nil, unknownPassThroughProtocolType(config.PassThroughAuth.Protocol)
@@ -222,6 +223,27 @@ func translateConfig(ctx context.Context, snap *v1snap.ApiSnapshot, cfg *extauth
 		return nil, unknownConfigTypeError
 	}
 	return extAuthConfig, nil
+}
+
+func translateHttpPassthroughConfig(ctx context.Context, snap *v1snap.ApiSnapshot, config *extauth.PassThroughAuth) (*extauth.PassThroughAuth, error) {
+	duplicatedHeaders := []string{}
+	for _, header := range config.GetHttp().GetResponse().GetAllowedUpstreamHeaders() {
+		if slices.Contains(config.GetHttp().GetResponse().GetAllowedUpstreamHeadersToOverwrite(), header) {
+			duplicatedHeaders = append(duplicatedHeaders, header)
+		}
+	}
+
+	if len(duplicatedHeaders) > 0 {
+		return nil, eris.Errorf("The following headers are configured for both append and overwrite in the upstream: %s", strings.Join(duplicatedHeaders, ", "))
+	}
+
+	return &extauth.PassThroughAuth{
+		Protocol: &extauth.PassThroughAuth_Http{
+			Http: config.GetHttp(),
+		},
+		Config:           config.Config,
+		FailureModeAllow: config.GetFailureModeAllow(),
+	}, nil
 }
 
 func translateOpaConfig(ctx context.Context, snap *v1snap.ApiSnapshot, config *extauth.OpaAuth) (*extauth.ExtAuthConfig_OpaAuthConfig, error) {
