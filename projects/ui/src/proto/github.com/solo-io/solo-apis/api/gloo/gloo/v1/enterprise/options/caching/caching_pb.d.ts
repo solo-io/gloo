@@ -27,8 +27,8 @@ export class Settings extends jspb.Message {
 
   hasMaxPayloadSize(): boolean;
   clearMaxPayloadSize(): void;
-  getMaxPayloadSize(): google_protobuf_wrappers_pb.UInt64Value | undefined;
-  setMaxPayloadSize(value?: google_protobuf_wrappers_pb.UInt64Value): void;
+  getMaxPayloadSize(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setMaxPayloadSize(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Settings.AsObject;
@@ -45,6 +45,6 @@ export namespace Settings {
     cachingServiceRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     allowedVaryHeadersList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher.AsObject>,
     timeout?: google_protobuf_duration_pb.Duration.AsObject,
-    maxPayloadSize?: google_protobuf_wrappers_pb.UInt64Value.AsObject,
+    maxPayloadSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
   }
 }
