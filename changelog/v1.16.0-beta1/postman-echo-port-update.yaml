@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Fix a test flake by using HTTPS with all postman-echo upstreams, as HTTP has inconsistent behavior.
