@@ -112,7 +112,7 @@ static_resources:
                   address:
                     socket_address:
                       address: postman-echo.com
-                      port_value: 80
+                      port_value: 443
 
 ####
 # Definition for how Envoy will receive its dynamic configuration

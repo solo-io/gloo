@@ -678,18 +678,19 @@ func getPassThroughHttpService(ctx context.Context, authCfgCfg *structpb.Struct,
 	}
 
 	cfg := &httpPassthrough.PassthroughConfig{
-		PassThroughFilterMetadata: httpPassthroughConfig.GetRequest().GetPassThroughFilterMetadata(),
-		PassThroughState:          httpPassthroughConfig.GetRequest().GetPassThroughState(),
-		PassThroughBody:           httpPassthroughConfig.GetRequest().GetPassThroughBody(),
-		AllowedHeaders:            allowedHeadersMap,
-		HeadersToAdd:              httpPassthroughConfig.GetRequest().GetHeadersToAdd(),
-		Url:                       httpPassthroughConfig.Url,
-		ConnectionTimeout:         connectionTimeout,
-		AllowedUpstreamHeaders:    httpPassthroughConfig.GetResponse().GetAllowedUpstreamHeaders(),
-		AllowedClientHeaders:      httpPassthroughConfig.GetResponse().GetAllowedClientHeadersOnDenied(),
-		ReadStateFromResponse:     httpPassthroughConfig.GetResponse().GetReadStateFromResponse(),
-		TLSClientConfig:           tlsConfig,
-		AllowFailure:              failureModeAllow,
+		PassThroughFilterMetadata:         httpPassthroughConfig.GetRequest().GetPassThroughFilterMetadata(),
+		PassThroughState:                  httpPassthroughConfig.GetRequest().GetPassThroughState(),
+		PassThroughBody:                   httpPassthroughConfig.GetRequest().GetPassThroughBody(),
+		AllowedHeaders:                    allowedHeadersMap,
+		HeadersToAdd:                      httpPassthroughConfig.GetRequest().GetHeadersToAdd(),
+		Url:                               httpPassthroughConfig.Url,
+		ConnectionTimeout:                 connectionTimeout,
+		AllowedUpstreamHeaders:            httpPassthroughConfig.GetResponse().GetAllowedUpstreamHeaders(),
+		AllowedUpstreamHeadersToOverwrite: httpPassthroughConfig.GetResponse().GetAllowedUpstreamHeadersToOverwrite(),
+		AllowedClientHeaders:              httpPassthroughConfig.GetResponse().GetAllowedClientHeadersOnDenied(),
+		ReadStateFromResponse:             httpPassthroughConfig.GetResponse().GetReadStateFromResponse(),
+		TLSClientConfig:                   tlsConfig,
+		AllowFailure:                      failureModeAllow,
 	}
 
 	return httpPassthrough.NewHttpService(cfg, authCfgCfg), nil
