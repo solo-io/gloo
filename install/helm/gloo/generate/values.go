@@ -191,6 +191,7 @@ type KnativeProxyInternal struct {
 
 type Settings struct {
 	WatchNamespaces               []string                `json:"watchNamespaces,omitempty" desc:"whitelist of namespaces for Gloo Edge to watch for services and CRDs. Empty list means all namespaces"`
+	WatchNamespacesJob            *WatchNamespacesJob     `json:"watchNamespacesJob,omitempty" desc:"Configuration for the job which labels WatchNamespaces"`
 	WriteNamespace                *string                 `json:"writeNamespace,omitempty" desc:"namespace where intermediary CRDs will be written to, e.g. Upstreams written by Gloo Edge Discovery."`
 	Integrations                  *Integrations           `json:"integrations,omitempty"`
 	Create                        *bool                   `json:"create,omitempty" desc:"create a Settings CRD which provides bootstrap configuration to Gloo Edge controllers"`
@@ -386,6 +387,15 @@ type RolloutJob struct {
 type CleanupJob struct {
 	*JobSpec
 	Enabled        *bool                 `json:"enabled,omitempty" desc:"Enable the job that removes Gloo Edge custom resources when Gloo Edge is uninstalled (default true)."`
+	Image          *Image                `json:"image,omitempty"`
+	Resources      *ResourceRequirements `json:"resources,omitempty"`
+	FloatingUserId *bool                 `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
+	RunAsUser      *float64              `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the processes in the container to run as. Default is 10101."`
+}
+
+type WatchNamespacesJob struct {
+	*JobSpec
+	Enabled        *bool                 `json:"enabled,omitempty" desc:"Enable the job that labels watch namespaces to ensure the admission validation webhook only processes watched resources (default true)."`
 	Image          *Image                `json:"image,omitempty"`
 	Resources      *ResourceRequirements `json:"resources,omitempty"`
 	FloatingUserId *bool                 `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
