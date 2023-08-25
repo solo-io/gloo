@@ -57,7 +57,7 @@ spec:
             - -c
             - |
             {{- range $.Values.settings.watchNamespaces }}
-            - kubectl label namespace {{ . }} gloo.solo.io/installation={{ $.Release.Name }}-{{ $.Release.Namespace }} || exit $?
+              kubectl label namespace --overwrite {{ . }} gloo.solo.io/installation-{{ $.Release.Name }}-{{ $.Release.Namespace }}=true
             {{- end }}
 {{- if .Values.global.glooRbac.create }}
 ---
@@ -87,9 +87,9 @@ metadata:
     "helm.sh/hook-weight": "0" # must be created before watchnamespaces job
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 rules:
-  - apiGroups: ["gloo.solo.io"]
-    resources: ["*"]
-    verbs: ["list", "delete"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["patch", "list", "get", "update"]
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -124,12 +124,9 @@ metadata:
     "helm.sh/hook-weight": "0" # must be created before watchnamespaces job
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 rules:
-  - apiGroups: ["admissionregistration.k8s.io"]
-    resources: ["validatingwebhookconfigurations"]
-    verbs: ["delete"]
-  - apiGroups: ["gateway.solo.io"]
-    resources: ["*"]
-    verbs: ["list", "delete"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["patch", "list", "get", "update"]
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -144,7 +141,7 @@ metadata:
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 roleRef:
   kind: ClusterRole
-  name: gloo-watchnamespaces=labeling{{ include "gloo.rbacNameSuffix" . }}
+  name: gloo-watchnamespaces{{ include "gloo.rbacNameSuffix" . }}
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
