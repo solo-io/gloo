@@ -57,7 +57,7 @@ spec:
             - -c
             - |
             {{- range $.Values.settings.watchNamespaces }}
-              kubectl label namespace --overwrite {{ . }} gloo.solo.io/installation-{{ $.Release.Name }}-{{ $.Release.Namespace }}-
+              kubectl label namespace --overwrite {{ . }} gloo.solo.io/installation-{{ $.Release.Name }}-{{ $.Release.Namespace }}- || true
             {{- end }}
 {{- if .Values.global.glooRbac.create }}
 ---
@@ -89,7 +89,7 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["namespaces"]
-    verbs: ["patch", "list", "get", "update"]
+    verbs: ["patch", "get"]
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -126,7 +126,7 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["namespaces"]
-    verbs: ["patch", "list", "get", "update"]
+    verbs: ["patch", "get"]
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
