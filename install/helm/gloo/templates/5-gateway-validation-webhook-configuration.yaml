@@ -23,6 +23,11 @@ webhooks:
       namespace: {{ .Release.Namespace }}
       path: "/validation"
     caBundle: "" # update manually or use certgen job or cert-manager's ca-injector
+  {{- if .Values.settings.watchNamespacesJob }}
+  namespaceSelector:
+    matchLabels:
+      gloo.solo.io/installation-{{ .Release.Name }}-{{ .Release.Namespace }}: watched
+  {{- end }}
   rules:
   - operations: {{ include "gloo.webhookvalidation.operationsForResource" (list "virtualservices" .Values.gateway.validation.webhook.skipDeleteValidationResources) }}
     apiGroups: ["gateway.solo.io"]

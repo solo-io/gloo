@@ -57,7 +57,7 @@ spec:
             - -c
             - |
             {{- range $.Values.settings.watchNamespaces }}
-              kubectl label namespace --overwrite {{ . }} gloo.solo.io/installation-{{ $.Release.Name }}-{{ $.Release.Namespace }}=true
+              kubectl label namespace --overwrite {{ . }} gloo.solo.io/installation-{{ $.Release.Name }}-{{ $.Release.Namespace }}=watched
             {{- end }}
 {{- if .Values.global.glooRbac.create }}
 ---
