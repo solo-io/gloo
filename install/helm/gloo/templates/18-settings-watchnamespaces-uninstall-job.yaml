@@ -8,11 +8,11 @@ kind: Job
 metadata:
   labels:
     app: gloo
-    gloo: watchnamespaces
-  name: gloo-watchnamespaces
+    gloo: remove-watchnamespaces
+  name: gloo-remove-watchnamespaces
   namespace: {{ .Release.Namespace }}
   annotations:
-    "helm.sh/hook": pre-install, pre-upgrade
+    "helm.sh/hook": post-delete
     "helm.sh/hook-weight": "5" # default
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 spec:
@@ -20,7 +20,7 @@ spec:
   template:
     metadata:
       labels:
-        gloo: watchnamespaces
+        gloo: remove-watchnamespaces
         sidecar.istio.io/inject: "false"
         {{- if .Values.settings.watchNamespacesJob.extraPodLabels }}
         {{- range $key, $value := .Values.settings.watchNamespacesJob.extraPodLabels }}
@@ -38,7 +38,7 @@ spec:
       {{- end }}
     spec:
       {{- include "gloo.pullSecret" $image | nindent 6 -}}
-      serviceAccountName: gloo-watchnamespaces
+      serviceAccountName: gloo-remove-watchnamespaces
       {{- include "gloo.podSpecStandardFields" .Values.settings.watchNamespacesJob | nindent 6 -}}
       containers:
         - name: kubectl
@@ -57,7 +57,7 @@ spec:
             - -c
             - |
             {{- range $.Values.settings.watchNamespaces }}
-              kubectl label namespace --overwrite {{ . }} gloo.solo.io/installation-{{ $.Release.Name }}-{{ $.Release.Namespace }}=watched
+              kubectl label namespace --overwrite {{ . }} gloo.solo.io/installation-{{ $.Release.Name }}-{{ $.Release.Namespace }}-
             {{- end }}
 {{- if .Values.global.glooRbac.create }}
 ---
@@ -68,23 +68,23 @@ metadata:
     app: gloo
     gloo: rbac
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
-    "helm.sh/hook-weight": "0" # must be created before watchnamespaces job
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-weight": "0" # must be created before remove watchnamespaces job
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
-  name: gloo-watchnamespaces
+  name: gloo-remove-watchnamespaces
   namespace: {{ .Release.Namespace }}
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gloo-watchnamespaces
+  name: gloo-remove-watchnamespaces
   namespace: {{ .Release.Namespace }}
   labels:
     app: gloo
     gloo: rbac
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
-    "helm.sh/hook-weight": "0" # must be created before watchnamespaces job
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-weight": "0" # must be created before remove watchnamespaces job
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 rules:
   - apiGroups: [""]
@@ -94,33 +94,33 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gloo-watchnamespaces
+  name: gloo-remove-watchnamespaces
   namespace: {{ .Release.Namespace }}
   labels:
     app: gloo
     gloo: rbac
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook": post-delete
     "helm.sh/hook-weight": "0" # must be created before watchnamespaces job
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 roleRef:
   kind: Role
-  name: gloo-watchnamespaces
+  name: gloo-remove-watchnamespaces
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
-    name: gloo-watchnamespaces
+    name: gloo-remove-watchnamespaces
     namespace: {{ .Release.Namespace }}
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gloo-watchnamespaces{{ include "gloo.rbacNameSuffix" . }}
+  name: gloo-remove-watchnamespaces{{ include "gloo.rbacNameSuffix" . }}
   labels:
     app: gloo
     gloo: rbac
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook": post-delete
     "helm.sh/hook-weight": "0" # must be created before watchnamespaces job
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 rules:
@@ -131,21 +131,21 @@ rules:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gloo-watchnamespaces{{ include "gloo.rbacNameSuffix" . }}
+  name: gloo-remove-watchnamespaces{{ include "gloo.rbacNameSuffix" . }}
   labels:
     app: gloo
     gloo: rbac
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook": post-delete
     "helm.sh/hook-weight": "0" # must be created before watchnamespaces job
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 roleRef:
   kind: ClusterRole
-  name: gloo-watchnamespaces{{ include "gloo.rbacNameSuffix" . }}
+  name: gloo-remove-watchnamespaces{{ include "gloo.rbacNameSuffix" . }}
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
-    name: gloo-watchnamespaces
+    name: gloo-remove-watchnamespaces
     namespace: {{ .Release.Namespace }}
 {{- end }}{{/* if .Values.global.glooRbac.create */}}
 {{- end }}{{/* if .Values.settings.watchNamespaces  */}}
