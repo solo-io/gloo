@@ -30,6 +30,16 @@ settings:
           httpsPort: 443
   # Namespaces that Gloo should watch. This includes watches set for pods, services, as well as CRD configuration objects.
   watchNamespaces: []
+  # The watchNamespacesJob is necessary to ensure that Gloo deployments only receive validation requests for resources in
+  # their watched namespaces. If there are no watched namespaces, the job will be a no-op and can safely be disabled.
+  watchNamespacesJob:
+    # enabled: true
+    # image:
+    #   repository: kubectl
+    #   tag: 1.0.0-ci
+    # restartPolicy: OnFailure
+    # runAsUser: 10101
+    # ttlSecondsAfterFinished: 60
   # Gloo allows you to directly reference a Kubernetes service as a routing destination. To enable this feature,
   # Gloo scans the cluster for Kubernetes services and creates a special type of in-memory Upstream to represent them.
   # If the cluster contains a lot of services and you do not restrict the namespaces Gloo is watching, this can result

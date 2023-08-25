@@ -1,4 +1,4 @@
-{{- if .Values.settings.watchNamespacesJob }}
+{{- if .Values.settings.watchNamespacesJob.enabled }}
 {{- $image := .Values.settings.watchNamespacesJob.image }}
 {{- if .Values.global }}
 {{- $image = merge .Values.settings.watchNamespacesJob.image .Values.global.image }}
