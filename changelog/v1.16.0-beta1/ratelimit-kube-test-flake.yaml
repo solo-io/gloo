@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5307
+    resolvesIssue: false
+    description: >-
+      Add a FlakeAttempts decorator to the tests that tend to flake, and include a comment
+      in the code referencing the issue
