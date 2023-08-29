@@ -318,7 +318,10 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 
 		})
 
-		Context("using a RateLimitConfig resource", func() {
+		Context("using a RateLimitConfig resource", FlakeAttempts(5), func() {
+			// We include the FlakeAttempts decorator to account for an error we have seen multiple times,
+			// and we want to reduce the pain the developers experience
+			// https://github.com/solo-io/solo-projects/issues/5307 tracks the issue
 
 			var configRef core.ResourceRef
 
