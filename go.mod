@@ -50,7 +50,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.2
 	github.com/solo-io/ext-auth-service v0.43.1-patch1
 	github.com/solo-io/external-apis v0.2.0
-	github.com/solo-io/gloo v1.15.1
+	github.com/solo-io/gloo v1.15.2
 	github.com/solo-io/gloo-graphql-example v0.1.0
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.6
@@ -60,7 +60,7 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.10.0
 	github.com/solo-io/skv2 v0.32.0
-	github.com/solo-io/solo-apis v0.0.0-20230822201820-2b0be3ee0374
+	github.com/solo-io/solo-apis v0.0.0-20230831172048-2d0d55395b30
 	github.com/solo-io/solo-kit v0.33.0
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20220823153451-d072eb48cb44
 	github.com/spf13/cobra v1.7.0
@@ -89,7 +89,7 @@ require (
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2
 	knative.dev/pkg v0.0.0-20211206113427-18589ac7627e
 	rogchap.com/v8go v0.7.1-0.20221102201510-1f00b5007d95
-	sigs.k8s.io/controller-runtime v0.15.2-0.20230808150016-0269522a418c
+	sigs.k8s.io/controller-runtime v0.15.2
 	sigs.k8s.io/yaml v1.3.0
 )
 

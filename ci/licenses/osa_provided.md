@@ -61,7 +61,7 @@ Name|Version|License
 [k8s.io/utils](https://k8s.io/utils)|v0.0.0-20221128185143-99ec85e7a448|Apache License 2.0
 [knative.dev/pkg](https://knative.dev/pkg)|v0.0.0-20211206113427-18589ac7627e|Apache License 2.0
 [rogchap.com/v8go](https://rogchap.com/v8go)|v0.7.1-0.20221102201510-1f00b5007d95|BSD 3-clause "New" or "Revised" License
-[sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.15.2-0.20230808150016-0269522a418c|Apache License 2.0
+[sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.15.2|Apache License 2.0
 [sigs.k8s.io/yaml](https://sigs.k8s.io/yaml)|v1.3.0|MIT License
 [cmd/goimports](https://golang.org/x/tools/cmd/goimports)|latest|MIT License
 [gogo/protobuf](https://github.com/gogo/protobuf)|latest|MIT License
