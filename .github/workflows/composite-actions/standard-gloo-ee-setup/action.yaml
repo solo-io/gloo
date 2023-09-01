@@ -60,11 +60,7 @@ runs:
       shell: bash
       run: gcloud auth configure-docker
     # pre-load the go mod dependencies, and set up `go run` to function
-    - name: Set up Go
-      uses: actions/setup-go@v4
+    - name: Prep Go Runner
+      uses: ./.github/workflows/composite-actions/prep-go-runner
       with:
-        go-version-file: go.mod
-    # enable a few private dependencies to be reachable
-    - name: Configure git for private modules
-      shell: bash
-      run: git config --global url."https://soloio_bot:${{ inputs.GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
+        github-token: ${{ inputs.GITHUB_TOKEN }}

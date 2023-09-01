@@ -19,6 +19,7 @@ jobs:
     name: fed regression tests (fed@k8s${{matrix.kube-version.kubectl}})
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 5 * * 1-5'
     runs-on: ubuntu-22.04
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -36,6 +37,7 @@ jobs:
     name: fed regression tests (fed-canary@k8s${{matrix.kube-version.kubectl}})
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 5 * * 1-5'
     runs-on: ubuntu-22.04
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -54,6 +56,7 @@ jobs:
     name: fed regression tests (fed@k8s${{matrix.kube-version.kubectl}})
     if: github.event.schedule == '10 10 * * 1'
     runs-on: ubuntu-22.04
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -73,6 +76,7 @@ jobs:
     name: fed regression tests (fed-canary@k8s${{matrix.kube-version.kubectl}})
     if: github.event.schedule == '10 10 * * 1'
     runs-on: ubuntu-22.04
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -93,6 +97,7 @@ jobs:
     name: fed regression tests (fed@k8s${{matrix.kube-version.kubectl}})
     if: github.event.schedule == '6 6 * * 1'
     runs-on: ubuntu-22.04
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -112,6 +117,7 @@ jobs:
     name: fed regression tests (fed-canary@k8s${{matrix.kube-version.kubectl}})
     if: github.event.schedule == '6 6 * * 1'
     runs-on: ubuntu-22.04
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -130,6 +136,7 @@ jobs:
 
   publish_results:
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
     if: ${{ always() }}
     needs: [ fed_tests_dev, canary_tests_dev, fed_tests_14, canary_tests_14, fed_tests_13, canary_tests_13 ]
     steps:

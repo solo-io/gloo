@@ -1,4 +1,4 @@
-name: CI
+name: Regression Tests
 
 on: pull_request
 
@@ -12,6 +12,7 @@ jobs:
   prepare_env:
     name: Prepare Environment
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
     outputs:
       should-auto-succeed-regression-tests: ${{ steps.run-strategy.outputs.auto_succeed }}
     steps:
@@ -45,6 +46,7 @@ jobs:
     needs: prepare_env
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-22.04
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -73,6 +75,7 @@ jobs:
     needs: prepare_env
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-22.04
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -98,6 +101,7 @@ jobs:
     needs: prepare_env
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-22.04
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:

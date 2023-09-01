@@ -21,6 +21,7 @@ jobs:
   publish-gloo-ee:
     name: publish gloo-ee
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/workflows/composite-actions/standard-gloo-ee-setup
@@ -42,6 +43,7 @@ jobs:
     if: inputs.publish_fed
     name: publish gloo-fed
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/workflows/composite-actions/standard-gloo-ee-setup
@@ -61,6 +63,7 @@ jobs:
     if: inputs.gloo_sha != ''
     name: publish gloo
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: actions/checkout@v3
