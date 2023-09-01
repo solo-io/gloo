@@ -17,3 +17,7 @@ run:
 
 clean:
 	@rm -fr _output/server
+
+
+kload: 
+	kind load docker-image quay.io/solo-io/grpc-ext-proc-example --name kind

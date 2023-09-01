@@ -1,0 +1,33 @@
+edit vs
+
+ options:
+      transformations:
+        # Apply a transformation to the response
+        responseTransformation:
+          transformationTemplate:
+            dynamicMetadataValues:
+            # Set a dynamic metadata entry named "pod_name"
+            - key: 'pod_name'
+              value:
+                # The POD_NAME env is set by default on the gateway-proxy pods
+                text: '{{ env("POD_NAME") }}'
+            # Set a dynamic metadata entry using an request body attribute
+            - key: 'endpoint_url'
+              value:
+                # The "url" attribute in the JSON response body
+                text: '{{ url }}'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+edit grpc upstream to have useHTTP2: true

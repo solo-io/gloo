@@ -1,9 +1,10 @@
 {
     "spec": {
         "extProc": {
+            "metadataContextNamespaces": ["test", "envoy.filters.http.ext_authz","envoy.filters.http.ext_proc.encoder", "envoy.filters.http.ext_proc.decoder" ],
             "processingMode": {
                 "requestHeaderMode": "SEND",
-                "responseBodyMode": "BUFFERED"
+                "responseHeaderMode": "SEND"
             },
             "grpcService": {
                 "extProcServerRef": {
@@ -28,9 +29,10 @@
             },
             "filterStage": {
                 "stage": "AuthZStage",
-                "predicate": "Before"
+                "predicate": "After"
             },
             "failureModeAllow": false
+
         }
     }
 }
