@@ -23,7 +23,7 @@ webhooks:
       namespace: {{ .Release.Namespace }}
       path: "/validation"
     caBundle: "" # update manually or use certgen job or cert-manager's ca-injector
-  {{- if .Values.settings.watchNamespacesJob }}
+  {{- if and .Values.settings.watchNamespacesJob .Values.settings.watchNamespacesJob.enabled }}
   namespaceSelector:
     matchLabels:
       gloo.solo.io/installation-{{ .Release.Name }}-{{ .Release.Namespace }}: watched
