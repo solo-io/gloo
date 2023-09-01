@@ -2,6 +2,42 @@
 |------|----|-----------|-------------|
 |namespace.create|bool|false|create the installation namespace|
 |settings.watchNamespaces[]|string||whitelist of namespaces for Gloo Edge to watch for services and CRDs. Empty list means all namespaces|
+|settings.watchNamespacesJob.restartPolicy|string||restart policy to use when the pod exits|
+|settings.watchNamespacesJob.priorityClassName|string||name of a defined priority class|
+|settings.watchNamespacesJob.nodeName|string||name of node to run on|
+|settings.watchNamespacesJob.nodeSelector.NAME|string||label selector for nodes|
+|settings.watchNamespacesJob.tolerations[].key|string|||
+|settings.watchNamespacesJob.tolerations[].operator|string|||
+|settings.watchNamespacesJob.tolerations[].value|string|||
+|settings.watchNamespacesJob.tolerations[].effect|string|||
+|settings.watchNamespacesJob.tolerations[].tolerationSeconds|int64|||
+|settings.watchNamespacesJob.affinity.NAME|interface|||
+|settings.watchNamespacesJob.hostAliases[]|interface|||
+|settings.watchNamespacesJob.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
+|settings.watchNamespacesJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
+|settings.watchNamespacesJob.backoffLimit|int||Specifies the number of retries before marking this job failed. In kubernetes, defaults to 6|
+|settings.watchNamespacesJob.completions|int||Specifies the desired number of successfully finished pods the job should be run with.|
+|settings.watchNamespacesJob.manualSelector|bool||Controls generation of pod labels and pod selectors.|
+|settings.watchNamespacesJob.parallelism|int||Specifies the maximum desired number of pods the job should run at any given time.|
+|settings.watchNamespacesJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
+|settings.watchNamespacesJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
+|settings.watchNamespacesJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
+|settings.watchNamespacesJob.enabled|bool||Enable the job that labels watch namespaces to ensure the admission validation webhook only processes watched resources (default true).|
+|settings.watchNamespacesJob.image.tag|string||The image tag for the container.|
+|settings.watchNamespacesJob.image.repository|string||The image repository (name) for the container.|
+|settings.watchNamespacesJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|settings.watchNamespacesJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
+|settings.watchNamespacesJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|settings.watchNamespacesJob.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|settings.watchNamespacesJob.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|settings.watchNamespacesJob.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|settings.watchNamespacesJob.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|settings.watchNamespacesJob.resources.limits.memory|string||amount of memory|
+|settings.watchNamespacesJob.resources.limits.cpu|string||amount of CPUs|
+|settings.watchNamespacesJob.resources.requests.memory|string||amount of memory|
+|settings.watchNamespacesJob.resources.requests.cpu|string||amount of CPUs|
+|settings.watchNamespacesJob.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
+|settings.watchNamespacesJob.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
 |settings.writeNamespace|string||namespace where intermediary CRDs will be written to, e.g. Upstreams written by Gloo Edge Discovery.|
 |settings.integrations.knative.enabled|bool|false|enabled knative components|
 |settings.integrations.knative.version|string|0.10.0|the version of knative installed to the cluster. if using version < 0.8.0, Gloo Edge will use Knative's ClusterIngress API for configuration rather than the namespace-scoped Ingress|
