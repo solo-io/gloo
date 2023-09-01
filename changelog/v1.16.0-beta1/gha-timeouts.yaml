@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Add timeout-minutes to GHA jobs, to override the default 6 hour timeout, to a more reasonable value.
+      This is often 60 minutes for jobs that run tests against a kube cluster, and 30 minutes for jobs that
+      do not.

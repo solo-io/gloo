@@ -41,6 +41,7 @@ jobs:
     name: main regression tests (${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}})
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'main') || github.event.schedule == '0 5 * * 1-5' }}
     runs-on: ubuntu-22.04
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -62,6 +63,7 @@ jobs:
     name: v1.15.x regression tests (${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}})
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.15.x') || github.event.schedule == '0 6 * * 1' }}
     runs-on: ubuntu-22.04
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -83,6 +85,7 @@ jobs:
     name: v1.14.x regression tests (${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}})
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.14.x') || github.event.schedule == '0 7 * * 1' }}
     runs-on: ubuntu-22.04
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -104,6 +107,7 @@ jobs:
     name: main performance tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'main') || github.event.schedule == '0 5 * * 1-5' }}
     runs-on: ubuntu-20.04-8core
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v3
         with:
@@ -119,6 +123,7 @@ jobs:
     name: v1.15.x performance tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.15.x') || github.event.schedule == '0 6 * * 1' }}
     runs-on: ubuntu-20.04-8core
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v3
         with:
@@ -136,12 +141,14 @@ jobs:
     name: v1.14.x performance tests
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.14.x'}}
     runs-on: ubuntu-20.04
+    timeout-minutes: 90
     steps:
       - run: echo "v1.14.x performance tests do not exist"
         shell: bash
 
   publish_results:
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
     if: ${{ always() }}
     needs:
       - regression_tests_main

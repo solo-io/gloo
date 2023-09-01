@@ -10,6 +10,7 @@ jobs:
     # Only run if the comment starts with /checklist and on an issue, not a PR
     if: github.event.issue.pull_request == null && startsWith(github.event.comment.body, '/checklist')
     runs-on: ubuntu-latest
+    timeout-minutes: 1
     steps:
       - name: Add checklist
         uses: peter-evans/create-or-update-comment@v3
