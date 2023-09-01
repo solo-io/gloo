@@ -7,8 +7,7 @@ on:
 jobs:
   release_request_comment:
     name: Release Request Comment
-    # Only run if the comment starts with /checklist and on an issue, not a PR
-    if: github.event.issue.pull_request == null && startsWith(github.event.comment.body, '/checklist')
+    if: contains(github.event.issue.labels.*.name, 'release-request')
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
@@ -17,21 +16,29 @@ jobs:
         with:
           # Add checklist to the comment
           body: |
-            **Open Source Changes (if applicable)**:
+            **Identify Blockers**:
+            - [ ] Identify any blockers to the release, e.g. by asking team members during standup meetings or via slack
+            - [ ] For any blockers that are identified, include in a comment a link to the GitHub issue
+
+            **Establish a Plan**:
+            - [ ] Work with the team to establish a date for the release. This should include: Product team, Edge team, release requester 
+            - [ ] Update the issue with the release date. 
+
+            **Publish Assets (Open Source) (if applicable)**:
             - [ ] Release Gloo Edge Open Source
             - [ ] Merge Automated Solo-Apis PR
             - [ ] Open an Enterprise PR, which updates Gloo and Solo-Apis dependencies
-            - [ ] Request approvals from 2 Engineers in the #edge-team-prs channel
             - [ ] Merge Enterprise PR
 
              **Validate Assets**:
             _Note: In the future we will formalize the process of validating performance of newer builds, but for now this is not required_
+            - [ ] Confirm with Product team that validating performance is not required, and once agreed, comment on the issue clarifying why
 
-            **Publish Assets**:
+            **Publish Assets (Enterprise)**:
             - [ ] Release Gloo Edge Enterprise
 
             **Communicate**:
-            - [ ] In @edge-team, announce the release, and tag `@product`, `@edge-leads`, and `@Neeraj Poddar`
+            - [ ] In #gloo-edge, announce the release, and tag `@product`, `@edge-leads`, and `@Neeraj Poddar`
 
             Once the checklist above is complete, close this issue.
           issue-number: ${{ github.event.issue.number }}

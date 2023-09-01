@@ -53,3 +53,11 @@ body:
       placeholder: "Please release this..."
     validations:
       required: false
+  - type: textarea
+    id: edge-team
+    attributes:
+      label: Instructions for Edge Team
+      description: Instructions for the Edge team to follow
+      placeholder: "The instructions should appear in a comment that is automatically applied after Issue creation"
+    validations:
+      required: false
