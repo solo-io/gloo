@@ -326,7 +326,7 @@ replace (
 	github.com/docker/docker => github.com/moby/moby v24.0.4+incompatible
 
 	// Remove once we get to a version with extproc changes in upstream thisi is 1.27 or 1.28
-	github.com/envoy/go-control-plane => github.com/solo-io/go-control-plane-fork-v2 v0.0.0-20230818170352-3663cf9cbfdd
+	github.com/envoy/go-control-plane => github.com/solo-io/go-control-plane-fork-v2 v0.0.0-20230902201632-4062227c0cb8
 	// Newer versions result in changes to the names of generated metrics
 	// remove this when we fix https://github.com/solo-io/solo-kit/issues/516
 	github.com/iancoleman/strcase => github.com/iancoleman/strcase v0.1.3
