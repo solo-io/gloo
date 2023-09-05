@@ -763,6 +763,7 @@ var _ = Describe("AWS Lambda", func() {
 								ServiceAccountCredentials: &aws2.AWSLambdaConfig_ServiceAccountCredentials{
 									Cluster: "aws_sts_cluster",
 									Uri:     uri,
+									Region:  region,
 								},
 							},
 						},
