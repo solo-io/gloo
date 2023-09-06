@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Simplify triggers for release checklist.
+      
+      skipCI-kube-tests:true
+      skipCI-storybook-tests:true

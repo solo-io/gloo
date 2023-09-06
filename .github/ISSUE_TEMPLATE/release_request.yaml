@@ -58,6 +58,6 @@ body:
     attributes:
       label: Instructions for Edge Team
       description: Instructions for the Edge team to follow
-      placeholder: "The instructions should appear in a comment that is automatically applied after Issue creation"
+      placeholder: "Comment `/checklist` on the issue to see the steps to take"
     validations:
       required: false

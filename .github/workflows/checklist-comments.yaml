@@ -1,13 +1,14 @@
 name: Add Checklist Comment
 
 on:
-  issue:
+  issue_comment:
     types: [created]
 
 jobs:
   release_request_comment:
     name: Release Request Comment
-    # if: contains(github.event.issue.labels.*.name, 'release-request')
+    # Only run if the comment starts with /checklist and on an issue, not a PR
+    if: github.event.issue.pull_request == null && startsWith(github.event.comment.body, '/checklist')
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
