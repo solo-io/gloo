@@ -7,7 +7,7 @@ on:
 jobs:
   release_request_comment:
     name: Release Request Comment
-    if: contains(github.event.issue.labels.*.name, 'release-request')
+    # if: contains(github.event.issue.labels.*.name, 'release-request')
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
