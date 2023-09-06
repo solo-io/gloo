@@ -1,7 +1,7 @@
 name: Add Checklist Comment
 
 on:
-  issue_comment:
+  issue:
     types: [created]
 
 jobs:
