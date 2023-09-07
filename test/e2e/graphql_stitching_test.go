@@ -362,6 +362,11 @@ type Query {
 			It("stitches delegated responses from subschemas to a stitched response", func() {
 				testRequest(`{"data":{"products":{"id":1,"seller":{"username":"user1","firstName":"User","lastName":"One"}}}}`)
 			})
+
+			It("stitches delegated responses from subschemas to a stitched response, with aliased fields", func() {
+				query = `{"query":" {products { id seller { usernameAlias: username}}}"}`
+				testRequest(`{"data":{"products":{"id":1,"seller":{"usernameAlias":"user1"}}}}`)
+			})
 		})
 		Context("request to stitched schema with remote executor(s)", func() {
 			BeforeEach(func() {
@@ -369,6 +374,11 @@ type Query {
 			})
 			It("stitches delegated responses from subschemas to a stitched response", func() {
 				testRequest(`{"data":{"products":{"id":1,"seller":{"username":"user1","firstName":"User","lastName":"One"}}}}`)
+			})
+
+			It("stitches delegated responses from subschemas to a stitched response, with aliased fields", func() {
+				query = `{"query":" {products { id seller { usernameAlias: username}}}"}`
+				testRequest(`{"data":{"products":{"id":1,"seller":{"usernameAlias":"user1"}}}}`)
 			})
 		})
 	})

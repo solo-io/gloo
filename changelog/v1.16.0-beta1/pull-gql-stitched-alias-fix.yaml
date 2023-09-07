@@ -1,0 +1,10 @@
+changelog:
+ - type: DEPENDENCY_BUMP
+   issueLink: https://github.com/solo-io/solo-projects/issues/5319
+   resolvesIssue: false
+   dependencyOwner: solo-io
+   dependencyRepo: envoy-gloo-ee
+   dependencyTag: 1.26.4-patch2
+   description: >
+      Bump envoy-gloo-ee, pulling in a fix for a bug that caused stitched
+      graphQlApis to fail when using aliased fields.
