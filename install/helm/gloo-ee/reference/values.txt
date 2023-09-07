@@ -116,7 +116,25 @@
 |settings.circuitBreakers.maxRequests|uint32||Set this field to specfify the maximum number of parallel requests that Envoy will make to the upstream cluster. If not specified, the default is 1024.|
 |settings.circuitBreakers.maxRetries|uint32||Set this field to specify the maximum number of parallel retries that Envoy will allow to the upstream cluster. If not specified, the default is 3.|
 |settings.enableRestEds|bool||Whether or not to use rest xds for all EDS by default. Defaults to false.|
-|settings.devMode|bool||Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not reccomended for production.|
+|settings.devMode|bool||Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not recommended for production.|
+|settings.secretOptions.sources[].vault.address|string||Address of the Vault server. This should be a complete URL such as http://solo.io and include port if necessary (vault's default port is 8200).|
+|settings.secretOptions.sources[].vault.rootKey|string||All keys stored in Vault will begin with this Vault this can be used to run multiple instances of Gloo against the same Vault cluster defaults to gloo.|
+|settings.secretOptions.sources[].vault.pathPrefix|string||Optional. The name of a Vault Secrets Engine to which Vault should route traffic. For more info see https://learn.hashicorp.com/tutorials/vault/getting-started-secrets-engines. Defaults to 'secret'.|
+|settings.secretOptions.sources[].vault.tlsConfig.caCert|string||Path to a PEM-encoded CA cert file to use to verify the Vault server SSL certificate.|
+|settings.secretOptions.sources[].vault.tlsConfig.caPath|string||Path to a directory of PEM-encoded CA cert files to verify the Vault server SSL certificate.|
+|settings.secretOptions.sources[].vault.tlsConfig.clientCert|string||Path to the certificate for Vault communication.|
+|settings.secretOptions.sources[].vault.tlsConfig.clientKey|string||Path to the private key for Vault communication.|
+|settings.secretOptions.sources[].vault.tlsConfig.tlsServerName|string||If set, it is used to set the SNI host when connecting via TLS.|
+|settings.secretOptions.sources[].vault.tlsConfig.insecure|bool||Disables TLS verification when set to true.|
+|settings.secretOptions.sources[].vault.accessToken|string||Vault token to use for authentication. Only one of accessToken or aws may be set.|
+|settings.secretOptions.sources[].vault.aws.vaultRole|string||The Vault role we are trying to authenticate to. This is not necessarily the same as the AWS role to which the Vault role is configured.|
+|settings.secretOptions.sources[].vault.aws.region|string||The AWS region to use for the login attempt.|
+|settings.secretOptions.sources[].vault.aws.iamServerIdHeader|string||The IAM Server ID Header required to be included in the request.|
+|settings.secretOptions.sources[].vault.aws.mountPath|string||The Vault path on which the AWS auth is mounted.|
+|settings.secretOptions.sources[].vault.aws.accessKeyID|string||Optional. The Access Key ID as provided by the security credentials on the AWS IAM resource. In cases such as receiving temporary credentials through assumed roles with AWS Security Token Service (STS) or IAM Roles for Service Accounts (IRSA), this field can be omitted. https://developer.hashicorp.com/vault/docs/auth/aws#iam-authentication-inferences.|
+|settings.secretOptions.sources[].vault.aws.secretAccessKey|string||Optional. The Secret Access Key as provided by the security credentials on the AWS IAM resource. In cases such as receiving temporary credentials through assumed roles with AWS Security Token Service (STS) or IAM Roles for Service Accounts (IRSA), this field can be omitted. https://developer.hashicorp.com/vault/docs/auth/aws#iam-authentication-inferences.|
+|settings.secretOptions.sources[].vault.aws.sessionToken|string||The Session Token as provided by the security credentials on the AWS IAM resource.|
+|settings.secretOptions.sources[].directory.directory|string||Directory to read secrets from.|
 |settings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |license_key|string||Your Gloo Edge license key.|
 |create_license_secret|bool|true|Create a secret for the license specified in 'license_key'. Set to 'false' if you use 'license_secret_name' instead.|
@@ -238,7 +256,25 @@
 |gloo.settings.circuitBreakers.maxRequests|uint32||Set this field to specfify the maximum number of parallel requests that Envoy will make to the upstream cluster. If not specified, the default is 1024.|
 |gloo.settings.circuitBreakers.maxRetries|uint32||Set this field to specify the maximum number of parallel retries that Envoy will allow to the upstream cluster. If not specified, the default is 3.|
 |gloo.settings.enableRestEds|bool||Whether or not to use rest xds for all EDS by default. Defaults to false.|
-|gloo.settings.devMode|bool||Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not reccomended for production.|
+|gloo.settings.devMode|bool||Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not recommended for production.|
+|gloo.settings.secretOptions.sources[].vault.address|string||Address of the Vault server. This should be a complete URL such as http://solo.io and include port if necessary (vault's default port is 8200).|
+|gloo.settings.secretOptions.sources[].vault.rootKey|string||All keys stored in Vault will begin with this Vault this can be used to run multiple instances of Gloo against the same Vault cluster defaults to gloo.|
+|gloo.settings.secretOptions.sources[].vault.pathPrefix|string||Optional. The name of a Vault Secrets Engine to which Vault should route traffic. For more info see https://learn.hashicorp.com/tutorials/vault/getting-started-secrets-engines. Defaults to 'secret'.|
+|gloo.settings.secretOptions.sources[].vault.tlsConfig.caCert|string||Path to a PEM-encoded CA cert file to use to verify the Vault server SSL certificate.|
+|gloo.settings.secretOptions.sources[].vault.tlsConfig.caPath|string||Path to a directory of PEM-encoded CA cert files to verify the Vault server SSL certificate.|
+|gloo.settings.secretOptions.sources[].vault.tlsConfig.clientCert|string||Path to the certificate for Vault communication.|
+|gloo.settings.secretOptions.sources[].vault.tlsConfig.clientKey|string||Path to the private key for Vault communication.|
+|gloo.settings.secretOptions.sources[].vault.tlsConfig.tlsServerName|string||If set, it is used to set the SNI host when connecting via TLS.|
+|gloo.settings.secretOptions.sources[].vault.tlsConfig.insecure|bool||Disables TLS verification when set to true.|
+|gloo.settings.secretOptions.sources[].vault.accessToken|string||Vault token to use for authentication. Only one of accessToken or aws may be set.|
+|gloo.settings.secretOptions.sources[].vault.aws.vaultRole|string||The Vault role we are trying to authenticate to. This is not necessarily the same as the AWS role to which the Vault role is configured.|
+|gloo.settings.secretOptions.sources[].vault.aws.region|string||The AWS region to use for the login attempt.|
+|gloo.settings.secretOptions.sources[].vault.aws.iamServerIdHeader|string||The IAM Server ID Header required to be included in the request.|
+|gloo.settings.secretOptions.sources[].vault.aws.mountPath|string||The Vault path on which the AWS auth is mounted.|
+|gloo.settings.secretOptions.sources[].vault.aws.accessKeyID|string||Optional. The Access Key ID as provided by the security credentials on the AWS IAM resource. In cases such as receiving temporary credentials through assumed roles with AWS Security Token Service (STS) or IAM Roles for Service Accounts (IRSA), this field can be omitted. https://developer.hashicorp.com/vault/docs/auth/aws#iam-authentication-inferences.|
+|gloo.settings.secretOptions.sources[].vault.aws.secretAccessKey|string||Optional. The Secret Access Key as provided by the security credentials on the AWS IAM resource. In cases such as receiving temporary credentials through assumed roles with AWS Security Token Service (STS) or IAM Roles for Service Accounts (IRSA), this field can be omitted. https://developer.hashicorp.com/vault/docs/auth/aws#iam-authentication-inferences.|
+|gloo.settings.secretOptions.sources[].vault.aws.sessionToken|string||The Session Token as provided by the security credentials on the AWS IAM resource.|
+|gloo.settings.secretOptions.sources[].directory.directory|string||Directory to read secrets from.|
 |gloo.settings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gloo.deployment.xdsPort|int||port where gloo serves xDS API to Envoy.|
 |gloo.gloo.deployment.restXdsPort|uint32||port where gloo serves REST xDS API to Envoy.|
@@ -257,7 +293,7 @@
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
 |gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
 |gloo.gloo.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for Gloo Edge (default is false).|
-|gloo.gloo.deployment.ossImageTag|string|1.15.2|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
+|gloo.gloo.deployment.ossImageTag|string|1.15.3|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
 |gloo.gloo.deployment.podSecurityContext.seLinuxOptions.user|string|||
 |gloo.gloo.deployment.podSecurityContext.seLinuxOptions.role|string|||
 |gloo.gloo.deployment.podSecurityContext.seLinuxOptions.type|string|||
@@ -438,7 +474,7 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.certGenJob.image.tag|string|1.15.2|The image tag for the container.|
+|gloo.gateway.certGenJob.image.tag|string|1.15.3|The image tag for the container.|
 |gloo.gateway.certGenJob.image.repository|string|certgen|The image repository (name) for the container.|
 |gloo.gateway.certGenJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.certGenJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -502,7 +538,7 @@
 |gloo.gateway.rolloutJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
 |gloo.gateway.rolloutJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
 |gloo.gateway.rolloutJob.enabled|bool||Enable the job that applies default Gloo Edge custom resources at install and upgrade time (default true).|
-|gloo.gateway.rolloutJob.image.tag|string|1.15.2|The image tag for the container.|
+|gloo.gateway.rolloutJob.image.tag|string|1.15.3|The image tag for the container.|
 |gloo.gateway.rolloutJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.rolloutJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.rolloutJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -538,7 +574,7 @@
 |gloo.gateway.cleanupJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
 |gloo.gateway.cleanupJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
 |gloo.gateway.cleanupJob.enabled|bool||Enable the job that removes Gloo Edge custom resources when Gloo Edge is uninstalled (default true).|
-|gloo.gateway.cleanupJob.image.tag|string|1.15.2|The image tag for the container.|
+|gloo.gateway.cleanupJob.image.tag|string|1.15.3|The image tag for the container.|
 |gloo.gateway.cleanupJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.cleanupJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.cleanupJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -2095,7 +2131,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.15.2|The image tag for the container.|
+|global.glooMtls.sds.image.tag|string|1.15.3|The image tag for the container.|
 |global.glooMtls.sds.image.repository|string|sds|The image repository (name) for the container.|
 |global.glooMtls.sds.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |global.glooMtls.sds.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
