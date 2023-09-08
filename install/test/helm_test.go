@@ -6406,17 +6406,64 @@ metadata:
 			})
 
 			Context("Kube GatewayKube overrides", func() {
-				It("httpsGatewayKubeOverride allows to override ssl true value with false", func() {
+				It("can override values on default Gateways", func() {
 					prepareMakefile(namespace, helmValues{
-						valuesArgs: []string{"gatewayProxies.gatewayProxy.gatewaySettings.httpsGatewayKubeOverride.spec.ssl=false"},
+						valuesArgs: []string{
+							"gatewayProxies.gatewayProxy.gatewaySettings.httpGatewayKubeOverride.spec.bindPort=1234",
+							"gatewayProxies.gatewayProxy.gatewaySettings.httpsGatewayKubeOverride.spec.ssl=false",
+							"gatewayProxies.gatewayProxy.failover.enabled=true",
+							"gatewayProxies.gatewayProxy.failover.kubeResourceOverride.spec.bindPort=5678",
+						},
 					})
+					// expected gateways
+					gw := makeUnstructuredGateway(namespace, defaults.GatewayProxyName, false)
+					unstructured.SetNestedField(gw.Object,
+						int64(1234),
+						"spec", "bindPort")
 					gwSsl := makeUnstructuredGateway(namespace, defaults.GatewayProxyName, true)
 					unstructured.SetNestedField(gwSsl.Object,
 						false,
 						"spec", "ssl")
+					gwFailover := makeUnstructuredFailoverGateway(namespace, defaults.GatewayProxyName)
+					unstructured.SetNestedField(gwFailover.Object,
+						int64(5678),
+						"spec", "bindPort")
+
 					assertCustomResourceManifest(map[string]types.GomegaMatcher{
-						defaults.GatewayProxyName:                    Not(BeNil()),
-						getSslGatewayName(defaults.GatewayProxyName): BeEquivalentTo(gwSsl),
+						defaults.GatewayProxyName:                         BeEquivalentTo(gw),
+						getSslGatewayName(defaults.GatewayProxyName):      BeEquivalentTo(gwSsl),
+						getFailoverGatewayName(defaults.GatewayProxyName): BeEquivalentTo(gwFailover),
+					})
+				})
+
+				It("can override values on custom Gateways", func() {
+					prepareMakefile(namespace, helmValues{
+						valuesArgs: []string{
+							"gatewayProxies.gatewayProxy.disabled=true",
+							"gatewayProxies.anotherProxy.gatewaySettings.httpGatewayKubeOverride.spec.bindAddress=something",
+							"gatewayProxies.anotherProxy.gatewaySettings.httpsGatewayKubeOverride.spec.proxyNames[0]=new-proxy",
+							"gatewayProxies.anotherProxy.failover.enabled=true",
+							"gatewayProxies.anotherProxy.failover.kubeResourceOverride.spec.bindPort=5678",
+						},
+					})
+					// expected gateways
+					anotherGw := makeUnstructuredGateway(namespace, "another-proxy", false)
+					unstructured.SetNestedField(anotherGw.Object,
+						"something",
+						"spec", "bindAddress")
+					anotherGwSsl := makeUnstructuredGateway(namespace, "another-proxy", true)
+					unstructured.SetNestedStringSlice(anotherGwSsl.Object,
+						[]string{"new-proxy"},
+						"spec", "proxyNames")
+					anotherGwFailover := makeUnstructuredFailoverGateway(namespace, "another-proxy")
+					unstructured.SetNestedField(anotherGwFailover.Object,
+						int64(5678),
+						"spec", "bindPort")
+
+					assertCustomResourceManifest(map[string]types.GomegaMatcher{
+						"another-proxy":                         BeEquivalentTo(anotherGw),
+						getSslGatewayName("another-proxy"):      BeEquivalentTo(anotherGwSsl),
+						getFailoverGatewayName("another-proxy"): BeEquivalentTo(anotherGwFailover),
 					})
 				})
 			})
@@ -6735,6 +6782,32 @@ spec:
   - ` + name + `
   ssl: ` + strconv.FormatBool(ssl) + `
   useProxyProto: false
+`)
+}
+
+func makeUnstructuredFailoverGateway(namespace string, proxyName string) *unstructured.Unstructured {
+	return makeUnstructured(`
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  labels:
+    app: gloo
+  name: ` + getFailoverGatewayName(proxyName) + `
+  namespace: ` + namespace + `
+spec:
+  bindAddress: '::'
+  bindPort: 15443
+  proxyNames:
+  - ` + proxyName + `
+  tcpGateway:
+    tcpHosts:
+    - destination:
+        forwardSniClusterName: {}
+      name: failover
+      sslConfig:
+        secretRef:
+          name: failover-downstream
+          namespace: ` + namespace + `
 `)
 }
 
