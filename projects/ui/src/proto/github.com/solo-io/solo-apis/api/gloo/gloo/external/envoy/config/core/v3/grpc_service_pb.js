@@ -288,7 +288,9 @@ proto.solo.io.envoy.config.core.v3.GrpcService.EnvoyGrpc.prototype.toObject = fu
  */
 proto.solo.io.envoy.config.core.v3.GrpcService.EnvoyGrpc.toObject = function(includeInstance, msg) {
   var f, obj = {
-    clusterName: jspb.Message.getFieldWithDefault(msg, 1, "")
+    clusterName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    authority: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    retryPolicy: (f = msg.getRetryPolicy()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RetryPolicy.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -329,6 +331,15 @@ proto.solo.io.envoy.config.core.v3.GrpcService.EnvoyGrpc.deserializeBinaryFromRe
       var value = /** @type {string} */ (reader.readString());
       msg.setClusterName(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAuthority(value);
+      break;
+    case 3:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RetryPolicy;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RetryPolicy.deserializeBinaryFromReader);
+      msg.setRetryPolicy(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -365,6 +376,21 @@ proto.solo.io.envoy.config.core.v3.GrpcService.EnvoyGrpc.serializeBinaryToWriter
       f
     );
   }
+  f = message.getAuthority();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getRetryPolicy();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RetryPolicy.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -380,6 +406,51 @@ proto.solo.io.envoy.config.core.v3.GrpcService.EnvoyGrpc.prototype.getClusterNam
 /** @param {string} value */
 proto.solo.io.envoy.config.core.v3.GrpcService.EnvoyGrpc.prototype.setClusterName = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string authority = 2;
+ * @return {string}
+ */
+proto.solo.io.envoy.config.core.v3.GrpcService.EnvoyGrpc.prototype.getAuthority = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.solo.io.envoy.config.core.v3.GrpcService.EnvoyGrpc.prototype.setAuthority = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional RetryPolicy retry_policy = 3;
+ * @return {?proto.solo.io.envoy.config.core.v3.RetryPolicy}
+ */
+proto.solo.io.envoy.config.core.v3.GrpcService.EnvoyGrpc.prototype.getRetryPolicy = function() {
+  return /** @type{?proto.solo.io.envoy.config.core.v3.RetryPolicy} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RetryPolicy, 3));
+};
+
+
+/** @param {?proto.solo.io.envoy.config.core.v3.RetryPolicy|undefined} value */
+proto.solo.io.envoy.config.core.v3.GrpcService.EnvoyGrpc.prototype.setRetryPolicy = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.solo.io.envoy.config.core.v3.GrpcService.EnvoyGrpc.prototype.clearRetryPolicy = function() {
+  this.setRetryPolicy(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.solo.io.envoy.config.core.v3.GrpcService.EnvoyGrpc.prototype.hasRetryPolicy = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

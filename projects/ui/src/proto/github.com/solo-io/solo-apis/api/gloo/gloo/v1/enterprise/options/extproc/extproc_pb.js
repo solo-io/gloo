@@ -51,7 +51,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.extproc.options.gloo.solo.io.Settings.repeatedFields_ = [6,7];
+proto.extproc.options.gloo.solo.io.Settings.repeatedFields_ = [6,7,16,17];
 
 
 
@@ -96,7 +96,9 @@ proto.extproc.options.gloo.solo.io.Settings.toObject = function(includeInstance,
     disableClearRouteCache: (f = msg.getDisableClearRouteCache()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     forwardRules: (f = msg.getForwardRules()) && proto.extproc.options.gloo.solo.io.HeaderForwardingRules.toObject(includeInstance, f),
     filterMetadata: (f = msg.getFilterMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
-    allowModeOverride: (f = msg.getAllowModeOverride()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    allowModeOverride: (f = msg.getAllowModeOverride()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    metadataContextNamespacesList: jspb.Message.getRepeatedField(msg, 16),
+    typedMetadataContextNamespacesList: jspb.Message.getRepeatedField(msg, 17)
   };
 
   if (includeInstance) {
@@ -205,6 +207,14 @@ proto.extproc.options.gloo.solo.io.Settings.deserializeBinaryFromReader = functi
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setAllowModeOverride(value);
+      break;
+    case 16:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addMetadataContextNamespaces(value);
+      break;
+    case 17:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addTypedMetadataContextNamespaces(value);
       break;
     default:
       reader.skipField();
@@ -351,6 +361,20 @@ proto.extproc.options.gloo.solo.io.Settings.serializeBinaryToWriter = function(m
       15,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getMetadataContextNamespacesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      16,
+      f
+    );
+  }
+  f = message.getTypedMetadataContextNamespacesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      17,
+      f
     );
   }
 };
@@ -801,6 +825,64 @@ proto.extproc.options.gloo.solo.io.Settings.prototype.clearAllowModeOverride = f
  */
 proto.extproc.options.gloo.solo.io.Settings.prototype.hasAllowModeOverride = function() {
   return jspb.Message.getField(this, 15) != null;
+};
+
+
+/**
+ * repeated string metadata_context_namespaces = 16;
+ * @return {!Array<string>}
+ */
+proto.extproc.options.gloo.solo.io.Settings.prototype.getMetadataContextNamespacesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 16));
+};
+
+
+/** @param {!Array<string>} value */
+proto.extproc.options.gloo.solo.io.Settings.prototype.setMetadataContextNamespacesList = function(value) {
+  jspb.Message.setField(this, 16, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.extproc.options.gloo.solo.io.Settings.prototype.addMetadataContextNamespaces = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 16, value, opt_index);
+};
+
+
+proto.extproc.options.gloo.solo.io.Settings.prototype.clearMetadataContextNamespacesList = function() {
+  this.setMetadataContextNamespacesList([]);
+};
+
+
+/**
+ * repeated string typed_metadata_context_namespaces = 17;
+ * @return {!Array<string>}
+ */
+proto.extproc.options.gloo.solo.io.Settings.prototype.getTypedMetadataContextNamespacesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 17));
+};
+
+
+/** @param {!Array<string>} value */
+proto.extproc.options.gloo.solo.io.Settings.prototype.setTypedMetadataContextNamespacesList = function(value) {
+  jspb.Message.setField(this, 17, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.extproc.options.gloo.solo.io.Settings.prototype.addTypedMetadataContextNamespaces = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 17, value, opt_index);
+};
+
+
+proto.extproc.options.gloo.solo.io.Settings.prototype.clearTypedMetadataContextNamespacesList = function() {
+  this.setTypedMetadataContextNamespacesList([]);
 };
 
 
@@ -1400,7 +1482,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.extproc.options.gloo.solo.io.Overrides.repeatedFields_ = [3,4];
+proto.extproc.options.gloo.solo.io.Overrides.repeatedFields_ = [3,4,6,7];
 
 
 
@@ -1435,7 +1517,9 @@ proto.extproc.options.gloo.solo.io.Overrides.toObject = function(includeInstance
     asyncMode: (f = msg.getAsyncMode()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     requestAttributesList: jspb.Message.getRepeatedField(msg, 3),
     responseAttributesList: jspb.Message.getRepeatedField(msg, 4),
-    grpcService: (f = msg.getGrpcService()) && proto.extproc.options.gloo.solo.io.GrpcService.toObject(includeInstance, f)
+    grpcService: (f = msg.getGrpcService()) && proto.extproc.options.gloo.solo.io.GrpcService.toObject(includeInstance, f),
+    metadataContextNamespacesList: jspb.Message.getRepeatedField(msg, 6),
+    typedMetadataContextNamespacesList: jspb.Message.getRepeatedField(msg, 7)
   };
 
   if (includeInstance) {
@@ -1494,6 +1578,14 @@ proto.extproc.options.gloo.solo.io.Overrides.deserializeBinaryFromReader = funct
       var value = new proto.extproc.options.gloo.solo.io.GrpcService;
       reader.readMessage(value,proto.extproc.options.gloo.solo.io.GrpcService.deserializeBinaryFromReader);
       msg.setGrpcService(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addMetadataContextNamespaces(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addTypedMetadataContextNamespaces(value);
       break;
     default:
       reader.skipField();
@@ -1560,6 +1652,20 @@ proto.extproc.options.gloo.solo.io.Overrides.serializeBinaryToWriter = function(
       5,
       f,
       proto.extproc.options.gloo.solo.io.GrpcService.serializeBinaryToWriter
+    );
+  }
+  f = message.getMetadataContextNamespacesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      6,
+      f
+    );
+  }
+  f = message.getTypedMetadataContextNamespacesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      7,
+      f
     );
   }
 };
@@ -1710,6 +1816,64 @@ proto.extproc.options.gloo.solo.io.Overrides.prototype.clearGrpcService = functi
  */
 proto.extproc.options.gloo.solo.io.Overrides.prototype.hasGrpcService = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * repeated string metadata_context_namespaces = 6;
+ * @return {!Array<string>}
+ */
+proto.extproc.options.gloo.solo.io.Overrides.prototype.getMetadataContextNamespacesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 6));
+};
+
+
+/** @param {!Array<string>} value */
+proto.extproc.options.gloo.solo.io.Overrides.prototype.setMetadataContextNamespacesList = function(value) {
+  jspb.Message.setField(this, 6, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.extproc.options.gloo.solo.io.Overrides.prototype.addMetadataContextNamespaces = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 6, value, opt_index);
+};
+
+
+proto.extproc.options.gloo.solo.io.Overrides.prototype.clearMetadataContextNamespacesList = function() {
+  this.setMetadataContextNamespacesList([]);
+};
+
+
+/**
+ * repeated string typed_metadata_context_namespaces = 7;
+ * @return {!Array<string>}
+ */
+proto.extproc.options.gloo.solo.io.Overrides.prototype.getTypedMetadataContextNamespacesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 7));
+};
+
+
+/** @param {!Array<string>} value */
+proto.extproc.options.gloo.solo.io.Overrides.prototype.setTypedMetadataContextNamespacesList = function(value) {
+  jspb.Message.setField(this, 7, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.extproc.options.gloo.solo.io.Overrides.prototype.addTypedMetadataContextNamespaces = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 7, value, opt_index);
+};
+
+
+proto.extproc.options.gloo.solo.io.Overrides.prototype.clearTypedMetadataContextNamespacesList = function() {
+  this.setTypedMetadataContextNamespacesList([]);
 };
 
 

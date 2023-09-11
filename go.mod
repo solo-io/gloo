@@ -50,17 +50,17 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.2
 	github.com/solo-io/ext-auth-service v0.44.0
 	github.com/solo-io/external-apis v0.2.0
-	github.com/solo-io/gloo v1.16.0-beta4
+	github.com/solo-io/gloo v1.16.0-beta9
 	github.com/solo-io/gloo-graphql-example v0.1.0
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.6
-	github.com/solo-io/k8s-utils v0.5.0
+	github.com/solo-io/k8s-utils v0.5.1
 	github.com/solo-io/licensing v0.3.13
 	github.com/solo-io/protoc-gen-ext v0.0.18
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.10.0
 	github.com/solo-io/skv2 v0.32.0
-	github.com/solo-io/solo-apis v0.0.0-20230821174715-509c298866d6
+	github.com/solo-io/solo-apis v0.0.0-20230911133025-34c3da77ae51
 	github.com/solo-io/solo-kit v0.33.0
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20220823153451-d072eb48cb44
 	github.com/spf13/cobra v1.7.0
@@ -89,7 +89,7 @@ require (
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2
 	knative.dev/pkg v0.0.0-20211206113427-18589ac7627e
 	rogchap.com/v8go v0.7.1-0.20221102201510-1f00b5007d95
-	sigs.k8s.io/controller-runtime v0.15.2-0.20230808150016-0269522a418c
+	sigs.k8s.io/controller-runtime v0.15.2
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -101,7 +101,7 @@ require (
 	cloud.google.com/go/iam v0.13.0 // indirect
 	cloud.google.com/go/logging v1.7.0 // indirect
 	cloud.google.com/go/longrunning v0.4.1 // indirect
-	cloud.google.com/go/storage v1.28.1 // indirect
+	cloud.google.com/go/storage v1.29.0 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.4.1 // indirect
 	cuelang.org/go v0.3.2 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
@@ -389,6 +389,8 @@ replace (
 	// to avoid error about it being used for two different module paths
 	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v0.0.0-20210511163231-5b2d2b5f6c34
 	github.com/docker/docker => github.com/moby/moby v24.0.4+incompatible
+	// Remove once we get to a version with extproc changes in upstream this is 1.27 or 1.28
+	github.com/envoyproxy/go-control-plane => github.com/solo-io/go-control-plane-fork-v2 v0.0.0-20230902211618-ada8201b381c
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.0-rc1
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483

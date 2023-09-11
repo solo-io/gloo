@@ -59,6 +59,14 @@ export namespace GrpcService {
     getClusterName(): string;
     setClusterName(value: string): void;
 
+    getAuthority(): string;
+    setAuthority(value: string): void;
+
+    hasRetryPolicy(): boolean;
+    clearRetryPolicy(): void;
+    getRetryPolicy(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RetryPolicy | undefined;
+    setRetryPolicy(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RetryPolicy): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): EnvoyGrpc.AsObject;
     static toObject(includeInstance: boolean, msg: EnvoyGrpc): EnvoyGrpc.AsObject;
@@ -72,6 +80,8 @@ export namespace GrpcService {
   export namespace EnvoyGrpc {
     export type AsObject = {
       clusterName: string,
+      authority: string,
+      retryPolicy?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RetryPolicy.AsObject,
     }
   }
 

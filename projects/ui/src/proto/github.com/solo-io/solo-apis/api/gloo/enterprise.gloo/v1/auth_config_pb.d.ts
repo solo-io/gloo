@@ -100,6 +100,11 @@ export namespace AuthConfigSpec {
     getHmacAuth(): HmacAuth | undefined;
     setHmacAuth(value?: HmacAuth): void;
 
+    hasOpaServerAuth(): boolean;
+    clearOpaServerAuth(): void;
+    getOpaServerAuth(): OpaServerAuth | undefined;
+    setOpaServerAuth(value?: OpaServerAuth): void;
+
     getAuthConfigCase(): Config.AuthConfigCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Config.AsObject;
@@ -124,6 +129,7 @@ export namespace AuthConfigSpec {
       jwt?: google_protobuf_empty_pb.Empty.AsObject,
       passThroughAuth?: PassThroughAuth.AsObject,
       hmacAuth?: HmacAuth.AsObject,
+      opaServerAuth?: OpaServerAuth.AsObject,
     }
 
     export enum AuthConfigCase {
@@ -138,6 +144,7 @@ export namespace AuthConfigSpec {
       JWT = 11,
       PASS_THROUGH_AUTH = 12,
       HMAC_AUTH = 13,
+      OPA_SERVER_AUTH = 14,
     }
   }
 }
@@ -1153,6 +1160,34 @@ export namespace EndSessionProperties {
   export const MethodType: MethodTypeMap;
 }
 
+export class ClaimToHeader extends jspb.Message {
+  getClaim(): string;
+  setClaim(value: string): void;
+
+  getHeader(): string;
+  setHeader(value: string): void;
+
+  getAppend(): boolean;
+  setAppend(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ClaimToHeader.AsObject;
+  static toObject(includeInstance: boolean, msg: ClaimToHeader): ClaimToHeader.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ClaimToHeader, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ClaimToHeader;
+  static deserializeBinaryFromReader(message: ClaimToHeader, reader: jspb.BinaryReader): ClaimToHeader;
+}
+
+export namespace ClaimToHeader {
+  export type AsObject = {
+    claim: string,
+    header: string,
+    append: boolean,
+  }
+}
+
 export class OidcAuthorizationCode extends jspb.Message {
   getClientId(): string;
   setClientId(value: string): void;
@@ -1234,6 +1269,16 @@ export class OidcAuthorizationCode extends jspb.Message {
   getDisableClientSecret(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setDisableClientSecret(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasAccessToken(): boolean;
+  clearAccessToken(): void;
+  getAccessToken(): OidcAuthorizationCode.AccessToken | undefined;
+  setAccessToken(value?: OidcAuthorizationCode.AccessToken): void;
+
+  hasIdentityToken(): boolean;
+  clearIdentityToken(): void;
+  getIdentityToken(): OidcAuthorizationCode.IdentityToken | undefined;
+  setIdentityToken(value?: OidcAuthorizationCode.IdentityToken): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
   static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
@@ -1267,6 +1312,52 @@ export namespace OidcAuthorizationCode {
     endSessionProperties?: EndSessionProperties.AsObject,
     dynamicMetadataFromClaimsMap: Array<[string, string]>,
     disableClientSecret?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    accessToken?: OidcAuthorizationCode.AccessToken.AsObject,
+    identityToken?: OidcAuthorizationCode.IdentityToken.AsObject,
+  }
+
+  export class AccessToken extends jspb.Message {
+    clearClaimsToHeadersList(): void;
+    getClaimsToHeadersList(): Array<ClaimToHeader>;
+    setClaimsToHeadersList(value: Array<ClaimToHeader>): void;
+    addClaimsToHeaders(value?: ClaimToHeader, index?: number): ClaimToHeader;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): AccessToken.AsObject;
+    static toObject(includeInstance: boolean, msg: AccessToken): AccessToken.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: AccessToken, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): AccessToken;
+    static deserializeBinaryFromReader(message: AccessToken, reader: jspb.BinaryReader): AccessToken;
+  }
+
+  export namespace AccessToken {
+    export type AsObject = {
+      claimsToHeadersList: Array<ClaimToHeader.AsObject>,
+    }
+  }
+
+  export class IdentityToken extends jspb.Message {
+    clearClaimsToHeadersList(): void;
+    getClaimsToHeadersList(): Array<ClaimToHeader>;
+    setClaimsToHeadersList(value: Array<ClaimToHeader>): void;
+    addClaimsToHeaders(value?: ClaimToHeader, index?: number): ClaimToHeader;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): IdentityToken.AsObject;
+    static toObject(includeInstance: boolean, msg: IdentityToken): IdentityToken.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: IdentityToken, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): IdentityToken;
+    static deserializeBinaryFromReader(message: IdentityToken, reader: jspb.BinaryReader): IdentityToken;
+  }
+
+  export namespace IdentityToken {
+    export type AsObject = {
+      claimsToHeadersList: Array<ClaimToHeader.AsObject>,
+    }
   }
 }
 
@@ -2054,6 +2145,40 @@ export namespace OpaAuthOptions {
   export type AsObject = {
     fastInputConversion: boolean,
     returnDecisionReason: boolean,
+  }
+}
+
+export class OpaServerAuth extends jspb.Message {
+  getPackage(): string;
+  setPackage(value: string): void;
+
+  getRuleName(): string;
+  setRuleName(value: string): void;
+
+  getServerAddr(): string;
+  setServerAddr(value: string): void;
+
+  hasOptions(): boolean;
+  clearOptions(): void;
+  getOptions(): OpaAuthOptions | undefined;
+  setOptions(value?: OpaAuthOptions): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): OpaServerAuth.AsObject;
+  static toObject(includeInstance: boolean, msg: OpaServerAuth): OpaServerAuth.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: OpaServerAuth, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): OpaServerAuth;
+  static deserializeBinaryFromReader(message: OpaServerAuth, reader: jspb.BinaryReader): OpaServerAuth;
+}
+
+export namespace OpaServerAuth {
+  export type AsObject = {
+    pb_package: string,
+    ruleName: string,
+    serverAddr: string,
+    options?: OpaAuthOptions.AsObject,
   }
 }
 
@@ -3052,6 +3177,40 @@ export namespace ExtAuthConfig {
     }
   }
 
+  export class OpaServerAuthConfig extends jspb.Message {
+    getPackage(): string;
+    setPackage(value: string): void;
+
+    getRuleName(): string;
+    setRuleName(value: string): void;
+
+    getServerAddr(): string;
+    setServerAddr(value: string): void;
+
+    hasOptions(): boolean;
+    clearOptions(): void;
+    getOptions(): OpaAuthOptions | undefined;
+    setOptions(value?: OpaAuthOptions): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): OpaServerAuthConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: OpaServerAuthConfig): OpaServerAuthConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: OpaServerAuthConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): OpaServerAuthConfig;
+    static deserializeBinaryFromReader(message: OpaServerAuthConfig, reader: jspb.BinaryReader): OpaServerAuthConfig;
+  }
+
+  export namespace OpaServerAuthConfig {
+    export type AsObject = {
+      pb_package: string,
+      ruleName: string,
+      serverAddr: string,
+      options?: OpaAuthOptions.AsObject,
+    }
+  }
+
   export class LdapConfig extends jspb.Message {
     getAddress(): string;
     setAddress(value: string): void;
@@ -3254,6 +3413,11 @@ export namespace ExtAuthConfig {
     getHmacAuth(): ExtAuthConfig.HmacAuthConfig | undefined;
     setHmacAuth(value?: ExtAuthConfig.HmacAuthConfig): void;
 
+    hasOpaServerAuth(): boolean;
+    clearOpaServerAuth(): void;
+    getOpaServerAuth(): ExtAuthConfig.OpaServerAuthConfig | undefined;
+    setOpaServerAuth(value?: ExtAuthConfig.OpaServerAuthConfig): void;
+
     getAuthConfigCase(): Config.AuthConfigCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Config.AsObject;
@@ -3279,6 +3443,7 @@ export namespace ExtAuthConfig {
       jwt?: google_protobuf_empty_pb.Empty.AsObject,
       passThroughAuth?: PassThroughAuth.AsObject,
       hmacAuth?: ExtAuthConfig.HmacAuthConfig.AsObject,
+      opaServerAuth?: ExtAuthConfig.OpaServerAuthConfig.AsObject,
     }
 
     export enum AuthConfigCase {
@@ -3294,6 +3459,7 @@ export namespace ExtAuthConfig {
       JWT = 12,
       PASS_THROUGH_AUTH = 13,
       HMAC_AUTH = 15,
+      OPA_SERVER_AUTH = 16,
     }
   }
 }

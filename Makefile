@@ -42,7 +42,7 @@ SOURCES := $(shell find . -name "*.go" | grep -v test.go)
 GCS_BUCKET := glooctl-plugins
 FED_GCS_PATH := glooctl-fed
 
-ENVOY_GLOO_IMAGE_VERSION ?= 1.26.4-patch2
+ENVOY_GLOO_IMAGE_VERSION ?= 1.26.4-patch3
 ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:$(ENVOY_GLOO_IMAGE_VERSION)
 ENVOY_GLOO_DEBUG_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-debug:$(ENVOY_GLOO_IMAGE_VERSION)
 ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:$(ENVOY_GLOO_IMAGE_VERSION)
@@ -1286,7 +1286,7 @@ gloo-ee-envoy-wrapper-debug-docker: $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-
 $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-debug-docker: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-$(DOCKER_GOARCH) $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit $(ENVOYINIT_OUT_DIR)/docker-entrypoint.sh
 	docker buildx build --load $(call get_test_tag_option,gloo-ee-envoy-wrapper-debug) $(ENVOYINIT_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_DEBUG_IMAGE) $(DOCKER_BUILD_ARGS) \
-		-t $(IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION)-debug \
+		-t $(IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION)-debug\
 		-f $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit
 	touch $@
 

@@ -13,6 +13,7 @@ var goog = jspb;
 var global = Function('return this')();
 
 var github_com_solo$io_solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/rate-limiter/v1alpha1/ratelimit_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/local_ratelimit/local_ratelimit_pb.js');
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
@@ -1123,7 +1124,8 @@ proto.ratelimit.options.gloo.solo.io.RateLimitVhostExtension.prototype.toObject 
 proto.ratelimit.options.gloo.solo.io.RateLimitVhostExtension.toObject = function(includeInstance, msg) {
   var f, obj = {
     rateLimitsList: jspb.Message.toObjectList(msg.getRateLimitsList(),
-    github_com_solo$io_solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.RateLimitActions.toObject, includeInstance)
+    github_com_solo$io_solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.RateLimitActions.toObject, includeInstance),
+    localRatelimit: (f = msg.getLocalRatelimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1165,6 +1167,11 @@ proto.ratelimit.options.gloo.solo.io.RateLimitVhostExtension.deserializeBinaryFr
       reader.readMessage(value,github_com_solo$io_solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.RateLimitActions.deserializeBinaryFromReader);
       msg.addRateLimits(value);
       break;
+    case 2:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.deserializeBinaryFromReader);
+      msg.setLocalRatelimit(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1202,6 +1209,14 @@ proto.ratelimit.options.gloo.solo.io.RateLimitVhostExtension.serializeBinaryToWr
       github_com_solo$io_solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.RateLimitActions.serializeBinaryToWriter
     );
   }
+  f = message.getLocalRatelimit();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -1233,6 +1248,36 @@ proto.ratelimit.options.gloo.solo.io.RateLimitVhostExtension.prototype.addRateLi
 
 proto.ratelimit.options.gloo.solo.io.RateLimitVhostExtension.prototype.clearRateLimitsList = function() {
   this.setRateLimitsList([]);
+};
+
+
+/**
+ * optional local_ratelimit.options.gloo.solo.io.TokenBucket local_ratelimit = 2;
+ * @return {?proto.local_ratelimit.options.gloo.solo.io.TokenBucket}
+ */
+proto.ratelimit.options.gloo.solo.io.RateLimitVhostExtension.prototype.getLocalRatelimit = function() {
+  return /** @type{?proto.local_ratelimit.options.gloo.solo.io.TokenBucket} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket, 2));
+};
+
+
+/** @param {?proto.local_ratelimit.options.gloo.solo.io.TokenBucket|undefined} value */
+proto.ratelimit.options.gloo.solo.io.RateLimitVhostExtension.prototype.setLocalRatelimit = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.ratelimit.options.gloo.solo.io.RateLimitVhostExtension.prototype.clearLocalRatelimit = function() {
+  this.setLocalRatelimit(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.ratelimit.options.gloo.solo.io.RateLimitVhostExtension.prototype.hasLocalRatelimit = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -1292,7 +1337,8 @@ proto.ratelimit.options.gloo.solo.io.RateLimitRouteExtension.toObject = function
   var f, obj = {
     includeVhRateLimits: jspb.Message.getFieldWithDefault(msg, 1, false),
     rateLimitsList: jspb.Message.toObjectList(msg.getRateLimitsList(),
-    github_com_solo$io_solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.RateLimitActions.toObject, includeInstance)
+    github_com_solo$io_solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.RateLimitActions.toObject, includeInstance),
+    localRatelimit: (f = msg.getLocalRatelimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1338,6 +1384,11 @@ proto.ratelimit.options.gloo.solo.io.RateLimitRouteExtension.deserializeBinaryFr
       reader.readMessage(value,github_com_solo$io_solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.RateLimitActions.deserializeBinaryFromReader);
       msg.addRateLimits(value);
       break;
+    case 3:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.deserializeBinaryFromReader);
+      msg.setLocalRatelimit(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1380,6 +1431,14 @@ proto.ratelimit.options.gloo.solo.io.RateLimitRouteExtension.serializeBinaryToWr
       2,
       f,
       github_com_solo$io_solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.RateLimitActions.serializeBinaryToWriter
+    );
+  }
+  f = message.getLocalRatelimit();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.serializeBinaryToWriter
     );
   }
 };
@@ -1430,6 +1489,36 @@ proto.ratelimit.options.gloo.solo.io.RateLimitRouteExtension.prototype.addRateLi
 
 proto.ratelimit.options.gloo.solo.io.RateLimitRouteExtension.prototype.clearRateLimitsList = function() {
   this.setRateLimitsList([]);
+};
+
+
+/**
+ * optional local_ratelimit.options.gloo.solo.io.TokenBucket local_ratelimit = 3;
+ * @return {?proto.local_ratelimit.options.gloo.solo.io.TokenBucket}
+ */
+proto.ratelimit.options.gloo.solo.io.RateLimitRouteExtension.prototype.getLocalRatelimit = function() {
+  return /** @type{?proto.local_ratelimit.options.gloo.solo.io.TokenBucket} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket, 3));
+};
+
+
+/** @param {?proto.local_ratelimit.options.gloo.solo.io.TokenBucket|undefined} value */
+proto.ratelimit.options.gloo.solo.io.RateLimitRouteExtension.prototype.setLocalRatelimit = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.ratelimit.options.gloo.solo.io.RateLimitRouteExtension.prototype.clearLocalRatelimit = function() {
+  this.setLocalRatelimit(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.ratelimit.options.gloo.solo.io.RateLimitRouteExtension.prototype.hasLocalRatelimit = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

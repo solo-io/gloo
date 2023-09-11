@@ -38,6 +38,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_healthcheck_healthchec
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/protocol_upgrade/protocol_upgrade_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_router_router_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/router/router_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/connection_limit/connection_limit_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/local_ratelimit/local_ratelimit_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_proxylatency_proxylatency_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/proxylatency/proxylatency_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_buffer_v3_buffer_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/filters/http/buffer/v3/buffer_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_csrf_v3_csrf_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/filters/http/csrf/v3/csrf_pb.js');
@@ -984,6 +985,8 @@ proto.gloo.solo.io.HttpListenerOptions.toObject = function(includeInstance, msg)
     leftmostXffAddress: (f = msg.getLeftmostXffAddress()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     dynamicForwardProxy: (f = msg.getDynamicForwardProxy()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig.toObject(includeInstance, f),
     connectionLimit: (f = msg.getConnectionLimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.toObject(includeInstance, f),
+    networkLocalRatelimit: (f = msg.getNetworkLocalRatelimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.toObject(includeInstance, f),
+    httpLocalRatelimit: (f = msg.getHttpLocalRatelimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.Settings.toObject(includeInstance, f),
     router: (f = msg.getRouter()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_router_router_pb.Router.toObject(includeInstance, f)
   };
 
@@ -1125,6 +1128,16 @@ proto.gloo.solo.io.HttpListenerOptions.deserializeBinaryFromReader = function(ms
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.deserializeBinaryFromReader);
       msg.setConnectionLimit(value);
+      break;
+    case 32:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.deserializeBinaryFromReader);
+      msg.setNetworkLocalRatelimit(value);
+      break;
+    case 33:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.Settings;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.Settings.deserializeBinaryFromReader);
+      msg.setHttpLocalRatelimit(value);
       break;
     case 18:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_router_router_pb.Router;
@@ -1326,6 +1339,22 @@ proto.gloo.solo.io.HttpListenerOptions.serializeBinaryToWriter = function(messag
       29,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.serializeBinaryToWriter
+    );
+  }
+  f = message.getNetworkLocalRatelimit();
+  if (f != null) {
+    writer.writeMessage(
+      32,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.serializeBinaryToWriter
+    );
+  }
+  f = message.getHttpLocalRatelimit();
+  if (f != null) {
+    writer.writeMessage(
+      33,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.Settings.serializeBinaryToWriter
     );
   }
   f = message.getRouter();
@@ -1970,6 +1999,66 @@ proto.gloo.solo.io.HttpListenerOptions.prototype.hasConnectionLimit = function()
 
 
 /**
+ * optional local_ratelimit.options.gloo.solo.io.TokenBucket network_local_ratelimit = 32;
+ * @return {?proto.local_ratelimit.options.gloo.solo.io.TokenBucket}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getNetworkLocalRatelimit = function() {
+  return /** @type{?proto.local_ratelimit.options.gloo.solo.io.TokenBucket} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket, 32));
+};
+
+
+/** @param {?proto.local_ratelimit.options.gloo.solo.io.TokenBucket|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setNetworkLocalRatelimit = function(value) {
+  jspb.Message.setWrapperField(this, 32, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearNetworkLocalRatelimit = function() {
+  this.setNetworkLocalRatelimit(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasNetworkLocalRatelimit = function() {
+  return jspb.Message.getField(this, 32) != null;
+};
+
+
+/**
+ * optional local_ratelimit.options.gloo.solo.io.Settings http_local_ratelimit = 33;
+ * @return {?proto.local_ratelimit.options.gloo.solo.io.Settings}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getHttpLocalRatelimit = function() {
+  return /** @type{?proto.local_ratelimit.options.gloo.solo.io.Settings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.Settings, 33));
+};
+
+
+/** @param {?proto.local_ratelimit.options.gloo.solo.io.Settings|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setHttpLocalRatelimit = function(value) {
+  jspb.Message.setWrapperField(this, 33, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearHttpLocalRatelimit = function() {
+  this.setHttpLocalRatelimit(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasHttpLocalRatelimit = function() {
+  return jspb.Message.getField(this, 33) != null;
+};
+
+
+/**
  * optional Router router = 18;
  * @return {?proto.gloo.solo.io.Router}
  */
@@ -2047,7 +2136,8 @@ proto.gloo.solo.io.TcpListenerOptions.prototype.toObject = function(opt_includeI
 proto.gloo.solo.io.TcpListenerOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
     tcpProxySettings: (f = msg.getTcpProxySettings()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_tcp_tcp_pb.TcpProxySettings.toObject(includeInstance, f),
-    connectionLimit: (f = msg.getConnectionLimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.toObject(includeInstance, f)
+    connectionLimit: (f = msg.getConnectionLimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.toObject(includeInstance, f),
+    localRatelimit: (f = msg.getLocalRatelimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2094,6 +2184,11 @@ proto.gloo.solo.io.TcpListenerOptions.deserializeBinaryFromReader = function(msg
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.deserializeBinaryFromReader);
       msg.setConnectionLimit(value);
       break;
+    case 5:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.deserializeBinaryFromReader);
+      msg.setLocalRatelimit(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2137,6 +2232,14 @@ proto.gloo.solo.io.TcpListenerOptions.serializeBinaryToWriter = function(message
       4,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.serializeBinaryToWriter
+    );
+  }
+  f = message.getLocalRatelimit();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.serializeBinaryToWriter
     );
   }
 };
@@ -2199,6 +2302,36 @@ proto.gloo.solo.io.TcpListenerOptions.prototype.clearConnectionLimit = function(
  */
 proto.gloo.solo.io.TcpListenerOptions.prototype.hasConnectionLimit = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional local_ratelimit.options.gloo.solo.io.TokenBucket local_ratelimit = 5;
+ * @return {?proto.local_ratelimit.options.gloo.solo.io.TokenBucket}
+ */
+proto.gloo.solo.io.TcpListenerOptions.prototype.getLocalRatelimit = function() {
+  return /** @type{?proto.local_ratelimit.options.gloo.solo.io.TokenBucket} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket, 5));
+};
+
+
+/** @param {?proto.local_ratelimit.options.gloo.solo.io.TokenBucket|undefined} value */
+proto.gloo.solo.io.TcpListenerOptions.prototype.setLocalRatelimit = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.gloo.solo.io.TcpListenerOptions.prototype.clearLocalRatelimit = function() {
+  this.setLocalRatelimit(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.TcpListenerOptions.prototype.hasLocalRatelimit = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

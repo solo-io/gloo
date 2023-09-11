@@ -92,11 +92,12 @@ func generateRequirementsYaml(requirementsTemplatePath, outputPath, osGlooVersio
 	}
 	for i, v := range dl.Dependencies {
 		if v.Name == glooOsDependencyName && glooRepositoryOverride != "" {
-			fmt.Print("overriding gloo repository\n")
+			fmt.Printf("overriding gloo repository with %v \n", glooRepositoryOverride)
 			dl.Dependencies[i].Repository = glooRepositoryOverride
 		}
 
 		if v.Name == glooOsDependencyName && v.Version == "" {
+			fmt.Printf("with version %v \n", osGlooVersion)
 			dl.Dependencies[i].Version = osGlooVersion
 		}
 		if v.Name == glooFedDependencyName {

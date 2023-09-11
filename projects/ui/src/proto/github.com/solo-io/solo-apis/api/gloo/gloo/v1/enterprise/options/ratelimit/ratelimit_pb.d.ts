@@ -4,6 +4,7 @@
 
 import * as jspb from "google-protobuf";
 import * as github_com_solo_io_solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/rate-limiter/v1alpha1/ratelimit_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/local_ratelimit/local_ratelimit_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
@@ -157,6 +158,11 @@ export class RateLimitVhostExtension extends jspb.Message {
   setRateLimitsList(value: Array<github_com_solo_io_solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions>): void;
   addRateLimits(value?: github_com_solo_io_solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions, index?: number): github_com_solo_io_solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions;
 
+  hasLocalRatelimit(): boolean;
+  clearLocalRatelimit(): void;
+  getLocalRatelimit(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket | undefined;
+  setLocalRatelimit(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RateLimitVhostExtension.AsObject;
   static toObject(includeInstance: boolean, msg: RateLimitVhostExtension): RateLimitVhostExtension.AsObject;
@@ -170,6 +176,7 @@ export class RateLimitVhostExtension extends jspb.Message {
 export namespace RateLimitVhostExtension {
   export type AsObject = {
     rateLimitsList: Array<github_com_solo_io_solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions.AsObject>,
+    localRatelimit?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.AsObject,
   }
 }
 
@@ -181,6 +188,11 @@ export class RateLimitRouteExtension extends jspb.Message {
   getRateLimitsList(): Array<github_com_solo_io_solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions>;
   setRateLimitsList(value: Array<github_com_solo_io_solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions>): void;
   addRateLimits(value?: github_com_solo_io_solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions, index?: number): github_com_solo_io_solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions;
+
+  hasLocalRatelimit(): boolean;
+  clearLocalRatelimit(): void;
+  getLocalRatelimit(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket | undefined;
+  setLocalRatelimit(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RateLimitRouteExtension.AsObject;
@@ -196,5 +208,6 @@ export namespace RateLimitRouteExtension {
   export type AsObject = {
     includeVhRateLimits: boolean,
     rateLimitsList: Array<github_com_solo_io_solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions.AsObject>,
+    localRatelimit?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.AsObject,
   }
 }
