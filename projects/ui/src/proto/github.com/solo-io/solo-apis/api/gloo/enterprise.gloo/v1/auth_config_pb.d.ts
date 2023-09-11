@@ -1153,6 +1153,34 @@ export namespace EndSessionProperties {
   export const MethodType: MethodTypeMap;
 }
 
+export class ClaimToHeader extends jspb.Message {
+  getClaim(): string;
+  setClaim(value: string): void;
+
+  getHeader(): string;
+  setHeader(value: string): void;
+
+  getAppend(): boolean;
+  setAppend(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ClaimToHeader.AsObject;
+  static toObject(includeInstance: boolean, msg: ClaimToHeader): ClaimToHeader.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ClaimToHeader, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ClaimToHeader;
+  static deserializeBinaryFromReader(message: ClaimToHeader, reader: jspb.BinaryReader): ClaimToHeader;
+}
+
+export namespace ClaimToHeader {
+  export type AsObject = {
+    claim: string,
+    header: string,
+    append: boolean,
+  }
+}
+
 export class OidcAuthorizationCode extends jspb.Message {
   getClientId(): string;
   setClientId(value: string): void;
@@ -1234,6 +1262,16 @@ export class OidcAuthorizationCode extends jspb.Message {
   getDisableClientSecret(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setDisableClientSecret(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasAccessToken(): boolean;
+  clearAccessToken(): void;
+  getAccessToken(): OidcAuthorizationCode.AccessToken | undefined;
+  setAccessToken(value?: OidcAuthorizationCode.AccessToken): void;
+
+  hasIdentityToken(): boolean;
+  clearIdentityToken(): void;
+  getIdentityToken(): OidcAuthorizationCode.IdentityToken | undefined;
+  setIdentityToken(value?: OidcAuthorizationCode.IdentityToken): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
   static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
@@ -1267,6 +1305,52 @@ export namespace OidcAuthorizationCode {
     endSessionProperties?: EndSessionProperties.AsObject,
     dynamicMetadataFromClaimsMap: Array<[string, string]>,
     disableClientSecret?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    accessToken?: OidcAuthorizationCode.AccessToken.AsObject,
+    identityToken?: OidcAuthorizationCode.IdentityToken.AsObject,
+  }
+
+  export class AccessToken extends jspb.Message {
+    clearClaimsToHeadersList(): void;
+    getClaimsToHeadersList(): Array<ClaimToHeader>;
+    setClaimsToHeadersList(value: Array<ClaimToHeader>): void;
+    addClaimsToHeaders(value?: ClaimToHeader, index?: number): ClaimToHeader;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): AccessToken.AsObject;
+    static toObject(includeInstance: boolean, msg: AccessToken): AccessToken.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: AccessToken, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): AccessToken;
+    static deserializeBinaryFromReader(message: AccessToken, reader: jspb.BinaryReader): AccessToken;
+  }
+
+  export namespace AccessToken {
+    export type AsObject = {
+      claimsToHeadersList: Array<ClaimToHeader.AsObject>,
+    }
+  }
+
+  export class IdentityToken extends jspb.Message {
+    clearClaimsToHeadersList(): void;
+    getClaimsToHeadersList(): Array<ClaimToHeader>;
+    setClaimsToHeadersList(value: Array<ClaimToHeader>): void;
+    addClaimsToHeaders(value?: ClaimToHeader, index?: number): ClaimToHeader;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): IdentityToken.AsObject;
+    static toObject(includeInstance: boolean, msg: IdentityToken): IdentityToken.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: IdentityToken, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): IdentityToken;
+    static deserializeBinaryFromReader(message: IdentityToken, reader: jspb.BinaryReader): IdentityToken;
+  }
+
+  export namespace IdentityToken {
+    export type AsObject = {
+      claimsToHeadersList: Array<ClaimToHeader.AsObject>,
+    }
   }
 }
 

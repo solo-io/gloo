@@ -1,9 +1,12 @@
 package extproc
 
 import (
+	"fmt"
+
 	envoy_mutation_rules_v3 "github.com/envoyproxy/go-control-plane/envoy/config/common/mutation_rules/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_ext_proc_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ext_proc/v3"
+
 	envoy_type_matcher_v3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 	"github.com/golang/protobuf/ptypes/duration"
 	gloo_mutation_rules_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/common/mutation_rules/v3"
@@ -12,6 +15,11 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extproc"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+)
+
+const (
+	magicMetadataNamespaceEncode = "envoy.filters.http.ext_proc.encoder"
+	magicMetadataNamespaceDecode = "envoy.filters.http.ext_proc.decoder"
 )
 
 // Converts gloo extproc Settings to envoy ExternalProcessor. This is used to configure the extproc http filter.
@@ -60,31 +68,60 @@ func toEnvoyExternalProcessor(settings *extproc.Settings, upstreams v1.UpstreamL
 	if settings.GetStatPrefix() != nil {
 		envoyExtProc.StatPrefix = settings.GetStatPrefix().GetValue()
 	}
+
+	multiWarn := []string{}
 	if settings.GetMutationRules() != nil {
-		envoyExtProc.MutationRules = toEnvoyHeaderMutationRules(settings.GetMutationRules())
+		multiWarn = append(multiWarn, "mutationrules will be available in edge 1.16")
+		// envoyExtProc.MutationRules = toEnvoyHeaderMutationRules(settings.GetMutationRules())
 	}
 	if settings.GetDisableClearRouteCache() != nil {
-		envoyExtProc.DisableClearRouteCache = settings.GetDisableClearRouteCache().GetValue()
+		multiWarn = append(multiWarn, "disableclearroutecache will be available in edge 1.16")
+		// envoyExtProc.DisableClearRouteCache = settings.GetDisableClearRouteCache().GetValue()
 	}
 	if settings.GetForwardRules() != nil {
-		envoyFwdRules, err := toEnvoyHeaderForwardingRules(settings.GetForwardRules())
-		if err != nil {
-			return nil, err
-		}
-		envoyExtProc.ForwardRules = envoyFwdRules
+		multiWarn = append(multiWarn, "forwardrules will be available in edge 1.16")
+		// envoyFwdRules, err := toEnvoyHeaderForwardingRules(settings.GetForwardRules())
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// envoyExtProc.ForwardRules = envoyFwdRules
 	}
 	if settings.GetFilterMetadata() != nil {
-		envoyExtProc.FilterMetadata = settings.GetFilterMetadata()
+		multiWarn = append(multiWarn, "filtermetadata will be available in edge 1.16")
+		// envoyExtProc.FilterMetadata = settings.GetFilterMetadata()
 	}
 	if settings.GetAllowModeOverride() != nil {
-		envoyExtProc.AllowModeOverride = settings.GetAllowModeOverride().GetValue()
+		multiWarn = append(multiWarn, "allowmodeoverride will be available in edge 1.16")
+		// envoyExtProc.AllowModeOverride = settings.GetAllowModeOverride().GetValue()
 	}
 
-	return envoyExtProc, nil
+	envoyExtProc.MetadataOptions = &envoy_ext_proc_v3.MetadataOptions{}
+
+	// For now we allow our special recieving namespaces. In the future we may
+	// have this as a default that is overridable or just augment the configured
+	// output namespaces. These magic names come from our original upstream pr
+	// where the receiving namespaces were hardcoded to these values.
+	envoyExtProc.MetadataOptions.ReceivingNamespaces = &envoy_ext_proc_v3.MetadataOptions_MetadataNamespaces{
+		Untyped: []string{magicMetadataNamespaceEncode, magicMetadataNamespaceDecode},
+	}
+
+	if settings.GetMetadataContextNamespaces() != nil || settings.GetTypedMetadataContextNamespaces() != nil {
+		namespaces := envoy_ext_proc_v3.MetadataOptions_MetadataNamespaces{
+			Untyped: settings.GetMetadataContextNamespaces(),
+			Typed:   settings.GetTypedMetadataContextNamespaces(),
+		}
+		envoyExtProc.MetadataOptions.ForwardingNamespaces = &namespaces
+	}
+
+	if len(multiWarn) > 0 {
+		err = fmt.Errorf("extproc settings contain unreleased fields: %v", multiWarn)
+	}
+
+	return envoyExtProc, err
 }
 
-// Converts gloo extproc RouteSettings to envoy ExtProcPerRoute. This is used to configure extproc
-// overrides on a virtual host or route.
+// toEnvoyExtProcPerRoute converts gloo extproc RouteSettings to envoy ExtProcPerRoute.
+// This is used to configure extproc overrides on a virtual host or route.
 func toEnvoyExtProcPerRoute(routeSettings *extproc.RouteSettings, upstreams v1.UpstreamList) (*envoy_ext_proc_v3.ExtProcPerRoute, error) {
 	if routeSettings == nil {
 		return nil, nil
@@ -257,16 +294,19 @@ func toEnvoyRegexMatcher(glooRegexMatcher *gloo_type_matcher_v3.RegexMatcher) *e
 	}
 }
 
+// toEnvoyHeaderForwardingRules needs the newer envoy that will eventually get
+// gloo 1.16
+/*
 func toEnvoyHeaderForwardingRules(glooFwdRules *extproc.HeaderForwardingRules) (*envoy_ext_proc_v3.HeaderForwardingRules, error) {
-	envoyFwdRules := &envoy_ext_proc_v3.HeaderForwardingRules{}
+	// envoyFwdRules := &envoy_ext_proc_v3.HeaderForwardingRules{}
 
-	if glooFwdRules.GetAllowedHeaders() != nil {
-		envoyAllowedHeaders, err := toEnvoyListStringMatcher(glooFwdRules.GetAllowedHeaders())
-		if err != nil {
-			return nil, err
-		}
-		envoyFwdRules.AllowedHeaders = envoyAllowedHeaders
-	}
+	// if glooFwdRules.GetAllowedHeaders() != nil {
+	// 	envoyAllowedHeaders, err := toEnvoyListStringMatcher(glooFwdRules.GetAllowedHeaders())
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	envoyFwdRules.AllowedHeaders = envoyAllowedHeaders
+	// }
 	// TODO: uncomment when we upgrade to an envoy version that has this field
 	// if glooFwdRules.GetDisallowedHeaders() != nil {
 	// 	envoyFwdRules.DisallowedHeaders = toEnvoyListStringMatcher(glooFwdRules.GetDisallowedHeaders())
@@ -274,6 +314,7 @@ func toEnvoyHeaderForwardingRules(glooFwdRules *extproc.HeaderForwardingRules) (
 
 	return envoyFwdRules, nil
 }
+*/
 
 func toEnvoyListStringMatcher(glooMatcher *gloo_type_matcher_v3.ListStringMatcher) (*envoy_type_matcher_v3.ListStringMatcher, error) {
 	envoyStringMatchers := make([]*envoy_type_matcher_v3.StringMatcher, len(glooMatcher.GetPatterns()))

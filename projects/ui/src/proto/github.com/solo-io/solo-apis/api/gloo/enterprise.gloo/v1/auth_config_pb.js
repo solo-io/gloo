@@ -51,6 +51,7 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.Apr', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.Apr.SaltedHashedPassword', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.BufferSettings', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ClaimToHeader', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.CustomAuth', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.DiscoveryOverride', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.EndSessionProperties', null, global);
@@ -97,6 +98,8 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.OAuth', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.OAuth2', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.OauthSecret', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.OidcAuthorizationCode', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.OpaAuth', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.OpaAuthOptions', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughAuth', null, global);
@@ -7889,6 +7892,204 @@ proto.enterprise.gloo.solo.io.EndSessionProperties.prototype.setMethodtype = fun
  * @extends {jspb.Message}
  * @constructor
  */
+proto.enterprise.gloo.solo.io.ClaimToHeader = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ClaimToHeader, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ClaimToHeader.displayName = 'proto.enterprise.gloo.solo.io.ClaimToHeader';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ClaimToHeader.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ClaimToHeader.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ClaimToHeader} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ClaimToHeader.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    claim: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    header: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    append: jspb.Message.getFieldWithDefault(msg, 3, false)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ClaimToHeader}
+ */
+proto.enterprise.gloo.solo.io.ClaimToHeader.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ClaimToHeader;
+  return proto.enterprise.gloo.solo.io.ClaimToHeader.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ClaimToHeader} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ClaimToHeader}
+ */
+proto.enterprise.gloo.solo.io.ClaimToHeader.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClaim(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setHeader(value);
+      break;
+    case 3:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setAppend(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ClaimToHeader.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ClaimToHeader.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ClaimToHeader} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ClaimToHeader.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getClaim();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getHeader();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getAppend();
+  if (f) {
+    writer.writeBool(
+      3,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string claim = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ClaimToHeader.prototype.getClaim = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ClaimToHeader.prototype.setClaim = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string header = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ClaimToHeader.prototype.getHeader = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ClaimToHeader.prototype.setHeader = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional bool append = 3;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.enterprise.gloo.solo.io.ClaimToHeader.prototype.getAppend = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 3, false));
+};
+
+
+/** @param {boolean} value */
+proto.enterprise.gloo.solo.io.ClaimToHeader.prototype.setAppend = function(value) {
+  jspb.Message.setProto3BooleanField(this, 3, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.enterprise.gloo.solo.io.OidcAuthorizationCode = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.OidcAuthorizationCode.repeatedFields_, null);
 };
@@ -7952,7 +8153,9 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.toObject = function(includeI
     autoMapFromMetadata: (f = msg.getAutoMapFromMetadata()) && proto.enterprise.gloo.solo.io.AutoMapFromMetadata.toObject(includeInstance, f),
     endSessionProperties: (f = msg.getEndSessionProperties()) && proto.enterprise.gloo.solo.io.EndSessionProperties.toObject(includeInstance, f),
     dynamicMetadataFromClaimsMap: (f = msg.getDynamicMetadataFromClaimsMap()) ? f.toObject(includeInstance, undefined) : [],
-    disableClientSecret: (f = msg.getDisableClientSecret()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    disableClientSecret: (f = msg.getDisableClientSecret()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    accessToken: (f = msg.getAccessToken()) && proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.toObject(includeInstance, f),
+    identityToken: (f = msg.getIdentityToken()) && proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -8087,6 +8290,16 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.deserializeBinaryFromReader 
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setDisableClientSecret(value);
+      break;
+    case 23:
+      var value = new proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.deserializeBinaryFromReader);
+      msg.setAccessToken(value);
+      break;
+    case 24:
+      var value = new proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.deserializeBinaryFromReader);
+      msg.setIdentityToken(value);
       break;
     default:
       reader.skipField();
@@ -8264,6 +8477,358 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.serializeBinaryToWriter = fu
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
+  f = message.getAccessToken();
+  if (f != null) {
+    writer.writeMessage(
+      23,
+      f,
+      proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.serializeBinaryToWriter
+    );
+  }
+  f = message.getIdentityToken();
+  if (f != null) {
+    writer.writeMessage(
+      24,
+      f,
+      proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.displayName = 'proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    claimsToHeadersList: jspb.Message.toObjectList(msg.getClaimsToHeadersList(),
+    proto.enterprise.gloo.solo.io.ClaimToHeader.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken;
+  return proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.enterprise.gloo.solo.io.ClaimToHeader;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ClaimToHeader.deserializeBinaryFromReader);
+      msg.addClaimsToHeaders(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getClaimsToHeadersList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.enterprise.gloo.solo.io.ClaimToHeader.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * repeated ClaimToHeader claims_to_headers = 1;
+ * @return {!Array<!proto.enterprise.gloo.solo.io.ClaimToHeader>}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.prototype.getClaimsToHeadersList = function() {
+  return /** @type{!Array<!proto.enterprise.gloo.solo.io.ClaimToHeader>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.enterprise.gloo.solo.io.ClaimToHeader, 1));
+};
+
+
+/** @param {!Array<!proto.enterprise.gloo.solo.io.ClaimToHeader>} value */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.prototype.setClaimsToHeadersList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.enterprise.gloo.solo.io.ClaimToHeader=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.enterprise.gloo.solo.io.ClaimToHeader}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.prototype.addClaimsToHeaders = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.enterprise.gloo.solo.io.ClaimToHeader, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.prototype.clearClaimsToHeadersList = function() {
+  this.setClaimsToHeadersList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.displayName = 'proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    claimsToHeadersList: jspb.Message.toObjectList(msg.getClaimsToHeadersList(),
+    proto.enterprise.gloo.solo.io.ClaimToHeader.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken;
+  return proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.enterprise.gloo.solo.io.ClaimToHeader;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ClaimToHeader.deserializeBinaryFromReader);
+      msg.addClaimsToHeaders(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getClaimsToHeadersList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.enterprise.gloo.solo.io.ClaimToHeader.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * repeated ClaimToHeader claims_to_headers = 1;
+ * @return {!Array<!proto.enterprise.gloo.solo.io.ClaimToHeader>}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.prototype.getClaimsToHeadersList = function() {
+  return /** @type{!Array<!proto.enterprise.gloo.solo.io.ClaimToHeader>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.enterprise.gloo.solo.io.ClaimToHeader, 1));
+};
+
+
+/** @param {!Array<!proto.enterprise.gloo.solo.io.ClaimToHeader>} value */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.prototype.setClaimsToHeadersList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.enterprise.gloo.solo.io.ClaimToHeader=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.enterprise.gloo.solo.io.ClaimToHeader}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.prototype.addClaimsToHeaders = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.enterprise.gloo.solo.io.ClaimToHeader, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.prototype.clearClaimsToHeadersList = function() {
+  this.setClaimsToHeadersList([]);
 };
 
 
@@ -8739,6 +9304,66 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearDisableClient
  */
 proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasDisableClientSecret = function() {
   return jspb.Message.getField(this, 21) != null;
+};
+
+
+/**
+ * optional AccessToken access_token = 23;
+ * @return {?proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getAccessToken = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken, 23));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken|undefined} value */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setAccessToken = function(value) {
+  jspb.Message.setWrapperField(this, 23, value);
+};
+
+
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearAccessToken = function() {
+  this.setAccessToken(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasAccessToken = function() {
+  return jspb.Message.getField(this, 23) != null;
+};
+
+
+/**
+ * optional IdentityToken identity_token = 24;
+ * @return {?proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getIdentityToken = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken, 24));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken|undefined} value */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setIdentityToken = function(value) {
+  jspb.Message.setWrapperField(this, 24, value);
+};
+
+
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearIdentityToken = function() {
+  this.setIdentityToken(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasIdentityToken = function() {
+  return jspb.Message.getField(this, 24) != null;
 };
 
 

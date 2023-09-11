@@ -14,7 +14,7 @@ gloo_oss_envoy_minor_version=$(\
 gloo_ee_envoy_minor_version=$(\
     echo $EE_ENVOY_VERSION\
     | cut -d. -f2)
- 
+
 if [ "$gloo_oss_envoy_minor_version" == "$gloo_ee_envoy_minor_version" ]; then
     echo "gloo and solo-projects have matching envoy minor versions.  Continuing..."
 else

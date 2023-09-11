@@ -91,6 +91,16 @@ export class Settings extends jspb.Message {
   getAllowModeOverride(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setAllowModeOverride(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  clearMetadataContextNamespacesList(): void;
+  getMetadataContextNamespacesList(): Array<string>;
+  setMetadataContextNamespacesList(value: Array<string>): void;
+  addMetadataContextNamespaces(value: string, index?: number): string;
+
+  clearTypedMetadataContextNamespacesList(): void;
+  getTypedMetadataContextNamespacesList(): Array<string>;
+  setTypedMetadataContextNamespacesList(value: Array<string>): void;
+  addTypedMetadataContextNamespaces(value: string, index?: number): string;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Settings.AsObject;
   static toObject(includeInstance: boolean, msg: Settings): Settings.AsObject;
@@ -118,6 +128,8 @@ export namespace Settings {
     forwardRules?: HeaderForwardingRules.AsObject,
     filterMetadata?: google_protobuf_struct_pb.Struct.AsObject,
     allowModeOverride?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    metadataContextNamespacesList: Array<string>,
+    typedMetadataContextNamespacesList: Array<string>,
   }
 }
 
@@ -228,6 +240,16 @@ export class Overrides extends jspb.Message {
   getGrpcService(): GrpcService | undefined;
   setGrpcService(value?: GrpcService): void;
 
+  clearMetadataContextNamespacesList(): void;
+  getMetadataContextNamespacesList(): Array<string>;
+  setMetadataContextNamespacesList(value: Array<string>): void;
+  addMetadataContextNamespaces(value: string, index?: number): string;
+
+  clearTypedMetadataContextNamespacesList(): void;
+  getTypedMetadataContextNamespacesList(): Array<string>;
+  setTypedMetadataContextNamespacesList(value: Array<string>): void;
+  addTypedMetadataContextNamespaces(value: string, index?: number): string;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Overrides.AsObject;
   static toObject(includeInstance: boolean, msg: Overrides): Overrides.AsObject;
@@ -245,6 +267,8 @@ export namespace Overrides {
     requestAttributesList: Array<string>,
     responseAttributesList: Array<string>,
     grpcService?: GrpcService.AsObject,
+    metadataContextNamespacesList: Array<string>,
+    typedMetadataContextNamespacesList: Array<string>,
   }
 }
 
