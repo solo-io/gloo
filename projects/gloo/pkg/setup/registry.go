@@ -22,6 +22,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/leftmost_xff_address"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/local_ratelimit"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/proxylatency"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/sanitize_cluster_header"
@@ -87,6 +88,7 @@ func getEnterprisePlugins(apiEmitterChan chan struct{}, graphQLFeatureState *lic
 		graphql.NewPlugin(graphQLFeatureState),
 		deprecated_cipher_passthrough.NewPlugin(),
 		extproc.NewPlugin(),
+		local_ratelimit.NewPlugin(),
 	}
 }
 
