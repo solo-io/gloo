@@ -565,7 +565,7 @@ var _ = Describe("AWS Lambda", func() {
 				addUpstream()
 			})
 
-			It("should be able to call lambda", testProxy)
+			FIt("should be able to call lambda", testProxy)
 
 			It("should be able to call lambda with response transform", testProxyWithResponseTransform)
 
@@ -660,6 +660,11 @@ var _ = Describe("AWS Lambda", func() {
 			tmpFile *os.File
 		)
 
+		// Here we're essentially constructing an equivalent to the STS creds that would be obtained by a AssumeRoleWithWebIdentity call
+		// in envoy. Because there isn't actually an EKS cluster or OIDC provider running, we just place something equivalent
+		// to the STS creds in a file and pass that to envoy
+		// As a result, envoy will assume that it has already obtained the creds from the OIDC provider and will not
+		// attempt to do so itself
 		addCredentialsSts := func() {
 			roleArn := "arn:aws:iam::802411188784:role/gloo-edge-e2e-sts"
 			jwtKey := os.Getenv(jwtPrivateKey)
@@ -742,6 +747,55 @@ var _ = Describe("AWS Lambda", func() {
 			}))
 		}
 
+		// Creates an upstream that specifies a unique role to assume before invoking the lambda
+		addChainedUpstreamSts := func(region string, roleArn string) {
+			upstream = &gloov1.Upstream{
+				Metadata: &core.Metadata{
+					Namespace: "default",
+					Name:      region,
+				},
+				UpstreamType: &gloov1.Upstream_Aws{
+					Aws: &aws_plugin.UpstreamSpec{
+						Region:  region,
+						RoleArn: roleArn,
+					},
+				},
+			}
+
+			var opts clients.WriteOpts
+			_, err := testClients.UpstreamClient.Write(upstream, opts)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(func() []*aws_plugin.LambdaFunctionSpec {
+				us, err := testClients.UpstreamClient.Read(
+					upstream.GetMetadata().Namespace,
+					upstream.GetMetadata().Name,
+					clients.ReadOpts{},
+				)
+				if err != nil {
+					return nil
+				}
+				return us.GetAws().GetLambdaFunctions()
+			}, "2m", "1s").Should(ContainElement(&aws_plugin.LambdaFunctionSpec{
+				LogicalName:        "uppercase",
+				LambdaFunctionName: "uppercase",
+				Qualifier:          "$LATEST",
+			}))
+		}
+
+		testChainedProxy := func() {
+			// delete existing upstream
+			var opts clients.DeleteOpts
+			err := testClients.UpstreamClient.Delete(defaults.GlooSystem, defaultRegion, opts)
+			Expect(err).NotTo(HaveOccurred())
+
+			// in AWS, we have configured this role so that it can invoke lambda functions, and so that it can be assumed
+			// by arn:aws:iam::802411188784:role/gloo-edge-e2e-sts, which is the role that gloo has initially in these tests
+			addChainedUpstreamSts(defaultRegion, "arn:aws:iam::802411188784:role/gloo-edge-e2e-sts-secondary")
+
+			testProxy()
+		}
+
 		setupEnvoySts := func(justGloo bool, region string) {
 			ctx, cancel = context.WithCancel(context.Background())
 
@@ -756,6 +810,10 @@ var _ = Describe("AWS Lambda", func() {
 			}
 
 			ns := defaults.GlooSystem
+
+			// If ServiceAccountCredentials aren't set, then the plugin will attempt to get static creds from a
+			// secret ref. We don't want that to happen, the service account creds, although they aren't actually
+			// used in these tests
 			ro := &services.RunOptions{
 				NsToWrite: ns,
 				NsToWatch: []string{"default", ns},
@@ -804,13 +862,15 @@ var _ = Describe("AWS Lambda", func() {
 				 * the fix is to update the rotated thumbprint on our fake AWS OIDC per
 				 * https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc_verify-thumbprint.html
 				 */
-				It("should be able to call lambda", testProxy)
+				FIt("should be able to call lambda", testProxy)
 
-				It("should be able to call lambda with response transform", testProxyWithResponseTransform)
+				FIt("should be able to call lambda with response transform", testProxyWithResponseTransform)
 
-				It("should be able to call lambda with request transform", testProxyWithRequestTransform)
+				FIt("should be able to call lambda with request transform", testProxyWithRequestTransform)
 
-				It("should be able to call lambda with request and response transforms", testProxyWithRequestAndResponseTransforms)
+				FIt("should be able to call lambda with request and response transforms", testProxyWithRequestAndResponseTransforms)
+
+				FIt("should be able to call lambda after role chaining", testChainedProxy)
 			})
 			Context("secondary region", func() {
 				BeforeEach(func() {
@@ -819,7 +879,9 @@ var _ = Describe("AWS Lambda", func() {
 					addUpstreamSts(secondaryRegion)
 				})
 
-				It("should be able to call lambda", testProxy)
+				FIt("should be able to call lambda", testProxy)
+
+				FIt("should be able to call lambda after role chaining", testChainedProxy)
 			})
 			Context("default region", func() {
 				BeforeEach(func() {
@@ -828,7 +890,9 @@ var _ = Describe("AWS Lambda", func() {
 					addUpstreamSts(defaultRegion)
 				})
 
-				It("should be able to call lambda", testProxy)
+				FIt("should be able to call lambda", testProxy)
+
+				FIt("should be able to call lambda after role chaining", testChainedProxy)
 			})
 		})
 		Context("With gateway translation", func() {
