@@ -306,10 +306,10 @@ spec:
 {{- include $spec.extraContainersHelper . | nindent 6 }}
 {{- end }} {{- /* $spec.extraContainersHelper */}}
 {{- if or $global.glooMtls.enabled $global.istioSDS.enabled }}
-      {{- $sdsImage := merge $global.glooMtls.sds.image $global.image }}
+      {{- $sdsImage := merge $global.istioSDS.sds.image $global.glooMtls.sds.image $global.image }}
       - name: sds
         image: {{ template "gloo.image" $sdsImage }}
-        {{- with $global.glooMtls.sds.securityContext }}}
+        {{- with (merge ($global.istioSDS.sds.securityContext | default (dict)) ($global.glooMtls.sds.securityContext | default (dict))) }}
         securityContext:
         {{- toYaml . | nindent 10  }}
         {{- end }}
@@ -364,11 +364,11 @@ spec:
 {{- end }}
 {{- if not $global.istioSDS.customSidecars }}
       - name: istio-proxy
-        {{- with $global.glooMtls.istioProxy.securityContext }}
+        {{- with (merge ($global.istioSDS.istioProxy.securityContext | default (dict)) ($global.glooMtls.istioProxy.securityContext | default (dict))) }}
         securityContext:
         {{- toYaml . | nindent 10  }}
         {{- end }}
-        {{- $istioProxyImage := merge $global.glooMtls.istioProxy.image $global.image }}
+        {{- $istioProxyImage := merge $global.istioSDS.istioProxy.image $global.glooMtls.istioProxy.image $global.image }}
         image: {{ template "gloo.image" $istioProxyImage }}
         imagePullPolicy: {{ $istioProxyImage.pullPolicy }}
         {{- if $global.glooMtls.envoySidecarResources }}
