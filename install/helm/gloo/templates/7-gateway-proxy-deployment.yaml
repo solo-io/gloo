@@ -314,9 +314,10 @@ spec:
         {{- toYaml . | nindent 10  }}
         {{- end }}
         imagePullPolicy: {{ $sdsImage.pullPolicy }}
-{{- if $global.glooMtls.sdsResources }}
+{{- $sdsResources := merge ($global.istioSDS.sdsResources | default (dict)) ($global.glooMtls.sdsResources | default (dict)) }}
+{{- if $sdsResources }}
         resources:
-{{ toYaml $global.glooMtls.sdsResources | indent 10}}
+{{ toYaml $sdsResources | indent 10}}
 {{- end}}
         env:
           - name: POD_NAME
@@ -368,7 +369,7 @@ spec:
         securityContext:
         {{- toYaml . | nindent 10  }}
         {{- end }}
-        {{- $istioProxyImage := merge $global.istioSDS.istioProxy.image $global.glooMtls.istioProxy.image $global.image }}
+        {{- $istioProxyImage := merge ($global.istioSDS.istioProxy.image | default (dict)) ($global.glooMtls.istioProxy.image | default (dict)) $global.image }}
         image: {{ template "gloo.image" $istioProxyImage }}
         imagePullPolicy: {{ $istioProxyImage.pullPolicy }}
         {{- if $global.glooMtls.envoySidecarResources }}
