@@ -1058,7 +1058,7 @@ spec:
 						if structuredDeployment.GetName() == "gateway-proxy" {
 							Expect(len(structuredDeployment.Spec.Template.Spec.Containers)).To(Equal(3), "should have exactly 3 containers")
 							Ω(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue(), "gateway-proxy should have an sds sidecar")
-							Ω(istioSidecarVersion(structuredDeployment.Spec.Template.Spec.Containers)).To(Equal("docker.io/istio/proxyv2:1.9.5"), "istio proxy sidecar should be the default")
+							Ω(istioSidecarVersion(structuredDeployment.Spec.Template.Spec.Containers)).To(Equal("docker.io/istio/proxyv2:1.17.5"), "istio proxy sidecar should be the default")
 							Ω(haveIstioSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue(), "gateway-proxy should have an istio-proxy sidecar")
 							Ω(sdsIsIstioMode(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue(), "sds sidecar should have istio mode enabled")
 							Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(istioCertsVolume), "should have istio-certs volume mounted")
@@ -3338,11 +3338,49 @@ spec:
 						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 					})
 
-					It("can overwrite sds and istioProxy images", func() {
+					It("can overwrite sds and istioProxy images from istioSDS", func() {
 						prepareMakefile(namespace, helmValues{
 							valuesArgs: []string{
-								"global.glooMtls.enabled=true",
 								"global.istioSDS.enabled=true",
+								"global.istioSDS.sds.image.tag=my-sds-tag",
+								"global.istioSDS.sds.image.repository=my-sds-repo",
+								"global.istioSDS.sds.image.registry=my-sds-reg",
+								"global.istioSDS.istioProxy.image.tag=my-istio-tag",
+								"global.istioSDS.istioProxy.image.repository=my-istio-repo",
+								"global.istioSDS.istioProxy.image.registry=my-istio-reg",
+								"global.istioSDS.istioProxy.image.pullPolicy=Always",
+							},
+						})
+
+						gwpUns := testManifest.ExpectCustomResource("Deployment", namespace, "gateway-proxy")
+						gwpObj, err := kuberesource.ConvertUnstructured(gwpUns)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(gwpObj).To(BeAssignableToTypeOf(&appsv1.Deployment{}))
+						gwpDepl := *gwpObj.(*appsv1.Deployment)
+						Expect(gwpDepl.Spec.Template.Spec.Containers).To(HaveLen(3))
+
+						sdsContainer := gwpDepl.Spec.Template.Spec.Containers[1]
+						Expect(sdsContainer.Name).To(Equal("sds"))
+						Expect(sdsContainer.Image).To(Equal("my-sds-reg/my-sds-repo:my-sds-tag"))
+						Expect(sdsContainer.ImagePullPolicy).To(Equal(v1.PullIfNotPresent))
+
+						istioProxyContainer := gwpDepl.Spec.Template.Spec.Containers[2]
+						Expect(istioProxyContainer.Name).To(Equal("istio-proxy"))
+						Expect(istioProxyContainer.Image).To(Equal("my-istio-reg/my-istio-repo:my-istio-tag"))
+						Expect(istioProxyContainer.ImagePullPolicy).To(Equal(v1.PullAlways))
+					})
+
+					It("can overwrite sds and istioProxy images from glooMtls for values istioSDS does not set", func() {
+						prepareMakefile(namespace, helmValues{
+							valuesArgs: []string{
+								"global.istioSDS.enabled=true",
+
+								// Unset default istioSDS values
+								"global.istioSDS.sds.image.repository=null",
+								"global.istioSDS.istioProxy.image.tag=null",
+								"global.istioSDS.istioProxy.image.repository=null",
+								"global.istioSDS.istioProxy.image.registry=null",
+
 								"global.glooMtls.sds.image.tag=my-sds-tag",
 								"global.glooMtls.sds.image.repository=my-sds-repo",
 								"global.glooMtls.sds.image.registry=my-sds-reg",
@@ -3350,6 +3388,49 @@ spec:
 								"global.glooMtls.istioProxy.image.repository=my-istio-repo",
 								"global.glooMtls.istioProxy.image.registry=my-istio-reg",
 								"global.glooMtls.istioProxy.image.pullPolicy=Always",
+							},
+						})
+
+						gwpUns := testManifest.ExpectCustomResource("Deployment", namespace, "gateway-proxy")
+						gwpObj, err := kuberesource.ConvertUnstructured(gwpUns)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(gwpObj).To(BeAssignableToTypeOf(&appsv1.Deployment{}))
+						gwpDepl := *gwpObj.(*appsv1.Deployment)
+						Expect(gwpDepl.Spec.Template.Spec.Containers).To(HaveLen(3))
+
+						sdsContainer := gwpDepl.Spec.Template.Spec.Containers[1]
+						Expect(sdsContainer.Name).To(Equal("sds"))
+						Expect(sdsContainer.Image).To(Equal("my-sds-reg/my-sds-repo:my-sds-tag"))
+						Expect(sdsContainer.ImagePullPolicy).To(Equal(v1.PullIfNotPresent))
+
+						istioProxyContainer := gwpDepl.Spec.Template.Spec.Containers[2]
+						Expect(istioProxyContainer.Name).To(Equal("istio-proxy"))
+						Expect(istioProxyContainer.Image).To(Equal("my-istio-reg/my-istio-repo:my-istio-tag"))
+						Expect(istioProxyContainer.ImagePullPolicy).To(Equal(v1.PullAlways))
+					})
+
+					It("can overwrite sds and istioProxy images from istioSDS and glooMtls, with istioSDS taking precedence", func() {
+						prepareMakefile(namespace, helmValues{
+							valuesArgs: []string{
+								"global.istioSDS.enabled=true",
+
+								// Unset default istioSDS values
+								"global.istioSDS.sds.image.repository=null",
+								"global.istioSDS.istioProxy.image.repository=null",
+								"global.istioSDS.istioProxy.image.registry=null",
+
+								// Set all fields via glooMtls
+								"global.istioSDS.sds.image.tag=OVERWRITTEN-TAG",
+								"global.istioSDS.sds.image.repository=my-sds-repo",
+								"global.istioSDS.sds.image.registry=my-sds-reg",
+								"global.istioSDS.istioProxy.image.tag=OVERWRITTEN-TAG",
+								"global.istioSDS.istioProxy.image.repository=my-istio-repo",
+								"global.istioSDS.istioProxy.image.registry=my-istio-reg",
+								"global.istioSDS.istioProxy.image.pullPolicy=Always",
+
+								// Set tag fields via istioSDS
+								"global.istioSDS.sds.image.tag=my-sds-tag",
+								"global.istioSDS.istioProxy.image.tag=my-istio-tag",
 							},
 						})
 
@@ -6031,7 +6112,9 @@ metadata:
 				},
 					Entry("7-gateway-proxy-deployment-gateway-proxy", "gateway-proxy", "gateway-proxy", "gatewayProxies.gatewayProxy.podTemplate.glooContainerSecurityContext"),
 					Entry("7-gateway-proxy-deployment-sds", "gateway-proxy", "sds", "global.glooMtls.sds.securityContext", "global.glooMtls.enabled=true"),
+					Entry("7-gateway-proxy-deployment-sds", "gateway-proxy", "sds", "global.istioSDS.sds.securityContext", "global.istioSDS.enabled=true"),
 					Entry("7-gateway-proxy-deployment-istio-proxy", "gateway-proxy", "istio-proxy", "global.glooMtls.istioProxy.securityContext", "global.istioSDS.enabled=true"),
+					Entry("7-gateway-proxy-deployment-istio-proxy", "gateway-proxy", "istio-proxy", "global.istioSDS.istioProxy.securityContext", "global.istioSDS.enabled=true"),
 					Entry("1-gloo-deployment-gloo", "gloo", "gloo", "gloo.deployment.glooContainerSecurityContext", "global.glooMtls.enabled=true"),
 					Entry("1-gloo-deployment-envoy-sidecar", "gloo", "envoy-sidecar", "global.glooMtls.envoy.securityContext", "global.glooMtls.enabled=true"),
 					Entry("1-gloo-deployment-sds", "gloo", "sds", "global.glooMtls.sds.securityContext", "global.glooMtls.enabled=true"),
