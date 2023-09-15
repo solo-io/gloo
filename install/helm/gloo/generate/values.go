@@ -738,8 +738,10 @@ type IstioProxyContainer struct {
 }
 
 type IstioSDS struct {
-	Enabled        *bool         `json:"enabled,omitempty" desc:"Enables SDS cert-rotator sidecar for istio mTLS cert rotation"`
-	CustomSidecars []interface{} `json:"customSidecars,omitempty" desc:"Override the default Istio sidecar in gateway-proxy with a custom container. Ignored if IstioSDS.enabled is false"`
+	Enabled        *bool               `json:"enabled,omitempty" desc:"Enables SDS cert-rotator sidecar for istio mTLS cert rotation"`
+	Sds            SdsContainer        `json:"sds,omitempty" desc:"SDS container" desc:"SDS container; will default to istioProxy from GlooMtls if unset"`
+	IstioProxy     IstioProxyContainer `json:"istioProxy,omitempty" desc:"Istio-proxy container; will default to istioProxy from GlooMtls if unset"`
+	CustomSidecars []interface{}       `json:"customSidecars,omitempty" desc:"Override the default Istio sidecar in gateway-proxy with a custom container. Ignored if IstioSDS.enabled is false"`
 }
 
 type IstioIntegration struct {
