@@ -224,12 +224,20 @@ global:
       image:
         repository: proxyv2
         registry: docker.io/istio
-        tag: 1.9.5
+        tag: 1.17.5
     envoy:
       image:
         repository: gloo-envoy-wrapper
   istioSDS:
     enabled: false
+    sds:
+      image:
+        repository: sds
+    istioProxy:
+      image:
+        repository: proxyv2
+        registry: docker.io/istio
+        tag: 1.17.5
   istioIntegration:
     labelInstallNamespace: false
     whitelistDiscovery: false
