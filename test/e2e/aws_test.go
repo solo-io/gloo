@@ -783,11 +783,14 @@ var _ = Describe("AWS Lambda", func() {
 			}))
 		}
 
-		testChainedProxy := func() {
-			// delete all existing upstreams
-			err := testClients.UpstreamClient.DeleteAll(defaults.GlooSystem, clients.DeleteOpts{})
+		deleteExistingUpstream := func(region string) {
+			// delete existing upstream
+			var opts clients.DeleteOpts
+			err := testClients.UpstreamClient.Delete(defaults.GlooSystem, region, opts)
 			Expect(err).NotTo(HaveOccurred())
+		}
 
+		testChainedProxy := func() {
 			// in AWS, we have configured this role so that it can invoke lambda functions, and so that it can be assumed
 			// by arn:aws:iam::802411188784:role/gloo-edge-e2e-sts, which is the role that gloo has initially in these tests
 			addChainedUpstreamSts(defaultRegion, "arn:aws:iam::802411188784:role/gloo-edge-e2e-sts-secondary")
@@ -869,7 +872,10 @@ var _ = Describe("AWS Lambda", func() {
 
 				FIt("should be able to call lambda with request and response transforms", testProxyWithRequestAndResponseTransforms)
 
-				FIt("should be able to call lambda after role chaining", testChainedProxy)
+				FIt("should be able to call lambda after role chaining", func() {
+					deleteExistingUpstream(defaultRegion)
+					testChainedProxy()
+				})
 			})
 			Context("secondary region", func() {
 				BeforeEach(func() {
@@ -880,7 +886,10 @@ var _ = Describe("AWS Lambda", func() {
 
 				FIt("should be able to call lambda", testProxy)
 
-				FIt("should be able to call lambda after role chaining", testChainedProxy)
+				FIt("should be able to call lambda after role chaining", func() {
+					deleteExistingUpstream(secondaryRegion)
+					testChainedProxy()
+				})
 			})
 			Context("default region", func() {
 				BeforeEach(func() {
@@ -891,7 +900,10 @@ var _ = Describe("AWS Lambda", func() {
 
 				FIt("should be able to call lambda", testProxy)
 
-				FIt("should be able to call lambda after role chaining", testChainedProxy)
+				FIt("should be able to call lambda after role chaining", func() {
+					deleteExistingUpstream(defaultRegion)
+					testChainedProxy()
+				})
 			})
 		})
 		Context("With gateway translation", func() {
