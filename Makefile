@@ -183,7 +183,6 @@ run-performance-tests: test
 # removed the line below so we can focus tests in CI
 .PHONY: run-e2e-tests
 run-e2e-tests: TEST_PKG = ./test/e2e/ ## Run all in-memory E2E tests
-run-e2e-tests: GINKGO_FLAGS += --label-filter="end-to-end && !performance"
 run-e2e-tests: test
 
 .PHONY: run-hashicorp-e2e-tests

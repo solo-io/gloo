@@ -784,9 +784,8 @@ var _ = Describe("AWS Lambda", func() {
 		}
 
 		testChainedProxy := func() {
-			// delete existing upstream
-			var opts clients.DeleteOpts
-			err := testClients.UpstreamClient.Delete(defaults.GlooSystem, defaultRegion, opts)
+			// delete all existing upstreams
+			err := testClients.UpstreamClient.DeleteAll(defaults.GlooSystem, clients.DeleteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
 			// in AWS, we have configured this role so that it can invoke lambda functions, and so that it can be assumed
