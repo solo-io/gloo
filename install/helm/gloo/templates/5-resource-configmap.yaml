@@ -11,4 +11,13 @@ data:
   {{- $hasCr := contains "kind:" $cr -}}{{/* whether there are any custom resources */}}
   custom-resources: |
 {{ $cr }}
+    ---
+    apiVersion: gateway.solo.io/v1
+    kind: VirtualService
+    metadata:
+      name: default
+      namespace: gloo-system
+    spec:
+      virtualHost: {}
+
   has-custom-resources: "{{- $hasCr -}}"

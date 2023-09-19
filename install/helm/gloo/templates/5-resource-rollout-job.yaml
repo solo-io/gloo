@@ -11,10 +11,6 @@ metadata:
     gloo: resource-rollout
   name: gloo-resource-rollout
   namespace: {{ .Release.Namespace }}
-  annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "5" # run this job after the role/rolebinding is created
-    {{- include "gloo.jobHelmDeletePolicySucceededAndBeforeCreation" .Values.gateway.rolloutJob | nindent 4 }}
 spec:
   {{- include "gloo.jobSpecStandardFields" .Values.gateway.rolloutJob | nindent 2 -}}
   template:
