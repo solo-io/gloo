@@ -74,6 +74,15 @@ spec:
             # Check if Gloo Edge applied custom resources
             if [ $HAS_CUSTOM_RESOURCES == "true" ]
             then
+
+              # Wait for the resource rollout job to complete
+              kubectl -n {{ .Release.Namespace }} get job gloo-resource-rollout &> /dev/null
+              if [ $? -eq 0 ]
+              then
+                echo "Waiting for the resource rollout job to complete"
+                kubectl -n {{ .Release.Namespace }} wait --for=condition=complete job gloo-resource-rollout
+              fi
+
               # If the resource has been applied, re-applying it should output something like this
               # gateway.gateway.solo.io/default unchanged
               # If not it will output

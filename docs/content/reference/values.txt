@@ -397,7 +397,7 @@
 |gateway.rolloutJob.completions|int||Specifies the desired number of successfully finished pods the job should be run with.|
 |gateway.rolloutJob.manualSelector|bool||Controls generation of pod labels and pod selectors.|
 |gateway.rolloutJob.parallelism|int||Specifies the maximum desired number of pods the job should run at any given time.|
-|gateway.rolloutJob.ttlSecondsAfterFinished|int|60|Clean up the finished job after this many seconds. Defaults to 60|
+|gateway.rolloutJob.ttlSecondsAfterFinished|int|300|Clean up the finished job after this many seconds. Defaults to 60|
 |gateway.rolloutJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
 |gateway.rolloutJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
 |gateway.rolloutJob.enabled|bool|true|Enable the job that applies default Gloo Edge custom resources at install and upgrade time (default true).|
