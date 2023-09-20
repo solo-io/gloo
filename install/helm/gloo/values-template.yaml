@@ -64,6 +64,9 @@ discovery:
     runAsUser: 10101
     enablePodSecurityContext: true
     fsGroup: 10101
+virtualService:
+  enabled: false
+  name: default
 gateway:
   enabled: true
   readGatewaysFromAllNamespaces: false
