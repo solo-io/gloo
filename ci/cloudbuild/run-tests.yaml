@@ -95,7 +95,9 @@ steps:
   dir: *dir
   entrypoint: 'make'
   args:
-  - 'run-e2e-tests'
+  - 'run-tests'
+  env:
+  - TEST_PKG=./test/e2e
   waitFor:
   - 'prepare-test-tools'
   secretEnv:
