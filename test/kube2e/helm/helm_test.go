@@ -183,6 +183,68 @@ var _ = Describe("Kube2e: helm", func() {
 		})
 	})
 
+	// The aim of the test is to ensure that the readiness probe is configured on the gateway proxy
+	// and the gateway-proxy deployment is ready before helm marks the upgrade as successful.
+	// Ref: https://github.com/solo-io/gloo/issues/8288
+	Context("Custom readiness probe", func() {
+		var valuesFileForCustomReadinessProbe string
+		var expectGatewayProxyIsReady func()
+		var cleanup func()
+
+		BeforeEach(func() {
+			valuesFileForCustomReadinessProbe, cleanup = getHelmUpgradeValuesOverrideFileForCustomReadinessProbe()
+
+			expectGatewayProxyIsReady = func() {
+				Eventually(func() (string, error) {
+					a, b := exec_utils.RunCommandOutput(testHelper.RootDir, false,
+						"kubectl", "-n", namespace, "get", "deployment", "gateway-proxy", "-o", "yaml")
+					return a, b
+				}, "30s", "1s").Should(
+					// kubectl -n gloo-system get deployment gateway-proxy -o yaml
+					// ...
+					// readinessProbe:
+					//   httpGet:
+					//     path: /envoy-hc
+					// ...
+					// readyReplicas: 1
+					And(ContainSubstring("readinessProbe:"),
+						ContainSubstring("/envoy-hc"),
+						ContainSubstring("readyReplicas: 1")))
+			}
+		})
+
+		AfterEach(func() {
+			cleanup()
+		})
+
+		Context("On clean install", func() {
+			BeforeEach(func() {
+				additionalInstallArgs = []string{
+					"--values", valuesFileForCustomReadinessProbe,
+					"--wait",
+					"--wait-for-jobs",
+				}
+			})
+
+			It("succeeds adding a custom readiness probe and the gateway-proxy deployment is ready", func() {
+				expectGatewayProxyIsReady()
+			})
+		})
+
+		Context("On upgrade", func() {
+			It("succeeds adding a custom readiness probe and the gateway-proxy deployment is ready", func() {
+				settings := []string{
+					"--wait",
+					"--wait-for-jobs",
+				}
+
+				upgradeGlooWithCustomValuesFile(testHelper, chartUri, crdDir, fromRelease, targetVersion, strictValidation, settings, valuesFileForCustomReadinessProbe)
+
+				expectGatewayProxyIsReady()
+			})
+		})
+	})
+
 	Context("validation webhook", func() {
 		var cfg *rest.Config
 		var err error
@@ -559,11 +621,8 @@ func upgradeCrds(testHelper *helper.SoloTestHelper, fromRelease string, crdDir s
 	time.Sleep(time.Second * 5)
 }
 
-func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, crdDir string, fromRelease string, targetRelease string, strictValidation bool, additionalArgs []string) {
+func upgradeGlooWithCustomValuesFile(testHelper *helper.SoloTestHelper, chartUri string, crdDir string, fromRelease string, targetRelease string, strictValidation bool, additionalArgs []string, valueOverrideFile string) {
 	upgradeCrds(testHelper, fromRelease, crdDir)
-
-	valueOverrideFile, cleanupFunc := getHelmUpgradeValuesOverrideFile()
-	defer cleanupFunc()
 
 	var args = []string{"upgrade", testHelper.HelmChartName,
 		"-n", testHelper.InstallNamespace,
@@ -584,6 +643,14 @@ func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, crdDir stri
 
 	// Check that everything is OK
 	checkGlooHealthy(testHelper)
+
+}
+
+func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, crdDir string, fromRelease string, targetRelease string, strictValidation bool, additionalArgs []string) {
+	valueOverrideFile, cleanupFunc := getHelmUpgradeValuesOverrideFile()
+	defer cleanupFunc()
+
+	upgradeGlooWithCustomValuesFile(testHelper, chartUri, crdDir, fromRelease, targetRelease, strictValidation, additionalArgs, valueOverrideFile)
 }
 
 func uninstallGloo(testHelper *helper.SoloTestHelper, ctx context.Context, cancel context.CancelFunc) {
@@ -593,6 +660,50 @@ func uninstallGloo(testHelper *helper.SoloTestHelper, ctx context.Context, cance
 	_, err = kube2e.MustKubeClient().CoreV1().Namespaces().Get(ctx, testHelper.InstallNamespace, metav1.GetOptions{})
 	Expect(apierrors.IsNotFound(err)).To(BeTrue())
 	cancel()
+}
+
+func getHelmUpgradeValuesOverrideFileForCustomReadinessProbe() (filename string, cleanup func()) {
+	values, err := os.CreateTemp("", "values-*.yaml")
+	Expect(err).NotTo(HaveOccurred())
+
+	_, err = values.Write([]byte(`
+virtualService:
+  enabled: true
+gateway:
+  validation:
+    allowWarnings: false
+    alwaysAcceptResources: false
+    failurePolicy: Fail
+gatewayProxies:
+  gatewayProxy:
+    service:
+      type: ClusterIP    # Since the test is running in kind
+    gatewaySettings:
+      customHttpGateway:
+        options:
+          healthCheck:
+            path: /envoy-hc
+    podTemplate:
+      terminationGracePeriodSeconds: 7
+      gracefulShutdown:
+        enabled: true
+        sleepTimeSeconds: 5
+      probes: true
+      customReadinessProbe:
+        httpGet:
+          scheme: HTTP
+          port: 8080
+          path: /envoy-hc
+        failureThreshold: 2
+        initialDelaySeconds: 5
+        periodSeconds: 5
+`))
+	Expect(err).NotTo(HaveOccurred())
+
+	err = values.Close()
+	Expect(err).NotTo(HaveOccurred())
+
+	return values.Name(), func() { _ = os.Remove(values.Name()) }
 }
 
 func getHelmUpgradeValuesOverrideFile() (filename string, cleanup func()) {

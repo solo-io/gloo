@@ -19,6 +19,6 @@ rules:
 # This permission is required by the oss rollout job in order to wait for the enterprise rollout job to finish first
 - apiGroups: ["batch"]
   resources: ["jobs"]
-  verbs: ["get", "list"]
+  verbs: ["get", "list", "delete"]
 {{- end -}}{{/* if .Values.global.glooRbac.create */}}
 {{- end }}{{/* if .Values.gateway.rolloutJob.enabled  */}}
