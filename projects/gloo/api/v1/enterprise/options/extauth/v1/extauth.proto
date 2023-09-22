@@ -1403,12 +1403,11 @@ message ExtAuthConfig {
     }
 
     message OidcAuthorizationCodeConfig {
-
         // your client id as registered with the issuer
         string client_id = 1;
 
-        // your client secret as registered with the issuer
-        string client_secret = 2 [(extproto.sensitive) = true];
+        // your client secret as registered with the issuer. Fully deprecated and will be ignored.
+        string client_secret = 2 [(extproto.sensitive) = true, deprecated = true];
 
         // The url of the issuer. We will look for OIDC information in issuerUrl+
         // ".well-known/openid-configuration"
@@ -1510,6 +1509,18 @@ message ExtAuthConfig {
 
         // Configuration related to the user session.
         UserSessionConfig user_session = 20;
+
+        message ClientSecretExchangeConfig {
+            // your client secret as registered with the issuer
+            string client_secret = 1 [(extproto.sensitive) = true];
+        }
+
+        // Configure the specifics of how the client secret is exchanged for an access token. Currently only supoprting client secret.
+        oneof exchange_config {
+            // Use the client secret to exchange for an access token.
+            ClientSecretExchangeConfig client_secret_exchange_config = 21;
+        }
+
     }
 
     message AccessTokenValidationConfig {
