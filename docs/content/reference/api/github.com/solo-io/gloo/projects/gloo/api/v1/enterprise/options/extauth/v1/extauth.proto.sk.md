@@ -1888,7 +1888,7 @@ Deprecated, prefer OAuth2Config
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `clientId` | `string` | your client id as registered with the issuer. |
-| `clientSecret` | `string` | your client secret as registered with the issuer. Fully deprecated and will be ignored. |
+| `clientSecret` | `string` | your client secret as registered with the issuer. Fully deprecated and will be ignored. Please use the client_secret_exchange_config option of the exchange_config field to configure the client secret. |
 | `issuerUrl` | `string` | The url of the issuer. We will look for OIDC information in issuerUrl+ ".well-known/openid-configuration". |
 | `authEndpointQueryParams` | `map<string, string>` | extra query parameters to apply to the Ext-Auth service's authorization request to the identity provider. this can be useful for flows such as PKCE (https://www.oauth.com/oauth2-servers/pkce/authorization-request/) to set the `code_challenge` and `code_challenge_method`. |
 | `tokenEndpointQueryParams` | `map<string, string>` | extra query parameters to apply to the Ext-Auth service's token request to the identity provider. this can be useful for flows such as PKCE (https://www.oauth.com/oauth2-servers/pkce/authorization-request/) to set the `code_verifier`. |
@@ -1924,7 +1924,7 @@ Deprecated, prefer OAuth2Config
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `clientSecret` | `string` | your client secret as registered with the issuer. |
+| `clientSecret` | `string` | your client secret as registered with the issuer. This field may be nil/empty. Any validation of the client secret happens when translating the public interface. |
 
 
 

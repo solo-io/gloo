@@ -1512,7 +1512,7 @@ message ExtAuthConfig {
         UserSessionConfig user_session = 20;
 
         message ClientSecretExchangeConfig {
-            // your client secret as registered with the issuer. This field may be nil/empty. All validation of this field happens when translating the public interface.
+            // your client secret as registered with the issuer. This field may be nil/empty. Any validation of the client secret happens when translating the public interface
             string client_secret = 1 [(extproto.sensitive) = true];
         }
 

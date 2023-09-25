@@ -6836,6 +6836,7 @@ type ExtAuthConfig_OidcAuthorizationCodeConfig struct {
 	// your client id as registered with the issuer
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// your client secret as registered with the issuer. Fully deprecated and will be ignored.
+	// Please use the client_secret_exchange_config option of the exchange_config field to configure the client secret.
 	//
 	// Deprecated: Marked as deprecated in github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.
 	ClientSecret string `protobuf:"bytes,2,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
@@ -8468,7 +8469,7 @@ type ExtAuthConfig_OidcAuthorizationCodeConfig_ClientSecretExchangeConfig struct
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// your client secret as registered with the issuer
+	// your client secret as registered with the issuer. This field may be nil/empty. Any validation of the client secret happens when translating the public interface
 	ClientSecret string `protobuf:"bytes,1,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
 }
 
