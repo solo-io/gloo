@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/solo-io/go-utils/stringutils"
+
 	"github.com/solo-io/gloo/install/helm/gloo/generate"
 
 	flag "github.com/spf13/pflag"
@@ -21,6 +23,22 @@ const (
 	devPullPolicy          = string(v1.PullAlways)
 	distributionPullPolicy = string(v1.PullIfNotPresent)
 	defaultImageRegistry   = "quay.io/solo-io"
+)
+
+var (
+	// fipsSupportedImages is a list of images that support a FIPS compliant variant
+	// https://github.com/solo-io/solo-projects/pull/4178#discussion_r997195217
+	// This is not the ideal way of managing our set of FIPS images, and some preferred alternatives are:
+	// 1. Ensure all images are FIPS compliant
+	// 2. Derive the values from the Gloo sub-chart
+	fipsSupportedImages = []string{
+		"gloo-ee",
+		"extauth-ee",
+		"gloo-ee-envoy-wrapper",
+		"rate-limit-ee",
+		"ext-auth-plugins",
+		"discovery-ee",
+	}
 )
 
 // We produce two helm artifacts: GlooE and Gloo with a read-only version of the GlooE UI
@@ -394,10 +412,9 @@ func setDigest(img *generate.Image, config HelmConfig) {
 	}
 
 	// FIPS exceptions pulled from "gloo.image": https://github.com/solo-io/gloo/blob/main/install/helm/gloo/templates/_helpers.tpl#L22-L24
-	if *img.Repository == "gloo-ee" || *img.Repository == "extauth-ee" ||
-		*img.Repository == "gloo-ee-envoy-wrapper" || *img.Repository == "rate-limit-ee" || *img.Repository == "ext-auth-plugins" {
-
-		fipsUrl := *registry + "/" + *img.Repository + "-fips:" + *img.Tag
+	imageName := *img.Repository
+	if stringutils.ContainsString(imageName, fipsSupportedImages) {
+		fipsUrl := *registry + "/" + imageName + "-fips:" + *img.Tag
 		digest, _, _ := shellout("docker manifest inspect " + fipsUrl + " -v | jq -r \".Descriptor.digest\"")
 		digest = strings.TrimSpace(digest)
 		if digest != "" {
@@ -405,6 +422,7 @@ func setDigest(img *generate.Image, config HelmConfig) {
 			// don't have a _single_ digest.  Rather, they have several, on a per-platform basis.
 			img.FipsDigest = &digest
 		}
+
 	}
 }
 

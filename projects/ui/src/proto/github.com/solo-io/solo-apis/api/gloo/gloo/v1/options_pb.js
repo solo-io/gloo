@@ -779,7 +779,8 @@ proto.gloo.solo.io.RouteConfigurationOptions.prototype.toObject = function(opt_i
  */
 proto.gloo.solo.io.RouteConfigurationOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
-    maxDirectResponseBodySizeBytes: (f = msg.getMaxDirectResponseBodySizeBytes()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f)
+    maxDirectResponseBodySizeBytes: (f = msg.getMaxDirectResponseBodySizeBytes()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
+    mostSpecificHeaderMutationsWins: (f = msg.getMostSpecificHeaderMutationsWins()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -821,6 +822,11 @@ proto.gloo.solo.io.RouteConfigurationOptions.deserializeBinaryFromReader = funct
       reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
       msg.setMaxDirectResponseBodySizeBytes(value);
       break;
+    case 2:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setMostSpecificHeaderMutationsWins(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -858,6 +864,14 @@ proto.gloo.solo.io.RouteConfigurationOptions.serializeBinaryToWriter = function(
       google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
+  f = message.getMostSpecificHeaderMutationsWins();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -888,6 +902,36 @@ proto.gloo.solo.io.RouteConfigurationOptions.prototype.clearMaxDirectResponseBod
  */
 proto.gloo.solo.io.RouteConfigurationOptions.prototype.hasMaxDirectResponseBodySizeBytes = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue most_specific_header_mutations_wins = 2;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.RouteConfigurationOptions.prototype.getMostSpecificHeaderMutationsWins = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 2));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.RouteConfigurationOptions.prototype.setMostSpecificHeaderMutationsWins = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.gloo.solo.io.RouteConfigurationOptions.prototype.clearMostSpecificHeaderMutationsWins = function() {
+  this.setMostSpecificHeaderMutationsWins(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RouteConfigurationOptions.prototype.hasMostSpecificHeaderMutationsWins = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

@@ -146,6 +146,11 @@ export class RouteConfigurationOptions extends jspb.Message {
   getMaxDirectResponseBodySizeBytes(): google_protobuf_wrappers_pb.UInt32Value | undefined;
   setMaxDirectResponseBodySizeBytes(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
+  hasMostSpecificHeaderMutationsWins(): boolean;
+  clearMostSpecificHeaderMutationsWins(): void;
+  getMostSpecificHeaderMutationsWins(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setMostSpecificHeaderMutationsWins(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteConfigurationOptions.AsObject;
   static toObject(includeInstance: boolean, msg: RouteConfigurationOptions): RouteConfigurationOptions.AsObject;
@@ -159,6 +164,7 @@ export class RouteConfigurationOptions extends jspb.Message {
 export namespace RouteConfigurationOptions {
   export type AsObject = {
     maxDirectResponseBodySizeBytes?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    mostSpecificHeaderMutationsWins?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
 

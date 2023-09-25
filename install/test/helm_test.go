@@ -2573,7 +2573,8 @@ spec:
     awsOptions:
       serviceAccountCredentials:
         cluster: aws_sts_cluster
-        uri: sts.us-east-2.amazonaws.com`,
+        uri: sts.us-east-2.amazonaws.com
+        region: us-east-2`,
 				})
 				settings := makeUnstructured(unstructuredSettingsString)
 

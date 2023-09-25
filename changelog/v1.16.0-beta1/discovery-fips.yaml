@@ -1,0 +1,12 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/solo-projects/issues/5367
+    resolvesIssue: false
+    description: >-
+      Ensure that setting `discovery.deployment.image.fips` will result in the FIPS variant of the
+      discovery image being used.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5367
+    resolvesIssue: false
+    description: >-
+      Add make targets for building and pushing a FIPS-compliant discovery image.

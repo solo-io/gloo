@@ -15,6 +15,7 @@ ARG GCFLAGS
 ARG LDFLAGS
 ARG GITHUB_TOKEN
 ARG USE_APK
+ARG GOEXPERIMENT
 ARG DOCKER_GOARCH
 ARG DOCKER_CGO_ENABLED=0
 
@@ -32,7 +33,7 @@ RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf https
 RUN go env -w GOPRIVATE=github.com/solo-io
 
 # Build rate-limit server with CGO enabled
-RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=${DOCKER_GOARCH} GOOS=linux go build \
+RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=${DOCKER_GOARCH} GOOS=linux GOEXPERIMENT=${GOEXPERIMENT} go build \
     -gcflags="$GCFLAGS" \
     -ldflags="$LDFLAGS" \
     -o rate-limit-linux-${DOCKER_GOARCH} \

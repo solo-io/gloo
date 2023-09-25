@@ -7,6 +7,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
+
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_type_matcher_v3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
@@ -238,12 +240,21 @@ func convertEnvoyToGloo(ctx context.Context, httpHealth *envoy_config_core_v3.He
 			contextutils.LoggerFrom(ctx).DPanic("nil value in request headers to add slice")
 			continue
 		}
+
+		appendValue := &wrappers.BoolValue{Value: true}
+		// The `httpHealth` parameter was generated from our internal config, so we only care about what configuration we handle during translation.
+		// From Gloo to Envoy, we translate `append: true` to `append_if_exists_or_add` and `append: false` to `overwrite_if_exists_or_add`, so here we're reversing that translation.
+		if rh.GetAppendAction() == envoy_config_core_v3.HeaderValueOption_APPEND_IF_EXISTS_OR_ADD {
+			appendValue = &wrappers.BoolValue{Value: true}
+		} else if rh.GetAppendAction() == envoy_config_core_v3.HeaderValueOption_OVERWRITE_IF_EXISTS_OR_ADD {
+			appendValue = &wrappers.BoolValue{Value: false}
+		}
 		ret.RequestHeadersToAdd = append(ret.RequestHeadersToAdd, &envoy_core_v3_endpoint.HeaderValueOption{
 			Header: &envoy_core_v3_endpoint.HeaderValue{
 				Key:   rh.GetHeader().GetKey(),
 				Value: rh.GetHeader().GetValue(),
 			},
-			Append: rh.GetAppend(),
+			Append: appendValue,
 		})
 	}
 	ret.RequestHeadersToRemove = httpHealth.GetRequestHeadersToRemove()
