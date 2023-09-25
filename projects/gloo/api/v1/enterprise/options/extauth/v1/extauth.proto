@@ -1407,6 +1407,7 @@ message ExtAuthConfig {
         string client_id = 1;
 
         // your client secret as registered with the issuer. Fully deprecated and will be ignored.
+        // Please use the client_secret_exchange_config option of the exchange_config field to configure the client secret.
         string client_secret = 2 [(extproto.sensitive) = true, deprecated = true];
 
         // The url of the issuer. We will look for OIDC information in issuerUrl+
@@ -1511,7 +1512,7 @@ message ExtAuthConfig {
         UserSessionConfig user_session = 20;
 
         message ClientSecretExchangeConfig {
-            // your client secret as registered with the issuer
+            // your client secret as registered with the issuer. This field may be nil/empty. All validation of this field happens when translating the public interface.
             string client_secret = 1 [(extproto.sensitive) = true];
         }
 
