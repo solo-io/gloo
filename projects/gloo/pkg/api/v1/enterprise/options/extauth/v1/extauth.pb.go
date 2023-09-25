@@ -6921,7 +6921,7 @@ type ExtAuthConfig_OidcAuthorizationCodeConfig struct {
 	EndSessionProperties *EndSessionProperties `protobuf:"bytes,19,opt,name=end_session_properties,json=endSessionProperties,proto3" json:"end_session_properties,omitempty"`
 	// Configuration related to the user session.
 	UserSession *ExtAuthConfig_UserSessionConfig `protobuf:"bytes,20,opt,name=user_session,json=userSession,proto3" json:"user_session,omitempty"`
-	// Configure the specifics of how the client secret is exchanged for an access token. Currently only supoprting client secret.
+	// Configure the specifics of how the client secret is exchanged for an access token. Currently only supporting client secret.
 	//
 	// Types that are assignable to ExchangeConfig:
 	//
