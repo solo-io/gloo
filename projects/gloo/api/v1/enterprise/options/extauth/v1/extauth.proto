@@ -1515,7 +1515,7 @@ message ExtAuthConfig {
             string client_secret = 1 [(extproto.sensitive) = true];
         }
 
-        // Configure the specifics of how the client secret is exchanged for an access token. Currently only supoprting client secret.
+        // Configure the specifics of how the client secret is exchanged for an access token. Currently only supporting client secret.
         oneof exchange_config {
             // Use the client secret to exchange for an access token.
             ClientSecretExchangeConfig client_secret_exchange_config = 21;
