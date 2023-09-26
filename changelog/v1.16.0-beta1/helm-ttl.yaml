@@ -1,0 +1,6 @@
+changelog:
+  - type: HELM
+    description: >-
+      Update enterprise chart with fix for TTL not being respected on Helm hook jobs due to deletion policy.
+    issueLink: https://github.com/solo-io/gloo/issues/8500
+    resolvesIssue: false

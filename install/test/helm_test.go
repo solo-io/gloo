@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -5685,6 +5686,182 @@ metadata:
 				Expect(configMap.Data["custom-resources"]).NotTo(ContainSubstring("kind: Upstream"))
 				Expect(configMap.Data["has-custom-resources"]).To(Equal("false"))
 			})
+		})
+
+		Context("Jobs", func() {
+			// These are copied over from the OSS helm tests, with the addition of gloo-ee-resource-rollout job
+			// and addition of "gloo." prefix on the helm values for enterprise.
+			const (
+				ACTIVE_DEADLINE_SECONDS    = 123
+				TTL_SECONDS_AFTER_FINISHED = 42
+				BACKOFF_LIMIT              = 10
+				COMPLETIONS                = 5
+				MANUAL_SELECTOR            = true
+				PARALLELISM                = 7
+			)
+			DescribeTable("can set JobSpec fields on Jobs",
+				func(kind string, resourceName string, jobValuesPrefix string, extraArgs ...string) {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: append([]string{
+							jobValuesPrefix + ".activeDeadlineSeconds=" + strconv.Itoa(ACTIVE_DEADLINE_SECONDS),
+							jobValuesPrefix + ".ttlSecondsAfterFinished=" + strconv.Itoa(TTL_SECONDS_AFTER_FINISHED),
+							jobValuesPrefix + ".backoffLimit=" + strconv.Itoa(BACKOFF_LIMIT),
+							jobValuesPrefix + ".completions=" + strconv.Itoa(COMPLETIONS),
+							jobValuesPrefix + ".manualSelector=" + strconv.FormatBool(MANUAL_SELECTOR),
+							jobValuesPrefix + ".parallelism=" + strconv.Itoa(PARALLELISM),
+						}, extraArgs...),
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					resources := testManifest.SelectResources(func(u *unstructured.Unstructured) bool {
+						var prefixPath []string
+						if kind == "CronJob" {
+							prefixPath = []string{"spec", "jobTemplate"}
+						}
+						if u.GetKind() == kind && u.GetName() == resourceName {
+							a := getFieldFromUnstructured(u, append(prefixPath, "spec", "activeDeadlineSeconds")...)
+							Expect(a).To(Equal(int64(ACTIVE_DEADLINE_SECONDS)))
+							a = getFieldFromUnstructured(u, append(prefixPath, "spec", "ttlSecondsAfterFinished")...)
+							Expect(a).To(Equal(int64(TTL_SECONDS_AFTER_FINISHED)))
+							a = getFieldFromUnstructured(u, append(prefixPath, "spec", "backoffLimit")...)
+							Expect(a).To(Equal(int64(BACKOFF_LIMIT)))
+							a = getFieldFromUnstructured(u, append(prefixPath, "spec", "completions")...)
+							Expect(a).To(Equal(int64(COMPLETIONS)))
+							a = getFieldFromUnstructured(u, append(prefixPath, "spec", "parallelism")...)
+							Expect(a).To(Equal(int64(PARALLELISM)))
+							a = getFieldFromUnstructured(u, append(prefixPath, "spec", "manualSelector")...)
+							Expect(a).To(Equal(MANUAL_SELECTOR))
+							return true
+						}
+						return false
+					})
+					Expect(resources.NumResources()).To(Equal(1))
+				},
+				Entry("gateway certgen job", "Job", "gateway-certgen", "gloo.gateway.certGenJob"),
+				Entry("mtls certgen job", "Job", "gloo-mtls-certgen", "gloo.gateway.certGenJob", "global.glooMtls.enabled=true"),
+				Entry("mtls certgen cronjob", "CronJob", "gloo-mtls-certgen-cronjob", "gloo.gateway.certGenJob", "global.glooMtls.enabled=true", "gloo.gateway.certGenJob.cron.enabled=true"),
+				Entry("gateway certgen cronjob", "CronJob", "gateway-certgen-cronjob", "gloo.gateway.certGenJob", "gloo.gateway.enabled=true", "gloo.gateway.validation.enabled=true", "gloo.gateway.validation.webhook.enabled=true", "gloo.gateway.certGenJob.cron.enabled=true"),
+				Entry("resource rollout job", "Job", "gloo-resource-rollout", "gloo.gateway.rolloutJob"),
+				Entry("resource migration job", "Job", "gloo-resource-migration", "gloo.gateway.rolloutJob"),
+				Entry("resource cleanup job", "Job", "gloo-resource-cleanup", "gloo.gateway.cleanupJob"),
+				Entry("ee resource rollout job", "Job", "gloo-ee-resource-rollout", "gloo.gateway.rolloutJob"),
+			)
+
+			DescribeTable("setTtlAfterFinished=false suppresses ttlSecondsAfterFinished on Jobs",
+				func(kind string, resourceName string, jobValuesPrefix string, extraArgs ...string) {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: append([]string{
+							jobValuesPrefix + ".setTtlAfterFinished=false",
+							jobValuesPrefix + ".ttlSecondsAfterFinished=" + strconv.Itoa(TTL_SECONDS_AFTER_FINISHED),
+						}, extraArgs...),
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					resources := testManifest.SelectResources(func(u *unstructured.Unstructured) bool {
+						var prefixPath []string
+						if kind == "CronJob" {
+							prefixPath = []string{"spec", "jobTemplate"}
+						}
+						if u.GetKind() == kind && u.GetName() == resourceName {
+							a := getFieldFromUnstructured(u, append(prefixPath, "spec", "ttlSecondsAfterFinished")...)
+							Expect(a).To(BeNil())
+							if kind == "Job" {
+								helmHookDeletePolicy, ok := u.GetAnnotations()["helm.sh/hook-delete-policy"]
+								Expect(ok).To(BeTrue())
+								Expect(helmHookDeletePolicy).To(ContainSubstring("hook-succeeded"))
+							}
+							return true
+						}
+						return false
+					})
+					Expect(resources.NumResources()).To(Equal(1))
+				},
+				Entry("gateway certgen job", "Job", "gateway-certgen", "gloo.gateway.certGenJob"),
+				Entry("mtls certgen job", "Job", "gloo-mtls-certgen", "gloo.gateway.certGenJob", "global.glooMtls.enabled=true"),
+				Entry("mtls certgen cronjob", "CronJob", "gloo-mtls-certgen-cronjob", "gloo.gateway.certGenJob", "global.glooMtls.enabled=true", "gloo.gateway.certGenJob.cron.enabled=true"),
+				Entry("gateway certgen cronjob", "CronJob", "gateway-certgen-cronjob", "gloo.gateway.certGenJob", "gloo.gateway.enabled=true", "gloo.gateway.validation.enabled=true", "gloo.gateway.validation.webhook.enabled=true", "gloo.gateway.certGenJob.cron.enabled=true"),
+			)
+
+			DescribeTable("Setting setTtlAfterFinished=true includes ttlSecondsAfterFinished on Jobs",
+				func(kind string, resourceName string, jobValuesPrefix string, expectAnnotation bool, extraArgs ...string) {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: append([]string{
+							jobValuesPrefix + ".setTtlAfterFinished=true",
+							jobValuesPrefix + ".ttlSecondsAfterFinished=" + strconv.Itoa(TTL_SECONDS_AFTER_FINISHED),
+						}, extraArgs...),
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					resources := testManifest.SelectResources(func(u *unstructured.Unstructured) bool {
+						var prefixPath []string
+						if kind == "CronJob" {
+							prefixPath = []string{"spec", "jobTemplate"}
+						}
+						if u.GetKind() == kind && u.GetName() == resourceName {
+							a := getFieldFromUnstructured(u, append(prefixPath, "spec", "ttlSecondsAfterFinished")...)
+							Expect(a).To(Equal(int64(TTL_SECONDS_AFTER_FINISHED)))
+							if kind == "Job" {
+								helmHookDeletePolicy, ok := u.GetAnnotations()["helm.sh/hook-delete-policy"]
+								if expectAnnotation {
+									Expect(ok).To(BeTrue())
+									Expect(helmHookDeletePolicy).NotTo(ContainSubstring("hook-succeeded"))
+								} else {
+									Expect(ok).To(BeFalse())
+								}
+							}
+							return true
+						}
+						return false
+					})
+					Expect(resources.NumResources()).To(Equal(1))
+				},
+				Entry("gateway certgen job", "Job", "gateway-certgen", "gloo.gateway.certGenJob", true),
+				Entry("mtls certgen job", "Job", "gloo-mtls-certgen", "gloo.gateway.certGenJob", false, "global.glooMtls.enabled=true"),
+				Entry("mtls certgen cronjob", "CronJob", "gloo-mtls-certgen-cronjob", "gloo.gateway.certGenJob", false, "global.glooMtls.enabled=true", "gloo.gateway.certGenJob.cron.enabled=true"),
+				Entry("gateway certgen cronjob", "CronJob", "gateway-certgen-cronjob", "gloo.gateway.certGenJob", false, "gloo.gateway.enabled=true", "gloo.gateway.validation.enabled=true", "gloo.gateway.validation.webhook.enabled=true", "gloo.gateway.certGenJob.cron.enabled=true"),
+			)
+
+			DescribeTable("When setTtlAfterFinished is unset, includes ttlSecondsAfterFinished on Jobs",
+				func(kind string, resourceName string, jobValuesPrefix string, expectAnnotation bool, extraArgs ...string) {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: append([]string{
+							jobValuesPrefix + ".ttlSecondsAfterFinished=" + strconv.Itoa(TTL_SECONDS_AFTER_FINISHED),
+						}, extraArgs...),
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					resources := testManifest.SelectResources(func(u *unstructured.Unstructured) bool {
+						var prefixPath []string
+						if kind == "CronJob" {
+							prefixPath = []string{"spec", "jobTemplate"}
+						}
+						if u.GetKind() == kind && u.GetName() == resourceName {
+							a := getFieldFromUnstructured(u, append(prefixPath, "spec", "ttlSecondsAfterFinished")...)
+							Expect(a).To(Equal(int64(TTL_SECONDS_AFTER_FINISHED)))
+							if kind == "Job" {
+								helmHookDeletePolicy, ok := u.GetAnnotations()["helm.sh/hook-delete-policy"]
+								if expectAnnotation {
+									Expect(ok).To(BeTrue())
+									Expect(helmHookDeletePolicy).NotTo(ContainSubstring("hook-succeeded"))
+								} else if resourceName == "gloo-mtls-certgen" {
+									Expect(ok).To(BeFalse())
+								}
+							}
+							return true
+						}
+						return false
+					})
+					Expect(resources.NumResources()).To(Equal(1))
+				},
+				Entry("gateway certgen job", "Job", "gateway-certgen", "gloo.gateway.certGenJob", true),
+				Entry("mtls certgen job", "Job", "gloo-mtls-certgen", "gloo.gateway.certGenJob", false, "global.glooMtls.enabled=true"),
+				Entry("mtls certgen cronjob", "CronJob", "gloo-mtls-certgen-cronjob", "gloo.gateway.certGenJob", false, "global.glooMtls.enabled=true", "gloo.gateway.certGenJob.cron.enabled=true"),
+				Entry("gateway certgen cronjob", "CronJob", "gateway-certgen-cronjob", "gloo.gateway.certGenJob", false, "gloo.gateway.enabled=true", "gloo.gateway.validation.enabled=true", "gloo.gateway.validation.webhook.enabled=true", "gloo.gateway.certGenJob.cron.enabled=true"),
+				Entry("resource rollout job", "Job", "gloo-resource-rollout", "gloo.gateway.rolloutJob", false),
+				Entry("resource migration job", "Job", "gloo-resource-migration", "gloo.gateway.rolloutJob", false),
+				Entry("resource cleanup job", "Job", "gloo-resource-cleanup", "gloo.gateway.cleanupJob", false),
+				Entry("ee resource rollout job", "Job", "gloo-ee-resource-rollout", "gloo.gateway.rolloutJob", false),
+			)
 		})
 
 		// Lines ending with whitespace causes malformatted config map (https://github.com/solo-io/gloo/issues/4645)
