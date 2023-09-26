@@ -102,5 +102,4 @@ spec:
             else
               echo "no custom resources to check"
             fi
-            # TODO: Cleanup RBAC created for the rollout job
 {{- end }}{{/* if .Values.gateway.rolloutJob.enabled  */}}
