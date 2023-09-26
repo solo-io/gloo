@@ -6570,7 +6570,7 @@ metadata:
 				})
 			})
 
-			FContext("Virtual Service overrides", func() {
+			Context("Virtual Service overrides", func() {
 				It("can override values on default virtual service", func() {
 					prepareMakefile(namespace, helmValues{
 						valuesArgs: []string{
