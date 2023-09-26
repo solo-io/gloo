@@ -752,6 +752,13 @@ type IstioIntegration struct {
 }
 
 type VirtualService struct {
-	Enabled *bool   `json:"enabled,omitempty" desc:"Defines whether the default virtual service is enabled."`
-	Name    *string `json:"name,omitempty" desc:"Name of the default virtual service."`
+	Enabled *bool    `json:"enabled,omitempty" desc:"Defines whether the default virtual service is enabled."`
+	Name    *string  `json:"name,omitempty" desc:"Name of the default virtual service."`
+	Domains []string `json:"domains,omitempty" desc:"The list of domains matching the Host header of a request."`
+	Routes  []Routes `json:"routes,omitempty" desc:"The list of routes on the virtual service."`
+}
+
+type Routes struct {
+	Path     *string `json:"path,omitempty" desc:"The path matching the request."`
+	Response *string `json:"response,omitempty" desc:"The content of the response body."`
 }

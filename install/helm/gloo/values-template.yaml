@@ -67,6 +67,11 @@ discovery:
 virtualService:
   enabled: false
   name: default
+  domains:
+  - "*"
+  routes:
+  - path: "/"
+    response: "Welcome to Gloo Edge!"
 gateway:
   enabled: true
   readGatewaysFromAllNamespaces: false

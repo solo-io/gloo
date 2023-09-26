@@ -1138,6 +1138,9 @@
 |accessLogger.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |virtualService.enabled|bool|false|Defines whether the default virtual service is enabled.|
 |virtualService.name|string|default|Name of the default virtual service.|
+|virtualService.domains[]|string||The list of domains matching the Host header of a request.|
+|virtualService.routes[].path|string||The path matching the request.|
+|virtualService.routes[].response|string||The content of the response body.|
 |global.image.tag|string||The image tag for the container.|
 |global.image.repository|string||The image repository (name) for the container.|
 |global.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
