@@ -6570,16 +6570,19 @@ metadata:
 				})
 			})
 
-			Context("Virtual Service overrides", func() {
+			FContext("Virtual Service overrides", func() {
 				It("can override values on default virtual service", func() {
 					prepareMakefile(namespace, helmValues{
 						valuesArgs: []string{
 							"gatewayProxies.gatewayProxy.gatewaySettings.enabled=false",
 							"virtualService.enabled=true",
 							"virtualService.name=random",
+							"virtualService.domains[0]=domain",
+							"virtualService.routes[0].path=/path",
+							"virtualService.routes[0].response=response",
 						},
 					})
-					vs := makeUnstructuredVirtualService(namespace, "random")
+					vs := makeUnstructuredVirtualService(namespace, "random", "domain", "/path", "response")
 
 					assertCustomResourceManifestMatchesVirtualService(map[string]types.GomegaMatcher{
 						"random": BeEquivalentTo(vs),
@@ -6923,7 +6926,7 @@ func getStructuredDeployment(t TestManifest, resourceName string) *appsv1.Deploy
 	return structuredDeployment
 }
 
-func makeUnstructuredVirtualService(namespace string, name string) *unstructured.Unstructured {
+func makeUnstructuredVirtualService(namespace, name, domain, path, response string) *unstructured.Unstructured {
 	return makeUnstructured(`
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
@@ -6931,7 +6934,15 @@ metadata:
   name: ` + name + `
   namespace: ` + namespace + `
 spec:
-  virtualHost: {}
+  virtualHost:
+    domains:
+    - ` + domain + `
+    routes:
+    - matchers:
+      - exact: "` + path + `"
+      directResponseAction:
+        status: 200
+        body: "` + response + `"
 `)
 }
 
