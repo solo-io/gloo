@@ -153,6 +153,9 @@ export namespace AWSLambdaConfig {
     getTimeout(): google_protobuf_duration_pb.Duration | undefined;
     setTimeout(value?: google_protobuf_duration_pb.Duration): void;
 
+    getRegion(): string;
+    setRegion(value: string): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ServiceAccountCredentials.AsObject;
     static toObject(includeInstance: boolean, msg: ServiceAccountCredentials): ServiceAccountCredentials.AsObject;
@@ -168,6 +171,7 @@ export namespace AWSLambdaConfig {
       cluster: string,
       uri: string,
       timeout?: google_protobuf_duration_pb.Duration.AsObject,
+      region: string,
     }
   }
 

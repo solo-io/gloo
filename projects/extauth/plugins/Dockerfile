@@ -6,6 +6,7 @@ FROM $GO_BUILD_IMAGE AS build-env
 ARG GC_FLAGS
 ARG VERIFY_SCRIPT
 ARG GITHUB_TOKEN
+ARG GOEXPERIMENT
 ARG USE_APK
 ARG DOCKER_GOARCH
 
@@ -22,7 +23,7 @@ RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf https
 RUN go env -w GOPRIVATE=github.com/solo-io/ext-auth-service
 
 # Build plugins with CGO enabled
-RUN CGO_ENABLED=1 GOARCH=${DOCKER_GOARCH} GOOS=linux go build -buildmode=plugin -gcflags="$GC_FLAGS" \
+RUN CGO_ENABLED=1 GOARCH=${DOCKER_GOARCH} GOOS=linux GOEXPERIMENT=${GOEXPERIMENT}  go build -buildmode=plugin -gcflags="$GC_FLAGS" \
     -o projects/extauth/compiled-plugins/RequiredHeader.so projects/extauth/plugins/required_header/plugin.go
 
 # Verify that plugins can be loaded by GlooE

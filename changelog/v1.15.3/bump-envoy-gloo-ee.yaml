@@ -1,0 +1,27 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo-ee
+    dependencyTag: v1.26.4-patch4
+    issueLink: https://github.com/solo-io/envoy-gloo/pull/267
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.15.7
+  - type: HELM
+    description: >-
+      Update enterprise chart with fix for TTL not being respected on Helm hook jobs due to deletion policy.
+    issueLink: https://github.com/solo-io/gloo/issues/8500
+    resolvesIssue: false
+  - type: HELM
+    issueLink: https://github.com/solo-io/solo-projects/issues/5367
+    resolvesIssue: false
+    description: >-
+      Ensure that setting `discovery.deployment.image.fips` will result in the FIPS variant of the
+      discovery image being used.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5367
+    resolvesIssue: false
+    description: >-
+      Add make targets for building and pushing a FIPS-compliant discovery image.

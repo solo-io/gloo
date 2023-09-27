@@ -15,6 +15,7 @@ ARG GCFLAGS
 ARG LDFLAGS
 ARG GITHUB_TOKEN
 ARG USE_APK
+ARG GOEXPERIMENT
 ARG DOCKER_GOARCH
 ARG DOCKER_CGO_ENABLED=0
 
@@ -31,14 +32,14 @@ RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf https
 RUN go env -w GOPRIVATE=github.com/solo-io
 
 # Build ext-auth server with CGO enabled
-RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=${DOCKER_GOARCH} GOOS=linux go build \
+RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=${DOCKER_GOARCH} GOOS=linux GOEXPERIMENT=${GOEXPERIMENT}  go build \
     -gcflags="$GCFLAGS" \
     -ldflags="$LDFLAGS" \
     -o extauth-linux-${DOCKER_GOARCH} \
     projects/extauth/cmd/main.go
 
 # Build script to verify if a plugin can be loaded by the ext-auth server
-RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=amd64 GOOS=linux go build \
+RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=amd64 GOOS=linux GOEXPERIMENT=${GOEXPERIMENT}  go build \
     -gcflags="$GCFLAGS" \
     -ldflags="$LDFLAGS" \
     -o verify-plugins-linux-amd64 \

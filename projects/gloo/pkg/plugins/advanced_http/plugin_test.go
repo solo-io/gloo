@@ -48,7 +48,7 @@ var _ = Describe("Plugin", func() {
 									Value: "value",
 								},
 							},
-							Append: &wrapperspb.BoolValue{Value: true},
+							Append: &wrapperspb.BoolValue{Value: false},
 						},
 					},
 					RequestHeadersToRemove: []string{"test"},
@@ -103,7 +103,17 @@ var _ = Describe("Plugin", func() {
 		Expect(out.HttpHealthCheck.RequestHeadersToRemove).To(Equal(baseHealthCheck.RequestHeadersToRemove))
 		Expect(out.HttpHealthCheck.RequestHeadersToAdd[0].Header.Key).To(Equal(baseHealthCheck.RequestHeadersToAdd[0].Header.Key))
 		Expect(out.HttpHealthCheck.RequestHeadersToAdd[0].Header.Value).To(Equal(baseHealthCheck.RequestHeadersToAdd[0].Header.Value))
-		Expect(out.HttpHealthCheck.RequestHeadersToAdd[0].Append.Value).To(Equal(baseHealthCheck.RequestHeadersToAdd[0].Append.Value))
+
+		expectedAppend := true
+		// We only handle `append_if_exists_or_add` and `overwrite_if_exists_or_add` during translation of `append` to `append_action`, so we need to check for those.
+		if baseHealthCheck.RequestHeadersToAdd[0].AppendAction == envoy_config_core_v3.HeaderValueOption_APPEND_IF_EXISTS_OR_ADD {
+			expectedAppend = true
+		} else if baseHealthCheck.RequestHeadersToAdd[0].AppendAction == envoy_config_core_v3.HeaderValueOption_OVERWRITE_IF_EXISTS_OR_ADD {
+			expectedAppend = false
+		} else {
+			Fail("unexpected append action translation")
+		}
+		Expect(out.HttpHealthCheck.RequestHeadersToAdd[0].Append.Value).To(Equal(expectedAppend))
 
 	})
 

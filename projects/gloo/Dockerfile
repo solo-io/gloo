@@ -15,6 +15,7 @@ ARG GCFLAGS
 ARG LDFLAGS
 ARG GITHUB_TOKEN
 ARG USE_APK
+ARG GOEXPERIMENT
 ARG DOCKER_GOARCH
 # define race as "-race" to include race
 ARG RACE
@@ -46,7 +47,7 @@ WORKDIR /go/src/github.com/solo-io/solo-projects
 RUN \
     if [ "${BUILDARCH}" = "arm64" ] && [ "${DOCKER_GOARCH}" = "amd64" ]; then export CC=x86_64-linux-gnu-gcc && export CXX=x86_64-linux-gnu-g++; fi && \
     if [ "${BUILDARCH}" = "amd64" ] && [ "${DOCKER_GOARCH}" = "arm64" ]; then export CC=aarch64-linux-gnu-gcc && export CXX=aarch64-linux-gnu-g++; fi && \
-    CGO_ENABLED=1 GOARCH=${DOCKER_GOARCH} GOOS=linux go build \
+    CGO_ENABLED=1 GOARCH=${DOCKER_GOARCH} GOOS=linux GOEXPERIMENT=${GOEXPERIMENT} go build \
     ${RACE} \
     -gcflags="$GCFLAGS" \
     -ldflags="$LDFLAGS" \

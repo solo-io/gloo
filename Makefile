@@ -42,7 +42,7 @@ SOURCES := $(shell find . -name "*.go" | grep -v test.go)
 GCS_BUCKET := glooctl-plugins
 FED_GCS_PATH := glooctl-fed
 
-ENVOY_GLOO_IMAGE_VERSION ?= 1.26.4-patch3
+ENVOY_GLOO_IMAGE_VERSION ?= 1.26.4-patch4
 ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:$(ENVOY_GLOO_IMAGE_VERSION)
 ENVOY_GLOO_DEBUG_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-debug:$(ENVOY_GLOO_IMAGE_VERSION)
 ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:$(ENVOY_GLOO_IMAGE_VERSION)
@@ -1196,26 +1196,78 @@ $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker: $(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64 $(GL
 gloo-ee-fips-docker-dev: $(GLOO_FIPS_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(GLOO_FIPS_OUT_DIR)/Dockerfile
 	docker buildx build --load -t $(IMAGE_REGISTRY)/gloo-ee-fips:$(VERSION) $(DOCKER_BUILD_ARGS) $(GLOO_FIPS_OUT_DIR) --no-cache
 	touch $@
+
 #----------------------------------------------------------------------------------
-# discovery (enterprise)
+# Discovery
 #----------------------------------------------------------------------------------
 
 DISCOVERY_DIR=projects/discovery
 DISCOVERY_SOURCES=$(shell find $(DISCOVERY_DIR) -name "*.go" | grep -v test | grep -v generated.go)
-DISCOVERY_OUTPUT_DIR=$(OUTPUT_DIR)/$(DISCOVERY_DIR)
+DISCOVERY_OUTPUT_DIR=$(OUTPUT_DIR)/discovery
 
-$(DISCOVERY_OUTPUT_DIR)/discovery-ee-linux-$(DOCKER_GOARCH): $(DISCOVERY_SOURCES)
+$(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(DOCKER_GOARCH): $(DISCOVERY_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(DISCOVERY_DIR)/cmd/main.go
 
-.PHONY: discovery-ee
-discovery-ee: $(DISCOVERY_OUTPUT_DIR)/discovery-ee-linux-$(DOCKER_GOARCH)
-$(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery: $(DISCOVERY_DIR)/cmd/Dockerfile
+.PHONY: discovery
+discovery: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(DOCKER_GOARCH)
+
+$(DISCOVERY_OUTPUT_DIR)/Dockerfile: $(DISCOVERY_DIR)/cmd/Dockerfile
+	mkdir -p $(DISCOVERY_OUTPUT_DIR)
 	cp $< $@
 
 .PHONY: discovery-ee-docker
-discovery-ee-docker: $(DISCOVERY_OUTPUT_DIR)/discovery-ee-linux-$(DOCKER_GOARCH) $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery
-	docker buildx build --load $(DISCOVERY_OUTPUT_DIR) -f $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery \
-		$(DOCKER_BUILD_ARGS) -t $(IMAGE_REGISTRY)/discovery-ee:$(VERSION) $(QUAY_EXPIRATION_LABEL)
+discovery-ee-docker: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(DOCKER_GOARCH)
+discovery-ee-docker: $(DISCOVERY_OUTPUT_DIR)/Dockerfile
+	docker buildx build $(DISCOVERY_OUTPUT_DIR) \
+ 		-t $(IMAGE_REGISTRY)/discovery-ee:$(VERSION) $(QUAY_EXPIRATION_LABEL) \
+		--load \
+		--file $(DISCOVERY_OUTPUT_DIR)/Dockerfile \
+		$(DOCKER_BUILD_ARGS)
+
+#----------------------------------------------------------------------------------
+# Discovery-fips
+#----------------------------------------------------------------------------------
+
+DISCOVERY_FIPS_OUTPUT_DIR=$(OUTPUT_DIR)/discovery-fips
+
+$(DISCOVERY_FIPS_OUTPUT_DIR)/Dockerfile.fips: $(DISCOVERY_DIR)/Dockerfile.fips
+	cp $< $@
+
+$(DISCOVERY_FIPS_OUTPUT_DIR)/.discovery-docker-build: $(DISCOVERY_SOURCES) $(DISCOVERY_FIPS_OUTPUT_DIR)/Dockerfile.fips
+	docker build -t $(IMAGE_REGISTRY)/discovery-ee-fips-build-container:$(VERSION) \
+		-f $(DISCOVERY_FIPS_OUTPUT_DIR)/Dockerfile.fips \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_ALPINE_IMAGE_NAME) \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
+		--build-arg GITHUB_TOKEN \
+		--build-arg USE_APK=true \
+		$(DOCKER_GO_BORING_ARGS) \
+		.
+	touch $@
+
+$(DISCOVERY_FIPS_OUTPUT_DIR)/discovery-linux-amd64: $(DISCOVERY_FIPS_OUTPUT_DIR)/.discovery-docker-build
+	docker create -ti --name discovery-fips-temp-container $(IMAGE_REGISTRY)/discovery-ee-fips-build-container:$(VERSION) bash
+	docker cp discovery-fips-temp-container:/discovery-linux-amd64 $(DISCOVERY_FIPS_OUTPUT_DIR)/discovery-linux-amd64
+	docker rm -f discovery-fips-temp-container
+
+.PHONY: discovery-fips
+discovery-fips: $(DISCOVERY_FIPS_OUTPUT_DIR)/discovery-linux-amd64
+
+$(DISCOVERY_FIPS_OUTPUT_DIR)/Dockerfile: $(DISCOVERY_DIR)/cmd/Dockerfile
+	mkdir -p $(DISCOVERY_FIPS_OUTPUT_DIR)
+	cp $< $@
+
+.PHONY: discovery-ee-fips-docker
+discovery-ee-fips-docker: $(DISCOVERY_FIPS_OUTPUT_DIR)/.discovery-ee-docker
+
+$(DISCOVERY_FIPS_OUTPUT_DIR)/.discovery-ee-docker: $(DISCOVERY_FIPS_OUTPUT_DIR)/discovery-linux-amd64
+$(DISCOVERY_FIPS_OUTPUT_DIR)/.discovery-ee-docker: $(DISCOVERY_FIPS_OUTPUT_DIR)/Dockerfile
+	docker buildx build $(DISCOVERY_FIPS_OUTPUT_DIR) \
+		-t $(IMAGE_REGISTRY)/discovery-ee-fips:$(VERSION) $(QUAY_EXPIRATION_LABEL) \
+		--load \
+		--file $(DISCOVERY_FIPS_OUTPUT_DIR)/Dockerfile \
+		$(call get_test_tag_option,discovery-ee-fips) $(DOCKER_GO_BORING_ARGS)
 
 #----------------------------------------------------------------------------------
 # glooctl
@@ -1518,6 +1570,7 @@ docker: # Build Control Plane images
 docker: gloo-ee-docker
 docker: gloo-ee-fips-docker
 docker: discovery-ee-docker
+docker: discovery-ee-fips-docker
 docker: observability-ee-docker
 docker: # Build Data Plane images
 docker: gloo-ee-envoy-wrapper-docker
@@ -1542,6 +1595,7 @@ docker-push: # Push Control Plane images
 docker-push: docker-push-gloo-ee
 docker-push: docker-push-gloo-ee-fips
 docker-push: docker-push-discovery-ee
+docker-push: docker-push-discovery-ee-fips
 docker-push: docker-push-observability-ee
 docker-push: # Push Data Plane images
 docker-push: docker-push-gloo-ee-envoy-wrapper
@@ -1567,6 +1621,7 @@ docker-retag: # Re-tag Control Plane images
 docker-retag: docker-retag-gloo-ee
 docker-retag: docker-retag-gloo-ee-fips
 docker-retag: docker-retag-discovery-ee
+docker-retag: docker-retag-discovery-ee-fips
 docker-retag: docker-retag-observability-ee
 docker-retag: # Re-tag Data Plane images
 docker-retag: docker-retag-gloo-ee-envoy-wrapper
@@ -1653,7 +1708,8 @@ kind-build-and-load: kind-build-and-load-rate-limit-ee-fips
 kind-build-and-load: kind-build-and-load-extauth-ee-fips
 kind-build-and-load: kind-build-and-load-observability-ee
 kind-build-and-load: kind-build-and-load-caching-ee
-kind-build-and-load: kind-build-and-load-discovery-ee
+kind-build-and-load: kind-build-and-load-discovery-ee-fips
+
 ifeq  ($(IS_ARM_MACHINE), )
 kind-build-and-load: kind-build-and-load-ext-auth-plugins-fips
 endif # ARM support

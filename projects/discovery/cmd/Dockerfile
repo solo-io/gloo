@@ -7,7 +7,7 @@ RUN apk upgrade --update-cache \
     && apk add ca-certificates \
     && rm -rf /var/cache/apk/*
 
-COPY discovery-ee-linux-${DOCKER_GOARCH} /usr/local/bin/discovery
+COPY discovery-linux-${DOCKER_GOARCH} /usr/local/bin/discovery
 
 USER 10101
 

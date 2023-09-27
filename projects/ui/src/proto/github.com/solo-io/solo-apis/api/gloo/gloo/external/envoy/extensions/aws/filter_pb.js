@@ -931,7 +931,8 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCrede
   var f, obj = {
     cluster: jspb.Message.getFieldWithDefault(msg, 1, ""),
     uri: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    timeout: (f = msg.getTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+    timeout: (f = msg.getTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    region: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -980,6 +981,10 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCrede
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
       msg.setTimeout(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRegion(value);
       break;
     default:
       reader.skipField();
@@ -1030,6 +1035,13 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCrede
       3,
       f,
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getRegion();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
     );
   }
 };
@@ -1092,6 +1104,21 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCrede
  */
 proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCredentials.prototype.hasTimeout = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional string region = 4;
+ * @return {string}
+ */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCredentials.prototype.getRegion = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCredentials.prototype.setRegion = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
