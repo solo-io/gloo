@@ -1,10 +1,12 @@
 package argocd_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -57,7 +59,7 @@ func installGloo() {
 	runAndCleanCommand("argocd", "--core", "app", "create", "gloo",
 		"--repo", repo, "--helm-chart", "gloo", "--revision", version,
 		"--dest-namespace", "gloo-system", "--dest-server", "https://kubernetes.default.svc",
-		"--sync-option", "CreateNamespace=true", "--upsert", "--helm-set", "gatewayProxies.gatewayProxy.service.type=ClusterIP")
+		"--sync-option", "CreateNamespace=true", "--upsert", "--values-literal-file", "helm-override.yaml")
 
 	// argocd --core app sync gloo
 	runAndCleanCommand("argocd", "--core", "app", "sync", "gloo")
@@ -70,12 +72,13 @@ func uninstallGloo() {
 }
 
 func runAndCleanCommand(name string, arg ...string) []byte {
-	cmd := exec.Command(name, arg...)
+	ctx, _ := context.WithTimeout(context.TODO(), 300*time.Second)
+	cmd := exec.CommandContext(ctx, name, arg...)
 	b, err := cmd.Output()
 	// for debugging in Cloud Build
 	if err != nil {
 		if v, ok := err.(*exec.ExitError); ok {
-			fmt.Println("ExitError: ", string(v.Stderr))
+			fmt.Println("ExitError: ", v.Error())
 		}
 	}
 	Expect(err).To(BeNil())

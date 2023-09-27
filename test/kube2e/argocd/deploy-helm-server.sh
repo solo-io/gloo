@@ -8,3 +8,4 @@ for file in ../../../_test/*; do
     echo $file
     kubectl cp $file $POD:/usr/share/nginx/html/
 done
+kubectl cp helm-override.yaml $POD:/usr/share/nginx/html/
