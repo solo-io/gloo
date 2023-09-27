@@ -8,5 +8,4 @@ When adding a new CR to the helm chart, the template should be included here.
 */}}
 {{- define "gloo.customResources" -}}
 {{- include "gloo.customResources.defaultGateways" . }}
-{{- include "gloo.customResources.defaultVirtualService" .}}
 {{ end }}

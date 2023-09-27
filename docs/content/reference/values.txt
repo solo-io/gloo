@@ -137,6 +137,7 @@
 |settings.secretOptions.sources[].vault.aws.sessionToken|string||The Session Token as provided by the security credentials on the AWS IAM resource.|
 |settings.secretOptions.sources[].directory.directory|string||Directory to read secrets from.|
 |settings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|settings.translateEmptyGateways|bool||Set this if gateways without any VirtualServices should still be translated into Envoy listeners. Defaults to false.|
 |gloo.deployment.xdsPort|int|9977|port where gloo serves xDS API to Envoy.|
 |gloo.deployment.restXdsPort|uint32|9976|port where gloo serves REST xDS API to Envoy.|
 |gloo.deployment.validationPort|int|9988|port where gloo serves gRPC Proxy Validation to Gateway.|
@@ -460,6 +461,7 @@
 |gateway.isolateVirtualHostsBySslConfig|bool|false|if true, Added support for the envoy.filters.listener.tls_inspector listener_filter when using the gateway.isolateVirtualHostsBySslConfig=true global setting.|
 |gateway.compressedProxySpec|bool||if true, enables compression for the Proxy CRD spec|
 |gateway.persistProxySpec|bool||Enable writing Proxy CRD to etcd. Disabled by default for performance.|
+|gateway.translateEmptyGateways|bool|false|If true, the gateways wil be translated into Envoy listeners even if no VirtualServices exist|
 |gateway.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gatewayProxies.NAME.kind.deployment.replicas|int||number of instances to deploy|
 |gatewayProxies.NAME.kind.deployment.customEnv[].name|string|||
@@ -1136,11 +1138,6 @@
 |accessLogger.resources.requests.memory|string||amount of memory|
 |accessLogger.resources.requests.cpu|string||amount of CPUs|
 |accessLogger.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|virtualService.enabled|bool|false|Defines whether the default virtual service is enabled.|
-|virtualService.name|string|default|Name of the default virtual service.|
-|virtualService.domains[]|string||The list of domains matching the Host header of a request.|
-|virtualService.routes[].path|string||The path matching the request.|
-|virtualService.routes[].response|string||The content of the response body.|
 |global.image.tag|string||The image tag for the container.|
 |global.image.repository|string||The image repository (name) for the container.|
 |global.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|

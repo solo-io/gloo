@@ -20,7 +20,6 @@ type Config struct {
 	IngressProxy   *IngressProxy           `json:"ingressProxy,omitempty"`
 	K8s            *K8s                    `json:"k8s,omitempty"`
 	AccessLogger   *AccessLogger           `json:"accessLogger,omitempty"`
-	VirtualService *VirtualService         `json:"virtualService,omitempty"`
 }
 
 type Global struct {
@@ -210,6 +209,7 @@ type Settings struct {
 	DevMode                       *bool                   `json:"devMode,omitempty" desc:"Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not recommended for production."`
 	SecretOptions                 SecretOptions           `json:"secretOptions,omitempty" desc:"Options for how Gloo Edge should handle secrets."`
 	*KubeResourceOverride
+	TranslateEmptyGateways *bool `json:"translateEmptyGateways,omitempty" desc:"Set this if gateways without any VirtualServices should still be translated into Envoy listeners. Defaults to false."`
 }
 
 type AwsSettings struct {
@@ -371,6 +371,7 @@ type Gateway struct {
 	IsolateVirtualHostsBySslConfig *bool             `json:"isolateVirtualHostsBySslConfig,omitempty" desc:"if true, Added support for the envoy.filters.listener.tls_inspector listener_filter when using the gateway.isolateVirtualHostsBySslConfig=true global setting."`
 	CompressedProxySpec            *bool             `json:"compressedProxySpec,omitempty" desc:"if true, enables compression for the Proxy CRD spec"`
 	PersistProxySpec               *bool             `json:"persistProxySpec,omitempty" desc:"Enable writing Proxy CRD to etcd. Disabled by default for performance."`
+	TranslateEmptyGateways         *bool             `json:"translateEmptyGateways,omitempty" desc:"If true, the gateways wil be translated into Envoy listeners even if no VirtualServices exist"`
 	Service                        *KubeResourceOverride
 }
 
@@ -749,16 +750,4 @@ type IstioIntegration struct {
 	DisableAutoinjection        *bool   `json:"disableAutoinjection,omitempty" desc:"Annotate all pods (excluding those whitelisted by other config values) to with an explicit 'do not inject' annotation to prevent Istio from adding sidecars to all pods. It's recommended that this be set to true if Gloo's namespace is marked for Istio discovery, as some pods do not immediately work with an Istio sidecar without extra manual configuration."`
 	EnableIstioSidecarOnGateway *bool   `json:"enableIstioSidecarOnGateway,omitempty" desc:"Enable Istio sidecar injection on the gateway-proxy deployment. Ignored if LabelInstallNamespace is not 'true'. Ignored if DisableAutoInjection is 'true'."`
 	IstioSidecarRevTag          *string `json:"istioSidecarRevTag,omitempty" desc:"Value of revision tag for Istio sidecar injection on the gateway-proxy and discovery deployments (when enabled with LabelInstallNamespace, WhitelistDiscovery or EnableIstioSidecarOnGateway). If set, applies the label 'istio.io/rev:<rev>' instead of 'sidecar.istio.io/inject' or 'istio-injection:enabled'. Ignored if DisableAutoInjection is 'true'."`
-}
-
-type VirtualService struct {
-	Enabled *bool    `json:"enabled,omitempty" desc:"Defines whether the default virtual service is enabled."`
-	Name    *string  `json:"name,omitempty" desc:"Name of the default virtual service."`
-	Domains []string `json:"domains,omitempty" desc:"The list of domains matching the Host header of a request."`
-	Routes  []Routes `json:"routes,omitempty" desc:"The list of routes on the virtual service."`
-}
-
-type Routes struct {
-	Path     *string `json:"path,omitempty" desc:"The path matching the request."`
-	Response *string `json:"response,omitempty" desc:"The content of the response body."`
 }

@@ -107,6 +107,7 @@ spec:
   gateway:
     isolateVirtualHostsBySslConfig: {{ .Values.gateway.isolateVirtualHostsBySslConfig }}
     readGatewaysFromAllNamespaces: {{ .Values.gateway.readGatewaysFromAllNamespaces }}
+    translateEmptyGateways: {{ .Values.gateway.translateEmptyGateways }}
 {{- if or .Values.gateway.persistProxySpec (not .Values.gateway.enabled) }}
     persistProxySpec: true
 {{- end}}
