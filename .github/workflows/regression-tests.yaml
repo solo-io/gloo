@@ -46,13 +46,15 @@ jobs:
       matrix:
         # upgrade tests are run on LTS but not on main branch, for main they are run nightly
         # this is the github action version of ternary op
-        kube-e2e-test-type: [ 'gateway', 'gloo', 'ingress', 'helm', 'gloomtls', 'glooctl', 'istio', 'upgrade' ]
-        kube-version: [ { node: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72', kubectl: 'v1.27.3', kind: 'v0.20.0', helm: 'v3.12.2' } ]
+        kube-e2e-test-type: [ 'gateway', 'gloo', 'ingress', 'helm', 'gloomtls', 'glooctl', 'istio', 'upgrade', 'argocd' ]
+        kube-version: [ { node: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72', kubectl: 'v1.27.3', kind: 'v0.20.0', helm: 'v3.12.2', argocd: 'v2.8.4' } ]
         merge-to-main:
           - ${{ github.event.pull_request.base.ref == 'main' }}
         exclude:
           - merge-to-main: true
             kube-e2e-test-type: upgrade
+          - merge-to-main: false
+            kube-e2e-test-type: argocd
     steps:
     - uses: actions/checkout@v3
     - id: run-tests
