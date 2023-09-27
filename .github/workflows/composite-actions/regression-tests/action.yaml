@@ -28,7 +28,7 @@ runs:
     run: ./ci/kind/setup-kind.sh
   - uses: imajeetyadav/argocd-cli@v1
     with:
-      version: v2.5.7 ${{ matrix.kube-version.argocd }}
+      version: ${{ matrix.kube-version.argocd }}
     if: ${{ matrix.kube-e2e-test-type }} == 'argocd'
   - name: Testing - kube e2e regression tests
     env:
