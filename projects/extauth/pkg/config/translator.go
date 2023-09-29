@@ -36,6 +36,7 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/ldap"
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation/utils"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
+	oidc_discovery "github.com/solo-io/ext-auth-service/pkg/config/oidc/discovery"
 	"github.com/solo-io/ext-auth-service/pkg/config/opa"
 	grpcPassthrough "github.com/solo-io/ext-auth-service/pkg/config/passthrough/grpc"
 	httpPassthrough "github.com/solo-io/ext-auth-service/pkg/config/passthrough/http"
@@ -155,7 +156,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				Scopes:                      cfg.Oauth.GetScopes(),
 				SessionParams:               oidc.SessionParameters{},
 				Headers:                     &oidc.HeaderConfig{},
-				DiscoveryDataOverride:       &oidc.DiscoveryData{},
+				DiscoveryDataOverride:       &oidc_discovery.DiscoveryData{},
 				DiscoveryPollInterval:       DefaultOIDCDiscoveryPollInterval,
 				InvalidJwksOnDemandStrategy: jwks.NewNilKeySourceFactory(),
 			})
@@ -196,7 +197,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 
 			discoveryDataOverride := ToDiscoveryDataOverride(oidcCfg.GetDiscoveryOverride())
 			if discoveryDataOverride == nil {
-				discoveryDataOverride = &oidc.DiscoveryData{}
+				discoveryDataOverride = &oidc_discovery.DiscoveryData{}
 			}
 
 			discoveryPollInterval := oidcCfg.GetDiscoveryPollInterval()
@@ -206,7 +207,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 
 			autoMapFromMetadata := ToAutoMapFromMetadata(oidcCfg.GetAutoMapFromMetadata())
 			if autoMapFromMetadata == nil {
-				autoMapFromMetadata = &oidc.AutoMapFromMetadata{}
+				autoMapFromMetadata = &oidc_discovery.AutoMapFromMetadata{}
 			}
 
 			endSessionProperties := ToEndSessionEndpointProperties(oidcCfg.GetEndSessionProperties())
@@ -857,10 +858,10 @@ func ToHeaderConfig(hc *extauthv1.HeaderConfiguration) *oidc.HeaderConfig {
 	return headersConfig
 }
 
-func ToDiscoveryDataOverride(discoveryOverride *extauthv1.DiscoveryOverride) *oidc.DiscoveryData {
-	var discoveryDataOverride *oidc.DiscoveryData
+func ToDiscoveryDataOverride(discoveryOverride *extauthv1.DiscoveryOverride) *oidc_discovery.DiscoveryData {
+	var discoveryDataOverride *oidc_discovery.DiscoveryData
 	if discoveryOverride != nil {
-		discoveryDataOverride = &oidc.DiscoveryData{
+		discoveryDataOverride = &oidc_discovery.DiscoveryData{
 			// IssuerUrl is intentionally excluded as it cannot be overridden
 			AuthEndpoint:       discoveryOverride.GetAuthEndpoint(),
 			RevocationEndpoint: discoveryOverride.GetRevocationEndpoint(),
@@ -982,8 +983,8 @@ func ToOnDemandCacheRefreshPolicy(policy *extauthv1.JwksOnDemandCacheRefreshPoli
 
 }
 
-func ToAutoMapFromMetadata(autoMapFromMetadata *extauthv1.AutoMapFromMetadata) *oidc.AutoMapFromMetadata {
-	return oidc.NewAutoMapFromMetadata(autoMapFromMetadata.GetNamespace())
+func ToAutoMapFromMetadata(autoMapFromMetadata *extauthv1.AutoMapFromMetadata) *oidc_discovery.AutoMapFromMetadata {
+	return oidc_discovery.NewAutoMapFromMetadata(autoMapFromMetadata.GetNamespace())
 }
 
 func getSoloApisRedisOptions(options *extauthv1.RedisOptions) *extauthSoloApis.RedisOptions {
@@ -1000,6 +1001,6 @@ func getSoloApisRedisOptions(options *extauthv1.RedisOptions) *extauthSoloApis.R
 }
 
 // ToEndSessionEndpointProperties translates from gloo to ext-auth-service
-func ToEndSessionEndpointProperties(endSessionEndpointProperties *extauthv1.EndSessionProperties) *oidc.EndSessionProperties {
-	return oidc.NewEndSessionProperties(oidc.EndSessionMethodType(endSessionEndpointProperties.GetMethodType()))
+func ToEndSessionEndpointProperties(endSessionEndpointProperties *extauthv1.EndSessionProperties) *oidc_discovery.EndSessionProperties {
+	return oidc_discovery.NewEndSessionProperties(oidc_discovery.EndSessionMethodType(endSessionEndpointProperties.GetMethodType()))
 }

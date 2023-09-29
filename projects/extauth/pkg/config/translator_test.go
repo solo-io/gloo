@@ -24,6 +24,7 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/apr"
 	mock_config "github.com/solo-io/ext-auth-service/pkg/config/mocks"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
+	oidc_discovery "github.com/solo-io/ext-auth-service/pkg/config/oidc/discovery"
 	"github.com/solo-io/ext-auth-service/pkg/session"
 	"github.com/solo-io/ext-auth-service/pkg/session/redis"
 	mocks_auth_service "github.com/solo-io/ext-auth-service/test/mocks/auth"
@@ -867,7 +868,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				Claims:             []string{"aud"},
 			}
 			overrideDiscoveryData := config.ToDiscoveryDataOverride(discoveryOverride)
-			expectedOverrideDiscoveryData := &oidc.DiscoveryData{
+			expectedOverrideDiscoveryData := &oidc_discovery.DiscoveryData{
 				AuthEndpoint:       "auth.url/",
 				TokenEndpoint:      "token.url/",
 				RevocationEndpoint: "revoke.url/",
@@ -889,7 +890,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 
 			// If a new field is added to DiscoveryData, this test should fail,
 			// signaling that we need to modify the ToDiscoveryDataOverride implementation
-			Expect(reflect.TypeOf(oidc.DiscoveryData{}).NumField()).To(
+			Expect(reflect.TypeOf(oidc_discovery.DiscoveryData{}).NumField()).To(
 				Equal(12),
 				"wrong number of fields found",
 			)
@@ -1146,7 +1147,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			Expect(reflect.TypeOf(opaParams).NumField()).To(Equal(3))
 
 			var oidcAuthorizationCodeParams ea_config.OidcAuthorizationCodeAuthServiceParams
-			Expect(reflect.TypeOf(oidcAuthorizationCodeParams).NumField()).To(Equal(20))
+			Expect(reflect.TypeOf(oidcAuthorizationCodeParams).NumField()).To(Equal(22))
 
 			var plainOauth2 ea_config.PlainOAuth2AuthServiceParams
 			Expect(reflect.TypeOf(plainOauth2).NumField()).To(Equal(14))
