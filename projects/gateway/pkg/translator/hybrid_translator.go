@@ -5,6 +5,7 @@ import (
 
 	errors "github.com/rotisserie/eris"
 
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
@@ -93,13 +94,15 @@ func (t *HybridTranslator) computeHybridListenerFromMatchedGateways(
 
 		switch gt := matchedGateway.GetGatewayType().(type) {
 		case *v1.MatchedGateway_HttpGateway:
-			if len(snap.VirtualServices) == 0 {
-				if !loggedError {
-					snapHash := hashutils.MustHash(snap)
-					contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services", snapHash)
-					loggedError = true // only log no virtual service error once
+			if !settingsutil.MaybeFromContext(params.ctx).GetGateway().GetTranslateEmptyGateways().GetValue() {
+				if len(snap.VirtualServices) == 0 {
+					if !loggedError {
+						snapHash := hashutils.MustHash(snap)
+						contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services", snapHash)
+						loggedError = true // only log no virtual service error once
+					}
+					continue
 				}
-				continue
 			}
 
 			httpGateway := matchedGateway.GetHttpGateway()

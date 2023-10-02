@@ -4,9 +4,9 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
-
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/hashutils"
 
@@ -34,10 +34,12 @@ func (a *AggregateTranslator) ComputeListener(params Params, proxyName string, g
 	switch gw := gateway.GetGatewayType().(type) {
 	case *v1.Gateway_HttpGateway:
 		// we are safe to guard against empty VirtualServices first, since all HTTP features require VirtualServices to function.
-		if len(snap.VirtualServices) == 0 {
-			snapHash := hashutils.MustHash(snap)
-			contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services", snapHash)
-			return nil
+		if !settingsutil.MaybeFromContext(params.ctx).GetGateway().GetTranslateEmptyGateways().GetValue() {
+			if len(snap.VirtualServices) == 0 {
+				snapHash := hashutils.MustHash(snap)
+				contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services", snapHash)
+				return nil
+			}
 		}
 
 		aggregateListener = a.computeAggregateListenerForHttpGateway(params, proxyName, gateway)
@@ -46,20 +48,22 @@ func (a *AggregateTranslator) ComputeListener(params Params, proxyName string, g
 		hybrid := gw.HybridGateway
 
 		// warn early if there are no virtual services and no tcp configurations
-		if len(snap.VirtualServices) == 0 {
-			hasTCP := hybrid.GetDelegatedTcpGateways() != nil
-			if !hasTCP && hybrid.GetMatchedGateways() != nil {
-				for _, matched := range hybrid.GetMatchedGateways() {
-					if matched.GetTcpGateway() != nil {
-						hasTCP = true
-						break
+		if !settingsutil.MaybeFromContext(params.ctx).GetGateway().GetTranslateEmptyGateways().GetValue() {
+			if len(snap.VirtualServices) == 0 {
+				hasTCP := hybrid.GetDelegatedTcpGateways() != nil
+				if !hasTCP && hybrid.GetMatchedGateways() != nil {
+					for _, matched := range hybrid.GetMatchedGateways() {
+						if matched.GetTcpGateway() != nil {
+							hasTCP = true
+							break
+						}
 					}
 				}
-			}
-			if !hasTCP {
-				snapHash := hashutils.MustHash(snap)
-				contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services or tcp gateways", snapHash)
-				return nil
+				if !hasTCP {
+					snapHash := hashutils.MustHash(snap)
+					contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services or tcp gateways", snapHash)
+					return nil
+				}
 			}
 		}
 		aggregateListener = a.computeAggregateListenerForHybridGateway(params, proxyName, gateway)
