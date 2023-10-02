@@ -189,10 +189,9 @@ var _ = Describe("Kube2e: helm", func() {
 	Context("Custom readiness probe", func() {
 		var valuesFileForCustomReadinessProbe string
 		var expectGatewayProxyIsReady func()
-		var cleanup func()
 
 		BeforeEach(func() {
-			valuesFileForCustomReadinessProbe, cleanup = getHelmUpgradeValuesOverrideFileForCustomReadinessProbe()
+			valuesFileForCustomReadinessProbe = getHelmUpgradeValuesOverrideFileForCustomReadinessProbe()
 
 			expectGatewayProxyIsReady = func() {
 				Eventually(func() (string, error) {
@@ -211,10 +210,6 @@ var _ = Describe("Kube2e: helm", func() {
 						ContainSubstring("/envoy-hc"),
 						ContainSubstring("readyReplicas: 1")))
 			}
-		})
-
-		AfterEach(func() {
-			cleanup()
 		})
 
 		Context("On clean install", func() {
@@ -576,9 +571,7 @@ func makeUnstructuredFromTemplateFile(fixtureName string, values interface{}) *u
 }
 
 func installGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease string, strictValidation bool, additionalInstallArgs []string) {
-	cwd, err := os.Getwd()
-	Expect(err).NotTo(HaveOccurred(), "working dir could not be retrieved while installing gloo")
-	helmValuesFile := filepath.Join(cwd, "artifacts", "helm.yaml")
+	helmValuesFile := getHelmValuesFile("helm.yaml")
 
 	// construct helm args
 	var args = []string{"install", testHelper.HelmChartName}
@@ -647,9 +640,7 @@ func upgradeGlooWithCustomValuesFile(testHelper *helper.SoloTestHelper, chartUri
 }
 
 func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, crdDir string, fromRelease string, targetRelease string, strictValidation bool, additionalArgs []string) {
-	valueOverrideFile, cleanupFunc := getHelmUpgradeValuesOverrideFile()
-	defer cleanupFunc()
-
+	valueOverrideFile := getHelmUpgradeValuesOverrideFile()
 	upgradeGlooWithCustomValuesFile(testHelper, chartUri, crdDir, fromRelease, targetRelease, strictValidation, additionalArgs, valueOverrideFile)
 }
 
@@ -662,92 +653,20 @@ func uninstallGloo(testHelper *helper.SoloTestHelper, ctx context.Context, cance
 	cancel()
 }
 
-func getHelmUpgradeValuesOverrideFileForCustomReadinessProbe() (filename string, cleanup func()) {
-	values, err := os.CreateTemp("", "values-*.yaml")
-	Expect(err).NotTo(HaveOccurred())
+func getHelmValuesFile(filename string) string {
+	cwd, err := os.Getwd()
+	Expect(err).NotTo(HaveOccurred(), "working dir could not be retrieved")
+	helmUpgradeValuesFile := filepath.Join(cwd, "artifacts", filename)
+	return helmUpgradeValuesFile
 
-	_, err = values.Write([]byte(`
-gateway:
-  translateEmptyGateways: true
-  validation:
-    allowWarnings: false
-    alwaysAcceptResources: false
-    failurePolicy: Fail
-gatewayProxies:
-  gatewayProxy:
-    service:
-      type: ClusterIP    # Since the test is running in kind
-    gatewaySettings:
-      customHttpGateway:
-        options:
-          healthCheck:
-            path: /envoy-hc
-    podTemplate:
-      terminationGracePeriodSeconds: 7
-      gracefulShutdown:
-        enabled: true
-        sleepTimeSeconds: 5
-      probes: true
-      customReadinessProbe:
-        httpGet:
-          scheme: HTTP
-          port: 8080
-          path: /envoy-hc
-        failureThreshold: 2
-        initialDelaySeconds: 5
-        periodSeconds: 5
-`))
-	Expect(err).NotTo(HaveOccurred())
-
-	err = values.Close()
-	Expect(err).NotTo(HaveOccurred())
-
-	return values.Name(), func() { _ = os.Remove(values.Name()) }
 }
 
-func getHelmUpgradeValuesOverrideFile() (filename string, cleanup func()) {
-	values, err := os.CreateTemp("", "values-*.yaml")
-	Expect(err).NotTo(HaveOccurred())
+func getHelmUpgradeValuesOverrideFileForCustomReadinessProbe() (filename string) {
+	return getHelmValuesFile("custom-readiness-probe.yaml")
+}
 
-	_, err = values.Write([]byte(`
-global:
-  image:
-    pullPolicy: IfNotPresent
-  glooRbac:
-    namespaced: true
-    nameSuffix: e2e-test-rbac-suffix
-settings:
-  singleNamespace: true
-  create: true
-  replaceInvalidRoutes: true
-gateway:
-  persistProxySpec: true
-gatewayProxies:
-  gatewayProxy:
-    healthyPanicThreshold: 0
-    gatewaySettings:
-      # the KEYVALUE action type was first available in v1.11.11 (within the v1.11.x branch); this is a sanity check to
-      # ensure we can upgrade without errors from an older version to a version with these new fields (i.e. we can set
-      # the new fields on the Gateway CR during the helm upgrade, and that it will pass validation)
-      customHttpGateway:
-        options:
-          dlp:
-            dlpRules:
-            - actions:
-              - actionType: KEYVALUE
-                keyValueAction:
-                  keyToMask: test
-                  name: test
-          # This checks the proper parsing of wrappers.UInt32Value
-          caching:
-            maxPayloadSize: 5
-`))
-	Expect(err).NotTo(HaveOccurred())
-
-	err = values.Close()
-	Expect(err).NotTo(HaveOccurred())
-
-	return values.Name(), func() { _ = os.Remove(values.Name()) }
+func getHelmUpgradeValuesOverrideFile() (filename string) {
+	return getHelmValuesFile("upgrade-override.yaml")
 }
 
 // return a base64-encoded proto descriptor to use for testing
