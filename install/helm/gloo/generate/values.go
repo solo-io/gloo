@@ -209,7 +209,6 @@ type Settings struct {
 	DevMode                       *bool                   `json:"devMode,omitempty" desc:"Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not recommended for production."`
 	SecretOptions                 SecretOptions           `json:"secretOptions,omitempty" desc:"Options for how Gloo Edge should handle secrets."`
 	*KubeResourceOverride
-	TranslateEmptyGateways *bool `json:"translateEmptyGateways,omitempty" desc:"Set this if gateways without any VirtualServices should still be translated into Envoy listeners. Defaults to false."`
 }
 
 type AwsSettings struct {

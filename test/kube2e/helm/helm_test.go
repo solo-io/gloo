@@ -667,9 +667,8 @@ func getHelmUpgradeValuesOverrideFileForCustomReadinessProbe() (filename string,
 	Expect(err).NotTo(HaveOccurred())
 
 	_, err = values.Write([]byte(`
-virtualService:
-  enabled: true
 gateway:
+  translateEmptyGateways: true
   validation:
     allowWarnings: false
     alwaysAcceptResources: false
