@@ -8,4 +8,19 @@ When adding a new CR to the helm chart, the template should be included here.
 */}}
 {{- define "gloo.customResources" -}}
 {{- include "gloo.customResources.defaultGateways" . }}
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: default
+  namespace: gloo-system
+spec:
+  virtualHost:
+    routes:
+      - matchers:
+        - prefix: /
+        directResponseAction:
+          status: 200
+          body: "Hello, world!"
+
 {{ end }}

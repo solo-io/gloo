@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errors "github.com/rotisserie/eris"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -95,7 +96,10 @@ func (t *HybridTranslator) computeHybridListenerFromMatchedGateways(
 		switch gt := matchedGateway.GetGatewayType().(type) {
 		case *v1.MatchedGateway_HttpGateway:
 			if len(snap.VirtualServices) == 0 {
-				snapHash := hashutils.MustHash(snap)
+				var snapHash uint64
+				if contextutils.GetLogLevel() == zapcore.DebugLevel {
+					snapHash = hashutils.MustHash(snap)
+				}
 				if !loggedError {
 					contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services", snapHash)
 					loggedError = true // only log no virtual service error once

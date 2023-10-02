@@ -23,6 +23,8 @@ spec:
 {{- end }}
 {{- if $gatewaySettings.customHttpGateway}}
   httpGateway:
+    virtualServiceSelector:
+      a: b
 {{ toYaml $gatewaySettings.customHttpGateway | indent 4}}
 {{- else if $spec.tracing }}
 {{- if $spec.tracing.provider }}
