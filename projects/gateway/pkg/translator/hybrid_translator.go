@@ -94,13 +94,15 @@ func (t *HybridTranslator) computeHybridListenerFromMatchedGateways(
 
 		switch gt := matchedGateway.GetGatewayType().(type) {
 		case *v1.MatchedGateway_HttpGateway:
-			if !settingsutil.MaybeFromContext(params.ctx).GetGateway().GetTranslateEmptyGateways().GetValue() {
-				if len(snap.VirtualServices) == 0 {
-					if !loggedError {
-						snapHash := hashutils.MustHash(snap)
-						contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services", snapHash)
-						loggedError = true // only log no virtual service error once
-					}
+			if len(snap.VirtualServices) == 0 {
+				snapHash := hashutils.MustHash(snap)
+				if !loggedError {
+					contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services", snapHash)
+					loggedError = true // only log no virtual service error once
+				}
+				if settingsutil.MaybeFromContext(params.ctx).GetGateway().GetTranslateEmptyGateways().GetValue() {
+					contextutils.LoggerFrom(params.ctx).Debugf("but continuing since translateEmptyGateways is set", snapHash)
+				} else {
 					continue
 				}
 			}

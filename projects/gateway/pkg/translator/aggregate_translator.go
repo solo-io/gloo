@@ -34,10 +34,12 @@ func (a *AggregateTranslator) ComputeListener(params Params, proxyName string, g
 	switch gw := gateway.GetGatewayType().(type) {
 	case *v1.Gateway_HttpGateway:
 		// we are safe to guard against empty VirtualServices first, since all HTTP features require VirtualServices to function.
-		if !settingsutil.MaybeFromContext(params.ctx).GetGateway().GetTranslateEmptyGateways().GetValue() {
-			if len(snap.VirtualServices) == 0 {
-				snapHash := hashutils.MustHash(snap)
-				contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services", snapHash)
+		if len(snap.VirtualServices) == 0 {
+			snapHash := hashutils.MustHash(snap)
+			contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services", snapHash)
+			if settingsutil.MaybeFromContext(params.ctx).GetGateway().GetTranslateEmptyGateways().GetValue() {
+				contextutils.LoggerFrom(params.ctx).Debugf("but continuing since translateEmptyGateways is set", snapHash)
+			} else {
 				return nil
 			}
 		}
@@ -48,20 +50,22 @@ func (a *AggregateTranslator) ComputeListener(params Params, proxyName string, g
 		hybrid := gw.HybridGateway
 
 		// warn early if there are no virtual services and no tcp configurations
-		if !settingsutil.MaybeFromContext(params.ctx).GetGateway().GetTranslateEmptyGateways().GetValue() {
-			if len(snap.VirtualServices) == 0 {
-				hasTCP := hybrid.GetDelegatedTcpGateways() != nil
-				if !hasTCP && hybrid.GetMatchedGateways() != nil {
-					for _, matched := range hybrid.GetMatchedGateways() {
-						if matched.GetTcpGateway() != nil {
-							hasTCP = true
-							break
-						}
+		if len(snap.VirtualServices) == 0 {
+			hasTCP := hybrid.GetDelegatedTcpGateways() != nil
+			if !hasTCP && hybrid.GetMatchedGateways() != nil {
+				for _, matched := range hybrid.GetMatchedGateways() {
+					if matched.GetTcpGateway() != nil {
+						hasTCP = true
+						break
 					}
 				}
-				if !hasTCP {
-					snapHash := hashutils.MustHash(snap)
-					contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services or tcp gateways", snapHash)
+			}
+			if !hasTCP {
+				snapHash := hashutils.MustHash(snap)
+				contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services or tcp gateways", snapHash)
+				if settingsutil.MaybeFromContext(params.ctx).GetGateway().GetTranslateEmptyGateways().GetValue() {
+					contextutils.LoggerFrom(params.ctx).Debugf("but continuing since translateEmptyGateways is set", snapHash)
+				} else {
 					return nil
 				}
 			}

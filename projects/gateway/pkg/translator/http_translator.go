@@ -23,11 +23,14 @@ func (t *HttpTranslator) ComputeListener(params Params, proxyName string, gatewa
 	}
 
 	snap := params.snapshot
-	if !settingsutil.MaybeFromContext(params.ctx).GetGateway().GetTranslateEmptyGateways().GetValue() {
-		if len(snap.VirtualServices) == 0 {
-			snapHash := hashutils.MustHash(snap)
-			contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services", snapHash)
+	if len(snap.VirtualServices) == 0 {
+		snapHash := hashutils.MustHash(snap)
+		contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services", snapHash)
+		if settingsutil.MaybeFromContext(params.ctx).GetGateway().GetTranslateEmptyGateways().GetValue() {
+			contextutils.LoggerFrom(params.ctx).Debugf("but continuing since translateEmptyGateways is set", snapHash)
+		} else {
 			return nil
+
 		}
 	}
 
