@@ -8,9 +8,11 @@ ARG COMMIT=v3.2.1
 ARG REPO_OWNER=coreruleset
 ARG REPO_NAME=coreruleset
 
-RUN apk upgrade --update-cache \
-    && apk add git \
-    && rm -rf /var/cache/apk/* \
+# make sure that all the apt updates, upgrades and installs are done before the clean
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt install git -y \
+    && apt-get clean \
     && mkdir -p /modsecurity \
     && cd /modsecurity \
     && git clone https://github.com/${REPO_OWNER}/${REPO_NAME}.git ${REPO_NAME} \
@@ -19,11 +21,13 @@ RUN apk upgrade --update-cache \
     && cd /modsecurity \
     && mkdir -p rules/crs && cp ${REPO_NAME}/rules/*.conf rules/crs \
     && mkdir data && cp ${REPO_NAME}/rules/*.data data \
-    && rm -rf ${REPO_NAME}
+    && rm -rf ${REPO_NAME} \ 
+    && apt-get remove git -y \
+    && rm -rf  /var/log/*log /var/lib/apt/lists/* /var/log/apt/* /var/lib/dpkg/*-old /var/cache/debconf/*-old
 
 WORKDIR /modsecurity/data
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--", "/docker-entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD []
 
 USER 10101

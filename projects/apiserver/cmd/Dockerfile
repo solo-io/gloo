@@ -2,8 +2,9 @@ ARG ENVOY_IMAGE
 FROM $ENVOY_IMAGE
 ARG GOARCH
 
-RUN apk update;
-RUN apk -U upgrade
+RUN apt-get update \
+  && apt-get upgrade -y \
+  && apt-get clean 
 
 COPY gloo-fed-apiserver-linux-${GOARCH} /usr/local/bin/gloo-fed-apiserver
 
