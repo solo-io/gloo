@@ -94,6 +94,17 @@ func InstallGloo(testHelper *helper.SoloTestHelper, fromRelease string, strictVa
 		"--version", fromRelease)
 
 	args = append(args, "-n", testHelper.InstallNamespace,
+		// As most CD tools wait for resources to be ready before marking the release as successful,
+		// we're emulating that here by passing these two flags.
+		// This way we ensure that we indirectly add support for CD tools
+		"--wait",
+		"--wait-for-jobs",
+		// We run our e2e tests on a kind cluster, but kind hasn’t implemented LoadBalancer support.
+		// This leads to the service being in a pending state.
+		// Since the --wait flag is set, this can cause the upgrade to fail
+		// as helm waits until the service is ready and eventually times out.
+		// So instead we use the service type as ClusterIP to work around this limitation.
+		"--set", "gloo.gatewayProxies.gatewayProxy.service.type=ClusterIP",
 		"--create-namespace",
 		"--set-string", "license_key="+testHelper.LicenseKey,
 		"--values", helmOverrideFilePath)
@@ -121,7 +132,18 @@ func InstallGlooWithArgs(testHelper *helper.SoloTestHelper, fromRelease string, 
 		"--version", fromRelease)
 
 	args = append(args, "-n", testHelper.InstallNamespace,
+		// As most CD tools wait for resources to be ready before marking the release as successful,
+		// we're emulating that here by passing these two flags.
+		// This way we ensure that we indirectly add support for CD tools
+		"--wait",
+		"--wait-for-jobs",
+		// We run our e2e tests on a kind cluster, but kind hasn’t implemented LoadBalancer support.
+		// This leads to the service being in a pending state.
+		// Since the --wait flag is set, this can cause the upgrade to fail
+		// as helm waits until the service is ready and eventually times out.
+		// So instead we use the service type as ClusterIP to work around this limitation.
 		"--create-namespace",
+		"--set", "gloo.gatewayProxies.gatewayProxy.service.type=ClusterIP",
 		"--set-string", "license_key="+testHelper.LicenseKey,
 		"--values", helmOverrideFilePath)
 

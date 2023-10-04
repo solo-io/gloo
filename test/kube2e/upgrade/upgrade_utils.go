@@ -14,6 +14,17 @@ import (
 func UpgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, helmOverrideFilePath string, additionalArgs []string) {
 	UpgradeCrds(chartUri, testHelper.ReleasedVersion)
 	var args = []string{"upgrade", testHelper.HelmChartName, chartUri,
+		// As most CD tools wait for resources to be ready before marking the release as successful,
+		// we're emulating that here by passing these two flags.
+		// This way we ensure that we indirectly add support for CD tools
+		"--wait",
+		"--wait-for-jobs",
+		// We run our e2e tests on a kind cluster, but kind hasn’t implemented LoadBalancer support.
+		// This leads to the service being in a pending state.
+		// Since the --wait flag is set, this can cause the upgrade to fail
+		// as helm waits until the service is ready and eventually times out.
+		// So instead we use the service type as ClusterIP to work around this limitation.
+		"--set", "gloo.gatewayProxies.gatewayProxy.service.type=ClusterIP",
 		"-n", testHelper.InstallNamespace,
 		"--set-string", "license_key=" + testHelper.LicenseKey,
 		"--values", helmOverrideFilePath}
@@ -29,6 +40,17 @@ func UpgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, helmOverrid
 func UpgradeGlooWithArgs(testHelper *helper.SoloTestHelper, chartUri string, helmOverrideFilePath string, additionalArgs []string) {
 	UpgradeCrds(chartUri, testHelper.ReleasedVersion)
 	var args = []string{"upgrade", testHelper.HelmChartName, chartUri,
+		// As most CD tools wait for resources to be ready before marking the release as successful,
+		// we're emulating that here by passing these two flags.
+		// This way we ensure that we indirectly add support for CD tools
+		"--wait",
+		"--wait-for-jobs",
+		// We run our e2e tests on a kind cluster, but kind hasn’t implemented LoadBalancer support.
+		// This leads to the service being in a pending state.
+		// Since the --wait flag is set, this can cause the upgrade to fail
+		// as helm waits until the service is ready and eventually times out.
+		// So instead we use the service type as ClusterIP to work around this limitation.
+		"--set", "gloo.gatewayProxies.gatewayProxy.service.type=ClusterIP",
 		"-n", testHelper.InstallNamespace,
 		"--set-string", "license_key=" + testHelper.LicenseKey,
 		"--values", helmOverrideFilePath}
