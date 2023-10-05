@@ -211,13 +211,13 @@ var _ = Describe("Kube2e: helm", func() {
 			// Since we are running a version that doesn't have this annotation, we need to upgrade to one that does.
 			// This should trigger a new deployment anyway
 			previousAnnotationValue := getDeploymentChecksumAnnotation()
-			upgradeGloo(testHelper, chartUri, crdDir, fromRelease, targetVersion, strictValidation, nil)
+			upgradeGloo(testHelper, chartUri, crdDir, fromRelease, strictValidation, nil)
 			expectDeploymentChecksumAnnotationChangedFrom(previousAnnotationValue)
 			expectConfigDumpToContain(`"global_downstream_max_connections": 250000`)
 
 			// Repeat the same upgrade. The annotation shouldn't have changed
 			previousAnnotationValue = getDeploymentChecksumAnnotation()
-			upgradeGloo(testHelper, chartUri, crdDir, fromRelease, targetVersion, strictValidation, nil)
+			upgradeGloo(testHelper, chartUri, crdDir, fromRelease, strictValidation, nil)
 			expectDeploymentChecksumAnnotationToEqual(previousAnnotationValue)
 
 			// We upgrade Gloo with a new value of `globalDownstreamMaxConnections` on envoy
@@ -232,7 +232,7 @@ var _ = Describe("Kube2e: helm", func() {
 				settings = append(settings, "--set")
 				settings = append(settings, strings.Join([]string{key, val}, "="))
 			}
-			upgradeGloo(testHelper, chartUri, crdDir, fromRelease, targetVersion, strictValidation, settings)
+			upgradeGloo(testHelper, chartUri, crdDir, fromRelease, strictValidation, settings)
 			expectDeploymentChecksumAnnotationChangedFrom(previousAnnotationValue)
 			expectConfigDumpToContain(`"global_downstream_max_connections": 12345`)
 		})
