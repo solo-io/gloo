@@ -1,0 +1,11 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/8720
+    resolvesIssue: false
+    description: >-
+      Ensure that `failover.policy` configuration on an Upstream is respected for Static Upstreams.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5292
+    resolvesIssue: false
+    description: >-
+      Fix a flake in e2e/failover_test where the test didn't wait long enough for the failover to happen.

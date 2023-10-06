@@ -58,7 +58,9 @@ var _ = Describe("Installing gloo in gloo mtls mode", func() {
 		testContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, osskube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*5)
 	})
 
-	It("can recover from the ext-auth sidecar container being deleted", func() {
+	It("can recover from the ext-auth sidecar container being deleted", FlakeAttempts(3), func() {
+		// We have observed very infrequent failures in CI for this test. Adding a flake attempt to see if it helps.
+
 		podName, err := services.GetGatewayPodName()
 		Expect(err).ToNot(HaveOccurred())
 		// getting out of memory issue on CI containers, try to attempt multiple times

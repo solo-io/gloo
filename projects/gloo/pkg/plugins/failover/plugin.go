@@ -139,6 +139,11 @@ func (f *failoverPluginImpl) ProcessUpstream(
 	} else {
 		// Otherwise add the endpoints directly to the LoadAssignment of the Cluster
 		out.LoadAssignment.Endpoints = append(out.LoadAssignment.Endpoints, endpoints...)
+		if policy := failoverCfg.GetPolicy(); policy != nil {
+			out.LoadAssignment.Policy = &envoy_config_endpoint_v3.ClusterLoadAssignment_Policy{
+				OverprovisioningFactor: policy.GetOverprovisioningFactor(),
+			}
+		}
 	}
 	// append all of the upstream ssl transport socket matches to the existing
 	out.TransportSocketMatches = append(out.TransportSocketMatches, matches...)
