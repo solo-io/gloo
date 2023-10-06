@@ -3,7 +3,7 @@ dependencies:
     repository: https://storage.googleapis.com/solo-public-helm
     # keep for referencing in flight gloo-branches (have to comment out the above line too)
     # repository: https://storage.googleapis.com/solo-public-tagged-helm
-    # version: 1.16.0-beta10-8708 # format: <version>-<gloo PR>. Search through above url for your PR to find the full version string
+    # version: 1.16.0-beta11-8716 # format: <version>-<gloo PR>. Search through above url for your PR to find the full version string
   - name: prometheus
     repository: https://prometheus-community.github.io/helm-charts
     version: 15.18.0

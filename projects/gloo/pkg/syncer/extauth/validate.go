@@ -20,6 +20,8 @@ var (
 	OAuth2EmtpyLocalJwksErr                     = errors.New("oauth2: must provide inline JWKS string")
 	OAuth2IncompleteOIDCInfoErr                 = errors.New("oidc: all of the following attributes must be provided: issuerUrl, clientId, clientSecretRef, appUrl, callbackPath")
 	OAuth2IncompletePlainInfoErr                = errors.New("oauth2: all of the following attributes must be provided: issuerUrl, clientId, clientSecretRef, appUrl, callbackPath")
+	OAuth2DuplicateOIDCErr                      = errors.New("oidc: can not use codeExchangeType with deprecated fields clientSecretRef and disableClientSecret")
+	OAuth2InvalidExchanger                      = errors.New("oidc: undefined or unknown codeExchangeType")
 )
 
 type invalidAuthConfigError struct {
@@ -80,11 +82,41 @@ func ErrorIfInvalidAuthConfig(ac *extauth.AuthConfig) *multierror.Error {
 				oidcCfg := oauthCfg.OidcAuthorizationCode
 				if oidcCfg.GetAppUrl() == "" ||
 					oidcCfg.GetClientId() == "" ||
-					(!oidcCfg.GetDisableClientSecret().GetValue() && oidcCfg.GetClientSecretRef() == nil) ||
 					oidcCfg.GetAppUrl() == "" ||
 					oidcCfg.GetIssuerUrl() == "" ||
 					oidcCfg.GetCallbackPath() == "" {
 					multiErr = multierror.Append(multiErr, OAuth2IncompleteOIDCInfoErr)
+				}
+
+				// Validate the clientAuthentication and the deprecated fields
+				switch oidcCfg.GetClientAuthentication().GetClientAuthenticationConfig().(type) {
+				case *extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret_:
+					secretConfig := oidcCfg.GetClientAuthentication().GetClientSecret()
+					if oidcCfg.GetDisableClientSecret() != nil || oidcCfg.GetClientSecretRef() != nil {
+						multiErr = multierror.Append(multiErr, OAuth2DuplicateOIDCErr)
+					}
+
+					if !secretConfig.GetDisableClientSecret().GetValue() && secretConfig.GetClientSecretRef() == nil {
+						multiErr = multierror.Append(multiErr, OAuth2IncompleteOIDCInfoErr)
+					}
+				case *extauth.OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt_:
+					pkJwtConfig := oidcCfg.GetClientAuthentication().GetPrivateKeyJwt()
+					if oidcCfg.GetDisableClientSecret() != nil || oidcCfg.GetClientSecretRef() != nil {
+						multiErr = multierror.Append(multiErr, OAuth2DuplicateOIDCErr)
+					}
+
+					if pkJwtConfig.GetSigningKeyRef() == nil {
+						multiErr = multierror.Append(multiErr, OAuth2IncompleteOIDCInfoErr)
+					}
+				default:
+					// Didn't hit any of our types, so either the exchangeType is nil or it's an unknown type
+					if oidcCfg.GetClientAuthentication() != nil {
+						multiErr = multierror.Append(multiErr, OAuth2InvalidExchanger)
+					}
+
+					if !oidcCfg.GetDisableClientSecret().GetValue() && oidcCfg.GetClientSecretRef() == nil {
+						multiErr = multierror.Append(multiErr, OAuth2IncompleteOIDCInfoErr)
+					}
 				}
 			case *extauth.OAuth2_AccessTokenValidation:
 				switch validation := oauthCfg.AccessTokenValidation.ValidationType.(type) {

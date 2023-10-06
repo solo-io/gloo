@@ -1279,6 +1279,11 @@ export class OidcAuthorizationCode extends jspb.Message {
   getIdentityToken(): OidcAuthorizationCode.IdentityToken | undefined;
   setIdentityToken(value?: OidcAuthorizationCode.IdentityToken): void;
 
+  hasClientAuthentication(): boolean;
+  clearClientAuthentication(): void;
+  getClientAuthentication(): OidcAuthorizationCode.ClientAuthentication | undefined;
+  setClientAuthentication(value?: OidcAuthorizationCode.ClientAuthentication): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
   static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
@@ -1314,6 +1319,7 @@ export namespace OidcAuthorizationCode {
     disableClientSecret?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     accessToken?: OidcAuthorizationCode.AccessToken.AsObject,
     identityToken?: OidcAuthorizationCode.IdentityToken.AsObject,
+    clientAuthentication?: OidcAuthorizationCode.ClientAuthentication.AsObject,
   }
 
   export class AccessToken extends jspb.Message {
@@ -1357,6 +1363,97 @@ export namespace OidcAuthorizationCode {
   export namespace IdentityToken {
     export type AsObject = {
       claimsToHeadersList: Array<ClaimToHeader.AsObject>,
+    }
+  }
+
+  export class ClientAuthentication extends jspb.Message {
+    hasClientSecret(): boolean;
+    clearClientSecret(): void;
+    getClientSecret(): OidcAuthorizationCode.ClientAuthentication.ClientSecret | undefined;
+    setClientSecret(value?: OidcAuthorizationCode.ClientAuthentication.ClientSecret): void;
+
+    hasPrivateKeyJwt(): boolean;
+    clearPrivateKeyJwt(): void;
+    getPrivateKeyJwt(): OidcAuthorizationCode.ClientAuthentication.PrivateKeyJwt | undefined;
+    setPrivateKeyJwt(value?: OidcAuthorizationCode.ClientAuthentication.PrivateKeyJwt): void;
+
+    getClientAuthenticationConfigCase(): ClientAuthentication.ClientAuthenticationConfigCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ClientAuthentication.AsObject;
+    static toObject(includeInstance: boolean, msg: ClientAuthentication): ClientAuthentication.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ClientAuthentication, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ClientAuthentication;
+    static deserializeBinaryFromReader(message: ClientAuthentication, reader: jspb.BinaryReader): ClientAuthentication;
+  }
+
+  export namespace ClientAuthentication {
+    export type AsObject = {
+      clientSecret?: OidcAuthorizationCode.ClientAuthentication.ClientSecret.AsObject,
+      privateKeyJwt?: OidcAuthorizationCode.ClientAuthentication.PrivateKeyJwt.AsObject,
+    }
+
+    export class ClientSecret extends jspb.Message {
+      hasClientSecretRef(): boolean;
+      clearClientSecretRef(): void;
+      getClientSecretRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+      setClientSecretRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+      hasDisableClientSecret(): boolean;
+      clearDisableClientSecret(): void;
+      getDisableClientSecret(): google_protobuf_wrappers_pb.BoolValue | undefined;
+      setDisableClientSecret(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): ClientSecret.AsObject;
+      static toObject(includeInstance: boolean, msg: ClientSecret): ClientSecret.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: ClientSecret, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): ClientSecret;
+      static deserializeBinaryFromReader(message: ClientSecret, reader: jspb.BinaryReader): ClientSecret;
+    }
+
+    export namespace ClientSecret {
+      export type AsObject = {
+        clientSecretRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+        disableClientSecret?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      }
+    }
+
+    export class PrivateKeyJwt extends jspb.Message {
+      hasSigningKeyRef(): boolean;
+      clearSigningKeyRef(): void;
+      getSigningKeyRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+      setSigningKeyRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+      hasValidFor(): boolean;
+      clearValidFor(): void;
+      getValidFor(): google_protobuf_duration_pb.Duration | undefined;
+      setValidFor(value?: google_protobuf_duration_pb.Duration): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): PrivateKeyJwt.AsObject;
+      static toObject(includeInstance: boolean, msg: PrivateKeyJwt): PrivateKeyJwt.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: PrivateKeyJwt, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): PrivateKeyJwt;
+      static deserializeBinaryFromReader(message: PrivateKeyJwt, reader: jspb.BinaryReader): PrivateKeyJwt;
+    }
+
+    export namespace PrivateKeyJwt {
+      export type AsObject = {
+        signingKeyRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+        validFor?: google_protobuf_duration_pb.Duration.AsObject,
+      }
+    }
+
+    export enum ClientAuthenticationConfigCase {
+      CLIENT_AUTHENTICATION_CONFIG_NOT_SET = 0,
+      CLIENT_SECRET = 1,
+      PRIVATE_KEY_JWT = 2,
     }
   }
 }
@@ -2724,6 +2821,11 @@ export namespace ExtAuthConfig {
     getUserSession(): ExtAuthConfig.UserSessionConfig | undefined;
     setUserSession(value?: ExtAuthConfig.UserSessionConfig): void;
 
+    hasPkJwtClientAuthenticationConfig(): boolean;
+    clearPkJwtClientAuthenticationConfig(): void;
+    getPkJwtClientAuthenticationConfig(): ExtAuthConfig.OidcAuthorizationCodeConfig.PkJwtClientAuthenticationConfig | undefined;
+    setPkJwtClientAuthenticationConfig(value?: ExtAuthConfig.OidcAuthorizationCodeConfig.PkJwtClientAuthenticationConfig): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
     static toObject(includeInstance: boolean, msg: OidcAuthorizationCodeConfig): OidcAuthorizationCodeConfig.AsObject;
@@ -2756,6 +2858,33 @@ export namespace ExtAuthConfig {
       autoMapFromMetadata?: AutoMapFromMetadata.AsObject,
       endSessionProperties?: EndSessionProperties.AsObject,
       userSession?: ExtAuthConfig.UserSessionConfig.AsObject,
+      pkJwtClientAuthenticationConfig?: ExtAuthConfig.OidcAuthorizationCodeConfig.PkJwtClientAuthenticationConfig.AsObject,
+    }
+
+    export class PkJwtClientAuthenticationConfig extends jspb.Message {
+      getSigningKey(): string;
+      setSigningKey(value: string): void;
+
+      hasValidFor(): boolean;
+      clearValidFor(): void;
+      getValidFor(): google_protobuf_duration_pb.Duration | undefined;
+      setValidFor(value?: google_protobuf_duration_pb.Duration): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): PkJwtClientAuthenticationConfig.AsObject;
+      static toObject(includeInstance: boolean, msg: PkJwtClientAuthenticationConfig): PkJwtClientAuthenticationConfig.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: PkJwtClientAuthenticationConfig, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): PkJwtClientAuthenticationConfig;
+      static deserializeBinaryFromReader(message: PkJwtClientAuthenticationConfig, reader: jspb.BinaryReader): PkJwtClientAuthenticationConfig;
+    }
+
+    export namespace PkJwtClientAuthenticationConfig {
+      export type AsObject = {
+        signingKey: string,
+        validFor?: google_protobuf_duration_pb.Duration.AsObject,
+      }
     }
   }
 

@@ -8,6 +8,7 @@ import (
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var _ = Describe("ValidateAuthConfig", func() {
@@ -348,16 +349,6 @@ var _ = Describe("ValidateAuthConfig", func() {
 				},
 			},
 		}, OAuth2IncompletePlainInfoErr),
-		Entry("incomplete OIDC config: no client secret", &extauth.OAuth2{
-			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
-				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
-					ClientId:     "clientID",
-					IssuerUrl:    "solo.io",
-					AppUrl:       "some url",
-					CallbackPath: "/callback",
-				},
-			},
-		}, OAuth2IncompleteOIDCInfoErr),
 		Entry("incomplete OIDC config: no issuer URL", &extauth.OAuth2{
 			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
 				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
@@ -388,6 +379,93 @@ var _ = Describe("ValidateAuthConfig", func() {
 				},
 			},
 		}, OAuth2IncompleteOIDCInfoErr),
+		// From here on down is Client Exchange config specfic
+		Entry("incomplete OIDC config: no client secret or client authentication", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+					ClientId:     "clientID",
+					IssuerUrl:    "solo.io",
+					AppUrl:       "some url",
+					CallbackPath: "/callback",
+				},
+			},
+		}, OAuth2IncompleteOIDCInfoErr),
+		Entry("incomplete OIDC config: no client secret in client secret client authentication", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+					ClientId:     "clientID",
+					IssuerUrl:    "solo.io",
+					AppUrl:       "some url",
+					CallbackPath: "/callback",
+					ClientAuthentication: &extauth.OidcAuthorizationCode_ClientAuthentication{
+						ClientAuthenticationConfig: &extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret_{
+							ClientSecret: &extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret{},
+						},
+					},
+				},
+			},
+		}, OAuth2IncompleteOIDCInfoErr),
+		Entry("incomplete OIDC config: no signing key in pk jwt client authentication", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+					ClientId:     "clientID",
+					IssuerUrl:    "solo.io",
+					AppUrl:       "some url",
+					CallbackPath: "/callback",
+					ClientAuthentication: &extauth.OidcAuthorizationCode_ClientAuthentication{
+						ClientAuthenticationConfig: &extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret_{},
+					},
+				},
+			},
+		}, OAuth2IncompleteOIDCInfoErr),
+		Entry("invalid OIDC config: client secret (deprecated) and client secret client authentication both defined", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+					ClientId:        "clientID",
+					ClientSecretRef: &core.ResourceRef{Name: "foo", Namespace: "bar"},
+					IssuerUrl:       "solo.io",
+					AppUrl:          "some url",
+					CallbackPath:    "/callback",
+					ClientAuthentication: &extauth.OidcAuthorizationCode_ClientAuthentication{
+						ClientAuthenticationConfig: &extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret_{
+							ClientSecret: &extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret{
+								ClientSecretRef: &core.ResourceRef{Name: "foo", Namespace: "bar"},
+							},
+						},
+					},
+				},
+			},
+		}, OAuth2DuplicateOIDCErr),
+		Entry("invalid OIDC config: client secret (deprecated) and pk jwt client authentication both defined", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+					ClientId:        "clientID",
+					ClientSecretRef: &core.ResourceRef{Name: "foo", Namespace: "bar"},
+					IssuerUrl:       "solo.io",
+					AppUrl:          "some url",
+					CallbackPath:    "/callback",
+					ClientAuthentication: &extauth.OidcAuthorizationCode_ClientAuthentication{
+						ClientAuthenticationConfig: &extauth.OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt_{
+							PrivateKeyJwt: &extauth.OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt{
+								SigningKeyRef: &core.ResourceRef{Name: "foo", Namespace: "bar"},
+							},
+						},
+					},
+				},
+			},
+		}, OAuth2DuplicateOIDCErr),
+		Entry("invalid OIDC config: invalid client authentication", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+					ClientId:             "clientID",
+					ClientSecretRef:      &core.ResourceRef{Name: "foo", Namespace: "bar"},
+					IssuerUrl:            "solo.io",
+					AppUrl:               "some url",
+					CallbackPath:         "/callback",
+					ClientAuthentication: &extauth.OidcAuthorizationCode_ClientAuthentication{},
+				},
+			},
+		}, OAuth2InvalidExchanger),
 	)
 	DescribeTable("Valid configs for Oauth2 config",
 		func(cfg *extauth.OAuth2) {
@@ -421,7 +499,7 @@ var _ = Describe("ValidateAuthConfig", func() {
 				},
 			},
 		}),
-		Entry("Oidc with client secret disabled", &extauth.OAuth2{
+		Entry("Oidc with client secret disabled (deprecated)", &extauth.OAuth2{
 			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
 				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
 					ClientId:            "0000",
@@ -429,6 +507,88 @@ var _ = Describe("ValidateAuthConfig", func() {
 					AppUrl:              "some.url",
 					IssuerUrl:           "other.url",
 					DisableClientSecret: &wrappers.BoolValue{Value: true},
+				}}}),
+		Entry("Oidc with client secret disabled", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+					ClientId:     "0000",
+					CallbackPath: "/callback",
+					AppUrl:       "some.url",
+					IssuerUrl:    "other.url",
+					ClientAuthentication: &extauth.OidcAuthorizationCode_ClientAuthentication{
+						ClientAuthenticationConfig: &extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret_{
+							ClientSecret: &extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret{
+								DisableClientSecret: &wrappers.BoolValue{Value: true},
+							},
+						},
+					},
+				}}}),
+		Entry("Oidc with client secret (deprecated)", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+					ClientId:     "0000",
+					CallbackPath: "/callback",
+					AppUrl:       "some.url",
+					IssuerUrl:    "other.url",
+					ClientSecretRef: &core.ResourceRef{
+						Name:      "foo",
+						Namespace: "bar",
+					},
+				}}}),
+		Entry("Oidc with client secret", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+					ClientId:     "0000",
+					CallbackPath: "/callback",
+					AppUrl:       "some.url",
+					IssuerUrl:    "other.url",
+					ClientAuthentication: &extauth.OidcAuthorizationCode_ClientAuthentication{
+						ClientAuthenticationConfig: &extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret_{
+							ClientSecret: &extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret{
+								ClientSecretRef: &core.ResourceRef{
+									Name:      "foo",
+									Namespace: "bar",
+								},
+							},
+						},
+					},
+				}}}),
+		Entry("Oidc with private key JWT", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+					ClientId:     "0000",
+					CallbackPath: "/callback",
+					AppUrl:       "some.url",
+					IssuerUrl:    "other.url",
+					ClientAuthentication: &extauth.OidcAuthorizationCode_ClientAuthentication{
+						ClientAuthenticationConfig: &extauth.OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt_{
+							PrivateKeyJwt: &extauth.OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt{
+								SigningKeyRef: &core.ResourceRef{
+									Name:      "foo",
+									Namespace: "bar",
+								},
+							},
+						},
+					},
+				}}}),
+		Entry("Oidc with private key JWT w/ validFor", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+					ClientId:     "0000",
+					CallbackPath: "/callback",
+					AppUrl:       "some.url",
+					IssuerUrl:    "other.url",
+					ClientAuthentication: &extauth.OidcAuthorizationCode_ClientAuthentication{
+						ClientAuthenticationConfig: &extauth.OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt_{
+							PrivateKeyJwt: &extauth.OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt{
+								SigningKeyRef: &core.ResourceRef{
+									Name:      "foo",
+									Namespace: "bar",
+								},
+								ValidFor: durationpb.New(1),
+							},
+						},
+					},
 				}}}),
 		Entry("Introspection with client secret disabled", &extauth.OAuth2{
 			OauthType: &extauth.OAuth2_AccessTokenValidation{

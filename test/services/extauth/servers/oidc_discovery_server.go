@@ -350,13 +350,20 @@ func (f *FakeDiscoveryServer) Start(serverAddress string) *rsa.PrivateKey {
 func (f *FakeDiscoveryServer) GetOidcAuthCodeConfig(envoyPort uint32, appUrl string, secretRef *core.ResourceRef) *extauth.OAuth2_OidcAuthorizationCode {
 	return &extauth.OAuth2_OidcAuthorizationCode{
 		OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
-			ClientId:        "test-clientid",
-			ClientSecretRef: secretRef,
-			IssuerUrl:       fmt.Sprintf("http://%s:%d/", f.ServerAddress, f.Port),
-			AppUrl:          fmt.Sprintf("http://%s:%d", appUrl, envoyPort),
-			CallbackPath:    "/callback",
-			LogoutPath:      LogoutEndpoint,
-			Scopes:          []string{"email"},
+			ClientId: "test-clientid",
+			//ClientSecretRef: secretRef,
+			IssuerUrl:    fmt.Sprintf("http://%s:%d/", f.ServerAddress, f.Port),
+			AppUrl:       fmt.Sprintf("http://%s:%d", appUrl, envoyPort),
+			CallbackPath: "/callback",
+			LogoutPath:   LogoutEndpoint,
+			Scopes:       []string{"email"},
+			ClientAuthentication: &extauth.OidcAuthorizationCode_ClientAuthentication{
+				ClientAuthenticationConfig: &extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret_{
+					ClientSecret: &extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret{
+						ClientSecretRef: secretRef,
+					},
+				},
+			},
 		},
 	}
 }

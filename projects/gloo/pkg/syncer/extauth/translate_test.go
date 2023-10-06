@@ -6,6 +6,7 @@ import (
 	"time"
 
 	extauthsyncer "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/golang/protobuf/ptypes/duration"
@@ -33,6 +34,7 @@ var _ = Describe("Translate", func() {
 		virtualHost       *v1.VirtualHost
 		upstream          *v1.Upstream
 		secret            *v1.Secret
+		secretRef         *core.ResourceRef
 		cipherSecret      *v1.Secret
 		route             *v1.Route
 		authConfig        *extauth.AuthConfig
@@ -100,7 +102,6 @@ var _ = Describe("Translate", func() {
 		clientSecret = &extauth.OauthSecret{
 			ClientSecret: "1234",
 		}
-
 		secret = &v1.Secret{
 			Metadata: &core.Metadata{
 				Name:      "secret",
@@ -110,54 +111,8 @@ var _ = Describe("Translate", func() {
 				Oauth: clientSecret,
 			},
 		}
-		secretRef := secret.Metadata.Ref()
-		authConfig = &extauth.AuthConfig{
-			Metadata: &core.Metadata{
-				Name:      "oauth",
-				Namespace: "gloo-system",
-			},
-			Configs: []*extauth.AuthConfig_Config{{
-				AuthConfig: &extauth.AuthConfig_Config_Oauth2{
-					Oauth2: &extauth.OAuth2{
-						OauthType: &extauth.OAuth2_OidcAuthorizationCode{
-
-							OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
-								ClientSecretRef:          secretRef,
-								ClientId:                 "ClientId",
-								IssuerUrl:                "IssuerUrl",
-								AuthEndpointQueryParams:  map[string]string{"test": "additional_auth_query_params"},
-								TokenEndpointQueryParams: map[string]string{"test": "additional_token_query_params"},
-								AppUrl:                   "AppUrl",
-								CallbackPath:             "CallbackPath",
-								AutoMapFromMetadata: &extauth.AutoMapFromMetadata{
-									Namespace: "test_namespace",
-								},
-								Session: &extauth.UserSession{
-									FailOnFetchFailure: true,
-									CookieOptions: &extauth.UserSession_CookieOptions{
-										MaxAge: &wrapperspb.UInt32Value{Value: 20},
-									},
-									Session: &extauth.UserSession_Cookie{
-										Cookie: &extauth.UserSession_InternalSession{
-											AllowRefreshing: &wrapperspb.BoolValue{Value: true},
-											KeyPrefix:       "prefix",
-										},
-									},
-									CipherConfig: &extauth.UserSession_CipherConfig{
-										Key: &extauth.UserSession_CipherConfig_KeyRef{
-											KeyRef: &core.ResourceRef{
-												Name:      "cipher-key-name",
-												Namespace: "cipher-key-namespace",
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			}},
-		}
+		secretRef = secret.Metadata.Ref()
+		authConfig = getAuthConfigClientSecretDeprecated(secretRef)
 
 		authConfigRef = authConfig.Metadata.Ref()
 		extAuthExtension = &extauth.ExtAuthExtension{
@@ -214,7 +169,10 @@ var _ = Describe("Translate", func() {
 		params.Snapshot.Secrets = v1.SecretList{secret, ldapSecret, cipherSecret}
 	})
 
-	It("should translate oauth config for extauth server", func() {
+	DescribeTable("should translate oauth config for extauth server for all OIDC client authentication types", func(setAuthConfig updateOidcConfigFn, oidcValidation oidcValidator) {
+		oidcConfig := authConfig.GetConfigs()[0].GetOauth2().GetOauthType().(*extauth.OAuth2_OidcAuthorizationCode).OidcAuthorizationCode
+		setAuthConfig(oidcConfig, secretRef)
+
 		translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
@@ -227,7 +185,6 @@ var _ = Describe("Translate", func() {
 		Expect(actualOidc.AuthEndpointQueryParams).To(Equal(expectedOidc.AuthEndpointQueryParams))
 		Expect(actualOidc.TokenEndpointQueryParams).To(Equal(expectedOidc.TokenEndpointQueryParams))
 		Expect(actualOidc.ClientId).To(Equal(expectedOidc.ClientId))
-		Expect(actualOidc.ClientSecret).To(Equal(clientSecret.ClientSecret))
 		Expect(actualOidc.AppUrl).To(Equal(expectedOidc.AppUrl))
 		Expect(actualOidc.CallbackPath).To(Equal(expectedOidc.CallbackPath))
 		Expect(actualOidc.AutoMapFromMetadata.Namespace).To(Equal("test_namespace"))
@@ -238,7 +195,15 @@ var _ = Describe("Translate", func() {
 		Expect(actualOidc.UserSession.CookieOptions).To(Equal(expectedOidc.Session.CookieOptions))
 		Expect(actualOidc.UserSession.CipherConfig.Key).To(Equal(cipherSecret.GetEncryption().GetKey()))
 		Expect(actualOidc.UserSession.GetCookie()).To(Equal(expectedOidc.Session.GetCookie()))
-	})
+
+		oidcValidation(actualOidc, clientSecret)
+	},
+		Entry("Deprecated Client Secret", updateOidcConfigClientSecretDeprecated, clientSecretOIDCValidator),
+		Entry("Client Secret", updateOidcConfigClientSecret, clientSecretOIDCValidator),
+		Entry("Private Key JWT", updateOidcConfigPkJwt, pkJwtOIDCValidatorValidFor(pkJwtValidFor)),
+		Entry("Private Key JWT no validFor", updateOidcConfigPkJwtNoValidFor, pkJwtOIDCValidatorValidFor(&durationpb.Duration{Seconds: extauthsyncer.OidcPkJwtClientAuthValidForDefaultSeconds})),
+	)
+
 	It("should translate session when cipher is not included", func() {
 		// set the cipher to nil
 		params.Snapshot.AuthConfigs[0].GetConfigs()[0].GetOauth2().GetOidcAuthorizationCode().GetSession().CipherConfig = nil
@@ -269,13 +234,9 @@ var _ = Describe("Translate", func() {
 		Expect(actualOidc.Session.GetCipherConfig()).To(BeNil())
 		Expect(actualOidc.UserSession).To(BeNil())
 	})
-	It("should translate oidc config without a clientSecret", func() {
+	DescribeTable("should translate oidc config without a clientSecret for all OIDC client authentication types", func(disableClientSecret disableClientSecretFn) {
 		oidcConfig := authConfig.GetConfigs()[0].GetOauth2().GetOauthType().(*extauth.OAuth2_OidcAuthorizationCode).OidcAuthorizationCode
-		oidcConfig.DisableClientSecret = &wrappers.BoolValue{Value: true}
-		oidcConfig.ClientSecretRef = nil
-		oidcConfig.EndSessionProperties = &extauth.EndSessionProperties{
-			MethodType: extauth.EndSessionProperties_PostMethod,
-		}
+		disableClientSecret(oidcConfig)
 
 		translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 		Expect(err).NotTo(HaveOccurred())
@@ -296,7 +257,10 @@ var _ = Describe("Translate", func() {
 		Expect(actualOidc.CallbackPath).To(Equal(expectedOidc.CallbackPath))
 		Expect(actualOidc.AutoMapFromMetadata.Namespace).To(Equal("test_namespace"))
 		Expect(actualOidc.EndSessionProperties).To(Equal(expectedOidc.EndSessionProperties))
-	})
+	},
+		Entry("Client Secret", disableClientSecret),
+		Entry("Client Secret Deprecated", disableClientSecretDeprecated),
+	)
 	Context("Encryption Key error", func() {
 		BeforeEach(func() {
 			encryptionKey = "an example encryption key"
@@ -314,7 +278,7 @@ var _ = Describe("Translate", func() {
 		// most likely needs to change.
 
 		Expect(reflect.TypeOf(extauth.ExtAuthConfig_OidcAuthorizationCodeConfig{}).NumField()).To(
-			Equal(23),
+			Equal(24),
 			"wrong number of fields found",
 		)
 	})
@@ -1127,3 +1091,152 @@ var _ = Describe("Translate", func() {
 		})
 	})
 })
+
+func getAuthConfigClientSecretDeprecated(secretRef *core.ResourceRef) *extauth.AuthConfig {
+	return &extauth.AuthConfig{
+		Metadata: &core.Metadata{
+			Name:      "oauth",
+			Namespace: "gloo-system",
+		},
+		Configs: []*extauth.AuthConfig_Config{{
+			AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+				Oauth2: &extauth.OAuth2{
+					OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+
+						OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+							ClientSecretRef:          secretRef,
+							ClientId:                 "ClientId",
+							IssuerUrl:                "IssuerUrl",
+							AuthEndpointQueryParams:  map[string]string{"test": "additional_auth_query_params"},
+							TokenEndpointQueryParams: map[string]string{"test": "additional_token_query_params"},
+							AppUrl:                   "AppUrl",
+							CallbackPath:             "CallbackPath",
+							AutoMapFromMetadata: &extauth.AutoMapFromMetadata{
+								Namespace: "test_namespace",
+							},
+							Session: &extauth.UserSession{
+								FailOnFetchFailure: true,
+								CookieOptions: &extauth.UserSession_CookieOptions{
+									MaxAge: &wrapperspb.UInt32Value{Value: 20},
+								},
+								Session: &extauth.UserSession_Cookie{
+									Cookie: &extauth.UserSession_InternalSession{
+										AllowRefreshing: &wrapperspb.BoolValue{Value: true},
+										KeyPrefix:       "prefix",
+									},
+								},
+								CipherConfig: &extauth.UserSession_CipherConfig{
+									Key: &extauth.UserSession_CipherConfig_KeyRef{
+										KeyRef: &core.ResourceRef{
+											Name:      "cipher-key-name",
+											Namespace: "cipher-key-namespace",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}},
+	}
+}
+
+var pkJwtValidFor = &duration.Duration{Seconds: 10}
+
+// Functions used to validate translated OIDC config
+type oidcValidator func(*extauth.ExtAuthConfig_OidcAuthorizationCodeConfig, *extauth.OauthSecret)
+
+var clientSecretOIDCValidator = oidcValidator(func(actualOidc *extauth.ExtAuthConfig_OidcAuthorizationCodeConfig, clientSecret *extauth.OauthSecret) {
+	Expect(actualOidc.ClientSecret).To(Equal(clientSecret.ClientSecret))
+	Expect(actualOidc.PkJwtClientAuthenticationConfig).To(BeNil())
+})
+
+func pkJwtOIDCValidatorValidFor(validFor *duration.Duration) oidcValidator {
+	return oidcValidator(func(actualOidc *extauth.ExtAuthConfig_OidcAuthorizationCodeConfig, clientSecret *extauth.OauthSecret) {
+		Expect(actualOidc.ClientSecret).To(Equal(""))
+		Expect(actualOidc.PkJwtClientAuthenticationConfig.SigningKey).To(Equal(clientSecret.ClientSecret))
+		Expect(actualOidc.PkJwtClientAuthenticationConfig.ValidFor).To(Equal(validFor))
+	})
+}
+
+// Functions used to update OIDC config for tests.
+type updateOidcConfigFn func(oidcConfig *extauth.OidcAuthorizationCode, secretRef *core.ResourceRef)
+
+var updateOidcConfigPkJwt = updateOidcConfigFn(func(oidcConfig *extauth.OidcAuthorizationCode, secretRef *core.ResourceRef) {
+	oidcConfig.ClientAuthentication = getPkJwtClientAuth(secretRef)
+	oidcConfig.ClientSecretRef = nil
+	oidcConfig.DisableClientSecret = nil
+})
+
+var updateOidcConfigPkJwtNoValidFor = updateOidcConfigFn(func(oidcConfig *extauth.OidcAuthorizationCode, secretRef *core.ResourceRef) {
+	oidcConfig.ClientAuthentication = getPkJwtClientAuth(secretRef)
+	oidcConfig.ClientSecretRef = nil
+	oidcConfig.DisableClientSecret = nil
+	oidcConfig.ClientAuthentication.GetPrivateKeyJwt().ValidFor = nil
+})
+
+var updateOidcConfigPkJwtNil = updateOidcConfigFn(func(oidcConfig *extauth.OidcAuthorizationCode, secretRef *core.ResourceRef) {
+	oidcConfig.ClientAuthentication = getPkJwtClientAuth(secretRef)
+	oidcConfig.ClientSecretRef = nil
+	oidcConfig.DisableClientSecret = nil
+})
+
+var updateOidcConfigClientSecret = updateOidcConfigFn(func(oidcConfig *extauth.OidcAuthorizationCode, secretRef *core.ResourceRef) {
+	oidcConfig.ClientAuthentication = getClientSecretClientAuth(secretRef)
+	oidcConfig.ClientSecretRef = nil
+	oidcConfig.DisableClientSecret = nil
+})
+
+var updateOidcConfigClientSecretDeprecated = updateOidcConfigFn(func(oidcConfig *extauth.OidcAuthorizationCode, secretRef *core.ResourceRef) {
+	oidcConfig.ClientAuthentication = nil
+	oidcConfig.ClientSecretRef = secretRef
+})
+
+// Functions used to disable client secret config config for tests.
+type disableClientSecretFn func(oidcConfig *extauth.OidcAuthorizationCode)
+
+var disableClientSecret = disableClientSecretFn(func(oidcConfig *extauth.OidcAuthorizationCode) {
+	exchangeConfig := getClientSecretClientAuth(nil)
+	exchangeConfig.GetClientSecret().DisableClientSecret = wrapperspb.Bool(true)
+	oidcConfig.ClientAuthentication = exchangeConfig
+
+	// Set the deprecated fields to nil because we are testing the new interface
+	oidcConfig.ClientSecretRef = nil
+	oidcConfig.DisableClientSecret = nil
+	oidcConfig.EndSessionProperties = &extauth.EndSessionProperties{
+		MethodType: extauth.EndSessionProperties_PostMethod,
+	}
+
+})
+
+var disableClientSecretDeprecated = disableClientSecretFn(func(oidcConfig *extauth.OidcAuthorizationCode) {
+	// Set ClientAuthentication to nil because we are testing the deprecated interface
+	oidcConfig.ClientAuthentication = nil
+	oidcConfig.DisableClientSecret = wrapperspb.Bool(true)
+	oidcConfig.ClientSecretRef = nil
+	oidcConfig.EndSessionProperties = &extauth.EndSessionProperties{
+		MethodType: extauth.EndSessionProperties_PostMethod,
+	}
+})
+
+func getClientSecretClientAuth(secretRef *core.ResourceRef) *extauth.OidcAuthorizationCode_ClientAuthentication {
+	return &extauth.OidcAuthorizationCode_ClientAuthentication{
+		ClientAuthenticationConfig: &extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret_{
+			ClientSecret: &extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret{
+				ClientSecretRef: secretRef,
+			},
+		},
+	}
+}
+
+func getPkJwtClientAuth(secretRef *core.ResourceRef) *extauth.OidcAuthorizationCode_ClientAuthentication {
+	return &extauth.OidcAuthorizationCode_ClientAuthentication{
+		ClientAuthenticationConfig: &extauth.OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt_{
+			PrivateKeyJwt: &extauth.OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt{
+				SigningKeyRef: secretRef,
+				ValidFor:      pkJwtValidFor,
+			},
+		},
+	}
+}

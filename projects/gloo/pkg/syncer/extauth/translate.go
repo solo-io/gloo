@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/hashicorp/go-multierror"
 
@@ -25,10 +26,11 @@ import (
 )
 
 var (
-	unknownConfigTypeError = errors.New("unknown ext auth configuration")
-	emptyQueryError        = errors.New("no query provided")
-	noValidUsersError      = errors.New("No valid users found")
-	NonApiKeySecretError   = func(secret *v1.Secret) error {
+	unknownConfigTypeError                 = errors.New("unknown ext auth configuration")
+	emptyQueryError                        = errors.New("no query provided")
+	noValidUsersError                      = errors.New("No valid users found")
+	duplicateOidcClientAuthenticationError = errors.New("can not define both clientAuthentication and deprecated fields clientSecretRef/disableClientSecret")
+	NonApiKeySecretError                   = func(secret *v1.Secret) error {
 		return errors.Errorf("secret [%s] is not an API key secret", secret.Metadata.Ref().Key())
 	}
 	EmptyApiKeyError = func(secret *v1.Secret) error {
@@ -50,6 +52,10 @@ var (
 	noMatchesForGroupError = func(labelSelector map[string]string) error {
 		return errors.Errorf("no matching apikey secrets for the provided label selector %v", labelSelector)
 	}
+)
+
+const (
+	OidcPkJwtClientAuthValidForDefaultSeconds = 5
 )
 
 // TranslateExtAuthConfig Returns {nil, nil} if the input config is empty or if it contains only custom auth entries
@@ -544,14 +550,73 @@ func userSessionToSession(userSession *extauth.ExtAuthConfig_UserSessionConfig) 
 }
 
 func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.OidcAuthorizationCode) (*extauth.ExtAuthConfig_OidcAuthorizationCodeConfig, error) {
-	secretDisabled := config.GetDisableClientSecret().GetValue()
+	// Configuration used for OIDC client authentication
 	clientSecret := ""
-	if !secretDisabled {
-		secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
+	var pkJwtClientAuthenticationConfig *extauth.ExtAuthConfig_OidcAuthorizationCodeConfig_PkJwtClientAuthenticationConfig
+
+	// Translate the Specific OIDC Client Authentication Type
+	switch config.GetClientAuthentication().GetClientAuthenticationConfig().(type) {
+	// Client Secret Client Authentication
+	case *extauth.OidcAuthorizationCode_ClientAuthentication_ClientSecret_:
+		if config.GetClientSecretRef() != nil || config.GetDisableClientSecret() != nil {
+			return nil, duplicateOidcClientAuthenticationError
+		}
+
+		clientSecretConfig := config.GetClientAuthentication().GetClientSecret()
+		clientSecretDisabled := clientSecretConfig.GetDisableClientSecret().GetValue()
+
+		// Require the client secret to be defined unless it is specifically disabled
+		if !clientSecretDisabled {
+			secret, err := snap.Secrets.Find(clientSecretConfig.GetClientSecretRef().GetNamespace(), clientSecretConfig.GetClientSecretRef().GetName())
+			if err != nil {
+				return nil, errors.New("client secret expected and not found")
+			}
+			clientSecret = secret.GetOauth().GetClientSecret()
+		}
+
+	// Private Key JWT Client Authentication
+	case *extauth.OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt_:
+		if config.GetClientSecretRef() != nil || config.GetDisableClientSecret() != nil {
+			return nil, duplicateOidcClientAuthenticationError
+		}
+		signingKey := ""
+		// Todo: handle depreaction of client secret
+		authenticationConfig := config.GetClientAuthentication().GetPrivateKeyJwt()
+
+		signingKeySecret, err := snap.Secrets.Find(authenticationConfig.GetSigningKeyRef().GetNamespace(), authenticationConfig.GetSigningKeyRef().GetName())
 		if err != nil {
 			return nil, errors.New("client secret expected and not found")
 		}
-		clientSecret = secret.GetOauth().GetClientSecret()
+		signingKey = signingKeySecret.GetOauth().GetClientSecret()
+
+		// Set the default validFor if not set
+		validFor := authenticationConfig.GetValidFor()
+		if err := validFor.CheckValid(); err != nil {
+			validFor = &durationpb.Duration{Seconds: OidcPkJwtClientAuthValidForDefaultSeconds}
+		}
+
+		pkJwtClientAuthenticationConfig = &extauth.ExtAuthConfig_OidcAuthorizationCodeConfig_PkJwtClientAuthenticationConfig{
+			SigningKey: signingKey,
+			ValidFor:   validFor,
+		}
+
+	// default is the deprecated Client Secret Client Authentication format or a mistake
+	default:
+		// Validate Deprecated clientSecret/disableClientSecret fields
+		// We're here beacuse we didn't catch any of the expected config types, but make sure there wasn't an empty/malformed codeExchangeType
+		if config.GetClientAuthentication() != nil {
+			return nil, errors.New("Invalid codeExchangeType, expected clientSecret or privateKeyJwt")
+		}
+
+		secretDisabled := config.GetDisableClientSecret().GetValue()
+		// Require the client secret to be defined unless it is specifically disabled
+		if !secretDisabled {
+			secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
+			if err != nil {
+				return nil, errors.New("client secret expected and not found")
+			}
+			clientSecret = secret.GetOauth().GetClientSecret()
+		}
 	}
 
 	sessionIdHeaderName := config.GetSessionIdHeaderName()
@@ -594,16 +659,18 @@ func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.Oi
 		LogoutPath:               config.LogoutPath,
 		Scopes:                   config.Scopes,
 		// Session is deprecated, use UserSession. setting session here because upgrades could neglect UserSession from race condition
-		Session:                  session,
-		UserSession:              userSessionConfig,
-		Headers:                  config.Headers,
-		DiscoveryOverride:        config.DiscoveryOverride,
-		DiscoveryPollInterval:    config.GetDiscoveryPollInterval(),
-		JwksCacheRefreshPolicy:   config.GetJwksCacheRefreshPolicy(),
-		ParseCallbackPathAsRegex: config.ParseCallbackPathAsRegex,
-		AutoMapFromMetadata:      config.AutoMapFromMetadata,
-		EndSessionProperties:     config.EndSessionProperties,
+		Session:                         session,
+		UserSession:                     userSessionConfig,
+		Headers:                         config.Headers,
+		DiscoveryOverride:               config.DiscoveryOverride,
+		DiscoveryPollInterval:           config.GetDiscoveryPollInterval(),
+		JwksCacheRefreshPolicy:          config.GetJwksCacheRefreshPolicy(),
+		ParseCallbackPathAsRegex:        config.ParseCallbackPathAsRegex,
+		AutoMapFromMetadata:             config.AutoMapFromMetadata,
+		EndSessionProperties:            config.EndSessionProperties,
+		PkJwtClientAuthenticationConfig: pkJwtClientAuthenticationConfig,
 	}, nil
+
 }
 
 // translateUserSession will create the UserSessionConfig used in the deprecated UserSession.

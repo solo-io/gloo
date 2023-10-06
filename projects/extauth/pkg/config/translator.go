@@ -26,7 +26,6 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
-	"github.com/rotisserie/eris"
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/ext-auth-plugins/api"
 	"github.com/solo-io/ext-auth-service/pkg/chain"
@@ -36,6 +35,7 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/ldap"
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation/utils"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
+	clientauthenticator "github.com/solo-io/ext-auth-service/pkg/config/oidc/clientauthenticator"
 	oidc_discovery "github.com/solo-io/ext-auth-service/pkg/config/oidc/discovery"
 	"github.com/solo-io/ext-auth-service/pkg/config/opa"
 	grpcPassthrough "github.com/solo-io/ext-auth-service/pkg/config/passthrough/grpc"
@@ -214,28 +214,39 @@ func (t *extAuthConfigTranslator) authConfigToService(
 
 			jwksOnDemandCacheRefreshPolicy := ToOnDemandCacheRefreshPolicy(oidcCfg.GetJwksCacheRefreshPolicy())
 
+			// Set the PK JWT exchange config if it is present
+			var pkJwtClientAuthorizationConfig *clientauthenticator.PkJwtClientAuthenticatorConfig
+			if oidcCfg.GetPkJwtClientAuthenticationConfig() != nil {
+				pkargs := oidcCfg.GetPkJwtClientAuthenticationConfig()
+				pkJwtClientAuthorizationConfig = clientauthenticator.NewPkJwtClientAuthenticatorConfig(clientauthenticator.NewPkJwtClientAuthenticatorConfigArgs{
+					SigningKey: pkargs.GetSigningKey(),
+					ValidFor:   pkargs.GetValidFor().AsDuration(),
+				})
+			}
+
 			authService, err := t.serviceFactory.NewOidcAuthorizationCodeAuthService(
 				ctx,
 				&config.OidcAuthorizationCodeAuthServiceParams{
-					ClientId:                    oidcCfg.GetClientId(),
-					ClientSecret:                oidcCfg.GetClientSecret(),
-					IssuerUrl:                   oidcCfg.GetIssuerUrl(),
-					AppUri:                      oidcCfg.GetAppUrl(),
-					CallbackPath:                cb,
-					LogoutPath:                  oidcCfg.GetLogoutPath(),
-					AfterLogoutUri:              oidcCfg.GetAfterLogoutUrl(),
-					SessionIdHeaderName:         oidcCfg.GetSessionIdHeaderName(),
-					AuthEndpointQueryParams:     oidcCfg.GetAuthEndpointQueryParams(),
-					TokenEndpointQueryParams:    oidcCfg.GetTokenEndpointQueryParams(),
-					Scopes:                      oidcCfg.GetScopes(),
-					SessionParams:               sessionParameters,
-					Headers:                     headersConfig,
-					DiscoveryDataOverride:       discoveryDataOverride,
-					DiscoveryPollInterval:       discoveryPollInterval.AsDuration(),
-					InvalidJwksOnDemandStrategy: jwksOnDemandCacheRefreshPolicy,
-					ParseCallbackPathAsRegex:    oidcCfg.GetParseCallbackPathAsRegex(),
-					AutoMapFromMetadata:         autoMapFromMetadata,
-					EndSessionProperties:        endSessionProperties,
+					ClientId:                       oidcCfg.GetClientId(),
+					ClientSecret:                   oidcCfg.GetClientSecret(),
+					IssuerUrl:                      oidcCfg.GetIssuerUrl(),
+					AppUri:                         oidcCfg.GetAppUrl(),
+					CallbackPath:                   cb,
+					LogoutPath:                     oidcCfg.GetLogoutPath(),
+					AfterLogoutUri:                 oidcCfg.GetAfterLogoutUrl(),
+					SessionIdHeaderName:            oidcCfg.GetSessionIdHeaderName(),
+					AuthEndpointQueryParams:        oidcCfg.GetAuthEndpointQueryParams(),
+					TokenEndpointQueryParams:       oidcCfg.GetTokenEndpointQueryParams(),
+					Scopes:                         oidcCfg.GetScopes(),
+					SessionParams:                  sessionParameters,
+					Headers:                        headersConfig,
+					DiscoveryDataOverride:          discoveryDataOverride,
+					DiscoveryPollInterval:          discoveryPollInterval.AsDuration(),
+					InvalidJwksOnDemandStrategy:    jwksOnDemandCacheRefreshPolicy,
+					ParseCallbackPathAsRegex:       oidcCfg.GetParseCallbackPathAsRegex(),
+					AutoMapFromMetadata:            autoMapFromMetadata,
+					EndSessionProperties:           endSessionProperties,
+					PkJwtClientAuthenticatorConfig: pkJwtClientAuthorizationConfig,
 				})
 
 			if err != nil {
@@ -538,7 +549,7 @@ func TranslateAerospikeConfig(cfg *extauthv1.ExtAuthConfig_Config_ApiKeyAuth) (*
 						CurveId: &extauthSoloApis.AerospikeApiKeyStorageTlsCurveID_X_25519{},
 					})
 		default:
-			return nil, eris.New("invalid tls curve id")
+			return nil, errors.New("invalid tls curve id")
 		}
 	}
 
@@ -725,7 +736,7 @@ func sessionToStore(us *extauthv1.ExtAuthConfig_UserSessionConfig) (*translation
 	if encryptionKey != "" {
 		encryptionCipher, err = cipher.NewGCMEncryption([]byte(encryptionKey))
 		if err != nil {
-			return nil, eris.Wrapf(err, "failed to create encryption cipher for user session")
+			return nil, errors.Wrapf(err, "failed to create encryption cipher for user session")
 		}
 	}
 
