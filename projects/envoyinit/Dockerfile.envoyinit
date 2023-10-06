@@ -9,9 +9,12 @@ ARG REPO_OWNER=coreruleset
 ARG REPO_NAME=coreruleset
 
 # make sure that all the apt updates, upgrades and installs are done before the clean
+# Update our deps to make cve toil lower
+# install wget for our default probes
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt install git -y \
+    && apt-get install wget -y \
     && apt-get clean \
     && mkdir -p /modsecurity \
     && cd /modsecurity \
