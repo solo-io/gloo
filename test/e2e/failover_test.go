@@ -124,36 +124,31 @@ var _ = Describe("Failover", func() {
 		var (
 			envoyInstance *envoy.Instance
 			testUpstream  *v1helpers.TestUpstream
-			envoyPort     uint32
 		)
 
 		var testRequest = func() string {
 			var bodyStr string
-			EventuallyWithOffset(3, func() (int, error) {
+			EventuallyWithOffset(3, func(g Gomega) {
 				client := http.DefaultClient
-				reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
-				Expect(err).NotTo(HaveOccurred())
+				reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyInstance.HttpPort))
+				g.Expect(err).NotTo(HaveOccurred())
 				resp, err := client.Do(&http.Request{
 					Method: http.MethodGet,
 					URL:    reqUrl,
 				})
-				if err != nil {
-					return 0, err
-				}
+				g.Expect(err).NotTo(HaveOccurred())
+
 				defer resp.Body.Close()
 				body, err := io.ReadAll(resp.Body)
-				if err != nil {
-					return 0, err
-				}
+				g.Expect(err).NotTo(HaveOccurred())
 				bodyStr = string(body)
-				return resp.StatusCode, nil
-			}, "20s", "1s").Should(Equal(http.StatusOK))
+				g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			}, "20s", "1s").Should(Succeed())
 			return bodyStr
 		}
 
 		var testRequestReturns = func(result string) {
-			bodyStr := testRequest()
-			ExpectWithOffset(2, bodyStr).To(ContainSubstring(result))
+			Eventually(testRequest, "10s", "1s").Should(ContainSubstring(result))
 		}
 
 		Context("Failover", func() {
@@ -213,7 +208,7 @@ var _ = Describe("Failover", func() {
 				_, err = testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-				proxy := simpleProxy(envoyPort, testUpstream.Upstream.Metadata.Ref())
+				proxy := simpleProxy(envoyInstance.HttpPort, testUpstream.Upstream.Metadata.Ref())
 
 				_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
@@ -229,7 +224,6 @@ var _ = Describe("Failover", func() {
 
 			BeforeEach(func() {
 				envoyInstance = envoyFactory.NewInstance()
-				envoyPort = envoyInstance.HttpPort
 				err := envoyInstance.Run(testClients.GlooPort)
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -297,7 +291,7 @@ var _ = Describe("Failover", func() {
 				_, err = testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-				proxy := simpleProxy(envoyPort, testUpstream.Upstream.Metadata.Ref())
+				proxy := simpleProxy(envoyInstance.HttpPort, testUpstream.Upstream.Metadata.Ref())
 
 				_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
@@ -331,6 +325,177 @@ var _ = Describe("Failover", func() {
 				} else {
 					testFailover(fmt.Sprintf("%s.xip.io", envoyInstance.LocalAddr()))
 				}
+			})
+
+		})
+
+		Context("Failover OverprovisioningFactor", func() {
+			// https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/load_balancing/overprovisioning
+
+			var (
+				helloUpstreamPrimary *v1helpers.TestUpstream
+
+				helloUpstreamPrimaryCtx, helloUpstreamSecondaryCtx       context.Context
+				helloUpstreamPrimaryCancel, helloUpstreamSecondaryCancel context.CancelFunc
+			)
+
+			BeforeEach(func() {
+				var err error
+				envoyInstance = envoyFactory.NewInstance()
+				Expect(err).NotTo(HaveOccurred())
+
+				err = envoyInstance.Run(testClients.GlooPort)
+				Expect(err).NotTo(HaveOccurred())
+
+				helloUpstreamPrimaryCtx, helloUpstreamPrimaryCancel = context.WithCancel(context.Background())
+				helloUpstreamSecondaryCtx, helloUpstreamSecondaryCancel = context.WithCancel(context.Background())
+			})
+
+			AfterEach(func() {
+				envoyInstance.Clean()
+
+				helloUpstreamPrimaryCancel()
+				helloUpstreamSecondaryCancel()
+			})
+
+			var prepareHelloUpstreamWithFailover = func() {
+				secret := helpers.GetKubeSecret("tls", defaults.GlooSystem)
+				glooSecret, err := (&kubeconverters.TLSSecretConverter{}).FromKubeSecret(ctx, nil, secret)
+				_, err = testClients.SecretClient.Write(glooSecret.(*gloov1.Secret), clients.WriteOpts{})
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+				helloUpstreamPrimary = v1helpers.NewTestHttpUpstreamWithReply(helloUpstreamPrimaryCtx, envoyInstance.LocalAddr(), "hello")
+				helloUpstreamSecondary := v1helpers.NewTestHttpUpstreamWithReply(helloUpstreamSecondaryCtx, envoyInstance.LocalAddr(), "hello")
+				worldUpstream := v1helpers.NewTestHttpsUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "world")
+				helloUpstreamPrimary.Upstream.HealthChecks = []*corev2.HealthCheck{
+					{
+						HealthChecker: &corev2.HealthCheck_HttpHealthCheck_{
+							HttpHealthCheck: &corev2.HealthCheck_HttpHealthCheck{
+								Path: "/health",
+							},
+						},
+						HealthyThreshold: &wrappers.UInt32Value{
+							Value: 1,
+						},
+						UnhealthyThreshold: &wrappers.UInt32Value{
+							Value: 1,
+						},
+						NoTrafficInterval: ptypes.DurationProto(time.Second / 2),
+						Timeout:           ptypes.DurationProto(timeout),
+						Interval:          ptypes.DurationProto(timeout),
+					},
+				}
+				helloUpstreamPrimary.Upstream.GetStatic().Hosts = append(
+					helloUpstreamPrimary.Upstream.GetStatic().GetHosts(),
+					helloUpstreamSecondary.Upstream.GetStatic().GetHosts()...)
+				helloUpstreamPrimary.Upstream.IgnoreHealthOnHostRemoval = &wrappers.BoolValue{
+					Value: true,
+				}
+				helloUpstreamPrimary.Upstream.Failover = &gloov1.Failover{
+					PrioritizedLocalities: []*gloov1.Failover_PrioritizedLocality{
+						{
+							LocalityEndpoints: []*gloov1.LocalityLbEndpoints{
+								{
+									LbEndpoints: []*gloov1.LbEndpoint{
+										{
+											Address: envoyInstance.LocalAddr(),
+											Port:    worldUpstream.Port,
+											UpstreamSslConfig: &gloossl.UpstreamSslConfig{
+												SslSecrets: &gloossl.UpstreamSslConfig_SecretRef{
+													SecretRef: &core.ResourceRef{
+														Name:      secret.GetName(),
+														Namespace: secret.GetNamespace(),
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Policy: &gloov1.Failover_Policy{
+						// Tests will override this value
+					},
+				}
+			}
+
+			var persistResources = func() {
+				var err error
+
+				_, err = testClients.UpstreamClient.Write(helloUpstreamPrimary.Upstream, clients.WriteOpts{
+					Ctx:               ctx,
+					OverwriteExisting: false, // There should be no existing upstream
+				})
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+				proxy := simpleProxy(envoyInstance.HttpPort, helloUpstreamPrimary.Upstream.Metadata.Ref())
+
+				_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{
+					Ctx:               ctx,
+					OverwriteExisting: false, // There should be no existing proxy
+				})
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+				helpers.EventuallyResourceStatusMatchesState(1, func() (resources.InputResource, error) {
+					return testClients.ProxyClient.Read(proxy.GetMetadata().GetNamespace(), proxy.GetMetadata().GetName(), clients.ReadOpts{
+						Ctx: ctx,
+					})
+				}, core.Status_Accepted)
+			}
+
+			It("Will failover when default (140) overprovisioningFactor is inherited", func() {
+				// Prepare the upstream with failover
+				prepareHelloUpstreamWithFailover()
+
+				helloUpstreamPrimary.Upstream.Failover.Policy = &gloov1.Failover_Policy{
+					// A nil Policy will use the default overprovisioningFactor of 140
+					// This means that when below 72% of the primary hosts are healthy, the failover will occur
+					// 72% is calculated as X = 100 / 140
+				}
+
+				// Persist it, ensuring we have an up-to-date proxy
+				persistResources()
+
+				// Routes are handled by the upstream
+				testRequestReturns("hello")
+
+				// Cause 1 of the 2 hosts in the upstream to become unhealthy
+				helloUpstreamPrimaryCancel()
+
+				// 50% of hosts are healthy, and we are below the 72% threshold, so failover should occur
+				testRequestReturns("world")
+			})
+
+			It("Will failover when override overprovisioningFactor is defined", func() {
+				// Prepare the upstream with failover
+				prepareHelloUpstreamWithFailover()
+
+				helloUpstreamPrimary.Upstream.Failover.Policy = &gloov1.Failover_Policy{
+					OverprovisioningFactor: &wrappers.UInt32Value{
+						// When below 33% (100/300) of the upstream hosts are healthy, failover will occur
+						Value: 300,
+					},
+				}
+
+				// Persist it, ensuring we have an up-to-date proxy
+				persistResources()
+
+				// Routes are handled by the upstream
+				testRequestReturns("hello")
+
+				// Cause 1 of the 2 hosts in the upstream to become unhealthy
+				helloUpstreamPrimaryCancel()
+
+				// Routes are STILL handled by the upstream
+				// 50% of hosts are healthy, and we are above the 33% threshold, so failover should NOT occur
+				testRequestReturns("hello")
+
+				// Cause 2 of the 2 hosts in the upstream to become unhealthy
+				helloUpstreamSecondaryCancel()
+
+				// 0% of hosts are healthy, and we are below the 33% threshold, so failover should occur
+				testRequestReturns("world")
 			})
 
 		})
@@ -437,7 +602,7 @@ var _ = Describe("Failover", func() {
 				_, err = testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-				proxy := simpleProxy(envoyPort, testUpstream.Upstream.Metadata.Ref())
+				proxy := simpleProxy(envoyInstance.HttpPort, testUpstream.Upstream.Metadata.Ref())
 
 				_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
@@ -469,7 +634,6 @@ var _ = Describe("Failover", func() {
 
 			BeforeEach(func() {
 				envoyInstance = envoyFactory.NewInstance()
-				envoyPort = envoyInstance.HttpPort
 				err := envoyInstance.Run(testClients.GlooPort)
 				Expect(err).NotTo(HaveOccurred())
 
