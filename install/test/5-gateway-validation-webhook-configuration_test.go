@@ -124,7 +124,7 @@ func generateRules(skipDeleteReources []string) string {
 		},
 		{
 			"operations":  {"DELETE"},
-			"apiGroups":   {"gloo.solo.io"},
+			"apiGroups":   {""},
 			"apiVersions": {"v1"},
 			"resources":   {"secrets"},
 		},
