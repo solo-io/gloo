@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo-ee
+    dependencyTag: 1.26.4-patch6
+    description: >
+      Upgrade envoy-gloo-ee to pull in modsecurity update
