@@ -17,7 +17,8 @@ import (
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 
-	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -40,6 +41,8 @@ const (
 	// We have previously seen flakes where a resource is deleted and re-created with the same hash and thus
 	// the emitter can miss the update
 	uniqueTestResourceLabel = "gloo-kube2e-test-id"
+
+	DefaultSettingsName = gloodefaults.SettingsName
 )
 
 type TestContextFactory struct {
@@ -129,7 +132,7 @@ func (t *TestContext) BeforeEach() {
 	defaultVs := helpers.NewVirtualServiceBuilder().
 		WithNamespace(t.InstallNamespace()).
 		WithName(DefaultVirtualServiceName).
-		WithDomain(defaults.GatewayProxyName).
+		WithDomain(gatewaydefaults.GatewayProxyName).
 		WithRoutePrefixMatcher(DefaultRouteName, TestMatcherPrefix).
 		WithRouteActionToUpstreamRef(DefaultRouteName, t.TestRunnerUpstreamRef()).
 		Build()
@@ -148,6 +151,7 @@ func (t *TestContext) JustBeforeEach() {
 		OverwriteExisting: false,
 	})
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
 	t.EventuallyProxyAccepted()
 }
 
@@ -168,7 +172,7 @@ func (t *TestContext) EventuallyProxyAccepted() {
 	// Wait for a proxy to be accepted.
 	// Some tests (gateway_test) configure multiple resources which locally have taken ~80 seconds to be reconciled.
 	helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
-		return t.resourceClientSet.ProxyClient().Read(t.InstallNamespace(), defaults.GatewayProxyName, clients.ReadOpts{Ctx: t.ctx})
+		return t.ResourceClientSet().ProxyClient().Read(t.InstallNamespace(), gatewaydefaults.GatewayProxyName, clients.ReadOpts{Ctx: t.ctx})
 	}, 2*time.Minute)
 }
 
@@ -184,7 +188,7 @@ func (t *TestContext) PatchDefaultVirtualService(mutator func(*v1.VirtualService
 		func(resource resources.Resource) resources.Resource {
 			return mutator(resource.(*v1.VirtualService))
 		},
-		t.resourceClientSet.VirtualServiceClient().BaseClient(),
+		t.ResourceClientSet().VirtualServiceClient().BaseClient(),
 	)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 }
@@ -195,7 +199,7 @@ func (t *TestContext) PatchDefaultGateway(mutator func(*v1.Gateway) *v1.Gateway)
 		1,
 		t.Ctx(),
 		&core.ResourceRef{
-			Name:      defaults.GatewayProxyName,
+			Name:      gatewaydefaults.GatewayProxyName,
 			Namespace: t.InstallNamespace(),
 		},
 		func(resource resources.Resource) resources.Resource {
@@ -206,8 +210,25 @@ func (t *TestContext) PatchDefaultGateway(mutator func(*v1.Gateway) *v1.Gateway)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 }
 
+// PatchDefaultSettings mutates the default Settings
+func (t *TestContext) PatchDefaultSettings(mutator func(*gloov1.Settings) *gloov1.Settings) {
+	err := helpers.PatchResourceWithOffset(
+		1,
+		t.Ctx(),
+		&core.ResourceRef{
+			Name:      DefaultSettingsName,
+			Namespace: t.InstallNamespace(),
+		},
+		func(resource resources.Resource) resources.Resource {
+			return mutator(resource.(*gloov1.Settings))
+		},
+		t.ResourceClientSet().SettingsClient().BaseClient(),
+	)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+}
+
 func (t *TestContext) GetDefaultSettings() *gloov1.Settings {
-	settings, err := t.resourceClientSet.SettingsClient().Read(t.InstallNamespace(), "default", clients.ReadOpts{Ctx: t.ctx})
+	settings, err := t.resourceClientSet.SettingsClient().Read(t.InstallNamespace(), DefaultSettingsName, clients.ReadOpts{Ctx: t.ctx})
 	ExpectWithOffset(1, err).NotTo(HaveOccurred(), "read default settings")
 	return settings
 }
@@ -258,8 +279,8 @@ func (t *TestContext) DefaultCurlOptsBuilder() *CurlOptsBuilder {
 			Method:            http.MethodGet,
 			Path:              TestMatcherPrefix,
 			Port:              80, // Gateway port
-			Host:              defaults.GatewayProxyName,
-			Service:           defaults.GatewayProxyName,
+			Host:              gatewaydefaults.GatewayProxyName,
+			Service:           gatewaydefaults.GatewayProxyName,
 			ConnectionTimeout: 1,
 			WithoutStats:      true,
 			Verbose:           false,

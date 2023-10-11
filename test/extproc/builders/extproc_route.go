@@ -11,6 +11,7 @@ func GetDefaultExtProcRouteBuilder() *ExtProcRouteBuilder {
 	return NewExtProcRouteBuilder().
 		WithGrpcServiceBuilder(NewGrpcServiceBuilder().
 			WithUpstreamName(OverrideExtProcUpstreamName).
+			WithUpstreamNamespace(DefaultExtProcUpstreamNamespace).
 			WithInitialMetadata([]*gloo_config_core_v3.HeaderValue{{Key: "aaa", Value: "bbb"}}),
 		).
 		WithProcessingMode(&gloo_ext_proc_v3.ProcessingMode{
