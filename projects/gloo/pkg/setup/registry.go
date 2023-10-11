@@ -3,6 +3,8 @@ package setup
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/license_validation"
+
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 
 	"github.com/solo-io/solo-projects/pkg/license"
@@ -53,6 +55,9 @@ func GetPluginRegistryFactory(
 		if enterpriseFeatureState.Reason != "" {
 			log.Debugf("%s", enterpriseFeatureState.Reason)
 		}
+
+		// We should always run the license validation plugin
+		availablePlugins = append(availablePlugins, license_validation.NewPlugin(licensedFeatureProvider))
 
 		// Load the reconciled set of plugins into the registry
 		return registry.NewPluginRegistry(availablePlugins)

@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Log a message at error level if Gloo Edge Enterprise is run without a valid Enterprise license
+    issueLink: https://github.com/solo-io/solo-projects/issues/5409
+    resolvesIssue: false
