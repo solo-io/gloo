@@ -22,7 +22,7 @@ var (
 
 	NoServerRefErr    = eris.New("no external processing server configured")
 	ServerNotFoundErr = func(usRef *core.ResourceRef) error {
-		return eris.Errorf("external processing server upstream not found %s", usRef.String())
+		return eris.Errorf("external processing server upstream not found: %s", usRef.String())
 	}
 	NoFilterStageErr            = eris.New("no filter stage configured")
 	MessageTimeoutOutOfRangeErr = func(seconds int64) error {

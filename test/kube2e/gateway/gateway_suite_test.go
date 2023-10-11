@@ -75,7 +75,9 @@ var _ = BeforeSuite(func() {
 
 	// This should not interfere with any test that is not LDAP related.
 	// If it does, we are doing something wrong
-	deployLdapServer(suiteCtx, osskube2e.MustKubeClient(), testHelper)
+	if !testutils2.ShouldSkipInstall() {
+		deployLdapServer(suiteCtx, osskube2e.MustKubeClient(), testHelper)
+	}
 })
 
 var _ = AfterSuite(func() {

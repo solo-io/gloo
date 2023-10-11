@@ -57,6 +57,7 @@ var _ = Describe("external processing plugin", func() {
 				return builders.GetDefaultExtProcBuilder().
 					WithGrpcServiceBuilder(builders.GetDefaultGrpcServiceBuilder().
 						WithUpstreamName(builders.OverrideExtProcUpstreamName).
+						WithUpstreamNamespace(builders.DefaultExtProcUpstreamNamespace).
 						WithAuthority(nil).
 						WithInitialMetadata([]*gloo_config_core_v3.HeaderValue{{Key: "E", Value: "F"}}),
 					).
@@ -210,11 +211,11 @@ var _ = Describe("external processing plugin", func() {
 			Entry("nonexistent upstream -> should error",
 				inputParams{
 					listenerBuilder: getDefaultListenerBuilder().WithGrpcServiceBuilder(
-						builders.NewGrpcServiceBuilder().WithUpstreamName("invalid"),
+						builders.NewGrpcServiceBuilder().WithUpstreamName("invalid").WithUpstreamNamespace(builders.DefaultExtProcUpstreamNamespace),
 					),
 				},
 				expectedOutput{
-					err: extproc_plugin.ServerNotFoundErr(&core.ResourceRef{Name: "invalid", Namespace: "gloo-system"}).Error(),
+					err: extproc_plugin.ServerNotFoundErr(&core.ResourceRef{Name: "invalid", Namespace: builders.DefaultExtProcUpstreamNamespace}).Error(),
 				}),
 			Entry("no filter stage -> should error",
 				inputParams{
@@ -340,11 +341,11 @@ var _ = Describe("external processing plugin", func() {
 			Entry("nonexistent upstream -> should error",
 				inputParams{
 					builder: builders.NewExtProcRouteBuilder().WithGrpcServiceBuilder(
-						builders.NewGrpcServiceBuilder().WithUpstreamName("invalid"),
+						builders.NewGrpcServiceBuilder().WithUpstreamName("invalid").WithUpstreamNamespace(builders.DefaultExtProcUpstreamNamespace),
 					),
 				},
 				expectedOutput{
-					err: extproc_plugin.ServerNotFoundErr(&core.ResourceRef{Name: "invalid", Namespace: "gloo-system"}).Error(),
+					err: extproc_plugin.ServerNotFoundErr(&core.ResourceRef{Name: "invalid", Namespace: builders.DefaultExtProcUpstreamNamespace}).Error(),
 				}),
 		)
 
@@ -432,11 +433,11 @@ var _ = Describe("external processing plugin", func() {
 			Entry("nonexistent upstream -> should error",
 				inputParams{
 					builder: builders.NewExtProcRouteBuilder().WithGrpcServiceBuilder(
-						builders.NewGrpcServiceBuilder().WithUpstreamName("invalid"),
+						builders.NewGrpcServiceBuilder().WithUpstreamName("invalid").WithUpstreamNamespace(builders.DefaultExtProcUpstreamNamespace),
 					),
 				},
 				expectedOutput{
-					err: extproc_plugin.ServerNotFoundErr(&core.ResourceRef{Name: "invalid", Namespace: "gloo-system"}).Error(),
+					err: extproc_plugin.ServerNotFoundErr(&core.ResourceRef{Name: "invalid", Namespace: builders.DefaultExtProcUpstreamNamespace}).Error(),
 				}),
 		)
 	})
@@ -448,7 +449,7 @@ func getExpectedGlobalConfig() *envoy_ext_proc_v3.ExternalProcessor {
 		GrpcService: &envoy_config_core_v3.GrpcService{
 			TargetSpecifier: &envoy_config_core_v3.GrpcService_EnvoyGrpc_{
 				EnvoyGrpc: &envoy_config_core_v3.GrpcService_EnvoyGrpc{
-					ClusterName: translator.UpstreamToClusterName(&core.ResourceRef{Name: builders.DefaultExtProcUpstreamName, Namespace: "gloo-system"}),
+					ClusterName: translator.UpstreamToClusterName(&core.ResourceRef{Name: builders.DefaultExtProcUpstreamName, Namespace: builders.DefaultExtProcUpstreamNamespace}),
 					Authority:   "xyz",
 					RetryPolicy: &envoy_config_core_v3.RetryPolicy{
 						RetryBackOff: &envoy_config_core_v3.BackoffStrategy{
@@ -487,7 +488,7 @@ func getExpectedListenerConfig() *envoy_ext_proc_v3.ExternalProcessor {
 		GrpcService: &envoy_config_core_v3.GrpcService{
 			TargetSpecifier: &envoy_config_core_v3.GrpcService_EnvoyGrpc_{
 				EnvoyGrpc: &envoy_config_core_v3.GrpcService_EnvoyGrpc{
-					ClusterName: translator.UpstreamToClusterName(&core.ResourceRef{Name: builders.OverrideExtProcUpstreamName, Namespace: "gloo-system"}),
+					ClusterName: translator.UpstreamToClusterName(&core.ResourceRef{Name: builders.OverrideExtProcUpstreamName, Namespace: builders.DefaultExtProcUpstreamNamespace}),
 					RetryPolicy: &envoy_config_core_v3.RetryPolicy{
 						RetryBackOff: &envoy_config_core_v3.BackoffStrategy{
 							BaseInterval: &duration.Duration{Seconds: 5},
@@ -516,7 +517,7 @@ func getExpectedMergedConfig() *envoy_ext_proc_v3.ExternalProcessor {
 		GrpcService: &envoy_config_core_v3.GrpcService{
 			TargetSpecifier: &envoy_config_core_v3.GrpcService_EnvoyGrpc_{
 				EnvoyGrpc: &envoy_config_core_v3.GrpcService_EnvoyGrpc{
-					ClusterName: translator.UpstreamToClusterName(&core.ResourceRef{Name: builders.OverrideExtProcUpstreamName, Namespace: "gloo-system"}),
+					ClusterName: translator.UpstreamToClusterName(&core.ResourceRef{Name: builders.OverrideExtProcUpstreamName, Namespace: builders.DefaultExtProcUpstreamNamespace}),
 					RetryPolicy: &envoy_config_core_v3.RetryPolicy{
 						RetryBackOff: &envoy_config_core_v3.BackoffStrategy{
 							BaseInterval: &duration.Duration{Seconds: 5},
@@ -550,7 +551,7 @@ func getExpectedOverridesRouteConfig() *envoy_ext_proc_v3.ExtProcPerRoute {
 				GrpcService: &envoy_config_core_v3.GrpcService{
 					TargetSpecifier: &envoy_config_core_v3.GrpcService_EnvoyGrpc_{
 						EnvoyGrpc: &envoy_config_core_v3.GrpcService_EnvoyGrpc{
-							ClusterName: translator.UpstreamToClusterName(&core.ResourceRef{Name: builders.OverrideExtProcUpstreamName, Namespace: "gloo-system"}),
+							ClusterName: translator.UpstreamToClusterName(&core.ResourceRef{Name: builders.OverrideExtProcUpstreamName, Namespace: builders.DefaultExtProcUpstreamNamespace}),
 						},
 					},
 					InitialMetadata: []*envoy_config_core_v3.HeaderValue{
@@ -583,7 +584,7 @@ func buildUpstream(name string) *v1.Upstream {
 	return &v1.Upstream{
 		Metadata: &core.Metadata{
 			Name:      name,
-			Namespace: "gloo-system",
+			Namespace: builders.DefaultExtProcUpstreamNamespace,
 		},
 		UpstreamType: &v1.Upstream_Static{
 			Static: &static.UpstreamSpec{

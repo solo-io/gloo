@@ -7,33 +7,27 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gstruct"
+	"github.com/onsi/gomega/types"
+	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
-
+	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
+	"github.com/solo-io/gloo/test/helpers"
+	osskube2e "github.com/solo-io/gloo/test/kube2e"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-projects/test/gomega/transforms"
+	"github.com/solo-io/solo-projects/test/kube2e"
+	"github.com/solo-io/solo-projects/test/services"
 	corev1 "k8s.io/api/core/v1"
 	errors2 "k8s.io/apimachinery/pkg/api/errors"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-
-	"github.com/solo-io/gloo/test/helpers"
-
-	"github.com/onsi/gomega/types"
-
-	"github.com/solo-io/solo-projects/test/gomega/transforms"
-
-	"github.com/golang/protobuf/ptypes/wrappers"
-	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
-	"github.com/solo-io/solo-projects/test/kube2e"
-	"github.com/solo-io/solo-projects/test/services"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-
-	osskube2e "github.com/solo-io/gloo/test/kube2e"
 )
 
 const (
@@ -96,6 +90,7 @@ var _ = Describe("Installing gloo", FlakeAttempts(5), func() {
 		expectRequestOnPathReturns(testContext, "/HealthCheck", func() types.GomegaMatcher {
 			return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
 				StatusCode: http.StatusOK,
+				Body:       gstruct.Ignore(),
 			})
 		}, "service should be responding to health checks")
 	})
@@ -236,6 +231,7 @@ var _ = Describe("Installing gloo", FlakeAttempts(5), func() {
 			expectRequestOnPathReturns(testContext, "/service/1/valid-for-three-seconds", func() types.GomegaMatcher {
 				return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
 					StatusCode: http.StatusOK,
+					Body:       gstruct.Ignore(),
 					Headers: map[string]interface{}{
 						"age": BeEmpty(),
 						"date": WithTransform(func(headerValue string) error {
@@ -255,6 +251,7 @@ var _ = Describe("Installing gloo", FlakeAttempts(5), func() {
 			expectRequestOnPathReturns(testContext, "/service/1/valid-for-three-seconds", func() types.GomegaMatcher {
 				return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
 					StatusCode: http.StatusOK,
+					Body:       gstruct.Ignore(),
 					Headers: map[string]interface{}{
 						"age": And(
 							Not(BeEmpty()), // age header should now be populated
@@ -280,6 +277,7 @@ var _ = Describe("Installing gloo", FlakeAttempts(5), func() {
 			expectRequestOnPathReturns(testContext, "/service/1/valid-for-three-seconds", func() types.GomegaMatcher {
 				return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
 					StatusCode: http.StatusOK,
+					Body:       gstruct.Ignore(),
 					Headers: map[string]interface{}{
 						"age": BeEmpty(),
 						"date": WithTransform(func(headerValue string) error {
@@ -299,6 +297,7 @@ var _ = Describe("Installing gloo", FlakeAttempts(5), func() {
 			expectRequestOnPathReturns(testContext, "/service/1/valid-for-three-seconds", func() types.GomegaMatcher {
 				return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
 					StatusCode: http.StatusOK,
+					Body:       gstruct.Ignore(),
 					Headers: map[string]interface{}{
 						"age": And(
 							Not(BeEmpty()), // age header should now be populated
@@ -323,6 +322,7 @@ var _ = Describe("Installing gloo", FlakeAttempts(5), func() {
 			expectRequestOnPathReturns(testContext, "/service/1/valid-for-three-seconds", func() types.GomegaMatcher {
 				return testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
 					StatusCode: http.StatusOK,
+					Body:       gstruct.Ignore(),
 					Headers: map[string]interface{}{
 						"age":  BeEmpty(),                             //should not contain an age header, because the cached response is expired
 						"date": Not(Equal(date.Format(time.RFC1123))), // date header should be updated since first request

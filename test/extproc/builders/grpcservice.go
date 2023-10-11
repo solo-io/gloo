@@ -5,15 +5,18 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	gloo_config_core_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extproc"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 const DefaultExtProcUpstreamName = "extproc-upstream"
 const OverrideExtProcUpstreamName = "override-upstream"
+const DefaultExtProcUpstreamNamespace = defaults.GlooSystem
 
 func GetDefaultGrpcServiceBuilder() *GrpcServiceBuilder {
 	return NewGrpcServiceBuilder().
 		WithUpstreamName(DefaultExtProcUpstreamName).
+		WithUpstreamNamespace(DefaultExtProcUpstreamNamespace).
 		WithAuthority(&wrappers.StringValue{Value: "xyz"}).
 		WithRetryPolicy(&gloo_config_core_v3.RetryPolicy{
 			RetryBackOff: &gloo_config_core_v3.BackoffStrategy{
@@ -30,11 +33,12 @@ func GetDefaultGrpcServiceBuilder() *GrpcServiceBuilder {
 }
 
 type GrpcServiceBuilder struct {
-	upstreamName    string
-	authority       *wrappers.StringValue
-	retryPolicy     *gloo_config_core_v3.RetryPolicy
-	timeout         *duration.Duration
-	initialMetadata []*gloo_config_core_v3.HeaderValue
+	upstreamName      string
+	upstreamNamespace string
+	authority         *wrappers.StringValue
+	retryPolicy       *gloo_config_core_v3.RetryPolicy
+	timeout           *duration.Duration
+	initialMetadata   []*gloo_config_core_v3.HeaderValue
 }
 
 func NewGrpcServiceBuilder() *GrpcServiceBuilder {
@@ -43,6 +47,11 @@ func NewGrpcServiceBuilder() *GrpcServiceBuilder {
 
 func (b *GrpcServiceBuilder) WithUpstreamName(name string) *GrpcServiceBuilder {
 	b.upstreamName = name
+	return b
+}
+
+func (b *GrpcServiceBuilder) WithUpstreamNamespace(namespace string) *GrpcServiceBuilder {
+	b.upstreamNamespace = namespace
 	return b
 }
 
@@ -74,8 +83,8 @@ func (b *GrpcServiceBuilder) Build() *extproc.GrpcService {
 		InitialMetadata: b.initialMetadata,
 	}
 
-	if b.upstreamName != "" {
-		svc.ExtProcServerRef = &core.ResourceRef{Name: b.upstreamName, Namespace: "gloo-system"}
+	if b.upstreamName != "" || b.upstreamNamespace != "" {
+		svc.ExtProcServerRef = &core.ResourceRef{Name: b.upstreamName, Namespace: b.upstreamNamespace}
 	}
 
 	return svc
