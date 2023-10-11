@@ -13,6 +13,7 @@ import (
 	"github.com/rotisserie/eris"
 
 	"github.com/solo-io/gloo/test/kube2e"
+	exec_utils "github.com/solo-io/go-utils/testutils/exec"
 	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/k8s-utils/testutils/helper"
 	gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
@@ -36,6 +37,8 @@ const (
 	// before https://github.com/solo-io/gloo/pull/6349 was fixed
 	// TODO delete tests once this version is no longer supported https://github.com/solo-io/gloo/issues/6661
 	versionBeforeGlooGatewayMerge = "1.11.0"
+
+	versionBeforeCustomReadinessProbeFix = "1.15.2"
 
 	glooChartName  = "gloo"
 	glooeeRepoName = "https://storage.googleapis.com/gloo-ee-helm"
@@ -61,6 +64,8 @@ var _ = Describe("Installing and upgrading GlooEE via helm", func() {
 		targetReleasedVersion string
 		// whether to set validation webhook's failurePolicy=Fail
 		strictValidation bool
+		// additional args to pass into the initial helm install
+		additionalInstallArgs []string
 	)
 
 	BeforeEach(func() {
@@ -82,13 +87,15 @@ var _ = Describe("Installing and upgrading GlooEE via helm", func() {
 
 		fromRelease = ""
 		strictValidation = false
+
+		additionalInstallArgs = []string{}
 	})
 
 	JustBeforeEach(func() {
 		if fromRelease == "" && targetReleasedVersion != "" {
 			fromRelease = targetReleasedVersion
 		}
-		installGloo(testHelper, chartUri, fromRelease, strictValidation)
+		installGloo(testHelper, chartUri, fromRelease, strictValidation, additionalInstallArgs)
 	})
 
 	AfterEach(func() {
@@ -199,11 +206,73 @@ var _ = Describe("Installing and upgrading GlooEE via helm", func() {
 			})
 		})
 	})
+
+	// The aim of the test is to ensure that the readiness probe is configured on the gateway proxy
+	// and the gateway-proxy deployment is ready before helm marks the upgrade as successful.
+	// Ref: https://github.com/solo-io/gloo/issues/8288
+	Context("Custom readiness probe", func() {
+		var valuesFileForCustomReadinessProbe string
+		var expectGatewayProxyIsReady func()
+
+		BeforeEach(func() {
+			valuesFileForCustomReadinessProbe = getHelmUpgradeValuesOverrideFileForCustomReadinessProbe()
+
+			expectGatewayProxyIsReady = func() {
+				Eventually(func() (string, error) {
+					a, b := exec_utils.RunCommandOutput(testHelper.RootDir, false,
+						"kubectl", "-n", namespace, "get", "deployment", "gateway-proxy", "-o", "yaml")
+					return a, b
+				}, "30s", "1s").Should(
+					// kubectl -n gloo-system get deployment gateway-proxy -o yaml
+					// ...
+					// readinessProbe:
+					//   httpGet:
+					//     path: /envoy-hc
+					// ...
+					// readyReplicas: 1
+					And(ContainSubstring("readinessProbe:"),
+						ContainSubstring("/envoy-hc"),
+						ContainSubstring("readyReplicas: 1")))
+			}
+		})
+
+		Context("On clean install", func() {
+			BeforeEach(func() {
+				additionalInstallArgs = []string{
+					"--values", valuesFileForCustomReadinessProbe,
+					"--wait",
+					"--wait-for-jobs",
+				}
+			})
+
+			It("succeeds adding a custom readiness probe and the gateway-proxy deployment is ready", func() {
+				expectGatewayProxyIsReady()
+			})
+		})
+
+		Context("On upgrade", func() {
+			BeforeEach(func() {
+				fromRelease = versionBeforeCustomReadinessProbeFix
+			})
+
+			It("succeeds adding a custom readiness probe and the gateway-proxy deployment is ready", func() {
+				settings := []string{
+					"--values", valuesFileForCustomReadinessProbe,
+					"--wait",
+					"--wait-for-jobs",
+				}
+
+				upgradeGloo(testHelper, chartUri, fromRelease, targetReleasedVersion, strictValidation, settings)
+
+				expectGatewayProxyIsReady()
+			})
+		})
+	})
+
 })
 
-func installGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease string, strictValidation bool) {
-	valueOverrideFile, cleanupFunc := getHelmOverrides()
-	defer cleanupFunc()
+func installGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease string, strictValidation bool, additionalArgs []string) {
+	valueOverrideFile := getHelmValuesFile("helm.yaml")
 
 	// construct helm args
 	var args = []string{"install", testHelper.HelmChartName}
@@ -233,6 +302,7 @@ func installGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease
 	if strictValidation {
 		args = append(args, strictValidationArgs...)
 	}
+	args = append(args, additionalArgs...)
 
 	fmt.Printf("running helm with args: %v\n", args)
 	osskube2e.RunAndCleanCommand("helm", args...)
@@ -244,8 +314,7 @@ func installGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease
 func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease string, targetReleasedVersion string, strictValidation bool, additionalArgs []string) {
 	upgradeCrds(fromRelease, chartUri, targetReleasedVersion)
 
-	valueOverrideFile, cleanupFunc := getUpgradeHelmOverrides()
-	defer cleanupFunc()
+	valueOverrideFile := getHelmUpgradeValuesOverrideFile()
 
 	var args = []string{"upgrade", testHelper.HelmChartName, chartUri,
 		"-n", testHelper.InstallNamespace,
@@ -338,69 +407,20 @@ var strictValidationArgs = []string{
 	"--set", "gloo.gateway.validation.alwaysAcceptResources=false",
 }
 
-func getHelmOverrides() (filename string, cleanup func()) {
-	values, err := os.CreateTemp("", "*.yaml")
-	Expect(err).NotTo(HaveOccurred())
-	valuesYaml := `gloo:
-  gateway:
-    persistProxySpec: true
-gloo-fed:
-  enabled: false
-  glooFedApiserver:
-    enable: false
-global:
-  extensions:
-    extAuth:
-      envoySidecar: true
-`
-	_, err = values.Write([]byte(valuesYaml))
-	Expect(err).NotTo(HaveOccurred())
-	err = values.Close()
-	Expect(err).NotTo(HaveOccurred())
+func getHelmValuesFile(filename string) string {
+	cwd, err := os.Getwd()
+	Expect(err).NotTo(HaveOccurred(), "working dir could not be retrieved")
+	helmUpgradeValuesFile := filepath.Join(cwd, "artifacts", filename)
+	return helmUpgradeValuesFile
 
-	return values.Name(), func() {
-		_ = os.Remove(values.Name())
-	}
 }
 
-func getUpgradeHelmOverrides() (filename string, cleanup func()) {
-	values, err := os.CreateTemp("", "*.yaml")
-	Expect(err).NotTo(HaveOccurred())
-	valuesYaml := `gloo:
-  gateway:
-    persistProxySpec: true
-  gatewayProxies:
-    gatewayProxy:
-      gatewaySettings:
-        # the KEYVALUE action type was first available in gloo-ee v1.11.11 (within the v1.11.x branch); this is a sanity
-        # check to ensure we can upgrade without errors from an older version to a version with these new fields (i.e.
-        # we can set the new fields on the Gateway CR during the helm upgrade, and that it will pass validation)
-        customHttpGateway:
-          options:
-            dlp:
-              dlpRules:
-              - actions:
-                - actionType: KEYVALUE
-                  keyValueAction:
-                    keyToMask: test
-                    name: test
-gloo-fed:
-  enabled: false
-  glooFedApiserver:
-    enable: false
-global:
-  extensions:
-    extAuth:
-      envoySidecar: true
-`
-	_, err = values.Write([]byte(valuesYaml))
-	Expect(err).NotTo(HaveOccurred())
-	err = values.Close()
-	Expect(err).NotTo(HaveOccurred())
+func getHelmUpgradeValuesOverrideFileForCustomReadinessProbe() (filename string) {
+	return getHelmValuesFile("custom-readiness-probe.yaml")
+}
 
-	return values.Name(), func() {
-		_ = os.Remove(values.Name())
-	}
+func getHelmUpgradeValuesOverrideFile() (filename string) {
+	return getHelmValuesFile("upgrade-override.yaml")
 }
 
 // calling NewClientsetFromConfig multiple times results in a race condition due to the use of the global scheme.Scheme.

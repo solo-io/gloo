@@ -2334,6 +2334,10 @@ spec:
 					"prometheus.io/path":   "/metrics",
 					"prometheus.io/port":   "8081",
 					"prometheus.io/scrape": "true",
+					// This annotation was introduced to resolve https://github.com/solo-io/gloo/issues/8392
+					// It triggers a new rollout of the gateway proxy if the config map it uses changes
+					// As of PR 8733, changing the values of the deployment spec doesn't change the gateway-proxy config map, so it is safe to hardcode the checksum in the tests
+					"checksum/gateway-proxy-envoy-config": "27068cd033014d38f6c77522484e957ab25fa1be34a900a1f5241b8f7d62f525",
 				}
 				podname := v1.EnvVar{
 					Name: "POD_NAME",
@@ -2417,6 +2421,10 @@ spec:
 			})
 
 			It("creates a deployment with envoy config annotations", func() {
+				// This annotation was introduced to resolve https://github.com/solo-io/gloo/issues/8392
+				// It triggers a new rollout of the gateway proxy if the config map it uses changes
+				// As of PR 8733, changing the values of the deployment spec doesn't change the gateway-proxy config map, so it is safe to hardcode the checksum in the tests
+				gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["checksum/gateway-proxy-envoy-config"] = "3e431b3dbb3fa7e31cedf9594474ad19e6ecc0e5a7bba59b99cf044d51546eaa"
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
 						"gloo.gatewayProxies.gatewayProxy.readConfig=true",
@@ -3885,9 +3893,9 @@ spec:
 				})
 				Expect(err).NotTo(HaveOccurred())
 				unstructuredSettingsString := getUnstructuredSettingsString(unstructuredSettingsStringArgs{
-					customRateLimit: `    rateLimitBeforeAuth: true	
-    ratelimitServerRef:	
-      namespace: ` + namespace + `	
+					customRateLimit: `    rateLimitBeforeAuth: true
+    ratelimitServerRef:
+      namespace: ` + namespace + `
       name: rate-limit`,
 				})
 				settings := makeUnstructured(unstructuredSettingsString)
@@ -3909,9 +3917,9 @@ spec:
 				})
 				Expect(err).NotTo(HaveOccurred())
 				unstructuredSettingsString := getUnstructuredSettingsString(unstructuredSettingsStringArgs{
-					customRateLimit: `    rateLimitBeforeAuth: true	
-    ratelimitServerRef:	
-      namespace: mynamespace	
+					customRateLimit: `    rateLimitBeforeAuth: true
+    ratelimitServerRef:
+      namespace: mynamespace
       name: myratelimit
     denyOnFail: true`,
 				})

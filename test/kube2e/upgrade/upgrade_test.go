@@ -204,12 +204,12 @@ func installGlooWithTests(testHelper *helper.SoloTestHelper, fromRelease string,
 
 func upgradeGlooWithTests(testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool, additionalArgs []string) {
 	helmOverrideFilePath := filepath.Join(yamlAssetDir, "helmoverrides.yaml")
+	allExtraArgs := additionalArgs
 	if strictValidation {
-		allExtraArgs := append(strictValidationArgs, additionalArgs...)
-		upgrade.UpgradeGlooWithArgs(testHelper, chartUri, helmOverrideFilePath, allExtraArgs)
-	} else {
-		upgrade.UpgradeGloo(testHelper, chartUri, helmOverrideFilePath, additionalArgs)
+		allExtraArgs = append(allExtraArgs, strictValidationArgs...)
 	}
+	upgrade.UpgradeGloo(testHelper, chartUri, helmOverrideFilePath, allExtraArgs)
+
 	bumpRedis(testHelper)
 
 	portFwd, err := cliutil.PortForward(testHelper.InstallNamespace, "deploy/"+gatewayProxyName, "8080", "8080", false)
