@@ -293,7 +293,7 @@
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
 |gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
 |gloo.gloo.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for Gloo Edge (default is false).|
-|gloo.gloo.deployment.ossImageTag|string|1.15.9|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
+|gloo.gloo.deployment.ossImageTag|string|1.15.11|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
 |gloo.gloo.deployment.podSecurityContext.seLinuxOptions.user|string|||
 |gloo.gloo.deployment.podSecurityContext.seLinuxOptions.role|string|||
 |gloo.gloo.deployment.podSecurityContext.seLinuxOptions.type|string|||
@@ -474,7 +474,7 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.certGenJob.image.tag|string|1.15.9|The image tag for the container.|
+|gloo.gateway.certGenJob.image.tag|string|1.15.11|The image tag for the container.|
 |gloo.gateway.certGenJob.image.repository|string|certgen|The image repository (name) for the container.|
 |gloo.gateway.certGenJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.certGenJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -500,7 +500,7 @@
 |gloo.gateway.certGenJob.completions|int||Specifies the desired number of successfully finished pods the job should be run with.|
 |gloo.gateway.certGenJob.manualSelector|bool||Controls generation of pod labels and pod selectors.|
 |gloo.gateway.certGenJob.parallelism|int||Specifies the maximum desired number of pods the job should run at any given time.|
-|gloo.gateway.certGenJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
+|gloo.gateway.certGenJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 300 for the rollout jobs and 60 for the rest.|
 |gloo.gateway.certGenJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
 |gloo.gateway.certGenJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
 |gloo.gateway.certGenJob.kubeResourceOverride.NAME|interface||override fields in the gateway-certgen job.|
@@ -534,11 +534,11 @@
 |gloo.gateway.rolloutJob.completions|int||Specifies the desired number of successfully finished pods the job should be run with.|
 |gloo.gateway.rolloutJob.manualSelector|bool||Controls generation of pod labels and pod selectors.|
 |gloo.gateway.rolloutJob.parallelism|int||Specifies the maximum desired number of pods the job should run at any given time.|
-|gloo.gateway.rolloutJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
+|gloo.gateway.rolloutJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 300 for the rollout jobs and 60 for the rest.|
 |gloo.gateway.rolloutJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
 |gloo.gateway.rolloutJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
 |gloo.gateway.rolloutJob.enabled|bool||Enable the job that applies default Gloo Edge custom resources at install and upgrade time (default true).|
-|gloo.gateway.rolloutJob.image.tag|string|1.15.9|The image tag for the container.|
+|gloo.gateway.rolloutJob.image.tag|string|1.15.11|The image tag for the container.|
 |gloo.gateway.rolloutJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.rolloutJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.rolloutJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -553,6 +553,7 @@
 |gloo.gateway.rolloutJob.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.rolloutJob.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
 |gloo.gateway.rolloutJob.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
+|gloo.gateway.rolloutJob.timeout|int||Time to wait in seconds until the job has completed. If it exceeds this limit, it is deemed to have failed. Defaults to 600|
 |gloo.gateway.cleanupJob.restartPolicy|string||restart policy to use when the pod exits|
 |gloo.gateway.cleanupJob.priorityClassName|string||name of a defined priority class|
 |gloo.gateway.cleanupJob.nodeName|string||name of node to run on|
@@ -570,11 +571,11 @@
 |gloo.gateway.cleanupJob.completions|int||Specifies the desired number of successfully finished pods the job should be run with.|
 |gloo.gateway.cleanupJob.manualSelector|bool||Controls generation of pod labels and pod selectors.|
 |gloo.gateway.cleanupJob.parallelism|int||Specifies the maximum desired number of pods the job should run at any given time.|
-|gloo.gateway.cleanupJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
+|gloo.gateway.cleanupJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 300 for the rollout jobs and 60 for the rest.|
 |gloo.gateway.cleanupJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
 |gloo.gateway.cleanupJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
 |gloo.gateway.cleanupJob.enabled|bool||Enable the job that removes Gloo Edge custom resources when Gloo Edge is uninstalled (default true).|
-|gloo.gateway.cleanupJob.image.tag|string|1.15.9|The image tag for the container.|
+|gloo.gateway.cleanupJob.image.tag|string|1.15.11|The image tag for the container.|
 |gloo.gateway.cleanupJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.cleanupJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.cleanupJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -597,6 +598,7 @@
 |gloo.gateway.isolateVirtualHostsBySslConfig|bool||if true, Added support for the envoy.filters.listener.tls_inspector listener_filter when using the gateway.isolateVirtualHostsBySslConfig=true global setting.|
 |gloo.gateway.compressedProxySpec|bool||if true, enables compression for the Proxy CRD spec|
 |gloo.gateway.persistProxySpec|bool||Enable writing Proxy CRD to etcd. Disabled by default for performance.|
+|gloo.gateway.translateEmptyGateways|bool||If true, the gateways wil be translated into Envoy listeners even if no VirtualServices exist|
 |gloo.gateway.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.NAME.kind.deployment.replicas|int||number of instances to deploy|
 |gloo.gatewayProxies.NAME.kind.deployment.customEnv[].name|string|||
@@ -1604,7 +1606,7 @@
 |gloo-fed.global.istioSDS.customSidecars[]|interface||Override the default Istio sidecar in gateway-proxy with a custom container. Ignored if IstioSDS.enabled is false|
 |gloo-fed.global.istioIntegration.labelInstallNamespace|bool||If creating a namespace for Gloo, include the 'istio-injection: enabled' label (or 'istio.io/rev=' if 'istioSidecarRevTag' field is also set) to allow Istio sidecar injection for Gloo pods. Be aware that Istio's default injection behavior will auto-inject a sidecar into all pods in such a marked namespace. Disabling this behavior in Istio's configs or using gloo's global.istioIntegration.disableAutoinjection flag is recommended.|
 |gloo-fed.global.istioIntegration.whitelistDiscovery|bool||Annotate the discovery pod for Istio sidecar injection to ensure that it gets a sidecar even when namespace-wide auto-injection is disabled. Generally only needed for FDS is enabled.|
-|gloo-fed.global.istioIntegration.disableAutoinjection|bool||Annotate all pods (excluding those whitelisted by other config values) to with an explicit 'do not inject' annotation to prevent Istio from adding sidecars to all pods. It's recommended that this be set to true if Gloo's namespace is marked for Istio discovery, as some pods do not immediately work with an Istio sidecar without extra manual configuration.|
+|gloo-fed.global.istioIntegration.disableAutoinjection|bool||Annotate all pods (excluding those whitelisted by other config values) to with an explicit 'do not inject' annotation to prevent Istio from adding sidecars to all pods. It's recommended that this be set to true, as some pods do not immediately work with an Istio sidecar without extra manual configuration.|
 |gloo-fed.global.istioIntegration.enableIstioSidecarOnGateway|bool||Enable Istio sidecar injection on the gateway-proxy deployment. Ignored if LabelInstallNamespace is not 'true'. Ignored if DisableAutoInjection is 'true'.|
 |gloo-fed.global.istioIntegration.istioSidecarRevTag|string||Value of revision tag for Istio sidecar injection on the gateway-proxy and discovery deployments (when enabled with LabelInstallNamespace, WhitelistDiscovery or EnableIstioSidecarOnGateway). If set, applies the label 'istio.io/rev:<rev>' instead of 'sidecar.istio.io/inject' or 'istio-injection:enabled'. Ignored if DisableAutoInjection is 'true'.|
 |gloo-fed.global.extraSpecs|bool||Add additional specs to include in the settings manifest, as defined by a helm partial. Defaults to false in open source, and true in enterprise.|
@@ -2131,7 +2133,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.15.9|The image tag for the container.|
+|global.glooMtls.sds.image.tag|string|1.15.11|The image tag for the container.|
 |global.glooMtls.sds.image.repository|string|sds|The image repository (name) for the container.|
 |global.glooMtls.sds.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |global.glooMtls.sds.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -2230,7 +2232,7 @@
 |global.istioSDS.customSidecars[]|interface||Override the default Istio sidecar in gateway-proxy with a custom container. Ignored if IstioSDS.enabled is false|
 |global.istioIntegration.labelInstallNamespace|bool||If creating a namespace for Gloo, include the 'istio-injection: enabled' label (or 'istio.io/rev=' if 'istioSidecarRevTag' field is also set) to allow Istio sidecar injection for Gloo pods. Be aware that Istio's default injection behavior will auto-inject a sidecar into all pods in such a marked namespace. Disabling this behavior in Istio's configs or using gloo's global.istioIntegration.disableAutoinjection flag is recommended.|
 |global.istioIntegration.whitelistDiscovery|bool||Annotate the discovery pod for Istio sidecar injection to ensure that it gets a sidecar even when namespace-wide auto-injection is disabled. Generally only needed for FDS is enabled.|
-|global.istioIntegration.disableAutoinjection|bool||Annotate all pods (excluding those whitelisted by other config values) to with an explicit 'do not inject' annotation to prevent Istio from adding sidecars to all pods. It's recommended that this be set to true if Gloo's namespace is marked for Istio discovery, as some pods do not immediately work with an Istio sidecar without extra manual configuration.|
+|global.istioIntegration.disableAutoinjection|bool||Annotate all pods (excluding those whitelisted by other config values) to with an explicit 'do not inject' annotation to prevent Istio from adding sidecars to all pods. It's recommended that this be set to true, as some pods do not immediately work with an Istio sidecar without extra manual configuration.|
 |global.istioIntegration.enableIstioSidecarOnGateway|bool||Enable Istio sidecar injection on the gateway-proxy deployment. Ignored if LabelInstallNamespace is not 'true'. Ignored if DisableAutoInjection is 'true'.|
 |global.istioIntegration.istioSidecarRevTag|string||Value of revision tag for Istio sidecar injection on the gateway-proxy and discovery deployments (when enabled with LabelInstallNamespace, WhitelistDiscovery or EnableIstioSidecarOnGateway). If set, applies the label 'istio.io/rev:<rev>' instead of 'sidecar.istio.io/inject' or 'istio-injection:enabled'. Ignored if DisableAutoInjection is 'true'.|
 |global.extraSpecs|bool|true|Add additional specs to include in the settings manifest, as defined by a helm partial. Defaults to false in open source, and true in enterprise.|

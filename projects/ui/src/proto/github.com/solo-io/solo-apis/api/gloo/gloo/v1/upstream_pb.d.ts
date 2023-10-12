@@ -22,6 +22,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_aws_ec2_aws_ec
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_failover_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/failover_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
+import * as validate_validate_pb from "../../../../../../../validate/validate_pb";
 
 export class UpstreamSpec extends jspb.Message {
   hasDiscoveryMetadata(): boolean;
@@ -162,6 +163,11 @@ export class UpstreamSpec extends jspb.Message {
   getProxyProtocolVersion(): google_protobuf_wrappers_pb.StringValue | undefined;
   setProxyProtocolVersion(value?: google_protobuf_wrappers_pb.StringValue): void;
 
+  hasPreconnectPolicy(): boolean;
+  clearPreconnectPolicy(): void;
+  getPreconnectPolicy(): PreconnectPolicy | undefined;
+  setPreconnectPolicy(value?: PreconnectPolicy): void;
+
   getUpstreamTypeCase(): UpstreamSpec.UpstreamTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamSpec.AsObject;
@@ -203,6 +209,7 @@ export namespace UpstreamSpec {
     respectDnsTtl?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     dnsRefreshRate?: google_protobuf_duration_pb.Duration.AsObject,
     proxyProtocolVersion?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    preconnectPolicy?: PreconnectPolicy.AsObject,
   }
 
   export interface ClusterProtocolSelectionMap {
@@ -264,6 +271,34 @@ export namespace HeaderValue {
   export type AsObject = {
     key: string,
     value: string,
+  }
+}
+
+export class PreconnectPolicy extends jspb.Message {
+  hasPerUpstreamPreconnectRatio(): boolean;
+  clearPerUpstreamPreconnectRatio(): void;
+  getPerUpstreamPreconnectRatio(): google_protobuf_wrappers_pb.DoubleValue | undefined;
+  setPerUpstreamPreconnectRatio(value?: google_protobuf_wrappers_pb.DoubleValue): void;
+
+  hasPredictivePreconnectRatio(): boolean;
+  clearPredictivePreconnectRatio(): void;
+  getPredictivePreconnectRatio(): google_protobuf_wrappers_pb.DoubleValue | undefined;
+  setPredictivePreconnectRatio(value?: google_protobuf_wrappers_pb.DoubleValue): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PreconnectPolicy.AsObject;
+  static toObject(includeInstance: boolean, msg: PreconnectPolicy): PreconnectPolicy.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PreconnectPolicy, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PreconnectPolicy;
+  static deserializeBinaryFromReader(message: PreconnectPolicy, reader: jspb.BinaryReader): PreconnectPolicy;
+}
+
+export namespace PreconnectPolicy {
+  export type AsObject = {
+    perUpstreamPreconnectRatio?: google_protobuf_wrappers_pb.DoubleValue.AsObject,
+    predictivePreconnectRatio?: google_protobuf_wrappers_pb.DoubleValue.AsObject,
   }
 }
 

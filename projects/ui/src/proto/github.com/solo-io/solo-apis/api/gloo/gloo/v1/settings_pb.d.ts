@@ -1239,6 +1239,11 @@ export class GatewayOptions extends jspb.Message {
   getIsolateVirtualHostsBySslConfig(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setIsolateVirtualHostsBySslConfig(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasTranslateEmptyGateways(): boolean;
+  clearTranslateEmptyGateways(): void;
+  getTranslateEmptyGateways(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setTranslateEmptyGateways(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GatewayOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GatewayOptions): GatewayOptions.AsObject;
@@ -1260,6 +1265,7 @@ export namespace GatewayOptions {
     persistProxySpec?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     enableGatewayController?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     isolateVirtualHostsBySslConfig?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    translateEmptyGateways?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export class ValidationOptions extends jspb.Message {

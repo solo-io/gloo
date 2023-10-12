@@ -8408,7 +8408,8 @@ proto.gloo.solo.io.GatewayOptions.toObject = function(includeInstance, msg) {
     virtualServiceOptions: (f = msg.getVirtualServiceOptions()) && proto.gloo.solo.io.VirtualServiceOptions.toObject(includeInstance, f),
     persistProxySpec: (f = msg.getPersistProxySpec()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     enableGatewayController: (f = msg.getEnableGatewayController()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    isolateVirtualHostsBySslConfig: (f = msg.getIsolateVirtualHostsBySslConfig()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    isolateVirtualHostsBySslConfig: (f = msg.getIsolateVirtualHostsBySslConfig()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    translateEmptyGateways: (f = msg.getTranslateEmptyGateways()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -8485,6 +8486,11 @@ proto.gloo.solo.io.GatewayOptions.deserializeBinaryFromReader = function(msg, re
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setIsolateVirtualHostsBySslConfig(value);
+      break;
+    case 11:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setTranslateEmptyGateways(value);
       break;
     default:
       reader.skipField();
@@ -8579,6 +8585,14 @@ proto.gloo.solo.io.GatewayOptions.serializeBinaryToWriter = function(message, wr
   if (f != null) {
     writer.writeMessage(
       10,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getTranslateEmptyGateways();
+  if (f != null) {
+    writer.writeMessage(
+      11,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
@@ -9288,6 +9302,36 @@ proto.gloo.solo.io.GatewayOptions.prototype.clearIsolateVirtualHostsBySslConfig 
  */
 proto.gloo.solo.io.GatewayOptions.prototype.hasIsolateVirtualHostsBySslConfig = function() {
   return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue translate_empty_gateways = 11;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.getTranslateEmptyGateways = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 11));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GatewayOptions.prototype.setTranslateEmptyGateways = function(value) {
+  jspb.Message.setWrapperField(this, 11, value);
+};
+
+
+proto.gloo.solo.io.GatewayOptions.prototype.clearTranslateEmptyGateways = function() {
+  this.setTranslateEmptyGateways(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.hasTranslateEmptyGateways = function() {
+  return jspb.Message.getField(this, 11) != null;
 };
 
 
