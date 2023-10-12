@@ -12,6 +12,13 @@ import (
 )
 
 func UpgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, helmOverrideFilePath string, additionalArgs []string) {
+	// With the fix for custom readiness probe : https://github.com/solo-io/gloo/pull/8698
+	// The resource rollout job is not longer in a post hook and the job ttl has changed from 60 to 300
+	// As a consequence the job is not automatically cleaned as part of the hook deletion policy
+	// or within the time between installing gloo and upgrading it in the test.
+	// So we wait until the job ttl has expired to be cleaned up to ensure the upgrade passes
+	RunAndCleanCommand("kubectl", "-n", testHelper.InstallNamespace, "wait", "--for=delete", "job", "gloo-resource-rollout", "--timeout=600s")
+
 	UpgradeCrds(chartUri, testHelper.ReleasedVersion)
 	var args = []string{"upgrade", testHelper.HelmChartName, chartUri,
 		// As most CD tools wait for resources to be ready before marking the release as successful,
@@ -28,33 +35,6 @@ func UpgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, helmOverrid
 		"-n", testHelper.InstallNamespace,
 		"--set-string", "license_key=" + testHelper.LicenseKey,
 		"--values", helmOverrideFilePath}
-	args = append(args, additionalArgs...)
-
-	fmt.Printf("running helm with args: %v\n", args)
-	RunAndCleanCommand("helm", args...)
-
-	//Check that everything is OK
-	CheckGlooHealthy(testHelper)
-}
-
-func UpgradeGlooWithArgs(testHelper *helper.SoloTestHelper, chartUri string, helmOverrideFilePath string, additionalArgs []string) {
-	UpgradeCrds(chartUri, testHelper.ReleasedVersion)
-	var args = []string{"upgrade", testHelper.HelmChartName, chartUri,
-		// As most CD tools wait for resources to be ready before marking the release as successful,
-		// we're emulating that here by passing these two flags.
-		// This way we ensure that we indirectly add support for CD tools
-		"--wait",
-		"--wait-for-jobs",
-		// We run our e2e tests on a kind cluster, but kind hasn’t implemented LoadBalancer support.
-		// This leads to the service being in a pending state.
-		// Since the --wait flag is set, this can cause the upgrade to fail
-		// as helm waits until the service is ready and eventually times out.
-		// So instead we use the service type as ClusterIP to work around this limitation.
-		"--set", "gloo.gatewayProxies.gatewayProxy.service.type=ClusterIP",
-		"-n", testHelper.InstallNamespace,
-		"--set-string", "license_key=" + testHelper.LicenseKey,
-		"--values", helmOverrideFilePath}
-
 	args = append(args, additionalArgs...)
 
 	fmt.Printf("running helm with args: %v\n", args)

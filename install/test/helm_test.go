@@ -2331,13 +2331,13 @@ spec:
 					"gateway-proxy":    "live",
 				}
 				podAnnotations := map[string]string{
-					"prometheus.io/path": "/metrics",
+					"prometheus.io/path":   "/metrics",
+					"prometheus.io/port":   "8081",
+					"prometheus.io/scrape": "true",
 					// This annotation was introduced to resolve https://github.com/solo-io/gloo/issues/8392
 					// It triggers a new rollout of the gateway proxy if the config map it uses changes
 					// As of PR 8733, changing the values of the deployment spec doesn't change the gateway-proxy config map, so it is safe to hardcode the checksum in the tests
 					"checksum/gateway-proxy-envoy-config": "27068cd033014d38f6c77522484e957ab25fa1be34a900a1f5241b8f7d62f525",
-					"prometheus.io/port":                  "8081",
-					"prometheus.io/scrape":                "true",
 				}
 				podname := v1.EnvVar{
 					Name: "POD_NAME",
@@ -2421,7 +2421,9 @@ spec:
 			})
 
 			It("creates a deployment with envoy config annotations", func() {
-				// modify the thing made in before each for the configmap hash
+				// This annotation was introduced to resolve https://github.com/solo-io/gloo/issues/8392
+				// It triggers a new rollout of the gateway proxy if the config map it uses changes
+				// As of PR 8733, changing the values of the deployment spec doesn't change the gateway-proxy config map, so it is safe to hardcode the checksum in the tests
 				gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["checksum/gateway-proxy-envoy-config"] = "3e431b3dbb3fa7e31cedf9594474ad19e6ecc0e5a7bba59b99cf044d51546eaa"
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
@@ -3891,9 +3893,9 @@ spec:
 				})
 				Expect(err).NotTo(HaveOccurred())
 				unstructuredSettingsString := getUnstructuredSettingsString(unstructuredSettingsStringArgs{
-					customRateLimit: `    rateLimitBeforeAuth: true	
-    ratelimitServerRef:	
-      namespace: ` + namespace + `	
+					customRateLimit: `    rateLimitBeforeAuth: true
+    ratelimitServerRef:
+      namespace: ` + namespace + `
       name: rate-limit`,
 				})
 				settings := makeUnstructured(unstructuredSettingsString)
@@ -3915,9 +3917,9 @@ spec:
 				})
 				Expect(err).NotTo(HaveOccurred())
 				unstructuredSettingsString := getUnstructuredSettingsString(unstructuredSettingsStringArgs{
-					customRateLimit: `    rateLimitBeforeAuth: true	
-    ratelimitServerRef:	
-      namespace: mynamespace	
+					customRateLimit: `    rateLimitBeforeAuth: true
+    ratelimitServerRef:
+      namespace: mynamespace
       name: myratelimit
     denyOnFail: true`,
 				})
@@ -5585,7 +5587,7 @@ spec:
 				_ = getJob(testManifest, namespace, "gloo-resource-cleanup")
 			})
 
-			It("can override fields on the EE rollout job", func() {
+			It("can override fields on the EE rollout jobs", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
 						// image
@@ -5615,6 +5617,8 @@ spec:
 						"gloo.gateway.rolloutJob.resources.limits.cpu=400m",
 						// linkerd
 						"gloo.settings.linkerd=true",
+						// timeout
+						"gloo.gateway.rolloutJob.timeout=800",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -5651,6 +5655,10 @@ spec:
 				Expect(job.Spec.Template.Spec.Containers[0].Resources.Requests.Cpu().String()).To(Equal("200m"))
 				Expect(job.Spec.Template.Spec.Containers[0].Resources.Limits.Memory().String()).To(Equal("300Mi"))
 				Expect(job.Spec.Template.Spec.Containers[0].Resources.Limits.Cpu().String()).To(Equal("400m"))
+				Expect(err).NotTo(HaveOccurred())
+				// timeout
+				checkJob := getJob(testManifest, namespace, "gloo-ee-resource-rollout-check")
+				Expect(checkJob.Spec.Template.Spec.Containers[0].Command[2]).To(ContainSubstring("--timeout=800s || exit 1"))
 			})
 
 			It("applies extauth and ratelimit upstreams", func() {

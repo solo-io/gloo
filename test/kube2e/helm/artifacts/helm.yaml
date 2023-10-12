@@ -1,0 +1,11 @@
+gloo:
+  gateway:
+    persistProxySpec: true
+gloo-fed:
+  enabled: false
+  glooFedApiserver:
+    enable: false
+global:
+  extensions:
+    extAuth:
+      envoySidecar: true
