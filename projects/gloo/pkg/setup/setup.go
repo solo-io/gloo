@@ -80,6 +80,8 @@ func GetGlooEExtensions(ctx context.Context, licensedFeatureProvider *license.Li
 	// We include this log line purely for UX reasons
 	// An expired license will allow Gloo Edge to operate normally
 	// but we want to notify the user that their license is expired
+	// Additionally we use the license_validation plugin to log an error message on translation if there is no valid
+	// Enterprise license
 	enterpriseFeature := licensedFeatureProvider.GetStateForLicensedFeature(license.Enterprise)
 	if enterpriseFeature.Reason != "" {
 		contextutils.LoggerFrom(ctx).Warnf("LICENSE WARNING: %s", enterpriseFeature.Reason)
