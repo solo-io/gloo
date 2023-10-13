@@ -122,6 +122,11 @@ install-go-tools: mod-download ## Download and install Go dependencies
 	go install github.com/google/wire/cmd/wire
 	go install github.com/solo-io/protoc-gen-openapi
 
+.PHONY: install-build-tools
+install-build-tools:
+	# Used to validate the cryto library used in builds
+	go install github.com/rsc/goversion@latest
+
 .PHONY: update-all-deps
 update-all-deps: install-go-tools install-node-packages ## Update both backend and frontend dependencies
 
@@ -807,6 +812,8 @@ $(RATELIMIT_OUT_DIR)/Dockerfile: $(RATELIMIT_DIR)/cmd/Dockerfile
 
 .PHONY: rate-limit-ee-docker
 rate-limit-ee-docker: $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker
+rate-limit-ee-docker: BINARY="$(RATELIMIT_OUT_DIR)/rate-limit-linux-$(DOCKER_GOARCH)"
+rate-limit-ee-docker: validate-standard-crypto
 
 $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker: $(RATELIMIT_OUT_DIR)/rate-limit-linux-$(DOCKER_GOARCH) $(RATELIMIT_OUT_DIR)/Dockerfile
 	docker buildx build --load -t $(IMAGE_REGISTRY)/rate-limit-ee:$(VERSION) $(DOCKER_BUILD_ARGS) $(call get_test_tag_option,rate-limit-ee) $(RATELIMIT_OUT_DIR)
@@ -852,6 +859,8 @@ $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile: $(RATELIMIT_DIR)/cmd/Dockerfile
 
 .PHONY: rate-limit-ee-fips-docker
 rate-limit-ee-fips-docker: $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker
+rate-limit-ee-fips-docker: BINARY="$(RATELIMIT_FIPS_OUT_DIR)/rate-limit-linux-amd64"
+rate-limit-ee-fips-docker: validate-boring-crypto
 
 $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker: $(RATELIMIT_FIPS_OUT_DIR)/rate-limit-linux-amd64 $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile
 	docker buildx build --load -t $(IMAGE_REGISTRY)/rate-limit-ee-fips:$(VERSION) $(DOCKER_GO_BORING_ARGS) $(call get_test_tag_option,rate-limit-ee-fips) $(RATELIMIT_FIPS_OUT_DIR) \
@@ -923,6 +932,9 @@ ext-auth-plugins-docker: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 # Build extauth server docker image
 .PHONY: extauth-ee-docker
 extauth-ee-docker: $(EXTAUTH_OUT_DIR)/.extauth-ee-docker
+extauth-ee-docker: BINARY="$(EXTAUTH_OUT_DIR)/extauth-linux-$(DOCKER_GOARCH)"
+extauth-ee-docker: validate-standard-crypto
+
 
 $(EXTAUTH_OUT_DIR)/.extauth-ee-docker: $(EXTAUTH_OUT_DIR)/extauth-linux-$(DOCKER_GOARCH) $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(EXTAUTH_OUT_DIR)/Dockerfile
 	docker buildx build --load -t $(IMAGE_REGISTRY)/extauth-ee:$(VERSION) $(DOCKER_BUILD_ARGS) $(call get_test_tag_option,extauth-ee) $(EXTAUTH_OUT_DIR)
@@ -991,6 +1003,8 @@ ext-auth-plugins-fips-docker: $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64
 # Build extauth server docker image
 .PHONY: extauth-ee-fips-docker
 extauth-ee-fips-docker: $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker
+extauth-ee-fips-docker: BINARY="$(EXTAUTH_FIPS_OUT_DIR)/extauth-linux-$(DOCKER_GOARCH)"
+extauth-ee-fips-docker: validate-boring-crypto
 
 $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker: $(EXTAUTH_FIPS_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64 $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile
 	docker buildx build --load -t $(IMAGE_REGISTRY)/extauth-ee-fips:$(VERSION) $(DOCKER_GO_BORING_ARGS) $(call get_test_tag_option,extauth-ee-fips) $(EXTAUTH_FIPS_OUT_DIR) \
@@ -1016,6 +1030,8 @@ $(OBS_OUT_DIR)/Dockerfile: $(OBSERVABILITY_DIR)/cmd/Dockerfile
 
 .PHONY: observability-ee-docker
 observability-ee-docker: $(OBS_OUT_DIR)/.observability-ee-docker
+observability-ee-docker: BINARY="$(OBS_OUT_DIR)/observability-linux-$(DOCKER_GOARCH)"
+observability-ee-docker: validate-standard-crypto
 
 $(OBS_OUT_DIR)/.observability-ee-docker: $(OBS_OUT_DIR)/observability-linux-$(DOCKER_GOARCH) $(OBS_OUT_DIR)/Dockerfile
 	docker buildx build --load -t $(IMAGE_REGISTRY)/observability-ee:$(VERSION) $(DOCKER_BUILD_ARGS) $(call get_test_tag_option,observability-ee) $(OBS_OUT_DIR)
@@ -1040,6 +1056,8 @@ $(CACHE_OUT_DIR)/Dockerfile: $(CACHING_DIR)/cmd/Dockerfile
 
 .PHONY: caching-ee-docker
 caching-ee-docker: $(CACHE_OUT_DIR)/.caching-ee-docker
+caching-ee-docker: BINARY="$(CACHING_OUT_DIR)/caching-linux-amd64"
+caching-ee-docker: validate-standard-crypto
 
 $(CACHE_OUT_DIR)/.caching-ee-docker: $(CACHE_OUT_DIR)/caching-linux-amd64 $(CACHE_OUT_DIR)/Dockerfile
 	docker buildx build --load -t $(IMAGE_REGISTRY)/caching-ee:$(VERSION) $(call get_test_tag_option,caching-ee) $(CACHE_OUT_DIR) $(PLATFORM)
@@ -1052,9 +1070,6 @@ $(CACHE_OUT_DIR)/.caching-ee-docker: $(CACHE_OUT_DIR)/caching-linux-amd64 $(CACH
 GLOO_DIR=projects/gloo
 GLOO_SOURCES=$(shell find $(GLOO_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 GLOO_OUT_DIR=$(OUTPUT_DIR)/gloo
-
-
-
 
 $(GLOO_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
 	mkdir -p $(GLOO_OUT_DIR)
@@ -1090,6 +1105,8 @@ $(GLOO_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 
 .PHONY: gloo-ee-docker
 gloo-ee-docker: $(GLOO_OUT_DIR)/.gloo-ee-docker
+gloo-ee-docker: BINARY="$(GLOO_OUT_DIR)/gloo-linux-amd64"
+gloo-ee-docker: validate-standard-crypto
 
 $(GLOO_OUT_DIR)/.gloo-ee-docker: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR)/Dockerfile
 	docker buildx build --load $(call get_test_tag_option,gloo-ee) $(GLOO_OUT_DIR) \
@@ -1176,6 +1193,7 @@ $(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64: $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker-buil
 	docker cp gloo-fips-temp-container:/gloo-linux-amd64 $(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64
 	docker rm -f gloo-fips-temp-container
 
+
 .PHONY: gloo-fips
 gloo-fips: $(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64
 
@@ -1185,6 +1203,8 @@ $(GLOO_FIPS_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 
 .PHONY: gloo-ee-fips-docker
 gloo-ee-fips-docker: $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker
+gloo-ee-fips-docker: BINARY="$(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64"
+gloo-ee-fips-docker: validate-boring-crypto
 
 $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker: $(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64 $(GLOO_FIPS_OUT_DIR)/Dockerfile
 	docker buildx build --load $(call get_test_tag_option,gloo-ee) $(GLOO_FIPS_OUT_DIR) \
@@ -1210,6 +1230,8 @@ $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(DOCKER_GOARCH): $(DISCOVERY_SOURCES)
 
 .PHONY: discovery
 discovery: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(DOCKER_GOARCH)
+discovery: BINARY="$(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(DOCKER_GOARCH)"
+discovery: validate-standard-crypto
 
 $(DISCOVERY_OUTPUT_DIR)/Dockerfile: $(DISCOVERY_DIR)/cmd/Dockerfile
 	mkdir -p $(DISCOVERY_OUTPUT_DIR)
@@ -1260,6 +1282,8 @@ $(DISCOVERY_FIPS_OUTPUT_DIR)/Dockerfile: $(DISCOVERY_DIR)/cmd/Dockerfile
 
 .PHONY: discovery-ee-fips-docker
 discovery-ee-fips-docker: $(DISCOVERY_FIPS_OUTPUT_DIR)/.discovery-ee-docker
+discovery-ee-fips-docker: BINARY="$(DISCOVERY_FIPS_OUTPUT_DIR)/discovery-elinux-amd64"
+discovery-ee-fips-docker: validate-boring-crypto
 
 $(DISCOVERY_FIPS_OUTPUT_DIR)/.discovery-ee-docker: $(DISCOVERY_FIPS_OUTPUT_DIR)/discovery-linux-amd64
 $(DISCOVERY_FIPS_OUTPUT_DIR)/.discovery-ee-docker: $(DISCOVERY_FIPS_OUTPUT_DIR)/Dockerfile
@@ -1875,3 +1899,14 @@ _local/redis.key:
 .PHONY: scan-version
 scan-version:
 	PATH=$(DEPSGOBIN):$$PATH go run ./hack/trivy/cli/main.go scan -v "$(VERSION)"
+
+#----------------------------------------------------------------------------------
+# Binary Validation
+#
+# This is used for our all of our images, except gateway-proxy
+#----------------------------------------------------------------------------------
+
+# Validate the version of the cryptography library used by the binary.
+# If the expected string is not present, the `grep` command will return an exit status 1 and this target will fail.
+validate-%-crypto: ## Validate the version of the cryptography library used by the binary
+	goversion -crypto $(BINARY) | grep "($* crypto)" > /dev/null

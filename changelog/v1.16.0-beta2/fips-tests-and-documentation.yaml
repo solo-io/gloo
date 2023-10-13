@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5373
+    resolvesIssue: false
+    description: >-
+      Add tests and documentation around our FIPS support

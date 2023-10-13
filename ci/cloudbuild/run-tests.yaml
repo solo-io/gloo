@@ -134,11 +134,25 @@ steps:
   dir: *dir
   args:
   - "install-test-tools"
+  # We have some tests which validate the crypto library used during builds
+  - "install-build-tools"
   waitFor:
   - "prepare-workspace"
   - "get-envoy"
   - "setup-aws-creds"
   - "get-test-credentials"
+
+# We have certain Make tests which validate that we can pull/push images to quay.io
+- name: "gcr.io/cloud-builders/docker"
+  entrypoint: "bash"
+  args:
+    [
+      "-c",
+      'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD',
+    ]
+  secretEnv: ["QUAY_IO_PASSWORD"]
+  waitFor: ["-"]
+  id: "docker-login"
 
 # e2e-go-mod-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-go-mod-ginkgo
 # sets up redis, consul, kubectl, go with required environment variables
@@ -168,6 +182,7 @@ steps:
 secrets:
 - kmsKeyName: projects/gloo-ee/locations/global/keyRings/build/cryptoKeys/build-key
   secretEnv:
+    QUAY_IO_PASSWORD: CiQAwdWthknPPz3v+xcbHWaCRhuSisUqPrkn6sQJxbo7SaI9iucSaQD5SXFILt6uY5C4xcuuzDcZXml2FXnRBg9Uk6BDJebycORdyslJz9iVEWeTrFZoOyHh5aDTLQhuNEmW4znFnleICVdasJtwFE9VIJCU5OGCgkTFdfGGvMx8up37ST9MwDYUPCB1vqLL1w==
     NPM_TOKEN: CiQAwdWthsrcxx34V1hGZL7uH3KcYsp9n2yiXMZ/IrDKqxD8vxgSTQD5SXFI/acbV54LBG26hMvU6qtvmoSIPLdi9F2LxdJQs+kGupmD7GykLRW6eWqJs8UJQMNmMo1u+tK8YsTvja7IhqeL2+dmZSByLIcB
 # Overall build timeout of 60m. The release builds take extra time for uploading and pushing artifacts. We can
 # set timeouts on specific steps (prepare-workspace, tests, etc) if we want to limit the time in sections, but want a forgiving

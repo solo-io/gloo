@@ -61,6 +61,9 @@ if [[ "$FROM_RELEASE" == "true" ]]; then
   echo "skipping build because we will test a released version of gloo"
   exit;
 fi
+
+make install-build-tools
+
 # 4. Build local federation and enterprise images and helm charts used in these clusters
 # NOTE TO DEVELOPERS: This build step should only occur once, and we can load the images into separate clusters
 VERSION=$VERSION make build-test-chart -B

@@ -34,6 +34,8 @@ function create_kind_cluster_or_skip() {
 }
 create_kind_cluster_or_skip
 
+make install-build-tools
+
 if [[ $FROM_RELEASE == "true" ]]; then
   echo "FROM_RELEASE=true: not building docker images, helm chart"
 else

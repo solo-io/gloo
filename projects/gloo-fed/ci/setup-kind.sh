@@ -40,6 +40,9 @@ fi
 if [[ "$FROM_RELEASE" == "true" ]]; then
   VERSION=`git describe --abbrev=0 --tags`
 fi
+
+make install-build-tools
+
 # 2. Build the gloo command line tool, ensuring we have one in the `_output` folder
 make glooctl-$OS-$GOARCH -B
 shopt -s expand_aliases

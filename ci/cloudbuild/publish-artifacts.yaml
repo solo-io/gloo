@@ -94,7 +94,7 @@ steps:
   id: "docker-login"
 
 - name: "gcr.io/solo-public/go-mod-make:0.6.4"
-  args: ["publish-docker"]
+  args: ["install-build-tools publish-docker"]
   dir: "/workspace/solo-projects"
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
   waitFor: ["docker-login", "yarn-build"]
