@@ -80,7 +80,7 @@ spec:
               if [ $? -eq 0 ]
               then
                 echo "Waiting for the enterprise resource rollout job to complete"
-                kubectl -n {{ .Release.Namespace }} wait --for=condition=complete job gloo-ee-resource-rollout
+                kubectl -n {{ .Release.Namespace }} wait --for=condition=complete job gloo-ee-resource-rollout --timeout={{ .Values.gloo.gateway.rolloutJob.timeout }}s || exit 1
               fi
 
               # Delete the resource rollout job as it can linger around and not be re-created durig an upgrade

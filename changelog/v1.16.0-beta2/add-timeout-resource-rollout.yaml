@@ -1,0 +1,7 @@
+changelog:
+- type: NON_USER_FACING
+  description: Uses the helm value `gateway.rolloutJob.timeout` to specifiy the timeout to wait for the resource rollout job to complete.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.16.0-beta15
