@@ -88,39 +88,27 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 		BeforeEach(func() {
 			// get the certificate so it is generated in the background
 			go helpers.Certificate()
-		})
 
-		AfterEach(func() {
-			err := testContext.ResourceClientSet().KubeClients().CoreV1().Secrets(testContext.InstallNamespace()).Delete(testContext.Ctx(), "secret", metav1.DeleteOptions{})
-			Expect(err).NotTo(HaveOccurred())
-		})
+			sslSecret := GetTlsSecret("secret", testContext.InstallNamespace())
+			testContext.ResourcesToWrite().Secrets = gloov1.SecretList{sslSecret}
 
-		It("can route https request to upstream", func() {
-			sslSecret := helpers.GetKubeSecret("secret", testContext.InstallNamespace())
-			createdSecret, err := testContext.ResourceClientSet().KubeClients().CoreV1().Secrets(testContext.InstallNamespace()).Create(testContext.Ctx(), sslSecret, metav1.CreateOptions{})
-			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(func() error {
-				_, err := testContext.ResourceClientSet().KubeClients().CoreV1().Secrets(sslSecret.Namespace).Get(testContext.Ctx(), sslSecret.Name, metav1.GetOptions{})
-				return err
-			}, "10s", "0.5s").Should(BeNil())
-			time.Sleep(3 * time.Second) // Wait a few seconds so Gloo can pick up the secret, otherwise the webhook validation might fail
-
-			sslConfig := &gloossl.SslConfig{
+			testContext.ResourcesToWrite().VirtualServices[0].SslConfig = &gloossl.SslConfig{
 				SslSecrets: &gloossl.SslConfig_SecretRef{
 					SecretRef: &core.ResourceRef{
-						Name:      createdSecret.ObjectMeta.Name,
-						Namespace: createdSecret.ObjectMeta.Namespace,
+						Name:      sslSecret.GetMetadata().GetName(),
+						Namespace: sslSecret.GetMetadata().GetNamespace(),
 					},
 				},
 			}
+		})
 
+		It("can route https request to upstream", func() {
 			testContext.PatchDefaultVirtualService(func(service *v1.VirtualService) *v1.VirtualService {
 				return helpers.BuilderFromVirtualService(service).WithRouteOptions(kube2e.DefaultRouteName, &gloov1.RouteOptions{
 					PrefixRewrite: &wrappers.StringValue{
 						Value: "/",
 					},
-				}).WithSslConfig(sslConfig).Build()
+				}).Build()
 			})
 			testContext.EventuallyProxyAccepted()
 
@@ -128,7 +116,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			//goland:noinspection  GoUnhandledErrorResult
 			defer os.Remove(caFile)
 
-			err = testutils.Kubectl("cp", caFile, testContext.InstallNamespace()+"/testrunner:/tmp/ca.crt")
+			err := testutils.Kubectl("cp", caFile, testContext.InstallNamespace()+"/testrunner:/tmp/ca.crt")
 			Expect(err).NotTo(HaveOccurred())
 
 			curlOpts := testContext.DefaultCurlOptsBuilder().
@@ -491,9 +479,8 @@ spec:
 				},
 			}
 
-			sslSecret := helpers.GetKubeSecret("secret", testContext.InstallNamespace())
-			createdSecret, err := testContext.ResourceClientSet().KubeClients().CoreV1().Secrets(testContext.InstallNamespace()).Create(testContext.Ctx(), sslSecret, metav1.CreateOptions{})
-			Expect(err).NotTo(HaveOccurred())
+			sslSecret := GetTlsSecret("secret", testContext.InstallNamespace())
+			testContext.ResourcesToWrite().Secrets = gloov1.SecretList{sslSecret}
 
 			domain := fmt.Sprintf("%s:%d", defaults.GatewayProxyName, defaults2.HybridPort)
 			virtualservice = helpers.BuilderFromVirtualService(testContext.ResourcesToWrite().VirtualServices[0]).
@@ -507,8 +494,8 @@ spec:
 					},
 					SslSecrets: &gloossl.SslConfig_SecretRef{
 						SecretRef: &core.ResourceRef{
-							Name:      createdSecret.ObjectMeta.Name,
-							Namespace: createdSecret.ObjectMeta.Namespace,
+							Name:      sslSecret.GetMetadata().GetName(),
+							Namespace: sslSecret.GetMetadata().GetNamespace(),
 						},
 					},
 				}).
@@ -643,10 +630,6 @@ spec:
 
 			tcpEchoShutdownFunc()
 			_ = httpEcho.Terminate()
-
-			// delete the ssl secret
-			err = testContext.ResourceClientSet().KubeClients().CoreV1().Secrets(testContext.InstallNamespace()).Delete(testContext.Ctx(), "secret", metav1.DeleteOptions{})
-			Expect(err).NotTo(HaveOccurred())
 
 			// Delete http echo service
 			err = testutils.Kubectl("delete", "service", "-n", testContext.InstallNamespace(), helper.HttpEchoName, "--grace-period=0")
@@ -889,5 +872,20 @@ func createTcpEchoTls(namespace string) func() {
 	return func() {
 		_ = kube.CoreV1().Pods(namespace).Delete(context.Background(), pod.GetObjectMeta().GetName(), metav1.DeleteOptions{})
 		_ = kube.CoreV1().Services(namespace).Delete(context.Background(), service.GetObjectMeta().GetName(), metav1.DeleteOptions{})
+	}
+}
+
+func GetTlsSecret(name, namespace string) *gloov1.Secret {
+	return &gloov1.Secret{
+		Metadata: &core.Metadata{
+			Namespace: namespace,
+			Name:      name,
+		},
+		Kind: &gloov1.Secret_Tls{
+			Tls: &gloov1.TlsSecret{
+				PrivateKey: helpers.PrivateKey(),
+				CertChain:  helpers.Certificate(),
+			},
+		},
 	}
 }
