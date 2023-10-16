@@ -29,6 +29,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_healthcheck_he
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/protocol_upgrade/protocol_upgrade_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_router_router_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/router/router_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/connection_limit/connection_limit_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/local_ratelimit/local_ratelimit_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_proxylatency_proxylatency_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/proxylatency/proxylatency_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_buffer_v3_buffer_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/filters/http/buffer/v3/buffer_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_csrf_v3_csrf_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/filters/http/csrf/v3/csrf_pb";
@@ -273,6 +274,16 @@ export class HttpListenerOptions extends jspb.Message {
   getConnectionLimit(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit | undefined;
   setConnectionLimit(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit): void;
 
+  hasNetworkLocalRatelimit(): boolean;
+  clearNetworkLocalRatelimit(): void;
+  getNetworkLocalRatelimit(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket | undefined;
+  setNetworkLocalRatelimit(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket): void;
+
+  hasHttpLocalRatelimit(): boolean;
+  clearHttpLocalRatelimit(): void;
+  getHttpLocalRatelimit(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.Settings | undefined;
+  setHttpLocalRatelimit(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.Settings): void;
+
   hasRouter(): boolean;
   clearRouter(): void;
   getRouter(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_router_router_pb.Router | undefined;
@@ -312,6 +323,8 @@ export namespace HttpListenerOptions {
     leftmostXffAddress?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     dynamicForwardProxy?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig.AsObject,
     connectionLimit?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.AsObject,
+    networkLocalRatelimit?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.AsObject,
+    httpLocalRatelimit?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.Settings.AsObject,
     router?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_router_router_pb.Router.AsObject,
   }
 
@@ -333,6 +346,11 @@ export class TcpListenerOptions extends jspb.Message {
   getConnectionLimit(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit | undefined;
   setConnectionLimit(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit): void;
 
+  hasLocalRatelimit(): boolean;
+  clearLocalRatelimit(): void;
+  getLocalRatelimit(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket | undefined;
+  setLocalRatelimit(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TcpListenerOptions.AsObject;
   static toObject(includeInstance: boolean, msg: TcpListenerOptions): TcpListenerOptions.AsObject;
@@ -347,6 +365,7 @@ export namespace TcpListenerOptions {
   export type AsObject = {
     tcpProxySettings?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_tcp_tcp_pb.TcpProxySettings.AsObject,
     connectionLimit?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.AsObject,
+    localRatelimit?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.AsObject,
   }
 }
 
