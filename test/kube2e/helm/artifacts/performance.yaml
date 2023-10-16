@@ -1,0 +1,33 @@
+# The following config is to enable better performance
+# Ref : https://docs.solo.io/gloo-edge/latest/operations/production_deployment/#performance-tips
+settings:
+  # The following config is to disable transfomation validation for performance
+  # Ref: https://docs.solo.io/gloo-edge/latest/operations/production_deployment/#transformations
+  disableTransformationValidation: true
+
+  # The following config is to Disable Kubernetes destinations for performance
+  # Ref: https://docs.solo.io/gloo-edge/latest/operations/production_deployment/#disable-kubernetes-destinations
+  disableKubernetesDestinations: true
+  # When disableKubernetesDestinations is enabled the gloo pod errors with
+  # E1005 20:42:21.655512       1 reflector.go:148] pkg/mod/k8s.io/client-go@v0.27.3/tools/cache/reflector.go:231: Failed to watch *v1.Endpoints: failed to list *v1.Endpoints: endpoints is forbidden: User "system:serviceaccount:gloo-system:gloo" cannot list resource "endpoints" in API group "" at the cluster scope
+  # {"level":"panic","ts":"2023-10-05T20:42:37.677Z","logger":"gloo.v1.event_loop.setup","caller":"setup/setup_syncer.go:648","msg":"failed warming up endpoints - consider adjusting endpointsWarmingTimeout","version":"1.0.0-ci","warmTimeoutDuration":300,"stacktrace":"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup.RunGlooWithExtensions\n\t/Users/djumani/lab/gloo/projects/gloo/pkg/syncer/setup/setup_syncer.go:648\ngithub.com/solo-io/gloo/projects/gloo/pkg/syncer/setup.RunGloo\n\t/Users/djumani/lab/gloo/projects/gloo/pkg/syncer/setup/setup_syncer.go:450\ngithub.com/solo-io/gloo/projects/gloo/pkg/syncer/setup.(*setupSyncer).Setup\n\t/Users/djumani/lab/gloo/projects/gloo/pkg/syncer/setup/setup_syncer.go:424\ngithub.com/solo-io/gloo/pkg/utils/setuputils.(*SetupSyncer).Sync\n\t/Users/djumani/lab/gloo/pkg/utils/setuputils/setup_syncer.go:60\ngithub.com/solo-io/gloo/projects/gloo/pkg/api/v1.(*setupEventLoop).Run.func1\n\t/Users/djumani/lab/gloo/projects/gloo/pkg/api/v1/setup_event_loop.sk.go:107"}
+  # panic: failed warming up endpoints - consider adjusting endpointsWarmingTimeout
+  # Setting the endpointsWarmingTimeout to 0s is a workaround but does not fix the core issue
+  endpointsWarmingTimeout: 0s
+
+# The following config is to disable discovery for performance
+# Ref: https://docs.solo.io/gloo-edge/latest/operations/production_deployment/#discovery
+discovery:
+  enabled: false
+
+# The following config is to enable gzip for performance
+# Ref: https://docs.solo.io/gloo-edge/latest/operations/production_deployment/#enable-envoys-gzip-filter
+gatewayProxies:
+  gatewayProxy:
+    gatewaySettings:
+      customHttpGateway:
+        options:
+          gzip:
+            compressionLevel: BEST
+            contentType:
+            - text/plain

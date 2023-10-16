@@ -1,0 +1,63 @@
+  settings:
+    disableKubernetesDestinations: true
+    invalidConfigPolicy:
+      invalidRouteResponseBody: Gloo Gateway has invalid configuration. Administrators
+        should run `glooctl check` to find and fix config errors.
+      invalidRouteResponseCode: 404
+      replaceInvalidRoutes: true
+  gateway:
+    translateEmptyGateways: true
+    validation:
+      allowWarnings: false # reject if warning status or rejected status
+      alwaysAcceptResources: false # reject invalid resources
+      warnRouteShortCircuiting: true
+      failurePolicy: Fail # failure policy mode for the validation webhook (default is "Ignore")
+      disableTransformationValidation: true # better performances but more risky
+  discovery:
+    enabled: false
+  gatewayProxies:
+    gatewayProxy:
+      service:
+        type: ClusterIP
+      podDisruptionBudget:
+        minAvailable: 2
+      gatewaySettings:
+        customHttpGateway:
+          options:
+            healthCheck:
+              path: /envoy-hc
+            gzip:
+              compressionLevel: BEST
+              contentType:
+              - text/plain
+            # accessLoggingService:
+            #   accessLog:
+            #   - fileSink:
+            #       path: /dev/stdout
+            #       stringFormat: ""
+            proxyLatency:
+              request: LAST_INCOMING_FIRST_OUTGOING
+              response: LAST_INCOMING_FIRST_OUTGOING
+      extraVolumes:
+      - name: gloo-logs
+        persistentVolumeClaim:
+          claimName: local-claim
+      extraProxyVolumeMounts:
+      - name: gloo-logs
+        mountPath: /var/log/gloo
+      extraEnvoyArgs: # Add extra arguments to Envoy.
+      -  --log-path /var/log/gloo/envoy_log
+      podTemplate:
+        terminationGracePeriodSeconds: 7
+        gracefulShutdown:
+          enabled: true
+          sleepTimeSeconds: 5
+        probes: true
+        customReadinessProbe:
+          httpGet:
+            scheme: HTTP
+            port: 8080
+            path: /envoy-hc
+          failureThreshold: 2
+          initialDelaySeconds: 5
+          periodSeconds: 5

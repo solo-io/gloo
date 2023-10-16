@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Adding helm tests for production recommendations based on https://docs.solo.io/gloo-edge/latest/operations/production_deployment/
+  - type: HELM
+    description: Exposes the `settings.endpointsWarmingTimeout` setting via helm.
