@@ -736,14 +736,10 @@ func getHelmValuesFile(filename string) string {
 
 }
 
-func getHelmUpgradeValuesOverrideFileForCustomReadinessProbe() string {
-	return getHelmValuesFile("custom-readiness-probe.yaml")
-}
-
 func getHelmValuesForProductionRecommendations() []string {
 	return []string{
 		"--values", getHelmValuesFile("access-logging.yaml"),
-		"--values", getHelmUpgradeValuesOverrideFileForCustomReadinessProbe(),
+		"--values", getHelmValuesFile("custom-readiness-probe.yaml"),
 		"--values", getHelmValuesFile("horizontal-scaling.yaml"),
 		"--values", getHelmValuesFile("performance.yaml"),
 		"--values", getHelmValuesFile("safeguards.yaml"),
