@@ -3,3 +3,5 @@ changelog:
     description: Adding helm tests for production recommendations based on https://docs.solo.io/gloo-edge/latest/operations/production_deployment/
   - type: HELM
     description: Exposes the `settings.endpointsWarmingTimeout` setting via helm.
+    issueLink: https://github.com/solo-io/gloo/issues/8804
+    resolvesIssue: true

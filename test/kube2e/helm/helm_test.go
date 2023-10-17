@@ -277,14 +277,15 @@ var _ = Describe("Kube2e: helm", func() {
 			glooDeploymentsToCheck = []string{"gloo", "gateway-proxy"}
 
 			additionalInstallArgs = []string{
-				"--wait",
-				"--wait-for-jobs",
+				// Setting `settings.disableKubernetesDestinations` && `global.glooRbac.namespaced` leads to panic in gloo
+				// Ref: https://github.com/solo-io/gloo/issues/8801
+				"--set", "global.glooRbac.namespaced=false",
 			}
 			additionalInstallArgs = append(additionalInstallArgs, valuesForProductionRecommendations...)
 		})
 
 		It("succeeds", func() {
-			// Since of of the production recommendations is to have a custom readiness probe, check if it is present on the proxy
+			// Since one of the production recommendations is to have a custom readiness probe, check if it is present on the proxy
 			expectGatewayProxyIsReady()
 		})
 	})
