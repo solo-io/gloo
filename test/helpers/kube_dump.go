@@ -85,6 +85,8 @@ func recordKubeState(f *os.File) {
 		f.WriteString("*** Unable to get kube state ***\n")
 		return
 	}
+	// Describe everything to identify the reason for issues such as Pods, LoadBalancers stuck in pending state (insufficient resources, unable to acquire an IP), etc.
+	// Ie: More context around the output of the previous command `kubectl get all -A`
 	kubeDescribe, err := kubeCli.KubectlOut(nil, "describe", "all", "-A")
 	if err != nil {
 		f.WriteString("*** Unable to get kube describe ***\n")
