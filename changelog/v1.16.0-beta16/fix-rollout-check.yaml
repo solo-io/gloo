@@ -1,0 +1,6 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/5439
+  resolvesIssue: false
+  description: Fix niche scenario where the enterprise rollout job is deleted before the oss rollout job is notified that it has completed leading to timeouts in installs and upgrades.
+

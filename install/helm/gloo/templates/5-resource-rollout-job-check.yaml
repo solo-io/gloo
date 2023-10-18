@@ -82,6 +82,12 @@ spec:
                 echo "Waiting for the resource rollout job to complete"
                 kubectl -n {{ .Release.Namespace }} wait --for=condition=complete job gloo-resource-rollout --timeout={{ .Values.gateway.rolloutJob.timeout }}s || exit 1
               fi
+
+              # Delete the ee resource rollout job as it can linger around and not be re-created durig an upgrade.
+              # This is not done in enterpise as there can be scenarios where deleting the job before oss is notified that it has completed can lead to timeouts
+              # Ref: https://github.com/solo-io/solo-projects/issues/5439
+              kubectl -n {{ .Release.Namespace }} delete job gloo-ee-resource-rollout || true
+
               # Delete the resource rollout job as it can linger around and not be re-created durig an upgrade
               kubectl -n {{ .Release.Namespace }} delete job gloo-resource-rollout
 
