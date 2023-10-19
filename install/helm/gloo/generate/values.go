@@ -303,7 +303,7 @@ type Gateway struct {
 	CompressedProxySpec            *bool             `json:"compressedProxySpec,omitempty" desc:"if true, enables compression for the Proxy CRD spec"`
 	LogLevel                       *string           `json:"logLevel,omitempty" desc:"Level at which the pod should log. Options include \"info\", \"debug\", \"warn\", \"error\", \"panic\" and \"fatal\". Default level is info"`
 	PersistProxySpec               *bool             `json:"persistProxySpec,omitempty" desc:"Enable writing Proxy CRD to etcd. Disabled by default for performance."`
-	TranslateEmptyGateways         *bool             `json:"translateEmptyGateways,omitempty" desc:"If true, the gateways wil be translated into Envoy listeners even if no VirtualServices exist"`
+	TranslateEmptyGateways         *bool             `json:"translateEmptyGateways,omitempty" desc:"This field is a no-op for now"`
 	Service                        *KubeResourceOverride
 }
 
