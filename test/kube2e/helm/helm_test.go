@@ -13,7 +13,6 @@ import (
 	"github.com/rotisserie/eris"
 
 	"github.com/solo-io/gloo/test/kube2e"
-	exec_utils "github.com/solo-io/go-utils/testutils/exec"
 	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/k8s-utils/testutils/helper"
 	gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
@@ -206,69 +205,6 @@ var _ = Describe("Installing and upgrading GlooEE via helm", func() {
 			})
 		})
 	})
-
-	// The aim of the test is to ensure that the readiness probe is configured on the gateway proxy
-	// and the gateway-proxy deployment is ready before helm marks the upgrade as successful.
-	// Ref: https://github.com/solo-io/gloo/issues/8288
-	Context("Custom readiness probe", func() {
-		var valuesFileForCustomReadinessProbe string
-		var expectGatewayProxyIsReady func()
-
-		BeforeEach(func() {
-			valuesFileForCustomReadinessProbe = getHelmUpgradeValuesOverrideFileForCustomReadinessProbe()
-
-			expectGatewayProxyIsReady = func() {
-				Eventually(func() (string, error) {
-					a, b := exec_utils.RunCommandOutput(testHelper.RootDir, false,
-						"kubectl", "-n", namespace, "get", "deployment", "gateway-proxy", "-o", "yaml")
-					return a, b
-				}, "30s", "1s").Should(
-					// kubectl -n gloo-system get deployment gateway-proxy -o yaml
-					// ...
-					// readinessProbe:
-					//   httpGet:
-					//     path: /envoy-hc
-					// ...
-					// readyReplicas: 1
-					And(ContainSubstring("readinessProbe:"),
-						ContainSubstring("/envoy-hc"),
-						ContainSubstring("readyReplicas: 1")))
-			}
-		})
-
-		Context("On clean install", func() {
-			BeforeEach(func() {
-				additionalInstallArgs = []string{
-					"--values", valuesFileForCustomReadinessProbe,
-					"--wait",
-					"--wait-for-jobs",
-				}
-			})
-
-			It("succeeds adding a custom readiness probe and the gateway-proxy deployment is ready", func() {
-				expectGatewayProxyIsReady()
-			})
-		})
-
-		Context("On upgrade", func() {
-			BeforeEach(func() {
-				fromRelease = versionBeforeCustomReadinessProbeFix
-			})
-
-			It("succeeds adding a custom readiness probe and the gateway-proxy deployment is ready", func() {
-				settings := []string{
-					"--values", valuesFileForCustomReadinessProbe,
-					"--wait",
-					"--wait-for-jobs",
-				}
-
-				upgradeGloo(testHelper, chartUri, fromRelease, targetReleasedVersion, strictValidation, settings)
-
-				expectGatewayProxyIsReady()
-			})
-		})
-	})
-
 })
 
 func installGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease string, strictValidation bool, additionalArgs []string) {

@@ -12,13 +12,6 @@ import (
 )
 
 func UpgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, helmOverrideFilePath string, additionalArgs []string) {
-	// With the fix for custom readiness probe : https://github.com/solo-io/gloo/pull/8698
-	// The resource rollout job is not longer in a post hook and the job ttl has changed from 60 to 300
-	// As a consequence the job is not automatically cleaned as part of the hook deletion policy
-	// or within the time between installing gloo and upgrading it in the test.
-	// So we wait until the job ttl has expired to be cleaned up to ensure the upgrade passes
-	RunAndCleanCommand("kubectl", "-n", testHelper.InstallNamespace, "wait", "--for=delete", "job", "gloo-resource-rollout", "--timeout=600s")
-
 	UpgradeCrds(chartUri, testHelper.ReleasedVersion)
 	var args = []string{"upgrade", testHelper.HelmChartName, chartUri,
 		// As most CD tools wait for resources to be ready before marking the release as successful,
