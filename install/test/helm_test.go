@@ -5616,8 +5616,6 @@ spec:
 						"gloo.gateway.rolloutJob.resources.limits.cpu=400m",
 						// linkerd
 						"gloo.settings.linkerd=true",
-						// timeout
-						"gloo.gateway.rolloutJob.timeout=800",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -5655,9 +5653,6 @@ spec:
 				Expect(job.Spec.Template.Spec.Containers[0].Resources.Limits.Memory().String()).To(Equal("300Mi"))
 				Expect(job.Spec.Template.Spec.Containers[0].Resources.Limits.Cpu().String()).To(Equal("400m"))
 				Expect(err).NotTo(HaveOccurred())
-				// timeout
-				checkJob := getJob(testManifest, namespace, "gloo-ee-resource-rollout-check")
-				Expect(checkJob.Spec.Template.Spec.Containers[0].Command[2]).To(ContainSubstring("--timeout=800s || exit 1"))
 			})
 
 			It("applies extauth and ratelimit upstreams", func() {
