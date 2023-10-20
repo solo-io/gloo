@@ -1,0 +1,8 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/8092
+    description: |
+      Add ability to configure istioSDS containers under the istioSDS values section, overriding values set under 
+      glooMtls
+      Bump default istio image tag to 1.17.5, the most recent we currently support
+    resolvesIssue: false
