@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
@@ -1673,21 +1675,19 @@ var _ = Describe("Http Translator", func() {
 			Expect(reports.ValidateStrict()).NotTo(HaveOccurred())
 		})
 
-		// Leaving the tests here until we decide how to proceed
-		// Ref: https://github.com/solo-io/gloo/pull/8814#discussion_r1366991629
-		// It("Does generates a listener if TranslateEmptyGateways is set", func() {
-		// 	ctx := settingsutil.WithSettings(ctx, &gloov1.Settings{
-		// 		Gateway: &gloov1.GatewayOptions{
-		// 			TranslateEmptyGateways: &wrapperspb.BoolValue{
-		// 				Value: true,
-		// 			},
-		// 		},
-		// 	})
-		// 	params := NewTranslatorParams(ctx, snap, reports)
-		// 	listener := translator.ComputeListener(params, "proxy123", snap.Gateways[0])
-		// 	Expect(listener).NotTo(BeNil())
-		// 	Expect(reports.ValidateStrict()).NotTo(HaveOccurred())
-		// })
+		It("Does generates a listener if TranslateEmptyGateways is set", func() {
+			ctx := settingsutil.WithSettings(ctx, &gloov1.Settings{
+				Gateway: &gloov1.GatewayOptions{
+					TranslateEmptyGateways: &wrapperspb.BoolValue{
+						Value: true,
+					},
+				},
+			})
+			params := NewTranslatorParams(ctx, snap, reports)
+			listener := translator.ComputeListener(params, "proxy123", snap.Gateways[0])
+			Expect(listener).NotTo(BeNil())
+			Expect(reports.ValidateStrict()).NotTo(HaveOccurred())
+		})
 	})
 
 })
