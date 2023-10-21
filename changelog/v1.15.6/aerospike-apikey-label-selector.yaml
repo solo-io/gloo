@@ -1,0 +1,15 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/dev-portal/issues/2753
+    resolvesIssue: false
+    description: >-
+      Ensure that ApiKeys which are persisted in Aerospike respect the labelSelector
+      configuration on the AuthConfig API.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.15.14
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.43.1-patch2

@@ -5,6 +5,9 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/onsi/gomega/types"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+
 	extauthsyncer "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
@@ -541,7 +544,7 @@ var _ = Describe("Translate", func() {
 		})
 	})
 
-	Context("with api key extauth", func() {
+	Context("Api Key (k8s secret)", func() {
 		BeforeEach(func() {
 
 			secret = &v1.Secret{
@@ -792,6 +795,89 @@ var _ = Describe("Translate", func() {
 			})
 
 		})
+	})
+
+	Context("Api Key (aerospike)", func() {
+
+		createAuthConfigWithLabelSelector := func(
+			topLevelLabelSelector map[string]string,
+			storageLabelSelector map[string]string,
+		) *extauth.AuthConfig {
+			return &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "apikey-aerospike",
+					Namespace: defaults.GlooSystem,
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+						ApiKeyAuth: &extauth.ApiKeyAuth{
+							HeaderName:    "x-api-key",
+							LabelSelector: topLevelLabelSelector,
+							StorageBackend: &extauth.ApiKeyAuth_AerospikeApikeyStorage{
+								AerospikeApikeyStorage: &extauth.AerospikeApiKeyStorage{
+									LabelSelector: storageLabelSelector,
+								},
+							},
+						},
+					},
+				}},
+			}
+		}
+
+		DescribeTable("translate labelSelector from AuthConfig to ExtAuthConfig",
+			func(authConfig *extauth.AuthConfig, expectedLabelSelector types.GomegaMatcher) {
+				snap := &v1snap.ApiSnapshot{
+					AuthConfigs: extauth.AuthConfigList{authConfig},
+				}
+				Expect(authConfig.GetConfigs()).To(HaveLen(1), "tests assume exactly one config")
+
+				outputConfig, err := extauthsyncer.TranslateUserFacingConfigToInternalServiceConfig(context.Background(), snap, authConfig.GetConfigs()[0])
+				Expect(err).NotTo(HaveOccurred())
+				Expect(outputConfig.GetApiKeyAuth().GetAerospikeApikeyStorage().GetLabelSelector()).To(expectedLabelSelector)
+			},
+			Entry("no label selector",
+				createAuthConfigWithLabelSelector(nil, nil),
+				BeEmpty(),
+			),
+			Entry("label selector only at top-level",
+				createAuthConfigWithLabelSelector(map[string]string{
+					"key-1": "value-1",
+					"key-2": "value-2",
+				}, nil),
+				And(
+					HaveKeyWithValue("key-1", "value-1"),
+					HaveKeyWithValue("key-2", "value-2"),
+				),
+			),
+			Entry("label selector only at storage-level",
+				createAuthConfigWithLabelSelector(nil,
+					map[string]string{
+						"key-1": "value-1",
+						"key-2": "value-2",
+					}),
+				And(
+					HaveKeyWithValue("key-1", "value-1"),
+					HaveKeyWithValue("key-2", "value-2"),
+				),
+			),
+			// storage-level definitions should take precedence over top-level definitions
+			Entry("label selector at top-level and storage-level",
+				createAuthConfigWithLabelSelector(
+					map[string]string{
+						"key-1": "value-1-top",
+						"key-2": "value-2-top",
+					},
+					map[string]string{
+						"key-1": "value-1-storage",
+						"key-2": "value-2-storage",
+					}),
+				And(
+					HaveKeyWithValue("key-1", "value-1-storage"),
+					HaveKeyWithValue("key-2", "value-2-storage"),
+				),
+			),
+		)
+
 	})
 
 	Context("with OPA extauth", func() {

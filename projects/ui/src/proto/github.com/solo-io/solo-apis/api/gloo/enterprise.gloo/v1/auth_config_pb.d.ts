@@ -1852,6 +1852,8 @@ export class AerospikeApiKeyStorage extends jspb.Message {
   setTlsCurveGroupsList(value: Array<AerospikeApiKeyStorage.tlsCurveID>): void;
   addTlsCurveGroups(value?: AerospikeApiKeyStorage.tlsCurveID, index?: number): AerospikeApiKeyStorage.tlsCurveID;
 
+  getLabelSelectorMap(): jspb.Map<string, string>;
+  clearLabelSelectorMap(): void;
   getCommitLevelCase(): AerospikeApiKeyStorage.CommitLevelCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AerospikeApiKeyStorage.AsObject;
@@ -1881,6 +1883,7 @@ export namespace AerospikeApiKeyStorage {
     rootCaPath: string,
     tlsVersion: string,
     tlsCurveGroupsList: Array<AerospikeApiKeyStorage.tlsCurveID.AsObject>,
+    labelSelectorMap: Array<[string, string]>,
   }
 
   export class readModeSc extends jspb.Message {

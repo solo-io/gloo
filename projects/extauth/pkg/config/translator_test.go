@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/onsi/gomega/types"
+
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth2"
 	"github.com/solo-io/ext-auth-service/pkg/utils/cipher"
 
@@ -212,25 +214,71 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			Expect(services).To(HaveLen(1))
 		})
 
-		// We require the aerospike connection to succeed in order to return a valid APIKey AuthService
-		// so we unit test the translation to the config that goes into NewAPIKeyService
-		It("translates aerospike config", func() {
-			translatedConfig, err := config.TranslateAerospikeConfig(&extauthv1.ExtAuthConfig_Config_ApiKeyAuth{
-				ApiKeyAuth: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig{
-					StorageBackend: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig_AerospikeApikeyStorage{
-						AerospikeApikeyStorage: &extauthv1.AerospikeApiKeyStorage{
-							Hostname:  "host",
-							Namespace: "ns",
-							Set:       "set",
-							Port:      3000,
+		Context("Aerospike", func() {
+			// We require the aerospike connection to succeed in order to return a valid APIKey AuthService
+			// so we unit test the translation to the config that goes into NewAPIKeyService
+			It("translates aerospike config", func() {
+				translatedConfig, err := config.TranslateAerospikeConfig(&extauthv1.ExtAuthConfig_Config_ApiKeyAuth{
+					ApiKeyAuth: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig{
+						StorageBackend: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig_AerospikeApikeyStorage{
+							AerospikeApikeyStorage: &extauthv1.AerospikeApiKeyStorage{
+								Hostname:  "host",
+								Namespace: "ns",
+								Set:       "set",
+								Port:      3000,
+							},
 						},
 					},
-				},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(translatedConfig).NotTo(BeNil())
+				Expect(translatedConfig.AerospikeStorageConfig.Hostname).To(Equal("host"))
 			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(translatedConfig).NotTo(BeNil())
-			Expect(translatedConfig.AerospikeStorageConfig.Hostname).To(Equal("host"))
+
+			DescribeTable("transales labelSelector properly",
+				func(inputLabelSelector map[string]string, expectedLabelSelector types.GomegaMatcher) {
+					translatedConfig, err := config.TranslateAerospikeConfig(&extauthv1.ExtAuthConfig_Config_ApiKeyAuth{
+						ApiKeyAuth: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig{
+							StorageBackend: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig_AerospikeApikeyStorage{
+								AerospikeApikeyStorage: &extauthv1.AerospikeApiKeyStorage{
+									LabelSelector: inputLabelSelector,
+								},
+							},
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+					Expect(translatedConfig).NotTo(BeNil())
+					Expect(translatedConfig.ServiceConfig).NotTo(BeNil())
+					Expect(translatedConfig.ServiceConfig.LabelSelector).To(expectedLabelSelector)
+				},
+				Entry("translates empty labelSelector config",
+					map[string]string{}, BeEmpty()),
+				Entry("translates standard (non-portal) labelSelector config",
+					map[string]string{
+						"key-1": "value-1",
+						"key-2": "value-2",
+					},
+					And(
+						HaveKeyWithValue("key-1", "value-1"),
+						HaveKeyWithValue("key-2", "value-2"),
+					),
+				),
+				Entry("translates developer portal labelSelector config",
+					map[string]string{
+						"apiproducts.portal.gloo.solo.io":  "petstore-product.default",
+						"environments.portal.gloo.solo.io": "dev.default",
+						"usageplans.portal.gloo.solo.io":   "basic",
+					},
+					And(
+						HaveKeyWithValue("product", "petstore-product.default"),
+						HaveKeyWithValue("environment", "dev.default"),
+						HaveKeyWithValue("plan", "basic"),
+					),
+				),
+			)
+
 		})
+
 	})
 
 	Describe("translating deprecated OAuth OIDC config", func() {

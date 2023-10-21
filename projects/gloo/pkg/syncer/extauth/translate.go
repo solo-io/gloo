@@ -95,6 +95,13 @@ func ConvertExternalAuthConfigToXdsAuthConfig(ctx context.Context, snapshot *v1s
 	}, nil
 }
 
+// TranslateUserFacingConfigToInternalServiceConfig converts the user-facing API object (AuthConfig CR) into the
+// service-facing API object, which will be sent over xDS to the ext-auth-service.
+// This is exported to enable testing.
+func TranslateUserFacingConfigToInternalServiceConfig(ctx context.Context, snap *v1snap.ApiSnapshot, cfg *extauth.AuthConfig_Config) (*extauth.ExtAuthConfig_Config, error) {
+	return translateConfig(ctx, snap, cfg)
+}
+
 func translateConfig(ctx context.Context, snap *v1snap.ApiSnapshot, cfg *extauth.AuthConfig_Config) (*extauth.ExtAuthConfig_Config, error) {
 	extAuthConfig := &extauth.ExtAuthConfig_Config{
 		Name: cfg.Name,
@@ -301,6 +308,16 @@ func translateAerospikeApiKey(ctx context.Context, snap *v1snap.ApiSnapshot, con
 	if storageConfig == nil {
 		return nil, errors.New("nil storage config")
 	}
+
+	// The LabelSelector can be defined in 2 ways: on the top level AuthConfig CR, or on the storage backend
+	// The top level AuthConfig CR is deprecated, and should not be used, but we still support it
+	if storageConfig.GetLabelSelector() != nil || len(storageConfig.GetLabelSelector()) > 0 {
+		// The storage backend already has a label selector, so we use that
+	} else if config.LabelSelector != nil && len(config.LabelSelector) > 0 {
+		// The storage backend does not have a label selector, but the top level AuthConfig CR does
+		storageConfig.LabelSelector = config.LabelSelector
+	}
+
 	// Add metadata if present
 	var headersFromKeyMetadata map[string]string
 	if len(config.HeadersFromMetadata) > 0 {

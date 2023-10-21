@@ -12570,7 +12570,8 @@ proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.toObject = function(include
     rootCaPath: jspb.Message.getFieldWithDefault(msg, 14, ""),
     tlsVersion: jspb.Message.getFieldWithDefault(msg, 15, ""),
     tlsCurveGroupsList: jspb.Message.toObjectList(msg.getTlsCurveGroupsList(),
-    proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.toObject, includeInstance)
+    proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.toObject, includeInstance),
+    labelSelectorMap: (f = msg.getLabelSelectorMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -12673,6 +12674,12 @@ proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.deserializeBinaryFromReader
       var value = new proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.deserializeBinaryFromReader);
       msg.addTlsCurveGroups(value);
+      break;
+    case 17:
+      var value = msg.getLabelSelectorMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
       break;
     default:
       reader.skipField();
@@ -12817,6 +12824,10 @@ proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.serializeBinaryToWriter = f
       f,
       proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.serializeBinaryToWriter
     );
+  }
+  f = message.getLabelSelectorMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(17, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -13971,6 +13982,24 @@ proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.addTlsCurveGroups
 
 proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.clearTlsCurveGroupsList = function() {
   this.setTlsCurveGroupsList([]);
+};
+
+
+/**
+ * map<string, string> label_selector = 17;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getLabelSelectorMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 17, opt_noLazyCreate,
+      null));
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.clearLabelSelectorMap = function() {
+  this.getLabelSelectorMap().clear();
 };
 
 
