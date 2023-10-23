@@ -74,17 +74,17 @@ require (
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	helm.sh/helm/v3 v3.12.2
-	k8s.io/api v0.28.1
-	k8s.io/apiextensions-apiserver v0.28.1
-	k8s.io/apimachinery v0.28.1
-	k8s.io/client-go v0.28.1
-	k8s.io/code-generator v0.28.1
+	k8s.io/api v0.28.2
+	k8s.io/apiextensions-apiserver v0.28.2
+	k8s.io/apimachinery v0.28.2
+	k8s.io/client-go v0.28.2
+	k8s.io/code-generator v0.28.2
 	k8s.io/component-base v0.28.1
 	k8s.io/kubectl v0.27.3
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2
 	knative.dev/networking v0.0.0-20211210083629-bace06e98aee
 	knative.dev/pkg v0.0.0-20211206113427-18589ac7627e
-	sigs.k8s.io/controller-runtime v0.16.1
+	sigs.k8s.io/controller-runtime v0.16.2
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -94,7 +94,7 @@ require (
 	golang.org/x/exp v0.0.0-20220921164117-439092de6870
 	google.golang.org/genproto/googleapis/api v0.0.0-20230526203410-71b5a4ffd15e
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230526203410-71b5a4ffd15e
-	sigs.k8s.io/gateway-api v0.8.1
+	sigs.k8s.io/gateway-api v1.0.0-rc1
 )
 
 require (
