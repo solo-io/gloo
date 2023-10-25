@@ -8,7 +8,7 @@ Name|Version|License
 [xds/go](https://github.com/cncf/xds)|v0.0.0-20230607035331-e9ce68804cb4|Apache License 2.0
 [docker/distribution](https://github.com/docker/distribution)|v2.8.2+incompatible|Apache License 2.0
 [envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.0.0-20230902211618-ada8201b381c|Apache License 2.0
-[envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v1.0.1|Apache License 2.0
+[envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v1.0.2|Apache License 2.0
 [fgrosse/zaptest](https://github.com/fgrosse/zaptest)|v1.1.0|MIT License
 [gertd/go-pluralize](https://github.com/gertd/go-pluralize)|v0.1.1|MIT License
 [getkin/kin-openapi](https://github.com/getkin/kin-openapi)|v0.80.0|MIT License
@@ -23,7 +23,7 @@ Name|Version|License
 [gobuffalo/packr](https://github.com/gobuffalo/packr)|v1.30.1|MIT License
 [golang-jwt/jwt](https://github.com/golang-jwt/jwt)|v3.2.2+incompatible|MIT License
 [golang/protobuf](https://github.com/golang/protobuf)|v1.5.3|BSD 3-clause "New" or "Revised" License
-[google/uuid](https://github.com/google/uuid)|v1.3.0|BSD 3-clause "New" or "Revised" License
+[google/uuid](https://github.com/google/uuid)|v1.3.1|BSD 3-clause "New" or "Revised" License
 [google/wire](https://github.com/google/wire)|v0.4.0|Apache License 2.0
 [graphql-go/graphql](https://github.com/graphql-go/graphql)|v0.8.1|MIT License
 [grpc-ecosystem/go-grpc-middleware](https://github.com/grpc-ecosystem/go-grpc-middleware)|v1.3.0|Apache License 2.0
@@ -43,11 +43,11 @@ Name|Version|License
 [go.opencensus.io](https://go.opencensus.io)|v0.24.0|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.24.0|MIT License
 [x/exp](https://golang.org/x/exp)|v0.0.0-20220921164117-439092de6870|BSD 3-clause "New" or "Revised" License
-[x/net](https://golang.org/x/net)|v0.12.0|BSD 3-clause "New" or "Revised" License
+[x/net](https://golang.org/x/net)|v0.15.0|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.3.0|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
-[google.golang.org/grpc](https://google.golang.org/grpc)|v1.56.2|Apache License 2.0
-[google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.30.0|BSD 3-clause "New" or "Revised" License
+[google.golang.org/grpc](https://google.golang.org/grpc)|v1.58.2|Apache License 2.0
+[google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.31.0|BSD 3-clause "New" or "Revised" License
 [square/go-jose.v2](https://gopkg.in/square/go-jose.v2)|v2.6.0|Apache License 2.0
 [gopkg.in/yaml.v2](https://gopkg.in/yaml.v2)|v2.4.0|Apache License 2.0
 [helm/v3](https://helm.sh/helm/v3)|v3.12.2|Apache License 2.0
