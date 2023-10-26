@@ -5,6 +5,8 @@ changelog:
   dependencyTag: v1.57.1
   description: >-
     Bump google.golang.org/grpc to v1.57.1 to fix [GHSA-m425-mq94-257g](https://github.com/advisories/GHSA-m425-mq94-257g).
+  issueLink: https://github.com/solo-io/solo-projects/issues/5462
+  resolvesIssue: false
 - type: DEPENDENCY_BUMP
   dependencyOwner: jhump
   dependencyRepo: protoreflect
