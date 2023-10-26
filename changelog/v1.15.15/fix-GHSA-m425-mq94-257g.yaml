@@ -2,6 +2,10 @@ changelog:
 - type: DEPENDENCY_BUMP
   dependencyOwner: google.golang.org
   dependencyRepo: grpc
-  dependencyTag: v1.56.3
+  dependencyTag: v1.57.1
   description: >-
-    Bump google.golang.org/grpc to v1.56.3 to fix [GHSA-m425-mq94-257g](https://github.com/advisories/GHSA-m425-mq94-257g).
+    Bump google.golang.org/grpc to v1.57.1 to fix [GHSA-m425-mq94-257g](https://github.com/advisories/GHSA-m425-mq94-257g).
+- type: DEPENDENCY_BUMP
+  dependencyOwner: jhump
+  dependencyRepo: protoreflect
+  dependencyTag: v1.15.3
