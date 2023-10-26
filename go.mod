@@ -11,7 +11,7 @@ require (
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/census-instrumentation/opencensus-proto v0.4.1
-	github.com/cncf/xds/go v0.0.0-20230428030218-4003588d1b74
+	github.com/cncf/xds/go v0.0.0-20230607035331-e9ce68804cb4
 	github.com/cratonica/2goarray v0.0.0-20190331194516-514510793eaa
 	github.com/envoyproxy/go-control-plane v0.11.1
 	github.com/envoyproxy/protoc-gen-validate v1.0.1
@@ -70,7 +70,7 @@ require (
 	golang.org/x/sync v0.3.0
 	golang.org/x/tools v0.9.1
 	google.golang.org/genproto v0.0.0-20230526203410-71b5a4ffd15e // indirect
-	google.golang.org/grpc v1.55.0
+	google.golang.org/grpc v1.56.3
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	helm.sh/helm/v3 v3.12.2
@@ -280,7 +280,7 @@ require (
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/oauth2 v0.6.0 // indirect
+	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/term v0.10.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
@@ -337,7 +337,7 @@ replace (
 	github.com/renstrom/dedent => github.com/lithammer/dedent v1.0.0
 	// version upgrade to 1.40.2 fails a specific unit test
 	// see https://github.com/solo-io/gloo/issues/5719
-	google.golang.org/grpc => google.golang.org/grpc v1.40.0
+	//google.golang.org/grpc => google.golang.org/grpc v1.40.0
 
 	// Pin Kube libraries to v0.27
 	// These should be upgraded collectively
