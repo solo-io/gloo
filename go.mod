@@ -38,7 +38,7 @@ require (
 	github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
 	github.com/imdario/mergo v0.3.13
 	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf
-	github.com/jhump/protoreflect v1.6.0
+	github.com/jhump/protoreflect v1.15.3
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo/v2 v2.9.5
@@ -70,8 +70,8 @@ require (
 	golang.org/x/sync v0.3.0
 	golang.org/x/tools v0.9.1
 	google.golang.org/genproto v0.0.0-20230526203410-71b5a4ffd15e // indirect
-	google.golang.org/grpc v1.56.3
-	google.golang.org/protobuf v1.30.0
+	google.golang.org/grpc v1.57.1
+	google.golang.org/protobuf v1.31.0
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	helm.sh/helm/v3 v3.12.2
 	k8s.io/api v0.27.3
@@ -117,6 +117,7 @@ require (
 	github.com/avast/retry-go/v4 v4.3.3 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
+	github.com/bufbuild/protocompile v0.6.0 // indirect
 	github.com/bugsnag/bugsnag-go v1.5.0 // indirect
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -335,9 +336,6 @@ replace (
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	// Required for proper serialization of CRDs
 	github.com/renstrom/dedent => github.com/lithammer/dedent v1.0.0
-	// version upgrade to 1.40.2 fails a specific unit test
-	// see https://github.com/solo-io/gloo/issues/5719
-	//google.golang.org/grpc => google.golang.org/grpc v1.40.0
 
 	// Pin Kube libraries to v0.27
 	// These should be upgraded collectively
