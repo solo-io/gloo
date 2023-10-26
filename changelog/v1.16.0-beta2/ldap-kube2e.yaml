@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/5456
+    resolvesIssue: false
+    description: >-
+      Ensure that LDAP kube2e tests succeed. Previously, the tests were not running
+      due to incorrect gating, and when enabled they would fail.

@@ -114,142 +114,156 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			}
 		})
 
-		// Only run LDAP tests if explicitly set to true. Otherwise cluster may not have an LDAP server running.
-		if inputs.ShouldTestLDAP {
-			Describe("authenticate requests via LDAP", func() {
+		Describe("authenticate requests via LDAP", func() {
 
-				var (
-					extAuthConfigProto   *extauthapi.ExtAuthExtension
-					disableGroupChecking bool
-					ldapConfig           = func(namespace string, disableGroupChecking bool) *extauthapi.Ldap {
-						return &extauthapi.Ldap{
-							Address:        fmt.Sprintf("ldap.%s.svc.cluster.local:389", namespace),
-							UserDnTemplate: "uid=%s,ou=people,dc=solo,dc=io",
-							AllowedGroups: []string{
-								"cn=managers,ou=groups,dc=solo,dc=io",
-							},
-							DisableGroupChecking: disableGroupChecking,
-						}
-					}
-				)
-
-				JustBeforeEach(func() {
-					By("make sure we can still reach the LDAP server", func() {
-						// Make sure we can query the LDAP server
-						curlOpts := testContext.DefaultCurlOptsBuilder().
-							WithPath("/").WithProtocol("ldap").WithPort(389).WithVerbose(true).WithConnectionTimeout(3).
-							WithService(fmt.Sprintf("ldap.%s.svc.cluster.local", testContext.InstallNamespace())).Build()
-						testContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, "OpenLDAProotDSE", 1, time.Minute)
-					})
-
-					By("create an LDAP-secured route to the test upstream", func() {
-
-						virtualHostPlugins := &gloov1.VirtualHostOptions{
-							Extauth: extAuthConfigProto,
-						}
-
-						testContext.PatchDefaultVirtualService(func(service *gatewayv2.VirtualService) *gatewayv2.VirtualService {
-							return helpers.BuilderFromVirtualService(service).WithRouteOptions(kube2e.DefaultRouteName, &gloov1.RouteOptions{
-								PrefixRewrite: &wrappers.StringValue{
-									Value: "/",
-								},
-							}).WithVirtualHostOptions(virtualHostPlugins).Build()
-						})
-						testContext.EventuallyProxyAccepted()
-					})
-				})
-
-				allTests := func(groupCheckingDisabled bool) {
-					It("works as expected ", func() {
-						By("returns 401 if no authentication header is provided", func() {
-							curlAndAssertResponse(kube2e.TestMatcherPrefix, nil, response401)
-						})
-
-						By("returns 401 if the user is unknown", func() {
-							curlAndAssertResponse(kube2e.TestMatcherPrefix, buildAuthHeader("john:doe"), response401)
-						})
-
-						By("returns 200 if the user belongs to one of the allowed groups", func() {
-							curlAndAssertResponse(kube2e.TestMatcherPrefix, buildAuthHeader("rick:rickpwd"), response200)
-						})
-
-						if groupCheckingDisabled {
-							By("returns 200 if the user does not belong to the allowed groups but group checking is disabled", func() {
-								curlAndAssertResponse(kube2e.TestMatcherPrefix, buildAuthHeader("marco:marcopwd"), response200)
-							})
-						} else {
-							By("returns 403 if the user does not belong to the allowed groups", func() {
-								curlAndAssertResponse(kube2e.TestMatcherPrefix, buildAuthHeader("marco:marcopwd"), response403)
-							})
-						}
-					})
+			BeforeEach(func() {
+				// Only run LDAP tests if explicitly set to true. Otherwise, cluster may not have an LDAP server running.
+				if !inputs.ShouldTestLDAP {
+					Skip("Skipping LDAP tests as ShouldTestLDAP is false")
 				}
 
-				BeforeEach(func() {
-					authConfig, err := testContext.ResourceClientSet().AuthConfigClient().Write(&extauthapi.AuthConfig{
-						Metadata: &core.Metadata{
-							Name:      "ldap",
-							Namespace: testContext.InstallNamespace(),
-						},
-						Configs: []*extauthapi.AuthConfig_Config{{
-							AuthConfig: &extauthapi.AuthConfig_Config_Ldap{
-								Ldap: ldapConfig(testContext.InstallNamespace(), disableGroupChecking),
+				// It is important we verify this before we create the auth config, as we want to make sure the LDAP server
+				// is reachable before we create the auth config.
+				By("make sure we can still reach the LDAP server", func() {
+					// Make sure we can query the LDAP server
+					curlOpts := testContext.DefaultCurlOptsBuilder().
+						WithPath("/").WithProtocol("ldap").WithPort(389).WithVerbose(true).WithConnectionTimeout(3).
+						WithService(fmt.Sprintf("ldap.%s.svc.cluster.local", testContext.InstallNamespace())).Build()
+					testContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, "OpenLDAProotDSE", 1, time.Minute)
+				})
+
+				authConfig := &extauthapi.AuthConfig{
+					Metadata: &core.Metadata{
+						Name:      "ldap",
+						Namespace: testContext.InstallNamespace(),
+					},
+					Configs: []*extauthapi.AuthConfig_Config{{
+						AuthConfig: &extauthapi.AuthConfig_Config_Ldap{
+							Ldap: &extauthapi.Ldap{
+								Address:        fmt.Sprintf("ldap://ldap.%s.svc.cluster.local:389", testContext.InstallNamespace()),
+								UserDnTemplate: "uid=%s,ou=people,dc=solo,dc=io",
+								AllowedGroups: []string{
+									"cn=managers,ou=groups,dc=solo,dc=io",
+								},
+								DisableGroupChecking: false,
 							},
-						}},
-					}, clients.WriteOpts{Ctx: testContext.Ctx()})
-					Expect(err).NotTo(HaveOccurred())
-
-					authConfigRef := authConfig.Metadata.Ref()
-					extAuthConfigProto = &extauthapi.ExtAuthExtension{
-						Spec: &extauthapi.ExtAuthExtension_ConfigRef{
-							ConfigRef: authConfigRef,
 						},
-					}
-				})
+					}},
+				}
+				testContext.ResourcesToWrite().AuthConfigs = append(testContext.ResourcesToWrite().AuthConfigs, authConfig)
 
-				AfterEach(func() {
-					err := testContext.ResourceClientSet().AuthConfigClient().Delete(testContext.InstallNamespace(), "ldap", clients.DeleteOpts{Ctx: testContext.Ctx()})
-					Expect(err).NotTo(HaveOccurred())
-				})
+				vsWithAuth := helpers.BuilderFromVirtualService(testContext.ResourcesToWrite().VirtualServices[0]).
+					WithRouteOptions(kube2e.DefaultRouteName, &gloov1.RouteOptions{
+						PrefixRewrite: &wrappers.StringValue{
+							Value: "/",
+						},
+					}).
+					WithVirtualHostOptions(&gloov1.VirtualHostOptions{
+						Extauth: &extauthapi.ExtAuthExtension{
+							Spec: &extauthapi.ExtAuthExtension_ConfigRef{
+								ConfigRef: authConfig.Metadata.Ref(),
+							},
+						},
+					}).
+					Build()
+				testContext.ResourcesToWrite().VirtualServices = gatewayv2.VirtualServiceList{
+					vsWithAuth,
+				}
+			})
 
-				Context("as a standalone deployment", func() {
-					// no extra setup to do, just run the tests
-					allTests(false)
-				})
+			type ldapTestEntry struct {
+				entryMessage     string
+				authHeaders      map[string]string
+				expectedResponse string
+			}
 
-				Context("as a sidecar", func() {
-					JustBeforeEach(func() {
-						settings, err := testContext.ResourceClientSet().SettingsClient().Read(testContext.InstallNamespace(), "default", clients.ReadOpts{Ctx: testContext.Ctx()})
-						Expect(err).NotTo(HaveOccurred(), "Should be able to read settings to switch ext auth mode")
+			allTests := func(additionalTestEntries []ldapTestEntry) {
+				commonTestEntries := []ldapTestEntry{
+					{
+						entryMessage:     "returns 401 if no authentication header is provided",
+						authHeaders:      nil,
+						expectedResponse: response401,
+					},
+					{
+						entryMessage:     "returns 401 if the user is unknown",
+						authHeaders:      buildAuthHeader("john:doe"),
+						expectedResponse: response401,
+					},
+					{
+						entryMessage:     "returns 200 if the user belongs to one of the allowed groups",
+						authHeaders:      buildAuthHeader("rick:rickpwd"),
+						expectedResponse: response200,
+					},
+				}
 
-						newRef := core.ResourceRef{
-							Name:      extauth.SidecarUpstreamName,
-							Namespace: testContext.InstallNamespace(),
-						}
-						extauthSettings := &extauthapi.Settings{
-							ExtauthzServerRef: &newRef,
-						}
-						settings.Extauth = extauthSettings
-
-						_, err = testContext.ResourceClientSet().SettingsClient().Write(settings, clients.WriteOpts{Ctx: testContext.Ctx(), OverwriteExisting: true})
-						Expect(err).NotTo(HaveOccurred(), "Should be able to write new ext auth settings")
+				for _, testEntry := range append(commonTestEntries, additionalTestEntries...) {
+					By(testEntry.entryMessage, func() {
+						curlAndAssertResponse(kube2e.TestMatcherPrefix, testEntry.authHeaders, testEntry.expectedResponse)
 					})
+				}
+			}
 
-					allTests(false)
-				})
-
-				Context("With DisableGroupChecking", func() {
-					BeforeEach(func() {
-						disableGroupChecking = true
-					})
-
-					It("works as expected ", func() {
-						allTests(true)
+			Context("as a standalone deployment", func() {
+				It("works as expected", func() {
+					allTests([]ldapTestEntry{
+						{
+							entryMessage:     "returns 403 if the user does not belong to any of the allowed groups",
+							authHeaders:      buildAuthHeader("marco:marcopwd"),
+							expectedResponse: response403,
+						},
 					})
 				})
 
 			})
-		}
+
+			Context("as a sidecar", func() {
+
+				BeforeEach(func() {
+					testContext.PatchDefaultSettings(func(settings *gloov1.Settings) *gloov1.Settings {
+						settings.Extauth = &extauthapi.Settings{
+							ExtauthzServerRef: &core.ResourceRef{
+								Name:      extauth.SidecarUpstreamName,
+								Namespace: testContext.InstallNamespace(),
+							},
+						}
+						return settings
+					})
+				})
+
+				AfterEach(func() {
+					// We do not need to re-set the Settings in this AfterEach, because the outer AfterEach will restore the Settings
+				})
+
+				It("works as expected", func() {
+					allTests([]ldapTestEntry{
+						{
+							entryMessage:     "returns 403 if the user does not belong to any of the allowed groups",
+							authHeaders:      buildAuthHeader("marco:marcopwd"),
+							expectedResponse: response403,
+						},
+					})
+				})
+			})
+
+			Context("With DisableGroupChecking", func() {
+
+				BeforeEach(func() {
+					testContext.ResourcesToWrite().AuthConfigs[0].Configs[0].AuthConfig.(*extauthapi.AuthConfig_Config_Ldap).Ldap.DisableGroupChecking = true
+				})
+
+				It("works as expected ", func() {
+					allTests([]ldapTestEntry{
+						{
+							entryMessage:     "returns 200 if the user does not belong to any of the allowed groups, but group checking is disabled",
+							authHeaders:      buildAuthHeader("marco:marcopwd"),
+							expectedResponse: response200,
+						},
+					})
+
+				})
+			})
+
+		})
 
 		// These tests create a virtual host with two routes to two simple http-echo services. Each spec then proceeds to
 		// define different permutations of extauth configs on the virtual host and on both routes and tests that requests
