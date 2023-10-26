@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    description: |
+      Add content to contribution README around testing with unrelased solo-apis changes
+      
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
+      skipCI-storybook-tests:true

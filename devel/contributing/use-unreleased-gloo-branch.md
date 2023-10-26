@@ -4,7 +4,9 @@
 Solo-Projects does not yet build all the resources that it depends upon. We have [an issue](https://github.com/solo-io/gloo/issues/5243) to track this technical debt. In the meantime, you must execute the following steps to run regression tests locally (or in CI):
 
 ## 1. Import Gloo OSS changes
-`go get github.com/solo-io/gloo@BRANCH-NAME`
+```bash
+go get github.com/solo-io/gloo@BRANCH-NAME
+```
 
 ## 2. Configure Gloo OSS Helm Chart
 As part of CI in Gloo, we publish the helm chart. These assets are published to a slightly different location for Gloo PRs as opposed to Gloo releases. You can see in the `build-bot` logs the path to the published helm chart:
@@ -21,3 +23,15 @@ dependencies:
     repository: https://storage.googleapis.com/solo-public-tagged-helm
     version: 1.12.0-beta5-6341
 ```
+## 3. Propagate and import API changes
+
+Navigate the to [Push API Changes to solo-apis](https://github.com/solo-io/gloo/actions/workflows/push-solo-apis-branch.yaml) action on OSS
+
+Run the workflow, specifying the appropriate feature branch and target LTS branch
+
+Once the action is complete, there will be a solo-apis branch than can be imported:
+```bash
+go get github.com/solo-io/solo-apis@sync-apis/gloo-<LTS-BRANCH>/gloo-<FEATURE-BRANCH>
+```
+
+Checkout the [solo-apis branches page](https://github.com/solo-io/solo-apis/branches) to find the branch for your changes
