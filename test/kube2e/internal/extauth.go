@@ -10,48 +10,40 @@ import (
 	"sync"
 	"time"
 
-	"github.com/solo-io/gloo/test/gomega/assertions"
-	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
-	"github.com/solo-io/gloo/test/gomega/transforms"
-	"github.com/solo-io/go-utils/stats"
-
 	"github.com/golang/protobuf/ptypes/empty"
-	defaults2 "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	"github.com/solo-io/solo-projects/test/kube2e"
-	"github.com/solo-io/solo-projects/test/services"
-
-	"github.com/solo-io/gloo/test/helpers"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
-
-	"github.com/solo-io/go-utils/testutils"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-
-	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-
-	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
-
-	errors "github.com/rotisserie/eris"
-	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"k8s.io/client-go/kubernetes"
-
+	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	errors "github.com/rotisserie/eris"
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewayv2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-
-	wrappers "github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
+	defaults2 "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/test/gomega/assertions"
+	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
+	"github.com/solo-io/gloo/test/gomega/transforms"
+	"github.com/solo-io/gloo/test/helpers"
 	. "github.com/solo-io/gloo/test/kube2e"
+	"github.com/solo-io/go-utils/stats"
+	"github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
+	"github.com/solo-io/solo-projects/test/kube2e"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type cleanupFunc func()
@@ -63,6 +55,9 @@ type ExtAuthTestInputs struct {
 	// testing in a cluster with an LDAP server available
 	// and want to run LDAP tests.
 	ShouldTestLDAP bool
+
+	// ShouldTestMTLS should be set to true only for mTLS tests
+	ShouldTestMTLS bool
 }
 
 func RunExtAuthTests(inputs *ExtAuthTestInputs) {
@@ -409,12 +404,13 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				)
 
 				// bounce envoy, get a clean state (draining listener can break this test). see https://github.com/solo-io/solo-projects/issues/2921 for more.
-				out, err := services.KubectlOut(strings.Split("rollout restart -n "+testContext.InstallNamespace()+" deploy/gateway-proxy", " ")...)
+				out, err := testutils.KubectlOut("rollout", "restart", "-n", testContext.InstallNamespace(), "deploy/gateway-proxy")
 				fmt.Println(out)
 				Expect(err).ToNot(HaveOccurred())
-				out, err = services.KubectlOut(strings.Split("rollout status -n "+testContext.InstallNamespace()+" deploy/gateway-proxy", " ")...)
-				fmt.Println(out)
-				Expect(err).ToNot(HaveOccurred())
+
+				Eventually(func() (bool, error) {
+					return isRolloutComplete("gateway-proxy", testContext.InstallNamespace())
+				}, "30s", "1s").Should(BeTrue())
 			})
 
 			AfterEach(func() {
@@ -781,7 +777,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				})
 			})
 
-			Context("health checker", func() {
+			Context("polling tests", func() {
 
 				var (
 					vhPlugins *gloov1.VirtualHostOptions
@@ -836,23 +832,6 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					}
 				}
 
-				updateSettingsWithFailureModeAllow := func() {
-					// These tests poll the endpoint frequently and expect all 200 responses
-					// A small network drop could result in a error, which by default is a 403
-					// Ideally, we would retry on this, or set a StatusOnError and retry on that. However,
-					// our retry policy does not yet support RetriableStatusCodes.
-					// Therefore, for now, we use FailureModeAllow, which indicates that if we fail to connect
-					// to the extauth server, allow the request.
-
-					settings, err := testContext.ResourceClientSet().SettingsClient().Read(testContext.InstallNamespace(), "default", clients.ReadOpts{Ctx: testContext.Ctx()})
-					Expect(err).NotTo(HaveOccurred(), "Should be able to read settings to switch ext auth StatusOnError")
-
-					settings.Extauth.FailureModeAllow = true
-
-					_, err = testContext.ResourceClientSet().SettingsClient().Write(settings, clients.WriteOpts{Ctx: testContext.Ctx(), OverwriteExisting: true})
-					Expect(err).NotTo(HaveOccurred(), "Should be able to write new ext auth settings")
-				}
-
 				endpointPollingWorker := func() {
 					curlOpts := testContext.DefaultCurlOptsBuilder().
 						WithPath(kube2e.TestMatcherPrefix + "/1").WithVerbose(true).
@@ -878,9 +857,6 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				}
 
 				JustBeforeEach(func() {
-					// Set FailureModeAllow to true, so that network errors do not cause flakes
-					updateSettingsWithFailureModeAllow()
-
 					// Persist the auth config
 					authConfigRef, cleanUpAuthConfig := writeAuthConfig(allowUser)
 
@@ -939,7 +915,17 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 						return err
 					}
 
-					d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, envVar)
+					exists := false
+					for i, env := range d.Spec.Template.Spec.Containers[0].Env {
+						if env.Name == envVar.Name {
+							d.Spec.Template.Spec.Containers[0].Env[i].Value = envVar.Value
+							exists = true
+							break
+						}
+					}
+					if !exists {
+						d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, envVar)
+					}
 					_, err = deploymentClient.Update(testContext.Ctx(), d, metav1.UpdateOptions{})
 					return err
 				}
@@ -956,95 +942,263 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					return true, nil
 				}
 
-				// This test is added as a safeguard to ensure that we're not accepting all requests blindly
-				It("denies unauthenticated requests", func() {
-					curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", nil, response401)
-				})
+				Context("health checker", func() {
+					updateSettingsWithFailureModeAllow := func() {
+						// These tests poll the endpoint frequently and expect all 200 responses
+						// A small network drop could result in a error, which by default is a 403
+						// Ideally, we would retry on this, or set a StatusOnError and retry on that. However,
+						// our retry policy does not yet support RetriableStatusCodes.
+						// Therefore, for now, we use FailureModeAllow, which indicates that if we fail to connect
+						// to the extauth server, allow the request.
 
-				It("allows authenticated requests on route when no cluster events happen", func() {
-					// Scale the extauth deployment to 1 pod and wait for it to be ready
-					err = modifyDeploymentReplicas(1)
-					Expect(err).NotTo(HaveOccurred())
-					Eventually(isExtAuthRolloutComplete, "60s", "1s").Should(BeTrue())
+						settings, err := testContext.ResourceClientSet().SettingsClient().Read(testContext.InstallNamespace(), "default", clients.ReadOpts{Ctx: testContext.Ctx()})
+						Expect(err).NotTo(HaveOccurred(), "Should be able to read settings to switch ext auth StatusOnError")
+						settings.Extauth.FailureModeAllow = true
 
-					// Ensure that the upstream is reachable
-					curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
+						_, err = testContext.ResourceClientSet().SettingsClient().Write(settings, clients.WriteOpts{Ctx: testContext.Ctx(), OverwriteExisting: true})
+						Expect(err).NotTo(HaveOccurred(), "Should be able to write new ext auth settings")
+					}
 
-					pollingRunner.StartPolling(testContext.Ctx())
-
-					// Do nothing for 1 second to allow time for successful polling requests
-					time.Sleep(time.Second * 1)
-
-					pollingRunner.StopPolling()
-
-					// Expect all responses to be 200s
-					Expect(allPollingResponsesAre200()).Should(BeTrue())
-				})
-
-				It("allows authenticated requests on route when extauth deployment is modified", func() {
-					// There should only be 1 pod to start
-					Eventually(getDeploymentReplicas, "60s", "1s").Should(Equal(1))
-
-					// Ensure that the upstream is reachable
-					curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
-
-					pollingRunner.StartPolling(testContext.Ctx())
-
-					// Modify the deployment, causing the pods to be brought up again
-					err := modifyDeploymentEnv(corev1.EnvVar{
-						Name:  "HEALTH_CHECKER_ENV_VAR",
-						Value: "VALUE",
+					BeforeEach(func() {
+						// Set FailureModeAllow to true, so that network errors do not cause flakes
+						updateSettingsWithFailureModeAllow()
 					})
-					Expect(err).NotTo(HaveOccurred())
-					Eventually(isExtAuthRolloutComplete, "60s", "1s").Should(BeTrue())
 
-					pollingRunner.StopPolling()
+					// This test is added as a safeguard to ensure that we're not accepting all requests blindly
+					It("denies unauthenticated requests", func() {
+						curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", nil, response401)
+					})
 
-					// Expect all responses to be 200s
-					Expect(allPollingResponsesAre200()).Should(BeTrue())
+					It("allows authenticated requests on route when no cluster events happen", func() {
+						// Scale the extauth deployment to 1 pod and wait for it to be ready
+						err = modifyDeploymentReplicas(1)
+						Expect(err).NotTo(HaveOccurred())
+						Eventually(isExtAuthRolloutComplete, "60s", "1s").Should(BeTrue())
+
+						// Ensure that the upstream is reachable
+						curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
+
+						pollingRunner.StartPolling(testContext.Ctx())
+
+						// Do nothing for 1 second to allow time for successful polling requests
+						time.Sleep(time.Second * 1)
+
+						pollingRunner.StopPolling()
+
+						// Expect all responses to be 200s
+						Expect(allPollingResponsesAre200()).Should(BeTrue())
+					})
+
+					It("allows authenticated requests on route when extauth deployment is modified", func() {
+						// There should only be 1 pod to start
+						Eventually(getDeploymentReplicas, "60s", "1s").Should(Equal(1))
+
+						// Ensure that the upstream is reachable
+						curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
+
+						pollingRunner.StartPolling(testContext.Ctx())
+
+						// Modify the deployment, causing the pods to be brought up again
+						err := modifyDeploymentEnv(corev1.EnvVar{
+							Name:  "HEALTH_CHECKER_ENV_VAR",
+							Value: "VALUE",
+						})
+						Expect(err).NotTo(HaveOccurred())
+						Eventually(isExtAuthRolloutComplete, "60s", "1s").Should(BeTrue())
+
+						pollingRunner.StopPolling()
+
+						// Expect all responses to be 200s
+						Expect(allPollingResponsesAre200()).Should(BeTrue())
+					})
+
+					It("allows authenticated requests on route when extauth deployment is scaled up", func() {
+						// There should only be 1 pod to start
+						Eventually(getDeploymentReplicas, "60s", "1s").Should(Equal(1))
+
+						// Ensure that the upstream is reachable
+						curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
+
+						pollingRunner.StartPolling(testContext.Ctx())
+
+						// Scale up the extauth deployment to 4 pods and wait for them all to be ready
+						err := modifyDeploymentReplicas(4)
+						Expect(err).NotTo(HaveOccurred())
+						Eventually(isExtAuthRolloutComplete, "60s", "1s").Should(BeTrue())
+
+						pollingRunner.StopPolling()
+
+						// Expect all responses to be 200s
+						Expect(allPollingResponsesAre200()).Should(BeTrue())
+					})
+
+					It("allows authenticated requests on route when extauth deployment is scaled down", func() {
+						// There should be 4 pods (from the previous test) to start
+						Eventually(getDeploymentReplicas, "60s", "1s").Should(Equal(4))
+
+						// Ensure that the upstream is reachable
+						curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
+
+						pollingRunner.StartPolling(testContext.Ctx())
+
+						// Do nothing for 1 second to allow time for successful polling requests
+						time.Sleep(time.Second * 1)
+
+						// Scale down the extauth deployment to 1 pod and wait for it to be ready
+						err = modifyDeploymentReplicas(1)
+						Expect(err).NotTo(HaveOccurred())
+
+						Eventually(isExtAuthRolloutComplete, "60s", "1s").Should(BeTrue())
+
+						pollingRunner.StopPolling()
+
+						// Expect all responses to be 200s
+						Expect(allPollingResponsesAre200()).Should(BeTrue())
+					})
 				})
 
-				It("allows authenticated requests on route when extauth deployment is scaled up", func() {
-					// There should only be 1 pod to start
-					Eventually(getDeploymentReplicas, "60s", "1s").Should(Equal(1))
+				Context("cert rotation", func() {
 
-					// Ensure that the upstream is reachable
-					curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
+					const (
+						certGenJobName = "gloo-mtls-certgen-test"
+						secretName     = "gloo-mtls-certs"
+					)
 
-					pollingRunner.StartPolling(testContext.Ctx())
+					var (
+						zero32       = int32(0)
+						zero64       = int64(0)
+						runAsNonRoot = true
+						runAsUser    = int64(10101)
+					)
 
-					// Scale up the extauth deployment to 4 pods and wait for them all to be ready
-					err := modifyDeploymentReplicas(4)
-					Expect(err).NotTo(HaveOccurred())
-					Eventually(isExtAuthRolloutComplete, "60s", "1s").Should(BeTrue())
+					runCertGenJob := func() {
+						// get the current secret so we can make sure it has changed after the certgen job runs
+						secretClient := testContext.ResourceClientSet().KubeClients().CoreV1().Secrets(testContext.InstallNamespace())
+						oldSecret, err := secretClient.Get(testContext.Ctx(), secretName, metav1.GetOptions{})
+						ExpectWithOffset(1, err).NotTo(HaveOccurred())
+						oldServerCert := oldSecret.Data[corev1.TLSCertKey]
+						oldKey := oldSecret.Data[corev1.TLSPrivateKeyKey]
+						oldCaCert := oldSecret.Data[corev1.ServiceAccountRootCAKey]
+						ExpectWithOffset(1, oldServerCert).NotTo(BeEmpty(), "old server cert should not be empty")
+						ExpectWithOffset(1, oldKey).NotTo(BeEmpty(), "old key should not be empty")
+						ExpectWithOffset(1, oldCaCert).NotTo(BeEmpty(), "old ca cert should not be empty")
 
-					pollingRunner.StopPolling()
+						glooVersion, err := getGlooOSSVersion()
+						ExpectWithOffset(1, err).NotTo(HaveOccurred())
+						certGenImage := fmt.Sprintf("quay.io/solo-io/certgen:%s", glooVersion)
 
-					// Expect all responses to be 200s
-					Expect(allPollingResponsesAre200()).Should(BeTrue())
-				})
+						// run certgen job
+						job := &batchv1.Job{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      certGenJobName,
+								Namespace: testContext.InstallNamespace(),
+							},
+							Spec: batchv1.JobSpec{
+								TTLSecondsAfterFinished: &zero32,
+								BackoffLimit:            &zero32,
+								Template: corev1.PodTemplateSpec{
+									Spec: corev1.PodSpec{
+										ServiceAccountName: "certgen",
+										RestartPolicy:      corev1.RestartPolicyNever,
+										Containers: []corev1.Container{
+											{
+												Name:            "certgen",
+												Image:           certGenImage,
+												ImagePullPolicy: corev1.PullIfNotPresent,
+												SecurityContext: &corev1.SecurityContext{
+													RunAsNonRoot: &runAsNonRoot,
+													RunAsUser:    &runAsUser,
+												},
+												Env: []corev1.EnvVar{
+													{
+														Name:  "POD_NAMESPACE",
+														Value: testContext.InstallNamespace(),
+													},
+												},
+												Args: []string{
+													"--secret-name=" + secretName,
+													"--svc-name=gloo",
+													"--force-rotation=true",
+													"--rotation-duration=10s", // set this to at least twice the syncFrequency defined in ci/kind/cluster.yaml
+												},
+											},
+										},
+									},
+								},
+							},
+						}
 
-				It("allows authenticated requests on route when extauth deployment is scaled down", func() {
-					// There should be 4 pods (from the previous test) to start
-					Eventually(getDeploymentReplicas, "60s", "1s").Should(Equal(4))
+						jobClient := testContext.ResourceClientSet().KubeClients().BatchV1().Jobs(testContext.InstallNamespace())
+						_, err = jobClient.Create(testContext.Ctx(), job, metav1.CreateOptions{})
+						ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-					// Ensure that the upstream is reachable
-					curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
+						// we expect the certgen job to run for as least 2 * rotation-duration so just wait awhile til we think it's done
+						time.Sleep(time.Second * 20)
 
-					pollingRunner.StartPolling(testContext.Ctx())
+						// now verify that the secret has been updated by the certgen job
+						EventuallyWithOffset(1, func(g Gomega) {
+							// get the updated secret
+							newSecret, err := secretClient.Get(testContext.Ctx(), secretName, metav1.GetOptions{})
+							g.Expect(err).NotTo(HaveOccurred())
+							newServerCert := newSecret.Data[corev1.TLSCertKey]
+							newKey := newSecret.Data[corev1.TLSPrivateKeyKey]
+							newCaCert := newSecret.Data[corev1.ServiceAccountRootCAKey]
+							g.Expect(newServerCert).NotTo(BeEmpty(), "new server cert should not be empty")
+							g.Expect(newKey).NotTo(BeEmpty(), "new key should not be empty")
+							g.Expect(newCaCert).NotTo(BeEmpty(), "new ca cert should not be empty")
 
-					// Do nothing for 1 second to allow time for successful polling requests
-					time.Sleep(time.Second * 1)
+							// make sure the certs and private key were all updated
+							g.Expect(newServerCert).NotTo(Equal(oldServerCert), "server cert should have been updated")
+							g.Expect(newKey).NotTo(Equal(oldKey), "key should have been updated")
+							g.Expect(newCaCert).NotTo(Equal(oldCaCert), "ca cert should have been updated")
+						}, "15s", "1s").Should(Succeed())
+					}
 
-					// Scale down the extauth deployment to 1 pod and wait for it to be ready
-					err = modifyDeploymentReplicas(1)
-					Expect(err).NotTo(HaveOccurred())
-					Eventually(isExtAuthRolloutComplete, "60s", "1s").Should(BeTrue())
+					cleanupCertGenJob := func() {
+						// delete the job (swallow errors because it may have already been cleaned up by k8s)
+						jobClient := testContext.ResourceClientSet().KubeClients().BatchV1().Jobs(testContext.InstallNamespace())
+						_ = jobClient.Delete(testContext.Ctx(), certGenJobName, metav1.DeleteOptions{GracePeriodSeconds: &zero64})
 
-					pollingRunner.StopPolling()
+						helpers.EventuallyObjectDeletedWithOffset(1, func() (client.Object, error) {
+							return jobClient.Get(testContext.Ctx(), certGenJobName, metav1.GetOptions{})
+						})
+					}
 
-					// Expect all responses to be 200s
-					Expect(allPollingResponsesAre200()).Should(BeTrue())
+					BeforeEach(func() {
+						if !inputs.ShouldTestMTLS {
+							Skip("mTLS tests not enabled")
+						}
+					})
+
+					AfterEach(func() {
+						cleanupCertGenJob()
+					})
+
+					It("secret rotation works without downtime", func() {
+						// Scale the extauth deployment to 1 pod and wait for it to be ready
+						err = modifyDeploymentReplicas(1)
+						Expect(err).NotTo(HaveOccurred())
+						Eventually(isExtAuthRolloutComplete, "60s", "1s").Should(BeTrue())
+
+						// Ensure that the upstream is reachable
+						curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
+
+						pollingRunner.StartPolling(testContext.Ctx())
+
+						// Do nothing for 2 seconds to allow time for successful polling requests
+						time.Sleep(time.Second * 2)
+
+						// do the cert rotation!
+						runCertGenJob()
+
+						// sleep a few more seconds after the certgen job just to make sure requests continue to be successful
+						time.Sleep(time.Second * 10)
+
+						pollingRunner.StopPolling()
+
+						// Expect all responses to be 200s
+						Expect(allPollingResponsesAre200()).Should(BeTrue())
+					})
 				})
 
 			})
@@ -1602,4 +1756,10 @@ func (c *pooledConsumers) Stop() {
 	}
 
 	c.activeWorkers.Wait()
+}
+
+func getGlooOSSVersion() (string, error) {
+	return generate.GetGlooOsVersion(&generate.GenerationArguments{}, &generate.GenerationFiles{
+		RequirementsTemplate: "../../../install/helm/gloo-ee/requirements-template.yaml",
+	})
 }
