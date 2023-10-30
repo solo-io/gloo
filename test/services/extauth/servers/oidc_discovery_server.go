@@ -364,6 +364,20 @@ func (f *FakeDiscoveryServer) GetOidcAuthCodeConfig(envoyPort uint32, appUrl str
 					},
 				},
 			},
+			IdentityToken: &extauth.OidcAuthorizationCode_IdentityToken{
+				ClaimsToHeaders: []*extauth.ClaimToHeader{
+					{
+						Claim:  "foo",
+						Header: "foo-claim",
+						Append: false,
+					},
+					{
+						Claim:  "sub",
+						Header: "sub-claim",
+						Append: false,
+					},
+				},
+			},
 		},
 	}
 }

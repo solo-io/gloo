@@ -686,8 +686,46 @@ func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.Oi
 		AutoMapFromMetadata:             config.AutoMapFromMetadata,
 		EndSessionProperties:            config.EndSessionProperties,
 		PkJwtClientAuthenticationConfig: pkJwtClientAuthenticationConfig,
+		AccessToken:                     TranslateAccessToken(config.GetAccessToken()),
+		IdentityToken:                   TranslateIdentityToken(config.GetIdentityToken()),
 	}, nil
 
+}
+
+// Exported to be used in tests
+func TranslateAccessToken(at *extauth.OidcAuthorizationCode_AccessToken) *extauth.ExtAuthConfig_OidcAuthorizationCodeConfig_AccessToken {
+	if at == nil {
+		return nil
+	}
+
+	return &extauth.ExtAuthConfig_OidcAuthorizationCodeConfig_AccessToken{
+		ClaimsToHeaders: translateClaimsToHeaders(at.GetClaimsToHeaders()),
+	}
+}
+
+// Exported to be used in tests
+func TranslateIdentityToken(it *extauth.OidcAuthorizationCode_IdentityToken) *extauth.ExtAuthConfig_OidcAuthorizationCodeConfig_IdentityToken {
+	if it == nil {
+		return nil
+	}
+
+	return &extauth.ExtAuthConfig_OidcAuthorizationCodeConfig_IdentityToken{
+		ClaimsToHeaders: translateClaimsToHeaders(it.GetClaimsToHeaders()),
+	}
+}
+
+func translateClaimsToHeaders(claimsToHeaders []*extauth.ClaimToHeader) []*extauth.ExtAuthConfig_OidcAuthorizationCodeConfig_ClaimToHeader {
+	mappedClaimsToHeaders := make([]*extauth.ExtAuthConfig_OidcAuthorizationCodeConfig_ClaimToHeader, len(claimsToHeaders))
+
+	for i, mapping := range claimsToHeaders {
+		mappedClaimsToHeaders[i] = &extauth.ExtAuthConfig_OidcAuthorizationCodeConfig_ClaimToHeader{
+			Claim:  mapping.Claim,
+			Header: mapping.Header,
+			Append: mapping.Append,
+		}
+	}
+
+	return mappedClaimsToHeaders
 }
 
 // translateUserSession will create the UserSessionConfig used in the deprecated UserSession.

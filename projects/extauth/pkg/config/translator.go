@@ -247,6 +247,8 @@ func (t *extAuthConfigTranslator) authConfigToService(
 					AutoMapFromMetadata:            autoMapFromMetadata,
 					EndSessionProperties:           endSessionProperties,
 					PkJwtClientAuthenticatorConfig: pkJwtClientAuthorizationConfig,
+					AccessTokenClaimsToHeaders:     toOidcClaimsToHeaders(oidcCfg.GetAccessToken().GetClaimsToHeaders()),
+					IdentityTokenClaimsToHeaders:   toOidcClaimsToHeaders(oidcCfg.GetIdentityToken().GetClaimsToHeaders()),
 				})
 
 			if err != nil {
@@ -458,6 +460,20 @@ func (t *extAuthConfigTranslator) authConfigToService(
 
 	}
 	return nil, "", errors.New("unknown auth configuration")
+}
+
+func toOidcClaimsToHeaders(claimsToHeaders []*extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig_ClaimToHeader) []oidc.ClaimToHeader {
+	mappedClaimsToHeaders := make([]oidc.ClaimToHeader, len(claimsToHeaders))
+
+	for i, mapping := range claimsToHeaders {
+		mappedClaimsToHeaders[i] = oidc.ClaimToHeader{
+			Claim:  mapping.Claim,
+			Header: mapping.Header,
+			Append: mapping.Append,
+		}
+	}
+
+	return mappedClaimsToHeaders
 }
 
 func addTrailingSlash(url string) string {

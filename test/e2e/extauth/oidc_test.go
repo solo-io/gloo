@@ -241,8 +241,12 @@ var _ = Describe("OIDC", func() {
 
 		select {
 		case r := <-testContext.TestUpstream().C:
-			ExpectWithOffset(1, r.Headers).To(WithTransform(HeaderStripper(),
+			ExpectWithOffset(1, r.Headers).To(WithTransform(HeaderStripper(), And(
 				HaveKeyWithValue("X-User-Id", fmt.Sprintf("http://%s:%d;user", discoveryServer.ServerAddress, discoveryServer.Port)),
+				// Should exist, because the AuthConfig was configured to create the headers "foo-claim" and "sub-claim" from the claims "foo" and "sub".
+				HaveKeyWithValue("Foo-Claim", "bar"),
+				HaveKeyWithValue("Sub-Claim", "user"),
+			),
 			))
 		case <-time.After(time.Second):
 			Fail("expected a message to be received")

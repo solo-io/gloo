@@ -198,6 +198,8 @@ var _ = Describe("Translate", func() {
 		Expect(actualOidc.UserSession.CookieOptions).To(Equal(expectedOidc.Session.CookieOptions))
 		Expect(actualOidc.UserSession.CipherConfig.Key).To(Equal(cipherSecret.GetEncryption().GetKey()))
 		Expect(actualOidc.UserSession.GetCookie()).To(Equal(expectedOidc.Session.GetCookie()))
+		Expect(actualOidc.GetAccessToken()).To(Equal(extauthsyncer.TranslateAccessToken(expectedOidc.GetAccessToken())))
+		Expect(actualOidc.GetIdentityToken()).To(Equal(extauthsyncer.TranslateIdentityToken(expectedOidc.GetIdentityToken())))
 
 		oidcValidation(actualOidc, clientSecret)
 	},
@@ -226,6 +228,8 @@ var _ = Describe("Translate", func() {
 		Expect(actualOidc.AppUrl).To(Equal(expectedOidc.AppUrl))
 		Expect(actualOidc.CallbackPath).To(Equal(expectedOidc.CallbackPath))
 		Expect(actualOidc.AutoMapFromMetadata.Namespace).To(Equal("test_namespace"))
+		Expect(actualOidc.GetIdentityToken()).To(Equal(extauthsyncer.TranslateIdentityToken(expectedOidc.GetIdentityToken())))
+		Expect(actualOidc.GetAccessToken()).To(Equal(extauthsyncer.TranslateAccessToken(expectedOidc.GetAccessToken())))
 		// verify translation of the User Session
 		//lint:ignore SA1019 testing for upgrades
 		Expect(actualOidc.Session.GetCookie()).To(Equal(expectedOidc.Session.GetCookie()))
@@ -260,6 +264,8 @@ var _ = Describe("Translate", func() {
 		Expect(actualOidc.CallbackPath).To(Equal(expectedOidc.CallbackPath))
 		Expect(actualOidc.AutoMapFromMetadata.Namespace).To(Equal("test_namespace"))
 		Expect(actualOidc.EndSessionProperties).To(Equal(expectedOidc.EndSessionProperties))
+		Expect(actualOidc.GetIdentityToken()).To(Equal(extauthsyncer.TranslateIdentityToken(expectedOidc.GetIdentityToken())))
+		Expect(actualOidc.GetAccessToken()).To(Equal(extauthsyncer.TranslateAccessToken(expectedOidc.GetAccessToken())))
 	},
 		Entry("Client Secret", disableClientSecret),
 		Entry("Client Secret Deprecated", disableClientSecretDeprecated),
@@ -281,7 +287,7 @@ var _ = Describe("Translate", func() {
 		// most likely needs to change.
 
 		Expect(reflect.TypeOf(extauth.ExtAuthConfig_OidcAuthorizationCodeConfig{}).NumField()).To(
-			Equal(24),
+			Equal(26),
 			"wrong number of fields found",
 		)
 	})
@@ -1220,6 +1226,18 @@ func getAuthConfigClientSecretDeprecated(secretRef *core.ResourceRef) *extauth.A
 									},
 								},
 							},
+							AccessToken: &extauth.OidcAuthorizationCode_AccessToken{ClaimsToHeaders: []*extauth.ClaimToHeader{
+								{
+									Claim:  "claim",
+									Header: "header",
+									Append: false,
+								},
+								{
+									Claim:  "claim-2",
+									Header: "header-2",
+									Append: true,
+								},
+							}},
 						},
 					},
 				},

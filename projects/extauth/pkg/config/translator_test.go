@@ -952,6 +952,78 @@ var _ = Describe("Ext Auth Config Translator", func() {
 		})
 	})
 
+	Context("OAuth2 (OIDC) config", func() {
+		Context("translating ClaimsToHeaders", func() {
+			var oAuthConfig *extauthv1.ExtAuthConfig
+
+			BeforeEach(func() {
+				oAuthConfig = &extauthv1.ExtAuthConfig{
+					AuthConfigRefName: "default.oauth2-authconfig",
+					Configs: []*extauthv1.ExtAuthConfig_Config{{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_Oauth2{
+							Oauth2: &extauthv1.ExtAuthConfig_OAuth2Config{
+								OauthType: &extauthv1.ExtAuthConfig_OAuth2Config_OidcAuthorizationCode{
+									OidcAuthorizationCode: &extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig{},
+								},
+							},
+						},
+					}},
+				}
+			})
+
+			DescribeTable("correctly sets claim to header", func(
+				accessToken *extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig_AccessToken,
+				identityToken *extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig_IdentityToken,
+				expectedAccessTokenClaimToHeaders, expectedIdentityTokenClaimToHeaders []oidc.ClaimToHeader,
+			) {
+				oAuthConfig.Configs[0].GetOauth2().GetOidcAuthorizationCode().AccessToken = accessToken
+				oAuthConfig.Configs[0].GetOauth2().GetOidcAuthorizationCode().IdentityToken = identityToken
+
+				serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(gomock.Any(), gomock.Any()).
+					Return(authServiceMock, nil).
+					Do(func(ctx context.Context, params *ea_config.OidcAuthorizationCodeAuthServiceParams) {
+						Expect(params.AccessTokenClaimsToHeaders).To(Equal(expectedAccessTokenClaimToHeaders))
+						Expect(params.IdentityTokenClaimsToHeaders).To(Equal(expectedIdentityTokenClaimToHeaders))
+					})
+
+				authService, err := translator.Translate(ctx, oAuthConfig)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(authService).NotTo(BeNil())
+			}, Entry("when not set", nil, nil, []oidc.ClaimToHeader{}, []oidc.ClaimToHeader{}),
+				Entry("when access token and identity token are empty",
+					&extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig_AccessToken{},
+					&extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig_IdentityToken{},
+					[]oidc.ClaimToHeader{},
+					[]oidc.ClaimToHeader{},
+				),
+				Entry("when claim to headers are empty",
+					&extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig_AccessToken{ClaimsToHeaders: []*extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig_ClaimToHeader{}},
+					&extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig_IdentityToken{ClaimsToHeaders: []*extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig_ClaimToHeader{}},
+					[]oidc.ClaimToHeader{},
+					[]oidc.ClaimToHeader{},
+				),
+				Entry("when claim to headers are set",
+					&extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig_AccessToken{
+						ClaimsToHeaders: []*extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig_ClaimToHeader{
+							{Claim: "at-claim", Header: "at-header", Append: false},
+						}},
+					&extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig_IdentityToken{
+						ClaimsToHeaders: []*extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig_ClaimToHeader{
+							{Claim: "it-claim", Header: "it-header", Append: true},
+							{Claim: "it-claim-2", Header: "it-header-2", Append: false},
+						}},
+					[]oidc.ClaimToHeader{
+						{Claim: "at-claim", Header: "at-header", Append: false},
+					},
+					[]oidc.ClaimToHeader{
+						{Claim: "it-claim", Header: "it-header", Append: true},
+						{Claim: "it-claim-2", Header: "it-header-2", Append: false},
+					},
+				),
+			)
+		})
+	})
+
 	Context("discovery poll interval", func() {
 		var oAuthConfig *extauthv1.ExtAuthConfig
 
