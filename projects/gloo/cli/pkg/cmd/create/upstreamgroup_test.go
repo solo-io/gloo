@@ -2,6 +2,7 @@ package create_test
 
 import (
 	"context"
+	gloo_matchers "github.com/solo-io/solo-kit/test/matchers"
 	"sort"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -108,7 +109,9 @@ var _ = Describe("UpstreamGroup", func() {
 			sort.SliceStable(ug.Destinations, func(i, j int) bool {
 				return ug.Destinations[i].Weight.GetValue() < ug.Destinations[j].Weight.GetValue()
 			})
-			Expect(ug.Destinations).To(Equal(expectedDest))
+			for i, dest := range expectedDest {
+				Expect(ug.Destinations[i]).To(gloo_matchers.MatchProto(dest))
+			}
 		})
 
 		It("should bump weights to at least 1", func() {
@@ -119,7 +122,9 @@ var _ = Describe("UpstreamGroup", func() {
 			sort.SliceStable(ug.Destinations, func(i, j int) bool {
 				return ug.Destinations[i].Weight.GetValue() < ug.Destinations[j].Weight.GetValue()
 			})
-			Expect(ug.Destinations).To(Equal(expectedDest))
+			for i, dest := range expectedDest {
+				Expect(ug.Destinations[i]).To(gloo_matchers.MatchProto(dest))
+			}
 		})
 
 		It("can print as kube yaml in dry-run", func() {
