@@ -2,8 +2,9 @@ package create_test
 
 import (
 	"context"
-	gloo_matchers "github.com/solo-io/solo-kit/test/matchers"
 	"sort"
+
+	gloo_matchers "github.com/solo-io/solo-kit/test/matchers"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 

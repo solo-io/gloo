@@ -2,8 +2,9 @@ package ratelimit_test
 
 import (
 	"context"
-	"github.com/solo-io/solo-kit/test/matchers"
 	"io"
+
+	"github.com/solo-io/solo-kit/test/matchers"
 
 	rltypes "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 
