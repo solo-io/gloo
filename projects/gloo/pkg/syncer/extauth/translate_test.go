@@ -300,6 +300,19 @@ var _ = Describe("Translate", func() {
 		Expect(actualOidc.AutoMapFromMetadata.Namespace).To(Equal("test_namespace"))
 		Expect(actualOidc.EndSessionProperties).To(Equal(expectedOidc.EndSessionProperties))
 	})
+	DescribeTable("should fail to translate oidc config", func(accessToken *extauth.OidcAuthorizationCode_AccessToken, identityToken *extauth.OidcAuthorizationCode_IdentityToken, expectedErr error) {
+		oidcConfig := authConfig.GetConfigs()[0].GetOauth2().GetOauthType().(*extauth.OAuth2_OidcAuthorizationCode).OidcAuthorizationCode
+		oidcConfig.AccessToken = accessToken
+		oidcConfig.IdentityToken = identityToken
+
+		_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError(expectedErr))
+	},
+		Entry("with access token set", &extauth.OidcAuthorizationCode_AccessToken{}, nil, extauthsyncer.FieldsNotSupportedVersionError([]string{"access_token"}, "1.16")),
+		Entry("with identity token set", nil, &extauth.OidcAuthorizationCode_IdentityToken{}, extauthsyncer.FieldsNotSupportedVersionError([]string{"identity_token"}, "1.16")),
+		Entry("with access token and identity token set", &extauth.OidcAuthorizationCode_AccessToken{}, &extauth.OidcAuthorizationCode_IdentityToken{}, extauthsyncer.FieldsNotSupportedVersionError([]string{"access_token", "identity_token"}, "1.16")),
+	)
 	Context("Encryption Key error", func() {
 		BeforeEach(func() {
 			encryptionKey = "an example encryption key"

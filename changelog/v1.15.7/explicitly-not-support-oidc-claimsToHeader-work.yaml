@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Error on translation if user tries to set AccessToken and IdentityToken configs in OIDC.
+    issueLink: https://github.com/solo-io/gloo/issues/8737
+    resolvesIssue: false

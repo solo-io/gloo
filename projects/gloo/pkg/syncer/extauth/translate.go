@@ -50,6 +50,9 @@ var (
 	noMatchesForGroupError = func(labelSelector map[string]string) error {
 		return errors.Errorf("no matching apikey secrets for the provided label selector %v", labelSelector)
 	}
+	FieldsNotSupportedVersionError = func(fields []string, supportVersion string) error {
+		return errors.Errorf("[%s] is only supported in Gloo Edge %s and above", strings.Join(fields, ", "), supportVersion)
+	}
 )
 
 // TranslateExtAuthConfig Returns {nil, nil} if the input config is empty or if it contains only custom auth entries
@@ -561,6 +564,18 @@ func userSessionToSession(userSession *extauth.ExtAuthConfig_UserSessionConfig) 
 }
 
 func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.OidcAuthorizationCode) (*extauth.ExtAuthConfig_OidcAuthorizationCodeConfig, error) {
+	// AccessToken and IdentityToken are only supported in Gloo Edge 1.16+, and are not part of our internal API.
+	if config.GetAccessToken() != nil || config.GetIdentityToken() != nil {
+		var unsupportedFields []string
+		if config.GetAccessToken() != nil {
+			unsupportedFields = append(unsupportedFields, "access_token")
+		}
+		if config.GetIdentityToken() != nil {
+			unsupportedFields = append(unsupportedFields, "identity_token")
+		}
+		return nil, FieldsNotSupportedVersionError(unsupportedFields, "1.16")
+	}
+
 	secretDisabled := config.GetDisableClientSecret().GetValue()
 	clientSecret := ""
 	if !secretDisabled {
