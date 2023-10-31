@@ -94,7 +94,7 @@ require (
 	golang.org/x/exp v0.0.0-20220921164117-439092de6870
 	google.golang.org/genproto/googleapis/api v0.0.0-20230526203410-71b5a4ffd15e
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230526203410-71b5a4ffd15e
-	sigs.k8s.io/gateway-api v1.0.0-rc1
+	sigs.k8s.io/gateway-api v1.0.0-rc2
 )
 
 require (
