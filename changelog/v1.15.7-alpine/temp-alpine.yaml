@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/8849
+    resolvesIssue: false
+    description: >-
+      Revert to alpine for now
