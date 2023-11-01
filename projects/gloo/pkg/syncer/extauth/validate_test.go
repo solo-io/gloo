@@ -605,4 +605,93 @@ var _ = Describe("ValidateAuthConfig", func() {
 					ScopeValidation: nil,
 				}}}),
 	)
+
+	Context("BasicAuthentication validation", func() {
+		DescribeTable("Invalid configs for BasicAuth", func(cfg *extauth.BasicAuth, expectedErr error) {
+			authConfig := &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "test-basicauth",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_BasicAuth{BasicAuth: cfg},
+				}},
+			}
+
+			apiSnapshot.AuthConfigs = extauth.AuthConfigList{authConfig}
+
+			reports := make(reporter.ResourceReports)
+			reports.Accept(apiSnapshot.AuthConfigs.AsInputResources()...)
+
+			ValidateAuthConfig(authConfig, reports)
+
+			Expect(reports.ValidateStrict()).To(MatchError(ContainSubstring(expectedErr.Error())))
+		},
+			Entry("legacy and users source config both defined", basicAuthLegacyAndEncyptionDefined(), BasicAuthLegacyAndInternalErr),
+			Entry("legacy and encryption source config both defined", basicAuthLegacyAndUserSourceDefined(), BasicAuthLegacyAndInternalErr),
+			Entry("Undefined user source", basicAuthUndefinedUserSource(), BasicAuthUndefinedUserSourceErr),
+			Entry("Undefined encryption", basicAuthUndefinedEncryption(), BasicAuthUndefinedEncryptionErr),
+		)
+	})
 })
+
+func basicAuthValidInternalConfig() *extauth.BasicAuth {
+	return &extauth.BasicAuth{
+		Encryption: &extauth.BasicAuth_EncryptionType{
+			Algorithm: &extauth.BasicAuth_EncryptionType_Sha1_{},
+		},
+		UserSource: &extauth.BasicAuth_UserList_{
+			UserList: &extauth.BasicAuth_UserList{
+				Users: map[string]*extauth.BasicAuth_User{
+					"testUser": {
+						Salt:           "testSalt",
+						HashedPassword: "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
+					},
+				},
+			},
+		},
+		Realm: "gloo",
+	}
+}
+
+func basicAuthValidLegacyConfig() *extauth.BasicAuth {
+	return &extauth.BasicAuth{
+		Apr: &extauth.BasicAuth_Apr{
+			Users: map[string]*extauth.BasicAuth_Apr_SaltedHashedPassword{
+				"testUser": {
+					Salt:           "testSalt",
+					HashedPassword: "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
+				},
+			},
+		},
+		Realm: "gloo",
+	}
+}
+
+// Basic auth config with both top level apr and extended encryption defined
+func basicAuthLegacyAndEncyptionDefined() *extauth.BasicAuth {
+	baseCfg := basicAuthValidLegacyConfig()
+	baseCfg.Encryption = &extauth.BasicAuth_EncryptionType{}
+	return baseCfg
+}
+
+// Basic auth config with both top level apr and extended user source defined
+func basicAuthLegacyAndUserSourceDefined() *extauth.BasicAuth {
+	baseCfg := basicAuthValidLegacyConfig()
+	baseCfg.UserSource = &extauth.BasicAuth_UserList_{}
+	return baseCfg
+}
+
+// Undefined user source.
+func basicAuthUndefinedUserSource() *extauth.BasicAuth {
+	baseCfg := basicAuthValidInternalConfig()
+	baseCfg.UserSource = nil
+	return baseCfg
+}
+
+// Undefined encryption
+func basicAuthUndefinedEncryption() *extauth.BasicAuth {
+	baseCfg := basicAuthValidInternalConfig()
+	baseCfg.Encryption = nil
+	return baseCfg
+}

@@ -108,6 +108,57 @@ func TranslateUserFacingConfigToInternalServiceConfig(ctx context.Context, snap 
 	return translateConfig(ctx, snap, cfg)
 }
 
+func userListToInternalFormat(userList map[string]*extauth.BasicAuth_User) map[string]*extauth.ExtAuthConfig_BasicAuthInternal_User {
+	users := make(map[string]*extauth.ExtAuthConfig_BasicAuthInternal_User)
+	for k, v := range userList {
+		users[k] = &extauth.ExtAuthConfig_BasicAuthInternal_User{
+			Salt:           v.Salt,
+			HashedPassword: v.HashedPassword,
+		}
+	}
+	return users
+}
+
+// Translation from BasicAuth to BasicAuthInternal for configs that use the additional fields
+func translateBasicAuthInternal(config *extauth.BasicAuth) (*extauth.ExtAuthConfig_Config_BasicAuthInternal, error) {
+	var encryption *extauth.ExtAuthConfig_BasicAuthInternal_EncryptionType
+	var users map[string]*extauth.ExtAuthConfig_BasicAuthInternal_User
+
+	// Algorithm translation
+	switch config.GetEncryption().Algorithm.(type) {
+	case *extauth.BasicAuth_EncryptionType_Apr_:
+		encryption = &extauth.ExtAuthConfig_BasicAuthInternal_EncryptionType{
+			Algorithm: &extauth.ExtAuthConfig_BasicAuthInternal_EncryptionType_Apr_{},
+		}
+	case *extauth.BasicAuth_EncryptionType_Sha1_:
+		encryption = &extauth.ExtAuthConfig_BasicAuthInternal_EncryptionType{
+			Algorithm: &extauth.ExtAuthConfig_BasicAuthInternal_EncryptionType_Sha1_{},
+		}
+	default:
+		return nil, errors.Errorf("unknown encryption type")
+	}
+
+	// User source translation
+	switch u := config.GetUserSource().(type) {
+	case *extauth.BasicAuth_UserList_:
+		users = userListToInternalFormat(u.UserList.GetUsers())
+	default:
+		return nil, errors.Errorf("unknown user type")
+	}
+
+	return &extauth.ExtAuthConfig_Config_BasicAuthInternal{
+		BasicAuthInternal: &extauth.ExtAuthConfig_BasicAuthInternal{
+			Encryption: encryption,
+			UserSource: &extauth.ExtAuthConfig_BasicAuthInternal_UserList_{
+				UserList: &extauth.ExtAuthConfig_BasicAuthInternal_UserList{
+					Users: users,
+				},
+			},
+			Realm: config.Realm,
+		},
+	}, nil
+}
+
 func translateConfig(ctx context.Context, snap *v1snap.ApiSnapshot, cfg *extauth.AuthConfig_Config) (*extauth.ExtAuthConfig_Config, error) {
 	extAuthConfig := &extauth.ExtAuthConfig_Config{
 		Name: cfg.Name,
@@ -115,9 +166,22 @@ func translateConfig(ctx context.Context, snap *v1snap.ApiSnapshot, cfg *extauth
 
 	switch config := cfg.AuthConfig.(type) {
 	case *extauth.AuthConfig_Config_BasicAuth:
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_BasicAuth{
-			BasicAuth: config.BasicAuth,
+		// Handle the extended config
+		if config.BasicAuth.GetEncryption() != nil && config.BasicAuth.GetUserSource() != nil { // Handle the new config with encryption and userlist separate
+			basicAuthInternal, err := translateBasicAuthInternal(config.BasicAuth)
+			if err != nil {
+				return nil, err
+			}
+
+			extAuthConfig.AuthConfig = basicAuthInternal
+		} else { // Handle the legacy config
+			// New fields are fine to pass along because they'll get ignored and we've already confirmed they're nil in validation
+			// Passing through `nil` BasicAuth configs is consistent with previous behavior and expected by the tests.
+			extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_BasicAuth{
+				BasicAuth: config.BasicAuth,
+			}
 		}
+
 	// handle deprecated case
 	case *extauth.AuthConfig_Config_Oauth:
 		cfg, err := translateOauth(snap, config.Oauth)

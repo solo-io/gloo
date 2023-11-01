@@ -1,0 +1,10 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink:  https://github.com/solo-io/solo-projects/issues/5234
+    description: >
+      Add support to use sha1 for basic auth. Sha1 is considered insecure and is not recommended for production use.
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo.io
+    dependencyRepo: ext-auth-service
+    dependencyTag: 0.52.0
