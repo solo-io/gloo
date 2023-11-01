@@ -28,7 +28,7 @@ Name|Version|License
 [graphql-go/graphql](https://github.com/graphql-go/graphql)|v0.8.1|MIT License
 [grpc-ecosystem/go-grpc-middleware](https://github.com/grpc-ecosystem/go-grpc-middleware)|v1.3.0|Apache License 2.0
 [iancoleman/strcase](https://github.com/iancoleman/strcase)|v0.2.0|MIT License
-[jhump/protoreflect](https://github.com/jhump/protoreflect)|v1.15.1|Apache License 2.0
+[jhump/protoreflect](https://github.com/jhump/protoreflect)|v1.15.3|Apache License 2.0
 [kelseyhightower/envconfig](https://github.com/kelseyhightower/envconfig)|v1.4.0|MIT License
 [olekukonko/tablewriter](https://github.com/olekukonko/tablewriter)|v0.0.5|MIT License
 [ginkgo/v2](https://github.com/onsi/ginkgo)|v2.11.0|MIT License
@@ -46,7 +46,7 @@ Name|Version|License
 [x/net](https://golang.org/x/net)|v0.15.0|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.3.0|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
-[google.golang.org/grpc](https://google.golang.org/grpc)|v1.58.2|Apache License 2.0
+[google.golang.org/grpc](https://google.golang.org/grpc)|v1.59.0|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.31.0|BSD 3-clause "New" or "Revised" License
 [square/go-jose.v2](https://gopkg.in/square/go-jose.v2)|v2.6.0|Apache License 2.0
 [gopkg.in/yaml.v2](https://gopkg.in/yaml.v2)|v2.4.0|Apache License 2.0

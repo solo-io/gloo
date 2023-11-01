@@ -1,0 +1,11 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: google.golang.org
+    dependencyRepo: grpc
+    dependencyTag: v1.59.0
+    issueLink: https://github.com/solo-io/solo-projects/issues/5469
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.16.0-beta19
