@@ -52,6 +52,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_cac
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/rbac/rbac_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/waf/waf_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_dlp_dlp_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/dlp/dlp_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_tap_tap_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/tap/tap_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_transformation_transformation_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/transformation/transformation_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/dynamic_forward_proxy/dynamic_forward_proxy_pb.js');
 var github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base_pb.js');
@@ -1031,7 +1032,8 @@ proto.gloo.solo.io.HttpListenerOptions.toObject = function(includeInstance, msg)
     connectionLimit: (f = msg.getConnectionLimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_connection_limit_connection_limit_pb.ConnectionLimit.toObject(includeInstance, f),
     networkLocalRatelimit: (f = msg.getNetworkLocalRatelimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.toObject(includeInstance, f),
     httpLocalRatelimit: (f = msg.getHttpLocalRatelimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.Settings.toObject(includeInstance, f),
-    router: (f = msg.getRouter()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_router_router_pb.Router.toObject(includeInstance, f)
+    router: (f = msg.getRouter()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_router_router_pb.Router.toObject(includeInstance, f),
+    tap: (f = msg.getTap()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_tap_tap_pb.Tap.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1187,6 +1189,11 @@ proto.gloo.solo.io.HttpListenerOptions.deserializeBinaryFromReader = function(ms
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_router_router_pb.Router;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_router_router_pb.Router.deserializeBinaryFromReader);
       msg.setRouter(value);
+      break;
+    case 34:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_tap_tap_pb.Tap;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_tap_tap_pb.Tap.deserializeBinaryFromReader);
+      msg.setTap(value);
       break;
     default:
       reader.skipField();
@@ -1407,6 +1414,14 @@ proto.gloo.solo.io.HttpListenerOptions.serializeBinaryToWriter = function(messag
       18,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_router_router_pb.Router.serializeBinaryToWriter
+    );
+  }
+  f = message.getTap();
+  if (f != null) {
+    writer.writeMessage(
+      34,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_tap_tap_pb.Tap.serializeBinaryToWriter
     );
   }
 };
@@ -2129,6 +2144,36 @@ proto.gloo.solo.io.HttpListenerOptions.prototype.clearRouter = function() {
  */
 proto.gloo.solo.io.HttpListenerOptions.prototype.hasRouter = function() {
   return jspb.Message.getField(this, 18) != null;
+};
+
+
+/**
+ * optional tap.options.gloo.solo.io.Tap tap = 34;
+ * @return {?proto.tap.options.gloo.solo.io.Tap}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getTap = function() {
+  return /** @type{?proto.tap.options.gloo.solo.io.Tap} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_tap_tap_pb.Tap, 34));
+};
+
+
+/** @param {?proto.tap.options.gloo.solo.io.Tap|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setTap = function(value) {
+  jspb.Message.setWrapperField(this, 34, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearTap = function() {
+  this.setTap(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasTap = function() {
+  return jspb.Message.getField(this, 34) != null;
 };
 
 

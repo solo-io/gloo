@@ -50,7 +50,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.2
 	github.com/solo-io/ext-auth-service v0.52.0
 	github.com/solo-io/external-apis v0.2.0
-	github.com/solo-io/gloo v1.16.0-beta19
+	github.com/solo-io/gloo v1.16.0-beta20
 	github.com/solo-io/gloo-graphql-example v0.1.0
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.6
@@ -60,7 +60,7 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.10.0
 	github.com/solo-io/skv2 v0.32.0
-	github.com/solo-io/solo-apis v0.0.0-20231101150656-8e4cc227344c
+	github.com/solo-io/solo-apis v0.0.0-20231102174939-b61158eb3645
 	github.com/solo-io/solo-kit v0.33.0
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20220823153451-d072eb48cb44
 	github.com/spf13/cobra v1.7.0
@@ -337,7 +337,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.16.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.16.0 // indirect
 	go.opentelemetry.io/otel/trace v1.16.0 // indirect
-	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
+	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
 	go.starlark.net v0.0.0-20211013185944-b0039bd2cfe3 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/goleak v1.2.1 // indirect

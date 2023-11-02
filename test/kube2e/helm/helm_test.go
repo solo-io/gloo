@@ -13,6 +13,7 @@ import (
 	"github.com/rotisserie/eris"
 
 	"github.com/solo-io/gloo/test/kube2e"
+	exec_utils "github.com/solo-io/go-utils/testutils/exec"
 	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/k8s-utils/testutils/helper"
 	gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
@@ -205,6 +206,46 @@ var _ = Describe("Installing and upgrading GlooEE via helm", func() {
 			})
 		})
 	})
+
+	Context("Production recommendations", func() {
+		var valuesForProductionRecommendations []string
+		var expectGatewayProxyIsReady func()
+
+		BeforeEach(func() {
+			valuesForProductionRecommendations = getHelmValuesForProductionRecommendations()
+
+			additionalInstallArgs = []string{
+				// Setting `settings.disableKubernetesDestinations` && `global.glooRbac.namespaced` leads to panic in gloo
+				// Ref: https://github.com/solo-io/gloo/issues/8801
+				"--set", "global.glooRbac.namespaced=false",
+			}
+			additionalInstallArgs = append(additionalInstallArgs, valuesForProductionRecommendations...)
+
+			expectGatewayProxyIsReady = func() {
+				Eventually(func() (string, error) {
+					a, b := exec_utils.RunCommandOutput(testHelper.RootDir, false,
+						"kubectl", "-n", namespace, "get", "deployment", "gateway-proxy", "-o", "yaml")
+					return a, b
+				}, "30s", "1s").Should(
+					// kubectl -n gloo-system get deployment gateway-proxy -o yaml
+					// ...
+					// readinessProbe:
+					//   httpGet:
+					//     path: /envoy-hc
+					// ...
+					// readyReplicas: 1
+					And(ContainSubstring("readinessProbe:"),
+						ContainSubstring("/envoy-hc"),
+						ContainSubstring("readyReplicas: 1")))
+			}
+		})
+
+		It("succeeds", func() {
+			// Since one of the production recommendations is to have a custom readiness probe, check if it is present on the proxy.
+			// The rest of them have their own unit / e2e tests.
+			expectGatewayProxyIsReady()
+		})
+	})
 })
 
 func installGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease string, strictValidation bool, additionalArgs []string) {
@@ -351,12 +392,18 @@ func getHelmValuesFile(filename string) string {
 
 }
 
-func getHelmUpgradeValuesOverrideFileForCustomReadinessProbe() (filename string) {
-	return getHelmValuesFile("custom-readiness-probe.yaml")
-}
-
 func getHelmUpgradeValuesOverrideFile() (filename string) {
 	return getHelmValuesFile("upgrade-override.yaml")
+}
+
+func getHelmValuesForProductionRecommendations() []string {
+	return []string{
+		"--values", getHelmValuesFile("access-logging.yaml"),
+		"--values", getHelmValuesFile("custom-readiness-probe.yaml"),
+		"--values", getHelmValuesFile("horizontal-scaling.yaml"),
+		"--values", getHelmValuesFile("performance.yaml"),
+		"--values", getHelmValuesFile("safeguards.yaml"),
+	}
 }
 
 // calling NewClientsetFromConfig multiple times results in a race condition due to the use of the global scheme.Scheme.

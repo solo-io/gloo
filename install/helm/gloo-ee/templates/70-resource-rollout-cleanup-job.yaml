@@ -1,7 +1,7 @@
 {{- if .Values.gloo.gateway.rolloutJob.enabled }}
 {{- $image := .Values.gloo.gateway.rolloutJob.image }}
 {{- if .Values.global }}
-{{- $image = merge .Values.gloo.gateway.rolloutJob.image .Values.global.image }}
+{{- $image = merge .Values.gloo.gateway.rolloutJob.image .Values.gloo.global.image }}
 {{- end }}
 apiVersion: batch/v1
 kind: Job
@@ -9,15 +9,12 @@ metadata:
   labels:
     app: gloo
     gloo: resource-rollout
-  name: gloo-ee-resource-rollout
+  name: gloo-ee-resource-rollout-cleanup
   namespace: {{ .Release.Namespace }}
   annotations:
-    # Argo checks the status of resources in an app to determine its state. Since a job is cleaned up (deleted) after ttlSecondsAfterFinished,
-    # the missing job causes the argo app to go out of sync.
-    # Annotating this job as a Sync hook along with an argo-specific hook deletion policy ensures that even when the job is cleaned up,
-    # it does not alter the state of the argo app and that it is still in sync.
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "3" # run this job after the role/rolebinding is created
+    {{- include "gloo.jobHelmDeletePolicySucceededAndBeforeCreation" .Values.gloo.gateway.rolloutJob | nindent 4 }}
 spec:
   {{- include "gloo.jobSpecStandardFields" .Values.gloo.gateway.rolloutJob | nindent 2 -}}
   template:
@@ -43,26 +40,10 @@ spec:
       {{- include "gloo.pullSecret" $image | nindent 6 -}}
       serviceAccountName: gloo-resource-rollout
       {{- include "gloo.podSpecStandardFields" .Values.gloo.gateway.rolloutJob | nindent 6 -}}
-      volumes:
-        - name: custom-resource-config-volume
-          configMap:
-            name: gloo-ee-custom-resource-config
-            items:
-              - key: custom-resources
-                path: custom-resources
       containers:
         - name: kubectl
           image: {{template "gloo.image" $image}}
           imagePullPolicy: {{ $image.pullPolicy }}
-          env:
-            - name: HAS_CUSTOM_RESOURCES
-              valueFrom:
-                configMapKeyRef:
-                  name: gloo-ee-custom-resource-config
-                  key: has-custom-resources
-          volumeMounts:
-            - name: custom-resource-config-volume
-              mountPath: /etc/gloo-custom-resources
           securityContext:
             runAsNonRoot: true
             {{- if not .Values.gloo.gateway.rolloutJob.floatingUserId }}
@@ -75,16 +56,12 @@ spec:
           - /bin/sh
           - -c
           - |
-            {{ if and .Values.gloo.gateway.enabled .Values.gloo.gateway.validation.enabled .Values.gloo.gateway.validation.webhook.enabled -}}
-            # if validation webhook is enabled, wait for deployment rollout so validation service will be available
-            kubectl rollout status deployment -n {{ .Release.Namespace }} gloo
-            {{- end }}
-
-            # apply Gloo Edge Enterprise custom resources
-            if [ $HAS_CUSTOM_RESOURCES == "true" ]
+            # Check if the resource rollout job exists
+            kubectl -n {{ .Release.Namespace }} get job gloo-ee-resource-rollout &> /dev/null
+            if [ $? -eq 0 ]
             then
-              kubectl apply -f /etc/gloo-custom-resources/custom-resources || exit $?
-            else
-              echo "no custom resources to apply"
+              # Clean it up so it doesn't cause issues with upgrades
+              kubectl -n {{ .Release.Namespace }} delete job gloo-ee-resource-rollout || exit $?
             fi
 {{- end }}{{/* if .Values.gloo.gateway.rolloutJob.enabled  */}}
+

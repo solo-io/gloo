@@ -43,6 +43,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_cac
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/rbac/rbac_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/waf/waf_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_dlp_dlp_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/dlp/dlp_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_tap_tap_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/tap/tap_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_transformation_transformation_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/transformation/transformation_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/dynamic_forward_proxy/dynamic_forward_proxy_pb";
 import * as github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb from "../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base_pb";
@@ -289,6 +290,11 @@ export class HttpListenerOptions extends jspb.Message {
   getRouter(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_router_router_pb.Router | undefined;
   setRouter(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_router_router_pb.Router): void;
 
+  hasTap(): boolean;
+  clearTap(): void;
+  getTap(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_tap_tap_pb.Tap | undefined;
+  setTap(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_tap_tap_pb.Tap): void;
+
   getExtProcConfigCase(): HttpListenerOptions.ExtProcConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListenerOptions.AsObject;
@@ -326,6 +332,7 @@ export namespace HttpListenerOptions {
     networkLocalRatelimit?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.TokenBucket.AsObject,
     httpLocalRatelimit?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_local_ratelimit_local_ratelimit_pb.Settings.AsObject,
     router?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_router_router_pb.Router.AsObject,
+    tap?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_tap_tap_pb.Tap.AsObject,
   }
 
   export enum ExtProcConfigCase {

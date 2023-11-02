@@ -27,6 +27,7 @@ fi
 
 # build and push images
 make install-node-packages -B
+make install-build-tools -B
 VERSION=$VERSION make docker -B
 VERSION=$VERSION make docker-push -B
 
