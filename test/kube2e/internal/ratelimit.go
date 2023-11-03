@@ -18,6 +18,7 @@ import (
 	"github.com/solo-io/k8s-utils/testutils/helper"
 	rlv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-projects/test/kube2e"
@@ -210,6 +211,13 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 
 					_, err = testContext.ResourceClientSet().SettingsClient().Write(settings, clients.WriteOpts{OverwriteExisting: true})
 					Expect(err).NotTo(HaveOccurred(), "Should write settings with RateLimitBeforeAuth set")
+				})
+
+				AfterEach(func() {
+					testContext.ResourceClientSet().AuthConfigClient().Delete(testContext.InstallNamespace(), "basic-auth", clients.DeleteOpts{})
+					helpers.EventuallyResourceDeleted(func() (resources.InputResource, error) {
+						return testContext.ResourceClientSet().AuthConfigClient().Read(testContext.InstallNamespace(), "basic-auth", clients.ReadOpts{})
+					})
 				})
 
 				It("can rate limit before hitting the auth server when so configured", func() {
