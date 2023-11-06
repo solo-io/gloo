@@ -1,0 +1,11 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Create developer facing documentation around our ExtAuth functionality
+      
+      skipCI-storybook-tests:true
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5456
+    resolvesIssue: false
+    description: >-
+      Enable FlakeAttempts on the recently enabled LDAP kube2e tests.
