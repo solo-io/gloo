@@ -2,35 +2,31 @@ package kube2e
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/avast/retry-go"
-
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-
 	"github.com/google/uuid"
-
-	"github.com/solo-io/gloo/test/testutils"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
-
-	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
-	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-
-	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-
 	. "github.com/onsi/gomega"
+	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kube2e"
+	"github.com/solo-io/gloo/test/testutils"
 	"github.com/solo-io/k8s-utils/testutils/helper"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-projects/test/kubeutils"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -231,6 +227,72 @@ func (t *TestContext) GetDefaultSettings() *gloov1.Settings {
 	settings, err := t.resourceClientSet.SettingsClient().Read(t.InstallNamespace(), DefaultSettingsName, clients.ReadOpts{Ctx: t.ctx})
 	ExpectWithOffset(1, err).NotTo(HaveOccurred(), "read default settings")
 	return settings
+}
+
+// ModifyDeploymentReplicas sets the given deployment's number of replicas, and then waits for the deployment
+// to be rolled out successfully (or times out).
+func (t *TestContext) ModifyDeploymentReplicas(deploymentName string, replicas int32) {
+	deploymentClient := t.ResourceClientSet().KubeClients().AppsV1().Deployments(t.InstallNamespace())
+
+	d, err := deploymentClient.Get(t.Ctx(), deploymentName, metav1.GetOptions{})
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	d.Spec.Replicas = &replicas
+	_, err = deploymentClient.Update(t.Ctx(), d, metav1.UpdateOptions{})
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	fmt.Printf("modified %s replicas to %v, now waiting for rollout\n", deploymentName, replicas)
+
+	kubeutils.WaitForRolloutWithOffset(1, deploymentName, t.InstallNamespace(), "60s", "1s")
+}
+
+// WaitForDeploymentReplicas waits for the given deployment's replicas to equal the given number of replicas
+// (or times out).
+func (t *TestContext) WaitForDeploymentReplicas(deploymentName string, replicas int32) {
+	EventuallyWithOffset(1, func() (int32, error) {
+		deploymentClient := t.ResourceClientSet().KubeClients().AppsV1().Deployments(t.InstallNamespace())
+
+		d, err := deploymentClient.Get(t.Ctx(), deploymentName, metav1.GetOptions{})
+		if err != nil {
+			return 0, err
+		}
+
+		if d.Status.UpdatedReplicas != d.Status.ReadyReplicas {
+			return 0, errors.New("updated and ready replicas do not match")
+		}
+
+		return d.Status.ReadyReplicas, nil
+	}, "60s", "1s").Should(Equal(replicas))
+}
+
+// ModifyDeploymentEnv adds (if it does not exist) or modifies (if it already exists) the specified env variable
+// on the specified container of the deployment's pod spec, and then waits for the deployment to be rolled out
+// successfully (or times out).
+func (t *TestContext) ModifyDeploymentEnv(deploymentName string, containerIndex int, envVar corev1.EnvVar) {
+	deploymentClient := t.ResourceClientSet().KubeClients().AppsV1().Deployments(t.InstallNamespace())
+
+	d, err := deploymentClient.Get(t.Ctx(), deploymentName, metav1.GetOptions{})
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	// make sure we are referencing a valid container
+	ExpectWithOffset(1, len(d.Spec.Template.Spec.Containers)).To(BeNumerically(">", containerIndex))
+
+	// if an env var with the given name already exists, modify it
+	exists := false
+	for i, env := range d.Spec.Template.Spec.Containers[containerIndex].Env {
+		if env.Name == envVar.Name {
+			d.Spec.Template.Spec.Containers[containerIndex].Env[i].Value = envVar.Value
+			exists = true
+			break
+		}
+	}
+	// otherwise add a new env var
+	if !exists {
+		d.Spec.Template.Spec.Containers[containerIndex].Env = append(d.Spec.Template.Spec.Containers[containerIndex].Env, envVar)
+	}
+	_, err = deploymentClient.Update(t.Ctx(), d, metav1.UpdateOptions{})
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	kubeutils.WaitForRolloutWithOffset(1, deploymentName, t.InstallNamespace(), "60s", "1s")
 }
 
 func (t *TestContext) ResourceClientSet() *kube2e.KubeResourceClientSet {

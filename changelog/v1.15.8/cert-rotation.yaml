@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5252
+    resolvesIssue: false
+    description: End to end test of cert rotation job while requests are in progress.

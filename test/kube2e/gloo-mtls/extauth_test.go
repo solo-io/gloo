@@ -19,7 +19,8 @@ var _ = Describe("ExtAuth tests", func() {
 		testContext.BeforeEach()
 
 		sharedInputs = ExtAuthTestInputs{
-			TestContext: testContext,
+			TestContext:    testContext,
+			ShouldTestMTLS: true,
 		}
 	})
 

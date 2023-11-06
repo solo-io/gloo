@@ -6,3 +6,11 @@ kubeadmConfigPatches:
     kind: InitConfiguration
     metadata:
       name: config
+  # Use a short sync frequency so that secret updates are picked up more quickly for the
+  # cert rotation extauth kube2e tests. If these values are modified, then the rotation-duration
+  # in that test may also need to be increased.
+  # See https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/ for details.
+  - |
+    apiVersion: kubelet.config.k8s.io/v1beta1
+    kind: KubeletConfiguration
+    syncFrequency: 10s
