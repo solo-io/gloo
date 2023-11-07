@@ -13,7 +13,6 @@ import (
 	"github.com/rotisserie/eris"
 
 	"github.com/solo-io/gloo/test/kube2e"
-	exec_utils "github.com/solo-io/go-utils/testutils/exec"
 	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/k8s-utils/testutils/helper"
 	gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
@@ -22,6 +21,7 @@ import (
 	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
 	osskube2e "github.com/solo-io/solo-projects/test/kube2e"
 	admission_v1 "k8s.io/api/admissionregistration/v1"
+	v1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -222,21 +222,14 @@ var _ = Describe("Installing and upgrading GlooEE via helm", func() {
 			additionalInstallArgs = append(additionalInstallArgs, valuesForProductionRecommendations...)
 
 			expectGatewayProxyIsReady = func() {
-				Eventually(func() (string, error) {
-					a, b := exec_utils.RunCommandOutput(testHelper.RootDir, false,
-						"kubectl", "-n", namespace, "get", "deployment", "gateway-proxy", "-o", "yaml")
-					return a, b
-				}, "30s", "1s").Should(
-					// kubectl -n gloo-system get deployment gateway-proxy -o yaml
-					// ...
-					// readinessProbe:
-					//   httpGet:
-					//     path: /envoy-hc
-					// ...
-					// readyReplicas: 1
-					And(ContainSubstring("readinessProbe:"),
-						ContainSubstring("/envoy-hc"),
-						ContainSubstring("readyReplicas: 1")))
+				var gatewayProxyDeployment *v1.Deployment
+				Eventually(func() *v1.Deployment {
+					gatewayProxyDeployment, err = kubeClientset.AppsV1().Deployments(testHelper.InstallNamespace).Get(ctx, "gateway-proxy", metav1.GetOptions{})
+					Expect(err).To(BeNil())
+					return gatewayProxyDeployment
+				}, "30s", "1s").Should(Not(BeNil()))
+				Expect(gatewayProxyDeployment.Spec.Template.Spec.Containers[0].ReadinessProbe.HTTPGet.Path).To(Equal("/envoy-hc"))
+				Expect(gatewayProxyDeployment.Status.ReadyReplicas).To(Equal(int32(1)))
 			}
 		})
 

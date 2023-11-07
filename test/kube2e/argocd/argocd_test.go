@@ -50,7 +50,7 @@ func installGloo() {
 	// --dest-namespace gloo-system --dest-server https://kubernetes.default.svc \
 	// --sync-option CreateNamespace=true --upsert --values-literal-file helm-override.yaml
 	command := []string{"--core", "app", "create", "gloo-ee",
-		"--repo", repo, "--helm-chart", "gloo-ee", "--revision", version, "--helm-set", "license_key=" + testHelper.LicenseKey,
+		"--repo", repo, "--helm-chart", "gloo-ee", "--revision", testHelper.ChartVersion(), "--helm-set", "license_key=" + testHelper.LicenseKey,
 		"--dest-namespace", "gloo-system", "--dest-server", "https://kubernetes.default.svc",
 		"--sync-option", "CreateNamespace=true", "--upsert", "--values-literal-file", "helm-override.yaml"}
 	fmt.Printf("Running argo command : %s\n", command)
@@ -88,20 +88,20 @@ func checkRolloutJobDeleted() {
 
 func checkGlooHealthyAndSyncedInArgo() {
 	// Get the state of gloo
-	// argocd app get gloo --hard-refresh -o json | jq '.status.health.status'
+	// argocd app get gloo --refresh -o json | jq '.status.health.status'
 	fmt.Println("Checking if gloo is healthy")
 	EventuallyWithOffset(1, func() string {
-		command := "argocd app get gloo-ee --hard-refresh -o json | jq '.status.health.status'"
+		command := "argocd app get gloo-ee --refresh -o json | jq '.status.health.status'"
 		cmd := exec.Command("bash", "-c", command)
 		b, err := cmd.Output()
 		Expect(err).To(BeNil())
 		return string(b)
 	}).Should(
 		ContainSubstring("Healthy"))
-	// argocd app get gloo --hard-refresh -o json | jq '.status.sync.status'
+	// argocd app get gloo --refresh -o json | jq '.status.sync.status'
 	fmt.Println("Checking if gloo is synced")
 	EventuallyWithOffset(1, func() string {
-		command := "argocd app get gloo-ee --hard-refresh -o json | jq '.status.sync.status'"
+		command := "argocd app get gloo-ee --refresh -o json | jq '.status.sync.status'"
 		cmd := exec.Command("bash", "-c", command)
 		b, err := cmd.Output()
 		Expect(err).To(BeNil())

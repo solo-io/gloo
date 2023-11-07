@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: Add argocd tests as part of PR and nightly runs
+

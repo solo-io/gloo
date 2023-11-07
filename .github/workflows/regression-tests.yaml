@@ -106,13 +106,15 @@ jobs:
       fail-fast: false
       matrix:
         # upgrade tests are not run on PRs
-        kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'helm', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}, {test: 'caching', use-fips: 'false'}, {test: 'upgrade', use-fips: 'false'}]
-        kube-version: [{ node: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72', kubectl: 'v1.27.3', kind: 'v0.20.0', helm: 'v3.12.2' }]
+        kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'helm', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}, {test: 'caching', use-fips: 'false'}, {test: 'upgrade', use-fips: 'false'}, {test: 'argocd', use-fips: 'false'}]
+        kube-version: [{ node: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72', kubectl: 'v1.27.3', kind: 'v0.20.0', helm: 'v3.12.2', argocd: 'v2.8.4' }]
         merge-to-main:
           - ${{ github.event.pull_request.base.ref == 'main' }}
         exclude:
           - merge-to-main: true
             kube-e2e-test-type: {test: 'upgrade', use-fips: 'false'}
+          - merge-to-main: false
+            kube-e2e-test-type: {test: 'argocd', use-fips: 'false'}
     steps:
       - uses: actions/checkout@v3
       - id: auto-succeed-tests
