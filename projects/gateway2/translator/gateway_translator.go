@@ -8,11 +8,13 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	"github.com/solo-io/gloo/projects/gateway2/translator/listener"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
+
+type ProxyResult struct {
+	ListenerAndRoutes []listener.ListenerAndRoutes `json:"listener_and_routes"`
+}
 
 // K8sGwTranslator This translator Translates K8s Gateway resources into Gloo Edege Proxies.
 type K8sGwTranslator interface {
@@ -24,7 +26,7 @@ type K8sGwTranslator interface {
 		gateway *gwv1.Gateway,
 		queries query.GatewayQueries,
 		reporter reports.Reporter,
-	) *v1.Proxy
+	) *ProxyResult
 }
 
 func NewTranslator() K8sGwTranslator {
@@ -42,7 +44,7 @@ func (t *translator) TranslateProxy(
 	gateway *gwv1.Gateway,
 	queries query.GatewayQueries,
 	reporter reports.Reporter,
-) *v1.Proxy {
+) *ProxyResult {
 	if !listener.ValidateGateway(gateway, queries, reporter) {
 		return nil
 	}
@@ -79,18 +81,5 @@ func (t *translator) TranslateProxy(
 		reporter,
 	)
 
-	return &v1.Proxy{
-		Metadata:  proxyMetadata(gateway),
-		Listeners: listeners,
-	}
-}
-
-func proxyMetadata(gateway *gwv1.Gateway) *core.Metadata {
-	// TODO(ilackarms) what should the proxy ID be
-	// ROLE ON ENVOY MUST MATCH <proxy_namespace>~<proxy_name>
-	// equal to role: {{.Values.settings.writeNamespace | default .Release.Namespace }}~{{ $name | kebabcase }}
-	return &core.Metadata{
-		Name:      gateway.Name,
-		Namespace: gateway.Namespace,
-	}
+	return &ProxyResult{ListenerAndRoutes: listeners}
 }
