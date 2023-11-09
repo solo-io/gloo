@@ -293,7 +293,7 @@
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
 |gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
 |gloo.gloo.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for Gloo Edge (default is false).|
-|gloo.gloo.deployment.ossImageTag|string|1.16.0-beta20|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
+|gloo.gloo.deployment.ossImageTag|string|1.16.0-beta24|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
 |gloo.gloo.deployment.podSecurityContext.seLinuxOptions.user|string|||
 |gloo.gloo.deployment.podSecurityContext.seLinuxOptions.role|string|||
 |gloo.gloo.deployment.podSecurityContext.seLinuxOptions.type|string|||
@@ -474,7 +474,7 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.certGenJob.image.tag|string|1.16.0-beta20|The image tag for the container.|
+|gloo.gateway.certGenJob.image.tag|string|1.16.0-beta24|The image tag for the container.|
 |gloo.gateway.certGenJob.image.repository|string|certgen|The image repository (name) for the container.|
 |gloo.gateway.certGenJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.certGenJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -541,7 +541,7 @@
 |gloo.gateway.rolloutJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
 |gloo.gateway.rolloutJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
 |gloo.gateway.rolloutJob.enabled|bool||Enable the job that applies default Gloo Edge custom resources at install and upgrade time (default true).|
-|gloo.gateway.rolloutJob.image.tag|string|1.16.0-beta20|The image tag for the container.|
+|gloo.gateway.rolloutJob.image.tag|string|1.16.0-beta24|The image tag for the container.|
 |gloo.gateway.rolloutJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.rolloutJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.rolloutJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -578,7 +578,7 @@
 |gloo.gateway.cleanupJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
 |gloo.gateway.cleanupJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
 |gloo.gateway.cleanupJob.enabled|bool||Enable the job that removes Gloo Edge custom resources when Gloo Edge is uninstalled (default true).|
-|gloo.gateway.cleanupJob.image.tag|string|1.16.0-beta20|The image tag for the container.|
+|gloo.gateway.cleanupJob.image.tag|string|1.16.0-beta24|The image tag for the container.|
 |gloo.gateway.cleanupJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.cleanupJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.cleanupJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -1619,6 +1619,7 @@
 |gloo-fed.global.configMaps[].name|string||Name of the ConfigMap to create (required).|
 |gloo-fed.global.configMaps[].namespace|string||Namespace in which to create the ConfigMap. If empty, defaults to Gloo Edge install namespace.|
 |gloo-fed.global.configMaps[].data.NAME|string||Key-value pairs of ConfigMap data.|
+|gloo-fed.global.extraCustomResources|bool||Add additional custom resources to create, as defined by a helm partial. Defaults to false in open source, and true in enterprise.|
 |gloo-fed.global.console.readOnly|bool||If true, then custom resources can only be viewed in read-only mode in the UI. If false, then resources can be created, updated, and deleted via the UI (default false).|
 |gloo-fed.global.console.apiExplorerEnabled|bool||Whether the GraphQL API Explorer is enabled (default true).|
 |gloo-fed.enabled|bool||If true, deploy federation service (default true).|
@@ -2136,7 +2137,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.16.0-beta20|The image tag for the container.|
+|global.glooMtls.sds.image.tag|string|1.16.0-beta24|The image tag for the container.|
 |global.glooMtls.sds.image.repository|string|sds|The image repository (name) for the container.|
 |global.glooMtls.sds.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |global.glooMtls.sds.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -2245,6 +2246,7 @@
 |global.configMaps[].name|string||Name of the ConfigMap to create (required).|
 |global.configMaps[].namespace|string||Namespace in which to create the ConfigMap. If empty, defaults to Gloo Edge install namespace.|
 |global.configMaps[].data.NAME|string||Key-value pairs of ConfigMap data.|
+|global.extraCustomResources|bool|true|Add additional custom resources to create, as defined by a helm partial. Defaults to false in open source, and true in enterprise.|
 |global.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
 |global.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |global.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|

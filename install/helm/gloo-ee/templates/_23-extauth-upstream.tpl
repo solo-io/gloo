@@ -1,4 +1,8 @@
-{{- define "glooe.customResources.extauthUpstreams" -}}
+{{/*
+As this gets the values context from OSS, $ will refer to the OSS values context.
+If additional fields are required, add them at https://github.com/solo-io/gloo/blob/0429470a3f671b1137b36abe105f5df3d583d53f/install/helm/gloo/templates/5-resource-configmap.yaml#L17
+*/}}
+{{- define "gloo.extraCustomResources.extauthUpstreams" -}}
 {{- if .Values.global.extensions.extAuth.enabled }}
 {{- $extAuth := .Values.global.extensions.extAuth }}
 {{- $extAuthName := $extAuth.service.name }}
@@ -59,4 +63,4 @@ spec:
 {{- end }}{{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
 {{- end }}{{/* $extAuth.standaloneDeployment */}}
 {{- end }}{{/* .Values.global.extensions.extAuth.enabled */}}
-{{- end }}{{/* define "glooe.customResources.extauthUpstreams" */}}
+{{- end }}{{/* define "gloo.extraCustomResources.extauthUpstreams" */}}

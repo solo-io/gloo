@@ -82,8 +82,7 @@ func checkRolloutJobDeleted() {
 		Expect(err).To(BeNil())
 		return string(b)
 	}, "60s", "10s").ShouldNot(
-		And(ContainSubstring("gloo-resource-rollout "),
-			ContainSubstring("gloo-ee-resource-rollout ")))
+		ContainSubstring("gloo-resource-rollout "))
 }
 
 func checkGlooHealthyAndSyncedInArgo() {

@@ -1412,6 +1412,17 @@ export class OidcAuthorizationCode extends jspb.Message {
   getClientAuthentication(): OidcAuthorizationCode.ClientAuthentication | undefined;
   setClientAuthentication(value?: OidcAuthorizationCode.ClientAuthentication): void;
 
+  hasDefault(): boolean;
+  clearDefault(): void;
+  getDefault(): OidcAuthorizationCode.Default | undefined;
+  setDefault(value?: OidcAuthorizationCode.Default): void;
+
+  hasAzure(): boolean;
+  clearAzure(): void;
+  getAzure(): OidcAuthorizationCode.Azure | undefined;
+  setAzure(value?: OidcAuthorizationCode.Azure): void;
+
+  getProviderCase(): OidcAuthorizationCode.ProviderCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
   static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
@@ -1448,6 +1459,8 @@ export namespace OidcAuthorizationCode {
     accessToken?: OidcAuthorizationCode.AccessToken.AsObject,
     identityToken?: OidcAuthorizationCode.IdentityToken.AsObject,
     clientAuthentication?: OidcAuthorizationCode.ClientAuthentication.AsObject,
+    pb_default?: OidcAuthorizationCode.Default.AsObject,
+    azure?: OidcAuthorizationCode.Azure.AsObject,
   }
 
   export class AccessToken extends jspb.Message {
@@ -1583,6 +1596,64 @@ export namespace OidcAuthorizationCode {
       CLIENT_SECRET = 1,
       PRIVATE_KEY_JWT = 2,
     }
+  }
+
+  export class Default extends jspb.Message {
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Default.AsObject;
+    static toObject(includeInstance: boolean, msg: Default): Default.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Default, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Default;
+    static deserializeBinaryFromReader(message: Default, reader: jspb.BinaryReader): Default;
+  }
+
+  export namespace Default {
+    export type AsObject = {
+    }
+  }
+
+  export class Azure extends jspb.Message {
+    getClientId(): string;
+    setClientId(value: string): void;
+
+    getTenantId(): string;
+    setTenantId(value: string): void;
+
+    hasClientSecret(): boolean;
+    clearClientSecret(): void;
+    getClientSecret(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+    setClientSecret(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+    hasClaimsCachingOptions(): boolean;
+    clearClaimsCachingOptions(): void;
+    getClaimsCachingOptions(): RedisOptions | undefined;
+    setClaimsCachingOptions(value?: RedisOptions): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Azure.AsObject;
+    static toObject(includeInstance: boolean, msg: Azure): Azure.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Azure, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Azure;
+    static deserializeBinaryFromReader(message: Azure, reader: jspb.BinaryReader): Azure;
+  }
+
+  export namespace Azure {
+    export type AsObject = {
+      clientId: string,
+      tenantId: string,
+      clientSecret?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+      claimsCachingOptions?: RedisOptions.AsObject,
+    }
+  }
+
+  export enum ProviderCase {
+    PROVIDER_NOT_SET = 0,
+    DEFAULT = 26,
+    AZURE = 27,
   }
 }
 
@@ -3115,6 +3186,17 @@ export namespace ExtAuthConfig {
     getIdentityToken(): ExtAuthConfig.OidcAuthorizationCodeConfig.IdentityToken | undefined;
     setIdentityToken(value?: ExtAuthConfig.OidcAuthorizationCodeConfig.IdentityToken): void;
 
+    hasDefault(): boolean;
+    clearDefault(): void;
+    getDefault(): ExtAuthConfig.OidcAuthorizationCodeConfig.Default | undefined;
+    setDefault(value?: ExtAuthConfig.OidcAuthorizationCodeConfig.Default): void;
+
+    hasAzure(): boolean;
+    clearAzure(): void;
+    getAzure(): ExtAuthConfig.OidcAuthorizationCodeConfig.Azure | undefined;
+    setAzure(value?: ExtAuthConfig.OidcAuthorizationCodeConfig.Azure): void;
+
+    getProviderCase(): OidcAuthorizationCodeConfig.ProviderCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
     static toObject(includeInstance: boolean, msg: OidcAuthorizationCodeConfig): OidcAuthorizationCodeConfig.AsObject;
@@ -3150,6 +3232,8 @@ export namespace ExtAuthConfig {
       pkJwtClientAuthenticationConfig?: ExtAuthConfig.OidcAuthorizationCodeConfig.PkJwtClientAuthenticationConfig.AsObject,
       accessToken?: ExtAuthConfig.OidcAuthorizationCodeConfig.AccessToken.AsObject,
       identityToken?: ExtAuthConfig.OidcAuthorizationCodeConfig.IdentityToken.AsObject,
+      pb_default?: ExtAuthConfig.OidcAuthorizationCodeConfig.Default.AsObject,
+      azure?: ExtAuthConfig.OidcAuthorizationCodeConfig.Azure.AsObject,
     }
 
     export class PkJwtClientAuthenticationConfig extends jspb.Message {
@@ -3248,6 +3332,62 @@ export namespace ExtAuthConfig {
       export type AsObject = {
         claimsToHeadersList: Array<ExtAuthConfig.OidcAuthorizationCodeConfig.ClaimToHeader.AsObject>,
       }
+    }
+
+    export class Default extends jspb.Message {
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): Default.AsObject;
+      static toObject(includeInstance: boolean, msg: Default): Default.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: Default, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): Default;
+      static deserializeBinaryFromReader(message: Default, reader: jspb.BinaryReader): Default;
+    }
+
+    export namespace Default {
+      export type AsObject = {
+      }
+    }
+
+    export class Azure extends jspb.Message {
+      getClientId(): string;
+      setClientId(value: string): void;
+
+      getTenantId(): string;
+      setTenantId(value: string): void;
+
+      getClientSecret(): string;
+      setClientSecret(value: string): void;
+
+      hasClaimsCachingOptions(): boolean;
+      clearClaimsCachingOptions(): void;
+      getClaimsCachingOptions(): RedisOptions | undefined;
+      setClaimsCachingOptions(value?: RedisOptions): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): Azure.AsObject;
+      static toObject(includeInstance: boolean, msg: Azure): Azure.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: Azure, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): Azure;
+      static deserializeBinaryFromReader(message: Azure, reader: jspb.BinaryReader): Azure;
+    }
+
+    export namespace Azure {
+      export type AsObject = {
+        clientId: string,
+        tenantId: string,
+        clientSecret: string,
+        claimsCachingOptions?: RedisOptions.AsObject,
+      }
+    }
+
+    export enum ProviderCase {
+      PROVIDER_NOT_SET = 0,
+      DEFAULT = 26,
+      AZURE = 27,
     }
   }
 

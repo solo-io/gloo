@@ -1011,9 +1011,9 @@ gloo:
 					})
 					Expect(err).NotTo(HaveOccurred())
 					// upstreams are stored as yaml in a configmap
-					configMap := getConfigMap(testManifest, namespace, "gloo-ee-custom-resource-config")
+					configMap := getConfigMap(testManifest, namespace, "gloo-custom-resource-config")
 					Expect(configMap.Data).ToNot(BeNil())
-					Expect(configMap.Data["custom-resources"]).NotTo(BeEmpty())
+					Expect(configMap.Data["extra-custom-resources"]).NotTo(BeEmpty())
 
 					assertExpectedResourcesForProxy := func(proxyName string) {
 						// RateLimit
@@ -1023,7 +1023,7 @@ gloo:
 						// Deployment and Service
 						Expect(gatewayProxyRateLimitResources.NumResources()).To(Equal(2), fmt.Sprintf("%s: Expecting RateLimit Deployment and Service", proxyName))
 						// Upstream
-						Expect(strings.Count(configMap.Data["custom-resources"], fmt.Sprintf("gloo: rate-limit-%s", proxyName))).To(Equal(1), fmt.Sprintf("%s: Expecting RateLimit Upstream", proxyName))
+						Expect(strings.Count(configMap.Data["extra-custom-resources"], fmt.Sprintf("gloo: rate-limit-%s", proxyName))).To(Equal(1), fmt.Sprintf("%s: Expecting RateLimit Upstream", proxyName))
 
 						// Redis
 						gatewayProxyRedisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
@@ -1039,7 +1039,7 @@ gloo:
 						// Deployment and Service
 						Expect(gatewayProxyExtAuthResources.NumResources()).To(Equal(2), fmt.Sprintf("%s: Expecting Extauth Deployment and Service", proxyName))
 						// Upstream
-						Expect(strings.Count(configMap.Data["custom-resources"], fmt.Sprintf("gloo: extauth-%s", proxyName))).To(Equal(1), fmt.Sprintf("%s: Expecting Extauth Upstream", proxyName))
+						Expect(strings.Count(configMap.Data["extra-custom-resources"], fmt.Sprintf("gloo: extauth-%s", proxyName))).To(Equal(1), fmt.Sprintf("%s: Expecting Extauth Upstream", proxyName))
 					}
 
 					assertExpectedResourcesForProxy("gateway-proxy")
@@ -1767,15 +1767,15 @@ gloo:
 					})
 					Expect(err).NotTo(HaveOccurred())
 					// upstreams are stored as yaml in a configmap
-					configMap := getConfigMap(testManifest, namespace, "gloo-ee-custom-resource-config")
+					configMap := getConfigMap(testManifest, namespace, "gloo-custom-resource-config")
 					Expect(configMap.Data).ToNot(BeNil())
-					Expect(configMap.Data["custom-resources"]).NotTo(BeEmpty())
+					Expect(configMap.Data["extra-custom-resources"]).NotTo(BeEmpty())
 
 					rateLimitResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
 						return unstructured.GetLabels()["gloo"] == "rate-limit"
 					})
 					Expect(rateLimitResources.NumResources()).To(Equal(3), "Expecting RateLimit Deployment, Service, and ServiceAccount")
-					Expect(strings.Count(configMap.Data["custom-resources"], "gloo: rate-limit")).To(Equal(1), "Expecting RateLimit Upstream")
+					Expect(strings.Count(configMap.Data["extra-custom-resources"], "gloo: rate-limit")).To(Equal(1), "Expecting RateLimit Upstream")
 
 					redisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
 						return unstructured.GetLabels()["gloo"] == "redis"
@@ -1786,7 +1786,7 @@ gloo:
 						return unstructured.GetLabels()["gloo"] == "extauth"
 					})
 					Expect(extAuthResources.NumResources()).To(Equal(4), "Expecting ExtAuth Deployment, Service, ServiceAccount, and Secret")
-					Expect(strings.Count(configMap.Data["custom-resources"], "gloo: extauth")).To(Equal(1), "Expecting ExtAuth Upstream")
+					Expect(strings.Count(configMap.Data["extra-custom-resources"], "gloo: extauth")).To(Equal(1), "Expecting ExtAuth Upstream")
 				})
 
 				It("Redis/Extauth objects are built when default gwProxy is disabled and custom gwProxy has name starting with [a-f]", func() {
@@ -1838,15 +1838,15 @@ gloo:
 					})
 					Expect(err).NotTo(HaveOccurred())
 					// upstreams are stored as yaml in a configmap
-					configMap := getConfigMap(testManifest, namespace, "gloo-ee-custom-resource-config")
+					configMap := getConfigMap(testManifest, namespace, "gloo-custom-resource-config")
 					Expect(configMap.Data).ToNot(BeNil())
-					Expect(configMap.Data["custom-resources"]).NotTo(BeEmpty())
+					Expect(configMap.Data["extra-custom-resources"]).NotTo(BeEmpty())
 
 					rateLimitResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
 						return unstructured.GetLabels()["gloo"] == "rate-limit"
 					})
 					Expect(rateLimitResources.NumResources()).To(Equal(3), "Expecting RateLimit Deployment, Service, and ServiceAccount")
-					Expect(strings.Count(configMap.Data["custom-resources"], "gloo: rate-limit")).To(Equal(1), "Expecting RateLimit Upstream")
+					Expect(strings.Count(configMap.Data["extra-custom-resources"], "gloo: rate-limit")).To(Equal(1), "Expecting RateLimit Upstream")
 
 					redisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
 						return unstructured.GetLabels()["gloo"] == "redis"
@@ -5552,10 +5552,10 @@ spec:
 				// some resources are contained directly in the manifest, and custom resources (upstreams) are
 				// stored in a configmap, so we need to get the total from both places
 				countFromResources := resources.NumResources()
-				configMap := getConfigMap(testManifest, namespace, "gloo-ee-custom-resource-config")
+				configMap := getConfigMap(testManifest, namespace, "gloo-custom-resource-config")
 				Expect(configMap.Data).ToNot(BeNil())
-				Expect(configMap.Data["custom-resources"]).NotTo(BeEmpty())
-				countFromConfigMap := strings.Count(configMap.Data["custom-resources"], "overriddenLabel: label")
+				Expect(configMap.Data["extra-custom-resources"]).NotTo(BeEmpty())
+				countFromConfigMap := strings.Count(configMap.Data["extra-custom-resources"], "overriddenLabel: label")
 				Expect(countFromResources + countFromConfigMap).To(Equal(1))
 			},
 				Entry("0-redis-service", "redis.service.kubeResourceOverride"),
@@ -5582,82 +5582,7 @@ spec:
 				// getJob will fail if the job doesn't exist
 				_ = getJob(testManifest, namespace, "gloo-resource-migration")
 				_ = getJob(testManifest, namespace, "gloo-resource-rollout")
-				_ = getJob(testManifest, namespace, "gloo-ee-resource-rollout")
 				_ = getJob(testManifest, namespace, "gloo-resource-cleanup")
-			})
-
-			It("can override fields on the EE rollout jobs", func() {
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{
-						// image
-						"gloo.gateway.rolloutJob.image.registry=myreg",
-						"gloo.gateway.rolloutJob.image.repository=myrepo",
-						"gloo.gateway.rolloutJob.image.tag=mytag",
-						// job spec
-						"gloo.gateway.rolloutJob.activeDeadlineSeconds=23",
-						"gloo.gateway.rolloutJob.ttlSecondsAfterFinished=34",
-						"gloo.gateway.rolloutJob.backoffLimit=45",
-						"gloo.gateway.rolloutJob.completions=56",
-						"gloo.gateway.rolloutJob.manualSelector=true",
-						"gloo.gateway.rolloutJob.parallelism=67",
-						// pod spec
-						"gloo.gateway.rolloutJob.nodeSelector.label=someLabel",
-						"gloo.gateway.rolloutJob.nodeName=someNodeName",
-						"gloo.gateway.rolloutJob.tolerations[0].value=someToleration",
-						"gloo.gateway.rolloutJob.hostAliases[0].ip=1.2.3.4",
-						"gloo.gateway.rolloutJob.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight=8",
-						"gloo.gateway.rolloutJob.restartPolicy=Always",
-						// security context
-						"gloo.gateway.rolloutJob.runAsUser=12345",
-						// resources
-						"gloo.gateway.rolloutJob.resources.requests.memory=100Mi",
-						"gloo.gateway.rolloutJob.resources.requests.cpu=200m",
-						"gloo.gateway.rolloutJob.resources.limits.memory=300Mi",
-						"gloo.gateway.rolloutJob.resources.limits.cpu=400m",
-						// linkerd
-						"gloo.settings.linkerd=true",
-						// timeout
-						"gloo.gateway.rolloutJob.timeout=800",
-					},
-				})
-				Expect(err).NotTo(HaveOccurred())
-				job := getJob(testManifest, namespace, "gloo-ee-resource-rollout")
-
-				// istio injection should always be disabled
-				istioInject, ok := job.Spec.Template.ObjectMeta.Labels["sidecar.istio.io/inject"]
-				Expect(ok).To(BeTrue())
-				Expect(istioInject).To(Equal("false"))
-				// linkerd injection should be disabled if linkerd is enabled
-				linkerdInject, ok := job.Spec.Template.ObjectMeta.Annotations["linkerd.io/inject"]
-				Expect(ok).To(BeTrue())
-				Expect(linkerdInject).To(Equal("disabled"))
-				// image
-				Expect(job.Spec.Template.Spec.Containers[0].Image).To(Equal("myreg/myrepo:mytag"))
-				// job spec
-				Expect(job.Spec.ActiveDeadlineSeconds).To(Equal(pointer.Int64Ptr(23)))
-				Expect(job.Spec.TTLSecondsAfterFinished).To(Equal(pointer.Int32Ptr(34)))
-				Expect(job.Spec.BackoffLimit).To(Equal(pointer.Int32Ptr(45)))
-				Expect(job.Spec.Completions).To(Equal(pointer.Int32Ptr(56)))
-				Expect(job.Spec.ManualSelector).To(Equal(pointer.BoolPtr(true)))
-				Expect(job.Spec.Parallelism).To(Equal(pointer.Int32Ptr(67)))
-				// pod spec
-				Expect(job.Spec.Template.Spec.NodeSelector).To(Equal(map[string]string{"label": "someLabel"}))
-				Expect(job.Spec.Template.Spec.NodeName).To(Equal("someNodeName"))
-				Expect(job.Spec.Template.Spec.Tolerations[0].Value).To(Equal("someToleration"))
-				Expect(job.Spec.Template.Spec.HostAliases[0].IP).To(Equal("1.2.3.4"))
-				Expect(job.Spec.Template.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution[0].Weight).To(Equal(int32(8)))
-				Expect(job.Spec.Template.Spec.RestartPolicy).To(Equal(v1.RestartPolicyAlways))
-				// security context
-				Expect(job.Spec.Template.Spec.Containers[0].SecurityContext.RunAsUser).To(Equal(pointer.Int64Ptr(12345)))
-				// resources
-				Expect(job.Spec.Template.Spec.Containers[0].Resources.Requests.Memory().String()).To(Equal("100Mi"))
-				Expect(job.Spec.Template.Spec.Containers[0].Resources.Requests.Cpu().String()).To(Equal("200m"))
-				Expect(job.Spec.Template.Spec.Containers[0].Resources.Limits.Memory().String()).To(Equal("300Mi"))
-				Expect(job.Spec.Template.Spec.Containers[0].Resources.Limits.Cpu().String()).To(Equal("400m"))
-				Expect(err).NotTo(HaveOccurred())
-				// timeout
-				checkJob := getJob(testManifest, namespace, "gloo-ee-resource-rollout-check")
-				Expect(checkJob.Spec.Template.Spec.Containers[0].Command[2]).To(ContainSubstring("--timeout=800s || exit 1"))
 			})
 
 			It("applies extauth and ratelimit upstreams", func() {
@@ -5667,20 +5592,20 @@ spec:
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				configMap := getConfigMap(testManifest, namespace, "gloo-ee-custom-resource-config")
+				configMap := getConfigMap(testManifest, namespace, "gloo-custom-resource-config")
 				Expect(configMap.Data).ToNot(BeNil())
-				Expect(configMap.Data["custom-resources"]).NotTo(BeEmpty())
-				Expect(configMap.Data["custom-resources"]).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
+				Expect(configMap.Data["extra-custom-resources"]).NotTo(BeEmpty())
+				Expect(configMap.Data["extra-custom-resources"]).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   name: extauth
   namespace: ` + namespace))
-				Expect(configMap.Data["custom-resources"]).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
+				Expect(configMap.Data["extra-custom-resources"]).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   name: extauth-sidecar
   namespace: ` + namespace))
-				Expect(configMap.Data["custom-resources"]).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
+				Expect(configMap.Data["extra-custom-resources"]).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   name: rate-limit
@@ -5695,10 +5620,10 @@ metadata:
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				configMap := getConfigMap(testManifest, namespace, "gloo-ee-custom-resource-config")
+				configMap := getConfigMap(testManifest, namespace, "gloo-custom-resource-config")
 				Expect(configMap.Data).ToNot(BeNil())
-				Expect(configMap.Data["custom-resources"]).NotTo(ContainSubstring("kind: Upstream"))
-				Expect(configMap.Data["has-custom-resources"]).To(Equal("false"))
+				Expect(configMap.Data["extra-custom-resources"]).NotTo(ContainSubstring("kind: Upstream"))
+				Expect(configMap.Data["has-extra-custom-resources"]).To(Equal("false"))
 			})
 		})
 
@@ -5758,7 +5683,6 @@ metadata:
 				Entry("resource rollout job", "Job", "gloo-resource-rollout", "gloo.gateway.rolloutJob"),
 				Entry("resource migration job", "Job", "gloo-resource-migration", "gloo.gateway.rolloutJob"),
 				Entry("resource cleanup job", "Job", "gloo-resource-cleanup", "gloo.gateway.cleanupJob"),
-				Entry("ee resource rollout job", "Job", "gloo-ee-resource-rollout", "gloo.gateway.rolloutJob"),
 			)
 
 			DescribeTable("setTtlAfterFinished=false suppresses ttlSecondsAfterFinished on Jobs",
@@ -5874,7 +5798,6 @@ metadata:
 				Entry("resource rollout job", "Job", "gloo-resource-rollout", "gloo.gateway.rolloutJob", false),
 				Entry("resource migration job", "Job", "gloo-resource-migration", "gloo.gateway.rolloutJob", false),
 				Entry("resource cleanup job", "Job", "gloo-resource-cleanup", "gloo.gateway.cleanupJob", false),
-				Entry("ee resource rollout job", "Job", "gloo-ee-resource-rollout", "gloo.gateway.rolloutJob", false),
 			)
 		})
 
@@ -5894,11 +5817,11 @@ metadata:
 				}
 				// skip all the content within the custom resource configmap since there is extra whitespace
 				// that can't be removed
-				if strings.Contains(line, "custom-resources: |") {
+				if strings.Contains(line, "extra-custom-resources: |") {
 					skip = true
 					continue
 				}
-				if strings.Contains(line, "has-custom-resources:") {
+				if strings.Contains(line, "has-extra-custom-resources:") {
 					skip = false
 				}
 				if !skip && strings.TrimRightFunc(line, unicode.IsSpace) != line {

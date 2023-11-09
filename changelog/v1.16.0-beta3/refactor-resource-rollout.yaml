@@ -1,0 +1,9 @@
+changelog:
+- type: HELM
+  issueLink: https://github.com/solo-io/solo-projects/issues/5490
+  resolvesIssue: true
+  description: Delegate creating CRs to the OSS resource rollout job.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.16.0-beta24
