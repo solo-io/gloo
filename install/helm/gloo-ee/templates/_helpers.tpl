@@ -222,7 +222,7 @@ Expand the name of the chart.
   - mountPath: {{ .mountPath }}
     name: user-session-cert-{{ .secretName }}
   {{- end }}{{/* range $extAuth.deployment.redis.certs */}}
-  {{- end }}{{/* $extAuth.deployment.redis */}}   
+  {{- end }}{{/* $extAuth.deployment.redis */}}
   {{- end }}{{/* if or volumeMounts */}}
 {{- end }}{{/* define "gloo.extauthcontainer" */}}
 
@@ -234,6 +234,9 @@ Expand the name of the chart.
      correct contents (i.e., if `dataplanePerProxy` is false, just pick any proxy to do the render).
 
      Pulled this logic out into a helm helper so we don't have to duplicate it everywhere it's needed
+
+     As this can sometimes get the values context from OSS (when creating the upstream CRs), $ will refer to the OSS values context.
+     If additional fields are required, add them at https://github.com/solo-io/gloo/blob/0429470a3f671b1137b36abe105f5df3d583d53f/install/helm/gloo/templates/5-resource-configmap.yaml#L17
  */}}
 {{- define "gloo.dataplaneperproxyhelper" -}}
 {{- $proxiesToCreateDataplaneFor := dict }}

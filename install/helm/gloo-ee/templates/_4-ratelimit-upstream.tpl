@@ -31,7 +31,11 @@ spec:
 {{- end }}{{/* with (first .) */}}
 {{- end }}{{/* define "ratelimit.upstreamSpec" */}}
 
-{{- define "glooe.customResources.ratelimitUpstreams" -}}
+{{/*
+As this gets the values context from OSS, $ will refer to the OSS values context.
+If additional fields are required, add them at https://github.com/solo-io/gloo/blob/0429470a3f671b1137b36abe105f5df3d583d53f/install/helm/gloo/templates/5-resource-configmap.yaml#L17
+*/}}
+{{- define "gloo.extraCustomResources.ratelimitUpstreams" -}}
 {{- if .Values.global.extensions.rateLimit.enabled }}
 {{- include "gloo.dataplaneperproxyhelper" $ }}
 {{- $override := dict -}}
@@ -45,4 +49,4 @@ spec:
 {{- end }}{{/* if not $spec.disabled */}}
 {{- end }}{{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
 {{- end }}{{/* .Values.global.extensions.rateLimit.enabled */}}
-{{- end }}{{/* define "glooe.customResources.ratelimitUpstreams" */}}
+{{- end }}{{/* define "gloo.extraCustomResources.ratelimitUpstreams" */}}
