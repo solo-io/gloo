@@ -2,11 +2,13 @@ package argocd_test
 
 import (
 	"fmt"
+	"os/exec"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/solo-io/gloo/test/helpers"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
+	"github.com/solo-io/solo-projects/test/kube2e"
 )
 
 func TestArgoCD(t *testing.T) {
@@ -22,28 +24,31 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
-	uninstallArgoCD()
+	cleanup()
 })
 
 func installArgoCD() {
 	fmt.Println("Installing ArgoCD")
 	// helm repo add argo https://argoproj.github.io/argo-helm
-	runAndCleanCommand("helm", "repo", "add", "argo", "https://argoproj.github.io/argo-helm")
+	kube2e.RunAndCleanCommand("helm", "repo", "add", "argo", "https://argoproj.github.io/argo-helm")
 
 	// helm install argocd argo/argo-cd --wait
-	runAndCleanCommand("helm", "install", "argocd", "argo/argo-cd", "--wait")
+	kube2e.RunAndCleanCommand("helm", "install", "argocd", "argo/argo-cd", "--wait")
 }
 
-func uninstallArgoCD() {
-	fmt.Println("Uninstalling ArgoCD")
+func cleanup() {
+	fmt.Println("Cleanup")
 	uninstallGloo()
 
+	// "kubectl delete -f ./artifacts/helm-repo.yaml
+	cmd := exec.Command("kubectl", "delete", "-f", "./artifacts/helm-repo.yaml")
+	cmd.Output()
 	// helm uninstall argocd --wait
-	runAndCleanCommand("helm", "uninstall", "argocd", "--wait")
+	kube2e.RunAndCleanCommand("helm", "uninstall", "argocd", "--wait")
 }
 
 func deployHelmRepo() {
 	fmt.Println("Deploying helm repo")
-	// ./deploy-helm-server.sh
-	runAndCleanCommand("./deploy-helm-server.sh")
+	// ./artifacts/deploy-helm-server.sh
+	kube2e.RunAndCleanCommand("./artifacts/deploy-helm-server.sh")
 }

@@ -35,6 +35,7 @@ var _ = Describe("Kube2e: ArgoCD", func() {
 		// Sync once more to simulate an upgrade
 		syncGloo()
 		checkGlooHealthy(testHelper)
+		checkGlooHealthyAndSyncedInArgo()
 
 		uninstallGloo()
 	})
@@ -48,13 +49,13 @@ func installGloo() {
 	// argocd --core app create gloo \
 	// --repo http://helm-repo/ --helm-chart gloo --revision $VERSION \
 	// --dest-namespace gloo-system --dest-server https://kubernetes.default.svc \
-	// --sync-option CreateNamespace=true --upsert --values-literal-file helm-override.yaml
+	// --sync-option CreateNamespace=true --upsert --values-literal-file ./artifacts/helm-override.yaml
 	command := []string{"--core", "app", "create", "gloo-ee",
 		"--repo", repo, "--helm-chart", "gloo-ee", "--revision", testHelper.ChartVersion(), "--helm-set", "license_key=" + testHelper.LicenseKey,
 		"--dest-namespace", "gloo-system", "--dest-server", "https://kubernetes.default.svc",
-		"--sync-option", "CreateNamespace=true", "--upsert", "--values-literal-file", "helm-override.yaml"}
+		"--sync-option", "CreateNamespace=true", "--upsert", "--values-literal-file", "./artifacts/helm-override.yaml"}
 	fmt.Printf("Running argo command : %s\n", command)
-	runAndCleanCommand("argocd", command...)
+	kube2e.RunAndCleanCommand("argocd", command...)
 
 	syncGloo()
 }
@@ -63,7 +64,7 @@ func syncGloo() {
 	// argocd --core app sync gloo
 	command := []string{"--core", "app", "sync", "gloo-ee"}
 	fmt.Printf("Running argo command : %s\n", command)
-	runAndCleanCommand("argocd", command...)
+	kube2e.RunAndCleanCommand("argocd", command...)
 }
 
 func uninstallGloo() {
@@ -88,43 +89,27 @@ func checkRolloutJobDeleted() {
 func checkGlooHealthyAndSyncedInArgo() {
 	// Get the state of gloo
 	// argocd app get gloo --refresh -o json | jq '.status.health.status'
-	fmt.Println("Checking if gloo is healthy")
+	fmt.Print("Checking gloo app... ")
 	EventuallyWithOffset(1, func() string {
-		command := "argocd app get gloo-ee --refresh -o json | jq '.status.health.status'"
+		command := "argocd --core app get gloo-ee --refresh -o json | jq '.status.health.status'"
 		cmd := exec.Command("bash", "-c", command)
 		b, err := cmd.Output()
 		Expect(err).To(BeNil())
 		return string(b)
-	}).Should(
+	}, "10s", "2s").Should(
 		ContainSubstring("Healthy"))
+	fmt.Print("Healthy")
 	// argocd app get gloo --refresh -o json | jq '.status.sync.status'
-	fmt.Println("Checking if gloo is synced")
+	fmt.Print(" ... ")
 	EventuallyWithOffset(1, func() string {
-		command := "argocd app get gloo-ee --refresh -o json | jq '.status.sync.status'"
+		command := "argocd --core app get gloo-ee --refresh -o json | jq '.status.sync.status'"
 		cmd := exec.Command("bash", "-c", command)
 		b, err := cmd.Output()
 		Expect(err).To(BeNil())
 		return string(b)
-	}).Should(
+	}, "10s", "2s").Should(
 		ContainSubstring("Synced"))
-}
-
-func runAndCleanCommand(name string, arg ...string) []byte {
-	ctx, _ := context.WithTimeout(context.TODO(), 300*time.Second)
-	cmd := exec.CommandContext(ctx, name, arg...)
-	b, err := cmd.Output()
-	// for debugging in Cloud Build
-	if err != nil {
-		fmt.Println(string(b))
-		fmt.Println(err.Error())
-		if v, ok := err.(*exec.ExitError); ok {
-			fmt.Println("ExitError: ", string(v.Stderr))
-		}
-	}
-	Expect(err).To(BeNil())
-	cmd.Process.Kill()
-	cmd.Process.Release()
-	return b
+	fmt.Println("Synced")
 }
 
 func checkGlooHealthy(testHelper *helper.SoloTestHelper) {
