@@ -4,20 +4,18 @@ import (
 	"context"
 	"time"
 
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
-
-	"github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/options/static"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gloo_types "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
+	"github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/options/static"
 	v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1"
 	gloo_fed_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1/types"
 	fed_core_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
 	mc_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
 	multicluster_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1/types"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation"
+	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -101,83 +99,94 @@ var _ = Describe("Upstream federation", func() {
 		}, 10*time.Second).Should(Succeed())
 	})
 
-	It("works", func() {
-		clientset, err := v1.NewClientsetFromConfig(managementClusterConfig.RestConfig)
-		Expect(err).NotTo(HaveOccurred())
+	DescribeTable("successful federation",
+		func(fedUpstreamName string) {
+			clientset, err := v1.NewClientsetFromConfig(managementClusterConfig.RestConfig)
+			Expect(err).NotTo(HaveOccurred())
 
-		upstreamSpec = &gloo_types.UpstreamSpec{
-			UpstreamType: &gloo_types.UpstreamSpec_Static{
-				Static: &static.UpstreamSpec{
-					Hosts: []*static.Host{{
-						Addr: "solo.io",
-						Port: 80,
-					}},
+			upstreamSpec = &gloo_types.UpstreamSpec{
+				UpstreamType: &gloo_types.UpstreamSpec_Static{
+					Static: &static.UpstreamSpec{
+						Hosts: []*static.Host{{
+							Addr: "solo.io",
+							Port: 80,
+						}},
+					},
 				},
-			},
-		}
-
-		meta = &fed_core_v1.TemplateMetadata{
-			Annotations: map[string]string{"anno": "tation"},
-			Labels:      map[string]string{"label": "printer"},
-			Name:        "charles",
-		}
-
-		fedUpstream = &v1.FederatedUpstream{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: namespace,
-				Name:      "fed-upstream",
-			},
-			Spec: gloo_fed_types.FederatedUpstreamSpec{
-				Template: &gloo_fed_types.FederatedUpstreamSpec_Template{
-					Spec:     upstreamSpec,
-					Metadata: meta,
-				},
-				Placement: &multicluster_types.Placement{
-					Namespaces: []string{namespace},
-					Clusters:   []string{remoteClusterConfig.KubeContext},
-				},
-			},
-		}
-
-		err = clientset.FederatedUpstreams().CreateFederatedUpstream(ctx, fedUpstream)
-		Expect(err).NotTo(HaveOccurred())
-
-		remoteClientSet, err := gloo_v1.NewClientsetFromConfig(remoteClusterConfig.RestConfig)
-		Expect(err).NotTo(HaveOccurred())
-		var resultingUpstream *gloo_v1.Upstream
-		Eventually(func() *gloo_v1.Upstream {
-			resultingUpstream, _ = remoteClientSet.Upstreams().
-				GetUpstream(ctx, types.NamespacedName{Name: meta.Name, Namespace: namespace})
-			return resultingUpstream
-		}, 10*time.Second).ShouldNot(BeNil())
-
-		Expect(resultingUpstream.Spec).To(Equal(*upstreamSpec))
-		Expect(resultingUpstream.Annotations).To(Equal(meta.Annotations))
-		Expect(resultingUpstream.Labels).To(Equal(map[string]string{
-			"label":             "printer",
-			federation.HubOwner: namespace + ".fed-upstream",
-		}))
-
-		Eventually(func() bool {
-			resultingUpstream, _ = remoteClientSet.Upstreams().
-				GetUpstream(ctx, types.NamespacedName{Name: meta.Name, Namespace: namespace})
-			return resultingUpstream.Status.State == gloo_types.UpstreamStatus_Accepted
-		}, 10*time.Second).Should(BeTrue(), "remote upstream should be marked accepted by gloo")
-
-		err = clientset.FederatedUpstreams().
-			DeleteFederatedUpstream(ctx, client.ObjectKey{
-				Name:      fedUpstream.GetName(),
-				Namespace: fedUpstream.GetNamespace(),
-			})
-		Expect(err).NotTo(HaveOccurred())
-
-		Eventually(func() bool {
-			_, err = remoteClientSet.Upstreams().
-				GetUpstream(ctx, types.NamespacedName{Name: meta.Name, Namespace: namespace})
-			if err != nil {
-				return errors.IsNotFound(err)
 			}
-			return false
-		}, 10*time.Second).Should(BeTrue(), "remote upstream should be cleaned up when federated upstream is deleted")
-	})
+
+			meta = &fed_core_v1.TemplateMetadata{
+				Annotations: map[string]string{"anno": "tation"},
+				Labels:      map[string]string{"label": "printer"},
+				Name:        "charles",
+			}
+
+			fedUpstream = &v1.FederatedUpstream{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: namespace,
+					Name:      fedUpstreamName,
+				},
+				Spec: gloo_fed_types.FederatedUpstreamSpec{
+					Template: &gloo_fed_types.FederatedUpstreamSpec_Template{
+						Spec:     upstreamSpec,
+						Metadata: meta,
+					},
+					Placement: &multicluster_types.Placement{
+						Namespaces: []string{namespace},
+						Clusters:   []string{remoteClusterConfig.KubeContext},
+					},
+				},
+			}
+
+			err = clientset.FederatedUpstreams().CreateFederatedUpstream(ctx, fedUpstream)
+			Expect(err).NotTo(HaveOccurred())
+
+			remoteClientSet, err := gloo_v1.NewClientsetFromConfig(remoteClusterConfig.RestConfig)
+			Expect(err).NotTo(HaveOccurred())
+			var resultingUpstream *gloo_v1.Upstream
+			Eventually(func() *gloo_v1.Upstream {
+				resultingUpstream, _ = remoteClientSet.Upstreams().
+					GetUpstream(ctx, types.NamespacedName{Name: meta.Name, Namespace: namespace})
+				return resultingUpstream
+			}, 10*time.Second).ShouldNot(BeNil())
+
+			Expect(resultingUpstream.Spec).To(Equal(*upstreamSpec))
+			// the full owner namespace/name should appear in the annotations
+			fullOwner := federation.GetIdentifier(fedUpstream)
+			Expect(resultingUpstream.Annotations).To(Equal(map[string]string{
+				"anno":              "tation",
+				federation.HubOwner: fullOwner,
+			}))
+			// label values, if over 63 characters, will be shortened
+			shortenedOwner := federation.GetShortenedIdentifier(fedUpstream)
+			Expect(resultingUpstream.Labels).To(Equal(map[string]string{
+				"label":             "printer",
+				federation.HubOwner: shortenedOwner,
+			}))
+
+			Eventually(func() bool {
+				resultingUpstream, _ = remoteClientSet.Upstreams().
+					GetUpstream(ctx, types.NamespacedName{Name: meta.Name, Namespace: namespace})
+				return resultingUpstream.Status.State == gloo_types.UpstreamStatus_Accepted
+			}, 10*time.Second).Should(BeTrue(), "remote upstream should be marked accepted by gloo")
+
+			err = clientset.FederatedUpstreams().
+				DeleteFederatedUpstream(ctx, client.ObjectKey{
+					Name:      fedUpstream.GetName(),
+					Namespace: fedUpstream.GetNamespace(),
+				})
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(func() bool {
+				_, err = remoteClientSet.Upstreams().
+					GetUpstream(ctx, types.NamespacedName{Name: meta.Name, Namespace: namespace})
+				if err != nil {
+					return errors.IsNotFound(err)
+				}
+				return false
+			}, 10*time.Second).Should(BeTrue(), "remote upstream should be cleaned up when federated upstream is deleted")
+		},
+		Entry("short name", "fed-upstream"),
+		Entry("long name", "fed-upstream-00000000001111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990000000000"),
+	)
 })

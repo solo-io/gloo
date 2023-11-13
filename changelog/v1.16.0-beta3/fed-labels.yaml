@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7716
+    resolvesIssue: false
+    description: Ensure that Gloo Fed can create resources with owner label over 63 characters long.
