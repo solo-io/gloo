@@ -89,6 +89,150 @@ var _ = Describe("ValidateAuthConfig", func() {
 			Expect(errStrings).To(
 				ContainSubstring(`Invalid configurations for ldap auth config test-auth.gloo-system`))
 		})
+
+		Context("validate api key", func() {
+			It("should verify api key label selectors contain sane values", func() {
+				authConfig = &extauth.AuthConfig{
+					Metadata: &core.Metadata{
+						Name:      "test-auth",
+						Namespace: "gloo-system",
+					},
+					Configs: []*extauth.AuthConfig_Config{
+						{
+							AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+								ApiKeyAuth: &extauth.ApiKeyAuth{
+									LabelSelector: map[string]string{"": ""},
+								},
+							},
+						},
+						{
+							AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+								ApiKeyAuth: &extauth.ApiKeyAuth{
+									StorageBackend: &extauth.ApiKeyAuth_K8SSecretApikeyStorage{
+										K8SSecretApikeyStorage: &extauth.K8SSecretApiKeyStorage{
+											LabelSelector: map[string]string{"": ""},
+										},
+									},
+								},
+							},
+						},
+						{
+							AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+								ApiKeyAuth: &extauth.ApiKeyAuth{
+									StorageBackend: &extauth.ApiKeyAuth_AerospikeApikeyStorage{
+										AerospikeApikeyStorage: &extauth.AerospikeApiKeyStorage{
+											LabelSelector: map[string]string{"": ""},
+										},
+									},
+								},
+							},
+						},
+						{
+							AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+								ApiKeyAuth: &extauth.ApiKeyAuth{
+									ApiKeySecretRefs: []*core.ResourceRef{
+										{
+											Name:      "ref",
+											Namespace: "gloo-system",
+										},
+									},
+								},
+							},
+						},
+						{
+							AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+								ApiKeyAuth: &extauth.ApiKeyAuth{
+									StorageBackend: &extauth.ApiKeyAuth_K8SSecretApikeyStorage{
+										K8SSecretApikeyStorage: &extauth.K8SSecretApiKeyStorage{
+											ApiKeySecretRefs: []*core.ResourceRef{
+												{
+													Name:      "ref",
+													Namespace: "gloo-system",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+
+				apiSnapshot.AuthConfigs = extauth.AuthConfigList{authConfig}
+				reports := make(reporter.ResourceReports)
+				reports.Accept(apiSnapshot.AuthConfigs.AsInputResources()...)
+				ValidateAuthConfig(authConfig, reports)
+				Expect(reports.ValidateStrict()).To(Not(HaveOccurred()))
+			})
+			It("should verify k8s api key warnings are reported", func() {
+				labelSelector := map[string]string{"": ""}
+				secretRefs := []*core.ResourceRef{
+					{
+						Name:      "ref",
+						Namespace: "gloo-system",
+					},
+				}
+				authConfig = &extauth.AuthConfig{
+					Metadata: &core.Metadata{
+						Name:      "test-auth",
+						Namespace: "gloo-system",
+					},
+					Configs: []*extauth.AuthConfig_Config{
+						{
+							AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+								ApiKeyAuth: &extauth.ApiKeyAuth{
+									LabelSelector: labelSelector,
+									StorageBackend: &extauth.ApiKeyAuth_K8SSecretApikeyStorage{
+										K8SSecretApikeyStorage: &extauth.K8SSecretApiKeyStorage{
+											LabelSelector: labelSelector,
+										},
+									},
+								},
+							},
+						},
+						{
+							AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+								ApiKeyAuth: &extauth.ApiKeyAuth{
+									ApiKeySecretRefs: secretRefs,
+									StorageBackend: &extauth.ApiKeyAuth_K8SSecretApikeyStorage{
+										K8SSecretApikeyStorage: &extauth.K8SSecretApiKeyStorage{
+											ApiKeySecretRefs: secretRefs,
+										},
+									},
+								},
+							},
+						},
+						{
+							AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+								ApiKeyAuth: &extauth.ApiKeyAuth{
+									LabelSelector:    labelSelector,
+									ApiKeySecretRefs: secretRefs,
+									StorageBackend: &extauth.ApiKeyAuth_K8SSecretApikeyStorage{
+										K8SSecretApikeyStorage: &extauth.K8SSecretApiKeyStorage{
+											LabelSelector:    labelSelector,
+											ApiKeySecretRefs: secretRefs,
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+
+				apiSnapshot.AuthConfigs = extauth.AuthConfigList{authConfig}
+				reports := make(reporter.ResourceReports)
+				reports.Accept(apiSnapshot.AuthConfigs.AsInputResources()...)
+				ValidateAuthConfig(authConfig, reports)
+				// Regular validation shouldn't have any reports because there are no `error`s.
+				Expect(reports.Validate()).To(Not(HaveOccurred()))
+				// We are only expecting `warning`s, so we do assertions against the strict validator.
+				Expect(reports.ValidateStrict().Error()).To(And(
+					ContainSubstring("invalid resource gloo-system.test"),
+					ContainSubstring(DeprecatedAPIOverwriteWarning("apikey", "labelSelector")),
+					ContainSubstring(DeprecatedAPIOverwriteWarning("apikey", "apiKeySecretRefs")),
+				))
+			})
+		})
 	})
 
 	Context("validate passthrough authconfig", func() {

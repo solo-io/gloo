@@ -557,9 +557,10 @@ var _ = Describe("Translate", func() {
 		})
 	})
 
+	// These test both the deprecated config and the new config using the k8s storage backend fields.
+	// We are using Contexts set in functions to avoid duplicating the test code.
 	Context("Api Key (k8s secret)", func() {
 		BeforeEach(func() {
-
 			secret = &v1.Secret{
 				Metadata: &core.Metadata{
 					Name:      "secretName",
@@ -570,136 +571,135 @@ var _ = Describe("Translate", func() {
 					ApiKey: apiKey,
 				},
 			}
-			secretRef := secret.Metadata.Ref()
 
 			authConfig = &extauth.AuthConfig{
 				Metadata: &core.Metadata{
 					Name:      "apikey",
 					Namespace: "gloo-system",
 				},
-				Configs: []*extauth.AuthConfig_Config{{
-					AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
-						ApiKeyAuth: &extauth.ApiKeyAuth{
-							HeaderName:       "x-api-key",
-							ApiKeySecretRefs: []*core.ResourceRef{secretRef},
+			}
+		})
+
+		MalformedSecretContext := func() {
+			Context("secret is malformed", func() {
+				It("returns expected error when secret is not of API key type", func() {
+					secret.Kind = &v1.Secret_Aws{}
+					_, err := extauthsyncer.TranslateExtAuthConfig(context.Background(), params.Snapshot, authConfigRef)
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring(extauthsyncer.NonApiKeySecretError(secret).Error())))
+				})
+
+				It("returns expected error when the secret does not contain an API key", func() {
+					secret.GetApiKey().ApiKey = ""
+					_, err := extauthsyncer.TranslateExtAuthConfig(context.Background(), params.Snapshot, authConfigRef)
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring(extauthsyncer.EmptyApiKeyError(secret).Error())))
+				})
+			})
+		}
+
+		SecretRefMatchingContext := func() {
+			Context("with api key extauth, secret ref matching", func() {
+				It("should translate api keys config for extauth server - matching secret ref", func() {
+					translated, err := extauthsyncer.TranslateExtAuthConfig(context.Background(), params.Snapshot, authConfigRef)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+					Expect(translated.Configs).To(HaveLen(1))
+					actual := translated.Configs[0].GetApiKeyAuth()
+					Expect(actual).To(Equal(&extauth.ExtAuthConfig_ApiKeyAuthConfig{
+						HeaderName: "x-api-key",
+						ValidApiKeys: map[string]*extauth.ExtAuthConfig_ApiKeyAuthConfig_KeyMetadata{
+							"apiKey1": {
+								Username: "secretName",
+							},
 						},
-					},
-				}},
-			}
-			authConfigRef = authConfig.Metadata.Ref()
-			extAuthExtension = &extauth.ExtAuthExtension{
-				Spec: &extauth.ExtAuthExtension_ConfigRef{
-					ConfigRef: authConfigRef,
-				},
-			}
+					}))
+				})
 
-			params.Snapshot = &v1snap.ApiSnapshot{
-				AuthConfigs: extauth.AuthConfigList{authConfig},
-			}
-		})
-
-		Context("secret is malformed", func() {
-			It("returns expected error when secret is not of API key type", func() {
-				secret.Kind = &v1.Secret_Aws{}
-				_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring(extauthsyncer.NonApiKeySecretError(secret).Error())))
+				It("should translate api keys config for extauth server - mismatching secret ref", func() {
+					secret.Metadata.Name = "mismatchName"
+					_, err := extauthsyncer.TranslateExtAuthConfig(context.Background(), params.Snapshot, authConfigRef)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("list did not find secret"))
+				})
 			})
+		}
 
-			It("returns expected error when the secret does not contain an API key", func() {
-				secret.GetApiKey().ApiKey = ""
-				_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring(extauthsyncer.EmptyApiKeyError(secret).Error())))
-			})
-		})
+		LabelMatchingContext := func(apiKeyAuth *extauth.ApiKeyAuth) {
+			Context("with api key ext auth, label matching", func() {
+				BeforeEach(func() {
+					authConfig = &extauth.AuthConfig{
+						Metadata: &core.Metadata{
+							Name:      "apikey",
+							Namespace: "gloo-system",
+						},
+						Configs: []*extauth.AuthConfig_Config{{
+							AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+								ApiKeyAuth: apiKeyAuth,
+							},
+						}},
+					}
+					authConfigRef = authConfig.Metadata.Ref()
+					extAuthExtension = &extauth.ExtAuthExtension{
+						Spec: &extauth.ExtAuthExtension_ConfigRef{
+							ConfigRef: authConfigRef,
+						},
+					}
 
-		Context("with api key extauth, secret ref matching", func() {
-			It("should translate api keys config for extauth server - matching secret ref", func() {
-				translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
-				Expect(translated.Configs).To(HaveLen(1))
-				actual := translated.Configs[0].GetApiKeyAuth()
-				Expect(actual).To(Equal(&extauth.ExtAuthConfig_ApiKeyAuthConfig{
-					HeaderName: "x-api-key",
-					ValidApiKeys: map[string]*extauth.ExtAuthConfig_ApiKeyAuthConfig_KeyMetadata{
+					params.Snapshot = &v1snap.ApiSnapshot{
+						AuthConfigs: extauth.AuthConfigList{authConfig},
+					}
+				})
+
+				It("should translate api keys config for extauth server - matching label", func() {
+					translated, err := extauthsyncer.TranslateExtAuthConfig(context.Background(), params.Snapshot, authConfigRef)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+					Expect(translated.Configs).To(HaveLen(1))
+					actual := translated.Configs[0].GetApiKeyAuth()
+					Expect(actual.ValidApiKeys).To(Equal(map[string]*extauth.ExtAuthConfig_ApiKeyAuthConfig_KeyMetadata{
 						"apiKey1": {
 							Username: "secretName",
 						},
-					},
-				}))
+					}))
+				})
+
+				Context("should translate apikeys config for extauth server", func() {
+
+					It("should not error - mismatched labels", func() {
+						secret.Metadata.Labels = map[string]string{"missingLabel": "missingValue"}
+						_, err := extauthsyncer.TranslateExtAuthConfig(context.Background(), params.Snapshot, authConfigRef)
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("should not error - empty labels", func() {
+						secret.Metadata.Labels = map[string]string{}
+						_, err := extauthsyncer.TranslateExtAuthConfig(context.Background(), params.Snapshot, authConfigRef)
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("should not error - nil labels", func() {
+						secret.Metadata.Labels = nil
+						_, err := extauthsyncer.TranslateExtAuthConfig(context.Background(), params.Snapshot, authConfigRef)
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+				})
+
 			})
+		}
 
-			It("should translate api keys config for extauth server - mismatching secret ref", func() {
-				secret.Metadata.Name = "mismatchName"
-				_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("list did not find secret"))
-			})
-		})
-
-		Describe("API keys with metadata", func() {
-
-			BeforeEach(func() {
-				secret = &v1.Secret{
-					Metadata: &core.Metadata{
-						Name:      "secretName",
-						Namespace: "default",
-						Labels:    map[string]string{"team": "infrastructure"},
-					},
-					Kind: &v1.Secret_ApiKey{
-						ApiKey: &extauth.ApiKey{
-							ApiKey: "apiKey1",
-							Metadata: map[string]string{
-								"user-id": "123",
-							},
-						},
-					},
-				}
-				secretRef := secret.Metadata.Ref()
-				authConfig = &extauth.AuthConfig{
-					Metadata: &core.Metadata{
-						Name:      "apikey",
-						Namespace: "gloo-system",
-					},
-					Configs: []*extauth.AuthConfig_Config{{
-						AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
-							ApiKeyAuth: &extauth.ApiKeyAuth{
-								HeaderName:       "x-api-key",
-								ApiKeySecretRefs: []*core.ResourceRef{secretRef},
-								HeadersFromMetadataEntry: map[string]*extauth.ApiKeyAuth_MetadataEntry{
-									"x-user-id": {
-										Name:     "user-id",
-										Required: true,
-									},
-								},
-							},
-						},
-					}},
-				}
-				authConfigRef = authConfig.Metadata.Ref()
-				extAuthExtension = &extauth.ExtAuthExtension{
-					Spec: &extauth.ExtAuthExtension_ConfigRef{
-						ConfigRef: authConfigRef,
-					},
-				}
-
-				params.Snapshot = &v1snap.ApiSnapshot{
-					AuthConfigs: extauth.AuthConfigList{authConfig},
-				}
-			})
-
+		ApiKeysWithMetadataTests := func() {
 			It("should fail if required metadata is missing on the secret", func() {
 				secret.GetApiKey().Metadata = nil
 
-				_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+				_, err := extauthsyncer.TranslateExtAuthConfig(context.Background(), params.Snapshot, authConfigRef)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(extauthsyncer.MissingRequiredMetadataError("user-id", secret).Error())))
 			})
 
 			It("should include secret metadata in the API key metadata", func() {
-				translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+				translated, err := extauthsyncer.TranslateExtAuthConfig(context.Background(), params.Snapshot, authConfigRef)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 				Expect(translated.Configs).To(HaveLen(1))
@@ -721,11 +721,13 @@ var _ = Describe("Translate", func() {
 			})
 
 			When("metadata is not required", func() {
-				It("does not fail if the secret does not contain the metadata", func() {
+				BeforeEach(func() {
 					secret.GetApiKey().Metadata = nil
 					authConfig.GetConfigs()[0].GetApiKeyAuth().GetHeadersFromMetadataEntry()["x-user-id"].Required = false
+				})
 
-					translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+				It("does not fail if the secret does not contain the metadata", func() {
+					translated, err := extauthsyncer.TranslateExtAuthConfig(context.Background(), params.Snapshot, authConfigRef)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 					Expect(translated.Configs).To(HaveLen(1))
@@ -743,23 +745,19 @@ var _ = Describe("Translate", func() {
 					}))
 				})
 			})
-		})
+		}
 
-		Context("with api key ext auth, label matching", func() {
+		Context("deprecated config", func() {
 			BeforeEach(func() {
-				authConfig = &extauth.AuthConfig{
-					Metadata: &core.Metadata{
-						Name:      "apikey",
-						Namespace: "gloo-system",
-					},
-					Configs: []*extauth.AuthConfig_Config{{
-						AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
-							ApiKeyAuth: &extauth.ApiKeyAuth{
-								LabelSelector: map[string]string{"team": "infrastructure"},
-							},
+				authConfig.Configs = []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+						ApiKeyAuth: &extauth.ApiKeyAuth{
+							HeaderName:       "x-api-key",
+							ApiKeySecretRefs: []*core.ResourceRef{secret.Metadata.Ref()},
 						},
-					}},
-				}
+					},
+				}}
+
 				authConfigRef = authConfig.Metadata.Ref()
 				extAuthExtension = &extauth.ExtAuthExtension{
 					Spec: &extauth.ExtAuthExtension_ConfigRef{
@@ -772,41 +770,163 @@ var _ = Describe("Translate", func() {
 				}
 			})
 
-			It("should translate api keys config for extauth server - matching label", func() {
-				translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
-				Expect(translated.Configs).To(HaveLen(1))
-				actual := translated.Configs[0].GetApiKeyAuth()
-				Expect(actual.ValidApiKeys).To(Equal(map[string]*extauth.ExtAuthConfig_ApiKeyAuthConfig_KeyMetadata{
-					"apiKey1": {
-						Username: "secretName",
+			MalformedSecretContext()
+
+			SecretRefMatchingContext()
+
+			Describe("API keys with metadata", func() {
+
+				BeforeEach(func() {
+					secret = &v1.Secret{
+						Metadata: &core.Metadata{
+							Name:      "secretName",
+							Namespace: "default",
+							Labels:    map[string]string{"team": "infrastructure"},
+						},
+						Kind: &v1.Secret_ApiKey{
+							ApiKey: &extauth.ApiKey{
+								ApiKey: "apiKey1",
+								Metadata: map[string]string{
+									"user-id": "123",
+								},
+							},
+						},
+					}
+					authConfig = &extauth.AuthConfig{
+						Metadata: &core.Metadata{
+							Name:      "apikey",
+							Namespace: "gloo-system",
+						},
+						Configs: []*extauth.AuthConfig_Config{{
+							AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+								ApiKeyAuth: &extauth.ApiKeyAuth{
+									HeaderName:       "x-api-key",
+									ApiKeySecretRefs: []*core.ResourceRef{secret.Metadata.Ref()},
+									HeadersFromMetadataEntry: map[string]*extauth.ApiKeyAuth_MetadataEntry{
+										"x-user-id": {
+											Name:     "user-id",
+											Required: true,
+										},
+									},
+								},
+							},
+						}},
+					}
+					authConfigRef = authConfig.Metadata.Ref()
+					extAuthExtension = &extauth.ExtAuthExtension{
+						Spec: &extauth.ExtAuthExtension_ConfigRef{
+							ConfigRef: authConfigRef,
+						},
+					}
+
+					params.Snapshot = &v1snap.ApiSnapshot{
+						AuthConfigs: extauth.AuthConfigList{authConfig},
+					}
+				})
+
+				ApiKeysWithMetadataTests()
+			})
+
+			LabelMatchingContext(&extauth.ApiKeyAuth{
+				LabelSelector: map[string]string{"team": "infrastructure"},
+			})
+		})
+
+		Context("k8s storage config", func() {
+			BeforeEach(func() {
+				authConfig.Configs = []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+						ApiKeyAuth: &extauth.ApiKeyAuth{
+							HeaderName: "x-api-key",
+							StorageBackend: &extauth.ApiKeyAuth_K8SSecretApikeyStorage{
+								K8SSecretApikeyStorage: &extauth.K8SSecretApiKeyStorage{
+									ApiKeySecretRefs: []*core.ResourceRef{secret.Metadata.Ref()},
+								},
+							},
+						},
 					},
-				}))
+				}}
+
+				authConfigRef = authConfig.Metadata.Ref()
+				extAuthExtension = &extauth.ExtAuthExtension{
+					Spec: &extauth.ExtAuthExtension_ConfigRef{
+						ConfigRef: authConfigRef,
+					},
+				}
+
+				params.Snapshot = &v1snap.ApiSnapshot{
+					AuthConfigs: extauth.AuthConfigList{authConfig},
+				}
 			})
 
-			Context("should translate apikeys config for extauth server", func() {
+			MalformedSecretContext()
 
-				It("should not error - mismatched labels", func() {
-					secret.Metadata.Labels = map[string]string{"missingLabel": "missingValue"}
-					_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
-					Expect(err).NotTo(HaveOccurred())
+			SecretRefMatchingContext()
+
+			Describe("API keys with metadata", func() {
+
+				BeforeEach(func() {
+					secret = &v1.Secret{
+						Metadata: &core.Metadata{
+							Name:      "secretName",
+							Namespace: "default",
+							Labels:    map[string]string{"team": "infrastructure"},
+						},
+						Kind: &v1.Secret_ApiKey{
+							ApiKey: &extauth.ApiKey{
+								ApiKey: "apiKey1",
+								Metadata: map[string]string{
+									"user-id": "123",
+								},
+							},
+						},
+					}
+					authConfig = &extauth.AuthConfig{
+						Metadata: &core.Metadata{
+							Name:      "apikey",
+							Namespace: "gloo-system",
+						},
+						Configs: []*extauth.AuthConfig_Config{{
+							AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+								ApiKeyAuth: &extauth.ApiKeyAuth{
+									HeaderName: "x-api-key",
+									StorageBackend: &extauth.ApiKeyAuth_K8SSecretApikeyStorage{
+										K8SSecretApikeyStorage: &extauth.K8SSecretApiKeyStorage{
+											ApiKeySecretRefs: []*core.ResourceRef{secret.Metadata.Ref()},
+										},
+									},
+									HeadersFromMetadataEntry: map[string]*extauth.ApiKeyAuth_MetadataEntry{
+										"x-user-id": {
+											Name:     "user-id",
+											Required: true,
+										},
+									},
+								},
+							},
+						}},
+					}
+					authConfigRef = authConfig.Metadata.Ref()
+					extAuthExtension = &extauth.ExtAuthExtension{
+						Spec: &extauth.ExtAuthExtension_ConfigRef{
+							ConfigRef: authConfigRef,
+						},
+					}
+
+					params.Snapshot = &v1snap.ApiSnapshot{
+						AuthConfigs: extauth.AuthConfigList{authConfig},
+					}
 				})
 
-				It("should not error - empty labels", func() {
-					secret.Metadata.Labels = map[string]string{}
-					_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
-					Expect(err).NotTo(HaveOccurred())
-				})
-
-				It("should not error - nil labels", func() {
-					secret.Metadata.Labels = nil
-					_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
-					Expect(err).NotTo(HaveOccurred())
-				})
-
+				ApiKeysWithMetadataTests()
 			})
 
+			LabelMatchingContext(&extauth.ApiKeyAuth{
+				StorageBackend: &extauth.ApiKeyAuth_K8SSecretApikeyStorage{
+					K8SSecretApikeyStorage: &extauth.K8SSecretApiKeyStorage{
+						LabelSelector: map[string]string{"team": "infrastructure"},
+					},
+				},
+			})
 		})
 	})
 

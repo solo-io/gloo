@@ -266,8 +266,15 @@ func (e *snapshotSourcedXdsSnapshotProducer) processAuthConfigs(
 
 	snapshot.AuthConfigs.Each(func(authConfig *extauth.AuthConfig) {
 		// Convert the user facing (external) AuthConfig into the internal API that we use to send resources over xDS
-		validationErr := ErrorIfInvalidAuthConfig(authConfig)
+		validationErr, validationWarn := CheckIfInvalidAuthConfig(authConfig)
 		xdsAuthConfig, conversionErr := ConvertExternalAuthConfigToXdsAuthConfig(ctx, snapshot, authConfig)
+
+		// We separate warnings and errors because we would still like to persist and use partially valid AuthConfigs.
+		if len(validationWarn) > 0 {
+			// We encountered warnings during the validation of this AuthConfig
+			// Write those warnings to a report on the AuthConfig
+			reports.AddWarnings(authConfig, validationWarn...)
+		}
 
 		authConfigErr := multierror.Append(validationErr, conversionErr)
 		if authConfigErr.ErrorOrNil() != nil {
@@ -280,14 +287,18 @@ func (e *snapshotSourcedXdsSnapshotProducer) processAuthConfigs(
 			xdsAuthConfigs = append(xdsAuthConfigs, xdsAuthConfig)
 		}
 
+		// We convert the array of warnings into Errors in order to pass to the cache
+		var authConfigWarn *multierror.Error
+		for _, warning := range validationWarn {
+			authConfigWarn = multierror.Append(authConfigWarn, errors.New(warning))
+		}
+
 		// Update an internal cache with the validation results of each AuthConfig
 		// This will be used when we traverse the proxy to determine if resources (routes, virtual services)
 		// reference valid AuthConfigs
 		e.authConfigCache[authConfig.GetMetadata().Ref().Key()] = authConfigCacheValue{
-			Errors: authConfigErr.ErrorOrNil(),
-			// We don't yet support placing warnings on AuthConfigs
-			// https://github.com/solo-io/solo-projects/issues/2950
-			Warnings: nil,
+			Errors:   authConfigErr.ErrorOrNil(),
+			Warnings: authConfigWarn.ErrorOrNil(),
 		}
 	})
 
