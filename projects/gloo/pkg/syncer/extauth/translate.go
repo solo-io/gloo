@@ -413,9 +413,14 @@ func translateSecretsApiKey(ctx context.Context, snap *v1snap.ApiSnapshot, confi
 		searchErrs      = &multierror.Error{}
 		secretErrs      = &multierror.Error{}
 	)
+	storageConfig := config.GetK8SSecretApikeyStorage()
 
-	// Find directly referenced secrets
-	for _, secretRef := range config.ApiKeySecretRefs {
+	// Find directly referenced secrets, prioritizing the non-deprecated config in storageConfig.
+	secretRefs := config.GetApiKeySecretRefs()
+	if len(storageConfig.GetApiKeySecretRefs()) > 0 {
+		secretRefs = storageConfig.GetApiKeySecretRefs()
+	}
+	for _, secretRef := range secretRefs {
 		secret, err := snap.Secrets.Find(secretRef.Namespace, secretRef.Name)
 		if err != nil {
 			searchErrs = multierror.Append(searchErrs, err)
@@ -424,11 +429,15 @@ func translateSecretsApiKey(ctx context.Context, snap *v1snap.ApiSnapshot, confi
 		matchingSecrets = append(matchingSecrets, secret)
 	}
 
-	// Find secrets matching provided label selector
-	if config.LabelSelector != nil && len(config.LabelSelector) > 0 {
+	// Find secrets matching provided label selector, prioritizing the non-deprecated config in storageConfig.
+	labelSelector := config.GetLabelSelector()
+	if len(storageConfig.GetLabelSelector()) > 0 {
+		labelSelector = storageConfig.GetLabelSelector()
+	}
+	if len(labelSelector) > 0 {
 		foundAny := false
 		for _, secret := range snap.Secrets {
-			selector := labels.Set(config.LabelSelector).AsSelectorPreValidated()
+			selector := labels.Set(labelSelector).AsSelectorPreValidated()
 			if selector.Matches(labels.Set(secret.Metadata.Labels)) {
 				matchingSecrets = append(matchingSecrets, secret)
 				foundAny = true
@@ -441,7 +450,7 @@ func translateSecretsApiKey(ctx context.Context, snap *v1snap.ApiSnapshot, confi
 			//
 			// We do not yet support warnings on AuthConfig CRs, so we log a warning instead
 			// Technical Debt: https://github.com/solo-io/solo-projects/issues/2950
-			err := noMatchesForGroupError(config.LabelSelector)
+			err := noMatchesForGroupError(labelSelector)
 			contextutils.LoggerFrom(ctx).Warnf("%v, continuing processing", err)
 		}
 	}

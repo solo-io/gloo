@@ -19,6 +19,10 @@ var _ = Describe("API Key", func() {
 
 	var (
 		testContext *e2e.TestContextWithExtensions
+		// these are stored in a variable so that we can read them in the tests.
+		authConfig    *extauth.AuthConfig
+		secret        *gloov1.Secret
+		labeledSecret *gloov1.Secret
 	)
 
 	BeforeEach(func() {
@@ -27,7 +31,7 @@ var _ = Describe("API Key", func() {
 		})
 		testContext.BeforeEach()
 
-		secret := &gloov1.Secret{
+		secret = &gloov1.Secret{
 			Metadata: &core.Metadata{
 				Name:      "secret1",
 				Namespace: "default",
@@ -38,23 +42,7 @@ var _ = Describe("API Key", func() {
 				},
 			},
 		}
-		authConfig := &extauth.AuthConfig{
-			Metadata: &core.Metadata{
-				Name:      getApiKeyExtAuthExtension().GetConfigRef().Name,
-				Namespace: getApiKeyExtAuthExtension().GetConfigRef().Namespace,
-			},
-			Configs: []*extauth.AuthConfig_Config{{
-				AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
-					ApiKeyAuth: &extauth.ApiKeyAuth{
-						ApiKeySecretRefs: []*core.ResourceRef{
-							secret.Metadata.Ref(),
-						},
-						LabelSelector: map[string]string{"team": "infrastructure"},
-					},
-				},
-			}},
-		}
-		labeledSecret := &gloov1.Secret{
+		labeledSecret = &gloov1.Secret{
 			Metadata: &core.Metadata{
 				Name:      "secret2",
 				Namespace: "default",
@@ -66,7 +54,17 @@ var _ = Describe("API Key", func() {
 				},
 			},
 		}
-
+		authConfig = &extauth.AuthConfig{
+			Metadata: &core.Metadata{
+				Name:      getApiKeyExtAuthExtension().GetConfigRef().Name,
+				Namespace: getApiKeyExtAuthExtension().GetConfigRef().Namespace,
+			},
+			Configs: []*extauth.AuthConfig_Config{{
+				AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+					ApiKeyAuth: &extauth.ApiKeyAuth{},
+				},
+			}},
+		}
 		// add the secrets from above to the to-be-written secret list
 		secrets := []*gloov1.Secret{secret, labeledSecret}
 
@@ -97,40 +95,83 @@ var _ = Describe("API Key", func() {
 		testContext.JustAfterEach()
 	})
 
-	It("should deny ext auth envoy without apikey", func() {
-		requestBuilder := testContext.GetHttpRequestBuilder()
-		Eventually(func(g Gomega) *http.Response {
-			resp, err := testutils.DefaultHttpClient.Do(requestBuilder.Build())
-			g.Expect(err).NotTo(HaveOccurred())
-			return resp
-		}, "5s", "0.5s").Should(HaveHTTPStatus(http.StatusUnauthorized))
-	})
+	Context("k8s api keys", func() {
+		// Collection of reusable tests for denied requests
+		unauthorizedTests := func() {
+			It("should deny ext auth envoy without apikey", func() {
+				requestBuilder := testContext.GetHttpRequestBuilder()
+				Eventually(func(g Gomega) *http.Response {
+					resp, err := testutils.DefaultHttpClient.Do(requestBuilder.Build())
+					g.Expect(err).NotTo(HaveOccurred())
+					return resp
+				}, "5s", "0.5s").Should(HaveHTTPStatus(http.StatusUnauthorized))
+			})
 
-	It("should deny ext auth envoy with incorrect apikey", func() {
-		requestBuilder := testContext.GetHttpRequestBuilder().WithHeader("api-key", "badApiKey")
-		Eventually(func(g Gomega) *http.Response {
-			resp, err := testutils.DefaultHttpClient.Do(requestBuilder.Build())
-			g.Expect(err).NotTo(HaveOccurred())
-			return resp
-		}, "5s", "0.5s").Should(HaveHTTPStatus(http.StatusUnauthorized))
-	})
+			It("should deny ext auth envoy with incorrect apikey", func() {
+				requestBuilder := testContext.GetHttpRequestBuilder().WithHeader("api-key", "badApiKey")
+				Eventually(func(g Gomega) *http.Response {
+					resp, err := testutils.DefaultHttpClient.Do(requestBuilder.Build())
+					g.Expect(err).NotTo(HaveOccurred())
+					return resp
+				}, "5s", "0.5s").Should(HaveHTTPStatus(http.StatusUnauthorized))
+			})
+		}
 
-	It("should accept ext auth envoy with correct apikey -- secret ref match", func() {
-		requestBuilder := testContext.GetHttpRequestBuilder().WithHeader("api-key", "secretApiKey1")
-		Eventually(func(g Gomega) *http.Response {
-			resp, err := testutils.DefaultHttpClient.Do(requestBuilder.Build())
-			g.Expect(err).NotTo(HaveOccurred())
-			return resp
-		}, "5s", "0.5s").Should(HaveHTTPStatus(http.StatusOK))
-	})
+		// Collection of reusable tests for accepted requests
+		authorizedTests := func() {
+			It("should accept ext auth envoy with correct apikey -- secret ref match", func() {
+				requestBuilder := testContext.GetHttpRequestBuilder().WithHeader("api-key", "secretApiKey1")
+				Eventually(func(g Gomega) *http.Response {
+					resp, err := testutils.DefaultHttpClient.Do(requestBuilder.Build())
+					g.Expect(err).NotTo(HaveOccurred())
+					return resp
+				}, "5s", "0.5s").Should(HaveHTTPStatus(http.StatusOK))
+			})
 
-	It("should accept ext auth envoy with correct apikey -- label match", func() {
-		requestBuilder := testContext.GetHttpRequestBuilder().WithHeader("api-key", "secretApiKey2")
-		Eventually(func(g Gomega) *http.Response {
-			resp, err := testutils.DefaultHttpClient.Do(requestBuilder.Build())
-			g.Expect(err).NotTo(HaveOccurred())
-			return resp
-		}, "5s", "0.5s").Should(HaveHTTPStatus(http.StatusOK))
+			It("should accept ext auth envoy with correct apikey -- label match", func() {
+				requestBuilder := testContext.GetHttpRequestBuilder().WithHeader("api-key", "secretApiKey2")
+				Eventually(func(g Gomega) *http.Response {
+					resp, err := testutils.DefaultHttpClient.Do(requestBuilder.Build())
+					g.Expect(err).NotTo(HaveOccurred())
+					return resp
+				}, "5s", "0.5s").Should(HaveHTTPStatus(http.StatusOK))
+			})
+		}
+
+		Context("deprecated k8s api", func() {
+			BeforeEach(func() {
+				authConfig.Configs[0].GetApiKeyAuth().ApiKeySecretRefs = []*core.ResourceRef{
+					secret.GetMetadata().Ref(),
+				}
+				authConfig.Configs[0].GetApiKeyAuth().LabelSelector = make(map[string]string)
+				for k, v := range labeledSecret.GetMetadata().GetLabels() {
+					authConfig.Configs[0].GetApiKeyAuth().LabelSelector[k] = v
+				}
+			})
+
+			unauthorizedTests()
+			authorizedTests()
+		})
+
+		Context("k8s storage backend", func() {
+			BeforeEach(func() {
+				labels := make(map[string]string)
+				for k, v := range labeledSecret.GetMetadata().GetLabels() {
+					labels[k] = v
+				}
+				authConfig.Configs[0].GetApiKeyAuth().StorageBackend = &extauth.ApiKeyAuth_K8SSecretApikeyStorage{
+					K8SSecretApikeyStorage: &extauth.K8SSecretApiKeyStorage{
+						ApiKeySecretRefs: []*core.ResourceRef{
+							secret.Metadata.Ref(),
+						},
+						LabelSelector: labels,
+					},
+				}
+			})
+
+			unauthorizedTests()
+			authorizedTests()
+		})
 	})
 
 })

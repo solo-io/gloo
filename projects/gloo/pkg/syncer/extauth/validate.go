@@ -27,6 +27,11 @@ var (
 	BasicAuthUndefinedUserSourceErr             = errors.New("basic: nil user type")
 )
 
+func DeprecatedAPIOverwriteWarning(cfgType, field string) string {
+	return fmt.Sprintf("%s: the field '%s' is set in both a deprecated API and its replacement API. The value of the deprecated field will be overwriten", cfgType, field)
+
+}
+
 type invalidAuthConfigError struct {
 	cfgType string
 	ref     *core.ResourceRef
@@ -53,21 +58,25 @@ func IsIntrospectionUrlParsable(url string) bool {
 	return true
 }
 
-// ValidateAuthConfig writes all errors from an AuthConfig onto a report
+// ValidateAuthConfig writes all errors and warnings from an AuthConfig onto a report
 func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports) {
-	errIfInvalid := ErrorIfInvalidAuthConfig(ac)
+	errIfInvalid, warnIfPartialInvalid := CheckIfInvalidAuthConfig(ac)
 	if errIfInvalid.ErrorOrNil() != nil {
 		reports.AddErrors(ac, errIfInvalid.Errors...)
 	}
+	if len(warnIfPartialInvalid) > 0 {
+		reports.AddWarnings(ac, warnIfPartialInvalid...)
+	}
 }
 
-// ErrorIfInvalidAuthConfig returns a multierror.Error containing all errors on an AuthConfig
-func ErrorIfInvalidAuthConfig(ac *extauth.AuthConfig) *multierror.Error {
+// CheckIfInvalidAuthConfig returns a multierror.Error containing all errors on an AuthConfig as well as a slice of warnings
+func CheckIfInvalidAuthConfig(ac *extauth.AuthConfig) (*multierror.Error, []string) {
 	var multiErr *multierror.Error
+	var multiWarn []string
 
 	configs := ac.GetConfigs()
 	if len(configs) == 0 {
-		return multierror.Append(errors.Errorf("No configurations for auth config %v", ac.Metadata.Ref()))
+		return multierror.Append(errors.Errorf("No configurations for auth config %v", ac.Metadata.Ref())), multiWarn
 	}
 	for _, conf := range configs {
 		switch cfg := conf.AuthConfig.(type) {
@@ -188,7 +197,32 @@ func ErrorIfInvalidAuthConfig(ac *extauth.AuthConfig) *multierror.Error {
 				}
 			}
 		case *extauth.AuthConfig_Config_ApiKeyAuth:
-			if len(cfg.ApiKeyAuth.GetLabelSelector())+len(cfg.ApiKeyAuth.GetApiKeySecretRefs()) == 0 {
+			labels := cfg.ApiKeyAuth.GetLabelSelector()
+			apiKeySecretRefs := cfg.ApiKeyAuth.GetApiKeySecretRefs()
+
+			switch storage := cfg.ApiKeyAuth.GetStorageBackend().(type) {
+			case *extauth.ApiKeyAuth_K8SSecretApikeyStorage:
+				if len(storage.K8SSecretApikeyStorage.GetLabelSelector()) > 0 {
+					// If the deprecated field is already set, report a warning to the user since we should only use one.
+					if len(labels) > 0 {
+						multiWarn = append(multiWarn, DeprecatedAPIOverwriteWarning("apikey", "labelSelector"))
+					}
+					labels = storage.K8SSecretApikeyStorage.GetLabelSelector()
+				}
+				if len(storage.K8SSecretApikeyStorage.GetApiKeySecretRefs()) > 0 {
+					// If the deprecated field is already set, report a warning to the user since we should only use one.
+					if len(apiKeySecretRefs) > 0 {
+						multiWarn = append(multiWarn, DeprecatedAPIOverwriteWarning("apikey", "apiKeySecretRefs"))
+					}
+					apiKeySecretRefs = storage.K8SSecretApikeyStorage.GetApiKeySecretRefs()
+				}
+			case *extauth.ApiKeyAuth_AerospikeApikeyStorage:
+				if len(storage.AerospikeApikeyStorage.GetLabelSelector()) > 0 {
+					labels = storage.AerospikeApikeyStorage.GetLabelSelector()
+				}
+			}
+
+			if len(labels)+len(apiKeySecretRefs) == 0 {
 				multiErr = multierror.Append(multiErr, NewInvalidAuthConfigError("apikey", ac.GetMetadata().Ref()))
 			}
 		case *extauth.AuthConfig_Config_PluginAuth:
@@ -228,5 +262,5 @@ func ErrorIfInvalidAuthConfig(ac *extauth.AuthConfig) *multierror.Error {
 			multiErr = multierror.Append(multiErr, errors.Errorf("Unknown Auth Config type for %v %T", ac.Metadata.Ref(), cfg))
 		}
 	}
-	return multiErr
+	return multiErr, multiWarn
 }
