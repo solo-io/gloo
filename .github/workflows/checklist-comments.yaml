@@ -22,10 +22,11 @@ jobs:
             - [ ] For any blockers that are identified, include in a comment a link to the GitHub issue
 
             **Establish a Plan**:
-            - [ ] Work with the team to establish a date for the release. This should include: Product team, Edge team, release requester 
-            - [ ] Update the issue with the release date. 
+            - [ ] Work with the team to establish a date for the release. This should include: Product team, Edge team, release requester
+            - [ ] Update the issue with the release date.
 
             **Publish Assets (Open Source) (if applicable)**:
+            - [ ] Ensure nightlies and upgrade test pass on Gloo Edge Open Source before cutting a release
             - [ ] Release Gloo Edge Open Source
             - [ ] Merge Automated Solo-Apis PR
             - [ ] Open an Enterprise PR, which updates Gloo and Solo-Apis dependencies
@@ -36,6 +37,7 @@ jobs:
             - [ ] Confirm with Product team that validating performance is not required, and once agreed, comment on the issue clarifying why
 
             **Publish Assets (Enterprise)**:
+            - [ ] Ensure nightlies and upgrade test pass on Gloo Edge Enterprise before cutting a release
             - [ ] Release Gloo Edge Enterprise
 
             **Communicate**:

@@ -1,0 +1,7 @@
+changelog:
+- type: NON_USER_FACING
+  description: >-
+    Add items in the release checklist to verify that nightlies pass before cutting a release
+
+    skipCI-kube-tests:true
+    skipCI-storybook-tests:true
