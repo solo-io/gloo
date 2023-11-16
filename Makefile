@@ -169,6 +169,10 @@ test: ## Run all tests, or only run the test package at {TEST_PKG} if it is spec
 	$(GINKGO_FLAGS) $(GINKGO_REPORT_FLAGS) $(GINKGO_USER_FLAGS) \
 	$(TEST_PKG)
 
+.PHONY: test-full
+test-full:
+	go test -ldflags=$(LDFLAGS) -count=1 ./...
+
 .PHONY: test-with-coverage
 test-with-coverage: GINKGO_FLAGS += $(GINKGO_COVERAGE_FLAGS)
 test-with-coverage: test
