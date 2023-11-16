@@ -9,6 +9,7 @@ Expand the name of the chart.
 {{- if .Values.global.extensions.extAuth.envoySidecar -}}
 {{- $plugins := .Values.global.extensions.extAuth.plugins -}}
 {{- range $proxyName, $proxy := .Values.gatewayProxies -}}
+{{- if not $proxy.disableExtauthSidecar -}}
 {{- $_ := set (index $.Values.gatewayProxies $proxyName) "extraContainersHelper" "gloo.extauthcontainer" -}}
 {{- if $plugins -}}
 {{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraInitContainersHelper" "gloo.extauthinitcontainers" -}}
@@ -17,6 +18,16 @@ Expand the name of the chart.
 {{- if $.Values.global.glooMtls.enabled }}
 {{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraListenersHelper" "gloo.sidecarlisteners" -}}
 {{- end -}} {{/* end glooMtls.enabled */}}
+{{- else -}}
+{{- /*
+Since we want the values for a secondary proxy to be empty and not overwritten by the values of the default gateway-proxy,
+we set it to `gloo.omitOverwrite` and call `gloo.util.mergeOverwriteWithOmit` when merging. This preserves these fields as empty after the merge
+*/ -}}
+{{- $_ := set (index $.Values.gatewayProxies $proxyName) "extraContainersHelper" "gloo.omitOverwrite" -}}
+{{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraInitContainersHelper" "gloo.omitOverwrite" -}}
+{{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraVolumeHelper" "gloo.omitOverwrite" -}}
+{{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraListenersHelper" "gloo.omitOverwrite" -}}
+{{- end -}} {{/* if not $proxy.disableExtauthSidecar */}}
 {{- end -}} {{/* end range */}}
 {{- end -}} {{/* if envoySidecar */}}
 {{- end -}} {{/* end define */}}

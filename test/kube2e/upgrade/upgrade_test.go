@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/onsi/gomega/types"
@@ -208,6 +209,9 @@ func upgradeGlooWithTests(testHelper *helper.SoloTestHelper, chartUri string, st
 	if strictValidation {
 		allExtraArgs = append(allExtraArgs, strictValidationArgs...)
 	}
+
+	// TODO: Remove this once v1.16.0-beta3 is released
+	runAdditionalUpgradeSteps()
 	upgrade.UpgradeGloo(testHelper, chartUri, helmOverrideFilePath, allExtraArgs)
 
 	bumpRedis(testHelper)
@@ -217,6 +221,23 @@ func upgradeGlooWithTests(testHelper *helper.SoloTestHelper, chartUri string, st
 	postUpgradeTests(testHelper)
 	portFwd.Process.Kill()
 	portFwd.Process.Release()
+}
+
+func runAdditionalUpgradeSteps() {
+	// The dependency bump from OSS gloo v1.16.0-beta20 (in v1.16.0-beta2) to v1.16.0-beta25 (v1.16.0-beta3) moves the resource-rollout RBAC out of the pre-upgrade/install hook.
+	// As a result, upgrades from v1.16.0-beta2 will require running the following commands prior to the upgrade to cleanup the pre-upgrade/install resource-rollout RBAC helm hooks.
+	// This can be removed once v1.16.0-beta3 has been released
+	cleanupCommand := `
+	export RELEASE_NAMESPACE="gloo-system"
+	export RBAC_SUFFIX="-gloo-system"
+	kubectl delete ClusterRole gloo-resource-rollout$RBAC_SUFFIX
+	kubectl delete ClusterRoleBinding gloo-resource-rollout$RBAC_SUFFIX
+	kubectl delete Role gloo-resource-rollout -n $RELEASE_NAMESPACE
+	kubectl delete RoleBinding gloo-resource-rollout -n $RELEASE_NAMESPACE
+	kubectl delete ServiceAccount gloo-resource-rollout -n $RELEASE_NAMESPACE
+	`
+	cmd := exec.Command("bash", "-c", cleanupCommand)
+	fmt.Println(cmd.Output())
 }
 
 func bumpRedis(testHelper *helper.SoloTestHelper) {

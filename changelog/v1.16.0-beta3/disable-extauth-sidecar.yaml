@@ -1,0 +1,23 @@
+changelog:
+- type: HELM
+  issueLink: https://github.com/solo-io/gloo/issues/8430
+  resolvesIssue: false
+  description: >-
+    Adds the new helm value `gloo.gatewayProxies.NAME.disableExtauthSidecar` to disable the extauth sidecar on a given gateway proxy when `global.extensions.extAuth.envoySidecar` is set.
+    The default behavior of setting `global.extensions.extAuth.envoySidecar` to true is that all the gateway proxies come up with an extauth sidecar. In scenarios where a specific gateway proxy might not need an extauth sidecar as it does not require extauth, the new helm value `gloo.gatewayProxies.NAME.disableExtauthSidecar` can be set. Defaults to false. It has no effect if `global.extensions.extAuth.envoySidecar` is not set.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.16.0-beta25
+  description: >-
+    The dependency bump from Gloo Edge OSS v1.16.0-beta20 to v1.16.0-beta25 moves the resource-rollout RBAC out of the pre-upgrade/install hook.
+    As a result, upgrades from Gloo Edge Enterprise v1.16.0-beta2 will require running the following commands prior to the upgrade to cleanup the pre-upgrade/install resource-rollout RBAC helm hooks.
+    ```
+    export RELEASE_NAMESPACE="gloo-system"  # replace this with the installation namespace
+    export RBAC_SUFFIX=`kubectl get ClusterRole | grep gloo-resource-rollout | sed 's/gloo-resource-rollout//g' | cut -d ' ' -f 1`
+    kubectl delete ClusterRole gloo-resource-rollout$RBAC_SUFFIX
+    kubectl delete ClusterRoleBinding gloo-resource-rollout$RBAC_SUFFIX
+    kubectl delete Role gloo-resource-rollout -n $RELEASE_NAMESPACE
+    kubectl delete RoleBinding gloo-resource-rollout -n $RELEASE_NAMESPACE
+    kubectl delete ServiceAccount gloo-resource-rollout -n $RELEASE_NAMESPACE
+    ```

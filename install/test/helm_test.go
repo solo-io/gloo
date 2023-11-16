@@ -2315,19 +2315,19 @@ spec:
 				gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-port"] = "8082"
 			}
 
-			BeforeEach(func() {
+			generateGatewayProxyDeployment := func(name string) *appsv1.Deployment {
 				labels = map[string]string{
 					"gloo":             "gateway-proxy",
-					"gateway-proxy-id": defaults.GatewayProxyName,
+					"gateway-proxy-id": name,
 					"app":              "gloo",
 				}
 				selector = map[string]string{
 					"gloo":             "gateway-proxy",
-					"gateway-proxy-id": defaults.GatewayProxyName,
+					"gateway-proxy-id": name,
 				}
 				podLabels := map[string]string{
 					"gloo":             "gateway-proxy",
-					"gateway-proxy-id": defaults.GatewayProxyName,
+					"gateway-proxy-id": name,
 					"gateway-proxy":    "live",
 				}
 				podAnnotations := map[string]string{
@@ -2337,7 +2337,7 @@ spec:
 					// This annotation was introduced to resolve https://github.com/solo-io/gloo/issues/8392
 					// It triggers a new rollout of the gateway proxy if the config map it uses changes
 					// As of PR 8733, changing the values of the deployment spec doesn't change the gateway-proxy config map, so it is safe to hardcode the checksum in the tests
-					"checksum/gateway-proxy-envoy-config": "27068cd033014d38f6c77522484e957ab25fa1be34a900a1f5241b8f7d62f525",
+					"checksum/" + name + "-envoy-config": "27068cd033014d38f6c77522484e957ab25fa1be34a900a1f5241b8f7d62f525",
 				}
 				podname := v1.EnvVar{
 					Name: "POD_NAME",
@@ -2349,12 +2349,12 @@ spec:
 				}
 
 				container := GetQuayContainerSpec("gloo-ee-envoy-wrapper", version, GetPodNamespaceEnvVar(), podname)
-				container.Name = defaults.GatewayProxyName
+				container.Name = name
 				container.Args = []string{"--disable-hot-restart"}
 
 				rb := ResourceBuilder{
 					Namespace:  namespace,
-					Name:       defaults.GatewayProxyName,
+					Name:       name,
 					Labels:     labels,
 					Containers: []ContainerSpec{container},
 				}
@@ -2369,7 +2369,7 @@ spec:
 					VolumeSource: v1.VolumeSource{
 						ConfigMap: &v1.ConfigMapVolumeSource{
 							LocalObjectReference: v1.LocalObjectReference{
-								Name: "gateway-proxy-envoy-config",
+								Name: name + "-envoy-config",
 							},
 						},
 					},
@@ -2410,8 +2410,11 @@ spec:
 				}
 
 				deploy.Spec.Template.Spec.ServiceAccountName = "gateway-proxy"
+				return deploy
+			}
 
-				gatewayProxyDeployment = deploy
+			BeforeEach(func() {
+				gatewayProxyDeployment = generateGatewayProxyDeployment(defaults.GatewayProxyName)
 			})
 
 			It("creates a deployment without envoy config annotations", func() {
@@ -2668,128 +2671,173 @@ spec:
 				testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 			})
 
-			It("creates a deployment with extauth sidecar", func() {
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{
-						"global.extensions.extAuth.envoySidecar=true",
-					},
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				gatewayProxyDeployment.Spec.Template.Spec.Volumes = append(
-					gatewayProxyDeployment.Spec.Template.Spec.Volumes,
-					v1.Volume{
-						Name: "shared-data",
-						VolumeSource: v1.VolumeSource{
-							EmptyDir: &v1.EmptyDirVolumeSource{},
-						},
-					})
-
-				gatewayProxyDeployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(
-					gatewayProxyDeployment.Spec.Template.Spec.Containers[0].VolumeMounts,
-					v1.VolumeMount{
-						Name:      "shared-data",
-						MountPath: "/usr/share/shared-data",
-					})
-
-				gatewayProxyDeployment.Spec.Template.Spec.Containers = append(
-					gatewayProxyDeployment.Spec.Template.Spec.Containers,
-					v1.Container{
-						Name:            "extauth",
-						Image:           "quay.io/solo-io/extauth-ee:" + version,
-						Ports:           nil,
-						ImagePullPolicy: getPullPolicy(),
-						Env: []v1.EnvVar{
-							{
-								Name: "POD_NAMESPACE",
-								ValueFrom: &v1.EnvVarSource{
-									FieldRef: &v1.ObjectFieldSelector{
-										FieldPath: "metadata.namespace",
-									},
-								},
+			Context("Deployment with extauth sidecar", func() {
+				appendExtauthSidecarExtras := func(deployment *appsv1.Deployment) {
+					deployment.Spec.Template.Spec.Volumes = append(
+						deployment.Spec.Template.Spec.Volumes,
+						v1.Volume{
+							Name: "shared-data",
+							VolumeSource: v1.VolumeSource{
+								EmptyDir: &v1.EmptyDirVolumeSource{},
 							},
-							{
-								Name:  "SERVICE_NAME",
-								Value: "ext-auth",
-							},
-							{
-								Name:  "GLOO_ADDRESS",
-								Value: "gloo:9977",
-							},
-							{
-								Name: "SIGNING_KEY",
-								ValueFrom: &v1.EnvVarSource{
-									SecretKeyRef: &v1.SecretKeySelector{
-										LocalObjectReference: v1.LocalObjectReference{
-											Name: "extauth-signing-key",
+						})
+
+					deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(
+						deployment.Spec.Template.Spec.Containers[0].VolumeMounts,
+						v1.VolumeMount{
+							Name:      "shared-data",
+							MountPath: "/usr/share/shared-data",
+						})
+
+					deployment.Spec.Template.Spec.Containers = append(
+						deployment.Spec.Template.Spec.Containers,
+						v1.Container{
+							Name:            "extauth",
+							Image:           "quay.io/solo-io/extauth-ee:" + version,
+							Ports:           nil,
+							ImagePullPolicy: getPullPolicy(),
+							Env: []v1.EnvVar{
+								{
+									Name: "POD_NAMESPACE",
+									ValueFrom: &v1.EnvVarSource{
+										FieldRef: &v1.ObjectFieldSelector{
+											FieldPath: "metadata.namespace",
 										},
-										Key: "signing-key",
 									},
 								},
-							},
-							{
-								Name: "REDIS_PASSWORD",
-								ValueFrom: &v1.EnvVarSource{SecretKeyRef: &v1.SecretKeySelector{
-									LocalObjectReference: v1.LocalObjectReference{
-										Name: "redis",
-									},
-									Key: "redis-password",
-								}},
-							},
-							{
-								Name:  "SERVER_PORT",
-								Value: "8083",
-							},
-							{
-								Name:  "UDS_ADDR",
-								Value: "/usr/share/shared-data/.sock",
-							},
-							{
-								Name:  "USER_ID_HEADER",
-								Value: "x-user-id",
-							},
-							{
-								Name:  "START_STATS_SERVER",
-								Value: "true",
-							},
-							{
-								Name:  "HEALTH_HTTP_PORT",
-								Value: "8082",
-							},
-							{
-								Name:  "HEALTH_HTTP_PATH",
-								Value: "/healthcheck",
-							},
-							{
-								Name:      "ALIVE_HTTP_PATH",
-								Value:     "/alivecheck",
-								ValueFrom: nil,
-							},
-						},
-						VolumeMounts: []v1.VolumeMount{
-							{
-								Name:      "shared-data",
-								MountPath: "/usr/share/shared-data",
-							},
-						},
-						ReadinessProbe: &v1.Probe{
-							ProbeHandler: v1.ProbeHandler{
-								HTTPGet: &v1.HTTPGetAction{
-									Path: "/healthcheck",
-									Port: intstr.IntOrString{
-										Type:   0,
-										IntVal: 8082,
+								{
+									Name:  "SERVICE_NAME",
+									Value: "ext-auth",
+								},
+								{
+									Name:  "GLOO_ADDRESS",
+									Value: "gloo:9977",
+								},
+								{
+									Name: "SIGNING_KEY",
+									ValueFrom: &v1.EnvVarSource{
+										SecretKeyRef: &v1.SecretKeySelector{
+											LocalObjectReference: v1.LocalObjectReference{
+												Name: "extauth-signing-key",
+											},
+											Key: "signing-key",
+										},
 									},
 								},
+								{
+									Name: "REDIS_PASSWORD",
+									ValueFrom: &v1.EnvVarSource{SecretKeyRef: &v1.SecretKeySelector{
+										LocalObjectReference: v1.LocalObjectReference{
+											Name: "redis",
+										},
+										Key: "redis-password",
+									}},
+								},
+								{
+									Name:  "SERVER_PORT",
+									Value: "8083",
+								},
+								{
+									Name:  "UDS_ADDR",
+									Value: "/usr/share/shared-data/.sock",
+								},
+								{
+									Name:  "USER_ID_HEADER",
+									Value: "x-user-id",
+								},
+								{
+									Name:  "START_STATS_SERVER",
+									Value: "true",
+								},
+								{
+									Name:  "HEALTH_HTTP_PORT",
+									Value: "8082",
+								},
+								{
+									Name:  "HEALTH_HTTP_PATH",
+									Value: "/healthcheck",
+								},
+								{
+									Name:      "ALIVE_HTTP_PATH",
+									Value:     "/alivecheck",
+									ValueFrom: nil,
+								},
 							},
-							InitialDelaySeconds: 2,
-							PeriodSeconds:       5,
-							FailureThreshold:    2,
-							SuccessThreshold:    1,
+							VolumeMounts: []v1.VolumeMount{
+								{
+									Name:      "shared-data",
+									MountPath: "/usr/share/shared-data",
+								},
+							},
+							ReadinessProbe: &v1.Probe{
+								ProbeHandler: v1.ProbeHandler{
+									HTTPGet: &v1.HTTPGetAction{
+										Path: "/healthcheck",
+										Port: intstr.IntOrString{
+											Type:   0,
+											IntVal: 8082,
+										},
+									},
+								},
+								InitialDelaySeconds: 2,
+								PeriodSeconds:       5,
+								FailureThreshold:    2,
+								SuccessThreshold:    1,
+							},
+						})
+				}
+				It("creates the deployment with extauth configured on all gateway proxies", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{
+							"global.extensions.extAuth.envoySidecar=true",
+							"gloo.gatewayProxies.anotherProxy.disabled=false",
 						},
 					})
+					Expect(err).NotTo(HaveOccurred())
+					appendExtauthSidecarExtras(gatewayProxyDeployment)
+					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 
-				testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+					anotherProxyDeployment := generateGatewayProxyDeployment("another-proxy")
+					anotherProxyDeployment.Spec.Template.ObjectMeta.Annotations["checksum/another-proxy-envoy-config"] = "044bfb8b7e5dd6ccab2cb5a619a2e83a4454ce4aaf81e5a46b6dd60bbb16dd86"
+					appendExtauthSidecarExtras(anotherProxyDeployment)
+					testManifest.ExpectDeploymentAppsV1(anotherProxyDeployment)
+				})
+
+				It("creates the deployment with extauth configured only on the default gateway-proxy", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{
+							"global.extensions.extAuth.envoySidecar=true",
+							"gloo.gatewayProxies.gatewayProxy.disableExtauthSidecar=false",
+							"gloo.gatewayProxies.anotherProxy.disabled=false",
+							"gloo.gatewayProxies.anotherProxy.disableExtauthSidecar=true",
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+					appendExtauthSidecarExtras(gatewayProxyDeployment)
+					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+
+					anotherProxyDeployment := generateGatewayProxyDeployment("another-proxy")
+					anotherProxyDeployment.Spec.Template.ObjectMeta.Annotations["checksum/another-proxy-envoy-config"] = "044bfb8b7e5dd6ccab2cb5a619a2e83a4454ce4aaf81e5a46b6dd60bbb16dd86"
+					testManifest.ExpectDeploymentAppsV1(anotherProxyDeployment)
+				})
+
+				It("creates the deployment with extauth configured only on another-proxy", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{
+							"global.extensions.extAuth.envoySidecar=true",
+							"gloo.gatewayProxies.gatewayProxy.disableExtauthSidecar=true",
+							"gloo.gatewayProxies.anotherProxy.disabled=false",
+							"gloo.gatewayProxies.anotherProxy.disableExtauthSidecar=false",
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+
+					anotherProxyDeployment := generateGatewayProxyDeployment("another-proxy")
+					anotherProxyDeployment.Spec.Template.ObjectMeta.Annotations["checksum/another-proxy-envoy-config"] = "044bfb8b7e5dd6ccab2cb5a619a2e83a4454ce4aaf81e5a46b6dd60bbb16dd86"
+					appendExtauthSidecarExtras(anotherProxyDeployment)
+					testManifest.ExpectDeploymentAppsV1(anotherProxyDeployment)
+				})
 			})
 
 			It("creates a deployment with extauth sidecar and extraVolumeMount", func() {
