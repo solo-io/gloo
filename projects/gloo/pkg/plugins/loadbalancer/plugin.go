@@ -1,6 +1,8 @@
 package loadbalancer
 
 import (
+	"fmt"
+
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
@@ -137,7 +139,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 func configureRoundRobinLb(out *envoy_config_cluster_v3.Cluster, cfg *v1.LoadBalancerConfig_RoundRobin_) {
 	out.LbPolicy = envoy_config_cluster_v3.Cluster_ROUND_ROBIN
 
-	slowStartConfig := toSlowStartConfig(cfg.RoundRobin.GetSlowStartConfig())
+	slowStartConfig := toSlowStartConfig(out, cfg.RoundRobin.GetSlowStartConfig())
 	if slowStartConfig != nil {
 		out.LbConfig = &envoy_config_cluster_v3.Cluster_RoundRobinLbConfig_{
 			RoundRobinLbConfig: &envoy_config_cluster_v3.Cluster_RoundRobinLbConfig{
@@ -167,18 +169,34 @@ func configureLeastRequestLb(out *envoy_config_cluster_v3.Cluster, cfg *v1.LoadB
 	}
 }
 
-func toSlowStartConfig(cfg *v1.LoadBalancerConfig_SlowStartConfig) *envoy_config_cluster_v3.Cluster_SlowStartConfig {
+func toSlowStartConfig(clusterInfo *envoy_config_cluster_v3.Cluster, cfg *v1.LoadBalancerConfig_SlowStartConfig) *envoy_config_cluster_v3.Cluster_SlowStartConfig {
 	if cfg == nil {
 		return nil
 	}
 	out := envoy_config_cluster_v3.Cluster_SlowStartConfig{
 		SlowStartWindow: cfg.GetSlowStartWindow(),
 	}
-	if cfg.GetAggression() != nil {
-		out.Aggression = &envoy_config_core_v3.RuntimeDouble{
-			DefaultValue: cfg.GetAggression().GetValue(),
-		}
+
+	proposedRuntimeKey := clusterInfo.GetName()
+	if proposedRuntimeKey == "" {
+		// While this shouldnt be the case this way our configuration is not rejected and the runtime key is still discoverable
+		// Swallow the error as our hash all signature is silly as it well.. cant return an error
+		hash, _ := hashutils.HashAllSafe(fnv.New64(), fmt.Sprintf("%v", clusterInfo)))
+		proposedRuntimeKey = fmt.Sprintf("%d", hash)
 	}
+
+	// mutate the rutnimekey to indicate its about aggression
+	proposedRuntimeKey = fmt.Sprintf("%s.slowstart.aggression", proposedRuntimeKey )
+
+	// even if there is no override to the default aggression we still need to provide a way to override things at runtime
+	out.Aggression = &envoy_config_core_v3.RuntimeDouble{
+		RuntimeKey: proposedRuntimeKey,
+	}
+
+	if cfg.GetAggression() != nil {
+		out.Aggression.DefaultValue = cfg.GetAggression().GetValue()
+	}
+
 	if cfg.GetMinWeightPercent() != nil {
 		out.MinWeightPercent = &envoy_type_v3.Percent{
 			Value: cfg.GetMinWeightPercent().GetValue(),
