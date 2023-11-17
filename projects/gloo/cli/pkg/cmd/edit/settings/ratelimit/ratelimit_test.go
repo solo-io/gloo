@@ -23,7 +23,7 @@ var _ = Describe("RateLimit", func() {
 
 	var (
 		settings       *gloov1.Settings
-		rlSettings     ratelimitpb.Settings
+		rlSettings     *ratelimitpb.Settings
 		settingsClient gloov1.SettingsClient
 		ctx            context.Context
 		cancel         context.CancelFunc
@@ -40,7 +40,7 @@ var _ = Describe("RateLimit", func() {
 				Namespace: "gloo-system",
 			},
 		}
-		rlSettings = ratelimitpb.Settings{}
+		rlSettings = &ratelimitpb.Settings{}
 		var err error
 		settings, err = settingsClient.Write(settings, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -54,7 +54,7 @@ var _ = Describe("RateLimit", func() {
 		ExpectWithOffset(2, err).NotTo(HaveOccurred())
 
 		Expect(settings.GetRatelimitServer()).ToNot(BeNil())
-		rlSettings = *settings.GetRatelimitServer()
+		rlSettings = settings.GetRatelimitServer()
 	}
 
 	Run := func(cmd string) {
@@ -138,7 +138,7 @@ var _ = Describe("RateLimit", func() {
 				Expect(err).NotTo(HaveOccurred())
 				ReadSettings()
 				second := ptypes.DurationProto(time.Second)
-				expectedSettings := ratelimitpb.Settings{
+				expectedSettings := &ratelimitpb.Settings{
 					DenyOnFail:     true,
 					RequestTimeout: second,
 					RatelimitServerRef: &core.ResourceRef{
@@ -146,7 +146,7 @@ var _ = Describe("RateLimit", func() {
 						Namespace: "gloo-system",
 					},
 				}
-				Expect(rlSettings).To(BeEquivalentTo(expectedSettings))
+				Expect(rlSettings).To(matchers.MatchProto(expectedSettings))
 			})
 		})
 

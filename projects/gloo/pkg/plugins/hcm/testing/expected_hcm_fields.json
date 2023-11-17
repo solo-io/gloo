@@ -47,5 +47,11 @@
     "PathNormalizationOptions",
     "StripTrailingHostDot",
     "ProxyStatusConfig",
-    "TypedHeaderValidationConfig"
+    "TypedHeaderValidationConfig",
+    "EarlyHeaderMutationExtensions",
+    "AppendXForwardedPort",
+    "AccessLogFlushInterval",
+    "FlushAccessLogOnNewRequest",
+    "AccessLogOptions",
+    "AddProxyProtocolConnectionState"
 ]
