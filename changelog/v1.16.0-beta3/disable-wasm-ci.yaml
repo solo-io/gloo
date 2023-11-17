@@ -1,0 +1,7 @@
+changelog:
+- type: NON_USER_FACING
+  description: >-
+    Disable wasm tests in CI since pulling from webassemblyhub.io consistently fails
+
+    skipCI-kube-tests:true
+    skipCI-storybook-tests:true

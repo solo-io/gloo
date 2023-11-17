@@ -111,8 +111,9 @@ jobs:
         merge-to-main:
           - ${{ github.event.pull_request.base.ref == 'main' }}
         exclude:
-          - merge-to-main: true
-            kube-e2e-test-type: {test: 'upgrade', use-fips: 'false'}
+          - kube-e2e-test-type: {test: 'upgrade', use-fips: 'false'}
+          # Disabling wasm tests since pulling from host webassemblyhub.io consistently fails
+          - kube-e2e-test-type: {test: 'wasm', use-fips: 'false'}
           - merge-to-main: false
             kube-e2e-test-type: {test: 'argocd', use-fips: 'false'}
     steps:
