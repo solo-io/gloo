@@ -196,7 +196,7 @@ func makeOperator(data model.Data) model.Operator {
 				},
 			},
 		},
-		Rbac: []rbacv1.PolicyRule{
+		ClusterRbac: []rbacv1.PolicyRule{
 			// RBAC multicluster role and rolebindings
 			{
 				APIGroups: []string{"multicluster.solo.io"},

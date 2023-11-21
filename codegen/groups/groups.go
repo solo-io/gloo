@@ -232,6 +232,7 @@ func makeGroup(
 					Name: resource.kind + "Spec",
 				},
 			},
+			Stored: true,
 		}
 		if !resource.noStatus {
 			res.Status = &model.Field{Type: model.Type{
@@ -242,6 +243,8 @@ func makeGroup(
 	}
 
 	return model.Group{
+		SkipConditionalCRDLoading: true, // we want the alpha crds always rendered
+		SkipTemplatedCRDManifest:  true, // do not make a copy of crds in templates dir
 		GroupVersion: schema.GroupVersion{
 			Group:   groupPrefix + "." + "solo.io",
 			Version: version,
@@ -261,6 +264,8 @@ func makeGroup(
 
 func makeMultiClusterAdmissionGroup() model.Group {
 	return model.Group{
+		SkipConditionalCRDLoading: true, // we want the alpha crds always rendered
+		SkipTemplatedCRDManifest:  true, // do not make a copy of crds in templates dir
 		GroupVersion: schema.GroupVersion{
 			Group:   "multicluster.solo.io",
 			Version: "v1alpha1",
@@ -285,6 +290,7 @@ func makeMultiClusterAdmissionGroup() model.Group {
 						Name: "MultiClusterRoleStatus",
 					},
 				},
+				Stored: true,
 			},
 			{
 				Kind: "MultiClusterRoleBinding",
@@ -304,6 +310,7 @@ func makeMultiClusterAdmissionGroup() model.Group {
 						Name: "MultiClusterRoleBindingStatus",
 					},
 				},
+				Stored: true,
 			},
 		},
 		RenderManifests:         true,

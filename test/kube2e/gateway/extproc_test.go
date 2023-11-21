@@ -90,7 +90,7 @@ var _ = Describe("ExtProc tests", func() {
 				},
 			},
 		}, metav1.CreateOptions{})
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		// create the service
 		serviceClient := testContext.ResourceClientSet().KubeClients().CoreV1().Services(testContext.InstallNamespace())
@@ -113,17 +113,17 @@ var _ = Describe("ExtProc tests", func() {
 				}},
 			},
 		}, metav1.CreateOptions{})
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		// make sure the pod comes up
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 		defer cancel()
 		err = testutils.WaitPodsRunning(ctx, time.Second, testContext.InstallNamespace(), "app="+extProcServiceName)
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		// make sure upstream gets created by discovery
 		upstreamName := getExtProcUpstreamName()
-		helpers.EventuallyResourceAcceptedWithOffset(1, func() (resources.InputResource, error) {
+		helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 			return testContext.ResourceClientSet().UpstreamClient().Read(testContext.InstallNamespace(), upstreamName, clients.ReadOpts{Ctx: testContext.Ctx()})
 		})
 	}
@@ -132,22 +132,22 @@ var _ = Describe("ExtProc tests", func() {
 		// delete the deployment
 		deploymentClient := testContext.ResourceClientSet().KubeClients().AppsV1().Deployments(testContext.InstallNamespace())
 		err := deploymentClient.Delete(testContext.Ctx(), extProcServiceName, metav1.DeleteOptions{GracePeriodSeconds: &zero})
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		// delete the service
 		serviceClient := testContext.ResourceClientSet().KubeClients().CoreV1().Services(testContext.InstallNamespace())
 		err = serviceClient.Delete(testContext.Ctx(), extProcServiceName, metav1.DeleteOptions{GracePeriodSeconds: &zero})
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		// make sure the deployment, service, and discovered upstream all get deleted
-		helpers.EventuallyObjectDeletedWithOffset(1, func() (client.Object, error) {
+		helpers.EventuallyObjectDeleted(func() (client.Object, error) {
 			return deploymentClient.Get(testContext.Ctx(), extProcServiceName, metav1.GetOptions{})
 		})
-		helpers.EventuallyObjectDeletedWithOffset(1, func() (client.Object, error) {
+		helpers.EventuallyObjectDeleted(func() (client.Object, error) {
 			return serviceClient.Get(testContext.Ctx(), extProcServiceName, metav1.GetOptions{})
 		})
 		upstreamName := getExtProcUpstreamName()
-		helpers.EventuallyResourceDeletedWithOffset(1, func() (resources.InputResource, error) {
+		helpers.EventuallyResourceDeleted(func() (resources.InputResource, error) {
 			return testContext.ResourceClientSet().UpstreamClient().Read(testContext.InstallNamespace(), upstreamName, clients.ReadOpts{Ctx: testContext.Ctx()})
 		})
 	}
@@ -155,18 +155,18 @@ var _ = Describe("ExtProc tests", func() {
 	createEchoService := func() {
 		var err error
 		httpEcho, err = helper.NewEchoHttp(testContext.InstallNamespace())
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		err = httpEcho.Deploy(2 * time.Minute)
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	cleanupEchoService := func() {
 		err := httpEcho.Terminate()
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		// `Terminate` only deletes the pod, so need to delete the service here too
 		serviceClient := testContext.ResourceClientSet().KubeClients().CoreV1().Services(testContext.InstallNamespace())
 		err = serviceClient.Delete(testContext.Ctx(), helper.HttpEchoName, metav1.DeleteOptions{GracePeriodSeconds: &zero})
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	BeforeEach(func() {

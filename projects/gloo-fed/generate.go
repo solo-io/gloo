@@ -70,7 +70,7 @@ func main() {
 	)
 	anyvendorImports.External["github.com/solo-io/skv2"] = []string{
 		"api/**/*.proto",
-		"crds/*multicluster.solo.io_v1alpha1_crds.yaml",
+		"crds/multicluster.solo.io_crds.yaml",
 	}
 	anyvendorImports.External["github.com/solo-io/solo-apis"] = []string{
 		"api/rate-limiter/**/*.proto",
@@ -136,8 +136,8 @@ func main() {
 }
 
 func copySkv2MulticlusterCRDs() {
-	vendoredMultiClusterCRDs := "vendor_any/github.com/solo-io/skv2/crds/multicluster.solo.io_v1alpha1_crds.yaml"
-	importedMultiClusterCRDs := "install/helm/gloo-fed/crds/multicluster.solo.io_v1alpha1_imported_crds.yaml"
+	vendoredMultiClusterCRDs := "vendor_any/github.com/solo-io/skv2/crds/multicluster.solo.io_crds.yaml"
+	importedMultiClusterCRDs := "install/helm/gloo-fed/crds/multicluster.solo.io_imported_crds.yaml"
 	if err := os.Rename(vendoredMultiClusterCRDs, importedMultiClusterCRDs); err != nil {
 		log.Fatal(err)
 	}

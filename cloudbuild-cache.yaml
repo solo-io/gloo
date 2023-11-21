@@ -63,4 +63,4 @@ steps:
 options:
   env:
   - "GO111MODULE=on"
-  - "_GO_VERSION=1.20.1"
+  - "_GO_VERSION=1.21.4"

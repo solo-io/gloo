@@ -1,6 +1,6 @@
 module github.com/solo-io/solo-projects
 
-go 1.20
+go 1.21
 
 // Note for developers: upgrading go will also require upgrading go in the following files:
 // ./cloudbuild.yaml, ./cloudbuild-cache.yaml,
@@ -50,7 +50,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.2
 	github.com/solo-io/ext-auth-service v0.52.0
 	github.com/solo-io/external-apis v0.2.0
-	github.com/solo-io/gloo v1.16.0-beta25
+	github.com/solo-io/gloo v1.16.0-beta26
 	github.com/solo-io/gloo-graphql-example v0.1.0
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.6
@@ -59,8 +59,8 @@ require (
 	github.com/solo-io/protoc-gen-ext v0.0.18
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.10.0
-	github.com/solo-io/skv2 v0.32.0
-	github.com/solo-io/solo-apis v0.0.0-20231116154437-d7190dfa878c
+	github.com/solo-io/skv2 v0.34.10
+	github.com/solo-io/solo-apis v0.0.0-20231117152426-05bcaa5031fa
 	github.com/solo-io/solo-kit v0.33.0
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20220823153451-d072eb48cb44
 	github.com/spf13/cobra v1.7.0
@@ -429,20 +429,20 @@ exclude (
 	k8s.io/client-go v1.5.0
 	k8s.io/client-go v1.5.1
 	k8s.io/client-go v1.5.2
-	k8s.io/client-go v10.0.0+incompatible
-	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
-	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/client-go v2.0.0+incompatible
 	k8s.io/client-go v2.0.0-alpha.1+incompatible
-	k8s.io/client-go v3.0.0+incompatible
+	k8s.io/client-go v2.0.0+incompatible
 	k8s.io/client-go v3.0.0-beta.0+incompatible
-	k8s.io/client-go v4.0.0+incompatible
+	k8s.io/client-go v3.0.0+incompatible
 	k8s.io/client-go v4.0.0-beta.0+incompatible
+	k8s.io/client-go v4.0.0+incompatible
 	k8s.io/client-go v5.0.0+incompatible
 	k8s.io/client-go v5.0.1+incompatible
 	k8s.io/client-go v6.0.0+incompatible
 	k8s.io/client-go v7.0.0+incompatible
 	k8s.io/client-go v8.0.0+incompatible
-	k8s.io/client-go v9.0.0+incompatible
 	k8s.io/client-go v9.0.0-invalid+incompatible
+	k8s.io/client-go v9.0.0+incompatible
+	k8s.io/client-go v10.0.0+incompatible
+	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	k8s.io/client-go v12.0.0+incompatible
 )
