@@ -82,8 +82,8 @@ func (t *extAuthConfigTranslator) Translate(ctx context.Context, resource *extau
 
 	contextutils.LoggerFrom(ctx).Debugw("Getting config for resource", zap.Any("resource", resource))
 
-	if len(resource.Configs) != 0 {
-		return t.getConfigs(ctx, resource.BooleanExpr.GetValue(), resource.Configs, resource.FailOnRedirect)
+	if len(resource.GetConfigs()) != 0 {
+		return t.getConfigs(ctx, resource.GetBooleanExpr().GetValue(), resource.GetConfigs(), resource.GetFailOnRedirect())
 	}
 
 	return nil, nil

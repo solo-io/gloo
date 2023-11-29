@@ -21,7 +21,9 @@ jobs:
   publish-gloo-ee:
     name: publish gloo-ee
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # The number of artifacts that are published has grown to the point where we need to increase the timeout
+    # We should evaluate if we can reduce the number of artifacts published (e.g. optionally publish fips artifacts)
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/workflows/composite-actions/standard-gloo-ee-setup

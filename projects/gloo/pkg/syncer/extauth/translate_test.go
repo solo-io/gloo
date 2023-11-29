@@ -1345,4 +1345,66 @@ var _ = Describe("Translate", func() {
 			Expect(err).To(MatchError(ContainSubstring("The following headers are configured for both append and overwrite in the upstream: x-auth-header-both")))
 		})
 	})
+
+	Context("AuthConfig.FailOnRedirect", func() {
+
+		BeforeEach(func() {
+			authConfig = &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "http-passthrough",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
+						PassThroughAuth: &extauth.PassThroughAuth{
+							Protocol: &extauth.PassThroughAuth_Http{
+								Http: &extauth.PassThroughHttp{
+									Request:  &extauth.PassThroughHttp_Request{},
+									Response: &extauth.PassThroughHttp_Response{},
+									ConnectionTimeout: &duration.Duration{
+										Seconds: 10,
+									},
+									Url: "https://localhost",
+								},
+							},
+						},
+					},
+				}},
+				FailOnRedirect: true,
+			}
+
+			authConfigRef = authConfig.Metadata.Ref()
+			extAuthExtension = &extauth.ExtAuthExtension{
+				Spec: &extauth.ExtAuthExtension_ConfigRef{
+					ConfigRef: authConfigRef,
+				},
+			}
+			params.Snapshot = &v1snap.ApiSnapshot{
+				Upstreams:   v1.UpstreamList{upstream},
+				AuthConfigs: extauth.AuthConfigList{authConfig},
+			}
+		})
+
+		It("Translates FailOnRedirect correctly", func() {
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.Background(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+			Expect(translated.FailOnRedirect).To(Equal(authConfig.GetFailOnRedirect()), "FailOnRedirect should match the AuthConfig.FailOnRedirect field")
+		})
+	})
+
+	When("Number of AuthConfig exported properties changes", func() {
+
+		It("will fail", func() {
+			// This test is important as it checks whether the AuthConfig proto has a new top level field.
+			// This should happen very rarely, and should be used as an indication that the `TranslateExtAuthConfig` function
+			// most likely needs to change.
+
+			Expect(reflect.TypeOf(extauth.AuthConfig{}).NumField()).To(
+				Equal(8),
+				"wrong number of fields found",
+			)
+		})
+
+	})
 })
