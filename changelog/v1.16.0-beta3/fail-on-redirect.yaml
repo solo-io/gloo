@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7167
+    resolvesIssue: false
+    description: >-
+      Ensure that the `failOnRedirect` option is respected on an AuthConfig resource.

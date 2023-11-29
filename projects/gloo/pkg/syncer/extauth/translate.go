@@ -95,6 +95,7 @@ func ConvertExternalAuthConfigToXdsAuthConfig(ctx context.Context, snapshot *v1s
 	})
 
 	return &extauth.ExtAuthConfig{
+		FailOnRedirect:    externalAuthConfig.GetFailOnRedirect(),
 		BooleanExpr:       externalAuthConfig.GetBooleanExpr(),
 		AuthConfigRefName: externalAuthConfig.GetMetadata().Ref().Key(),
 		Configs:           translatedConfigs,

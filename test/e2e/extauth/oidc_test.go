@@ -1,6 +1,7 @@
 package extauth_test
 
 import (
+	"context"
 	"crypto/rsa"
 	"fmt"
 	"io"
@@ -10,6 +11,9 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/onsi/gomega/gstruct"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/solo-io/solo-projects/test/services/redis"
@@ -953,25 +957,78 @@ var _ = Describe("OIDC", func() {
 		})
 
 		Context("Oidc tests that don't forward to upstream", func() {
-			It("should redirect to auth page", func() {
-				client := testutils.DefaultClientBuilder().Build()
-				client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-					// stop at the auth point
-					if req.Response != nil && req.Response.Header.Get("x-auth") != "" {
-						return http.ErrUseLastResponse
-					}
-					return nil
-				}
 
-				httpReqBuilder := testContext.GetHttpRequestBuilder()
-				Eventually(func() (*http.Response, error) {
-					resp, err := client.Do(httpReqBuilder.Build())
-					if err != nil {
-						return nil, err
-					}
-					_, _ = fmt.Fprintf(GinkgoWriter, "headers are %v \n", resp.Header)
-					return resp, nil
-				}, "10s", "0.5s").Should(HaveHTTPBody("auth"))
+			When("Authorization fails", func() {
+
+				DescribeTable("failOnRedirect changes the response behavior",
+					func(failOnRedirect bool, expectedStatusCode int) {
+						err := gloohelpers.PatchResource(
+							context.Background(),
+							authConfig.GetMetadata().Ref(),
+							func(resource resources.Resource) resources.Resource {
+								ac := resource.(*extauth.AuthConfig)
+								ac.FailOnRedirect = failOnRedirect
+
+								// FailOnRedirect changes the behavior only when there are multiple Configs defined
+								// so we add a second config that is a duplicate of the original
+								ac.Configs = []*extauth.AuthConfig_Config{
+									{
+										Name: &wrappers.StringValue{
+											Value: "config1",
+										},
+										AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+											Oauth2: &extauth.OAuth2{
+												OauthType: oauth2,
+											},
+										},
+									},
+									{
+										Name: &wrappers.StringValue{
+											Value: "config2",
+										},
+										AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+											Oauth2: &extauth.OAuth2{
+												OauthType: oauth2,
+											},
+										},
+									},
+								}
+								ac.BooleanExpr = &wrappers.StringValue{
+									Value: "(config1 || config2)",
+								}
+								return ac
+							},
+							testContext.TestClients().AuthConfigClient.BaseClient())
+						Expect(err).NotTo(HaveOccurred())
+
+						client := testutils.DefaultClientBuilder().Build()
+						client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+							// stop at the auth point
+							if req.Response != nil && req.Response.Header.Get("x-auth") != "" {
+								return http.ErrUseLastResponse
+							}
+							return nil
+						}
+
+						httpReqBuilder := testContext.GetHttpRequestBuilder()
+						Eventually(func(g Gomega) {
+							resp, err := client.Do(httpReqBuilder.Build())
+							g.Expect(err).NotTo(HaveOccurred())
+							g.Expect(resp).To(testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
+								StatusCode: expectedStatusCode,
+								Body:       gstruct.Ignore(),
+							}))
+						}, "10s", "0.5s").Should(Succeed())
+
+					},
+					Entry("failOnRedirect is false", false, http.StatusFound),
+
+					// https://github.com/solo-io/ext-auth-service/issues/669
+					// In reality, we should be getting a 401, but due to the above behavior in the ext-auth-service
+					// a 403 is returned
+					Entry("failOnRedirect is true", true, http.StatusForbidden),
+				)
+
 			})
 
 			It("should include email scope in url", func() {
