@@ -53,6 +53,7 @@ func SetEdsOnCluster(out *envoy_config_cluster_v3.Cluster, settings *v1.Settings
 				},
 			},
 		}
-
 	}
+
+	out.IgnoreHealthOnHostRemoval = true
 }
