@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5530
+    resolvesIssue: false
+    description: >-
+      Regression tests are failing due to node 14 deprecation in the Ubuntu image: https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md
+      Remove the attempts to delete the images that no longer exist, and add deletes for the v20 images to save disk space.
