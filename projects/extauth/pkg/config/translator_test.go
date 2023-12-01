@@ -151,6 +151,50 @@ var _ = Describe("Ext Auth Config Translator", func() {
 		})
 	})
 
+	DescribeTable("works as expected for all encryption types", func(encryptionType *extauthv1.ExtAuthConfig_BasicAuthInternal_EncryptionType) {
+		serviceFactory.EXPECT().NewBasicAuthServiceInternal(gomock.Any()).Return(authServiceMock, nil)
+
+		authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
+			AuthConfigRefName: "default.basic-auth-authconfig",
+			Configs: []*extauthv1.ExtAuthConfig_Config{
+				{
+					AuthConfig: &extauthv1.ExtAuthConfig_Config_BasicAuthInternal{
+						BasicAuthInternal: &extauthv1.ExtAuthConfig_BasicAuthInternal{
+							Realm:      "my-realm",
+							Encryption: encryptionType,
+							UserSource: &extauthv1.ExtAuthConfig_BasicAuthInternal_UserList_{
+								UserList: &extauthv1.ExtAuthConfig_BasicAuthInternal_UserList{
+									Users: map[string]*extauthv1.ExtAuthConfig_BasicAuthInternal_User{
+										"user": {
+											Salt:           "salt",
+											HashedPassword: "pwd",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(authService).NotTo(BeNil())
+
+		authServiceChain, ok := authService.(chain.AuthServiceChain)
+		Expect(ok).To(BeTrue())
+		Expect(authServiceChain).NotTo(BeNil())
+		services := authServiceChain.ListAuthServices()
+		Expect(services).To(HaveLen(1))
+
+	},
+		Entry("apr", &extauthv1.ExtAuthConfig_BasicAuthInternal_EncryptionType{
+			Algorithm: &extauthv1.ExtAuthConfig_BasicAuthInternal_EncryptionType_Apr_{},
+		}),
+		Entry("sha1", &extauthv1.ExtAuthConfig_BasicAuthInternal_EncryptionType{
+			Algorithm: &extauthv1.ExtAuthConfig_BasicAuthInternal_EncryptionType_Sha1_{},
+		}),
+	)
+
 	Describe("translating API keys config", func() {
 		It("translates old style config", func() {
 			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{

@@ -21,6 +21,7 @@ import (
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/solo-io/ext-auth-service/pkg/config/apikeys/externalstorage"
 	"github.com/solo-io/ext-auth-service/pkg/config/apikeys/secrets"
+	"github.com/solo-io/ext-auth-service/pkg/config/basicauth"
 	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
 	"github.com/solo-io/ext-auth-service/pkg/controller/translation"
 
@@ -132,8 +133,39 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			Realm:                            cfg.BasicAuth.Realm,
 			SaltAndHashedPasswordPerUsername: convertAprUsers(cfg.BasicAuth.GetApr().GetUsers()),
 		}
-
 		return &aprCfg, eaconfig.GetName().GetValue(), nil
+	case *extauthv1.ExtAuthConfig_Config_BasicAuthInternal:
+		var encrypter basicauth.Encrypter
+		var users map[string]basicauth.SaltAndHashedPassword
+
+		switch encryptionType := cfg.BasicAuthInternal.GetEncryption().Algorithm.(type) {
+		case *extauthv1.ExtAuthConfig_BasicAuthInternal_EncryptionType_Apr_:
+			encrypter = basicauth.NewAprEncrypter()
+		case *extauthv1.ExtAuthConfig_BasicAuthInternal_EncryptionType_Sha1_:
+			encrypter = basicauth.NewSha1Encrypter()
+		default:
+			return nil, eaconfig.GetName().GetValue(), errors.Errorf("unknown encyption type: %T", encryptionType)
+		}
+
+		switch userSource := cfg.BasicAuthInternal.GetUserSource().(type) {
+		case *extauthv1.ExtAuthConfig_BasicAuthInternal_UserList_:
+			users = convertBasicAuthUsers(userSource.UserList.Users)
+		default:
+			return nil, eaconfig.GetName().GetValue(), errors.Errorf("unknown user source type: %T", userSource)
+		}
+
+		BasicAuthInternal, err := t.serviceFactory.NewBasicAuthServiceInternal(
+			&config.BasicAuthServiceInternalParams{
+				Realm:                            cfg.BasicAuthInternal.Realm,
+				SaltAndHashedPasswordPerUsername: users,
+				Encrypter:                        encrypter,
+			})
+
+		if err != nil {
+			return nil, eaconfig.GetName().GetValue(), err
+		}
+
+		return BasicAuthInternal, eaconfig.GetName().GetValue(), nil
 
 	// support deprecated config
 	case *extauthv1.ExtAuthConfig_Config_Oauth:
@@ -741,10 +773,23 @@ func getPassThroughHttpService(ctx context.Context, authCfgCfg *structpb.Struct,
 	return httpPassthrough.NewHttpService(cfg, authCfgCfg), nil
 }
 
+// convertAprUsers converts the APR specific public facing users to the structurally identical internal representation.
 func convertAprUsers(users map[string]*extauthv1.BasicAuth_Apr_SaltedHashedPassword) map[string]apr.SaltAndHashedPassword {
 	ret := map[string]apr.SaltAndHashedPassword{}
 	for k, v := range users {
 		ret[k] = apr.SaltAndHashedPassword{
+			HashedPassword: v.HashedPassword,
+			Salt:           v.Salt,
+		}
+	}
+	return ret
+}
+
+// convertBasicAuthUsers converts the top level public facing users to the structurally identical internal representation.
+func convertBasicAuthUsers(users map[string]*extauthv1.ExtAuthConfig_BasicAuthInternal_User) map[string]basicauth.SaltAndHashedPassword {
+	ret := map[string]basicauth.SaltAndHashedPassword{}
+	for k, v := range users {
+		ret[k] = basicauth.SaltAndHashedPassword{
 			HashedPassword: v.HashedPassword,
 			Salt:           v.Salt,
 		}

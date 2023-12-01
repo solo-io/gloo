@@ -478,6 +478,17 @@ export class BasicAuth extends jspb.Message {
   getApr(): BasicAuth.Apr | undefined;
   setApr(value?: BasicAuth.Apr): void;
 
+  hasEncryption(): boolean;
+  clearEncryption(): void;
+  getEncryption(): BasicAuth.EncryptionType | undefined;
+  setEncryption(value?: BasicAuth.EncryptionType): void;
+
+  hasUserList(): boolean;
+  clearUserList(): void;
+  getUserList(): BasicAuth.UserList | undefined;
+  setUserList(value?: BasicAuth.UserList): void;
+
+  getUserSourceCase(): BasicAuth.UserSourceCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): BasicAuth.AsObject;
   static toObject(includeInstance: boolean, msg: BasicAuth): BasicAuth.AsObject;
@@ -492,6 +503,8 @@ export namespace BasicAuth {
   export type AsObject = {
     realm: string,
     apr?: BasicAuth.Apr.AsObject,
+    encryption?: BasicAuth.EncryptionType.AsObject,
+    userList?: BasicAuth.UserList.AsObject,
   }
 
   export class Apr extends jspb.Message {
@@ -535,6 +548,121 @@ export namespace BasicAuth {
         hashedPassword: string,
       }
     }
+  }
+
+  export class EncryptionType extends jspb.Message {
+    hasApr(): boolean;
+    clearApr(): void;
+    getApr(): BasicAuth.EncryptionType.Apr | undefined;
+    setApr(value?: BasicAuth.EncryptionType.Apr): void;
+
+    hasSha1(): boolean;
+    clearSha1(): void;
+    getSha1(): BasicAuth.EncryptionType.Sha1 | undefined;
+    setSha1(value?: BasicAuth.EncryptionType.Sha1): void;
+
+    getAlgorithmCase(): EncryptionType.AlgorithmCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): EncryptionType.AsObject;
+    static toObject(includeInstance: boolean, msg: EncryptionType): EncryptionType.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: EncryptionType, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): EncryptionType;
+    static deserializeBinaryFromReader(message: EncryptionType, reader: jspb.BinaryReader): EncryptionType;
+  }
+
+  export namespace EncryptionType {
+    export type AsObject = {
+      apr?: BasicAuth.EncryptionType.Apr.AsObject,
+      sha1?: BasicAuth.EncryptionType.Sha1.AsObject,
+    }
+
+    export class Sha1 extends jspb.Message {
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): Sha1.AsObject;
+      static toObject(includeInstance: boolean, msg: Sha1): Sha1.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: Sha1, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): Sha1;
+      static deserializeBinaryFromReader(message: Sha1, reader: jspb.BinaryReader): Sha1;
+    }
+
+    export namespace Sha1 {
+      export type AsObject = {
+      }
+    }
+
+    export class Apr extends jspb.Message {
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): Apr.AsObject;
+      static toObject(includeInstance: boolean, msg: Apr): Apr.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: Apr, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): Apr;
+      static deserializeBinaryFromReader(message: Apr, reader: jspb.BinaryReader): Apr;
+    }
+
+    export namespace Apr {
+      export type AsObject = {
+      }
+    }
+
+    export enum AlgorithmCase {
+      ALGORITHM_NOT_SET = 0,
+      APR = 1,
+      SHA1 = 2,
+    }
+  }
+
+  export class User extends jspb.Message {
+    getSalt(): string;
+    setSalt(value: string): void;
+
+    getHashedPassword(): string;
+    setHashedPassword(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): User.AsObject;
+    static toObject(includeInstance: boolean, msg: User): User.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: User, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): User;
+    static deserializeBinaryFromReader(message: User, reader: jspb.BinaryReader): User;
+  }
+
+  export namespace User {
+    export type AsObject = {
+      salt: string,
+      hashedPassword: string,
+    }
+  }
+
+  export class UserList extends jspb.Message {
+    getUsersMap(): jspb.Map<string, BasicAuth.User>;
+    clearUsersMap(): void;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): UserList.AsObject;
+    static toObject(includeInstance: boolean, msg: UserList): UserList.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: UserList, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): UserList;
+    static deserializeBinaryFromReader(message: UserList, reader: jspb.BinaryReader): UserList;
+  }
+
+  export namespace UserList {
+    export type AsObject = {
+      usersMap: Array<[string, BasicAuth.User.AsObject]>,
+    }
+  }
+
+  export enum UserSourceCase {
+    USER_SOURCE_NOT_SET = 0,
+    USER_LIST = 4,
   }
 }
 
@@ -2493,6 +2621,154 @@ export namespace ExtAuthConfig {
     failOnRedirect: boolean,
   }
 
+  export class BasicAuthInternal extends jspb.Message {
+    getRealm(): string;
+    setRealm(value: string): void;
+
+    hasEncryption(): boolean;
+    clearEncryption(): void;
+    getEncryption(): ExtAuthConfig.BasicAuthInternal.EncryptionType | undefined;
+    setEncryption(value?: ExtAuthConfig.BasicAuthInternal.EncryptionType): void;
+
+    hasUserList(): boolean;
+    clearUserList(): void;
+    getUserList(): ExtAuthConfig.BasicAuthInternal.UserList | undefined;
+    setUserList(value?: ExtAuthConfig.BasicAuthInternal.UserList): void;
+
+    getUserSourceCase(): BasicAuthInternal.UserSourceCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): BasicAuthInternal.AsObject;
+    static toObject(includeInstance: boolean, msg: BasicAuthInternal): BasicAuthInternal.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: BasicAuthInternal, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): BasicAuthInternal;
+    static deserializeBinaryFromReader(message: BasicAuthInternal, reader: jspb.BinaryReader): BasicAuthInternal;
+  }
+
+  export namespace BasicAuthInternal {
+    export type AsObject = {
+      realm: string,
+      encryption?: ExtAuthConfig.BasicAuthInternal.EncryptionType.AsObject,
+      userList?: ExtAuthConfig.BasicAuthInternal.UserList.AsObject,
+    }
+
+    export class EncryptionType extends jspb.Message {
+      hasApr(): boolean;
+      clearApr(): void;
+      getApr(): ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr | undefined;
+      setApr(value?: ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr): void;
+
+      hasSha1(): boolean;
+      clearSha1(): void;
+      getSha1(): ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1 | undefined;
+      setSha1(value?: ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1): void;
+
+      getAlgorithmCase(): EncryptionType.AlgorithmCase;
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): EncryptionType.AsObject;
+      static toObject(includeInstance: boolean, msg: EncryptionType): EncryptionType.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: EncryptionType, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): EncryptionType;
+      static deserializeBinaryFromReader(message: EncryptionType, reader: jspb.BinaryReader): EncryptionType;
+    }
+
+    export namespace EncryptionType {
+      export type AsObject = {
+        apr?: ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.AsObject,
+        sha1?: ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.AsObject,
+      }
+
+      export class Sha1 extends jspb.Message {
+        serializeBinary(): Uint8Array;
+        toObject(includeInstance?: boolean): Sha1.AsObject;
+        static toObject(includeInstance: boolean, msg: Sha1): Sha1.AsObject;
+        static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+        static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+        static serializeBinaryToWriter(message: Sha1, writer: jspb.BinaryWriter): void;
+        static deserializeBinary(bytes: Uint8Array): Sha1;
+        static deserializeBinaryFromReader(message: Sha1, reader: jspb.BinaryReader): Sha1;
+      }
+
+      export namespace Sha1 {
+        export type AsObject = {
+        }
+      }
+
+      export class Apr extends jspb.Message {
+        serializeBinary(): Uint8Array;
+        toObject(includeInstance?: boolean): Apr.AsObject;
+        static toObject(includeInstance: boolean, msg: Apr): Apr.AsObject;
+        static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+        static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+        static serializeBinaryToWriter(message: Apr, writer: jspb.BinaryWriter): void;
+        static deserializeBinary(bytes: Uint8Array): Apr;
+        static deserializeBinaryFromReader(message: Apr, reader: jspb.BinaryReader): Apr;
+      }
+
+      export namespace Apr {
+        export type AsObject = {
+        }
+      }
+
+      export enum AlgorithmCase {
+        ALGORITHM_NOT_SET = 0,
+        APR = 1,
+        SHA1 = 2,
+      }
+    }
+
+    export class User extends jspb.Message {
+      getSalt(): string;
+      setSalt(value: string): void;
+
+      getHashedPassword(): string;
+      setHashedPassword(value: string): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): User.AsObject;
+      static toObject(includeInstance: boolean, msg: User): User.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: User, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): User;
+      static deserializeBinaryFromReader(message: User, reader: jspb.BinaryReader): User;
+    }
+
+    export namespace User {
+      export type AsObject = {
+        salt: string,
+        hashedPassword: string,
+      }
+    }
+
+    export class UserList extends jspb.Message {
+      getUsersMap(): jspb.Map<string, ExtAuthConfig.BasicAuthInternal.User>;
+      clearUsersMap(): void;
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): UserList.AsObject;
+      static toObject(includeInstance: boolean, msg: UserList): UserList.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: UserList, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): UserList;
+      static deserializeBinaryFromReader(message: UserList, reader: jspb.BinaryReader): UserList;
+    }
+
+    export namespace UserList {
+      export type AsObject = {
+        usersMap: Array<[string, ExtAuthConfig.BasicAuthInternal.User.AsObject]>,
+      }
+    }
+
+    export enum UserSourceCase {
+      USER_SOURCE_NOT_SET = 0,
+      USER_LIST = 3,
+    }
+  }
+
   export class OAuthConfig extends jspb.Message {
     getClientId(): string;
     setClientId(value: string): void;
@@ -3301,6 +3577,11 @@ export namespace ExtAuthConfig {
     getBasicAuth(): BasicAuth | undefined;
     setBasicAuth(value?: BasicAuth): void;
 
+    hasBasicAuthInternal(): boolean;
+    clearBasicAuthInternal(): void;
+    getBasicAuthInternal(): ExtAuthConfig.BasicAuthInternal | undefined;
+    setBasicAuthInternal(value?: ExtAuthConfig.BasicAuthInternal): void;
+
     hasApiKeyAuth(): boolean;
     clearApiKeyAuth(): void;
     getApiKeyAuth(): ExtAuthConfig.ApiKeyAuthConfig | undefined;
@@ -3358,6 +3639,7 @@ export namespace ExtAuthConfig {
       oauth?: ExtAuthConfig.OAuthConfig.AsObject,
       oauth2?: ExtAuthConfig.OAuth2Config.AsObject,
       basicAuth?: BasicAuth.AsObject,
+      basicAuthInternal?: ExtAuthConfig.BasicAuthInternal.AsObject,
       apiKeyAuth?: ExtAuthConfig.ApiKeyAuthConfig.AsObject,
       pluginAuth?: AuthPlugin.AsObject,
       opaAuth?: ExtAuthConfig.OpaAuthConfig.AsObject,
@@ -3373,6 +3655,7 @@ export namespace ExtAuthConfig {
       OAUTH = 3,
       OAUTH2 = 9,
       BASIC_AUTH = 4,
+      BASIC_AUTH_INTERNAL = 17,
       API_KEY_AUTH = 5,
       PLUGIN_AUTH = 6,
       OPA_AUTH = 7,

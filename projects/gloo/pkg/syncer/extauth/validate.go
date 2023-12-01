@@ -20,6 +20,11 @@ var (
 	OAuth2EmtpyLocalJwksErr                     = errors.New("oauth2: must provide inline JWKS string")
 	OAuth2IncompleteOIDCInfoErr                 = errors.New("oidc: all of the following attributes must be provided: issuerUrl, clientId, clientSecretRef, appUrl, callbackPath")
 	OAuth2IncompletePlainInfoErr                = errors.New("oauth2: all of the following attributes must be provided: issuerUrl, clientId, clientSecretRef, appUrl, callbackPath")
+	OAuth2DuplicateOIDCErr                      = errors.New("oidc: can not use codeExchangeType with deprecated fields clientSecretRef and disableClientSecret")
+	OAuth2InvalidExchanger                      = errors.New("oidc: undefined or unknown codeExchangeType")
+	BasicAuthLegacyAndInternalErr               = errors.New("basic: cannot use both apr and encryption/userlist")
+	BasicAuthUndefinedEncryptionErr             = errors.New("basic: nil encryption type")
+	BasicAuthUndefinedUserSourceErr             = errors.New("basic: nil user type")
 )
 
 func DeprecatedAPIOverwriteWarning(cfgType, field string) string {
@@ -76,7 +81,26 @@ func CheckIfInvalidAuthConfig(ac *extauth.AuthConfig) (*multierror.Error, []stri
 	for _, conf := range configs {
 		switch cfg := conf.AuthConfig.(type) {
 		case *extauth.AuthConfig_Config_BasicAuth:
-			if cfg.BasicAuth.GetApr() == nil {
+			aprConfig := cfg.BasicAuth.GetApr()
+			userSource := cfg.BasicAuth.GetUserSource()
+			encryption := cfg.BasicAuth.GetEncryption()
+
+			if aprConfig != nil {
+				// Check that we are not also defining the extended config
+				if encryption != nil || userSource != nil {
+					multiErr = multierror.Append(BasicAuthLegacyAndInternalErr)
+				}
+
+			} else if encryption != nil || userSource != nil {
+				// Handle the new config with encryption and userlist separate. Make sure we have both defined.
+				if encryption == nil {
+					multiErr = multierror.Append(BasicAuthUndefinedEncryptionErr)
+				}
+
+				if userSource == nil {
+					multiErr = multierror.Append(BasicAuthUndefinedUserSourceErr)
+				}
+			} else {
 				multiErr = multierror.Append(multiErr, NewInvalidAuthConfigError("basic", ac.GetMetadata().Ref()))
 			}
 		case *extauth.AuthConfig_Config_Oauth:

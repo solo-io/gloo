@@ -1290,6 +1290,121 @@ var _ = Describe("Translate", func() {
 			Expect(err).NotTo(BeNil())
 		})
 	})
+
+	const (
+		testSalt           = "testSalt"
+		testHashedPassword = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+		testRealm          = "gloo"
+	)
+
+	Context("Basic Auth (Legacy format)", func() {
+		BeforeEach(func() {
+			authConfig = &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "basicauth",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_BasicAuth{
+						BasicAuth: &extauth.BasicAuth{
+							Apr: &extauth.BasicAuth_Apr{
+								Users: map[string]*extauth.BasicAuth_Apr_SaltedHashedPassword{
+									"testUser": {
+										Salt:           testSalt,
+										HashedPassword: testHashedPassword,
+									},
+								},
+							},
+							Realm: testRealm,
+						},
+					},
+				}},
+			}
+
+			authConfigRef = authConfig.Metadata.Ref()
+
+			params.Snapshot = &v1snap.ApiSnapshot{
+				Upstreams:   v1.UpstreamList{upstream},
+				AuthConfigs: extauth.AuthConfigList{authConfig},
+			}
+		})
+		It("translates Basic Auth config", func() {
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+			Expect(translated.Configs).To(HaveLen(1))
+			actual := translated.Configs[0].GetBasicAuth()
+			// Legacy functionality is to just pass through the config
+			Expect(actual).To(Equal(authConfig.GetConfigs()[0].GetBasicAuth()))
+		})
+
+	})
+
+	Context("Basic Auth Internal", func() {
+		BeforeEach(func() {
+			authConfig = &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "basicauth",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_BasicAuth{
+						BasicAuth: &extauth.BasicAuth{
+							Encryption: &extauth.BasicAuth_EncryptionType{
+								Algorithm: &extauth.BasicAuth_EncryptionType_Sha1_{},
+							},
+							UserSource: &extauth.BasicAuth_UserList_{
+								UserList: &extauth.BasicAuth_UserList{
+									Users: map[string]*extauth.BasicAuth_User{
+										"testUser": {
+											Salt:           testSalt,
+											HashedPassword: testHashedPassword,
+										},
+									},
+								},
+							},
+							Realm: testRealm,
+						},
+					},
+				}},
+			}
+
+			authConfigRef = authConfig.Metadata.Ref()
+
+			params.Snapshot = &v1snap.ApiSnapshot{
+				Upstreams:   v1.UpstreamList{upstream},
+				AuthConfigs: extauth.AuthConfigList{authConfig},
+			}
+		})
+		DescribeTable("translates each algorithm (and users)", func(encryption *extauth.BasicAuth_EncryptionType, expectedEncryption *extauth.ExtAuthConfig_BasicAuthInternal_EncryptionType) {
+			authConfig.GetConfigs()[0].GetBasicAuth().Encryption = encryption
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+			Expect(translated.Configs).To(HaveLen(1))
+			actual := translated.Configs[0].GetBasicAuthInternal()
+			Expect(actual).ToNot(BeNil())
+			Expect(actual.GetRealm()).To(Equal(testRealm))
+			Expect(actual.GetEncryption()).To(Equal(expectedEncryption))
+
+			Expect(actual.GetUserList().GetUsers()).To(Equal(map[string]*extauth.ExtAuthConfig_BasicAuthInternal_User{
+				"testUser": {
+					Salt:           testSalt,
+					HashedPassword: testHashedPassword,
+				},
+			}))
+		},
+			Entry("SHA1",
+				&extauth.BasicAuth_EncryptionType{Algorithm: &extauth.BasicAuth_EncryptionType_Sha1_{}},
+				&extauth.ExtAuthConfig_BasicAuthInternal_EncryptionType{Algorithm: &extauth.ExtAuthConfig_BasicAuthInternal_EncryptionType_Sha1_{}},
+			),
+			Entry("APR",
+				&extauth.BasicAuth_EncryptionType{Algorithm: &extauth.BasicAuth_EncryptionType_Apr_{}},
+				&extauth.ExtAuthConfig_BasicAuthInternal_EncryptionType{Algorithm: &extauth.ExtAuthConfig_BasicAuthInternal_EncryptionType_Apr_{}},
+			),
+		)
+	})
+
 	Context("HTTP Passthrough", func() {
 		BeforeEach(func() {
 			authConfig = &extauth.AuthConfig{

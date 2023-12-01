@@ -50,6 +50,11 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.AutoMapFromMetadata', null, glo
 goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.Apr', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.Apr.SaltedHashedPassword', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.User', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.UserList', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.BufferSettings', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ClaimToHeader', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.CustomAuth', null, global);
@@ -65,6 +70,12 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValida
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.KeyMetadata', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.Config', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.InMemorySecretList', null, global);
@@ -3274,12 +3285,37 @@ proto.enterprise.gloo.solo.io.AuthPlugin.prototype.hasConfig = function() {
  * @constructor
  */
 proto.enterprise.gloo.solo.io.BasicAuth = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.BasicAuth.oneofGroups_);
 };
 goog.inherits(proto.enterprise.gloo.solo.io.BasicAuth, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.enterprise.gloo.solo.io.BasicAuth.displayName = 'proto.enterprise.gloo.solo.io.BasicAuth';
 }
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.oneofGroups_ = [[4]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.UserSourceCase = {
+  USER_SOURCE_NOT_SET: 0,
+  USER_LIST: 4
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.BasicAuth.UserSourceCase}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.prototype.getUserSourceCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.BasicAuth.UserSourceCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.BasicAuth.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -3310,7 +3346,9 @@ proto.enterprise.gloo.solo.io.BasicAuth.prototype.toObject = function(opt_includ
 proto.enterprise.gloo.solo.io.BasicAuth.toObject = function(includeInstance, msg) {
   var f, obj = {
     realm: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    apr: (f = msg.getApr()) && proto.enterprise.gloo.solo.io.BasicAuth.Apr.toObject(includeInstance, f)
+    apr: (f = msg.getApr()) && proto.enterprise.gloo.solo.io.BasicAuth.Apr.toObject(includeInstance, f),
+    encryption: (f = msg.getEncryption()) && proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.toObject(includeInstance, f),
+    userList: (f = msg.getUserList()) && proto.enterprise.gloo.solo.io.BasicAuth.UserList.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3356,6 +3394,16 @@ proto.enterprise.gloo.solo.io.BasicAuth.deserializeBinaryFromReader = function(m
       reader.readMessage(value,proto.enterprise.gloo.solo.io.BasicAuth.Apr.deserializeBinaryFromReader);
       msg.setApr(value);
       break;
+    case 3:
+      var value = new proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.deserializeBinaryFromReader);
+      msg.setEncryption(value);
+      break;
+    case 4:
+      var value = new proto.enterprise.gloo.solo.io.BasicAuth.UserList;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.BasicAuth.UserList.deserializeBinaryFromReader);
+      msg.setUserList(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -3398,6 +3446,22 @@ proto.enterprise.gloo.solo.io.BasicAuth.serializeBinaryToWriter = function(messa
       2,
       f,
       proto.enterprise.gloo.solo.io.BasicAuth.Apr.serializeBinaryToWriter
+    );
+  }
+  f = message.getEncryption();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.serializeBinaryToWriter
+    );
+  }
+  f = message.getUserList();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      proto.enterprise.gloo.solo.io.BasicAuth.UserList.serializeBinaryToWriter
     );
   }
 };
@@ -3716,6 +3780,780 @@ proto.enterprise.gloo.solo.io.BasicAuth.Apr.prototype.clearUsersMap = function()
 };
 
 
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.displayName = 'proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.oneofGroups_ = [[1,2]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.AlgorithmCase = {
+  ALGORITHM_NOT_SET: 0,
+  APR: 1,
+  SHA1: 2
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.AlgorithmCase}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.prototype.getAlgorithmCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.AlgorithmCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    apr: (f = msg.getApr()) && proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr.toObject(includeInstance, f),
+    sha1: (f = msg.getSha1()) && proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType;
+  return proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr.deserializeBinaryFromReader);
+      msg.setApr(value);
+      break;
+    case 2:
+      var value = new proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1.deserializeBinaryFromReader);
+      msg.setSha1(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getApr();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr.serializeBinaryToWriter
+    );
+  }
+  f = message.getSha1();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1 = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1.displayName = 'proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1;
+  return proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr.displayName = 'proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr;
+  return proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+};
+
+
+/**
+ * optional Apr apr = 1;
+ * @return {?proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.prototype.getApr = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr, 1));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr|undefined} value */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.prototype.setApr = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.prototype.clearApr = function() {
+  this.setApr(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.prototype.hasApr = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional Sha1 sha1 = 2;
+ * @return {?proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.prototype.getSha1 = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1, 2));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1|undefined} value */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.prototype.setSha1 = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.prototype.clearSha1 = function() {
+  this.setSha1(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType.prototype.hasSha1 = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.User = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.BasicAuth.User, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.BasicAuth.User.displayName = 'proto.enterprise.gloo.solo.io.BasicAuth.User';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.User.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.BasicAuth.User.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.User} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.User.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    salt: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    hashedPassword: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.BasicAuth.User}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.User.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.BasicAuth.User;
+  return proto.enterprise.gloo.solo.io.BasicAuth.User.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.User} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.BasicAuth.User}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.User.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSalt(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setHashedPassword(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.User.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.BasicAuth.User.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.User} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.User.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getSalt();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getHashedPassword();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string salt = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.User.prototype.getSalt = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.BasicAuth.User.prototype.setSalt = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string hashed_password = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.User.prototype.getHashedPassword = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.BasicAuth.User.prototype.setHashedPassword = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.UserList = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.BasicAuth.UserList, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.BasicAuth.UserList.displayName = 'proto.enterprise.gloo.solo.io.BasicAuth.UserList';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.UserList.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.BasicAuth.UserList.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.UserList} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.UserList.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    usersMap: (f = msg.getUsersMap()) ? f.toObject(includeInstance, proto.enterprise.gloo.solo.io.BasicAuth.User.toObject) : []
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.BasicAuth.UserList}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.UserList.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.BasicAuth.UserList;
+  return proto.enterprise.gloo.solo.io.BasicAuth.UserList.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.UserList} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.BasicAuth.UserList}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.UserList.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = msg.getUsersMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.enterprise.gloo.solo.io.BasicAuth.User.deserializeBinaryFromReader, "");
+         });
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.UserList.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.BasicAuth.UserList.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.BasicAuth.UserList} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.UserList.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getUsersMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.enterprise.gloo.solo.io.BasicAuth.User.serializeBinaryToWriter);
+  }
+};
+
+
+/**
+ * map<string, User> users = 1;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.enterprise.gloo.solo.io.BasicAuth.User>}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.UserList.prototype.getUsersMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.enterprise.gloo.solo.io.BasicAuth.User>} */ (
+      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
+      proto.enterprise.gloo.solo.io.BasicAuth.User));
+};
+
+
+proto.enterprise.gloo.solo.io.BasicAuth.UserList.prototype.clearUsersMap = function() {
+  this.getUsersMap().clear();
+};
+
+
 /**
  * optional string realm = 1;
  * @return {string}
@@ -3758,6 +4596,66 @@ proto.enterprise.gloo.solo.io.BasicAuth.prototype.clearApr = function() {
  */
 proto.enterprise.gloo.solo.io.BasicAuth.prototype.hasApr = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional EncryptionType encryption = 3;
+ * @return {?proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.prototype.getEncryption = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType, 3));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.BasicAuth.EncryptionType|undefined} value */
+proto.enterprise.gloo.solo.io.BasicAuth.prototype.setEncryption = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.enterprise.gloo.solo.io.BasicAuth.prototype.clearEncryption = function() {
+  this.setEncryption(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.prototype.hasEncryption = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional UserList user_list = 4;
+ * @return {?proto.enterprise.gloo.solo.io.BasicAuth.UserList}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.prototype.getUserList = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.BasicAuth.UserList} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.BasicAuth.UserList, 4));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.BasicAuth.UserList|undefined} value */
+proto.enterprise.gloo.solo.io.BasicAuth.prototype.setUserList = function(value) {
+  jspb.Message.setOneofWrapperField(this, 4, proto.enterprise.gloo.solo.io.BasicAuth.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.BasicAuth.prototype.clearUserList = function() {
+  this.setUserList(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.BasicAuth.prototype.hasUserList = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
@@ -17320,6 +18218,1035 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.serializeBinaryToWriter = function(m
  * @extends {jspb.Message}
  * @constructor
  */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.oneofGroups_ = [[3]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserSourceCase = {
+  USER_SOURCE_NOT_SET: 0,
+  USER_LIST: 3
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserSourceCase}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.prototype.getUserSourceCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserSourceCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    realm: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    encryption: (f = msg.getEncryption()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.toObject(includeInstance, f),
+    userList: (f = msg.getUserList()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRealm(value);
+      break;
+    case 2:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.deserializeBinaryFromReader);
+      msg.setEncryption(value);
+      break;
+    case 3:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.deserializeBinaryFromReader);
+      msg.setUserList(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRealm();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getEncryption();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.serializeBinaryToWriter
+    );
+  }
+  f = message.getUserList();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.oneofGroups_ = [[1,2]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.AlgorithmCase = {
+  ALGORITHM_NOT_SET: 0,
+  APR: 1,
+  SHA1: 2
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.AlgorithmCase}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.prototype.getAlgorithmCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.AlgorithmCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    apr: (f = msg.getApr()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.toObject(includeInstance, f),
+    sha1: (f = msg.getSha1()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.deserializeBinaryFromReader);
+      msg.setApr(value);
+      break;
+    case 2:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.deserializeBinaryFromReader);
+      msg.setSha1(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getApr();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.serializeBinaryToWriter
+    );
+  }
+  f = message.getSha1();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1 = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+};
+
+
+/**
+ * optional Apr apr = 1;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.prototype.getApr = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr, 1));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Apr|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.prototype.setApr = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.prototype.clearApr = function() {
+  this.setApr(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.prototype.hasApr = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional Sha1 sha1 = 2;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.prototype.getSha1 = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1, 2));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.Sha1|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.prototype.setSha1 = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.prototype.clearSha1 = function() {
+  this.setSha1(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType.prototype.hasSha1 = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    salt: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    hashedPassword: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSalt(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setHashedPassword(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getSalt();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getHashedPassword();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string salt = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.prototype.getSalt = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.prototype.setSalt = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string hashed_password = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.prototype.getHashedPassword = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.prototype.setHashedPassword = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    usersMap: (f = msg.getUsersMap()) ? f.toObject(includeInstance, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.toObject) : []
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = msg.getUsersMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.deserializeBinaryFromReader, "");
+         });
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getUsersMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User.serializeBinaryToWriter);
+  }
+};
+
+
+/**
+ * map<string, User> users = 1;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User>}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.prototype.getUsersMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User>} */ (
+      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.User));
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList.prototype.clearUsersMap = function() {
+  this.getUsersMap().clear();
+};
+
+
+/**
+ * optional string realm = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.prototype.getRealm = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.prototype.setRealm = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional EncryptionType encryption = 2;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.prototype.getEncryption = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType, 2));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.EncryptionType|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.prototype.setEncryption = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.prototype.clearEncryption = function() {
+  this.setEncryption(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.prototype.hasEncryption = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional UserList user_list = 3;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.prototype.getUserList = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList, 3));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.UserList|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.prototype.setUserList = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.prototype.clearUserList = function() {
+  this.setUserList(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.prototype.hasUserList = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuthConfig = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuthConfig.repeatedFields_, null);
 };
@@ -22838,7 +24765,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.oneofGroups_ = [[3,9,4,5,6,7,8,14,12,13,15]];
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.oneofGroups_ = [[3,9,4,17,5,6,7,8,14,12,13,15]];
 
 /**
  * @enum {number}
@@ -22848,6 +24775,7 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.AuthConfigCase = {
   OAUTH: 3,
   OAUTH2: 9,
   BASIC_AUTH: 4,
+  BASIC_AUTH_INTERNAL: 17,
   API_KEY_AUTH: 5,
   PLUGIN_AUTH: 6,
   OPA_AUTH: 7,
@@ -22898,6 +24826,7 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.toObject = function(includeIn
     oauth: (f = msg.getOauth()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuthConfig.toObject(includeInstance, f),
     oauth2: (f = msg.getOauth2()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.toObject(includeInstance, f),
     basicAuth: (f = msg.getBasicAuth()) && proto.enterprise.gloo.solo.io.BasicAuth.toObject(includeInstance, f),
+    basicAuthInternal: (f = msg.getBasicAuthInternal()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.toObject(includeInstance, f),
     apiKeyAuth: (f = msg.getApiKeyAuth()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.toObject(includeInstance, f),
     pluginAuth: (f = msg.getPluginAuth()) && proto.enterprise.gloo.solo.io.AuthPlugin.toObject(includeInstance, f),
     opaAuth: (f = msg.getOpaAuth()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.toObject(includeInstance, f),
@@ -22961,6 +24890,11 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.deserializeBinaryFromReader =
       var value = new proto.enterprise.gloo.solo.io.BasicAuth;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.BasicAuth.deserializeBinaryFromReader);
       msg.setBasicAuth(value);
+      break;
+    case 17:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.deserializeBinaryFromReader);
+      msg.setBasicAuthInternal(value);
       break;
     case 5:
       var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig;
@@ -23061,6 +24995,14 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.serializeBinaryToWriter = fun
       4,
       f,
       proto.enterprise.gloo.solo.io.BasicAuth.serializeBinaryToWriter
+    );
+  }
+  f = message.getBasicAuthInternal();
+  if (f != null) {
+    writer.writeMessage(
+      17,
+      f,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal.serializeBinaryToWriter
     );
   }
   f = message.getApiKeyAuth();
@@ -23247,6 +25189,36 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.clearBasicAuth = fu
  */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.hasBasicAuth = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional BasicAuthInternal basic_auth_internal = 17;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.getBasicAuthInternal = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal, 17));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.setBasicAuthInternal = function(value) {
+  jspb.Message.setOneofWrapperField(this, 17, proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.clearBasicAuthInternal = function() {
+  this.setBasicAuthInternal(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.hasBasicAuthInternal = function() {
+  return jspb.Message.getField(this, 17) != null;
 };
 
 
