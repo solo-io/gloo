@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Disable envoy.reloadable_features.send_header_raw_value for all gateway-proxy deployments.
+      Currently, this is necessary to enable ext-proc in Gloo Edge Enterprise.
+      More discussion on this runtime flag can be found in the upstream envoy 1.27.0 patch notes
+      https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.27/v1.27.0
