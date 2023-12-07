@@ -1,0 +1,11 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7167
+    resolvesIssue: false
+    description: >-
+      Ensure that the `failOnRedirect` option is respected on an AuthConfig resource. When `failOnRedirect` is set,
+      if the ext-auth-service returns a redirect, Gloo will return a 401 to the client instead of following the redirect.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo.io
+    dependencyRepo: ext-auth-service
+    dependencyTag: 0.43.1-patch4
