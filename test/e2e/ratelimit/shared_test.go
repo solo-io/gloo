@@ -1073,15 +1073,15 @@ func RateLimitWithExtAuthTests(testContextSupplier func() *e2e.TestContextWithEx
 										Actions: []*rlv1alpha1.Action{
 											{
 												ActionSpecifier: &rlv1alpha1.Action_Metadata{
-													Metadata: &rlv1alpha1.Action_MetaData{
+													Metadata: &rlv1alpha1.MetaData{
 														DescriptorKey: "user-id",
-														MetadataKey: &rlv1alpha1.Action_MetaData_MetadataKey{
+														MetadataKey: &rlv1alpha1.MetaData_MetadataKey{
 															// Ext auth emits metadata in a namespace specified by
 															// the canonical name of extension filter we are using.
 															Key: wellknown.HTTPExternalAuthorization,
-															Path: []*rlv1alpha1.Action_MetaData_MetadataKey_PathSegment{
+															Path: []*rlv1alpha1.MetaData_MetadataKey_PathSegment{
 																{
-																	Segment: &rlv1alpha1.Action_MetaData_MetadataKey_PathSegment_Key{
+																	Segment: &rlv1alpha1.MetaData_MetadataKey_PathSegment_Key{
 																		Key: testContext.ExtAuthInstance().GetServerSettings().MetadataSettings.UserIdKey,
 																	},
 																},

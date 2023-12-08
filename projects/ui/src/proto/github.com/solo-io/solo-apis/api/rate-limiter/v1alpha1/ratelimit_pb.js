@@ -20,14 +20,16 @@ goog.exportSymbol('proto.ratelimit.api.solo.io.Action.GenericKey', null, global)
 goog.exportSymbol('proto.ratelimit.api.solo.io.Action.HeaderValueMatch', null, global);
 goog.exportSymbol('proto.ratelimit.api.solo.io.Action.HeaderValueMatch.HeaderMatcher', null, global);
 goog.exportSymbol('proto.ratelimit.api.solo.io.Action.HeaderValueMatch.HeaderMatcher.Int64Range', null, global);
-goog.exportSymbol('proto.ratelimit.api.solo.io.Action.MetaData', null, global);
-goog.exportSymbol('proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey', null, global);
-goog.exportSymbol('proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment', null, global);
-goog.exportSymbol('proto.ratelimit.api.solo.io.Action.MetaData.Source', null, global);
 goog.exportSymbol('proto.ratelimit.api.solo.io.Action.RemoteAddress', null, global);
 goog.exportSymbol('proto.ratelimit.api.solo.io.Action.RequestHeaders', null, global);
 goog.exportSymbol('proto.ratelimit.api.solo.io.Action.SourceCluster', null, global);
 goog.exportSymbol('proto.ratelimit.api.solo.io.Descriptor', null, global);
+goog.exportSymbol('proto.ratelimit.api.solo.io.MetaData', null, global);
+goog.exportSymbol('proto.ratelimit.api.solo.io.MetaData.MetadataKey', null, global);
+goog.exportSymbol('proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment', null, global);
+goog.exportSymbol('proto.ratelimit.api.solo.io.MetaData.Source', null, global);
+goog.exportSymbol('proto.ratelimit.api.solo.io.Override', null, global);
+goog.exportSymbol('proto.ratelimit.api.solo.io.Override.DynamicMetadata', null, global);
 goog.exportSymbol('proto.ratelimit.api.solo.io.RateLimit', null, global);
 goog.exportSymbol('proto.ratelimit.api.solo.io.RateLimit.Unit', null, global);
 goog.exportSymbol('proto.ratelimit.api.solo.io.RateLimitActions', null, global);
@@ -1620,7 +1622,8 @@ proto.ratelimit.api.solo.io.RateLimitActions.toObject = function(includeInstance
     actionsList: jspb.Message.toObjectList(msg.getActionsList(),
     proto.ratelimit.api.solo.io.Action.toObject, includeInstance),
     setActionsList: jspb.Message.toObjectList(msg.getSetActionsList(),
-    proto.ratelimit.api.solo.io.Action.toObject, includeInstance)
+    proto.ratelimit.api.solo.io.Action.toObject, includeInstance),
+    limit: (f = msg.getLimit()) && proto.ratelimit.api.solo.io.Override.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1667,6 +1670,11 @@ proto.ratelimit.api.solo.io.RateLimitActions.deserializeBinaryFromReader = funct
       reader.readMessage(value,proto.ratelimit.api.solo.io.Action.deserializeBinaryFromReader);
       msg.addSetActions(value);
       break;
+    case 3:
+      var value = new proto.ratelimit.api.solo.io.Override;
+      reader.readMessage(value,proto.ratelimit.api.solo.io.Override.deserializeBinaryFromReader);
+      msg.setLimit(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1710,6 +1718,14 @@ proto.ratelimit.api.solo.io.RateLimitActions.serializeBinaryToWriter = function(
       2,
       f,
       proto.ratelimit.api.solo.io.Action.serializeBinaryToWriter
+    );
+  }
+  f = message.getLimit();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.ratelimit.api.solo.io.Override.serializeBinaryToWriter
     );
   }
 };
@@ -1774,6 +1790,36 @@ proto.ratelimit.api.solo.io.RateLimitActions.prototype.addSetActions = function(
 
 proto.ratelimit.api.solo.io.RateLimitActions.prototype.clearSetActionsList = function() {
   this.setSetActionsList([]);
+};
+
+
+/**
+ * optional Override limit = 3;
+ * @return {?proto.ratelimit.api.solo.io.Override}
+ */
+proto.ratelimit.api.solo.io.RateLimitActions.prototype.getLimit = function() {
+  return /** @type{?proto.ratelimit.api.solo.io.Override} */ (
+    jspb.Message.getWrapperField(this, proto.ratelimit.api.solo.io.Override, 3));
+};
+
+
+/** @param {?proto.ratelimit.api.solo.io.Override|undefined} value */
+proto.ratelimit.api.solo.io.RateLimitActions.prototype.setLimit = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.ratelimit.api.solo.io.RateLimitActions.prototype.clearLimit = function() {
+  this.setLimit(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.ratelimit.api.solo.io.RateLimitActions.prototype.hasLimit = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
@@ -2041,7 +2087,7 @@ proto.ratelimit.api.solo.io.Action.toObject = function(includeInstance, msg) {
     remoteAddress: (f = msg.getRemoteAddress()) && proto.ratelimit.api.solo.io.Action.RemoteAddress.toObject(includeInstance, f),
     genericKey: (f = msg.getGenericKey()) && proto.ratelimit.api.solo.io.Action.GenericKey.toObject(includeInstance, f),
     headerValueMatch: (f = msg.getHeaderValueMatch()) && proto.ratelimit.api.solo.io.Action.HeaderValueMatch.toObject(includeInstance, f),
-    metadata: (f = msg.getMetadata()) && proto.ratelimit.api.solo.io.Action.MetaData.toObject(includeInstance, f)
+    metadata: (f = msg.getMetadata()) && proto.ratelimit.api.solo.io.MetaData.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2109,8 +2155,8 @@ proto.ratelimit.api.solo.io.Action.deserializeBinaryFromReader = function(msg, r
       msg.setHeaderValueMatch(value);
       break;
     case 8:
-      var value = new proto.ratelimit.api.solo.io.Action.MetaData;
-      reader.readMessage(value,proto.ratelimit.api.solo.io.Action.MetaData.deserializeBinaryFromReader);
+      var value = new proto.ratelimit.api.solo.io.MetaData;
+      reader.readMessage(value,proto.ratelimit.api.solo.io.MetaData.deserializeBinaryFromReader);
       msg.setMetadata(value);
       break;
     default:
@@ -2195,7 +2241,7 @@ proto.ratelimit.api.solo.io.Action.serializeBinaryToWriter = function(message, w
     writer.writeMessage(
       8,
       f,
-      proto.ratelimit.api.solo.io.Action.MetaData.serializeBinaryToWriter
+      proto.ratelimit.api.solo.io.MetaData.serializeBinaryToWriter
     );
   }
 };
@@ -3720,630 +3766,6 @@ proto.ratelimit.api.solo.io.Action.HeaderValueMatch.prototype.clearHeadersList =
 };
 
 
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.ratelimit.api.solo.io.Action.MetaData = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
-};
-goog.inherits(proto.ratelimit.api.solo.io.Action.MetaData, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.ratelimit.api.solo.io.Action.MetaData.displayName = 'proto.ratelimit.api.solo.io.Action.MetaData';
-}
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.prototype.toObject = function(opt_includeInstance) {
-  return proto.ratelimit.api.solo.io.Action.MetaData.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.ratelimit.api.solo.io.Action.MetaData} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.ratelimit.api.solo.io.Action.MetaData.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    descriptorKey: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    metadataKey: (f = msg.getMetadataKey()) && proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.toObject(includeInstance, f),
-    defaultValue: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    source: jspb.Message.getFieldWithDefault(msg, 4, 0)
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.ratelimit.api.solo.io.Action.MetaData}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.ratelimit.api.solo.io.Action.MetaData;
-  return proto.ratelimit.api.solo.io.Action.MetaData.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.ratelimit.api.solo.io.Action.MetaData} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.ratelimit.api.solo.io.Action.MetaData}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setDescriptorKey(value);
-      break;
-    case 2:
-      var value = new proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey;
-      reader.readMessage(value,proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.deserializeBinaryFromReader);
-      msg.setMetadataKey(value);
-      break;
-    case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setDefaultValue(value);
-      break;
-    case 4:
-      var value = /** @type {!proto.ratelimit.api.solo.io.Action.MetaData.Source} */ (reader.readEnum());
-      msg.setSource(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.ratelimit.api.solo.io.Action.MetaData.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.ratelimit.api.solo.io.Action.MetaData} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.ratelimit.api.solo.io.Action.MetaData.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getDescriptorKey();
-  if (f.length > 0) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
-  f = message.getMetadataKey();
-  if (f != null) {
-    writer.writeMessage(
-      2,
-      f,
-      proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.serializeBinaryToWriter
-    );
-  }
-  f = message.getDefaultValue();
-  if (f.length > 0) {
-    writer.writeString(
-      3,
-      f
-    );
-  }
-  f = message.getSource();
-  if (f !== 0.0) {
-    writer.writeEnum(
-      4,
-      f
-    );
-  }
-};
-
-
-/**
- * @enum {number}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.Source = {
-  DYNAMIC: 0,
-  ROUTE_ENTRY: 1
-};
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.repeatedFields_, null);
-};
-goog.inherits(proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.displayName = 'proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey';
-}
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.repeatedFields_ = [2];
-
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.prototype.toObject = function(opt_includeInstance) {
-  return proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    key: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    pathList: jspb.Message.toObjectList(msg.getPathList(),
-    proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.toObject, includeInstance)
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey;
-  return proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setKey(value);
-      break;
-    case 2:
-      var value = new proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment;
-      reader.readMessage(value,proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.deserializeBinaryFromReader);
-      msg.addPath(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getKey();
-  if (f.length > 0) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
-  f = message.getPathList();
-  if (f.length > 0) {
-    writer.writeRepeatedMessage(
-      2,
-      f,
-      proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.serializeBinaryToWriter
-    );
-  }
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.oneofGroups_);
-};
-goog.inherits(proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.displayName = 'proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment';
-}
-/**
- * Oneof group definitions for this message. Each group defines the field
- * numbers belonging to that group. When of these fields' value is set, all
- * other fields in the group are cleared. During deserialization, if multiple
- * fields are encountered for a group, only the last value seen will be kept.
- * @private {!Array<!Array<number>>}
- * @const
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.oneofGroups_ = [[1]];
-
-/**
- * @enum {number}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.SegmentCase = {
-  SEGMENT_NOT_SET: 0,
-  KEY: 1
-};
-
-/**
- * @return {proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.SegmentCase}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.prototype.getSegmentCase = function() {
-  return /** @type {proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.SegmentCase} */(jspb.Message.computeOneofCase(this, proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.oneofGroups_[0]));
-};
-
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.prototype.toObject = function(opt_includeInstance) {
-  return proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    key: jspb.Message.getFieldWithDefault(msg, 1, "")
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment;
-  return proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setKey(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = /** @type {string} */ (jspb.Message.getField(message, 1));
-  if (f != null) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
-};
-
-
-/**
- * optional string key = 1;
- * @return {string}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.prototype.getKey = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
-};
-
-
-/** @param {string} value */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.prototype.setKey = function(value) {
-  jspb.Message.setOneofField(this, 1, proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.oneofGroups_[0], value);
-};
-
-
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.prototype.clearKey = function() {
-  jspb.Message.setOneofField(this, 1, proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.oneofGroups_[0], undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment.prototype.hasKey = function() {
-  return jspb.Message.getField(this, 1) != null;
-};
-
-
-/**
- * optional string key = 1;
- * @return {string}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.prototype.getKey = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
-};
-
-
-/** @param {string} value */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.prototype.setKey = function(value) {
-  jspb.Message.setProto3StringField(this, 1, value);
-};
-
-
-/**
- * repeated PathSegment path = 2;
- * @return {!Array<!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment>}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.prototype.getPathList = function() {
-  return /** @type{!Array<!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment, 2));
-};
-
-
-/** @param {!Array<!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment>} value */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.prototype.setPathList = function(value) {
-  jspb.Message.setRepeatedWrapperField(this, 2, value);
-};
-
-
-/**
- * @param {!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment=} opt_value
- * @param {number=} opt_index
- * @return {!proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.prototype.addPath = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.PathSegment, opt_index);
-};
-
-
-proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey.prototype.clearPathList = function() {
-  this.setPathList([]);
-};
-
-
-/**
- * optional string descriptor_key = 1;
- * @return {string}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.prototype.getDescriptorKey = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
-};
-
-
-/** @param {string} value */
-proto.ratelimit.api.solo.io.Action.MetaData.prototype.setDescriptorKey = function(value) {
-  jspb.Message.setProto3StringField(this, 1, value);
-};
-
-
-/**
- * optional MetadataKey metadata_key = 2;
- * @return {?proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.prototype.getMetadataKey = function() {
-  return /** @type{?proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey} */ (
-    jspb.Message.getWrapperField(this, proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey, 2));
-};
-
-
-/** @param {?proto.ratelimit.api.solo.io.Action.MetaData.MetadataKey|undefined} value */
-proto.ratelimit.api.solo.io.Action.MetaData.prototype.setMetadataKey = function(value) {
-  jspb.Message.setWrapperField(this, 2, value);
-};
-
-
-proto.ratelimit.api.solo.io.Action.MetaData.prototype.clearMetadataKey = function() {
-  this.setMetadataKey(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.prototype.hasMetadataKey = function() {
-  return jspb.Message.getField(this, 2) != null;
-};
-
-
-/**
- * optional string default_value = 3;
- * @return {string}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.prototype.getDefaultValue = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
-};
-
-
-/** @param {string} value */
-proto.ratelimit.api.solo.io.Action.MetaData.prototype.setDefaultValue = function(value) {
-  jspb.Message.setProto3StringField(this, 3, value);
-};
-
-
-/**
- * optional Source source = 4;
- * @return {!proto.ratelimit.api.solo.io.Action.MetaData.Source}
- */
-proto.ratelimit.api.solo.io.Action.MetaData.prototype.getSource = function() {
-  return /** @type {!proto.ratelimit.api.solo.io.Action.MetaData.Source} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
-};
-
-
-/** @param {!proto.ratelimit.api.solo.io.Action.MetaData.Source} value */
-proto.ratelimit.api.solo.io.Action.MetaData.prototype.setSource = function(value) {
-  jspb.Message.setProto3EnumField(this, 4, value);
-};
-
-
 /**
  * optional SourceCluster source_cluster = 1;
  * @return {?proto.ratelimit.api.solo.io.Action.SourceCluster}
@@ -4526,15 +3948,15 @@ proto.ratelimit.api.solo.io.Action.prototype.hasHeaderValueMatch = function() {
 
 /**
  * optional MetaData metadata = 8;
- * @return {?proto.ratelimit.api.solo.io.Action.MetaData}
+ * @return {?proto.ratelimit.api.solo.io.MetaData}
  */
 proto.ratelimit.api.solo.io.Action.prototype.getMetadata = function() {
-  return /** @type{?proto.ratelimit.api.solo.io.Action.MetaData} */ (
-    jspb.Message.getWrapperField(this, proto.ratelimit.api.solo.io.Action.MetaData, 8));
+  return /** @type{?proto.ratelimit.api.solo.io.MetaData} */ (
+    jspb.Message.getWrapperField(this, proto.ratelimit.api.solo.io.MetaData, 8));
 };
 
 
-/** @param {?proto.ratelimit.api.solo.io.Action.MetaData|undefined} value */
+/** @param {?proto.ratelimit.api.solo.io.MetaData|undefined} value */
 proto.ratelimit.api.solo.io.Action.prototype.setMetadata = function(value) {
   jspb.Message.setOneofWrapperField(this, 8, proto.ratelimit.api.solo.io.Action.oneofGroups_[0], value);
 };
@@ -4551,6 +3973,973 @@ proto.ratelimit.api.solo.io.Action.prototype.clearMetadata = function() {
  */
 proto.ratelimit.api.solo.io.Action.prototype.hasMetadata = function() {
   return jspb.Message.getField(this, 8) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.ratelimit.api.solo.io.MetaData = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.ratelimit.api.solo.io.MetaData, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.ratelimit.api.solo.io.MetaData.displayName = 'proto.ratelimit.api.solo.io.MetaData';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.ratelimit.api.solo.io.MetaData.prototype.toObject = function(opt_includeInstance) {
+  return proto.ratelimit.api.solo.io.MetaData.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.ratelimit.api.solo.io.MetaData} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.ratelimit.api.solo.io.MetaData.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    descriptorKey: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    metadataKey: (f = msg.getMetadataKey()) && proto.ratelimit.api.solo.io.MetaData.MetadataKey.toObject(includeInstance, f),
+    defaultValue: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    source: jspb.Message.getFieldWithDefault(msg, 4, 0)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.ratelimit.api.solo.io.MetaData}
+ */
+proto.ratelimit.api.solo.io.MetaData.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.ratelimit.api.solo.io.MetaData;
+  return proto.ratelimit.api.solo.io.MetaData.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.ratelimit.api.solo.io.MetaData} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.ratelimit.api.solo.io.MetaData}
+ */
+proto.ratelimit.api.solo.io.MetaData.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDescriptorKey(value);
+      break;
+    case 2:
+      var value = new proto.ratelimit.api.solo.io.MetaData.MetadataKey;
+      reader.readMessage(value,proto.ratelimit.api.solo.io.MetaData.MetadataKey.deserializeBinaryFromReader);
+      msg.setMetadataKey(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDefaultValue(value);
+      break;
+    case 4:
+      var value = /** @type {!proto.ratelimit.api.solo.io.MetaData.Source} */ (reader.readEnum());
+      msg.setSource(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.ratelimit.api.solo.io.MetaData.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.ratelimit.api.solo.io.MetaData.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.ratelimit.api.solo.io.MetaData} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.ratelimit.api.solo.io.MetaData.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getDescriptorKey();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getMetadataKey();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.ratelimit.api.solo.io.MetaData.MetadataKey.serializeBinaryToWriter
+    );
+  }
+  f = message.getDefaultValue();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getSource();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      4,
+      f
+    );
+  }
+};
+
+
+/**
+ * @enum {number}
+ */
+proto.ratelimit.api.solo.io.MetaData.Source = {
+  DYNAMIC: 0,
+  ROUTE_ENTRY: 1
+};
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.ratelimit.api.solo.io.MetaData.MetadataKey.repeatedFields_, null);
+};
+goog.inherits(proto.ratelimit.api.solo.io.MetaData.MetadataKey, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.ratelimit.api.solo.io.MetaData.MetadataKey.displayName = 'proto.ratelimit.api.solo.io.MetaData.MetadataKey';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.repeatedFields_ = [2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.prototype.toObject = function(opt_includeInstance) {
+  return proto.ratelimit.api.solo.io.MetaData.MetadataKey.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.ratelimit.api.solo.io.MetaData.MetadataKey} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    key: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    pathList: jspb.Message.toObjectList(msg.getPathList(),
+    proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.ratelimit.api.solo.io.MetaData.MetadataKey}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.ratelimit.api.solo.io.MetaData.MetadataKey;
+  return proto.ratelimit.api.solo.io.MetaData.MetadataKey.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.ratelimit.api.solo.io.MetaData.MetadataKey} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.ratelimit.api.solo.io.MetaData.MetadataKey}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKey(value);
+      break;
+    case 2:
+      var value = new proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment;
+      reader.readMessage(value,proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.deserializeBinaryFromReader);
+      msg.addPath(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.ratelimit.api.solo.io.MetaData.MetadataKey.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.ratelimit.api.solo.io.MetaData.MetadataKey} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getKey();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getPathList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.oneofGroups_);
+};
+goog.inherits(proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.displayName = 'proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.oneofGroups_ = [[1]];
+
+/**
+ * @enum {number}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.SegmentCase = {
+  SEGMENT_NOT_SET: 0,
+  KEY: 1
+};
+
+/**
+ * @return {proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.SegmentCase}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.prototype.getSegmentCase = function() {
+  return /** @type {proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.SegmentCase} */(jspb.Message.computeOneofCase(this, proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.prototype.toObject = function(opt_includeInstance) {
+  return proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    key: jspb.Message.getFieldWithDefault(msg, 1, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment;
+  return proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKey(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string key = 1;
+ * @return {string}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.prototype.getKey = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.prototype.setKey = function(value) {
+  jspb.Message.setOneofField(this, 1, proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.oneofGroups_[0], value);
+};
+
+
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.prototype.clearKey = function() {
+  jspb.Message.setOneofField(this, 1, proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment.prototype.hasKey = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional string key = 1;
+ * @return {string}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.prototype.getKey = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.prototype.setKey = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * repeated PathSegment path = 2;
+ * @return {!Array<!proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment>}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.prototype.getPathList = function() {
+  return /** @type{!Array<!proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment, 2));
+};
+
+
+/** @param {!Array<!proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment>} value */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.prototype.setPathList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment}
+ */
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.prototype.addPath = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.ratelimit.api.solo.io.MetaData.MetadataKey.PathSegment, opt_index);
+};
+
+
+proto.ratelimit.api.solo.io.MetaData.MetadataKey.prototype.clearPathList = function() {
+  this.setPathList([]);
+};
+
+
+/**
+ * optional string descriptor_key = 1;
+ * @return {string}
+ */
+proto.ratelimit.api.solo.io.MetaData.prototype.getDescriptorKey = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.ratelimit.api.solo.io.MetaData.prototype.setDescriptorKey = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional MetadataKey metadata_key = 2;
+ * @return {?proto.ratelimit.api.solo.io.MetaData.MetadataKey}
+ */
+proto.ratelimit.api.solo.io.MetaData.prototype.getMetadataKey = function() {
+  return /** @type{?proto.ratelimit.api.solo.io.MetaData.MetadataKey} */ (
+    jspb.Message.getWrapperField(this, proto.ratelimit.api.solo.io.MetaData.MetadataKey, 2));
+};
+
+
+/** @param {?proto.ratelimit.api.solo.io.MetaData.MetadataKey|undefined} value */
+proto.ratelimit.api.solo.io.MetaData.prototype.setMetadataKey = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.ratelimit.api.solo.io.MetaData.prototype.clearMetadataKey = function() {
+  this.setMetadataKey(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.ratelimit.api.solo.io.MetaData.prototype.hasMetadataKey = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string default_value = 3;
+ * @return {string}
+ */
+proto.ratelimit.api.solo.io.MetaData.prototype.getDefaultValue = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.ratelimit.api.solo.io.MetaData.prototype.setDefaultValue = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional Source source = 4;
+ * @return {!proto.ratelimit.api.solo.io.MetaData.Source}
+ */
+proto.ratelimit.api.solo.io.MetaData.prototype.getSource = function() {
+  return /** @type {!proto.ratelimit.api.solo.io.MetaData.Source} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+};
+
+
+/** @param {!proto.ratelimit.api.solo.io.MetaData.Source} value */
+proto.ratelimit.api.solo.io.MetaData.prototype.setSource = function(value) {
+  jspb.Message.setProto3EnumField(this, 4, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.ratelimit.api.solo.io.Override = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.ratelimit.api.solo.io.Override.oneofGroups_);
+};
+goog.inherits(proto.ratelimit.api.solo.io.Override, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.ratelimit.api.solo.io.Override.displayName = 'proto.ratelimit.api.solo.io.Override';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.ratelimit.api.solo.io.Override.oneofGroups_ = [[1]];
+
+/**
+ * @enum {number}
+ */
+proto.ratelimit.api.solo.io.Override.OverrideSpecifierCase = {
+  OVERRIDE_SPECIFIER_NOT_SET: 0,
+  DYNAMIC_METADATA: 1
+};
+
+/**
+ * @return {proto.ratelimit.api.solo.io.Override.OverrideSpecifierCase}
+ */
+proto.ratelimit.api.solo.io.Override.prototype.getOverrideSpecifierCase = function() {
+  return /** @type {proto.ratelimit.api.solo.io.Override.OverrideSpecifierCase} */(jspb.Message.computeOneofCase(this, proto.ratelimit.api.solo.io.Override.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.ratelimit.api.solo.io.Override.prototype.toObject = function(opt_includeInstance) {
+  return proto.ratelimit.api.solo.io.Override.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.ratelimit.api.solo.io.Override} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.ratelimit.api.solo.io.Override.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    dynamicMetadata: (f = msg.getDynamicMetadata()) && proto.ratelimit.api.solo.io.Override.DynamicMetadata.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.ratelimit.api.solo.io.Override}
+ */
+proto.ratelimit.api.solo.io.Override.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.ratelimit.api.solo.io.Override;
+  return proto.ratelimit.api.solo.io.Override.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.ratelimit.api.solo.io.Override} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.ratelimit.api.solo.io.Override}
+ */
+proto.ratelimit.api.solo.io.Override.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.ratelimit.api.solo.io.Override.DynamicMetadata;
+      reader.readMessage(value,proto.ratelimit.api.solo.io.Override.DynamicMetadata.deserializeBinaryFromReader);
+      msg.setDynamicMetadata(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.ratelimit.api.solo.io.Override.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.ratelimit.api.solo.io.Override.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.ratelimit.api.solo.io.Override} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.ratelimit.api.solo.io.Override.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getDynamicMetadata();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.ratelimit.api.solo.io.Override.DynamicMetadata.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.ratelimit.api.solo.io.Override.DynamicMetadata = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.ratelimit.api.solo.io.Override.DynamicMetadata, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.ratelimit.api.solo.io.Override.DynamicMetadata.displayName = 'proto.ratelimit.api.solo.io.Override.DynamicMetadata';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.ratelimit.api.solo.io.Override.DynamicMetadata.prototype.toObject = function(opt_includeInstance) {
+  return proto.ratelimit.api.solo.io.Override.DynamicMetadata.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.ratelimit.api.solo.io.Override.DynamicMetadata} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.ratelimit.api.solo.io.Override.DynamicMetadata.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    metadataKey: (f = msg.getMetadataKey()) && proto.ratelimit.api.solo.io.MetaData.MetadataKey.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.ratelimit.api.solo.io.Override.DynamicMetadata}
+ */
+proto.ratelimit.api.solo.io.Override.DynamicMetadata.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.ratelimit.api.solo.io.Override.DynamicMetadata;
+  return proto.ratelimit.api.solo.io.Override.DynamicMetadata.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.ratelimit.api.solo.io.Override.DynamicMetadata} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.ratelimit.api.solo.io.Override.DynamicMetadata}
+ */
+proto.ratelimit.api.solo.io.Override.DynamicMetadata.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.ratelimit.api.solo.io.MetaData.MetadataKey;
+      reader.readMessage(value,proto.ratelimit.api.solo.io.MetaData.MetadataKey.deserializeBinaryFromReader);
+      msg.setMetadataKey(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.ratelimit.api.solo.io.Override.DynamicMetadata.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.ratelimit.api.solo.io.Override.DynamicMetadata.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.ratelimit.api.solo.io.Override.DynamicMetadata} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.ratelimit.api.solo.io.Override.DynamicMetadata.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getMetadataKey();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.ratelimit.api.solo.io.MetaData.MetadataKey.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional MetaData.MetadataKey metadata_key = 1;
+ * @return {?proto.ratelimit.api.solo.io.MetaData.MetadataKey}
+ */
+proto.ratelimit.api.solo.io.Override.DynamicMetadata.prototype.getMetadataKey = function() {
+  return /** @type{?proto.ratelimit.api.solo.io.MetaData.MetadataKey} */ (
+    jspb.Message.getWrapperField(this, proto.ratelimit.api.solo.io.MetaData.MetadataKey, 1));
+};
+
+
+/** @param {?proto.ratelimit.api.solo.io.MetaData.MetadataKey|undefined} value */
+proto.ratelimit.api.solo.io.Override.DynamicMetadata.prototype.setMetadataKey = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.ratelimit.api.solo.io.Override.DynamicMetadata.prototype.clearMetadataKey = function() {
+  this.setMetadataKey(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.ratelimit.api.solo.io.Override.DynamicMetadata.prototype.hasMetadataKey = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional DynamicMetadata dynamic_metadata = 1;
+ * @return {?proto.ratelimit.api.solo.io.Override.DynamicMetadata}
+ */
+proto.ratelimit.api.solo.io.Override.prototype.getDynamicMetadata = function() {
+  return /** @type{?proto.ratelimit.api.solo.io.Override.DynamicMetadata} */ (
+    jspb.Message.getWrapperField(this, proto.ratelimit.api.solo.io.Override.DynamicMetadata, 1));
+};
+
+
+/** @param {?proto.ratelimit.api.solo.io.Override.DynamicMetadata|undefined} value */
+proto.ratelimit.api.solo.io.Override.prototype.setDynamicMetadata = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.ratelimit.api.solo.io.Override.oneofGroups_[0], value);
+};
+
+
+proto.ratelimit.api.solo.io.Override.prototype.clearDynamicMetadata = function() {
+  this.setDynamicMetadata(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.ratelimit.api.solo.io.Override.prototype.hasDynamicMetadata = function() {
+  return jspb.Message.getField(this, 1) != null;
 };
 
 

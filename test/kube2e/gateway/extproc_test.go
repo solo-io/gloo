@@ -39,7 +39,7 @@ var _ = Describe("ExtProc tests", func() {
 		extProcServiceName   = "ext-proc-grpc"
 		extProcContainerPort = int32(18080)
 		// image for the example extproc server. code is located at https://github.com/solo-io/ext-proc-examples
-		extProcServiceImage = "gcr.io/solo-test-236622/ext-proc-example-basic-sink:0.0.1"
+		extProcServiceImage = "gcr.io/solo-test-236622/ext-proc-example-basic-sink:0.0.2"
 	)
 
 	var (

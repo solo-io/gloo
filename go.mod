@@ -50,7 +50,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.2
 	github.com/solo-io/ext-auth-service v0.52.0
 	github.com/solo-io/external-apis v0.2.0
-	github.com/solo-io/gloo v1.16.0-beta26
+	github.com/solo-io/gloo v1.16.0-beta27
 	github.com/solo-io/gloo-graphql-example v0.1.0
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.6
@@ -60,7 +60,7 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.10.0
 	github.com/solo-io/skv2 v0.34.10
-	github.com/solo-io/solo-apis v0.0.0-20231117152426-05bcaa5031fa
+	github.com/solo-io/solo-apis v0.0.0-20231207181026-eed53dac138b
 	github.com/solo-io/solo-kit v0.33.0
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20220823153451-d072eb48cb44
 	github.com/spf13/cobra v1.7.0
@@ -391,8 +391,10 @@ replace (
 	// to avoid error about it being used for two different module paths
 	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v0.0.0-20210511163231-5b2d2b5f6c34
 	github.com/docker/docker => github.com/moby/moby v24.0.4+incompatible
-	// Remove once we get to a version with extproc changes in upstream this is 1.27 or 1.28
-	github.com/envoyproxy/go-control-plane => github.com/solo-io/go-control-plane-fork-v2 v0.0.0-20230902211618-ada8201b381c
+	// Remove once we get to a version with extproc changes in upstream (presumably 1.28)
+	// the specific go-control-plane-fork-v2 version is found here:
+	//     https://github.com/solo-io/go-control-plane-fork-v2/compare/release/v1.27-backportedfork/dcf8bfb08a20fbbb4f4dd479d1e2bf6747b9f206
+	github.com/envoyproxy/go-control-plane => github.com/solo-io/go-control-plane-fork-v2 v0.0.0-20231207195634-98d37ef9a43e
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.0-rc1
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483

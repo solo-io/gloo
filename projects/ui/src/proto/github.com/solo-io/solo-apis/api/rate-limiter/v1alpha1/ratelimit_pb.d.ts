@@ -234,6 +234,11 @@ export class RateLimitActions extends jspb.Message {
   setSetActionsList(value: Array<Action>): void;
   addSetActions(value?: Action, index?: number): Action;
 
+  hasLimit(): boolean;
+  clearLimit(): void;
+  getLimit(): Override | undefined;
+  setLimit(value?: Override): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RateLimitActions.AsObject;
   static toObject(includeInstance: boolean, msg: RateLimitActions): RateLimitActions.AsObject;
@@ -248,6 +253,7 @@ export namespace RateLimitActions {
   export type AsObject = {
     actionsList: Array<Action.AsObject>,
     setActionsList: Array<Action.AsObject>,
+    limit?: Override.AsObject,
   }
 }
 
@@ -318,8 +324,8 @@ export class Action extends jspb.Message {
 
   hasMetadata(): boolean;
   clearMetadata(): void;
-  getMetadata(): Action.MetaData | undefined;
-  setMetadata(value?: Action.MetaData): void;
+  getMetadata(): MetaData | undefined;
+  setMetadata(value?: MetaData): void;
 
   getActionSpecifierCase(): Action.ActionSpecifierCase;
   serializeBinary(): Uint8Array;
@@ -340,7 +346,7 @@ export namespace Action {
     remoteAddress?: Action.RemoteAddress.AsObject,
     genericKey?: Action.GenericKey.AsObject,
     headerValueMatch?: Action.HeaderValueMatch.AsObject,
-    metadata?: Action.MetaData.AsObject,
+    metadata?: MetaData.AsObject,
   }
 
   export class SourceCluster extends jspb.Message {
@@ -562,101 +568,6 @@ export namespace Action {
     }
   }
 
-  export class MetaData extends jspb.Message {
-    getDescriptorKey(): string;
-    setDescriptorKey(value: string): void;
-
-    hasMetadataKey(): boolean;
-    clearMetadataKey(): void;
-    getMetadataKey(): Action.MetaData.MetadataKey | undefined;
-    setMetadataKey(value?: Action.MetaData.MetadataKey): void;
-
-    getDefaultValue(): string;
-    setDefaultValue(value: string): void;
-
-    getSource(): Action.MetaData.SourceMap[keyof Action.MetaData.SourceMap];
-    setSource(value: Action.MetaData.SourceMap[keyof Action.MetaData.SourceMap]): void;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): MetaData.AsObject;
-    static toObject(includeInstance: boolean, msg: MetaData): MetaData.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: MetaData, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): MetaData;
-    static deserializeBinaryFromReader(message: MetaData, reader: jspb.BinaryReader): MetaData;
-  }
-
-  export namespace MetaData {
-    export type AsObject = {
-      descriptorKey: string,
-      metadataKey?: Action.MetaData.MetadataKey.AsObject,
-      defaultValue: string,
-      source: Action.MetaData.SourceMap[keyof Action.MetaData.SourceMap],
-    }
-
-    export class MetadataKey extends jspb.Message {
-      getKey(): string;
-      setKey(value: string): void;
-
-      clearPathList(): void;
-      getPathList(): Array<Action.MetaData.MetadataKey.PathSegment>;
-      setPathList(value: Array<Action.MetaData.MetadataKey.PathSegment>): void;
-      addPath(value?: Action.MetaData.MetadataKey.PathSegment, index?: number): Action.MetaData.MetadataKey.PathSegment;
-
-      serializeBinary(): Uint8Array;
-      toObject(includeInstance?: boolean): MetadataKey.AsObject;
-      static toObject(includeInstance: boolean, msg: MetadataKey): MetadataKey.AsObject;
-      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-      static serializeBinaryToWriter(message: MetadataKey, writer: jspb.BinaryWriter): void;
-      static deserializeBinary(bytes: Uint8Array): MetadataKey;
-      static deserializeBinaryFromReader(message: MetadataKey, reader: jspb.BinaryReader): MetadataKey;
-    }
-
-    export namespace MetadataKey {
-      export type AsObject = {
-        key: string,
-        pathList: Array<Action.MetaData.MetadataKey.PathSegment.AsObject>,
-      }
-
-      export class PathSegment extends jspb.Message {
-        hasKey(): boolean;
-        clearKey(): void;
-        getKey(): string;
-        setKey(value: string): void;
-
-        getSegmentCase(): PathSegment.SegmentCase;
-        serializeBinary(): Uint8Array;
-        toObject(includeInstance?: boolean): PathSegment.AsObject;
-        static toObject(includeInstance: boolean, msg: PathSegment): PathSegment.AsObject;
-        static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-        static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-        static serializeBinaryToWriter(message: PathSegment, writer: jspb.BinaryWriter): void;
-        static deserializeBinary(bytes: Uint8Array): PathSegment;
-        static deserializeBinaryFromReader(message: PathSegment, reader: jspb.BinaryReader): PathSegment;
-      }
-
-      export namespace PathSegment {
-        export type AsObject = {
-          key: string,
-        }
-
-        export enum SegmentCase {
-          SEGMENT_NOT_SET = 0,
-          KEY = 1,
-        }
-      }
-    }
-
-    export interface SourceMap {
-      DYNAMIC: 0;
-      ROUTE_ENTRY: 1;
-    }
-
-    export const Source: SourceMap;
-  }
-
   export enum ActionSpecifierCase {
     ACTION_SPECIFIER_NOT_SET = 0,
     SOURCE_CLUSTER = 1,
@@ -666,5 +577,150 @@ export namespace Action {
     GENERIC_KEY = 5,
     HEADER_VALUE_MATCH = 6,
     METADATA = 8,
+  }
+}
+
+export class MetaData extends jspb.Message {
+  getDescriptorKey(): string;
+  setDescriptorKey(value: string): void;
+
+  hasMetadataKey(): boolean;
+  clearMetadataKey(): void;
+  getMetadataKey(): MetaData.MetadataKey | undefined;
+  setMetadataKey(value?: MetaData.MetadataKey): void;
+
+  getDefaultValue(): string;
+  setDefaultValue(value: string): void;
+
+  getSource(): MetaData.SourceMap[keyof MetaData.SourceMap];
+  setSource(value: MetaData.SourceMap[keyof MetaData.SourceMap]): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MetaData.AsObject;
+  static toObject(includeInstance: boolean, msg: MetaData): MetaData.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MetaData, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MetaData;
+  static deserializeBinaryFromReader(message: MetaData, reader: jspb.BinaryReader): MetaData;
+}
+
+export namespace MetaData {
+  export type AsObject = {
+    descriptorKey: string,
+    metadataKey?: MetaData.MetadataKey.AsObject,
+    defaultValue: string,
+    source: MetaData.SourceMap[keyof MetaData.SourceMap],
+  }
+
+  export class MetadataKey extends jspb.Message {
+    getKey(): string;
+    setKey(value: string): void;
+
+    clearPathList(): void;
+    getPathList(): Array<MetaData.MetadataKey.PathSegment>;
+    setPathList(value: Array<MetaData.MetadataKey.PathSegment>): void;
+    addPath(value?: MetaData.MetadataKey.PathSegment, index?: number): MetaData.MetadataKey.PathSegment;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): MetadataKey.AsObject;
+    static toObject(includeInstance: boolean, msg: MetadataKey): MetadataKey.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: MetadataKey, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): MetadataKey;
+    static deserializeBinaryFromReader(message: MetadataKey, reader: jspb.BinaryReader): MetadataKey;
+  }
+
+  export namespace MetadataKey {
+    export type AsObject = {
+      key: string,
+      pathList: Array<MetaData.MetadataKey.PathSegment.AsObject>,
+    }
+
+    export class PathSegment extends jspb.Message {
+      hasKey(): boolean;
+      clearKey(): void;
+      getKey(): string;
+      setKey(value: string): void;
+
+      getSegmentCase(): PathSegment.SegmentCase;
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): PathSegment.AsObject;
+      static toObject(includeInstance: boolean, msg: PathSegment): PathSegment.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: PathSegment, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): PathSegment;
+      static deserializeBinaryFromReader(message: PathSegment, reader: jspb.BinaryReader): PathSegment;
+    }
+
+    export namespace PathSegment {
+      export type AsObject = {
+        key: string,
+      }
+
+      export enum SegmentCase {
+        SEGMENT_NOT_SET = 0,
+        KEY = 1,
+      }
+    }
+  }
+
+  export interface SourceMap {
+    DYNAMIC: 0;
+    ROUTE_ENTRY: 1;
+  }
+
+  export const Source: SourceMap;
+}
+
+export class Override extends jspb.Message {
+  hasDynamicMetadata(): boolean;
+  clearDynamicMetadata(): void;
+  getDynamicMetadata(): Override.DynamicMetadata | undefined;
+  setDynamicMetadata(value?: Override.DynamicMetadata): void;
+
+  getOverrideSpecifierCase(): Override.OverrideSpecifierCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Override.AsObject;
+  static toObject(includeInstance: boolean, msg: Override): Override.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Override, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Override;
+  static deserializeBinaryFromReader(message: Override, reader: jspb.BinaryReader): Override;
+}
+
+export namespace Override {
+  export type AsObject = {
+    dynamicMetadata?: Override.DynamicMetadata.AsObject,
+  }
+
+  export class DynamicMetadata extends jspb.Message {
+    hasMetadataKey(): boolean;
+    clearMetadataKey(): void;
+    getMetadataKey(): MetaData.MetadataKey | undefined;
+    setMetadataKey(value?: MetaData.MetadataKey): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): DynamicMetadata.AsObject;
+    static toObject(includeInstance: boolean, msg: DynamicMetadata): DynamicMetadata.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: DynamicMetadata, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): DynamicMetadata;
+    static deserializeBinaryFromReader(message: DynamicMetadata, reader: jspb.BinaryReader): DynamicMetadata;
+  }
+
+  export namespace DynamicMetadata {
+    export type AsObject = {
+      metadataKey?: MetaData.MetadataKey.AsObject,
+    }
+  }
+
+  export enum OverrideSpecifierCase {
+    OVERRIDE_SPECIFIER_NOT_SET = 0,
+    DYNAMIC_METADATA = 1,
   }
 }
