@@ -6,9 +6,10 @@ package mocks
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/hashicorp/vault/api"
-	reflect "reflect"
 )
 
 // MockAuthMethod is a mock of AuthMethod interface
