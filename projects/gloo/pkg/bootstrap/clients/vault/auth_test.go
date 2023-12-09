@@ -2,6 +2,7 @@ package vault
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/avast/retry-go"
 	"github.com/golang/mock/gomock"
@@ -153,13 +154,14 @@ var _ = Describe("ClientAuth", func() {
 	})
 
 	Context("newClientAuthForSettings", func() {
-		// These tests validate that the constructor maps the Gloo Settings into the appropriate vault.AuthMethod interface
+		// These tests validate that the constructor maps the Gloo Settings into the appropriate ClientAuth interface
 		// it does not test the underlying implementations, as those are handled in the above tests
 
 		DescribeTable("should error on invalid inputs",
 			func(vaultSettings *v1.Settings_VaultSecrets, expectedError types.GomegaMatcher) {
-				_, err := newClientAuthForSettings(ctx, vaultSettings)
+				clientAuth, err := newClientAuthForSettings(ctx, vaultSettings)
 				Expect(err).To(expectedError)
+				Expect(clientAuth).To(BeNil())
 			},
 			Entry("partial accessKey / secretAccessKey", &v1.Settings_VaultSecrets{
 				AuthMethod: &v1.Settings_VaultSecrets_Aws{
@@ -168,16 +170,31 @@ var _ = Describe("ClientAuth", func() {
 						SecretAccessKey: "",
 					},
 				},
-			}, HaveOccurred()), // this should be improved to be more explicit
+			}, MatchError("only partial credentials were provided for AWS IAM auth: secret access key must be defined for AWS IAM auth")),
 		)
 
-		DescribeTable("should return the correct auth method",
-			func(vaultSettings *v1.Settings_VaultSecrets, expectedAuthMethod types.GomegaMatcher) {
-				authMethod, err := newClientAuthForSettings(ctx, vaultSettings)
+		DescribeTable("should return the correct client auth",
+			func(vaultSettings *v1.Settings_VaultSecrets, expectedClientAuth ClientAuth) {
+				clientAuth, err := newClientAuthForSettings(ctx, vaultSettings)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(authMethod).To(expectedAuthMethod)
+
+				actualClientAuthType := reflect.ValueOf(clientAuth).Type()
+				expectedClientAuthType := reflect.ValueOf(expectedClientAuth).Type()
+				Expect(expectedClientAuthType).To(Equal(actualClientAuthType))
 			},
-			Entry("nil", nil, Not(BeNil())), // this should be improved
+			Entry("nil", nil, &staticTokenAuth{}),
+			Entry("access token auth method", &v1.Settings_VaultSecrets{
+				AuthMethod: &v1.Settings_VaultSecrets_AccessToken{
+					AccessToken: "access-token",
+				},
+			}, &staticTokenAuth{
+				token: "access-token",
+			}),
+			Entry("aws auth method", &v1.Settings_VaultSecrets{
+				AuthMethod: &v1.Settings_VaultSecrets_Aws{
+					Aws: &v1.Settings_VaultAwsAuth{},
+				},
+			}, &remoteTokenAuth{}),
 		)
 
 	})
