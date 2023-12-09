@@ -183,6 +183,9 @@ var _ = Describe("ClientAuth", func() {
 				Expect(expectedClientAuthType).To(Equal(actualClientAuthType))
 			},
 			Entry("nil", nil, &staticTokenAuth{}),
+			Entry("nil auth method", &v1.Settings_VaultSecrets{
+				AuthMethod: nil,
+			}, &staticTokenAuth{}),
 			Entry("access token auth method", &v1.Settings_VaultSecrets{
 				AuthMethod: &v1.Settings_VaultSecrets_AccessToken{
 					AccessToken: "access-token",
