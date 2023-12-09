@@ -10,17 +10,7 @@ import (
 )
 
 func MakeGauge(name, description string, tagKeys ...tag.Key) *stats.Int64Measure {
-	gauge := stats.Int64(name, description, stats.UnitDimensionless)
-
-	_ = view.Register(&view.View{
-		Name:        gauge.Name(),
-		Measure:     gauge,
-		Description: gauge.Description(),
-		Aggregation: view.LastValue(),
-		TagKeys:     tagKeys,
-	})
-
-	return gauge
+	return MakeLastValueCounter(name, description, tagKeys...)
 }
 
 func MakeSumCounter(name, description string, tagKeys ...tag.Key) *stats.Int64Measure {
@@ -32,7 +22,7 @@ func MakeLastValueCounter(name, description string, tagKeys ...tag.Key) *stats.I
 }
 
 func MakeCounter(name, description string, aggregation *view.Aggregation, tagKeys ...tag.Key) *stats.Int64Measure {
-	counter := stats.Int64(name, description, stats.UnitDimensionless)
+	counter := Int64Measure(name, description)
 	counterView := ViewForCounter(counter, aggregation, tagKeys...)
 
 	_ = view.Register(counterView)
@@ -56,6 +46,10 @@ func Measure(ctx context.Context, counter *stats.Int64Measure, val int64, tags .
 	); err != nil {
 		contextutils.LoggerFrom(ctx).Errorf("setting counter %v: %v", counter.Name(), err)
 	}
+}
+
+func Int64Measure(name, description string) *stats.Int64Measure {
+	return stats.Int64(name, description, stats.UnitDimensionless)
 }
 
 func ViewForCounter(counter *stats.Int64Measure, aggregation *view.Aggregation, tagKeys ...tag.Key) *view.View {
