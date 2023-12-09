@@ -22,7 +22,7 @@ var metricViews = []*view.View{
     mLastLoginFailureView,
 }
 
-var _ = FDescribe("ClientAuth", func() {
+var _ = Describe("ClientAuth", func() {
 
     var (
         ctx    context.Context
