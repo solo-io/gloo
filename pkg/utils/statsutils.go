@@ -33,14 +33,9 @@ func MakeLastValueCounter(name, description string, tagKeys ...tag.Key) *stats.I
 
 func MakeCounter(name, description string, aggregation *view.Aggregation, tagKeys ...tag.Key) *stats.Int64Measure {
 	counter := stats.Int64(name, description, stats.UnitDimensionless)
+	counterView := ViewForCounter(counter, aggregation, tagKeys...)
 
-	_ = view.Register(&view.View{
-		Name:        counter.Name(),
-		Measure:     counter,
-		Description: counter.Description(),
-		Aggregation: aggregation,
-		TagKeys:     tagKeys,
-	})
+	_ = view.Register(counterView)
 
 	return counter
 }
@@ -63,11 +58,12 @@ func Measure(ctx context.Context, counter *stats.Int64Measure, val int64, tags .
 	}
 }
 
-func ViewForCounter(counter *stats.Int64Measure, aggregation *view.Aggregation) *view.View {
+func ViewForCounter(counter *stats.Int64Measure, aggregation *view.Aggregation, tagKeys ...tag.Key) *view.View {
 	return &view.View{
 		Name:        counter.Name(),
 		Measure:     counter,
 		Description: counter.Description(),
 		Aggregation: aggregation,
+		TagKeys:     tagKeys,
 	}
 }
