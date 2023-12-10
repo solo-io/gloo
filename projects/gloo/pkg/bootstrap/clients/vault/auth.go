@@ -18,6 +18,7 @@ import (
 
 // In an ideal world, we would re-use the mocks provided by an external library.
 // Since the vault.AuthMethod interface does not have corresponding mocks, we have to define our own.
+// todo - just mock the ClientAuth interface we define
 //go:generate mockgen -destination mocks/mock_auth.go -package mocks github.com/hashicorp/vault/api AuthMethod
 
 type ClientAuth interface {
@@ -33,8 +34,8 @@ var (
 	ErrNoAuthInfo = errors.New("no auth info was returned after login")
 )
 
-// NewClientAuthForSettings returns a vault ClientAuth based on the provided settings.
-func NewClientAuthForSettings(vaultSettings *v1.Settings_VaultSecrets) (ClientAuth, error) {
+// NewClientAuth returns a vault ClientAuth based on the provided settings.
+func NewClientAuth(vaultSettings *v1.Settings_VaultSecrets) (ClientAuth, error) {
 	switch tlsCfg := vaultSettings.GetAuthMethod().(type) {
 	case *v1.Settings_VaultSecrets_AccessToken:
 		return newStaticTokenAuth(tlsCfg.AccessToken), nil
