@@ -145,13 +145,13 @@ var _ = Describe("ClientAuth", func() {
 
 	})
 
-	Context("newClientAuthForSettings", func() {
+	Context("NewClientAuthForSettings", func() {
 		// These tests validate that the constructor maps the Gloo Settings into the appropriate ClientAuth interface
 		// it does not test the underlying implementations, as those are handled in the above tests
 
 		DescribeTable("should error on invalid inputs",
 			func(vaultSettings *v1.Settings_VaultSecrets, expectedError types.GomegaMatcher) {
-				clientAuth, err := newClientAuthForSettings(vaultSettings)
+				clientAuth, err := NewClientAuthForSettings(vaultSettings)
 				Expect(err).To(expectedError)
 				Expect(clientAuth).To(BeNil())
 			},
@@ -167,7 +167,7 @@ var _ = Describe("ClientAuth", func() {
 
 		DescribeTable("should return the correct client auth",
 			func(vaultSettings *v1.Settings_VaultSecrets, expectedClientAuth ClientAuth) {
-				clientAuth, err := newClientAuthForSettings(vaultSettings)
+				clientAuth, err := NewClientAuthForSettings(vaultSettings)
 				Expect(err).NotTo(HaveOccurred())
 
 				actualClientAuthType := reflect.ValueOf(clientAuth).Type()

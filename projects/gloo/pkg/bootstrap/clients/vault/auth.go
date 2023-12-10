@@ -33,8 +33,8 @@ var (
 	ErrNoAuthInfo = errors.New("no auth info was returned after login")
 )
 
-// newClientAuthForSettings returns a vault ClientAuth based on the provided settings.
-func newClientAuthForSettings(vaultSettings *v1.Settings_VaultSecrets) (ClientAuth, error) {
+// NewClientAuthForSettings returns a vault ClientAuth based on the provided settings.
+func NewClientAuthForSettings(vaultSettings *v1.Settings_VaultSecrets) (ClientAuth, error) {
 	switch tlsCfg := vaultSettings.GetAuthMethod().(type) {
 	case *v1.Settings_VaultSecrets_AccessToken:
 		return newStaticTokenAuth(tlsCfg.AccessToken), nil

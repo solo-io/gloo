@@ -12,29 +12,35 @@ import (
 // NewAuthorizedClient returns a vault client that has been authenticated with the provided settings,
 // or an error if construction or authentication fails.
 func NewAuthorizedClient(ctx context.Context, vaultSettings *v1.Settings_VaultSecrets) (*vault.Client, error) {
-	client, err := newClientForSettings(vaultSettings)
+	client, err := NewClientForSettings(vaultSettings)
 	if err != nil {
 		return nil, err
 	}
 
-	clientAuth, err := newClientAuthForSettings(vaultSettings)
+	clientAuth, err := NewClientAuthForSettings(vaultSettings)
 	if err != nil {
 		return nil, err
 	}
 
-	secret, err := client.Auth().Login(ctx, clientAuth)
+	err = AuthorizeClient(ctx, client, clientAuth)
 	if err != nil {
-		return nil, err
-	}
-
-	if err = clientAuth.StartRenewal(ctx, secret); err != nil {
 		return nil, err
 	}
 
 	return client, nil
 }
 
-func newClientForSettings(vaultSettings *v1.Settings_VaultSecrets) (*vault.Client, error) {
+// AuthorizeClient authenticates the provided vault client with the provided clientAuth.
+func AuthorizeClient(ctx context.Context, client *vault.Client, clientAuth ClientAuth) error {
+	secret, err := client.Auth().Login(ctx, clientAuth)
+	if err != nil {
+		return err
+	}
+
+	return clientAuth.StartRenewal(ctx, secret)
+}
+
+func NewClientForSettings(vaultSettings *v1.Settings_VaultSecrets) (*vault.Client, error) {
 	cfg, err := parseVaultSettings(vaultSettings)
 	if err != nil {
 		return nil, err
