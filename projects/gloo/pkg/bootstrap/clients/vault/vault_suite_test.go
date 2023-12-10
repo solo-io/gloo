@@ -23,6 +23,9 @@ var _ = AfterSuite(func() {
 	resetViews()
 })
 
+// resetViews resets the views used in this package
+// this is useful for ensuring that we are not leaking metrics between tests within this package
+// or between this package and other packages
 func resetViews() {
 	views := []*view.View{
 		mLastLoginSuccessView,
@@ -31,7 +34,7 @@ func resetViews() {
 		mLastLoginFailureView,
 	}
 	view.Unregister(views...)
-	_ = view.Register(metricViews...)
+	_ = view.Register(views...)
 	assertions.ExpectStatLastValueMatches(mLastLoginSuccess, BeZero())
 	assertions.ExpectStatLastValueMatches(mLastLoginFailure, BeZero())
 	assertions.ExpectStatSumMatches(mLoginSuccesses, BeZero())

@@ -17,7 +17,7 @@ func NewAuthorizedClient(ctx context.Context, vaultSettings *v1.Settings_VaultSe
 		return nil, err
 	}
 
-	clientAuth, err := newClientAuthForSettings(ctx, vaultSettings)
+	clientAuth, err := newClientAuthForSettings(vaultSettings)
 	if err != nil {
 		return nil, err
 	}

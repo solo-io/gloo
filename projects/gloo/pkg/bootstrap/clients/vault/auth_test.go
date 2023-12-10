@@ -14,15 +14,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/clients/vault/mocks"
 	"github.com/solo-io/gloo/test/gomega/assertions"
-	"go.opencensus.io/stats/view"
 )
-
-var metricViews = []*view.View{
-	mLastLoginSuccessView,
-	mLoginFailuresView,
-	mLoginSuccessesView,
-	mLastLoginFailureView,
-}
 
 var _ = Describe("ClientAuth", func() {
 
@@ -137,7 +129,7 @@ var _ = Describe("ClientAuth", func() {
 					},
 				}, nil).Times(1)
 
-				clientAuth = newRemoteTokenAuth(internalAuthMethod, retry.Attempts(2))
+				clientAuth = newRemoteTokenAuth(internalAuthMethod, retry.Attempts(5))
 			})
 
 			It("should return a secret", func() {
@@ -159,7 +151,7 @@ var _ = Describe("ClientAuth", func() {
 
 		DescribeTable("should error on invalid inputs",
 			func(vaultSettings *v1.Settings_VaultSecrets, expectedError types.GomegaMatcher) {
-				clientAuth, err := newClientAuthForSettings(ctx, vaultSettings)
+				clientAuth, err := newClientAuthForSettings(vaultSettings)
 				Expect(err).To(expectedError)
 				Expect(clientAuth).To(BeNil())
 			},
@@ -175,7 +167,7 @@ var _ = Describe("ClientAuth", func() {
 
 		DescribeTable("should return the correct client auth",
 			func(vaultSettings *v1.Settings_VaultSecrets, expectedClientAuth ClientAuth) {
-				clientAuth, err := newClientAuthForSettings(ctx, vaultSettings)
+				clientAuth, err := newClientAuthForSettings(vaultSettings)
 				Expect(err).NotTo(HaveOccurred())
 
 				actualClientAuthType := reflect.ValueOf(clientAuth).Type()
@@ -201,4 +193,5 @@ var _ = Describe("ClientAuth", func() {
 		)
 
 	})
+
 })

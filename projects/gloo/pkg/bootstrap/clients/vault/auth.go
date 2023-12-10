@@ -34,13 +34,13 @@ var (
 )
 
 // newClientAuthForSettings returns a vault ClientAuth based on the provided settings.
-func newClientAuthForSettings(ctx context.Context, vaultSettings *v1.Settings_VaultSecrets) (ClientAuth, error) {
+func newClientAuthForSettings(vaultSettings *v1.Settings_VaultSecrets) (ClientAuth, error) {
 	switch tlsCfg := vaultSettings.GetAuthMethod().(type) {
 	case *v1.Settings_VaultSecrets_AccessToken:
 		return newStaticTokenAuth(tlsCfg.AccessToken), nil
 
 	case *v1.Settings_VaultSecrets_Aws:
-		awsAuth, err := newAwsAuthMethod(ctx, tlsCfg.Aws)
+		awsAuth, err := newAwsAuthMethod(tlsCfg.Aws)
 		if err != nil {
 			return nil, err
 		}
@@ -148,7 +148,7 @@ func (r *remoteTokenAuth) StartRenewal(ctx context.Context, secret *vault.Secret
 	return nil
 }
 
-func newAwsAuthMethod(_ context.Context, aws *v1.Settings_VaultAwsAuth) (*awsauth.AWSAuth, error) {
+func newAwsAuthMethod(aws *v1.Settings_VaultAwsAuth) (*awsauth.AWSAuth, error) {
 	// The AccessKeyID and SecretAccessKey are not required in the case of using temporary credentials from assumed roles with AWS STS or IRSA.
 	// STS: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html
 	// IRSA: https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html
