@@ -12,30 +12,30 @@ import (
 	api "github.com/hashicorp/vault/api"
 )
 
-// MockAuthMethod is a mock of AuthMethod interface
+// MockAuthMethod is a mock of AuthMethod interface.
 type MockAuthMethod struct {
 	ctrl     *gomock.Controller
 	recorder *MockAuthMethodMockRecorder
 }
 
-// MockAuthMethodMockRecorder is the mock recorder for MockAuthMethod
+// MockAuthMethodMockRecorder is the mock recorder for MockAuthMethod.
 type MockAuthMethodMockRecorder struct {
 	mock *MockAuthMethod
 }
 
-// NewMockAuthMethod creates a new mock instance
+// NewMockAuthMethod creates a new mock instance.
 func NewMockAuthMethod(ctrl *gomock.Controller) *MockAuthMethod {
 	mock := &MockAuthMethod{ctrl: ctrl}
 	mock.recorder = &MockAuthMethodMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAuthMethod) EXPECT() *MockAuthMethodMockRecorder {
 	return m.recorder
 }
 
-// Login mocks base method
+// Login mocks base method.
 func (m *MockAuthMethod) Login(arg0 context.Context, arg1 *api.Client) (*api.Secret, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Login", arg0, arg1)
@@ -44,7 +44,7 @@ func (m *MockAuthMethod) Login(arg0 context.Context, arg1 *api.Client) (*api.Sec
 	return ret0, ret1
 }
 
-// Login indicates an expected call of Login
+// Login indicates an expected call of Login.
 func (mr *MockAuthMethodMockRecorder) Login(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockAuthMethod)(nil).Login), arg0, arg1)
