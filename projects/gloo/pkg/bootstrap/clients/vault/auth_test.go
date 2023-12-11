@@ -3,6 +3,7 @@ package vault
 import (
 	"context"
 	"reflect"
+	"time"
 
 	"github.com/avast/retry-go"
 	"github.com/golang/mock/gomock"
@@ -139,6 +140,31 @@ var _ = Describe("ClientAuth", func() {
 
 				assertions.ExpectStatSumMatches(mLoginFailures, Equal(1))
 				assertions.ExpectStatSumMatches(mLoginSuccesses, Equal(1))
+			})
+
+		})
+
+		When("context is cancelled before login succeeds", func() {
+			BeforeEach(func() {
+				ctrl := gomock.NewController(GinkgoT())
+				internalAuthMethod := mocks.NewMockAuthMethod(ctrl)
+				internalAuthMethod.EXPECT().Login(ctx, gomock.Any()).Return(nil, eris.New("error")).AnyTimes()
+
+				clientAuth = newRemoteTokenAuth(internalAuthMethod, retry.Attempts(100))
+			})
+
+			It("should return the error", func() {
+				go func() {
+					time.Sleep(2 * time.Second)
+					cancel()
+				}()
+
+				secret, err := clientAuth.Login(ctx, nil)
+				Expect(err).To(MatchError("Login canceled: context canceled"))
+				Expect(secret).To(BeNil())
+
+				assertions.ExpectStatLastValueMatches(mLastLoginFailure, Not(BeZero()))
+				assertions.ExpectStatSumMatches(mLoginFailures, Equal(2))
 			})
 
 		})

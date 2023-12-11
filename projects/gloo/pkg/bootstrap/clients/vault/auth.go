@@ -115,9 +115,19 @@ func (r *remoteTokenAuth) Login(ctx context.Context, client *vault.Client) (*vau
 	)
 
 	loginErr = retry.Do(func() error {
+		// If the context is canceled, we should not retry, but we also can't return an error or we will retry
+		// so we return nil and rely on the caller to check the context
+		if ctx.Err() != nil {
+			return nil
+		}
 		loginResponse, loginErr = r.loginOnce(ctx, client)
 		return loginErr
 	}, r.loginRetryOptions...)
+
+	// As noted above, we need to check the context here, because our retry function can not return errors
+	if ctx.Err() != nil {
+		return nil, eris.Wrap(ctx.Err(), "Login canceled")
+	}
 
 	return loginResponse, loginErr
 }

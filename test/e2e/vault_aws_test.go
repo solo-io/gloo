@@ -19,13 +19,14 @@ const (
 	// If you want to run these tests locally, ensure that your local AWS credentials match,
 	// or use another role
 	// https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html
-	vaultAwsRole   = "arn:aws:iam::802411188784:user/gloo-edge-e2e-user"
+	// vaultAwsRole   = "arn:aws:iam::802411188784:user/gloo-edge-e2e-user"
+	vaultAwsRole   = "arn:aws:iam::802411188784:role/dev-role-iam-sheidkamp-7"
 	vaultAwsRegion = "us-east-1"
 
 	vaultRole = "vault-role"
 )
 
-var _ = Describe("Vault Secret Store (AWS Auth)", decorators.Vault, func() {
+var _ = FDescribe("Vault Secret Store (AWS Auth)", decorators.Vault, func() {
 
 	var (
 		testContext         *e2e.TestContextWithVault
