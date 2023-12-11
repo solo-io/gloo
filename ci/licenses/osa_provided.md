@@ -18,7 +18,7 @@ Name|Version|License
 [go-logr/logr](https://github.com/go-logr/logr)|v1.2.4|Apache License 2.0
 [go-logr/zapr](https://github.com/go-logr/zapr)|v1.2.4|Apache License 2.0
 [go-openapi/inflect](https://github.com/go-openapi/inflect)|v0.19.0|MIT License
-[go-openapi/swag](https://github.com/go-openapi/swag)|v0.22.3|Apache License 2.0
+[go-openapi/swag](https://github.com/go-openapi/swag)|v0.22.4|Apache License 2.0
 [go-test/deep](https://github.com/go-test/deep)|v1.0.8|MIT License
 [gobuffalo/packr](https://github.com/gobuffalo/packr)|v1.30.1|MIT License
 [golang-jwt/jwt](https://github.com/golang-jwt/jwt)|v3.2.2+incompatible|MIT License
@@ -41,28 +41,28 @@ Name|Version|License
 [spf13/viper](https://github.com/spf13/viper)|v1.12.0|MIT License
 [wundergraph/graphql-go-tools](https://github.com/wundergraph/graphql-go-tools)|v1.61.0|MIT License
 [go.opencensus.io](https://go.opencensus.io)|v0.24.0|Apache License 2.0
-[go.uber.org/zap](https://go.uber.org/zap)|v1.24.0|MIT License
-[x/exp](https://golang.org/x/exp)|v0.0.0-20220921164117-439092de6870|BSD 3-clause "New" or "Revised" License
-[x/net](https://golang.org/x/net)|v0.15.0|BSD 3-clause "New" or "Revised" License
-[x/sync](https://golang.org/x/sync)|v0.3.0|BSD 3-clause "New" or "Revised" License
+[go.uber.org/zap](https://go.uber.org/zap)|v1.26.0|MIT License
+[x/exp](https://golang.org/x/exp)|v0.0.0-20231006140011-7918f672742d|BSD 3-clause "New" or "Revised" License
+[x/net](https://golang.org/x/net)|v0.17.0|BSD 3-clause "New" or "Revised" License
+[x/sync](https://golang.org/x/sync)|v0.4.0|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
 [google.golang.org/grpc](https://google.golang.org/grpc)|v1.59.0|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.31.0|BSD 3-clause "New" or "Revised" License
 [square/go-jose.v2](https://gopkg.in/square/go-jose.v2)|v2.6.0|Apache License 2.0
 [gopkg.in/yaml.v2](https://gopkg.in/yaml.v2)|v2.4.0|Apache License 2.0
-[helm/v3](https://helm.sh/helm/v3)|v3.12.2|Apache License 2.0
+[helm/v3](https://helm.sh/helm/v3)|v3.13.2|Apache License 2.0
 [istio.io/pkg](https://istio.io/pkg)|v0.0.0-20221101233122-4857dc812933|Apache License 2.0
 [istio.io/tools](https://istio.io/tools)|v0.0.0-20210420211536-9c0f48df3262|Apache License 2.0
-[k8s.io/api](https://k8s.io/api)|v0.27.3|Apache License 2.0
-[k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.27.3|Apache License 2.0
-[k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.27.3|Apache License 2.0
-[k8s.io/client-go](https://k8s.io/client-go)|v0.27.3|Apache License 2.0
-[k8s.io/code-generator](https://k8s.io/code-generator)|v0.27.3|Apache License 2.0
-[k8s.io/utils](https://k8s.io/utils)|v0.0.0-20221128185143-99ec85e7a448|Apache License 2.0
+[k8s.io/api](https://k8s.io/api)|v0.28.3|Apache License 2.0
+[k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.28.3|Apache License 2.0
+[k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.28.3|Apache License 2.0
+[k8s.io/client-go](https://k8s.io/client-go)|v0.28.3|Apache License 2.0
+[k8s.io/code-generator](https://k8s.io/code-generator)|v0.28.3|Apache License 2.0
+[k8s.io/utils](https://k8s.io/utils)|v0.0.0-20230726121419-3b25d923346b|Apache License 2.0
 [knative.dev/pkg](https://knative.dev/pkg)|v0.0.0-20211206113427-18589ac7627e|Apache License 2.0
 [rogchap.com/v8go](https://rogchap.com/v8go)|v0.7.1-0.20221102201510-1f00b5007d95|BSD 3-clause "New" or "Revised" License
-[sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.15.2|Apache License 2.0
-[sigs.k8s.io/yaml](https://sigs.k8s.io/yaml)|v1.3.0|MIT License
+[sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.16.3|Apache License 2.0
+[sigs.k8s.io/yaml](https://sigs.k8s.io/yaml)|v1.4.0|MIT License
 [cmd/goimports](https://golang.org/x/tools/cmd/goimports)|latest|MIT License
 [gogo/protobuf](https://github.com/gogo/protobuf)|latest|MIT License
 [envoyproxy/envoy](https://github.com/envoyproxy/envoy)|latest|Apache License 2.0

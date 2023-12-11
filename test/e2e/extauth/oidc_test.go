@@ -968,34 +968,6 @@ var _ = Describe("OIDC", func() {
 							func(resource resources.Resource) resources.Resource {
 								ac := resource.(*extauth.AuthConfig)
 								ac.FailOnRedirect = failOnRedirect
-
-								// FailOnRedirect changes the behavior only when there are multiple Configs defined
-								// so we add a second config that is a duplicate of the original
-								ac.Configs = []*extauth.AuthConfig_Config{
-									{
-										Name: &wrappers.StringValue{
-											Value: "config1",
-										},
-										AuthConfig: &extauth.AuthConfig_Config_Oauth2{
-											Oauth2: &extauth.OAuth2{
-												OauthType: oauth2,
-											},
-										},
-									},
-									{
-										Name: &wrappers.StringValue{
-											Value: "config2",
-										},
-										AuthConfig: &extauth.AuthConfig_Config_Oauth2{
-											Oauth2: &extauth.OAuth2{
-												OauthType: oauth2,
-											},
-										},
-									},
-								}
-								ac.BooleanExpr = &wrappers.StringValue{
-									Value: "(config1 || config2)",
-								}
 								return ac
 							},
 							testContext.TestClients().AuthConfigClient.BaseClient())
@@ -1003,6 +975,13 @@ var _ = Describe("OIDC", func() {
 
 						client := testutils.DefaultClientBuilder().Build()
 						client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+							if failOnRedirect {
+								// This means that the ext-auth-service should not return a redirect status code, and instead
+								// return an unauthorized status code. As a result, the client should do nothing on redirects,
+								// since they shouldn't happen.
+								return nil
+							}
+
 							// stop at the auth point
 							if req.Response != nil && req.Response.Header.Get("x-auth") != "" {
 								return http.ErrUseLastResponse
@@ -1022,11 +1001,7 @@ var _ = Describe("OIDC", func() {
 
 					},
 					Entry("failOnRedirect is false", false, http.StatusFound),
-
-					// https://github.com/solo-io/ext-auth-service/issues/669
-					// In reality, we should be getting a 401, but due to the above behavior in the ext-auth-service
-					// a 403 is returned
-					Entry("failOnRedirect is true", true, http.StatusForbidden),
+					Entry("failOnRedirect is true", true, http.StatusUnauthorized),
 				)
 
 			})

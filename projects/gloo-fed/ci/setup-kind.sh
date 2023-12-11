@@ -6,7 +6,7 @@ MANAGEMENT_CLUSTER="${MANAGEMENT_CLUSTER:-management}"
 # The name of the remote kind cluster to deploy to
 REMOTE_CLUSTER="${REMOTE_CLUSTER:-remote}"
 # The version of the Node Docker image to use for booting the clusters
-CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.27.3}"
+CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.28.0}"
 # The version used to tag images
 VERSION="${VERSION:-1.0.0-ci}"
 # If true, use a released chart with the version in $VERSION

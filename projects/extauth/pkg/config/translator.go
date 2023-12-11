@@ -191,6 +191,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				DiscoveryDataOverride:       &oidc_discovery.DiscoveryData{},
 				DiscoveryPollInterval:       DefaultOIDCDiscoveryPollInterval,
 				InvalidJwksOnDemandStrategy: jwks.NewNilKeySourceFactory(),
+				AzureConfig:                 &config.OidcAuthorizationCodeAzureConfig{},
 			})
 
 		if err != nil {
@@ -281,6 +282,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 					PkJwtClientAuthenticatorConfig: pkJwtClientAuthorizationConfig,
 					AccessTokenClaimsToHeaders:     toOidcClaimsToHeaders(oidcCfg.GetAccessToken().GetClaimsToHeaders()),
 					IdentityTokenClaimsToHeaders:   toOidcClaimsToHeaders(oidcCfg.GetIdentityToken().GetClaimsToHeaders()),
+					AzureConfig:                    &config.OidcAuthorizationCodeAzureConfig{},
 				})
 
 			if err != nil {

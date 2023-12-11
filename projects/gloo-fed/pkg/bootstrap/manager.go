@@ -22,6 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
@@ -94,12 +95,15 @@ func MustManager(cfg *rest.Config, onError func(err error), namespace string, op
 	}
 
 	// Add additional options to passed in options if they are not already set
-	if options.MetricsBindAddress == "" {
-		options.MetricsBindAddress = metricsBindAddress
+	if options.Metrics.BindAddress == "" {
+		options.Metrics.BindAddress = metricsBindAddress
 	}
 
-	if options.Namespace == "" && namespace != "" {
-		options.Namespace = namespace
+	if namespace != "" {
+		if options.Cache.DefaultNamespaces == nil {
+			options.Cache.DefaultNamespaces = make(map[string]cache.Config)
+		}
+		options.Cache.DefaultNamespaces[namespace] = cache.Config{}
 	}
 	mgr, err := manager.New(cfg, *options)
 

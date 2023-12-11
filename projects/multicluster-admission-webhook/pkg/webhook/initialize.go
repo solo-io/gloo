@@ -15,6 +15,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/multicluster-admission-webhook/pkg/rbac"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
@@ -49,9 +50,12 @@ func InitializeWebhook(
 }
 
 func GetWebhookOptions(cfg *config.Config) *manager.Options {
-	return &manager.Options{
+	webhookServer := webhook.NewServer(webhook.Options{
 		CertDir: cfg.GetString(config.CertDir),
 		Port:    chart.WebhookPort,
+	})
+	return &manager.Options{
+		WebhookServer: webhookServer,
 	}
 }
 

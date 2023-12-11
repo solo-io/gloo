@@ -1311,7 +1311,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			Expect(reflect.TypeOf(opaParams).NumField()).To(Equal(3))
 
 			var oidcAuthorizationCodeParams ea_config.OidcAuthorizationCodeAuthServiceParams
-			Expect(reflect.TypeOf(oidcAuthorizationCodeParams).NumField()).To(Equal(23))
+			Expect(reflect.TypeOf(oidcAuthorizationCodeParams).NumField()).To(Equal(25))
 
 			var plainOauth2 ea_config.PlainOAuth2AuthServiceParams
 			Expect(reflect.TypeOf(plainOauth2).NumField()).To(Equal(14))

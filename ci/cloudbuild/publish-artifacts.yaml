@@ -36,7 +36,7 @@ steps:
 
 # $COMMIT_SHA is a default gcloud env var, to run via cloudbuild submit use:
 # gcloud builds submit --substitutions COMMIT_SHA=<commitsha>,REPO_NAME=solo-io/solo-projects --project gloo-ee
-- name: "gcr.io/solo-public/prepare-go-workspace:0.7.0"
+- name: "gcr.io/solo-public/prepare-go-workspace:0.8.1"
   args:
     - "--repo-name"
     - "$REPO_NAME"
@@ -93,7 +93,7 @@ steps:
   waitFor: ["-"]
   id: "docker-login"
 
-- name: "gcr.io/solo-public/go-mod-make:0.7.0"
+- name: "gcr.io/solo-public/go-mod-make:0.8.1"
   args: ["install-build-tools", "publish-docker"]
   dir: "/workspace/solo-projects"
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
@@ -108,7 +108,7 @@ steps:
   id: "gcr-auth"
 
   # go-make is produced from https://github.com/solo-io/cloud-builders/tree/master/go-mod-make
-- name: "gcr.io/solo-public/go-mod-make:0.7.0"
+- name: "gcr.io/solo-public/go-mod-make:0.8.1"
   args:
     [
       "publish-glooctl-plugins",
@@ -121,7 +121,7 @@ steps:
   id: "release"
 
   # Run make targets to retag and push docker images to GCR
-- name: "gcr.io/solo-public/go-mod-make:0.7.0"
+- name: "gcr.io/solo-public/go-mod-make:0.8.1"
   args: ["publish-docker-retag"]
   env:
     - "ORIGINAL_IMAGE_REGISTRY=quay.io/solo-io"
