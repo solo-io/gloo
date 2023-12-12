@@ -13,7 +13,7 @@ IMAGE_REGISTRY ?= quay.io/solo-io
 
 # the build image for GLOO is Debian based whereas for rate-limit and ext-auth it's Alpine based
 GOLANG_IMAGE_NAME = golang:$(shell go version | egrep -o '([0-9]+\.[0-9]+)')
-GOLANG_ALPINE_IMAGE_NAME = $(GOLANG_IMAGE_NAME)-alpine
+GOLANG_ALPINE_IMAGE_NAME = $(GOLANG_IMAGE_NAME)-alpine3.18
 
 ifeq ($(TAGGED_VERSION),)
 	ifeq ($(TEST_ASSET_ID),)
