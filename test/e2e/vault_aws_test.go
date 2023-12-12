@@ -20,7 +20,7 @@ const (
 	// or use another role
 	// https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html
 	// vaultAwsRole   = "arn:aws:iam::802411188784:user/gloo-edge-e2e-user"
-	vaultAwsRole   = "arn:aws:iam::802411188784:role/dev-role-iam-sheidkamp-7"
+	vaultAwsRole   = "arn:aws:iam::802411188784:user/sheidkamp"
 	vaultAwsRegion = "us-east-1"
 
 	vaultRole = "vault-role"
