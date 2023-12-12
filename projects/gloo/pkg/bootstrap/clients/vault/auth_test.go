@@ -138,6 +138,8 @@ var _ = Describe("ClientAuth", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(secret.Auth.ClientToken).To(Equal("a-client-token"))
 
+				assertions.ExpectStatLastValueMatches(mLastLoginFailure, Not(BeZero()))
+				assertions.ExpectStatLastValueMatches(mLastLoginSuccess, Not(BeZero()))
 				assertions.ExpectStatSumMatches(mLoginFailures, Equal(1))
 				assertions.ExpectStatSumMatches(mLoginSuccesses, Equal(1))
 			})
@@ -148,12 +150,18 @@ var _ = Describe("ClientAuth", func() {
 			BeforeEach(func() {
 				ctrl := gomock.NewController(GinkgoT())
 				internalAuthMethod := mocks.NewMockAuthMethod(ctrl)
-				internalAuthMethod.EXPECT().Login(ctx, gomock.Any()).Return(nil, eris.New("error")).AnyTimes()
-
-				clientAuth = newRemoteTokenAuth(internalAuthMethod, retry.Attempts(100))
+				// The auth method will return an error twice, and then a success
+				// but we plan on cancelling the context before the success
+				internalAuthMethod.EXPECT().Login(ctx, gomock.Any()).Return(nil, eris.New("error")).Times(2)
+				internalAuthMethod.EXPECT().Login(ctx, gomock.Any()).Return(&api.Secret{
+					Auth: &api.SecretAuth{
+						ClientToken: "a-client-token",
+					},
+				}, nil).AnyTimes()
+				clientAuth = newRemoteTokenAuth(internalAuthMethod, retry.Attempts(5))
 			})
 
-			It("should return the error", func() {
+			It("should return a context error", func() {
 				go func() {
 					time.Sleep(2 * time.Second)
 					cancel()
@@ -164,7 +172,9 @@ var _ = Describe("ClientAuth", func() {
 				Expect(secret).To(BeNil())
 
 				assertions.ExpectStatLastValueMatches(mLastLoginFailure, Not(BeZero()))
+				assertions.ExpectStatLastValueMatches(mLastLoginSuccess, BeZero())
 				assertions.ExpectStatSumMatches(mLoginFailures, Equal(2))
+
 			})
 
 		})

@@ -115,7 +115,7 @@ func (r *remoteTokenAuth) Login(ctx context.Context, client *vault.Client) (*vau
 	)
 
 	loginErr = retry.Do(func() error {
-		// If the context is canceled, we should not retry, but we also can't return an error or we will retry
+		// If the context is cancelled, we should not retry, but we also can't return an error or we will retry
 		// so we return nil and rely on the caller to check the context
 		if ctx.Err() != nil {
 			return nil
