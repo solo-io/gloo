@@ -73,6 +73,11 @@ var _ = Describe("Kube2e: Upgrade Tests", func() {
 			It("uses helm to add a second gateway-proxy in a separate namespace without errors", func() {
 				addSecondGatewayProxySeparateNamespaceTest(ctx, crdDir, testHelper, chartUri, targetReleasedVersion, strictValidation)
 			})
+			It("doesn't error when settings.enableRestEds is set to true", func() {
+				upgradeGloo(testHelper, chartUri, targetReleasedVersion, crdDir, strictValidation, []string{
+					"--set", "settings.enableRestEds=true",
+				})
+			})
 		})
 		Context("When upgrading from currentPatchMostRecentMinorVersion to PR version of gloo", func() {
 
