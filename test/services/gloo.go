@@ -329,7 +329,7 @@ func constructTestOpts(ctx context.Context, runOptions *RunOptions, settings *gl
 		// As a result, we need to construct a client to communicate with that vault instance
 		vaultSecretSource := settings.GetVaultSecretSource()
 
-		vaultClient, err := bootstrap_clients.VaultClientForSettings(vaultSecretSource)
+		vaultClient, err := bootstrap_clients.VaultClientForSettings(ctx, vaultSecretSource)
 		Expect(err).NotTo(HaveOccurred())
 		secretFactory = bootstrap_clients.NewVaultSecretClientFactory(bootstrap_clients.NoopVaultClientInitFunc(vaultClient), vaultSecretSource.GetPathPrefix(), vaultSecretSource.GetRootKey())
 	}

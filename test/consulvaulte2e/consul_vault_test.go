@@ -105,7 +105,7 @@ var _ = Describe("Consul + Vault Configuration Happy Path e2e", decorators.Vault
 		consulClient, err = bootstrap.ConsulClientForSettings(ctx, settings)
 		Expect(err).NotTo(HaveOccurred())
 
-		vaultClient, err = bootstrap.VaultClientForSettings(vaultSecretSource)
+		vaultClient, err = bootstrap.VaultClientForSettings(ctx, vaultSecretSource)
 		Expect(err).NotTo(HaveOccurred())
 
 		consulResources = &factory.ConsulResourceClientFactory{

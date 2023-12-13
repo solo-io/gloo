@@ -31,6 +31,6 @@ func NewVaultSecretClientFactory(clientInit VaultClientInitFunc, pathPrefix, roo
 	}
 }
 
-func VaultClientForSettings(vaultSettings *v1.Settings_VaultSecrets) (*api.Client, error) {
-	return vault.NewAuthorizedClient(context.Background(), vaultSettings)
+func VaultClientForSettings(ctx context.Context, vaultSettings *v1.Settings_VaultSecrets) (*api.Client, error) {
+	return vault.NewAuthorizedClient(ctx, vaultSettings)
 }
