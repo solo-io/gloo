@@ -14,7 +14,7 @@ spec:
         routeAction:
           single:
             upstream:
-              name: postman-echo
+              name: default-httpbin-8000
               namespace: gloo-system
         options:
           autoHostRewrite: true

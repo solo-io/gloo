@@ -236,8 +236,7 @@ func runAdditionalUpgradeSteps() {
 	kubectl delete RoleBinding gloo-resource-rollout -n $RELEASE_NAMESPACE
 	kubectl delete ServiceAccount gloo-resource-rollout -n $RELEASE_NAMESPACE
 	`
-	cmd := exec.Command("bash", "-c", cleanupCommand)
-	fmt.Println(cmd.Output())
+	exec.Command("bash", "-c", cleanupCommand).Output()
 }
 
 func bumpRedis(testHelper *helper.SoloTestHelper) {
@@ -412,12 +411,12 @@ func rateLimitAfterDataModValidation(testHelper *helper.SoloTestHelper) {
 func validateRequestTransformTraffic(testHelper *helper.SoloTestHelper) {
 	// response contains json object with transformed request values - we want to get that and check it for headers
 	res := requestOnPath(queryParamHost, "/get?foo=foo-value&bar=bar-value")
-
 	Expect(res).Should(testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
 		StatusCode: http.StatusOK,
 		Body: testmatchers.ContainSubstrings([]string{
-			"\"foo\": \"foo-value\"",
-			"\"bar\": \"bar-value\"",
+			// The httpbin service returns the headers as a key-value pair with the key in title case
+			`"Foo": "foo-value"`,
+			`"Bar": "bar-value"`,
 		}),
 	}))
 }

@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: Fix flaky upgrade tests by moving away from postman-echo.com to a local httpbin service running in the test cluster.
+
