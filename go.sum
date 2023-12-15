@@ -2249,8 +2249,8 @@ github.com/solo-io/ext-auth-service v0.55.0 h1:4aFqDr0cC9crINjg7MAcNy+QjtIY2tmOe
 github.com/solo-io/ext-auth-service v0.55.0/go.mod h1:PMUvbXEtcLSNasFEJZ8Eo3Msa2uz/kzKyblYOneu04A=
 github.com/solo-io/external-apis v0.1.12-0.20231207172457-35b8885c5fd6 h1:euZY58qf2Z+6EHbCB9UkpPJp3R82zD6vOYriNQPwgA0=
 github.com/solo-io/external-apis v0.1.12-0.20231207172457-35b8885c5fd6/go.mod h1:WErxesMX1qgDYai0XrXckmSmUYb5PFIF9RnPy2Vm0gE=
-github.com/solo-io/gloo v1.16.0-beta28 h1:Lug56zaLxl4ZJPDkXmM3ttAc1x9LU3dkktJCuW8rW1Y=
-github.com/solo-io/gloo v1.16.0-beta28/go.mod h1:rH4BVJPvxyLi/eH2G/zeNg4hlItuZAt3PRcnSMPHS18=
+github.com/solo-io/gloo v1.16.0-rc1 h1:2c+ap5ZrK1gcnnQVSTmgjJShFYJxyETmADT5rjjLai0=
+github.com/solo-io/gloo v1.16.0-rc1/go.mod h1:rH4BVJPvxyLi/eH2G/zeNg4hlItuZAt3PRcnSMPHS18=
 github.com/solo-io/gloo-graphql-example v0.1.0 h1:vFfQ0eXoJ5gXdBjuMU2VfN2zf+vXbFcpdqnwd6+q8Gk=
 github.com/solo-io/gloo-graphql-example v0.1.0/go.mod h1:tF/6JrJvq1kVFuWePAiW6tH5AEgtuh2+mRsfCaITbVg=
 github.com/solo-io/go-control-plane-fork-v2 v0.0.0-20231207195634-98d37ef9a43e h1:YusPeGbv53hMD0r3drjx5pYkoDNXkhwgYi1HfmZJqu4=
@@ -2273,8 +2273,8 @@ github.com/solo-io/rate-limiter v0.11.4 h1:zJBc0zZAo/fYyW+RBvpuJcedZTFLdhjTlGycx
 github.com/solo-io/rate-limiter v0.11.4/go.mod h1:vZTwj9mFKpzRDbTftqxE99G4aFpyOGkpZgCzJ5TbzOo=
 github.com/solo-io/skv2 v0.36.0 h1:Z1iCQou0Ei5K97UShAmB8xPYrFFZeseMZvef+kZ4Of0=
 github.com/solo-io/skv2 v0.36.0/go.mod h1:0GKILLOrQiTKvGsf7UEFZJiDxJHrp0yKJQ6NbHzn+vY=
-github.com/solo-io/solo-apis v0.0.0-20231207183115-1087b010a33d h1:JY1p2QZLJiwXkj8owcLATAjIq0zeeAfXeyvvZRdFZCQ=
-github.com/solo-io/solo-apis v0.0.0-20231207183115-1087b010a33d/go.mod h1:7e5u9xeJwMybXr76TjTtZ3fKpR4RrjT2fuyH8uMJ3+Q=
+github.com/solo-io/solo-apis v0.0.0-20231215201554-d289a9784866 h1:tBd433pCl0E7P0WHsi8r4ndK8fI6w9foAnc8OMNPlEY=
+github.com/solo-io/solo-apis v0.0.0-20231215201554-d289a9784866/go.mod h1:7e5u9xeJwMybXr76TjTtZ3fKpR4RrjT2fuyH8uMJ3+Q=
 github.com/solo-io/solo-kit v0.34.0 h1:TbcxhR7qBr5UVjVG5QfoGawVdrEqBG14DLrgLmePfmo=
 github.com/solo-io/solo-kit v0.34.0/go.mod h1:HkrxDRo+uR0FZUJi+SGAUkbrUNWC6V0FD7GGXbtC0UU=
 github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20220823153451-d072eb48cb44 h1:EXR/DlwNaZahH5NOU2TY5sgYwUwnWA8U0/iJOv8q72U=
