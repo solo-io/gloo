@@ -105,7 +105,7 @@ init:
 	git config core.hooksPath .githooks
 
 .PHONY: mod-download
-mod-download: check-go-version
+mod-download:
 	go mod download all
 
 # https://github.com/go-modules-by-example/index/blob/master/010_tools/README.md
@@ -166,7 +166,7 @@ TEST_PKG ?= ./... # Default to run all tests
 GINKGO_USER_FLAGS ?=
 
 .PHONY: install-test-tools
-install-test-tools: check-go-version
+install-test-tools:
 	go install github.com/onsi/ginkgo/v2/ginkgo@$(GINKGO_VERSION)
 
 .PHONY: test
@@ -264,11 +264,6 @@ generate-all: generate-helm-docs
 
 GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' ' -f2)
 
-# makes sure you are running codegen with the correct Go version
-.PHONY: check-go-version
-check-go-version:
-	./ci/check-go-version.sh
-
 # set SKIP_VERSION_CHECKS to any value to skip these checks in development, ie `SKIP_VERSION_CHECKS=1 make generate-all`
 .PHONY: check-solo-apis
 check-solo-apis:
@@ -290,7 +285,7 @@ check-protoc:
 	ci/check-protoc.sh
 
 .PHONY: check-all
-check-all: check-go-version check-protoc check-solo-apis check-envoy-version ## Run all checks
+check-all: check-protoc check-solo-apis check-envoy-version ## Run all checks
 
 .PHONY: generate-gloo-fed
 generate-gloo-fed: go-generate-gloo-fed-code generated-gloo-fed-ui
@@ -1565,7 +1560,6 @@ docker-retag-%:
 
 # Build Gloo Enterprise docker images using the defined IMAGE_REGISTRY, VERSION
 .PHONY: docker
-docker: check-go-version
 docker: # Build Control Plane images
 docker: gloo-ee-docker
 docker: gloo-ee-fips-docker

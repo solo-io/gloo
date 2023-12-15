@@ -45,7 +45,7 @@ RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=amd64 GOOS=linux GOEXPERIMENT=${GOE
     -o verify-plugins-linux-amd64 \
     projects/extauth/scripts/verify_plugins.go
 
-FROM alpine:3.17.3
+FROM alpine:3.17.6
 ARG DOCKER_GOARCH
 COPY --from=build-env /go/src/github.com/solo-io/solo-projects/extauth-linux-${DOCKER_GOARCH} /
 COPY --from=build-env /go/src/github.com/solo-io/solo-projects/verify-plugins-linux-amd64 /
