@@ -1,0 +1,10 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: envoy-gloo
+    dependencyRepo: solo-io
+    dependencyTag: NOT_YET_RELEASED
+    description: >-
+      Update envoy-gloo to resolve issues configuring rest EDS
+  - type: NON_USER_FACING
+    description: >- 
+      Update CI to better support unreleased assets from envoy-gloo-ee CI builds
