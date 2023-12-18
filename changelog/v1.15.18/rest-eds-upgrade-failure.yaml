@@ -7,4 +7,4 @@ changelog:
       Update envoy-gloo to resolve issues configuring rest EDS
   - type: NON_USER_FACING
     description: >- 
-      Update CI to better support unreleased assets from envoy-gloo-ee CI builds
+      Update CI to better support unreleased assets from envoy-gloo CI builds
