@@ -2277,6 +2277,8 @@ github.com/solo-io/solo-apis v0.0.0-20231215201554-d289a9784866 h1:tBd433pCl0E7P
 github.com/solo-io/solo-apis v0.0.0-20231215201554-d289a9784866/go.mod h1:7e5u9xeJwMybXr76TjTtZ3fKpR4RrjT2fuyH8uMJ3+Q=
 github.com/solo-io/solo-kit v0.34.0 h1:TbcxhR7qBr5UVjVG5QfoGawVdrEqBG14DLrgLmePfmo=
 github.com/solo-io/solo-kit v0.34.0/go.mod h1:HkrxDRo+uR0FZUJi+SGAUkbrUNWC6V0FD7GGXbtC0UU=
+github.com/solo-io/tap-extension-examples v0.0.3 h1:HEGoHphx0LoD1kXx35cYEuzSs0ffZcYwoGkACJtAKbU=
+github.com/solo-io/tap-extension-examples v0.0.3/go.mod h1:vFU2rj74oMwRtdxnMQIZj5tTRPPbWHjAZ9ZK4GTk584=
 github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20220823153451-d072eb48cb44 h1:EXR/DlwNaZahH5NOU2TY5sgYwUwnWA8U0/iJOv8q72U=
 github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20220823153451-d072eb48cb44/go.mod h1:cKDDgRQXaqUYxFRGCFORjxDOvdLtk+7Un/cpoaV9XaI=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=

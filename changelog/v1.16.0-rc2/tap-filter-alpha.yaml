@@ -1,0 +1,20 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: envoy-gloo-ee
+    dependencyRepo: solo-io
+    dependencyTag: 1.27.2-patch2
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/5315
+    resolvesIssue: true
+    description: >
+      Tap filter alpha release. Implements support for HTTP and GRPC output
+      sinks. Both sinks fully buffer messages before sending them out to the
+      tap server. Only supports defining the tap filter on the Gateway at this
+      time. A number of fields (such as the output format type) are also not
+      supported at this time.
+  - type: NON_USER_FACING
+    description: Move argocd tests to nightlies.
+  - type: NON_USER_FACING
+    description: >
+      Add the `merge-to-main` flag to exclude upgrade tests from running. If
+      not present, when a new branch is cut, upgrade tests will not run.

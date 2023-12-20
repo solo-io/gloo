@@ -5,6 +5,7 @@ import (
 
 	"github.com/solo-io/gloo/test/services/envoy"
 	glooe_envoy "github.com/solo-io/solo-projects/test/services/envoy"
+	"github.com/solo-io/solo-projects/test/services/tap_server"
 
 	"github.com/solo-io/solo-projects/test/e2e"
 
@@ -15,6 +16,7 @@ import (
 
 var (
 	envoyFactory       envoy.Factory
+	tapServerFactory   *tap_server.Factory
 	testContextFactory *e2e.TestContextFactory
 
 	namespace = defaults.GlooSystem
@@ -22,9 +24,11 @@ var (
 
 var _ = BeforeSuite(func() {
 	envoyFactory = glooe_envoy.NewFactory()
+	tapServerFactory = tap_server.NewFactory()
 
 	testContextFactory = &e2e.TestContextFactory{
-		EnvoyFactory: envoyFactory,
+		EnvoyFactory:     envoyFactory,
+		TapServerFactory: tapServerFactory,
 	}
 })
 

@@ -95,9 +95,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'helm', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}, {test: 'caching', use-fips: 'false'}, {test: 'upgrade', use-fips: 'false'}]
-        kube-version: [ { node: 'v1.21.14@sha256:9d9eb5fb26b4fbc0c6d95fa8c790414f9750dd583f5d7cee45d92e8c26670aa1', kubectl: 'v1.21.14', kind: 'v0.17.0', helm: 'v3.9.4' },
-                        { node: 'v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315', kubectl: 'v1.24.7', kind: 'v0.17.0', helm: 'v3.9.4' } ]
+        kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'helm', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}, {test: 'caching', use-fips: 'false'}, {test: 'upgrade', use-fips: 'false'}, {test: 'argocd', use-fips: 'false'}]
+        kube-version: [ { node: 'v1.21.14@sha256:9d9eb5fb26b4fbc0c6d95fa8c790414f9750dd583f5d7cee45d92e8c26670aa1', kubectl: 'v1.21.14', kind: 'v0.17.0', helm: 'v3.9.4', argocd: 'v2.8.4' },
+        { node: 'v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315', kubectl: 'v1.24.7', kind: 'v0.17.0', helm: 'v3.9.4', argocd: 'v2.8.4' } ]
         exclude:
           # Disabling wasm tests since pulling from host webassemblyhub.io consistently fails
           - kube-e2e-test-type: {test: 'wasm', use-fips: 'false'}

@@ -5,8 +5,15 @@ import (
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/solo-projects/test/services/extauth"
+	"github.com/solo-io/solo-projects/test/services/tap_server"
 
 	"github.com/golang/protobuf/ptypes/duration"
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	gateway_defaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tap"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	ratelimit2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	"github.com/solo-io/solo-projects/test/services/ratelimit"
@@ -120,4 +127,56 @@ func (r *extAuthExtension) runExtAuthService(testContext *TestContextWithExtensi
 	}(testContext.Ctx())
 
 	r.extAuthInstance.EventuallyIsHealthy()
+}
+
+type tapServerExtension struct {
+	tapServerInstance *tap_server.Instance
+}
+
+// TapServerInstance returns an Instance of the TapServer Service
+func (r *tapServerExtension) TapServerInstance() *tap_server.Instance {
+	return r.tapServerInstance
+}
+
+// setupDefaults simply configures the gateway with an upstream and a tap sink
+func (r *tapServerExtension) setupDefaults(testContext *TestContextWithExtensions) {
+	tapUpstream := testContext.TapServerInstance().GetServerUpstream()
+	testContext.ResourcesToCreate().Upstreams = append(testContext.ResourcesToCreate().Upstreams, tapUpstream)
+
+	testGateway := gateway_defaults.DefaultGateway(defaults.GlooSystem)
+	testGateway.GatewayType = &gatewayv1.Gateway_HttpGateway{
+		HttpGateway: &gatewayv1.HttpGateway{
+			Options: &gloov1.HttpListenerOptions{
+				Tap: &tap.Tap{
+					Sinks: []*tap.Sink{{
+						SinkType: &tap.Sink_HttpService{
+							HttpService: &tap.HttpService{
+								TapServer: &core.ResourceRef{
+									Name:      tapUpstream.Metadata.Name,
+									Namespace: tapUpstream.Metadata.Namespace,
+								},
+								Timeout: &durationpb.Duration{
+									Seconds: 5,
+								},
+							},
+						},
+					}},
+				},
+			},
+		},
+	}
+	testContext.ResourcesToCreate().Gateways = gatewayv1.GatewayList{testGateway}
+}
+
+// start the tap server instance
+func (r *tapServerExtension) runTapService(testContext *TestContextWithExtensions) {
+	ginkgo.By("TapServerExtension: Starting Tap Server")
+
+	go func(testCtx context.Context) {
+		defer ginkgo.GinkgoRecover()
+
+		r.tapServerInstance.Run(testCtx)
+	}(testContext.Ctx())
+
+	r.tapServerInstance.EventuallyIsHealthy()
 }

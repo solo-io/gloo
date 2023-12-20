@@ -13,7 +13,9 @@ require (
 	github.com/aws/aws-sdk-go v1.43.16
 	github.com/cncf/xds/go v0.0.0-20230607035331-e9ce68804cb4
 	github.com/docker/distribution v2.8.2+incompatible
-	github.com/envoyproxy/go-control-plane v0.11.1
+	// this is the version of go-control-plane that incorporates modifications to support custom tap sinks:
+	// https://github.com/envoyproxy/go-control-plane/commit/107d4056d823b9e53b182a0b264747b3b3d24c77
+	github.com/envoyproxy/go-control-plane v0.11.2-0.20230819171109-107d4056d823
 	github.com/envoyproxy/protoc-gen-validate v1.0.2
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/gertd/go-pluralize v0.1.1
@@ -62,6 +64,9 @@ require (
 	github.com/solo-io/skv2 v0.36.0
 	github.com/solo-io/solo-apis v0.0.0-20231215201554-d289a9784866
 	github.com/solo-io/solo-kit v0.34.0
+	// https://soloio.slab.com/posts/envoy-proto-definition-lives-mbnlmkxe
+	// explains why we depend on this repository of tap server examples
+	github.com/solo-io/tap-extension-examples v0.0.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20220823153451-d072eb48cb44
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5

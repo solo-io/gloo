@@ -3,6 +3,7 @@ package setup
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extproc"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/license_validation"
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
@@ -19,7 +20,6 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/deprecated_cipher_passthrough"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extproc"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
@@ -28,6 +28,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/proxylatency"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/sanitize_cluster_header"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/tap"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/transformer"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/waf"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/wasm"
@@ -92,6 +93,7 @@ func getEnterprisePlugins(apiEmitterChan chan struct{}, graphQLFeatureState *lic
 		proxyprotocol.NewPlugin(),
 		graphql.NewPlugin(graphQLFeatureState),
 		deprecated_cipher_passthrough.NewPlugin(),
+		tap.NewPlugin(),
 		extproc.NewPlugin(),
 		local_ratelimit.NewPlugin(),
 	}

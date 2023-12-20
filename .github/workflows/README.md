@@ -12,7 +12,16 @@ Instructions on how to use [the Create Test Release action](https://github.com/s
     - gloo commit SHA - (optional) gloo commit SHA to reference if unpublished OSS changes are desired
 - run workflow
 - wait for workflow to finish
-- [scroll to bottom of workflow(this is an example link)](https://github.com/solo-io/solo-projects/actions/runs/4116181193), then see the Artifacts section for installation instructions
+- for installation instructions, click on one of the finished workflows to view the logs [(this is an example link)](https://github.com/solo-io/solo-projects/actions/runs/4116181193), then search for a bit of text like this:
+
+        2023-09-22T15:53:19.5906674Z Successfully published a test build of gloo-ee!
+        2023-09-22T15:53:19.5907650Z   Version:    1.16.0-beta1-btap-filter-vx-d319cc9
+        2023-09-22T15:53:19.5910357Z   Helm Repo:  https://console.cloud.google.com/storage/browser/gloo-ee-test-helm
+        2023-09-22T15:53:19.5911275Z   Image Repo: https://quay.io/organization/solo-io
+        2023-09-22T15:53:19.5911862Z Can Install Via:
+        2023-09-22T15:53:19.5913022Z ❯ helm repo add gloo-ee-test https://storage.googleapis.com/gloo-ee-test-helm
+        2023-09-22T15:53:19.5913759Z ❯ helm repo update
+        2023-09-22T15:53:19.5917478Z ❯ helm install -n gloo-system gloo-ee-test gloo-ee-test/gloo-ee --create-namespace --version <latest-version>-<branch> --set-string license_key=$GLOO_LICENSE_KEY --set gloo-fed.enabled=false --set gloo-fed.glooFedApiserver.enable=false
 
 # Running Scale Tests
 We have two scale tests for Gloo, run by the [resource scale test action](eks-resource-scale-runner.yaml) and the [fed scale test action](eks-fed-scale-test-runner.yaml).

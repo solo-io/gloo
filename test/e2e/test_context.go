@@ -7,6 +7,7 @@ import (
 	"github.com/solo-io/solo-projects/test/services/extauth"
 
 	"github.com/solo-io/solo-projects/test/services/ratelimit"
+	"github.com/solo-io/solo-projects/test/services/tap_server"
 
 	"github.com/solo-io/gloo/test/services/envoy"
 
@@ -56,6 +57,7 @@ type TestContextFactory struct {
 	EnvoyFactory     envoy.Factory
 	RateLimitFactory *ratelimit.Factory
 	ExtAuthFactory   *extauth.Factory
+	TapServerFactory *tap_server.Factory
 }
 
 func (f *TestContextFactory) NewTestContext(testRequirements ...testutils.Requirement) *TestContext {
@@ -73,6 +75,7 @@ func (f *TestContextFactory) NewTestContext(testRequirements ...testutils.Requir
 type TestContextExtensions struct {
 	ExtAuth   bool
 	RateLimit bool
+	TapServer *tap_server.InstanceConfig
 }
 
 func (f *TestContextFactory) NewTestContextWithExtensions(extensions TestContextExtensions, testRequirements ...testutils.Requirement) *TestContextWithExtensions {
@@ -88,6 +91,11 @@ func (f *TestContextFactory) NewTestContextWithExtensions(extensions TestContext
 	if extensions.RateLimit {
 		testContext.rateLimitExtension = &rateLimitExtension{
 			rateLimitInstance: f.RateLimitFactory.NewInstance(testContext.EnvoyInstance().GlooAddr),
+		}
+	}
+	if extensions.TapServer != nil {
+		testContext.tapServerExtension = &tapServerExtension{
+			tapServerInstance: f.TapServerFactory.NewInstance(testContext.EnvoyInstance().GlooAddr, extensions.TapServer),
 		}
 	}
 
@@ -332,6 +340,7 @@ func (c *TestContext) GetHttpsRequestBuilder() *testutils.HttpRequestBuilder {
 // using a set of external services (extensions). The currently supported extensions are:
 //   - rate limiting
 //   - ext auth
+//   - tap server
 type TestContextWithExtensions struct {
 	*TestContext
 
@@ -339,6 +348,7 @@ type TestContextWithExtensions struct {
 	// If an extension is not used, it will be nil
 	rateLimitExtension *rateLimitExtension
 	extAuthExtension   *extAuthExtension
+	tapServerExtension *tapServerExtension
 }
 
 func (e *TestContextWithExtensions) BeforeEach() {
@@ -349,6 +359,9 @@ func (e *TestContextWithExtensions) BeforeEach() {
 	}
 	if e.extAuthExtension != nil {
 		e.extAuthExtension.setupDefaults(e)
+	}
+	if e.tapServerExtension != nil {
+		e.tapServerExtension.setupDefaults(e)
 	}
 }
 
@@ -365,6 +378,10 @@ func (e *TestContextWithExtensions) JustBeforeEach() {
 
 	if e.extAuthExtension != nil {
 		e.extAuthExtension.runExtAuthService(e)
+	}
+
+	if e.tapServerExtension != nil {
+		e.tapServerExtension.runTapService(e)
 	}
 }
 
@@ -386,4 +403,14 @@ func (e *TestContextWithExtensions) ExtAuthInstance() *extauth.Instance {
 		ginkgo.Fail("Attempting to access ExtAuthInstance when no ExtAuthExtension is configured")
 	}
 	return e.extAuthExtension.ExtAuthInstance()
+}
+
+// TapServerInstance returns an Instance of the TapServer Service
+func (e *TestContextWithExtensions) TapServerInstance() *tap_server.Instance {
+	if e.tapServerExtension == nil {
+		// This means that you are writing a test that does not configure a TestContextWithExtensions
+		// with the proper TapServer extension
+		ginkgo.Fail("Attempting to access TapServerInstance when no TapServerExtension is configured")
+	}
+	return e.tapServerExtension.TapServerInstance()
 }
