@@ -62,7 +62,7 @@ var _ = Describe("HttpGatewaySelector", func() {
 				},
 			}
 			selected := httpGatewaySelector.SelectMatchableHttpGateways(selector, onSelectionError)
-			Expect(selected).To(HaveLen(0))
+			Expect(selected).To(BeEmpty())
 		})
 
 	})
@@ -290,7 +290,7 @@ var _ = Describe("HttpGatewaySelector", func() {
 				},
 			}
 			selected := httpGatewaySelector.SelectMatchableHttpGateways(selector, onSelectionError)
-			Expect(selected).To(HaveLen(0))
+			Expect(selected).To(BeEmpty())
 		})
 	})
 

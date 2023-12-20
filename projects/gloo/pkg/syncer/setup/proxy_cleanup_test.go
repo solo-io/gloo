@@ -66,7 +66,7 @@ var _ = Describe("Clean up proxies", func() {
 		proxyClient.Write(gatewayProxy, clients.WriteOpts{})
 		deleteUnusedProxies(ctx, defaults.GlooSystem, proxyClient)
 		remainingProxies, _ := proxyClient.List(defaults.GlooSystem, clients.ListOpts{})
-		Expect(len(remainingProxies)).To(Equal(1))
+		Expect(remainingProxies).To(HaveLen(1))
 		Expect(remainingProxies[0].GetMetadata().Ref()).To(Equal(otherProxy.GetMetadata().Ref()))
 		otherProxy.Metadata.Labels = unmanagedProxyLabels
 	})
@@ -83,6 +83,6 @@ var _ = Describe("Clean up proxies", func() {
 		err := doProxyCleanup(ctx, params, settings, defaults.GlooSystem)
 		Expect(err).NotTo(HaveOccurred())
 		remainingProxies, _ := proxyClient.List(defaults.GlooSystem, clients.ListOpts{})
-		Expect(len(remainingProxies)).To(Equal(1))
+		Expect(remainingProxies).To(HaveLen(1))
 	})
 })

@@ -59,7 +59,7 @@ var _ = Describe("Extension Validator", func() {
 			err := reports.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(errorMessage))
-			Expect(len(reports)).To(Equal(1))
+			Expect(reports).To(HaveLen(1))
 		})
 
 	})
@@ -73,7 +73,7 @@ var _ = Describe("Extension Validator", func() {
 			reports := extensionValidator.Validate(ctx, &snapshot)
 			err := reports.Validate()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(len(reports)).To(Equal(1))
+			Expect(reports).To(HaveLen(1))
 		})
 	})
 
@@ -89,7 +89,7 @@ var _ = Describe("Extension Validator", func() {
 			err := reports.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(errorMessage))
-			Expect(len(reports)).To(Equal(1))
+			Expect(reports).To(HaveLen(1))
 		})
 	})
 
@@ -104,7 +104,7 @@ var _ = Describe("Extension Validator", func() {
 			reports := extensionValidator.Validate(ctx, &snapshot)
 			err := reports.Validate()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(len(reports)).To(Equal(1))
+			Expect(reports).To(HaveLen(1))
 		})
 	})
 
@@ -119,7 +119,7 @@ var _ = Describe("Extension Validator", func() {
 			reports := extensionValidator.Validate(ctx, &snapshot)
 			err := reports.ValidateStrict()
 			Expect(err).To(HaveOccurred())
-			Expect(len(reports)).To(Equal(1))
+			Expect(reports).To(HaveLen(1))
 		})
 	})
 

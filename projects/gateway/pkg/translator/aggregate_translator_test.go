@@ -144,7 +144,7 @@ var _ = Describe("Aggregate translator", func() {
 		for i := 0; i < 100; i++ {
 			l := aggregateTranslator.ComputeListener(NewTranslatorParams(ctx, snap, reports), proxyName, snap.Gateways[0])
 			Expect(l).NotTo(BeNil())
-			Expect(l.GetAggregateListener())
+			Expect(l.GetAggregateListener()).NotTo(BeNil())
 
 			currentOrder = ""
 			currentOrder += l.GetAggregateListener().HttpFilterChains[0].GetMatcher().GetSslConfig().GetSniDomains()[0]
@@ -193,7 +193,7 @@ var _ = Describe("Aggregate translator", func() {
 			proxyName := proxy.Metadata.Name
 			l := aggregateTranslator.ComputeListener(NewTranslatorParams(ctx, snap, reports), proxyName, snap.Gateways[0])
 			Expect(l).NotTo(BeNil())
-			Expect(l.GetAggregateListener())
+			Expect(l.GetAggregateListener()).NotTo(BeNil())
 			Expect(reports.ValidateStrict()).NotTo(HaveOccurred())
 		})
 	})

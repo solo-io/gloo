@@ -861,6 +861,18 @@ var _ = Describe("Kube2e: gateway", func() {
 
 		It("correctly delegates options from VirtualHostOption", func() {
 
+			// TODO: Fix the test
+			// During the delivery of https://github.com/solo-io/gloo/pull/9005, we discovered that this test does not
+			// work. When we assert that the Eventually succeeds, the test failed:
+			// https://github.com/solo-io/gloo/actions/runs/7267559062/job/19801660486?pr=9005
+			//  The function passed to Eventually failed at /home/runner/work/gloo/gloo/test/kube2e/gateway/gateway_test.go:886 with:
+			//  Expected
+			//      <string>: <nil>
+			//  To be identical to
+			//      <string>: request_headers_to_remove:"header-from-vhost"
+			//  In [It] at: /home/runner/work/gloo/gloo/test/kube2e/gateway/gateway_test.go:918 @ 12/19/23 21:16:08.13
+			// This will need to be addressed in the future. For now we leave the test as is, but we should revisit
+			// https://github.com/solo-io/gloo/issues/6686
 			Eventually(func(g Gomega) {
 				// https://onsi.github.io/gomega/#category-3-making-assertions-eminem-the-function-passed-into-codeeventuallycode
 				getProxy := func() (resources.InputResource, error) {
@@ -1020,6 +1032,8 @@ var _ = Describe("Kube2e: gateway", func() {
 
 		It("correctly delegates options from RouteOption", func() {
 
+			// TODO: Fix the test
+			// See the "correctly delegates options from VirtualHostOption" test for more details
 			Eventually(func(g Gomega) {
 				// https://onsi.github.io/gomega/#category-3-making-assertions-eminem-the-function-passed-into-codeeventuallycode
 				getProxy := func() (resources.InputResource, error) {
@@ -2279,7 +2293,7 @@ spec:
 							clients.ReadOpts{Ctx: ctx})
 						g.Expect(err).NotTo(HaveOccurred())
 						g.Expect(vs.GetVirtualHost().GetOptions().GetTransformations()).To(gloo_matchers.MatchProto(invalidTransformation))
-					})
+					}).Should(Succeed())
 
 				})
 			})

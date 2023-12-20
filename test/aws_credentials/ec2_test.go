@@ -125,7 +125,7 @@ var _ = Describe("", func() {
 		result, err := svc.DescribeInstances(&ec2api.DescribeInstancesInput{})
 		Expect(err).NotTo(HaveOccurred())
 		instances := ec2.GetInstancesFromDescription(result)
-		Expect(len(instances)).To(BeNumerically(">", 0))
+		Expect(instances).ToNot(BeEmpty())
 
 		By("should succeed when role provided, secret derived from env")
 		svc, err = ec2.GetEc2Client(ec2.NewCredentialSpecFromEc2UpstreamSpec(withRoleWithoutSecret.GetAwsEc2()), v1.SecretList{secret})
@@ -133,7 +133,7 @@ var _ = Describe("", func() {
 		result, err = svc.DescribeInstances(&ec2api.DescribeInstancesInput{})
 		Expect(err).NotTo(HaveOccurred())
 		instances = ec2.GetInstancesFromDescription(result)
-		Expect(len(instances)).To(BeNumerically(">", 0))
+		Expect(instances).ToNot(BeEmpty())
 	})
 
 })

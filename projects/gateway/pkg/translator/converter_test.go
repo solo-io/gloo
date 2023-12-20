@@ -517,7 +517,7 @@ var _ = Describe("Route converter", func() {
 				rpt := reporter.ResourceReports{}
 				converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
 				Expect(converted).To(HaveLen(1))
-				Expect(rpt).To(HaveLen(0))
+				Expect(rpt).To(BeEmpty())
 
 				Expect(converted[0].Matchers).To(HaveLen(2))
 				Expect(converted[0].Matchers[0].Headers).To(ConsistOf(expectedHeaders))
@@ -581,7 +581,7 @@ var _ = Describe("Route converter", func() {
 				rpt := reporter.ResourceReports{}
 				converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
 				Expect(converted).To(HaveLen(1))
-				Expect(rpt).To(HaveLen(0))
+				Expect(rpt).To(BeEmpty())
 
 				Expect(converted[0].Matchers).To(HaveLen(1))
 				Expect(converted[0].Matchers[0].Headers).To(ConsistOf(expectedHeaders))
@@ -627,7 +627,7 @@ var _ = Describe("Route converter", func() {
 				rpt := reporter.ResourceReports{}
 				converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
 				Expect(converted).To(HaveLen(1))
-				Expect(rpt).To(HaveLen(0))
+				Expect(rpt).To(BeEmpty())
 
 				Expect(converted[0].Matchers).To(HaveLen(1))
 				Expect(converted[0].Matchers[0].GetPrefix()).To(Equal("/foo"))
@@ -661,7 +661,7 @@ var _ = Describe("Route converter", func() {
 				rpt := reporter.ResourceReports{}
 				converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
 				Expect(converted).To(HaveLen(1))
-				Expect(rpt).To(HaveLen(0))
+				Expect(rpt).To(BeEmpty())
 
 				Expect(converted[0].Matchers).To(HaveLen(1))
 				Expect(converted[0].Matchers[0].GetPrefix()).To(Equal("/foo"))
@@ -809,7 +809,7 @@ var _ = Describe("Route converter", func() {
 			It("assigns vhost transformation config to route level", func() {
 				rpt := reporter.ResourceReports{}
 				converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
-				Expect(rpt).To(HaveLen(0))
+				Expect(rpt).To(BeEmpty())
 				Expect(converted).To(HaveLen(1))
 				transforms := converted[0].GetOptions().GetStagedTransformations().GetRegular().GetRequestTransforms()
 				Expect(transforms).To(HaveLen(3))
@@ -834,7 +834,7 @@ var _ = Describe("Route converter", func() {
 
 				rpt := reporter.ResourceReports{}
 				converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
-				Expect(rpt).To(HaveLen(0))
+				Expect(rpt).To(BeEmpty())
 				Expect(converted).To(HaveLen(1))
 				regularStageTransforms := converted[0].GetOptions().GetStagedTransformations().GetRegular().GetRequestTransforms()
 				earlyStageTransforms := converted[0].GetOptions().GetStagedTransformations().GetEarly().GetRequestTransforms()
@@ -858,7 +858,7 @@ var _ = Describe("Route converter", func() {
 
 				rpt := reporter.ResourceReports{}
 				converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
-				Expect(rpt).To(HaveLen(0))
+				Expect(rpt).To(BeEmpty())
 				Expect(converted).To(HaveLen(1))
 				regularStageTransforms := converted[0].GetOptions().GetStagedTransformations().GetRegular().GetRequestTransforms()
 				// Should only have 2 transformations because we didn't merge in parent transformations on the RT
@@ -1035,7 +1035,7 @@ var _ = Describe("Route converter", func() {
 				rpt := reporter.ResourceReports{}
 				converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
 				Expect(converted).To(HaveLen(1))
-				Expect(rpt).To(HaveLen(0))
+				Expect(rpt).To(BeEmpty())
 				Expect(converted[0].Matchers).To(ConsistOf(
 					[]*matchers.Matcher{
 						{
@@ -1168,7 +1168,7 @@ var _ = Describe("Route converter", func() {
 				rpt := reporter.ResourceReports{}
 				converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
 				Expect(converted).To(HaveLen(1))
-				Expect(rpt).To(HaveLen(0))
+				Expect(rpt).To(BeEmpty())
 				Expect(converted[0].Matchers).To(ConsistOf(
 					[]*matchers.Matcher{
 						{
@@ -1294,7 +1294,7 @@ var _ = Describe("Route converter", func() {
 				rpt := reporter.ResourceReports{}
 				converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
 				Expect(converted).To(HaveLen(1))
-				Expect(rpt).To(HaveLen(0))
+				Expect(rpt).To(BeEmpty())
 				Expect(converted[0].Matchers).To(ConsistOf(
 					[]*matchers.Matcher{
 						{
@@ -1417,7 +1417,7 @@ var _ = Describe("Route converter", func() {
 				rpt := reporter.ResourceReports{}
 				converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
 				Expect(converted).To(HaveLen(1))
-				Expect(rpt).To(HaveLen(0))
+				Expect(rpt).To(BeEmpty())
 			})
 		})
 	})
@@ -1498,7 +1498,7 @@ var _ = Describe("Route converter", func() {
 				Expect(reports).NotTo(BeNil())
 				_, vsReport := reports.Find("*v1.VirtualService", vs.Metadata.Ref())
 				Expect(vsReport).NotTo(BeNil())
-				Expect(vsReport.Errors).To(BeNil())
+				Expect(vsReport.Errors).NotTo(HaveOccurred())
 				Expect(vsReport.Warnings).To(BeNil())
 			})
 		})
@@ -1804,7 +1804,7 @@ var _ = Describe("Route converter", func() {
 					_, vsReport := reports.Find("*v1.VirtualService", vs.Metadata.Ref())
 					Expect(vsReport).NotTo(BeNil())
 					Expect(vsReport.Warnings).To(BeNil())
-					Expect(vsReport.Errors).To(BeNil())
+					Expect(vsReport.Errors).NotTo(HaveOccurred())
 				})
 			})
 		})

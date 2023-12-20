@@ -142,8 +142,8 @@ var _ = Describe("dynamic forward proxy plugin", func() {
 
 			Expect(filterCfg.GetDnsCacheConfig().GetTypedDnsResolverConfig().Name).To(Equal("envoy.network.dns_resolver.cares"))
 			caresCfg := utils.MustAnyToMessage(filterCfg.GetDnsCacheConfig().GetTypedDnsResolverConfig().TypedConfig).(*envoy_extensions_network_dns_resolver_cares_v3.CaresDnsResolverConfig)
-			Expect(caresCfg.DnsResolverOptions.UseTcpForDnsLookups).To(Equal(true))
-			Expect(caresCfg.DnsResolverOptions.NoDefaultSearchDomain).To(Equal(true))
+			Expect(caresCfg.DnsResolverOptions.UseTcpForDnsLookups).To(BeTrue())
+			Expect(caresCfg.DnsResolverOptions.NoDefaultSearchDomain).To(BeTrue())
 
 			Expect(caresCfg.Resolvers).To(HaveLen(1))
 			Expect(caresCfg.Resolvers[0].GetSocketAddress()).To(matchers.MatchProto(&envoy_config_core_v3.SocketAddress{

@@ -24,7 +24,7 @@ var _ = Describe("RouteTableSelector", func() {
 				},
 			}, "")
 
-			Expect(list).To(HaveLen(0))
+			Expect(list).To(BeEmpty())
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(testutils.HaveInErrorChain(translator.RouteTableMissingWarning(ref)))
 		})
@@ -39,7 +39,7 @@ var _ = Describe("RouteTableSelector", func() {
 			rtSelector := translator.NewRouteTableSelector(nil)
 			list, err := rtSelector.SelectRouteTables(action, "")
 
-			Expect(list).To(HaveLen(0))
+			Expect(list).To(BeEmpty())
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(testutils.HaveInErrorChain(translator.MissingRefAndSelectorWarning))
 		})
@@ -68,7 +68,7 @@ var _ = Describe("RouteTableSelector", func() {
 				},
 			}, "")
 
-			Expect(list).To(HaveLen(0))
+			Expect(list).To(BeEmpty())
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(testutils.HaveInErrorChain(translator.RouteTableSelectorExpressionsAndLabelsWarning))
 		})
@@ -93,7 +93,7 @@ var _ = Describe("RouteTableSelector", func() {
 			list, err := rtSelector.SelectRouteTables(action, "")
 
 			Expect(err).To(HaveOccurred())
-			Expect(list).To(HaveLen(0))
+			Expect(list).To(BeEmpty())
 			Expect(err).To(testutils.HaveInErrorChain(translator.NoMatchingRouteTablesWarning))
 		})
 	})

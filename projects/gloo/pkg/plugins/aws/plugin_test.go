@@ -587,10 +587,10 @@ var _ = Describe("Plugin", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			msg, err := utils.AnyToMessage(outroute.GetTypedPerFilterConfig()[FilterName])
-			Expect(err).Should(BeNil())
+			Expect(err).NotTo(HaveOccurred())
 			cfg := msg.(*AWSLambdaPerRoute)
-			Expect(cfg.UnwrapAsAlb).Should(Equal(true))
-			Expect(cfg.Async).Should(Equal(true))
+			Expect(cfg.UnwrapAsAlb).To(BeTrue())
+			Expect(cfg.Async).To(BeTrue())
 		})
 
 		When("unwrapping response", func() {
@@ -602,9 +602,9 @@ var _ = Describe("Plugin", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				msg, err := utils.AnyToMessage(outroute.GetTypedPerFilterConfig()[FilterName])
-				Expect(err).Should(BeNil())
+				Expect(err).NotTo(HaveOccurred())
 				cfg := msg.(*AWSLambdaPerRoute)
-				Expect(cfg.UnwrapAsAlb).Should(Equal(true))
+				Expect(cfg.UnwrapAsAlb).To(BeTrue())
 				Expect(cfg.GetTransformerConfig()).Should(BeNil())
 			})
 		})
@@ -784,7 +784,7 @@ var _ = Describe("Plugin", func() {
 			initParams.Settings.Gloo.AwsOptions.CredentialRefreshDelay = &duration.Duration{Seconds: 1}
 
 			process()
-			Expect(cfg.PropagateOriginalRouting).To(Equal(true))
+			Expect(cfg.PropagateOriginalRouting).To(BeTrue())
 			Expect(*cfg.CredentialRefreshDelay).To(Equal(duration.Duration{Seconds: 1}))
 		})
 
@@ -805,7 +805,7 @@ var _ = Describe("Plugin", func() {
 			Expect(lpe.SecretKey).To(Equal(secretKeyValue))
 			Expect(lpe.SessionToken).To(Equal(sessionTokenValue))
 			Expect(lpe.RoleArn).To(Equal(roleArn))
-			Expect(lpe.DisableRoleChaining).To(Equal(true))
+			Expect(lpe.DisableRoleChaining).To(BeTrue())
 		})
 
 	})
@@ -821,7 +821,7 @@ var _ = Describe("Plugin", func() {
 			err := awsPlugin.(plugins.RoutePlugin).ProcessRoute(plugins.RouteParams{VirtualHostParams: vhostParams}, route, outroute)
 			Expect(err).NotTo(HaveOccurred())
 			msg, err := utils.AnyToMessage(outroute.GetTypedPerFilterConfig()[FilterName])
-			Expect(err).Should(BeNil())
+			Expect(err).NotTo(HaveOccurred())
 			cfg := msg.(*AWSLambdaPerRoute)
 
 			Expect(cfg.Name).Should(Equal(url.QueryEscape("arn:aws:lambda:us-east1:222222222222:function:foo")))

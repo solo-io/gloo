@@ -312,7 +312,7 @@ var _ = Describe("Ssl", func() {
 				It("should not set ocsp staple if none is provided", func() {
 					cfg, err := configTranslator.ResolveCommonSslConfig(downstreamCfg, secrets, true)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(len(cfg.TlsCertificates)).To(Equal(1))
+					Expect(cfg.TlsCertificates).To(HaveLen(1))
 					Expect(cfg.TlsCertificates[0].OcspStaple).To(BeNil())
 				})
 			})
@@ -616,7 +616,7 @@ var _ = Describe("Ssl", func() {
 			var sslParameters *ssl.SslParameters
 			tlsParams, err := configTranslator.ResolveSslParamsConfig(sslParameters)
 
-			Expect(err).To(BeNil())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(tlsParams).To(BeNil())
 		})
 
@@ -629,7 +629,7 @@ var _ = Describe("Ssl", func() {
 			}
 			tlsParams, err := configTranslator.ResolveSslParamsConfig(sslParameters)
 
-			Expect(err).To(BeNil())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(tlsParams.GetCipherSuites()).To(Equal([]string{"cipher-test"}))
 			Expect(tlsParams.GetEcdhCurves()).To(Equal([]string{"ec-dh-test"}))
 			Expect(tlsParams.GetTlsMinimumProtocolVersion()).To(Equal(envoyauth.TlsParameters_TLSv1_1))
@@ -647,7 +647,7 @@ var _ = Describe("Ssl", func() {
 			}
 			tlsParams, err := configTranslator.ResolveSslParamsConfig(sslParameters)
 
-			Expect(err).NotTo(BeNil())
+			Expect(err).To(HaveOccurred())
 			Expect(tlsParams).To(BeNil())
 		})
 

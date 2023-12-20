@@ -380,7 +380,7 @@ var _ = Describe("Validator", func() {
 				reports, err := v.ValidateModifiedGvk(context.TODO(), v1.RouteTableGVK, rt, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 		})
 
@@ -565,7 +565,7 @@ var _ = Describe("Validator", func() {
 				reports, err := v.ValidateModifiedGvk(context.TODO(), v1.VirtualServiceGVK, vs, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 		})
 		Context("valid config gauge", func() {
@@ -688,7 +688,7 @@ var _ = Describe("Validator", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
 				Expect(err.Error()).To(ContainSubstring("domain conflict: the following"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 
 			It("accepts the vs and accepts the second because of dry-run", func() {
@@ -849,7 +849,7 @@ var _ = Describe("Validator", func() {
 				reports, err := v.ValidateModifiedGvk(context.TODO(), v1.GatewayGVK, gw, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 		})
 
@@ -953,7 +953,7 @@ var _ = Describe("Validator", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
 				Expect(err.Error()).To(ContainSubstring("domain conflict: the following"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 
 			It("accepts the vs list and returns proxies each time", func() {
@@ -997,7 +997,7 @@ var _ = Describe("Validator", func() {
 				Expect(merr.Errors[1]).To(MatchError(ContainSubstring("virtual service [gloo-system.invalid-vs-2] does not specify a virtual host")))
 				Expect(merr.Errors[2]).To(MatchError(ContainSubstring("parsing resource from crd spec testproxy1-rt in namespace gloo-system into *v1.RouteTable")))
 				Expect(merr.Errors[2]).To(MatchError(ContainSubstring("unknown field \"matcherss\" in gateway.solo.io.Route")))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 
 			})
 		})
@@ -1030,7 +1030,7 @@ var _ = Describe("Validator", func() {
 				reports, err := v.ValidateList(context.TODO(), vsList, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 		})
 
@@ -1064,7 +1064,7 @@ var _ = Describe("Validator", func() {
 				Expect(merr.ErrorOrNil()).To(HaveOccurred())
 				Expect(merr.ErrorOrNil().Error()).To(ContainSubstring("could not render proxy"))
 				Expect(merr.ErrorOrNil().Error()).To(ContainSubstring("domain conflict: the following"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 
 			It("accepts the vs and accepts the second because of dry-run", func() {
@@ -1159,7 +1159,7 @@ var _ = Describe("Validator", func() {
 			})
 
 			// Expect 1 worker to have successfully completed and all others to have failed
-			Expect(len(errMessages)).To(Equal(numberOfWorkers - 1))
+			Expect(errMessages).To(HaveLen(numberOfWorkers - 1))
 		})
 
 	})

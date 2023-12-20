@@ -130,6 +130,10 @@ install-go-tools: mod-download ## Download and install Go dependencies
 	go install github.com/golang/mock/gomock
 	go install github.com/golang/mock/mockgen
 	go install github.com/saiskee/gettercheck
+	# This version must stay in sync with the version used in CI: .github/workflows/static-analysis.yaml
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
+	go install github.com/quasilyte/go-ruleguard/cmd/ruleguard@v0.3.16
+
 
 .PHONY: check-format
 check-format:
@@ -138,6 +142,19 @@ check-format:
 .PHONY: check-spelling
 check-spelling:
 	./ci/spell.sh check
+
+
+#----------------------------------------------------------------------------
+# Analyze
+#----------------------------------------------------------------------------
+
+# The analyze target runs a suite of static analysis tools against the codebase.
+# The options used in this target are slightly different from those run in CI.
+# We do this to enable developers to analyze what they want, even though in CI we don't analyze tests
+.PHONY: analyze
+ANALYZE_OPTIONS ?= --fast --timeout=5m --tests=true --verbose --concurrency=4
+analyze:
+	$(DEPSGOBIN)/golangci-lint run $(ANALYZE_OPTIONS) ./...
 
 
 #----------------------------------------------------------------------------------

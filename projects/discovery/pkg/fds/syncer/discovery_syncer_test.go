@@ -158,7 +158,7 @@ var _ = Describe("selectUpstreamsForDiscovery", func() {
 			}
 			Expect(GetFunctionDiscoveriesWithExtensionsAndRegistry(opts, discoveryFactorySliceFunc, Extensions{
 				DiscoveryFactoryFuncs: []func(opts bootstrap.Opts) fds.FunctionDiscoveryFactory{discoveryFactoryFunc},
-			})).To(HaveLen(0))
+			})).To(BeEmpty())
 
 		})
 	})
