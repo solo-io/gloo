@@ -4984,7 +4984,8 @@ metadata:
 						deploy.Spec.Template.Spec.ServiceAccountName = "discovery"
 						user := int64(10101)
 						deploy.Spec.Template.Spec.SecurityContext = &v1.PodSecurityContext{
-							FSGroup: &user,
+							FSGroup:   &user,
+							RunAsUser: &user,
 						}
 						discoveryDeployment = deploy
 					})
@@ -5084,6 +5085,7 @@ metadata:
 							valuesArgs: []string{"discovery.deployment.runAsUser=10102"},
 						})
 						uid := int64(10102)
+						discoveryDeployment.Spec.Template.Spec.SecurityContext.RunAsUser = &uid
 						discoveryDeployment.Spec.Template.Spec.Containers[0].SecurityContext.RunAsUser = &uid
 						testManifest.ExpectDeploymentAppsV1(discoveryDeployment)
 					})
@@ -5814,30 +5816,25 @@ metadata:
 						deploy := appsv1.Deployment{}
 						err = json.Unmarshal(rawDeploy, &deploy)
 						Expect(err).NotTo(HaveOccurred(), "json.Unmarshall error")
+						Expect(deploy.Spec.Template).NotTo(BeNil(), "generated spec template is non-nil")
 
-						Expect(deploy.Spec.Template).NotTo(BeNil())
-
-						// During the development of https://github.com/solo-io/gloo/pull/9005, we found that
-						// these tests do not work as expected. We should be asserting that the pointer references a
-						// non-nil value.
-						// https://github.com/solo-io/gloo/issues/6686
+						By(fmt.Sprintf("Validating Deployment %s", deploy.GetName()))
 
 						podLevelSecurity := false
+
 						// Check for root at the pod level
 						if deploy.Spec.Template.Spec.SecurityContext != nil {
-							Expect(deploy.Spec.Template.Spec.SecurityContext.RunAsUser).NotTo(Equal(0))
+							Expect(deploy.Spec.Template.Spec.SecurityContext.RunAsUser).To(HaveValue(Equal(int64(10101))), "pod level security context should be set to non-root")
 							podLevelSecurity = true
 						}
 
 						// Check for root at the container level
 						for _, container := range deploy.Spec.Template.Spec.Containers {
 							if !podLevelSecurity {
-								// If pod level security is not set, containers need to explicitly not be run as root
 								Expect(container.SecurityContext).NotTo(BeNil())
-								Expect(container.SecurityContext.RunAsUser).NotTo(Equal(0))
+								Expect(container.SecurityContext.RunAsUser).To(HaveValue(Equal(int64(10101))), fmt.Sprintf("If pod level security is not set, container %s need to explicitly not be run as root", container.Name))
 							} else if container.SecurityContext != nil {
-								// If podLevel security is set to non-root, make sure containers don't override it:
-								Expect(container.SecurityContext.RunAsUser).NotTo(Equal(0))
+								Expect(container.SecurityContext.RunAsUser).To(HaveValue(Equal(int64(10101))), "If podLevel security is set to non-root, make sure containers don't override it")
 							}
 						}
 					})
@@ -5857,7 +5854,6 @@ metadata:
 								valuesArgs: []string{
 									"gateway.enabled=false",
 									"settings.integrations.knative.enabled=true",
-									"settings.integrations.knative.version=v0.10.0",
 									"accessLogger.enabled=true",
 									"ingress.enabled=true",
 									"global.glooMtls.enabled=true",

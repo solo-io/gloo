@@ -37,6 +37,7 @@ jobs:
     name: Lint Checks
     runs-on: ubuntu-22.04
     # The linter is intended to run quickly.
+    # We define a 5-minute timeout on the linter config (.golangci.yaml) as well.
     # If we exceed this timeout, we should consider only running the linter on changed files.
     timeout-minutes: 5
     steps:
@@ -45,10 +46,10 @@ jobs:
     - name: Prep Go Runner
       uses: ./.github/workflows/composite-actions/prep-go-runner
     - uses: golangci/golangci-lint-action@v3
+      # `make analyze` runs the linter with similar arguments to what we use here.
+      # If this action fails, try running `make analyze` locally.
       with:
         version: v1.54.2
-        # We temporarily do not lint tests.  This is because there are so many lint errors in the tests.
-        # We will fix these errors in smaller PRs, and once it is clean, we will re-enable linting of tests.
-        args: --verbose --modules-download-mode=readonly --allow-parallel-runners --tests=false
+        args: --verbose --modules-download-mode=readonly --allow-parallel-runners
         skip-pkg-cache: true
         only-new-issues: false
