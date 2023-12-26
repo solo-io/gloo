@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/8849
+    resolvesIssue: false
+    description: >-
+      Continued cherry-pick for special non-ubuntu/distroless release pipeline. 
+      This is only for a sepcial series of releases.
