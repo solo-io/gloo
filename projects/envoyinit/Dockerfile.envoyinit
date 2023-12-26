@@ -1,7 +1,18 @@
 ARG ENVOY_IMAGE
-FROM $ENVOY_IMAGE
+FROM $ENVOY_IMAGE as base
 ARG DOCKER_GOARCH
-COPY envoyinit-linux-${DOCKER_GOARCH} /usr/local/bin/envoyinit
+
+
+
+
+FROM frolvlad/alpine-glibc:alpine-3.17_glibc-2.34
+ENV loglevel=info
+
+RUN mkdir -p /etc/envoy
+COPY --from=base /usr/local/bin/envoy /usr/local/bin/envoy
+COPY --from=base /usr/local/bin/libsaxon-solo.so /usr/local/bin/libsaxon-solo.so
+
+COPY envoyinit-linux-amd64 /usr/local/bin/envoyinit
 COPY docker-entrypoint.sh /
 
 ARG COMMIT=v3.2.1
@@ -11,11 +22,9 @@ ARG REPO_NAME=coreruleset
 # make sure that all the apt updates, upgrades and installs are done before the clean
 # Update our deps to make cve toil lower
 # install wget for our default probes
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt install git -y \
-    && apt-get install wget -y \
-    && apt-get clean \
+RUN apk upgrade --update-cache \
+    && apk add git \
+    && rm -rf /var/cache/apk/* \
     && mkdir -p /modsecurity \
     && cd /modsecurity \
     && git clone https://github.com/${REPO_OWNER}/${REPO_NAME}.git ${REPO_NAME} \
@@ -24,9 +33,7 @@ RUN apt-get update \
     && cd /modsecurity \
     && mkdir -p rules/crs && cp ${REPO_NAME}/rules/*.conf rules/crs \
     && mkdir data && cp ${REPO_NAME}/rules/*.data data \
-    && rm -rf ${REPO_NAME} \ 
-    && apt-get remove git -y \
-    && rm -rf  /var/log/*log /var/lib/apt/lists/* /var/log/apt/* /var/lib/dpkg/*-old /var/cache/debconf/*-old
+    && rm -rf ${REPO_NAME} 
 
 WORKDIR /modsecurity/data
 
