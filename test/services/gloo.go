@@ -328,10 +328,9 @@ func constructTestOpts(ctx context.Context, runOptions *RunOptions, settings *gl
 		// The test author has configured the secret source to be Vault, instead of an in memory cache
 		// As a result, we need to construct a client to communicate with that vault instance
 		vaultSecretSource := settings.GetVaultSecretSource()
-
-		vaultClient, err := bootstrap_clients.VaultClientForSettings(vaultSecretSource)
+		vaultClient, err := bootstrap_clients.VaultClientForSettings(ctx, vaultSecretSource)
 		Expect(err).NotTo(HaveOccurred())
-		secretFactory = bootstrap_clients.NewVaultSecretClientFactory(bootstrap_clients.NoopVaultClientInitFunc(vaultClient), vaultSecretSource.GetPathPrefix(), vaultSecretSource.GetRootKey())
+		secretFactory = bootstrap_clients.NewVaultSecretClientFactory(ctx, bootstrap_clients.NoopVaultClientInitFunc(vaultClient), vaultSecretSource.GetPathPrefix(), vaultSecretSource.GetRootKey())
 	}
 
 	return bootstrap.Opts{
