@@ -434,6 +434,9 @@ export namespace SettingsSpec {
     getSessionToken(): string;
     setSessionToken(value: string): void;
 
+    getLeaseIncrement(): number;
+    setLeaseIncrement(value: number): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): VaultAwsAuth.AsObject;
     static toObject(includeInstance: boolean, msg: VaultAwsAuth): VaultAwsAuth.AsObject;
@@ -453,6 +456,7 @@ export namespace SettingsSpec {
       accessKeyId: string,
       secretAccessKey: string,
       sessionToken: string,
+      leaseIncrement: number,
     }
   }
 

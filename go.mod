@@ -52,7 +52,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.2
 	github.com/solo-io/ext-auth-service v0.55.0
 	github.com/solo-io/external-apis v0.2.3
-	github.com/solo-io/gloo v1.16.0-rc1
+	github.com/solo-io/gloo v1.16.0-rc3
 	github.com/solo-io/gloo-graphql-example v0.1.0
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.8
@@ -62,7 +62,7 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.1.1
 	github.com/solo-io/rate-limiter v0.11.4
 	github.com/solo-io/skv2 v0.36.0
-	github.com/solo-io/solo-apis v0.0.0-20231215201554-d289a9784866
+	github.com/solo-io/solo-apis v0.0.0-20240103170154-8e26f86ba2a0
 	github.com/solo-io/solo-kit v0.34.0
 	// https://soloio.slab.com/posts/envoy-proto-definition-lives-mbnlmkxe
 	// explains why we depend on this repository of tap server examples
@@ -366,13 +366,13 @@ require (
 	go.uber.org/goleak v1.2.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	gocloud.dev v0.18.0 // indirect
-	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.13.0 // indirect
 	golang.org/x/oauth2 v0.13.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/term v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/term v0.15.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect

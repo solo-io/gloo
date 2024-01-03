@@ -1998,7 +1998,8 @@ proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.toObject = function(includeInstance
     mountPath: jspb.Message.getFieldWithDefault(msg, 4, ""),
     accessKeyId: jspb.Message.getFieldWithDefault(msg, 5, ""),
     secretAccessKey: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    sessionToken: jspb.Message.getFieldWithDefault(msg, 7, "")
+    sessionToken: jspb.Message.getFieldWithDefault(msg, 7, ""),
+    leaseIncrement: jspb.Message.getFieldWithDefault(msg, 8, 0)
   };
 
   if (includeInstance) {
@@ -2062,6 +2063,10 @@ proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.deserializeBinaryFromReader = funct
     case 7:
       var value = /** @type {string} */ (reader.readString());
       msg.setSessionToken(value);
+      break;
+    case 8:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setLeaseIncrement(value);
       break;
     default:
       reader.skipField();
@@ -2138,6 +2143,13 @@ proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.serializeBinaryToWriter = function(
   if (f.length > 0) {
     writer.writeString(
       7,
+      f
+    );
+  }
+  f = message.getLeaseIncrement();
+  if (f !== 0) {
+    writer.writeInt32(
+      8,
       f
     );
   }
@@ -2246,6 +2258,21 @@ proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.getSessionToken = functio
 /** @param {string} value */
 proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.setSessionToken = function(value) {
   jspb.Message.setProto3StringField(this, 7, value);
+};
+
+
+/**
+ * optional int32 lease_increment = 8;
+ * @return {number}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.getLeaseIncrement = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 8, 0));
+};
+
+
+/** @param {number} value */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.setLeaseIncrement = function(value) {
+  jspb.Message.setProto3IntField(this, 8, value);
 };
 
 
