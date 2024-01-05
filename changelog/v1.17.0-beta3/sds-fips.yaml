@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/8909
+    resolvesIssue: false
+    description: >-
+      Add make targets for building and pushing a FIPS-compliant sds image.

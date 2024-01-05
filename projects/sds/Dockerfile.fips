@@ -1,0 +1,51 @@
+#####################################################################################################################
+#
+#   This Dockerfile describes a container that serves as a reproducible build environment
+#   to build FIPS compliant binaries for the sds server
+#
+#   In order to build with goboring, the sds server has to be built with CGO_ENABLED=1.
+#   This is because the Go runtime relies on C code and libraries to load plugins.
+#   As a result, so cross compiling isn't as easy as `GOARCH=amd64 GOOS=linux go build` anymore.
+#   Using this container you can build the binary on any architecture.
+#
+#####################################################################################################################
+ARG GO_BUILD_IMAGE
+FROM $GO_BUILD_IMAGE as build-env
+
+ARG VERSION
+ARG USE_APK
+ARG GCFLAGS
+ARG LDFLAGS
+ARG GITHUB_TOKEN
+ARG GOEXPERIMENT
+ARG DOCKER_GOARCH
+ARG DOCKER_CGO_ENABLED=1
+ARG DOCKER_GOOS=linux
+ARG PROJECT_NAME=sds
+
+# Fail if VERSION is not set
+RUN if [[ ! $VERSION ]]; then echo "Required VERSION build argument not set" && exit 1; fi
+
+## TODO: Why is this necessary (it exists in all our other Dockerfiles)
+RUN echo $USE_APK
+RUN if [[ $USE_APK ]]; then apk add --no-cache gcc musl-dev git; fi
+
+ADD . /go/src/github.com/solo-io/gloo
+WORKDIR /go/src/github.com/solo-io/gloo
+
+RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf https://github.com/
+
+RUN go env -w GOPRIVATE=github.com/solo-io
+
+RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=${DOCKER_GOARCH} GOOS=${DOCKER_GOOS} GOEXPERIMENT=${GOEXPERIMENT} go build \
+    -gcflags="$GCFLAGS" \
+    -ldflags="$LDFLAGS" \
+    -o ${PROJECT_NAME}-${DOCKER_GOOS}-${DOCKER_GOARCH} \
+    projects/${PROJECT_NAME}/cmd/main.go
+
+
+FROM alpine:3.17.6
+ARG DOCKER_GOARCH
+ARG DOCKER_GOOS=linux
+ARG PROJECT_NAME=sds
+COPY --from=build-env /go/src/github.com/solo-io/gloo/${PROJECT_NAME}-${DOCKER_GOOS}-${DOCKER_GOARCH} /

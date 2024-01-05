@@ -1,10 +1,10 @@
 FROM alpine:3.17.6
 
-ARG GOARCH=amd64
+ARG DOCKER_GOARCH
 
 RUN apk -U upgrade
 
-COPY sds-linux-$GOARCH /usr/local/bin/sds
+COPY sds-linux-$DOCKER_GOARCH /usr/local/bin/sds
 
 USER 10101
 

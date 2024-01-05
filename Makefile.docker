@@ -1,0 +1,91 @@
+#----------------------------------------------------------------------------------
+# Default Variables
+#----------------------------------------------------------------------------------
+
+UNAME_M ?=$(shell uname -m)
+
+# If you just put your username, then that refers to your account at hub.docker.com
+# To use quay images, set the IMAGE_REGISTRY to "quay.io/solo-io" (or leave unset)
+# To use dockerhub images, set the IMAGE_REGISTRY to "soloio"
+# To use gcr images, set the IMAGE_REGISTRY to "gcr.io/$PROJECT_NAME"
+# leave default value unset
+IMAGE_REGISTRY ?= quay.io/solo-io
+
+# the build image for GLOO is Debian based whereas for rate-limit and ext-auth it's Alpine based
+GOLANG_IMAGE_NAME = golang:$(shell go version | egrep -o '([0-9]+\.[0-9]+)')
+GOLANG_ALPINE_IMAGE_NAME = $(GOLANG_IMAGE_NAME)-alpine3.18
+
+
+## From gloo Makefile
+#----------------------------------------------------------------------------------
+# Publish Artifacts
+#
+# We publish artifacts using our CI pipeline. This may happen during any of the following scenarios:
+# 	- Release
+#	- Development Build (a one-off build for unreleased code)
+#	- Pull Request (we publish unreleased artifacts to be consumed by our Enterprise project)
+#----------------------------------------------------------------------------------
+# TODO: delete this logic block when we have a github actions-managed release
+# git_tag is evaluated when is used (recursively expanded variable)
+# https://ftp.gnu.org/old-gnu/Manuals/make-3.79.1/html_chapter/make_6.html#SEC59
+git_tag = $(shell git describe --abbrev=0 --tags)
+# Semantic versioning format https://semver.org/
+# Regex copied from: https://github.com/solo-io/go-utils/blob/16d4d94e4e5f182ca8c10c5823df303087879dea/versionutils/version.go#L338
+tag_regex := v[0-9]
+
+ifneq (,$(TEST_ASSET_ID))
+    PUBLISH_CONTEXT := PULL_REQUEST
+    ifeq ($(shell echo $(git_tag) | egrep "$(tag_regex)"),)
+        # Forked repos don't have tags by default, so we create a standard tag for them
+        # This only impacts the version of the assets used in CI for this PR, so it is ok that it is not a real tag
+        VERSION = 1.0.0-$(TEST_ASSET_ID)
+    else
+        VERSION = $(shell echo $(git_tag) | cut -c 2-)-$(TEST_ASSET_ID) # example: 1.16.0-beta4-{TEST_ASSET_ID}
+    endif
+    LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
+endif
+
+
+# TODO: delete this logic block when we have a github actions-managed release
+ifneq (,$(TAGGED_VERSION))
+    PUBLISH_CONTEXT := RELEASE
+    VERSION := $(shell echo $(TAGGED_VERSION) | cut -c 2-)
+    LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
+endif
+
+# controller variable for the "Publish Artifacts" section.  Defines which targets exist.  Possible Values: NONE, RELEASE, PULL_REQUEST
+PUBLISH_CONTEXT ?= NONE
+
+
+# if `GO_ARCH` is set, then it will keep its value. Else, it will be changed based off the machine's host architecture.
+# if the machines architecture is set to arm64 then we want to set the appropriate values, else we only support amd64
+IS_ARM_MACHINE := $(or	$(filter $(UNAME_M), arm64), $(filter $(UNAME_M), aarch64))
+ifneq ($(IS_ARM_MACHINE), )
+	PLATFORM := --platform linux/amd64
+	ifeq ($(GOARCH), amd64)
+		GOARCH := amd64
+	else
+		GOARCH := arm64
+		PLATFORM := --platform linux/arm64
+	endif
+else
+	# currently we only support arm64 and amd64 as a GOARCH option.
+	ifneq ($(GOARCH), arm64)
+		GOARCH := amd64
+	endif
+endif
+
+GOOS ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')
+
+DOCKER_BUILD_ARGS :=--build-arg DOCKER_GOARCH=$(GOARCH) $(PLATFORM)
+DOCKER_GOARCH := $(GOARCH)
+
+# enable CGO for amd64 only
+GO_ENABLE_CGO=0
+ifeq ($(GOARCH), amd64)
+	GO_ENABLE_CGO=1
+endif
+
+DOCKER_GO_BORING_ARGS=--build-arg GOEXPERIMENT=boringcrypto --build-arg DOCKER_GOARCH=amd64 --build-arg DOCKER_CGO_ENABLED=1 --platform linux/amd64 
+# to build an image that must be a AMD64 platform
+DOCKER_GO_AMD_64_ARGS=--build-arg DOCKER_GOARCH=amd64 --build-arg DOCKER_CGO_ENABLED=1

@@ -1,3 +1,5 @@
+
+include Makefile.docker
 # imports should be after the set up flags so are lower
 
 # https://www.gnu.org/software/make/manual/html_node/Special-Variables.html#Special-Variables
@@ -34,12 +36,6 @@ DEPSGOBIN := $(OUTPUT_DIR)/.bin
 export PATH:=$(DEPSGOBIN):$(PATH)
 export GOBIN:=$(DEPSGOBIN)
 
-# If you just put your username, then that refers to your account at hub.docker.com
-# To use quay images, set the IMAGE_REGISTRY to "quay.io/solo-io" (or leave unset)
-# To use dockerhub images, set the IMAGE_REGISTRY to "soloio"
-# To use gcr images, set the IMAGE_REGISTRY to "gcr.io/$PROJECT_NAME"
-IMAGE_REGISTRY ?= quay.io/solo-io
-
 # Kind of a hack to make sure _output exists
 z := $(shell mkdir -p $(OUTPUT_DIR))
 
@@ -52,27 +48,10 @@ ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.27.2-patch1
 LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
 GCFLAGS := all="-N -l"
 
-UNAME_M := $(shell uname -m)
-# if `GO_ARCH` is set, then it will keep its value. Else, it will be changed based off the machine's host architecture.
-# if the machines architecture is set to arm64 then we want to set the appropriate values, else we only support amd64
-IS_ARM_MACHINE := $(or	$(filter $(UNAME_M), arm64), $(filter $(UNAME_M), aarch64))
-ifneq ($(IS_ARM_MACHINE), )
-	ifneq ($(GOARCH), amd64)
-		GOARCH := arm64
-	endif
-	PLATFORM := --platform=linux/$(GOARCH)
-else
-	# currently we only support arm64 and amd64 as a GOARCH option.
-	ifneq ($(GOARCH), arm64)
-		GOARCH := amd64
-	endif
-endif
-
 
 GOOS ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')
 
 GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=$(GOARCH)
-GOLANG_ALPINE_IMAGE_NAME = golang:$(shell go version | egrep -o '([0-9]+\.[0-9]+)')-alpine3.18
 
 TEST_ASSET_DIR := $(ROOTDIR)/_test
 
@@ -133,6 +112,12 @@ install-go-tools: mod-download ## Download and install Go dependencies
 	# This version must stay in sync with the version used in CI: .github/workflows/static-analysis.yaml
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
 	go install github.com/quasilyte/go-ruleguard/cmd/ruleguard@v0.3.16
+
+
+.PHONY: install-build-tools
+install-build-tools:
+	# Used to validate the cryto library used in builds
+	go install github.com/rsc/goversion@latest
 
 
 .PHONY: check-format
@@ -493,20 +478,75 @@ SDS_DIR=projects/sds
 SDS_SOURCES=$(call get_sources,$(SDS_DIR))
 SDS_OUTPUT_DIR=$(OUTPUT_DIR)/$(SDS_DIR)
 
-$(SDS_OUTPUT_DIR)/sds-linux-$(GOARCH): $(SDS_SOURCES)
+$(SDS_OUTPUT_DIR)/sds-linux-$(DOCKER_GOARCH): $(SDS_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(SDS_DIR)/cmd/main.go $(STDERR_SILENCE_REDIRECT)
 
 .PHONY: sds
-sds: $(SDS_OUTPUT_DIR)/sds-linux-$(GOARCH)
+sds: $(SDS_OUTPUT_DIR)/sds-linux-$(DOCKER_GOARCH)
+sds: BINARY="$(SDS_OUTPUT_DIR)/discovery-linux-$(DOCKER_GOARCH)"
+sds: validate-standard-crypto
 
 $(SDS_OUTPUT_DIR)/Dockerfile.sds: $(SDS_DIR)/cmd/Dockerfile
 	cp $< $@
 
 .PHONY: sds-docker
-sds-docker: $(SDS_OUTPUT_DIR)/sds-linux-$(GOARCH) $(SDS_OUTPUT_DIR)/Dockerfile.sds
-	docker buildx build --load $(PLATFORM) $(SDS_OUTPUT_DIR) -f $(SDS_OUTPUT_DIR)/Dockerfile.sds \
-		--build-arg GOARCH=$(GOARCH) \
-		-t $(IMAGE_REGISTRY)/sds:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
+sds-docker: $(SDS_OUTPUT_DIR)/sds-linux-$(DOCKER_GOARCH) $(SDS_OUTPUT_DIR)/Dockerfile.sds
+	docker buildx build --load $(SDS_OUTPUT_DIR) -f $(SDS_OUTPUT_DIR)/Dockerfile.sds \
+		-t $(IMAGE_REGISTRY)/sds:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT) \
+		$(DOCKER_BUILD_ARGS)
+
+
+#----------------------------------------------------------------------------------
+# SDS-fips - gRPC server for serving Secret Discovery Service config for Gloo Edge MTLS (FIPS compliant)
+#----------------------------------------------------------------------------------
+
+SDS_FIPS_OUTPUT_DIR=$(SDS_OUTPUT_DIR)-fips
+
+$(SDS_FIPS_OUTPUT_DIR)/Dockerfile.fips: $(SDS_DIR)/Dockerfile.fips
+	mkdir -p $(SDS_FIPS_OUTPUT_DIR)
+	cp $< $@
+
+$(SDS_FIPS_OUTPUT_DIR)/.sds-docker-build: $(SDS_SOURCES) $(SDS_FIPS_OUTPUT_DIR)/Dockerfile.fips
+	docker build -t $(IMAGE_REGISTRY)/sds-fips-build-container:$(VERSION) \
+		-f $(SDS_FIPS_OUTPUT_DIR)/Dockerfile.fips \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_ALPINE_IMAGE_NAME) \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
+		--build-arg GITHUB_TOKEN \
+		--build-arg USE_APK=true \
+		$(DOCKER_GO_BORING_ARGS) \
+		.
+	touch $@
+
+$(SDS_FIPS_OUTPUT_DIR)/sds-linux-amd64: $(SDS_FIPS_OUTPUT_DIR)/.sds-docker-build
+	docker create -ti --name sds-fips-temp-container $(IMAGE_REGISTRY)/sds-fips-build-container:$(VERSION) bash
+	docker cp sds-fips-temp-container:/sds-linux-amd64 $(SDS_FIPS_OUTPUT_DIR)/sds-linux-amd64
+	docker rm -f sds-fips-temp-container
+
+.PHONY: sds-fips
+sds-fips: $(SDS_FIPS_OUTPUT_DIR)/sds-linux-amd64
+
+$(SDS_FIPS_OUTPUT_DIR)/Dockerfile: $(SDS_DIR)/cmd/Dockerfile
+	mkdir -p $(SDS_FIPS_OUTPUT_DIR)
+	cp $< $@
+
+.PHONY: sds-fips-docker
+sds-fips-docker: $(SDS_FIPS_OUTPUT_DIR)/.sds-docker
+sds-fips-docker: BINARY="$(SDS_FIPS_OUTPUT_DIR)/sds-linux-amd64"
+sds-fips-docker: validate-boring-crypto
+
+
+
+$(SDS_FIPS_OUTPUT_DIR)/.sds-docker: $(SDS_FIPS_OUTPUT_DIR)/sds-linux-amd64
+$(SDS_FIPS_OUTPUT_DIR)/.sds-docker: $(SDS_FIPS_OUTPUT_DIR)/Dockerfile
+	docker buildx build $(SDS_FIPS_OUTPUT_DIR) \
+		-t $(IMAGE_REGISTRY)/sds-fips:$(VERSION) $(QUAY_EXPIRATION_LABEL) \
+		--load \
+		--file $(SDS_FIPS_OUTPUT_DIR)/Dockerfile \
+		$(call get_test_tag_option,sds-fips) $(DOCKER_GO_BORING_ARGS)
+
+
 
 #----------------------------------------------------------------------------------
 # Envoy init (BASE/SIDECAR)
@@ -597,44 +637,6 @@ package-chart: generate-helm-files
 	helm package --destination $(HELM_SYNC_DIR)/charts $(HELM_DIR)
 	helm repo index $(HELM_SYNC_DIR)
 
-#----------------------------------------------------------------------------------
-# Publish Artifacts
-#
-# We publish artifacts using our CI pipeline. This may happen during any of the following scenarios:
-# 	- Release
-#	- Development Build (a one-off build for unreleased code)
-#	- Pull Request (we publish unreleased artifacts to be consumed by our Enterprise project)
-#----------------------------------------------------------------------------------
-# TODO: delete this logic block when we have a github actions-managed release
-
-# git_tag is evaluated when is used (recursively expanded variable)
-# https://ftp.gnu.org/old-gnu/Manuals/make-3.79.1/html_chapter/make_6.html#SEC59
-git_tag = $(shell git describe --abbrev=0 --tags)
-# Semantic versioning format https://semver.org/
-# Regex copied from: https://github.com/solo-io/go-utils/blob/16d4d94e4e5f182ca8c10c5823df303087879dea/versionutils/version.go#L338
-tag_regex := v[0-9]+[.][0-9]+[.][0-9]+(-[a-z]+)*(-[a-z]+[0-9]*)?$
-
-ifneq (,$(TEST_ASSET_ID))
-PUBLISH_CONTEXT := PULL_REQUEST
-ifeq ($(shell echo $(git_tag) | egrep "$(tag_regex)"),)
-# Forked repos don't have tags by default, so we create a standard tag for them
-# This only impacts the version of the assets used in CI for this PR, so it is ok that it is not a real tag
-VERSION = 1.0.0-$(TEST_ASSET_ID)
-else
-VERSION = $(shell echo $(git_tag) | cut -c 2-)-$(TEST_ASSET_ID) # example: 1.16.0-beta4-{TEST_ASSET_ID}
-endif
-LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
-endif
-
-# TODO: delete this logic block when we have a github actions-managed release
-ifneq (,$(TAGGED_VERSION))
-PUBLISH_CONTEXT := RELEASE
-VERSION := $(shell echo $(TAGGED_VERSION) | cut -c 2-)
-LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
-endif
-
-# controller variable for the "Publish Artifacts" section.  Defines which targets exist.  Possible Values: NONE, RELEASE, PULL_REQUEST
-PUBLISH_CONTEXT ?= NONE
 # specify which bucket to upload helm chart to
 HELM_BUCKET ?= gs://solo-public-tagged-helm
 # modifier to docker builds which can auto-delete docker images after a set time
@@ -697,6 +699,7 @@ docker: discovery-docker
 docker: gloo-envoy-wrapper-docker
 docker: certgen-docker
 docker: sds-docker
+docker: sds-fips-docker
 docker: ingress-docker
 docker: access-logger-docker
 docker: kubectl-docker
@@ -708,6 +711,7 @@ docker-push: docker-push-discovery
 docker-push: docker-push-gloo-envoy-wrapper
 docker-push: docker-push-certgen
 docker-push: docker-push-sds
+docker-push: docker-push-sds-fips
 docker-push: docker-push-ingress
 docker-push: docker-push-access-logger
 docker-push: docker-push-kubectl
@@ -720,6 +724,7 @@ docker-retag: docker-retag-discovery
 docker-retag: docker-retag-gloo-envoy-wrapper
 docker-retag: docker-retag-certgen
 docker-retag: docker-retag-sds
+docker-retag: docker-retag-sds-fips
 docker-retag: docker-retag-ingress
 docker-retag: docker-retag-access-logger
 docker-retag: docker-retag-kubectl
@@ -856,3 +861,16 @@ update-licenses:
 # use `make print-MAKEFILE_VAR` to print the value of MAKEFILE_VAR
 
 print-%  : ; @echo $($*)
+
+#----------------------------------------------------------------------------------
+# Binary Validation
+#
+# This is used for our all of our images, except gateway-proxy
+#----------------------------------------------------------------------------------
+
+# Validate the version of the cryptography library used by the binary.
+# If the expected string is not present, the `grep` command will return an exit status 1 and this target will fail.
+validate-%-crypto: ## Validate the version of the cryptography library used by the binary
+	echo "Validating $* crypto version"
+	goversion -crypto $(BINARY) | grep "($* crypto)" > /dev/null
+
