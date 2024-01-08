@@ -737,7 +737,7 @@ docker: discovery-docker
 docker: gloo-envoy-wrapper-docker
 docker: certgen-docker
 docker: sds-docker
-docker: sds-fips-docker
+#docker: sds-fips-docker
 docker: ingress-docker
 docker: access-logger-docker
 docker: kubectl-docker
@@ -749,7 +749,7 @@ docker-push: docker-push-discovery
 docker-push: docker-push-gloo-envoy-wrapper
 docker-push: docker-push-certgen
 docker-push: docker-push-sds
-docker-push: docker-push-sds-fips
+#docker-push: docker-push-sds-fips
 docker-push: docker-push-ingress
 docker-push: docker-push-access-logger
 docker-push: docker-push-kubectl
@@ -762,7 +762,7 @@ docker-retag: docker-retag-discovery
 docker-retag: docker-retag-gloo-envoy-wrapper
 docker-retag: docker-retag-certgen
 docker-retag: docker-retag-sds
-docker-retag: docker-retag-sds-fips
+#docker-retag: docker-retag-sds-fips
 docker-retag: docker-retag-ingress
 docker-retag: docker-retag-access-logger
 docker-retag: docker-retag-kubectl
