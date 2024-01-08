@@ -354,8 +354,8 @@ ingress-docker: validate-standard-crypto
 
 $(INGRESS_OUTPUT_DIR)/.ingress-docker: $(INGRESS_OUTPUT_DIR)/ingress-linux-$(DOCKER_GOARCH) $(INGRESS_OUTPUT_DIR)/Dockerfile.ingress
 	docker buildx build --load $(INGRESS_OUTPUT_DIR) -f $(INGRESS_OUTPUT_DIR)/Dockerfile.ingress \
-		-t $(IMAGE_REGISTRY)/ingress:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT) \
-		$(DOCKER_BUILD_ARGS)
+		-t $(IMAGE_REGISTRY)/ingress:$(VERSION) $(QUAY_EXPIRATION_LABEL) \
+		$(DOCKER_BUILD_ARGS) $(STDERR_SILENCE_REDIRECT)
 
 
 #----------------------------------------------------------------------------------
@@ -384,8 +384,8 @@ access-logger-docker: validate-standard-crypto
 
 $(ACCESS_LOG_OUTPUT_DIR)/.access-logger-docker: $(ACCESS_LOG_OUTPUT_DIR)/access-logger-linux-$(DOCKER_GOARCH) $(ACCESS_LOG_OUTPUT_DIR)/Dockerfile.access-logger
 	docker buildx build --load $(ACCESS_LOG_OUTPUT_DIR) -f $(ACCESS_LOG_OUTPUT_DIR)/Dockerfile.access-logger \
-		-t $(IMAGE_REGISTRY)/access-logger:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT) \
-		$(DOCKER_BUILD_ARGS)
+		-t $(IMAGE_REGISTRY)/access-logger:$(VERSION) $(QUAY_EXPIRATION_LABEL) \
+		$(DOCKER_BUILD_ARGS) $(STDERR_SILENCE_REDIRECT)
 
 #----------------------------------------------------------------------------------
 # Discovery
@@ -414,8 +414,8 @@ discovery-docker: validate-standard-crypto
 
 $(DISCOVERY_OUTPUT_DIR)/.discovery-docker: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(DOCKER_GOARCH) $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery
 	docker buildx build --load $(DISCOVERY_OUTPUT_DIR) -f $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery \
-		-t $(IMAGE_REGISTRY)/discovery:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT) \
-		$(DOCKER_BUILD_ARGS)
+		-t $(IMAGE_REGISTRY)/discovery:$(VERSION) $(QUAY_EXPIRATION_LABEL) \
+		$(DOCKER_BUILD_ARGS) $(STDERR_SILENCE_REDIRECT)
 #----------------------------------------------------------------------------------
 # Gloo
 #----------------------------------------------------------------------------------
@@ -440,10 +440,10 @@ gloo-docker: BINARY="$(GLOO_OUTPUT_DIR)/gloo-linux-$(DOCKER_GOARCH)"
 gloo-docker: validate-standard-crypto
 
 $(GLOO_OUTPUT_DIR)/.gloo-docker: $(GLOO_OUTPUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(GLOO_OUTPUT_DIR)/Dockerfile.gloo
-	docker buildx build --load $(PLATFORM) $(GLOO_OUTPUT_DIR) -f $(GLOO_OUTPUT_DIR)/Dockerfile.gloo \
-		--build-arg GOARCH=$(DOCKER_GOARCH) \
+	docker buildx build --load $(GLOO_OUTPUT_DIR) -f $(GLOO_OUTPUT_DIR)/Dockerfile.gloo \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
-		-t $(IMAGE_REGISTRY)/gloo:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
+		-t $(IMAGE_REGISTRY)/gloo:$(VERSION) $(QUAY_EXPIRATION_LABEL) \
+		$(DOCKER_BUILD_ARGS) $(STDERR_SILENCE_REDIRECT)
 
 #----------------------------------------------------------------------------------
 # Gloo with race detection enabled.
@@ -522,9 +522,8 @@ sds-docker: validate-standard-crypto
 
 $(SDS_OUTPUT_DIR)/.sds-docker: $(SDS_OUTPUT_DIR)/sds-linux-$(DOCKER_GOARCH)
 	docker buildx build --load $(SDS_OUTPUT_DIR) -f $(SDS_OUTPUT_DIR)/Dockerfile.sds \
-		-t $(IMAGE_REGISTRY)/sds:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT) \
-		$(DOCKER_BUILD_ARGS)
-
+		-t $(IMAGE_REGISTRY)/sds:$(VERSION) $(QUAY_EXPIRATION_LABEL) \
+		$(DOCKER_BUILD_ARGS) $(STDERR_SILENCE_REDIRECT)
 #----------------------------------------------------------------------------------
 # SDS-fips - gRPC server for serving Secret Discovery Service config for Gloo Edge MTLS (FIPS compliant)
 #----------------------------------------------------------------------------------
@@ -606,8 +605,8 @@ gloo-envoy-wrapper-docker: validate-standard-crypto
 $(ENVOYINIT_OUTPUT_DIR)/.gloo-envoy-wrapper-docker: $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(DOCKER_GOARCH) $(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit $(ENVOYINIT_OUTPUT_DIR)/docker-entrypoint.sh
 	docker buildx build --load $(ENVOYINIT_OUTPUT_DIR) -f $(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
-		-t $(IMAGE_REGISTRY)/gloo-envoy-wrapper:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT) \
-		$(DOCKER_BUILD_ARGS)
+		-t $(IMAGE_REGISTRY)/gloo-envoy-wrapper:$(VERSION) $(QUAY_EXPIRATION_LABEL) \
+		$(DOCKER_BUILD_ARGS) $(STDERR_SILENCE_REDIRECT)
 
 #----------------------------------------------------------------------------------
 # Certgen - Job for creating TLS Secrets in Kubernetes
@@ -634,8 +633,8 @@ certgen-docker: validate-standard-crypto
 
 $(CERTGEN_OUTPUT_DIR)/.certgen-docker: $(CERTGEN_OUTPUT_DIR)/certgen-linux-$(DOCKER_GOARCH) $(CERTGEN_OUTPUT_DIR)/Dockerfile.certgen
 	docker buildx build --load $(CERTGEN_OUTPUT_DIR) -f $(CERTGEN_OUTPUT_DIR)/Dockerfile.certgen \
-		-t $(IMAGE_REGISTRY)/certgen:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT) \
-		$(DOCKER_BUILD_ARGS)
+		-t $(IMAGE_REGISTRY)/certgen:$(VERSION) $(QUAY_EXPIRATION_LABEL) \
+		$(DOCKER_BUILD_ARGS) $(STDERR_SILENCE_REDIRECT)
 
 #----------------------------------------------------------------------------------
 # Kubectl - Used in jobs during helm install/upgrade/uninstall
