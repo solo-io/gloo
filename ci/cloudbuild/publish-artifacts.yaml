@@ -46,8 +46,7 @@ steps:
 # Run make targets to push docker images to quay.io
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.8.1'
   id: 'publish-docker'
-  args:
-  - 'publish-docker'
+  args: ["install-build-tools", "publish-docker"]
   dir: *dir
   secretEnv:
   - 'GITHUB_TOKEN'
