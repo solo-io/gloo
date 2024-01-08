@@ -1,13 +1,13 @@
 FROM alpine:3.17.6
 
-ARG GOARCH=amd64
+ARG DOCKER_GOARCH
 
 # Needed for access to AWS
 RUN apk upgrade --update-cache \
     && apk add ca-certificates \
     && rm -rf /var/cache/apk/*
 
-COPY discovery-linux-$GOARCH /usr/local/bin/discovery
+COPY discovery-linux-$DOCKER_GOARCH /usr/local/bin/discovery
 
 USER 10101
 

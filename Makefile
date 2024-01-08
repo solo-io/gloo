@@ -51,7 +51,7 @@ GCFLAGS := all="-N -l"
 
 GOOS ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')
 
-GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=$(GOARCH)
+GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=$(DOCKER_GOARCH)
 
 TEST_ASSET_DIR := $(ROOTDIR)/_test
 
@@ -335,20 +335,28 @@ INGRESS_DIR=projects/ingress
 INGRESS_SOURCES=$(call get_sources,$(INGRESS_DIR))
 INGRESS_OUTPUT_DIR=$(OUTPUT_DIR)/$(INGRESS_DIR)
 
-$(INGRESS_OUTPUT_DIR)/ingress-linux-$(GOARCH): $(INGRESS_SOURCES)
+$(INGRESS_OUTPUT_DIR)/ingress-linux-$(DOCKER_GOARCH): $(INGRESS_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(INGRESS_DIR)/cmd/main.go $(STDERR_SILENCE_REDIRECT)
 
 .PHONY: ingress
-ingress: $(INGRESS_OUTPUT_DIR)/ingress-linux-$(GOARCH)
+ingress: $(INGRESS_OUTPUT_DIR)/ingress-linux-$(DOCKER_GOARCH)
+
 
 $(INGRESS_OUTPUT_DIR)/Dockerfile.ingress: $(INGRESS_DIR)/cmd/Dockerfile
 	cp $< $@
 
+
 .PHONY: ingress-docker
-ingress-docker: $(INGRESS_OUTPUT_DIR)/ingress-linux-$(GOARCH) $(INGRESS_OUTPUT_DIR)/Dockerfile.ingress
-	docker buildx build --load $(PLATFORM) $(INGRESS_OUTPUT_DIR) -f $(INGRESS_OUTPUT_DIR)/Dockerfile.ingress \
-		--build-arg GOARCH=$(GOARCH) \
-		-t $(IMAGE_REGISTRY)/ingress:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
+ingress-docker: $(INGRESS_OUTPUT_DIR)/.ingress-docker
+ingress-docker: BINARY="$(INGRESS_OUTPUT_DIR)/ingress-linux-$(DOCKER_GOARCH)"
+ingress-docker: validate-standard-crypto
+
+
+$(INGRESS_OUTPUT_DIR)/.ingress-docker: $(INGRESS_OUTPUT_DIR)/ingress-linux-$(DOCKER_GOARCH) $(INGRESS_OUTPUT_DIR)/Dockerfile.ingress
+	docker buildx build --load $(INGRESS_OUTPUT_DIR) -f $(INGRESS_OUTPUT_DIR)/Dockerfile.ingress \
+		-t $(IMAGE_REGISTRY)/ingress:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT) \
+		$(DOCKER_BUILD_ARGS)
+
 
 #----------------------------------------------------------------------------------
 # Access Logger
@@ -358,20 +366,26 @@ ACCESS_LOG_DIR=projects/accesslogger
 ACCESS_LOG_SOURCES=$(call get_sources,$(ACCESS_LOG_DIR))
 ACCESS_LOG_OUTPUT_DIR=$(OUTPUT_DIR)/$(ACCESS_LOG_DIR)
 
-$(ACCESS_LOG_OUTPUT_DIR)/access-logger-linux-$(GOARCH): $(ACCESS_LOG_SOURCES)
+$(ACCESS_LOG_OUTPUT_DIR)/access-logger-linux-$(DOCKER_GOARCH): $(ACCESS_LOG_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ACCESS_LOG_DIR)/cmd/main.go $(STDERR_SILENCE_REDIRECT)
 
 .PHONY: access-logger
-access-logger: $(ACCESS_LOG_OUTPUT_DIR)/access-logger-linux-$(GOARCH)
+access-logger: $(ACCESS_LOG_OUTPUT_DIR)/access-logger-linux-$(DOCKER_GOARCH)
+
 
 $(ACCESS_LOG_OUTPUT_DIR)/Dockerfile.access-logger: $(ACCESS_LOG_DIR)/cmd/Dockerfile
 	cp $< $@
 
 .PHONY: access-logger-docker
-access-logger-docker: $(ACCESS_LOG_OUTPUT_DIR)/access-logger-linux-$(GOARCH) $(ACCESS_LOG_OUTPUT_DIR)/Dockerfile.access-logger
-	docker buildx build --load $(PLATFORM) $(ACCESS_LOG_OUTPUT_DIR) -f $(ACCESS_LOG_OUTPUT_DIR)/Dockerfile.access-logger \
-		--build-arg GOARCH=$(GOARCH) \
-		-t $(IMAGE_REGISTRY)/access-logger:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
+access-logger-docker:$(ACCESS_LOG_OUTPUT_DIR)/.access-logger-docker
+access-logger-docker: BINARY="$(ACCESS_LOG_OUTPUT_DIR)/access-logger-linux-$(DOCKER_GOARCH)"
+access-logger-docker: validate-standard-crypto
+
+
+$(ACCESS_LOG_OUTPUT_DIR)/.access-logger-docker: $(ACCESS_LOG_OUTPUT_DIR)/access-logger-linux-$(DOCKER_GOARCH) $(ACCESS_LOG_OUTPUT_DIR)/Dockerfile.access-logger
+	docker buildx build --load $(ACCESS_LOG_OUTPUT_DIR) -f $(ACCESS_LOG_OUTPUT_DIR)/Dockerfile.access-logger \
+		-t $(IMAGE_REGISTRY)/access-logger:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT) \
+		$(DOCKER_BUILD_ARGS)
 
 #----------------------------------------------------------------------------------
 # Discovery
@@ -381,21 +395,27 @@ DISCOVERY_DIR=projects/discovery
 DISCOVERY_SOURCES=$(call get_sources,$(DISCOVERY_DIR))
 DISCOVERY_OUTPUT_DIR=$(OUTPUT_DIR)/$(DISCOVERY_DIR)
 
-$(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(GOARCH): $(DISCOVERY_SOURCES)
+$(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(DOCKER_GOARCH): $(DISCOVERY_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(DISCOVERY_DIR)/cmd/main.go $(STDERR_SILENCE_REDIRECT)
 
 .PHONY: discovery
-discovery: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(GOARCH)
+discovery: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(DOCKER_GOARCH)
+
 
 $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery: $(DISCOVERY_DIR)/cmd/Dockerfile
 	cp $< $@
+	echo $(DOCKER_BUILD_ARGS)
 
 .PHONY: discovery-docker
-discovery-docker: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(GOARCH) $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery
-	docker buildx build --load $(PLATFORM) $(DISCOVERY_OUTPUT_DIR) -f $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery \
-		--build-arg GOARCH=$(GOARCH) \
-		-t $(IMAGE_REGISTRY)/discovery:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
+discovery-docker: $(DISCOVERY_OUTPUT_DIR)/.discovery-docker
+discovery-docker: BINARY="$(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(DOCKER_GOARCH)"
+discovery-docker: validate-standard-crypto
 
+
+$(DISCOVERY_OUTPUT_DIR)/.discovery-docker: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(DOCKER_GOARCH) $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery
+	docker buildx build --load $(DISCOVERY_OUTPUT_DIR) -f $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery \
+		-t $(IMAGE_REGISTRY)/discovery:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT) \
+		$(DOCKER_BUILD_ARGS)
 #----------------------------------------------------------------------------------
 # Gloo
 #----------------------------------------------------------------------------------
@@ -404,19 +424,24 @@ GLOO_DIR=projects/gloo
 GLOO_SOURCES=$(call get_sources,$(GLOO_DIR))
 GLOO_OUTPUT_DIR=$(OUTPUT_DIR)/$(GLOO_DIR)
 
-$(GLOO_OUTPUT_DIR)/gloo-linux-$(GOARCH): $(GLOO_SOURCES)
+$(GLOO_OUTPUT_DIR)/gloo-linux-$(DOCKER_GOARCH): $(GLOO_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_DIR)/cmd/main.go $(STDERR_SILENCE_REDIRECT)
 
 .PHONY: gloo
-gloo: $(GLOO_OUTPUT_DIR)/gloo-linux-$(GOARCH)
+gloo: $(GLOO_OUTPUT_DIR)/gloo-linux-$(DOCKER_GOARCH)
+
 
 $(GLOO_OUTPUT_DIR)/Dockerfile.gloo: $(GLOO_DIR)/cmd/Dockerfile
 	cp $< $@
 
 .PHONY: gloo-docker
-gloo-docker: $(GLOO_OUTPUT_DIR)/gloo-linux-$(GOARCH) $(GLOO_OUTPUT_DIR)/Dockerfile.gloo
+gloo-docker: $(GLOO_OUTPUT_DIR)/.gloo-docker
+gloo-docker: BINARY="$(GLOO_OUTPUT_DIR)/gloo-linux-$(DOCKER_GOARCH)"
+gloo-docker: validate-standard-crypto
+
+$(GLOO_OUTPUT_DIR)/.gloo-docker: $(GLOO_OUTPUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(GLOO_OUTPUT_DIR)/Dockerfile.gloo
 	docker buildx build --load $(PLATFORM) $(GLOO_OUTPUT_DIR) -f $(GLOO_OUTPUT_DIR)/Dockerfile.gloo \
-		--build-arg GOARCH=$(GOARCH) \
+		--build-arg GOARCH=$(DOCKER_GOARCH) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
 		-t $(IMAGE_REGISTRY)/gloo:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
 
@@ -470,6 +495,7 @@ $(GLOO_RACE_OUT_DIR)/.gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-amd64 $(
 		-t $(IMAGE_REGISTRY)/gloo:$(VERSION)-race $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
 	touch $@
 
+
 #----------------------------------------------------------------------------------
 # SDS Server - gRPC server for serving Secret Discovery Service config for Gloo Edge MTLS
 #----------------------------------------------------------------------------------
@@ -483,18 +509,21 @@ $(SDS_OUTPUT_DIR)/sds-linux-$(DOCKER_GOARCH): $(SDS_SOURCES)
 
 .PHONY: sds
 sds: $(SDS_OUTPUT_DIR)/sds-linux-$(DOCKER_GOARCH)
-sds: BINARY="$(SDS_OUTPUT_DIR)/discovery-linux-$(DOCKER_GOARCH)"
-sds: validate-standard-crypto
+
 
 $(SDS_OUTPUT_DIR)/Dockerfile.sds: $(SDS_DIR)/cmd/Dockerfile
 	cp $< $@
 
 .PHONY: sds-docker
-sds-docker: $(SDS_OUTPUT_DIR)/sds-linux-$(DOCKER_GOARCH) $(SDS_OUTPUT_DIR)/Dockerfile.sds
+sds-docker: $(SDS_OUTPUT_DIR)/.sds-docker
+sds-docker: BINARY="$(SDS_OUTPUT_DIR)/sds-linux-$(DOCKER_GOARCH)"
+sds-docker: validate-standard-crypto
+
+
+$(SDS_OUTPUT_DIR)/.sds-docker: $(SDS_OUTPUT_DIR)/sds-linux-$(DOCKER_GOARCH)
 	docker buildx build --load $(SDS_OUTPUT_DIR) -f $(SDS_OUTPUT_DIR)/Dockerfile.sds \
 		-t $(IMAGE_REGISTRY)/sds:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT) \
 		$(DOCKER_BUILD_ARGS)
-
 
 #----------------------------------------------------------------------------------
 # SDS-fips - gRPC server for serving Secret Discovery Service config for Gloo Edge MTLS (FIPS compliant)
@@ -556,11 +585,12 @@ ENVOYINIT_DIR=projects/envoyinit/cmd
 ENVOYINIT_SOURCES=$(call get_sources,$(ENVOYINIT_DIR))
 ENVOYINIT_OUTPUT_DIR=$(OUTPUT_DIR)/$(ENVOYINIT_DIR)
 
-$(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(GOARCH): $(ENVOYINIT_SOURCES)
+$(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(DOCKER_GOARCH): $(ENVOYINIT_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ENVOYINIT_DIR)/main.go $(STDERR_SILENCE_REDIRECT)
 
 .PHONY: envoyinit
-envoyinit: $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(GOARCH)
+envoyinit: $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(DOCKER_GOARCH)
+
 
 $(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile.envoyinit
 	cp $< $@
@@ -569,11 +599,15 @@ $(ENVOYINIT_OUTPUT_DIR)/docker-entrypoint.sh: $(ENVOYINIT_DIR)/docker-entrypoint
 	cp $< $@
 
 .PHONY: gloo-envoy-wrapper-docker
-gloo-envoy-wrapper-docker: $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(GOARCH) $(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit $(ENVOYINIT_OUTPUT_DIR)/docker-entrypoint.sh
-	docker buildx build --load $(PLATFORM) $(ENVOYINIT_OUTPUT_DIR) -f $(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit \
-		--build-arg GOARCH=$(GOARCH) \
+gloo-envoy-wrapper-docker: $(ENVOYINIT_OUTPUT_DIR)/.gloo-envoy-wrapper-docker
+gloo-envoy-wrapper-docker: BINARY="$(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(DOCKER_GOARCH)"
+gloo-envoy-wrapper-docker: validate-standard-crypto
+
+$(ENVOYINIT_OUTPUT_DIR)/.gloo-envoy-wrapper-docker: $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(DOCKER_GOARCH) $(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit $(ENVOYINIT_OUTPUT_DIR)/docker-entrypoint.sh
+	docker buildx build --load $(ENVOYINIT_OUTPUT_DIR) -f $(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
-		-t $(IMAGE_REGISTRY)/gloo-envoy-wrapper:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
+		-t $(IMAGE_REGISTRY)/gloo-envoy-wrapper:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT) \
+		$(DOCKER_BUILD_ARGS)
 
 #----------------------------------------------------------------------------------
 # Certgen - Job for creating TLS Secrets in Kubernetes
@@ -583,20 +617,25 @@ CERTGEN_DIR=jobs/certgen/cmd
 CERTGEN_SOURCES=$(call get_sources,$(CERTGEN_DIR))
 CERTGEN_OUTPUT_DIR=$(OUTPUT_DIR)/$(CERTGEN_DIR)
 
-$(CERTGEN_OUTPUT_DIR)/certgen-linux-$(GOARCH): $(CERTGEN_SOURCES)
+$(CERTGEN_OUTPUT_DIR)/certgen-linux-$(DOCKER_GOARCH): $(CERTGEN_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CERTGEN_DIR)/main.go $(STDERR_SILENCE_REDIRECT)
 
 .PHONY: certgen
-certgen: $(CERTGEN_OUTPUT_DIR)/certgen-linux-$(GOARCH)
+certgen: $(CERTGEN_OUTPUT_DIR)/certgen-linux-$(DOCKER_GOARCH)
 
 $(CERTGEN_OUTPUT_DIR)/Dockerfile.certgen: $(CERTGEN_DIR)/Dockerfile
 	cp $< $@
 
 .PHONY: certgen-docker
-certgen-docker: $(CERTGEN_OUTPUT_DIR)/certgen-linux-$(GOARCH) $(CERTGEN_OUTPUT_DIR)/Dockerfile.certgen
-	docker buildx build --load $(PLATFORM) $(CERTGEN_OUTPUT_DIR) -f $(CERTGEN_OUTPUT_DIR)/Dockerfile.certgen \
-		--build-arg GOARCH=$(GOARCH) \
-		-t $(IMAGE_REGISTRY)/certgen:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
+certgen-docker: $(CERTGEN_OUTPUT_DIR)/.certgen-docker
+certgen-docker: BINARY="$(CERTGEN_OUTPUT_DIR)/certgen-linux-$(DOCKER_GOARCH)"
+certgen-docker: validate-standard-crypto
+
+
+$(CERTGEN_OUTPUT_DIR)/.certgen-docker: $(CERTGEN_OUTPUT_DIR)/certgen-linux-$(DOCKER_GOARCH) $(CERTGEN_OUTPUT_DIR)/Dockerfile.certgen
+	docker buildx build --load $(CERTGEN_OUTPUT_DIR) -f $(CERTGEN_OUTPUT_DIR)/Dockerfile.certgen \
+		-t $(IMAGE_REGISTRY)/certgen:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT) \
+		$(DOCKER_BUILD_ARGS)
 
 #----------------------------------------------------------------------------------
 # Kubectl - Used in jobs during helm install/upgrade/uninstall
@@ -871,6 +910,5 @@ print-%  : ; @echo $($*)
 # Validate the version of the cryptography library used by the binary.
 # If the expected string is not present, the `grep` command will return an exit status 1 and this target will fail.
 validate-%-crypto: ## Validate the version of the cryptography library used by the binary
-	echo "Validating $* crypto version"
 	goversion -crypto $(BINARY) | grep "($* crypto)" > /dev/null
 
