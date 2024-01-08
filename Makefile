@@ -520,7 +520,7 @@ sds-docker: BINARY="$(SDS_OUTPUT_DIR)/sds-linux-$(DOCKER_GOARCH)"
 sds-docker: validate-standard-crypto
 
 
-$(SDS_OUTPUT_DIR)/.sds-docker: $(SDS_OUTPUT_DIR)/sds-linux-$(DOCKER_GOARCH)
+$(SDS_OUTPUT_DIR)/.sds-docker: $(SDS_OUTPUT_DIR)/sds-linux-$(DOCKER_GOARCH) $(SDS_OUTPUT_DIR)/Dockerfile.sds
 	docker buildx build --load $(SDS_OUTPUT_DIR) -f $(SDS_OUTPUT_DIR)/Dockerfile.sds \
 		-t $(IMAGE_REGISTRY)/sds:$(VERSION) $(QUAY_EXPIRATION_LABEL) \
 		$(DOCKER_BUILD_ARGS) $(STDERR_SILENCE_REDIRECT)
