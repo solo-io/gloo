@@ -51,7 +51,7 @@ GCFLAGS := all="-N -l"
 
 GOOS ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')
 
-GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=$(DOCKER_GOARCH)
+GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=$(GOARCH)
 
 TEST_ASSET_DIR := $(ROOTDIR)/_test
 

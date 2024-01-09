@@ -9,8 +9,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/types"
-	"github.com/solo-io/skv2/codegen/util"
 )
 
 const (
@@ -22,10 +20,6 @@ func TestMake(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Make Suite")
 }
-
-var (
-	moduleRoot = util.GetModuleRoot()
-)
 
 type EnvVar struct {
 	Name, Value string
@@ -52,27 +46,4 @@ func ExpectMakeVarsWithEnvVars(envVars []*EnvVar, makeVars []*MakeVar) {
 		err := os.Unsetenv(envVar.Name)
 		ExpectWithOffset(1, err).NotTo(HaveOccurred())
 	}
-}
-
-func ExpectMakeOutputWithOffset(offset int, target string, outputMatcher types.GomegaMatcher) {
-	makeArgs := append([]string{
-		"--directory",
-		moduleRoot,
-	}, strings.Split(target, " ")...)
-
-	cmd := exec.Command("make", makeArgs...)
-	out, err := cmd.CombinedOutput()
-
-	fmt.Println(string(out))
-	ExpectWithOffset(offset+1, err).NotTo(HaveOccurred(), "make command should succeed")
-	ExpectWithOffset(offset+1, out).To(WithTransform(getRelevantOutput, outputMatcher), "make command should produce expected output")
-}
-
-func getRelevantOutput(rawOutput []byte) string {
-	// We trim lines that are produced in our CI pipeline
-	// These are not present locally, so the trim is a no-op
-	relevantOutput := strings.TrimSpace(string(rawOutput))
-	relevantOutput = strings.TrimPrefix(relevantOutput, "make[1]: Entering directory '/workspace/solo-projects'")
-	relevantOutput = strings.TrimSuffix(relevantOutput, "make[1]: Leaving directory '/workspace/solo-projects'")
-	return strings.TrimSpace(relevantOutput)
 }
