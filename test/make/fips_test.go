@@ -30,7 +30,7 @@ var _ = Describe("FIPS", func() {
 			}
 		})
 
-		FIt("successfully validates standard-crypto binary", func() {
+		It("successfully validates standard-crypto binary", func() {
 			pwd, err := os.Getwd()
 			Expect(err).NotTo(HaveOccurred(), "can get working directory")
 
