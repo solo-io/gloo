@@ -62,6 +62,8 @@ func ExpectMakeOutputWithOffset(offset int, target string, outputMatcher types.G
 
 	cmd := exec.Command("make", makeArgs...)
 	out, err := cmd.CombinedOutput()
+
+	fmt.Println(string(out))
 	ExpectWithOffset(offset+1, err).NotTo(HaveOccurred(), "make command should succeed")
 	ExpectWithOffset(offset+1, out).To(WithTransform(getRelevantOutput, outputMatcher), "make command should produce expected output")
 }

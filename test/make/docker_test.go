@@ -1,12 +1,13 @@
 package make_test
 
 import (
-	"github.com/solo-io/gloo/test/testutils"
+	"fmt"
 
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/test/testutils"
 )
 
 // dockerImages contains the set of images that we attempt to build and publish during our CI pipeline
@@ -16,7 +17,6 @@ var dockerImages = []string{
 	"gloo-envoy-wrapper",
 	"certgen",
 	"sds",
-	//"sds-fips",
 	"ingress",
 	"access-logger",
 	"kubectl",
@@ -59,6 +59,7 @@ var _ = Describe("Docker", func() {
 		)
 
 		It("Attempts to push every supported image", func() {
+			fmt.Printf("Len(DockerImages): %d\n", len(dockerImages))
 			// The point of this test is to ensure that the docker-push target attempts to push every image that we support
 			// As a result, we attempt to push images, and then assert that the output contains the expected error message
 			// NOTE: At the moment these images do not exist (since they aren't built in the same pipeline as our tests).
