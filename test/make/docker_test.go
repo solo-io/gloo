@@ -12,7 +12,7 @@ var dockerImages = []string{
 	"gloo-envoy-wrapper",
 	"certgen",
 	"sds",
-	//"sds-fips",
+	"sds-fips",
 	"ingress",
 	"access-logger",
 	"kubectl",
@@ -20,14 +20,14 @@ var dockerImages = []string{
 
 var _ = Describe("Docker", func() {
 
-	// Context("docker-push-%", func() {
-	// 	const (
-	// 		validTag   = "quay.io/solo-io/gloo:1.0.0-docker-push-test"
-	// 		invalidTag = "quay.io/solo-io/gloo-invalid:1.0.0-docker-push-test"
-	// 	)
+	Context("docker-push-%", func() {
+		const (
+			validTag   = "quay.io/solo-io/gloo:1.0.0-docker-push-test"
+			invalidTag = "quay.io/solo-io/gloo-invalid:1.0.0-docker-push-test"
+		)
 
-	// 	testutils.DockerPushTest(validTag, invalidTag, StandardGlooImage)
-	// })
+		testutils.DockerPushTest(validTag, invalidTag, StandardGlooImage)
+	})
 
 	Context("docker-push", func() {
 
@@ -35,7 +35,9 @@ var _ = Describe("Docker", func() {
 			messageFmt = "The push refers to repository [quay.io/solo-io/"
 		)
 
-		testutils.DockerPushImagesTest(messageFmt, dockerImages)
+		It("Attempts to push every supported image", func() {
+			testutils.DockerPushImagesTest(messageFmt, dockerImages)
+		})
 
 	})
 
