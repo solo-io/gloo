@@ -15,10 +15,12 @@ import (
 
 const (
 	StandardGlooImage = "quay.io/solo-io/gloo:1.16.0-beta1"
+	StandardSdsImage  = "quay.io/solo-io/sds:1.16.0-beta1"
+	FipsSdsImage      = "quay.io/solo-io/sds-fips:1.17.0-beta2-9037"
 )
 
 var _ = BeforeSuite(func() {
-	for _, image := range []string{StandardGlooImage} {
+	for _, image := range []string{StandardGlooImage, StandardSdsImage, FipsSdsImage} {
 		_, err := docker.PullIfNotPresent(context.Background(), image, 3)
 		Expect(err).NotTo(HaveOccurred(), "can pull image locally")
 	}

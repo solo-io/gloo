@@ -30,9 +30,9 @@ var _ = Describe("Docker", func() {
 			testutils.DockerValidPushTest(validTag, StandardGlooImage)
 		})
 
-		// It("cannot push to quay.io for non-existent repository", func() {
-		// 	testutils.DockerInvalidPushTest(invalidTag, StandardGlooImage)
-		// })
+		It("cannot push to quay.io for non-existent repository", func() {
+			testutils.DockerInvalidPushTest(invalidTag, StandardGlooImage)
+		})
 
 	})
 
