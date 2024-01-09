@@ -18,7 +18,6 @@ var dockerImages = []string{
 	"sds",
 	//"sds-fips",
 	"ingress",
-	"ingress",
 	"access-logger",
 	"kubectl",
 }
