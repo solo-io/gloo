@@ -7,6 +7,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/test/testutils"
 )
 
 // dockerImages contains the set of images that we attempt to build and publish during our CI pipeline
@@ -16,6 +17,7 @@ var dockerImages = []string{
 	"gloo-envoy-wrapper",
 	"certgen",
 	"sds",
+	//"sds-fips",
 	"ingress",
 	"access-logger",
 	"kubectl",
@@ -23,33 +25,33 @@ var dockerImages = []string{
 
 var _ = Describe("Docker", func() {
 
-	// Context("docker-push-%", func() {
+	Context("docker-push-%", func() {
 
-	// 	const (
-	// 		validTag   = "quay.io/solo-io/gloo:1.0.0-docker-push-test"
-	// 		invalidTag = "quay.io/solo-io/gloo-invalid:1.0.0-docker-push-test"
-	// 	)
+		const (
+			validTag   = "quay.io/solo-io/gloo:1.0.0-docker-push-test"
+			invalidTag = "quay.io/solo-io/gloo-invalid:1.0.0-docker-push-test"
+		)
 
-	// 	It("can push to quay.io for existing repository", func() {
-	// 		// This functionality relies on permissions to push to quay.io, which is only enabled in CI
-	// 		testutils.ValidateRequirementsAndNotifyGinkgo(testutils.DefinedEnv(testutils.GcloudBuildId))
+		It("can push to quay.io for existing repository", func() {
+			// This functionality relies on permissions to push to quay.io, which is only enabled in CI
+			testutils.ValidateRequirementsAndNotifyGinkgo(testutils.DefinedEnv(testutils.GcloudBuildId))
 
-	// 		err := testutils.DockerTag(StandardGlooImage, validTag)
-	// 		Expect(err).NotTo(HaveOccurred(), "can re-tag image locally")
+			err := testutils.DockerTag(StandardGlooImage, validTag)
+			Expect(err).NotTo(HaveOccurred(), "can re-tag image locally")
 
-	// 		err = testutils.DockerPush(validTag)
-	// 		Expect(err).NotTo(HaveOccurred(), "can push to quay.io for existing repository")
-	// 	})
+			err = testutils.DockerPush(validTag)
+			Expect(err).NotTo(HaveOccurred(), "can push to quay.io for existing repository")
+		})
 
-	// 	It("cannot push to quay.io for non-existent repository", func() {
-	// 		err := testutils.DockerTag(StandardGlooImage, invalidTag)
-	// 		Expect(err).NotTo(HaveOccurred(), "can re-tag image locally")
+		It("cannot push to quay.io for non-existent repository", func() {
+			err := testutils.DockerTag(StandardGlooImage, invalidTag)
+			Expect(err).NotTo(HaveOccurred(), "can re-tag image locally")
 
-	// 		err = testutils.DockerPush(invalidTag)
-	// 		Expect(err).To(HaveOccurred(), "can NOT push to quay.io for non-existent repository")
-	// 	})
+			err = testutils.DockerPush(invalidTag)
+			Expect(err).To(HaveOccurred(), "can NOT push to quay.io for non-existent repository")
+		})
 
-	// })
+	})
 
 	Context("docker-push", func() {
 

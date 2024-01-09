@@ -143,6 +143,7 @@ options:
   # Gloo supports running tests in parallel (https://github.com/solo-io/gloo/pull/8423) but occasionally
   # Ginkgo reports a failure, even when all test suites pass. As a result, we do not run tests in parallel in CI.
   - 'GINKGO_USER_FLAGS=-procs=1'
+  - "GCLOUD_BUILD_ID=$BUILD_ID"
   volumes:
   - name: 'gopath'
     path: '/go'
