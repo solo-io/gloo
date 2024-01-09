@@ -819,10 +819,14 @@ kind-build-and-load: kind-build-and-load-gloo
 kind-build-and-load: kind-build-and-load-discovery
 kind-build-and-load: kind-build-and-load-gloo-envoy-wrapper
 kind-build-and-load: kind-build-and-load-certgen
-kind-build-and-load: kind-build-and-load-sds
 kind-build-and-load: kind-build-and-load-ingress
 kind-build-and-load: kind-build-and-load-access-logger
 kind-build-and-load: kind-build-and-load-kubectl
+ifeq ($(USE_FIPS),true)
+kind-build-and-load: kind-build-and-load-sds-fips
+else # non-fips support
+kind-build-and-load: kind-build-and-load-sds
+endif
 
 define kind_reload_msg
 The kind-reload-% targets exist in order to assist developers with the work cycle of

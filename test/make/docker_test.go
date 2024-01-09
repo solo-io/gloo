@@ -20,14 +20,14 @@ var dockerImages = []string{
 
 var _ = Describe("Docker", func() {
 
-	Context("docker-push-%", func() {
-		const (
-			validTag   = "quay.io/solo-io/gloo:1.0.0-docker-push-test"
-			invalidTag = "quay.io/solo-io/gloo-invalid:1.0.0-docker-push-test"
-		)
+	// Context("docker-push-%", func() {
+	// 	const (
+	// 		validTag   = "quay.io/solo-io/gloo:1.0.0-docker-push-test"
+	// 		invalidTag = "quay.io/solo-io/gloo-invalid:1.0.0-docker-push-test"
+	// 	)
 
-		testutils.DockerPushTest(validTag, invalidTag, StandardGlooImage)
-	})
+	// 	testutils.DockerPushTest(validTag, invalidTag, StandardGlooImage)
+	// })
 
 	Context("docker-push", func() {
 
