@@ -14,7 +14,7 @@ ARG VERSION
 ARG GCFLAGS
 ARG LDFLAGS
 ARG USE_APK
-ARG GOARCH
+ARG DOCKER_GOARCH
 
 # Fail if VERSION is not set
 RUN if [[ ! $VERSION ]]; then echo "Required VERSION build argument not set" && exit 1; fi
@@ -26,14 +26,14 @@ ADD . /go/src/github.com/solo-io/gloo
 WORKDIR /go/src/github.com/solo-io/gloo
 
 # Build gloo with CGO and -race enabled
-RUN CGO_ENABLED=1 GOARCH=${GOARCH} GOOS=linux go build \
+RUN CGO_ENABLED=1 GOARCH=${DOCKER_GOARCH} GOOS=linux go build \
     -race \
     -gcflags="$GCFLAGS" \
     -ldflags="-X github.com/solo-io/gloo/pkg/version.Version=$VERSION $LDFLAGS" \
-    -o gloo-linux-${GOARCH} \
+    -o gloo-linux-${DOCKER_GOARCH} \
     projects/gloo/cmd/main.go
 
 
 FROM alpine:3.17.6
-ARG GOARCH
-COPY --from=build-env /go/src/github.com/solo-io/gloo/gloo-linux-${GOARCH} /
+ARG DOCKER_GOARCH
+COPY --from=build-env /go/src/github.com/solo-io/gloo/gloo-linux-${DOCKER_GOARCH} /
