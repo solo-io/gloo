@@ -85,6 +85,19 @@ steps:
   - 'prepare-gcr-zone'
   - 'prepare-test-credentials'
 
+
+# We have certain Make tests which validate that we can pull/push images to quay.io
+- name: "gcr.io/cloud-builders/docker"
+  entrypoint: "bash"
+  args:
+    [
+      "-c",
+      'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD',
+    ]
+  secretEnv: ["QUAY_IO_PASSWORD"]
+  waitFor: ["-"]
+  id: "docker-login"
+
 - name: 'gcr.io/$PROJECT_ID/e2e-go-mod-ginkgo:0.8.1'
   id: 'run-tests'
   dir: *dir
