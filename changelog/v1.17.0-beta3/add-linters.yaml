@@ -4,4 +4,5 @@ changelog:
   resolvesIssue: false
   description: >-
     Add linters:
+      - errname
     skipCI-docs-build:true
