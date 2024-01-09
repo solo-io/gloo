@@ -93,7 +93,7 @@ var _ = Describe("Helm Test", func() {
 			}
 			selector         map[string]string
 			testManifest     TestManifest
-			renderErr        error
+			renderErr        error //nolint:errname // not used as sentinel error
 			statsAnnotations map[string]string
 		)
 

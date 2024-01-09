@@ -32,7 +32,7 @@ func GetUpgradeVersions(ctx context.Context, repoName string) (*versionutils.Ver
 		return nil, nil, changelogutils.ReadChangelogDirError(changelogReadErr)
 	}
 	latestRelease, upcomingRelease, upcomingReleaseErr := version.ChangelogDirForLatestRelease(files...)
-	if upcomingReleaseErr != nil && !errors.Is(upcomingReleaseErr, version.FirstReleaseError) {
+	if upcomingReleaseErr != nil && !errors.Is(upcomingReleaseErr, version.ErrFirstRelease) {
 		return nil, nil, upcomingReleaseErr
 	}
 

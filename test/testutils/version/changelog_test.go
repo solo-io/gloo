@@ -37,7 +37,7 @@ var _ = Describe("upgrade utils unit tests", func() {
 			Expect(ver.String()).To(Equal("v1.7.1"), fmt.Sprintf("%v", baseEntries))
 			Expect(err).To(HaveOccurred())
 			Expect(curVer.String()).To(Equal("v1.8.0-beta1"), fmt.Sprintf("%v", baseEntries))
-			Expect(err).To(Equal(version.FirstReleaseError))
+			Expect(err).To(Equal(version.ErrFirstRelease))
 		})
 	})
 

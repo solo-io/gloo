@@ -43,29 +43,29 @@ type ErrorWithKnownLevel interface {
 	GetError() error
 }
 
-// TcpHostWarning implements ErrorWithKnownLevel; it is intended to allow
+// TcpHostWarningError implements ErrorWithKnownLevel; it is intended to allow
 // reporting certain errors as warnings and others as errors, and provides the
 // necessary context required for reporting errors as such
-type TcpHostWarning struct {
+type TcpHostWarningError struct {
 	Err      error
 	ErrLevel string
 	Context  ErrorLevelContext
 }
 
-func (tcpHostWarning *TcpHostWarning) ErrorLevel() string {
+func (tcpHostWarning *TcpHostWarningError) ErrorLevel() string {
 	return tcpHostWarning.ErrLevel
 }
 
-func (tcpHostWarning *TcpHostWarning) Error() string {
+func (tcpHostWarning *TcpHostWarningError) Error() string {
 	return fmt.Sprintf("TcpHost error: %v", tcpHostWarning.Err)
 }
 
-func (tcpHostWarning *TcpHostWarning) GetContext() ErrorLevelContext {
+func (tcpHostWarning *TcpHostWarningError) GetContext() ErrorLevelContext {
 	return tcpHostWarning.Context
 }
 
 // return the instance of the Error this object is wrapping
-func (tcpHostWarning *TcpHostWarning) GetError() error {
+func (tcpHostWarning *TcpHostWarningError) GetError() error {
 	return tcpHostWarning.Err
 }
 

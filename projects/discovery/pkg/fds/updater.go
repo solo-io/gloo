@@ -19,7 +19,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
 
-var errorUndetectableUpstream = errors.New("upstream type cannot be detected")
+var errUndetectableUpstream = errors.New("upstream type cannot be detected")
 
 type UpstreamWriterClient interface {
 	Write(resource *v1.Upstream, opts clients.WriteOpts) (*v1.Upstream, error)
@@ -270,7 +270,7 @@ func (u *updaterUpdater) detectType(url_ url.URL) ([]*detectResult, error) {
 			}
 			if numResultsReceived == len(u.functionalPlugins) {
 				if len(results) == 0 {
-					return nil, errorUndetectableUpstream
+					return nil, errUndetectableUpstream
 				}
 				return results, nil
 			}
@@ -315,7 +315,7 @@ func (u *updaterUpdater) Run() error {
 		// try to detect the type
 		res, err := u.detectType(*resolvedUrl)
 		if err != nil {
-			if err == errorUndetectableUpstream {
+			if err == errUndetectableUpstream {
 				// TODO(yuval-k): at this point all discoveries gave up.
 				// do we want to mark an upstream as undetected persistently so we do not detect it anymore?
 			}

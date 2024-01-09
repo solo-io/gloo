@@ -25,8 +25,8 @@ var (
 	ProvideNamespaceAndNameError = func(namespace, secretName string) error {
 		return errors.Errorf("provide both a secret namespace [%v] and secret name [%v]", namespace, secretName)
 	}
-	EmptyQueryError       = errors.Errorf("query must not be empty")
-	InvalidRefFormatError = errors.Errorf("invalid format: provide namespaced names for config maps (namespace.configMapName)")
+	ErrEmptyQuery       = errors.Errorf("query must not be empty")
+	ErrInvalidRefFormat = errors.Errorf("invalid format: provide namespaced names for config maps (namespace.configMapName)")
 )
 
 func AuthConfigCreate(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
@@ -184,14 +184,14 @@ func authFromOpts(ac *extauth.AuthConfig, input options.InputAuthConfig) error {
 		query := opaAuth.Query
 
 		if len(query) == 0 {
-			return EmptyQueryError
+			return ErrEmptyQuery
 		}
 
 		for _, moduleRef := range opaAuth.Modules {
 
 			splits := strings.Split(moduleRef, ".")
 			if len(splits) != 2 {
-				return InvalidRefFormatError
+				return ErrInvalidRefFormat
 			}
 			namespace := splits[0]
 			name := splits[1]

@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	invalidReportsListenersErr         = errors.Errorf("internal err: reports did not match number of listeners")
-	invalidReportsVirtualHostsErr      = errors.Errorf("internal err: reports did not match number of virtual hosts")
-	invalidReportsHybridRcNameNotFound = errors.Errorf("internal err: reports did not match expected hybrid rcName")
-	missingReportForSourceErr          = errors.Errorf("internal err: missing resource report for source resource")
+	errInvalidReportsListeners            = errors.Errorf("internal err: reports did not match number of listeners")
+	errInvalidReportsVirtualHosts         = errors.Errorf("internal err: reports did not match number of virtual hosts")
+	errInvalidReportsHybridRcNameNotFound = errors.Errorf("internal err: reports did not match expected hybrid rcName")
+	errMissingReportForSource             = errors.Errorf("internal err: missing resource report for source resource")
 )
 
 // Update a set of ResourceReports with the results of a proxy validation
@@ -27,7 +27,7 @@ var (
 func AddProxyValidationResult(resourceReports reporter.ResourceReports, proxy *gloov1.Proxy, proxyReport *validation.ProxyReport) error {
 	listenerReports := proxyReport.GetListenerReports()
 	if len(listenerReports) != len(proxy.GetListeners()) {
-		return invalidReportsListenersErr
+		return errInvalidReportsListeners
 	}
 
 	for i, listenerReport := range listenerReports {
@@ -43,7 +43,7 @@ func AddProxyValidationResult(resourceReports reporter.ResourceReports, proxy *g
 			virtualHosts := listener.GetHttpListener().GetVirtualHosts()
 
 			if len(vhReports) != len(virtualHosts) {
-				return invalidReportsVirtualHostsErr
+				return errInvalidReportsVirtualHosts
 			}
 
 			for j, vhReport := range vhReports {
@@ -64,12 +64,12 @@ func AddProxyValidationResult(resourceReports reporter.ResourceReports, proxy *g
 					vhReports := httpListenerReport.GetVirtualHostReports()
 					httpListener, ok := mappedHttpListeners[rcName]
 					if !ok {
-						return invalidReportsHybridRcNameNotFound
+						return errInvalidReportsHybridRcNameNotFound
 					}
 					virtualHosts := httpListener.GetVirtualHosts()
 
 					if len(vhReports) != len(virtualHosts) {
-						return invalidReportsVirtualHostsErr
+						return errInvalidReportsVirtualHosts
 					}
 
 					for j, vhReport := range vhReports {
@@ -96,7 +96,7 @@ func AddProxyValidationResult(resourceReports reporter.ResourceReports, proxy *g
 				virtualHostRefs := mappedVirtualHostRefs[reportKey]
 
 				if len(vhReports) != len(virtualHostRefs) {
-					return invalidReportsVirtualHostsErr
+					return errInvalidReportsVirtualHosts
 				}
 
 				for j, vhReport := range vhReports {
@@ -120,7 +120,7 @@ func addListenerResult(resourceReports reporter.ResourceReports, listener *gloov
 	return translator.ForEachSource(listener, func(src translator.SourceRef) error {
 		srcResource, _ := resourceReports.Find(src.ResourceKind, &core.ResourceRef{Name: src.Name, Namespace: src.Namespace})
 		if srcResource == nil {
-			return missingReportForSourceErr
+			return errMissingReportForSource
 		}
 		resourceReports.AddErrors(srcResource, listenerErrs...)
 		return nil
@@ -133,7 +133,7 @@ func addVirtualHostResult(resourceReports reporter.ResourceReports, virtualHost 
 	return translator.ForEachSource(virtualHost, func(src translator.SourceRef) error {
 		srcResource, _ := resourceReports.Find(src.ResourceKind, &core.ResourceRef{Name: src.Name, Namespace: src.Namespace})
 		if srcResource == nil {
-			return missingReportForSourceErr
+			return errMissingReportForSource
 		}
 		resourceReports.AddErrors(srcResource, virtualHostErrs...)
 		resourceReports.AddWarnings(srcResource, virtualHostWarnings...)

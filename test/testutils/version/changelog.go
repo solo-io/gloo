@@ -59,14 +59,14 @@ func ChangelogDirForLatestRelease[T namedEntry](files ...T) (
 	sort.Sort(sortableVersionSlice(versions))
 
 	if versions[len(versions)-1].Minor != versions[len(versions)-2].Minor {
-		err = FirstReleaseError
+		err = ErrFirstRelease
 	}
 	return versions[len(versions)-2], versions[len(versions)-1], err
 }
 
 var (
-	// FirstReleaseError is returned when the changelog dir is for the first release of a minor version
-	FirstReleaseError = errors.New("First Release of Minor")
+	// ErrFirstRelease is returned when the changelog dir is for the first release of a minor version
+	ErrFirstRelease = errors.New("First Release of Minor")
 )
 
 // versionSort is a helper type for sorting versions in a slice

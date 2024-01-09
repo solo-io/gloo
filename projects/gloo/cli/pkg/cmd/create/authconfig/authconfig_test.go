@@ -244,7 +244,7 @@ var _ = Describe("AuthConfig", func() {
 	Context("OPA auth config errors", func() {
 		It("throws error if no query provided ", func() {
 			_, err := testutils.GlooctlOut("create ac --name ac1 --enable-opa-auth")
-			Expect(err).To(MatchError(authconfig.EmptyQueryError))
+			Expect(err).To(MatchError(authconfig.ErrEmptyQuery))
 		})
 	})
 

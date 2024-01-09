@@ -36,8 +36,8 @@ const (
 )
 
 var (
-	InvalidRouteActionError = errors.New("cannot use cors plugin on non-Route_Route route actions")
-	pluginStage             = plugins.DuringStage(plugins.CorsStage)
+	ErrInvalidRouteAction = errors.New("cannot use cors plugin on non-Route_Route route actions")
+	pluginStage           = plugins.DuringStage(plugins.CorsStage)
 )
 
 type plugin struct {
@@ -98,7 +98,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 
 	// the cors filter can only be used on routes that are of type envoyroute.Route_Route
 	if out.GetAction() != nil && out.GetRoute() == nil {
-		return InvalidRouteActionError
+		return ErrInvalidRouteAction
 	}
 	// we have already ensured that the output route action is either nil or of the proper type
 	// if it is nil, we initialize it prior to transforming it

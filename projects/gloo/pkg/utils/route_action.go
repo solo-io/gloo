@@ -7,12 +7,12 @@ import (
 )
 
 var (
-	InvalidRouteActionError = errors.New("cannot use this plugin on non-Route_Route route actions")
+	ErrInvalidRouteAction = errors.New("cannot use this plugin on non-Route_Route route actions")
 )
 
 func EnsureRouteAction(out *envoy_config_route_v3.Route) error {
 	if out.GetAction() != nil && out.GetRoute() == nil {
-		return InvalidRouteActionError
+		return ErrInvalidRouteAction
 	}
 	// we have already ensured that the output route action is either nil or of the proper type
 	// if it is nil, we initialize it prior to transforming it
