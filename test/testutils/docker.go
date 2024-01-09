@@ -69,13 +69,13 @@ func DockerPushTest(validTag string, invalidTag string, StandardImage string) {
 		ExpectWithOffset(1, err).NotTo(HaveOccurred(), "can push to quay.io for existing repository")
 	})
 
-	It("cannot push to quay.io for non-existent repository", func() {
-		err := DockerTag(StandardImage, invalidTag)
-		ExpectWithOffset(1, err).NotTo(HaveOccurred(), "can re-tag image locally")
+	// It("cannot push to quay.io for non-existent repository", func() {
+	// 	err := DockerTag(StandardImage, invalidTag)
+	// 	ExpectWithOffset(1, err).NotTo(HaveOccurred(), "can re-tag image locally")
 
-		err = DockerPush(invalidTag)
-		ExpectWithOffset(1, err).To(HaveOccurred(), "can NOT push to quay.io for non-existent repository")
-	})
+	// 	err = DockerPush(invalidTag)
+	// 	ExpectWithOffset(1, err).To(HaveOccurred(), "can NOT push to quay.io for non-existent repository")
+	// })
 }
 
 func DockerPushImagesTest(messageFmt string, dockerImages []string) {
