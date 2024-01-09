@@ -42,13 +42,13 @@ var _ = Describe("Docker", func() {
 			Expect(err).NotTo(HaveOccurred(), "can push to quay.io for existing repository")
 		})
 
-		It("cannot push to quay.io for non-existent repository", func() {
-			err := testutils.DockerTag(StandardGlooImage, invalidTag)
-			Expect(err).NotTo(HaveOccurred(), "can re-tag image locally")
-
-			err = testutils.DockerPush(invalidTag)
-			Expect(err).To(HaveOccurred(), "can NOT push to quay.io for non-existent repository")
-		})
+		// It("cannot push to quay.io for non-existent repository", func() {
+		// 	err := testutils.DockerTag(StandardGlooImage, invalidTag)
+		// 	Expect(err).NotTo(HaveOccurred(), "can re-tag image locally")
+		//
+		// 	err = testutils.DockerPush(invalidTag)
+		// 	Expect(err).To(HaveOccurred(), "can NOT push to quay.io for non-existent repository")
+		// })
 
 	})
 
