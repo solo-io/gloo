@@ -3381,6 +3381,7 @@ spec:
 								"global.glooMtls.istioProxy.image.repository=my-istio-repo",
 								"global.glooMtls.istioProxy.image.registry=my-istio-reg",
 								"global.glooMtls.istioProxy.image.pullPolicy=Always",
+								"global.image.fips=true",
 							},
 						})
 
@@ -3408,6 +3409,31 @@ spec:
 						Expect(gwpDepl.Spec.Template.Spec.Volumes[5]).To(Equal(v1.Volume{Name: "credential-socket", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}}))
 						Expect(gwpDepl.Spec.Template.Spec.Volumes[6]).To(Equal(v1.Volume{Name: "workload-socket", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}}))
 						Expect(gwpDepl.Spec.Template.Spec.Volumes[7]).To(Equal(v1.Volume{Name: "workload-certs", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}}))
+					})
+
+					It("can use the sds-fips image", func() {
+						prepareMakefile(namespace, helmValues{
+							valuesArgs: []string{
+								"global.glooMtls.enabled=true",
+								"global.istioSDS.enabled=true",
+								"global.glooMtls.sds.image.registry=my-sds-reg",
+								"global.glooMtls.sds.image.tag=my-sds-tag",
+								"global.image.fips=true",
+							},
+						})
+
+						gwpUns := testManifest.ExpectCustomResource("Deployment", namespace, "gateway-proxy")
+						gwpObj, err := kuberesource.ConvertUnstructured(gwpUns)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(gwpObj).To(BeAssignableToTypeOf(&appsv1.Deployment{}))
+						gwpDepl := *gwpObj.(*appsv1.Deployment)
+						Expect(gwpDepl.Spec.Template.Spec.Containers).To(HaveLen(3))
+
+						sdsContainer := gwpDepl.Spec.Template.Spec.Containers[1]
+						Expect(sdsContainer.Name).To(Equal("sds"))
+						Expect(sdsContainer.Image).To(Equal("my-sds-reg/sds-fips:my-sds-tag"))
+						Expect(sdsContainer.ImagePullPolicy).To(Equal(v1.PullIfNotPresent))
+
 					})
 
 					It("adds readConfig annotations", func() {
@@ -5044,7 +5070,7 @@ metadata:
 
 					})
 
-					It("supports deploying the fips envoy image", func() {
+					It("supports deploying the fips discovery image", func() {
 						discoveryDeployment.Spec.Template.Spec.Containers[0].Image = "quay.io/solo-io/discovery-ee-fips:" + version
 						prepareMakefile(namespace, helmValues{
 							valuesArgs: []string{
