@@ -2,6 +2,7 @@ package make_test
 
 import (
 	. "github.com/onsi/ginkgo/v2"
+	"github.com/solo-io/gloo/test/testutils"
 )
 
 // Environment Variables which control the value of makefile vars
@@ -25,33 +26,33 @@ const (
 var _ = Describe("Make", func() {
 	Context("PUBLISH_CONTEXT", func() {
 		It("Correctly sets variables when PUBLISH_CONTEXT is unset", func() {
-			ExpectMakeVarsWithEnvVars([]*EnvVar{
+			testutils.ExpectMakeVarsWithEnvVars([]*testutils.EnvVar{
 				{PublishContext, ""},
 				{TestAssetId, ""},
 				{TaggedVersion, ""},
-			}, []*MakeVar{
+			}, []*testutils.MakeVar{
 				{HelmBucket, "gs://solo-public-tagged-helm"},
 				{QuayExpirationLabel, "--label quay.expires-after=3w"},
 			})
 		})
 
 		It("Correctly sets variables when PUBLISH_CONTEXT is RELEASE", func() {
-			ExpectMakeVarsWithEnvVars([]*EnvVar{
+			testutils.ExpectMakeVarsWithEnvVars([]*testutils.EnvVar{
 				{PublishContext, "RELEASE"},
 				{TestAssetId, ""},
 				{TaggedVersion, ""},
-			}, []*MakeVar{
+			}, []*testutils.MakeVar{
 				{HelmBucket, "gs://solo-public-helm"},
 				{QuayExpirationLabel, ""},
 			})
 		})
 
 		It("Correctly sets variables when PUBLISH_CONTEXT is PULL_REQUEST", func() {
-			ExpectMakeVarsWithEnvVars([]*EnvVar{
+			testutils.ExpectMakeVarsWithEnvVars([]*testutils.EnvVar{
 				{PublishContext, "PULL_REQUEST"},
 				{TestAssetId, ""},
 				{TaggedVersion, ""},
-			}, []*MakeVar{
+			}, []*testutils.MakeVar{
 				{HelmBucket, "gs://solo-public-tagged-helm"},
 				{QuayExpirationLabel, "--label quay.expires-after=3w"},
 			})

@@ -150,3 +150,34 @@ func ValidateCrypto(imageName string, binaryPath string, binaryLocalPath string,
 		Not(ContainSubstring("Error 1 (ignored)")),
 	))
 }
+
+type EnvVar struct {
+	Name, Value string
+}
+
+type MakeVar struct {
+	Name, ExpectedValue string
+}
+
+// ExpectMakeOutputWithOffset expects that the output of a single make target is equal to the provided matcher
+// To provide flags to the target, separate them from the target name with a space:
+//
+//	ExpectMakeOutputWithOffset(1, "docker-push --ignore-errors", Equal("some output"))
+func ExpectMakeVarsWithEnvVars(envVars []*EnvVar, makeVars []*MakeVar) {
+	for _, envVar := range envVars {
+		err := os.Setenv(envVar.Name, envVar.Value)
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	}
+	for _, makeVar := range makeVars {
+		cmd := exec.Command("make", "-C", "../..", fmt.Sprintf("print-%s", makeVar.Name))
+		out, err := cmd.CombinedOutput()
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		output := strings.TrimSpace(string(out))
+
+		ExpectWithOffset(1, output).To(ContainSubstring(makeVar.ExpectedValue))
+	}
+	for _, envVar := range envVars {
+		err := os.Unsetenv(envVar.Name)
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	}
+}
