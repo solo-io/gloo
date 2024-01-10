@@ -97,6 +97,10 @@ func DockerPushImagesTest(messageFmt string, dockerImages []string) {
 	ExpectMakeOutputWithOffset(1, "docker-push --ignore-errors", countMatcher)
 }
 
+// ExpectMakeOutputWithOffset expects that the output of a single make target is equal to the provided matcher
+// To provide flags to the target, separate them from the target name with a space:
+//
+//	ExpectMakeOutputWithOffset(1, "docker-push --ignore-errors", Equal("some output"))
 func ExpectMakeOutputWithOffset(offset int, target string, outputMatcher types.GomegaMatcher) {
 	makeArgs := append([]string{
 		"--directory",
@@ -159,10 +163,8 @@ type MakeVar struct {
 	Name, ExpectedValue string
 }
 
-// ExpectMakeOutputWithOffset expects that the output of a single make target is equal to the provided matcher
-// To provide flags to the target, separate them from the target name with a space:
-//
-//	ExpectMakeOutputWithOffset(1, "docker-push --ignore-errors", Equal("some output"))
+// ExpectMakeVarsWithEnvVars expects that if you assign the provided envVars,
+// that the output of each make command is equal to the provided string
 func ExpectMakeVarsWithEnvVars(envVars []*EnvVar, makeVars []*MakeVar) {
 	for _, envVar := range envVars {
 		err := os.Setenv(envVar.Name, envVar.Value)
