@@ -46,6 +46,8 @@ function create_kind_cluster_or_skip() {
 # This config is roughly based on: https://kind.sigs.k8s.io/docs/user/ingress/
 create_kind_cluster_or_skip
 
+make install-build-tools
+
 if [[ $SKIP_DOCKER == 'true' ]]; then
   echo "SKIP_DOCKER=true, not building images or chart"
 else
@@ -56,6 +58,7 @@ else
   VERSION=$VERSION USE_SILENCE_REDIRECTS=true make -s build-test-chart
 fi
 
+echo "Building cli"
 # 4. Build the gloo command line tool, ensuring we have one in the `_output` folder
 USE_SILENCE_REDIRECTS=true make -s build-cli-local
 
