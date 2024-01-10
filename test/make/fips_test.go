@@ -17,13 +17,6 @@ var _ = Describe("FIPS", func() {
 			sdsFipsBinaryLocalPath     = "gloo-fips"
 		)
 
-		// BeforeAll(func() {
-		// 	for _, image := range []string{StandardSdsImage} {
-		// 		_, err := docker.PullIfNotPresent(context.Background(), image, 3)
-		// 		Expect(err).NotTo(HaveOccurred(), "can pull image locally")
-		// 	}
-		// })
-
 		AfterAll(func() {
 			for _, binaryPath := range []string{sdsStandardBinaryLocalPath, sdsFipsBinaryLocalPath} {
 				_ = os.Remove(binaryPath)

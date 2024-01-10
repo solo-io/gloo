@@ -34,7 +34,7 @@ func DockerPush(image string) error {
 func CopyImageFileToLocal(imageName string, pathToSource, pathToDestination string) error {
 	tmpContainerName := fmt.Sprintf("tmp-container-%d", parallel.GetParallelProcessCount())
 
-	// If running in development, you need to add "--platform", "linux/amd64" or it will use the warning as the image name
+	// If running in a non "linux/amd64" environment, you need to add "--platform", "linux/amd64" after "create" or it will use the warning as the image name
 	cmd := exec.Command("docker", "create", "--name", tmpContainerName, imageName)
 	containerIdRaw, err := cmd.CombinedOutput()
 	if err != nil {
