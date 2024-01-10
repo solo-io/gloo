@@ -30,7 +30,7 @@ var _ = Describe("FIPS", func() {
 			}
 		})
 
-		FIt("successfully validates standard-crypto binary", func() {
+		It("successfully validates standard-crypto binary", func() {
 			testutils.ValidateCrypto(StandardSdsImage, sdsContainerBinaryPath, sdsStandardBinaryLocalPath, testutils.ExpectStandardCrypto)
 		})
 

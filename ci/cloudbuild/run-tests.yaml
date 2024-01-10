@@ -79,12 +79,12 @@ steps:
   dir: *dir
   args:
   - 'install-test-tools'
+  - 'install-build-tools'
   waitFor:
   - 'prepare-envoy'
   - 'prepare-aws-creds'
   - 'prepare-gcr-zone'
   - 'prepare-test-credentials'
-
 
 # We have certain Make tests which validate that we can pull/push images to quay.io
 - name: "gcr.io/cloud-builders/docker"
