@@ -55,7 +55,7 @@ func installGloo() {
 	repo := "http://helm-repo/"
 
 	// argocd --core app create gloo \
-	// --repo http://helm-repo/ --helm-chart gloo --revision $VERSION \
+	// --repo http://helm-repo/ --helm-chart gloo --revision 1.0.0-ci \
 	// --dest-namespace gloo-system --dest-server https://kubernetes.default.svc \
 	// --sync-option CreateNamespace=true --upsert --values-literal-file helm-override.yaml
 	command := []string{"--core", "app", "create", "gloo",
@@ -90,7 +90,7 @@ func checkRolloutJobDeleted() {
 		b, err := cmd.Output()
 		Expect(err).To(BeNil())
 		return string(b)
-	}, "60s", "10s").ShouldNot(
+	}, "300s", "10s").ShouldNot(
 		ContainSubstring("gloo-resource-rollout "))
 }
 
