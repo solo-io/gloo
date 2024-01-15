@@ -84,6 +84,10 @@ The *Reporter* receives a validation report for every Upstream and Virtual Servi
 
 The final snapshot is passed to the *xDS Server*, which notifies Envoy of a successful config update, updating the Envoy cluster with a new configuration to match the desired state set expressed by Gloo Edge.
 
+{{% notice warning %}}
+By default, xDS occurs over gRPC. Gloo Edge also supports REST xDS, although this is not recommended for production use, as it performs worse than gRPC and does not offer any additional benefits.
+{{% /notice %}}
+
 --- 
 
 ## Discovery Architecture
