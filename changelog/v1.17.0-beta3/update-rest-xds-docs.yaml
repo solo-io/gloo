@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/8968
+    resolvesIssue: false
+    description: >- 
+      Update language in architecture docs to indicate that REST xDS should not 
+      be used in favor of GRPC xDS.
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
