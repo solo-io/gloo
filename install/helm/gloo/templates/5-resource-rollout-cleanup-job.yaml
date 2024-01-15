@@ -64,6 +64,7 @@ spec:
               # Clean it up so it doesn't cause issues with upgrades
               kubectl -n {{ .Release.Namespace }} delete job gloo-resource-rollout || exit $?
             fi
+{{- if .Values.global.glooRbac.create }}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -149,4 +150,5 @@ subjects:
 - kind: ServiceAccount
   name: gloo-resource-rollout-cleanup
   namespace: {{ .Release.Namespace }}
+{{- end }}{{/* if .Values.global.glooRbac.create */}}
 {{- end }}{{/* if .Values.gateway.rolloutJob.enabled  */}}
