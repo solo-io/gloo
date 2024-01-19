@@ -3,5 +3,5 @@ changelog:
     description: >
       Introduce stalebot action.
       
-      skipCI-docs-build:true
-      skipCI-kube-tests:true
+      skipCI-docs-build:false
+      skipCI-kube-tests:false

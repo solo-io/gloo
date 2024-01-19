@@ -2,4 +2,4 @@ changelog:
   - type: NON_USER_FACING
     description: >- 
       Add changes for clear route cache behavior. 
-      skipCI-kube-tests:true
+      skipCI-kube-tests:false

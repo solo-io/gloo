@@ -2,4 +2,4 @@ changelog:
   - type: NON_USER_FACING
     description: >- 
       Adds in docs for the TAP filter feature. 
-      skipCI-kube-tests:true
+      skipCI-kube-tests:false
