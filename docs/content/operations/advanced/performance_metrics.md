@@ -27,7 +27,7 @@ These metrics are collected for the following domains:
 ## A practical example
 
 The view used for the sync time metrics is a distribution/histogram, but it is possible to measure a single event using the `_sync_time_sec_sum` metrics.
-This view of the metric stores a cumumlative run time, so we can store the value, update the system, and then get the new value.
+This view of the metric stores a cumulative run time, so we can store the value, update the system, and then get the new value.
 
 With a cluster running, start port-forwarding the Gloo metrics port:
 ```
@@ -70,7 +70,7 @@ api_gloosnapshot_gloo_solo_io_sync_time_sec_sum{syncer_name="gloosnapshot.ApiSyn
 eds_gloo_solo_io_sync_time_sec_sum{syncer_name="*discovery.syncer"} 1.854135166
 ```
 
-We can again store the values in environment variables, though 
+We can again store the values in environment variables
 ```
 export SNAPSHOT_TIME_END=`curl http://localhost:9091/metrics | grep api_gloosnapshot_gloo_solo_io_sync_time_sec_sum | sed 's/.* //'`
 export EDS_TIME_END=`curl http://localhost:9091/metrics | grep eds_gloo_solo_io_sync_time_sec_sum | sed 's/.* //'`   
