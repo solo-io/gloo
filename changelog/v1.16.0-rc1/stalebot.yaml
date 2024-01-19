@@ -1,7 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    description: >
-      Introduce stalebot action.
-      
-      skipCI-docs-build:false
-      skipCI-kube-tests:false
