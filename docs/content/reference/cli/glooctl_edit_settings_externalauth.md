@@ -1,25 +1,25 @@
 ---
-title: "glooctl version"
+title: "glooctl edit settings externalauth"
 weight: 5
 ---
-## glooctl version
+## glooctl edit settings externalauth
 
-Print current version
+Configure external auth settings (Enterprise)
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+Let gloo know the location of the ext auth server. This is a Gloo Enterprise feature.
 
 ```
-glooctl version [flags]
+glooctl edit settings externalauth [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+      --extauth-server-name string        name of the ext auth server upstream
+      --extauth-server-namespace string   namespace of the ext auth server upstream
+  -h, --help                              help for externalauth
 ```
 
 ### Options inherited from parent commands
@@ -35,10 +35,14 @@ glooctl version [flags]
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
+      --name string                name of the resource to read or write
+  -n, --namespace string           namespace for reading or writing resources (default "gloo-system")
+  -o, --output OutputType          output format: (yaml, json, table, kube-yaml, wide) (default table)
+      --resource-version string    the resource version of the resource we are editing. if not empty, resource will only be changed if the resource version matches
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl edit settings](../glooctl_edit_settings)	 - root command for settings
 

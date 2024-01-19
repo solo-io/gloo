@@ -1,25 +1,22 @@
 ---
-title: "glooctl version"
+title: "glooctl get"
 weight: 5
 ---
-## glooctl version
+## glooctl get
 
-Print current version
-
-### Synopsis
-
-Get the version of Glooctl and Gloo
+Display one or a list of Gloo resources
 
 ```
-glooctl version [flags]
+glooctl get [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
+  -h, --help                help for get
+      --name string         name of the resource to read or write
   -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default table)
 ```
 
 ### Options inherited from parent commands
@@ -41,4 +38,11 @@ glooctl version [flags]
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl get authconfig](../glooctl_get_authconfig)	 - read an authconfig or list authconfigs in a namespace
+* [glooctl get proxy](../glooctl_get_proxy)	 - read a proxy or list proxies in a namespace
+* [glooctl get ratelimitconfig](../glooctl_get_ratelimitconfig)	 - read a ratelimitconfig or list ratelimitconfigs in a namespace
+* [glooctl get routetable](../glooctl_get_routetable)	 - read a route table or list route tables in a namespace
+* [glooctl get upstream](../glooctl_get_upstream)	 - read an upstream or list upstreams in a namespace
+* [glooctl get upstreamgroup](../glooctl_get_upstreamgroup)	 - read an upstream group or list upstream groups in a namespace
+* [glooctl get virtualservice](../glooctl_get_virtualservice)	 - read a virtualservice or list virtualservices in a namespace
 

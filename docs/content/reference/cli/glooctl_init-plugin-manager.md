@@ -1,25 +1,21 @@
 ---
-title: "glooctl version"
+title: "glooctl init-plugin-manager"
 weight: 5
 ---
-## glooctl version
+## glooctl init-plugin-manager
 
-Print current version
-
-### Synopsis
-
-Get the version of Glooctl and Gloo
+Install the Gloo Edge Enterprise CLI plugin manager
 
 ```
-glooctl version [flags]
+glooctl init-plugin-manager [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -f, --force              Delete any existing plugin data if found and reinitialize
+      --gloo-home string   Gloo home directory (default: $HOME/.gloo)
+  -h, --help               help for init-plugin-manager
 ```
 
 ### Options inherited from parent commands

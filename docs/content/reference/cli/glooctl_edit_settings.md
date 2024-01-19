@@ -1,25 +1,18 @@
 ---
-title: "glooctl version"
+title: "glooctl edit settings"
 weight: 5
 ---
-## glooctl version
+## glooctl edit settings
 
-Print current version
-
-### Synopsis
-
-Get the version of Glooctl and Gloo
-
-```
-glooctl version [flags]
-```
+root command for settings
 
 ### Options
 
 ```
-  -h, --help                help for version
+  -h, --help                help for settings
+      --name string         name of the resource to read or write
   -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default table)
 ```
 
 ### Options inherited from parent commands
@@ -35,10 +28,13 @@ glooctl version [flags]
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
+      --resource-version string    the resource version of the resource we are editing. if not empty, resource will only be changed if the resource version matches
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl edit](../glooctl_edit)	 - Edit a Gloo resource
+* [glooctl edit settings externalauth](../glooctl_edit_settings_externalauth)	 - Configure external auth settings (Enterprise)
+* [glooctl edit settings ratelimit](../glooctl_edit_settings_ratelimit)	 - Configure rate limit settings (Enterprise)
 

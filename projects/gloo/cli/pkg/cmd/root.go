@@ -5,18 +5,34 @@ import (
 	"fmt"
 	"os"
 
-	v2 "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/install/v2"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
-	"k8s.io/kubectl/pkg/cmd"
-
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/add"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
+	check_crds "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check-crds"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/create"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/dashboard"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/debug"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/del"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/demo"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/federation"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gateway"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/get"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/initpluginmanager"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/install"
+	v2 "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/install/v2"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/istio"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/plugin"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/remove"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/route"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/upgrade"
 	versioncmd "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/version"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/prerun"
 	"github.com/solo-io/go-utils/cliutils"
-
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/spf13/cobra"
+	"k8s.io/kubectl/pkg/cmd"
 )
 
 func App(opts *options.Options, preRunFuncs []RunnableCommand, postRunFuncs []RunnableCommand, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
@@ -80,36 +96,37 @@ func GlooCli() *cobra.Command {
 
 	optionsFunc := func(app *cobra.Command) {
 		pflags := app.PersistentFlags()
-		// pflags.BoolVarP(&opts.Top.Interactive, "interactive", "i", false, "use interactive mode")
+		pflags.BoolVarP(&opts.Top.Interactive, "interactive", "i", false, "use interactive mode")
 		pflags.StringVarP(&opts.Top.ConfigFilePath, "config", "c", DefaultConfigPath, "set the path to the glooctl config file")
+		flagutils.AddConsulConfigFlags(pflags, &opts.Top.Consul)
 		flagutils.AddKubeContextFlag(pflags, &opts.Top.KubeContext)
 
 		opts.Top.Ctx = context.WithValue(opts.Top.Ctx, "top", opts.Top.ContextAccessible)
 
 		app.SuggestionsMinimumDistance = 1
 		app.AddCommand(
-			// get.RootCmd(opts),
-			// del.RootCmd(opts),
-			// install.InstallCmd(opts),
+			get.RootCmd(opts),
+			del.RootCmd(opts),
+			install.InstallCmd(opts),
+			demo.RootCmd(opts),
+			add.RootCmd(opts),
+			remove.RootCmd(opts),
+			route.RootCmd(opts),
+			create.RootCmd(opts),
+			edit.RootCmd(opts),
+			upgrade.RootCmd(opts),
+			gateway.RootCmd(opts),
+			check.RootCmd(opts),
+			check_crds.RootCmd(opts),
+			debug.RootCmd(opts),
+			versioncmd.RootCmd(opts),
+			dashboard.RootCmd(opts),
+			federation.RootCmd(opts),
+			plugin.RootCmd(opts),
+			istio.RootCmd(opts),
+			initpluginmanager.Command(context.Background()),
 			v2.InstallCmd(opts),
 			v2.UninstallCmd(opts),
-			// demo.RootCmd(opts),
-			// add.RootCmd(opts),
-			// remove.RootCmd(opts),
-			// route.RootCmd(opts),
-			// create.RootCmd(opts),
-			// edit.RootCmd(opts),
-			// upgrade.RootCmd(opts),
-			// gateway.RootCmd(opts),
-			check.RootCmd(opts),
-			// check_crds.RootCmd(opts),
-			// debug.RootCmd(opts),
-			versioncmd.RootCmd(opts),
-			// dashboard.RootCmd(opts),
-			// federation.RootCmd(opts),
-			// plugin.RootCmd(opts),
-			// istio.RootCmd(opts),
-			// initpluginmanager.Command(context.Background()),
 			completionCmd(),
 		)
 	}

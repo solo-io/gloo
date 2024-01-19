@@ -1,25 +1,25 @@
 ---
-title: "glooctl version"
+title: "glooctl dashboard"
 weight: 5
 ---
-## glooctl version
+## glooctl dashboard
 
-Print current version
+Open Gloo dashboard
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+Open the Gloo dashboard/UI in your default browser
 
 ```
-glooctl version [flags]
+glooctl dashboard [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help               help for dashboard
+  -n, --namespace string   namespace for reading or writing resources (default "gloo-system")
+  -v, --verbose            If true, output from kubectl commands will print to stdout/stderr
 ```
 
 ### Options inherited from parent commands

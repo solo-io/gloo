@@ -1,25 +1,28 @@
 ---
-title: "glooctl version"
+title: "glooctl cluster register"
 weight: 5
 ---
-## glooctl version
+## glooctl cluster register
 
-Print current version
+Register a cluster to the Gloo Federation control plane
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+Register a cluster to the Gloo Federation control plane. Registered clusters can be targeted for discovery and configuration.
 
 ```
-glooctl version [flags]
+glooctl cluster register [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+      --cluster-name string           name of the cluster to register
+      --federation-namespace string   namespace of the Gloo Federation control plane (default "gloo-system")
+  -h, --help                          help for register
+      --remote-context string         name of the kubeconfig context to use for registration
+      --remote-kubeconfig string      path to the kubeconfig from which the registered cluster will be accessed
+      --remote-namespace string       namespace in the target cluster where registration artifacts should be written (default "gloo-system")
 ```
 
 ### Options inherited from parent commands
@@ -40,5 +43,5 @@ glooctl version [flags]
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl cluster](../glooctl_cluster)	 - Cluster commands
 

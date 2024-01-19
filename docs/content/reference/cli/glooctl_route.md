@@ -1,25 +1,17 @@
 ---
-title: "glooctl version"
+title: "glooctl route"
 weight: 5
 ---
-## glooctl version
+## glooctl route
 
-Print current version
-
-### Synopsis
-
-Get the version of Glooctl and Gloo
-
-```
-glooctl version [flags]
-```
+subcommands for interacting with routes within virtual services
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help               help for route
+      --name string        name of the resource to read or write
+  -n, --namespace string   namespace for reading or writing resources (default "gloo-system")
 ```
 
 ### Options inherited from parent commands
@@ -41,4 +33,5 @@ glooctl version [flags]
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl route sort](../glooctl_route_sort)	 - sort routes on an existing virtual service
 

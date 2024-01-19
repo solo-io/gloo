@@ -1,25 +1,20 @@
 ---
-title: "glooctl version"
+title: "glooctl plugin list"
 weight: 5
 ---
-## glooctl version
+## glooctl plugin list
 
-Print current version
-
-### Synopsis
-
-Get the version of Glooctl and Gloo
+List available glooctl plugins
 
 ```
-glooctl version [flags]
+glooctl plugin list [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+      --federation-namespace string   namespace of the Gloo Federation control plane (default "gloo-system")
+  -h, --help                          help for list
 ```
 
 ### Options inherited from parent commands
@@ -40,5 +35,5 @@ glooctl version [flags]
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl plugin](../glooctl_plugin)	 - Commands for interacting with glooctl plugins
 

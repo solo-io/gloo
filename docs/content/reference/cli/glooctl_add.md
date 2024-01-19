@@ -1,25 +1,23 @@
 ---
-title: "glooctl version"
+title: "glooctl add"
 weight: 5
 ---
-## glooctl version
+## glooctl add
 
-Print current version
-
-### Synopsis
-
-Get the version of Glooctl and Gloo
+Adds configuration to a top-level Gloo resource
 
 ```
-glooctl version [flags]
+glooctl add [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
+      --dry-run             print kubernetes-formatted yaml rather than creating or updating a resource
+  -h, --help                help for add
+      --name string         name of the resource to read or write
   -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default table)
 ```
 
 ### Options inherited from parent commands
@@ -41,4 +39,5 @@ glooctl version [flags]
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl add route](../glooctl_add_route)	 - Add a Route to a Virtual Service
 

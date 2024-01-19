@@ -1,25 +1,30 @@
 ---
-title: "glooctl version"
+title: "glooctl install gateway"
 weight: 5
 ---
-## glooctl version
+## glooctl install gateway
 
-Print current version
+install the Gloo Gateway on Kubernetes
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+requires kubectl to be installed
 
 ```
-glooctl version [flags]
+glooctl install gateway [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+      --create-namespace      Create the namespace to install gloo into (default true)
+  -d, --dry-run               Dump the raw installation yaml instead of applying it to kubernetes
+  -f, --file string           Install Gloo from this Helm chart archive file rather than from a release
+  -h, --help                  help for gateway
+  -n, --namespace string      namespace to install gloo into (default "gloo-system")
+      --release-name string   helm release name (default "gloo")
+      --values strings        List of files with value overrides for the Gloo Helm chart, (e.g. --values file1,file2 or --values file1 --values file2)
+      --version string        version to install (e.g. 1.4.0, defaults to latest)
 ```
 
 ### Options inherited from parent commands
@@ -36,9 +41,11 @@ glooctl version [flags]
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
+  -v, --verbose                    If true, output from kubectl commands will print to stdout/stderr
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl install](../glooctl_install)	 - install gloo on different platforms
+* [glooctl install gateway enterprise](../glooctl_install_gateway_enterprise)	 - install the Gloo Enterprise Gateway on Kubernetes
 

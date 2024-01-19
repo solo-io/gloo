@@ -1,25 +1,21 @@
 ---
-title: "glooctl version"
+title: "glooctl istio"
 weight: 5
 ---
-## glooctl version
+## glooctl istio
 
-Print current version
-
-### Synopsis
-
-Get the version of Glooctl and Gloo
+Commands for interacting with Istio in Gloo
 
 ```
-glooctl version [flags]
+glooctl istio [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help               help for istio
+      --name string        name of the resource to read or write
+  -n, --namespace string   namespace for reading or writing resources (default "gloo-system")
 ```
 
 ### Options inherited from parent commands
@@ -41,4 +37,8 @@ glooctl version [flags]
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl istio disable-mtls](../glooctl_istio_disable-mtls)	 - Disables Istio mTLS for a given upstream
+* [glooctl istio enable-mtls](../glooctl_istio_enable-mtls)	 - Enables Istio mTLS for a given upstream
+* [glooctl istio inject](../glooctl_istio_inject)	 - Enable SDS & istio-proxy sidecars in gateway-proxy pod
+* [glooctl istio uninject](../glooctl_istio_uninject)	 - Remove SDS & istio-proxy sidecars from gateway-proxy pod
 

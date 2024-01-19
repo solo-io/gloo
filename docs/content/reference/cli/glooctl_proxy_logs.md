@@ -1,25 +1,21 @@
 ---
-title: "glooctl version"
+title: "glooctl proxy logs"
 weight: 5
 ---
-## glooctl version
+## glooctl proxy logs
 
-Print current version
-
-### Synopsis
-
-Get the version of Glooctl and Gloo
+dump Envoy logs from one of the proxy instancesNote: this will enable verbose logging on Envoy
 
 ```
-glooctl version [flags]
+glooctl proxy logs [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -d, --debug    enable debug logging on the proxy as part of this command (default true)
+  -f, --follow   enable debug logging on the proxy as part of this command
+  -h, --help     help for logs
 ```
 
 ### Options inherited from parent commands
@@ -35,10 +31,13 @@ glooctl version [flags]
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
+      --name string                the name of the proxy service/deployment to use (default "gateway-proxy")
+  -n, --namespace string           namespace for reading or writing resources (default "gloo-system")
+      --port string                the name of the service port to connect to (default "http")
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl proxy](../glooctl_proxy)	 - interact with proxy instances managed by Gloo
 

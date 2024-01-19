@@ -1,25 +1,19 @@
 ---
-title: "glooctl version"
+title: "glooctl debug"
 weight: 5
 ---
-## glooctl version
+## glooctl debug
 
-Print current version
-
-### Synopsis
-
-Get the version of Glooctl and Gloo
+Debug a Gloo resource (requires Gloo running on Kubernetes)
 
 ```
-glooctl version [flags]
+glooctl debug [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help   help for debug
 ```
 
 ### Options inherited from parent commands
@@ -41,4 +35,6 @@ glooctl version [flags]
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl debug logs](../glooctl_debug_logs)	 - Debug Gloo logs (requires Gloo running on Kubernetes)
+* [glooctl debug yaml](../glooctl_debug_yaml)	 - Dump YAML representing the current Gloo state (requires Gloo running on Kubernetes)
 

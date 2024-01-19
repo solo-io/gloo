@@ -1,25 +1,23 @@
 ---
-title: "glooctl version"
+title: "glooctl plugin"
 weight: 5
 ---
-## glooctl version
+## glooctl plugin
 
-Print current version
+Commands for interacting with glooctl plugins
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+Commands for interacting with glooctl plugins. Glooctl plugins are arbitrary binary executables in your path with the prefix 'glooctl-'.
 
 ```
-glooctl version [flags]
+glooctl plugin [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help   help for plugin
 ```
 
 ### Options inherited from parent commands
@@ -41,4 +39,5 @@ glooctl version [flags]
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl plugin list](../glooctl_plugin_list)	 - List available glooctl plugins
 

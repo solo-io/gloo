@@ -1,25 +1,25 @@
 ---
-title: "glooctl version"
+title: "glooctl demo federation"
 weight: 5
 ---
-## glooctl version
+## glooctl demo federation
 
-Print current version
+Bootstrap a multicluster demo with Gloo Federation.
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+Running the Gloo Federation demo setup locally requires 4 tools to be installed and accessible via the PATH: glooctl, kubectl, docker, and kind. This command will bootstrap 2 kind clusters, one of which will run the Gloo Federation management-plane as well as Gloo Enterprise, and the other will just run Gloo. Please note that cluster registration will only work on darwin and linux OS.
 
 ```
-glooctl version [flags]
+glooctl demo federation [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help                 help for federation
+      --license-key string   License key to activate Gloo Fed features
+      --version string       Version of Gloo Enterprise to install (defaults to latest)
 ```
 
 ### Options inherited from parent commands
@@ -40,5 +40,5 @@ glooctl version [flags]
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl demo](../glooctl_demo)	 - Demos (requires 4 tools to be installed and accessible via the PATH: glooctl, kubectl, docker, and kind.)
 

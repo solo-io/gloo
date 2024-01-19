@@ -1,25 +1,23 @@
 ---
-title: "glooctl version"
+title: "glooctl get upstream"
 weight: 5
 ---
-## glooctl version
+## glooctl get upstream
 
-Print current version
+read an upstream or list upstreams in a namespace
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+usage: glooctl get upstream [NAME] [--namespace=namespace] [-o FORMAT]
 
 ```
-glooctl version [flags]
+glooctl get upstream [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help   help for upstream
 ```
 
 ### Options inherited from parent commands
@@ -35,10 +33,13 @@ glooctl version [flags]
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
+      --name string                name of the resource to read or write
+  -n, --namespace string           namespace for reading or writing resources (default "gloo-system")
+  -o, --output OutputType          output format: (yaml, json, table, kube-yaml, wide) (default table)
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl get](../glooctl_get)	 - Display one or a list of Gloo resources
 

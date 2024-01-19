@@ -1,25 +1,17 @@
 ---
-title: "glooctl version"
+title: "glooctl edit route"
 weight: 5
 ---
-## glooctl version
+## glooctl edit route
 
-Print current version
 
-### Synopsis
-
-Get the version of Glooctl and Gloo
-
-```
-glooctl version [flags]
-```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help                help for route
+  -x, --index uint32        edit the route with this index in the virtual service route list
+  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default table)
 ```
 
 ### Options inherited from parent commands
@@ -35,10 +27,15 @@ glooctl version [flags]
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
+      --name string                name of the resource to read or write
+  -n, --namespace string           namespace for reading or writing resources (default "gloo-system")
+      --resource-version string    the resource version of the resource we are editing. if not empty, resource will only be changed if the resource version matches
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl edit](../glooctl_edit)	 - Edit a Gloo resource
+* [glooctl edit route externalauth](../glooctl_edit_route_externalauth)	 - Configure disable external auth on a route (Enterprise)
+* [glooctl edit route ratelimit](../glooctl_edit_route_ratelimit)	 - Configure rate-limits (Enterprise)
 

@@ -1,25 +1,24 @@
 ---
-title: "glooctl version"
+title: "glooctl istio enable-mtls"
 weight: 5
 ---
-## glooctl version
+## glooctl istio enable-mtls
 
-Print current version
+Enables Istio mTLS for a given upstream
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+Enables Istio mTLS for a given upstream, by adding an sslConfig which lets envoy know to get the certs via SDS
 
 ```
-glooctl version [flags]
+glooctl istio enable-mtls [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help              help for enable-mtls
+  -u, --upstream string   upstream for which the istio sslConfig needs to change
 ```
 
 ### Options inherited from parent commands
@@ -35,10 +34,12 @@ glooctl version [flags]
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
+      --name string                name of the resource to read or write
+  -n, --namespace string           namespace for reading or writing resources (default "gloo-system")
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl istio](../glooctl_istio)	 - Commands for interacting with Istio in Gloo
 

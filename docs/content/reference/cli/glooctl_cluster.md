@@ -1,25 +1,23 @@
 ---
-title: "glooctl version"
+title: "glooctl cluster"
 weight: 5
 ---
-## glooctl version
+## glooctl cluster
 
-Print current version
+Cluster commands
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+Commands related to managing multiple clusters
 
 ```
-glooctl version [flags]
+glooctl cluster [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help   help for cluster
 ```
 
 ### Options inherited from parent commands
@@ -41,4 +39,7 @@ glooctl version [flags]
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl cluster deregister](../glooctl_cluster_deregister)	 - Deregister a cluster to the Gloo Federation control plane
+* [glooctl cluster list](../glooctl_cluster_list)	 - List clusters registered to the Gloo Federation control plane
+* [glooctl cluster register](../glooctl_cluster_register)	 - Register a cluster to the Gloo Federation control plane
 

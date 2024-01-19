@@ -1,25 +1,26 @@
 ---
-title: "glooctl version"
+title: "glooctl check-crds"
 weight: 5
 ---
-## glooctl version
+## glooctl check-crds
 
-Print current version
+Checks Gloos CRDs for consistency against an official (or local) helm charts CRDs
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+usage: glooctl check-crds [-o FORMAT]
 
 ```
-glooctl version [flags]
+glooctl check-crds [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help                 help for check-crds
+      --local-chart string   check against CRDs in helm chart at path specified by this flag (supersedes --version)
+      --show-yaml            show full yaml of both CRDs that differ
+      --version string       version of gloo's CRDs to check against
 ```
 
 ### Options inherited from parent commands

@@ -1,25 +1,27 @@
 ---
-title: "glooctl version"
+title: "glooctl edit upstream"
 weight: 5
 ---
-## glooctl version
+## glooctl edit upstream
 
-Print current version
+edit an upstream in a namespace
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+usage: glooctl edit upstream [NAME] [--namespace=namespace]
 
 ```
-glooctl version [flags]
+glooctl edit upstream [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help                          help for upstream
+      --ssl-remove                    Remove SSL configuration from this upstream
+      --ssl-secret-name string        name of the ssl secret for this upstream
+      --ssl-secret-namespace string   namespace of the ssl secret for this upstream
+      --ssl-sni string                SNI value to provide when contacting this upstream
 ```
 
 ### Options inherited from parent commands
@@ -35,10 +37,14 @@ glooctl version [flags]
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
+      --name string                name of the resource to read or write
+  -n, --namespace string           namespace for reading or writing resources (default "gloo-system")
+  -o, --output OutputType          output format: (yaml, json, table, kube-yaml, wide) (default table)
+      --resource-version string    the resource version of the resource we are editing. if not empty, resource will only be changed if the resource version matches
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl edit](../glooctl_edit)	 - Edit a Gloo resource
 

@@ -1,25 +1,29 @@
 ---
-title: "glooctl version"
+title: "glooctl remove route"
 weight: 5
 ---
-## glooctl version
+## glooctl remove route
 
-Print current version
+Remove a Route from a Virtual Service
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+Routes match patterns on requests and indicate the type of action to take when a proxy receives a matching request. Requests can be broken down into their Match and Action components. The order of routes within a Virtual Service matters. The first route in the virtual service that matches a given request will be selected for routing. 
+
+If no virtual service is specified for this command, glooctl add route will attempt to add it to a default virtualservice with domain '*'. if one does not exist, it will be created for you.
+
+Usage: `glooctl rm route [--name virtual-service-name] [--namespace namespace] [--index x]`
 
 ```
-glooctl version [flags]
+glooctl remove route [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help                help for route
+  -x, --index uint32        remove the route with this index in the virtual service route list
+  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default table)
 ```
 
 ### Options inherited from parent commands
@@ -35,10 +39,12 @@ glooctl version [flags]
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
+      --name string                name of the resource to read or write
+  -n, --namespace string           namespace for reading or writing resources (default "gloo-system")
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl remove](../glooctl_remove)	 - remove configuration items from a top-level Gloo resource
 

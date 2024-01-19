@@ -1,25 +1,28 @@
 ---
-title: "glooctl version"
+title: "glooctl cluster deregister"
 weight: 5
 ---
-## glooctl version
+## glooctl cluster deregister
 
-Print current version
+Deregister a cluster to the Gloo Federation control plane
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+Deregister a cluster from the Gloo Federation control plane. Deregistered clusters can no longer be targeted for discovery and configuration. This will not delete the cluster or the managing namespace, but it will delete the service account, cluster role, and cluster role binding created on the remote cluster during the cluster registration process.
 
 ```
-glooctl version [flags]
+glooctl cluster deregister [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+      --cluster-name string           name of the cluster to deregister
+      --federation-namespace string   namespace of the Gloo Federation control plane (default "gloo-system")
+  -h, --help                          help for deregister
+      --remote-context string         name of the kubeconfig context to use for deregistration
+      --remote-kubeconfig string      path to the kubeconfig from which the deregistered cluster will be accessed
+      --remote-namespace string       namespace in the target cluster where artifacts should be deleted (default "gloo-system")
 ```
 
 ### Options inherited from parent commands
@@ -40,5 +43,5 @@ glooctl version [flags]
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl cluster](../glooctl_cluster)	 - Cluster commands
 

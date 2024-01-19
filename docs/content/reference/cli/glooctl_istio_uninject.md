@@ -1,25 +1,24 @@
 ---
-title: "glooctl version"
+title: "glooctl istio uninject"
 weight: 5
 ---
-## glooctl version
+## glooctl istio uninject
 
-Print current version
+Remove SDS & istio-proxy sidecars from gateway-proxy pod
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+Removes the istio-proxy sidecar from the gateway-proxy pod. Also removes the sds sidecar from the gateway-proxy pod. Also removes the gateway_proxy_sds cluster from the gateway-proxy envoy bootstrap ConfigMap.
 
 ```
-glooctl version [flags]
+glooctl istio uninject [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help                help for uninject
+      --include-upstreams   whether or not to modify upstreams when uninstalling mTLS
 ```
 
 ### Options inherited from parent commands
@@ -35,10 +34,12 @@ glooctl version [flags]
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
+      --name string                name of the resource to read or write
+  -n, --namespace string           namespace for reading or writing resources (default "gloo-system")
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl istio](../glooctl_istio)	 - Commands for interacting with Istio in Gloo
 

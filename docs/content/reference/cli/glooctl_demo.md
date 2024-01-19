@@ -1,25 +1,19 @@
 ---
-title: "glooctl version"
+title: "glooctl demo"
 weight: 5
 ---
-## glooctl version
+## glooctl demo
 
-Print current version
-
-### Synopsis
-
-Get the version of Glooctl and Gloo
+Demos (requires 4 tools to be installed and accessible via the PATH: glooctl, kubectl, docker, and kind.)
 
 ```
-glooctl version [flags]
+glooctl demo [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help   help for demo
 ```
 
 ### Options inherited from parent commands
@@ -41,4 +35,5 @@ glooctl version [flags]
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl demo federation](../glooctl_demo_federation)	 - Bootstrap a multicluster demo with Gloo Federation.
 

@@ -1,25 +1,27 @@
 ---
-title: "glooctl version"
+title: "glooctl edit virtualservice"
 weight: 5
 ---
-## glooctl version
+## glooctl edit virtualservice
 
-Print current version
+edit a virtualservice in a namespace
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+usage: glooctl edit virtualservice [NAME] [--namespace=namespace] [-o FORMAT]
 
 ```
-glooctl version [flags]
+glooctl edit virtualservice [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help                          help for virtualservice
+      --ssl-remove                    Remove SSL configuration from this virtual service
+      --ssl-secret-name string        name of the ssl secret for this virtual service
+      --ssl-secret-namespace string   namespace of the ssl secret for this virtual service
+      --ssl-sni-domains stringArray   SNI domains for this virtual service
 ```
 
 ### Options inherited from parent commands
@@ -35,10 +37,15 @@ glooctl version [flags]
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
+      --name string                name of the resource to read or write
+  -n, --namespace string           namespace for reading or writing resources (default "gloo-system")
+  -o, --output OutputType          output format: (yaml, json, table, kube-yaml, wide) (default table)
+      --resource-version string    the resource version of the resource we are editing. if not empty, resource will only be changed if the resource version matches
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl edit](../glooctl_edit)	 - Edit a Gloo resource
+* [glooctl edit virtualservice ratelimit](../glooctl_edit_virtualservice_ratelimit)	 - Configure rate limit settings (Enterprise)
 

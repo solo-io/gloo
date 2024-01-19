@@ -1,25 +1,21 @@
 ---
-title: "glooctl version"
+title: "glooctl delete"
 weight: 5
 ---
-## glooctl version
+## glooctl delete
 
-Print current version
-
-### Synopsis
-
-Get the version of Glooctl and Gloo
+Delete a Gloo resource
 
 ```
-glooctl version [flags]
+glooctl delete [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help               help for delete
+      --name string        name of the resource to read or write
+  -n, --namespace string   namespace for reading or writing resources (default "gloo-system")
 ```
 
 ### Options inherited from parent commands
@@ -41,4 +37,8 @@ glooctl version [flags]
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl delete proxy](../glooctl_delete_proxy)	 - delete a proxy
+* [glooctl delete upstream](../glooctl_delete_upstream)	 - delete an upstream
+* [glooctl delete upstreamgroup](../glooctl_delete_upstreamgroup)	 - delete an upstream group
+* [glooctl delete virtualservice](../glooctl_delete_virtualservice)	 - delete a virtualservice
 

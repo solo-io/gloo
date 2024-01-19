@@ -1,25 +1,19 @@
 ---
-title: "glooctl version"
+title: "glooctl edit"
 weight: 5
 ---
-## glooctl version
+## glooctl edit
 
-Print current version
-
-### Synopsis
-
-Get the version of Glooctl and Gloo
-
-```
-glooctl version [flags]
-```
+Edit a Gloo resource
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help                      help for edit
+      --name string               name of the resource to read or write
+  -n, --namespace string          namespace for reading or writing resources (default "gloo-system")
+  -o, --output OutputType         output format: (yaml, json, table, kube-yaml, wide) (default table)
+      --resource-version string   the resource version of the resource we are editing. if not empty, resource will only be changed if the resource version matches
 ```
 
 ### Options inherited from parent commands
@@ -41,4 +35,8 @@ glooctl version [flags]
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl edit route](../glooctl_edit_route)	 - 
+* [glooctl edit settings](../glooctl_edit_settings)	 - root command for settings
+* [glooctl edit upstream](../glooctl_edit_upstream)	 - edit an upstream in a namespace
+* [glooctl edit virtualservice](../glooctl_edit_virtualservice)	 - edit a virtualservice in a namespace
 

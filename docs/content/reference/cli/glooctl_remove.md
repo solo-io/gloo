@@ -1,25 +1,17 @@
 ---
-title: "glooctl version"
+title: "glooctl remove"
 weight: 5
 ---
-## glooctl version
+## glooctl remove
 
-Print current version
-
-### Synopsis
-
-Get the version of Glooctl and Gloo
-
-```
-glooctl version [flags]
-```
+remove configuration items from a top-level Gloo resource
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help               help for remove
+      --name string        name of the resource to read or write
+  -n, --namespace string   namespace for reading or writing resources (default "gloo-system")
 ```
 
 ### Options inherited from parent commands
@@ -41,4 +33,5 @@ glooctl version [flags]
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl remove route](../glooctl_remove_route)	 - Remove a Route from a Virtual Service
 

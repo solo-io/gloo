@@ -1,25 +1,23 @@
 ---
-title: "glooctl version"
+title: "glooctl get virtualservice route"
 weight: 5
 ---
-## glooctl version
+## glooctl get virtualservice route
 
-Print current version
+get a list of routes for a given virtual service
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+usage: glooctl get virtualservice route [virtual service name]
 
 ```
-glooctl version [flags]
+glooctl get virtualservice route [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help   help for route
 ```
 
 ### Options inherited from parent commands
@@ -35,10 +33,13 @@ glooctl version [flags]
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
+      --name string                name of the resource to read or write
+  -n, --namespace string           namespace for reading or writing resources (default "gloo-system")
+  -o, --output OutputType          output format: (yaml, json, table, kube-yaml, wide) (default table)
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl get virtualservice](../glooctl_get_virtualservice)	 - read a virtualservice or list virtualservices in a namespace
 

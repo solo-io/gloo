@@ -1,25 +1,23 @@
 ---
-title: "glooctl version"
+title: "glooctl get proxy"
 weight: 5
 ---
-## glooctl version
+## glooctl get proxy
 
-Print current version
+read a proxy or list proxies in a namespace
 
 ### Synopsis
 
-Get the version of Glooctl and Gloo
+usage: glooctl get proxy
 
 ```
-glooctl version [flags]
+glooctl get proxy [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                help for version
-  -n, --namespace string    namespace for reading or writing resources (default "gloo-system")
-  -o, --output OutputType   output format: (yaml, json, table, kube-yaml, wide) (default json)
+  -h, --help   help for proxy
 ```
 
 ### Options inherited from parent commands
@@ -35,10 +33,13 @@ glooctl version [flags]
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
+      --name string                name of the resource to read or write
+  -n, --namespace string           namespace for reading or writing resources (default "gloo-system")
+  -o, --output OutputType          output format: (yaml, json, table, kube-yaml, wide) (default table)
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl get](../glooctl_get)	 - Display one or a list of Gloo resources
 
