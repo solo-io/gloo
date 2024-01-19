@@ -27,6 +27,7 @@ These metrics are collected for the following domains:
 ## A practical example
 
 The view used for the sync time metrics is a distribution/histogram, but it is possible to measure a single event using the `_sync_time_sec_sum` metrics.
+This view of the metric stores a cumumlative run time, so we can store the value, update the system, and then get the new value.
 
 With a cluster running, start port-forwarding the Gloo metrics port:
 ```
@@ -84,4 +85,4 @@ echo $(($SNAPSHOT_TIME_END - $SNAPSHOT_TIME_START))
 0.32962179099999989
 ```
 
-In this case, when creating the petstore app we spent 0.56 API snapshot sync and 0.33s in the Discoverr sync.
+In this case, when creating the petstore app we spent 0.56 API snapshot sync and 0.33s in the Discovery sync.
