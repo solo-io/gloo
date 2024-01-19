@@ -23,6 +23,7 @@ settings:
         httpPort: 8080
         httpsPort: 8443
         replicas: 1
+        runAsUser: 10101
         service:
           type: LoadBalancer
           extraAnnotations: {}
@@ -92,6 +93,7 @@ gateway:
     ttlSecondsAfterFinished: 60
     runAsUser: 10101
     forceRotation: true
+    rotationDuration: 65s
     cron:
       enabled: false
       schedule: "* * * * *"
@@ -105,6 +107,7 @@ gateway:
     # When adding the --wait && --wait-for-jobs flag in helm, sometimes the job can complete and be deleted before helm can check if it has finished (for instance, while helm is waiting on a deployment).
     # So set this to a higher value where it should still be around after all the other resources are ready
     ttlSecondsAfterFinished: 300
+    timeout: 120
   cleanupJob:
     enabled: true
     image:
@@ -165,6 +168,7 @@ gatewayProxies:
     healthyPanicThreshold: 50
     tcpKeepaliveTimeSeconds: 60
     disableCoreDumps: false
+    disableExtauthSidecar: false
     # intentionally unset, so we default to the gloo service address. if set, this overrides the derived gloo service address
     # xdsServiceAddress: xds-relay.default.svc.cluster.local
     # intentionally unset, so we default to the gloo service port. if set, this overrides .Values.gloo.deployment.xdsPort
@@ -196,6 +200,7 @@ ingressProxy:
     httpPort: 8080
     httpsPort: 8443
     replicas: 1
+    runAsUser: 10101
   service:
     type: LoadBalancer
     extraAnnotations: {}

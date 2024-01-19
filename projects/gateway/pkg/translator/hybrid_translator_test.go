@@ -268,7 +268,7 @@ var _ = Describe("Hybrid Translator", func() {
 					Expect(matchedHttpListener.Matcher.SourcePrefixRanges).To(HaveLen(1))
 					Expect(matchedHttpListener.Matcher.SourcePrefixRanges[0].AddressPrefix).To(Equal("match1"))
 					Expect(matchedHttpListener.GetHttpListener()).NotTo(BeNil())
-					Expect(matchedHttpListener.GetHttpListener().VirtualHosts).To(HaveLen(0))
+					Expect(matchedHttpListener.GetHttpListener().VirtualHosts).To(BeEmpty())
 				})
 			})
 		})
@@ -594,15 +594,15 @@ var _ = Describe("Hybrid Translator", func() {
 						// evaluate results
 						hcm_after := child.GetHttpGateway().GetOptions().GetHttpConnectionManagerSettings()
 
-						Expect(hcm_after.GetSkipXffAppend().GetValue()).To(Equal(false))
+						Expect(hcm_after.GetSkipXffAppend().GetValue()).To(BeFalse())
 						Expect(hcm_after.GetVia().GetValue()).To(Equal(""))
 						Expect(hcm_after.GetXffNumTrustedHops().GetValue()).To(Equal(uint32(0)))
-						Expect(hcm_after.GetUseRemoteAddress().GetValue()).To(Equal(true))
+						Expect(hcm_after.GetUseRemoteAddress().GetValue()).To(BeTrue())
 						Expect(hcm_after.GetStreamIdleTimeout().GetNanos()).To(Equal(int32(0)))
 						Expect(hcm_after.GetStreamIdleTimeout().GetSeconds()).To(Equal(int64(0)))
 						Expect(hcm_after.MaxRequestHeadersKb.GetValue()).To(Equal(uint32(32)))
-						Expect(hcm_after.GetProperCaseHeaderKeyFormat().GetValue()).To(Equal(true))
-						Expect(hcm_after.GetPreserveCaseHeaderKeyFormat().GetValue()).To(Equal(false))
+						Expect(hcm_after.GetProperCaseHeaderKeyFormat().GetValue()).To(BeTrue())
+						Expect(hcm_after.GetPreserveCaseHeaderKeyFormat().GetValue()).To(BeFalse())
 						Expect((hcm_after.GetTracing().GetZipkinConfig().GetCollectorUpstreamRef().GetName())).To(Equal(""))
 						Expect((hcm_after.GetTracing().GetZipkinConfig().GetCollectorUpstreamRef().GetNamespace())).To(Equal(""))
 

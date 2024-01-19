@@ -254,18 +254,68 @@ message AuthPlugin {
     google.protobuf.Struct config = 4;
 }
 
+// This is the legacy/simple basic auth config. It supports the APR and SHA-1 hashing algorithms.
+//
+// When using basic auth, requests can pass only one `Authorization` header. You cannot use basic auth config in
+// conjunction with other auth configs that rely on the `Authorization` header as well. In case of such a conflict,
+// use a different type of auth config or configure a different header, such as `X-Auth`.
 message BasicAuth {
     string realm = 1;
 
+    // If 'apr' is defined, 'encryption' and 'user_source' must not be defined or the config will fail validation
     message Apr {
+        // Message to store the salt and salted hashed password for a user
         message SaltedHashedPassword {
+            // Salt used with the apr algorithm for the user
             string salt = 1;
+            // Salted and hashed password for the user
             string hashed_password = 2;
         }
+        // Map of authorized usernames to stored credentials
         map<string, SaltedHashedPassword> users = 2;
     }
     Apr apr = 2;
+
+    // Below here is the "extended" basic auth config. Hashing algorithm and user source are independent and configurable.
+    // It is required to define exactly one of 'apr' or ('encryption' and 'user_source') or the config will fail validation
+
+    // The encryption/hashing algorithm to use to store the password
+    message EncryptionType {
+        // Sha1 encryption type (https://datatracker.ietf.org/doc/html/rfc3174)
+        // Sha1 is considered insecure and is not recommended for production use
+        message Sha1 {}
+        // Apache specific iterated MD5 hashing: (https://httpd.apache.org/docs/2.4/misc/password_encryptions.html)
+        message Apr {}
+        oneof algorithm {
+            Apr apr = 1;
+            Sha1 sha1 = 2;
+        }
+    }
+
+    // The encryption type to use to store the password on the server
+    // If 'encryption' is defined, 'user_source' must be defined and the top level 'apr' field must not be defined or the config will fail validation
+    EncryptionType encryption = 3;
+
+    // Message to store user data. We need the salt and salted hashed password for each user
+    message User {
+        // Salt used with the hashing algorithm for the user
+        string salt = 1;
+        // Salted and hashed password for the user
+        string hashed_password = 2;
+    }
+
+     // Map of valid usernames to stored credentials
+    message UserList {
+        map<string, User> users= 1;
+    }
+
+     // Source of user credential data
+     // If 'user_source' is defined, 'encryption' must be defined and the top level 'apr'' field must not be defined or the config will fail validation
+    oneof user_source {
+        UserList user_list = 4;
+    }
 }
+
 
 // HMAC is a message authentication technique that can use multiple algorithms for finding credentials and generating signed messages.
 // It conforms to https://www.ietf.org/rfc/rfc2104.txt
@@ -694,6 +744,9 @@ message OidcAuthorizationCode {
     IdentityToken identity_token = 24;
 
     // Optional: Map a single claim from an OAuth2 access token to a header in the request to the upstream destination.
+    // Gloo Mesh products only: Note that if you want to clear the route cache to force the proxy to recalculate the
+    // routing destination after adding the claims, you must create an additional JwtPolicy or TransformationPolicy, 
+    // and configure the `clearRouteCache` or `recalculateRoutingDestination` options. 
     message AccessToken {
 
         // A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination
@@ -739,6 +792,37 @@ message OidcAuthorizationCode {
     }
 
     ClientAuthentication client_authentication = 25;
+
+    oneof Provider {
+        Default default = 26;
+        Azure azure = 27;
+    }
+
+    // No-op, represents default OIDC behavior
+    message Default {}
+
+    // For apps in Microsoft Azure, configure Microsoft Entra ID as the OpenID Connect (OIDC) provider.
+    // This way, you can enable distibuted claims and caching for when users are members of more than 200 groups.
+    message Azure {
+        // The client ID for the ExtAuthService app that is registered in MS Entra,
+        // to access the Microsoft Graph API to retrieve distributed claims.
+        // This app is NOT the app that you want to configure external auth for.
+        string client_id = 1;
+
+        // The tenant ID represents the MS Entra organization ID where the ExtAuthService app is registered.
+        // This tenant ID may or may not be the same as in the top level `OidcAuthorizationCodeConfig`,
+        // depending on how your Azure account is provisioned.
+        string tenant_id = 2;
+
+        // The client secret of the ExtAuthService app that is registered with MS Entra to communciate with the MS Graph API.
+        core.solo.io.ResourceRef client_secret = 3;
+
+        // Redis connection details to cache MS Entera claims. 
+        // This way, you avoid performance issues of accessing the Microsoft Graph API too many times.
+        // Note that this setting does NOT turn on Redis caching for the user session.
+        // To turn on Redis user session caching, use the `userSessionConfig` field.
+        RedisOptions claims_caching_options = 4;
+    }
 }
 
 message PlainOAuth2 {
@@ -1102,6 +1186,10 @@ message AerospikeApiKeyStorage {
             uint32 x_25519 = 4;
         }
     }
+
+    // Identify the set of required labels (key/value) which an Aerospike secret must contain
+    // If a secret contains the provided set of labels, it will be considered valid when authorizing an ApiKey provided in a request
+    map<string, string> label_selector = 17;
 }
 
 message ApiKey {
@@ -1149,16 +1237,19 @@ message OpaAuthOptions {
     // By default, this is set to false and all fields are evaluated by OPA.
     bool fast_input_conversion = 1;
 
-    // Set to true to return the reason for an OPA policy decision, based on the logic in your Rego rules. 
-    // This way, you can use the reason in subsequent filters, such as transformation policies.
-    // When using OpaAuth, this `returnDecisionReason` field must be the second parameter of the query. 
-    // When using OpaServerAuth, the entire document will be returned as metadata.
-    // The `allowed` field on the document is used to make the policy decision.
-    // The entry will be in the returned DynamicMetadata in the CheckResponse with the structure
-    // `envoy.filters.http.ext_authz:
-    //   -> name of the auth step`, such as `spec.configs[i].name
-    //       -> reason`.
-    // If set to false, the response is allowed or denied based on the Rego rules without returning the reason.
+    // DEPRECATED: It's recommended to use the `dynamic_metadata` field within Rego policies to specify the decision reason. To learn more about this approach, see the [OPA Envoy Plugin docs](https://github.com/open-policy-agent/opa/blob/c12463c/docs/content/envoy-primer.md#example-policy-with-additional-controls).
+    //
+    // When `returnDecisionReason` is set to true, the decision reason is stored in the Envoy Dynamic Metadata and has the following properties:<ul>
+    // <li>`body` - a textual explanation of the decision</li>
+    // <li>`allowed` - whether the request was allowed or rejected</li></ul>
+    //
+    // When using OpaAuth, the `body` field must be the second parameter of the query.
+    //
+    // Both the OpaAuth and OpaServerAuth approaches use the `allowed` and `body` values from the OPA response in the decision reason.
+    // You can find the `body` and `allowed` fields in the Envoy Filter Dynamic Metadata under the `envoy.filters.http.ext_authz.<authentication_step_name>.reason` section.
+    //
+    // If, however, `returnDecisionReason` is set to false, OPA's decision to allow or reject a request is made according to the Rego policy rules, and no explanation is provided.
+    // Despite of this, the `dynamic_metadata` field can still be used to convey any necessary information to the Envoy Dynamic Metadata, including the decision reason.
     bool return_decision_reason = 2;
 }
 
@@ -1338,6 +1429,8 @@ message PassThroughHttp {
         // request body is needed in the auth request.
         bool pass_through_body = 5;
     }
+    // Pass through the incoming request body, ext auth state, and filter metadata.
+    // For more information, see the [PassThrough Http Request description](#request-1).
     Request request = 3;
 
     message Response {
@@ -1368,6 +1461,8 @@ message PassThroughHttp {
         // Header names may not be included in both allowed_upstream_headers and allowed_upstream_headers_to_overwrite.
         repeated string allowed_upstream_headers_to_overwrite = 4;
     }
+    // Pass through response information such as the headers and body to downstream clients.
+    // For more information, see the [PassThrough Http Response description](#response-1).
     Response response = 4;
 
     // Timeout for the auth server to respond. Defaults to 5s
@@ -1388,6 +1483,45 @@ message ExtAuthConfig {
     // Any request to the external auth server includes an identifier that is matched against this field to determine
     // which AuthConfig should be applied to it.
     string auth_config_ref_name = 1;
+
+    // Message to store Basic Auth Configuration.
+    // "Internal" refers to this format allowing for selection of the hashing algorithm and user source.
+    // If only the legacy "apr" field is defined, the existing public BasicAuth configuration will continue be used.
+    message BasicAuthInternal {
+        // Realm to use in the Basic Auth challenge.
+        string realm = 1;
+
+        // Selection of hashing algorithms to use for password hashing.
+        message EncryptionType {
+            message Sha1 {}
+            message Apr {}
+            oneof algorithm {
+                Apr apr = 1;
+                Sha1 sha1 = 2;
+            }
+        }
+    
+        // Hashing algorithm to use for password hashing.
+        EncryptionType encryption = 2;
+    
+        // To authenticate a user we need the salt and hashed password. The username is expected to be the key in a map of Users.
+        message User {
+            string salt = 1;
+            string hashed_password = 2;
+        }
+
+        // Map of valid usernames to stored credentials
+        message UserList {
+            map<string, User> users= 1;
+        }
+
+        // Source of user credential data.
+        oneof user_source {
+            UserList user_list = 3;
+        }
+    }
+
+
     // Deprecated, prefer OAuth2Config
     message OAuthConfig {
         // your client id as registered with the issuer
@@ -1558,6 +1692,67 @@ message ExtAuthConfig {
         // Configuration for private key JWT client authentication.
         // Only one of client_secret or pk_jwt_client_authentication_config should be set. pk_jwt_client_authentication_config takes precedence.
         PkJwtClientAuthenticationConfig pk_jwt_client_authentication_config = 21;
+
+        // Map a single claim from an OAuth2 or OIDC token to a header in the request to the upstream destination.
+        message ClaimToHeader {
+            // The claim name from the token, such as `sub`.
+            string claim = 1;
+
+            // The header to copy the claim to, such as `x-sub`.
+            string header = 2;
+
+            // If the header exists, append the claim value to the header (true), or overwrite any existing value (false). The default behavior is to overwrite any existing value (false).
+            bool append = 3;
+        }
+
+        // Optional: Configuration specific to the OAuth2 access token received and processed by the ext-auth-service.
+        AccessToken access_token = 22;
+
+        // Optional: Configuration specific to the OIDC identity token received and processed by the ext-auth-service.
+        IdentityToken identity_token = 23;
+
+        // Optional: Map a single claim from an OAuth2 access token to a header in the request to the upstream destination.
+        message AccessToken {
+            // A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination
+            repeated ClaimToHeader claims_to_headers = 1;
+        }
+
+        // Optional: Map a single claim from an OIDC identity token to a header in the request to the upstream destination.
+        message IdentityToken {
+            // A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination
+            repeated ClaimToHeader claims_to_headers = 1;
+        }
+
+        oneof Provider {
+            Default default = 26;
+            Azure azure = 27;
+        }
+    
+        // No-op, represents default OIDC behavior
+        message Default {}
+    
+        // For apps in Microsoft Azure, configure Microsoft Entra ID as the OpenID Connect (OIDC) provider.
+        // This way, you can enable distibuted claims and caching for when users are members of more than 200 groups.
+        message Azure {
+            // The client ID for the ExtAuthService app that is registered in MS Entra,
+            // to access the Microsoft Graph API to retrieve distributed claims.
+            // This app is NOT the app that you want to configure external auth for.
+            string client_id = 1;
+    
+            // The tenant ID represents the MS Entra organization ID where the ExtAuthService app is registered.
+            // This tenant ID may or may not be the same as in the top level `OidcAuthorizationCodeConfig`,
+            // depending on how your Azure account is provisioned.
+            string tenant_id = 2;
+    
+            // The client secret of the ExtAuthService app that is registered with MS Entra to communciate with the MS Graph API.
+            string client_secret = 3 [(extproto.sensitive) = true];
+    
+            // Redis connection details to cache MS Entera claims. 
+            // This way, you avoid performance issues of accessing the Microsoft Graph API too many times.
+            // Note that this setting does NOT turn on Redis caching for the user session.
+            // To turn on Redis user session caching, use the `userSessionConfig` field.
+            RedisOptions claims_caching_options = 4;
+        }
     }
 
     message AccessTokenValidationConfig {
@@ -1779,6 +1974,7 @@ message ExtAuthConfig {
 
         // A mapping of valid API keys to their associated metadata.
         // This map is automatically populated with the information from the relevant `ApiKey`s.
+        // Currently this is only configured when using the k8s Secret storage backend
         map<string, KeyMetadata> valid_api_keys = 1 [(extproto.sensitive) = true];
 
         // (Optional) When receiving a request, the Gloo Edge Enterprise external auth server will look for an API key
@@ -1794,7 +1990,6 @@ message ExtAuthConfig {
             K8sSecretApiKeyStorage k8s_secret_apikey_storage = 4;
             AerospikeApiKeyStorage aerospike_apikey_storage = 5;
         }
-
     }
 
     message OpaAuthConfig {
@@ -1891,6 +2086,7 @@ message ExtAuthConfig {
             OAuthConfig oauth = 3 [deprecated = true];
             OAuth2Config oauth2 = 9;
             BasicAuth basic_auth = 4;
+            BasicAuthInternal basic_auth_internal = 17;
             ApiKeyAuthConfig api_key_auth = 5;
             AuthPlugin plugin_auth = 6;
             OpaAuthConfig opa_auth = 7;

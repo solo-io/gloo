@@ -1147,6 +1147,10 @@ func (m *Settings_VaultAwsAuth) Equal(that interface{}) bool {
 		return false
 	}
 
+	if m.GetLeaseIncrement() != target.GetLeaseIncrement() {
+		return false
+	}
+
 	return true
 }
 
@@ -1895,6 +1899,14 @@ func (m *Settings_ObservabilityOptions_GrafanaIntegration) Equal(that interface{
 		if !proto.Equal(m.GetDefaultDashboardFolderId(), target.GetDefaultDashboardFolderId()) {
 			return false
 		}
+	}
+
+	if strings.Compare(m.GetDashboardPrefix(), target.GetDashboardPrefix()) != 0 {
+		return false
+	}
+
+	if strings.Compare(m.GetExtraMetricQueryParameters(), target.GetExtraMetricQueryParameters()) != 0 {
+		return false
 	}
 
 	return true

@@ -17,6 +17,7 @@
 |settings.integrations.knative.proxy.httpPort|int|8080|HTTP port for the proxy|
 |settings.integrations.knative.proxy.httpsPort|int|8443|HTTPS port for the proxy|
 |settings.integrations.knative.proxy.tracing|string||tracing configuration|
+|settings.integrations.knative.proxy.runAsUser|float64||Explicitly set the user ID for the pod to run as. Default is 10101|
 |settings.integrations.knative.proxy.loopBackAddress|string|127.0.0.1|Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1|
 |settings.integrations.knative.proxy.stats|bool||Controls whether or not Envoy stats are enabled|
 |settings.integrations.knative.proxy.extraClusterIngressProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the cluster ingress proxy deployment.|
@@ -135,6 +136,7 @@
 |settings.secretOptions.sources[].vault.aws.accessKeyID|string||Optional. The Access Key ID as provided by the security credentials on the AWS IAM resource. In cases such as receiving temporary credentials through assumed roles with AWS Security Token Service (STS) or IAM Roles for Service Accounts (IRSA), this field can be omitted. https://developer.hashicorp.com/vault/docs/auth/aws#iam-authentication-inferences.|
 |settings.secretOptions.sources[].vault.aws.secretAccessKey|string||Optional. The Secret Access Key as provided by the security credentials on the AWS IAM resource. In cases such as receiving temporary credentials through assumed roles with AWS Security Token Service (STS) or IAM Roles for Service Accounts (IRSA), this field can be omitted. https://developer.hashicorp.com/vault/docs/auth/aws#iam-authentication-inferences.|
 |settings.secretOptions.sources[].vault.aws.sessionToken|string||The Session Token as provided by the security credentials on the AWS IAM resource.|
+|settings.secretOptions.sources[].vault.aws.leaseIncrement|uint32||The time increment, in seconds, used in renewing the lease of the Vault token. See: https://developer.hashicorp.com/vault/docs/concepts/lease#lease-durations-and-renewal. Defaults to 0, which causes the default TTL to be used.|
 |settings.secretOptions.sources[].directory.directory|string||Directory to read secrets from.|
 |settings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.deployment.xdsPort|int|9977|port where gloo serves xDS API to Envoy.|
@@ -370,6 +372,7 @@
 |gateway.certGenJob.setTtlAfterFinished|bool|true|Set ttlSecondsAfterFinished on the job. Defaults to true|
 |gateway.certGenJob.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
 |gateway.certGenJob.forceRotation|bool|true|If true, will create new certs even if the old one are still valid.|
+|gateway.certGenJob.rotationDuration|string|65s|Time duration string indicating the (environment-specific) expected time for all pods to pick up a secret update via SDS. This is only applicable to the mTLS certgen job and cron job. If this duration is too short, secret changes may not have time to propagate to all pods, and some requests may be dropped during cert rotation. Since we do 2 secret updates during a cert rotation, the certgen job is expected to run for at least twice this amount of time. If activeDeadlineSeconds is set on the job, make sure it is at least twice as long as the rotation duration, otherwise the certgen job might time out.|
 |gateway.certGenJob.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
 |gateway.certGenJob.resources.limits.memory|string||amount of memory|
 |gateway.certGenJob.resources.limits.cpu|string||amount of CPUs|
@@ -416,6 +419,7 @@
 |gateway.rolloutJob.resources.requests.cpu|string||amount of CPUs|
 |gateway.rolloutJob.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
 |gateway.rolloutJob.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
+|gateway.rolloutJob.timeout|int|120|Time to wait in seconds until the job has completed. If it exceeds this limit, it is deemed to have failed. Defaults to 120|
 |gateway.cleanupJob.restartPolicy|string|OnFailure|restart policy to use when the pod exits|
 |gateway.cleanupJob.priorityClassName|string||name of a defined priority class|
 |gateway.cleanupJob.nodeName|string||name of node to run on|
@@ -460,7 +464,7 @@
 |gateway.isolateVirtualHostsBySslConfig|bool|false|if true, Added support for the envoy.filters.listener.tls_inspector listener_filter when using the gateway.isolateVirtualHostsBySslConfig=true global setting.|
 |gateway.compressedProxySpec|bool||if true, enables compression for the Proxy CRD spec|
 |gateway.persistProxySpec|bool||Enable writing Proxy CRD to etcd. Disabled by default for performance.|
-|gateway.translateEmptyGateways|bool|false|If true, the gateways wil be translated into Envoy listeners even if no VirtualServices exist|
+|gateway.translateEmptyGateways|bool|false|If true, the gateways will be translated into Envoy listeners even if no VirtualServices exist.|
 |gateway.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gatewayProxies.NAME.kind.deployment.replicas|int||number of instances to deploy|
 |gatewayProxies.NAME.kind.deployment.customEnv[].name|string|||
@@ -705,6 +709,7 @@
 |gatewayProxies.NAME.xdsServicePort|uint32||The k8s service port for the xds server. Defaults to the value from .Values.gloo.deployment.xdsPort, but can be overridden to use, for example, xds-relay.|
 |gatewayProxies.NAME.tcpKeepaliveTimeSeconds|uint32||The amount of time in seconds for connections to be idle before sending keep-alive probes. Defaults to 60. See here: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-tcpkeepalive|
 |gatewayProxies.NAME.disableCoreDumps|bool||If set to true, Envoy will not generate core dumps in the event of a crash. Defaults to false|
+|gatewayProxies.NAME.disableExtauthSidecar|bool||If set to true, this gateway proxy will not come up with an extauth sidecar container when global.extAuth.envoySidecar is enabled. This setting has no effect otherwise. Defaults to false|
 |gatewayProxies.NAME.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gatewayProxies.gatewayProxy.kind.deployment.replicas|int|1|number of instances to deploy|
 |gatewayProxies.gatewayProxy.kind.deployment.customEnv[].name|string|||
@@ -954,6 +959,7 @@
 |gatewayProxies.gatewayProxy.xdsServicePort|uint32||The k8s service port for the xds server. Defaults to the value from .Values.gloo.deployment.xdsPort, but can be overridden to use, for example, xds-relay.|
 |gatewayProxies.gatewayProxy.tcpKeepaliveTimeSeconds|uint32|60|The amount of time in seconds for connections to be idle before sending keep-alive probes. Defaults to 60. See here: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-tcpkeepalive|
 |gatewayProxies.gatewayProxy.disableCoreDumps|bool|false|If set to true, Envoy will not generate core dumps in the event of a crash. Defaults to false|
+|gatewayProxies.gatewayProxy.disableExtauthSidecar|bool|false|If set to true, this gateway proxy will not come up with an extauth sidecar container when global.extAuth.envoySidecar is enabled. This setting has no effect otherwise. Defaults to false|
 |gatewayProxies.gatewayProxy.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |ingress.enabled|bool|false||
 |ingress.deployment.image.tag|string|<release_version, ex: 1.2.3>|The image tag for the container.|
@@ -1258,8 +1264,8 @@
 |global.istioIntegration.labelInstallNamespace|bool|false|If creating a namespace for Gloo, include the 'istio-injection: enabled' label (or 'istio.io/rev=' if 'istioSidecarRevTag' field is also set) to allow Istio sidecar injection for Gloo pods. Be aware that Istio's default injection behavior will auto-inject a sidecar into all pods in such a marked namespace. Disabling this behavior in Istio's configs or using gloo's global.istioIntegration.disableAutoinjection flag is recommended.|
 |global.istioIntegration.whitelistDiscovery|bool|false|Annotate the discovery pod for Istio sidecar injection to ensure that it gets a sidecar even when namespace-wide auto-injection is disabled. Generally only needed for FDS is enabled.|
 |global.istioIntegration.disableAutoinjection|bool|false|Annotate all pods (excluding those whitelisted by other config values) to with an explicit 'do not inject' annotation to prevent Istio from adding sidecars to all pods. It's recommended that this be set to true, as some pods do not immediately work with an Istio sidecar without extra manual configuration.|
-|global.istioIntegration.enableIstioSidecarOnGateway|bool|false|Enable Istio sidecar injection on the gateway-proxy deployment. Ignored if LabelInstallNamespace is not 'true'. Ignored if DisableAutoInjection is 'true'.|
-|global.istioIntegration.istioSidecarRevTag|string||Value of revision tag for Istio sidecar injection on the gateway-proxy and discovery deployments (when enabled with LabelInstallNamespace, WhitelistDiscovery or EnableIstioSidecarOnGateway). If set, applies the label 'istio.io/rev:<rev>' instead of 'sidecar.istio.io/inject' or 'istio-injection:enabled'. Ignored if DisableAutoInjection is 'true'.|
+|global.istioIntegration.enableIstioSidecarOnGateway|bool|false|Enable Istio sidecar injection on the gateway-proxy deployment. Ignored if LabelInstallNamespace is not 'true'. Ignored if disableAutoinjection is 'true'.|
+|global.istioIntegration.istioSidecarRevTag|string||Value of revision tag for Istio sidecar injection on the gateway-proxy and discovery deployments (when enabled with LabelInstallNamespace, WhitelistDiscovery or EnableIstioSidecarOnGateway). If set, applies the label 'istio.io/rev:<rev>' instead of 'sidecar.istio.io/inject' or 'istio-injection:enabled'. Ignored if disableAutoinjection is 'true'.|
 |global.extraSpecs|bool||Add additional specs to include in the settings manifest, as defined by a helm partial. Defaults to false in open source, and true in enterprise.|
 |global.extauthCustomYaml|bool|true|Inject whatever yaml exists in .Values.global.extensions.extAuth into settings.spec.extauth, instead of structured yaml (which is enterprise only). Defaults to true in open source, and false in enterprise|
 |global.console|interface||Configuration options for the Enterprise Console (UI).|
@@ -1267,3 +1273,4 @@
 |global.configMaps[].name|string||Name of the ConfigMap to create (required).|
 |global.configMaps[].namespace|string||Namespace in which to create the ConfigMap. If empty, defaults to Gloo Edge install namespace.|
 |global.configMaps[].data.NAME|string||Key-value pairs of ConfigMap data.|
+|global.extraCustomResources|bool||Add additional custom resources to create, as defined by a helm partial. Defaults to false in open source, and true in enterprise.|

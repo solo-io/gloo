@@ -45,8 +45,7 @@ var _ = Describe("Session", func() {
 	It("should generate the session with config", func() {
 		session, err := GetAwsSession(nil, nil, &aws.Config{Region: aws.String("us-east-1")})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(session.Config.Region).NotTo(Equal("us-east-1"))
-
+		Expect(session.Config.Region).To(HaveValue(Equal("us-east-1")))
 	})
 
 	It("should return a session with specified secret", func() {

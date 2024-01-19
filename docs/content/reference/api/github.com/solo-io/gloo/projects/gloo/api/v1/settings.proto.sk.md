@@ -271,6 +271,7 @@ For more info see https://developer.hashicorp.com/vault/docs/auth/aws
 "accessKeyId": string
 "secretAccessKey": string
 "sessionToken": string
+"leaseIncrement": int
 
 ```
 
@@ -283,6 +284,7 @@ For more info see https://developer.hashicorp.com/vault/docs/auth/aws
 | `accessKeyId` | `string` | The Access Key ID as provided by the security credentials on the AWS IAM resource. Optional: In cases such as receiving temporary credentials through assumed roles with AWS Security Token Service (STS) or IAM Roles for Service Accounts (IRSA), this field can be omitted. https://developer.hashicorp.com/vault/docs/auth/aws#iam-authentication-inferences. |
 | `secretAccessKey` | `string` | The Secret Access Key as provided by the security credentials on the AWS IAM resource. Optional: In cases such as receiving temporary credentials through assumed roles with AWS Security Token Service (STS) or IAM Roles for Service Accounts (IRSA), this field can be omitted. https://developer.hashicorp.com/vault/docs/auth/aws#iam-authentication-inferences. |
 | `sessionToken` | `string` | The Session Token as provided by the security credentials on the AWS IAM resource. |
+| `leaseIncrement` | `int` | The time increment, in seconds, used in renewing the lease of the Vault token. See: https://developer.hashicorp.com/vault/docs/concepts/lease#lease-durations-and-renewal. Defaults to 0, which causes the default TTL to be used. |
 
 
 
@@ -630,12 +632,16 @@ Provides settings related to the observability pod's interactions with grafana
 
 ```yaml
 "defaultDashboardFolderId": .google.protobuf.UInt32Value
+"dashboardPrefix": string
+"extraMetricQueryParameters": string
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `defaultDashboardFolderId` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | (UInt32Value) Grafana allows dashboards to be added to specific folders by specifying that folder's ID If unset, automatic upstream dashboards are generated in the general folder (folderId: 0). If set, the observability deployment will try to create/move all upstreams without their own folderId to the folder specified here, after verifying that a folder with such an ID exists. Be aware that grafana requires a folders ID, which should not be confused with the similarly-named and more easily accessible folder UID value. If individual upstream dashboards need to be placed specific granafa folders, they can be given their own folder IDs by annotating the upstreams. The annotation key must be 'observability.solo.io/dashboard_folder_id' and the value must be the folder ID. Folder IDs can be retrieved from grafana with a pair of terminal commands: 1. Port forward the grafana deployment to surface its API: kubectl -n gloo-system port-forward deployment/glooe-grafana 3000 2. Request all folder data (after admin:admin is replaced with the correct credentials): curl http://admin:admin@localhost:3000/api/folders. |
+| `dashboardPrefix` | `string` | The prefix of the UIDs and Titles for all dashboards created on grafana. This is restricted to 20 characters. |
+| `extraMetricQueryParameters` | `string` | Extra parameters when querying metrics from Grafana dashboards. This string will be appended to every query for metrics in the definition of all gloo managed dashboards. It can consist of multiple query parameters separated by a comma. For example `cluster="some-cluster",gateway_proxy_id="proxy-2"`. |
 
 
 
@@ -718,7 +724,7 @@ Settings specific to the gloo (Envoy xDS server) controller
 | `disableProxyGarbageCollection` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set this option to determine the state of the envoy configuration when a virtual service is deleted, resulting in a proxy with no configured routes. set to true if you wish to keep envoy serving the routes from the latest valid configuration. set to false if you wish to reset the envoy configuration to a clean slate with no routes. If not specified, defaults to `false`. |
 | `regexMaxProgramSize` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | Set this option to specify the default max program size for regexes. If not specified, defaults to 100. |
 | `restXdsBindAddr` | `string` | Where the `gloo` REST xDS server should bind. Defaults to `0.0.0.0:9976`. |
-| `enableRestEds` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Whether or not to use rest xds for all EDS by default. Rest XDS, as opposed to grpc, uses http polling rather than streaming. |
+| `enableRestEds` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Whether or not to use rest xds for all EDS by default. Rest XDS, as opposed to grpc, uses http polling rather than streaming It is strongly recommended that this field be set to false, due to the superior performance of GRPC XDS. |
 | `failoverUpstreamDnsPollingInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | The polling interval for the DNS server if upstream failover is configured. If there is a failover upstream address with a hostname instead of an IP, Gloo will resolve the hostname with the configured frequency to update endpoints with any changes to DNS resolution. Defaults to 10s. |
 | `removeUnusedFilters` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | By default gloo adds a series of filters to envoy to ensure that new routes are picked up Even if the listener previously did not have a filter on the chain previously. When set to true unused filters are not added to the chain by default. Defaults to false. |
 | `proxyDebugBindAddr` | `string` | Where the `gloo` proxy debug server should bind. Defaults to `gloo:9966`. |
@@ -826,7 +832,7 @@ Settings specific to the Gateway controller
 | `persistProxySpec` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set this to persist the Proxy CRD to etcd By default, proxies are kept in memory to improve performance. Proxies can be persisted to etcd to allow external tools and other pods to read the contents the Proxy CRD. |
 | `enableGatewayController` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | This is set based on the install mode. It indicates to gloo whether or not it should run the gateway translations and validation. |
 | `isolateVirtualHostsBySslConfig` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | If set, group virtual hosts by matching ssl config, and isolate them on separate filter chains The default behavior is to aggregate all virtual hosts, and expose them on identical filter chains, each with a FilterChainMatch that corresponds to the ssl config. Individual Gateways can override this behavior by configuring the "gateway.solo.io/isolate_vhost" annotation to be a truthy ("true", "false") value. |
-| `translateEmptyGateways` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | If set, gateways will be translated into Envoy listeners even if no VirtualServices exist or match a gateway. As a consequence of no VirtualServices, which in turn implies that there are no routes to serve, the listener will not contain any routes, so all requests will return a 404. Defaults to false. The default behaviour is when there are no VirtualServices defined or a Gateway does not match any VirtualService, the gateway is not converted into an envoy listener. |
+| `translateEmptyGateways` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | If set, gateways will be translated into Envoy listeners even if no VirtualServices exist or match a gateway. When there are no VirtualServices that implies there are no routes to serve, so all requests will return a 404. Defaults to false. The default behavior when no VirtualServices are defined or no Gateways match a VirtualService is that the gateway is not converted into an Envoy listener. |
 
 
 

@@ -554,7 +554,7 @@ var _ = Describe("Plugin", func() {
 		It("sets only one filter when no early filters exist", func() {
 			filters, err := p.(plugins.HttpFilterPlugin).HttpFilters(plugins.Params{Ctx: ctx}, nil)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(len(filters)).To(Equal(1))
+			Expect(filters).To(HaveLen(1))
 			value := filters[0].HttpFilter.GetTypedConfig().GetValue()
 			Expect(value).To(BeEmpty())
 		})
@@ -834,9 +834,10 @@ var _ = Describe("Plugin", func() {
 					StagedTransformations: inputTransform,
 				},
 			}, out)
+			Expect(err).NotTo(HaveOccurred())
 			filters, err := p.(plugins.HttpFilterPlugin).HttpFilters(plugins.Params{Ctx: ctx}, nil)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(len(filters)).To(Equal(2))
+			Expect(filters).To(HaveLen(2))
 			value := filters[0].HttpFilter.GetTypedConfig()
 			Expect(value).To(Equal(earlyStageFilterConfig))
 			// second filter should have no stage, and thus empty config

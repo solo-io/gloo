@@ -48,7 +48,7 @@ VERSION ?= 1.0.1-dev
 
 SOURCES := $(shell find . -name "*.go" | grep -v test.go)
 
-ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.26.4-patch4
+ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.27.2-patch1
 LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
 GCFLAGS := all="-N -l"
 
@@ -72,7 +72,7 @@ endif
 GOOS ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')
 
 GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=$(GOARCH)
-GOLANG_ALPINE_IMAGE_NAME = golang:$(shell go version | egrep -o '([0-9]+\.[0-9]+)')-alpine
+GOLANG_ALPINE_IMAGE_NAME = golang:$(shell go version | egrep -o '([0-9]+\.[0-9]+)')-alpine3.18
 
 TEST_ASSET_DIR := $(ROOTDIR)/_test
 
@@ -128,8 +128,11 @@ install-go-tools: mod-download ## Download and install Go dependencies
 	go install golang.org/x/tools/cmd/goimports
 	go install github.com/cratonica/2goarray
 	go install go.uber.org/mock/mockgen
-	go install go.uber.org/mock/mockgenn
 	go install github.com/saiskee/gettercheck
+	# This version must stay in sync with the version used in CI: .github/workflows/static-analysis.yaml
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
+	go install github.com/quasilyte/go-ruleguard/cmd/ruleguard@v0.3.16
+
 
 .PHONY: check-format
 check-format:
@@ -138,6 +141,18 @@ check-format:
 .PHONY: check-spelling
 check-spelling:
 	./ci/spell.sh check
+
+
+#----------------------------------------------------------------------------
+# Analyze
+#----------------------------------------------------------------------------
+
+# The analyze target runs a suite of static analysis tools against the codebase.
+# The options are defined in .golangci.yaml, and can be overridden by setting the ANALYZE_OPTIONS variable.
+.PHONY: analyze
+ANALYZE_OPTIONS ?= --fast --verbose
+analyze:
+	$(DEPSGOBIN)/golangci-lint run $(ANALYZE_OPTIONS) ./...
 
 
 #----------------------------------------------------------------------------------

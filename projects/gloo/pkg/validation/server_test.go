@@ -284,7 +284,7 @@ var _ = Describe("Validation Server", func() {
 			validateProxyReport := func(proxyReport *validationgrpc.ProxyReport) {
 				warnings := validation.GetProxyWarning(proxyReport)
 				errors := validation.GetProxyError(proxyReport)
-				Expect(warnings).To(HaveLen(0))
+				Expect(warnings).To(BeEmpty())
 				Expect(errors).NotTo(HaveOccurred())
 			}
 
@@ -368,7 +368,7 @@ var _ = Describe("Validation Server", func() {
 			validateProxyReport := func(proxyReport *validationgrpc.ProxyReport) {
 				warnings := validation.GetProxyWarning(proxyReport)
 				errors := validation.GetProxyError(proxyReport)
-				Expect(warnings).To(HaveLen(0))
+				Expect(warnings).To(BeEmpty())
 				Expect(errors).NotTo(HaveOccurred())
 			}
 
@@ -524,13 +524,13 @@ var _ = Describe("Validation Server", func() {
 
 					}
 					if state != 0 {
-						Expect(err).NotTo(BeNil())
+						Expect(err).To(HaveOccurred())
 						st, ok := status.FromError(err)
 						Expect(ok).To(BeTrue())
 						Expect(st.Code()).To(Equal(state))
 						continue
 					} else {
-						Expect(err).To(BeNil())
+						Expect(err).NotTo(HaveOccurred())
 					}
 
 					l.Lock()

@@ -32,13 +32,13 @@ var _ = Describe("GrpcJson", func() {
 			DescriptorSet: &envoy_extensions_filters_http_grpc_json_transcoder_v3.GrpcJsonTranscoder_ProtoDescriptor{ProtoDescriptor: "/path/to/file"},
 			Services:      []string{"main.Bookstore"},
 		}
-		any, _         = utils.MessageToAny(envoyGrpcJsonConf)
+		anyPb, _       = utils.MessageToAny(envoyGrpcJsonConf)
 		expectedFilter = []plugins.StagedHttpFilter{
 			{
 				HttpFilter: &envoyhttp.HttpFilter{
 					Name: wellknown.GRPCJSONTranscoder,
 					ConfigType: &envoyhttp.HttpFilter_TypedConfig{
-						TypedConfig: any,
+						TypedConfig: anyPb,
 					},
 				},
 				Stage: plugins.BeforeStage(plugins.OutAuthStage),
@@ -151,7 +151,7 @@ var _ = Describe("GrpcJson", func() {
 		hl := &v1.HttpListener{VirtualHosts: []*v1.VirtualHost{vhost}}
 		f, err := p.HttpFilters(plugins.Params{}, hl)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(f)).To(Equal(0))
+		Expect(f).To(BeEmpty())
 	})
 	It("Doesn't create empty filters on listeners when gRPC upstreams are configured but not referenced by routes on that listener", func() {
 		us := &v1.Upstream{
@@ -177,7 +177,7 @@ var _ = Describe("GrpcJson", func() {
 		hl := &v1.HttpListener{VirtualHosts: []*v1.VirtualHost{}}
 		f, err := p.HttpFilters(plugins.Params{}, hl)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(f)).To(Equal(0))
+		Expect(f).To(BeEmpty())
 	})
 	Context("proto descriptor configmap", func() {
 		var (
@@ -220,14 +220,14 @@ var _ = Describe("GrpcJson", func() {
 				},
 				Services: []string{"main.Bookstore"},
 			}
-			any, err := utils.MessageToAny(envoyGrpcJsonConf)
+			anyPb, err := utils.MessageToAny(envoyGrpcJsonConf)
 			Expect(err).ToNot(HaveOccurred())
 			expectedFilter = []plugins.StagedHttpFilter{
 				{
 					HttpFilter: &envoyhttp.HttpFilter{
 						Name: wellknown.GRPCJSONTranscoder,
 						ConfigType: &envoyhttp.HttpFilter_TypedConfig{
-							TypedConfig: any,
+							TypedConfig: anyPb,
 						},
 					},
 					Stage: plugins.BeforeStage(plugins.OutAuthStage),

@@ -603,7 +603,7 @@ var _ = Describe("Translator", func() {
 			translate()
 			fooRoute := routeConfiguration.VirtualHosts[0].Routes[0]
 			Expect(fooRoute.Match.GetPrefix()).To(Equal("/foo"))
-			Expect(fooRoute.Match.CaseSensitive.Value).To(Equal(true))
+			Expect(fooRoute.Match.CaseSensitive.Value).To(BeTrue())
 		})
 
 		It("should translate path matcher with case insensitive", func() {
@@ -785,7 +785,7 @@ var _ = Describe("Translator", func() {
 			translate()
 			headerMatch := routeConfiguration.VirtualHosts[0].Routes[0].Match.Headers[0]
 			Expect(headerMatch.Name).To(Equal("test"))
-			Expect(headerMatch.InvertMatch).To(Equal(false))
+			Expect(headerMatch.InvertMatch).To(BeFalse())
 			presentMatch := headerMatch.GetPresentMatch()
 			Expect(presentMatch).To(BeTrue())
 		})
@@ -802,7 +802,7 @@ var _ = Describe("Translator", func() {
 
 			headerMatch := routeConfiguration.VirtualHosts[0].Routes[0].Match.Headers[0]
 			Expect(headerMatch.Name).To(Equal("test"))
-			Expect(headerMatch.InvertMatch).To(Equal(false))
+			Expect(headerMatch.InvertMatch).To(BeFalse())
 			exactMatch := headerMatch.GetExactMatch()
 			Expect(exactMatch).To(Equal("testvalue"))
 		})
@@ -820,7 +820,7 @@ var _ = Describe("Translator", func() {
 
 			headerMatch := routeConfiguration.VirtualHosts[0].Routes[0].Match.Headers[0]
 			Expect(headerMatch.Name).To(Equal("test"))
-			Expect(headerMatch.InvertMatch).To(Equal(false))
+			Expect(headerMatch.InvertMatch).To(BeFalse())
 			regex := headerMatch.GetSafeRegexMatch().GetRegex()
 			Expect(regex).To(Equal("testvalue"))
 		})
@@ -845,7 +845,7 @@ var _ = Describe("Translator", func() {
 
 			headerMatch := routeConfiguration.VirtualHosts[0].Routes[0].Match.Headers[0]
 			Expect(headerMatch.Name).To(Equal("test"))
-			Expect(headerMatch.InvertMatch).To(Equal(false))
+			Expect(headerMatch.InvertMatch).To(BeFalse())
 			regex := headerMatch.GetSafeRegexMatch().GetRegex()
 			Expect(regex).To(Equal("testvalue"))
 			maxsize := headerMatch.GetSafeRegexMatch().GetGoogleRe2().GetMaxProgramSize().GetValue()
@@ -863,7 +863,7 @@ var _ = Describe("Translator", func() {
 			translate()
 
 			headerMatch := routeConfiguration.VirtualHosts[0].Routes[0].Match.Headers[0]
-			Expect(headerMatch.InvertMatch).To(Equal(true))
+			Expect(headerMatch.InvertMatch).To(BeTrue())
 		})
 
 		It("should default to '/' prefix matcher if none is provided", func() {
@@ -1104,7 +1104,7 @@ var _ = Describe("Translator", func() {
 			Expect(err).NotTo(HaveOccurred())
 			_, errs, _ := translator.Translate(params, proxy)
 			_, usReport := errs.Find("*v1.Upstream", upstream.Metadata.Ref())
-			Expect(usReport.Errors).To(Not(BeNil()))
+			Expect(usReport.Errors).To(HaveOccurred())
 			Expect(usReport.Errors.Error()).To(ContainSubstring("method CONNECT is not allowed on http health checkers"))
 		})
 
@@ -2763,7 +2763,7 @@ var _ = Describe("Translator", func() {
 		It("can properly create a tcp listener", func() {
 			translate()
 			listeners := snapshot.GetResources(types.ListenerTypeV3).Items
-			Expect(listeners).NotTo(HaveLen(0))
+			Expect(listeners).NotTo(BeEmpty())
 			val, found := listeners["tcp-listener"]
 			Expect(found).To(BeTrue())
 			listener, ok := val.ResourceProto().(*envoy_config_listener_v3.Listener)
@@ -2791,7 +2791,7 @@ var _ = Describe("Translator", func() {
 		It("can properly create a hybrid listener", func() {
 			translate()
 			listeners := snapshot.GetResources(types.ListenerTypeV3).Items
-			Expect(listeners).NotTo(HaveLen(0))
+			Expect(listeners).NotTo(BeEmpty())
 			val, found := listeners["hybrid-listener"]
 			Expect(found).To(BeTrue())
 			listener, ok := val.ResourceProto().(*envoy_config_listener_v3.Listener)
@@ -2829,7 +2829,7 @@ var _ = Describe("Translator", func() {
 			settings.Gloo = &v1.GlooOptions{RemoveUnusedFilters: &wrappers.BoolValue{Value: true}}
 			translate()
 			listeners := snapshot.GetResources(types.ListenerTypeV3).Items
-			Expect(listeners).NotTo(HaveLen(0))
+			Expect(listeners).NotTo(BeEmpty())
 			val, found := listeners["hybrid-listener"]
 			Expect(found).To(BeTrue())
 			listener, ok := val.ResourceProto().(*envoy_config_listener_v3.Listener)
@@ -3651,6 +3651,47 @@ var _ = Describe("Translator", func() {
 			Entry("When value=nil", nil, false))
 	})
 
+	Context("PreconnectPolicy", func() {
+		DescribeTable("propagates PreconnectPolicy to Cluster",
+			func(upstreamValue *v1.PreconnectPolicy, shouldErr bool) {
+				// Set the value to test
+				upstream.PreconnectPolicy = upstreamValue
+
+				snap, errs, _ := translator.Translate(params, proxy)
+				if shouldErr {
+					Expect(errs.Validate()).To(HaveOccurred())
+					return
+				}
+				Expect(snap).NotTo(BeNil())
+				Expect(errs.Validate()).To(Succeed())
+
+				clusters := snap.GetResources(types.ClusterTypeV3)
+				clusterResource := clusters.Items[UpstreamToClusterName(upstream.Metadata.Ref())]
+				cluster = clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
+				Expect(cluster).NotTo(BeNil())
+
+				// The underlying types are different but not individual fields
+				actualPrecon := cluster.PreconnectPolicy
+				if upstreamValue == nil {
+					Expect(actualPrecon).To(BeNil())
+					return
+				}
+
+				Expect(actualPrecon.PerUpstreamPreconnectRatio).To(Equal(upstreamValue.PerUpstreamPreconnectRatio))
+
+				Expect(actualPrecon.PredictivePreconnectRatio).To(Equal(upstreamValue.PredictivePreconnectRatio))
+			},
+			Entry("When unset", nil, false),
+			Entry("When valid perupstream", &v1.PreconnectPolicy{PerUpstreamPreconnectRatio: asDouble(1)}, false),
+			Entry("When valid predictive", &v1.PreconnectPolicy{PredictivePreconnectRatio: asDouble(2)}, false),
+			Entry("When valid", &v1.PreconnectPolicy{PerUpstreamPreconnectRatio: asDouble(1), PredictivePreconnectRatio: asDouble(2)}, false),
+			// invalid based on proto constraints https://github.com/envoyproxy/envoy/blob/353c0a439ef8bc8eb63bf08c2db4fd3fc3778dec/api/envoy/config/cluster/v3/cluster.proto#L724
+			Entry("When invalid perupstream", &v1.PreconnectPolicy{PerUpstreamPreconnectRatio: asDouble(0.5)}, true),
+			Entry("When both pieces are invalid", &v1.PreconnectPolicy{PerUpstreamPreconnectRatio: asDouble(0.5), PredictivePreconnectRatio: asDouble(1000)}, true),
+			Entry("When valid perupstream but invalid predictive", &v1.PreconnectPolicy{PerUpstreamPreconnectRatio: asDouble(1), PredictivePreconnectRatio: asDouble(1000)}, true),
+		)
+	})
+
 	Context("DnsRefreshRate", func() {
 		DescribeTable("Sets DnsRefreshRate on Cluster",
 			func(staticUpstream bool, refreshRate *duration.Duration, refreshRateMatcher types2.GomegaMatcher, reportMatcher types2.GomegaMatcher) {
@@ -3879,4 +3920,8 @@ func createMultiActionRoute(routeName string, matcher *matchers.Matcher, destina
 			},
 		},
 	}
+}
+
+func asDouble(v float64) *wrappers.DoubleValue {
+	return &wrappers.DoubleValue{Value: v}
 }

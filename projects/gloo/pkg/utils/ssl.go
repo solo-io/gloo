@@ -217,7 +217,7 @@ func buildDeprecatedSDS(name string, sslSecrets *ssl.SDSConfig) *envoyauth.SdsSe
 		},
 		HeaderKey: sslSecrets.GetCallCredentials().GetFileCredentialSource().GetHeader(),
 	}
-	any, _ := MessageToAny(config)
+	anyPb, _ := MessageToAny(config)
 
 	gRPCConfig := &envoycore.GrpcService_GoogleGrpc{
 		TargetUri:  sslSecrets.GetTargetUri(),
@@ -234,7 +234,7 @@ func buildDeprecatedSDS(name string, sslSecrets *ssl.SDSConfig) *envoyauth.SdsSe
 					FromPlugin: &envoycore.GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin{
 						Name: MetadataPluginName,
 						ConfigType: &envoycore.GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_TypedConfig{
-							TypedConfig: any},
+							TypedConfig: anyPb},
 					},
 				},
 			},
@@ -321,7 +321,7 @@ func (s *sslConfigTranslator) ResolveCommonSslConfig(cs CertSource, secrets v1.S
 			return nil, InvalidTlsSecretError(nil, err)
 		}
 	} else if sslSds := cs.GetSds(); sslSds != nil {
-		tlsContext, err := s.handleSds(sslSds, verifySanListToMatchSanList(cs.GetVerifySubjectAltName()))
+		tlsContext, err := s.handleSds(sslSds, VerifySanListToMatchSanList(cs.GetVerifySubjectAltName()))
 		if err != nil {
 			return nil, err
 		}
@@ -376,7 +376,7 @@ func (s *sslConfigTranslator) ResolveCommonSslConfig(cs CertSource, secrets v1.S
 		return nil, eris.Errorf("both or none of cert chain and private key must be provided")
 	}
 
-	sanList := verifySanListToMatchSanList(cs.GetVerifySubjectAltName())
+	sanList := VerifySanListToMatchSanList(cs.GetVerifySubjectAltName())
 
 	if rootCaData != nil {
 		validationCtx := &envoyauth.CommonTlsContext_ValidationContext{
@@ -478,7 +478,7 @@ func convertVersion(v ssl.SslParameters_ProtocolVersion) (envoyauth.TlsParameter
 	return envoyauth.TlsParameters_TLS_AUTO, TlsVersionNotFoundError(v)
 }
 
-func verifySanListToMatchSanList(sanList []string) []*envoymatcher.StringMatcher {
+func VerifySanListToMatchSanList(sanList []string) []*envoymatcher.StringMatcher {
 	var matchSanList []*envoymatcher.StringMatcher
 	for _, san := range sanList {
 		matchSan := &envoymatcher.StringMatcher{

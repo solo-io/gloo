@@ -103,20 +103,20 @@ func (s *metadataCheckingRateLimitServer) getActionsForServer() []*rltypes.RateL
 			Actions: []*rltypes.Action{
 				{
 					ActionSpecifier: &rltypes.Action_Metadata{
-						Metadata: &rltypes.Action_MetaData{
+						Metadata: &rltypes.MetaData{
 							DescriptorKey: s.descriptorKey,
-							MetadataKey: &rltypes.Action_MetaData_MetadataKey{
+							MetadataKey: &rltypes.MetaData_MetadataKey{
 								Key: s.metadataKey,
-								Path: []*rltypes.Action_MetaData_MetadataKey_PathSegment{
+								Path: []*rltypes.MetaData_MetadataKey_PathSegment{
 									{
-										Segment: &rltypes.Action_MetaData_MetadataKey_PathSegment_Key{
+										Segment: &rltypes.MetaData_MetadataKey_PathSegment_Key{
 											Key: s.pathSegmentKey,
 										},
 									},
 								},
 							},
 							DefaultValue: s.defaultDescriptorValue,
-							Source:       rltypes.Action_MetaData_ROUTE_ENTRY,
+							Source:       rltypes.MetaData_ROUTE_ENTRY,
 						},
 					},
 				},
@@ -287,7 +287,7 @@ func startRateLimitServer(service pb.RateLimitServiceServer, rlport uint32) *grp
 	reflection.Register(srv)
 	addr := fmt.Sprintf(":%d", rlport)
 	lis, err := net.Listen("tcp", addr)
-	Expect(err).To(BeNil())
+	Expect(err).NotTo(HaveOccurred())
 	go func() {
 		defer GinkgoRecover()
 		err := srv.Serve(lis)
@@ -302,7 +302,10 @@ func EventuallyOk(hostname string, port uint32) {
 	// (gloo resyncs once per second)
 	time.Sleep(3 * time.Second)
 	EventuallyWithOffset(1, func(g Gomega) {
-		g.Expect(get(hostname, port)).To(matchers.HaveOkResponse())
+		resp, err := get(hostname, port)
+		g.Expect(err).NotTo(HaveOccurred())
+		defer resp.Body.Close()
+		g.Expect(resp).To(matchers.HaveOkResponse())
 	}, "5s", ".1s").Should(Succeed())
 }
 
@@ -311,13 +314,19 @@ func ConsistentlyNotRateLimited(hostname string, port uint32) {
 	EventuallyOk(hostname, port)
 
 	ConsistentlyWithOffset(1, func(g Gomega) {
-		g.Expect(get(hostname, port)).To(matchers.HaveOkResponse())
+		resp, err := get(hostname, port)
+		g.Expect(err).NotTo(HaveOccurred())
+		defer resp.Body.Close()
+		g.Expect(resp).To(matchers.HaveOkResponse())
 	}, "5s", ".1s").Should(Succeed())
 }
 
 func EventuallyRateLimited(hostname string, port uint32) {
 	EventuallyWithOffset(1, func(g Gomega) {
-		g.Expect(get(hostname, port)).To(matchers.HaveStatusCode(http.StatusTooManyRequests))
+		resp, err := get(hostname, port)
+		g.Expect(err).NotTo(HaveOccurred())
+		defer resp.Body.Close()
+		g.Expect(resp).To(matchers.HaveStatusCode(http.StatusTooManyRequests))
 	}, "5s", ".1s").Should(Succeed())
 }
 
@@ -329,7 +338,7 @@ func get(hostname string, port uint32) (*http.Response, error) {
 		path = parts[1]
 	}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/"+path, "localhost", port), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%d/"+path, "localhost", port), nil)
 	Expect(err).NotTo(HaveOccurred())
 
 	// remove password part if exists

@@ -25,7 +25,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.opencensus.io/stats/view"
-	"golang.org/x/sync/errgroup"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8syamlutil "sigs.k8s.io/yaml"
 )
@@ -380,7 +379,7 @@ var _ = Describe("Validator", func() {
 				reports, err := v.ValidateModifiedGvk(context.TODO(), v1.RouteTableGVK, rt, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 		})
 
@@ -565,7 +564,7 @@ var _ = Describe("Validator", func() {
 				reports, err := v.ValidateModifiedGvk(context.TODO(), v1.VirtualServiceGVK, vs, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 		})
 		Context("valid config gauge", func() {
@@ -688,7 +687,7 @@ var _ = Describe("Validator", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
 				Expect(err.Error()).To(ContainSubstring("domain conflict: the following"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 
 			It("accepts the vs and accepts the second because of dry-run", func() {
@@ -849,7 +848,7 @@ var _ = Describe("Validator", func() {
 				reports, err := v.ValidateModifiedGvk(context.TODO(), v1.GatewayGVK, gw, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 		})
 
@@ -953,7 +952,7 @@ var _ = Describe("Validator", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
 				Expect(err.Error()).To(ContainSubstring("domain conflict: the following"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 
 			It("accepts the vs list and returns proxies each time", func() {
@@ -997,7 +996,7 @@ var _ = Describe("Validator", func() {
 				Expect(merr.Errors[1]).To(MatchError(ContainSubstring("virtual service [gloo-system.invalid-vs-2] does not specify a virtual host")))
 				Expect(merr.Errors[2]).To(MatchError(ContainSubstring("parsing resource from crd spec testproxy1-rt in namespace gloo-system into *v1.RouteTable")))
 				Expect(merr.Errors[2]).To(MatchError(ContainSubstring("unknown field \"matcherss\" in gateway.solo.io.Route")))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 
 			})
 		})
@@ -1030,7 +1029,7 @@ var _ = Describe("Validator", func() {
 				reports, err := v.ValidateList(context.TODO(), vsList, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 		})
 
@@ -1064,7 +1063,7 @@ var _ = Describe("Validator", func() {
 				Expect(merr.ErrorOrNil()).To(HaveOccurred())
 				Expect(merr.ErrorOrNil().Error()).To(ContainSubstring("could not render proxy"))
 				Expect(merr.ErrorOrNil().Error()).To(ContainSubstring("domain conflict: the following"))
-				Expect(*(reports.ProxyReports)).To(HaveLen(0))
+				Expect(*(reports.ProxyReports)).To(BeEmpty())
 			})
 
 			It("accepts the vs and accepts the second because of dry-run", func() {
@@ -1112,7 +1111,8 @@ var _ = Describe("Validator", func() {
 			numberOfWorkers = 100
 		})
 
-		ValidateModifiedGvkWorker := func(vsToDuplicate *v1.VirtualService, name string) error {
+		validateModifiedGvkWorker := func(vsToDuplicate *v1.VirtualService, name string, wg *sync.WaitGroup) {
+			defer GinkgoRecover()
 			// duplicate the vs with a different name
 			workerVirtualService := &v1.VirtualService{}
 			vsToDuplicate.DeepCopyInto(workerVirtualService)
@@ -1123,8 +1123,7 @@ var _ = Describe("Validator", func() {
 				// worker errors are stored in the resultMap
 				resultMap.Store(name, err.Error())
 			}
-
-			return nil
+			wg.Done()
 		}
 
 		It("accepts only 1 vs when multiple are written concurrently", func() {
@@ -1138,18 +1137,17 @@ var _ = Describe("Validator", func() {
 			vsToDuplicate := snap.VirtualServices[1]
 
 			// start workers
-			errorGroup := errgroup.Group{}
+			wg := sync.WaitGroup{}
+			wg.Add(numberOfWorkers)
 			for i := 0; i < numberOfWorkers; i++ {
 				workerName := fmt.Sprintf("worker #%d", i)
-				errorGroup.Go(func() error {
-					defer GinkgoRecover()
-					return ValidateModifiedGvkWorker(vsToDuplicate, workerName)
-				})
+				// validateModifiedGvkWorker handles its own GinkgoRecover and
+				// stores errors in resultMap where we aggregate them later
+				go validateModifiedGvkWorker(vsToDuplicate, workerName, &wg)
 			}
 
 			// wait for all workers to complete
-			err = errorGroup.Wait()
-			Expect(err).NotTo(HaveOccurred())
+			wg.Wait()
 
 			// aggregate the error messages from all the workers
 			var errMessages []string
@@ -1159,13 +1157,13 @@ var _ = Describe("Validator", func() {
 			})
 
 			// Expect 1 worker to have successfully completed and all others to have failed
-			Expect(len(errMessages)).To(Equal(numberOfWorkers - 1))
+			Expect(errMessages).To(HaveLen(numberOfWorkers - 1))
 		})
 
 	})
 })
 
-func ValidateAccept(ctx context.Context, proxy *gloov1.Proxy, resource resources.Resource, delete bool) ([]*gloovalidation.GlooValidationReport, error) {
+func ValidateAccept(ctx context.Context, proxy *gloov1.Proxy, resource resources.Resource, shouldDelete bool) ([]*gloovalidation.GlooValidationReport, error) {
 	var proxies []*gloov1.Proxy
 	if proxy != nil {
 		proxies = []*gloov1.Proxy{proxy}
@@ -1185,7 +1183,7 @@ func ValidateAccept(ctx context.Context, proxy *gloov1.Proxy, resource resources
 	return validationReports, nil
 }
 
-func ValidateFail(ctx context.Context, proxy *gloov1.Proxy, resource resources.Resource, delete bool) ([]*gloovalidation.GlooValidationReport, error) {
+func ValidateFail(ctx context.Context, proxy *gloov1.Proxy, resource resources.Resource, shouldDelete bool) ([]*gloovalidation.GlooValidationReport, error) {
 	var proxies []*gloov1.Proxy
 	if proxy != nil {
 		proxies = []*gloov1.Proxy{proxy}
@@ -1206,7 +1204,7 @@ func ValidateFail(ctx context.Context, proxy *gloov1.Proxy, resource resources.R
 	return validationReports, nil
 }
 
-func ValidateWarn(ctx context.Context, proxy *gloov1.Proxy, resource resources.Resource, delete bool) ([]*gloovalidation.GlooValidationReport, error) {
+func ValidateWarn(ctx context.Context, proxy *gloov1.Proxy, resource resources.Resource, shouldDelete bool) ([]*gloovalidation.GlooValidationReport, error) {
 	var proxies []*gloov1.Proxy
 	if proxy != nil {
 		proxies = []*gloov1.Proxy{proxy}

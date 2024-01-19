@@ -34,7 +34,7 @@ func (p *plugin) ApplyRoutePlugin(
 		return errors.Errorf("RequestRedirect filter supplied does not define requestRedirect config")
 	}
 
-	if outputRoute.Action != nil {
+	if outputRoute.GetAction() != nil {
 		return errors.Errorf("RequestRedirect route cannot have destinations")
 	}
 

@@ -98,6 +98,9 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		return nil
 	}
 	grpcJsonFilter, err := plugins.NewStagedFilter(wellknown.GRPCJSONTranscoder, envoyGrpcJsonConf, pluginStage)
+	if err != nil {
+		return err
+	}
 	p.upstreamFilters[in.GetMetadata().Ref().Key()] = grpcJsonFilter
 	// GRPC transcoding always requires http2
 	if out.GetHttp2ProtocolOptions() == nil {
@@ -203,7 +206,7 @@ func translateGlooToEnvoyPrintOptions(options *grpc_json.GrpcJsonTranscoder_Prin
 }
 
 // get the proto descriptor data from a ConfigMap
-func translateConfigMapToProtoBin(ctx context.Context, snap *gloosnapshot.ApiSnapshot, configRef *grpc_json.GrpcJsonTranscoder_DescriptorConfigMap) ([]byte, error) {
+func translateConfigMapToProtoBin(_ context.Context, snap *gloosnapshot.ApiSnapshot, configRef *grpc_json.GrpcJsonTranscoder_DescriptorConfigMap) ([]byte, error) {
 	if configRef.GetConfigMapRef() == nil {
 		return nil, NoConfigMapRefError()
 	}

@@ -181,6 +181,8 @@ message Settings {
         string secret_access_key = 6;
         // The Session Token as provided by the security credentials on the AWS IAM resource
         string session_token = 7;
+        // The time increment, in seconds, used in renewing the lease of the Vault token. See: https://developer.hashicorp.com/vault/docs/concepts/lease#lease-durations-and-renewal. Defaults to 0, which causes the default TTL to be used.
+        int32 lease_increment = 8;
     }
 
     // Settings to configure TLS-enabled Vault as a secret store
@@ -510,6 +512,16 @@ message Settings {
             // 2. Request all folder data (after admin:admin is replaced with the correct credentials):
             // curl http://admin:admin@localhost:3000/api/folders
             google.protobuf.UInt32Value default_dashboard_folder_id = 1;
+
+            // The prefix of the UIDs and Titles for all dashboards created on grafana.
+            // This is restricted to 20 characters.
+            string dashboard_prefix = 2;
+
+            // Extra parameters when querying metrics from Grafana dashboards.
+            // This string will be appended to every query for metrics in the definition of all gloo managed dashboards.
+            // It can consist of multiple query parameters separated by a comma.
+            // For example `cluster="some-cluster",gateway_proxy_id="proxy-2"`
+            string extra_metric_query_parameters = 3;
         }
 
         // Options to configure Gloo's integration with [Kubernetes](https://www.kubernetes.io/).
@@ -686,6 +698,7 @@ message GlooOptions {
 
     // Whether or not to use rest xds for all EDS by default.
     // Rest XDS, as opposed to grpc, uses http polling rather than streaming
+    // It is strongly recommended that this field be set to false, due to the superior performance of GRPC XDS
     google.protobuf.BoolValue enable_rest_eds = 12;
 
     // The polling interval for the DNS server if upstream failover is configured.
@@ -828,10 +841,10 @@ message GatewayOptions {
     google.protobuf.BoolValue isolate_virtual_hosts_by_ssl_config = 10;
 
     // If set, gateways will be translated into Envoy listeners even if no VirtualServices exist or match a gateway.
-    // As a consequence of no VirtualServices, which in turn implies that there are no routes to serve,
-    // the listener will not contain any routes, so all requests will return a 404. Defaults to false.
-    // The default behaviour is when there are no VirtualServices defined or a Gateway does not match
-    // any VirtualService, the gateway is not converted into an envoy listener.
+    // When there are no VirtualServices that implies there are no routes to serve, so all requests will return a 404.
+    // Defaults to false.
+    // The default behavior when no VirtualServices are defined or no Gateways match a VirtualService is that
+    // the gateway is not converted into an Envoy listener.
     google.protobuf.BoolValue translate_empty_gateways = 11;
 }
 

@@ -388,7 +388,7 @@ func getNamespaces(ctx context.Context, settings *v1.Settings) ([]string, error)
 	return helpers.GetNamespaces(ctx)
 }
 
-func checkUpstreams(ctx context.Context, printer printers.P, opts *options.Options, namespaces []string) ([]string, error) {
+func checkUpstreams(ctx context.Context, printer printers.P, _ *options.Options, namespaces []string) ([]string, error) {
 	printer.AppendCheck("Checking upstreams... ")
 	var knownUpstreams []string
 	var multiErr *multierror.Error
@@ -433,7 +433,7 @@ func checkUpstreams(ctx context.Context, printer printers.P, opts *options.Optio
 	return knownUpstreams, nil
 }
 
-func checkUpstreamGroups(ctx context.Context, printer printers.P, opts *options.Options, namespaces []string) error {
+func checkUpstreamGroups(ctx context.Context, printer printers.P, _ *options.Options, namespaces []string) error {
 	printer.AppendCheck("Checking upstream groups... ")
 	var multiErr *multierror.Error
 	for _, ns := range namespaces {
@@ -479,7 +479,7 @@ func checkUpstreamGroups(ctx context.Context, printer printers.P, opts *options.
 	return nil
 }
 
-func checkAuthConfigs(ctx context.Context, printer printers.P, opts *options.Options, namespaces []string) ([]string, error) {
+func checkAuthConfigs(ctx context.Context, printer printers.P, _ *options.Options, namespaces []string) ([]string, error) {
 	printer.AppendCheck("Checking auth configs... ")
 	var knownAuthConfigs []string
 	var multiErr *multierror.Error
@@ -524,7 +524,7 @@ func checkAuthConfigs(ctx context.Context, printer printers.P, opts *options.Opt
 	return knownAuthConfigs, nil
 }
 
-func checkRateLimitConfigs(ctx context.Context, printer printers.P, opts *options.Options, namespaces []string) ([]string, error) {
+func checkRateLimitConfigs(ctx context.Context, printer printers.P, _ *options.Options, namespaces []string) ([]string, error) {
 	printer.AppendCheck("Checking rate limit configs... ")
 	var knownConfigs []string
 	var multiErr *multierror.Error
@@ -564,7 +564,7 @@ func checkRateLimitConfigs(ctx context.Context, printer printers.P, opts *option
 	return knownConfigs, nil
 }
 
-func checkVirtualHostOptions(ctx context.Context, printer printers.P, opts *options.Options, namespaces []string) ([]string, error) {
+func checkVirtualHostOptions(ctx context.Context, printer printers.P, _ *options.Options, namespaces []string) ([]string, error) {
 	printer.AppendCheck("Checking VirtualHostOptions... ")
 	var knownVhOpts []string
 	var multiErr *multierror.Error
@@ -612,7 +612,7 @@ func checkVirtualHostOptions(ctx context.Context, printer printers.P, opts *opti
 	return knownVhOpts, nil
 }
 
-func checkRouteOptions(ctx context.Context, printer printers.P, opts *options.Options, namespaces []string) ([]string, error) {
+func checkRouteOptions(ctx context.Context, printer printers.P, _ *options.Options, namespaces []string) ([]string, error) {
 	printer.AppendCheck("Checking RouteOptions... ")
 	var knownRouteOpts []string
 	var multiErr *multierror.Error
@@ -660,7 +660,7 @@ func checkRouteOptions(ctx context.Context, printer printers.P, opts *options.Op
 	return knownRouteOpts, nil
 }
 
-func checkVirtualServices(ctx context.Context, printer printers.P, opts *options.Options, namespaces, knownUpstreams, knownAuthConfigs, knownRateLimitConfigs, knownVirtualHostOptions, knownRouteOptions []string) error {
+func checkVirtualServices(ctx context.Context, printer printers.P, _ *options.Options, namespaces, knownUpstreams, knownAuthConfigs, knownRateLimitConfigs, knownVirtualHostOptions, knownRouteOptions []string) error {
 	printer.AppendCheck("Checking virtual services... ")
 	var multiErr *multierror.Error
 
@@ -801,7 +801,7 @@ func checkVirtualServices(ctx context.Context, printer printers.P, opts *options
 	return nil
 }
 
-func checkGateways(ctx context.Context, printer printers.P, opts *options.Options, namespaces []string) error {
+func checkGateways(ctx context.Context, printer printers.P, _ *options.Options, namespaces []string) error {
 	printer.AppendCheck("Checking gateways... ")
 	var multiErr *multierror.Error
 	for _, ns := range namespaces {
@@ -902,7 +902,7 @@ func checkProxies(ctx context.Context, printer printers.P, opts *options.Options
 	return nil
 }
 
-func checkSecrets(ctx context.Context, printer printers.P, pts *options.Options, namespaces []string) error {
+func checkSecrets(ctx context.Context, printer printers.P, _ *options.Options, namespaces []string) error {
 	printer.AppendCheck("Checking secrets... ")
 	var multiErr *multierror.Error
 	client, err := helpers.GetSecretClient(ctx, namespaces)

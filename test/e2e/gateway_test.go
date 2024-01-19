@@ -409,7 +409,7 @@ var _ = Describe("Gateway", func() {
 					}, "10s", "0.1s").Should(BeTrue())
 
 					// Create a regular request
-					request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", envoyInstance.HttpPort), nil)
+					request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d", envoyInstance.HttpPort), nil)
 					Expect(err).NotTo(HaveOccurred())
 					request = request.WithContext(ctx)
 
@@ -431,7 +431,7 @@ var _ = Describe("Gateway", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// Create a regular request
-					request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/", envoyInstance.HttpPort), nil)
+					request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d/", envoyInstance.HttpPort), nil)
 					Expect(err).NotTo(HaveOccurred())
 					request = request.WithContext(ctx)
 
@@ -476,7 +476,7 @@ var _ = Describe("Gateway", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// Create a regular request
-					request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/", envoyInstance.HttpPort), nil)
+					request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d/", envoyInstance.HttpPort), nil)
 					Expect(err).NotTo(HaveOccurred())
 					request = request.WithContext(context.TODO())
 					request.Header.Add("cluster-header-name", upstreamName)
@@ -970,10 +970,10 @@ var _ = Describe("Gateway", func() {
 
 					Eventually(func() (gatewayv1.VirtualServiceList, error) {
 						return testClients.VirtualServiceClient.List(writeNamespace, clients.ListOpts{Ctx: ctx})
-					}, "10s", "0.5s").Should(HaveLen(0))
+					}, "10s", "0.5s").Should(BeEmpty())
 					Consistently(func() (gatewayv1.VirtualServiceList, error) {
 						return testClients.VirtualServiceClient.List(writeNamespace, clients.ListOpts{Ctx: ctx})
-					}, "10s", "0.5s").Should(HaveLen(0))
+					}, "10s", "0.5s").Should(BeEmpty())
 				})
 
 				It("should work with no ssl and clean up the envoy config when the virtual service is deleted", func() {
@@ -994,7 +994,7 @@ var _ = Describe("Gateway", func() {
 					}, "10s", "0.1s").Should(BeTrue())
 
 					// Create a regular request
-					request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", envoyInstance.HybridPort), nil)
+					request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d", envoyInstance.HybridPort), nil)
 					Expect(err).NotTo(HaveOccurred())
 					request = request.WithContext(ctx)
 
@@ -1011,7 +1011,7 @@ var _ = Describe("Gateway", func() {
 
 				It("should not match requests that contain a header that is excluded from match", func() {
 					// Create a regular request
-					request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/", envoyInstance.HybridPort), nil)
+					request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d/", envoyInstance.HybridPort), nil)
 					Expect(err).NotTo(HaveOccurred())
 					request = request.WithContext(ctx)
 
@@ -1062,7 +1062,7 @@ var _ = Describe("Gateway", func() {
 					}, "5s", "0.3s").ShouldNot(HaveOccurred())
 
 					// Create a regular request
-					request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/", envoyInstance.HybridPort), nil)
+					request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d/", envoyInstance.HybridPort), nil)
 					Expect(err).NotTo(HaveOccurred())
 					request = request.WithContext(context.TODO())
 					request.Header.Add("cluster-header-name", upstreamName)

@@ -23,18 +23,19 @@ type Config struct {
 }
 
 type Global struct {
-	Image             *Image             `json:"image,omitempty"`
-	Extensions        interface{}        `json:"extensions,omitempty"`
-	GlooRbac          *Rbac              `json:"glooRbac,omitempty"`
-	GlooStats         Stats              `json:"glooStats,omitempty" desc:"Config used as the default values for Prometheus stats published from Gloo Edge pods. Can be overridden by individual deployments"`
-	GlooMtls          Mtls               `json:"glooMtls,omitempty" desc:"Config used to enable internal mtls authentication"`
-	IstioSDS          IstioSDS           `json:"istioSDS,omitempty" desc:"Config used for installing Gloo Edge with Istio SDS cert rotation features to facilitate Istio mTLS"`
-	IstioIntegration  IstioIntegration   `json:"istioIntegration,omitempty" desc:"Configs user to manage Gloo pod visibility for Istio's' automatic discovery and sidecar injection."`
-	ExtraSpecs        *bool              `json:"extraSpecs,omitempty" desc:"Add additional specs to include in the settings manifest, as defined by a helm partial. Defaults to false in open source, and true in enterprise."`
-	ExtauthCustomYaml *bool              `json:"extauthCustomYaml,omitempty" desc:"Inject whatever yaml exists in .Values.global.extensions.extAuth into settings.spec.extauth, instead of structured yaml (which is enterprise only). Defaults to true in open source, and false in enterprise"`
-	Console           interface{}        `json:"console,omitempty" desc:"Configuration options for the Enterprise Console (UI)."`
-	Graphql           interface{}        `json:"graphql,omitempty" desc:"(Enterprise Only): GraphQL configuration options."`
-	ConfigMaps        []*GlobalConfigMap `json:"configMaps,omitempty" desc:"Config used to create ConfigMaps at install time to store arbitrary data."`
+	Image                *Image             `json:"image,omitempty"`
+	Extensions           interface{}        `json:"extensions,omitempty"`
+	GlooRbac             *Rbac              `json:"glooRbac,omitempty"`
+	GlooStats            Stats              `json:"glooStats,omitempty" desc:"Config used as the default values for Prometheus stats published from Gloo Edge pods. Can be overridden by individual deployments"`
+	GlooMtls             Mtls               `json:"glooMtls,omitempty" desc:"Config used to enable internal mtls authentication"`
+	IstioSDS             IstioSDS           `json:"istioSDS,omitempty" desc:"Config used for installing Gloo Edge with Istio SDS cert rotation features to facilitate Istio mTLS"`
+	IstioIntegration     IstioIntegration   `json:"istioIntegration,omitempty" desc:"Configs user to manage Gloo pod visibility for Istio's' automatic discovery and sidecar injection."`
+	ExtraSpecs           *bool              `json:"extraSpecs,omitempty" desc:"Add additional specs to include in the settings manifest, as defined by a helm partial. Defaults to false in open source, and true in enterprise."`
+	ExtauthCustomYaml    *bool              `json:"extauthCustomYaml,omitempty" desc:"Inject whatever yaml exists in .Values.global.extensions.extAuth into settings.spec.extauth, instead of structured yaml (which is enterprise only). Defaults to true in open source, and false in enterprise"`
+	Console              interface{}        `json:"console,omitempty" desc:"Configuration options for the Enterprise Console (UI)."`
+	Graphql              interface{}        `json:"graphql,omitempty" desc:"(Enterprise Only): GraphQL configuration options."`
+	ConfigMaps           []*GlobalConfigMap `json:"configMaps,omitempty" desc:"Config used to create ConfigMaps at install time to store arbitrary data."`
+	ExtraCustomResources *bool              `json:"extraCustomResources,omitempty" desc:"Add additional custom resources to create, as defined by a helm partial. Defaults to false in open source, and true in enterprise."`
 }
 
 type Namespace struct {
@@ -172,6 +173,7 @@ type KnativeProxy struct {
 	HttpPort                            *int                  `json:"httpPort,omitempty" desc:"HTTP port for the proxy"`
 	HttpsPort                           *int                  `json:"httpsPort,omitempty" desc:"HTTPS port for the proxy"`
 	Tracing                             *string               `json:"tracing,omitempty" desc:"tracing configuration"`
+	RunAsUser                           *float64              `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the pod to run as. Default is 10101"`
 	LoopBackAddress                     *string               `json:"loopBackAddress,omitempty" desc:"Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1"`
 	Stats                               *bool                 `json:"stats,omitempty" desc:"Controls whether or not Envoy stats are enabled"`
 	ExtraClusterIngressProxyLabels      map[string]string     `json:"extraClusterIngressProxyLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the cluster ingress proxy deployment."`
@@ -252,13 +254,14 @@ type VaultTlsConfig struct {
 }
 
 type VaultAwsAuth struct {
-	VaultRole         string `json:"vaultRole,omitempty" desc:"The Vault role we are trying to authenticate to. This is not necessarily the same as the AWS role to which the Vault role is configured."`
-	Region            string `json:"region,omitempty" desc:"The AWS region to use for the login attempt."`
-	IamServerIdHeader string `json:"iamServerIdHeader,omitempty" desc:"The IAM Server ID Header required to be included in the request."`
-	MountPath         string `json:"mountPath,omitempty" desc:"The Vault path on which the AWS auth is mounted."`
-	AccessKeyID       string `json:"accessKeyID,omitempty" desc:"Optional. The Access Key ID as provided by the security credentials on the AWS IAM resource. In cases such as receiving temporary credentials through assumed roles with AWS Security Token Service (STS) or IAM Roles for Service Accounts (IRSA), this field can be omitted. https://developer.hashicorp.com/vault/docs/auth/aws#iam-authentication-inferences."`
-	SecretAccessKey   string `json:"secretAccessKey,omitempty" desc:"Optional. The Secret Access Key as provided by the security credentials on the AWS IAM resource. In cases such as receiving temporary credentials through assumed roles with AWS Security Token Service (STS) or IAM Roles for Service Accounts (IRSA), this field can be omitted. https://developer.hashicorp.com/vault/docs/auth/aws#iam-authentication-inferences."`
-	SessionToken      string `json:"sessionToken,omitempty" desc:"The Session Token as provided by the security credentials on the AWS IAM resource."`
+	VaultRole         string  `json:"vaultRole,omitempty" desc:"The Vault role we are trying to authenticate to. This is not necessarily the same as the AWS role to which the Vault role is configured."`
+	Region            string  `json:"region,omitempty" desc:"The AWS region to use for the login attempt."`
+	IamServerIdHeader string  `json:"iamServerIdHeader,omitempty" desc:"The IAM Server ID Header required to be included in the request."`
+	MountPath         string  `json:"mountPath,omitempty" desc:"The Vault path on which the AWS auth is mounted."`
+	AccessKeyID       string  `json:"accessKeyID,omitempty" desc:"Optional. The Access Key ID as provided by the security credentials on the AWS IAM resource. In cases such as receiving temporary credentials through assumed roles with AWS Security Token Service (STS) or IAM Roles for Service Accounts (IRSA), this field can be omitted. https://developer.hashicorp.com/vault/docs/auth/aws#iam-authentication-inferences."`
+	SecretAccessKey   string  `json:"secretAccessKey,omitempty" desc:"Optional. The Secret Access Key as provided by the security credentials on the AWS IAM resource. In cases such as receiving temporary credentials through assumed roles with AWS Security Token Service (STS) or IAM Roles for Service Accounts (IRSA), this field can be omitted. https://developer.hashicorp.com/vault/docs/auth/aws#iam-authentication-inferences."`
+	SessionToken      string  `json:"sessionToken,omitempty" desc:"The Session Token as provided by the security credentials on the AWS IAM resource."`
+	LeaseIncrement    *uint32 `json:"leaseIncrement,omitempty" desc:"The time increment, in seconds, used in renewing the lease of the Vault token. See: https://developer.hashicorp.com/vault/docs/concepts/lease#lease-durations-and-renewal. Defaults to 0, which causes the default TTL to be used."`
 }
 
 type Directory struct {
@@ -370,7 +373,7 @@ type Gateway struct {
 	IsolateVirtualHostsBySslConfig *bool             `json:"isolateVirtualHostsBySslConfig,omitempty" desc:"if true, Added support for the envoy.filters.listener.tls_inspector listener_filter when using the gateway.isolateVirtualHostsBySslConfig=true global setting."`
 	CompressedProxySpec            *bool             `json:"compressedProxySpec,omitempty" desc:"if true, enables compression for the Proxy CRD spec"`
 	PersistProxySpec               *bool             `json:"persistProxySpec,omitempty" desc:"Enable writing Proxy CRD to etcd. Disabled by default for performance."`
-	TranslateEmptyGateways         *bool             `json:"translateEmptyGateways,omitempty" desc:"If true, the gateways wil be translated into Envoy listeners even if no VirtualServices exist"`
+	TranslateEmptyGateways         *bool             `json:"translateEmptyGateways,omitempty" desc:"If true, the gateways will be translated into Envoy listeners even if no VirtualServices exist."`
 	Service                        *KubeResourceOverride
 }
 
@@ -416,6 +419,7 @@ type CertGenJob struct {
 	SetTtlAfterFinished *bool                 `json:"setTtlAfterFinished,omitempty" desc:"Set ttlSecondsAfterFinished on the job. Defaults to true"`
 	FloatingUserId      *bool                 `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
 	ForceRotation       *bool                 `json:"forceRotation,omitempty" desc:"If true, will create new certs even if the old one are still valid."`
+	RotationDuration    *string               `json:"rotationDuration,omitempty" desc:"Time duration string indicating the (environment-specific) expected time for all pods to pick up a secret update via SDS. This is only applicable to the mTLS certgen job and cron job. If this duration is too short, secret changes may not have time to propagate to all pods, and some requests may be dropped during cert rotation. Since we do 2 secret updates during a cert rotation, the certgen job is expected to run for at least twice this amount of time. If activeDeadlineSeconds is set on the job, make sure it is at least twice as long as the rotation duration, otherwise the certgen job might time out."`
 	RunAsUser           *float64              `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the processes in the container to run as. Default is 10101."`
 	Resources           *ResourceRequirements `json:"resources,omitempty"`
 	RunOnUpdate         *bool                 `json:"runOnUpdate,omitempty" desc:"enable to run the job also on pre-upgrade"`
@@ -429,6 +433,7 @@ type RolloutJob struct {
 	Resources      *ResourceRequirements `json:"resources,omitempty"`
 	FloatingUserId *bool                 `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
 	RunAsUser      *float64              `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the processes in the container to run as. Default is 10101."`
+	Timeout        *int                  `json:"timeout,omitempty" desc:"Time to wait in seconds until the job has completed. If it exceeds this limit, it is deemed to have failed. Defaults to 120"`
 }
 
 type CleanupJob struct {
@@ -502,6 +507,7 @@ type GatewayProxy struct {
 	XdsServicePort                 *uint32                          `json:"xdsServicePort,omitempty" desc:"The k8s service port for the xds server. Defaults to the value from .Values.gloo.deployment.xdsPort, but can be overridden to use, for example, xds-relay."`
 	TcpKeepaliveTimeSeconds        *uint32                          `json:"tcpKeepaliveTimeSeconds,omitempty" desc:"The amount of time in seconds for connections to be idle before sending keep-alive probes. Defaults to 60. See here: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-tcpkeepalive"`
 	DisableCoreDumps               *bool                            `json:"disableCoreDumps,omitempty" desc:"If set to true, Envoy will not generate core dumps in the event of a crash. Defaults to false"`
+	DisableExtauthSidecar          *bool                            `json:"disableExtauthSidecar,omitempty" desc:"If set to true, this gateway proxy will not come up with an extauth sidecar container when global.extAuth.envoySidecar is enabled. This setting has no effect otherwise. Defaults to false"`
 	*KubeResourceOverride
 }
 
@@ -747,6 +753,6 @@ type IstioIntegration struct {
 	LabelInstallNamespace       *bool   `json:"labelInstallNamespace,omitempty" desc:"If creating a namespace for Gloo, include the 'istio-injection: enabled' label (or 'istio.io/rev=' if 'istioSidecarRevTag' field is also set) to allow Istio sidecar injection for Gloo pods. Be aware that Istio's default injection behavior will auto-inject a sidecar into all pods in such a marked namespace. Disabling this behavior in Istio's configs or using gloo's global.istioIntegration.disableAutoinjection flag is recommended."`
 	WhitelistDiscovery          *bool   `json:"whitelistDiscovery,omitempty" desc:"Annotate the discovery pod for Istio sidecar injection to ensure that it gets a sidecar even when namespace-wide auto-injection is disabled. Generally only needed for FDS is enabled."`
 	DisableAutoinjection        *bool   `json:"disableAutoinjection,omitempty" desc:"Annotate all pods (excluding those whitelisted by other config values) to with an explicit 'do not inject' annotation to prevent Istio from adding sidecars to all pods. It's recommended that this be set to true, as some pods do not immediately work with an Istio sidecar without extra manual configuration."`
-	EnableIstioSidecarOnGateway *bool   `json:"enableIstioSidecarOnGateway,omitempty" desc:"Enable Istio sidecar injection on the gateway-proxy deployment. Ignored if LabelInstallNamespace is not 'true'. Ignored if DisableAutoInjection is 'true'."`
-	IstioSidecarRevTag          *string `json:"istioSidecarRevTag,omitempty" desc:"Value of revision tag for Istio sidecar injection on the gateway-proxy and discovery deployments (when enabled with LabelInstallNamespace, WhitelistDiscovery or EnableIstioSidecarOnGateway). If set, applies the label 'istio.io/rev:<rev>' instead of 'sidecar.istio.io/inject' or 'istio-injection:enabled'. Ignored if DisableAutoInjection is 'true'."`
+	EnableIstioSidecarOnGateway *bool   `json:"enableIstioSidecarOnGateway,omitempty" desc:"Enable Istio sidecar injection on the gateway-proxy deployment. Ignored if LabelInstallNamespace is not 'true'. Ignored if disableAutoinjection is 'true'."`
+	IstioSidecarRevTag          *string `json:"istioSidecarRevTag,omitempty" desc:"Value of revision tag for Istio sidecar injection on the gateway-proxy and discovery deployments (when enabled with LabelInstallNamespace, WhitelistDiscovery or EnableIstioSidecarOnGateway). If set, applies the label 'istio.io/rev:<rev>' instead of 'sidecar.istio.io/inject' or 'istio-injection:enabled'. Ignored if disableAutoinjection is 'true'."`
 }

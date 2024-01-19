@@ -193,9 +193,9 @@ var _ = Describe("Plugin", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(typedConfigOutput).To(MatchProto(settings.UuidRequestIdConfig))
 
-		Expect(len(cfg.UpgradeConfigs)).To(Equal(1))
+		Expect(cfg.UpgradeConfigs).To(HaveLen(1))
 		Expect(cfg.UpgradeConfigs[0].UpgradeType).To(Equal("websocket"))
-		Expect(cfg.UpgradeConfigs[0].Enabled.GetValue()).To(Equal(true))
+		Expect(cfg.UpgradeConfigs[0].Enabled.GetValue()).To(BeTrue())
 
 		Expect(cfg.ForwardClientCertDetails).To(Equal(envoyhttp.HttpConnectionManager_APPEND_FORWARD))
 
@@ -318,7 +318,7 @@ var _ = Describe("Plugin", func() {
 			err := processHcmNetworkFilter(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(len(cfg.GetUpgradeConfigs())).To(Equal(1))
+			Expect(cfg.GetUpgradeConfigs()).To(HaveLen(1))
 			Expect(cfg.GetUpgradeConfigs()[0].UpgradeType).To(Equal("websocket"))
 		})
 
@@ -326,7 +326,7 @@ var _ = Describe("Plugin", func() {
 			err := processHcmNetworkFilter(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(len(cfg.GetUpgradeConfigs())).To(Equal(1))
+			Expect(cfg.GetUpgradeConfigs()).To(HaveLen(1))
 			Expect(cfg.GetUpgradeConfigs()[0].UpgradeType).To(Equal("websocket"))
 		})
 
@@ -371,11 +371,11 @@ var _ = Describe("Plugin", func() {
 		It("contains only the fields we expect", func() {
 			// read in expected HCM fields from file
 			expectedFieldsJsonFile, err := os.Open("testing/expected_hcm_fields.json")
-			Expect(err).To(BeNil())
+			Expect(err).NotTo(HaveOccurred())
 			defer expectedFieldsJsonFile.Close()
 
 			expectedFieldsJsonByteValue, err := io.ReadAll(expectedFieldsJsonFile)
-			Expect(err).To(BeNil())
+			Expect(err).NotTo(HaveOccurred())
 
 			var expectedFields []string
 			json.Unmarshal(expectedFieldsJsonByteValue, &expectedFields)

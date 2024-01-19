@@ -449,7 +449,7 @@ func makeReviewRequestWithProxies(url string, crd crd.Crd, gvk schema.GroupVersi
 	switch typedResource := resource.(type) {
 	case unstructured.UnstructuredList:
 		jsonBytes, err := typedResource.MarshalJSON()
-		Expect(err).To(BeNil())
+		Expect(err).NotTo(HaveOccurred())
 		return makeReviewRequestRawJsonEncoded(url, gvk, operation, "name", "namespace", jsonBytes, returnProxies)
 	case resources.InputResource:
 		resourceCrd, err := crd.KubeResource(typedResource)
@@ -517,7 +517,7 @@ func makeReviewRequestFromAdmissionReview(url string, admissionReview AdmissionR
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", url+"/validation", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, url+"/validation", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}

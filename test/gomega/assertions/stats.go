@@ -6,6 +6,9 @@ import (
 	"regexp"
 	"time"
 
+	stats2 "go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+
 	"k8s.io/utils/pointer"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -78,7 +81,10 @@ func EventuallyWithOffsetStatisticsMatchAssertions(offset int, statsPortFwd Stat
 	statsRequest, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d/", statsPortFwd.LocalPort), nil)
 	ExpectWithOffset(offset+1, err).NotTo(HaveOccurred())
 	EventuallyWithOffset(offset+1, func(g Gomega) {
-		g.Expect(http.DefaultClient.Do(statsRequest)).To(matchers.HaveHttpResponse(&matchers.HttpResponse{
+		resp, err := http.DefaultClient.Do(statsRequest)
+		g.Expect(err).NotTo(HaveOccurred())
+		defer resp.Body.Close()
+		g.Expect(resp).To(matchers.HaveHttpResponse(&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
 			Body:       Not(BeEmpty()),
 		}))
@@ -115,7 +121,10 @@ func IntStatisticReachesConsistentValueAssertion(prometheusStat string, inARow i
 	)
 
 	return Eventually(func(g Gomega) {
-		g.Expect(http.DefaultClient.Do(metricsRequest)).To(matchers.HaveHttpResponse(&matchers.HttpResponse{
+		resp, err := http.DefaultClient.Do(metricsRequest)
+		g.Expect(err).NotTo(HaveOccurred())
+		defer resp.Body.Close()
+		g.Expect(resp).To(matchers.HaveHttpResponse(&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
 			Body: WithTransform(func(body []byte) error {
 				statValue, transformErr := statTransform(body)
@@ -132,4 +141,16 @@ func IntStatisticReachesConsistentValueAssertion(prometheusStat string, inARow i
 		previousStatValue = *currentStatValue
 		g.Expect(currentlyInARow).To(Equal(inARow))
 	}, "2m", SafeTimeToSyncStats), currentStatValue
+}
+
+func ExpectStatLastValueMatches(measure *stats2.Int64Measure, lastValueMatcher types.GomegaMatcher) {
+	rows, err := view.RetrieveData(measure.Name())
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	ExpectWithOffset(1, rows).To(WithTransform(transforms.WithLastValueTransform(), lastValueMatcher))
+}
+
+func ExpectStatSumMatches(measure *stats2.Int64Measure, sumValueMatcher types.GomegaMatcher) {
+	rows, err := view.RetrieveData(measure.Name())
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	ExpectWithOffset(1, rows).To(WithTransform(transforms.WithSumValueTransform(), sumValueMatcher))
 }
