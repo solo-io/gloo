@@ -29,6 +29,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/discovery"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 var (
@@ -68,7 +70,15 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 
 			printer := printers.P{OutputType: opts.Top.Output}
 			printer.CheckResult = printer.NewCheckResult()
-			err := v2.Check(ctx, printer, opts)
+
+			var err error
+			// call v2 check if k8s gateway crds are detected, otherwise call v1 check
+			isV2 := detectCrdsV2(opts.Top.KubeContext)
+			if isV2 {
+				err = v2.Check(ctx, printer, opts)
+			} else {
+				err = CheckResources(ctx, printer, opts)
+			}
 
 			if err != nil {
 				// Not returning error here because this shouldn't propagate as a standard CLI error, which prints usage.
@@ -79,7 +89,9 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 				printer.AppendMessage("No problems detected.")
 			}
 
-			CheckMulticlusterResources(ctx, printer, opts)
+			if !isV2 {
+				CheckMulticlusterResources(ctx, printer, opts)
+			}
 
 			if opts.Top.Output.IsJSON() {
 				printer.PrintChecks(new(bytes.Buffer))
@@ -971,4 +983,30 @@ func isCrdNotFoundErr(crd crd.Crd, err error) bool {
 		}
 		return false
 	}
+}
+
+// copied from projects/gloo/cli/pkg/cmd/install/v2/install.go (TODO: dedupe/clean up)
+func detectCrdsV2(kubeContext string) bool {
+	cfg, err := config.GetConfigWithContext(kubeContext)
+	if err != nil {
+		return false
+	}
+	discClient, err := discovery.NewDiscoveryClientForConfig(cfg)
+	if err != nil {
+		return false
+	}
+
+	groups, err := discClient.ServerGroups()
+	if err != nil {
+		return false
+	}
+
+	// Check if gateway group exists
+	for _, group := range groups.Groups {
+		if group.Name == "gateway.networking.k8s.io" {
+			return true
+		}
+	}
+
+	return false
 }
