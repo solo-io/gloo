@@ -43,15 +43,17 @@ const (
 	// that we can't determine if a non-general folder id is valid or not, since behavior for
 	// creating/moving dashboards towards invalid folder ids is inconsistent and riddled with silent
 	// errors that Grafana doesn't propagate.
-	generalFolderId = uint(0)
+	generalFolderId  = uint(0)
+	MaxPrefixLength  = 20
+	defaultPrefixTag = "_"
 )
 
 var (
-	tags = []string{glooTag, dynamicTag}
+	defaultTags = []string{glooTag}
 
-	// exponential backoff retry with an initial period of 0.1s for 7 iterations, which will mean a cumulative retry period of ~20s
+	// exponential backoff retry with an initial period of 0.1s for 10 iterations, which will mean a cumulative retry period of ~50s
 	// used to avoid a race condition where observability is ready and Sync'ing before Grafana is ready to accept requests
-	grafanaSyncRetryOpts = []retry.Option{retry.Delay(time.Millisecond * 100), retry.Attempts(7), retry.DelayType(retry.BackOffDelay)}
+	grafanaSyncRetryOpts = []retry.Option{retry.Delay(time.Millisecond * 100), retry.Attempts(10), retry.DelayType(retry.BackOffDelay)}
 )
 
 type GrafanaDashboardsSyncer struct {
@@ -62,15 +64,29 @@ type GrafanaDashboardsSyncer struct {
 	upstreamDashboardJsonTemplate string
 	defaultDashboardUids          map[string]struct{} // expected dashboards that do not correspond with upstreams
 	defaultDashboardFolderId      uint
+	dashboardPrefix               string
+	extraMetricQueryParameters    string
+	extraDashboardTags            []string
 }
 
-func NewGrafanaDashboardSyncer(dashboardClient grafana.DashboardClient, snapshotClient grafana.SnapshotClient, upstreamDashboardJsonTemplate string, defaultDashboardFolderId uint, defaultDashboardUids map[string]struct{}) *GrafanaDashboardsSyncer {
+type GrafanaDashboardSyncerOpts struct {
+	DefaultDashboardFolderId   uint
+	DashboardPrefix            string
+	ExtraMetricQueryParameters string
+	ExtraDashboardTags         []string
+}
+
+func NewGrafanaDashboardSyncer(dashboardClient grafana.DashboardClient, snapshotClient grafana.SnapshotClient, upstreamDashboardJsonTemplate string, defaultDashboardUids map[string]struct{}, opts ...Option) *GrafanaDashboardsSyncer {
+	options := processOptions(opts...)
 	return &GrafanaDashboardsSyncer{
 		dashboardClient:               dashboardClient,
 		snapshotClient:                snapshotClient,
 		upstreamDashboardJsonTemplate: upstreamDashboardJsonTemplate,
-		defaultDashboardFolderId:      defaultDashboardFolderId,
 		defaultDashboardUids:          defaultDashboardUids,
+		defaultDashboardFolderId:      options.defaultDashboardFolderId,
+		dashboardPrefix:               options.dashboardPrefix,
+		extraMetricQueryParameters:    options.extraMetricQueryParameters,
+		extraDashboardTags:            options.extraDashboardTags,
 	}
 }
 
@@ -151,7 +167,6 @@ func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger
 	isValid, err := s.validateFolderId(logger, folderIds, s.defaultDashboardFolderId)
 	if !isValid {
 		// whatever the reason, we can't use the configured folder id, so use the safe default, then log a reason.
-		s.defaultDashboardFolderId = generalFolderId
 		err = errors.Errorf("Default dashboard folder ID of \"%d\" is invalid. All upstreams without "+
 			"their own annotated dashboard folder IDs will have their dashboards sent to the general folder (id: %d) "+
 			"The list of valid folderIds returned by Grafana includes the following values: [%s]",
@@ -166,6 +181,8 @@ func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger
 		}
 		// log, but don't propagate/return folder id-related errors, as this could cause endless re-sync loops.
 		logger.Warn(err.Error())
+		// Change the folderId to the default that is guaranteed to exists
+		s.defaultDashboardFolderId = generalFolderId
 	}
 
 	for _, upstream := range snap.Upstreams {
@@ -212,7 +229,12 @@ func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger
 			}
 		}
 
-		templateGenerator := template.NewUpstreamTemplateGenerator(upstream, s.upstreamDashboardJsonTemplate)
+		opts := []template.Option{
+			template.WithDashboardPrefix(s.dashboardPrefix),
+			template.WithExtraDashboardTags(s.extraDashboardTags),
+			template.WithExtraMetricQueryParameters(s.extraMetricQueryParameters),
+		}
+		templateGenerator := template.NewUpstreamTemplateGenerator(upstream, s.upstreamDashboardJsonTemplate, opts...)
 		uid := templateGenerator.GenerateUid()
 
 		shouldRegenDashboard, err := s.shouldRegenDashboard(logger, uid)
@@ -226,7 +248,7 @@ func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger
 			continue
 		}
 
-		logger.Infof("generating dashboard for upstream: %s", upstreamName)
+		logger.Infof("generating dashboard for upstream: %s with uid: %s", upstreamName, uid)
 
 		dashPost, err := templateGenerator.GenerateDashboardPost(folderIdToUse)
 
@@ -307,6 +329,11 @@ func (s *GrafanaDashboardsSyncer) isEditedByUser(rawDashboard []byte) (bool, err
 func (s *GrafanaDashboardsSyncer) deleteGrafanaContent(logger *zap.SugaredLogger, snap *v1.DashboardsSnapshot, gs *grafanaState) *multierror.Error {
 	errs := &multierror.Error{}
 
+	opts := []template.Option{
+		template.WithDashboardPrefix(s.dashboardPrefix),
+		template.WithExtraDashboardTags(s.extraDashboardTags),
+		template.WithExtraMetricQueryParameters(s.extraMetricQueryParameters),
+	}
 	for _, board := range gs.boards {
 		if _, ok := s.defaultDashboardUids[board.UID]; ok {
 			continue // default dashboard should not be deleted
@@ -314,14 +341,14 @@ func (s *GrafanaDashboardsSyncer) deleteGrafanaContent(logger *zap.SugaredLogger
 
 		missing := true
 		for _, upstream := range snap.Upstreams {
-			templateGenerator := template.NewUpstreamTemplateGenerator(upstream, s.upstreamDashboardJsonTemplate)
+			templateGenerator := template.NewUpstreamTemplateGenerator(upstream, s.upstreamDashboardJsonTemplate, opts...)
 			upstreamUid := templateGenerator.GenerateUid()
 			if board.UID == upstreamUid {
 				missing = false
 			}
 		}
 		if missing {
-			logger.Infof("deleting dashboard for missing upstream: %s", board.UID)
+			logger.Infof("deleting dashboard for missing upstream with uid: %s", board.UID)
 			_, err := s.dashboardClient.DeleteDashboard(board.UID)
 			if err != nil {
 				err := errors.Wrapf(err, "failed to delete dashboard for upstream: %s", board.UID)
@@ -335,7 +362,7 @@ func (s *GrafanaDashboardsSyncer) deleteGrafanaContent(logger *zap.SugaredLogger
 	for _, snapshot := range gs.snapshots {
 		missing := true
 		for _, upstream := range snap.Upstreams {
-			templateGenerator := template.NewUpstreamTemplateGenerator(upstream, s.upstreamDashboardJsonTemplate)
+			templateGenerator := template.NewUpstreamTemplateGenerator(upstream, s.upstreamDashboardJsonTemplate, opts...)
 			upstreamUid := templateGenerator.GenerateUid()
 			if snapshot.Name == upstreamUid {
 				missing = false
@@ -362,7 +389,7 @@ func (s *GrafanaDashboardsSyncer) getCurrentGrafanaState() (*grafanaState, error
 		return gs, fmt.Errorf("unable to get list of current snapshots to compare against, skipping generation: %s", err)
 	}
 	gs.snapshots = snapshots
-	boards, err := s.dashboardClient.SearchDashboards("", false, tags...)
+	boards, err := s.dashboardClient.SearchDashboards("", false, s.extraDashboardTags...)
 	if err != nil {
 		return gs, err
 	}

@@ -15,12 +15,9 @@
   "description": "Extauth monitoring and metrics. ",
   "editable": true,
   "graphTooltip": 0,
-  "uid": "extauth-monitoring",
   "id": null,
   "links": [],
   "timezone": "",
-  "title": "Extauth Dashboard",
-  "version": 4,
   "panels": [
     {
       "datasource": null,
@@ -36,15 +33,15 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(0.99, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"envoy.service.auth.v3.Authorization/Check\"}[1m])) by (le))"
+          "expr": "histogram_quantile(0.99, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"envoy.service.auth.v3.Authorization/Check\"{{.ExtraMetricQueryParameters}}}[1m])) by (le))"
         },
         {
           "refId": "B",
-          "expr": "histogram_quantile(0.95, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"envoy.service.auth.v3.Authorization/Check\"}[1m])) by (le))"
+          "expr": "histogram_quantile(0.95, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"envoy.service.auth.v3.Authorization/Check\"{{.ExtraMetricQueryParameters}}}[1m])) by (le))"
         },
         {
           "refId": "C",
-          "expr": "histogram_quantile(0.5, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"envoy.service.auth.v3.Authorization/Check\"}[1m])) by (le))"
+          "expr": "histogram_quantile(0.5, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"envoy.service.auth.v3.Authorization/Check\"{{.ExtraMetricQueryParameters}}}[1m])) by (le))"
         }
       ],
       "options": {
@@ -131,7 +128,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"envoy.service.auth.v3.Authorization/Check\"}[1m])) by (le)",
+          "expr": "sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"envoy.service.auth.v3.Authorization/Check\"{{.ExtraMetricQueryParameters}}}[1m])) by (le)",
           "legendFormat": "\u007B\u007B le \u007D\u007D",
           "format": "heatmap"
         }
@@ -195,7 +192,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"grpc.health.v1.Health/Check\"}[1m])) by (le)",
+          "expr": "sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"grpc.health.v1.Health/Check\"{{.ExtraMetricQueryParameters}}}[1m])) by (le)",
           "legendFormat": "\u007B\u007B le \u007D\u007D",
           "format": "heatmap"
         }
@@ -259,15 +256,15 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(0.99, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"grpc.health.v1.Health/Check\"}[1m])) by (le))"
+          "expr": "histogram_quantile(0.99, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"grpc.health.v1.Health/Check\"{{.ExtraMetricQueryParameters}}}[1m])) by (le))"
         },
         {
           "refId": "B",
-          "expr": "histogram_quantile(0.95, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"grpc.health.v1.Health/Check\"}[1m])) by (le))"
+          "expr": "histogram_quantile(0.95, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"grpc.health.v1.Health/Check\"{{.ExtraMetricQueryParameters}}}[1m])) by (le))"
         },
         {
           "refId": "C",
-          "expr": "histogram_quantile(0.5, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"grpc.health.v1.Health/Check\"}[1m])) by (le))"
+          "expr": "histogram_quantile(0.5, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"grpc.health.v1.Health/Check\"{{.ExtraMetricQueryParameters}}}[1m])) by (le))"
         }
       ],
       "options": {
@@ -344,7 +341,7 @@
   "refresh": "30s",
   "schemaVersion": 16,
   "style": "dark",
-  "tags": ["gloo", "dynamic", "default"],
+  "tags": ["dynamic", "default"{{.ExtraDashboardTags}}],
   "time": {
     "from": "now-15m",
     "to": "now"
@@ -373,5 +370,8 @@
       "7d",
       "30d"
     ]
-  }
+  },
+  "title": "{{.DashboardPrefix}}Extauth Dashboard",
+  "uid": "{{.DashboardPrefix}}extauth-monitoring",
+  "version": 1
 }

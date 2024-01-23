@@ -4,12 +4,15 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
+	"golang.org/x/exp/slices"
 
 	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana/template"
 
@@ -32,7 +35,7 @@ import (
 )
 
 const (
-	jsonExtention = ".json"
+	tmplExtension = ".json.tmpl"
 
 	observability                 = "observability"
 	grafanaUrl                    = "GRAFANA_URL"
@@ -87,6 +90,12 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 		}
 	}
 
+	// Set the prefix to max 20 characters so the names of the dashboards can be unique
+	dashboardPrefix, extraDashboardTags, err := generateDashboardPrefixAndTags(settings.GetObservabilityOptions().GetGrafanaIntegration().GetDashboardPrefix())
+	if err != nil {
+		return err
+	}
+
 	opts := Opts{
 		WriteNamespace:  writeNamespace,
 		WatchNamespaces: watchNamespaces,
@@ -95,8 +104,11 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 			Ctx:         ctx,
 			RefreshRate: refreshRate,
 		},
-		DevMode:                  true,
-		DefaultDashboardFolderId: defaultDashboardFolderId,
+		DevMode:                    true,
+		DefaultDashboardFolderId:   defaultDashboardFolderId,
+		DashboardPrefix:            dashboardPrefix,
+		ExtraDashboardTags:         extraDashboardTags,
+		ExtraMetricQueryParameters: settings.GetObservabilityOptions().GetGrafanaIntegration().GetExtraMetricQueryParameters(),
 	}
 
 	return RunObservability(opts)
@@ -132,10 +144,49 @@ func RunObservability(opts Opts) error {
 		return err
 	}
 
+	// The observability deployment may finish and this Sync may start running before the Grafana deployment is ready
+	// Retry the Sync until Grafana is ready
+	// https://github.com/solo-io/solo-projects/issues/307
+	var folders []grafana.FolderProperties
+	err = retry.Do(func() error {
+		folders, err = dashboardClient.GetAllFolderIds()
+		if err != nil && strings.Contains(err.Error(), "connection refused") {
+			return errors.Errorf("Grafana is not yet up : %+v", err)
+		}
+		return nil
+	}, grafanaSyncRetryOpts...)
+	if err != nil {
+		return err
+	}
+
+	// By default, the static folders are created in the `gloo` folder. Keep this behavour.
+	// Ref: https://github.com/solo-io/solo-projects/blame/42e057e6039e65f79a61f11c56bc3a046fd5b6df/install/helm/gloo-ee/values-template.yaml#L460
+	folderID := generalFolderId
+	if opts.DefaultDashboardFolderId == generalFolderId {
+		for _, folder := range folders {
+			if folder.Title == "gloo" {
+				folderID = folder.ID
+				break
+			}
+		}
+	} else {
+		for _, folder := range folders {
+			if folder.ID == opts.DefaultDashboardFolderId {
+				folderID = folder.ID
+				break
+			}
+		}
+	}
+
 	defaultDashboardUids := make(map[string]struct{})
+	templateGeneratorOpts := []template.Option{
+		template.WithDashboardPrefix(opts.DashboardPrefix),
+		template.WithExtraDashboardTags(opts.ExtraDashboardTags),
+		template.WithExtraMetricQueryParameters(opts.ExtraMetricQueryParameters)}
+
 	for _, file := range files {
 		filename := file.Name()
-		if !strings.HasSuffix(filename, jsonExtention) {
+		if !strings.HasSuffix(filename, tmplExtension) {
 			continue
 		}
 		defaultJsonStr, err := getDashboardJson(opts.WatchOpts.Ctx, filepath.Join(defaultDashboardDir, filename))
@@ -143,10 +194,9 @@ func RunObservability(opts Opts) error {
 			return err
 		}
 
-		uid := strings.TrimSuffix(filename, jsonExtention)
-		templateGenerator := template.NewDefaultJsonGenerator(uid, defaultJsonStr)
-
-		loadDefaultDashboard(opts.WatchOpts.Ctx, templateGenerator, opts.DefaultDashboardFolderId, dashboardClient)
+		uid := template.ToUID(opts.DashboardPrefix) + strings.TrimSuffix(filename, tmplExtension)
+		templateGenerator := template.NewDefaultDashboardTemplateGenerator(uid, defaultJsonStr, templateGeneratorOpts...)
+		loadDefaultDashboard(opts.WatchOpts.Ctx, templateGenerator, folderID, dashboardClient)
 		defaultDashboardUids[uid] = struct{}{}
 	}
 
@@ -155,7 +205,11 @@ func RunObservability(opts Opts) error {
 		return err
 	}
 
-	dashSyncer := NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, opts.DefaultDashboardFolderId, defaultDashboardUids)
+	dashSyncer := NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, defaultDashboardUids,
+		WithDefaultDashboardFolderId(opts.DefaultDashboardFolderId),
+		WithDashboardPrefix(opts.DashboardPrefix),
+		WithExtraDashboardTags(opts.ExtraDashboardTags),
+		WithExtraMetricQueryParameters(opts.ExtraMetricQueryParameters))
 
 	emitter := v1.NewDashboardsEmitter(upstreamClient)
 	eventLoop := v1.NewDashboardsEventLoop(emitter, dashSyncer)
@@ -267,4 +321,29 @@ func getDashboardJson(ctx context.Context, filename string) (string, error) {
 	}
 
 	return string(bytes), nil
+}
+
+// generateDashboardPrefixAndTags converts the dashboard prefix into a grafana compatible UID.
+// It also adds the prefix to the list of additional tags to be used to tag the dashboard
+func generateDashboardPrefixAndTags(dashboardPrefix string) (string, []string, error) {
+	extraTags := append([]string{}, defaultTags...)
+	if dashboardPrefix != "" {
+		if len(dashboardPrefix) > MaxPrefixLength {
+			return "", nil, fmt.Errorf("dashboard prefix [%s] exceeds the maximum allowed length of 20 characters", dashboardPrefix)
+		}
+		dashboardPrefix = template.ToUID(dashboardPrefix)
+		// Since a dashboard prefix is provided, add it to the list of tags. We do this to ensure we only manage dashboards with the prefix. Now when querying resources, we only do so for resources with matching tags
+		if !slices.Contains(extraTags, dashboardPrefix) {
+			extraTags = append(extraTags, dashboardPrefix)
+		}
+	} else {
+		// We still tag dashboards that do not have a prefix to ensure we do not fetch dashboards with a prefix
+		// Eg: If there are two edge installations that manage dashboards on an external grafana instance, one with no prefix and another with a prefix 'prefix',
+		// when the no prefix installation would fetch dashboards with the default tags ['gloo'], it would still return dashboards with tags ['gloo', 'prefix']
+		// To avoid this we add the defaultPrefixTag to the list of defaultTags. This is a workaround until we find a way to uniquely identify an edge installation across multiple clusters (with the same release name and namespace)
+		if !slices.Contains(extraTags, defaultPrefixTag) {
+			extraTags = append(extraTags, defaultPrefixTag)
+		}
+	}
+	return dashboardPrefix, extraTags, nil
 }

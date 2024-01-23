@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
@@ -25,26 +24,30 @@ import (
 )
 
 var (
-	mockCtrl                *gomock.Controller
-	dashboardClient         *mocks.MockDashboardClient
-	snapshotClient          *mocks.MockSnapshotClient
-	testErr                 = errors.New("test err")
-	dashboardsSnapshot      *v1.DashboardsSnapshot
-	testGrafanaState        *grafanaState
-	dashboardSyncer         *GrafanaDashboardsSyncer
-	logger                  *zap.SugaredLogger
-	upstreamOne             *gloov1.Upstream
-	upstreamTwo             *gloov1.Upstream
-	upstreamList            gloov1.UpstreamList
-	snapshotResponse        *grafana.SnapshotListResponse
-	dashboardSearchResponse []grafana.FoundBoard
-	dashboardJsonTemplate   string
-	defaultDashboardUids    map[string]struct{}
+	mockCtrl                   *gomock.Controller
+	dashboardClient            *mocks.MockDashboardClient
+	snapshotClient             *mocks.MockSnapshotClient
+	testErr                    = errors.New("test err")
+	dashboardsSnapshot         *v1.DashboardsSnapshot
+	testGrafanaState           *grafanaState
+	dashboardSyncer            *GrafanaDashboardsSyncer
+	logger                     *zap.SugaredLogger
+	upstreamOne                *gloov1.Upstream
+	upstreamTwo                *gloov1.Upstream
+	upstreamList               gloov1.UpstreamList
+	snapshotResponse           *grafana.SnapshotListResponse
+	dashboardSearchResponse    []grafana.FoundBoard
+	dashboardJsonTemplate      string
+	defaultDashboardUids       map[string]struct{}
+	dashboardPrefix            string
+	extraMetricQueryParameters string
 )
 
 var _ = Describe("Grafana Syncer", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
+		dashboardPrefix = ""
+		extraMetricQueryParameters = ""
 		dashboardClient = mocks.NewMockDashboardClient(mockCtrl)
 		snapshotClient = mocks.NewMockSnapshotClient(mockCtrl)
 		defaultDashboardUids = make(map[string]struct{})
@@ -63,7 +66,9 @@ var _ = Describe("Grafana Syncer", func() {
 			snapshots: nil,
 		}
 		dashboardJsonTemplate = "{\"test-content\": \"content\"}"
-		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, generalFolderId, defaultDashboardUids)
+		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, defaultDashboardUids,
+			WithExtraDashboardTags(defaultTags))
+
 		logger = contextutils.LoggerFrom(context.TODO())
 		upstreamOne = &gloov1.Upstream{
 			UpstreamType: &gloov1.Upstream_Aws{
@@ -131,7 +136,7 @@ var _ = Describe("Grafana Syncer", func() {
 				GetSnapshots().
 				Return([]grafana.SnapshotListResponse{}, nil)
 			dashboardClient.EXPECT().
-				SearchDashboards("", false, tags[0], tags[1]).
+				SearchDashboards("", false, defaultTags[0]).
 				Return([]grafana.FoundBoard{}, nil)
 
 			err := dashboardSyncer.Sync(context.TODO(), &v1.DashboardsSnapshot{
@@ -180,7 +185,7 @@ var _ = Describe("Grafana Syncer", func() {
 				GetSnapshots().
 				Return([]grafana.SnapshotListResponse{}, nil)
 			dashboardClient.EXPECT().
-				SearchDashboards("", false, tags[0], tags[1]).
+				SearchDashboards("", false, defaultTags[0]).
 				Return([]grafana.FoundBoard{}, nil)
 
 			err := dashboardSyncer.Sync(context.TODO(), &v1.DashboardsSnapshot{
@@ -219,7 +224,7 @@ var _ = Describe("Grafana Syncer", func() {
 				GetSnapshots().
 				Return([]grafana.SnapshotListResponse{}, nil)
 			dashboardClient.EXPECT().
-				SearchDashboards("", false, tags[0], tags[1]).
+				SearchDashboards("", false, defaultTags[0]).
 				Return([]grafana.FoundBoard{}, nil)
 
 			err := dashboardSyncer.Sync(context.TODO(), &v1.DashboardsSnapshot{
@@ -253,11 +258,113 @@ var _ = Describe("Grafana Syncer", func() {
 				GetSnapshots().
 				Return(snapshots, nil)
 			dashboardClient.EXPECT().
-				SearchDashboards("", false, tags[0], tags[1]).
+				SearchDashboards("", false, defaultTags[0]).
 				Return(dashboards, nil)
 
 			err := dashboardSyncer.Sync(context.TODO(), &v1.DashboardsSnapshot{
 				Upstreams: []*gloov1.Upstream{}, // deleted both the upstreams
+			})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("generates the dashboard with the prefix", func() {
+			dashboardPrefix, tags, _ := generateDashboardPrefixAndTags("prefix_")
+			dashboardJsonTemplate = `{"title": "{{.DashboardPrefix}}{{.EnvoyClusterName}}","uid": "{{.DashboardPrefix}}{{.Uid}}"}`
+
+			dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, defaultDashboardUids,
+				WithDashboardPrefix(dashboardPrefix),
+				WithExtraDashboardTags(tags))
+
+			for _, upstream := range upstreamList {
+				templateGenerator := template.NewUpstreamTemplateGenerator(upstream, dashboardJsonTemplate,
+					template.WithDashboardPrefix(dashboardPrefix),
+					template.WithExtraDashboardTags(tags))
+
+				uid := templateGenerator.GenerateUid()
+				Expect(uid).To(ContainSubstring(dashboardPrefix))
+
+				dashboardClient.EXPECT().
+					GetRawDashboard(uid).
+					Return(nil, grafana.BoardProperties{}, grafana.DashboardNotFound(uid))
+
+				dashPost, err := templateGenerator.GenerateDashboardPost(generalFolderId) // should just return "test-json"
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(dashPost.Dashboard)).To(And(
+					ContainSubstring(`"title": "`+dashboardPrefix),
+					ContainSubstring(`"uid": "`+dashboardPrefix),
+				))
+
+				snapshotBytes, err := templateGenerator.GenerateSnapshot() // should just return "test-json"
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(snapshotBytes)).To(ContainSubstring(`"name": "` + dashboardPrefix))
+
+				dashboardClient.EXPECT().
+					PostDashboard(dashPost).
+					Return(nil)
+				snapshotClient.EXPECT().
+					SetRawSnapshot(snapshotBytes).
+					Return(nil, nil) // we don't consume the snapshot response apart from checking the error
+			}
+
+			snapshotClient.EXPECT().
+				GetSnapshots().
+				Return([]grafana.SnapshotListResponse{}, nil)
+			dashboardClient.EXPECT().
+				SearchDashboards("", false, tags[0], tags[1]). // Ensure it gets the prefix as part of the tags while querying the dashboards
+				Return([]grafana.FoundBoard{}, nil)
+
+			err := dashboardSyncer.Sync(context.TODO(), &v1.DashboardsSnapshot{
+				Upstreams: upstreamList, // we just init'd two new upstreams
+			})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("generates the dashboard with the extra metric query parameters", func() {
+			extraMetricQueryParameters = `cluster="some-cluster"`
+			escapedExtraMetricQueryParameters := `cluster=\"some-cluster\"`
+			dashboardJsonTemplate = `{"title": "{{.DashboardPrefix}}{{.EnvoyClusterName}}","uid": "{{.DashboardPrefix}}{{.Uid}}"}, "metrics":"{{.ExtraMetricQueryParameters}}"`
+
+			dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, defaultDashboardUids,
+				WithExtraDashboardTags(defaultTags),
+				WithExtraMetricQueryParameters(extraMetricQueryParameters))
+
+			for _, upstream := range upstreamList {
+				templateGenerator := template.NewUpstreamTemplateGenerator(upstream, dashboardJsonTemplate,
+					template.WithExtraMetricQueryParameters(extraMetricQueryParameters))
+				uid := templateGenerator.GenerateUid()
+				Expect(uid).To(ContainSubstring(dashboardPrefix))
+
+				dashboardClient.EXPECT().
+					GetRawDashboard(uid).
+					Return(nil, grafana.BoardProperties{}, grafana.DashboardNotFound(uid))
+
+				dashPost, err := templateGenerator.GenerateDashboardPost(generalFolderId) // should just return "test-json"
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(dashPost.Dashboard)).To(And(
+					ContainSubstring(escapedExtraMetricQueryParameters),
+				))
+
+				snapshotBytes, err := templateGenerator.GenerateSnapshot() // should just return "test-json"
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(snapshotBytes)).To(ContainSubstring(escapedExtraMetricQueryParameters))
+
+				dashboardClient.EXPECT().
+					PostDashboard(dashPost).
+					Return(nil)
+				snapshotClient.EXPECT().
+					SetRawSnapshot(snapshotBytes).
+					Return(nil, nil) // we don't consume the snapshot response apart from checking the error
+			}
+
+			snapshotClient.EXPECT().
+				GetSnapshots().
+				Return([]grafana.SnapshotListResponse{}, nil)
+			dashboardClient.EXPECT().
+				SearchDashboards("", false, defaultTags[0]).
+				Return([]grafana.FoundBoard{}, nil)
+
+			err := dashboardSyncer.Sync(context.TODO(), &v1.DashboardsSnapshot{
+				Upstreams: upstreamList, // we just init'd two new upstreams
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -266,7 +373,10 @@ var _ = Describe("Grafana Syncer", func() {
 	It("Ignores invalid default folder ids to use the general id", func() {
 
 		invalidFolderId := uint(1)
-		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, invalidFolderId, defaultDashboardUids)
+		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate,
+			defaultDashboardUids,
+			WithDefaultDashboardFolderId(invalidFolderId),
+			WithExtraDashboardTags(defaultTags))
 		for _, upstream := range upstreamList {
 			templateGenerator := template.NewUpstreamTemplateGenerator(upstream, dashboardJsonTemplate)
 			uid := templateGenerator.GenerateUid()
@@ -299,7 +409,7 @@ var _ = Describe("Grafana Syncer", func() {
 			Return(nil, nil)
 
 		dashboardClient.EXPECT().
-			SearchDashboards("", false, tags[0], tags[1]).
+			SearchDashboards("", false, defaultTags[0]).
 			Return([]grafana.FoundBoard{}, nil)
 
 		err := dashboardSyncer.Sync(context.TODO(), &v1.DashboardsSnapshot{
@@ -313,7 +423,9 @@ var _ = Describe("Grafana Syncer", func() {
 		// by the fact that it loops twice and calls most functions twice as a result.
 		upstreamOne.Metadata.Annotations = map[string]string{upstreamFolderIdAnnotationKey: "1"}
 		upstreamTwo.Metadata.Annotations = map[string]string{upstreamFolderIdAnnotationKey: "test"}
-		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, generalFolderId, defaultDashboardUids)
+		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, defaultDashboardUids,
+			WithDefaultDashboardFolderId(generalFolderId),
+			WithExtraDashboardTags(defaultTags))
 
 		for _, upstream := range upstreamList {
 			templateGenerator := template.NewUpstreamTemplateGenerator(upstream, dashboardJsonTemplate)
@@ -344,7 +456,7 @@ var _ = Describe("Grafana Syncer", func() {
 			Return(nil, nil)
 
 		dashboardClient.EXPECT().
-			SearchDashboards("", false, tags[0], tags[1]).
+			SearchDashboards("", false, defaultTags[0]).
 			Return([]grafana.FoundBoard{}, nil)
 
 		err := dashboardSyncer.Sync(context.TODO(), &v1.DashboardsSnapshot{
@@ -401,40 +513,59 @@ var _ = Describe("Load Default Dashboards", func() {
 
 	var (
 		templateGenerator template.TemplateGenerator
-		uid               string
 	)
 
 	BeforeEach(func() {
+		dashboardPrefix = ""
+		extraMetricQueryParameters = ""
+
 		mockCtrl = gomock.NewController(GinkgoT())
 		dashboardClient = mocks.NewMockDashboardClient(mockCtrl)
-		templateGenerator = template.NewDefaultJsonGenerator("default", `{"foo":"bar"}`)
-		uid = templateGenerator.GenerateUid()
+		templateGenerator = template.NewDefaultDashboardTemplateGenerator("default", `{"foo":"bar"}`)
 	})
 
 	AfterEach(func() {
 		mockCtrl.Finish()
 	})
 
-	It("returns before generating when dashboard already exists", func() {
-		dashboardClient.EXPECT().GetRawDashboard(uid).
-			Return(nil, grafana.BoardProperties{}, nil)
-
-		loadDefaultDashboard(context.Background(), templateGenerator, generalFolderId, dashboardClient)
-	})
-
-	It("returns before generating when getting the dashboard results in an unexpected error", func() {
-		dashboardClient.EXPECT().GetRawDashboard(uid).
-			Return(nil, grafana.BoardProperties{}, fmt.Errorf("fake error"))
-
-		loadDefaultDashboard(context.Background(), templateGenerator, generalFolderId, dashboardClient)
-	})
-
 	It("returns attempts to save dashboard if it does not already exist", func() {
-		dashboardClient.EXPECT().GetRawDashboard(uid).
-			Return(nil, grafana.BoardProperties{}, grafana.DashboardNotFound(uid))
 		dashPost, err := templateGenerator.GenerateDashboardPost(generalFolderId)
 		Expect(err).NotTo(HaveOccurred())
 		dashboardClient.EXPECT().PostDashboard(dashPost).Return(nil)
+
+		loadDefaultDashboard(context.Background(), templateGenerator, generalFolderId, dashboardClient)
+	})
+
+	It("generates the dashboard with the prefix", func() {
+		dashboardPrefix = "prefix_"
+		templateGenerator = template.NewDefaultDashboardTemplateGenerator("default", `{"title": "{{.DashboardPrefix}}{{.EnvoyClusterName}}","uid": "{{.DashboardPrefix}}{{.Uid}}"}`, template.WithDashboardPrefix(dashboardPrefix))
+
+		dashPost, err := templateGenerator.GenerateDashboardPost(generalFolderId)
+		Expect(err).NotTo(HaveOccurred())
+
+		dashboardClient.EXPECT().PostDashboard(dashPost).Do(func(dashPost *grafana.DashboardPostRequest) {
+			Expect(string(dashPost.Dashboard)).To(And(
+				ContainSubstring(`"title": "`+dashboardPrefix),
+				ContainSubstring(`"uid": "`+dashboardPrefix),
+			))
+		}).Return(nil)
+
+		loadDefaultDashboard(context.Background(), templateGenerator, generalFolderId, dashboardClient)
+	})
+
+	It("generates the dashboard with the extra metrics query parameters", func() {
+		extraMetricQueryParameters = `cluster="some-cluster"`
+		templateGenerator = template.NewDefaultDashboardTemplateGenerator("default", `{"title": "{{.DashboardPrefix}}{{.EnvoyClusterName}}","uid": "{{.DashboardPrefix}}{{.Uid}}", "metrics":"a=\"b\"{{.ExtraMetricQueryParameters}}"}`, template.WithExtraMetricQueryParameters(extraMetricQueryParameters))
+
+		dashPost, err := templateGenerator.GenerateDashboardPost(generalFolderId)
+		Expect(err).NotTo(HaveOccurred())
+
+		escapedExtraMetricQueryParameters := `cluster=\"some-cluster\"`
+		dashboardClient.EXPECT().PostDashboard(dashPost).Do(func(dashPost *grafana.DashboardPostRequest) {
+			Expect(string(dashPost.Dashboard)).To(And(
+				ContainSubstring(escapedExtraMetricQueryParameters),
+			))
+		}).Return(nil)
 
 		loadDefaultDashboard(context.Background(), templateGenerator, generalFolderId, dashboardClient)
 	})

@@ -59,16 +59,16 @@ spec:
           configMap:
             name: glooe-grafana-custom-dashboards-v2
             items:
-              - key: envoy.json
-                path: envoy.json
-              - key: extauth-monitoring.json
-                path: extauth-monitoring.json
-              - key: gloo-overview.json
-                path: gloo-overview.json
-              - key: kubernetes.json
-                path: kubernetes.json
-              - key: upstreams.json
-                path: upstreams.json
+              - key: envoy.json.tmpl
+                path: envoy.json.tmpl
+              - key: extauth-monitoring.json.tmpl
+                path: extauth-monitoring.json.tmpl
+              - key: gloo-overview.json.tmpl
+                path: gloo-overview.json.tmpl
+              - key: kubernetes.json.tmpl
+                path: kubernetes.json.tmpl
+              - key: upstreams.json.tmpl
+                path: upstreams.json.tmpl
       containers:
         - image: {{template "gloo.image" $image}}
           imagePullPolicy: {{$image.pullPolicy}}

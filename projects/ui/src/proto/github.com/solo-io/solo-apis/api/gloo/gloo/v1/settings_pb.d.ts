@@ -911,6 +911,12 @@ export namespace SettingsSpec {
       getDefaultDashboardFolderId(): google_protobuf_wrappers_pb.UInt32Value | undefined;
       setDefaultDashboardFolderId(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
+      getDashboardPrefix(): string;
+      setDashboardPrefix(value: string): void;
+
+      getExtraMetricQueryParameters(): string;
+      setExtraMetricQueryParameters(value: string): void;
+
       serializeBinary(): Uint8Array;
       toObject(includeInstance?: boolean): GrafanaIntegration.AsObject;
       static toObject(includeInstance: boolean, msg: GrafanaIntegration): GrafanaIntegration.AsObject;
@@ -924,6 +930,8 @@ export namespace SettingsSpec {
     export namespace GrafanaIntegration {
       export type AsObject = {
         defaultDashboardFolderId?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+        dashboardPrefix: string,
+        extraMetricQueryParameters: string,
       }
     }
 

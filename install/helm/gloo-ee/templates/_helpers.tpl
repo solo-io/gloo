@@ -355,5 +355,10 @@ Injection point for enterprise-exclusive settings into the settings manifest
       {{- else }}
       processingRules: []
       {{- end }} {{/* if or $rules.dangerousToBreaking $rules.deprecatedFieldRemovalDangerous $rules.ignoreDescriptionChanges $rules.ignoreUnreachable */}}
+{{- if .Values.settings.observabilityOptions }}
+  observabilityOptions:
+{{ toYaml .Values.settings.observabilityOptions | indent 4}}
+{{- end }}
+
 {{- end }} {{/* if (($.Values.global.graphql).changeValidation) */}}
 {{- end -}} {{/* define "gloo.extraSpecs" */}}

@@ -40,6 +40,7 @@ type BoardProperties struct {
 	UpdatedBy  string    `json:"updatedBy"`
 	CreatedBy  string    `json:"createdBy"`
 	Version    int       `json:"version"`
+	FolderId   uint      `json:"folderId,omitempty"`
 }
 
 type Version struct {

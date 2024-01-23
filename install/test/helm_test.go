@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -176,24 +175,24 @@ var _ = Describe("Helm Test", func() {
 								LocalObjectReference: v1.LocalObjectReference{Name: "glooe-grafana-custom-dashboards-v2"},
 								Items: []v1.KeyToPath{
 									{
-										Key:  "envoy.json",
-										Path: "envoy.json",
+										Key:  "envoy.json.tmpl",
+										Path: "envoy.json.tmpl",
 									},
 									{
-										Key:  "extauth-monitoring.json",
-										Path: "extauth-monitoring.json",
+										Key:  "extauth-monitoring.json.tmpl",
+										Path: "extauth-monitoring.json.tmpl",
 									},
 									{
-										Key:  "gloo-overview.json",
-										Path: "gloo-overview.json",
+										Key:  "gloo-overview.json.tmpl",
+										Path: "gloo-overview.json.tmpl",
 									},
 									{
-										Key:  "kubernetes.json",
-										Path: "kubernetes.json",
+										Key:  "kubernetes.json.tmpl",
+										Path: "kubernetes.json.tmpl",
 									},
 									{
-										Key:  "upstreams.json",
-										Path: "upstreams.json",
+										Key:  "upstreams.json.tmpl",
+										Path: "upstreams.json.tmpl",
 									},
 								},
 							},
@@ -252,8 +251,8 @@ var _ = Describe("Helm Test", func() {
 				observabilityDeployment.Spec.Selector.MatchLabels = selector
 				observabilityDeployment.Spec.Template.ObjectMeta.Labels = selector
 				annotations := map[string]string{
-					"checksum/observability-config": "9d91255a98e28f9b0bfb5d685673e5810fc475d2fe6f9738aae7dd67c8ac5c8d", // observability config checksum
-					"checksum/grafana-dashboards":   "0357eb81e6c8315ef439ac4f4fd123f908261578358389ab101483bef5be3300", // grafana dashboards checksum
+					"checksum/observability-config": "ad591b12c04f72c32f13f3a4e1d735659d21957e54953f6a4b4b21dc761edf30", // observability config checksum
+					"checksum/grafana-dashboards":   "48974b7252cdfd3804b9a13939b75f399640699d1b7b8db89e98a34b34c915c9", // grafana dashboards checksum
 				}
 				for key, val := range normalPromAnnotations { // deep copy map
 					annotations[key] = val
@@ -269,38 +268,6 @@ var _ = Describe("Helm Test", func() {
 					Labels:    labels,
 				}
 				grafanaDeployment = grafanaBuilder.GetDeploymentAppsv1()
-			})
-
-			It("has valid default dashboards", func() {
-				dashboardsDir := "../helm/gloo-ee/dashboards/"
-				files, err := os.ReadDir(dashboardsDir)
-				Expect(err).NotTo(HaveOccurred(), "Should be able to list files")
-				Expect(files).NotTo(HaveLen(0), "Should have dashboard files")
-				for _, f := range files {
-					if !strings.HasSuffix(f.Name(), ".json") {
-						continue // not a JSON file
-					}
-					bytes, err := os.ReadFile(path.Join(dashboardsDir, f.Name()))
-					Expect(err).NotTo(HaveOccurred(), "Should be able to read the Envoy dashboard json file")
-					err = json.Unmarshal(bytes, &map[string]interface{}{})
-					Expect(err).NotTo(HaveOccurred(), "Should be able to successfully unmarshal the envoy dashboard json")
-				}
-			})
-
-			It("has valid v2 default dashboards", func() {
-				dashboardsDir := "../helm/gloo-ee/dashboards/v2"
-				files, err := os.ReadDir(dashboardsDir)
-				Expect(err).NotTo(HaveOccurred(), "Should be able to list files")
-				Expect(files).NotTo(HaveLen(0), "Should have updated dashboard files")
-				for _, f := range files {
-					if !strings.HasSuffix(f.Name(), ".json") {
-						continue // not a JSON file
-					}
-					bytes, err := os.ReadFile(path.Join(dashboardsDir, f.Name()))
-					Expect(err).NotTo(HaveOccurred(), "Should be able to read the Envoy dashboard json file")
-					err = json.Unmarshal(bytes, &map[string]interface{}{})
-					Expect(err).NotTo(HaveOccurred(), "Should be able to successfully unmarshal the envoy dashboard json")
-				}
 			})
 
 			Context("observability deployment", func() {

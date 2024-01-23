@@ -5425,7 +5425,9 @@ proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.GrafanaIntegration.prototyp
  */
 proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.GrafanaIntegration.toObject = function(includeInstance, msg) {
   var f, obj = {
-    defaultDashboardFolderId: (f = msg.getDefaultDashboardFolderId()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f)
+    defaultDashboardFolderId: (f = msg.getDefaultDashboardFolderId()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
+    dashboardPrefix: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    extraMetricQueryParameters: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -5467,6 +5469,14 @@ proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.GrafanaIntegration.deserial
       reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
       msg.setDefaultDashboardFolderId(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDashboardPrefix(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setExtraMetricQueryParameters(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5504,6 +5514,20 @@ proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.GrafanaIntegration.serializ
       google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
+  f = message.getDashboardPrefix();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getExtraMetricQueryParameters();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
 };
 
 
@@ -5534,6 +5558,36 @@ proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.GrafanaIntegration.prototyp
  */
 proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.GrafanaIntegration.prototype.hasDefaultDashboardFolderId = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional string dashboard_prefix = 2;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.GrafanaIntegration.prototype.getDashboardPrefix = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.GrafanaIntegration.prototype.setDashboardPrefix = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string extra_metric_query_parameters = 3;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.GrafanaIntegration.prototype.getExtraMetricQueryParameters = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.GrafanaIntegration.prototype.setExtraMetricQueryParameters = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 

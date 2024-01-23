@@ -75,7 +75,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(envoy_cluster_upstream_rq_total{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m])",
+          "expr": "rate(envoy_cluster_upstream_rq_total{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "upstream_rq_total",
@@ -168,22 +168,22 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"2\",envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m])",
+          "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"2\",envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "legendFormat": "2xx",
           "refId": "A"
         },
         {
-          "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"3\",envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m])",
+          "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"3\",envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "legendFormat": "3xx",
           "refId": "B"
         },
         {
-          "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"4\",envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m])",
+          "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"4\",envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "legendFormat": "4xx",
           "refId": "C"
         },
         {
-          "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"5\",envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m])",
+          "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"5\",envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "legendFormat": "5xx",
           "refId": "D"
         }
@@ -261,7 +261,7 @@
       "reverseYBuckets": false,
       "targets": [
         {
-          "expr": "sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"{{.EnvoyClusterName}}\"}[1m])) by (le)",
+          "expr": "sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"{{.EnvoyClusterName}}\"{{.ExtraMetricQueryParameters}}}[1m])) by (le)",
           "format": "heatmap",
           "legendFormat": "\u007b\u007b le \u007d\u007d",
           "refId": "A"
@@ -335,15 +335,15 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"{{.EnvoyClusterName}}\"}[1m])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"{{.EnvoyClusterName}}\"{{.ExtraMetricQueryParameters}}}[1m])) by (le))",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.95, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"{{.EnvoyClusterName}}\"}[1m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"{{.EnvoyClusterName}}\"{{.ExtraMetricQueryParameters}}}[1m])) by (le))",
           "refId": "B"
         },
         {
-          "expr": "histogram_quantile(0.5, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"{{.EnvoyClusterName}}\"}[1m])) by (le))",
+          "expr": "histogram_quantile(0.5, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"{{.EnvoyClusterName}}\"{{.ExtraMetricQueryParameters}}}[1m])) by (le))",
           "refId": "C"
         }
       ],
@@ -444,7 +444,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "envoy_cluster_upstream_cx_active{ envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}",
+          "expr": "envoy_cluster_upstream_cx_active{ envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "{{.NameTemplate}}",
@@ -495,7 +495,7 @@
     {
       "aliasColors": {
         "circuit breaker status": "red",
-        "envoy_cluster_circuit_breakers_default_cx_open{app=\"gloo\",app_kubernetes_io_managed_by=\"Helm\",envoy_cluster_name=\"{{.EnvoyClusterName}}\",gateway_proxy_id=\"gateway-proxy\",gloo=\"gateway-proxy\",instance=\"192.168.149.31:8081\",job=\"kubernetes-service-endpoints\",kubernetes_name=\"gateway-proxy\",kubernetes_namespace=\"gloo-system\",kubernetes_node=\"kind1-control-plane\"}": "red"
+        "envoy_cluster_circuit_breakers_default_cx_open{app=\"gloo\",app_kubernetes_io_managed_by=\"Helm\",envoy_cluster_name=\"{{.EnvoyClusterName}}\",gateway_proxy_id=\"gateway-proxy\",gloo=\"gateway-proxy\",instance=\"192.168.149.31:8081\",job=\"kubernetes-service-endpoints\",kubernetes_name=\"gateway-proxy\",kubernetes_namespace=\"gloo-system\",kubernetes_node=\"kind1-control-plane\"{{.ExtraMetricQueryParameters}}}": "red"
       },
       "bars": false,
       "cacheTimeout": null,
@@ -542,7 +542,7 @@
       "steppedLine": true,
       "targets": [
         {
-          "expr": "envoy_cluster_circuit_breakers_default_cx_open{envoy_cluster_name=\"{{.EnvoyClusterName}}\",app=\"gloo\"}",
+          "expr": "envoy_cluster_circuit_breakers_default_cx_open{envoy_cluster_name=\"{{.EnvoyClusterName}}\",app=\"gloo\"{{.ExtraMetricQueryParameters}}}",
           "format": "time_series",
           "instant": false,
           "legendFormat": "circuit breaker status",
@@ -632,27 +632,27 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(envoy_cluster_upstream_rq_retry{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m])",
+          "expr": "irate(envoy_cluster_upstream_rq_retry{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "legendFormat": "rq_retry",
           "refId": "A"
         },
         {
-          "expr": "irate(envoy_cluster_upstream_rq_retry_backoff_ratelimited{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m])",
+          "expr": "irate(envoy_cluster_upstream_rq_retry_backoff_ratelimited{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "legendFormat": "rq_retry_backoff_ratelimited",
           "refId": "B"
         },
         {
-          "expr": "irate(envoy_cluster_upstream_rq_retry_limit_exceeded{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m])",
+          "expr": "irate(envoy_cluster_upstream_rq_retry_limit_exceeded{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "legendFormat": "rq_retry_limit_exceeded",
           "refId": "C"
         },
         {
-          "expr": "irate(envoy_cluster_upstream_rq_retry_overflow{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m])",
+          "expr": "irate(envoy_cluster_upstream_rq_retry_overflow{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "legendFormat": "rq_retry_overflow",
           "refId": "D"
         },
         {
-          "expr": "irate(envoy_cluster_upstream_rq_retry_success{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m])",
+          "expr": "irate(envoy_cluster_upstream_rq_retry_success{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "legendFormat": "rq_retry_success",
           "refId": "E"
         }
@@ -742,7 +742,7 @@
       "steppedLine": true,
       "targets": [
         {
-          "expr": "envoy_cluster_circuit_breakers_default_rq_retry_open{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"} ",
+          "expr": "envoy_cluster_circuit_breakers_default_rq_retry_open{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}} ",
           "legendFormat": "limit reached",
           "refId": "A"
         }
@@ -856,7 +856,7 @@
       "steppedLine": true,
       "targets": [
         {
-          "expr": "envoy_cluster_health_check_healthy{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}",
+          "expr": "envoy_cluster_health_check_healthy{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}",
           "instant": false,
           "interval": "",
           "legendFormat": "Healthy",
@@ -957,12 +957,12 @@
       "steppedLine": true,
       "targets": [
         {
-          "expr": "rate(envoy_cluster_outlier_detection_ejections_consecutive_5xx{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m])",
+          "expr": "rate(envoy_cluster_outlier_detection_ejections_consecutive_5xx{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "legendFormat": "ejections_consecutive_5xx",
           "refId": "A"
         },
         {
-          "expr": "rate(envoy_cluster_outlier_detection_ejections_total{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m])",
+          "expr": "rate(envoy_cluster_outlier_detection_ejections_total{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "legendFormat": "ejections_total",
           "refId": "B"
         }
@@ -1012,8 +1012,8 @@
     {
       "aliasColors": {
         "number of failures": "red",
-        "sum(irate(envoy_cluster_health_check_failure{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m]))": "red",
-        "sum(rate(envoy_cluster_health_check_failure{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m]))": "red"
+        "sum(irate(envoy_cluster_health_check_failure{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m]))": "red",
+        "sum(rate(envoy_cluster_health_check_failure{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m]))": "red"
       },
       "bars": false,
       "dashLength": 10,
@@ -1054,7 +1054,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(envoy_cluster_health_check_failure{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}[1m]))",
+          "expr": "sum(rate(envoy_cluster_health_check_failure{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m]))",
           "legendFormat": "number of failures",
           "refId": "A"
         }
@@ -1145,7 +1145,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "envoy_cluster_outlier_detection_ejections_active{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"}",
+          "expr": "envoy_cluster_outlier_detection_ejections_active{envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}",
           "legendFormat": "# of ejected hosts",
           "refId": "A"
         }
@@ -1247,14 +1247,14 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(envoy_cluster_upstream_cx_rx_bytes_total{ envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\" }[1m])",
+          "expr": "irate(envoy_cluster_upstream_cx_rx_bytes_total{ envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{.NameTemplate}} - in",
           "refId": "A"
         },
         {
-          "expr": "irate(envoy_cluster_upstream_cx_tx_bytes_total{ envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\" }[1m])",
+          "expr": "irate(envoy_cluster_upstream_cx_tx_bytes_total{ envoy_cluster_name=\"{{.EnvoyClusterName}}\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{.NameTemplate}} - out",
@@ -1307,8 +1307,8 @@
   "schemaVersion": 22,
   "style": "dark",
   "tags": [
-    "gloo",
     "dynamic"
+    {{.ExtraDashboardTags}}
   ],
   "templating": {
     "list": []
@@ -1343,7 +1343,7 @@
     ]
   },
   "timezone": "",
-  "title": "{{.EnvoyClusterName}}",
-  "uid": "{{.Uid}}",
+  "title": "{{.DashboardPrefix}}{{.EnvoyClusterName}}",
+  "uid": "{{.DashboardPrefix}}{{.Uid}}",
   "version": 1
 }

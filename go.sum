@@ -2249,8 +2249,8 @@ github.com/solo-io/ext-auth-service v0.55.0 h1:4aFqDr0cC9crINjg7MAcNy+QjtIY2tmOe
 github.com/solo-io/ext-auth-service v0.55.0/go.mod h1:PMUvbXEtcLSNasFEJZ8Eo3Msa2uz/kzKyblYOneu04A=
 github.com/solo-io/external-apis v0.1.12-0.20231207172457-35b8885c5fd6 h1:euZY58qf2Z+6EHbCB9UkpPJp3R82zD6vOYriNQPwgA0=
 github.com/solo-io/external-apis v0.1.12-0.20231207172457-35b8885c5fd6/go.mod h1:WErxesMX1qgDYai0XrXckmSmUYb5PFIF9RnPy2Vm0gE=
-github.com/solo-io/gloo v1.16.0 h1:MVzWD5Pr0B5len1OZHjpxKa6VeZxaQhb1kUVQF9c8yQ=
-github.com/solo-io/gloo v1.16.0/go.mod h1:ALdljamyn2NWKsK1LyPpWJrqHnKhLUT3IZNRxufIrr0=
+github.com/solo-io/gloo v1.16.1 h1:OxPZQk2VdqcBETajkD5fXeRs38ry879UFzUKHvJsQOc=
+github.com/solo-io/gloo v1.16.1/go.mod h1:ALdljamyn2NWKsK1LyPpWJrqHnKhLUT3IZNRxufIrr0=
 github.com/solo-io/gloo-graphql-example v0.1.0 h1:vFfQ0eXoJ5gXdBjuMU2VfN2zf+vXbFcpdqnwd6+q8Gk=
 github.com/solo-io/gloo-graphql-example v0.1.0/go.mod h1:tF/6JrJvq1kVFuWePAiW6tH5AEgtuh2+mRsfCaITbVg=
 github.com/solo-io/go-control-plane-fork-v2 v0.0.0-20231207195634-98d37ef9a43e h1:YusPeGbv53hMD0r3drjx5pYkoDNXkhwgYi1HfmZJqu4=
@@ -2273,8 +2273,8 @@ github.com/solo-io/rate-limiter v0.11.4 h1:zJBc0zZAo/fYyW+RBvpuJcedZTFLdhjTlGycx
 github.com/solo-io/rate-limiter v0.11.4/go.mod h1:vZTwj9mFKpzRDbTftqxE99G4aFpyOGkpZgCzJ5TbzOo=
 github.com/solo-io/skv2 v0.36.0 h1:Z1iCQou0Ei5K97UShAmB8xPYrFFZeseMZvef+kZ4Of0=
 github.com/solo-io/skv2 v0.36.0/go.mod h1:0GKILLOrQiTKvGsf7UEFZJiDxJHrp0yKJQ6NbHzn+vY=
-github.com/solo-io/solo-apis v0.0.0-20240112160924-714717b8122e h1:n7RVT49Q0BtzU0ycJAAk5lopHBNXFlhk9emFpbE1Uo8=
-github.com/solo-io/solo-apis v0.0.0-20240112160924-714717b8122e/go.mod h1:7e5u9xeJwMybXr76TjTtZ3fKpR4RrjT2fuyH8uMJ3+Q=
+github.com/solo-io/solo-apis v0.0.0-20240122204116-3765c167c33e h1:T1vVNupZT/5Mx/mpOXjDQsjUdYamv5ov8H2jKVU9qFA=
+github.com/solo-io/solo-apis v0.0.0-20240122204116-3765c167c33e/go.mod h1:7e5u9xeJwMybXr76TjTtZ3fKpR4RrjT2fuyH8uMJ3+Q=
 github.com/solo-io/solo-kit v0.34.0 h1:TbcxhR7qBr5UVjVG5QfoGawVdrEqBG14DLrgLmePfmo=
 github.com/solo-io/solo-kit v0.34.0/go.mod h1:HkrxDRo+uR0FZUJi+SGAUkbrUNWC6V0FD7GGXbtC0UU=
 github.com/solo-io/tap-extension-examples v0.0.3 h1:HEGoHphx0LoD1kXx35cYEuzSs0ffZcYwoGkACJtAKbU=

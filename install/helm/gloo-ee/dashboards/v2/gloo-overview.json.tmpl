@@ -89,14 +89,14 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_insync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.listener.v3.Listener\"}",
+          "expr": "glooe_solo_io_xds_insync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.listener.v3.Listener\"{{.ExtraMetricQueryParameters}}}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         },
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.listener.v3.Listener\"}",
+          "expr": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.listener.v3.Listener\"{{.ExtraMetricQueryParameters}}}",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -115,7 +115,7 @@
             "configRefId": "B",
             "mappings": [
               {
-                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"}",
+                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"{{.ExtraMetricQueryParameters}}}",
                 "handlerKey": "max",
                 "reducerId": "lastNotNull"
               },
@@ -124,7 +124,7 @@
                 "handlerKey": "__ignore"
               },
               {
-                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", instance=\"10.20.2.18:9091\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gloo-6689fc55f6-wkr78\", pod_template_hash=\"6689fc55f6\", resource=\"type.googleapis.com/envoy.config.listener.v3.Listener\"}",
+                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", instance=\"10.20.2.18:9091\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gloo-6689fc55f6-wkr78\", pod_template_hash=\"6689fc55f6\", resource=\"type.googleapis.com/envoy.config.listener.v3.Listener\"{{.ExtraMetricQueryParameters}}}",
                 "handlerKey": "__ignore"
               }
             ]
@@ -183,14 +183,14 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_insync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.route.v3.RouteConfiguration\"}",
+          "expr": "glooe_solo_io_xds_insync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.route.v3.RouteConfiguration\"{{.ExtraMetricQueryParameters}}}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         },
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.route.v3.RouteConfiguration\"}",
+          "expr": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.route.v3.RouteConfiguration\"{{.ExtraMetricQueryParameters}}}",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -209,7 +209,7 @@
             "configRefId": "B",
             "mappings": [
               {
-                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"}",
+                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"{{.ExtraMetricQueryParameters}}}",
                 "handlerKey": "max",
                 "reducerId": "lastNotNull"
               },
@@ -218,7 +218,7 @@
                 "handlerKey": "__ignore"
               },
               {
-                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", instance=\"10.20.2.18:9091\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gloo-6689fc55f6-wkr78\", pod_template_hash=\"6689fc55f6\", resource=\"type.googleapis.com/envoy.config.route.v3.RouteConfiguration\"}",
+                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", instance=\"10.20.2.18:9091\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gloo-6689fc55f6-wkr78\", pod_template_hash=\"6689fc55f6\", resource=\"type.googleapis.com/envoy.config.route.v3.RouteConfiguration\"{{.ExtraMetricQueryParameters}}}",
                 "handlerKey": "__ignore"
               }
             ]
@@ -277,7 +277,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_insync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"}",
+          "expr": "glooe_solo_io_xds_insync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"{{.ExtraMetricQueryParameters}}}",
           "hide": false,
           "instant": false,
           "interval": "",
@@ -286,7 +286,7 @@
         },
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"}",
+          "expr": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"{{.ExtraMetricQueryParameters}}}",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -305,7 +305,7 @@
             "configRefId": "B",
             "mappings": [
               {
-                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"}",
+                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"{{.ExtraMetricQueryParameters}}}",
                 "handlerKey": "max",
                 "reducerId": "lastNotNull"
               },
@@ -314,7 +314,7 @@
                 "handlerKey": "__ignore"
               },
               {
-                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", instance=\"10.20.2.18:9091\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gloo-6689fc55f6-wkr78\", pod_template_hash=\"6689fc55f6\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"}",
+                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", instance=\"10.20.2.18:9091\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gloo-6689fc55f6-wkr78\", pod_template_hash=\"6689fc55f6\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"{{.ExtraMetricQueryParameters}}}",
                 "handlerKey": "__ignore"
               }
             ]
@@ -373,14 +373,14 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_insync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment\"}",
+          "expr": "glooe_solo_io_xds_insync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment\"{{.ExtraMetricQueryParameters}}}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         },
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment\"}",
+          "expr": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment\"{{.ExtraMetricQueryParameters}}}",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -399,7 +399,7 @@
             "configRefId": "B",
             "mappings": [
               {
-                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"}",
+                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"{{.ExtraMetricQueryParameters}}}",
                 "handlerKey": "max",
                 "reducerId": "lastNotNull"
               },
@@ -408,7 +408,7 @@
                 "handlerKey": "__ignore"
               },
               {
-                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", instance=\"10.20.2.18:9091\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gloo-6689fc55f6-wkr78\", pod_template_hash=\"6689fc55f6\", resource=\"type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment\"}",
+                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", instance=\"10.20.2.18:9091\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gloo-6689fc55f6-wkr78\", pod_template_hash=\"6689fc55f6\", resource=\"type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment\"{{.ExtraMetricQueryParameters}}}",
                 "handlerKey": "__ignore"
               }
             ]
@@ -467,14 +467,14 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_insync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/enterprise.gloo.solo.io.ExtAuthConfig\"}",
+          "expr": "glooe_solo_io_xds_insync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/enterprise.gloo.solo.io.ExtAuthConfig\"{{.ExtraMetricQueryParameters}}}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         },
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/enterprise.gloo.solo.io.ExtAuthConfig\"}",
+          "expr": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/enterprise.gloo.solo.io.ExtAuthConfig\"{{.ExtraMetricQueryParameters}}}",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -493,7 +493,7 @@
             "configRefId": "B",
             "mappings": [
               {
-                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"}",
+                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"{{.ExtraMetricQueryParameters}}}",
                 "handlerKey": "max",
                 "reducerId": "lastNotNull"
               },
@@ -502,7 +502,7 @@
                 "handlerKey": "__ignore"
               },
               {
-                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", instance=\"10.20.2.18:9091\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gloo-6689fc55f6-wkr78\", pod_template_hash=\"6689fc55f6\", resource=\"type.googleapis.com/enterprise.gloo.solo.io.ExtAuthConfig\"}",
+                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", instance=\"10.20.2.18:9091\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gloo-6689fc55f6-wkr78\", pod_template_hash=\"6689fc55f6\", resource=\"type.googleapis.com/enterprise.gloo.solo.io.ExtAuthConfig\"{{.ExtraMetricQueryParameters}}}",
                 "handlerKey": "__ignore"
               }
             ]
@@ -561,14 +561,14 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_insync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/glooe.solo.io.RateLimitConfig\"}",
+          "expr": "glooe_solo_io_xds_insync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/glooe.solo.io.RateLimitConfig\"{{.ExtraMetricQueryParameters}}}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         },
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/glooe.solo.io.RateLimitConfig\"}",
+          "expr": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/glooe.solo.io.RateLimitConfig\"{{.ExtraMetricQueryParameters}}}",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -587,7 +587,7 @@
             "configRefId": "B",
             "mappings": [
               {
-                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"}",
+                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", kubernetes_namespace=\"$namespace\", resource=\"type.googleapis.com/envoy.config.cluster.v3.Cluster\"{{.ExtraMetricQueryParameters}}}",
                 "handlerKey": "max",
                 "reducerId": "lastNotNull"
               },
@@ -596,7 +596,7 @@
                 "handlerKey": "__ignore"
               },
               {
-                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", instance=\"10.20.2.18:9091\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gloo-6689fc55f6-wkr78\", pod_template_hash=\"6689fc55f6\", resource=\"type.googleapis.com/glooe.solo.io.RateLimitConfig\"}",
+                "fieldName": "glooe_solo_io_xds_total_entities{gloo=\"gloo\", instance=\"10.20.2.18:9091\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gloo-6689fc55f6-wkr78\", pod_template_hash=\"6689fc55f6\", resource=\"type.googleapis.com/glooe.solo.io.RateLimitConfig\"{{.ExtraMetricQueryParameters}}}",
                 "handlerKey": "__ignore"
               }
             ]
@@ -678,7 +678,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "api_gloo_solo_io_translator_resources{proxy_name=\"$namespace.gateway-proxy\"}",
+          "expr": "api_gloo_solo_io_translator_resources{proxy_name=\"$namespace.gateway-proxy\"{{.ExtraMetricQueryParameters}}}",
           "interval": "",
           "legendFormat": "{{resource}}",
           "refId": "A"
@@ -759,14 +759,14 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_nack{gloo=\"gloo\", kubernetes_namespace=\"$namespace\"}",
+          "expr": "glooe_solo_io_xds_nack{gloo=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}",
           "interval": "",
           "legendFormat": "NACK",
           "refId": "A"
         },
         {
           "exemplar": true,
-          "expr": "glooe_solo_io_xds_outofsync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\"}",
+          "expr": "glooe_solo_io_xds_outofsync{gloo=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}",
           "hide": false,
           "interval": "",
           "legendFormat": "Out of sync - {{resource}}",
@@ -859,7 +859,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(envoy_server_live{gateway_proxy=\"live\", kubernetes_namespace=\"$namespace\"})",
+          "expr": "sum(envoy_server_live{kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}})",
           "interval": "",
           "legendFormat": "{{kubernetes_pod_name}}",
           "refId": "A"
@@ -919,7 +919,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "envoy_control_plane_connected_state{gateway_proxy=\"live\", kubernetes_namespace=\"$namespace\"}",
+          "expr": "envoy_control_plane_connected_state{kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}",
           "interval": "",
           "legendFormat": "{{kubernetes_pod_name}}",
           "refId": "A"
@@ -1001,14 +1001,14 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "rate(envoy_http_rds_update_failure{envoy_http_conn_manager_prefix=\"http\", kubernetes_namespace=\"$namespace\", gateway_proxy=\"live\"}[1m])",
+          "expr": "rate(envoy_http_rds_update_failure{envoy_http_conn_manager_prefix=\"http\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
           "interval": "",
           "legendFormat": "Update failures - {{kubernetes_pod_name}}",
           "refId": "A"
         },
         {
           "exemplar": true,
-          "expr": "rate(envoy_http_rds_update_rejected{envoy_http_conn_manager_prefix=\"http\", kubernetes_namespace=\"$namespace\", gateway_proxy=\"live\"}[1m])",
+          "expr": "rate(envoy_http_rds_update_rejected{envoy_http_conn_manager_prefix=\"http\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
           "hide": false,
           "interval": "",
           "legendFormat": "Update rejected - {{kubernetes_pod_name}}",
@@ -1091,7 +1091,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "rate(envoy_listener_manager_lds_update_rejected{gateway_proxy=\"live\"}[1m])",
+          "expr": "rate(envoy_listener_manager_lds_update_rejected{{{.ExtraMetricQueryParameters}}}[1m])",
           "interval": "",
           "legendFormat": "{{kubernetes_pod_name}}",
           "refId": "A"
@@ -1158,7 +1158,7 @@
               "options": {
                 "mode": "exclude",
                 "names": [
-                  "{envoy_http_conn_manager_prefix=\"http\", envoy_rds_route_config=\"listener-__-8443-routes\", gateway_proxy=\"live\", gateway_proxy_id=\"gateway-proxy\", gloo=\"gateway-proxy\", instance=\"10.20.2.33:8081\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gateway-proxy-5549bcdb8f-5qlzm\", pod_template_hash=\"5549bcdb8f\"}"
+                  "{envoy_http_conn_manager_prefix=\"http\", envoy_rds_route_config=\"listener-__-8443-routes\", gateway_proxy_id=\"gateway-proxy\", gloo=\"gateway-proxy\", instance=\"10.20.2.33:8081\", job=\"kubernetes-pods\", kubernetes_namespace=\"gloo-system\", kubernetes_pod_name=\"gateway-proxy-5549bcdb8f-5qlzm\", pod_template_hash=\"5549bcdb8f\"{{.ExtraMetricQueryParameters}}}"
                 ],
                 "prefix": "All except:",
                 "readOnly": true
@@ -1197,7 +1197,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "rate(envoy_cluster_manager_cds_update_rejected{gateway_proxy=\"live\"}[1m])",
+          "expr": "rate(envoy_cluster_manager_cds_update_rejected{{{.ExtraMetricQueryParameters}}}[1m])",
           "interval": "",
           "legendFormat": "{{kubernetes_pod_name}}",
           "refId": "A"
@@ -1280,14 +1280,14 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "rate(envoy_cluster_upstream_cx_rx_bytes_total{envoy_cluster_name=\"xds_cluster\", gateway_proxy=\"live\"}[1m])",
+          "expr": "rate(envoy_cluster_upstream_cx_rx_bytes_total{envoy_cluster_name=\"xds_cluster\"{{.ExtraMetricQueryParameters}}}[1m])",
           "interval": "",
           "legendFormat": "XDS Request Bytes - {{kubernetes_pod_name}}",
           "refId": "A"
         },
         {
           "exemplar": true,
-          "expr": "rate(envoy_cluster_upstream_cx_tx_bytes_total{envoy_cluster_name=\"xds_cluster\", gateway_proxy=\"live\"}[1m])",
+          "expr": "rate(envoy_cluster_upstream_cx_tx_bytes_total{envoy_cluster_name=\"xds_cluster\"{{.ExtraMetricQueryParameters}}}[1m])",
           "hide": false,
           "interval": "",
           "legendFormat": "XDS Response Bytes - {{kubernetes_pod_name}}",
@@ -1393,7 +1393,7 @@
     },
     {
       "aliasColors": {
-        "{gloo=\"gateway\",instance=\"10.20.0.7:9091\",job=\"kubernetes-pods\",kubernetes_namespace=\"gloo-system\",kubernetes_pod_name=\"gateway-d77f587d6-n4vzk\",pod_template_hash=\"d77f587d6\"}": "red"
+        "{gloo=\"gateway\",instance=\"10.20.0.7:9091\",job=\"kubernetes-pods\",kubernetes_namespace=\"gloo-system\",kubernetes_pod_name=\"gateway-d77f587d6-n4vzk\",pod_template_hash=\"d77f587d6\"{{.ExtraMetricQueryParameters}}}": "red"
       },
       "bars": false,
       "dashLength": 10,
@@ -1442,7 +1442,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "irate(validation_gateway_solo_io_resources_rejected{gloo=\"gateway\",job=\"kubernetes-pods\",kubernetes_namespace=\"$namespace\"}[1m])",
+          "expr": "irate(validation_gateway_solo_io_resources_rejected{gloo=\"gateway\",job=\"kubernetes-pods\",kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
@@ -1517,7 +1517,7 @@
   "refresh": "5s",
   "schemaVersion": 31,
   "style": "dark",
-  "tags": ["gloo","default"],
+  "tags": ["default"{{.ExtraDashboardTags}}],
   "templating": {
     "list": [
       {
@@ -1555,6 +1555,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Gloo Overview",
-  "uid": "gloo-overview"
+  "title": "{{.DashboardPrefix}}Gloo Overview",
+  "uid": "{{.DashboardPrefix}}gloo-overview",
+  "version": 1
 }

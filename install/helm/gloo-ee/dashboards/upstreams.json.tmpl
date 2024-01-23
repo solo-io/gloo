@@ -90,7 +90,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "rate(envoy_cluster_upstream_rq_total{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "rate(envoy_cluster_upstream_rq_total{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "format": "time_series",
             "interval": "",
             "intervalFactor": 2,
@@ -193,25 +193,25 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"2\",envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"2\",envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "interval": "",
             "legendFormat": "2xx",
             "refId": "A"
           },
           {
             "exemplar": true,
-            "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"3\",envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"3\",envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "interval": "",
             "legendFormat": "3xx",
             "refId": "B"
           },
           {
-            "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"4\",envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"4\",envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "legendFormat": "4xx",
             "refId": "C"
           },
           {
-            "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"5\",envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class=\"5\",envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "legendFormat": "5xx",
             "refId": "D"
           }
@@ -291,7 +291,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"$upstream\", kubernetes_namespace=\"$namespace\"}[1m])) by (le)",
+            "expr": "sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"$upstream\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])) by (le)",
             "format": "heatmap",
             "interval": "",
             "legendFormat": "{{ le }}",
@@ -374,21 +374,21 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "histogram_quantile(0.99, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"$upstream\", kubernetes_namespace=\"$namespace\"}[1m])) by (le))",
+            "expr": "histogram_quantile(0.99, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"$upstream\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])) by (le))",
             "interval": "",
             "legendFormat": "",
             "refId": "A"
           },
           {
             "exemplar": true,
-            "expr": "histogram_quantile(0.95, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"$upstream\", kubernetes_namespace=\"$namespace\"}[1m])) by (le))",
+            "expr": "histogram_quantile(0.95, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"$upstream\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])) by (le))",
             "interval": "",
             "legendFormat": "",
             "refId": "B"
           },
           {
             "exemplar": true,
-            "expr": "histogram_quantile(0.5, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"$upstream\", kubernetes_namespace=\"$namespace\"}[1m])) by (le))",
+            "expr": "histogram_quantile(0.5, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"$upstream\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])) by (le))",
             "interval": "",
             "legendFormat": "",
             "refId": "C"
@@ -501,7 +501,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "envoy_cluster_upstream_cx_active{ envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}",
+            "expr": "envoy_cluster_upstream_cx_active{ envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}",
             "format": "time_series",
             "interval": "",
             "intervalFactor": 2,
@@ -555,7 +555,7 @@
       {
         "aliasColors": {
           "circuit breaker status": "red",
-          "envoy_cluster_circuit_breakers_default_cx_open{app=\"gloo\",app_kubernetes_io_managed_by=\"Helm\",envoy_cluster_name=\"default-httpbin-8000_gloo-system\",gateway_proxy_id=\"gateway-proxy\",gloo=\"gateway-proxy\",instance=\"192.168.149.31:8081\",job=\"kubernetes-service-endpoints\",kubernetes_name=\"gateway-proxy\",kubernetes_namespace=\"gloo-system\",kubernetes_node=\"kind1-control-plane\"}": "red"
+          "envoy_cluster_circuit_breakers_default_cx_open{app=\"gloo\",app_kubernetes_io_managed_by=\"Helm\",envoy_cluster_name=\"default-httpbin-8000_gloo-system\",gateway_proxy_id=\"gateway-proxy\",gloo=\"gateway-proxy\",instance=\"192.168.149.31:8081\",job=\"kubernetes-service-endpoints\",kubernetes_name=\"gateway-proxy\",kubernetes_namespace=\"gloo-system\",kubernetes_node=\"kind1-control-plane\"{{.ExtraMetricQueryParameters}}}": "red"
         },
         "bars": false,
         "cacheTimeout": null,
@@ -610,7 +610,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "envoy_cluster_circuit_breakers_default_cx_open{envoy_cluster_name=\"$upstream\",app=\"gloo\", kubernetes_namespace=\"$namespace\"}",
+            "expr": "envoy_cluster_circuit_breakers_default_cx_open{envoy_cluster_name=\"$upstream\",app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}",
             "format": "time_series",
             "instant": false,
             "interval": "",
@@ -711,35 +711,35 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "irate(envoy_cluster_upstream_rq_retry{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "irate(envoy_cluster_upstream_rq_retry{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "interval": "",
             "legendFormat": "rq_retry",
             "refId": "A"
           },
           {
             "exemplar": true,
-            "expr": "irate(envoy_cluster_upstream_rq_retry_backoff_ratelimited{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "irate(envoy_cluster_upstream_rq_retry_backoff_ratelimited{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "interval": "",
             "legendFormat": "rq_retry_backoff_ratelimited",
             "refId": "B"
           },
           {
             "exemplar": true,
-            "expr": "irate(envoy_cluster_upstream_rq_retry_limit_exceeded{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "irate(envoy_cluster_upstream_rq_retry_limit_exceeded{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "interval": "",
             "legendFormat": "rq_retry_limit_exceeded",
             "refId": "C"
           },
           {
             "exemplar": true,
-            "expr": "irate(envoy_cluster_upstream_rq_retry_overflow{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "irate(envoy_cluster_upstream_rq_retry_overflow{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "interval": "",
             "legendFormat": "rq_retry_overflow",
             "refId": "D"
           },
           {
             "exemplar": true,
-            "expr": "irate(envoy_cluster_upstream_rq_retry_success{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "irate(envoy_cluster_upstream_rq_retry_success{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "interval": "",
             "legendFormat": "rq_retry_success",
             "refId": "E"
@@ -840,7 +840,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "envoy_cluster_circuit_breakers_default_rq_retry_open{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"} ",
+            "expr": "envoy_cluster_circuit_breakers_default_rq_retry_open{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}} ",
             "interval": "",
             "legendFormat": "limit reached",
             "refId": "A"
@@ -965,7 +965,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "envoy_cluster_health_check_healthy{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}",
+            "expr": "envoy_cluster_health_check_healthy{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}",
             "instant": false,
             "interval": "",
             "legendFormat": "Healthy",
@@ -1077,14 +1077,14 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "rate(envoy_cluster_outlier_detection_ejections_consecutive_5xx{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "rate(envoy_cluster_outlier_detection_ejections_consecutive_5xx{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "interval": "",
             "legendFormat": "ejections_consecutive_5xx",
             "refId": "A"
           },
           {
             "exemplar": true,
-            "expr": "rate(envoy_cluster_outlier_detection_ejections_total{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "rate(envoy_cluster_outlier_detection_ejections_total{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "interval": "",
             "legendFormat": "ejections_total",
             "refId": "B"
@@ -1137,8 +1137,8 @@
       {
         "aliasColors": {
           "number of failures": "red",
-          "sum(irate(envoy_cluster_health_check_failure{envoy_cluster_name=\"default-httpbin-8000_gloo-system\", app=\"gloo\"}[1m]))": "red",
-          "sum(rate(envoy_cluster_health_check_failure{envoy_cluster_name=\"default-httpbin-8000_gloo-system\", app=\"gloo\"}[1m]))": "red"
+          "sum(irate(envoy_cluster_health_check_failure{envoy_cluster_name=\"default-httpbin-8000_gloo-system\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m]))": "red",
+          "sum(rate(envoy_cluster_health_check_failure{envoy_cluster_name=\"default-httpbin-8000_gloo-system\", app=\"gloo\"{{.ExtraMetricQueryParameters}}}[1m]))": "red"
         },
         "bars": false,
         "dashLength": 10,
@@ -1187,7 +1187,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "sum(rate(envoy_cluster_health_check_failure{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m]))",
+            "expr": "sum(rate(envoy_cluster_health_check_failure{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m]))",
             "interval": "",
             "legendFormat": "number of failures",
             "refId": "A"
@@ -1289,7 +1289,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "envoy_cluster_outlier_detection_ejections_active{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}",
+            "expr": "envoy_cluster_outlier_detection_ejections_active{envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}",
             "interval": "",
             "legendFormat": "# of ejected hosts",
             "refId": "A"
@@ -1403,7 +1403,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "irate(envoy_cluster_upstream_cx_rx_bytes_total{ envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "irate(envoy_cluster_upstream_cx_rx_bytes_total{ envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "format": "time_series",
             "interval": "",
             "intervalFactor": 1,
@@ -1412,7 +1412,7 @@
           },
           {
             "exemplar": true,
-            "expr": "irate(envoy_cluster_upstream_cx_tx_bytes_total{ envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"}[1m])",
+            "expr": "irate(envoy_cluster_upstream_cx_tx_bytes_total{ envoy_cluster_name=\"$upstream\", app=\"gloo\", kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}[1m])",
             "format": "time_series",
             "interval": "",
             "intervalFactor": 1,
@@ -1468,9 +1468,9 @@
     "schemaVersion": 31,
     "style": "dark",
     "tags": [
-      "gloo",
       "dynamic",
       "default"
+      {{.ExtraDashboardTags}}
     ],
     "templating": {
       "list": [
@@ -1504,7 +1504,7 @@
         {
           "allValue": null,
           "datasource": null,
-          "definition": "label_values(envoy_cluster_upstream_cx_total{kubernetes_namespace=\"$namespace\"}, envoy_cluster_name)",
+          "definition": "label_values(envoy_cluster_upstream_cx_total{kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}, envoy_cluster_name)",
           "description": null,
           "error": null,
           "hide": 0,
@@ -1514,7 +1514,7 @@
           "name": "upstream",
           "options": [],
           "query": {
-            "query": "label_values(envoy_cluster_upstream_cx_total{kubernetes_namespace=\"$namespace\"}, envoy_cluster_name)",
+            "query": "label_values(envoy_cluster_upstream_cx_total{kubernetes_namespace=\"$namespace\"{{.ExtraMetricQueryParameters}}}, envoy_cluster_name)",
             "refId": "StandardVariableQuery"
           },
           "refresh": 1,
@@ -1555,6 +1555,7 @@
       ]
     },
     "timezone": "",
-    "title": "All Upstreams",
-    "uid": "upstreams"
+    "title": "{{.DashboardPrefix}}All Upstreams",
+    "uid": "{{.DashboardPrefix}}upstreams",
+    "version": 1
 }
