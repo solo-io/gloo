@@ -20,6 +20,8 @@ func InstallCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cob
 	}
 	cmd.AddCommand(
 		gatewayCmd(opts),
+		ingressCmd(opts),
+		knativeCmd(opts),
 	)
 	cliutils.ApplyOptions(cmd, optionsFunc)
 	flagutils.AddGlooInstallFlags(cmd.Flags(), &opts.Install)
