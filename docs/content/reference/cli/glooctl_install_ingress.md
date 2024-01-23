@@ -1,14 +1,18 @@
 ---
-title: "glooctl install"
+title: "glooctl install ingress"
 weight: 5
 ---
-## glooctl install
+## glooctl install ingress
 
-install gloo on different platforms
+install the Gloo Ingress Controller on Kubernetes
 
 ### Synopsis
 
-choose which version of Gloo to install.
+requires kubectl to be installed
+
+```
+glooctl install ingress [flags]
+```
 
 ### Options
 
@@ -16,11 +20,10 @@ choose which version of Gloo to install.
       --create-namespace      Create the namespace to install gloo into (default true)
   -d, --dry-run               Dump the raw installation yaml instead of applying it to kubernetes
   -f, --file string           Install Gloo from this Helm chart archive file rather than from a release
-  -h, --help                  help for install
+  -h, --help                  help for ingress
   -n, --namespace string      namespace to install gloo into (default "gloo-system")
       --release-name string   helm release name (default "gloo")
       --values strings        List of files with value overrides for the Gloo Helm chart, (e.g. --values file1,file2 or --values file1 --values file2)
-  -v, --verbose               If true, output from kubectl commands will print to stdout/stderr
       --version string        version to install (e.g. 1.4.0, defaults to latest)
 ```
 
@@ -38,11 +41,10 @@ choose which version of Gloo to install.
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
+  -v, --verbose                    If true, output from kubectl commands will print to stdout/stderr
 ```
 
 ### SEE ALSO
 
-* [glooctl](../glooctl)	 - CLI for Gloo
-* [glooctl install gateway](../glooctl_install_gateway)	 - install the Gloo Gateway on Kubernetes
-* [glooctl install ingress](../glooctl_install_ingress)	 - install the Gloo Ingress Controller on Kubernetes
+* [glooctl install](../glooctl_install)	 - install gloo on different platforms
 
