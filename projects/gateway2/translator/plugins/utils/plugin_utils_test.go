@@ -36,7 +36,7 @@ func TestExtensionRef(t *testing.T) {
 
 	routeOption := &solokubev1.RouteOption{}
 	err := utils.GetExtensionRefObj(context.Background(), &rtCtx, queries, filter.ExtensionRef, routeOption)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(routeOption.Spec.GetOptions().GetFaults().GetAbort().GetPercentage()).To(BeEquivalentTo(1))
 }
 
@@ -55,7 +55,7 @@ func TestExtensionRefWrongObject(t *testing.T) {
 
 	vhostOption := &solokubev1.VirtualHostOption{}
 	err := utils.GetExtensionRefObj(context.Background(), &rtCtx, queries, filter.ExtensionRef, vhostOption)
-	g.Expect(err).ToNot(BeNil())
+	g.Expect(err).To(HaveOccurred())
 	g.Expect(errors.Is(err, utils.ErrTypesNotEqual)).To(BeTrue())
 }
 

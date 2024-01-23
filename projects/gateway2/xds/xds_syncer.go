@@ -333,9 +333,9 @@ func (s *XdsSyncer) ServeXdsSnapshots() error {
 	return http.ListenAndServe(fmt.Sprintf(":%d", devModePort), r)
 }
 
-func measureResource(ctx context.Context, resource string, len int) {
+func measureResource(ctx context.Context, resource string, length int) {
 	if ctxWithTags, err := tag.New(ctx, tag.Insert(resourceNameKey, resource)); err == nil {
-		stats.Record(ctxWithTags, envoySnapshotOut.M(int64(len)))
+		stats.Record(ctxWithTags, envoySnapshotOut.M(int64(length)))
 	}
 }
 

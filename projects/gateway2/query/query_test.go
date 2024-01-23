@@ -191,7 +191,7 @@ var _ = Describe("Query", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(routes).NotTo(BeNil())
 			Expect(routes.ListenerResults["foo"].Error).NotTo(HaveOccurred())
-			Expect(len(routes.ListenerResults["foo"].Routes)).To(Equal(1))
+			Expect(routes.ListenerResults["foo"].Routes).To(HaveLen(1))
 		})
 
 		It("should get http routes in other ns for listener", func() {
@@ -223,7 +223,7 @@ var _ = Describe("Query", func() {
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(routes).NotTo(BeNil())
-			Expect(len(routes.ListenerResults["foo"].Routes)).To(Equal(1))
+			Expect(routes.ListenerResults["foo"].Routes).To(HaveLen(1))
 		})
 
 		It("should error with invalid label selector", func() {
@@ -311,7 +311,7 @@ var _ = Describe("Query", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(routes.RouteErrors).To(BeEmpty())
 			Expect(routes.ListenerResults["foo2"].Routes).To(HaveLen(1))
-			Expect(routes.ListenerResults["foo"].Routes).To(HaveLen(0))
+			Expect(routes.ListenerResults["foo"].Routes).To(BeEmpty())
 		})
 
 		It("should error when listeners don't match route", func() {
@@ -371,7 +371,7 @@ var _ = Describe("Query", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(routes.RouteErrors).To(BeEmpty())
 			Expect(routes.ListenerResults["foo2"].Routes).To(HaveLen(1))
-			Expect(routes.ListenerResults["foo"].Routes).To(HaveLen(0))
+			Expect(routes.ListenerResults["foo"].Routes).To(BeEmpty())
 		})
 
 		It("should error when listeners hostnames don't intersect", func() {
@@ -437,7 +437,7 @@ var _ = Describe("Query", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(routes.RouteErrors).To(BeEmpty())
 			Expect(routes.ListenerResults["foo2"].Routes).To(HaveLen(1))
-			Expect(routes.ListenerResults["foo"].Routes).To(HaveLen(0))
+			Expect(routes.ListenerResults["foo"].Routes).To(BeEmpty())
 		})
 
 		It("should error for one parent ref but not the other", func() {

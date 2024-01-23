@@ -28,7 +28,7 @@ func TestValidate(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(1))
+	g.Expect(validListeners).To(HaveLen(1))
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http": {
@@ -53,7 +53,7 @@ func TestSimpleGWNoHostname(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(1))
+	g.Expect(validListeners).To(HaveLen(1))
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http": {
@@ -78,7 +78,7 @@ func TestSimpleGWDuplicateNoHostname(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(0))
+	g.Expect(validListeners).To(BeEmpty())
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http": {
@@ -126,7 +126,7 @@ func TestSimpleListenerWithValidRouteKind(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(1))
+	g.Expect(validListeners).To(HaveLen(1))
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http": {
@@ -151,7 +151,7 @@ func TestSimpleListenerWithInvalidRouteKind(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(0))
+	g.Expect(validListeners).To(BeEmpty())
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http": {
@@ -178,7 +178,7 @@ func TestMultiListener(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(2))
+	g.Expect(validListeners).To(HaveLen(2))
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http": {
@@ -212,7 +212,7 @@ func TestMultiListenerExplicitRoutes(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(2))
+	g.Expect(validListeners).To(HaveLen(2))
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http": {
@@ -246,7 +246,7 @@ func TestMultiListenerWithInavlidRoute(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(1))
+	g.Expect(validListeners).To(HaveLen(1))
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http": {
@@ -282,7 +282,7 @@ func TestProtocolConflict(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(0))
+	g.Expect(validListeners).To(BeEmpty())
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http": {
@@ -330,7 +330,7 @@ func TestProtocolConflictInvalidRoutes(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(1))
+	g.Expect(validListeners).To(HaveLen(1))
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http": {
@@ -366,7 +366,7 @@ func TestActualProtocolConflictInvalidRoutes(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(0))
+	g.Expect(validListeners).To(BeEmpty())
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http-with-invalid-route": {
@@ -425,7 +425,7 @@ func TestHostnameConflict(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(0))
+	g.Expect(validListeners).To(BeEmpty())
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http": {
@@ -473,7 +473,7 @@ func TestHostnameConflictWithInvalidRoute(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(1))
+	g.Expect(validListeners).To(HaveLen(1))
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http": {
@@ -509,7 +509,7 @@ func TestActualHostnameConflictWithInvalidRoute(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(0))
+	g.Expect(validListeners).To(BeEmpty())
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http-with-invalid-route": {
@@ -568,7 +568,7 @@ func TestHostnameConflictWithExtraGoodListener(t *testing.T) {
 
 	validListeners := validateListeners(gateway, gatewayReporter)
 	g := NewWithT(t)
-	g.Expect(len(validListeners)).To(Equal(1))
+	g.Expect(validListeners).To(HaveLen(1))
 
 	expectedStatuses := map[string]gwv1.ListenerStatus{
 		"http": {
@@ -758,7 +758,7 @@ func httpRoute(routeNs, backendNs string) gwv1.HTTPRoute {
 // 			continue
 // 		}
 
-// 		g.Expect(len(routeReport.Conditions)).To(Equal(len(expectedStatus.Conditions)))
+// 		g.Expect(routeReport.Conditions).To(HaveLen(len(expectedStatus.Conditions)))
 // 		for _, eCond := range expectedStatus.Conditions {
 // 			for _, aCond := range routeReport.Conditions {
 // 				if eCond.Type == aCond.Type {
@@ -792,7 +792,7 @@ func assertExpectedListenerStatuses(
 		expectedStatus := expectedStatuses[listenerName]
 		g.Expect(actualReport.Status.Name).To(BeEquivalentTo(listenerName))
 		g.Expect(actualReport.Status.SupportedKinds).To(BeEquivalentTo(expectedStatus.SupportedKinds))
-		g.Expect(len(actualReport.Status.Conditions)).To(Equal(len(expectedStatus.Conditions)))
+		g.Expect(actualReport.Status.Conditions).To(HaveLen(len(expectedStatus.Conditions)))
 		for _, eCond := range expectedStatus.Conditions {
 			for _, aCond := range actualReport.Status.Conditions {
 				if eCond.Type == aCond.Type {

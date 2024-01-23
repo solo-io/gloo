@@ -278,7 +278,7 @@ var _ = Describe("Deployer", func() {
 			Expect(ownerRefs[0].UID).To(Equal(gw.UID))
 			Expect(ownerRefs[0].Kind).To(Equal(gw.Kind))
 			Expect(ownerRefs[0].APIVersion).To(Equal(gw.APIVersion))
-			Expect(*ownerRefs[0].Controller).To(Equal(true))
+			Expect(*ownerRefs[0].Controller).To(BeTrue())
 		}
 	})
 
