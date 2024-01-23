@@ -79,7 +79,7 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 				printer.AppendMessage("No problems detected.")
 			}
 
-			// CheckMulticlusterResources(ctx, printer, opts)
+			CheckMulticlusterResources(ctx, printer, opts)
 
 			if opts.Top.Output.IsJSON() {
 				printer.PrintChecks(new(bytes.Buffer))

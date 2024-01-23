@@ -109,6 +109,7 @@ func GlooCli() *cobra.Command {
 			del.RootCmd(opts),
 			install.InstallCmd(opts),
 			demo.RootCmd(opts),
+			install.UninstallCmd(opts),
 			add.RootCmd(opts),
 			remove.RootCmd(opts),
 			route.RootCmd(opts),
