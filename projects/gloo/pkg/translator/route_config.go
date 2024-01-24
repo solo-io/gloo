@@ -87,7 +87,6 @@ func (h *httpRouteConfigurationTranslator) ComputeRouteConfiguration(params plug
 	params.Ctx = contextutils.WithLogger(params.Ctx, "compute_route_config."+h.routeConfigName)
 	cfg := &envoy_config_route_v3.RouteConfiguration{
 		Name:                           h.routeConfigName,
-		IgnorePortInHostMatching:       true,
 		VirtualHosts:                   h.computeVirtualHosts(params),
 		MaxDirectResponseBodySizeBytes: h.parentListener.GetRouteOptions().GetMaxDirectResponseBodySizeBytes(),
 	}
@@ -281,9 +280,7 @@ func (h *httpRouteConfigurationTranslator) setAction(
 		}
 
 		out.Action = &envoy_config_route_v3.Route_Route{
-			Route: &envoy_config_route_v3.RouteAction{
-				ClusterNotFoundResponseCode: envoy_config_route_v3.RouteAction_INTERNAL_SERVER_ERROR,
-			},
+			Route: &envoy_config_route_v3.RouteAction{},
 		}
 		if err := h.setRouteAction(params, action.RouteAction, out.GetAction().(*envoy_config_route_v3.Route_Route).Route, routeReport, out.GetName()); err != nil {
 			if isWarningErr(err) {
@@ -331,7 +328,6 @@ func (h *httpRouteConfigurationTranslator) setAction(
 				ResponseCode:           envoy_config_route_v3.RedirectAction_RedirectResponseCode(action.RedirectAction.GetResponseCode()),
 				SchemeRewriteSpecifier: &envoy_config_route_v3.RedirectAction_HttpsRedirect{HttpsRedirect: action.RedirectAction.GetHttpsRedirect()},
 				StripQuery:             action.RedirectAction.GetStripQuery(),
-				PortRedirect:           action.RedirectAction.GetPortRedirect(),
 			},
 		}
 
@@ -627,17 +623,8 @@ func setEnvoyPathMatcher(ctx context.Context, in *matchers.Matcher, out *envoy_c
 			SafeRegex: regexutils.NewRegex(ctx, path.Regex),
 		}
 	case *matchers.Matcher_Prefix:
-
-		// TODO: we may need more validation here.
-		// envoy uses this regex: "^[^?#]+[^?#/]$"
-		if strings.HasSuffix(path.Prefix, "/") {
-			out.PathSpecifier = &envoy_config_route_v3.RouteMatch_Prefix{
-				Prefix: path.Prefix,
-			}
-		} else {
-			out.PathSpecifier = &envoy_config_route_v3.RouteMatch_PathSeparatedPrefix{
-				PathSeparatedPrefix: path.Prefix,
-			}
+		out.PathSpecifier = &envoy_config_route_v3.RouteMatch_Prefix{
+			Prefix: path.Prefix,
 		}
 	case *matchers.Matcher_ConnectMatcher_:
 		out.PathSpecifier = &envoy_config_route_v3.RouteMatch_ConnectMatcher_{
