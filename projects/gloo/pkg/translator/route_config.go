@@ -322,14 +322,17 @@ func (h *httpRouteConfigurationTranslator) setAction(
 		h.runRouteActionPlugins(params, routeReport, in, out)
 
 	case *v1.Route_RedirectAction:
+		redir := &envoy_config_route_v3.RedirectAction{
+			HostRedirect:           action.RedirectAction.GetHostRedirect(),
+			ResponseCode:           envoy_config_route_v3.RedirectAction_RedirectResponseCode(action.RedirectAction.GetResponseCode()),
+			SchemeRewriteSpecifier: &envoy_config_route_v3.RedirectAction_HttpsRedirect{HttpsRedirect: action.RedirectAction.GetHttpsRedirect()},
+			StripQuery:             action.RedirectAction.GetStripQuery(),
+		}
+		if action.RedirectAction.GetPortRedirect() != 0 {
+			redir.PortRedirect = action.RedirectAction.GetPortRedirect()
+		}
 		out.Action = &envoy_config_route_v3.Route_Redirect{
-			Redirect: &envoy_config_route_v3.RedirectAction{
-				HostRedirect:           action.RedirectAction.GetHostRedirect(),
-				ResponseCode:           envoy_config_route_v3.RedirectAction_RedirectResponseCode(action.RedirectAction.GetResponseCode()),
-				SchemeRewriteSpecifier: &envoy_config_route_v3.RedirectAction_HttpsRedirect{HttpsRedirect: action.RedirectAction.GetHttpsRedirect()},
-				StripQuery:             action.RedirectAction.GetStripQuery(),
-				PortRedirect:           action.RedirectAction.GetPortRedirect(),
-			},
+			Redirect: redir,
 		}
 
 		switch pathRewrite := action.RedirectAction.GetPathRewriteSpecifier().(type) {
