@@ -404,6 +404,9 @@ spec:
                       x-kubernetes-preserve-unknown-fields: true
                     type: object
                 type: object
+              translationMode:
+                type: string
+                x-kubernetes-int-or-string: true
             type: object
           status:
             default: {}
