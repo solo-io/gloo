@@ -23,19 +23,40 @@ FIPS support was introduced in the following work:
 - [Update runtime to use go 1.20](https://github.com/solo-io/solo-projects/pull/4586)
 - [Fix FIPS and support discovery](https://github.com/solo-io/solo-projects/pull/5368)
 
+Images that support FIPS are expected to have names that end in `-fips`, and images with names that end in `-fips` are expected to support FIPS. 
+
 ## How is it validated in Gloo Edge?
 We validate FIPS compliance by running the following command on our images during the build pipeline:
 ```
 goversion -crypto [BINARY]] | grep "(boring crypto)" > /dev/null
 ```
 
-This command checks if the binary was built with the `GOEXPERIMENT=boringcrypto` flag. If the binary was built with the flag, the command will return a 0 exit code. If the binary was not built with the flag, the command will return a non-zero exit code. For ease of use, we expose this as a target in our Makefile:
+This command checks if the binary was built with the `GOEXPERIMENT=boringcrypto` flag. If the binary was built with the flag, the command will return a 0 exit code. If the binary was not built with the flag, the command will return a non-zero exit code. 
+
+We validate FIPS non-compliance with a similar command:
 ```
-validate-boring-crypto
+goversion -crypto [BINARY]] | grep "(standard crypto)" > /dev/null
 ```
 
+For ease of use, we expose this as a target in our Makefile:
+```
+validate-crypto-<image-name>
+```
+
+This is implemented as two separate targets:
+```
+validate-crypto-%-fips:
+```
+and
+```
+validate-crypto-%:
+``` 
+
+If the image name ends in `-fips` we will validate that it is using boring crypto, otherwise we will check for standard crypto.
+
+
 ## Which components have FIPS variants built?
-Gloo Edge Enterprise supports a FIPS variant of the data-plane, since those components are responsible for handling sensitive data.
+Gloo Edge Enterprise supports a FIPS variant of the data-plane, since those components are responsible for handling sensitive data. FIPS support is an EE feature, so when support was added for `sds`, a `solo-projects` version based on the OS project was created. This project is used to build `sds-ee` and `sds-ee-fips` images. If other OSS images need FIPS support, consider following this pattern.
 
 We build a FIPS variant of the following images:
 - gateway-proxy
@@ -44,13 +65,15 @@ We build a FIPS variant of the following images:
 - ext-auth
 - ext-auth-plugins
 - rate-limit
+- sds
 
 ## Which components DO NOT have FIPS variants built?
 - observability (Enterprise)
 - caching (Enterprise)
 - all Gloo Federation components (Enterprise)
 - certgen (OSS)
-- sds (OSS)
 - ingress (OSS)
 - access-logger (OSS)
 - kubectl (OSS)
+
+

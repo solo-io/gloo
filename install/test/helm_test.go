@@ -2560,7 +2560,8 @@ spec:
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 
-			It("finds resources on all sds and sidecar containers", func() {
+			// With the addition of the sds-ee and sds-ee-fips containers, we will also test sds image names with/without fips
+			DescribeTable("finds resources on all sds and sidecar containers", func(fipsValue string, expectedSdsImage string) {
 				envoySidecarVals := []string{"100Mi", "200m", "300Mi", "400m"}
 				sdsVals := []string{"101Mi", "201m", "301Mi", "401m"}
 
@@ -2575,6 +2576,7 @@ spec:
 						fmt.Sprintf("global.glooMtls.sdsResources.requests.cpu=%s", sdsVals[1]),
 						fmt.Sprintf("global.glooMtls.sdsResources.limits.memory=%s", sdsVals[2]),
 						fmt.Sprintf("global.glooMtls.sdsResources.limits.cpu=%s", sdsVals[3]),
+						fmt.Sprintf("global.image.fips=%s", fipsValue),
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -2609,6 +2611,11 @@ spec:
 							if container.Name == "envoy-sidecar" {
 								expectedVals = envoySidecarVals
 							}
+
+							// Validate we are using the correct sds
+							if container.Name == "sds" {
+								Expect(container.Image).To(Equal("quay.io/solo-io/" + expectedSdsImage + ":" + version))
+							}
 							fmt.Printf("\n%s/%s\n", deployment.GetName(), container.Name)
 
 							Expect(container.Resources.Requests.Memory().String()).To(Equal(expectedVals[0]),
@@ -2630,7 +2637,10 @@ spec:
 						}
 					}
 				}
-			})
+			},
+				Entry("fips disabled", "false", "sds-ee"),
+				Entry("fips enabled", "true", "sds-ee-fips"),
+			)
 
 			It("creates a deployment without extauth sidecar", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})

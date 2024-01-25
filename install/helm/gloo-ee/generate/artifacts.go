@@ -38,6 +38,7 @@ var (
 		"rate-limit-ee",
 		"ext-auth-plugins",
 		"discovery-ee",
+		"sds-ee",
 	}
 )
 
@@ -230,23 +231,23 @@ func (gc *GenerationConfig) generateValuesConfig(versionOverride string) (*HelmC
 		return nil, err
 	}
 
-	version := &gc.Arguments.Version
+	glooEeVersion := &gc.Arguments.Version
 	if versionOverride != "" {
-		version = &versionOverride
+		glooEeVersion = &versionOverride
 	}
-	tag := &gc.OsGlooVersion
-	if tag == nil {
-		tag = version
+	glooOssTag := &gc.OsGlooVersion
+	if glooOssTag == nil {
+		glooOssTag = glooEeVersion
 	}
-	config.Gloo.Gloo.Deployment.OssImageTag = tag
-	config.Gloo.Gloo.Deployment.Image.Tag = version
+	config.Gloo.Gloo.Deployment.OssImageTag = glooOssTag
+	config.Gloo.Gloo.Deployment.Image.Tag = glooEeVersion
 	for _, v := range config.Gloo.GatewayProxies {
-		v.PodTemplate.Image.Tag = version
+		v.PodTemplate.Image.Tag = glooEeVersion
 	}
 	if config.Gloo.IngressProxy != nil {
-		config.Gloo.IngressProxy.Deployment.Image.Tag = version
+		config.Gloo.IngressProxy.Deployment.Image.Tag = glooEeVersion
 	}
-	config.Gloo.Settings.Integrations.Knative.Proxy.Image.Tag = version
+	config.Gloo.Settings.Integrations.Knative.Proxy.Image.Tag = glooEeVersion
 	// Use open source gloo version for discovery and gateway
 
 	// This code used to assume that all relavant structs were already instantiated.
@@ -259,7 +260,7 @@ func (gc *GenerationConfig) generateValuesConfig(versionOverride string) (*HelmC
 	if config.Gloo.Discovery.Deployment == nil {
 		config.Gloo.Discovery.Deployment = &generate.DiscoveryDeployment{}
 	}
-	config.Gloo.Discovery.Deployment.Image.Tag = version
+	config.Gloo.Discovery.Deployment.Image.Tag = glooEeVersion
 
 	if config.Gloo.Gateway == nil {
 		config.Gloo.Gateway = &generate.Gateway{}
@@ -271,7 +272,7 @@ func (gc *GenerationConfig) generateValuesConfig(versionOverride string) (*HelmC
 	if config.Gloo.Gateway.CertGenJob.Image == nil {
 		config.Gloo.Gateway.CertGenJob.Image = &generate.Image{}
 	}
-	config.Gloo.Gateway.CertGenJob.Image.Tag = tag
+	config.Gloo.Gateway.CertGenJob.Image.Tag = glooOssTag
 
 	if config.Gloo.Gateway.RolloutJob == nil {
 		config.Gloo.Gateway.RolloutJob = &generate.RolloutJob{}
@@ -279,7 +280,7 @@ func (gc *GenerationConfig) generateValuesConfig(versionOverride string) (*HelmC
 	if config.Gloo.Gateway.RolloutJob.Image == nil {
 		config.Gloo.Gateway.RolloutJob.Image = &generate.Image{}
 	}
-	config.Gloo.Gateway.RolloutJob.Image.Tag = tag
+	config.Gloo.Gateway.RolloutJob.Image.Tag = glooOssTag
 
 	if config.Gloo.Gateway.CleanupJob == nil {
 		config.Gloo.Gateway.CleanupJob = &generate.CleanupJob{}
@@ -287,15 +288,15 @@ func (gc *GenerationConfig) generateValuesConfig(versionOverride string) (*HelmC
 	if config.Gloo.Gateway.CleanupJob.Image == nil {
 		config.Gloo.Gateway.CleanupJob.Image = &generate.Image{}
 	}
-	config.Gloo.Gateway.CleanupJob.Image.Tag = tag
+	config.Gloo.Gateway.CleanupJob.Image.Tag = glooOssTag
 
-	config.Observability.Deployment.Image.Tag = version
+	config.Observability.Deployment.Image.Tag = glooEeVersion
 
 	if config.Global.GlooMtls.Sds.Image == nil {
 		config.Global.GlooMtls.Sds.Image = &generate.Image{}
 	}
-	config.Global.GlooMtls.Sds.Image.Tag = tag
-	config.Global.GlooMtls.EnvoySidecar.Image.Tag = version
+	config.Global.GlooMtls.Sds.Image.Tag = glooEeVersion
+	config.Global.GlooMtls.EnvoySidecar.Image.Tag = glooEeVersion
 
 	pullPolicy := gc.PullPolicyForVersion
 	config.Gloo.Gloo.Deployment.Image.PullPolicy = &pullPolicy
@@ -314,7 +315,7 @@ func (gc *GenerationConfig) generateValuesConfig(versionOverride string) (*HelmC
 	config.Observability.Deployment.Image.PullPolicy = &pullPolicy
 	config.Redis.Deployment.Image.PullPolicy = &pullPolicy
 
-	updateExtensionsImageVersionAndPullPolicy(config, pullPolicy, version)
+	updateExtensionsImageVersionAndPullPolicy(config, pullPolicy, glooEeVersion)
 
 	if gc.Arguments.RepoPrefixOverride != "" {
 		config.Global.Image.Registry = &gc.Arguments.RepoPrefixOverride

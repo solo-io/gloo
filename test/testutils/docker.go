@@ -3,6 +3,7 @@ package testutils
 import (
 	"fmt"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/avast/retry-go/v4"
@@ -24,7 +25,15 @@ func DockerPush(image string) error {
 func CopyImageFileToLocal(imageName string, pathToSource, pathToDestination string) error {
 	tmpContainerName := fmt.Sprintf("tmp-container-%d", parallel.GetParallelProcessCount())
 
-	cmd := exec.Command("docker", "create", "--name", tmpContainerName, imageName)
+	dockerArgs := []string{"create"}
+	// If running in a non "linux/amd64" environment, you need to add "--platform", "linux/amd64" after "create" or it will use the warning as the image name
+	if runtime.GOARCH != "amd64" {
+		dockerArgs = append(dockerArgs, "--platform", "linux/amd64")
+	}
+	dockerArgs = append(dockerArgs, "--name", tmpContainerName, imageName)
+
+	cmd := exec.Command("docker", dockerArgs...)
+
 	containerIdRaw, err := cmd.CombinedOutput()
 	if err != nil {
 		return err

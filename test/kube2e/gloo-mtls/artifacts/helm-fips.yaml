@@ -1,0 +1,40 @@
+gloo:
+  gatewayProxies:
+    gatewayProxy:
+      healthyPanicThreshold: 0
+  gateway:
+    persistProxySpec: true
+    logLevel: info
+    validation:
+      allowWarnings: true
+      alwaysAcceptResources: false
+  gloo:
+    logLevel: info
+    disableLeaderElection: true
+    deployment:
+      replicas: 1
+  rbac:
+    namespaced: true
+    nameSuffix: e2e-test-rbac-suffix
+settings:
+  singleNamespace: true
+  create: true
+prometheus:
+  podSecurityPolicy:
+    enabled: true
+grafana:
+  testFramework:
+    enabled: false
+gloo-fed:
+  enabled: false
+  glooFedApiserver:
+    enable: false
+global:
+  glooMtls:
+    enabled: true
+  extensions:
+    extAuth:
+      # we want to deploy extauth as both a standalone deployment (the default) and as a sidecar in the envoy pod, so we can test both
+      envoySidecar: true
+  image:
+    fips: true

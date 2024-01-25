@@ -3,6 +3,7 @@ package gloo_mtls_test
 import (
 	"context"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -47,7 +48,14 @@ var _ = BeforeSuite(func() {
 
 	skhelpers.RegisterPreFailHandler(helpers.KubeDumpOnFail(GinkgoWriter, testHelper.InstallNamespace))
 
-	testContextFactory.InstallGloo(suiteCtx, "helm.yaml")
+	// Install Gloo
+	valuesFile := "helm.yaml"
+	useFips, _ := strconv.ParseBool(os.Getenv("USE_FIPS"))
+	if useFips {
+		valuesFile = "helm-fips.yaml"
+	}
+
+	testContextFactory.InstallGloo(suiteCtx, valuesFile)
 	testContextFactory.SetupSnapshotAndClientSet(suiteCtx)
 })
 

@@ -57,6 +57,8 @@ The `docker` make target will build the following images:
 |gloo-fed-apiserver-envoy|`make gloo-fed-apiserver-envoy-docker`||
 |gloo-federation-console|`make gloo-federation-console-docker`||
 |gloo-fed-rbac-validating-webhook|`make gloo-fed-rbac-validating-webhook-docker`||
+|sds-ee|`make sds-ee-docker`||
+|sds-ee-fips|`make sds-ee-fips-docker`||
 
 ### Notes:
  - You will need the gcr.io/gloo-ee/envoy-gloo-ee Docker image in order to build the gloo-ee and gloo-ee-envoy-wrapper images

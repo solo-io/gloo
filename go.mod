@@ -52,7 +52,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.2
 	github.com/solo-io/ext-auth-service v0.55.0
 	github.com/solo-io/external-apis v0.2.3
-	github.com/solo-io/gloo v1.16.1
+	github.com/solo-io/gloo v1.16.2
 	github.com/solo-io/gloo-graphql-example v0.1.0
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.8
@@ -62,7 +62,7 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.1.1
 	github.com/solo-io/rate-limiter v0.11.4
 	github.com/solo-io/skv2 v0.36.0
-	github.com/solo-io/solo-apis v0.0.0-20240122204116-3765c167c33e
+	github.com/solo-io/solo-apis v0.0.0-20240123143947-9fc434d75330
 	github.com/solo-io/solo-kit v0.34.0
 	// https://soloio.slab.com/posts/envoy-proto-definition-lives-mbnlmkxe
 	// explains why we depend on this repository of tap server examples

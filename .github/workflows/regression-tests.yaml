@@ -106,8 +106,12 @@ jobs:
       fail-fast: false
       matrix:
         # upgrade tests are not run on PRs
-        kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'helm', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}, {test: 'caching', use-fips: 'false'}, {test: 'upgrade', use-fips: 'false'}]
-        kube-version: [{ node: 'v1.28.0@sha256:b7a4cad12c197af3ba43202d3efe03246b3f0793f162afb40a33c923952d5b31', kubectl: 'v1.28.4', kind: 'v0.20.0', helm: 'v3.13.2' }]
+        # Before adding a new `use-fips: 'true'` test, please see this issue: https://github.com/solo-io/solo-projects/issues/5688
+        kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'true'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'helm', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}, {test: 'caching', use-fips: 'false'}, {test: 'upgrade', use-fips: 'false'}]
+        kube-version: [{ node: 'v1.28.0@sha256:b7a4cad12c197af3ba43202d3efe03246b3f0793f162afb40a33c923952d5b31', kubectl: 'v1.28.4', kind: 'v0.20.0', helm: 'v3.13.2'}]
+        # merge-to-main is a boolean defining whether the pull request is
+        # merging onto main. if entries in the `exclude` block below have
+        # `merge-to-main` set to true, they will not execute.
         merge-to-main:
           - ${{ github.event.pull_request.base.ref == 'main' }}
         exclude:
