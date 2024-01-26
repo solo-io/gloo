@@ -630,7 +630,7 @@ func setEnvoyPathMatcher(ctx context.Context, in *matchers.Matcher, out *envoy_c
 
 		// TODO: we may need more validation here.
 		// envoy uses this regex: "^[^?#]+[^?#/]$"
-		if strings.HasSuffix(path.Prefix, "/") {
+		if path.Prefix == "/" {
 			out.PathSpecifier = &envoy_config_route_v3.RouteMatch_Prefix{
 				Prefix: path.Prefix,
 			}
