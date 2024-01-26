@@ -79,8 +79,9 @@ func (t *translator) TranslateProxy(
 	)
 
 	return &v1.Proxy{
-		Metadata:  proxyMetadata(gateway),
-		Listeners: listeners,
+		Metadata:        proxyMetadata(gateway),
+		Listeners:       listeners,
+		TranslationMode: v1.Proxy_TRANSLATION_MODE_GATEWAY,
 	}
 }
 
