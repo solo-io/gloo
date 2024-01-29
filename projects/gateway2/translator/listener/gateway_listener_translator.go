@@ -488,12 +488,31 @@ func translateSslConfig(
 	if sniDomain != nil {
 		sniDomains = []string{string(*sniDomain)}
 	}
+
+	const (
+		istioCertSecret        = "istio_server_cert"
+		istioValidationContext = "istio_validation_context"
+		sdsTargetURI           = "127.0.0.1:8234"
+		sdsClusterName         = "gateway_proxy_sds"
+	)
+
 	return &ssl.SslConfig{
-		SslSecrets:                    &ssl.SslConfig_SecretRef{SecretRef: secretRef},
-		SniDomains:                    sniDomains,
-		VerifySubjectAltName:          nil,
-		Parameters:                    nil,
-		AlpnProtocols:                 nil,
+		//SslSecrets:                    &ssl.SslConfig_SecretRef{SecretRef: secretRef},
+		SniDomains:           sniDomains,
+		VerifySubjectAltName: nil,
+		Parameters:           nil,
+		// TODO: hard coded to test gateway v2
+		AlpnProtocols: []string{"istio"},
+		SslSecrets: &ssl.SslConfig_Sds{
+			Sds: &ssl.SDSConfig{
+				CertificatesSecretName: istioCertSecret,
+				ValidationContextName:  istioValidationContext,
+				TargetUri:              sdsTargetURI,
+				SdsBuilder: &ssl.SDSConfig_ClusterName{
+					ClusterName: sdsClusterName,
+				},
+			},
+		},
 		OneWayTls:                     nil,
 		DisableTlsSessionResumption:   nil,
 		TransportSocketConnectTimeout: nil,
