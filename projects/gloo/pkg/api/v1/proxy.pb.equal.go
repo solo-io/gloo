@@ -87,10 +87,6 @@ func (m *Proxy) Equal(that interface{}) bool {
 		}
 	}
 
-	if m.GetTranslationMode() != target.GetTranslationMode() {
-		return false
-	}
-
 	return true
 }
 

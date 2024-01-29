@@ -78,8 +78,6 @@ func (m *Proxy) Clone() proto.Message {
 		target.Metadata = proto.Clone(m.GetMetadata()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.Metadata)
 	}
 
-	target.TranslationMode = m.GetTranslationMode()
-
 	return target
 }
 
