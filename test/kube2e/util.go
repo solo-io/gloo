@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
 	"github.com/solo-io/gloo/test/testutils"
 
 	"github.com/onsi/ginkgo/v2"
@@ -70,7 +71,8 @@ func GlooctlCheckEventuallyHealthy(offset int, testHelper *helper.SoloTestHelper
 				Ctx: contextWithCancel,
 			},
 		}
-		err := check.CheckResources(opts)
+		printer := printers.P{OutputType: opts.Top.Output}
+		err := check.CheckResources(context.Background(), printer, opts)
 		if err != nil {
 			return errors.Wrap(err, "glooctl check detected a problem with the installation")
 		}

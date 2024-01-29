@@ -9,7 +9,7 @@ build:
 	CGO_ENABLED=0 GOOS=linux go build -ldflags=$(LDFLAGS) -o gloo-gateway
 
 build-glooctl:
-	CGO_ENABLED=0 GOOS=linux go build -ldflags=$(LDFLAGS) -o glooctl ../../projects/gloo/cli/cmd
+	CGO_ENABLED=0 GOOS=darwin go build -ldflags=$(LDFLAGS) -o glooctl ../../projects/gloo/cli/cmd
 
 docker: build
 	docker build -t ghcr.io/solo-io/gloo-gateway/glood:$(VERSION) .
@@ -19,6 +19,18 @@ docker: build
 push: docker
 	docker push ghcr.io/solo-io/gloo-gateway/glood:$(VERSION)
 	docker push ghcr.io/solo-io/gloo-gateway/gloo-proxy:$(VERSION)
+
+ROOTDIR := $(shell pwd)
+OUTPUT_DIR ?= $(ROOTDIR)/_output
+DEPSGOBIN := $(OUTPUT_DIR)/.bin
+HELM_DIR := helm/gloo-gateway
+TEST_ASSET_DIR := $(ROOTDIR)/_test
+
+.PHONY: build-test-chart
+build-test-chart: ## Build the Helm chart and place it in the _test directory
+	mkdir -p $(TEST_ASSET_DIR)
+	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)
+	helm repo index $(TEST_ASSET_DIR)
 
 .PHONY: helm
 helm:
