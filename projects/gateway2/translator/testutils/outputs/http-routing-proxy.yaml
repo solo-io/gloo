@@ -65,4 +65,3 @@ listeners:
 metadata:
   name: example-gateway
   namespace: default
-translationMode: TRANSLATION_MODE_GATEWAY

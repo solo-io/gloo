@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	"github.com/solo-io/gloo/projects/gateway2/translator/listener"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -79,9 +80,8 @@ func (t *translator) TranslateProxy(
 	)
 
 	return &v1.Proxy{
-		Metadata:        proxyMetadata(gateway),
-		Listeners:       listeners,
-		TranslationMode: v1.Proxy_TRANSLATION_MODE_GATEWAY,
+		Metadata:  proxyMetadata(gateway),
+		Listeners: listeners,
 	}
 }
 
@@ -92,5 +92,8 @@ func proxyMetadata(gateway *gwv1.Gateway) *core.Metadata {
 	return &core.Metadata{
 		Name:      gateway.Name,
 		Namespace: gateway.Namespace,
+		Labels: map[string]string{
+			utils.TranslatorKey: utils.GlooGatewayTranslatorValue,
+		},
 	}
 }
