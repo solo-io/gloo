@@ -63,5 +63,7 @@ listeners:
   bindPort: 8080
   name: http
 metadata:
+  labels:
+    created_by: gloo-kube-gateway-api-translator
   name: example-gateway
   namespace: default

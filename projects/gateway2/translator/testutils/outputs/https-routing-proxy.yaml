@@ -28,5 +28,7 @@ listeners:
   bindPort: 8443
   name: https
 metadata:
+  labels:
+    created_by: gloo-kube-gateway-api-translator
   name: example-gateway
   namespace: default
