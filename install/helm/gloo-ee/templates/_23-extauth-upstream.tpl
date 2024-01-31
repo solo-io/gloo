@@ -42,6 +42,7 @@ spec:
   healthChecks:
   - timeout: 5s
     interval: 10s
+    noTrafficInterval: 10s
     unhealthyThreshold: 3
     healthyThreshold: 3
     grpcHealthCheck:

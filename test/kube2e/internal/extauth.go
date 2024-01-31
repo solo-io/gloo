@@ -12,12 +12,11 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	wrappers "github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	errors "github.com/rotisserie/eris"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	gatewayv2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -168,7 +167,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 						},
 					}).
 					Build()
-				testContext.ResourcesToWrite().VirtualServices = gatewayv2.VirtualServiceList{
+				testContext.ResourcesToWrite().VirtualServices = gatewayv1.VirtualServiceList{
 					vsWithAuth,
 				}
 			})
@@ -776,6 +775,9 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 
 			Context("polling tests", func() {
 
+				// these tests are intended to assert consistent rate limit behavior when common deployment events occur
+				// these tests mirror tests in Extauth
+
 				var (
 					vhPlugins *gloov1.VirtualHostOptions
 
@@ -918,6 +920,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					It("allows authenticated requests on route when no cluster events happen", func() {
 						// Scale the extauth deployment to 1 pod and wait for it to be ready
 						testContext.ModifyDeploymentReplicas("extauth", 1)
+						testContext.WaitForDeploymentReplicas("extauth", 1)
 
 						// Ensure that the upstream is reachable
 						curlAndAssertResponse(kube2e.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
@@ -935,6 +938,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 
 					It("allows authenticated requests on route when extauth deployment is modified", func() {
 						// There should only be 1 pod to start
+						testContext.ModifyDeploymentReplicas("extauth", 1)
 						testContext.WaitForDeploymentReplicas("extauth", 1)
 
 						// Ensure that the upstream is reachable
@@ -948,6 +952,9 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 							Value: "VALUE",
 						})
 
+						// Poll for 15s, to allow the graceful shutdown of the pod to complete
+						time.Sleep(15 * time.Second)
+
 						pollingRunner.StopPolling()
 
 						// Expect all responses to be 200s
@@ -956,6 +963,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 
 					It("allows authenticated requests on route when extauth deployment is scaled up", func() {
 						// There should only be 1 pod to start
+						testContext.ModifyDeploymentReplicas("extauth", 1)
 						testContext.WaitForDeploymentReplicas("extauth", 1)
 
 						// Ensure that the upstream is reachable
@@ -966,6 +974,9 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 						// Scale up the extauth deployment to 4 pods and wait for them all to be ready
 						testContext.ModifyDeploymentReplicas("extauth", 4)
 
+						// Poll for 1s, to ensure the state is stable
+						time.Sleep(time.Second)
+
 						pollingRunner.StopPolling()
 
 						// Expect all responses to be 200s
@@ -973,7 +984,8 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					})
 
 					It("allows authenticated requests on route when extauth deployment is scaled down", FlakeAttempts(3), func() {
-						// There should be 4 pods (from the previous test) to start
+						// There should be 4 pods (from the previous test) to start, but this test could be run in isolation
+						testContext.ModifyDeploymentReplicas("extauth", 4)
 						testContext.WaitForDeploymentReplicas("extauth", 4)
 
 						// Ensure that the upstream is reachable
@@ -981,11 +993,11 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 
 						pollingRunner.StartPolling(testContext.Ctx())
 
-						// Do nothing for 1 second to allow time for successful polling requests
-						time.Sleep(time.Second * 1)
-
 						// Scale down the extauth deployment to 1 pod and wait for it to be ready
 						testContext.ModifyDeploymentReplicas("extauth", 1)
+
+						// Poll for 15s, to allow the graceful shutdown of the pods to complete
+						time.Sleep(15 * time.Second)
 
 						pollingRunner.StopPolling()
 
@@ -1205,7 +1217,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					Build()
 
 				testContext.ResourcesToWrite().AuthConfigs = extauthapi.AuthConfigList{acEast, acWest}
-				testContext.ResourcesToWrite().VirtualServices = gatewayv2.VirtualServiceList{vsEast, vsWest}
+				testContext.ResourcesToWrite().VirtualServices = gatewayv1.VirtualServiceList{vsEast, vsWest}
 			})
 
 			JustBeforeEach(func() {

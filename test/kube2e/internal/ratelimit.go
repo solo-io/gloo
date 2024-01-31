@@ -2,6 +2,13 @@ package internal
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
+	"github.com/rotisserie/eris"
+	corev1 "k8s.io/api/core/v1"
+
+	"sync"
 	"time"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -43,6 +50,8 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 		const (
 			response401 = "HTTP/1.1 401 Unauthorized"
 			response429 = "HTTP/1.1 429 Too Many Requests"
+
+			ratelimitDeployment = "rate-limit"
 		)
 
 		BeforeEach(func() {
@@ -79,7 +88,7 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 			testContext.EventuallyProxyAccepted()
 
 			// the timeout is important, as the first curl call sometimes hangs indefinitely
-			curlOpts := testContext.DefaultCurlOptsBuilder().WithVerbose(true).WithConnectionTimeout(10).Build()
+			curlOpts := testContext.DefaultCurlOptsBuilder().WithVerbose(true).WithConnectionTimeout(10).WithLogResponses(true).WithPath("/test").Build()
 			testContext.TestHelper().CurlEventuallyShouldRespond(curlOpts, response429, 1, time.Minute*5)
 		}
 
@@ -182,7 +191,7 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 					timeout := time.Second
 					settings.RatelimitServer = &ratelimit.Settings{
 						RatelimitServerRef: &core.ResourceRef{
-							Name:      "rate-limit",
+							Name:      ratelimitDeployment,
 							Namespace: testContext.InstallNamespace(),
 						},
 						RequestTimeout:      ptypes.DurationProto(timeout),
@@ -471,5 +480,182 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 				checkRateLimited()
 			})
 		})
+
+		Context("polling tests", func() {
+
+			// these tests are intended to assert consistent rate limit behavior when common deployment events occur
+			// these tests mirror tests in Extauth
+
+			var (
+				pollingRunner            *pollingRunner
+				pollingResponseMutex     sync.RWMutex
+				pollingResponseFrequency map[string]int
+			)
+
+			endpointPollingWorker := func() {
+				curlOpts := testContext.DefaultCurlOptsBuilder().
+					WithPath(kube2e.TestMatcherPrefix).WithVerbose(true).
+					WithConnectionTimeout(5).Build()
+				response, err := testContext.TestHelper().Curl(curlOpts)
+
+				// Modify the response for expected results
+				if err != nil {
+					response = err.Error()
+				} else if strings.Contains(response, response429) {
+					response = response429
+				}
+
+				// Store the response in a map
+				pollingResponseMutex.Lock()
+				defer pollingResponseMutex.Unlock()
+				_, ok := pollingResponseFrequency[response]
+				if ok {
+					pollingResponseFrequency[response] += 1
+				} else {
+					pollingResponseFrequency[response] = 1
+				}
+			}
+
+			BeforeEach(func() {
+				if os.Getenv("KUBE2E_TESTS") == "redis-clientside-sharding" {
+					Skip("ratelimit polling tests do not work with Envoy sidecar used in redis-clientside-sharding suite")
+				}
+
+				testContext.ModifyDeploymentEnv(ratelimitDeployment, 0, corev1.EnvVar{
+					Name:  "LOG_LEVEL",
+					Value: "debug",
+				})
+
+				ingressRateLimit := &ratelimit.IngressRateLimit{
+					AnonymousLimits: &rlv1alpha1.RateLimit{
+						RequestsPerUnit: 1,
+						Unit:            rlv1alpha1.RateLimit_HOUR,
+					},
+				}
+				virtualHostPlugins := &gloov1.VirtualHostOptions{
+					RatelimitBasic: ingressRateLimit,
+				}
+
+				testContext.ResourcesToWrite().VirtualServices[0].VirtualHost.Options = virtualHostPlugins
+			})
+
+			JustBeforeEach(func() {
+				// This polls the endpoint at an interval and stores the responses
+				pollingRunner = newPollingRunner(endpointPollingWorker, time.Millisecond*10, 5)
+				pollingResponseFrequency = make(map[string]int)
+			})
+
+			// These test consistently contain a small number of 404 responses even when we expect only 429 responses
+			// We have observed one or two requests, out of hundreds, responding 404, with the rest responding 429 as expected
+			// Investigation has yet to uncover why exactly this is, so for the time being we allow a small number of
+			// non-429 responses as "flakes" if the overwhelming majority are 429 as expected
+			allPollingResponsesAre429 := func(unexpectedAllowance int) (bool, error) {
+				unexpectedCount := 0
+				for key, count := range pollingResponseFrequency {
+					if key != response429 {
+						unexpectedCount += count
+					}
+				}
+
+				if unexpectedCount > unexpectedAllowance {
+					return false, eris.New(fmt.Sprintf("done polling, received more non-429 responses than allowed: %d > %d", unexpectedCount, unexpectedAllowance))
+				}
+				return true, nil
+			}
+
+			Context("health checker", func() {
+
+				It("rate limits as expected when no cluster events happen", func() {
+					// Scale the rate-limit deployment to 1 pod and wait for it to be ready
+					testContext.ModifyDeploymentReplicas(ratelimitDeployment, 1)
+					testContext.WaitForDeploymentReplicas(ratelimitDeployment, 1)
+
+					// Ensure that the upstream is reachable
+					checkRateLimited()
+
+					pollingRunner.StartPolling(testContext.Ctx())
+
+					// Do nothing for 1 second to allow time for successful polling requests
+					time.Sleep(time.Second)
+
+					pollingRunner.StopPolling()
+
+					// Expect all responses to be 429s
+					Expect(allPollingResponsesAre429(2)).Should(BeTrue())
+				})
+
+				// This test has proven flaky with up to five non-429 responses observed
+				// Usually there are two or fewer, so we opt to allow additional flake attempts rather than
+				// loosening the acceptance criteria
+				It("rate limits as expected when rate-limit deployment is modified", FlakeAttempts(3), func() {
+					// There should only be 1 pod to start
+					testContext.WaitForDeploymentReplicas(ratelimitDeployment, 1)
+
+					// Ensure that the upstream is reachable
+					checkRateLimited()
+
+					pollingRunner.StartPolling(testContext.Ctx())
+
+					// Modify the deployment, causing the pods to be brought up again
+					testContext.ModifyDeploymentEnv(ratelimitDeployment, 0, corev1.EnvVar{
+						Name:  "HEALTH_CHECKER_ENV_VAR",
+						Value: fmt.Sprintf("VALUE - %v", time.Now()),
+					})
+
+					// Poll for 15s, to allow the graceful shutdown of the pod to complete
+					time.Sleep(15 * time.Second)
+
+					pollingRunner.StopPolling()
+
+					// Expect all responses to be 429s
+					Expect(allPollingResponsesAre429(2)).Should(BeTrue())
+				})
+
+				It("rate limits as expected when rate-limit deployment is scaled up", FlakeAttempts(3), func() {
+					// There should only be 1 pod to start
+					testContext.ModifyDeploymentReplicas(ratelimitDeployment, 1)
+					testContext.WaitForDeploymentReplicas(ratelimitDeployment, 1)
+
+					// Ensure that the upstream is reachable
+					checkRateLimited()
+
+					pollingRunner.StartPolling(testContext.Ctx())
+
+					// Scale up the rate-limit deployment to 4 pods and wait for them all to be ready
+					testContext.ModifyDeploymentReplicas(ratelimitDeployment, 4)
+
+					// Poll for 1s, to ensure the state is stable
+					time.Sleep(time.Second)
+
+					pollingRunner.StopPolling()
+
+					// Expect all responses to be 429s
+					Expect(allPollingResponsesAre429(2)).Should(BeTrue())
+				})
+
+				It("rate limits as expected when rate-limit deployment is scaled down", FlakeAttempts(3), func() {
+					// There should be 4 pods (from the previous test) to start, but this test could be run in isolation
+					testContext.ModifyDeploymentReplicas(ratelimitDeployment, 4)
+					testContext.WaitForDeploymentReplicas(ratelimitDeployment, 4)
+
+					// Ensure that the upstream is reachable
+					checkRateLimited()
+
+					pollingRunner.StartPolling(testContext.Ctx())
+
+					// Scale down the rate-limit deployment to 1 pod and wait for it to be ready
+					testContext.ModifyDeploymentReplicas(ratelimitDeployment, 1)
+
+					// Poll for 15s, to allow the graceful shutdown of the pods to complete
+					time.Sleep(15 * time.Second)
+
+					pollingRunner.StopPolling()
+
+					// Expect all responses to be 429s
+					Expect(allPollingResponsesAre429(2)).Should(BeTrue())
+				})
+			})
+		})
+
 	})
 }

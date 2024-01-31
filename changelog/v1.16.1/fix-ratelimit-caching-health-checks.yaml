@@ -1,0 +1,11 @@
+changelog:
+  - type: FIX
+    description: >-
+      Update Upstream templates for Enterprise services to have the same health check config (interval: 10s, 
+      healthyThreshold: 3, unhealthyThreshold: 3). This fixes a bug whereby on pod restart, traffic would continue to
+      be sent to deleted rate-limit pods, causing those requests to not be processed by rate-limit.
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/gloo/issues/8942
+  - type: NON_USER_FACING
+    description: >-
+      skipCI-docs-build:true

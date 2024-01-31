@@ -413,3 +413,8 @@ func (c *CurlOptsBuilder) WithVerbose(verbose bool) *CurlOptsBuilder {
 	c.opts.Verbose = verbose
 	return c
 }
+
+func (c *CurlOptsBuilder) WithLogResponses(logResponses bool) *CurlOptsBuilder {
+	c.opts.LogResponses = logResponses
+	return c
+}

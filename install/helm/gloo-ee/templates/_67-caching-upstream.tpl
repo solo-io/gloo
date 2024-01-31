@@ -16,9 +16,10 @@ metadata:
 spec:
   healthChecks:
   - timeout: 5s
-    interval: 1m
-    unhealthyThreshold: 5
-    healthyThreshold: 5
+    interval: 10s
+    noTrafficInterval: 10s
+    unhealthyThreshold: 3
+    healthyThreshold: 3
     grpcHealthCheck:
       serviceName: caching-service
   kube:

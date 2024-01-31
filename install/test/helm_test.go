@@ -4755,6 +4755,38 @@ spec:
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
+			It("should create caching upstream", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace,
+					helmValues{valuesArgs: []string{"global.extensions.caching.enabled=true"}})
+				Expect(err).NotTo(HaveOccurred())
+
+				configMap := getConfigMap(testManifest, namespace, "gloo-custom-resource-config")
+				Expect(configMap.Data).ToNot(BeNil())
+				Expect(configMap.Data["extra-custom-resources"]).NotTo(BeEmpty())
+				Expect(configMap.Data["extra-custom-resources"]).To(ContainSubstring(fmt.Sprintf(`apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: caching-service
+  namespace: %s
+  labels:
+    app: gloo
+    gloo: caching-service
+spec:
+  healthChecks:
+  - timeout: 5s
+    interval: 10s
+    noTrafficInterval: 10s
+    unhealthyThreshold: 3
+    healthyThreshold: 3
+    grpcHealthCheck:
+      serviceName: caching-service
+  kube:
+    serviceName: caching-service
+    serviceNamespace: gloo-system
+    servicePort:  8085
+    serviceSpec:
+      grpc: {}`, namespace)))
+			})
 		})
 
 		Context("gloo-fed deployment", func() {
@@ -5620,21 +5652,65 @@ spec:
 				configMap := getConfigMap(testManifest, namespace, "gloo-custom-resource-config")
 				Expect(configMap.Data).ToNot(BeNil())
 				Expect(configMap.Data["extra-custom-resources"]).NotTo(BeEmpty())
-				Expect(configMap.Data["extra-custom-resources"]).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
+				Expect(configMap.Data["extra-custom-resources"]).To(ContainSubstring(fmt.Sprintf(`apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   name: extauth
-  namespace: ` + namespace))
-				Expect(configMap.Data["extra-custom-resources"]).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
+  namespace: %s
+  labels:
+    app: gloo
+    gloo: extauth
+spec:
+  useHttp2: true
+  healthChecks:
+  - timeout: 5s
+    interval: 10s
+    noTrafficInterval: 10s
+    unhealthyThreshold: 3
+    healthyThreshold: 3
+    grpcHealthCheck:
+      serviceName: ext-auth
+  kube:
+    serviceName: extauth
+    serviceNamespace: gloo-system
+    servicePort:  8083
+    serviceSpec:
+      grpc: {}`, namespace)))
+				Expect(configMap.Data["extra-custom-resources"]).To(ContainSubstring(fmt.Sprintf(`apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   name: extauth-sidecar
-  namespace: ` + namespace))
-				Expect(configMap.Data["extra-custom-resources"]).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
+  namespace: %s
+  labels:
+    app: gloo
+    gloo: extauth
+spec:
+  useHttp2: true
+  pipe:
+    path: "/usr/share/shared-data/.sock"`, namespace)))
+				Expect(configMap.Data["extra-custom-resources"]).To(ContainSubstring(fmt.Sprintf(`apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   name: rate-limit
-  namespace: ` + namespace))
+  namespace: %s
+  labels:
+    app: gloo
+    gloo: rate-limit
+spec:
+  healthChecks:
+  - timeout: 5s
+    interval: 10s
+    noTrafficInterval: 10s
+    unhealthyThreshold: 3
+    healthyThreshold: 3
+    grpcHealthCheck:
+      serviceName: ratelimit
+  kube:
+    serviceName: rate-limit
+    serviceNamespace: gloo-system
+    servicePort:  18081
+    serviceSpec:
+      grpc: {}`, namespace)))
 			})
 
 			It("configmap should not contain upstream yaml when extauth and ratelimit upstreams are disabled", func() {
@@ -5649,6 +5725,37 @@ metadata:
 				Expect(configMap.Data).ToNot(BeNil())
 				Expect(configMap.Data["extra-custom-resources"]).NotTo(ContainSubstring("kind: Upstream"))
 				Expect(configMap.Data["has-extra-custom-resources"]).To(Equal("false"))
+			})
+
+			It("should have matching health checks across custom upstreams", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.caching.enabled=true",   // enable caching so we can check its upstream
+						"global.extensions.extAuth.enabled=true",   // enabled by default, enumerated here for clarity
+						"global.extensions.ratelimit.enabled=true", // enabled by default, enumerated here for clarity
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				configMap := getConfigMap(testManifest, namespace, "gloo-custom-resource-config")
+				Expect(configMap.Data).ToNot(BeNil())
+				Expect(configMap.Data["extra-custom-resources"]).NotTo(BeEmpty())
+				extraCustomResourcesStr := configMap.Data["extra-custom-resources"]
+				extraCustomResources := strings.Split(extraCustomResourcesStr, "---")
+				for _, cr := range extraCustomResources {
+					if strings.TrimSpace(cr) == "" {
+						continue
+					}
+
+					Expect(cr).To(ContainSubstring(`  healthChecks:
+  - timeout: 5s
+    interval: 10s
+    noTrafficInterval: 10s
+    unhealthyThreshold: 3
+    healthyThreshold: 3
+    grpcHealthCheck:
+      serviceName:`))
+				}
 			})
 		})
 
