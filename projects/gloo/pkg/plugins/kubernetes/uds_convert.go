@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes/serviceconverter"
 	"github.com/solo-io/go-utils/contextutils"
 
@@ -50,6 +51,35 @@ func (uc *KubeUpstreamConverter) CreateUpstream(ctx context.Context, svc *kubev1
 	labels := coremeta.GetLabels()
 	coremeta.Labels = make(map[string]string)
 
+	const (
+		istioCertSecret        = "istio_server_cert"
+		istioValidationContext = "istio_validation_context"
+		sdsTargetURI           = "127.0.0.1:8234"
+		sdsClusterName         = "gateway_proxy_sds"
+	)
+
+	sslConfig := &ssl.UpstreamSslConfig{}
+	// TODO: only adding this for the bookinfo namespace to test
+	if svc.Namespace == "bookinfo" {
+		sslConfig = &ssl.UpstreamSslConfig{
+			//SslSecrets:                    &ssl.SslConfig_SecretRef{SecretRef: secretRef},
+			//SniDomains:           sniDomains,
+			VerifySubjectAltName: nil,
+			Parameters:           nil,
+			// TODO: hard coded to test gateway v2 with istio
+			AlpnProtocols: []string{"istio"},
+			SslSecrets: &ssl.UpstreamSslConfig_Sds{
+				Sds: &ssl.SDSConfig{
+					CertificatesSecretName: istioCertSecret,
+					ValidationContextName:  istioValidationContext,
+					TargetUri:              sdsTargetURI,
+					SdsBuilder: &ssl.SDSConfig_ClusterName{
+						ClusterName: sdsClusterName,
+					},
+				},
+			},
+		}
+	}
 	us := &v1.Upstream{
 		Metadata: coremeta,
 		UpstreamType: &v1.Upstream_Kube{
@@ -60,6 +90,7 @@ func (uc *KubeUpstreamConverter) CreateUpstream(ctx context.Context, svc *kubev1
 				Selector:         svc.Spec.Selector,
 			},
 		},
+		SslConfig: sslConfig,
 		DiscoveryMetadata: &v1.DiscoveryMetadata{
 			Labels: labels,
 		},

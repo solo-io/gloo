@@ -107,6 +107,10 @@ spec:
           port: 9080
 EOF
 
+# Load images
+kind load docker-image docker.io/istio/proxyv2:1.18.2
+kind load docker-image quay.io/solo-io/sds:1.0.1-dev
+
 # To test:
 # kubectl port-forward deployment/gloo-proxy-http 8080:8080
 # curl -I localhost:8080/productpage -H "host: www.example.com" -v

@@ -221,7 +221,7 @@ func (ml *mergedListener) translateListener(
 	for _, mfc := range ml.httpsFilterChains {
 		// each virtual host name must be unique across all filter chains
 		// to prevent collisions because the vhosts have to be re-computed for each set
-		httpsFilterChain, vhostsForFilterchain := mfc.translateHttpsFilterChain(
+		hfChain, vhostsForFilterchain := mfc.translateHttpsFilterChain(
 			ctx,
 			pluginRegistry,
 			mfc.gatewayListenerName,
@@ -230,11 +230,11 @@ func (ml *mergedListener) translateListener(
 			reporter,
 			ml.listenerReporter,
 		)
-		if httpsFilterChain == nil {
+		if hfChain == nil {
 			// TODO report
 			continue
 		}
-		httpFilterChains = append(httpFilterChains, httpsFilterChain)
+		httpFilterChains = append(httpFilterChains, hfChain)
 		for vhostRef, vhost := range vhostsForFilterchain {
 			if _, ok := mergedVhosts[vhostRef]; ok {
 				// TODO handle internal error
@@ -489,30 +489,13 @@ func translateSslConfig(
 		sniDomains = []string{string(*sniDomain)}
 	}
 
-	const (
-		istioCertSecret        = "istio_server_cert"
-		istioValidationContext = "istio_validation_context"
-		sdsTargetURI           = "127.0.0.1:8234"
-		sdsClusterName         = "gateway_proxy_sds"
-	)
-
+	// TODO: does this need the istio sslConfig as well?
 	return &ssl.SslConfig{
-		//SslSecrets:                    &ssl.SslConfig_SecretRef{SecretRef: secretRef},
-		SniDomains:           sniDomains,
-		VerifySubjectAltName: nil,
-		Parameters:           nil,
-		// TODO: hard coded to test gateway v2
-		AlpnProtocols: []string{"istio"},
-		SslSecrets: &ssl.SslConfig_Sds{
-			Sds: &ssl.SDSConfig{
-				CertificatesSecretName: istioCertSecret,
-				ValidationContextName:  istioValidationContext,
-				TargetUri:              sdsTargetURI,
-				SdsBuilder: &ssl.SDSConfig_ClusterName{
-					ClusterName: sdsClusterName,
-				},
-			},
-		},
+		SslSecrets:                    &ssl.SslConfig_SecretRef{SecretRef: secretRef},
+		SniDomains:                    sniDomains,
+		VerifySubjectAltName:          nil,
+		Parameters:                    nil,
+		AlpnProtocols:                 nil,
 		OneWayTls:                     nil,
 		DisableTlsSessionResumption:   nil,
 		TransportSocketConnectTimeout: nil,
