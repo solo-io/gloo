@@ -1,0 +1,10 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/9070
+    description: >
+      Fix bug in extauth that caused gRPC passthrough auth to return an error when sequenced after OIDC auth
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo.io
+    dependencyRepo: ext-auth-service
+    dependencyTag: 0.55.4

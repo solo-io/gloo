@@ -395,9 +395,9 @@ func (t *extAuthConfigTranslator) authConfigToService(
 		switch cfg.ApiKeyAuth.GetStorageBackend().(type) {
 		case *extauthv1.ExtAuthConfig_ApiKeyAuthConfig_K8SSecretApikeyStorage:
 			{
-				validApiKeys := map[string]apikeys.KeyMetadata{}
+				validApiKeys := map[string]apikeys.APIKeyData{}
 				for apiKey, metadata := range cfg.ApiKeyAuth.ValidApiKeys {
-					validApiKeys[apiKey] = apikeys.KeyMetadata{
+					validApiKeys[apiKey] = apikeys.APIKeyData{
 						UserName: metadata.Username,
 						Metadata: metadata.Metadata,
 					}
@@ -423,9 +423,9 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			}
 		default:
 			{
-				validApiKeys := map[string]apikeys.KeyMetadata{}
+				validApiKeys := map[string]apikeys.APIKeyData{}
 				for apiKey, metadata := range cfg.ApiKeyAuth.ValidApiKeys {
-					validApiKeys[apiKey] = apikeys.KeyMetadata{
+					validApiKeys[apiKey] = apikeys.APIKeyData{
 						UserName: metadata.Username,
 						Metadata: metadata.Metadata,
 					}
