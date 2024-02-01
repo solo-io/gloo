@@ -132,14 +132,10 @@ spec:
           - --proxyComponentLogLevel=misc:error
           - --connectTimeout
           - 10s
-          - --proxyAdminPort
-          - "15000"
           - --controlPlaneAuthPolicy
           - NONE
           - --dnsRefreshRate
           - 300s
-          - --statusPort
-          - "15021"
           - --trust-domain=cluster.local
           - --controlPlaneBootstrap=false
         env:
@@ -193,19 +189,11 @@ spec:
               fieldRef:
                 apiVersion: v1
                 fieldPath: metadata.namespace
+          - name: DISABLE_ENVOY
+            value: "true"
         image: docker.io/istio/proxyv2:1.18.2
         imagePullPolicy: IfNotPresent
         name: istio-proxy
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthz/ready
-            port: 15021
-            scheme: HTTP
-          initialDelaySeconds: 3
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
