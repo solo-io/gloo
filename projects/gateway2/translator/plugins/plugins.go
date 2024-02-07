@@ -13,6 +13,8 @@ import (
 type Plugin interface{}
 
 type RouteContext struct {
+	// top-level gw Listener
+	Listener *gwv1.Listener
 	// top-level HTTPRoute
 	Route *gwv1.HTTPRoute
 	// specific Rule of the HTTPRoute being processed
