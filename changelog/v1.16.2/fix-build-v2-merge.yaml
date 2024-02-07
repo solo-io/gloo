@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      In an attempt to avoid out of space errors in CI, delete more unused packages in our
+      github actions.
