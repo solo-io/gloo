@@ -33,6 +33,7 @@ type ControllerConfig struct {
 }
 
 func Start(cfg ControllerConfig) {
+	setupLog.Info("xxxxx starting gw2 controller xxxxxx")
 	var opts []zap.Opts
 	if cfg.Dev {
 		setupLog.Info("starting log in dev mode")
@@ -43,9 +44,9 @@ func Start(cfg ControllerConfig) {
 		Scheme:           scheme.NewScheme(),
 		PprofBindAddress: "127.0.0.1:9099",
 		// if you change the port here, also change the port "health" in the helmchart.
-		HealthProbeBindAddress: ":9091",
+		HealthProbeBindAddress: ":9093",
 		Metrics: metricsserver.Options{
-			BindAddress: ":9090",
+			BindAddress: ":9092",
 		},
 	}
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), mgrOpts)

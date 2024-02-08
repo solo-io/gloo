@@ -44,6 +44,7 @@ import (
 	gateway "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gwdefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gwtranslator "github.com/solo-io/gloo/projects/gateway/pkg/translator"
+	"github.com/solo-io/gloo/projects/gateway2/controller"
 	rlv1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
@@ -109,6 +110,7 @@ func NewSetupFuncWithRun(runFunc RunFunc) setuputils.SetupFunc {
 	return NewSetupFuncWithRunAndExtensions(runFunc, nil)
 }
 
+// Called directly by GlooEE
 func NewSetupFuncWithRunAndExtensions(runFunc RunFunc, extensions *Extensions) setuputils.SetupFunc {
 	s := &setupSyncer{
 		extensions: extensions,
@@ -216,6 +218,7 @@ func getAddr(addr string) (*net.TCPAddr, error) {
 	return &net.TCPAddr{IP: ip, Port: port}, nil
 }
 
+// Setup constructs bootstrap options based on settings and other input, and calls the runFunc with these options.
 func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, memCache memory.InMemoryResourceCache, settings *v1.Settings, identity leaderelector.Identity) error {
 	xdsAddr := settings.GetGloo().GetXdsBindAddr()
 	if xdsAddr == "" {
@@ -450,6 +453,7 @@ func RunGloo(opts bootstrap.Opts) error {
 	return RunGlooWithExtensions(opts, glooExtensions)
 }
 
+// Called directly by GlooEE
 func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	// Validate Extensions
 	if extensions.ApiEmitterChannel == nil {
@@ -894,6 +898,14 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		}
 	}()
 
+	// Run GG controller
+	controller.Start(controller.ControllerConfig{
+		GatewayClassName:      "gloo-gateway",
+		GatewayControllerName: "solo.io/gloo-gateway",
+		XdsServer:             "",
+		XdsPort:               8080,
+	})
+
 	validationMustStart := os.Getenv("VALIDATION_MUST_START")
 	// only starting validation server if the env var is true or empty (previously, it always started, so this avoids causing unwanted changes for users)
 	if validationMustStart == "true" || validationMustStart == "" {
@@ -1023,6 +1035,7 @@ type constructOptsParams struct {
 	writeNamespace     string
 }
 
+// constructs bootstrap opts from settings
 func constructOpts(ctx context.Context, params constructOptsParams) (bootstrap.Opts, error) {
 
 	var (
