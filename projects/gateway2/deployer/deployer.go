@@ -186,6 +186,9 @@ func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]clie
 	// Set owner ref
 	trueVal := true
 	for _, obj := range objs {
+		fmt.Printf("xxxxx objToDeploy: kind=%v, namespace=%s, name=%s\n", obj.GetObjectKind(),
+			obj.GetNamespace(), obj.GetName())
+
 		obj.SetOwnerReferences([]metav1.OwnerReference{{
 			Kind:       gw.Kind,
 			APIVersion: gw.APIVersion,
