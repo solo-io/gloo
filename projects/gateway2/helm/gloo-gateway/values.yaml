@@ -17,7 +17,7 @@ controlPlane:
   fullnameOverride: ""
 
   image:
-    repository: ghcr.io/solo-io/gloo-gateway/glood
+    repository: quay.io/solo-io/gloo
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: ""
@@ -95,7 +95,7 @@ gateway:
     protocol: TCP
     name: http
   image:
-    repository: ghcr.io/solo-io/gloo-gateway/gloo-proxy
+    repository: quay.io/solo-io/gloo-envoy-wrapper
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: ""

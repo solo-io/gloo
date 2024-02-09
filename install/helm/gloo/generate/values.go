@@ -11,6 +11,7 @@ type HelmConfig struct {
 
 type Config struct {
 	Namespace      *Namespace              `json:"namespace,omitempty"`
+	Gateway2       interface{}             `json:"gateway2,omitempty"`
 	Settings       *Settings               `json:"settings,omitempty"`
 	Gloo           *Gloo                   `json:"gloo,omitempty"`
 	Discovery      *Discovery              `json:"discovery,omitempty"`
