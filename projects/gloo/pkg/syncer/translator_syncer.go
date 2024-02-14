@@ -112,9 +112,11 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 		}
 	}
 
-	// Execute the EnvoySyncer
+	// Execute the EnvoySyncer if there was not an issue creating / retrieving proxies
 	// This will update the xDS SnapshotCache for each entry that corresponds to a Proxy in the API Snapshot
-	s.syncEnvoy(ctx, snap, reports)
+	if multiErr != nil {
+		s.syncEnvoy(ctx, snap, reports)
+	}
 
 	// Execute the SyncerExtensions
 	// Each of these are responsible for updating a single entry in the SnapshotCache
