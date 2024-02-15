@@ -737,11 +737,24 @@ func getPassThroughGrpcAuthService(ctx context.Context, passthroughAuthCfg *stru
 		connectionTimeout = timeout
 	}
 
+	var retryPolicy *extauthSoloApis.RetryPolicy
+	if grpcConfig.GetRetryPolicy() != nil {
+		retryPolicy = &extauthSoloApis.RetryPolicy{
+			NumRetries: grpcConfig.GetRetryPolicy().GetNumRetries(),
+			Strategy: &extauthSoloApis.RetryPolicy_RetryBackOff{
+				RetryBackOff: &extauthSoloApis.BackoffStrategy{
+					BaseInterval: grpcConfig.GetRetryPolicy().GetRetryBackOff().GetBaseInterval(),
+					MaxInterval:  grpcConfig.GetRetryPolicy().GetRetryBackOff().GetMaxInterval(),
+				},
+			},
+		}
+	}
 	clientManagerConfig := &grpcPassthrough.ClientManagerConfig{
 		Address:           grpcConfig.GetAddress(),
 		ConnectionTimeout: connectionTimeout,
 		FailureModeAllow:  failureModeAllow,
 		UseSecure:         grpcConfig.GetTlsConfig() != nil,
+		RetryPolicy:       retryPolicy,
 	}
 
 	grpcClientManager, err := grpcPassthrough.NewGrpcClientManager(ctx, clientManagerConfig)

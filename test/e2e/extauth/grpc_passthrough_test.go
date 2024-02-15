@@ -3,9 +3,12 @@ package extauth_test
 import (
 	"context"
 	"net/http"
+	"time"
 
 	envoy_service_auth_v3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	grpcPassthrough "github.com/solo-io/ext-auth-service/pkg/config/passthrough/grpc"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	errors "github.com/rotisserie/eris"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/trace/v3"
@@ -76,11 +79,13 @@ var _ = Describe("GRPC Passthrough", func() {
 			authServer       *extauth_test_server.GrpcServer
 			failureModeAllow bool
 			authConfigCfg    *structpb.Struct
+			retryPolicy      *extauth.RetryPolicy
 		)
 
 		BeforeEach(func() {
 			failureModeAllow = false
 			authConfigCfg = nil
+			retryPolicy = nil
 		})
 
 		JustBeforeEach(func() {
@@ -96,7 +101,7 @@ var _ = Describe("GRPC Passthrough", func() {
 				},
 				Configs: []*extauth.AuthConfig_Config{{
 					AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
-						PassThroughAuth: getPassThroughAuthConfig(authServer.GetAddress(), failureModeAllow, authConfigCfg),
+						PassThroughAuth: getPassThroughAuthConfig(authServer.GetAddress(), failureModeAllow, authConfigCfg, retryPolicy),
 					},
 				}},
 			}
@@ -335,6 +340,68 @@ var _ = Describe("GRPC Passthrough", func() {
 					expectRequestEventuallyReturnsResponseCode(http.StatusUnauthorized)
 				})
 			})
+
+			When("auth config is set with retry", func() {
+				simulateGlitchOnAuthServer := func() chan bool {
+					authServer.Stop()
+					glitch := make(chan bool)
+					go func() {
+						defer GinkgoRecover()
+						// Wait until the client is ready to attempt an RPC to ensure the authServer is down when called
+						<-glitch
+						// Wait to ensure the first call fails
+						time.Sleep(50 * time.Millisecond)
+						// Restart the server on the same port
+						server := passthrough_utils.NewGrpcAuthServerWithResponse(passthrough_utils.OkResponse(), nil)
+						authServer = extauth_test_server.NewGrpcServerOnPort(server, authServer.GetPort())
+						authServer.Start(testContext.Ctx())
+						// Ensure we're done so the cleanup can begin
+						glitch <- true
+					}()
+					return glitch
+				}
+
+				BeforeEach(func() {
+					authConfigCfg = authConfigCfgWithFieldValue(true)
+
+					retryPolicy = &extauth.RetryPolicy{
+						NumRetries: &wrapperspb.UInt32Value{
+							Value: 100,
+						},
+						Strategy: &extauth.RetryPolicy_RetryBackOff{
+							RetryBackOff: &extauth.BackoffStrategy{
+								BaseInterval: &durationpb.Duration{
+									Nanos: 10000000, // 10ms
+								},
+								MaxInterval: &durationpb.Duration{
+									Nanos: 10000000, // 10ms
+								},
+							},
+						},
+					}
+				})
+
+				AfterEach(func() {
+					authServer.Stop()
+				})
+
+				It("retries and succeeds", func() {
+					// Let it succeed the first time so we know the authconfig has been accepted
+					expectRequestEventuallyReturnsResponseCode(http.StatusOK)
+
+					glitch := simulateGlitchOnAuthServer()
+					httpReqBuilder := testContext.GetHttpRequestBuilder()
+
+					// Sync the glitch to ensure we attempt an RPC when the authServer is down
+					glitch <- true
+					resp, err := testutils.DefaultHttpClient.Do(httpReqBuilder.Build())
+					Expect(err).NotTo(HaveOccurred())
+					Expect(resp).To(HaveHTTPStatus(http.StatusOK))
+
+					// Ensure we're done so the cleanup can begin
+					<-glitch
+				})
+			})
 		})
 	})
 
@@ -348,7 +415,7 @@ var _ = Describe("GRPC Passthrough", func() {
 		authConfigWithFailureModeAllow := func(address string, failureModeAllow bool) *extauth.AuthConfig_Config {
 			return &extauth.AuthConfig_Config{
 				AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
-					PassThroughAuth: getPassThroughAuthConfig(address, failureModeAllow, nil),
+					PassThroughAuth: getPassThroughAuthConfig(address, failureModeAllow, nil, nil),
 				},
 			}
 		}
@@ -478,11 +545,12 @@ var _ = Describe("GRPC Passthrough", func() {
 	})
 })
 
-func getPassThroughAuthConfig(address string, failureModeAllow bool, config *structpb.Struct) *extauth.PassThroughAuth {
+func getPassThroughAuthConfig(address string, failureModeAllow bool, config *structpb.Struct, retryPolicy *extauth.RetryPolicy) *extauth.PassThroughAuth {
 	return &extauth.PassThroughAuth{
 		Protocol: &extauth.PassThroughAuth_Grpc{
 			Grpc: &extauth.PassThroughGrpc{
-				Address: address,
+				Address:     address,
+				RetryPolicy: retryPolicy,
 				// use default connection timeout
 			},
 		},

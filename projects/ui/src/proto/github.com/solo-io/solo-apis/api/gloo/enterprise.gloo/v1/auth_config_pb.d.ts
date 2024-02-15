@@ -2634,6 +2634,68 @@ export namespace PassThroughAuth {
   }
 }
 
+export class BackoffStrategy extends jspb.Message {
+  hasBaseInterval(): boolean;
+  clearBaseInterval(): void;
+  getBaseInterval(): google_protobuf_duration_pb.Duration | undefined;
+  setBaseInterval(value?: google_protobuf_duration_pb.Duration): void;
+
+  hasMaxInterval(): boolean;
+  clearMaxInterval(): void;
+  getMaxInterval(): google_protobuf_duration_pb.Duration | undefined;
+  setMaxInterval(value?: google_protobuf_duration_pb.Duration): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): BackoffStrategy.AsObject;
+  static toObject(includeInstance: boolean, msg: BackoffStrategy): BackoffStrategy.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: BackoffStrategy, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): BackoffStrategy;
+  static deserializeBinaryFromReader(message: BackoffStrategy, reader: jspb.BinaryReader): BackoffStrategy;
+}
+
+export namespace BackoffStrategy {
+  export type AsObject = {
+    baseInterval?: google_protobuf_duration_pb.Duration.AsObject,
+    maxInterval?: google_protobuf_duration_pb.Duration.AsObject,
+  }
+}
+
+export class RetryPolicy extends jspb.Message {
+  hasNumRetries(): boolean;
+  clearNumRetries(): void;
+  getNumRetries(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setNumRetries(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
+  hasRetryBackOff(): boolean;
+  clearRetryBackOff(): void;
+  getRetryBackOff(): BackoffStrategy | undefined;
+  setRetryBackOff(value?: BackoffStrategy): void;
+
+  getStrategyCase(): RetryPolicy.StrategyCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RetryPolicy.AsObject;
+  static toObject(includeInstance: boolean, msg: RetryPolicy): RetryPolicy.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RetryPolicy, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RetryPolicy;
+  static deserializeBinaryFromReader(message: RetryPolicy, reader: jspb.BinaryReader): RetryPolicy;
+}
+
+export namespace RetryPolicy {
+  export type AsObject = {
+    numRetries?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    retryBackOff?: BackoffStrategy.AsObject,
+  }
+
+  export enum StrategyCase {
+    STRATEGY_NOT_SET = 0,
+    RETRY_BACK_OFF = 2,
+  }
+}
+
 export class PassThroughGrpc extends jspb.Message {
   getAddress(): string;
   setAddress(value: string): void;
@@ -2647,6 +2709,11 @@ export class PassThroughGrpc extends jspb.Message {
   clearTlsconfig(): void;
   getTlsconfig(): PassThroughGrpcTLSConfig | undefined;
   setTlsconfig(value?: PassThroughGrpcTLSConfig): void;
+
+  hasRetryPolicy(): boolean;
+  clearRetryPolicy(): void;
+  getRetryPolicy(): RetryPolicy | undefined;
+  setRetryPolicy(value?: RetryPolicy): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PassThroughGrpc.AsObject;
@@ -2663,6 +2730,7 @@ export namespace PassThroughGrpc {
     address: string,
     connectionTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     tlsconfig?: PassThroughGrpcTLSConfig.AsObject,
+    retryPolicy?: RetryPolicy.AsObject,
   }
 }
 

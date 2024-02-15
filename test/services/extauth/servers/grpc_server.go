@@ -26,6 +26,14 @@ func NewGrpcServer(authServer *passthrough_utils.GrpcAuthServer) *GrpcServer {
 	}
 }
 
+// NewGrpcServer Creates a wrapper around the passthrough_utils.GrpcAuthServer on the given port.
+func NewGrpcServerOnPort(authServer *passthrough_utils.GrpcAuthServer, port int) *GrpcServer {
+	return &GrpcServer{
+		GrpcAuthServer: authServer,
+		Port:           port,
+	}
+}
+
 func (g *GrpcServer) Start(ctx context.Context) {
 	err := g.GrpcAuthServer.Start(g.Port)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())

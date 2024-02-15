@@ -6408,6 +6408,8 @@ spec:
       invalidRouteResponseCode: 404
       replaceInvalidRoutes: false` +
 		args.extraGloo + `
+    istioOptions:
+      appendXForwardedHost: true
   ratelimitServer:
 ` + customRateLimit + `
   kubernetesArtifactSource: {}

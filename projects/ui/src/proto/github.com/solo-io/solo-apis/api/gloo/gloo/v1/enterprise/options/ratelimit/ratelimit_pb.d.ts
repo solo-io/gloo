@@ -58,6 +58,12 @@ export class Settings extends jspb.Message {
   getRateLimitBeforeAuth(): boolean;
   setRateLimitBeforeAuth(value: boolean): void;
 
+  hasGrpcService(): boolean;
+  clearGrpcService(): void;
+  getGrpcService(): GrpcService | undefined;
+  setGrpcService(value?: GrpcService): void;
+
+  getServiceTypeCase(): Settings.ServiceTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Settings.AsObject;
   static toObject(includeInstance: boolean, msg: Settings): Settings.AsObject;
@@ -75,6 +81,32 @@ export namespace Settings {
     denyOnFail: boolean,
     enableXRatelimitHeaders: boolean,
     rateLimitBeforeAuth: boolean,
+    grpcService?: GrpcService.AsObject,
+  }
+
+  export enum ServiceTypeCase {
+    SERVICE_TYPE_NOT_SET = 0,
+    GRPC_SERVICE = 10,
+  }
+}
+
+export class GrpcService extends jspb.Message {
+  getAuthority(): string;
+  setAuthority(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GrpcService.AsObject;
+  static toObject(includeInstance: boolean, msg: GrpcService): GrpcService.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GrpcService, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GrpcService;
+  static deserializeBinaryFromReader(message: GrpcService, reader: jspb.BinaryReader): GrpcService;
+}
+
+export namespace GrpcService {
+  export type AsObject = {
+    authority: string,
   }
 }
 

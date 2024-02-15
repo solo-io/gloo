@@ -179,6 +179,11 @@ var _ = Describe("RateLimit Plugin", func() {
 			BeforeEach(func() {
 				serverSettings.DenyOnFail = true
 				serverSettings.RequestTimeout = &duration.Duration{Seconds: 1}
+				serverSettings.ServiceType = &ratelimitpb.Settings_GrpcService{
+					GrpcService: &ratelimitpb.GrpcService{
+						Authority: "abc",
+					},
+				}
 			})
 
 			It("respects overridden settings", func() {
@@ -192,6 +197,7 @@ var _ = Describe("RateLimit Plugin", func() {
 
 					Expect(envoyFilterConfig.Timeout).To(matchers.MatchProto(serverSettings.RequestTimeout))
 					Expect(envoyFilterConfig.FailureModeDeny).To(Equal(serverSettings.DenyOnFail))
+					Expect(envoyFilterConfig.RateLimitService.GrpcService.TargetSpecifier.(*envoycore.GrpcService_EnvoyGrpc_).EnvoyGrpc.Authority).To(Equal("abc"))
 				}
 			})
 

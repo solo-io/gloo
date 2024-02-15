@@ -47,6 +47,7 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.AuthConfigStatus', null, global
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AuthConfigStatus.State', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AuthPlugin', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AutoMapFromMetadata', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.BackoffStrategy', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.Apr', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.Apr.SaltedHashedPassword', null, global);
@@ -135,6 +136,7 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughHttp.Response', null
 goog.exportSymbol('proto.enterprise.gloo.solo.io.PlainOAuth2', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.RedisOptions', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.RedisOptions.SocketType', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.RetryPolicy', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.SecretRefList', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Settings', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Settings.ApiVersion', null, global);
@@ -18334,6 +18336,437 @@ proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.setFailureModeAllow = fu
  * @extends {jspb.Message}
  * @constructor
  */
+proto.enterprise.gloo.solo.io.BackoffStrategy = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.BackoffStrategy, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.BackoffStrategy.displayName = 'proto.enterprise.gloo.solo.io.BackoffStrategy';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.BackoffStrategy.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.BackoffStrategy.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.BackoffStrategy} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.BackoffStrategy.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    baseInterval: (f = msg.getBaseInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    maxInterval: (f = msg.getMaxInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.BackoffStrategy}
+ */
+proto.enterprise.gloo.solo.io.BackoffStrategy.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.BackoffStrategy;
+  return proto.enterprise.gloo.solo.io.BackoffStrategy.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.BackoffStrategy} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.BackoffStrategy}
+ */
+proto.enterprise.gloo.solo.io.BackoffStrategy.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setBaseInterval(value);
+      break;
+    case 2:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setMaxInterval(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.BackoffStrategy.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.BackoffStrategy.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.BackoffStrategy} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.BackoffStrategy.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getBaseInterval();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getMaxInterval();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional google.protobuf.Duration base_interval = 1;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.enterprise.gloo.solo.io.BackoffStrategy.prototype.getBaseInterval = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 1));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.enterprise.gloo.solo.io.BackoffStrategy.prototype.setBaseInterval = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.enterprise.gloo.solo.io.BackoffStrategy.prototype.clearBaseInterval = function() {
+  this.setBaseInterval(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.BackoffStrategy.prototype.hasBaseInterval = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional google.protobuf.Duration max_interval = 2;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.enterprise.gloo.solo.io.BackoffStrategy.prototype.getMaxInterval = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 2));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.enterprise.gloo.solo.io.BackoffStrategy.prototype.setMaxInterval = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.enterprise.gloo.solo.io.BackoffStrategy.prototype.clearMaxInterval = function() {
+  this.setMaxInterval(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.BackoffStrategy.prototype.hasMaxInterval = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.RetryPolicy.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.RetryPolicy, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.RetryPolicy.displayName = 'proto.enterprise.gloo.solo.io.RetryPolicy';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy.oneofGroups_ = [[2]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy.StrategyCase = {
+  STRATEGY_NOT_SET: 0,
+  RETRY_BACK_OFF: 2
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.RetryPolicy.StrategyCase}
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy.prototype.getStrategyCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.RetryPolicy.StrategyCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.RetryPolicy.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.RetryPolicy.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.RetryPolicy} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    numRetries: (f = msg.getNumRetries()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
+    retryBackOff: (f = msg.getRetryBackOff()) && proto.enterprise.gloo.solo.io.BackoffStrategy.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.RetryPolicy}
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.RetryPolicy;
+  return proto.enterprise.gloo.solo.io.RetryPolicy.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.RetryPolicy} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.RetryPolicy}
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
+      msg.setNumRetries(value);
+      break;
+    case 2:
+      var value = new proto.enterprise.gloo.solo.io.BackoffStrategy;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.BackoffStrategy.deserializeBinaryFromReader);
+      msg.setRetryBackOff(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.RetryPolicy.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.RetryPolicy} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getNumRetries();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
+    );
+  }
+  f = message.getRetryBackOff();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.enterprise.gloo.solo.io.BackoffStrategy.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional google.protobuf.UInt32Value num_retries = 1;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy.prototype.getNumRetries = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 1));
+};
+
+
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
+proto.enterprise.gloo.solo.io.RetryPolicy.prototype.setNumRetries = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.enterprise.gloo.solo.io.RetryPolicy.prototype.clearNumRetries = function() {
+  this.setNumRetries(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy.prototype.hasNumRetries = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional BackoffStrategy retry_back_off = 2;
+ * @return {?proto.enterprise.gloo.solo.io.BackoffStrategy}
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy.prototype.getRetryBackOff = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.BackoffStrategy} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.BackoffStrategy, 2));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.BackoffStrategy|undefined} value */
+proto.enterprise.gloo.solo.io.RetryPolicy.prototype.setRetryBackOff = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.enterprise.gloo.solo.io.RetryPolicy.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.RetryPolicy.prototype.clearRetryBackOff = function() {
+  this.setRetryBackOff(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.RetryPolicy.prototype.hasRetryBackOff = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.enterprise.gloo.solo.io.PassThroughGrpc = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
@@ -18372,7 +18805,8 @@ proto.enterprise.gloo.solo.io.PassThroughGrpc.toObject = function(includeInstanc
   var f, obj = {
     address: jspb.Message.getFieldWithDefault(msg, 1, ""),
     connectionTimeout: (f = msg.getConnectionTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
-    tlsconfig: (f = msg.getTlsconfig()) && proto.enterprise.gloo.solo.io.PassThroughGrpcTLSConfig.toObject(includeInstance, f)
+    tlsconfig: (f = msg.getTlsconfig()) && proto.enterprise.gloo.solo.io.PassThroughGrpcTLSConfig.toObject(includeInstance, f),
+    retryPolicy: (f = msg.getRetryPolicy()) && proto.enterprise.gloo.solo.io.RetryPolicy.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -18422,6 +18856,11 @@ proto.enterprise.gloo.solo.io.PassThroughGrpc.deserializeBinaryFromReader = func
       var value = new proto.enterprise.gloo.solo.io.PassThroughGrpcTLSConfig;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.PassThroughGrpcTLSConfig.deserializeBinaryFromReader);
       msg.setTlsconfig(value);
+      break;
+    case 4:
+      var value = new proto.enterprise.gloo.solo.io.RetryPolicy;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.RetryPolicy.deserializeBinaryFromReader);
+      msg.setRetryPolicy(value);
       break;
     default:
       reader.skipField();
@@ -18473,6 +18912,14 @@ proto.enterprise.gloo.solo.io.PassThroughGrpc.serializeBinaryToWriter = function
       3,
       f,
       proto.enterprise.gloo.solo.io.PassThroughGrpcTLSConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getRetryPolicy();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      proto.enterprise.gloo.solo.io.RetryPolicy.serializeBinaryToWriter
     );
   }
 };
@@ -18550,6 +18997,36 @@ proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.clearTlsconfig = functio
  */
 proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.hasTlsconfig = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional RetryPolicy retry_policy = 4;
+ * @return {?proto.enterprise.gloo.solo.io.RetryPolicy}
+ */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.getRetryPolicy = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.RetryPolicy} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.RetryPolicy, 4));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.RetryPolicy|undefined} value */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.setRetryPolicy = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.clearRetryPolicy = function() {
+  this.setRetryPolicy(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.hasRetryPolicy = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 

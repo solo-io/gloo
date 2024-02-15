@@ -198,6 +198,7 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		filterStage := rateLimitStageToFilterStage[rateLimitStage]
 		rateLimitFilter := rlplugin.GenerateEnvoyConfigForFilterWith(
 			upstreamRef,
+			serverSettings.GetGrpcService(),
 			filterDomain,
 			rateLimitStage,
 			serverSettings.GetRequestTimeout(),

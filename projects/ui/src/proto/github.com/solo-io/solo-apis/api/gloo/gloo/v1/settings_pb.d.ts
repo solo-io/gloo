@@ -1078,6 +1078,11 @@ export class GlooOptions extends jspb.Message {
   getTransformationEscapeCharacters(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setTransformationEscapeCharacters(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasIstioOptions(): boolean;
+  clearIstioOptions(): void;
+  getIstioOptions(): GlooOptions.IstioOptions | undefined;
+  setIstioOptions(value?: GlooOptions.IstioOptions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GlooOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GlooOptions): GlooOptions.AsObject;
@@ -1107,6 +1112,7 @@ export namespace GlooOptions {
     proxyDebugBindAddr: string,
     logTransformationRequestResponseInfo?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     transformationEscapeCharacters?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    istioOptions?: GlooOptions.IstioOptions.AsObject,
   }
 
   export class AWSOptions extends jspb.Message {
@@ -1187,6 +1193,28 @@ export namespace GlooOptions {
       replaceInvalidRoutes: boolean,
       invalidRouteResponseCode: number,
       invalidRouteResponseBody: string,
+    }
+  }
+
+  export class IstioOptions extends jspb.Message {
+    hasAppendXForwardedHost(): boolean;
+    clearAppendXForwardedHost(): void;
+    getAppendXForwardedHost(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setAppendXForwardedHost(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): IstioOptions.AsObject;
+    static toObject(includeInstance: boolean, msg: IstioOptions): IstioOptions.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: IstioOptions, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): IstioOptions;
+    static deserializeBinaryFromReader(message: IstioOptions, reader: jspb.BinaryReader): IstioOptions;
+  }
+
+  export namespace IstioOptions {
+    export type AsObject = {
+      appendXForwardedHost?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     }
   }
 }

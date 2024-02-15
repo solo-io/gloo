@@ -50,9 +50,9 @@ require (
 	github.com/solo-io/caching-service v0.6.0
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.2
-	github.com/solo-io/ext-auth-service v0.55.4
+	github.com/solo-io/ext-auth-service v0.55.4-patch1
 	github.com/solo-io/external-apis v0.2.3
-	github.com/solo-io/gloo v1.16.3
+	github.com/solo-io/gloo v1.16.4
 	github.com/solo-io/gloo-graphql-example v0.1.0
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.24.8
@@ -62,7 +62,7 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.1.1
 	github.com/solo-io/rate-limiter v0.11.4
 	github.com/solo-io/skv2 v0.36.0
-	github.com/solo-io/solo-apis v0.0.0-20240131230330-1cf6a4d928c9
+	github.com/solo-io/solo-apis v0.0.0-20240213210132-7f7b95850bb8
 	github.com/solo-io/solo-kit v0.34.0
 	// https://soloio.slab.com/posts/envoy-proto-definition-lives-mbnlmkxe
 	// explains why we depend on this repository of tap server examples
@@ -94,7 +94,7 @@ require (
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	knative.dev/pkg v0.0.0-20211206113427-18589ac7627e
 	rogchap.com/v8go v0.7.1-0.20221102201510-1f00b5007d95
-	sigs.k8s.io/controller-runtime v0.16.3
+	sigs.k8s.io/controller-runtime v0.16.4
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -159,11 +159,11 @@ require (
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/emicklei/proto v1.9.1 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
-	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
+	github.com/evanphx/json-patch v5.7.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.7.0 // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
-	github.com/fatih/color v1.13.0 // indirect
+	github.com/fatih/color v1.15.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fvbommel/sortorder v1.1.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -391,7 +391,7 @@ require (
 	k8s.io/cli-runtime v0.28.3 // indirect
 	k8s.io/component-base v0.28.3 // indirect
 	k8s.io/component-helpers v0.28.3 // indirect
-	k8s.io/gengo v0.0.0-20220902162205-c0856e24416d // indirect
+	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 // indirect
 	k8s.io/kubectl v0.28.3 // indirect

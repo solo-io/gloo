@@ -18,6 +18,7 @@ var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../..
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var extproto_ext_pb = require('../../../../../../../../../../extproto/ext_pb.js');
+goog.exportSymbol('proto.ratelimit.options.gloo.solo.io.GrpcService', null, global);
 goog.exportSymbol('proto.ratelimit.options.gloo.solo.io.IngressRateLimit', null, global);
 goog.exportSymbol('proto.ratelimit.options.gloo.solo.io.RateLimitConfigRef', null, global);
 goog.exportSymbol('proto.ratelimit.options.gloo.solo.io.RateLimitConfigRefs', null, global);
@@ -240,12 +241,37 @@ proto.ratelimit.options.gloo.solo.io.IngressRateLimit.prototype.hasAnonymousLimi
  * @constructor
  */
 proto.ratelimit.options.gloo.solo.io.Settings = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.ratelimit.options.gloo.solo.io.Settings.oneofGroups_);
 };
 goog.inherits(proto.ratelimit.options.gloo.solo.io.Settings, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.ratelimit.options.gloo.solo.io.Settings.displayName = 'proto.ratelimit.options.gloo.solo.io.Settings';
 }
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.ratelimit.options.gloo.solo.io.Settings.oneofGroups_ = [[10]];
+
+/**
+ * @enum {number}
+ */
+proto.ratelimit.options.gloo.solo.io.Settings.ServiceTypeCase = {
+  SERVICE_TYPE_NOT_SET: 0,
+  GRPC_SERVICE: 10
+};
+
+/**
+ * @return {proto.ratelimit.options.gloo.solo.io.Settings.ServiceTypeCase}
+ */
+proto.ratelimit.options.gloo.solo.io.Settings.prototype.getServiceTypeCase = function() {
+  return /** @type {proto.ratelimit.options.gloo.solo.io.Settings.ServiceTypeCase} */(jspb.Message.computeOneofCase(this, proto.ratelimit.options.gloo.solo.io.Settings.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -279,7 +305,8 @@ proto.ratelimit.options.gloo.solo.io.Settings.toObject = function(includeInstanc
     requestTimeout: (f = msg.getRequestTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     denyOnFail: jspb.Message.getFieldWithDefault(msg, 3, false),
     enableXRatelimitHeaders: jspb.Message.getFieldWithDefault(msg, 4, false),
-    rateLimitBeforeAuth: jspb.Message.getFieldWithDefault(msg, 9, false)
+    rateLimitBeforeAuth: jspb.Message.getFieldWithDefault(msg, 9, false),
+    grpcService: (f = msg.getGrpcService()) && proto.ratelimit.options.gloo.solo.io.GrpcService.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -337,6 +364,11 @@ proto.ratelimit.options.gloo.solo.io.Settings.deserializeBinaryFromReader = func
     case 9:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setRateLimitBeforeAuth(value);
+      break;
+    case 10:
+      var value = new proto.ratelimit.options.gloo.solo.io.GrpcService;
+      reader.readMessage(value,proto.ratelimit.options.gloo.solo.io.GrpcService.deserializeBinaryFromReader);
+      msg.setGrpcService(value);
       break;
     default:
       reader.skipField();
@@ -402,6 +434,14 @@ proto.ratelimit.options.gloo.solo.io.Settings.serializeBinaryToWriter = function
     writer.writeBool(
       9,
       f
+    );
+  }
+  f = message.getGrpcService();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      proto.ratelimit.options.gloo.solo.io.GrpcService.serializeBinaryToWriter
     );
   }
 };
@@ -515,6 +555,178 @@ proto.ratelimit.options.gloo.solo.io.Settings.prototype.getRateLimitBeforeAuth =
 /** @param {boolean} value */
 proto.ratelimit.options.gloo.solo.io.Settings.prototype.setRateLimitBeforeAuth = function(value) {
   jspb.Message.setProto3BooleanField(this, 9, value);
+};
+
+
+/**
+ * optional GrpcService grpc_service = 10;
+ * @return {?proto.ratelimit.options.gloo.solo.io.GrpcService}
+ */
+proto.ratelimit.options.gloo.solo.io.Settings.prototype.getGrpcService = function() {
+  return /** @type{?proto.ratelimit.options.gloo.solo.io.GrpcService} */ (
+    jspb.Message.getWrapperField(this, proto.ratelimit.options.gloo.solo.io.GrpcService, 10));
+};
+
+
+/** @param {?proto.ratelimit.options.gloo.solo.io.GrpcService|undefined} value */
+proto.ratelimit.options.gloo.solo.io.Settings.prototype.setGrpcService = function(value) {
+  jspb.Message.setOneofWrapperField(this, 10, proto.ratelimit.options.gloo.solo.io.Settings.oneofGroups_[0], value);
+};
+
+
+proto.ratelimit.options.gloo.solo.io.Settings.prototype.clearGrpcService = function() {
+  this.setGrpcService(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.ratelimit.options.gloo.solo.io.Settings.prototype.hasGrpcService = function() {
+  return jspb.Message.getField(this, 10) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.ratelimit.options.gloo.solo.io.GrpcService = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.ratelimit.options.gloo.solo.io.GrpcService, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.ratelimit.options.gloo.solo.io.GrpcService.displayName = 'proto.ratelimit.options.gloo.solo.io.GrpcService';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.ratelimit.options.gloo.solo.io.GrpcService.prototype.toObject = function(opt_includeInstance) {
+  return proto.ratelimit.options.gloo.solo.io.GrpcService.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.ratelimit.options.gloo.solo.io.GrpcService} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.ratelimit.options.gloo.solo.io.GrpcService.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    authority: jspb.Message.getFieldWithDefault(msg, 1, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.ratelimit.options.gloo.solo.io.GrpcService}
+ */
+proto.ratelimit.options.gloo.solo.io.GrpcService.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.ratelimit.options.gloo.solo.io.GrpcService;
+  return proto.ratelimit.options.gloo.solo.io.GrpcService.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.ratelimit.options.gloo.solo.io.GrpcService} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.ratelimit.options.gloo.solo.io.GrpcService}
+ */
+proto.ratelimit.options.gloo.solo.io.GrpcService.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAuthority(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.ratelimit.options.gloo.solo.io.GrpcService.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.ratelimit.options.gloo.solo.io.GrpcService.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.ratelimit.options.gloo.solo.io.GrpcService} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.ratelimit.options.gloo.solo.io.GrpcService.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getAuthority();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string authority = 1;
+ * @return {string}
+ */
+proto.ratelimit.options.gloo.solo.io.GrpcService.prototype.getAuthority = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.ratelimit.options.gloo.solo.io.GrpcService.prototype.setAuthority = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
 };
 
 

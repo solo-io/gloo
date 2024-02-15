@@ -1,0 +1,21 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/gloo/issues/6804
+  resolvesIssue: false
+  description: Add the option to allow retries for gRPC Passthrough Auth in case the service is unavailable. This can be configured via the new `retryPolicy` in the PassThroughGrpc AuthConfig. Note that the global settings `extauth.requestTimeout` must be greater than the `retryPolicy.numRetries` * `retryPolicy.retryBackOff.baseInterval` to ensure that the failed gRPC call has sufficient time to retry.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.16.4
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-service
+  dependencyTag: v0.55.4-patch1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: solo-apis
+  dependencyTag: gloo-v1.16.4
+- type: FIX
+  issueLink: https://github.com/solo-io/gloo/issues/8995
+  resolvesIssue: false
+  description: Allow configuring the authority header for ratelimit gRPC calls.
