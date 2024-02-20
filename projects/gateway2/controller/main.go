@@ -3,6 +3,8 @@ package controller
 import (
 	"os"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
+
 	"github.com/solo-io/gloo/projects/gateway2/controller/scheme"
 	"github.com/solo-io/gloo/projects/gateway2/discovery"
 	"github.com/solo-io/gloo/projects/gateway2/secrets"
@@ -27,9 +29,9 @@ type ControllerConfig struct {
 	GatewayControllerName string
 	Release               string
 	AutoProvision         bool
-	XdsServer             string
-	XdsPort               uint16
 	Dev                   bool
+
+	ControlPlane bootstrap.ControlPlane
 }
 
 func Start(cfg ControllerConfig) {
@@ -60,7 +62,6 @@ func Start(cfg ControllerConfig) {
 
 	ctx := signals.SetupSignalHandler()
 
-	xdsCache := newAdsSnapshotCache(ctx)
 	glooTranslator := newGlooTranslator(ctx)
 	var sanz sanitizer.XdsSanitizers
 	inputChannels := xds.NewXdsInputChannels()
@@ -68,7 +69,7 @@ func Start(cfg ControllerConfig) {
 		cfg.GatewayControllerName,
 		glooTranslator,
 		sanz,
-		xdsCache,
+		cfg.ControlPlane.SnapshotCache,
 		false,
 		inputChannels,
 		mgr.GetClient(),
@@ -79,13 +80,9 @@ func Start(cfg ControllerConfig) {
 		os.Exit(1)
 	}
 
+	// sam-heilbron: I don't think this is necessary, as we should have a shared cache
 	if cfg.Dev {
 		go xdsSyncer.ServeXdsSnapshots()
-	}
-
-	if err := mgr.Add(NewServer(ctx, cfg.XdsPort, xdsCache)); err != nil {
-		setupLog.Error(err, "unable to start xds server")
-		os.Exit(1)
 	}
 
 	var gatewayClassName apiv1.ObjectName = apiv1.ObjectName(cfg.GatewayClassName)
@@ -96,8 +93,7 @@ func Start(cfg ControllerConfig) {
 		Dev:            cfg.Dev,
 		ControllerName: cfg.GatewayControllerName,
 		AutoProvision:  cfg.AutoProvision,
-		XdsServer:      cfg.XdsServer,
-		XdsPort:        cfg.XdsPort,
+		ControlPlane:   cfg.ControlPlane,
 		Kick:           inputChannels.Kick,
 	}
 	err = NewBaseGatewayController(ctx, gwcfg)
