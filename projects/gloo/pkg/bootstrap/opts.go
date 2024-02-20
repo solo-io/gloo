@@ -96,11 +96,17 @@ type GrpcService struct {
 
 // GetBindAddress returns the string form of the BindAddr (for example, "192.0.2.1:25", "[2001:db8::1]:80")
 func (g *GrpcService) GetBindAddress() string {
+	if g == nil {
+		return ""
+	}
 	return g.BindAddr.String()
 }
 
 // GetBindPort returns the port if the GrpcService relies on a TCPAddr, 0 otherwise
 func (g *GrpcService) GetBindPort() int {
+	if g == nil {
+		return 0
+	}
 	tcpAddr, ok := g.BindAddr.(*net.TCPAddr)
 	if !ok {
 		return 0
