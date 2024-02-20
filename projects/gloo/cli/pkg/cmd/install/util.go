@@ -62,11 +62,6 @@ func init() {
 		"federatedupstreamgroups.fed.gloo.solo.io",
 		"federatedupstreams.fed.gloo.solo.io",
 		"federatedvirtualservices.fed.gateway.solo.io",
-		// gloo gateway CRDs:
-		"gatewayclasses.gateway.networking.k8s.io",
-		"gateways.gateway.networking.k8s.io",
-		"httproutes.gateway.networking.k8s.io",
-		"referencegrants.gateway.networking.k8s.io",
 	}
 }
 
