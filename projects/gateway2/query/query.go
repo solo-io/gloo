@@ -156,7 +156,6 @@ type gatewayQueries struct {
 }
 
 func (r *gatewayQueries) referenceAllowed(ctx context.Context, from metav1.GroupKind, fromns string, to metav1.GroupKind, tons, toname string) (bool, error) {
-
 	var list apiv1beta1.ReferenceGrantList
 	err := r.client.List(ctx, &list, client.InNamespace(tons), client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(ReferenceGrantFromField, fromns)})
 	if err != nil {
@@ -256,6 +255,8 @@ func (r *gatewayQueries) allowedRoutes(gw *apiv1.Gateway, l *apiv1.Listener) (fu
 	var allowedKinds []metav1.GroupKind
 
 	switch l.Protocol {
+	case "PROXY":
+		fallthrough
 	case apiv1.HTTPSProtocolType:
 		fallthrough
 	case apiv1.HTTPProtocolType:
@@ -467,7 +468,6 @@ func (r *gatewayQueries) getRef(ctx context.Context, from From, backendName stri
 		return nil, err
 	}
 	return ret, nil
-
 }
 
 func isHttpRouteAllowed(allowedKinds []metav1.GroupKind) bool {

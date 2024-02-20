@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/httproute"
 	"github.com/solo-io/gloo/projects/gateway2/translator/routeutils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/proxy_protocol"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	corev1 "k8s.io/api/core/v1"
@@ -78,12 +79,15 @@ func (ml *mergedListeners) appendListener(
 	reporter reports.ListenerReporter,
 ) error {
 	switch listener.Protocol {
+	case "PROXY":
+		fallthrough
 	case gwv1.HTTPProtocolType:
 		ml.appendHttpListener(listener, routes, reporter)
 	case gwv1.HTTPSProtocolType:
 		ml.appendHttpsListener(listener, routes, reporter)
-	// TODO default handling
+
 	default:
+		// TODO default handling
 		return eris.Errorf("unsupported protocol: %v", listener.Protocol)
 	}
 
@@ -107,8 +111,25 @@ func (ml *mergedListeners) appendHttpListener(
 	listenerName := string(listener.Name)
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
 
+	var proxyOptions *proxy_protocol.ProxyProtocol
+	if listener.Protocol == "PROXY" {
+		proxyOptions = &proxy_protocol.ProxyProtocol{
+			AllowRequestsWithoutProxyProtocol: false,
+			Rules: []*proxy_protocol.ProxyProtocol_Rule{{
+				TlvType: 0xD0,
+				OnTlvPresent: &proxy_protocol.ProxyProtocol_KeyValuePair{
+					Key: "peer_metadata",
+					// TODO find out where gloo reads peer id in rbac
+				},
+			}},
+		}
+	}
+
 	for _, lis := range ml.listeners {
 		if lis.port == finalPort {
+			if proxyOptions != nil {
+				lis.opts.ProxyProtocol = proxyOptions
+			}
 			// concatenate the names on the parent output listener/filterchain
 			// TODO is this valid listener name?
 			lis.name += "~" + listenerName
@@ -128,8 +149,10 @@ func (ml *mergedListeners) appendHttpListener(
 		port:             finalPort,
 		httpFilterChain:  fc,
 		listenerReporter: reporter,
+		opts: v1.ListenerOptions{
+			ProxyProtocol: proxyOptions,
+		},
 	})
-
 }
 
 func (ml *mergedListeners) appendHttpsListener(
@@ -137,9 +160,8 @@ func (ml *mergedListeners) appendHttpsListener(
 	routesWithHosts []*query.ListenerRouteResult,
 	reporter reports.ListenerReporter,
 ) {
-
 	// create a new filter chain for the listener
-	//protocol:            listener.Protocol,
+	// protocol:            listener.Protocol,
 	mfc := httpsFilterChain{
 		gatewayListenerName: string(listener.Name),
 		sniDomain:           listener.Hostname,
@@ -171,7 +193,8 @@ func (ml *mergedListeners) translateListeners(
 	ctx context.Context,
 	pluginRegistry registry.PluginRegistry,
 	queries query.GatewayQueries,
-	reporter reports.Reporter) []*v1.Listener {
+	reporter reports.Reporter,
+) []*v1.Listener {
 	var listeners []*v1.Listener
 	for _, mergedListener := range ml.listeners {
 		listener := mergedListener.translateListener(ctx, pluginRegistry, queries, reporter)
@@ -187,6 +210,8 @@ type mergedListener struct {
 	httpFilterChain   *httpFilterChain
 	httpsFilterChains []httpsFilterChain
 	listenerReporter  reports.ListenerReporter
+
+	opts v1.ListenerOptions
 	// TODO(policy via http listener options)
 }
 
@@ -213,7 +238,6 @@ func (ml *mergedListener) translateListener(
 		for vhostRef, vhost := range vhostsForFilterchain {
 			if _, ok := mergedVhosts[vhostRef]; ok {
 				// TODO handle internal error, should never overlap
-
 			}
 			mergedVhosts[vhostRef] = vhost
 		}
@@ -260,10 +284,9 @@ func (ml *mergedListener) translateListener(
 			},
 		},
 		// TODO(ilackarms): mid term - add listener options
-		Options:      nil,
+		Options:      &ml.opts,
 		RouteOptions: nil,
 	}
-
 }
 
 // httpFilterChain each one represents a GW Listener that has been merged into a single Gloo Listener (with distinct filter chains).
@@ -285,8 +308,7 @@ func (httpFilterChain *httpFilterChain) translateHttpFilterChain(
 	pluginRegistry registry.PluginRegistry,
 	reporter reports.Reporter,
 ) (*v1.AggregateListener_HttpFilterChain, map[string]*v1.VirtualHost) {
-
-	var routesByHost = map[string]routeutils.SortableRoutes{}
+	routesByHost := map[string]routeutils.SortableRoutes{}
 	for _, parent := range httpFilterChain.parents {
 		buildRoutesPerHost(
 			ctx,
@@ -340,7 +362,7 @@ func (httpsFilterChain *httpsFilterChain) translateHttpsFilterChain(
 	listenerReporter reports.ListenerReporter,
 ) (*v1.AggregateListener_HttpFilterChain, map[string]*v1.VirtualHost) {
 	// process routes first, so any route related errors are reported on the httproute.
-	var routesByHost = map[string]routeutils.SortableRoutes{}
+	routesByHost := map[string]routeutils.SortableRoutes{}
 	buildRoutesPerHost(
 		ctx,
 		routesByHost,

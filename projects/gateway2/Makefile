@@ -11,6 +11,10 @@ build:
 build-glooctl:
 	CGO_ENABLED=0 GOOS=linux go build -ldflags=$(LDFLAGS) -o glooctl ../../projects/gloo/cli/cmd
 
+docker.local: build
+	docker build -t localhost:5000/glood:sandwich-test .
+	docker push localhost:5000/glood:sandwich-test
+
 docker: build
 	docker build -t ghcr.io/solo-io/gloo-gateway/glood:$(VERSION) .
 	docker pull quay.io/solo-io/envoy-gloo:1.26.4-patch4

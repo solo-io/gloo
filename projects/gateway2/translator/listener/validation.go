@@ -26,6 +26,11 @@ type routeKind = string
 func getSupportedProtocolsRoutes() map[protocol]map[groupName][]routeKind {
 	// we currently only support HTTPRoute on HTTP and HTTPS protocols
 	supportedProtocolToKinds := map[protocol]map[groupName][]routeKind{
+		"PROXY": {
+			gwv1.GroupName: []string{
+				HTTPRouteKind,
+			},
+		},
 		string(gwv1.HTTPProtocolType): {
 			gwv1.GroupName: []string{
 				HTTPRouteKind,
