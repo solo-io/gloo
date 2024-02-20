@@ -51,7 +51,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	// The consulvaulte2e test suite is not run against a k8s cluster, so we must disable the features that require a k8s cluster
-	err = os.Setenv(constants.GlooGatewayEnableK8sGwControllerEnv, "true")
+	err = os.Setenv(constants.GlooGatewayEnableK8sGwControllerEnv, "false")
 	Expect(err).NotTo(HaveOccurred())
 })
 
