@@ -3,6 +3,7 @@ package setup
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/gloo/projects/gateway2/controller"
 	"net"
 	"net/http"
 	"os"
@@ -44,7 +45,6 @@ import (
 	gateway "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gwdefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gwtranslator "github.com/solo-io/gloo/projects/gateway/pkg/translator"
-	"github.com/solo-io/gloo/projects/gateway2/controller"
 	rlv1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
@@ -898,15 +898,17 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		}
 	}()
 
-	// Run GG controller
-	// TODO: These values are hard-coded, but they should be inherited from the Helm chart
-	controller.Start(controller.ControllerConfig{
-		GatewayClassName:      "gloo-gateway",
-		GatewayControllerName: "solo.io/gloo-gateway",
-		AutoProvision:         true,
+	if opts.GlooGateway.EnableK8sGatewayController {
+		// Run GG controller
+		// TODO: These values are hard-coded, but they should be inherited from the Helm chart
+		controller.Start(controller.ControllerConfig{
+			GatewayClassName:      "gloo-gateway",
+			GatewayControllerName: "solo.io/gloo-gateway",
+			AutoProvision:         true,
 
-		ControlPlane: opts.ControlPlane,
-	})
+			ControlPlane: opts.ControlPlane,
+		})
+	}
 
 	validationMustStart := os.Getenv("VALIDATION_MUST_START")
 	// only starting validation server if the env var is true or empty (previously, it always started, so this avoids causing unwanted changes for users)
@@ -1254,5 +1256,13 @@ func constructOpts(ctx context.Context, params constructOptsParams) (bootstrap.O
 		ReadGatwaysFromAllNamespaces: readGatewaysFromAllNamespaces,
 		GatewayControllerEnabled:     gatewayMode,
 		ProxyCleanup:                 proxyCleanup,
+		GlooGateway:                  constructGlooGatewayBootstrapOpts(),
 	}, nil
+}
+
+func constructGlooGatewayBootstrapOpts() bootstrap.GlooGateway {
+	return bootstrap.GlooGateway{
+		// TODO: This value should be inherited at installation time, to determine if the k8s controller is enabled
+		EnableK8sGatewayController: true,
+	}
 }

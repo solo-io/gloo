@@ -61,6 +61,12 @@ type Opts struct {
 	ProxyCleanup                 func()
 
 	Identity leaderelector.Identity
+
+	GlooGateway GlooGateway
+}
+
+type GlooGateway struct {
+	EnableK8sGatewayController bool
 }
 
 type Consul struct {
