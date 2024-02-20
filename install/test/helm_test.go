@@ -174,7 +174,12 @@ var _ = Describe("Helm Test", func() {
 			})
 
 			It("should have all resources marked with a namespace", func() {
-				prepareMakefile(namespace, helmValues{})
+				prepareMakefile(namespace, helmValues{
+					valuesArgs: []string{
+						// TODO: disabling gateway2 in helm tests for now until helm merge is finalized
+						"gateway2.controlPlane.enabled=false",
+					},
+				})
 
 				nonNamespacedKinds := sets.NewString(
 					"ClusterRole",
@@ -296,7 +301,12 @@ spec:
 				)
 
 				It("should be able to configure a stats server by default on all relevant deployments", func() {
-					prepareMakefile(namespace, helmValues{})
+					prepareMakefile(namespace, helmValues{
+						valuesArgs: []string{
+							// TODO: disabling gateway2 in helm tests for now until helm merge is finalized
+							"gateway2.controlPlane.enabled=false",
+						},
+					})
 
 					testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
 						return resource.GetKind() == "Deployment"
@@ -341,6 +351,9 @@ spec:
 					// Note note: Update number in final expectation if you add new labels here.
 					prepareMakefile(namespace, helmValues{
 						valuesArgs: []string{
+							// TODO: disabling gateway2 in helm tests for now until helm merge is finalized
+							"gateway2.controlPlane.enabled=false",
+
 							"gloo.deployment.extraGlooLabels.foo=bar",
 							"discovery.deployment.extraDiscoveryLabels.foo=bar",
 							"gatewayProxies.gatewayProxy.podTemplate.extraGatewayProxyLabels.foo=bar",
@@ -672,6 +685,9 @@ spec:
 				It("should be able to expose http-monitoring port on all relevant services", func() {
 					prepareMakefile(namespace, helmValues{
 						valuesArgs: []string{
+							// TODO: disabling gateway2 in helm tests for now until helm merge is finalized
+							"gateway2.controlPlane.enabled=false",
+
 							// to enable accessLogger service
 							"gateway.enabled=true",
 							"accessLogger.enabled=true",
@@ -710,6 +726,9 @@ spec:
 				It("should be able to expose http-monitoring port on all relevant deployments", func() {
 					prepareMakefile(namespace, helmValues{
 						valuesArgs: []string{
+							// TODO: disabling gateway2 in helm tests for now until helm merge is finalized
+							"gateway2.controlPlane.enabled=false",
+
 							// to enable accessLogger deployment
 							"gateway.enabled=true",
 							"accessLogger.enabled=true",
@@ -5875,6 +5894,11 @@ metadata:
 						err = json.Unmarshal(rawDeploy, &deploy)
 						Expect(err).NotTo(HaveOccurred(), "json.Unmarshall error")
 						Expect(deploy.Spec.Template).NotTo(BeNil(), "generated spec template is non-nil")
+
+						// TODO can remove this check once we remove the unused glood deployment
+						if deploy.GetName() == "glood-gloo" {
+							return
+						}
 
 						By(fmt.Sprintf("Validating Deployment %s", deploy.GetName()))
 
