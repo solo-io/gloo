@@ -311,13 +311,6 @@ var _ = Describe("Deployer", func() {
 
 		// make sure the envoy node metadata looks right
 		node := envoyConfig["node"].(map[string]any)
-		Expect(node["metadata"]).NotTo(BeNil())
-		metadata := node["metadata"].(map[string]any)
-		Expect(metadata["gateway"]).NotTo(BeNil())
-		gateway := metadata["gateway"].(map[string]any)
-		Expect(gateway["name"]).To(Equal(gw.Name))
-		Expect(gateway["namespace"]).To(Equal(gw.Namespace))
-
 		Expect(node).To(HaveKeyWithValue("metadata", map[string]any{
 			"gateway": map[string]any{
 				"name":      gw.Name,
