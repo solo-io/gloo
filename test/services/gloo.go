@@ -3,15 +3,14 @@ package services
 import (
 	"context"
 	"fmt"
-
-	v1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
-	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	graphqlv1beta1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
-
 	"net"
 	"net/http"
 	"reflect"
 	"time"
+
+	v1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
+	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	graphqlv1beta1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 
 	"github.com/hashicorp/consul/api"
 
@@ -380,7 +379,7 @@ func constructTestOpts(ctx context.Context, runOptions *RunOptions, settings *gl
 		GlooGateway: bootstrap.GlooGateway{
 			// The K8s Gateway Integration depends on a functioning k8s cluster
 			// These tests are designed to be run in-memory, without a true cluster, so we disable the relevant controller
-			EnableK8sGatewayController: false,
+			EnableK8sGatewayController: true,
 		},
 	}
 }
