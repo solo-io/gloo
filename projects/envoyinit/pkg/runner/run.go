@@ -43,7 +43,6 @@ func RunEnvoy(envoyExecutable, inputPath, outputPath string) {
 	}
 	if err = syscall.Exec(args[0], args, os.Environ()); err != nil {
 		panic(err)
-
 	}
 }
 
