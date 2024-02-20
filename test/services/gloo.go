@@ -379,7 +379,7 @@ func constructTestOpts(ctx context.Context, runOptions *RunOptions, settings *gl
 		Identity:                 singlereplica.Identity(),
 		GlooGateway: bootstrap.GlooGateway{
 			// The K8s Gateway Integration depends on a functioning k8s cluster
-			// These tests are designed to be run in-memory, with a true cluster, so we disable the relevant controller
+			// These tests are designed to be run in-memory, without a true cluster, so we disable the relevant controller
 			EnableK8sGatewayController: false,
 		},
 	}
