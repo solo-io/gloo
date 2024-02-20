@@ -62,7 +62,7 @@ func (g glooGatewayNodeHash) ID(node *envoy_config_core_v3.Node) string {
 	return FallbackNodeCacheKey
 }
 
-func NewAggregateNodeHasher() *aggregateNodeHash {
+func NewAggregateNodeHash() *aggregateNodeHash {
 	return &aggregateNodeHash{
 		classicEdgeNodeHash: NewClassicEdgeNodeHash(),
 		glooGatewayNodeHash: NewGlooGatewayNodeHash(),

@@ -30,7 +30,7 @@ func SnapshotCacheKeys(proxies v1.ProxyList) []string {
 func NewAdsSnapshotCache(ctx context.Context) cache.SnapshotCache {
 	settings := cache.CacheSettings{
 		Ads:    true,
-		Hash:   NewAggregateNodeHasher(),
+		Hash:   NewAggregateNodeHash(),
 		Logger: contextutils.LoggerFrom(ctx),
 	}
 	return cache.NewSnapshotCache(settings)
