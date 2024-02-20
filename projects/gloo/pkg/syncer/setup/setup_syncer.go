@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/constants"
+
 	"github.com/solo-io/gloo/projects/gateway2/controller"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
@@ -1264,6 +1266,14 @@ func constructOpts(ctx context.Context, params constructOptsParams) (bootstrap.O
 func constructGlooGatewayBootstrapOpts() bootstrap.GlooGateway {
 	return bootstrap.GlooGateway{
 		// TODO: This value should be inherited at installation time, to determine if the k8s controller is enabled
-		EnableK8sGatewayController: true,
+		// In the interim, we use an env variable to control the value
+		EnableK8sGatewayController: isEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv),
 	}
+}
+
+// IsEnvTruthy returns true if a given environment variable has a truthy value
+// Examples of truthy values are: "1", "t", "T", "true", "TRUE", "True". Anything else is considered false.
+func isEnvTruthy(envVarName string) bool {
+	envValue, _ := strconv.ParseBool(os.Getenv(envVarName))
+	return envValue
 }
