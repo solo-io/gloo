@@ -1,13 +1,19 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 
-	"github.com/onsi/ginkgo/v2"
+	"github.com/pkg/errors"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	dockclient "github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/archive"
 )
 
 type GetBinaryParams struct {
@@ -41,40 +47,74 @@ func GetBinary(params GetBinaryParams) (string, error) {
 	}
 
 	// finally, try to grab one from docker
-	return dockerDownload(params.TmpDir, params)
+	return extractFileFromDocker(context.Background(), params.TmpDir, params)
 
 }
 
-func dockerDownload(tmpdir string, params GetBinaryParams) (string, error) {
+// extractFileFromDocker by spinning up a container and copying the file out of it
+// once its complete kill the container to leave us in a good state
+func extractFileFromDocker(ctx context.Context, tmpdir string, params GetBinaryParams) (string, error) {
 	log.Printf("Using %s from docker image: %s", params.Filename, params.DockerImage)
+	dir := "."
+	if tmpdir != "" {
+		dir = tmpdir
+	}
+	destination := fmt.Sprintf("%s/%s", dir, params.Filename)
 
-	// use bash to run a docker container and extract the binary file from the running container
-	bash := fmt.Sprintf(`
-set -ex
-CID=$(docker run -d  %s /bin/sh -c exit)
-
-# just print the image sha for repoducibility
-echo "Using %s Image:"
-docker inspect %s -f "{{.RepoDigests}}"
-
-docker cp $CID:%s ./%s
-docker rm -f $CID
-    `, params.DockerImage, params.Filename, params.DockerImage, params.DockerPath, params.Filename)
-	scriptFile := filepath.Join(tmpdir, "get_binary.sh")
-
-	// write out our custom script to the filesystem
-	err := os.WriteFile(scriptFile, []byte(bash), 0755)
+	// extract the envoy binary from a good docker image
+	// to do this spin up an instance, copy out the binary, and then kill the instance
+	cli, err := dockclient.NewClientWithOpts(dockclient.FromEnv)
 	if err != nil {
-		return "", err
+		return "", errors.Wrapf(err, "should be able to create a docker client, check that docker is on your path")
+
 	}
 
-	// run our script to extract a binary from a docker container
-	cmd := exec.Command("bash", scriptFile)
-	cmd.Dir = tmpdir
-	cmd.Stdout = ginkgo.GinkgoWriter
-	cmd.Stderr = ginkgo.GinkgoWriter
-	if err := cmd.Run(); err != nil {
-		return "", err
+	// see https://docs.docker.com/engine/api/sdk/examples/
+	resp, err := cli.ContainerCreate(ctx,
+		&container.Config{
+			Image: params.DockerImage,
+			Cmd:   []string{"/bin/bash", "-c", "exit"},
+		},
+		nil, nil, nil, "",
+	)
+	if err != nil {
+		return "", errors.Wrapf(err, "check to see that the specified image exists", params.DockerImage)
+	}
+	// we have to start the container to be able to copy out the envoy binary
+	err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
+	if err != nil {
+		return "", errors.Wrapf(err, "something may be wrong with your system, inspect the container to see failure")
+	}
+
+	inspectionInfo, err := cli.DistributionInspect(ctx, resp.ID, "")
+	if err != nil {
+		return "", errors.Wrapf(err, "check to see if the image exists and is valid")
+	}
+
+	log.Printf("Using Envoy Image with Digest: %v", inspectionInfo.Descriptor.Digest)
+
+	contentReader, stat, err := cli.CopyFromContainer(ctx, resp.ID, params.DockerPath)
+	if err != nil {
+		return "", errors.Wrapf(err, "check out your container, was it actually a valid path within your docker image?")
+	}
+
+	// https://github.com/docker/cli/blob/b1d27091e50595fecd8a2a4429557b70681395b2/cli/command/container/cp.go#L167C1-L172C3
+	srcInfo := archive.CopyInfo{
+		Path:   envoySrcDir,
+		Exists: true,
+		IsDir:  stat.Mode.IsDir(),
+	}
+
+	err = archive.CopyTo(contentReader, srcInfo, destination)
+	if err != nil {
+		return "", errors.Wrapf(err, "check to see if your permissions are out of whack")
+	}
+
+	// If we dont use force then we may have a race condition and get the following:
+	// 	"Stop the container before attempting removal or force remove"
+	err = cli.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{Force: true})
+	if err != nil {
+		return "", errors.Wrapf(err, "we should only get an error due to permissions or something else beating us to this step")
 	}
 
 	return filepath.Join(tmpdir, params.Filename), nil
