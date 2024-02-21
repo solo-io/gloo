@@ -100,7 +100,7 @@ func extractFileFromDocker(ctx context.Context, tmpdir string, params GetBinaryP
 
 	// https://github.com/docker/cli/blob/b1d27091e50595fecd8a2a4429557b70681395b2/cli/command/container/cp.go#L167C1-L172C3
 	srcInfo := archive.CopyInfo{
-		Path:   envoySrcDir,
+		Path:   params.DockerPath,
 		Exists: true,
 		IsDir:  stat.Mode.IsDir(),
 	}
