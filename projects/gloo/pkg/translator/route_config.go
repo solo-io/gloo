@@ -383,6 +383,7 @@ func (h *httpRouteConfigurationTranslator) runRoutePlugins(
 	out *envoy_config_route_v3.Route) {
 	// run the plugins for RoutePlugin
 	for _, plugin := range h.pluginRegistry.GetRoutePlugins() {
+		contextutils.LoggerFrom(params.Ctx).Errorf("route plugin %T was called for route: %s", plugin, in.GetName())
 		if err := plugin.ProcessRoute(params, in, out); err != nil {
 			// plugins can return errors on missing upstream/upstream group
 			// we only want to report errors that are plugin-specific

@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/constants"
+	"github.com/solo-io/gloo/test/testutils"
 	"helm.sh/helm/v3/pkg/repo"
 
 	"github.com/avast/retry-go"
@@ -184,6 +186,10 @@ func (h *SoloTestHelper) InstallGloo(ctx context.Context, deploymentType string,
 		glooctlCommand = append(glooctlCommand,
 			"-n", h.InstallNamespace,
 			"-f", filepath.Join(h.TestAssetDir, h.HelmChartName+"-"+h.version+".tgz"))
+	}
+	if testutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
+		valuesOverrideFile := filepath.Join(h.RootDir, "projects/gateway2/tests/conformance/test-values.yaml")
+		glooctlCommand = append(glooctlCommand, "--values", valuesOverrideFile)
 	}
 	if h.Verbose {
 		glooctlCommand = append(glooctlCommand, "-v")

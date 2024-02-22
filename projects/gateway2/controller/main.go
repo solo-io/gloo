@@ -70,7 +70,7 @@ func Start(cfg ControllerConfig) {
 		glooTranslator,
 		sanz,
 		cfg.ControlPlane.SnapshotCache,
-		false,
+		true,
 		inputChannels,
 		mgr.GetClient(),
 		mgr.GetScheme(),

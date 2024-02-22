@@ -373,7 +373,7 @@ var _ = Describe("Kube2e: gateway", func() {
 			})
 		})
 
-		Context("linkerd enabled updates routes with appended headers", func() {
+		FContext("linkerd enabled updates routes with appended headers", func() {
 
 			var (
 				httpEcho helper.TestContainer

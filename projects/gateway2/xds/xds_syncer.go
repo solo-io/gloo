@@ -202,7 +202,7 @@ func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) rep
 	defer span.End()
 
 	s.latestSnap = snap
-	logger := log.FromContext(ctx, "pkg", "envoyTranslatorSyncer")
+	logger := log.FromContext(ctx, "pkg", "ggv2EnvoyTranslatorSyncer")
 	snapHash := hashutils.MustHash(snap)
 	logger.Info("begin sync", "snapHash", snapHash,
 		"len(proxies)", len(snap.Proxies), "len(upstreams)", len(snap.Upstreams), "len(endpoints)", len(snap.Endpoints), "len(secrets)", len(snap.Secrets), "len(artifacts)", len(snap.Artifacts), "len(authconfigs)", len(snap.AuthConfigs), "len(ratelimits)", len(snap.Ratelimitconfigs), "len(graphqls)", len(snap.GraphqlApis))

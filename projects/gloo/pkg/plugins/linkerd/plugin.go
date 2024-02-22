@@ -7,6 +7,7 @@ import (
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
+	"github.com/solo-io/go-utils/contextutils"
 
 	usconversions "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 
@@ -39,12 +40,14 @@ func (p *plugin) Name() string {
 }
 
 func (p *plugin) Init(params plugins.InitParams) {
+	contextutils.LoggerFrom(params.Ctx).Errorf("linkerd plugin init enabled: %s", p.enabled)
 	if settings := params.Settings; settings != nil {
 		p.enabled = params.Settings.GetLinkerd()
 	}
 }
 
 func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
+	contextutils.LoggerFrom(params.Ctx).Errorf("linkerd was called with enabled: %s for route: %s", p.enabled, in.Name)
 	if !p.enabled {
 		return nil
 	}

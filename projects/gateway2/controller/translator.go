@@ -10,7 +10,10 @@ import (
 )
 
 func newGlooTranslator(ctx context.Context) translator.Translator {
-	settings := &gloov1.Settings{}
+	settings := &gloov1.Settings{
+		//Linkerd: true, // This fixed linkerd test failure
+
+	}
 	opts := bootstrap.Opts{}
 	return translator.NewDefaultTranslator(settings, registry.GetPluginRegistryFactory(opts)(ctx))
 
