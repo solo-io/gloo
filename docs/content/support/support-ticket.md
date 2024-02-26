@@ -44,7 +44,7 @@ To update an existing ticket, log in to your account, and click **View pending t
   - `VirtualService`
   - `RouteTable`
   - `Upstream`
-- If Gloo Edge is fronted by a Load Balancer, details of this configuration. If not how Gloo Edge is configured to proxy client traffic ?
+- If Gloo Edge is exposed by a Load Balancer, details of this configuration. If not, provide details about how Gloo Edge is configured to proxy client traffic.
 
 <!--
 - Management cluster details, such as whether it also runs workloads
@@ -65,9 +65,8 @@ To update an existing ticket, log in to your account, and click **View pending t
 
 ##### Control plane
 
-  - Capture the output of `glooctl check` command. 
-    Typically, this command will indicate any errors in the control plane components or associated resources.
-    An example of the result is shown below.
+  - Capture the output of the `glooctl check` command. Typically, the command output indicates any errors in the control plane components or associated resources. </br>
+    An example output is shown below.
     ```
     Checking deployments... 1 Errors!
     Checking pods... 2 Errors!
@@ -89,14 +88,14 @@ To update an existing ticket, log in to your account, and click **View pending t
     * proxy check was skipped due to an error in checking deployments
     * xds metrics check was skipped due to an error in checking deployment
     ```
-  - Collect the logs in `debug` log level (is possible) from various control plane components such as `gloo`. Instructions to change the log level can be found in [Debugging control plane]({{< versioned_link_path fromRoot="/operations/debugging_gloo#debug-control-plane" >}}) section.
+  - Collect the logs from various control plane components, such as `gloo` by using the `debug` log level (if possible). To enable the `debug` log level, see [Debugging control plane]({{< versioned_link_path fromRoot="/operations/debugging_gloo#debug-control-plane" >}}).
 
 ##### Data plane
 
-  - Dump of the served xDS configuration. Use the command `glooctl proxy served-config > served-config.yaml` to obtain this configuration.
-  - Configuration from `gateway-proxy` Envoy pod(s). Refer to [Dumping Envoy configuration]({{< versioned_link_path fromRoot="/operations/debugging_gloo#dump-envoy-configuration" >}}) section.
-  - Access log(s) for failed request from `gateway-proxy` pod(s). If Access log is not enabled, refer to [this guide]({{< versioned_link_path fromRoot="/guides/security/access_logging" >}}) to enable it.
-  - If possible, collect the logs from `gateway-proxy` Envoy pod(s) in `debug` log level for the failed request. For more information, see [Viewing Envoy logs]({{< versioned_link_path fromRoot="/operations/debugging_gloo#view-envoy-logs" >}}).
+  - Capture the currently served xDS configuration with the `glooctl proxy served-config > served-config.yaml` command.
+  - Get the configuration that is served in the `gateway-proxy` Envoy pod(s). For more information, see [Dumping Envoy configuration]({{< versioned_link_path fromRoot="/operations/debugging_gloo#dump-envoy-configuration" >}}).
+  - Get the access log(s) for failed request from the `gateway-proxy` pod(s). If Access logging is not enabled, refer to [this guide]({{< versioned_link_path fromRoot="/guides/security/access_logging" >}}) to enable it.
+  - If possible, collect the logs from the `gateway-proxy` Envoy pod(s) in `debug` log level for the failed request. For more information, see [Viewing Envoy logs]({{< versioned_link_path fromRoot="/operations/debugging_gloo#view-envoy-logs" >}}).
 
 <!--
 - **Gloo Mesh and Gloo Mesh Gateway**: 
@@ -120,7 +119,7 @@ Istio:
 ## Priority levels {#priority-levels}
 
 {{% notice note %}}
-For the latest list of priority levels and descriptions please visit the [Technical Support Policy](https://legal.solo.io/#technical-support-policy).
+For the latest list of priority levels and descriptions, see the [Technical Support Policy](https://legal.solo.io/#technical-support-policy).
 {{% /notice %}}
 
 |Priority level|Description|
@@ -133,7 +132,7 @@ For the latest list of priority levels and descriptions please visit the [Techni
 ## Targeted times for initial response {#response-time}
 
 {{% notice note %}}
-For the latest list of targeted times for the initial response please visit the [Technical Support Policy](https://legal.solo.io/#technical-support-policy).
+For the latest list of targeted times for the initial response, see the [Technical Support Policy](https://legal.solo.io/#technical-support-policy).
 {{% /notice %}}
 
 When you contact Solo Support, you can choose a priority for your request:
