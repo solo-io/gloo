@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"context"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -32,4 +33,21 @@ type RoutePlugin interface {
 		routeCtx *RouteContext,
 		outputRoute *v1.Route,
 	) error
+}
+
+type NamespaceContext struct {
+	// this is the namespace where the gateway lives
+	Namespace string
+}
+
+type NamespaceOutputs struct {
+	Outputs []client.Object
+}
+
+type NamespacePlugin interface {
+	// called for each Namespace containing a gateway
+	ApplyNamespacePlugin(
+		ctx context.Context,
+		namespaceCtx *NamespaceContext,
+	) (*NamespaceOutputs, error)
 }

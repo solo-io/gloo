@@ -8,28 +8,48 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/redirect"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/routeoptions"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/urlrewrite"
+	plugins2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type PluginRegistry struct {
-	routePlugins []plugins.RoutePlugin
+type PluginRegistry interface {
+
 }
 
-func (h *PluginRegistry) GetRoutePlugins() []plugins.RoutePlugin {
+func (h *pluginRegistry) GetRoutePlugins() []plugins.RoutePlugin {
 	return h.routePlugins
 }
 
-func NewPluginRegistry(queries query.GatewayQueries) *PluginRegistry {
-	var routePlugins []plugins.RoutePlugin
+type pluginRegistry struct {
+	routePlugins []plugins.RoutePlugin
+	namespacePlugins []plugins.NamespacePlugin
+}
 
-	allPlugins := buildPlugins(queries)
+func (h *pluginRegistry) GetRoutePlugins() []plugins.RoutePlugin {
+	return h.routePlugins
+}
+
+func NewPluginRegistry(queries query.GatewayQueries, cli client.Client, scheme *runtime.Scheme, makeExtensionPlugins func() []plugins2.Plugin) PluginRegistry {
+	var (
+		routePlugins []plugins.RoutePlugin
+		namespacePlugins []plugins.NamespacePlugin
+	)
+
+
+	allPlugins := append( buildPlugins(queries),
 
 	for _, plugin := range allPlugins {
 		if routePlugin, ok := plugin.(plugins.RoutePlugin); ok {
 			routePlugins = append(routePlugins, routePlugin)
 		}
+		if namespacePlugin, ok := plugin.(plugins.NamespacePlugin); ok {
+			namespacePlugins = append(namespacePlugins, namespacePlugin)
+		}
 	}
 	return &PluginRegistry{
-		routePlugins,
+		routePlugins: routePlugins,
+		namespacePlugins: namespacePlugins,
 	}
 }
 

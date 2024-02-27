@@ -72,6 +72,7 @@ func Start(cfg ControllerConfig) {
 		inputChannels,
 		mgr.GetClient(),
 		mgr.GetScheme(),
+		makeExtensionPlugins,
 	)
 	if err := mgr.Add(xdsSyncer); err != nil {
 		setupLog.Error(err, "unable to add xdsSyncer runnable")

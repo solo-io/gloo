@@ -74,19 +74,21 @@ func init() {
 }
 
 type XdsSyncer struct {
-	translator     translator.Translator
-	sanitizer      sanitizer.XdsSanitizer
-	xdsCache       envoycache.SnapshotCache
-	controllerName string
+	translator       translator.Translator
+	sanitizer        sanitizer.XdsSanitizer
+	xdsCache         envoycache.SnapshotCache
+	controllerName   string
+	extensionPlugins []plugins.Plugin
 
 	// used for debugging purposes only
 	latestSnap *v1snap.ApiSnapshot
 
 	xdsGarbageCollection bool
 
-	inputs *XdsInputChannels
-	cli    client.Client
-	scheme *runtime.Scheme
+	inputs               *XdsInputChannels
+	cli                  client.Client
+	scheme               *runtime.Scheme
+	makeExtensionPlugins func() []plugins.Plugin
 }
 
 type XdsInputChannels struct {
@@ -124,6 +126,7 @@ func NewXdsSyncer(
 	inputs *XdsInputChannels,
 	cli client.Client,
 	scheme *runtime.Scheme,
+	makeExtensionPlugins func() []plugins.Plugin,
 ) *XdsSyncer {
 	return &XdsSyncer{
 		controllerName:       controllerName,
@@ -134,6 +137,7 @@ func NewXdsSyncer(
 		inputs:               inputs,
 		cli:                  cli,
 		scheme:               scheme,
+		makeExtensionPlugins: makeExtensionPlugins,
 	}
 }
 
@@ -157,7 +161,7 @@ func (s *XdsSyncer) Start(
 			return
 		}
 		queries := query.NewData(s.cli, s.scheme)
-		pluginRegistry := registry.NewPluginRegistry(queries)
+		pluginRegistry := registry.NewPluginRegistry(queries, s.cli, s.scheme, s.makeExtensionPlugins)
 		t := gloot.NewTranslator(*pluginRegistry)
 		proxies := gloo_solo_io.ProxyList{}
 		rm := reports.NewReportMap()
