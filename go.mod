@@ -66,7 +66,7 @@ require (
 	github.com/spf13/viper v1.8.1
 	go.opencensus.io v0.24.0
 	go.uber.org/goleak v1.2.1
-	go.uber.org/multierr v1.11.0
+	go.uber.org/multierr v1.6.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.17.0
 	golang.org/x/sync v0.3.0
