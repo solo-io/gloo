@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
@@ -29,6 +30,7 @@ var _ = Describe("Uninstall", func() {
 		crdName                = "authconfigs.enterprise.gloo.solo.io"
 		ctx                    context.Context
 		cancel                 context.CancelFunc
+		timeout                time.Duration
 
 		testCRD = `
 apiVersion: apiextensions.k8s.io/v1beta1
@@ -54,6 +56,7 @@ spec:
 	)
 
 	BeforeEach(func() {
+		timeout = 5 * time.Minute
 		ctrl = gomock.NewController(GinkgoT())
 
 		ctx, cancel = context.WithCancel(context.Background())
@@ -72,7 +75,7 @@ spec:
 	When("a Gloo release object exists", func() {
 
 		BeforeEach(func() {
-			mockHelmClient.EXPECT().NewUninstall(defaults.GlooSystem).Return(mockHelmUninstallation, nil)
+			mockHelmClient.EXPECT().NewUninstallWithTimeout(defaults.GlooSystem, timeout).Return(mockHelmUninstallation, nil)
 			mockHelmClient.EXPECT().ReleaseExists(defaults.GlooSystem, constants.GlooReleaseName).Return(true, nil)
 			mockHelmClient.EXPECT().ReleaseList(defaults.GlooSystem).Return(mockReleaseListRunner, nil).MaxTimes(1)
 			mockReleaseListRunner.EXPECT().Run().Return([]*release.Release{{
@@ -92,6 +95,7 @@ spec:
 			err := uninstaller.Uninstall(ctx, &options.HelmUninstall{
 				Namespace:       defaults.GlooSystem,
 				HelmReleaseName: constants.GlooReleaseName,
+				Timeout:         timeout,
 			}, install.Gloo)
 
 			Expect(err).NotTo(HaveOccurred())
@@ -105,6 +109,7 @@ spec:
 				Namespace:       defaults.GlooSystem,
 				HelmReleaseName: constants.GlooReleaseName,
 				DeleteCrds:      true,
+				Timeout:         timeout,
 			}, install.Gloo)
 			Expect(mockKubectl.Next).To(Equal(len(mockKubectl.Expected)))
 			Expect(err).NotTo(HaveOccurred())
@@ -120,6 +125,7 @@ spec:
 				Namespace:       defaults.GlooSystem,
 				HelmReleaseName: constants.GlooReleaseName,
 				DeleteNamespace: true,
+				Timeout:         timeout,
 			}, install.Gloo)
 			Expect(mockKubectl.Next).To(Equal(len(mockKubectl.Expected)))
 			Expect(err).NotTo(HaveOccurred())
@@ -136,6 +142,7 @@ spec:
 				Namespace:       defaults.GlooSystem,
 				HelmReleaseName: constants.GlooReleaseName,
 				DeleteAll:       true,
+				Timeout:         timeout,
 			}, install.Gloo)
 			Expect(mockKubectl.Next).To(Equal(len(mockKubectl.Expected)))
 			Expect(err).NotTo(HaveOccurred())
@@ -172,6 +179,7 @@ spec:
 			err := uninstaller.Uninstall(ctx, &options.HelmUninstall{
 				Namespace:       defaults.GlooSystem,
 				HelmReleaseName: constants.GlooReleaseName,
+				Timeout:         timeout,
 			}, install.Gloo)
 
 			Expect(err).NotTo(HaveOccurred())
@@ -185,6 +193,7 @@ spec:
 				Namespace:       defaults.GlooSystem,
 				HelmReleaseName: constants.GlooReleaseName,
 				DeleteCrds:      true,
+				Timeout:         timeout,
 			}, install.Gloo)
 			Expect(mockKubectl.Next).To(Equal(len(mockKubectl.Expected)))
 			Expect(err).NotTo(HaveOccurred())
@@ -198,6 +207,7 @@ spec:
 				Namespace:       defaults.GlooSystem,
 				HelmReleaseName: constants.GlooReleaseName,
 				DeleteNamespace: true,
+				Timeout:         timeout,
 			}, install.Gloo)
 			Expect(mockKubectl.Next).To(Equal(len(mockKubectl.Expected)))
 			Expect(err).NotTo(HaveOccurred())
@@ -214,6 +224,7 @@ spec:
 				Namespace:       defaults.GlooSystem,
 				HelmReleaseName: constants.GlooReleaseName,
 				DeleteAll:       true,
+				Timeout:         timeout,
 			}, install.Gloo)
 			Expect(mockKubectl.Next).To(Equal(len(mockKubectl.Expected)))
 			Expect(err).NotTo(HaveOccurred())

@@ -6,6 +6,7 @@ package mocks
 
 import (
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 	install "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/install"
@@ -67,6 +68,22 @@ func (mr *MockHelmClientMockRecorder) NewInstall(arg0, arg1, arg2, arg3 interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewInstall", reflect.TypeOf((*MockHelmClient)(nil).NewInstall), arg0, arg1, arg2, arg3)
 }
 
+// NewInstallWithTimeout mocks base method.
+func (m *MockHelmClient) NewInstallWithTimeout(arg0, arg1 string, arg2 bool, arg3 string, arg4 time.Duration) (install.HelmInstallation, *cli.EnvSettings, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewInstallWithTimeout", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].(install.HelmInstallation)
+	ret1, _ := ret[1].(*cli.EnvSettings)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// NewInstallWithTimeout indicates an expected call of NewInstallWithTimeout.
+func (mr *MockHelmClientMockRecorder) NewInstallWithTimeout(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewInstallWithTimeout", reflect.TypeOf((*MockHelmClient)(nil).NewInstallWithTimeout), arg0, arg1, arg2, arg3, arg4)
+}
+
 // NewUninstall mocks base method.
 func (m *MockHelmClient) NewUninstall(arg0 string) (install.HelmUninstallation, error) {
 	m.ctrl.T.Helper()
@@ -80,6 +97,21 @@ func (m *MockHelmClient) NewUninstall(arg0 string) (install.HelmUninstallation, 
 func (mr *MockHelmClientMockRecorder) NewUninstall(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewUninstall", reflect.TypeOf((*MockHelmClient)(nil).NewUninstall), arg0)
+}
+
+// NewUninstallWithTimeout mocks base method.
+func (m *MockHelmClient) NewUninstallWithTimeout(arg0 string, arg1 time.Duration) (install.HelmUninstallation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewUninstallWithTimeout", arg0, arg1)
+	ret0, _ := ret[0].(install.HelmUninstallation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewUninstallWithTimeout indicates an expected call of NewUninstallWithTimeout.
+func (mr *MockHelmClientMockRecorder) NewUninstallWithTimeout(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewUninstallWithTimeout", reflect.TypeOf((*MockHelmClient)(nil).NewUninstallWithTimeout), arg0, arg1)
 }
 
 // ReleaseExists mocks base method.

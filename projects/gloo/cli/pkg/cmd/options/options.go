@@ -52,6 +52,7 @@ type HelmInstall struct {
 	HelmChartOverride       string
 	HelmChartValueFileNames []string
 	HelmReleaseName         string
+	Timeout                 time.Duration
 }
 
 type Install struct {
@@ -79,6 +80,7 @@ type HelmUninstall struct {
 	DeleteCrds      bool
 	DeleteNamespace bool
 	DeleteAll       bool
+	Timeout         time.Duration
 }
 
 type Uninstall struct {

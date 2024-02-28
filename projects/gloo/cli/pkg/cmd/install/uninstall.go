@@ -71,7 +71,7 @@ func (u *uninstaller) runUninstall(ctx context.Context, cliArgs *options.HelmUni
 	if releaseExists {
 
 		// If the release object exists, then we want to delegate the uninstall to the Helm libraries.
-		uninstallAction, err := u.helmClient.NewUninstall(namespace)
+		uninstallAction, err := u.helmClient.NewUninstallWithTimeout(namespace, cliArgs.Timeout)
 		if err != nil {
 			return err
 		}

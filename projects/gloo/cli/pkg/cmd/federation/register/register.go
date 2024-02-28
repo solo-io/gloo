@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	linkedversion "github.com/solo-io/gloo/pkg/version"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/install"
@@ -15,7 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func installCrdsToRemote(context string) error {
+func installCrdsToRemote(context string, timeout time.Duration) error {
 	helmClient := install.DefaultHelmClient()
 
 	chartObj, err := helmClient.DownloadChart("https://storage.googleapis.com/solo-public-helm/charts/gloo-" + linkedversion.Version + ".tgz")
@@ -25,7 +26,7 @@ func installCrdsToRemote(context string) error {
 	}
 	chartObj.Templates = nil // explicitly remove teamplates, since we only care about installing CRDs
 
-	helmInstall, _, err := helmClient.NewInstall("default", "gloo-automatic-crd-application", false, context)
+	helmInstall, _, err := helmClient.NewInstallWithTimeout("default", "gloo-automatic-crd-application", false, context, timeout)
 	if err != nil {
 		return err
 	}
@@ -58,7 +59,7 @@ func Register(opts *options.Options) error {
 	}
 	if serverVersion == nil {
 		fmt.Printf("No `gloo` install detected in namespace %s on remote context %s. Installing OSS CRDs.\n", registerOpts.RemoteNamespace, registerOpts.RemoteContext)
-		installCrdsToRemote(registerOpts.RemoteContext)
+		installCrdsToRemote(registerOpts.RemoteContext, opts.Install.Gloo.Timeout)
 	}
 
 	clusterRegisterOpts := register.RegistrationOptions{

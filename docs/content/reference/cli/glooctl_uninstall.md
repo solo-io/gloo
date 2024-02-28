@@ -19,6 +19,7 @@ glooctl uninstall [flags]
   -h, --help                  help for uninstall
   -n, --namespace string      namespace in which Gloo is installed (default "gloo-system")
       --release-name string   helm release name (default "gloo")
+      --timeout duration      timeout to uninstall gloo. Defaults to 5 minutes (default 5m0s)
   -v, --verbose               If true, output from kubectl commands will print to stdout/stderr
 ```
 

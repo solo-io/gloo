@@ -3,6 +3,7 @@ package install_test
 import (
 	"bytes"
 	"context"
+	"time"
 
 	"k8s.io/client-go/kubernetes/fake"
 
@@ -126,7 +127,7 @@ rules:
 			Return(helmRelease, nil)
 
 		mockHelmClient.EXPECT().
-			NewInstall(helmInstallConfig.Namespace, helmInstallConfig.HelmReleaseName, installConfig.DryRun, "").
+			NewInstallWithTimeout(helmInstallConfig.Namespace, helmInstallConfig.HelmReleaseName, installConfig.DryRun, "", installConfig.Gloo.Timeout).
 			Return(mockHelmInstallation, helmEnv, nil)
 
 		mockHelmClient.EXPECT().
@@ -187,6 +188,26 @@ rules:
 			glooEnterpriseChartUri)
 	})
 
+	It("installs with the given timeout", func() {
+		installWithTimeout := func(mode install.Mode, expectedValues map[string]interface{}, expectedChartUri string, timeout time.Duration) {
+			installConfig := &options.Install{
+				Gloo: options.HelmInstall{
+					Namespace:       defaults.GlooSystem,
+					HelmReleaseName: constants.GlooReleaseName,
+					CreateNamespace: true,
+					Timeout:         timeout,
+				},
+				Version: "test",
+			}
+
+			installWithConfig(install.Gloo, map[string]interface{}{}, glooOsChartUri, installConfig)
+		}
+
+		installWithTimeout(install.Gloo,
+			map[string]interface{}{},
+			glooOsChartUri, 10*time.Minute)
+	})
+
 	It("installs as enterprise cleanly if passed enterprise helmchart override", func() {
 
 		installConfig := &options.Install{
@@ -241,7 +262,7 @@ rules:
 			Return(helmRelease, nil)
 
 		mockHelmClient.EXPECT().
-			NewInstall(defaults.GlooSystem, installConfig.Gloo.HelmReleaseName, installConfig.DryRun, "").
+			NewInstallWithTimeout(defaults.GlooSystem, installConfig.Gloo.HelmReleaseName, installConfig.DryRun, "", installConfig.Gloo.Timeout).
 			Return(mockHelmInstallation, helmEnv, nil)
 
 		mockHelmClient.EXPECT().

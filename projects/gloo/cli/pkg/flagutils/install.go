@@ -1,6 +1,8 @@
 package flagutils
 
 import (
+	"time"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -15,6 +17,7 @@ func AddGlooInstallFlags(set *pflag.FlagSet, install *options.Install) {
 	set.StringVar(&install.Version, "version", "", "version to install (e.g. 1.4.0, defaults to latest)")
 	set.BoolVar(&install.Gloo.CreateNamespace, "create-namespace", true, "Create the namespace to install gloo into")
 	set.StringVarP(&install.Gloo.Namespace, "namespace", "n", defaults.GlooSystem, "namespace to install gloo into")
+	set.DurationVar(&install.Gloo.Timeout, "timeout", 5*time.Minute, "timeout to install gloo. Defaults to 5 minutes")
 }
 
 func AddEnterpriseInstallFlags(set *pflag.FlagSet, install *options.Install) {

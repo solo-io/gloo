@@ -3,6 +3,7 @@ package install
 import (
 	"io"
 	"os"
+	"time"
 
 	"github.com/solo-io/gloo/pkg/cliutil"
 	"helm.sh/helm/v3/pkg/action"
@@ -28,11 +29,17 @@ func setVerbose(b bool) {
 
 // This interface implements the Helm CLI actions. The implementation relies on the Helm 3 libraries.
 type HelmClient interface {
-	// Prepare an installation object that can then be .Run() with a chart object
+	// Prepare an installation object with a default timeout of 5 minutes that can then be .Run() with a chart object
 	NewInstall(namespace, releaseName string, dryRun bool, context string) (HelmInstallation, *cli.EnvSettings, error)
 
-	// Prepare an un-installation object that can then be .Run() with a release name
+	// Prepare an installation object with a timeout that can then be .Run() with a chart object
+	NewInstallWithTimeout(namespace, releaseName string, dryRun bool, context string, timeout time.Duration) (HelmInstallation, *cli.EnvSettings, error)
+
+	// Prepare an un-installation object with a default timeout of 5 minutes that can then be .Run() with a release name
 	NewUninstall(namespace string) (HelmUninstallation, error)
+
+	// Prepare an un-installation object with a timeout that can then be .Run() with a release name
+	NewUninstallWithTimeout(namespace string, timeout time.Duration) (HelmUninstallation, error)
 
 	// List the already-existing releases in the given namespace
 	ReleaseList(namespace string) (HelmReleaseListRunner, error)
@@ -78,6 +85,10 @@ type defaultHelmClient struct {
 }
 
 func (d *defaultHelmClient) NewInstall(namespace, releaseName string, dryRun bool, context string) (HelmInstallation, *cli.EnvSettings, error) {
+	return d.NewInstallWithTimeout(namespace, releaseName, dryRun, context, 5*time.Minute)
+}
+
+func (d *defaultHelmClient) NewInstallWithTimeout(namespace, releaseName string, dryRun bool, context string, timeout time.Duration) (HelmInstallation, *cli.EnvSettings, error) {
 	actionConfig, settings, err := newActionConfig(namespace, context)
 	if err != nil {
 		return nil, nil, err
@@ -88,6 +99,7 @@ func (d *defaultHelmClient) NewInstall(namespace, releaseName string, dryRun boo
 	client.ReleaseName = releaseName
 	client.Namespace = namespace
 	client.DryRun = dryRun
+	client.Timeout = timeout
 
 	// If this is a dry run, we don't want to query the API server.
 	// In the future we can make this configurable to emulate the `helm template --validate` behavior.
@@ -97,11 +109,17 @@ func (d *defaultHelmClient) NewInstall(namespace, releaseName string, dryRun boo
 }
 
 func (d *defaultHelmClient) NewUninstall(namespace string) (HelmUninstallation, error) {
+	return d.NewUninstallWithTimeout(namespace, 5*time.Minute)
+}
+
+func (d *defaultHelmClient) NewUninstallWithTimeout(namespace string, timeout time.Duration) (HelmUninstallation, error) {
 	actionConfig, _, err := newActionConfig(namespace, "")
 	if err != nil {
 		return nil, err
 	}
-	return action.NewUninstall(actionConfig), nil
+	client := action.NewUninstall(actionConfig)
+	client.Timeout = timeout
+	return client, nil
 }
 
 type helmReleaseListRunner struct {

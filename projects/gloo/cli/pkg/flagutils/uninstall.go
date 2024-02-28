@@ -1,6 +1,8 @@
 package flagutils
 
 import (
+	"time"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -13,4 +15,5 @@ func AddGlooUninstallFlags(set *pflag.FlagSet, opts *options.HelmUninstall) {
 	set.BoolVar(&opts.DeleteCrds, "delete-crds", false, "Delete all gloo crds (all custom gloo objects will be deleted)")
 	set.BoolVar(&opts.DeleteNamespace, "delete-namespace", false, "Delete the namespace (all objects written to this namespace will be deleted)")
 	set.BoolVar(&opts.DeleteAll, "all", false, "Deletes all gloo resources, including the namespace, crds, and cluster role")
+	set.DurationVar(&opts.Timeout, "timeout", 5*time.Minute, "timeout to uninstall gloo. Defaults to 5 minutes")
 }
