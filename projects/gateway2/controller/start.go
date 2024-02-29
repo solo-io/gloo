@@ -15,8 +15,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
@@ -49,13 +47,13 @@ func Start(ctx context.Context, cfg StartConfig) error {
 	ctrl.SetLogger(zap.New(opts...))
 
 	mgrOpts := ctrl.Options{
-		Scheme:           scheme.NewScheme(),
-		PprofBindAddress: "127.0.0.1:9099",
-		// if you change the port here, also change the port "health" in the helmchart.
-		HealthProbeBindAddress: ":9093",
-		Metrics: metricsserver.Options{
-			BindAddress: ":9092",
-		},
+		Scheme: scheme.NewScheme(),
+		// PprofBindAddress: "127.0.0.1:9099",
+		// // if you change the port here, also change the port "health" in the helmchart.
+		// HealthProbeBindAddress: ":9093",
+		// Metrics: metricsserver.Options{
+		// 	BindAddress: ":9092",
+		// },
 	}
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), mgrOpts)
 	if err != nil {
@@ -64,7 +62,7 @@ func Start(ctx context.Context, cfg StartConfig) error {
 	}
 
 	// TODO: replace this with something that checks that we have xds snapshot ready (or that we don't need one).
-	mgr.AddReadyzCheck("ready-ping", healthz.Ping)
+	// mgr.AddReadyzCheck("ready-ping", healthz.Ping)
 
 	glooTranslator := newGlooTranslator(ctx)
 	var sanz sanitizer.XdsSanitizers
