@@ -259,7 +259,8 @@ var _ = Describe("Kube2e: helm", func() {
 			additionalInstallArgs = []string{
 				// Setting `settings.disableKubernetesDestinations` && `global.glooRbac.namespaced` leads to panic in gloo
 				// Ref: https://github.com/solo-io/gloo/issues/8801
-				"--set", "global.glooRbac.namespaced=false",
+				// "--set", "global.glooRbac.namespaced=false",
+				"--set", "settings.watchNamespaces=gloo-system",
 			}
 			additionalInstallArgs = append(additionalInstallArgs, valuesForProductionRecommendations...)
 
