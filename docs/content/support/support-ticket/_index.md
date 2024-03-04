@@ -32,7 +32,7 @@ To update an existing ticket, log in to your account, and click **View pending t
 ## Priority levels {#priority-levels}
 
 {{% notice note %}}
-For the latest list of priority levels and descriptions please visit the [Technical Support Policy](https://legal.solo.io/#technical-support-policy).
+For the latest list of priority levels and descriptions, see the [Technical Support Policy](https://legal.solo.io/#technical-support-policy).
 {{% /notice %}}
 
 |Priority level|Description|
@@ -45,7 +45,7 @@ For the latest list of priority levels and descriptions please visit the [Techni
 ## Targeted times for initial response {#response-time}
 
 {{% notice note %}}
-For the latest list of targeted times for the initial response please visit the [Technical Support Policy](https://legal.solo.io/#technical-support-policy).
+For the latest list of targeted times for the initial response, see the [Technical Support Policy](https://legal.solo.io/#technical-support-policy).
 {{% /notice %}}
 
 When you contact Solo Support, you can choose a priority for your request:
