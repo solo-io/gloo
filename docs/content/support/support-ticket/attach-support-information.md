@@ -91,8 +91,8 @@ weight: 930
 ##### Control plane
 
 1. Capture the output of `glooctl check` command.
-    <br>Typically, this command will indicate any errors in the control plane components or associated resources.
-    <br>An example of the result is shown below.
+    <br>Typically, the command output indicates any errors in the control plane components or associated resources.
+    <br>An example output is shown below.
     ```
     Checking deployments... 1 Errors!
     Checking pods... 2 Errors!
@@ -114,9 +114,8 @@ weight: 930
     * proxy check was skipped due to an error in checking deployments
     * xds metrics check was skipped due to an error in checking deployment
     ```
-2. Collect the logs in `debug` log level (if this is possible) from various control plane components such as `gloo`. 
-   <br>Instructions to change the log level can be found in [Debugging control plane]({{< versioned_link_path fromRoot="/operations/debugging_gloo#debug-control-plane" >}}) section.
-
+2. Collect the logs from various control plane components, such as `gloo` by using the `debug` log level (if possible). 
+    <br>To enable the `debug` log level, see [Debugging control plane]({{< versioned_link_path fromRoot="/operations/debugging_gloo#debug-control-plane" >}}).
     <br><br>Follow the steps below for `gloo` controller pod.
     1. Set the log level to `debug`.
         ```shell
@@ -137,25 +136,25 @@ weight: 930
 
 ##### Data plane
 
-1. Dump the served xDS configuration to the proxy pod(s).
+1. Capture the currently served xDS configuration.
    ```shell
    glooctl proxy served-config -n <controlplaneNamespace> > served-config.yaml
    ```
-2. Configuration from `gateway-proxy` Envoy pod(s). 
-   <br>Refer to [Dumping Envoy configuration]({{< versioned_link_path fromRoot="/operations/debugging_gloo#dump-envoy-configuration" >}}) section for more details.
+2. Get the configuration that is served in the `gateway-proxy` Envoy pod(s). 
+   <br>For more information, see [Dumping Envoy configuration]({{< versioned_link_path fromRoot="/operations/debugging_gloo#dump-envoy-configuration" >}}) section for more details.
    ```shell
    kubectl port-forward deploy/gateway-proxy -n <proxyNamespace> 19000:19000 > /dev/null 2>&1 &
    PID=$!
    curl -s localhost:19000/config_dump\?include_eds > gateway-config.json
    kill -9 $PID
    ```
-3. Access log(s) for failed request from `gateway-proxy` pod(s). If Access log is not enabled, refer to [this guide]({{< versioned_link_path fromRoot="/guides/security/access_logging" >}}) to enable it.
-4. If possible, collect the logs from `gateway-proxy` Envoy pod(s) in `debug` log level for the failed request.
+3. Get the access log(s) for failed request from the `gateway-proxy` pod(s). If Access logging is not enabled, refer to [this guide]({{< versioned_link_path fromRoot="/guides/security/access_logging" >}}) to enable it.
+4. If possible, collect the logs from the `gateway-proxy` Envoy pod(s) in `debug` log level for the failed request.
    {{% notice note %}}
    Setting the log level `debug` can get very noisy. Preferred will be to set the log level on a set of log components as described in the [docs]({{< versioned_link_path fromRoot="/operations/debugging_gloo#view-envoy-logs" >}}).
    {{% /notice %}}
    For more information, see [Viewing Envoy logs]({{< versioned_link_path fromRoot="/operations/debugging_gloo#view-envoy-logs" >}}).
-5. Stats from the proxy.
+5. Gather the stats from the proxy pod(s).
    ```shell
    glooctl proxy stats > proxy-stats.log
    ```
