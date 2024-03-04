@@ -19,7 +19,7 @@ Solo customers can submit new requests and update existing ones by using the [Su
 2. Log in, and ensure your phone number is added to your profile. This is an important step, as it allows our system to recognize your account when you call the Support Hotline for urgent incidents.
 3. Click **Create a ticket**.
 4. Fill out the form. Start by entering any email addresses that you want updates to be sent to while Solo Support works on the ticket. Add a subject related to the issue that you are reporting.
-5. Add details for the issue in the **description** field. Refer to [Details to include in your support request](#ticket-details) to help Solo Support better understand your request and provide timely and accurate assistance. 
+5. Add details for the issue in the **description** field. Refer to [Details to include in your support request](attach-support-information) to help Solo Support better understand your request and provide timely and accurate assistance. 
 6. Enter the priority for this request. To learn more about priority levels and how to assign the right priority level to your ticket, see [Priority levels](#priority-levels). 
 7. Optional: Enter a GitHub issue and upload any attachments. 
    {{< notice note >}}
@@ -28,94 +28,6 @@ Solo customers can submit new requests and update existing ones by using the [Su
 8. Submit your request. A Solo Support Engineer will be in touch following the [Targeted times for initial response](#response-time).
 
 To update an existing ticket, log in to your account, and click **View pending tickets**. You see a new page where you can select the ticket you want to update and add comments to.
-
-## Details to include in your support request {#ticket-details}
-
-### Environment
-- Versions for Gloo Edge and Kubernetes
-- Infrastructure provider, such as AWS or on-premises VMs
-- Production, development, or other environment details
-
-### Setup
-- Installation method, such as Helm or `glooctl`
-- Configuration used for installation, such as Helm values
-- Details of the following Gloo Edge resources,
-  - `Gateway`
-  - `VirtualService`
-  - `RouteTable`
-  - `Upstream`
-- If Gloo Edge is fronted by a Load Balancer, details of this configuration. If not how Gloo Edge is configured to proxy client traffic ?
-
-<!--
-- Management cluster details, such as whether it also runs workloads
-- Number of workload clusters
-- East-west gateway details and namespace, if you use Gloo Gateway with Gloo Mesh or your own Istio installation
-- Federated trust details, such as self-signed certificates or certificates provided by a certificate management provider
-- Snapshot of your Gloo management-agent relay connection
--->
-
-### Issue
-- Description of the issue
-- If the issue is reproducible, steps to reproduce the issue
-- Severity of the issue, such as urgent, high, normal, or low
-- Impact of the issue, such as blocking an update, blocking a demo, data loss or the system is down
-- Attach any relevant configuration/YAML files related to the issue, such as `Gateway`, `VirtualService`, `RouteTable` or `Upstream` resources
-
-### Product-specific details
-
-##### Control plane
-
-  - Capture the output of `glooctl check` command. 
-    Typically, this command will indicate any errors in the control plane components or associated resources.
-    An example of the result is shown below.
-    ```
-    Checking deployments... 1 Errors!
-    Checking pods... 2 Errors!
-    Checking upstreams... OK
-    Checking upstream groups... OK
-    Checking auth configs... OK
-    Checking rate limit configs... OK
-    Checking VirtualHostOptions... OK
-    Checking RouteOptions... OK
-    Checking secrets... OK
-    Checking virtual services... OK
-    Checking gateways... OK
-    Checking proxies... Skipping due to an error in checking deployments
-    Skipping due to an error in checking deployments
-    Error: 5 errors occurred:
-    * Deployment gloo in namespace gloo-system is not available! Message: Deployment does not have minimum availability.
-    * Pod gloo-8ddc4ff4c-g4mnf in namespace gloo-system is not ready! Message: containers with unready status: [gloo]
-    * Not all containers in pod gloo-8ddc4ff4c-g4mnf in namespace gloo-system are ready! Message: containers with unready status: [gloo]
-    * proxy check was skipped due to an error in checking deployments
-    * xds metrics check was skipped due to an error in checking deployment
-    ```
-  - Collect the logs in `debug` log level (is possible) from various control plane components such as `gloo`. Instructions to change the log level can be found in [Debugging control plane]({{< versioned_link_path fromRoot="/operations/debugging_gloo#debug-control-plane" >}}) section.
-
-##### Data plane
-
-  - Dump of the served xDS configuration. Use the command `glooctl proxy served-config > served-config.yaml` to obtain this configuration.
-  - Configuration from `gateway-proxy` Envoy pod(s). Refer to [Dumping Envoy configuration]({{< versioned_link_path fromRoot="/operations/debugging_gloo#dump-envoy-configuration" >}}) section.
-  - Access log(s) for failed request from `gateway-proxy` pod(s). If Access log is not enabled, refer to [this guide]({{< versioned_link_path fromRoot="/guides/security/access_logging" >}}) to enable it.
-  - If possible, collect the logs from `gateway-proxy` Envoy pod(s) in `debug` log level for the failed request. For more information, see [Viewing Envoy logs]({{< versioned_link_path fromRoot="/operations/debugging_gloo#view-envoy-logs" >}}).
-
-<!--
-- **Gloo Mesh and Gloo Mesh Gateway**: 
-  - Input and output snapshots
-  - Control plane issues:
-    - Logs, debug mode if possible, from the management server and relevant agent pods
-  - Data plane issues:
-    - Config_dump(s) from relevant Envoy(s)
-    - Envoy access log(s) for failing requests from relevant Envoy(s)
-    - If possible, debug logs from relevant Envoy(s) during a failing request
-
-
-Istio:
-- Installation method: 
-  - Gloo IstioLifecycleManager and GatewayLifecycleManager resources
-  - Helm
-  - Kustomize
-  - IstioOperator
--->
 
 ## Priority levels {#priority-levels}
 
