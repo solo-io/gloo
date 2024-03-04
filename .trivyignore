@@ -7,3 +7,11 @@ CVE-2022-1996
 # This CVE is not exploitable in Gloo Edge, and a fix is not yet available in the library
 # https://github.com/solo-io/solo-projects/issues/4016
 CVE-2022-37315
+
+# These CVEs only impacts install of Gloo-Edge from Glooctl CLI.
+# It only leads to a panic if there is a misconfigured / malicious helm plugin installed
+# and can be easily resolved by removing the misconfigured / malicious plugin
+# The helm bump will require bumping the k8s dependencies by +2 minor versions that can cause issues.
+# https://github.com/solo-io/gloo/issues/9186
+# https://github.com/advisories/GHSA-r53h-jv2g-vpx6
+CVE-2024-26147
