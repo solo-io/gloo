@@ -20,6 +20,7 @@ var (
 	_ plugins.Plugin            = new(plugin)
 	_ plugins.UpstreamPlugin    = new(plugin)
 	_ discovery.DiscoveryPlugin = new(plugin)
+	// just testing
 )
 
 const (
