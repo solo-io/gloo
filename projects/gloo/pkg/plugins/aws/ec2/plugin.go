@@ -21,6 +21,7 @@ var (
 	_ plugins.UpstreamPlugin    = new(plugin)
 	_ discovery.DiscoveryPlugin = new(plugin)
 	// just testing
+	somestr := "somestr"
 )
 
 const (
