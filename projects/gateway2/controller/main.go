@@ -8,21 +8,21 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/secrets"
 	"github.com/solo-io/gloo/projects/gateway2/xds"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
+	"k8s.io/apimachinery/pkg/util/sets"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
-	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
-var (
-	setupLog = ctrl.Log.WithName("setup")
-)
+var setupLog = ctrl.Log.WithName("setup")
 
 type ControllerConfig struct {
-	// The name of the GatewayClass to watch for
+	// The names of the GatewayClass to watch for
+	GatewayClassNames []string
+	// backwards compat: appended to GatewayClassNames
 	GatewayClassName      string
 	GatewayControllerName string
 	Release               string
@@ -87,11 +87,14 @@ func Start(cfg ControllerConfig) {
 		os.Exit(1)
 	}
 
-	var gatewayClassName apiv1.ObjectName = apiv1.ObjectName(cfg.GatewayClassName)
+  // backwards compat for single class name
+  if cfg.GatewayClassName != "" {
+    cfg.GatewayClassNames = append(cfg.GatewayClassNames, cfg.GatewayClassName)
+  }
 
 	gwcfg := GatewayConfig{
 		Mgr:            mgr,
-		GWClass:        gatewayClassName,
+		GWClasses:      sets.NewString(cfg.GatewayClassNames...),
 		Dev:            cfg.Dev,
 		ControllerName: cfg.GatewayControllerName,
 		AutoProvision:  cfg.AutoProvision,
@@ -123,5 +126,4 @@ func Start(cfg ControllerConfig) {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
-
 }

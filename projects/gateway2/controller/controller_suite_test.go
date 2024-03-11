@@ -14,6 +14,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/controller"
 	"github.com/solo-io/gloo/projects/gateway2/controller/scheme"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -39,7 +40,6 @@ var (
 )
 
 func getAssetsDir() string {
-
 	assets := ""
 	if os.Getenv("KUBEBUILDER_ASSETS") == "" {
 		// set default if not user provided
@@ -92,11 +92,10 @@ var _ = BeforeSuite(func() {
 	kubeconfig = generateKubeConfiguration(cfg)
 	mgr.GetLogger().Info("starting manager", "kubeconfig", kubeconfig)
 
-	var gatewayClassObjName api.ObjectName = api.ObjectName(gatewayClassName)
 	cfg := controller.GatewayConfig{
 		Mgr:            mgr,
 		ControllerName: gatewayControllerName,
-		GWClass:        gatewayClassObjName,
+		GWClasses:      sets.NewString(gatewayClassName),
 		AutoProvision:  true,
 		XdsServer:      "localhost",
 		XdsPort:        0,
@@ -135,6 +134,7 @@ func TestController(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Controller Suite")
 }
+
 func generateKubeConfiguration(restconfig *rest.Config) string {
 	clusters := make(map[string]*clientcmdapi.Cluster)
 	authinfos := make(map[string]*clientcmdapi.AuthInfo)

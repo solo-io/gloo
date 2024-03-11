@@ -20,7 +20,8 @@ var controllerCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(controllerCmd)
-	controllerCmd.Flags().StringVar(&cfg.GatewayClassName, "class-name", "gloo-gateway", "The gateway class name that we own")
+	controllerCmd.Flags().StringVar(&cfg.GatewayClassName, "class-name", "", "The gateway class names that we own")
+	controllerCmd.Flags().StringSliceVar(&cfg.GatewayClassNames, "class-names", []string{"gloo-gateway", "gloo-waypoint"}, "The gateway class names that we own")
 	controllerCmd.Flags().StringVar(&cfg.GatewayControllerName, "controller-name", "solo.io/gloo-gateway", "The gateway class controller name")
 	controllerCmd.Flags().StringVar(&cfg.Release, "release-name", "", "The release name for gateway resources")
 	controllerCmd.Flags().BoolVar(&cfg.Dev, "dev-mode", false, "Turn on dev mode (more verbose logging, etc.)")

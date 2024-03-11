@@ -35,8 +35,8 @@ spec:
           imagePullPolicy: {{ .Values.controlPlane.image.pullPolicy }}
           args:
           - controller
-          - "--class-name"
-          - "{{ .Values.gatewayClass.className }}"
+          - "--class-names"
+          - "{{ .Values.gatewayClass.className }},{{ .Values.waypointGatewayClass.className }}"
           - "--controller-name"
           - "{{ .Values.gatewayClass.controllerName }}"
           {{- if .Values.develop }}

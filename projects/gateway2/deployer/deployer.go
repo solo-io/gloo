@@ -45,7 +45,6 @@ type Deployer struct {
 }
 
 func NewDeployer(scheme *runtime.Scheme, dev bool, controllerName, host string, port uint16) (*Deployer, error) {
-
 	chart, err := loadFs(helm.GlooGatewayHelmChart)
 	if err != nil {
 		// don't retrun an error is requeueing won't help here
@@ -98,7 +97,6 @@ func jsonConvert(in []gatewayPort, out interface{}) error {
 }
 
 func (d *Deployer) renderChartToObjects(ctx context.Context, gw *api.Gateway) ([]client.Object, error) {
-
 	// must not be nil for helm to not fail.
 	gwPorts := []gatewayPort{}
 	for _, l := range gw.Spec.Listeners {
@@ -121,6 +119,13 @@ func (d *Deployer) renderChartToObjects(ctx context.Context, gw *api.Gateway) ([
 		return nil, err
 	}
 
+	// Default to Load Balancer
+	serviceType := "LoadBalancer"
+	// TODO harcoded
+	if gw.Spec.GatewayClassName == "gloo-waypoint" {
+		serviceType = "ClusterIP"
+	}
+
 	vals := map[string]any{
 		"controlPlane": map[string]any{"enabled": false},
 		"gateway": map[string]any{
@@ -128,9 +133,8 @@ func (d *Deployer) renderChartToObjects(ctx context.Context, gw *api.Gateway) ([
 			"name":        gw.Name,
 			"gatewayName": gw.Name,
 			"ports":       portsAny,
-			// Default to Load Balancer
 			"service": map[string]any{
-				"type": "LoadBalancer",
+				"type": serviceType,
 			},
 			"xds": map[string]any{
 				"host": d.host,

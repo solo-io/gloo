@@ -5,6 +5,9 @@
 gatewayClass:
   className: gloo-gateway
   controllerName: solo.io/gloo-gateway
+waypointGatewayClass:
+  className: gloo-waypoint
+  controllerName: solo.io/gloo-gateway
 
 develop: false
 
