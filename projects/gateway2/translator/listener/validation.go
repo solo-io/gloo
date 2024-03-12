@@ -4,13 +4,16 @@ import (
 	"slices"
 
 	"github.com/solo-io/gloo/projects/gateway2/reports"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
-const NormalizedHTTPSTLSType = "HTTPS/TLS"
-const DefaultHostname = "*"
-const HTTPRouteKind = "HTTPRoute"
+const (
+	NormalizedHTTPSTLSType = "HTTPS/TLS"
+	DefaultHostname        = "*"
+	HTTPRouteKind          = "HTTPRoute"
+)
 
 type portProtocol struct {
 	hostnames map[gwv1.Hostname]int
@@ -19,13 +22,20 @@ type portProtocol struct {
 	listeners []gwv1.Listener
 }
 
-type protocol = string
-type groupName = string
-type routeKind = string
+type (
+	protocol  = string
+	groupName = string
+	routeKind = string
+)
 
 func getSupportedProtocolsRoutes() map[protocol]map[groupName][]routeKind {
 	// we currently only support HTTPRoute on HTTP and HTTPS protocols
 	supportedProtocolToKinds := map[protocol]map[groupName][]routeKind{
+		wellknown.PROXYProtocol: {
+			gwv1.GroupName: []string{
+				HTTPRouteKind,
+			},
+		},
 		string(gwv1.HTTPProtocolType): {
 			gwv1.GroupName: []string{
 				HTTPRouteKind,
@@ -64,7 +74,7 @@ func validateSupportedRoutes(listeners []gwv1.Listener, reporter reports.Gateway
 			reporter.Listener(&listener).SetCondition(reports.ListenerCondition{
 				Type:   gwv1.ListenerConditionAccepted,
 				Status: metav1.ConditionFalse,
-				Reason: gwv1.ListenerReasonUnsupportedProtocol, //TODO: add message
+				Reason: gwv1.ListenerReasonUnsupportedProtocol, // TODO: add message
 			})
 			continue
 		}
@@ -125,7 +135,7 @@ func validateListeners(gw *gwv1.Gateway, reporter reports.GatewayReporter) []gwv
 		if existingListener, ok := portListeners[listener.Port]; ok {
 			existingListener.protocol[protocol] = true
 			existingListener.listeners = append(existingListener.listeners, listener)
-			//TODO(Law): handle validation that hostname empty for udp/tcp
+			// TODO(Law): handle validation that hostname empty for udp/tcp
 			if listener.Hostname != nil {
 				existingListener.hostnames[*listener.Hostname]++
 			} else {
