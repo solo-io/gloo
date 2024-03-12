@@ -1,4 +1,4 @@
-package gloo_gateway
+package gloo_gateway_int
 
 import (
 	"fmt"

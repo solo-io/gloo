@@ -1,15 +1,10 @@
-package gloo_gateway
+package gloo_gateway_int
 
 import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"testing"
-	"time"
-
-	kubeutils2 "github.com/solo-io/gloo/test/testutils"
-	"github.com/solo-io/go-utils/testutils"
 
 	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 
@@ -20,8 +15,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestGateway(t *testing.T) {
@@ -46,7 +39,6 @@ var (
 )
 
 var _ = BeforeSuite(StartTestHelper)
-var _ = AfterSuite(TearDownTestHelper)
 
 func StartTestHelper() {
 	var err error
@@ -56,60 +48,10 @@ func StartTestHelper() {
 	Expect(err).NotTo(HaveOccurred())
 	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, testHelper.InstallNamespace))
 
-	// Allow skipping of install step for running multiple times
-	if !kubeutils2.ShouldSkipInstall() {
-		installHttpbin()
-
-		installGloo()
-	}
-
 	resourceClientset, err = kube2e.NewDefaultKubeResourceClientSet(ctx)
 	Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
 
 	snapshotWriter = helpers.NewSnapshotWriter(resourceClientset).WithWriteNamespace(testHelper.InstallNamespace)
-}
-
-func TearDownTestHelper() {
-	if kubeutils2.ShouldTearDown() {
-		uninstallGloo()
-	}
-	ctxCancel()
-}
-
-func installHttpbin() {
-	cwd, err := os.Getwd()
-	Expect(err).NotTo(HaveOccurred(), "working dir could not be retrieved while installing httpbin")
-
-	// add httpbin to its own namespace
-	err = testutils.Kubectl("create", "ns", httpbinNamespace)
-	Expect(err).NotTo(HaveOccurred())
-
-	err = testutils.Kubectl("apply", "-n", httpbinNamespace, "-f", filepath.Join(cwd, "setup", "httpbin.yaml"))
-	Expect(err).NotTo(HaveOccurred())
-}
-
-func installGloo() {
-	cwd, err := os.Getwd()
-	Expect(err).NotTo(HaveOccurred(), "working dir could not be retrieved while installing gloo")
-	helmValuesFile := filepath.Join(cwd, "artifacts", "helm.yaml")
-
-	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", helmValuesFile))
-	Expect(err).NotTo(HaveOccurred())
-
-	// Check that everything is OK
-	kube2e.GlooctlCheckEventuallyHealthy(1, testHelper, "90s")
-
-	// Ensure gloo reaches valid state and doesn't continually resync
-	// we can consider doing the same for leaking go-routines after resyncs
-	kube2e.EventuallyReachesConsistentState(testHelper.InstallNamespace)
-}
-
-func uninstallGloo() {
-	Expect(testHelper).ToNot(BeNil())
-	err := testHelper.UninstallGloo()
-	Expect(err).NotTo(HaveOccurred())
-	_, err = kube2e.MustKubeClient().CoreV1().Namespaces().Get(ctx, testHelper.InstallNamespace, metav1.GetOptions{})
-	Expect(apierrors.IsNotFound(err)).To(BeTrue())
 }
 
 // TODO: move to helper test setup file to check environment variables
