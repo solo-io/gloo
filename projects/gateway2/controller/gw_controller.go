@@ -20,7 +20,6 @@ const (
 
 type gatewayReconciler struct {
 	cli           client.Client
-	className     api.ObjectName
 	autoProvision bool
 
 	scheme   *runtime.Scheme

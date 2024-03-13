@@ -20,6 +20,8 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"k8s.io/apimachinery/pkg/util/sets"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 const (
@@ -29,7 +31,8 @@ const (
 )
 
 var (
-	gatewayClass = apiv1.ObjectName(wellknown.GatewayClassName)
+	gatewayClass  = apiv1.ObjectName(wellknown.GatewayClassName)
+	waypointClass = apiv1.ObjectName(wellknown.WaypointGatewayClassName)
 
 	setupLog = ctrl.Log.WithName("setup")
 )
@@ -103,7 +106,7 @@ func Start(ctx context.Context, cfg StartConfig) error {
 
 	gwCfg := GatewayConfig{
 		Mgr:            mgr,
-		GWClass:        gatewayClass,
+		GWClasses:      sets.New(gatewayClass, waypointClass),
 		ControllerName: wellknown.GatewayControllerName,
 		AutoProvision:  AutoProvision,
 		ControlPlane:   cfg.Opts.ControlPlane,

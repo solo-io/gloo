@@ -29,6 +29,7 @@ import (
 	"github.com/solo-io/gloo/pkg/version"
 	"github.com/solo-io/gloo/projects/gateway2/helm"
 	"github.com/solo-io/gloo/projects/gateway2/ports"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -108,7 +109,6 @@ func jsonConvert(in []gatewayPort, out interface{}) error {
 }
 
 func (d *Deployer) renderChartToObjects(ctx context.Context, gw *api.Gateway) ([]client.Object, error) {
-
 	// must not be nil for helm to not fail.
 	gwPorts := []gatewayPort{}
 	for _, l := range gw.Spec.Listeners {
@@ -131,6 +131,11 @@ func (d *Deployer) renderChartToObjects(ctx context.Context, gw *api.Gateway) ([
 		return nil, err
 	}
 
+	serviceType := "LoadBalancer"
+	if gw.Spec.GatewayClassName == wellknown.WaypointGatewayClassName {
+		serviceType = "ClusterIP"
+	}
+
 	vals := map[string]any{
 		"controlPlane": map[string]any{
 			"enabled": false,
@@ -142,7 +147,7 @@ func (d *Deployer) renderChartToObjects(ctx context.Context, gw *api.Gateway) ([
 			"ports":       portsAny,
 			// Default to Load Balancer
 			"service": map[string]any{
-				"type": "LoadBalancer",
+				"type": serviceType,
 			},
 			"istioSDS": map[string]any{
 				"enabled": d.inputs.IstioValues.SDSEnabled,
@@ -278,7 +283,6 @@ func loadFs(filesystem fs.FS) (*chart.Chart, error) {
 		bufferedFiles = append(bufferedFiles, bufferedFile)
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}

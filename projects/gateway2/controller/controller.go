@@ -13,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/sets"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -26,7 +27,7 @@ import (
 
 type GatewayConfig struct {
 	Mgr            manager.Manager
-	GWClass        apiv1.ObjectName
+	GWClasses      sets.Set[apiv1.ObjectName]
 	Dev            bool
 	ControllerName string
 	AutoProvision  bool
@@ -38,7 +39,7 @@ type GatewayConfig struct {
 
 func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 	log := log.FromContext(ctx)
-	log.V(5).Info("starting controller", "controllerName", cfg.ControllerName, "gwclass", cfg.GWClass)
+	log.V(5).Info("starting controller", "controllerName", cfg.ControllerName, "gwclass", cfg.GWClasses)
 
 	controllerBuilder := &controllerBuilder{
 		cfg: cfg,
@@ -58,7 +59,6 @@ func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 		controllerBuilder.watchRouteOptions,
 		controllerBuilder.addIndexes,
 	)
-
 }
 
 func run(ctx context.Context, funcs ...func(ctx context.Context) error) error {
@@ -106,7 +106,7 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 		// Don't use WithEventFilter here as it also filters events for Owned objects.
 		For(&apiv1.Gateway{}, builder.WithPredicates(predicate.NewPredicateFuncs(func(object client.Object) bool {
 			if gw, ok := object.(*apiv1.Gateway); ok {
-				return gw.Spec.GatewayClassName == c.cfg.GWClass
+				return c.cfg.GWClasses.Has(gw.Spec.GatewayClassName)
 			}
 			return false
 		}), predicate.GenerationChangedPredicate{}))
@@ -132,7 +132,6 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 	gwReconciler := &gatewayReconciler{
 		cli:           c.cfg.Mgr.GetClient(),
 		scheme:        c.cfg.Mgr.GetScheme(),
-		className:     c.cfg.GWClass,
 		autoProvision: c.cfg.AutoProvision,
 		deployer:      d,
 		kick:          c.cfg.Kick,
@@ -234,7 +233,6 @@ func (r *controllerReconciler) ReconcileHttpRoutes(ctx context.Context, req ctrl
 }
 
 func (r *controllerReconciler) ReconcileReferenceGrants(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-
 	// reconcile all things?!
 	r.kick(ctx)
 	return ctrl.Result{}, nil
