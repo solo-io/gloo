@@ -62,6 +62,7 @@ listeners:
   bindAddress: '::'
   bindPort: 8080
   name: http
+  options: {}
 metadata:
   labels:
     created_by: gloo-kube-gateway-api-translator

@@ -14,7 +14,7 @@ var _ = Describe("GatewayTranslator", func() {
 	dir := util.MustGetThisDir()
 
 	It("should translate a gateway with basic routing", func() {
-		results, err := TestCase{
+		diffs, err := TestCase{
 			Name:       "basic-http-routing",
 			InputFiles: []string{dir + "/testutils/inputs/http-routing"},
 			ResultsByGateway: map[types.NamespacedName]ExpectedTestResult{
@@ -22,26 +22,26 @@ var _ = Describe("GatewayTranslator", func() {
 					Namespace: "default",
 					Name:      "example-gateway",
 				}: {
-					Proxy: dir + "/testutils/outputs/http-routing-proxy.yaml",
+					ProxyFile: dir + "/testutils/outputs/http-routing-proxy.yaml",
 					// Reports:     nil,
 				},
 			},
 		}.Run(ctx)
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(results).To(HaveLen(1))
-		Expect(results).To(HaveKey(types.NamespacedName{
+		Expect(diffs).To(HaveLen(1))
+		Expect(diffs).To(HaveKey(types.NamespacedName{
 			Namespace: "default",
 			Name:      "example-gateway",
 		}))
-		Expect(results[types.NamespacedName{
+		Expect(diffs[types.NamespacedName{
 			Namespace: "default",
 			Name:      "example-gateway",
-		}]).To(BeTrue())
+		}]).To(BeEmpty())
 	})
 
 	It("should translate a gateway with https routing", func() {
-		results, err := TestCase{
+		diffs, err := TestCase{
 			Name:       "basic-http-routing",
 			InputFiles: []string{dir + "/testutils/inputs/https-routing"},
 			ResultsByGateway: map[types.NamespacedName]ExpectedTestResult{
@@ -49,21 +49,21 @@ var _ = Describe("GatewayTranslator", func() {
 					Namespace: "default",
 					Name:      "example-gateway",
 				}: {
-					Proxy: dir + "/testutils/outputs/https-routing-proxy.yaml",
+					ProxyFile: dir + "/testutils/outputs/https-routing-proxy.yaml",
 					// Reports:     nil,
 				},
 			},
 		}.Run(ctx)
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(results).To(HaveLen(1))
-		Expect(results).To(HaveKey(types.NamespacedName{
+		Expect(diffs).To(HaveLen(1))
+		Expect(diffs).To(HaveKey(types.NamespacedName{
 			Namespace: "default",
 			Name:      "example-gateway",
 		}))
-		Expect(results[types.NamespacedName{
+		Expect(diffs[types.NamespacedName{
 			Namespace: "default",
 			Name:      "example-gateway",
-		}]).To(BeTrue())
+		}]).To(BeEmpty())
 	})
 })

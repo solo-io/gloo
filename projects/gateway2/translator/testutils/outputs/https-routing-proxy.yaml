@@ -27,6 +27,7 @@ listeners:
   bindAddress: '::'
   bindPort: 8443
   name: https
+  options: {}
 metadata:
   labels:
     created_by: gloo-kube-gateway-api-translator

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/onsi/ginkgo/v2"
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
@@ -11,6 +13,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"google.golang.org/protobuf/testing/protocmp"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -25,24 +28,34 @@ type TestCase struct {
 type ActualTestResult struct {
 	Proxy *v1.Proxy
 	// Reports     map[types.NamespacedName]*reports.GatewayReport
-	//TODO(Law): figure out how RouteReports fit in
+	// TODO(Law): figure out how RouteReports fit in
 }
 
 type ExpectedTestResult struct {
-	Proxy string
+	ProxyFile string
 	// Reports     map[types.NamespacedName]*reports.GatewayReport
 }
 
-func (r ExpectedTestResult) Equals(actual ActualTestResult) (bool, error) {
-	proxy, err := testutils.ReadProxyFromFile(r.Proxy)
+var cmpOpts = []cmp.Option{protocmp.Transform(), cmpopts.EquateEmpty()}
+
+func (r ExpectedTestResult) Cmp(actual ActualTestResult) (string, error) {
+	proxy, err := r.Proxy()
 	if err != nil {
-		return false, err
+		return "", err
 	}
-	return proxy.Equal(actual.Proxy), nil
+	return cmp.Diff(proxy, actual.Proxy, cmpOpts...), nil
+}
+
+func (r ExpectedTestResult) Proxy() (*v1.Proxy, error) {
+	proxy, err := testutils.ReadProxyFromFile(r.ProxyFile)
+	if err != nil {
+		return nil, err
+	}
+	return proxy, nil
 }
 
 // map of gwv1.GW namespace/name to translation result
-func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]bool, error) {
+func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]string, error) {
 	// load inputs
 
 	var (
@@ -67,7 +80,7 @@ func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]bool, erro
 	queries := testutils.BuildGatewayQueries(dependencies)
 	pluginRegistry := registry.NewPluginRegistry(registry.BuildPlugins(queries))
 
-	results := make(map[types.NamespacedName]bool)
+	diffs := make(map[types.NamespacedName]string)
 	for _, gw := range gateways {
 
 		ref := types.NamespacedName{
@@ -100,13 +113,12 @@ func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]bool, erro
 			return nil, errors.Errorf("no expected result found for gateway %v", ref)
 		}
 
-		equal, err := expected.Equals(actual)
+		diff, err := expected.Cmp(actual)
 		if err != nil {
 			return nil, err
 		}
-
-		results[ref] = equal
+		diffs[ref] = diff
 	}
 
-	return results, nil
+	return diffs, nil
 }
