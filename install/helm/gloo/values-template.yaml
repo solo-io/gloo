@@ -7,7 +7,7 @@ k8s:
 gateway2:
   gatewayClass:
     className: gloo-gateway
-    waypointClassname: gloo-waypoint
+    waypointClassName: gloo-waypoint
     controllerName: solo.io/gloo-gateway
   controlPlane:
     enabled: true
