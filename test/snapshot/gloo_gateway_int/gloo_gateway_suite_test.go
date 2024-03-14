@@ -6,15 +6,13 @@ import (
 	"os"
 	"testing"
 
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/kube2e/helper"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 func TestGateway(t *testing.T) {
@@ -52,6 +50,30 @@ func StartTestHelper() {
 	Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
 
 	snapshotWriter = helpers.NewSnapshotWriter(resourceClientset).WithWriteNamespace(testHelper.InstallNamespace)
+
+	//// k8s resources
+	//err = corev1.AddToScheme(Scheme)
+	//Expect(err).NotTo(HaveOccurred())
+	//err = appsv1.AddToScheme(Scheme)
+	//Expect(err).NotTo(HaveOccurred())
+	//// k8s gateway resources
+	//err = v1alpha2.AddToScheme(Scheme)
+	//Expect(err).NotTo(HaveOccurred())
+	//err = v1beta1.AddToScheme(Scheme)
+	//Expect(err).NotTo(HaveOccurred())
+	//err = v1.AddToScheme(Scheme)
+	//Expect(err).NotTo(HaveOccurred())
+	//// gloo resources
+	//err = glooinstancev1.AddToScheme(Scheme)
+	//Expect(err).NotTo(HaveOccurred())
+	//
+	//// TODO: make kubectx configurable/passed from setup env
+	//kubeClient, err = getClient("kind-solo-test-cluster")
+	//Expect(err).NotTo(HaveOccurred(), "can create client")
+
+	resourceClientset, err = kube2e.NewDefaultKubeResourceClientSet(ctx)
+	Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
+
 }
 
 // TODO: move to helper test setup file to check environment variables

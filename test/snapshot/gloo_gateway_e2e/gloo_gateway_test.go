@@ -1,167 +1,184 @@
-package gloo_gateway_e2e
+package bugs_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
-	"time"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
 
-	"github.com/solo-io/gloo/test/kube2e/helper"
-	"github.com/solo-io/gloo/test/snapshot"
-	"github.com/solo-io/skv2/codegen/util"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/gloo/test/snapshot/gloo_gateway_e2e/testcase"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/client-go/kubernetes/scheme"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
+
+	"github.com/solo-io/skv2/contrib/pkg/sets"
 )
 
-var _ = Describe("Gloo Gateway", func() {
+const (
+	outputSnapToFileEnv = "OUTPUT_SNAPSHOT_TO_FILE"
+)
 
-	var (
-		inputs []client.Object
-		runner snapshot.TestRunner
-	)
-
-	BeforeEach(func() {
-		inputs = []client.Object{}
-
-		runner = snapshot.TestRunner{
-			Name:             "gloo-gateway",
-			ResultsByGateway: map[types.NamespacedName]snapshot.ExpectedTestResult{},
+var _ = Describe("Snapshot Test", func() {
+	for _, test := range testcase.Testcases {
+		test := test // pike
+		it := It
+		if test.Focus {
+			it = FIt
+		} else if test.Skip {
+			it = PIt
 		}
-	})
+		When(test.When, func() {
+			it(test.It, func() {
+				t := translator.NewDefaultTranslator()
 
-	JustAfterEach(func() {
-		defer ctxCancel()
+				var err error
+				var inputResources []*client.Object
 
-		// Note to devs:  set NO_CLEANUP to 'all' or 'failed' to skip cleanup, for the sake of
-		// debugging or otherwise examining state after a test.
-		if ShouldSkipCleanup() {
-			fmt.Printf("Not cleaning up")
-			return // Exit without cleaning up
-		}
-		Expect(runner.Cleanup(ctx)).To(Succeed())
-	})
+				if test.TestInput.TranslatorInputYamlFile != "" {
+					// TODO: load yaml
+				} else {
+					inputResources = test.TestInput.TranslatorInput
+				}
 
-	var _ = Describe("Gloo Gateway Translator", func() {
-		It("should translate a gateway with basic routing", func() {
-			inputs = []client.Object{
-				&gwv1.Gateway{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "example-gateway",
-					},
-					Spec: gwv1.GatewaySpec{
-						Listeners: []gwv1.Listener{
-							{
-								Port:     80,
-								Protocol: "HTTP",
-								AllowedRoutes: &gwv1.AllowedRoutes{
-									Namespaces: &gwv1.RouteNamespaces{
-										From: ptrTo(gwv1.FromNamespaces(httpbinNamespace)),
-									},
-								},
-							},
-						},
-					},
-				},
-				// TODO: create builder
-				&gwv1.HTTPRoute{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "httpbin-route",
-					},
-					Spec: gwv1.HTTPRouteSpec{
-						CommonRouteSpec: gwv1.CommonRouteSpec{
-							ParentRefs: []gwv1.ParentReference{
-								{
-									Name: "example-gateway",
-								},
-							},
-						},
-						Hostnames: []gwv1.Hostname{"httpbin.example.com"},
-						Rules: []gwv1.HTTPRouteRule{
-							{
-								BackendRefs: []gwv1.HTTPBackendRef{
-									{
-										BackendRef: gwv1.BackendRef{
-											BackendObjectReference: gwv1.BackendObjectReference{
-												Name: "httpbin-v1",
-												Port: ptrTo(gwv1.PortNumber(8000)),
-											},
-										},
-									},
-								},
-							},
-							{
-								Matches: []gwv1.HTTPRouteMatch{
-									{
-										Headers: []gwv1.HTTPHeaderMatch{
-											{
-												Type:  ptrTo(gwv1.HeaderMatchExact),
-												Name:  "env",
-												Value: "canary",
-											},
-										},
-									},
-								},
-								BackendRefs: []gwv1.HTTPBackendRef{
-									{
-										BackendRef: gwv1.BackendRef{
-											BackendObjectReference: gwv1.BackendObjectReference{
-												Name: "httpbin-v2",
-												Port: ptrTo(gwv1.PortNumber(8000)),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			}
+				runTest(t, test.Assertions)
 
-			dir := util.MustGetThisDir()
-			runner.ResultsByGateway = map[types.NamespacedName]snapshot.ExpectedTestResult{
-				{
-					Namespace: "default",
-					Name:      "example-gateway-http",
-				}: {
-					Proxy: dir + "/outputs/http-routing-proxy.yaml",
-					// Reports:     nil,
-				},
-			}
+			})
 
-			results, err := runner.Run(ctx, inputs)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(results).To(HaveLen(1))
-			Expect(results).To(HaveKey(types.NamespacedName{
-				Namespace: "default",
-				Name:      "example-gateway",
-			}))
-			Expect(results[types.NamespacedName{
-				Namespace: "default",
-				Name:      "example-gateway",
-			}]).To(BeTrue())
-
-			testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-				Protocol:          "http",
-				Path:              "/",
-				Method:            "GET",
-				Host:              "httpbin.example.com",
-				Service:           "example-gateway-http",
-				Port:              80,
-				ConnectionTimeout: 10,
-				Verbose:           false,
-				WithoutStats:      true,
-				ReturnHeaders:     false,
-			}, "200 OK", 1, time.Minute)
 		})
-	})
-
+	}
 })
 
-// gateway apis uses this to build test examples: https://github.com/kubernetes-sigs/gateway-api/blob/main/pkg/test/cel/main_test.go#L57
-func ptrTo[T any](a T) *T {
-	return &a
+func runTest(
+	t translator.Translator,
+	assertions []testcase.TranslatorAssertion,
+) {
+
+	out, _, _ := t.Translate()
+
+	if os.Getenv(outputSnapToFileEnv) == "true" {
+		o, err := out.MarshalJSON()
+		Expect(err).NotTo(HaveOccurred())
+
+		dir := "/tmp/gp-snapshot-outputs"
+		err = os.MkdirAll(dir, os.ModePerm)
+		Expect(err).NotTo(HaveOccurred())
+
+		fileName := fmt.Sprintf("%s.json", strings.ToLower(strings.ReplaceAll(CurrentSpecReport().LeafNodeText, " ", "-")))
+		tmpfile, err := os.Create(filepath.Join(dir, fileName))
+		Expect(err).NotTo(HaveOccurred())
+
+		defer tmpfile.Close()
+
+		fmt.Fprintf(GinkgoWriter, "Writing snapshot output to %s\n", tmpfile.Name())
+		_, err = io.Copy(tmpfile, bytes.NewReader(o))
+		Expect(err).NotTo(HaveOccurred())
+	}
+
+	if len(errs) > 0 {
+		for ws, err := range errs {
+			fmt.Fprintf(GinkgoWriter, "WS: (%s), Error: %v\n", sets.Key(ws), err)
+		}
+		Fail("Errors occurred during translation")
+	}
+
+	for _, outs := range out.TctxOutput {
+		for _, outputs := range outs {
+			Expect(outputs.Err).NotTo(HaveOccurred())
+			outputs.Outputs.ForEach(func(obj client.Object) {
+				// Check idempotence, no output should appear in more than one output
+				Expect(allOutputs.Contains(obj)).To(BeFalse(), fmt.Sprintf("%s already exists in another output", sets.TypedKey(obj)))
+				allOutputs.Insert(obj)
+			})
+		}
+	}
+
+	for _, outputsMap := range out.GlobalOutput {
+		for _, outputs := range outputsMap {
+			Expect(outputs.Err).NotTo(HaveOccurred())
+			outputs.Outputs.ForEach(func(obj client.Object) {
+				// Check idempotence, no output should appear in more than one output
+				Expect(allOutputs.Contains(obj)).To(BeFalse(), fmt.Sprintf("%s already exists in another output", sets.TypedKey(obj)))
+				allOutputs.Insert(obj)
+			})
+		}
+	}
+
+	for _, assertion := range assertions {
+		assertion(allOutputs)
+	}
+}
+
+// CleanObject removes fields from the object that are not needed, which can decrease size of JSON file by ~ 50%
+func cleanObject(input, filename string) {
+	var (
+		rootIn = map[string]interface{}{}
+	)
+
+	Expect(json.NewDecoder(strings.NewReader(input)).Decode(&rootIn)).NotTo(HaveOccurred())
+
+	for k := range rootIn {
+		nodes, ok := rootIn[k].([]any)
+		if !ok {
+			continue
+		}
+
+		for i, node := range nodes {
+			if node, ok := node.(map[string]any); ok {
+				metadata := node["metadata"].(map[string]any)
+
+				for k := range metadata {
+					switch k {
+					case "managedFields", "resourceVersion", "uid", "generation":
+						delete(metadata, k)
+					}
+				}
+
+				node["metadata"] = metadata
+			}
+
+			nodes[i] = node
+		}
+
+		rootIn[k] = nodes
+	}
+
+	pwd, err := filepath.Abs(".")
+	Expect(err).NotTo(HaveOccurred())
+
+	filename = filepath.Join(pwd, "testcase", filename)
+
+	outFile, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer outFile.Close()
+
+	enc := json.NewEncoder(outFile)
+	err = enc.Encode(rootIn)
+	Expect(err).NotTo(HaveOccurred())
+}
+
+func loadYamlResources(input testcase.TestInput) (error, []*client.Object) {
+	// Decode YAML and append objects to the list
+	for _, doc := range yaml.SplitYAML(input.TranslatorInputYaml.Filename) {
+		obj, _, err := decode([]byte(doc), nil, nil)
+		if err != nil {
+			log.Fatalf("Error decoding YAML: %v", err)
+		}
+		objects = append(objects, obj)
+	}
+}
+
+// unstructuredSerializer returns a serializer for unstructured objects.
+func unstructuredSerializer() runtime.Serializer {
+	return serializer.NewCodecFactory(scheme.Scheme).WithoutConversion()
 }

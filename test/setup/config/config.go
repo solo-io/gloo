@@ -12,7 +12,6 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 
 	"github.com/solo-io/gloo/test/setup/defaults"
-	"github.com/solo-io/gloo/test/setup/helpers"
 	"github.com/solo-io/gloo/test/setup/types"
 )
 
@@ -26,7 +25,7 @@ func Load(ctx context.Context, configPath string, reader io.Reader) (*types.Conf
 
 	if os.Getenv("VERSION") == "" {
 		// if version is not set, default to the dev version
-		os.Setenv("VERSION", "1.0.0-dev")
+		os.Setenv("VERSION", "1.0.1-dev")
 	}
 
 	// Can set defaults here for the process if ran directly from the command line.
@@ -50,9 +49,9 @@ func Load(ctx context.Context, configPath string, reader io.Reader) (*types.Conf
 		os.Setenv("IMAGE_REGISTRY", defaults.DefaultGlooImageRegistry)
 	}
 
-	if os.Getenv("VERSION") == "" {
-		os.Setenv("VERSION", helpers.Version())
-	}
+	//if os.Getenv("VERSION") == "" {
+	//	os.Setenv("VERSION", helpers.Version())
+	//}
 
 	logger.Infof("Using Istio hub: %s version: %s", os.Getenv("ISTIO_HUB"), os.Getenv("ISTIO_VERSION"))
 

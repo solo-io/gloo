@@ -23,12 +23,10 @@ type TestRunner struct {
 	Name             string
 	ResultsByGateway map[types.NamespacedName]ExpectedTestResult
 
-	client    client.Client
-	clientSet *kube2e.KubeResourceClientSet
+	Client    client.Client
+	ClientSet *kube2e.KubeResourceClientSet
 
-	dryRun    bool
-	toCleanup []client.Object // all objects written for an individual test run should be cleaned up at the end
-	//featureFlags bootstrap.FeatureFlags
+	ToCleanup []client.Object // all objects written for an individual test run should be cleaned up at the end
 }
 
 type ActualTestResult struct {
@@ -49,8 +47,25 @@ func (r ExpectedTestResult) Equals(actual ActualTestResult) (bool, error) {
 	return proxy.Equal(actual.Proxy), nil
 }
 
+func (tr TestRunner) Run(ctx context.Context, inputs []client.Object) error {
+	for _, obj := range inputs {
+		err := tr.Client.Create(ctx, obj, &client.CreateOptions{})
+		if !apierrors.IsAlreadyExists(err) {
+			// ignore already exists from previous test runs
+			fmt.Fprintf(ginkgo.GinkgoWriter, "Object %s.%s already exists: %v\n", obj.GetName(), obj.GetNamespace(), err)
+			continue
+		}
+		if err != nil && !apierrors.IsAlreadyExists(err) {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
 // map of gwv1.GW namespace/name to translation result
-func (tr TestRunner) Run(ctx context.Context, inputs []client.Object) (map[types.NamespacedName]bool, error) {
+func (tr TestRunner) RunInMemory(ctx context.Context, inputs []client.Object) (map[types.NamespacedName]bool, error) {
 	var gateways []*gwv1.Gateway
 	for _, obj := range inputs {
 		switch obj := obj.(type) {
@@ -127,16 +142,16 @@ func (tr TestRunner) RunFromFile(ctx context.Context, inputFiles []string) (map[
 		}
 	}
 
-	return tr.Run(ctx, inputs)
+	return tr.RunInMemory(ctx, inputs)
 }
 
 func (tr *TestRunner) Cleanup(ctx context.Context) error {
 	var errs error
-	for _, obj := range tr.toCleanup {
+	for _, obj := range tr.ToCleanup {
 		if obj == nil {
 			continue
 		}
-		if err := tr.client.Delete(ctx, obj); err != nil {
+		if err := tr.Client.Delete(ctx, obj); err != nil {
 			if apierrors.IsNotFound(err) {
 				fmt.Printf("warning to devs! resource deleted multiple times; this is likely a bug %s.%s", obj.GetName(), obj.GetNamespace())
 				continue

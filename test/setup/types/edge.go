@@ -76,7 +76,32 @@ type (
 	}
 
 	Global struct {
+		Image    *Image    `json:"image,omitempty"`
+		IstioSDS *IstioSDS `json:"istioSDS,omitempty" desc:"Config used for installing Gloo Edge with Istio SDS cert rotation features to facilitate Istio mTLS"`
+		GlooMtls *Mtls     `json:"glooMtls,omitempty" desc:"Config used to enable internal mtls authentication"`
+	}
+
+	IstioSDS struct {
+		Enabled bool `json:"enabled,omitempty" desc:"Enables SDS cert-rotator sidecar for istio mTLS cert rotation"`
+	}
+
+	Mtls struct {
+		Enabled      bool                   `json:"enabled,omitempty" desc:"Enables internal mtls authentication"`
+		Sds          *SdsContainer          `json:"sds,omitempty"`
+		EnvoySidecar *EnvoySidecarContainer `json:"envoy,omitempty"`
+		IstioProxy   *IstioProxyContainer   `json:"istioProxy,omitempty" desc:"Istio-proxy container"`
+	}
+
+	SdsContainer struct {
 		Image *Image `json:"image,omitempty"`
+	}
+
+	EnvoySidecarContainer struct {
+		Image *Image `json:"image,omitempty"`
+	}
+
+	IstioProxyContainer struct {
+		Image *Image `json:"image,omitempty" desc:"Istio-proxy image to use for mTLS"`
 	}
 
 	Image struct {
@@ -102,41 +127,104 @@ type (
 )
 
 func (p GlooEdge) Images() (imageRefs []string) {
-	imageRefs = append(imageRefs, p.Global.Image.Ref(defaults.DefaultGlooImageName))
-	imageRefs = append(imageRefs, p.Global.Image.Ref(defaults.DefaultGatewayImageName))
-	imageRefs = append(imageRefs, p.Global.Image.Ref(defaults.DefaultCertGenJobImageName))
-	imageRefs = append(imageRefs, p.Global.Image.Ref(defaults.DefaultDiscoveryImageName))
-	imageRefs = append(imageRefs, p.Global.Image.Ref(defaults.DefaultRolloutJobImageName))
 
-	// sds/istio-proxy only is istioSDS enabled
-	imageRefs = append(imageRefs, p.Global.Image.Ref(defaults.DefaultSdsImageName))
-	imageRefs = append(imageRefs, fmt.Sprintf("%s/%s:%s", defaults.DefaultIstioImageRegistry, defaults.DefaultIstioProxyImageName, defaults.DefaultIstioTag))
+	//imageRefs = append(imageRefs, p.Global.Image.Ref(defaults.DefaultGatewayImageName))
+	//imageRefs = append(imageRefs, p.Global.Image.Ref(defaults.DefaultCertGenJobImageName))
+	//imageRefs = append(imageRefs, p.Global.Image.Ref(defaults.DefaultDiscoveryImageName))
+	//imageRefs = append(imageRefs, p.Global.Image.Ref(defaults.DefaultRolloutJobImageName))
+	//
+	//// sds/istio-proxy only is istioSDS enabled
+	//imageRefs = append(imageRefs, p.Global.Image.Ref(defaults.DefaultSdsImageName))
+	//imageRefs = append(imageRefs, fmt.Sprintf("%s/%s:%s", defaults.DefaultIstioImageRegistry, defaults.DefaultIstioProxyImageName, defaults.DefaultIstioTag))
 
-	// TODO: support image load
-	if p.Global != nil && p.Global.Image != nil {
-		imageRefs = append(imageRefs, p.Global.Image.Ref(defaults.DefaultGlooImageName))
+	defaultImage := &Image{}
+	if p.Global != nil {
+		if p.Global.Image != nil {
+			// load override
+			defaultImage = p.Global.Image
+		}
+
+		glooMtlsEnabled := p.Global.GlooMtls != nil && p.Global.GlooMtls.Enabled
+		istioSDSEnabled := p.Global.IstioSDS != nil && p.Global.IstioSDS.Enabled
+
+		// Check if either GlooMtls or IstioSDS is enabled.
+		// Note: Image overrides are only defined on GlooMtls.
+		if glooMtlsEnabled || istioSDSEnabled {
+			// Add Sds image IstioProxy override if GlooMtls is enabled
+			if p.Global.GlooMtls != nil && p.Global.GlooMtls.IstioProxy != nil {
+				imageRefs = append(imageRefs, p.Global.GlooMtls.Sds.Image.Ref(defaults.DefaultSdsImageName))
+			} else {
+				// Add default global image if GlooMtls image overrides are not set
+				imageRefs = append(imageRefs, defaultImage.Ref(defaults.DefaultSdsImageName))
+			}
+
+			// Add EnvoySidecar image override if GlooMtls is enabled
+			if p.Global.GlooMtls != nil && p.Global.GlooMtls.EnvoySidecar != nil {
+				imageRefs = append(imageRefs, p.Global.GlooMtls.EnvoySidecar.Image.Ref(defaults.DefaultGatewayImageName))
+			} else {
+				// Add default global image if GlooMtls image overrides are not set
+				imageRefs = append(imageRefs, defaultImage.Ref(defaults.DefaultGatewayImageName))
+			}
+
+			// Add IstioProxy image override if IstioSDS is enabled
+			if istioSDSEnabled {
+				if p.Global.GlooMtls != nil && p.Global.GlooMtls.IstioProxy != nil {
+					imageRefs = append(imageRefs, p.Global.GlooMtls.IstioProxy.Image.Ref(defaults.DefaultIstioProxyImageName))
+				} else {
+					// Add default image
+					imageRefs = append(imageRefs, fmt.Sprintf("%s/%s:%s", defaults.DefaultIstioImageRegistry, defaults.DefaultIstioProxyImageName, defaults.DefaultIstioTag))
+				}
+			}
+		} else if istioSDSEnabled {
+			// Add default global image if IstioSDS is enabled, but GlooMtls image overrides are not set
+			imageRefs = append(imageRefs, defaultImage.Ref(defaults.DefaultSdsImageName))
+			imageRefs = append(imageRefs, fmt.Sprintf("%s/%s:%s", defaults.DefaultIstioImageRegistry, defaults.DefaultIstioProxyImageName, defaults.DefaultIstioTag))
+		}
+
 	}
 
+	// gloo image is configured via Global.Image
+	imageRefs = append(imageRefs, defaultImage.Ref(defaults.DefaultGlooImageName))
+
 	if p.Gateway != nil && p.Gateway.Enabled {
+		// use overrides
 		imageRefs = append(imageRefs, p.Gateway.Image.Ref(defaults.DefaultGatewayImageName))
 		if p.Gateway.CertGenJob != nil && p.Gateway.CertGenJob.Enabled {
 			imageRefs = append(imageRefs, p.Gateway.CertGenJob.Image.Ref(defaults.DefaultCertGenJobImageName))
+		} else {
+			imageRefs = append(imageRefs, defaultImage.Ref(defaults.DefaultCertGenJobImageName))
 		}
 		if p.Gateway.RolloutJob != nil && p.Gateway.RolloutJob.Enabled {
 			imageRefs = append(imageRefs, p.Gateway.RolloutJob.Image.Ref(defaults.DefaultRolloutJobImageName))
+		} else {
+			imageRefs = append(imageRefs, defaultImage.Ref(defaults.DefaultRolloutJobImageName))
 		}
 		if p.Gateway.CleanupJob != nil && p.Gateway.CleanupJob.Enabled {
 			imageRefs = append(imageRefs, p.Gateway.CleanupJob.Image.Ref(defaults.DefaultCleanupJobImageName))
+		} else {
+			imageRefs = append(imageRefs, defaultImage.Ref(defaults.DefaultCleanupJobImageName))
 		}
+	} else {
+		// use default global image
+		imageRefs = append(imageRefs, defaultImage.Ref(defaults.DefaultGatewayImageName))
+		imageRefs = append(imageRefs, defaultImage.Ref(defaults.DefaultCertGenJobImageName))
+		imageRefs = append(imageRefs, defaultImage.Ref(defaults.DefaultRolloutJobImageName))
+		imageRefs = append(imageRefs, defaultImage.Ref(defaults.DefaultCleanupJobImageName))
 	}
 
 	if p.Gateway2 != nil && p.Gateway2.ControlPlane != nil && p.Gateway2.ControlPlane.Enabled {
 		// Note: Gateway2 uses same image as Gateway
 		imageRefs = append(imageRefs, p.Gateway.Image.Ref(defaults.DefaultGatewayImageName))
+	} else {
+		// use default global image
+		imageRefs = append(imageRefs, defaultImage.Ref(defaults.DefaultGatewayImageName))
 	}
 
 	if p.Discovery != nil && p.Discovery.Enabled {
 		imageRefs = append(imageRefs, p.Discovery.Image.Ref(defaults.DefaultDiscoveryImageName))
+	} else {
+		// use default global image
+		imageRefs = append(imageRefs, defaultImage.Ref(defaults.DefaultDiscoveryImageName))
 	}
 
 	return imageRefs
