@@ -23,6 +23,10 @@ func Load(ctx context.Context, configPath string, reader io.Reader) (*types.Conf
 		logger = contextutils.LoggerFrom(ctx)
 	)
 
+	if os.Getenv("CLUSTER_NAME") == "" {
+		os.Setenv("CLUSTER_NAME", "kind")
+	}
+
 	if os.Getenv("VERSION") == "" {
 		// if version is not set, default to the dev version
 		os.Setenv("VERSION", "1.0.1-dev")

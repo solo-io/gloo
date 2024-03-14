@@ -2,7 +2,7 @@
 # Single Cluster
 ####################################
 clusters:
-  - name: &name solo-test-cluster
+  - name: &name ${CLUSTER_NAME}
     # https://github.com/kubernetes-sigs/kind/blob/v0.20.0/pkg/apis/config/v1alpha4/types.go
     kindConfig:
       kind: Cluster
@@ -47,11 +47,8 @@ clusters:
         namespace: gloo-system
         local: install/helm/gloo
         values:
-          gloo:
-            deployment:
-              customEnv:
-                - name: GG_EXPERIMENTAL_K8S_GW_CONTROLLER
-                  value: "true"
+          discovery:
+            enabled: false
           global:
             image:
               registry: quay.io/solo-io

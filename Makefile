@@ -209,14 +209,22 @@ run-hashicorp-e2e-tests: test
 run-kube-e2e-tests: TEST_PKG = ./test/kube2e/$(KUBE2E_TESTS) ## Run the Kubernetes E2E Tests in the {KUBE2E_TESTS} package
 run-kube-e2e-tests: test
 
-# TODO: add skips for docker, package-chart and setup
-# Initial happy path test
-.PHONY: run-snapshot-e2e-tests
-#run-snapshot-e2e-tests: docker # build docker images
-#run-snapshot-e2e-tests: package-chart # build chart with correct version
-run-snapshot-e2e-tests: setup-declarative-env
-run-snapshot-e2e-tests: TEST_PKG = ./test/snapshot/gloo_gateway_int/
-run-snapshot-e2e-tests: test
+# TODO: add envs to skip for docker, package-chart and setup
+.PHONY: run-classic-snapshot-e2e-tests
+#run-classic-snapshot-e2e-tests: docker # build docker images
+#run-classic-snapshot-e2e-tests: package-chart # build chart with correct version
+run-classic-snapshot-e2e-tests: export CONFIG=./test/snapshot/edge_classic_e2e/artifacts/declarative-setup.yaml
+run-classic-snapshot-e2e-tests: setup-declarative-env
+run-classic-snapshot-e2e-tests: TEST_PKG = ./test/snapshot/edge_classic_e2e/
+run-classic-snapshot-e2e-tests: test
+
+.PHONY: run-gateway-snapshot-e2e-tests
+#run-gateway-snapshot-e2e-tests: docker # build docker images
+#run-gateway-snapshot-e2e-tests: package-chart # build chart with correct version
+run-gateway-snapshot-e2e-tests: export CONFIG=./test/snapshot/gloo_gateway_e2e/artifacts/declarative-setup.yaml
+run-gateway-snapshot-e2e-tests: setup-declarative-env
+run-gateway-snapshot-e2e-tests: TEST_PKG = ./test/snapshot/gloo_gateway_e2e/
+run-gateway-snapshot-e2e-tests: test
 
 # Sets up environment for running e2e tests
 # make docker
@@ -226,7 +234,6 @@ setup-declarative-env:
 	export ISTIO_HUB=docker.io/istio
 	export VERSION=1.0.1-dev
 	export ISTIO_VERSION=1.18.2
-	export CONFIG=./test/snapshot/gloo_gateway_int/artifacts/declarative-setup.yaml
 	@echo "CONFIG $(CONFIG)"
 	@go run ./test/setup setup --config $(CONFIG)
 

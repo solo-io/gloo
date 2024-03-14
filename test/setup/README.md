@@ -1,7 +1,7 @@
 # Overview
 
 The declarative environment builder tool can setup Kubernetes test cluster(s) with IstioOperators, Helm Charts, and any Applications required
-for testing. This is based on the declarative setup tool used in Gloo Platform. 
+for testing. This is based on the declarative setup tool used in GME. 
 
 ## Configuration
 

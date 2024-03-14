@@ -19,6 +19,11 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
+type GatewayInfo struct {
+	Name string
+	Port int
+}
+
 type TestRunner struct {
 	Name             string
 	ResultsByGateway map[types.NamespacedName]ExpectedTestResult

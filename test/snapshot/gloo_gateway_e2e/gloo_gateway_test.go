@@ -1,184 +1,151 @@
-package bugs_test
+package gloo_gateway_e2e
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
-	"io"
 	"os"
-	"path/filepath"
-	"strings"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
-	"github.com/solo-io/gloo/test/snapshot/gloo_gateway_e2e/testcase"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/client-go/kubernetes/scheme"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/gloo/test/kube2e"
+	"github.com/solo-io/gloo/test/snapshot"
+	"github.com/solo-io/gloo/test/snapshot/testcases"
+	"github.com/solo-io/gloo/test/snapshot/utils"
+	"github.com/solo-io/go-utils/testutils"
+	skhelpers "github.com/solo-io/solo-kit/test/helpers"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/yaml"
-
-	"github.com/solo-io/skv2/contrib/pkg/sets"
+	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
-const (
-	outputSnapToFileEnv = "OUTPUT_SNAPSHOT_TO_FILE"
-)
+var _ = Describe("Gloo Gateway", func() {
 
-var _ = Describe("Snapshot Test", func() {
-	for _, test := range testcase.Testcases {
-		test := test // pike
-		it := It
-		if test.Focus {
-			it = FIt
-		} else if test.Skip {
-			it = PIt
-		}
-		When(test.When, func() {
-			it(test.It, func() {
-				t := translator.NewDefaultTranslator()
-
-				var err error
-				var inputResources []*client.Object
-
-				if test.TestInput.TranslatorInputYamlFile != "" {
-					// TODO: load yaml
-				} else {
-					inputResources = test.TestInput.TranslatorInput
-				}
-
-				runTest(t, test.Assertions)
-
-			})
-
-		})
-	}
-})
-
-func runTest(
-	t translator.Translator,
-	assertions []testcase.TranslatorAssertion,
-) {
-
-	out, _, _ := t.Translate()
-
-	if os.Getenv(outputSnapToFileEnv) == "true" {
-		o, err := out.MarshalJSON()
-		Expect(err).NotTo(HaveOccurred())
-
-		dir := "/tmp/gp-snapshot-outputs"
-		err = os.MkdirAll(dir, os.ModePerm)
-		Expect(err).NotTo(HaveOccurred())
-
-		fileName := fmt.Sprintf("%s.json", strings.ToLower(strings.ReplaceAll(CurrentSpecReport().LeafNodeText, " ", "-")))
-		tmpfile, err := os.Create(filepath.Join(dir, fileName))
-		Expect(err).NotTo(HaveOccurred())
-
-		defer tmpfile.Close()
-
-		fmt.Fprintf(GinkgoWriter, "Writing snapshot output to %s\n", tmpfile.Name())
-		_, err = io.Copy(tmpfile, bytes.NewReader(o))
-		Expect(err).NotTo(HaveOccurred())
-	}
-
-	if len(errs) > 0 {
-		for ws, err := range errs {
-			fmt.Fprintf(GinkgoWriter, "WS: (%s), Error: %v\n", sets.Key(ws), err)
-		}
-		Fail("Errors occurred during translation")
-	}
-
-	for _, outs := range out.TctxOutput {
-		for _, outputs := range outs {
-			Expect(outputs.Err).NotTo(HaveOccurred())
-			outputs.Outputs.ForEach(func(obj client.Object) {
-				// Check idempotence, no output should appear in more than one output
-				Expect(allOutputs.Contains(obj)).To(BeFalse(), fmt.Sprintf("%s already exists in another output", sets.TypedKey(obj)))
-				allOutputs.Insert(obj)
-			})
-		}
-	}
-
-	for _, outputsMap := range out.GlobalOutput {
-		for _, outputs := range outputsMap {
-			Expect(outputs.Err).NotTo(HaveOccurred())
-			outputs.Outputs.ForEach(func(obj client.Object) {
-				// Check idempotence, no output should appear in more than one output
-				Expect(allOutputs.Contains(obj)).To(BeFalse(), fmt.Sprintf("%s already exists in another output", sets.TypedKey(obj)))
-				allOutputs.Insert(obj)
-			})
-		}
-	}
-
-	for _, assertion := range assertions {
-		assertion(allOutputs)
-	}
-}
-
-// CleanObject removes fields from the object that are not needed, which can decrease size of JSON file by ~ 50%
-func cleanObject(input, filename string) {
 	var (
-		rootIn = map[string]interface{}{}
+		inputs  []client.Object
+		kubeCtx string
 	)
 
-	Expect(json.NewDecoder(strings.NewReader(input)).Decode(&rootIn)).NotTo(HaveOccurred())
+	ctx, ctxCancel = context.WithCancel(context.Background())
 
-	for k := range rootIn {
-		nodes, ok := rootIn[k].([]any)
-		if !ok {
-			continue
-		}
-
-		for i, node := range nodes {
-			if node, ok := node.(map[string]any); ok {
-				metadata := node["metadata"].(map[string]any)
-
-				for k := range metadata {
-					switch k {
-					case "managedFields", "resourceVersion", "uid", "generation":
-						delete(metadata, k)
-					}
-				}
-
-				node["metadata"] = metadata
-			}
-
-			nodes[i] = node
-		}
-
-		rootIn[k] = nodes
-	}
-
-	pwd, err := filepath.Abs(".")
+	testHelper, err := kube2e.GetTestHelper(ctx, gloodefaults.GlooSystem)
 	Expect(err).NotTo(HaveOccurred())
+	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, testHelper.InstallNamespace))
 
-	filename = filepath.Join(pwd, "testcase", filename)
+	clusterName := os.Getenv("CLUSTER_NAME")
+	kubeCtx = fmt.Sprintf("kind-%s", clusterName)
 
-	outFile, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		panic(err)
+	resourceClientset, err := kube2e.NewDefaultKubeResourceClientSet(ctx)
+	Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
+
+	snapshotWriter = helpers.NewSnapshotWriter(resourceClientset).WithWriteNamespace(testHelper.InstallNamespace)
+
+	kubeClient, err := utils.GetClient(kubeCtx)
+	Expect(err).NotTo(HaveOccurred(), "can create client")
+
+	resourceClientset, err = kube2e.NewDefaultKubeResourceClientSet(ctx)
+	Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
+
+	runner := snapshot.TestRunner{
+		Name:             "gloo-gateway",
+		ResultsByGateway: map[types.NamespacedName]snapshot.ExpectedTestResult{},
+		ClientSet:        resourceClientset,
+		Client:           kubeClient,
 	}
-	defer outFile.Close()
 
-	enc := json.NewEncoder(outFile)
-	err = enc.Encode(rootIn)
-	Expect(err).NotTo(HaveOccurred())
-}
+	BeforeEach(func() {
+		inputs = []client.Object{}
+	})
 
-func loadYamlResources(input testcase.TestInput) (error, []*client.Object) {
-	// Decode YAML and append objects to the list
-	for _, doc := range yaml.SplitYAML(input.TranslatorInputYaml.Filename) {
-		obj, _, err := decode([]byte(doc), nil, nil)
-		if err != nil {
-			log.Fatalf("Error decoding YAML: %v", err)
+	JustAfterEach(func() {
+		defer ctxCancel()
+
+		// Note to devs:  set NO_CLEANUP to 'all' or 'failed' to skip cleanup, for the sake of
+		// debugging or otherwise examining state after a test.
+		if utils.ShouldSkipCleanup() {
+			fmt.Printf("Not cleaning up")
+			return // Exit without cleaning up
 		}
-		objects = append(objects, obj)
-	}
-}
+		//Expect(runner.Cleanup(ctx)).To(Succeed())
+	})
 
-// unstructuredSerializer returns a serializer for unstructured objects.
-func unstructuredSerializer() runtime.Serializer {
-	return serializer.NewCodecFactory(scheme.Scheme).WithoutConversion()
-}
+	When("gateway-api", func() {
+
+		inputs = []client.Object{
+			&gwv1.Gateway{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "example-gateway",
+					Namespace: gloodefaults.GlooSystem,
+				},
+				Spec: gwv1.GatewaySpec{
+					GatewayClassName: "gloo-gateway",
+					Listeners: []gwv1.Listener{
+						{
+							Name:     "httpbin",
+							Port:     8080,
+							Protocol: "HTTP",
+							AllowedRoutes: &gwv1.AllowedRoutes{
+								Namespaces: &gwv1.RouteNamespaces{
+									From: utils.PtrTo(gwv1.NamespacesFromAll),
+								},
+							},
+						},
+					},
+				},
+			},
+			&gwv1.HTTPRoute{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "httpbin-route",
+					Namespace: "httpbin",
+				},
+				Spec: gwv1.HTTPRouteSpec{
+					CommonRouteSpec: gwv1.CommonRouteSpec{
+						ParentRefs: []gwv1.ParentReference{
+							{
+								Name:      "example-gateway",
+								Namespace: utils.PtrTo(gwv1.Namespace(gloodefaults.GlooSystem)),
+							},
+						},
+					},
+					Hostnames: []gwv1.Hostname{"httpbin.example.com"},
+					Rules: []gwv1.HTTPRouteRule{
+						{
+							BackendRefs: []gwv1.HTTPBackendRef{
+								{
+									BackendRef: gwv1.BackendRef{
+										BackendObjectReference: gwv1.BackendObjectReference{
+											Name:      "httpbin",
+											Namespace: utils.PtrTo(gwv1.Namespace("httpbin")),
+											Port:      utils.PtrTo(gwv1.PortNumber(8000)),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		customSetupAssertions := func() {
+			err = testutils.WaitPodsRunning(ctx, time.Second, gloodefaults.GlooSystem, "app.kubernetes.io/name=gloo-proxy-example-gateway")
+			Expect(err).NotTo(HaveOccurred())
+		}
+
+		Context("gateway-api", testcases.TestGatewayIngress(
+			ctx,
+			runner,
+			testHelper,
+			&snapshot.GatewayInfo{
+				Name: "gloo-proxy-example-gateway",
+				Port: 8080,
+			},
+			inputs,
+			customSetupAssertions))
+
+	})
+})
