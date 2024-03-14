@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >-
+      Added a new `GatewayClass` that is used for east-west traffic:
+        `gloo-waypoint` intended to be used as an Istio Ambient Waypoint, along
+        with PROXY protocol support for Gloo Gateway v2.
