@@ -16,7 +16,7 @@ func ptr[T any](i T) *T {
 var _ = DescribeTable(
 	"RedirectPlugin",
 	func(
-		plugin plugins.RoutePlugin,
+		plugin plugins.RouteRulePlugin,
 		filter gwv1.HTTPRouteFilter,
 		expectedRoute *v1.Route,
 	) {

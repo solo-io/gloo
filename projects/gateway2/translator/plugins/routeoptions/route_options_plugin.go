@@ -20,6 +20,8 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
+var _ plugins.RouteRulePlugin = &plugin{}
+
 var gk = schema.GroupKind{
 	Group: sologatewayv1.RouteOptionGVK.Group,
 	Kind:  sologatewayv1.RouteOptionGVK.Kind,
@@ -35,7 +37,7 @@ func NewPlugin(queries query.GatewayQueries) *plugin {
 	}
 }
 
-func (p *plugin) ApplyRoutePlugin(
+func (p *plugin) ApplyRouteRulePlugin(
 	ctx context.Context,
 	routeCtx *plugins.RouteContext,
 	outputRoute *v1.Route,
