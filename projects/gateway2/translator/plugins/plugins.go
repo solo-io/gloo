@@ -36,6 +36,16 @@ type RouteRulePlugin interface {
 	) error
 }
 
+type RoutePlugin interface {
+	// ApplyRoutePlugin is called once for a full HTTPRoute and can modify the initial RouteOptions
+	// that will be provided to all HTTPRouteRules (and their HTTPRouteMatches) contained in this Route
+	ApplyRoutePlugin(
+		ctx context.Context,
+		routeCtx *RouteContext,
+		routeOptions *v1.RouteOptions,
+	) error
+}
+
 type PostTranslationContext struct {
 	// TranslatedGateways is the list of Gateways that were generated in a single translation run
 	TranslatedGateways []TranslatedGateway
