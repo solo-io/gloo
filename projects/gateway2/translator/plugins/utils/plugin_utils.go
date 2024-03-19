@@ -117,14 +117,14 @@ func IsPolicyAttachedToRoute(targetRef *v1.PolicyTargetReference, routeCtx *plug
 	if targetRef == nil {
 		return false
 	}
-	if targetRef.Group != gwv1.GroupName || targetRef.Kind != "HTTPRoute" {
+	if targetRef.GetGroup() != gwv1.GroupName || targetRef.GetKind() != "HTTPRoute" {
 		return false
 	}
-	ns := targetRef.Namespace.GetValue()
+	ns := targetRef.GetNamespace().GetValue()
 	if ns != "" && ns != routeCtx.Route.Namespace {
 		return false
 	}
-	if targetRef.Name != routeCtx.Route.Name {
+	if targetRef.GetName() != routeCtx.Route.Name {
 		return false
 	}
 	return true
