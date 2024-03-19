@@ -17,9 +17,11 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
+var _ plugins.RoutePlugin = &plugin{}
 var _ plugins.RouteRulePlugin = &plugin{}
 
 var gk = schema.GroupKind{
@@ -35,6 +37,31 @@ func NewPlugin(queries query.GatewayQueries) *plugin {
 	return &plugin{
 		queries,
 	}
+}
+
+func (p *plugin) ApplyRoutePlugin(
+	ctx context.Context,
+	routeCtx *plugins.RouteContext,
+	routeOptions *v1.RouteOptions,
+) error {
+	routeOptObjs := getRouteOptions(ctx, routeCtx, p.queries)
+	attachedOptions := findAttachedRouteOptions(routeCtx, routeOptObjs)
+
+	// TODO: sort policies (https://github.com/solo-io/gloo-mesh-enterprise/blob/57d309367e7cc759eedf4c58f58f45e3ec72e25f/pkg/translator/utils/sort_creation_timestamp.go#L17)
+
+	for _, rtOpt := range attachedOptions {
+		if rtOpt.Spec.GetOptions() != nil {
+			// let's make a copy as rtOpt is a reference to the concrete message retrieved from kube cache
+			// which includes the proto message state etc.
+			// additionally, we don't want to point the incoming routeOptions to the kube cache object
+			var out sologatewayv1.RouteOption
+			rtOpt.Spec.DeepCopyInto(&out)
+
+			// clobber the existing RouteOptions; merge semantics may be desired later
+			*routeOptions = *out.GetOptions()
+		}
+	}
+	return nil
 }
 
 func (p *plugin) ApplyRouteRulePlugin(
@@ -73,6 +100,38 @@ func (p *plugin) ApplyRouteRulePlugin(
 		outputRoute.Options = routeOption.Spec.GetOptions()
 	}
 	return nil
+}
+
+func getRouteOptions(ctx context.Context, routeCtx *plugins.RouteContext, queries query.GatewayQueries) []*solokubev1.RouteOption {
+	var routeList solokubev1.RouteOptionList
+	err := queries.List(ctx, &routeList, client.InNamespace(routeCtx.Route.Namespace))
+	if err != nil {
+		contextutils.LoggerFrom(ctx).Errorf("error while Listing RouteOptions: %v", err)
+		// TODO: handle correctly
+		return nil
+	}
+
+	// as the RouteOptionList does not contain pointers, and RouteOption is a concrete proto message,
+	// we need to turn it into a pointer slice to avoid copying proto message state around, copying locks, etc.
+	// while we perform operations on the RouteOptionList
+	ptrSlice := []*solokubev1.RouteOption{}
+	items := routeList.Items
+	for i := range items {
+		ptrSlice = append(ptrSlice, &items[i])
+	}
+	return ptrSlice
+}
+
+func findAttachedRouteOptions(routeCtx *plugins.RouteContext, routeOptions []*solokubev1.RouteOption) []*solokubev1.RouteOption {
+	attachedOptions := []*solokubev1.RouteOption{}
+	for _, roObj := range routeOptions {
+		targetRef := roObj.Spec.GetTargetRef()
+		if !utils.IsPolicyAttachedToRoute(targetRef, routeCtx) {
+			continue
+		}
+		attachedOptions = append(attachedOptions, roObj)
+	}
+	return attachedOptions
 }
 
 func formatNotFoundMessage(routeCtx *plugins.RouteContext, filter *gwv1.HTTPRouteFilter) string {
