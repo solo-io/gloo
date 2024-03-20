@@ -84,6 +84,7 @@ func translateGatewayHTTPRouteRule(
 ) []*v1.Route {
 	routes := make([]*v1.Route, len(rule.Matches))
 	for idx, match := range rule.Matches {
+		match := match // pike-ish
 		routeOptions := baseRouteOptions.Clone().(*v1.RouteOptions)
 		outputRoute := &v1.Route{
 			Matchers: []*matchers.Matcher{translateGlooMatcher(match)},
