@@ -79,11 +79,12 @@ func translateGatewayHTTPRouteRule(
 	gwroute *gwv1.HTTPRoute,
 	rule gwv1.HTTPRouteRule,
 	rtCtx *plugins.RouteContext,
-	routeOptions *v1.RouteOptions,
+	baseRouteOptions *v1.RouteOptions,
 	reporter reports.ParentRefReporter,
 ) []*v1.Route {
 	routes := make([]*v1.Route, len(rule.Matches))
 	for idx, match := range rule.Matches {
+		routeOptions := baseRouteOptions.Clone().(*v1.RouteOptions)
 		outputRoute := &v1.Route{
 			Matchers: []*matchers.Matcher{translateGlooMatcher(match)},
 			Action:   nil,
