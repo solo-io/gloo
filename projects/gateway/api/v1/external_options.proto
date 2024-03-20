@@ -249,5 +249,8 @@ message RouteOption {
   // Route options. See Route for delegation behavior.
   gloo.solo.io.RouteOptions options = 3;
   
+  // When using Kubernetes Gateway API mode, targetRef can be used to attach this RouteOption
+  // to a gateway.networking.k8s.io/HTTPRoute object. The `options` specified will then be used
+  // for all `Rules` in the `HTTPRoute`.
   core.skv2.solo.io.PolicyTargetReference target_ref = 5;
 }

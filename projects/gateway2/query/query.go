@@ -122,9 +122,6 @@ type GatewayQueries interface {
 
 	GetLocalObjRef(ctx context.Context, from From, localObjRef apiv1.LocalObjectReference) (client.Object, error)
 
-	// Per-spec (at least currently in the experimental profile), no cross-namespace attachment allowed
-	// GetPolicyObjects(ctx context.Context, from From, localObjRef apiv1.LocalObjectReference)
-
 	// Simple passthrough to client.List(...)
 	List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error
 }

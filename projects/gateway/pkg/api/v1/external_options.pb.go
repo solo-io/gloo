@@ -327,7 +327,10 @@ type RouteOption struct {
 	// Metadata contains the object metadata for this resource
 	Metadata *core.Metadata `protobuf:"bytes,2,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// Route options. See Route for delegation behavior.
-	Options   *v1.RouteOptions           `protobuf:"bytes,3,opt,name=options,proto3" json:"options,omitempty"`
+	Options *v1.RouteOptions `protobuf:"bytes,3,opt,name=options,proto3" json:"options,omitempty"`
+	// When using Kubernetes Gateway API mode, targetRef can be used to attach this RouteOption
+	// to a gateway.networking.k8s.io/HTTPRoute object. The `options` specified will then be used
+	// for all `Rules` in the `HTTPRoute`.
 	TargetRef *v11.PolicyTargetReference `protobuf:"bytes,5,opt,name=target_ref,json=targetRef,proto3" json:"target_ref,omitempty"`
 }
 
