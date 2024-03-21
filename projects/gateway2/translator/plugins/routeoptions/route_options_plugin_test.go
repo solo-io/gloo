@@ -5,6 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -79,13 +80,14 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				plugin.ApplyRoutePlugin(ctx, routeCtx, options)
 
-				Expect(options).To(BeEquivalentTo(&v1.RouteOptions{
+				expectedOptions := &v1.RouteOptions{
 					Faults: &faultinjection.RouteFaults{
 						Abort: &faultinjection.RouteAbort{
 							Percentage: 1.00,
 						},
 					},
-				}))
+				}
+				Expect(proto.Equal(options, expectedOptions)).To(BeTrue())
 			})
 		})
 
@@ -108,13 +110,14 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				plugin.ApplyRoutePlugin(ctx, routeCtx, options)
 
-				Expect(options).To(BeEquivalentTo(&v1.RouteOptions{
+				expectedOptions := &v1.RouteOptions{
 					Faults: &faultinjection.RouteFaults{
 						Abort: &faultinjection.RouteAbort{
 							Percentage: 1.00,
 						},
 					},
-				}))
+				}
+				Expect(proto.Equal(options, expectedOptions)).To(BeTrue())
 			})
 		})
 
@@ -137,7 +140,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				plugin.ApplyRoutePlugin(ctx, routeCtx, options)
 
-				Expect(options).To(BeEquivalentTo(&v1.RouteOptions{}))
+				Expect(proto.Equal(options, &v1.RouteOptions{})).To(BeTrue())
 			})
 		})
 
@@ -160,7 +163,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				plugin.ApplyRoutePlugin(ctx, routeCtx, options)
 
-				Expect(options).To(BeEquivalentTo(&v1.RouteOptions{}))
+				Expect(proto.Equal(options, &v1.RouteOptions{})).To(BeTrue())
 			})
 		})
 	})

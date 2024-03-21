@@ -50,15 +50,10 @@ func (p *plugin) ApplyRoutePlugin(
 	// TODO: sort policies (https://github.com/solo-io/gloo-mesh-enterprise/blob/57d309367e7cc759eedf4c58f58f45e3ec72e25f/pkg/translator/utils/sort_creation_timestamp.go#L17)
 
 	for _, rtOpt := range attachedOptions {
+		rtOpt := rtOpt // pike
 		if rtOpt.Spec.GetOptions() != nil {
-			// let's make a copy as rtOpt is a reference to the concrete message retrieved from kube cache
-			// which includes the proto message state etc.
-			// additionally, we don't want to point the incoming routeOptions to the kube cache object
-			var out sologatewayv1.RouteOption
-			rtOpt.Spec.DeepCopyInto(&out)
-
 			// clobber the existing RouteOptions; merge semantics may be desired later
-			*routeOptions = *out.GetOptions()
+			*routeOptions = *rtOpt.Spec.GetOptions()
 		}
 	}
 	return nil
@@ -95,8 +90,7 @@ func (p *plugin) ApplyRouteRulePlugin(
 	}
 
 	if routeOption.Spec.GetOptions() != nil {
-		// set options from RouteOptions resource and clobber any existing options
-		// should be revisited if/when we support merging options from e.g. other HTTPRouteFilters
+		// clobber the existing RouteOptions; merge semantics may be desired later
 		outputRoute.Options = routeOption.Spec.GetOptions()
 	}
 	return nil
