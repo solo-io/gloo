@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/go-utils/contextutils"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -36,7 +37,7 @@ func TranslateGatewayHTTPRouteRules(
 	for _, plugin := range pluginRegistry.GetRoutePlugins() {
 		err := plugin.ApplyRoutePlugin(ctx, rtCtx, &routeOptions)
 		if err != nil {
-			// TODO Log
+			contextutils.LoggerFrom(ctx).Errorf("error while running RoutePlugin '%v': %v", plugin.GetName(), err)
 		}
 	}
 
@@ -106,7 +107,7 @@ func translateGatewayHTTPRouteRule(
 		for _, plugin := range pluginRegistry.GetRouteRulePlugins() {
 			err := plugin.ApplyRouteRulePlugin(ctx, rtCtx, outputRoute)
 			if err != nil {
-				// TODO Log
+				contextutils.LoggerFrom(ctx).Errorf("error while running RouteRulePlugin '%v': %v", plugin.GetName(), err)
 			}
 		}
 

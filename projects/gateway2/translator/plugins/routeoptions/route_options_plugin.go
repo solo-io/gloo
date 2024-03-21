@@ -39,6 +39,10 @@ func NewPlugin(queries query.GatewayQueries) *plugin {
 	}
 }
 
+func (p *plugin) GetName() string {
+	return "RouteOptionsPlugin"
+}
+
 func (p *plugin) ApplyRoutePlugin(
 	ctx context.Context,
 	routeCtx *plugins.RouteContext,
@@ -74,17 +78,21 @@ func (p *plugin) ApplyRouteRulePlugin(
 	if err != nil {
 		switch {
 		case apierrors.IsNotFound(err):
+			notFoundMsg := formatNotFoundMessage(routeCtx, filter)
 			routeCtx.Reporter.SetCondition(reports.HTTPRouteCondition{
 				Type:    gwv1.RouteConditionResolvedRefs,
 				Status:  metav1.ConditionFalse,
 				Reason:  gwv1.RouteReasonBackendNotFound,
-				Message: formatNotFoundMessage(routeCtx, filter),
+				Message: notFoundMsg,
 			})
+			return errors.New(notFoundMsg)
 		case errors.Is(err, utils.ErrTypesNotEqual):
 		case errors.Is(err, utils.ErrNotSettable):
-			contextutils.LoggerFrom(ctx).DPanicf("developer error while getting RouteOptions as ExtensionRef: %v", err)
+			devErr := fmt.Errorf("developer error while getting RouteOptions as ExtensionRef: %w", err)
+			contextutils.LoggerFrom(ctx).DPanic(devErr)
+			return devErr
 		default:
-			contextutils.LoggerFrom(ctx).Errorf("error while getting RouteOptions as ExtensionRef: %v", err)
+			return fmt.Errorf("error while getting RouteOptions as ExtensionRef: %w", err)
 		}
 		return err
 	}

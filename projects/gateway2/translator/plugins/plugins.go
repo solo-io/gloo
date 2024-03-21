@@ -10,7 +10,9 @@ import (
 )
 
 // Plugin is an empty type for base plugins, currently no base methods.
-type Plugin interface{}
+type Plugin interface {
+	GetName() string
+}
 
 type RouteContext struct {
 	// top-level gw Listener
@@ -28,6 +30,7 @@ type RouteContext struct {
 }
 
 type RouteRulePlugin interface {
+	Plugin
 	// ApplyRouteRulePlugin is called for *each* Match in a given HTTPRouteRule
 	ApplyRouteRulePlugin(
 		ctx context.Context,
@@ -37,6 +40,7 @@ type RouteRulePlugin interface {
 }
 
 type RoutePlugin interface {
+	Plugin
 	// ApplyRoutePlugin is called once for a full HTTPRoute and can modify the initial RouteOptions
 	// that will be provided to all HTTPRouteRules (and their HTTPRouteMatches) contained in this Route
 	ApplyRoutePlugin(
