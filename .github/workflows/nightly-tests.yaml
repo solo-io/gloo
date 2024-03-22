@@ -20,7 +20,7 @@ on:
         description: "The branch to run tests against"
         type: choice
         options:
-          - main
+          - 1.16.x-secret-robustness-flake-spam
           - v1.15.x
           - v1.14.x
       run-regression:
@@ -33,7 +33,7 @@ on:
 jobs:
   regression_tests_main:
     name: main regression tests
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'main') || github.event.schedule == '0 5 * * 1-5' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == '1.16.x-secret-robustness-flake-spam') || github.event.schedule == '0 5 * * 1-5' }}
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     # Previously, there was an environment variable, RELEASED_VERSION="LATEST" set.  This made use of some internal code:
@@ -44,13 +44,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        kube-e2e-test-type: ['gateway', 'gloo', 'ingress', 'helm', 'gloomtls', 'glooctl', 'upgrade']
+        kube-e2e-test-type: ['gateway','gateway','gateway','gateway','gateway','gateway','gateway','gateway']
         kube-version: [ { node: 'v1.24.15@sha256:7db4f8bea3e14b82d12e044e25e34bd53754b7f2b0e9d56df21774e6f66a70ab', kubectl: 'v1.24.17', kind: 'v0.20.0', helm: 'v3.12.2' },
                         { node: 'v1.28.0@sha256:b7a4cad12c197af3ba43202d3efe03246b3f0793f162afb40a33c923952d5b31', kubectl: 'v1.28.4', kind: 'v0.20.0', helm: 'v3.13.2' }]
     steps:
     - uses: actions/checkout@v3
       with:
-        ref: main
+        ref: 1.16.x-secret-robustness-flake-spam
     - uses: ./.github/workflows/composite-actions/regression-tests
 
   regression_tests_15:
