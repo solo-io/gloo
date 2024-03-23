@@ -2,6 +2,7 @@ package routeoptions
 
 import (
 	"context"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -122,6 +123,36 @@ var _ = Describe("RouteOptionsPlugin", func() {
 			})
 		})
 
+		When("Two RouteOptions are attached correctly with different creation timestamps", func() {
+			It("correctly adds faultinjection from the earliest created object", func() {
+				deps := []client.Object{attachedRouteOption(), attachedRouteOptionBefore()}
+				queries := testutils.BuildGatewayQueries(deps)
+				plugin := NewPlugin(queries)
+
+				ctx := context.Background()
+				routeCtx := &plugins.RouteContext{
+					Route: &gwv1.HTTPRoute{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "ghostface",
+							Namespace: "wu-tang",
+						},
+					},
+				}
+				options := &v1.RouteOptions{}
+
+				plugin.ApplyRoutePlugin(ctx, routeCtx, options)
+
+				expectedOptions := &v1.RouteOptions{
+					Faults: &faultinjection.RouteFaults{
+						Abort: &faultinjection.RouteAbort{
+							Percentage: 4.19,
+						},
+					},
+				}
+				Expect(proto.Equal(options, expectedOptions)).To(BeTrue())
+			})
+		})
+
 		When("RouteOptions exist in the same namespace but are not attached correctly", func() {
 			It("does not add faultinjection", func() {
 				deps := []client.Object{nonAttachedRouteOption()}
@@ -189,10 +220,12 @@ func routeOption() *solokubev1.RouteOption {
 }
 
 func attachedRouteOption() *solokubev1.RouteOption {
+	now := metav1.Now()
 	return &solokubev1.RouteOption{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "policy",
-			Namespace: "wu-tang",
+			Name:              "policy",
+			Namespace:         "wu-tang",
+			CreationTimestamp: now,
 		},
 		Spec: sologatewayv1.RouteOption{
 			TargetRef: &corev1.PolicyTargetReference{
@@ -205,6 +238,32 @@ func attachedRouteOption() *solokubev1.RouteOption {
 				Faults: &faultinjection.RouteFaults{
 					Abort: &faultinjection.RouteAbort{
 						Percentage: 1.00,
+					},
+				},
+			},
+		},
+	}
+}
+
+func attachedRouteOptionBefore() *solokubev1.RouteOption {
+	anHourAgo := metav1.NewTime(time.Now().Add(-1 * time.Hour))
+	return &solokubev1.RouteOption{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "policy-older",
+			Namespace:         "wu-tang",
+			CreationTimestamp: anHourAgo,
+		},
+		Spec: sologatewayv1.RouteOption{
+			TargetRef: &corev1.PolicyTargetReference{
+				Group:     gwv1.GroupVersion.Group,
+				Kind:      wellknown.HTTPRouteKind,
+				Name:      "ghostface",
+				Namespace: wrapperspb.String("wu-tang"),
+			},
+			Options: &v1.RouteOptions{
+				Faults: &faultinjection.RouteFaults{
+					Abort: &faultinjection.RouteAbort{
+						Percentage: 4.19,
 					},
 				},
 			},

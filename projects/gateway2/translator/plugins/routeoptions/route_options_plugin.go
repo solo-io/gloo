@@ -50,15 +50,15 @@ func (p *plugin) ApplyRoutePlugin(
 ) error {
 	routeOptObjs := getRouteOptions(ctx, routeCtx, p.queries)
 	attachedOptions := findAttachedRouteOptions(routeCtx, routeOptObjs)
+	if len(attachedOptions) == 0 {
+		return nil
+	}
 
-	// TODO: sort policies (https://github.com/solo-io/gloo-mesh-enterprise/blob/57d309367e7cc759eedf4c58f58f45e3ec72e25f/pkg/translator/utils/sort_creation_timestamp.go#L17)
-
-	for _, rtOpt := range attachedOptions {
-		rtOpt := rtOpt // pike
-		if rtOpt.Spec.GetOptions() != nil {
-			// clobber the existing RouteOptions; merge semantics may be desired later
-			*routeOptions = *rtOpt.Spec.GetOptions()
-		}
+	// sort attached options and apply only the earliest
+	utils.SortByCreationTime(attachedOptions)
+	earliestOption := attachedOptions[0]
+	if earliestOption.Spec.GetOptions() != nil {
+		*routeOptions = *earliestOption.Spec.GetOptions()
 	}
 	return nil
 }
