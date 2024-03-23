@@ -7,6 +7,7 @@ import (
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -117,7 +118,7 @@ func IsPolicyAttachedToRoute(targetRef *v1.PolicyTargetReference, routeCtx *plug
 	if targetRef == nil {
 		return false
 	}
-	if targetRef.GetGroup() != gwv1.GroupName || targetRef.GetKind() != "HTTPRoute" {
+	if targetRef.GetGroup() != gwv1.GroupName || targetRef.GetKind() != wellknown.HTTPRouteKind {
 		return false
 	}
 	ns := targetRef.GetNamespace().GetValue()

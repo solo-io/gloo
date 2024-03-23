@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection"
 	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
@@ -66,7 +67,7 @@ func TestPolicyAttached(t *testing.T) {
 
 	targetRef := &corev1.PolicyTargetReference{
 		Group:     gwv1.GroupVersion.Group,
-		Kind:      "HTTPRoute",
+		Kind:      wellknown.HTTPRouteKind,
 		Name:      "ghostface",
 		Namespace: wrapperspb.String("wu-tang"),
 	}
@@ -87,7 +88,7 @@ func TestPolicyAttachedDiffNamespace(t *testing.T) {
 
 	targetRef := &corev1.PolicyTargetReference{
 		Group:     gwv1.GroupVersion.Group,
-		Kind:      "HTTPRoute",
+		Kind:      wellknown.HTTPRouteKind,
 		Name:      "ghostface",
 		Namespace: wrapperspb.String("default"),
 	}
@@ -108,7 +109,7 @@ func TestPolicyAttachedOmitNamespace(t *testing.T) {
 
 	targetRef := &corev1.PolicyTargetReference{
 		Group: gwv1.GroupVersion.Group,
-		Kind:  "HTTPRoute",
+		Kind:  wellknown.HTTPRouteKind,
 		Name:  "ghostface",
 	}
 	routeCtx := &plugins.RouteContext{

@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/filtertests"
 	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection"
 	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
@@ -196,7 +197,7 @@ func attachedRouteOption() *solokubev1.RouteOption {
 		Spec: sologatewayv1.RouteOption{
 			TargetRef: &corev1.PolicyTargetReference{
 				Group:     gwv1.GroupVersion.Group,
-				Kind:      "HTTPRoute",
+				Kind:      wellknown.HTTPRouteKind,
 				Name:      "ghostface",
 				Namespace: wrapperspb.String("wu-tang"),
 			},
@@ -220,7 +221,7 @@ func attachedRouteOptionOmitNamespace() *solokubev1.RouteOption {
 		Spec: sologatewayv1.RouteOption{
 			TargetRef: &corev1.PolicyTargetReference{
 				Group: gwv1.GroupVersion.Group,
-				Kind:  "HTTPRoute",
+				Kind:  wellknown.HTTPRouteKind,
 				Name:  "ghostface",
 			},
 			Options: &v1.RouteOptions{
@@ -243,7 +244,7 @@ func nonAttachedRouteOption() *solokubev1.RouteOption {
 		Spec: sologatewayv1.RouteOption{
 			TargetRef: &corev1.PolicyTargetReference{
 				Group:     gwv1.GroupVersion.Group,
-				Kind:      "HTTPRoute",
+				Kind:      wellknown.HTTPRouteKind,
 				Name:      "my-route",
 				Namespace: wrapperspb.String("wu-tang"),
 			},
