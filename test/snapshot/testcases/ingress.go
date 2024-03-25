@@ -7,10 +7,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/solo-io/skv2/codegen/util"
 
 	"github.com/solo-io/gloo/test/snapshot"
 	"github.com/solo-io/gloo/test/snapshot/utils"
@@ -23,16 +20,6 @@ var TestGatewayIngress = func(
 	inputs []client.Object,
 	customSetupAssertions func(),
 ) {
-	dir := util.MustGetThisDir()
-	runner.ResultsByGateway = map[types.NamespacedName]snapshot.ExpectedTestResult{
-		{
-			Namespace: "default",
-			Name:      "example-gateway-http",
-		}: {
-			Proxy: dir + "/outputs/http-routing-proxy.yaml",
-		},
-	}
-
 	err := runner.Run(ctx, inputs)
 	Expect(err).NotTo(HaveOccurred())
 

@@ -20,7 +20,6 @@ import (
 	"github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/core/matchers"
 	"github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/options/kubernetes"
 	gloocore "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"k8s.io/apimachinery/pkg/types"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -57,10 +56,9 @@ var _ = Describe("Gloo Edge Classic", func() {
 		Expect(err).NotTo(HaveOccurred(), "can create client")
 
 		runner = snapshot.TestRunner{
-			Name:             "classic-apis",
-			ResultsByGateway: map[types.NamespacedName]snapshot.ExpectedTestResult{},
-			ClientSet:        resourceClientset,
-			Client:           kubeClient,
+			Name:      "classic-apis",
+			ClientSet: resourceClientset,
+			Client:    kubeClient,
 		}
 	})
 

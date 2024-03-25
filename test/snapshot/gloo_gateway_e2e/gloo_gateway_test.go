@@ -14,7 +14,6 @@ import (
 	"github.com/solo-io/gloo/test/snapshot/utils"
 	"github.com/solo-io/gloo/test/snapshot/utils/builders"
 	"github.com/solo-io/go-utils/testutils"
-	"k8s.io/apimachinery/pkg/types"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -53,10 +52,9 @@ var _ = Describe("Gloo Gateway", func() {
 		Expect(err).NotTo(HaveOccurred(), "can create client")
 
 		runner = snapshot.TestRunner{
-			Name:             "k8s-gateway-apis",
-			ResultsByGateway: map[types.NamespacedName]snapshot.ExpectedTestResult{},
-			ClientSet:        resourceClientset,
-			Client:           kubeClient,
+			Name:      "k8s-gateway-apis",
+			ClientSet: resourceClientset,
+			Client:    kubeClient,
 		}
 	})
 
