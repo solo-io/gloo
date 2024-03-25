@@ -40,7 +40,7 @@ var TestGatewayIngress = func(
 	customSetupAssertions()
 
 	// This tests assumes that curl pod is installed in the curl namespace
-	// curl gateway-proxy.gloo-system:80/headers -H "host: httpbin.example.com"  -v
+	// ie. curl gateway-proxy.gloo-system:80/headers -H "host: httpbin.example.com"  -v
 	curl := &utils.CurlFromPod{
 		Url: fmt.Sprintf("http://%s.%s:%d/headers", env.GatewayName, env.GatewayNamespace, env.GatewayPort),
 		Cluster: &utils.KubeContext{

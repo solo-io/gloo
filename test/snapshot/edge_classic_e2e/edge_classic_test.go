@@ -25,6 +25,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const (
+	gatewayPort      = int(80)
+	httpbinNamespace = "httpbin"
+	httpbinService   = "httpbin"
+)
+
 var _ = Describe("Gloo Edge Classic", func() {
 
 	var (
@@ -38,6 +44,24 @@ var _ = Describe("Gloo Edge Classic", func() {
 	BeforeEach(func() {
 		// Clear inputs before each run.
 		inputs = []client.Object{}
+
+		clusterName = os.Getenv("CLUSTER_NAME")
+		kubeCtx = fmt.Sprintf("kind-%s", clusterName)
+
+		// set up resource client and kubeclient
+		var err error
+		resourceClientset, err = kube2e.NewDefaultKubeResourceClientSet(ctx)
+		Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
+
+		kubeClient, err = utils.GetClient(kubeCtx)
+		Expect(err).NotTo(HaveOccurred(), "can create client")
+
+		runner = snapshot.TestRunner{
+			Name:             "classic-apis",
+			ResultsByGateway: map[types.NamespacedName]snapshot.ExpectedTestResult{},
+			ClientSet:        resourceClientset,
+			Client:           kubeClient,
+		}
 	})
 
 	JustAfterEach(func() {
@@ -55,7 +79,7 @@ var _ = Describe("Gloo Edge Classic", func() {
 	When("Happy Path", func() {
 		BeforeEach(func() {
 			vs, err := builders.NewVirtualServiceBuilder().WithName("httpbin-route").
-				WithNamespace("httpbin").
+				WithNamespace(httpbinNamespace).
 				WithDomain("httpbin.example.com").
 				WithRoute("httpbin-route", &v1.Route{
 					Name: "httpbin-route",
@@ -89,39 +113,22 @@ var _ = Describe("Gloo Edge Classic", func() {
 					WithNamespace(gloodefaults.GlooSystem).
 					WithDiscoveryMetadata(&gloov1.DiscoveryMetadata{
 						Labels: map[string]string{
-							"app":     "httpbin",
-							"service": "httpbin",
+							"app":     httpbinService,
+							"service": httpbinService,
 						},
 					}).
 					WithKubeUpstream(&gloov1.UpstreamSpec_Kube{
 						Kube: &kubernetes.UpstreamSpec{
 							Selector: map[string]string{
-								"app": "httpbin",
+								"app": httpbinService,
 							},
-							ServiceNamespace: "httpbin",
-							ServiceName:      "httpbin",
+							ServiceNamespace: httpbinNamespace,
+							ServiceName:      httpbinService,
 							ServicePort:      uint32(8000),
 						},
 					}).
 					Build(),
 				vs,
-			}
-
-			clusterName = os.Getenv("CLUSTER_NAME")
-			kubeCtx = fmt.Sprintf("kind-%s", clusterName)
-
-			// set up resource client and kubeclient
-			resourceClientset, err = kube2e.NewDefaultKubeResourceClientSet(ctx)
-			Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
-
-			kubeClient, err = utils.GetClient(kubeCtx)
-			Expect(err).NotTo(HaveOccurred(), "can create client")
-
-			runner = snapshot.TestRunner{
-				Name:             "classic-apis",
-				ResultsByGateway: map[types.NamespacedName]snapshot.ExpectedTestResult{},
-				ClientSet:        resourceClientset,
-				Client:           kubeClient,
 			}
 		})
 
@@ -132,7 +139,7 @@ var _ = Describe("Gloo Edge Classic", func() {
 				&snapshot.TestEnv{
 					GatewayName:      defaults.GatewayProxyName,
 					GatewayNamespace: gloodefaults.GlooSystem,
-					GatewayPort:      80,
+					GatewayPort:      gatewayPort,
 					ClusterName:      clusterName,
 					ClusterContext:   kubeCtx,
 				},

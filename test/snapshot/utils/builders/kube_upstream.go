@@ -13,8 +13,8 @@ type KubeUpstreamBuilder struct {
 	namespace string
 	labels    map[string]string
 
-	DiscoveryMetadata *gloov1.DiscoveryMetadata
-	UpstreamType      *gloov1.UpstreamSpec_Kube
+	discoveryMetadata *gloov1.DiscoveryMetadata
+	upstreamType      *gloov1.UpstreamSpec_Kube
 
 	sniPattern   sniPattern
 	healthChecks []*core.HealthCheck
@@ -63,12 +63,12 @@ func (b *KubeUpstreamBuilder) WithHealthChecks(healthChecks []*core.HealthCheck)
 }
 
 func (b *KubeUpstreamBuilder) WithDiscoveryMetadata(discoveryMeta *gloov1.DiscoveryMetadata) *KubeUpstreamBuilder {
-	b.DiscoveryMetadata = discoveryMeta
+	b.discoveryMetadata = discoveryMeta
 	return b
 }
 
 func (b *KubeUpstreamBuilder) WithKubeUpstream(kubeUpstream *gloov1.UpstreamSpec_Kube) *KubeUpstreamBuilder {
-	b.UpstreamType = kubeUpstream
+	b.upstreamType = kubeUpstream
 	return b
 }
 
@@ -79,8 +79,8 @@ func (b *KubeUpstreamBuilder) Build() *gloov1.Upstream {
 			Namespace: gloodefaults.GlooSystem,
 		},
 		Spec: gloov1.UpstreamSpec{
-			DiscoveryMetadata: b.DiscoveryMetadata,
-			UpstreamType:      b.UpstreamType,
+			DiscoveryMetadata: b.discoveryMetadata,
+			UpstreamType:      b.upstreamType,
 		},
 	}
 	return upstream

@@ -21,7 +21,11 @@ import (
 )
 
 const (
-	gatewayName = "gloo-proxy-example-gateway"
+	gatewayDeploymentName = "gloo-proxy-example-gateway"
+	gatewayName           = "example-gateway"
+	gatewayPort           = int(8080)
+	httpbinNamespace      = "httpbin"
+	httpbinService        = "httpbin"
 )
 
 var _ = Describe("Gloo Gateway", func() {
@@ -36,6 +40,24 @@ var _ = Describe("Gloo Gateway", func() {
 
 	BeforeEach(func() {
 		inputs = []client.Object{}
+
+		clusterName = os.Getenv("CLUSTER_NAME")
+		kubeCtx = fmt.Sprintf("kind-%s", clusterName)
+
+		// set up resource client and kubeclient
+		var err error
+		resourceClientset, err = kube2e.NewDefaultKubeResourceClientSet(ctx)
+		Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
+
+		kubeClient, err = utils.GetClient(kubeCtx)
+		Expect(err).NotTo(HaveOccurred(), "can create client")
+
+		runner = snapshot.TestRunner{
+			Name:             "k8s-gateway-apis",
+			ResultsByGateway: map[types.NamespacedName]snapshot.ExpectedTestResult{},
+			ClientSet:        resourceClientset,
+			Client:           kubeClient,
+		}
 	})
 
 	JustAfterEach(func() {
@@ -54,13 +76,13 @@ var _ = Describe("Gloo Gateway", func() {
 		BeforeEach(func() {
 			inputs = []client.Object{
 				builders.NewKubernetesGatewayBuilder().
-					WithName("example-gateway").
+					WithName(gatewayName).
 					WithNamespace(gloodefaults.GlooSystem).
 					WithGatewayClassName("gloo-gateway").
 					WithListeners([]gwv1.Listener{
 						{
-							Name:     "httpbin",
-							Port:     8080,
+							Name:     httpbinService,
+							Port:     gwv1.PortNumber(gatewayPort),
 							Protocol: "HTTP",
 							AllowedRoutes: &gwv1.AllowedRoutes{
 								Namespaces: &gwv1.RouteNamespaces{
@@ -72,7 +94,7 @@ var _ = Describe("Gloo Gateway", func() {
 					Build(),
 				builders.NewHTTPRouteBuilder().
 					WithName("httpbin-route").
-					WithNamespace("httpbin").
+					WithNamespace(httpbinNamespace).
 					WithCommonRoute(gwv1.CommonRouteSpec{
 						ParentRefs: []gwv1.ParentReference{
 							{
@@ -87,32 +109,14 @@ var _ = Describe("Gloo Gateway", func() {
 							{
 								BackendRef: gwv1.BackendRef{
 									BackendObjectReference: gwv1.BackendObjectReference{
-										Name:      "httpbin",
-										Namespace: utils.PtrTo(gwv1.Namespace("httpbin")),
+										Name:      httpbinService,
+										Namespace: utils.PtrTo(gwv1.Namespace(httpbinNamespace)),
 										Port:      utils.PtrTo(gwv1.PortNumber(8000)),
 									},
 								},
 							},
 						},
 					}).Build(),
-			}
-
-			clusterName = os.Getenv("CLUSTER_NAME")
-			kubeCtx = fmt.Sprintf("kind-%s", clusterName)
-
-			// set up resource client and kubeclient
-			var err error
-			resourceClientset, err = kube2e.NewDefaultKubeResourceClientSet(ctx)
-			Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
-
-			kubeClient, err = utils.GetClient(kubeCtx)
-			Expect(err).NotTo(HaveOccurred(), "can create client")
-
-			runner = snapshot.TestRunner{
-				Name:             "k8s-gateway-apis",
-				ResultsByGateway: map[types.NamespacedName]snapshot.ExpectedTestResult{},
-				ClientSet:        resourceClientset,
-				Client:           kubeClient,
 			}
 		})
 
@@ -121,9 +125,9 @@ var _ = Describe("Gloo Gateway", func() {
 				ctx,
 				runner,
 				&snapshot.TestEnv{
-					GatewayName:      gatewayName,
+					GatewayName:      gatewayDeploymentName,
 					GatewayNamespace: gloodefaults.GlooSystem,
-					GatewayPort:      8080,
+					GatewayPort:      gatewayPort,
 					ClusterContext:   kubeCtx,
 					ClusterName:      clusterName,
 				},
@@ -134,6 +138,5 @@ var _ = Describe("Gloo Gateway", func() {
 				},
 			)
 		})
-
 	})
 })
