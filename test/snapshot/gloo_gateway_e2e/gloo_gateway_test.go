@@ -12,8 +12,8 @@ import (
 	"github.com/solo-io/gloo/test/snapshot"
 	"github.com/solo-io/gloo/test/snapshot/testcases"
 	"github.com/solo-io/gloo/test/snapshot/utils"
+	"github.com/solo-io/gloo/test/snapshot/utils/builders"
 	"github.com/solo-io/go-utils/testutils"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,66 +47,54 @@ var _ = Describe("Gloo Gateway", func() {
 			fmt.Printf("Not cleaning up")
 			return // Exit without cleaning up
 		}
-		//Expect(runner.Cleanup(ctx)).To(Succeed())
+		Expect(runner.Cleanup(ctx)).To(Succeed())
 	})
 
 	When("Happy Path", func() {
 		BeforeEach(func() {
-
 			inputs = []client.Object{
-				&gwv1.Gateway{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "example-gateway",
-						Namespace: gloodefaults.GlooSystem,
-					},
-					Spec: gwv1.GatewaySpec{
-						GatewayClassName: "gloo-gateway",
-						Listeners: []gwv1.Listener{
+				builders.NewKubernetesGatewayBuilder().
+					WithName("example-gateway").
+					WithNamespace(gloodefaults.GlooSystem).
+					WithGatewayClassName("gloo-gateway").
+					WithListeners([]gwv1.Listener{
+						{
+							Name:     "httpbin",
+							Port:     8080,
+							Protocol: "HTTP",
+							AllowedRoutes: &gwv1.AllowedRoutes{
+								Namespaces: &gwv1.RouteNamespaces{
+									From: utils.PtrTo(gwv1.NamespacesFromAll),
+								},
+							},
+						},
+					}).
+					Build(),
+				builders.NewHTTPRouteBuilder().
+					WithName("httpbin-route").
+					WithNamespace("httpbin").
+					WithCommonRoute(gwv1.CommonRouteSpec{
+						ParentRefs: []gwv1.ParentReference{
 							{
-								Name:     "httpbin",
-								Port:     8080,
-								Protocol: "HTTP",
-								AllowedRoutes: &gwv1.AllowedRoutes{
-									Namespaces: &gwv1.RouteNamespaces{
-										From: utils.PtrTo(gwv1.NamespacesFromAll),
+								Name:      "example-gateway",
+								Namespace: utils.PtrTo(gwv1.Namespace(gloodefaults.GlooSystem)),
+							},
+						},
+					}).
+					WithHostnames([]string{"httpbin.example.com"}).
+					WithHTTPRouteRule(gwv1.HTTPRouteRule{
+						BackendRefs: []gwv1.HTTPBackendRef{
+							{
+								BackendRef: gwv1.BackendRef{
+									BackendObjectReference: gwv1.BackendObjectReference{
+										Name:      "httpbin",
+										Namespace: utils.PtrTo(gwv1.Namespace("httpbin")),
+										Port:      utils.PtrTo(gwv1.PortNumber(8000)),
 									},
 								},
 							},
 						},
-					},
-				},
-				&gwv1.HTTPRoute{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "httpbin-route",
-						Namespace: "httpbin",
-					},
-					Spec: gwv1.HTTPRouteSpec{
-						CommonRouteSpec: gwv1.CommonRouteSpec{
-							ParentRefs: []gwv1.ParentReference{
-								{
-									Name:      "example-gateway",
-									Namespace: utils.PtrTo(gwv1.Namespace(gloodefaults.GlooSystem)),
-								},
-							},
-						},
-						Hostnames: []gwv1.Hostname{"httpbin.example.com"},
-						Rules: []gwv1.HTTPRouteRule{
-							{
-								BackendRefs: []gwv1.HTTPBackendRef{
-									{
-										BackendRef: gwv1.BackendRef{
-											BackendObjectReference: gwv1.BackendObjectReference{
-												Name:      "httpbin",
-												Namespace: utils.PtrTo(gwv1.Namespace("httpbin")),
-												Port:      utils.PtrTo(gwv1.PortNumber(8000)),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+					}).Build(),
 			}
 
 			clusterName = os.Getenv("CLUSTER_NAME")

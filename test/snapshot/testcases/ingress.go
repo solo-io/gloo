@@ -3,6 +3,7 @@ package testcases
 import (
 	"context"
 	"fmt"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -55,6 +56,6 @@ var TestGatewayIngress = func(
 	Eventually(func(g Gomega) {
 		output, err := curl.Execute(GinkgoWriter)
 		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(output).To(ContainSubstring("200 OK"))
-	}).Should(Succeed())
+		g.Expect(output).To(ContainSubstring("200 OK"), "expected 200 OK in output")
+	}, 60*time.Second, 1*time.Second).Should(Succeed())
 }

@@ -13,13 +13,13 @@ import (
 	"github.com/solo-io/gloo/test/snapshot"
 	"github.com/solo-io/gloo/test/snapshot/testcases"
 	"github.com/solo-io/gloo/test/snapshot/utils"
+	"github.com/solo-io/gloo/test/snapshot/utils/builders"
 	"github.com/solo-io/go-utils/testutils"
 	v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	"github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/core/matchers"
 	"github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/options/kubernetes"
 	gloocore "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -54,74 +54,63 @@ var _ = Describe("Gloo Edge Classic", func() {
 
 	When("Happy Path", func() {
 		BeforeEach(func() {
-			// TODO: create builder for solo-apis VirtualService and Upstream
+			vs, err := builders.NewVirtualServiceBuilder().WithName("httpbin-route").
+				WithNamespace("httpbin").
+				WithDomain("httpbin.example.com").
+				WithRoute("httpbin-route", &v1.Route{
+					Name: "httpbin-route",
+					Matchers: []*matchers.Matcher{
+						{
+							PathSpecifier: &matchers.Matcher_Prefix{
+								Prefix: "/",
+							},
+						},
+					},
+					Action: &v1.Route_RouteAction{
+						RouteAction: &gloov1.RouteAction{
+							Destination: &gloov1.RouteAction_Single{
+								Single: &gloov1.Destination{
+									DestinationType: &gloov1.Destination_Upstream{
+										Upstream: &gloocore.ResourceRef{
+											Name:      "httpbin-htppbin-8000",
+											Namespace: gloodefaults.GlooSystem,
+										},
+									},
+								},
+							},
+						},
+					},
+				}).Build()
+			Expect(err).NotTo(HaveOccurred())
+
 			inputs = []client.Object{
-				//NOTE: this is the solo-apis VirtualService
-				&gloov1.Upstream{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "httpbin-htppbin-8000",
-						Namespace: gloodefaults.GlooSystem,
-					},
-					Spec: gloov1.UpstreamSpec{
-						DiscoveryMetadata: &gloov1.DiscoveryMetadata{
-							Labels: map[string]string{
-								"app":     "httpbin",
-								"service": "httpbin",
+				builders.NewUpstreamBuilder().
+					WithName("httpbin-htppbin-8000").
+					WithNamespace(gloodefaults.GlooSystem).
+					WithDiscoveryMetadata(&gloov1.DiscoveryMetadata{
+						Labels: map[string]string{
+							"app":     "httpbin",
+							"service": "httpbin",
+						},
+					}).
+					WithKubeUpstream(&gloov1.UpstreamSpec_Kube{
+						Kube: &kubernetes.UpstreamSpec{
+							Selector: map[string]string{
+								"app": "httpbin",
 							},
+							ServiceNamespace: "httpbin",
+							ServiceName:      "httpbin",
+							ServicePort:      uint32(8000),
 						},
-						UpstreamType: &gloov1.UpstreamSpec_Kube{
-							Kube: &kubernetes.UpstreamSpec{
-								Selector: map[string]string{
-									"app": "httpbin",
-								},
-								ServiceNamespace: "httpbin",
-								ServiceName:      "httpbin",
-								ServicePort:      uint32(8000),
-							},
-						},
-					},
-				},
-				&v1.VirtualService{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "httpbin-route",
-						Namespace: "httpbin",
-					},
-					Spec: v1.VirtualServiceSpec{
-						VirtualHost: &v1.VirtualHost{
-							Domains: []string{"httpbin.example.com"},
-							Routes: []*v1.Route{{
-								Matchers: []*matchers.Matcher{
-									{
-										PathSpecifier: &matchers.Matcher_Prefix{
-											Prefix: "/",
-										},
-									},
-								},
-								Action: &v1.Route_RouteAction{
-									RouteAction: &gloov1.RouteAction{
-										Destination: &gloov1.RouteAction_Single{
-											Single: &gloov1.Destination{
-												DestinationType: &gloov1.Destination_Upstream{
-													Upstream: &gloocore.ResourceRef{
-														Name:      "httpbin-htppbin-8000",
-														Namespace: gloodefaults.GlooSystem,
-													},
-												},
-											},
-										},
-									},
-								},
-							}},
-						},
-					},
-				},
+					}).
+					Build(),
+				vs,
 			}
 
 			clusterName = os.Getenv("CLUSTER_NAME")
 			kubeCtx = fmt.Sprintf("kind-%s", clusterName)
 
 			// set up resource client and kubeclient
-			var err error
 			resourceClientset, err = kube2e.NewDefaultKubeResourceClientSet(ctx)
 			Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
 

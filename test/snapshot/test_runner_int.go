@@ -72,9 +72,9 @@ func (tr TestRunner) Run(ctx context.Context, inputs []client.Object) error {
 			}
 			return err
 		}
-
+		// add to cleanup list
+		tr.ToCleanup = append(tr.ToCleanup, obj)
 	}
-
 	return nil
 }
 
