@@ -1,0 +1,46 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: example-gateway
+  namespace: gloo-system
+spec:
+  gatewayClassName: gloo-gateway
+  listeners:
+    - name: http
+      port: 8080
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: http
+  namespace: httpbin
+spec:
+  parentRefs:
+    - name: example-gateway
+      namespace: gloo-system
+  hostnames: ["httpbin.example.com"]
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /get
+      backendRefs:
+        - name: httpbin
+          port: 8000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /headers
+      filters:
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            add:
+              - name: hello
+                value: gloo
+      backendRefs:
+        - name: httpbin
+          port: 8000

@@ -9,13 +9,8 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
 	"github.com/solo-io/gloo/test/kube2e"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
-)
-
-const (
-	InsecureIngressClusterPort = 31080
-	IngressPortClusterSSL      = 31443
 )
 
 type TestEnv struct {
@@ -30,13 +25,25 @@ type TestEnv struct {
 type TestRunner struct {
 	Name string
 
+	Scheme    *runtime.Scheme
 	Client    client.Client
 	ClientSet *kube2e.KubeResourceClientSet
 
-	ToCleanup []client.Object // all objects written for an individual test run should be cleaned up at the end
+	Inputs    []client.Object // all objects written for an individual test run should be cleaned up at the end
+	InputFile string
 }
 
-func (tr TestRunner) Run(ctx context.Context, inputs []client.Object) error {
+func (tr TestRunner) Run(ctx context.Context) error {
+	if tr.Inputs != nil {
+		return tr.run(ctx, tr.Inputs)
+	} else if tr.InputFile != "" {
+		return tr.runFromFile(ctx, []string{tr.InputFile})
+	} else {
+		return fmt.Errorf("no inputs provided")
+	}
+}
+
+func (tr TestRunner) run(ctx context.Context, inputs []client.Object) error {
 	for _, obj := range inputs {
 		err := tr.Client.Create(ctx, obj, &client.CreateOptions{})
 		if err != nil {
@@ -47,39 +54,33 @@ func (tr TestRunner) Run(ctx context.Context, inputs []client.Object) error {
 			}
 			return err
 		}
-		// add to cleanup list
-		tr.ToCleanup = append(tr.ToCleanup, obj)
 	}
 	return nil
 }
 
-func (tr TestRunner) RunFromFile(ctx context.Context, inputFiles []string) error {
+func (tr TestRunner) runFromFile(ctx context.Context, inputFiles []string) error {
 	// load inputs
-	var (
-		gateways []*gwv1.Gateway
-		inputs   []client.Object
-	)
+	var inputs []client.Object
+
 	for _, file := range inputFiles {
-		objs, err := testutils.LoadFromFiles(ctx, file)
+		objs, err := testutils.LoadFromFiles(ctx, file, tr.Scheme)
 		if err != nil {
 			return err
 		}
 		for _, obj := range objs {
-			switch obj := obj.(type) {
-			case *gwv1.Gateway:
-				gateways = append(gateways, obj)
-			default:
-				inputs = append(inputs, obj)
-			}
+			inputs = append(inputs, obj)
 		}
 	}
 
-	return tr.Run(ctx, inputs)
+	// set inputs to clean up after test run
+	tr.Inputs = inputs
+
+	return tr.run(ctx, inputs)
 }
 
 func (tr *TestRunner) Cleanup(ctx context.Context) error {
 	var errs error
-	for _, obj := range tr.ToCleanup {
+	for _, obj := range tr.Inputs {
 		if obj == nil {
 			continue
 		}

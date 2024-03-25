@@ -11,7 +11,7 @@ import (
 	"github.com/solo-io/gloo/test/snapshot/utils"
 )
 
-var TestGatewayIngress = func(
+var TestPrefixMatchRouting = func(
 	ctx context.Context,
 	runner snapshot.TestRunner,
 	env *snapshot.TestEnv,
@@ -25,7 +25,7 @@ var TestGatewayIngress = func(
 
 	// This tests assumes that curl pod is installed in the curl namespace
 	// ie. curl gateway-proxy.gloo-system:80/headers -H "host: httpbin.example.com"  -v
-	curl := &utils.CurlFromPod{
+	curlHeaders := &utils.CurlFromPod{
 		Url: fmt.Sprintf("http://%s.%s:%d/headers", env.GatewayName, env.GatewayNamespace, env.GatewayPort),
 		Cluster: &utils.KubeContext{
 			Context:           env.ClusterContext,
@@ -38,8 +38,28 @@ var TestGatewayIngress = func(
 	}
 
 	Eventually(func(g Gomega) {
-		output, err := curl.Execute(GinkgoWriter)
+		output, err := curlHeaders.Execute(GinkgoWriter)
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(output).To(ContainSubstring("200 OK"), "expected 200 OK in output")
+		g.Expect(output).To(ContainSubstring("hello: gloo"), "expected RequestHeaderModifier to add header")
+	}, 60*time.Second, 1*time.Second).Should(Succeed())
+
+	curlGet := &utils.CurlFromPod{
+		Url: fmt.Sprintf("http://%s.%s:%d/get", env.GatewayName, env.GatewayNamespace, env.GatewayPort),
+		Cluster: &utils.KubeContext{
+			Context:           env.ClusterContext,
+			ClusterName:       env.ClusterName,
+			KubernetesClients: runner.ClientSet.KubeClients(),
+		},
+		App:       "curl",
+		Namespace: "curl",
+		Headers:   []string{"host: httpbin.example.com"},
+	}
+
+	Eventually(func(g Gomega) {
+		output, err := curlGet.Execute(GinkgoWriter)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(output).To(ContainSubstring("200 OK"), "expected 200 OK in output")
+		g.Expect(output).To(Not(ContainSubstring("hello: gloo")), "RequestHeaderModifier should not add header")
 	}, 60*time.Second, 1*time.Second).Should(Succeed())
 }

@@ -22,7 +22,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/solo-io/gloo/projects/gateway2/controller/scheme"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/skv2/contrib/pkg/sets"
 )
@@ -31,7 +30,10 @@ var (
 	NoFilesFound = errors.New("no k8s files found")
 )
 
-func LoadFromFiles(ctx context.Context, filename string) ([]client.Object, error) {
+func LoadFromFiles(ctx context.Context, filename string, clientScheme *runtime.Scheme) ([]client.Object, error) {
+	if clientScheme == nil {
+		clientScheme = runtime.NewScheme()
+	}
 
 	fileOrDir, err := os.Stat(filename)
 	if err != nil {
@@ -62,7 +64,7 @@ func LoadFromFiles(ctx context.Context, filename string) ([]client.Object, error
 
 	var resources []client.Object
 	for _, file := range yamlFiles {
-		objs, err := parseFile(ctx, file)
+		objs, err := parseFile(ctx, file, clientScheme)
 		if err != nil {
 			return nil, err
 		}
@@ -84,8 +86,7 @@ func LoadFromFiles(ctx context.Context, filename string) ([]client.Object, error
 	return resources, nil
 }
 
-func parseFile(ctx context.Context, filename string) ([]runtime.Object, error) {
-	scheme := scheme.NewScheme()
+func parseFile(ctx context.Context, filename string, scheme *runtime.Scheme) ([]runtime.Object, error) {
 	file, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err

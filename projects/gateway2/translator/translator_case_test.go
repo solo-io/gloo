@@ -50,7 +50,7 @@ func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]bool, erro
 		dependencies []client.Object
 	)
 	for _, file := range tc.InputFiles {
-		objs, err := testutils.LoadFromFiles(ctx, file)
+		objs, err := testutils.LoadFromFiles(ctx, file, nil)
 		if err != nil {
 			return nil, err
 		}

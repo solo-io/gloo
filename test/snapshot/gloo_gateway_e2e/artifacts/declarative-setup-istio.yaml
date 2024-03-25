@@ -49,6 +49,11 @@ clusters:
         values:
           discovery:
             enabled: false
+          gloo:
+            deployment:
+              customEnv:
+                - name: GG_EXPERIMENTAL_K8S_GW_CONTROLLER
+                  value: "true"
           global:
             image:
               registry: quay.io/solo-io

@@ -1,0 +1,159 @@
+####################################
+# Single Cluster
+####################################
+clusters:
+  - name: &name ${CLUSTER_NAME}
+    # https://github.com/kubernetes-sigs/kind/blob/v0.20.0/pkg/apis/config/v1alpha4/types.go
+    kindConfig:
+      kind: Cluster
+      apiVersion: kind.x-k8s.io/v1alpha4
+      name: *name
+      nodes:
+        - role: control-plane
+          # Used to control k8s version of the cluster.
+          image: kindest/node:v1.27.3
+    charts:
+      - name: gloo
+        namespace: gloo-system
+        local: install/helm/gloo
+        values:
+          discovery:
+            enabled: false
+          gloo:
+            deployment:
+              customEnv:
+                - name: GG_EXPERIMENTAL_K8S_GW_CONTROLLER
+                  value: "true"
+          global:
+            image:
+              registry: quay.io/solo-io
+              pullPolicy: IfNotPresent
+              extended: false
+              tag: 1.0.1-dev
+    namespaces:
+      - metadata:
+          name: httpbin
+      - metadata:
+          name: curl
+    apps:
+      - serviceAccount:
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: httpbin
+            namespace: httpbin
+        service:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: httpbin
+            namespace: httpbin
+            labels:
+              app: httpbin
+              service: httpbin
+          spec:
+            ports:
+              - name: http
+                port: 8000
+                targetPort: 8080
+              - name: tcp
+                port: 9000
+            selector:
+              app: httpbin
+        deployment:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: httpbin-v1
+            namespace: httpbin
+            labels:
+              app: httpbin
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: httpbin
+            template:
+              metadata:
+                labels:
+                  app: httpbin
+                  version: v1
+              spec:
+                serviceAccountName: httpbin
+                containers:
+                  - image: hunca1j/httpbin:v2.11.0
+                    imagePullPolicy: IfNotPresent
+                    name: httpbin
+                    command: [ go-httpbin ]
+                    args:
+                      - "-port"
+                      - "8080"
+                      - "-max-duration"
+                      - "600s" # override default 10s
+                    env:
+                      # Set SERVICE_VERSION environment variable to enable version prefixing
+                      - name: SERVICE_VERSION
+                    ports:
+                      - containerPort: 8080
+      - deployment:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: httpbin-v2
+            namespace: httpbin
+            labels:
+              app: httpbin
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: httpbin
+            template:
+              metadata:
+                labels:
+                  app: httpbin
+                  version: v2
+              spec:
+                serviceAccountName: httpbin
+                containers:
+                  - image: hunca1j/httpbin:v2.11.0
+                    imagePullPolicy: IfNotPresent
+                    name: httpbin
+                    command: [ go-httpbin ]
+                    args:
+                      - "-port"
+                      - "8080"
+                      - "-max-duration"
+                      - "600s" # override default 10s
+                    env:
+                      # Set SERVICE_VERSION environment variable to enable version prefixing
+                      - name: SERVICE_VERSION
+                    ports:
+                      - containerPort: 8080
+      - deployment:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: curl
+            namespace: curl
+            labels:
+              app: curl
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: curl
+            template:
+              metadata:
+                labels:
+                  app: curl
+                  version: v1
+              spec:
+                containers:
+                  - name: curl
+                    image: curlimages/curl:7.83.1
+                    imagePullPolicy: IfNotPresent
+                    command:
+                      - "tail"
+                      - "-f"
+                      - "/dev/null"

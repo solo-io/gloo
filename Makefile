@@ -217,7 +217,7 @@ endif
 ifneq ($(SKIP_PACKAGE_HELM), true)
 run-classic-snapshot-e2e-tests: package-chart # build chart with correct version
 endif
-run-classic-snapshot-e2e-tests: export CONFIG=./test/snapshot/edge_classic_e2e/artifacts/declarative-setup.yaml
+run-classic-snapshot-e2e-tests: export CONFIG=./test/snapshot/edge_classic_e2e/artifacts/declarative-setup-classic.yaml
 run-classic-snapshot-e2e-tests: setup-declarative-env
 run-classic-snapshot-e2e-tests: TEST_PKG = ./test/snapshot/edge_classic_e2e/
 run-classic-snapshot-e2e-tests: test
@@ -230,7 +230,7 @@ endif
 ifneq ($(SKIP_PACKAGE_HELM), true)
 run-gateway-snapshot-e2e-tests: package-chart # build chart with correct version
 endif
-run-gateway-snapshot-e2e-tests: export CONFIG=./test/snapshot/gloo_gateway_e2e/artifacts/declarative-setup.yaml
+run-gateway-snapshot-e2e-tests: export CONFIG=./test/snapshot/gloo_gateway_e2e/artifacts/declarative-setup-gateway.yaml
 run-gateway-snapshot-e2e-tests: setup-declarative-env
 run-gateway-snapshot-e2e-tests: TEST_PKG = ./test/snapshot/gloo_gateway_e2e/
 run-gateway-snapshot-e2e-tests: test

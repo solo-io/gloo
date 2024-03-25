@@ -2,18 +2,18 @@ package gloo_gateway_e2e
 
 import (
 	"fmt"
-	"os"
+	"path/filepath"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/snapshot"
 	"github.com/solo-io/gloo/test/snapshot/testcases"
 	"github.com/solo-io/gloo/test/snapshot/utils"
 	"github.com/solo-io/gloo/test/snapshot/utils/builders"
 	"github.com/solo-io/go-utils/testutils"
+	"github.com/solo-io/skv2/codegen/util"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -29,38 +29,7 @@ const (
 
 var _ = Describe("Gloo Gateway", func() {
 
-	var (
-		inputs               []client.Object
-		clusterName, kubeCtx string
-		resourceClientset    *kube2e.KubeResourceClientSet
-		kubeClient           client.Client
-		runner               snapshot.TestRunner
-	)
-
-	BeforeEach(func() {
-		inputs = []client.Object{}
-
-		clusterName = os.Getenv("CLUSTER_NAME")
-		kubeCtx = fmt.Sprintf("kind-%s", clusterName)
-
-		// set up resource client and kubeclient
-		var err error
-		resourceClientset, err = kube2e.NewDefaultKubeResourceClientSet(ctx)
-		Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
-
-		kubeClient, err = utils.GetClient(kubeCtx)
-		Expect(err).NotTo(HaveOccurred(), "can create client")
-
-		runner = snapshot.TestRunner{
-			Name:      "k8s-gateway-apis",
-			ClientSet: resourceClientset,
-			Client:    kubeClient,
-		}
-	})
-
 	JustAfterEach(func() {
-		defer ctxCancel()
-
 		// Note to devs:  set NO_CLEANUP to 'all' or 'failed' to skip cleanup, for the sake of
 		// debugging or otherwise examining state after a test.
 		if utils.ShouldSkipCleanup() {
@@ -72,7 +41,7 @@ var _ = Describe("Gloo Gateway", func() {
 
 	When("Happy Path", func() {
 		BeforeEach(func() {
-			inputs = []client.Object{
+			runner.Inputs = []client.Object{
 				builders.NewKubernetesGatewayBuilder().
 					WithName(gatewayName).
 					WithNamespace(gloodefaults.GlooSystem).
@@ -118,6 +87,10 @@ var _ = Describe("Gloo Gateway", func() {
 			}
 		})
 
+		AfterEach(func() {
+			runner.Inputs = nil
+		})
+
 		It("Send request through ingress", func() {
 			testcases.TestGatewayIngress(
 				ctx,
@@ -129,9 +102,37 @@ var _ = Describe("Gloo Gateway", func() {
 					ClusterContext:   kubeCtx,
 					ClusterName:      clusterName,
 				},
-				inputs,
 				func() {
-					err := testutils.WaitPodsRunning(ctx, time.Second, gloodefaults.GlooSystem, "app.kubernetes.io/name=gloo-proxy-example-gateway")
+					err := testutils.WaitPodsRunning(ctx, 10*time.Second, gloodefaults.GlooSystem, "app.kubernetes.io/name=gloo-proxy-example-gateway")
+					Expect(err).NotTo(HaveOccurred())
+				},
+			)
+		})
+	})
+
+	When("Prefix Match and Header Addition", func() {
+		BeforeEach(func() {
+			dir := util.MustGetThisDir()
+			runner.InputFile = filepath.Join(dir, "artifacts", "prefix_match_resources.yaml")
+		})
+
+		AfterEach(func() {
+			runner.InputFile = ""
+		})
+
+		It("Prefix Match Routing routes to correct route", func() {
+			testcases.TestPrefixMatchRouting(
+				ctx,
+				runner,
+				&snapshot.TestEnv{
+					GatewayName:      gatewayDeploymentName,
+					GatewayNamespace: gloodefaults.GlooSystem,
+					GatewayPort:      gatewayPort,
+					ClusterContext:   kubeCtx,
+					ClusterName:      clusterName,
+				},
+				func() {
+					err := testutils.WaitPodsRunning(ctx, 10*time.Second, gloodefaults.GlooSystem, "app.kubernetes.io/name=gloo-proxy-example-gateway")
 					Expect(err).NotTo(HaveOccurred())
 				},
 			)

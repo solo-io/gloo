@@ -79,11 +79,7 @@ func BuildClientScheme() (*runtime.Scheme, error) {
 	return clientScheme, err
 }
 
-func GetClient(kubeCtx string) (client.Client, error) {
-	clientScheme, err := BuildClientScheme()
-	if err != nil {
-		return client.Client(nil), err
-	}
+func GetClient(kubeCtx string, clientScheme *runtime.Scheme) (client.Client, error) {
 
 	restCfg, err := GetClientConfig(kubeCtx)
 	if err != nil {
