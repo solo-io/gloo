@@ -6,9 +6,10 @@ import (
 	"strconv"
 
 	errors "github.com/rotisserie/eris"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
+	//gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
 	glooinstancev1 "github.com/solo-io/solo-apis/pkg/api/fed.solo.io/v1"
-	soloapisv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
+	soloapis_gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
+	soloapis_gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -62,14 +63,17 @@ func BuildClientScheme() (*runtime.Scheme, error) {
 	//if err != nil {
 	//	return nil, err
 	//}
-	err = gloov1.AddToScheme(clientScheme)
+	//err = gloov1.AddToScheme(clientScheme)
+	//if err != nil {
+	//	return nil, err
+	//}
+	err = soloapis_gatewayv1.AddToScheme(clientScheme)
 	if err != nil {
 		return nil, err
 	}
-	err = soloapisv1.AddToScheme(clientScheme)
+	err = soloapis_gloov1.AddToScheme(clientScheme)
 	if err != nil {
 		return nil, err
-
 	}
 
 	return clientScheme, err

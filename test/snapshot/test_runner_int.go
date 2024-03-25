@@ -19,9 +19,18 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
-type GatewayInfo struct {
-	Name string
-	Port int
+const (
+	InsecureIngressClusterPort = 31080
+	IngressPortClusterSSL      = 31443
+)
+
+type TestEnv struct {
+	GatewayName      string
+	GatewayNamespace string
+	GatewayPort      int
+
+	ClusterName    string
+	ClusterContext string
 }
 
 type TestRunner struct {
@@ -55,12 +64,12 @@ func (r ExpectedTestResult) Equals(actual ActualTestResult) (bool, error) {
 func (tr TestRunner) Run(ctx context.Context, inputs []client.Object) error {
 	for _, obj := range inputs {
 		err := tr.Client.Create(ctx, obj, &client.CreateOptions{})
-		if !apierrors.IsAlreadyExists(err) {
-			// ignore already exists from previous test runs
-			fmt.Fprintf(ginkgo.GinkgoWriter, "Object %s.%s already exists: %v\n", obj.GetName(), obj.GetNamespace(), err)
-			continue
-		}
-		if err != nil && !apierrors.IsAlreadyExists(err) {
+		if err != nil {
+			if apierrors.IsAlreadyExists(err) {
+				// ignore already exists from previous test runs
+				fmt.Fprintf(ginkgo.GinkgoWriter, "Object %s.%s already exists: %v\n", obj.GetName(), obj.GetNamespace(), err)
+				continue
+			}
 			return err
 		}
 

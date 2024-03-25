@@ -46,16 +46,16 @@ func Install(
 
 	uniqueNS := map[string]bool{"istio-system": true}
 
-	for _, gateway := range append(operator.Spec.Components.IngressGateways, operator.Spec.Components.EgressGateways...) {
-		if !gateway.Enabled.Value {
+	for _, gateway := range append(operator.Spec.GetComponents().GetIngressGateways(), operator.Spec.GetComponents().GetEgressGateways()...) {
+		if !gateway.GetEnabled().GetValue() {
 			continue
 		}
 
-		if !uniqueNS[gateway.Namespace] {
+		if !uniqueNS[gateway.GetNamespace()] {
 			if err := createNamespace(ctx, client, controller, gateway); err != nil {
 				return err
 			}
-			uniqueNS[gateway.Namespace] = true
+			uniqueNS[gateway.GetNamespace()] = true
 		}
 	}
 

@@ -226,6 +226,7 @@ run-gateway-snapshot-e2e-tests: setup-declarative-env
 run-gateway-snapshot-e2e-tests: TEST_PKG = ./test/snapshot/gloo_gateway_e2e/
 run-gateway-snapshot-e2e-tests: test
 
+# export KUBERNETES_MASTER=$HOME/.kube
 # Sets up environment for running e2e tests
 # make docker
 .PHONY: setup-declarative-env

@@ -3,56 +3,58 @@ package testcases
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/test/kube2e/helper"
-
-	"github.com/solo-io/gloo/test/snapshot"
-	"github.com/solo-io/skv2/codegen/util"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/solo-io/skv2/codegen/util"
+
+	"github.com/solo-io/gloo/test/snapshot"
+	"github.com/solo-io/gloo/test/snapshot/utils"
 )
 
 var TestGatewayIngress = func(
 	ctx context.Context,
 	runner snapshot.TestRunner,
-	testHelper *helper.SoloTestHelper,
-	gatewayInfo *snapshot.GatewayInfo,
+	env *snapshot.TestEnv,
 	inputs []client.Object,
 	customSetupAssertions func(),
 ) {
-	It("should translate a gateway with basic routing", func() {
-		dir := util.MustGetThisDir()
-		runner.ResultsByGateway = map[types.NamespacedName]snapshot.ExpectedTestResult{
-			{
-				Namespace: "default",
-				Name:      "example-gateway-http",
-			}: {
-				Proxy: dir + "/outputs/http-routing-proxy.yaml",
-				// Reports:     nil,
-			},
-		}
+	dir := util.MustGetThisDir()
+	runner.ResultsByGateway = map[types.NamespacedName]snapshot.ExpectedTestResult{
+		{
+			Namespace: "default",
+			Name:      "example-gateway-http",
+		}: {
+			Proxy: dir + "/outputs/http-routing-proxy.yaml",
+		},
+	}
 
-		err := runner.Run(ctx, inputs)
-		Expect(err).NotTo(HaveOccurred())
+	err := runner.Run(ctx, inputs)
+	Expect(err).NotTo(HaveOccurred())
 
-		// check setup assertions
-		customSetupAssertions()
+	// check custom assertions before sending requests
+	customSetupAssertions()
 
-		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-			Protocol:          "http",
-			Path:              "/headers",
-			Method:            "GET",
-			Host:              "httpbin.example.com",
-			Service:           gatewayInfo.Name,
-			Port:              gatewayInfo.Port,
-			ConnectionTimeout: 10,
-			Verbose:           true,
-			WithoutStats:      true,
-			ReturnHeaders:     true,
-		}, fmt.Sprintf("HTTP/1.1 %d", http.StatusOK), 1, time.Minute*1)
-	})
+	// This tests assumes that curl pod is installed in the curl namespace
+	// curl gateway-proxy.gloo-system:80/headers -H "host: httpbin.example.com"  -v
+	curl := &utils.CurlFromPod{
+		Url: fmt.Sprintf("http://%s.%s:%d/headers", env.GatewayName, env.GatewayNamespace, env.GatewayPort),
+		Cluster: &utils.KubeContext{
+			Context:           env.ClusterContext,
+			ClusterName:       env.ClusterName,
+			KubernetesClients: runner.ClientSet.KubeClients(),
+		},
+		App:       "curl",
+		Namespace: "curl",
+		Headers:   []string{"host: httpbin.example.com"},
+	}
+
+	Eventually(func(g Gomega) {
+		output, err := curl.Execute(GinkgoWriter)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(output).To(ContainSubstring("200 OK"))
+	}).Should(Succeed())
 }

@@ -1,4 +1,6 @@
 package defaults
 
-const GlooSystem = "gloo-system"
-const GlooFed = "gloo-system"
+const (
+	GlooSystem = "gloo-system"
+	GlooFed    = "gloo-system"
+)
