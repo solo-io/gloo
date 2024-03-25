@@ -2113,7 +2113,9 @@ spec:
 				// There are times when the VirtualService + Proxy do not update Status with the error when deleting the referenced Secret, therefore the validation error doesn't occur.
 				// It isn't until later - either a few minutes and/or after forcing an update by updating the VS - that the error status appears.
 				// The reason is still unknown, so we retry on flakes in the meantime.
-				It("should act as expected with secret validation", FlakeAttempts(3), func() {
+				It("should act as expected with secret validation", func() {
+					verifyGlooValidationWorks()
+
 					By("waiting for the modified VS to be accepted")
 					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 						return resourceClientset.VirtualServiceClient().Read(testHelper.InstallNamespace, testServerVs.GetMetadata().GetName(), clients.ReadOpts{Ctx: ctx})
@@ -2121,6 +2123,7 @@ spec:
 
 					By("failing to delete a secret that is in use")
 					err := resourceClientset.KubeClients().CoreV1().Secrets(testHelper.InstallNamespace).Delete(ctx, secretName, metav1.DeleteOptions{})
+
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(matchers2.ContainSubstrings([]string{"admission webhook", "SSL secret not found", secretName}))
 
@@ -2222,8 +2225,9 @@ spec:
 			)
 
 			var (
-				invalidUpstreamYaml string
-				vsYaml              string
+				invalidUpstreamYaml      string
+				vsYaml                   string
+				pretestFailurePolicyType admissionregv1.FailurePolicyType
 			)
 
 			// Before these secret deletion tests, set the failure policy to Fail and setup the resources with warnings
@@ -2261,6 +2265,9 @@ spec:
             name: my-us
             namespace:  ` + testHelper.InstallNamespace
 
+				// Store the current failure policy to restore after the tests
+				pretestFailurePolicyType = *kube2e.GetFailurePolicy(ctx, "gloo-gateway-validation-webhook-"+testHelper.InstallNamespace)
+
 				kube2e.UpdateFailurePolicy(ctx, "gloo-gateway-validation-webhook-"+testHelper.InstallNamespace, admissionregv1.Fail)
 				// Allow warnings during setup so that we can install the resources
 				kube2e.UpdateAllowWarningsSetting(ctx, true, testHelper.InstallNamespace)
@@ -2282,7 +2289,7 @@ spec:
 			})
 
 			AfterAll(func() {
-				kube2e.UpdateFailurePolicy(ctx, "gloo-gateway-validation-webhook-"+testHelper.InstallNamespace, admissionregv1.Fail)
+				kube2e.UpdateFailurePolicy(ctx, "gloo-gateway-validation-webhook-"+testHelper.InstallNamespace, pretestFailurePolicyType)
 				err := install.KubectlDelete([]byte(invalidUpstreamYaml))
 				Expect(err).NotTo(HaveOccurred())
 				err = install.KubectlDelete([]byte(vsYaml))
@@ -2411,6 +2418,84 @@ spec:
 				)
 				Expect(err).To(MatchError(ContainSubstring("Failed to parse response template: Failed to parse " +
 					"header template ':status': [inja.exception.parser_error] (at 1:92) expected statement close, got '%'")))
+			})
+
+			Context("Extractors", func() {
+				var (
+					// each test will define and then write this extraction to the test server vs
+					extraction *glootransformation.Extraction
+
+					// helper used in patchVirtualServiceWithExtraction
+					createTransformationFromExtraction = func(extraction *glootransformation.Extraction) *glootransformation.Transformations {
+						return &glootransformation.Transformations{
+							ClearRouteCache: true,
+							ResponseTransformation: &glootransformation.Transformation{
+								TransformationType: &glootransformation.Transformation_TransformationTemplate{
+									TransformationTemplate: &glootransformation.TransformationTemplate{
+										Headers: map[string]*glootransformation.InjaTemplate{
+											":path": {Text: "/"},
+										},
+										Extractors: map[string]*glootransformation.Extraction{
+											"foo": extraction,
+										},
+									},
+								},
+							},
+						}
+					}
+
+					// helper used in each test to patch the test server vs to include the extraction
+					patchVirtualServiceWithExtraction = func(ctx context.Context, namespace, name string, extraction *glootransformation.Extraction) error {
+						return helpers.PatchResource(
+							ctx,
+							&core.ResourceRef{
+								Namespace: namespace,
+								Name:      name,
+							},
+							func(resource resources.Resource) resources.Resource {
+								vs := resource.(*gatewayv1.VirtualService)
+								vs.VirtualHost.Options = &gloov1.VirtualHostOptions{
+									Transformations: createTransformationFromExtraction(extraction),
+								}
+								return vs
+							},
+							resourceClientset.VirtualServiceClient().BaseClient(),
+						)
+					}
+				)
+
+				It("Extract mode -- rejects invalid subgroup in transformation", func() {
+					extraction = &glootransformation.Extraction{
+						Source: &glootransformation.Extraction_Header{
+							Header: ":path",
+						},
+						// note that the regex has no subgroups, but we are trying to extract the first subgroup
+						// this should be rejected
+						Regex:    ".*",
+						Subgroup: 1,
+						Mode:     glootransformation.Extraction_EXTRACT,
+					}
+					// update the test server vs
+					err := patchVirtualServiceWithExtraction(ctx, testServerVs.GetMetadata().GetNamespace(), testServerVs.GetMetadata().GetName(), extraction)
+					Expect(err).To(MatchError(ContainSubstring("envoy validation mode output: error initializing configuration '': Failed to parse response template: group 1 requested for regex with only 0 sub groups")))
+				})
+
+				It("Single replace mode -- rejects invalid subgroup in transformation", func() {
+					extraction = &glootransformation.Extraction{
+						Source: &glootransformation.Extraction_Header{
+							Header: ":path",
+						},
+						// note that the regex has no subgroups, but we are trying to extract the first subgroup
+						// this should be rejected
+						Regex:           ".*",
+						Subgroup:        1,
+						ReplacementText: &wrappers.StringValue{Value: "bar"},
+						Mode:            glootransformation.Extraction_SINGLE_REPLACE,
+					}
+					// update the test server vs
+					err := patchVirtualServiceWithExtraction(ctx, testServerVs.GetMetadata().GetNamespace(), testServerVs.GetMetadata().GetName(), extraction)
+					Expect(err).To(MatchError(ContainSubstring("envoy validation mode output: error initializing configuration '': Failed to parse response template: group 1 requested for regex with only 0 sub groups")))
+				})
 			})
 
 			Context("disable_transformation_validation is set", Ordered, func() {

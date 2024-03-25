@@ -7,14 +7,10 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"os"
 	"path/filepath"
+	"strings"
 
-	"github.com/solo-io/gloo/pkg/version"
-	"github.com/solo-io/gloo/projects/gateway2/helm"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-
-	"github.com/solo-io/gloo/projects/gateway2/ports"
 	"golang.org/x/exp/slices"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -29,6 +25,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	api "sigs.k8s.io/gateway-api/apis/v1"
+
+	"github.com/solo-io/gloo/pkg/version"
+	"github.com/solo-io/gloo/projects/gateway2/helm"
+	"github.com/solo-io/gloo/projects/gateway2/ports"
+	"github.com/solo-io/gloo/projects/gloo/constants"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 )
 
 type gatewayPort struct {
@@ -51,6 +54,7 @@ type Inputs struct {
 	ControllerName string
 	Dev            bool
 	Port           int
+	IstioValues    bootstrap.IstioValues
 }
 
 // NewDeployer creates a new gateway deployer
@@ -72,6 +76,7 @@ func NewDeployer(scheme *runtime.Scheme, inputs *Inputs) (*Deployer, error) {
 	}, nil
 }
 
+// GetGvksToWatch returns the list of GVKs that the deployer will watch for
 func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKind, error) {
 	fakeGw := &api.Gateway{
 		ObjectMeta: metav1.ObjectMeta{
@@ -139,6 +144,9 @@ func (d *Deployer) renderChartToObjects(ctx context.Context, gw *api.Gateway) ([
 			"service": map[string]any{
 				"type": "LoadBalancer",
 			},
+			"istioSDS": map[string]any{
+				"enabled": d.inputs.IstioValues.SDSEnabled,
+			},
 			"xds": map[string]any{
 				// The xds host/port MUST map to the Service definition for the Control Plane
 				// This is the socket address that the Proxy will connect to on startup, to receive xds updates
@@ -150,6 +158,7 @@ func (d *Deployer) renderChartToObjects(ctx context.Context, gw *api.Gateway) ([
 				"host": fmt.Sprintf("gloo.%s.svc.%s", defaults.GlooSystem, "cluster.local"),
 				"port": d.inputs.Port,
 			},
+			"image": getDeployerImageValues(),
 		},
 	}
 	if d.inputs.Dev {
@@ -308,4 +317,27 @@ func ConvertYAMLToObjects(scheme *runtime.Scheme, yamlData []byte) ([]client.Obj
 	}
 
 	return objs, nil
+}
+
+func getDeployerImageValues() map[string]any {
+	image := os.Getenv(constants.GlooGatewayDeployerImage)
+	defaultImageValues := map[string]any{
+		// If tag is not defined, we fall back to the default behavior, which is to use that Chart version
+		"tag": "",
+	}
+
+	if image == "" {
+		// If the env is not defined, return the default
+		return defaultImageValues
+	}
+
+	imageParts := strings.Split(image, ":")
+	if len(imageParts) != 2 {
+		// If the user provided an invalid override, fallback to the default
+		return defaultImageValues
+	}
+	return map[string]any{
+		"repository": imageParts[0],
+		"tag":        imageParts[1],
+	}
 }

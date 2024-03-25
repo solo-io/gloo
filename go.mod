@@ -90,6 +90,7 @@ require (
 )
 
 require (
+	github.com/avast/retry-go/v4 v4.3.3
 	github.com/go-logr/zapr v1.2.4
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.1
@@ -121,7 +122,6 @@ require (
 	github.com/armon/go-metrics v0.4.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-	github.com/avast/retry-go/v4 v4.3.3 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/bufbuild/protocompile v0.6.0 // indirect

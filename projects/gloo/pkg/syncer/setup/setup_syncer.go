@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gateway2/extensions"
+
 	"golang.org/x/sync/errgroup"
 
 	"github.com/solo-io/gloo/projects/gloo/constants"
@@ -435,16 +437,10 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	return err
 }
 
-type Extensions struct {
-	PluginRegistryFactory plugins.PluginRegistryFactory
-	SyncerExtensions      []syncer.TranslatorSyncerExtensionFactory
-	XdsCallbacks          xdsserver.Callbacks
-	ApiEmitterChannel     chan struct{}
-}
-
 func RunGloo(opts bootstrap.Opts) error {
 	glooExtensions := Extensions{
-		PluginRegistryFactory: registry.GetPluginRegistryFactory(opts),
+		K8sGatewayExtensionsFactory: extensions.NewK8sGatewayExtensions,
+		PluginRegistryFactory:       registry.GetPluginRegistryFactory(opts),
 		SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{
 			ratelimitExt.NewTranslatorSyncerExtension,
 			extauthExt.NewTranslatorSyncerExtension,
@@ -464,15 +460,8 @@ func RunGloo(opts bootstrap.Opts) error {
 //
 // This function is called directly by GlooEE
 func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
-	// Validate Extensions
-	if extensions.ApiEmitterChannel == nil {
-		return errors.Errorf("Extensions.ApiEmitterChannel must be defined, found nil")
-	}
-	if extensions.PluginRegistryFactory == nil {
-		return errors.Errorf("Extensions.PluginRegistryFactory must be defined, found nil")
-	}
-	if extensions.SyncerExtensions == nil {
-		return errors.Errorf("Extensions.SyncerExtensions must be defined, found nil")
+	if err := extensions.Validate(); err != nil {
+		return err
 	}
 
 	watchOpts := opts.WatchOpts.WithDefaults()
@@ -726,6 +715,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		}()
 		opts.ValidationServer.StartGrpcServer = false
 	}
+
 	if opts.ControlPlane.StartGrpcServer {
 		// copy for the go-routines
 		controlPlane := opts.ControlPlane
@@ -747,7 +737,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 	if opts.ProxyDebugServer.StartGrpcServer {
 		proxyDebugServer := opts.ProxyDebugServer
-		proxyDebugServer.Server.SetProxyClient(proxyClient)
+		proxyDebugServer.Server.RegisterProxyReader(debug.EdgeGatewayTranslation, proxyClient)
 		proxyDebugServer.Server.Register(proxyDebugServer.GrpcServer)
 		lis, err := net.Listen(opts.ProxyDebugServer.BindAddr.Network(), opts.ProxyDebugServer.BindAddr.String())
 		if err != nil {
@@ -800,7 +790,12 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		syncerExtensions = append(syncerExtensions, syncerExtension)
 	}
 
-	sharedTranslator := translator.NewTranslatorWithHasher(sslutils.NewSslConfigTranslator(), opts.Settings, extensions.PluginRegistryFactory(watchOpts.Ctx), resourceHasher)
+	sharedTranslator := translator.NewTranslatorWithHasher(
+		sslutils.NewSslConfigTranslator(),
+		opts.Settings,
+		extensions.PluginRegistryFactory(watchOpts.Ctx),
+		resourceHasher,
+	)
 	routeReplacingSanitizer, err := sanitizer.NewRouteReplacingSanitizer(opts.Settings.GetGloo().GetInvalidConfigPolicy())
 	if err != nil {
 		return err
@@ -1290,7 +1285,21 @@ func constructGlooGatewayBootstrapOpts() bootstrap.GlooGateway {
 		// TODO: This value should be inherited at installation time, to determine if the k8s controller is enabled
 		// In the interim, we use an env variable to control the value
 		EnableK8sGatewayController: isEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv),
+		IstioValues:                constructIstioBootstrapOpts(),
 	}
+}
+
+func constructIstioBootstrapOpts() bootstrap.IstioValues {
+	istioValues := bootstrap.IstioValues{
+		// TODO: This value should be inherited at installation time, to determine if the istio integration is enabled
+		// In the interim, we use an env variable to control the value
+		SDSEnabled: isEnvTruthy(constants.IstioMtlsEnabled),
+
+		// TODO: enableIstioSidecarOnGateway should be removed as part of: https://github.com/solo-io/solo-projects/issues/5743
+		SidecarOnGatewayEnabled: isEnvTruthy(constants.IstioInjectionEnabled),
+	}
+
+	return istioValues
 }
 
 // IsEnvTruthy returns true if a given environment variable has a truthy value

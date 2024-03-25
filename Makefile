@@ -48,7 +48,7 @@ VERSION ?= 1.0.1-dev
 
 SOURCES := $(shell find . -name "*.go" | grep -v test.go)
 
-ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.27.2-patch1
+ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.27.3-patch2
 LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
 GCFLAGS := all="-N -l"
 
@@ -75,6 +75,11 @@ GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=$(GOARCH)
 GOLANG_ALPINE_IMAGE_NAME = golang:$(shell go version | egrep -o '([0-9]+\.[0-9]+)')-alpine3.18
 
 TEST_ASSET_DIR := $(ROOTDIR)/_test
+
+# Use a distroless debian variant that is in sync with the ubuntu version used for envoy
+# https://github.com/solo-io/envoy-gloo-ee/blob/main/ci/Dockerfile#L7 - check /etc/debian_version in the ubuntu version used
+DISTROLESS_BASE_IMAGE ?= gcr.io/distroless/base-debian11:latest
+ALPINE_BASE_IMAGE ?= alpine:3.17.6
 
 #----------------------------------------------------------------------------------
 # Macros
@@ -173,6 +178,32 @@ GINKGO_USER_FLAGS ?=
 .PHONY: install-test-tools
 install-test-tools: check-go-version
 	go install github.com/onsi/ginkgo/v2/ginkgo@$(GINKGO_VERSION)
+
+# proto compiler installation
+PROTOC_VERSION:=3.6.1
+PROTOC_URL:=https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}
+.PHONY: install-protoc
+.SILENT: install-protoc
+install-protoc:
+	mkdir -p $(DEPSGOBIN)
+	if [ $(shell ${DEPSGOBIN}/protoc --version | grep -c ${PROTOC_VERSION}) -ne 0 ]; then \
+		echo expected protoc version ${PROTOC_VERSION} already installed ;\
+	else \
+		if [ "$(shell uname)" = "Darwin" ]; then \
+			echo "downloading protoc for osx" ;\
+			wget $(PROTOC_URL)-osx-x86_64.zip -O $(DEPSGOBIN)/protoc-${PROTOC_VERSION}.zip ;\
+		elif [ "$(shell uname -m)" = "aarch64" ]; then \
+			echo "downloading protoc for linux aarch64" ;\
+			wget $(PROTOC_URL)-linux-aarch_64.zip -O $(DEPSGOBIN)/protoc-${PROTOC_VERSION}.zip ;\
+		else \
+			echo "downloading protoc for linux x86-64" ;\
+			wget $(PROTOC_URL)-linux-x86_64.zip -O $(DEPSGOBIN)/protoc-${PROTOC_VERSION}.zip ;\
+		fi ;\
+		unzip $(DEPSGOBIN)/protoc-${PROTOC_VERSION}.zip -d $(DEPSGOBIN)/protoc-${PROTOC_VERSION} ;\
+		mv $(DEPSGOBIN)/protoc-${PROTOC_VERSION}/bin/protoc $(DEPSGOBIN)/protoc ;\
+		chmod +x $(DEPSGOBIN)/protoc ;\
+		rm -rf $(DEPSGOBIN)/protoc-${PROTOC_VERSION} $(DEPSGOBIN)/protoc-${PROTOC_VERSION}.zip ;\
+	fi
 
 .PHONY: test
 test: ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
@@ -394,6 +425,7 @@ $(INGRESS_OUTPUT_DIR)/Dockerfile.ingress: $(INGRESS_DIR)/cmd/Dockerfile
 .PHONY: ingress-docker
 ingress-docker: $(INGRESS_OUTPUT_DIR)/ingress-linux-$(GOARCH) $(INGRESS_OUTPUT_DIR)/Dockerfile.ingress
 	docker buildx build --load $(PLATFORM) $(INGRESS_OUTPUT_DIR) -f $(INGRESS_OUTPUT_DIR)/Dockerfile.ingress \
+		--build-arg BASE_IMAGE=$(ALPINE_BASE_IMAGE) \
 		--build-arg GOARCH=$(GOARCH) \
 		-t $(IMAGE_REGISTRY)/ingress:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
 
@@ -417,6 +449,7 @@ $(ACCESS_LOG_OUTPUT_DIR)/Dockerfile.access-logger: $(ACCESS_LOG_DIR)/cmd/Dockerf
 .PHONY: access-logger-docker
 access-logger-docker: $(ACCESS_LOG_OUTPUT_DIR)/access-logger-linux-$(GOARCH) $(ACCESS_LOG_OUTPUT_DIR)/Dockerfile.access-logger
 	docker buildx build --load $(PLATFORM) $(ACCESS_LOG_OUTPUT_DIR) -f $(ACCESS_LOG_OUTPUT_DIR)/Dockerfile.access-logger \
+		--build-arg BASE_IMAGE=$(ALPINE_BASE_IMAGE) \
 		--build-arg GOARCH=$(GOARCH) \
 		-t $(IMAGE_REGISTRY)/access-logger:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
 
@@ -441,7 +474,19 @@ $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery: $(DISCOVERY_DIR)/cmd/Dockerfile
 discovery-docker: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(GOARCH) $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery
 	docker buildx build --load $(PLATFORM) $(DISCOVERY_OUTPUT_DIR) -f $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery \
 		--build-arg GOARCH=$(GOARCH) \
+		--build-arg BASE_IMAGE=$(ALPINE_BASE_IMAGE) \
 		-t $(IMAGE_REGISTRY)/discovery:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
+
+$(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery.distroless: $(DISCOVERY_DIR)/cmd/Dockerfile.distroless
+	cp $< $@
+
+.PHONY: discovery-distroless-docker
+discovery-distroless-docker: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(GOARCH) $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery.distroless
+	docker buildx build --load $(PLATFORM) $(DISCOVERY_OUTPUT_DIR) -f $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery.distroless \
+		--build-arg GOARCH=$(GOARCH) \
+		--build-arg BASE_IMAGE=$(DISTROLESS_BASE_IMAGE) \
+		-t $(IMAGE_REGISTRY)/discovery:$(VERSION)-distroless $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
+
 
 #----------------------------------------------------------------------------------
 # Gloo
@@ -466,6 +511,18 @@ gloo-docker: $(GLOO_OUTPUT_DIR)/gloo-linux-$(GOARCH) $(GLOO_OUTPUT_DIR)/Dockerfi
 		--build-arg GOARCH=$(GOARCH) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
 		-t $(IMAGE_REGISTRY)/gloo:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
+
+$(GLOO_OUTPUT_DIR)/Dockerfile.gloo.distroless: $(GLOO_DIR)/cmd/Dockerfile.distroless
+	cp $< $@
+
+# Explicitly specify the base image is amd64 as we only build the amd64 flavour of gloo envoy
+.PHONY: gloo-distroless-docker
+gloo-distroless-docker: $(GLOO_OUTPUT_DIR)/gloo-linux-$(GOARCH) $(GLOO_OUTPUT_DIR)/Dockerfile.gloo.distroless
+	docker buildx build --load $(PLATFORM) $(GLOO_OUTPUT_DIR) -f $(GLOO_OUTPUT_DIR)/Dockerfile.gloo.distroless \
+		--build-arg GOARCH=$(GOARCH) \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
+		--build-arg BASE_IMAGE=$(DISTROLESS_BASE_IMAGE)-amd64 \
+		-t $(IMAGE_REGISTRY)/gloo:$(VERSION)-distroless $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
 
 #----------------------------------------------------------------------------------
 # Gloo with race detection enabled.
@@ -538,7 +595,18 @@ $(SDS_OUTPUT_DIR)/Dockerfile.sds: $(SDS_DIR)/cmd/Dockerfile
 sds-docker: $(SDS_OUTPUT_DIR)/sds-linux-$(GOARCH) $(SDS_OUTPUT_DIR)/Dockerfile.sds
 	docker buildx build --load $(PLATFORM) $(SDS_OUTPUT_DIR) -f $(SDS_OUTPUT_DIR)/Dockerfile.sds \
 		--build-arg GOARCH=$(GOARCH) \
+		--build-arg BASE_IMAGE=$(ALPINE_BASE_IMAGE) \
 		-t $(IMAGE_REGISTRY)/sds:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
+
+$(SDS_OUTPUT_DIR)/Dockerfile.sds.distroless: $(SDS_DIR)/cmd/Dockerfile.distroless
+	cp $< $@
+
+.PHONY: sds-distroless-docker
+sds-distroless-docker: $(SDS_OUTPUT_DIR)/sds-linux-$(GOARCH) $(SDS_OUTPUT_DIR)/Dockerfile.sds.distroless
+	docker buildx build --load $(PLATFORM) $(SDS_OUTPUT_DIR) -f $(SDS_OUTPUT_DIR)/Dockerfile.sds.distroless \
+		--build-arg GOARCH=$(GOARCH) \
+		--build-arg BASE_IMAGE=$(DISTROLESS_BASE_IMAGE) \
+		-t $(IMAGE_REGISTRY)/sds:$(VERSION)-distroless $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
 
 #----------------------------------------------------------------------------------
 # Envoy init (BASE/SIDECAR)
@@ -567,6 +635,18 @@ gloo-envoy-wrapper-docker: $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(GOARCH) $(E
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
 		-t $(IMAGE_REGISTRY)/gloo-envoy-wrapper:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
 
+$(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit.distroless: $(ENVOYINIT_DIR)/Dockerfile.envoyinit.distroless
+	cp $< $@
+
+# Explicitly specify the base image is amd64 as we only build the amd64 flavour of gloo envoy
+.PHONY: gloo-envoy-wrapper-distroless-docker
+gloo-envoy-wrapper-distroless-docker: $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(GOARCH) $(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit.distroless $(ENVOYINIT_OUTPUT_DIR)/docker-entrypoint.sh
+	docker buildx build --load $(PLATFORM) $(ENVOYINIT_OUTPUT_DIR) -f $(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit.distroless \
+		--build-arg GOARCH=$(GOARCH) \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
+		--build-arg BASE_IMAGE=$(DISTROLESS_BASE_IMAGE)-amd64 \
+		-t $(IMAGE_REGISTRY)/gloo-envoy-wrapper:$(VERSION)-distroless $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
+
 #----------------------------------------------------------------------------------
 # Certgen - Job for creating TLS Secrets in Kubernetes
 #----------------------------------------------------------------------------------
@@ -587,6 +667,7 @@ $(CERTGEN_OUTPUT_DIR)/Dockerfile.certgen: $(CERTGEN_DIR)/Dockerfile
 .PHONY: certgen-docker
 certgen-docker: $(CERTGEN_OUTPUT_DIR)/certgen-linux-$(GOARCH) $(CERTGEN_OUTPUT_DIR)/Dockerfile.certgen
 	docker buildx build --load $(PLATFORM) $(CERTGEN_OUTPUT_DIR) -f $(CERTGEN_OUTPUT_DIR)/Dockerfile.certgen \
+		--build-arg BASE_IMAGE=$(ALPINE_BASE_IMAGE) \
 		--build-arg GOARCH=$(GOARCH) \
 		-t $(IMAGE_REGISTRY)/certgen:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
 
@@ -604,6 +685,7 @@ $(KUBECTL_OUTPUT_DIR)/Dockerfile.kubectl: $(KUBECTL_DIR)/Dockerfile
 .PHONY: kubectl-docker
 kubectl-docker: $(KUBECTL_OUTPUT_DIR)/Dockerfile.kubectl
 	docker buildx build --load $(PLATFORM) $(KUBECTL_OUTPUT_DIR) -f $(KUBECTL_OUTPUT_DIR)/Dockerfile.kubectl \
+		--build-arg BASE_IMAGE=$(ALPINE_BASE_IMAGE) \
 		--build-arg GOARCH=$(GOARCH) \
 		-t $(IMAGE_REGISTRY)/kubectl:$(VERSION) $(QUAY_EXPIRATION_LABEL) $(STDERR_SILENCE_REDIRECT)
 
@@ -653,7 +735,8 @@ ifeq ($(shell echo $(git_tag) | egrep "$(tag_regex)"),)
 # This only impacts the version of the assets used in CI for this PR, so it is ok that it is not a real tag
 VERSION = 1.0.0-$(TEST_ASSET_ID)
 else
-VERSION = $(shell echo $(git_tag) | cut -c 2-)-$(TEST_ASSET_ID) # example: 1.16.0-beta4-{TEST_ASSET_ID}
+# example: 1.16.0-beta4-{TEST_ASSET_ID}
+VERSION = $(shell echo $(git_tag) | cut -c 2-)-$(TEST_ASSET_ID)
 endif
 LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
 endif
@@ -715,8 +798,14 @@ endif # Publish Artifact Targets
 # Docker
 #----------------------------------------------------------------------------------
 
+docker-retag-%-distroless:
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/$*:$(VERSION)-distroless $(IMAGE_REGISTRY)/$*:$(VERSION)-distroless
+
 docker-retag-%:
 	docker tag $(ORIGINAL_IMAGE_REGISTRY)/$*:$(VERSION) $(IMAGE_REGISTRY)/$*:$(VERSION)
+
+docker-push-%-distroless:
+	docker push $(IMAGE_REGISTRY)/$*:$(VERSION)-distroless
 
 docker-push-%:
 	docker push $(IMAGE_REGISTRY)/$*:$(VERSION)
@@ -727,8 +816,12 @@ docker: check-go-version
 docker: gloo-docker
 docker: discovery-docker
 docker: gloo-envoy-wrapper-docker
-docker: certgen-docker
 docker: sds-docker
+docker: gloo-distroless-docker
+docker: discovery-distroless-docker
+docker: gloo-envoy-wrapper-distroless-docker
+docker: sds-distroless-docker
+docker: certgen-docker
 docker: ingress-docker
 docker: access-logger-docker
 docker: kubectl-docker
@@ -738,8 +831,12 @@ docker: kubectl-docker
 docker-push: docker-push-gloo
 docker-push: docker-push-discovery
 docker-push: docker-push-gloo-envoy-wrapper
-docker-push: docker-push-certgen
 docker-push: docker-push-sds
+docker-push: docker-push-gloo-distroless
+docker-push: docker-push-discovery-distroless
+docker-push: docker-push-gloo-envoy-wrapper-distroless
+docker-push: docker-push-sds-distroless
+docker-push: docker-push-certgen
 docker-push: docker-push-ingress
 docker-push: docker-push-access-logger
 docker-push: docker-push-kubectl
@@ -750,8 +847,12 @@ docker-push: docker-push-kubectl
 docker-retag: docker-retag-gloo
 docker-retag: docker-retag-discovery
 docker-retag: docker-retag-gloo-envoy-wrapper
-docker-retag: docker-retag-certgen
 docker-retag: docker-retag-sds
+docker-retag: docker-retag-gloo-distroless
+docker-retag: docker-retag-discovery-distroless
+docker-retag: docker-retag-gloo-envoy-wrapper-distroless
+docker-retag: docker-retag-sds-distroless
+docker-retag: docker-retag-certgen
 docker-retag: docker-retag-ingress
 docker-retag: docker-retag-access-logger
 docker-retag: docker-retag-kubectl
@@ -765,6 +866,9 @@ docker-retag: docker-retag-kubectl
 
 CLUSTER_NAME ?= kind
 INSTALL_NAMESPACE ?= gloo-system
+
+kind-load-%-distroless:
+	kind load docker-image $(IMAGE_REGISTRY)/$*:$(VERSION)-distroless --name $(CLUSTER_NAME)
 
 kind-load-%:
 	kind load docker-image $(IMAGE_REGISTRY)/$*:$(VERSION) --name $(CLUSTER_NAME)
@@ -807,8 +911,12 @@ kind-reload-gloo-envoy-wrapper:
 kind-build-and-load: kind-build-and-load-gloo
 kind-build-and-load: kind-build-and-load-discovery
 kind-build-and-load: kind-build-and-load-gloo-envoy-wrapper
-kind-build-and-load: kind-build-and-load-certgen
 kind-build-and-load: kind-build-and-load-sds
+kind-build-and-load: kind-build-and-load-gloo-distroless
+kind-build-and-load: kind-build-and-load-discovery-distroless
+kind-build-and-load: kind-build-and-load-gloo-envoy-wrapper-distroless
+kind-build-and-load: kind-build-and-load-sds-distroless
+kind-build-and-load: kind-build-and-load-certgen
 kind-build-and-load: kind-build-and-load-ingress
 kind-build-and-load: kind-build-and-load-access-logger
 kind-build-and-load: kind-build-and-load-kubectl
