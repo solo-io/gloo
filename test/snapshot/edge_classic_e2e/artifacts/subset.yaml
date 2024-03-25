@@ -1,11 +1,40 @@
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
-  name: httpbin-htppbin-8000
+  name: httpbin-v1-httpbin-8000
   namespace: gloo-system
 spec:
+  discoveryMetadata:
+    labels:
+      app: httpbin-v1
+      service: httpbin-v1
   kube:
-    serviceName: httpbin
+    selector:
+      app: httpbin
+      version: v1
+    serviceName: httpbin-v1
+    serviceNamespace: httpbin
+    servicePort: 8000
+    subsetSpec:
+      selectors:
+        - keys:
+            - version
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: httpbin-v2-httpbin-8000
+  namespace: gloo-system
+spec:
+  discoveryMetadata:
+    labels:
+      app: httpbin-v2
+      service: httpbin-v2
+  kube:
+    selector:
+      app: httpbin
+      version: v2
+    serviceName: httpbin-v2
     serviceNamespace: httpbin
     servicePort: 8000
     subsetSpec:
@@ -16,26 +45,29 @@ spec:
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
-  name: default
-  namespace: gloo-system
+  name: httpbin-route
+  namespace: httpbin
 spec:
   virtualHost:
     domains:
-      - '*'
+      - httpbin.example.com
     routes:
       - matchers:
-          - prefix: /petstore/findPetById
+          - prefix: /
+            headers:
+              - name: version
+                value: v2
+        name: httpbin-route-v2
         routeAction:
           single:
-            destinationSpec:
-              rest:
-                functionName: findPetById
-                parameters:
-                  headers:
-                    :path: /petstore/findPetById/{id}
-            subset:
-              values:
-                version: v1
             upstream:
-              name: default-petstore-8080
+              name: httpbin-v2-httpbin-8000
+              namespace: gloo-system
+      - matchers:
+          - prefix: /
+        name: httpbin-route-v1
+        routeAction:
+          single:
+            upstream:
+              name: httpbin-v1-httpbin-8000
               namespace: gloo-system

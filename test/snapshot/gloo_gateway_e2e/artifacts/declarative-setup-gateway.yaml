@@ -40,17 +40,17 @@ clusters:
           apiVersion: v1
           kind: ServiceAccount
           metadata:
-            name: httpbin
+            name: httpbin-v1
             namespace: httpbin
         service:
           apiVersion: v1
           kind: Service
           metadata:
-            name: httpbin
+            name: httpbin-v1
             namespace: httpbin
             labels:
-              app: httpbin
-              service: httpbin
+              app: httpbin-v1
+              service: httpbin-v1
           spec:
             ports:
               - name: http
@@ -60,6 +60,7 @@ clusters:
                 port: 9000
             selector:
               app: httpbin
+              version: v1
         deployment:
           apiVersion: apps/v1
           kind: Deployment
@@ -79,7 +80,7 @@ clusters:
                   app: httpbin
                   version: v1
               spec:
-                serviceAccountName: httpbin
+                serviceAccountName: httpbin-v1
                 containers:
                   - image: hunca1j/httpbin:v2.11.0
                     imagePullPolicy: IfNotPresent
@@ -95,7 +96,32 @@ clusters:
                       - name: SERVICE_VERSION
                     ports:
                       - containerPort: 8080
-      - deployment:
+      - serviceAccount:
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: httpbin-v2
+            namespace: httpbin
+        service:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: httpbin-v2
+            namespace: httpbin
+            labels:
+              app: httpbin-v2
+              service: httpbin-v2
+          spec:
+            ports:
+              - name: http
+                port: 8000
+                targetPort: 8080
+              - name: tcp
+                port: 9000
+            selector:
+              app: httpbin
+              version: v2
+        deployment:
           apiVersion: apps/v1
           kind: Deployment
           metadata:
@@ -114,7 +140,7 @@ clusters:
                   app: httpbin
                   version: v2
               spec:
-                serviceAccountName: httpbin
+                serviceAccountName: httpbin-v2
                 containers:
                   - image: hunca1j/httpbin:v2.11.0
                     imagePullPolicy: IfNotPresent

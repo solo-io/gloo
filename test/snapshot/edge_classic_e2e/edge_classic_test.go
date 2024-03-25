@@ -27,7 +27,7 @@ import (
 const (
 	gatewayPort      = int(80)
 	httpbinNamespace = "httpbin"
-	httpbinService   = "httpbin"
+	httpbinV1Service = "httpbin-v1"
 )
 
 var _ = Describe("Gloo Edge Classic", func() {
@@ -40,6 +40,9 @@ var _ = Describe("Gloo Edge Classic", func() {
 			return // Exit without cleaning up
 		}
 		Expect(runner.Cleanup(ctx)).To(Succeed())
+
+		// Clear inputs before each run.
+		runner.Inputs = nil
 	})
 
 	When("Happy Path", func() {
@@ -62,7 +65,7 @@ var _ = Describe("Gloo Edge Classic", func() {
 								Single: &gloov1.Destination{
 									DestinationType: &gloov1.Destination_Upstream{
 										Upstream: &gloocore.ResourceRef{
-											Name:      "httpbin-htppbin-8000",
+											Name:      "httpbin-v1-httpbin-8000",
 											Namespace: gloodefaults.GlooSystem,
 										},
 									},
@@ -75,32 +78,27 @@ var _ = Describe("Gloo Edge Classic", func() {
 
 			runner.Inputs = []client.Object{
 				builders.NewUpstreamBuilder().
-					WithName("httpbin-htppbin-8000").
+					WithName("httpbin-v1-httpbin-8000").
 					WithNamespace(gloodefaults.GlooSystem).
 					WithDiscoveryMetadata(&gloov1.DiscoveryMetadata{
 						Labels: map[string]string{
-							"app":     httpbinService,
-							"service": httpbinService,
+							"app":     httpbinV1Service,
+							"service": httpbinV1Service,
 						},
 					}).
 					WithKubeUpstream(&gloov1.UpstreamSpec_Kube{
 						Kube: &kubernetes.UpstreamSpec{
 							Selector: map[string]string{
-								"app": httpbinService,
+								"app": "httpbin", // this is the label of the httpbin pod
 							},
 							ServiceNamespace: httpbinNamespace,
-							ServiceName:      httpbinService,
+							ServiceName:      httpbinV1Service,
 							ServicePort:      uint32(8000),
 						},
 					}).
 					Build(),
 				vs,
 			}
-		})
-
-		AfterEach(func() {
-			// Clear inputs before each run.
-			runner.Inputs = nil
 		})
 
 		It("Send request through ingress", func() {
@@ -125,15 +123,42 @@ var _ = Describe("Gloo Edge Classic", func() {
 	When("Prefix Match and Header Addition", func() {
 		BeforeEach(func() {
 			dir := util.MustGetThisDir()
-			runner.InputFile = filepath.Join(dir, "artifacts", "prefix_match_resources.yaml")
-		})
-
-		AfterEach(func() {
-			runner.InputFile = ""
+			inputFile := filepath.Join(dir, "artifacts", "prefix_match_resources.yaml")
+			inputs, err := runner.LoadFromFile(ctx, []string{inputFile})
+			Expect(err).NotTo(HaveOccurred())
+			runner.Inputs = inputs
 		})
 
 		It("Prefix Match Routing routes to correct route", func() {
 			testcases.TestPrefixMatchRouting(
+				ctx,
+				runner,
+				&snapshot.TestEnv{
+					GatewayName:      defaults.GatewayProxyName,
+					GatewayNamespace: gloodefaults.GlooSystem,
+					GatewayPort:      gatewayPort,
+					ClusterContext:   kubeCtx,
+					ClusterName:      clusterName,
+				},
+				func() {
+					err := testutils.WaitPodsRunning(ctx, time.Second, gloodefaults.GlooSystem, fmt.Sprintf("gloo=%s", defaults.GatewayProxyName))
+					Expect(err).NotTo(HaveOccurred())
+				},
+			)
+		})
+	})
+
+	When("Subset Routing", func() {
+		BeforeEach(func() {
+			dir := util.MustGetThisDir()
+			inputFile := filepath.Join(dir, "artifacts", "subset.yaml")
+			inputs, err := runner.LoadFromFile(ctx, []string{inputFile})
+			Expect(err).NotTo(HaveOccurred())
+			runner.Inputs = inputs
+		})
+
+		It("Routes to correct subset via header", func() {
+			testcases.TestGatewaySubset(
 				ctx,
 				runner,
 				&snapshot.TestEnv{

@@ -32,7 +32,7 @@ var HttpbinVirtualService = &v1.VirtualService{
 							Single: &gloov1.Destination{
 								DestinationType: &gloov1.Destination_Upstream{
 									Upstream: &gloocore.ResourceRef{
-										Name:      "httpbin-htppbin-8000",
+										Name:      "httpbin-v1-httpbin-8000",
 										Namespace: gloodefaults.GlooSystem,
 									},
 								},

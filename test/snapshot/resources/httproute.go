@@ -29,7 +29,7 @@ var HttpbinHTTPRoute = &gwv1.HTTPRoute{
 					{
 						BackendRef: gwv1.BackendRef{
 							BackendObjectReference: gwv1.BackendObjectReference{
-								Name:      "httpbin",
+								Name:      "httpbin-v1",
 								Namespace: utils.PtrTo(gwv1.Namespace("httpbin")),
 								Port:      utils.PtrTo(gwv1.PortNumber(8000)),
 							},

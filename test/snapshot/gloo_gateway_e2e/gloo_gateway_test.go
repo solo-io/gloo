@@ -24,7 +24,7 @@ const (
 	gatewayName           = "example-gateway"
 	gatewayPort           = int(8080)
 	httpbinNamespace      = "httpbin"
-	httpbinService        = "httpbin"
+	httpbinV1Service      = "httpbin-v1"
 )
 
 var _ = Describe("Gloo Gateway", func() {
@@ -37,6 +37,9 @@ var _ = Describe("Gloo Gateway", func() {
 			return // Exit without cleaning up
 		}
 		Expect(runner.Cleanup(ctx)).To(Succeed())
+
+		// Clear inputs before each run.
+		runner.Inputs = nil
 	})
 
 	When("Happy Path", func() {
@@ -48,7 +51,7 @@ var _ = Describe("Gloo Gateway", func() {
 					WithGatewayClassName("gloo-gateway").
 					WithListeners([]gwv1.Listener{
 						{
-							Name:     httpbinService,
+							Name:     httpbinV1Service,
 							Port:     gwv1.PortNumber(gatewayPort),
 							Protocol: "HTTP",
 							AllowedRoutes: &gwv1.AllowedRoutes{
@@ -76,7 +79,7 @@ var _ = Describe("Gloo Gateway", func() {
 							{
 								BackendRef: gwv1.BackendRef{
 									BackendObjectReference: gwv1.BackendObjectReference{
-										Name:      httpbinService,
+										Name:      httpbinV1Service,
 										Namespace: utils.PtrTo(gwv1.Namespace(httpbinNamespace)),
 										Port:      utils.PtrTo(gwv1.PortNumber(8000)),
 									},
@@ -85,10 +88,6 @@ var _ = Describe("Gloo Gateway", func() {
 						},
 					}).Build(),
 			}
-		})
-
-		AfterEach(func() {
-			runner.Inputs = nil
 		})
 
 		It("Send request through ingress", func() {
@@ -113,15 +112,43 @@ var _ = Describe("Gloo Gateway", func() {
 	When("Prefix Match and Header Addition", func() {
 		BeforeEach(func() {
 			dir := util.MustGetThisDir()
-			runner.InputFile = filepath.Join(dir, "artifacts", "prefix_match_resources.yaml")
-		})
-
-		AfterEach(func() {
-			runner.InputFile = ""
+			inputFile := filepath.Join(dir, "artifacts", "prefix_match_resources.yaml")
+			inputs, err := runner.LoadFromFile(ctx, []string{inputFile})
+			Expect(err).NotTo(HaveOccurred())
+			runner.Inputs = inputs
 		})
 
 		It("Prefix Match Routing routes to correct route", func() {
 			testcases.TestPrefixMatchRouting(
+				ctx,
+				runner,
+				&snapshot.TestEnv{
+					GatewayName:      gatewayDeploymentName,
+					GatewayNamespace: gloodefaults.GlooSystem,
+					GatewayPort:      gatewayPort,
+					ClusterContext:   kubeCtx,
+					ClusterName:      clusterName,
+				},
+				func() {
+					err := testutils.WaitPodsRunning(ctx, 10*time.Second, gloodefaults.GlooSystem, "app.kubernetes.io/name=gloo-proxy-example-gateway")
+					Expect(err).NotTo(HaveOccurred())
+				},
+			)
+		})
+
+	})
+
+	When("Subset Routing", func() {
+		BeforeEach(func() {
+			dir := util.MustGetThisDir()
+			inputFile := filepath.Join(dir, "artifacts", "subset.yaml")
+			inputs, err := runner.LoadFromFile(ctx, []string{inputFile})
+			Expect(err).NotTo(HaveOccurred())
+			runner.Inputs = inputs
+		})
+
+		It("Routes to correct subset via header", func() {
+			testcases.TestGatewaySubset(
 				ctx,
 				runner,
 				&snapshot.TestEnv{

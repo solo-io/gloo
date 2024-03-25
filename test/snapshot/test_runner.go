@@ -29,22 +29,19 @@ type TestRunner struct {
 	Client    client.Client
 	ClientSet *kube2e.KubeResourceClientSet
 
-	Inputs    []client.Object // all objects written for an individual test run should be cleaned up at the end
-	InputFile string
+	Inputs []client.Object // all objects written for an individual test run should be cleaned up at the end
 }
 
 func (tr TestRunner) Run(ctx context.Context) error {
 	if tr.Inputs != nil {
-		return tr.run(ctx, tr.Inputs)
-	} else if tr.InputFile != "" {
-		return tr.runFromFile(ctx, []string{tr.InputFile})
+		return tr.run(ctx)
 	} else {
 		return fmt.Errorf("no inputs provided")
 	}
 }
 
-func (tr TestRunner) run(ctx context.Context, inputs []client.Object) error {
-	for _, obj := range inputs {
+func (tr TestRunner) run(ctx context.Context) error {
+	for _, obj := range tr.Inputs {
 		err := tr.Client.Create(ctx, obj, &client.CreateOptions{})
 		if err != nil {
 			if apierrors.IsAlreadyExists(err) {
@@ -58,24 +55,20 @@ func (tr TestRunner) run(ctx context.Context, inputs []client.Object) error {
 	return nil
 }
 
-func (tr TestRunner) runFromFile(ctx context.Context, inputFiles []string) error {
+func (tr *TestRunner) LoadFromFile(ctx context.Context, inputFiles []string) ([]client.Object, error) {
 	// load inputs
 	var inputs []client.Object
 
 	for _, file := range inputFiles {
 		objs, err := testutils.LoadFromFiles(ctx, file, tr.Scheme)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		for _, obj := range objs {
 			inputs = append(inputs, obj)
 		}
 	}
-
-	// set inputs to clean up after test run
-	tr.Inputs = inputs
-
-	return tr.run(ctx, inputs)
+	return inputs, nil
 }
 
 func (tr *TestRunner) Cleanup(ctx context.Context) error {

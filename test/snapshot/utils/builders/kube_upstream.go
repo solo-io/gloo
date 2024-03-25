@@ -2,7 +2,6 @@ package builders
 
 import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
-	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -75,8 +74,9 @@ func (b *KubeUpstreamBuilder) WithKubeUpstream(kubeUpstream *gloov1.UpstreamSpec
 func (b *KubeUpstreamBuilder) Build() *gloov1.Upstream {
 	upstream := &gloov1.Upstream{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "httpbin-htppbin-8000",
-			Namespace: gloodefaults.GlooSystem,
+			Name:      b.name,
+			Namespace: b.namespace,
+			Labels:    b.labels,
 		},
 		Spec: gloov1.UpstreamSpec{
 			DiscoveryMetadata: b.discoveryMetadata,

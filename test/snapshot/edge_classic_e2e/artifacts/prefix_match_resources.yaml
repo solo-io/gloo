@@ -1,7 +1,7 @@
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
-  name: httpbin-htppbin-8000
+  name: httpbin-v1-httpbin-8000
   namespace: gloo-system
 spec:
   discoveryMetadata:
@@ -11,7 +11,7 @@ spec:
   kube:
     selector:
       app: httpbin
-    serviceName: httpbin
+    serviceName: httpbin-v1
     serviceNamespace: httpbin
     servicePort: 8000
 ---
@@ -31,7 +31,7 @@ spec:
         routeAction:
           single:
             upstream:
-              name: httpbin-htppbin-8000
+              name: httpbin-v1-httpbin-8000
               namespace: gloo-system
         options:
           headerManipulation:
@@ -47,5 +47,5 @@ spec:
         routeAction:
           single:
             upstream:
-              name: httpbin-htppbin-8000
+              name: httpbin-v1-httpbin-8000
               namespace: gloo-system

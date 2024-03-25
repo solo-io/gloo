@@ -25,22 +25,12 @@ spec:
   hostnames: ["httpbin.example.com"]
   rules:
     - matches:
-        - path:
-            type: PathPrefix
-            value: /get
+        - headers:
+            - name: version
+              value: v2
       backendRefs:
-        - name: httpbin-v1
+        - name: httpbin-v2
           port: 8000
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /headers
-      filters:
-        - type: ResponseHeaderModifier
-          responseHeaderModifier:
-            add:
-              - name: hello
-                value: gloo
-      backendRefs:
+    - backendRefs:
         - name: httpbin-v1
           port: 8000

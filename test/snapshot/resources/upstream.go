@@ -10,23 +10,23 @@ import (
 // HttpbinUpstream is an Upstream that represents the httpbin service on port 8000
 var HttpbinUpstream = &gloov1.Upstream{
 	ObjectMeta: metav1.ObjectMeta{
-		Name:      "httpbin-htppbin-8000",
+		Name:      "httpbin-v1-httpbin-8000",
 		Namespace: gloodefaults.GlooSystem,
 	},
 	Spec: gloov1.UpstreamSpec{
 		DiscoveryMetadata: &gloov1.DiscoveryMetadata{
 			Labels: map[string]string{
-				"app":     "httpbin",
-				"service": "httpbin",
+				"app":     "httpbin-v1",
+				"service": "httpbin-v1",
 			},
 		},
 		UpstreamType: &gloov1.UpstreamSpec_Kube{
 			Kube: &kubernetes.UpstreamSpec{
 				Selector: map[string]string{
-					"app": "httpbin",
+					"app": "httpbin-v1",
 				},
-				ServiceNamespace: "httpbin",
-				ServiceName:      "httpbin",
+				ServiceNamespace: "httpbin-v1",
+				ServiceName:      "httpbin-v1",
 				ServicePort:      uint32(8000),
 			},
 		},
