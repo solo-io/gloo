@@ -65,8 +65,6 @@ func (c *Cluster) GetChart(name string) *Chart {
 
 // GetPrioritizedCharts returns the charts in the order they should be installed.
 func (c *Cluster) GetPrioritizedCharts() []*Chart {
-	// TODO(tim): Add defensive check here?
-
 	var prioritized []*Chart
 	for _, chart := range c.Charts {
 		if chart.Prioritize {

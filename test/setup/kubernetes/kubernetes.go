@@ -255,24 +255,24 @@ func versionServiceAccount(version string, serviceAccount *corev1.ServiceAccount
 	if serviceAccount == nil {
 		return nil
 	}
-	copy := *serviceAccount
+	copySA := *serviceAccount
 
-	copy.Name = versionName(copy.Name, version)
+	copySA.Name = versionName(copySA.Name, version)
 
-	return &copy
+	return &copySA
 }
 
 func versionService(version string, service *corev1.Service) *corev1.Service {
 	if service == nil {
 		return nil
 	}
-	copy := *service
+	copyService := *service
 
-	copy.Name = versionName(copy.Name, version)
+	copyService.Name = versionName(copyService.Name, version)
 
-	copy.Spec.Selector = versionedLabels(version, copy.Spec.Selector)
+	copyService.Spec.Selector = versionedLabels(version, copyService.Spec.Selector)
 
-	return &copy
+	return &copyService
 }
 
 func versionDeployment(version string, deployment *appsv1.Deployment) *appsv1.Deployment {
@@ -280,29 +280,29 @@ func versionDeployment(version string, deployment *appsv1.Deployment) *appsv1.De
 		return nil
 	}
 
-	copy := *deployment
+	copyDeployment := *deployment
 
-	name := versionName(copy.Name, version)
+	name := versionName(copyDeployment.Name, version)
 
-	copy.Name = name
-	copy.Labels = versionedLabels(version, copy.Labels)
-	copy.Spec.Template.Labels = versionedLabels(version, copy.Spec.Template.Labels)
-	copy.Spec.Selector.MatchLabels = versionedLabels(version, copy.Spec.Selector.MatchLabels)
-	copy.Spec.Template.Spec.ServiceAccountName = name
+	copyDeployment.Name = name
+	copyDeployment.Labels = versionedLabels(version, copyDeployment.Labels)
+	copyDeployment.Spec.Template.Labels = versionedLabels(version, copyDeployment.Spec.Template.Labels)
+	copyDeployment.Spec.Selector.MatchLabels = versionedLabels(version, copyDeployment.Spec.Selector.MatchLabels)
+	copyDeployment.Spec.Template.Spec.ServiceAccountName = name
 
-	if _, ok := copy.Spec.Template.ObjectMeta.Labels["security.policy.gloo.solo.io/service_account"]; ok {
-		copy.Spec.Template.ObjectMeta.Labels["security.policy.gloo.solo.io/service_account"] = name
+	if _, ok := copyDeployment.Spec.Template.ObjectMeta.Labels["security.policy.gloo.solo.io/service_account"]; ok {
+		copyDeployment.Spec.Template.ObjectMeta.Labels["security.policy.gloo.solo.io/service_account"] = name
 	}
 
 	// Update the SERVICE_VERSION environment variable.
-	for i, container := range copy.Spec.Template.Spec.Containers {
+	for i, container := range copyDeployment.Spec.Template.Spec.Containers {
 		for j, env := range container.Env {
 			if env.Name == "SERVICE_VERSION" {
-				copy.Spec.Template.Spec.Containers[i].Env[j].Value = version
+				copyDeployment.Spec.Template.Spec.Containers[i].Env[j].Value = version
 			}
 		}
 	}
-	return &copy
+	return &copyDeployment
 }
 
 func versionName(name, version string) string {

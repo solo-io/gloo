@@ -22,7 +22,8 @@ One of the clusters should be marked as management via `management` field.
 
 #### Istio Components
 
-Istio components can be defined via the `istioOperators` field. IstioOperators field is used to define one or more [Istio operators](https://github.com/istio/istio/blob/ccd8deedd9c735a11ebfa085e2fbe22be0ccd03a/operator/pkg/apis/istio/v1alpha1/types.go#L28-L46), that will be installed via istioctl.
+Istio components can be (optionally) defined via the `istioOperators` field. 
+IstioOperators field is used to define one or more [Istio operators](https://github.com/istio/istio/blob/ccd8deedd9c735a11ebfa085e2fbe22be0ccd03a/operator/pkg/apis/istio/v1alpha1/types.go#L28-L46), that will be installed via istioctl.
 
 ```yaml
 clusters:
@@ -35,6 +36,8 @@ clusters:
     ...
 ```
 
+If the `istioOperators` config is not provided, the tool will skip the Istio installation. 
+
 #### Helm Charts
 
 Field is used to define one or more helm charts. The charts can be locally built or remote charts can be provided from a registry.
@@ -45,7 +48,7 @@ Local helm charts will use a file path via `local` to target the chart.
 clusters:
 - charts: 
   - name: gloo
-    namespace: gloo-mesh
+    namespace: gloo-system
     local: install/helm/gloo
     values:
       gloo:

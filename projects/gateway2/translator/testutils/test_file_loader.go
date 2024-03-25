@@ -12,6 +12,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/protoutils"
+	"github.com/solo-io/gloo/projects/gateway2/controller/scheme"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
 	"github.com/ghodss/yaml"
@@ -31,10 +32,6 @@ var (
 )
 
 func LoadFromFiles(ctx context.Context, filename string, clientScheme *runtime.Scheme) ([]client.Object, error) {
-	if clientScheme == nil {
-		clientScheme = runtime.NewScheme()
-	}
-
 	fileOrDir, err := os.Stat(filename)
 	if err != nil {
 		return nil, err
@@ -86,7 +83,10 @@ func LoadFromFiles(ctx context.Context, filename string, clientScheme *runtime.S
 	return resources, nil
 }
 
-func parseFile(ctx context.Context, filename string, scheme *runtime.Scheme) ([]runtime.Object, error) {
+func parseFile(ctx context.Context, filename string, inputScheme *runtime.Scheme) ([]runtime.Object, error) {
+	if inputScheme == nil {
+		inputScheme = scheme.NewScheme()
+	}
 	file, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -119,7 +119,7 @@ func parseFile(ctx context.Context, filename string, scheme *runtime.Scheme) ([]
 		}
 
 		gvk := schema.FromAPIVersionAndKind(meta.APIVersion, meta.Kind)
-		obj, err := scheme.New(gvk)
+		obj, err := inputScheme.New(gvk)
 		if err != nil {
 			contextutils.LoggerFrom(ctx).Warnw("unknown resource kind",
 				zap.String("filename", filename),

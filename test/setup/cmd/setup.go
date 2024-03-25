@@ -169,8 +169,7 @@ func initClusters(
 				}
 			}
 
-			// TODO: Support loading images built from source to remote registries (e.g: AWS, GCP, etc ...)
-
+			// TODO(npolshak): Support loading images built from source to remote registries (e.g: AWS, GCP, etc ...)
 			kubeContext, kubeConfig, client, controller, err := kubernetes.NewClient(ctx, dir, cluster.Name)
 			if err != nil {
 				return errors.Wrapf(err, "using %s failed to create kubernetes client", os.Getenv("KUBECONFIG"))
@@ -271,9 +270,8 @@ func processCluster(
 }
 
 func processCRDs(ctx context.Context, cluster *kubernetes.Cluster) error {
-	// TODO: make this conditional
+	// TODO(npolshak): make this conditional based on setup
 	// Install gateway apis
-
 	cmd := exec.Command("kubectl", "apply", "--context", cluster.GetKubeContext(), "--kubeconfig", cluster.GetKubeConfig(), "-f", "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.0.0/standard-install.yaml")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

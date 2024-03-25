@@ -158,7 +158,7 @@ func DownloadIstio(ctx context.Context, version string) (string, error) {
 		return binaryLocation, nil
 	}
 
-	req, err := http.NewRequest("GET", "https://istio.io/downloadIstio", nil)
+	req, err := http.NewRequest(http.MethodGet, "https://istio.io/downloadIstio", nil)
 	if err != nil {
 		return "", err
 	}
