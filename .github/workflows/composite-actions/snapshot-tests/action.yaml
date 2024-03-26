@@ -37,7 +37,7 @@ runs:
         export ISTIO_HUB=docker.io/istio
         export VERSION=1.0.1-dev
         export ISTIO_VERSION=1.18.2
-        make run-${{ matrix.gloo-api-type }}-snapshot-e2e-tests
+        make install-test-tools run-${{ matrix.gloo-api-type }}-snapshot-e2e-tests
     - name: save results
       if: ${{ failure() }}
       shell: bash
