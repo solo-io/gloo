@@ -25,7 +25,7 @@ type Translator interface {
 	ReconcileEndpoints(ctx context.Context, req ctrl.Request) (ctrl.Result, error)
 }
 
-func NewTranslator(cli client.Client, inputChannels *xds.XdsInputChannels) Translator {
+func NewTranslator(cli client.Client, inputChannels *xds.GatewayInputChannels) Translator {
 	return &edgeLegacyTranslator{
 		cli:           cli,
 		inputChannels: inputChannels,
@@ -37,7 +37,7 @@ func NewTranslator(cli client.Client, inputChannels *xds.XdsInputChannels) Trans
 // EDS and UDS implementations. These operate as a batch and are known to not be performant.
 type edgeLegacyTranslator struct {
 	cli           client.Client
-	inputChannels *xds.XdsInputChannels
+	inputChannels *xds.GatewayInputChannels
 }
 
 func (e *edgeLegacyTranslator) ReconcilePod(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {

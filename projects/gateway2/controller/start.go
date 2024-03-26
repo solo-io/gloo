@@ -18,7 +18,6 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
 
@@ -83,8 +82,8 @@ func Start(ctx context.Context, cfg StartConfig) error {
 	glooTranslator := translator.NewDefaultTranslator(
 		cfg.Opts.Settings,
 		cfg.GlooPluginRegistryFactory(ctx))
-	var sanz sanitizer.XdsSanitizers
-	inputChannels := xds.NewXdsInputChannels()
+
+	inputChannels := xds.NewGatewayInputChannels()
 
 	k8sGwExtensions, err := cfg.ExtensionsFactory(mgr)
 	if err != nil {
@@ -95,9 +94,6 @@ func Start(ctx context.Context, cfg StartConfig) error {
 	xdsSyncer := xds.NewXdsSyncer(
 		wellknown.GatewayControllerName,
 		glooTranslator,
-		sanz,
-		cfg.Opts.ControlPlane.SnapshotCache,
-		false,
 		inputChannels,
 		mgr,
 		k8sGwExtensions,

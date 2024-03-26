@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-func NewSecretsController(ctx context.Context, mgr manager.Manager, inputChannels *xds.XdsInputChannels) error {
+func NewSecretsController(ctx context.Context, mgr manager.Manager, inputChannels *xds.GatewayInputChannels) error {
 	cb := &controllerBuilder{
 		mgr: mgr,
 		reconciler: &controllerReconciler{
@@ -50,7 +50,7 @@ func (c *controllerBuilder) watchSecrets(ctx context.Context) error {
 
 type controllerReconciler struct {
 	cli           client.Client
-	inputChannels *xds.XdsInputChannels
+	inputChannels *xds.GatewayInputChannels
 }
 
 func (r *controllerReconciler) ReconcileSecrets(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {

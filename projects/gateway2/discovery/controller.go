@@ -10,7 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-func NewDiscoveryController(ctx context.Context, mgr manager.Manager, inputChannels *xds.XdsInputChannels) error {
+func NewDiscoveryController(ctx context.Context, mgr manager.Manager, inputChannels *xds.GatewayInputChannels) error {
 	cb := &controllerBuilder{
 		mgr:        mgr,
 		translator: NewTranslator(mgr.GetClient(), inputChannels),
