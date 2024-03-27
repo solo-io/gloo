@@ -13,10 +13,13 @@ type helmGateway struct {
 	FullnameOverride *string `json:"fullnameOverride,omitempty"`
 
 	// deployment/service values
-	Ports []helmPort `json:"ports,omitempty"`
+	ReplicaCount *uint32    `json:"replicaCount,omitempty"`
+	Ports        []helmPort `json:"ports,omitempty"`
 
 	// envoy container values
-	Image *helmImage `json:"image,omitempty"`
+	LogLevel          *string    `json:"logLevel,omitempty"`
+	ComponentLogLevel *string    `json:"componentLogLevel,omitempty"`
+	Image             *helmImage `json:"image,omitempty"`
 
 	// istio values
 	IstioSDS *helmIstioSds `json:"istioSDS,omitempty"`

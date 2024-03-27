@@ -9,8 +9,10 @@ import (
 	"io/fs"
 	"path/filepath"
 
+	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/version"
 	"github.com/solo-io/gloo/projects/gateway2/helm"
+	"github.com/solo-io/gloo/projects/gateway2/pkg/api/gateway.gloo.solo.io/v1alpha1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"golang.org/x/exp/slices"
 	"helm.sh/helm/v3/pkg/action"
@@ -26,6 +28,21 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	api "sigs.k8s.io/gateway-api/apis/v1"
+)
+
+var (
+	NoGatewayClassError = func(gw *api.Gateway) error {
+		return eris.Errorf("gateway %s.%s does not contain a gatewayClassName", gw.Namespace, gw.Name)
+	}
+	GetGatewayClassError = func(err error, gw *api.Gateway, gatewayClassName string) error {
+		return eris.Wrapf(err, "could not retrieve gatewayclass %s for gateway %s.%s", gatewayClassName, gw.Namespace, gw.Name)
+	}
+	UnsupportedParametersRefKind = func(gatewayClassName string, parametersRef *api.ParametersReference) error {
+		return eris.Errorf("parametersRef for gatewayclass %s points to an unsupported kind: %v", gatewayClassName, parametersRef)
+	}
+	GetDataPlaneConfigError = func(err error, gatewayClassName string, dpcNamespace string, dpcName string) error {
+		return eris.Wrapf(err, "could not retrieve dataplaneconfig (%s.%s) for gatewayclass %s", dpcNamespace, dpcName, gatewayClassName)
+	}
 )
 
 // A Deployer is responsible for deploying proxies
@@ -117,6 +134,45 @@ func (d *Deployer) renderChartToObjects(ctx context.Context, gw *api.Gateway, va
 	return objs, nil
 }
 
+// Gets the DataPlaneConfig object (if any) associated with a given Gateway.
+func (d *Deployer) getDataPlaneConfigForGateway(ctx context.Context, gw *api.Gateway) (*v1alpha1.DataPlaneConfig, error) {
+	logger := log.FromContext(ctx)
+
+	// Get the GatewayClass for the Gateway
+	gwClassName := gw.Spec.GatewayClassName
+	if gwClassName == "" {
+		// this shouldn't happen as the gatewayClassName field is required, but throw an error in this case
+		return nil, NoGatewayClassError(gw)
+	}
+
+	gwc := &api.GatewayClass{}
+	err := d.cli.Get(ctx, client.ObjectKey{Name: string(gwClassName)}, gwc)
+	if err != nil {
+		return nil, GetGatewayClassError(err, gw, string(gwClassName))
+	}
+
+	// Get the DataPlaneConfig from the GatewayClass
+	paramsRef := gwc.Spec.ParametersRef
+	if paramsRef == nil {
+		// there is no custom data plane config (just use default values)
+		logger.V(1).Info("no parametersRef found for GatewayClass", "GatewayClass", gwClassName)
+		return nil, nil
+	}
+
+	if string(paramsRef.Group) != v1alpha1.DataPlaneConfigGVK.Group ||
+		string(paramsRef.Kind) != v1alpha1.DataPlaneConfigGVK.Kind {
+		return nil, UnsupportedParametersRefKind(string(gwClassName), paramsRef)
+	}
+
+	dpc := &v1alpha1.DataPlaneConfig{}
+	err = d.cli.Get(ctx, client.ObjectKey{Namespace: string(*paramsRef.Namespace), Name: paramsRef.Name}, dpc)
+	if err != nil {
+		return nil, GetDataPlaneConfigError(err, string(gwClassName), string(*paramsRef.Namespace), paramsRef.Name)
+	}
+
+	return dpc, nil
+}
+
 func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway) (*helmConfig, error) {
 	xdsHost := GetDefaultXdsHost()
 	xdsPort, err := GetDefaultXdsPort(ctx, d.cli)
@@ -141,6 +197,32 @@ func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway) (*helmConfig,
 			},
 		},
 	}
+
+	// check if there is a DataPlaneConfig associated with this Gateway
+	dpc, err := d.getDataPlaneConfigForGateway(ctx, gw)
+	if err != nil {
+		return nil, err
+	}
+	// if there is no DataPlaneConfig, return the values as is
+	if dpc == nil {
+		return vals, nil
+	}
+
+	kubeProxyConfig := dpc.Spec.GetProxyConfig().GetKube()
+	deployConfig := kubeProxyConfig.GetDeployment()
+	envoyContainerConfig := kubeProxyConfig.GetEnvoyContainer()
+
+	// deployment values
+	if deployConfig.GetReplicas() != nil {
+		replicas := deployConfig.GetReplicas().GetValue()
+		vals.Gateway.ReplicaCount = &replicas
+	}
+
+	// envoy container values
+	logLevel := envoyContainerConfig.GetBootstrap().GetLogLevel()
+	compLogLevel := envoyContainerConfig.GetBootstrap().GetComponentLogLevel()
+	vals.Gateway.LogLevel = &logLevel
+	vals.Gateway.ComponentLogLevel = &compLogLevel
 
 	return vals, nil
 }
