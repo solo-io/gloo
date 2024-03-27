@@ -31,17 +31,23 @@ import (
 )
 
 var (
-	NoGatewayClassError = func(gw *api.Gateway) error {
-		return eris.Errorf("gateway %s.%s does not contain a gatewayClassName", gw.Namespace, gw.Name)
+	NoGatewayClassError = eris.New("missing gatewayClassName")
+	noGatewayClassError = func(gw *api.Gateway) error {
+		return eris.Wrapf(NoGatewayClassError, "gateway %s.%s", gw.Namespace, gw.Name)
 	}
-	GetGatewayClassError = func(err error, gw *api.Gateway, gatewayClassName string) error {
-		return eris.Wrapf(err, "could not retrieve gatewayclass %s for gateway %s.%s", gatewayClassName, gw.Namespace, gw.Name)
+	GetGatewayClassError = eris.New("could not retrieve gatewayclass")
+	getGatewayClassError = func(err error, gw *api.Gateway, gatewayClassName string) error {
+		wrapped := eris.Wrap(err, GetGatewayClassError.Error())
+		return eris.Wrapf(wrapped, "%s for gateway %s.%s", gatewayClassName, gw.Namespace, gw.Name)
 	}
-	UnsupportedParametersRefKind = func(gatewayClassName string, parametersRef *api.ParametersReference) error {
-		return eris.Errorf("parametersRef for gatewayclass %s points to an unsupported kind: %v", gatewayClassName, parametersRef)
+	UnsupportedParametersRefKind = eris.New("unsupported ParametersRef Kind")
+	unsupportedParametersRefKind = func(gatewayClassName string, parametersRef *api.ParametersReference) error {
+		return eris.Wrapf(UnsupportedParametersRefKind, "parametersRef for gatewayclass %s points to an unsupported kind: %v", gatewayClassName, parametersRef)
 	}
-	GetDataPlaneConfigError = func(err error, gatewayClassName string, dpcNamespace string, dpcName string) error {
-		return eris.Wrapf(err, "could not retrieve dataplaneconfig (%s.%s) for gatewayclass %s", dpcNamespace, dpcName, gatewayClassName)
+	GetDataPlaneConfigError = eris.New("could not retrieve dataplaneconfig")
+	getDataPlaneConfigError = func(err error, gatewayClassName string, dpcNamespace string, dpcName string) error {
+		wrapped := eris.Wrapf(err, GetDataPlaneConfigError.Error())
+		return eris.Wrapf(wrapped, "(%s.%s) for gatewayclass %s", dpcNamespace, dpcName, gatewayClassName)
 	}
 )
 
@@ -142,13 +148,13 @@ func (d *Deployer) getDataPlaneConfigForGateway(ctx context.Context, gw *api.Gat
 	gwClassName := gw.Spec.GatewayClassName
 	if gwClassName == "" {
 		// this shouldn't happen as the gatewayClassName field is required, but throw an error in this case
-		return nil, NoGatewayClassError(gw)
+		return nil, noGatewayClassError(gw)
 	}
 
 	gwc := &api.GatewayClass{}
 	err := d.cli.Get(ctx, client.ObjectKey{Name: string(gwClassName)}, gwc)
 	if err != nil {
-		return nil, GetGatewayClassError(err, gw, string(gwClassName))
+		return nil, getGatewayClassError(err, gw, string(gwClassName))
 	}
 
 	// Get the DataPlaneConfig from the GatewayClass
@@ -161,13 +167,13 @@ func (d *Deployer) getDataPlaneConfigForGateway(ctx context.Context, gw *api.Gat
 
 	if string(paramsRef.Group) != v1alpha1.DataPlaneConfigGVK.Group ||
 		string(paramsRef.Kind) != v1alpha1.DataPlaneConfigGVK.Kind {
-		return nil, UnsupportedParametersRefKind(string(gwClassName), paramsRef)
+		return nil, unsupportedParametersRefKind(string(gwClassName), paramsRef)
 	}
 
 	dpc := &v1alpha1.DataPlaneConfig{}
 	err = d.cli.Get(ctx, client.ObjectKey{Namespace: string(*paramsRef.Namespace), Name: paramsRef.Name}, dpc)
 	if err != nil {
-		return nil, GetDataPlaneConfigError(err, string(gwClassName), string(*paramsRef.Namespace), paramsRef.Name)
+		return nil, getDataPlaneConfigError(err, string(gwClassName), string(*paramsRef.Namespace), paramsRef.Name)
 	}
 
 	return dpc, nil
