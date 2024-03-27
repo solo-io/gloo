@@ -58,6 +58,7 @@ type Inputs struct {
 	ControllerName string
 	Dev            bool
 	IstioValues    bootstrap.IstioValues
+	ControlPlane   bootstrap.ControlPlane
 }
 
 // NewDeployer creates a new gateway deployer
@@ -174,12 +175,9 @@ func (d *Deployer) getDataPlaneConfigForGateway(ctx context.Context, gw *api.Gat
 }
 
 func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway) (*helmConfig, error) {
-	xdsHost := GetDefaultXdsHost()
-	xdsPort, err := GetDefaultXdsPort(ctx, d.cli)
-	if err != nil {
-		return nil, err
-	}
-
+	fmt.Printf("xxxxxxxxxx deployer getValues: xdsHost=%v, xdsPort=%v\n",
+		d.inputs.ControlPlane.XdsHost,
+		d.inputs.ControlPlane.XdsPort)
 	vals := &helmConfig{
 		Gateway: &helmGateway{
 			Name:        &gw.Name,
@@ -188,8 +186,8 @@ func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway) (*helmConfig,
 			Xds: &helmXds{
 				// The xds host/port MUST map to the Service definition for the Control Plane
 				// This is the socket address that the Proxy will connect to on startup, to receive xds updates
-				Host: &xdsHost,
-				Port: &xdsPort,
+				Host: &d.inputs.ControlPlane.XdsHost,
+				Port: &d.inputs.ControlPlane.XdsPort,
 			},
 			Image: getDeployerImageValues(),
 			IstioSDS: &helmIstioSds{
