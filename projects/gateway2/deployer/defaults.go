@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -15,8 +16,14 @@ import (
 // These values are used by the deployer to render the dynamically-generated proxy resources (deployment, etc)
 
 var (
-	NoXdsPortFoundError = func(portName string, svcNamespace string, svcName string) error {
-		return eris.Errorf("no port with the name %s found in service %s.%s", portName, svcNamespace, svcName)
+	NoXdsPortFoundError = eris.New("failed to find xds port")
+	noXdsPortFoundError = func(portName string, svcNamespace string, svcName string) error {
+		return eris.Wrapf(NoXdsPortFoundError, "no port with the name %s found in service %s.%s", portName, svcNamespace, svcName)
+	}
+	NoGlooSvcFoundError = eris.New("failed to find Gloo service")
+	noGlooSvcFoundError = func(err error, svcNamespace string, svcName string) error {
+		wrapped := eris.Wrap(err, NoGlooSvcFoundError.Error())
+		return eris.Wrapf(wrapped, "service %s.%s", svcNamespace, svcName)
 	}
 )
 
@@ -27,6 +34,9 @@ func GetDefaultXdsPort(ctx context.Context, cli client.Client) (int32, error) {
 	svcNamespace := utils.GetPodNamespace()
 	err := cli.Get(ctx, client.ObjectKey{Namespace: svcNamespace, Name: kubeutils.GlooServiceName}, glooSvc)
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return 0, noGlooSvcFoundError(err, svcNamespace, kubeutils.GlooServiceName)
+		}
 		return 0, err
 	}
 
@@ -36,7 +46,7 @@ func GetDefaultXdsPort(ctx context.Context, cli client.Client) (int32, error) {
 			return port.Port, nil
 		}
 	}
-	return 0, NoXdsPortFoundError(kubeutils.GlooXdsPortName, svcNamespace, kubeutils.GlooServiceName)
+	return 0, noXdsPortFoundError(kubeutils.GlooXdsPortName, svcNamespace, kubeutils.GlooServiceName)
 }
 
 // GetDefaultXdsHost gets the xDS address from the gloo Service.
