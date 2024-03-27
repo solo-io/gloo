@@ -142,6 +142,9 @@ var _ = Describe("Deployer", func() {
 				Kind:       "Gateway",
 				APIVersion: "gateway.solo.io/v1beta1",
 			},
+			Spec: api.GatewaySpec{
+				GatewayClassName: "gloo-gateway",
+			},
 		}
 
 		objs, err := d.GetObjsToDeploy(context.Background(), gw)
@@ -162,6 +165,7 @@ var _ = Describe("Deployer", func() {
 				APIVersion: "gateway.solo.io/v1beta1",
 			},
 			Spec: api.GatewaySpec{
+				GatewayClassName: "gloo-gateway",
 				Listeners: []api.Listener{
 					{
 						Name: "listener-1",
@@ -203,6 +207,7 @@ var _ = Describe("Deployer", func() {
 				APIVersion: "gateway.solo.io/v1beta1",
 			},
 			Spec: api.GatewaySpec{
+				GatewayClassName: "gloo-gateway",
 				Listeners: []api.Listener{
 					{
 						Name: "listener-1",
@@ -254,6 +259,7 @@ var _ = Describe("Deployer", func() {
 				APIVersion: "gateway.solo.io/v1beta1",
 			},
 			Spec: api.GatewaySpec{
+				GatewayClassName: "gloo-gateway",
 				Listeners: []api.Listener{
 					{
 						Name: "listener-1",
@@ -294,6 +300,7 @@ var _ = Describe("Deployer", func() {
 				APIVersion: "gateway.solo.io/v1beta1",
 			},
 			Spec: api.GatewaySpec{
+				GatewayClassName: "gloo-gateway",
 				Listeners: []api.Listener{
 					{
 						Name: "listener-1",
@@ -329,6 +336,9 @@ var _ = Describe("Deployer", func() {
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Gateway",
 				APIVersion: "gateway.solo.io/v1beta1",
+			},
+			Spec: api.GatewaySpec{
+				GatewayClassName: "gloo-gateway",
 			},
 		}
 
@@ -380,6 +390,9 @@ var _ = Describe("Deployer", func() {
 				Kind:       "Gateway",
 				APIVersion: "gateway.solo.io/v1beta1",
 			},
+			Spec: api.GatewaySpec{
+				GatewayClassName: "gloo-gateway",
+			},
 		}
 
 		gw2 := &api.Gateway{
@@ -391,6 +404,9 @@ var _ = Describe("Deployer", func() {
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Gateway",
 				APIVersion: "gateway.solo.io/v1beta1",
+			},
+			Spec: api.GatewaySpec{
+				GatewayClassName: "gloo-gateway",
 			},
 		}
 
