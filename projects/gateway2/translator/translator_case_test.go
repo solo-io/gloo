@@ -69,8 +69,7 @@ func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]bool, erro
 
 	results := make(map[types.NamespacedName]bool)
 	for _, gw := range gateways {
-
-		ref := types.NamespacedName{
+		gwNN := types.NamespacedName{
 			Namespace: gw.Namespace,
 			Name:      gw.Name,
 		}
@@ -95,9 +94,9 @@ func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]bool, erro
 			// Reports:     reportsMap.Gateways,
 		}
 
-		expected, ok := tc.ResultsByGateway[ref]
+		expected, ok := tc.ResultsByGateway[gwNN]
 		if !ok {
-			return nil, errors.Errorf("no expected result found for gateway %v", ref)
+			return nil, errors.Errorf("no expected result found for gateway %v", gwNN)
 		}
 
 		equal, err := expected.Equals(actual)
@@ -105,7 +104,7 @@ func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]bool, erro
 			return nil, err
 		}
 
-		results[ref] = equal
+		results[gwNN] = equal
 	}
 
 	return results, nil
