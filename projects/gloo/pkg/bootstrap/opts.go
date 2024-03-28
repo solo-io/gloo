@@ -85,6 +85,12 @@ type ControlPlane struct {
 	SnapshotCache cache.SnapshotCache
 	XDSServer     server.Server
 
+	Kube KubernetesControlPlaneConfig
+}
+
+// KubernetesControlPlaneConfig contains information about the control plane when
+// running on Kubernetes.
+type KubernetesControlPlaneConfig struct {
 	// the address and port of the socket address that envoy will connect to
 	// to receive xDS config from the gloo control plane
 	XdsHost string

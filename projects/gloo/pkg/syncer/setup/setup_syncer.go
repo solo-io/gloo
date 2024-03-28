@@ -151,6 +151,8 @@ type setupSyncer struct {
 	runFunc                  RunFunc
 	makeGrpcServer           func(ctx context.Context, options ...grpc.ServerOption) *grpc.Server
 	previousXdsServer        grpcServer
+	previousXdsHost          string
+	previousXdsPort          int32
 	previousValidationServer grpcServer
 	previousProxyDebugServer grpcServer
 	controlPlane             bootstrap.ControlPlane
@@ -207,11 +209,11 @@ func getAddr(addr string) (*net.TCPAddr, error) {
 
 // Setup constructs bootstrap options based on settings and other input, and calls the runFunc with these options.
 func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, memCache memory.InMemoryResourceCache, settings *v1.Settings, identity leaderelector.Identity) error {
-	xdsAddr := settings.GetGloo().GetXdsBindAddr()
-	if xdsAddr == "" {
-		xdsAddr = DefaultXdsBindAddr
+	xdsBindAddr := settings.GetGloo().GetXdsBindAddr()
+	if xdsBindAddr == "" {
+		xdsBindAddr = DefaultXdsBindAddr
 	}
-	xdsTcpAddress, err := getAddr(xdsAddr)
+	xdsTcpAddress, err := getAddr(xdsBindAddr)
 	if err != nil {
 		return errors.Wrapf(err, "parsing xds addr")
 	}
@@ -301,11 +303,16 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 		return err
 	}
 
-	// get xds host/port to pass to ControlPlane below
-	xdsHost := GetControlPlaneXdsHost()
-	xdsPort, err := GetControlPlaneXdsPort(ctx, opts.KubeServiceClient)
-	if err != nil {
-		return err
+	// get xds host/port to pass to ControlPlane below, only if we're running in k8s
+	var xdsHost string
+	var xdsPort int32
+	switch settings.GetConfigSource().(type) {
+	case *v1.Settings_KubernetesConfigSource:
+		xdsHost = GetControlPlaneXdsHost()
+		xdsPort, err = GetControlPlaneXdsPort(ctx, opts.KubeServiceClient)
+		if err != nil {
+			return err
+		}
 	}
 
 	// process grpcserver options to understand if any servers will need a restart
@@ -324,7 +331,9 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	emptyProxyDebugServer := bootstrap.ProxyDebugServer{}
 
 	// check if we need to restart the control plane
-	if xdsAddr != s.previousXdsServer.addr {
+	if xdsBindAddr != s.previousXdsServer.addr ||
+		xdsHost != s.previousXdsHost ||
+		xdsPort != s.previousXdsPort {
 		if s.previousXdsServer.cancel != nil {
 			s.previousXdsServer.cancel()
 			s.previousXdsServer.cancel = nil
@@ -358,9 +367,12 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 		if s.extensions != nil {
 			callbacks = s.extensions.XdsCallbacks
 		}
-		s.controlPlane = NewControlPlane(ctx, s.makeGrpcServer(ctx), xdsTcpAddress, callbacks, xdsHost, xdsPort, true)
+		s.controlPlane = NewControlPlane(ctx, s.makeGrpcServer(ctx), xdsTcpAddress,
+			bootstrap.KubernetesControlPlaneConfig{XdsHost: xdsHost, XdsPort: xdsPort}, callbacks, true)
 		s.previousXdsServer.cancel = cancel
-		s.previousXdsServer.addr = xdsAddr
+		s.previousXdsServer.addr = xdsBindAddr
+		s.previousXdsHost = xdsHost
+		s.previousXdsPort = xdsPort
 	}
 
 	// initialize the validation server context in this block either on the first loop, or if bind addr changed
