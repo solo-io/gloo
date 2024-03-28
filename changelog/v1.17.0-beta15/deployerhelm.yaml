@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/5909
+    resolvesIssue: false
+    description: >-
+      GG deployer helm cleanup: Use structs for deployer helm values, remove some unused values,
+      get xds host/port from gloo service.
