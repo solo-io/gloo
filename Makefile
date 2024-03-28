@@ -917,6 +917,18 @@ build-test-chart: ## Build the Helm chart and place it in the _test directory
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)
 	helm repo index $(TEST_ASSET_DIR)
 
+# Sets up environment for running e2e tests
+.PHONY: setup-declarative-env
+ifneq ($(SKIP_BUILDING_IMAGES),true)
+setup-declarative-env: docker # build docker images
+endif
+ifneq ($(SKIP_PACKAGE_HELM), true)
+setup-declarative-env: package-chart
+endif
+setup-declarative-env:
+	@echo "Using config file $(CONFIG)"
+	@go run ./test/setup setup --config $(CONFIG)
+
 #----------------------------------------------------------------------------------
 # Security Scan
 #----------------------------------------------------------------------------------
