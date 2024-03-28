@@ -20,6 +20,9 @@ func FindAppliedRouteFilters(
 	routeCtx *plugins.RouteContext,
 	filterTypes ...gwv1.HTTPRouteFilterType,
 ) []gwv1.HTTPRouteFilter {
+	if routeCtx.Rule == nil {
+		return nil
+	}
 	var appliedFilters []gwv1.HTTPRouteFilter
 	for _, filter := range routeCtx.Rule.Filters {
 		for _, filterType := range filterTypes {
@@ -37,6 +40,9 @@ func FindAppliedRouteFilter(
 	routeCtx *plugins.RouteContext,
 	filterType gwv1.HTTPRouteFilterType,
 ) *gwv1.HTTPRouteFilter {
+	if routeCtx.Rule == nil {
+		return nil
+	}
 	// TODO: check full Filter list for duplicates and error?
 	for _, filter := range routeCtx.Rule.Filters {
 		if filter.Type == filterType {
@@ -53,6 +59,9 @@ func FindExtensionRefFilter(
 	routeCtx *plugins.RouteContext,
 	gk schema.GroupKind,
 ) *gwv1.HTTPRouteFilter {
+	if routeCtx.Rule == nil {
+		return nil
+	}
 	// TODO: check full Filter list for duplicates and error?
 	for _, filter := range routeCtx.Rule.Filters {
 		if filter.Type == gwv1.HTTPRouteFilterExtensionRef {
