@@ -1,12 +1,44 @@
 # Overview
 
 The declarative environment builder tool can setup Kubernetes test cluster(s) with IstioOperators, Helm Charts, and any Applications required
-for testing. This is based on the declarative setup tool used in GME. 
+for testing. This is based on the declarative setup tool used in GME.
 
 ## Configuration
 
 Configuration is typically provided via yaml file.  Usage is usually coupled with `make` targets
 since a lot of default environment variables are defined there.
+
+
+The configuration file is broken into a list of clusters, each with a distinct set of capabilities:
+
+```yaml
+clusters:
+    - name: management-cluster
+      management: true
+      kindConfig:
+        ...
+      istioOperators:
+        ...
+      charts:
+        ...
+      namespaces:
+        ...
+      apps:
+        ...
+      images:
+        ...
+```
+
+* kindConfig: The configuration for the KinD cluster
+* istioOperators: Installation mechanism for Istio uses istio operators. This is a list of istio operator configs to install into the cluster. Uses the istioctl set by the `ISTIO_VERSION` environment variable, or the installed istioctl binary if not set for installation.
+* charts: helm charts to install into the cluster.
+    * name: name of the chart.
+    * namespace: namespace to install the chart into
+    * path: if true, the chart is installed from the local filesystem. Otherwise, it is installed from the configured helm repo.
+    * values: values to pass to the chart.
+* namespaces: namespaces to create in the cluster.
+* apps: applications to install into the cluster.
+* images: images to load into the cluster.
 
 ### Clusters
 
@@ -135,6 +167,12 @@ To test the simple gloo gateway setup:
 CONFIG=test/setup/example_configs/gloo-gateway-setup.yaml make setup-declarative-env
 ```
 
+This can also be run directly with: 
+```bash
+go run ./test/setup setup -c test/setup/example_configs/gloo-gateway-setup.yaml
+```
+Make sure the images and helm chart are present before running the go command directly.
+
 To test the Istio setup, make sure the required env values are set and then run: 
 
 ```bash
@@ -143,6 +181,12 @@ export ISTIO_HUB=docker.io/istio
 export ISTIO_VERSION=1.18.2
 CONFIG=test/setup/example_configs/istio-setup.yaml make setup-declarative-env
 ```
+
+This can also be run directly with:
+```bash
+go run ./test/setup setup -c test/setup/example_configs/istio-setup.yaml
+```
+Make sure the env values, images and helm chart are present before running the go command directly.
 
 The make target will build the images and package the helm chart by default. To skip these steps, you can use the 
 `SKIP_BUILDING_IMAGES=true` and `SKIP_PACKAGE_HELM=true` env values.
