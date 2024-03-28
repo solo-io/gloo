@@ -1,6 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    description: |
-      Adds a force flag to dockerdownload steps
-      Takes the time to shift from inline bash to go code for download on linux.
-      skipCI-storybook-tests:true
