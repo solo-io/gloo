@@ -29,7 +29,7 @@ func main() {
 	const repoOwner = "solo-io"
 	const repoName = "gloo"
 
-	validateReleaseVersionOfCli()
+	validateReleaseVersionOfCli(dryRun)
 
 	assets := []githubutils.ReleaseAssetSpec{
 		{
@@ -71,7 +71,7 @@ func main() {
 }
 
 func validateReleaseVersionOfCli(dryRun bool) {
-	releaseVersion := getReleaseVersionOrExitGracefully().String()[1:]
+	releaseVersion := getReleaseVersionOrExitGracefully(dryRun).String()[1:]
 	name := fmt.Sprintf("_output/glooctl-%s-amd64", runtime.GOOS)
 
 	cmd := exec.Command(name, "version")
