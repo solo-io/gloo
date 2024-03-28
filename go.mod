@@ -352,7 +352,7 @@ replace (
 	// go: istio.io/istio requires github.com/imdario/mergo@v1.0.0: parsing go.mod:
 	//        module declares its path as: dario.cat/mergo
 	//                but was required as: github.com/imdario/mergo
-	github.com/imdario/mergo => github.com/imdario/mergo v0.3.5
+	github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
 
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.0-rc1
 	// skv2 uses a newer version than the imported solo-kit version which causes issues. Replaces the version with the solo-kit version
