@@ -741,6 +741,10 @@ publish-docker-retag: docker-retag docker-push
 
 # publish glooctl
 publish-glooctl: build-cli
+	VERSION=$(VERSION) GO111MODULE=on go run ci/upload_github_release_assets.go false
+else
+# dry run publish glooctl
+publish-glooctl: build-cli
 	VERSION=$(VERSION) GO111MODULE=on go run ci/upload_github_release_assets.go true
 endif # RELEASE exclusive make targets
 
@@ -761,6 +765,7 @@ publish-helm-chart: generate-helm-files
 		sleep 2; \
 	done
 endif # Publish Artifact Targets
+
 
 #----------------------------------------------------------------------------------
 # Docker
