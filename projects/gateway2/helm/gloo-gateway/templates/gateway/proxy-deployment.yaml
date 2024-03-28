@@ -37,10 +37,14 @@ spec:
         - "--disable-hot-restart"
         - "--service-node"
         - $(POD_NAME).$(POD_NAMESPACE)
-        {{- if .Values.develop }}
+        {{- with $gateway.logLevel }}
         - "--log-level"
-        - "debug"
-        {{- end }}
+        - "{{ . }}"
+        {{- end }}{{/* with $gateway.logLevel */}}
+        {{- with $gateway.componentLogLevel }}
+        - "--component-log-level"
+        - "{{ . }}"
+        {{- end }}{{/* with $gateway.componentLogLevel */}}
         image: "{{ $gateway.image.repository }}:{{ $gateway.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ $gateway.image.pullPolicy }}
         volumeMounts:

@@ -1,0 +1,73 @@
+syntax = "proto3";
+package gateway.gloo.solo.io;
+option go_package = "github.com/solo-io/gloo/projects/gateway2/pkg/api/gateway.gloo.solo.io/v1alpha1";
+
+import "extproto/ext.proto";
+option (extproto.equal_all) = true;
+option (extproto.hash_all) = true;
+
+import "google/protobuf/wrappers.proto";
+
+// A DataPlaneConfig contains configuration that is used to dynamically
+// provision Gloo Gateway's data plane (Envoy proxy instance), based on a
+// Kubernetes Gateway or GatewayClass.
+message DataPlaneConfigSpec {
+  ProxyConfig proxy_config = 1;
+}
+
+// Configuration for the proxy instance that implements a given Gateway.
+message ProxyConfig {
+  // The type of environment/platform in which the proxy will be provisioned.
+  oneof environment_type {
+    // The proxy will be deployed on Kubernetes.
+    KubernetesProxyConfig kube = 1;
+  }
+}
+
+// Configuration for the set of Kubernetes resources that will be provisioned
+// for a given Gateway.
+message KubernetesProxyConfig {
+  // The workload type of the proxy
+  oneof workload_type {
+    // Use a Kubernetes deployment as the proxy workload type.
+    ProxyDeployment deployment = 1;
+  }
+
+  // Configuration for the container running Envoy.
+  EnvoyContainer envoy_container = 2;
+}
+
+// Configuration for the Proxy deployment in Kubernetes.
+message ProxyDeployment {
+  // The number of desired pods. Defaults to 1.
+  google.protobuf.UInt32Value replicas = 1;
+}
+
+// Configuration for the container running Envoy.
+message EnvoyContainer {
+  // Initial envoy configuration.
+  EnvoyBootstrap bootstrap = 1;
+}
+
+// Configuration for the Envoy proxy instance that is provisioned from a
+// Kubernetes Gateway.
+message EnvoyBootstrap {
+  // Envoy log level. Options include "trace", "debug", "info", "warn", "error",
+  // "critical" and "off". Defaults to "info". See
+  // https://www.envoyproxy.io/docs/envoy/latest/start/quick-start/run-envoy#debugging-envoy
+  // for more information.
+  string log_level = 1;
+
+  // Envoy component log level. The provided string will be used as a
+  // passthrough value for the `--component-log-level` argument to Envoy, e.g.
+  // `upstream:debug,connection:trace`. See
+  // https://www.envoyproxy.io/docs/envoy/latest/start/quick-start/run-envoy#debugging-envoy
+  // for more information.
+  string component_log_level = 2;
+}
+
+message DataPlaneConfigStatus {
+  // The current conditions of the DataPlaneConfig. This is not currently
+  // implemented.
+  // repeated k8s.io.apimachinery.pkg.apis.meta.v1.Condition conditions = 1;
+}
