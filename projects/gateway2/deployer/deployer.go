@@ -42,7 +42,7 @@ var (
 	}
 	UnsupportedParametersRefKind = eris.New("unsupported ParametersRef Kind")
 	unsupportedParametersRefKind = func(gatewayClassName string, parametersRef *api.ParametersReference) error {
-		return eris.Wrapf(UnsupportedParametersRefKind, "parametersRef for gatewayclass %s points to an unsupported kind: %v", gatewayClassName, parametersRef)
+		return eris.Wrapf(UnsupportedParametersRefKind, "parametersRef for gatewayclass %s points to an unsupported kind: {group: %v, kind: %v}", gatewayClassName, parametersRef.Group, parametersRef.Kind)
 	}
 	GetDataPlaneConfigError = eris.New("could not retrieve dataplaneconfig")
 	getDataPlaneConfigError = func(err error, gatewayClassName string, dpcNamespace string, dpcName string) error {
