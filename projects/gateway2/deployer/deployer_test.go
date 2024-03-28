@@ -40,8 +40,7 @@ var _ = Describe("Deployer", func() {
 	var (
 		d *deployer.Deployer
 
-		gwc     *api.GatewayClass
-		glooSvc *corev1.Service
+		gwc *api.GatewayClass
 	)
 
 	BeforeEach(func() {
@@ -55,23 +54,12 @@ var _ = Describe("Deployer", func() {
 				ControllerName: "solo.io/gloo-gateway",
 			},
 		}
-		glooSvc = &corev1.Service{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "gloo",
-				Namespace: "gloo-system",
-			},
-			Spec: corev1.ServiceSpec{
-				Ports: []corev1.ServicePort{
-					{
-						Name: "grpc-xds",
-						Port: 1234,
-					},
-				},
-			},
-		}
-		d, err = deployer.NewDeployer(newFakeClientWithObjs(gwc, glooSvc), &deployer.Inputs{
+		d, err = deployer.NewDeployer(newFakeClientWithObjs(gwc), &deployer.Inputs{
 			ControllerName: wellknown.GatewayControllerName,
 			Dev:            false,
+			ControlPlane: bootstrap.ControlPlane{
+				Kube: bootstrap.KubernetesControlPlaneConfig{XdsHost: "something.cluster.local", XdsPort: 1234},
+			},
 		})
 		Expect(err).NotTo(HaveOccurred())
 	})
@@ -83,8 +71,11 @@ var _ = Describe("Deployer", func() {
 			IstioValues: bootstrap.IstioValues{
 				SDSEnabled: true,
 			},
+			ControlPlane: bootstrap.ControlPlane{
+				Kube: bootstrap.KubernetesControlPlaneConfig{XdsHost: "something.cluster.local", XdsPort: 1234},
+			},
 		}
-		d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, glooSvc), inputs)
+		d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc), inputs)
 		Expect(err).ToNot(HaveOccurred(), "failed to create deployer with EnableAutoMtls and SdsEnabled")
 
 		// Create a Gateway
@@ -238,9 +229,12 @@ var _ = Describe("Deployer", func() {
 
 	It("should propagate version.Version to get deployment", func() {
 		version.Version = "testversion"
-		d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, glooSvc), &deployer.Inputs{
+		d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc), &deployer.Inputs{
 			ControllerName: wellknown.GatewayControllerName,
 			Dev:            false,
+			ControlPlane: bootstrap.ControlPlane{
+				Kube: bootstrap.KubernetesControlPlaneConfig{XdsHost: "something.cluster.local", XdsPort: 1234},
+			},
 		})
 		Expect(err).NotTo(HaveOccurred())
 		gw := &api.Gateway{
@@ -358,15 +352,21 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("support segmenting by release", func() {
-		d1, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, glooSvc), &deployer.Inputs{
+		d1, err := deployer.NewDeployer(newFakeClientWithObjs(gwc), &deployer.Inputs{
 			ControllerName: wellknown.GatewayControllerName,
 			Dev:            false,
+			ControlPlane: bootstrap.ControlPlane{
+				Kube: bootstrap.KubernetesControlPlaneConfig{XdsHost: "something.cluster.local", XdsPort: 1234},
+			},
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		d2, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, glooSvc), &deployer.Inputs{
+		d2, err := deployer.NewDeployer(newFakeClientWithObjs(gwc), &deployer.Inputs{
 			ControllerName: wellknown.GatewayControllerName,
 			Dev:            false,
+			ControlPlane: bootstrap.ControlPlane{
+				Kube: bootstrap.KubernetesControlPlaneConfig{XdsHost: "something.cluster.local", XdsPort: 1234},
+			},
 		})
 		Expect(err).NotTo(HaveOccurred())
 

@@ -119,9 +119,6 @@ func (d *Deployer) renderChartToObjects(ctx context.Context, gw *api.Gateway, va
 }
 
 func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway) (*helmConfig, error) {
-	fmt.Printf("xxxxxxxxxx deployer getValues: xdsHost=%v, xdsPort=%v\n",
-		d.inputs.ControlPlane.XdsHost,
-		d.inputs.ControlPlane.XdsPort)
 	vals := &helmConfig{
 		Gateway: &helmGateway{
 			Name:        &gw.Name,
@@ -130,8 +127,8 @@ func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway) (*helmConfig,
 			Xds: &helmXds{
 				// The xds host/port MUST map to the Service definition for the Control Plane
 				// This is the socket address that the Proxy will connect to on startup, to receive xds updates
-				Host: &d.inputs.ControlPlane.XdsHost,
-				Port: &d.inputs.ControlPlane.XdsPort,
+				Host: &d.inputs.ControlPlane.Kube.XdsHost,
+				Port: &d.inputs.ControlPlane.Kube.XdsPort,
 			},
 			Image: getDeployerImageValues(),
 			IstioSDS: &helmIstioSds{

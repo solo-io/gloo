@@ -24,9 +24,8 @@ var (
 	}
 )
 
-func NewControlPlane(ctx context.Context, grpcServer *grpc.Server, bindAddr net.Addr, callbacks xdsserver.Callbacks,
-	xdsHost string, xdsPort int32, start bool) bootstrap.ControlPlane {
-	fmt.Printf("xxxxxxxxxx NewControlPlane host=%s, port=%v\n", xdsHost, xdsPort)
+func NewControlPlane(ctx context.Context, grpcServer *grpc.Server, bindAddr net.Addr, kubeControlPlaneCfg bootstrap.KubernetesControlPlaneConfig,
+	callbacks xdsserver.Callbacks, start bool) bootstrap.ControlPlane {
 	snapshotCache := xds.NewAdsSnapshotCache(ctx)
 	xdsServer := server.NewServer(ctx, snapshotCache, callbacks)
 	reflection.Register(grpcServer)
@@ -40,8 +39,7 @@ func NewControlPlane(ctx context.Context, grpcServer *grpc.Server, bindAddr net.
 		},
 		SnapshotCache: snapshotCache,
 		XDSServer:     xdsServer,
-		XdsHost:       xdsHost,
-		XdsPort:       xdsPort,
+		Kube:          kubeControlPlaneCfg,
 	}
 }
 
