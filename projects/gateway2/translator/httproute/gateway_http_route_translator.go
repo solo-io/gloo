@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/go-utils/contextutils"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -24,6 +25,22 @@ func TranslateGatewayHTTPRouteRules(
 	route gwv1.HTTPRoute,
 	reporter reports.ParentRefReporter,
 ) []*v1.Route {
+	// run per-HTTPRoute plugins
+	rtCtx := &plugins.RouteContext{
+		Listener: &gwListener,
+		Route:    &route,
+		Rule:     nil,
+		Match:    nil,
+		Reporter: reporter,
+	}
+	routeOptions := v1.RouteOptions{}
+	for _, plugin := range pluginRegistry.GetRoutePlugins() {
+		err := plugin.ApplyRoutePlugin(ctx, rtCtx, &routeOptions)
+		if err != nil {
+			contextutils.LoggerFrom(ctx).Errorf("error while running RoutePlugin '%v': %v", plugin.GetName(), err)
+		}
+	}
+
 	var finalRoutes []*v1.Route
 	for _, rule := range route.Spec.Rules {
 		rule := rule
@@ -37,9 +54,10 @@ func TranslateGatewayHTTPRouteRules(
 			ctx,
 			pluginRegistry,
 			queries,
-			gwListener,
 			&route,
 			rule,
+			rtCtx,
+			&routeOptions,
 			reporter,
 		)
 		for _, outputRoute := range outputRoutes {
@@ -59,18 +77,20 @@ func translateGatewayHTTPRouteRule(
 	ctx context.Context,
 	pluginRegistry registry.PluginRegistry,
 	queries query.GatewayQueries,
-	gwListener gwv1.Listener,
 	gwroute *gwv1.HTTPRoute,
 	rule gwv1.HTTPRouteRule,
+	rtCtx *plugins.RouteContext,
+	baseRouteOptions *v1.RouteOptions,
 	reporter reports.ParentRefReporter,
 ) []*v1.Route {
 	routes := make([]*v1.Route, len(rule.Matches))
 	for idx, match := range rule.Matches {
+		match := match // pike-ish
+		routeOptions := baseRouteOptions.Clone().(*v1.RouteOptions)
 		outputRoute := &v1.Route{
 			Matchers: []*matchers.Matcher{translateGlooMatcher(match)},
 			Action:   nil,
-			// The RouteOptions plugin is responsible for populating these options
-			Options: &v1.RouteOptions{},
+			Options:  routeOptions,
 		}
 		if len(rule.BackendRefs) > 0 {
 			setRouteAction(
@@ -82,17 +102,12 @@ func translateGatewayHTTPRouteRule(
 			)
 		}
 
-		rtCtx := &plugins.RouteContext{
-			Listener: &gwListener,
-			Route:    gwroute,
-			Rule:     &rule,
-			Match:    &match,
-			Reporter: reporter,
-		}
-		for _, plugin := range pluginRegistry.GetRoutePlugins() {
-			err := plugin.ApplyRoutePlugin(ctx, rtCtx, outputRoute)
+		rtCtx.Rule = &rule
+		rtCtx.Match = &match
+		for _, plugin := range pluginRegistry.GetRouteRulePlugins() {
+			err := plugin.ApplyRouteRulePlugin(ctx, rtCtx, outputRoute)
 			if err != nil {
-				// TODO Log
+				contextutils.LoggerFrom(ctx).Errorf("error while running RouteRulePlugin '%v': %v", plugin.GetName(), err)
 			}
 		}
 

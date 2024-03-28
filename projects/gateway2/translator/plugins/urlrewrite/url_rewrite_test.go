@@ -18,7 +18,7 @@ func ptr[T any](i T) *T {
 var _ = DescribeTable(
 	"UrlRewritePlugin",
 	func(
-		plugin plugins.RoutePlugin,
+		plugin plugins.RouteRulePlugin,
 		filter gwv1.HTTPRouteFilter,
 		outputRoute *v1.Route,
 		expectedRoute *v1.Route,

@@ -15,11 +15,16 @@ import (
 // into a Gloo Proxy resource, or during the post-processing of that conversion.
 type PluginRegistry struct {
 	routePlugins           []plugins.RoutePlugin
+	routeRulePlugins       []plugins.RouteRulePlugin
 	postTranslationPlugins []plugins.PostTranslationPlugin
 }
 
 func (p *PluginRegistry) GetRoutePlugins() []plugins.RoutePlugin {
 	return p.routePlugins
+}
+
+func (p *PluginRegistry) GetRouteRulePlugins() []plugins.RouteRulePlugin {
+	return p.routeRulePlugins
 }
 
 func (p *PluginRegistry) GetPostTranslationPlugins() []plugins.PostTranslationPlugin {
@@ -29,6 +34,7 @@ func (p *PluginRegistry) GetPostTranslationPlugins() []plugins.PostTranslationPl
 func NewPluginRegistry(allPlugins []plugins.Plugin) PluginRegistry {
 	var (
 		routePlugins           []plugins.RoutePlugin
+		routeRulePlugins       []plugins.RouteRulePlugin
 		postTranslationPlugins []plugins.PostTranslationPlugin
 	)
 
@@ -36,12 +42,16 @@ func NewPluginRegistry(allPlugins []plugins.Plugin) PluginRegistry {
 		if routePlugin, ok := plugin.(plugins.RoutePlugin); ok {
 			routePlugins = append(routePlugins, routePlugin)
 		}
+		if routeRulePlugin, ok := plugin.(plugins.RouteRulePlugin); ok {
+			routeRulePlugins = append(routeRulePlugins, routeRulePlugin)
+		}
 		if postTranslationPlugin, ok := plugin.(plugins.PostTranslationPlugin); ok {
 			postTranslationPlugins = append(postTranslationPlugins, postTranslationPlugin)
 		}
 	}
 	return PluginRegistry{
 		routePlugins:           routePlugins,
+		routeRulePlugins:       routeRulePlugins,
 		postTranslationPlugins: postTranslationPlugins,
 	}
 }

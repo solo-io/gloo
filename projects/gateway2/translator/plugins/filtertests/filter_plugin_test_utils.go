@@ -15,7 +15,7 @@ import (
 )
 
 func AssertExpectedRoute(
-	plugin plugins.RoutePlugin,
+	plugin plugins.RouteRulePlugin,
 	expectedRoute *v1.Route,
 	logActual bool,
 	filters ...gwv1.HTTPRouteFilter,
@@ -27,7 +27,7 @@ func AssertExpectedRoute(
 }
 
 func AssertExpectedRouteWithMatch(
-	plugin plugins.RoutePlugin,
+	plugin plugins.RouteRulePlugin,
 	outputRoute *v1.Route,
 	expectedRoute *v1.Route,
 	match *gwv1.HTTPRouteMatch,
@@ -38,7 +38,7 @@ func AssertExpectedRouteWithMatch(
 }
 
 func assertExpectedRoute(
-	plugin plugins.RoutePlugin,
+	plugin plugins.RouteRulePlugin,
 	outputRoute *v1.Route,
 	expectedRoute *v1.Route,
 	match *gwv1.HTTPRouteMatch,
@@ -53,7 +53,7 @@ func assertExpectedRoute(
 		Match:    match,
 		Reporter: nil,
 	}
-	err := plugin.ApplyRoutePlugin(
+	err := plugin.ApplyRouteRulePlugin(
 		context.Background(),
 		rtCtx,
 		outputRoute,

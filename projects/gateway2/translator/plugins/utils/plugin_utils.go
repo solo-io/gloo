@@ -7,6 +7,8 @@ import (
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
+	v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -18,6 +20,10 @@ func FindAppliedRouteFilters(
 	routeCtx *plugins.RouteContext,
 	filterTypes ...gwv1.HTTPRouteFilterType,
 ) []gwv1.HTTPRouteFilter {
+	// if we are not given a Route.Rule, no filters can be applied to it
+	if routeCtx.Rule == nil {
+		return nil
+	}
 	var appliedFilters []gwv1.HTTPRouteFilter
 	for _, filter := range routeCtx.Rule.Filters {
 		for _, filterType := range filterTypes {
@@ -35,6 +41,10 @@ func FindAppliedRouteFilter(
 	routeCtx *plugins.RouteContext,
 	filterType gwv1.HTTPRouteFilterType,
 ) *gwv1.HTTPRouteFilter {
+	// if we are not given a Route.Rule, no filter can be applied to it
+	if routeCtx.Rule == nil {
+		return nil
+	}
 	// TODO: check full Filter list for duplicates and error?
 	for _, filter := range routeCtx.Rule.Filters {
 		if filter.Type == filterType {
@@ -51,6 +61,10 @@ func FindExtensionRefFilter(
 	routeCtx *plugins.RouteContext,
 	gk schema.GroupKind,
 ) *gwv1.HTTPRouteFilter {
+	// if we are not given a Route.Rule, no filter can be applied to it
+	if routeCtx.Rule == nil {
+		return nil
+	}
 	// TODO: check full Filter list for duplicates and error?
 	for _, filter := range routeCtx.Rule.Filters {
 		if filter.Type == gwv1.HTTPRouteFilterExtensionRef {
@@ -97,4 +111,22 @@ func GetExtensionRefObj(
 	}
 	elem.Set(reflect.ValueOf(localObj).Elem())
 	return nil
+}
+
+// Returns true iff the provided targetRef is attached to the named K8sGW HTTPRoute in the routeCtx
+func IsPolicyAttachedToRoute(targetRef *v1.PolicyTargetReference, routeCtx *plugins.RouteContext) bool {
+	if targetRef == nil {
+		return false
+	}
+	if targetRef.GetGroup() != gwv1.GroupName || targetRef.GetKind() != wellknown.HTTPRouteKind {
+		return false
+	}
+	ns := targetRef.GetNamespace().GetValue()
+	if ns != "" && ns != routeCtx.Route.Namespace {
+		return false
+	}
+	if targetRef.GetName() != routeCtx.Route.Name {
+		return false
+	}
+	return true
 }

@@ -15,7 +15,7 @@ import (
 var _ = DescribeTable(
 	"HeaderModifierPlugin",
 	func(
-		plugin plugins.RoutePlugin,
+		plugin plugins.RouteRulePlugin,
 		filter gwv1.HTTPRouteFilter,
 		expectedRoute *v1.Route,
 	) {
