@@ -25,6 +25,10 @@ func NewPlugin(queries query.GatewayQueries) *plugin {
 	}
 }
 
+func (p *plugin) GetName() string {
+	return "MirrorPlugin"
+}
+
 func (p *plugin) ApplyRoutePlugin(
 	ctx context.Context,
 	routeCtx *plugins.RouteContext,

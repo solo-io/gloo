@@ -20,6 +20,10 @@ func NewPlugin() *plugin {
 	return &plugin{}
 }
 
+func (p *plugin) GetName() string {
+	return "RedirectPlugin"
+}
+
 func (p *plugin) ApplyRoutePlugin(
 	ctx context.Context,
 	routeCtx *plugins.RouteContext,
