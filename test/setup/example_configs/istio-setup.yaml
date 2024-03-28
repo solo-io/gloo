@@ -1,0 +1,310 @@
+#######################################
+# Single Cluster With Istio Integration
+#######################################
+clusters:
+  - name: &name ${CLUSTER_NAME}
+    # https://github.com/kubernetes-sigs/kind/blob/v0.20.0/pkg/apis/config/v1alpha4/types.go
+    kindConfig:
+      kind: Cluster
+      apiVersion: kind.x-k8s.io/v1alpha4
+      name: *name
+      nodes:
+        - role: control-plane
+          # Used to control k8s version of the cluster.
+          image: kindest/node:v1.27.3
+    istioOperators:
+      - apiVersion: install.istio.io/v1alpha1
+        kind: IstioOperator
+        metadata:
+          name: ingress-gateway
+          namespace: istio-system
+        spec:
+          hub: ${ISTIO_HUB}
+          tag: ${ISTIO_VERSION}
+          profile: minimal
+          meshConfig:
+            outboundTrafficPolicy:
+              mode: ALLOW_ANY
+            # enable accesslogs
+            accessLogFile: /dev/stdout
+            trustDomain: cluster.local
+            defaultConfig:
+              proxyMetadata:
+                # Ability of istio-agent to retrieve bootstrap via XDS
+                BOOTSTRAP_XDS_AGENT: "true"
+                # Enable Istio agent to handle DNS requests for known hosts
+                ISTIO_META_DNS_CAPTURE: "true"
+                # Enable automatic address allocation
+                ISTIO_META_DNS_AUTO_ALLOCATE: "true"
+          components:
+            pilot:
+              k8s:
+                env:
+                  - name: PILOT_ENABLE_K8S_SELECT_WORKLOAD_ENTRIES
+                    value: "false"
+    charts:
+      - name: gloo
+        namespace: gloo-system
+        local: install/helm/gloo
+        values:
+          discovery:
+            enabled: false
+          gloo:
+            deployment:
+              customEnv:
+                - name: GG_EXPERIMENTAL_K8S_GW_CONTROLLER
+                  value: "true"
+          global:
+            image:
+              registry: quay.io/solo-io
+              pullPolicy: IfNotPresent
+              extended: false
+              tag: ${VERSION}
+            istioSDS:
+              enabled: true
+    namespaces:
+      - metadata:
+          name: httpbin-inmesh
+          labels:
+            istio-injection: enabled
+      - metadata:
+          name: curl-inmesh
+          labels:
+            istio-injection: enabled
+      - metadata:
+          name: echo-inmesh
+          labels:
+            istio-injection: enabled
+      - metadata:
+          name: httpbin
+      - metadata:
+          name: curl
+    apps:
+      - serviceAccount:
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: httpbin
+            namespace: httpbin-inmesh
+        service:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: httpbin
+            namespace: httpbin-inmesh
+            labels:
+              app: httpbin
+              service: httpbin
+          spec:
+            ports:
+              - name: http
+                port: 8000
+                targetPort: 8080
+              - name: tcp
+                port: 9000
+            selector:
+              app: httpbin
+        deployment:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: httpbin
+            namespace: httpbin-inmesh
+            labels:
+              app: httpbin
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: httpbin
+            template:
+              metadata:
+                labels:
+                  app: httpbin
+                  version: v1
+              spec:
+                serviceAccountName: httpbin
+                containers:
+                  - image: hunca1j/httpbin:v2.11.0
+                    imagePullPolicy: IfNotPresent
+                    name: httpbin
+                    command: [ go-httpbin ]
+                    args:
+                      - "-port"
+                      - "8080"
+                      - "-max-duration"
+                      - "600s" # override default 10s
+                    env:
+                      # Set SERVICE_VERSION environment variable to enable version prefixing
+                      - name: SERVICE_VERSION
+                    ports:
+                      - containerPort: 8080
+      - serviceAccount:
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: httpbin
+            namespace: httpbin
+        service:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: httpbin
+            namespace: httpbin
+            labels:
+              app: httpbin
+              service: httpbin
+          spec:
+            ports:
+              - name: http
+                port: 8000
+                targetPort: 8080
+              - name: tcp
+                port: 9000
+            selector:
+              app: httpbin
+        deployment:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: httpbin
+            namespace: httpbin
+            labels:
+              app: httpbin
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: httpbin
+            template:
+              metadata:
+                labels:
+                  app: httpbin
+                  version: v1
+              spec:
+                serviceAccountName: httpbin
+                containers:
+                  - image: hunca1j/httpbin:v2.11.0
+                    imagePullPolicy: IfNotPresent
+                    name: httpbin
+                    command: [ go-httpbin ]
+                    args:
+                      - "-port"
+                      - "8080"
+                      - "-max-duration"
+                      - "600s" # override default 10s
+                    env:
+                      # Set SERVICE_VERSION environment variable to enable version prefixing
+                      - name: SERVICE_VERSION
+                    ports:
+                      - containerPort: 8080
+      - deployment:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: curl
+            namespace: curl-inmesh
+            labels:
+              app: curl
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: curl
+            template:
+              metadata:
+                labels:
+                  app: curl
+                  version: v1
+              spec:
+                containers:
+                  - name: curl
+                    image: curlimages/curl:7.83.1
+                    imagePullPolicy: IfNotPresent
+                    command:
+                      - "tail"
+                      - "-f"
+                      - "/dev/null"
+      - deployment:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: curl
+            namespace: curl
+            labels:
+              app: curl
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: curl
+            template:
+              metadata:
+                labels:
+                  app: curl
+                  version: v1
+              spec:
+                containers:
+                  - name: curl
+                    image: curlimages/curl:7.83.1
+                    imagePullPolicy: IfNotPresent
+                    command:
+                      - "tail"
+                      - "-f"
+                      - "/dev/null"
+      - serviceAccount:
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: echo-v1
+            namespace: echo-inmesh
+        service:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: echo-v1
+            namespace: echo-inmesh
+            labels:
+              app: echo-v1
+              service: echo-v1
+          spec:
+            ports:
+              - name: http
+                port: 5000
+              - name: tcp
+                port: 9000
+            selector:
+              app: echo-v1
+        deployment:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: echo-v1
+            namespace: echo-inmesh
+            labels:
+              app: echo-v1
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: echo-v1
+            template:
+              metadata:
+                labels:
+                  app: echo-v1
+              spec:
+                containers:
+                  - name: helloworld
+                    env:
+                      - name: SERVICE_VERSION
+                        value: v1
+                    image: docker.io/ilrudie/istio-helloworld
+                    imagePullPolicy: IfNotPresent #Always
+                    ports:
+                      - containerPort: 5000
+                  - name: echo
+                    image: docker.io/istio/tcp-echo-server:1.2
+                    imagePullPolicy: IfNotPresent
+                    args: [ "9000", "hello-v1" ]
+                    ports:
+                      - containerPort: 9000
