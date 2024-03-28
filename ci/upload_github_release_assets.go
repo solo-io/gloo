@@ -133,6 +133,6 @@ func validVersionFromPrVersion(ver string) (string, error) {
 	if len(splitVer) != expectedLen {
 		return "", errors.New("invalid format for PR version; expected v<MAJOR>.<MINOR>.<PATCH>-(beta|rc)<N>-<PR> for beta or rc and v<MAJOR>.<MINOR>.<PATCH>-<PR> for LTS")
 	}
-	return strings.Join(splitVer[:expectedLen-1], ""), nil
+	return strings.Join(splitVer[:expectedLen-1], "-"), nil
 
 }
