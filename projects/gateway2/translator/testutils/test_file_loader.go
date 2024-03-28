@@ -12,6 +12,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/protoutils"
+	"github.com/solo-io/gloo/projects/gateway2/controller/scheme"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
 	"github.com/ghodss/yaml"
@@ -22,7 +23,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/solo-io/gloo/projects/gateway2/controller/scheme"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/skv2/contrib/pkg/sets"
 )
@@ -31,8 +31,7 @@ var (
 	NoFilesFound = errors.New("no k8s files found")
 )
 
-func LoadFromFiles(ctx context.Context, filename string) ([]client.Object, error) {
-
+func LoadFromFiles(ctx context.Context, filename string, clientScheme *runtime.Scheme) ([]client.Object, error) {
 	fileOrDir, err := os.Stat(filename)
 	if err != nil {
 		return nil, err
@@ -62,7 +61,7 @@ func LoadFromFiles(ctx context.Context, filename string) ([]client.Object, error
 
 	var resources []client.Object
 	for _, file := range yamlFiles {
-		objs, err := parseFile(ctx, file)
+		objs, err := parseFile(ctx, file, clientScheme)
 		if err != nil {
 			return nil, err
 		}
@@ -84,8 +83,10 @@ func LoadFromFiles(ctx context.Context, filename string) ([]client.Object, error
 	return resources, nil
 }
 
-func parseFile(ctx context.Context, filename string) ([]runtime.Object, error) {
-	scheme := scheme.NewScheme()
+func parseFile(ctx context.Context, filename string, inputScheme *runtime.Scheme) ([]runtime.Object, error) {
+	if inputScheme == nil {
+		inputScheme = scheme.NewScheme()
+	}
 	file, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -118,7 +119,7 @@ func parseFile(ctx context.Context, filename string) ([]runtime.Object, error) {
 		}
 
 		gvk := schema.FromAPIVersionAndKind(meta.APIVersion, meta.Kind)
-		obj, err := scheme.New(gvk)
+		obj, err := inputScheme.New(gvk)
 		if err != nil {
 			contextutils.LoggerFrom(ctx).Warnw("unknown resource kind",
 				zap.String("filename", filename),
