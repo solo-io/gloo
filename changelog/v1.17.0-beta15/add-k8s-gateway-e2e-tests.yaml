@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: |
+      Adds framework for testing k8s gateway api and gloo edge classic api for e2e tests.
+    issueLink: https://github.com/solo-io/solo-projects/issues/5723
+    resolvesIssue: false

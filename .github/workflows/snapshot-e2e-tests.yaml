@@ -1,0 +1,55 @@
+name: Snapshot e2e Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  prepare_env:
+    name: Prepare Environment
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    outputs:
+      should-auto-succeed-snapshot-tests: ${{ steps.run-strategy.outputs.auto_succeed }}
+    steps:
+      - name: Cancel Previous Actions
+        uses: styfle/cancel-workflow-action@0.11.0
+        with:
+          access_token: ${{ github.token }}
+      - id: checkout-code
+        uses: actions/checkout@v3
+        with:
+          # We require gathering the branch and tag history since we rely on a `git diff`
+          # which compares the state of two branches
+          fetch-depth: 0
+      - id: process-skip-directives
+        uses: ./.github/workflows/composite-actions/process-skip-directives
+        with:
+          base-ref: ${{ github.base_ref }}
+      - id: run-strategy
+        name: Determine Test Run Strategy
+        run: |
+          skip_kube_tests=${{ steps.process-skip-directives.outputs.skip-kube-tests }}
+          if [[ ! -z $skip_kube_tests && $skip_kube_tests = true ]] ; then
+            echo "auto_succeed=true" >> $GITHUB_OUTPUT
+          fi
+
+  snapshot_tests:
+    name: snapshot tests
+    needs: prepare_env
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    if: ${{ !github.event.pull_request.draft }}
+    strategy:
+      matrix:
+        gloo-api-type: [ 'classic', 'gateway' ]
+        kube-version: [ { node: 'v1.28.0@sha256:b7a4cad12c197af3ba43202d3efe03246b3f0793f162afb40a33c923952d5b31', kubectl: 'v1.28.4', kind: 'v0.20.0', helm: 'v3.13.2' } ]
+    steps:
+      - uses: actions/checkout@v3
+      - id: run-tests
+        if: needs.prepare_env.outputs.should-auto-succeed-snapshot-tests != 'true'
+        uses: ./.github/workflows/composite-actions/snapshot-tests
+      - id: auto-succeed-tests
+        if: needs.prepare_env.outputs.should-auto-succeed-snapshot-tests == 'true'
+        run: |
+          echo "Snapshot e2e tests auto-succeeded"

@@ -1,0 +1,51 @@
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: httpbin-v1-httpbin-8000
+  namespace: gloo-system
+spec:
+  discoveryMetadata:
+    labels:
+      app: httpbin
+      service: httpbin
+  kube:
+    selector:
+      app: httpbin
+    serviceName: httpbin-v1
+    serviceNamespace: httpbin
+    servicePort: 8000
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: httpbin-route
+  namespace: httpbin
+spec:
+  virtualHost:
+    domains:
+      - httpbin.example.com
+    routes:
+      - matchers:
+          - prefix: /headers
+        name: httpbin-route
+        routeAction:
+          single:
+            upstream:
+              name: httpbin-v1-httpbin-8000
+              namespace: gloo-system
+        options:
+          headerManipulation:
+            # add headers to all responses
+            # returned by this route
+            responseHeadersToAdd:
+                - header:
+                    key: hello
+                    value: gloo
+      - matchers:
+          - prefix: /get
+        name: httpbin-route
+        routeAction:
+          single:
+            upstream:
+              name: httpbin-v1-httpbin-8000
+              namespace: gloo-system

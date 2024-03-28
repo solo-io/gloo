@@ -240,6 +240,22 @@ run-hashicorp-e2e-tests: test
 run-kube-e2e-tests: TEST_PKG = ./test/kube2e/$(KUBE2E_TESTS) ## Run the Kubernetes E2E Tests in the {KUBE2E_TESTS} package
 run-kube-e2e-tests: test
 
+# Use classic edge api to run snapshot e2e tests
+.PHONY: run-classic-snapshot-e2e-tests
+run-gateway-snapshot-e2e-tests: export CLUSTER_NAME ?= kind  # Set the cluster to use for the tests if not already set
+run-classic-snapshot-e2e-tests: export CONFIG=test/setup/example_configs/gloo-gateway-setup.yaml # Gateay v2 Control plane is enabled, but not used
+run-classic-snapshot-e2e-tests: setup-declarative-env
+run-classic-snapshot-e2e-tests: TEST_PKG = ./test/snapshot/edge_classic_e2e/
+run-classic-snapshot-e2e-tests: test
+
+# Use k8s gateway api to run snapshot e2e tests
+.PHONY: run-gateway-snapshot-e2e-tests
+run-gateway-snapshot-e2e-tests: export CLUSTER_NAME ?= kind # Set the cluster to use for the tests if not already set
+run-gateway-snapshot-e2e-tests: export CONFIG=test/setup/example_configs/gloo-gateway-setup.yaml
+run-gateway-snapshot-e2e-tests: setup-declarative-env
+run-gateway-snapshot-e2e-tests: TEST_PKG = ./test/snapshot/gloo_gateway_e2e/
+run-gateway-snapshot-e2e-tests: test
+
 #----------------------------------------------------------------------------------
 # Clean
 #----------------------------------------------------------------------------------
