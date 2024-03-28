@@ -920,6 +920,9 @@ apis:
   gloo.solo.io.SslParameters:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto.sk/#SslParameters
     package: gloo.solo.io
+  gloo.solo.io.Status:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/grpc/version/version.proto.sk/#Status
+    package: gloo.solo.io
   gloo.solo.io.Subset:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/subset.proto.sk/#Subset
     package: gloo.solo.io

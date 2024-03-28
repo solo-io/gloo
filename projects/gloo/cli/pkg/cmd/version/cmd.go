@@ -25,6 +25,7 @@ import (
 
 const (
 	undefinedServer = "Server: version undefined, could not find any version of gloo running"
+	undefinedK8s    = "Kubernetes: version undefined, could not find any running cluster"
 )
 
 var (
@@ -63,17 +64,30 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 func GetClientServerVersions(ctx context.Context, sv ServerVersion) (*version.Version, error) {
 	v := &version.Version{
 		Client: getClientVersion(),
+		Status: &version.Status{Status: &version.Status_Ok{}},
 	}
 	serverVersion, err := sv.Get(ctx)
-	if err != nil {
-		return v, err
+	if err != nil || len(serverVersion) == 0 {
+		v.Status.Status = &version.Status_Error{
+			Error: &version.Status_ErrorStatus{
+				Errors: []string{undefinedServer},
+			},
+		}
+	} else {
+		v.Server = serverVersion
 	}
-	v.Server = serverVersion
+
 	k8sServerVersion, err := sv.GetClusterVersion()
 	if err != nil {
-		return v, err
+		if v.Status.GetError() == nil {
+			v.Status.Status = &version.Status_Error{
+				Error: &version.Status_ErrorStatus{},
+			}
+		}
+		v.Status.GetError().Warnings = []string{undefinedK8s}
+	} else {
+		v.KubernetesCluster = k8sServerVersion
 	}
-	v.KubernetesCluster = k8sServerVersion
 	return v, nil
 }
 
@@ -84,16 +98,13 @@ func getClientVersion() *version.ClientVersion {
 }
 
 func printVersion(sv ServerVersion, w io.Writer, opts *options.Options) error {
-	vrs, _ := GetClientServerVersions(opts.Top.Ctx, sv)
 	// ignoring error so we still print client version even if we can't get server versions (e.g., not deployed, no rbac)
+	vrs, _ := GetClientServerVersions(opts.Top.Ctx, sv)
 	switch opts.Top.Output {
 	case printers.JSON:
 		formattedVer, err := getJson(vrs)
 		if err != nil {
 			return err
-		}
-		if vrs.GetServer() == nil {
-			fmt.Fprintf(w, "%s\n\n", undefinedServer)
 		}
 		fmt.Fprintf(w, "%s", string(formattedVer))
 	case printers.YAML:
@@ -101,19 +112,12 @@ func printVersion(sv ServerVersion, w io.Writer, opts *options.Options) error {
 		if err != nil {
 			return err
 		}
-		if vrs.GetServer() == nil {
-			fmt.Fprintf(w, "%s\n\n", undefinedServer)
-		}
 		fmt.Fprintf(w, "%s", string(formattedVer))
 	default:
 		fmt.Fprintf(w, "Client version: %s\n", vrs.GetClient().GetVersion())
-		if vrs.GetServer() == nil {
-			fmt.Fprintln(w, undefinedServer)
-			return nil
-		}
 		srv := vrs.GetServer()
 		if srv == nil {
-			fmt.Println(undefinedServer)
+			fmt.Fprintln(w, undefinedServer)
 			return nil
 		}
 

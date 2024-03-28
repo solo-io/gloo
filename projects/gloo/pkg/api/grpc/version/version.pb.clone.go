@@ -117,6 +117,45 @@ func (m *KubernetesClusterVersion) Clone() proto.Message {
 }
 
 // Clone function
+func (m *Status) Clone() proto.Message {
+	var target *Status
+	if m == nil {
+		return target
+	}
+	target = &Status{}
+
+	switch m.Status.(type) {
+
+	case *Status_Ok:
+
+		if h, ok := interface{}(m.GetOk()).(clone.Cloner); ok {
+			target.Status = &Status_Ok{
+				Ok: h.Clone().(*Status_OkStatus),
+			}
+		} else {
+			target.Status = &Status_Ok{
+				Ok: proto.Clone(m.GetOk()).(*Status_OkStatus),
+			}
+		}
+
+	case *Status_Error:
+
+		if h, ok := interface{}(m.GetError()).(clone.Cloner); ok {
+			target.Status = &Status_Error{
+				Error: h.Clone().(*Status_ErrorStatus),
+			}
+		} else {
+			target.Status = &Status_Error{
+				Error: proto.Clone(m.GetError()).(*Status_ErrorStatus),
+			}
+		}
+
+	}
+
+	return target
+}
+
+// Clone function
 func (m *Version) Clone() proto.Message {
 	var target *Version
 	if m == nil {
@@ -149,6 +188,12 @@ func (m *Version) Clone() proto.Message {
 		target.KubernetesCluster = proto.Clone(m.GetKubernetesCluster()).(*KubernetesClusterVersion)
 	}
 
+	if h, ok := interface{}(m.GetStatus()).(clone.Cloner); ok {
+		target.Status = h.Clone().(*Status)
+	} else {
+		target.Status = proto.Clone(m.GetStatus()).(*Status)
+	}
+
 	return target
 }
 
@@ -167,6 +212,46 @@ func (m *Kubernetes_Container) Clone() proto.Message {
 	target.Registry = m.GetRegistry()
 
 	target.OssTag = m.GetOssTag()
+
+	return target
+}
+
+// Clone function
+func (m *Status_OkStatus) Clone() proto.Message {
+	var target *Status_OkStatus
+	if m == nil {
+		return target
+	}
+	target = &Status_OkStatus{}
+
+	return target
+}
+
+// Clone function
+func (m *Status_ErrorStatus) Clone() proto.Message {
+	var target *Status_ErrorStatus
+	if m == nil {
+		return target
+	}
+	target = &Status_ErrorStatus{}
+
+	if m.GetWarnings() != nil {
+		target.Warnings = make([]string, len(m.GetWarnings()))
+		for idx, v := range m.GetWarnings() {
+
+			target.Warnings[idx] = v
+
+		}
+	}
+
+	if m.GetErrors() != nil {
+		target.Errors = make([]string, len(m.GetErrors()))
+		for idx, v := range m.GetErrors() {
+
+			target.Errors[idx] = v
+
+		}
+	}
 
 	return target
 }

@@ -86,14 +86,14 @@ func validateReleaseVersionOfCli(dryRun bool) {
 	}
 
 	if dryRun {
-		ver.Client.Version, err = validVersionFromPrVersion(ver.Client.Version)
+		ver.GetClient().Version, err = validVersionFromPrVersion(ver.GetClient().GetVersion())
 		if err != nil {
 			log.Fatalf("unable to parse valid semver from PR version: %v", err)
 		}
 	}
 
-	if ver.Client.Version != releaseVersion {
-		log.Fatalf("Expected to release artifacts for version %s, glooctl binary reported version %s", releaseVersion, ver.Client.Version)
+	if ver.GetClient().GetVersion() != releaseVersion {
+		log.Fatalf("Expected to release artifacts for version %s, glooctl binary reported version %s", releaseVersion, ver.GetClient().GetVersion())
 	}
 }
 

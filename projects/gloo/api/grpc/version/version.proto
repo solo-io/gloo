@@ -57,6 +57,17 @@ message KubernetesClusterVersion {
     string build_date = 4;
     string platform = 5;
 }
+message Status {
+    message OkStatus {}
+    message ErrorStatus {
+        repeated string warnings = 1;
+        repeated string errors = 2;
+    }
+    oneof status {
+        OkStatus ok = 1;
+        ErrorStatus error = 2;
+    }
+}
 
 message Version {
     ClientVersion client = 1;
@@ -64,5 +75,6 @@ message Version {
     // potentially be many instances of gloo running on a single cluster
     repeated ServerVersion server = 2;
     KubernetesClusterVersion kubernetes_cluster = 3;
+    Status status = 4;
 }
 
