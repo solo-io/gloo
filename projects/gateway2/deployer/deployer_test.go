@@ -3,10 +3,16 @@ package deployer_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/pkg/version"
+	"github.com/solo-io/gloo/projects/gateway2/controller/scheme"
+	"github.com/solo-io/gloo/projects/gateway2/deployer"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -14,13 +20,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	api "sigs.k8s.io/gateway-api/apis/v1"
-
-	"github.com/solo-io/gloo/pkg/version"
-	"github.com/solo-io/gloo/projects/gateway2/controller/scheme"
-	"github.com/solo-io/gloo/projects/gateway2/deployer"
-	"github.com/solo-io/gloo/projects/gateway2/wellknown"
-	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 )
 
 func convertUnstructured[T any](f client.Object) T {
@@ -57,12 +58,38 @@ func findGvkInRules(cr rbacv1.ClusterRole, gvk schema.GroupVersionKind) bool {
 var _ = Describe("Deployer", func() {
 	var (
 		d *deployer.Deployer
+
+		gwc     *api.GatewayClass
+		glooSvc *corev1.Service
 	)
+
 	BeforeEach(func() {
 		var err error
-		d, err = deployer.NewDeployer(scheme.NewScheme(), &deployer.Inputs{
+
+		gwc = &api.GatewayClass{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "gloo-gateway",
+			},
+			Spec: api.GatewayClassSpec{
+				ControllerName: "solo.io/gloo-gateway",
+			},
+		}
+		glooSvc = &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "gloo",
+				Namespace: "gloo-system",
+			},
+			Spec: corev1.ServiceSpec{
+				Ports: []corev1.ServicePort{
+					{
+						Name: "grpc-xds",
+						Port: 1234,
+					},
+				},
+			},
+		}
+		d, err = deployer.NewDeployer(newFakeClientWithObjs(gwc, glooSvc), &deployer.Inputs{
 			ControllerName: wellknown.GatewayControllerName,
-			Port:           8080,
 			Dev:            false,
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -72,12 +99,11 @@ var _ = Describe("Deployer", func() {
 		inputs := &deployer.Inputs{
 			Dev:            false,
 			ControllerName: "foo",
-			Port:           8080,
 			IstioValues: bootstrap.IstioValues{
 				SDSEnabled: true,
 			},
 		}
-		d, err := deployer.NewDeployer(scheme.NewScheme(), inputs)
+		d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, glooSvc), inputs)
 		Expect(err).ToNot(HaveOccurred(), "failed to create deployer with EnableAutoMtls and SdsEnabled")
 
 		// Create a Gateway
@@ -92,6 +118,7 @@ var _ = Describe("Deployer", func() {
 				APIVersion: "gateway.solo.io/v1beta1",
 			},
 			Spec: api.GatewaySpec{
+				GatewayClassName: "gloo-gateway",
 				Listeners: []api.Listener{
 					{
 						Name: "listener-1",
@@ -123,6 +150,7 @@ var _ = Describe("Deployer", func() {
 		Expect(gvks).NotTo(BeEmpty())
 	})
 
+	// TODO is this still needed?
 	It("rbac should have our gvks", func() {
 		gvks, err := d.GetGvksToWatch(context.Background())
 		Expect(err).NotTo(HaveOccurred())
@@ -137,6 +165,7 @@ var _ = Describe("Deployer", func() {
 		}
 		cpObjs, err := d.Render(context.Background(), "default", "default", vals)
 		Expect(err).NotTo(HaveOccurred())
+		fmt.Printf("CP objs: %v\n", cpObjs)
 
 		// find the rbac role with deploy in its name
 		for _, obj := range cpObjs {
@@ -259,10 +288,8 @@ var _ = Describe("Deployer", func() {
 
 	It("should propagate version.Version to get deployment", func() {
 		version.Version = "testversion"
-
-		d, err := deployer.NewDeployer(scheme.NewScheme(), &deployer.Inputs{
+		d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, glooSvc), &deployer.Inputs{
 			ControllerName: wellknown.GatewayControllerName,
-			Port:           8080,
 			Dev:            false,
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -381,16 +408,14 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("support segmenting by release", func() {
-		d1, err := deployer.NewDeployer(scheme.NewScheme(), &deployer.Inputs{
+		d1, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, glooSvc), &deployer.Inputs{
 			ControllerName: wellknown.GatewayControllerName,
-			Port:           8080,
 			Dev:            false,
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		d2, err := deployer.NewDeployer(scheme.NewScheme(), &deployer.Inputs{
+		d2, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, glooSvc), &deployer.Inputs{
 			ControllerName: wellknown.GatewayControllerName,
-			Port:           8080,
 			Dev:            false,
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -448,4 +473,10 @@ func getEnvoyConfig(objs []client.Object) string {
 		}
 	}
 	return ""
+}
+
+// initialize a fake controller-runtime client with the given list of objects
+func newFakeClientWithObjs(objs ...client.Object) client.Client {
+	s := scheme.NewScheme()
+	return fake.NewClientBuilder().WithScheme(s).WithObjects(objs...).Build()
 }
