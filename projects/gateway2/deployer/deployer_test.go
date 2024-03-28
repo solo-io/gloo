@@ -59,8 +59,7 @@ var _ = Describe("Deployer", func() {
 	var (
 		d *deployer.Deployer
 
-		gwc     *api.GatewayClass
-		glooSvc *corev1.Service
+		gwc *api.GatewayClass
 	)
 	BeforeEach(func() {
 		var err error
@@ -73,23 +72,12 @@ var _ = Describe("Deployer", func() {
 				ControllerName: "solo.io/gloo-gateway",
 			},
 		}
-		glooSvc = &corev1.Service{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "gloo",
-				Namespace: "gloo-system",
-			},
-			Spec: corev1.ServiceSpec{
-				Ports: []corev1.ServicePort{
-					{
-						Name: "grpc-xds",
-						Port: 1234,
-					},
-				},
-			},
-		}
-		d, err = deployer.NewDeployer(newFakeClientWithObjs(gwc, glooSvc), &deployer.Inputs{
+		d, err = deployer.NewDeployer(newFakeClientWithObjs(gwc), &deployer.Inputs{
 			ControllerName: wellknown.GatewayControllerName,
 			Dev:            false,
+			ControlPlane: bootstrap.ControlPlane{
+				Kube: bootstrap.KubernetesControlPlaneConfig{XdsHost: "something.cluster.local", XdsPort: 1234},
+			},
 		})
 		Expect(err).NotTo(HaveOccurred())
 	})
@@ -101,15 +89,21 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("support segmenting by release", func() {
-		d1, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, glooSvc), &deployer.Inputs{
+		d1, err := deployer.NewDeployer(newFakeClientWithObjs(gwc), &deployer.Inputs{
 			ControllerName: wellknown.GatewayControllerName,
 			Dev:            false,
+			ControlPlane: bootstrap.ControlPlane{
+				Kube: bootstrap.KubernetesControlPlaneConfig{XdsHost: "something.cluster.local", XdsPort: 1234},
+			},
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		d2, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, glooSvc), &deployer.Inputs{
+		d2, err := deployer.NewDeployer(newFakeClientWithObjs(gwc), &deployer.Inputs{
 			ControllerName: wellknown.GatewayControllerName,
 			Dev:            false,
+			ControlPlane: bootstrap.ControlPlane{
+				Kube: bootstrap.KubernetesControlPlaneConfig{XdsHost: "something.cluster.local", XdsPort: 1234},
+			},
 		})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -479,48 +473,6 @@ var _ = Describe("Deployer", func() {
 					}))
 					return nil
 				},
-			}),
-			Entry("no gloo svc", &input{
-				dInputs: defaultDeployerInputs(),
-				gwc:     defaultGatewayClass(),
-				glooSvc: &corev1.Service{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "whoopsie",
-						Namespace: "gloo-system",
-					},
-					Spec: corev1.ServiceSpec{
-						Ports: []corev1.ServicePort{
-							{
-								Name: "grpc-xds",
-								Port: 1234,
-							},
-						},
-					},
-				},
-				gw: defaultGateway(),
-			}, &expectedOutput{
-				convertErr: deployer.NoGlooSvcFoundError,
-			}),
-			Entry("no xds port", &input{
-				dInputs: defaultDeployerInputs(),
-				gwc:     defaultGatewayClass(),
-				glooSvc: &corev1.Service{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "gloo",
-						Namespace: "gloo-system",
-					},
-					Spec: corev1.ServiceSpec{
-						Ports: []corev1.ServicePort{
-							{
-								Name: "whoopsie",
-								Port: 1234,
-							},
-						},
-					},
-				},
-				gw: defaultGateway(),
-			}, &expectedOutput{
-				convertErr: deployer.NoXdsPortFoundError,
 			}),
 			Entry("no gateway class", &input{
 				dInputs: defaultDeployerInputs(),

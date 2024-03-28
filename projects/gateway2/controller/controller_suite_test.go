@@ -11,10 +11,8 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/projects/gateway2/controller"
 	"github.com/solo-io/gloo/projects/gateway2/controller/scheme"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -115,25 +113,6 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	// the deployer needs the gloo service to exist, in the namespace defined by POD_NAMESPACE
-	err = os.Setenv("POD_NAMESPACE", "default")
-	Expect(err).NotTo(HaveOccurred())
-	err = k8sClient.Create(ctx, &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      kubeutils.GlooServiceName,
-			Namespace: "default",
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				{
-					Name: kubeutils.GlooXdsPortName,
-					Port: 1234,
-				},
-			},
-		},
-	})
-	Expect(err).NotTo(HaveOccurred())
-
 	go func() {
 		defer GinkgoRecover()
 		err = mgr.Start(ctx)
@@ -145,8 +124,6 @@ var _ = AfterSuite(func() {
 	cancel()
 	By("tearing down the test environment")
 	err := testEnv.Stop()
-	Expect(err).NotTo(HaveOccurred())
-	err = os.Unsetenv("POD_NAMESPACE")
 	Expect(err).NotTo(HaveOccurred())
 	if kubeconfig != "" {
 		os.Remove(kubeconfig)
