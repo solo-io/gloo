@@ -89,7 +89,16 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 		},
 	}
 
-	// these are the minimal values that render the Deployment, Service, ServiceAccount, and ConfigMap
+	// The deployer watches all resources (Deployment, Service, ServiceAccount, and ConfigMap)
+	// that it creates via the deployer helm chart.
+	//
+	// These are the minimal values that render all those resources. HPA is not included
+	// because it's not fully integrated/working at the moment.
+	//
+	// Note: another option is to hardcode the GVKs here, but rendering the helm chart is a
+	// _slightly_ more dynamic way of getting the GVKs. It isn't a perfect solution since if
+	// we add more resources to the helm chart that are gated by a flag, we may forget to
+	// update the values here to enable them.
 	vals := map[string]any{
 		"gateway": map[string]any{
 			"serviceAccount": map[string]any{
