@@ -199,6 +199,69 @@ func (m *KubernetesClusterVersion) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *Status) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*Status)
+	if !ok {
+		that2, ok := that.(Status)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	switch m.Status.(type) {
+
+	case *Status_Ok:
+		if _, ok := target.Status.(*Status_Ok); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetOk()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetOk()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetOk(), target.GetOk()) {
+				return false
+			}
+		}
+
+	case *Status_Error:
+		if _, ok := target.Status.(*Status_Error); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetError()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetError()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetError(), target.GetError()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.Status != target.Status {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *Version) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -256,6 +319,16 @@ func (m *Version) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetStatus()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetStatus()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetStatus(), target.GetStatus()) {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -294,6 +367,76 @@ func (m *Kubernetes_Container) Equal(that interface{}) bool {
 
 	if strings.Compare(m.GetOssTag(), target.GetOssTag()) != 0 {
 		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *Status_OkStatus) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*Status_OkStatus)
+	if !ok {
+		that2, ok := that.(Status_OkStatus)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *Status_ErrorStatus) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*Status_ErrorStatus)
+	if !ok {
+		that2, ok := that.(Status_ErrorStatus)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if len(m.GetWarnings()) != len(target.GetWarnings()) {
+		return false
+	}
+	for idx, v := range m.GetWarnings() {
+
+		if strings.Compare(v, target.GetWarnings()[idx]) != 0 {
+			return false
+		}
+
+	}
+
+	if len(m.GetErrors()) != len(target.GetErrors()) {
+		return false
+	}
+	for idx, v := range m.GetErrors() {
+
+		if strings.Compare(v, target.GetErrors()[idx]) != 0 {
+			return false
+		}
+
 	}
 
 	return true

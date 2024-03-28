@@ -16,6 +16,9 @@ weight: 5
 - [Container](#container)
 - [ClientVersion](#clientversion)
 - [KubernetesClusterVersion](#kubernetesclusterversion)
+- [Status](#status)
+- [OkStatus](#okstatus)
+- [ErrorStatus](#errorstatus)
 - [Version](#version)
   
 
@@ -140,6 +143,59 @@ weight: 5
 
 
 ---
+### Status
+
+
+
+```yaml
+"ok": .gloo.solo.io.Status.OkStatus
+"error": .gloo.solo.io.Status.ErrorStatus
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `ok` | [.gloo.solo.io.Status.OkStatus](../version.proto.sk/#okstatus) |  Only one of `ok` or `error` can be set. |
+| `error` | [.gloo.solo.io.Status.ErrorStatus](../version.proto.sk/#errorstatus) |  Only one of `error` or `ok` can be set. |
+
+
+
+
+---
+### OkStatus
+
+
+
+```yaml
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+
+
+
+
+---
+### ErrorStatus
+
+
+
+```yaml
+"warnings": []string
+"errors": []string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `warnings` | `[]string` |  |
+| `errors` | `[]string` |  |
+
+
+
+
+---
 ### Version
 
 
@@ -148,6 +204,7 @@ weight: 5
 "client": .gloo.solo.io.ClientVersion
 "server": []gloo.solo.io.ServerVersion
 "kubernetesCluster": .gloo.solo.io.KubernetesClusterVersion
+"status": .gloo.solo.io.Status
 
 ```
 
@@ -156,6 +213,7 @@ weight: 5
 | `client` | [.gloo.solo.io.ClientVersion](../version.proto.sk/#clientversion) |  |
 | `server` | [[]gloo.solo.io.ServerVersion](../version.proto.sk/#serverversion) | This field is an array of server versions because although there can only be 1 client version, there can potentially be many instances of gloo running on a single cluster. |
 | `kubernetesCluster` | [.gloo.solo.io.KubernetesClusterVersion](../version.proto.sk/#kubernetesclusterversion) |  |
+| `status` | [.gloo.solo.io.Status](../version.proto.sk/#status) |  |
 
 
 
