@@ -16,11 +16,11 @@ type RouteOptionQueries interface {
 }
 
 type routeOptionQueries struct {
-	client client.Client
+	c client.Client
 }
 
-func NewQuery(client client.Client) RouteOptionQueries {
-	return &routeOptionQueries{client}
+func NewQuery(c client.Client) RouteOptionQueries {
+	return &routeOptionQueries{c}
 }
 
 func (r *routeOptionQueries) GetRouteOptionsForRoute(ctx context.Context, route *gwv1.HTTPRoute, list *solokubev1.RouteOptionList) error {
@@ -28,7 +28,7 @@ func (r *routeOptionQueries) GetRouteOptionsForRoute(ctx context.Context, route 
 		Namespace: route.Namespace,
 		Name:      route.Name,
 	}
-	return r.client.List(
+	return r.c.List(
 		ctx,
 		list,
 		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(RouteOptionTargetField, nn.String())},
