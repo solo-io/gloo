@@ -12,6 +12,8 @@ import (
 )
 
 type RouteOptionQueries interface {
+	// Gets the RouteOption resources attached to the provided HTTPRoute. Note that currently, only
+	// RouteOptions in the same namespace as the HTTPRoute can be attached.
 	GetRouteOptionsForRoute(ctx context.Context, route *gwv1.HTTPRoute, list *solokubev1.RouteOptionList) error
 }
 

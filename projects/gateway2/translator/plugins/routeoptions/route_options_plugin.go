@@ -74,6 +74,11 @@ func (p *plugin) handleAttachment(
 	ctx context.Context,
 	routeCtx *plugins.RouteContext,
 ) *v1.RouteOptions {
+	// TODO: This is far too naive and we should optimize the amount of querying we do.
+	// Route plugins run on every match for every Rule in a Route but the attached options are
+	// the same each time; i.e. HTTPRoute <-1:1-> RouteOptions.
+	// We should only make this query once per HTTPRoute.
+
 	attachedOptions := getAttachedRouteOptions(ctx, routeCtx.Route, p.rtOptQueries)
 	if len(attachedOptions) == 0 {
 		return nil
