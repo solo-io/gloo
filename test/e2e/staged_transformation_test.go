@@ -28,7 +28,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 )
 
-var _ = Describe("Staged Transformation", func() {
+var _ = FDescribe("Staged Transformation", func() {
 
 	var (
 		testContext *e2e.TestContext

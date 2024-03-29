@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Testing a build-bot test flake.
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
