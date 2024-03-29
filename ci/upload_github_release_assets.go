@@ -72,15 +72,17 @@ func main() {
 		},
 	}
 
-	if !dryRun {
-		spec := githubutils.UploadReleaseAssetSpec{
-			Owner:             repoOwner,
-			Repo:              repoName,
-			Assets:            assets,
-			SkipAlreadyExists: true,
-		}
-		githubutils.UploadReleaseAssetCli(&spec)
+	if dryRun {
+		return
 	}
+
+	spec := githubutils.UploadReleaseAssetSpec{
+		Owner:             repoOwner,
+		Repo:              repoName,
+		Assets:            assets,
+		SkipAlreadyExists: true,
+	}
+	githubutils.UploadReleaseAssetCli(&spec)
 
 	if assetsOnly {
 		log.Warnf("Not creating PRs to update homebrew formulas or fish food because this was an assets_only release")
