@@ -6,17 +6,14 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
-	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection"
-	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -60,68 +57,6 @@ func TestExtensionRefWrongObject(t *testing.T) {
 	err := utils.GetExtensionRefObj(context.Background(), &rtCtx, queries, filter.ExtensionRef, vhostOption)
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(errors.Is(err, utils.ErrTypesNotEqual)).To(BeTrue())
-}
-
-func TestPolicyAttached(t *testing.T) {
-	g := NewWithT(t)
-
-	targetRef := &corev1.PolicyTargetReference{
-		Group:     gwv1.GroupVersion.Group,
-		Kind:      wellknown.HTTPRouteKind,
-		Name:      "ghostface",
-		Namespace: wrapperspb.String("wu-tang"),
-	}
-	routeCtx := &plugins.RouteContext{
-		Route: &gwv1.HTTPRoute{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "ghostface",
-				Namespace: "wu-tang",
-			},
-		},
-	}
-	result := utils.IsPolicyAttachedToRoute(targetRef, routeCtx)
-	g.Expect(result).To(BeTrue())
-}
-
-func TestPolicyAttachedDiffNamespace(t *testing.T) {
-	g := NewWithT(t)
-
-	targetRef := &corev1.PolicyTargetReference{
-		Group:     gwv1.GroupVersion.Group,
-		Kind:      wellknown.HTTPRouteKind,
-		Name:      "ghostface",
-		Namespace: wrapperspb.String("default"),
-	}
-	routeCtx := &plugins.RouteContext{
-		Route: &gwv1.HTTPRoute{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "ghostface",
-				Namespace: "wu-tang",
-			},
-		},
-	}
-	result := utils.IsPolicyAttachedToRoute(targetRef, routeCtx)
-	g.Expect(result).To(BeFalse())
-}
-
-func TestPolicyAttachedOmitNamespace(t *testing.T) {
-	g := NewWithT(t)
-
-	targetRef := &corev1.PolicyTargetReference{
-		Group: gwv1.GroupVersion.Group,
-		Kind:  wellknown.HTTPRouteKind,
-		Name:  "ghostface",
-	}
-	routeCtx := &plugins.RouteContext{
-		Route: &gwv1.HTTPRoute{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "ghostface",
-				Namespace: "wu-tang",
-			},
-		},
-	}
-	result := utils.IsPolicyAttachedToRoute(targetRef, routeCtx)
-	g.Expect(result).To(BeTrue())
 }
 
 func routeOption() *solokubev1.RouteOption {
