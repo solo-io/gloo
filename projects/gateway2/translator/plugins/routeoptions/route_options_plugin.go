@@ -7,9 +7,10 @@ import (
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
-	"github.com/solo-io/gloo/projects/gateway2/query"
+	gwquery "github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
+	rtoptquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/routeoptions/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
@@ -29,12 +30,14 @@ var routeOptionGK = schema.GroupKind{
 }
 
 type plugin struct {
-	queries query.GatewayQueries
+	gwQueries    gwquery.GatewayQueries
+	rtOptQueries rtoptquery.RouteOptionQueries
 }
 
-func NewPlugin(queries query.GatewayQueries) *plugin {
+func NewPlugin(gwQueries gwquery.GatewayQueries, client client.Client) *plugin {
 	return &plugin{
-		queries,
+		gwQueries,
+		rtoptquery.NewQuery(client),
 	}
 }
 
@@ -71,8 +74,7 @@ func (p *plugin) handleAttachment(
 	ctx context.Context,
 	routeCtx *plugins.RouteContext,
 ) *v1.RouteOptions {
-	routeOptObjs := getRouteOptionsForNamespace(ctx, routeCtx.Route.Namespace, p.queries)
-	attachedOptions := findAttachedRouteOptions(routeCtx, routeOptObjs)
+	attachedOptions := getAttachedRouteOptions(ctx, routeCtx.Route, p.rtOptQueries)
 	if len(attachedOptions) == 0 {
 		return nil
 	}
@@ -80,6 +82,7 @@ func (p *plugin) handleAttachment(
 	// sort attached options and apply only the earliest
 	utils.SortByCreationTime(attachedOptions)
 	earliestOption := attachedOptions[0]
+
 	if earliestOption.Spec.GetOptions() != nil {
 		return earliestOption.Spec.GetOptions()
 	}
@@ -96,7 +99,7 @@ func (p *plugin) handleFilter(
 	}
 
 	routeOption := &solokubev1.RouteOption{}
-	err := utils.GetExtensionRefObj(context.Background(), routeCtx, p.queries, filter.ExtensionRef, routeOption)
+	err := utils.GetExtensionRefObj(context.Background(), routeCtx, p.gwQueries, filter.ExtensionRef, routeOption)
 	if err != nil {
 		switch {
 		case apierrors.IsNotFound(err):
@@ -124,12 +127,12 @@ func (p *plugin) handleFilter(
 	return nil, nil
 }
 
-func getRouteOptionsForNamespace(ctx context.Context, namespace string, queries query.GatewayQueries) []*solokubev1.RouteOption {
-	var routeList solokubev1.RouteOptionList
-	err := queries.List(ctx, &routeList, client.InNamespace(namespace))
+func getAttachedRouteOptions(ctx context.Context, route *gwv1.HTTPRoute, queries rtoptquery.RouteOptionQueries) []*solokubev1.RouteOption {
+	var routeOptionList solokubev1.RouteOptionList
+	err := queries.GetRouteOptionsForRoute(ctx, route, &routeOptionList)
 	if err != nil {
 		contextutils.LoggerFrom(ctx).Errorf("error while Listing RouteOptions: %v", err)
-		// TODO: handle correctly
+		// TODO: add status to policy on error
 		return nil
 	}
 
@@ -137,24 +140,24 @@ func getRouteOptionsForNamespace(ctx context.Context, namespace string, queries 
 	// we need to turn it into a pointer slice to avoid copying proto message state around, copying locks, etc.
 	// while we perform operations on the RouteOptionList
 	ptrSlice := []*solokubev1.RouteOption{}
-	items := routeList.Items
+	items := routeOptionList.Items
 	for i := range items {
 		ptrSlice = append(ptrSlice, &items[i])
 	}
 	return ptrSlice
 }
 
-func findAttachedRouteOptions(routeCtx *plugins.RouteContext, routeOptions []*solokubev1.RouteOption) []*solokubev1.RouteOption {
-	attachedOptions := []*solokubev1.RouteOption{}
-	for _, roObj := range routeOptions {
-		targetRef := roObj.Spec.GetTargetRef()
-		if !utils.IsPolicyAttachedToRoute(targetRef, routeCtx) {
-			continue
-		}
-		attachedOptions = append(attachedOptions, roObj)
-	}
-	return attachedOptions
-}
+// func findAttachedRouteOptions(routeCtx *plugins.RouteContext, routeOptions []*solokubev1.RouteOption) []*solokubev1.RouteOption {
+// 	attachedOptions := []*solokubev1.RouteOption{}
+// 	for _, roObj := range routeOptions {
+// 		targetRef := roObj.Spec.GetTargetRef()
+// 		if !utils.IsPolicyAttachedToRoute(targetRef, routeCtx) {
+// 			continue
+// 		}
+// 		attachedOptions = append(attachedOptions, roObj)
+// 	}
+// 	return attachedOptions
+// }
 
 func formatNotFoundMessage(routeCtx *plugins.RouteContext, filter *gwv1.HTTPRouteFilter) string {
 	return fmt.Sprintf(

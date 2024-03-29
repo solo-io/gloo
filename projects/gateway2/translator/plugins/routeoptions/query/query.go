@@ -1,0 +1,37 @@
+package query
+
+import (
+	"context"
+
+	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/types"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+)
+
+type RouteOptionQueries interface {
+	GetRouteOptionsForRoute(ctx context.Context, route *gwv1.HTTPRoute, list *solokubev1.RouteOptionList) error
+}
+
+type routeOptionQueries struct {
+	client client.Client
+}
+
+func NewQuery(client client.Client) RouteOptionQueries {
+	return &routeOptionQueries{client}
+}
+
+func (r *routeOptionQueries) GetRouteOptionsForRoute(ctx context.Context, route *gwv1.HTTPRoute, list *solokubev1.RouteOptionList) error {
+	nn := types.NamespacedName{
+		Namespace: route.Namespace,
+		Name:      route.Name,
+	}
+	return r.client.List(
+		ctx,
+		list,
+		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(RouteOptionTargetField, nn.String())},
+		client.InNamespace(route.GetNamespace()),
+	)
+}
