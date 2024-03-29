@@ -24,8 +24,8 @@ import (
 )
 
 const (
-	undefinedServer = "Server: version undefined, could not find any version of gloo running"
-	undefinedK8s    = "Kubernetes: version undefined, could not find any running cluster"
+	UndefinedServer = "Server: version undefined, could not find any version of gloo running"
+	UndefinedK8s    = "Kubernetes: version undefined, could not find any running cluster"
 )
 
 var (
@@ -61,7 +61,7 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 	return cmd
 }
 
-func GetClientServerVersions(ctx context.Context, sv ServerVersion) (*version.Version, error) {
+func GetClientServerVersions(ctx context.Context, sv ServerVersion) *version.Version {
 	v := &version.Version{
 		Client: getClientVersion(),
 		Status: &version.Status{Status: &version.Status_Ok{}},
@@ -70,7 +70,7 @@ func GetClientServerVersions(ctx context.Context, sv ServerVersion) (*version.Ve
 	if err != nil || len(serverVersion) == 0 {
 		v.Status.Status = &version.Status_Error{
 			Error: &version.Status_ErrorStatus{
-				Errors: []string{undefinedServer},
+				Errors: []string{UndefinedServer, err.Error()},
 			},
 		}
 	} else {
@@ -84,11 +84,11 @@ func GetClientServerVersions(ctx context.Context, sv ServerVersion) (*version.Ve
 				Error: &version.Status_ErrorStatus{},
 			}
 		}
-		v.Status.GetError().Warnings = []string{undefinedK8s}
+		v.Status.GetError().Warnings = []string{UndefinedK8s, err.Error()}
 	} else {
 		v.KubernetesCluster = k8sServerVersion
 	}
-	return v, nil
+	return v
 }
 
 func getClientVersion() *version.ClientVersion {
@@ -98,8 +98,7 @@ func getClientVersion() *version.ClientVersion {
 }
 
 func printVersion(sv ServerVersion, w io.Writer, opts *options.Options) error {
-	// ignoring error so we still print client version even if we can't get server versions (e.g., not deployed, no rbac)
-	vrs, _ := GetClientServerVersions(opts.Top.Ctx, sv)
+	vrs := GetClientServerVersions(opts.Top.Ctx, sv)
 	switch opts.Top.Output {
 	case printers.JSON:
 		formattedVer, err := getJson(vrs)
@@ -117,7 +116,7 @@ func printVersion(sv ServerVersion, w io.Writer, opts *options.Options) error {
 		fmt.Fprintf(w, "Client version: %s\n", vrs.GetClient().GetVersion())
 		srv := vrs.GetServer()
 		if srv == nil {
-			fmt.Fprintln(w, undefinedServer)
+			fmt.Fprintln(w, UndefinedServer)
 			return nil
 		}
 
