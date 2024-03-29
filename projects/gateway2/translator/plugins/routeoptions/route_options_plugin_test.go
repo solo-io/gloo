@@ -84,7 +84,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 			}
 			err := plugin.ApplyRoutePlugin(context.Background(), rtCtx, outputRoute)
 
-			Expect(err).ToNot(BeNil())
+			Expect(err).To(HaveOccurred())
 			Expect(proto.Equal(outputRoute.GetOptions(), &v1.RouteOptions{})).To(BeTrue())
 		})
 	})
