@@ -97,25 +97,6 @@ func (mr *MockGatewayQueriesMockRecorder) GetSecretForRef(arg0, arg1, arg2 inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecretForRef", reflect.TypeOf((*MockGatewayQueries)(nil).GetSecretForRef), arg0, arg1, arg2)
 }
 
-// List mocks base method.
-func (m *MockGatewayQueries) List(arg0 context.Context, arg1 client.ObjectList, arg2 ...client.ListOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1}
-	for _, a := range arg2 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "List", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// List indicates an expected call of List.
-func (mr *MockGatewayQueriesMockRecorder) List(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockGatewayQueries)(nil).List), varargs...)
-}
-
 // ObjToFrom mocks base method.
 func (m *MockGatewayQueries) ObjToFrom(arg0 client.Object) query.From {
 	m.ctrl.T.Helper()
