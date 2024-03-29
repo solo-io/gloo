@@ -147,18 +147,6 @@ func getAttachedRouteOptions(ctx context.Context, route *gwv1.HTTPRoute, queries
 	return ptrSlice
 }
 
-// func findAttachedRouteOptions(routeCtx *plugins.RouteContext, routeOptions []*solokubev1.RouteOption) []*solokubev1.RouteOption {
-// 	attachedOptions := []*solokubev1.RouteOption{}
-// 	for _, roObj := range routeOptions {
-// 		targetRef := roObj.Spec.GetTargetRef()
-// 		if !utils.IsPolicyAttachedToRoute(targetRef, routeCtx) {
-// 			continue
-// 		}
-// 		attachedOptions = append(attachedOptions, roObj)
-// 	}
-// 	return attachedOptions
-// }
-
 func formatNotFoundMessage(routeCtx *plugins.RouteContext, filter *gwv1.HTTPRouteFilter) string {
 	return fmt.Sprintf(
 		"extensionRef '%s' of type %s.%s in namespace '%s' not found",

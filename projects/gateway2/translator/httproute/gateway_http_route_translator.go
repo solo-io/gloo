@@ -67,7 +67,7 @@ func translateGatewayHTTPRouteRule(
 ) []*v1.Route {
 	routes := make([]*v1.Route, len(rule.Matches))
 	for idx, match := range rule.Matches {
-		match := match // pike-ish
+		match := match // pike
 		outputRoute := &v1.Route{
 			Matchers: []*matchers.Matcher{translateGlooMatcher(match)},
 			Action:   nil,
@@ -93,7 +93,7 @@ func translateGatewayHTTPRouteRule(
 		for _, plugin := range pluginRegistry.GetRoutePlugins() {
 			err := plugin.ApplyRoutePlugin(ctx, rtCtx, outputRoute)
 			if err != nil {
-				contextutils.LoggerFrom(ctx).Errorf("error while running RouteRulePlugin '%v': %v", plugin.GetName(), err)
+				contextutils.LoggerFrom(ctx).Errorf("error while running RoutePlugin '%v': %v", plugin.GetName(), err)
 			}
 		}
 
