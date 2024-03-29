@@ -510,8 +510,8 @@ var _ = Describe("Kube2e: helm", func() {
 })
 
 func getGlooServerVersion(ctx context.Context, namespace string) (v string) {
-	glooVersion, err := version.GetClientServerVersions(ctx, version.NewKube(namespace, ""))
-	Expect(err).NotTo(HaveOccurred())
+	glooVersion := version.GetClientServerVersions(ctx, version.NewKube(namespace, ""))
+	Expect(glooVersion.GetStatus().GetError()).To(BeNil())
 	Expect(glooVersion.GetServer()).To(HaveLen(1))
 	for _, container := range glooVersion.GetServer()[0].GetKubernetes().GetContainers() {
 		if v == "" {
