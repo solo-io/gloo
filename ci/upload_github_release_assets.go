@@ -200,6 +200,14 @@ func validateReleaseVersionOfCli(dryRun bool) {
 		log.Fatalf("failed to cast client.version field")
 	}
 
+	if dryRun {
+		clVerStr, err = validVersionFromPrVersion(clVerStr)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+
+	}
+
 	if releaseVersion != clVerStr {
 		log.Fatalf("Expected to release artifacts for version %s, glooctl binary reported version %s", releaseVersion, clVerStr)
 	}
