@@ -7,9 +7,11 @@ import (
 	. "github.com/onsi/gomega"
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
+	gwquery "github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	"github.com/solo-io/gloo/projects/gateway2/translator/httproute"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
+	rtoptquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/routeoptions/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -68,8 +70,9 @@ var _ = Describe("HTTPRoute translation with RouteOptions", func() {
 					},
 				},
 			}
-			queries := testutils.BuildGatewayQueries(deps)
-			pluginRegistry := registry.NewPluginRegistry(registry.BuildPlugins(queries))
+			fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
+			gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
+			pluginRegistry := registry.NewPluginRegistry(registry.BuildPlugins(gwQueries, fakeClient))
 
 			listener := gwv1.Listener{}
 			parentRef := gwv1.ParentReference{
@@ -106,7 +109,7 @@ var _ = Describe("HTTPRoute translation with RouteOptions", func() {
 			glooRoutes := httproute.TranslateGatewayHTTPRouteRules(
 				ctx,
 				pluginRegistry,
-				queries,
+				gwQueries,
 				listener,
 				route,
 				parentRefReporter,

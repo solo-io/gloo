@@ -122,9 +122,6 @@ type GatewayQueries interface {
 	GetSecretForRef(ctx context.Context, obj From, secretRef apiv1.SecretObjectReference) (client.Object, error)
 
 	GetLocalObjRef(ctx context.Context, from From, localObjRef apiv1.LocalObjectReference) (client.Object, error)
-
-	// Simple passthrough to client.List(...)
-	List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error
 }
 
 type RoutesForGwResult struct {
@@ -172,10 +169,6 @@ func (r *gatewayQueries) referenceAllowed(ctx context.Context, from metav1.Group
 
 func (r *gatewayQueries) ObjToFrom(obj client.Object) From {
 	return FromObject{Object: obj, Scheme: r.scheme}
-}
-
-func (r *gatewayQueries) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
-	return r.client.List(ctx, list, opts...)
 }
 
 func (r *gatewayQueries) GetRoutesForGw(ctx context.Context, gw *apiv1.Gateway) (RoutesForGwResult, error) {

@@ -11,7 +11,9 @@ import (
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
+	gwquery "github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
+	rtoptquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/routeoptions/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -26,8 +28,9 @@ var _ = Describe("RouteOptionsPlugin", func() {
 	When("applying RouteOptions as Filter", func() {
 		It("applies fault injecton RouteOptions directly from resource to output route", func() {
 			deps := []client.Object{routeOption()}
-			queries := testutils.BuildGatewayQueries(deps)
-			plugin := NewPlugin(queries)
+			fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
+			gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
+			plugin := NewPlugin(gwQueries, fakeClient)
 
 			rtCtx := &plugins.RouteContext{
 				Route: &gwv1.HTTPRoute{},
@@ -63,8 +66,9 @@ var _ = Describe("RouteOptionsPlugin", func() {
 		When("RouteOptions exist in the same namespace and are attached correctly", func() {
 			It("correctly adds faultinjection", func() {
 				deps := []client.Object{attachedRouteOption()}
-				queries := testutils.BuildGatewayQueries(deps)
-				plugin := NewPlugin(queries)
+				fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
+				gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
+				plugin := NewPlugin(gwQueries, fakeClient)
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
@@ -96,8 +100,9 @@ var _ = Describe("RouteOptionsPlugin", func() {
 		When("RouteOptions exist in the same namespace and are attached correctly but omit the namespace in targetRef", func() {
 			It("correctly adds faultinjection", func() {
 				deps := []client.Object{attachedRouteOptionOmitNamespace()}
-				queries := testutils.BuildGatewayQueries(deps)
-				plugin := NewPlugin(queries)
+				fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
+				gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
+				plugin := NewPlugin(gwQueries, fakeClient)
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
@@ -129,8 +134,9 @@ var _ = Describe("RouteOptionsPlugin", func() {
 		When("Two RouteOptions are attached correctly with different creation timestamps", func() {
 			It("correctly adds faultinjection from the earliest created object", func() {
 				deps := []client.Object{attachedRouteOption(), attachedRouteOptionBefore()}
-				queries := testutils.BuildGatewayQueries(deps)
-				plugin := NewPlugin(queries)
+				fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
+				gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
+				plugin := NewPlugin(gwQueries, fakeClient)
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
@@ -162,8 +168,9 @@ var _ = Describe("RouteOptionsPlugin", func() {
 		When("RouteOptions exist in the same namespace but are not attached correctly", func() {
 			It("does not add faultinjection", func() {
 				deps := []client.Object{nonAttachedRouteOption()}
-				queries := testutils.BuildGatewayQueries(deps)
-				plugin := NewPlugin(queries)
+				fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
+				gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
+				plugin := NewPlugin(gwQueries, fakeClient)
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
@@ -187,8 +194,9 @@ var _ = Describe("RouteOptionsPlugin", func() {
 		When("RouteOptions exist in a different namespace than the provided routeCtx", func() {
 			It("does not add faultinjection", func() {
 				deps := []client.Object{attachedRouteOption()}
-				queries := testutils.BuildGatewayQueries(deps)
-				plugin := NewPlugin(queries)
+				fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
+				gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
+				plugin := NewPlugin(gwQueries, fakeClient)
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
