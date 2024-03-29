@@ -3,7 +3,7 @@ package discovery
 import (
 	"context"
 
-	"github.com/solo-io/gloo/projects/gateway2/xds"
+	"github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
@@ -25,7 +25,7 @@ type Translator interface {
 	ReconcileEndpoints(ctx context.Context, req ctrl.Request) (ctrl.Result, error)
 }
 
-func NewTranslator(cli client.Client, inputChannels *xds.GatewayInputChannels) Translator {
+func NewTranslator(cli client.Client, inputChannels *proxy_syncer.GatewayInputChannels) Translator {
 	return &edgeLegacyTranslator{
 		cli:           cli,
 		inputChannels: inputChannels,
@@ -37,7 +37,7 @@ func NewTranslator(cli client.Client, inputChannels *xds.GatewayInputChannels) T
 // EDS and UDS implementations. These operate as a batch and are known to not be performant.
 type edgeLegacyTranslator struct {
 	cli           client.Client
-	inputChannels *xds.GatewayInputChannels
+	inputChannels *proxy_syncer.GatewayInputChannels
 }
 
 func (e *edgeLegacyTranslator) ReconcilePod(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -102,7 +102,7 @@ func (e *edgeLegacyTranslator) reconcileAll(ctx context.Context) (ctrl.Result, e
 		usMap,
 	)
 
-	e.inputChannels.UpdateDiscoveryInputs(ctx, xds.DiscoveryInputs{
+	e.inputChannels.UpdateDiscoveryInputs(ctx, proxy_syncer.DiscoveryInputs{
 		Upstreams: usTotalList,
 		Endpoints: endpoints,
 	})

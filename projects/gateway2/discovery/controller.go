@@ -3,14 +3,14 @@ package discovery
 import (
 	"context"
 
-	"github.com/solo-io/gloo/projects/gateway2/xds"
+	"github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
 	corev1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-func NewDiscoveryController(ctx context.Context, mgr manager.Manager, inputChannels *xds.GatewayInputChannels) error {
+func NewDiscoveryController(ctx context.Context, mgr manager.Manager, inputChannels *proxy_syncer.GatewayInputChannels) error {
 	cb := &controllerBuilder{
 		mgr:        mgr,
 		translator: NewTranslator(mgr.GetClient(), inputChannels),

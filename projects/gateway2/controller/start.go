@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 
+	"github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -14,7 +15,6 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 	"github.com/solo-io/gloo/projects/gateway2/secrets"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
-	"github.com/solo-io/gloo/projects/gateway2/xds"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -83,7 +83,7 @@ func Start(ctx context.Context, cfg StartConfig) error {
 		cfg.Opts.Settings,
 		cfg.GlooPluginRegistryFactory(ctx))
 
-	inputChannels := xds.NewGatewayInputChannels()
+	inputChannels := proxy_syncer.NewGatewayInputChannels()
 
 	k8sGwExtensions, err := cfg.ExtensionsFactory(mgr)
 	if err != nil {
@@ -91,7 +91,7 @@ func Start(ctx context.Context, cfg StartConfig) error {
 		return err
 	}
 
-	xdsSyncer := xds.NewXdsSyncer(
+	xdsSyncer := proxy_syncer.NewXdsSyncer(
 		wellknown.GatewayControllerName,
 		glooTranslator,
 		inputChannels,

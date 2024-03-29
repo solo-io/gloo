@@ -1,10 +1,11 @@
-package xds
+package proxy_syncer
 
 import (
 	"context"
+	"os"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
-	"os"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
 
