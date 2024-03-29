@@ -73,7 +73,7 @@ var _ = Describe("Query", func() {
 			items := routeOptionList.Items
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(items).To(HaveLen(0))
+			Expect(items).To(BeEmpty())
 		})
 
 		It("should find the only attached option with a targetRef with omitted namespace", func() {
@@ -115,7 +115,7 @@ var _ = Describe("Query", func() {
 			items := routeOptionList.Items
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(items).To(HaveLen(0))
+			Expect(items).To(BeEmpty())
 		})
 	})
 })
