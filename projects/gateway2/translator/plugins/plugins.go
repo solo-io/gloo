@@ -10,9 +10,7 @@ import (
 )
 
 // Plugin is an empty type for base plugins, currently no base methods.
-type Plugin interface {
-	GetName() string
-}
+type Plugin interface{}
 
 type RouteContext struct {
 	// top-level gw Listener

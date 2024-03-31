@@ -93,7 +93,7 @@ func translateGatewayHTTPRouteRule(
 		for _, plugin := range pluginRegistry.GetRoutePlugins() {
 			err := plugin.ApplyRoutePlugin(ctx, rtCtx, outputRoute)
 			if err != nil {
-				contextutils.LoggerFrom(ctx).Errorf("error while running RoutePlugin '%v': %v", plugin.GetName(), err)
+				contextutils.LoggerFrom(ctx).Errorf("error in RoutePlugin: %v", err)
 			}
 		}
 
