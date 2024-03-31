@@ -21,10 +21,6 @@ func NewPlugin() *plugin {
 	return &plugin{}
 }
 
-func (p *plugin) GetName() string {
-	return "UrlRewritePlugin"
-}
-
 func (p *plugin) ApplyRoutePlugin(
 	ctx context.Context,
 	routeCtx *plugins.RouteContext,

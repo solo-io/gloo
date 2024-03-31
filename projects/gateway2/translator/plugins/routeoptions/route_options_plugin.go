@@ -41,10 +41,6 @@ func NewPlugin(gwQueries gwquery.GatewayQueries, client client.Client) *plugin {
 	}
 }
 
-func (p *plugin) GetName() string {
-	return "RouteOptionsPlugin"
-}
-
 func (p *plugin) ApplyRoutePlugin(
 	ctx context.Context,
 	routeCtx *plugins.RouteContext,
@@ -122,7 +118,7 @@ func (p *plugin) handleFilter(
 			contextutils.LoggerFrom(ctx).DPanic(devErr)
 			return nil, devErr
 		default:
-			return nil, fmt.Errorf("error while getting RouteOptions as ExtensionRef: %w", err)
+			return nil, fmt.Errorf("error while getting RouteOptions as ExtensionRef route filter: %w", err)
 		}
 	}
 
