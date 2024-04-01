@@ -35,7 +35,7 @@ import (
 )
 
 func App(opts *options.Options, preRunFuncs []RunnableCommand, postRunFuncs []RunnableCommand, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
-
+	fmt.Printf("top of App %s\n", opts.Top.Output.String())
 	app := &cobra.Command{
 		Use:   "glooctl",
 		Short: "CLI for Gloo",
@@ -62,11 +62,14 @@ func App(opts *options.Options, preRunFuncs []RunnableCommand, postRunFuncs []Ru
 		SilenceUsage: true,
 	}
 
+	fmt.Printf("after app definition %s\n", opts.Top.Output.String())
 	flagutils.AddKubeConfigFlag(app.PersistentFlags(), &opts.Top.KubeConfig)
 	app.PersistentFlags()
+	fmt.Printf("after app.PersistentFlags %s\n", opts.Top.Output.String())
 
 	// Complete additional passed in setup
 	cliutils.ApplyOptions(app, optionsFunc)
+	fmt.Printf("after cliutils.ApplyOptions %s\n", opts.Top.Output.String())
 
 	// Handle glooctl plugins
 	args := os.Args
@@ -92,6 +95,7 @@ func GlooCli() *cobra.Command {
 			Ctx: context.Background(),
 		},
 	}
+	fmt.Printf("top of GlooCli %s\n", opts.Top.Output.String())
 
 	optionsFunc := func(app *cobra.Command) {
 		pflags := app.PersistentFlags()
@@ -99,6 +103,8 @@ func GlooCli() *cobra.Command {
 		pflags.StringVarP(&opts.Top.ConfigFilePath, "config", "c", DefaultConfigPath, "set the path to the glooctl config file")
 		flagutils.AddConsulConfigFlags(pflags, &opts.Top.Consul)
 		flagutils.AddKubeContextFlag(pflags, &opts.Top.KubeContext)
+		fmt.Printf("adding output flag\n")
+		flagutils.AddOutputFlag(pflags, &opts.Top.Output)
 
 		opts.Top.Ctx = context.WithValue(opts.Top.Ctx, "top", opts.Top.ContextAccessible)
 

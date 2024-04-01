@@ -2,11 +2,13 @@ package options
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strconv"
 	"time"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options/contextoptions"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
 	printTypes "github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
 
 	rltypes "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
@@ -44,6 +46,36 @@ type Top struct {
 	Zip                bool
 	PodSelector        string   // label selector for pod scanning
 	ResourceNamespaces []string // namespaces in which to check custom resources
+}
+
+func (t *Top) AddErrorToCtx(errString string) {
+	var ctxErrSl []string
+	var ok bool
+	ctxErrs := t.Ctx.Value(constants.ErrorsContextKey)
+	if ctxErrs == nil {
+		ctxErrSl = []string{errString}
+	} else {
+		ctxErrSl, ok = ctxErrs.([]string)
+		if !ok {
+			fmt.Printf("error %s occurred; failed to add to context\n", errString)
+			return
+		}
+		ctxErrSl = append(ctxErrSl, errString)
+	}
+	t.Ctx = context.WithValue(t.Ctx, constants.ErrorsContextKey, ctxErrSl)
+}
+
+func (t Top) GetCtxErrors() []string {
+	var ctxErrSl, emptySl []string
+	var ok bool
+	ctxErrs := t.Ctx.Value(constants.ErrorsContextKey)
+	if ctxErrs == nil {
+		return emptySl
+	}
+	if ctxErrSl, ok = ctxErrs.([]string); ok {
+		return ctxErrSl
+	}
+	return emptySl
 }
 
 type HelmInstall struct {

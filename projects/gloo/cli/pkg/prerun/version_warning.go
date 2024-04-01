@@ -1,7 +1,6 @@
 package prerun
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -45,7 +44,7 @@ func VersionMismatchWarning(opts *options.Options, cmd *cobra.Command) error {
 		nsToCheck = opts.Install.Gloo.Namespace
 	}
 
-	return WarnOnMismatch(opts.Top.Ctx, os.Args[0], versioncmd.NewKube(nsToCheck, opts.Top.KubeContext), &defaultLogger{})
+	return WarnOnMismatch(opts, os.Args[0], versioncmd.NewKube(nsToCheck, opts.Top.KubeContext), &defaultLogger{})
 }
 
 // use this logger interface, so that in the unit test we can accumulate lines that were output
@@ -68,12 +67,12 @@ func (d *defaultLogger) Println(str string) {
 }
 
 // visible for testing
-func WarnOnMismatch(ctx context.Context, binaryName string, sv versioncmd.ServerVersion, logger Logger) error {
-	clientServerVersions := versioncmd.GetClientServerVersions(ctx, sv)
+func WarnOnMismatch(opts *options.Options, binaryName string, sv versioncmd.ServerVersion, logger Logger) error {
+	clientServerVersions := versioncmd.GetClientServerVersions(opts.Top.Ctx, sv)
 	if clientServerVersions.GetStatus().GetError() != nil {
 		errs := append(clientServerVersions.GetStatus().GetError().GetErrors(), clientServerVersions.GetStatus().GetError().GetWarnings()...)
 		err := eris.New(strings.Join(errs, "; "))
-		warnOnError(err, logger)
+		warnOnError(opts, err, logger)
 		return nil
 	}
 
@@ -86,13 +85,13 @@ func WarnOnMismatch(ctx context.Context, binaryName string, sv versioncmd.Server
 
 	glooctlVersion, err := versionutils.ParseVersion(glooctlVersionStr)
 	if err != nil {
-		warnOnError(err, logger)
+		warnOnError(opts, err, logger)
 		return nil
 	}
 
 	openSourceVersions, err := GetOpenSourceVersions(clientServerVersions.GetServer())
 	if err != nil {
-		warnOnError(err, logger)
+		warnOnError(opts, err, logger)
 		return nil
 	}
 
@@ -108,8 +107,12 @@ func WarnOnMismatch(ctx context.Context, binaryName string, sv versioncmd.Server
 	}
 
 	if len(minorVersionMismatches) > 0 || len(majorVersionMismatches) > 0 {
+		errStr := BuildSuggestedUpgradeCommand(binaryName, append(minorVersionMismatches, majorVersionMismatches...))
+		if opts.Top.Output.IsJSON() {
+			opts.Top.AddErrorToCtx(errStr)
+		}
 		logger.Println("----------")
-		logger.Println(BuildSuggestedUpgradeCommand(binaryName, append(minorVersionMismatches, majorVersionMismatches...)))
+		logger.Println(errStr)
 		logger.Println("----------\n")
 	}
 
@@ -141,8 +144,13 @@ func BuildSuggestedUpgradeCommand(binaryName string, mismatches []*versionutils.
 
 // Gloo may not be running in a kubernetes environment, so don't error out the whole command
 // if we couldn't find the version
-func warnOnError(err error, logger Logger) {
-	logger.Println("Warning: Could not determine gloo server versions (is Gloo running outside of kubernetes?): " + err.Error())
+func warnOnError(opts *options.Options, err error, logger Logger) {
+	errStr := fmt.Sprintf("Warning: Could not determine gloo server versions (is Gloo running outside of kubernetes?): %s", err.Error())
+	if opts.Top.Output.IsJSON() || opts.Top.Output.IsYAML() {
+		opts.Top.AddErrorToCtx(errStr)
+	} else {
+		logger.Println(errStr)
+	}
 }
 
 type ContainerVersion struct {

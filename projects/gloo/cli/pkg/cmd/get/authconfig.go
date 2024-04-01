@@ -19,7 +19,7 @@ func AuthConfig(opts *options.Options) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			_ = printers.PrintAuthConfigs(authConfigs, opts.Top.Output)
+			_ = printers.PrintAuthConfigs(opts.Top.Ctx, authConfigs, opts.Top.Output)
 			return nil
 		},
 	}

@@ -91,7 +91,7 @@ func createAuthConfig(opts *options.Options, _ []string) error {
 		}
 	}
 
-	printers.PrintAuthConfigs(extauth.AuthConfigList{ac}, opts.Top.Output)
+	printers.PrintAuthConfigs(opts.Top.Ctx, extauth.AuthConfigList{ac}, opts.Top.Output)
 
 	return nil
 }

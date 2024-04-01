@@ -31,14 +31,16 @@ type outputTypeProperties struct {
 	isTable bool
 
 	isJSON bool
+
+	isYAML bool
 }
 
 var typeProperties = []outputTypeProperties{
-	{TABLE, []string{"table"}, true, false},
-	{YAML, []string{"yaml", "yml"}, false, false},
-	{KUBE_YAML, []string{"kube-yaml"}, false, false},
-	{JSON, []string{"json"}, false, true},
-	{WIDE, []string{"wide"}, true, false},
+	{TABLE, []string{"table"}, true, false, false},
+	{YAML, []string{"yaml", "yml"}, false, false, true},
+	{KUBE_YAML, []string{"kube-yaml"}, false, false, false},
+	{JSON, []string{"json"}, false, true, false},
+	{WIDE, []string{"wide"}, true, false, false},
 }
 
 var (
@@ -54,6 +56,8 @@ var (
 
 	_OutputValueToIsJSON = map[OutputType]bool{}
 	// YAML:      false,
+	_OutputValueToIsYAML = map[OutputType]bool{}
+	// YAML:      true,
 )
 
 func init() {
@@ -71,6 +75,7 @@ func init() {
 		}
 		_OutputValueToIsTable[tp.outputType] = tp.isTable
 		_OutputValueToIsJSON[tp.outputType] = tp.isJSON
+		_OutputValueToIsYAML[tp.outputType] = tp.isYAML
 	}
 }
 
@@ -121,4 +126,8 @@ func (o *OutputType) IsTable() bool {
 
 func (o *OutputType) IsJSON() bool {
 	return _OutputValueToIsJSON[*o]
+}
+
+func (o *OutputType) IsYAML() bool {
+	return _OutputValueToIsYAML[*o]
 }

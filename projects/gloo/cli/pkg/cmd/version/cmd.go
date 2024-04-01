@@ -33,8 +33,8 @@ var (
 )
 
 func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
+	fmt.Printf("top of RootCmd %s\n", opts.Top.Output.String())
 	// Default output for version command is JSON
-	versionOutput := printers.JSON
 
 	cmd := &cobra.Command{
 		Use:     constants.VERSION_COMMAND.Use,
@@ -42,8 +42,6 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 		Short:   constants.VERSION_COMMAND.Short,
 		Long:    constants.VERSION_COMMAND.Long,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.Top.Output = versionOutput
-
 			if opts.Metadata.GetNamespace() == "" {
 				return NoNamespaceAllError
 			}
@@ -55,7 +53,6 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 	}
 
 	pflags := cmd.PersistentFlags()
-	flagutils.AddOutputFlag(pflags, &versionOutput)
 	flagutils.AddNamespaceFlag(pflags, &opts.Metadata.Namespace)
 
 	return cmd
@@ -68,9 +65,13 @@ func GetClientServerVersions(ctx context.Context, sv ServerVersion) *version.Ver
 	}
 	serverVersion, err := sv.Get(ctx)
 	if err != nil || len(serverVersion) == 0 {
-		v.Status.Status = &version.Status_Error{
+		errs := []string{UndefinedServer}
+		if err != nil {
+			errs = append(errs, err.Error())
+		}
+		v.GetStatus().Status = &version.Status_Error{
 			Error: &version.Status_ErrorStatus{
-				Errors: []string{UndefinedServer, err.Error()},
+				Errors: errs,
 			},
 		}
 	} else {
@@ -79,12 +80,12 @@ func GetClientServerVersions(ctx context.Context, sv ServerVersion) *version.Ver
 
 	k8sServerVersion, err := sv.GetClusterVersion()
 	if err != nil {
-		if v.Status.GetError() == nil {
-			v.Status.Status = &version.Status_Error{
+		if v.GetStatus().GetError() == nil {
+			v.GetStatus().Status = &version.Status_Error{
 				Error: &version.Status_ErrorStatus{},
 			}
 		}
-		v.Status.GetError().Warnings = []string{UndefinedK8s, err.Error()}
+		v.GetStatus().GetError().Warnings = []string{UndefinedK8s, err.Error()}
 	} else {
 		v.KubernetesCluster = k8sServerVersion
 	}
@@ -99,6 +100,9 @@ func getClientVersion() *version.ClientVersion {
 
 func printVersion(sv ServerVersion, w io.Writer, opts *options.Options) error {
 	vrs := GetClientServerVersions(opts.Top.Ctx, sv)
+	// if ctxErrs := opts.Top.GetCtxErrors(); ctxErrs != nil && len(ctxErrs) > 0 {
+	// 	vrs.Status.GetError().Warnings = append(vrs.Status.GetError().Warnings, ctxErrs...)
+	// }
 	switch opts.Top.Output {
 	case printers.JSON:
 		formattedVer, err := getJson(vrs)

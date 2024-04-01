@@ -5,6 +5,7 @@ const (
 	GlooReleaseName         = "gloo"
 	GlooFedReleaseName      = "gloo-fed"
 	KnativeServingNamespace = "knative-serving"
+	ErrorsContextKey        = "errors"
 )
 
 var (

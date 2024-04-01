@@ -1,20 +1,25 @@
 package printers
 
 import (
+	"context"
 	"io"
 	"os"
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	"github.com/solo-io/go-utils/cliutils"
 )
 
-func PrintAuthConfigs(authConfigs extauthv1.AuthConfigList, outputType OutputType) error {
-	if outputType == KUBE_YAML || outputType == YAML {
+func PrintAuthConfigs(ctx context.Context, authConfigs extauthv1.AuthConfigList, outputType OutputType) error {
+	if outputType == KUBE_YAML {
 		return PrintKubeCrdList(authConfigs.AsInputResources(), extauthv1.AuthConfigCrd)
 	}
-	return cliutils.PrintList(outputType.String(), "", authConfigs,
+	var errs []string
+	if errsVal := ctx.Value(constants.ErrorsContextKey); errsVal != nil {
+		errs = errsVal.([]string)
+	}
+	return PrintListWithErrors(errs, outputType.String(), "", authConfigs,
 		func(data interface{}, w io.Writer) error {
 			AuthConfig(data.(extauthv1.AuthConfigList), w)
 			return nil
