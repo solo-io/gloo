@@ -88,6 +88,8 @@ message ListenerOptions {
 
     // Configuration for listener connection balancing.
     ConnectionBalanceConfig connection_balance_config = 6;
+
+    als.options.gloo.solo.io.AccessLoggingService listener_level_access_logging_service = 7;
 }
 
 // Configuration for listener connection balancing.

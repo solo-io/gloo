@@ -48,6 +48,7 @@ to be usable by Gloo. (plugins currently need to be compiled into Gloo)
 "socketOptions": []solo.io.envoy.api.v2.core.SocketOption
 "proxyProtocol": .proxy_protocol.options.gloo.solo.io.ProxyProtocol
 "connectionBalanceConfig": .gloo.solo.io.ConnectionBalanceConfig
+"listenerLevelAccessLoggingService": .als.options.gloo.solo.io.AccessLoggingService
 
 ```
 
@@ -59,6 +60,7 @@ to be usable by Gloo. (plugins currently need to be compiled into Gloo)
 | `socketOptions` | [[]solo.io.envoy.api.v2.core.SocketOption](../../../../../../solo-kit/api/external/envoy/api/v2/core/socket_option.proto.sk/#socketoption) | Additional socket options that may not be present in Envoy source code or precompiled binaries. |
 | `proxyProtocol` | [.proxy_protocol.options.gloo.solo.io.ProxyProtocol](../options/proxy_protocol/proxy_protocol.proto.sk/#proxyprotocol) | Enable ProxyProtocol support for this listener. |
 | `connectionBalanceConfig` | [.gloo.solo.io.ConnectionBalanceConfig](../options.proto.sk/#connectionbalanceconfig) | Configuration for listener connection balancing. |
+| `listenerLevelAccessLoggingService` | [.als.options.gloo.solo.io.AccessLoggingService](../options/als/als.proto.sk/#accessloggingservice) |  |
 
 
 

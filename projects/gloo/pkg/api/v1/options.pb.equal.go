@@ -113,6 +113,16 @@ func (m *ListenerOptions) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetListenerLevelAccessLoggingService()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetListenerLevelAccessLoggingService()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetListenerLevelAccessLoggingService(), target.GetListenerLevelAccessLoggingService()) {
+			return false
+		}
+	}
+
 	return true
 }
 

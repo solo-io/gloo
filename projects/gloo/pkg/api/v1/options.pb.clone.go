@@ -164,6 +164,12 @@ func (m *ListenerOptions) Clone() proto.Message {
 		target.ConnectionBalanceConfig = proto.Clone(m.GetConnectionBalanceConfig()).(*ConnectionBalanceConfig)
 	}
 
+	if h, ok := interface{}(m.GetListenerLevelAccessLoggingService()).(clone.Cloner); ok {
+		target.ListenerLevelAccessLoggingService = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_als.AccessLoggingService)
+	} else {
+		target.ListenerLevelAccessLoggingService = proto.Clone(m.GetListenerLevelAccessLoggingService()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_als.AccessLoggingService)
+	}
+
 	return target
 }
 
