@@ -25,6 +25,7 @@ type helmGateway struct {
 	Xds *helmXds `json:"xds,omitempty"`
 }
 
+// helmPort represents a Gateway Listener port
 type helmPort struct {
 	Port       *uint16 `json:"port,omitempty"`
 	Protocol   *string `json:"protocol,omitempty"`
@@ -40,6 +41,8 @@ type helmImage struct {
 	PullPolicy *string `json:"pullPolicy,omitempty"`
 }
 
+// helmXds represents the xds host and port to which envoy will connect
+// to receive xds config updates
 type helmXds struct {
 	Host *string `json:"host,omitempty"`
 	Port *int32  `json:"port,omitempty"`

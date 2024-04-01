@@ -141,7 +141,7 @@ func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway) *helmConfig {
 				Host: &d.inputs.ControlPlane.Kube.XdsHost,
 				Port: &d.inputs.ControlPlane.Kube.XdsPort,
 			},
-			Image: getDeployerImageValues(),
+			Image: getDeployerImageValues(ctx),
 			IstioSDS: &helmIstioSds{
 				Enabled: &d.inputs.IstioValues.SDSEnabled,
 			},
