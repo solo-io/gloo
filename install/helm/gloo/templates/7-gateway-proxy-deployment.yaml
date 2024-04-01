@@ -25,6 +25,7 @@
 {{- end }}
 {{- $statsConfig := coalesce $spec.stats $global.glooStats }}
 {{- if not $spec.disabled }}
+---
 apiVersion: apps/v1
 {{- if $spec.kind.deployment}}
 kind: Deployment
@@ -521,7 +522,6 @@ spec:
 {{- if .Values.gateway.enabled }}
 {{- range $name, $gatewaySpec := .Values.gatewayProxies }}
 {{- /* Render each gatewayProxy template with it's yaml overrides */}}
----
 {{- $kubeResourceOverride := $gatewaySpec.kubeResourceOverride  }}
 {{- $ctx := (list $ $name $gatewaySpec)}}
 {{- include "gloo.util.merge" (list $ctx $kubeResourceOverride "gatewayProxy.deploymentSpec") -}}
