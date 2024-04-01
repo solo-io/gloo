@@ -82,7 +82,7 @@ func NewDeployer(cli client.Client, inputs *Inputs) (*Deployer, error) {
 
 // GetGvksToWatch returns the list of GVKs that the deployer will watch for
 func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKind, error) {
-	fakeGw := &api.Gateway{
+	emptyGw := &api.Gateway{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "default",
 			Namespace: "default",
@@ -107,7 +107,7 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 		},
 	}
 
-	objs, err := d.renderChartToObjects(ctx, fakeGw, vals)
+	objs, err := d.renderChartToObjects(ctx, emptyGw, vals)
 	if err != nil {
 		return nil, err
 	}

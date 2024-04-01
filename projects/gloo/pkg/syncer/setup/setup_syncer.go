@@ -141,8 +141,7 @@ type setupSyncer struct {
 	runFunc                  RunFunc
 	makeGrpcServer           func(ctx context.Context, options ...grpc.ServerOption) *grpc.Server
 	previousXdsServer        grpcServer
-	previousXdsHost          string
-	previousXdsPort          int32
+	previousControlPlane     bootstrap.ControlPlane
 	previousValidationServer grpcServer
 	previousProxyDebugServer grpcServer
 	controlPlane             bootstrap.ControlPlane
@@ -341,8 +340,8 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 
 	// check if we need to restart the control plane
 	if xdsBindAddr != s.previousXdsServer.addr ||
-		xdsHost != s.previousXdsHost ||
-		xdsPort != s.previousXdsPort {
+		xdsHost != s.previousControlPlane.Kube.XdsHost ||
+		xdsPort != s.previousControlPlane.Kube.XdsPort {
 		if s.previousXdsServer.cancel != nil {
 			s.previousXdsServer.cancel()
 			s.previousXdsServer.cancel = nil
@@ -380,8 +379,8 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 			bootstrap.KubernetesControlPlaneConfig{XdsHost: xdsHost, XdsPort: xdsPort}, callbacks, true)
 		s.previousXdsServer.cancel = cancel
 		s.previousXdsServer.addr = xdsBindAddr
-		s.previousXdsHost = xdsHost
-		s.previousXdsPort = xdsPort
+		s.previousControlPlane.Kube.XdsHost = xdsHost
+		s.previousControlPlane.Kube.XdsPort = xdsPort
 	}
 
 	// initialize the validation server context in this block either on the first loop, or if bind addr changed

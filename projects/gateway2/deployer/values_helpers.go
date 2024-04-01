@@ -24,12 +24,12 @@ func getPortsValues(gw *api.Gateway) []helmPort {
 		portName := string(l.Name)
 		protocol := "TCP"
 
-		var port helmPort
-		port.Port = &listenerPort
-		port.TargetPort = &targetPort
-		port.Name = &portName
-		port.Protocol = &protocol
-		gwPorts = append(gwPorts, port)
+		gwPorts = append(gwPorts, helmPort{
+			Port:       &listenerPort,
+			TargetPort: &targetPort,
+			Name:       &portName,
+			Protocol:   &protocol,
+		})
 	}
 	return gwPorts
 }
