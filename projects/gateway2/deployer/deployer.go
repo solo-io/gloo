@@ -129,7 +129,7 @@ func (d *Deployer) renderChartToObjects(ctx context.Context, gw *api.Gateway, va
 	return objs, nil
 }
 
-func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway) (*helmConfig, error) {
+func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway) *helmConfig {
 	vals := &helmConfig{
 		Gateway: &helmGateway{
 			Name:        &gw.Name,
@@ -148,7 +148,7 @@ func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway) (*helmConfig,
 		},
 	}
 
-	return vals, nil
+	return vals
 }
 
 func (d *Deployer) Render(ctx context.Context, name, ns string, vals map[string]any) ([]client.Object, error) {
@@ -163,12 +163,12 @@ func (d *Deployer) Render(ctx context.Context, name, ns string, vals map[string]
 	client.ClientOnly = true
 	release, err := client.RunWithContext(ctx, d.chart, vals)
 	if err != nil {
-		return nil, fmt.Errorf("failed to render helm chart: %w", err)
+		return nil, fmt.Errorf("failed to render helm chart for gateway %s.%s: %w", ns, name, err)
 	}
 
 	objs, err := ConvertYAMLToObjects(d.cli.Scheme(), []byte(release.Manifest))
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert yaml to objects: %w", err)
+		return nil, fmt.Errorf("failed to convert helm manifest yaml to objects for gateway %s.%s: %w", ns, name, err)
 	}
 	return objs, nil
 }
@@ -176,10 +176,7 @@ func (d *Deployer) Render(ctx context.Context, name, ns string, vals map[string]
 func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]client.Object, error) {
 	logger := log.FromContext(ctx)
 
-	vals, err := d.getValues(ctx, gw)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get values to render objects: %w", err)
-	}
+	vals := d.getValues(ctx, gw)
 	logger.V(1).Info("got deployer helm values",
 		"gatewayName", gw.GetName(),
 		"gatewayNamespace", gw.GetNamespace(),
@@ -187,13 +184,13 @@ func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]clie
 
 	// convert to json for helm (otherwise go template fails, as the field names are uppercase)
 	var convertedVals map[string]any
-	err = jsonConvert(vals, &convertedVals)
+	err := jsonConvert(vals, &convertedVals)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert helm values: %w", err)
+		return nil, fmt.Errorf("failed to convert helm values for gateway %s.%s: %w", gw.GetNamespace(), gw.GetName(), err)
 	}
 	objs, err := d.renderChartToObjects(ctx, gw, convertedVals)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get objects to deploy: %w", err)
+		return nil, fmt.Errorf("failed to get objects to deploy for gateway %s.%s: %w", gw.GetNamespace(), gw.GetName(), err)
 	}
 
 	// Set owner ref
