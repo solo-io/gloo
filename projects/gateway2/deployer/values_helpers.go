@@ -38,7 +38,6 @@ func getDeployerImageValues() *helmImage {
 	image := os.Getenv(constants.GlooGatewayDeployerImage)
 	defaultImageValues := &helmImage{
 		// If tag is not defined, we fall back to the default behavior, which is to use that Chart version
-		//Tag: "",
 	}
 
 	if image == "" {

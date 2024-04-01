@@ -48,10 +48,10 @@ var _ = Describe("Deployer", func() {
 
 		gwc = &api.GatewayClass{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "gloo-gateway",
+				Name: wellknown.GatewayClassName,
 			},
 			Spec: api.GatewayClassSpec{
-				ControllerName: "solo.io/gloo-gateway",
+				ControllerName: wellknown.GatewayControllerName,
 			},
 		}
 		d, err = deployer.NewDeployer(newFakeClientWithObjs(gwc), &deployer.Inputs{
@@ -90,7 +90,7 @@ var _ = Describe("Deployer", func() {
 				APIVersion: "gateway.solo.io/v1beta1",
 			},
 			Spec: api.GatewaySpec{
-				GatewayClassName: "gloo-gateway",
+				GatewayClassName: wellknown.GatewayClassName,
 				Listeners: []api.Listener{
 					{
 						Name: "listener-1",

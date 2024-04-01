@@ -11,58 +11,46 @@ import (
 	"strings"
 	"time"
 
-	"github.com/solo-io/gloo/projects/gateway2/extensions"
-
-	"golang.org/x/sync/errgroup"
-
-	"github.com/solo-io/gloo/projects/gloo/constants"
-
-	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/debug"
-
-	"github.com/solo-io/gloo/projects/gateway/pkg/services/k8sadmission"
-
-	gwreconciler "github.com/solo-io/gloo/projects/gateway/pkg/reconciler"
-	gwsyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
-	gwvalidation "github.com/solo-io/gloo/projects/gateway/pkg/validation"
-
-	"github.com/solo-io/gloo/projects/gateway/pkg/utils/metrics"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
-	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
-
-	gloostatusutils "github.com/solo-io/gloo/pkg/utils/statusutils"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
-	syncerValidation "github.com/solo-io/gloo/projects/gloo/pkg/syncer/validation"
-
 	"github.com/golang/protobuf/ptypes/duration"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	consulapi "github.com/hashicorp/consul/api"
 	vaultapi "github.com/hashicorp/vault/api"
+	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	"github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/pkg/utils/channelutils"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
+	gloostatusutils "github.com/solo-io/gloo/pkg/utils/statusutils"
 	gateway "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gwdefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	gwreconciler "github.com/solo-io/gloo/projects/gateway/pkg/reconciler"
+	"github.com/solo-io/gloo/projects/gateway/pkg/services/k8sadmission"
+	gwsyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
 	gwtranslator "github.com/solo-io/gloo/projects/gateway/pkg/translator"
+	"github.com/solo-io/gloo/projects/gateway/pkg/utils/metrics"
+	gwvalidation "github.com/solo-io/gloo/projects/gateway/pkg/validation"
+	"github.com/solo-io/gloo/projects/gateway2/extensions"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	rlv1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
+	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	bootstrap_clients "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/clients"
+	"github.com/solo-io/gloo/projects/gloo/pkg/debug"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/discovery"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	consulplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	extauthExt "github.com/solo-io/gloo/projects/gloo/pkg/syncer/extauth"
 	ratelimitExt "github.com/solo-io/gloo/projects/gloo/pkg/syncer/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
+	syncerValidation "github.com/solo-io/gloo/projects/gloo/pkg/syncer/validation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/consul"
@@ -83,7 +71,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/prototime"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -159,6 +149,25 @@ type setupSyncer struct {
 	validationServer         bootstrap.ValidationServer
 	proxyDebugServer         bootstrap.ProxyDebugServer
 	callbacks                xdsserver.Callbacks
+}
+
+func NewControlPlane(ctx context.Context, grpcServer *grpc.Server, bindAddr net.Addr, kubeControlPlaneCfg bootstrap.KubernetesControlPlaneConfig,
+	callbacks xdsserver.Callbacks, start bool) bootstrap.ControlPlane {
+	snapshotCache := xds.NewAdsSnapshotCache(ctx)
+	xdsServer := server.NewServer(ctx, snapshotCache, callbacks)
+	reflection.Register(grpcServer)
+
+	return bootstrap.ControlPlane{
+		GrpcService: &bootstrap.GrpcService{
+			GrpcServer:      grpcServer,
+			StartGrpcServer: start,
+			BindAddr:        bindAddr,
+			Ctx:             ctx,
+		},
+		SnapshotCache: snapshotCache,
+		XDSServer:     xdsServer,
+		Kube:          kubeControlPlaneCfg,
+	}
 }
 
 func NewValidationServer(ctx context.Context, grpcServer *grpc.Server, bindAddr net.Addr, start bool) bootstrap.ValidationServer {
