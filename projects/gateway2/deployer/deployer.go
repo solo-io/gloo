@@ -180,7 +180,10 @@ func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]clie
 	if err != nil {
 		return nil, fmt.Errorf("failed to get values to render objects: %w", err)
 	}
-	logger.V(1).Info("got deployer helm values", "values", vals)
+	logger.V(1).Info("got deployer helm values",
+		"gatewayName", gw.GetName(),
+		"gatewayNamespace", gw.GetNamespace(),
+		"values", vals)
 
 	// convert to json for helm (otherwise go template fails, as the field names are uppercase)
 	var convertedVals map[string]any
