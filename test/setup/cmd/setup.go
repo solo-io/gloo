@@ -11,19 +11,18 @@ import (
 	"sync"
 
 	errors "github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/test/setup/defaults"
-	"github.com/solo-io/gloo/test/setup/types"
-	"github.com/solo-io/go-utils/contextutils"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	corev1 "k8s.io/api/core/v1"
-
 	"github.com/solo-io/gloo/test/setup/config"
 	"github.com/solo-io/gloo/test/setup/helm"
 	"github.com/solo-io/gloo/test/setup/helpers"
 	"github.com/solo-io/gloo/test/setup/istio"
 	"github.com/solo-io/gloo/test/setup/kind"
 	"github.com/solo-io/gloo/test/setup/kubernetes"
+	"github.com/solo-io/gloo/test/setup/types"
+	"github.com/solo-io/gloo/test/testutils"
+	"github.com/solo-io/go-utils/contextutils"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	corev1 "k8s.io/api/core/v1"
 )
 
 type options struct {
@@ -71,8 +70,8 @@ func setupFunc(ctx context.Context, opts *options) error {
 	}
 
 	var istioctlBinary string
-	if os.Getenv(defaults.IstioctlVersionEnv) != "" {
-		istioctlBinary, err = istio.DownloadIstio(ctx, os.Getenv(defaults.IstioctlVersionEnv))
+	if os.Getenv(testutils.IstioctlVersionEnv) != "" {
+		istioctlBinary, err = istio.DownloadIstio(ctx, os.Getenv(testutils.IstioctlVersionEnv))
 		if err != nil {
 			return fmt.Errorf("failed to download istio: %w", err)
 		}

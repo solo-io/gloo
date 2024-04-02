@@ -7,11 +7,12 @@ import (
 	"os"
 	"strings"
 
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
+	"github.com/solo-io/gloo/test/testutils"
 	"sigs.k8s.io/yaml"
 
 	"github.com/solo-io/go-utils/contextutils"
 
-	"github.com/solo-io/gloo/test/setup/defaults"
 	"github.com/solo-io/gloo/test/setup/types"
 )
 
@@ -20,44 +21,37 @@ func Load(ctx context.Context, configPath string, reader io.Reader) (*types.Conf
 	var (
 		err    error
 		config types.Config
-		logger = contextutils.LoggerFrom(ctx)
 	)
 
-	if os.Getenv("CLUSTER_NAME") == "" {
-		os.Setenv("CLUSTER_NAME", "kind")
+	if os.Getenv(testutils.ClusterName) == "" {
+		os.Setenv(testutils.ClusterName, "kind")
 	}
 
-	if os.Getenv("VERSION") == "" {
+	if os.Getenv(testutils.Version) == "" {
 		// if version is not set, default to the dev version
-		os.Setenv("VERSION", "1.0.1-dev")
+		os.Setenv(testutils.Version, "1.0.1-dev")
 	}
 
 	// Can set defaults here for the process if ran directly from the command line.
 	//
 	// These will likely be set in make targets, but can't set defaults in the config
 	// file itself.
-	if os.Getenv("ISTIO_VERSION") == "" {
-		latestVersion := strings.Split(defaults.DefaultIstioTag, "-")
+	if os.Getenv(testutils.IstioVersion) == "" {
+		latestVersion := strings.Split(kubeutils.DefaultIstioTag, "-")
 		if len(latestVersion) == 0 {
 			panic("invalid default istio tag setting")
 		}
 
-		os.Setenv("ISTIO_VERSION", latestVersion[0])
+		os.Setenv(testutils.IstioVersion, latestVersion[0])
 	}
 
-	if os.Getenv("ISTIO_HUB") == "" {
-		os.Setenv("ISTIO_HUB", defaults.DefaultIstioImageRegistry)
+	if os.Getenv(testutils.IstioHub) == "" {
+		os.Setenv(testutils.IstioHub, kubeutils.DefaultIstioImageRegistry)
 	}
 
-	if os.Getenv("IMAGE_REGISTRY") == "" {
-		os.Setenv("IMAGE_REGISTRY", defaults.DefaultGlooImageRegistry)
+	if os.Getenv(testutils.ImageRegistry) == "" {
+		os.Setenv(testutils.ImageRegistry, kubeutils.DefaultGlooImageRegistry)
 	}
-
-	//if os.Getenv("VERSION") == "" {
-	//	os.Setenv("VERSION", helpers.Version())
-	//}
-
-	logger.Infof("Using Istio hub: %s version: %s", os.Getenv("ISTIO_HUB"), os.Getenv("ISTIO_VERSION"))
 
 	contents, err := readConfig(ctx, configPath, reader)
 	if err != nil {

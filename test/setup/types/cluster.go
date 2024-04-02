@@ -1,10 +1,11 @@
 package types
 
 import (
-	"github.com/solo-io/gloo/test/setup/helpers"
 	istiov1alpha1 "istio.io/istio/operator/pkg/apis/istio/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	kindv1alpha4 "sigs.k8s.io/kind/pkg/apis/config/v1alpha4"
+
+	"github.com/solo-io/gloo/pkg/utils/maputils"
 )
 
 type Cluster struct {
@@ -46,7 +47,7 @@ func (c *Cluster) UpdateChart(name string, values ...map[string]any) {
 		base := &c.Charts[i].Values
 
 		for _, value := range values {
-			*base = helpers.MergeValueMaps(*base, value)
+			*base = maputils.MergeValueMaps(*base, value)
 		}
 
 		(*c.Charts[i]).Values = *base
