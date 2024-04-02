@@ -28,7 +28,7 @@ const (
 	proxyOwnerKey = "gateway.solo.io/created_by"
 )
 
-type XdsSyncer struct {
+type ProxySyncer struct {
 	translator     translator.Translator
 	controllerName string
 
@@ -67,15 +67,15 @@ func NewGatewayInputChannels() *GatewayInputChannels {
 	}
 }
 
-func NewXdsSyncer(
+func NewProxySyncer(
 	controllerName string,
 	translator translator.Translator,
 	inputs *GatewayInputChannels,
 	mgr manager.Manager,
 	k8sGwExtensions extensions.K8sGatewayExtensions,
 	proxyClient gloo_solo_io.ProxyClient,
-) *XdsSyncer {
-	return &XdsSyncer{
+) *ProxySyncer {
+	return &ProxySyncer{
 		controllerName:  controllerName,
 		translator:      translator,
 		inputs:          inputs,
@@ -85,7 +85,7 @@ func NewXdsSyncer(
 	}
 }
 
-func (s *XdsSyncer) Start(ctx context.Context) error {
+func (s *ProxySyncer) Start(ctx context.Context) error {
 	ctx = contextutils.WithLogger(ctx, "k8s-gw-syncer")
 
 	var (
@@ -139,7 +139,7 @@ func (s *XdsSyncer) Start(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			contextutils.LoggerFrom(ctx).Debug("context done, stopping syncer")
+			contextutils.LoggerFrom(ctx).Debug("context done, stopping proxy syncer")
 			return nil
 		case <-s.inputs.genericEvent.Next():
 			resyncProxies()
@@ -153,7 +153,7 @@ func (s *XdsSyncer) Start(ctx context.Context) error {
 	}
 }
 
-func (s *XdsSyncer) syncRouteStatus(ctx context.Context, rm reports.ReportMap) {
+func (s *ProxySyncer) syncRouteStatus(ctx context.Context, rm reports.ReportMap) {
 	ctx = contextutils.WithLogger(ctx, "routeStatusSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	rl := apiv1.HTTPRouteList{}
@@ -174,7 +174,8 @@ func (s *XdsSyncer) syncRouteStatus(ctx context.Context, rm reports.ReportMap) {
 	}
 }
 
-func (s *XdsSyncer) syncStatus(ctx context.Context, rm reports.ReportMap, gwl apiv1.GatewayList) {
+// syncStatus updates the status of the Gateway CRs
+func (s *ProxySyncer) syncStatus(ctx context.Context, rm reports.ReportMap, gwl apiv1.GatewayList) {
 	ctx = contextutils.WithLogger(ctx, "statusSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	for _, gw := range gwl.Items {
@@ -191,7 +192,7 @@ func (s *XdsSyncer) syncStatus(ctx context.Context, rm reports.ReportMap, gwl ap
 // reconcileProxies persists the proxies that were generated during translations and stores them in an in-memory cache
 // This cache is utilized by the debug.ProxyEndpointServer
 // As well as to resync the Gloo Xds Translator (when it receives new proxies using a MultiResourceClient)
-func (s *XdsSyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_io.ProxyList) {
+func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_io.ProxyList) {
 	ctx = contextutils.WithLogger(ctx, "proxyCache")
 	logger := contextutils.LoggerFrom(ctx)
 

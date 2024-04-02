@@ -91,7 +91,8 @@ func Start(ctx context.Context, cfg StartConfig) error {
 		return err
 	}
 
-	xdsSyncer := proxy_syncer.NewXdsSyncer(
+	// Create the proxy syncer for the Gateway API resources
+	proxySyncer := proxy_syncer.NewProxySyncer(
 		wellknown.GatewayControllerName,
 		glooTranslator,
 		inputChannels,
@@ -99,8 +100,8 @@ func Start(ctx context.Context, cfg StartConfig) error {
 		k8sGwExtensions,
 		cfg.ProxyClient,
 	)
-	if err := mgr.Add(xdsSyncer); err != nil {
-		setupLog.Error(err, "unable to add xdsSyncer runnable")
+	if err := mgr.Add(proxySyncer); err != nil {
+		setupLog.Error(err, "unable to add proxySyncer runnable")
 		return err
 	}
 
