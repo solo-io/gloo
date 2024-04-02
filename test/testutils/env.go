@@ -68,6 +68,24 @@ const (
 	// This is an optional value, so if it is not set, the test suite will use the locally built version of Gloo Edge
 	ReleasedVersion = "RELEASED_VERSION"
 
+	// Version is the Gloo Edge version set in makefile or overwritten in env to use for tests (ie '1.0.1-dev')
+	Version = "VERSION"
+
+	// Cluster name to use in tests
+	ClusterName = "CLUSTER_NAME"
+
+	// Image registry to use in tests
+	ImageRegistry = "IMAGE_REGISTRY"
+
+	// Istio version to use in tests
+	IstioVersion = "ISTIO_VERSION"
+
+	// Istio hub to use in tests
+	IstioHub = "ISTIO_HUB"
+
+	// Istioctl version to use in tests
+	IstioctlVersionEnv = "ISTIOCTL_VERSION"
+
 	// Istio auto mtls
 	IstioAutoMtls = "ISTIO_AUTO_MTLS"
 
