@@ -2,26 +2,29 @@ package install
 
 import (
 	"bytes"
-	"fmt"
+	"context"
+	"github.com/solo-io/gloo/pkg/cliutil"
+	"github.com/solo-io/gloo/pkg/cliutil/kubectl"
 	"io"
 	"os"
-	"os/exec"
-
-	"github.com/solo-io/gloo/pkg/cliutil"
 )
 
+// Deprecated: Prefer kubectl.Kubectl
 func KubectlApply(manifest []byte, extraArgs ...string) error {
 	return Kubectl(bytes.NewBuffer(manifest), append([]string{"apply", "-f", "-"}, extraArgs...)...)
 }
 
+// Deprecated: Prefer kubectl.Kubectl
 func KubectlApplyOut(manifest []byte, extraArgs ...string) ([]byte, error) {
 	return KubectlOut(bytes.NewBuffer(manifest), append([]string{"apply", "-f", "-"}, extraArgs...)...)
 }
 
+// Deprecated: Prefer kubectl.Kubectl
 func KubectlDelete(manifest []byte, extraArgs ...string) error {
 	return Kubectl(bytes.NewBuffer(manifest), append([]string{"delete", "-f", "-"}, extraArgs...)...)
 }
 
+// Deprecated: Prefer kubectl.Kubectl
 type KubeCli interface {
 	Kubectl(stdin io.Reader, args ...string) error
 	KubectlOut(stdin io.Reader, args ...string) ([]byte, error)
@@ -45,49 +48,31 @@ func SetVerbose(b bool) {
 	verbose = b
 }
 
+// Deprecated: Prefer kubectl.Kubectl
 func Kubectl(stdin io.Reader, args ...string) error {
-	kubectl := exec.Command("kubectl", args...)
-	if stdin != nil {
-		kubectl.Stdin = stdin
-	}
-	if verbose {
-		fmt.Fprintf(os.Stderr, "running kubectl command: %v\n", kubectl.Args)
-		kubectl.Stdout = os.Stdout
-		kubectl.Stderr = os.Stderr
-	} else {
-		// use logfile
-		cliutil.Initialize()
-		kubectl.Stdout = cliutil.GetLogger()
-		kubectl.Stderr = cliutil.GetLogger()
-	}
-	return kubectl.Run()
+	_, err := KubectlOut(stdin, args...)
+	return err
 }
 
+// Deprecated: Prefer kubectl.Kubectl
 func KubectlOut(stdin io.Reader, args ...string) ([]byte, error) {
-	kubectl := exec.Command("kubectl", args...)
+	var outWriter, errWriter io.Writer
 
-	if stdin != nil {
-		kubectl.Stdin = stdin
-	}
-
-	var stdout, stderr io.Writer
 	if verbose {
-		fmt.Fprintf(os.Stderr, "running kubectl command: %v\n", kubectl.Args)
-		stdout = os.Stdout
-		stderr = os.Stderr
+		outWriter = os.Stdout
+		errWriter = os.Stderr
 	} else {
 		// use logfile
 		cliutil.Initialize()
-		stdout = cliutil.GetLogger()
-		stderr = cliutil.GetLogger()
+		outWriter = cliutil.GetLogger()
+		errWriter = cliutil.GetLogger()
 	}
 
-	buf := &bytes.Buffer{}
+	cli, err := kubectl.NewKubectl(outWriter, errWriter)
+	if err != nil {
+		return nil, err
+	}
+	stdout, err := cli.ExecuteSafe(context.Background(), stdin, args...)
 
-	kubectl.Stdout = io.MultiWriter(stdout, buf)
-	kubectl.Stderr = io.MultiWriter(stderr, buf)
-
-	err := kubectl.Run()
-
-	return buf.Bytes(), err
+	return []byte(stdout), err
 }
