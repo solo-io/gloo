@@ -134,7 +134,7 @@ func KubeClientWithKubecontext(kubecontext string) (kubernetes.Interface, error)
 		return fakeKubeClientset, nil
 	}
 	if clientset == nil {
-		cfg, err := kubeutils.GetRestConfigWithContext(kubecontext)
+		cfg, err := kubeutils.GetRestConfigWithKubeContext(kubecontext)
 		if err != nil {
 			return nil, errors.Wrapf(err, "getting kube config")
 		}
@@ -229,7 +229,7 @@ func UpstreamClient(ctx context.Context, namespaces []string) (v1.UpstreamClient
 	}
 
 	kubecontext := contextoptions.KubecontextFrom(ctx)
-	cfg, err := kubeutils.GetRestConfigWithContext(kubecontext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(kubecontext)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting kube config")
 	}
@@ -273,7 +273,7 @@ func UpstreamGroupClient(ctx context.Context, namespaces []string) (v1.UpstreamG
 	}
 
 	kubecontext := contextoptions.KubecontextFrom(ctx)
-	cfg, err := kubeutils.GetRestConfigWithContext(kubecontext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(kubecontext)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting kube config")
 	}
@@ -316,7 +316,7 @@ func ProxyClient(ctx context.Context, namespaces []string) (v1.ProxyClient, erro
 		return v1.NewProxyClient(ctx, customFactory)
 	}
 	kubecontext := contextoptions.KubecontextFrom(ctx)
-	cfg, err := kubeutils.GetRestConfigWithContext(kubecontext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(kubecontext)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting kube config")
 	}
@@ -360,7 +360,7 @@ func GatewayClient(ctx context.Context, namespaces []string) (gatewayv1.GatewayC
 	}
 	kubecontext := contextoptions.KubecontextFrom(ctx)
 
-	cfg, err := kubeutils.GetRestConfigWithContext(kubecontext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(kubecontext)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting kube config")
 	}
@@ -404,7 +404,7 @@ func VirtualServiceClient(ctx context.Context, namespaces []string) (gatewayv1.V
 	}
 	kubecontext := contextoptions.KubecontextFrom(ctx)
 
-	cfg, err := kubeutils.GetRestConfigWithContext(kubecontext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(kubecontext)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting kube config")
 	}
@@ -448,7 +448,7 @@ func RouteTableClient(ctx context.Context, namespaces []string) (gatewayv1.Route
 	}
 	kubecontext := contextoptions.KubecontextFrom(ctx)
 
-	cfg, err := kubeutils.GetRestConfigWithContext(kubecontext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(kubecontext)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting kube config")
 	}
@@ -492,7 +492,7 @@ func SettingsClient(ctx context.Context, namespaces []string) (v1.SettingsClient
 	}
 	kubecontext := contextoptions.KubecontextFrom(ctx)
 
-	cfg, err := kubeutils.GetRestConfigWithContext(kubecontext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(kubecontext)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting kube config")
 	}
@@ -574,7 +574,7 @@ func GetKubernetesClientWithTimeout(timeout time.Duration, kubecontext string) (
 }
 
 func getKubernetesConfig(timeout time.Duration, kubecontext string) (*rest.Config, error) {
-	config, err := kubeutils.GetRestConfigWithContext(kubecontext)
+	config, err := kubeutils.GetRestConfigWithKubeContext(kubecontext)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Kubernetes configuration: %v \n", err)
 	}
@@ -596,7 +596,7 @@ func MustApiExtsClient() apiexts.Interface {
 }
 
 func ApiExtsClient() (apiexts.Interface, error) {
-	cfg, err := kubeutils.GetRestConfigWithContext("")
+	cfg, err := kubeutils.GetRestConfigWithKubeContext("")
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting kube config")
 	}
@@ -627,7 +627,7 @@ func AuthConfigClient(ctx context.Context, namespaces []string) (extauth.AuthCon
 	}
 
 	kubecontext := contextoptions.KubecontextFrom(ctx)
-	cfg, err := kubeutils.GetRestConfigWithContext(kubecontext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(kubecontext)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting kube config")
 	}
@@ -666,7 +666,7 @@ func RateLimitConfigClient(ctx context.Context, namespaces []string) (v1alpha1.R
 		return v1alpha1.NewRateLimitConfigClient(ctx, customFactory)
 	}
 	kubecontext := contextoptions.KubecontextFrom(ctx)
-	cfg, err := kubeutils.GetRestConfigWithContext(kubecontext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(kubecontext)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting kube config")
 	}
@@ -709,7 +709,7 @@ func VirtualHostOptionClient(ctx context.Context, namespaces []string) (gatewayv
 	}
 
 	kubecontext := contextoptions.KubecontextFrom(ctx)
-	cfg, err := kubeutils.GetRestConfigWithContext(kubecontext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(kubecontext)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting kube config")
 	}
@@ -752,7 +752,7 @@ func RouteOptionClient(ctx context.Context, namespaces []string) (gatewayv1.Rout
 	}
 
 	kubecontext := contextoptions.KubecontextFrom(ctx)
-	cfg, err := kubeutils.GetRestConfigWithContext(kubecontext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(kubecontext)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting kube config")
 	}

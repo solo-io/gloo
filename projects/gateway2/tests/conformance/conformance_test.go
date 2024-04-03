@@ -37,7 +37,7 @@ import (
 )
 
 func TestConformance(t *testing.T) {
-	cfg, err := kubeutils.GetRestConfigWithContext("")
+	cfg, err := kubeutils.GetRestConfigWithKubeContext("")
 	if err != nil {
 		t.Fatalf("Error loading Kubernetes config: %v", err)
 	}

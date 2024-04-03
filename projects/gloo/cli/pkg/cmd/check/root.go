@@ -1001,7 +1001,7 @@ func isCrdNotFoundErr(crd crd.Crd, err error) bool {
 
 // copied from projects/gloo/cli/pkg/cmd/install/v2/install.go (TODO: dedupe/clean up)
 func detectCrdsV2(kubeContext string) bool {
-	cfg, err := kubeutils.GetRestConfigWithContext(kubeContext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(kubeContext)
 	if err != nil {
 		return false
 	}

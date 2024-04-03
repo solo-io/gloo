@@ -37,7 +37,7 @@ func CheckMulticlusterResources(ctx context.Context, printer printers.P, opts *o
 		return
 	}
 
-	cfg, err := kubeutils.GetRestConfigWithContext(opts.Top.KubeContext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(opts.Top.KubeContext)
 	if err != nil {
 		fmt.Printf("Warning: could not get kubernetes config to check multicluster resources: %v. "+
 			"Skipping Gloo Instance check.\n", err)

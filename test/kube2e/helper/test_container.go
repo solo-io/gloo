@@ -49,7 +49,7 @@ type TestUpstreamServer interface {
 }
 
 func newTestContainer(namespace, imageTag, echoName string, port int32) (*testContainer, error) {
-	cfg, err := kubeutils.GetRestConfigWithContext("")
+	cfg, err := kubeutils.GetRestConfigWithKubeContext("")
 	if err != nil {
 		return nil, err
 	}

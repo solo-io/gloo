@@ -50,7 +50,7 @@ type KubeResourceClientSet struct {
 }
 
 func NewDefaultKubeResourceClientSet(ctx context.Context) (*KubeResourceClientSet, error) {
-	cfg, err := kubeutils.GetRestConfigWithContext("")
+	cfg, err := kubeutils.GetRestConfigWithKubeContext("")
 	if err != nil {
 		return nil, err
 	}

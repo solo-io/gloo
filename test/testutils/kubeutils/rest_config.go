@@ -19,7 +19,7 @@ func MustRestConfig() *rest.Config {
 func MustRestConfigWithContext(kubeContext string) *rest.Config {
 	ginkgo.GinkgoHelper()
 
-	restConfig, err := kubeutils.GetRestConfigWithContext(kubeContext)
+	restConfig, err := kubeutils.GetRestConfigWithKubeContext(kubeContext)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 	return restConfig

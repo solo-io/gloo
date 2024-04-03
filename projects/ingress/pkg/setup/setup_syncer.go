@@ -165,7 +165,7 @@ func RunIngress(opts Opts) error {
 			"basic kubernetes ingress. set DISABLE_KUBE_INGRESS=0 or ENABLE_KNATIVE_INGRESS=1")
 	}
 
-	cfg, err := kubeutils.GetRestConfigWithContext("")
+	cfg, err := kubeutils.GetRestConfigWithKubeContext("")
 	if err != nil {
 		return errors.Wrapf(err, "getting kube config")
 	}

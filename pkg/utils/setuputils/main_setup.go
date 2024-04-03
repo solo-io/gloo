@@ -112,7 +112,7 @@ func fileOrKubeSettingsClient(ctx context.Context, setupNamespace, settingsDir s
 		})
 	}
 
-	cfg, err := kubeutils.GetRestConfigWithContext("")
+	cfg, err := kubeutils.GetRestConfigWithKubeContext("")
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func startLeaderElection(ctx context.Context, settingsDir string, electionConfig
 		return singlereplica.NewElectionFactory().StartElection(ctx, electionConfig)
 	}
 
-	cfg, err := kubeutils.GetRestConfigWithContext("")
+	cfg, err := kubeutils.GetRestConfigWithKubeContext("")
 	if err != nil {
 		return nil, err
 	}
