@@ -90,11 +90,18 @@ func HaveHttpResponse(expected *HttpResponse) types.GomegaMatcher {
 	}
 
 	var partialResponseMatchers []types.GomegaMatcher
-	partialResponseMatchers = append(partialResponseMatchers, &matchers.HaveHTTPStatusMatcher{
-		Expected: []interface{}{
-			expected.StatusCode,
-		},
-	})
+	if expected.StatusCode != 0 {
+		partialResponseMatchers = append(partialResponseMatchers, &matchers.HaveHTTPStatusMatcher{
+			Expected: []interface{}{
+				expected.StatusCode,
+			},
+		})
+	} else {
+		// It is rare, but we allow developers to disable checking the http.Response status code
+		// This can be necessary in cases where the response from a curl, does not follow the standard
+		// http.Response format
+	}
+
 	partialResponseMatchers = append(partialResponseMatchers, &matchers.HaveHTTPBodyMatcher{
 		Expected: expectedBody,
 	})

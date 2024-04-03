@@ -3,7 +3,6 @@ package helper
 import (
 	"bytes"
 	"io"
-	"net/http"
 	"strings"
 	"time"
 
@@ -108,8 +107,9 @@ func (t *testContainer) CurlEventuallyShouldOutput(opts CurlOpts, substr string,
 		}
 
 		g.Expect(res).To(WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(&matchers.HttpResponse{
-			Body:       ContainSubstring(substr),
-			StatusCode: http.StatusOK,
+			Body: ContainSubstring(substr),
+			// We do not validate the StatusCode for this response, since the testserver doesn't return data in a standard format
+			StatusCode: 0,
 		})))
 		if opts.LogResponses {
 			log.GreyPrintf("success: %v", res)
@@ -145,8 +145,9 @@ func (t *testContainer) CurlEventuallyShouldRespond(opts CurlOpts, substr string
 		}
 
 		g.Expect(res).To(WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(&matchers.HttpResponse{
-			Body:       ContainSubstring(substr),
-			StatusCode: http.StatusOK,
+			Body: ContainSubstring(substr),
+			// We do not validate the StatusCode for this response, since the testserver doesn't return data in a standard format
+			StatusCode: 0,
 		})))
 		if opts.LogResponses {
 			log.GreyPrintf("success: %v", res)
