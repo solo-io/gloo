@@ -99,7 +99,7 @@ func ProcessAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoya
 
 		// Create and add the filter
 		filter := al.GetFilter()
-		err = translateFilter(&newAlsCfg, filter)
+		err = TranslateFilter(&newAlsCfg, filter)
 		if err != nil {
 			return nil, err
 		}
@@ -113,7 +113,7 @@ func ProcessAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoya
 }
 
 // Since we are using the same proto def, marshal out of gloo format and unmarshal into envoy format
-func translateFilter(accessLog *envoyal.AccessLog, inFilter *als.AccessLogFilter) error {
+func TranslateFilter(accessLog *envoyal.AccessLog, inFilter *als.AccessLogFilter) error {
 	if inFilter == nil {
 		return nil
 	}

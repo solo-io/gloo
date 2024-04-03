@@ -3,11 +3,7 @@ package translator
 import (
 	"fmt"
 	accesslogv3 "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
-	routev3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
-	matcherv3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
-	typev3 "github.com/envoyproxy/go-control-plane/envoy/type/v3"
-	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/route/v3"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
+	als2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/als"
 	"reflect"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -63,8 +59,13 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 
 	accessLogs := []*accesslogv3.AccessLog{}
 	for _, al := range l.listener.Options.AccessLoggingService.GetAccessLog() {
-		accessLog := &accesslogv3.AccessLog{
-			Filter: convertAccessLogFilter(al.GetFilter()),
+		accessLog := &accesslogv3.AccessLog{}
+		err := als2.TranslateFilter(accessLog, al.GetFilter())
+		if err != nil {
+			validation.AppendListenerError(l.report,
+				validationapi.ListenerReport_Error_ProcessingError,
+				err.Error())
+			continue
 		}
 
 		accessLogs = append(accessLogs, accessLog)
@@ -190,144 +191,4 @@ func CheckForFilterChainConsistency(filterChains []*envoy_config_listener_v3.Fil
 			}
 		}
 	}
-}
-
-func convertAccessLogFilter(alf *als.AccessLogFilter) *accesslogv3.AccessLogFilter {
-	filter := &accesslogv3.AccessLogFilter{}
-
-	switch filterSpecifier := alf.GetFilterSpecifier().(type) {
-	case *als.AccessLogFilter_StatusCodeFilter:
-		filter.FilterSpecifier = &accesslogv3.AccessLogFilter_StatusCodeFilter{
-			StatusCodeFilter: &accesslogv3.StatusCodeFilter{
-				Comparison: &accesslogv3.ComparisonFilter{
-					Op: accesslogv3.ComparisonFilter_Op(filterSpecifier.StatusCodeFilter.GetComparison().GetOp()),
-					Value: &envoy_config_core_v3.RuntimeUInt32{
-						DefaultValue: filterSpecifier.StatusCodeFilter.GetComparison().GetValue().GetDefaultValue(),
-						RuntimeKey:   filterSpecifier.StatusCodeFilter.GetComparison().GetValue().GetRuntimeKey(),
-					},
-				},
-			},
-		}
-	case *als.AccessLogFilter_DurationFilter:
-		filter.FilterSpecifier = &accesslogv3.AccessLogFilter_DurationFilter{
-			DurationFilter: &accesslogv3.DurationFilter{
-				Comparison: &accesslogv3.ComparisonFilter{
-					Op: accesslogv3.ComparisonFilter_Op(filterSpecifier.DurationFilter.GetComparison().GetOp()),
-					Value: &envoy_config_core_v3.RuntimeUInt32{
-						DefaultValue: filterSpecifier.DurationFilter.GetComparison().GetValue().GetDefaultValue(),
-						RuntimeKey:   filterSpecifier.DurationFilter.GetComparison().GetValue().GetRuntimeKey(),
-					},
-				},
-			},
-		}
-	case *als.AccessLogFilter_NotHealthCheckFilter:
-		filter.FilterSpecifier = &accesslogv3.AccessLogFilter_NotHealthCheckFilter{
-			NotHealthCheckFilter: &accesslogv3.NotHealthCheckFilter{},
-		}
-	case *als.AccessLogFilter_TraceableFilter:
-		filter.FilterSpecifier = &accesslogv3.AccessLogFilter_TraceableFilter{
-			TraceableFilter: &accesslogv3.TraceableFilter{},
-		}
-	case *als.AccessLogFilter_RuntimeFilter:
-		filter.FilterSpecifier = &accesslogv3.AccessLogFilter_RuntimeFilter{
-			RuntimeFilter: &accesslogv3.RuntimeFilter{
-				RuntimeKey: filterSpecifier.RuntimeFilter.GetRuntimeKey(),
-				PercentSampled: &typev3.FractionalPercent{
-					Numerator:   filterSpecifier.RuntimeFilter.GetPercentSampled().GetNumerator(),
-					Denominator: typev3.FractionalPercent_DenominatorType(filterSpecifier.RuntimeFilter.GetPercentSampled().GetDenominator()),
-				},
-				UseIndependentRandomness: filterSpecifier.RuntimeFilter.GetUseIndependentRandomness(),
-			},
-		}
-	case *als.AccessLogFilter_AndFilter:
-		var andAlfs []*accesslogv3.AccessLogFilter
-
-		for _, andAlf := range filterSpecifier.AndFilter.GetFilters() {
-			andAlfs = append(andAlfs, convertAccessLogFilter(andAlf))
-		}
-
-		filter.FilterSpecifier = &accesslogv3.AccessLogFilter_AndFilter{
-			AndFilter: &accesslogv3.AndFilter{
-				Filters: andAlfs,
-			},
-		}
-	case *als.AccessLogFilter_OrFilter:
-		var orAlfs []*accesslogv3.AccessLogFilter
-
-		for _, orAlf := range filterSpecifier.OrFilter.GetFilters() {
-			orAlfs = append(orAlfs, convertAccessLogFilter(orAlf))
-		}
-
-		filter.FilterSpecifier = &accesslogv3.AccessLogFilter_OrFilter{
-			OrFilter: &accesslogv3.OrFilter{
-				Filters: orAlfs,
-			},
-		}
-	case *als.AccessLogFilter_HeaderFilter:
-		filter.FilterSpecifier = &accesslogv3.AccessLogFilter_HeaderFilter{
-			HeaderFilter: &accesslogv3.HeaderFilter{
-				Header: &routev3.HeaderMatcher{
-					Name:        filterSpecifier.HeaderFilter.Header.GetName(),
-					InvertMatch: filterSpecifier.HeaderFilter.Header.GetInvertMatch(),
-				},
-			},
-		}
-
-		switch hms := filterSpecifier.HeaderFilter.Header.GetHeaderMatchSpecifier().(type) {
-		case *v3.HeaderMatcher_ExactMatch:
-			filter.GetFilterSpecifier().(*accesslogv3.AccessLogFilter_HeaderFilter).HeaderFilter.Header.HeaderMatchSpecifier = &routev3.HeaderMatcher_ExactMatch{
-				ExactMatch: hms.ExactMatch,
-			}
-		case *v3.HeaderMatcher_SafeRegexMatch:
-			filter.GetFilterSpecifier().(*accesslogv3.AccessLogFilter_HeaderFilter).HeaderFilter.Header.HeaderMatchSpecifier = &routev3.HeaderMatcher_SafeRegexMatch{
-				SafeRegexMatch: &matcherv3.RegexMatcher{
-					EngineType: &matcherv3.RegexMatcher_GoogleRe2{
-						GoogleRe2: &matcherv3.RegexMatcher_GoogleRE2{
-							MaxProgramSize: hms.SafeRegexMatch.GetGoogleRe2().GetMaxProgramSize(),
-						},
-					},
-					Regex: hms.SafeRegexMatch.GetRegex(),
-				},
-			}
-		case *v3.HeaderMatcher_RangeMatch:
-			filter.GetFilterSpecifier().(*accesslogv3.AccessLogFilter_HeaderFilter).HeaderFilter.Header.HeaderMatchSpecifier = &routev3.HeaderMatcher_RangeMatch{
-				RangeMatch: &typev3.Int64Range{
-					Start: hms.RangeMatch.GetStart(),
-					End:   hms.RangeMatch.GetEnd(),
-				},
-			}
-		case *v3.HeaderMatcher_PresentMatch:
-			filter.GetFilterSpecifier().(*accesslogv3.AccessLogFilter_HeaderFilter).HeaderFilter.Header.HeaderMatchSpecifier = &routev3.HeaderMatcher_PresentMatch{
-				PresentMatch: hms.PresentMatch,
-			}
-		case *v3.HeaderMatcher_PrefixMatch:
-			filter.GetFilterSpecifier().(*accesslogv3.AccessLogFilter_HeaderFilter).HeaderFilter.Header.HeaderMatchSpecifier = &routev3.HeaderMatcher_PrefixMatch{
-				PrefixMatch: hms.PrefixMatch,
-			}
-		case *v3.HeaderMatcher_SuffixMatch:
-			filter.GetFilterSpecifier().(*accesslogv3.AccessLogFilter_HeaderFilter).HeaderFilter.Header.HeaderMatchSpecifier = &routev3.HeaderMatcher_SuffixMatch{
-				SuffixMatch: hms.SuffixMatch,
-			}
-		}
-	case *als.AccessLogFilter_ResponseFlagFilter:
-		filter.FilterSpecifier = &accesslogv3.AccessLogFilter_ResponseFlagFilter{
-			ResponseFlagFilter: &accesslogv3.ResponseFlagFilter{
-				Flags: filterSpecifier.ResponseFlagFilter.GetFlags(),
-			},
-		}
-	case *als.AccessLogFilter_GrpcStatusFilter:
-		var statuses []accesslogv3.GrpcStatusFilter_Status
-		for _, inStatus := range filterSpecifier.GrpcStatusFilter.GetStatuses() {
-			statuses = append(statuses, accesslogv3.GrpcStatusFilter_Status(inStatus))
-		}
-
-		filter.FilterSpecifier = &accesslogv3.AccessLogFilter_GrpcStatusFilter{
-			GrpcStatusFilter: &accesslogv3.GrpcStatusFilter{
-				Statuses: statuses,
-				Exclude:  filterSpecifier.GrpcStatusFilter.GetExclude(),
-			},
-		}
-	}
-
-	return filter
 }
