@@ -128,11 +128,6 @@ func MustKubeClientWithKubecontext(kubecontext string) kubernetes.Interface {
 	return client
 }
 
-// KubeClient retrieves a kubeclient plausibly with some direction from env details
-func KubeClient() (kubernetes.Interface, error) {
-	return KubeClientWithKubecontext("")
-}
-
 // KubeClientWithKubecontext attempts to get a kubeclient given some string that denotes a way to retrieve kubecontext
 func KubeClientWithKubecontext(kubecontext string) (kubernetes.Interface, error) {
 	if fakeKubeClientset != nil {

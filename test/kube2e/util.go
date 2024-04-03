@@ -7,8 +7,6 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
-
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -28,7 +26,6 @@ import (
 	"go.uber.org/zap/zapcore"
 	admissionregv1 "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -45,14 +42,6 @@ func GetHttpEchoImage() string {
 		httpEchoImage = "gcr.io/solo-test-236622/http-echo"
 	}
 	return httpEchoImage
-}
-
-func MustKubeClient() kubernetes.Interface {
-	restConfig, err := kubeutils.GetRestConfigWithContext("")
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	kubeClient, err := kubernetes.NewForConfig(restConfig)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	return kubeClient
 }
 
 // GlooctlCheckEventuallyHealthy will run up until proved timeoutInterval or until gloo is reported as healthy
