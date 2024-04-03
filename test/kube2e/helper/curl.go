@@ -164,13 +164,11 @@ func (t *testContainer) buildCurlArgs(opts CurlOpts) []string {
 	if opts.WithoutStats {
 		curlRequestBuilder.WithoutStats()
 	}
-	if opts.ConnectionTimeout > 0 {
-		curlRequestBuilder.WithConnectionTimeout(opts.ConnectionTimeout)
-	}
 	if opts.ReturnHeaders {
 		curlRequestBuilder.WithReturnHeaders()
 	}
 
+	curlRequestBuilder.WithConnectionTimeout(opts.ConnectionTimeout)
 	curlRequestBuilder.WithMethod(opts.Method)
 	curlRequestBuilder.WithHost(opts.Host)
 	curlRequestBuilder.WithCaFile(opts.CaFile)
@@ -204,7 +202,9 @@ func (t *testContainer) buildCurlArgs(opts CurlOpts) []string {
 	if opts.SelfSigned {
 		curlRequestBuilder.SelfSigned()
 	}
-	curlRequestBuilder.WithSni(opts.Sni)
+	if opts.Sni != "" {
+		curlRequestBuilder.WithSni(opts.Sni)
+	}
 
 	args := curlRequestBuilder.BuildArgs()
 	log.Printf("running: %v", strings.Join(args, " "))
