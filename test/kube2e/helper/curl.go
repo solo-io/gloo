@@ -2,7 +2,7 @@ package helper
 
 import (
 	"bytes"
-	"fmt"
+	"github.com/solo-io/gloo/test/testutils"
 	"io"
 	"strings"
 	"time"
@@ -144,64 +144,57 @@ func (t *testContainer) CurlEventuallyShouldRespond(opts CurlOpts, substr string
 }
 
 func (t *testContainer) buildCurlArgs(opts CurlOpts) []string {
-	args := []string{"curl"}
+	curlRequestBuilder := testutils.DefaultCurlRequestBuilder()
+
 	if opts.Verbose {
-		args = append(args, "-v")
+		curlRequestBuilder.VerboseOutput()
 	}
 	if opts.WithoutStats {
-		args = append(args, "-s")
+		curlRequestBuilder.WithoutStats()
 	}
 	if opts.ConnectionTimeout > 0 {
-		seconds := fmt.Sprintf("%v", opts.ConnectionTimeout)
-		args = append(args, "--connect-timeout", seconds, "--max-time", seconds)
+		curlRequestBuilder.WithConnectionTimeout(opts.ConnectionTimeout)
 	}
 	if opts.ReturnHeaders {
-		args = append(args, "-I")
+		curlRequestBuilder.WithReturnHeaders()
 	}
 
-	if opts.Method != "GET" && opts.Method != "" {
-		args = append(args, "-X"+opts.Method)
-	}
-	if opts.Host != "" {
-		args = append(args, "-H", "Host: "+opts.Host)
-	}
-	if opts.CaFile != "" {
-		args = append(args, "--cacert", opts.CaFile)
-	}
+	curlRequestBuilder.WithMethod(opts.Method)
+	curlRequestBuilder.WithHost(opts.Host)
+	curlRequestBuilder.WithCaFile(opts.CaFile)
+
 	if opts.Body != "" {
-		args = append(args, "-H", "Content-Type: application/json")
-		args = append(args, "-d", opts.Body)
+		curlRequestBuilder.WithPostBody(opts.Body)
 	}
 	for h, v := range opts.Headers {
-		args = append(args, "-H", fmt.Sprintf("%v: %v", h, v))
+		curlRequestBuilder.WithHeader(h, v)
 	}
 	if opts.AllowInsecure {
-		args = append(args, "-k")
+		curlRequestBuilder.AllowInsecure()
 	}
 
 	port := opts.Port
 	if port == 0 {
 		port = 8080
 	}
-	protocol := opts.Protocol
-	if protocol == "" {
-		protocol = "http"
+	curlRequestBuilder.WithPort(port)
+
+	if opts.Protocol != "" {
+		curlRequestBuilder.WithScheme(opts.Protocol)
 	}
+	
 	service := opts.Service
 	if service == "" {
 		service = "test-ingress"
 	}
-	if opts.SelfSigned {
-		args = append(args, "-k")
-	}
-	if opts.Sni != "" {
-		sniResolution := fmt.Sprintf("%s:%d:%s", opts.Sni, port, service)
-		fullAddress := fmt.Sprintf("%s://%s:%d", protocol, opts.Sni, port)
-		args = append(args, "--resolve", sniResolution, fullAddress)
-	} else {
-		args = append(args, fmt.Sprintf("%v://%s:%v%s", protocol, service, port, opts.Path))
-	}
+	curlRequestBuilder.WithService(service)
 
+	if opts.SelfSigned {
+		curlRequestBuilder.SelfSigned()
+	}
+	curlRequestBuilder.WithSni(opts.Sni)
+
+	args := curlRequestBuilder.BuildArgs()
 	log.Printf("running: %v", strings.Join(args, " "))
 	return args
 }
