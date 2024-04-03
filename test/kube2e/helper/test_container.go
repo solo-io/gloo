@@ -3,10 +3,11 @@ package helper
 import (
 	"context"
 	"fmt"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"io"
 	"strings"
 	"time"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/go-utils/log"

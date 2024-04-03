@@ -3,12 +3,13 @@ package upgrade_test
 import (
 	"context"
 	"fmt"
-	"github.com/solo-io/gloo/test/testutils/kubeutils"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/solo-io/gloo/test/testutils/kubeutils"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	exec_utils "github.com/solo-io/go-utils/testutils/exec"

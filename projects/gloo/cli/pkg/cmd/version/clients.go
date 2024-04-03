@@ -2,8 +2,9 @@ package version
 
 import (
 	"context"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"strings"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 
 	"github.com/solo-io/gloo/install/helm/gloo/generate"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/version"

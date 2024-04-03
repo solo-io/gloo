@@ -2,9 +2,10 @@ package gloo_test
 
 import (
 	"fmt"
-	"github.com/solo-io/gloo/test/testutils/kubeutils"
 	"net"
 	"strings"
+
+	"github.com/solo-io/gloo/test/testutils/kubeutils"
 
 	"github.com/solo-io/gloo/test/services/envoy"
 	corev1 "k8s.io/api/core/v1"

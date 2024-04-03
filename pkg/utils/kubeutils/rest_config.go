@@ -1,10 +1,11 @@
 package kubeutils
 
 import (
-	"k8s.io/client-go/rest"
 	"os"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"strconv"
+
+	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 const (

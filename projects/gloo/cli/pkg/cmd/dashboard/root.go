@@ -2,8 +2,9 @@ package dashboard
 
 import (
 	"fmt"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"strconv"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 

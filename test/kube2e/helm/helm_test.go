@@ -5,13 +5,14 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/solo-io/gloo/test/testutils/kubeutils"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/solo-io/gloo/test/testutils/kubeutils"
 
 	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo/v2"

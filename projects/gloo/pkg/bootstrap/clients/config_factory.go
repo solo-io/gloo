@@ -1,8 +1,9 @@
 package clients
 
 import (
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"path/filepath"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 
 	consulapi "github.com/hashicorp/consul/api"
 	errors "github.com/rotisserie/eris"

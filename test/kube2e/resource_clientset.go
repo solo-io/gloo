@@ -2,6 +2,7 @@ package kube2e
 
 import (
 	"context"
+
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 
 	"github.com/solo-io/solo-kit/pkg/api/external/kubernetes/service"

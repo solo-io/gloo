@@ -3,8 +3,9 @@ package gloo_test
 import (
 	"context"
 	"fmt"
-	"github.com/solo-io/gloo/test/testutils/kubeutils"
 	"time"
+
+	"github.com/solo-io/gloo/test/testutils/kubeutils"
 
 	"github.com/onsi/gomega/gstruct"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"

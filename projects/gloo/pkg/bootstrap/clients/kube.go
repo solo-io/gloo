@@ -2,8 +2,9 @@ package clients
 
 import (
 	"context"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"time"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 
 	"github.com/golang/protobuf/ptypes/duration"
 	errors "github.com/rotisserie/eris"

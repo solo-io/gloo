@@ -3,9 +3,10 @@ package helpers
 import (
 	"context"
 	"fmt"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"sync"
 	"time"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options/contextoptions"
 

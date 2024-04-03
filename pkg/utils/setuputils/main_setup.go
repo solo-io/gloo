@@ -3,10 +3,11 @@ package setuputils
 import (
 	"context"
 	"flag"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 
 	"github.com/go-logr/zapr"
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"

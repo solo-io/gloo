@@ -2,8 +2,9 @@ package ingress_test
 
 import (
 	"context"
-	"github.com/solo-io/gloo/test/testutils/kubeutils"
 	"time"
+
+	"github.com/solo-io/gloo/test/testutils/kubeutils"
 
 	"github.com/solo-io/gloo/test/kube2e"
 

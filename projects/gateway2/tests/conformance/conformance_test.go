@@ -20,8 +20,9 @@ limitations under the License.
 package conformance_test
 
 import (
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"testing"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 
 	v1 "sigs.k8s.io/gateway-api/apis/v1"
 	"sigs.k8s.io/gateway-api/apis/v1alpha2"

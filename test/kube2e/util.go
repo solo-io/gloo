@@ -2,11 +2,12 @@ package kube2e
 
 import (
 	"context"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"os"
 	"path/filepath"
 	"runtime"
 	"time"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/onsi/ginkgo/v2"
