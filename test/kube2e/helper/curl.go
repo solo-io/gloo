@@ -2,12 +2,15 @@ package helper
 
 import (
 	"bytes"
+	"github.com/solo-io/gloo/test/gomega/matchers"
+	"github.com/solo-io/gloo/test/gomega/transforms"
 	"github.com/solo-io/gloo/test/testutils"
 	"io"
+	"net/http"
 	"strings"
 	"time"
 
-	"github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 	"github.com/solo-io/go-utils/log"
 )
@@ -72,8 +75,8 @@ func (t *testContainer) CurlEventuallyShouldOutput(opts CurlOpts, substr string,
 	// for some useful-ish output
 	tick := time.Tick(currentTimeout / 8)
 
-	gomega.EventuallyWithOffset(ginkgoOffset+1, func() (string, error) {
-		gomega.Expect(t.CanCurl()).To(gomega.BeTrue())
+	EventuallyWithOffset(ginkgoOffset+1, func(g Gomega) {
+		g.Expect(t.CanCurl()).To(BeTrue())
 
 		var res string
 
@@ -83,9 +86,8 @@ func (t *testContainer) CurlEventuallyShouldOutput(opts CurlOpts, substr string,
 			// if we return an error here, the Eventually will continue. By making an
 			// assertion with the outer context's Gomega, we can trigger a failure at
 			// that outer scope.
-			gomega.Expect(err.Error()).NotTo(gomega.ContainSubstring(`pods "testserver" not found`))
-
-			return "", err
+			g.Expect(err.Error()).NotTo(ContainSubstring(`pods "testserver" not found`))
+			return
 		}
 		defer close(done)
 		var buf io.Reader
@@ -106,8 +108,13 @@ func (t *testContainer) CurlEventuallyShouldOutput(opts CurlOpts, substr string,
 		if strings.Contains(res, substr) {
 			log.GreyPrintf("success: %v", res)
 		}
-		return res, nil
-	}, currentTimeout, pollingInterval).Should(gomega.ContainSubstring(substr))
+
+		g.Expect(res).To(WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(&matchers.HttpResponse{
+			Body:       ContainSubstring(substr),
+			StatusCode: http.StatusOK,
+		})))
+
+	}, currentTimeout, pollingInterval).Should(Succeed())
 }
 
 func (t *testContainer) CurlEventuallyShouldRespond(opts CurlOpts, substr string, ginkgoOffset int, timeout ...time.Duration) {
@@ -115,8 +122,8 @@ func (t *testContainer) CurlEventuallyShouldRespond(opts CurlOpts, substr string
 	// for some useful-ish output
 	tick := time.Tick(currentTimeout / 8)
 
-	gomega.EventuallyWithOffset(ginkgoOffset+1, func() (string, error) {
-		gomega.Expect(t.CanCurl()).To(gomega.BeTrue())
+	EventuallyWithOffset(ginkgoOffset+1, func(g Gomega) {
+		g.Expect(t.CanCurl()).To(BeTrue())
 
 		res, err := t.Curl(opts)
 		if err != nil {
@@ -124,9 +131,8 @@ func (t *testContainer) CurlEventuallyShouldRespond(opts CurlOpts, substr string
 			// if we return an error here, the Eventually will continue. By making an
 			// assertion with the outer context's Gomega, we can trigger a failure at
 			// that outer scope.
-			gomega.Expect(err.Error()).NotTo(gomega.ContainSubstring(`pods "testserver" not found`))
-
-			return "", err
+			g.Expect(err.Error()).NotTo(ContainSubstring(`pods "testserver" not found`))
+			return
 		}
 		select {
 		default:
@@ -139,8 +145,13 @@ func (t *testContainer) CurlEventuallyShouldRespond(opts CurlOpts, substr string
 		if strings.Contains(res, substr) && opts.LogResponses {
 			log.GreyPrintf("success: %v", res)
 		}
-		return res, nil
-	}, currentTimeout, pollingInterval).Should(gomega.ContainSubstring(substr))
+
+		g.Expect(res).To(WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(&matchers.HttpResponse{
+			Body:       ContainSubstring(substr),
+			StatusCode: http.StatusOK,
+		})))
+
+	}, currentTimeout, pollingInterval).Should(Succeed())
 }
 
 func (t *testContainer) buildCurlArgs(opts CurlOpts) []string {
@@ -182,7 +193,7 @@ func (t *testContainer) buildCurlArgs(opts CurlOpts) []string {
 	if opts.Protocol != "" {
 		curlRequestBuilder.WithScheme(opts.Protocol)
 	}
-	
+
 	service := opts.Service
 	if service == "" {
 		service = "test-ingress"
