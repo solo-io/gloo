@@ -3,12 +3,13 @@ package helper
 import (
 	"bytes"
 	"fmt"
-	"github.com/onsi/ginkgo/v2"
-	"github.com/onsi/gomega/types"
 	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega/types"
 
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/gomega/transforms"

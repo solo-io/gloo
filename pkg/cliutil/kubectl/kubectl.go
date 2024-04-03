@@ -9,6 +9,10 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
+
+	"github.com/avast/retry-go/v4"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
 
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/threadsafe"
@@ -39,10 +43,6 @@ func NewKubectlWithKubeContext(receiver io.Writer, kubeContext string) (*Kubectl
 		receiver:    receiver,
 		kubeContext: kubeContext,
 	}, nil
-}
-
-func (k *Kubectl) GetReceiver() io.Writer {
-	return k.receiver
 }
 
 func (k *Kubectl) Execute(ctx context.Context, in io.Reader, args ...string) (stdOut string, stdErr string, executeErr error) {
@@ -91,6 +91,31 @@ func (k *Kubectl) Delete(ctx context.Context, content []byte, extraArgs ...strin
 
 	_, err := k.ExecuteSafe(ctx, buf, args...)
 	return err
+}
+
+func (k *Kubectl) Copy(ctx context.Context, from, to string) error {
+	args := append([]string{"cp", from, to})
+
+	_, err := k.ExecuteSafe(ctx, nil, args...)
+	return err
+}
+
+func (k *Kubectl) StartPortForward(ctx context.Context, options ...portforward.Option) (portforward.PortForwarder, error) {
+	options = append([]portforward.Option{
+		// We define some default values, which users can then override
+		portforward.WithWriters(k.receiver, k.receiver),
+		portforward.WithKubeContext(k.kubeContext),
+	}, options...)
+
+	portForwarder := portforward.NewCliPortForwarder(options...)
+	err := portForwarder.Start(
+		ctx,
+		retry.LastErrorOnly(true),
+		retry.Delay(100*time.Millisecond),
+		retry.DelayType(retry.BackOffDelay),
+		retry.Attempts(5),
+	)
+	return portForwarder, err
 }
 
 func createKubectlCommand(ctx context.Context, args ...string) *exec.Cmd {
