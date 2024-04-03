@@ -74,7 +74,7 @@ func GetResource(uri string) (io.ReadCloser, error) {
 
 // GetIngressHost returns the host address of the ingress
 func GetIngressHost(ctx context.Context, proxyName, proxyNamespace, proxyPort string, localCluster bool, clusterName string) (string, error) {
-	restCfg, err := kubeutils.GetRestConfigWithContext("")
+	restCfg, err := kubeutils.GetRestConfigWithKubeContext("")
 	if err != nil {
 		return "", errors.Wrapf(err, "getting kube rest config")
 	}

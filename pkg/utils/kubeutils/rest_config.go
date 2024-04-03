@@ -16,10 +16,10 @@ const (
 	K8sClientBurstDefault = 100 // 10x the k8s-recommended default; gloo gets busy writing status updates
 )
 
-// GetRestConfigWithContext provides the rest.Config object for a given Kubernetes context
+// GetRestConfigWithKubeContext provides the rest.Config object for a given Kubernetes context
 // This is a wrapper on the controller-runtime implementation, and allows overriding certain
 // client properties via environment variables
-func GetRestConfigWithContext(kubeContext string) (*rest.Config, error) {
+func GetRestConfigWithKubeContext(kubeContext string) (*rest.Config, error) {
 	restConfig, err := config.GetConfigWithContext(kubeContext)
 	if err != nil {
 		return nil, err

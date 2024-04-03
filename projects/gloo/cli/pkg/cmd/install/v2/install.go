@@ -34,7 +34,7 @@ func install(opts *options.Options, installOpts *Options) error {
 		return err
 	}
 
-	cfg, err := kubeutils.GetRestConfigWithContext(opts.Top.KubeContext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(opts.Top.KubeContext)
 	if err != nil {
 		return err
 	}

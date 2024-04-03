@@ -79,7 +79,7 @@ func ConfigFactoryForSettings(params ConfigFactoryParams, resourceCrd crd.Crd) (
 		kubeCache := params.kube.kubeCache
 		cfg := params.kube.restCfg
 		if *cfg == nil {
-			c, err := kubeutils.GetRestConfigWithContext("")
+			c, err := kubeutils.GetRestConfigWithKubeContext("")
 			if err != nil {
 				return nil, err
 			}

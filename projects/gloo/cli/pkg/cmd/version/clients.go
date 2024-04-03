@@ -44,7 +44,7 @@ func NewKube(namespace, kubeContext string) *kube {
 }
 
 func (k *kube) Get(ctx context.Context) ([]*version.ServerVersion, error) {
-	cfg, err := kubeutils.GetRestConfigWithContext(k.kubeContext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(k.kubeContext)
 	if err != nil {
 		// kubecfg is missing, therefore no cluster is present, only print client version
 		return nil, err
@@ -112,7 +112,7 @@ func (k *kube) Get(ctx context.Context) ([]*version.ServerVersion, error) {
 }
 
 func (k *kube) GetClusterVersion() (*version.KubernetesClusterVersion, error) {
-	cfg, err := kubeutils.GetRestConfigWithContext(k.kubeContext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(k.kubeContext)
 	if err != nil {
 		// kubecfg is missing, therefore no cluster is present, only print client version
 		return nil, err

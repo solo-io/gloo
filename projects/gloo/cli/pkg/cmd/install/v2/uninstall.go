@@ -17,7 +17,7 @@ import (
 func uninstall(opts *options.Options, installOpts *Options) error {
 	ctx := context.Background()
 
-	cfg, err := kubeutils.GetRestConfigWithContext(opts.Top.KubeContext)
+	cfg, err := kubeutils.GetRestConfigWithKubeContext(opts.Top.KubeContext)
 	if err != nil {
 		return err
 	}

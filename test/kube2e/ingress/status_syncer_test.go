@@ -10,16 +10,14 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/test/helpers"
+	"github.com/solo-io/solo-kit/test/setup"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-	"k8s.io/client-go/rest"
-
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/test/helpers"
-	"github.com/solo-io/solo-kit/test/setup"
 
 	"github.com/solo-io/gloo/projects/ingress/pkg/api/ingress"
 	"github.com/solo-io/gloo/projects/ingress/pkg/api/service"
@@ -34,7 +32,7 @@ var _ = Describe("StatusSyncer", func() {
 
 		var (
 			namespace string
-			cfg       *rest.Config
+			kube      *kubernetes.Clientset
 			ctx       context.Context
 			cancel    context.CancelFunc
 		)
@@ -43,7 +41,7 @@ var _ = Describe("StatusSyncer", func() {
 			namespace = helpers.RandString(8)
 			ctx, cancel = context.WithCancel(context.Background())
 			var err error
-			kube := kubeutils.MustClientset()
+			kube = kubeutils.MustClientset()
 			_, err = kube.CoreV1().Namespaces().Create(ctx, &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespace,
@@ -57,8 +55,6 @@ var _ = Describe("StatusSyncer", func() {
 		})
 
 		It("updates kube ingresses with endpoints from the service", func() {
-			kube, err := kubernetes.NewForConfig(cfg)
-			Expect(err).NotTo(HaveOccurred())
 			baseIngressClient := ingress.NewResourceClient(kube, &v1.Ingress{})
 			ingressClient := v1.NewIngressClientWithBase(baseIngressClient)
 			baseKubeServiceClient := service.NewResourceClient(kube, &v1.KubeService{})
@@ -186,7 +182,6 @@ var _ = Describe("StatusSyncer", func() {
 
 		var (
 			namespace string
-			cfg       *rest.Config
 			ctx       context.Context
 			cancel    context.CancelFunc
 
@@ -196,11 +191,7 @@ var _ = Describe("StatusSyncer", func() {
 
 		BeforeEach(func() {
 			ctx, cancel = context.WithCancel(context.Background())
-			cfg = kubeutils.MustRestConfig()
-
-			// Initialize the kube Clientset
-			kubeClientset, err = kubernetes.NewForConfig(cfg)
-			Expect(err).NotTo(HaveOccurred())
+			kubeClientset = kubeutils.MustClientset()
 
 			// Create test namespace
 			namespace = helpers.RandString(8)

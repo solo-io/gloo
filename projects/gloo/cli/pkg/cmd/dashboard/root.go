@@ -33,7 +33,7 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 
 			/** Get the port **/
 
-			cfg, err := kubeutils.GetRestConfigWithContext("")
+			cfg, err := kubeutils.GetRestConfigWithKubeContext("")
 			if err != nil {
 				// kubecfg is missing, therefore no cluster is present, only print client version
 				return err

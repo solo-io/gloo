@@ -25,7 +25,7 @@ func initializeForKube(ctx context.Context,
 		return errors.New("cfg must not be nil")
 	}
 	if *cfg == nil {
-		c, err := kubeutils.GetRestConfigWithContext("")
+		c, err := kubeutils.GetRestConfigWithKubeContext("")
 		if err != nil {
 			return err
 		}
