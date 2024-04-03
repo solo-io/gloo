@@ -3,8 +3,9 @@ package testutils
 import (
 	"errors"
 	"fmt"
-	"github.com/onsi/ginkgo/v2"
 	"net/http"
+
+	"github.com/onsi/ginkgo/v2"
 )
 
 // CurlRequestBuilder simplifies the process of generating curl requests in tests

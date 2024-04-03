@@ -1,8 +1,9 @@
 package transforms_test
 
 import (
-	"github.com/solo-io/gloo/test/gomega/transforms"
 	"net/http"
+
+	"github.com/solo-io/gloo/test/gomega/transforms"
 
 	"github.com/onsi/gomega/gstruct"
 	"github.com/solo-io/gloo/test/gomega/matchers"

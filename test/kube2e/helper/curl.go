@@ -2,13 +2,14 @@ package helper
 
 import (
 	"bytes"
-	"github.com/solo-io/gloo/test/gomega/matchers"
-	"github.com/solo-io/gloo/test/gomega/transforms"
-	"github.com/solo-io/gloo/test/testutils"
 	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/solo-io/gloo/test/gomega/matchers"
+	"github.com/solo-io/gloo/test/gomega/transforms"
+	"github.com/solo-io/gloo/test/testutils"
 
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
