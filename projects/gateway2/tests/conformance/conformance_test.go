@@ -20,6 +20,7 @@ limitations under the License.
 package conformance_test
 
 import (
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"testing"
 
 	v1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -32,11 +33,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 func TestConformance(t *testing.T) {
-	cfg, err := config.GetConfig()
+	cfg, err := kubeutils.GetRestConfigWithContext("")
 	if err != nil {
 		t.Fatalf("Error loading Kubernetes config: %v", err)
 	}

@@ -2,6 +2,7 @@ package ingress_test
 
 import (
 	"context"
+	"github.com/solo-io/gloo/test/testutils/kubeutils"
 	"time"
 
 	"github.com/solo-io/gloo/projects/ingress/pkg/translator"
@@ -15,7 +16,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
 
-	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/setup"
@@ -42,11 +42,7 @@ var _ = Describe("StatusSyncer", func() {
 			namespace = helpers.RandString(8)
 			ctx, cancel = context.WithCancel(context.Background())
 			var err error
-			cfg, err = kubeutils.GetConfig("", "")
-			Expect(err).NotTo(HaveOccurred())
-
-			kube, err := kubernetes.NewForConfig(cfg)
-			Expect(err).NotTo(HaveOccurred())
+			kube := kubeutils.MustClientset()
 			_, err = kube.CoreV1().Namespaces().Create(ctx, &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespace,
@@ -199,8 +195,7 @@ var _ = Describe("StatusSyncer", func() {
 
 		BeforeEach(func() {
 			ctx, cancel = context.WithCancel(context.Background())
-			cfg, err = kubeutils.GetConfig("", "")
-			Expect(err).NotTo(HaveOccurred())
+			cfg = kubeutils.MustRestConfig()
 
 			// Initialize the kube Clientset
 			kubeClientset, err = kubernetes.NewForConfig(cfg)

@@ -2,6 +2,7 @@ package ingress_test
 
 import (
 	"context"
+	"github.com/solo-io/gloo/test/testutils/kubeutils"
 	"time"
 
 	"github.com/solo-io/gloo/test/kube2e"
@@ -10,10 +11,8 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/k8s-utils/kubeutils"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
@@ -31,11 +30,7 @@ var _ = Describe("Kube2e: Ingress", func() {
 	AfterEach(func() { cancel() })
 
 	It("works", func() {
-		cfg, err := kubeutils.GetConfig("", "")
-		Expect(err).NotTo(HaveOccurred())
-
-		kube, err := kubernetes.NewForConfig(cfg)
-		Expect(err).NotTo(HaveOccurred())
+		kube := kubeutils.MustClientset()
 		kubeIngressClient := kube.NetworkingV1().Ingresses(testHelper.InstallNamespace)
 
 		backend := &networkingv1.IngressBackend{

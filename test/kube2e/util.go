@@ -2,6 +2,7 @@ package kube2e
 
 import (
 	"context"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -21,7 +22,6 @@ import (
 	"github.com/solo-io/gloo/test/kube2e/upgrade"
 	"github.com/solo-io/gloo/test/testutils"
 	"github.com/solo-io/go-utils/stats"
-	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.uber.org/zap/zapcore"
@@ -47,7 +47,7 @@ func GetHttpEchoImage() string {
 }
 
 func MustKubeClient() kubernetes.Interface {
-	restConfig, err := kubeutils.GetConfig("", "")
+	restConfig, err := kubeutils.GetRestConfigWithContext("")
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 	kubeClient, err := kubernetes.NewForConfig(restConfig)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())

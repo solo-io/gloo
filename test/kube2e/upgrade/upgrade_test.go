@@ -3,20 +3,18 @@ package upgrade_test
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/gloo/test/testutils/kubeutils"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	exec_utils "github.com/solo-io/go-utils/testutils/exec"
-	"github.com/solo-io/k8s-utils/kubeutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -98,15 +96,10 @@ var _ = Describe("Kube2e: Upgrade Tests", func() {
 	})
 
 	Context("Validation webhook upgrade tests", func() {
-		var cfg *rest.Config
-		var err error
 		var kubeClientset kubernetes.Interface
 
 		BeforeEach(func() {
-			cfg, err = kubeutils.GetConfig("", "")
-			Expect(err).NotTo(HaveOccurred())
-			kubeClientset, err = kubernetes.NewForConfig(cfg)
-			Expect(err).NotTo(HaveOccurred())
+			kubeClientset = kubeutils.MustClientset()
 			strictValidation = true
 		})
 

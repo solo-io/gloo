@@ -3,6 +3,7 @@ package v2
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 
 	"github.com/solo-io/gloo/projects/gateway2/crds"
 	"github.com/solo-io/gloo/projects/gateway2/deployer"
@@ -16,7 +17,6 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
@@ -33,7 +33,7 @@ func install(opts *options.Options, installOpts *Options) error {
 		return err
 	}
 
-	cfg, err := config.GetConfigWithContext(opts.Top.KubeContext)
+	cfg, err := kubeutils.GetRestConfigWithContext(opts.Top.KubeContext)
 	if err != nil {
 		return err
 	}

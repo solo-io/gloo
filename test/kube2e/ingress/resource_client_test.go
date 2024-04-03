@@ -2,12 +2,12 @@ package ingress_test
 
 import (
 	"context"
+	"github.com/solo-io/gloo/test/testutils/kubeutils"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/solo-io/gloo/projects/ingress/pkg/api/ingress"
 	v1 "github.com/solo-io/gloo/projects/ingress/pkg/api/v1"
-	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/setup"
@@ -35,11 +35,7 @@ var _ = Describe("ResourceClient", func() {
 			namespace = helpers.RandString(8)
 			ctx, cancel = context.WithCancel(context.Background())
 			var err error
-			cfg, err = kubeutils.GetConfig("", "")
-			Expect(err).NotTo(HaveOccurred())
-
-			kube, err := kubernetes.NewForConfig(cfg)
-			Expect(err).NotTo(HaveOccurred())
+			kube := kubeutils.MustClientset()
 			_, err = kube.CoreV1().Namespaces().Create(ctx, &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespace,

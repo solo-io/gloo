@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/solo-io/gloo/test/testutils/kubeutils"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -25,7 +26,6 @@ import (
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/kube2e/helper"
 	exec_utils "github.com/solo-io/go-utils/testutils/exec"
-	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/skv2/codegen/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/code-generator/schemagen"
@@ -38,7 +38,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	core_v1_types "k8s.io/client-go/kubernetes/typed/core/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-	"k8s.io/client-go/rest"
 )
 
 // upgradeStartingVersion represents the default version of Gloo which will be initially installed and used to validate upgrades
@@ -288,15 +287,10 @@ var _ = Describe("Kube2e: helm", func() {
 	})
 
 	Context("validation webhook", func() {
-		var cfg *rest.Config
-		var err error
 		var kubeClientset kubernetes.Interface
 
 		BeforeEach(func() {
-			cfg, err = kubeutils.GetConfig("", "")
-			Expect(err).NotTo(HaveOccurred())
-			kubeClientset, err = kubernetes.NewForConfig(cfg)
-			Expect(err).NotTo(HaveOccurred())
+			kubeClientset = kubeutils.MustClientset()
 
 			strictValidation = true
 		})
@@ -345,8 +339,8 @@ var _ = Describe("Kube2e: helm", func() {
 		var protoDescriptor string
 
 		BeforeEach(func() {
-			cfg, err := kubeutils.GetConfig("", "")
-			Expect(err).NotTo(HaveOccurred())
+			var err error
+			cfg := kubeutils.MustRestConfig()
 
 			// initialize gateway client
 			gatewayClient, err = gatewayv1kube.NewForConfig(cfg)
