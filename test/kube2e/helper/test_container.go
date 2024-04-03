@@ -32,9 +32,9 @@ type TestContainer interface {
 	TerminatePodAndDeleteService() error
 	CanCurl() bool
 	// Checks the response of the request eventually meets expectation
-	CurlEventuallyShouldRespond(opts CurlOpts, substr string, ginkgoOffset int, timeout ...time.Duration)
+	CurlEventuallyShouldRespond(opts CurlOpts, response interface{}, ginkgoOffset int, timeout ...time.Duration)
 	// Checks all of the output of the curl command eventually meets expectation
-	CurlEventuallyShouldOutput(opts CurlOpts, substr string, ginkgoOffset int, timeout ...time.Duration)
+	CurlEventuallyShouldOutput(opts CurlOpts, output interface{}, ginkgoOffset int, timeout ...time.Duration)
 	Curl(opts CurlOpts) (string, error)
 	Exec(command ...string) (string, error)
 	ExecAsync(args ...string) (io.Reader, chan struct{}, error)

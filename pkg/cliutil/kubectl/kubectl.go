@@ -16,11 +16,8 @@ import (
 
 // Kubectl is a utility for executing `kubectl` commands
 type Kubectl struct {
-	// outReceiver is destination for the kubectl stdout
-	outReceiver io.Writer
-
-	// errReceiver is destination for the kubectl stderr
-	errReceiver io.Writer
+	// receiver is destination for the kubectl stdout and stderr
+	receiver io.Writer
 
 	// kubeContext is the optional value of the context for a given kubernetes cluster
 	// If it is not supplied, no context will be included in the command
@@ -28,21 +25,24 @@ type Kubectl struct {
 }
 
 // NewKubectl returns NewKubectlWithKubeContext with an empty Kubernetes context
-func NewKubectl(outReceiver, errReceiver io.Writer) (*Kubectl, error) {
-	return NewKubectlWithKubeContext(outReceiver, errReceiver, "")
+func NewKubectl(receiver io.Writer) (*Kubectl, error) {
+	return NewKubectlWithKubeContext(receiver, "")
 }
 
 // NewKubectlWithKubeContext returns an implementation of Kubectl, or an error if one of the provided receivers was nil
-func NewKubectlWithKubeContext(outReceiver, errReceiver io.Writer, kubeContext string) (*Kubectl, error) {
-	if outReceiver == nil || errReceiver == nil {
+func NewKubectlWithKubeContext(receiver io.Writer, kubeContext string) (*Kubectl, error) {
+	if receiver == nil {
 		return nil, errors.New("receiver must not be nil")
 	}
 
 	return &Kubectl{
-		outReceiver: outReceiver,
-		errReceiver: errReceiver,
+		receiver:    receiver,
 		kubeContext: kubeContext,
 	}, nil
+}
+
+func (k *Kubectl) GetReceiver() io.Writer {
+	return k.receiver
 }
 
 func (k *Kubectl) Execute(ctx context.Context, in io.Reader, args ...string) (stdOut string, stdErr string, executeErr error) {
@@ -56,10 +56,10 @@ func (k *Kubectl) Execute(ctx context.Context, in io.Reader, args ...string) (st
 	}
 
 	var stdout, stderr threadsafe.Buffer
-	cmd.Stdout = io.MultiWriter(&stdout, k.outReceiver)
-	cmd.Stderr = io.MultiWriter(&stderr, k.errReceiver)
+	cmd.Stdout = io.MultiWriter(&stdout, k.receiver)
+	cmd.Stderr = io.MultiWriter(&stderr, k.receiver)
 
-	_, _ = fmt.Fprintf(k.outReceiver, "Executing: %s \n", strings.Join(cmd.Args, " "))
+	_, _ = fmt.Fprintf(k.receiver, "Executing: %s \n", strings.Join(cmd.Args, " "))
 	err := cmd.Run()
 
 	return stdout.String(), stderr.String(), err

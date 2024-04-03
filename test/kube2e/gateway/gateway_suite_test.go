@@ -2,6 +2,7 @@ package gateway_test
 
 import (
 	"context"
+	"github.com/solo-io/gloo/pkg/cliutil/kubectl"
 	"os"
 	"path/filepath"
 	"testing"
@@ -46,6 +47,8 @@ var (
 	testHelper        *helper.SoloTestHelper
 	resourceClientset *kube2e.KubeResourceClientSet
 	snapshotWriter    helpers.SnapshotWriter
+
+	kubeCli *kubectl.Kubectl
 )
 
 var _ = BeforeSuite(StartTestHelper)
@@ -58,6 +61,9 @@ func StartTestHelper() {
 	testHelper, err = kube2e.GetTestHelper(ctx, namespace)
 	Expect(err).NotTo(HaveOccurred())
 	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, testHelper.InstallNamespace))
+
+	kubeCli, err = kubectl.NewKubectl(GinkgoWriter)
+	Expect(err).NotTo(HaveOccurred())
 
 	// Allow skipping of install step for running multiple times
 	if !kubeutils2.ShouldSkipInstall() {

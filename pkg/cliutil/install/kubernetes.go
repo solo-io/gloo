@@ -2,12 +2,12 @@ package install
 
 import (
 	"bytes"
-	"context"
+	"fmt"
 	"io"
 	"os"
+	"os/exec"
 
 	"github.com/solo-io/gloo/pkg/cliutil"
-	"github.com/solo-io/gloo/pkg/cliutil/kubectl"
 )
 
 // Deprecated: Prefer kubectl.Kubectl
@@ -57,23 +57,30 @@ func Kubectl(stdin io.Reader, args ...string) error {
 
 // Deprecated: Prefer kubectl.Kubectl
 func KubectlOut(stdin io.Reader, args ...string) ([]byte, error) {
-	var outWriter, errWriter io.Writer
+	kubectl := exec.Command("kubectl", args...)
 
+	if stdin != nil {
+		kubectl.Stdin = stdin
+	}
+
+	var stdout, stderr io.Writer
 	if verbose {
-		outWriter = os.Stdout
-		errWriter = os.Stderr
+		fmt.Fprintf(os.Stderr, "running kubectl command: %v\n", kubectl.Args)
+		stdout = os.Stdout
+		stderr = os.Stderr
 	} else {
 		// use logfile
 		cliutil.Initialize()
-		outWriter = cliutil.GetLogger()
-		errWriter = cliutil.GetLogger()
+		stdout = cliutil.GetLogger()
+		stderr = cliutil.GetLogger()
 	}
 
-	cli, err := kubectl.NewKubectl(outWriter, errWriter)
-	if err != nil {
-		return nil, err
-	}
-	stdout, err := cli.ExecuteSafe(context.Background(), stdin, args...)
+	buf := &bytes.Buffer{}
 
-	return []byte(stdout), err
+	kubectl.Stdout = io.MultiWriter(stdout, buf)
+	kubectl.Stderr = io.MultiWriter(stderr, buf)
+
+	err := kubectl.Run()
+
+	return buf.Bytes(), err
 }

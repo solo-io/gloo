@@ -214,7 +214,7 @@ func kubeGet(namespace string, kubeType string, name string) (string, error) {
 }
 
 func kubeExecute(args []string) (string, error) {
-	cli, err := kubectl.NewKubectl(ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
+	cli, err := kubectl.NewKubectl(ginkgo.GinkgoWriter)
 	if err != nil {
 		return "", err
 	}

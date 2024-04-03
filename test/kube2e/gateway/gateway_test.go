@@ -3,6 +3,7 @@ package gateway_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
@@ -371,7 +372,7 @@ var _ = Describe("Kube2e: gateway", func() {
 					CaFile:            "/tmp/ca.crt",
 					ConnectionTimeout: 1,
 					WithoutStats:      true,
-				}, kube2e.TestServerHttpResponse(), 1, 60*time.Second, 1*time.Second)
+				}, ContainSubstring(kube2e.TestServerHttpResponse()), 1, 60*time.Second, 1*time.Second)
 			})
 		})
 
@@ -498,7 +499,10 @@ var _ = Describe("Kube2e: gateway", func() {
 						Port:              gatewayPort,
 						ConnectionTimeout: 1, // this is important, as sometimes curl hangs
 						WithoutStats:      true,
-					}, "Gloo Gateway has invalid configuration", 1, 60*time.Second, 1*time.Second)
+					}, &matchers2.HttpResponse{
+						Body:       ContainSubstring("Gloo Gateway has invalid configuration"),
+						StatusCode: http.StatusNotFound,
+					}, 1, 60*time.Second, 1*time.Second)
 				})
 			})
 
@@ -1897,13 +1901,16 @@ var _ = Describe("Kube2e: gateway", func() {
 		// in order, which allows us to use BeforeAll instead of BeforeEach (https://onsi.github.io/ginkgo/#setup-in-ordered-containers-beforeall-and-afterall)
 
 		expectResourceRejected := func(yaml string, errorMatcher types.GomegaMatcher) {
-			out, err := install.KubectlApplyOut([]byte(yaml))
+			GinkgoHelper()
 
-			ExpectWithOffset(1, string(out)).To(errorMatcher)
-			ExpectWithOffset(1, err).To(HaveOccurred())
+			out, err := install.KubectlApplyOut([]byte(yaml))
+			Expect(err).To(HaveOccurred())
+			Expect(out).To(errorMatcher)
 		}
 
 		expectResourceAccepted := func(yaml string) {
+			GinkgoHelper()
+
 			err := install.KubectlApply([]byte(yaml))
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
@@ -2625,7 +2632,7 @@ spec:
 						ConnectionTimeout: 1, // this is important, as sometimes curl hangs
 						WithoutStats:      true,
 						Verbose:           true,
-					}, `HTTP/1.1 404 Not Found`, 1, 60*time.Second, 1*time.Second)
+					}, ContainSubstring(`HTTP/1.1 404 Not Found`), 1, 60*time.Second, 1*time.Second)
 				})
 
 				It("preserves the valid virtual services in envoy when a virtual service has been made invalid", func() {

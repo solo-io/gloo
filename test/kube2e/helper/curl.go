@@ -2,6 +2,9 @@ package helper
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega/types"
 	"io"
 	"net/http"
 	"strings"
@@ -70,7 +73,7 @@ func getTimeouts(timeout ...time.Duration) (currentTimeout, pollingInterval time
 	return currentTimeout, pollingInterval
 }
 
-func (t *testContainer) CurlEventuallyShouldOutput(opts CurlOpts, substr string, ginkgoOffset int, timeout ...time.Duration) {
+func (t *testContainer) CurlEventuallyShouldOutput(opts CurlOpts, expectedOutput interface{}, ginkgoOffset int, timeout ...time.Duration) {
 	currentTimeout, pollingInterval := getTimeouts(timeout...)
 
 	// for some useful-ish output
@@ -107,10 +110,8 @@ func (t *testContainer) CurlEventuallyShouldOutput(opts CurlOpts, substr string,
 			res = string(byt)
 		}
 
-		g.Expect(res).To(WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(&matchers.HttpResponse{
-			Body:       ContainSubstring(substr),
-			StatusCode: http.StatusOK,
-		})))
+		expectedResponseMatcher := getExpectedResponseMatcher(expectedOutput)
+		g.Expect(res).To(expectedResponseMatcher)
 		if opts.LogResponses {
 			log.GreyPrintf("success: %v", res)
 		}
@@ -118,7 +119,7 @@ func (t *testContainer) CurlEventuallyShouldOutput(opts CurlOpts, substr string,
 	}, currentTimeout, pollingInterval).Should(Succeed())
 }
 
-func (t *testContainer) CurlEventuallyShouldRespond(opts CurlOpts, substr string, ginkgoOffset int, timeout ...time.Duration) {
+func (t *testContainer) CurlEventuallyShouldRespond(opts CurlOpts, expectedResponse interface{}, ginkgoOffset int, timeout ...time.Duration) {
 	currentTimeout, pollingInterval := getTimeouts(timeout...)
 	// for some useful-ish output
 	tick := time.Tick(currentTimeout / 8)
@@ -140,19 +141,38 @@ func (t *testContainer) CurlEventuallyShouldRespond(opts CurlOpts, substr string
 			break
 		case <-tick:
 			if opts.LogResponses {
-				log.GreyPrintf("running: %v\nwant %v\nhave: %s", opts, substr, res)
+				log.GreyPrintf("running: %v\nwant %v\nhave: %s", opts, expectedResponse, res)
 			}
 		}
 
-		g.Expect(res).To(WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(&matchers.HttpResponse{
-			Body:       ContainSubstring(substr),
-			StatusCode: http.StatusOK,
-		})))
+		expectedResponseMatcher := getExpectedResponseMatcher(expectedResponse)
+		g.Expect(res).To(expectedResponseMatcher)
 		if opts.LogResponses {
 			log.GreyPrintf("success: %v", res)
 		}
 
 	}, currentTimeout, pollingInterval).Should(Succeed())
+}
+
+func getExpectedResponseMatcher(expectedOutput interface{}) types.GomegaMatcher {
+	switch a := expectedOutput.(type) {
+	case types.GomegaMatcher:
+		// To handle all edge cases, developers must define the expected matcher explicitly
+		return a
+	case *matchers.HttpResponse:
+		// If a response is provided, we assume we can convert the string into an http.Response
+		return WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(a))
+
+	case string:
+		// If a string is provided, we assume it was a successful response
+		return WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(&matchers.HttpResponse{
+			Body:       ContainSubstring(a),
+			StatusCode: http.StatusOK,
+		}))
+	default:
+		ginkgo.Fail(fmt.Sprintf("Invalid expectedOutput: %+v", expectedOutput))
+	}
+	return nil
 }
 
 func (t *testContainer) buildCurlArgs(opts CurlOpts) []string {
@@ -171,11 +191,18 @@ func (t *testContainer) buildCurlArgs(opts CurlOpts) []string {
 	}
 
 	curlRequestBuilder.WithConnectionTimeout(opts.ConnectionTimeout)
-	curlRequestBuilder.WithMethod(opts.Method)
-	curlRequestBuilder.WithHost(opts.Host)
-	curlRequestBuilder.WithCaFile(opts.CaFile)
+
 	curlRequestBuilder.WithPath(opts.Path)
 
+	if opts.Method != "" {
+		curlRequestBuilder.WithMethod(opts.Method)
+	}
+	if opts.CaFile != "" {
+		curlRequestBuilder.WithCaFile(opts.CaFile)
+	}
+	if opts.Host != "" {
+		curlRequestBuilder.WithHost(opts.Host)
+	}
 	if opts.Body != "" {
 		curlRequestBuilder.WithPostBody(opts.Body)
 	}
