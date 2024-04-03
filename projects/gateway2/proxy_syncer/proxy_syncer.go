@@ -222,7 +222,7 @@ func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_
 			}
 		}
 
-		proxy.Metadata.Labels = ownerLabels
+		proxy.GetMetadata().Labels = ownerLabels
 	}
 
 	for ns, nsList := range proxyListByNamespace {
@@ -231,7 +231,7 @@ func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_
 			nsList,
 			func(original, desired *gloo_solo_io.Proxy) (bool, error) {
 				// ignore proxies that do not have our owner label
-				if original.Metadata.Labels == nil || original.Metadata.Labels[proxyOwnerKey] != proxyOwnerValue {
+				if original.GetMetadata().GetLabels() == nil || original.GetMetadata().GetLabels()[proxyOwnerKey] != proxyOwnerValue {
 					return false, nil
 				}
 				// otherwse always update
