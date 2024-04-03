@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
+	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gstruct"
@@ -518,7 +520,7 @@ var _ = Describe("Gloo + Istio integration tests", func() {
 				Verbose:           false,
 				WithoutStats:      true,
 				ReturnHeaders:     true,
-			}, fmt.Sprintf("HTTP/1.1 %d", http.StatusOK), 1, time.Minute*1)
+			}, ContainSubstring(fmt.Sprintf("HTTP/1.1 %d", http.StatusOK)), 1, time.Minute*1)
 		})
 	})
 
@@ -703,7 +705,10 @@ var _ = Describe("Gloo + Istio integration tests", func() {
 						Verbose:           false,
 						WithoutStats:      true,
 						ReturnHeaders:     false,
-					}, "200", 1, time.Minute)
+					}, &testmatchers.HttpResponse{
+						Body:       ContainSubstring("200"),
+						StatusCode: http.StatusOK,
+					}, 1, time.Minute)
 				})
 			})
 
@@ -879,7 +884,10 @@ var _ = Describe("Gloo + Istio integration tests", func() {
 						Verbose:           false,
 						WithoutStats:      true,
 						ReturnHeaders:     false,
-					}, "upstream connect error or disconnect/reset before headers. reset reason: connection termination", 1, time.Minute*1)
+					}, &testmatchers.HttpResponse{
+						StatusCode: 503,
+						Body:       ContainSubstring("upstream connect error or disconnect/reset before headers. reset reason: connection termination"),
+					}, 1, time.Minute*1)
 				})
 			})
 
