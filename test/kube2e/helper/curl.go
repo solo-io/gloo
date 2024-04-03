@@ -87,7 +87,7 @@ func (t *testContainer) CurlEventuallyShouldOutput(opts CurlOpts, substr string,
 			// if we return an error here, the Eventually will continue. By making an
 			// assertion with the outer context's Gomega, we can trigger a failure at
 			// that outer scope.
-			g.Expect(err.Error()).NotTo(ContainSubstring(`pods "testserver" not found`))
+			g.Expect(err).NotTo(MatchError(ContainSubstring(`pods "testserver" not found`)))
 			return
 		}
 		defer close(done)
@@ -106,14 +106,14 @@ func (t *testContainer) CurlEventuallyShouldOutput(opts CurlOpts, substr string,
 		} else {
 			res = string(byt)
 		}
-		if strings.Contains(res, substr) {
-			log.GreyPrintf("success: %v", res)
-		}
 
 		g.Expect(res).To(WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(&matchers.HttpResponse{
 			Body:       ContainSubstring(substr),
 			StatusCode: http.StatusOK,
 		})))
+		if opts.LogResponses {
+			log.GreyPrintf("success: %v", res)
+		}
 
 	}, currentTimeout, pollingInterval).Should(Succeed())
 }
@@ -132,7 +132,7 @@ func (t *testContainer) CurlEventuallyShouldRespond(opts CurlOpts, substr string
 			// if we return an error here, the Eventually will continue. By making an
 			// assertion with the outer context's Gomega, we can trigger a failure at
 			// that outer scope.
-			g.Expect(err.Error()).NotTo(ContainSubstring(`pods "testserver" not found`))
+			g.Expect(err).NotTo(MatchError(ContainSubstring(`pods "testserver" not found`)))
 			return
 		}
 		select {
@@ -143,14 +143,14 @@ func (t *testContainer) CurlEventuallyShouldRespond(opts CurlOpts, substr string
 				log.GreyPrintf("running: %v\nwant %v\nhave: %s", opts, substr, res)
 			}
 		}
-		if strings.Contains(res, substr) && opts.LogResponses {
-			log.GreyPrintf("success: %v", res)
-		}
 
 		g.Expect(res).To(WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(&matchers.HttpResponse{
 			Body:       ContainSubstring(substr),
 			StatusCode: http.StatusOK,
 		})))
+		if opts.LogResponses {
+			log.GreyPrintf("success: %v", res)
+		}
 
 	}, currentTimeout, pollingInterval).Should(Succeed())
 }
