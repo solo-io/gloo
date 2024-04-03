@@ -26,7 +26,7 @@ func install(opts *options.Options, installOpts *Options) error {
 
 	valueOpts := &values.Options{
 		ValueFiles: installOpts.Values,
-		Values:     append(installOpts.Set, "controlPlane.enabled=true", "gateway.enabled=false"),
+		Values:     installOpts.Set,
 	}
 	helmEnv := cli.New()
 	vals, err := valueOpts.MergeValues(getter.All(helmEnv))
@@ -49,7 +49,7 @@ func install(opts *options.Options, installOpts *Options) error {
 	}
 
 	// TODO(npolshak): Need to support providing SDSEnabled here to the cli options
-	dep, err := deployer.NewDeployer(cli.Scheme(), &deployer.Inputs{
+	dep, err := deployer.NewDeployer(cli, &deployer.Inputs{
 		ControllerName: "glooctl",
 	})
 	if err != nil {
@@ -71,7 +71,7 @@ func install(opts *options.Options, installOpts *Options) error {
 			fmt.Printf("Failed\n")
 			return err
 		}
-		if err := dep.DeployObjs(ctx, crds, cli); err != nil {
+		if err := dep.DeployObjs(ctx, crds); err != nil {
 			fmt.Printf("Failed\n")
 			return err
 		}
@@ -90,7 +90,7 @@ func install(opts *options.Options, installOpts *Options) error {
 	}
 
 	fmt.Printf("Applying Manifest... ")
-	if err := dep.DeployObjs(ctx, objs, cli); err != nil {
+	if err := dep.DeployObjs(ctx, objs); err != nil {
 		fmt.Printf("Failed\n")
 		return err
 	}
