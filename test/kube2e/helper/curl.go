@@ -174,6 +174,7 @@ func (t *testContainer) buildCurlArgs(opts CurlOpts) []string {
 	curlRequestBuilder.WithMethod(opts.Method)
 	curlRequestBuilder.WithHost(opts.Host)
 	curlRequestBuilder.WithCaFile(opts.CaFile)
+	curlRequestBuilder.WithPath(opts.Path)
 
 	if opts.Body != "" {
 		curlRequestBuilder.WithPostBody(opts.Body)
