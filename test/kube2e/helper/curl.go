@@ -3,6 +3,7 @@ package helper
 import (
 	"bytes"
 	"io"
+	"net/http"
 	"strings"
 	"time"
 
@@ -107,9 +108,8 @@ func (t *testContainer) CurlEventuallyShouldOutput(opts CurlOpts, substr string,
 		}
 
 		g.Expect(res).To(WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(&matchers.HttpResponse{
-			Body: ContainSubstring(substr),
-			// We do not validate the StatusCode for this response, since the testserver doesn't return data in a standard format
-			StatusCode: 0,
+			Body:       ContainSubstring(substr),
+			StatusCode: http.StatusOK,
 		})))
 		if opts.LogResponses {
 			log.GreyPrintf("success: %v", res)
@@ -145,9 +145,8 @@ func (t *testContainer) CurlEventuallyShouldRespond(opts CurlOpts, substr string
 		}
 
 		g.Expect(res).To(WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(&matchers.HttpResponse{
-			Body: ContainSubstring(substr),
-			// We do not validate the StatusCode for this response, since the testserver doesn't return data in a standard format
-			StatusCode: 0,
+			Body:       ContainSubstring(substr),
+			StatusCode: http.StatusOK,
 		})))
 		if opts.LogResponses {
 			log.GreyPrintf("success: %v", res)
@@ -159,9 +158,11 @@ func (t *testContainer) CurlEventuallyShouldRespond(opts CurlOpts, substr string
 func (t *testContainer) buildCurlArgs(opts CurlOpts) []string {
 	curlRequestBuilder := testutils.DefaultCurlRequestBuilder()
 
-	if opts.Verbose {
-		curlRequestBuilder.VerboseOutput()
-	}
+	// The testContainer relies on the transforms.WithCurlHttpResponse to validate the response is what
+	// we would expect
+	// For this transform to behave appropriately, we must execute the request with verbose=true
+	curlRequestBuilder.VerboseOutput()
+
 	if opts.WithoutStats {
 		curlRequestBuilder.WithoutStats()
 	}

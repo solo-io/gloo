@@ -3,10 +3,11 @@ package install
 import (
 	"bytes"
 	"context"
-	"github.com/solo-io/gloo/pkg/cliutil"
-	"github.com/solo-io/gloo/pkg/cliutil/kubectl"
 	"io"
 	"os"
+
+	"github.com/solo-io/gloo/pkg/cliutil"
+	"github.com/solo-io/gloo/pkg/cliutil/kubectl"
 )
 
 // Deprecated: Prefer kubectl.Kubectl

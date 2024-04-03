@@ -5,12 +5,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/rotisserie/eris"
-	"github.com/solo-io/go-utils/threadsafe"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/rotisserie/eris"
+	"github.com/solo-io/go-utils/threadsafe"
 )
 
 // Kubectl is a utility for executing `kubectl` commands
