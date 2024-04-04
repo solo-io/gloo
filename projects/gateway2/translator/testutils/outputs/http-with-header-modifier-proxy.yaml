@@ -42,17 +42,21 @@ listeners:
                 - X-Header-Remove-2
             routeAction:
               single:
-                upstream:
-                  name: default-example-svc-8080
-                  namespace: default
+                kube:
+                  port: 8080
+                  ref:
+                    name: example-svc
+                    namespace: default
           - matchers:
             - prefix: /
             options: {}
             routeAction:
               single:
-                upstream:
-                  name: default-example-svc-8080
-                  namespace: default
+                kube:
+                  port: 8080
+                  ref:
+                    name: example-svc
+                    namespace: default
   bindAddress: '::'
   bindPort: 8080
   name: http

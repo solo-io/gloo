@@ -11,7 +11,6 @@ import (
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	"github.com/solo-io/gloo/projects/gateway2/controller/scheme"
-	"github.com/solo-io/gloo/projects/gateway2/discovery"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 	"github.com/solo-io/gloo/projects/gateway2/secrets"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
@@ -115,11 +114,6 @@ func Start(ctx context.Context, cfg StartConfig) error {
 		Kick:           inputChannels.Kick,
 	}
 	if err = NewBaseGatewayController(ctx, gwCfg); err != nil {
-		setupLog.Error(err, "unable to create controller")
-		return err
-	}
-
-	if err = discovery.NewDiscoveryController(ctx, mgr, inputChannels); err != nil {
 		setupLog.Error(err, "unable to create controller")
 		return err
 	}
