@@ -3,7 +3,7 @@ package translator
 import (
 	"fmt"
 	accesslogv3 "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
-	als2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/als"
+	alsutils "github.com/solo-io/gloo/projects/gloo/pkg/plugins/als/utils"
 	"reflect"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -60,7 +60,7 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 	accessLogs := []*accesslogv3.AccessLog{}
 	for _, al := range l.listener.Options.ListenerLevelAccessLoggingService.GetAccessLog() {
 		accessLog := &accesslogv3.AccessLog{}
-		err := als2.TranslateFilter(accessLog, al.GetFilter())
+		err := alsutils.TranslateFilter(accessLog, al.GetFilter())
 		if err != nil {
 			validation.AppendListenerError(l.report,
 				validationapi.ListenerReport_Error_ProcessingError,
