@@ -227,4 +227,10 @@ var (
 		Use:   "istio",
 		Short: "Commands for interacting with Istio in Gloo",
 	}
+
+	EXPORT_COMMAND = cobra.Command{
+		Use:     "export",
+		Aliases: []string{},
+		Short:   "Export artifacts from a running installation of Gloo",
+	}
 )

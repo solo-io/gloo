@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/export"
 	"os"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/add"
@@ -129,6 +130,8 @@ func GlooCli() *cobra.Command {
 			// v2.InstallCmd(opts),
 			// v2.UninstallCmd(opts),
 			completionCmd(),
+
+			export.RootCmd(opts),
 		)
 	}
 
