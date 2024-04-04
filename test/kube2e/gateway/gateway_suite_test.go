@@ -49,7 +49,7 @@ var (
 	resourceClientset *kube2e.KubeResourceClientSet
 	snapshotWriter    helpers.SnapshotWriter
 
-	kubeCli *kubectl.Kubectl
+	kubeCli *kubectl.Cli
 )
 
 var _ = BeforeSuite(StartTestHelper)

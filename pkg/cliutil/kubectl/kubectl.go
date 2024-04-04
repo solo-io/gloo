@@ -4,22 +4,20 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
+
+	"github.com/solo-io/gloo/pkg/utils/cmdutils"
+
 	"io"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
 	"github.com/avast/retry-go/v4"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
-
-	"github.com/rotisserie/eris"
-	"github.com/solo-io/go-utils/threadsafe"
 )
 
-// Kubectl is a utility for executing `kubectl` commands
-type Kubectl struct {
+// Cli is a utility for executing `kubectl` commands
+type Cli struct {
 	// receiver is destination for the kubectl stdout and stderr
 	receiver io.Writer
 
@@ -29,78 +27,83 @@ type Kubectl struct {
 }
 
 // NewKubectl returns NewKubectlWithKubeContext with an empty Kubernetes context
-func NewKubectl(receiver io.Writer) (*Kubectl, error) {
+func NewKubectl(receiver io.Writer) (*Cli, error) {
 	return NewKubectlWithKubeContext(receiver, "")
 }
 
-// NewKubectlWithKubeContext returns an implementation of Kubectl, or an error if one of the provided receivers was nil
-func NewKubectlWithKubeContext(receiver io.Writer, kubeContext string) (*Kubectl, error) {
+// NewKubectlWithKubeContext returns an implementation of KubectlCmd, or an error if one of the provided receivers was nil
+func NewKubectlWithKubeContext(receiver io.Writer, kubeContext string) (*Cli, error) {
 	if receiver == nil {
 		return nil, errors.New("receiver must not be nil")
 	}
 
-	return &Kubectl{
+	return &Cli{
 		receiver:    receiver,
 		kubeContext: kubeContext,
 	}, nil
 }
 
-func (k *Kubectl) Execute(ctx context.Context, in io.Reader, args ...string) (stdOut string, stdErr string, executeErr error) {
+func (k *Cli) Command(ctx context.Context, args ...string) cmdutils.Cmd {
 	if k.kubeContext != "" {
 		args = append([]string{"--context", k.kubeContext}, args...)
 	}
 
-	cmd := createKubectlCommand(ctx, args...)
-	if in != nil {
-		cmd.Stdin = in
+	cmd := cmdutils.CommandContext(ctx, "kubectl", args...)
+	env := os.Environ()
+	// disable DEBUG=1 from getting through to kube
+	for i, pair := range env {
+		if strings.HasPrefix(pair, "DEBUG") {
+			env = append(env[:i], env[i+1:]...)
+			break
+		}
 	}
 
-	var stdout, stderr threadsafe.Buffer
-	cmd.Stdout = io.MultiWriter(&stdout, k.receiver)
-	cmd.Stderr = io.MultiWriter(&stderr, k.receiver)
+	cmd.SetEnv(env...)
 
-	_, _ = fmt.Fprintf(k.receiver, "Executing: %s \n", strings.Join(cmd.Args, " "))
-	err := cmd.Run()
-
-	return stdout.String(), stderr.String(), err
+	// For convenience, we set the stdout and stderr to the receiver
+	// This can still be overwritten by consumers who use the commands
+	cmd.SetStdout(k.receiver)
+	cmd.SetStderr(k.receiver)
+	return cmd
 }
 
-func (k *Kubectl) ExecuteSafe(ctx context.Context, in io.Reader, args ...string) (stdOut string, executeErr error) {
-	stdout, stderr, err := k.Execute(ctx, in, args...)
-	if err != nil {
-		return stdout, eris.Wrapf(err, "failed to execute command: %s", stderr)
-	}
-	if stderr != "" {
-		return stdout, eris.Errorf("failed to execute command: %s", stderr)
-	}
-
-	return stdout, nil
+func (k *Cli) ExecuteCommand(ctx context.Context, args ...string) error {
+	return k.Command(ctx, args...).Run().Cause()
 }
 
-func (k *Kubectl) Apply(ctx context.Context, content []byte, extraArgs ...string) error {
+func (k *Cli) ApplyCmd(ctx context.Context, content []byte, extraArgs ...string) cmdutils.Cmd {
 	args := append([]string{"apply", "-f", "-"}, extraArgs...)
-	buf := bytes.NewBuffer(content)
 
-	_, err := k.ExecuteSafe(ctx, buf, args...)
-	return err
+	cmd := k.Command(ctx, args...)
+	cmd.SetStdin(bytes.NewBuffer(content))
+	return cmd
 }
 
-func (k *Kubectl) Delete(ctx context.Context, content []byte, extraArgs ...string) error {
+func (k *Cli) Apply(ctx context.Context, content []byte, extraArgs ...string) error {
+	return k.ApplyCmd(ctx, content, extraArgs...).Run().Cause()
+}
+
+func (k *Cli) DeleteCmd(ctx context.Context, content []byte, extraArgs ...string) cmdutils.Cmd {
 	args := append([]string{"delete", "-f", "-"}, extraArgs...)
-	buf := bytes.NewBuffer(content)
 
-	_, err := k.ExecuteSafe(ctx, buf, args...)
-	return err
+	cmd := k.Command(ctx, args...)
+	cmd.SetStdin(bytes.NewBuffer(content))
+	return cmd
 }
 
-func (k *Kubectl) Copy(ctx context.Context, from, to string) error {
-	args := append([]string{"cp", from, to})
-
-	_, err := k.ExecuteSafe(ctx, nil, args...)
-	return err
+func (k *Cli) Delete(ctx context.Context, content []byte, extraArgs ...string) error {
+	return k.DeleteCmd(ctx, content, extraArgs...).Run().Cause()
 }
 
-func (k *Kubectl) StartPortForward(ctx context.Context, options ...portforward.Option) (portforward.PortForwarder, error) {
+func (k *Cli) CopyCmd(ctx context.Context, from, to string) cmdutils.Cmd {
+	return k.Command(ctx, "cp", from, to)
+}
+
+func (k *Cli) Copy(ctx context.Context, from, to string) error {
+	return k.CopyCmd(ctx, from, to).Run().Cause()
+}
+
+func (k *Cli) StartPortForward(ctx context.Context, options ...portforward.Option) (portforward.PortForwarder, error) {
 	options = append([]portforward.Option{
 		// We define some default values, which users can then override
 		portforward.WithWriters(k.receiver, k.receiver),
@@ -116,17 +119,4 @@ func (k *Kubectl) StartPortForward(ctx context.Context, options ...portforward.O
 		retry.Attempts(5),
 	)
 	return portForwarder, err
-}
-
-func createKubectlCommand(ctx context.Context, args ...string) *exec.Cmd {
-	cmd := exec.CommandContext(ctx, "kubectl", args...)
-	cmd.Env = os.Environ()
-	// disable DEBUG=1 from getting through to kube
-	for i, pair := range cmd.Env {
-		if strings.HasPrefix(pair, "DEBUG") {
-			cmd.Env = append(cmd.Env[:i], cmd.Env[i+1:]...)
-			break
-		}
-	}
-	return cmd
 }

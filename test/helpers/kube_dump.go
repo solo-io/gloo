@@ -219,7 +219,8 @@ func kubeExecute(args []string) (string, error) {
 		return "", err
 	}
 
-	return cli.ExecuteSafe(context.Background(), nil, args...)
+	runError := cli.Command(context.Background(), args...).Run()
+	return runError.OutputString(), runError.Cause()
 }
 
 // kubeList runs $(kubectl -n $namespace $target) and returns a slice of kubernetes object names
