@@ -11,9 +11,6 @@ type Cmd interface {
 	// It returns a *RunError if there is any error, nil otherwise
 	Run() *RunError
 
-	// SetWorkingDirectory sets the working directory of the command
-	SetWorkingDirectory(dir string) Cmd
-
 	// SetEnv sets the Env variables for the Cmd
 	// Each entry should be of the form "key=value"
 	SetEnv(...string) Cmd

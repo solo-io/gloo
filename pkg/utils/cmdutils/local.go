@@ -35,12 +35,6 @@ type LocalCmd struct {
 	*exec.Cmd
 }
 
-// SetWorkingDirectory sets the working directory
-func (cmd *LocalCmd) SetWorkingDirectory(dir string) Cmd {
-	cmd.Dir = dir
-	return cmd
-}
-
 // SetEnv sets env
 func (cmd *LocalCmd) SetEnv(env ...string) Cmd {
 	cmd.Env = env

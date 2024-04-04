@@ -2,7 +2,6 @@ package glooctl_test
 
 import (
 	"context"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"os"
 	"path/filepath"
 	"testing"
@@ -42,8 +41,6 @@ var (
 
 	ctx    context.Context
 	cancel context.CancelFunc
-
-	kubeCli *kubectl.Cli
 )
 
 var _ = BeforeSuite(StartTestHelper)
@@ -57,8 +54,6 @@ func StartTestHelper() {
 	Expect(err).NotTo(HaveOccurred())
 	// Register additional fail handlers
 	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, "istio-system", testHelper.InstallNamespace))
-
-	kubeCli = kubectl.NewCli(GinkgoWriter).SetWorkingDirectory(testHelper.RootDir)
 
 	if !testutils.ShouldSkipInstall() {
 		installGloo()

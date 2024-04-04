@@ -3,6 +3,7 @@ package kubectl
 import (
 	"bytes"
 	"context"
+
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
 
 	"io"
@@ -22,27 +23,18 @@ type Cli struct {
 	// kubeContext is the optional value of the context for a given kubernetes cluster
 	// If it is not supplied, no context will be included in the command
 	kubeContext string
-
-	// workingDirectory is the working directory of the command
-	workingDirectory string
 }
 
 // NewCli returns an implementation of the kubectl.Cli
 func NewCli(receiver io.Writer) *Cli {
 	return &Cli{
-		receiver:         receiver,
-		kubeContext:      "",
-		workingDirectory: "",
+		receiver:    receiver,
+		kubeContext: "",
 	}
 }
 
 func (c *Cli) SetKubeContext(kubeContext string) *Cli {
 	c.kubeContext = kubeContext
-	return c
-}
-
-func (c *Cli) SetWorkingDirectory(dir string) *Cli {
-	c.workingDirectory = dir
 	return c
 }
 
@@ -62,7 +54,6 @@ func (c *Cli) Command(ctx context.Context, args ...string) cmdutils.Cmd {
 		}
 	}
 	cmd.SetEnv(env...)
-	cmd.SetWorkingDirectory(c.workingDirectory)
 
 	// For convenience, we set the stdout and stderr to the receiver
 	// This can still be overwritten by consumers who use the commands
