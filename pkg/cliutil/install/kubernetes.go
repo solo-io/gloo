@@ -10,7 +10,7 @@ import (
 	"github.com/solo-io/gloo/pkg/cliutil"
 )
 
-// Deprecated: Prefer kubectl.Kubectl
+// Deprecated: Prefer kubectl.Cli
 type KubeCli interface {
 	Kubectl(stdin io.Reader, args ...string) error
 	KubectlOut(stdin io.Reader, args ...string) ([]byte, error)
@@ -34,13 +34,13 @@ func SetVerbose(b bool) {
 	verbose = b
 }
 
-// Deprecated: Prefer kubectl.Kubectl
+// Deprecated: Prefer kubectl.Cli
 func Kubectl(stdin io.Reader, args ...string) error {
 	_, err := KubectlOut(stdin, args...)
 	return err
 }
 
-// Deprecated: Prefer kubectl.Kubectl
+// Deprecated: Prefer kubectl.Cli
 func KubectlOut(stdin io.Reader, args ...string) ([]byte, error) {
 	kubectl := exec.Command("kubectl", args...)
 

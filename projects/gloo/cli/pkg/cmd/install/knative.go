@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"io"
 	"net/http"
 	"os"
@@ -12,11 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/solo-io/gloo/pkg/cliutil"
-	"github.com/solo-io/gloo/pkg/cliutil/kubectl"
-
 	"github.com/avast/retry-go"
 	"github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/pkg/cliutil"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/spf13/cobra"

@@ -21,5 +21,5 @@ type Cmd interface {
 
 // Cmder abstracts over creating commands
 type Cmder interface {
-	Command(context.Context, string, ...string) Cmd
+	Command(ctx context.Context, name string, args ...string) Cmd
 }

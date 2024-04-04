@@ -3,10 +3,9 @@ package install
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"io"
 	"os"
-
-	"github.com/solo-io/gloo/pkg/cliutil/kubectl"
 
 	"github.com/solo-io/gloo/pkg/cliutil"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
