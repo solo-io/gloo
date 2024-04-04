@@ -58,7 +58,7 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 	}
 
 	accessLogs := []*accesslogv3.AccessLog{}
-	for _, al := range l.listener.Options.AccessLoggingService.GetAccessLog() {
+	for _, al := range l.listener.Options.ListenerLevelAccessLoggingService.GetAccessLog() {
 		accessLog := &accesslogv3.AccessLog{}
 		err := als2.TranslateFilter(accessLog, al.GetFilter())
 		if err != nil {
