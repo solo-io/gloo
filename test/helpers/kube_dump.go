@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/solo-io/gloo/pkg/cliutil/install"

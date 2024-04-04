@@ -2,11 +2,12 @@ package gateway_test
 
 import (
 	"context"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 
 	"github.com/solo-io/gloo/test/testutils/kubeutils"
 

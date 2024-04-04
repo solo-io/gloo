@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"io"
 	"net/http"
 	"os"
@@ -12,6 +11,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 
 	"github.com/avast/retry-go"
 	"github.com/rotisserie/eris"
