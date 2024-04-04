@@ -42,17 +42,12 @@ type ProxySyncer struct {
 }
 
 type GatewayInputChannels struct {
-	genericEvent   AsyncQueue[struct{}]
-	discoveryEvent AsyncQueue[DiscoveryInputs]
-	secretEvent    AsyncQueue[SecretInputs]
+	genericEvent AsyncQueue[struct{}]
+	secretEvent  AsyncQueue[SecretInputs]
 }
 
 func (x *GatewayInputChannels) Kick(ctx context.Context) {
 	x.genericEvent.Enqueue(struct{}{})
-}
-
-func (x *GatewayInputChannels) UpdateDiscoveryInputs(ctx context.Context, inputs DiscoveryInputs) {
-	x.discoveryEvent.Enqueue(inputs)
 }
 
 func (x *GatewayInputChannels) UpdateSecretInputs(ctx context.Context, inputs SecretInputs) {
@@ -61,9 +56,8 @@ func (x *GatewayInputChannels) UpdateSecretInputs(ctx context.Context, inputs Se
 
 func NewGatewayInputChannels() *GatewayInputChannels {
 	return &GatewayInputChannels{
-		genericEvent:   NewAsyncQueue[struct{}](),
-		discoveryEvent: NewAsyncQueue[DiscoveryInputs](),
-		secretEvent:    NewAsyncQueue[SecretInputs](),
+		genericEvent: NewAsyncQueue[struct{}](),
+		secretEvent:  NewAsyncQueue[SecretInputs](),
 	}
 }
 
@@ -142,9 +136,6 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 			contextutils.LoggerFrom(ctx).Debug("context done, stopping proxy syncer")
 			return nil
 		case <-s.inputs.genericEvent.Next():
-			resyncProxies()
-		case <-s.inputs.discoveryEvent.Next():
-			discoveryWarmed = true
 			resyncProxies()
 		case <-s.inputs.secretEvent.Next():
 			secretsWarmed = true

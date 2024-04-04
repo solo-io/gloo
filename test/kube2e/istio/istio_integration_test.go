@@ -286,7 +286,7 @@ var _ = Describe("Gloo + Istio integration tests", func() {
 				ReturnHeaders:     true,
 			}, fmt.Sprintf("HTTP/1.1 %d", expected), 1, time.Minute*1)
 		},
-			FEntry("with non-matching, yet valid, port and target (app) port", int32(helper.TestServerPort+1), helper.TestServerPort, http.StatusOK),
+			Entry("with non-matching, yet valid, port and target (app) port", int32(helper.TestServerPort+1), helper.TestServerPort, http.StatusOK),
 			Entry("with matching port and target port", int32(helper.TestServerPort), helper.TestServerPort, http.StatusOK),
 			Entry("without target port, and port matching pod's port", int32(helper.TestServerPort), -1, http.StatusOK),
 			Entry("without target port, and port not matching app's port", int32(helper.TestServerPort+1), -1, http.StatusServiceUnavailable),

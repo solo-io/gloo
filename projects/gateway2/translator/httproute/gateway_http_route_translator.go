@@ -219,14 +219,23 @@ func setRouteAction(
 			}
 		}
 
+		var port uint32
+		if backendRef.Port != nil {
+			port = uint32(*backendRef.Port)
+		}
+
 		// get backend for ref - we must do it to make sure we have permissions to access it.
 		// also we need the service so we can translate its name correctly.
 		weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
 			Destination: &v1.Destination{
-				DestinationType: &v1.Destination_Upstream{
-					Upstream: &core.ResourceRef{
-						Name:      clusterName,
-						Namespace: ns,
+				// TODO(npolshak): should check backendRef.Kind is empty or "Service" here
+				DestinationType: &v1.Destination_Kube{
+					Kube: &v1.KubernetesServiceDestination{
+						Ref: &core.ResourceRef{
+							Name:      clusterName,
+							Namespace: ns,
+						},
+						Port: port,
 					},
 				},
 			},

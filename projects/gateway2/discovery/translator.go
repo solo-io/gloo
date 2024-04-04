@@ -17,6 +17,7 @@ var (
 	_ Translator = new(edgeLegacyTranslator)
 )
 
+// TODO(npolshak) I think we can delete this now
 // Translator is the interface that discovery components must implement to be used by the discovery controller
 // They are responsible for translating Kubernetes resources into the intermediary representation
 type Translator interface {
@@ -93,29 +94,6 @@ func (e *edgeLegacyTranslator) reconcileAll(ctx context.Context) (ctrl.Result, e
 		}
 	}
 
-	endpoints, _, _ := kubeplugin.FilterEndpoints(
-		ctx,
-		"gloo-system",
-		translateObjectList(epList.Items),
-		translateObjectList(svcList.Items),
-		translateObjectList(podList.Items),
-		usMap,
-	)
-
-	e.inputChannels.UpdateDiscoveryInputs(ctx, proxy_syncer.DiscoveryInputs{
-		Upstreams: usTotalList,
-		Endpoints: endpoints,
-	})
-
 	// Send across endpoints and upstreams
 	return ctrl.Result{}, nil
-}
-
-func translateObjectList[T any](list []T) []*T {
-	var out []*T
-	for _, item := range list {
-		item := item
-		out = append(out, &item)
-	}
-	return out
 }
