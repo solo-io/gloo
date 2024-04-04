@@ -154,7 +154,7 @@ func knativeCmd(opts *options.Options) *cobra.Command {
 func installKnativeServing(opts *options.Options) error {
 	knativeOpts := opts.Install.Knative
 
-	kubeCli, err := kubectl.NewKubectlWithKubeContext(cliutil.GetLogger(), opts.Top.KubeContext)
+	kubeCli, err := kubectl.NewCliWithKubeContext(cliutil.GetLogger(), opts.Top.KubeContext)
 	if err != nil {
 		return err
 	}

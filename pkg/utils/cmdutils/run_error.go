@@ -27,18 +27,18 @@ func (e *RunError) PrettyCommand() string {
 }
 
 func (e *RunError) OutputString() string {
-	if e != nil {
-		return string(e.Output)
+	if e == nil {
+		return ""
 	}
-	return ""
+	return string(e.Output)
 }
 
 // Cause mimics github.com/pkg/errors's Cause pattern for errors
 func (e *RunError) Cause() error {
-	if e.Inner != nil {
-		return e.Inner
+	if e == nil {
+		return nil
 	}
-	return e
+	return e.Inner
 }
 
 // PrettyCommand takes arguments identical to Cmder.Command,

@@ -63,7 +63,7 @@ func StartTestHelper() {
 	Expect(err).NotTo(HaveOccurred())
 	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, testHelper.InstallNamespace))
 
-	kubeCli, err = kubectl.NewKubectl(GinkgoWriter)
+	kubeCli, err = kubectl.NewCli(GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 
 	// Allow skipping of install step for running multiple times

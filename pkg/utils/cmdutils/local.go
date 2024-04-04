@@ -2,36 +2,37 @@ package cmdutils
 
 import (
 	"context"
-	"github.com/pkg/errors"
-	"github.com/solo-io/go-utils/threadsafe"
 	"io"
 	"os/exec"
+
+	"github.com/pkg/errors"
+	"github.com/solo-io/go-utils/threadsafe"
 )
 
-// LocalCmd wraps os/exec.Cmd, implementing the kind/pkg/exec.Cmd interface
-type LocalCmd struct {
-	*exec.Cmd
-}
+var (
+	_            Cmd   = &LocalCmd{}
+	_            Cmder = &LocalCmder{}
+	DefaultCmder       = &LocalCmder{}
+)
 
-var _ Cmd = &LocalCmd{}
+// Command is a convenience wrapper over DefaultCmder.Command
+func Command(ctx context.Context, command string, args ...string) Cmd {
+	return DefaultCmder.Command(ctx, command, args...)
+}
 
 // LocalCmder is a factory for LocalCmd, implementing Cmder
 type LocalCmder struct{}
 
-var _ Cmder = &LocalCmder{}
-
-// Command returns a new exec.Cmd backed by Cmd
-func (c *LocalCmder) Command(name string, arg ...string) Cmd {
-	return &LocalCmd{
-		Cmd: exec.Command(name, arg...),
-	}
-}
-
-// CommandContext is like Command but includes a context
-func (c *LocalCmder) CommandContext(ctx context.Context, name string, arg ...string) Cmd {
+// Command is like Command but includes a context
+func (c *LocalCmder) Command(ctx context.Context, name string, arg ...string) Cmd {
 	return &LocalCmd{
 		Cmd: exec.CommandContext(ctx, name, arg...),
 	}
+}
+
+// LocalCmd wraps os/exec.Cmd, implementing the kind/pkg/exec.Cmd interface
+type LocalCmd struct {
+	*exec.Cmd
 }
 
 // SetEnv sets env

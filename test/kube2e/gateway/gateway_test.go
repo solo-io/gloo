@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/go-utils/threadsafe"
+
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
 
@@ -1899,8 +1901,10 @@ var _ = Describe("Kube2e: gateway", func() {
 		expectResourceRejected := func(yaml string, errorMatcher types.GomegaMatcher) {
 			GinkgoHelper()
 
-			err := kubeCli.Apply(ctx, []byte(yaml))
-			Expect(err).To(MatchError(errorMatcher))
+			var stderr threadsafe.Buffer
+
+			_ = kubeCli.ApplyCmd(ctx, []byte(yaml)).SetStderr(&stderr).Run()
+			Expect(string(stderr.Bytes())).To(errorMatcher)
 		}
 
 		expectResourceAccepted := func(yaml string) {
