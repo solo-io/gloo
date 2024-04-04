@@ -1,15 +1,30 @@
 package reports
 
 import (
+	"fmt"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	gwv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 )
+
+type KubeResourceKey struct {
+	schema.GroupKind
+	types.NamespacedName
+	Generation int64 // optional
+}
+
+func (k KubeResourceKey) String() string {
+	return fmt.Sprintf("%s.%s", k.GroupKind.String(), k.NamespacedName.String())
+}
 
 type ReportMap struct {
 	gateways map[types.NamespacedName]*GatewayReport
 	routes   map[types.NamespacedName]*RouteReport
+	policies map[KubeResourceKey]*PolicyReport
 }
 
 type GatewayReport struct {
@@ -23,26 +38,32 @@ type ListenerReport struct {
 }
 
 type RouteReport struct {
-	parents            map[ParentRefKey]*ParentRefReport
+	parents            map[KubeResourceKey]*ParentRefReport
 	observedGeneration int64
 }
 
+// TODO: rename to e.g. RouteParentRefReport
 type ParentRefReport struct {
 	Conditions []metav1.Condition
 }
 
-type ParentRefKey struct {
-	Group string
-	Kind  string
-	types.NamespacedName
+type PolicyReport struct {
+	ancestors          map[KubeResourceKey]*PolicyAncestorReport
+	observedGeneration int64
+}
+
+type PolicyAncestorReport struct {
+	Condition metav1.Condition
 }
 
 func NewReportMap() ReportMap {
 	gr := make(map[types.NamespacedName]*GatewayReport)
 	rr := make(map[types.NamespacedName]*RouteReport)
+	pr := make(map[KubeResourceKey]*PolicyReport)
 	return ReportMap{
 		gateways: gr,
 		routes:   rr,
+		policies: pr,
 	}
 }
 
@@ -78,6 +99,34 @@ func (r *ReportMap) newRouteReport(route *gwv1.HTTPRoute) *RouteReport {
 	key := client.ObjectKeyFromObject(route)
 	r.routes[key] = rr
 	return rr
+}
+
+// Returns a RouteReport for the provided HTTPRoute, nil if there is not a report present.
+// This is different than the Reporter.Route() method, as we need to understand when
+// reports are not generated for a HTTPRoute that has been translated.
+func (r *ReportMap) policy(key KubeResourceKey) *PolicyReport {
+	return r.policies[key]
+}
+
+func (r *ReportMap) newPolicyReport(key KubeResourceKey) *PolicyReport {
+	pr := &PolicyReport{}
+	pr.observedGeneration = key.Generation
+	r.policies[key] = pr
+	return pr
+}
+
+func GetKubeResourceKey(obj client.Object) KubeResourceKey {
+	nn := client.ObjectKeyFromObject(obj)
+	kind := obj.GetObjectKind().GroupVersionKind().Kind
+	group := obj.GetObjectKind().GroupVersionKind().Group
+	return KubeResourceKey{
+		GroupKind: schema.GroupKind{
+			Group: group,
+			Kind:  kind,
+		},
+		NamespacedName: nn,
+		Generation:     obj.GetGeneration(),
+	}
 }
 
 func (g *GatewayReport) Listener(listener *gwv1.Listener) ListenerReporter {
@@ -149,6 +198,41 @@ func (r *reporter) Gateway(gateway *gwv1.Gateway) GatewayReporter {
 	return gr
 }
 
+func (r *reporter) Policy(policyKey KubeResourceKey) PolicyReporter {
+	pr := r.report.policy(policyKey)
+	if pr == nil {
+		pr = r.report.newPolicyReport(policyKey)
+	}
+	return pr
+}
+
+func (p *PolicyReport) ancestorRef(ancestorRef *gwv1.ParentReference) *PolicyAncestorReport {
+	key := getKeyFromParentRef(ancestorRef)
+	if p.ancestors == nil {
+		p.ancestors = make(map[KubeResourceKey]*PolicyAncestorReport)
+	}
+	var par *PolicyAncestorReport
+	par, ok := p.ancestors[key]
+	if !ok {
+		par = &PolicyAncestorReport{}
+		p.ancestors[key] = par
+	}
+	return par
+}
+
+func (p *PolicyReport) AncestorRef(ancestorRef *gwv1.ParentReference) PolicyAncestorReporter {
+	return p.ancestorRef(ancestorRef)
+}
+
+func (par *PolicyAncestorReport) SetCondition(pc PolicyAcceptedCondition) {
+	par.Condition = metav1.Condition{
+		Type:    string(gwv1alpha2.PolicyConditionAccepted),
+		Status:  pc.Status,
+		Reason:  string(pc.Reason),
+		Message: pc.Message,
+	}
+}
+
 func (r *reporter) Route(route *gwv1.HTTPRoute) HTTPRouteReporter {
 	rr := r.report.route(route)
 	if rr == nil {
@@ -157,18 +241,21 @@ func (r *reporter) Route(route *gwv1.HTTPRoute) HTTPRouteReporter {
 	return rr
 }
 
-func getParentRefKey(parentRef *gwv1.ParentReference) ParentRefKey {
+// TODO: flesh out
+func getKeyFromParentRef(parentRef *gwv1.ParentReference) KubeResourceKey {
 	var kind string
 	if parentRef.Kind != nil {
 		kind = string(*parentRef.Kind)
 	}
 	var ns string
 	if parentRef.Namespace != nil {
-		kind = string(*parentRef.Namespace)
+		ns = string(*parentRef.Namespace)
 	}
-	return ParentRefKey{
-		Group: string(parentRef.Name),
-		Kind:  kind,
+	return KubeResourceKey{
+		GroupKind: schema.GroupKind{
+			Group: string(*parentRef.Group),
+			Kind:  kind,
+		},
 		NamespacedName: types.NamespacedName{
 			Namespace: ns,
 			Name:      string(parentRef.Name),
@@ -177,9 +264,9 @@ func getParentRefKey(parentRef *gwv1.ParentReference) ParentRefKey {
 }
 
 func (r *RouteReport) parentRef(parentRef *gwv1.ParentReference) *ParentRefReport {
-	key := getParentRefKey(parentRef)
+	key := getKeyFromParentRef(parentRef)
 	if r.parents == nil {
-		r.parents = make(map[ParentRefKey]*ParentRefReport)
+		r.parents = make(map[KubeResourceKey]*ParentRefReport)
 	}
 	var prr *ParentRefReport
 	prr, ok := r.parents[key]
@@ -212,6 +299,7 @@ type Reporter interface {
 	// returns the object reporter for the given type
 	Gateway(gateway *gwv1.Gateway) GatewayReporter
 	Route(route *gwv1.HTTPRoute) HTTPRouteReporter
+	Policy(policy KubeResourceKey) PolicyReporter
 }
 
 type GatewayReporter interface {
@@ -229,8 +317,17 @@ type HTTPRouteReporter interface {
 	ParentRef(parentRef *gwv1.ParentReference) ParentRefReporter
 }
 
+// TODO: rename to e.g. RouteParentReporter
 type ParentRefReporter interface {
 	SetCondition(condition HTTPRouteCondition)
+}
+
+type PolicyReporter interface {
+	AncestorRef(ancestorRef *gwv1.ParentReference) PolicyAncestorReporter
+}
+
+type PolicyAncestorReporter interface {
+	SetCondition(condition PolicyAcceptedCondition)
 }
 
 type GatewayCondition struct {
@@ -251,5 +348,11 @@ type HTTPRouteCondition struct {
 	Type    gwv1.RouteConditionType
 	Status  metav1.ConditionStatus
 	Reason  gwv1.RouteConditionReason
+	Message string
+}
+
+type PolicyAcceptedCondition struct {
+	Status  metav1.ConditionStatus
+	Reason  gwv1alpha2.PolicyConditionReason
 	Message string
 }

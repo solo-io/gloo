@@ -4,22 +4,29 @@ import (
 	"context"
 
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 
 	"github.com/solo-io/gloo/pkg/utils/syncutil"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 
 	gwplugins "github.com/solo-io/gloo/projects/gateway2/translator/plugins"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kubetypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	gloot "github.com/solo-io/gloo/projects/gateway2/translator"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
@@ -40,6 +47,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
+	"sigs.k8s.io/gateway-api/apis/v1alpha2"
 )
 
 // empty resources to give to envoy when a proxy was deleted
@@ -191,7 +199,7 @@ func (s *XdsSyncer) Start(ctx context.Context) error {
 			TranslatedGateways: translatedGateways,
 		})
 
-		s.syncEnvoy(ctx, proxyApiSnapshot)
+		s.syncEnvoy(ctx, proxyApiSnapshot, r)
 		s.syncStatus(ctx, rm, gwl)
 		s.syncRouteStatus(ctx, rm)
 		s.syncProxyCache(ctx, proxies)
@@ -217,9 +225,38 @@ func (s *XdsSyncer) Start(ctx context.Context) error {
 	}
 }
 
+// RouteError metadata should have a single HTTPRoute & possibly RouteOption resource
+func extractSources(
+	metadata *v1.SourceMetadata,
+) (route *v1.SourceMetadata_SourceRef, routeOption *v1.SourceMetadata_SourceRef) {
+	for _, src := range metadata.GetSources() {
+		if src.GetResourceKind() == wellknown.HTTPRouteKind {
+			route = src
+		} else if src.GetResourceKind() == sologatewayv1.RouteOptionGVK.Kind {
+			routeOption = src
+		}
+	}
+	return route, routeOption
+}
+
+func kindHelper(kind string) *apiv1.Kind {
+	k := apiv1.Kind(kind)
+	return &k
+}
+
+func groupHelper(group string) *apiv1.Group {
+	g := apiv1.Group(group)
+	return &g
+}
+
+func nsHelper(ns string) *apiv1.Namespace {
+	n := apiv1.Namespace(ns)
+	return &n
+}
+
 // syncEnvoy will translate, sanatize, and set the snapshot for each of the proxies, all while merging all the reports into allReports.
 // NOTE(ilackarms): the below code was copy-pasted (with some deletions) from projects/gloo/pkg/syncer/translator_syncer.go
-func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) reporter.ResourceReports {
+func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot, r reports.Reporter) reporter.ResourceReports {
 	ctx, span := trace.StartSpan(ctx, "gloo.syncer.Sync")
 	defer span.End()
 
@@ -238,9 +275,9 @@ func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) rep
 		debugLogger.Info("snap", "snap", syncutil.StringifySnapshot(snap))
 	}
 
-	reports := make(reporter.ResourceReports)
-	reports.Accept(snap.Upstreams.AsInputResources()...)
-	reports.Accept(snap.Proxies.AsInputResources()...)
+	reportss := make(reporter.ResourceReports)
+	reportss.Accept(snap.Upstreams.AsInputResources()...)
+	reportss.Accept(snap.Proxies.AsInputResources()...)
 
 	if !s.xdsGarbageCollection {
 		allKeys := map[string]bool{
@@ -274,18 +311,51 @@ func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) rep
 			Messages: map[*core.ResourceRef][]string{},
 		}
 
-		xdsSnapshot, reports, _ := s.translator.Translate(params, proxy)
+		xdsSnapshot, _, proxyReport := s.translator.Translate(params, proxy)
 
-		// Messages are aggregated during translation, and need to be added to reports
-		for _, messages := range params.Messages {
-			reports.AddMessages(proxy, messages...)
+		routeErrors := []*validation.RouteReport_Error{}
+		for _, lr := range proxyReport.GetListenerReports() {
+			for _, hlr := range lr.GetAggregateListenerReport().GetHttpListenerReports() {
+				for _, vhr := range hlr.GetVirtualHostReports() {
+					for _, rr := range vhr.GetRouteReports() {
+						for _, rerr := range rr.GetErrors() {
+							routeErrors = append(routeErrors, rerr)
+						}
+					}
+				}
+			}
 		}
+
+		for _, rerr := range routeErrors {
+			route, ro := extractSources(rerr.GetMetadata())
+			r.Policy(reports.KubeResourceKey{
+				GroupKind: schema.GroupKind{
+					Group: ro.GetResourceGroup(),
+					Kind:  ro.GetResourceKind(),
+				},
+				NamespacedName: kubetypes.NamespacedName{
+					Namespace: ro.GetResourceRef().GetNamespace(),
+					Name:      ro.GetResourceRef().GetName(),
+				},
+			}).AncestorRef(&apiv1.ParentReference{
+				Group:     groupHelper(route.GetResourceGroup()),
+				Kind:      kindHelper(route.GetResourceKind()),
+				Name:      apiv1.ObjectName(route.GetResourceRef().GetName()),
+				Namespace: nsHelper(route.GetResourceRef().GetNamespace()),
+			}).SetCondition(reports.PolicyAcceptedCondition{
+				Status:  metav1.ConditionFalse,
+				Reason:  v1alpha2.PolicyReasonInvalid,
+				Message: rerr.GetReason(),
+			})
+		}
+
+		// add RouteReports from Proxy translation to the gatewayv2 Reporter (currently only need to report for Policy status)
 
 		// if validateErr := reports.ValidateStrict(); validateErr != nil {
 		// 	logger.Warnw("Proxy had invalid config", zap.Any("proxy", proxy.GetMetadata().Ref()), zap.Error(validateErr))
 		// }
 
-		sanitizedSnapshot := s.sanitizer.SanitizeSnapshot(ctx, snap, xdsSnapshot, reports)
+		sanitizedSnapshot := s.sanitizer.SanitizeSnapshot(ctx, snap, xdsSnapshot, reportss)
 		// if the snapshot is not consistent, make it so
 		xdsSnapshot.MakeConsistent()
 
@@ -296,7 +366,7 @@ func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) rep
 		debugLogger.Info("snap", "key", sanitizedSnapshot)
 
 		// Merge reports after sanitization to capture changes made by the sanitizers
-		reports.Merge(reports)
+		reportss.Merge(reportss)
 		key := xds.SnapshotCacheKey(utils.GlooGatewayTranslatorValue, proxy)
 		s.xdsCache.SetSnapshot(key, sanitizedSnapshot)
 
@@ -324,9 +394,9 @@ func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) rep
 		debugLogger.Info("Full snapshot for proxy", proxy.GetMetadata().GetName(), xdsSnapshot)
 	}
 
-	debugLogger.Info("gloo reports to be written", "reports", reports)
+	debugLogger.Info("gloo reports to be written", "reports", reportss)
 
-	return reports
+	return reportss
 }
 
 func measureResource(ctx context.Context, resource string, length int) {

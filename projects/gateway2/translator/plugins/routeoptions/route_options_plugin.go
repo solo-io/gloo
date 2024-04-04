@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	rtoptquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/routeoptions/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
+	"github.com/solo-io/gloo/projects/gateway2/translator/routeutils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 
@@ -20,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	"sigs.k8s.io/gateway-api/apis/v1alpha2"
 )
 
 var _ plugins.RoutePlugin = &plugin{}
@@ -48,7 +50,7 @@ func (p *plugin) ApplyRoutePlugin(
 ) error {
 	var routeOptions *v1.RouteOptions
 	// check for RouteOptions applied to full Route
-	routeOptions = p.handleAttachment(ctx, routeCtx)
+	routeOptions, routeOptionKube := p.handleAttachment(ctx, routeCtx)
 
 	// allow for ExtensionRef filter override
 	filterRouteOptions, err := p.handleFilter(ctx, routeCtx)
@@ -62,22 +64,59 @@ func (p *plugin) ApplyRoutePlugin(
 	if routeOptions != nil {
 		// clobber the existing RouteOptions; merge semantics may be desired later
 		outputRoute.Options = routeOptions
+
+		if filterRouteOptions == nil {
+			// if we didn't use a filter to derive these RouteOptions, let's track the
+			// RouteOption policy object that was used so we can report status on it
+			routeutils.AppendSourceToRoute(outputRoute, routeOptionKube)
+
+			// report success on attaching this policy, although it may be overturned
+			// later if the Proxy translation results in a processing error for these RouteOptions
+			reportKey := reports.GetKubeResourceKey(routeOptionKube)
+			// the ancestor is the targeted HTTPRoute
+			targetRef := routeOptionKube.Spec.GetTargetRef()
+			policyReporter := routeCtx.Reporter.Policy(reportKey).AncestorRef(&gwv1.ParentReference{
+				Group:     groupHelper(targetRef.Group),
+				Kind:      kindHelper(targetRef.Kind),
+				Name:      gwv1.ObjectName(targetRef.Name),
+				Namespace: nsHelper(routeCtx.Route.Namespace),
+			})
+			policyReporter.SetCondition(reports.PolicyAcceptedCondition{
+				Status:  metav1.ConditionTrue,
+				Reason:  v1alpha2.PolicyReasonAccepted,
+				Message: "Attached successfully",
+			})
+		}
 	}
 	return nil
+}
+
+func kindHelper(kind string) *gwv1.Kind {
+	k := gwv1.Kind(kind)
+	return &k
+}
+
+func groupHelper(group string) *gwv1.Group {
+	g := gwv1.Group(group)
+	return &g
+}
+
+func nsHelper(ns string) *gwv1.Namespace {
+	n := gwv1.Namespace(ns)
+	return &n
 }
 
 func (p *plugin) handleAttachment(
 	ctx context.Context,
 	routeCtx *plugins.RouteContext,
-) *v1.RouteOptions {
+) (*v1.RouteOptions, *solokubev1.RouteOption) {
 	// TODO: This is far too naive and we should optimize the amount of querying we do.
 	// Route plugins run on every match for every Rule in a Route but the attached options are
 	// the same each time; i.e. HTTPRoute <-1:1-> RouteOptions.
 	// We should only make this query once per HTTPRoute.
-
 	attachedOptions := getAttachedRouteOptions(ctx, routeCtx.Route, p.rtOptQueries)
 	if len(attachedOptions) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	// sort attached options and apply only the earliest
@@ -85,9 +124,9 @@ func (p *plugin) handleAttachment(
 	earliestOption := attachedOptions[0]
 
 	if earliestOption.Spec.GetOptions() != nil {
-		return earliestOption.Spec.GetOptions()
+		return earliestOption.Spec.GetOptions(), earliestOption
 	}
-	return nil
+	return nil, nil
 }
 
 func (p *plugin) handleFilter(
@@ -105,7 +144,7 @@ func (p *plugin) handleFilter(
 		switch {
 		case apierrors.IsNotFound(err):
 			notFoundMsg := formatNotFoundMessage(routeCtx, filter)
-			routeCtx.Reporter.SetCondition(reports.HTTPRouteCondition{
+			routeCtx.ParentRefReporter.SetCondition(reports.HTTPRouteCondition{
 				Type:    gwv1.RouteConditionResolvedRefs,
 				Status:  metav1.ConditionFalse,
 				Reason:  gwv1.RouteReasonBackendNotFound,
