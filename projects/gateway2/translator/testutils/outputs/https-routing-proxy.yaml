@@ -22,7 +22,6 @@ listeners:
             routeAction:
               single:
                 kube:
-                  port: 80
                   ref:
                     name: example-svc
                     namespace: default

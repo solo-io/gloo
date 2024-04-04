@@ -23,7 +23,6 @@ listeners:
             routeAction:
               single:
                 kube:
-                  port: 8080
                   ref:
                     name: bar-svc-canary
                     namespace: default
@@ -33,7 +32,6 @@ listeners:
             routeAction:
               single:
                 kube:
-                  port: 8080
                   ref:
                     name: bar-svc
                     namespace: default
@@ -48,7 +46,6 @@ listeners:
             routeAction:
               single:
                 kube:
-                  port: 80
                   ref:
                     name: example-svc
                     namespace: default
@@ -63,7 +60,6 @@ listeners:
             routeAction:
               single:
                 kube:
-                  port: 8080
                   ref:
                     name: foo-svc
                     namespace: default

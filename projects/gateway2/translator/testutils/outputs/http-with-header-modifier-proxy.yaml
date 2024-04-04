@@ -43,7 +43,6 @@ listeners:
             routeAction:
               single:
                 kube:
-                  port: 8080
                   ref:
                     name: example-svc
                     namespace: default
@@ -53,7 +52,6 @@ listeners:
             routeAction:
               single:
                 kube:
-                  port: 8080
                   ref:
                     name: example-svc
                     namespace: default
