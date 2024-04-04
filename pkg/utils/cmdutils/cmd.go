@@ -10,12 +10,21 @@ type Cmd interface {
 	// Run executes the command (like os/exec.Cmd.Run)
 	// It returns a *RunError if there is any error, nil otherwise
 	Run() *RunError
+
+	// SetWorkingDirectory sets the working directory of the command
+	SetWorkingDirectory(dir string) Cmd
+
 	// SetEnv sets the Env variables for the Cmd
 	// Each entry should be of the form "key=value"
 	SetEnv(...string) Cmd
 
+	// SetStdin sets the io.Reader used for stdin
 	SetStdin(reader io.Reader) Cmd
+
+	// SetStdout sets the io.Writer used for stdout
 	SetStdout(io.Writer) Cmd
+
+	// SetStderr sets the io.Reader used for stderr
 	SetStderr(io.Writer) Cmd
 }
 

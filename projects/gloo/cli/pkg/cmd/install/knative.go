@@ -154,10 +154,7 @@ func knativeCmd(opts *options.Options) *cobra.Command {
 func installKnativeServing(opts *options.Options) error {
 	knativeOpts := opts.Install.Knative
 
-	kubeCli, err := kubectl.NewCliWithKubeContext(cliutil.GetLogger(), opts.Top.KubeContext)
-	if err != nil {
-		return err
-	}
+	kubeCli := kubectl.NewCli(cliutil.GetLogger()).SetKubeContext(opts.Top.KubeContext)
 
 	// store the opts as a label on the knative-serving namespace
 	// we can use this to uninstall later on

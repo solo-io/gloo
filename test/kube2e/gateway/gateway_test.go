@@ -1903,7 +1903,7 @@ var _ = Describe("Kube2e: gateway", func() {
 
 			var stderr threadsafe.Buffer
 
-			_ = kubeCli.ApplyCmd(ctx, []byte(yaml)).SetStderr(&stderr).Run()
+			_ = kubeCli.ApplyCmd(ctx, []byte(yaml), "-f", "-").SetStderr(&stderr).Run()
 			Expect(string(stderr.Bytes())).To(errorMatcher)
 		}
 

@@ -214,10 +214,7 @@ func kubeGet(namespace string, kubeType string, name string) (string, error) {
 }
 
 func kubeExecute(args []string) (string, error) {
-	cli, err := kubectl.NewCli(ginkgo.GinkgoWriter)
-	if err != nil {
-		return "", err
-	}
+	cli := kubectl.NewCli(ginkgo.GinkgoWriter)
 
 	runError := cli.Command(context.Background(), args...).Run()
 	return runError.OutputString(), runError.Cause()

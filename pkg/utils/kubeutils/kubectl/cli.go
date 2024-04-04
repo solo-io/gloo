@@ -3,8 +3,6 @@ package kubectl
 import (
 	"bytes"
 	"context"
-	"errors"
-
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
 
 	"io"
@@ -24,23 +22,28 @@ type Cli struct {
 	// kubeContext is the optional value of the context for a given kubernetes cluster
 	// If it is not supplied, no context will be included in the command
 	kubeContext string
+
+	// workingDirectory is the working directory of the command
+	workingDirectory string
 }
 
-// NewCli returns NewCliWithKubeContext with an empty Kubernetes context
-func NewCli(receiver io.Writer) (*Cli, error) {
-	return NewCliWithKubeContext(receiver, "")
-}
-
-// NewCliWithKubeContext returns an implementation of KubectlCmd, or an error if one of the provided receivers was nil
-func NewCliWithKubeContext(receiver io.Writer, kubeContext string) (*Cli, error) {
-	if receiver == nil {
-		return nil, errors.New("receiver must not be nil")
-	}
-
+// NewCli returns an implementation of the kubectl.Cli
+func NewCli(receiver io.Writer) *Cli {
 	return &Cli{
-		receiver:    receiver,
-		kubeContext: kubeContext,
-	}, nil
+		receiver:         receiver,
+		kubeContext:      "",
+		workingDirectory: "",
+	}
+}
+
+func (c *Cli) SetKubeContext(kubeContext string) *Cli {
+	c.kubeContext = kubeContext
+	return c
+}
+
+func (c *Cli) SetWorkingDirectory(dir string) *Cli {
+	c.workingDirectory = dir
+	return c
 }
 
 func (c *Cli) Command(ctx context.Context, args ...string) cmdutils.Cmd {
@@ -59,6 +62,7 @@ func (c *Cli) Command(ctx context.Context, args ...string) cmdutils.Cmd {
 		}
 	}
 	cmd.SetEnv(env...)
+	cmd.SetWorkingDirectory(c.workingDirectory)
 
 	// For convenience, we set the stdout and stderr to the receiver
 	// This can still be overwritten by consumers who use the commands
@@ -72,7 +76,7 @@ func (c *Cli) ExecuteCommand(ctx context.Context, args ...string) error {
 }
 
 func (c *Cli) ApplyCmd(ctx context.Context, content []byte, extraArgs ...string) cmdutils.Cmd {
-	args := append([]string{"apply", "-f", "-"}, extraArgs...)
+	args := append([]string{"apply"}, extraArgs...)
 
 	cmd := c.Command(ctx, args...)
 	cmd.SetStdin(bytes.NewBuffer(content))
@@ -80,11 +84,17 @@ func (c *Cli) ApplyCmd(ctx context.Context, content []byte, extraArgs ...string)
 }
 
 func (c *Cli) Apply(ctx context.Context, content []byte, extraArgs ...string) error {
-	return c.ApplyCmd(ctx, content, extraArgs...).Run().Cause()
+	applyArgs := append([]string{"-f", "-"}, extraArgs...)
+	return c.ApplyCmd(ctx, content, applyArgs...).Run().Cause()
+}
+
+func (c *Cli) ApplyFile(ctx context.Context, file string, extraArgs ...string) error {
+	applyFileArgs := append([]string{"-f"}, extraArgs...)
+	return c.ApplyCmd(ctx, []byte(file), applyFileArgs...).Run().Cause()
 }
 
 func (c *Cli) DeleteCmd(ctx context.Context, content []byte, extraArgs ...string) cmdutils.Cmd {
-	args := append([]string{"delete", "-f", "-"}, extraArgs...)
+	args := append([]string{"delete"}, extraArgs...)
 
 	cmd := c.Command(ctx, args...)
 	cmd.SetStdin(bytes.NewBuffer(content))
@@ -92,7 +102,13 @@ func (c *Cli) DeleteCmd(ctx context.Context, content []byte, extraArgs ...string
 }
 
 func (c *Cli) Delete(ctx context.Context, content []byte, extraArgs ...string) error {
-	return c.DeleteCmd(ctx, content, extraArgs...).Run().Cause()
+	deleteYamlArgs := append([]string{"-f", "-"}, extraArgs...)
+	return c.DeleteCmd(ctx, content, deleteYamlArgs...).Run().Cause()
+}
+
+func (c *Cli) DeleteFile(ctx context.Context, file string, extraArgs ...string) error {
+	deleteFileArgs := append([]string{"-f"}, extraArgs...)
+	return c.DeleteCmd(ctx, []byte(file), deleteFileArgs...).Run().Cause()
 }
 
 func (c *Cli) CopyCmd(ctx context.Context, from, to string) cmdutils.Cmd {
