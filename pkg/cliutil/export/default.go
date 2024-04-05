@@ -13,5 +13,9 @@ func ToLocalFile(ctx context.Context, zippedFilePath string, progressReporter io
 
 	exporter := NewReportExporter(progressReporter)
 
-	return exporter.Export(ctx, archiveWriter)
+	exportOptions := Options{
+		// todo: create this object from user-defined parameters
+	}
+
+	return exporter.Export(ctx, exportOptions, archiveWriter)
 }
