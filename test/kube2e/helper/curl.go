@@ -187,6 +187,8 @@ func getExpectedResponseMatcher(expectedOutput interface{}) types.GomegaMatcher 
 }
 
 func (t *testContainer) buildCurlArgs(opts CurlOpts) []string {
+	ginkgo.GinkgoHelper()
+
 	curlRequestBuilder := testutils.DefaultCurlRequestBuilder()
 
 	// The testContainer relies on the transforms.WithCurlHttpResponse to validate the response is what
@@ -247,7 +249,9 @@ func (t *testContainer) buildCurlArgs(opts CurlOpts) []string {
 		curlRequestBuilder.WithSni(opts.Sni)
 	}
 
-	args := curlRequestBuilder.BuildArgs()
+	args, err := curlRequestBuilder.BuildArgs()
+	Expect(err).NotTo(HaveOccurred())
+
 	log.Printf("running: %v", strings.Join(args, " "))
 	return args
 }

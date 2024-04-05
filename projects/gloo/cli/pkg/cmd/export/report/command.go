@@ -31,5 +31,5 @@ func doExportReport(exportOptions *options.Options) error {
 	outputFile := filepath.Join(
 		exportOptions.OutputDir,
 		fmt.Sprintf("report_%s.tar.gz", time.Now().Format("02-01-2006_15:04:05")))
-	return export.ToLocalFile(outputFile, os.Stdout)
+	return export.ToLocalFile(exportOptions.Top.Ctx, outputFile, os.Stdout)
 }

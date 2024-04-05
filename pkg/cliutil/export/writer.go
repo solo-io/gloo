@@ -3,6 +3,7 @@ package export
 import (
 	"archive/tar"
 	"compress/gzip"
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,7 +13,7 @@ import (
 var _ ArchiveWriter = new(localArchiveWriter)
 
 type ArchiveWriter interface {
-	Write(artifactDir string) error
+	Write(ctx context.Context, artifactDir string) error
 }
 
 func NewLocalArchiveWriter(targetPath string) ArchiveWriter {
@@ -26,7 +27,7 @@ type localArchiveWriter struct {
 	targetPath string
 }
 
-func (l localArchiveWriter) Write(artifactDir string) error {
+func (l localArchiveWriter) Write(ctx context.Context, artifactDir string) error {
 	if err := os.MkdirAll(filepath.Dir(l.targetPath), os.ModePerm); err != nil {
 		return err
 	}
