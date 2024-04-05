@@ -11,15 +11,21 @@ import (
 )
 
 const (
+	GatewayParamsField      = "gateway-params"
 	HttpRouteTargetField    = "http-route-target"
 	ReferenceGrantFromField = "ref-grant-from"
 )
 
 func IterateIndices(f func(client.Object, string, client.IndexerFunc) error) error {
 	return errors.Join(
+		f(&apiv1.Gateway{}, GatewayParamsField, gatewaysToParams),
 		f(&apiv1.HTTPRoute{}, HttpRouteTargetField, httpRouteToTargetIndexer),
 		f(&apiv1beta1.ReferenceGrant{}, ReferenceGrantFromField, refGrantFromIndexer),
 	)
+}
+
+func gatewaysToParams(obj client.Object) []string {
+	return []string{"TODO:get-the-name-of-the-params-here"}
 }
 
 func httpRouteToTargetIndexer(obj client.Object) []string {

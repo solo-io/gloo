@@ -12,11 +12,13 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -119,6 +121,23 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 			}
 			return false
 		}), predicate.GenerationChangedPredicate{}))
+
+	cli := c.cfg.Mgr.GetClient()
+	buildr.Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(
+		func(ctx context.Context, obj client.Object) []reconcile.Request {
+			n := obj.GetName()
+			ns := obj.GetNamespace()
+			var gwList apiv1.GatewayList
+			err := cli.List(ctx, &gwList, client.InNamespace(ns), client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(query.GatewayParamsField, n)})
+			if err != nil {
+				// maybe log?
+			}
+			var reqs []reconcile.Request
+			for _, gw := range gwList.Items {
+				reqs = append(reqs, reconcile.Request{NamespacedName: client.ObjectKey{Namespace: gw.Namespace, Name: gw.Name}})
+			}
+			return reqs
+		}))
 
 	for _, gvk := range gvks {
 		obj, err := c.cfg.Mgr.GetScheme().New(gvk)
