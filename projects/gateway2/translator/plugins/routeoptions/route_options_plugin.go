@@ -13,34 +13,163 @@ import (
 	rtoptquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/routeoptions/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/routeutils"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
-	"sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gwv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 )
 
 var _ plugins.RoutePlugin = &plugin{}
+var _ plugins.StatusPlugin = &plugin{}
 
 var routeOptionGK = schema.GroupKind{
 	Group: sologatewayv1.RouteOptionGVK.Group,
 	Kind:  sologatewayv1.RouteOptionGVK.Kind,
 }
 
+type PolicyReport struct {
+	Ancestors          map[types.NamespacedName]*PolicyAncestorReport
+	ObservedGeneration int64
+}
+
+type PolicyAncestorReport struct {
+	Condition metav1.Condition
+}
+
+// RouteOption resource ->  PolicyReport
+// PolictReport: AncestorRef(HTTPRoute) -> Actual condition
+// NOTE: This assumes the only ancestor type of a RouteOption is HTTPRoute; if this changes, we need
+// to track Group & Kind along with the types.NN
+type policyStatusCache = map[types.NamespacedName]*PolicyReport
+
 type plugin struct {
 	gwQueries    gwquery.GatewayQueries
 	rtOptQueries rtoptquery.RouteOptionQueries
+	statusCache  policyStatusCache
 }
 
 func NewPlugin(gwQueries gwquery.GatewayQueries, client client.Client) *plugin {
+	policyStatusCache := make(policyStatusCache)
 	return &plugin{
 		gwQueries,
 		rtoptquery.NewQuery(client),
+		policyStatusCache,
 	}
+}
+
+func (p *plugin) getPolicyReport(key types.NamespacedName) *PolicyReport {
+	return p.statusCache[key]
+}
+
+func (p *plugin) getOrCreatePolicyReport(routeOption *solokubev1.RouteOption) *PolicyReport {
+	pr := p.getPolicyReport(client.ObjectKeyFromObject(routeOption))
+	if pr == nil {
+		pr = &PolicyReport{}
+		pr.ObservedGeneration = routeOption.GetGeneration()
+		pr.Ancestors = make(map[types.NamespacedName]*PolicyAncestorReport)
+		p.statusCache[client.ObjectKeyFromObject(routeOption)] = pr
+	}
+	return pr
+}
+
+func (pr *PolicyReport) getAncestorReport(ancestorKey types.NamespacedName) *PolicyAncestorReport {
+	return pr.Ancestors[ancestorKey]
+}
+
+func (pr *PolicyReport) upsertAncestorCondition(ancestorKey types.NamespacedName, condition metav1.Condition) {
+	ar := pr.getAncestorReport(ancestorKey)
+	if ar == nil {
+		ar = &PolicyAncestorReport{}
+	}
+	ar.Condition = condition
+	pr.Ancestors[ancestorKey] = ar
+}
+
+func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx plugins.StatusContext) {
+	routeErrors := extractRouteErrors(statusCtx.ProxyReport)
+	// we can coalesce route errors here to be keyed by the HTTPRoute/RouteOption object
+	// as each HTTPRoute can only have a single attached RouteOption, we know that all gloov1.Routes
+	// from a given HTTPRoute *should* have the same routeError
+
+	for _, rerr := range routeErrors {
+		route, ro := extractSourceKeys(rerr.GetMetadata())
+		pr := p.getPolicyReport(ro)
+		if pr == nil {
+			// TODO: we got a route error for a routeoption that we weren't tracking during the plugin run; what happened?
+		}
+
+		ar := pr.getAncestorReport(route)
+		if ar == nil {
+			// TODO: this route error was sourced from an HTTPRoute that wasn't originally tracked; what happened?
+		}
+		pr.upsertAncestorCondition(route, metav1.Condition{
+			Type:    string(gwv1alpha2.PolicyConditionAccepted),
+			Status:  metav1.ConditionFalse,
+			Reason:  string(gwv1alpha2.PolicyReasonInvalid),
+			Message: rerr.GetReason(),
+		})
+	}
+}
+
+func (p *plugin) setPolicyStatusAccepted(
+	routeOption *solokubev1.RouteOption,
+	route *gwv1.HTTPRoute,
+) {
+	pr := p.getOrCreatePolicyReport(routeOption)
+	pr.upsertAncestorCondition(client.ObjectKeyFromObject(route), metav1.Condition{
+		Type:    string(gwv1alpha2.PolicyConditionAccepted),
+		Status:  metav1.ConditionTrue,
+		Reason:  string(gwv1alpha2.PolicyReasonAccepted),
+		Message: "Attached successfully",
+	})
+}
+
+// RouteError metadata should have a single HTTPRoute & possibly RouteOption resource
+// TODO: add error handling, this always assumes happy path
+func extractSourceKeys(
+	metadata *v1.SourceMetadata,
+) (route, routeOption types.NamespacedName) {
+	var routeRef, routeOptionRef *v1.SourceMetadata_SourceRef
+	for _, src := range metadata.GetSources() {
+		if src.GetResourceKind() == wellknown.HTTPRouteKind {
+			routeRef = src
+		} else if src.GetResourceKind() == sologatewayv1.RouteOptionGVK.Kind {
+			routeOptionRef = src
+		}
+	}
+	route = types.NamespacedName{
+		Namespace: routeRef.ResourceRef.GetNamespace(),
+		Name:      routeRef.ResourceRef.GetName(),
+	}
+	routeOption = types.NamespacedName{
+		Namespace: routeOptionRef.ResourceRef.GetNamespace(),
+		Name:      routeOptionRef.ResourceRef.GetName(),
+	}
+	return route, routeOption
+}
+
+func extractRouteErrors(proxyReport *validation.ProxyReport) []*validation.RouteReport_Error {
+	routeErrors := []*validation.RouteReport_Error{}
+	for _, lr := range proxyReport.GetListenerReports() {
+		for _, hlr := range lr.GetAggregateListenerReport().GetHttpListenerReports() {
+			for _, vhr := range hlr.GetVirtualHostReports() {
+				for _, rr := range vhr.GetRouteReports() {
+					for _, rerr := range rr.GetErrors() {
+						routeErrors = append(routeErrors, rerr)
+					}
+				}
+			}
+		}
+	}
+	return routeErrors
 }
 
 func (p *plugin) ApplyRoutePlugin(
@@ -66,44 +195,17 @@ func (p *plugin) ApplyRoutePlugin(
 		outputRoute.Options = routeOptions
 
 		if filterRouteOptions == nil {
-			// if we didn't use a filter to derive these RouteOptions, let's track the
+			// if we didn't use a filter to derive the RouteOptions for this v1.Route, let's track the
 			// RouteOption policy object that was used so we can report status on it
 			routeutils.AppendSourceToRoute(outputRoute, routeOptionKube)
 
 			// report success on attaching this policy, although it may be overturned
 			// later if the Proxy translation results in a processing error for these RouteOptions
-			reportKey := reports.GetKubeResourceKey(routeOptionKube)
-			// the ancestor is the targeted HTTPRoute
-			targetRef := routeOptionKube.Spec.GetTargetRef()
-			policyReporter := routeCtx.Reporter.Policy(reportKey).AncestorRef(&gwv1.ParentReference{
-				Group:     groupHelper(targetRef.Group),
-				Kind:      kindHelper(targetRef.Kind),
-				Name:      gwv1.ObjectName(targetRef.Name),
-				Namespace: nsHelper(routeCtx.Route.Namespace),
-			})
-			policyReporter.SetCondition(reports.PolicyAcceptedCondition{
-				Status:  metav1.ConditionTrue,
-				Reason:  v1alpha2.PolicyReasonAccepted,
-				Message: "Attached successfully",
-			})
+			// we will track the ancestor as the targeted HTTPRoute; we may want change to Gateway later
+			p.setPolicyStatusAccepted(routeOptionKube, routeCtx.Route)
 		}
 	}
 	return nil
-}
-
-func kindHelper(kind string) *gwv1.Kind {
-	k := gwv1.Kind(kind)
-	return &k
-}
-
-func groupHelper(group string) *gwv1.Group {
-	g := gwv1.Group(group)
-	return &g
-}
-
-func nsHelper(ns string) *gwv1.Namespace {
-	n := gwv1.Namespace(ns)
-	return &n
 }
 
 func (p *plugin) handleAttachment(
