@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/solo-io/gloo/projects/gateway2/reports"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
+	"github.com/solo-io/gloo/projects/gateway2/translator/translatorutils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -62,7 +62,10 @@ type PostTranslationPlugin interface {
 }
 
 type StatusContext struct {
-	ProxyReport *validation.ProxyReport
+	// the output proxy we are reporting status for
+	Proxy *v1.Proxy
+	// the validation report from xds translation
+	TranslationReports translatorutils.TranslationReports
 }
 
 // Plugin that recieves proxy reports post-xds translation to handle any status reporting necessary

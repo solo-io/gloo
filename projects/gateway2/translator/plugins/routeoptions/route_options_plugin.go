@@ -16,7 +16,12 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	xdsutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,17 +56,26 @@ type PolicyAncestorReport struct {
 type policyStatusCache = map[types.NamespacedName]*PolicyReport
 
 type plugin struct {
-	gwQueries    gwquery.GatewayQueries
-	rtOptQueries rtoptquery.RouteOptionQueries
-	statusCache  policyStatusCache
+	gwQueries         gwquery.GatewayQueries
+	rtOptQueries      rtoptquery.RouteOptionQueries
+	statusCache       policyStatusCache
+	routeOptionClient sologatewayv1.RouteOptionClient
+	statusReporter    reporter.StatusReporter
 }
 
-func NewPlugin(gwQueries gwquery.GatewayQueries, client client.Client) *plugin {
+func NewPlugin(
+	gwQueries gwquery.GatewayQueries,
+	client client.Client,
+	routeOptionClient sologatewayv1.RouteOptionClient,
+	statusReporter reporter.StatusReporter,
+) *plugin {
 	policyStatusCache := make(policyStatusCache)
 	return &plugin{
 		gwQueries,
 		rtoptquery.NewQuery(client),
 		policyStatusCache,
+		routeOptionClient,
+		statusReporter,
 	}
 }
 
@@ -94,11 +108,26 @@ func (pr *PolicyReport) upsertAncestorCondition(ancestorKey types.NamespacedName
 }
 
 func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx plugins.StatusContext) {
-	routeErrors := extractRouteErrors(statusCtx.ProxyReport)
+	// get proxy status to use for RouteOption status
+	subresourceStatus := make(map[string]*core.Status)
+	proxyStatus := p.statusReporter.StatusFromReport(statusCtx.TranslationReports.ResourceReports[statusCtx.Proxy], nil)
+	subresourceStatus[xds.SnapshotCacheKey(xdsutils.GlooGatewayTranslatorValue, statusCtx.Proxy)] = proxyStatus
+
+	// gather the route errors so we can source them and report on the RouteOption
+	routeOptionReport := make(reporter.ResourceReports)
+	routeErrors := extractRouteErrors(statusCtx.TranslationReports.ProxyReport)
+	for _, rerr := range routeErrors {
+		_, roKey := extractSourceKeys(rerr.GetMetadata())
+		roObj, _ := p.routeOptionClient.Read(roKey.Namespace, roKey.Name, clients.ReadOpts{Ctx: ctx})
+		routeOptionReport.AddError(roObj, errors.New(rerr.GetReason()))
+	}
+	p.statusReporter.WriteReports(ctx, routeOptionReport, subresourceStatus)
+}
+
+func (p *plugin) trackKubePolicyStatus(routeErrors []*validation.RouteReport_Error) {
 	// we can coalesce route errors here to be keyed by the HTTPRoute/RouteOption object
 	// as each HTTPRoute can only have a single attached RouteOption, we know that all gloov1.Routes
 	// from a given HTTPRoute *should* have the same routeError
-
 	for _, rerr := range routeErrors {
 		route, ro := extractSourceKeys(rerr.GetMetadata())
 		pr := p.getPolicyReport(ro)
@@ -146,12 +175,12 @@ func extractSourceKeys(
 		}
 	}
 	route = types.NamespacedName{
-		Namespace: routeRef.ResourceRef.GetNamespace(),
-		Name:      routeRef.ResourceRef.GetName(),
+		Namespace: routeRef.GetResourceRef().GetNamespace(),
+		Name:      routeRef.GetResourceRef().GetName(),
 	}
 	routeOption = types.NamespacedName{
-		Namespace: routeOptionRef.ResourceRef.GetNamespace(),
-		Name:      routeOptionRef.ResourceRef.GetName(),
+		Namespace: routeOptionRef.GetResourceRef().GetNamespace(),
+		Name:      routeOptionRef.GetResourceRef().GetName(),
 	}
 	return route, routeOption
 }

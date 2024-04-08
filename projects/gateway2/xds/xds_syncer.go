@@ -14,12 +14,12 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 
 	gwplugins "github.com/solo-io/gloo/projects/gateway2/translator/plugins"
+	"github.com/solo-io/gloo/projects/gateway2/translator/translatorutils"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	gloot "github.com/solo-io/gloo/projects/gateway2/translator"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -222,11 +222,15 @@ func (s *XdsSyncer) Start(ctx context.Context) error {
 func (s *XdsSyncer) applyStatusPlugins(
 	ctx context.Context,
 	pluginRegistry registry.PluginRegistry,
-	proxyReports map[string]*validation.ProxyReport,
+	proxyWithReports proxyWithReports,
 ) {
-	for _, report := range proxyReports {
+	for proxy, reports := range proxyWithReports {
 		statusCtx := gwplugins.StatusContext{
-			ProxyReport: report,
+			Proxy: proxy,
+			TranslationReports: translatorutils.TranslationReports{
+				ProxyReport:     reports.ProxyReport,
+				ResourceReports: reports.ResourceReports,
+			},
 		}
 		for _, plugin := range pluginRegistry.GetStatusPlugins() {
 			plugin.ApplyStatusPlugin(ctx, statusCtx)
@@ -234,9 +238,11 @@ func (s *XdsSyncer) applyStatusPlugins(
 	}
 }
 
+type proxyWithReports map[*gloo_solo_io.Proxy]translatorutils.TranslationReports
+
 // syncEnvoy will translate, sanatize, and set the snapshot for each of the proxies, all while merging all the reports into allReports.
 // NOTE(ilackarms): the below code was copy-pasted (with some deletions) from projects/gloo/pkg/syncer/translator_syncer.go
-func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) map[string]*validation.ProxyReport {
+func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) proxyWithReports {
 	ctx, span := trace.StartSpan(ctx, "gloo.syncer.Sync")
 	defer span.End()
 
@@ -279,9 +285,8 @@ func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) map
 			}
 		}
 	}
-	proxyReports := make(map[string]*validation.ProxyReport)
+	proxiesWithReports := make(proxyWithReports)
 	for _, proxy := range snap.Proxies {
-		proxyName := xds.SnapshotCacheKey(utils.GlooGatewayTranslatorValue, proxy)
 		proxyCtx := ctx
 		if ctxWithTags, err := tag.New(proxyCtx, tag.Insert(syncerstats.ProxyNameKey, proxy.GetMetadata().Ref().Key())); err == nil {
 			proxyCtx = ctxWithTags
@@ -293,8 +298,11 @@ func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) map
 			Messages: map[*core.ResourceRef][]string{},
 		}
 
-		xdsSnapshot, _, proxyReport := s.translator.Translate(params, proxy)
-		proxyReports[proxyName] = proxyReport
+		xdsSnapshot, reports, proxyReport := s.translator.Translate(params, proxy)
+		proxiesWithReports[proxy] = translatorutils.TranslationReports{
+			ProxyReport:     proxyReport,
+			ResourceReports: reports,
+		}
 
 		// if validateErr := reports.ValidateStrict(); validateErr != nil {
 		// 	logger.Warnw("Proxy had invalid config", zap.Any("proxy", proxy.GetMetadata().Ref()), zap.Error(validateErr))
@@ -341,7 +349,7 @@ func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) map
 
 	debugLogger.Info("gloo reports to be written", "reports", reportss)
 
-	return proxyReports
+	return proxiesWithReports
 }
 
 func measureResource(ctx context.Context, resource string, length int) {
