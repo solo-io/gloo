@@ -3,8 +3,6 @@ package controller
 import (
 	"context"
 
-	"github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
-	"github.com/solo-io/go-utils/contextutils"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -13,6 +11,7 @@ import (
 
 	"github.com/solo-io/gloo/projects/gateway2/controller/scheme"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
+	"github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
 	"github.com/solo-io/gloo/projects/gateway2/secrets"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -54,9 +53,6 @@ type StartConfig struct {
 // It is intended to be run in a goroutine as the function will block until the supplied
 // context is cancelled
 func Start(ctx context.Context, cfg StartConfig) error {
-	contextutils.LoggerFrom(ctx).Warn("??? starting gateway controller")
-	contextutils.LoggerFrom(context.Background()).Warn("!!! starting gateway controller")
-
 	var opts []zap.Opts
 	if cfg.Dev {
 		setupLog.Info("starting log in dev mode")
