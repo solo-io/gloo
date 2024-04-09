@@ -192,8 +192,8 @@ func (s *XdsSyncer) Start(ctx context.Context) error {
 			TranslatedGateways: translatedGateways,
 		})
 
-		proxyReports := s.syncEnvoy(ctx, proxyApiSnapshot)
-		s.applyStatusPlugins(ctx, pluginRegistry, proxyReports)
+		proxiesWithReports := s.syncEnvoy(ctx, proxyApiSnapshot)
+		s.applyStatusPlugins(ctx, pluginRegistry, proxiesWithReports)
 		s.syncStatus(ctx, rm, gwl)
 		s.syncRouteStatus(ctx, rm)
 		s.syncProxyCache(ctx, proxies)
@@ -222,27 +222,19 @@ func (s *XdsSyncer) Start(ctx context.Context) error {
 func (s *XdsSyncer) applyStatusPlugins(
 	ctx context.Context,
 	pluginRegistry registry.PluginRegistry,
-	proxyWithReports proxyWithReports,
+	proxiesWithReports []translatorutils.ProxyWithReports,
 ) {
-	for proxy, reports := range proxyWithReports {
-		statusCtx := gwplugins.StatusContext{
-			Proxy: proxy,
-			TranslationReports: translatorutils.TranslationReports{
-				ProxyReport:     reports.ProxyReport,
-				ResourceReports: reports.ResourceReports,
-			},
-		}
-		for _, plugin := range pluginRegistry.GetStatusPlugins() {
-			plugin.ApplyStatusPlugin(ctx, statusCtx)
-		}
+	statusCtx := &gwplugins.StatusContext{
+		ProxiesWithReports: proxiesWithReports,
+	}
+	for _, plugin := range pluginRegistry.GetStatusPlugins() {
+		plugin.ApplyStatusPlugin(ctx, statusCtx)
 	}
 }
 
-type proxyWithReports map[*gloo_solo_io.Proxy]translatorutils.TranslationReports
-
 // syncEnvoy will translate, sanatize, and set the snapshot for each of the proxies, all while merging all the reports into allReports.
 // NOTE(ilackarms): the below code was copy-pasted (with some deletions) from projects/gloo/pkg/syncer/translator_syncer.go
-func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) proxyWithReports {
+func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) []translatorutils.ProxyWithReports {
 	ctx, span := trace.StartSpan(ctx, "gloo.syncer.Sync")
 	defer span.End()
 
@@ -285,7 +277,7 @@ func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) pro
 			}
 		}
 	}
-	proxiesWithReports := make(proxyWithReports)
+	proxiesWithReports := []translatorutils.ProxyWithReports{}
 	for _, proxy := range snap.Proxies {
 		proxyCtx := ctx
 		if ctxWithTags, err := tag.New(proxyCtx, tag.Insert(syncerstats.ProxyNameKey, proxy.GetMetadata().Ref().Key())); err == nil {
@@ -299,10 +291,14 @@ func (s *XdsSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot) pro
 		}
 
 		xdsSnapshot, reports, proxyReport := s.translator.Translate(params, proxy)
-		proxiesWithReports[proxy] = translatorutils.TranslationReports{
-			ProxyReport:     proxyReport,
-			ResourceReports: reports,
+		proxyWithReport := translatorutils.ProxyWithReports{
+			Proxy: proxy,
+			Reports: translatorutils.TranslationReports{
+				ProxyReport:     proxyReport,
+				ResourceReports: reports,
+			},
 		}
+		proxiesWithReports = append(proxiesWithReports, proxyWithReport)
 
 		// if validateErr := reports.ValidateStrict(); validateErr != nil {
 		// 	logger.Warnw("Proxy had invalid config", zap.Any("proxy", proxy.GetMetadata().Ref()), zap.Error(validateErr))

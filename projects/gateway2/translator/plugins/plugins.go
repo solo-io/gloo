@@ -62,10 +62,7 @@ type PostTranslationPlugin interface {
 }
 
 type StatusContext struct {
-	// the output proxy we are reporting status for
-	Proxy *v1.Proxy
-	// the validation report from xds translation
-	TranslationReports translatorutils.TranslationReports
+	ProxiesWithReports []translatorutils.ProxyWithReports
 }
 
 // Plugin that recieves proxy reports post-xds translation to handle any status reporting necessary
@@ -74,6 +71,6 @@ type StatusPlugin interface {
 
 	ApplyStatusPlugin(
 		ctx context.Context,
-		statusCtx StatusContext,
+		statusCtx *StatusContext,
 	)
 }
