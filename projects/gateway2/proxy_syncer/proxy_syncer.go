@@ -4,28 +4,23 @@ import (
 	"context"
 	"os"
 
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
+
+	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
 
-	"github.com/solo-io/gloo/projects/gateway2/query"
-
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
-
-	gwplugins "github.com/solo-io/gloo/projects/gateway2/translator/plugins"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
-
+	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	gloot "github.com/solo-io/gloo/projects/gateway2/translator"
+	gwplugins "github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
-	"github.com/solo-io/go-utils/contextutils"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
-)
-
-const (
-	proxyOwnerKey = "gateway.solo.io/created_by"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
 
 type ProxySyncer struct {
@@ -81,15 +76,16 @@ func NewProxySyncer(
 
 func (s *ProxySyncer) Start(ctx context.Context) error {
 	ctx = contextutils.WithLogger(ctx, "k8s-gw-syncer")
+	contextutils.LoggerFrom(ctx).Debug("starting syncer for k8s gateway proxies")
 
 	var (
-		discoveryWarmed bool
-		secretsWarmed   bool
+		secretsWarmed bool
 	)
 	resyncProxies := func() {
-		if !discoveryWarmed || !secretsWarmed {
+		if !secretsWarmed {
 			return
 		}
+		contextutils.LoggerFrom(ctx).Debug("resyncing k8s gateway proxies")
 
 		var gwl apiv1.GatewayList
 		err := s.mgr.GetClient().List(ctx, &gwl)
@@ -198,7 +194,7 @@ func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_
 		proxyOwnerValue = "gloo"
 	}
 	ownerLabels := map[string]string{
-		proxyOwnerKey: proxyOwnerValue,
+		utils.TranslatorOwnerKey: utils.GlooGatewayTranslatorValue,
 	}
 
 	for _, proxy := range proxyList {
@@ -222,10 +218,11 @@ func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_
 			nsList,
 			func(original, desired *gloo_solo_io.Proxy) (bool, error) {
 				// ignore proxies that do not have our owner label
-				if original.GetMetadata().GetLabels() == nil || original.GetMetadata().GetLabels()[proxyOwnerKey] != proxyOwnerValue {
+				if original.GetMetadata().GetLabels() == nil || original.GetMetadata().GetLabels()[utils.TranslatorOwnerKey] != proxyOwnerValue {
+					logger.Debugf("ignoring proxy %v in namespace %v, does not have owner label %v", original.GetMetadata().GetName(), original.GetMetadata().GetNamespace(), proxyOwnerValue)
 					return false, nil
 				}
-				// otherwse always update
+				// otherwise always update
 				return true, nil
 			},
 			clients.ListOpts{

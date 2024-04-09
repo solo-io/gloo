@@ -220,10 +220,10 @@ func setRouteAction(
 		}
 
 		// TODO(npolshak): why is gloo edge discovered kube svc missing port?
-		//var port uint32
-		//if backendRef.Port != nil {
-		//	port = uint32(*backendRef.Port)
-		//}
+		var port uint32
+		if backendRef.Port != nil {
+			port = uint32(*backendRef.Port)
+		}
 
 		// get backend for ref - we must do it to make sure we have permissions to access it.
 		// also we need the service so we can translate its name correctly.
@@ -236,7 +236,7 @@ func setRouteAction(
 							Name:      clusterName,
 							Namespace: ns,
 						},
-						//Port: port,
+						Port: port,
 					},
 				},
 			},

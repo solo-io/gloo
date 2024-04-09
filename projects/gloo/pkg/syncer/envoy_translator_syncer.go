@@ -11,7 +11,6 @@ import (
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	syncerstats "github.com/solo-io/gloo/projects/gloo/pkg/syncer/stats"
-	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/hashutils"
@@ -104,7 +103,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 			allKeys[key] = false
 		}
 		// Get all valid node ID keys for Proxies
-		for _, key := range xds.SnapshotCacheKeys(utils.GlooEdgeTranslatorValue, snap.Proxies) {
+		for _, key := range xds.SnapshotCacheKeys(snap.Proxies) {
 			allKeys[key] = true
 		}
 		// Get all valid node ID keys for syncerExtensions (rate-limit, ext-auth)
@@ -114,7 +113,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 
 		// preserve keys from the current list of proxies, set previous invalid snapshots to empty snapshot
 		for key, valid := range allKeys {
-			if !valid && xds.SnapshotBelongsTo(key, utils.GlooEdgeTranslatorValue) {
+			if !valid {
 				s.xdsCache.SetSnapshot(key, emptySnapshot)
 			}
 		}
@@ -130,14 +129,6 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 			Snapshot: snap,
 			Messages: map[*core.ResourceRef][]string{},
 		}
-
-		//// TODO: delete me
-		//for _, upstream := range snap.Upstreams {
-		//	logger.Errorf("Upstream: %v", upstream.GetMetadata().GetName())
-		//	if strings.Contains(upstream.GetMetadata().GetName(), "testserver") {
-		//		logger.Errorf("Has upstream!!: %v", upstream.GetMetadata().GetName())
-		//	}
-		//}
 
 		xdsSnapshot, reports, _ := s.translator.Translate(params, proxy)
 
@@ -160,7 +151,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 
 		// Merge reports after sanitization to capture changes made by the sanitizers
 		allReports.Merge(reports)
-		key := xds.SnapshotCacheKey(utils.GlooEdgeTranslatorValue, proxy)
+		key := xds.SnapshotCacheKey(proxy)
 		s.xdsCache.SetSnapshot(key, sanitizedSnapshot)
 
 		// Record some metrics

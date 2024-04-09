@@ -30,7 +30,6 @@ func ExecuteAsynchronousStartFuncs(
 
 		errorGroup.Go(
 			func() error {
-				contextutils.LoggerFrom(namedCtx).Infof("starting %s goroutine", name)
 				err := startFn(namedCtx, opts, extensions)
 				if err != nil {
 					contextutils.LoggerFrom(namedCtx).Errorf("%s goroutine failed: %v", name, err)

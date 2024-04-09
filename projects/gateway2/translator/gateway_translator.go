@@ -91,7 +91,7 @@ func proxyMetadata(gateway *gwv1.Gateway) *core.Metadata {
 		Name:      gateway.Name,
 		Namespace: gateway.Namespace,
 		Labels: map[string]string{
-			utils.TranslatorKey: utils.GlooGatewayTranslatorValue,
+			utils.TranslatorOwnerKey: utils.GlooGatewayTranslatorValue,
 		},
 	}
 }
