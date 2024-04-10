@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -228,8 +229,7 @@ func setRouteAction(
 
 		// get backend for ref - we must do it to make sure we have permissions to access it.
 		// also we need the service so we can translate its name correctly.
-		// Note: BackendRef defaults to "Service" when not specified.
-		if backendRef.Kind == nil || (backendRef.Kind != nil && *backendRef.Kind == "Service") {
+		if backendRefIsService(backendRef.BackendObjectReference) {
 			weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
 				Destination: &v1.Destination{
 					DestinationType: &v1.Destination_Kube{
@@ -247,7 +247,7 @@ func setRouteAction(
 			})
 		} else {
 			// TODO(npolshak): Add support for other types of destinations (upstreams, etc.)
-			contextutils.LoggerFrom(ctx).Errorf("unsupported backend type %v", *backendRef.BackendObjectReference.Kind)
+			contextutils.LoggerFrom(ctx).Errorf("unsupported backend type for kind: %v and type: %v", *backendRef.BackendObjectReference.Kind, *backendRef.BackendObjectReference.Group)
 		}
 	}
 
@@ -271,4 +271,13 @@ func setRouteAction(
 			},
 		}
 	}
+}
+
+const (
+	service = "Service"
+)
+
+// BackendRef Kind defaults to "Service" when not specified and BackendRef Group defaults to core API group when not specified.
+func backendRefIsService(ref gwv1.BackendObjectReference) bool {
+	return (ref.Kind == nil || *ref.Kind == service) && (ref.Group == nil || *ref.Group == corev1.GroupName)
 }
