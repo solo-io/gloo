@@ -228,7 +228,8 @@ func setRouteAction(
 
 		// get backend for ref - we must do it to make sure we have permissions to access it.
 		// also we need the service so we can translate its name correctly.
-		if *backendRef.BackendObjectReference.Kind == "" || *backendRef.BackendObjectReference.Kind == "Service" {
+		// Note: BackendRef defaults to "Service" when not specified.
+		if backendRef.Kind == nil || (backendRef.Kind != nil && *backendRef.Kind == "Service") {
 			weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
 				Destination: &v1.Destination{
 					DestinationType: &v1.Destination_Kube{
