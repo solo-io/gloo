@@ -51,8 +51,11 @@ jobs:
     - name: save results
       if: ${{ failure() }}
       shell: bash
-      run: mkdir -p _output/conformance-artifacts && echo '{"url":"https://github.com/solo-io/gloo/actions/runs/${{github.run_id}}",
-        "name":"conformance-kube-dump"}' > _output/conformance-artifacts/test-out.json
+      run: |
+        echo "kubectl get pods -A" >> _output/conformance-artifacts/test-out.json
+        kubectl get pods -A >> _output/conformance-artifacts/test-out.json
+        echo "kubectl logs -n gloo-system -l app=gloo --all-containers=true" >> _output/conformance-artifacts/test-out.json
+        kubectl logs -n gloo-system -l app=gloo --all-containers=true >> _output/conformance-artifacts/test-out.json
     - uses: actions/upload-artifact@v3
       if: ${{ failure() }}
       with:
