@@ -33,7 +33,7 @@ func StandardGlooDumpOnFail(out io.Writer, proxies ...metav1.ObjectMeta) func() 
 	return func() {
 		var namespaces []string
 		for _, proxy := range proxies {
-			if proxy.Namespace != "" {
+			if proxy.GetNamespace() != "" {
 				namespaces = append(namespaces, proxy.Namespace)
 			}
 		}
@@ -263,11 +263,11 @@ func EnvoyDumpOnFail(_ io.Writer, proxies ...metav1.ObjectMeta) func() {
 		setupOutDir(envoyOutDir)
 		for _, proxy := range proxies {
 			proxyName := proxy.GetName()
-			if proxy.Namespace == "" {
+			if proxyName == "" {
 				proxyName = gateway_defaults.GatewayProxyName
 			}
 			proxyNamespace := proxy.GetNamespace()
-			if proxy.GetNamespace() == "" {
+			if proxyNamespace == "" {
 				proxyNamespace = defaults.GlooSystem
 			}
 			recordEnvoyAdminData(fileAtPath(filepath.Join(envoyOutDir, "config.log")), "/config_dump", proxyName, proxyNamespace)
@@ -281,6 +281,7 @@ func EnvoyDumpOnFail(_ io.Writer, proxies ...metav1.ObjectMeta) func() {
 func recordEnvoyAdminData(f *os.File, path, proxyName, namespace string) {
 	defer f.Close()
 
+	fmt.Printf("Getting envoy for %s.%s and storing config dump: %s\n", proxyName, namespace, path)
 	cfg, err := gateway.GetEnvoyAdminData(context.TODO(), proxyName, namespace, "/config_dump", 30*time.Second)
 	if err != nil {
 		f.WriteString("*** Unable to get envoy " + path + " dump ***. Reason: " + err.Error() + " \n")

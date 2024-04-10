@@ -55,6 +55,22 @@ var _ = Describe("Clean up proxies", func() {
 		proxyClient, _ = v1.NewProxyClient(ctx, resourceClientFactory)
 		ctx = context.TODO()
 	})
+	It("Deletes proxies with the selected namespace and leaves other proxies", func() {
+		otherProxy := &v1.Proxy{
+			Metadata: &core.Metadata{
+				Name:      "test-proxy2",
+				Namespace: "other-namespace",
+				Labels:    unmanagedProxyLabels,
+			},
+		}
+		proxyClient.Write(otherProxy, clients.WriteOpts{})
+		proxyClient.Write(gatewayProxy, clients.WriteOpts{})
+		deleteUnusedProxies(ctx, defaults.GlooSystem, proxyClient)
+		remainingProxies, _ := proxyClient.List("", clients.ListOpts{})
+		Expect(remainingProxies).To(HaveLen(1))
+		Expect(remainingProxies[0].GetMetadata().Ref()).To(Equal(otherProxy.GetMetadata().Ref()))
+		otherProxy.Metadata.Labels = unmanagedProxyLabels
+	})
 	It("Deletes proxies with the gateway label and leaves other proxies", func() {
 		otherProxy := &v1.Proxy{
 			Metadata: &core.Metadata{
@@ -65,8 +81,8 @@ var _ = Describe("Clean up proxies", func() {
 		}
 		proxyClient.Write(otherProxy, clients.WriteOpts{})
 		proxyClient.Write(gatewayProxy, clients.WriteOpts{})
-		deleteUnusedProxies(ctx, defaults.GlooSystem, proxyClient)
-		remainingProxies, _ := proxyClient.List(defaults.GlooSystem, clients.ListOpts{})
+		deleteUnusedProxies(ctx, "", proxyClient)
+		remainingProxies, _ := proxyClient.List("", clients.ListOpts{})
 		Expect(remainingProxies).To(HaveLen(1))
 		Expect(remainingProxies[0].GetMetadata().Ref()).To(Equal(otherProxy.GetMetadata().Ref()))
 		otherProxy.Metadata.Labels = unmanagedProxyLabels
@@ -81,9 +97,9 @@ var _ = Describe("Clean up proxies", func() {
 			nil,
 			nil,
 		)
-		err := doProxyCleanup(ctx, params, settings, defaults.GlooSystem)
+		err := doProxyCleanup(ctx, params, settings, "")
 		Expect(err).NotTo(HaveOccurred())
-		remainingProxies, _ := proxyClient.List(defaults.GlooSystem, clients.ListOpts{})
+		remainingProxies, _ := proxyClient.List("", clients.ListOpts{})
 		Expect(remainingProxies).To(HaveLen(1))
 	})
 })

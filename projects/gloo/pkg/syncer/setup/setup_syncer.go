@@ -1111,7 +1111,8 @@ func constructOpts(ctx context.Context, params constructOptsParams) (bootstrap.O
 	// Delete proxies that may have been left from prior to an upgrade or from previously having set persistProxySpec
 	// Ignore errors because gloo will still work with stray proxies.
 	proxyCleanup := func() {
-		doProxyCleanup(ctx, factoryParams, params.settings, params.writeNamespace)
+		// Gloo Gateway can create proxies in namespaces outside of the write namespace, so we need to clean up all proxies across all namespaces here
+		doProxyCleanup(ctx, factoryParams, params.settings, "")
 	}
 	if params.settings.GetGateway().GetPersistProxySpec().GetValue() {
 		proxyFactory, err = bootstrap_clients.ConfigFactoryForSettings(factoryParams, v1.ProxyCrd)

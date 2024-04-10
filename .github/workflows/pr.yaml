@@ -56,8 +56,8 @@ jobs:
         [ -f _output/conformance-artifacts/test-out.txt ] || touch _output/conformance-artifacts/test-out.txt
         echo "kubectl get pods -A" >> _output/conformance-artifacts/test-out.txt
         kubectl get pods -A >> _output/conformance-artifacts/test-out.txt
-        echo "kubectl logs -n gloo-system -l app=gloo --all-containers=true" >> _output/conformance-artifacts/test-out.txt
-        kubectl logs -n gloo-system -l app=gloo --all-containers=true >> _output/conformance-artifacts/test-out.txt
+        echo "kubectl logs -n gloo-system deployment/gloo --all-containers=true" >> _output/conformance-artifacts/test-out.txt
+        kubectl logs -n gloo-system deployment/gloo --all-containers=true >> _output/conformance-artifacts/test-out.txt
     - uses: actions/upload-artifact@v3
       if: ${{ failure() }}
       with:
