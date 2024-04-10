@@ -881,7 +881,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 	gwValidationSyncer := gwvalidation.NewValidator(validationConfig)
 
-	// TODO(npolshak): this needs to be kicked with the new gateway translator
+	// Note: Gloo Gateway does not limit writing proxies to only opts.WriteNamespace
 	translationSync := syncer.NewTranslatorSyncer(
 		watchOpts.Ctx,
 		sharedTranslator,

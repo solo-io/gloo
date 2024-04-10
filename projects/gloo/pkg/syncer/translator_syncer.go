@@ -155,7 +155,9 @@ func (s *translatorSyncer) translateProxies(ctx context.Context, snap *v1snap.Ap
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
 	}
-	proxyList, err := s.proxyClient.List(s.writeNamespace, clients.ListOpts{})
+	// TODO(npolshak): Restrict gloo gateway write namespace?
+	// Gloo Gateway proxies are written to any namespace
+	proxyList, err := s.proxyClient.List("", clients.ListOpts{})
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
 	}
