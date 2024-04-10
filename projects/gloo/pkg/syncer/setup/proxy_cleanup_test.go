@@ -9,6 +9,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	bootstrap "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/clients"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -39,10 +40,10 @@ var _ = Describe("Clean up proxies", func() {
 			},
 		}
 		managedProxyLabels = map[string]string{
-			"created_by": "gloo-gateway-translator",
+			utils.ProxyTypeKey: utils.GlooEdgeTranslatorValue,
 		}
 		unmanagedProxyLabels = map[string]string{
-			"created_by": "other-controller",
+			utils.ProxyTypeKey: "other-controller",
 		}
 		gatewayProxy = &v1.Proxy{
 			Metadata: &core.Metadata{

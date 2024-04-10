@@ -72,6 +72,6 @@ listeners:
   name: http
 metadata:
   labels:
-    created_by: gloo-kube-gateway-api-translator
+    proxy_type: gloo-kube-gateway-api
   name: example-gateway
   namespace: default

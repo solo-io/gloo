@@ -2,7 +2,6 @@ package proxy_syncer
 
 import (
 	"context"
-	"os"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -189,12 +188,8 @@ func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_
 	// the list so we have a lists of proxies, isolated to each namespace
 	var proxyListByNamespace = make(map[string]gloo_solo_io.ProxyList)
 
-	proxyOwnerValue := os.Getenv("POD_NAMESPACE")
-	if proxyOwnerValue == "" {
-		proxyOwnerValue = "gloo"
-	}
 	ownerLabels := map[string]string{
-		utils.TranslatorOwnerKey: utils.GlooGatewayTranslatorValue,
+		utils.ProxyTypeKey: utils.GlooGatewayTranslatorValue,
 	}
 
 	for _, proxy := range proxyList {
@@ -218,8 +213,9 @@ func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_
 			nsList,
 			func(original, desired *gloo_solo_io.Proxy) (bool, error) {
 				// ignore proxies that do not have our owner label
-				if original.GetMetadata().GetLabels() == nil || original.GetMetadata().GetLabels()[utils.TranslatorOwnerKey] != proxyOwnerValue {
-					logger.Debugf("ignoring proxy %v in namespace %v, does not have owner label %v", original.GetMetadata().GetName(), original.GetMetadata().GetNamespace(), proxyOwnerValue)
+				if original.GetMetadata().GetLabels() == nil || original.GetMetadata().GetLabels()[utils.ProxyTypeKey] != utils.GlooGatewayTranslatorValue {
+					// TODO(npolshak): Currently we update all Gloo Gateway proxies. We should create a new label and ignore proxies that are not owned by Gloo control plane running in a specific namespace via POD_NAMESPACE
+					logger.Debugf("ignoring proxy %v in namespace %v, does not have owner label %v", original.GetMetadata().GetName(), original.GetMetadata().GetNamespace(), utils.GlooGatewayTranslatorValue)
 					return false, nil
 				}
 				// otherwise always update

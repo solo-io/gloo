@@ -213,7 +213,7 @@ var _ = Describe("Kube2e: gateway", func() {
 				func(resource resources.Resource) resources.Resource {
 					proxy := resource.(*gloov1.Proxy)
 					proxy.Metadata.Labels = map[string]string{
-						"created_by": "gateway",
+						utils.ProxyTypeKey: "gateway",
 					}
 					return proxy
 				},

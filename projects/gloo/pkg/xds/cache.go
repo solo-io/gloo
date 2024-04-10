@@ -12,7 +12,7 @@ import (
 // SnapshotCacheKey returns the key used to identify a Proxy resource in a SnapshotCache
 func SnapshotCacheKey(proxy *v1.Proxy) string {
 	namespace, name := proxy.GetMetadata().Ref().Strings()
-	owner := proxy.GetMetadata().GetLabels()[utils.TranslatorOwnerKey]
+	owner := proxy.GetMetadata().GetLabels()[utils.ProxyTypeKey]
 	if owner == "" {
 		// default to gloo edge translator if no owner is set on proxy
 		owner = utils.GlooEdgeTranslatorValue

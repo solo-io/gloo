@@ -117,7 +117,7 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.TranslatorSnapshot
 	}
 
 	labels := map[string]string{
-		glooutils.TranslatorOwnerKey: "gloo-knative-translator",
+		glooutils.ProxyTypeKey: "gloo-knative-translator",
 	}
 
 	var desiredResources gloov1.ProxyList

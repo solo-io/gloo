@@ -37,7 +37,7 @@ type translatorSyncer struct {
 var (
 	// labels used to uniquely identify Proxies that are managed by the Gloo controllers
 	proxyLabelsToWrite = map[string]string{
-		glooutils.TranslatorOwnerKey: "gloo-knative",
+		glooutils.ProxyTypeKey: "gloo-knative",
 	}
 
 	// Previously, proxies would be identified with:

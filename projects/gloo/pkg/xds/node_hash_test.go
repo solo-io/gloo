@@ -32,7 +32,7 @@ var _ = Describe("NodeHash", func() {
 			Fields: map[string]*structpb.Value{
 				"role": structpb.NewStringValue("proxy-namespace~proxy-name"),
 			},
-		}, Equal("gloo-gateway-translator~proxy-namespace~proxy-name")),
+		}, Equal("gloo-gateway~proxy-namespace~proxy-name")),
 		Entry("metadata with non-proxy workload", &structpb.Struct{
 			Fields: map[string]*structpb.Value{
 				"role": structpb.NewStringValue("no-tilde-in-role"),
@@ -65,7 +65,7 @@ var _ = Describe("NodeHash", func() {
 					},
 				}),
 			},
-		}, Equal("gloo-kube-gateway-api-translator~namespace~name")),
+		}, Equal("gloo-kube-gateway-api~namespace~name")),
 	)
 
 	DescribeTable("AggregateNodeHash",
@@ -93,12 +93,12 @@ var _ = Describe("NodeHash", func() {
 					},
 				}),
 			},
-		}, Equal("gloo-kube-gateway-api-translator~namespace~name")),
+		}, Equal("gloo-kube-gateway-api~namespace~name")),
 		Entry("metadata with proxy workload role", &structpb.Struct{
 			Fields: map[string]*structpb.Value{
 				"role": structpb.NewStringValue("proxy-namespace~proxy-name"),
 			},
-		}, Equal("gloo-gateway-translator~proxy-namespace~proxy-name")),
+		}, Equal("gloo-gateway~proxy-namespace~proxy-name")),
 		Entry("metadata with non-proxy workload role", &structpb.Struct{
 			Fields: map[string]*structpb.Value{
 				"role": structpb.NewStringValue("no-tilde-in-role"),
@@ -114,7 +114,7 @@ var _ = Describe("NodeHash", func() {
 					},
 				}),
 			},
-		}, Equal("gloo-kube-gateway-api-translator~namespace~name")),
+		}, Equal("gloo-kube-gateway-api~namespace~name")),
 	)
 
 })

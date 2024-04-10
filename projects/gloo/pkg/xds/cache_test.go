@@ -15,9 +15,9 @@ var _ = Describe("Cache", func() {
 	It("SnapshotCacheKeys returns the keys formatted correctly", func() {
 		owner, namespace1, namespace2, name1, name2 := "owner", "namespace1", "namespace2", "name1", "name2"
 		p1 := v1.NewProxy(namespace1, name1)
-		p1.Metadata.Labels = map[string]string{utils.TranslatorOwnerKey: owner}
+		p1.Metadata.Labels = map[string]string{utils.ProxyTypeKey: owner}
 		p2 := v1.NewProxy(namespace2, name2)
-		p2.Metadata.Labels = map[string]string{utils.TranslatorOwnerKey: owner}
+		p2.Metadata.Labels = map[string]string{utils.ProxyTypeKey: owner}
 		proxies := []*v1.Proxy{p1, p2}
 		expectedKeys := []string{fmt.Sprintf("%v~%v~%v", owner, namespace1, name1), fmt.Sprintf("%v~%v~%v", owner, namespace2, name2)}
 		actualKeys := xds.SnapshotCacheKeys(proxies)
