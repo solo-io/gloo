@@ -248,7 +248,7 @@ func (s *statusSyncer) setCurrentProxies(desiredProxies reconciler.GeneratedProx
 
 func (s *statusSyncer) handleUpdatedProxies(ctx context.Context) {
 	logger := contextutils.LoggerFrom(ctx)
-	// TODO(npolshak): Restrict gloo gateway write namespace?
+	// TODO(npolshak): Add a way to restrict gloo gateway write namespace?
 	// Gloo Gateway proxies are written to any namespace
 	proxyList, err := s.proxyClient.List("", clients.ListOpts{
 		Ctx: ctx,

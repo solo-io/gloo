@@ -75,6 +75,7 @@ func translateGatewayHTTPRouteRule(
 		}
 		if len(rule.BackendRefs) > 0 {
 			setRouteAction(
+				ctx,
 				queries,
 				gwroute,
 				rule.BackendRefs,
@@ -189,6 +190,7 @@ func parsePath(path *gwv1.HTTPPathMatch) (gwv1.PathMatchType, string) {
 }
 
 func setRouteAction(
+	ctx context.Context,
 	queries query.GatewayQueries,
 	gwroute *gwv1.HTTPRoute,
 	backendRefs []gwv1.HTTPBackendRef,
@@ -219,7 +221,6 @@ func setRouteAction(
 			}
 		}
 
-		// TODO(npolshak): why is gloo edge discovered kube svc missing port?
 		var port uint32
 		if backendRef.Port != nil {
 			port = uint32(*backendRef.Port)
@@ -227,22 +228,26 @@ func setRouteAction(
 
 		// get backend for ref - we must do it to make sure we have permissions to access it.
 		// also we need the service so we can translate its name correctly.
-		weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
-			Destination: &v1.Destination{
-				// TODO(npolshak): should check backendRef.Kind is empty or "Service" here
-				DestinationType: &v1.Destination_Kube{
-					Kube: &v1.KubernetesServiceDestination{
-						Ref: &core.ResourceRef{
-							Name:      clusterName,
-							Namespace: ns,
+		if *backendRef.BackendObjectReference.Kind == "" || *backendRef.BackendObjectReference.Kind == "Service" {
+			weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
+				Destination: &v1.Destination{
+					DestinationType: &v1.Destination_Kube{
+						Kube: &v1.KubernetesServiceDestination{
+							Ref: &core.ResourceRef{
+								Name:      clusterName,
+								Namespace: ns,
+							},
+							Port: port,
 						},
-						Port: port,
 					},
 				},
-			},
-			Weight:  weight,
-			Options: nil,
-		})
+				Weight:  weight,
+				Options: nil,
+			})
+		} else {
+			// TODO(npolshak): Add support for other types of destinations (upstreams, etc.)
+			contextutils.LoggerFrom(ctx).Errorf("unsupported backend type %v", *backendRef.BackendObjectReference.Kind)
+		}
 	}
 
 	//TODO(revert): need to add ClusterNotFoundResponseCode: routev3.RouteAction_INTERNAL_SERVER_ERROR,
