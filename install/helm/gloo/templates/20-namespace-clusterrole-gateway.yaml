@@ -175,28 +175,6 @@ rules:
 kind: {{ include "gloo.roleKind" . }}
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gloo-gateway-resource-reader{{ include "gloo.rbacNameSuffix" . }}
-  {{- if .Values.global.glooRbac.namespaced }}
-  namespace: {{ .Release.Namespace }}
-  {{- end }}
-  labels:
-    app: gloo
-    gloo: rbac
-rules:
-  - apiGroups:
-      - gateway.networking.k8s.io
-    resources:
-      - gateways
-      - httproutes
-    verbs:
-      - get
-      - list
-      - watch
-      - patch # needed for status updates
----
-kind: {{ include "gloo.roleKind" . }}
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
   name: gateway-resource-reader{{ include "gloo.rbacNameSuffix" . }}
   {{- if .Values.global.glooRbac.namespaced }}
   namespace: {{ .Release.Namespace }}
