@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/shadowing"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
@@ -56,10 +57,24 @@ func (p *plugin) ApplyRoutePlugin(
 		return nil //TODO https://github.com/solo-io/gloo/pull/8890/files#r1391523183
 	}
 
-	outputRoute.GetOptions().Shadowing = &shadowing.RouteShadowing{
-		Upstream: &core.ResourceRef{
+	var port uint32
+	if config.BackendRef.Port != nil {
+		port = uint32(*config.BackendRef.Port)
+	}
+
+	dest := &v1.KubernetesServiceDestination{
+		Ref: &core.ResourceRef{
 			Name:      *clusterName,
 			Namespace: obj.GetNamespace(),
+		},
+		Port: port,
+	}
+	upstream := kubernetes.DestinationToUpstreamRef(dest)
+
+	outputRoute.GetOptions().Shadowing = &shadowing.RouteShadowing{
+		Upstream: &core.ResourceRef{
+			Name:      upstream.GetName(),
+			Namespace: upstream.GetNamespace(),
 		},
 		Percentage: 100.0,
 	}
