@@ -3,12 +3,18 @@ package setup
 import (
 	"context"
 
+	"golang.org/x/sync/errgroup"
+
+	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
+
+	"github.com/solo-io/gloo/pkg/utils/statusutils"
+	gateway "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway2/controller"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/debug"
-	"github.com/solo-io/go-utils/contextutils"
-	"golang.org/x/sync/errgroup"
+
 )
 
 // StartFunc represents a function that will be called with the initialized bootstrap.Opts
@@ -53,12 +59,22 @@ func K8sGatewayControllerStartFunc(proxyClient v1.ProxyClient) StartFunc {
 			opts.ProxyDebugServer.Server.RegisterProxyReader(debug.K8sGatewayTranslation, proxyClient)
 		}
 
+		routeOptionClient, err := gateway.NewRouteOptionClient(ctx, opts.RouteOptions)
+		if err != nil {
+			return err
+		}
+		statusClient := statusutils.GetStatusClientForNamespace(opts.StatusReporterNamespace)
+		statusReporter := reporter.NewReporter("gloo-kube-gateway", statusClient, routeOptionClient.BaseClient())
+
 		return controller.Start(ctx, controller.StartConfig{
 			ExtensionsFactory:         extensions.K8sGatewayExtensionsFactory,
 			GlooPluginRegistryFactory: extensions.PluginRegistryFactory,
 			Opts:                      opts,
 
 			ProxyClient: proxyClient,
+			RouteOptionClient: routeOptionClient,
+			StatusReporter:    statusReporter,
+
 
 			// Useful for development purposes
 			// At the moment, this is not tied to any user-facing API
