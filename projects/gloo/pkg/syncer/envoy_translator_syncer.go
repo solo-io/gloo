@@ -11,6 +11,7 @@ import (
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	syncerstats "github.com/solo-io/gloo/projects/gloo/pkg/syncer/stats"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/hashutils"
@@ -120,7 +121,16 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 	}
 	for _, proxy := range snap.Proxies {
 		proxyCtx := ctx
-		if ctxWithTags, err := tag.New(proxyCtx, tag.Insert(syncerstats.ProxyNameKey, proxy.GetMetadata().Ref().Key())); err == nil {
+		meta := proxy.GetMetadata()
+		metaKey := meta.Ref().Key()
+		if proxy.GetMetadata().Labels[utils.ProxyTypeKey] == utils.GlooGatewayProxyValue {
+			proxyNamespace := proxy.GetMetadata().Labels[utils.NamespaceLabel]
+			if proxyNamespace != "" {
+				meta.Namespace = proxyNamespace
+				metaKey = meta.Ref().Key()
+			}
+		}
+		if ctxWithTags, err := tag.New(proxyCtx, tag.Insert(syncerstats.ProxyNameKey, metaKey)); err == nil {
 			proxyCtx = ctxWithTags
 		}
 

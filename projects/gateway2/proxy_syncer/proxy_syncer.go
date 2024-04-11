@@ -14,7 +14,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
-	gloot "github.com/solo-io/gloo/projects/gateway2/translator"
+	gwv2_translator "github.com/solo-io/gloo/projects/gateway2/translator"
 	gwplugins "github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -98,7 +98,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		gatewayQueries := query.NewData(s.mgr.GetClient(), s.mgr.GetScheme())
 
 		pluginRegistry := s.k8sGwExtensions.CreatePluginRegistry(ctx)
-		gatewayTranslator := gloot.NewTranslator(gatewayQueries, pluginRegistry)
+		gatewayTranslator := gwv2_translator.NewTranslator(gatewayQueries, pluginRegistry)
 
 		rm := reports.NewReportMap()
 		r := reports.NewReporter(&rm)
@@ -188,44 +188,44 @@ func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_
 	// As a result, we may have a list of Proxies that are in different namespaces
 	// Since the reconciler accepts the namespace as an argument, we need to split
 	// the list so we have a lists of proxies, isolated to each namespace
-	var proxyListByNamespace = make(map[string]gloo_solo_io.ProxyList)
+	//var proxyListByNamespace = make(map[string]gloo_solo_io.ProxyList)
+	//
+	//for _, proxy := range proxyList {
+	//	proxyNs := proxy.GetMetadata().GetNamespace()
+	//	nsList, ok := proxyListByNamespace[proxyNs]
+	//	if ok {
+	//		nsList = append(nsList, proxy)
+	//		proxyListByNamespace[proxyNs] = nsList
+	//	} else {
+	//		proxyListByNamespace[proxyNs] = gloo_solo_io.ProxyList{
+	//			proxy,
+	//		}
+	//	}
+	//}
 
-	for _, proxy := range proxyList {
-		proxyNs := proxy.GetMetadata().GetNamespace()
-		nsList, ok := proxyListByNamespace[proxyNs]
-		if ok {
-			nsList = append(nsList, proxy)
-			proxyListByNamespace[proxyNs] = nsList
-		} else {
-			proxyListByNamespace[proxyNs] = gloo_solo_io.ProxyList{
-				proxy,
+	//for ns, nsList := range proxyListByNamespace {
+	err := s.proxyReconciler.Reconcile(
+		s.writeNamespace, //ns,
+		proxyList,        //nsList,
+		func(original, desired *gloo_solo_io.Proxy) (bool, error) {
+			// ignore proxies that do not have our owner label
+			if original.GetMetadata().GetLabels() == nil || original.GetMetadata().GetLabels()[utils.ProxyTypeKey] != utils.GlooGatewayProxyValue {
+				// TODO(npolshak): Currently we update all Gloo Gateway proxies. We should create a new label and ignore proxies that are not owned by Gloo control plane running in a specific namespace via POD_NAMESPACE
+				logger.Debugf("ignoring proxy %v in namespace %v, does not have owner label %v", original.GetMetadata().GetName(), original.GetMetadata().GetNamespace(), utils.GlooGatewayProxyValue)
+				return false, nil
 			}
-		}
+			// otherwise always update
+			return true, nil
+		},
+		clients.ListOpts{
+			Ctx: ctx,
+		})
+	if err != nil {
+		// A write error to our cache should not impact translation
+		// We will emit a message, and continue
+		logger.Error(err)
 	}
-
-	for ns, nsList := range proxyListByNamespace {
-		err := s.proxyReconciler.Reconcile(
-			ns,
-			nsList,
-			func(original, desired *gloo_solo_io.Proxy) (bool, error) {
-				// ignore proxies that do not have our owner label
-				if original.GetMetadata().GetLabels() == nil || original.GetMetadata().GetLabels()[utils.ProxyTypeKey] != utils.GlooGatewayProxyValue {
-					// TODO(npolshak): Currently we update all Gloo Gateway proxies. We should create a new label and ignore proxies that are not owned by Gloo control plane running in a specific namespace via POD_NAMESPACE
-					logger.Debugf("ignoring proxy %v in namespace %v, does not have owner label %v", original.GetMetadata().GetName(), original.GetMetadata().GetNamespace(), utils.GlooGatewayProxyValue)
-					return false, nil
-				}
-				// otherwise always update
-				return true, nil
-			},
-			clients.ListOpts{
-				Ctx: ctx,
-			})
-		if err != nil {
-			// A write error to our cache should not impact translation
-			// We will emit a message, and continue
-			logger.Error(err)
-		}
-	}
+	//}
 }
 
 func applyPostTranslationPlugins(ctx context.Context, pluginRegistry registry.PluginRegistry, translationContext *gwplugins.PostTranslationContext) {
