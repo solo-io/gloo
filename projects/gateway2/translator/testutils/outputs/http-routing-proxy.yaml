@@ -74,5 +74,5 @@ metadata:
   labels:
     created_by: gloo-kube-gateway-api
     proxy_namespace: default
-  name: example-gateway-default
+  name: default-example-gateway
   namespace: gloo-system

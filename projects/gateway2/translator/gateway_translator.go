@@ -2,6 +2,7 @@ package translator
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 
@@ -90,7 +91,7 @@ func proxyMetadata(gateway *gwv1.Gateway, writeNamespace string) *core.Metadata 
 	// ROLE ON ENVOY MUST MATCH <proxy_namespace>~<proxy_name>
 	// equal to role: {{.Values.settings.writeNamespace | default .Release.Namespace }}~{{ $name | kebabcase }}
 	return &core.Metadata{
-		Name:      gateway.GetName(), //fmt.Sprintf("%s-%s", gateway.GetName(), gateway.GetNamespace()),
+		Name:      fmt.Sprintf("%s-%s", gateway.GetNamespace(), gateway.GetName()),
 		Namespace: writeNamespace,
 		Labels: map[string]string{
 			utils.ProxyTypeKey:   utils.GlooGatewayProxyValue,

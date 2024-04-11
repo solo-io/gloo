@@ -2,6 +2,7 @@ package xds
 
 import (
 	"context"
+	"fmt"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
@@ -13,17 +14,16 @@ import (
 func SnapshotCacheKey(proxy *v1.Proxy) string {
 	namespace, name := proxy.GetMetadata().Ref().Strings()
 	owner := proxy.GetMetadata().GetLabels()[utils.ProxyTypeKey]
-	if owner == "" {
-		// default to gloo edge translator if no owner is set on proxy
-		owner = utils.GlooEdgeProxyValue
-	} else if owner == utils.GlooGatewayProxyValue {
+	if owner == utils.GlooGatewayProxyValue {
 		// Gloo Gateway proxies can live in different namespaces from writeNamespace
 		namespaceLabel := proxy.GetMetadata().GetLabels()[utils.NamespaceLabel]
 		if namespaceLabel != "" {
 			namespace = namespaceLabel
 		}
+		return OwnerNamespaceNameID(owner, namespace, name)
 	}
-	return OwnerNamespaceNameID(owner, namespace, name)
+
+	return fmt.Sprintf("%v~%v", namespace, name)
 }
 
 // SnapshotCacheKeys returns a list with the SnapshotCacheKey for each Proxy
@@ -41,7 +41,7 @@ func SnapshotCacheKeys(proxies v1.ProxyList) []string {
 func NewAdsSnapshotCache(ctx context.Context) cache.SnapshotCache {
 	settings := cache.CacheSettings{
 		Ads:    true,
-		Hash:   NewAggregateNodeHash(),
+		Hash:   NewNodeRoleHasher(),
 		Logger: contextutils.LoggerFrom(ctx),
 	}
 	return cache.NewSnapshotCache(settings)

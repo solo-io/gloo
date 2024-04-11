@@ -123,8 +123,8 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 		proxyCtx := ctx
 		meta := proxy.GetMetadata()
 		metaKey := meta.Ref().Key()
-		if proxy.GetMetadata().Labels[utils.ProxyTypeKey] == utils.GlooGatewayProxyValue {
-			proxyNamespace := proxy.GetMetadata().Labels[utils.NamespaceLabel]
+		if proxy.GetMetadata().GetLabels()[utils.ProxyTypeKey] == utils.GlooGatewayProxyValue {
+			proxyNamespace := proxy.GetMetadata().GetLabels()[utils.NamespaceLabel]
 			if proxyNamespace != "" {
 				meta.Namespace = proxyNamespace
 				metaKey = meta.Ref().Key()

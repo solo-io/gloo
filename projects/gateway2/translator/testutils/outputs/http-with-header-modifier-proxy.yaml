@@ -63,5 +63,5 @@ metadata:
   labels:
     created_by: gloo-kube-gateway-api
     proxy_namespace: default
-  name: gw-default
+  name: default-gw
   namespace: gloo-system
