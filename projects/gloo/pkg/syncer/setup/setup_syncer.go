@@ -506,7 +506,6 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		return err
 	}
 
-	// TODO: check opts here
 	proxyClient, err := v1.NewProxyClient(watchOpts.Ctx, opts.Proxies)
 	if err != nil {
 		return err
@@ -882,7 +881,6 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 	gwValidationSyncer := gwvalidation.NewValidator(validationConfig)
 
-	// Note: Gloo Gateway does not limit writing proxies to only opts.WriteNamespace
 	translationSync := syncer.NewTranslatorSyncer(
 		watchOpts.Ctx,
 		sharedTranslator,
@@ -928,6 +926,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	startFuncs := map[string]StartFunc{}
 
 	if opts.GlooGateway.EnableK8sGatewayController {
+		// Share proxyClient with the gateway controller
 		startFuncs["k8s-gateway-controller"] = K8sGatewayControllerStartFunc(proxyClient)
 	}
 
@@ -1112,7 +1111,6 @@ func constructOpts(ctx context.Context, params constructOptsParams) (bootstrap.O
 	// Delete proxies that may have been left from prior to an upgrade or from previously having set persistProxySpec
 	// Ignore errors because gloo will still work with stray proxies.
 	proxyCleanup := func() {
-		// Gloo Gateway can create proxies in namespaces outside of the write namespace, so we need to clean up all proxies across all namespaces here
 		doProxyCleanup(ctx, factoryParams, params.settings, params.writeNamespace)
 	}
 	if params.settings.GetGateway().GetPersistProxySpec().GetValue() {
