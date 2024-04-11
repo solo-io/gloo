@@ -91,7 +91,7 @@ func Start(ctx context.Context, cfg StartConfig) error {
 
 	inputChannels := proxy_syncer.NewGatewayInputChannels()
 
-	k8sGwExtensions, err := cfg.ExtensionsFactory(mgr, cfg.RouteOptionClient, cfg.StatusReporter)
+	k8sGwExtensions, err := cfg.ExtensionsFactory(mgr)
 	if err != nil {
 		setupLog.Error(err, "unable to create k8s gw extensions")
 		return err
@@ -106,6 +106,8 @@ func Start(ctx context.Context, cfg StartConfig) error {
 		mgr,
 		k8sGwExtensions,
 		cfg.ProxyClient,
+		cfg.RouteOptionClient,
+		cfg.StatusReporter,
 	)
 	if err := mgr.Add(proxySyncer); err != nil {
 		setupLog.Error(err, "unable to add proxySyncer runnable")

@@ -3,6 +3,8 @@ package proxy_syncer
 import (
 	"context"
 
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -34,6 +36,9 @@ type ProxySyncer struct {
 	// proxyReconciler wraps the client that writes Proxy resources into an in-memory cache
 	// This cache is utilized by the debug.ProxyEndpointServer
 	proxyReconciler gloo_solo_io.ProxyReconciler
+
+	routeOptionClient gatewayv1.RouteOptionClient
+	statusReporter    reporter.StatusReporter
 }
 
 type GatewayInputChannels struct {
@@ -63,6 +68,8 @@ func NewProxySyncer(
 	mgr manager.Manager,
 	k8sGwExtensions extensions.K8sGatewayExtensions,
 	proxyClient gloo_solo_io.ProxyClient,
+	routeOptionClient gatewayv1.RouteOptionClient,
+	statusReporter reporter.StatusReporter,
 ) *ProxySyncer {
 	return &ProxySyncer{
 		controllerName:  controllerName,
@@ -97,7 +104,11 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 
 		gatewayQueries := query.NewData(s.mgr.GetClient(), s.mgr.GetScheme())
 
-		pluginRegistry := s.k8sGwExtensions.CreatePluginRegistry(ctx)
+		pluginParams := extensions.PluginBuilderParams{
+			RouteOptionClient: s.routeOptionClient,
+			StatusReporter:    s.statusReporter,
+		}
+		pluginRegistry := s.k8sGwExtensions.CreatePluginRegistry(ctx, pluginParams)
 		gatewayTranslator := gwv2_translator.NewTranslator(gatewayQueries, pluginRegistry)
 
 		rm := reports.NewReportMap()
