@@ -39,7 +39,17 @@ type cliPortForwarder struct {
 
 func (c *cliPortForwarder) Start(ctx context.Context, options ...retry.Option) error {
 	return retry.Do(func() error {
-		return c.startOnce(ctx)
+		err := c.startOnce(ctx)
+		if err != nil {
+			c.cmdCancel()
+			return err
+		}
+		_, err = net.Dial("tcp", fmt.Sprintf("%s:%d", c.properties.localAddress, c.properties.localPort))
+		if err != nil {
+			c.cmdCancel()
+			return err
+		}
+		return nil
 	}, options...)
 }
 
