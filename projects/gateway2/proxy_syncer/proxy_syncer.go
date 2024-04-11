@@ -184,29 +184,10 @@ func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_
 	ctx = contextutils.WithLogger(ctx, "proxyCache")
 	logger := contextutils.LoggerFrom(ctx)
 
-	// Proxy CR is located in the same namespace as the originating Gateway CR
-	// As a result, we may have a list of Proxies that are in different namespaces
-	// Since the reconciler accepts the namespace as an argument, we need to split
-	// the list so we have a lists of proxies, isolated to each namespace
-	//var proxyListByNamespace = make(map[string]gloo_solo_io.ProxyList)
-	//
-	//for _, proxy := range proxyList {
-	//	proxyNs := proxy.GetMetadata().GetNamespace()
-	//	nsList, ok := proxyListByNamespace[proxyNs]
-	//	if ok {
-	//		nsList = append(nsList, proxy)
-	//		proxyListByNamespace[proxyNs] = nsList
-	//	} else {
-	//		proxyListByNamespace[proxyNs] = gloo_solo_io.ProxyList{
-	//			proxy,
-	//		}
-	//	}
-	//}
-
-	//for ns, nsList := range proxyListByNamespace {
+	// Proxy CR is located in the writeNamespace, which may be different from the originating Gateway CR
 	err := s.proxyReconciler.Reconcile(
-		s.writeNamespace, //ns,
-		proxyList,        //nsList,
+		s.writeNamespace,
+		proxyList,
 		func(original, desired *gloo_solo_io.Proxy) (bool, error) {
 			// ignore proxies that do not have our owner label
 			if original.GetMetadata().GetLabels() == nil || original.GetMetadata().GetLabels()[utils.ProxyTypeKey] != utils.GlooGatewayProxyValue {
@@ -225,7 +206,6 @@ func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_
 		// We will emit a message, and continue
 		logger.Error(err)
 	}
-	//}
 }
 
 func applyPostTranslationPlugins(ctx context.Context, pluginRegistry registry.PluginRegistry, translationContext *gwplugins.PostTranslationContext) {

@@ -87,9 +87,9 @@ func (t *translator) TranslateProxy(
 }
 
 func proxyMetadata(gateway *gwv1.Gateway, writeNamespace string) *core.Metadata {
-	// TODO(ilackarms) what should the proxy ID be
-	// ROLE ON ENVOY MUST MATCH <proxy_namespace>~<proxy_name>
-	// equal to role: {{.Values.settings.writeNamespace | default .Release.Namespace }}~{{ $name | kebabcase }}
+	// Role on envoy must match role metadata format: <owner>~<proxy_namespace>~<proxy_name>
+	// which is equal to role defined on proxy-deployment ConfigMap:
+	// gloo-kube-gateway-api~{{ .Release.Namespace }}~{{ $gateway.gatewayNamespace }}-{{ $gateway.gatewayName | default (include "gloo-gateway.gateway.fullname" .) }}
 	return &core.Metadata{
 		Name:      fmt.Sprintf("%s-%s", gateway.GetNamespace(), gateway.GetName()),
 		Namespace: writeNamespace,
