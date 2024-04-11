@@ -928,7 +928,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	startFuncs := map[string]StartFunc{}
 
 	if opts.GlooGateway.EnableK8sGatewayController {
-		startFuncs["k8s-gateway-controller"] = K8sGatewayControllerStartFunc()
+		startFuncs["k8s-gateway-controller"] = K8sGatewayControllerStartFunc(proxyClient)
 	}
 
 	validationMustStart := os.Getenv("VALIDATION_MUST_START")
