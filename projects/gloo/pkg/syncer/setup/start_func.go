@@ -14,7 +14,6 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/debug"
-
 )
 
 // StartFunc represents a function that will be called with the initialized bootstrap.Opts
@@ -71,10 +70,9 @@ func K8sGatewayControllerStartFunc(proxyClient v1.ProxyClient) StartFunc {
 			GlooPluginRegistryFactory: extensions.PluginRegistryFactory,
 			Opts:                      opts,
 
-			ProxyClient: proxyClient,
+			ProxyClient:       proxyClient,
 			RouteOptionClient: routeOptionClient,
 			StatusReporter:    statusReporter,
-
 
 			// Useful for development purposes
 			// At the moment, this is not tied to any user-facing API
