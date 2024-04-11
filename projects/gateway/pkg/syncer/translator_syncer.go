@@ -47,7 +47,7 @@ type TranslatorSyncer struct {
 var (
 	// labels used to uniquely identify Proxies that are managed by the Gloo controllers
 	proxyLabelsToWrite = map[string]string{
-		glooutils.ProxyTypeKey: glooutils.GlooEdgeTranslatorValue,
+		glooutils.ProxyTypeKey: glooutils.GlooEdgeProxyValue,
 	}
 
 	// Previously, proxies would be identified with:
@@ -62,7 +62,7 @@ var (
 	// This is only required for backwards compatibility.
 	// Once users have upgraded to a version with new labels, we can delete this code and read/write the same labels.
 	proxyLabelSelectorOptions = clients.ListOpts{
-		ExpressionSelector: glooutils.GetTranslatorSelectorExpression(glooutils.GlooEdgeTranslatorValue, "gateway"),
+		ExpressionSelector: glooutils.GetTranslatorSelectorExpression(glooutils.GlooEdgeProxyValue, "gateway"),
 	}
 )
 

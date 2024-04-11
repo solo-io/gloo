@@ -40,7 +40,7 @@ var _ = Describe("Clean up proxies", func() {
 			},
 		}
 		managedProxyLabels = map[string]string{
-			utils.ProxyTypeKey: utils.GlooEdgeTranslatorValue,
+			utils.ProxyTypeKey: utils.GlooEdgeProxyValue,
 		}
 		unmanagedProxyLabels = map[string]string{
 			utils.ProxyTypeKey: "other-controller",

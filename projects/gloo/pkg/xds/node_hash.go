@@ -42,7 +42,7 @@ func (c classicEdgeNodeHash) ID(node *envoy_config_core_v3.Node) string {
 			roleString := roleValue.GetStringValue()
 			if c.isProxyWorkloadRole(roleString) {
 				// Proxy workloads use a key that is prefixed by the translator that produced the xDS Snapshot
-				return strings.Join([]string{utils.GlooEdgeTranslatorValue, roleString}, KeyDelimiter)
+				return strings.Join([]string{utils.GlooEdgeProxyValue, roleString}, KeyDelimiter)
 			} else {
 				// Non-Proxy workloads use the exact key as the role
 				return roleString
@@ -78,7 +78,7 @@ func (g glooGatewayNodeHash) ID(node *envoy_config_core_v3.Node) string {
 		gatewayFields := node.GetMetadata().GetFields()["gateway"].GetStructValue().GetFields()
 		if gatewayFields != nil {
 			return OwnerNamespaceNameID(
-				utils.GlooGatewayTranslatorValue,
+				utils.GlooGatewayProxyValue,
 				gatewayFields["namespace"].GetStringValue(),
 				gatewayFields["name"].GetStringValue())
 		}

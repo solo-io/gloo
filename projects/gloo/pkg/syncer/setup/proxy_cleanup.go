@@ -17,7 +17,7 @@ func deleteUnusedProxies(ctx context.Context, namespace string, proxyClient v1.P
 	}
 	deleteErrs := make([]error, 0)
 	for _, proxy := range currentProxies {
-		if val, ok := proxy.GetMetadata().GetLabels()[utils.ProxyTypeKey]; ok && val == utils.GlooEdgeTranslatorValue {
+		if val, ok := proxy.GetMetadata().GetLabels()[utils.ProxyTypeKey]; ok && val == utils.GlooEdgeProxyValue {
 			err = proxyClient.Delete(proxy.GetMetadata().GetNamespace(), proxy.GetMetadata().GetName(), clients.DeleteOpts{Ctx: ctx})
 			// continue to clean up other proxies
 			if err != nil {

@@ -72,7 +72,7 @@ listeners:
   name: http
 metadata:
   labels:
-    proxy_type: gloo-kube-gateway-api
-    gateway.solo.io/namespace: default
+    created_by: gloo-kube-gateway-api
+    proxy_namespace: default
   name: example-gateway-default
   namespace: gloo-system

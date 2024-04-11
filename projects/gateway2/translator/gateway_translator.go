@@ -94,7 +94,7 @@ func proxyMetadata(gateway *gwv1.Gateway, namespace string) *core.Metadata {
 		Name:      fmt.Sprintf("%s-%s", gateway.GetName(), gateway.GetNamespace()),
 		Namespace: namespace,
 		Labels: map[string]string{
-			utils.ProxyTypeKey:   utils.GlooGatewayTranslatorValue,
+			utils.ProxyTypeKey:   utils.GlooGatewayProxyValue,
 			utils.NamespaceLabel: gateway.GetNamespace(),
 		},
 	}

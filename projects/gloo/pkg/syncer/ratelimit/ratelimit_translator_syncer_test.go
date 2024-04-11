@@ -106,7 +106,7 @@ var _ = Describe("RatelimitTranslatorSyncer", func() {
 						Namespace: "gloo-system",
 						// Check that the Gloo Gateway proxy runs through the ratelimit plugin during sync
 						Labels: map[string]string{
-							utils.ProxyTypeKey: utils.GlooGatewayTranslatorValue,
+							utils.ProxyTypeKey: utils.GlooGatewayProxyValue,
 						},
 					},
 					Listeners: []*gloov1.Listener{{

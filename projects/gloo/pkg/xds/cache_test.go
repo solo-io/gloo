@@ -25,7 +25,7 @@ var _ = Describe("Cache", func() {
 	})
 
 	It("Gloo Gateway SnapshotCacheKeys use namespace label", func() {
-		owner, namespace1, namespace2, name1, name2 := utils.GlooGatewayTranslatorValue, "gloo-system", "gloo-system", "name1", "name2"
+		owner, namespace1, namespace2, name1, name2 := utils.GlooGatewayProxyValue, "gloo-system", "gloo-system", "name1", "name2"
 		p1 := v1.NewProxy(namespace1, name1)
 		p1.Metadata.Labels = map[string]string{
 			utils.ProxyTypeKey:   owner,

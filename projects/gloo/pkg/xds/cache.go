@@ -15,8 +15,8 @@ func SnapshotCacheKey(proxy *v1.Proxy) string {
 	owner := proxy.GetMetadata().GetLabels()[utils.ProxyTypeKey]
 	if owner == "" {
 		// default to gloo edge translator if no owner is set on proxy
-		owner = utils.GlooEdgeTranslatorValue
-	} else if owner == utils.GlooGatewayTranslatorValue {
+		owner = utils.GlooEdgeProxyValue
+	} else if owner == utils.GlooGatewayProxyValue {
 		// Gloo Gateway proxies can live in different namespaces from writeNamespace
 		namespaceLabel := proxy.GetMetadata().GetLabels()[utils.NamespaceLabel]
 		if namespaceLabel != "" {
