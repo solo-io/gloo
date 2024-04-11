@@ -62,5 +62,5 @@ listeners:
 metadata:
   labels:
     proxy_type: gloo-kube-gateway-api
-  name: gw
-  namespace: default
+  name: gw-default
+  namespace: gloo-system

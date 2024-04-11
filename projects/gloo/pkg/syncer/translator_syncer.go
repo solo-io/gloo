@@ -155,9 +155,7 @@ func (s *translatorSyncer) translateProxies(ctx context.Context, snap *v1snap.Ap
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
 	}
-	// TODO(npolshak): Add a way to restrict gloo gateway write namespace?
-	// Gloo Gateway proxies are written to any namespace
-	proxyList, err := s.proxyClient.List("", clients.ListOpts{})
+	proxyList, err := s.proxyClient.List(s.writeNamespace, clients.ListOpts{})
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
 	}

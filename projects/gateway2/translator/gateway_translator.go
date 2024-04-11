@@ -2,6 +2,7 @@ package translator
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 
@@ -23,6 +24,7 @@ type K8sGwTranslator interface {
 	TranslateProxy(
 		ctx context.Context,
 		gateway *gwv1.Gateway,
+		namespace string,
 		reporter reports.Reporter,
 	) *v1.Proxy
 }
@@ -42,6 +44,7 @@ type translator struct {
 func (t *translator) TranslateProxy(
 	ctx context.Context,
 	gateway *gwv1.Gateway,
+	namespace string,
 	reporter reports.Reporter,
 ) *v1.Proxy {
 
@@ -78,18 +81,18 @@ func (t *translator) TranslateProxy(
 	)
 
 	return &v1.Proxy{
-		Metadata:  proxyMetadata(gateway),
+		Metadata:  proxyMetadata(gateway, namespace),
 		Listeners: listeners,
 	}
 }
 
-func proxyMetadata(gateway *gwv1.Gateway) *core.Metadata {
+func proxyMetadata(gateway *gwv1.Gateway, namespace string) *core.Metadata {
 	// TODO(ilackarms) what should the proxy ID be
 	// ROLE ON ENVOY MUST MATCH <proxy_namespace>~<proxy_name>
 	// equal to role: {{.Values.settings.writeNamespace | default .Release.Namespace }}~{{ $name | kebabcase }}
 	return &core.Metadata{
-		Name:      gateway.Name,
-		Namespace: gateway.Namespace,
+		Name:      fmt.Sprintf("%s-%s", gateway.GetName(), gateway.GetNamespace()),
+		Namespace: namespace,
 		Labels: map[string]string{
 			utils.ProxyTypeKey: utils.GlooGatewayTranslatorValue,
 		},

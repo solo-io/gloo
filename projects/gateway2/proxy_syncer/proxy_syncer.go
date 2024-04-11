@@ -25,6 +25,7 @@ import (
 type ProxySyncer struct {
 	translator     translator.Translator
 	controllerName string
+	writeNamespace string
 
 	inputs          *GatewayInputChannels
 	mgr             manager.Manager
@@ -56,7 +57,7 @@ func NewGatewayInputChannels() *GatewayInputChannels {
 }
 
 func NewProxySyncer(
-	controllerName string,
+	controllerName, writeNamespace string,
 	translator translator.Translator,
 	inputs *GatewayInputChannels,
 	mgr manager.Manager,
@@ -65,6 +66,7 @@ func NewProxySyncer(
 ) *ProxySyncer {
 	return &ProxySyncer{
 		controllerName:  controllerName,
+		writeNamespace:  writeNamespace,
 		translator:      translator,
 		inputs:          inputs,
 		mgr:             mgr,
@@ -106,7 +108,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 			translatedGateways []gwplugins.TranslatedGateway
 		)
 		for _, gw := range gwl.Items {
-			proxy := gatewayTranslator.TranslateProxy(ctx, &gw, r)
+			proxy := gatewayTranslator.TranslateProxy(ctx, &gw, s.writeNamespace, r)
 			if proxy != nil {
 				proxies = append(proxies, proxy)
 				translatedGateways = append(translatedGateways, gwplugins.TranslatedGateway{
