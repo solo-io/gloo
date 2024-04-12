@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/solo-io/gloo/projects/gateway2/translator/translatorutils"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -119,6 +120,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 			}
 		}
 	}
+	var proxiesWithReports []translatorutils.ProxyWithReports
 	for _, proxy := range snap.Proxies {
 		proxyCtx := ctx
 		meta := proxy.GetMetadata()
@@ -141,7 +143,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 			Messages: map[*core.ResourceRef][]string{},
 		}
 
-		xdsSnapshot, reports, _ := s.translator.Translate(params, proxy)
+		xdsSnapshot, reports, proxyReport := s.translator.Translate(params, proxy)
 
 		// Messages are aggregated during translation, and need to be added to reports
 		for _, messages := range params.Messages {
@@ -164,6 +166,13 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 		allReports.Merge(reports)
 		key := xds.SnapshotCacheKey(proxy)
 		s.xdsCache.SetSnapshot(key, sanitizedSnapshot)
+		proxiesWithReports = append(proxiesWithReports, translatorutils.ProxyWithReports{
+			Proxy: proxy,
+			Reports: translatorutils.TranslationReports{
+				ProxyReport:     proxyReport,
+				ResourceReports: reports,
+			},
+		})
 
 		// Record some metrics
 		clustersLen := len(xdsSnapshot.GetResources(types.ClusterTypeV3).Items)
@@ -183,6 +192,11 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 			"endpoints", endpointsLen)
 
 		logger.Debugf("Full snapshot for proxy %v: %+v", proxy.GetMetadata().GetName(), xdsSnapshot)
+	}
+
+	// Call the callback with the proxies and reports
+	if s.onProxyTranslated != nil {
+		s.onProxyTranslated(ctx, proxiesWithReports)
 	}
 
 	logger.Debugf("gloo reports to be written: %v", allReports)

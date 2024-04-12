@@ -68,8 +68,6 @@ func NewProxySyncer(
 	mgr manager.Manager,
 	k8sGwExtensions extensions.K8sGatewayExtensions,
 	proxyClient gloo_solo_io.ProxyClient,
-	routeOptionClient gatewayv1.RouteOptionClient,
-	statusReporter reporter.StatusReporter,
 ) *ProxySyncer {
 	return &ProxySyncer{
 		controllerName:  controllerName,
