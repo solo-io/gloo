@@ -1,4 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    description: >-
-      - Added declarative setup for setting up kind cluster, installing gloo and example applications to simplify e2e testing.
