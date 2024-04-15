@@ -3,11 +3,12 @@ package export
 import (
 	"context"
 	"fmt"
-	"github.com/solo-io/gloo/pkg/utils/errutils"
 	"io"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path/filepath"
+
+	"github.com/solo-io/gloo/pkg/utils/errutils"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ ReportExporter = new(reportExporter)

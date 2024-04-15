@@ -2,9 +2,10 @@ package export
 
 import (
 	"context"
-	"github.com/solo-io/gloo/pkg/utils/fileutils"
 	"os"
 	"path/filepath"
+
+	"github.com/solo-io/gloo/pkg/utils/fileutils"
 )
 
 var _ ArchiveWriter = new(localTarWriter)

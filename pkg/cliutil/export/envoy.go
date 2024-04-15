@@ -2,6 +2,9 @@ package export
 
 import (
 	"context"
+	"os"
+	"path/filepath"
+
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
 	"github.com/solo-io/gloo/pkg/utils/errutils"
@@ -10,8 +13,6 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os"
-	"path/filepath"
 )
 
 // CollectEnvoyData queries the Admin API for the provided Envoy Deployment, and emits data to the EnvoyDataDir
