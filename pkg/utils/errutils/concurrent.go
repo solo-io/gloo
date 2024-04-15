@@ -1,12 +1,13 @@
 package errutils
 
 import (
-	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"sync"
+
+	"k8s.io/apimachinery/pkg/util/errors"
 )
 
-// AggregateConcurrent runs fns concurrently, returning a NewAggregate if there are > 1 errors
-func AggregateConcurrent(funcs []func() error) error {
+// AggregateConcurrent runs fns concurrently, returning a NewAggregate if there are > 0 errors
+func AggregateConcurrent(funcs []func() error) errors.Aggregate {
 	// run all fns concurrently
 	ch := make(chan error, len(funcs))
 	var wg sync.WaitGroup
@@ -27,10 +28,8 @@ func AggregateConcurrent(funcs []func() error) error {
 			errs = append(errs, err)
 		}
 	}
-	if len(errs) > 1 {
-		return utilerrors.NewAggregate(errs)
-	} else if len(errs) == 1 {
-		return errs[0]
+	if len(errs) > 0 {
+		return errors.NewAggregate(errs)
 	}
 	return nil
 }
