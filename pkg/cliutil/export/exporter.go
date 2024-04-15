@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/solo-io/gloo/pkg/utils/errutils"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"io"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path/filepath"
 )
@@ -19,7 +19,8 @@ type ReportExporter interface {
 
 // Options is the set of parameters that effect what is captured in an export
 type Options struct {
-	// TODO: This should include more intelligent options for filtering data, namespaces..etc
+	// EnvoyDeployments is the list of references to Envoy deployments
+	EnvoyDeployments []metav1.ObjectMeta
 }
 
 // NewReportExporter returns an implementation of a ReportExporter
@@ -76,13 +77,16 @@ func (r *reportExporter) reportProgress(progressUpdate string) {
 }
 
 func (r *reportExporter) doExport(ctx context.Context, options Options) error {
+	var parallelFns []func() error
 
-	// todo: pull this from options
-	envoyNamespace := defaults.GlooSystem
+	for _, envoyDeploy := range options.EnvoyDeployments {
+		deploymentDataDir := filepath.Join(
+			r.tmpArchiveDir,
+			fmt.Sprintf("envoy-%s-%s", envoyDeploy.GetNamespace(), envoyDeploy.GetName()))
+		parallelFns = append(parallelFns, func() error {
+			return CollectEnvoyData(ctx, envoyDeploy, deploymentDataDir)
+		})
+	}
 
-	return errutils.AggregateConcurrent([]func() error{
-		func() error {
-			return CollectEnvoyData(ctx, envoyNamespace, filepath.Join(r.tmpArchiveDir, "envoy"))
-		},
-	})
+	return errutils.AggregateConcurrent(parallelFns)
 }

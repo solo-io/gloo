@@ -5,17 +5,13 @@ import (
 	"io"
 )
 
-// ToLocalFile is the entrypoint for our exporter today
-// It is used by the CLI and tests, and provides a standard mechanism to capture an export
-// and write it to a zipped file on the local filesystem
-func ToLocalFile(ctx context.Context, zippedFilePath string, progressReporter io.Writer) error {
-	archiveWriter := NewLocalArchiveWriter(zippedFilePath)
+// This file contains standard entry points to our exporter today
+
+// ToLocalDirectory captures an export, and places it in the outputDir
+func ToLocalDirectory(ctx context.Context, outputDir string, progressReporter io.Writer, options Options) error {
+	writer := NewLocalDirWriter(outputDir)
 
 	exporter := NewReportExporter(progressReporter)
 
-	exportOptions := Options{
-		// todo: create this object from user-defined parameters
-	}
-
-	return exporter.Export(ctx, exportOptions, archiveWriter)
+	return exporter.Export(ctx, options, writer)
 }
