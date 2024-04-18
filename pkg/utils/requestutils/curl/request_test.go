@@ -54,6 +54,8 @@ var _ = Describe("Curl", func() {
 
 	})
 
+	//  GINKGO_USER_FLAGS=--flake-attempts=5 TEST_PKG=pkg/utils/requestutils/curl make test
+
 	FContext("Demo FlakeAttempts", Ordered, func() {
 
 		It("retries", func() {
