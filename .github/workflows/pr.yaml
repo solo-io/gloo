@@ -4,8 +4,8 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
-  process_skip_directives:
-    name: Process Skip Directives
+  prepare_env:
+    name: Prepare Environment
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     outputs:
@@ -37,8 +37,8 @@ jobs:
     name: Build and Test Gloo Gateway
     runs-on: ubuntu-22.04
     timeout-minutes: 10
-    needs: process_skip_directives
-    if: ${{ !github.event.pull_request.draft && needs.process_skip_directives.outputs.should-auto-succeed-tests != 'true' }}
+    needs: prepare_env
+    if: ${{ !github.event.pull_request.draft && needs.prepare_env.outputs.should-auto-succeed-tests != 'true' }}
     steps:
     - uses: actions/checkout@v4
     - name: Setup Go
@@ -56,8 +56,8 @@ jobs:
     name: Run Gateway api conformance tests
     runs-on: ubuntu-22.04
     timeout-minutes: 15
-    needs: process_skip_directives
-    if: ${{ !github.event.pull_request.draft && needs.process_skip_directives.outputs.should-auto-succeed-tests != 'true' }}
+    needs: prepare_env
+    if: ${{ !github.event.pull_request.draft && needs.prepare_env.outputs.should-auto-succeed-tests != 'true' }}
     steps:
     - uses: actions/checkout@v4
     - name: Setup Go
