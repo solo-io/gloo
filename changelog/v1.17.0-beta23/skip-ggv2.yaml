@@ -1,0 +1,8 @@
+changelog:
+- type: NON_USER_FACING
+  description: >-
+    Fix GGv2 tests to respect the skip directives.
+    Bump the timeout for static analysis to 10 min.
+
+    skipCI-kube-tests:true
+    skipCI-docs-build:true

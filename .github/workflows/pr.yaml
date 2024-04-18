@@ -4,11 +4,41 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
+  process_skip_directives:
+    name: Process Skip Directives
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    outputs:
+      should-auto-succeed-tests: ${{ steps.run-strategy.outputs.auto_succeed }}
+    steps:
+    - name: Cancel Previous Actions
+      uses: styfle/cancel-workflow-action@0.11.0
+      with:
+        access_token: ${{ github.token }}
+    - id: checkout-code
+      uses: actions/checkout@v3
+      with:
+        # We require gathering the branch and tag history since we rely on a `git diff`
+        # which compares the state of two branches
+        fetch-depth: 0
+    - id: process-skip-directives
+      uses: ./.github/workflows/composite-actions/process-skip-directives
+      with:
+        base-ref: ${{ github.base_ref }}
+    - id: run-strategy
+      name: Determine Test Run Strategy
+      run: |
+        skip_kube_tests=${{ steps.process-skip-directives.outputs.skip-kube-tests }}
+        if [[ ! -z $skip_kube_tests && $skip_kube_tests = true ]] ; then
+          echo "auto_succeed=true" >> $GITHUB_OUTPUT
+        fi
+
   test_gloo_gateway:
     name: Build and Test Gloo Gateway
     runs-on: ubuntu-22.04
     timeout-minutes: 10
-    if: ${{ !github.event.pull_request.draft }}
+    needs: process_skip_directives
+    if: ${{ !github.event.pull_request.draft && needs.process_skip_directives.outputs.should-auto-succeed-tests != 'true' }}
     steps:
     - uses: actions/checkout@v4
     - name: Setup Go
@@ -26,7 +56,8 @@ jobs:
     name: Run Gateway api conformance tests
     runs-on: ubuntu-22.04
     timeout-minutes: 15
-    if: ${{ !github.event.pull_request.draft }}
+    needs: process_skip_directives
+    if: ${{ !github.event.pull_request.draft && needs.process_skip_directives.outputs.should-auto-succeed-tests != 'true' }}
     steps:
     - uses: actions/checkout@v4
     - name: Setup Go
