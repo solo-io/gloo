@@ -8,6 +8,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 )
 
+var n = 0
+
 var _ = Describe("Curl", func() {
 
 	Context("BuildArgs", func() {
@@ -52,4 +54,18 @@ var _ = Describe("Curl", func() {
 
 	})
 
+	FContext("Demo FlakeAttempts", Ordered, func() {
+
+		It("retries", func() {
+			// If this is re-run EACH time, then it will fail
+			// If this is run once, passes, and then we retry the following spec, we're in a good shape
+			n += 1
+			Expect(n).To(Equal(1))
+		})
+
+		It("retries", func() {
+			n += 1
+			Expect(n).To(Equal(4))
+		})
+	})
 })
