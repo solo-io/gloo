@@ -3,6 +3,7 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
@@ -72,6 +73,8 @@ func (c *TestCluster) RegisterTestInstallation(glooGatewayContext *gloogateway.C
 			WithProgressWriter(ginkgo.GinkgoWriter).
 			WithClusterContext(c.ClusterContext).
 			WithGlooGatewayContext(glooGatewayContext),
+
+		SkipGlooInstall: os.Getenv("SKIP_GLOO_INSTALL") == "true",
 	}
 	c.activeInstallations[installation.String()] = installation
 
@@ -105,6 +108,8 @@ type TestInstallation struct {
 
 	// Assertions is the entity that creates assertions that can be executed by the Operator
 	Assertions *assertions.Provider
+
+	SkipGlooInstall bool
 }
 
 func (i *TestInstallation) String() string {
@@ -112,14 +117,16 @@ func (i *TestInstallation) String() string {
 }
 
 func (i *TestInstallation) InstallGlooGateway(ctx context.Context, installAction actions.ClusterAction) error {
-	installOperation := &operations.BasicOperation{
-		OpName:      "install-gloo-gateway",
-		OpAction:    installAction,
-		OpAssertion: i.Assertions.InstallationWasSuccessful(),
-	}
-	err := i.Operator.ExecuteOperations(ctx, installOperation)
-	if err != nil {
-		return err
+	if !i.SkipGlooInstall {
+		installOperation := &operations.BasicOperation{
+			OpName:      "install-gloo-gateway",
+			OpAction:    installAction,
+			OpAssertion: i.Assertions.InstallationWasSuccessful(),
+		}
+		err := i.Operator.ExecuteOperations(ctx, installOperation)
+		if err != nil {
+			return err
+		}
 	}
 
 	// We can only create the ResourceClients after the CRDs exist in the Cluster
@@ -128,6 +135,9 @@ func (i *TestInstallation) InstallGlooGateway(ctx context.Context, installAction
 }
 
 func (i *TestInstallation) UninstallGlooGateway(ctx context.Context, uninstallAction actions.ClusterAction) error {
+	if i.SkipGlooInstall {
+		return nil
+	}
 	installOperation := &operations.BasicOperation{
 		OpName:      "uninstall-gloo-gateway",
 		OpAction:    uninstallAction,

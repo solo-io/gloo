@@ -31,7 +31,26 @@ func CurlEventuallyRespondsAssertion(curlFunc func() string, expectedResponse *m
 			expectedResponseMatcher := WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(expectedResponse))
 			g.Expect(res).To(expectedResponseMatcher)
 			log.GreyPrintf("success: %v", res)
-
 		}, currentTimeout, pollingInterval).Should(Succeed())
 	}
+}
+
+func AssertCurlEventually(g Gomega, ctx context.Context, curlFunc func() string, expectedResponse *matchers.HttpResponse, timeout ...time.Duration) {
+	currentTimeout, pollingInterval := helper.GetTimeouts(timeout...)
+	// for some useful-ish output
+	tick := time.Tick(currentTimeout / 8)
+
+	g.Eventually(func(g Gomega) {
+		res := curlFunc()
+		select {
+		default:
+			break
+		case <-tick:
+			log.GreyPrintf("want %v\nhave: %s", expectedResponse, res)
+		}
+
+		expectedResponseMatcher := WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(expectedResponse))
+		g.Expect(res).To(expectedResponseMatcher)
+		log.GreyPrintf("success: %v", res)
+	}, currentTimeout, pollingInterval).Should(Succeed())
 }

@@ -40,3 +40,11 @@ func (p *Provider) NewDeleteManifestAction(manifest string, args ...string) acti
 		return p.kubeCli.DeleteFile(ctx, manifest, args...)
 	}
 }
+
+func (p *Provider) ApplyManifestAction(ctx context.Context, manifest string, args ...string) error {
+	return p.kubeCli.ApplyFile(ctx, manifest, args...)
+}
+
+func (p *Provider) DeleteManifestAction(ctx context.Context, manifest string, args ...string) error {
+	return p.kubeCli.DeleteFile(ctx, manifest, args...)
+}

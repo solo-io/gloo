@@ -55,3 +55,29 @@ func (p *Provider) NamespaceNotExist(ns string) ClusterAssertion {
 		Expect(apierrors.IsNotFound(err)).To(BeTrue(), "namespace should not be found in cluster")
 	}
 }
+
+func (p *Provider) AssertObjectsExist(g Gomega, ctx context.Context, objects ...client.Object) {
+	for _, o := range objects {
+		g.Eventually(ctx, func(g Gomega) {
+			err := p.clusterContext.Client.Get(ctx, client.ObjectKeyFromObject(o), o)
+			g.Expect(err).NotTo(HaveOccurred(), "object should be available in cluster")
+		}).
+			WithContext(ctx).
+			WithTimeout(time.Second * 20).
+			WithPolling(time.Millisecond * 200).
+			Should(Succeed())
+	}
+}
+
+func (p *Provider) AssertObjectsNotExist(g Gomega, ctx context.Context, objects ...client.Object) {
+	for _, o := range objects {
+		g.Eventually(ctx, func(g Gomega) {
+			err := p.clusterContext.Client.Get(ctx, client.ObjectKeyFromObject(o), o)
+			g.Expect(apierrors.IsNotFound(err)).To(BeTrue(), "object should not be found in cluster")
+		}).
+			WithContext(ctx).
+			WithTimeout(time.Second * 20).
+			WithPolling(time.Millisecond * 200).
+			Should(Succeed())
+	}
+}
