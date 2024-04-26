@@ -134,11 +134,14 @@ fmt-changed:
 mod-download: check-go-version
 	go mod download all
 
-LINTER_VERSION := $(shell cat .github/workflows/static-analysis.yaml | $(DEPSGOBIN)/yq '.jobs.static-analysis.steps.[] | select( .uses == "*golangci/golangci-lint-action*") | .with.version ')
+.PHONY: install-yq
+install-yq:
+	go install github.com/mikefarah/yq/v4@latest
+
 
 # https://github.com/go-modules-by-example/index/blob/master/010_tools/README.md
 .PHONY: install-go-tools
-install-go-tools: mod-download ## Download and install Go dependencies
+install-go-tools: install-yq mod-download ## Download and install Go dependencies
 	mkdir -p $(DEPSGOBIN)
 	chmod +x $(shell go list -f '{{ .Dir }}' -m k8s.io/code-generator)/generate-groups.sh
 	go install github.com/solo-io/protoc-gen-ext
@@ -149,10 +152,10 @@ install-go-tools: mod-download ## Download and install Go dependencies
 	go install github.com/cratonica/2goarray
 	go install github.com/golang/mock/mockgen
 	go install github.com/saiskee/gettercheck
-	go install github.com/mikefarah/yq/v4@latest
-	# This version must stay in sync with the version used in CI: .github/workflows/static-analysis.yaml
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(LINTER_VERSION)
 	go install github.com/quasilyte/go-ruleguard/cmd/ruleguard@v0.3.16
+	# This version must stay in sync with the version used in CI: .github/workflows/static-analysis.yaml
+	# The version derivation is inline because it depends on yq and must be expanded after this target's requirements are evaluated
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(shell cat .github/workflows/static-analysis.yaml | $(DEPSGOBIN)/yq '.jobs.static-analysis.steps.[] | select( .uses == "*golangci/golangci-lint-action*") | .with.version ')
 
 
 .PHONY: check-format
