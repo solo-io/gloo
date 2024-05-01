@@ -35,5 +35,5 @@ runs:
       CLUSTER_NAME: 'kind'
       TEST_PKG: test/kubernetes/e2e/${{ matrix.test-suites.package }}
     shell: bash
-    run: make go-test
+    run: make set-ginkgo-github-flag go-test
   # TODO: Emit artifacts to shared location on failure

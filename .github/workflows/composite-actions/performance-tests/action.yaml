@@ -6,7 +6,7 @@ runs:
   steps:
   - name: Testing - performance tests
     shell: bash
-    run: make install-test-tools run-performance-tests
+    run: make install-test-tools set-ginkgo-github-flag run-performance-tests
   - name: save results
     if: ${{ failure() }}
     shell: bash

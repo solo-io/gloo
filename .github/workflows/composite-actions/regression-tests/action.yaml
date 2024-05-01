@@ -32,7 +32,7 @@ runs:
       KUBE2E_TESTS: ${{ matrix.kube-e2e-test-type }}
       IMAGE_VARIANT: ${{ matrix.image-variant }}
     shell: bash
-    run: make install-test-tools run-kube-e2e-tests
+    run: make install-test-tools set-ginkgo-github-flag run-kube-e2e-tests
   - name: save results
     if: ${{ failure() }}
     shell: bash
