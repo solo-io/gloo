@@ -233,7 +233,7 @@ test: ## Run all tests, or only run the test package at {TEST_PKG} if it is spec
 	$(TEST_PKG)
 
 .PHONY: set-ginkgo-github-flag
-set-ginkgo-github-flag:  GINKGO_FLAGS += -ginkgo.github-actions
+set-ginkgo-github-flag:  GINKGO_FLAGS += --github-output
 
 
 .PHONY: test-with-coverage
