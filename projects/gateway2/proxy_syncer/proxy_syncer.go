@@ -6,9 +6,7 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
-	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
-	gwv2_translator "github.com/solo-io/gloo/projects/gateway2/translator"
 	gwplugins "github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -118,11 +116,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 			return
 		}
 
-		gatewayQueries := query.NewData(s.mgr.GetClient(), s.mgr.GetScheme())
-
-		pluginRegistry := s.k8sGwExtensions.CreatePluginRegistry(ctx)
-		gatewayTranslator := gwv2_translator.NewTranslator(gatewayQueries, pluginRegistry)
-
+		pluginRegistry := s.k8sGwExtensions.GetPluginRegistry()
 		rm := reports.NewReportMap()
 		r := reports.NewReporter(&rm)
 
@@ -131,6 +125,11 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 			translatedGateways []gwplugins.TranslatedGateway
 		)
 		for _, gw := range gwl.Items {
+			gatewayTranslator := s.k8sGwExtensions.GetTranslator(&gw)
+			if gatewayTranslator == nil {
+				contextutils.LoggerFrom(ctx).Errorf("no translator found for Gateway %s (gatewayClass %s)", gw.Name, gw.Spec.GatewayClassName)
+				continue
+			}
 			proxy := gatewayTranslator.TranslateProxy(ctx, &gw, s.writeNamespace, r)
 			if proxy != nil {
 				// Add proxy id to the proxy metadata to track proxies for status reporting

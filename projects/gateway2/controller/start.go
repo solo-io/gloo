@@ -5,6 +5,7 @@ import (
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/servers/iosnapshot"
 
+	"k8s.io/apimachinery/pkg/util/sets"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -137,7 +138,7 @@ func Start(ctx context.Context, cfg StartConfig) error {
 
 	gwCfg := GatewayConfig{
 		Mgr:            mgr,
-		GWClassName:    gatewayClassName,
+		GWClasses:      sets.New(append(cfg.Opts.ExtraGatewayClasses, wellknown.GatewayClassName)...),
 		ControllerName: wellknown.GatewayControllerName,
 		AutoProvision:  AutoProvision,
 		ControlPlane:   cfg.Opts.ControlPlane,
