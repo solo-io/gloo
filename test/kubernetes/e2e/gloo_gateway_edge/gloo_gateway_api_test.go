@@ -2,7 +2,6 @@ package gloo_gateway_edge_test
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -21,8 +20,7 @@ import (
 // the k8s Gateway controller is disabled
 func TestGlooGatewayEdgeGateway(t *testing.T) {
 	ctx := context.Background()
-	testCluster := e2e.MustTestCluster()
-	testInstallation := testCluster.RegisterTestInstallation(
+	testInstallation := e2e.CreateTestInstallation(
 		t,
 		&gloogateway.Context{
 			InstallNamespace:   "gloo-gateway-edge-test",
@@ -31,18 +29,6 @@ func TestGlooGatewayEdgeGateway(t *testing.T) {
 	)
 
 	testHelper := e2e.MustTestHelper(ctx, testInstallation)
-
-	// create a tmp output directory for generated resources
-	tempOutputDir, err := os.MkdirTemp("", testInstallation.Metadata.InstallNamespace)
-	if err != nil {
-		t.Fatalf("Failed to create temporary directory: %v", err)
-	}
-	defer func() {
-		// Delete the temporary directory after the test completes
-		if err := os.RemoveAll(tempOutputDir); err != nil {
-			t.Errorf("Failed to remove temporary directory: %v", err)
-		}
-	}()
 
 	// We register the cleanup function _before_ we actually perform the installation.
 	// This allows us to uninstall Gloo Gateway, in case the original installation only completed partially
@@ -54,7 +40,6 @@ func TestGlooGatewayEdgeGateway(t *testing.T) {
 		testInstallation.UninstallGlooGateway(ctx, func(ctx context.Context) error {
 			return testHelper.UninstallGlooAll()
 		})
-		testCluster.UnregisterTestInstallation(testInstallation)
 	})
 
 	// Install Gloo Gateway with only Gloo Edge Gateway APIs enabled
@@ -63,6 +48,6 @@ func TestGlooGatewayEdgeGateway(t *testing.T) {
 	})
 
 	t.Run("HeadlessSvc", func(t *testing.T) {
-		suite.Run(t, headless_svc.NewEdgeGatewayHeadlessSvcSuite(ctx, testInstallation, tempOutputDir))
+		suite.Run(t, headless_svc.NewEdgeGatewayHeadlessSvcSuite(ctx, testInstallation))
 	})
 }

@@ -2,10 +2,11 @@ package k8sgateway_test
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/glooctl"
 
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/upstreams"
 
@@ -26,8 +27,7 @@ import (
 // TestK8sGateway is the function which executes a series of tests against a given installation
 func TestK8sGateway(t *testing.T) {
 	ctx := context.Background()
-	testCluster := e2e.MustTestCluster()
-	testInstallation := testCluster.RegisterTestInstallation(
+	testInstallation := e2e.CreateTestInstallation(
 		t,
 		&gloogateway.Context{
 			InstallNamespace:   "k8s-gw-test",
@@ -36,18 +36,6 @@ func TestK8sGateway(t *testing.T) {
 	)
 
 	testHelper := e2e.MustTestHelper(ctx, testInstallation)
-
-	// create a tmp output directory for generated resources
-	tempOutputDir, err := os.MkdirTemp("", testInstallation.Metadata.InstallNamespace)
-	if err != nil {
-		t.Fatalf("Failed to create temporary directory: %v", err)
-	}
-	defer func() {
-		// Delete the temporary directory after the test completes
-		if err := os.RemoveAll(tempOutputDir); err != nil {
-			t.Errorf("Failed to remove temporary directory: %v", err)
-		}
-	}()
 
 	// We register the cleanup function _before_ we actually perform the installation.
 	// This allows us to uninstall Gloo Gateway, in case the original installation only completed partially
@@ -59,7 +47,6 @@ func TestK8sGateway(t *testing.T) {
 		testInstallation.UninstallGlooGateway(ctx, func(ctx context.Context) error {
 			return testHelper.UninstallGlooAll()
 		})
-		testCluster.UnregisterTestInstallation(testInstallation)
 	})
 
 	// Install Gloo Gateway
@@ -84,15 +71,25 @@ func TestK8sGateway(t *testing.T) {
 	})
 
 	t.Run("HeadlessSvc", func(t *testing.T) {
-		suite.Run(t, headless_svc.NewK8sGatewayHeadlessSvcSuite(ctx, testInstallation, tempOutputDir))
+		suite.Run(t, headless_svc.NewK8sGatewayHeadlessSvcSuite(ctx, testInstallation))
 	})
 
 	t.Run("PortRouting", func(t *testing.T) {
 		suite.Run(t, port_routing.NewTestingSuite(ctx, testInstallation))
-
 	})
 
 	t.Run("RouteDelegation", func(t *testing.T) {
 		suite.Run(t, route_delegation.NewTestingSuite(ctx, testInstallation))
+	})
+
+	t.Run("Glooctl", func(t *testing.T) {
+
+		t.Run("Check", func(t *testing.T) {
+			suite.Run(t, glooctl.NewCheckSuite(ctx, testInstallation))
+		})
+
+		t.Run("Debug", func(t *testing.T) {
+			suite.Run(t, glooctl.NewDebugSuite(ctx, testInstallation))
+		})
 	})
 }
