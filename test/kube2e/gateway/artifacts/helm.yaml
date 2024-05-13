@@ -17,6 +17,31 @@ gateway:
   validation:
     allowWarnings: true
     alwaysAcceptResources: false
+  rolloutJob:
+    securityContext:
+      mergePolicy: helm-merge
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+  certGenJob:
+    securityContext:
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+discovery:
+  deployment:
+    securityContext:
+      mergePolicy: helm-merge
+      seccompProfile:
+        type: RuntimeDefault
 gloo:
   logLevel: info
   disableLeaderElection: false
@@ -32,6 +57,15 @@ gloo:
     - name: LEADER_ELECTION_RETRY_PERIOD
       value: 1s
     livenessProbeEnabled: true
+    glooContainerSecurityContext:
+      mergePolicy: helm-merge
+      seccompProfile:
+        type: RuntimeDefault
 gatewayProxies:
   gatewayProxy:
     healthyPanicThreshold: 0
+    podTemplate:
+      glooContainerSecurityContext:
+        mergePolicy: helm-merge
+        seccompProfile:
+          type: RuntimeDefault
