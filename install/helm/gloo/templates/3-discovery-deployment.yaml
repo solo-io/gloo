@@ -60,7 +60,7 @@ spec:
         # container security context
         {{- $capabilities := dict "drop" (list "ALL") -}}
         {{- $securityDefaults := dict 
-            "readOnlyRootFilesystem" false
+            "readOnlyRootFilesystem" true
             "allowPrivilegeEscalation" false
             "runAsNonRoot" true
             "capabilities" $capabilities
