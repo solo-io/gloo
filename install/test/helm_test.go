@@ -6141,7 +6141,7 @@ metadata:
 					Entry("resource cleanup job", "Job", "gloo-resource-cleanup"),
 				)
 
-				DescribeTable("overrides resources for container security contexts", func(resourceName string, containerName string, securityRoot string, extraArgs ...string) {
+				DescribeTable("overrides resources for container security contexts", func(resourceName string, containerName string, resourceType string, securityRoot string, extraArgs ...string) {
 					// Split the securityContext fields into two groups so each one gets tested as in and not in the values file
 					helmValuesA := securityContextFieldsStripeGroupA(securityRoot, extraArgs...)
 
@@ -6154,7 +6154,7 @@ metadata:
 					// First Group of fields to test
 					prepareMakefile(namespace, helmValuesA)
 
-					container := getContainer(testManifest, "Deployment", resourceName, containerName)
+					container := getContainer(testManifest, resourceType, resourceName, containerName)
 					Expect(container.SecurityContext).To(Equal(
 						&corev1.SecurityContext{
 							RunAsUser:                pointer.Int64(int64(1234)),
@@ -6172,7 +6172,7 @@ metadata:
 
 					prepareMakefile(namespace, helmValuesB)
 
-					container = getContainer(testManifest, "Deployment", resourceName, containerName)
+					container = getContainer(testManifest, resourceType, resourceName, containerName)
 					Expect(container.SecurityContext).To(Equal(
 						&corev1.SecurityContext{
 							Capabilities: &corev1.Capabilities{
@@ -6192,15 +6192,23 @@ metadata:
 						},
 					))
 				},
-					Entry("7-gateway-proxy-deployment-gateway-proxy", "gateway-proxy", "gateway-proxy", "gatewayProxies.gatewayProxy.podTemplate.glooContainerSecurityContext"),
-					Entry("7-gateway-proxy-deployment-sds", "gateway-proxy", "sds", "global.glooMtls.sds.securityContext", "global.glooMtls.enabled=true"),
-					Entry("7-gateway-proxy-deployment-istio-proxy", "gateway-proxy", "istio-proxy", "global.glooMtls.istioProxy.securityContext", "global.istioSDS.enabled=true"),
-					Entry("1-gloo-deployment-gloo", "gloo", "gloo", "gloo.deployment.glooContainerSecurityContext", "global.glooMtls.enabled=true"),
-					Entry("1-gloo-deployment-envoy-sidecar", "gloo", "envoy-sidecar", "global.glooMtls.envoy.securityContext", "global.glooMtls.enabled=true"),
-					Entry("1-gloo-deployment-sds", "gloo", "sds", "global.glooMtls.sds.securityContext", "global.glooMtls.enabled=true"),
+					Entry("7-gateway-proxy-deployment-gateway-proxy", "gateway-proxy", "gateway-proxy", "Deployment", "gatewayProxies.gatewayProxy.podTemplate.glooContainerSecurityContext"),
+					Entry("7-gateway-proxy-deployment-sds", "gateway-proxy", "sds", "Deployment", "global.glooMtls.sds.securityContext", "global.glooMtls.enabled=true"),
+					Entry("7-gateway-proxy-deployment-istio-proxy", "gateway-proxy", "istio-proxy", "Deployment", "global.glooMtls.istioProxy.securityContext", "global.istioSDS.enabled=true"),
+					Entry("1-gloo-deployment-gloo", "gloo", "gloo", "Deployment", "gloo.deployment.glooContainerSecurityContext", "global.glooMtls.enabled=true"),
+					Entry("1-gloo-deployment-envoy-sidecar", "gloo", "envoy-sidecar", "Deployment", "global.glooMtls.envoy.securityContext", "global.glooMtls.enabled=true"),
+					Entry("1-gloo-deployment-sds", "gloo", "sds", "Deployment", "global.glooMtls.sds.securityContext", "global.glooMtls.enabled=true"),
+					Entry("19-gloo-mtls-certgen-job.yaml", "gloo-mtls-certgen", "certgen", "Job", "gateway.certGenJob.containerSecurityContext", "global.glooMtls.enabled=true"),
+					Entry("3-discovery-deployment.yaml", "discovery", "discovery", "Deployment", "discovery.deployment.discoveryContainerSecurityContext"),
+					Entry("5-resource-cleanup-job.yaml", "gloo-resource-cleanup", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
+					Entry("5-resource-migration-job.yaml", "gloo-resource-migration", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
+					Entry("5-resource-rollout-check-job.yaml", "gloo-resource-rollout-check", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
+					Entry("5-resource-rollout-cleanup-job.yaml", "gloo-resource-rollout-cleanup", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
+					Entry("5-resource-rollout-job.yaml", "gloo-resource-rollout", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
+					Entry("6.5-gateway-certgen-job.yaml", "gateway-certgen", "certgen", "Job", "gateway.certGenJob.containerSecurityContext"),
 				)
 
-				DescribeTable("merges resources for container security contexts", func(resourceName string, containerName string, securityRoot string, extraArgs ...string) {
+				DescribeTable("merges resources for container security contexts", func(resourceName string, containerName string, resourceType string, securityRoot string, extraArgs ...string) {
 					// First helm template generates the baseline
 					// Run once "plain" to get the baseline as generated with no helm values passed
 					prepareMakefile(namespace, helmValues{
@@ -6208,7 +6216,7 @@ metadata:
 					})
 
 					// Strip out the revelant security context
-					container := getContainer(testManifest, "Deployment", resourceName, containerName)
+					container := getContainer(testManifest, resourceType, resourceName, containerName)
 					initialSecurityContext := container.SecurityContext
 					if initialSecurityContext == nil {
 						initialSecurityContext = &corev1.SecurityContext{}
@@ -6229,7 +6237,7 @@ metadata:
 					//
 					// Run again with security context A helm values applied
 					prepareMakefile(namespace, helmValuesA)
-					container = getContainer(testManifest, "Deployment", resourceName, containerName)
+					container = getContainer(testManifest, resourceType, resourceName, containerName)
 
 					// Test that all the values are set
 					Expect(container.SecurityContext.RunAsNonRoot).To(Equal(pointer.Bool(true)))
@@ -6257,7 +6265,7 @@ metadata:
 					prepareMakefile(namespace, helmValuesB)
 					initialSecurityContext = &corev1.SecurityContext{}
 					deepCopy(&initialSecurityContextClean, &initialSecurityContext)
-					container = getContainer(testManifest, "Deployment", resourceName, containerName)
+					container = getContainer(testManifest, resourceType, resourceName, containerName)
 
 					// Test that all the values are set
 					expectedCapabilities := &corev1.Capabilities{
@@ -6283,12 +6291,20 @@ metadata:
 
 					Expect(container.SecurityContext).To(Equal(initialSecurityContext))
 				},
-					Entry("7-gateway-proxy-deployment-gateway-proxy", "gateway-proxy", "gateway-proxy", "gatewayProxies.gatewayProxy.podTemplate.glooContainerSecurityContext"),
-					Entry("7-gateway-proxy-deployment-sds", "gateway-proxy", "sds", "global.glooMtls.sds.securityContext", "global.glooMtls.enabled=true"),
-					Entry("7-gateway-proxy-deployment-istio-proxy", "gateway-proxy", "istio-proxy", "global.glooMtls.istioProxy.securityContext", "global.istioSDS.enabled=true"),
-					Entry("1-gloo-deployment-gloo", "gloo", "gloo", "gloo.deployment.glooContainerSecurityContext", "global.glooMtls.enabled=true"),
-					Entry("1-gloo-deployment-envoy-sidecar", "gloo", "envoy-sidecar", "global.glooMtls.envoy.securityContext", "global.glooMtls.enabled=true"),
-					Entry("1-gloo-deployment-sds", "gloo", "sds", "global.glooMtls.sds.securityContext", "global.glooMtls.enabled=true"),
+					Entry("7-gateway-proxy-deployment-gateway-proxy", "gateway-proxy", "gateway-proxy", "Deployment", "gatewayProxies.gatewayProxy.podTemplate.glooContainerSecurityContext"),
+					Entry("7-gateway-proxy-deployment-sds", "gateway-proxy", "sds", "Deployment", "global.glooMtls.sds.securityContext", "global.glooMtls.enabled=true"),
+					Entry("7-gateway-proxy-deployment-istio-proxy", "gateway-proxy", "istio-proxy", "Deployment", "global.glooMtls.istioProxy.securityContext", "global.istioSDS.enabled=true"),
+					Entry("1-gloo-deployment-gloo", "gloo", "gloo", "Deployment", "gloo.deployment.glooContainerSecurityContext", "global.glooMtls.enabled=true"),
+					Entry("1-gloo-deployment-envoy-sidecar", "gloo", "envoy-sidecar", "Deployment", "global.glooMtls.envoy.securityContext", "global.glooMtls.enabled=true"),
+					Entry("1-gloo-deployment-sds", "gloo", "sds", "Deployment", "global.glooMtls.sds.securityContext", "global.glooMtls.enabled=true"),
+					Entry("19-gloo-mtls-certgen-job.yaml", "gloo-mtls-certgen", "certgen", "Job", "gateway.certGenJob.containerSecurityContext", "global.glooMtls.enabled=true"),
+					Entry("3-discovery-deployment.yaml", "discovery", "discovery", "Deployment", "discovery.deployment.discoveryContainerSecurityContext"),
+					Entry("5-resource-cleanup-job.yaml", "gloo-resource-cleanup", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
+					Entry("5-resource-migration-job.yaml", "gloo-resource-migration", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
+					Entry("5-resource-rollout-check-job.yaml", "gloo-resource-rollout-check", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
+					Entry("5-resource-rollout-cleanup-job.yaml", "gloo-resource-rollout-cleanup", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
+					Entry("5-resource-rollout-job.yaml", "gloo-resource-rollout", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
+					Entry("6.5-gateway-certgen-job.yaml", "gateway-certgen", "certgen", "Job", "gateway.certGenJob.containerSecurityContext"),
 				)
 
 				DescribeTable("overrides resources for pod security contexts", func(resourceName string, securityRoot string, extraArgs ...string) {
@@ -6984,19 +7000,57 @@ func securityContextFieldsStripeGroupB(securityRoot string, extraArgs ...string)
 
 //nolint:unparam // kind always receives "Deployment"
 func getContainer(t TestManifest, kind string, resourceName string, containerName string) *corev1.Container {
+	fmt.Printf("\n*****\nLooking for kind: %s, name: %s\n*****\n", kind, resourceName)
 	resources := t.SelectResources(func(u *unstructured.Unstructured) bool {
+		fmt.Printf("kind: %s, name: %s\n", u.GetKind(), u.GetName())
 		if u.GetKind() == kind && u.GetName() == resourceName {
 			return true
 		}
 		return false
 	})
+
 	Expect(resources.NumResources()).To(Equal(1))
+
+	switch kind {
+	case "Deployment":
+		return extractContainerFromDeployment(resources, containerName)
+	case "Job":
+		return extractContainerFromJob(resources, containerName)
+	default:
+		Fail("Unsupported kind:" + kind)
+		return nil
+	}
+}
+
+func extractContainerFromDeployment(td TestManifest, containerName string) *corev1.Container {
 	var foundContainer corev1.Container
-	resources.ExpectAll(func(deployment *unstructured.Unstructured) {
+	td.ExpectAll(func(deployment *unstructured.Unstructured) {
 		foundExpected := false
 		deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
 		ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to render manifest")
 		structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+		Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+		for _, container := range structuredDeployment.Spec.Template.Spec.Containers {
+			if container.Name == containerName {
+				foundExpected = true
+				foundContainer = container
+			}
+		}
+
+		Expect(foundExpected).To(BeTrue())
+	})
+
+	return &foundContainer
+}
+
+func extractContainerFromJob(td TestManifest, containerName string) *corev1.Container {
+	var foundContainer corev1.Container
+	td.ExpectAll(func(deployment *unstructured.Unstructured) {
+		foundExpected := false
+		jobObject, err := kuberesource.ConvertUnstructured(deployment)
+		ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to render manifest")
+		structuredDeployment, ok := jobObject.(*batchv1.Job)
 		Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
 
 		for _, container := range structuredDeployment.Spec.Template.Spec.Containers {
