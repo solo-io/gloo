@@ -86,15 +86,15 @@ type PodSpec struct {
 
 type JobSpec struct {
 	*PodSpec
-	ActiveDeadlineSeconds   *int              `json:"activeDeadlineSeconds,omitempty" desc:"Deadline in seconds for Kubernetes jobs."`
-	BackoffLimit            *int              `json:"backoffLimit,omitempty" desc:"Specifies the number of retries before marking this job failed. In kubernetes, defaults to 6"`
-	Completions             *int              `json:"completions,omitempty" desc:"Specifies the desired number of successfully finished pods the job should be run with."`
-	ManualSelector          *bool             `json:"manualSelector,omitempty" desc:"Controls generation of pod labels and pod selectors."`
-	Parallelism             *int              `json:"parallelism,omitempty" desc:"Specifies the maximum desired number of pods the job should run at any given time."`
-	TtlSecondsAfterFinished *int              `json:"ttlSecondsAfterFinished,omitempty" desc:"Clean up the finished job after this many seconds. Defaults to 300 for the rollout jobs and 60 for the rest."`
-	ExtraPodLabels          map[string]string `json:"extraPodLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job."`
-	ExtraPodAnnotations     map[string]string `json:"extraPodAnnotations,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job."`
-	SecurityContext         *SecurityContext  `json:"securityContext,omitempty" desc:"(update) securityContext for the job. If this is defined it supercedes any values set in RunAsUser, RunAsGroup, FsGroup, or ReadOnlyRootFilesystem.  See [security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core) for details."`
+	ActiveDeadlineSeconds    *int              `json:"activeDeadlineSeconds,omitempty" desc:"Deadline in seconds for Kubernetes jobs."`
+	BackoffLimit             *int              `json:"backoffLimit,omitempty" desc:"Specifies the number of retries before marking this job failed. In kubernetes, defaults to 6"`
+	Completions              *int              `json:"completions,omitempty" desc:"Specifies the desired number of successfully finished pods the job should be run with."`
+	ManualSelector           *bool             `json:"manualSelector,omitempty" desc:"Controls generation of pod labels and pod selectors."`
+	Parallelism              *int              `json:"parallelism,omitempty" desc:"Specifies the maximum desired number of pods the job should run at any given time."`
+	TtlSecondsAfterFinished  *int              `json:"ttlSecondsAfterFinished,omitempty" desc:"Clean up the finished job after this many seconds. Defaults to 300 for the rollout jobs and 60 for the rest."`
+	ExtraPodLabels           map[string]string `json:"extraPodLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job."`
+	ExtraPodAnnotations      map[string]string `json:"extraPodAnnotations,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job."`
+	ContainerSecurityContext *SecurityContext  `json:"containerSecurityContext,omitempty" desc:"securityContext for the job. If this is defined it supercedes any values set in RunAsUser, RunAsGroup, FsGroup, ReadOnlyRootFilesystem or any other securityContext fields that may be individually set.  See [security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core) for details."`
 }
 
 type DeploymentSpecSansResources struct {
@@ -346,15 +346,15 @@ type Discovery struct {
 }
 
 type DiscoveryDeployment struct {
-	Image                     *Image            `json:"image,omitempty"`
-	Stats                     Stats             `json:"stats,omitempty" desc:"overrides for prometheus stats published by the discovery pod"`
-	FloatingUserId            *bool             `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
-	RunAsUser                 *float64          `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the processes in the container to run as. Default is 10101."`
-	FsGroup                   *float64          `json:"fsGroup,omitempty" desc:"Explicitly set the group ID for volume ownership. Default is 10101"`
-	ExtraDiscoveryLabels      map[string]string `json:"extraDiscoveryLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the gloo edge discovery deployment."`
-	ExtraDiscoveryAnnotations map[string]string `json:"extraDiscoveryAnnotations,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the gloo edge discovery deployment."`
-	EnablePodSecurityContext  *bool             `json:"enablePodSecurityContext,omitempty" desc:"Whether or not to render the pod security context. Default is true"`
-	SecurityContext           *SecurityContext  `json:"securityContext,omitempty" desc:"(update) securityContext for the certgen job. If this is defined it supercedes any values set in FloatingUserId, RunAsUser, or FsGroup.  See [pod security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core) for details."`
+	Image                             *Image            `json:"image,omitempty"`
+	Stats                             Stats             `json:"stats,omitempty" desc:"overrides for prometheus stats published by the discovery pod"`
+	FloatingUserId                    *bool             `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
+	RunAsUser                         *float64          `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the processes in the container to run as. Default is 10101."`
+	FsGroup                           *float64          `json:"fsGroup,omitempty" desc:"Explicitly set the group ID for volume ownership. Default is 10101"`
+	ExtraDiscoveryLabels              map[string]string `json:"extraDiscoveryLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the gloo edge discovery deployment."`
+	ExtraDiscoveryAnnotations         map[string]string `json:"extraDiscoveryAnnotations,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the gloo edge discovery deployment."`
+	EnablePodSecurityContext          *bool             `json:"enablePodSecurityContext,omitempty" desc:"Whether or not to render the pod security context. Default is true"`
+	DiscoveryContainerSecurityContext *SecurityContext  `json:"discoveryContainerSecurityContext,omitempty" desc:"securityContext for the discovery container. If this is defined it supercedes any values set in FloatingUserId, RunAsUser, or FsGroup.  See [pod security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core) for details."`
 	*DeploymentSpec
 }
 
@@ -432,7 +432,6 @@ type CertGenJob struct {
 	Resources           *ResourceRequirements `json:"resources,omitempty"`
 	RunOnUpdate         *bool                 `json:"runOnUpdate,omitempty" desc:"enable to run the job also on pre-upgrade"`
 	Cron                *CertGenCron          `json:"cron,omitempty" desc:"CronJob parameters"`
-	//SecurityContext     *SecurityContext      `json:"securityContext,omitempty" desc:"(update) securityContext for the certgen job. If this is defined it supercedes any values set in FloatingUserId, RunAsUser, or FsGroup.  See [pod security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core) for details."`
 }
 
 type RolloutJob struct {
