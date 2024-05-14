@@ -3,11 +3,11 @@ package controller
 import (
 	"context"
 
+	"k8s.io/apimachinery/pkg/util/sets"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
-	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway2/controller/scheme"
@@ -29,11 +29,7 @@ const (
 	AutoProvision = true
 )
 
-var (
-	gatewayClass = apiv1.ObjectName(wellknown.GatewayClassName)
-
-	setupLog = ctrl.Log.WithName("setup")
-)
+var setupLog = ctrl.Log.WithName("setup")
 
 type StartConfig struct {
 	Dev  bool
@@ -135,7 +131,7 @@ func Start(ctx context.Context, cfg StartConfig) error {
 
 	gwCfg := GatewayConfig{
 		Mgr:            mgr,
-		GWClass:        gatewayClass,
+		GWClasses:      sets.New(append(cfg.Opts.ExtraGatewayClasses, wellknown.GatewayClassName)...),
 		ControllerName: wellknown.GatewayControllerName,
 		AutoProvision:  AutoProvision,
 		ControlPlane:   cfg.Opts.ControlPlane,
