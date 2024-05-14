@@ -35,10 +35,13 @@ var (
 	ctx       context.Context
 	cancel    context.CancelFunc
 
-	gatewayClassName      string
-	altGatewayClassName   string
-	gatewayControllerName string
-	kubeconfig            string
+	kubeconfig string
+)
+
+const (
+	gatewayClassName      = "clsname"
+	altGatewayClassName   = "clsname-alt"
+	gatewayControllerName = "controller/name"
 )
 
 func getAssetsDir() string {
@@ -57,10 +60,6 @@ var _ = BeforeSuite(func() {
 	log.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
 	ctx, cancel = context.WithCancel(context.TODO())
-
-	gatewayClassName = "clsname"
-	altGatewayClassName = "clsname-alt"
-	gatewayControllerName = "controller/name"
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{

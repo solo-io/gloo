@@ -20,10 +20,12 @@ var _ = Describe("GwController", func() {
 	DescribeTable(
 		"should add status to gateway",
 		func(gwClass string) {
+			print(gwClass)
 			same := api.NamespacesFromSame
+			gwName := "gw-" + gwClass
 			gw := api.Gateway{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "gw",
+					Name:      gwName,
 					Namespace: "default",
 				},
 				Spec: api.GatewaySpec{
@@ -69,7 +71,7 @@ var _ = Describe("GwController", func() {
 			Expect(k8sClient.Status().Update(ctx, &svc)).NotTo(HaveOccurred())
 
 			Eventually(func() bool {
-				err := k8sClient.Get(ctx, client.ObjectKey{Name: "gw", Namespace: "default"}, &gw)
+				err := k8sClient.Get(ctx, client.ObjectKey{Name: gwName, Namespace: "default"}, &gw)
 				if err != nil {
 					return false
 				}
