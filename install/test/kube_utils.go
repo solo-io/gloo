@@ -9,6 +9,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 //nolint:unparam // svcNamespace always receives "gloo-system"
@@ -65,4 +66,26 @@ func expectEnvVarDoesNotExist(container corev1.Container, name string) {
 	for _, envVar := range container.Env {
 		Expect(envVar.Name).NotTo(Equal(name), fmt.Sprintf("env var with name %s should not exist", name))
 	}
+}
+
+func GetStructuredDeployment(t TestManifest, glooLabel string) *appsv1.Deployment {
+
+	structuredDeployment := &appsv1.Deployment{}
+
+	resources := t.SelectResources(func(u *unstructured.Unstructured) bool {
+		if u.GetKind() == "Deployment" {
+			if u.GetLabels()["gloo"] == glooLabel {
+				deploymentObject, err := kuberesource.ConvertUnstructured(u)
+				ExpectWithOffset(1, err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %s should be able to convert from unstructured", u.GetName()))
+				var ok bool
+				structuredDeployment, ok = deploymentObject.(*appsv1.Deployment)
+				Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", u))
+				return true
+			}
+		}
+		return false
+	})
+	Expect(resources.NumResources()).To(Equal(1))
+
+	return structuredDeployment
 }

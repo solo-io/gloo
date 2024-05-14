@@ -6317,7 +6317,7 @@ metadata:
 					helmValuesB := podSecurityContextFieldsStripeGroupB(securityRoot, extraArgs...)
 
 					prepareMakefile(namespace, helmValuesA)
-					structuredDeployment := getStructuredDeployment(testManifest, resourceName)
+					structuredDeployment := GetStructuredDeployment(testManifest, resourceName)
 
 					fsGroupChangePolicy := corev1.PodFSGroupChangePolicy("fsGroupChangePolicyValue")
 					Expect(structuredDeployment.Spec.Template.Spec.SecurityContext).To(Equal(
@@ -6338,7 +6338,7 @@ metadata:
 					))
 
 					prepareMakefile(namespace, helmValuesB)
-					structuredDeployment = getStructuredDeployment(testManifest, resourceName)
+					structuredDeployment = GetStructuredDeployment(testManifest, resourceName)
 
 					Expect(structuredDeployment.Spec.Template.Spec.SecurityContext).To(Equal(
 						&corev1.PodSecurityContext{
@@ -6372,7 +6372,7 @@ metadata:
 						valuesArgs: extraArgs,
 					})
 
-					structuredDeployment := getStructuredDeployment(testManifest, resourceName)
+					structuredDeployment := GetStructuredDeployment(testManifest, resourceName)
 
 					initialSecurityContext := structuredDeployment.Spec.Template.Spec.SecurityContext
 					if initialSecurityContext == nil {
@@ -6395,7 +6395,7 @@ metadata:
 					// Stripe group A
 					//
 					prepareMakefile(namespace, helmValuesA)
-					structuredDeployment = getStructuredDeployment(testManifest, resourceName)
+					structuredDeployment = GetStructuredDeployment(testManifest, resourceName)
 					// Find the relevant resource and test that its values were updated
 					// Apply the new values to the initial security context and compare. They should be the same
 
@@ -6439,7 +6439,7 @@ metadata:
 
 					// Find the relevant resource and test that its values were updated
 					// Apply the new values to the initial security context and compare. They should be the same
-					structuredDeployment = getStructuredDeployment(testManifest, resourceName)
+					structuredDeployment = GetStructuredDeployment(testManifest, resourceName)
 
 					// Check the fields individually:
 					expectedSeccompProfile := &corev1.SeccompProfile{
@@ -6528,7 +6528,7 @@ metadata:
 					})
 
 					// The chart uses the passed user id
-					structuredDeployment := getStructuredDeployment(testManifest, resourceName)
+					structuredDeployment := GetStructuredDeployment(testManifest, resourceName)
 					Expect(structuredDeployment.Spec.Template.Spec.SecurityContext.RunAsUser).To(Equal(pointer.Int64(int64(30303))))
 
 					// Pass 2: floatingUserId=true
@@ -6539,7 +6539,7 @@ metadata:
 						}, extraArgs...),
 					})
 
-					structuredDeployment = getStructuredDeployment(testManifest, resourceName)
+					structuredDeployment = GetStructuredDeployment(testManifest, resourceName)
 					Expect(structuredDeployment.Spec.Template.Spec.SecurityContext.RunAsUser).To(BeNil())
 
 					// // Pass 3: floatingUserId=true
@@ -6552,7 +6552,7 @@ metadata:
 						}, extraArgs...),
 					})
 
-					structuredDeployment = getStructuredDeployment(testManifest, resourceName)
+					structuredDeployment = GetStructuredDeployment(testManifest, resourceName)
 					Expect(structuredDeployment.Spec.Template.Spec.SecurityContext.RunAsUser).To(Equal(pointer.Int64(int64(20202))))
 				},
 					Entry("7-gateway-proxy-deployment", "gateway-proxy", "gatewayProxies.gatewayProxy.podTemplate", "gatewayProxies.gatewayProxy.podTemplate.podSecurityContext"),
@@ -7000,9 +7000,7 @@ func securityContextFieldsStripeGroupB(securityRoot string, extraArgs ...string)
 
 //nolint:unparam // kind always receives "Deployment"
 func getContainer(t TestManifest, kind string, resourceName string, containerName string) *corev1.Container {
-	fmt.Printf("\n*****\nLooking for kind: %s, name: %s\n*****\n", kind, resourceName)
 	resources := t.SelectResources(func(u *unstructured.Unstructured) bool {
-		fmt.Printf("kind: %s, name: %s\n", u.GetKind(), u.GetName())
 		if u.GetKind() == kind && u.GetName() == resourceName {
 			return true
 		}
@@ -7064,26 +7062,6 @@ func extractContainerFromJob(td TestManifest, containerName string) *corev1.Cont
 	})
 
 	return &foundContainer
-}
-
-func getStructuredDeployment(t TestManifest, resourceName string) *appsv1.Deployment {
-
-	structuredDeployment := &appsv1.Deployment{}
-
-	resources := t.SelectResources(func(u *unstructured.Unstructured) bool {
-		if u.GetKind() == "Deployment" && u.GetName() == resourceName {
-			deploymentObject, err := kuberesource.ConvertUnstructured(u)
-			ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to render manifest")
-			var ok bool
-			structuredDeployment, ok = deploymentObject.(*appsv1.Deployment)
-			Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", u))
-			return true
-		}
-		return false
-	})
-	Expect(resources.NumResources()).To(Equal(1))
-
-	return structuredDeployment
 }
 
 //nolint:unparam // namespace always receives "gloo-system"
