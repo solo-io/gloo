@@ -18,72 +18,70 @@ var _ = Describe("GwController", func() {
 	)
 
 	DescribeTable(
-		"gatewayclass",
+		"should add status to gateway",
 		func(gwClass string) {
-			It("should add status to gateway", func() {
-				same := api.NamespacesFromSame
-				gw := api.Gateway{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "gw",
-						Namespace: "default",
-					},
-					Spec: api.GatewaySpec{
-						GatewayClassName: api.ObjectName(gwClass),
-						Listeners: []api.Listener{{
-							Protocol: "HTTP",
-							Port:     80,
-							AllowedRoutes: &api.AllowedRoutes{
-								Namespaces: &api.RouteNamespaces{
-									From: &same,
-								},
+			same := api.NamespacesFromSame
+			gw := api.Gateway{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "gw",
+					Namespace: "default",
+				},
+				Spec: api.GatewaySpec{
+					GatewayClassName: api.ObjectName(gwClass),
+					Listeners: []api.Listener{{
+						Protocol: "HTTP",
+						Port:     80,
+						AllowedRoutes: &api.AllowedRoutes{
+							Namespaces: &api.RouteNamespaces{
+								From: &same,
 							},
-							Name: "listener",
-						}},
-					},
-				}
-				err := k8sClient.Create(ctx, &gw)
-				Expect(err).NotTo(HaveOccurred())
-
-				// Wait for service to be created
-				var svc corev1.Service
-				Eventually(func() bool {
-					var createdServices corev1.ServiceList
-					err := k8sClient.List(ctx, &createdServices)
-					if err != nil {
-						return false
-					}
-					for _, svc = range createdServices.Items {
-						if len(svc.ObjectMeta.OwnerReferences) == 1 && svc.ObjectMeta.OwnerReferences[0].UID == gw.UID {
-							return true
-						}
-					}
-					return false
-				}, timeout, interval).Should(BeTrue(), "service not created")
-				Expect(svc.Spec.ClusterIP).NotTo(BeEmpty())
-
-				// Need to update the status of the service
-				svc.Status.LoadBalancer = corev1.LoadBalancerStatus{
-					Ingress: []corev1.LoadBalancerIngress{{
-						IP: "127.0.0.1",
+						},
+						Name: "listener",
 					}},
+				},
+			}
+			err := k8sClient.Create(ctx, &gw)
+			Expect(err).NotTo(HaveOccurred())
+
+			// Wait for service to be created
+			var svc corev1.Service
+			Eventually(func() bool {
+				var createdServices corev1.ServiceList
+				err := k8sClient.List(ctx, &createdServices)
+				if err != nil {
+					return false
 				}
-				Expect(k8sClient.Status().Update(ctx, &svc)).NotTo(HaveOccurred())
-
-				Eventually(func() bool {
-					err := k8sClient.Get(ctx, client.ObjectKey{Name: "gw", Namespace: "default"}, &gw)
-					if err != nil {
-						return false
+				for _, svc = range createdServices.Items {
+					if len(svc.ObjectMeta.OwnerReferences) == 1 && svc.ObjectMeta.OwnerReferences[0].UID == gw.UID {
+						return true
 					}
-					if len(gw.Status.Addresses) == 0 {
-						return false
-					}
-					return true
-				}, timeout, interval).Should(BeTrue())
+				}
+				return false
+			}, timeout, interval).Should(BeTrue(), "service not created")
+			Expect(svc.Spec.ClusterIP).NotTo(BeEmpty())
 
-				Expect(gw.Status.Addresses).To(HaveLen(1))
-				Expect(*gw.Status.Addresses[0].Type).To(Equal(api.IPAddressType))
-				Expect(gw.Status.Addresses[0].Value).To(Equal("127.0.0.1"))
-			})
+			// Need to update the status of the service
+			svc.Status.LoadBalancer = corev1.LoadBalancerStatus{
+				Ingress: []corev1.LoadBalancerIngress{{
+					IP: "127.0.0.1",
+				}},
+			}
+			Expect(k8sClient.Status().Update(ctx, &svc)).NotTo(HaveOccurred())
+
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, client.ObjectKey{Name: "gw", Namespace: "default"}, &gw)
+				if err != nil {
+					return false
+				}
+				if len(gw.Status.Addresses) == 0 {
+					return false
+				}
+				return true
+			}, timeout, interval).Should(BeTrue())
+
+			Expect(gw.Status.Addresses).To(HaveLen(1))
+			Expect(*gw.Status.Addresses[0].Type).To(Equal(api.IPAddressType))
+			Expect(gw.Status.Addresses[0].Value).To(Equal("127.0.0.1"))
 		},
 		Entry("default gateway class", gatewayClassName),
 		Entry("alternative gateway class", altGatewayClassName),
