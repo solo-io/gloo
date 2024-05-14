@@ -42,6 +42,9 @@ message AuthConfig {
         // in logging. If omitted, an automatically generated name will be used (e.g. config_0, of the
         // pattern 'config_$INDEX_IN_CHAIN'). In the case of plugin auth, this field is ignored in favor of
         // the name assigned on the plugin config itself.
+        //
+        // Validation:
+        // - config names must be unique
         google.protobuf.StringValue name = 9;
 
         oneof auth_config {
@@ -79,6 +82,9 @@ message AuthConfig {
     // How to handle processing of named configs within an auth config chain.
     // An example config might be: `( basic1 || basic2 || (oidc1 && !oidc2) )`
     // The boolean expression is evaluated left to right but honors parenthesis and short-circuiting.
+    //
+    // Validation:
+    // - must be a valid booleanExpression that can be parsed by ParseExpr from "go/parser"
     google.protobuf.StringValue boolean_expr = 10;
 
     // How the service should handle a redirect response from an OIDC issuer. In the default false mode,
