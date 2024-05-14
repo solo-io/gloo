@@ -36,6 +36,7 @@ var (
 	cancel    context.CancelFunc
 
 	gatewayClassName      string
+	altGatewayClassName   string
 	gatewayControllerName string
 	kubeconfig            string
 )
@@ -58,6 +59,7 @@ var _ = BeforeSuite(func() {
 	ctx, cancel = context.WithCancel(context.TODO())
 
 	gatewayClassName = "clsname"
+	altGatewayClassName = "clsname-alt"
 	gatewayControllerName = "controller/name"
 
 	By("bootstrapping test environment")
@@ -103,7 +105,7 @@ var _ = BeforeSuite(func() {
 	cfg := controller.GatewayConfig{
 		Mgr:            mgr,
 		ControllerName: gatewayControllerName,
-		GWClasses:      sets.New(gatewayClassName),
+		GWClasses:      sets.New(gatewayClassName, altGatewayClassName),
 		AutoProvision:  true,
 		Kick:           func(ctx context.Context) { return },
 		Extensions:     exts,
