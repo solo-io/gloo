@@ -68,6 +68,9 @@ message AuthConfig {
     //
     // State is shared between successful requests on the chain, i.e., the headers returned from each
     // successful auth service get appended into the final auth response.
+    //
+    // Validation:
+    // - must have length >= 1
     repeated Config configs = 3;
 
     // How to handle processing of named configs within an auth config chain.
@@ -259,10 +262,16 @@ message AuthPlugin {
 // When using basic auth, requests can pass only one `Authorization` header. You cannot use basic auth config in
 // conjunction with other auth configs that rely on the `Authorization` header as well. In case of such a conflict,
 // use a different type of auth config or configure a different header, such as `X-Auth`.
+//
+// Validation:
+// - must set either apr or both encryption and userSource
 message BasicAuth {
     string realm = 1;
 
     // If 'apr' is defined, 'encryption' and 'user_source' must not be defined or the config will fail validation
+    //
+    // Validation:
+    // - must not be set if encryption or userSource is set
     message Apr {
         // Message to store the salt and salted hashed password for a user
         message SaltedHashedPassword {
@@ -294,6 +303,10 @@ message BasicAuth {
 
     // The encryption type to use to store the password on the server
     // If 'encryption' is defined, 'user_source' must be defined and the top level 'apr' field must not be defined or the config will fail validation
+    //
+    // Validation:
+    // - must not be set if apr is set
+    // - must be set if userSource is set
     EncryptionType encryption = 3;
 
     // Message to store user data. We need the salt and salted hashed password for each user
@@ -311,6 +324,10 @@ message BasicAuth {
 
      // Source of user credential data
      // If 'user_source' is defined, 'encryption' must be defined and the top level 'apr'' field must not be defined or the config will fail validation
+     //
+     // Validation:
+     // - must not be set if apr is set
+     // - must be set if encryption is set
     oneof user_source {
         UserList user_list = 4;
     }
@@ -353,6 +370,9 @@ message OAuth {
 
     // we to redirect after successful auth, if we can't determine the original
     // url this should be your publicly available app url.
+    //
+    // Validation:
+    // - required
     string app_url = 4 [deprecated = true];
 
     // a callback path relative to app url that will be used for OIDC callbacks.
@@ -615,15 +635,25 @@ message ClaimToHeader {
 
 message OidcAuthorizationCode {
     // your client id as registered with the issuer
+    //
+    // Validation:
+    // - required
     string client_id = 1;
 
     // your client secret as registered with the issuer.
     // This is required unless `disable_client_secret` is true
     // This field has been deprecated and can be set in the client_secret option of client_authentication
+    //
+    // Validation:
+    // - if clientAuthentication.clientSecret or clientAuthentication.privateKeyJwt is used, must not be set
+    // - else, required unless disableClientSecret is true
     core.solo.io.ResourceRef client_secret_ref = 2 [deprecated = true];
 
     // The url of the issuer. We will look for OIDC information in issuerUrl+
     // ".well-known/openid-configuration"
+    //
+    // Validation:
+    // - required
     string issuer_url = 3;
 
     // extra query parameters to apply to the Ext-Auth service's authorization request to the identity provider.
@@ -638,10 +668,16 @@ message OidcAuthorizationCode {
 
     // where to redirect after successful auth, if we can't determine the original url.
     // this should be your publicly available app url.
+    //
+    // Validation:
+    // - required
     string app_url = 5;
 
     // a callback path relative to app url that will be used for OIDC callbacks.
     // should not be used by the application.
+    //
+    // Validation:
+    // - required
     string callback_path = 6;
 
     // a path relative to app url that will be used for logging out from an OIDC session.
@@ -735,6 +771,9 @@ message OidcAuthorizationCode {
     // Generally the client secret is required and AuthConfigs will be rejected if it isn't set.
     // However certain implementations of the PKCE flow do not use a client secret (including Okta) so this setting allows configuring Oidc without a client secret.
     // This field has been deprecated and can be set in the client_secret option of client_authentication
+    //
+    // Validation:
+    // - must not be set if clientAuthentication.clientSecret or clientAuthentication.privateKeyJwt is used
     google.protobuf.BoolValue disable_client_secret = 21 [deprecated = true];
 
     // Optional: Configuration specific to the OAuth2 access token received and processed by the ext-auth-service.
@@ -766,6 +805,9 @@ message OidcAuthorizationCode {
         message ClientSecret {
             // your client secret as registered with the issuer.
             // This is required unless `disable_client_secret` is true
+            //
+            // Validation:
+            // - required unless disableClientSecret is true
             core.solo.io.ResourceRef client_secret_ref = 1;
             // If true, do not check for or use the client secret.
             // Generally the client secret is required and AuthConfigs will be rejected if it isn't set.
@@ -776,6 +818,9 @@ message OidcAuthorizationCode {
          // Private Key JWT Authentication requires a signing key for the JWT and an duration for the JWT to be valid.
         message PrivateKeyJwt{
             // Signing key for the JWT used to authenticate the client
+            //
+            // Validation:
+            // - required
             core.solo.io.ResourceRef signing_key_ref = 1;
             // Amount of time for which the JWT is valid. No maximmum is enforced, but different IDPs may impose limits on how far in
             // the future the expiration time is allowed to be. If omitted, default is 5s.
@@ -827,10 +872,16 @@ message OidcAuthorizationCode {
 
 message PlainOAuth2 {
     // Your client ID as registered with the issuer
+    //
+    // Validation:
+    // - required
     string client_id = 1;
 
     // Your client secret as registered with the issuer.
     // This is required unless `disable_client_secret` is set.
+    //
+    // Validation:
+    // - required unless disableClientSecret is true
     core.solo.io.ResourceRef client_secret_ref = 2;
 
     // Extra query parameters to apply to the Ext-Auth service's authorization request to the identity provider.
@@ -840,10 +891,16 @@ message PlainOAuth2 {
 
     // Where to redirect after successful auth, if Gloo can't determine the original URL.
     // Set this field to your publicly available app URL.
+    //
+    // Validation:
+    // - required
     string app_url = 4;
 
     // A callback path relative to the app URL to be used for OAuth2 callbacks.
     // Do not use this path in the application itself.
+    //
+    // Validation:
+    // - required
     string callback_path = 5;
 
     // Scopes to request for.
@@ -867,9 +924,15 @@ message PlainOAuth2 {
     string after_logout_url = 10;
 
     // The URL of the provider authorization endpoint.
+    //
+    // Validation:
+    // - required
     string auth_endpoint = 11;
 
     // The URL of the provider token endpoint.
+    //
+    // Validation:
+    // - required
     string token_endpoint = 12;
 
     // The URL of the provider token revocation endpoint.
@@ -904,6 +967,9 @@ message JwtValidation {
     // Specifies how to fetch JWKS from remote and how to cache it.
     message RemoteJwks {
         // The HTTP URI to fetch the JWKS.
+        //
+        // Validation:
+        // - required
         string url = 1;
 
         // The frequency at which the JWKS should be refreshed.
@@ -914,6 +980,9 @@ message JwtValidation {
     // Represents a locally available JWKS.
     message LocalJwks {
         // JWKS is embedded as a string.
+        //
+        // Validation:
+        // - required
         string inline_string = 1;
     }
 
@@ -939,14 +1008,25 @@ message IntrospectionValidation {
     // The URL for the [OAuth2.0 Token Introspection](https://tools.ietf.org/html/rfc7662) endpoint.
     // If provided, the (opaque) access token provided or received from the oauth authorization endpoint
     // will be validated against this endpoint, or locally cached responses for this access token.
+    //
+    // Validation:
+    // - required
+    // - must be parseable using the parsing done on introspection urls from “net/url”.Parse()
+    //      (“Make sure it follows the form [scheme:][//[userinfo@]host][/]path[?query][#fragment] if an absolute path”)
     string introspection_url = 1;
 
     // Your client id as registered with the issuer.
     // Optional: Use if the token introspection url requires client authentication.
+    //
+    // Validation:
+    // - required if clientSecretRef is set
     string client_id = 2;
 
     // Your client secret as registered with the issuer.
     // Optional: Use if the token introspection url requires client authentication.
+    //
+    // Validation:
+    // - required if clientId is set, unless disableClientSecret is true
     core.solo.io.ResourceRef client_secret_ref = 3;
 
     // The name of the [introspection response](https://tools.ietf.org/html/rfc7662#section-2.2)
@@ -969,6 +1049,10 @@ message AccessTokenValidation {
         // If provided, the (opaque) access token provided or received from the oauth authorization endpoint
         // will be validated against this endpoint, or locally cached responses for this access token.
         // This field is deprecated as it does not support authenticated introspection requests
+        //
+        // Validation:
+        // - if set, must be parseable using the parsing done on introspection urls from “net/url”.Parse()
+        //      (“Make sure it follows the form [scheme:][//[userinfo@]host][/]path[?query][#fragment] if an absolute path”)
         string introspection_url = 1 [deprecated = true];
 
         // Validate access tokens that conform to the
