@@ -20,7 +20,7 @@ gateway:
     allowWarnings: true
     alwaysAcceptResources: false
   rolloutJob:
-    securityContext:
+    containerSecurityContext:
       mergePolicy: helm-merge
       runAsNonRoot: true
       allowPrivilegeEscalation: false
@@ -30,7 +30,7 @@ gateway:
       seccompProfile:
         type: RuntimeDefault
   certGenJob:
-    securityContext:
+    containerSecurityContext:
       runAsNonRoot: true
       allowPrivilegeEscalation: false
       capabilities:
@@ -40,7 +40,7 @@ gateway:
         type: RuntimeDefault
 discovery:
   deployment:
-    securityContext:
+    discoveryContainerSecurityContext:
       mergePolicy: helm-merge
       seccompProfile:
         type: RuntimeDefault
