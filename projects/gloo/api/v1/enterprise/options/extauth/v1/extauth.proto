@@ -47,6 +47,8 @@ message AuthConfig {
         // - config names must be unique
         google.protobuf.StringValue name = 9;
 
+        // Validation:
+        // - required: one of the oneof fields must be set
         oneof auth_config {
             BasicAuth basic_auth = 1;
             OAuth oauth = 2 [deprecated = true];
