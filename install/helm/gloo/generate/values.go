@@ -184,8 +184,9 @@ type KnativeProxy struct {
 	Internal                            *KnativeProxyInternal `json:"internal,omitempty" desc:"kube resource overrides for knative internal proxy resources"`
 	*DeploymentSpec
 	*ServiceSpec
-	ConfigMap  *KubeResourceOverride `json:"configMap,omitempty"`
-	Deployment *KubeResourceOverride `json:"deployment,omitempty"`
+	ConfigMap                *KubeResourceOverride `json:"configMap,omitempty"`
+	Deployment               *KubeResourceOverride `json:"deployment,omitempty"`
+	ContainerSecurityContext *SecurityContext      `json:"containerSecurityContext,omitempty" desc:"securityContext for knative proxy containers. See [security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core) for details."`
 }
 
 type KnativeProxyInternal struct {
@@ -637,17 +638,18 @@ type Failover struct {
 }
 
 type AccessLogger struct {
-	Image                        *Image                `json:"image,omitempty"`
-	Port                         *uint                 `json:"port,omitempty"`
-	ServiceName                  *string               `json:"serviceName,omitempty"`
-	Enabled                      *bool                 `json:"enabled,omitempty"`
-	Stats                        *Stats                `json:"stats,omitempty" desc:"overrides for prometheus stats published by the access logging pod"`
-	RunAsUser                    *float64              `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the processes in the container to run as. Default is 10101."`
-	FsGroup                      *float64              `json:"fsGroup,omitempty" desc:"Explicitly set the group ID for volume ownership. Default is 10101"`
-	ExtraAccessLoggerLabels      map[string]string     `json:"extraAccessLoggerLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the access logger deployment."`
-	ExtraAccessLoggerAnnotations map[string]string     `json:"extraAccessLoggerAnnotations,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the access logger deployment."`
-	Service                      *KubeResourceOverride `json:"service,omitempty"`
-	Deployment                   *KubeResourceOverride `json:"deployment,omitempty"`
+	Image                                *Image                `json:"image,omitempty"`
+	Port                                 *uint                 `json:"port,omitempty"`
+	ServiceName                          *string               `json:"serviceName,omitempty"`
+	Enabled                              *bool                 `json:"enabled,omitempty"`
+	Stats                                *Stats                `json:"stats,omitempty" desc:"overrides for prometheus stats published by the access logging pod"`
+	RunAsUser                            *float64              `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the processes in the container to run as. Default is 10101."`
+	FsGroup                              *float64              `json:"fsGroup,omitempty" desc:"Explicitly set the group ID for volume ownership. Default is 10101"`
+	ExtraAccessLoggerLabels              map[string]string     `json:"extraAccessLoggerLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the access logger deployment."`
+	ExtraAccessLoggerAnnotations         map[string]string     `json:"extraAccessLoggerAnnotations,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the access logger deployment."`
+	Service                              *KubeResourceOverride `json:"service,omitempty"`
+	Deployment                           *KubeResourceOverride `json:"deployment,omitempty"`
+	AccessLoggerContainerSecurityContext *SecurityContext      `json:"accessLoggerContainerSecurityContext,omitempty" desc:"security context for the access logger deployment"`
 	*DeploymentSpec
 }
 
@@ -659,12 +661,13 @@ type Ingress struct {
 }
 
 type IngressDeployment struct {
-	Image                   *Image            `json:"image,omitempty"`
-	RunAsUser               *float64          `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the processes in the container to run as. Default is 10101."`
-	FloatingUserId          *bool             `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
-	ExtraIngressLabels      map[string]string `json:"extraIngressLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ingress deployment."`
-	ExtraIngressAnnotations map[string]string `json:"extraIngressAnnotations,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the ingress deployment."`
-	Stats                   *bool             `json:"stats,omitempty" desc:"Controls whether or not Envoy stats are enabled"`
+	Image                           *Image            `json:"image,omitempty"`
+	RunAsUser                       *float64          `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the processes in the container to run as. Default is 10101."`
+	FloatingUserId                  *bool             `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
+	ExtraIngressLabels              map[string]string `json:"extraIngressLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ingress deployment."`
+	ExtraIngressAnnotations         map[string]string `json:"extraIngressAnnotations,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the ingress deployment."`
+	Stats                           *bool             `json:"stats,omitempty" desc:"Controls whether or not Envoy stats are enabled"`
+	IngressContainerSecurityContext *SecurityContext  `json:"ingressContainerSecurityContext,omitempty" desc:"security context for the ingress proxy deployment"`
 	*DeploymentSpec
 }
 
@@ -678,15 +681,16 @@ type IngressProxy struct {
 }
 
 type IngressProxyDeployment struct {
-	Image                   *Image            `json:"image,omitempty"`
-	HttpPort                *int              `json:"httpPort,omitempty" desc:"HTTP port for the ingress container"`
-	HttpsPort               *int              `json:"httpsPort,omitempty" desc:"HTTPS port for the ingress container"`
-	ExtraPorts              []interface{}     `json:"extraPorts,omitempty"`
-	ExtraAnnotations        map[string]string `json:"extraAnnotations,omitempty"`
-	FloatingUserId          *bool             `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
-	RunAsUser               *float64          `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the pod to run as. Default is 10101"`
-	ExtraIngressProxyLabels map[string]string `json:"extraIngressProxyLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ingress proxy deployment."`
-	Stats                   *bool             `json:"stats,omitempty" desc:"Controls whether or not Envoy stats are enabled"`
+	Image                                *Image            `json:"image,omitempty"`
+	HttpPort                             *int              `json:"httpPort,omitempty" desc:"HTTP port for the ingress container"`
+	HttpsPort                            *int              `json:"httpsPort,omitempty" desc:"HTTPS port for the ingress container"`
+	ExtraPorts                           []interface{}     `json:"extraPorts,omitempty"`
+	ExtraAnnotations                     map[string]string `json:"extraAnnotations,omitempty"`
+	FloatingUserId                       *bool             `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
+	RunAsUser                            *float64          `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the pod to run as. Default is 10101"`
+	ExtraIngressProxyLabels              map[string]string `json:"extraIngressProxyLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ingress proxy deployment."`
+	Stats                                *bool             `json:"stats,omitempty" desc:"Controls whether or not Envoy stats are enabled"`
+	IngressProxyContainerSecurityContext *SecurityContext  `json:"ingressProxyContainerSecurityContext,omitempty" desc:"security context for the ingress proxy deployment"`
 	*DeploymentSpec
 }
 

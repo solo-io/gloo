@@ -71,6 +71,26 @@
 |settings.integrations.knative.proxy.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |settings.integrations.knative.proxy.configMap.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |settings.integrations.knative.proxy.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|settings.integrations.knative.proxy.containerSecurityContext.capabilities.add[]|string|||
+|settings.integrations.knative.proxy.containerSecurityContext.capabilities.drop[]|string|||
+|settings.integrations.knative.proxy.containerSecurityContext.privileged|bool|||
+|settings.integrations.knative.proxy.containerSecurityContext.seLinuxOptions.user|string|||
+|settings.integrations.knative.proxy.containerSecurityContext.seLinuxOptions.role|string|||
+|settings.integrations.knative.proxy.containerSecurityContext.seLinuxOptions.type|string|||
+|settings.integrations.knative.proxy.containerSecurityContext.seLinuxOptions.level|string|||
+|settings.integrations.knative.proxy.containerSecurityContext.windowsOptions.gmsaCredentialSpecName|string|||
+|settings.integrations.knative.proxy.containerSecurityContext.windowsOptions.gmsaCredentialSpec|string|||
+|settings.integrations.knative.proxy.containerSecurityContext.windowsOptions.runAsUserName|string|||
+|settings.integrations.knative.proxy.containerSecurityContext.windowsOptions.hostProcess|bool|||
+|settings.integrations.knative.proxy.containerSecurityContext.runAsUser|int64|||
+|settings.integrations.knative.proxy.containerSecurityContext.runAsGroup|int64|||
+|settings.integrations.knative.proxy.containerSecurityContext.runAsNonRoot|bool|||
+|settings.integrations.knative.proxy.containerSecurityContext.readOnlyRootFilesystem|bool|||
+|settings.integrations.knative.proxy.containerSecurityContext.allowPrivilegeEscalation|bool|||
+|settings.integrations.knative.proxy.containerSecurityContext.procMount|string|||
+|settings.integrations.knative.proxy.containerSecurityContext.seccompProfile.type|string|||
+|settings.integrations.knative.proxy.containerSecurityContext.seccompProfile.localhostProfile|string|||
+|settings.integrations.knative.proxy.containerSecurityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this value to false. Default value is "".|
 |settings.integrations.knative.requireIngressClass|bool||only serve traffic for Knative Ingress objects with the annotation 'networking.knative.dev/ingress.class: gloo.ingress.networking.knative.dev'.|
 |settings.integrations.knative.extraKnativeInternalLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the knative internal deployment.|
 |settings.integrations.knative.extraKnativeInternalAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the knative internal deployment.|
@@ -1057,6 +1077,26 @@
 |ingress.deployment.extraIngressLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ingress deployment.|
 |ingress.deployment.extraIngressAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the ingress deployment.|
 |ingress.deployment.stats|bool||Controls whether or not Envoy stats are enabled|
+|ingress.deployment.ingressContainerSecurityContext.capabilities.add[]|string|||
+|ingress.deployment.ingressContainerSecurityContext.capabilities.drop[]|string|||
+|ingress.deployment.ingressContainerSecurityContext.privileged|bool|||
+|ingress.deployment.ingressContainerSecurityContext.seLinuxOptions.user|string|||
+|ingress.deployment.ingressContainerSecurityContext.seLinuxOptions.role|string|||
+|ingress.deployment.ingressContainerSecurityContext.seLinuxOptions.type|string|||
+|ingress.deployment.ingressContainerSecurityContext.seLinuxOptions.level|string|||
+|ingress.deployment.ingressContainerSecurityContext.windowsOptions.gmsaCredentialSpecName|string|||
+|ingress.deployment.ingressContainerSecurityContext.windowsOptions.gmsaCredentialSpec|string|||
+|ingress.deployment.ingressContainerSecurityContext.windowsOptions.runAsUserName|string|||
+|ingress.deployment.ingressContainerSecurityContext.windowsOptions.hostProcess|bool|||
+|ingress.deployment.ingressContainerSecurityContext.runAsUser|int64|||
+|ingress.deployment.ingressContainerSecurityContext.runAsGroup|int64|||
+|ingress.deployment.ingressContainerSecurityContext.runAsNonRoot|bool|||
+|ingress.deployment.ingressContainerSecurityContext.readOnlyRootFilesystem|bool|||
+|ingress.deployment.ingressContainerSecurityContext.allowPrivilegeEscalation|bool|||
+|ingress.deployment.ingressContainerSecurityContext.procMount|string|||
+|ingress.deployment.ingressContainerSecurityContext.seccompProfile.type|string|||
+|ingress.deployment.ingressContainerSecurityContext.seccompProfile.localhostProfile|string|||
+|ingress.deployment.ingressContainerSecurityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this value to false. Default value is "".|
 |ingress.deployment.replicas|int|1|number of instances to deploy|
 |ingress.deployment.customEnv[].name|string|||
 |ingress.deployment.customEnv[].value|string|||
@@ -1113,6 +1153,26 @@
 |ingressProxy.deployment.runAsUser|float64||Explicitly set the user ID for the pod to run as. Default is 10101|
 |ingressProxy.deployment.extraIngressProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ingress proxy deployment.|
 |ingressProxy.deployment.stats|bool||Controls whether or not Envoy stats are enabled|
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.capabilities.add[]|string|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.capabilities.drop[]|string|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.privileged|bool|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.seLinuxOptions.user|string|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.seLinuxOptions.role|string|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.seLinuxOptions.type|string|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.seLinuxOptions.level|string|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.windowsOptions.gmsaCredentialSpecName|string|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.windowsOptions.gmsaCredentialSpec|string|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.windowsOptions.runAsUserName|string|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.windowsOptions.hostProcess|bool|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.runAsUser|int64|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.runAsGroup|int64|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.runAsNonRoot|bool|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.readOnlyRootFilesystem|bool|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.allowPrivilegeEscalation|bool|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.procMount|string|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.seccompProfile.type|string|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.seccompProfile.localhostProfile|string|||
+|ingressProxy.deployment.ingressProxyContainerSecurityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this value to false. Default value is "".|
 |ingressProxy.deployment.replicas|int|1|number of instances to deploy|
 |ingressProxy.deployment.customEnv[].name|string|||
 |ingressProxy.deployment.customEnv[].value|string|||
@@ -1187,6 +1247,26 @@
 |accessLogger.extraAccessLoggerAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the access logger deployment.|
 |accessLogger.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |accessLogger.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|accessLogger.accessLoggerContainerSecurityContext.capabilities.add[]|string|||
+|accessLogger.accessLoggerContainerSecurityContext.capabilities.drop[]|string|||
+|accessLogger.accessLoggerContainerSecurityContext.privileged|bool|||
+|accessLogger.accessLoggerContainerSecurityContext.seLinuxOptions.user|string|||
+|accessLogger.accessLoggerContainerSecurityContext.seLinuxOptions.role|string|||
+|accessLogger.accessLoggerContainerSecurityContext.seLinuxOptions.type|string|||
+|accessLogger.accessLoggerContainerSecurityContext.seLinuxOptions.level|string|||
+|accessLogger.accessLoggerContainerSecurityContext.windowsOptions.gmsaCredentialSpecName|string|||
+|accessLogger.accessLoggerContainerSecurityContext.windowsOptions.gmsaCredentialSpec|string|||
+|accessLogger.accessLoggerContainerSecurityContext.windowsOptions.runAsUserName|string|||
+|accessLogger.accessLoggerContainerSecurityContext.windowsOptions.hostProcess|bool|||
+|accessLogger.accessLoggerContainerSecurityContext.runAsUser|int64|||
+|accessLogger.accessLoggerContainerSecurityContext.runAsGroup|int64|||
+|accessLogger.accessLoggerContainerSecurityContext.runAsNonRoot|bool|||
+|accessLogger.accessLoggerContainerSecurityContext.readOnlyRootFilesystem|bool|||
+|accessLogger.accessLoggerContainerSecurityContext.allowPrivilegeEscalation|bool|||
+|accessLogger.accessLoggerContainerSecurityContext.procMount|string|||
+|accessLogger.accessLoggerContainerSecurityContext.seccompProfile.type|string|||
+|accessLogger.accessLoggerContainerSecurityContext.seccompProfile.localhostProfile|string|||
+|accessLogger.accessLoggerContainerSecurityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this value to false. Default value is "".|
 |accessLogger.replicas|int|1|number of instances to deploy|
 |accessLogger.customEnv[].name|string|||
 |accessLogger.customEnv[].value|string|||

@@ -6206,6 +6206,14 @@ metadata:
 					Entry("5-resource-rollout-cleanup-job.yaml", "gloo-resource-rollout-cleanup", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
 					Entry("5-resource-rollout-job.yaml", "gloo-resource-rollout", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
 					Entry("6.5-gateway-certgen-job.yaml", "gateway-certgen", "certgen", "Job", "gateway.certGenJob.containerSecurityContext"),
+					Entry("6.5-gateway-certgen-cronjob.yaml", "gateway-certgen-cronjob", "certgen", "CronJob", "gateway.certGenJob.containerSecurityContext", "gateway.enabled=true", "gateway.validation.enabled=true", "gateway.validation.webhook.enabled=true", "gateway.certGenJob.cron.enabled=true"),
+					Entry("6-access-logger-deployment.yaml", "gateway-proxy-access-logger", "access-logger", "Deployment", "accessLogger.accessLoggerContainerSecurityContext", "accessLogger.enabled=true"),
+					Entry("10-ingress-deployment.yaml", "ingress", "ingress", "Deployment", "ingress.deployment.ingressContainerSecurityContext", "ingress.enabled=true"),
+					Entry("11-ingress-proxy-deployment.yaml", "ingress-proxy", "ingress-proxy", "Deployment", "ingressProxy.deployment.ingressProxyContainerSecurityContext", "ingress.enabled=true"),
+					Entry("14-clusteringress-proxy-deployment.yaml", "clusteringress-proxy", "clusteringress-proxy", "Deployment", "settings.integrations.knative.proxy.containerSecurityContext", "settings.integrations.knative.version=0.1.0", "settings.integrations.knative.enabled=true"),
+					Entry("26-knative-external-proxy-deployment.yaml", "knative-external-proxy", "knative-external-proxy", "Deployment", "settings.integrations.knative.proxy.containerSecurityContext", "settings.integrations.knative.version=0.8.0", "settings.integrations.knative.enabled=true"),
+					Entry("29-knative-internal-proxy-deployment.yaml", "knative-internal-proxy", "knative-internal-proxy", "Deployment", "settings.integrations.knative.proxy.containerSecurityContext", "settings.integrations.knative.version=0.8.0", "settings.integrations.knative.enabled=true"),
+					Entry("19-gloo-mtls-certgen-cronjob.yaml", "gloo-mtls-certgen-cronjob", "certgen", "CronJob", "gateway.certGenJob.containerSecurityContext", "global.glooMtls.enabled=true", "gateway.certGenJob.cron.enabled=true"),
 				)
 
 				DescribeTable("merges resources for container security contexts", func(resourceName string, containerName string, resourceType string, securityRoot string, extraArgs ...string) {
@@ -6305,6 +6313,14 @@ metadata:
 					Entry("5-resource-rollout-cleanup-job.yaml", "gloo-resource-rollout-cleanup", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
 					Entry("5-resource-rollout-job.yaml", "gloo-resource-rollout", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
 					Entry("6.5-gateway-certgen-job.yaml", "gateway-certgen", "certgen", "Job", "gateway.certGenJob.containerSecurityContext"),
+					Entry("6.5-gateway-certgen-cronjob.yaml", "gateway-certgen-cronjob", "certgen", "CronJob", "gateway.certGenJob.containerSecurityContext", "gateway.enabled=true", "gateway.validation.enabled=true", "gateway.validation.webhook.enabled=true", "gateway.certGenJob.cron.enabled=true"),
+					Entry("6-access-logger-deployment.yaml", "gateway-proxy-access-logger", "access-logger", "Deployment", "accessLogger.accessLoggerContainerSecurityContext", "accessLogger.enabled=true"),
+					Entry("10-ingress-deployment.yaml", "ingress", "ingress", "Deployment", "ingress.deployment.ingressContainerSecurityContext", "ingress.enabled=true"),
+					Entry("11-ingress-proxy-deployment.yaml", "ingress-proxy", "ingress-proxy", "Deployment", "ingressProxy.deployment.ingressProxyContainerSecurityContext", "ingress.enabled=true"),
+					Entry("14-clusteringress-proxy-deployment.yaml", "clusteringress-proxy", "clusteringress-proxy", "Deployment", "settings.integrations.knative.proxy.containerSecurityContext", "settings.integrations.knative.version=0.1.0", "settings.integrations.knative.enabled=true"),
+					Entry("26-knative-external-proxy-deployment.yaml", "knative-external-proxy", "knative-external-proxy", "Deployment", "settings.integrations.knative.proxy.containerSecurityContext", "settings.integrations.knative.version=0.8.0", "settings.integrations.knative.enabled=true"),
+					Entry("29-knative-internal-proxy-deployment.yaml", "knative-internal-proxy", "knative-internal-proxy", "Deployment", "settings.integrations.knative.proxy.containerSecurityContext", "settings.integrations.knative.version=0.8.0", "settings.integrations.knative.enabled=true"),
+					Entry("19-gloo-mtls-certgen-cronjob.yaml", "gloo-mtls-certgen-cronjob", "certgen", "CronJob", "gateway.certGenJob.containerSecurityContext", "global.glooMtls.enabled=true", "gateway.certGenJob.cron.enabled=true"),
 				)
 
 				DescribeTable("overrides resources for pod security contexts", func(resourceName string, securityRoot string, extraArgs ...string) {
@@ -7000,9 +7016,7 @@ func securityContextFieldsStripeGroupB(securityRoot string, extraArgs ...string)
 
 //nolint:unparam // kind always receives "Deployment"
 func getContainer(t TestManifest, kind string, resourceName string, containerName string) *corev1.Container {
-	fmt.Printf("\n*****\nLooking for kind: %s, name: %s\n*****\n", kind, resourceName)
 	resources := t.SelectResources(func(u *unstructured.Unstructured) bool {
-		fmt.Printf("kind: %s, name: %s\n", u.GetKind(), u.GetName())
 		if u.GetKind() == kind && u.GetName() == resourceName {
 			return true
 		}
@@ -7016,6 +7030,8 @@ func getContainer(t TestManifest, kind string, resourceName string, containerNam
 		return extractContainerFromDeployment(resources, containerName)
 	case "Job":
 		return extractContainerFromJob(resources, containerName)
+	case "CronJob":
+		return extractContainerFromCronJob(resources, containerName)
 	default:
 		Fail("Unsupported kind:" + kind)
 		return nil
@@ -7054,6 +7070,28 @@ func extractContainerFromJob(td TestManifest, containerName string) *corev1.Cont
 		Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
 
 		for _, container := range structuredDeployment.Spec.Template.Spec.Containers {
+			if container.Name == containerName {
+				foundExpected = true
+				foundContainer = container
+			}
+		}
+
+		Expect(foundExpected).To(BeTrue())
+	})
+
+	return &foundContainer
+}
+
+func extractContainerFromCronJob(td TestManifest, containerName string) *corev1.Container {
+	var foundContainer corev1.Container
+	td.ExpectAll(func(deployment *unstructured.Unstructured) {
+		foundExpected := false
+		jobObject, err := kuberesource.ConvertUnstructured(deployment)
+		ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to render manifest")
+		structuredDeployment, ok := jobObject.(*batchv1.CronJob)
+		Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+		for _, container := range structuredDeployment.Spec.JobTemplate.Spec.Template.Spec.Containers {
 			if container.Name == containerName {
 				foundExpected = true
 				foundContainer = container
