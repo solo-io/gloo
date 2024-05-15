@@ -55,6 +55,7 @@ type Opts struct {
 	ValidationOpts               *gwtranslator.ValidationOpts
 	ReadGatwaysFromAllNamespaces bool
 	GatewayControllerEnabled     bool
+	ExtraGatewayClasses          []string
 	ProxyCleanup                 func()
 
 	Identity leaderelector.Identity
