@@ -284,6 +284,8 @@ Some traffic policies can be configured to work both on the listener and virtual
 ```yaml
 "sslConfig": .gloo.solo.io.SslConfig
 "sourcePrefixRanges": []solo.io.envoy.config.core.v3.CidrRange
+"prefixRanges": []solo.io.envoy.config.core.v3.CidrRange
+"destinationPort": int
 "passthroughCipherSuites": []string
 
 ```
@@ -292,6 +294,8 @@ Some traffic policies can be configured to work both on the listener and virtual
 | ----- | ---- | ----------- | 
 | `sslConfig` | [.gloo.solo.io.SslConfig](../ssl/ssl.proto.sk/#sslconfig) |  |
 | `sourcePrefixRanges` | [[]solo.io.envoy.config.core.v3.CidrRange](../../external/envoy/config/core/v3/address.proto.sk/#cidrrange) |  |
+| `prefixRanges` | [[]solo.io.envoy.config.core.v3.CidrRange](../../external/envoy/config/core/v3/address.proto.sk/#cidrrange) |  |
+| `destinationPort` | `int` |  |
 | `passthroughCipherSuites` | `[]string` |  |
 
 
