@@ -392,6 +392,11 @@ message OAuth {
     string client_id = 1 [deprecated = true];
 
     // your client secret as registered with the issuer
+    //
+    // Validation:
+    // - required
+    // - name and namespace both required
+    // - must reference secret with type "Opaque" or "extauth.solo.io/oauth" and the appropriate data
     core.solo.io.ResourceRef client_secret_ref = 2 [deprecated = true];
 
     // The url of the issuer. We will look for OIDC information in issuerUrl+
@@ -417,6 +422,8 @@ message OAuth {
 }
 
 message OAuth2 {
+    // Validation:
+    // - required: one of the oneof fields must be set
     oneof oauth_type {
         // provide issuer location and let gloo handle OIDC flow for you.
         // requests authorized by validating the contents of ID token.
@@ -926,6 +933,8 @@ message PlainOAuth2 {
     //
     // Validation:
     // - required unless disableClientSecret is true
+    // - if set, name and namespace both required
+    // - if set, must reference secret with type "Opaque" or "extauth.solo.io/oauth" and the appropriate data
     core.solo.io.ResourceRef client_secret_ref = 2;
 
     // Extra query parameters to apply to the Ext-Auth service's authorization request to the identity provider.
