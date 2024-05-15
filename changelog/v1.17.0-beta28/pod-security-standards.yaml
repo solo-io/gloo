@@ -3,4 +3,4 @@ changelog:
     issueLink: https://github.com/solo-io/gloo/issues/8864
     resolvesIssue: false
     description: >-
-      ""
+      Add helm values for all containers to allow for conforming to Pod Security Standards
