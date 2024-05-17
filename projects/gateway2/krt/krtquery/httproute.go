@@ -1,22 +1,22 @@
 package krtquery
 
 import (
-	gwapi "sigs.k8s.io/gateway-api/apis/v1beta1"
+	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	"istio.io/istio/pkg/kube/krt"
 )
 
-type HTTPRouteAttachement = Attachment[*gwapi.HTTPRoute]
+type HTTPRouteAttachement = Attachment[*gwv1.HTTPRoute]
 
 // TODO implement allowed types/namespaces
 // TOOD delegation
 func HTTPRouteAttachements(
-	Gateways krt.Collection[*gwapi.Gateway],
-	HTTPRoutes krt.Collection[*gwapi.HTTPRoute],
+	Gateways krt.Collection[*gwv1.Gateway],
+	HTTPRoutes krt.Collection[*gwv1.HTTPRoute],
 ) krt.Collection[HTTPRouteAttachement] {
-	return krt.NewManyCollection[*gwapi.HTTPRoute, HTTPRouteAttachement](
+	return krt.NewManyCollection[*gwv1.HTTPRoute, HTTPRouteAttachement](
 		HTTPRoutes,
-		func(ctx krt.HandlerContext, hr *gwapi.HTTPRoute) []HTTPRouteAttachement {
+		func(ctx krt.HandlerContext, hr *gwv1.HTTPRoute) []HTTPRouteAttachement {
 			var out []HTTPRouteAttachement
 			for _, ref := range hr.Spec.ParentRefs {
 				attachment := attachementFromParentRef(hr, ref)

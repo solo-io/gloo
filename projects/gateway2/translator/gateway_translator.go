@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/solo-io/gloo/projects/gateway2/krt/krtquery"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
@@ -29,7 +30,7 @@ type K8sGwTranslator interface {
 	) *v1.Proxy
 }
 
-func NewTranslator(queries query.GatewayQueries, pluginRegistry registry.PluginRegistry) K8sGwTranslator {
+func NewTranslator(queries krtquery.Queries, pluginRegistry registry.PluginRegistry) K8sGwTranslator {
 	return &translator{
 		pluginRegistry: pluginRegistry,
 		queries:        queries,
@@ -38,7 +39,7 @@ func NewTranslator(queries query.GatewayQueries, pluginRegistry registry.PluginR
 
 type translator struct {
 	pluginRegistry registry.PluginRegistry
-	queries        query.GatewayQueries
+	queries        krtquery.Queries
 }
 
 func (t *translator) TranslateProxy(

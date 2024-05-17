@@ -2,7 +2,7 @@ package krtquery
 
 import (
 	"istio.io/istio/pkg/kube/krt"
-	gwapi "sigs.k8s.io/gateway-api/apis/v1beta1"
+	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	solov1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 )
@@ -10,7 +10,7 @@ import (
 type VirtualHostOptionAttachement = Attachment[*solov1.VirtualHostOption]
 
 func VirtualHostOptionAttachements(
-	Gateways krt.Collection[*gwapi.Gateway],
+	Gateways krt.Collection[*gwv1.Gateway],
 	VirtualHostOptions krt.Collection[*solov1.VirtualHostOption],
 ) krt.Collection[VirtualHostOptionAttachement] {
 	return krt.NewCollection[*solov1.VirtualHostOption, VirtualHostOptionAttachement](

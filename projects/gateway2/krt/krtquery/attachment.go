@@ -4,7 +4,7 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"istio.io/istio/pkg/kube/krt"
 	"istio.io/istio/pkg/ptr"
-	gwapi "sigs.k8s.io/gateway-api/apis/v1beta1"
+	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
 // Attachment indexes a resource by its attachments.
@@ -36,7 +36,7 @@ func (h Attachment[T]) TargetKey() string {
 	return h.Namespace + "/" + h.Name
 }
 
-func (a Attachment[T]) AttachedToGateway(ctx krt.HandlerContext, Gateways krt.Collection[*gwapi.Gateway]) bool {
+func (a Attachment[T]) AttachedToGateway(ctx krt.HandlerContext, Gateways krt.Collection[*gwv1.Gateway]) bool {
 	// TODO check ref Group/Kind
 	gw := ptr.Flatten(krt.FetchOne(ctx, Gateways, krt.FilterKey(a.TargetKey())))
 	if gw == nil {
@@ -55,9 +55,9 @@ func (a Attachment[T]) AttachedToGateway(ctx krt.HandlerContext, Gateways krt.Co
 	return found
 }
 
-func attachementFromParentRef[T Namespaced](resource T, ref gwapi.ParentReference) Attachment[T] {
+func attachementFromParentRef[T Namespaced](resource T, ref gwv1.ParentReference) Attachment[T] {
 	return Attachment[T]{
-		Namespace: string(ptr.OrDefault(ref.Namespace, gwapi.Namespace(resource.GetNamespace()))),
+		Namespace: string(ptr.OrDefault(ref.Namespace, gwv1.Namespace(resource.GetNamespace()))),
 		Name:      string(ref.Name),
 		Section:   string(ptr.OrEmpty(ref.SectionName)),
 		Resource:  resource,

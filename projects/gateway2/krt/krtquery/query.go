@@ -1,10 +1,7 @@
 package krtquery
 
 import (
-	"context"
-
-	"k8s.io/client-go/tools/clientcmd"
-	gwapi "sigs.k8s.io/gateway-api/apis/v1beta1"
+	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	"istio.io/istio/pkg/config/schema/gvr"
 	"istio.io/istio/pkg/kube"
@@ -15,35 +12,27 @@ import (
 	solov1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 )
 
-type Queries interface{}
-
-type queries struct {
+type Queries struct {
+	Gateways                      krt.Collection[*gwv1.Gateway]
 	HTTPRouteAttachements         krt.Collection[HTTPRouteAttachement]
 	VirtualHostOptionAttachements krt.Collection[VirtualHostOptionAttachement]
 }
 
-func New(ctx context.Context, cfg clientcmd.ClientConfig) (Queries, error) {
-	client, err := kube.NewClient(cfg, "gloo-gateway")
-	if err != nil {
-		return nil, err
-	}
-
+func New(client kube.Client) (Queries, error) {
 	filter := kclient.Filter{}
 
-	gatewayClient := kclient.NewDelayedInformer[*gwapi.Gateway](client, gvr.KubernetesGateway, kubetypes.StandardInformer, filter)
-	Gateways := krt.WrapClient[*gwapi.Gateway](gatewayClient, krt.WithName("Gateways"))
+	gatewayClient := kclient.NewDelayedInformer[*gwv1.Gateway](client, gvr.KubernetesGateway, kubetypes.StandardInformer, filter)
+	Gateways := krt.WrapClient[*gwv1.Gateway](gatewayClient, krt.WithName("Gateways"))
 
-	httprouteClient := kclient.NewDelayedInformer[*gwapi.HTTPRoute](client, gvr.HTTPRoute, kubetypes.StandardInformer, filter)
-	HTTPRoutes := krt.WrapClient[*gwapi.HTTPRoute](httprouteClient, krt.WithName("HTTPRoutes"))
+	httprouteClient := kclient.NewDelayedInformer[*gwv1.HTTPRoute](client, gvr.HTTPRoute, kubetypes.StandardInformer, filter)
+	HTTPRoutes := krt.WrapClient[*gwv1.HTTPRoute](httprouteClient, krt.WithName("HTTPRoutes"))
 
 	// TODO idk if this way of writing GVK actually works
 	virtualHostOptionClient := kclient.NewDelayedInformer[*solov1.VirtualHostOption](client, solov1.SchemeGroupVersion.WithResource("virtualhostoption"), kubetypes.StandardInformer, filter)
 	VirtualHostOptions := krt.WrapClient[*solov1.VirtualHostOption](virtualHostOptionClient, krt.WithName("VirtualHostOptions"))
 
-	// start informers (probably should move this elsewhere)
-	client.RunAndWait(ctx.Done())
-
-	return queries{
+	return Queries{
+		Gateways,
 		HTTPRouteAttachements(Gateways, HTTPRoutes),
 		VirtualHostOptionAttachements(Gateways, VirtualHostOptions),
 	}, nil
