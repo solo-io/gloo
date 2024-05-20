@@ -25,7 +25,7 @@ var _ = Describe("Istio Automtls Plugin", func() {
 		)
 
 		BeforeEach(func() {
-			plugin = istio_automtls.NewPlugin(true, false)
+			plugin = istio_automtls.NewPlugin(true)
 			plugin.Init(plugins.InitParams{
 				Ctx: context.TODO(),
 				Settings: &gloov1.Settings{
@@ -99,7 +99,7 @@ var _ = Describe("Istio Automtls Plugin", func() {
 	})
 
 	It("automtls enabled, istio integration is disabled, no transport socket matches are translated by plugin", func() {
-		plugin := istio_automtls.NewPlugin(false, false)
+		plugin := istio_automtls.NewPlugin(false)
 		plugin.Init(plugins.InitParams{
 			Ctx: context.TODO(),
 			Settings: &gloov1.Settings{
@@ -136,7 +136,7 @@ var _ = Describe("Istio Automtls Plugin", func() {
 	})
 
 	It("automtls disabled, istio integration is enabled, no transport socket matches are translated by plugin", func() {
-		plugin := istio_automtls.NewPlugin(true, false)
+		plugin := istio_automtls.NewPlugin(true)
 		plugin.Init(plugins.InitParams{
 			Ctx: context.TODO(),
 			Settings: &gloov1.Settings{
@@ -173,7 +173,7 @@ var _ = Describe("Istio Automtls Plugin", func() {
 	})
 
 	It("automtls disabled, istio integration is disabled, no transport socket matches are translated by plugin", func() {
-		plugin := istio_automtls.NewPlugin(false, false)
+		plugin := istio_automtls.NewPlugin(false)
 		plugin.Init(plugins.InitParams{
 			Ctx: context.TODO(),
 			Settings: &gloov1.Settings{

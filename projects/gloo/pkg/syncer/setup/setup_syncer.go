@@ -1332,9 +1332,6 @@ func constructIstioBootstrapOpts() bootstrap.IstioValues {
 		// TODO: This value should be inherited at installation time, to determine if the istio integration is enabled
 		// In the interim, we use an env variable to control the value
 		SDSEnabled: envutils.IsEnvTruthy(constants.IstioMtlsEnabled),
-
-		// TODO: enableIstioSidecarOnGateway should be removed as part of: https://github.com/solo-io/solo-projects/issues/5743
-		SidecarOnGatewayEnabled: envutils.IsEnvTruthy(constants.IstioInjectionEnabled),
 	}
 
 	return istioValues

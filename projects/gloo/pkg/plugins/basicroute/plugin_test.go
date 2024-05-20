@@ -532,7 +532,7 @@ var _ = Describe("host rewrite", func() {
 		}, out)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(routeAction.GetHostRewriteLiteral()).To(Equal("/foo"))
-		Expect(routeAction.GetAppendXForwardedHost()).To(BeTrue())
+		Expect(routeAction.GetAppendXForwardedHost()).To(BeFalse())
 	})
 	It("distinguishes between empty string and nil", func() {
 		p := NewPlugin()

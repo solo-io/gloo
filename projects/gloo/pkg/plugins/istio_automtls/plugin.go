@@ -31,16 +31,11 @@ type plugin struct {
 	// enableIstioIntegration is a flag that indicates if the gateway proxy has istio integration enabled via istioSds.Enabled.
 	// If this is not set, the auto mtls transport socket match will not be translated as it indicated the sds cluster is not present.
 	enableIstioIntegration bool
-
-	// Note: When enableIstioSidecarOnGateway is enabled, eds will not add the istio pod labels to the endpoint and
-	// automtls will not generate the endpoint metadata to match the transport socket.
-	enableIstioSidecarOnGateway bool
 }
 
-func NewPlugin(enableIstioIntegration, enableIstioSidecarOnGateway bool) *plugin {
+func NewPlugin(enableIstioIntegration bool) *plugin {
 	return &plugin{
-		enableIstioIntegration:      enableIstioIntegration,
-		enableIstioSidecarOnGateway: enableIstioSidecarOnGateway,
+		enableIstioIntegration: enableIstioIntegration,
 	}
 }
 
@@ -66,13 +61,6 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		if !p.enableIstioIntegration {
 			contextutils.LoggerFrom(params.Ctx).Error("Istio integration must be enabled to use auto mTLS. Enable integration with istioSds.enabled=true")
 		} else {
-			// Note: If enableIstioSidecarOnGateway is enabled, Istio automtls will not be able to generate the endpoint
-			// metadata from the Pod to match the transport socket match. We will still translate the transport socket match
-			// configuration. enableIstioSidecarOnGateway should be removed as part of: https://github.com/solo-io/solo-projects/issues/5743
-			if p.enableIstioSidecarOnGateway {
-				contextutils.LoggerFrom(params.Ctx).Warn("Istio sidecar injection (istioIntegration.enableIstioSidecarOnGateway) should be disabled for Istio automtls mode")
-			}
-
 			socketmatches = []*envoy_config_cluster_v3.Cluster_TransportSocketMatch{
 				// add istio mtls match
 				createIstioMatch(),
