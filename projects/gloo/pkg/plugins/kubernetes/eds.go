@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"hash/fnv"
-	"os"
 	"sort"
 	"strings"
 
@@ -20,7 +19,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
-	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 )
@@ -219,14 +217,6 @@ func (c *edsWatcher) List(writeNamespace string, opts clients.ListOpts) (v1.Endp
 	return eps, nil
 }
 
-// Returns true for when configured for Istio integration where endpoints must
-// be defined by IP address rather than hostnames. For details, see:
-// * https://github.com/solo-io/gloo/issues/6195
-func isIstioInjectionEnabled() bool {
-	lookupResult, found := os.LookupEnv(constants.IstioInjectionEnabled)
-	return found && strings.ToLower(lookupResult) == "true"
-}
-
 func (c *edsWatcher) watch(writeNamespace string, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
 	watch := c.kubeShareFactory.Subscribe()
 
@@ -341,8 +331,6 @@ func computeGlooEndpoints(
 	var warnsToLog, errorsToLog []string
 	endpointsMap := make(map[Epkey][]*core.ResourceRef)
 
-	istioInjectionEnabled := isIstioInjectionEnabled()
-
 	// for each upstream
 	for usRef, spec := range upstreams {
 		kubeServicePort, singlePortService := findPortForService(services, spec)
@@ -354,22 +342,6 @@ func computeGlooEndpoints(
 		svc := getServiceFromUpstreamSpec(spec, services)
 		// TODO: Investigate possible deprecation of ClusterIPs in newer k8s versions https://github.com/solo-io/gloo/issues/7830
 		isHeadlessSvc := svc.Spec.ClusterIP == "None"
-		// Istio uses the service's port for routing requests
-		// Headless services don't have a cluster IP, so we'll resort to pod IP endpoints
-		if istioInjectionEnabled && !isHeadlessSvc {
-			hostname := fmt.Sprintf("%v.%v", spec.GetServiceName(), spec.GetServiceNamespace())
-			copyRef := *usRef
-			key := Epkey{
-				Address:     hostname,
-				Port:        uint32(kubeServicePort.Port),
-				Name:        spec.GetServiceName(),
-				Namespace:   spec.GetServiceNamespace(),
-				UpstreamRef: &copyRef,
-				IsHeadless:  isHeadlessSvc,
-			}
-			endpointsMap[key] = append(endpointsMap[key], &copyRef)
-			continue
-		}
 
 		// find each matching endpoint
 		for _, eps := range kubeEndpoints {
@@ -389,7 +361,7 @@ func computeGlooEndpoints(
 		}
 	}
 
-	endpoints = generateFilteredEndpointList(endpointsMap, services, podLabelSource, writeNamespace, endpoints, istioInjectionEnabled)
+	endpoints = generateFilteredEndpointList(endpointsMap, services, podLabelSource, writeNamespace, endpoints)
 
 	return endpoints, warnsToLog, errorsToLog
 }
@@ -449,8 +421,7 @@ func generateFilteredEndpointList(
 	services []*corev1.Service,
 	pods PodLabelSource,
 	writeNamespace string,
-	endpoints v1.EndpointList,
-	istioIntegrationEnabled bool) v1.EndpointList {
+	endpoints v1.EndpointList) v1.EndpointList {
 	for addr, refs := range endpointsMap {
 
 		// sort refs for idempotency
@@ -469,16 +440,8 @@ func generateFilteredEndpointList(
 		endpointName := fmt.Sprintf("ep-%v-%v-%x", dnsname, addr.Port, hasher.Sum64())
 
 		var ep *v1.Endpoint
-		// While istio integration requires the Service VIP, headless services require the pod IP, as there is no Cluster IP
-		// Note: If istioIntegrationEnabled is enabled, Istio automtls will not be able to generate the endpoint metadata from the Pod to match the transport socket match.
-		if istioIntegrationEnabled && !addr.IsHeadless {
-			// Istio integration requires assigning endpoints the Kub service VIP rather than pod address
-			service, _ := getServiceForHostname(addr.Address, addr.Name, addr.Namespace, services)
-			ep = createEndpoint(writeNamespace, endpointName, refs, service.Spec.ClusterIP, addr.Port, service.GetObjectMeta().GetLabels()) // TODO: labels may be nil
-		} else {
-			podLabels, _ := pods.GetLabelsForIp(addr.Address, addr.Name, addr.Namespace)
-			ep = createEndpoint(writeNamespace, endpointName, refs, addr.Address, addr.Port, podLabels)
-		}
+		podLabels, _ := pods.GetLabelsForIp(addr.Address, addr.Name, addr.Namespace)
+		ep = createEndpoint(writeNamespace, endpointName, refs, addr.Address, addr.Port, podLabels)
 		endpoints = append(endpoints, ep)
 	}
 

@@ -2,7 +2,6 @@ package kubernetes
 
 import (
 	"context"
-	"os"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
@@ -63,21 +62,6 @@ var _ = Describe("Eds", func() {
 	})
 
 	Context("Istio integration", func() {
-
-		It("isIstioInjectionEnabled should respond correctly to ENABLE_ISTIO_SIDECAR_ON_GATEWAY env var", func() {
-
-			os.Setenv(constants.IstioInjectionEnabled, "true")
-			Expect(isIstioInjectionEnabled()).To(BeTrue())
-
-			os.Setenv(constants.IstioInjectionEnabled, "TRUE")
-			Expect(isIstioInjectionEnabled()).To(BeTrue())
-
-			os.Unsetenv(constants.IstioInjectionEnabled)
-			Expect(isIstioInjectionEnabled()).To(BeFalse())
-
-			os.Setenv(constants.IstioInjectionEnabled, "false")
-			Expect(isIstioInjectionEnabled()).To(BeFalse())
-		})
 
 		It("should translate EDS metadata", func() {
 			writeNamespace := "foo"

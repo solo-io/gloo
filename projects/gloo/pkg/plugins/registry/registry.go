@@ -3,10 +3,7 @@ package registry
 
 import (
 	"context"
-	"os"
-	"strings"
 
-	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/als"
@@ -32,7 +29,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/headers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/healthcheck"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/istio_automtls"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/istio_integration"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/linkerd"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/listener"
@@ -119,12 +115,6 @@ func Plugins(opts bootstrap.Opts) []plugins.Plugin {
 	}
 	if opts.Consul.ConsulWatcher != nil {
 		glooPlugins = append(glooPlugins, consul.NewPlugin(opts.Consul.ConsulWatcher, consul.NewConsulDnsResolver(opts.Consul.DnsServer), opts.Consul.DnsPollingInterval))
-	}
-	lookupResult, found := os.LookupEnv(constants.IstioInjectionEnabled)
-	istioEnabled := found && strings.ToLower(lookupResult) == "true"
-	if istioEnabled {
-		istioPlugin := istio_integration.NewPlugin(opts.WatchOpts.Ctx)
-		glooPlugins = append(glooPlugins, istioPlugin)
 	}
 	return glooPlugins
 }
