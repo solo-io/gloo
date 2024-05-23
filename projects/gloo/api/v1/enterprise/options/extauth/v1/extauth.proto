@@ -1185,7 +1185,7 @@ message ApiKeyAuth {
     // API key secrets must be in one of the watch namespaces for gloo to locate them.
     //
     // Validation:
-    // - if k8sSecretApiKeyStorage.labelSelector or aerospikeApiKeyStorage.labelSelector is set, that field will be used and this one will be ignored
+    // - if k8sSecretApikeyStorage.labelSelector or aerospikeApikeyStorage.labelSelector is set, that field will be used and this one will be ignored
     map<string, string> label_selector = 1 [deprecated = true];
 
     // DEPRECATED: use K8sSecretApiKeyStorage to configure secrets storage backend. Values here
@@ -1194,7 +1194,7 @@ message ApiKeyAuth {
     // but in general the more flexible label selector should be preferred.
     //
     // Validation:
-    // - if k8sSecretApiKeyStorage.apiKeySecretRefs is also set, that field will be used and this one will be ignored
+    // - if k8sSecretApikeyStorage.apiKeySecretRefs is also set, that field will be used and this one will be ignored
     repeated core.solo.io.ResourceRef api_key_secret_refs = 2 [deprecated = true];
 
     // When receiving a request, the Gloo Edge Enterprise external auth server will look for an API key in a header
