@@ -121,6 +121,7 @@ func translateGatewayHTTPRouteRule(
 
 		var delegatedRoutes []*v1.Route
 		var delegates bool
+		contextutils.LoggerFrom(ctx).Infof("applying RoutePlugins to route %s.%s delegation chain len: %v before setRouteAction", gwroute.Name, gwroute.Namespace, delegationChain.Len())
 		if len(rule.BackendRefs) > 0 {
 			delegates = setRouteAction(
 				ctx,
@@ -150,6 +151,7 @@ func translateGatewayHTTPRouteRule(
 		}
 
 		// Apply the plugins for this route
+		contextutils.LoggerFrom(ctx).Infof("applying RoutePlugins to route %s.%s delegation chain len: %v after setRouteAction", gwroute.Name, gwroute.Namespace, delegationChain.Len())
 		for _, plugin := range pluginRegistry.GetRoutePlugins() {
 			err := plugin.ApplyRoutePlugin(ctx, rtCtx, outputRoute)
 			if err != nil {

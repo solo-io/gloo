@@ -48,6 +48,7 @@ func flattenDelegatedRoutes(
 	delegationCtx := plugins.DelegationCtx{
 		Ref: parentRef,
 	}
+	contextutils.LoggerFrom(ctx).Infof("flattening delegated routes for parent %s", parentRef)
 	lRef := delegationChain.PushFront(delegationCtx)
 	defer delegationChain.Remove(lRef)
 
