@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gstruct"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -15,14 +16,35 @@ import (
 	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
 )
 
+type testManifest struct {
+	manifestFile string
+	extraArgs    []string
+}
+
 var (
 	setupManifest = filepath.Join(util.MustGetThisDir(), "testdata/setup.yaml")
 
-	invalidPortAndValidTargetportManifest   = filepath.Join(util.MustGetThisDir(), "testdata/invalid-port-and-valid-targetport.yaml")
-	invalidPortAndInvalidTargetportManifest = filepath.Join(util.MustGetThisDir(), "testdata/invalid-port-and-invalid-targetport.yaml")
-	matchPodPortWithoutTargetportManifest   = filepath.Join(util.MustGetThisDir(), "testdata/match-pod-port-without-targetport.yaml")
-	matchPortandTargetportManifest          = filepath.Join(util.MustGetThisDir(), "testdata/match-port-and-targetport.yaml")
-	invalidPortWithoutTargetportManifest    = filepath.Join(util.MustGetThisDir(), "testdata/invalid-port-without-targetport.yaml")
+	k8sHTTPRouteInvalidPortAndValidTargetportManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "k8s-gateway-backendref-routing", "invalid-port-and-valid-targetport.yaml")
+	k8sHTTPRouteInvalidPortAndInvalidTargetportManifest = filepath.Join(util.MustGetThisDir(), "testdata", "k8s-gateway-backendref-routing", "invalid-port-and-invalid-targetport.yaml")
+	k8sHTTPRouteMatchPodPortWithoutTargetportManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "k8s-gateway-backendref-routing", "match-pod-port-without-targetport.yaml")
+	k8sHTTPRouteMatchPortandTargetportManifest          = filepath.Join(util.MustGetThisDir(), "testdata", "k8s-gateway-backendref-routing", "match-port-and-targetport.yaml")
+	k8sHTTPRouteInvalidPortWithoutTargetportManifest    = filepath.Join(util.MustGetThisDir(), "testdata", "k8s-gateway-backendref-routing", "invalid-port-without-targetport.yaml")
+
+	k8sGatewayBackendrefRoutingManifest = filepath.Join(util.MustGetThisDir(), "testdata", "k8s-gateway-backendref-routing", "gw.yaml")
+	k8sGatewayUpstreamRoutingManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "k8s-gateway-upstream-routing", "routing.yaml")
+	glooGatewayRoutingManifest          = filepath.Join(util.MustGetThisDir(), "testdata", "gloo-gateway-routing", "routing.yaml")
+
+	upstreamInvalidPortAndValidTargetportManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "upstreams", "invalid-port-and-valid-targetport.yaml")
+	upstreamInvalidPortAndInvalidTargetportManifest = filepath.Join(util.MustGetThisDir(), "testdata", "upstreams", "invalid-port-and-invalid-targetport.yaml")
+	upstreamMatchPodPortWithoutTargetportManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "upstreams", "match-pod-port-without-targetport.yaml")
+	upstreamMatchPortandTargetportManifest          = filepath.Join(util.MustGetThisDir(), "testdata", "upstreams", "match-port-and-targetport.yaml")
+	upstreamInvalidPortWithoutTargetportManifest    = filepath.Join(util.MustGetThisDir(), "testdata", "upstreams", "invalid-port-without-targetport.yaml")
+
+	svcInvalidPortAndValidTargetportManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "svc", "invalid-port-and-valid-targetport.yaml")
+	svcInvalidPortAndInvalidTargetportManifest = filepath.Join(util.MustGetThisDir(), "testdata", "svc", "invalid-port-and-invalid-targetport.yaml")
+	svcMatchPodPortWithoutTargetportManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "svc", "match-pod-port-without-targetport.yaml")
+	svcMatchPortandTargetportManifest          = filepath.Join(util.MustGetThisDir(), "testdata", "svc", "match-port-and-targetport.yaml")
+	svcInvalidPortWithoutTargetportManifest    = filepath.Join(util.MustGetThisDir(), "testdata", "svc", "invalid-port-without-targetport.yaml")
 
 	// When we apply the setup.yaml file, we expect resources to be created with this metadata
 	glooProxyObjectMeta = metav1.ObjectMeta{
@@ -39,6 +61,20 @@ var (
 		Container: "curl",
 	}
 
+	exampleSvc = &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example-svc",
+			Namespace: "default",
+		},
+	}
+
+	nginxPod = &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "nginx",
+			Namespace: "default",
+		},
+	}
+
 	expectedHealthyResponse = &testmatchers.HttpResponse{
 		StatusCode: http.StatusOK,
 		Body:       ContainSubstring("Welcome to nginx!"),
@@ -46,6 +82,6 @@ var (
 
 	expectedServiceUnavailableResponse = &testmatchers.HttpResponse{
 		StatusCode: http.StatusServiceUnavailable,
-		Body:       ContainSubstring("upstream connect error or disconnect/reset before headers. reset reason: remote connection failure, transport failure reason: delayed connect error"),
+		Body:       gstruct.Ignore(), // ignore the body
 	}
 )

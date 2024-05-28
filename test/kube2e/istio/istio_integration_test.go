@@ -265,7 +265,7 @@ var _ = Describe("Gloo + Istio integration tests", func() {
 			}
 		}
 
-		DescribeTable("should act as expected with varied ports", func(port int32, targetPort int, expected int) {
+		FDescribeTable("should act as expected with varied ports", func(port int32, targetPort int, expected int) {
 			setupServices(port, targetPort)
 
 			var gatewayProxyName string

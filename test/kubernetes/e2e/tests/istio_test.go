@@ -67,7 +67,7 @@ func TestK8sGatewayIstio(t *testing.T) {
 	})
 
 	t.Run("PortRouting", func(t *testing.T) {
-		suite.Run(t, port_routing.NewTestingSuite(ctx, testInstallation))
+		suite.Run(t, port_routing.NewK8sGatewayTestingSuite(ctx, testInstallation))
 	})
 
 	t.Run("HeadlessSvc", func(t *testing.T) {
