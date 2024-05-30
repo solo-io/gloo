@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.32.0
 // 	protoc        v3.6.1
-// source: github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/gateway_parameters.proto
+// source: github.com/solo-io/gloo/projects/kubegateway/api/v1alpha1/gateway_parameters.proto
 
 package v1alpha1
 
@@ -12,9 +12,9 @@ import (
 
 	empty "github.com/golang/protobuf/ptypes/empty"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
-	v1 "github.com/solo-io/gloo/projects/gateway2/pkg/api/external/kubernetes/api/core/v1"
-	_ "github.com/solo-io/gloo/projects/gateway2/pkg/api/external/kubernetes/apimachinery/pkg/apis/meta/v1"
-	kube "github.com/solo-io/gloo/projects/gateway2/pkg/api/gateway.gloo.solo.io/v1alpha1/kube"
+	v1 "github.com/solo-io/gloo/projects/kubegateway/pkg/api/external/kubernetes/api/core/v1"
+	_ "github.com/solo-io/gloo/projects/kubegateway/pkg/api/external/kubernetes/apimachinery/pkg/apis/meta/v1"
+	kube "github.com/solo-io/gloo/projects/kubegateway/pkg/api/gateway.gloo.solo.io/v1alpha1/kube"
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"

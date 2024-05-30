@@ -25,4 +25,4 @@ syntax = "proto2";
 package k8s.io.apimachinery.pkg.runtime.schema;
 
 // Package-wide variables from generator "generated".
-option go_package = "github.com/solo-io/gloo/projects/gateway2/pkg/api/external/kubernetes/apimachinery/pkg/runtime/schema";
+option go_package = "github.com/solo-io/gloo/projects/kubegateway/pkg/api/external/kubernetes/apimachinery/pkg/runtime/schema";

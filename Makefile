@@ -558,7 +558,7 @@ discovery-distroless-docker: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(GOARCH) $
 
 GLOO_DIR=projects/gloo
 EDGE_GATEWAY_DIR=projects/gateway
-K8S_GATEWAY_DIR=projects/gateway2
+K8S_GATEWAY_DIR=projects/kubegateway
 GLOO_SOURCES=$(call get_sources,$(GLOO_DIR))
 EDGE_GATEWAY_SOURCES=$(call get_sources,$(EDGE_GATEWAY_DIR))
 K8S_GATEWAY_SOURCES=$(call get_sources,$(K8S_GATEWAY_DIR))

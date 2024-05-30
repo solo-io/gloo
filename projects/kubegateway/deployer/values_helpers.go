@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/projects/gateway2/pkg/api/gateway.gloo.solo.io/v1alpha1"
-	v1alpha1kube "github.com/solo-io/gloo/projects/gateway2/pkg/api/gateway.gloo.solo.io/v1alpha1/kube"
-	"github.com/solo-io/gloo/projects/gateway2/ports"
+	"github.com/solo-io/gloo/projects/kubegateway/pkg/api/gateway.gloo.solo.io/v1alpha1"
+	v1alpha1kube "github.com/solo-io/gloo/projects/kubegateway/pkg/api/gateway.gloo.solo.io/v1alpha1/kube"
+	"github.com/solo-io/gloo/projects/kubegateway/ports"
 	"golang.org/x/exp/slices"
 	"k8s.io/utils/ptr"
 	api "sigs.k8s.io/gateway-api/apis/v1"

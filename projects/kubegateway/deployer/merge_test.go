@@ -4,7 +4,7 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	gw2_v1alpha1 "github.com/solo-io/gloo/projects/gateway2/pkg/api/gateway.gloo.solo.io/v1alpha1"
+	gw2_v1alpha1 "github.com/solo-io/gloo/projects/kubegateway/pkg/api/gateway.gloo.solo.io/v1alpha1"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 

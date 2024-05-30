@@ -5,7 +5,7 @@ import (
 
 	"github.com/rotisserie/eris"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/utils"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 

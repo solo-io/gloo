@@ -1,9 +1,9 @@
 package deployer
 
 import (
-	kubecorev1 "github.com/solo-io/gloo/projects/gateway2/pkg/api/external/kubernetes/api/core/v1"
-	"github.com/solo-io/gloo/projects/gateway2/pkg/api/gateway.gloo.solo.io/v1alpha1"
-	"github.com/solo-io/gloo/projects/gateway2/pkg/api/gateway.gloo.solo.io/v1alpha1/kube"
+	kubecorev1 "github.com/solo-io/gloo/projects/kubegateway/pkg/api/external/kubernetes/api/core/v1"
+	"github.com/solo-io/gloo/projects/kubegateway/pkg/api/gateway.gloo.solo.io/v1alpha1"
+	"github.com/solo-io/gloo/projects/kubegateway/pkg/api/gateway.gloo.solo.io/v1alpha1/kube"
 )
 
 // mergePointers will decide whether to use dst or src without dereferencing or recursing

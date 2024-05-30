@@ -9,9 +9,9 @@ import (
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
-	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/utils"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/testutils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection"
 

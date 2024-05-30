@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.32.0
 // 	protoc        v3.6.1
-// source: github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/kube/pod.proto
+// source: github.com/solo-io/gloo/projects/kubegateway/api/v1alpha1/kube/pod.proto
 
 package kube
 
@@ -10,7 +10,7 @@ import (
 	reflect "reflect"
 	sync "sync"
 
-	v1 "github.com/solo-io/gloo/projects/gateway2/pkg/api/external/kubernetes/api/core/v1"
+	v1 "github.com/solo-io/gloo/projects/kubegateway/pkg/api/external/kubernetes/api/core/v1"
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"

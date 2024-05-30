@@ -23,7 +23,7 @@
 // versions:
 // 	protoc-gen-go v1.32.0
 // 	protoc        v3.6.1
-// source: github.com/solo-io/gloo/projects/gateway2/api/external/kubernetes/apimachinery/pkg/apis/meta/v1/generated.proto
+// source: github.com/solo-io/gloo/projects/kubegateway/api/external/kubernetes/apimachinery/pkg/apis/meta/v1/generated.proto
 
 package v1
 
@@ -31,8 +31,8 @@ import (
 	reflect "reflect"
 	sync "sync"
 
-	runtime "github.com/solo-io/gloo/projects/gateway2/pkg/api/external/kubernetes/apimachinery/pkg/runtime"
-	_ "github.com/solo-io/gloo/projects/gateway2/pkg/api/external/kubernetes/apimachinery/pkg/runtime/schema"
+	runtime "github.com/solo-io/gloo/projects/kubegateway/pkg/api/external/kubernetes/apimachinery/pkg/runtime"
+	_ "github.com/solo-io/gloo/projects/kubegateway/pkg/api/external/kubernetes/apimachinery/pkg/runtime/schema"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )

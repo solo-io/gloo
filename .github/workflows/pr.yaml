@@ -16,8 +16,8 @@ jobs:
       with:
         go-version-file: go.mod
     - name: Build
-      run: go build -v ./projects/gateway2/... ./projects/gloo/cli/cmd
+      run: go build -v ./projects/kubegateway/... ./projects/gloo/cli/cmd
     - name: Install utils for env tests
-      run: make -C ./projects/gateway2/ install-go-tools
+      run: make -C ./projects/kubegateway/ install-go-tools
     - name: Test with the Go CLI
-      run: go test ./projects/gateway2/...
+      run: go test ./projects/kubegateway/...

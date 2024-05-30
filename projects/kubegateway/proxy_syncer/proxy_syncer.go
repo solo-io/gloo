@@ -4,12 +4,12 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/solo-io/gloo/projects/gateway2/extensions"
-	"github.com/solo-io/gloo/projects/gateway2/query"
-	"github.com/solo-io/gloo/projects/gateway2/reports"
-	gwv2_translator "github.com/solo-io/gloo/projects/gateway2/translator"
-	gwplugins "github.com/solo-io/gloo/projects/gateway2/translator/plugins"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
+	"github.com/solo-io/gloo/projects/kubegateway/extensions"
+	"github.com/solo-io/gloo/projects/kubegateway/query"
+	"github.com/solo-io/gloo/projects/kubegateway/reports"
+	gwv2_translator "github.com/solo-io/gloo/projects/kubegateway/translator"
+	gwplugins "github.com/solo-io/gloo/projects/kubegateway/translator/plugins"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/registry"
 	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
@@ -65,7 +65,7 @@ func NewGatewayInputChannels() *GatewayInputChannels {
 var (
 	// labels used to uniquely identify Proxies that are managed by the kube gateway controller
 	kubeGatewayProxyLabels = map[string]string{
-		// the proxy type key/value must stay in sync with the one defined in projects/gateway2/translator/gateway_translator.go
+		// the proxy type key/value must stay in sync with the one defined in projects/kubegateway/translator/gateway_translator.go
 		utils.ProxyTypeKey: utils.GatewayApiProxyValue,
 	}
 )

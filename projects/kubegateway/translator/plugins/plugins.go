@@ -4,8 +4,8 @@ import (
 	"container/list"
 	"context"
 
-	"github.com/solo-io/gloo/projects/gateway2/reports"
-	"github.com/solo-io/gloo/projects/gateway2/translator/translatorutils"
+	"github.com/solo-io/gloo/projects/kubegateway/reports"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/translatorutils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"k8s.io/apimachinery/pkg/types"
 

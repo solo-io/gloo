@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.32.0
 // 	protoc        v3.6.1
-// source: github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/kube/autoscaling.proto
+// source: github.com/solo-io/gloo/projects/kubegateway/api/v1alpha1/kube/autoscaling.proto
 
 package kube
 

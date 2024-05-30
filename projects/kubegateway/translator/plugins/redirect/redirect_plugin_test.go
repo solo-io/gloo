@@ -2,9 +2,9 @@ package redirect_test
 
 import (
 	. "github.com/onsi/ginkgo/v2"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/filtertests"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/redirect"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/filtertests"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/redirect"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"k8s.io/utils/ptr"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"

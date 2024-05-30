@@ -16,7 +16,7 @@ import (
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	"github.com/solo-io/gloo/projects/gateway/pkg/utils"
-	k8sgwvalidation "github.com/solo-io/gloo/projects/gateway2/validation"
+	k8sgwvalidation "github.com/solo-io/gloo/projects/kubegateway/validation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	syncerValidation "github.com/solo-io/gloo/projects/gloo/pkg/syncer/validation"

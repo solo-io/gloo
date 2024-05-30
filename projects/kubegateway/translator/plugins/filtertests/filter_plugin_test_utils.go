@@ -7,8 +7,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
-	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/testutils"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"

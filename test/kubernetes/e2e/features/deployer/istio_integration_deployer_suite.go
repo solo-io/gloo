@@ -14,7 +14,7 @@ import (
 )
 
 // istioIntegrationDeployerSuite is the entire Suite of tests for the "deployer" feature that relies on an Istio installation
-// The "deployer" code can be found here: /projects/gateway2/deployer
+// The "deployer" code can be found here: /projects/kubegateway/deployer
 type istioIntegrationDeployerSuite struct {
 	suite.Suite
 

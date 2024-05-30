@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/registry"
 
-	"github.com/solo-io/gloo/projects/gateway2/query"
-	"github.com/solo-io/gloo/projects/gateway2/reports"
-	"github.com/solo-io/gloo/projects/gateway2/translator/listener"
+	"github.com/solo-io/gloo/projects/kubegateway/query"
+	"github.com/solo-io/gloo/projects/kubegateway/reports"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/listener"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -97,7 +97,7 @@ func proxyMetadata(gateway *gwv1.Gateway, writeNamespace string) *core.Metadata 
 		// All proxies are created in the writeNamespace (ie. gloo-system).
 		// We apply a label to maintain a reference to where the originating Gateway was defined
 		Labels: map[string]string{
-			// the proxy type key/value must stay in sync with the one defined in projects/gateway2/proxy_syncer/proxy_syncer.go
+			// the proxy type key/value must stay in sync with the one defined in projects/kubegateway/proxy_syncer/proxy_syncer.go
 			utils.ProxyTypeKey:        utils.GatewayApiProxyValue,
 			utils.GatewayNamespaceKey: gateway.GetNamespace(),
 		},

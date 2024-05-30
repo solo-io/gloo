@@ -1,18 +1,18 @@
 syntax = "proto3";
 package gateway.gloo.solo.io;
-option go_package = "github.com/solo-io/gloo/projects/gateway2/pkg/api/gateway.gloo.solo.io/v1alpha1";
+option go_package = "github.com/solo-io/gloo/projects/kubegateway/pkg/api/gateway.gloo.solo.io/v1alpha1";
 
 import "extproto/ext.proto";
 option (extproto.equal_all) = true;
 option (extproto.hash_all) = true;
 
-import "github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/kube/autoscaling.proto";
-import "github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/kube/container.proto";
-import "github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/kube/pod.proto";
-import "github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/kube/service.proto";
+import "github.com/solo-io/gloo/projects/kubegateway/api/v1alpha1/kube/autoscaling.proto";
+import "github.com/solo-io/gloo/projects/kubegateway/api/v1alpha1/kube/container.proto";
+import "github.com/solo-io/gloo/projects/kubegateway/api/v1alpha1/kube/pod.proto";
+import "github.com/solo-io/gloo/projects/kubegateway/api/v1alpha1/kube/service.proto";
 
-import "github.com/solo-io/gloo/projects/gateway2/api/external/kubernetes/api/core/v1/generated.proto";
-import "github.com/solo-io/gloo/projects/gateway2/api/external/kubernetes/apimachinery/pkg/apis/meta/v1/generated.proto";
+import "github.com/solo-io/gloo/projects/kubegateway/api/external/kubernetes/api/core/v1/generated.proto";
+import "github.com/solo-io/gloo/projects/kubegateway/api/external/kubernetes/apimachinery/pkg/apis/meta/v1/generated.proto";
 
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/empty.proto";

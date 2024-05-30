@@ -1,8 +1,8 @@
 package deployer
 
 import (
-	extcorev1 "github.com/solo-io/gloo/projects/gateway2/pkg/api/external/kubernetes/api/core/v1"
-	v1alpha1kube "github.com/solo-io/gloo/projects/gateway2/pkg/api/gateway.gloo.solo.io/v1alpha1/kube"
+	extcorev1 "github.com/solo-io/gloo/projects/kubegateway/pkg/api/external/kubernetes/api/core/v1"
+	v1alpha1kube "github.com/solo-io/gloo/projects/kubegateway/pkg/api/gateway.gloo.solo.io/v1alpha1/kube"
 )
 
 // The top-level helm values used by the deployer.

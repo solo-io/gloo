@@ -25,7 +25,7 @@ syntax = "proto2";
 package k8s.io.apimachinery.pkg.api.resource;
 
 // Package-wide variables from generator "generated".
-option go_package = "github.com/solo-io/gloo/projects/gateway2/pkg/api/external/kubernetes/apimachinery/pkg/api/resource";
+option go_package = "github.com/solo-io/gloo/projects/kubegateway/pkg/api/external/kubernetes/apimachinery/pkg/api/resource";
 
 // Quantity is a fixed-point representation of a number.
 // It provides convenient marshaling/unmarshaling in JSON and YAML,

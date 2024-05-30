@@ -3,7 +3,7 @@ package query
 import (
 	"testing"
 
-	"github.com/solo-io/gloo/projects/gateway2/wellknown"
+	"github.com/solo-io/gloo/projects/kubegateway/wellknown"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"

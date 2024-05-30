@@ -15,7 +15,7 @@ func main() {
 
 	anyvendorImports := skv2_anyvendor.CreateDefaultMatchOptions(
 		[]string{
-			"projects/gateway2/**/*.proto",
+			"projects/kubegateway/**/*.proto",
 		},
 	)
 
@@ -30,7 +30,7 @@ func main() {
 		Groups: []model.Group{
 			{
 				Module:  "github.com/solo-io/gloo",
-				ApiRoot: "projects/gateway2/pkg/api",
+				ApiRoot: "projects/kubegateway/pkg/api",
 				GroupVersion: schema.GroupVersion{
 					Group:   "gateway.gloo.solo.io",
 					Version: "v1alpha1",

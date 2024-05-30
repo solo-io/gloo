@@ -14,8 +14,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
 	gateway "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gateway2/controller"
-	"github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
+	"github.com/solo-io/gloo/projects/kubegateway/controller"
+	"github.com/solo-io/gloo/projects/kubegateway/proxy_syncer"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	api "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"

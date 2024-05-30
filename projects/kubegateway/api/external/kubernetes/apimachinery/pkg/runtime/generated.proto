@@ -25,7 +25,7 @@ syntax = "proto2";
 package k8s.io.apimachinery.pkg.runtime;
 
 // Package-wide variables from generator "generated".
-option go_package = "github.com/solo-io/gloo/projects/gateway2/pkg/api/external/kubernetes/apimachinery/pkg/runtime";
+option go_package = "github.com/solo-io/gloo/projects/kubegateway/pkg/api/external/kubernetes/apimachinery/pkg/runtime";
 
 // RawExtension is used to hold extensions in external versions.
 //

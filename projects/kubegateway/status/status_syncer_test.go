@@ -10,8 +10,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
-	"github.com/solo-io/gloo/projects/gateway2/translator/translatorutils"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/registry"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/translatorutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"

@@ -2,14 +2,14 @@ package registry
 
 import (
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	gwquery "github.com/solo-io/gloo/projects/gateway2/query"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/headermodifier"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/mirror"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/redirect"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/routeoptions"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/urlrewrite"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/virtualhostoptions"
+	gwquery "github.com/solo-io/gloo/projects/kubegateway/query"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/headermodifier"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/mirror"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/redirect"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/routeoptions"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/urlrewrite"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/virtualhostoptions"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

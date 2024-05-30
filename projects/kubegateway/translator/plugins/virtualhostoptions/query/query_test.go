@@ -9,9 +9,9 @@ import (
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
-	gwscheme "github.com/solo-io/gloo/projects/gateway2/controller/scheme"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/virtualhostoptions/query"
-	"github.com/solo-io/gloo/projects/gateway2/wellknown"
+	gwscheme "github.com/solo-io/gloo/projects/kubegateway/controller/scheme"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/virtualhostoptions/query"
+	"github.com/solo-io/gloo/projects/kubegateway/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

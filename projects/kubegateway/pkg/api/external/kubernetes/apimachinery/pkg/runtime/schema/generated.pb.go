@@ -23,7 +23,7 @@
 // versions:
 // 	protoc-gen-go v1.32.0
 // 	protoc        v3.6.1
-// source: github.com/solo-io/gloo/projects/gateway2/api/external/kubernetes/apimachinery/pkg/runtime/schema/generated.proto
+// source: github.com/solo-io/gloo/projects/kubegateway/api/external/kubernetes/apimachinery/pkg/runtime/schema/generated.proto
 
 package schema
 

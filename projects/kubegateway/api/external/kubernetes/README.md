@@ -7,12 +7,12 @@ Instead of mirroring/redefining these messages in our own protos, we import copi
 ### Usage
 
 #### Go
-The protos in this directory are compiled by the k8s gateway integration codegen in [generate.go](/projects/gateway2/generate.go), which produces Go types under [projects/gateway2/pkg/api/external/kubernetes/](/projects/gateway2/pkg/api/external/kubernetes/) which can be used in Go code.
+The protos in this directory are compiled by the k8s gateway integration codegen in [generate.go](/projects/kubegateway/generate.go), which produces Go types under [projects/kubegateway/pkg/api/external/kubernetes/](/projects/kubegateway/pkg/api/external/kubernetes/) which can be used in Go code.
 
 #### Protobuf
 To use these proto messages in other protos, add the appropriate import to your proto definition, e.g.
 ```
-import "github.com/solo-io/gloo/projects/gateway2/api/external/kubernetes/api/core/v1/generated.proto";
+import "github.com/solo-io/gloo/projects/kubegateway/api/external/kubernetes/api/core/v1/generated.proto";
 ```
 and reference the messages with their package name, e.g. `k8s.io.api.core.v1.<message>`
 
@@ -35,8 +35,8 @@ Whenever we upgrade our `k8s.io/api` version (to let's say, `<new-version>`) in 
 If new Kubernetes protos need to be added:
 
 1. Find the source file (usually look for `generated.proto` in https://github.com/kubernetes/api or https://github.com/kubernetes/apimachinery), on the branch/tag corresponding to the `k8s.io/api` version we are using.
-2. Copy it here, keeping similar directory structure (e.g. if copying a file from `https://github.com/kubernetes/api/blob/<version>/batch/v1/generated.proto`, it should be copied to directory `projects/gateway2/api/external/kubernetes/api/batch/v1/generated.proto` in gloo)
+2. Copy it here, keeping similar directory structure (e.g. if copying a file from `https://github.com/kubernetes/api/blob/<version>/batch/v1/generated.proto`, it should be copied to directory `projects/kubegateway/api/external/kubernetes/api/batch/v1/generated.proto` in gloo)
 3. Add a comment near the top of the file, similar to the one shown above in [Updating the protos](#updating-the-protos), which indicates the source of the copied file.
 4. Change the import paths to use gloo repo paths (note, if the file is importing other dependencies that we don't have in this repo yet, those proto files need to be copied over as well).
-5. Update the `go_package` to have the appropriate gloo path, e.g. `option go_package = "github.com/solo-io/gloo/projects/gateway2/pkg/api/external/kubernetes/api/core/v1";`
+5. Update the `go_package` to have the appropriate gloo path, e.g. `option go_package = "github.com/solo-io/gloo/projects/kubegateway/pkg/api/external/kubernetes/api/core/v1";`
 6. Re-run codegen via `make install-go-tools generated-code -B`

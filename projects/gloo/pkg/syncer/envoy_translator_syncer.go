@@ -23,7 +23,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
 	"github.com/solo-io/gloo/pkg/utils/syncutil"
-	"github.com/solo-io/gloo/projects/gateway2/translator/translatorutils"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/translatorutils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"

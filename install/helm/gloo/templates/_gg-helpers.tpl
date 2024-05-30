@@ -39,7 +39,7 @@ gloo: kube-gateway
 
 {{/*
 Images valid for the GatewayParameters
-ref Image api in projects/gateway2/api/v1alpha1/kube/container.proto
+ref Image api in projects/kubegateway/api/v1alpha1/kube/container.proto
 */}}
 {{- define "gloo-gateway.gatewayParametersImage" -}}
 {{- $image := . -}}

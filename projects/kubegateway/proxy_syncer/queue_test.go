@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
+	"github.com/solo-io/gloo/projects/kubegateway/proxy_syncer"
 )
 
 type testType struct {

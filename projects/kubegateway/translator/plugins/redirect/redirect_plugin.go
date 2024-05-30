@@ -6,8 +6,8 @@ import (
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	errors "github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
