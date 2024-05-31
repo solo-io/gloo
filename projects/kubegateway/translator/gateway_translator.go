@@ -6,11 +6,11 @@ import (
 
 	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/registry"
 
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/kubegateway/query"
 	"github.com/solo-io/gloo/projects/kubegateway/reports"
 	"github.com/solo-io/gloo/projects/kubegateway/translator/listener"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"

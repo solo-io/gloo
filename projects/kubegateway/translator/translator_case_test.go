@@ -19,6 +19,8 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	gwquery "github.com/solo-io/gloo/projects/kubegateway/query"
 	"github.com/solo-io/gloo/projects/kubegateway/reports"
 	. "github.com/solo-io/gloo/projects/kubegateway/translator"
@@ -26,8 +28,6 @@ import (
 	rtoptquery "github.com/solo-io/gloo/projects/kubegateway/translator/plugins/routeoptions/query"
 	vhoptquery "github.com/solo-io/gloo/projects/kubegateway/translator/plugins/virtualhostoptions/query"
 	"github.com/solo-io/gloo/projects/kubegateway/translator/testutils"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 )
 
 type TestCase struct {

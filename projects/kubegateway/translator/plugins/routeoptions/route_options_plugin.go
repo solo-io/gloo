@@ -17,15 +17,15 @@ import (
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	gwquery "github.com/solo-io/gloo/projects/kubegateway/query"
 	"github.com/solo-io/gloo/projects/kubegateway/reports"
 	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins"
 	rtoptquery "github.com/solo-io/gloo/projects/kubegateway/translator/plugins/routeoptions/query"
 	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/utils"
 	"github.com/solo-io/gloo/projects/kubegateway/translator/routeutils"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
 
 var (

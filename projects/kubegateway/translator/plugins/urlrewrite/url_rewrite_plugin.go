@@ -4,10 +4,10 @@ import (
 	"context"
 
 	errors "github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins"
-	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/utils"
 	matcherv3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/utils"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"

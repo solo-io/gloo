@@ -2,9 +2,9 @@ package setup
 
 import (
 	errors "github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/projects/kubegateway/extensions"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	"github.com/solo-io/gloo/projects/kubegateway/extensions"
 	xdsserver "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 )
 

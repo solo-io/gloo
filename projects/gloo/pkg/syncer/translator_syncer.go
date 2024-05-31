@@ -18,11 +18,11 @@ import (
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	gwsyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
 	"github.com/solo-io/gloo/projects/gateway/pkg/utils/metrics"
-	"github.com/solo-io/gloo/projects/kubegateway/translator/translatorutils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/translatorutils"
 )
 
 type OnProxiesTranslatedFn func(ctx context.Context, proxiesWithReports []translatorutils.ProxyWithReports)

@@ -13,13 +13,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/kubegateway/query"
 	"github.com/solo-io/gloo/projects/kubegateway/reports"
 	"github.com/solo-io/gloo/projects/kubegateway/translator/backendref"
 	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins"
 	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/registry"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 )
 
 func TranslateGatewayHTTPRouteRules(

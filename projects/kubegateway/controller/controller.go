@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/kubegateway/deployer"
 	"github.com/solo-io/gloo/projects/kubegateway/extensions"
 	"github.com/solo-io/gloo/projects/kubegateway/pkg/api/gateway.gloo.solo.io/v1alpha1"
@@ -12,8 +14,6 @@ import (
 	rtoptquery "github.com/solo-io/gloo/projects/kubegateway/translator/plugins/routeoptions/query"
 	vhoptquery "github.com/solo-io/gloo/projects/kubegateway/translator/plugins/virtualhostoptions/query"
 	"github.com/solo-io/gloo/projects/kubegateway/wellknown"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

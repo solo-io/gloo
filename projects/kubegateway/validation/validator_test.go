@@ -12,8 +12,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/kubegateway/validation"
-	"github.com/solo-io/gloo/projects/kubegateway/wellknown"
 	envoybuffer "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/buffer/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection"
@@ -25,6 +23,8 @@ import (
 	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/upstreams/consul/mocks"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	gloovalidation "github.com/solo-io/gloo/projects/gloo/pkg/validation"
+	"github.com/solo-io/gloo/projects/kubegateway/validation"
+	"github.com/solo-io/gloo/projects/kubegateway/wellknown"
 	"github.com/solo-io/gloo/test/samples"
 	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"

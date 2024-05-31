@@ -8,13 +8,13 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"k8s.io/apimachinery/pkg/types"
 
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/kubegateway/proxy_syncer"
 	gwplugins "github.com/solo-io/gloo/projects/kubegateway/translator/plugins"
 	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/registry"
 	"github.com/solo-io/gloo/projects/kubegateway/translator/translatorutils"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
-	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
 
 // HandleProxyReports should conform to the OnProxiesTranslatedFn and QueueStatusForProxiesFn signatures

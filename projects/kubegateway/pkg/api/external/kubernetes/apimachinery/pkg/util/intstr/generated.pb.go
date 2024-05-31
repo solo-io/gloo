@@ -64,7 +64,7 @@ type IntOrString struct {
 func (x *IntOrString) Reset() {
 	*x = IntOrString{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_msgTypes[0]
+		mi := &file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -77,7 +77,7 @@ func (x *IntOrString) String() string {
 func (*IntOrString) ProtoMessage() {}
 
 func (x *IntOrString) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_msgTypes[0]
+	mi := &file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -90,7 +90,7 @@ func (x *IntOrString) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IntOrString.ProtoReflect.Descriptor instead.
 func (*IntOrString) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescGZIP(), []int{0}
+	return file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *IntOrString) GetType() int64 {
@@ -114,49 +114,50 @@ func (x *IntOrString) GetStrVal() string {
 	return ""
 }
 
-var File_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto protoreflect.FileDescriptor
+var File_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto protoreflect.FileDescriptor
 
-var file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDesc = []byte{
-	0x0a, 0x6e, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c,
+var file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDesc = []byte{
+	0x0a, 0x71, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c,
 	0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63,
-	0x74, 0x73, 0x2f, 0x67, 0x61, 0x74, 0x65, 0x77, 0x61, 0x79, 0x32, 0x2f, 0x61, 0x70, 0x69, 0x2f,
-	0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x6b, 0x75, 0x62, 0x65, 0x72, 0x6e, 0x65,
-	0x74, 0x65, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x6d, 0x61, 0x63, 0x68, 0x69, 0x6e, 0x65, 0x72, 0x79,
-	0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x75, 0x74, 0x69, 0x6c, 0x2f, 0x69, 0x6e, 0x74, 0x73, 0x74, 0x72,
-	0x2f, 0x67, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x12, 0x23, 0x6b, 0x38, 0x73, 0x2e, 0x69, 0x6f, 0x2e, 0x61, 0x70, 0x69, 0x6d, 0x61, 0x63, 0x68,
-	0x69, 0x6e, 0x65, 0x72, 0x79, 0x2e, 0x70, 0x6b, 0x67, 0x2e, 0x75, 0x74, 0x69, 0x6c, 0x2e, 0x69,
-	0x6e, 0x74, 0x73, 0x74, 0x72, 0x22, 0x51, 0x0a, 0x0b, 0x49, 0x6e, 0x74, 0x4f, 0x72, 0x53, 0x74,
-	0x72, 0x69, 0x6e, 0x67, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x03, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x69, 0x6e, 0x74, 0x56,
-	0x61, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x69, 0x6e, 0x74, 0x56, 0x61, 0x6c,
-	0x12, 0x16, 0x0a, 0x06, 0x73, 0x74, 0x72, 0x56, 0x61, 0x6c, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x06, 0x73, 0x74, 0x72, 0x56, 0x61, 0x6c, 0x42, 0x64, 0x5a, 0x62, 0x67, 0x69, 0x74, 0x68,
-	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x67,
-	0x6c, 0x6f, 0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x67, 0x61, 0x74,
-	0x65, 0x77, 0x61, 0x79, 0x32, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x65, 0x78,
-	0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x6b, 0x75, 0x62, 0x65, 0x72, 0x6e, 0x65, 0x74, 0x65,
-	0x73, 0x2f, 0x61, 0x70, 0x69, 0x6d, 0x61, 0x63, 0x68, 0x69, 0x6e, 0x65, 0x72, 0x79, 0x2f, 0x70,
-	0x6b, 0x67, 0x2f, 0x75, 0x74, 0x69, 0x6c, 0x2f, 0x69, 0x6e, 0x74, 0x73, 0x74, 0x72,
+	0x74, 0x73, 0x2f, 0x6b, 0x75, 0x62, 0x65, 0x67, 0x61, 0x74, 0x65, 0x77, 0x61, 0x79, 0x2f, 0x61,
+	0x70, 0x69, 0x2f, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x6b, 0x75, 0x62, 0x65,
+	0x72, 0x6e, 0x65, 0x74, 0x65, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x6d, 0x61, 0x63, 0x68, 0x69, 0x6e,
+	0x65, 0x72, 0x79, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x75, 0x74, 0x69, 0x6c, 0x2f, 0x69, 0x6e, 0x74,
+	0x73, 0x74, 0x72, 0x2f, 0x67, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x12, 0x23, 0x6b, 0x38, 0x73, 0x2e, 0x69, 0x6f, 0x2e, 0x61, 0x70, 0x69, 0x6d,
+	0x61, 0x63, 0x68, 0x69, 0x6e, 0x65, 0x72, 0x79, 0x2e, 0x70, 0x6b, 0x67, 0x2e, 0x75, 0x74, 0x69,
+	0x6c, 0x2e, 0x69, 0x6e, 0x74, 0x73, 0x74, 0x72, 0x22, 0x51, 0x0a, 0x0b, 0x49, 0x6e, 0x74, 0x4f,
+	0x72, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x69,
+	0x6e, 0x74, 0x56, 0x61, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x69, 0x6e, 0x74,
+	0x56, 0x61, 0x6c, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x74, 0x72, 0x56, 0x61, 0x6c, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x74, 0x72, 0x56, 0x61, 0x6c, 0x42, 0x67, 0x5a, 0x65, 0x67,
+	0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69,
+	0x6f, 0x2f, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f,
+	0x6b, 0x75, 0x62, 0x65, 0x67, 0x61, 0x74, 0x65, 0x77, 0x61, 0x79, 0x2f, 0x70, 0x6b, 0x67, 0x2f,
+	0x61, 0x70, 0x69, 0x2f, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x6b, 0x75, 0x62,
+	0x65, 0x72, 0x6e, 0x65, 0x74, 0x65, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x6d, 0x61, 0x63, 0x68, 0x69,
+	0x6e, 0x65, 0x72, 0x79, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x75, 0x74, 0x69, 0x6c, 0x2f, 0x69, 0x6e,
+	0x74, 0x73, 0x74, 0x72,
 }
 
 var (
-	file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescOnce sync.Once
-	file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescData = file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDesc
+	file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescOnce sync.Once
+	file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescData = file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDesc
 )
 
-func file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescGZIP() []byte {
-	file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescOnce.Do(func() {
-		file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescData = protoimpl.X.CompressGZIP(file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescData)
+func file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescGZIP() []byte {
+	file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescOnce.Do(func() {
+		file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescData = protoimpl.X.CompressGZIP(file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescData)
 	})
-	return file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescData
+	return file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDescData
 }
 
-var file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_goTypes = []interface{}{
+var file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_goTypes = []interface{}{
 	(*IntOrString)(nil), // 0: k8s.io.apimachinery.pkg.util.intstr.IntOrString
 }
-var file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_depIdxs = []int32{
+var file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -165,14 +166,14 @@ var file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apima
 }
 
 func init() {
-	file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_init()
+	file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_init()
 }
-func file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_init() {
-	if File_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto != nil {
+func file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_init() {
+	if File_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*IntOrString); i {
 			case 0:
 				return &v.state
@@ -189,18 +190,18 @@ func file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apim
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDesc,
+			RawDescriptor: file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_goTypes,
-		DependencyIndexes: file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_depIdxs,
-		MessageInfos:      file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_msgTypes,
+		GoTypes:           file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_goTypes,
+		DependencyIndexes: file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_depIdxs,
+		MessageInfos:      file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_msgTypes,
 	}.Build()
-	File_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto = out.File
-	file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDesc = nil
-	file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_goTypes = nil
-	file_github_com_solo_io_gloo_projects_gateway2_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_depIdxs = nil
+	File_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto = out.File
+	file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_rawDesc = nil
+	file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_goTypes = nil
+	file_github_com_solo_io_gloo_projects_kubegateway_api_external_kubernetes_apimachinery_pkg_util_intstr_generated_proto_depIdxs = nil
 }

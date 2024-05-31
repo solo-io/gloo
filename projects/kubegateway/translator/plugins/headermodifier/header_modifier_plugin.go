@@ -5,10 +5,10 @@ import (
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	errors "github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins"
-	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/headers"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins"
+	"github.com/solo-io/gloo/projects/kubegateway/translator/plugins/utils"
 	"github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )

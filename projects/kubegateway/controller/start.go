@@ -10,15 +10,15 @@ import (
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	api "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/kubegateway/controller/scheme"
 	"github.com/solo-io/gloo/projects/kubegateway/extensions"
 	"github.com/solo-io/gloo/projects/kubegateway/proxy_syncer"
 	"github.com/solo-io/gloo/projects/kubegateway/secrets"
 	"github.com/solo-io/gloo/projects/kubegateway/wellknown"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	api "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 )
 

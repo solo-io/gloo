@@ -6,9 +6,9 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/kubegateway/crds"
 	"github.com/solo-io/gloo/projects/kubegateway/deployer"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
