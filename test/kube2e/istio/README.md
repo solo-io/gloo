@@ -87,7 +87,7 @@ ci/kind/setup-kind.sh; make kind-build-and-load
 2. Install Istio
 
 ```shell
-./projects/gateway2/istio.sh
+./projects/kubegateway/istio.sh
 ```
 
 ```shell

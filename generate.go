@@ -13,9 +13,9 @@ import (
 func main() {
 	log.Printf("starting generate for gloo")
 
-	// Explicitly specify the directories to be built (i.e. do not build gateway2 since
-	// it causes compilation errors in solo-kit, and also because gateway2 protos are not
-	// needed for gloo edge classic). See `projects/gateway2/api/README.md` for more info.
+	// Explicitly specify the directories to be built (i.e. do not build kubegateway since
+	// it causes compilation errors in solo-kit, and also because kubegateway protos are not
+	// needed for gloo edge classic). See `projects/kubegateway/api/README.md` for more info.
 	protoImports := sk_anyvendor.CreateDefaultMatchOptions(
 		[]string{
 			"projects/gloo/**/*.proto",
