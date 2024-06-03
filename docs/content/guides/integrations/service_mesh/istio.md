@@ -35,7 +35,7 @@ Install the Gloo Edge gateway and inject it with an Istio sidecar.
    helm repo update
    ```
       
-3. Create a `value-overrides.yaml` file with the following content. To configure your gateway with an Istio sidecar, make sure to add the `istioIntegration` section and set the `enableIstioSidecarOnGateway` option to `true`. 
+3. Create a `value-overrides.yaml` file with the following content. To configure your gateway with an Istio sidecar, make sure to add the `istioIntegration` section and set the `enableIstioSidecarOnGateway` option to `true`.
    ```yaml
    global:
      istioIntegration:
@@ -49,7 +49,7 @@ Install the Gloo Edge gateway and inject it with an Istio sidecar.
          httpsPort: 8443
    ```
    
-4. Install or upgrade Gloo Edge. 
+1. Install or upgrade Gloo Edge. 
    {{< tabs >}} 
    {{< tab name="Install Gloo Edge">}}
 
