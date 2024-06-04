@@ -10,7 +10,6 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	query "github.com/solo-io/gloo/projects/gateway2/query"
-	types "k8s.io/apimachinery/pkg/types"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 	v1 "sigs.k8s.io/gateway-api/apis/v1"
 )
@@ -53,19 +52,19 @@ func (mr *MockGatewayQueriesMockRecorder) GetBackendForRef(arg0, arg1, arg2 inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBackendForRef", reflect.TypeOf((*MockGatewayQueries)(nil).GetBackendForRef), arg0, arg1, arg2)
 }
 
-// GetDelegatedRoutes mocks base method.
-func (m *MockGatewayQueries) GetDelegatedRoutes(arg0 context.Context, arg1 v1.BackendObjectReference, arg2 v1.HTTPRouteMatch, arg3 types.NamespacedName) ([]v1.HTTPRoute, error) {
+// GetHTTPRouteChains mocks base method.
+func (m *MockGatewayQueries) GetHTTPRouteChains(arg0 context.Context, arg1 *v1.Gateway) (query.GatewayHTTPRouteInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDelegatedRoutes", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].([]v1.HTTPRoute)
+	ret := m.ctrl.Call(m, "GetHTTPRouteChains", arg0, arg1)
+	ret0, _ := ret[0].(query.GatewayHTTPRouteInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetDelegatedRoutes indicates an expected call of GetDelegatedRoutes.
-func (mr *MockGatewayQueriesMockRecorder) GetDelegatedRoutes(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+// GetHTTPRouteChains indicates an expected call of GetHTTPRouteChains.
+func (mr *MockGatewayQueriesMockRecorder) GetHTTPRouteChains(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegatedRoutes", reflect.TypeOf((*MockGatewayQueries)(nil).GetDelegatedRoutes), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHTTPRouteChains", reflect.TypeOf((*MockGatewayQueries)(nil).GetHTTPRouteChains), arg0, arg1)
 }
 
 // GetLocalObjRef mocks base method.
@@ -81,21 +80,6 @@ func (m *MockGatewayQueries) GetLocalObjRef(arg0 context.Context, arg1 query.Fro
 func (mr *MockGatewayQueriesMockRecorder) GetLocalObjRef(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocalObjRef", reflect.TypeOf((*MockGatewayQueries)(nil).GetLocalObjRef), arg0, arg1, arg2)
-}
-
-// GetRoutesForGw mocks base method.
-func (m *MockGatewayQueries) GetRoutesForGw(arg0 context.Context, arg1 *v1.Gateway) (query.RoutesForGwResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRoutesForGw", arg0, arg1)
-	ret0, _ := ret[0].(query.RoutesForGwResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetRoutesForGw indicates an expected call of GetRoutesForGw.
-func (mr *MockGatewayQueriesMockRecorder) GetRoutesForGw(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoutesForGw", reflect.TypeOf((*MockGatewayQueries)(nil).GetRoutesForGw), arg0, arg1)
 }
 
 // GetSecretForRef mocks base method.
