@@ -2,6 +2,7 @@ package extensions
 
 import (
 	"context"
+	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 
@@ -27,6 +28,7 @@ type K8sGatewayExtensionsFactoryParameters struct {
 	VirtualHostOptionClient gatewayv1.VirtualHostOptionClient
 	StatusReporter          reporter.StatusReporter
 	KickXds                 func(ctx context.Context)
+	Identity                leaderelector.Identity
 }
 
 // K8sGatewayExtensionsFactory returns an extensions.K8sGatewayExtensions

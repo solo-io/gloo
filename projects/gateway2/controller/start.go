@@ -114,6 +114,7 @@ func Start(ctx context.Context, cfg StartConfig) error {
 		StatusReporter:          cfg.StatusReporter,
 		KickXds:                 inputChannels.Kick,
 		AuthConfigClient:        cfg.AuthConfigClient,
+		Identity:                cfg.Opts.Identity,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to create k8s gw extensions")
