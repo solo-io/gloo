@@ -54,11 +54,11 @@ func (c *cliPortForwarder) StartAndWaitForConn(ctx context.Context, options ...r
 	}
 
 	return retry.Do(func() error {
-		c, err := net.Dial("tcp4", c.Address())
+		conn, err := net.Dial("tcp4", c.Address())
 		if err != nil {
 			return err
 		}
-		c.Close()
+		conn.Close()
 		return nil
 
 	}, options...)

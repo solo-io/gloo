@@ -54,9 +54,30 @@ type apiPortForwarder struct {
 	restConfig *rest.Config
 }
 
+// Start will attempt to open a port forward using the retry options provided. This function
+// makes no guarantees that the port forward will be accepting requests when returning nil.
+// It is advised to use StartAndWaitForConn if not handling this in calling code.
 func (f *apiPortForwarder) Start(ctx context.Context, options ...retry.Option) error {
 	return retry.Do(func() error {
 		return f.startOnce(ctx)
+	}, options...)
+}
+
+// StartAndWaitForConn behaves similarly to Start, but will use the options passed in to
+// additionally wait for the port forward to respond to a net.Dial.
+func (f *apiPortForwarder) StartAndWaitForConn(ctx context.Context, options ...retry.Option) error {
+	if err := f.Start(ctx, options...); err != nil {
+		return err
+	}
+
+	return retry.Do(func() error {
+		conn, err := net.Dial("tcp4", f.Address())
+		if err != nil {
+			return err
+		}
+		conn.Close()
+		return nil
+
 	}, options...)
 }
 
