@@ -37,9 +37,30 @@ type cliPortForwarder struct {
 	cmdCancel context.CancelFunc
 }
 
+// Start will attempt to open a port forward using the retry options provided. This function
+// makes no guarantees that the port forward will be accepting requests when returning nil.
+// It is advised to use StartAndWaitForConn if not handling this in calling code.
 func (c *cliPortForwarder) Start(ctx context.Context, options ...retry.Option) error {
 	return retry.Do(func() error {
 		return c.startOnce(ctx)
+	}, options...)
+}
+
+// StartAndWaitForConn behaves similarly to Start, but will use the options passed in to
+// additionally wait for the port forward to respond to a net.Dial.
+func (c *cliPortForwarder) StartAndWaitForConn(ctx context.Context, options ...retry.Option) error {
+	if err := c.Start(ctx, options...); err != nil {
+		return err
+	}
+
+	return retry.Do(func() error {
+		c, err := net.Dial("tcp4", c.Address())
+		if err != nil {
+			return err
+		}
+		c.Close()
+		return nil
+
 	}, options...)
 }
 

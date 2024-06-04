@@ -221,7 +221,7 @@ func PortForward(ctx context.Context, namespace string, resource string, localPo
 		portforward.WithWriters(outWriter, errWriter),
 	)
 
-	err = portForwarder.Start(ctx, defaultRetryOptions...)
+	err = portForwarder.StartAndWaitForConn(ctx, defaultRetryOptions...)
 	if err != nil {
 		return nil, err
 	}

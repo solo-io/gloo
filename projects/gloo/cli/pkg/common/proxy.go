@@ -131,7 +131,7 @@ func requestProxiesFromControlPlane(opts *options.Options, request *debug.ProxyE
 		portforward.WithRemotePort(remotePort),
 		portforward.WithWriters(outWriter, errWriter),
 	)
-	if err := portForwarder.Start(
+	if err := portForwarder.StartAndWaitForConn(
 		requestCtx,
 		retry.LastErrorOnly(true),
 		retry.Delay(100*time.Millisecond),
