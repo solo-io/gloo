@@ -2,6 +2,7 @@ package deployer
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/onsi/gomega"
@@ -119,7 +120,7 @@ func serverInfoLogLevelAssertion(testInstallation *e2e.TestInstallation, expecte
 	return func(ctx context.Context, adminClient *admincli.Client) {
 		testInstallation.Assertions.Gomega.Eventually(func(g gomega.Gomega) {
 			serverInfo, err := adminClient.GetServerInfo(ctx)
-			g.Expect(err).NotTo(gomega.HaveOccurred(), "can get server info")
+			g.Expect(err).NotTo(gomega.HaveOccurred(), fmt.Sprintf("can get server info, err: %+v", err))
 			g.Expect(serverInfo.GetCommandLineOptions().GetLogLevel()).To(
 				gomega.Equal(expectedLogLevel), "defined on the GatewayParameters CR")
 			g.Expect(serverInfo.GetCommandLineOptions().GetComponentLogLevel()).To(
