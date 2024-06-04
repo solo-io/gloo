@@ -45,7 +45,7 @@ func GetEnvoyAdminData(ctx context.Context, proxyName, namespace, path string, t
 
 	adminPort := int(defaults.EnvoyAdminPort)
 
-	pf := portforward.NewPortForwarder(portforward.WithDeployment(namespace, proxyName), portforward.WithPorts(adminPort, adminPort))
+	pf := portforward.NewPortForwarder(portforward.WithDeployment(proxyName, namespace), portforward.WithPorts(adminPort, adminPort))
 	err := pf.Start(ctx,
 		retry.LastErrorOnly(true),
 		retry.Delay(100*time.Millisecond),
