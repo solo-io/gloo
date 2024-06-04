@@ -27,36 +27,23 @@ var _ = Describe("Portforwarder test", func() {
 
 	AfterEach(func() {
 		cancel()
+		pf.Close()
+		pf.WaitForStop()
 	})
 
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
+		// We are using kube-dns because we know we have a kubectl and a kind cluster on our CI
+		// env. If that ever changes we need to re-assess this test strategy.
+		// We are using port 30053 because 53 is privileged.
 		pf = NewPortForwarder(WithService("kube-dns", "kube-system"), WithPorts(30053, 53))
 	})
 
-	It("Creates a flaky portforward with Start", func() {
-		Eventually(func(g Gomega) error {
-			err := pf.Start(ctx, defaultRetryOptions...)
-			if err != nil {
-				return err
-			}
-
-			_, err = net.Dial("tcp4", pf.Address())
-			if err != nil {
-				pf.Close()
-				return err
-			}
-			pf.Close()
-			return nil
-		}, time.Minute, time.Millisecond*100).ShouldNot(Succeed())
-	})
-
-	It("Creates a usable portforward with StartAndWaitForConn", func() {
-		err := pf.StartAndWaitForConn(ctx, defaultRetryOptions...)
+	It("Creates a usable portforward with Start", func() {
+		err := pf.Start(ctx, defaultRetryOptions...)
 		Expect(err).ToNot(HaveOccurred())
 		_, err = net.Dial("tcp4", pf.Address())
 		Expect(err).ToNot(HaveOccurred())
-		pf.Close()
 
 	})
 })

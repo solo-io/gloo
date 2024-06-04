@@ -12,14 +12,9 @@ import (
 // Implementations are NOT thread-safe, as the goroutine that Starts the PortForward
 // should also be the one that Closes it
 type PortForwarder interface {
-	// Start will attempt to open a port forward using the retry options provided. This function
-	// makes no guarantees that the port forward will be accepting requests when returning nil.
-	// It is advised to use StartAndWaitForConn if not handling this in calling code.
+	// Start will attempt to open a port forward using the retry options provided. A nil return
+	// value indicates the port-forward succeeded and is safe to dial.
 	Start(ctx context.Context, options ...retry.Option) error
-
-	// StartAndWaitForConn behaves similarly to Start, but will use the options passed in to
-	// additionally wait for the port forward to respond to a net.Dial.
-	StartAndWaitForConn(ctx context.Context, options ...retry.Option) error
 
 	// Address returns the local forwarded address. Only valid while the apiPortForwarder is running.
 	Address() string

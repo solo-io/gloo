@@ -177,7 +177,7 @@ func (c *Cli) StartPortForward(ctx context.Context, options ...portforward.Optio
 	}, options...)
 
 	portForwarder := portforward.NewCliPortForwarder(options...)
-	err := portForwarder.StartAndWaitForConn(
+	err := portForwarder.Start(
 		ctx,
 		retry.LastErrorOnly(true),
 		retry.Delay(100*time.Millisecond),
