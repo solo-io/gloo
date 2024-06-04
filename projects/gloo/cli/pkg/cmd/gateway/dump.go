@@ -6,14 +6,13 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
-	"os/exec"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/solo-io/go-utils/cliutils"
 
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -43,19 +42,23 @@ func GetEnvoyAdminData(ctx context.Context, proxyName, namespace, path string, t
 	if !strings.HasPrefix(path, "/") {
 		path = "/" + path
 	}
-	adminPort := strconv.Itoa(int(defaults.EnvoyAdminPort))
-	portFwd := exec.Command("kubectl", "port-forward", "-n", namespace,
-		"deployment/"+proxyName, adminPort)
-	portFwd.Stdout = os.Stderr
-	portFwd.Stderr = os.Stderr
-	if err := portFwd.Start(); err != nil {
+
+	adminPort := int(defaults.EnvoyAdminPort)
+
+	pf := portforward.NewPortForwarder(portforward.WithDeployment(namespace, proxyName), portforward.WithPorts(adminPort, adminPort))
+	err := pf.Start(ctx,
+		retry.LastErrorOnly(true),
+		retry.Delay(100*time.Millisecond),
+		retry.DelayType(retry.BackOffDelay),
+		retry.Attempts(5))
+	if err != nil {
 		return "", errors.Wrapf(err, "failed to start port-forward")
 	}
 	defer func() {
-		if portFwd.Process != nil {
-			portFwd.Process.Kill()
-		}
+		pf.Close()
+		pf.WaitForStop()
 	}()
+
 	result := make(chan string)
 	errs := make(chan error)
 	go func() {
@@ -65,7 +68,7 @@ func GetEnvoyAdminData(ctx context.Context, proxyName, namespace, path string, t
 				return
 			default:
 			}
-			res, err := http.Get("http://localhost:" + adminPort + path)
+			res, err := http.Get(pf.Address() + path)
 			if err != nil {
 				errs <- err
 				time.Sleep(time.Millisecond * 250)
