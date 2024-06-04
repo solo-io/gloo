@@ -25,17 +25,17 @@ jobs:
         # We require gathering the branch and tag history since we rely on a `git diff`
         # which compares the state of two branches
         fetch-depth: 0
-    - id: process-skip-directives
-      uses: ./.github/workflows/composite-actions/process-skip-directives
-      with:
-        base-ref: ${{ github.base_ref }}
-    - id: run-strategy
-      name: Determine Test Run Strategy
-      run: |
-        skip_kube_tests=${{ steps.process-skip-directives.outputs.skip-kube-tests }}
-        if [[ ! -z $skip_kube_tests && $skip_kube_tests = true ]] ; then
-          echo "auto_succeed=true" >> $GITHUB_OUTPUT
-        fi
+    # - id: process-skip-directives
+    #   uses: ./.github/workflows/composite-actions/process-skip-directives
+    #   with:
+    #     base-ref: ${{ github.base_ref }}
+    # - id: run-strategy
+    #   name: Determine Test Run Strategy
+    #   run: |
+    #     skip_kube_tests=${{ steps.process-skip-directives.outputs.skip-kube-tests }}
+    #     if [[ ! -z $skip_kube_tests && $skip_kube_tests = true ]] ; then
+    #       echo "auto_succeed=true" >> $GITHUB_OUTPUT
+    #     fi
 
   end_to_end_tests:
     name: End-to-End (${{ matrix.test.cluster-name }})
