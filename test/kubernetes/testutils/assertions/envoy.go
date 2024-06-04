@@ -3,8 +3,6 @@ package assertions
 import (
 	"context"
 	"io"
-	"net"
-	"time"
 
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,17 +29,6 @@ func (p *Provider) AssertEnvoyAdminApi(
 		portForwarder.Close()
 		portForwarder.WaitForStop()
 	}()
-
-	// the port-forward returns before it completely starts up (https://github.com/solo-io/gloo/issues/9353),
-	// so as a workaround we try to keep dialing the address until it succeeds
-	p.Gomega.Eventually(func(g Gomega) {
-		_, err = net.Dial("tcp", portForwarder.Address())
-		g.Expect(err).NotTo(HaveOccurred())
-	}).
-		WithContext(ctx).
-		WithTimeout(time.Second * 15).
-		WithPolling(time.Second).
-		Should(Succeed())
 
 	adminClient := admincli.NewClient().
 		WithReceiver(io.Discard). // adminAssertion can overwrite this
