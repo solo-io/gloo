@@ -31,7 +31,7 @@ func TranslateListeners(
 	queries query.GatewayQueries,
 	pluginRegistry registry.PluginRegistry,
 	gateway *gwv1.Gateway,
-	routesForGw query.RoutesForGwResult,
+	routesForGw query.GatewayHTTPRouteInfo,
 	reporter reports.Reporter,
 ) []*v1.Listener {
 	validatedListeners := validateListeners(gateway, reporter.Gateway(gateway))
@@ -46,7 +46,7 @@ func mergeGWListeners(
 	gatewayNamespace string,
 	listeners []gwv1.Listener,
 	parentGw gwv1.Gateway,
-	routesForGw query.RoutesForGwResult,
+	routesForGw query.GatewayHTTPRouteInfo,
 	reporter reports.GatewayReporter,
 ) *mergedListeners {
 	ml := &mergedListeners{
@@ -55,18 +55,9 @@ func mergeGWListeners(
 		queries:          queries,
 	}
 	for _, listener := range listeners {
-		result, ok := routesForGw.ListenerResults[string(listener.Name)]
-		if !ok || result.Error != nil {
-			// TODO report
-			// TODO, if Error is not nil, this is a user-config error on selectors
-			// continue
-		}
+		result := routesForGw.ListenerResults[string(listener.Name)]
 		listenerReporter := reporter.Listener(&listener)
-		var routes []*query.ListenerRouteResult
-		if result != nil {
-			routes = result.Routes
-		}
-		ml.appendListener(listener, routes, listenerReporter)
+		ml.appendListener(listener, result, listenerReporter)
 	}
 	return ml
 }
@@ -80,7 +71,7 @@ type mergedListeners struct {
 
 func (ml *mergedListeners) appendListener(
 	listener gwv1.Listener,
-	routes []*query.ListenerRouteResult,
+	routes []*query.HTTPRouteInfo,
 	reporter reports.ListenerReporter,
 ) error {
 	switch listener.Protocol {
@@ -98,7 +89,7 @@ func (ml *mergedListeners) appendListener(
 
 func (ml *mergedListeners) appendHttpListener(
 	listener gwv1.Listener,
-	routesWithHosts []*query.ListenerRouteResult,
+	routesWithHosts []*query.HTTPRouteInfo,
 	reporter reports.ListenerReporter,
 ) {
 	parent := httpFilterChainParent{
@@ -108,7 +99,6 @@ func (ml *mergedListeners) appendHttpListener(
 
 	fc := &httpFilterChain{
 		parents: []httpFilterChainParent{parent},
-		queries: ml.queries,
 	}
 	listenerName := string(listener.Name)
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
@@ -140,7 +130,7 @@ func (ml *mergedListeners) appendHttpListener(
 
 func (ml *mergedListeners) appendHttpsListener(
 	listener gwv1.Listener,
-	routesWithHosts []*query.ListenerRouteResult,
+	routesWithHosts []*query.HTTPRouteInfo,
 	reporter reports.ListenerReporter,
 ) {
 	// create a new filter chain for the listener
@@ -287,12 +277,11 @@ func (ml *mergedListener) translateListener(
 // In the case where no GW Listener merging takes place, every listener will use a Gloo AggregatedListeener with 1 HTTP filter chain.
 type httpFilterChain struct {
 	parents []httpFilterChainParent
-	queries query.GatewayQueries
 }
 
 type httpFilterChainParent struct {
 	gatewayListenerName string
-	routesWithHosts     []*query.ListenerRouteResult
+	routesWithHosts     []*query.HTTPRouteInfo
 }
 
 func (httpFilterChain *httpFilterChain) translateHttpFilterChain(
@@ -310,7 +299,6 @@ func (httpFilterChain *httpFilterChain) translateHttpFilterChain(
 			parent.routesWithHosts,
 			listener,
 			pluginRegistry,
-			httpFilterChain.queries,
 			reporter,
 		)
 	}
@@ -343,7 +331,7 @@ type httpsFilterChain struct {
 	gatewayListenerName string
 	sniDomain           *gwv1.Hostname
 	tls                 *gwv1.GatewayTLSConfig
-	routesWithHosts     []*query.ListenerRouteResult
+	routesWithHosts     []*query.HTTPRouteInfo
 	queries             query.GatewayQueries
 }
 
@@ -365,7 +353,6 @@ func (httpsFilterChain *httpsFilterChain) translateHttpsFilterChain(
 		httpsFilterChain.routesWithHosts,
 		listener,
 		pluginRegistry,
-		httpsFilterChain.queries,
 		reporter,
 	)
 
@@ -423,20 +410,18 @@ func (httpsFilterChain *httpsFilterChain) translateHttpsFilterChain(
 func buildRoutesPerHost(
 	ctx context.Context,
 	routesByHost map[string]routeutils.SortableRoutes,
-	routes []*query.ListenerRouteResult,
+	routes []*query.HTTPRouteInfo,
 	gwListener gwv1.Listener,
 	pluginRegistry registry.PluginRegistry,
-	queries query.GatewayQueries,
 	reporter reports.Reporter,
 ) {
 	for _, routeWithHosts := range routes {
-		parentRefReporter := reporter.Route(&routeWithHosts.Route).ParentRef(&routeWithHosts.ParentRef)
+		parentRefReporter := reporter.Route(&routeWithHosts.HTTPRoute).ParentRef(routeWithHosts.ParentRef)
 		routes := httproute.TranslateGatewayHTTPRouteRules(
 			ctx,
 			pluginRegistry,
-			queries,
 			gwListener,
-			routeWithHosts.Route,
+			routeWithHosts,
 			parentRefReporter,
 			reporter,
 		)
@@ -446,13 +431,13 @@ func buildRoutesPerHost(
 			continue
 		}
 
-		hostnames := routeWithHosts.Hostnames
+		hostnames := routeWithHosts.Hostnames()
 		if len(hostnames) == 0 {
 			hostnames = []string{"*"}
 		}
 
 		for _, host := range hostnames {
-			routesByHost[host] = append(routesByHost[host], routeutils.ToSortable(&routeWithHosts.Route, routes)...)
+			routesByHost[host] = append(routesByHost[host], routeutils.ToSortable(&routeWithHosts.HTTPRoute, routes)...)
 		}
 	}
 }

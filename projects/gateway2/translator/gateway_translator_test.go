@@ -10,6 +10,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+func ExpectKeyWithNoDiff(results map[types.NamespacedName]string, key types.NamespacedName) {
+	Expect(results).To(HaveKey(key))
+	Expect(results[key]).To(BeEmpty())
+}
+
 var _ = Describe("GatewayTranslator", func() {
 	ctx := context.TODO()
 	dir := util.MustGetThisDir()
@@ -31,14 +36,10 @@ var _ = Describe("GatewayTranslator", func() {
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(HaveLen(1))
-		Expect(results).To(HaveKey(types.NamespacedName{
+		ExpectKeyWithNoDiff(results, types.NamespacedName{
 			Namespace: "default",
 			Name:      "example-gateway",
-		}))
-		Expect(results[types.NamespacedName{
-			Namespace: "default",
-			Name:      "example-gateway",
-		}]).To(BeTrue())
+		})
 	})
 
 	It("should translate a gateway with https routing", func() {
@@ -58,14 +59,10 @@ var _ = Describe("GatewayTranslator", func() {
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(HaveLen(1))
-		Expect(results).To(HaveKey(types.NamespacedName{
+		ExpectKeyWithNoDiff(results, types.NamespacedName{
 			Namespace: "default",
 			Name:      "example-gateway",
-		}))
-		Expect(results[types.NamespacedName{
-			Namespace: "default",
-			Name:      "example-gateway",
-		}]).To(BeTrue())
+		})
 	})
 
 	It("should translate an http gateway with multiple routing rules and use the HeaderModifier filter", func() {
@@ -85,10 +82,10 @@ var _ = Describe("GatewayTranslator", func() {
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(HaveLen(1))
-		Expect(results[types.NamespacedName{
+		ExpectKeyWithNoDiff(results, types.NamespacedName{
 			Namespace: "default",
 			Name:      "gw",
-		}]).To(BeTrue())
+		})
 	})
 
 	It("should translate an http gateway with a lambda destination", func() {
@@ -154,10 +151,10 @@ var _ = Describe("GatewayTranslator", func() {
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(HaveLen(1))
-		Expect(results).To(HaveKeyWithValue(types.NamespacedName{
+		ExpectKeyWithNoDiff(results, types.NamespacedName{
 			Namespace: "infra",
 			Name:      "example-gateway",
-		}, BeTrue()))
+		})
 	})
 })
 
@@ -182,10 +179,10 @@ var _ = DescribeTable("Route Delegation translator",
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(HaveLen(1))
-		Expect(results).To(HaveKeyWithValue(types.NamespacedName{
+		ExpectKeyWithNoDiff(results, types.NamespacedName{
 			Namespace: "infra",
 			Name:      "example-gateway",
-		}, BeTrue()))
+		})
 	},
 	Entry("Basic config", "basic.yaml"),
 	Entry("Child matches parent via parentRefs", "basic_parentref_match.yaml"),
