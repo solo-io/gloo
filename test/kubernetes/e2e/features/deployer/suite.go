@@ -3,8 +3,6 @@ package deployer
 import (
 	"context"
 	"fmt"
-	//"io"
-	//"net/http"
 	"time"
 
 	"github.com/onsi/gomega"
@@ -121,12 +119,6 @@ func (s *testingSuite) getterForMeta(meta *metav1.ObjectMeta) helpers.InputResou
 func serverInfoLogLevelAssertion(testInstallation *e2e.TestInstallation, expectedLogLevel, expectedComponentLogLevel string) func(ctx context.Context, adminClient *admincli.Client) {
 	return func(ctx context.Context, adminClient *admincli.Client) {
 		testInstallation.Assertions.Gomega.Eventually(func(g gomega.Gomega) {
-			//resp, err := http.Get("http://127.0.0.1:19000/server_info")
-			//g.Expect(err).NotTo(gomega.HaveOccurred(), fmt.Sprintf("raw req to server_info err: %+v", err))
-			//defer resp.Body.Close()
-			//b, err := io.ReadAll(resp.Body)
-			//g.Expect(err).NotTo(gomega.HaveOccurred(), fmt.Sprintf("reading server_info resp body err: %+v", err))
-			//fmt.Println(string(b))
 			serverInfo, err := adminClient.GetServerInfo(ctx)
 			g.Expect(err).NotTo(gomega.HaveOccurred(), fmt.Sprintf("can get server info, err: %+v", err))
 			g.Expect(serverInfo.GetCommandLineOptions().GetLogLevel()).To(
