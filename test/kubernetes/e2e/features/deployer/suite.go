@@ -3,8 +3,8 @@ package deployer
 import (
 	"context"
 	"fmt"
-	"io"
-	"net/http"
+	//"io"
+	//"net/http"
 	"time"
 
 	"github.com/onsi/gomega"
