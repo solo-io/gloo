@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/gomega/transforms"
+	"github.com/solo-io/go-utils/threadsafe"
 )
 
 // EventuallyEnvoyReachable checks that the deployment is ready, opens a port-forward, and
@@ -53,13 +54,17 @@ func (p *Provider) EventuallyEnvoyReachable(
 
 	// We are NOT using the AssertEventualCurlResponse here because we are testing connectivity from
 	// the port forward, i.e. outside the cluster.
-	Eventually(func() {
-		curlCmd := cmdutils.Command(ctx, "curl", curl.BuildArgs(curl.WithHostPort(pf.Address()), curl.WithPath(checkPath))...)
+	Eventually(func(g Gomega) {
 		expectedResponseMatcher := WithTransform(transforms.WithCurlHttpResponse, matchers.HaveHttpResponse(&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
 			Body:       gstruct.Ignore(),
 		}))
-		Expect(curlCmd.Run().OutputString()).To(expectedResponseMatcher)
+
+		var buf threadsafe.Buffer
+		curlCmd := cmdutils.Command(ctx, "curl", curl.BuildArgs(curl.WithHostPort(pf.Address()), curl.WithPath(checkPath), curl.VerboseOutput(), curl.WithHeadersOnly())...)
+		err := curlCmd.WithStdout(&buf).WithStderr(&buf).Run()
+		g.Expect(err).ToNot(HaveOccurred(), "executing curl command")
+		g.Expect(buf.String()).To(expectedResponseMatcher)
 	}).WithTimeout(time.Second * 3).WithPolling(time.Millisecond * 100).Should(Succeed())
 
 	return pfClose
