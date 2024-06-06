@@ -230,11 +230,14 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 
 func (p *Plugin) requiresUpstreamFilter(listener *v1.HttpListener, stagedTransformations *transformation.TransformationStages) {
 	if stagedTransformations.GetPostRouting() != nil {
+		fmt.Printf("ADDING UPSTREAM FILTER FOR LISTENER %p\n", listener)
 		p.upstreamFilterRequiredForListener[listener] = struct{}{}
 	}
 }
 
 func (p *Plugin) UpstreamHttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedUpstreamHttpFilter, error) {
+
+	fmt.Printf("CHECKING IF REQUIRED FOR LISTENER %p\n", listener)
 	if _, ok := p.upstreamFilterRequiredForListener[listener]; !ok {
 		return nil, nil
 	}
