@@ -3,6 +3,7 @@ package httproute
 import (
 	"container/list"
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -62,7 +63,7 @@ func translateGatewayHTTPRouteRulesUtil(
 	hostnames []gwv1.Hostname,
 	delegationChain *list.List,
 ) {
-	for _, rule := range route.Spec.Rules {
+	for idx, rule := range route.Spec.Rules {
 		rule := rule
 		if rule.Matches == nil {
 			// from the spec:
@@ -76,6 +77,7 @@ func translateGatewayHTTPRouteRulesUtil(
 			queries,
 			gwListener,
 			&route,
+			idx,
 			rule,
 			reporter,
 			baseReporter,
@@ -102,6 +104,7 @@ func translateGatewayHTTPRouteRule(
 	queries query.GatewayQueries,
 	gwListener gwv1.Listener,
 	gwroute *gwv1.HTTPRoute,
+	ruleIndex int,
 	rule gwv1.HTTPRouteRule,
 	reporter reports.ParentRefReporter,
 	baseReporter reports.Reporter,
@@ -117,6 +120,7 @@ func translateGatewayHTTPRouteRule(
 			Matchers: []*matchers.Matcher{translateGlooMatcher(match)},
 			Action:   nil,
 			Options:  &v1.RouteOptions{},
+			Name:     fmt.Sprintf("%s-%s-%d-%d", gwroute.Name, gwroute.Namespace, ruleIndex, idx),
 		}
 
 		var delegatedRoutes []*v1.Route
