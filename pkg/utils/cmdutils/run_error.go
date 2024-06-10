@@ -6,17 +6,24 @@ import (
 	"strings"
 )
 
-// RunError represents an error running a Cmd
-type RunError struct {
+type RunError interface {
+	Error() string
+	PrettyCommand() string
+	OutputString() string
+	Cause() error
+}
+
+// localRunError represents an error running a Cmd
+type localRunError struct {
 	command    []string // [Name Args...]
 	output     []byte   // Captured Stdout / Stderr of the command
 	inner      error    // Underlying error if any
 	stackTrace error
 }
 
-var _ error = &RunError{}
+var _ error = &localRunError{}
 
-func (e *RunError) Error() string {
+func (e *localRunError) Error() string {
 	if e == nil {
 		return ""
 	}
@@ -25,7 +32,7 @@ func (e *RunError) Error() string {
 
 // PrettyCommand pretty prints the command in a way that could be pasted
 // into a shell
-func (e *RunError) PrettyCommand() string {
+func (e *localRunError) PrettyCommand() string {
 	if e == nil {
 		return "RunError is nil"
 	}
@@ -42,7 +49,7 @@ func (e *RunError) PrettyCommand() string {
 	return PrettyCommand(e.command[0], e.command[1:]...)
 }
 
-func (e *RunError) OutputString() string {
+func (e *localRunError) OutputString() string {
 	if e == nil {
 		return ""
 	}
@@ -50,7 +57,7 @@ func (e *RunError) OutputString() string {
 }
 
 // Cause mimics github.com/pkg/errors's Cause pattern for errors
-func (e *RunError) Cause() error {
+func (e *localRunError) Cause() error {
 	if e == nil {
 		return nil
 	}

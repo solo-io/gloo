@@ -2,16 +2,18 @@ package listener_options
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	"github.com/solo-io/gloo/test/kubernetes/testutils/assertions"
+	"github.com/solo-io/gloo/test/kubernetes/testutils/cmd/envoyadmin"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -97,13 +99,16 @@ func (s *testingSuite) TestConfigureListenerOptions() {
 	s.testInstallation.Assertions.AssertEnvoyAdminApi(
 		s.ctx,
 		proxyDeployment.ObjectMeta,
-		listenerBufferLimitAssertion(s.testInstallation),
+		s.listenerBufferLimitAssertion(s.testInstallation),
 	)
 }
 
-func listenerBufferLimitAssertion(testInstallation *e2e.TestInstallation) func(ctx context.Context, adminClient *admincli.Client) {
-	return func(ctx context.Context, adminClient *admincli.Client) {
+func (s *testingSuite) listenerBufferLimitAssertion(testInstallation *e2e.TestInstallation) assertions.EnvoyAdminAssertion {
+	return func(ctx context.Context, adminClient *envoyadmin.Client, clientRefresh func(ctx context.Context, adminClient *envoyadmin.Client, expectedReplicas int) *envoyadmin.Client) {
 		testInstallation.Assertions.Gomega.Eventually(func(g gomega.Gomega) {
+			adminClient = clientRefresh(ctx, adminClient, 1).
+				WithKubeContext(s.testInstallation.ClusterContext.KubeContext).
+				WithReceiver(os.Stdout)
 			listener, err := adminClient.GetSingleListenerFromDynamicListeners(ctx, "http")
 			g.Expect(err).NotTo(gomega.HaveOccurred(), "error getting listener")
 			g.Expect(listener.GetPerConnectionBufferLimitBytes().GetValue()).To(gomega.BeEquivalentTo(42000))

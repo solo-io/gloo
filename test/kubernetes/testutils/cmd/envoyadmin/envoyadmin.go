@@ -1,56 +1,69 @@
-package admincli
+package envoyadmin
 
 import (
 	"context"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+
+	"github.com/solo-io/gloo/pkg/utils/cmdutils"
+	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	"github.com/solo-io/gloo/pkg/utils/protoutils"
+	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
+	"github.com/solo-io/gloo/test/kubernetes/testutils/cmd"
+	"github.com/solo-io/go-utils/threadsafe"
 
 	adminv3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	clusterv3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	listenerv3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
-	"github.com/solo-io/gloo/pkg/utils/cmdutils"
-	"github.com/solo-io/gloo/pkg/utils/protoutils"
-	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
-	"github.com/solo-io/go-utils/threadsafe"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
-	ConfigDumpPath     = "config_dump"
-	StatsPath          = "stats"
-	ClustersPath       = "clusters"
-	ListenersPath      = "listeners"
-	ModifyRuntimePath  = "runtime_modify"
-	ShutdownServerPath = "quitquitquit"
-	HealthCheckPath    = "healthcheck"
-	LoggingPath        = "logging"
-	ServerInfoPath     = "server_info"
-	ReadyPath          = "ready"
+	ConfigDumpPath     = admincli.ConfigDumpPath
+	StatsPath          = admincli.StatsPath
+	ClustersPath       = admincli.ClustersPath
+	ListenersPath      = admincli.ListenersPath
+	ModifyRuntimePath  = admincli.ModifyRuntimePath
+	ShutdownServerPath = admincli.ShutdownServerPath
+	HealthCheckPath    = admincli.HealthCheckPath
+	LoggingPath        = admincli.LoggingPath
+	ServerInfoPath     = admincli.ServerInfoPath
+	ReadyPath          = admincli.ReadyPath
 
-	DefaultAdminPort = 19000
+	DefaultAdminPort = admincli.DefaultAdminPort
 )
 
-// Client is a utility for executing requests against the Envoy Admin API
-// The Admin API handlers can be found here:
-// https://github.com/envoyproxy/envoy/blob/63bc9b564b1a76a22a0d029bcac35abeffff2a61/source/server/admin/admin.cc#L127
 type Client struct {
 	// receiver is the default destination for the curl stdout and stderr
 	receiver io.Writer
 
 	// curlOptions is the set of default Option that the Client will use for curl commands
 	curlOptions []curl.Option
+
+	envoyMeta metav1.ObjectMeta
+
+	// kubeContext is the context against which the kubectl under the hood will be executed
+	kubeContext string
 }
 
-// NewClient returns an implementation of the admincli.Client
+// NewClient returns an instance of the remote envoyadmin.Client
 func NewClient() *Client {
 	return &Client{
 		receiver: io.Discard,
 		curlOptions: []curl.Option{
 			curl.WithScheme("http"),
+			// We are using local host because we will exec from the pod in which envoy is running
 			curl.WithHost("127.0.0.1"),
 			curl.WithPort(DefaultAdminPort),
 			// 3 retries, exponential back-off, 10 second max
 			curl.WithRetries(3, 0, 10),
+		},
+		envoyMeta: metav1.ObjectMeta{
+			Name:      "gateway-proxy",
+			Namespace: "gloo-system",
 		},
 	}
 }
@@ -69,15 +82,34 @@ func (c *Client) WithCurlOptions(options ...curl.Option) *Client {
 	return c
 }
 
-// Command returns a curl Command, using the provided curl.Option as well as the client.curlOptions
+// WithEnvoyMeta sets the Envoy pod that will be used by default to exec
+// the cmdutils.Cmd created by the Client
+func (c *Client) WithEnvoyMeta(envoyMeta metav1.ObjectMeta) *Client {
+	c.envoyMeta = envoyMeta
+	return c
+}
+
+// WithKubeContext sets the Kubernetes context that will be used by default to exec
+// the cmdutils.Cmd created by the Client
+func (c *Client) WithKubeContext(kubeContext string) *Client {
+	c.kubeContext = kubeContext
+	return c
+}
+
+// Command returns a remote curl Command, using the provided curl.Option as well as the client.curlOptions.
+// The returned command will be executed from within the envoy pod specified in client.envoyMeta, and
+// therefore changing the curl options related to address should rarely be necessary.
 func (c *Client) Command(ctx context.Context, options ...curl.Option) cmdutils.Cmd {
 	commandCurlOptions := append(
 		c.curlOptions,
 		// Ensure any options defined for this command can override any defaults that the Client has defined
 		options...)
-	curlArgs := curl.BuildArgs(commandCurlOptions...)
 
-	return cmdutils.Command(ctx, "curl", curlArgs...).
+	return cmd.RemoteCurlCmd(ctx, c.receiver, c.kubeContext, kubectl.PodExecOptions{
+		Name:      c.envoyMeta.Name,
+		Namespace: c.envoyMeta.Namespace,
+		Container: "curl",
+	}, commandCurlOptions...).
 		// For convenience, we set the stdout and stderr to the receiver
 		// This can still be overwritten by consumers who use the commands
 		WithStdout(c.receiver).
@@ -129,6 +161,24 @@ func (c *Client) ConfigDumpCmd(ctx context.Context, queryParams map[string]strin
 	)
 }
 
+// ReadyCmd returns the cmdutils.Cmd that can be run to request data from the ready endpoint
+func (c *Client) ReadyCmd(ctx context.Context) cmdutils.Cmd {
+	return c.RequestPathCmd(ctx, ReadyPath)
+}
+
+// GetReady returns true if the Envoy server is responding 200 LIVE on the ready endpoint
+func (c *Client) GetReady(ctx context.Context) bool {
+	var (
+		outLocation threadsafe.Buffer
+	)
+
+	err := c.ReadyCmd(ctx).WithStdout(&outLocation).Run().Cause()
+	if err != nil {
+		return false
+	}
+	return strings.Contains(outLocation.String(), "LIVE")
+}
+
 // GetConfigDump returns the structured data that is available at the config_dump endpoint
 func (c *Client) GetConfigDump(ctx context.Context, queryParams map[string]string) (*adminv3.ConfigDump, error) {
 	var (
@@ -160,7 +210,7 @@ func (c *Client) GetStaticClusters(ctx context.Context) (map[string]*clusterv3.C
 		return nil, err
 	}
 
-	return GetStaticClustersByName(configDump)
+	return admincli.GetStaticClustersByName(configDump)
 }
 
 // ModifyRuntimeConfiguration passes the queryParameters to the runtime_modify endpoint

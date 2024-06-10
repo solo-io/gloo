@@ -183,8 +183,35 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 	i.Assertions.Require.NoError(err)
 	defer glooLogFile.Close()
 
-	logsCmd := i.Actions.Kubectl().Command(ctx, "logs", "-n", i.Metadata.InstallNamespace, "deployments/gloo")
-	_ = logsCmd.WithStdout(glooLogFile).WithStderr(glooLogFile).Run()
+	glooLogsCmd := i.Actions.Kubectl().Command(ctx, "logs", "-n", i.Metadata.InstallNamespace, "deployments/gloo")
+	_ = glooLogsCmd.WithStdout(glooLogFile).WithStderr(glooLogFile).Run()
+
+	envoyLogFilePath := filepath.Join(i.GeneratedFiles.FailureDir, "envoy.log")
+	envoyLogFile, err := os.Create(envoyLogFilePath)
+	i.Assertions.Require.NoError(err)
+	defer envoyLogFile.Close()
+
+	envoyLogsCmd := i.Actions.Kubectl().Command(ctx, "logs", "-n", "default", "deployments/gloo-proxy-gw")
+	_ = envoyLogsCmd.WithStdout(envoyLogFile).WithStderr(envoyLogFile).Run()
+
+	clusterStateFilePath := filepath.Join(i.GeneratedFiles.FailureDir, "cluster.log")
+	clusterStateFile, err := os.Create(clusterStateFilePath)
+	i.Assertions.Require.NoError(err)
+	defer clusterStateFile.Close()
+
+	clusterStateCmd := i.Actions.Kubectl().Command(ctx, "get", "all", "--all-namespaces", "-owide")
+	_ = clusterStateCmd.WithStdout(clusterStateFile).WithStderr(clusterStateFile).Run()
+
+	gatewayStateCmd := i.Actions.Kubectl().Command(ctx, "get", "gtw", "--all-namespaces", "-owide")
+	_ = gatewayStateCmd.WithStdout(clusterStateFile).WithStderr(clusterStateFile).Run()
+
+	// envoyCfgFilePath := filepath.Join(i.GeneratedFiles.FailureDir, "envoy.json")
+	// envoyCfgFile, err := os.Create(envoyCfgFilePath)
+	// i.Assertions.Require.NoError(err)
+	// defer envoyCfgFile.Close()
+	// envoyCfg, err := i.Actions.Glooctl().ExecuteOut(ctx, "proxy dump --name gloo-proxy-gw")
+	// i.Assertions.Require.NoError(err)
+	// envoyCfgFile.WriteString(envoyCfg)
 }
 
 // GeneratedFiles is a collection of files that are generated during the execution of a set of tests

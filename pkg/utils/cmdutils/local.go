@@ -77,19 +77,19 @@ func (cmd *LocalCmd) WithStderr(w io.Writer) Cmd {
 
 // Run runs the command
 // If the returned error is non-nil, it should be of type *RunError
-func (cmd *LocalCmd) Run() *RunError {
+func (cmd *LocalCmd) Run() RunError {
 	var combinedOutput threadsafe.Buffer
 
 	cmd.Stdout = io.MultiWriter(cmd.Stdout, &combinedOutput)
 	cmd.Stderr = io.MultiWriter(cmd.Stderr, &combinedOutput)
 
 	if err := cmd.Cmd.Run(); err != nil {
-		return &RunError{
+		return &localRunError{
 			command:    cmd.Args,
 			output:     combinedOutput.Bytes(),
 			inner:      err,
 			stackTrace: errors.WithStack(err),
 		}
 	}
-	return nil
+	return (*localRunError)(nil)
 }

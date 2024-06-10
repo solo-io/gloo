@@ -5,6 +5,11 @@ go 1.22.2
 // Note for developers: upgrading go will also require upgrading go in the following files:
 // ./cloudbuild-cache.yaml,
 
+replace (
+	github.com/solo-io/go-utils => ../go-utils
+	github.com/solo-io/k8s-utils => ../k8s-utils
+)
+
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/Netflix/go-expect v0.0.0-20180928190340-9d1f4485533b
@@ -48,8 +53,8 @@ require (
 	github.com/saiskee/gettercheck v0.0.0-20210820204958-38443d06ebe0
 	github.com/sergi/go-diff v1.1.0
 	github.com/solo-io/go-list-licenses v0.1.4
-	github.com/solo-io/go-utils v0.24.8
-	github.com/solo-io/k8s-utils v0.7.2
+	github.com/solo-io/go-utils v0.25.2-0.20240607125611-21aee84910d3
+	github.com/solo-io/k8s-utils v0.7.3-0.20240607143316-a3ab92d4f964
 	github.com/solo-io/protoc-gen-ext v0.0.18
 	github.com/solo-io/protoc-gen-openapi v0.2.2
 	github.com/solo-io/skv2 v0.39.1
