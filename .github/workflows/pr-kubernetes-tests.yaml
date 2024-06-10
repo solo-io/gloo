@@ -25,17 +25,17 @@ jobs:
         # We require gathering the branch and tag history since we rely on a `git diff`
         # which compares the state of two branches
         fetch-depth: 0
-    # - id: process-skip-directives
-    #   uses: ./.github/workflows/composite-actions/process-skip-directives
-    #   with:
-    #     base-ref: ${{ github.base_ref }}
-    # - id: run-strategy
-    #   name: Determine Test Run Strategy
-    #   run: |
-    #     skip_kube_tests=${{ steps.process-skip-directives.outputs.skip-kube-tests }}
-    #     if [[ ! -z $skip_kube_tests && $skip_kube_tests = true ]] ; then
-    #       echo "auto_succeed=true" >> $GITHUB_OUTPUT
-    #     fi
+    - id: process-skip-directives
+      uses: ./.github/workflows/composite-actions/process-skip-directives
+      with:
+        base-ref: ${{ github.base_ref }}
+    - id: run-strategy
+      name: Determine Test Run Strategy
+      run: |
+        skip_kube_tests=${{ steps.process-skip-directives.outputs.skip-kube-tests }}
+        if [[ ! -z $skip_kube_tests && $skip_kube_tests = true ]] ; then
+          echo "auto_succeed=true" >> $GITHUB_OUTPUT
+        fi
 
   end_to_end_tests:
     name: End-to-End (${{ matrix.test.cluster-name }})
@@ -52,25 +52,24 @@ jobs:
         # /test/kubernetes/e2e/load_balancing_tests.md
         test:
         # May 14th: ~ minutes execution time (see load_balancing_tests.md)
-        # - cluster-name: 'cluster-one'
-        #   go-test-args: '-v -timeout=25m'
-        #   go-test-run-regex: '^TestK8sGateway$$/^RouteDelegation$$|^TestK8sGateway$$/^Glooctl$$'
+        - cluster-name: 'cluster-one'
+          go-test-args: '-v -timeout=25m'
+          go-test-run-regex: '^TestK8sGateway$$/^RouteDelegation$$|^TestK8sGateway$$/^Glooctl$$'
 
         # May 14th: ~ minutes execution time (see load_balancing_tests.md)
         - cluster-name: 'cluster-two'
-          go-test-args: '-v -timeout=120m -count=15'
-          go-test-run-regex: '^TestK8sGateway$$/^Deployer$$/^TestConfigureProxiesFromGatewayParameters$$'
-          # go-test-run-regex: '^TestK8sGateway$$/^Deployer$$|^TestK8sGateway$$/^RouteOptions$$|^TestK8sGateway$$/^VirtualHostOptions$$|^TestK8sGateway$$/^Upstreams$$|^TestK8sGateway$$/^HeadlessSvc$$|^TestK8sGateway$$/^PortRouting$$'
+          go-test-args: '-v -timeout=25m'
+          go-test-run-regex: '^TestK8sGateway$$/^Deployer$$|^TestK8sGateway$$/^RouteOptions$$|^TestK8sGateway$$/^VirtualHostOptions$$|^TestK8sGateway$$/^Upstreams$$|^TestK8sGateway$$/^HeadlessSvc$$|^TestK8sGateway$$/^PortRouting$$'
 
         # May 14th: ~ minutes execution time (see load_balancing_tests.md)
-        # - cluster-name: 'cluster-three'
-        #   go-test-args: '-v -timeout=25m'
-        #   go-test-run-regex: '(^TestK8sGatewayIstioAutoMtls$$|^TestAutomtlsIstioEdgeApisGateway$$|^TestIstioEdgeApiGateway$$)'
+        - cluster-name: 'cluster-three'
+          go-test-args: '-v -timeout=25m'
+          go-test-run-regex: '(^TestK8sGatewayIstioAutoMtls$$|^TestAutomtlsIstioEdgeApisGateway$$|^TestIstioEdgeApiGateway$$)'
 
         # May 14th: ~ minutes execution time (see load_balancing_tests.md)
-        # - cluster-name: 'cluster-four'
-        #   go-test-args: '-v -timeout=25m'
-        #   go-test-run-regex: '(^TestK8sGatewayIstio$$|^TestGlooGatewayEdgeGateway$$|^TestGlooctlIstioInjectEdgeApiGateway$$|^TestK8sGatewayNoValidation$$)'
+        - cluster-name: 'cluster-four'
+          go-test-args: '-v -timeout=25m'
+          go-test-run-regex: '(^TestK8sGatewayIstio$$|^TestGlooGatewayEdgeGateway$$|^TestGlooctlIstioInjectEdgeApiGateway$$|^TestK8sGatewayNoValidation$$)'
 
         # In our PR tests, we run the suite of tests using the upper ends of versions that we claim to support
         # The versions should mirror: https://docs.solo.io/gloo-edge/latest/reference/support/
