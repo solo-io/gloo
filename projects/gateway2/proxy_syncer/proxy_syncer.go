@@ -2,6 +2,7 @@ package proxy_syncer
 
 import (
 	"context"
+	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	"strconv"
 	"time"
 
@@ -41,6 +42,8 @@ type ProxySyncer struct {
 	// queueStatusForProxies stores a list of proxies that need the proxy status synced and the plugin registry
 	// that produced them for a given sync iteration
 	queueStatusForProxies QueueStatusForProxiesFn
+
+	identity leaderelector.Identity
 }
 
 type GatewayInputChannels struct {
@@ -82,6 +85,7 @@ func NewProxySyncer(
 	k8sGwExtensions extensions.K8sGatewayExtensions,
 	proxyClient gloo_solo_io.ProxyClient,
 	queueStatusForProxies QueueStatusForProxiesFn,
+	identity leaderelector.Identity,
 ) *ProxySyncer {
 	return &ProxySyncer{
 		controllerName:        controllerName,
@@ -91,6 +95,7 @@ func NewProxySyncer(
 		k8sGwExtensions:       k8sGwExtensions,
 		proxyReconciler:       gloo_solo_io.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient()),
 		queueStatusForProxies: queueStatusForProxies,
+		identity:              identity,
 	}
 }
 
@@ -148,7 +153,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 			}
 		}
 
-		applyPostTranslationPlugins(ctx, pluginRegistry, &gwplugins.PostTranslationContext{
+		s.applyPostTranslationPlugins(ctx, pluginRegistry, &gwplugins.PostTranslationContext{
 			TranslatedGateways: translatedGateways,
 		})
 
@@ -235,15 +240,21 @@ func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_
 	}
 }
 
-func applyPostTranslationPlugins(ctx context.Context, pluginRegistry registry.PluginRegistry, translationContext *gwplugins.PostTranslationContext) {
+func (s *ProxySyncer) applyPostTranslationPlugins(ctx context.Context, pluginRegistry registry.PluginRegistry, translationContext *gwplugins.PostTranslationContext) {
 	ctx = contextutils.WithLogger(ctx, "postTranslation")
 	logger := contextutils.LoggerFrom(ctx)
 
-	for _, postTranslationPlugin := range pluginRegistry.GetPostTranslationPlugins() {
-		err := postTranslationPlugin.ApplyPostTranslationPlugin(ctx, translationContext)
-		if err != nil {
-			logger.Errorf("Error applying post-translation plugin: %v", err)
-			continue
+	// we only run post translation plugins on the leader, as they upsert resources
+	// in portal, for instance, route plugins set up data that are used for modifying resources through the post-translation plugin
+	if s.identity.IsLeader() {
+		for _, postTranslationPlugin := range pluginRegistry.GetPostTranslationPlugins() {
+			err := postTranslationPlugin.ApplyPostTranslationPlugin(ctx, translationContext)
+			if err != nil {
+				logger.Errorf("Error applying post-translation plugin: %v", err)
+				continue
+			}
 		}
+	} else {
+		logger.Debug("skipping post-translation plugins on non-leader")
 	}
 }

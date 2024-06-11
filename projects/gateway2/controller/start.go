@@ -130,6 +130,7 @@ func Start(ctx context.Context, cfg StartConfig) error {
 		k8sGwExtensions,
 		cfg.ProxyClient,
 		cfg.QueueStatusForProxies,
+		cfg.Opts.Identity,
 	)
 	if err := mgr.Add(proxySyncer); err != nil {
 		setupLog.Error(err, "unable to add proxySyncer runnable")
