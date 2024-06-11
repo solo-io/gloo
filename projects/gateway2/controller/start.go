@@ -123,6 +123,7 @@ func Start(ctx context.Context, cfg StartConfig) error {
 
 	// Create the proxy syncer for the Gateway API resources
 	proxySyncer := proxy_syncer.NewProxySyncer(
+		ctx,
 		wellknown.GatewayControllerName,
 		cfg.Opts.WriteNamespace,
 		inputChannels,

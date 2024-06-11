@@ -43,7 +43,8 @@ type ProxySyncer struct {
 	// that produced them for a given sync iteration
 	queueStatusForProxies QueueStatusForProxiesFn
 
-	identity leaderelector.Identity
+	identity                     leaderelector.Identity
+	postTranslationStartupAction *leaderelector.LeaderStartupAction
 }
 
 type GatewayInputChannels struct {
@@ -79,6 +80,7 @@ var (
 // The proxy sync is triggered by the `genericEvent` which is kicked when
 // we reconcile gateway in the gateway controller. The `secretEvent` is kicked when a secret is created, updated,
 func NewProxySyncer(
+	ctx context.Context,
 	controllerName, writeNamespace string,
 	inputs *GatewayInputChannels,
 	mgr manager.Manager,
@@ -87,16 +89,19 @@ func NewProxySyncer(
 	queueStatusForProxies QueueStatusForProxiesFn,
 	identity leaderelector.Identity,
 ) *ProxySyncer {
-	return &ProxySyncer{
-		controllerName:        controllerName,
-		writeNamespace:        writeNamespace,
-		inputs:                inputs,
-		mgr:                   mgr,
-		k8sGwExtensions:       k8sGwExtensions,
-		proxyReconciler:       gloo_solo_io.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient()),
-		queueStatusForProxies: queueStatusForProxies,
-		identity:              identity,
+	s := &ProxySyncer{
+		controllerName:               controllerName,
+		writeNamespace:               writeNamespace,
+		inputs:                       inputs,
+		mgr:                          mgr,
+		k8sGwExtensions:              k8sGwExtensions,
+		proxyReconciler:              gloo_solo_io.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient()),
+		queueStatusForProxies:        queueStatusForProxies,
+		identity:                     identity,
+		postTranslationStartupAction: leaderelector.NewLeaderStartupAction(identity),
 	}
+	s.postTranslationStartupAction.WatchElectionResults(ctx)
+	return s
 }
 
 func (s *ProxySyncer) Start(ctx context.Context) error {
@@ -244,9 +249,9 @@ func (s *ProxySyncer) applyPostTranslationPlugins(ctx context.Context, pluginReg
 	ctx = contextutils.WithLogger(ctx, "postTranslation")
 	logger := contextutils.LoggerFrom(ctx)
 
-	// we only run post translation plugins on the leader, as they upsert resources
-	// in portal, for instance, route plugins set up data that are used for modifying resources through the post-translation plugin
-	if s.identity.IsLeader() {
+	// we return a `nil` "error" to be reusable & conform to the `leaderelector.LeaderStartupAction` signature
+	// any real errors get logged
+	runPlugins := func() error {
 		for _, postTranslationPlugin := range pluginRegistry.GetPostTranslationPlugins() {
 			err := postTranslationPlugin.ApplyPostTranslationPlugin(ctx, translationContext)
 			if err != nil {
@@ -254,7 +259,14 @@ func (s *ProxySyncer) applyPostTranslationPlugins(ctx context.Context, pluginReg
 				continue
 			}
 		}
+		return nil
+	}
+
+	// we only run post translation plugins on the leader, because they upsert resources
+	if s.identity.IsLeader() {
+		_ = runPlugins()
 	} else {
 		logger.Debug("skipping post-translation plugins on non-leader")
+		s.postTranslationStartupAction.SetAction(runPlugins)
 	}
 }
