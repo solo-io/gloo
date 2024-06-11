@@ -25,7 +25,7 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/kube2e/helper"
-	"github.com/solo-io/go-utils/testutils"
+	kubeutils "github.com/solo-io/gloo/test/testutils/hack/go-utils/testutils/kubectl"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 )
 
@@ -86,7 +86,7 @@ var _ = BeforeSuite(func() {
 
 	if !testutils2.ShouldSkipInstall() {
 		// testserver is install in gloo-system
-		err = testutils.Kubectl("create", "ns", testHelper.InstallNamespace)
+		err = kubeutils.Kubectl(ctx, kubeutils.NewParams("create", "ns", testHelper.InstallNamespace))
 		Expect(err).NotTo(HaveOccurred())
 
 		if useGlooGateway {
@@ -105,7 +105,7 @@ var _ = BeforeSuite(func() {
 
 	// delete testserver Service, as the tests create and manage their own
 	testserverExists := false
-	err = testutils.Kubectl("get", "service", helper.TestServerName, "-n", installNamespace)
+	err = kubeutils.Kubectl(ctx, kubeutils.NewParams("get", "service", helper.TestServerName, "-n", installNamespace))
 	if err == nil {
 		// namespace exists
 		testserverExists = true
@@ -113,11 +113,11 @@ var _ = BeforeSuite(func() {
 	if testserverExists {
 		// ignore errors if the service doesn't exist
 		// (e.g. if the test is being re-run after a previous failure)
-		err = testutils.Kubectl("delete", "service", helper.TestServerName, "-n", installNamespace)
+		err = kubeutils.Kubectl(ctx, kubeutils.NewParams("delete", "service", helper.TestServerName, "-n", installNamespace))
 		Expect(err).NotTo(HaveOccurred())
 	}
 	EventuallyWithOffset(1, func() error {
-		return testutils.Kubectl("get", "service", helper.TestServerName, "-n", installNamespace)
+		return kubeutils.Kubectl(ctx, kubeutils.NewParams("get", "service", helper.TestServerName, "-n", installNamespace))
 	}, "60s", "1s").Should(HaveOccurred(), "testserver service should be deleted")
 
 	if !useGlooGateway {
@@ -130,7 +130,7 @@ var _ = BeforeSuite(func() {
 func installHttpbin() {
 	// Check if the namespace exists
 	namespaceExists := false
-	err := testutils.Kubectl("get", "ns", httpbinNamespace)
+	err := kubeutils.Kubectl(ctx, kubeutils.NewParams("get", "ns", httpbinNamespace))
 	if err == nil {
 		// namespace exists
 		namespaceExists = true
@@ -138,17 +138,17 @@ func installHttpbin() {
 
 	if !namespaceExists {
 		// If the namespace doesn't exist, create it
-		err = testutils.Kubectl("create", "ns", httpbinNamespace)
+		err = kubeutils.Kubectl(ctx, kubeutils.NewParams("create", "ns", httpbinNamespace))
 		if err != nil {
 			// Handle error
 			panic(err)
 		}
 	}
 
-	err = testutils.Kubectl("label", "namespace", httpbinNamespace, "istio-injection=enabled")
+	err = kubeutils.Kubectl(ctx, kubeutils.NewParams("label", "namespace", httpbinNamespace, "istio-injection=enabled"))
 	Expect(err).NotTo(HaveOccurred())
 
-	err = testutils.Kubectl("apply", "-n", httpbinNamespace, "-f", filepath.Join(cwd, "artifacts", "httpbin.yaml"))
+	err = kubeutils.Kubectl(ctx, kubeutils.NewParams("apply", "-n", httpbinNamespace, "-f", filepath.Join(cwd, "artifacts", "httpbin.yaml")))
 	Expect(err).NotTo(HaveOccurred())
 
 	// Check discovery component has created upstream for httpbin
@@ -164,7 +164,7 @@ var _ = AfterSuite(func() {
 	if testutils2.ShouldTearDown() {
 		uninstallGloo()
 
-		err := testutils.Kubectl("delete", "namespace", httpbinNamespace)
+		err := kubeutils.Kubectl(ctx, kubeutils.NewParams("delete", "namespace", httpbinNamespace))
 		Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -193,7 +193,7 @@ func installGloo(autoMtls bool) {
 
 	// Ensure discovery reaches a valid state
 	// Note: discovery is only used in the "classic", non-k8s-gateway api setup
-	err = testutils.WaitPodsRunning(ctx, time.Second, testHelper.InstallNamespace, "gloo=discovery")
+	err = kubeutils.WaitPodsRunning(ctx, time.Second, testHelper.InstallNamespace, kubeutils.NewParams(), "gloo=discovery")
 	Expect(err).NotTo(HaveOccurred())
 
 	if autoMtls {
@@ -219,7 +219,7 @@ func installGlooGateway() {
 	kube2e.EventuallyReachesConsistentState(testHelper.InstallNamespace)
 
 	// Create Gateway resources
-	err = testutils.Kubectl("apply", "-f", filepath.Join(cwd, "artifacts", "gateway.yaml"))
+	err = kubeutils.Kubectl(ctx, kubeutils.NewParams("apply", "-f", filepath.Join(cwd, "artifacts", "gateway.yaml")))
 	Expect(err).NotTo(HaveOccurred())
 
 	kube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
@@ -234,10 +234,10 @@ func uninstallGloo() {
 
 	// glooctl should delete the namespace. we do it again just in case it failed
 	// ignore errors
-	_ = testutils.Kubectl("delete", "namespace", testHelper.InstallNamespace)
+	_ = kubeutils.Kubectl(ctx, kubeutils.NewParams("delete", "namespace", testHelper.InstallNamespace))
 
 	EventuallyWithOffset(1, func() error {
-		return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)
+		return kubeutils.Kubectl(ctx, kubeutils.NewParams("get", "namespace", testHelper.InstallNamespace))
 	}, "60s", "1s").Should(HaveOccurred())
 }
 

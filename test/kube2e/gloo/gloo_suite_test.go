@@ -22,7 +22,7 @@ import (
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/kube2e/helper"
 	glootestutils "github.com/solo-io/gloo/test/testutils"
-	"github.com/solo-io/go-utils/testutils"
+	kubeutils "github.com/solo-io/gloo/test/testutils/hack/go-utils/testutils/kubectl"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -112,10 +112,10 @@ func uninstallGloo() {
 	err := testHelper.UninstallGlooAll()
 	Expect(err).NotTo(HaveOccurred())
 
-	err = testutils.Kubectl("delete", "namespace", testHelper.InstallNamespace)
+	err = kubeutils.Kubectl(ctx, kubeutils.NewParams("delete", "namespace", testHelper.InstallNamespace))
 	Expect(err).NotTo(HaveOccurred())
 
 	Eventually(func() error {
-		return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)
+		return kubeutils.Kubectl(ctx, kubeutils.NewParams("get", "namespace", testHelper.InstallNamespace))
 	}, "60s", "1s").Should(HaveOccurred())
 }

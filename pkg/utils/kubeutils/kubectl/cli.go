@@ -13,7 +13,7 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
-	"github.com/solo-io/k8s-utils/testutils/kube"
+	"github.com/solo-io/gloo/test/testutils/hack/k8s-utils/testutils/kube"
 
 	"github.com/avast/retry-go/v4"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"

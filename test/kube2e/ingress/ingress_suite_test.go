@@ -15,7 +15,7 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 
 	"github.com/solo-io/gloo/test/kube2e/helper"
-	"github.com/solo-io/go-utils/testutils"
+	kubeutils "github.com/solo-io/gloo/test/testutils/hack/go-utils/testutils/kubectl"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -78,10 +78,10 @@ var _ = AfterSuite(func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		// TODO go-utils should expose `glooctl uninstall --delete-namespace`
-		testutils.Kubectl("delete", "namespace", testHelper.InstallNamespace)
+		kubeutils.Kubectl(ctx, kubeutils.NewParams("delete", "namespace", testHelper.InstallNamespace))
 
 		Eventually(func() error {
-			return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)
+			return kubeutils.Kubectl(ctx, kubeutils.NewParams("get", "namespace", testHelper.InstallNamespace))
 		}, "60s", "1s").Should(HaveOccurred())
 		cancel()
 	}

@@ -12,6 +12,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/solo-io/go-utils/log"
 
+	// TODO(jbohanon) switch to the context-accepting utils
+	// and/or deprecate this tool in favor of RemoteCommand
 	"github.com/solo-io/go-utils/testutils"
 
 	corev1 "k8s.io/api/core/v1"
