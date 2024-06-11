@@ -108,7 +108,7 @@ func (cmd *RemoteCmd) WithStderr(w io.Writer) cmdutils.Cmd {
 
 // Run runs the command
 // If the returned error is non-nil, it should be of type *RunError
-func (cmd *RemoteCmd) Run() cmdutils.RunError {
+func (cmd *RemoteCmd) Run() *cmdutils.RunError {
 	var combinedOutput threadsafe.Buffer
 
 	cmd.Stdout = io.MultiWriter(cmd.Stdout, &combinedOutput)
@@ -116,12 +116,12 @@ func (cmd *RemoteCmd) Run() cmdutils.RunError {
 
 	_, err := kube.ExecFromEphemeralPod(context.Background(), cmd.EphemeralPodParams)
 	if err != nil {
-		return &remoteRunError{
-			command:    cmd.Args,
-			output:     combinedOutput.Bytes(),
-			inner:      err,
-			stackTrace: errors.WithStack(err),
-		}
+		return cmdutils.NewRunError(
+			cmd.Args,
+			combinedOutput.Bytes(),
+			err,
+			errors.WithStack(err),
+		)
 	}
-	return (*remoteRunError)(nil)
+	return nil
 }

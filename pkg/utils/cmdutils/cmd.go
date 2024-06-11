@@ -9,7 +9,7 @@ import (
 type Cmd interface {
 	// Run executes the command (like os/exec.Cmd.Run)
 	// It returns a *RunError if there is any error, nil otherwise
-	Run() RunError
+	Run() *RunError
 
 	// WithEnv sets the Env variables for the Cmd
 	// Each entry should be of the form "key=value"
