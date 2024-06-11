@@ -57,7 +57,7 @@ func (p *Provider) getReadyEnvoyForClient(ctx context.Context, adminClient *envo
 		p.Require.NotEmpty(pods)
 		// We have to make sure that the pod count is what we expect otherwise we could be selecting a pod which
 		// is Terminating BUT HAS NO STATUS CONDITION THAT WE CAN CHECK??!!
-		g.Expect(len(pods)).Should(Equal(expectedReplicas))
+		g.Expect(pods).Should(HaveLen(expectedReplicas))
 	}).WithTimeout(time.Second * 30).WithPolling(time.Second).Should(Succeed())
 
 	adminClient = adminClient.

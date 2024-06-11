@@ -68,7 +68,7 @@ func GetEnvoyAdminData(ctx context.Context, proxyName, namespace, path string, t
 				return
 			default:
 			}
-			res, err := http.Get(pf.Address() + path)
+			res, err := http.Get("http://" + pf.Address() + path)
 			if err != nil {
 				errs <- err
 				time.Sleep(time.Millisecond * 250)
