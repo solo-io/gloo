@@ -267,6 +267,7 @@ run-hashicorp-e2e-tests: test
 
 .PHONY: run-kube-e2e-tests
 run-kube-e2e-tests: TEST_PKG = ./test/kube2e/$(KUBE2E_TESTS) ## Run the Kubernetes E2E Tests in the {KUBE2E_TESTS} package
+run-kube-e2e-tests: GINKGO_FLAGS += -v
 run-kube-e2e-tests: test
 
 
