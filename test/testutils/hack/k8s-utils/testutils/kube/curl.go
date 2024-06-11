@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -42,7 +42,7 @@ func CurlWithEphemeralPod(ctx context.Context, logger io.Writer, kubeContext, fr
 func FindPodNameByLabel(cfg *rest.Config, ctx context.Context, ns, labelSelector string) string {
 	clientset, err := kubernetes.NewForConfig(cfg)
 	Expect(err).NotTo(HaveOccurred())
-	pl, err := clientset.CoreV1().Pods(ns).List(ctx, v1.ListOptions{LabelSelector: labelSelector})
+	pl, err := clientset.CoreV1().Pods(ns).List(ctx, metav1.ListOptions{LabelSelector: labelSelector})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(pl.Items).NotTo(BeEmpty())
 	return pl.Items[0].GetName()
