@@ -123,7 +123,6 @@ func Start(ctx context.Context, cfg StartConfig) error {
 
 	// Create the proxy syncer for the Gateway API resources
 	proxySyncer := proxy_syncer.NewProxySyncer(
-		ctx,
 		wellknown.GatewayControllerName,
 		cfg.Opts.WriteNamespace,
 		inputChannels,
@@ -131,7 +130,6 @@ func Start(ctx context.Context, cfg StartConfig) error {
 		k8sGwExtensions,
 		cfg.ProxyClient,
 		cfg.QueueStatusForProxies,
-		cfg.Opts.Identity,
 	)
 	if err := mgr.Add(proxySyncer); err != nil {
 		setupLog.Error(err, "unable to add proxySyncer runnable")

@@ -2,7 +2,6 @@ package proxy_syncer
 
 import (
 	"context"
-	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	"strconv"
 	"time"
 
@@ -42,9 +41,6 @@ type ProxySyncer struct {
 	// queueStatusForProxies stores a list of proxies that need the proxy status synced and the plugin registry
 	// that produced them for a given sync iteration
 	queueStatusForProxies QueueStatusForProxiesFn
-
-	identity                     leaderelector.Identity
-	postTranslationStartupAction *leaderelector.LeaderStartupAction
 }
 
 type GatewayInputChannels struct {
@@ -80,28 +76,22 @@ var (
 // The proxy sync is triggered by the `genericEvent` which is kicked when
 // we reconcile gateway in the gateway controller. The `secretEvent` is kicked when a secret is created, updated,
 func NewProxySyncer(
-	ctx context.Context,
 	controllerName, writeNamespace string,
 	inputs *GatewayInputChannels,
 	mgr manager.Manager,
 	k8sGwExtensions extensions.K8sGatewayExtensions,
 	proxyClient gloo_solo_io.ProxyClient,
 	queueStatusForProxies QueueStatusForProxiesFn,
-	identity leaderelector.Identity,
 ) *ProxySyncer {
-	s := &ProxySyncer{
-		controllerName:               controllerName,
-		writeNamespace:               writeNamespace,
-		inputs:                       inputs,
-		mgr:                          mgr,
-		k8sGwExtensions:              k8sGwExtensions,
-		proxyReconciler:              gloo_solo_io.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient()),
-		queueStatusForProxies:        queueStatusForProxies,
-		identity:                     identity,
-		postTranslationStartupAction: leaderelector.NewLeaderStartupAction(identity),
+	return &ProxySyncer{
+		controllerName:        controllerName,
+		writeNamespace:        writeNamespace,
+		inputs:                inputs,
+		mgr:                   mgr,
+		k8sGwExtensions:       k8sGwExtensions,
+		proxyReconciler:       gloo_solo_io.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient()),
+		queueStatusForProxies: queueStatusForProxies,
 	}
-	s.postTranslationStartupAction.WatchElectionResults(ctx)
-	return s
 }
 
 func (s *ProxySyncer) Start(ctx context.Context) error {
@@ -158,7 +148,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 			}
 		}
 
-		s.applyPostTranslationPlugins(ctx, pluginRegistry, &gwplugins.PostTranslationContext{
+		applyPostTranslationPlugins(ctx, pluginRegistry, &gwplugins.PostTranslationContext{
 			TranslatedGateways: translatedGateways,
 		})
 
@@ -245,28 +235,15 @@ func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_
 	}
 }
 
-func (s *ProxySyncer) applyPostTranslationPlugins(ctx context.Context, pluginRegistry registry.PluginRegistry, translationContext *gwplugins.PostTranslationContext) {
+func applyPostTranslationPlugins(ctx context.Context, pluginRegistry registry.PluginRegistry, translationContext *gwplugins.PostTranslationContext) {
 	ctx = contextutils.WithLogger(ctx, "postTranslation")
 	logger := contextutils.LoggerFrom(ctx)
 
-	// we return a `nil` "error" to be reusable & conform to the `leaderelector.LeaderStartupAction` signature
-	// any real errors get logged
-	runPlugins := func() error {
-		for _, postTranslationPlugin := range pluginRegistry.GetPostTranslationPlugins() {
-			err := postTranslationPlugin.ApplyPostTranslationPlugin(ctx, translationContext)
-			if err != nil {
-				logger.Errorf("Error applying post-translation plugin: %v", err)
-				continue
-			}
+	for _, postTranslationPlugin := range pluginRegistry.GetPostTranslationPlugins() {
+		err := postTranslationPlugin.ApplyPostTranslationPlugin(ctx, translationContext)
+		if err != nil {
+			logger.Errorf("Error applying post-translation plugin: %v", err)
+			continue
 		}
-		return nil
-	}
-
-	// we only run post translation plugins on the leader, because they upsert resources
-	if s.identity.IsLeader() {
-		_ = runPlugins()
-	} else {
-		logger.Debug("skipping post-translation plugins on non-leader")
-		s.postTranslationStartupAction.SetAction(runPlugins)
 	}
 }
