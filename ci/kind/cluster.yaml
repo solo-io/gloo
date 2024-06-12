@@ -11,5 +11,3 @@ kubeadmConfigPatches:
     kind: InitConfiguration
     metadata:
       name: config
-networking:
-  ipFamily: ipv4
