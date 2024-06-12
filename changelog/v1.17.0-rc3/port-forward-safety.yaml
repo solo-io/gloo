@@ -1,6 +1,6 @@
 changelog:
   - type: NON_USER_FACING
-    issueLink:
+    issueLink: https://github.com/solo-io/gloo/issues/9353
     resolvesIssue: false
     description: >-
       Add remote command type to facilitate executing commands in a pod. Additionally we are getting
