@@ -1,3 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: gw
+  annotations:
+    gateway.gloo.solo.io/gateway-parameters-name: "gw-params"
+spec:
+  gatewayClassName: gloo-gateway
+  listeners:
+    - protocol: HTTP
+      port: 8080
+      name: http
+      allowedRoutes:
+        namespaces:
+          from: All
+---
 apiVersion: gateway.gloo.solo.io/v1alpha1
 kind: GatewayParameters
 metadata:
@@ -17,19 +33,3 @@ spec:
         componentLogLevels:
           upstream: debug
           connection: trace
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: gw
-  annotations:
-    gateway.gloo.solo.io/gateway-parameters-name: "gw-params"
-spec:
-  gatewayClassName: gloo-gateway
-  listeners:
-    - protocol: HTTP
-      port: 8080
-      name: http
-      allowedRoutes:
-        namespaces:
-          from: All

@@ -25,7 +25,7 @@ const (
 	HealthCheckPath    = "healthcheck"
 	LoggingPath        = "logging"
 	ServerInfoPath     = "server_info"
-	ReadyPath          = "ready"
+	ReadyPath          = "ready" // TODO(jbohanon) implement ready command in this client
 
 	DefaultAdminPort = 19000
 )

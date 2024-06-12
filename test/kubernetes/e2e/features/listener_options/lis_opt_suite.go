@@ -2,7 +2,6 @@ package listener_options
 
 import (
 	"context"
-	"os"
 	"time"
 
 	"github.com/onsi/gomega"
@@ -107,8 +106,7 @@ func (s *testingSuite) listenerBufferLimitAssertion(testInstallation *e2e.TestIn
 	return func(ctx context.Context, adminClient *envoyadmin.Client, clientRefresh func(ctx context.Context, adminClient *envoyadmin.Client, expectedReplicas int) *envoyadmin.Client) {
 		testInstallation.Assertions.Gomega.Eventually(func(g gomega.Gomega) {
 			adminClient = clientRefresh(ctx, adminClient, 1).
-				WithKubeContext(s.testInstallation.ClusterContext.KubeContext).
-				WithReceiver(os.Stdout)
+				WithKubeContext(s.testInstallation.ClusterContext.KubeContext)
 			listener, err := adminClient.GetSingleListenerFromDynamicListeners(ctx, "http")
 			g.Expect(err).NotTo(gomega.HaveOccurred(), "error getting listener")
 			g.Expect(listener.GetPerConnectionBufferLimitBytes().GetValue()).To(gomega.BeEquivalentTo(42000))

@@ -14,17 +14,12 @@ import (
 )
 
 var (
-	_            cmdutils.Cmd   = &RemoteCmd{}
-	_            cmdutils.Cmder = &RemoteCmder{}
-	defaultCmder                = &RemoteCmder{}
+	_ cmdutils.Cmd   = &RemoteCmd{}
+	_ cmdutils.Cmder = &RemoteCmder{}
 )
 
-// Command is a convenience wrapper over defaultCmder.Command
-func Command(ctx context.Context, command string, args ...string) cmdutils.Cmd {
-	return defaultCmder.Command(ctx, command, args...).
-		WithStdout(io.Discard).
-		WithStderr(io.Discard)
-}
+// We don't provide a defaultCmder and convenience package-level Command function
+// since the RemoteCmder has state that must be set up before use.
 
 // RemoteCmderParams define some values to pass to the created RemoteCmd
 type RemoteCmderParams struct {

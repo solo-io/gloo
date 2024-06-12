@@ -3,7 +3,6 @@ package deployer
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/onsi/gomega"
@@ -121,8 +120,7 @@ func (s *testingSuite) serverInfoLogLevelAssertion(testInstallation *e2e.TestIns
 	return func(ctx context.Context, adminClient *envoyadmin.Client, clientRefresh func(ctx context.Context, adminClient *envoyadmin.Client, expectedReplicas int) *envoyadmin.Client) {
 		testInstallation.Assertions.Gomega.Eventually(func(g gomega.Gomega) {
 			adminClient = clientRefresh(ctx, adminClient, 1).
-				WithKubeContext(testInstallation.ClusterContext.KubeContext).
-				WithReceiver(os.Stdout)
+				WithKubeContext(testInstallation.ClusterContext.KubeContext)
 
 			serverInfo, err := adminClient.GetServerInfo(ctx)
 			g.Expect(err).NotTo(gomega.HaveOccurred(), fmt.Sprintf("can get server info, err: %+v", err))
@@ -144,8 +142,7 @@ func (s *testingSuite) xdsClusterAssertion(testInstallation *e2e.TestInstallatio
 	return func(ctx context.Context, adminClient *envoyadmin.Client, clientRefresh func(ctx context.Context, adminClient *envoyadmin.Client, expectedReplicas int) *envoyadmin.Client) {
 		testInstallation.Assertions.Gomega.Eventually(func(g gomega.Gomega) {
 			adminClient = clientRefresh(ctx, adminClient, 1).
-				WithKubeContext(testInstallation.ClusterContext.KubeContext).
-				WithReceiver(os.Stdout)
+				WithKubeContext(testInstallation.ClusterContext.KubeContext)
 
 			clusters, err := adminClient.GetStaticClusters(ctx)
 			g.Expect(err).NotTo(gomega.HaveOccurred(), fmt.Sprintf("can get static clusters from config dump, err: %+v", err))
