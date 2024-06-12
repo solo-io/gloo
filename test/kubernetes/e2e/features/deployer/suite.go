@@ -33,8 +33,6 @@ type testingSuite struct {
 	// testInstallation contains all the metadata/utilities necessary to execute a series of tests
 	// against an installation of Gloo Gateway
 	testInstallation *e2e.TestInstallation
-
-	skipCleanup bool
 }
 
 func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.TestingSuite {
@@ -58,15 +56,13 @@ func (s *testingSuite) TestProvisionDeploymentAndService() {
 
 func (s *testingSuite) TestConfigureProxiesFromGatewayParameters() {
 	s.T().Cleanup(func() {
-		if !s.skipCleanup {
-			err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gwParametersManifestFile)
-			s.NoError(err, "can delete manifest")
-			s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, gwParams)
+		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gwParametersManifestFile)
+		s.NoError(err, "can delete manifest")
+		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, gwParams)
 
-			err = s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, deployerProvisionManifestFile)
-			s.NoError(err, "can delete manifest")
-			s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, proxyService, proxyDeployment)
-		}
+		err = s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, deployerProvisionManifestFile)
+		s.NoError(err, "can delete manifest")
+		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, proxyService, proxyDeployment)
 	})
 
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, deployerProvisionManifestFile)
@@ -127,14 +123,13 @@ func (s *testingSuite) serverInfoLogLevelAssertion(testInstallation *e2e.TestIns
 			adminClient = clientRefresh(ctx, adminClient, 1).
 				WithKubeContext(testInstallation.ClusterContext.KubeContext).
 				WithReceiver(os.Stdout)
+
 			serverInfo, err := adminClient.GetServerInfo(ctx)
-			if err != nil {
-				s.skipCleanup = true
-			}
-			// gomega.Expect(false).To(gomega.BeTrue())
 			g.Expect(err).NotTo(gomega.HaveOccurred(), fmt.Sprintf("can get server info, err: %+v", err))
+
 			g.Expect(serverInfo.GetCommandLineOptions().GetLogLevel()).To(
 				gomega.Equal(expectedLogLevel), "defined on the GatewayParameters CR")
+
 			g.Expect(serverInfo.GetCommandLineOptions().GetComponentLogLevel()).To(
 				gomega.Equal(expectedComponentLogLevel), "defined on the GatewayParameters CR")
 		}).
@@ -151,10 +146,8 @@ func (s *testingSuite) xdsClusterAssertion(testInstallation *e2e.TestInstallatio
 			adminClient = clientRefresh(ctx, adminClient, 1).
 				WithKubeContext(testInstallation.ClusterContext.KubeContext).
 				WithReceiver(os.Stdout)
+
 			clusters, err := adminClient.GetStaticClusters(ctx)
-			if err != nil {
-				s.skipCleanup = true
-			}
 			g.Expect(err).NotTo(gomega.HaveOccurred(), fmt.Sprintf("can get static clusters from config dump, err: %+v", err))
 
 			xdsCluster, ok := clusters["xds_cluster"]
