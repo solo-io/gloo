@@ -6,6 +6,14 @@ ARG GOARCH=amd64
 # eventually may matter for now https://unix.stackexchange.com/a/701288
 # means its not too useful
 ENV DEBIAN_FRONTEND=noninteractive
+# only get the things we say we want
+RUN echo 'APT::Install-Suggests "0";' >> /etc/apt/apt.conf.d/00-keepclean
+RUN echo 'APT::Install-Recommends "0";' >> /etc/apt/apt.conf.d/00-keepclean
+
+# retry apt-get update and install to work around transient network issues
+RUN echo 'Acquire::Retries "3";' >> /etc/apt/apt.conf.d/01-bad-sources
+RUN echo 'Acquire::http::timeout "80";' >> /etc/apt/apt.conf.d/01-bad-sources
+RUN echo 'Acquire::https::timeout "80";' >> /etc/apt/apt.conf.d/01-bad-sources
 
 # Update our deps to make cve toil lower
 #install wget for our default probes
