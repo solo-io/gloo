@@ -63,10 +63,18 @@ func ExecFromEphemeralPod(ctx context.Context, params EphemeralPodParams) (strin
 	// we will use the same params but just switch out the args for the
 	// different commands we execute.
 	kParams := kubectl.NewParams(createargs...)
-	kParams.Stdin = params.Stdin
-	kParams.Stdout = params.Stdout
-	kParams.Stderr = params.Stderr
-	kParams.Env = params.Env
+	if params.Stdin != nil {
+		kParams.Stdin = params.Stdin
+	}
+	if params.Stdout != nil {
+		kParams.Stdout = params.Stdout
+	}
+	if params.Stderr != nil {
+		kParams.Stderr = params.Stderr
+	}
+	if params.Env != nil {
+		kParams.Env = params.Env
+	}
 
 	// Execute curl commands from the same pod each time to avoid creating a burdensome number of ephemeral pods.
 	// create the curl pod; we do this every time and it will only work the first time, so ignore failures

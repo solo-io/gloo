@@ -23,7 +23,9 @@ func mustExecute(ctx context.Context, params KubectlParams) string {
 }
 
 func execute(ctx context.Context, params KubectlParams) (string, error) {
-	params.KubectlCmdParams.Args = append([]string{"--context", params.KubeContext}, params.KubectlCmdParams.Args...)
+	if params.KubeContext != "" {
+		params.KubectlCmdParams.Args = append([]string{"--context", params.KubeContext}, params.KubectlCmdParams.Args...)
+	}
 	fmt.Fprintf(params.Logger, "Executing: kubectl %v \n", params.KubectlCmdParams.Args)
 	p := kubectl.NewParams()
 	p.Stdin = params.KubectlCmdParams.Stdin
