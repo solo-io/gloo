@@ -30,43 +30,52 @@ type HTTPRouteInfo struct {
 
 	// hostnameOverrides can replace the HTTPRoute hostnames with those that intersect
 	// the attached listener's hostname(s).
-	hostnameOverrides []string
+	// R
+	HostnameOverrides []string
 
 	// Backends are pre-resolved here. This list will not contain delegates.
 	// Map values are either client.Object or error (errors can be passed to ProcessBackendRef).
 	// TODO should we ProcessBackendRef early and put cluster names here?)
-	backends backendMap[client.Object]
+	Backends BackendMap[client.Object]
 	// Children contains all delegate HTTPRoutes referenced in any rule of this
 	// HTTPRoute, keyed by the backend ref for easy lookup.
 	// This tree structure can have cyclic references. Check them when recursing through the tree.
-	children backendMap[[]*HTTPRouteInfo]
+	Children BackendMap[[]*HTTPRouteInfo]
 }
 
-type backendMap[T any] struct {
-	items  map[gwv1.BackendObjectReference]T
-	errors map[gwv1.BackendObjectReference]error
+func (h HTTPRouteInfo) GetName() string {
+	return h.GetName()
 }
 
-func newBackendMap[T any]() backendMap[T] {
-	return backendMap[T]{
-		items:  make(map[gwv1.BackendObjectReference]T),
-		errors: make(map[gwv1.BackendObjectReference]error),
+func (h HTTPRouteInfo) GetNamespace() string {
+	return h.GetNamespace()
+}
+
+type BackendMap[T any] struct {
+	Items  map[gwv1.BackendObjectReference]T
+	Errors map[gwv1.BackendObjectReference]error
+}
+
+func NewBackendMap[T any]() BackendMap[T] {
+	return BackendMap[T]{
+		Items:  make(map[gwv1.BackendObjectReference]T),
+		Errors: make(map[gwv1.BackendObjectReference]error),
 	}
 }
 
-func (bm backendMap[T]) get(backendRef gwv1.BackendObjectReference, def T) (T, error) {
-	if err, ok := bm.errors[backendRef]; ok {
+func (bm BackendMap[T]) get(backendRef gwv1.BackendObjectReference, def T) (T, error) {
+	if err, ok := bm.Errors[backendRef]; ok {
 		return def, err
 	}
-	if res, ok := bm.items[backendRef]; ok {
+	if res, ok := bm.Items[backendRef]; ok {
 		return res, nil
 	}
 	return def, ErrUnresolvedReference
 }
 
 func (hr *HTTPRouteInfo) Hostnames() []string {
-	if len(hr.hostnameOverrides) > 0 {
-		return hr.hostnameOverrides
+	if len(hr.HostnameOverrides) > 0 {
+		return hr.HostnameOverrides
 	}
 	strs := make([]string, 0, len(hr.Spec.Hostnames))
 	for _, v := range hr.Spec.Hostnames {
@@ -76,11 +85,11 @@ func (hr *HTTPRouteInfo) Hostnames() []string {
 }
 
 func (hr *HTTPRouteInfo) GetBackendForRef(backendRef gwv1.BackendObjectReference) (client.Object, error) {
-	return hr.backends.get(backendRef, nil)
+	return hr.Backends.get(backendRef, nil)
 }
 
 func (hr *HTTPRouteInfo) GetChildrenForRef(backendRef gwv1.BackendObjectReference) ([]*HTTPRouteInfo, error) {
-	return hr.children.get(backendRef, nil)
+	return hr.Children.get(backendRef, nil)
 }
 
 func (hr *HTTPRouteInfo) Clone() *HTTPRouteInfo {
@@ -90,8 +99,8 @@ func (hr *HTTPRouteInfo) Clone() *HTTPRouteInfo {
 	return &HTTPRouteInfo{
 		HTTPRoute: hr.HTTPRoute, // TODO DeepCopy here too?
 		ParentRef: hr.ParentRef.DeepCopy(),
-		backends:  hr.backends,
-		children:  hr.children,
+		Backends:  hr.Backends,
+		Children:  hr.Children,
 	}
 }
 
@@ -130,10 +139,10 @@ func (r *gatewayQueries) GetHTTPRouteChains(
 			gwRef := route.ParentRef
 			info := &HTTPRouteInfo{
 				HTTPRoute:         route.Route,
-				hostnameOverrides: route.Hostnames,
+				HostnameOverrides: route.Hostnames,
 				ParentRef:         &gwRef,
-				backends:          r.resolveRouteBackends(ctx, &route.Route),
-				children:          r.getDelegatedChildren(ctx, &route.Route, nil),
+				Backends:          r.resolveRouteBackends(ctx, &route.Route),
+				Children:          r.getDelegatedChildren(ctx, &route.Route, nil),
 			}
 			res.ListenerResults[listener] = append(res.ListenerResults[listener], info)
 		}
@@ -275,16 +284,16 @@ func (r *gatewayQueries) allowedRoutes(gw *gwv1.Gateway, l *gwv1.Listener) (func
 	}
 	return allowedNs, allowedKinds, nil
 }
-func (r *gatewayQueries) resolveRouteBackends(ctx context.Context, hr *gwv1.HTTPRoute) backendMap[client.Object] {
-	out := newBackendMap[client.Object]()
+func (r *gatewayQueries) resolveRouteBackends(ctx context.Context, hr *gwv1.HTTPRoute) BackendMap[client.Object] {
+	out := NewBackendMap[client.Object]()
 	for _, rule := range hr.Spec.Rules {
 		for _, backendRef := range rule.BackendRefs {
 			obj, err := r.GetBackendForRef(ctx, r.ObjToFrom(hr), &backendRef.BackendObjectReference)
 			if err != nil {
-				out.errors[backendRef.BackendObjectReference] = err
+				out.Errors[backendRef.BackendObjectReference] = err
 				continue
 			}
-			out.items[backendRef.BackendObjectReference] = obj
+			out.Items[backendRef.BackendObjectReference] = obj
 		}
 	}
 	return out
@@ -294,26 +303,26 @@ func (r *gatewayQueries) getDelegatedChildren(
 	ctx context.Context,
 	parent *gwv1.HTTPRoute,
 	visited sets.Set[types.NamespacedName],
-) backendMap[[]*HTTPRouteInfo] {
+) BackendMap[[]*HTTPRouteInfo] {
 	if visited == nil {
 		visited = sets.New[types.NamespacedName]()
 	}
 	parentRef := namespacedName(parent)
 	visited.Insert(parentRef)
 
-	children := newBackendMap[[]*HTTPRouteInfo]()
+	children := NewBackendMap[[]*HTTPRouteInfo]()
 	for _, parentRule := range parent.Spec.Rules {
 		for _, backendRef := range parentRule.BackendRefs {
 			referencedRoutes, err := r.fetchChildRoutes(ctx, parent.Namespace, backendRef)
 			if err != nil {
-				children.errors[backendRef.BackendObjectReference] = err
+				children.Errors[backendRef.BackendObjectReference] = err
 				continue
 			}
 			for _, childRoute := range referencedRoutes {
 				childRoute := childRoute // pike: ptr to loop item
 				childRef := namespacedName(&childRoute)
 				if visited.Has(childRef) {
-					children.errors[backendRef.BackendObjectReference] = fmt.Errorf("ignoring child route %s for parent %s: %w", parentRef, childRef, ErrCyclicReference)
+					children.Errors[backendRef.BackendObjectReference] = fmt.Errorf("ignoring child route %s for parent %s: %w", parentRef, childRef, ErrCyclicReference)
 					// don't resolve child routes; the entire backendRef is invalid
 					break
 				}
@@ -325,10 +334,10 @@ func (r *gatewayQueries) getDelegatedChildren(
 						Namespace: ptr.To(gwv1.Namespace(parent.Namespace)),
 						Name:      v1.ObjectName(parent.Name),
 					},
-					backends: r.resolveRouteBackends(ctx, &childRoute),
-					children: r.getDelegatedChildren(ctx, &childRoute, visited),
+					Backends: r.resolveRouteBackends(ctx, &childRoute),
+					Children: r.getDelegatedChildren(ctx, &childRoute, visited),
 				}
-				children.items[backendRef.BackendObjectReference] = append(children.items[backendRef.BackendObjectReference], routeInfo)
+				children.Items[backendRef.BackendObjectReference] = append(children.Items[backendRef.BackendObjectReference], routeInfo)
 			}
 		}
 	}
