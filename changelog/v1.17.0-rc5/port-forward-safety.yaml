@@ -1,0 +1,13 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/9353
+    resolvesIssue: false
+    description: >-
+      Add remote command type to facilitate executing commands in a pod. Additionally we are getting
+      away from using port forwards in E2E tests meant to emulate user behavior
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/9353
+    resolvesIssue: false
+    description: >-
+      Add safety around port forward util to ensure the port forward can be dialed
+      before returning nil.
