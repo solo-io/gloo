@@ -163,7 +163,7 @@ func WaitPodStatus(ctx context.Context, interval time.Duration, namespace, label
 				return fmt.Errorf("failed getting pod: %v", err)
 			}
 			if strings.Contains(out, "CrashLoopBackOff") {
-				out = KubeLogs(ctx, label, params)
+				out = KubeLogs(ctx, label, namespace, params)
 				return eris.Errorf("%v in crash loop with logs %v", label, out)
 			}
 			if strings.Contains(out, "ErrImagePull") || strings.Contains(out, "ImagePullBackOff") {
@@ -172,7 +172,7 @@ func WaitPodStatus(ctx context.Context, interval time.Duration, namespace, label
 					Stdout: params.Stdout,
 					Stderr: params.Stderr,
 					Env:    params.Env,
-					Args:   []string{"describe", "pod", "-l", label},
+					Args:   []string{"describe", "pod", "-l", label, "-n", namespace},
 				})
 				return eris.Errorf("%v in ErrImagePull with description %v", label, out)
 			}
@@ -183,8 +183,8 @@ func WaitPodStatus(ctx context.Context, interval time.Duration, namespace, label
 	}
 }
 
-func KubeLogs(ctx context.Context, label string, params Params) string {
-	params.Args = []string{"logs", "-l", label}
+func KubeLogs(ctx context.Context, label, namespace string, params Params) string {
+	params.Args = []string{"logs", "-l", label, "-n", namespace}
 	out, err := KubectlOut(ctx, params)
 	if err != nil {
 		out = err.Error()
