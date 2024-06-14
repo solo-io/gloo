@@ -284,6 +284,7 @@ func (r *gatewayQueries) allowedRoutes(gw *gwv1.Gateway, l *gwv1.Listener) (func
 	}
 	return allowedNs, allowedKinds, nil
 }
+
 func (r *gatewayQueries) resolveRouteBackends(ctx context.Context, hr *gwv1.HTTPRoute) BackendMap[client.Object] {
 	out := NewBackendMap[client.Object]()
 	for _, rule := range hr.Spec.Rules {
@@ -313,6 +314,9 @@ func (r *gatewayQueries) getDelegatedChildren(
 	children := NewBackendMap[[]*HTTPRouteInfo]()
 	for _, parentRule := range parent.Spec.Rules {
 		for _, backendRef := range parentRule.BackendRefs {
+			if !backendref.RefIsHTTPRoute(backendRef.BackendObjectReference) {
+				continue
+			}
 			referencedRoutes, err := r.fetchChildRoutes(ctx, parent.Namespace, backendRef)
 			if err != nil {
 				children.Errors[backendRef.BackendObjectReference] = err
