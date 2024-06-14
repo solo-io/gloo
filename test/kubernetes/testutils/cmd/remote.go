@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/test/testutils/hack/k8s-utils/testutils/kube"
 	"github.com/solo-io/go-utils/threadsafe"
+	"github.com/solo-io/k8s-utils/testutils/kube"
 
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
 )

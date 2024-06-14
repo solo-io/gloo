@@ -22,7 +22,7 @@ import (
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/kube2e/helper"
 	glootestutils "github.com/solo-io/gloo/test/testutils"
-	kubeutils "github.com/solo-io/gloo/test/testutils/hack/go-utils/testutils/kubectl"
+	kubeutils "github.com/solo-io/go-utils/testutils/kubectl"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

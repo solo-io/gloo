@@ -25,7 +25,7 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/kube2e/helper"
-	kubeutils "github.com/solo-io/gloo/test/testutils/hack/go-utils/testutils/kubectl"
+	kubeutils "github.com/solo-io/go-utils/testutils/kubectl"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 )
 
