@@ -41,7 +41,7 @@ func (p *Provider) AssertEnvoyAdminApi(
 	}
 	for _, adminAssertion := range adminAssertions {
 		// If there is a pod that is transitioning from Ready to Terminating it, we could be targeting it with
-		// our ephemeral exec. There isn't a solid way to guarantee this isn't going to occur is to wrap it in
+		// our ephemeral exec. There isn't a solid way to guarantee this isn't going to occur so we wrap it in
 		// Eventually. The assertion we call should panic
 		adminAssertion(ctx, adminClient, refreshFunc)
 	}

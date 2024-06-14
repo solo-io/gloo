@@ -173,7 +173,7 @@ func (c *Cli) DeploymentRolloutStatus(ctx context.Context, deployment string, ex
 	return c.RunCommand(ctx, rolloutArgs...)
 }
 
-// StartPortForward creates a PortForwarder based on the provides options, starts it, and returns the PortForwarder.
+// StartPortForward creates a PortForwarder based on the provided options, starts it, and returns the PortForwarder.
 // If an error was encountered while starting the PortForwarder, it is returned as well.
 // Port forwards SHOULD NOT be used from Kubernetes End-to-End tests.
 // NOTE: It is the callers responsibility to close this port-forward
