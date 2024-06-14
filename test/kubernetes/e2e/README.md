@@ -23,6 +23,11 @@ This package holds the entry point for each of our `TestInstallation`.
 
 See [Load balancing tests](./load_balancing_tests.md) for more information about how these tests are run in CI.
 
+## Developer Notes
+Port forwards should not be used in Kubernetes End-to-End tests because they are not imitative of user behavior. The common way to execute network requests against a running proxy or any other workload should be to execute a cURL request from within the cluster. This can be done in a couple ways:
+1. For imitating true traffic patterns through the proxy, a separate cURL pod should be deployed in the test installation environment to execute requests against the proxy "externally"
+2. For inspecting the state of the world (e.g. Envoy Admin API endpoints, gloo debug endpoints), cURL requests can be executed within an ephemeral container directly in the pod of the service being queried. This simplifies the networking aspect since that is not what is being tested.
+
 ## Environment Variables
 
 Some tests may require environment variables to be set. Some required env vars are:
