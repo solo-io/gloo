@@ -183,8 +183,21 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 	i.Assertions.Require.NoError(err)
 	defer glooLogFile.Close()
 
-	logsCmd := i.Actions.Kubectl().Command(ctx, "logs", "-n", i.Metadata.InstallNamespace, "deployments/gloo")
-	_ = logsCmd.WithStdout(glooLogFile).WithStderr(glooLogFile).Run()
+	glooLogsCmd := i.Actions.Kubectl().Command(ctx, "logs", "-n", i.Metadata.InstallNamespace, "deployments/gloo")
+	_ = glooLogsCmd.WithStdout(glooLogFile).WithStderr(glooLogFile).Run()
+
+	clusterStateFilePath := filepath.Join(i.GeneratedFiles.FailureDir, "cluster.log")
+	clusterStateFile, err := os.Create(clusterStateFilePath)
+	i.Assertions.Require.NoError(err)
+	defer clusterStateFile.Close()
+
+	clusterStateCmd := i.Actions.Kubectl().Command(ctx, "get", "all", "--all-namespaces", "-owide")
+	_ = clusterStateCmd.WithStdout(clusterStateFile).WithStderr(clusterStateFile).Run()
+
+	clusterStateFile.Write([]byte{'\n'})
+
+	gatewayStateCmd := i.Actions.Kubectl().Command(ctx, "get", "gtw", "--all-namespaces", "-owide")
+	_ = gatewayStateCmd.WithStdout(clusterStateFile).WithStderr(clusterStateFile).Run()
 }
 
 // GeneratedFiles is a collection of files that are generated during the execution of a set of tests

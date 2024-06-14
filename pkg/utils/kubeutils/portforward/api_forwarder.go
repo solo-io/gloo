@@ -55,8 +55,19 @@ type apiPortForwarder struct {
 }
 
 func (f *apiPortForwarder) Start(ctx context.Context, options ...retry.Option) error {
-	return retry.Do(func() error {
+	if err := retry.Do(func() error {
 		return f.startOnce(ctx)
+	}, options...); err != nil {
+		return err
+	}
+	return retry.Do(func() error {
+		conn, err := net.Dial("tcp4", f.Address())
+		if err != nil {
+			return err
+		}
+		conn.Close()
+		return nil
+
 	}, options...)
 }
 

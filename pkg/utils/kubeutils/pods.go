@@ -49,7 +49,7 @@ func GetReadyPodsForDeployment(
 	readyPodPredicate := func(pod corev1.Pod) bool {
 		for _, condition := range pod.Status.Conditions {
 			if condition.Type == corev1.PodReady {
-				return true
+				return condition.Status == corev1.ConditionTrue
 			}
 		}
 		return false

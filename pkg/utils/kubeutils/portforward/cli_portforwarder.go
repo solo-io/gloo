@@ -38,8 +38,19 @@ type cliPortForwarder struct {
 }
 
 func (c *cliPortForwarder) Start(ctx context.Context, options ...retry.Option) error {
-	return retry.Do(func() error {
+	if err := retry.Do(func() error {
 		return c.startOnce(ctx)
+	}, options...); err != nil {
+		return err
+	}
+	return retry.Do(func() error {
+		conn, err := net.Dial("tcp4", c.Address())
+		if err != nil {
+			return err
+		}
+		conn.Close()
+		return nil
+
 	}, options...)
 }
 
