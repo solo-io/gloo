@@ -21,6 +21,11 @@ func RefIsUpstream(ref gwv1.BackendObjectReference) bool {
 	return (ref.Kind != nil && string(*ref.Kind) == gloov1.UpstreamGVK.Kind) && (ref.Group != nil && *ref.Group == v1.GroupName)
 }
 
+// RefIsUpstream checks if the BackendObjectReference is an Upstream.
+func RefIsModel(ref gwv1.BackendObjectReference) bool {
+	return (ref.Kind != nil && string(*ref.Kind) == "AIModel") && (ref.Group != nil && *ref.Group == "ai.gloo.solo.io")
+}
+
 // RefIsHTTPRoute checks if the BackendObjectReference is an HTTPRoute
 // Parent routes may delegate to child routes using an HTTPRoute backend reference.
 func RefIsHTTPRoute(ref gwv1.BackendObjectReference) bool {
