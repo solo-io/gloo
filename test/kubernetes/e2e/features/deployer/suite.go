@@ -20,6 +20,8 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 )
 
+var _ e2e.NewSuiteFunc = NewTestingSuite
+
 // testingSuite is the entire Suite of tests for the "deployer" feature
 // The "deployer" code can be found here: /projects/gateway2/deployer
 type testingSuite struct {
