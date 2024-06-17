@@ -33,5 +33,5 @@ type PortForwarder interface {
 
 // NewPortForwarder returns an implementation of a PortForwarder
 func NewPortForwarder(options ...Option) PortForwarder {
-	return NewCliPortForwarder(options...)
+	return NewApiPortForwarder(options...)
 }
