@@ -69,6 +69,10 @@ func ProcessBackendRef(obj client.Object, err error, reporter reports.ParentRefR
 				return &name
 			}
 		default:
+			if backendRef.Kind != nil && *backendRef.Kind == "AIModel" {
+				name := cli.GetName()
+				return &name
+			}
 			reporter.SetCondition(reports.HTTPRouteCondition{
 				Type:   gwv1.RouteConditionResolvedRefs,
 				Status: metav1.ConditionFalse,
