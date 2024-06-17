@@ -105,10 +105,10 @@ var _ = Describe("GatewayTranslator", func() {
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(HaveLen(1))
-		Expect(results[types.NamespacedName{
+		ExpectKeyWithNoDiff(results, types.NamespacedName{
 			Namespace: "default",
 			Name:      "gw",
-		}]).To(BeTrue())
+		})
 	})
 
 	It("should translate an http gateway with a azure destination", func() {
@@ -128,10 +128,10 @@ var _ = Describe("GatewayTranslator", func() {
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(HaveLen(1))
-		Expect(results[types.NamespacedName{
+		ExpectKeyWithNoDiff(results, types.NamespacedName{
 			Namespace: "default",
 			Name:      "gw",
-		}]).To(BeTrue())
+		})
 	})
 
 	It("should correctly sort routes", func() {
