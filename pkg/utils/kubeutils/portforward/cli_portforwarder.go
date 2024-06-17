@@ -6,8 +6,11 @@ import (
 	"net"
 	"os/exec"
 	"strconv"
+	"strings"
+	"time"
 
 	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/go-utils/testutils"
 
 	"github.com/avast/retry-go/v4"
 )
@@ -38,11 +41,16 @@ type cliPortForwarder struct {
 }
 
 func (c *cliPortForwarder) Start(ctx context.Context, options ...retry.Option) error {
+	// First we attempt to start the port-forward following the retry options provided.
 	if err := retry.Do(func() error {
 		return c.startOnce(ctx)
 	}, options...); err != nil {
 		return err
 	}
+
+	// Before returning nil, we make sure the port-forward can be dialed on the
+	// port-forward address configured. This prevents us returning nil while the
+	// port-forward is still initializing.
 	return retry.Do(func() error {
 		conn, err := net.Dial("tcp4", c.Address())
 		if err != nil {
@@ -65,6 +73,13 @@ func (c *cliPortForwarder) startOnce(ctx context.Context) error {
 	}
 
 	cmdCtx, cmdCancel := context.WithCancel(ctx)
+
+	if strings.Contains(c.properties.resourceType, "deploy") || strings.Contains(c.properties.resourceType, "pod") {
+		if err := testutils.WaitPodsRunning(ctx, time.Millisecond*100, c.properties.resourceNamespace, fmt.Sprintf("gloo=%s", c.properties.resourceName)); err != nil {
+			cmdCancel()
+			return err
+		}
+	}
 
 	c.cmd = exec.CommandContext(
 		cmdCtx,

@@ -18,7 +18,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
-	"github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
 )
 
 // testingSuite is the entire Suite of tests for the "deployer" feature
@@ -73,16 +72,12 @@ func (s *testingSuite) TestConfigureProxiesFromGatewayParameters() {
 	s.testInstallation.Assertions.EventuallyRunningReplicas(s.ctx, proxyDeployment.ObjectMeta, gomega.Equal(1))
 
 	// We assert that we can port-forward requests to the proxy deployment, and then execute requests against the server
-	if s.testInstallation.RuntimeContext.RunSource == runtime.LocalDevelopment {
-		// There are failures when opening port-forwards to the Envoy Admin API in CI
-		// Those are currently being investigated
-		s.testInstallation.Assertions.AssertEnvoyAdminApi(
-			s.ctx,
-			proxyDeployment.ObjectMeta,
-			serverInfoLogLevelAssertion(s.testInstallation, "debug", "connection:trace,upstream:debug"),
-			xdsClusterAssertion(s.testInstallation),
-		)
-	}
+	s.testInstallation.Assertions.AssertEnvoyAdminApi(
+		s.ctx,
+		proxyDeployment.ObjectMeta,
+		serverInfoLogLevelAssertion(s.testInstallation, "debug", "connection:trace,upstream:debug"),
+		xdsClusterAssertion(s.testInstallation),
+	)
 }
 
 func (s *testingSuite) TestSelfManagedGateway() {

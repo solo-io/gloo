@@ -183,6 +183,7 @@ func (c *Cli) StartPortForward(ctx context.Context, options ...portforward.Optio
 		portforward.WithKubeContext(c.kubeContext),
 	}, options...)
 
+	// We use the Cli PortForwarder because this util is explicitly designed to be a convenience wrapper around kubectl
 	portForwarder := portforward.NewCliPortForwarder(options...)
 	err := portForwarder.Start(
 		ctx,

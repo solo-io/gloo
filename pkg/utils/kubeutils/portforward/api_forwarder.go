@@ -55,11 +55,16 @@ type apiPortForwarder struct {
 }
 
 func (f *apiPortForwarder) Start(ctx context.Context, options ...retry.Option) error {
+	// First we attempt to start the port-forward following the retry options provided.
 	if err := retry.Do(func() error {
 		return f.startOnce(ctx)
 	}, options...); err != nil {
 		return err
 	}
+
+	// Before returning nil, we make sure the port-forward can be dialed on the
+	// port-forward address configured. This prevents us returning nil while the
+	// port-forward is still initializing.
 	return retry.Do(func() error {
 		conn, err := net.Dial("tcp4", f.Address())
 		if err != nil {
