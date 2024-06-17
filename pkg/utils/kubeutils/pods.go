@@ -45,13 +45,21 @@ func GetReadyPodsForDeployment(
 	kubeClient *kubernetes.Clientset,
 	deploy metav1.ObjectMeta,
 ) ([]string, error) {
-	// This predicate will return true if and only if the pod is ready
+	// This predicate will return true if and only if the pod is ready.
 	readyPodPredicate := func(pod corev1.Pod) bool {
+
+		// Make sure our pod has not been marked for deletion.
+		if pod.DeletionTimestamp != nil {
+			return false
+		}
+
+		// Make sure the condition named "Ready" has the status "True".
 		for _, condition := range pod.Status.Conditions {
 			if condition.Type == corev1.PodReady {
 				return condition.Status == corev1.ConditionTrue
 			}
 		}
+
 		return false
 	}
 
