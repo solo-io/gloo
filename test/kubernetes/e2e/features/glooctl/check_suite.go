@@ -32,6 +32,7 @@ func NewCheckSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.Te
 }
 
 func (s *checkSuite) TestCheck() {
+	gomega.Expect("I wrote a bug not on purpose!").To(gomega.BeEmpty())
 	output, err := s.testInstallation.Actions.Glooctl().Check(s.ctx,
 		"-n", s.testInstallation.Metadata.InstallNamespace, "-x", "xds-metrics")
 	s.NoError(err)

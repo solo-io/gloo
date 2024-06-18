@@ -47,6 +47,7 @@ func (s *k8sGatewaySuite) SetupSuite() {
 }
 
 func (s *k8sGatewaySuite) TestConfigureRoutingHeadlessSvc() {
+	s.Assert().Empty("intentional bug")
 	s.T().Cleanup(func() {
 		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, headlessSvcSetupManifest)
 		s.NoError(err, "can delete setup manifest")

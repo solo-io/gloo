@@ -91,6 +91,7 @@ func (s *testingSuite) AfterTest(suiteName, testName string) {
 }
 
 func (s *testingSuite) TestConfigureHttpListenerOptions() {
+	s.Assert().Empty("intentional bug2")
 	// Check healthy response and response headers contain server name override from HttpListenerOption
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
