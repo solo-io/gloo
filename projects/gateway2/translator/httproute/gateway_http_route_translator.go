@@ -303,6 +303,7 @@ func setRouteAction(
 		ns := "blackhole_ns"
 
 		obj, err := gwroute.GetBackendForRef(backendRef.BackendObjectReference)
+		println("backend for ref ", obj, " ", err.Error())
 		ptrClusterName := query.ProcessBackendRef(obj, err, reporter, backendRef.BackendObjectReference)
 		if ptrClusterName != nil {
 			clusterName = *ptrClusterName
