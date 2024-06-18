@@ -52,22 +52,52 @@ func (h HTTPRouteInfo) GetNamespace() string {
 }
 
 type BackendMap[T any] struct {
-	Items  map[gwv1.BackendObjectReference]T
-	Errors map[gwv1.BackendObjectReference]error
+	items  map[backendRefKey]T
+	errors map[backendRefKey]error
 }
 
 func NewBackendMap[T any]() BackendMap[T] {
 	return BackendMap[T]{
-		Items:  make(map[gwv1.BackendObjectReference]T),
-		Errors: make(map[gwv1.BackendObjectReference]error),
+		items:  make(map[backendRefKey]T),
+		errors: make(map[backendRefKey]error),
 	}
 }
 
+type backendRefKey string
+
+func backendToRefKey(ref gwv1.BackendObjectReference) backendRefKey {
+	const delim = "~"
+	return backendRefKey(
+		string(ptrOrDefault(ref.Group, "")) + delim +
+			string(ptrOrDefault(ref.Kind, "")) + delim +
+			string(ref.Name) + delim +
+			string(ptrOrDefault(ref.Namespace, "")),
+	)
+}
+
+func ptrOrDefault[T comparable](p *T, fallback T) T {
+	if p == nil {
+		return fallback
+	}
+	return *p
+}
+
+func (bm BackendMap[T]) Add(backendRef gwv1.BackendObjectReference, value T) {
+	key := backendToRefKey(backendRef)
+	bm.items[key] = value
+}
+
+func (bm BackendMap[T]) AddError(backendRef gwv1.BackendObjectReference, err error) {
+	key := backendToRefKey(backendRef)
+	bm.errors[key] = err
+}
+
 func (bm BackendMap[T]) get(backendRef gwv1.BackendObjectReference, def T) (T, error) {
-	if err, ok := bm.Errors[backendRef]; ok {
+	key := backendToRefKey(backendRef)
+	if err, ok := bm.errors[key]; ok {
 		return def, err
 	}
-	if res, ok := bm.Items[backendRef]; ok {
+	if res, ok := bm.items[key]; ok {
 		return res, nil
 	}
 	return def, ErrUnresolvedReference
@@ -291,10 +321,10 @@ func (r *gatewayQueries) resolveRouteBackends(ctx context.Context, hr *gwv1.HTTP
 		for _, backendRef := range rule.BackendRefs {
 			obj, err := r.GetBackendForRef(ctx, r.ObjToFrom(hr), &backendRef.BackendObjectReference)
 			if err != nil {
-				out.Errors[backendRef.BackendObjectReference] = err
+				out.AddError(backendRef.BackendObjectReference, err)
 				continue
 			}
-			out.Items[backendRef.BackendObjectReference] = obj
+			out.Add(backendRef.BackendObjectReference, obj)
 		}
 	}
 	return out
@@ -313,20 +343,22 @@ func (r *gatewayQueries) getDelegatedChildren(
 
 	children := NewBackendMap[[]*HTTPRouteInfo]()
 	for _, parentRule := range parent.Spec.Rules {
+		var refChildren []*HTTPRouteInfo
 		for _, backendRef := range parentRule.BackendRefs {
 			if !backendref.RefIsHTTPRoute(backendRef.BackendObjectReference) {
 				continue
 			}
 			referencedRoutes, err := r.fetchChildRoutes(ctx, parent.Namespace, backendRef)
 			if err != nil {
-				children.Errors[backendRef.BackendObjectReference] = err
+				children.AddError(backendRef.BackendObjectReference, err)
 				continue
 			}
 			for _, childRoute := range referencedRoutes {
 				childRoute := childRoute // pike: ptr to loop item
 				childRef := namespacedName(&childRoute)
 				if visited.Has(childRef) {
-					children.Errors[backendRef.BackendObjectReference] = fmt.Errorf("ignoring child route %s for parent %s: %w", parentRef, childRef, ErrCyclicReference)
+					err := fmt.Errorf("ignoring child route %s for parent %s: %w", parentRef, childRef, ErrCyclicReference)
+					children.AddError(backendRef.BackendObjectReference, err)
 					// don't resolve child routes; the entire backendRef is invalid
 					break
 				}
@@ -341,8 +373,9 @@ func (r *gatewayQueries) getDelegatedChildren(
 					Backends: r.resolveRouteBackends(ctx, &childRoute),
 					Children: r.getDelegatedChildren(ctx, &childRoute, visited),
 				}
-				children.Items[backendRef.BackendObjectReference] = append(children.Items[backendRef.BackendObjectReference], routeInfo)
+				refChildren = append(refChildren, routeInfo)
 			}
+			children.Add(backendRef.BackendObjectReference, refChildren)
 		}
 	}
 	return children
