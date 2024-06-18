@@ -280,6 +280,9 @@ func (r *gatewayQueries) allowedRoutes(gw *gwv1.Gateway, l *gwv1.Listener) (func
 		allowedKinds = []metav1.GroupKind{{}}
 	case gwv1.UDPProtocolType:
 		allowedKinds = []metav1.GroupKind{{}}
+	default:
+		// allow custom protocols to work
+		allowedKinds = []metav1.GroupKind{{Kind: wellknown.HTTPRouteKind, Group: gwv1.GroupName}}
 	}
 
 	allowedNs := SameNamespace(gw.Namespace)
