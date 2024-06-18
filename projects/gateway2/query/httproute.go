@@ -44,11 +44,11 @@ type HTTPRouteInfo struct {
 }
 
 func (h HTTPRouteInfo) GetName() string {
-	return h.GetName()
+	return h.HTTPRoute.GetName()
 }
 
 func (h HTTPRouteInfo) GetNamespace() string {
-	return h.GetNamespace()
+	return h.HTTPRoute.GetNamespace()
 }
 
 type BackendMap[T any] struct {
