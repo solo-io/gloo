@@ -1,0 +1,77 @@
+name: Backport PRs to LTS branches
+on:
+  pull_request:
+    branches:
+      - main
+    types: ["closed"]
+
+jobs:
+  cherry_pick_v1_15_x_backport_pr:
+    runs-on: ubuntu-latest
+    name: Backport into our v1.15.x LTS branch
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'Backport: 1.15.x') &&
+      github.event.pull_request.merged == true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          fetch-depth: 0
+      - name: Cherry pick into v1.15.x LTS branch
+        uses: ashleywang1/github-cherry-pick-action@v0.1.6
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          branch: v1.15.x
+          title: "[v1.15.x] {old_title}"
+          body: "Cherry picking #{old_pull_request_id} onto this branch"
+          assignees: |
+            ${{ github.event.pull_request.user.login }}
+          reviewers: |
+            ${{ github.event.pull_request.user.login }}
+  cherry_pick_v1_16_x_backport_pr:
+    runs-on: ubuntu-latest
+    name: Backport into our v1.16.x LTS branch
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'Backport: 1.16.x') &&
+      github.event.pull_request.merged == true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          fetch-depth: 0
+      - name: Cherry pick into v1.16.x LTS branch
+        uses: ashleywang1/github-cherry-pick-action@v0.1.6
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          branch: v1.16.x
+          title: "[v1.16.x] {old_title}"
+          body: "Cherry picking #{old_pull_request_id} onto this branch"
+          assignees: |
+            ${{ github.event.pull_request.user.login }}
+          reviewers: |
+            ${{ github.event.pull_request.user.login }}
+  cherry_pick_v1_17_x_backport_pr:
+    runs-on: ubuntu-latest
+    name: Backport into our v1.17.x LTS branch
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'Backport: 1.17.x') &&
+      github.event.pull_request.merged == true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          fetch-depth: 0
+      - name: Cherry pick into v1.17.x LTS branch
+        uses: ashleywang1/github-cherry-pick-action@v0.1.6
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          branch: v1.17.x
+          title: "[v1.17.x] {old_title}"
+          body: "Cherry picking #{old_pull_request_id} onto this branch"
+          assignees: |
+            ${{ github.event.pull_request.user.login }}
+          reviewers: |
+            ${{ github.event.pull_request.user.login }}
