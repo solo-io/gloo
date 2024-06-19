@@ -55,9 +55,18 @@ func mergeGWListeners(
 		queries:          queries,
 	}
 	for _, listener := range listeners {
-		result := routesForGw.ListenerResults[string(listener.Name)]
+		result, ok := routesForGw.ListenerResults[string(listener.Name)]
+		if !ok || result.Error != nil {
+			// TODO report
+			// TODO, if Error is not nil, this is a user-config error on selectors
+			// continue
+		}
 		listenerReporter := reporter.Listener(&listener)
-		ml.appendListener(listener, result.Routes, listenerReporter)
+		var routes []*query.HTTPRouteInfo
+		if result != nil {
+			routes = result.Routes
+		}
+		ml.appendListener(listener, routes, listenerReporter)
 	}
 	return ml
 }
