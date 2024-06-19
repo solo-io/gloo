@@ -1,6 +1,0 @@
-changelog:
-- type: NON_USER_FACING
-  description: >-
-    Add guardrails to apt-get install commands to prevent accidental installation of packages that are not needed
-    Retry apt-get and increase its connection time out.
-    Note that this does not obviate the need for us to use a better mirror and is just a stop gap.
