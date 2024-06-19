@@ -31,7 +31,7 @@ func TranslateListeners(
 	queries query.GatewayQueries,
 	pluginRegistry registry.PluginRegistry,
 	gateway *gwv1.Gateway,
-	routesForGw query.GatewayHTTPRouteInfo,
+	routesForGw query.RoutesForGwResult,
 	reporter reports.Reporter,
 ) []*v1.Listener {
 	validatedListeners := validateListeners(gateway, reporter.Gateway(gateway))
@@ -46,7 +46,7 @@ func mergeGWListeners(
 	gatewayNamespace string,
 	listeners []gwv1.Listener,
 	parentGw gwv1.Gateway,
-	routesForGw query.GatewayHTTPRouteInfo,
+	routesForGw query.RoutesForGwResult,
 	reporter reports.GatewayReporter,
 ) *mergedListeners {
 	ml := &mergedListeners{
@@ -57,7 +57,7 @@ func mergeGWListeners(
 	for _, listener := range listeners {
 		result := routesForGw.ListenerResults[string(listener.Name)]
 		listenerReporter := reporter.Listener(&listener)
-		ml.appendListener(listener, result, listenerReporter)
+		ml.appendListener(listener, result.Routes, listenerReporter)
 	}
 	return ml
 }

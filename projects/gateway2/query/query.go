@@ -15,7 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
-	v1 "sigs.k8s.io/gateway-api/apis/v1"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 )
 
@@ -124,7 +123,10 @@ type GatewayQueries interface {
 
 	GetLocalObjRef(ctx context.Context, from From, localObjRef apiv1.LocalObjectReference) (client.Object, error)
 
-	GetHTTPRouteChains(ctx context.Context, gw *v1.Gateway) (GatewayHTTPRouteInfo, error)
+	// GetRoutesForGateway finds the top level HTTPRoutes attached to a Gateway
+	GetRoutesForGateway(ctx context.Context, gw *apiv1.Gateway) (RoutesForGwResult, error)
+	// GetHTTPRouteChain resolves backends and delegated routes for a HTTPRoute
+	GetHTTPRouteChain(ctx context.Context, route apiv1.HTTPRoute, hostnames []string, parentRef apiv1.ParentReference) *HTTPRouteInfo
 }
 
 type RoutesForGwResult struct {
@@ -135,13 +137,7 @@ type RoutesForGwResult struct {
 
 type ListenerResult struct {
 	Error  error
-	Routes []*ListenerRouteResult
-}
-
-type ListenerRouteResult struct {
-	Route     apiv1.HTTPRoute
-	ParentRef apiv1.ParentReference
-	Hostnames []string
+	Routes []*HTTPRouteInfo
 }
 
 type RouteError struct {

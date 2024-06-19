@@ -127,60 +127,32 @@ func (hr *HTTPRouteInfo) Clone() *HTTPRouteInfo {
 		return nil
 	}
 	return &HTTPRouteInfo{
-		HTTPRoute: hr.HTTPRoute, // TODO DeepCopy here too?
-		ParentRef: hr.ParentRef.DeepCopy(),
+		HTTPRoute: hr.HTTPRoute,
+		ParentRef: hr.ParentRef,
 		Backends:  hr.Backends,
 		Children:  hr.Children,
 	}
 }
 
-type GatewayHTTPRouteInfo struct {
-	ListenerResults map[string][]*HTTPRouteInfo
-	ListenerErrors  map[string]error
-	RouteErrors     []*RouteError
-}
-
-// GetHTTPRouteChains queries for HTTPRoutes that attach directly to a Gateway.
-// The returned []HTTPRouteInfo items are each top-level HTTPRoutes, children
-// are delgated routes. Delegated children may not be fully-valid based on
-// matchers, and are given unmodified. This decouples the querying from the
-// more nuanced parts of translation. BackendRefs are followed blindly.
-func (r *gatewayQueries) GetHTTPRouteChains(
+// GetHTTPRouteChain recursively resolves all backends of the given HTTPRoute.
+// While this includes delgated HTTPRoutes, validation of matchers is not applied here.
+// Errors for unresolved or cyclic backend references will be surfaced on the HTTPRouteInfo.
+func (r *gatewayQueries) GetHTTPRouteChain(
 	ctx context.Context,
-	gw *v1.Gateway,
-) (GatewayHTTPRouteInfo, error) {
-	// TODO inline this or make it private?
-	topLevel, err := r.getRoutesForGw(ctx, gw)
-	if err != nil {
-		return GatewayHTTPRouteInfo{}, err
+	route gwv1.HTTPRoute,
+	hostnames []string,
+	parentRef gwv1.ParentReference,
+) *HTTPRouteInfo {
+	return &HTTPRouteInfo{
+		HTTPRoute:         route,
+		HostnameOverrides: hostnames,
+		ParentRef:         &parentRef,
+		Backends:          r.resolveRouteBackends(ctx, &route),
+		Children:          r.getDelegatedChildren(ctx, &route, nil),
 	}
-	res := GatewayHTTPRouteInfo{
-		ListenerResults: make(map[string][]*HTTPRouteInfo, len(topLevel.ListenerResults)),
-		ListenerErrors:  make(map[string]error, len(topLevel.ListenerResults)),
-		RouteErrors:     topLevel.RouteErrors,
-	}
-	for listener, listenerRes := range topLevel.ListenerResults {
-		if listenerRes.Error != nil {
-			res.ListenerErrors[listener] = listenerRes.Error
-			continue
-		}
-		for _, route := range listenerRes.Routes {
-			route := route // pike: ptr to iterator var
-			gwRef := route.ParentRef
-			info := &HTTPRouteInfo{
-				HTTPRoute:         route.Route,
-				HostnameOverrides: route.Hostnames,
-				ParentRef:         &gwRef,
-				Backends:          r.resolveRouteBackends(ctx, &route.Route),
-				Children:          r.getDelegatedChildren(ctx, &route.Route, nil),
-			}
-			res.ListenerResults[listener] = append(res.ListenerResults[listener], info)
-		}
-	}
-	return res, nil
 }
 
-func (r *gatewayQueries) getRoutesForGw(ctx context.Context, gw *gwv1.Gateway) (RoutesForGwResult, error) {
+func (r *gatewayQueries) GetRoutesForGateway(ctx context.Context, gw *gwv1.Gateway) (RoutesForGwResult, error) {
 	ret := RoutesForGwResult{
 		ListenerResults: map[string]*ListenerResult{},
 	}
@@ -233,13 +205,8 @@ func (r *gatewayQueries) getRoutesForGw(ctx context.Context, gw *gwv1.Gateway) (
 				if !ok {
 					continue
 				}
-				lrr := &ListenerRouteResult{
-					Route:     hr,
-					Hostnames: hostnames,
-					ParentRef: ref,
-				}
 				anyHostsMatch = true
-				lr.Routes = append(lr.Routes, lrr)
+				lr.Routes = append(lr.Routes, r.GetHTTPRouteChain(ctx, hr, hostnames, ref))
 			}
 
 			if !anyRoutesAllowed {
@@ -263,6 +230,7 @@ func (r *gatewayQueries) getRoutesForGw(ctx context.Context, gw *gwv1.Gateway) (
 			}
 		}
 	}
+
 	return ret, nil
 }
 
