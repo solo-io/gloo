@@ -293,6 +293,9 @@ message TransformationTemplate {
     // If you want to nest elements inside the body, use dot separator in the
     // extractor name.
     MergeExtractorsToBody merge_extractors_to_body = 6;
+    // A list of keys to merge into the JSON body. If the key already exists in
+    // the body it will be overwritten.
+    MergeJsonKeys merge_json_keys = 13;
   }
 
   // Determines how the body will be parsed.
@@ -362,6 +365,10 @@ message InjaTemplate { string text = 1; }
 message Passthrough {}
 
 message MergeExtractorsToBody {}
+
+message MergeJsonKeys {
+  map<string, InjaTemplate> json_keys = 2;
+}
 
 message HeaderBodyTransform {
   // When transforming a request, setting this to true will additionally add "queryString",
