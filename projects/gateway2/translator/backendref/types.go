@@ -22,8 +22,8 @@ func RefIsUpstream(ref gwv1.BackendObjectReference) bool {
 }
 
 // RefIsUpstream checks if the BackendObjectReference is an Upstream.
-func RefIsModel(ref gwv1.BackendObjectReference) bool {
-	return (ref.Kind != nil && string(*ref.Kind) == "AIModel") && (ref.Group != nil && *ref.Group == "ai.gloo.solo.io")
+func RefIsLLMProvider(ref gwv1.BackendObjectReference) bool {
+	return (ref.Kind != nil && string(*ref.Kind) == "LLMProvider") && (ref.Group != nil && *ref.Group == "ai.gloo.solo.io")
 }
 
 // RefIsHTTPRoute checks if the BackendObjectReference is an HTTPRoute

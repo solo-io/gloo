@@ -369,7 +369,7 @@ func setRouteAction(
 				Weight:  weight,
 				Options: nil,
 			})
-		case backendref.RefIsModel(backendRef.BackendObjectReference):
+		case backendref.RefIsLLMProvider(backendRef.BackendObjectReference):
 			weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
 				Destination: &v1.Destination{
 					DestinationType: &v1.Destination_Upstream{
