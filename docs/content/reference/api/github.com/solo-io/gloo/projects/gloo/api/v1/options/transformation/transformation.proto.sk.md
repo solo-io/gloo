@@ -27,6 +27,7 @@ weight: 5
 - [Passthrough](#passthrough)
 - [MergeExtractorsToBody](#mergeextractorstobody)
 - [MergeJsonKeys](#mergejsonkeys)
+- [OverridableTemplate](#overridabletemplate)
 - [HeaderBodyTransform](#headerbodytransform)
   
 
@@ -392,13 +393,32 @@ substring extends to the end of the input string.
 
 
 ```yaml
-"jsonKeys": map<string, .transformation.options.gloo.solo.io.InjaTemplate>
+"jsonKeys": map<string, .transformation.options.gloo.solo.io.MergeJsonKeys.OverridableTemplate>
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `jsonKeys` | `map<string, .transformation.options.gloo.solo.io.InjaTemplate>` |  |
+| `jsonKeys` | `map<string, .transformation.options.gloo.solo.io.MergeJsonKeys.OverridableTemplate>` | Map of key name -> template to render into the JSON body. |
+
+
+
+
+---
+### OverridableTemplate
+
+
+
+```yaml
+"tmpl": .transformation.options.gloo.solo.io.InjaTemplate
+"overrideEmpty": bool
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `tmpl` | [.transformation.options.gloo.solo.io.InjaTemplate](../transformation.proto.sk/#injatemplate) | Template to render. |
+| `overrideEmpty` | `bool` | If set to true, the template will be set even if the rendered value is empty. |
 
 
 

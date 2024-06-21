@@ -367,7 +367,14 @@ message Passthrough {}
 message MergeExtractorsToBody {}
 
 message MergeJsonKeys {
-  map<string, InjaTemplate> json_keys = 2;
+  message OverridableTemplate {
+    // Template to render
+    InjaTemplate tmpl = 1;
+    // If set to true, the template will be set even if the rendered value is empty.
+    bool override_empty = 2;
+  }
+  // Map of key name -> template to render into the JSON body
+  map<string, OverridableTemplate> json_keys = 2;
 }
 
 message HeaderBodyTransform {

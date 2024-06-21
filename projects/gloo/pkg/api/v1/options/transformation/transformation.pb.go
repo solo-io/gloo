@@ -1176,7 +1176,8 @@ type MergeJsonKeys struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	JsonKeys map[string]*InjaTemplate `protobuf:"bytes,2,rep,name=json_keys,json=jsonKeys,proto3" json:"json_keys,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// Map of key name -> template to render into the JSON body
+	JsonKeys map[string]*MergeJsonKeys_OverridableTemplate `protobuf:"bytes,2,rep,name=json_keys,json=jsonKeys,proto3" json:"json_keys,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *MergeJsonKeys) Reset() {
@@ -1211,7 +1212,7 @@ func (*MergeJsonKeys) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *MergeJsonKeys) GetJsonKeys() map[string]*InjaTemplate {
+func (x *MergeJsonKeys) GetJsonKeys() map[string]*MergeJsonKeys_OverridableTemplate {
 	if x != nil {
 		return x.JsonKeys
 	}
@@ -1401,6 +1402,63 @@ func (x *TransformationTemplate_DynamicMetadataValue) GetValue() *InjaTemplate {
 func (x *TransformationTemplate_DynamicMetadataValue) GetJsonToProto() bool {
 	if x != nil {
 		return x.JsonToProto
+	}
+	return false
+}
+
+type MergeJsonKeys_OverridableTemplate struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Template to render
+	Tmpl *InjaTemplate `protobuf:"bytes,1,opt,name=tmpl,proto3" json:"tmpl,omitempty"`
+	// If set to true, the template will be set even if the rendered value is empty.
+	OverrideEmpty bool `protobuf:"varint,2,opt,name=override_empty,json=overrideEmpty,proto3" json:"override_empty,omitempty"`
+}
+
+func (x *MergeJsonKeys_OverridableTemplate) Reset() {
+	*x = MergeJsonKeys_OverridableTemplate{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_msgTypes[17]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MergeJsonKeys_OverridableTemplate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MergeJsonKeys_OverridableTemplate) ProtoMessage() {}
+
+func (x *MergeJsonKeys_OverridableTemplate) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_msgTypes[17]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MergeJsonKeys_OverridableTemplate.ProtoReflect.Descriptor instead.
+func (*MergeJsonKeys_OverridableTemplate) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_rawDescGZIP(), []int{11, 0}
+}
+
+func (x *MergeJsonKeys_OverridableTemplate) GetTmpl() *InjaTemplate {
+	if x != nil {
+		return x.Tmpl
+	}
+	return nil
+}
+
+func (x *MergeJsonKeys_OverridableTemplate) GetOverrideEmpty() bool {
+	if x != nil {
+		return x.OverrideEmpty
 	}
 	return false
 }
@@ -1702,32 +1760,41 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_tra
 	0x74, 0x65, 0x78, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x65, 0x78, 0x74,
 	0x22, 0x0d, 0x0a, 0x0b, 0x50, 0x61, 0x73, 0x73, 0x74, 0x68, 0x72, 0x6f, 0x75, 0x67, 0x68, 0x22,
 	0x17, 0x0a, 0x15, 0x4d, 0x65, 0x72, 0x67, 0x65, 0x45, 0x78, 0x74, 0x72, 0x61, 0x63, 0x74, 0x6f,
-	0x72, 0x73, 0x54, 0x6f, 0x42, 0x6f, 0x64, 0x79, 0x22, 0xde, 0x01, 0x0a, 0x0d, 0x4d, 0x65, 0x72,
+	0x72, 0x73, 0x54, 0x6f, 0x42, 0x6f, 0x64, 0x79, 0x22, 0xfa, 0x02, 0x0a, 0x0d, 0x4d, 0x65, 0x72,
 	0x67, 0x65, 0x4a, 0x73, 0x6f, 0x6e, 0x4b, 0x65, 0x79, 0x73, 0x12, 0x5d, 0x0a, 0x09, 0x6a, 0x73,
 	0x6f, 0x6e, 0x5f, 0x6b, 0x65, 0x79, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x40, 0x2e,
 	0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x6f,
 	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f,
 	0x2e, 0x69, 0x6f, 0x2e, 0x4d, 0x65, 0x72, 0x67, 0x65, 0x4a, 0x73, 0x6f, 0x6e, 0x4b, 0x65, 0x79,
 	0x73, 0x2e, 0x4a, 0x73, 0x6f, 0x6e, 0x4b, 0x65, 0x79, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52,
-	0x08, 0x6a, 0x73, 0x6f, 0x6e, 0x4b, 0x65, 0x79, 0x73, 0x1a, 0x6e, 0x0a, 0x0d, 0x4a, 0x73, 0x6f,
-	0x6e, 0x4b, 0x65, 0x79, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65,
-	0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x47, 0x0a, 0x05,
-	0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x31, 0x2e, 0x74, 0x72,
-	0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x6f, 0x70, 0x74,
-	0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69,
-	0x6f, 0x2e, 0x49, 0x6e, 0x6a, 0x61, 0x54, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x52, 0x05,
-	0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x47, 0x0a, 0x13, 0x48, 0x65, 0x61,
-	0x64, 0x65, 0x72, 0x42, 0x6f, 0x64, 0x79, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d,
-	0x12, 0x30, 0x0a, 0x14, 0x61, 0x64, 0x64, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f,
-	0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x12,
-	0x61, 0x64, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61,
-	0x74, 0x61, 0x42, 0x55, 0xb8, 0xf5, 0x04, 0x01, 0xc0, 0xf5, 0x04, 0x01, 0xd0, 0xf5, 0x04, 0x01,
-	0x5a, 0x47, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c,
-	0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63,
-	0x74, 0x73, 0x2f, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f,
-	0x76, 0x31, 0x2f, 0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2f, 0x74, 0x72, 0x61, 0x6e, 0x73,
-	0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x08, 0x6a, 0x73, 0x6f, 0x6e, 0x4b, 0x65, 0x79, 0x73, 0x1a, 0x83, 0x01, 0x0a, 0x13, 0x4f, 0x76,
+	0x65, 0x72, 0x72, 0x69, 0x64, 0x61, 0x62, 0x6c, 0x65, 0x54, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74,
+	0x65, 0x12, 0x45, 0x0a, 0x04, 0x74, 0x6d, 0x70, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x31, 0x2e, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x2e, 0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f,
+	0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x49, 0x6e, 0x6a, 0x61, 0x54, 0x65, 0x6d, 0x70, 0x6c, 0x61,
+	0x74, 0x65, 0x52, 0x04, 0x74, 0x6d, 0x70, 0x6c, 0x12, 0x25, 0x0a, 0x0e, 0x6f, 0x76, 0x65, 0x72,
+	0x72, 0x69, 0x64, 0x65, 0x5f, 0x65, 0x6d, 0x70, 0x74, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08,
+	0x52, 0x0d, 0x6f, 0x76, 0x65, 0x72, 0x72, 0x69, 0x64, 0x65, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a,
+	0x83, 0x01, 0x0a, 0x0d, 0x4a, 0x73, 0x6f, 0x6e, 0x4b, 0x65, 0x79, 0x73, 0x45, 0x6e, 0x74, 0x72,
+	0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
+	0x6b, 0x65, 0x79, 0x12, 0x5c, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x46, 0x2e, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x2e, 0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x67, 0x6c, 0x6f, 0x6f,
+	0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4d, 0x65, 0x72, 0x67, 0x65, 0x4a, 0x73,
+	0x6f, 0x6e, 0x4b, 0x65, 0x79, 0x73, 0x2e, 0x4f, 0x76, 0x65, 0x72, 0x72, 0x69, 0x64, 0x61, 0x62,
+	0x6c, 0x65, 0x54, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x47, 0x0a, 0x13, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x42,
+	0x6f, 0x64, 0x79, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x12, 0x30, 0x0a, 0x14,
+	0x61, 0x64, 0x64, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x6d, 0x65, 0x74, 0x61,
+	0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x12, 0x61, 0x64, 0x64, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x42, 0x55,
+	0xb8, 0xf5, 0x04, 0x01, 0xc0, 0xf5, 0x04, 0x01, 0xd0, 0xf5, 0x04, 0x01, 0x5a, 0x47, 0x67, 0x69,
+	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f,
+	0x2f, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x67,
+	0x6c, 0x6f, 0x6f, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x31, 0x2f, 0x6f,
+	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2f, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1743,7 +1810,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_tr
 }
 
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_goTypes = []interface{}{
 	(Extraction_Mode)(0),                          // 0: transformation.options.gloo.solo.io.Extraction.Mode
 	(TransformationTemplate_RequestBodyParse)(0),  // 1: transformation.options.gloo.solo.io.TransformationTemplate.RequestBodyParse
@@ -1764,18 +1831,19 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_tra
 	nil,                                           // 16: transformation.options.gloo.solo.io.TransformationTemplate.HeadersEntry
 	(*TransformationTemplate_HeaderToAppend)(nil), // 17: transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend
 	(*TransformationTemplate_DynamicMetadataValue)(nil), // 18: transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue
-	nil,                             // 19: transformation.options.gloo.solo.io.MergeJsonKeys.JsonKeysEntry
-	(*matchers.HeaderMatcher)(nil),  // 20: matchers.core.gloo.solo.io.HeaderMatcher
-	(*matchers.Matcher)(nil),        // 21: matchers.core.gloo.solo.io.Matcher
-	(*wrappers.BoolValue)(nil),      // 22: google.protobuf.BoolValue
-	(*xslt.XsltTransformation)(nil), // 23: envoy.config.transformer.xslt.v2.XsltTransformation
-	(*empty.Empty)(nil),             // 24: google.protobuf.Empty
-	(*wrappers.StringValue)(nil),    // 25: google.protobuf.StringValue
+	(*MergeJsonKeys_OverridableTemplate)(nil),           // 19: transformation.options.gloo.solo.io.MergeJsonKeys.OverridableTemplate
+	nil,                             // 20: transformation.options.gloo.solo.io.MergeJsonKeys.JsonKeysEntry
+	(*matchers.HeaderMatcher)(nil),  // 21: matchers.core.gloo.solo.io.HeaderMatcher
+	(*matchers.Matcher)(nil),        // 22: matchers.core.gloo.solo.io.Matcher
+	(*wrappers.BoolValue)(nil),      // 23: google.protobuf.BoolValue
+	(*xslt.XsltTransformation)(nil), // 24: envoy.config.transformer.xslt.v2.XsltTransformation
+	(*empty.Empty)(nil),             // 25: google.protobuf.Empty
+	(*wrappers.StringValue)(nil),    // 26: google.protobuf.StringValue
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_depIdxs = []int32{
-	20, // 0: transformation.options.gloo.solo.io.ResponseMatch.matchers:type_name -> matchers.core.gloo.solo.io.HeaderMatcher
+	21, // 0: transformation.options.gloo.solo.io.ResponseMatch.matchers:type_name -> matchers.core.gloo.solo.io.HeaderMatcher
 	7,  // 1: transformation.options.gloo.solo.io.ResponseMatch.response_transformation:type_name -> transformation.options.gloo.solo.io.Transformation
-	21, // 2: transformation.options.gloo.solo.io.RequestMatch.matcher:type_name -> matchers.core.gloo.solo.io.Matcher
+	22, // 2: transformation.options.gloo.solo.io.RequestMatch.matcher:type_name -> matchers.core.gloo.solo.io.Matcher
 	7,  // 3: transformation.options.gloo.solo.io.RequestMatch.request_transformation:type_name -> transformation.options.gloo.solo.io.Transformation
 	7,  // 4: transformation.options.gloo.solo.io.RequestMatch.response_transformation:type_name -> transformation.options.gloo.solo.io.Transformation
 	7,  // 5: transformation.options.gloo.solo.io.Transformations.request_transformation:type_name -> transformation.options.gloo.solo.io.Transformation
@@ -1785,13 +1853,13 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_tra
 	5,  // 9: transformation.options.gloo.solo.io.TransformationStages.early:type_name -> transformation.options.gloo.solo.io.RequestResponseTransformations
 	5,  // 10: transformation.options.gloo.solo.io.TransformationStages.regular:type_name -> transformation.options.gloo.solo.io.RequestResponseTransformations
 	5,  // 11: transformation.options.gloo.solo.io.TransformationStages.post_routing:type_name -> transformation.options.gloo.solo.io.RequestResponseTransformations
-	22, // 12: transformation.options.gloo.solo.io.TransformationStages.log_request_response_info:type_name -> google.protobuf.BoolValue
-	22, // 13: transformation.options.gloo.solo.io.TransformationStages.escape_characters:type_name -> google.protobuf.BoolValue
+	23, // 12: transformation.options.gloo.solo.io.TransformationStages.log_request_response_info:type_name -> google.protobuf.BoolValue
+	23, // 13: transformation.options.gloo.solo.io.TransformationStages.escape_characters:type_name -> google.protobuf.BoolValue
 	9,  // 14: transformation.options.gloo.solo.io.Transformation.transformation_template:type_name -> transformation.options.gloo.solo.io.TransformationTemplate
 	14, // 15: transformation.options.gloo.solo.io.Transformation.header_body_transform:type_name -> transformation.options.gloo.solo.io.HeaderBodyTransform
-	23, // 16: transformation.options.gloo.solo.io.Transformation.xslt_transformation:type_name -> envoy.config.transformer.xslt.v2.XsltTransformation
-	24, // 17: transformation.options.gloo.solo.io.Extraction.body:type_name -> google.protobuf.Empty
-	25, // 18: transformation.options.gloo.solo.io.Extraction.replacement_text:type_name -> google.protobuf.StringValue
+	24, // 16: transformation.options.gloo.solo.io.Transformation.xslt_transformation:type_name -> envoy.config.transformer.xslt.v2.XsltTransformation
+	25, // 17: transformation.options.gloo.solo.io.Extraction.body:type_name -> google.protobuf.Empty
+	26, // 18: transformation.options.gloo.solo.io.Extraction.replacement_text:type_name -> google.protobuf.StringValue
 	0,  // 19: transformation.options.gloo.solo.io.Extraction.mode:type_name -> transformation.options.gloo.solo.io.Extraction.Mode
 	15, // 20: transformation.options.gloo.solo.io.TransformationTemplate.extractors:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.ExtractorsEntry
 	16, // 21: transformation.options.gloo.solo.io.TransformationTemplate.headers:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.HeadersEntry
@@ -1802,18 +1870,19 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_tra
 	13, // 26: transformation.options.gloo.solo.io.TransformationTemplate.merge_json_keys:type_name -> transformation.options.gloo.solo.io.MergeJsonKeys
 	1,  // 27: transformation.options.gloo.solo.io.TransformationTemplate.parse_body_behavior:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.RequestBodyParse
 	18, // 28: transformation.options.gloo.solo.io.TransformationTemplate.dynamic_metadata_values:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue
-	22, // 29: transformation.options.gloo.solo.io.TransformationTemplate.escape_characters:type_name -> google.protobuf.BoolValue
-	19, // 30: transformation.options.gloo.solo.io.MergeJsonKeys.json_keys:type_name -> transformation.options.gloo.solo.io.MergeJsonKeys.JsonKeysEntry
+	23, // 29: transformation.options.gloo.solo.io.TransformationTemplate.escape_characters:type_name -> google.protobuf.BoolValue
+	20, // 30: transformation.options.gloo.solo.io.MergeJsonKeys.json_keys:type_name -> transformation.options.gloo.solo.io.MergeJsonKeys.JsonKeysEntry
 	8,  // 31: transformation.options.gloo.solo.io.TransformationTemplate.ExtractorsEntry.value:type_name -> transformation.options.gloo.solo.io.Extraction
 	10, // 32: transformation.options.gloo.solo.io.TransformationTemplate.HeadersEntry.value:type_name -> transformation.options.gloo.solo.io.InjaTemplate
 	10, // 33: transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.value:type_name -> transformation.options.gloo.solo.io.InjaTemplate
 	10, // 34: transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.value:type_name -> transformation.options.gloo.solo.io.InjaTemplate
-	10, // 35: transformation.options.gloo.solo.io.MergeJsonKeys.JsonKeysEntry.value:type_name -> transformation.options.gloo.solo.io.InjaTemplate
-	36, // [36:36] is the sub-list for method output_type
-	36, // [36:36] is the sub-list for method input_type
-	36, // [36:36] is the sub-list for extension type_name
-	36, // [36:36] is the sub-list for extension extendee
-	0,  // [0:36] is the sub-list for field type_name
+	10, // 35: transformation.options.gloo.solo.io.MergeJsonKeys.OverridableTemplate.tmpl:type_name -> transformation.options.gloo.solo.io.InjaTemplate
+	19, // 36: transformation.options.gloo.solo.io.MergeJsonKeys.JsonKeysEntry.value:type_name -> transformation.options.gloo.solo.io.MergeJsonKeys.OverridableTemplate
+	37, // [37:37] is the sub-list for method output_type
+	37, // [37:37] is the sub-list for method input_type
+	37, // [37:37] is the sub-list for extension type_name
+	37, // [37:37] is the sub-list for extension extendee
+	0,  // [0:37] is the sub-list for field type_name
 }
 
 func init() {
@@ -2004,6 +2073,18 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_tr
 				return nil
 			}
 		}
+		file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*MergeJsonKeys_OverridableTemplate); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_msgTypes[5].OneofWrappers = []interface{}{
 		(*Transformation_TransformationTemplate)(nil),
@@ -2026,7 +2107,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_tr
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_rawDesc,
 			NumEnums:      2,
-			NumMessages:   18,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

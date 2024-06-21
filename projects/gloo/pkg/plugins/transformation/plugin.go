@@ -484,10 +484,13 @@ func translateTransformationTemplate(in *transformation.Transformation_Transform
 			MergeExtractorsToBody: &envoytransformation.MergeExtractorsToBody{},
 		}
 	case *transformation.TransformationTemplate_MergeJsonKeys:
-		result := make(map[string]*envoytransformation.InjaTemplate, len(bodyTransformation.MergeJsonKeys.GetJsonKeys()))
+		result := make(map[string]*envoytransformation.MergeJsonKeys_OverridableTemplate, len(bodyTransformation.MergeJsonKeys.GetJsonKeys()))
 		for key, val := range bodyTransformation.MergeJsonKeys.GetJsonKeys() {
-			result[key] = &envoytransformation.InjaTemplate{
-				Text: val.GetText(),
+			result[key] = &envoytransformation.MergeJsonKeys_OverridableTemplate{
+				Tmpl: &envoytransformation.InjaTemplate{
+					Text: val.GetTmpl().GetText(),
+				},
+				OverrideEmpty: val.GetOverrideEmpty(),
 			}
 		}
 		outTemplate.BodyTransformation = &envoytransformation.TransformationTemplate_MergeJsonKeys{

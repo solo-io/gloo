@@ -1479,8 +1479,13 @@ spec:
                                             jsonKeys:
                                               additionalProperties:
                                                 properties:
-                                                  text:
-                                                    type: string
+                                                  overrideEmpty:
+                                                    type: boolean
+                                                  tmpl:
+                                                    properties:
+                                                      text:
+                                                        type: string
+                                                    type: object
                                                 type: object
                                               type: object
                                           type: object
@@ -1591,8 +1596,13 @@ spec:
                                             jsonKeys:
                                               additionalProperties:
                                                 properties:
-                                                  text:
-                                                    type: string
+                                                  overrideEmpty:
+                                                    type: boolean
+                                                  tmpl:
+                                                    properties:
+                                                      text:
+                                                        type: string
+                                                    type: object
                                                 type: object
                                               type: object
                                           type: object
@@ -1723,8 +1733,13 @@ spec:
                                             jsonKeys:
                                               additionalProperties:
                                                 properties:
-                                                  text:
-                                                    type: string
+                                                  overrideEmpty:
+                                                    type: boolean
+                                                  tmpl:
+                                                    properties:
+                                                      text:
+                                                        type: string
+                                                    type: object
                                                 type: object
                                               type: object
                                           type: object
@@ -1895,8 +1910,13 @@ spec:
                                             jsonKeys:
                                               additionalProperties:
                                                 properties:
-                                                  text:
-                                                    type: string
+                                                  overrideEmpty:
+                                                    type: boolean
+                                                  tmpl:
+                                                    properties:
+                                                      text:
+                                                        type: string
+                                                    type: object
                                                 type: object
                                               type: object
                                           type: object
@@ -2007,8 +2027,13 @@ spec:
                                             jsonKeys:
                                               additionalProperties:
                                                 properties:
-                                                  text:
-                                                    type: string
+                                                  overrideEmpty:
+                                                    type: boolean
+                                                  tmpl:
+                                                    properties:
+                                                      text:
+                                                        type: string
+                                                    type: object
                                                 type: object
                                               type: object
                                           type: object
@@ -2139,8 +2164,13 @@ spec:
                                             jsonKeys:
                                               additionalProperties:
                                                 properties:
-                                                  text:
-                                                    type: string
+                                                  overrideEmpty:
+                                                    type: boolean
+                                                  tmpl:
+                                                    properties:
+                                                      text:
+                                                        type: string
+                                                    type: object
                                                 type: object
                                               type: object
                                           type: object
@@ -2303,8 +2333,13 @@ spec:
                                             jsonKeys:
                                               additionalProperties:
                                                 properties:
-                                                  text:
-                                                    type: string
+                                                  overrideEmpty:
+                                                    type: boolean
+                                                  tmpl:
+                                                    properties:
+                                                      text:
+                                                        type: string
+                                                    type: object
                                                 type: object
                                               type: object
                                           type: object
@@ -2415,8 +2450,13 @@ spec:
                                             jsonKeys:
                                               additionalProperties:
                                                 properties:
-                                                  text:
-                                                    type: string
+                                                  overrideEmpty:
+                                                    type: boolean
+                                                  tmpl:
+                                                    properties:
+                                                      text:
+                                                        type: string
+                                                    type: object
                                                 type: object
                                               type: object
                                           type: object
@@ -2547,8 +2587,13 @@ spec:
                                             jsonKeys:
                                               additionalProperties:
                                                 properties:
-                                                  text:
-                                                    type: string
+                                                  overrideEmpty:
+                                                    type: boolean
+                                                  tmpl:
+                                                    properties:
+                                                      text:
+                                                        type: string
+                                                    type: object
                                                 type: object
                                               type: object
                                           type: object
@@ -2681,8 +2726,13 @@ spec:
                                   jsonKeys:
                                     additionalProperties:
                                       properties:
-                                        text:
-                                          type: string
+                                        overrideEmpty:
+                                          type: boolean
+                                        tmpl:
+                                          properties:
+                                            text:
+                                              type: string
+                                          type: object
                                       type: object
                                     type: object
                                 type: object
@@ -2793,8 +2843,13 @@ spec:
                                   jsonKeys:
                                     additionalProperties:
                                       properties:
-                                        text:
-                                          type: string
+                                        overrideEmpty:
+                                          type: boolean
+                                        tmpl:
+                                          properties:
+                                            text:
+                                              type: string
+                                          type: object
                                       type: object
                                     type: object
                                 type: object

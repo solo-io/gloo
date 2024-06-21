@@ -31,6 +31,7 @@ weight: 5
 - [Passthrough](#passthrough)
 - [MergeExtractorsToBody](#mergeextractorstobody)
 - [MergeJsonKeys](#mergejsonkeys)
+- [OverridableTemplate](#overridabletemplate)
 - [HeaderBodyTransform](#headerbodytransform)
   
 
@@ -473,13 +474,32 @@ substring extends to the end of the input string.
 
 
 ```yaml
-"jsonKeys": map<string, .envoy.api.v2.filter.http.InjaTemplate>
+"jsonKeys": map<string, .envoy.api.v2.filter.http.MergeJsonKeys.OverridableTemplate>
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `jsonKeys` | `map<string, .envoy.api.v2.filter.http.InjaTemplate>` |  |
+| `jsonKeys` | `map<string, .envoy.api.v2.filter.http.MergeJsonKeys.OverridableTemplate>` | Map of key name -> template to render into the JSON body. |
+
+
+
+
+---
+### OverridableTemplate
+
+
+
+```yaml
+"tmpl": .envoy.api.v2.filter.http.InjaTemplate
+"overrideEmpty": bool
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `tmpl` | [.envoy.api.v2.filter.http.InjaTemplate](../transformation.proto.sk/#injatemplate) | Template to render. |
+| `overrideEmpty` | `bool` | If set to true, the template will be set even if the rendered value is empty. |
 
 
 
