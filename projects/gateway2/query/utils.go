@@ -69,7 +69,7 @@ func ProcessBackendRef(obj client.Object, err error, reporter reports.ParentRefR
 				return &name
 			}
 		default:
-			if backendRef.Kind != nil && *backendRef.Kind == "AIModel" {
+			if backendRef.Kind != nil && *backendRef.Group == "ai.gloo.solo.io" {
 				name := cli.GetName()
 				return &name
 			}
