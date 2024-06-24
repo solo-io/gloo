@@ -37,6 +37,8 @@ linters-settings:
         alias: batchv1
       - pkg: github.com/solo-io/gloo/test/kubernetes/testutils/clients
         alias: kubetestclients
+      - pkg: github.com/solo-io/gloo/test/kubernetes/e2e/defaults
+        alias: e2edefaults
   nakedret:
     # The team consensus is that naked returns hinder the readability of the code.
     # However, named return values can still be useful as documentation for certain scenarios.

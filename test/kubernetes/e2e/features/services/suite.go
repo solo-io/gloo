@@ -7,7 +7,7 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
-	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 )
 
 // testingSuite is the entire Suite of tests for testing K8s Service-specific features/fixes
@@ -36,7 +36,7 @@ func (s *testingSuite) TestConfigureBackingDestinationsWithService() {
 		s.NoError(err, "can delete manifest")
 		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, proxyService, proxyDeployment)
 
-		err = testdefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+		err = e2edefaults.TeardownCurlPod(s.ctx, s.testInstallation)
 		s.NoError(err, "can delete Curl manifest")
 	})
 
@@ -47,7 +47,7 @@ func (s *testingSuite) TestConfigureBackingDestinationsWithService() {
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, serviceManifest)
 	s.Assert().NoError(err, "can apply gloo.solo.io Service manifest")
 
-	err = testdefaults.SetupCurlPod(s.ctx, s.testInstallation)
+	err = e2edefaults.SetupCurlPod(s.ctx, s.testInstallation)
 	s.NoError(err, "can apply curl pod manifest")
 
 	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment)

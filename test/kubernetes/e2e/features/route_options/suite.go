@@ -18,7 +18,7 @@ import (
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
-	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 )
 
 var _ e2e.NewSuiteFunc = NewTestingSuite
@@ -60,7 +60,7 @@ func (s *testingSuite) SetupSuite() {
 		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw",
 	})
 
-	err = testdefaults.SetupCurlPod(s.ctx, s.testInstallation)
+	err = e2edefaults.SetupCurlPod(s.ctx, s.testInstallation)
 	s.NoError(err, "can apply curl pod manifest")
 
 	// We include tests with manual setup here because the cleanup is still automated via AfterTest
@@ -81,7 +81,7 @@ func (s *testingSuite) TearDownSuite() {
 	err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupManifest)
 	s.NoError(err, "can delete "+setupManifest)
 
-	err = testdefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+	err = e2edefaults.TeardownCurlPod(s.ctx, s.testInstallation)
 	s.NoError(err, "can delete Curl manifest")
 }
 
@@ -273,7 +273,7 @@ func (s *testingSuite) TestOptionsMerge() {
 		defaults.KubeGatewayReporter,
 	)
 
-	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
+	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, e2edefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
@@ -304,7 +304,7 @@ func (s *testingSuite) getterForMeta(meta *metav1.ObjectMeta) helpers.InputResou
 func (s *testingSuite) assertEventuallyCurlRespondsWith(response *matchers.HttpResponse) {
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
-		testdefaults.CurlPodExecOpt,
+		e2edefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
 			curl.WithHostHeader("example.com"),

@@ -11,7 +11,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
-	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -46,7 +46,7 @@ func (s *testingSuite) SetupSuite() {
 		LabelSelector: "app.kubernetes.io/name=nginx",
 	})
 
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.CurlPodManifest)
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, e2edefaults.CurlPodManifest)
 	s.NoError(err, "can setup Curl routing manifest")
 
 	// include gateway manifests for the tests, so we recreate it for each test run
@@ -61,8 +61,8 @@ func (s *testingSuite) TearDownSuite() {
 	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, setupManifest)
 	s.testInstallation.Assertions.ExpectObjectDeleted(setupManifest, err, output)
 
-	output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, testdefaults.CurlPodManifest)
-	s.testInstallation.Assertions.ExpectObjectDeleted(testdefaults.CurlPodManifest, err, output)
+	output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, e2edefaults.CurlPodManifest)
+	s.testInstallation.Assertions.ExpectObjectDeleted(e2edefaults.CurlPodManifest, err, output)
 
 }
 
@@ -101,7 +101,7 @@ func (s *testingSuite) TestConfigureHttpListenerOptions() {
 	// Check healthy response and response headers contain server name override from HttpListenerOption
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
-		testdefaults.CurlPodExecOpt,
+		e2edefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
@@ -119,7 +119,7 @@ func (s *testingSuite) TestConfigureNotAttachedHttpListenerOptions() {
 	// Check healthy response and response headers contain default server name as HttpLisOpt isn't attached
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
-		testdefaults.CurlPodExecOpt,
+		e2edefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
 			curl.WithHostHeader("example.com"),

@@ -11,7 +11,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
-	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -48,7 +48,7 @@ func (s *testingSuite) SetupSuite() {
 	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw",
 	})
-	err = testdefaults.SetupCurlPod(s.ctx, s.testInstallation)
+	err = e2edefaults.SetupCurlPod(s.ctx, s.testInstallation)
 	s.NoError(err, "can apply curl pod manifest")
 
 	s.manifests = map[string][]string{
@@ -61,7 +61,7 @@ func (s *testingSuite) TearDownSuite() {
 	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, setupManifest)
 	s.testInstallation.Assertions.ExpectObjectDeleted(setupManifest, err, output)
 
-	err = testdefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+	err = e2edefaults.TeardownCurlPod(s.ctx, s.testInstallation)
 	s.NoError(err, "can delete Curl manifest")
 }
 
@@ -93,7 +93,7 @@ func (s *testingSuite) TestConfigureListenerOptions() {
 	// Check healthy response
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
-		testdefaults.CurlPodExecOpt,
+		e2edefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
