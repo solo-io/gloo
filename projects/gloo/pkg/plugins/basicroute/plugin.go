@@ -336,6 +336,11 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 		}
 	}
 
+	var retriableStatusCode []uint32
+	if policy.GetRetryOn() == "retriable-status-codes" {
+		retriableStatusCode = []uint32{429, 503, 504}
+	}
+
 	v3RetryPolicyBackOff := &envoy_config_route_v3.RetryPolicy_RetryBackOff{}
 
 	// Let's make some checks
@@ -385,18 +390,20 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 
 		// If max and/or/both base intervals are defined, return a RetryPolicy object that contains them
 		return &envoy_config_route_v3.RetryPolicy{
-			RetryOn:       policy.GetRetryOn(),
-			NumRetries:    &wrappers.UInt32Value{Value: numRetries},
-			PerTryTimeout: policy.GetPerTryTimeout(),
-			RetryBackOff:  v3RetryPolicyBackOff,
-			RetryPriority: retryPriority,
+			RetryOn:              policy.GetRetryOn(),
+			NumRetries:           &wrappers.UInt32Value{Value: numRetries},
+			PerTryTimeout:        policy.GetPerTryTimeout(),
+			RetryBackOff:         v3RetryPolicyBackOff,
+			RetryPriority:        retryPriority,
+			RetriableStatusCodes: retriableStatusCode,
 		}, nil
 	}
 
 	return &envoy_config_route_v3.RetryPolicy{
-		RetryOn:       policy.GetRetryOn(),
-		NumRetries:    &wrappers.UInt32Value{Value: numRetries},
-		PerTryTimeout: policy.GetPerTryTimeout(),
-		RetryPriority: retryPriority,
+		RetryOn:              policy.GetRetryOn(),
+		NumRetries:           &wrappers.UInt32Value{Value: numRetries},
+		PerTryTimeout:        policy.GetPerTryTimeout(),
+		RetryPriority:        retryPriority,
+		RetriableStatusCodes: retriableStatusCode,
 	}, nil
 }
