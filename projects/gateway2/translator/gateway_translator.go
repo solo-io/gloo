@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
@@ -47,6 +48,9 @@ func (t *translator) TranslateProxy(
 	writeNamespace string,
 	reporter reports.Reporter,
 ) *v1.Proxy {
+	if gateway.Spec.GatewayClassName != wellknown.GatewayClassName {
+		return nil
+	}
 
 	routesForGw, err := t.queries.GetRoutesForGw(ctx, gateway)
 	if err != nil {

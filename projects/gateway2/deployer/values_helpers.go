@@ -18,11 +18,9 @@ import (
 // This file contains helper functions that generate helm values in the format needed
 // by the deployer.
 
-var (
-	ComponentLogLevelEmptyError = func(key string, value string) error {
-		return eris.Errorf("an empty key or value was provided in componentLogLevels: key=%s, value=%s", key, value)
-	}
-)
+var ComponentLogLevelEmptyError = func(key string, value string) error {
+	return eris.Errorf("an empty key or value was provided in componentLogLevels: key=%s, value=%s", key, value)
+}
 
 // Extract the listener ports from a Gateway. These will be used to populate:
 // 1. the ports exposed on the envoy container
@@ -110,7 +108,7 @@ func getSdsContainerValues(sdsContainerConfig *v1alpha1.SdsContainer) *helmSdsCo
 		Repository: ptr.To(sdsConfigImage.GetRepository().GetValue()),
 		Tag:        ptr.To(sdsConfigImage.GetTag().GetValue()),
 		Digest:     ptr.To(sdsConfigImage.GetDigest().GetValue()),
-		PullPolicy: ptr.To(sdsConfigImage.GetPullPolicy().String()),
+		PullPolicy: pullPolicyOrDefault(sdsConfigImage.GetPullPolicy().String()),
 	}
 	return &helmSdsContainer{
 		Image:           sdsImage,
@@ -133,7 +131,7 @@ func getIstioContainerValues(istioContainerConfig *v1alpha1.IstioContainer) *hel
 		Repository: ptr.To(istioConfigImage.GetRepository().GetValue()),
 		Tag:        ptr.To(istioConfigImage.GetTag().GetValue()),
 		Digest:     ptr.To(istioConfigImage.GetDigest().GetValue()),
-		PullPolicy: ptr.To(istioConfigImage.GetPullPolicy().String()),
+		PullPolicy: pullPolicyOrDefault(istioConfigImage.GetPullPolicy().String()),
 	}
 
 	return &helmIstioContainer{
@@ -170,7 +168,7 @@ func getEnvoyImageValues(envoyImage *v1alpha1kube.Image) *helmImage {
 		Repository: ptr.To(envoyImage.GetRepository().GetValue()),
 		Tag:        ptr.To(envoyImage.GetTag().GetValue()),
 		Digest:     ptr.To(envoyImage.GetDigest().GetValue()),
-		PullPolicy: ptr.To(envoyImage.GetPullPolicy().String()),
+		PullPolicy: pullPolicyOrDefault(envoyImage.GetPullPolicy().String()),
 	}
 }
 
@@ -193,4 +191,19 @@ func ComponentLogLevelsToString(vals map[string]string) (string, error) {
 	}
 	sort.Strings(parts)
 	return strings.Join(parts, ","), nil
+}
+
+func orDefault[T comparable](value T, fallback T) T {
+	var empty T
+	if value == empty {
+		return fallback
+	}
+	return value
+}
+
+const defaultPullPolicy = "IfNotPresent"
+
+func pullPolicyOrDefault(policy string) *string {
+	value := orDefault(policy, defaultPullPolicy)
+	return ptr.To(value)
 }

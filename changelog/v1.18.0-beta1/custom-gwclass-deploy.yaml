@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Allow GME to configure additional GatewayClasses that are deployed by our controller.
