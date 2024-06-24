@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 )
 
 // glooGatewayPortRoutingTestingSuite is the entire Suite of tests for the "PortRouting" cases
@@ -76,6 +77,9 @@ func (s *glooGatewayPortRoutingTestingSuite) SetupSuite() {
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, setupEdgeManifest, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.NoError(err, "can apply edge routing manifest")
+
+	err = e2edefaults.SetupCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can apply curl pod manifest")
 }
 
 func (s *glooGatewayPortRoutingTestingSuite) TearDownSuite() {
@@ -84,6 +88,9 @@ func (s *glooGatewayPortRoutingTestingSuite) TearDownSuite() {
 
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupEdgeManifest, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.NoError(err, "can delete edge routing manifest")
+
+	err = e2edefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can delete Curl manifest")
 }
 
 func (s *glooGatewayPortRoutingTestingSuite) BeforeTest(suiteName, testName string) {

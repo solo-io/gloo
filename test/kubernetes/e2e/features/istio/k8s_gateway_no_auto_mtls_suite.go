@@ -7,6 +7,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -75,6 +76,9 @@ func (s *istioTestingSuite) SetupSuite() {
 	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, httpbinDeployment.ObjectMeta.GetNamespace(),
 		metav1.ListOptions{LabelSelector: "app=httpbin"}, time.Minute*2)
 
+	err = testdefaults.SetupCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can apply curl pod manifest")
+
 	// We include tests with manual setup here because the cleanup is still automated via AfterTest
 	s.manifests = map[string][]string{
 		"TestStrictPeerAuth":     {strictPeerAuthManifest, k8sRoutingSvcManifest},
@@ -86,6 +90,9 @@ func (s *istioTestingSuite) TearDownSuite() {
 	err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, setupManifest)
 	s.NoError(err, "can delete setup manifest")
 	s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, httpbinDeployment)
+
+	err = testdefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can delete Curl manifest")
 }
 
 func (s *istioTestingSuite) TestStrictPeerAuth() {

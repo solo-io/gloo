@@ -46,6 +46,9 @@ func (s *testingSuite) SetupSuite() {
 		LabelSelector: "app.kubernetes.io/name=nginx",
 	})
 
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.CurlPodManifest)
+	s.NoError(err, "can setup Curl routing manifest")
+
 	// include gateway manifests for the tests, so we recreate it for each test run
 	s.manifests = map[string][]string{
 		"TestConfigureHttpListenerOptions":            {gatewayManifest, basicLisOptManifest},
@@ -57,6 +60,10 @@ func (s *testingSuite) TearDownSuite() {
 	// Check that the common setup manifest is deleted
 	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, setupManifest)
 	s.testInstallation.Assertions.ExpectObjectDeleted(setupManifest, err, output)
+
+	output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, testdefaults.CurlPodManifest)
+	s.testInstallation.Assertions.ExpectObjectDeleted(testdefaults.CurlPodManifest, err, output)
+
 }
 
 func (s *testingSuite) BeforeTest(suiteName, testName string) {

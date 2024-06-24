@@ -43,18 +43,23 @@ func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.
 }
 
 func (s *tsuite) SetupSuite() {
-	s.manifests = map[string][]string{
-		"TestBasic":                       {commonManifest, basicRoutesManifest},
-		"TestRecursive":                   {commonManifest, recursiveRoutesManifest},
-		"TestCyclic":                      {commonManifest, cyclicRoutesManifest},
-		"TestInvalidChild":                {commonManifest, invalidChildRoutesManifest},
-		"TestHeaderQueryMatch":            {commonManifest, headerQueryMatchRoutesManifest},
-		"TestMultipleParents":             {commonManifest, multipleParentsManifest},
-		"TestInvalidChildValidStandalone": {commonManifest, invalidChildValidStandaloneManifest},
-		"TestUnresolvedChild":             {commonManifest, unresolvedChildManifest},
-		"TestRouteOptions":                {commonManifest, routeOptionsManifest},
-		"TestMatcherInheritance":          {commonManifest, matcherInheritanceManifest},
+	commonManifests := func() []string {
+		return []string{commonManifest, defaults.CurlPodManifest}
 	}
+
+	s.manifests = map[string][]string{
+		"TestBasic":                       append(commonManifests(), basicRoutesManifest),
+		"TestRecursive":                   append(commonManifests(), recursiveRoutesManifest),
+		"TestCyclic":                      append(commonManifests(), cyclicRoutesManifest),
+		"TestInvalidChild":                append(commonManifests(), invalidChildRoutesManifest),
+		"TestHeaderQueryMatch":            append(commonManifests(), headerQueryMatchRoutesManifest),
+		"TestMultipleParents":             append(commonManifests(), multipleParentsManifest),
+		"TestInvalidChildValidStandalone": append(commonManifests(), invalidChildValidStandaloneManifest),
+		"TestUnresolvedChild":             append(commonManifests(), unresolvedChildManifest),
+		"TestRouteOptions":                append(commonManifests(), routeOptionsManifest),
+		"TestMatcherInheritance":          append(commonManifests(), matcherInheritanceManifest),
+	}
+
 	// Not every resource that is applied needs to be verified. We are not testing `kubectl apply`,
 	// but the below code demonstrates how it can be done if necessary
 	s.manifestObjects = map[string][]client.Object{

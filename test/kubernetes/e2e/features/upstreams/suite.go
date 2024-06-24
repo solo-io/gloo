@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 )
 
 var _ e2e.NewSuiteFunc = NewTestingSuite
@@ -41,6 +42,8 @@ func (s *testingSuite) TestConfigureBackingDestinationsWithUpstream() {
 		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, upstreamManifest)
 		s.NoError(err, "can delete manifest")
 		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, proxyService, proxyDeployment)
+		err = testdefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+		s.NoError(err, "can delete Curl manifest")
 	})
 
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, routeWithUpstreamManifest)
@@ -49,6 +52,9 @@ func (s *testingSuite) TestConfigureBackingDestinationsWithUpstream() {
 	// apply the upstream manifest separately, after the route table is applied, to ensure it can be applied after the route table
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, upstreamManifest)
 	s.Assert().NoError(err, "can apply gloo.solo.io Upstreams manifest")
+
+	err = testdefaults.SetupCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can apply curl pod manifest")
 
 	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment)
 	s.testInstallation.Assertions.AssertEventualCurlResponse(

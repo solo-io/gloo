@@ -61,6 +61,9 @@ func (s *testingSuite) SetupSuite() {
 		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw",
 	})
 
+	err = testdefaults.SetupCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can apply curl pod manifest")
+
 	// We include tests with manual setup here because the cleanup is still automated via AfterTest
 	s.manifests = map[string][]string{
 		"TestConfigureVirtualHostOptions":        {basicVhOManifest},
@@ -77,6 +80,9 @@ func (s *testingSuite) TearDownSuite() {
 	// Check that the common setup manifest is deleted
 	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, setupManifest)
 	s.testInstallation.Assertions.ExpectObjectDeleted(setupManifest, err, output)
+
+	err = testdefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can delete Curl manifest")
 }
 
 func (s *testingSuite) BeforeTest(suiteName, testName string) {
