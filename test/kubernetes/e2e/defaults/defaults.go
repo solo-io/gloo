@@ -7,7 +7,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/skv2/codegen/util"
@@ -35,7 +34,7 @@ func SetupCurlPod(ctx context.Context, t *e2e.TestInstallation) error {
 	if err != nil {
 		return err
 	}
-	t.Assertions.EventuallyRunningReplicas(ctx, CurlPod.ObjectMeta, gomega.Equal(1))
+	t.Assertions.EventuallyPodsRunning(ctx, CurlPod.ObjectMeta.GetNamespace(), metav1.ListOptions{})
 	return nil
 }
 

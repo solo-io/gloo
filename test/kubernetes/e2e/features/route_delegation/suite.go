@@ -63,7 +63,8 @@ func (s *tsuite) SetupSuite() {
 	// Not every resource that is applied needs to be verified. We are not testing `kubectl apply`,
 	// but the below code demonstrates how it can be done if necessary
 	s.manifestObjects = map[string][]client.Object{
-		commonManifest:                      {proxyService, proxyDeployment, defaults.CurlPod, httpbinTeam1, httpbinTeam2, gateway},
+		commonManifest:                      {proxyService, proxyDeployment, httpbinTeam1, httpbinTeam2, gateway},
+		defaults.CurlPodManifest:            {defaults.CurlPod},
 		basicRoutesManifest:                 {routeRoot, routeTeam1, routeTeam2},
 		cyclicRoutesManifest:                {routeRoot, routeTeam1, routeTeam2},
 		recursiveRoutesManifest:             {routeRoot, routeTeam1, routeTeam2},

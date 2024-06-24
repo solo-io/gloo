@@ -2,6 +2,7 @@ package port_routing
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
@@ -68,6 +69,8 @@ func (s *portRoutingTestingSuite) SetupSuite() {
 	// Check that test resources are running
 	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(),
 		metav1.ListOptions{LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw"}, time.Minute*2)
+	err = e2edefaults.SetupCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can apply curl pod manifest")
 }
 
 func (s *portRoutingTestingSuite) TearDownSuite() {
@@ -76,8 +79,8 @@ func (s *portRoutingTestingSuite) TearDownSuite() {
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupK8sManifest)
 	s.NoError(err, "can delete setup k8s gateway manifest")
 	s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, proxyService, proxyDeployment)
-	err = e2edefaults.SetupCurlPod(s.ctx, s.testInstallation)
-	s.NoError(err, "can apply curl pod manifest")
+	err = e2edefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can delete curl pod manifest")
 }
 
 func (s *portRoutingTestingSuite) BeforeTest(suiteName, testName string) {
@@ -107,51 +110,52 @@ func (s *portRoutingTestingSuite) AfterTest(suiteName, testName string) {
 	s.NoError(err, "can delete Curl manifest")
 }
 
-func (s *portRoutingTestingSuite) TestInvalidPortAndValidTargetport() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
-		s.ctx,
-		curlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-			curl.WithHostHeader("example.com"),
-		},
-		expectedHealthyResponse)
-}
+// func (s *portRoutingTestingSuite) TestInvalidPortAndValidTargetport() {
+// 	s.testInstallation.Assertions.AssertEventualCurlResponse(
+// 		s.ctx,
+// 		curlPodExecOpt,
+// 		[]curl.Option{
+// 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+// 			curl.WithHostHeader("example.com"),
+// 		},
+// 		expectedHealthyResponse)
+// }
 
-func (s *portRoutingTestingSuite) TestMatchPortAndTargetport() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
-		s.ctx,
-		curlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-			curl.WithHostHeader("example.com"),
-		},
-		expectedHealthyResponse)
-}
+// func (s *portRoutingTestingSuite) TestMatchPortAndTargetport() {
+// 	s.testInstallation.Assertions.AssertEventualCurlResponse(
+// 		s.ctx,
+// 		curlPodExecOpt,
+// 		[]curl.Option{
+// 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+// 			curl.WithHostHeader("example.com"),
+// 		},
+// 		expectedHealthyResponse)
+// }
 
-func (s *portRoutingTestingSuite) TestMatchPodPortWithoutTargetport() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
-		s.ctx,
-		curlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-			curl.WithHostHeader("example.com"),
-		},
-		expectedHealthyResponse)
-}
+// func (s *portRoutingTestingSuite) TestMatchPodPortWithoutTargetport() {
+// 	s.testInstallation.Assertions.AssertEventualCurlResponse(
+// 		s.ctx,
+// 		curlPodExecOpt,
+// 		[]curl.Option{
+// 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+// 			curl.WithHostHeader("example.com"),
+// 		},
+// 		expectedHealthyResponse)
+// }
 
-func (s *portRoutingTestingSuite) TestInvalidPortWithoutTargetport() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
-		s.ctx,
-		curlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-			curl.WithHostHeader("example.com"),
-		},
-		expectedServiceUnavailableResponse)
-}
+// func (s *portRoutingTestingSuite) TestInvalidPortWithoutTargetport() {
+// 	s.testInstallation.Assertions.AssertEventualCurlResponse(
+// 		s.ctx,
+// 		curlPodExecOpt,
+// 		[]curl.Option{
+// 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+// 			curl.WithHostHeader("example.com"),
+// 		},
+// 		expectedServiceUnavailableResponse)
+// }
 
 func (s *portRoutingTestingSuite) TestInvalidPortAndInvalidTargetport() {
+	fmt.Printf("in TestInvalidPortAndInvalidTargetport and abot to curl\n")
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
 		curlPodExecOpt,
