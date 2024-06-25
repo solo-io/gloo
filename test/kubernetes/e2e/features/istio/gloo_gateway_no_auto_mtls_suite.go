@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/resources"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/stretchr/testify/suite"
@@ -70,12 +71,17 @@ func (s *glooIstioTestingSuite) SetupSuite() {
 	// httpbin can take a while to start up with Istio sidecar
 	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, httpbinDeployment.ObjectMeta.GetNamespace(),
 		metav1.ListOptions{LabelSelector: "app=httpbin"}, time.Minute*2)
+	err = e2edefaults.SetupCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can apply curl pod manifest")
 }
 
 func (s *glooIstioTestingSuite) TearDownSuite() {
 	err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupManifest)
 	s.NoError(err, "can delete setup manifest")
 	s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, httpbinDeployment)
+
+	err = e2edefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can delete Curl manifest")
 }
 
 func (s *glooIstioTestingSuite) BeforeTest(suiteName, testName string) {

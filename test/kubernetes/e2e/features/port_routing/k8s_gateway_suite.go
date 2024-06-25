@@ -2,11 +2,13 @@ package port_routing
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -67,6 +69,8 @@ func (s *portRoutingTestingSuite) SetupSuite() {
 	// Check that test resources are running
 	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(),
 		metav1.ListOptions{LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw"}, time.Minute*2)
+	err = e2edefaults.SetupCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can apply curl pod manifest")
 }
 
 func (s *portRoutingTestingSuite) TearDownSuite() {
@@ -75,6 +79,8 @@ func (s *portRoutingTestingSuite) TearDownSuite() {
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupK8sManifest)
 	s.NoError(err, "can delete setup k8s gateway manifest")
 	s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, proxyService, proxyDeployment)
+	err = e2edefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can delete curl pod manifest")
 }
 
 func (s *portRoutingTestingSuite) BeforeTest(suiteName, testName string) {
@@ -99,6 +105,9 @@ func (s *portRoutingTestingSuite) AfterTest(suiteName, testName string) {
 		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, manifest)
 		s.NoError(err, "can delete "+manifest)
 	}
+
+	err := e2edefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can delete Curl manifest")
 }
 
 func (s *portRoutingTestingSuite) TestInvalidPortAndValidTargetport() {
@@ -146,6 +155,7 @@ func (s *portRoutingTestingSuite) TestInvalidPortWithoutTargetport() {
 }
 
 func (s *portRoutingTestingSuite) TestInvalidPortAndInvalidTargetport() {
+	fmt.Printf("in TestInvalidPortAndInvalidTargetport and abot to curl\n")
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
 		curlPodExecOpt,

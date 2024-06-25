@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/resources"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -52,6 +53,9 @@ func (s *edgeGatewaySuite) TestEdgeGatewayRoutingHeadlessSvc() {
 
 		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, s.routingManifestFile)
 		s.NoError(err, "can delete setup Edge Gateway API routing manifest")
+
+		err = e2edefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+		s.NoError(err, "can delete Curl manifest")
 	})
 
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, headlessSvcSetupManifest)
@@ -60,6 +64,9 @@ func (s *edgeGatewaySuite) TestEdgeGatewayRoutingHeadlessSvc() {
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, s.routingManifestFile)
 	s.NoError(err, "can setup Edge Gateway API routing manifest")
+
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, e2edefaults.CurlPodManifest)
+	s.NoError(err, "can setup Curl routing manifest")
 
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,

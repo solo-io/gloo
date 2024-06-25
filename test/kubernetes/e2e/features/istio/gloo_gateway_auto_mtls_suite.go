@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/resources"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -56,6 +57,9 @@ func (s *glooIstioAutoMtlsTestingSuite) SetupSuite() {
 	s.NoError(err, "can apply setup manifest")
 	s.testInstallation.Assertions.EventuallyRunningReplicas(s.ctx, httpbinDeployment.ObjectMeta, gomega.Equal(1))
 
+	err = e2edefaults.SetupCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can apply curl pod manifest")
+
 	// enabled automtls on upstream
 	enableAutomtlsResources := GetGlooGatewayEdgeResources(s.testInstallation.Metadata.InstallNamespace, UpstreamConfigOpts{})
 	err = resources.WriteResourcesToFile(enableAutomtlsResources, s.enableAutomtlsFile)
@@ -80,6 +84,10 @@ func (s *glooIstioAutoMtlsTestingSuite) SetupSuite() {
 func (s *glooIstioAutoMtlsTestingSuite) TearDownSuite() {
 	err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupManifest)
 	s.NoError(err, "can delete setup manifest")
+
+	err = e2edefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can delete Curl manifest")
+
 }
 
 func (s *glooIstioAutoMtlsTestingSuite) TestMtlsStrictPeerAuth() {

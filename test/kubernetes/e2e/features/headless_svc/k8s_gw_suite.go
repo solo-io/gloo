@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/resources"
 )
 
@@ -55,6 +56,9 @@ func (s *k8sGatewaySuite) TestConfigureRoutingHeadlessSvc() {
 		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, s.routingManifestFile)
 		s.NoError(err, "can delete setup k8s routing manifest")
 		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, k8sApiProxyDeployment, k8sApiProxyService)
+
+		err = e2edefaults.TeardownCurlPod(s.ctx, s.testInstallation)
+		s.NoError(err, "can delete Curl manifest")
 	})
 
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, headlessSvcSetupManifest)
@@ -63,6 +67,9 @@ func (s *k8sGatewaySuite) TestConfigureRoutingHeadlessSvc() {
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, s.routingManifestFile)
 	s.NoError(err, "can setup k8s routing manifest")
+
+	err = e2edefaults.SetupCurlPod(s.ctx, s.testInstallation)
+	s.NoError(err, "can setup Curl routing manifest")
 
 	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, k8sApiProxyDeployment, k8sApiProxyService)
 

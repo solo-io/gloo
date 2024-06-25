@@ -29,6 +29,12 @@ type (
 		Run(ctx context.Context, t *testing.T, testInstallation *TestInstallation)
 		Register(name string, newSuite NewSuiteFunc)
 	}
+
+	GlooE2eSuite interface {
+		Suite() suite.TestingSuite
+		Ctx() context.Context
+		TestInstallation() *TestInstallation
+	}
 )
 
 var (

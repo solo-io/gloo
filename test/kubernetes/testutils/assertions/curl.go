@@ -72,11 +72,13 @@ func (p *Provider) AssertCurlReturnResponse(
 	expectedResponse *matchers.HttpResponse,
 ) *http.Response {
 	// We rely on the curlPod to execute a curl, therefore we must assert that it actually exists
+	fmt.Printf("in AssertCurlReturnResponse and waiting for pod\n")
 	p.EventuallyObjectsExist(ctx, &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: podOpts.Name, Namespace: podOpts.Namespace,
 		},
 	})
+	fmt.Printf("in AssertCurlReturnResponse and found pod\n")
 
 	// Rely on default timeouts set in CurlFromPod
 	curlResponse, err := p.clusterContext.Cli.CurlFromPod(ctx, podOpts, curlOptions...)
