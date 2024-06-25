@@ -117,6 +117,9 @@ type TestInstallation struct {
 
 	// IstioctlBinary is the path to the istioctl binary that can be used to interact with Istio
 	IstioctlBinary string
+
+	// DefaultResources
+	//DefaultResources []e2edefaults.DefaultResources
 }
 
 func (i *TestInstallation) String() string {

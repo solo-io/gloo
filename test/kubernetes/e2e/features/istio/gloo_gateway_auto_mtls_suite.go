@@ -11,7 +11,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
-	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	defaultresources "github.com/solo-io/gloo/test/kubernetes/e2e/defaults/resources"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/resources"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -34,6 +34,7 @@ type glooIstioAutoMtlsTestingSuite struct {
 	disableAutomtlsFile             string
 	sslConfigFile                   string
 	sslConfigAndDisableAutomtlsFile string
+	defaultResources                *defaultresources.ResourceBuilder
 }
 
 func NewGlooIstioAutoMtlsSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.TestingSuite {
@@ -41,6 +42,7 @@ func NewGlooIstioAutoMtlsSuite(ctx context.Context, testInst *e2e.TestInstallati
 	disableAutomtlsFile := filepath.Join(testInst.GeneratedFiles.TempDir, fmt.Sprintf("glooIstioAutoMtlsTestingSuite-%s", getGlooGatewayEdgeResourceFile(UpstreamConfigOpts{DisableIstioAutoMtls: true})))
 	sslConfigFile := filepath.Join(testInst.GeneratedFiles.TempDir, fmt.Sprintf("glooIstioAutoMtlsTestingSuite-%s", getGlooGatewayEdgeResourceFile(UpstreamConfigOpts{SetSslConfig: true})))
 	sslConfigAndDisableAutomtlsFile := filepath.Join(testInst.GeneratedFiles.TempDir, fmt.Sprintf("glooIstioAutoMtlsTestingSuite-%s", getGlooGatewayEdgeResourceFile(UpstreamConfigOpts{SetSslConfig: true, DisableIstioAutoMtls: true})))
+	defaultResources := defaultresources.NewResourceBuilder().WithCurl()
 
 	return &glooIstioAutoMtlsTestingSuite{
 		ctx:                             ctx,
@@ -49,16 +51,18 @@ func NewGlooIstioAutoMtlsSuite(ctx context.Context, testInst *e2e.TestInstallati
 		disableAutomtlsFile:             disableAutomtlsFile,
 		sslConfigFile:                   sslConfigFile,
 		sslConfigAndDisableAutomtlsFile: sslConfigAndDisableAutomtlsFile,
+		defaultResources:                &defaultResources,
 	}
 }
 
 func (s *glooIstioAutoMtlsTestingSuite) SetupSuite() {
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, setupManifest)
+	// Apply the setup manifest
+	err := s.defaultResources.Install(s.ctx, s.testInstallation)
+	s.NoError(err, "can install default resources")
+
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, setupManifest)
 	s.NoError(err, "can apply setup manifest")
 	s.testInstallation.Assertions.EventuallyRunningReplicas(s.ctx, httpbinDeployment.ObjectMeta, gomega.Equal(1))
-
-	err = e2edefaults.SetupCurlPod(s.ctx, s.testInstallation)
-	s.NoError(err, "can apply curl pod manifest")
 
 	// enabled automtls on upstream
 	enableAutomtlsResources := GetGlooGatewayEdgeResources(s.testInstallation.Metadata.InstallNamespace, UpstreamConfigOpts{})
@@ -85,8 +89,8 @@ func (s *glooIstioAutoMtlsTestingSuite) TearDownSuite() {
 	err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupManifest)
 	s.NoError(err, "can delete setup manifest")
 
-	err = e2edefaults.TeardownCurlPod(s.ctx, s.testInstallation)
-	s.NoError(err, "can delete Curl manifest")
+	err = s.defaultResources.Uninstall(s.ctx, s.testInstallation)
+	s.NoError(err, "can install default resources")
 
 }
 

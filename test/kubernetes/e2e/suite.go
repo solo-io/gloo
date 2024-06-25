@@ -75,6 +75,7 @@ func (o *orderedSuites) Register(name string, newSuite NewSuiteFunc) {
 
 }
 
+// Use GlooE2eSuite
 func (u suites) Run(ctx context.Context, t *testing.T, testInstallation *TestInstallation) {
 	// TODO(jbohanon) does some randomness need to be injected here to ensure they aren't run in the same order every time?
 	// from https://goplay.tools/snippet/A-qqQCWkFaZ it looks like maps are not stable, but tend toward stability.

@@ -26,7 +26,7 @@ var (
 		},
 	}
 
-	CurlPodManifest = filepath.Join(util.MustGetThisDir(), "testdata", "curl_pod.yaml")
+	CurlPodManifest = filepath.Join(util.MustGetThisDir(), "../testdata", "curl_pod.yaml")
 )
 
 func SetupCurlPod(ctx context.Context, t *e2e.TestInstallation) error {
