@@ -110,49 +110,49 @@ func (s *portRoutingTestingSuite) AfterTest(suiteName, testName string) {
 	s.NoError(err, "can delete Curl manifest")
 }
 
-// func (s *portRoutingTestingSuite) TestInvalidPortAndValidTargetport() {
-// 	s.testInstallation.Assertions.AssertEventualCurlResponse(
-// 		s.ctx,
-// 		curlPodExecOpt,
-// 		[]curl.Option{
-// 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-// 			curl.WithHostHeader("example.com"),
-// 		},
-// 		expectedHealthyResponse)
-// }
+func (s *portRoutingTestingSuite) TestInvalidPortAndValidTargetport() {
+	s.testInstallation.Assertions.AssertEventualCurlResponse(
+		s.ctx,
+		curlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHostHeader("example.com"),
+		},
+		expectedHealthyResponse)
+}
 
-// func (s *portRoutingTestingSuite) TestMatchPortAndTargetport() {
-// 	s.testInstallation.Assertions.AssertEventualCurlResponse(
-// 		s.ctx,
-// 		curlPodExecOpt,
-// 		[]curl.Option{
-// 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-// 			curl.WithHostHeader("example.com"),
-// 		},
-// 		expectedHealthyResponse)
-// }
+func (s *portRoutingTestingSuite) TestMatchPortAndTargetport() {
+	s.testInstallation.Assertions.AssertEventualCurlResponse(
+		s.ctx,
+		curlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHostHeader("example.com"),
+		},
+		expectedHealthyResponse)
+}
 
-// func (s *portRoutingTestingSuite) TestMatchPodPortWithoutTargetport() {
-// 	s.testInstallation.Assertions.AssertEventualCurlResponse(
-// 		s.ctx,
-// 		curlPodExecOpt,
-// 		[]curl.Option{
-// 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-// 			curl.WithHostHeader("example.com"),
-// 		},
-// 		expectedHealthyResponse)
-// }
+func (s *portRoutingTestingSuite) TestMatchPodPortWithoutTargetport() {
+	s.testInstallation.Assertions.AssertEventualCurlResponse(
+		s.ctx,
+		curlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHostHeader("example.com"),
+		},
+		expectedHealthyResponse)
+}
 
-// func (s *portRoutingTestingSuite) TestInvalidPortWithoutTargetport() {
-// 	s.testInstallation.Assertions.AssertEventualCurlResponse(
-// 		s.ctx,
-// 		curlPodExecOpt,
-// 		[]curl.Option{
-// 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-// 			curl.WithHostHeader("example.com"),
-// 		},
-// 		expectedServiceUnavailableResponse)
-// }
+func (s *portRoutingTestingSuite) TestInvalidPortWithoutTargetport() {
+	s.testInstallation.Assertions.AssertEventualCurlResponse(
+		s.ctx,
+		curlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHostHeader("example.com"),
+		},
+		expectedServiceUnavailableResponse)
+}
 
 func (s *portRoutingTestingSuite) TestInvalidPortAndInvalidTargetport() {
 	fmt.Printf("in TestInvalidPortAndInvalidTargetport and abot to curl\n")
