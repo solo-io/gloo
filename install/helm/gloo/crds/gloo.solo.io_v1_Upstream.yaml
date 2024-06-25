@@ -23,6 +23,26 @@ spec:
         properties:
           spec:
             properties:
+              ai:
+                properties:
+                  authTokenRef:
+                    type: string
+                  custom:
+                    properties:
+                      host:
+                        type: string
+                      port:
+                        maximum: 4294967295
+                        minimum: 0
+                        type: integer
+                    type: object
+                  inlineAuthToken:
+                    type: string
+                  mistral:
+                    type: object
+                  openAi:
+                    type: object
+                type: object
               aws:
                 properties:
                   awsAccountId:

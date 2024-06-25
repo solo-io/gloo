@@ -1,0 +1,154 @@
+syntax = "proto3";
+package ai.options.gloo.solo.io;
+option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai";
+
+
+import "github.com/solo-io/solo-kit/api/v1/ref.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/duration.proto";
+import "extproto/ext.proto";
+option (extproto.equal_all) = true;
+option (extproto.hash_all) = true;
+option (extproto.clone_all) = true;
+
+message UpstreamSpec {
+  message OpenAI {}
+
+  message Mistral {}
+
+  message Custom {
+    // Custom host to send the traffic to
+    string host = 1;
+    // Custom host to send the traffic to
+    uint32 port = 2;
+  }
+   
+  oneof auth_token {
+    // Provide easy inline way to specify a token
+    string inline_auth_token = 1;
+    // name of k8s secret in the same namesapce as the Upstream
+    string auth_token_ref = 2;
+  }
+  
+  oneof llm {
+    OpenAI open_ai = 3;
+    Mistral mistral = 4;
+    Custom custom = 5;
+  }
+}
+
+message Settings {
+  // Config used to enrich the prompt. This can only be used with LLMProviders using the CHAT API type.
+  AIPromptEnrichment prompt_enrichment = 1;
+
+  // Guards to apply to the LLM requests on this route
+  AIPromptGaurd prompt_guard = 2;
+
+  // Rate limiting configuration to apply to the corresponding routes.
+  // All Rate limiting applied this way will use the input_tokens as the counter
+  // rather than incrementing by 1 for each request.
+  RateLimiting rate_limiting = 3;
+
+  // Retrieval Augmented Generation.
+  RAG rag = 4;
+
+  SemanticCaching semantic_caching = 5;
+}
+
+
+message Postgres {
+  string connection_string = 1;
+  string collection_name = 2;
+}
+
+
+message Redis {
+  string connection_string = 1;
+}
+
+message Embedding {
+  message OpenAI {}
+  oneof embedding {
+    OpenAI openai = 1;
+  }
+}
+
+message SemanticCaching {
+  // Data store from which to cache the request/response pairs
+  message DataStore {
+    oneof data_store {
+      Redis redis = 1;
+    }
+  }
+  DataStore data_store = 1;
+  // Model to use to get embeddings for prompt
+  Embedding embedding = 2;
+  // Time before data in the cache is considered expired
+  uint32 ttl = 3;
+}
+
+message RAG {
+  message DataStore {
+    oneof data_store {
+      Postgres postgres = 1;
+    }
+  }
+  // Data store from which to fetch the embeddings
+  DataStore data_store = 1;
+  // Model to use to get embeddings for prompt
+  Embedding embedding = 2;
+}
+
+message RateLimiting {
+  // List of rate_limit configs to apply
+  repeated string rate_limit_configs = 1;
+}
+
+message AIPromptEnrichment {
+  message Message {
+    // List of potential roles
+    enum Role {
+      USER = 0;
+      SYSTEM = 1;
+      ASSISSTANT = 2;
+    }
+    // Role of the message
+    Role role = 1;
+    // String content of the message
+    string content = 2;
+  }
+  // A list of messages to be prepended to the prompt sent by the client
+  repeated Message prepend = 2;
+  // A list of messages to be appended to the prompt sent by the client
+  repeated Message append = 3;
+
+}
+
+message AIPromptGaurd {
+  message Request {
+    // This is a copy-paste of kong and I don't love it
+    repeated string matches = 1;
+    // List of potential actions
+    enum Action {
+      // Only allow messages if they match the text above
+      ALLOW = 0;
+      // Deny message whcih contain the text above
+      DENY = 1;
+    }
+    // Action to take if the message matches the above
+    Action action = 2;
+    // Custom response message to send back to the client
+    string custom_response_message = 3;
+  }
+
+  message Response {
+      // All matches will be masked before being sent back to the client
+      // We can also use DLP stats to see how often this happens
+      repeated string matches = 1;
+      // We can also include a library of common regexes here akin to the DLP API
+  }
+  // Guards for the prompt request
+  Request request = 2;
+  // Guards for the LLM response
+  Response response = 3;
+}
