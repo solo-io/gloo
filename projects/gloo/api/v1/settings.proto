@@ -283,6 +283,13 @@ message Settings {
         message FdsOptions {
             // Enable function discovery service on GraphQL gRPC and OpenApi upstreams. Defaults to true.
             google.protobuf.BoolValue graphql_enabled = 1;
+            message GraphqlOptions {
+                // Copy auth headers specified in the openapi-schema from the downstream request to the upstream request
+                bool upstream_auth_headers = 1;
+            }
+            // Ooptions to tune graphql discovery behavior
+            GraphqlOptions graphql = 2;
+
         }
 
         FdsOptions fds_options = 3;

@@ -181,6 +181,11 @@ spec:
                     x-kubernetes-int-or-string: true
                   fdsOptions:
                     properties:
+                      graphql:
+                        properties:
+                          upstreamAuthHeaders:
+                            type: boolean
+                        type: object
                       graphqlEnabled:
                         nullable: true
                         type: boolean

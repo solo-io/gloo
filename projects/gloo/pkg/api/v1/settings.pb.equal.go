@@ -1810,6 +1810,44 @@ func (m *Settings_DiscoveryOptions_FdsOptions) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetGraphql()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphql()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGraphql(), target.GetGraphql()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *Settings_DiscoveryOptions_FdsOptions_GraphqlOptions) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*Settings_DiscoveryOptions_FdsOptions_GraphqlOptions)
+	if !ok {
+		that2, ok := that.(Settings_DiscoveryOptions_FdsOptions_GraphqlOptions)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if m.GetUpstreamAuthHeaders() != target.GetUpstreamAuthHeaders() {
+		return false
+	}
+
 	return true
 }
 

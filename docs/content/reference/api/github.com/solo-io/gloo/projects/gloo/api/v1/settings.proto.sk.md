@@ -26,6 +26,7 @@ weight: 5
 - [DiscoveryOptions](#discoveryoptions)
 - [UdsOptions](#udsoptions)
 - [FdsOptions](#fdsoptions)
+- [GraphqlOptions](#graphqloptions)
 - [FdsMode](#fdsmode)
 - [ConsulConfiguration](#consulconfiguration)
 - [ServiceDiscoveryOptions](#servicediscoveryoptions)
@@ -441,12 +442,31 @@ This option determines the root of the directory tree used to this end.
 
 ```yaml
 "graphqlEnabled": .google.protobuf.BoolValue
+"graphql": .gloo.solo.io.Settings.DiscoveryOptions.FdsOptions.GraphqlOptions
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `graphqlEnabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Enable function discovery service on GraphQL gRPC and OpenApi upstreams. Defaults to true. |
+| `graphql` | [.gloo.solo.io.Settings.DiscoveryOptions.FdsOptions.GraphqlOptions](../settings.proto.sk/#graphqloptions) | Ooptions to tune graphql discovery behavior. |
+
+
+
+
+---
+### GraphqlOptions
+
+
+
+```yaml
+"upstreamAuthHeaders": bool
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `upstreamAuthHeaders` | `bool` | Copy auth headers specified in the openapi-schema from the downstream request to the upstream request. |
 
 
 

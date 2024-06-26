@@ -1058,6 +1058,25 @@ func (m *Settings_DiscoveryOptions_FdsOptions) Clone() proto.Message {
 		target.GraphqlEnabled = proto.Clone(m.GetGraphqlEnabled()).(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
 	}
 
+	if h, ok := interface{}(m.GetGraphql()).(clone.Cloner); ok {
+		target.Graphql = h.Clone().(*Settings_DiscoveryOptions_FdsOptions_GraphqlOptions)
+	} else {
+		target.Graphql = proto.Clone(m.GetGraphql()).(*Settings_DiscoveryOptions_FdsOptions_GraphqlOptions)
+	}
+
+	return target
+}
+
+// Clone function
+func (m *Settings_DiscoveryOptions_FdsOptions_GraphqlOptions) Clone() proto.Message {
+	var target *Settings_DiscoveryOptions_FdsOptions_GraphqlOptions
+	if m == nil {
+		return target
+	}
+	target = &Settings_DiscoveryOptions_FdsOptions_GraphqlOptions{}
+
+	target.UpstreamAuthHeaders = m.GetUpstreamAuthHeaders()
+
 	return target
 }
 
