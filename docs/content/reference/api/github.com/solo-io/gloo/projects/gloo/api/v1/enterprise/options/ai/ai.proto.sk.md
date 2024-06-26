@@ -127,6 +127,7 @@ weight: 5
 "rateLimiting": .ai.options.gloo.solo.io.RateLimiting
 "rag": .ai.options.gloo.solo.io.RAG
 "semanticCaching": .ai.options.gloo.solo.io.SemanticCaching
+"backupModels": []string
 
 ```
 
@@ -137,6 +138,7 @@ weight: 5
 | `rateLimiting` | [.ai.options.gloo.solo.io.RateLimiting](../ai.proto.sk/#ratelimiting) | Rate limiting configuration to apply to the corresponding routes. All Rate limiting applied this way will use the input_tokens as the counter rather than incrementing by 1 for each request. |
 | `rag` | [.ai.options.gloo.solo.io.RAG](../ai.proto.sk/#rag) | Retrieval Augmented Generation. |
 | `semanticCaching` | [.ai.options.gloo.solo.io.SemanticCaching](../ai.proto.sk/#semanticcaching) |  |
+| `backupModels` | `[]string` |  |
 
 
 

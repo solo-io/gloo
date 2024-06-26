@@ -201,6 +201,17 @@ func (m *Settings) Equal(that interface{}) bool {
 		}
 	}
 
+	if len(m.GetBackupModels()) != len(target.GetBackupModels()) {
+		return false
+	}
+	for idx, v := range m.GetBackupModels() {
+
+		if strings.Compare(v, target.GetBackupModels()[idx]) != 0 {
+			return false
+		}
+
+	}
+
 	return true
 }
 

@@ -53,6 +53,8 @@ message Settings {
   RAG rag = 4;
 
   SemanticCaching semantic_caching = 5;
+  
+  repeated string backup_models = 6;
 }
 
 

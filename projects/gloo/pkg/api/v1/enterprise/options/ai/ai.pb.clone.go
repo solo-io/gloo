@@ -130,6 +130,15 @@ func (m *Settings) Clone() proto.Message {
 		target.SemanticCaching = proto.Clone(m.GetSemanticCaching()).(*SemanticCaching)
 	}
 
+	if m.GetBackupModels() != nil {
+		target.BackupModels = make([]string, len(m.GetBackupModels()))
+		for idx, v := range m.GetBackupModels() {
+
+			target.BackupModels[idx] = v
+
+		}
+	}
+
 	return target
 }
 

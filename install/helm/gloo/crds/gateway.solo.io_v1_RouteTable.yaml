@@ -145,6 +145,10 @@ spec:
                       properties:
                         ai:
                           properties:
+                            backupModels:
+                              items:
+                                type: string
+                              type: array
                             promptEnrichment:
                               properties:
                                 append:
