@@ -17,6 +17,7 @@ weight: 5
 - [RouteConfigurationOptions](#routeconfigurationoptions)
 - [HttpListenerOptions](#httplisteneroptions)
 - [TcpListenerOptions](#tcplisteneroptions)
+- [CustomEnvoyFilter](#customenvoyfilter)
 - [VirtualHostOptions](#virtualhostoptions)
 - [RouteOptions](#routeoptions)
 - [MaxStreamDuration](#maxstreamduration)
@@ -157,6 +158,8 @@ Optional, feature-specific configuration that lives on http listeners
 "tap": .tap.options.gloo.solo.io.Tap
 "statefulSession": .stateful_session.options.gloo.solo.io.StatefulSession
 "headerValidationSettings": .header_validation.options.gloo.solo.io.HeaderValidationSettings
+"customHttpFilters": []gloo.solo.io.CustomEnvoyFilter
+"customNetworkFilters": []gloo.solo.io.CustomEnvoyFilter
 
 ```
 
@@ -189,6 +192,8 @@ Optional, feature-specific configuration that lives on http listeners
 | `tap` | [.tap.options.gloo.solo.io.Tap](../enterprise/options/tap/tap.proto.sk/#tap) | Enterprise only: Tap filter settings (experimental). |
 | `statefulSession` | [.stateful_session.options.gloo.solo.io.StatefulSession](../enterprise/options/stateful_session/stateful_session.proto.sk/#statefulsession) | Enterprise only: Listener-level stateful session settings. |
 | `headerValidationSettings` | [.header_validation.options.gloo.solo.io.HeaderValidationSettings](../options/header_validation/header_validation.proto.sk/#headervalidationsettings) | Header validation settings - fields in this message can be used to determine whether requests should be rejected based on the contents of the header. |
+| `customHttpFilters` | [[]gloo.solo.io.CustomEnvoyFilter](../options.proto.sk/#customenvoyfilter) | Additional arbitrary HTTPFilters that will be inserted directly into xDS. |
+| `customNetworkFilters` | [[]gloo.solo.io.CustomEnvoyFilter](../options.proto.sk/#customenvoyfilter) | Additional arbitrary network Filters that will be inserted directly into xDS. |
 
 
 
@@ -203,6 +208,7 @@ Optional, feature-specific configuration that lives on tcp listeners
 "tcpProxySettings": .tcp.options.gloo.solo.io.TcpProxySettings
 "connectionLimit": .connection_limit.options.gloo.solo.io.ConnectionLimit
 "localRatelimit": .local_ratelimit.options.gloo.solo.io.TokenBucket
+"customNetworkFilters": []gloo.solo.io.CustomEnvoyFilter
 
 ```
 
@@ -211,6 +217,31 @@ Optional, feature-specific configuration that lives on tcp listeners
 | `tcpProxySettings` | [.tcp.options.gloo.solo.io.TcpProxySettings](../options/tcp/tcp.proto.sk/#tcpproxysettings) |  |
 | `connectionLimit` | [.connection_limit.options.gloo.solo.io.ConnectionLimit](../options/connection_limit/connection_limit.proto.sk/#connectionlimit) | ConnectionLimit can be used to limit the number of active connections per gateway. Useful for resource protection as well as DoS prevention. |
 | `localRatelimit` | [.local_ratelimit.options.gloo.solo.io.TokenBucket](../options/local_ratelimit/local_ratelimit.proto.sk/#tokenbucket) | LocalRatelimit can be used to rate limit the connections per gateway at the L4 layer. It uses envoy's own local rate limit filter to do so, without the need for an external rate limit server to be set up. |
+| `customNetworkFilters` | [[]gloo.solo.io.CustomEnvoyFilter](../options.proto.sk/#customenvoyfilter) | Additional arbitrary network Filters that will be inserted directly into xDS. |
+
+
+
+
+---
+### CustomEnvoyFilter
+
+ 
+CustomEnvoyFilter to insert into either HTTP or NetworkFilter.
+If this is on a TCPListener, we will add it to network filters.
+If this is on a HTTPListener, we will add it to HTTP filters.
+
+```yaml
+"filterStage": .filters.gloo.solo.io.FilterStage
+"name": string
+"config": .google.protobuf.Any
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `filterStage` | [.filters.gloo.solo.io.FilterStage](../filters/stages.proto.sk/#filterstage) | Determines filter ordering. |
+| `name` | `string` | The name of the filter configuration. |
+| `config` | [.google.protobuf.Any](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/any) | Filter specific configuration. |
 
 
 

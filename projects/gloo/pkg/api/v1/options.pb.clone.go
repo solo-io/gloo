@@ -13,6 +13,8 @@ import (
 	"github.com/solo-io/protoc-gen-ext/pkg/clone"
 	"google.golang.org/protobuf/proto"
 
+	github_com_golang_protobuf_ptypes_any "github.com/golang/protobuf/ptypes/any"
+
 	github_com_golang_protobuf_ptypes_duration "github.com/golang/protobuf/ptypes/duration"
 
 	github_com_golang_protobuf_ptypes_struct "github.com/golang/protobuf/ptypes/struct"
@@ -46,6 +48,8 @@ import (
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_stateful_session "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/stateful_session"
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_waf "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
+
+	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_filters "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/filters"
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_als "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
 
@@ -375,6 +379,32 @@ func (m *HttpListenerOptions) Clone() proto.Message {
 		target.HeaderValidationSettings = proto.Clone(m.GetHeaderValidationSettings()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_header_validation.HeaderValidationSettings)
 	}
 
+	if m.GetCustomHttpFilters() != nil {
+		target.CustomHttpFilters = make([]*CustomEnvoyFilter, len(m.GetCustomHttpFilters()))
+		for idx, v := range m.GetCustomHttpFilters() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.CustomHttpFilters[idx] = h.Clone().(*CustomEnvoyFilter)
+			} else {
+				target.CustomHttpFilters[idx] = proto.Clone(v).(*CustomEnvoyFilter)
+			}
+
+		}
+	}
+
+	if m.GetCustomNetworkFilters() != nil {
+		target.CustomNetworkFilters = make([]*CustomEnvoyFilter, len(m.GetCustomNetworkFilters()))
+		for idx, v := range m.GetCustomNetworkFilters() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.CustomNetworkFilters[idx] = h.Clone().(*CustomEnvoyFilter)
+			} else {
+				target.CustomNetworkFilters[idx] = proto.Clone(v).(*CustomEnvoyFilter)
+			}
+
+		}
+	}
+
 	switch m.ExtProcConfig.(type) {
 
 	case *HttpListenerOptions_DisableExtProc:
@@ -430,6 +460,44 @@ func (m *TcpListenerOptions) Clone() proto.Message {
 		target.LocalRatelimit = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_local_ratelimit.TokenBucket)
 	} else {
 		target.LocalRatelimit = proto.Clone(m.GetLocalRatelimit()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_local_ratelimit.TokenBucket)
+	}
+
+	if m.GetCustomNetworkFilters() != nil {
+		target.CustomNetworkFilters = make([]*CustomEnvoyFilter, len(m.GetCustomNetworkFilters()))
+		for idx, v := range m.GetCustomNetworkFilters() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.CustomNetworkFilters[idx] = h.Clone().(*CustomEnvoyFilter)
+			} else {
+				target.CustomNetworkFilters[idx] = proto.Clone(v).(*CustomEnvoyFilter)
+			}
+
+		}
+	}
+
+	return target
+}
+
+// Clone function
+func (m *CustomEnvoyFilter) Clone() proto.Message {
+	var target *CustomEnvoyFilter
+	if m == nil {
+		return target
+	}
+	target = &CustomEnvoyFilter{}
+
+	if h, ok := interface{}(m.GetFilterStage()).(clone.Cloner); ok {
+		target.FilterStage = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_filters.FilterStage)
+	} else {
+		target.FilterStage = proto.Clone(m.GetFilterStage()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_filters.FilterStage)
+	}
+
+	target.Name = m.GetName()
+
+	if h, ok := interface{}(m.GetConfig()).(clone.Cloner); ok {
+		target.Config = h.Clone().(*github_com_golang_protobuf_ptypes_any.Any)
+	} else {
+		target.Config = proto.Clone(m.GetConfig()).(*github_com_golang_protobuf_ptypes_any.Any)
 	}
 
 	return target

@@ -146,6 +146,25 @@ spec:
                             nullable: true
                             type: integer
                         type: object
+                      customNetworkFilters:
+                        items:
+                          properties:
+                            config:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                            filterStage:
+                              properties:
+                                predicate:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                                stage:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                              type: object
+                            name:
+                              type: string
+                          type: object
+                        type: array
                       localRatelimit:
                         properties:
                           fillInterval:

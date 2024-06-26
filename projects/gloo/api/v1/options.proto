@@ -10,6 +10,7 @@ option (extproto.hash_all) = true;
 option (extproto.clone_all) = true;
 
 import "github.com/solo-io/gloo/projects/gloo/api/v1/extensions.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/filters/stages.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/options/cors/cors.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/options/rest/rest.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/options/grpc/grpc.proto";
@@ -60,6 +61,7 @@ import "github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/socket_option
 
 import "google/protobuf/duration.proto";
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/any.proto";
 
 // Optional, feature-specific configuration that lives on gateways.
 // Each ListenerOption object contains configuration for a specific feature.
@@ -237,6 +239,12 @@ message HttpListenerOptions {
     // determine whether requests should be rejected based on the contents of
     // the header.
     header_validation.options.gloo.solo.io.HeaderValidationSettings header_validation_settings = 36;
+
+    // Additional arbitrary HTTPFilters that will be inserted directly into xDS.
+    repeated CustomEnvoyFilter custom_http_filters = 37;
+
+    // Additional arbitrary network Filters that will be inserted directly into xDS.
+    repeated CustomEnvoyFilter custom_network_filters = 38;
 }
 
 // Optional, feature-specific configuration that lives on tcp listeners
@@ -249,6 +257,23 @@ message TcpListenerOptions {
     // LocalRatelimit can be used to rate limit the connections per gateway at the L4 layer.
     // It uses envoy's own local rate limit filter to do so, without the need for an external rate limit server to be set up.
     local_ratelimit.options.gloo.solo.io.TokenBucket local_ratelimit = 5;
+
+    // Additional arbitrary network Filters that will be inserted directly into xDS.
+    repeated CustomEnvoyFilter custom_network_filters = 36;
+}
+
+// CustomEnvoyFilter to insert into either HTTP or NetworkFilter.
+// If this is on a TCPListener, we will add it to network filters.
+// If this is on a HTTPListener, we will add it to HTTP filters.
+message CustomEnvoyFilter {
+  // Determines filter ordering.
+  .filters.gloo.solo.io.FilterStage filter_stage = 1;
+
+  // The name of the filter configuration.
+  string name = 2;
+
+  // Filter specific configuration.
+  google.protobuf.Any config = 3;
 }
 
 // Optional, feature-specific configuration that lives on virtual hosts.
