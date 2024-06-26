@@ -15,7 +15,7 @@ weight: 5
 - [OpenAI](#openai)
 - [Mistral](#mistral)
 - [Custom](#custom)
-- [Settings](#settings)
+- [RouteSettings](#routesettings)
 - [Postgres](#postgres)
 - [Redis](#redis)
 - [Embedding](#embedding)
@@ -30,8 +30,9 @@ weight: 5
 - [Role](#role)
 - [AIPromptGaurd](#aipromptgaurd)
 - [Request](#request)
-- [Action](#action)
+- [BuiltIn](#builtin)
 - [Response](#response)
+- [BuiltIn](#builtin)
   
 
 
@@ -50,7 +51,7 @@ weight: 5
 ```yaml
 "inlineAuthToken": string
 "authTokenRef": string
-"openAi": .ai.options.gloo.solo.io.UpstreamSpec.OpenAI
+"openai": .ai.options.gloo.solo.io.UpstreamSpec.OpenAI
 "mistral": .ai.options.gloo.solo.io.UpstreamSpec.Mistral
 "custom": .ai.options.gloo.solo.io.UpstreamSpec.Custom
 
@@ -60,9 +61,9 @@ weight: 5
 | ----- | ---- | ----------- | 
 | `inlineAuthToken` | `string` | Provide easy inline way to specify a token. Only one of `inlineAuthToken` or `authTokenRef` can be set. |
 | `authTokenRef` | `string` | name of k8s secret in the same namesapce as the Upstream. Only one of `authTokenRef` or `inlineAuthToken` can be set. |
-| `openAi` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) |  Only one of `openAi`, `mistral`, or `custom` can be set. |
-| `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) |  Only one of `mistral`, `openAi`, or `custom` can be set. |
-| `custom` | [.ai.options.gloo.solo.io.UpstreamSpec.Custom](../ai.proto.sk/#custom) |  Only one of `custom`, `openAi`, or `mistral` can be set. |
+| `openai` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) |  Only one of `openai`, `mistral`, or `custom` can be set. |
+| `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) |  Only one of `mistral`, `openai`, or `custom` can be set. |
+| `custom` | [.ai.options.gloo.solo.io.UpstreamSpec.Custom](../ai.proto.sk/#custom) |  Only one of `custom`, `openai`, or `mistral` can be set. |
 
 
 
@@ -117,7 +118,7 @@ weight: 5
 
 
 ---
-### Settings
+### RouteSettings
 
 
 
@@ -137,8 +138,8 @@ weight: 5
 | `promptGuard` | [.ai.options.gloo.solo.io.AIPromptGaurd](../ai.proto.sk/#aipromptgaurd) | Guards to apply to the LLM requests on this route. |
 | `rateLimiting` | [.ai.options.gloo.solo.io.RateLimiting](../ai.proto.sk/#ratelimiting) | Rate limiting configuration to apply to the corresponding routes. All Rate limiting applied this way will use the input_tokens as the counter rather than incrementing by 1 for each request. |
 | `rag` | [.ai.options.gloo.solo.io.RAG](../ai.proto.sk/#rag) | Retrieval Augmented Generation. |
-| `semanticCaching` | [.ai.options.gloo.solo.io.SemanticCaching](../ai.proto.sk/#semanticcaching) |  |
-| `backupModels` | `[]string` |  |
+| `semanticCaching` | [.ai.options.gloo.solo.io.SemanticCaching](../ai.proto.sk/#semanticcaching) | Semantic caching configuration. |
+| `backupModels` | `[]string` | Backup models to use in case of a failure with the primary model passed in the request. |
 
 
 
@@ -258,6 +259,7 @@ Data store from which to cache the request/response pairs
 ```yaml
 "dataStore": .ai.options.gloo.solo.io.RAG.DataStore
 "embedding": .ai.options.gloo.solo.io.Embedding
+"promptTemplate": string
 
 ```
 
@@ -265,6 +267,7 @@ Data store from which to cache the request/response pairs
 | ----- | ---- | ----------- | 
 | `dataStore` | [.ai.options.gloo.solo.io.RAG.DataStore](../ai.proto.sk/#datastore) | Data store from which to fetch the embeddings. |
 | `embedding` | [.ai.options.gloo.solo.io.Embedding](../ai.proto.sk/#embedding) | Model to use to get embeddings for prompt. |
+| `promptTemplate` | `string` | Template to use to embed the returned context. |
 
 
 
@@ -330,6 +333,7 @@ Data store from which to cache the request/response pairs
 ```yaml
 "role": .ai.options.gloo.solo.io.AIPromptEnrichment.Message.Role
 "content": string
+"roleOverride": string
 
 ```
 
@@ -337,6 +341,7 @@ Data store from which to cache the request/response pairs
 | ----- | ---- | ----------- | 
 | `role` | [.ai.options.gloo.solo.io.AIPromptEnrichment.Message.Role](../ai.proto.sk/#role) | Role of the message. |
 | `content` | `string` | String content of the message. |
+| `roleOverride` | `string` | Role Override, will only be used if ROLE is set to CUSTOM. |
 
 
 
@@ -352,6 +357,7 @@ List of potential roles
 | `USER` |  |
 | `SYSTEM` |  |
 | `ASSISSTANT` |  |
+| `CUSTOM` |  |
 
 
 
@@ -382,30 +388,31 @@ List of potential roles
 
 ```yaml
 "matches": []string
-"action": .ai.options.gloo.solo.io.AIPromptGaurd.Request.Action
+"builtIns": []ai.options.gloo.solo.io.AIPromptGaurd.Request.BuiltIn
 "customResponseMessage": string
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `matches` | `[]string` | This is a copy-paste of kong and I don't love it. |
-| `action` | [.ai.options.gloo.solo.io.AIPromptGaurd.Request.Action](../ai.proto.sk/#action) | Action to take if the message matches the above. |
+| `matches` | `[]string` | All matches will be masked before being sent back to the client We can also use DLP stats to see how often this happens. |
+| `builtIns` | [[]ai.options.gloo.solo.io.AIPromptGaurd.Request.BuiltIn](../ai.proto.sk/#builtin) | A list of built-in regexes to mask in the response. |
 | `customResponseMessage` | `string` | Custom response message to send back to the client. |
 
 
 
 
 ---
-### Action
+### BuiltIn
 
- 
-List of potential actions
+
 
 | Name | Description |
 | ----- | ----------- | 
-| `ALLOW` | Only allow messages if they match the text above |
-| `DENY` | Deny message whcih contain the text above |
+| `SSN` |  |
+| `CREDIT_CARD` |  |
+| `EMAIL` |  |
+| `PHONE_NUMBER` |  |
 
 
 
@@ -417,12 +424,29 @@ List of potential actions
 
 ```yaml
 "matches": []string
+"builtIns": []ai.options.gloo.solo.io.AIPromptGaurd.Response.BuiltIn
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `matches` | `[]string` | All matches will be masked before being sent back to the client We can also use DLP stats to see how often this happens. |
+| `builtIns` | [[]ai.options.gloo.solo.io.AIPromptGaurd.Response.BuiltIn](../ai.proto.sk/#builtin) | A list of built-in regexes to mask in the response. |
+
+
+
+
+---
+### BuiltIn
+
+
+
+| Name | Description |
+| ----- | ----------- | 
+| `SSN` |  |
+| `CREDIT_CARD` |  |
+| `EMAIL` |  |
+| `PHONE_NUMBER` |  |
 
 
 

@@ -40,7 +40,7 @@ spec:
                     type: string
                   mistral:
                     type: object
-                  openAi:
+                  openai:
                     type: object
                 type: object
               aws:

@@ -51,15 +51,15 @@ func (m *UpstreamSpec) Clone() proto.Message {
 
 	switch m.Llm.(type) {
 
-	case *UpstreamSpec_OpenAi:
+	case *UpstreamSpec_Openai:
 
-		if h, ok := interface{}(m.GetOpenAi()).(clone.Cloner); ok {
-			target.Llm = &UpstreamSpec_OpenAi{
-				OpenAi: h.Clone().(*UpstreamSpec_OpenAI),
+		if h, ok := interface{}(m.GetOpenai()).(clone.Cloner); ok {
+			target.Llm = &UpstreamSpec_Openai{
+				Openai: h.Clone().(*UpstreamSpec_OpenAI),
 			}
 		} else {
-			target.Llm = &UpstreamSpec_OpenAi{
-				OpenAi: proto.Clone(m.GetOpenAi()).(*UpstreamSpec_OpenAI),
+			target.Llm = &UpstreamSpec_Openai{
+				Openai: proto.Clone(m.GetOpenai()).(*UpstreamSpec_OpenAI),
 			}
 		}
 
@@ -93,12 +93,12 @@ func (m *UpstreamSpec) Clone() proto.Message {
 }
 
 // Clone function
-func (m *Settings) Clone() proto.Message {
-	var target *Settings
+func (m *RouteSettings) Clone() proto.Message {
+	var target *RouteSettings
 	if m == nil {
 		return target
 	}
-	target = &Settings{}
+	target = &RouteSettings{}
 
 	if h, ok := interface{}(m.GetPromptEnrichment()).(clone.Cloner); ok {
 		target.PromptEnrichment = h.Clone().(*AIPromptEnrichment)
@@ -241,6 +241,8 @@ func (m *RAG) Clone() proto.Message {
 	} else {
 		target.Embedding = proto.Clone(m.GetEmbedding()).(*Embedding)
 	}
+
+	target.PromptTemplate = m.GetPromptTemplate()
 
 	return target
 }
@@ -439,6 +441,8 @@ func (m *AIPromptEnrichment_Message) Clone() proto.Message {
 
 	target.Content = m.GetContent()
 
+	target.RoleOverride = m.GetRoleOverride()
+
 	return target
 }
 
@@ -459,7 +463,14 @@ func (m *AIPromptGaurd_Request) Clone() proto.Message {
 		}
 	}
 
-	target.Action = m.GetAction()
+	if m.GetBuiltIns() != nil {
+		target.BuiltIns = make([]AIPromptGaurd_Request_BuiltIn, len(m.GetBuiltIns()))
+		for idx, v := range m.GetBuiltIns() {
+
+			target.BuiltIns[idx] = v
+
+		}
+	}
 
 	target.CustomResponseMessage = m.GetCustomResponseMessage()
 
@@ -479,6 +490,15 @@ func (m *AIPromptGaurd_Response) Clone() proto.Message {
 		for idx, v := range m.GetMatches() {
 
 			target.Matches[idx] = v
+
+		}
+	}
+
+	if m.GetBuiltIns() != nil {
+		target.BuiltIns = make([]AIPromptGaurd_Response_BuiltIn, len(m.GetBuiltIns()))
+		for idx, v := range m.GetBuiltIns() {
+
+			target.BuiltIns[idx] = v
 
 		}
 	}

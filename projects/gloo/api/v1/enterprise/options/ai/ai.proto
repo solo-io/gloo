@@ -31,13 +31,13 @@ message UpstreamSpec {
   }
   
   oneof llm {
-    OpenAI open_ai = 3;
+    OpenAI openai = 3;
     Mistral mistral = 4;
     Custom custom = 5;
   }
 }
 
-message Settings {
+message RouteSettings {
   // Config used to enrich the prompt. This can only be used with LLMProviders using the CHAT API type.
   AIPromptEnrichment prompt_enrichment = 1;
 
@@ -51,9 +51,10 @@ message Settings {
 
   // Retrieval Augmented Generation.
   RAG rag = 4;
-
+  // Semantic caching configuration
   SemanticCaching semantic_caching = 5;
-  
+  // Backup models to use in case of a failure with the primary model
+  // passed in the request.
   repeated string backup_models = 6;
 }
 
@@ -82,6 +83,7 @@ message SemanticCaching {
       Redis redis = 1;
     }
   }
+  // Which data store to use
   DataStore data_store = 1;
   // Model to use to get embeddings for prompt
   Embedding embedding = 2;
@@ -99,6 +101,8 @@ message RAG {
   DataStore data_store = 1;
   // Model to use to get embeddings for prompt
   Embedding embedding = 2;
+  // Template to use to embed the returned context
+  string prompt_template = 3;
 }
 
 message RateLimiting {
@@ -113,11 +117,14 @@ message AIPromptEnrichment {
       USER = 0;
       SYSTEM = 1;
       ASSISSTANT = 2;
+      CUSTOM = 3;
     }
     // Role of the message
     Role role = 1;
     // String content of the message
     string content = 2;
+    // Role Override, will only be used if ROLE is set to CUSTOM
+    string role_override = 3;
   }
   // A list of messages to be prepended to the prompt sent by the client
   repeated Message prepend = 2;
@@ -128,26 +135,33 @@ message AIPromptEnrichment {
 
 message AIPromptGaurd {
   message Request {
-    // This is a copy-paste of kong and I don't love it
-    repeated string matches = 1;
-    // List of potential actions
-    enum Action {
-      // Only allow messages if they match the text above
-      ALLOW = 0;
-      // Deny message whcih contain the text above
-      DENY = 1;
+    enum BuiltIn {
+      SSN = 0;
+      CREDIT_CARD = 1;
+      EMAIL = 2;
+      PHONE_NUMBER = 3;
     }
-    // Action to take if the message matches the above
-    Action action = 2;
+    // All matches will be masked before being sent back to the client
+    // We can also use DLP stats to see how often this happens
+    repeated string matches = 1;
+    // A list of built-in regexes to mask in the response
+    repeated BuiltIn built_ins = 2;
     // Custom response message to send back to the client
     string custom_response_message = 3;
   }
 
   message Response {
+      enum BuiltIn {
+        SSN = 0;
+        CREDIT_CARD = 1;
+        EMAIL = 2;
+        PHONE_NUMBER = 3;
+      }
       // All matches will be masked before being sent back to the client
       // We can also use DLP stats to see how often this happens
       repeated string matches = 1;
-      // We can also include a library of common regexes here akin to the DLP API
+      // A list of built-in regexes to mask in the response
+      repeated BuiltIn built_ins = 2;
   }
   // Guards for the prompt request
   Request request = 2;

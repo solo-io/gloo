@@ -49,6 +49,8 @@ spec:
                                 role:
                                   type: string
                                   x-kubernetes-int-or-string: true
+                                roleOverride:
+                                  type: string
                               type: object
                             type: array
                           prepend:
@@ -59,6 +61,8 @@ spec:
                                 role:
                                   type: string
                                   x-kubernetes-int-or-string: true
+                                roleOverride:
+                                  type: string
                               type: object
                             type: array
                         type: object
@@ -66,9 +70,11 @@ spec:
                         properties:
                           request:
                             properties:
-                              action:
-                                type: string
-                                x-kubernetes-int-or-string: true
+                              builtIns:
+                                items:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                                type: array
                               customResponseMessage:
                                 type: string
                               matches:
@@ -78,6 +84,11 @@ spec:
                             type: object
                           response:
                             properties:
+                              builtIns:
+                                items:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                                type: array
                               matches:
                                 items:
                                   type: string
@@ -101,6 +112,8 @@ spec:
                               openai:
                                 type: object
                             type: object
+                          promptTemplate:
+                            type: string
                         type: object
                       rateLimiting:
                         properties:

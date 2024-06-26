@@ -56,20 +56,20 @@ func (m *UpstreamSpec) Hash(hasher hash.Hash64) (uint64, error) {
 
 	switch m.Llm.(type) {
 
-	case *UpstreamSpec_OpenAi:
+	case *UpstreamSpec_Openai:
 
-		if h, ok := interface{}(m.GetOpenAi()).(safe_hasher.SafeHasher); ok {
-			if _, err = hasher.Write([]byte("OpenAi")); err != nil {
+		if h, ok := interface{}(m.GetOpenai()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("Openai")); err != nil {
 				return 0, err
 			}
 			if _, err = h.Hash(hasher); err != nil {
 				return 0, err
 			}
 		} else {
-			if fieldValue, err := hashstructure.Hash(m.GetOpenAi(), nil); err != nil {
+			if fieldValue, err := hashstructure.Hash(m.GetOpenai(), nil); err != nil {
 				return 0, err
 			} else {
-				if _, err = hasher.Write([]byte("OpenAi")); err != nil {
+				if _, err = hasher.Write([]byte("Openai")); err != nil {
 					return 0, err
 				}
 				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -128,7 +128,7 @@ func (m *UpstreamSpec) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *Settings) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *RouteSettings) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -136,7 +136,7 @@ func (m *Settings) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.Settings")); err != nil {
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.RouteSettings")); err != nil {
 		return 0, err
 	}
 
@@ -449,6 +449,10 @@ func (m *RAG) Hash(hasher hash.Hash64) (uint64, error) {
 				return 0, err
 			}
 		}
+	}
+
+	if _, err = hasher.Write([]byte(m.GetPromptTemplate())); err != nil {
+		return 0, err
 	}
 
 	return hasher.Sum64(), nil
@@ -777,6 +781,10 @@ func (m *AIPromptEnrichment_Message) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	if _, err = hasher.Write([]byte(m.GetRoleOverride())); err != nil {
+		return 0, err
+	}
+
 	return hasher.Sum64(), nil
 }
 
@@ -801,9 +809,13 @@ func (m *AIPromptGaurd_Request) Hash(hasher hash.Hash64) (uint64, error) {
 
 	}
 
-	err = binary.Write(hasher, binary.LittleEndian, m.GetAction())
-	if err != nil {
-		return 0, err
+	for _, v := range m.GetBuiltIns() {
+
+		err = binary.Write(hasher, binary.LittleEndian, v)
+		if err != nil {
+			return 0, err
+		}
+
 	}
 
 	if _, err = hasher.Write([]byte(m.GetCustomResponseMessage())); err != nil {
@@ -829,6 +841,15 @@ func (m *AIPromptGaurd_Response) Hash(hasher hash.Hash64) (uint64, error) {
 	for _, v := range m.GetMatches() {
 
 		if _, err = hasher.Write([]byte(v)); err != nil {
+			return 0, err
+		}
+
+	}
+
+	for _, v := range m.GetBuiltIns() {
+
+		err = binary.Write(hasher, binary.LittleEndian, v)
+		if err != nil {
 			return 0, err
 		}
 

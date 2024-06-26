@@ -581,7 +581,7 @@ message RouteOptions {
 
     // Enterprise-only: Settings to configure ai settings for a route.
     // These settings will only apply if the backend is an `ai` Upstream.
-    ai.options.gloo.solo.io.Settings ai = 31;
+    ai.options.gloo.solo.io.RouteSettings ai = 31;
 }
 // Configuration for Destinations that are tied to the UpstreamSpec or ServiceSpec on that destination
 message DestinationSpec {

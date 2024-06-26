@@ -75,17 +75,17 @@ func (m *UpstreamSpec) Equal(that interface{}) bool {
 
 	switch m.Llm.(type) {
 
-	case *UpstreamSpec_OpenAi:
-		if _, ok := target.Llm.(*UpstreamSpec_OpenAi); !ok {
+	case *UpstreamSpec_Openai:
+		if _, ok := target.Llm.(*UpstreamSpec_Openai); !ok {
 			return false
 		}
 
-		if h, ok := interface{}(m.GetOpenAi()).(equality.Equalizer); ok {
-			if !h.Equal(target.GetOpenAi()) {
+		if h, ok := interface{}(m.GetOpenai()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetOpenai()) {
 				return false
 			}
 		} else {
-			if !proto.Equal(m.GetOpenAi(), target.GetOpenAi()) {
+			if !proto.Equal(m.GetOpenai(), target.GetOpenai()) {
 				return false
 			}
 		}
@@ -131,14 +131,14 @@ func (m *UpstreamSpec) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *Settings) Equal(that interface{}) bool {
+func (m *RouteSettings) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*Settings)
+	target, ok := that.(*RouteSettings)
 	if !ok {
-		that2, ok := that.(Settings)
+		that2, ok := that.(RouteSettings)
 		if ok {
 			target = &that2
 		} else {
@@ -410,6 +410,10 @@ func (m *RAG) Equal(that interface{}) bool {
 		if !proto.Equal(m.GetEmbedding(), target.GetEmbedding()) {
 			return false
 		}
+	}
+
+	if strings.Compare(m.GetPromptTemplate(), target.GetPromptTemplate()) != 0 {
+		return false
 	}
 
 	return true
@@ -781,6 +785,10 @@ func (m *AIPromptEnrichment_Message) Equal(that interface{}) bool {
 		return false
 	}
 
+	if strings.Compare(m.GetRoleOverride(), target.GetRoleOverride()) != 0 {
+		return false
+	}
+
 	return true
 }
 
@@ -816,8 +824,15 @@ func (m *AIPromptGaurd_Request) Equal(that interface{}) bool {
 
 	}
 
-	if m.GetAction() != target.GetAction() {
+	if len(m.GetBuiltIns()) != len(target.GetBuiltIns()) {
 		return false
+	}
+	for idx, v := range m.GetBuiltIns() {
+
+		if v != target.GetBuiltIns()[idx] {
+			return false
+		}
+
 	}
 
 	if strings.Compare(m.GetCustomResponseMessage(), target.GetCustomResponseMessage()) != 0 {
@@ -854,6 +869,17 @@ func (m *AIPromptGaurd_Response) Equal(that interface{}) bool {
 	for idx, v := range m.GetMatches() {
 
 		if strings.Compare(v, target.GetMatches()[idx]) != 0 {
+			return false
+		}
+
+	}
+
+	if len(m.GetBuiltIns()) != len(target.GetBuiltIns()) {
+		return false
+	}
+	for idx, v := range m.GetBuiltIns() {
+
+		if v != target.GetBuiltIns()[idx] {
 			return false
 		}
 

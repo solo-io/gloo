@@ -833,9 +833,9 @@ func (m *RouteOptions) Clone() proto.Message {
 	}
 
 	if h, ok := interface{}(m.GetAi()).(clone.Cloner); ok {
-		target.Ai = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_ai.Settings)
+		target.Ai = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_ai.RouteSettings)
 	} else {
-		target.Ai = proto.Clone(m.GetAi()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_ai.Settings)
+		target.Ai = proto.Clone(m.GetAi()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_ai.RouteSettings)
 	}
 
 	switch m.HostRewriteType.(type) {
