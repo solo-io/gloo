@@ -153,6 +153,44 @@ spec:
                                 type: string
                             type: object
                         type: object
+                      customHttpFilters:
+                        items:
+                          properties:
+                            config:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                            filterStage:
+                              properties:
+                                predicate:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                                stage:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                              type: object
+                            name:
+                              type: string
+                          type: object
+                        type: array
+                      customNetworkFilters:
+                        items:
+                          properties:
+                            config:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                            filterStage:
+                              properties:
+                                predicate:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                                stage:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                              type: object
+                            name:
+                              type: string
+                          type: object
+                        type: array
                       disableExtProc:
                         nullable: true
                         type: boolean
@@ -2078,6 +2116,44 @@ spec:
                                           type: string
                                       type: object
                                   type: object
+                                customHttpFilters:
+                                  items:
+                                    properties:
+                                      config:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
+                                      filterStage:
+                                        properties:
+                                          predicate:
+                                            type: string
+                                            x-kubernetes-int-or-string: true
+                                          stage:
+                                            type: string
+                                            x-kubernetes-int-or-string: true
+                                        type: object
+                                      name:
+                                        type: string
+                                    type: object
+                                  type: array
+                                customNetworkFilters:
+                                  items:
+                                    properties:
+                                      config:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
+                                      filterStage:
+                                        properties:
+                                          predicate:
+                                            type: string
+                                            x-kubernetes-int-or-string: true
+                                          stage:
+                                            type: string
+                                            x-kubernetes-int-or-string: true
+                                        type: object
+                                      name:
+                                        type: string
+                                    type: object
+                                  type: array
                                 disableExtProc:
                                   nullable: true
                                   type: boolean
@@ -3488,6 +3564,25 @@ spec:
                                       nullable: true
                                       type: integer
                                   type: object
+                                customNetworkFilters:
+                                  items:
+                                    properties:
+                                      config:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
+                                      filterStage:
+                                        properties:
+                                          predicate:
+                                            type: string
+                                            x-kubernetes-int-or-string: true
+                                          stage:
+                                            type: string
+                                            x-kubernetes-int-or-string: true
+                                        type: object
+                                      name:
+                                        type: string
+                                    type: object
+                                  type: array
                                 localRatelimit:
                                   properties:
                                     fillInterval:
@@ -5962,6 +6057,25 @@ spec:
                             nullable: true
                             type: integer
                         type: object
+                      customNetworkFilters:
+                        items:
+                          properties:
+                            config:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                            filterStage:
+                              properties:
+                                predicate:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                                stage:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                              type: object
+                            name:
+                              type: string
+                          type: object
+                        type: array
                       localRatelimit:
                         properties:
                           fillInterval:
