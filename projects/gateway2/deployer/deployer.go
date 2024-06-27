@@ -11,7 +11,6 @@ import (
 
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/version"
-	"github.com/solo-io/gloo/projects/gateway2/extensions"
 	"github.com/solo-io/gloo/projects/gateway2/helm"
 	"github.com/solo-io/gloo/projects/gateway2/pkg/api/gateway.gloo.solo.io/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
@@ -41,7 +40,6 @@ var (
 			gwpNamespace, gwpName, resourceType, gwNamespace, gwName)
 	}
 	NilDeployerInputsErr = eris.New("nil inputs to NewDeployer")
-	NilK8sExtensionsErr  = eris.New("nil K8sGatewayExtensions to NewDeployer")
 )
 
 // A Deployer is responsible for deploying proxies
@@ -58,16 +56,12 @@ type Inputs struct {
 	Dev            bool
 	IstioValues    bootstrap.IstioValues
 	ControlPlane   bootstrap.ControlPlane
-	Extensions     extensions.K8sGatewayExtensions
 }
 
 // NewDeployer creates a new gateway deployer
 func NewDeployer(cli client.Client, inputs *Inputs) (*Deployer, error) {
 	if inputs == nil {
 		return nil, NilDeployerInputsErr
-	}
-	if inputs.Extensions == nil {
-		return nil, NilK8sExtensionsErr
 	}
 
 	helmChart, err := loadFs(helm.GlooGatewayHelmChart)
@@ -108,11 +102,12 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 			Namespace: "default",
 		},
 	}
+	// TODO(Law): these must be set explicitly as we don't have defaults for them
+	// and the internal template isn't robust enough.
+	// This should be empty eventually -- the template must be resilient against nil-pointers
+	// i.e. don't add stuff here!
 	vals := map[string]any{
 		"gateway": map[string]any{
-			"serviceAccount": map[string]any{
-				"create": true,
-			},
 			"istio": map[string]any{
 				"enabled": false,
 			},
@@ -157,7 +152,8 @@ func (d *Deployer) renderChartToObjects(gw *api.Gateway, vals map[string]any) ([
 	return objs, nil
 }
 
-// Gets the GatewayParameters object (if any) associated with a given Gateway.
+// getGatewayParametersForGateway reuturns the a merged GatewayParameters object resulting from the default GwParams object and
+// the GwParam object specifically associated with the given Gateway (if one exists).
 func (d *Deployer) getGatewayParametersForGateway(ctx context.Context, gw *api.Gateway) (*v1alpha1.GatewayParameters, error) {
 	logger := log.FromContext(ctx)
 
@@ -279,46 +275,57 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 	svcConfig := kubeProxyConfig.GetService()
 	istioConfig := kubeProxyConfig.GetIstio()
 	sdsContainerConfig := kubeProxyConfig.GetSdsContainer()
+	statsConfig := kubeProxyConfig.GetStats()
 	istioContainerConfig := istioConfig.GetIstioProxyContainer()
 
+	gateway := vals.Gateway
+
 	// deployment values
-	autoscalingVals := getAutoscalingValues(kubeProxyConfig.GetAutoscaling())
-	vals.Gateway.Autoscaling = autoscalingVals
-	if autoscalingVals == nil && deployConfig.GetReplicas() != nil {
-		replicas := deployConfig.GetReplicas().GetValue()
-		vals.Gateway.ReplicaCount = &replicas
-	}
+	replicas := deployConfig.GetReplicas().GetValue()
+	gateway.ReplicaCount = &replicas
+
+	// TODO: The follow stanza has been commented out as autoscaling support has been removed.
+	// see https://github.com/solo-io/solo-projects/issues/5948 for more info.
+	//
+	// autoscalingVals := getAutoscalingValues(kubeProxyConfig.GetAutoscaling())
+	// vals.Gateway.Autoscaling = autoscalingVals
+	// if autoscalingVals == nil && deployConfig.GetReplicas() != nil {
+	// 	replicas := deployConfig.GetReplicas().GetValue()
+	// 	vals.Gateway.ReplicaCount = &replicas
+	// }
 
 	// service values
-	vals.Gateway.Service = getServiceValues(svcConfig)
+	gateway.Service = getServiceValues(svcConfig)
 
 	// pod template values
-	vals.Gateway.ExtraPodAnnotations = podConfig.GetExtraAnnotations()
-	vals.Gateway.ExtraPodLabels = podConfig.GetExtraLabels()
-	vals.Gateway.ImagePullSecrets = podConfig.GetImagePullSecrets()
-	vals.Gateway.PodSecurityContext = podConfig.GetSecurityContext()
-	vals.Gateway.NodeSelector = podConfig.GetNodeSelector()
-	vals.Gateway.Affinity = podConfig.GetAffinity()
-	vals.Gateway.Tolerations = podConfig.GetTolerations()
+	gateway.ExtraPodAnnotations = podConfig.GetExtraAnnotations()
+	gateway.ExtraPodLabels = podConfig.GetExtraLabels()
+	gateway.ImagePullSecrets = podConfig.GetImagePullSecrets()
+	gateway.PodSecurityContext = podConfig.GetSecurityContext()
+	gateway.NodeSelector = podConfig.GetNodeSelector()
+	gateway.Affinity = podConfig.GetAffinity()
+	gateway.Tolerations = podConfig.GetTolerations()
 
 	// envoy container values
 	logLevel := envoyContainerConfig.GetBootstrap().GetLogLevel().GetValue()
 	compLogLevels := envoyContainerConfig.GetBootstrap().GetComponentLogLevels()
-	vals.Gateway.LogLevel = &logLevel
+	gateway.LogLevel = &logLevel
 	compLogLevelStr, err := ComponentLogLevelsToString(compLogLevels)
 	if err != nil {
 		return nil, err
 	}
-	vals.Gateway.ComponentLogLevel = &compLogLevelStr
+	gateway.ComponentLogLevel = &compLogLevelStr
 
 	// istio values
-	vals.Gateway.Istio = getIstioValues(d.inputs.IstioValues, istioConfig)
-	vals.Gateway.SdsContainer = getSdsContainerValues(sdsContainerConfig)
-	vals.Gateway.IstioContainer = getIstioContainerValues(istioContainerConfig)
+	gateway.Istio = getIstioValues(d.inputs.IstioValues, istioConfig)
+	gateway.SdsContainer = getSdsContainerValues(sdsContainerConfig)
+	gateway.IstioContainer = getIstioContainerValues(istioContainerConfig)
 
-	vals.Gateway.Resources = envoyContainerConfig.GetResources()
-	vals.Gateway.SecurityContext = envoyContainerConfig.GetSecurityContext()
-	vals.Gateway.Image = getEnvoyImageValues(envoyContainerConfig.GetImage())
+	gateway.Resources = envoyContainerConfig.GetResources()
+	gateway.SecurityContext = envoyContainerConfig.GetSecurityContext()
+	gateway.Image = getEnvoyImageValues(envoyContainerConfig.GetImage())
+
+	gateway.Stats = getStatsValues(statsConfig)
 
 	return vals, nil
 }
@@ -354,6 +361,15 @@ func (d *Deployer) Render(name, ns string, vals map[string]any) ([]client.Object
 	return objs, nil
 }
 
+// GetObjsToDeploy does the following:
+//
+// * performs GatewayParameters lookup/merging etc to get a final set of helm values
+//
+// * use those helm values to render the internal `gloo-gateway` helm chart into k8s objects
+//
+// * sets ownerRefs on all generated objects
+//
+// * returns the objects to be deployed by the caller
 func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]client.Object, error) {
 	gwParam, err := d.getGatewayParametersForGateway(ctx, gw)
 	if err != nil {

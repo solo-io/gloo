@@ -149,22 +149,22 @@ func (m *KubernetesProxyConfig) Equal(that interface{}) bool {
 		}
 	}
 
-	if h, ok := interface{}(m.GetAutoscaling()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetAutoscaling()) {
-			return false
-		}
-	} else {
-		if !proto.Equal(m.GetAutoscaling(), target.GetAutoscaling()) {
-			return false
-		}
-	}
-
 	if h, ok := interface{}(m.GetIstio()).(equality.Equalizer); ok {
 		if !h.Equal(target.GetIstio()) {
 			return false
 		}
 	} else {
 		if !proto.Equal(m.GetIstio(), target.GetIstio()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetStats()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetStats()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetStats(), target.GetStats()) {
 			return false
 		}
 	}
@@ -601,6 +601,70 @@ func (m *GatewayParametersStatus) Equal(that interface{}) bool {
 		return m == nil
 	} else if m == nil {
 		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *StatsConfig) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*StatsConfig)
+	if !ok {
+		that2, ok := that.(StatsConfig)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetEnabled()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetEnabled()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetEnabled(), target.GetEnabled()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetRoutePrefixRewrite()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetRoutePrefixRewrite()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetRoutePrefixRewrite(), target.GetRoutePrefixRewrite()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetEnableStatsRoute()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetEnableStatsRoute()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetEnableStatsRoute(), target.GetEnableStatsRoute()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetStatsRoutePrefixRewrite()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetStatsRoutePrefixRewrite()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetStatsRoutePrefixRewrite(), target.GetStatsRoutePrefixRewrite()) {
+			return false
+		}
 	}
 
 	return true

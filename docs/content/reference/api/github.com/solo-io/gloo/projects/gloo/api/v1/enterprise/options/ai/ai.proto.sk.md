@@ -226,7 +226,7 @@ weight: 5
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `dataStore` | [.ai.options.gloo.solo.io.SemanticCaching.DataStore](../ai.proto.sk/#datastore) |  |
+| `dataStore` | [.ai.options.gloo.solo.io.SemanticCaching.DataStore](../ai.proto.sk/#datastore) | Which data store to use. |
 | `embedding` | [.ai.options.gloo.solo.io.Embedding](../ai.proto.sk/#embedding) | Model to use to get embeddings for prompt. |
 | `ttl` | `int` | Time before data in the cache is considered expired. |
 

@@ -369,20 +369,6 @@ func setRouteAction(
 				Weight:  weight,
 				Options: nil,
 			})
-		case backendref.RefIsLLMProvider(backendRef.BackendObjectReference):
-			weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
-				Destination: &v1.Destination{
-					DestinationType: &v1.Destination_Upstream{
-						Upstream: &core.ResourceRef{
-							Name:      clusterName,
-							Namespace: ns,
-						},
-					},
-				},
-				Weight:  weight,
-				Options: nil,
-			})
-
 		case backendref.RefIsUpstream(backendRef.BackendObjectReference):
 			upstream, ok := obj.(*gloov1.Upstream)
 			if !ok {

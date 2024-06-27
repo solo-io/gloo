@@ -591,6 +591,7 @@ type SemanticCaching struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Which data store to use
 	DataStore *SemanticCaching_DataStore `protobuf:"bytes,1,opt,name=data_store,json=dataStore,proto3" json:"data_store,omitempty"`
 	// Model to use to get embeddings for prompt
 	Embedding *Embedding `protobuf:"bytes,2,opt,name=embedding,proto3" json:"embedding,omitempty"`
