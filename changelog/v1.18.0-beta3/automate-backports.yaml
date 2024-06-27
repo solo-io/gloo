@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: |
+      "Developers should add a label like `Backport: 1.17.x` on their PRs. After your PR merges, the backport.yaml 
+      Github Action will run, and the PR with the title like '[v1.17.x] {old pr title}' should be created."
+    skipCI: true
