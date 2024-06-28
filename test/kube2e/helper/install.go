@@ -195,6 +195,7 @@ func (h *SoloTestHelper) InstallGloo(ctx context.Context, deploymentType string,
 	glooctlCommand := []string{
 		filepath.Join(h.BuildAssetDir, h.GlooctlExecName),
 		"install", deploymentType,
+		"--release-name", h.HelmChartName,
 	}
 	if h.LicenseKey != "" {
 		glooctlCommand = append(glooctlCommand, "enterprise", "--license-key", h.LicenseKey)
@@ -270,11 +271,10 @@ func (h *SoloTestHelper) UpgradeGloo(ctx context.Context, timeout time.Duration,
 	helmCommand := []string{
 		"helm",
 		"upgrade",
-		"gloo",
-	}
-	helmCommand = append(helmCommand,
+		h.HelmChartName,
+		filepath.Join(h.TestAssetDir, h.HelmChartName+"-"+h.version+".tgz"),
 		"-n", h.InstallNamespace,
-		"-f", filepath.Join(h.TestAssetDir, h.HelmChartName+"-"+h.version+".tgz"))
+	}
 
 	if h.Verbose {
 		helmCommand = append(helmCommand, "-v")
@@ -319,7 +319,7 @@ func (h *SoloTestHelper) RevertGlooUpgrade(ctx context.Context, timeout time.Dur
 	helmCommand := []string{
 		"helm",
 		"rollback",
-		"gloo",
+		h.HelmChartName,
 		"-n", h.InstallNamespace,
 	}
 
@@ -372,7 +372,7 @@ func (h *SoloTestHelper) uninstallGloo(all bool) error {
 
 	log.Printf("uninstalling gloo...")
 	cmdArgs := []string{
-		filepath.Join(h.BuildAssetDir, h.GlooctlExecName), "uninstall", "-n", h.InstallNamespace, "--delete-namespace",
+		filepath.Join(h.BuildAssetDir, h.GlooctlExecName), "uninstall", "-n", h.InstallNamespace, "--delete-namespace", "--release-name", h.HelmChartName,
 	}
 	if all {
 		cmdArgs = append(cmdArgs, "--all")
