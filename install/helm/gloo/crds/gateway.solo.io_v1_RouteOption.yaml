@@ -70,7 +70,7 @@ spec:
                         properties:
                           request:
                             properties:
-                              builtIns:
+                              builtins:
                                 items:
                                   type: string
                                   x-kubernetes-int-or-string: true
@@ -84,7 +84,7 @@ spec:
                             type: object
                           response:
                             properties:
-                              builtIns:
+                              builtins:
                                 items:
                                   type: string
                                   x-kubernetes-int-or-string: true
@@ -97,7 +97,7 @@ spec:
                         type: object
                       rag:
                         properties:
-                          dataStore:
+                          datastore:
                             properties:
                               postgres:
                                 properties:
@@ -124,7 +124,7 @@ spec:
                         type: object
                       semanticCaching:
                         properties:
-                          dataStore:
+                          datastore:
                             properties:
                               redis:
                                 properties:

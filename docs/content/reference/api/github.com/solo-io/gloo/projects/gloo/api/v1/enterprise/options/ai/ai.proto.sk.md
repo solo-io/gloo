@@ -218,7 +218,7 @@ weight: 5
 
 
 ```yaml
-"dataStore": .ai.options.gloo.solo.io.SemanticCaching.DataStore
+"datastore": .ai.options.gloo.solo.io.SemanticCaching.DataStore
 "embedding": .ai.options.gloo.solo.io.Embedding
 "ttl": int
 
@@ -226,7 +226,7 @@ weight: 5
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `dataStore` | [.ai.options.gloo.solo.io.SemanticCaching.DataStore](../ai.proto.sk/#datastore) | Which data store to use. |
+| `datastore` | [.ai.options.gloo.solo.io.SemanticCaching.DataStore](../ai.proto.sk/#datastore) | Which data store to use. |
 | `embedding` | [.ai.options.gloo.solo.io.Embedding](../ai.proto.sk/#embedding) | Model to use to get embeddings for prompt. |
 | `ttl` | `int` | Time before data in the cache is considered expired. |
 
@@ -257,7 +257,7 @@ Data store from which to cache the request/response pairs
 
 
 ```yaml
-"dataStore": .ai.options.gloo.solo.io.RAG.DataStore
+"datastore": .ai.options.gloo.solo.io.RAG.DataStore
 "embedding": .ai.options.gloo.solo.io.Embedding
 "promptTemplate": string
 
@@ -265,7 +265,7 @@ Data store from which to cache the request/response pairs
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `dataStore` | [.ai.options.gloo.solo.io.RAG.DataStore](../ai.proto.sk/#datastore) | Data store from which to fetch the embeddings. |
+| `datastore` | [.ai.options.gloo.solo.io.RAG.DataStore](../ai.proto.sk/#datastore) | Data store from which to fetch the embeddings. |
 | `embedding` | [.ai.options.gloo.solo.io.Embedding](../ai.proto.sk/#embedding) | Model to use to get embeddings for prompt. |
 | `promptTemplate` | `string` | Template to use to embed the returned context. |
 
@@ -388,7 +388,7 @@ List of potential roles
 
 ```yaml
 "matches": []string
-"builtIns": []ai.options.gloo.solo.io.AIPromptGaurd.Request.BuiltIn
+"builtins": []ai.options.gloo.solo.io.AIPromptGaurd.Request.BuiltIn
 "customResponseMessage": string
 
 ```
@@ -396,7 +396,7 @@ List of potential roles
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `matches` | `[]string` | All matches will be masked before being sent back to the client We can also use DLP stats to see how often this happens. |
-| `builtIns` | [[]ai.options.gloo.solo.io.AIPromptGaurd.Request.BuiltIn](../ai.proto.sk/#builtin) | A list of built-in regexes to mask in the response. |
+| `builtins` | [[]ai.options.gloo.solo.io.AIPromptGaurd.Request.BuiltIn](../ai.proto.sk/#builtin) | A list of built-in regexes to mask in the response. |
 | `customResponseMessage` | `string` | Custom response message to send back to the client. |
 
 
@@ -424,14 +424,14 @@ List of potential roles
 
 ```yaml
 "matches": []string
-"builtIns": []ai.options.gloo.solo.io.AIPromptGaurd.Response.BuiltIn
+"builtins": []ai.options.gloo.solo.io.AIPromptGaurd.Response.BuiltIn
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `matches` | `[]string` | All matches will be masked before being sent back to the client We can also use DLP stats to see how often this happens. |
-| `builtIns` | [[]ai.options.gloo.solo.io.AIPromptGaurd.Response.BuiltIn](../ai.proto.sk/#builtin) | A list of built-in regexes to mask in the response. |
+| `builtins` | [[]ai.options.gloo.solo.io.AIPromptGaurd.Response.BuiltIn](../ai.proto.sk/#builtin) | A list of built-in regexes to mask in the response. |
 
 
 

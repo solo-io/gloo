@@ -344,12 +344,12 @@ func (m *SemanticCaching) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetDataStore()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetDataStore()) {
+	if h, ok := interface{}(m.GetDatastore()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetDatastore()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetDataStore(), target.GetDataStore()) {
+		if !proto.Equal(m.GetDatastore(), target.GetDatastore()) {
 			return false
 		}
 	}
@@ -392,12 +392,12 @@ func (m *RAG) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetDataStore()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetDataStore()) {
+	if h, ok := interface{}(m.GetDatastore()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetDatastore()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetDataStore(), target.GetDataStore()) {
+		if !proto.Equal(m.GetDatastore(), target.GetDatastore()) {
 			return false
 		}
 	}
@@ -681,10 +681,10 @@ func (m *SemanticCaching_DataStore) Equal(that interface{}) bool {
 		return false
 	}
 
-	switch m.DataStore.(type) {
+	switch m.Datastore.(type) {
 
 	case *SemanticCaching_DataStore_Redis:
-		if _, ok := target.DataStore.(*SemanticCaching_DataStore_Redis); !ok {
+		if _, ok := target.Datastore.(*SemanticCaching_DataStore_Redis); !ok {
 			return false
 		}
 
@@ -700,7 +700,7 @@ func (m *SemanticCaching_DataStore) Equal(that interface{}) bool {
 
 	default:
 		// m is nil but target is not nil
-		if m.DataStore != target.DataStore {
+		if m.Datastore != target.Datastore {
 			return false
 		}
 	}
@@ -729,10 +729,10 @@ func (m *RAG_DataStore) Equal(that interface{}) bool {
 		return false
 	}
 
-	switch m.DataStore.(type) {
+	switch m.Datastore.(type) {
 
 	case *RAG_DataStore_Postgres:
-		if _, ok := target.DataStore.(*RAG_DataStore_Postgres); !ok {
+		if _, ok := target.Datastore.(*RAG_DataStore_Postgres); !ok {
 			return false
 		}
 
@@ -748,7 +748,7 @@ func (m *RAG_DataStore) Equal(that interface{}) bool {
 
 	default:
 		// m is nil but target is not nil
-		if m.DataStore != target.DataStore {
+		if m.Datastore != target.Datastore {
 			return false
 		}
 	}
@@ -824,12 +824,12 @@ func (m *AIPromptGaurd_Request) Equal(that interface{}) bool {
 
 	}
 
-	if len(m.GetBuiltIns()) != len(target.GetBuiltIns()) {
+	if len(m.GetBuiltins()) != len(target.GetBuiltins()) {
 		return false
 	}
-	for idx, v := range m.GetBuiltIns() {
+	for idx, v := range m.GetBuiltins() {
 
-		if v != target.GetBuiltIns()[idx] {
+		if v != target.GetBuiltins()[idx] {
 			return false
 		}
 
@@ -874,12 +874,12 @@ func (m *AIPromptGaurd_Response) Equal(that interface{}) bool {
 
 	}
 
-	if len(m.GetBuiltIns()) != len(target.GetBuiltIns()) {
+	if len(m.GetBuiltins()) != len(target.GetBuiltins()) {
 		return false
 	}
-	for idx, v := range m.GetBuiltIns() {
+	for idx, v := range m.GetBuiltins() {
 
-		if v != target.GetBuiltIns()[idx] {
+		if v != target.GetBuiltins()[idx] {
 			return false
 		}
 

@@ -205,10 +205,10 @@ func (m *SemanticCaching) Clone() proto.Message {
 	}
 	target = &SemanticCaching{}
 
-	if h, ok := interface{}(m.GetDataStore()).(clone.Cloner); ok {
-		target.DataStore = h.Clone().(*SemanticCaching_DataStore)
+	if h, ok := interface{}(m.GetDatastore()).(clone.Cloner); ok {
+		target.Datastore = h.Clone().(*SemanticCaching_DataStore)
 	} else {
-		target.DataStore = proto.Clone(m.GetDataStore()).(*SemanticCaching_DataStore)
+		target.Datastore = proto.Clone(m.GetDatastore()).(*SemanticCaching_DataStore)
 	}
 
 	if h, ok := interface{}(m.GetEmbedding()).(clone.Cloner); ok {
@@ -230,10 +230,10 @@ func (m *RAG) Clone() proto.Message {
 	}
 	target = &RAG{}
 
-	if h, ok := interface{}(m.GetDataStore()).(clone.Cloner); ok {
-		target.DataStore = h.Clone().(*RAG_DataStore)
+	if h, ok := interface{}(m.GetDatastore()).(clone.Cloner); ok {
+		target.Datastore = h.Clone().(*RAG_DataStore)
 	} else {
-		target.DataStore = proto.Clone(m.GetDataStore()).(*RAG_DataStore)
+		target.Datastore = proto.Clone(m.GetDatastore()).(*RAG_DataStore)
 	}
 
 	if h, ok := interface{}(m.GetEmbedding()).(clone.Cloner); ok {
@@ -383,16 +383,16 @@ func (m *SemanticCaching_DataStore) Clone() proto.Message {
 	}
 	target = &SemanticCaching_DataStore{}
 
-	switch m.DataStore.(type) {
+	switch m.Datastore.(type) {
 
 	case *SemanticCaching_DataStore_Redis:
 
 		if h, ok := interface{}(m.GetRedis()).(clone.Cloner); ok {
-			target.DataStore = &SemanticCaching_DataStore_Redis{
+			target.Datastore = &SemanticCaching_DataStore_Redis{
 				Redis: h.Clone().(*Redis),
 			}
 		} else {
-			target.DataStore = &SemanticCaching_DataStore_Redis{
+			target.Datastore = &SemanticCaching_DataStore_Redis{
 				Redis: proto.Clone(m.GetRedis()).(*Redis),
 			}
 		}
@@ -410,16 +410,16 @@ func (m *RAG_DataStore) Clone() proto.Message {
 	}
 	target = &RAG_DataStore{}
 
-	switch m.DataStore.(type) {
+	switch m.Datastore.(type) {
 
 	case *RAG_DataStore_Postgres:
 
 		if h, ok := interface{}(m.GetPostgres()).(clone.Cloner); ok {
-			target.DataStore = &RAG_DataStore_Postgres{
+			target.Datastore = &RAG_DataStore_Postgres{
 				Postgres: h.Clone().(*Postgres),
 			}
 		} else {
-			target.DataStore = &RAG_DataStore_Postgres{
+			target.Datastore = &RAG_DataStore_Postgres{
 				Postgres: proto.Clone(m.GetPostgres()).(*Postgres),
 			}
 		}
@@ -463,11 +463,11 @@ func (m *AIPromptGaurd_Request) Clone() proto.Message {
 		}
 	}
 
-	if m.GetBuiltIns() != nil {
-		target.BuiltIns = make([]AIPromptGaurd_Request_BuiltIn, len(m.GetBuiltIns()))
-		for idx, v := range m.GetBuiltIns() {
+	if m.GetBuiltins() != nil {
+		target.Builtins = make([]AIPromptGaurd_Request_BuiltIn, len(m.GetBuiltins()))
+		for idx, v := range m.GetBuiltins() {
 
-			target.BuiltIns[idx] = v
+			target.Builtins[idx] = v
 
 		}
 	}
@@ -494,11 +494,11 @@ func (m *AIPromptGaurd_Response) Clone() proto.Message {
 		}
 	}
 
-	if m.GetBuiltIns() != nil {
-		target.BuiltIns = make([]AIPromptGaurd_Response_BuiltIn, len(m.GetBuiltIns()))
-		for idx, v := range m.GetBuiltIns() {
+	if m.GetBuiltins() != nil {
+		target.Builtins = make([]AIPromptGaurd_Response_BuiltIn, len(m.GetBuiltins()))
+		for idx, v := range m.GetBuiltins() {
 
-			target.BuiltIns[idx] = v
+			target.Builtins[idx] = v
 
 		}
 	}

@@ -350,18 +350,18 @@ func (m *SemanticCaching) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetDataStore()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("DataStore")); err != nil {
+	if h, ok := interface{}(m.GetDatastore()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Datastore")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetDataStore(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetDatastore(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("DataStore")); err != nil {
+			if _, err = hasher.Write([]byte("Datastore")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -411,18 +411,18 @@ func (m *RAG) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetDataStore()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("DataStore")); err != nil {
+	if h, ok := interface{}(m.GetDatastore()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Datastore")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetDataStore(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetDatastore(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("DataStore")); err != nil {
+			if _, err = hasher.Write([]byte("Datastore")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -688,7 +688,7 @@ func (m *SemanticCaching_DataStore) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	switch m.DataStore.(type) {
+	switch m.Datastore.(type) {
 
 	case *SemanticCaching_DataStore_Redis:
 
@@ -730,7 +730,7 @@ func (m *RAG_DataStore) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	switch m.DataStore.(type) {
+	switch m.Datastore.(type) {
 
 	case *RAG_DataStore_Postgres:
 
@@ -809,7 +809,7 @@ func (m *AIPromptGaurd_Request) Hash(hasher hash.Hash64) (uint64, error) {
 
 	}
 
-	for _, v := range m.GetBuiltIns() {
+	for _, v := range m.GetBuiltins() {
 
 		err = binary.Write(hasher, binary.LittleEndian, v)
 		if err != nil {
@@ -846,7 +846,7 @@ func (m *AIPromptGaurd_Response) Hash(hasher hash.Hash64) (uint64, error) {
 
 	}
 
-	for _, v := range m.GetBuiltIns() {
+	for _, v := range m.GetBuiltins() {
 
 		err = binary.Write(hasher, binary.LittleEndian, v)
 		if err != nil {

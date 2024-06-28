@@ -79,12 +79,12 @@ message Embedding {
 message SemanticCaching {
   // Data store from which to cache the request/response pairs
   message DataStore {
-    oneof data_store {
+    oneof datastore {
       Redis redis = 1;
     }
   }
   // Which data store to use
-  DataStore data_store = 1;
+  DataStore datastore = 1;
   // Model to use to get embeddings for prompt
   Embedding embedding = 2;
   // Time before data in the cache is considered expired
@@ -93,12 +93,12 @@ message SemanticCaching {
 
 message RAG {
   message DataStore {
-    oneof data_store {
+    oneof datastore {
       Postgres postgres = 1;
     }
   }
   // Data store from which to fetch the embeddings
-  DataStore data_store = 1;
+  DataStore datastore = 1;
   // Model to use to get embeddings for prompt
   Embedding embedding = 2;
   // Template to use to embed the returned context
@@ -145,7 +145,7 @@ message AIPromptGaurd {
     // We can also use DLP stats to see how often this happens
     repeated string matches = 1;
     // A list of built-in regexes to mask in the response
-    repeated BuiltIn built_ins = 2;
+    repeated BuiltIn builtins = 2;
     // Custom response message to send back to the client
     string custom_response_message = 3;
   }
@@ -161,7 +161,7 @@ message AIPromptGaurd {
       // We can also use DLP stats to see how often this happens
       repeated string matches = 1;
       // A list of built-in regexes to mask in the response
-      repeated BuiltIn built_ins = 2;
+      repeated BuiltIn builtins = 2;
   }
   // Guards for the prompt request
   Request request = 2;
