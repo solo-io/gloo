@@ -176,6 +176,19 @@ func ExtraArgs(args ...string) func(*InstallOptions) {
 	}
 }
 
+type UpgradeOption func(*UpgradeOptions)
+
+type UpgradeOptions struct {
+	HelmCommand []string
+	Verbose     bool
+}
+
+func WithExtraArgs(args ...string) func(*UpgradeOptions) {
+	return func(io *UpgradeOptions) {
+		io.HelmCommand = append(io.HelmCommand, args...)
+	}
+}
+
 // Installs Gloo (and, optionally, the test server)
 func (h *SoloTestHelper) InstallGloo(ctx context.Context, deploymentType string, timeout time.Duration, options ...InstallOption) error {
 	log.Printf("installing gloo in [%s] mode to namespace [%s]", deploymentType, h.InstallNamespace)
@@ -249,6 +262,84 @@ func glooctlInstallWithTimeout(rootDir string, io *InstallOptions, timeout time.
 	case <-time.After(timeout):
 		return errors.New("timeout - did something go wrong fetching the docker images?")
 	}
+}
+
+// Upgrades Gloo
+func (h *SoloTestHelper) UpgradeGloo(ctx context.Context, timeout time.Duration, options ...UpgradeOption) error {
+	log.Printf("upgrading gloo in namespace [%s]", h.InstallNamespace)
+	helmCommand := []string{
+		"helm",
+		"upgrade",
+		"gloo",
+	}
+	helmCommand = append(helmCommand,
+		"-n", h.InstallNamespace,
+		"-f", filepath.Join(h.TestAssetDir, h.HelmChartName+"-"+h.version+".tgz"))
+
+	if h.Verbose {
+		helmCommand = append(helmCommand, "-v")
+	}
+
+	io := &UpgradeOptions{
+		HelmCommand: helmCommand,
+		Verbose:     true,
+	}
+	for _, opt := range options {
+		opt(io)
+	}
+
+	if err := upgradeGlooWithTimeout(h.RootDir, io, time.Minute*2); err != nil {
+		return errors.Wrapf(err, "error running glooctl install command")
+	}
+
+	return nil
+}
+
+func upgradeGlooWithTimeout(rootDir string, io *UpgradeOptions, timeout time.Duration) error {
+	runResponse := make(chan error, 1)
+	go func() {
+		err := exec.RunCommand(rootDir, io.Verbose, io.HelmCommand...)
+		if err != nil {
+			runResponse <- errors.Wrapf(err, "error while upgrading gloo")
+		}
+		runResponse <- nil
+	}()
+
+	select {
+	case err := <-runResponse:
+		return err // can be nil
+	case <-time.After(timeout):
+		return errors.New("timeout - did something go wrong fetching the docker images?")
+	}
+}
+
+// Upgrades Gloo
+func (h *SoloTestHelper) RevertGlooUpgrade(ctx context.Context, timeout time.Duration, options ...UpgradeOption) error {
+	log.Printf("reverting gloo upgrade in namespace [%s]", h.InstallNamespace)
+	helmCommand := []string{
+		"helm",
+		"rollback",
+		"gloo",
+		"-n", h.InstallNamespace,
+	}
+
+	if h.Verbose {
+		helmCommand = append(helmCommand, "-v")
+	}
+
+	io := &UpgradeOptions{
+		HelmCommand: helmCommand,
+		Verbose:     true,
+	}
+	for _, opt := range options {
+		opt(io)
+	}
+
+	if err := upgradeGlooWithTimeout(h.RootDir, io, time.Minute*2); err != nil {
+		return errors.Wrapf(err, "error running glooctl install command")
+	}
+
+	return nil
 }
 
 func waitForDefaultServiceAccount(ctx context.Context, installNamespace string) error {
