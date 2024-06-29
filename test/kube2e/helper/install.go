@@ -2,9 +2,11 @@ package helper
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"time"
 
 	"helm.sh/helm/v3/pkg/repo"
@@ -227,7 +229,7 @@ func (h *SoloTestHelper) InstallGloo(ctx context.Context, deploymentType string,
 		opt(io)
 	}
 
-	if err := glooctlInstallWithTimeout(h.RootDir, io, time.Minute*2); err != nil {
+	if err := glooctlInstallWithTimeout(h.RootDir, io, timeout); err != nil {
 		return errors.Wrapf(err, "error running glooctl install command")
 	}
 
@@ -266,8 +268,14 @@ func glooctlInstallWithTimeout(rootDir string, io *InstallOptions, timeout time.
 }
 
 // Upgrades Gloo
-func (h *SoloTestHelper) UpgradeGloo(ctx context.Context, timeout time.Duration, options ...UpgradeOption) error {
+func (h *SoloTestHelper) UpgradeGloo(ctx context.Context, timeout time.Duration, options ...UpgradeOption) (func(), error) {
 	log.Printf("upgrading gloo in namespace [%s]", h.InstallNamespace)
+
+	revision, err := h.CurrentGlooRevision()
+	if err != nil {
+		return nil, err
+	}
+
 	helmCommand := []string{
 		"helm",
 		"upgrade",
@@ -288,11 +296,28 @@ func (h *SoloTestHelper) UpgradeGloo(ctx context.Context, timeout time.Duration,
 		opt(io)
 	}
 
-	if err := upgradeGlooWithTimeout(h.RootDir, io, time.Minute*2); err != nil {
-		return errors.Wrapf(err, "error running glooctl install command")
+	if err := upgradeGlooWithTimeout(h.RootDir, io, timeout); err != nil {
+		return nil, errors.Wrapf(err, "error running glooctl install command")
 	}
 
-	return nil
+	return func() {
+		h.RevertGlooUpgrade(ctx, timeout, WithExtraArgs([]string{
+			string(revision),
+		}...))
+	}, nil
+}
+
+func (h *SoloTestHelper) CurrentGlooRevision() (int, error) {
+	command := []string{
+		"bash",
+		"-c",
+		fmt.Sprintf("helm -n %s ls -o json | jq '.[] | select(.name=\"%s\") | .revision' | tr -d '\"'", h.InstallNamespace, h.HelmChartName),
+	}
+	out, err := exec.RunCommandOutput(h.RootDir, true, command...)
+	if err != nil {
+		return 0, errors.Wrapf(err, "error while fetching gloo revision")
+	}
+	return strconv.Atoi(out)
 }
 
 func upgradeGlooWithTimeout(rootDir string, io *UpgradeOptions, timeout time.Duration) error {
@@ -335,7 +360,7 @@ func (h *SoloTestHelper) RevertGlooUpgrade(ctx context.Context, timeout time.Dur
 		opt(io)
 	}
 
-	if err := upgradeGlooWithTimeout(h.RootDir, io, time.Minute*2); err != nil {
+	if err := upgradeGlooWithTimeout(h.RootDir, io, timeout); err != nil {
 		return errors.Wrapf(err, "error running glooctl install command")
 	}
 
