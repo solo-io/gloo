@@ -303,7 +303,7 @@ func (h *SoloTestHelper) UpgradeGloo(ctx context.Context, timeout time.Duration,
 
 	return func() error {
 		return h.RevertGlooUpgrade(ctx, timeout, WithExtraArgs([]string{
-			string(revision),
+			strconv.Itoa(revision),
 		}...))
 	}, nil
 }
@@ -314,7 +314,7 @@ func (h *SoloTestHelper) CurrentGlooRevision() (int, error) {
 		"-c",
 		fmt.Sprintf("helm -n %s ls -o json | jq '.[] | select(.name=\"%s\") | .revision' | tr -d '\"'", h.InstallNamespace, h.HelmChartName),
 	}
-	out, err := exec.RunCommandOutput(h.RootDir, true, command...)
+	out, err := exec.RunCommandOutput(h.RootDir, false, command...)
 	if err != nil {
 		return 0, errors.Wrapf(err, "error while fetching gloo revision")
 	}
