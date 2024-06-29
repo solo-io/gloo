@@ -12,6 +12,8 @@ import (
 
 	"github.com/solo-io/protoc-gen-ext/pkg/clone"
 	"google.golang.org/protobuf/proto"
+
+	github_com_golang_protobuf_ptypes_struct "github.com/golang/protobuf/ptypes/struct"
 )
 
 // ensure the imports are used
@@ -72,6 +74,18 @@ func (m *UpstreamSpec) Clone() proto.Message {
 		} else {
 			target.Llm = &UpstreamSpec_Mistral_{
 				Mistral: proto.Clone(m.GetMistral()).(*UpstreamSpec_Mistral),
+			}
+		}
+
+	case *UpstreamSpec_Anthropic_:
+
+		if h, ok := interface{}(m.GetAnthropic()).(clone.Cloner); ok {
+			target.Llm = &UpstreamSpec_Anthropic_{
+				Anthropic: h.Clone().(*UpstreamSpec_Anthropic),
+			}
+		} else {
+			target.Llm = &UpstreamSpec_Anthropic_{
+				Anthropic: proto.Clone(m.GetAnthropic()).(*UpstreamSpec_Anthropic),
 			}
 		}
 
@@ -138,6 +152,40 @@ func (m *RouteSettings) Clone() proto.Message {
 
 		}
 	}
+
+	if m.GetDefaults() != nil {
+		target.Defaults = make([]*FieldDefault, len(m.GetDefaults()))
+		for idx, v := range m.GetDefaults() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.Defaults[idx] = h.Clone().(*FieldDefault)
+			} else {
+				target.Defaults[idx] = proto.Clone(v).(*FieldDefault)
+			}
+
+		}
+	}
+
+	return target
+}
+
+// Clone function
+func (m *FieldDefault) Clone() proto.Message {
+	var target *FieldDefault
+	if m == nil {
+		return target
+	}
+	target = &FieldDefault{}
+
+	target.Field = m.GetField()
+
+	if h, ok := interface{}(m.GetValue()).(clone.Cloner); ok {
+		target.Value = h.Clone().(*github_com_golang_protobuf_ptypes_struct.Value)
+	} else {
+		target.Value = proto.Clone(m.GetValue()).(*github_com_golang_protobuf_ptypes_struct.Value)
+	}
+
+	target.Override = m.GetOverride()
 
 	return target
 }
@@ -345,6 +393,17 @@ func (m *UpstreamSpec_Mistral) Clone() proto.Message {
 		return target
 	}
 	target = &UpstreamSpec_Mistral{}
+
+	return target
+}
+
+// Clone function
+func (m *UpstreamSpec_Anthropic) Clone() proto.Message {
+	var target *UpstreamSpec_Anthropic
+	if m == nil {
+		return target
+	}
+	target = &UpstreamSpec_Anthropic{}
 
 	return target
 }

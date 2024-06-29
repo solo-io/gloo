@@ -14,8 +14,10 @@ weight: 5
 - [UpstreamSpec](#upstreamspec)
 - [OpenAI](#openai)
 - [Mistral](#mistral)
+- [Anthropic](#anthropic)
 - [Custom](#custom)
 - [RouteSettings](#routesettings)
+- [FieldDefault](#fielddefault)
 - [Postgres](#postgres)
 - [Redis](#redis)
 - [Embedding](#embedding)
@@ -53,6 +55,7 @@ weight: 5
 "authTokenRef": string
 "openai": .ai.options.gloo.solo.io.UpstreamSpec.OpenAI
 "mistral": .ai.options.gloo.solo.io.UpstreamSpec.Mistral
+"anthropic": .ai.options.gloo.solo.io.UpstreamSpec.Anthropic
 "custom": .ai.options.gloo.solo.io.UpstreamSpec.Custom
 
 ```
@@ -61,9 +64,10 @@ weight: 5
 | ----- | ---- | ----------- | 
 | `inlineAuthToken` | `string` | Provide easy inline way to specify a token. Only one of `inlineAuthToken` or `authTokenRef` can be set. |
 | `authTokenRef` | `string` | name of k8s secret in the same namesapce as the Upstream. Only one of `authTokenRef` or `inlineAuthToken` can be set. |
-| `openai` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) |  Only one of `openai`, `mistral`, or `custom` can be set. |
-| `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) |  Only one of `mistral`, `openai`, or `custom` can be set. |
-| `custom` | [.ai.options.gloo.solo.io.UpstreamSpec.Custom](../ai.proto.sk/#custom) |  Only one of `custom`, `openai`, or `mistral` can be set. |
+| `openai` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) |  Only one of `openai`, `mistral`, `anthropic`, or `custom` can be set. |
+| `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) |  Only one of `mistral`, `openai`, `anthropic`, or `custom` can be set. |
+| `anthropic` | [.ai.options.gloo.solo.io.UpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) |  Only one of `anthropic`, `openai`, `mistral`, or `custom` can be set. |
+| `custom` | [.ai.options.gloo.solo.io.UpstreamSpec.Custom](../ai.proto.sk/#custom) |  Only one of `custom`, `openai`, `mistral`, or `anthropic` can be set. |
 
 
 
@@ -85,6 +89,21 @@ weight: 5
 
 ---
 ### Mistral
+
+
+
+```yaml
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+
+
+
+
+---
+### Anthropic
 
 
 
@@ -129,6 +148,7 @@ weight: 5
 "rag": .ai.options.gloo.solo.io.RAG
 "semanticCaching": .ai.options.gloo.solo.io.SemanticCaching
 "backupModels": []string
+"defaults": []ai.options.gloo.solo.io.FieldDefault
 
 ```
 
@@ -140,6 +160,28 @@ weight: 5
 | `rag` | [.ai.options.gloo.solo.io.RAG](../ai.proto.sk/#rag) | Retrieval Augmented Generation. |
 | `semanticCaching` | [.ai.options.gloo.solo.io.SemanticCaching](../ai.proto.sk/#semanticcaching) | Semantic caching configuration. |
 | `backupModels` | `[]string` | Backup models to use in case of a failure with the primary model passed in the request. |
+| `defaults` | [[]ai.options.gloo.solo.io.FieldDefault](../ai.proto.sk/#fielddefault) |  |
+
+
+
+
+---
+### FieldDefault
+
+
+
+```yaml
+"field": string
+"value": .google.protobuf.Value
+"override": bool
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `field` | `string` | Field name. |
+| `value` | [.google.protobuf.Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/value) | Field Value, this can be any valid JSON value. |
+| `override` | `bool` | Whether or not to override the field if it already exists. |
 
 
 
