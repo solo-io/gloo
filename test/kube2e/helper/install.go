@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"helm.sh/helm/v3/pkg/repo"
@@ -317,7 +318,7 @@ func (h *SoloTestHelper) CurrentGlooRevision() (int, error) {
 	if err != nil {
 		return 0, errors.Wrapf(err, "error while fetching gloo revision")
 	}
-	return strconv.Atoi(out)
+	return strconv.Atoi(strings.TrimSpace(out))
 }
 
 func upgradeGlooWithTimeout(rootDir string, io *UpgradeOptions, timeout time.Duration) error {
