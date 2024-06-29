@@ -105,6 +105,21 @@ func (m *UpstreamSpec) Equal(that interface{}) bool {
 			}
 		}
 
+	case *UpstreamSpec_Anthropic_:
+		if _, ok := target.Llm.(*UpstreamSpec_Anthropic_); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetAnthropic()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetAnthropic()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetAnthropic(), target.GetAnthropic()) {
+				return false
+			}
+		}
+
 	case *UpstreamSpec_Custom_:
 		if _, ok := target.Llm.(*UpstreamSpec_Custom_); !ok {
 			return false
@@ -210,6 +225,65 @@ func (m *RouteSettings) Equal(that interface{}) bool {
 			return false
 		}
 
+	}
+
+	if len(m.GetDefaults()) != len(target.GetDefaults()) {
+		return false
+	}
+	for idx, v := range m.GetDefaults() {
+
+		if h, ok := interface{}(v).(equality.Equalizer); ok {
+			if !h.Equal(target.GetDefaults()[idx]) {
+				return false
+			}
+		} else {
+			if !proto.Equal(v, target.GetDefaults()[idx]) {
+				return false
+			}
+		}
+
+	}
+
+	return true
+}
+
+// Equal function
+func (m *FieldDefault) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*FieldDefault)
+	if !ok {
+		that2, ok := that.(FieldDefault)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetField(), target.GetField()) != 0 {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetValue()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetValue()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetValue(), target.GetValue()) {
+			return false
+		}
+	}
+
+	if m.GetOverride() != target.GetOverride() {
+		return false
 	}
 
 	return true
@@ -589,6 +663,30 @@ func (m *UpstreamSpec_Mistral) Equal(that interface{}) bool {
 	target, ok := that.(*UpstreamSpec_Mistral)
 	if !ok {
 		that2, ok := that.(UpstreamSpec_Mistral)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *UpstreamSpec_Anthropic) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*UpstreamSpec_Anthropic)
+	if !ok {
+		that2, ok := that.(UpstreamSpec_Anthropic)
 		if ok {
 			target = &that2
 		} else {

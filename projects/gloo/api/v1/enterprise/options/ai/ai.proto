@@ -5,6 +5,7 @@ option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise
 
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/duration.proto";
 import "extproto/ext.proto";
 option (extproto.equal_all) = true;
@@ -15,6 +16,8 @@ message UpstreamSpec {
   message OpenAI {}
 
   message Mistral {}
+
+  message Anthropic {}
 
   message Custom {
     // Custom host to send the traffic to
@@ -33,7 +36,8 @@ message UpstreamSpec {
   oneof llm {
     OpenAI openai = 3;
     Mistral mistral = 4;
-    Custom custom = 5;
+    Anthropic anthropic = 5;
+    Custom custom = 6;
   }
 }
 
@@ -56,6 +60,19 @@ message RouteSettings {
   // Backup models to use in case of a failure with the primary model
   // passed in the request.
   repeated string backup_models = 6;
+
+  // A list of fields to be added to the prompt before sending it to the LLM model.
+  // These will NOT override the user input fields unless override is explicitly set to true.
+  repeated FieldDefault defaults = 7;
+}
+
+message FieldDefault {
+  // Field name
+  string field = 1;
+  // Field Value, this can be any valid JSON value
+  google.protobuf.Value value = 2;
+  // Whether or not to override the field if it already exists
+  bool override = 3;
 }
 
 

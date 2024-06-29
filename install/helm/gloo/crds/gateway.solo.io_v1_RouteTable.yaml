@@ -149,6 +149,17 @@ spec:
                               items:
                                 type: string
                               type: array
+                            defaults:
+                              items:
+                                properties:
+                                  field:
+                                    type: string
+                                  override:
+                                    type: boolean
+                                  value:
+                                    x-kubernetes-preserve-unknown-fields: true
+                                type: object
+                              type: array
                             promptEnrichment:
                               properties:
                                 append:
