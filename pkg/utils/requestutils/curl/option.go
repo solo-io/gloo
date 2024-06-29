@@ -1,6 +1,7 @@
 package curl
 
 import (
+	"encoding/base64"
 	"net/http"
 	"strconv"
 	"strings"
@@ -70,6 +71,16 @@ func WithHost(host string) Option {
 	return func(config *requestConfig) {
 		config.host = host
 	}
+}
+
+// WithBasicAuth returns the Option to set the basic auth header
+func WithBasicAuth(username, password string) Option {
+	return WithHeader("Authorization", "Basic "+basicAuth(username, password))
+}
+
+func basicAuth(username, password string) string {
+	auth := username + ":" + password
+	return base64.StdEncoding.EncodeToString([]byte(auth))
 }
 
 // WithHostPort returns the Option to set the host and port for the curl request
