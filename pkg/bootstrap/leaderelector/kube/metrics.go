@@ -7,12 +7,10 @@ import (
 
 var _ k8sleaderelection.MetricsProvider = new(prometheusMetricsProvider)
 
-var (
-	leaderGauge = k8smetrics.NewGaugeVec(&k8smetrics.GaugeOpts{
-		Name: "leader_election_leader_status",
-		Help: "Gauge of if the reporting system is owner of the relevant lease, 0 indicates candidate, 1 indicates leader. 'name' is the string used to identify the lease. Please make sure to group by name.",
-	}, []string{"name"})
-)
+var leaderGauge = k8smetrics.NewGaugeVec(&k8smetrics.GaugeOpts{
+	Name: "leader_election_leader_status",
+	Help: "Gauge of if the reporting system is owner of the relevant lease, 0 indicates candidate, 1 indicates leader. 'name' is the string used to identify the lease. Please make sure to group by name.",
+}, []string{"name"})
 
 func init() {
 	k8sleaderelection.SetProvider(prometheusMetricsProvider{})
@@ -20,12 +18,13 @@ func init() {
 
 type prometheusMetricsProvider struct{}
 
-func (prometheusMetricsProvider) NewLeaderMetric() k8sleaderelection.SwitchMetric {
+func (prometheusMetricsProvider) NewLeaderMetric() k8sleaderelection.LeaderMetric {
 	return &switchAdapter{gauge: leaderGauge}
 }
 
 type switchAdapter struct {
-	gauge *k8smetrics.GaugeVec
+	gauge    *k8smetrics.GaugeVec
+	slowpath *k8smetrics.Counter
 }
 
 func (s *switchAdapter) On(name string) {
@@ -34,4 +33,8 @@ func (s *switchAdapter) On(name string) {
 
 func (s *switchAdapter) Off(name string) {
 	s.gauge.WithLabelValues(name).Set(0.0)
+}
+
+func (s *switchAdapter) SlowpathExercised(name string) {
+	s.gauge.WithLabelValues(name).Inc()
 }
