@@ -13,6 +13,12 @@ import (
 	glooruntime "github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
 	"github.com/solo-io/gloo/test/testutils"
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/skv2/codegen/util"
+)
+
+var (
+	istioRevisionSetup          = filepath.Join(util.MustGetThisDir(), "istio-revision-setup.yaml")
+	istioCustomTrustDomainSetup = filepath.Join(util.MustGetThisDir(), "istio-custom-trust-domain-setup.yaml")
 )
 
 func GetIstioctl(ctx context.Context) (string, error) {
@@ -33,7 +39,20 @@ func InstallMinimalIstio(
 	return installIstioOperator(ctx, istioctlBinary, kubeContext, "")
 }
 
-// TODO(npolshak): Add additional Istio setup options as needed (versions, revisions, ambient, etc.)
+func InstallCustomTrustDomainIstio(
+	ctx context.Context,
+	istioctlBinary, kubeContext string,
+) error {
+	return installIstioOperator(ctx, istioctlBinary, kubeContext, istioCustomTrustDomainSetup)
+}
+
+func InstallRevisionedIstio(
+	ctx context.Context,
+	istioctlBinary, kubeContext string,
+) error {
+	return installIstioOperator(ctx, istioctlBinary, kubeContext, istioRevisionSetup)
+}
+
 func installIstioOperator(
 	ctx context.Context,
 	istioctlBinary, kubeContext, operatorFile string) error {
@@ -44,10 +63,11 @@ func installIstioOperator(
 	var cmd *exec.Cmd
 	if operatorFile == "" {
 		// use the minimal profile by default if no operator file is provided
-		// yes | istioctl install --context <kube-context> --set profile=minimal
-		cmd = exec.Command("sh", "-c", "yes | "+istioctlBinary+" install --context "+kubeContext+" --set profile=minimal")
+		// istioctl install -y --context <kube-context> --set profile=minimal
+		cmd = exec.Command(istioctlBinary, "install", "-y", "--context", kubeContext, "--set", "profile=minimal")
 	} else {
-		cmd = exec.Command("sh", "-c", "yes | "+istioctlBinary, "install", "-y", "--context", kubeContext, "-f", operatorFile)
+		//  istioctl install -y --context <kube-context> -f <operator-file>
+		cmd = exec.Command(istioctlBinary, "install", "-y", "--context", kubeContext, "-f", operatorFile)
 	}
 
 	if err := cmd.Run(); err != nil {

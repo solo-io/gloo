@@ -1,0 +1,8 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+spec:
+  profile: minimal
+  meshConfig:
+    trustDomain: example.org
