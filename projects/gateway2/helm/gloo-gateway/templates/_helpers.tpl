@@ -75,20 +75,3 @@ Return a container image value as a string
 {{- end -}}{{- /* if .digest */ -}}
 {{ $image }}
 {{- end -}}{{- /* define "gloo-gateway.gateway.image" */ -}}
-
-
-{{/*
-AI extension template helpers
-*/}}
-{{- define "ai_extension_listen_addr" -}}
-{{ .Values.gateway.aiExtension.listenAddress | default "unix:///var/run/gloo/ai.sock" }}
-{{- end -}}
-{{- define "ai_extension_socket" -}}
-{{ (include "ai_extension_listen_addr" .) | replace "unix://" "" }}
-{{- end}}
-{{- define "ai_extension_socket_dir" -}}
-{{- $pathParts := ((include "ai_extension_socket" .) | splitList "/" ) -}}
-{{- $pathLen := len $pathParts -}}
-{{- $parentPathParts := slice $pathParts 0 (sub $pathLen 1) -}}
-{{ join "/" $parentPathParts | default "/var/run/gloo" }}
-{{- end -}}

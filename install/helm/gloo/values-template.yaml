@@ -9,9 +9,6 @@ kubeGateway:
   enabled: false
   gatewayParameters:
     glooGateway:
-      podTemplate:
-        securityContext:
-          fsGroup: 10101
       envoyContainer:
         image:
           repository: gloo-envoy-wrapper
@@ -53,12 +50,7 @@ kubeGateway:
           repository: gloo-ai-extension
           registry: quay.io/solo-io
           pullPolicy: IfNotPresent
-        listenAddress: unix:///var/run/gloo/ai.sock
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 10101
+        listenAddress: unix:@gloo-ai-sock
       stats:
         enabled: true
         routePrefixRewrite: "/stats/prometheus"
