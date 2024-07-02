@@ -2,9 +2,12 @@ package helper
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"strings"
 	"time"
 
 	"helm.sh/helm/v3/pkg/repo"
@@ -176,12 +179,26 @@ func ExtraArgs(args ...string) func(*InstallOptions) {
 	}
 }
 
+type UpgradeOption func(*UpgradeOptions)
+
+type UpgradeOptions struct {
+	HelmCommand []string
+	Verbose     bool
+}
+
+func WithExtraArgs(args ...string) func(*UpgradeOptions) {
+	return func(io *UpgradeOptions) {
+		io.HelmCommand = append(io.HelmCommand, args...)
+	}
+}
+
 // Installs Gloo (and, optionally, the test server)
 func (h *SoloTestHelper) InstallGloo(ctx context.Context, deploymentType string, timeout time.Duration, options ...InstallOption) error {
 	log.Printf("installing gloo in [%s] mode to namespace [%s]", deploymentType, h.InstallNamespace)
 	glooctlCommand := []string{
 		filepath.Join(h.BuildAssetDir, h.GlooctlExecName),
 		"install", deploymentType,
+		"--release-name", h.HelmChartName,
 	}
 	if h.LicenseKey != "" {
 		glooctlCommand = append(glooctlCommand, "enterprise", "--license-key", h.LicenseKey)
@@ -213,7 +230,7 @@ func (h *SoloTestHelper) InstallGloo(ctx context.Context, deploymentType string,
 		opt(io)
 	}
 
-	if err := glooctlInstallWithTimeout(h.RootDir, io, time.Minute*2); err != nil {
+	if err := glooctlInstallWithTimeout(h.RootDir, io, timeout); err != nil {
 		return errors.Wrapf(err, "error running glooctl install command")
 	}
 
@@ -251,6 +268,106 @@ func glooctlInstallWithTimeout(rootDir string, io *InstallOptions, timeout time.
 	}
 }
 
+// Upgrades Gloo via a helm upgrade. It returns a method that rolls-back helm to the version prior to this upgrade
+func (h *SoloTestHelper) UpgradeGloo(ctx context.Context, timeout time.Duration, options ...UpgradeOption) (revertFunc func() error, err error) {
+	log.Printf("upgrading gloo in namespace [%s]", h.InstallNamespace)
+
+	revision, err := h.CurrentGlooRevision()
+	if err != nil {
+		return nil, err
+	}
+
+	helmCommand := []string{
+		"helm",
+		"upgrade",
+		h.HelmChartName,
+		filepath.Join(h.TestAssetDir, h.HelmChartName+"-"+h.version+".tgz"),
+		"-n", h.InstallNamespace,
+	}
+
+	if h.Verbose {
+		helmCommand = append(helmCommand, "-v")
+	}
+
+	io := &UpgradeOptions{
+		HelmCommand: helmCommand,
+		Verbose:     true,
+	}
+	for _, opt := range options {
+		opt(io)
+	}
+
+	if err := upgradeGlooWithTimeout(h.RootDir, io, timeout); err != nil {
+		return nil, errors.Wrapf(err, "error running glooctl install command")
+	}
+
+	return func() error {
+		return h.RevertGlooUpgrade(ctx, timeout, WithExtraArgs([]string{
+			strconv.Itoa(revision),
+		}...))
+	}, nil
+}
+
+func (h *SoloTestHelper) CurrentGlooRevision() (int, error) {
+	command := []string{
+		"bash",
+		"-c",
+		fmt.Sprintf("helm -n %s ls -o json | jq '.[] | select(.name=\"%s\") | .revision' | tr -d '\"'", h.InstallNamespace, h.HelmChartName),
+	}
+	out, err := exec.RunCommandOutput(h.RootDir, false, command...)
+	if err != nil {
+		return 0, errors.Wrapf(err, "error while fetching gloo revision")
+	}
+	return strconv.Atoi(strings.TrimSpace(out))
+}
+
+func upgradeGlooWithTimeout(rootDir string, io *UpgradeOptions, timeout time.Duration) error {
+	runResponse := make(chan error, 1)
+	go func() {
+		err := exec.RunCommand(rootDir, io.Verbose, io.HelmCommand...)
+		if err != nil {
+			runResponse <- errors.Wrapf(err, "error while upgrading gloo")
+		}
+		runResponse <- nil
+	}()
+
+	select {
+	case err := <-runResponse:
+		return err // can be nil
+	case <-time.After(timeout):
+		return errors.New("timeout - did something go wrong fetching the docker images?")
+	}
+}
+
+// Rollback Gloo. The version can be passed via the ExtraArgs option. If not specified it rolls-back to the previous version
+// Eg: RevertGlooUpgrade(ctx, timeout, WithExtraArgs([]string{revision}))
+func (h *SoloTestHelper) RevertGlooUpgrade(ctx context.Context, timeout time.Duration, options ...UpgradeOption) error {
+	log.Printf("reverting gloo upgrade in namespace [%s]", h.InstallNamespace)
+	helmCommand := []string{
+		"helm",
+		"rollback",
+		h.HelmChartName,
+		"-n", h.InstallNamespace,
+	}
+
+	if h.Verbose {
+		helmCommand = append(helmCommand, "-v")
+	}
+
+	io := &UpgradeOptions{
+		HelmCommand: helmCommand,
+		Verbose:     true,
+	}
+	for _, opt := range options {
+		opt(io)
+	}
+
+	if err := upgradeGlooWithTimeout(h.RootDir, io, timeout); err != nil {
+		return errors.Wrapf(err, "error running glooctl install command")
+	}
+	return nil
+}
+
 func waitForDefaultServiceAccount(ctx context.Context, installNamespace string) error {
 	kubeClient := kube.MustKubeClient()
 	getDefaultServiceAccount := func() error {
@@ -281,7 +398,7 @@ func (h *SoloTestHelper) uninstallGloo(all bool) error {
 
 	log.Printf("uninstalling gloo...")
 	cmdArgs := []string{
-		filepath.Join(h.BuildAssetDir, h.GlooctlExecName), "uninstall", "-n", h.InstallNamespace, "--delete-namespace",
+		filepath.Join(h.BuildAssetDir, h.GlooctlExecName), "uninstall", "-n", h.InstallNamespace, "--delete-namespace", "--release-name", h.HelmChartName,
 	}
 	if all {
 		cmdArgs = append(cmdArgs, "--all")
