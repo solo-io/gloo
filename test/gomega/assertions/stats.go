@@ -77,20 +77,6 @@ func EventuallyWithOffsetStatisticsMatchAssertions(offset int, statsPortFwd Stat
 		portForwarder.WaitForStop()
 	}()
 
-	By("Ensure port-forward is open before performing assertions")
-	statsRequest, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d/", statsPortFwd.LocalPort), nil)
-	ExpectWithOffset(offset+1, err).NotTo(HaveOccurred())
-	EventuallyWithOffset(offset+1, func(g Gomega) {
-		resp, err := http.DefaultClient.Do(statsRequest)
-		g.Expect(err).NotTo(HaveOccurred())
-		defer resp.Body.Close()
-		g.Expect(resp).To(matchers.HaveHttpResponse(&matchers.HttpResponse{
-			StatusCode: http.StatusOK,
-			Body:       Not(BeEmpty()),
-		}))
-	}).Should(Succeed())
-
-	By("Perform the assertions while the port forward is open")
 	for _, assertion := range assertions {
 		assertion.WithOffset(offset + 1).ShouldNot(HaveOccurred())
 	}
