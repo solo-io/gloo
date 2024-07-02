@@ -268,7 +268,7 @@ func glooctlInstallWithTimeout(rootDir string, io *InstallOptions, timeout time.
 	}
 }
 
-// Upgrades Gloo
+// Upgrades Gloo via a helm upgrade. It returns a method that rolls-back helm to the version prior to this upgrade
 func (h *SoloTestHelper) UpgradeGloo(ctx context.Context, timeout time.Duration, options ...UpgradeOption) (revertFunc func() error, err error) {
 	log.Printf("upgrading gloo in namespace [%s]", h.InstallNamespace)
 
@@ -339,7 +339,8 @@ func upgradeGlooWithTimeout(rootDir string, io *UpgradeOptions, timeout time.Dur
 	}
 }
 
-// Upgrades Gloo
+// Rollback Gloo. The version can be passed via the ExtraArgs option. If not specified it rolls-back to the previous version
+// Eg: RevertGlooUpgrade(ctx, timeout, WithExtraArgs([]string{revision}))
 func (h *SoloTestHelper) RevertGlooUpgrade(ctx context.Context, timeout time.Duration, options ...UpgradeOption) error {
 	log.Printf("reverting gloo upgrade in namespace [%s]", h.InstallNamespace)
 	helmCommand := []string{
@@ -364,7 +365,6 @@ func (h *SoloTestHelper) RevertGlooUpgrade(ctx context.Context, timeout time.Dur
 	if err := upgradeGlooWithTimeout(h.RootDir, io, timeout); err != nil {
 		return errors.Wrapf(err, "error running glooctl install command")
 	}
-
 	return nil
 }
 
