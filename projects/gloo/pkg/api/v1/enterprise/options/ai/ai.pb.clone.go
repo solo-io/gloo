@@ -405,6 +405,8 @@ func (m *UpstreamSpec_Anthropic) Clone() proto.Message {
 	}
 	target = &UpstreamSpec_Anthropic{}
 
+	target.Version = m.GetVersion()
+
 	return target
 }
 

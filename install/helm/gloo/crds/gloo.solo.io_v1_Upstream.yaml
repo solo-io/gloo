@@ -26,6 +26,9 @@ spec:
               ai:
                 properties:
                   anthropic:
+                    properties:
+                      version:
+                        type: string
                     type: object
                   authTokenRef:
                     type: string

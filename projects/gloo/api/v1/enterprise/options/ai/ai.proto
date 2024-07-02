@@ -2,8 +2,6 @@ syntax = "proto3";
 package ai.options.gloo.solo.io;
 option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai";
 
-
-import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/duration.proto";
@@ -17,7 +15,11 @@ message UpstreamSpec {
 
   message Mistral {}
 
-  message Anthropic {}
+  message Anthropic {
+    // An optional version header to pass to the Anthropic API
+    // See: https://docs.anthropic.com/en/api/versioning for more details
+    string version = 1;
+  }
 
   message Custom {
     // Custom host to send the traffic to
@@ -61,8 +63,9 @@ message RouteSettings {
   // passed in the request.
   repeated string backup_models = 6;
 
-  // A list of fields to be added to the prompt before sending it to the LLM model.
+  // A list of defaults to be merged with the user input fields.
   // These will NOT override the user input fields unless override is explicitly set to true.
+  // Some examples include setting the temperature, max_tokens, etc.
   repeated FieldDefault defaults = 7;
 }
 

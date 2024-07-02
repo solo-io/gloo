@@ -699,6 +699,10 @@ func (m *UpstreamSpec_Anthropic) Equal(that interface{}) bool {
 		return false
 	}
 
+	if strings.Compare(m.GetVersion(), target.GetVersion()) != 0 {
+		return false
+	}
+
 	return true
 }
 
