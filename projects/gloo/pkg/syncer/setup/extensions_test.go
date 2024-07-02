@@ -32,7 +32,7 @@ var _ = Describe("Extensions", func() {
 			},
 			ApiEmitterChannel: nil,
 		}, MatchError(ErrNilExtension("ApiEmitterChannel"))),
-		Entry("missing ApiEmitterChannel", Extensions{
+		Entry("missing SyncerExtensions", Extensions{
 			K8sGatewayExtensionsFactory: extensions.NewK8sGatewayExtensions,
 			PluginRegistryFactory: func(ctx context.Context) plugins.PluginRegistry {
 				// non-nil function
@@ -41,6 +41,15 @@ var _ = Describe("Extensions", func() {
 			ApiEmitterChannel: make(chan struct{}),
 			SyncerExtensions:  nil,
 		}, MatchError(ErrNilExtension("SyncerExtensions"))),
+		Entry("missing StartFuncs", Extensions{
+			K8sGatewayExtensionsFactory: extensions.NewK8sGatewayExtensions,
+			PluginRegistryFactory: func(ctx context.Context) plugins.PluginRegistry {
+				// non-nil function
+				return nil
+			},
+			ApiEmitterChannel: make(chan struct{}),
+			SyncerExtensions:  make([]syncer.TranslatorSyncerExtensionFactory, 0),
+		}, MatchError(ErrNilExtension("StartFuncs"))),
 		Entry("missing nothing", Extensions{
 			K8sGatewayExtensionsFactory: extensions.NewK8sGatewayExtensions,
 			PluginRegistryFactory: func(ctx context.Context) plugins.PluginRegistry {
@@ -49,6 +58,7 @@ var _ = Describe("Extensions", func() {
 			},
 			ApiEmitterChannel: make(chan struct{}),
 			SyncerExtensions:  make([]syncer.TranslatorSyncerExtensionFactory, 0),
+			StartFuncs:        map[string]StartFunc{},
 		}, BeNil()),
 	)
 

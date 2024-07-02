@@ -34,6 +34,11 @@ type Extensions struct {
 	// K8sGatewayExtensionsFactory is the factory function which will return an extensions.K8sGatewayExtensions
 	// This is responsible for producing the extension points that the K8s Gateway integration requires
 	K8sGatewayExtensionsFactory extensions.K8sGatewayExtensionsFactory
+
+	// StartFuncs are functions that should be executed at Gloo startup, in addition to the ones
+	// defined by OSS gloo. If a StartFunc with the same key is already defined by OSS gloo, the one
+	// specified here will override it.
+	StartFuncs map[string]StartFunc
 }
 
 // Validate returns an error if the Extensions are invalid, nil otherwise
@@ -50,6 +55,9 @@ func (e Extensions) Validate() error {
 	}
 	if e.SyncerExtensions == nil {
 		return ErrNilExtension("SyncerExtensions")
+	}
+	if e.StartFuncs == nil {
+		return ErrNilExtension("StartFuncs")
 	}
 
 	return nil
