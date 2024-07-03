@@ -98,7 +98,7 @@ message Embedding {
       // name of k8s secret in the same namesapce as the Upstream
       string auth_token_ref = 2;
       // re-use the token from the backend
-      google.protobuf.Empty inherit_backend_token = 3;
+      // google.protobuf.Empty inherit_backend_token = 3;
     }
   }
   oneof embedding {

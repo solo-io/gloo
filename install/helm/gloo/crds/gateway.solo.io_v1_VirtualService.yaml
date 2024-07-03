@@ -3232,9 +3232,6 @@ spec:
                                           properties:
                                             authTokenRef:
                                               type: string
-                                            inheritBackendToken:
-                                              maxProperties: 0
-                                              type: object
                                             inlineAuthToken:
                                               type: string
                                           type: object
@@ -3265,9 +3262,6 @@ spec:
                                           properties:
                                             authTokenRef:
                                               type: string
-                                            inheritBackendToken:
-                                              maxProperties: 0
-                                              type: object
                                             inlineAuthToken:
                                               type: string
                                           type: object

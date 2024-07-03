@@ -779,21 +779,6 @@ func (m *Embedding_OpenAI) Equal(that interface{}) bool {
 			return false
 		}
 
-	case *Embedding_OpenAI_InheritBackendToken:
-		if _, ok := target.AuthToken.(*Embedding_OpenAI_InheritBackendToken); !ok {
-			return false
-		}
-
-		if h, ok := interface{}(m.GetInheritBackendToken()).(equality.Equalizer); ok {
-			if !h.Equal(target.GetInheritBackendToken()) {
-				return false
-			}
-		} else {
-			if !proto.Equal(m.GetInheritBackendToken(), target.GetInheritBackendToken()) {
-				return false
-			}
-		}
-
 	default:
 		// m is nil but target is not nil
 		if m.AuthToken != target.AuthToken {
