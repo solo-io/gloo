@@ -44,7 +44,7 @@ spec:
       - name: {{ .Chart.Name }}
         {{- if $gateway.securityContext }}
         securityContext:
-          {{- toYaml $gateway.securityContext | nindent 10 }}
+          {{- include "gloo-gateway.gateway.renderSecurityContext" $gateway | nindent 10 }}
         {{- end }}
         args:
         - "--disable-hot-restart"

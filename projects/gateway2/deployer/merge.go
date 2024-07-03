@@ -511,6 +511,10 @@ func deepMergeEnvoyContainer(dst, src *v1alpha1.EnvoyContainer) *v1alpha1.EnvoyC
 
 	dst.SecurityContext = deepMergeSecurityContext(dst.GetSecurityContext(), src.GetSecurityContext())
 
+	if src.GetFloatingUserId() != nil {
+		dst.FloatingUserId = src.GetFloatingUserId()
+	}
+
 	return dst
 }
 

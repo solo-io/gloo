@@ -75,3 +75,14 @@ Return a container image value as a string
 {{- end -}}{{- /* if .digest */ -}}
 {{ $image }}
 {{- end -}}{{- /* define "gloo-gateway.gateway.image" */ -}}
+
+
+{{/*
+Render securityContext, omit runAsUser if floatingUserId is set
+*/}}
+{{- define "gloo-gateway.gateway.renderSecurityContext" -}}
+{{- if .floatingUserId -}}
+{{- $_ := unset .securityContext "runAsUser" -}}
+{{- end -}}
+{{ toYaml .securityContext }}
+{{- end -}}{{- /* define "gloo-gateway.gateway.renderSecurityContext" */ -}}

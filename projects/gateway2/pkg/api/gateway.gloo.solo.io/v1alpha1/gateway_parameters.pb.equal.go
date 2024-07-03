@@ -291,6 +291,16 @@ func (m *EnvoyContainer) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetFloatingUserId()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetFloatingUserId()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetFloatingUserId(), target.GetFloatingUserId()) {
+			return false
+		}
+	}
+
 	if h, ok := interface{}(m.GetResources()).(equality.Equalizer); ok {
 		if !h.Equal(target.GetResources()) {
 			return false

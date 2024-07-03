@@ -316,16 +316,16 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 		return nil, err
 	}
 	gateway.ComponentLogLevel = &compLogLevelStr
+	gateway.Resources = envoyContainerConfig.GetResources()
+	gateway.SecurityContext = envoyContainerConfig.GetSecurityContext()
+	gateway.FloatingUserId = ptr.To(envoyContainerConfig.GetFloatingUserId().GetValue())
+	gateway.Image = getEnvoyImageValues(envoyContainerConfig.GetImage())
 
 	// istio values
 	gateway.Istio = getIstioValues(d.inputs.IstioValues, istioConfig)
 	gateway.SdsContainer = getSdsContainerValues(sdsContainerConfig)
 	gateway.IstioContainer = getIstioContainerValues(istioContainerConfig)
 	gateway.AIExtension = getAIExtensionValues(aiExtensionConfig)
-
-	gateway.Resources = envoyContainerConfig.GetResources()
-	gateway.SecurityContext = envoyContainerConfig.GetSecurityContext()
-	gateway.Image = getEnvoyImageValues(envoyContainerConfig.GetImage())
 
 	gateway.Stats = getStatsValues(statsConfig)
 

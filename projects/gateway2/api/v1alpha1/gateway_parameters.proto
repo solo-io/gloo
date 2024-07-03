@@ -98,6 +98,10 @@ message EnvoyContainer {
   // for details.
   k8s.io.api.core.v1.SecurityContext security_context = 3;
 
+  // If true, the securityContext.runAsUser (if set) will be ignored and not rendered to allow for a platform
+  // supplied runAsUser. This is useful for running in e.g. OpenShift.
+  .google.protobuf.BoolValue floating_user_id = 5;
+
   // The compute resources required by this container. See
   // https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   // for details.
