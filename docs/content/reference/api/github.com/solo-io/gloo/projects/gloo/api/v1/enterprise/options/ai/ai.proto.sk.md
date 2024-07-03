@@ -247,11 +247,17 @@ weight: 5
 
 
 ```yaml
+"inlineAuthToken": string
+"authTokenRef": string
+"inheritBackendToken": .google.protobuf.Empty
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
+| `inlineAuthToken` | `string` | Provide easy inline way to specify a token. Only one of `inlineAuthToken`, `authTokenRef`, or `inheritBackendToken` can be set. |
+| `authTokenRef` | `string` | name of k8s secret in the same namesapce as the Upstream. Only one of `authTokenRef`, `inlineAuthToken`, or `inheritBackendToken` can be set. |
+| `inheritBackendToken` | [.google.protobuf.Empty](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/empty) | re-use the token from the backend. Only one of `inheritBackendToken`, `inlineAuthToken`, or `authTokenRef` can be set. |
 
 
 

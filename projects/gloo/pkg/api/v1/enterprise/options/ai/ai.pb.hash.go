@@ -783,6 +783,44 @@ func (m *Embedding_OpenAI) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	switch m.AuthToken.(type) {
+
+	case *Embedding_OpenAI_InlineAuthToken:
+
+		if _, err = hasher.Write([]byte(m.GetInlineAuthToken())); err != nil {
+			return 0, err
+		}
+
+	case *Embedding_OpenAI_AuthTokenRef:
+
+		if _, err = hasher.Write([]byte(m.GetAuthTokenRef())); err != nil {
+			return 0, err
+		}
+
+	case *Embedding_OpenAI_InheritBackendToken:
+
+		if h, ok := interface{}(m.GetInheritBackendToken()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("InheritBackendToken")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetInheritBackendToken(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("InheritBackendToken")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	}
+
 	return hasher.Sum64(), nil
 }
 

@@ -759,6 +759,48 @@ func (m *Embedding_OpenAI) Equal(that interface{}) bool {
 		return false
 	}
 
+	switch m.AuthToken.(type) {
+
+	case *Embedding_OpenAI_InlineAuthToken:
+		if _, ok := target.AuthToken.(*Embedding_OpenAI_InlineAuthToken); !ok {
+			return false
+		}
+
+		if strings.Compare(m.GetInlineAuthToken(), target.GetInlineAuthToken()) != 0 {
+			return false
+		}
+
+	case *Embedding_OpenAI_AuthTokenRef:
+		if _, ok := target.AuthToken.(*Embedding_OpenAI_AuthTokenRef); !ok {
+			return false
+		}
+
+		if strings.Compare(m.GetAuthTokenRef(), target.GetAuthTokenRef()) != 0 {
+			return false
+		}
+
+	case *Embedding_OpenAI_InheritBackendToken:
+		if _, ok := target.AuthToken.(*Embedding_OpenAI_InheritBackendToken); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetInheritBackendToken()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetInheritBackendToken()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetInheritBackendToken(), target.GetInheritBackendToken()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.AuthToken != target.AuthToken {
+			return false
+		}
+	}
+
 	return true
 }
 

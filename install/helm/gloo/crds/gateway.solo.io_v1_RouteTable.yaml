@@ -231,6 +231,14 @@ spec:
                                 embedding:
                                   properties:
                                     openai:
+                                      properties:
+                                        authTokenRef:
+                                          type: string
+                                        inheritBackendToken:
+                                          maxProperties: 0
+                                          type: object
+                                        inlineAuthToken:
+                                          type: string
                                       type: object
                                   type: object
                                 promptTemplate:
@@ -256,6 +264,14 @@ spec:
                                 embedding:
                                   properties:
                                     openai:
+                                      properties:
+                                        authTokenRef:
+                                          type: string
+                                        inheritBackendToken:
+                                          maxProperties: 0
+                                          type: object
+                                        inlineAuthToken:
+                                          type: string
                                       type: object
                                   type: object
                                 ttl:

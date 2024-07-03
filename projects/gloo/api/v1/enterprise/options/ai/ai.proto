@@ -5,6 +5,7 @@ option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
 import "extproto/ext.proto";
 option (extproto.equal_all) = true;
 option (extproto.hash_all) = true;
@@ -90,7 +91,16 @@ message Redis {
 }
 
 message Embedding {
-  message OpenAI {}
+  message OpenAI {
+    oneof auth_token {
+      // Provide easy inline way to specify a token
+      string inline_auth_token = 1;
+      // name of k8s secret in the same namesapce as the Upstream
+      string auth_token_ref = 2;
+      // re-use the token from the backend
+      google.protobuf.Empty inherit_backend_token = 3;
+    }
+  }
   oneof embedding {
     OpenAI openai = 1;
   }

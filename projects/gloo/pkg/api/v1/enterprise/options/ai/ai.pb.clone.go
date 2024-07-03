@@ -13,6 +13,8 @@ import (
 	"github.com/solo-io/protoc-gen-ext/pkg/clone"
 	"google.golang.org/protobuf/proto"
 
+	github_com_golang_protobuf_ptypes_empty "github.com/golang/protobuf/ptypes/empty"
+
 	github_com_golang_protobuf_ptypes_struct "github.com/golang/protobuf/ptypes/struct"
 )
 
@@ -432,6 +434,34 @@ func (m *Embedding_OpenAI) Clone() proto.Message {
 		return target
 	}
 	target = &Embedding_OpenAI{}
+
+	switch m.AuthToken.(type) {
+
+	case *Embedding_OpenAI_InlineAuthToken:
+
+		target.AuthToken = &Embedding_OpenAI_InlineAuthToken{
+			InlineAuthToken: m.GetInlineAuthToken(),
+		}
+
+	case *Embedding_OpenAI_AuthTokenRef:
+
+		target.AuthToken = &Embedding_OpenAI_AuthTokenRef{
+			AuthTokenRef: m.GetAuthTokenRef(),
+		}
+
+	case *Embedding_OpenAI_InheritBackendToken:
+
+		if h, ok := interface{}(m.GetInheritBackendToken()).(clone.Cloner); ok {
+			target.AuthToken = &Embedding_OpenAI_InheritBackendToken{
+				InheritBackendToken: h.Clone().(*github_com_golang_protobuf_ptypes_empty.Empty),
+			}
+		} else {
+			target.AuthToken = &Embedding_OpenAI_InheritBackendToken{
+				InheritBackendToken: proto.Clone(m.GetInheritBackendToken()).(*github_com_golang_protobuf_ptypes_empty.Empty),
+			}
+		}
+
+	}
 
 	return target
 }
