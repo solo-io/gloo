@@ -4,6 +4,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/common"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/xdsinspection"
 	"github.com/spf13/cobra"
@@ -27,8 +28,10 @@ func Upstream(opts *options.Options) *cobra.Command {
 					return err
 				}
 			}
-			return printers.PrintUpstreams(upstreams, opts.Top.Output, xdsDump)
+			return printers.PrintUpstreams(upstreams, opts.Top.Output, xdsDump, opts.GetUpstreams.ListGrpcMethods)
 		},
 	}
+	pflags := cmd.PersistentFlags()
+	flagutils.AddGetUpstreamFlags(pflags, &opts.GetUpstreams)
 	return cmd
 }

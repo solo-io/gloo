@@ -10,6 +10,11 @@ import (
 //set.StringVarP(&upstream.UpstreamType, "type", "t", "",
 //	"type of upstream. Available: "+strings.Join(options.UpstreamTypes, " | "))
 
+func AddGetUpstreamFlags(set *pflag.FlagSet, getU *options.GetUpstreams) {
+	set.BoolVar(&getU.ListGrpcMethods, "list-grpc-methods", false,
+		"include grpc service attributes such as package name, service name & function names")
+}
+
 func AddCreateUpstreamFlags(set *pflag.FlagSet, upstreamType string, upstream *options.InputUpstream) {
 	var addServiceSpecFlags bool
 

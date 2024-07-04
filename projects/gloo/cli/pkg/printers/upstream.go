@@ -1,10 +1,20 @@
 package printers
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/pkg/errors"
+	"github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc_json"
+	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"io"
 	"os"
+	"reflect"
 	"sort"
+	"strings"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/xdsinspection"
 	plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
@@ -17,9 +27,12 @@ import (
 )
 
 // PrintUpstreams
-func PrintUpstreams(upstreams v1.UpstreamList, outputType OutputType, xdsDump *xdsinspection.XdsDump) error {
+func PrintUpstreams(upstreams v1.UpstreamList, outputType OutputType, xdsDump *xdsinspection.XdsDump, shouldListGrpcMethods bool) error {
 	if outputType == KUBE_YAML {
 		return PrintKubeCrdList(upstreams.AsInputResources(), v1.UpstreamCrd)
+	}
+	if outputType == JSON && shouldListGrpcMethods {
+		return printGrpcServiceAsJson(upstreams, os.Stdout)
 	}
 	return cliutils.PrintList(outputType.String(), "", upstreams,
 		func(data interface{}, w io.Writer) error {
@@ -50,7 +63,6 @@ func UpstreamTable(xdsDump *xdsinspection.XdsDump, upstreams []*v1.Upstream, w i
 				table.Append([]string{"", "", "", line})
 			}
 		}
-
 	}
 
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
@@ -224,13 +236,38 @@ func linesForServiceSpec(serviceSpec *plugins.ServiceSpec) []string {
 				add(fmt.Sprintf("  - %v", fn))
 			}
 		}
+	case *plugins.ServiceSpec_GrpcJsonTranscoder:
+		add("gRPC service:")
+		descriptorSet := plug.GrpcJsonTranscoder.GetProtoDescriptorBin()
+		for _, grpcService := range plug.GrpcJsonTranscoder.GetServices() {
+			add(fmt.Sprintf("  %v", grpcService))
+			md := getAllFuncNames(grpcService, descriptorSet)
+			for i := 0; i < md.Len(); i++ {
+				add(fmt.Sprintf("  - %v", md.Get(i).Name()))
+			}
+		}
 	}
 
 	return spec
 }
 
+func getAllFuncNames(service string, descriptorSet []byte) protoreflect.MethodDescriptors {
+	fds := &descriptor.FileDescriptorSet{}
+	err := proto.Unmarshal(descriptorSet, fds)
+	if err != nil {
+		panic("unable to unmarshal descriptor")
+	}
+	files, _ := protodesc.NewFiles(fds)
+	d, _ := files.FindDescriptorByName(protoreflect.FullName(service))
+	s, ok := d.(protoreflect.ServiceDescriptor)
+	if !ok {
+		panic("unable to decode service descriptor")
+	}
+	return s.Methods()
+}
+
 // stringifyKey for a resource likely could be done more nicely with spew
-// or a better accessor but minimall this avoids panicing on nested references to nils
+// or a better accessor but minimal this avoids panicing on nested references to nils
 func stringifyKey(plausiblyNilRef *core.ResourceRef) string {
 
 	if plausiblyNilRef == nil {
@@ -273,4 +310,118 @@ func getEc2TagFiltersString(filters []*ec2.TagFilter) []string {
 		}
 	}
 	return out
+}
+
+type UpstreamGrpc struct {
+	Name      string      `json:"upstreamName,omitempty"`
+	Namespace string      `json:"upstreamNamespace,omitempty"`
+	GrpcAttrs *[]GrpcAttr `json:"grpc,omitempty"`
+}
+
+type GrpcAttr struct {
+	PackageName   string   `json:"packageName,omitempty"`
+	ServiceName   string   `json:"serviceName,omitempty"`
+	FunctionNames []string `json:"functionNames,omitempty"`
+}
+
+func BuildUpstreamGrpcAsJson(up *v1.Upstream) string {
+	switch usType := up.GetUpstreamType().(type) {
+	case *v1.Upstream_Static:
+		return buildUpstreamGrpc(up.GetMetadata(), usType.GetServiceSpec())
+	case *v1.Upstream_Kube:
+		return buildUpstreamGrpc(up.GetMetadata(), usType.GetServiceSpec())
+	}
+	return ""
+}
+
+func buildUpstreamGrpc(metadata *core.Metadata, serviceSpec *plugins.ServiceSpec) string {
+	ug := &UpstreamGrpc{}
+	switch plug := serviceSpec.GetPluginType().(type) {
+	case *plugins.ServiceSpec_GrpcJsonTranscoder:
+		ug.Name = metadata.GetName()
+		ug.Namespace = metadata.GetNamespace()
+		ug.GrpcAttrs = buildGrpcAttr(plug.GrpcJsonTranscoder)
+		return convertToJson(ug)
+	}
+	return ""
+}
+
+func convertToJson(ug *UpstreamGrpc) string {
+	j, err := json.Marshal(ug)
+	if err != nil {
+		return ""
+	}
+	return string(j)
+}
+
+func buildGrpcAttr(gjt *grpc_json.GrpcJsonTranscoder) *[]GrpcAttr {
+	var gaList []GrpcAttr
+	descriptorSet := gjt.GetProtoDescriptorBin()
+	for _, grpcService := range gjt.GetServices() {
+		ga := GrpcAttr{}
+		parts := strings.Split(grpcService, ".")
+		ga.ServiceName = parts[len(parts)-1]
+		ga.PackageName = strings.Join(parts[:len(parts)-1], ".")
+		md := getAllFuncNames(grpcService, descriptorSet)
+		var funcNames []string
+		for i := 0; i < md.Len(); i++ {
+			funcNames = append(funcNames, string(md.Get(i).Name()))
+		}
+		ga.FunctionNames = funcNames
+		gaList = append(gaList, ga)
+	}
+	return &gaList
+}
+
+func printGrpcServiceAsJson(data interface{}, w io.Writer) error {
+	list := reflect.ValueOf(data)
+	_, err := fmt.Fprintln(w, "{")
+	_, err = fmt.Fprintln(w, "\"upstreams\": [")
+	if err != nil {
+		return errors.Wrap(err, "unable to print JSON list")
+	}
+	for i := 0; i < list.Len(); i++ {
+		v, ok := list.Index(i).Interface().(proto.Message)
+		if !ok {
+			return eris.New("unable to convert to proto message")
+		}
+		if i != 0 {
+			_, err = fmt.Fprintln(w, ",")
+			if err != nil {
+				return errors.Wrap(err, "unable to print JSON list")
+			}
+		}
+		err = cliutils.PrintJSON(v, w)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = fmt.Fprintln(w, "]")
+	_, err = fmt.Fprintln(w, ", \"grpcServices\": [")
+	if err != nil {
+		return errors.Wrap(err, "unable to print JSON list")
+	}
+	for i := 0; i < list.Len(); i++ {
+		v, ok := list.Index(i).Interface().(proto.Message)
+		if !ok {
+			return eris.New("unable to convert to proto message")
+		}
+		j := BuildUpstreamGrpcAsJson(v.(*v1.Upstream))
+		if j != "" {
+			if i != 0 {
+				_, err = fmt.Fprintln(w, ",")
+				if err != nil {
+					return errors.Wrap(err, "unable to print JSON list")
+				}
+			}
+			_, err = fmt.Fprintln(w, j)
+			if err != nil {
+				return errors.Wrap(err, "unable to print JSON list")
+			}
+		}
+	}
+	_, err = fmt.Fprintln(w, "]")
+	_, err = fmt.Fprintln(w, "}")
+	return err
 }
