@@ -210,6 +210,22 @@ message IstioContainer {
 
   // The cluster id of the istio cluster. Defaults to "Kubernetes".
   google.protobuf.StringValue istio_meta_cluster_id = 7;
+
+  // Istio log levels for specific components. The keys are component names and
+  // the values are one of "trace", "debug", "info", "warn", "error",
+  // "critical", or "off", e.g.
+  //    ```yaml
+  //    componentLogLevels:
+  //      ads: debug
+  //      validation: trace
+  //    ```
+  // These will be converted to the `--log_output_level` istio-proxy argument
+  // value. See
+  // https://istio.io/latest/docs/ops/diagnostic-tools/component-logging/
+  // for more information.
+  //
+  // Note: the keys and values cannot be empty, but they are not otherwise validated.
+  map<string, string> component_log_levels = 8;
 }
 
 message GatewayParametersStatus {

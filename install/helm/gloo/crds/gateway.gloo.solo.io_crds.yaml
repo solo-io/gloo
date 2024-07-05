@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    crd.solo.io/specHash: 8b5646b60a42b1d9
+    crd.solo.io/specHash: e6935267982df735
   labels:
     app: gloo-gateway
     app.kubernetes.io/name: gloo-gateway
@@ -959,6 +959,10 @@ spec:
                         type: array
                       istioProxyContainer:
                         properties:
+                          componentLogLevels:
+                            additionalProperties:
+                              type: string
+                            type: object
                           image:
                             properties:
                               digest:

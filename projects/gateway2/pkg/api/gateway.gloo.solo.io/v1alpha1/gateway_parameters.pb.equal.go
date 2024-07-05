@@ -589,6 +589,17 @@ func (m *IstioContainer) Equal(that interface{}) bool {
 		}
 	}
 
+	if len(m.GetComponentLogLevels()) != len(target.GetComponentLogLevels()) {
+		return false
+	}
+	for k, v := range m.GetComponentLogLevels() {
+
+		if strings.Compare(v, target.GetComponentLogLevels()[k]) != 0 {
+			return false
+		}
+
+	}
+
 	return true
 }
 
