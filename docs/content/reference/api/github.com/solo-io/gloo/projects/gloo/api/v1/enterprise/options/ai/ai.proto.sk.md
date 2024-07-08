@@ -19,17 +19,16 @@ weight: 5
 - [RouteSettings](#routesettings)
 - [FieldDefault](#fielddefault)
 - [Postgres](#postgres)
-- [Redis](#redis)
 - [Embedding](#embedding)
 - [OpenAI](#openai)
-- [SemanticCaching](#semanticcaching)
+- [SemanticCache](#semanticcache)
+- [Redis](#redis)
 - [DataStore](#datastore)
 - [RAG](#rag)
 - [DataStore](#datastore)
 - [RateLimiting](#ratelimiting)
 - [AIPromptEnrichment](#aipromptenrichment)
 - [Message](#message)
-- [Role](#role)
 - [AIPromptGaurd](#aipromptgaurd)
 - [Request](#request)
 - [BuiltIn](#builtin)
@@ -75,7 +74,8 @@ weight: 5
 ---
 ### OpenAI
 
-
+ 
+Settings for the OpenAI API
 
 ```yaml
 
@@ -90,7 +90,8 @@ weight: 5
 ---
 ### Mistral
 
-
+ 
+Settings for the Mistral API
 
 ```yaml
 
@@ -148,7 +149,7 @@ weight: 5
 "promptGuard": .ai.options.gloo.solo.io.AIPromptGaurd
 "rateLimiting": .ai.options.gloo.solo.io.RateLimiting
 "rag": .ai.options.gloo.solo.io.RAG
-"semanticCaching": .ai.options.gloo.solo.io.SemanticCaching
+"semanticCache": .ai.options.gloo.solo.io.SemanticCache
 "backupModels": []string
 "defaults": []ai.options.gloo.solo.io.FieldDefault
 
@@ -160,7 +161,7 @@ weight: 5
 | `promptGuard` | [.ai.options.gloo.solo.io.AIPromptGaurd](../ai.proto.sk/#aipromptgaurd) | Guards to apply to the LLM requests on this route. |
 | `rateLimiting` | [.ai.options.gloo.solo.io.RateLimiting](../ai.proto.sk/#ratelimiting) | Rate limiting configuration to apply to the corresponding routes. All Rate limiting applied this way will use the input_tokens as the counter rather than incrementing by 1 for each request. |
 | `rag` | [.ai.options.gloo.solo.io.RAG](../ai.proto.sk/#rag) | Retrieval Augmented Generation. |
-| `semanticCaching` | [.ai.options.gloo.solo.io.SemanticCaching](../ai.proto.sk/#semanticcaching) | Semantic caching configuration. |
+| `semanticCache` | [.ai.options.gloo.solo.io.SemanticCache](../ai.proto.sk/#semanticcache) | Semantic caching configuration. |
 | `backupModels` | `[]string` | Backup models to use in case of a failure with the primary model passed in the request. |
 | `defaults` | [[]ai.options.gloo.solo.io.FieldDefault](../ai.proto.sk/#fielddefault) | A list of defaults to be merged with the user input fields. These will NOT override the user input fields unless override is explicitly set to true. Some examples include setting the temperature, max_tokens, etc. |
 
@@ -201,25 +202,8 @@ weight: 5
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `connectionString` | `string` |  |
-| `collectionName` | `string` |  |
-
-
-
-
----
-### Redis
-
-
-
-```yaml
-"connectionString": string
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `connectionString` | `string` |  |
+| `connectionString` | `string` | Connection string to the Postgres database. |
+| `collectionName` | `string` | Name of the table to use. |
 
 
 
@@ -261,12 +245,12 @@ weight: 5
 
 
 ---
-### SemanticCaching
+### SemanticCache
 
 
 
 ```yaml
-"datastore": .ai.options.gloo.solo.io.SemanticCaching.DataStore
+"datastore": .ai.options.gloo.solo.io.SemanticCache.DataStore
 "embedding": .ai.options.gloo.solo.io.Embedding
 "ttl": int
 
@@ -274,9 +258,26 @@ weight: 5
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `datastore` | [.ai.options.gloo.solo.io.SemanticCaching.DataStore](../ai.proto.sk/#datastore) | Which data store to use. |
+| `datastore` | [.ai.options.gloo.solo.io.SemanticCache.DataStore](../ai.proto.sk/#datastore) | Which data store to use. |
 | `embedding` | [.ai.options.gloo.solo.io.Embedding](../ai.proto.sk/#embedding) | Model to use to get embeddings for prompt. |
 | `ttl` | `int` | Time before data in the cache is considered expired. |
+
+
+
+
+---
+### Redis
+
+
+
+```yaml
+"connectionString": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `connectionString` | `string` | Connection string to the Redis database. |
 
 
 
@@ -288,13 +289,13 @@ weight: 5
 Data store from which to cache the request/response pairs
 
 ```yaml
-"redis": .ai.options.gloo.solo.io.Redis
+"redis": .ai.options.gloo.solo.io.SemanticCache.Redis
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `redis` | [.ai.options.gloo.solo.io.Redis](../ai.proto.sk/#redis) |  |
+| `redis` | [.ai.options.gloo.solo.io.SemanticCache.Redis](../ai.proto.sk/#redis) |  |
 
 
 
@@ -379,33 +380,15 @@ Data store from which to cache the request/response pairs
 
 
 ```yaml
-"role": .ai.options.gloo.solo.io.AIPromptEnrichment.Message.Role
+"role": string
 "content": string
-"roleOverride": string
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `role` | [.ai.options.gloo.solo.io.AIPromptEnrichment.Message.Role](../ai.proto.sk/#role) | Role of the message. |
+| `role` | `string` | Role of the message. The available roles depend on the backend model being used, please consult the documentation for more information. |
 | `content` | `string` | String content of the message. |
-| `roleOverride` | `string` | Role Override, will only be used if ROLE is set to CUSTOM. |
-
-
-
-
----
-### Role
-
- 
-List of potential roles
-
-| Name | Description |
-| ----- | ----------- | 
-| `USER` |  |
-| `SYSTEM` |  |
-| `ASSISSTANT` |  |
-| `CUSTOM` |  |
 
 
 

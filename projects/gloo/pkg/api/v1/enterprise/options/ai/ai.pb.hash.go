@@ -242,18 +242,18 @@ func (m *RouteSettings) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
-	if h, ok := interface{}(m.GetSemanticCaching()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("SemanticCaching")); err != nil {
+	if h, ok := interface{}(m.GetSemanticCache()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("SemanticCache")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetSemanticCaching(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetSemanticCache(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("SemanticCaching")); err != nil {
+			if _, err = hasher.Write([]byte("SemanticCache")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -367,26 +367,6 @@ func (m *Postgres) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *Redis) Hash(hasher hash.Hash64) (uint64, error) {
-	if m == nil {
-		return 0, nil
-	}
-	if hasher == nil {
-		hasher = fnv.New64()
-	}
-	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.Redis")); err != nil {
-		return 0, err
-	}
-
-	if _, err = hasher.Write([]byte(m.GetConnectionString())); err != nil {
-		return 0, err
-	}
-
-	return hasher.Sum64(), nil
-}
-
-// Hash function
 func (m *Embedding) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -429,7 +409,7 @@ func (m *Embedding) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *SemanticCaching) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *SemanticCache) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -437,7 +417,7 @@ func (m *SemanticCaching) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.SemanticCaching")); err != nil {
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.SemanticCache")); err != nil {
 		return 0, err
 	}
 
@@ -803,7 +783,7 @@ func (m *Embedding_OpenAI) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *SemanticCaching_DataStore) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *SemanticCache_Redis) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -811,13 +791,33 @@ func (m *SemanticCaching_DataStore) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.SemanticCaching_DataStore")); err != nil {
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.SemanticCache_Redis")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetConnectionString())); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *SemanticCache_DataStore) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.SemanticCache_DataStore")); err != nil {
 		return 0, err
 	}
 
 	switch m.Datastore.(type) {
 
-	case *SemanticCaching_DataStore_Redis:
+	case *SemanticCache_DataStore_Redis:
 
 		if h, ok := interface{}(m.GetRedis()).(safe_hasher.SafeHasher); ok {
 			if _, err = hasher.Write([]byte("Redis")); err != nil {
@@ -899,16 +899,11 @@ func (m *AIPromptEnrichment_Message) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	err = binary.Write(hasher, binary.LittleEndian, m.GetRole())
-	if err != nil {
+	if _, err = hasher.Write([]byte(m.GetRole())); err != nil {
 		return 0, err
 	}
 
 	if _, err = hasher.Write([]byte(m.GetContent())); err != nil {
-		return 0, err
-	}
-
-	if _, err = hasher.Write([]byte(m.GetRoleOverride())); err != nil {
 		return 0, err
 	}
 

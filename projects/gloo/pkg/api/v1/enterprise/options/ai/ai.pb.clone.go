@@ -138,10 +138,10 @@ func (m *RouteSettings) Clone() proto.Message {
 		target.Rag = proto.Clone(m.GetRag()).(*RAG)
 	}
 
-	if h, ok := interface{}(m.GetSemanticCaching()).(clone.Cloner); ok {
-		target.SemanticCaching = h.Clone().(*SemanticCaching)
+	if h, ok := interface{}(m.GetSemanticCache()).(clone.Cloner); ok {
+		target.SemanticCache = h.Clone().(*SemanticCache)
 	} else {
-		target.SemanticCaching = proto.Clone(m.GetSemanticCaching()).(*SemanticCaching)
+		target.SemanticCache = proto.Clone(m.GetSemanticCache()).(*SemanticCache)
 	}
 
 	if m.GetBackupModels() != nil {
@@ -206,19 +206,6 @@ func (m *Postgres) Clone() proto.Message {
 }
 
 // Clone function
-func (m *Redis) Clone() proto.Message {
-	var target *Redis
-	if m == nil {
-		return target
-	}
-	target = &Redis{}
-
-	target.ConnectionString = m.GetConnectionString()
-
-	return target
-}
-
-// Clone function
 func (m *Embedding) Clone() proto.Message {
 	var target *Embedding
 	if m == nil {
@@ -246,17 +233,17 @@ func (m *Embedding) Clone() proto.Message {
 }
 
 // Clone function
-func (m *SemanticCaching) Clone() proto.Message {
-	var target *SemanticCaching
+func (m *SemanticCache) Clone() proto.Message {
+	var target *SemanticCache
 	if m == nil {
 		return target
 	}
-	target = &SemanticCaching{}
+	target = &SemanticCache{}
 
 	if h, ok := interface{}(m.GetDatastore()).(clone.Cloner); ok {
-		target.Datastore = h.Clone().(*SemanticCaching_DataStore)
+		target.Datastore = h.Clone().(*SemanticCache_DataStore)
 	} else {
-		target.Datastore = proto.Clone(m.GetDatastore()).(*SemanticCaching_DataStore)
+		target.Datastore = proto.Clone(m.GetDatastore()).(*SemanticCache_DataStore)
 	}
 
 	if h, ok := interface{}(m.GetEmbedding()).(clone.Cloner); ok {
@@ -453,24 +440,37 @@ func (m *Embedding_OpenAI) Clone() proto.Message {
 }
 
 // Clone function
-func (m *SemanticCaching_DataStore) Clone() proto.Message {
-	var target *SemanticCaching_DataStore
+func (m *SemanticCache_Redis) Clone() proto.Message {
+	var target *SemanticCache_Redis
 	if m == nil {
 		return target
 	}
-	target = &SemanticCaching_DataStore{}
+	target = &SemanticCache_Redis{}
+
+	target.ConnectionString = m.GetConnectionString()
+
+	return target
+}
+
+// Clone function
+func (m *SemanticCache_DataStore) Clone() proto.Message {
+	var target *SemanticCache_DataStore
+	if m == nil {
+		return target
+	}
+	target = &SemanticCache_DataStore{}
 
 	switch m.Datastore.(type) {
 
-	case *SemanticCaching_DataStore_Redis:
+	case *SemanticCache_DataStore_Redis:
 
 		if h, ok := interface{}(m.GetRedis()).(clone.Cloner); ok {
-			target.Datastore = &SemanticCaching_DataStore_Redis{
-				Redis: h.Clone().(*Redis),
+			target.Datastore = &SemanticCache_DataStore_Redis{
+				Redis: h.Clone().(*SemanticCache_Redis),
 			}
 		} else {
-			target.Datastore = &SemanticCaching_DataStore_Redis{
-				Redis: proto.Clone(m.GetRedis()).(*Redis),
+			target.Datastore = &SemanticCache_DataStore_Redis{
+				Redis: proto.Clone(m.GetRedis()).(*SemanticCache_Redis),
 			}
 		}
 
@@ -517,8 +517,6 @@ func (m *AIPromptEnrichment_Message) Clone() proto.Message {
 	target.Role = m.GetRole()
 
 	target.Content = m.GetContent()
-
-	target.RoleOverride = m.GetRoleOverride()
 
 	return target
 }

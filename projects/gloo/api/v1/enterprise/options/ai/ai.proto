@@ -12,8 +12,10 @@ option (extproto.hash_all) = true;
 option (extproto.clone_all) = true;
 
 message UpstreamSpec {
+  // Settings for the OpenAI API
   message OpenAI {}
 
+  // Settings for the Mistral API
   message Mistral {}
 
   message Anthropic {
@@ -59,7 +61,7 @@ message RouteSettings {
   // Retrieval Augmented Generation.
   RAG rag = 4;
   // Semantic caching configuration
-  SemanticCaching semantic_caching = 5;
+  SemanticCache semantic_cache = 5;
   // Backup models to use in case of a failure with the primary model
   // passed in the request.
   repeated string backup_models = 6;
@@ -81,14 +83,13 @@ message FieldDefault {
 
 
 message Postgres {
+  // Connection string to the Postgres database
   string connection_string = 1;
+  // Name of the table to use
   string collection_name = 2;
 }
 
 
-message Redis {
-  string connection_string = 1;
-}
 
 message Embedding {
   message OpenAI {
@@ -106,7 +107,11 @@ message Embedding {
   }
 }
 
-message SemanticCaching {
+message SemanticCache {
+  message Redis {
+    // Connection string to the Redis database
+    string connection_string = 1;
+  }
   // Data store from which to cache the request/response pairs
   message DataStore {
     oneof datastore {
@@ -142,19 +147,12 @@ message RateLimiting {
 
 message AIPromptEnrichment {
   message Message {
-    // List of potential roles
-    enum Role {
-      USER = 0;
-      SYSTEM = 1;
-      ASSISSTANT = 2;
-      CUSTOM = 3;
-    }
-    // Role of the message
-    Role role = 1;
+    // Role of the message.
+    // The available roles depend on the backend model being used,
+    // please consult the documentation for more information.
+    string role = 1;
     // String content of the message
     string content = 2;
-    // Role Override, will only be used if ROLE is set to CUSTOM
-    string role_override = 3;
   }
   // A list of messages to be prepended to the prompt sent by the client
   repeated Message prepend = 2;

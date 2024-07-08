@@ -32,14 +32,11 @@ apis:
   ai.options.gloo.solo.io.RateLimiting:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto.sk/#RateLimiting
     package: ai.options.gloo.solo.io
-  ai.options.gloo.solo.io.Redis:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto.sk/#Redis
-    package: ai.options.gloo.solo.io
   ai.options.gloo.solo.io.RouteSettings:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto.sk/#RouteSettings
     package: ai.options.gloo.solo.io
-  ai.options.gloo.solo.io.SemanticCaching:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto.sk/#SemanticCaching
+  ai.options.gloo.solo.io.SemanticCache:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto.sk/#SemanticCache
     package: ai.options.gloo.solo.io
   ai.options.gloo.solo.io.UpstreamSpec:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto.sk/#UpstreamSpec

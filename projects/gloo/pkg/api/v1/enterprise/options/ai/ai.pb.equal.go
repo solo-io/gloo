@@ -206,12 +206,12 @@ func (m *RouteSettings) Equal(that interface{}) bool {
 		}
 	}
 
-	if h, ok := interface{}(m.GetSemanticCaching()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetSemanticCaching()) {
+	if h, ok := interface{}(m.GetSemanticCache()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSemanticCache()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetSemanticCaching(), target.GetSemanticCaching()) {
+		if !proto.Equal(m.GetSemanticCache(), target.GetSemanticCache()) {
 			return false
 		}
 	}
@@ -322,34 +322,6 @@ func (m *Postgres) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *Redis) Equal(that interface{}) bool {
-	if that == nil {
-		return m == nil
-	}
-
-	target, ok := that.(*Redis)
-	if !ok {
-		that2, ok := that.(Redis)
-		if ok {
-			target = &that2
-		} else {
-			return false
-		}
-	}
-	if target == nil {
-		return m == nil
-	} else if m == nil {
-		return false
-	}
-
-	if strings.Compare(m.GetConnectionString(), target.GetConnectionString()) != 0 {
-		return false
-	}
-
-	return true
-}
-
-// Equal function
 func (m *Embedding) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -398,14 +370,14 @@ func (m *Embedding) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *SemanticCaching) Equal(that interface{}) bool {
+func (m *SemanticCache) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*SemanticCaching)
+	target, ok := that.(*SemanticCache)
 	if !ok {
-		that2, ok := that.(SemanticCaching)
+		that2, ok := that.(SemanticCache)
 		if ok {
 			target = &that2
 		} else {
@@ -790,14 +762,42 @@ func (m *Embedding_OpenAI) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *SemanticCaching_DataStore) Equal(that interface{}) bool {
+func (m *SemanticCache_Redis) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*SemanticCaching_DataStore)
+	target, ok := that.(*SemanticCache_Redis)
 	if !ok {
-		that2, ok := that.(SemanticCaching_DataStore)
+		that2, ok := that.(SemanticCache_Redis)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetConnectionString(), target.GetConnectionString()) != 0 {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *SemanticCache_DataStore) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*SemanticCache_DataStore)
+	if !ok {
+		that2, ok := that.(SemanticCache_DataStore)
 		if ok {
 			target = &that2
 		} else {
@@ -812,8 +812,8 @@ func (m *SemanticCaching_DataStore) Equal(that interface{}) bool {
 
 	switch m.Datastore.(type) {
 
-	case *SemanticCaching_DataStore_Redis:
-		if _, ok := target.Datastore.(*SemanticCaching_DataStore_Redis); !ok {
+	case *SemanticCache_DataStore_Redis:
+		if _, ok := target.Datastore.(*SemanticCache_DataStore_Redis); !ok {
 			return false
 		}
 
@@ -906,15 +906,11 @@ func (m *AIPromptEnrichment_Message) Equal(that interface{}) bool {
 		return false
 	}
 
-	if m.GetRole() != target.GetRole() {
+	if strings.Compare(m.GetRole(), target.GetRole()) != 0 {
 		return false
 	}
 
 	if strings.Compare(m.GetContent(), target.GetContent()) != 0 {
-		return false
-	}
-
-	if strings.Compare(m.GetRoleOverride(), target.GetRoleOverride()) != 0 {
 		return false
 	}
 

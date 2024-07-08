@@ -59,9 +59,6 @@ spec:
                                   type: string
                                 role:
                                   type: string
-                                  x-kubernetes-int-or-string: true
-                                roleOverride:
-                                  type: string
                               type: object
                             type: array
                           prepend:
@@ -70,9 +67,6 @@ spec:
                                 content:
                                   type: string
                                 role:
-                                  type: string
-                                  x-kubernetes-int-or-string: true
-                                roleOverride:
                                   type: string
                               type: object
                             type: array
@@ -138,7 +132,7 @@ spec:
                               type: string
                             type: array
                         type: object
-                      semanticCaching:
+                      semanticCache:
                         properties:
                           datastore:
                             properties:
