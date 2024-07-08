@@ -1,3 +1,0 @@
-changelog:
-- type: NON_USER_FACING
-  description: Add methods to upgrade and rollback gloo helm installations in the kube2e helpers. These can be used by tests if any changes need to made to settings, deployment values, etc. to mimic the way users make changes.
