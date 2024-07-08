@@ -85,6 +85,9 @@ spec:
 {{- if $gg.istio.istioProxyContainer.logLevel }}
         logLevel: {{ $gg.istio.istioProxyContainer.logLevel }}
 {{- end }}{{/* if $gg.istio.istioProxyContainer.logLevel */}}
+{{- if $gg.istio.istioProxyContainer.componentLogLevel }}
+        componentLogLevel: {{ $gg.istio.istioProxyContainer.componentLogLevel }}
+{{- end }}{{/* if $gg.istio.istioProxyContainer.componentLogLevel */}}
         istioDiscoveryAddress: {{ $gg.istio.istioProxyContainer.istioDiscoveryAddress }}
         istioMetaMeshId: {{ $gg.istio.istioProxyContainer.istioMetaMeshId }}
         istioMetaClusterId: {{ $gg.istio.istioProxyContainer.istioMetaClusterId }}

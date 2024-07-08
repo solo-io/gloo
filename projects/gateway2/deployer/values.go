@@ -111,8 +111,9 @@ type sdsBootstrap struct {
 }
 
 type helmIstioContainer struct {
-	Image    *helmImage `json:"image,omitempty"`
-	LogLevel *string    `json:"logLevel,omitempty"`
+	Image             *helmImage `json:"image,omitempty"`
+	LogLevel          *string    `json:"logLevel,omitempty"`
+	ComponentLogLevel *string    `json:"componentLogLevel,omitempty"`
 
 	Resources       *v1alpha1kube.ResourceRequirements `json:"resources,omitempty"`
 	SecurityContext *extcorev1.SecurityContext         `json:"securityContext,omitempty"`

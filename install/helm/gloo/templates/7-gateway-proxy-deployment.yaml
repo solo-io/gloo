@@ -386,7 +386,7 @@ spec:
         - --parentShutdownDuration
         - 1m0s
         - --proxyLogLevel={{ $global.glooMtls.istioProxy.logLevel }}
-        - --proxyComponentLogLevel=misc:error
+        - --proxyComponentLogLevel={{ $global.glooMtls.istioProxy.componentLogLevel }}
         - --connectTimeout
         - 10s
         - --controlPlaneAuthPolicy

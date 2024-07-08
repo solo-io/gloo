@@ -828,9 +828,10 @@ type EnvoySidecarContainer struct {
 }
 
 type IstioProxyContainer struct {
-	Image           *Image           `json:"image,omitempty" desc:"Istio-proxy image to use for mTLS"`
-	SecurityContext *SecurityContext `json:"securityContext,omitempty" desc:"securityContext for istio-proxy deployment container. If this is defined it supercedes any values set in FloatingUserId, RunAsUser, DisableNetBind, RunUnprivileged. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core for details."`
-	LogLevel        *string          `json:"logLevel,omitempty" desc:"Log level for istio-proxy. Options include \"info\", \"debug\", \"warning\", and \"error\". Default level is info Default is 'warning'."`
+	Image             *Image           `json:"image,omitempty" desc:"Istio-proxy image to use for mTLS"`
+	SecurityContext   *SecurityContext `json:"securityContext,omitempty" desc:"securityContext for istio-proxy deployment container. If this is defined it supercedes any values set in FloatingUserId, RunAsUser, DisableNetBind, RunUnprivileged. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core for details."`
+	LogLevel          *string          `json:"logLevel,omitempty" desc:"Log level for istio-proxy. Options include \"info\", \"debug\", \"warning\", and \"error\". Default level is info Default is 'warning'."`
+	ComponentLogLevel *string          `json:"componentLogLevel,omitempty" desc:"Per component log level for istio-proxy. If a component level is not set, then the global \"logLevel\" will be used. Default level is info Default is 'misc:error'."`
 
 	// TODO(npolshak): Deprecate GatewayProxy IstioMetaMeshId/IstioMetaClusterId/IstioDiscoveryAddress in favor of IstioProxyContainer
 	// Note: these are only supported for k8s Gateway API.
@@ -840,9 +841,10 @@ type IstioProxyContainer struct {
 }
 
 type GatewayParamsIstioProxyContainer struct {
-	Image           *Image                        `json:"image,omitempty" desc:"Istio-proxy image to use for mTLS"`
-	SecurityContext *GatewayParamsSecurityContext `json:"securityContext,omitempty" desc:"securityContext for istio-proxy deployment container. If this is defined it supercedes any values set in FloatingUserId, RunAsUser, DisableNetBind, RunUnprivileged. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core for details."`
-	LogLevel        *string                       `json:"logLevel,omitempty" desc:"Log level for istio-proxy. Options include \"info\", \"debug\", \"warning\", and \"error\". Default level is info Default is 'warning'."`
+	Image             *Image                        `json:"image,omitempty" desc:"Istio-proxy image to use for mTLS"`
+	SecurityContext   *GatewayParamsSecurityContext `json:"securityContext,omitempty" desc:"securityContext for istio-proxy deployment container. If this is defined it supercedes any values set in FloatingUserId, RunAsUser, DisableNetBind, RunUnprivileged. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core for details."`
+	LogLevel          *string                       `json:"logLevel,omitempty" desc:"Log level for istio-proxy. Options include \"info\", \"debug\", \"warning\", and \"error\". Default level is info Default is 'warning'."`
+	ComponentLogLevel *string                       `json:"componentLogLevel,omitempty" desc:"Per component log level for istio-proxy. If a component level is not set, then the global \"logLevel\" will be used. Default level is info Default is 'misc:error'."`
 
 	// TODO(npolshak): Deprecate GatewayProxy IstioMetaMeshId/IstioMetaClusterId/IstioDiscoveryAddress in favor of IstioProxyContainer
 	// Note: these are only supported for k8s Gateway API.

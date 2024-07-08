@@ -166,7 +166,7 @@ spec:
           - --parentShutdownDuration
           - 1m0s
           - --proxyLogLevel={{ $gateway.istioContainer.logLevel }}
-          - --proxyComponentLogLevel=misc:error
+          - --proxyComponentLogLevel={{ $gateway.istioContainer.componentLogLevel }} # misc:error
           - --connectTimeout
           - 10s
           - --controlPlaneAuthPolicy

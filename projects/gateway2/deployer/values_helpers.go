@@ -1,11 +1,13 @@
 package deployer
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/rotisserie/eris"
+	"github.com/solo-io/go-utils/contextutils"
 	"golang.org/x/exp/slices"
 	"k8s.io/utils/ptr"
 	api "sigs.k8s.io/gateway-api/apis/v1"
@@ -18,6 +20,10 @@ import (
 
 // This file contains helper functions that generate helm values in the format needed
 // by the deployer.
+
+const (
+	istioDefaultComponentLogLevel = "misc:error"
+)
 
 var ComponentLogLevelEmptyError = func(key string, value string) error {
 	return eris.Errorf("an empty key or value was provided in componentLogLevels: key=%s, value=%s", key, value)
@@ -122,7 +128,7 @@ func getSdsContainerValues(sdsContainerConfig *v1alpha1.SdsContainer) *helmSdsCo
 	}
 }
 
-func getIstioContainerValues(istioContainerConfig *v1alpha1.IstioContainer) *helmIstioContainer {
+func getIstioContainerValues(ctx context.Context, istioContainerConfig *v1alpha1.IstioContainer) *helmIstioContainer {
 	if istioContainerConfig == nil {
 		return nil
 	}
@@ -136,9 +142,17 @@ func getIstioContainerValues(istioContainerConfig *v1alpha1.IstioContainer) *hel
 	}
 	setPullPolicy(istioConfigImage.GetPullPolicy(), istioImage)
 
+	compLogLevelStr, err := ComponentLogLevelsToString(istioContainerConfig.GetComponentLogLevels())
+	if err != nil {
+		// use default logging level
+		contextutils.LoggerFrom(ctx).Warnf("Component Log Level not set, %s. Using default component logging level: %s", err.Error(), istioDefaultComponentLogLevel)
+		compLogLevelStr = istioDefaultComponentLogLevel
+	}
+
 	return &helmIstioContainer{
 		Image:                 istioImage,
 		LogLevel:              ptr.To(istioContainerConfig.GetLogLevel().GetValue()),
+		ComponentLogLevel:     ptr.To(compLogLevelStr),
 		Resources:             istioContainerConfig.GetResources(),
 		SecurityContext:       istioContainerConfig.GetSecurityContext(),
 		IstioDiscoveryAddress: ptr.To(istioContainerConfig.GetIstioDiscoveryAddress().GetValue()),
