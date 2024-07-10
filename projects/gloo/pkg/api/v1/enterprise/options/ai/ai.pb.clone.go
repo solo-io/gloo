@@ -101,6 +101,69 @@ func (m *UpstreamSpec) Clone() proto.Message {
 			}
 		}
 
+	case *UpstreamSpec_Aws:
+
+		if h, ok := interface{}(m.GetAws()).(clone.Cloner); ok {
+			target.Llm = &UpstreamSpec_Aws{
+				Aws: h.Clone().(*UpstreamSpec_AWS),
+			}
+		} else {
+			target.Llm = &UpstreamSpec_Aws{
+				Aws: proto.Clone(m.GetAws()).(*UpstreamSpec_AWS),
+			}
+		}
+
+	}
+
+	return target
+}
+
+// Clone function
+func (m *NewUpstreamSpec) Clone() proto.Message {
+	var target *NewUpstreamSpec
+	if m == nil {
+		return target
+	}
+	target = &NewUpstreamSpec{}
+
+	switch m.Llm.(type) {
+
+	case *NewUpstreamSpec_Openai:
+
+		if h, ok := interface{}(m.GetOpenai()).(clone.Cloner); ok {
+			target.Llm = &NewUpstreamSpec_Openai{
+				Openai: h.Clone().(*NewUpstreamSpec_OpenAI),
+			}
+		} else {
+			target.Llm = &NewUpstreamSpec_Openai{
+				Openai: proto.Clone(m.GetOpenai()).(*NewUpstreamSpec_OpenAI),
+			}
+		}
+
+	case *NewUpstreamSpec_Mistral_:
+
+		if h, ok := interface{}(m.GetMistral()).(clone.Cloner); ok {
+			target.Llm = &NewUpstreamSpec_Mistral_{
+				Mistral: h.Clone().(*NewUpstreamSpec_Mistral),
+			}
+		} else {
+			target.Llm = &NewUpstreamSpec_Mistral_{
+				Mistral: proto.Clone(m.GetMistral()).(*NewUpstreamSpec_Mistral),
+			}
+		}
+
+	case *NewUpstreamSpec_Anthropic_:
+
+		if h, ok := interface{}(m.GetAnthropic()).(clone.Cloner); ok {
+			target.Llm = &NewUpstreamSpec_Anthropic_{
+				Anthropic: h.Clone().(*NewUpstreamSpec_Anthropic),
+			}
+		} else {
+			target.Llm = &NewUpstreamSpec_Anthropic_{
+				Anthropic: proto.Clone(m.GetAnthropic()).(*NewUpstreamSpec_Anthropic),
+			}
+		}
+
 	}
 
 	return target
@@ -408,6 +471,135 @@ func (m *UpstreamSpec_Custom) Clone() proto.Message {
 	target.Host = m.GetHost()
 
 	target.Port = m.GetPort()
+
+	return target
+}
+
+// Clone function
+func (m *UpstreamSpec_AWS) Clone() proto.Message {
+	var target *UpstreamSpec_AWS
+	if m == nil {
+		return target
+	}
+	target = &UpstreamSpec_AWS{}
+
+	target.Region = m.GetRegion()
+
+	return target
+}
+
+// Clone function
+func (m *NewUpstreamSpec_CustomHost) Clone() proto.Message {
+	var target *NewUpstreamSpec_CustomHost
+	if m == nil {
+		return target
+	}
+	target = &NewUpstreamSpec_CustomHost{}
+
+	target.Host = m.GetHost()
+
+	target.Port = m.GetPort()
+
+	return target
+}
+
+// Clone function
+func (m *NewUpstreamSpec_OpenAI) Clone() proto.Message {
+	var target *NewUpstreamSpec_OpenAI
+	if m == nil {
+		return target
+	}
+	target = &NewUpstreamSpec_OpenAI{}
+
+	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
+		target.CustomHost = h.Clone().(*NewUpstreamSpec_CustomHost)
+	} else {
+		target.CustomHost = proto.Clone(m.GetCustomHost()).(*NewUpstreamSpec_CustomHost)
+	}
+
+	switch m.AuthToken.(type) {
+
+	case *NewUpstreamSpec_OpenAI_InlineAuthToken:
+
+		target.AuthToken = &NewUpstreamSpec_OpenAI_InlineAuthToken{
+			InlineAuthToken: m.GetInlineAuthToken(),
+		}
+
+	case *NewUpstreamSpec_OpenAI_AuthTokenRef:
+
+		target.AuthToken = &NewUpstreamSpec_OpenAI_AuthTokenRef{
+			AuthTokenRef: m.GetAuthTokenRef(),
+		}
+
+	}
+
+	return target
+}
+
+// Clone function
+func (m *NewUpstreamSpec_Mistral) Clone() proto.Message {
+	var target *NewUpstreamSpec_Mistral
+	if m == nil {
+		return target
+	}
+	target = &NewUpstreamSpec_Mistral{}
+
+	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
+		target.CustomHost = h.Clone().(*NewUpstreamSpec_CustomHost)
+	} else {
+		target.CustomHost = proto.Clone(m.GetCustomHost()).(*NewUpstreamSpec_CustomHost)
+	}
+
+	switch m.AuthToken.(type) {
+
+	case *NewUpstreamSpec_Mistral_InlineAuthToken:
+
+		target.AuthToken = &NewUpstreamSpec_Mistral_InlineAuthToken{
+			InlineAuthToken: m.GetInlineAuthToken(),
+		}
+
+	case *NewUpstreamSpec_Mistral_AuthTokenRef:
+
+		target.AuthToken = &NewUpstreamSpec_Mistral_AuthTokenRef{
+			AuthTokenRef: m.GetAuthTokenRef(),
+		}
+
+	}
+
+	return target
+}
+
+// Clone function
+func (m *NewUpstreamSpec_Anthropic) Clone() proto.Message {
+	var target *NewUpstreamSpec_Anthropic
+	if m == nil {
+		return target
+	}
+	target = &NewUpstreamSpec_Anthropic{}
+
+	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
+		target.CustomHost = h.Clone().(*NewUpstreamSpec_CustomHost)
+	} else {
+		target.CustomHost = proto.Clone(m.GetCustomHost()).(*NewUpstreamSpec_CustomHost)
+	}
+
+	target.Version = m.GetVersion()
+
+	switch m.AuthToken.(type) {
+
+	case *NewUpstreamSpec_Anthropic_InlineAuthToken:
+
+		target.AuthToken = &NewUpstreamSpec_Anthropic_InlineAuthToken{
+			InlineAuthToken: m.GetInlineAuthToken(),
+		}
+
+	case *NewUpstreamSpec_Anthropic_AuthTokenRef:
+
+		target.AuthToken = &NewUpstreamSpec_Anthropic_AuthTokenRef{
+			AuthTokenRef: m.GetAuthTokenRef(),
+		}
+
+	}
 
 	return target
 }

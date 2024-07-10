@@ -16,6 +16,12 @@ weight: 5
 - [Mistral](#mistral)
 - [Anthropic](#anthropic)
 - [Custom](#custom)
+- [AWS](#aws)
+- [NewUpstreamSpec](#newupstreamspec)
+- [CustomHost](#customhost)
+- [OpenAI](#openai)
+- [Mistral](#mistral)
+- [Anthropic](#anthropic)
 - [RouteSettings](#routesettings)
 - [FieldDefault](#fielddefault)
 - [Postgres](#postgres)
@@ -56,6 +62,7 @@ weight: 5
 "mistral": .ai.options.gloo.solo.io.UpstreamSpec.Mistral
 "anthropic": .ai.options.gloo.solo.io.UpstreamSpec.Anthropic
 "custom": .ai.options.gloo.solo.io.UpstreamSpec.Custom
+"aws": .ai.options.gloo.solo.io.UpstreamSpec.AWS
 
 ```
 
@@ -63,10 +70,11 @@ weight: 5
 | ----- | ---- | ----------- | 
 | `inlineAuthToken` | `string` | Provide easy inline way to specify a token. Only one of `inlineAuthToken` or `authTokenRef` can be set. |
 | `authTokenRef` | `string` | name of k8s secret in the same namesapce as the Upstream. Only one of `authTokenRef` or `inlineAuthToken` can be set. |
-| `openai` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) |  Only one of `openai`, `mistral`, `anthropic`, or `custom` can be set. |
-| `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) |  Only one of `mistral`, `openai`, `anthropic`, or `custom` can be set. |
-| `anthropic` | [.ai.options.gloo.solo.io.UpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) |  Only one of `anthropic`, `openai`, `mistral`, or `custom` can be set. |
-| `custom` | [.ai.options.gloo.solo.io.UpstreamSpec.Custom](../ai.proto.sk/#custom) |  Only one of `custom`, `openai`, `mistral`, or `anthropic` can be set. |
+| `openai` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) |  Only one of `openai`, `mistral`, `anthropic`, `custom`, or `aws` can be set. |
+| `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) |  Only one of `mistral`, `openai`, `anthropic`, `custom`, or `aws` can be set. |
+| `anthropic` | [.ai.options.gloo.solo.io.UpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) |  Only one of `anthropic`, `openai`, `mistral`, `custom`, or `aws` can be set. |
+| `custom` | [.ai.options.gloo.solo.io.UpstreamSpec.Custom](../ai.proto.sk/#custom) |  Only one of `custom`, `openai`, `mistral`, `anthropic`, or `aws` can be set. |
+| `aws` | [.ai.options.gloo.solo.io.UpstreamSpec.AWS](../ai.proto.sk/#aws) |  Only one of `aws`, `openai`, `mistral`, `anthropic`, or `custom` can be set. |
 
 
 
@@ -135,6 +143,130 @@ Settings for the Mistral API
 | ----- | ---- | ----------- | 
 | `host` | `string` | Custom host to send the traffic to. |
 | `port` | `int` | Custom host to send the traffic to. |
+
+
+
+
+---
+### AWS
+
+
+
+```yaml
+"region": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `region` | `string` | The AWS region to use. |
+
+
+
+
+---
+### NewUpstreamSpec
+
+
+
+```yaml
+"openai": .ai.options.gloo.solo.io.NewUpstreamSpec.OpenAI
+"mistral": .ai.options.gloo.solo.io.NewUpstreamSpec.Mistral
+"anthropic": .ai.options.gloo.solo.io.NewUpstreamSpec.Anthropic
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `openai` | [.ai.options.gloo.solo.io.NewUpstreamSpec.OpenAI](../ai.proto.sk/#openai) |  Only one of `openai`, `mistral`, or `anthropic` can be set. |
+| `mistral` | [.ai.options.gloo.solo.io.NewUpstreamSpec.Mistral](../ai.proto.sk/#mistral) |  Only one of `mistral`, `openai`, or `anthropic` can be set. |
+| `anthropic` | [.ai.options.gloo.solo.io.NewUpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) |  Only one of `anthropic`, `openai`, or `mistral` can be set. |
+
+
+
+
+---
+### CustomHost
+
+
+
+```yaml
+"host": string
+"port": int
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `host` | `string` | Custom host to send the traffic to. |
+| `port` | `int` | Custom host to send the traffic to. |
+
+
+
+
+---
+### OpenAI
+
+ 
+Settings for the OpenAI API
+
+```yaml
+"inlineAuthToken": string
+"authTokenRef": string
+"customHost": .ai.options.gloo.solo.io.NewUpstreamSpec.CustomHost
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `inlineAuthToken` | `string` | Provide easy inline way to specify a token. Only one of `inlineAuthToken` or `authTokenRef` can be set. |
+| `authTokenRef` | `string` | name of k8s secret in the same namesapce as the Upstream. Only one of `authTokenRef` or `inlineAuthToken` can be set. |
+| `customHost` | [.ai.options.gloo.solo.io.NewUpstreamSpec.CustomHost](../ai.proto.sk/#customhost) |  |
+
+
+
+
+---
+### Mistral
+
+ 
+Settings for the Mistral API
+
+```yaml
+"inlineAuthToken": string
+"authTokenRef": string
+"customHost": .ai.options.gloo.solo.io.NewUpstreamSpec.CustomHost
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `inlineAuthToken` | `string` | Provide easy inline way to specify a token. Only one of `inlineAuthToken` or `authTokenRef` can be set. |
+| `authTokenRef` | `string` | name of k8s secret in the same namesapce as the Upstream. Only one of `authTokenRef` or `inlineAuthToken` can be set. |
+| `customHost` | [.ai.options.gloo.solo.io.NewUpstreamSpec.CustomHost](../ai.proto.sk/#customhost) |  |
+
+
+
+
+---
+### Anthropic
+
+
+
+```yaml
+"inlineAuthToken": string
+"authTokenRef": string
+"customHost": .ai.options.gloo.solo.io.NewUpstreamSpec.CustomHost
+"version": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `inlineAuthToken` | `string` | Provide easy inline way to specify a token. Only one of `inlineAuthToken` or `authTokenRef` can be set. |
+| `authTokenRef` | `string` | name of k8s secret in the same namesapce as the Upstream. Only one of `authTokenRef` or `inlineAuthToken` can be set. |
+| `customHost` | [.ai.options.gloo.solo.io.NewUpstreamSpec.CustomHost](../ai.proto.sk/#customhost) |  |
+| `version` | `string` | An optional version header to pass to the Anthropic API See: https://docs.anthropic.com/en/api/versioning for more details. |
 
 
 

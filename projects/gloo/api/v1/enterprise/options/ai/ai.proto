@@ -37,12 +37,75 @@ message UpstreamSpec {
     // name of k8s secret in the same namesapce as the Upstream
     string auth_token_ref = 2;
   }
+
+  message AWS {
+    // The AWS region to use
+    string region = 1;
+  }
   
   oneof llm {
     OpenAI openai = 3;
     Mistral mistral = 4;
     Anthropic anthropic = 5;
     Custom custom = 6;
+    AWS aws = 7;
+  }
+}
+
+message NewUpstreamSpec {
+
+  message CustomHost {
+    // Custom host to send the traffic to
+    string host = 1;
+    // Custom host to send the traffic to
+    uint32 port = 2;
+  }
+
+  // Settings for the OpenAI API
+  message OpenAI {
+    // The API key to use for the OpenAI API
+    oneof auth_token {
+      // Provide easy inline way to specify a token
+      string inline_auth_token = 1;
+      // name of k8s secret in the same namesapce as the Upstream
+      string auth_token_ref = 2;
+    }
+
+    CustomHost custom_host = 3;
+  }
+
+  // Settings for the Mistral API
+  message Mistral {
+    // The API key to use for the OpenAI API
+    oneof auth_token {
+      // Provide easy inline way to specify a token
+      string inline_auth_token = 1;
+      // name of k8s secret in the same namesapce as the Upstream
+      string auth_token_ref = 2;
+    }
+
+    CustomHost custom_host = 3;
+  }
+
+  message Anthropic {
+    // The API key to use for the OpenAI API
+    oneof auth_token {
+      // Provide easy inline way to specify a token
+      string inline_auth_token = 1;
+      // name of k8s secret in the same namesapce as the Upstream
+      string auth_token_ref = 2;
+    }
+
+    CustomHost custom_host = 3;
+    // An optional version header to pass to the Anthropic API
+    // See: https://docs.anthropic.com/en/api/versioning for more details
+    string version = 4;
+  }
+  
+  oneof llm {
+    OpenAI openai = 1;
+    Mistral mistral = 2;
+    Anthropic anthropic = 3;
   }
 }
 

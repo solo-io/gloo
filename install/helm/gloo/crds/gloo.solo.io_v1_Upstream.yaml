@@ -32,6 +32,11 @@ spec:
                     type: object
                   authTokenRef:
                     type: string
+                  aws:
+                    properties:
+                      region:
+                        type: string
+                    type: object
                   custom:
                     properties:
                       host:
