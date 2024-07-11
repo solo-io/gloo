@@ -11,7 +11,7 @@ option (extproto.equal_all) = true;
 option (extproto.hash_all) = true;
 option (extproto.clone_all) = true;
 
-message UpstreamSpec {
+message OldUpstreamSpec {
   // Settings for the OpenAI API
   message OpenAI {}
 
@@ -37,22 +37,16 @@ message UpstreamSpec {
     // name of k8s secret in the same namesapce as the Upstream
     string auth_token_ref = 2;
   }
-
-  message AWS {
-    // The AWS region to use
-    string region = 1;
-  }
   
   oneof llm {
     OpenAI openai = 3;
     Mistral mistral = 4;
     Anthropic anthropic = 5;
     Custom custom = 6;
-    AWS aws = 7;
   }
 }
 
-message NewUpstreamSpec {
+message UpstreamSpec {
 
   message CustomHost {
     // Custom host to send the traffic to
@@ -61,45 +55,38 @@ message NewUpstreamSpec {
     uint32 port = 2;
   }
 
+  message SingleAuthToken {
+    // Provide easy inline way to specify a token
+    string inline_auth_token = 1;
+    // name of k8s secret in the same namesapce as the Upstream
+    string auth_token_ref = 2;
+    // Optional secret key to use
+    string secret_key = 3;
+  }
+
   // Settings for the OpenAI API
   message OpenAI {
-    // The API key to use for the OpenAI API
-    oneof auth_token {
-      // Provide easy inline way to specify a token
-      string inline_auth_token = 1;
-      // name of k8s secret in the same namesapce as the Upstream
-      string auth_token_ref = 2;
-    }
-
-    CustomHost custom_host = 3;
+    // Auth Token to use for the OpenAI API
+    SingleAuthToken auth_token = 1;
+    // Optional custom host to send the traffic to
+    CustomHost custom_host = 2;
   }
 
   // Settings for the Mistral API
   message Mistral {
-    // The API key to use for the OpenAI API
-    oneof auth_token {
-      // Provide easy inline way to specify a token
-      string inline_auth_token = 1;
-      // name of k8s secret in the same namesapce as the Upstream
-      string auth_token_ref = 2;
-    }
-
-    CustomHost custom_host = 3;
+    // Auth Token to use for the Mistral API
+    SingleAuthToken auth_token = 1;
+    // Optional custom host to send the traffic to
+    CustomHost custom_host = 2;
   }
 
   message Anthropic {
-    // The API key to use for the OpenAI API
-    oneof auth_token {
-      // Provide easy inline way to specify a token
-      string inline_auth_token = 1;
-      // name of k8s secret in the same namesapce as the Upstream
-      string auth_token_ref = 2;
-    }
+    SingleAuthToken auth_token = 1;
 
-    CustomHost custom_host = 3;
+    CustomHost custom_host = 2;
     // An optional version header to pass to the Anthropic API
     // See: https://docs.anthropic.com/en/api/versioning for more details
-    string version = 4;
+    string version = 3;
   }
   
   oneof llm {

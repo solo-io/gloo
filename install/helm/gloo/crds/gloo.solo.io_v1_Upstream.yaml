@@ -27,30 +27,68 @@ spec:
                 properties:
                   anthropic:
                     properties:
+                      authToken:
+                        properties:
+                          authTokenRef:
+                            type: string
+                          inlineAuthToken:
+                            type: string
+                          secretKey:
+                            type: string
+                        type: object
+                      customHost:
+                        properties:
+                          host:
+                            type: string
+                          port:
+                            maximum: 4294967295
+                            minimum: 0
+                            type: integer
+                        type: object
                       version:
                         type: string
                     type: object
-                  authTokenRef:
-                    type: string
-                  aws:
-                    properties:
-                      region:
-                        type: string
-                    type: object
-                  custom:
-                    properties:
-                      host:
-                        type: string
-                      port:
-                        maximum: 4294967295
-                        minimum: 0
-                        type: integer
-                    type: object
-                  inlineAuthToken:
-                    type: string
                   mistral:
+                    properties:
+                      authToken:
+                        properties:
+                          authTokenRef:
+                            type: string
+                          inlineAuthToken:
+                            type: string
+                          secretKey:
+                            type: string
+                        type: object
+                      customHost:
+                        properties:
+                          host:
+                            type: string
+                          port:
+                            maximum: 4294967295
+                            minimum: 0
+                            type: integer
+                        type: object
                     type: object
                   openai:
+                    properties:
+                      authToken:
+                        properties:
+                          authTokenRef:
+                            type: string
+                          inlineAuthToken:
+                            type: string
+                          secretKey:
+                            type: string
+                        type: object
+                      customHost:
+                        properties:
+                          host:
+                            type: string
+                          port:
+                            maximum: 4294967295
+                            minimum: 0
+                            type: integer
+                        type: object
                     type: object
                 type: object
               aws:

@@ -26,6 +26,130 @@ var (
 )
 
 // Hash function
+func (m *OldUpstreamSpec) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.OldUpstreamSpec")); err != nil {
+		return 0, err
+	}
+
+	switch m.AuthToken.(type) {
+
+	case *OldUpstreamSpec_InlineAuthToken:
+
+		if _, err = hasher.Write([]byte(m.GetInlineAuthToken())); err != nil {
+			return 0, err
+		}
+
+	case *OldUpstreamSpec_AuthTokenRef:
+
+		if _, err = hasher.Write([]byte(m.GetAuthTokenRef())); err != nil {
+			return 0, err
+		}
+
+	}
+
+	switch m.Llm.(type) {
+
+	case *OldUpstreamSpec_Openai:
+
+		if h, ok := interface{}(m.GetOpenai()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("Openai")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetOpenai(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("Openai")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	case *OldUpstreamSpec_Mistral_:
+
+		if h, ok := interface{}(m.GetMistral()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("Mistral")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetMistral(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("Mistral")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	case *OldUpstreamSpec_Anthropic_:
+
+		if h, ok := interface{}(m.GetAnthropic()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("Anthropic")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetAnthropic(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("Anthropic")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	case *OldUpstreamSpec_Custom_:
+
+		if h, ok := interface{}(m.GetCustom()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("Custom")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetCustom(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("Custom")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
 func (m *UpstreamSpec) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -36,22 +160,6 @@ func (m *UpstreamSpec) Hash(hasher hash.Hash64) (uint64, error) {
 	var err error
 	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.UpstreamSpec")); err != nil {
 		return 0, err
-	}
-
-	switch m.AuthToken.(type) {
-
-	case *UpstreamSpec_InlineAuthToken:
-
-		if _, err = hasher.Write([]byte(m.GetInlineAuthToken())); err != nil {
-			return 0, err
-		}
-
-	case *UpstreamSpec_AuthTokenRef:
-
-		if _, err = hasher.Write([]byte(m.GetAuthTokenRef())); err != nil {
-			return 0, err
-		}
-
 	}
 
 	switch m.Llm.(type) {
@@ -101,136 +209,6 @@ func (m *UpstreamSpec) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 
 	case *UpstreamSpec_Anthropic_:
-
-		if h, ok := interface{}(m.GetAnthropic()).(safe_hasher.SafeHasher); ok {
-			if _, err = hasher.Write([]byte("Anthropic")); err != nil {
-				return 0, err
-			}
-			if _, err = h.Hash(hasher); err != nil {
-				return 0, err
-			}
-		} else {
-			if fieldValue, err := hashstructure.Hash(m.GetAnthropic(), nil); err != nil {
-				return 0, err
-			} else {
-				if _, err = hasher.Write([]byte("Anthropic")); err != nil {
-					return 0, err
-				}
-				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
-					return 0, err
-				}
-			}
-		}
-
-	case *UpstreamSpec_Custom_:
-
-		if h, ok := interface{}(m.GetCustom()).(safe_hasher.SafeHasher); ok {
-			if _, err = hasher.Write([]byte("Custom")); err != nil {
-				return 0, err
-			}
-			if _, err = h.Hash(hasher); err != nil {
-				return 0, err
-			}
-		} else {
-			if fieldValue, err := hashstructure.Hash(m.GetCustom(), nil); err != nil {
-				return 0, err
-			} else {
-				if _, err = hasher.Write([]byte("Custom")); err != nil {
-					return 0, err
-				}
-				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
-					return 0, err
-				}
-			}
-		}
-
-	case *UpstreamSpec_Aws:
-
-		if h, ok := interface{}(m.GetAws()).(safe_hasher.SafeHasher); ok {
-			if _, err = hasher.Write([]byte("Aws")); err != nil {
-				return 0, err
-			}
-			if _, err = h.Hash(hasher); err != nil {
-				return 0, err
-			}
-		} else {
-			if fieldValue, err := hashstructure.Hash(m.GetAws(), nil); err != nil {
-				return 0, err
-			} else {
-				if _, err = hasher.Write([]byte("Aws")); err != nil {
-					return 0, err
-				}
-				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
-					return 0, err
-				}
-			}
-		}
-
-	}
-
-	return hasher.Sum64(), nil
-}
-
-// Hash function
-func (m *NewUpstreamSpec) Hash(hasher hash.Hash64) (uint64, error) {
-	if m == nil {
-		return 0, nil
-	}
-	if hasher == nil {
-		hasher = fnv.New64()
-	}
-	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.NewUpstreamSpec")); err != nil {
-		return 0, err
-	}
-
-	switch m.Llm.(type) {
-
-	case *NewUpstreamSpec_Openai:
-
-		if h, ok := interface{}(m.GetOpenai()).(safe_hasher.SafeHasher); ok {
-			if _, err = hasher.Write([]byte("Openai")); err != nil {
-				return 0, err
-			}
-			if _, err = h.Hash(hasher); err != nil {
-				return 0, err
-			}
-		} else {
-			if fieldValue, err := hashstructure.Hash(m.GetOpenai(), nil); err != nil {
-				return 0, err
-			} else {
-				if _, err = hasher.Write([]byte("Openai")); err != nil {
-					return 0, err
-				}
-				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
-					return 0, err
-				}
-			}
-		}
-
-	case *NewUpstreamSpec_Mistral_:
-
-		if h, ok := interface{}(m.GetMistral()).(safe_hasher.SafeHasher); ok {
-			if _, err = hasher.Write([]byte("Mistral")); err != nil {
-				return 0, err
-			}
-			if _, err = h.Hash(hasher); err != nil {
-				return 0, err
-			}
-		} else {
-			if fieldValue, err := hashstructure.Hash(m.GetMistral(), nil); err != nil {
-				return 0, err
-			} else {
-				if _, err = hasher.Write([]byte("Mistral")); err != nil {
-					return 0, err
-				}
-				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
-					return 0, err
-				}
-			}
-		}
-
-	case *NewUpstreamSpec_Anthropic_:
 
 		if h, ok := interface{}(m.GetAnthropic()).(safe_hasher.SafeHasher); ok {
 			if _, err = hasher.Write([]byte("Anthropic")); err != nil {
@@ -782,6 +760,136 @@ func (m *AIPromptGaurd) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
+func (m *OldUpstreamSpec_OpenAI) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.OldUpstreamSpec_OpenAI")); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *OldUpstreamSpec_Mistral) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.OldUpstreamSpec_Mistral")); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *OldUpstreamSpec_Anthropic) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.OldUpstreamSpec_Anthropic")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetVersion())); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *OldUpstreamSpec_Custom) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.OldUpstreamSpec_Custom")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetHost())); err != nil {
+		return 0, err
+	}
+
+	err = binary.Write(hasher, binary.LittleEndian, m.GetPort())
+	if err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *UpstreamSpec_CustomHost) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.UpstreamSpec_CustomHost")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetHost())); err != nil {
+		return 0, err
+	}
+
+	err = binary.Write(hasher, binary.LittleEndian, m.GetPort())
+	if err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *UpstreamSpec_SingleAuthToken) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.UpstreamSpec_SingleAuthToken")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetInlineAuthToken())); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetAuthTokenRef())); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetSecretKey())); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
 func (m *UpstreamSpec_OpenAI) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -792,6 +900,46 @@ func (m *UpstreamSpec_OpenAI) Hash(hasher hash.Hash64) (uint64, error) {
 	var err error
 	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.UpstreamSpec_OpenAI")); err != nil {
 		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetAuthToken()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("AuthToken")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetAuthToken(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("AuthToken")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetCustomHost()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetCustomHost(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
 	}
 
 	return hasher.Sum64(), nil
@@ -810,6 +958,46 @@ func (m *UpstreamSpec_Mistral) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	if h, ok := interface{}(m.GetAuthToken()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("AuthToken")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetAuthToken(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("AuthToken")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetCustomHost()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetCustomHost(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
 	return hasher.Sum64(), nil
 }
 
@@ -826,198 +1014,24 @@ func (m *UpstreamSpec_Anthropic) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	if _, err = hasher.Write([]byte(m.GetVersion())); err != nil {
-		return 0, err
-	}
-
-	return hasher.Sum64(), nil
-}
-
-// Hash function
-func (m *UpstreamSpec_Custom) Hash(hasher hash.Hash64) (uint64, error) {
-	if m == nil {
-		return 0, nil
-	}
-	if hasher == nil {
-		hasher = fnv.New64()
-	}
-	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.UpstreamSpec_Custom")); err != nil {
-		return 0, err
-	}
-
-	if _, err = hasher.Write([]byte(m.GetHost())); err != nil {
-		return 0, err
-	}
-
-	err = binary.Write(hasher, binary.LittleEndian, m.GetPort())
-	if err != nil {
-		return 0, err
-	}
-
-	return hasher.Sum64(), nil
-}
-
-// Hash function
-func (m *UpstreamSpec_AWS) Hash(hasher hash.Hash64) (uint64, error) {
-	if m == nil {
-		return 0, nil
-	}
-	if hasher == nil {
-		hasher = fnv.New64()
-	}
-	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.UpstreamSpec_AWS")); err != nil {
-		return 0, err
-	}
-
-	if _, err = hasher.Write([]byte(m.GetRegion())); err != nil {
-		return 0, err
-	}
-
-	return hasher.Sum64(), nil
-}
-
-// Hash function
-func (m *NewUpstreamSpec_CustomHost) Hash(hasher hash.Hash64) (uint64, error) {
-	if m == nil {
-		return 0, nil
-	}
-	if hasher == nil {
-		hasher = fnv.New64()
-	}
-	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.NewUpstreamSpec_CustomHost")); err != nil {
-		return 0, err
-	}
-
-	if _, err = hasher.Write([]byte(m.GetHost())); err != nil {
-		return 0, err
-	}
-
-	err = binary.Write(hasher, binary.LittleEndian, m.GetPort())
-	if err != nil {
-		return 0, err
-	}
-
-	return hasher.Sum64(), nil
-}
-
-// Hash function
-func (m *NewUpstreamSpec_OpenAI) Hash(hasher hash.Hash64) (uint64, error) {
-	if m == nil {
-		return 0, nil
-	}
-	if hasher == nil {
-		hasher = fnv.New64()
-	}
-	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.NewUpstreamSpec_OpenAI")); err != nil {
-		return 0, err
-	}
-
-	if h, ok := interface{}(m.GetCustomHost()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+	if h, ok := interface{}(m.GetAuthToken()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("AuthToken")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetCustomHost(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetAuthToken(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+			if _, err = hasher.Write([]byte("AuthToken")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
 				return 0, err
 			}
 		}
-	}
-
-	switch m.AuthToken.(type) {
-
-	case *NewUpstreamSpec_OpenAI_InlineAuthToken:
-
-		if _, err = hasher.Write([]byte(m.GetInlineAuthToken())); err != nil {
-			return 0, err
-		}
-
-	case *NewUpstreamSpec_OpenAI_AuthTokenRef:
-
-		if _, err = hasher.Write([]byte(m.GetAuthTokenRef())); err != nil {
-			return 0, err
-		}
-
-	}
-
-	return hasher.Sum64(), nil
-}
-
-// Hash function
-func (m *NewUpstreamSpec_Mistral) Hash(hasher hash.Hash64) (uint64, error) {
-	if m == nil {
-		return 0, nil
-	}
-	if hasher == nil {
-		hasher = fnv.New64()
-	}
-	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.NewUpstreamSpec_Mistral")); err != nil {
-		return 0, err
-	}
-
-	if h, ok := interface{}(m.GetCustomHost()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("CustomHost")); err != nil {
-			return 0, err
-		}
-		if _, err = h.Hash(hasher); err != nil {
-			return 0, err
-		}
-	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetCustomHost(), nil); err != nil {
-			return 0, err
-		} else {
-			if _, err = hasher.Write([]byte("CustomHost")); err != nil {
-				return 0, err
-			}
-			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
-				return 0, err
-			}
-		}
-	}
-
-	switch m.AuthToken.(type) {
-
-	case *NewUpstreamSpec_Mistral_InlineAuthToken:
-
-		if _, err = hasher.Write([]byte(m.GetInlineAuthToken())); err != nil {
-			return 0, err
-		}
-
-	case *NewUpstreamSpec_Mistral_AuthTokenRef:
-
-		if _, err = hasher.Write([]byte(m.GetAuthTokenRef())); err != nil {
-			return 0, err
-		}
-
-	}
-
-	return hasher.Sum64(), nil
-}
-
-// Hash function
-func (m *NewUpstreamSpec_Anthropic) Hash(hasher hash.Hash64) (uint64, error) {
-	if m == nil {
-		return 0, nil
-	}
-	if hasher == nil {
-		hasher = fnv.New64()
-	}
-	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.NewUpstreamSpec_Anthropic")); err != nil {
-		return 0, err
 	}
 
 	if h, ok := interface{}(m.GetCustomHost()).(safe_hasher.SafeHasher); ok {
@@ -1042,22 +1056,6 @@ func (m *NewUpstreamSpec_Anthropic) Hash(hasher hash.Hash64) (uint64, error) {
 
 	if _, err = hasher.Write([]byte(m.GetVersion())); err != nil {
 		return 0, err
-	}
-
-	switch m.AuthToken.(type) {
-
-	case *NewUpstreamSpec_Anthropic_InlineAuthToken:
-
-		if _, err = hasher.Write([]byte(m.GetInlineAuthToken())); err != nil {
-			return 0, err
-		}
-
-	case *NewUpstreamSpec_Anthropic_AuthTokenRef:
-
-		if _, err = hasher.Write([]byte(m.GetAuthTokenRef())); err != nil {
-			return 0, err
-		}
-
 	}
 
 	return hasher.Sum64(), nil
