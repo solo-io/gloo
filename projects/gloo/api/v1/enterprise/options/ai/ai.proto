@@ -46,6 +46,21 @@ message OldUpstreamSpec {
   }
 }
 
+message SingleAuthToken {
+  message SecretRef {
+    // name of k8s secret in the same namesapce as the Upstream
+    string name = 2;
+    // Optional secret key to use
+    string key = 3;
+  }
+  oneof auth_token_source {
+    // Provide easy inline way to specify a token
+    string inline = 1;
+    // Reference to a secret in the same namespace as the Upstream
+    SecretRef secret_ref = 2;
+  }
+}
+
 message UpstreamSpec {
 
   message CustomHost {
@@ -53,15 +68,6 @@ message UpstreamSpec {
     string host = 1;
     // Custom host to send the traffic to
     uint32 port = 2;
-  }
-
-  message SingleAuthToken {
-    // Provide easy inline way to specify a token
-    string inline_auth_token = 1;
-    // name of k8s secret in the same namesapce as the Upstream
-    string auth_token_ref = 2;
-    // Optional secret key to use
-    string secret_key = 3;
   }
 
   // Settings for the OpenAI API
@@ -143,15 +149,13 @@ message Postgres {
 
 message Embedding {
   message OpenAI {
-    oneof auth_token {
-      // Provide easy inline way to specify a token
-      string inline_auth_token = 1;
-      // name of k8s secret in the same namesapce as the Upstream
-      string auth_token_ref = 2;
+    oneof auth_token_source {
+      SingleAuthToken auth_token = 1;
       // re-use the token from the backend
       // google.protobuf.Empty inherit_backend_token = 3;
     }
   }
+
   oneof embedding {
     OpenAI openai = 1;
   }

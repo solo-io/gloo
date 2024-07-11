@@ -16,9 +16,10 @@ weight: 5
 - [Mistral](#mistral)
 - [Anthropic](#anthropic)
 - [Custom](#custom)
+- [SingleAuthToken](#singleauthtoken)
+- [SecretRef](#secretref)
 - [UpstreamSpec](#upstreamspec)
 - [CustomHost](#customhost)
-- [SingleAuthToken](#singleauthtoken)
 - [OpenAI](#openai)
 - [Mistral](#mistral)
 - [Anthropic](#anthropic)
@@ -146,6 +147,44 @@ Settings for the Mistral API
 
 
 ---
+### SingleAuthToken
+
+
+
+```yaml
+"inline": string
+"secretRef": .ai.options.gloo.solo.io.SingleAuthToken.SecretRef
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `inline` | `string` | Provide easy inline way to specify a token. Only one of `inline` or `secretRef` can be set. |
+| `secretRef` | [.ai.options.gloo.solo.io.SingleAuthToken.SecretRef](../ai.proto.sk/#secretref) | Reference to a secret in the same namespace as the Upstream. Only one of `secretRef` or `inline` can be set. |
+
+
+
+
+---
+### SecretRef
+
+
+
+```yaml
+"name": string
+"key": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `name` | `string` | name of k8s secret in the same namesapce as the Upstream. |
+| `key` | `string` | Optional secret key to use. |
+
+
+
+
+---
 ### UpstreamSpec
 
 
@@ -186,41 +225,20 @@ Settings for the Mistral API
 
 
 ---
-### SingleAuthToken
-
-
-
-```yaml
-"inlineAuthToken": string
-"authTokenRef": string
-"secretKey": string
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `inlineAuthToken` | `string` | Provide easy inline way to specify a token. |
-| `authTokenRef` | `string` | name of k8s secret in the same namesapce as the Upstream. |
-| `secretKey` | `string` | Optional secret key to use. |
-
-
-
-
----
 ### OpenAI
 
  
 Settings for the OpenAI API
 
 ```yaml
-"authToken": .ai.options.gloo.solo.io.UpstreamSpec.SingleAuthToken
+"authToken": .ai.options.gloo.solo.io.SingleAuthToken
 "customHost": .ai.options.gloo.solo.io.UpstreamSpec.CustomHost
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `authToken` | [.ai.options.gloo.solo.io.UpstreamSpec.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | Auth Token to use for the OpenAI API. |
+| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | Auth Token to use for the OpenAI API. |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional custom host to send the traffic to. |
 
 
@@ -233,14 +251,14 @@ Settings for the OpenAI API
 Settings for the Mistral API
 
 ```yaml
-"authToken": .ai.options.gloo.solo.io.UpstreamSpec.SingleAuthToken
+"authToken": .ai.options.gloo.solo.io.SingleAuthToken
 "customHost": .ai.options.gloo.solo.io.UpstreamSpec.CustomHost
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `authToken` | [.ai.options.gloo.solo.io.UpstreamSpec.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | Auth Token to use for the Mistral API. |
+| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | Auth Token to use for the Mistral API. |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional custom host to send the traffic to. |
 
 
@@ -252,7 +270,7 @@ Settings for the Mistral API
 
 
 ```yaml
-"authToken": .ai.options.gloo.solo.io.UpstreamSpec.SingleAuthToken
+"authToken": .ai.options.gloo.solo.io.SingleAuthToken
 "customHost": .ai.options.gloo.solo.io.UpstreamSpec.CustomHost
 "version": string
 
@@ -260,7 +278,7 @@ Settings for the Mistral API
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `authToken` | [.ai.options.gloo.solo.io.UpstreamSpec.SingleAuthToken](../ai.proto.sk/#singleauthtoken) |  |
+| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) |  |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) |  |
 | `version` | `string` | An optional version header to pass to the Anthropic API See: https://docs.anthropic.com/en/api/versioning for more details. |
 
@@ -359,15 +377,13 @@ Settings for the Mistral API
 
 
 ```yaml
-"inlineAuthToken": string
-"authTokenRef": string
+"authToken": .ai.options.gloo.solo.io.SingleAuthToken
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `inlineAuthToken` | `string` | Provide easy inline way to specify a token. Only one of `inlineAuthToken` or `authTokenRef` can be set. |
-| `authTokenRef` | `string` | name of k8s secret in the same namesapce as the Upstream. Only one of `authTokenRef` or `inlineAuthToken` can be set. |
+| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) |  |
 
 
 

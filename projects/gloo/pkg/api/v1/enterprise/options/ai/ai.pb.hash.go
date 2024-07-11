@@ -150,6 +150,54 @@ func (m *OldUpstreamSpec) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
+func (m *SingleAuthToken) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.SingleAuthToken")); err != nil {
+		return 0, err
+	}
+
+	switch m.AuthTokenSource.(type) {
+
+	case *SingleAuthToken_Inline:
+
+		if _, err = hasher.Write([]byte(m.GetInline())); err != nil {
+			return 0, err
+		}
+
+	case *SingleAuthToken_SecretRef_:
+
+		if h, ok := interface{}(m.GetSecretRef()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("SecretRef")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetSecretRef(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("SecretRef")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
 func (m *UpstreamSpec) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -837,6 +885,30 @@ func (m *OldUpstreamSpec_Custom) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
+func (m *SingleAuthToken_SecretRef) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.SingleAuthToken_SecretRef")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetName())); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetKey())); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
 func (m *UpstreamSpec_CustomHost) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -855,34 +927,6 @@ func (m *UpstreamSpec_CustomHost) Hash(hasher hash.Hash64) (uint64, error) {
 
 	err = binary.Write(hasher, binary.LittleEndian, m.GetPort())
 	if err != nil {
-		return 0, err
-	}
-
-	return hasher.Sum64(), nil
-}
-
-// Hash function
-func (m *UpstreamSpec_SingleAuthToken) Hash(hasher hash.Hash64) (uint64, error) {
-	if m == nil {
-		return 0, nil
-	}
-	if hasher == nil {
-		hasher = fnv.New64()
-	}
-	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.UpstreamSpec_SingleAuthToken")); err != nil {
-		return 0, err
-	}
-
-	if _, err = hasher.Write([]byte(m.GetInlineAuthToken())); err != nil {
-		return 0, err
-	}
-
-	if _, err = hasher.Write([]byte(m.GetAuthTokenRef())); err != nil {
-		return 0, err
-	}
-
-	if _, err = hasher.Write([]byte(m.GetSecretKey())); err != nil {
 		return 0, err
 	}
 
@@ -1074,18 +1118,28 @@ func (m *Embedding_OpenAI) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	switch m.AuthToken.(type) {
+	switch m.AuthTokenSource.(type) {
 
-	case *Embedding_OpenAI_InlineAuthToken:
+	case *Embedding_OpenAI_AuthToken:
 
-		if _, err = hasher.Write([]byte(m.GetInlineAuthToken())); err != nil {
-			return 0, err
-		}
-
-	case *Embedding_OpenAI_AuthTokenRef:
-
-		if _, err = hasher.Write([]byte(m.GetAuthTokenRef())); err != nil {
-			return 0, err
+		if h, ok := interface{}(m.GetAuthToken()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("AuthToken")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetAuthToken(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("AuthToken")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
 		}
 
 	}

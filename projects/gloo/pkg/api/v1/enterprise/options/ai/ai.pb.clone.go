@@ -107,6 +107,39 @@ func (m *OldUpstreamSpec) Clone() proto.Message {
 }
 
 // Clone function
+func (m *SingleAuthToken) Clone() proto.Message {
+	var target *SingleAuthToken
+	if m == nil {
+		return target
+	}
+	target = &SingleAuthToken{}
+
+	switch m.AuthTokenSource.(type) {
+
+	case *SingleAuthToken_Inline:
+
+		target.AuthTokenSource = &SingleAuthToken_Inline{
+			Inline: m.GetInline(),
+		}
+
+	case *SingleAuthToken_SecretRef_:
+
+		if h, ok := interface{}(m.GetSecretRef()).(clone.Cloner); ok {
+			target.AuthTokenSource = &SingleAuthToken_SecretRef_{
+				SecretRef: h.Clone().(*SingleAuthToken_SecretRef),
+			}
+		} else {
+			target.AuthTokenSource = &SingleAuthToken_SecretRef_{
+				SecretRef: proto.Clone(m.GetSecretRef()).(*SingleAuthToken_SecretRef),
+			}
+		}
+
+	}
+
+	return target
+}
+
+// Clone function
 func (m *UpstreamSpec) Clone() proto.Message {
 	var target *UpstreamSpec
 	if m == nil {
@@ -464,6 +497,21 @@ func (m *OldUpstreamSpec_Custom) Clone() proto.Message {
 }
 
 // Clone function
+func (m *SingleAuthToken_SecretRef) Clone() proto.Message {
+	var target *SingleAuthToken_SecretRef
+	if m == nil {
+		return target
+	}
+	target = &SingleAuthToken_SecretRef{}
+
+	target.Name = m.GetName()
+
+	target.Key = m.GetKey()
+
+	return target
+}
+
+// Clone function
 func (m *UpstreamSpec_CustomHost) Clone() proto.Message {
 	var target *UpstreamSpec_CustomHost
 	if m == nil {
@@ -479,23 +527,6 @@ func (m *UpstreamSpec_CustomHost) Clone() proto.Message {
 }
 
 // Clone function
-func (m *UpstreamSpec_SingleAuthToken) Clone() proto.Message {
-	var target *UpstreamSpec_SingleAuthToken
-	if m == nil {
-		return target
-	}
-	target = &UpstreamSpec_SingleAuthToken{}
-
-	target.InlineAuthToken = m.GetInlineAuthToken()
-
-	target.AuthTokenRef = m.GetAuthTokenRef()
-
-	target.SecretKey = m.GetSecretKey()
-
-	return target
-}
-
-// Clone function
 func (m *UpstreamSpec_OpenAI) Clone() proto.Message {
 	var target *UpstreamSpec_OpenAI
 	if m == nil {
@@ -504,9 +535,9 @@ func (m *UpstreamSpec_OpenAI) Clone() proto.Message {
 	target = &UpstreamSpec_OpenAI{}
 
 	if h, ok := interface{}(m.GetAuthToken()).(clone.Cloner); ok {
-		target.AuthToken = h.Clone().(*UpstreamSpec_SingleAuthToken)
+		target.AuthToken = h.Clone().(*SingleAuthToken)
 	} else {
-		target.AuthToken = proto.Clone(m.GetAuthToken()).(*UpstreamSpec_SingleAuthToken)
+		target.AuthToken = proto.Clone(m.GetAuthToken()).(*SingleAuthToken)
 	}
 
 	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
@@ -527,9 +558,9 @@ func (m *UpstreamSpec_Mistral) Clone() proto.Message {
 	target = &UpstreamSpec_Mistral{}
 
 	if h, ok := interface{}(m.GetAuthToken()).(clone.Cloner); ok {
-		target.AuthToken = h.Clone().(*UpstreamSpec_SingleAuthToken)
+		target.AuthToken = h.Clone().(*SingleAuthToken)
 	} else {
-		target.AuthToken = proto.Clone(m.GetAuthToken()).(*UpstreamSpec_SingleAuthToken)
+		target.AuthToken = proto.Clone(m.GetAuthToken()).(*SingleAuthToken)
 	}
 
 	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
@@ -550,9 +581,9 @@ func (m *UpstreamSpec_Anthropic) Clone() proto.Message {
 	target = &UpstreamSpec_Anthropic{}
 
 	if h, ok := interface{}(m.GetAuthToken()).(clone.Cloner); ok {
-		target.AuthToken = h.Clone().(*UpstreamSpec_SingleAuthToken)
+		target.AuthToken = h.Clone().(*SingleAuthToken)
 	} else {
-		target.AuthToken = proto.Clone(m.GetAuthToken()).(*UpstreamSpec_SingleAuthToken)
+		target.AuthToken = proto.Clone(m.GetAuthToken()).(*SingleAuthToken)
 	}
 
 	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
@@ -574,18 +605,18 @@ func (m *Embedding_OpenAI) Clone() proto.Message {
 	}
 	target = &Embedding_OpenAI{}
 
-	switch m.AuthToken.(type) {
+	switch m.AuthTokenSource.(type) {
 
-	case *Embedding_OpenAI_InlineAuthToken:
+	case *Embedding_OpenAI_AuthToken:
 
-		target.AuthToken = &Embedding_OpenAI_InlineAuthToken{
-			InlineAuthToken: m.GetInlineAuthToken(),
-		}
-
-	case *Embedding_OpenAI_AuthTokenRef:
-
-		target.AuthToken = &Embedding_OpenAI_AuthTokenRef{
-			AuthTokenRef: m.GetAuthTokenRef(),
+		if h, ok := interface{}(m.GetAuthToken()).(clone.Cloner); ok {
+			target.AuthTokenSource = &Embedding_OpenAI_AuthToken{
+				AuthToken: h.Clone().(*SingleAuthToken),
+			}
+		} else {
+			target.AuthTokenSource = &Embedding_OpenAI_AuthToken{
+				AuthToken: proto.Clone(m.GetAuthToken()).(*SingleAuthToken),
+			}
 		}
 
 	}

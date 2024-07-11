@@ -29,12 +29,15 @@ spec:
                     properties:
                       authToken:
                         properties:
-                          authTokenRef:
+                          inline:
                             type: string
-                          inlineAuthToken:
-                            type: string
-                          secretKey:
-                            type: string
+                          secretRef:
+                            properties:
+                              key:
+                                type: string
+                              name:
+                                type: string
+                            type: object
                         type: object
                       customHost:
                         properties:
@@ -52,12 +55,15 @@ spec:
                     properties:
                       authToken:
                         properties:
-                          authTokenRef:
+                          inline:
                             type: string
-                          inlineAuthToken:
-                            type: string
-                          secretKey:
-                            type: string
+                          secretRef:
+                            properties:
+                              key:
+                                type: string
+                              name:
+                                type: string
+                            type: object
                         type: object
                       customHost:
                         properties:
@@ -73,12 +79,15 @@ spec:
                     properties:
                       authToken:
                         properties:
-                          authTokenRef:
+                          inline:
                             type: string
-                          inlineAuthToken:
-                            type: string
-                          secretKey:
-                            type: string
+                          secretRef:
+                            properties:
+                              key:
+                                type: string
+                              name:
+                                type: string
+                            type: object
                         type: object
                       customHost:
                         properties:
