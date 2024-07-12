@@ -59,7 +59,7 @@ jobs:
       # This is the step that is run when triggering the job manually
       # We intentionally do not invoke 'make publish-security-scan' since the results of this job are not for external usage
       - name: Run and Push Security Scan Files to Google Cloud Bucket (Manual)
-        if: ${{ (github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         env:
           SCAN_DIR: _output/scans
           IMAGE_REGISTRY: quay.io/solo-io
