@@ -7,6 +7,13 @@ on:
       version-constraint:
         description: "The constraint for the version(s) to scan (=v1.18.0-beta1, >v1.18.0-0)"
         type: string
+      project:
+        description: "The project for the version(s) to scan"
+        type: choice
+        options:
+          - gloo # Gloo Gateway Open Source
+          - glooe # Gloo Gateway Enterprise
+
   schedule:
     # Monday 4am EST so as to hope for this to complete prior to a 9 AM check 
     - cron: "0 8 * * 1"
@@ -57,9 +64,10 @@ jobs:
           SCAN_DIR: _output/scans
           IMAGE_REGISTRY: quay.io/solo-io
           VERSION_CONSTRAINT: ${{ inputs.version-constraint }}
+          GO111MODULE: on
         run: |
           mkdir -p $SCAN_DIR
-          make run-security-scan
+          go run docs/cmd/generate_docs.go run-security-scan -r ${{ inputs.project }} -a github-issue-latest
       - name: Alert on workflow failure
         if: ${{ failure() }}
         run : |
