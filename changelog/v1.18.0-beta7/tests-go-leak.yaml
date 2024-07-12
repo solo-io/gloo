@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Make dev mode routine cancellable.
+      Allows for e2e tests to not leak goroutines.
+      Should not affect real kubernetes environments.
+      
+      skipCI-docs-build:true

@@ -108,7 +108,13 @@ func NewTranslatorSyncer(
 	if devMode {
 		// TODO(ilackarms): move this somewhere else?
 		go func() {
-			_ = s.ServeXdsSnapshots()
+			serve, err := s.startXdsSnapServer()
+			if err != nil {
+				contextutils.LoggerFrom(ctx).Errorw("failed to start xds snapshot server", err)
+			}
+			<-ctx.Done()
+			serve.Close()
+
 		}()
 	}
 	go s.statusSyncer.syncStatusOnEmit(ctx)
