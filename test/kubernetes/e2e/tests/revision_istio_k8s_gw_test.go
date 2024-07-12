@@ -10,27 +10,25 @@ import (
 	. "github.com/solo-io/gloo/test/kubernetes/e2e/tests"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/gloogateway"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
-
 	"github.com/solo-io/skv2/codegen/util"
 )
 
-// TestIstioEdgeApiGateway is the function which executes a series of tests against a given installation where
-// the k8s Gateway controller is disabled
-func TestIstioEdgeApiGateway(t *testing.T) {
+// TestK8sGatewayIstioRevision is the function which executes a series of tests against a given installation with
+// k8s gateway enabled and Istio installed with revisions
+func TestK8sGatewayIstioRevision(t *testing.T) {
 	ctx := context.Background()
 	testInstallation := e2e.CreateTestInstallation(
 		t,
 		&gloogateway.Context{
-			InstallNamespace:   "istio-edge-api-gateway-test",
-			ValuesManifestFile: filepath.Join(util.MustGetThisDir(), "manifests", "istio-edge-gateway-test-helm.yaml"),
+			InstallNamespace:   "istio-rev-k8s-gw-test",
+			ValuesManifestFile: filepath.Join(util.MustGetThisDir(), "manifests", "istio-revision-k8s-gateway-helm.yaml"),
 		},
 	)
 
 	testHelper := e2e.MustTestHelper(ctx, testInstallation)
-
 	err := testInstallation.AddIstioctl(ctx)
 	if err != nil {
-		t.Errorf("failed to add istioctl: %v\n", err)
+		t.Fatalf("failed to get istioctl: %v", err)
 	}
 
 	// We register the cleanup function _before_ we actually perform the installation.
@@ -50,20 +48,20 @@ func TestIstioEdgeApiGateway(t *testing.T) {
 		// Uninstall Istio
 		err = testInstallation.UninstallIstio()
 		if err != nil {
-			t.Errorf("failed to add istioctl: %v\n", err)
+			t.Fatalf("failed to uninstall: %v\n", err)
 		}
 	})
 
 	// Install Istio before Gloo Gateway to make sure istiod is present before istio-proxy
-	err = testInstallation.InstallMinimalIstio(ctx)
+	err = testInstallation.InstallRevisionedIstio(ctx, "1-22-1", "minimal")
 	if err != nil {
-		t.Errorf("failed to add istioctl: %v\n", err)
+		t.Fatalf("failed to install: %v", err)
 	}
 
-	// Install Gloo Gateway with only Edge APIs enabled
+	// Install Gloo Gateway
 	testInstallation.InstallGlooGateway(ctx, func(ctx context.Context) error {
 		return testHelper.InstallGloo(ctx, 5*time.Minute, helper.WithExtraArgs("--values", testInstallation.Metadata.ValuesManifestFile))
 	})
 
-	IstioEdgeApiSuiteRunner().Run(ctx, t, testInstallation)
+	RevisionIstioK8sGatewaySuiteRunner().Run(ctx, t, testInstallation)
 }
