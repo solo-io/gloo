@@ -125,8 +125,6 @@ func snapshotToKubeResources(snap *v1snap.ApiSnapshot) ([]crdv1.Resource, error)
 		resources = append(resources, *kubeGqlApi)
 	}
 
-	sortResources(resources)
-
 	return resources, nil
 }
 

@@ -2,15 +2,16 @@ package iosnapshot
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
-
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	crdv1 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // History represents an object that maintains state about the running system
@@ -80,14 +81,20 @@ func (h *historyImpl) GetInputSnapshot(ctx context.Context) ([]byte, error) {
 	// "input snapshot" since they are the product (output) of translation
 	snap.Proxies = nil
 
-	genericMaps, err := apiSnapshotToGenericMap(snap)
+	resources, err := snapshotToKubeResources(snap)
 	if err != nil {
 		return nil, err
 	}
 
-	h.appendKubeGatewayResources(ctx, genericMaps)
+	kubeResources, err := h.getKubeGatewayResources(ctx)
+	if err != nil {
+		return nil, err
+	}
+	resources = append(resources, kubeResources...)
 
-	return formatMap("json_compact", genericMaps)
+	sortResources(resources)
+
+	return formatOutput("json_compact", resources)
 }
 
 func (h *historyImpl) GetProxySnapshot(ctx context.Context) ([]byte, error) {
@@ -96,11 +103,12 @@ func (h *historyImpl) GetProxySnapshot(ctx context.Context) ([]byte, error) {
 	onlyProxies := &v1snap.ApiSnapshot{
 		Proxies: snap.Proxies,
 	}
-	genericMaps, err := apiSnapshotToGenericMap(onlyProxies)
+
+	resources, err := snapshotToKubeResources(onlyProxies)
 	if err != nil {
 		return nil, err
 	}
-	return formatMap("json_compact", genericMaps)
+	return formatOutput("json_compact", resources)
 }
 
 // GetXdsSnapshot returns the entire cache of xDS snapshots
@@ -118,7 +126,7 @@ func (h *historyImpl) GetXdsSnapshot(_ context.Context) ([]byte, error) {
 		}
 	}
 
-	return formatMap("json_compact", cacheEntries)
+	return formatOutput("json_compact", cacheEntries)
 }
 
 // getRedactedApiSnapshot gets an in-memory copy of the ApiSnapshot
@@ -158,33 +166,55 @@ func (h *historyImpl) getApiSnapshotSafe() *v1snap.ApiSnapshot {
 	return &clone
 }
 
-// appendKubeGatewayResources searches for routes and gateways
-// setting the returned list onto the current resource map at a given key or replacing the contents with an error
-func (h *historyImpl) appendKubeGatewayResources(ctx context.Context, resources map[string]interface{}) {
-	cli := h.getKubeGatewayClientSafe()
-
-	if cli == nil {
+// getKubeGatewayResources returns the list of resources specific to the Kubernetes Gateway integration.
+func (h *historyImpl) getKubeGatewayResources(ctx context.Context) ([]crdv1.Resource, error) {
+	kubeGatewayClient := h.getKubeGatewayClientSafe()
+	if kubeGatewayClient == nil {
 		// No client has been set, so the Kubernetes Gateway integration has not been enabled
-		return
+		return nil, nil
 	}
 
-	var routeList apiv1.HTTPRouteList
-	err := cli.List(ctx, &routeList)
-	httpRoutesKey := fmt.Sprintf("%s.%s", wellknown.GatewayGroup, wellknown.HTTPRouteKind)
-	if err != nil {
-		resources[httpRoutesKey] = err
-	} else {
-		resources[httpRoutesKey] = routeList
+	resources := []crdv1.Resource{}
+	gvks := []schema.GroupVersionKind{
+		{
+			Group:   wellknown.GatewayGroup,
+			Kind:    wellknown.GatewayClassListKind,
+			Version: "v1",
+		},
+		{
+			Group:   wellknown.GatewayGroup,
+			Kind:    wellknown.GatewayListKind,
+			Version: "v1",
+		},
+		{
+			Group:   wellknown.GatewayGroup,
+			Kind:    wellknown.HTTPRouteListKind,
+			Version: "v1",
+		},
+		{
+			Group:   wellknown.GatewayGroup,
+			Kind:    wellknown.ReferenceGrantListKind,
+			Version: "v1beta1",
+		},
+	}
+	for _, gvk := range gvks {
+		list := &unstructured.UnstructuredList{}
+		list.SetGroupVersionKind(gvk)
+		err := kubeGatewayClient.List(ctx, list)
+		if err != nil {
+			return nil, err
+		}
+		for _, uns := range list.Items {
+			out := crdv1.Resource{}
+			err := runtime.DefaultUnstructuredConverter.FromUnstructured(uns.Object, &out)
+			if err != nil {
+				return nil, err
+			}
+			resources = append(resources, out)
+		}
 	}
 
-	var gwList apiv1.GatewayList
-	err = cli.List(ctx, &gwList)
-	gwKey := fmt.Sprintf("%s.%s", wellknown.GatewayGroup, wellknown.GatewayKind)
-	if err != nil {
-		resources[gwKey] = err
-	} else {
-		resources[gwKey] = gwList
-	}
+	return resources, nil
 }
 
 // getKubeGatewayClientSafe gets the Kubernetes client used for CRUD operations
