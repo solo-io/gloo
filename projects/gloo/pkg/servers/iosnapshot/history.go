@@ -83,11 +83,13 @@ func (h *historyImpl) GetInputSnapshot(ctx context.Context) ([]byte, error) {
 	// "input snapshot" since they are the product (output) of translation
 	snap.Proxies = nil
 
+	// get the resources from the edge input snapshot
 	resources, err := snapshotToKubeResources(snap)
 	if err != nil {
 		return nil, err
 	}
 
+	// get the resources that the kubernetes gateway controller watches
 	kubeResources, err := h.getKubeGatewayResources(ctx)
 	if err != nil {
 		return nil, err
@@ -169,6 +171,8 @@ func (h *historyImpl) getApiSnapshotSafe() *v1snap.ApiSnapshot {
 }
 
 // getKubeGatewayResources returns the list of resources specific to the Kubernetes Gateway integration.
+// Since the Kubernetes Gateway controller does not have the concept of input snapshots or watch
+// namespaces, we return all resources on the cluster of the given types.
 func (h *historyImpl) getKubeGatewayResources(ctx context.Context) ([]crdv1.Resource, error) {
 	kubeGatewayClient := h.getKubeGatewayClientSafe()
 	if kubeGatewayClient == nil {
@@ -184,12 +188,15 @@ func (h *historyImpl) getKubeGatewayResources(ctx context.Context) ([]crdv1.Reso
 		wellknown.ReferenceGrantListGVK,
 	}
 	for _, gvk := range gvks {
+		// populate an unstructured list for each resource type
 		list := &unstructured.UnstructuredList{}
 		list.SetGroupVersionKind(gvk)
 		err := kubeGatewayClient.List(ctx, list)
 		if err != nil {
 			return nil, err
 		}
+		// convert each Unstructured to a Resource so that the final list can be merged with the
+		// edge resource list
 		for _, uns := range list.Items {
 			out := crdv1.Resource{}
 			err := runtime.DefaultUnstructuredConverter.FromUnstructured(uns.Object, &out)

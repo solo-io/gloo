@@ -135,6 +135,11 @@ func snapshotToKubeResources(snap *v1snap.ApiSnapshot) ([]crdv1.Resource, error)
 	return resources, nil
 }
 
+// This converts a solo-kit VersionedResource to a solo-kit Kubernetes resource. It mirrors the
+// solo-kit [KubeResource](https://github.com/solo-io/solo-kit/blob/1baf6de465942dc5be44e7f28f0f739dcd0b967b/pkg/api/v1/clients/kube/crd/crd.go#L78)
+// func, except that it accepts "fake" resources such as Endpoints, which don't implement
+// [InputResource](https://github.com/solo-io/solo-kit/blob/1baf6de465942dc5be44e7f28f0f739dcd0b967b/pkg/api/v1/resources/resource_interface.go#L47)
+// (don't have statuses).
 func convertToKube(resource resources.VersionedResource, crd crd.Crd) (*crdv1.Resource, error) {
 	var spec crdv1.Spec
 
