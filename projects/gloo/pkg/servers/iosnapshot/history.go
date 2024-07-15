@@ -20,8 +20,10 @@ import (
 type History interface {
 	// SetApiSnapshot sets the latest ApiSnapshot
 	SetApiSnapshot(latestInput *v1snap.ApiSnapshot)
-	// SetKubeGatewayClient sets the client to use for Kubernetes CRUD operations
-	SetKubeGatewayClient(client client.Client)
+	// SetKubeGatewayClient sets the client to use for Kubernetes CRUD operations when
+	// Kubernetes Gateway integration is enabled. If this is not set, then no Kubernetes
+	// Gateway resources will be returned from `GetInputSnapshot`.
+	SetKubeGatewayClient(kubeGatewayClient client.Client)
 	// GetInputSnapshot gets the input snapshot for all components.
 	GetInputSnapshot(ctx context.Context) ([]byte, error)
 	// GetProxySnapshot returns the Proxies generated for all components.
@@ -36,7 +38,7 @@ func NewHistory(cache cache.SnapshotCache) History {
 	return &historyImpl{
 		latestApiSnapshot: nil,
 		xdsCache:          cache,
-		client:            nil,
+		kubeGatewayClient: nil,
 	}
 }
 
@@ -47,7 +49,7 @@ type historyImpl struct {
 	sync.RWMutex
 	latestApiSnapshot *v1snap.ApiSnapshot
 	xdsCache          cache.SnapshotCache
-	client            client.Client
+	kubeGatewayClient client.Client
 }
 
 // SetApiSnapshot sets the latest input ApiSnapshot
@@ -62,14 +64,14 @@ func (h *historyImpl) SetApiSnapshot(latestApiSnapshot *v1snap.ApiSnapshot) {
 	}()
 }
 
-func (h *historyImpl) SetKubeGatewayClient(client client.Client) {
+func (h *historyImpl) SetKubeGatewayClient(kubeGatewayClient client.Client) {
 	// Setters are called by the running Control Plane, so we perform the update in a goroutine to prevent
 	// any contention/issues, from impacting the runtime of the system
 	go func() {
 		h.Lock()
 		defer h.Unlock()
 
-		h.client = client
+		h.kubeGatewayClient = kubeGatewayClient
 	}()
 }
 
@@ -221,7 +223,7 @@ func (h *historyImpl) getKubeGatewayResources(ctx context.Context) ([]crdv1.Reso
 func (h *historyImpl) getKubeGatewayClientSafe() client.Client {
 	h.RLock()
 	defer h.RUnlock()
-	return h.client
+	return h.kubeGatewayClient
 }
 
 // redactApiSnapshot accepts an ApiSnapshot, and mutates it to remove sensitive data.
