@@ -2,6 +2,7 @@ package assertions
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/onsi/gomega"
@@ -34,13 +35,21 @@ func (p *Provider) EventuallyPodsMatches(
 
 	p.Gomega.Eventually(func(g gomega.Gomega) {
 		pods, err := p.clusterContext.Clientset.CoreV1().Pods(podNamespace).List(ctx, listOpt)
-		g.Expect(err).NotTo(gomega.HaveOccurred(), "Failed to list pods")
-		g.Expect(pods.Items).NotTo(gomega.BeEmpty(), "No pods found")
+		g.Expect(err).NotTo(gomega.HaveOccurred(), "Failed to list pods", simpleMarshalledJSON(listOpt))
+		g.Expect(pods.Items).NotTo(gomega.BeEmpty(), "No pods found", simpleMarshalledJSON(listOpt))
 		for _, pod := range pods.Items {
 			g.Expect(pod).To(matcher)
 		}
 	}).
 		WithTimeout(currentTimeout).
 		WithPolling(pollingInterval).
-		Should(gomega.Succeed(), "Failed to match pod")
+		Should(gomega.Succeed(), "Failed to match pod", simpleMarshalledJSON(listOpt))
+}
+
+func simpleMarshalledJSON(toMarshal interface{}) string {
+	marshalled, err := json.Marshal(toMarshal)
+	if err != nil {
+		return err.Error()
+	}
+	return string(marshalled)
 }

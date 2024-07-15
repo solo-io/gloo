@@ -1,6 +1,7 @@
 package assertions
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/onsi/gomega"
@@ -56,4 +57,12 @@ func (p *Provider) WithGlooGatewayContext(ggCtx *gloogateway.Context) *Provider 
 // There are certain Assertions that can be invoked that do not require that Gloo Gateway be installed for them to be invoked
 func (p *Provider) expectGlooGatewayContextDefined() {
 	p.Require.NotNil(p.glooGatewayContext, "Provider attempted to create an Assertion that requires a Gloo Gateway installation, but none was configured")
+}
+
+func simpleMarshalledJSON(toMarshal interface{}) string {
+	marshalled, err := json.Marshal(toMarshal)
+	if err != nil {
+		return err.Error()
+	}
+	return string(marshalled)
 }
