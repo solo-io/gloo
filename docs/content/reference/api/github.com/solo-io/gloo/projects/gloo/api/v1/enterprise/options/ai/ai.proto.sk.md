@@ -11,11 +11,6 @@ weight: 5
 #### Types:
 
 
-- [OldUpstreamSpec](#oldupstreamspec)
-- [OpenAI](#openai)
-- [Mistral](#mistral)
-- [Anthropic](#anthropic)
-- [Custom](#custom)
 - [SingleAuthToken](#singleauthtoken)
 - [SecretRef](#secretref)
 - [UpstreamSpec](#upstreamspec)
@@ -47,101 +42,6 @@ weight: 5
 
 ##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/ai/ai.proto)
 
-
-
-
-
----
-### OldUpstreamSpec
-
-
-
-```yaml
-"inlineAuthToken": string
-"authTokenRef": string
-"openai": .ai.options.gloo.solo.io.OldUpstreamSpec.OpenAI
-"mistral": .ai.options.gloo.solo.io.OldUpstreamSpec.Mistral
-"anthropic": .ai.options.gloo.solo.io.OldUpstreamSpec.Anthropic
-"custom": .ai.options.gloo.solo.io.OldUpstreamSpec.Custom
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `inlineAuthToken` | `string` | Provide easy inline way to specify a token. Only one of `inlineAuthToken` or `authTokenRef` can be set. |
-| `authTokenRef` | `string` | name of k8s secret in the same namesapce as the Upstream. Only one of `authTokenRef` or `inlineAuthToken` can be set. |
-| `openai` | [.ai.options.gloo.solo.io.OldUpstreamSpec.OpenAI](../ai.proto.sk/#openai) |  Only one of `openai`, `mistral`, `anthropic`, or `custom` can be set. |
-| `mistral` | [.ai.options.gloo.solo.io.OldUpstreamSpec.Mistral](../ai.proto.sk/#mistral) |  Only one of `mistral`, `openai`, `anthropic`, or `custom` can be set. |
-| `anthropic` | [.ai.options.gloo.solo.io.OldUpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) |  Only one of `anthropic`, `openai`, `mistral`, or `custom` can be set. |
-| `custom` | [.ai.options.gloo.solo.io.OldUpstreamSpec.Custom](../ai.proto.sk/#custom) |  Only one of `custom`, `openai`, `mistral`, or `anthropic` can be set. |
-
-
-
-
----
-### OpenAI
-
- 
-Settings for the OpenAI API
-
-```yaml
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-
-
-
-
----
-### Mistral
-
- 
-Settings for the Mistral API
-
-```yaml
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-
-
-
-
----
-### Anthropic
-
-
-
-```yaml
-"version": string
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `version` | `string` | An optional version header to pass to the Anthropic API See: https://docs.anthropic.com/en/api/versioning for more details. |
-
-
-
-
----
-### Custom
-
-
-
-```yaml
-"host": string
-"port": int
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `host` | `string` | Custom host to send the traffic to. |
-| `port` | `int` | Custom host to send the traffic to. |
 
 
 
@@ -187,7 +87,60 @@ Settings for the Mistral API
 ---
 ### UpstreamSpec
 
+ 
+The AI UpstreamSpec represents a logical LLM provider backend.
+The purpose of this spec is a way to configure which backend to use
+as well as how to authenticate with the backend.
 
+Currently the options are:
+- OpenAI
+Default Host: api.openai.com
+Default Port: 443
+Auth Token: Bearer token to use for the OpenAI API
+- Mistral
+Default Host: api.mistral.com
+Default Port: 443
+Auth Token: Bearer token to use for the Mistral API
+- Anthropic
+Default Host: api.anthropic.com
+Default Port: 443
+Auth Token: x-api-key to use for the Anthropic API
+Version: Optional version header to pass to the Anthropic API
+
+All of the above backends can be configured to use a custom host and port.
+This option is meant to allow users to proxy the request, or to use a different
+backend altogether which is API compliant with the upstream version.
+
+Examples:
+
+OpenAI with inline auth token:
+```
+ai:
+openai:
+authToken:
+inline: "my_token"
+```
+
+Mistral with secret ref:
+```
+ai:
+mistral:
+authToken:
+secretRef:
+name: "my-secret"
+key: "my-key"
+```
+
+Anthropic with inline token and custom Host:
+```
+ai:
+anthropic:
+authToken:
+inline: "my_token"
+customHost:
+host: "my-anthropic-host.com"
+port: 443 # Port is optional and will default to 443 for HTTPS
+```
 
 ```yaml
 "openai": .ai.options.gloo.solo.io.UpstreamSpec.OpenAI
@@ -238,7 +191,7 @@ Settings for the OpenAI API
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | Auth Token to use for the OpenAI API. |
+| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | Auth Token to use for the OpenAI API This token will be placed into the `Authorization` header and prefixed with Bearer if not present when sending the request to the upstream. |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional custom host to send the traffic to. |
 
 
@@ -258,7 +211,7 @@ Settings for the Mistral API
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | Auth Token to use for the Mistral API. |
+| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | Auth Token to use for the Mistral API. This token will be placed into the `Authorization` header and prefixed with Bearer if not present when sending the request to the upstream. |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional custom host to send the traffic to. |
 
 
@@ -278,7 +231,7 @@ Settings for the Mistral API
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) |  |
+| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | Auth Token to use for the Anthropic API. This token will be placed into the `x-api-key` header when sending the request to the upstream. |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) |  |
 | `version` | `string` | An optional version header to pass to the Anthropic API See: https://docs.anthropic.com/en/api/versioning for more details. |
 
@@ -288,7 +241,17 @@ Settings for the Mistral API
 ---
 ### RouteSettings
 
+ 
+RouteSettings is a way to configure the behavior of the LLM provider on a per-route basis
+This allows users to configure things like:
+- Prompt Enrichment
+- Retrieval Augmented Generation
+- Semantic Caching
+- Backup Models
+- Defaults to merge with the user input fields
+- Guardrails
 
+NOTE: These settings may only be applied to a route which uses an LLMProvider backend!
 
 ```yaml
 "promptEnrichment": .ai.options.gloo.solo.io.AIPromptEnrichment
@@ -306,9 +269,9 @@ Settings for the Mistral API
 | `promptEnrichment` | [.ai.options.gloo.solo.io.AIPromptEnrichment](../ai.proto.sk/#aipromptenrichment) | Config used to enrich the prompt. This can only be used with LLMProviders using the CHAT API type. |
 | `promptGuard` | [.ai.options.gloo.solo.io.AIPromptGaurd](../ai.proto.sk/#aipromptgaurd) | Guards to apply to the LLM requests on this route. |
 | `rateLimiting` | [.ai.options.gloo.solo.io.RateLimiting](../ai.proto.sk/#ratelimiting) | Rate limiting configuration to apply to the corresponding routes. All Rate limiting applied this way will use the input_tokens as the counter rather than incrementing by 1 for each request. |
-| `rag` | [.ai.options.gloo.solo.io.RAG](../ai.proto.sk/#rag) | Retrieval Augmented Generation. |
-| `semanticCache` | [.ai.options.gloo.solo.io.SemanticCache](../ai.proto.sk/#semanticcache) | Semantic caching configuration. |
-| `backupModels` | `[]string` | Backup models to use in case of a failure with the primary model passed in the request. |
+| `rag` | [.ai.options.gloo.solo.io.RAG](../ai.proto.sk/#rag) | Retrieval Augmented Generation. https://research.ibm.com/blog/retrieval-augmented-generation-RAG Retrieval Augmented Generation is a process by which you "augment" the information a model has access to by providing it with a set of documents to use as context. This can be used to improve the quality of the generated text. Important Note: The same embedding mechanism must be used for the prompt which was used for the initial creation of the context documents. |
+| `semanticCache` | [.ai.options.gloo.solo.io.SemanticCache](../ai.proto.sk/#semanticcache) | Semantic caching configuration Semantic caching allows you to cache previous model responses in order to provide faster responses to similar requests in the future. Results will vary depending on the embedding mechanism used, as well as the similarity threshold set. |
+| `backupModels` | `[]string` | Backup models to use in case of a failure with the primary model passed in the request. By default each model will be tried 2 times before moving on to the next model in the list. If all requests fail then the final response will be returned to the client. |
 | `defaults` | [[]ai.options.gloo.solo.io.FieldDefault](../ai.proto.sk/#fielddefault) | A list of defaults to be merged with the user input fields. These will NOT override the user input fields unless override is explicitly set to true. Some examples include setting the temperature, max_tokens, etc. |
 
 
