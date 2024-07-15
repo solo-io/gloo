@@ -21,10 +21,6 @@ type History interface {
 	SetApiSnapshot(latestInput *v1snap.ApiSnapshot)
 	// SetKubeGatewayClient sets the client to use for Kubernetes CRUD operations
 	SetKubeGatewayClient(client client.Client)
-	// GetRedactedApiSnapshot gets an in-memory copy of the ApiSnapshot
-	// Any sensitive data contained in the Snapshot will either be explicitly redacted
-	// or entirely excluded
-	GetRedactedApiSnapshot(ctx context.Context) *v1snap.ApiSnapshot
 	// GetInputSnapshot gets the input snapshot for all components.
 	GetInputSnapshot(ctx context.Context) ([]byte, error)
 	// GetProxySnapshot returns the Proxies generated for all components.
@@ -78,7 +74,7 @@ func (h *historyImpl) SetKubeGatewayClient(client client.Client) {
 
 // GetInputSnapshot gets the input snapshot for all components.
 func (h *historyImpl) GetInputSnapshot(ctx context.Context) ([]byte, error) {
-	snap := h.GetRedactedApiSnapshot(ctx)
+	snap := h.getRedactedApiSnapshot()
 
 	// Proxies are defined on the ApiSnapshot, but are not considered part of the
 	// "input snapshot" since they are the product (output) of translation
@@ -95,7 +91,7 @@ func (h *historyImpl) GetInputSnapshot(ctx context.Context) ([]byte, error) {
 }
 
 func (h *historyImpl) GetProxySnapshot(ctx context.Context) ([]byte, error) {
-	snap := h.GetRedactedApiSnapshot(ctx)
+	snap := h.getRedactedApiSnapshot()
 
 	onlyProxies := &v1snap.ApiSnapshot{
 		Proxies: snap.Proxies,
@@ -125,7 +121,7 @@ func (h *historyImpl) GetXdsSnapshot(_ context.Context) ([]byte, error) {
 	return formatMap("json_compact", cacheEntries)
 }
 
-// GetRedactedApiSnapshot gets an in-memory copy of the ApiSnapshot
+// getRedactedApiSnapshot gets an in-memory copy of the ApiSnapshot
 // Any sensitive data contained in the Snapshot will either be explicitly redacted
 // or entirely excluded
 // NOTE: Redaction is somewhat of an expensive operation, so we have a few options for how to approach it:
@@ -139,7 +135,7 @@ func (h *historyImpl) GetXdsSnapshot(_ context.Context) ([]byte, error) {
 //
 //     Given that the rate of requests for the ApiSnapshot <<< the frequency of updates of an ApiSnapshot by the Control Plane,
 //     in this first pass we opt to take approach #2.
-func (h *historyImpl) GetRedactedApiSnapshot(ctx context.Context) *v1snap.ApiSnapshot {
+func (h *historyImpl) getRedactedApiSnapshot() *v1snap.ApiSnapshot {
 	snap := h.getApiSnapshotSafe()
 
 	redactApiSnapshot(snap)

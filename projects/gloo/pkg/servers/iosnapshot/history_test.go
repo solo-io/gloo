@@ -43,7 +43,7 @@ var _ = Describe("History", func() {
 		history = NewHistory(xdsCache)
 	})
 
-	Context("GetRedactedApiSnapshot", func() {
+	Context("GetInputSnapshot", func() {
 
 		It("returns ApiSnapshot without sensitive data", func() {
 			setSnapshotOnHistory(ctx, history, &v1snap.ApiSnapshot{
@@ -61,34 +61,20 @@ var _ = Describe("History", func() {
 				},
 			})
 
-			redactedSnapshot := history.GetRedactedApiSnapshot(ctx)
-			Expect(redactedSnapshot.Proxies).To(ContainElements(
+			inputSnapshotBytes, err := history.GetInputSnapshot(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			returnedData := v1snap.ApiSnapshot{}
+			err = json.Unmarshal(inputSnapshotBytes, &returnedData)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(returnedData.Proxies).To(ContainElements(
 				ContainSubstring("proxy-east"),
 				ContainSubstring("proxy-west"),
 			), "proxies are included in redacted data")
-			Expect(redactedSnapshot.Secrets).To(BeEmpty(), "secrets are removed in redacted data")
-			Expect(redactedSnapshot.Artifacts).To(BeEmpty(), "artifacts are removed in redacted data")
+			Expect(returnedData.Secrets).To(BeEmpty(), "secrets are removed in redacted data")
+			Expect(returnedData.Artifacts).To(BeEmpty(), "artifacts are removed in redacted data")
 		})
-
-		It("returns ApiSnapshot that is clone of original", func() {
-			originalSnapshot := &v1snap.ApiSnapshot{
-				Proxies: v1.ProxyList{
-					{Metadata: &core.Metadata{Name: "proxy-east", Namespace: defaults.GlooSystem}},
-					{Metadata: &core.Metadata{Name: "proxy-west", Namespace: defaults.GlooSystem}},
-				},
-			}
-			setSnapshotOnHistory(ctx, history, originalSnapshot)
-
-			redactedSnapshot := history.GetRedactedApiSnapshot(ctx)
-			// Modify the redactedSnapshot
-			redactedSnapshot.Proxies = nil
-
-			Expect(originalSnapshot.Proxies).To(HaveLen(2), "original snapshot is not impacted")
-		})
-
-	})
-
-	Context("GetInputSnapshot", func() {
 
 		It("returns ApiSnapshot without Proxies", func() {
 			setSnapshotOnHistory(ctx, history, &v1snap.ApiSnapshot{
@@ -252,13 +238,7 @@ func setSnapshotOnHistory(ctx context.Context, history History, snap *v1snap.Api
 
 	history.SetApiSnapshot(snap)
 
-	Eventually(func(g Gomega) {
-		returnedSnap := history.GetRedactedApiSnapshot(ctx)
-		g.Expect(returnedSnap.Gateways).To(ContainElement(ContainSubstring("gw-signal")))
-	}).
-		WithPolling(time.Millisecond*100).
-		WithTimeout(time.Second*5).
-		Should(Succeed(), "setting snapshot is asynchronous, so block until snapshot is processed")
+	eventuallyContainsGateway(ctx, history, "gw-signal")
 }
 
 // setClientOnHistory sets the Kubernetes Client on the history, and blocks until it has been processed
@@ -275,6 +255,10 @@ func setClientOnHistory(ctx context.Context, history History, builder *fake.Clie
 
 	history.SetKubeGatewayClient(builder.WithObjects(gwSignalObject).Build())
 
+	eventuallyContainsGateway(ctx, history, "gw-signal")
+}
+
+func eventuallyContainsGateway(ctx context.Context, history History, gwName string) {
 	Eventually(func(g Gomega) {
 		inputSnapshotBytes, err := history.GetInputSnapshot(ctx)
 		g.Expect(err).NotTo(HaveOccurred())
