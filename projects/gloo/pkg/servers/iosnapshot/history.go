@@ -178,26 +178,10 @@ func (h *historyImpl) getKubeGatewayResources(ctx context.Context) ([]crdv1.Reso
 
 	resources := []crdv1.Resource{}
 	gvks := []schema.GroupVersionKind{
-		{
-			Group:   wellknown.GatewayGroup,
-			Kind:    wellknown.GatewayClassListKind,
-			Version: "v1",
-		},
-		{
-			Group:   wellknown.GatewayGroup,
-			Kind:    wellknown.GatewayListKind,
-			Version: "v1",
-		},
-		{
-			Group:   wellknown.GatewayGroup,
-			Kind:    wellknown.HTTPRouteListKind,
-			Version: "v1",
-		},
-		{
-			Group:   wellknown.GatewayGroup,
-			Kind:    wellknown.ReferenceGrantListKind,
-			Version: "v1beta1",
-		},
+		wellknown.GatewayClassListGVK,
+		wellknown.GatewayListGVK,
+		wellknown.HTTPRouteListGVK,
+		wellknown.ReferenceGrantListGVK,
 	}
 	for _, gvk := range gvks {
 		list := &unstructured.UnstructuredList{}

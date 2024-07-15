@@ -17,7 +17,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 )
 
-// convert all the resources in the input snapshot, excluding Artifacts, Secrets, and Proxies, into Kubernetes format
+// convert all the resources in the input snapshot, excluding Artifacts and Secrets, into Kubernetes format
 func snapshotToKubeResources(snap *v1snap.ApiSnapshot) ([]crdv1.Resource, error) {
 	resources := []crdv1.Resource{}
 
@@ -35,6 +35,13 @@ func snapshotToKubeResources(snap *v1snap.ApiSnapshot) ([]crdv1.Resource, error)
 			return nil, err
 		}
 		resources = append(resources, *kubeUpstreamGroup)
+	}
+	for _, proxy := range snap.Proxies {
+		kubeProxy, err := gloov1.ProxyCrd.KubeResource(proxy)
+		if err != nil {
+			return nil, err
+		}
+		resources = append(resources, *kubeProxy)
 	}
 	// Endpoints are only stored in memory and don't have a Kubernetes resource equivalent,
 	// so we do custom conversion here to make the format consistent with the other resources
