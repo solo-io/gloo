@@ -2,7 +2,6 @@ package assertions
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/onsi/gomega"
@@ -44,12 +43,4 @@ func (p *Provider) EventuallyPodsMatches(
 		WithTimeout(currentTimeout).
 		WithPolling(pollingInterval).
 		Should(gomega.Succeed(), "Failed to match pod", simpleMarshalledJSON(listOpt))
-}
-
-func simpleMarshalledJSON(toMarshal interface{}) string {
-	marshalled, err := json.Marshal(toMarshal)
-	if err != nil {
-		return err.Error()
-	}
-	return string(marshalled)
 }
