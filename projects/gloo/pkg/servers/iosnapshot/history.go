@@ -4,12 +4,7 @@ import (
 	"context"
 	"sync"
 
-	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
-	"github.com/solo-io/gloo/projects/gateway2/wellknown"
-	ratelimitv1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	crdv1 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
@@ -236,24 +231,7 @@ func (h *historyImpl) getKubeGatewayResources(ctx context.Context) ([]crdv1.Reso
 	}
 
 	resources := []crdv1.Resource{}
-	gvks := []schema.GroupVersionKind{
-		// Kubernetes Gateway API resources
-		wellknown.GatewayClassListGVK,
-		wellknown.GatewayListGVK,
-		wellknown.HTTPRouteListGVK,
-		wellknown.ReferenceGrantListGVK,
-
-		// Gloo resources used in Kubernetes Gateway integration
-		v1alpha1.GatewayParametersGVK,
-		gatewayv1.ListenerOptionGVK,
-		gatewayv1.HttpListenerOptionGVK,
-
-		// resources shared between Edge and Kubernetes Gateway integration
-		gatewayv1.RouteOptionGVK,
-		gatewayv1.VirtualHostOptionGVK,
-		extauthv1.AuthConfigGVK,
-		ratelimitv1alpha1.RateLimitConfigGVK,
-	}
+	gvks := h.getKubeGatewayInputGvksSafe()
 	for _, gvk := range gvks {
 		// populate an unstructured list for each resource type
 		list := &unstructured.UnstructuredList{}
