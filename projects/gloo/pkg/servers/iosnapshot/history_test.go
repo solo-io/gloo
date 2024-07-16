@@ -42,7 +42,7 @@ var _ = Describe("History", func() {
 
 		clientBuilder = fake.NewClientBuilder().WithScheme(scheme.NewScheme())
 		xdsCache = &xds.MockXdsCache{}
-		history = NewHistory(xdsCache)
+		history = NewHistory(xdsCache, &v1.Settings{})
 	})
 
 	Context("GetInputSnapshot", func() {
