@@ -192,7 +192,7 @@ func setSnapshotOnHistory(ctx context.Context, history History, snap *v1snap.Api
 
 	history.SetApiSnapshot(snap)
 
-	eventuallyContainsResource(ctx, history, gatewayv1.GatewayGVK, defaults.GlooSystem, "gw-signal")
+	eventuallyInputSnapshotContainsResource(ctx, history, gatewayv1.GatewayGVK, defaults.GlooSystem, "gw-signal")
 }
 
 // setClientOnHistory sets the Kubernetes Client on the history, and blocks until it has been processed
@@ -209,11 +209,11 @@ func setClientOnHistory(ctx context.Context, history History, builder *fake.Clie
 
 	history.SetKubeGatewayClient(builder.WithObjects(gwSignalObject).Build())
 
-	eventuallyContainsResource(ctx, history, wellknown.GatewayGVK, defaults.GlooSystem, "gw-signal")
+	eventuallyInputSnapshotContainsResource(ctx, history, wellknown.GatewayGVK, defaults.GlooSystem, "gw-signal")
 }
 
 // check that the input snapshot eventually contains a resource with the given gvk, namespace, and name
-func eventuallyContainsResource(
+func eventuallyInputSnapshotContainsResource(
 	ctx context.Context,
 	history History,
 	gvk schema.GroupVersionKind,
@@ -241,9 +241,7 @@ func containsResource(
 	namespace string,
 	name string) bool {
 	return slices.ContainsFunc(resources, func(res crdv1.Resource) bool {
-		return res.GroupVersionKind().Group == gvk.Group &&
-			res.GroupVersionKind().Version == gvk.Version &&
-			res.GroupVersionKind().Kind == gvk.Kind &&
+		return areGvksEqual(res.GroupVersionKind(), gvk) &&
 			res.GetName() == name &&
 			res.GetNamespace() == namespace
 	})
@@ -254,8 +252,12 @@ func containsResourceType(
 	resources []crdv1.Resource,
 	gvk schema.GroupVersionKind) bool {
 	return slices.ContainsFunc(resources, func(res crdv1.Resource) bool {
-		return res.GroupVersionKind().Group == gvk.Group &&
-			res.GroupVersionKind().Version == gvk.Version &&
-			res.GroupVersionKind().Kind == gvk.Kind
+		return areGvksEqual(res.GroupVersionKind(), gvk)
 	})
+}
+
+func areGvksEqual(a, b schema.GroupVersionKind) bool {
+	return a.Group == b.Group &&
+		a.Version == b.Version &&
+		a.Kind == b.Kind
 }
