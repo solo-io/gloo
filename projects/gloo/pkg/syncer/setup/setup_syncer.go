@@ -464,7 +464,6 @@ func RunGloo(opts bootstrap.Opts) error {
 			ratelimitExt.NewTranslatorSyncerExtension,
 			extauthExt.NewTranslatorSyncerExtension,
 		},
-		StartFuncs:        map[string]StartFunc{},
 		ApiEmitterChannel: make(chan struct{}),
 		XdsCallbacks:      nil,
 	}
@@ -1036,12 +1035,6 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		}
 	}
 
-	// merge in any StartFuncs specified by the Extensions (will overwrite exiting funcs with the same name)
-	if len(extensions.StartFuncs) > 0 {
-		for k, v := range extensions.StartFuncs {
-			startFuncs[k] = v
-		}
-	}
 	ExecuteAsynchronousStartFuncs(
 		watchOpts.Ctx,
 		opts,
