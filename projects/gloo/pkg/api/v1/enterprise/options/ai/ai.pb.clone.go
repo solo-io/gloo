@@ -131,12 +131,6 @@ func (m *RouteSettings) Clone() proto.Message {
 		target.PromptGuard = proto.Clone(m.GetPromptGuard()).(*AIPromptGaurd)
 	}
 
-	if h, ok := interface{}(m.GetRateLimiting()).(clone.Cloner); ok {
-		target.RateLimiting = h.Clone().(*RateLimiting)
-	} else {
-		target.RateLimiting = proto.Clone(m.GetRateLimiting()).(*RateLimiting)
-	}
-
 	if h, ok := interface{}(m.GetRag()).(clone.Cloner); ok {
 		target.Rag = h.Clone().(*RAG)
 	} else {

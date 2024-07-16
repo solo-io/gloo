@@ -3241,13 +3241,6 @@ spec:
                                     promptTemplate:
                                       type: string
                                   type: object
-                                rateLimiting:
-                                  properties:
-                                    rateLimitConfigs:
-                                      items:
-                                        type: string
-                                      type: array
-                                  type: object
                                 semanticCache:
                                   properties:
                                     datastore:

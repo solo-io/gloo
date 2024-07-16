@@ -201,16 +201,6 @@ func (m *RouteSettings) Equal(that interface{}) bool {
 		}
 	}
 
-	if h, ok := interface{}(m.GetRateLimiting()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetRateLimiting()) {
-			return false
-		}
-	} else {
-		if !proto.Equal(m.GetRateLimiting(), target.GetRateLimiting()) {
-			return false
-		}
-	}
-
 	if h, ok := interface{}(m.GetRag()).(equality.Equalizer); ok {
 		if !h.Equal(target.GetRag()) {
 			return false
