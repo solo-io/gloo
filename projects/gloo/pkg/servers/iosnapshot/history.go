@@ -162,6 +162,10 @@ func (h *historyImpl) GetProxySnapshot(ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// sort all the resources before formatting
+	sortResources(resources)
+
 	return formatOutput("json_compact", resources)
 }
 
