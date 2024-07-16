@@ -464,6 +464,7 @@ func RunGloo(opts bootstrap.Opts) error {
 			ratelimitExt.NewTranslatorSyncerExtension,
 			extauthExt.NewTranslatorSyncerExtension,
 		},
+		StartFuncs:        map[string]StartFunc{},
 		ApiEmitterChannel: make(chan struct{}),
 		XdsCallbacks:      nil,
 	}
