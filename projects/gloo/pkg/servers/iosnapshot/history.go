@@ -54,14 +54,9 @@ type History2 interface {
 type HistoryFactory func(settings *gloov1.Settings, cache cache.SnapshotCache) History2
 
 func ExampleOSSHistoryFactory() HistoryFactory {
+	// Our oss historyFactory bakes in the oss gvks
 	return func(settings *gloov1.Settings, cache cache.SnapshotCache) History2 {
-		return &historyImpl{
-			latestApiSnapshot: nil,
-			xdsCache:          cache,
-			settings:          settings,
-			kubeGatewayClient: nil,
-			kubeGvks:          KubeGatewayDefaultGVKs,
-		}
+		return NewHistory(cache, settings, KubeGatewayDefaultGVKs)
 	}
 }
 
@@ -73,15 +68,7 @@ func ExampleEEHistoryFactory() HistoryFactory {
 	gvks := append(customEEGvks, KubeGatewayDefaultGVKs...)
 
 	return func(settings *gloov1.Settings, cache cache.SnapshotCache) History2 {
-		// This allows us to just re-use the oss implementation entirely. but also, we could
-		// create an ee impl that wraps the oss one if we want to customize it further
-		return &historyImpl{
-			latestApiSnapshot: nil,
-			xdsCache:          cache,
-			settings:          settings,
-			kubeGatewayClient: nil,
-			kubeGvks:          gvks,
-		}
+		return NewHistory(cache, settings, gvks)
 	}
 }
 
@@ -123,17 +110,13 @@ type History interface {
 }
 
 // NewHistory returns an implementation of the History interface
-func NewHistory(cache cache.SnapshotCache, settings *gloov1.Settings) History {
-	// initialize kube gvks to contain a copy of the default gvks
-	kubeGvks := []schema.GroupVersionKind{}
-	kubeGvks = append(kubeGvks, KubeGatewayDefaultGVKs...)
-
+func NewHistory(cache cache.SnapshotCache, settings *gloov1.Settings, gvks []schema.GroupVersionKind) History {
 	return &historyImpl{
 		latestApiSnapshot: nil,
 		xdsCache:          cache,
 		settings:          settings,
 		kubeGatewayClient: nil,
-		kubeGvks:          kubeGvks,
+		kubeGvks:          gvks,
 	}
 }
 
