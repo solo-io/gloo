@@ -37,6 +37,8 @@ spec:
                                 type: string
                               name:
                                 type: string
+                              namespace:
+                                type: string
                             type: object
                         type: object
                       customHost:
@@ -63,6 +65,8 @@ spec:
                                 type: string
                               name:
                                 type: string
+                              namespace:
+                                type: string
                             type: object
                         type: object
                       customHost:
@@ -86,6 +90,8 @@ spec:
                               key:
                                 type: string
                               name:
+                                type: string
+                              namespace:
                                 type: string
                             type: object
                         type: object

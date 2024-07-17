@@ -371,6 +371,8 @@ func (m *SingleAuthToken_SecretRef) Clone() proto.Message {
 
 	target.Name = m.GetName()
 
+	target.Namespace = m.GetNamespace()
+
 	target.Key = m.GetKey()
 
 	return target

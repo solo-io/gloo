@@ -126,6 +126,8 @@ spec:
                                             type: string
                                           name:
                                             type: string
+                                          namespace:
+                                            type: string
                                         type: object
                                     type: object
                                 type: object
@@ -156,6 +158,8 @@ spec:
                                           key:
                                             type: string
                                           name:
+                                            type: string
+                                          namespace:
                                             type: string
                                         type: object
                                     type: object

@@ -72,13 +72,15 @@ weight: 5
 
 ```yaml
 "name": string
+"namespace": string
 "key": string
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `name` | `string` | name of k8s secret in the same namesapce as the Upstream. |
+| `name` | `string` | name of k8s secret. |
+| `namespace` | `string` | namespace of k8s secret. |
 | `key` | `string` | Optional secret key to use. |
 
 

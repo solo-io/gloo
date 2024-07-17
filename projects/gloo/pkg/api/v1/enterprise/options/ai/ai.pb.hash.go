@@ -680,6 +680,10 @@ func (m *SingleAuthToken_SecretRef) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	if _, err = hasher.Write([]byte(m.GetNamespace())); err != nil {
+		return 0, err
+	}
+
 	if _, err = hasher.Write([]byte(m.GetKey())); err != nil {
 		return 0, err
 	}

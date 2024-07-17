@@ -632,6 +632,10 @@ func (m *SingleAuthToken_SecretRef) Equal(that interface{}) bool {
 		return false
 	}
 
+	if strings.Compare(m.GetNamespace(), target.GetNamespace()) != 0 {
+		return false
+	}
+
 	if strings.Compare(m.GetKey(), target.GetKey()) != 0 {
 		return false
 	}

@@ -13,8 +13,10 @@ option (extproto.clone_all) = true;
 
 message SingleAuthToken {
   message SecretRef {
-    // name of k8s secret in the same namesapce as the Upstream
-    string name = 2;
+    // name of k8s secret
+    string name = 1;
+    // namespace of k8s secret
+    string namespace = 2;
     // Optional secret key to use
     string key = 3;
   }
