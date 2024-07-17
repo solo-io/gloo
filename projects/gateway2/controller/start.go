@@ -102,7 +102,6 @@ func Start(ctx context.Context, cfg StartConfig) error {
 	mgr.AddReadyzCheck("ready-ping", healthz.Ping)
 
 	cfg.SnapshotHistory.SetKubeGatewayClient(mgr.GetClient())
-	cfg.SnapshotHistory.SetKubeGatewayInputGvks(iosnapshot.KubeGatewayDefaultGVKs)
 
 	inputChannels := proxy_syncer.NewGatewayInputChannels()
 

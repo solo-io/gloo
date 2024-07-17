@@ -18,26 +18,34 @@ import (
 // The ControlPlane will use the Setters to update the last known state,
 // and the Getters will be used by the Admin Server
 type History interface {
-	// SetApiSnapshot sets the latest ApiSnapshot
+	// SetApiSnapshot sets the latest Edge ApiSnapshot.
 	SetApiSnapshot(latestInput *v1snap.ApiSnapshot)
+
 	// SetKubeGatewayClient sets the client to use for Kubernetes CRUD operations when
-	// Kubernetes Gateway integration is enabled. If this is not set, then no Kubernetes
-	// Gateway resources will be returned from `GetInputSnapshot`.
+	// Kubernetes Gateway integration is enabled. If this is not set, then it is assumed
+	// that Kubernetes Gateway integration is not enabled, and no Kubernetes Gateway
+	// resources will be returned from `GetInputSnapshot`.
 	SetKubeGatewayClient(kubeGatewayClient client.Client)
-	// SetKubeGatewayInputGvks sets the list of GVKs to return in the input snapshot when
-	// Kubernetes Gateway integration is enabled. This may include Gateway API resources,
-	// Portal resources, or other resources specific to the Kubernetes Gateway integration.
-	// The resource types specified here will be returned in addition to Edge input snapshot
-	// resources specified by `SetApiSnapshot`.
-	// If this is not set, then no Kubernetes Gateway resources will be returned from `GetInputSnapshot`.
-	SetKubeGatewayInputGvks([]schema.GroupVersionKind)
+
+	// SetExtraKubeGvks optionally sets a list of extra GVKs to return in the input snapshot when
+	// Kubernetes Gateway integration is enabled, in addition to the default GVKs specified by
+	// `KubeGatewayDefaultGVKs`.
+	//
+	// For example, this may include additional Gateway API resources, Portal resources, or other
+	// resources specific to the Kubernetes Gateway integration.
+	//
+	// If this is not set, then only the default GVKs specified by `KubeGatewayDefaultGVKs` will
+	// be returned from `GetInputSnapshot` (in addition to Edge ApiSnapshot resources).
+	SetExtraKubeGvks(extraGvks []schema.GroupVersionKind)
 
 	// GetInputSnapshot returns all resources in the Edge input snapshot, and if Kubernetes
 	// Gateway integration is enabled, it additionally returns all resources on the cluster
-	// with types specified by `SetKubeGatewayInputGvks`.
+	// with types specified by `KubeGatewayDefaultGVKs` and `SetExtraKubeGvks`.
 	GetInputSnapshot(ctx context.Context) ([]byte, error)
+
 	// GetProxySnapshot returns the Proxies generated for all components.
 	GetProxySnapshot(ctx context.Context) ([]byte, error)
+
 	// GetXdsSnapshot returns the entire cache of xDS snapshots
 	// NOTE: This contains sensitive data, as it is the exact inputs that used by Envoy
 	GetXdsSnapshot(ctx context.Context) ([]byte, error)
@@ -45,12 +53,16 @@ type History interface {
 
 // NewHistory returns an implementation of the History interface
 func NewHistory(cache cache.SnapshotCache, settings *gloov1.Settings) History {
+	// initialize kube gvks to contain a copy of the default gvks
+	kubeGvks := []schema.GroupVersionKind{}
+	kubeGvks = append(kubeGvks, KubeGatewayDefaultGVKs...)
+
 	return &historyImpl{
 		latestApiSnapshot: nil,
 		xdsCache:          cache,
 		settings:          settings,
 		kubeGatewayClient: nil,
-		kubeGvks:          nil,
+		kubeGvks:          kubeGvks,
 	}
 }
 
@@ -63,7 +75,9 @@ type historyImpl struct {
 	xdsCache          cache.SnapshotCache
 	settings          *gloov1.Settings
 	kubeGatewayClient client.Client
-	kubeGvks          []schema.GroupVersionKind
+	// this will hold all the kube gvks (default + any extras that are set) that we want to
+	// show in the input snapshot when kube gateway integration is enabled
+	kubeGvks []schema.GroupVersionKind
 }
 
 // SetApiSnapshot sets the latest input ApiSnapshot
@@ -89,12 +103,18 @@ func (h *historyImpl) SetKubeGatewayClient(kubeGatewayClient client.Client) {
 	}()
 }
 
-func (h *historyImpl) SetKubeGatewayInputGvks(gvks []schema.GroupVersionKind) {
+func (h *historyImpl) SetExtraKubeGvks(extraGvks []schema.GroupVersionKind) {
 	// Setters are called by the running Control Plane, so we perform the update in a goroutine to prevent
 	// any contention/issues, from impacting the runtime of the system
 	go func() {
 		h.Lock()
 		defer h.Unlock()
+
+		// whenever etraGvks is set, we re-initialize kubeGvks to a list containing the default gvks
+		// + the extra gvks
+		gvks := []schema.GroupVersionKind{}
+		gvks = append(gvks, KubeGatewayDefaultGVKs...)
+		gvks = append(gvks, extraGvks...)
 
 		h.kubeGvks = gvks
 	}()
