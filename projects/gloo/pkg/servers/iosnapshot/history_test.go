@@ -31,6 +31,8 @@ import (
 	crdv1 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -562,6 +564,66 @@ var _ = Describe("History", func() {
 				expectDoesNotContainResource(returnedResources, extauthv1.AuthConfigGVK, defaults.GlooSystem, "ac-snap")
 				expectDoesNotContainResource(returnedResources, ratelimitv1alpha1.RateLimitConfigGVK, defaults.GlooSystem, "rlc-snap")
 			})
+
+			It("returns only relevant gvks", func() {
+				clientObjects := []client.Object{
+					&appsv1.Deployment{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "kube-deploy",
+							Namespace: "a",
+						},
+					},
+				}
+
+				setClientOnHistory(ctx, history, clientBuilder.WithObjects(clientObjects...))
+
+				inputSnapshotBytes, err := history.GetInputSnapshot(ctx)
+				Expect(err).NotTo(HaveOccurred())
+
+				returnedResources := []crdv1.Resource{}
+				err = json.Unmarshal(inputSnapshotBytes, &returnedResources)
+				Expect(err).NotTo(HaveOccurred())
+
+				// a Deployment is not one of the resource types we return in the input snapshot by default, so
+				// the deployment should not appear in the results
+				deploymentGvk := schema.GroupVersionKind{
+					Group:   appsv1.GroupName,
+					Version: "v1",
+					Kind:    "Deployment",
+				}
+				Expect(containsResourceType(returnedResources, deploymentGvk)).To(BeFalse(),
+					"input snapshot should not contain deployments")
+			})
+
+			It("respects extra kube gvks", func() {
+				clientObjects := []client.Object{
+					&appsv1.Deployment{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "kube-deploy",
+							Namespace: "a",
+						},
+					},
+				}
+
+				// update the extra kube gvks to include deployments
+				deploymentGvk := schema.GroupVersionKind{
+					Group:   appsv1.GroupName,
+					Version: "v1",
+					Kind:    "Deployment",
+				}
+				setExtraKubeGvksOnHistory(ctx, history, clientBuilder.WithObjects(clientObjects...),
+					[]schema.GroupVersionKind{deploymentGvk})
+
+				inputSnapshotBytes, err := history.GetInputSnapshot(ctx)
+				Expect(err).NotTo(HaveOccurred())
+
+				returnedResources := []crdv1.Resource{}
+				err = json.Unmarshal(inputSnapshotBytes, &returnedResources)
+				Expect(err).NotTo(HaveOccurred())
+
+				// we should now see the deployment in the input snapshot results
+				expectContainsResource(returnedResources, deploymentGvk, "a", "kube-deploy")
+			})
 		})
 	})
 
@@ -616,7 +678,6 @@ func setSnapshotOnHistory(ctx context.Context, history History, snap *v1snap.Api
 // nature of the `Set` API on the History
 func setClientOnHistory(ctx context.Context, history History, builder *fake.ClientBuilder) {
 	gwSignalObject := &apiv1.Gateway{
-		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gw-signal",
 			Namespace: defaults.GlooSystem,
@@ -626,6 +687,30 @@ func setClientOnHistory(ctx context.Context, history History, builder *fake.Clie
 	history.SetKubeGatewayClient(builder.WithObjects(gwSignalObject).Build())
 
 	eventuallyInputSnapshotContainsResource(ctx, history, wellknown.GatewayGVK, defaults.GlooSystem, "gw-signal")
+}
+
+// setExtraKubeGvksOnHistory sets the extra Kubernetes Gateway-related GVKs on the history, and blocks
+// until it has been processed.
+// This is a utility method to help developers write tests, without having to worry about the asynchronous
+// nature of the `Set` API on the History
+func setExtraKubeGvksOnHistory(ctx context.Context, history History, builder *fake.ClientBuilder,
+	extraGvks []schema.GroupVersionKind) {
+	// use a Pod (a resource type we normally don't return in the input snapshot) as a signal object to
+	// make sure the History has been updated with the new gvks
+	podGvk := schema.GroupVersionKind{Group: corev1.GroupName, Version: "v1", Kind: "Pod"}
+	extraGvks = append(extraGvks, podGvk)
+
+	signalObject := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pod-signal",
+			Namespace: defaults.GlooSystem,
+		},
+	}
+
+	history.SetExtraKubeGvks(extraGvks)
+	history.SetKubeGatewayClient(builder.WithObjects(signalObject).Build())
+
+	eventuallyInputSnapshotContainsResource(ctx, history, podGvk, defaults.GlooSystem, "pod-signal")
 }
 
 // check that the input snapshot eventually contains a resource with the given gvk, namespace, and name
