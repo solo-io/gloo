@@ -165,10 +165,7 @@ func (h *historyImpl) GetInputSnapshot(ctx context.Context) ([]byte, error) {
 	}
 	resources = append(resources, kubeResources...)
 
-	// sort all the resources before formatting
-	sortResources(resources)
-
-	return formatOutput("json_compact", resources)
+	return formatResources(resources)
 }
 
 func (h *historyImpl) GetProxySnapshot(ctx context.Context) ([]byte, error) {
@@ -183,10 +180,7 @@ func (h *historyImpl) GetProxySnapshot(ctx context.Context) ([]byte, error) {
 		return nil, err
 	}
 
-	// sort all the resources before formatting
-	sortResources(resources)
-
-	return formatOutput("json_compact", resources)
+	return formatResources(resources)
 }
 
 // GetXdsSnapshot returns the entire cache of xDS snapshots
