@@ -69,7 +69,7 @@ type StartConfig struct {
 
 	// SnapshotHistory is used for debugging purposes
 	// The controller updates the History with the Kubernetes Client is used, and the History is then used by the Admin Server
-	SnapshotHistory iosnapshot.History
+	SnapshotHistory iosnapshot.History2
 }
 
 // Start runs the controllers responsible for processing the K8s Gateway API objects
@@ -106,8 +106,8 @@ func Start(ctx context.Context, cfg StartConfig) error {
 	inputChannels := proxy_syncer.NewGatewayInputChannels()
 
 	k8sGwExtensions, err := cfg.ExtensionsFactory(ctx, extensions.K8sGatewayExtensionsFactoryParameters{
-		Mgr:                     mgr,
-		SnapshotHistory:         cfg.SnapshotHistory,
+		Mgr: mgr,
+		//SnapshotHistory:         cfg.SnapshotHistory,
 		RouteOptionClient:       cfg.RouteOptionClient,
 		VirtualHostOptionClient: cfg.VirtualHostOptionClient,
 		StatusReporter:          cfg.StatusReporter,

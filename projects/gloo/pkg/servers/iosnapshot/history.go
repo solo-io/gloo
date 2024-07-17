@@ -14,6 +14,77 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+type SettingsSnapshotHistory interface {
+	// we can locate all settings related content here
+	// instead of creating the settings object with the constructor, we could just use a setter
+}
+
+type XdsSnapshotHistory interface {
+	// GetXdsSnapshot returns the entire cache of xDS snapshots
+	// NOTE: This contains sensitive data, as it is the exact inputs that used by Envoy
+	GetXdsSnapshot(ctx context.Context) ([]byte, error)
+}
+
+type ApiSnapshotHistory interface {
+	// SetApiSnapshot sets the latest Edge ApiSnapshot.
+	SetApiSnapshot(latestInput *v1snap.ApiSnapshot)
+
+	// GetInputSnapshot returns all resources in the Edge input snapshot
+	GetInputSnapshot(ctx context.Context) ([]byte, error)
+
+	// GetProxySnapshot returns the Proxies generated for all components.
+	GetProxySnapshot(ctx context.Context) ([]byte, error)
+}
+
+type KubernetesApiSnapshotHistory interface {
+	// SetKubeGatewayClient sets the client to use for Kubernetes CRUD operations when
+	// Kubernetes Gateway integration is enabled. If this is not set, then it is assumed
+	// that Kubernetes Gateway integration is not enabled, and no Kubernetes Gateway
+	// resources will be returned from `GetInputSnapshot`.
+	SetKubeGatewayClient(kubeGatewayClient client.Client)
+}
+
+type History2 interface {
+	SettingsSnapshotHistory
+	XdsSnapshotHistory
+	ApiSnapshotHistory
+	KubernetesApiSnapshotHistory
+}
+
+type HistoryFactory func(settings *gloov1.Settings, cache cache.SnapshotCache) History2
+
+func ExampleOSSHistoryFactory() HistoryFactory {
+	return func(settings *gloov1.Settings, cache cache.SnapshotCache) History2 {
+		return &historyImpl{
+			latestApiSnapshot: nil,
+			xdsCache:          cache,
+			settings:          settings,
+			kubeGatewayClient: nil,
+			kubeGvks:          KubeGatewayDefaultGVKs,
+		}
+	}
+}
+
+// This would be defined in EE
+func ExampleEEHistoryFactory() HistoryFactory {
+	// custom gvks from ee
+	customEEGvks := []schema.GroupVersionKind{}
+
+	gvks := append(customEEGvks, KubeGatewayDefaultGVKs...)
+
+	return func(settings *gloov1.Settings, cache cache.SnapshotCache) History2 {
+		// This allows us to just re-use the oss implementation entirely. but also, we could
+		// create an ee impl that wraps the oss one if we want to customize it further
+		return &historyImpl{
+			latestApiSnapshot: nil,
+			xdsCache:          cache,
+			settings:          settings,
+			kubeGatewayClient: nil,
+			kubeGvks:          gvks,
+		}
+	}
+}
+
 // History represents an object that maintains state about the running system
 // The ControlPlane will use the Setters to update the last known state,
 // and the Getters will be used by the Admin Server

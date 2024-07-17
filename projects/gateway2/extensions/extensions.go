@@ -22,7 +22,7 @@ type K8sGatewayExtensions interface {
 // K8sGatewayExtensionsFactoryParameters contains the parameters required to start Gloo K8s Gateway Extensions (including Translator Plugins)
 type K8sGatewayExtensionsFactoryParameters struct {
 	Mgr                     controllerruntime.Manager
-	SnapshotHistory         iosnapshot.History
+	SnapshotHistory         iosnapshot.History2
 	AuthConfigClient        v1.AuthConfigClient
 	RouteOptionClient       gatewayv1.RouteOptionClient
 	VirtualHostOptionClient gatewayv1.VirtualHostOptionClient
@@ -52,7 +52,7 @@ func NewK8sGatewayExtensions(
 
 type k8sGatewayExtensions struct {
 	mgr                     controllerruntime.Manager
-	snapshotHistory         iosnapshot.History
+	snapshotHistory         iosnapshot.History2
 	routeOptionClient       gatewayv1.RouteOptionClient
 	virtualHostOptionClient gatewayv1.VirtualHostOptionClient
 	statusReporter          reporter.StatusReporter

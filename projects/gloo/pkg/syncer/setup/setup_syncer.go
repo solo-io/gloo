@@ -464,8 +464,9 @@ func RunGloo(opts bootstrap.Opts) error {
 			ratelimitExt.NewTranslatorSyncerExtension,
 			extauthExt.NewTranslatorSyncerExtension,
 		},
-		ApiEmitterChannel: make(chan struct{}),
-		XdsCallbacks:      nil,
+		ApiEmitterChannel:      make(chan struct{}),
+		XdsCallbacks:           nil,
+		SnapshotHistoryFactory: iosnapshot.ExampleOSSHistoryFactory(),
 	}
 
 	return RunGlooWithExtensions(opts, glooExtensions)
@@ -894,7 +895,9 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 
 	// snapshotHistory is a utility for managing the state of the input/output snapshots that the Control Plane
 	// consumes and produces. This object is then used by our Admin Server, to provide this data on demand
-	snapshotHistory := iosnapshot.NewHistory(opts.ControlPlane.SnapshotCache, opts.Settings)
+	//snapshotHistory := iosnapshot.NewHistory(opts.ControlPlane.SnapshotCache, opts.Settings)
+
+	snapshotHistory := extensions.SnapshotHistoryFactory(opts.Settings, opts.ControlPlane.SnapshotCache)
 
 	startFuncs["admin-server"] = AdminServerStartFunc(snapshotHistory)
 

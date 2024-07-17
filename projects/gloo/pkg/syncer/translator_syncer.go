@@ -47,7 +47,7 @@ type translatorSyncer struct {
 
 	// snapshotHistory is used for debugging purposes
 	// The syncer updates the History each time it runs, and the History is then used by the Admin Server
-	snapshotHistory iosnapshot.History
+	snapshotHistory iosnapshot.ApiSnapshotHistory
 
 	statusSyncer *statusSyncer
 
@@ -82,7 +82,7 @@ func NewTranslatorSyncer(
 	writeNamespace string,
 	identity leaderelector.Identity,
 	onProxyTranslated OnProxiesTranslatedFn,
-	snapshotHistory iosnapshot.History,
+	snapshotHistory iosnapshot.History2,
 ) v1snap.ApiSyncer {
 	s := &translatorSyncer{
 		translator:       translator,

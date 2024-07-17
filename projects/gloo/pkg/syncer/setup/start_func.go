@@ -62,7 +62,7 @@ func K8sGatewayControllerStartFunc(
 	routeOptionClient gateway.RouteOptionClient,
 	vhOptionClient gateway.VirtualHostOptionClient,
 	statusClient resources.StatusClient,
-	snapshotHistory iosnapshot.History,
+	snapshotHistory iosnapshot.History2,
 ) StartFunc {
 	return func(ctx context.Context, opts bootstrap.Opts, extensions Extensions) error {
 		statusReporter := reporter.NewReporter(defaults.KubeGatewayReporter, statusClient, routeOptionClient.BaseClient(), vhOptionClient.BaseClient())
@@ -93,7 +93,7 @@ func K8sGatewayControllerStartFunc(
 // The endpoints that are available on this server are split between two places:
 //  1. The default endpoints are defined by our stats server: https://github.com/solo-io/go-utils/blob/8eda16b9878d71673e6a3a9756f6088160f75468/stats/stats.go#L79
 //  2. Custom endpoints are defined by our admin server handler in `gloo/pkg/servers/admin`
-func AdminServerStartFunc(history iosnapshot.History) StartFunc {
+func AdminServerStartFunc(history iosnapshot.History2) StartFunc {
 	return func(ctx context.Context, opts bootstrap.Opts, extensions Extensions) error {
 		// serverHandlers defines the custom handlers that the Admin Server will support
 		serverHandlers := admin.ServerHandlers(ctx, history)
