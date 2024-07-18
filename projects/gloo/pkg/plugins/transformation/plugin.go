@@ -483,6 +483,19 @@ func translateTransformationTemplate(in *transformation.Transformation_Transform
 		outTemplate.BodyTransformation = &envoytransformation.TransformationTemplate_MergeExtractorsToBody{
 			MergeExtractorsToBody: &envoytransformation.MergeExtractorsToBody{},
 		}
+	case *transformation.TransformationTemplate_MergeJsonKeys:
+		jsonKeys := &envoytransformation.MergeJsonKeys{
+			JsonKeys: make(map[string]*envoytransformation.MergeJsonKeys_OverridableTemplate, len(bodyTransformation.MergeJsonKeys.GetJsonKeys())),
+		}
+		for key, val := range bodyTransformation.MergeJsonKeys.GetJsonKeys() {
+			jsonKeys.JsonKeys[key] = &envoytransformation.MergeJsonKeys_OverridableTemplate{
+				Tmpl:          &envoytransformation.InjaTemplate{Text: val.GetTmpl().GetText()},
+				OverrideEmpty: val.GetOverrideEmpty(),
+			}
+		}
+		outTemplate.BodyTransformation = &envoytransformation.TransformationTemplate_MergeJsonKeys{
+			MergeJsonKeys: jsonKeys,
+		}
 	}
 
 	if len(inTemplate.GetDynamicMetadataValues()) > 0 {
