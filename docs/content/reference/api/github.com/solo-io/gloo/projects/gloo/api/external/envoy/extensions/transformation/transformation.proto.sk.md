@@ -332,7 +332,7 @@ Defines a transformation template.
 | `body` | [.envoy.api.v2.filter.http.InjaTemplate](../transformation.proto.sk/#injatemplate) | Apply a template to the body. Only one of `body`, `passthrough`, `mergeExtractorsToBody`, or `mergeJsonKeys` can be set. |
 | `passthrough` | [.envoy.api.v2.filter.http.Passthrough](../transformation.proto.sk/#passthrough) | This will cause the transformation filter not to buffer the body. Use this setting if the response body is large and you don't need to transform nor extract information from it. Only one of `passthrough`, `body`, `mergeExtractorsToBody`, or `mergeJsonKeys` can be set. |
 | `mergeExtractorsToBody` | [.envoy.api.v2.filter.http.MergeExtractorsToBody](../transformation.proto.sk/#mergeextractorstobody) | Merge all defined extractors to the request/response body. If you want to nest elements inside the body, use dot separator in the extractor name. Only one of `mergeExtractorsToBody`, `body`, `passthrough`, or `mergeJsonKeys` can be set. |
-| `mergeJsonKeys` | [.envoy.api.v2.filter.http.MergeJsonKeys](../transformation.proto.sk/#mergejsonkeys) | A list of keys to merge into the JSON body. If the key already exists in the body it will be overwritten. Only one of `mergeJsonKeys`, `body`, `passthrough`, or `mergeExtractorsToBody` can be set. |
+| `mergeJsonKeys` | [.envoy.api.v2.filter.http.MergeJsonKeys](../transformation.proto.sk/#mergejsonkeys) | A set of key-value pairs to merge into the JSON body. Each value will be rendered separately, and then placed into the JSON body at the specified key. There are a number of important caveats to using this feature: * This can only be used when the body is parsed as JSON. * This option does NOT work with advanced templates currently. Only one of `mergeJsonKeys`, `body`, `passthrough`, or `mergeExtractorsToBody` can be set. |
 | `parseBodyBehavior` | [.envoy.api.v2.filter.http.TransformationTemplate.RequestBodyParse](../transformation.proto.sk/#requestbodyparse) | Determines how the body will be parsed. Defaults to ParseAsJson. |
 | `ignoreErrorOnParse` | `bool` | If set to true, Envoy will not throw an exception in case the body parsing fails. |
 | `dynamicMetadataValues` | [[]envoy.api.v2.filter.http.TransformationTemplate.DynamicMetadataValue](../transformation.proto.sk/#dynamicmetadatavalue) | Use this field to set Dynamic Metadata. |
@@ -480,7 +480,7 @@ substring extends to the end of the input string.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `jsonKeys` | `map<string, .envoy.api.v2.filter.http.MergeJsonKeys.OverridableTemplate>` | Map of key name -> template to render into the JSON body. |
+| `jsonKeys` | `map<string, .envoy.api.v2.filter.http.MergeJsonKeys.OverridableTemplate>` | Map of key name -> template to render into the JSON body For example, given the following JSON body: { "key1": "value1" } and the following MergeJsonKeys: { "key1": "{{ header("header1") }}", "key2": "{{ header("header2") }}" } The resulting JSON body will be: { "key1": "header1_value", "key2": "header2_value" }. |
 
 
 

@@ -986,8 +986,12 @@ type TransformationTemplate_MergeExtractorsToBody struct {
 }
 
 type TransformationTemplate_MergeJsonKeys struct {
-	// A list of keys to merge into the JSON body. If the key already exists in
-	// the body it will be overwritten.
+	// A set of key-value pairs to merge into the JSON body.
+	// Each value will be rendered separately, and then placed into the JSON body at
+	// the specified key.
+	// There are a number of important caveats to using this feature:
+	// * This can only be used when the body is parsed as JSON.
+	// * This option does NOT work with advanced templates currently
 	MergeJsonKeys *MergeJsonKeys `protobuf:"bytes,13,opt,name=merge_json_keys,json=mergeJsonKeys,proto3,oneof"`
 }
 
@@ -1148,6 +1152,20 @@ type MergeJsonKeys struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Map of key name -> template to render into the JSON body
+	// For example, given the following JSON body:
+	// {
+	// "key1": "value1"
+	// }
+	// and the following MergeJsonKeys:
+	// {
+	// "key1": "{{ header("header1") }}",
+	// "key2": "{{ header("header2") }}"
+	// }
+	// The resulting JSON body will be:
+	// {
+	// "key1": "header1_value",
+	// "key2": "header2_value"
+	// }
 	JsonKeys map[string]*MergeJsonKeys_OverridableTemplate `protobuf:"bytes,2,rep,name=json_keys,json=jsonKeys,proto3" json:"json_keys,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
