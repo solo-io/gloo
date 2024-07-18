@@ -33,7 +33,6 @@ weight: 5
 - [Message](#message)
 - [AIPromptGaurd](#aipromptgaurd)
 - [Request](#request)
-- [BuiltIn](#builtin)
 - [Response](#response)
 - [BuiltIn](#builtin)
   
@@ -526,31 +525,14 @@ Data store from which to cache the request/response pairs
 
 ```yaml
 "matches": []string
-"builtins": []ai.options.gloo.solo.io.AIPromptGaurd.Request.BuiltIn
 "customResponseMessage": string
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `matches` | `[]string` | All matches will be masked before being sent back to the client We can also use DLP stats to see how often this happens. |
-| `builtins` | [[]ai.options.gloo.solo.io.AIPromptGaurd.Request.BuiltIn](../ai.proto.sk/#builtin) | A list of built-in regexes to mask in the response. |
-| `customResponseMessage` | `string` | Custom response message to send back to the client. |
-
-
-
-
----
-### BuiltIn
-
-
-
-| Name | Description |
-| ----- | ----------- | 
-| `SSN` |  |
-| `CREDIT_CARD` |  |
-| `EMAIL` |  |
-| `PHONE_NUMBER` |  |
+| `matches` | `[]string` | A list of Regex patterns to match against the prompt. Each one will be checked against the prompt and if any match the request will be rejected. |
+| `customResponseMessage` | `string` | Custom response message to send back to the client. If not specified, the following default message will be used: "The request was rejected due to inappropriate content". |
 
 
 
@@ -568,8 +550,8 @@ Data store from which to cache the request/response pairs
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `matches` | `[]string` | All matches will be masked before being sent back to the client We can also use DLP stats to see how often this happens. |
-| `builtins` | [[]ai.options.gloo.solo.io.AIPromptGaurd.Response.BuiltIn](../ai.proto.sk/#builtin) | A list of built-in regexes to mask in the response. |
+| `matches` | `[]string` | A list of Regex patterns to match against the response. All matches will be masked before being sent back to the client. matches and builtins are additive. |
+| `builtins` | [[]ai.options.gloo.solo.io.AIPromptGaurd.Response.BuiltIn](../ai.proto.sk/#builtin) | A list of built-in regexes to mask in the response. matches and builtins are additive. |
 
 
 
@@ -581,10 +563,10 @@ Data store from which to cache the request/response pairs
 
 | Name | Description |
 | ----- | ----------- | 
-| `SSN` |  |
-| `CREDIT_CARD` |  |
-| `EMAIL` |  |
-| `PHONE_NUMBER` |  |
+| `SSN` | Default REGEX for Social Security Numbers |
+| `CREDIT_CARD` | Default REGEX for Credit Card Numbers |
+| `EMAIL` | Default REGEX for Email Addresses |
+| `PHONE_NUMBER` | Default REGEX for Phone Numbers |
 
 
 

@@ -1079,15 +1079,6 @@ func (m *AIPromptGaurd_Request) Hash(hasher hash.Hash64) (uint64, error) {
 
 	}
 
-	for _, v := range m.GetBuiltins() {
-
-		err = binary.Write(hasher, binary.LittleEndian, v)
-		if err != nil {
-			return 0, err
-		}
-
-	}
-
 	if _, err = hasher.Write([]byte(m.GetCustomResponseMessage())); err != nil {
 		return 0, err
 	}

@@ -358,32 +358,33 @@ message AIPromptEnrichment {
 
 message AIPromptGaurd {
   message Request {
-    enum BuiltIn {
-      SSN = 0;
-      CREDIT_CARD = 1;
-      EMAIL = 2;
-      PHONE_NUMBER = 3;
-    }
-    // All matches will be masked before being sent back to the client
-    // We can also use DLP stats to see how often this happens
+    // A list of Regex patterns to match against the prompt.
+    // Each one will be checked against the prompt and if any match
+    // the request will be rejected.
     repeated string matches = 1;
-    // A list of built-in regexes to mask in the response
-    repeated BuiltIn builtins = 2;
-    // Custom response message to send back to the client
-    string custom_response_message = 3;
+    // Custom response message to send back to the client.
+    // If not specified, the following default message will be used:
+    // "The request was rejected due to inappropriate content"
+    string custom_response_message = 2;
   }
 
   message Response {
       enum BuiltIn {
+        // Default REGEX for Social Security Numbers
         SSN = 0;
+        // Default REGEX for Credit Card Numbers
         CREDIT_CARD = 1;
+        // Default REGEX for Email Addresses
         EMAIL = 2;
+        // Default REGEX for Phone Numbers
         PHONE_NUMBER = 3;
       }
-      // All matches will be masked before being sent back to the client
-      // We can also use DLP stats to see how often this happens
+      // A list of Regex patterns to match against the response.
+      // All matches will be masked before being sent back to the client.
+      // matches and builtins are additive.
       repeated string matches = 1;
-      // A list of built-in regexes to mask in the response
+      // A list of built-in regexes to mask in the response.
+      // matches and builtins are additive.
       repeated BuiltIn builtins = 2;
   }
   // Guards for the prompt request

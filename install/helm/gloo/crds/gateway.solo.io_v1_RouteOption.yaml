@@ -75,11 +75,6 @@ spec:
                         properties:
                           request:
                             properties:
-                              builtins:
-                                items:
-                                  type: string
-                                  x-kubernetes-int-or-string: true
-                                type: array
                               customResponseMessage:
                                 type: string
                               matches:

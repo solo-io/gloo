@@ -590,15 +590,6 @@ func (m *AIPromptGaurd_Request) Clone() proto.Message {
 		}
 	}
 
-	if m.GetBuiltins() != nil {
-		target.Builtins = make([]AIPromptGaurd_Request_BuiltIn, len(m.GetBuiltins()))
-		for idx, v := range m.GetBuiltins() {
-
-			target.Builtins[idx] = v
-
-		}
-	}
-
 	target.CustomResponseMessage = m.GetCustomResponseMessage()
 
 	return target

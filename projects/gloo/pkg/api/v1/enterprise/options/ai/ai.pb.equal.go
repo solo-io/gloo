@@ -1047,17 +1047,6 @@ func (m *AIPromptGaurd_Request) Equal(that interface{}) bool {
 
 	}
 
-	if len(m.GetBuiltins()) != len(target.GetBuiltins()) {
-		return false
-	}
-	for idx, v := range m.GetBuiltins() {
-
-		if v != target.GetBuiltins()[idx] {
-			return false
-		}
-
-	}
-
 	if strings.Compare(m.GetCustomResponseMessage(), target.GetCustomResponseMessage()) != 0 {
 		return false
 	}
