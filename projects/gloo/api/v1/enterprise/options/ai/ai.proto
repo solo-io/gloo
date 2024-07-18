@@ -2,6 +2,7 @@ syntax = "proto3";
 package ai.options.gloo.solo.io;
 option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai";
 
+import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/duration.proto";
@@ -12,19 +13,11 @@ option (extproto.hash_all) = true;
 option (extproto.clone_all) = true;
 
 message SingleAuthToken {
-  message SecretRef {
-    // name of k8s secret
-    string name = 1;
-    // namespace of k8s secret
-    string namespace = 2;
-    // Optional secret key to use
-    string key = 3;
-  }
   oneof auth_token_source {
     // Provide easy inline way to specify a token
     string inline = 1;
     // Reference to a secret in the same namespace as the Upstream
-    SecretRef secret_ref = 2;
+    core.solo.io.ResourceRef secret_ref = 2;
   }
 }
 
@@ -69,7 +62,7 @@ message SingleAuthToken {
       authToken:
         secretRef:
           name: "my-secret"
-          key: "my-key"
+          namespace: "my-ns"
   ```
 
   Anthropic with inline token and custom Host:
@@ -213,6 +206,7 @@ message RouteSettings {
           authToken:
             secretRef:
               name: openai-secret
+              namespace: gloo-system
     ```
   */
   RAG rag = 3;
@@ -234,6 +228,7 @@ message RouteSettings {
           authToken:
             secretRef:
               name: openai-secret
+              namespace: gloo-system
     ```
   */
   SemanticCache semantic_cache = 4;

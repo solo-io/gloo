@@ -117,8 +117,6 @@ spec:
                                         type: string
                                       secretRef:
                                         properties:
-                                          key:
-                                            type: string
                                           name:
                                             type: string
                                           namespace:
@@ -150,8 +148,6 @@ spec:
                                         type: string
                                       secretRef:
                                         properties:
-                                          key:
-                                            type: string
                                           name:
                                             type: string
                                           namespace:

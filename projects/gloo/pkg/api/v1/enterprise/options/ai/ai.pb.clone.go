@@ -14,6 +14,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	github_com_golang_protobuf_ptypes_struct "github.com/golang/protobuf/ptypes/struct"
+
+	github_com_solo_io_solo_kit_pkg_api_v1_resources_core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 // ensure the imports are used
@@ -43,15 +45,15 @@ func (m *SingleAuthToken) Clone() proto.Message {
 			Inline: m.GetInline(),
 		}
 
-	case *SingleAuthToken_SecretRef_:
+	case *SingleAuthToken_SecretRef:
 
 		if h, ok := interface{}(m.GetSecretRef()).(clone.Cloner); ok {
-			target.AuthTokenSource = &SingleAuthToken_SecretRef_{
-				SecretRef: h.Clone().(*SingleAuthToken_SecretRef),
+			target.AuthTokenSource = &SingleAuthToken_SecretRef{
+				SecretRef: h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
 			}
 		} else {
-			target.AuthTokenSource = &SingleAuthToken_SecretRef_{
-				SecretRef: proto.Clone(m.GetSecretRef()).(*SingleAuthToken_SecretRef),
+			target.AuthTokenSource = &SingleAuthToken_SecretRef{
+				SecretRef: proto.Clone(m.GetSecretRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
 			}
 		}
 
@@ -357,23 +359,6 @@ func (m *AIPromptGaurd) Clone() proto.Message {
 	} else {
 		target.Response = proto.Clone(m.GetResponse()).(*AIPromptGaurd_Response)
 	}
-
-	return target
-}
-
-// Clone function
-func (m *SingleAuthToken_SecretRef) Clone() proto.Message {
-	var target *SingleAuthToken_SecretRef
-	if m == nil {
-		return target
-	}
-	target = &SingleAuthToken_SecretRef{}
-
-	target.Name = m.GetName()
-
-	target.Namespace = m.GetNamespace()
-
-	target.Key = m.GetKey()
 
 	return target
 }

@@ -46,7 +46,7 @@ func (m *SingleAuthToken) Hash(hasher hash.Hash64) (uint64, error) {
 			return 0, err
 		}
 
-	case *SingleAuthToken_SecretRef_:
+	case *SingleAuthToken_SecretRef:
 
 		if h, ok := interface{}(m.GetSecretRef()).(safe_hasher.SafeHasher); ok {
 			if _, err = hasher.Write([]byte("SecretRef")); err != nil {
@@ -658,34 +658,6 @@ func (m *AIPromptGaurd) Hash(hasher hash.Hash64) (uint64, error) {
 				return 0, err
 			}
 		}
-	}
-
-	return hasher.Sum64(), nil
-}
-
-// Hash function
-func (m *SingleAuthToken_SecretRef) Hash(hasher hash.Hash64) (uint64, error) {
-	if m == nil {
-		return 0, nil
-	}
-	if hasher == nil {
-		hasher = fnv.New64()
-	}
-	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.SingleAuthToken_SecretRef")); err != nil {
-		return 0, err
-	}
-
-	if _, err = hasher.Write([]byte(m.GetName())); err != nil {
-		return 0, err
-	}
-
-	if _, err = hasher.Write([]byte(m.GetNamespace())); err != nil {
-		return 0, err
-	}
-
-	if _, err = hasher.Write([]byte(m.GetKey())); err != nil {
-		return 0, err
 	}
 
 	return hasher.Sum64(), nil

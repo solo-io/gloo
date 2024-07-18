@@ -12,7 +12,6 @@ weight: 5
 
 
 - [SingleAuthToken](#singleauthtoken)
-- [SecretRef](#secretref)
 - [UpstreamSpec](#upstreamspec)
 - [CustomHost](#customhost)
 - [OpenAI](#openai)
@@ -52,35 +51,14 @@ weight: 5
 
 ```yaml
 "inline": string
-"secretRef": .ai.options.gloo.solo.io.SingleAuthToken.SecretRef
+"secretRef": .core.solo.io.ResourceRef
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `inline` | `string` | Provide easy inline way to specify a token. Only one of `inline` or `secretRef` can be set. |
-| `secretRef` | [.ai.options.gloo.solo.io.SingleAuthToken.SecretRef](../ai.proto.sk/#secretref) | Reference to a secret in the same namespace as the Upstream. Only one of `secretRef` or `inline` can be set. |
-
-
-
-
----
-### SecretRef
-
-
-
-```yaml
-"name": string
-"namespace": string
-"key": string
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `name` | `string` | name of k8s secret. |
-| `namespace` | `string` | namespace of k8s secret. |
-| `key` | `string` | Optional secret key to use. |
+| `secretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | Reference to a secret in the same namespace as the Upstream. Only one of `secretRef` or `inline` can be set. |
 
 
 
@@ -129,7 +107,7 @@ mistral:
 authToken:
 secretRef:
 name: "my-secret"
-key: "my-key"
+namespace: "my-ns"
 ```
 
 Anthropic with inline token and custom Host:
@@ -268,8 +246,8 @@ NOTE: These settings may only be applied to a route which uses an LLMProvider ba
 | ----- | ---- | ----------- | 
 | `promptEnrichment` | [.ai.options.gloo.solo.io.AIPromptEnrichment](../ai.proto.sk/#aipromptenrichment) | Config used to enrich the prompt. This can only be used with LLMProviders using the CHAT API type. Prompt enrichment allows you to add additional context to the prompt before sending it to the model. Unlike RAG or other dynamic context methods, prompt enrichment is static and will be applied to every request. Note: Some providers, including Anthropic do not support SYSTEM role messages, but rather have a dedicated system field in the input JSON. In this case, `field_defaults` should be used to set the system field. See the docs for that field for an example. Example: ``` promptEnrichment: prepend: - role: SYSTEM content: "answer all questions in french" append: - role: USER content: "Describe the painting as if you were a famous art critic from the 17th century" ```. |
 | `promptGuard` | [.ai.options.gloo.solo.io.AIPromptGaurd](../ai.proto.sk/#aipromptgaurd) | Guards to apply to the LLM requests on this route. This can be used to reject requests based on the content of the prompt, as well as mask responses based on the content of the response. These guards can be also be used at the same time. Below is a simple example of a prompt guard that will reject any prompt that contains the string "credit card" and will mask any credit card numbers in the response. ``` promptGuard: request: customResponseMessage: "Rejected due to inappropriate content" matches: - "credit card" response: matches: # Mastercard - '(?:^|\D)(5[1-5][0-9]{2}(?:\ |\-|)[0-9]{4}(?:\ |\-|)[0-9]{4}(?:\ |\-|)[0-9]{4})(?:\D|$)' ````. |
-| `rag` | [.ai.options.gloo.solo.io.RAG](../ai.proto.sk/#rag) | Retrieval Augmented Generation. https://research.ibm.com/blog/retrieval-augmented-generation-RAG Retrieval Augmented Generation is a process by which you "augment" the information a model has access to by providing it with a set of documents to use as context. This can be used to improve the quality of the generated text. Important Note: The same embedding mechanism must be used for the prompt which was used for the initial creation of the context documents. Example using postgres for storage and OpenAI for embedding: ``` rag: datastore: postgres: connectionString: postgresql+psycopg://gloo:gloo@172.17.0.1:6024/gloo collectionName: default embedding: openai: authToken: secretRef: name: openai-secret ```. |
-| `semanticCache` | [.ai.options.gloo.solo.io.SemanticCache](../ai.proto.sk/#semanticcache) | Semantic caching configuration Semantic caching allows you to cache previous model responses in order to provide faster responses to similar requests in the future. Results will vary depending on the embedding mechanism used, as well as the similarity threshold set. Example using Redis for storage and OpenAI for embedding: ``` semanticCache: datastore: redis: connectionString: redis://172.17.0.1:6379 embedding: openai: authToken: secretRef: name: openai-secret ```. |
+| `rag` | [.ai.options.gloo.solo.io.RAG](../ai.proto.sk/#rag) | Retrieval Augmented Generation. https://research.ibm.com/blog/retrieval-augmented-generation-RAG Retrieval Augmented Generation is a process by which you "augment" the information a model has access to by providing it with a set of documents to use as context. This can be used to improve the quality of the generated text. Important Note: The same embedding mechanism must be used for the prompt which was used for the initial creation of the context documents. Example using postgres for storage and OpenAI for embedding: ``` rag: datastore: postgres: connectionString: postgresql+psycopg://gloo:gloo@172.17.0.1:6024/gloo collectionName: default embedding: openai: authToken: secretRef: name: openai-secret namespace: gloo-system ```. |
+| `semanticCache` | [.ai.options.gloo.solo.io.SemanticCache](../ai.proto.sk/#semanticcache) | Semantic caching configuration Semantic caching allows you to cache previous model responses in order to provide faster responses to similar requests in the future. Results will vary depending on the embedding mechanism used, as well as the similarity threshold set. Example using Redis for storage and OpenAI for embedding: ``` semanticCache: datastore: redis: connectionString: redis://172.17.0.1:6379 embedding: openai: authToken: secretRef: name: openai-secret namespace: gloo-system ```. |
 | `backupModels` | `[]string` | Backup models to use in case of a failure with the primary model passed in the request. By default each model will be tried 2 times before moving on to the next model in the list. If all requests fail then the final response will be returned to the client. |
 | `defaults` | [[]ai.options.gloo.solo.io.FieldDefault](../ai.proto.sk/#fielddefault) | A list of defaults to be merged with the user input fields. These will NOT override the user input fields unless override is explicitly set to true. Some examples include setting the temperature, max_tokens, etc. Example overriding system field for Anthropic: ``` # Anthropic doesn't support a system chat type defaults: - field: "system" value: "answer all questions in french" ``` Example setting the temperature and max_tokens, overriding max_tokens: ``` defaults: - field: "temperature" value: 0.5 - field: "max_tokens" value: 100 ```. |
 

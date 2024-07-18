@@ -57,8 +57,8 @@ func (m *SingleAuthToken) Equal(that interface{}) bool {
 			return false
 		}
 
-	case *SingleAuthToken_SecretRef_:
-		if _, ok := target.AuthTokenSource.(*SingleAuthToken_SecretRef_); !ok {
+	case *SingleAuthToken_SecretRef:
+		if _, ok := target.AuthTokenSource.(*SingleAuthToken_SecretRef); !ok {
 			return false
 		}
 
@@ -602,42 +602,6 @@ func (m *AIPromptGaurd) Equal(that interface{}) bool {
 		if !proto.Equal(m.GetResponse(), target.GetResponse()) {
 			return false
 		}
-	}
-
-	return true
-}
-
-// Equal function
-func (m *SingleAuthToken_SecretRef) Equal(that interface{}) bool {
-	if that == nil {
-		return m == nil
-	}
-
-	target, ok := that.(*SingleAuthToken_SecretRef)
-	if !ok {
-		that2, ok := that.(SingleAuthToken_SecretRef)
-		if ok {
-			target = &that2
-		} else {
-			return false
-		}
-	}
-	if target == nil {
-		return m == nil
-	} else if m == nil {
-		return false
-	}
-
-	if strings.Compare(m.GetName(), target.GetName()) != 0 {
-		return false
-	}
-
-	if strings.Compare(m.GetNamespace(), target.GetNamespace()) != 0 {
-		return false
-	}
-
-	if strings.Compare(m.GetKey(), target.GetKey()) != 0 {
-		return false
 	}
 
 	return true
