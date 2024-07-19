@@ -362,44 +362,64 @@ observability:
     logLevel: error
 ```
 
-### Gloo Admin Endpoints [*Recommended, Introduced in 1.18*]
-The Control Plane exposes a set of [Administration endpoints](/projects/gloo/pkg/servers/admin). To access these:
+### Gloo Admin Endpoints
 
-* Enable port forwarding:
-```
-kubectl port-forward -n gloo-system deploy/gloo 9091:9091
-```
+In Gloo Gateway version 1.18 and later, the `gloo` control plane exposes a set of [Administration endpoints](https://github.com/solo-io/gloo/projects/gloo/pkg/servers/admin). You can use these endpoints to get different kinds of information to help you debug your Gloo Gateway setup.
 
-The following endpoints are then available:
-* `http://localhost:9091/snapshots/input`: Returns a list of resources, ordered by GVK, that the Control Plane is aware of.
-* `http://localhost:9091/snapshots/proxies`: Returns a list of Proxy CRs.
-* `http://localhost:9091/snapshots/xds`: Returns a map of xDS snapshots, keyed by the cache key for each snapshot.
+1. Enable port forwarding on the `gloo` deployment.
+   
+   ```
+   kubectl port-forward -n gloo-system deploy/gloo 9091:9091
+   ```
 
-### Dev Mode and Gloo Debug Endpoint [*Deprecated as of 1.18*]
+2. Access the following endpoints:
+   
+   * `http://localhost:9091/snapshots/input`: Returns a list of resources, ordered by GVK, that the `gloo` control plane is aware of.
+   * `http://localhost:9091/snapshots/proxies`: Returns a list of Proxy CRs.
+   * `http://localhost:9091/snapshots/xds`: Returns a map of xDS snapshots, keyed by the cache key for each snapshot.
 
-In non-production environments `settings.devMode` can be set to `true` to enable a debug endpoint on the gloo deployment on port `10010`. If this flag set at install time, the port will be exposed automatically. To set it on an existing installation:
-* Enable in the settings CR:
-```
-spec:
-  devMode: true
-``` 
-* Expose the port in the gloo deployment CR by adding the existing list of ports in the gloo deployment image definition:
-```
-      - ports
-        - containerPort: 10010
-          name: dev-admin
-          protocol: TCP
-```
-* Enable port forwarding:
-```
-kubectl port-forward -n gloo-system deployment/gloo 10010
-```
+### Deprecated: Dev Mode and Gloo Debug Endpoint
 
-The following endpoints are then available:
-* `http://localhost:10010/` :   a "Hello World" type page that displays the text `Developer API`
-* `http://localhost:10010/xds` : gets status keys from the xds cache
-* `http://localhost:10010/xds/{key}` : gets the snapshot of the object referred to by  key from the xds cache
-* `http://localhost:10010/api ` : gets the latest ApiSnapshot
+In non-production environments, you use the Settings CR dev mode to enable a debug endpoint on the `gloo` deployment on port `10010`. If this flag is set at install time, the port is exposed automatically. 
+
+{{% notice warning %}}
+As of Gloo Gateway version 1.18, dev mode configured by the Settings CR is deprecated. Instead, use the [admin endpoints](#gloo-admin-endpoints) that are automatically built in to the `gloo` deployment. To prepare for the eventual removal of this field, you can also remove this field from an existing Settings configuration.
+{{% /notice %}}
+
+To set up dev mode on an existing installation:
+
+1. Edit your Settings CR to enable the `devMode` field.
+   
+   ```shell
+   kubectl edit settings -n gloo-system default
+   ```
+
+   ```yaml
+   ...
+   spec:
+     devMode: true
+   ``` 
+
+2. Expose the port in the `gloo` deployment by adding the existing list of ports in the `gloo` deployment image definition:
+   ```yaml
+         - ports
+           - containerPort: 10010
+             name: dev-admin
+             protocol: TCP
+   ```
+
+3. Enable port forwarding on the `gloo` deployment.
+   
+   ```
+   kubectl port-forward -n gloo-system deployment/gloo 10010
+   ```
+
+4. Access the following endpoints:
+
+   * `http://localhost:10010/` : Opens a "Hello World" type page that displays the text `Developer API`.
+   * `http://localhost:10010/xds` : Gets status keys from the xDS cache.
+   * `http://localhost:10010/xds/{key}` : Gets the snapshot of the object referred to by key from the xDS cache.
+   * `http://localhost:10010/api ` : Gets the latest ApiSnapshot.
 
 
 ### All else fails

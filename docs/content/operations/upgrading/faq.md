@@ -221,9 +221,10 @@ Review the following summary of important new, deprecated, or removed CRD update
   * A new [`observabilityOptions.grafanaIntegration.dashboardPrefix` setting]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto.sk/#grafanaintegration" %}}) allows you to specify the prefix for the title and UID of Grafana dashboards that Gloo Gateway generates. This prefix can be useful when you aggregate data in a central Grafana instance to prevent conflicts across multiple Gloo environments. Note that if you set this field, you must manually remove any dashboard created without a prefix or with a different prefix.
   * A new [`observabilityOptions.grafanaIntegration.extraMetricQueryParameters` setting]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto.sk/#grafanaintegration" %}}) allows you to specify additional query parameters to add to all metric query definitions in the Grafana dashboards that Gloo Gateway generates. This string value can consist of multiple query parameters separated by a comma, such as `cluster="some-cluster",gateway_proxy_id="proxy-2"`.
 
-<!--
+
 **Deprecated CRDs**:
-N/A
+
+* `devMode` in the Settings CR: The `devMode` field that enables a debug endpoint on the `gloo` deployment on port `10010` is deprecated and planned to be removed in a future release. Instead, the `gloo` deployment now automatically includes admin endpoints that you can query for this debugging. To prepare for the eventual removal of this field, you can remove this field from an existing Settings configuration. For more information, see [Gloo Admin Endpoints]({{% versioned_link_path fromRoot="/operations/debugging_gloo/#gloo-admin-endpoints" %}}).
 
 **Removed CRDs**:
 N/A

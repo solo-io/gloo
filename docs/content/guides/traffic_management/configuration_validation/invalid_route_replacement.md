@@ -110,7 +110,6 @@ apiVersion: gloo.solo.io/v1
 kind: Settings
 # ...
 spec:
-  devMode: true
   discoveryNamespace: gloo-system
   gateway:
     validation:
