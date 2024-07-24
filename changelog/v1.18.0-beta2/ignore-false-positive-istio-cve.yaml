@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/solo-projects/issues/6624
+    description: >-
+      "Add istio.io/istio false positives CVEs to `.trivyignore`"
