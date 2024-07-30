@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
+	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/deployer"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
-	"github.com/solo-io/gloo/projects/gateway2/pkg/api/gateway.gloo.solo.io/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	httplisoptquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/httplisteneroptions/query"
 	lisoptquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/listeneroptions/query"
@@ -22,6 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/sets"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -41,7 +42,7 @@ const (
 
 type GatewayConfig struct {
 	Mgr            manager.Manager
-	GWClassName    apiv1.ObjectName
+	GWClasses      sets.Set[string]
 	Dev            bool
 	ControllerName string
 	AutoProvision  bool
@@ -55,7 +56,7 @@ type GatewayConfig struct {
 
 func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 	log := log.FromContext(ctx)
-	log.V(5).Info("starting controller", "controllerName", cfg.ControllerName, "gwClassName", cfg.GWClassName)
+	log.V(5).Info("starting controller", "controllerName", cfg.ControllerName, "GatewayClasses", sets.List(cfg.GWClasses))
 
 	controllerBuilder := &controllerBuilder{
 		cfg: cfg,
@@ -85,7 +86,6 @@ func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 		controllerBuilder.addVhOptIndexes,
 		controllerBuilder.addGwParamsIndexes,
 	)
-
 }
 
 func run(ctx context.Context, funcs ...func(ctx context.Context) error) error {
@@ -179,7 +179,7 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 		For(&apiv1.Gateway{}, builder.WithPredicates(predicate.NewPredicateFuncs(func(object client.Object) bool {
 			// we only care about Gateways that use our GatewayClass
 			if gw, ok := object.(*apiv1.Gateway); ok {
-				return gw.Spec.GatewayClassName == c.cfg.GWClassName
+				return c.cfg.GWClasses.Has(string(gw.Spec.GatewayClassName))
 			}
 			return false
 		}), predicate.GenerationChangedPredicate{}))
@@ -414,7 +414,6 @@ func (r *controllerReconciler) ReconcileHttpRoutes(ctx context.Context, req ctrl
 }
 
 func (r *controllerReconciler) ReconcileReferenceGrants(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-
 	// reconcile all things?!
 	r.kick(ctx)
 	return ctrl.Result{}, nil

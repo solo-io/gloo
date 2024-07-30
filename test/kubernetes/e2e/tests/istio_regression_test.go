@@ -2,15 +2,14 @@ package tests_test
 
 import (
 	"context"
-	"log"
 	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/solo-io/gloo/test/kube2e/helper"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	. "github.com/solo-io/gloo/test/kubernetes/e2e/tests"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/gloogateway"
+	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 
 	"github.com/solo-io/skv2/codegen/util"
 )
@@ -31,8 +30,7 @@ func TestIstioRegression(t *testing.T) {
 
 	err := testInstallation.AddIstioctl(ctx)
 	if err != nil {
-		log.Printf("failed to add istioctl: %v\n", err)
-		t.Fail()
+		t.Errorf("failed to add istioctl: %v\n", err)
 	}
 
 	// We register the cleanup function _before_ we actually perform the installation.
@@ -52,21 +50,19 @@ func TestIstioRegression(t *testing.T) {
 		// Uninstall Istio
 		err = testInstallation.UninstallIstio()
 		if err != nil {
-			log.Printf("failed to uninstall: %v\n", err)
-			t.Fail()
+			t.Errorf("failed to add istioctl: %v\n", err)
 		}
 	})
 
 	// Install Istio before Gloo Gateway to make sure istiod is present before istio-proxy
 	err = testInstallation.InstallMinimalIstio(ctx)
 	if err != nil {
-		log.Printf("failed to install: %v\n", err)
-		t.Fail()
+		t.Errorf("failed to add istioctl: %v\n", err)
 	}
 
 	// Install Gloo Gateway with only Edge APIs enabled
 	testInstallation.InstallGlooGateway(ctx, func(ctx context.Context) error {
-		return testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", testInstallation.Metadata.ValuesManifestFile))
+		return testHelper.InstallGloo(ctx, 5*time.Minute, helper.WithExtraArgs("--values", testInstallation.Metadata.ValuesManifestFile))
 	})
 
 	IstioRegressionSuiteRunner().Run(ctx, t, testInstallation)
