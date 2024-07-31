@@ -15,6 +15,7 @@ import (
 	"github.com/solo-io/go-utils/cliutils"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/spf13/cobra"
@@ -29,7 +30,12 @@ func dumpCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 			if err != nil {
 				return err
 			}
-			fmt.Printf("%v", cfgDump)
+			switch opts.Top.Output {
+			case printers.YAML, printers.KUBE_YAML:
+			default:
+				fmt.Printf("%v", cfgDump)
+
+			}
 			return nil
 		},
 	}
