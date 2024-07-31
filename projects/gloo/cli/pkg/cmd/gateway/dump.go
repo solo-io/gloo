@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/solo-io/go-utils/cliutils"
+	"sigs.k8s.io/yaml"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
@@ -30,12 +32,28 @@ func dumpCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 			if err != nil {
 				return err
 			}
+
+			var formattedOut string
 			switch opts.Top.Output {
 			case printers.YAML, printers.KUBE_YAML:
-			default:
-				fmt.Printf("%v", cfgDump)
+				var rawDump interface{}
+				json.Unmarshal([]byte(strings.TrimSpace(cfgDump)), &rawDump)
+				jsn, err := json.Marshal(rawDump)
+				if err != nil {
+					fmt.Println("error with proxy: ", err)
+					return err
+				}
 
+				out, err := yaml.JSONToYAML(jsn)
+				if err != nil {
+					fmt.Println("error with proxy marshal: ", err)
+					return err
+				}
+				formattedOut = fmt.Sprintf("%v", string(out))
+			default:
+				formattedOut = cfgDump
 			}
+			fmt.Printf("%v", formattedOut)
 			return nil
 		},
 	}
