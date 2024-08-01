@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: Comment out the TestConfigureProxiesFromGatewayParameters test as a bug in helm causes it to fail
+
