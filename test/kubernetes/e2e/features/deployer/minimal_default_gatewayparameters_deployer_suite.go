@@ -33,7 +33,7 @@ func NewMinimalDefaultGatewayParametersTestingSuite(ctx context.Context, testIns
 // This test has been commented out as a bug in helm prevents the runAsUser in the OSS sub-chart to be removed
 // by setting it as null in the enterprise chart.
 // Ref: https://github.com/helm/helm/issues/12637
-// TODO (davidjumani): Add this back once the bug has been fixed
+// TODO (davidjumani): Add this back once the bug has been fixed or remove it once an alternative mechanism has been provied
 // func (s *minimalDefaultGatewayParametersDeployerSuite) TestConfigureProxiesFromGatewayParameters() {
 // 	s.T().Cleanup(func() {
 // 		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gwParametersManifestFile)
