@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
-
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	"github.com/solo-io/gloo/projects/gateway2/translator/listener"
+	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils/statsutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -47,6 +47,9 @@ func (t *translator) TranslateProxy(
 	writeNamespace string,
 	reporter reports.Reporter,
 ) *v1.Proxy {
+	stopwatch := statsutils.NewTranslatorStopWatch("TranslateProxy")
+	stopwatch.Start(ctx)
+
 	routesForGw, err := t.queries.GetRoutesForGateway(ctx, gateway)
 	if err != nil {
 		// TODO(ilackarms): fill in the specific error / validation
@@ -80,6 +83,7 @@ func (t *translator) TranslateProxy(
 		reporter,
 	)
 
+	stopwatch.Stop(ctx)
 	return &v1.Proxy{
 		Metadata:  proxyMetadata(gateway, writeNamespace),
 		Listeners: listeners,

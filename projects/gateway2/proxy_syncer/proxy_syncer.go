@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils/statsutils"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
@@ -173,6 +174,9 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 func (s *ProxySyncer) syncRouteStatus(ctx context.Context, rm reports.ReportMap) {
 	ctx = contextutils.WithLogger(ctx, "routeStatusSyncer")
 	logger := contextutils.LoggerFrom(ctx)
+	stopwatch := statsutils.NewStatusSyncerStopWatch("HTTPRouteStatusSyncer")
+	stopwatch.Start(ctx)
+
 	rl := apiv1.HTTPRouteList{}
 	err := s.mgr.GetClient().List(ctx, &rl)
 	if err != nil {
@@ -189,12 +193,17 @@ func (s *ProxySyncer) syncRouteStatus(ctx context.Context, rm reports.ReportMap)
 			}
 		}
 	}
+
+	stopwatch.Stop(ctx)
 }
 
 // syncStatus updates the status of the Gateway CRs
 func (s *ProxySyncer) syncStatus(ctx context.Context, rm reports.ReportMap, gwl apiv1.GatewayList) {
 	ctx = contextutils.WithLogger(ctx, "statusSyncer")
 	logger := contextutils.LoggerFrom(ctx)
+	stopwatch := statsutils.NewStatusSyncerStopWatch("GatewayStatusSyncer")
+	stopwatch.Start(ctx)
+
 	for _, gw := range gwl.Items {
 		gw := gw // pike
 		if status := rm.BuildGWStatus(ctx, gw); status != nil {
@@ -204,6 +213,8 @@ func (s *ProxySyncer) syncStatus(ctx context.Context, rm reports.ReportMap, gwl 
 			}
 		}
 	}
+
+	stopwatch.Stop(ctx)
 }
 
 // reconcileProxies persists the proxies that were generated during translations and stores them in an in-memory cache
