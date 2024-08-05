@@ -5,13 +5,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	gwplugins "github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/gloo/projects/gloo/pkg/utils/statsutils"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
@@ -94,6 +94,8 @@ func NewProxySyncer(
 func (s *ProxySyncer) Start(ctx context.Context) error {
 	ctx = contextutils.WithLogger(ctx, "k8s-gw-syncer")
 	contextutils.LoggerFrom(ctx).Debug("starting syncer for k8s gateway proxies")
+	stopwatch := statsutils.NewTranslatorStopWatch("ProxySyncer")
+	stopwatch.Start(ctx)
 
 	var (
 		secretsWarmed bool
@@ -155,6 +157,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		s.syncRouteStatus(ctx, rm)
 		s.reconcileProxies(ctx, proxies)
 		contextutils.LoggerFrom(ctx).Debugf("translated and wrote %d proxies in %v", len(proxies), time.Since(startTime))
+		stopwatch.Stop(ctx)
 	}
 
 	for {
