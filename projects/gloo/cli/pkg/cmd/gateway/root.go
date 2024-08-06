@@ -20,7 +20,9 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 	cmd.MarkPersistentFlagRequired("name")
 	cmd.PersistentFlags().StringVar(&opts.Proxy.Port, "port", "http", "the name of the service port to connect to")
 
-	flagutils.AddNamespaceFlag(cmd.PersistentFlags(), &opts.Metadata.Namespace)
+	pflags := cmd.PersistentFlags()
+	flagutils.AddNamespaceFlag(pflags, &opts.Metadata.Namespace)
+	flagutils.AddOutputFlag(pflags, &opts.Top.Output)
 
 	cmd.AddCommand(addressCmd(opts))
 	cmd.AddCommand(urlCmd(opts))
