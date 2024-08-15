@@ -11,7 +11,9 @@ import (
 	"strings"
 	"time"
 
+	discoveryv3 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	"github.com/solo-io/gloo/pkg/utils/statsutils/metrics"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/servers/iosnapshot"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/debug"
@@ -69,7 +71,6 @@ import (
 	bootstrap_clients "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/clients"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/discovery"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	consulplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
@@ -158,7 +159,8 @@ type setupSyncer struct {
 }
 
 func NewControlPlane(ctx context.Context, grpcServer *grpc.Server, bindAddr net.Addr, kubeControlPlaneCfg bootstrap.KubernetesControlPlaneConfig,
-	callbacks xdsserver.Callbacks, start bool) bootstrap.ControlPlane {
+	callbacks xdsserver.Callbacks, start bool,
+) bootstrap.ControlPlane {
 	snapshotCache := xds.NewAdsSnapshotCache(ctx)
 	xdsServer := server.NewServer(ctx, snapshotCache, callbacks)
 	reflection.Register(grpcServer)
@@ -491,6 +493,8 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	runErrorGroup, _ := errgroup.WithContext(watchOpts.Ctx)
 	logger := contextutils.LoggerFrom(watchOpts.Ctx)
 
+	pluginRegistry := extensions.PluginRegistryFactory(watchOpts.Ctx)
+
 	// MARK: build resource clients
 	upstreamClient, err := v1.NewUpstreamClient(watchOpts.Ctx, opts.Upstreams)
 	if err != nil {
@@ -504,7 +508,18 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	if opts.Settings.GetGloo().GetDisableKubernetesDestinations() {
 		kubeServiceClient = nil
 	}
-	hybridUsClient, err := upstreams.NewHybridUpstreamClient(upstreamClient, kubeServiceClient, opts.Consul.ConsulWatcher, opts.Settings)
+
+	usClientPlugins := plugins.FilterPlugins[upstreams.ClientPlugin](pluginRegistry.GetPlugins())
+	for _, p := range usClientPlugins {
+		p.Init(plugins.InitParams{Ctx: watchOpts.Ctx, Settings: opts.Settings})
+	}
+	hybridUsClient, err := upstreams.NewHybridUpstreamClient(
+		upstreamClient,
+		kubeServiceClient,
+		opts.Consul.ConsulWatcher,
+		usClientPlugins,
+		opts.Settings,
+	)
 	if err != nil {
 		return err
 	}
@@ -633,21 +648,14 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	// Register grpc endpoints to the grpc server
 	xds.SetupEnvoyXds(opts.ControlPlane.GrpcServer, opts.ControlPlane.XDSServer, opts.ControlPlane.SnapshotCache)
 
-	pluginRegistry := extensions.PluginRegistryFactory(watchOpts.Ctx)
-	var discoveryPlugins []discovery.DiscoveryPlugin
-	for _, plug := range pluginRegistry.GetPlugins() {
-		disc, ok := plug.(discovery.DiscoveryPlugin)
-		if ok {
-			disc.Init(plugins.InitParams{Ctx: watchOpts.Ctx, Settings: opts.Settings})
-			discoveryPlugins = append(discoveryPlugins, disc)
-		}
-	}
-
 	startRestXdsServer(opts)
 
 	errs := make(chan error)
 
-	// MARK: build and run EDS loop
+	discoveryPlugins := plugins.FilterPlugins[discovery.DiscoveryPlugin](pluginRegistry.GetPlugins())
+	for _, p := range discoveryPlugins {
+		p.Init(plugins.InitParams{Ctx: watchOpts.Ctx, Settings: opts.Settings})
+	}
 	disc := discovery.NewEndpointDiscovery(opts.WatchNamespaces, opts.WriteNamespace, endpointClient, statusClient, discoveryPlugins)
 	edsSync := discovery.NewEdsSyncer(disc, discovery.Opts{}, watchOpts.RefreshRate)
 	discoveryCache := v1.NewEdsEmitter(hybridUsClient)
@@ -700,7 +708,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	if err != nil {
 		return err
 	}
-	//The validation grpc server is available for custom controllers
+	// The validation grpc server is available for custom controllers
 	if opts.ValidationServer.StartGrpcServer {
 		validationServer := opts.ValidationServer
 		lis, err := net.Listen(validationServer.BindAddr.Network(), validationServer.BindAddr.String())
@@ -1128,7 +1136,6 @@ type constructOptsParams struct {
 
 // constructs bootstrap opts from settings
 func constructOpts(ctx context.Context, params constructOptsParams) (bootstrap.Opts, error) {
-
 	var (
 		cfg           *rest.Config
 		kubeCoreCache corecache.KubeCoreCache

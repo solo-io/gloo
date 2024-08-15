@@ -212,6 +212,18 @@ type PluginRegistry interface {
 // It is executed each translation loop, ensuring we have up to date configuration of all plugins
 type PluginRegistryFactory func(ctx context.Context) PluginRegistry
 
+// FilterPlugins attempts to cast each plugin to the given type
+// and returns only elements that cast successfully.
+func FilterPlugins[T Plugin](plugins []Plugin) []T {
+	var out []T
+	for _, p := range plugins {
+		if t, ok := p.(T); ok {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
 // ExtendedFilterChain is a FilterChain with additional information
 // This extra information may not end up on the final filter chain
 // But may be used to compute other aspects of the listener that are

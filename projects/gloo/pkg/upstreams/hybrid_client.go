@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/consul"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/kubernetes"
 	"golang.org/x/sync/errgroup"
@@ -28,17 +29,26 @@ const (
 	notImplementedErrMsg = "this operation is not supported by this client"
 )
 
-var (
-	// used in tests
-	TimerOverride <-chan time.Time
-)
+// used in tests
+var TimerOverride <-chan time.Time
+
+type ClientPlugin interface {
+	plugins.Plugin
+	// SourceName is a unique descriptive identifier for the source of these upstreams.
+	// The built-in and reserved names are: `gloo`, `kube` and `consul`.
+	SourceName() string
+
+	// Client gives the implementation to be registered with this name.
+	Client() v1.UpstreamClient
+}
 
 func NewHybridUpstreamClient(
 	upstreamClient v1.UpstreamClient,
 	serviceClient skkube.ServiceClient,
 	consulClient consul.ConsulWatcher,
-	settings *v1.Settings) (v1.UpstreamClient, error) {
-
+	clientPlugins []ClientPlugin,
+	settings *v1.Settings,
+) (v1.UpstreamClient, error) {
 	clientMap := make(map[string]v1.UpstreamClient)
 
 	if upstreamClient == nil {
@@ -52,6 +62,17 @@ func NewHybridUpstreamClient(
 
 	if consulClient != nil {
 		clientMap[sourceConsul] = consul.NewConsulUpstreamClient(consulClient, settings.GetConsulDiscovery())
+	}
+
+	for _, plugin := range clientPlugins {
+		name, client := plugin.SourceName(), plugin.Client()
+		if _, f := clientMap[name]; f {
+			return nil, eris.Errorf("HybridUpstreamClient already has a source %q", name)
+		}
+		if client == nil {
+			return nil, eris.Errorf("HybridUpstreamClient for source %q cannot be nil", name)
+		}
+		clientMap[name] = client
 	}
 
 	return &hybridUpstreamClient{
@@ -212,7 +233,6 @@ func (c *hybridUpstreamClient) Watch(namespace string, opts clients.WatchOpts) (
 						"channel (must be full), retrying in 1s", zap.Uint64("list hash", previousHash))
 				}
 				if needsSync {
-
 					needsSync = !syncFunc()
 				}
 			}
