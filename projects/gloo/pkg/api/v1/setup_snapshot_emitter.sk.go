@@ -5,6 +5,9 @@ package v1
 import (
 	"sync"
 	"time"
+	"fmt"
+	"context"
+	// "slices"
 
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -14,6 +17,13 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	skstats "github.com/solo-io/solo-kit/pkg/stats"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options/contextoptions"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
+	"k8s.io/client-go/kubernetes"
+	// corev1 "k8s.io/api/core/v1"
+
 
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/errutils"
@@ -138,10 +148,44 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 	currentSnapshot := SetupSnapshot{}
 	settingsByNamespace := make(map[string]SettingsList)
 
+	kubecontext := contextoptions.KubecontextFrom(ctx)
+
+	config, _ := kubeutils.GetRestConfigWithKubeContext(kubecontext)
+	config.Timeout = 0
+	config.QPS = 50
+	config.Burst = 100
+
+	kubeClient, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	getNamespacesWithFilter := func(ctx context.Context, opts metav1.ListOptions) ([]string, error) {
+
+		var namespaces []string
+		nsList, err := kubeClient.CoreV1().Namespaces().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		for _, ns := range nsList.Items {
+			namespaces = append(namespaces, ns.Name)
+		}
+		return namespaces, nil
+	}
+
 	for _, namespace := range watchNamespaces {
 		/* Setup namespaced watch for Settings */
 		{
+			namespaces, err := getNamespacesWithFilter(opts.Ctx, metav1.ListOptions{
+				LabelSelector: "watch=this",
+			})
+
+			fmt.Println("----------------- namespaces : ", namespaces, err)
+
 			settings, err := c.settings.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			fmt.Println("len(settings) : ", len(settings))
+			settings[0].WatchNamespaces = namespaces
+
 			if err != nil {
 				return nil, nil, errors.Wrapf(err, "initial Settings list")
 			}
@@ -159,16 +203,48 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 			errutils.AggregateErrs(ctx, errs, settingsErrs, namespace+"-settings")
 		}(namespace)
 
+		nsWatcher, _ := kubeClient.CoreV1().Namespaces().Watch(ctx, metav1.ListOptions{
+			LabelSelector: "watch=this",
+		})
+		nsChan := nsWatcher.ResultChan()
+
+		/* Initialize snapshot for Settings */
+	currentSnapshot.Settings = initialSettingsList.Sort()
+
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {
 			for {
 				select {
 				case <-ctx.Done():
 					return
+				case <- nsChan :
+					// _, ok := event.Object.(*corev1.Namespace)
+					// if !ok {
+					// 	fmt.Println("Failed to convert event : ", event, ok)
+					// 	continue
+					// }
+					// fmt.Println(ns)
+					// if !slices.Contains(currentSnapshot.Settings[0].WatchNamespaces, ns.Name) {
+						// 	fmt.Println("-------------- Updated NS : ", currentSnapshot.Settings[0].WatchNamespaces)
+						// }
+						namespaces, _ := getNamespacesWithFilter(opts.Ctx, metav1.ListOptions{
+							LabelSelector: "watch=this",
+						})
+							currentSnapshot.Settings[0].WatchNamespaces = namespaces
+							fmt.Println("-------------- Updated NS : ", currentSnapshot.Settings[0].WatchNamespaces)
+
+					select {
+					case settingsChan <- settingsListWithNamespace{list: currentSnapshot.Settings, namespace: namespace}:
+					}
 				case settingsList, ok := <-settingsNamespacesChan:
 					if !ok {
 						return
 					}
+					namespaces, _ := getNamespacesWithFilter(opts.Ctx, metav1.ListOptions{
+						LabelSelector: "watch=this",
+					})
+					fmt.Println("----------------- existing namespaces : ", namespaces, err)
+					settingsList[0].WatchNamespaces = namespaces
 					select {
 					case <-ctx.Done():
 						return
@@ -178,8 +254,6 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 			}
 		}(namespace)
 	}
-	/* Initialize snapshot for Settings */
-	currentSnapshot.Settings = initialSettingsList.Sort()
 
 	snapshots := make(chan *SetupSnapshot)
 	go func() {

@@ -2,7 +2,7 @@ global:
   image:
     pullPolicy: IfNotPresent
   glooRbac:
-    namespaced: true
+    namespaced: false
     nameSuffix: e2e-test-rbac-suffix
 settings:
   singleNamespace: true
@@ -20,7 +20,7 @@ gloo:
   logLevel: info
   disableLeaderElection: false
   deployment:
-    replicas: 2
+    replicas: 1
     customEnv:
       # We scale the Gloo component frequently in tests, and need leadership to be established quickly
       # Therefore, we set values to lower thresholds than the defaults
