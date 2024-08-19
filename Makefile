@@ -421,6 +421,10 @@ generated-code-apis: clean-solo-kit-gen go-generate-apis fmt ## Executes the tar
 .PHONY: generated-code-cleanup
 generated-code-cleanup: getter-check mod-tidy update-licenses fmt ## Executes the targets necessary to cleanup and format code
 
+.PHONY: generate-changelog ## Generate a changelog entry
+generate-changelog:
+	@./ci/changelog.sh
+
 #----------------------------------------------------------------------------------
 # Generate mocks
 #----------------------------------------------------------------------------------
