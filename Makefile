@@ -167,6 +167,7 @@ install-go-tools: mod-download ## Download and install Go dependencies
 	go install github.com/cratonica/2goarray
 	go install github.com/golang/mock/mockgen
 	go install github.com/saiskee/gettercheck
+	go install github.com/onsi/ginkgo/v2/ginkgo@$(GINKGO_VERSION)
 	# This version must stay in sync with the version used in CI: .github/workflows/static-analysis.yaml
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(LINTER_VERSION)
 	go install github.com/quasilyte/go-ruleguard/cmd/ruleguard@v0.3.16
@@ -420,6 +421,10 @@ generated-code-apis: clean-solo-kit-gen go-generate-apis fmt ## Executes the tar
 
 .PHONY: generated-code-cleanup
 generated-code-cleanup: getter-check mod-tidy update-licenses fmt ## Executes the targets necessary to cleanup and format code
+
+.PHONY: generate-changelog
+generate-changelog: ## Generate a changelog entry
+	@./devel/tools/changelog.sh
 
 #----------------------------------------------------------------------------------
 # Generate mocks
@@ -1185,22 +1190,34 @@ build-test-chart: ## Build the Helm chart and place it in the _test directory
 # Pull the conformance test suite from the k8s gateway api repo and copy it into the test dir.
 $(TEST_ASSET_DIR)/conformance/conformance_test.go:
 	mkdir -p $(TEST_ASSET_DIR)/conformance
-	echo "//go:build conformance" > $@
 	cat $(shell go list -json -m sigs.k8s.io/gateway-api | jq -r '.Dir')/conformance/conformance_test.go >> $@
 	go fmt $@
 
-CONFORMANCE_ARGS:=-gateway-class=gloo-gateway -supported-features=Gateway,ReferenceGrant,HTTPRoute,HTTPRouteQueryParamMatching,HTTPRouteMethodMatching,HTTPRouteResponseHeaderModification,HTTPRoutePortRedirect,HTTPRouteHostRewrite,HTTPRouteSchemeRedirect,HTTPRoutePathRedirect,HTTPRouteHostRewrite,HTTPRoutePathRewrite,HTTPRouteRequestMirror
+# Pull the experimental conformance test suite from the k8s gateway api repo and copy it into the test dir.
+$(TEST_ASSET_DIR)/conformance/experimental_conformance_test.go:
+	mkdir -p $(TEST_ASSET_DIR)/conformance
+	cat $(shell go list -json -m sigs.k8s.io/gateway-api | jq -r '.Dir')/conformance/experimental_conformance_test.go >> $@
+	go fmt $@
 
-# Run the conformance test suite
-.PHONY: conformance
+CONFORMANCE_ARGS := -gateway-class=gloo-gateway -supported-features=Gateway,ReferenceGrant,HTTPRoute,HTTPRouteQueryParamMatching,HTTPRouteMethodMatching,HTTPRouteResponseHeaderModification,HTTPRoutePortRedirect,HTTPRouteHostRewrite,HTTPRouteSchemeRedirect,HTTPRoutePathRedirect,HTTPRouteHostRewrite,HTTPRoutePathRewrite,HTTPRouteRequestMirror
+
+.PHONY: conformance ## Run the conformance test suite
 conformance: $(TEST_ASSET_DIR)/conformance/conformance_test.go
-	go test -ldflags=$(LDFLAGS) -tags conformance -test.v $(TEST_ASSET_DIR)/conformance/... -args $(CONFORMANCE_ARGS)
+	go test -ldflags=$(LDFLAGS) -test.v $(TEST_ASSET_DIR)/conformance/... -args $(CONFORMANCE_ARGS)
 
 # Run only the specified conformance test. The name must correspond to the ShortName of one of the k8s gateway api
 # conformance tests.
 conformance-%: $(TEST_ASSET_DIR)/conformance/conformance_test.go
-	go test -ldflags=$(LDFLAGS) -tags conformance -test.v $(TEST_ASSET_DIR)/conformance/... -args $(CONFORMANCE_ARGS) \
+	go test -ldflags=$(LDFLAGS) -test.v $(TEST_ASSET_DIR)/conformance/... -args $(CONFORMANCE_ARGS) \
 	-run-test=$*
+
+.PHONY: conformance-experimental ## Run the extended conformance test suite
+conformance-experimental: CONFORMANCE_ARGS += -conformance-profiles=HTTP -report-output=$(TEST_ASSET_DIR)/conformance/$(VERSION)-report.yaml -organization=solo.io -project=gloo-gateway -version=$(VERSION) -url=github.com/solo-io/gloo -contact=github.com/solo-io/gloo/issues/new/choose
+conformance-experimental: $(TEST_ASSET_DIR)/conformance/conformance_test.go $(TEST_ASSET_DIR)/conformance/experimental_conformance_test.go
+	go test -ldflags=$(LDFLAGS) \
+		-run TestExperimentalConformance \
+		-test.v $(TEST_ASSET_DIR)/conformance/... \
+		-args $(CONFORMANCE_ARGS) \
 
 #----------------------------------------------------------------------------------
 # Security Scan
