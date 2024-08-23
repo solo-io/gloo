@@ -116,16 +116,6 @@ firebaseJson=$(cat <<EOF
         "type":"301"
       },
       {
-        "source": "/gloo-edge/:version/security/auth/",
-        "destination": "/gloo-edge/:version/guides/security/auth/",
-        "type":"301"
-      },
-      {
-        "source": "/gloo-edge/:version/security/auth/:path",
-        "destination": "/gloo-edge/:version/guides/security/auth/:path/",
-        "type":"301"
-      },
-      {
         "source": "/gloo-edge/:version/gloo_routing/virtual_services/routes/route_destinations/single_upstreams/static_upstream/",
         "destination": "/gloo-edge/:version/guides/traffic_management/destination_types/static_upstream/",
         "type":"301"
@@ -231,8 +221,18 @@ firebaseJson=$(cat <<EOF
         "type":"301"
       },
       {
-        "source": "/gloo-edge/:version/guides/security/auth/:path",
-        "destination": "/gloo-edge/:version/guides/security/auth/extauth/:path",
+        "source": "/gloo-edge/:version/guides/security/auth/oauth/",
+        "destination": "/gloo-edge/:version/guides/security/auth/extauth/oauth/",
+        "type":"301"
+      },
+      {
+        "source": "/gloo-edge/:version/guides/security/auth/opa/",
+        "destination": "/gloo-edge/:version/guides/security/auth/extauth/opa/",
+        "type":"301"
+      },
+      {
+        "source": "/gloo-edge/:version/guides/security/auth/plugin_auth",
+        "destination": "/gloo-edge/:version/guides/security/auth/extauth/plugin_auth/",
         "type":"301"
       },
       {
