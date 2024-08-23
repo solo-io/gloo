@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 
 	"github.com/hashicorp/go-multierror"
@@ -407,10 +408,7 @@ func checkPods(ctx context.Context, printer printers.P, opts *options.Options) e
 }
 
 func getNamespaces(ctx context.Context, settings *v1.Settings) ([]string, error) {
-	if settings.GetWatchNamespaces() != nil {
-		return settings.GetWatchNamespaces(), nil
-	}
-	return helpers.GetNamespaces(ctx)
+	return settingsutil.GetNamespaces(settings), nil
 }
 
 func checkUpstreams(ctx context.Context, printer printers.P, _ *options.Options, namespaces []string) ([]string, error) {

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 
@@ -99,7 +100,7 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 	}
 	statusReporterNamespace := statusutils.GetStatusReporterNamespaceOrDefault(writeNamespace)
 
-	watchNamespaces := utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace)
+	watchNamespaces := utils.ProcessWatchNamespaces(settingsutil.GetNamespaces(settings), writeNamespace)
 
 	envTrue := func(name string) bool {
 		return os.Getenv(name) == "true" || os.Getenv(name) == "1"

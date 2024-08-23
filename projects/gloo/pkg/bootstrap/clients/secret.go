@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	kubeconverters "github.com/solo-io/gloo/projects/gloo/pkg/api/converters/kube"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
@@ -79,7 +80,7 @@ func SecretFactoryForSettings(ctx context.Context, params SecretFactoryParams) (
 func NewSecretResourceClientFactory(ctx context.Context, params SecretFactoryParams) (factory.ResourceClientFactory, error) {
 	switch source := params.Settings.GetSecretSource().(type) {
 	case *v1.Settings_KubernetesSecretSource:
-		if err := initializeForKube(ctx, params.Cfg, params.Clientset, params.KubeCoreCache, params.Settings.GetRefreshRate(), params.Settings.GetWatchNamespaces()); err != nil {
+		if err := initializeForKube(ctx, params.Cfg, params.Clientset, params.KubeCoreCache, params.Settings.GetRefreshRate(), settingsutil.GetNamespaces(params.Settings)); err != nil {
 			return nil, errors.Wrapf(err, "initializing kube cfg clientset and core cache")
 		}
 		return &factory.KubeSecretClientFactory{
