@@ -59,6 +59,16 @@ firebaseJson=$(cat <<EOF
         "source": "/gloo-edge/v1.13.x/:path*",
         "destination": "/gloo-edge/latest/",
         "type":"301"
+      ],
+      {
+        "source": "/gloo-edge/1.3.0/:path",
+        "destination": "/gloo-edge/latest/",
+        "type":"301"
+      },
+      {
+        "source": "gloo-edge/:version/api/github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk/",
+        "destination": "gloo-edge/:version/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk/",
+        "type":"301"
       },
       {
         "source": "/gloo-edge/:version/changelog/",
@@ -173,6 +183,21 @@ firebaseJson=$(cat <<EOF
       {https://docs.solo.io/gloo-edge/latest/gloo_routing/virtual_services/routes/route_destinations/consul_services/
         "source": "/gloo-edge/:version/gloo_routing/virtual_services/routes/route_destinations/consul_services/",
         "destination": "/gloo-edge/:versiont/guides/traffic_management/destination_types/consul_services/",
+        "type":"301"
+      },
+      {
+        "source": "/gloo-edge/:version/gloo_routing/virtual_services/routes/route_destinations/single_upstreams/ec2_upstream/",
+        "destination": "/gloo-edge/:version/guides/traffic_management/destination_types/ec2_upstream/",
+        "type":"301"
+      },
+      {
+        "source": "/gloo-edge/:version/gloo_routing/virtual_services/routes/route_destinations/single_upstreams/function_routing/",
+        "destination": "/gloo-edge/:version/guides/traffic_management/destination_types/aws_lambda/",
+        "type":"301"
+      },
+      {
+        "source": "/gloo-edge/:version/gloo_routing/virtual_services/routes/route_destinations/consul_services/",
+        "destination": "/gloo-edge/:versiont/guides/traffic_management/destination_types/consul_servides/",
         "type":"301"
       },
       {
