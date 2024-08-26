@@ -3,47 +3,230 @@ package serviceentry
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
+	"time"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/NoOpUpstreamClient"
 	"github.com/solo-io/go-utils/contextutils"
 	skclients "github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
-	"istio.io/istio/pkg/kube"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
+	networking "istio.io/api/networking/v1beta1"
+	networkingclient "istio.io/client-go/pkg/apis/networking/v1beta1"
+	istioclient "istio.io/client-go/pkg/clientset/versioned"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 )
 
-func NewServiceEntryUpstreamClient(client kube.Client) v1.UpstreamClient {
-	return &serviceEntryClient{client: client}
+const UpstreamNamePrefix = "istio-se:"
+
+func NewServiceEntryUpstreamClient(client istioclient.Interface) v1.UpstreamClient {
+	return &serviceEntryClient{istio: client}
 }
 
 type serviceEntryClient struct {
-	client kube.Client
+	istio istioclient.Interface
 }
 
-// List implements v1.UpstreamClient.
 func (s *serviceEntryClient) List(namespace string, opts skclients.ListOpts) (v1.UpstreamList, error) {
-	listOpts := metav1.ListOptions{}
-	if opts.ExpressionSelector != "" {
-		listOpts.LabelSelector = opts.ExpressionSelector
-	} else {
-		sel := labels.NewSelector()
-		for k, v := range opts.Selector {
-			req, _ := labels.NewRequirement(k, selection.Equals, strings.Split(v, ","))
-			sel = sel.Add(*req)
-		}
-		listOpts.LabelSelector = sel.String()
-
+	listOpts := buildListOptions(opts.ExpressionSelector, opts.Selector)
+	items, err := s.istio.NetworkingV1beta1().ServiceEntries(namespace).List(opts.Ctx, listOpts)
+	if err != nil {
+		return nil, err
 	}
-	s.client.Istio().NetworkingV1beta1().ServiceEntries(namespace).List(opts.Ctx, listOpts)
+	return ConvertUpstreamList(items.Items), nil
 }
 
-// Watch implements v1.UpstreamClient.
+// Watch is implemented based onon the KubeResourceWatch impl in solo-kit
+// to keep behaviors consistent.
 func (s *serviceEntryClient) Watch(namespace string, opts skclients.WatchOpts) (<-chan v1.UpstreamList, <-chan error, error) {
-	panic("unimplemented")
+	listOpts := buildListOptions(opts.ExpressionSelector, opts.Selector)
+
+	us, errs := make(chan v1.UpstreamList), make(chan error)
+
+	// periodically list and push updates based on ticker
+	var previous v1.UpstreamList
+	initialized := false
+	updateList := func() {
+		list, err := s.istio.NetworkingV1beta1().ServiceEntries(namespace).List(opts.Ctx, listOpts)
+		if err != nil {
+			errs <- err
+			return
+		}
+		upstreams := ConvertUpstreamList(list.Items)
+		unchanged := !initialized && slices.EqualFunc(upstreams, previous, func(a, b *v1.Upstream) bool {
+			return a.Equal(b)
+		})
+		if unchanged {
+			return
+		}
+		us <- upstreams
+		previous = upstreams
+		initialized = true
+	}
+
+	// setup a kube watch to help us only list when something changes
+	watch, err := s.istio.NetworkingV1beta1().ServiceEntries(namespace).Watch(opts.Ctx, listOpts)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// on a timer, if the watch notified us before the last tick, trigger listing
+	go func() {
+		defer close(us)
+		defer close(errs)
+		defer watch.Stop()
+
+		timer := time.NewTicker(time.Second)
+		defer timer.Stop()
+
+		update := false
+		for {
+			select {
+			case _, ok := <-watch.ResultChan():
+				// only bother doing the fetch if we saw the watch change
+				if !ok {
+					return
+				}
+				update = true
+			case <-timer.C:
+				if update {
+					updateList()
+					update = false
+				}
+			case <-opts.Ctx.Done():
+				return
+			}
+		}
+	}()
+
+	return us, errs, nil
+}
+
+func buildListOptions(expressionSelector string, selector map[string]string) metav1.ListOptions {
+	if expressionSelector != "" {
+		return metav1.ListOptions{
+			LabelSelector: expressionSelector,
+		}
+	}
+	sel := labels.NewSelector()
+	for k, v := range selector {
+		req, _ := labels.NewRequirement(k, selection.Equals, strings.Split(v, ","))
+		sel = sel.Add(*req)
+	}
+	return metav1.ListOptions{
+		LabelSelector: sel.String(),
+	}
+}
+
+func ConvertUpstreamList(servicEntries []*networkingclient.ServiceEntry) v1.UpstreamList {
+	var out v1.UpstreamList
+	for _, se := range servicEntries {
+		out = append(out, ConvertUpstreams(se)...)
+	}
+	return out
+}
+
+func ConvertUpstreams(se *networkingclient.ServiceEntry) []*v1.Upstream {
+	// TODO How to handle these fields:
+	// - Reslution: DNS; will gloo automatically use an envoy DNS cluster when it sees non IP endpoints?
+	// - Reslution: None; I don't think we can do original_dst/passthrough.
+	// - Location: MESH_INTERNAL/MESH_EXTERNAL. Decide whether to use mTLS
+	// - exportTo: we're not respecting this but we should
+	var out []*v1.Upstream
+	for _, port := range se.Spec.Ports {
+		us := &v1.Upstream{
+			Metadata: &core.Metadata{
+				Name:        UpstreamNamePrefix + se.Name,
+				Namespace:   se.Namespace,
+				Cluster:     "", // can we populate this for the local cluster?
+				Labels:      se.Labels,
+				Annotations: se.Annotations,
+			},
+		}
+
+		if se.Spec.WorkloadSelector != nil {
+			us.UpstreamType = buildKube(se, port)
+		} else {
+			us.UpstreamType = buildStatic(se, port)
+		}
+
+		out = append(out, us)
+	}
+	return out
+}
+
+func buildKube(se *networkingclient.ServiceEntry, port *networking.ServicePort) *v1.Upstream_Kube {
+	return &v1.Upstream_Kube{
+		Kube: &kubernetes.UpstreamSpec{
+			ServiceName:      se.Name,
+			ServiceNamespace: se.Namespace,
+			ServicePort:      port.Number,
+			Selector:         se.Spec.WorkloadSelector.Labels,
+		},
+	}
+}
+
+func buildStatic(se *networkingclient.ServiceEntry, port *networking.ServicePort) *v1.Upstream_Static {
+	var hosts []*static.Host
+	for _, ep := range se.Spec.Endpoints {
+		hosts = append(hosts, &static.Host{
+			Addr: ep.Address,
+			Port: targetPort(port.Number, port.TargetPort, wePort(ep, port)),
+			// TODO do we want to set this for non-IP endpoints?
+			// SniAddr:             "",
+			// TODO how structured is this? The inline-WE have Labels we could put here.
+			// Metadata:            map[string]*structpb.Struct{},
+		})
+	}
+
+	return &v1.Upstream_Static{
+		Static: &static.UpstreamSpec{
+			Hosts:  hosts,
+			UseTls: &wrapperspb.BoolValue{Value: isProtocolTLS(port.Protocol)},
+			// TODO do we want this on?
+			// AutoSniRewrite: &wrapperspb.BoolValue{},
+		},
+	}
+}
+
+// parseIstioProtocol always gives the all-caps protocol part of a port name.
+// Example: http-foobar would be HTTP.
+func parseIstioProtocol(protocol string) string {
+	protocol = strings.ToUpper(protocol)
+	if idx := strings.Index(protocol, "-"); idx != -1 {
+		protocol = protocol[:idx]
+	}
+	return protocol
+}
+
+func isProtocolTLS(protocol string) bool {
+	p := parseIstioProtocol(protocol)
+	return p == "HTTPS" || p == "TLS"
+}
+
+func wePort(we *networking.WorkloadEntry, svcPort *networking.ServicePort) uint32 {
+	if we.Ports == nil {
+		return 0
+	}
+	return we.Ports[svcPort.Name]
+}
+
+func targetPort(base, svc, ep uint32) uint32 {
+	if ep > 0 {
+		return ep
+	}
+	if svc > 0 {
+		return svc
+	}
+	return base
 }
 
 // We don't actually use the following in thi shim, but we must satisfy the UpstreamClient interface.
