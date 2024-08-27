@@ -118,7 +118,6 @@ func NewTranslatorSyncer(
 
 func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) error {
 	logger := contextutils.LoggerFrom(ctx)
-	reports := make(reporter.ResourceReports)
 	var multiErr *multierror.Error
 
 	// If gateway controller is enabled, run the gateway translation to generate proxies.
@@ -129,6 +128,10 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 			multiErr = multierror.Append(multiErr, eris.Wrapf(err, "translating proxies"))
 		}
 	}
+
+	// Reports used to aggregate results from xds and extension translation.
+	// Will contain reports only `Gloo` components (i.e. Proxies, Upstreams, AuthConfigs, etc.)
+	reports := make(reporter.ResourceReports)
 
 	// Execute the EnvoySyncer
 	// This will update the xDS SnapshotCache for each entry that corresponds to a Proxy in the API Snapshot

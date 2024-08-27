@@ -74,7 +74,8 @@ func measureResource(ctx context.Context, resource string, length int) {
 	}
 }
 
-// syncEnvoy will translate, sanitize, and set the snapshot for each of the proxies, all while merging all the reports into allReports.
+// syncEnvoy will translate, sanitize, and set the xds snapshot for each of the proxies in the provided api snapshot.
+// Reports from translation attempts on every Proxy will be merged into allReports.
 func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot, allReports reporter.ResourceReports) {
 	ctx, span := trace.StartSpan(ctx, "gloo.syncer.Sync")
 	defer span.End()
@@ -94,10 +95,6 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 	if contextutils.GetLogLevel() == zapcore.DebugLevel {
 		logger.Debug(syncutil.StringifySnapshot(snap))
 	}
-
-	allReports.Accept(snap.Upstreams.AsInputResources()...)
-	allReports.Accept(snap.UpstreamGroups.AsInputResources()...)
-	allReports.Accept(snap.Proxies.AsInputResources()...)
 
 	if !s.settings.GetGloo().GetDisableProxyGarbageCollection().GetValue() {
 		allKeys := map[string]bool{
@@ -123,6 +120,11 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 			}
 		}
 	}
+
+	allReports.Accept(snap.Upstreams.AsInputResources()...)
+	allReports.Accept(snap.UpstreamGroups.AsInputResources()...)
+	allReports.Accept(snap.Proxies.AsInputResources()...)
+
 	var proxiesWithReports []translatorutils.ProxyWithReports
 	for _, proxy := range snap.Proxies {
 		proxyCtx := ctx
@@ -161,6 +163,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 		allReports.Merge(reports)
 		key := xds.SnapshotCacheKey(proxy)
 		s.xdsCache.SetSnapshot(key, sanitizedSnapshot)
+
 		proxiesWithReports = append(proxiesWithReports, translatorutils.ProxyWithReports{
 			Proxy: proxy,
 			Reports: translatorutils.TranslationReports{

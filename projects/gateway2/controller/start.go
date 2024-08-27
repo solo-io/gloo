@@ -129,7 +129,7 @@ func Start(ctx context.Context, cfg StartConfig) error {
 		GWClasses:      sets.New(append(cfg.Opts.ExtraGatewayClasses, wellknown.GatewayClassName)...),
 		ControllerName: wellknown.GatewayControllerName,
 		AutoProvision:  AutoProvision,
-		ControlPlane:   cfg.Opts.ControlPlane,
+		ControlPlane:   cfg.Opts.ControlPlane, // TODO(Law) type seems FAR too broad, only used to provide the xds addr
 		IstioValues:    cfg.Opts.GlooGateway.IstioValues,
 		Kick:           inputChannels.Kick,
 		Extensions:     k8sGwExtensions,

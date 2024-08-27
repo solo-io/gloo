@@ -650,8 +650,8 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	// MARK: build and run EDS loop
 	disc := discovery.NewEndpointDiscovery(opts.WatchNamespaces, opts.WriteNamespace, endpointClient, statusClient, discoveryPlugins)
 	edsSync := discovery.NewEdsSyncer(disc, discovery.Opts{}, watchOpts.RefreshRate)
-	discoveryCache := v1.NewEdsEmitter(hybridUsClient)
-	edsEventLoop := v1.NewEdsEventLoop(discoveryCache, edsSync)
+	edsEmitter := v1.NewEdsEmitter(hybridUsClient)
+	edsEventLoop := v1.NewEdsEventLoop(edsEmitter, edsSync)
 	edsErrs, err := edsEventLoop.Run(opts.WatchNamespaces, watchOpts)
 	if err != nil {
 		return err
@@ -934,7 +934,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	)
 
 	// MARK: build & run api snap loop
-	apiCache := v1snap.NewApiEmitterWithEmit(
+	apiEmitter := v1snap.NewApiEmitterWithEmit(
 		artifactClient,
 		endpointClient,
 		proxyClient,
@@ -960,7 +960,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	if opts.GatewayControllerEnabled {
 		syncers = append(syncers, gwValidationSyncer)
 	}
-	apiEventLoop := v1snap.NewApiEventLoop(apiCache, syncers)
+	apiEventLoop := v1snap.NewApiEventLoop(apiEmitter, syncers)
 	apiEventLoopErrs, err := apiEventLoop.Run(opts.WatchNamespaces, watchOpts)
 	if err != nil {
 		return err

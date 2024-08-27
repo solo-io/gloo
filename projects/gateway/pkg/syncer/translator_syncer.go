@@ -112,7 +112,14 @@ func (s *TranslatorSyncer) Sync(ctx context.Context, snap *gloov1snap.ApiSnapsho
 func (s *TranslatorSyncer) UpdateStatusForAllProxies(ctx context.Context) {
 	s.statusSyncer.handleUpdatedProxies(ctx)
 }
-func (s *TranslatorSyncer) GeneratedDesiredProxies(ctx context.Context, snap *gloov1snap.ApiSnapshot) (reconciler.GeneratedProxies, reconciler.InvalidProxies) {
+
+// GeneratedDesiredProxies performs Edge Gateway-to-Proxy translation for the Edge `Gateways` in the provided snapshot.
+// Successfully translated Proxies and references to any unsuccessfully translated Proxies will be returned
+// along with their corresponding translation reports.
+func (s *TranslatorSyncer) GeneratedDesiredProxies(
+	ctx context.Context,
+	snap *gloov1snap.ApiSnapshot,
+) (reconciler.GeneratedProxies, reconciler.InvalidProxies) {
 	logger := contextutils.LoggerFrom(ctx)
 	gatewaysByProxyName := utils.GatewaysByProxyName(snap.Gateways)
 
@@ -155,7 +162,6 @@ func (s *TranslatorSyncer) reconcile(ctx context.Context, desiredProxies reconci
 		return err
 	}
 
-	// repeat for all resources
 	s.statusSyncer.setCurrentProxies(desiredProxies, invalidProxies)
 	s.statusSyncer.forceSync()
 	return nil
