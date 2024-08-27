@@ -103,10 +103,12 @@ func (s *testingSuite) TestVirtualServiceWithSecretDeletion() {
 		gloo_defaults.GlooReporter,
 	)
 	// Apply VS with secret after Upstream and Secret exist
-	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, []byte(substitutedSecretVS))
-	s.Assert().NoError(err)
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
 		func() (resources.InputResource, error) {
+			err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, []byte(substitutedSecretVS))
+			if err != nil {
+				return nil, err
+			}
 			return s.testInstallation.ResourceClients.VirtualServiceClient().Read(s.testInstallation.Metadata.InstallNamespace, validation.ExampleVsName, clients.ReadOpts{Ctx: s.ctx})
 		},
 		core.Status_Accepted,
