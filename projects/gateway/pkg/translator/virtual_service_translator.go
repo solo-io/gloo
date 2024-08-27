@@ -2,6 +2,7 @@ package translator
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"regexp"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	errors "github.com/rotisserie/eris"
 
+	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"k8s.io/apimachinery/pkg/labels"
@@ -31,6 +33,7 @@ var (
 		return errors.Errorf("virtual service [%s] has a regex matcher with invalid regex, %s",
 			vsRef, regexErr)
 	}
+
 	DomainInOtherVirtualServicesErr = func(domain string, conflictingVsRefs []string) error {
 		if domain == "" {
 			return errors.Errorf("domain conflict: other virtual services that belong to the same Gateway"+
@@ -168,7 +171,6 @@ func getVirtualServicesForHttpGateway(
 			virtualServicesForGateway = append(virtualServicesForGateway, vs)
 		}
 	}
-
 	return virtualServicesForGateway
 }
 
@@ -274,7 +276,7 @@ func (v *VirtualServiceTranslator) computeHttpListenerVirtualHosts(params Params
 		if virtualService.GetVirtualHost() == nil {
 			virtualService.VirtualHost = &v1.VirtualHost{}
 		}
-		vh, err := v.virtualServiceToVirtualHost(virtualService, parentGateway, proxyName, params.snapshot, params.reports)
+		vh, err := v.virtualServiceToVirtualHost(params.ctx, virtualService, parentGateway, proxyName, params.snapshot, params.reports)
 		if err != nil {
 			params.reports.AddError(virtualService, err)
 			continue
@@ -285,7 +287,10 @@ func (v *VirtualServiceTranslator) computeHttpListenerVirtualHosts(params Params
 	return virtualHosts
 }
 
-func (v *VirtualServiceTranslator) virtualServiceToVirtualHost(vs *v1.VirtualService, gateway *v1.Gateway, proxyName string, snapshot *gloosnapshot.ApiSnapshot, reports reporter.ResourceReports) (*gloov1.VirtualHost, error) {
+func (v *VirtualServiceTranslator) virtualServiceToVirtualHost(ctx context.Context, vs *v1.VirtualService,
+	gateway *v1.Gateway, proxyName string, snapshot *gloosnapshot.ApiSnapshot,
+	reports reporter.ResourceReports) (*gloov1.VirtualHost, error) {
+
 	converter := NewRouteConverter(NewRouteTableSelector(snapshot.RouteTables), NewRouteTableIndexer())
 	v.mergeDelegatedVirtualHostOptions(vs, snapshot.VirtualHostOptions, reports)
 	routes := converter.ConvertVirtualService(vs, gateway, proxyName, snapshot, reports)
@@ -301,6 +306,8 @@ func (v *VirtualServiceTranslator) virtualServiceToVirtualHost(vs *v1.VirtualSer
 	if v.WarnOnRouteShortCircuiting {
 		validateRouteShortCircuiting(vs, vh, reports)
 	}
+
+	validateSSLConfiguration(ctx, vs, snapshot, reports)
 
 	if err := appendSource(vh, vs); err != nil {
 		// should never happen
@@ -332,6 +339,38 @@ func (v *VirtualServiceTranslator) mergeDelegatedVirtualHostOptions(vs *v1.Virtu
 
 func VirtualHostName(vs *v1.VirtualService) string {
 	return fmt.Sprintf("%v.%v", vs.GetMetadata().GetNamespace(), vs.GetMetadata().GetName())
+}
+
+// validate that the ssl configuration is mostly ok
+// skip if you dont have any ssl config
+func validateSSLConfiguration(ctx context.Context, vs *v1.VirtualService,
+	snapshot *gloosnapshot.ApiSnapshot, reports reporter.ResourceReports) {
+
+	sslConfig := vs.GetSslConfig()
+	if sslConfig == nil {
+		return
+	}
+
+	if sslFiles := sslConfig.GetSslFiles(); sslFiles != nil {
+		certChain, privateKey, rootCa := sslFiles.GetTlsCert(), sslFiles.GetTlsKey(), sslFiles.GetRootCa()
+
+		if (certChain == "") && (privateKey == "") && (rootCa != "") {
+			return
+		}
+
+		_, err := tls.X509KeyPair([]byte(certChain), []byte(privateKey))
+		if err != nil {
+			reports.AddError(vs, utils.InvalidTlsSecretError(vs.GetMetadata().Ref(), err))
+		}
+	} else if secretRef := sslConfig.GetSecretRef(); secretRef != nil {
+		_, _, _, _, err := utils.GetSslSecrets(*secretRef, snapshot.Secrets)
+		if err != nil {
+			reports.AddError(vs, utils.InvalidTlsSecretError(vs.GetMetadata().Ref(), err))
+		}
+	} else if sslConfig.GetSslSecrets() != nil {
+		contextutils.LoggerFrom(ctx).DPanic(vs.GetDisplayName() + "has unvalidated ssl secret")
+	}
+
 }
 
 // this function is written with the assumption that the routes will not be modified afterward,

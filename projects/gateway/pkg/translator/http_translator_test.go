@@ -2,6 +2,7 @@ package translator_test
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
@@ -24,6 +25,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	gloohelpers "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/utils/prototime"
@@ -541,6 +543,8 @@ var _ = Describe("Http Translator", func() {
 				Expect(errs).To(HaveOccurred())
 				Expect(errs.Error()).To(ContainSubstring(NoVirtualHostErr(snap.VirtualServices[0]).Error()))
 			})
+		})
+		Context("validate regex", func() {
 
 			It("should error when a virtual service has invalid regex", func() {
 				snap.VirtualServices[0].VirtualHost.Routes[0].Matchers[0] = &matchers.Matcher{PathSpecifier: &matchers.Matcher_Regex{Regex: "["}}
@@ -577,6 +581,58 @@ var _ = Describe("Http Translator", func() {
 				Expect(errs).To(HaveOccurred())
 				Expect(errs.Error()).To(ContainSubstring("missing closing ]: `[`"))
 			})
+		})
+
+		Context("validate sslConfiguration options", func() {
+			BeforeEach(func() {
+				snap.Gateways[0].Ssl = true
+				tlsSecret := &gloov1.TlsSecret{
+					CertChain:  gloohelpers.Certificate(),
+					PrivateKey: gloohelpers.PrivateKey(),
+					RootCa:     gloohelpers.Certificate(),
+				}
+				secret := &gloov1.Secret{
+					Kind: &gloov1.Secret_Tls{
+						Tls: tlsSecret,
+					},
+					Metadata: &core.Metadata{
+						Name:      "secret",
+						Namespace: "secret",
+					},
+				}
+				ref := secret.Metadata.Ref()
+				snap.Secrets = gloov1.SecretList{secret}
+
+				snap.VirtualServices[0].SslConfig = &ssl.SslConfig{
+					SslSecrets: &ssl.SslConfig_SecretRef{
+						SecretRef: ref,
+					}}
+			})
+
+			It("should not error when a virtual service has valid sslConfiguration", func() {
+				params := NewTranslatorParams(ctx, snap, reports)
+
+				_ = translator.ComputeListener(params, defaults.GatewayProxyName, snap.Gateways[0])
+				Expect(reports.Validate()).To(Not(HaveOccurred()))
+
+			})
+
+			It("should error when a virtual service has invalid sslConfiguration", func() {
+				// create a chain and strip the 2nd end secret
+				curChain := snap.Secrets[0].Kind.(*gloov1.Secret_Tls).Tls.CertChain
+				curChain = curChain + "\n" + curChain
+				curChainFields := strings.Fields(curChain)
+				snap.Secrets[0].Kind.(*gloov1.Secret_Tls).Tls.CertChain = strings.Join(curChainFields[0:len(curChainFields)-2], "\n")
+
+				params := NewTranslatorParams(ctx, snap, reports)
+				_ = translator.ComputeListener(params, defaults.GatewayProxyName, snap.Gateways[0])
+				Expect(reports.Validate()).To(HaveOccurred())
+
+				errs := reports.ValidateStrict()
+				Expect(errs).To(HaveOccurred())
+				Expect(errs.Error()).To(ContainSubstring("failed to find any PEM data in certificate input"))
+			})
+
 		})
 
 		Context("validate matcher short-circuiting warnings", func() {
