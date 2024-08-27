@@ -341,8 +341,9 @@ func VirtualHostName(vs *v1.VirtualService) string {
 	return fmt.Sprintf("%v.%v", vs.GetMetadata().GetNamespace(), vs.GetMetadata().GetName())
 }
 
-// validate that the ssl configuration is mostly ok
+// validate sslconfig
 // skip if you dont have any ssl config
+// supports key and cert checks like those currently performed elsewhere
 func validateSSLConfiguration(ctx context.Context, vs *v1.VirtualService,
 	snapshot *gloosnapshot.ApiSnapshot, reports reporter.ResourceReports) {
 
@@ -351,6 +352,11 @@ func validateSSLConfiguration(ctx context.Context, vs *v1.VirtualService,
 		return
 	}
 
+	// handle the currently 3 known oneofs
+	//	*SslConfig_SecretRef
+	//	*SslConfig_SslFiles
+	//	*SslConfig_Sds
+	// SslSecrets isSslConfig_SslSecrets `protobuf_oneof:"ssl_secrets"`
 	if sslFiles := sslConfig.GetSslFiles(); sslFiles != nil {
 		certChain, privateKey, rootCa := sslFiles.GetTlsCert(), sslFiles.GetTlsKey(), sslFiles.GetRootCa()
 
@@ -373,7 +379,10 @@ func validateSSLConfiguration(ctx context.Context, vs *v1.VirtualService,
 				reports.AddError(vs, utils.InvalidTlsSecretError(secretRef, err))
 			}
 		}
-	} else if sslConfig.GetSslSecrets() != nil && sslConfig.GetSds() == nil {
+	} else if sslConfig.GetSds() != nil {
+
+	} else if sslConfig.GetSslSecrets() != nil {
+		// panic in dev if some new version is in place that is not currently handled
 		contextutils.LoggerFrom(ctx).DPanic(vs.GetDisplayName() + "has unvalidated ssl secret")
 	}
 
