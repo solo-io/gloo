@@ -105,11 +105,14 @@ func GenerateNamespacesToWatch(s *v1.Settings, namespaces kubernetes.KubeNamespa
 }
 
 func setNamespacesToWatch(namespaces []string) {
+	fmt.Println("--------------------- FROM : ", namespacesToWatch)
 	namespacesToWatch = namespaces
+	fmt.Println("--------------------- TO : ", namespacesToWatch)
 }
 
 func UpdateNamespacesToWatch(s *v1.Settings, namespaces kubernetes.KubeNamespaceList) (bool, error) {
 	mu.Lock()
+	defer mu.Unlock()
 
 	ns, err := GenerateNamespacesToWatch(s, namespaces)
 	if err != nil {
@@ -122,7 +125,6 @@ func UpdateNamespacesToWatch(s *v1.Settings, namespaces kubernetes.KubeNamespace
 
 	setNamespacesToWatch(ns)
 
-	mu.Unlock()
 	return true, nil
 }
 

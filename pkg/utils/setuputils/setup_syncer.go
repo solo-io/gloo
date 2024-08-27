@@ -57,8 +57,11 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		return err
 	}
 	if !resyncRequired {
+		fmt.Println("--------------------- Not required")
 		return nil
 	}
+
+	fmt.Println("--------------------- Required")
 
 	contextutils.LoggerFrom(ctx).Debugw("received settings snapshot", zap.Any("settings", settings))
 
