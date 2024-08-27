@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"sync"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
@@ -19,6 +20,7 @@ var (
 	settingsKey = settingsKeyStruct{}
 
 	namespacesToWatch = []string{}
+	mu                sync.Mutex
 )
 
 func WithSettings(ctx context.Context, settings *v1.Settings) context.Context {
@@ -107,6 +109,8 @@ func setNamespacesToWatch(namespaces []string) {
 }
 
 func UpdateNamespacesToWatch(s *v1.Settings, namespaces kubernetes.KubeNamespaceList) (bool, error) {
+	mu.Lock()
+
 	ns, err := GenerateNamespacesToWatch(s, namespaces)
 	if err != nil {
 		return false, err
@@ -117,6 +121,8 @@ func UpdateNamespacesToWatch(s *v1.Settings, namespaces kubernetes.KubeNamespace
 	}
 
 	setNamespacesToWatch(ns)
+
+	mu.Unlock()
 	return true, nil
 }
 
