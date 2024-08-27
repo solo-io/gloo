@@ -54,6 +54,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/tunneling"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/upstreamconn"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/virtualhost"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/serviceentry"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
 )
@@ -114,6 +115,7 @@ func Plugins(opts bootstrap.Opts) []plugins.Plugin {
 
 	if opts.KubeClient != nil {
 		glooPlugins = append(glooPlugins, kubernetes.NewPlugin(opts.KubeClient, opts.KubeCoreCache))
+		glooPlugins = append(glooPlugins, serviceentry.NewPlugin(opts.KubeClient, opts.KubeCoreCache))
 	}
 	if opts.Consul.ConsulWatcher != nil {
 		glooPlugins = append(glooPlugins, consul.NewPlugin(opts.Consul.ConsulWatcher, consul.NewConsulDnsResolver(opts.Consul.DnsServer), opts.Consul.DnsPollingInterval))

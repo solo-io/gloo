@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"slices"
-	"strings"
 	"time"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -20,9 +19,6 @@ import (
 	networking "istio.io/api/networking/v1beta1"
 	networkingclient "istio.io/client-go/pkg/apis/networking/v1beta1"
 	istioclient "istio.io/client-go/pkg/clientset/versioned"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/selection"
 )
 
 const UpstreamNamePrefix = "istio-se:"
@@ -61,6 +57,7 @@ func (s *serviceEntryClient) Watch(namespace string, opts skclients.WatchOpts) (
 			return
 		}
 		upstreams := ConvertUpstreamList(list.Items)
+		// TODO only push if upstreams != previous
 		unchanged := !initialized && slices.EqualFunc(upstreams, previous, func(a, b *v1.Upstream) bool {
 			return a.Equal(b)
 		})
@@ -108,22 +105,6 @@ func (s *serviceEntryClient) Watch(namespace string, opts skclients.WatchOpts) (
 	}()
 
 	return us, errs, nil
-}
-
-func buildListOptions(expressionSelector string, selector map[string]string) metav1.ListOptions {
-	if expressionSelector != "" {
-		return metav1.ListOptions{
-			LabelSelector: expressionSelector,
-		}
-	}
-	sel := labels.NewSelector()
-	for k, v := range selector {
-		req, _ := labels.NewRequirement(k, selection.Equals, strings.Split(v, ","))
-		sel = sel.Add(*req)
-	}
-	return metav1.ListOptions{
-		LabelSelector: sel.String(),
-	}
 }
 
 func ConvertUpstreamList(servicEntries []*networkingclient.ServiceEntry) v1.UpstreamList {
@@ -197,36 +178,11 @@ func buildStatic(se *networkingclient.ServiceEntry, port *networking.ServicePort
 	}
 }
 
-// parseIstioProtocol always gives the all-caps protocol part of a port name.
-// Example: http-foobar would be HTTP.
-func parseIstioProtocol(protocol string) string {
-	protocol = strings.ToUpper(protocol)
-	if idx := strings.Index(protocol, "-"); idx != -1 {
-		protocol = protocol[:idx]
-	}
-	return protocol
-}
-
-func isProtocolTLS(protocol string) bool {
-	p := parseIstioProtocol(protocol)
-	return p == "HTTPS" || p == "TLS"
-}
-
 func wePort(we *networking.WorkloadEntry, svcPort *networking.ServicePort) uint32 {
 	if we.Ports == nil {
 		return 0
 	}
 	return we.Ports[svcPort.Name]
-}
-
-func targetPort(base, svc, ep uint32) uint32 {
-	if ep > 0 {
-		return ep
-	}
-	if svc > 0 {
-		return svc
-	}
-	return base
 }
 
 // We don't actually use the following in thi shim, but we must satisfy the UpstreamClient interface.

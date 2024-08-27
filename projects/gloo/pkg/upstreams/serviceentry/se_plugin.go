@@ -22,7 +22,7 @@ type sePlugin struct {
 	settings *v1.Settings
 }
 
-func NewDiscoveryPlugin(kube kubernetes.Interface, kubeCoreCache corecache.KubeCoreCache) plugins.Plugin {
+func NewPlugin(kube kubernetes.Interface, kubeCoreCache corecache.KubeCoreCache) plugins.Plugin {
 	return &sePlugin{
 		istio:         mustBuildIstioClient(),
 		kube:          kube,
