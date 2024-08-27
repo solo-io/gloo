@@ -365,7 +365,7 @@ func validateSSLConfiguration(ctx context.Context, vs *v1.VirtualService,
 	} else if secretRef := sslConfig.GetSecretRef(); secretRef != nil {
 		_, _, _, _, err := utils.GetSslSecrets(*secretRef, snapshot.Secrets)
 		if err != nil {
-
+			err = fmt.Errorf("%s, %v", err.Error(), snapshot.Secrets)
 			if settingsutil.MaybeFromContext(ctx).GetGateway().GetValidation().GetWarnMissingTlsSecret().GetValue() &&
 				errors.Is(err, utils.SslSecretNotFoundError) {
 				reports.AddWarning(vs, err.Error())
