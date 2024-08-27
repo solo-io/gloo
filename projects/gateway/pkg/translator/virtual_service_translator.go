@@ -365,9 +365,15 @@ func validateSSLConfiguration(ctx context.Context, vs *v1.VirtualService,
 	} else if secretRef := sslConfig.GetSecretRef(); secretRef != nil {
 		_, _, _, _, err := utils.GetSslSecrets(*secretRef, snapshot.Secrets)
 		if err != nil {
-			reports.AddError(vs, utils.InvalidTlsSecretError(secretRef, err))
+
+			if settingsutil.MaybeFromContext(ctx).GetGateway().GetValidation().GetWarnMissingTlsSecret().GetValue() &&
+				errors.Is(err, utils.SslSecretNotFoundError) {
+				reports.AddWarning(vs, err.Error())
+			} else {
+				reports.AddError(vs, utils.InvalidTlsSecretError(secretRef, err))
+			}
 		}
-	} else if sslConfig.GetSslSecrets() != nil {
+	} else if sslConfig.GetSslSecrets() != nil && sslConfig.GetSds() == nil {
 		contextutils.LoggerFrom(ctx).DPanic(vs.GetDisplayName() + "has unvalidated ssl secret")
 	}
 
