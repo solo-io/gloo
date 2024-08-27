@@ -14,6 +14,10 @@ import (
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 )
 
+// SourceLabel can indicate internally the source resource that generated
+// a synthetic upstream.
+const UpstreamSourceLabel = "internal.solo.io/upstream-source"
+
 // Plugin is a named unit of translation, used to produce Envoy configuration
 type Plugin interface {
 	// Name returns a unique identifier for a plugin

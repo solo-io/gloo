@@ -69,6 +69,12 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		return nil
 	}
 
+	// if the label is unset, assume Service
+	// ServiceEntry will set this to get excluded here
+	if src, ok := in.GetMetadata().GetLabels()[plugins.UpstreamSourceLabel]; !ok || src != "Service" {
+		return nil
+	}
+
 	// configure the cluster to use EDS:ADS and call it a day
 	xds.SetEdsOnCluster(out, p.settings)
 	upstreamRef := in.GetMetadata().Ref()
@@ -109,5 +115,4 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 
 	return errors.Errorf("Upstream %s references the service \"%s\" which does not exist in namespace \"%s\"",
 		upstreamRef.String(), kube.Kube.GetServiceName(), kube.Kube.GetServiceNamespace())
-
 }

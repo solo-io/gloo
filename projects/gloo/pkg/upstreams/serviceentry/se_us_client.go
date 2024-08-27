@@ -9,6 +9,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/NoOpUpstreamClient"
 	"github.com/solo-io/go-utils/contextutils"
@@ -135,12 +136,18 @@ func ConvertUpstreams(se *networkingclient.ServiceEntry) []*v1.Upstream {
 	// - exportTo: we're not respecting this but we should
 	var out []*v1.Upstream
 	for _, port := range se.Spec.Ports {
+		labels := make(map[string]string, len(se.Labels))
+		for k, v := range se.Labels {
+			labels[k] = v
+		}
+		labels[plugins.UpstreamSourceLabel] = "ServiceEntry"
+
 		us := &v1.Upstream{
 			Metadata: &core.Metadata{
 				Name:        UpstreamNamePrefix + se.Name,
 				Namespace:   se.Namespace,
 				Cluster:     "", // can we populate this for the local cluster?
-				Labels:      se.Labels,
+				Labels:      labels,
 				Annotations: se.Annotations,
 			},
 		}
