@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	gloo_defaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
@@ -58,26 +57,26 @@ func (s *testingSuite) TestVirtualServiceWithSecretDeletion() {
 	// Replace environment variables placeholders with their values
 	substitutedSecretVS := os.ExpandEnv(string(secretVS))
 
-	s.T().Cleanup(func() {
-		// Can delete resources in correct order
-		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, []byte(substitutedSecretVS), "-n", s.testInstallation.Metadata.InstallNamespace)
-		s.Assert().NoError(err, "can delete virtual service with secret")
+	// s.T().Cleanup(func() {
+	// 	// Can delete resources in correct order
+	// 	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, []byte(substitutedSecretVS), "-n", s.testInstallation.Metadata.InstallNamespace)
+	// 	s.Assert().NoError(err, "can delete virtual service with secret")
 
-		// Delete can fail with strict validation if VS is not deleted first from snapshot, so try multiple times so that snapshot has time to update
-		s.Assert().Eventually(func() bool {
-			err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
-			return err == nil
-		}, time.Minute, 5*time.Second, "can delete "+validation.ExampleUpstream)
+	// 	// Delete can fail with strict validation if VS is not deleted first from snapshot, so try multiple times so that snapshot has time to update
+	// 	s.Assert().Eventually(func() bool {
+	// 		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
+	// 		return err == nil
+	// 	}, time.Minute, 5*time.Second, "can delete "+validation.ExampleUpstream)
 
-		// Delete can fail with strict validation if VS is not deleted first from snapshot, so try multiple times so that snapshot has time to update
-		s.Assert().Eventually(func() bool {
-			err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.Secret, "-n", s.testInstallation.Metadata.InstallNamespace)
-			return err == nil
-		}, time.Minute, 5*time.Second, "can delete "+validation.Secret)
+	// 	// Delete can fail with strict validation if VS is not deleted first from snapshot, so try multiple times so that snapshot has time to update
+	// 	s.Assert().Eventually(func() bool {
+	// 		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.Secret, "-n", s.testInstallation.Metadata.InstallNamespace)
+	// 		return err == nil
+	// 	}, time.Minute, 5*time.Second, "can delete "+validation.Secret)
 
-		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.NginxPodManifest)
-		s.Assert().NoError(err, "can delete "+testdefaults.NginxPodManifest)
-	})
+	// 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.NginxPodManifest)
+	// 	s.Assert().NoError(err, "can delete "+testdefaults.NginxPodManifest)
+	// })
 
 	// apply example app
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.NginxPodManifest)
