@@ -319,11 +319,13 @@ func (s *sslConfigTranslator) ResolveCommonSslConfig(cs CertSource, secrets v1.S
 	if sslSecrets := cs.GetSecretRef(); sslSecrets != nil {
 		var err error
 		inlineDataSource = true
+
 		ref := sslSecrets
-		certChain, privateKey, rootCa, ocspStaple, err = getSslSecrets(*ref, secrets)
+		certChain, privateKey, rootCa, ocspStaple, err = GetSslSecrets(*ref, secrets)
 		if err != nil {
 			return nil, err
 		}
+
 	} else if sslFiles := cs.GetSslFiles(); sslFiles != nil {
 		certChain, privateKey, rootCa = sslFiles.GetTlsCert(), sslFiles.GetTlsKey(), sslFiles.GetRootCa()
 		// Since ocspStaple is []byte, but we want the file path, we're storing it in a separate string variable
@@ -413,7 +415,10 @@ func (s *sslConfigTranslator) ResolveCommonSslConfig(cs CertSource, secrets v1.S
 	return tlsContext, err
 }
 
-func getSslSecrets(ref core.ResourceRef, secrets v1.SecretList) (string, string, string, []byte, error) {
+// GetSslSecrets retrieves the given secret from the snapshot secretlist
+// it returns the cert chain, private key, and root CA from the given secret.
+// If the secret is not found or invalid then it returns
+func GetSslSecrets(ref core.ResourceRef, secrets v1.SecretList) (string, string, string, []byte, error) {
 	secret, err := secrets.Find(ref.Strings())
 	if err != nil {
 		return "", "", "", nil, sslSecretNotFoundError(err)

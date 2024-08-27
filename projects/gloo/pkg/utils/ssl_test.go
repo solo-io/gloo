@@ -1,6 +1,8 @@
 package utils_test
 
 import (
+	"strings"
+
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoygrpccredential "github.com/envoyproxy/go-control-plane/envoy/config/grpc_credential/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
@@ -177,6 +179,34 @@ var _ = Describe("Ssl", func() {
 			Entry("upstreamCfg", func() utils.CertSource { return upstreamCfg }),
 			Entry("downstreamCfg", func() utils.CertSource { return downstreamCfg }),
 		)
+
+		DescribeTable("should succeed with a valid chain",
+			func(c func() utils.CertSource) {
+				tlsSecret.CertChain = tlsSecret.CertChain + "\n" + tlsSecret.CertChain
+				_, err := resolveCommonSslConfig(c(), secrets)
+				Expect(err).To(Not(HaveOccurred()))
+
+			},
+			Entry("upstreamCfg", func() utils.CertSource { return upstreamCfg }),
+			Entry("downstreamCfg", func() utils.CertSource { return downstreamCfg }),
+		)
+
+		DescribeTable("should fail with an invalid chain",
+			func(c func() utils.CertSource) {
+
+				// create a chain with a valid first cert and an invalid second cert
+				chainFields := strings.Fields(tlsSecret.CertChain + "\n" + tlsSecret.CertChain)
+				invalidSecondCertChain := strings.Join(chainFields[0:len(chainFields)-2], "\n")
+				tlsSecret.CertChain = invalidSecondCertChain
+
+				_, err := resolveCommonSslConfig(c(), secrets)
+				Expect(err).To(HaveOccurred())
+
+			},
+			Entry("upstreamCfg", func() utils.CertSource { return upstreamCfg }),
+			Entry("downstreamCfg", func() utils.CertSource { return downstreamCfg }),
+		)
+
 		DescribeTable("should not have validation context if no rootca",
 			func(c func() utils.CertSource) {
 				tlsSecret.RootCa = ""
