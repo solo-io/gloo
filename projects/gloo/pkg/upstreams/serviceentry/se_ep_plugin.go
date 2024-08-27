@@ -45,9 +45,13 @@ func (s *sePlugin) listEndpoints(
 	pods := make(map[string][]corev1.Pod, len(watchNamespaces))
 	for _, ns := range watchNamespaces {
 		seList, _ := s.istio.NetworkingV1beta1().ServiceEntries(ns).List(ctx, listOpts)
-		serviceEntries[ns] = append(serviceEntries[ns], seList.Items...)
+		for _, se := range seList.Items {
+			serviceEntries[se.Namespace] = append(serviceEntries[se.Namespace], se)
+		}
 		podList, _ := s.kube.CoreV1().Pods(ns).List(ctx, listOpts)
-		pods[ns] = append(pods[ns], podList.Items...)
+		for _, pod := range podList.Items {
+			pods[pod.Namespace] = append(pods[pod.Namespace], pod)
+		}
 	}
 
 	var out v1.EndpointList
@@ -97,6 +101,12 @@ func buildPodEndpoint(us *v1.Upstream, se *networkingclient.ServiceEntry, pod co
 		}
 	}
 	return &v1.Endpoint{
+		Metadata: &core.Metadata{
+			Name:        "istio-se-ep-" + se.Name + "-pod-" + pod.Name,
+			Namespace:   se.Namespace,
+			Labels:      pod.Labels,
+			Annotations: pod.Annotations,
+		},
 		Upstreams: []*core.ResourceRef{{
 			// TODO re-use the same endpoint selected by multiple upstreams
 			Name:      us.GetMetadata().GetName(),
@@ -105,7 +115,6 @@ func buildPodEndpoint(us *v1.Upstream, se *networkingclient.ServiceEntry, pod co
 		Address: pod.Status.PodIP,
 		Port:    port,
 		// Hostname:    "",
-		Metadata: &core.Metadata{},
 	}
 }
 
@@ -116,7 +125,7 @@ func (s *sePlugin) WatchEndpoints(writeNamespace string, upstreamsToTrack v1.Ups
 	// 	return e.GetKube()
 	// })
 
-	// TODO informers/cache reads
+	// setup watches
 	listOpts := buildListOptions(opts.ExpressionSelector, opts.Selector)
 	podWatch, err := s.kube.CoreV1().Pods(metav1.NamespaceAll).Watch(opts.Ctx, listOpts)
 	if err != nil {
@@ -130,6 +139,14 @@ func (s *sePlugin) WatchEndpoints(writeNamespace string, upstreamsToTrack v1.Ups
 
 	endpointsChan := make(chan v1.EndpointList)
 	errs := make(chan error)
+
+	// TODO TODO use informers + listers instead of watch
+	// serviceEntry := serviceEntryInformer(s.istio, metav1.NamespaceAll)
+	// Pods := serviceEntryInformer(s.istio, metav1.NamespaceAll)
+	// updates := make(chan struct{})
+	// if err := watchInformers(updates, opts.Ctx.Done()); err != nil {
+	// 	return nil, nil, err
+	// }
 
 	updateResourceList := func() {
 		list, err := s.listEndpoints(opts.Ctx, writeNamespace, listOpts, watchNamespaces, upstreamsToTrack)

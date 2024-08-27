@@ -13,6 +13,7 @@ import (
 
 const PluginName = "ServiceEntryDiscoveryPlugin"
 
+// TODO this is both a upstreams.ClientPlugin and  DiscoveryPlugin. split?
 type sePlugin struct {
 	istio istioclient.Interface
 

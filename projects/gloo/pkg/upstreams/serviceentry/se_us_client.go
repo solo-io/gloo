@@ -9,6 +9,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/NoOpUpstreamClient"
 	"github.com/solo-io/go-utils/contextutils"
 	skclients "github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -22,6 +23,16 @@ import (
 )
 
 const UpstreamNamePrefix = "istio-se:"
+
+var _ upstreams.ClientPlugin = &sePlugin{}
+
+func (s *sePlugin) Client() v1.UpstreamClient {
+	return NewServiceEntryUpstreamClient(s.istio)
+}
+
+func (s *sePlugin) SourceName() string {
+	return PluginName
+}
 
 func NewServiceEntryUpstreamClient(client istioclient.Interface) v1.UpstreamClient {
 	return &serviceEntryClient{istio: client}
@@ -43,6 +54,7 @@ func (s *serviceEntryClient) List(namespace string, opts skclients.ListOpts) (v1
 // Watch is implemented based onon the KubeResourceWatch impl in solo-kit
 // to keep behaviors consistent.
 func (s *serviceEntryClient) Watch(namespace string, opts skclients.WatchOpts) (<-chan v1.UpstreamList, <-chan error, error) {
+	// TODO use informer + lister here?
 	listOpts := buildListOptions(opts.ExpressionSelector, opts.Selector)
 
 	us, errs := make(chan v1.UpstreamList), make(chan error)
