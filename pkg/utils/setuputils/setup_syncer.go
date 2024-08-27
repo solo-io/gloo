@@ -2,6 +2,7 @@ package setuputils
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
@@ -49,7 +50,15 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		return errors.Wrapf(err, "finding bootstrap configuration")
 	}
 	ctx = settingsutil.WithSettings(ctx, settings)
-	settingsutil.SetNamespacesToWatch(settings, snap.Kubenamespaces.Names())
+
+	fmt.Println("--------------------- HERE :")
+	resyncRequired, err := settingsutil.UpdateNamespacesToWatch(settings, snap.Kubenamespaces)
+	if err != nil {
+		return err
+	}
+	if !resyncRequired {
+		return nil
+	}
 
 	contextutils.LoggerFrom(ctx).Debugw("received settings snapshot", zap.Any("settings", settings))
 

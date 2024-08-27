@@ -5,9 +5,8 @@ package v1
 import (
 	"sync"
 	"time"
-	"fmt"
-	"context"
-	// "slices"
+
+	github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -17,13 +16,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	skstats "github.com/solo-io/solo-kit/pkg/stats"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options/contextoptions"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
-	"k8s.io/client-go/kubernetes"
-	// corev1 "k8s.io/api/core/v1"
-
 
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/errutils"
@@ -91,26 +83,32 @@ type SetupEmitter interface {
 	SetupSnapshotEmitter
 	Register() error
 	Settings() SettingsClient
+	KubeNamespace() github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceClient
 }
 
-func NewSetupEmitter(settingsClient SettingsClient) SetupEmitter {
-	return NewSetupEmitterWithEmit(settingsClient, make(chan struct{}))
+func NewSetupEmitter(settingsClient SettingsClient, kubeNamespaceClient github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceClient) SetupEmitter {
+	return NewSetupEmitterWithEmit(settingsClient, kubeNamespaceClient, make(chan struct{}))
 }
 
-func NewSetupEmitterWithEmit(settingsClient SettingsClient, emit <-chan struct{}) SetupEmitter {
+func NewSetupEmitterWithEmit(settingsClient SettingsClient, kubeNamespaceClient github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceClient, emit <-chan struct{}) SetupEmitter {
 	return &setupEmitter{
-		settings:  settingsClient,
-		forceEmit: emit,
+		settings:      settingsClient,
+		kubeNamespace: kubeNamespaceClient,
+		forceEmit:     emit,
 	}
 }
 
 type setupEmitter struct {
-	forceEmit <-chan struct{}
-	settings  SettingsClient
+	forceEmit     <-chan struct{}
+	settings      SettingsClient
+	kubeNamespace github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceClient
 }
 
 func (c *setupEmitter) Register() error {
 	if err := c.settings.Register(); err != nil {
+		return err
+	}
+	if err := c.kubeNamespace.Register(); err != nil {
 		return err
 	}
 	return nil
@@ -118,6 +116,10 @@ func (c *setupEmitter) Register() error {
 
 func (c *setupEmitter) Settings() SettingsClient {
 	return c.settings
+}
+
+func (c *setupEmitter) KubeNamespace() github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceClient {
+	return c.kubeNamespace
 }
 
 func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *SetupSnapshot, <-chan error, error) {
@@ -144,48 +146,15 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 	settingsChan := make(chan settingsListWithNamespace)
 
 	var initialSettingsList SettingsList
+	/* Create channel for KubeNamespace */
 
 	currentSnapshot := SetupSnapshot{}
 	settingsByNamespace := make(map[string]SettingsList)
 
-	kubecontext := contextoptions.KubecontextFrom(ctx)
-
-	config, _ := kubeutils.GetRestConfigWithKubeContext(kubecontext)
-	config.Timeout = 0
-	config.QPS = 50
-	config.Burst = 100
-
-	kubeClient, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	getNamespacesWithFilter := func(ctx context.Context, opts metav1.ListOptions) ([]string, error) {
-
-		var namespaces []string
-		nsList, err := kubeClient.CoreV1().Namespaces().List(ctx, opts)
-		if err != nil {
-			return nil, err
-		}
-		for _, ns := range nsList.Items {
-			namespaces = append(namespaces, ns.Name)
-		}
-		return namespaces, nil
-	}
-
 	for _, namespace := range watchNamespaces {
 		/* Setup namespaced watch for Settings */
 		{
-			namespaces, err := getNamespacesWithFilter(opts.Ctx, metav1.ListOptions{
-				LabelSelector: "watch=this",
-			})
-
-			fmt.Println("----------------- namespaces : ", namespaces, err)
-
 			settings, err := c.settings.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
-			fmt.Println("len(settings) : ", len(settings))
-			settings[0].WatchNamespaces = namespaces
-
 			if err != nil {
 				return nil, nil, errors.Wrapf(err, "initial Settings list")
 			}
@@ -203,48 +172,16 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 			errutils.AggregateErrs(ctx, errs, settingsErrs, namespace+"-settings")
 		}(namespace)
 
-		nsWatcher, _ := kubeClient.CoreV1().Namespaces().Watch(ctx, metav1.ListOptions{
-			LabelSelector: "watch=this",
-		})
-		nsChan := nsWatcher.ResultChan()
-
-		/* Initialize snapshot for Settings */
-	currentSnapshot.Settings = initialSettingsList.Sort()
-
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {
 			for {
 				select {
 				case <-ctx.Done():
 					return
-				case <- nsChan :
-					// _, ok := event.Object.(*corev1.Namespace)
-					// if !ok {
-					// 	fmt.Println("Failed to convert event : ", event, ok)
-					// 	continue
-					// }
-					// fmt.Println(ns)
-					// if !slices.Contains(currentSnapshot.Settings[0].WatchNamespaces, ns.Name) {
-						// 	fmt.Println("-------------- Updated NS : ", currentSnapshot.Settings[0].WatchNamespaces)
-						// }
-						namespaces, _ := getNamespacesWithFilter(opts.Ctx, metav1.ListOptions{
-							LabelSelector: "watch=this",
-						})
-							currentSnapshot.Settings[0].WatchNamespaces = namespaces
-							fmt.Println("-------------- Updated NS : ", currentSnapshot.Settings[0].WatchNamespaces)
-
-					select {
-					case settingsChan <- settingsListWithNamespace{list: currentSnapshot.Settings, namespace: namespace}:
-					}
 				case settingsList, ok := <-settingsNamespacesChan:
 					if !ok {
 						return
 					}
-					namespaces, _ := getNamespacesWithFilter(opts.Ctx, metav1.ListOptions{
-						LabelSelector: "watch=this",
-					})
-					fmt.Println("----------------- existing namespaces : ", namespaces, err)
-					settingsList[0].WatchNamespaces = namespaces
 					select {
 					case <-ctx.Done():
 						return
@@ -254,6 +191,23 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 			}
 		}(namespace)
 	}
+	/* Initialize snapshot for Settings */
+	currentSnapshot.Settings = initialSettingsList.Sort()
+	/* Setup cluster-wide watch for KubeNamespace */
+	var err error
+	currentSnapshot.Kubenamespaces, err = c.kubeNamespace.List(clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "initial KubeNamespace list")
+	}
+	kubeNamespaceChan, kubeNamespaceErrs, err := c.kubeNamespace.Watch(opts)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "starting KubeNamespace watch")
+	}
+	done.Add(1)
+	go func() {
+		defer done.Done()
+		errutils.AggregateErrs(ctx, errs, kubeNamespaceErrs, "kubenamespaces")
+	}()
 
 	snapshots := make(chan *SetupSnapshot)
 	go func() {
@@ -326,6 +280,20 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 					settingsList = append(settingsList, settings...)
 				}
 				currentSnapshot.Settings = settingsList.Sort()
+			case kubeNamespaceList, ok := <-kubeNamespaceChan:
+				if !ok {
+					return
+				}
+				record()
+
+				skstats.IncrementResourceCount(
+					ctx,
+					"<all>",
+					"kube_namespace",
+					mSetupResourcesIn,
+				)
+
+				currentSnapshot.Kubenamespaces = kubeNamespaceList
 			}
 		}
 	}()

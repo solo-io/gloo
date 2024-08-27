@@ -8,6 +8,8 @@ import (
 	"hash/fnv"
 	"log"
 
+	github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
+
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -16,12 +18,14 @@ import (
 )
 
 type SetupSnapshot struct {
-	Settings SettingsList
+	Settings       SettingsList
+	Kubenamespaces github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceList
 }
 
 func (s SetupSnapshot) Clone() SetupSnapshot {
 	return SetupSnapshot{
-		Settings: s.Settings.Clone(),
+		Settings:       s.Settings.Clone(),
+		Kubenamespaces: s.Kubenamespaces.Clone(),
 	}
 }
 
@@ -32,11 +36,18 @@ func (s SetupSnapshot) Hash(hasher hash.Hash64) (uint64, error) {
 	if _, err := s.hashSettings(hasher); err != nil {
 		return 0, err
 	}
+	if _, err := s.hashKubenamespaces(hasher); err != nil {
+		return 0, err
+	}
 	return hasher.Sum64(), nil
 }
 
 func (s SetupSnapshot) hashSettings(hasher hash.Hash64) (uint64, error) {
 	return hashutils.HashAllSafe(hasher, s.Settings.AsInterfaces()...)
+}
+
+func (s SetupSnapshot) hashKubenamespaces(hasher hash.Hash64) (uint64, error) {
+	return hashutils.HashAllSafe(hasher, s.Kubenamespaces.AsInterfaces()...)
 }
 
 func (s SetupSnapshot) HashFields() []zap.Field {
@@ -47,6 +58,11 @@ func (s SetupSnapshot) HashFields() []zap.Field {
 		log.Println(eris.Wrapf(err, "error hashing, this should never happen"))
 	}
 	fields = append(fields, zap.Uint64("settings", SettingsHash))
+	KubenamespacesHash, err := s.hashKubenamespaces(hasher)
+	if err != nil {
+		log.Println(eris.Wrapf(err, "error hashing, this should never happen"))
+	}
+	fields = append(fields, zap.Uint64("kubenamespaces", KubenamespacesHash))
 	snapshotHash, err := s.Hash(hasher)
 	if err != nil {
 		log.Println(eris.Wrapf(err, "error hashing, this should never happen"))
@@ -58,6 +74,8 @@ func (s *SetupSnapshot) GetResourcesList(resource resources.Resource) (resources
 	switch resource.(type) {
 	case *Settings:
 		return s.Settings.AsResources(), nil
+	case *github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespace:
+		return s.Kubenamespaces.AsResources(), nil
 	default:
 		return resources.ResourceList{}, eris.New("did not contain the input resource type returning empty list")
 	}
@@ -71,6 +89,15 @@ func (s *SetupSnapshot) RemoveFromResourceList(resource resources.Resource) erro
 		for i, res := range s.Settings {
 			if refKey == res.GetMetadata().Ref().Key() {
 				s.Settings = append(s.Settings[:i], s.Settings[i+1:]...)
+				break
+			}
+		}
+		return nil
+	case *github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespace:
+
+		for i, res := range s.Kubenamespaces {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Kubenamespaces = append(s.Kubenamespaces[:i], s.Kubenamespaces[i+1:]...)
 				break
 			}
 		}
@@ -96,14 +123,28 @@ func (s *SetupSnapshot) UpsertToResourceList(resource resources.Resource) error 
 		}
 		s.Settings.Sort()
 		return nil
+	case *github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespace:
+		updated := false
+		for i, res := range s.Kubenamespaces {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Kubenamespaces[i] = typed
+				updated = true
+			}
+		}
+		if !updated {
+			s.Kubenamespaces = append(s.Kubenamespaces, typed)
+		}
+		s.Kubenamespaces.Sort()
+		return nil
 	default:
 		return eris.Errorf("did not add/replace the resource type because it does not exist %T", resource)
 	}
 }
 
 type SetupSnapshotStringer struct {
-	Version  uint64
-	Settings []string
+	Version        uint64
+	Settings       []string
+	Kubenamespaces []string
 }
 
 func (ss SetupSnapshotStringer) String() string {
@@ -111,6 +152,11 @@ func (ss SetupSnapshotStringer) String() string {
 
 	s += fmt.Sprintf("  Settings %v\n", len(ss.Settings))
 	for _, name := range ss.Settings {
+		s += fmt.Sprintf("    %v\n", name)
+	}
+
+	s += fmt.Sprintf("  Kubenamespaces %v\n", len(ss.Kubenamespaces))
+	for _, name := range ss.Kubenamespaces {
 		s += fmt.Sprintf("    %v\n", name)
 	}
 
@@ -123,11 +169,13 @@ func (s SetupSnapshot) Stringer() SetupSnapshotStringer {
 		log.Println(eris.Wrapf(err, "error hashing, this should never happen"))
 	}
 	return SetupSnapshotStringer{
-		Version:  snapshotHash,
-		Settings: s.Settings.NamespacesDotNames(),
+		Version:        snapshotHash,
+		Settings:       s.Settings.NamespacesDotNames(),
+		Kubenamespaces: s.Kubenamespaces.Names(),
 	}
 }
 
 var SetupGvkToHashableResource = map[schema.GroupVersionKind]func() resources.HashableResource{
 	SettingsGVK: NewSettingsHashableResource,
+	github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceGVK: github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.NewKubeNamespaceHashableResource,
 }
