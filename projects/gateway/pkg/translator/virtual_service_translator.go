@@ -360,12 +360,12 @@ func validateSSLConfiguration(ctx context.Context, vs *v1.VirtualService,
 
 		_, err := tls.X509KeyPair([]byte(certChain), []byte(privateKey))
 		if err != nil {
-			reports.AddError(vs, utils.InvalidTlsSecretError(vs.GetMetadata().Ref(), err))
+			reports.AddError(vs, utils.InvalidTlsSecretError(nil, err))
 		}
 	} else if secretRef := sslConfig.GetSecretRef(); secretRef != nil {
 		_, _, _, _, err := utils.GetSslSecrets(*secretRef, snapshot.Secrets)
 		if err != nil {
-			reports.AddError(vs, utils.InvalidTlsSecretError(vs.GetMetadata().Ref(), err))
+			reports.AddError(vs, utils.InvalidTlsSecretError(secretRef, err))
 		}
 	} else if sslConfig.GetSslSecrets() != nil {
 		contextutils.LoggerFrom(ctx).DPanic(vs.GetDisplayName() + "has unvalidated ssl secret")
