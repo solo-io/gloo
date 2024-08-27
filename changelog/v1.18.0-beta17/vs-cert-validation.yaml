@@ -1,9 +1,0 @@
-changelog:
-  - type: FIX
-    issueLink: https://github.com/solo-io/solo-projects/issues/6772
-    resolvesIssue: false
-    description: >-
-      Server TLS configured via virtualservice will now reject secrets with bad cert info.
-      Previously a bad cert could cause envoy to nack all configuration updates from gloo.
-      As this is still an error condition it requires validation to prevent the bad behavior.
-      
