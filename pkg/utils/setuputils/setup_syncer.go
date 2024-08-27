@@ -49,7 +49,7 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		return errors.Wrapf(err, "finding bootstrap configuration")
 	}
 	ctx = settingsutil.WithSettings(ctx, settings)
-	settingsutil.SetNamespacesToWatch(snap.NamespacesToWatch)
+	settingsutil.SetNamespacesToWatch(settings, snap.Kubenamespaces.Names())
 
 	contextutils.LoggerFrom(ctx).Debugw("received settings snapshot", zap.Any("settings", settings))
 

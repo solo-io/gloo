@@ -4,6 +4,9 @@ import (
 	"context"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 type settingsKeyStruct struct{}
@@ -59,8 +62,30 @@ func IsAllNamespaces(watchNs []string) bool {
 	}
 }
 
-func SetNamespacesToWatch(namespaces []string) {
-	namespacesToWatch = namespaces
+func SetNamespacesToWatch(s *v1.Settings, namespaces []string) error {
+
+	if len(s.GetWatchNamespaces()) != 0 {
+		namespacesToWatch = s.GetWatchNamespaces()
+		return nil
+	}
+
+	if len(s.GetWatchNamespaceSelectors()) == 0 {
+		namespacesToWatch = []string{""}
+	}
+
+	var selectors []labels.Selector
+	selectedNamespaces := sets.NewString()
+
+	for _, selector := range s.GetWatchNamespaceSelectors() {
+		ls, err := metav1.LabelSelectorAsSelector(selector)
+		if err != nil {
+			return err
+		}
+		selectors = append(selectors, ls)
+	}
+
+	namespacesToWatch = selectedNamespaces.List()
+	return nil
 }
 
 func GetNamespaces(s *v1.Settings) []string {
