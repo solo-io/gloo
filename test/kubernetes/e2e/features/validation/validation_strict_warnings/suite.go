@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
+
 	gloo_defaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
