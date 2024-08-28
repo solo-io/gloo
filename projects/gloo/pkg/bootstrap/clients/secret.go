@@ -80,7 +80,7 @@ func SecretFactoryForSettings(ctx context.Context, params SecretFactoryParams) (
 func NewSecretResourceClientFactory(ctx context.Context, params SecretFactoryParams) (factory.ResourceClientFactory, error) {
 	switch source := params.Settings.GetSecretSource().(type) {
 	case *v1.Settings_KubernetesSecretSource:
-		if err := initializeForKube(ctx, params.Cfg, params.Clientset, params.KubeCoreCache, params.Settings.GetRefreshRate(), settingsutil.GetNamespaces(params.Settings)); err != nil {
+		if err := initializeForKube(ctx, params.Cfg, params.Clientset, params.KubeCoreCache, params.Settings.GetRefreshRate(), settingsutil.GetNamespacesToWatch(params.Settings)); err != nil {
 			return nil, errors.Wrapf(err, "initializing kube cfg clientset and core cache")
 		}
 		return &factory.KubeSecretClientFactory{

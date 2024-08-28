@@ -100,7 +100,7 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 	}
 	statusReporterNamespace := statusutils.GetStatusReporterNamespaceOrDefault(writeNamespace)
 
-	watchNamespaces := utils.ProcessWatchNamespaces(settingsutil.GetNamespaces(settings), writeNamespace)
+	watchNamespaces := utils.ProcessWatchNamespaces(settingsutil.GetNamespacesToWatch(settings), writeNamespace)
 
 	envTrue := func(name string) bool {
 		return os.Getenv(name) == "true" || os.Getenv(name) == "1"

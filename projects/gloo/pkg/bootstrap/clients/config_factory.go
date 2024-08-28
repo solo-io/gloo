@@ -98,7 +98,7 @@ func ConfigFactoryForSettings(params ConfigFactoryParams, resourceCrd crd.Crd) (
 			Crd:                resourceCrd,
 			Cfg:                *cfg,
 			SharedCache:        kubeCache,
-			NamespaceWhitelist: settingsutil.GetNamespaces(settings),
+			NamespaceWhitelist: settingsutil.GetNamespacesToWatch(settings),
 		}, nil
 	case *v1.Settings_ConsulKvSource:
 		consulClient := params.consul.consulClient

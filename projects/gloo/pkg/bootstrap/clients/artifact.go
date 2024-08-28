@@ -38,7 +38,7 @@ func ArtifactFactoryForSettings(ctx context.Context,
 
 	switch source := settings.GetArtifactSource().(type) {
 	case *v1.Settings_KubernetesArtifactSource:
-		if err := initializeForKube(ctx, cfg, clientset, kubeCoreCache, settings.GetRefreshRate(), settingsutil.GetNamespaces(settings)); err != nil {
+		if err := initializeForKube(ctx, cfg, clientset, kubeCoreCache, settings.GetRefreshRate(), settingsutil.GetNamespacesToWatch(settings)); err != nil {
 			return nil, errors.Wrapf(err, "initializing kube cfg clientset and core cache")
 		}
 		return &factory.KubeConfigMapClientFactory{

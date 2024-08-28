@@ -196,12 +196,8 @@ spec:
 {{- end }} {{/* if .Values.settings.singleNamespace */}}
 
 {{- if .Values.settings.watchNamespaceSelectors }}
-{{- with .Values.settings.watchNamespaceSelectors }}
   watchNamespaceSelectors:
-  {{- range . }}
-  - {{ . }}
-  {{- end }}
-{{- end }} {{/* with .Values.settings.watchNamespaceSelectors */}}
+  {{ toYaml .Values.settings.watchNamespaceSelectors | nindent 4 }}
 {{- end }} {{/* if .Values.settings.watchNamespaceSelectors */}}
 
 {{- end }} {{/* if .Values.settings.create  */}}

@@ -408,7 +408,7 @@ func checkPods(ctx context.Context, printer printers.P, opts *options.Options) e
 }
 
 func getNamespaces(ctx context.Context, settings *v1.Settings) ([]string, error) {
-	return settingsutil.GetNamespaces(settings), nil
+	return settingsutil.GetNamespacesToWatch(settings), nil
 }
 
 func checkUpstreams(ctx context.Context, printer printers.P, _ *options.Options, namespaces []string) ([]string, error) {

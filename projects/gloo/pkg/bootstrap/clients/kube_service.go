@@ -28,7 +28,7 @@ func KubeServiceClientForSettings(ctx context.Context,
 	// We are running in kubernetes
 	switch settings.GetConfigSource().(type) {
 	case *v1.Settings_KubernetesConfigSource:
-		if err := initializeForKube(ctx, cfg, clientset, kubeCoreCache, settings.GetRefreshRate(), settingsutil.GetNamespaces(settings)); err != nil {
+		if err := initializeForKube(ctx, cfg, clientset, kubeCoreCache, settings.GetRefreshRate(), settingsutil.GetNamespacesToWatch(settings)); err != nil {
 			return nil, errors.Wrapf(err, "initializing kube cfg clientset and core cache")
 		}
 		return service.NewServiceClient(*clientset, *kubeCoreCache), nil
