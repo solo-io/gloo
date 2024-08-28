@@ -19,6 +19,17 @@ import (
 
 var _ e2e.NewSuiteFunc = NewTestingSuite
 
+var (
+	validTLSSecret = func(ns string) *corev1.Secret {
+		return &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "tls-secret",
+				Namespace: ns,
+			},
+		}
+	}
+)
+
 // testingSuite is the entire Suite of tests for the webhook validation of strict validation feature (alwaysAccept=false, allowWarnings=false)
 type testingSuite struct {
 	suite.Suite
@@ -102,6 +113,9 @@ func (s *testingSuite) TestVirtualServiceWithSecretDeletion() {
 		core.Status_Accepted,
 		gloo_defaults.GlooReporter,
 	)
+
+	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, validTLSSecret(s.testInstallation.Metadata.InstallNamespace))
+
 	// Apply VS with secret after Upstream and Secret exist
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
 		func() (resources.InputResource, error) {
