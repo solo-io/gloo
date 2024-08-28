@@ -2343,6 +2343,16 @@ func (m *GatewayOptions_ValidationOptions) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetWarnMissingTlsSecret()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetWarnMissingTlsSecret()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetWarnMissingTlsSecret(), target.GetWarnMissingTlsSecret()) {
+			return false
+		}
+	}
+
 	return true
 }
 
