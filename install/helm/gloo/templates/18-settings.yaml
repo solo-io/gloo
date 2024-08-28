@@ -192,8 +192,17 @@ spec:
   {{- range . }}
   - {{ . }}
   {{- end }}
-{{- end }}
-{{- end }}
+{{- end }} {{/* with .Values.settings.watchNamespaces */}}
+{{- end }} {{/* if .Values.settings.singleNamespace */}}
+
+{{- if .Values.settings.watchNamespaceSelectors }}
+{{- with .Values.settings.watchNamespaceSelectors }}
+  watchNamespaceSelectors:
+  {{- range . }}
+  - {{ . }}
+  {{- end }}
+{{- end }} {{/* with .Values.settings.watchNamespaceSelectors */}}
+{{- end }} {{/* if .Values.settings.watchNamespaceSelectors */}}
 
 {{- end }} {{/* if .Values.settings.create  */}}
 {{- end }} {{/* define "settings.settingsSpec" */}}
