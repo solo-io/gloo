@@ -298,7 +298,7 @@ func constructTestOpts(ctx context.Context, runOptions *RunOptions, settings *gl
 	var kubeCoreCache corecache.KubeCoreCache
 	if runOptions.KubeClient != nil {
 		var err error
-		kubeCoreCache, err = cache.NewKubeCoreCacheWithOptions(ctx, runOptions.KubeClient, time.Hour, settingsutil.GetNamespaces(settings))
+		kubeCoreCache, err = cache.NewKubeCoreCacheWithOptions(ctx, runOptions.KubeClient, time.Hour, settingsutil.GetNamespacesToWatch(settings))
 		Expect(err).NotTo(HaveOccurred())
 	}
 	var validationOpts *translator.ValidationOpts
@@ -353,7 +353,7 @@ func constructTestOpts(ctx context.Context, runOptions *RunOptions, settings *gl
 		RouteOptions:            f,
 		VirtualHostOptions:      f,
 		KubeServiceClient:       newServiceClient(ctx, f, runOptions),
-		WatchNamespaces:         settingsutil.GetNamespaces(settings),
+		WatchNamespaces:         settingsutil.GetNamespacesToWatch(settings),
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Second / 10,
