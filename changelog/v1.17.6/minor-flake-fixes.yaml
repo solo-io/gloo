@@ -1,0 +1,27 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/9737
+    description: >-
+      Add check for curl pod in list opt e2e tests.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/9785
+    description: >-
+      Add check for curl pod in vhost opts e2e tests.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/9788
+    description: >-
+      Fix helm e2e test parsing when image variant is not set.
+  - type: NON_USER_FACING
+    description: >-
+      Fix validation rlc e2e test when run in enterprise mode.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/9912
+    description: >-
+      Skip kube2e tests package when compiling performance tests.
+  - type: NON_USER_FACING
+    description: >-
+      Remove the .githooks directory from the repository. This directory was
+      used to configure pre-commit hooks for the repository, but it's sole
+      use was to catch JWT tokens from being committed to the repository. This
+      seems to be a bit of an overkill, and the hooks have not been maintained
+      for a while.
