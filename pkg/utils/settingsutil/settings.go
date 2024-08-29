@@ -79,6 +79,11 @@ func IsAllNamespaces(watchNs []string) bool {
 	}
 }
 
+// GenerateNamespacesToWatch generates the list of namespaces to watch based on :
+// - If `watchNamespaces` is defined, return it and do not consider `watchNamespaceSelectors`
+// - If `watchNamespaces` and `watchNamespaceSelectors` are not defined, return all namespaces
+// - If `watchNamespaces` is not defined and `watchNamespaceSelectors` is defined, return all namespaces that match the `watchNamespaceSelectors`
+// In every case, the `discoveryNamespace` (defaults to `gloo-system`) is appended to the list of namespaces
 func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNamespaceList) ([]string, error) {
 	writeNamespace := settings.GetDiscoveryNamespace()
 	if writeNamespace == "" {
@@ -86,9 +91,12 @@ func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.Kube
 	}
 
 	if len(settings.GetWatchNamespaces()) != 0 {
+		// Prevent an error where the controller can not read resources written by discovery if the
+		// install or discovery namespace is not watched
 		return utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace), nil
 	}
 
+	// Watch all namespaces if `watchNamespaces` or `watchNamespaceSelectors` is not specified
 	if len(settings.GetWatchNamespaceSelectors()) == 0 {
 		return []string{""}, nil
 	}
@@ -96,10 +104,8 @@ func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.Kube
 	var selectors []labels.Selector
 	selectedNamespaces := sets.NewString()
 
-	fmt.Println("--------------------- Selectors : ")
 	for _, selector := range settings.GetWatchNamespaceSelectors() {
-		ls, err := LabelSelectorAsSelector(selector)
-		fmt.Println(ls.String())
+		ls, err := labelSelectorAsSelector(selector)
 		if err != nil {
 			return nil, err
 		}
@@ -107,33 +113,29 @@ func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.Kube
 	}
 
 	for _, ns := range namespaces {
-		fmt.Println(ns.Name)
 		for _, selector := range selectors {
 			fmt.Println(ns.Labels)
 			if selector.Matches(labels.Set(ns.Labels)) {
-				fmt.Println("--------------------- Adding : ", ns.Name)
 				selectedNamespaces.Insert(ns.Name)
 				break
 			}
 		}
 	}
 
-	fmt.Println("--------------------- Adding : ", writeNamespace)
+	// Prevent an error where the controller can not read resources written by discovery if the
+	// install or discovery namespace is not watched
 	selectedNamespaces.Insert(writeNamespace)
 
 	return selectedNamespaces.List(), nil
 }
 
 func setNamespacesToWatch(settings *v1.Settings, namespaces []string) {
-	// fmt.Println("--------------------- FROM : ", namespacesToWatch)
-	// namespacesToWatch = namespaces
-	// fmt.Println("--------------------- TO : ", namespacesToWatch)
-
 	namespacesToWatchCache.Add(settings.MustHash(), namespaces)
-	fmt.Println("--------------------- TO : ", namespaces)
 }
 
+// UpdateNamespacesToWatch generates and updated the list of namespaces to watch and returns true if updated
 func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNamespaceList) (bool, error) {
+	// Run this method synchronously to prevent any issues with caching the namespaces to watch
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -141,7 +143,6 @@ func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNa
 	if err != nil {
 		return false, err
 	}
-	fmt.Println("--------------------- NS : ", newNamespacesToWatch)
 
 	ns, ok := namespacesToWatchCache.Get(settings.MustHash())
 	if ok {
@@ -152,11 +153,10 @@ func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNa
 	}
 
 	setNamespacesToWatch(settings, newNamespacesToWatch)
-
 	return true, nil
 }
 
-func GetAllNamespaces() (kubernetes.KubeNamespaceList, error) {
+func getAllNamespaces() (kubernetes.KubeNamespaceList, error) {
 	kubeClient := helpers.MustKubeClient()
 	kubeCache, _ := cache.NewKubeCoreCache(context.TODO(), kubeClient)
 	nsClient := namespace.NewNamespaceClient(kubeClient, kubeCache)
@@ -164,6 +164,7 @@ func GetAllNamespaces() (kubernetes.KubeNamespaceList, error) {
 	return nsClient.List(clients.ListOpts{})
 }
 
+// GetNamespacesToWatch returns the list of namespaces to watch based on the last run of `GenerateNamespacesToWatch`
 func GetNamespacesToWatch(settings *v1.Settings) []string {
 	ns, ok := namespacesToWatchCache.Get(settings.MustHash())
 	if ok {
@@ -174,7 +175,7 @@ func GetNamespacesToWatch(settings *v1.Settings) []string {
 	}
 
 	// Fallback to fetching all namespaces and updating the cache if not found
-	allNamespaces, err := GetAllNamespaces()
+	allNamespaces, err := getAllNamespaces()
 	if err != nil {
 		panic("Unable to fetch namespaces")
 	}
@@ -183,7 +184,8 @@ func GetNamespacesToWatch(settings *v1.Settings) []string {
 	return ns.([]string)
 }
 
-func LabelSelectorAsSelector(ps *v1.LabelSelector) (labels.Selector, error) {
+// TODO: remove this and use k8s.io/apimachinery to do this once the settings proto uses the predefined fields
+func labelSelectorAsSelector(ps *v1.LabelSelector) (labels.Selector, error) {
 	if ps == nil {
 		return labels.Nothing(), nil
 	}

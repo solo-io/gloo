@@ -32,7 +32,6 @@ func (s *testingSuite) SetupSuite() {
 }
 
 func (s *testingSuite) TearDownSuite() {
-
 	// Delete VS in the install namespace
 	err := s.TestHelper.DeleteFile(s.Ctx, installNSVSManifest, "-n", s.TestHelper.InstallNamespace)
 	s.NoError(err)
@@ -40,7 +39,7 @@ func (s *testingSuite) TearDownSuite() {
 	s.BaseTestingSuite.TearDownSuite()
 }
 
-func (s *testingSuite) TestMatchLabels() {
+func (s *testingSuite) testWatchNamespaceSelector() {
 	// Ensure the install namespace is watched even if not specified
 	utils.CurlEventuallyRespondsWithStatus(s.Ctx, s.TestInstallation.Assertions, "install-ns/", http.StatusOK)
 
@@ -55,20 +54,10 @@ func (s *testingSuite) TestMatchLabels() {
 	utils.CurlEventuallyRespondsWithStatus(s.Ctx, s.TestInstallation.Assertions, "random/", http.StatusOK)
 }
 
+func (s *testingSuite) TestMatchLabels() {
+	s.testWatchNamespaceSelector()
+}
+
 func (s *testingSuite) TestMatchExpressions() {
-	// This tests only a the `in` expression operator. There should be no need to test every operator or
-	// combination as we rely on the k8s.io/apimachinery library to translate expressions into label selectors
-
-	// Ensure the install namespace is watched even if not specified
-	utils.CurlEventuallyRespondsWithStatus(s.Ctx, s.TestInstallation.Assertions, "install-ns/", http.StatusOK)
-
-	// Ensure CRs defined in non watched-namespaces are not translated
-	utils.CurlConsistentlyRespondsWithStatus(s.Ctx, s.TestInstallation.Assertions, "random/", http.StatusNotFound)
-
-	// Label the `random` namespace
-	err := s.TestHelper.ApplyFile(s.Ctx, labeledRandomNamespaceManifest)
-	s.NoError(err)
-
-	// The VS defined in the random namespace should be translated
-	utils.CurlEventuallyRespondsWithStatus(s.Ctx, s.TestInstallation.Assertions, "random/", http.StatusOK)
+	s.testWatchNamespaceSelector()
 }
