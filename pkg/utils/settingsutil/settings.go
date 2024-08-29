@@ -6,21 +6,30 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/pkg/api/external/kubernetes/namespace"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/utils/lru"
 )
 
 type settingsKeyStruct struct{}
 
 var (
-	settingsKey = settingsKeyStruct{}
+	mu sync.Mutex
 
-	namespacesToWatch = []string{}
-	mu                sync.Mutex
+	// Setting a cache size of 2 should suffice for :
+	// - The current translation loop
+	// - The new loop about to run when the settings have changed
+	namespacesToWatchCache = lru.New(2)
+
+	settingsKey = settingsKeyStruct{}
 )
 
 func WithSettings(ctx context.Context, settings *v1.Settings) context.Context {
@@ -50,11 +59,11 @@ func MaybeFromContext(ctx context.Context) *v1.Settings {
 	return nil
 }
 
-func IsAllNamespacesFromSettings(s *v1.Settings) bool {
-	if s == nil {
+func IsAllNamespacesFromSettings(settings *v1.Settings) bool {
+	if settings == nil {
 		return false
 	}
-	return IsAllNamespaces(GetNamespacesToWatch(s))
+	return IsAllNamespaces(GetNamespacesToWatch(settings))
 }
 
 func IsAllNamespaces(watchNs []string) bool {
@@ -68,12 +77,12 @@ func IsAllNamespaces(watchNs []string) bool {
 	}
 }
 
-func GenerateNamespacesToWatch(s *v1.Settings, namespaces kubernetes.KubeNamespaceList) ([]string, error) {
-	if len(s.GetWatchNamespaces()) != 0 {
-		return s.GetWatchNamespaces(), nil
+func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNamespaceList) ([]string, error) {
+	if len(settings.GetWatchNamespaces()) != 0 {
+		return settings.GetWatchNamespaces(), nil
 	}
 
-	if len(s.GetWatchNamespaceSelectors()) == 0 {
+	if len(settings.GetWatchNamespaceSelectors()) == 0 {
 		return []string{""}, nil
 	}
 
@@ -81,7 +90,7 @@ func GenerateNamespacesToWatch(s *v1.Settings, namespaces kubernetes.KubeNamespa
 	selectedNamespaces := sets.NewString()
 
 	fmt.Println("--------------------- Selectors : ", selectedNamespaces)
-	for _, selector := range s.GetWatchNamespaceSelectors() {
+	for _, selector := range settings.GetWatchNamespaceSelectors() {
 		ls, err := LabelSelectorAsSelector(selector)
 		fmt.Println(ls.String())
 		if err != nil {
@@ -104,32 +113,63 @@ func GenerateNamespacesToWatch(s *v1.Settings, namespaces kubernetes.KubeNamespa
 	return selectedNamespaces.List(), nil
 }
 
-func setNamespacesToWatch(namespaces []string) {
-	fmt.Println("--------------------- FROM : ", namespacesToWatch)
-	namespacesToWatch = namespaces
-	fmt.Println("--------------------- TO : ", namespacesToWatch)
+func setNamespacesToWatch(settings *v1.Settings, namespaces []string) {
+	// fmt.Println("--------------------- FROM : ", namespacesToWatch)
+	// namespacesToWatch = namespaces
+	// fmt.Println("--------------------- TO : ", namespacesToWatch)
+
+	namespacesToWatchCache.Add(settings.MustHash(), namespaces)
+	fmt.Println("--------------------- TO : ", namespaces)
 }
 
-func UpdateNamespacesToWatch(s *v1.Settings, namespaces kubernetes.KubeNamespaceList) (bool, error) {
+func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNamespaceList) (bool, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	ns, err := GenerateNamespacesToWatch(s, namespaces)
+	newNamespacesToWatch, err := GenerateNamespacesToWatch(settings, namespaces)
 	if err != nil {
 		return false, err
 	}
+	fmt.Println("--------------------- NS : ", newNamespacesToWatch)
 
-	if slices.Equal(ns, namespacesToWatch) {
-		return false, nil
+	ns, ok := namespacesToWatchCache.Get(settings.MustHash())
+	if ok {
+		currentNamespacesToWatch, ok := ns.([]string)
+		if ok && slices.Equal(newNamespacesToWatch, currentNamespacesToWatch) {
+			return false, nil
+		}
 	}
 
-	setNamespacesToWatch(ns)
+	setNamespacesToWatch(settings, newNamespacesToWatch)
 
 	return true, nil
 }
 
-func GetNamespacesToWatch(s *v1.Settings) []string {
-	return namespacesToWatch
+func GetAllNamespaces() (kubernetes.KubeNamespaceList, error) {
+	kubeClient := helpers.MustKubeClient()
+	kubeCache, _ := cache.NewKubeCoreCache(context.TODO(), kubeClient)
+	nsClient := namespace.NewNamespaceClient(kubeClient, kubeCache)
+
+	return nsClient.List(clients.ListOpts{})
+}
+
+func GetNamespacesToWatch(settings *v1.Settings) []string {
+	ns, ok := namespacesToWatchCache.Get(settings.MustHash())
+	if ok {
+		currentNamespacesToWatch, ok := ns.([]string)
+		if ok {
+			return currentNamespacesToWatch
+		}
+	}
+
+	// Fallback to fetching all namespaces and updating the cache if not found
+	allNamespaces, err := GetAllNamespaces()
+	if err != nil {
+		panic("Unable to fetch namespaces")
+	}
+	UpdateNamespacesToWatch(settings, allNamespaces)
+	ns, _ = namespacesToWatchCache.Get(settings.MustHash())
+	return ns.([]string)
 }
 
 func LabelSelectorAsSelector(ps *v1.LabelSelector) (labels.Selector, error) {
