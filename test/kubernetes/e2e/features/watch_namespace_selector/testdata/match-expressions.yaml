@@ -1,0 +1,8 @@
+settings:
+  singleNamespace: false
+  watchNamespaceSelectors:
+  - matchExpressions:
+    - key: watch
+      operator: In
+      values:
+        - this

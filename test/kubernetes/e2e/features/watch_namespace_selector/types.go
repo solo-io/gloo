@@ -40,5 +40,12 @@ var (
 				Resources:     []client.Object{randomNSVS},
 			},
 		},
+		"TestMatchExpressions": {
+			SimpleTestCase: base.SimpleTestCase{
+				UpgradeValues: matchLabelsSetup,
+				Manifests:     []string{unlabeledRandomNamespaceManifest, randomVSManifest},
+				Resources:     []client.Object{randomNSVS},
+			},
+		},
 	}
 )
