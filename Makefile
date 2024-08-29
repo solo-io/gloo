@@ -1194,6 +1194,11 @@ build-test-chart: ## Build the Helm chart and place it in the _test directory
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)
 	helm repo index $(TEST_ASSET_DIR)
 
+.PHONY: cloud-provider-kind
+cloud-provider-kind:  ## Install the cloud-provider-kind binary
+	@go install sigs.k8s.io/cloud-provider-kind@latest
+	@sudo install ~/go/bin/cloud-provider-kind /usr/local/bin
+
 #----------------------------------------------------------------------------------
 # Targets for running Kubernetes Gateway API conformance tests
 #----------------------------------------------------------------------------------
