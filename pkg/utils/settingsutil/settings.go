@@ -6,8 +6,10 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/api/external/kubernetes/namespace"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
@@ -78,8 +80,13 @@ func IsAllNamespaces(watchNs []string) bool {
 }
 
 func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNamespaceList) ([]string, error) {
+	writeNamespace := settings.GetDiscoveryNamespace()
+	if writeNamespace == "" {
+		writeNamespace = defaults.GlooSystem
+	}
+
 	if len(settings.GetWatchNamespaces()) != 0 {
-		return settings.GetWatchNamespaces(), nil
+		return utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace), nil
 	}
 
 	if len(settings.GetWatchNamespaceSelectors()) == 0 {
@@ -89,7 +96,7 @@ func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.Kube
 	var selectors []labels.Selector
 	selectedNamespaces := sets.NewString()
 
-	fmt.Println("--------------------- Selectors : ", selectedNamespaces)
+	fmt.Println("--------------------- Selectors : ")
 	for _, selector := range settings.GetWatchNamespaceSelectors() {
 		ls, err := LabelSelectorAsSelector(selector)
 		fmt.Println(ls.String())
@@ -104,11 +111,15 @@ func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.Kube
 		for _, selector := range selectors {
 			fmt.Println(ns.Labels)
 			if selector.Matches(labels.Set(ns.Labels)) {
+				fmt.Println("--------------------- Adding : ", ns.Name)
 				selectedNamespaces.Insert(ns.Name)
 				break
 			}
 		}
 	}
+
+	fmt.Println("--------------------- Adding : ", writeNamespace)
+	selectedNamespaces.Insert(writeNamespace)
 
 	return selectedNamespaces.List(), nil
 }
