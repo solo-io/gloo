@@ -83,6 +83,10 @@ if [[ $CONFORMANCE == "true" ]]; then
 
   echo "Labeling the control plane node to exclude it from external load balancers"
   kubectl label node kind-control-plane node.kubernetes.io/exclude-from-external-load-balancers-
+  docker run --rm -d \
+    --network="${NET_MODE-host}" \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    quay.io/solo-io/kind-cloud-provider
   # echo "Running the cloud-provider-kind binary in the background"
   # TODO(tim): sudo is only necessary when the host is a mac.
   # See https://github.com/kubernetes-sigs/cloud-provider-kind/issues/91 for more information.

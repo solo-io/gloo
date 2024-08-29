@@ -175,6 +175,7 @@ install-go-tools: mod-download ## Download and install Go dependencies
 	go install github.com/golang/mock/mockgen
 	go install github.com/saiskee/gettercheck
 	go install github.com/onsi/ginkgo/v2/ginkgo@$(GINKGO_VERSION)
+	go install sigs.k8s.io/cloud-provider-kind@latest
 	# This version must stay in sync with the version used in CI: .github/workflows/static-analysis.yaml
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(LINTER_VERSION)
 	go install github.com/quasilyte/go-ruleguard/cmd/ruleguard@v0.3.16
@@ -1193,11 +1194,6 @@ build-test-chart: ## Build the Helm chart and place it in the _test directory
 	GO111MODULE=on go run $(HELM_DIR)/generate.go --version $(VERSION)
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)
 	helm repo index $(TEST_ASSET_DIR)
-
-.PHONY: cloud-provider-kind
-cloud-provider-kind:  ## Install the cloud-provider-kind binary
-	@go install sigs.k8s.io/cloud-provider-kind@latest
-	@sudo install ~/go/bin/cloud-provider-kind /usr/local/bin
 
 #----------------------------------------------------------------------------------
 # Targets for running Kubernetes Gateway API conformance tests
