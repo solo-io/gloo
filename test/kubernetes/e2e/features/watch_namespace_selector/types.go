@@ -12,16 +12,17 @@ import (
 )
 
 var (
-	setupManifest       = filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml")
-	installNSVSManifest = filepath.Join(util.MustGetThisDir(), "testdata", "vs-install-ns.yaml")
+	setupManifest              = filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml")
+	installNamespaceVSManifest = filepath.Join(util.MustGetThisDir(), "testdata", "vs-install-ns.yaml")
 
-	matchLabelsSetup = filepath.Join(util.MustGetThisDir(), "testdata", "match-labels.yaml")
+	matchLabelsSetup      = filepath.Join(util.MustGetThisDir(), "testdata", "match-labels.yaml")
+	matchExpressionsSetup = filepath.Join(util.MustGetThisDir(), "testdata", "match-expressions.yaml")
 
 	unlabeledRandomNamespaceManifest = filepath.Join(util.MustGetThisDir(), "testdata", "random-ns-unlabeled.yaml")
 	labeledRandomNamespaceManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "random-ns-labeled.yaml")
 	randomVSManifest                 = filepath.Join(util.MustGetThisDir(), "testdata", "vs-random.yaml")
 
-	randomNSVS = &gatewayv1.VirtualService{
+	randomNamespaceVS = &gatewayv1.VirtualService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "vs-random",
 			Namespace: "random",
@@ -37,14 +38,14 @@ var (
 			SimpleTestCase: base.SimpleTestCase{
 				UpgradeValues: matchLabelsSetup,
 				Manifests:     []string{unlabeledRandomNamespaceManifest, randomVSManifest},
-				Resources:     []client.Object{randomNSVS},
+				Resources:     []client.Object{randomNamespaceVS},
 			},
 		},
 		"TestMatchExpressions": {
 			SimpleTestCase: base.SimpleTestCase{
-				UpgradeValues: matchLabelsSetup,
+				UpgradeValues: matchExpressionsSetup,
 				Manifests:     []string{unlabeledRandomNamespaceManifest, randomVSManifest},
-				Resources:     []client.Object{randomNSVS},
+				Resources:     []client.Object{randomNamespaceVS},
 			},
 		},
 	}

@@ -27,13 +27,13 @@ func (s *testingSuite) SetupSuite() {
 	s.BaseTestingSuite.SetupSuite()
 
 	// Apply a VS in the install namespace
-	err := s.TestHelper.ApplyFile(s.Ctx, installNSVSManifest, "-n", s.TestHelper.InstallNamespace)
+	err := s.TestHelper.ApplyFile(s.Ctx, installNamespaceVSManifest, "-n", s.TestHelper.InstallNamespace)
 	s.NoError(err)
 }
 
 func (s *testingSuite) TearDownSuite() {
 	// Delete VS in the install namespace
-	err := s.TestHelper.DeleteFile(s.Ctx, installNSVSManifest, "-n", s.TestHelper.InstallNamespace)
+	err := s.TestHelper.DeleteFile(s.Ctx, installNamespaceVSManifest, "-n", s.TestHelper.InstallNamespace)
 	s.NoError(err)
 
 	s.BaseTestingSuite.TearDownSuite()
