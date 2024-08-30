@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/8728
+    description: Separates allowMissingOrFailed into two separate fields, allowMissing and allowFailed, in the JWT filter configuration.
+    resolvesIssue: false
