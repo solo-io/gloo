@@ -114,7 +114,6 @@ func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.Kube
 
 	for _, ns := range namespaces {
 		for _, selector := range selectors {
-			fmt.Println(ns.Labels)
 			if selector.Matches(labels.Set(ns.Labels)) {
 				selectedNamespaces.Insert(ns.Name)
 				break
