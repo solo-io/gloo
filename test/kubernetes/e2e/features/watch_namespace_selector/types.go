@@ -8,11 +8,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
+	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	setupManifest              = filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml")
 	installNamespaceVSManifest = filepath.Join(util.MustGetThisDir(), "testdata", "vs-install-ns.yaml")
 
 	matchLabelsSetup      = filepath.Join(util.MustGetThisDir(), "testdata", "match-labels.yaml")
@@ -30,7 +30,7 @@ var (
 	}
 
 	setupSuite = base.SimpleTestCase{
-		Manifests: []string{setupManifest},
+		Manifests: []string{e2edefaults.CurlPodManifest},
 	}
 
 	testCases = map[string]*base.TestCase{

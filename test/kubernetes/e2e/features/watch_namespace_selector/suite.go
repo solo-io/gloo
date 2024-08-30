@@ -8,7 +8,6 @@ import (
 
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
-	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/utils"
 )
 
 var _ e2e.NewSuiteFunc = NewTestingSuite
@@ -41,17 +40,17 @@ func (s *testingSuite) TearDownSuite() {
 
 func (s *testingSuite) testWatchNamespaceSelector() {
 	// Ensure the install namespace is watched even if not specified
-	utils.CurlEventuallyRespondsWithStatus(s.Ctx, s.TestInstallation.Assertions, "install-ns/", http.StatusOK)
+	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, "install-ns/", http.StatusOK)
 
 	// Ensure CRs defined in non watched-namespaces are not translated
-	utils.CurlConsistentlyRespondsWithStatus(s.Ctx, s.TestInstallation.Assertions, "random/", http.StatusNotFound)
+	s.TestInstallation.Assertions.CurlConsistentlyRespondsWithStatus(s.Ctx, "random/", http.StatusNotFound)
 
 	// Label the `random` namespace
 	err := s.TestHelper.ApplyFile(s.Ctx, labeledRandomNamespaceManifest)
 	s.NoError(err)
 
 	// The VS defined in the random namespace should be translated
-	utils.CurlEventuallyRespondsWithStatus(s.Ctx, s.TestInstallation.Assertions, "random/", http.StatusOK)
+	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, "random/", http.StatusOK)
 }
 
 func (s *testingSuite) TestMatchLabels() {
