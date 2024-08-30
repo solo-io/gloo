@@ -370,6 +370,10 @@ spec:
                     type: boolean
                   jwt:
                     properties:
+                      allowFailedJwt:
+                        type: boolean
+                      allowMissingJwt:
+                        type: boolean
                       allowMissingOrFailedJwt:
                         type: boolean
                       providers:
@@ -449,6 +453,10 @@ spec:
                     properties:
                       afterExtAuth:
                         properties:
+                          allowFailedJwt:
+                            type: boolean
+                          allowMissingJwt:
+                            type: boolean
                           allowMissingOrFailedJwt:
                             type: boolean
                           providers:
@@ -526,6 +534,10 @@ spec:
                         type: object
                       beforeExtAuth:
                         properties:
+                          allowFailedJwt:
+                            type: boolean
+                          allowMissingJwt:
+                            type: boolean
                           allowMissingOrFailedJwt:
                             type: boolean
                           providers:

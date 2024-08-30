@@ -155,6 +155,14 @@ func (m *VhostExtension) Equal(that interface{}) bool {
 		return false
 	}
 
+	if m.GetAllowMissingJwt() != target.GetAllowMissingJwt() {
+		return false
+	}
+
+	if m.GetAllowFailedJwt() != target.GetAllowFailedJwt() {
+		return false
+	}
+
 	return true
 }
 
