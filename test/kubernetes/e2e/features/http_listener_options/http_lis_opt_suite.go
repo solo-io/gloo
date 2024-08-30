@@ -26,6 +26,14 @@ type testingSuite struct {
 	manifests map[string][]string
 }
 
+func (s *testingSuite) Ctx() context.Context {
+	return s.ctx
+}
+
+func (s *testingSuite) TestInstallation() *e2e.TestInstallation {
+	return s.testInstallation
+}
+
 func NewTestingSuite(
 	ctx context.Context,
 	testInst *e2e.TestInstallation,
@@ -46,6 +54,8 @@ func (s *testingSuite) SetupSuite() {
 		LabelSelector: "app.kubernetes.io/name=nginx",
 	})
 
+	testdefaults.InstallCurlPod(s)
+
 	// include gateway manifests for the tests, so we recreate it for each test run
 	s.manifests = map[string][]string{
 		"TestConfigureHttpListenerOptions":            {gatewayManifest, basicLisOptManifest},
@@ -57,6 +67,8 @@ func (s *testingSuite) TearDownSuite() {
 	// Check that the common setup manifest is deleted
 	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, setupManifest)
 	s.testInstallation.Assertions.ExpectObjectDeleted(setupManifest, err, output)
+
+	testdefaults.DeleteCurlPod(s)
 }
 
 func (s *testingSuite) BeforeTest(suiteName, testName string) {

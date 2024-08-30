@@ -1,14 +1,23 @@
 package defaults
 
 import (
+	"context"
 	"path/filepath"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/skv2/codegen/util"
+	"github.com/stretchr/testify/assert"
 )
+
+type CommonTestSuite interface {
+	TestInstallation() *e2e.TestInstallation
+	Ctx() context.Context
+	Assert() *assert.Assertions
+}
 
 var (
 	CurlPodExecOpt = kubectl.PodExecOptions{
@@ -84,3 +93,22 @@ Commercial support is available at
 </body>
 </html>`
 )
+
+func CurlPodEventuallyRunning(s CommonTestSuite) {
+	// Check that test resources are running
+	s.TestInstallation().Assertions.EventuallyPodsRunning(s.Ctx(), CurlPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=curl",
+	})
+}
+
+func InstallCurlPod(s CommonTestSuite) {
+	err := s.TestInstallation().Actions.Kubectl().ApplyFile(s.Ctx(), CurlPodManifest)
+	s.Assert().NoError(err)
+	CurlPodEventuallyRunning(s)
+}
+
+func DeleteCurlPod(s CommonTestSuite) {
+	output, err := s.TestInstallation().Actions.Kubectl().DeleteFileWithOutput(s.Ctx(), CurlPodManifest)
+	s.Assert().NoError(err, "can delete curl pod")
+	s.TestInstallation().Assertions.ExpectObjectDeleted(CurlPodManifest, err, output)
+}
