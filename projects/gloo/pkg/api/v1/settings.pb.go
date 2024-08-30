@@ -293,6 +293,20 @@ type Settings struct {
 	//   - spark
 	//
 	// ```
+	// However, if the match conditions are part of the same same list item, the namespace must match all conditions.
+	// ```yaml
+	// watchNamespaceSelectors:
+	//   - matchLabels:
+	//     env: prod
+	//     region: us-east1
+	//     matchExpressions:
+	//   - key: app
+	//     operator: In
+	//     values:
+	//   - cassandra
+	//   - spark
+	//
+	// ```
 	// Refer to the [Kubernetes selector docs](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors)
 	// for additional detail on selector semantics.
 	WatchNamespaceSelectors []*LabelSelector `protobuf:"bytes,40,rep,name=watch_namespace_selectors,json=watchNamespaceSelectors,proto3" json:"watch_namespace_selectors,omitempty"`
