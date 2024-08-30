@@ -13,7 +13,7 @@ if str(local("command -v " + helm_cmd + " || true", quiet = True)) == "":
     fail("Required command '" + helm_cmd + "' not found in PATH")
 
 settings = {
-    "helm_installation_name": "gloo",
+    "helm_installation_name": "gloo-oss",
     "helm_installation_namespace": "gloo-system",
     "helm_values_file": "./test/kube2e/helm/artifacts/helm.yaml",
 }
