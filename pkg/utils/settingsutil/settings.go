@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
@@ -156,8 +157,16 @@ func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNa
 }
 
 func getAllNamespaces() (kubernetes.KubeNamespaceList, error) {
-	kubeClient := helpers.MustKubeClient()
-	kubeCache, _ := cache.NewKubeCoreCache(context.TODO(), kubeClient)
+	kubeClient, err := helpers.KubeClient()
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
+	defer cancel()
+	kubeCache, err := cache.NewKubeCoreCache(ctx, kubeClient)
+	if err != nil {
+		return nil, err
+	}
 	nsClient := namespace.NewNamespaceClient(kubeClient, kubeCache)
 
 	return nsClient.List(clients.ListOpts{})
@@ -176,7 +185,7 @@ func GetNamespacesToWatch(settings *v1.Settings) []string {
 	// Fallback to fetching all namespaces and updating the cache if not found
 	allNamespaces, err := getAllNamespaces()
 	if err != nil {
-		panic("Unable to fetch namespaces")
+		fmt.Println("Unable to fetch namespaces")
 	}
 	UpdateNamespacesToWatch(settings, allNamespaces)
 	ns, _ = namespacesToWatchCache.Get(settings.MustHash())
