@@ -14,6 +14,7 @@ import (
 
 	"github.com/hashicorp/consul/api"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	vault_client "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/clients/vault"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/services"
 	"github.com/solo-io/k8s-utils/kubeutils"
@@ -165,7 +166,7 @@ var _ = Describe("Bootstrap Clients", func() {
 			kubeCoreCache      corecache.KubeCoreCache
 			secretClient       v1.SecretClient
 			settings           *v1.Settings
-			vaultClientInitMap map[int]clients.VaultClientInitFunc
+			vaultClientInitMap map[int]vault_client.VaultClientInitFunc
 
 			testCtx    context.Context
 			testCancel context.CancelFunc
@@ -257,7 +258,7 @@ var _ = Describe("Bootstrap Clients", func() {
 
 		setVaultClientInitMap := func(idx int, vaultSettings *v1.Settings_VaultSecrets) {
 			vaultClientInitMap[idx] = func(ctx context.Context) *vaultapi.Client {
-				c, err := clients.VaultClientForSettings(ctx, vaultSettings)
+				c, err := vault_client.VaultClientForSettings(ctx, vaultSettings)
 				Expect(err).NotTo(HaveOccurred())
 				return c
 			}
@@ -285,7 +286,7 @@ var _ = Describe("Bootstrap Clients", func() {
 			settings = &v1.Settings{
 				WatchNamespaces: []string{testNamespace},
 			}
-			vaultClientInitMap = make(map[int]clients.VaultClientInitFunc)
+			vaultClientInitMap = make(map[int]vault_client.VaultClientInitFunc)
 		})
 
 		AfterEach(func() {

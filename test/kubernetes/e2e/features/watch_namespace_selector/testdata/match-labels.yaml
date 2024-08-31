@@ -1,0 +1,5 @@
+settings:
+  singleNamespace: false
+  watchNamespaceSelectors:
+  - matchLabels:
+      watch: this

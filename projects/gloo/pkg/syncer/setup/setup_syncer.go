@@ -13,6 +13,8 @@ import (
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
+	"github.com/solo-io/gloo/pkg/utils/statsutils/metrics"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/debug"
@@ -50,6 +52,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	bootstrap_clients "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/clients"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/clients/vault"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/discovery"
 	consulplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul"
@@ -252,7 +255,7 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	if writeNamespace == "" {
 		writeNamespace = defaults.GlooSystem
 	}
-	watchNamespaces := utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace)
+	watchNamespaces := utils.ProcessWatchNamespaces(settingsutil.GetNamespacesToWatch(settings), writeNamespace)
 
 	// process grpcserver options to understand if any servers will need a restart
 
@@ -1017,7 +1020,7 @@ type constructOptsParams struct {
 	clientset          *kubernetes.Interface
 	kubeCache          kube.SharedCache
 	consulClient       *consulapi.Client
-	vaultClientInitMap map[int]bootstrap_clients.VaultClientInitFunc
+	vaultClientInitMap map[int]vault.VaultClientInitFunc
 	memCache           memory.InMemoryResourceCache
 	settings           *v1.Settings
 	writeNamespace     string

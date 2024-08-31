@@ -12,12 +12,15 @@ import (
 	kube2 "github.com/solo-io/gloo/pkg/bootstrap/leaderelector/kube"
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector/singlereplica"
 	"github.com/solo-io/gloo/pkg/version"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/k8s-utils/kubeutils"
+	"github.com/solo-io/solo-kit/pkg/api/external/kubernetes/namespace"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -82,9 +85,13 @@ func Main(opts SetupOpts) error {
 		return err
 	}
 
+	kubeClient := helpers.MustKubeClient()
+	kubeCache, _ := cache.NewKubeCoreCache(ctx, kubeClient)
+	nsClient := namespace.NewNamespaceClient(kubeClient, kubeCache)
+
 	// settings come from the ResourceClient in the settingsClient
-	// the eventLoop will Watch the emitter's settingsClient to recieve settings from the ResourceClient
-	emitter := v1.NewSetupEmitter(settingsClient)
+	// the eventLoop will Watch the emitter's settingsClient to receive settings from the ResourceClient
+	emitter := v1.NewSetupEmitter(settingsClient, nsClient)
 	settingsRef := &core.ResourceRef{Namespace: setupNamespace, Name: setupName}
 	eventLoop := v1.NewSetupEventLoop(emitter, NewSetupSyncer(settingsRef, opts.SetupFunc, identity))
 	errs, err := eventLoop.Run([]string{setupNamespace}, clients.WatchOpts{
