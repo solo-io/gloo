@@ -88,14 +88,18 @@ func Main(opts SetupOpts) error {
 
 	var nsClient skkube.KubeNamespaceClient
 
-	kubeClient := helpers.MustKubeClient()
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, 2*time.Second)
-	defer cancel()
-	kubeCache, err := cache.NewKubeCoreCache(ctxWithTimeout, kubeClient)
+	kubeClient, err := helpers.KubeClient()
 	if err != nil {
 		nsClient = &FakeKubeNamespaceWatcher{}
 	} else {
-		nsClient = namespace.NewNamespaceClient(kubeClient, kubeCache)
+		ctxWithTimeout, cancel := context.WithTimeout(ctx, 2*time.Second)
+		defer cancel()
+		kubeCache, err := cache.NewKubeCoreCache(ctxWithTimeout, kubeClient)
+		if err != nil {
+			nsClient = &FakeKubeNamespaceWatcher{}
+		} else {
+			nsClient = namespace.NewNamespaceClient(kubeClient, kubeCache)
+		}
 	}
 
 	// settings come from the ResourceClient in the settingsClient
