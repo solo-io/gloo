@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"

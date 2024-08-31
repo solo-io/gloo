@@ -14,7 +14,6 @@ import (
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
-	"github.com/solo-io/gloo/pkg/utils/statsutils/metrics"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/debug"
