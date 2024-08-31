@@ -9,6 +9,7 @@ import (
 	vaultapi "github.com/hashicorp/vault/api"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/clients"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/clients/vault"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -73,7 +74,7 @@ func SecretFactoryForSettings(ctx context.Context,
 	kubeCoreCache *cache.KubeCoreCache,
 	vaultClient *vaultapi.Client,
 	pluralName string) (factory.ResourceClientFactory, error) {
-	clientInitMap := map[int]clients.VaultClientInitFunc{clients.SecretSourceAPIVaultClientInitIndex: clients.NoopVaultClientInitFunc(vaultClient)}
+	clientInitMap := map[int]vault.VaultClientInitFunc{clients.SecretSourceAPIVaultClientInitIndex: vault.NoopVaultClientInitFunc(vaultClient)}
 	return clients.SecretFactoryForSettings(ctx,
 		clients.SecretFactoryParams{
 			Settings:           settings,

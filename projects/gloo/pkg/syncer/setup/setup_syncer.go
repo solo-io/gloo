@@ -341,9 +341,9 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 		return err
 	}
 
-	getVaultInit := func(vaultSettings *v1.Settings_VaultSecrets) bootstrap_clients.VaultClientInitFunc {
+	getVaultInit := func(vaultSettings *v1.Settings_VaultSecrets) vault.VaultClientInitFunc {
 		return func(initCtx context.Context) *vaultapi.Client {
-			c, err := bootstrap_clients.VaultClientForSettings(initCtx, vaultSettings)
+			c, err := vault.VaultClientForSettings(initCtx, vaultSettings)
 			if err != nil {
 				// We log this error here, but we do not have a feasible way to raise
 				// it when this function is called in NewVaultSecretClientFactory.
@@ -355,7 +355,7 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 			return c
 		}
 	}
-	vaultInitMap := make(map[int]bootstrap_clients.VaultClientInitFunc)
+	vaultInitMap := make(map[int]vault.VaultClientInitFunc)
 	vaultSettings := settings.GetVaultSecretSource()
 	if vaultSettings != nil {
 		vaultInitMap[bootstrap_clients.SecretSourceAPIVaultClientInitIndex] = getVaultInit(vaultSettings)

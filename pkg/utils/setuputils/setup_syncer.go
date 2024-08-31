@@ -22,7 +22,7 @@ import (
 var (
 	mSetupsRun = utils.MakeSumCounter("gloo.solo.io/setups_run", "The number of times the main setup loop has run")
 
-	mNamespacesWatched      = statsutils.MakeLastValueCounter("gloo.solo.io/namespaces_watched", "The number of namespaces watched by the gloo controller")
+	mNamespacesWatched      = utils.MakeLastValueCounter("gloo.solo.io/namespaces_watched", "The number of namespaces watched by the gloo controller")
 	namespacesWatchedKey, _ = tag.NewKey("namespaces_watched")
 	namespacedWatchedInView = &view.View{
 		Name:        "gloo.solo.io/namespaces_watched",
@@ -95,7 +95,7 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		contextutils.LoggerFrom(ctx).Debugw("received updated list of namespaces to watch", zap.Any("namespaces", watchedNamespaces))
 
 		watchedNamespacesStr := strings.Join(watchedNamespaces, ",")
-		statsutils.Measure(
+		utils.Measure(
 			ctx,
 			mNamespacesWatched,
 			int64(len(watchedNamespaces)),
