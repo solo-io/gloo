@@ -3,7 +3,7 @@ package settingsutil
 import (
 	"context"
 	"fmt"
-	"slices"
+	"reflect"
 	"sync"
 
 	"github.com/solo-io/gloo/pkg/utils"
@@ -146,7 +146,7 @@ func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNa
 	ns, ok := namespacesToWatchCache.Get(settings.MustHash())
 	if ok {
 		currentNamespacesToWatch, ok := ns.([]string)
-		if ok && slices.Equal(newNamespacesToWatch, currentNamespacesToWatch) {
+		if ok && reflect.DeepEqual(newNamespacesToWatch, currentNamespacesToWatch) {
 			return false, nil
 		}
 	}
