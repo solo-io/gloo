@@ -469,6 +469,122 @@ func (s *ApiSnapshot) RemoveFromResourceList(resource resources.Resource) error 
 	}
 }
 
+func (s *ApiSnapshot) RemoveAllResourcesInNamespace(namespace string) error {
+
+	for i, res := range s.Artifacts {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Artifacts = append(s.Artifacts[:i], s.Artifacts[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.Endpoints {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Endpoints = append(s.Endpoints[:i], s.Endpoints[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.Proxies {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Proxies = append(s.Proxies[:i], s.Proxies[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.UpstreamGroups {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.UpstreamGroups = append(s.UpstreamGroups[:i], s.UpstreamGroups[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.Secrets {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Secrets = append(s.Secrets[:i], s.Secrets[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.Upstreams {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Upstreams = append(s.Upstreams[:i], s.Upstreams[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.AuthConfigs {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.AuthConfigs = append(s.AuthConfigs[:i], s.AuthConfigs[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.Ratelimitconfigs {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Ratelimitconfigs = append(s.Ratelimitconfigs[:i], s.Ratelimitconfigs[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.VirtualServices {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.VirtualServices = append(s.VirtualServices[:i], s.VirtualServices[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.RouteTables {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.RouteTables = append(s.RouteTables[:i], s.RouteTables[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.Gateways {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Gateways = append(s.Gateways[:i], s.Gateways[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.VirtualHostOptions {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.VirtualHostOptions = append(s.VirtualHostOptions[:i], s.VirtualHostOptions[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.RouteOptions {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.RouteOptions = append(s.RouteOptions[:i], s.RouteOptions[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.HttpGateways {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.HttpGateways = append(s.HttpGateways[:i], s.HttpGateways[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.TcpGateways {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.TcpGateways = append(s.TcpGateways[:i], s.TcpGateways[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.GraphqlApis {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.GraphqlApis = append(s.GraphqlApis[:i], s.GraphqlApis[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
 func (s *ApiSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {

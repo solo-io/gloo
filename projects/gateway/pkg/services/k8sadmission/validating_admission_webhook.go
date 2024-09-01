@@ -455,7 +455,7 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 			return &validation.Reports{}, nil
 		}
 	} else if gvk.Group == kubernetesCoreApiGroup && gvk.Kind == "Namespace" {
-		fmt.Println("---------------------- webhook Kind && Name : ", gvk.Kind, ref.Name)
+		fmt.Println("---------------------- webhook Kind && Name : ", gvk.Kind, ref.GetName())
 		if !isDelete && !isUpdate {
 			contextutils.LoggerFrom(ctx).Infof("unsupported operation validation [%s] for resource namespace [%s] name [%s] group [%s] kind [%s]", admissionRequest.Operation, ref.GetNamespace(), ref.GetName(), gvk.Group, gvk.Kind)
 			return &validation.Reports{}, nil

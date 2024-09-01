@@ -25,6 +25,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	kubeCRDV1 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	skProtoUtils "github.com/solo-io/solo-kit/pkg/utils/protoutils"
@@ -488,6 +489,12 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 
 	// verify the mutation against a snapshot clone first, only apply the change to the actual snapshot if this passes
 	if opts.Delete {
+		// Special case to handle namespace deletion
+		if _, ok := opts.Resource.(*kubernetes.KubeNamespace); ok {
+			if err := snapshotClone.RemoveAllResourcesInNamespace(opts.Resource.GetMetadata().Name); err != nil {
+				return nil, err
+			}
+		}
 		if err := snapshotClone.RemoveFromResourceList(opts.Resource); err != nil {
 			return nil, err
 		}
