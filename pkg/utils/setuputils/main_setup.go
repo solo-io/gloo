@@ -96,10 +96,11 @@ func Main(opts SetupOpts) error {
 	} else {
 		ctxWithTimeout, cancel := context.WithTimeout(ctx, 2*time.Second)
 		defer cancel()
-		kubeCache, err := cache.NewKubeCoreCache(ctxWithTimeout, kubeClient)
+		_, err = cache.NewKubeCoreCache(ctxWithTimeout, kubeClient)
 		if err != nil {
 			nsClient = &FakeKubeNamespaceWatcher{}
 		} else {
+			kubeCache, _ := cache.NewKubeCoreCache(ctx, kubeClient)
 			nsClient = namespace.NewNamespaceClient(kubeClient, kubeCache)
 		}
 	}
