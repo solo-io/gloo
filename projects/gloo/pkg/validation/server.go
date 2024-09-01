@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"sync"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/kubernetes"
+	sk_kubernetes "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/hashicorp/go-multierror"
@@ -222,8 +224,18 @@ func (s *validator) ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource 
 
 	if resource != nil {
 		if shouldDelete {
-			if err := snapCopy.RemoveFromResourceList(resource); err != nil {
-				return nil, err
+			fmt.Println("----------------------- opts.Resource", resource, reflect.TypeOf(resource))
+			fmt.Println("----------------------- opts.Resource.(*kubernetes.KubeNamespace)", resource.(*sk_kubernetes.KubeNamespace))
+			// Special case to handle namespace deletion
+			if _, ok := resource.(*sk_kubernetes.KubeNamespace); ok {
+				fmt.Println("----------------------- RemoveAllResourcesInNamespace")
+				if err := snapCopy.RemoveAllResourcesInNamespace(resource.GetMetadata().Name); err != nil {
+					return nil, err
+				}
+			} else {
+				if err := snapCopy.RemoveFromResourceList(resource); err != nil {
+					return nil, err
+				}
 			}
 
 			// If we are deleting an Upstream with a Kube destination, we also want to remove the associated "fake" Upstream from the snapshot
