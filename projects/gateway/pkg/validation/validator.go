@@ -494,7 +494,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 		// Special case to handle namespace deletion
 		if _, ok := opts.Resource.(*kubernetes.KubeNamespace); ok {
 			fmt.Println("----------------------- RemoveAllResourcesInNamespace")
-			if err := snapshotClone.RemoveAllResourcesInNamespace(opts.Resource.GetMetadata().Name); err != nil {
+			if err := snapshotClone.RemoveAllResourcesInNamespace(opts.Resource.GetMetadata().GetName()); err != nil {
 				return nil, err
 			}
 		} else {
@@ -555,7 +555,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 			// Special case to handle namespace deletion
 			if _, ok := opts.Resource.(*kubernetes.KubeNamespace); ok {
 				fmt.Println("----------------------- RemoveAllResourcesInNamespace")
-				if err := v.latestSnapshot.RemoveAllResourcesInNamespace(opts.Resource.GetMetadata().Name); err != nil {
+				if err := v.latestSnapshot.RemoveAllResourcesInNamespace(opts.Resource.GetMetadata().GetName()); err != nil {
 					return nil, err
 				}
 			} else {

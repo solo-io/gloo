@@ -229,7 +229,7 @@ func (s *validator) ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource 
 			// Special case to handle namespace deletion
 			if _, ok := resource.(*sk_kubernetes.KubeNamespace); ok {
 				fmt.Println("----------------------- RemoveAllResourcesInNamespace")
-				if err := snapCopy.RemoveAllResourcesInNamespace(resource.GetMetadata().Name); err != nil {
+				if err := snapCopy.RemoveAllResourcesInNamespace(resource.GetMetadata().GetName()); err != nil {
 					return nil, err
 				}
 			} else {
