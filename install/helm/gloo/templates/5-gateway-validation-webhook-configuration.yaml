@@ -24,10 +24,6 @@ webhooks:
       path: "/validation"
     caBundle: "" # update manually or use certgen job or cert-manager's ca-injector
   rules:
-  - operations: [ "UPDATE", "DELETE"]
-    apiGroups: [""]{{/* We do not have internal secret CRDs. We want to validate the deletion of secrets such as TLS, so we add "" which refers to Kubernetes' core APIs. */}}
-    apiVersions: ["v1"]
-    resources: ["namespaces"]
 {{- if and .Values.kubeGateway.enabled .Values.gateway.validation.webhook.enablePolicyApi }}
   - operations: [ "CREATE", "UPDATE" ]
     # RouteOption and VirtualHostOption DELETEs are not supported.
@@ -62,6 +58,12 @@ specific resources, we will manage the resources that the webhook receives via t
     apiGroups: [""]{{/* We do not have internal secret CRDs. We want to validate the deletion of secrets such as TLS, so we add "" which refers to Kubernetes' core APIs. */}}
     apiVersions: ["v1"]
     resources: ["secrets"]
+{{- end }}
+{{- if and (not (has "*" .Values.gateway.validation.webhook.skipDeleteValidationResources)) (not (has "namespaces" .Values.gateway.validation.webhook.skipDeleteValidationResources)) }}
+  - operations: [ "UPDATE", "DELETE"]
+    apiGroups: [""]{{/* We do not have internal namespace CRDs. We want to validate the updation and deletion of namespaces that are watched. */}}
+    apiVersions: ["v1"]
+    resources: ["namespaces"]
 {{- end }}
   - operations: {{ include "gloo.webhookvalidation.operationsForResource" (list "ratelimitconfigs" .Values.gateway.validation.webhook.skipDeleteValidationResources) }}
     apiGroups: ["ratelimit.solo.io"]
