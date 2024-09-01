@@ -22,6 +22,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
+	skkube "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -86,9 +87,22 @@ func Main(opts SetupOpts) error {
 		return err
 	}
 
-	kubeClient := helpers.MustKubeClient()
-	kubeCache, _ := cache.NewKubeCoreCache(ctx, kubeClient)
-	nsClient := namespace.NewNamespaceClient(kubeClient, kubeCache)
+	var nsClient skkube.KubeNamespaceClient
+
+	// tmp fix if we do not have clusterrole premissions
+	kubeClient, err := helpers.KubeClientWithKubecontext("")
+	if err != nil {
+		nsClient = &FakeKubeNamespaceWatcher{}
+	} else {
+		ctxWithTimeout, cancel := context.WithTimeout(ctx, 2*time.Second)
+		defer cancel()
+		kubeCache, err := cache.NewKubeCoreCache(ctxWithTimeout, kubeClient)
+		if err != nil {
+			nsClient = &FakeKubeNamespaceWatcher{}
+		} else {
+			nsClient = namespace.NewNamespaceClient(kubeClient, kubeCache)
+		}
+	}
 
 	// settings come from the ResourceClient in the settingsClient
 	// the eventLoop will Watch the emitter's settingsClient to receive settings from the ResourceClient
