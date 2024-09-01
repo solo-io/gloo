@@ -161,12 +161,14 @@ func getAllNamespaces() (kubernetes.KubeNamespaceList, error) {
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
+	ctx := context.TODO()
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
-	kubeCache, err := cache.NewKubeCoreCache(ctx, kubeClient)
+	_, err = cache.NewKubeCoreCache(ctxWithTimeout, kubeClient)
 	if err != nil {
 		return nil, err
 	}
+	kubeCache, _ := cache.NewKubeCoreCache(ctx, kubeClient)
 	nsClient := namespace.NewNamespaceClient(kubeClient, kubeCache)
 
 	return nsClient.List(clients.ListOpts{})
