@@ -82,6 +82,17 @@ func (s *TranslatorSnapshot) RemoveFromResourceList(resource resources.Resource)
 	}
 }
 
+func (s *TranslatorSnapshot) RemoveAllResourcesInNamespace(namespace string) error {
+
+	for i, res := range s.Clusteringresses {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Clusteringresses = append(s.Clusteringresses[:i], s.Clusteringresses[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
 func (s *TranslatorSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {

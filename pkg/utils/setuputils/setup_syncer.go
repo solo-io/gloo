@@ -2,6 +2,7 @@ package setuputils
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
@@ -64,6 +65,7 @@ func NewSetupSyncer(settingsRef *core.ResourceRef, setupFunc SetupFunc, identity
 }
 
 func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
+	fmt.Println("-----------------------", snap.Kubenamespaces.Names())
 	settings, err := snap.Settings.Find(s.settingsRef.Strings())
 	if err != nil {
 		return errors.Wrapf(err, "finding bootstrap configuration")

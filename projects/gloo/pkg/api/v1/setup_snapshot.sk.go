@@ -107,6 +107,24 @@ func (s *SetupSnapshot) RemoveFromResourceList(resource resources.Resource) erro
 	}
 }
 
+func (s *SetupSnapshot) RemoveAllResourcesInNamespace(namespace string) error {
+
+	for i, res := range s.Settings {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Settings = append(s.Settings[:i], s.Settings[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.Kubenamespaces {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Kubenamespaces = append(s.Kubenamespaces[:i], s.Kubenamespaces[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
 func (s *SetupSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {

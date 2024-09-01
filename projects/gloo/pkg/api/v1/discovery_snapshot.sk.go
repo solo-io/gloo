@@ -132,6 +132,31 @@ func (s *DiscoverySnapshot) RemoveFromResourceList(resource resources.Resource) 
 	}
 }
 
+func (s *DiscoverySnapshot) RemoveAllResourcesInNamespace(namespace string) error {
+
+	for i, res := range s.Upstreams {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Upstreams = append(s.Upstreams[:i], s.Upstreams[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.Kubenamespaces {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Kubenamespaces = append(s.Kubenamespaces[:i], s.Kubenamespaces[i+1:]...)
+			break
+		}
+	}
+
+	for i, res := range s.Secrets {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Secrets = append(s.Secrets[:i], s.Secrets[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
 func (s *DiscoverySnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {

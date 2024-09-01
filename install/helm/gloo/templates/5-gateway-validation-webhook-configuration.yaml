@@ -24,6 +24,10 @@ webhooks:
       path: "/validation"
     caBundle: "" # update manually or use certgen job or cert-manager's ca-injector
   rules:
+  - operations: [ "UPDATE", "DELETE"]
+    apiGroups: [""]{{/* We do not have internal secret CRDs. We want to validate the deletion of secrets such as TLS, so we add "" which refers to Kubernetes' core APIs. */}}
+    apiVersions: ["v1"]
+    resources: ["namespaces"]
 {{- if and .Values.kubeGateway.enabled .Values.gateway.validation.webhook.enablePolicyApi }}
   - operations: [ "CREATE", "UPDATE" ]
     # RouteOption and VirtualHostOption DELETEs are not supported.

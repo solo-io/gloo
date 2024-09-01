@@ -80,6 +80,17 @@ func (s *EdsSnapshot) RemoveFromResourceList(resource resources.Resource) error 
 	}
 }
 
+func (s *EdsSnapshot) RemoveAllResourcesInNamespace(namespace string) error {
+
+	for i, res := range s.Upstreams {
+		if namespace == res.GetMetadata().GetNamespace() {
+			s.Upstreams = append(s.Upstreams[:i], s.Upstreams[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
 func (s *EdsSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {

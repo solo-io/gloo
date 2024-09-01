@@ -9,9 +9,11 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 
 	"github.com/ghodss/yaml"
@@ -30,7 +32,9 @@ import (
 	gwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/validation"
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-kit/api/external/kubernetes/namespace"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"k8s.io/api/admission/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -225,7 +229,7 @@ func (wh *gatewayValidationWebhook) ServeHTTP(w http.ResponseWriter, r *http.Req
 	logger.Infow("received validation request on webhook")
 
 	b, _ := httputil.DumpRequest(r, true)
-	logger.Debugf("validation request dump:\n %s", string(b))
+	logger.Infof("validation request dump:\n %s", string(b))
 
 	// Verify the content type is accurate
 	contentType := r.Header.Get("Content-Type")
@@ -295,7 +299,7 @@ func (wh *gatewayValidationWebhook) ServeHTTP(w http.ResponseWriter, r *http.Req
 		logger.Errorf("Can't write response: %v", err)
 		http.Error(w, fmt.Sprintf("could not write response: %v", err), http.StatusInternalServerError)
 	}
-	logger.Debugf("responded with review: %s", resp)
+	logger.Infof("responded with review: %s", resp)
 }
 
 func (wh *gatewayValidationWebhook) makeAdmissionResponse(ctx context.Context, review *AdmissionReviewWithProxies) *AdmissionResponseWithProxies {
@@ -319,35 +323,49 @@ func (wh *gatewayValidationWebhook) makeAdmissionResponse(ctx context.Context, r
 		Kind:    req.Kind.Kind,
 	}
 
-	// If we've specified to NOT read gateway requests from all namespaces, then only
-	// check gateway requests for the same namespace as this webhook, regardless of the
-	// contents of watchNamespaces. It's assumed that if it's non-empty, watchNamespaces
-	// contains the webhook's own namespace, since this was checked during setup in setup_syncer.go
 	watchNamespaces := make([]string, len(wh.watchNamespaces))
 	copy(watchNamespaces, wh.watchNamespaces) // important we make a deep copy
-	if gvk == gwv1.GatewayGVK && !wh.readGatewaysFromAllNamespaces && !utils.AllNamespaces(wh.watchNamespaces) {
-		watchNamespaces = []string{wh.webhookNamespace}
-	}
 
-	// ensure the request applies to a watched namespace, if watchNamespaces is set
-	var validatingForNamespace bool
-	if len(watchNamespaces) > 0 {
-		for _, ns := range watchNamespaces {
-			if ns == metav1.NamespaceAll || ns == req.Namespace {
-				validatingForNamespace = true
-				break
+	fmt.Println("---------------------- webhook watchNamespaces : ", wh.watchNamespaces)
+	if req.Kind.Kind == "Namespace" {
+		// if it's not a namespace we watch, do not validate
+		if !slices.Contains(watchNamespaces, req.Name) {
+			fmt.Println("---------------------- webhook Not watching : ", req.Name)
+			return &AdmissionResponseWithProxies{
+				AdmissionResponse: &v1beta1.AdmissionResponse{
+					Allowed: true,
+				},
 			}
 		}
 	} else {
-		validatingForNamespace = true
-	}
+		// If we've specified to NOT read gateway requests from all namespaces, then only
+		// check gateway requests for the same namespace as this webhook, regardless of the
+		// contents of watchNamespaces. It's assumed that if it's non-empty, watchNamespaces
+		// contains the webhook's own namespace, since this was checked during setup in setup_syncer.go
+		if gvk == gwv1.GatewayGVK && !wh.readGatewaysFromAllNamespaces && !utils.AllNamespaces(wh.watchNamespaces) {
+			watchNamespaces = []string{wh.webhookNamespace}
+		}
 
-	// if it's not our namespace, do not validate
-	if !validatingForNamespace {
-		return &AdmissionResponseWithProxies{
-			AdmissionResponse: &v1beta1.AdmissionResponse{
-				Allowed: true,
-			},
+		// ensure the request applies to a watched namespace, if watchNamespaces is set
+		var validatingForNamespace bool
+		if len(watchNamespaces) > 0 {
+			for _, ns := range watchNamespaces {
+				if ns == metav1.NamespaceAll || ns == req.Namespace {
+					validatingForNamespace = true
+					break
+				}
+			}
+		} else {
+			validatingForNamespace = true
+		}
+
+		// if it's not our namespace, do not validate
+		if !validatingForNamespace {
+			return &AdmissionResponseWithProxies{
+				AdmissionResponse: &v1beta1.AdmissionResponse{
+					Allowed: true,
+				},
+			}
 		}
 	}
 
@@ -419,26 +437,53 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 ) (*validation.Reports, *multierror.Error) {
 
 	isDelete := admissionRequest.Operation == v1beta1.Delete
+	isUpdate := admissionRequest.Operation == v1beta1.Update
+	namespaceUnwatched := false
 	dryRun := isDryRun(admissionRequest)
 
 	if gvk == ListGVK {
 		return wh.validateList(ctx, admissionRequest.Object.Raw, dryRun)
 	}
 
-	// Kubernetes' Secrets deletions are the only non-Solo API resource operations we support validation requests for.
-	// For a Kubernetes Secrets, we want to skip validation on operations we don't support. We only support DELETEs.
+	// Kubernetes' Secrets and namespace deletions are the only non-Solo API resource operations we support validation requests for.
+	// For a these resources, we want to skip validation on operations we don't support. We only support DELETEs.
 	// Else, we expect to find the resource in our ApiGvkToHashableResource map - if the resource is supported.
+
 	if gvk.Group == kubernetesCoreApiGroup && gvk.Kind == "Secret" {
 		if !isDelete {
 			contextutils.LoggerFrom(ctx).Infof("unsupported operation validation [%s] for resource namespace [%s] name [%s] group [%s] kind [%s]", admissionRequest.Operation, ref.GetNamespace(), ref.GetName(), gvk.Group, gvk.Kind)
 			return &validation.Reports{}, nil
+		}
+	} else if gvk.Group == kubernetesCoreApiGroup && gvk.Kind == "Namespace" {
+		fmt.Println("---------------------- webhook Kind && Name : ", gvk.Kind, ref.Name)
+		if !isDelete && !isUpdate {
+			contextutils.LoggerFrom(ctx).Infof("unsupported operation validation [%s] for resource namespace [%s] name [%s] group [%s] kind [%s]", admissionRequest.Operation, ref.GetNamespace(), ref.GetName(), gvk.Group, gvk.Kind)
+			return &validation.Reports{}, nil
+		}
+
+		if isUpdate {
+			var namespace namespace.KubeNamespace
+			err := json.Unmarshal(admissionRequest.Object.Raw, &namespace)
+			fmt.Println("---------------------- webhook Unmarshal error : ", err)
+			if err != nil {
+				return nil, &multierror.Error{Errors: []error{err}}
+			}
+			kns := kubernetes.KubeNamespace{
+				KubeNamespace: namespace,
+			}
+			fmt.Println("---------------------- webhook namespace : ", namespace)
+			nsw, err := settingsutil.NamespaceWatched(settingsutil.FromContext(ctx), kns)
+			namespaceUnwatched = !nsw
+			if err != nil {
+				return nil, &multierror.Error{Errors: []error{err}}
+			}
 		}
 	} else if _, hit := gloosnapshot.ApiGvkToHashableResource[gvk]; !hit {
 		contextutils.LoggerFrom(ctx).Infof("unsupported validation for resource namespace [%s] name [%s] group [%s] kind [%s]", ref.GetNamespace(), ref.GetName(), gvk.Group, gvk.Kind)
 		return &validation.Reports{}, nil
 	}
 
-	if isDelete {
+	if isDelete || namespaceUnwatched {
 		return wh.deleteRef(ctx, gvk, ref, admissionRequest)
 	}
 
@@ -447,10 +492,13 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 
 func (wh *gatewayValidationWebhook) deleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
 	newResourceFunc := gloosnapshot.ApiGvkToHashableResource[gvk]
-	// Special case for Kubernetes secrets, since they are not handled by our hashable resource.
+	// Special case for Kubernetes secrets and namespaces, since they are not handled by our hashable resource.
 	// We can reuse the NewSecretHashableResource resource.Resource, since all that matters is the metadata for deletion.
 	if gvk.Group == kubernetesCoreApiGroup && gvk.Kind == "Secret" {
 		newResourceFunc = gloov1.NewSecretHashableResource
+	}
+	if gvk.Group == kubernetesCoreApiGroup && gvk.Kind == "Namespace" {
+		newResourceFunc = kubernetes.NewKubeNamespaceHashableResource
 	}
 	newResource := newResourceFunc()
 	newResource.SetMetadata(&core.Metadata{

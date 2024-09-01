@@ -128,6 +128,45 @@ func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.Kube
 	return selectedNamespaces.List(), nil
 }
 
+func NamespaceWatched(settings *v1.Settings, namespace kubernetes.KubeNamespace) (bool, error) {
+	writeNamespace := settings.GetDiscoveryNamespace()
+	if writeNamespace == "" {
+		writeNamespace = defaults.GlooSystem
+	}
+
+	if namespace.GetName() == writeNamespace {
+		return true, nil
+	}
+
+	// Is it defined in `watchNamespaces` ?
+	if len(settings.GetWatchNamespaces()) != 0 {
+		return slices.Contains(settings.GetWatchNamespaces(), namespace.GetName()), nil
+	}
+
+	// If there are no watch namespace selectors and no watchnamespaces then all namespaces are watched
+	// so return true
+	if len(settings.GetWatchNamespaceSelectors()) == 0 {
+		return true, nil
+	}
+
+	var selectors []labels.Selector
+	for _, selector := range settings.GetWatchNamespaceSelectors() {
+		ls, err := labelSelectorAsSelector(selector)
+		if err != nil {
+			return false, err
+		}
+		selectors = append(selectors, ls)
+	}
+
+	for _, selector := range selectors {
+		if selector.Matches(labels.Set(namespace.Labels)) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 func setNamespacesToWatch(settings *v1.Settings, namespaces []string) {
 	namespacesToWatchCache.Add(settings.MustHash(), namespaces)
 }
@@ -142,6 +181,8 @@ func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNa
 	if err != nil {
 		return false, err
 	}
+
+	fmt.Println("------------------ Watching : ", newNamespacesToWatch)
 
 	ns, ok := namespacesToWatchCache.Get(settings.MustHash())
 	if ok {
