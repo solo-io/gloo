@@ -1,4 +1,4 @@
-package syncer_test
+package proxy_syncer_test
 
 import (
 	"context"
@@ -82,7 +82,14 @@ var _ = Describe("Translate Proxy", func() {
 			Settings: settings,
 			Cache:    xdsCache,
 		})
-		syncer = NewTranslatorSyncer(ctx, &mockTranslator{true, false, nil}, xdsCache, sanitizer, rep, false, nil, settings, statusMetrics, nil, proxyClient, "", singlereplica.Identity(), history)
+		translator := &mockTranslator{true, false, nil}
+		syncer = NewTranslatorSyncer(ctx, translator, xdsCache, sanitizer, rep, false, nil, settings, statusMetrics, nil, proxyClient, "", singlereplica.Identity(), history)
+		// proxySyncer := proxy_syncer.NewProxySyncer(
+		// 	"ctrlName",
+		// 	"gloo-system",
+		// 	nil,
+
+		// )
 		snap = &v1snap.ApiSnapshot{
 			Proxies: v1.ProxyList{
 				proxy,

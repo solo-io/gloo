@@ -2,8 +2,10 @@ package proxy_syncer
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
@@ -11,19 +13,21 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	gwplugins "github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
-	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gateway2/translator/translatorutils"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
-
-// QueueStatusForProxiesFn queues a list of proxies to be synced and the plugin registry that produced them for a given sync iteration
-type QueueStatusForProxiesFn func(ctx context.Context, proxies gloo_solo_io.ProxyList, pluginRegistry *registry.PluginRegistry, totalSyncCount int)
 
 // ProxySyncer is responsible for translating Kubernetes Gateway CRs into Gloo Proxies
 // and syncing the proxyClient with the newly translated proxies.
@@ -36,21 +40,24 @@ type ProxySyncer struct {
 	k8sGwExtensions extensions.K8sGatewayExtensions
 
 	// proxyReconciler wraps the client that writes Proxy resources into an in-memory cache
-	// This cache is utilized by the debug.ProxyEndpointServer
-	proxyReconciler gloo_solo_io.ProxyReconciler
+	// This cache is utilized by RateLimit and the debug.ProxyEndpointServer
+	proxyReconciler gloov1.ProxyReconciler
 
-	// queueStatusForProxies stores a list of proxies that need the proxy status synced and the plugin registry
-	// that produced them for a given sync iteration
-	queueStatusForProxies QueueStatusForProxiesFn
+	proxyTranslator ProxyTranslator
 }
 
 type GatewayInputChannels struct {
-	genericEvent AsyncQueue[struct{}]
-	secretEvent  AsyncQueue[SecretInputs]
+	genericEvent     AsyncQueue[struct{}]
+	secretEvent      AsyncQueue[SecretInputs]
+	apiSnapshotEvent AsyncQueue[*v1snap.ApiSnapshot]
 }
 
 func (x *GatewayInputChannels) Kick(ctx context.Context) {
 	x.genericEvent.Enqueue(struct{}{})
+}
+
+func (x *GatewayInputChannels) NewSnap(snap *v1snap.ApiSnapshot) {
+	x.apiSnapshotEvent.Enqueue(snap)
 }
 
 func (x *GatewayInputChannels) UpdateSecretInputs(ctx context.Context, inputs SecretInputs) {
@@ -59,8 +66,9 @@ func (x *GatewayInputChannels) UpdateSecretInputs(ctx context.Context, inputs Se
 
 func NewGatewayInputChannels() *GatewayInputChannels {
 	return &GatewayInputChannels{
-		genericEvent: NewAsyncQueue[struct{}](),
-		secretEvent:  NewAsyncQueue[SecretInputs](),
+		genericEvent:     NewAsyncQueue[struct{}](),
+		secretEvent:      NewAsyncQueue[SecretInputs](),
+		apiSnapshotEvent: NewAsyncQueue[*v1snap.ApiSnapshot](),
 	}
 }
 
@@ -75,22 +83,51 @@ var kubeGatewayProxyLabels = map[string]string{
 // The proxy sync is triggered by the `genericEvent` which is kicked when
 // we reconcile gateway in the gateway controller. The `secretEvent` is kicked when a secret is created, updated,
 func NewProxySyncer(
-	controllerName, writeNamespace string,
+	controllerName string,
+	writeNamespace string,
 	inputs *GatewayInputChannels,
 	mgr manager.Manager,
 	k8sGwExtensions extensions.K8sGatewayExtensions,
-	proxyClient gloo_solo_io.ProxyClient,
-	queueStatusForProxies QueueStatusForProxiesFn,
+	proxyClient gloov1.ProxyClient,
+	translator translator.Translator,
+	xdsCache envoycache.SnapshotCache,
+	settings *gloov1.Settings,
+	syncerExtensions []syncer.TranslatorSyncerExtension,
 ) *ProxySyncer {
 	return &ProxySyncer{
-		controllerName:        controllerName,
-		writeNamespace:        writeNamespace,
-		inputs:                inputs,
-		mgr:                   mgr,
-		k8sGwExtensions:       k8sGwExtensions,
-		proxyReconciler:       gloo_solo_io.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient()),
-		queueStatusForProxies: queueStatusForProxies,
+		controllerName:  controllerName,
+		writeNamespace:  writeNamespace,
+		inputs:          inputs,
+		mgr:             mgr,
+		k8sGwExtensions: k8sGwExtensions,
+		proxyReconciler: gloov1.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient()),
+		proxyTranslator: NewProxyTranslator(translator, xdsCache, settings, syncerExtensions),
 	}
+}
+
+type ProxyTranslator struct {
+	translator       translator.Translator
+	settings         *gloov1.Settings
+	syncerExtensions []syncer.TranslatorSyncerExtension
+	xdsCache         envoycache.SnapshotCache
+}
+
+func NewProxyTranslator(translator translator.Translator,
+	xdsCache envoycache.SnapshotCache,
+	settings *gloov1.Settings,
+	syncerExtensions []syncer.TranslatorSyncerExtension,
+) ProxyTranslator {
+	return ProxyTranslator{
+		translator:       translator,
+		xdsCache:         xdsCache,
+		settings:         settings,
+		syncerExtensions: syncerExtensions,
+	}
+}
+
+func (s *ProxySyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) error {
+	s.inputs.apiSnapshotEvent.Enqueue(snap)
+	return nil
 }
 
 func (s *ProxySyncer) Start(ctx context.Context) error {
@@ -98,12 +135,12 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	contextutils.LoggerFrom(ctx).Debug("starting syncer for k8s gateway proxies")
 
 	var (
-		secretsWarmed bool
 		// totalResyncs is used to track the number of times the proxy syncer has been triggered
 		totalResyncs int
+		latestSnap   *v1snap.ApiSnapshot
 	)
 	resyncProxies := func() {
-		if !secretsWarmed {
+		if latestSnap == nil {
 			return
 		}
 		totalResyncs++
@@ -111,7 +148,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		stopwatch := statsutils.NewTranslatorStopWatch("ProxySyncer")
 		stopwatch.Start()
 		var (
-			proxies gloo_solo_io.ProxyList
+			proxies gloov1.ProxyList
 		)
 		defer func() {
 			duration := stopwatch.Stop(ctx)
@@ -159,10 +196,21 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 			TranslatedGateways: translatedGateways,
 		})
 
-		s.queueStatusForProxies(ctx, proxies, &pluginRegistry, totalResyncs)
+		s.reconcileProxies(ctx, proxies)
+		// TODO should clone?
+		latestSnap.Proxies = proxies
+		proxiesWithReports := s.proxyTranslator.glooSync(ctx, latestSnap)
+		contextutils.LoggerFrom(ctx).Info("LAW before status plugins")
+		applyStatusPlugins(ctx, proxiesWithReports, pluginRegistry)
+		contextutils.LoggerFrom(ctx).Info("LAW after status plugins")
 		s.syncStatus(ctx, rm, gwl)
 		s.syncRouteStatus(ctx, rm)
-		s.reconcileProxies(ctx, proxies)
+		contextutils.LoggerFrom(ctx).Info("LAW after regular status")
+	}
+
+	// wait for caches to sync before accepting events and syncing xds
+	if !s.mgr.GetCache().WaitForCacheSync(ctx) {
+		return errors.New("kube gateway sync loop waiting for all caches to sync failed")
 	}
 
 	for {
@@ -173,8 +221,30 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		case <-s.inputs.genericEvent.Next():
 			resyncProxies()
 		case <-s.inputs.secretEvent.Next():
-			secretsWarmed = true
 			resyncProxies()
+		case snap := <-s.inputs.apiSnapshotEvent.Next():
+			latestSnap = snap
+			resyncProxies()
+		}
+	}
+}
+
+func applyStatusPlugins(
+	ctx context.Context,
+	proxiesWithReports []translatorutils.ProxyWithReports,
+	registry registry.PluginRegistry,
+) {
+	ctx = contextutils.WithLogger(ctx, "k8sGatewayStatusPlugins")
+	logger := contextutils.LoggerFrom(ctx)
+
+	statusCtx := &gwplugins.StatusContext{
+		ProxiesWithReports: proxiesWithReports,
+	}
+	for _, plugin := range registry.GetStatusPlugins() {
+		err := plugin.ApplyStatusPlugin(ctx, statusCtx)
+		if err != nil {
+			logger.Errorf("Error applying status plugin: %v", err)
+			continue
 		}
 	}
 }
@@ -229,9 +299,10 @@ func (s *ProxySyncer) syncStatus(ctx context.Context, rm reports.ReportMap, gwl 
 }
 
 // reconcileProxies persists the proxies that were generated during translations and stores them in an in-memory cache
-// This cache is utilized by the debug.ProxyEndpointServer
-// As well as to resync the Gloo Xds Translator (when it receives new proxies using a MultiResourceClient)
-func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_io.ProxyList) {
+// The Gloo Xds Translator will receive these proxies via List() using a MultiResourceClient; two reasons it is needed there:
+// 1. To allow Rate Limit extensions to work, as it only syncs RL configs it finds used on Proxies in the snapshots
+// 2. This cache is utilized by the debug.ProxyEndpointServer
+func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloov1.ProxyList) {
 	ctx = contextutils.WithLogger(ctx, "proxyCache")
 	logger := contextutils.LoggerFrom(ctx)
 
@@ -239,9 +310,17 @@ func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_
 	err := s.proxyReconciler.Reconcile(
 		s.writeNamespace,
 		proxyList,
-		func(original, desired *gloo_solo_io.Proxy) (bool, error) {
-			// always update
-			return true, nil
+		func(original, desired *gloov1.Proxy) (bool, error) {
+			// only reconcile if proxies are equal
+			// we reconcile so ggv2 proxies can be used in extension syncing and debug snap storage
+			// but if we reconcile every time, we end in a loop where the proxies being synced here
+			// trigger an apisnapshot Sync (as Proxies are in the ApiSnapshot) which will cause us to
+			// regen and reconcile Proxies, in an endless loop
+			// also for now, we need to translate and sync on ApiSnapshot syncs because that is the
+			// source-of-truth for Gloo related translation and syncing (e.g. Endpoints)
+			// if we didn't, we would need to watch for e.g. Endpoint events but there's no guarantee the
+			// latest ApiSnapshot we stored would contain that latest Endpoint event
+			return proto.Equal(original, desired), nil
 		},
 		clients.ListOpts{
 			Ctx:      ctx,
@@ -275,15 +354,9 @@ var opts = cmp.Options{
 }
 
 func isGatewayStatusEqual(objA, objB *gwv1.GatewayStatus) bool {
-	if cmp.Equal(objA, objB, opts) {
-		return true
-	}
-	return false
+	return cmp.Equal(objA, objB, opts)
 }
 
 func isHTTPRouteStatusEqual(objA, objB *gwv1.HTTPRouteStatus) bool {
-	if cmp.Equal(objA, objB, opts) {
-		return true
-	}
-	return false
+	return cmp.Equal(objA, objB, opts)
 }

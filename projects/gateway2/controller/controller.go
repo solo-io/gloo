@@ -67,6 +67,8 @@ func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 		},
 	}
 
+	// TODO(Law): Add Endpoints and Pod events to match expectations re: EDS style config
+	// Needed if we will NOT use the Api Snapshot sync as the driver for resyncing
 	return run(ctx,
 		controllerBuilder.watchGwClass,
 		controllerBuilder.watchGw,

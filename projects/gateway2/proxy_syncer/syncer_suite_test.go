@@ -1,4 +1,4 @@
-package status
+package proxy_syncer_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestStatusSyncer(t *testing.T) {
+func TestSyncer(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Status Syncer Suite")
+	RunSpecs(t, "Gloo Translator Syncer Suite")
 }

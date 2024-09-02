@@ -56,8 +56,10 @@ import (
 	gwsyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
 	gwtranslator "github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	gwvalidation "github.com/solo-io/gloo/projects/gateway/pkg/validation"
-	"github.com/solo-io/gloo/projects/gateway2/extensions"
-	"github.com/solo-io/gloo/projects/gateway2/status"
+	"github.com/solo-io/gloo/projects/gateway2/controller"
+	ext "github.com/solo-io/gloo/projects/gateway2/extensions"
+	"github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	rlv1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -458,7 +460,7 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 
 func RunGloo(opts bootstrap.Opts) error {
 	glooExtensions := Extensions{
-		K8sGatewayExtensionsFactory: extensions.NewK8sGatewayExtensions,
+		K8sGatewayExtensionsFactory: ext.NewK8sGatewayExtensions,
 		PluginRegistryFactory:       registry.GetPluginRegistryFactory(opts),
 		SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{
 			ratelimitExt.NewTranslatorSyncerExtension,
@@ -891,23 +893,56 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 
 	startFuncs["admin-server"] = AdminServerStartFunc(snapshotHistory)
 
-	var (
-		gwv2StatusSyncer       status.GatewayStatusSyncer
-		gwv2StatusSyncCallback syncer.OnProxiesTranslatedFn
-	)
 	// MARK: build k8s gw start func
+	var proxySyncer *proxy_syncer.ProxySyncer
+	mgr, err := controller.BuildMgr(false)
+	if err != nil {
+		// do something
+	}
+	statusReporter := reporter.NewReporter(
+		defaults.KubeGatewayReporter,
+		statusClient, routeOptionClient.BaseClient(), virtualHostOptionClient.BaseClient())
 	if opts.GlooGateway.EnableK8sGatewayController {
-		gwv2StatusSyncer = status.NewStatusSyncerFactory()
-		gwv2StatusSyncCallback = gwv2StatusSyncer.HandleProxyReports
+		inputChannels := proxy_syncer.NewGatewayInputChannels()
+		k8sgwExt, err := extensions.K8sGatewayExtensionsFactory(watchOpts.Ctx, ext.K8sGatewayExtensionsFactoryParameters{
+			Mgr:                     mgr,
+			RouteOptionClient:       routeOptionClient,
+			VirtualHostOptionClient: virtualHostOptionClient,
+			StatusReporter:          statusReporter,
+			AuthConfigClient:        authConfigClient,
+			KickXds:                 inputChannels.Kick,
+		})
+		if err != nil {
+			// do something
+		}
+		proxySyncer = proxy_syncer.NewProxySyncer(
+			wellknown.GatewayControllerName,
+			opts.WriteNamespace,
+			inputChannels,
+			mgr,
+			k8sgwExt,
+			proxyClient,
+			sharedTranslator,
+			opts.ControlPlane.SnapshotCache,
+			opts.Settings,
+			syncerExtensions,
+		)
 
 		// Share proxyClient and status syncer with the gateway controller
 		startFuncs["k8s-gateway-controller"] = K8sGatewayControllerStartFunc(
 			proxyClient,
-			gwv2StatusSyncer.QueueStatusForProxies,
 			authConfigClient,
 			routeOptionClient,
 			virtualHostOptionClient,
 			statusClient,
+			sharedTranslator,
+			opts.ControlPlane.SnapshotCache,
+			opts.Settings,
+			syncerExtensions,
+			proxySyncer,
+			k8sgwExt,
+			mgr,
+			inputChannels,
 		)
 	}
 
@@ -929,7 +964,6 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		proxyClient,
 		opts.WriteNamespace,
 		opts.Identity,
-		gwv2StatusSyncCallback,
 		snapshotHistory,
 	)
 
@@ -957,9 +991,17 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		validator,
 		translationSync,
 	}
+	// we want ggv2 proxy syncer first so it can reconcile its proxies, which need to be picked up
+	// by extension syncing (via translationSync) and by the snapshot storage for debugging
+	if opts.GlooGateway.EnableK8sGatewayController {
+		syncers = append(syncers, proxySyncer)
+	}
+	// add standard syncers
+	syncers = append(syncers, validator, translationSync)
 	if opts.GatewayControllerEnabled {
 		syncers = append(syncers, gwValidationSyncer)
 	}
+
 	apiEventLoop := v1snap.NewApiEventLoop(apiEmitter, syncers)
 	apiEventLoopErrs, err := apiEventLoop.Run(opts.WatchNamespaces, watchOpts)
 	if err != nil {

@@ -18,7 +18,6 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
-	"github.com/solo-io/gloo/pkg/utils/syncutil"
 	"github.com/solo-io/gloo/projects/gateway/pkg/reconciler"
 	"github.com/solo-io/go-utils/hashutils"
 	"go.uber.org/zap"
@@ -85,7 +84,7 @@ func NewTranslatorSyncer(ctx context.Context, writeNamespace string, proxyWatche
 
 // TODO (ilackarms): make sure that sync happens if proxies get updated as well; may need to resync
 func (s *TranslatorSyncer) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) error {
-	ctx = contextutils.WithLogger(ctx, "TranslatorSyncer")
+	ctx = contextutils.WithLogger(ctx, "GatewayTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 
 	snapHash := hashutils.MustHash(snap)
@@ -96,7 +95,7 @@ func (s *TranslatorSyncer) Sync(ctx context.Context, snap *gloov1snap.ApiSnapsho
 	// stringify-ing the snapshot may be an expensive operation, so we'd like to avoid building the large
 	// string if we're not even going to log it anyway
 	if contextutils.GetLogLevel() == zapcore.DebugLevel {
-		logger.Debug(syncutil.StringifySnapshot(snap))
+		// logger.Debug(syncutil.StringifySnapshot(snap))
 	}
 
 	desiredProxies, invalidProxies := s.GeneratedDesiredProxies(ctx, snap)
@@ -107,8 +106,8 @@ func (s *TranslatorSyncer) Sync(ctx context.Context, snap *gloov1snap.ApiSnapsho
 // This replaced a watch on the proxy CR from when the gloo and gateway pods were separate
 // Now it is called at the end of the gloo translation loop after statuses have been set for proxies
 // This is where we update statuses on gateway types based on the proxy statuses.
-// After this method runs, all Proxies (those retrieved from the proxy client) will have their status
-// written, along with the translation reports that correspond to the Gateway resources.
+// After this method runs, the gateway syncer's status syncer will have an updated view of the status of
+// all Proxies (those retrieved from the proxy client), which will trigger a status update for the Gateway resources.
 func (s *TranslatorSyncer) UpdateStatusForAllProxies(ctx context.Context) {
 	s.statusSyncer.handleUpdatedProxies(ctx)
 }
