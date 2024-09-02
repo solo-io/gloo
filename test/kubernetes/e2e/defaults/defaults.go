@@ -4,19 +4,41 @@ import (
 	"context"
 	"path/filepath"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/skv2/codegen/util"
-	"github.com/stretchr/testify/assert"
 )
 
 type CommonTestSuite interface {
-	TestInstallation() *e2e.TestInstallation
 	Ctx() context.Context
+	TestInstallation() *e2e.TestInstallation // DO_NOT_SUBMIT: what to do about solo-projects? uses a struct that embeds this struct
 	Assert() *assert.Assertions
+}
+
+type CommonTestSuiteImpl struct {
+	suite.Suite
+	ctx context.Context
+	ti  *e2e.TestInstallation
+}
+
+func (s *CommonTestSuiteImpl) Ctx() context.Context {
+	return s.ctx
+}
+
+func (s *CommonTestSuiteImpl) TestInstallation() *e2e.TestInstallation {
+	return s.ti
+}
+
+func NewCommonTestSuiteImpl(ctx context.Context, testInst *e2e.TestInstallation) *CommonTestSuiteImpl {
+	return &CommonTestSuiteImpl{
+		ctx: ctx,
+		ti:  testInst,
+	}
 }
 
 var (

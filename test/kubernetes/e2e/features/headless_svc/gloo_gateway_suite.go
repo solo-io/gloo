@@ -34,6 +34,7 @@ type edgeGatewaySuite struct {
 	routingManifestFile string
 }
 
+// DO_NOT_SUBMIT: better like this or embeddeded like in test/kubernetes/e2e/features/http_listener_options/http_lis_opt_suite.go
 func (s *edgeGatewaySuite) Ctx() context.Context {
 	return s.ctx
 }
