@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/kubernetes"
-	sk_kubernetes "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/hashicorp/go-multierror"
@@ -23,6 +22,7 @@ import (
 	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	sk_resources "github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	sk_kubernetes "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -208,6 +208,19 @@ func (s *validator) Validate(ctx context.Context, req *validation.GlooValidation
 	}, nil
 }
 
+func HandleResourceDeletion(snapshot *v1snap.ApiSnapshot, resource resources.Resource) error {
+	fmt.Println("----------------------- opts.Resource", resource, reflect.TypeOf(resource))
+	fmt.Println("----------------------- opts.Resource.(*kubernetes.KubeNamespace)", resource.(*sk_kubernetes.KubeNamespace))
+	if _, ok := resource.(*sk_kubernetes.KubeNamespace); ok {
+		fmt.Println("----------------------- RemoveAllResourcesInNamespace")
+		// Special case to handle namespace deletion
+		return snapshot.RemoveAllResourcesInNamespace(resource.GetMetadata().GetName())
+	} else {
+		fmt.Println("----------------------- RemoveFromResourceList 1")
+		return snapshot.RemoveFromResourceList(resource)
+	}
+}
+
 // ValidateGloo replaces the functionality of Validate.  Validate is still a method that needs to be
 // exported because it is used as a gRPC service. A synced version of the snapshot is needed for
 // gloo validation.
@@ -224,18 +237,8 @@ func (s *validator) ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource 
 
 	if resource != nil {
 		if shouldDelete {
-			fmt.Println("----------------------- opts.Resource", resource, reflect.TypeOf(resource))
-			fmt.Println("----------------------- opts.Resource.(*kubernetes.KubeNamespace)", resource.(*sk_kubernetes.KubeNamespace))
-			// Special case to handle namespace deletion
-			if _, ok := resource.(*sk_kubernetes.KubeNamespace); ok {
-				fmt.Println("----------------------- RemoveAllResourcesInNamespace")
-				if err := snapCopy.RemoveAllResourcesInNamespace(resource.GetMetadata().GetName()); err != nil {
-					return nil, err
-				}
-			} else {
-				if err := snapCopy.RemoveFromResourceList(resource); err != nil {
-					return nil, err
-				}
+			if err := HandleResourceDeletion(&snapCopy, resource); err != nil {
+				return nil, err
 			}
 
 			// If we are deleting an Upstream with a Kube destination, we also want to remove the associated "fake" Upstream from the snapshot

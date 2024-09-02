@@ -86,86 +86,73 @@ func IsAllNamespaces(watchNs []string) bool {
 // - If `watchNamespaces` is not defined and `watchNamespaceSelectors` is defined, return all namespaces that match the `watchNamespaceSelectors`
 // In every case, the `discoveryNamespace` (defaults to `gloo-system`) is appended to the list of namespaces
 func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNamespaceList) ([]string, error) {
-	writeNamespace := settings.GetDiscoveryNamespace()
-	if writeNamespace == "" {
-		writeNamespace = defaults.GlooSystem
-	}
+	writeNamespace := generateDiscoveryNamespace(settings)
 
 	if len(settings.GetWatchNamespaces()) != 0 {
-		// Prevent an error where the controller can not read resources written by discovery if the
-		// install or discovery namespace is not watched
+		// Prevent an error where the controller can not read resources written by discovery
+		// if the install or discovery namespace is not watched
 		return utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace), nil
 	}
 
 	// Watch all namespaces if `watchNamespaces` or `watchNamespaceSelectors` is not specified
 	if len(settings.GetWatchNamespaceSelectors()) == 0 {
-		return []string{""}, nil
+		return []string{metav1.NamespaceAll}, nil
 	}
 
 	var selectors []labels.Selector
 	selectedNamespaces := sets.NewString()
 
-	for _, selector := range settings.GetWatchNamespaceSelectors() {
-		ls, err := labelSelectorAsSelector(selector)
-		if err != nil {
-			return nil, err
-		}
-		selectors = append(selectors, ls)
+	selectors, err := labelSelectorsAsSelectors(settings.GetWatchNamespaceSelectors())
+	if err != nil {
+		return nil, err
 	}
 
 	for _, ns := range namespaces {
-		for _, selector := range selectors {
-			if selector.Matches(labels.Set(ns.Labels)) {
-				selectedNamespaces.Insert(ns.Name)
-				break
-			}
+		if namespaceMatchesSelector(*ns, selectors) {
+			selectedNamespaces.Insert(ns.Name)
 		}
 	}
 
-	// Prevent an error where the controller can not read resources written by discovery if the
-	// install or discovery namespace is not watched
+	// Prevent an error where the controller can not read resources written by discovery
+	// if the install or discovery namespace is not watched
 	selectedNamespaces.Insert(writeNamespace)
 
 	return selectedNamespaces.List(), nil
 }
 
-func NamespaceWatched(settings *v1.Settings, namespace kubernetes.KubeNamespace) (bool, error) {
+func generateDiscoveryNamespace(settings *v1.Settings) string {
 	writeNamespace := settings.GetDiscoveryNamespace()
 	if writeNamespace == "" {
 		writeNamespace = defaults.GlooSystem
 	}
+	return writeNamespace
+}
 
+// NamespaceWatched returns true if the namespace passed will be watched based on
+// the current settings object's `watchNamespaces` and `watchNamespaceSelectors` fields
+func NamespaceWatched(settings *v1.Settings, namespace kubernetes.KubeNamespace) (bool, error) {
+	writeNamespace := generateDiscoveryNamespace(settings)
 	if namespace.GetName() == writeNamespace {
 		return true, nil
 	}
 
-	// Is it defined in `watchNamespaces` ?
+	// If watchNamespaces is defined, it takes precedence over watchNamespaceSelectors
 	if len(settings.GetWatchNamespaces()) != 0 {
 		return slices.Contains(settings.GetWatchNamespaces(), namespace.GetName()), nil
 	}
 
-	// If there are no watch namespace selectors and no watchnamespaces then all namespaces are watched
-	// so return true
+	// If watchNamespaceSelectors and watchNamespaces are not defined then all namespaces are watched
+	// So return true
 	if len(settings.GetWatchNamespaceSelectors()) == 0 {
 		return true, nil
 	}
 
-	var selectors []labels.Selector
-	for _, selector := range settings.GetWatchNamespaceSelectors() {
-		ls, err := labelSelectorAsSelector(selector)
-		if err != nil {
-			return false, err
-		}
-		selectors = append(selectors, ls)
+	selectors, err := labelSelectorsAsSelectors(settings.GetWatchNamespaceSelectors())
+	if err != nil {
+		return false, err
 	}
 
-	for _, selector := range selectors {
-		if selector.Matches(labels.Set(namespace.Labels)) {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	return namespaceMatchesSelector(namespace, selectors), nil
 }
 
 func setNamespacesToWatch(settings *v1.Settings, namespaces []string) {
@@ -236,23 +223,44 @@ func GetNamespacesToWatch(settings *v1.Settings) []string {
 	return ns.([]string)
 }
 
+func namespaceMatchesSelector(ns kubernetes.KubeNamespace, selectors []labels.Selector) bool {
+	for _, selector := range selectors {
+		if selector.Matches(labels.Set(ns.GetLabels())) {
+			return true
+		}
+	}
+	return false
+}
+
+func labelSelectorsAsSelectors(labelSelectors []*v1.LabelSelector) ([]labels.Selector, error) {
+	var selectors []labels.Selector
+	for _, selector := range labelSelectors {
+		ls, err := labelSelectorAsSelector(selector)
+		if err != nil {
+			return nil, err
+		}
+		selectors = append(selectors, ls)
+	}
+	return selectors, nil
+}
+
 // TODO: remove this and use k8s.io/apimachinery to do this once the settings proto uses the predefined fields
-func labelSelectorAsSelector(ps *v1.LabelSelector) (labels.Selector, error) {
-	if ps == nil {
+func labelSelectorAsSelector(labelSelectors *v1.LabelSelector) (labels.Selector, error) {
+	if labelSelectors == nil {
 		return labels.Nothing(), nil
 	}
-	if len(ps.GetMatchLabels())+len(ps.GetMatchExpressions()) == 0 {
+	if len(labelSelectors.GetMatchLabels())+len(labelSelectors.GetMatchExpressions()) == 0 {
 		return labels.Everything(), nil
 	}
-	requirements := make([]labels.Requirement, 0, len(ps.GetMatchLabels())+len(ps.GetMatchExpressions()))
-	for k, v := range ps.GetMatchLabels() {
+	requirements := make([]labels.Requirement, 0, len(labelSelectors.GetMatchLabels())+len(labelSelectors.GetMatchExpressions()))
+	for k, v := range labelSelectors.GetMatchLabels() {
 		r, err := labels.NewRequirement(k, selection.Equals, []string{v})
 		if err != nil {
 			return nil, err
 		}
 		requirements = append(requirements, *r)
 	}
-	for _, expr := range ps.GetMatchExpressions() {
+	for _, expr := range labelSelectors.GetMatchExpressions() {
 		var op selection.Operator
 		switch metav1.LabelSelectorOperator(expr.GetOperator()) {
 		case metav1.LabelSelectorOpIn:

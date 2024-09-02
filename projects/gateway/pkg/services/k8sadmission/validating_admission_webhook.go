@@ -438,7 +438,6 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 
 	isDelete := admissionRequest.Operation == v1beta1.Delete
 	isUpdate := admissionRequest.Operation == v1beta1.Update
-	namespaceUnwatched := false
 	dryRun := isDryRun(admissionRequest)
 
 	if gvk == ListGVK {
@@ -472,15 +471,22 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 				KubeNamespace: namespace,
 			}
 			fmt.Println("---------------------- webhook namespace : ", namespace)
-			nsw, err := settingsutil.NamespaceWatched(settingsutil.FromContext(ctx), kns)
-			namespaceUnwatched = !nsw
+			// At this point, any namespace update we receive is a result of modifying a namespace we watch
+			// So check if we still watch the namespace
+			namespaceStillWatched, err := settingsutil.NamespaceWatched(settingsutil.FromContext(ctx), kns)
 			fmt.Println("---------------------- webhook namespace error : ", err)
 			if err != nil {
 				return nil, &multierror.Error{Errors: []error{err}}
 			}
-			fmt.Println("---------------------- isDelete, namespaceUnwatched : ", isDelete, namespaceUnwatched)
-			if nsw {
+
+			fmt.Println("---------------------- isDelete, namespaceStillWatched : ", isDelete, namespaceStillWatched)
+			if namespaceStillWatched {
+				// The namespace has changed in a way that does not affect us so we let it through
 				return &validation.Reports{}, nil
+			} else {
+				// The namespace used to be watched but will now be removed from the list of namespaces we watch
+				// Run validation on this updated list of namespaces and report if anything breaks
+				return wh.deleteRef(ctx, gvk, ref, admissionRequest)
 			}
 
 		}
@@ -489,7 +495,7 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 		return &validation.Reports{}, nil
 	}
 
-	if isDelete || namespaceUnwatched {
+	if isDelete {
 		return wh.deleteRef(ctx, gvk, ref, admissionRequest)
 	}
 

@@ -25,7 +25,6 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	kubeCRDV1 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	skProtoUtils "github.com/solo-io/solo-kit/pkg/utils/protoutils"
@@ -489,19 +488,8 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 
 	// verify the mutation against a snapshot clone first, only apply the change to the actual snapshot if this passes
 	if opts.Delete {
-		fmt.Println("----------------------- opts.Resource", opts.Resource, reflect.TypeOf(opts.Resource))
-		fmt.Println("----------------------- opts.Resource.(*kubernetes.KubeNamespace)", opts.Resource.(*kubernetes.KubeNamespace))
-		// Special case to handle namespace deletion
-		if _, ok := opts.Resource.(*kubernetes.KubeNamespace); ok {
-			fmt.Println("----------------------- RemoveAllResourcesInNamespace")
-			if err := snapshotClone.RemoveAllResourcesInNamespace(opts.Resource.GetMetadata().GetName()); err != nil {
-				return nil, err
-			}
-		} else {
-			fmt.Println("----------------------- RemoveFromResourceList 1")
-			if err := snapshotClone.RemoveFromResourceList(opts.Resource); err != nil {
-				return nil, err
-			}
+		if err := gloovalidation.HandleResourceDeletion(snapshotClone, opts.Resource); err != nil {
+			return nil, err
 		}
 	} else {
 		if err := snapshotClone.UpsertToResourceList(opts.Resource); err != nil {
@@ -550,19 +538,8 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 	if !opts.DryRun {
 		// update internal snapshot to handle race where a lot of resources may be applied at once, before syncer updates
 		if opts.Delete {
-			fmt.Println("----------------------- opts.Resource", opts.Resource, reflect.TypeOf(opts.Resource))
-			fmt.Println("----------------------- opts.Resource.(*kubernetes.KubeNamespace)", opts.Resource.(*kubernetes.KubeNamespace))
-			// Special case to handle namespace deletion
-			if _, ok := opts.Resource.(*kubernetes.KubeNamespace); ok {
-				fmt.Println("----------------------- RemoveAllResourcesInNamespace")
-				if err := v.latestSnapshot.RemoveAllResourcesInNamespace(opts.Resource.GetMetadata().GetName()); err != nil {
-					return nil, err
-				}
-			} else {
-				fmt.Println("----------------------- RemoveFromResourceList 1")
-				if err = v.latestSnapshot.RemoveFromResourceList(opts.Resource); err != nil {
-					return reports, err
-				}
+			if err := gloovalidation.HandleResourceDeletion(snapshotClone, opts.Resource); err != nil {
+				return nil, err
 			}
 		} else {
 			if err = v.latestSnapshot.UpsertToResourceList(opts.Resource); err != nil {
