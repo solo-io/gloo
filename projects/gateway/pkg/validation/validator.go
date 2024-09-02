@@ -538,7 +538,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 	if !opts.DryRun {
 		// update internal snapshot to handle race where a lot of resources may be applied at once, before syncer updates
 		if opts.Delete {
-			if err := gloovalidation.HandleResourceDeletion(snapshotClone, opts.Resource); err != nil {
+			if err := gloovalidation.HandleResourceDeletion(v.latestSnapshot, opts.Resource); err != nil {
 				return nil, err
 			}
 		} else {
