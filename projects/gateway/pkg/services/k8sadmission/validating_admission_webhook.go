@@ -299,7 +299,7 @@ func (wh *gatewayValidationWebhook) ServeHTTP(w http.ResponseWriter, r *http.Req
 		logger.Errorf("Can't write response: %v", err)
 		http.Error(w, fmt.Sprintf("could not write response: %v", err), http.StatusInternalServerError)
 	}
-	logger.Infof("responded with review: %s", resp)
+	logger.Infof("++++++++++++++++++++++++++++++++++++++++ responded with review: %s", resp)
 }
 
 func (wh *gatewayValidationWebhook) makeAdmissionResponse(ctx context.Context, review *AdmissionReviewWithProxies) *AdmissionResponseWithProxies {
@@ -474,9 +474,15 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 			fmt.Println("---------------------- webhook namespace : ", namespace)
 			nsw, err := settingsutil.NamespaceWatched(settingsutil.FromContext(ctx), kns)
 			namespaceUnwatched = !nsw
+			fmt.Println("---------------------- webhook namespace error : ", err)
 			if err != nil {
 				return nil, &multierror.Error{Errors: []error{err}}
 			}
+			fmt.Println("---------------------- isDelete, namespaceUnwatched : ", isDelete, namespaceUnwatched)
+			if nsw {
+				return &validation.Reports{}, nil
+			}
+
 		}
 	} else if _, hit := gloosnapshot.ApiGvkToHashableResource[gvk]; !hit {
 		contextutils.LoggerFrom(ctx).Infof("unsupported validation for resource namespace [%s] name [%s] group [%s] kind [%s]", ref.GetNamespace(), ref.GetName(), gvk.Group, gvk.Kind)
