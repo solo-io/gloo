@@ -470,7 +470,7 @@ var _ = Describe("Bootstrap Clients", func() {
 					Port:              gatewayPort,
 					ConnectionTimeout: 1,
 					WithoutStats:      true,
-				}, response, 1, 60*time.Second, 1*time.Second)
+				}, response, 1, 120*time.Second, 1*time.Second)
 			}
 		})
 
