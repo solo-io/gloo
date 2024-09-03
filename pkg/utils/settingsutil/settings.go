@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -86,12 +85,13 @@ func IsAllNamespaces(watchNs []string) bool {
 // - If `watchNamespaces` is not defined and `watchNamespaceSelectors` is defined, return all namespaces that match the `watchNamespaceSelectors`
 // In every case, the `discoveryNamespace` (defaults to `gloo-system`) is appended to the list of namespaces
 func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNamespaceList) ([]string, error) {
-	writeNamespace := generateDiscoveryNamespace(settings)
+	// writeNamespace := generateDiscoveryNamespace(settings)
 
 	if len(settings.GetWatchNamespaces()) != 0 {
 		// Prevent an error where the controller can not read resources written by discovery
 		// if the install or discovery namespace is not watched
-		return utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace), nil
+		// return utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace), nil
+		return settings.GetWatchNamespaces(), nil
 	}
 
 	// Watch all namespaces if `watchNamespaces` or `watchNamespaceSelectors` is not specified
@@ -115,7 +115,7 @@ func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.Kube
 
 	// Prevent an error where the controller can not read resources written by discovery
 	// if the install or discovery namespace is not watched
-	selectedNamespaces.Insert(writeNamespace)
+	// selectedNamespaces.Insert(writeNamespace)
 
 	return selectedNamespaces.List(), nil
 }
