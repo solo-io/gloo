@@ -298,6 +298,8 @@ func setRouteAction(
 	backendRefs := rule.BackendRefs
 	delegates := false
 
+	pluginRegistry.GetBackendRefPlugins()
+
 	for _, backendRef := range backendRefs {
 		// If the backend is an HTTPRoute, it implies route delegation
 		// for which delegated routes are recursively flattened and translated
@@ -342,6 +344,9 @@ func setRouteAction(
 		switch {
 		// get backend for ref - we must do it to make sure we have permissions to access it.
 		// also we need the service so we can translate its name correctly.
+		case backendref.RefIsServiceEntry(backendRef.BackendObjectReference):
+			// SE should get merged w Service if there is a naming conflict
+			fallthrough
 		case backendref.RefIsService(backendRef.BackendObjectReference):
 			weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
 				Destination: &v1.Destination{
