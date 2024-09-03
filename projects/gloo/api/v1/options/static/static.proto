@@ -33,6 +33,10 @@ message UpstreamSpec {
     // If both this and host.sni_addr are set, host.sni_addr has priority.
     // defaults to "true".
     google.protobuf.BoolValue auto_sni_rewrite = 6;
+
+    // The hosts reference hosts defined in VirtualDestination or ServiceEntry
+    // resources to route to in-mesh endpoints.
+    bool is_mesh = 7;
 }
 
 // Represents a single instance of an upstream
