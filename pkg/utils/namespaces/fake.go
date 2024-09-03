@@ -1,4 +1,4 @@
-package setuputils
+package namespaces
 
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"

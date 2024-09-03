@@ -3,26 +3,25 @@ package setuputils
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
+	"reflect"
 	"sync"
 	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
+	"github.com/solo-io/gloo/pkg/utils/namespaces"
 
 	"github.com/go-logr/zapr"
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	kube2 "github.com/solo-io/gloo/pkg/bootstrap/leaderelector/kube"
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector/singlereplica"
 	"github.com/solo-io/gloo/pkg/version"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/solo-kit/pkg/api/external/kubernetes/namespace"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
-	skkube "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -87,23 +86,8 @@ func Main(opts SetupOpts) error {
 		return err
 	}
 
-	var nsClient skkube.KubeNamespaceClient
-
-	// tmp fix if we do not have clusterrole premissions
-	kubeClient, err := helpers.KubeClientWithKubecontext("")
-	if err != nil {
-		nsClient = &FakeKubeNamespaceWatcher{}
-	} else {
-		ctxWithTimeout, cancel := context.WithTimeout(ctx, 2*time.Second)
-		defer cancel()
-		_, err = cache.NewKubeCoreCache(ctxWithTimeout, kubeClient)
-		if err != nil {
-			nsClient = &FakeKubeNamespaceWatcher{}
-		} else {
-			kubeCache, _ := cache.NewKubeCoreCache(ctx, kubeClient)
-			nsClient = namespace.NewNamespaceClient(kubeClient, kubeCache)
-		}
-	}
+	nsClient := namespaces.NewKubeNamespaceClient(ctx)
+	fmt.Println("---------------------------- ", reflect.TypeOf(nsClient))
 
 	// settings come from the ResourceClient in the settingsClient
 	// the eventLoop will Watch the emitter's settingsClient to receive settings from the ResourceClient

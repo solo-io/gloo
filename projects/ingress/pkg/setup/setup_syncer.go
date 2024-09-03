@@ -14,7 +14,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
 
 	"github.com/golang/protobuf/ptypes"
-	"github.com/solo-io/gloo/pkg/utils"
+	"github.com/solo-io/gloo/pkg/utils/namespaces"
 	clusteringressclient "github.com/solo-io/gloo/projects/clusteringress/pkg/api/custom/knative"
 	clusteringressv1alpha1 "github.com/solo-io/gloo/projects/clusteringress/pkg/api/external/knative"
 	clusteringressv1 "github.com/solo-io/gloo/projects/clusteringress/pkg/api/v1"
@@ -100,7 +100,7 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 	}
 	statusReporterNamespace := statusutils.GetStatusReporterNamespaceOrDefault(writeNamespace)
 
-	watchNamespaces := utils.ProcessWatchNamespaces(settingsutil.GetNamespacesToWatch(settings), writeNamespace)
+	watchNamespaces := namespaces.ProcessWatchNamespaces(settingsutil.GetNamespacesToWatch(settings), writeNamespace)
 
 	envTrue := func(name string) bool {
 		return os.Getenv(name) == "true" || os.Getenv(name) == "1"

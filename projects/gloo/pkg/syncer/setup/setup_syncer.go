@@ -45,9 +45,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/prototime"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
-	"github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/pkg/utils/channelutils"
 	"github.com/solo-io/gloo/pkg/utils/envutils"
+	"github.com/solo-io/gloo/pkg/utils/namespaces"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	gloostatusutils "github.com/solo-io/gloo/pkg/utils/statusutils"
 	gateway "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -261,7 +261,7 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	if writeNamespace == "" {
 		writeNamespace = defaults.GlooSystem
 	}
-	watchNamespaces := utils.ProcessWatchNamespaces(settingsutil.GetNamespacesToWatch(settings), writeNamespace)
+	watchNamespaces := namespaces.ProcessWatchNamespaces(settingsutil.GetNamespacesToWatch(settings), writeNamespace)
 
 	consulClient, err := bootstrap_clients.ConsulClientForSettings(ctx, settings)
 	if err != nil {
@@ -988,7 +988,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		if gwOpts.Validation != nil {
 			// make sure non-empty WatchNamespaces contains the gloo instance's own namespace if
 			// ReadGatewaysFromAllNamespaces is false
-			if !gwOpts.ReadGatewaysFromAllNamespaces && !utils.AllNamespaces(opts.WatchNamespaces) {
+			if !gwOpts.ReadGatewaysFromAllNamespaces && !namespaces.AllNamespaces(opts.WatchNamespaces) {
 				foundSelf := false
 				for _, namespace := range opts.WatchNamespaces {
 					if gwOpts.GlooNamespace == namespace {
