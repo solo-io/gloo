@@ -26,7 +26,7 @@ settings.update((read_yaml(
 
 gloo_installed_cmd = "{0} -n {1} status {2} || true".format(helm_cmd, settings.get("helm_installation_namespace"), settings.get("helm_installation_name"))
 gloo_status = str(local(gloo_installed_cmd, quiet = True))
-gloo_installed = True
+gloo_installed = "STATUS: deployed" in gloo_status
 
 tilt_helper_dockerfile = """
 # Tilt image
