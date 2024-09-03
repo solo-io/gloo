@@ -134,3 +134,23 @@ func DeleteCurlPod(s CommonTestSuite) {
 	s.Assert().NoError(err, "can delete curl pod")
 	s.TestInstallation().Assertions.ExpectObjectDeleted(CurlPodManifest, err, output)
 }
+
+// // Or like this?
+// func CurlPodEventuallyRunning(ctx context.Context, ti *e2e.TestInstallation) {
+// 	// Check that test resources are running
+// 	ti.Assertions.EventuallyPodsRunning(ctx, CurlPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
+// 		LabelSelector: "app.kubernetes.io/name=curl",
+// 	})
+// }
+
+// func InstallCurlPod(ctx context.Context, ti *e2e.TestInstallation, s *suite.Suite) {
+// 	err := ti.Actions.Kubectl().ApplyFile(ctx, CurlPodManifest)
+// 	s.Assert().NoError(err)
+// 	CurlPodEventuallyRunning(ctx, ti)
+// }
+
+// func DeleteCurlPod(ctx context.Context, ti *e2e.TestInstallation, s *suite.Suite) {
+// 	output, err := ti.Actions.Kubectl().DeleteFileWithOutput(ctx, CurlPodManifest)
+// 	s.Assert().NoError(err, "can delete curl pod")
+// 	ti.Assertions.ExpectObjectDeleted(CurlPodManifest, err, output)
+// }
