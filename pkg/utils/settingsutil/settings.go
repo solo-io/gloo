@@ -170,6 +170,7 @@ func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNa
 		return false, err
 	}
 
+	fmt.Println("------------------ WatchNamespaces : ", settings.GetWatchNamespaces())
 	fmt.Println("------------------ Watching : ", newNamespacesToWatch)
 
 	ns, ok := namespacesToWatchCache.Get(settings.MustHash())
