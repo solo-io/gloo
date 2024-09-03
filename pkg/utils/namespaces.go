@@ -2,6 +2,9 @@ package utils
 
 import (
 	"os"
+	"strconv"
+	"strings"
+	"sync"
 )
 
 func AllNamespaces(watchNamespaces []string) bool {
@@ -39,4 +42,35 @@ func GetPodNamespace() string {
 		return podNamespace
 	}
 	return "gloo-system"
+}
+
+var labelsOnce sync.Once
+
+func GetPodLabels() map[string]string {
+	var labels map[string]string
+	labelsOnce.Do(func() {
+		data, err := os.ReadFile("/etc/gloo/labels")
+		if err != nil {
+			return
+		}
+
+		m := map[string]string{}
+		lines := strings.Split(string(data), "\n")
+		for _, l := range lines {
+			l = strings.TrimSpace(l)
+			parts := strings.SplitN(l, "=", 2)
+			if len(parts) != 2 {
+				continue
+			}
+
+			key := parts[0]
+			value, err := strconv.Unquote(parts[1])
+			if err != nil {
+				continue
+			}
+			m[key] = value
+		}
+		labels = m
+	})
+	return labels
 }
