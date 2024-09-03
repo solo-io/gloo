@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"slices"
 	"sync"
-	"time"
 
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
+	"github.com/solo-io/gloo/pkg/utils/namespaces"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	"github.com/solo-io/solo-kit/pkg/api/external/kubernetes/namespace"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
@@ -186,22 +184,7 @@ func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNa
 }
 
 func getAllNamespaces() (kubernetes.KubeNamespaceList, error) {
-	// tmp fix if we do not have clusterrole premissions
-	kubeClient, err := helpers.KubeClientWithKubecontext("")
-	if err != nil {
-		return nil, err
-	}
-	ctx := context.TODO()
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, 2*time.Second)
-	defer cancel()
-	_, err = cache.NewKubeCoreCache(ctxWithTimeout, kubeClient)
-	if err != nil {
-		return nil, err
-	}
-	kubeCache, _ := cache.NewKubeCoreCache(ctx, kubeClient)
-	nsClient := namespace.NewNamespaceClient(kubeClient, kubeCache)
-
-	return nsClient.List(clients.ListOpts{})
+	return namespaces.NewKubeNamespaceClient(context.TODO()).List(clients.ListOpts{})
 }
 
 // GetNamespacesToWatch returns the list of namespaces to watch based on the last run of `GenerateNamespacesToWatch`
