@@ -58,3 +58,15 @@ func buildListOptions(expressionSelector string, selector map[string]string) met
 		LabelSelector: sel.String(),
 	}
 }
+
+func buildSelector(selector map[string]string) (labels.Selector, error) {
+	epSelector := labels.NewSelector()
+	for k, v := range selector {
+		req, err := labels.NewRequirement(k, selection.Equals, []string{v})
+		if err != nil {
+			return nil, err
+		}
+		epSelector = epSelector.Add(*req)
+	}
+	return epSelector, nil
+}

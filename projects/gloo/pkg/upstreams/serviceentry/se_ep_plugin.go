@@ -1,198 +1,184 @@
 package serviceentry
 
 import (
-	"context"
-	"strings"
+	"net"
+	"strconv"
 
-	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/projects/gloo/pkg/discovery"
-	"github.com/solo-io/go-utils/contextutils"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/apimachinery/pkg/types"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	networkingclient "istio.io/client-go/pkg/apis/networking/v1beta1"
+	"istio.io/istio/pkg/config/schema/gvr"
+	kubeclient "istio.io/istio/pkg/kube"
+	"istio.io/istio/pkg/kube/kclient"
+	"istio.io/istio/pkg/kube/krt"
+	"istio.io/istio/pkg/kube/kubetypes"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ discovery.DiscoveryPlugin = &sePlugin{}
 
-// TODO informers
-// type seNsInformer struct {
-// 	serviceEntryInformer cache.SharedIndexInformer
-// 	podInformer          cache.SharedIndexInformer
-//  // TODO workloadentry
-// }
-//
-// type seInformers struct {
-// 	perNamespace map[string]seNsInformer
-// }
-
-func (s *sePlugin) listEndpoints(
-	ctx context.Context,
+func buildPodEndpoint(
+	se *networkingclient.ServiceEntry,
+	pod *corev1.Pod,
 	writeNamespace string,
-	listOpts metav1.ListOptions,
-	watchNamespaces []string,
-	upstreams v1.UpstreamList,
-) (v1.EndpointList, error) {
-	serviceEntries := make(map[string][]*networkingclient.ServiceEntry, len(watchNamespaces))
-	pods := make(map[string][]corev1.Pod, len(watchNamespaces))
-	for _, ns := range watchNamespaces {
-		seList, _ := s.istio.NetworkingV1beta1().ServiceEntries(ns).List(ctx, listOpts)
-		for _, se := range seList.Items {
-			serviceEntries[se.Namespace] = append(serviceEntries[se.Namespace], se)
-		}
-		podList, _ := s.kube.CoreV1().Pods(ns).List(ctx, listOpts)
-		for _, pod := range podList.Items {
-			pods[pod.Namespace] = append(pods[pod.Namespace], pod)
-		}
-	}
-
-	var out v1.EndpointList
-	for _, us := range upstreams {
-		kubeUs := us.GetKube()
-		if kubeUs == nil {
-			// we pre-filtered, this should never happen
-			contextutils.LoggerFrom(ctx).DPanicw(
-				"upstream was not kube",
-				"namespace", us.GetMetadata().GetNamespace(),
-				"name", us.GetMetadata().GetName(),
-			)
-			continue
-		}
-		if !strings.HasPrefix(us.GetMetadata().Name, UpstreamNamePrefix) {
-			continue
-		}
-		var upstreamServiceEntry *networkingclient.ServiceEntry
-		for _, se := range serviceEntries[us.GetMetadata().GetNamespace()] {
-			if se.Name == kubeUs.ServiceName && se.Namespace == kubeUs.ServiceNamespace {
-				upstreamServiceEntry = se
-				break
-			}
-		}
-		if upstreamServiceEntry == nil {
-			contextutils.LoggerFrom(ctx).Warn("could not find the associated service entry for this upstream")
-			continue
-		}
-		for _, p := range pods[us.GetMetadata().Namespace] {
-			selector := labels.Set(kubeUs.Selector).AsSelector()
-			if !selector.Matches(labels.Set(p.Labels)) {
-				continue
-			}
-			out = append(out, buildPodEndpoint(us, upstreamServiceEntry, p))
-		}
-		// TODO workloadentry
-	}
-	return out, nil
-}
-
-func buildPodEndpoint(us *v1.Upstream, se *networkingclient.ServiceEntry, pod corev1.Pod) *v1.Endpoint {
-	port := us.GetKube().GetServicePort()
-	for _, p := range se.Spec.GetPorts() {
-		if p.GetTargetPort() != 0 && p.GetNumber() == us.GetKube().GetServicePort() {
-			port = p.GetTargetPort()
-			break
-		}
-	}
+	port uint32,
+) *v1.Endpoint {
 	return &v1.Endpoint{
 		Metadata: &core.Metadata{
-			Name:        "istio-se-ep-" + se.Name + "-pod-" + pod.Name,
-			Namespace:   se.Namespace,
+			Name:        "istio-se-ep-" + se.Name + "-" + se.Namespace + "-pod-" + pod.Name,
+			Namespace:   writeNamespace,
 			Labels:      pod.Labels,
 			Annotations: pod.Annotations,
 		},
-		Upstreams: []*core.ResourceRef{{
-			// TODO re-use the same endpoint selected by multiple upstreams
-			Name:      us.GetMetadata().GetName(),
-			Namespace: us.GetMetadata().GetNamespace(),
-		}},
 		Address: pod.Status.PodIP,
 		Port:    port,
 		// Hostname:    "",
 	}
 }
 
-func (s *sePlugin) WatchEndpoints(writeNamespace string, upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
-	watchNamespaces := s.getWatchNamespaces(upstreamsToTrack)
-	watchNamespacesSet := sets.NewString(watchNamespaces...)
-	// kubeUpstreams := filterMap(upstreamsToTrack, func(e *v1.Upstream) *kubernetes.UpstreamSpec {
-	// 	return e.GetKube()
-	// })
+// wrap endpoint with the referencing serviceentry
+type seEndpoint struct {
+	seKey types.NamespacedName
+	v1.Endpoint
+}
 
-	// setup watches
-	listOpts := buildListOptions(opts.ExpressionSelector, opts.Selector)
-	podWatch, err := s.kube.CoreV1().Pods(metav1.NamespaceAll).Watch(opts.Ctx, listOpts)
-	if err != nil {
-		return nil, nil, err
-	}
-	seWatch, err := s.istio.NetworkingV1beta1().ServiceEntries(metav1.NamespaceAll).Watch(opts.Ctx, listOpts)
-	if err != nil {
-		return nil, nil, err
-	}
+func (s *sePlugin) WatchEndpoints(
+	writeNamespace string,
+	upstreamsToTrack v1.UpstreamList,
+	opts clients.WatchOpts,
+) (<-chan v1.EndpointList, <-chan error, error) {
+	defaultFilter := kclient.Filter{ObjectFilter: s.client.ObjectFilter()}
+
+	// watch service entries everywhere, they're referenced by global hostnames
+	serviceEntries := kclient.NewDelayedInformer[*networkingclient.ServiceEntry](s.client,
+		gvr.ServiceEntry, kubetypes.StandardInformer, defaultFilter)
+	ServiceEntries := krt.WrapClient[*networkingclient.ServiceEntry](serviceEntries, krt.WithName("ServiceEntries"))
+	seNsIndex := krt.NewNamespaceIndex(ServiceEntries)
+
+	se := networkingclient.ServiceEntry{}
+	se.Spec.GetWorkloadSelector().GetLabels()
+
 	// TODO workloadentry
 
 	endpointsChan := make(chan v1.EndpointList)
 	errs := make(chan error)
 
-	// TODO TODO use informers + listers instead of watch
-	// serviceEntry := serviceEntryInformer(s.istio, metav1.NamespaceAll)
-	// Pods := serviceEntryInformer(s.istio, metav1.NamespaceAll)
-	// updates := make(chan struct{})
-	// if err := watchInformers(updates, opts.Ctx.Done()); err != nil {
-	// 	return nil, nil, err
-	// }
-
-	updateResourceList := func() {
-		list, err := s.listEndpoints(opts.Ctx, writeNamespace, listOpts, watchNamespaces, upstreamsToTrack)
-		if err != nil {
-			errs <- err
-			return
+	// index the static upstreams by host:port
+	Upstreams := krt.NewStaticCollection(upstreamsToTrack)
+	staticMeshUpstreams := krt.NewIndex(Upstreams, func(us *v1.Upstream) []string {
+		if !us.GetStatic().GetIsMesh() {
+			return nil
 		}
-		select {
-		case <-opts.Ctx.Done():
-			return
-		case endpointsChan <- list:
+		var hostPorts []string
+		for _, h := range us.GetStatic().GetHosts() {
+			hostPorts = append(hostPorts, net.JoinHostPort(h.GetAddr(), strconv.Itoa(int(h.GetPort()))))
 		}
-	}
+		return hostPorts
+	})
 
-	go func() {
-		defer seWatch.Stop()
-		defer podWatch.Stop()
-		defer close(endpointsChan)
-		defer close(errs)
+	// We generate an Endpoint for each port of a ServiceEntry that selects this pod,
+	// when that port is referenced from an Upstream.
+	// We can't filter Pod watch by namespace, we're doing a hostname lookup and we don't know
+	// which namespaces the ServiceEntries are in, and therefore the namespaces that they're doing selection on.
+	Pods := krt.NewInformerFiltered[*corev1.Pod](s.client, kclient.Filter{
+		ObjectTransform: kubeclient.StripPodUnusedFields,
+	}, krt.WithName("Pods"))
+	podEndpoints := krt.NewManyCollection[*corev1.Pod, *v1.Endpoint](Pods, podEndpoints(
+		writeNamespace,
+		ServiceEntries, seNsIndex,
+		Upstreams, staticMeshUpstreams,
+	))
 
-		updateResourceList()
-		for {
-			select {
-			case ev, ok := <-seWatch.ResultChan():
-				if !ok {
-					return
-				}
-				if !watchNamespacesSet.Has(getNamespace(ev.Object)) {
-					continue
-				}
-				updateResourceList()
-			case ev, ok := <-podWatch.ResultChan():
-				if !ok {
-					return
-				}
-				if !watchNamespacesSet.Has(getNamespace(ev.Object)) {
-					continue
-				}
-				updateResourceList()
-			case <-opts.Ctx.Done():
-				return
-			}
-		}
-	}()
+	// TODO endpoints from service
+	// weEndpoints := krt.NewManyCollection[*networkingclient.WorkloadEntry, *v1.Endpoint](WorkloadEntries, weEndpoints(
+	// 	...
+	// ))
+	// TODO inline endpoints from serviceentry
+	// seEndpoints := krt.NewManyCollection[*networkingclient.ServiceEntry, *v1.Endpoint](ServiceEntries, weEndpoints(
+	// 	...
+	// ))
+
+	// TODO also handle Upstream_Kube for Waypoint usecase:
+	// * ServiceEntry will gen Upstream_Kube so users can use it just like in Istio
+	// * We also need to allow Service selects WorkloadEntry for Istio parity
+
+	podEndpoints.RegisterBatch(func(_ []krt.Event[*v1.Endpoint], _ bool) {
+		endpointsChan <- podEndpoints.List()
+	}, true)
 
 	return endpointsChan, errs, nil
+}
+
+func podEndpoints(
+	writeNamespace string,
+	ServiceEntries krt.Collection[*networkingclient.ServiceEntry],
+	seNsIndex krt.Index[string, *networkingclient.ServiceEntry],
+	Upstreams krt.Collection[*v1.Upstream],
+	staticMeshUpstreams krt.Index[string, *v1.Upstream],
+) func(krt.HandlerContext, *corev1.Pod) []*v1.Endpoint {
+	return func(ctx krt.HandlerContext, pod *corev1.Pod) []*v1.Endpoint {
+		// find all the ServiceEntries that select us
+		selectedBy := krt.Fetch(ctx, ServiceEntries, krt.FilterIndex(seNsIndex, pod.Namespace), krt.FilterSelectsNonEmpty(pod.GetLabels()))
+		if len(selectedBy) == 0 {
+			return nil
+		}
+
+		// only need to generate once for each target port
+		outByPort := map[uint32]*v1.Endpoint{}
+
+		seenUs := map[string]*v1.Endpoint{}
+		for _, se := range selectedBy {
+			for _, h := range se.Spec.Hosts {
+				for _, p := range se.Spec.Ports {
+					// find the upstreams that have a reference to this hostname/port
+					hostPort := net.JoinHostPort(h, strconv.Itoa(int(p.Number)))
+					upstreamsWithRef := krt.Fetch(ctx, Upstreams, krt.FilterIndex(staticMeshUpstreams, hostPort))
+					if upstreamsWithRef == nil {
+						// TODO also handle Upstream_Kube for Waypoint usecase:
+						// * ServiceEntry will gen Upstream_Kube so users can use it just like in Istio
+						continue
+					}
+
+					// init an endpoint instance for this port if necessary
+					port := p.GetNumber()
+					if tp := p.GetTargetPort(); tp > 0 {
+						port = tp
+					}
+					out := outByPort[port]
+					if out == nil {
+						out = buildPodEndpoint(se, pod, writeNamespace, port)
+						outByPort[port] = out
+					}
+
+					// add the Endpoint ResourceRefs to the Upstreams that reference the ServiceEntry
+					for _, us := range upstreamsWithRef {
+						// we only want to reference each upstream once for each port
+						k := us.GetMetadata().GetName() + "~" + us.GetMetadata().GetNamespace() + "~" + strconv.Itoa(int(p.Number))
+						if _, ok := seenUs[k]; ok {
+							continue
+						}
+						out.Upstreams = append(out.Upstreams, &core.ResourceRef{
+							Name:      us.GetMetadata().GetName(),
+							Namespace: us.GetMetadata().GetNamespace(),
+						})
+					}
+				}
+			}
+		}
+
+		var out []*v1.Endpoint
+		for _, ep := range outByPort {
+			out = append(out, ep)
+		}
+		return out
+	}
 }
 
 func getNamespace(obj runtime.Object) string {
@@ -201,35 +187,6 @@ func getNamespace(obj runtime.Object) string {
 		return ""
 	}
 	return metaObj.GetNamespace()
-}
-
-func (s *sePlugin) getWatchNamespaces(upstreamsToTrack v1.UpstreamList) []string {
-	var namespaces []string
-	if settingsutil.IsAllNamespacesFromSettings(s.settings) {
-		namespaces = []string{metav1.NamespaceAll}
-	} else {
-		nsSet := map[string]bool{}
-		for _, upstream := range upstreamsToTrack {
-			svcNs := upstream.GetKube().GetServiceNamespace()
-			// only care about kube upstreams
-			if svcNs == "" {
-				continue
-			}
-			nsSet[svcNs] = true
-		}
-		for ns := range nsSet {
-			namespaces = append(namespaces, ns)
-		}
-	}
-
-	// If there are no upstreams to watch (eg: if discovery is disabled), namespaces remains an empty list.
-	// When creating the InformerFactory, by convention, an empty namespace list means watch all namespaces.
-	// To ensure that we only watch what we are supposed to, fallback to WatchNamespaces if namespaces is an empty list.
-	if len(namespaces) == 0 {
-		namespaces = s.settings.GetWatchNamespaces()
-	}
-
-	return namespaces
 }
 
 // satisfy interface but don't implement; only implement hybrid client for ServiceEntry Upstreams.

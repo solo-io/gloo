@@ -28,7 +28,7 @@ const UpstreamNamePrefix = "istio-se:"
 var _ upstreams.ClientPlugin = &sePlugin{}
 
 func (s *sePlugin) Client() v1.UpstreamClient {
-	return NewServiceEntryUpstreamClient(s.istio)
+	return NewServiceEntryUpstreamClient(s.client.Istio())
 }
 
 func (s *sePlugin) SourceName() string {

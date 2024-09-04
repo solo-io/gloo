@@ -5,43 +5,39 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	corecache "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 
-	istioclient "istio.io/client-go/pkg/clientset/versioned"
-	"k8s.io/client-go/kubernetes"
+	kubeclient "istio.io/istio/pkg/kube"
 )
 
 const PluginName = "ServiceEntryDiscoveryPlugin"
 
 // TODO this is both a upstreams.ClientPlugin and  DiscoveryPlugin. split?
 type sePlugin struct {
-	istio istioclient.Interface
-
-	kube          kubernetes.Interface
-	kubeCoreCache corecache.KubeCoreCache
+	client kubeclient.Client
 
 	settings *v1.Settings
 }
 
-func NewPlugin(kube kubernetes.Interface, kubeCoreCache corecache.KubeCoreCache) plugins.Plugin {
+func NewPlugin() plugins.Plugin {
 	return &sePlugin{
-		istio:         mustBuildIstioClient(),
-		kube:          kube,
-		kubeCoreCache: kubeCoreCache,
+		// TODO build client using shared rest config
+		client: mustBuildIstioClient(),
 	}
 }
 
-func mustBuildIstioClient() istioclient.Interface {
-	cfg, err := kubeutils.GetRestConfigWithKubeContext("")
+// TODO share rest cfg setup with the rest of the app
+// TODO move this init somewhere we can handle the err
+func mustBuildIstioClient() kubeclient.Client {
+	restCfg, err := kubeutils.GetRestConfigWithKubeContext("")
+	if err != nil {
+		panic(err)
+	}
+	client, err := kubeclient.NewClient(kubeclient.NewClientConfigForRestConfig(restCfg), "")
 	if err != nil {
 		// TODO move this init somewhere we can handle the err
 		panic(err)
 	}
-	client, err := istioclient.NewForConfig(cfg)
-	if err != nil {
-		// TODO move this init somewhere we can handle the err
-		panic(err)
-	}
+
 	return client
 }
 
