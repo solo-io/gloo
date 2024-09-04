@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/namespaces"
 
@@ -17,11 +18,13 @@ import (
 	kube2 "github.com/solo-io/gloo/pkg/bootstrap/leaderelector/kube"
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector/singlereplica"
 	"github.com/solo-io/gloo/pkg/version"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -86,7 +89,12 @@ func Main(opts SetupOpts) error {
 		return err
 	}
 
-	nsClient := namespaces.NewKubeNamespaceClient(ctx)
+	var nsClient kubernetes.KubeNamespaceClient
+	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
+		nsClient = &namespaces.FakeKubeNamespaceWatcher{}
+	} else {
+		nsClient = namespaces.NewKubeNamespaceClient(ctx)
+	}
 	fmt.Println("---------------------------- ", reflect.TypeOf(nsClient))
 
 	// settings come from the ResourceClient in the settingsClient
