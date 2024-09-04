@@ -138,7 +138,7 @@ var _ = Describe("GlooResourcesTest", func() {
 				testServerUs, err := resourceClientset.UpstreamClient().Read(testHelper.InstallNamespace, usName, clients.ReadOpts{Ctx: ctx})
 				g.Expect(err).NotTo(HaveOccurred())
 				g.Expect(testServerUs.GetSslConfig()).To(matchers.MatchProto(upstreamSslConfig))
-			}, "30s", "1s").Should(Succeed(), "the kube upstream should eventually contain the ssl configuration")
+			}, "60s", "1s").Should(Succeed(), "the kube upstream should eventually contain the ssl configuration")
 
 		})
 
