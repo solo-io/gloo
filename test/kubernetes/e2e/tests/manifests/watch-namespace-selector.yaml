@@ -4,3 +4,10 @@ discovery:
 global:
   glooRbac:
     namespaced: false
+
+gateway:
+  validation:
+    enabled: true
+    failurePolicy: "Fail"
+    alwaysAcceptResources: false
+    allowWarnings: false

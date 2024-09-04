@@ -19,8 +19,10 @@ var (
 	matchExpressionsSetup = filepath.Join(util.MustGetThisDir(), "testdata", "match-expressions.yaml")
 
 	unlabeledRandomNamespaceManifest = filepath.Join(util.MustGetThisDir(), "testdata", "random-ns-unlabeled.yaml")
-	labeledRandomNamespaceManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "random-ns-labeled.yaml")
 	randomVSManifest                 = filepath.Join(util.MustGetThisDir(), "testdata", "vs-random.yaml")
+
+	randomUpstreamManifest                       = filepath.Join(util.MustGetThisDir(), "testdata", "upstream-random.yaml")
+	installNamespaceWithRandomUpstreamVSManifest = filepath.Join(util.MustGetThisDir(), "testdata", "vs-upstream.yaml")
 
 	randomNamespaceVS = &gatewayv1.VirtualService{
 		ObjectMeta: metav1.ObjectMeta{
@@ -46,6 +48,16 @@ var (
 				UpgradeValues: matchExpressionsSetup,
 				Manifests:     []string{unlabeledRandomNamespaceManifest, randomVSManifest},
 				Resources:     []client.Object{randomNamespaceVS},
+			},
+		},
+		"TestUnwatchedNamespaceValidation": {
+			SimpleTestCase: base.SimpleTestCase{
+				UpgradeValues: matchLabelsSetup,
+			},
+		},
+		"TestWatchedNamespaceValidation": {
+			SimpleTestCase: base.SimpleTestCase{
+				UpgradeValues: matchExpressionsSetup,
 			},
 		},
 	}

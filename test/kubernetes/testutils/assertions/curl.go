@@ -218,10 +218,19 @@ func generateCurlOpts(ctx context.Context, host string) []curl.Option {
 		curlOpts = append(curlOpts, curl.WithBasicAuth(auth[0], auth[1]))
 	}
 
-	return append(curlOpts,
-		curl.WithHostHeader(host),
-		curl.WithPath(path),
-	)
+	if host != "" {
+		curlOpts = append(curlOpts,
+			curl.WithHostHeader(host),
+		)
+	}
+
+	if path != "" {
+		curlOpts = append(curlOpts,
+			curl.WithPath(path),
+		)
+	}
+
+	return curlOpts
 }
 
 func generateCurlOptsWithHeaders(ctx context.Context, host string, headers map[string]string) []curl.Option {

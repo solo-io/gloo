@@ -3,6 +3,7 @@ package watch_namespace_selector
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -26,16 +27,22 @@ func (s *testingSuite) SetupSuite() {
 	s.BaseTestingSuite.SetupSuite()
 
 	// Apply a VS in the install namespace
-	err := s.TestHelper.ApplyFile(s.Ctx, installNamespaceVSManifest, "-n", s.TestHelper.InstallNamespace)
-	s.NoError(err)
+	s.applyFile(installNamespaceVSManifest, "-n", s.TestHelper.InstallNamespace)
 }
 
 func (s *testingSuite) TearDownSuite() {
 	// Delete VS in the install namespace
-	err := s.TestHelper.DeleteFile(s.Ctx, installNamespaceVSManifest, "-n", s.TestHelper.InstallNamespace)
-	s.NoError(err)
+	s.deleteFile(installNamespaceVSManifest, "-n", s.TestHelper.InstallNamespace)
 
 	s.BaseTestingSuite.TearDownSuite()
+}
+
+func (s *testingSuite) TestMatchLabels() {
+	s.testWatchNamespaceSelector()
+}
+
+func (s *testingSuite) TestMatchExpressions() {
+	s.testWatchNamespaceSelector()
 }
 
 func (s *testingSuite) testWatchNamespaceSelector() {
@@ -45,18 +52,113 @@ func (s *testingSuite) testWatchNamespaceSelector() {
 	// Ensure CRs defined in non watched-namespaces are not translated
 	s.TestInstallation.Assertions.CurlConsistentlyRespondsWithStatus(s.Ctx, "random/", http.StatusNotFound)
 
-	// Label the `random` namespace
-	err := s.TestHelper.ApplyFile(s.Ctx, labeledRandomNamespaceManifest)
-	s.NoError(err)
+	s.watchNamespace()
 
 	// The VS defined in the random namespace should be translated
 	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, "random/", http.StatusOK)
 }
 
-func (s *testingSuite) TestMatchLabels() {
-	s.testWatchNamespaceSelector()
+func (s *testingSuite) TestUnwatchedNamespaceValidation() {
+	s.applyFile(unlabeledRandomNamespaceManifest)
+	s.applyFile(randomUpstreamManifest)
+
+	// It should successfully apply irrelevant labels to a ns without validation errors
+	s.labelNamespace()
+	s.unlabelNamespace()
+
+	// Deleting resources in the namespace and the namespace itself should not error out
+	s.deleteFile(randomUpstreamManifest)
+	s.deleteFile(unlabeledRandomNamespaceManifest)
 }
 
-func (s *testingSuite) TestMatchExpressions() {
-	s.testWatchNamespaceSelector()
+func (s *testingSuite) TestWatchedNamespaceValidation() {
+	s.applyFile(unlabeledRandomNamespaceManifest)
+	s.applyFile(randomUpstreamManifest)
+
+	s.watchNamespace()
+
+	// It should successfully apply irrelevant labels to a ns we watch without validation errors
+	s.labelNamespace()
+	s.unlabelNamespace()
+
+	s.Eventually(func() bool {
+		err := s.TestHelper.ApplyFile(s.Ctx, installNamespaceWithRandomUpstreamVSManifest, "-n", s.TestHelper.InstallNamespace)
+		return err == nil
+	}, time.Minute*2, time.Second*10)
+
+	// The upstream defined in the random namespace should be translated and referenced
+	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, "/get", http.StatusOK)
+
+	// Trying to unwatch the namespace that has an upstream referenced in another namespace leads to an error
+	_, errOut, err := s.TestHelper.Execute(s.Ctx, "label", "ns", "random", "watch-")
+
+	s.Contains(errOut, `admission webhook "gloo.namespace-selector.svc" denied the request: resource incompatible with current Gloo snapshot`)
+	s.Contains(errOut, `Route Warning: InvalidDestinationWarning. Reason: *v1.Upstream { random.postman-echo } not found`)
+	s.Error(err)
+
+	// Trying to delete the namespace also errors out
+	_, errOut, err = s.TestHelper.Execute(s.Ctx, "delete", "ns", "random")
+	s.Contains(errOut, `admission webhook "gloo.namespace-selector.svc" denied the request: resource incompatible with current Gloo snapshot`)
+	s.Contains(errOut, `Route Warning: InvalidDestinationWarning. Reason: *v1.Upstream { random.postman-echo } not found`)
+	s.Error(err)
+
+	// Ensure we didn't break the validation server while we're at it
+	s.labelNamespace()
+	s.unlabelNamespace()
+
+	s.deleteFile(installNamespaceWithRandomUpstreamVSManifest, "-n", s.TestHelper.InstallNamespace)
+
+	s.unwatchNamespace()
+
+	// The upstream defined in the random namespace should be translated and referenced
+	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, "/get", http.StatusNotFound)
+
+	// Optimists invent airplanes; pessimists invent parachutes
+	s.labelNamespace()
+	s.unlabelNamespace()
+
+	s.deleteFile(randomUpstreamManifest)
+	s.deleteFile(unlabeledRandomNamespaceManifest)
+}
+
+func (s *testingSuite) watchNamespace() {
+	// Label the `random` namespace with the watchNamespaceSelector labels
+	// kubectl label ns random watch=this
+	out, _, err := s.TestHelper.Execute(s.Ctx, "label", "ns", "random", "watch=this")
+	s.Assertions.Contains(out, "namespace/random labeled")
+	s.NoError(err)
+}
+
+func (s *testingSuite) unwatchNamespace() {
+	// Label the `random` namespace with the watchNamespaceSelector labels
+	// kubectl label ns random watch-
+	out, _, err := s.TestHelper.Execute(s.Ctx, "label", "ns", "random", "watch-")
+	s.Assertions.Contains(out, "namespace/random unlabeled")
+	s.NoError(err)
+}
+
+func (s *testingSuite) labelNamespace() {
+	// label the `random` namespace
+	// kubectl label ns random irrelevant=label
+	out, _, err := s.TestHelper.Execute(s.Ctx, "label", "ns", "random", "irrelevant=label")
+	s.Assertions.Contains(out, "namespace/random labeled")
+	s.NoError(err)
+}
+
+func (s *testingSuite) unlabelNamespace() {
+	// unlabel the `random` namespace
+	// kubectl label ns random irrelevant-
+	out, _, err := s.TestHelper.Execute(s.Ctx, "label", "ns", "random", "irrelevant-")
+	s.Assertions.Contains(out, "namespace/random unlabeled")
+	s.NoError(err)
+}
+
+func (s *testingSuite) applyFile(filename string, extraArgs ...string) {
+	err := s.TestHelper.ApplyFile(s.Ctx, filename, extraArgs...)
+	s.NoError(err)
+}
+
+func (s *testingSuite) deleteFile(filename string, extraArgs ...string) {
+	err := s.TestHelper.DeleteFile(s.Ctx, filename, extraArgs...)
+	s.NoError(err)
 }
