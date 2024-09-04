@@ -141,6 +141,9 @@ func (el *setupEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-ch
 					channelClosed = true
 					close(el.ready)
 				}
+
+				previousSnapshot = snapshot
+
 			case <-opts.Ctx.Done():
 				return
 			}
