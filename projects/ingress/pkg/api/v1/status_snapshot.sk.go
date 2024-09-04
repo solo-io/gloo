@@ -105,22 +105,21 @@ func (s *StatusSnapshot) RemoveFromResourceList(resource resources.Resource) err
 	}
 }
 
-func (s *StatusSnapshot) RemoveAllResourcesInNamespace(namespace string) error {
-
-	for i, res := range s.Services {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Services = append(s.Services[:i], s.Services[i+1:]...)
-			break
+func (s *StatusSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var Services KubeServiceList
+	for _, res := range s.Services {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Services = append(Services, res)
 		}
 	}
-
-	for i, res := range s.Ingresses {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Ingresses = append(s.Ingresses[:i], s.Ingresses[i+1:]...)
-			break
+	s.Services = Services
+	var Ingresses IngressList
+	for _, res := range s.Ingresses {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Ingresses = append(Ingresses, res)
 		}
 	}
-	return nil
+	s.Ingresses = Ingresses
 }
 
 func (s *StatusSnapshot) UpsertToResourceList(resource resources.Resource) error {

@@ -469,120 +469,119 @@ func (s *ApiSnapshot) RemoveFromResourceList(resource resources.Resource) error 
 	}
 }
 
-func (s *ApiSnapshot) RemoveAllResourcesInNamespace(namespace string) error {
-
-	for i, res := range s.Artifacts {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Artifacts = append(s.Artifacts[:i], s.Artifacts[i+1:]...)
-			break
+func (s *ApiSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var Artifacts gloo_solo_io.ArtifactList
+	for _, res := range s.Artifacts {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Artifacts = append(Artifacts, res)
 		}
 	}
-
-	for i, res := range s.Endpoints {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Endpoints = append(s.Endpoints[:i], s.Endpoints[i+1:]...)
-			break
+	s.Artifacts = Artifacts
+	var Endpoints gloo_solo_io.EndpointList
+	for _, res := range s.Endpoints {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Endpoints = append(Endpoints, res)
 		}
 	}
-
-	for i, res := range s.Proxies {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Proxies = append(s.Proxies[:i], s.Proxies[i+1:]...)
-			break
+	s.Endpoints = Endpoints
+	var Proxies gloo_solo_io.ProxyList
+	for _, res := range s.Proxies {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Proxies = append(Proxies, res)
 		}
 	}
-
-	for i, res := range s.UpstreamGroups {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.UpstreamGroups = append(s.UpstreamGroups[:i], s.UpstreamGroups[i+1:]...)
-			break
+	s.Proxies = Proxies
+	var UpstreamGroups gloo_solo_io.UpstreamGroupList
+	for _, res := range s.UpstreamGroups {
+		if namespace != res.GetMetadata().GetNamespace() {
+			UpstreamGroups = append(UpstreamGroups, res)
 		}
 	}
-
-	for i, res := range s.Secrets {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Secrets = append(s.Secrets[:i], s.Secrets[i+1:]...)
-			break
+	s.UpstreamGroups = UpstreamGroups
+	var Secrets gloo_solo_io.SecretList
+	for _, res := range s.Secrets {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Secrets = append(Secrets, res)
 		}
 	}
-
-	for i, res := range s.Upstreams {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Upstreams = append(s.Upstreams[:i], s.Upstreams[i+1:]...)
-			break
+	s.Secrets = Secrets
+	var Upstreams gloo_solo_io.UpstreamList
+	for _, res := range s.Upstreams {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Upstreams = append(Upstreams, res)
 		}
 	}
-
-	for i, res := range s.AuthConfigs {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.AuthConfigs = append(s.AuthConfigs[:i], s.AuthConfigs[i+1:]...)
-			break
+	s.Upstreams = Upstreams
+	var AuthConfigs enterprise_gloo_solo_io.AuthConfigList
+	for _, res := range s.AuthConfigs {
+		if namespace != res.GetMetadata().GetNamespace() {
+			AuthConfigs = append(AuthConfigs, res)
 		}
 	}
-
-	for i, res := range s.Ratelimitconfigs {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Ratelimitconfigs = append(s.Ratelimitconfigs[:i], s.Ratelimitconfigs[i+1:]...)
-			break
+	s.AuthConfigs = AuthConfigs
+	var Ratelimitconfigs github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigList
+	for _, res := range s.Ratelimitconfigs {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Ratelimitconfigs = append(Ratelimitconfigs, res)
 		}
 	}
-
-	for i, res := range s.VirtualServices {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.VirtualServices = append(s.VirtualServices[:i], s.VirtualServices[i+1:]...)
-			break
+	s.Ratelimitconfigs = Ratelimitconfigs
+	var VirtualServices gateway_solo_io.VirtualServiceList
+	for _, res := range s.VirtualServices {
+		if namespace != res.GetMetadata().GetNamespace() {
+			VirtualServices = append(VirtualServices, res)
 		}
 	}
-
-	for i, res := range s.RouteTables {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.RouteTables = append(s.RouteTables[:i], s.RouteTables[i+1:]...)
-			break
+	s.VirtualServices = VirtualServices
+	var RouteTables gateway_solo_io.RouteTableList
+	for _, res := range s.RouteTables {
+		if namespace != res.GetMetadata().GetNamespace() {
+			RouteTables = append(RouteTables, res)
 		}
 	}
-
-	for i, res := range s.Gateways {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Gateways = append(s.Gateways[:i], s.Gateways[i+1:]...)
-			break
+	s.RouteTables = RouteTables
+	var Gateways gateway_solo_io.GatewayList
+	for _, res := range s.Gateways {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Gateways = append(Gateways, res)
 		}
 	}
-
-	for i, res := range s.VirtualHostOptions {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.VirtualHostOptions = append(s.VirtualHostOptions[:i], s.VirtualHostOptions[i+1:]...)
-			break
+	s.Gateways = Gateways
+	var VirtualHostOptions gateway_solo_io.VirtualHostOptionList
+	for _, res := range s.VirtualHostOptions {
+		if namespace != res.GetMetadata().GetNamespace() {
+			VirtualHostOptions = append(VirtualHostOptions, res)
 		}
 	}
-
-	for i, res := range s.RouteOptions {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.RouteOptions = append(s.RouteOptions[:i], s.RouteOptions[i+1:]...)
-			break
+	s.VirtualHostOptions = VirtualHostOptions
+	var RouteOptions gateway_solo_io.RouteOptionList
+	for _, res := range s.RouteOptions {
+		if namespace != res.GetMetadata().GetNamespace() {
+			RouteOptions = append(RouteOptions, res)
 		}
 	}
-
-	for i, res := range s.HttpGateways {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.HttpGateways = append(s.HttpGateways[:i], s.HttpGateways[i+1:]...)
-			break
+	s.RouteOptions = RouteOptions
+	var HttpGateways gateway_solo_io.MatchableHttpGatewayList
+	for _, res := range s.HttpGateways {
+		if namespace != res.GetMetadata().GetNamespace() {
+			HttpGateways = append(HttpGateways, res)
 		}
 	}
-
-	for i, res := range s.TcpGateways {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.TcpGateways = append(s.TcpGateways[:i], s.TcpGateways[i+1:]...)
-			break
+	s.HttpGateways = HttpGateways
+	var TcpGateways gateway_solo_io.MatchableTcpGatewayList
+	for _, res := range s.TcpGateways {
+		if namespace != res.GetMetadata().GetNamespace() {
+			TcpGateways = append(TcpGateways, res)
 		}
 	}
-
-	for i, res := range s.GraphqlApis {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.GraphqlApis = append(s.GraphqlApis[:i], s.GraphqlApis[i+1:]...)
-			break
+	s.TcpGateways = TcpGateways
+	var GraphqlApis graphql_gloo_solo_io.GraphQLApiList
+	for _, res := range s.GraphqlApis {
+		if namespace != res.GetMetadata().GetNamespace() {
+			GraphqlApis = append(GraphqlApis, res)
 		}
 	}
-	return nil
+	s.GraphqlApis = GraphqlApis
 }
 
 func (s *ApiSnapshot) UpsertToResourceList(resource resources.Resource) error {

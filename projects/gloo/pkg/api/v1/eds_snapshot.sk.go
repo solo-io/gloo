@@ -80,15 +80,14 @@ func (s *EdsSnapshot) RemoveFromResourceList(resource resources.Resource) error 
 	}
 }
 
-func (s *EdsSnapshot) RemoveAllResourcesInNamespace(namespace string) error {
-
-	for i, res := range s.Upstreams {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Upstreams = append(s.Upstreams[:i], s.Upstreams[i+1:]...)
-			break
+func (s *EdsSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var Upstreams UpstreamList
+	for _, res := range s.Upstreams {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Upstreams = append(Upstreams, res)
 		}
 	}
-	return nil
+	s.Upstreams = Upstreams
 }
 
 func (s *EdsSnapshot) UpsertToResourceList(resource resources.Resource) error {

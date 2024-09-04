@@ -132,29 +132,28 @@ func (s *TranslatorSnapshot) RemoveFromResourceList(resource resources.Resource)
 	}
 }
 
-func (s *TranslatorSnapshot) RemoveAllResourcesInNamespace(namespace string) error {
-
-	for i, res := range s.Upstreams {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Upstreams = append(s.Upstreams[:i], s.Upstreams[i+1:]...)
-			break
+func (s *TranslatorSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var Upstreams gloo_solo_io.UpstreamList
+	for _, res := range s.Upstreams {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Upstreams = append(Upstreams, res)
 		}
 	}
-
-	for i, res := range s.Services {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Services = append(s.Services[:i], s.Services[i+1:]...)
-			break
+	s.Upstreams = Upstreams
+	var Services KubeServiceList
+	for _, res := range s.Services {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Services = append(Services, res)
 		}
 	}
-
-	for i, res := range s.Ingresses {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Ingresses = append(s.Ingresses[:i], s.Ingresses[i+1:]...)
-			break
+	s.Services = Services
+	var Ingresses IngressList
+	for _, res := range s.Ingresses {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Ingresses = append(Ingresses, res)
 		}
 	}
-	return nil
+	s.Ingresses = Ingresses
 }
 
 func (s *TranslatorSnapshot) UpsertToResourceList(resource resources.Resource) error {

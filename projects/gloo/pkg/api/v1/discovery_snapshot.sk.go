@@ -132,29 +132,28 @@ func (s *DiscoverySnapshot) RemoveFromResourceList(resource resources.Resource) 
 	}
 }
 
-func (s *DiscoverySnapshot) RemoveAllResourcesInNamespace(namespace string) error {
-
-	for i, res := range s.Upstreams {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Upstreams = append(s.Upstreams[:i], s.Upstreams[i+1:]...)
-			break
+func (s *DiscoverySnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var Upstreams UpstreamList
+	for _, res := range s.Upstreams {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Upstreams = append(Upstreams, res)
 		}
 	}
-
-	for i, res := range s.Kubenamespaces {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Kubenamespaces = append(s.Kubenamespaces[:i], s.Kubenamespaces[i+1:]...)
-			break
+	s.Upstreams = Upstreams
+	var Kubenamespaces github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceList
+	for _, res := range s.Kubenamespaces {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Kubenamespaces = append(Kubenamespaces, res)
 		}
 	}
-
-	for i, res := range s.Secrets {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Secrets = append(s.Secrets[:i], s.Secrets[i+1:]...)
-			break
+	s.Kubenamespaces = Kubenamespaces
+	var Secrets SecretList
+	for _, res := range s.Secrets {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Secrets = append(Secrets, res)
 		}
 	}
-	return nil
+	s.Secrets = Secrets
 }
 
 func (s *DiscoverySnapshot) UpsertToResourceList(resource resources.Resource) error {

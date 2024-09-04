@@ -214,7 +214,8 @@ func HandleResourceDeletion(snapshot *v1snap.ApiSnapshot, resource resources.Res
 	if _, ok := resource.(*sk_kubernetes.KubeNamespace); ok {
 		fmt.Println("----------------------- RemoveAllResourcesInNamespace")
 		// Special case to handle namespace deletion
-		return snapshot.RemoveAllResourcesInNamespace(resource.GetMetadata().GetName())
+		snapshot.RemoveAllResourcesInNamespace(resource.GetMetadata().GetName())
+		return nil
 	} else {
 		fmt.Println("----------------------- RemoveFromResourceList 1")
 		return snapshot.RemoveFromResourceList(resource)

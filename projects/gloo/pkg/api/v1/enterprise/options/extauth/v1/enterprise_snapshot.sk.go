@@ -80,15 +80,14 @@ func (s *EnterpriseSnapshot) RemoveFromResourceList(resource resources.Resource)
 	}
 }
 
-func (s *EnterpriseSnapshot) RemoveAllResourcesInNamespace(namespace string) error {
-
-	for i, res := range s.AuthConfigs {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.AuthConfigs = append(s.AuthConfigs[:i], s.AuthConfigs[i+1:]...)
-			break
+func (s *EnterpriseSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var AuthConfigs AuthConfigList
+	for _, res := range s.AuthConfigs {
+		if namespace != res.GetMetadata().GetNamespace() {
+			AuthConfigs = append(AuthConfigs, res)
 		}
 	}
-	return nil
+	s.AuthConfigs = AuthConfigs
 }
 
 func (s *EnterpriseSnapshot) UpsertToResourceList(resource resources.Resource) error {

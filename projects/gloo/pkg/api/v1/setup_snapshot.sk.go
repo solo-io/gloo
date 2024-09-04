@@ -107,22 +107,21 @@ func (s *SetupSnapshot) RemoveFromResourceList(resource resources.Resource) erro
 	}
 }
 
-func (s *SetupSnapshot) RemoveAllResourcesInNamespace(namespace string) error {
-
-	for i, res := range s.Settings {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Settings = append(s.Settings[:i], s.Settings[i+1:]...)
-			break
+func (s *SetupSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var Settings SettingsList
+	for _, res := range s.Settings {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Settings = append(Settings, res)
 		}
 	}
-
-	for i, res := range s.Kubenamespaces {
-		if namespace == res.GetMetadata().GetNamespace() {
-			s.Kubenamespaces = append(s.Kubenamespaces[:i], s.Kubenamespaces[i+1:]...)
-			break
+	s.Settings = Settings
+	var Kubenamespaces github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceList
+	for _, res := range s.Kubenamespaces {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Kubenamespaces = append(Kubenamespaces, res)
 		}
 	}
-	return nil
+	s.Kubenamespaces = Kubenamespaces
 }
 
 func (s *SetupSnapshot) UpsertToResourceList(resource resources.Resource) error {
