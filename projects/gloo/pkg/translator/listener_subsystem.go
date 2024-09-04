@@ -23,15 +23,18 @@ import (
 type ListenerSubsystemTranslatorFactory struct {
 	pluginRegistry      plugins.PluginRegistry
 	sslConfigTranslator utils.SslConfigTranslator
+	settings            *v1.Settings
 }
 
 func NewListenerSubsystemTranslatorFactory(
 	pluginRegistry plugins.PluginRegistry,
 	sslConfigTranslator utils.SslConfigTranslator,
+	settings *v1.Settings,
 ) *ListenerSubsystemTranslatorFactory {
 	return &ListenerSubsystemTranslatorFactory{
 		pluginRegistry:      pluginRegistry,
 		sslConfigTranslator: sslConfigTranslator,
+		settings:            settings,
 	}
 }
 
@@ -92,6 +95,7 @@ func (l *ListenerSubsystemTranslatorFactory) GetHttpListenerTranslators(ctx cont
 		sslConfigurations:       listener.GetSslConfigurations(),
 		defaultSslConfig:        nil, // not available for HttpGateway, HybridGateway only feature
 		sourcePrefixRanges:      nil, // not available for HttpGateway, HybridGateway only feature
+		settings:                l.settings,
 	}
 
 	// This translator produces a single Listener
@@ -210,6 +214,7 @@ func (l *ListenerSubsystemTranslatorFactory) GetHybridListenerTranslators(ctx co
 				sslConfigurations:       matchedListener.GetSslConfigurations(),
 				defaultSslConfig:        matcher.GetSslConfig(),          // HybridGateway only feature
 				sourcePrefixRanges:      matcher.GetSourcePrefixRanges(), // HybridGateway only feature
+				settings:                l.settings,
 			}
 
 			// This translator produces a single RouteConfiguration
@@ -333,6 +338,7 @@ func (l *ListenerSubsystemTranslatorFactory) GetAggregateListenerTranslators(ctx
 			sslConfigurations:       []*ssl.SslConfig{httpFilterChain.GetMatcher().GetSslConfig()},
 			defaultSslConfig:        nil,
 			sourcePrefixRanges:      httpFilterChain.GetMatcher().GetSourcePrefixRanges(),
+			settings:                l.settings,
 		}
 
 		// This translator produces a single RouteConfiguration
