@@ -458,7 +458,7 @@ var _ = Describe("Bootstrap Clients", func() {
 				// specify a long enough interval for it to be accepted when the kube api server comes back up
 				helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 					return resourceClientset.VirtualServiceClient().Read(testHelper.InstallNamespace, testVS.Metadata.Name, skclients.ReadOpts{})
-				}, "600s", "10s")
+				}, "120s", "10s")
 				defer resourceClientset.VirtualServiceClient().Delete(testHelper.InstallNamespace, testVS.Metadata.Name, skclients.DeleteOpts{})
 
 				testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
@@ -470,7 +470,7 @@ var _ = Describe("Bootstrap Clients", func() {
 					Port:              gatewayPort,
 					ConnectionTimeout: 1,
 					WithoutStats:      true,
-				}, response, 1, 300*time.Second, 1*time.Second)
+				}, response, 1, 60*time.Second, 1*time.Second)
 			}
 		})
 
