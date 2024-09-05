@@ -298,8 +298,6 @@ func setRouteAction(
 	backendRefs := rule.BackendRefs
 	delegates := false
 
-	pluginRegistry.GetBackendRefPlugins()
-
 	for _, backendRef := range backendRefs {
 		// If the backend is an HTTPRoute, it implies route delegation
 		// for which delegated routes are recursively flattened and translated

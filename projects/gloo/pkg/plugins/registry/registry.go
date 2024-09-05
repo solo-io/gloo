@@ -111,11 +111,11 @@ func Plugins(opts bootstrap.Opts) []plugins.Plugin {
 		deprecated_cipher_passthrough.NewPlugin(),
 		local_ratelimit.NewPlugin(),
 		istio_automtls.NewPlugin(opts.GlooGateway.IstioValues.SidecarOnGatewayEnabled),
+		serviceentry.NewPlugin(),
 	)
 
 	if opts.KubeClient != nil {
 		glooPlugins = append(glooPlugins, kubernetes.NewPlugin(opts.KubeClient, opts.KubeCoreCache))
-		glooPlugins = append(glooPlugins, serviceentry.NewPlugin(opts.KubeClient, opts.KubeCoreCache))
 	}
 	if opts.Consul.ConsulWatcher != nil {
 		glooPlugins = append(glooPlugins, consul.NewPlugin(opts.Consul.ConsulWatcher, consul.NewConsulDnsResolver(opts.Consul.DnsServer), opts.Consul.DnsPollingInterval))
