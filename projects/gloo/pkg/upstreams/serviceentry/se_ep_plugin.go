@@ -10,10 +10,9 @@ import (
 	core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	networkingclient "istio.io/client-go/pkg/apis/networking/v1beta1"
+	networkingclient "istio.io/client-go/pkg/apis/networking/v1"
 	"istio.io/istio/pkg/config/schema/gvr"
 	kubeclient "istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/kube/kclient"
@@ -43,12 +42,6 @@ func buildPodEndpoint(
 	}
 }
 
-// wrap endpoint with the referencing serviceentry
-type seEndpoint struct {
-	seKey types.NamespacedName
-	v1.Endpoint
-}
-
 func (s *sePlugin) WatchEndpoints(
 	writeNamespace string,
 	upstreamsToTrack v1.UpstreamList,
@@ -59,7 +52,10 @@ func (s *sePlugin) WatchEndpoints(
 	// watch service entries everywhere, they're referenced by global hostnames
 	serviceEntries := kclient.NewDelayedInformer[*networkingclient.ServiceEntry](s.client,
 		gvr.ServiceEntry, kubetypes.StandardInformer, defaultFilter)
-	ServiceEntries := krt.WrapClient[*networkingclient.ServiceEntry](serviceEntries, krt.WithName("ServiceEntries"))
+	rawServiceEntries := krt.WrapClient(serviceEntries, krt.WithName("ServiceEntries"))
+	ServiceEntries := krt.NewCollection(rawServiceEntries, func(ctx krt.HandlerContext, raw *networkingclient.ServiceEntry) *serviceEntry {
+		return &serviceEntry{raw}
+	})
 	seNsIndex := krt.NewNamespaceIndex(ServiceEntries)
 
 	se := networkingclient.ServiceEntry{}
@@ -71,8 +67,13 @@ func (s *sePlugin) WatchEndpoints(
 	errs := make(chan error)
 
 	// index the static upstreams by host:port
-	Upstreams := krt.NewStaticCollection(upstreamsToTrack)
-	staticMeshUpstreams := krt.NewIndex(Upstreams, func(us *v1.Upstream) []string {
+	var upstreams []upstream
+	for _, us := range upstreamsToTrack {
+		upstreams = append(upstreams, upstream{us})
+	}
+
+	Upstreams := krt.NewStaticCollection(upstreams)
+	staticMeshUpstreams := krt.NewIndex(Upstreams, func(us upstream) []string {
 		if !us.GetStatic().GetIsMesh() {
 			return nil
 		}
@@ -87,10 +88,11 @@ func (s *sePlugin) WatchEndpoints(
 	// when that port is referenced from an Upstream.
 	// We can't filter Pod watch by namespace, we're doing a hostname lookup and we don't know
 	// which namespaces the ServiceEntries are in, and therefore the namespaces that they're doing selection on.
-	Pods := krt.NewInformerFiltered[*corev1.Pod](s.client, kclient.Filter{
+	pods := kclient.NewFiltered[*corev1.Pod](s.client, kclient.Filter{
 		ObjectTransform: kubeclient.StripPodUnusedFields,
-	}, krt.WithName("Pods"))
-	podEndpoints := krt.NewManyCollection[*corev1.Pod, *v1.Endpoint](Pods, podEndpoints(
+	})
+	Pods := krt.WrapClient(pods, krt.WithName("Pods"))
+	podEndpoints := krt.NewManyCollection(Pods, podEndpoints(
 		writeNamespace,
 		ServiceEntries, seNsIndex,
 		Upstreams, staticMeshUpstreams,
@@ -109,26 +111,34 @@ func (s *sePlugin) WatchEndpoints(
 	// * ServiceEntry will gen Upstream_Kube so users can use it just like in Istio
 	// * We also need to allow Service selects WorkloadEntry for Istio parity
 
-	podEndpoints.RegisterBatch(func(_ []krt.Event[*v1.Endpoint], _ bool) {
-		endpointsChan <- podEndpoints.List()
+	podEndpoints.RegisterBatch(func(_ []krt.Event[endpoint], _ bool) {
+		println("stevenctl: pushing")
+		endpointsChan <- endpoints(podEndpoints.List()).Unwrap()
+		println("stevenctl: pushed")
 	}, true)
+
+	go serviceEntries.Start(opts.Ctx.Done())
+	go pods.Start(opts.Ctx.Done())
+	// TODO move this client start earlier, confirm the late informer starts are ok
+	go s.client.RunAndWait(opts.Ctx.Done())
 
 	return endpointsChan, errs, nil
 }
 
 func podEndpoints(
 	writeNamespace string,
-	ServiceEntries krt.Collection[*networkingclient.ServiceEntry],
-	seNsIndex krt.Index[string, *networkingclient.ServiceEntry],
-	Upstreams krt.Collection[*v1.Upstream],
-	staticMeshUpstreams krt.Index[string, *v1.Upstream],
-) func(krt.HandlerContext, *corev1.Pod) []*v1.Endpoint {
-	return func(ctx krt.HandlerContext, pod *corev1.Pod) []*v1.Endpoint {
+	ServiceEntries krt.Collection[serviceEntry],
+	seNsIndex krt.Index[string, serviceEntry],
+	Upstreams krt.Collection[upstream],
+	staticMeshUpstreams krt.Index[string, upstream],
+) func(krt.HandlerContext, *corev1.Pod) []endpoint {
+	return func(ctx krt.HandlerContext, pod *corev1.Pod) []endpoint {
 		// find all the ServiceEntries that select us
 		selectedBy := krt.Fetch(ctx, ServiceEntries, krt.FilterIndex(seNsIndex, pod.Namespace), krt.FilterSelectsNonEmpty(pod.GetLabels()))
 		if len(selectedBy) == 0 {
 			return nil
 		}
+		println("stevenctl: selected by serviceentry: ", pod.Name)
 
 		// only need to generate once for each target port
 		outByPort := map[uint32]*v1.Endpoint{}
@@ -153,7 +163,7 @@ func podEndpoints(
 					}
 					out := outByPort[port]
 					if out == nil {
-						out = buildPodEndpoint(se, pod, writeNamespace, port)
+						out = buildPodEndpoint(se.ServiceEntry, pod, writeNamespace, port)
 						outByPort[port] = out
 					}
 
@@ -173,9 +183,9 @@ func podEndpoints(
 			}
 		}
 
-		var out []*v1.Endpoint
+		var out []endpoint
 		for _, ep := range outByPort {
-			out = append(out, ep)
+			out = append(out, endpoint{ep})
 		}
 		return out
 	}

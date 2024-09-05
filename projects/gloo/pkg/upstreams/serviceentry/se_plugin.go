@@ -7,6 +7,9 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
 	kubeclient "istio.io/istio/pkg/kube"
+
+	// side-effect to setup CRDWatcher builder
+	_ "istio.io/istio/pkg/kube/kclient"
 )
 
 const PluginName = "ServiceEntryDiscoveryPlugin"
@@ -37,6 +40,8 @@ func mustBuildIstioClient() kubeclient.Client {
 		// TODO move this init somewhere we can handle the err
 		panic(err)
 	}
+
+	kubeclient.EnableCrdWatcher(client)
 
 	return client
 }

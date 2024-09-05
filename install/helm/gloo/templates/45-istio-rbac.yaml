@@ -1,0 +1,39 @@
+{{- if .Values.kubeGateway.enabled -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "gloo-gateway.fullname" . }}-istio-reader.{{.Release.Namespace}}
+  labels:
+    {{- include "gloo-gateway.constLabels" . | nindent 4 }}
+    {{- include "gloo-gateway.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - "networking.istio.io"
+  resources:
+  - "*"
+  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    {{- include "gloo-gateway.constLabels" . | nindent 4 }}
+    {{- include "gloo-gateway.labels" . | nindent 4 }}
+  name: {{ include "gloo-gateway.fullname" . }}-istio-reader.{{.Release.Namespace}}-binding
+subjects:
+- kind: ServiceAccount
+  name: gloo
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "gloo-gateway.fullname" . }}-istio-reader.{{.Release.Namespace}}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

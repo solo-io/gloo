@@ -74,6 +74,10 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		// not ours
 		return nil
 	}
+	if staticSpec.Static.IsMesh {
+		// also not ours
+		return nil
+	}
 
 	spec := staticSpec.Static
 	var foundSslPort bool
