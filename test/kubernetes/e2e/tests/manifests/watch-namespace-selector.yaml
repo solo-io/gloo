@@ -5,6 +5,9 @@ global:
   glooRbac:
     namespaced: false
 
+settings:
+  singleNamespace: false
+
 gateway:
   validation:
     enabled: true

@@ -1,5 +1,4 @@
 settings:
-  singleNamespace: false
   watchNamespaceSelectors:
   - matchExpressions:
     - key: watch
