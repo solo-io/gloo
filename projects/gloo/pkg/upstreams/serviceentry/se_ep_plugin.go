@@ -52,11 +52,7 @@ func (s *sePlugin) WatchEndpoints(
 	// watch service entries everywhere, they're referenced by global hostnames
 	serviceEntries := kclient.NewDelayedInformer[*networkingclient.ServiceEntry](s.client,
 		gvr.ServiceEntry, kubetypes.StandardInformer, defaultFilter)
-	rawServiceEntries := krt.WrapClient(serviceEntries, krt.WithName("ServiceEntries"))
-	ServiceEntries := krt.NewCollection(rawServiceEntries, func(ctx krt.HandlerContext, raw *networkingclient.ServiceEntry) *serviceEntry {
-		return &serviceEntry{raw}
-	})
-	seNsIndex := krt.NewNamespaceIndex(ServiceEntries)
+	ServiceEntries := krt.WrapClient(serviceEntries, krt.WithName("ServiceEntries"))
 
 	se := networkingclient.ServiceEntry{}
 	se.Spec.GetWorkloadSelector().GetLabels()
@@ -72,6 +68,7 @@ func (s *sePlugin) WatchEndpoints(
 		upstreams = append(upstreams, upstream{us})
 	}
 
+	// index mesh upstreams by the host/port combos in their hosts
 	Upstreams := krt.NewStaticCollection(upstreams)
 	staticMeshUpstreams := krt.NewIndex(Upstreams, func(us upstream) []string {
 		if !us.GetStatic().GetIsMesh() {
@@ -84,6 +81,34 @@ func (s *sePlugin) WatchEndpoints(
 		return hostPorts
 	})
 
+	// find the service entries that are referenced by upstreams
+	upstreamServiceEntries := krt.NewCollection(ServiceEntries, func(ctx krt.HandlerContext, se *networkingclient.ServiceEntry) *serviceEntryUpstreams {
+		referencingUs := make(map[uint32][]upstream, len(se.Spec.Ports))
+		portMapping := make(map[uint32]uint32, len(se.Spec.Ports))
+		for _, host := range se.Spec.Hosts {
+			for _, port := range se.Spec.Ports {
+				key := net.JoinHostPort(host, strconv.Itoa(int(port.Number)))
+				referencedBy := krt.Fetch(ctx, Upstreams, krt.FilterIndex(staticMeshUpstreams, key))
+				referencingUs[port.Number] = append(referencingUs[port.Number], referencedBy...)
+
+				targetPort := port.Number
+				if port.TargetPort > 0 {
+					targetPort = port.TargetPort
+				}
+				portMapping[port.Number] = targetPort
+			}
+		}
+		if len(referencingUs) == 0 {
+			return nil
+		}
+		return &serviceEntryUpstreams{
+			ServiceEntry: se,
+			upstreams:    referencingUs,
+			targetPorts:  portMapping,
+		}
+	})
+	seNsIndex := krt.NewNamespaceIndex(upstreamServiceEntries)
+
 	// We generate an Endpoint for each port of a ServiceEntry that selects this pod,
 	// when that port is referenced from an Upstream.
 	// We can't filter Pod watch by namespace, we're doing a hostname lookup and we don't know
@@ -94,8 +119,7 @@ func (s *sePlugin) WatchEndpoints(
 	Pods := krt.WrapClient(pods, krt.WithName("Pods"))
 	podEndpoints := krt.NewManyCollection(Pods, podEndpoints(
 		writeNamespace,
-		ServiceEntries, seNsIndex,
-		Upstreams, staticMeshUpstreams,
+		upstreamServiceEntries, seNsIndex,
 	))
 
 	// TODO endpoints from service
@@ -125,66 +149,48 @@ func (s *sePlugin) WatchEndpoints(
 	return endpointsChan, errs, nil
 }
 
+// podEndpoints generates all the Endpoints for a single pod. There will be a single endpoint for
+// every reachable port by a pod. By "reachable" we mean ports on ServiceEntries that select this pod,
+// where those ports are referenced by "isMesh" Static Upstreams.
 func podEndpoints(
 	writeNamespace string,
-	ServiceEntries krt.Collection[serviceEntry],
-	seNsIndex krt.Index[string, serviceEntry],
-	Upstreams krt.Collection[upstream],
-	staticMeshUpstreams krt.Index[string, upstream],
+	upstreamServiceEntries krt.Collection[serviceEntryUpstreams],
+	seNsIndex krt.Index[string, serviceEntryUpstreams],
 ) func(krt.HandlerContext, *corev1.Pod) []endpoint {
 	return func(ctx krt.HandlerContext, pod *corev1.Pod) []endpoint {
 		// find all the ServiceEntries that select us
-		selectedBy := krt.Fetch(ctx, ServiceEntries, krt.FilterIndex(seNsIndex, pod.Namespace), krt.FilterSelectsNonEmpty(pod.GetLabels()))
+		selectedBy := krt.Fetch(ctx, upstreamServiceEntries, krt.FilterIndex(seNsIndex, pod.Namespace), krt.FilterSelectsNonEmpty(pod.GetLabels()))
 		if len(selectedBy) == 0 {
 			return nil
 		}
-		println("stevenctl: selected by serviceentry: ", pod.Name)
 
-		// only need to generate once for each target port
-		outByPort := map[uint32]*v1.Endpoint{}
+		// one Endpoint for each upstream that uses it
+		// different upstreams may point to a different port on the same endpoint
+		endpointsByPort := map[uint32]*v1.Endpoint{}
 
-		seenUs := map[string]*v1.Endpoint{}
 		for _, se := range selectedBy {
-			for _, h := range se.Spec.Hosts {
-				for _, p := range se.Spec.Ports {
-					// find the upstreams that have a reference to this hostname/port
-					hostPort := net.JoinHostPort(h, strconv.Itoa(int(p.Number)))
-					upstreamsWithRef := krt.Fetch(ctx, Upstreams, krt.FilterIndex(staticMeshUpstreams, hostPort))
-					if upstreamsWithRef == nil {
-						// TODO also handle Upstream_Kube for Waypoint usecase:
-						// * ServiceEntry will gen Upstream_Kube so users can use it just like in Istio
-						continue
-					}
-
-					// init an endpoint instance for this port if necessary
-					port := p.GetNumber()
-					if tp := p.GetTargetPort(); tp > 0 {
-						port = tp
-					}
-					out := outByPort[port]
-					if out == nil {
-						out = buildPodEndpoint(se.ServiceEntry, pod, writeNamespace, port)
-						outByPort[port] = out
-					}
-
-					// add the Endpoint ResourceRefs to the Upstreams that reference the ServiceEntry
-					for _, us := range upstreamsWithRef {
-						// we only want to reference each upstream once for each port
-						k := us.GetMetadata().GetName() + "~" + us.GetMetadata().GetNamespace() + "~" + strconv.Itoa(int(p.Number))
-						if _, ok := seenUs[k]; ok {
-							continue
-						}
-						out.Upstreams = append(out.Upstreams, &core.ResourceRef{
-							Name:      us.GetMetadata().GetName(),
-							Namespace: us.GetMetadata().GetNamespace(),
-						})
-					}
+			if len(se.upstreams) == 0 {
+				continue
+			}
+			for port, upstreams := range se.upstreams {
+				targetPort := se.targetPorts[port]
+				// init an endpoint instance for this port if necessary
+				endpoint := endpointsByPort[targetPort]
+				if endpoint == nil {
+					endpoint = buildPodEndpoint(se.ServiceEntry, pod, writeNamespace, uint32(targetPort))
+					endpointsByPort[port] = endpoint
+				}
+				for _, us := range upstreams {
+					endpoint.Upstreams = append(endpoint.Upstreams, &core.ResourceRef{
+						Name:      us.GetMetadata().GetName(),
+						Namespace: us.GetMetadata().GetNamespace(),
+					})
 				}
 			}
 		}
 
 		var out []endpoint
-		for _, ep := range outByPort {
+		for _, ep := range endpointsByPort {
 			out = append(out, endpoint{ep})
 		}
 		return out

@@ -7,6 +7,9 @@ import (
 	"istio.io/istio/pkg/kube/krt"
 )
 
+// All krt collection types must provide a key through Resourcenamer or being a controllers.Object
+// Optionally, they can be a LabelSelectorer to allow fetching using selected labels (i.e. pod selected by ServiceEntry).
+
 var _ krt.ResourceNamer = endpoint{}
 
 type endpoints []endpoint
@@ -38,14 +41,18 @@ func (us upstream) ResourceName() string {
 }
 
 var (
-	_ krt.LabelSelectorer = serviceEntry{}
-	_ controllers.Object  = serviceEntry{}
+	_ krt.LabelSelectorer = serviceEntryUpstreams{}
+	_ controllers.Object  = serviceEntryUpstreams{}
 )
 
-type serviceEntry struct {
+type serviceEntryUpstreams struct {
 	*networkingclient.ServiceEntry
+	// list of upstreams for each of the service ports
+	upstreams map[uint32][]upstream
+	// mapping from service port to target port
+	targetPorts map[uint32]uint32
 }
 
-func (s serviceEntry) GetLabelSelector() map[string]string {
+func (s serviceEntryUpstreams) GetLabelSelector() map[string]string {
 	return s.Spec.GetWorkloadSelector().GetLabels()
 }
