@@ -315,8 +315,8 @@ generated-code: fmt
 # TODO(EItanya): make mockgen work for gloo
 $(OUTPUT_DIR)/.generated-code:
 	GO111MODULE=on go generate ./...
-	# GO111MODULE=on go run projects/gloo/cli/cmd/docs/main.go
-	# $(DEPSGOBIN)/gettercheck -ignoretests -ignoregenerated -write ./...
+	GO111MODULE=on go run projects/gloo/cli/cmd/docs/main.go
+	$(DEPSGOBIN)/gettercheck -ignoretests -ignoregenerated -write ./...
 	go mod tidy
 	touch $@
 
