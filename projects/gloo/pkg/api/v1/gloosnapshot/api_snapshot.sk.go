@@ -469,6 +469,121 @@ func (s *ApiSnapshot) RemoveFromResourceList(resource resources.Resource) error 
 	}
 }
 
+func (s *ApiSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var Artifacts gloo_solo_io.ArtifactList
+	for _, res := range s.Artifacts {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Artifacts = append(Artifacts, res)
+		}
+	}
+	s.Artifacts = Artifacts
+	var Endpoints gloo_solo_io.EndpointList
+	for _, res := range s.Endpoints {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Endpoints = append(Endpoints, res)
+		}
+	}
+	s.Endpoints = Endpoints
+	var Proxies gloo_solo_io.ProxyList
+	for _, res := range s.Proxies {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Proxies = append(Proxies, res)
+		}
+	}
+	s.Proxies = Proxies
+	var UpstreamGroups gloo_solo_io.UpstreamGroupList
+	for _, res := range s.UpstreamGroups {
+		if namespace != res.GetMetadata().GetNamespace() {
+			UpstreamGroups = append(UpstreamGroups, res)
+		}
+	}
+	s.UpstreamGroups = UpstreamGroups
+	var Secrets gloo_solo_io.SecretList
+	for _, res := range s.Secrets {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Secrets = append(Secrets, res)
+		}
+	}
+	s.Secrets = Secrets
+	var Upstreams gloo_solo_io.UpstreamList
+	for _, res := range s.Upstreams {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Upstreams = append(Upstreams, res)
+		}
+	}
+	s.Upstreams = Upstreams
+	var AuthConfigs enterprise_gloo_solo_io.AuthConfigList
+	for _, res := range s.AuthConfigs {
+		if namespace != res.GetMetadata().GetNamespace() {
+			AuthConfigs = append(AuthConfigs, res)
+		}
+	}
+	s.AuthConfigs = AuthConfigs
+	var Ratelimitconfigs github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigList
+	for _, res := range s.Ratelimitconfigs {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Ratelimitconfigs = append(Ratelimitconfigs, res)
+		}
+	}
+	s.Ratelimitconfigs = Ratelimitconfigs
+	var VirtualServices gateway_solo_io.VirtualServiceList
+	for _, res := range s.VirtualServices {
+		if namespace != res.GetMetadata().GetNamespace() {
+			VirtualServices = append(VirtualServices, res)
+		}
+	}
+	s.VirtualServices = VirtualServices
+	var RouteTables gateway_solo_io.RouteTableList
+	for _, res := range s.RouteTables {
+		if namespace != res.GetMetadata().GetNamespace() {
+			RouteTables = append(RouteTables, res)
+		}
+	}
+	s.RouteTables = RouteTables
+	var Gateways gateway_solo_io.GatewayList
+	for _, res := range s.Gateways {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Gateways = append(Gateways, res)
+		}
+	}
+	s.Gateways = Gateways
+	var VirtualHostOptions gateway_solo_io.VirtualHostOptionList
+	for _, res := range s.VirtualHostOptions {
+		if namespace != res.GetMetadata().GetNamespace() {
+			VirtualHostOptions = append(VirtualHostOptions, res)
+		}
+	}
+	s.VirtualHostOptions = VirtualHostOptions
+	var RouteOptions gateway_solo_io.RouteOptionList
+	for _, res := range s.RouteOptions {
+		if namespace != res.GetMetadata().GetNamespace() {
+			RouteOptions = append(RouteOptions, res)
+		}
+	}
+	s.RouteOptions = RouteOptions
+	var HttpGateways gateway_solo_io.MatchableHttpGatewayList
+	for _, res := range s.HttpGateways {
+		if namespace != res.GetMetadata().GetNamespace() {
+			HttpGateways = append(HttpGateways, res)
+		}
+	}
+	s.HttpGateways = HttpGateways
+	var TcpGateways gateway_solo_io.MatchableTcpGatewayList
+	for _, res := range s.TcpGateways {
+		if namespace != res.GetMetadata().GetNamespace() {
+			TcpGateways = append(TcpGateways, res)
+		}
+	}
+	s.TcpGateways = TcpGateways
+	var GraphqlApis graphql_gloo_solo_io.GraphQLApiList
+	for _, res := range s.GraphqlApis {
+		if namespace != res.GetMetadata().GetNamespace() {
+			GraphqlApis = append(GraphqlApis, res)
+		}
+	}
+	s.GraphqlApis = GraphqlApis
+}
+
 func (s *ApiSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {

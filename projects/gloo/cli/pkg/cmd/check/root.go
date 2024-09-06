@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
+
 	"github.com/hashicorp/go-multierror"
 	"github.com/rotisserie/eris"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -386,10 +388,7 @@ func checkPods(ctx context.Context, opts *options.Options) error {
 }
 
 func getNamespaces(ctx context.Context, settings *v1.Settings) ([]string, error) {
-	if settings.GetWatchNamespaces() != nil {
-		return settings.GetWatchNamespaces(), nil
-	}
-	return helpers.GetNamespaces(ctx)
+	return settingsutil.GetNamespacesToWatch(settings), nil
 }
 
 func checkUpstreams(ctx context.Context, opts *options.Options, namespaces []string) ([]string, error) {

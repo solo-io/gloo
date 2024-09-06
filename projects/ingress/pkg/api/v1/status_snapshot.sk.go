@@ -105,6 +105,23 @@ func (s *StatusSnapshot) RemoveFromResourceList(resource resources.Resource) err
 	}
 }
 
+func (s *StatusSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var Services KubeServiceList
+	for _, res := range s.Services {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Services = append(Services, res)
+		}
+	}
+	s.Services = Services
+	var Ingresses IngressList
+	for _, res := range s.Ingresses {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Ingresses = append(Ingresses, res)
+		}
+	}
+	s.Ingresses = Ingresses
+}
+
 func (s *StatusSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {

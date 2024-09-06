@@ -80,6 +80,16 @@ func (s *EnterpriseSnapshot) RemoveFromResourceList(resource resources.Resource)
 	}
 }
 
+func (s *EnterpriseSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var AuthConfigs AuthConfigList
+	for _, res := range s.AuthConfigs {
+		if namespace != res.GetMetadata().GetNamespace() {
+			AuthConfigs = append(AuthConfigs, res)
+		}
+	}
+	s.AuthConfigs = AuthConfigs
+}
+
 func (s *EnterpriseSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {

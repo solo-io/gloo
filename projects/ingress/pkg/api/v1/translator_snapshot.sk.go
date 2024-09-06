@@ -132,6 +132,30 @@ func (s *TranslatorSnapshot) RemoveFromResourceList(resource resources.Resource)
 	}
 }
 
+func (s *TranslatorSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var Upstreams gloo_solo_io.UpstreamList
+	for _, res := range s.Upstreams {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Upstreams = append(Upstreams, res)
+		}
+	}
+	s.Upstreams = Upstreams
+	var Services KubeServiceList
+	for _, res := range s.Services {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Services = append(Services, res)
+		}
+	}
+	s.Services = Services
+	var Ingresses IngressList
+	for _, res := range s.Ingresses {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Ingresses = append(Ingresses, res)
+		}
+	}
+	s.Ingresses = Ingresses
+}
+
 func (s *TranslatorSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {

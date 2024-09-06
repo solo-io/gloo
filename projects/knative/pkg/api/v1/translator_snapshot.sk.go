@@ -82,6 +82,16 @@ func (s *TranslatorSnapshot) RemoveFromResourceList(resource resources.Resource)
 	}
 }
 
+func (s *TranslatorSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var Ingresses github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressList
+	for _, res := range s.Ingresses {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Ingresses = append(Ingresses, res)
+		}
+	}
+	s.Ingresses = Ingresses
+}
+
 func (s *TranslatorSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {

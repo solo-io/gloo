@@ -6,9 +6,10 @@ import (
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/contextutils"
 
-	"github.com/solo-io/gloo/pkg/utils"
+	"github.com/solo-io/gloo/pkg/utils/namespaces"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/discovery"
+	"github.com/solo-io/go-utils/stringutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	kubev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -87,8 +88,8 @@ func (p *plugin) ConvertServices(ctx context.Context, watchNamespaces []string, 
 			continue
 		}
 
-		if !utils.AllNamespaces(watchNamespaces) {
-			if !containsString(svc.Namespace, watchNamespaces) {
+		if !namespaces.AllNamespaces(watchNamespaces) {
+			if !stringutils.ContainsString(svc.Namespace, watchNamespaces) {
 				continue
 			}
 		}

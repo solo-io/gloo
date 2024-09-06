@@ -82,6 +82,16 @@ func (s *TranslatorSnapshot) RemoveFromResourceList(resource resources.Resource)
 	}
 }
 
+func (s *TranslatorSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var Clusteringresses github_com_solo_io_gloo_projects_clusteringress_pkg_api_external_knative.ClusterIngressList
+	for _, res := range s.Clusteringresses {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Clusteringresses = append(Clusteringresses, res)
+		}
+	}
+	s.Clusteringresses = Clusteringresses
+}
+
 func (s *TranslatorSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {

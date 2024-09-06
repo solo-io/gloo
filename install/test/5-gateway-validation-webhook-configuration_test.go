@@ -33,7 +33,7 @@ var _ = Describe("WebhookValidationConfiguration helm test", func() {
 			timeoutSeconds := 5
 
 			// Count the "DELETES" as a sanity check.
-			expectedDeletes := 5 - expectedRemoved
+			expectedDeletes := 6 - expectedRemoved
 			expectedChart := generateExpectedChart(timeoutSeconds, resources, expectedDeletes)
 
 			prepareMakefile(namespace, helmValues{
@@ -49,10 +49,11 @@ var _ = Describe("WebhookValidationConfiguration helm test", func() {
 			Entry("gateways", []string{"gateways"}, 0),
 			Entry("upstreams", []string{"upstreams"}, 1),
 			Entry("secrets", []string{"secrets"}, 1),
+			Entry("namespaces", []string{"namespaces"}, 1),
 			Entry("ratelimitconfigs", []string{"ratelimitconfigs"}, 1),
 			Entry("mutiple", []string{"virtualservices", "routetables", "secrets"}, 3),
 			Entry("mutiple (with removal)", []string{"ratelimitconfigs", "secrets"}, 2),
-			Entry("all", []string{"*"}, 5),
+			Entry("all", []string{"*"}, 6),
 			Entry("empty", []string{}, 0),
 		)
 	}
@@ -135,6 +136,12 @@ func generateRules(skipDeleteReources []string) string {
 			"resources":   {"secrets"},
 		},
 		{
+			"operations":  {"UPDATE", "DELETE"},
+			"apiGroups":   {""},
+			"apiVersions": {"v1"},
+			"resources":   {"namespaces"},
+		},
+		{
 			"operations":  {"CREATE", "UPDATE", "DELETE"},
 			"apiGroups":   {"ratelimit.solo.io"},
 			"apiVersions": {"v1alpha1"},
@@ -142,17 +149,23 @@ func generateRules(skipDeleteReources []string) string {
 		},
 	}
 
+	finalRules := []map[string][]string{}
 	for i, rule := range rules {
 		if stringutils.ContainsAny([]string{rule["resources"][0], "*"}, skipDeleteReources) {
 			rule["operations"] = gloostringutils.DeleteOneByValue(rule["operations"], "DELETE")
+			// A namespace with an updated to a label can cause it to no longer be watched,
+			// equivalent to deleting it from the controller's perspective
+			if rule["resources"][0] == "namespaces" {
+				rule["operations"] = gloostringutils.DeleteOneByValue(rule["operations"], "UPDATE")
+			}
 		}
 
-		if len(rule["operations"]) == 0 {
-			rules = append(rules[:i], rules[i+1:]...)
+		if len(rule["operations"]) != 0 {
+			finalRules = append(finalRules, rules[i])
 		}
 	}
 
-	str, err := yaml.Marshal(rules)
+	str, err := yaml.Marshal(finalRules)
 	Expect(err).NotTo(HaveOccurred())
 	return string(str)
 }

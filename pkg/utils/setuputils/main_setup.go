@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/solo-io/gloo/pkg/utils/namespaces"
+
 	"github.com/go-logr/zapr"
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	kube2 "github.com/solo-io/gloo/pkg/bootstrap/leaderelector/kube"
@@ -82,9 +84,11 @@ func Main(opts SetupOpts) error {
 		return err
 	}
 
+	nsClient := namespaces.NewKubeNamespaceClient(ctx)
+
 	// settings come from the ResourceClient in the settingsClient
-	// the eventLoop will Watch the emitter's settingsClient to recieve settings from the ResourceClient
-	emitter := v1.NewSetupEmitter(settingsClient)
+	// the eventLoop will Watch the emitter's settingsClient to receive settings from the ResourceClient
+	emitter := v1.NewSetupEmitter(settingsClient, nsClient)
 	settingsRef := &core.ResourceRef{Namespace: setupNamespace, Name: setupName}
 	eventLoop := v1.NewSetupEventLoop(emitter, NewSetupSyncer(settingsRef, opts.SetupFunc, identity))
 	errs, err := eventLoop.Run([]string{setupNamespace}, clients.WatchOpts{

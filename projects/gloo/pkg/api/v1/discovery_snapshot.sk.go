@@ -132,6 +132,30 @@ func (s *DiscoverySnapshot) RemoveFromResourceList(resource resources.Resource) 
 	}
 }
 
+func (s *DiscoverySnapshot) RemoveAllResourcesInNamespace(namespace string) {
+	var Upstreams UpstreamList
+	for _, res := range s.Upstreams {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Upstreams = append(Upstreams, res)
+		}
+	}
+	s.Upstreams = Upstreams
+	var Kubenamespaces github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceList
+	for _, res := range s.Kubenamespaces {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Kubenamespaces = append(Kubenamespaces, res)
+		}
+	}
+	s.Kubenamespaces = Kubenamespaces
+	var Secrets SecretList
+	for _, res := range s.Secrets {
+		if namespace != res.GetMetadata().GetNamespace() {
+			Secrets = append(Secrets, res)
+		}
+	}
+	s.Secrets = Secrets
+}
+
 func (s *DiscoverySnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {
