@@ -9,8 +9,9 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
-	"slices"
 	"time"
+
+	"golang.org/x/exp/slices"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/gloo/pkg/utils"

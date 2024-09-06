@@ -3,8 +3,9 @@ package setuputils
 import (
 	"context"
 	"fmt"
-	"slices"
 	"strings"
+
+	"golang.org/x/exp/slices"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	"go.opencensus.io/tag"

@@ -3,8 +3,9 @@ package settingsutil
 import (
 	"context"
 	"fmt"
-	"slices"
 	"sync"
+
+	"golang.org/x/exp/slices"
 
 	"github.com/solo-io/gloo/pkg/utils/namespaces"
 	utils_namespaces "github.com/solo-io/gloo/pkg/utils/namespaces"
