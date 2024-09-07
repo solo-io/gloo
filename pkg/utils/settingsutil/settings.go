@@ -94,7 +94,7 @@ func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.Kube
 
 	// Watch all namespaces if `watchNamespaces` or `watchNamespaceSelectors` is not specified
 	if len(settings.GetWatchNamespaceSelectors()) == 0 {
-		return []string{metav1.NamespaceAll}, nil
+		return []string{}, nil
 	}
 
 	var selectors []labels.Selector
