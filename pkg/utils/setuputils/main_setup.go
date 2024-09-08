@@ -89,17 +89,17 @@ func Main(opts SetupOpts) error {
 		return err
 	}
 
-	var nsClient kubernetes.KubeNamespaceClient
+	var namespaceClient kubernetes.KubeNamespaceClient
 	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
-		nsClient = &namespaces.FakeKubeNamespaceWatcher{}
+		namespaceClient = &namespaces.FakeKubeNamespaceWatcher{}
 	} else {
-		nsClient = namespaces.NewKubeNamespaceClient(ctx)
+		namespaceClient = namespaces.NewKubeNamespaceClient(ctx)
 	}
-	fmt.Println("---------------------------- ", reflect.TypeOf(nsClient))
+	fmt.Println("---------------------------- ", reflect.TypeOf(namespaceClient))
 
 	// settings come from the ResourceClient in the settingsClient
 	// the eventLoop will Watch the emitter's settingsClient to receive settings from the ResourceClient
-	emitter := v1.NewSetupEmitter(settingsClient, nsClient)
+	emitter := v1.NewSetupEmitter(settingsClient, namespaceClient)
 	settingsRef := &core.ResourceRef{Namespace: setupNamespace, Name: setupName}
 	eventLoop := v1.NewSetupEventLoop(emitter, NewSetupSyncer(settingsRef, opts.SetupFunc, identity))
 	errs, err := eventLoop.Run([]string{setupNamespace}, clients.WatchOpts{
