@@ -6,7 +6,6 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/solo-io/gloo/pkg/utils/namespaces"
 	utils_namespaces "github.com/solo-io/gloo/pkg/utils/namespaces"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -30,7 +29,8 @@ var (
 	// - The new loop about to run when the settings have changed
 	namespacesToWatchCache = lru.New(2)
 
-	settingsKey = settingsKeyStruct{}
+	settingsKey     = settingsKeyStruct{}
+	namespaceClient = utils_namespaces.NewKubeNamespaceClient(context.TODO())
 )
 
 func WithSettings(ctx context.Context, settings *v1.Settings) context.Context {
@@ -130,28 +130,11 @@ func generateDiscoveryNamespace(settings *v1.Settings) string {
 // NamespaceWatched returns true if the namespace passed will be watched based on
 // the current settings object's `watchNamespaces` and `watchNamespaceSelectors` fields
 func NamespaceWatched(settings *v1.Settings, namespace kubernetes.KubeNamespace) (bool, error) {
-	writeNamespace := generateDiscoveryNamespace(settings)
-	if namespace.GetName() == writeNamespace {
-		return true, nil
-	}
-
-	// If watchNamespaces is defined, it takes precedence over watchNamespaceSelectors
-	if len(settings.GetWatchNamespaces()) != 0 {
-		return slices.Contains(settings.GetWatchNamespaces(), namespace.GetName()), nil
-	}
-
-	// If watchNamespaceSelectors and watchNamespaces are not defined then all namespaces are watched
-	// So return true
-	if len(settings.GetWatchNamespaceSelectors()) == 0 {
-		return true, nil
-	}
-
-	selectors, err := labelSelectorsAsSelectors(settings.GetWatchNamespaceSelectors())
+	namespacesToWatch, err := GenerateNamespacesToWatch(settings, kubernetes.KubeNamespaceList{&namespace})
 	if err != nil {
 		return false, err
 	}
-
-	return namespaceMatchesSelector(namespace, selectors), nil
+	return slices.Contains(namespacesToWatch, namespace.GetName()), nil
 }
 
 func setNamespacesToWatch(settings *v1.Settings, namespaces []string) {
@@ -185,7 +168,7 @@ func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNa
 }
 
 func getAllNamespaces() (kubernetes.KubeNamespaceList, error) {
-	return namespaces.NewKubeNamespaceClient(context.TODO()).List(clients.ListOpts{})
+	return namespaceClient.List(clients.ListOpts{})
 }
 
 // GetNamespacesToWatch returns the list of namespaces to watch based on the last run of `GenerateNamespacesToWatch`

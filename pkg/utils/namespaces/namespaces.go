@@ -53,7 +53,7 @@ func GetPodNamespace() string {
 }
 
 // NewKubeNamespaceClient returns either an implementation of the KubeNamespaceClient based on the following condition :
-// If the method was able to create the kubeclient and it has permission to list namespaces, return
+// If the method was able to create the kubeclient and it has permission to list namespaces, `namespace.NewNamespaceClient` else `FakeKubeNamespaceWatcher`
 func NewKubeNamespaceClient(ctx context.Context) kubernetes.KubeNamespaceClient {
 	kubeClient, err := helpers.KubeClientWithKubecontext("")
 	if err != nil {
