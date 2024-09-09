@@ -1,4 +1,4 @@
-package bootstrap
+package validation
 
 import (
 	"bytes"
@@ -19,9 +19,11 @@ import (
 	"github.com/golang/protobuf/proto"
 	anypb "github.com/golang/protobuf/ptypes/any"
 	"github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/xdsinspection"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
+	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/resource"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/types"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -132,11 +134,17 @@ func buildPerFilterBootstrapYaml(filterName string, msg proto.Message) (string, 
 	return json, nil // returns a json, but json is valid yaml
 }
 
-func ValidateEntireBootstrap(ctx context.Context, port int, ns string, proxyName string) error {
-	bootstrapYaml, err := buildEntireBootstrap(port, ns, proxyName)
+func ValidateEntireBootstrap(
+	ctx context.Context,
+	snap envoycache.Snapshot,
+) error {
+	bootstrapYaml, err := buildEntireBootstrap(ctx, snap)
 	if err != nil {
+		contextutils.LoggerFrom(ctx).Error(err)
 		return err
 	}
+	log.Println("validating with envoy")
+	log.Println(bootstrapYaml)
 
 	envoyPath := getEnvoyPath()
 	validateCmd := exec.Command(envoyPath, "--mode", "validate", "--config-yaml", bootstrapYaml, "-l", "critical", "--log-format", "%v")
@@ -155,19 +163,19 @@ func ValidateEntireBootstrap(ctx context.Context, port int, ns string, proxyName
 
 // buildEntireBootstrap queries the gloo xds dump using cli code and converts the output
 // into valid bootstrap json.
-func buildEntireBootstrap(port int, ns, proxyName string) (string, error) {
+func buildEntireBootstrap(
+	ctx context.Context,
+	snap envoycache.Snapshot,
+) (string, error) {
 
-	dump, err := xdsinspection.GetGlooXdsDump(context.Background(), proxyName, ns, true)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// get listeners and clusters
-	clusters := dump.Clusters
-	listeners := dump.Listeners
+	// get the resources we're going to need
+	listeners := snap.GetResources(types.ListenerTypeV3).Items
+	clusters := snap.GetResources(types.ClusterTypeV3).Items
+	routes := snap.GetResources(types.RouteTypeV3).Items
+	endpoints := snap.GetResources(types.EndpointTypeV3).Items
 	routedCluster := map[string]struct{}{}
-	for i := range listeners {
-		l := &listeners[i]
+	for _, v := range listeners {
+		l := v.ResourceProto().(*envoy_config_listener_v3.Listener)
 		for _, fc := range l.FilterChains {
 			for _, f := range fc.Filters {
 
@@ -179,8 +187,8 @@ func buildEntireBootstrap(port int, ns, proxyName string) (string, error) {
 					if hcm, ok := hcmAny.(*envoy_extensions_filters_network_http_connection_manager_v3.HttpConnectionManager); ok {
 						if n := hcm.GetRds().RouteConfigName; n != "" {
 							// find route
-							for j := range dump.Routes {
-								r := &dump.Routes[j]
+							for _, rt := range routes {
+								r := rt.ResourceProto().(*envoy_config_route_v3.RouteConfiguration)
 								if r.Name == n {
 									hcm.RouteSpecifier = &envoy_extensions_filters_network_http_connection_manager_v3.HttpConnectionManager_RouteConfig{
 										RouteConfig: r,
@@ -219,8 +227,8 @@ func buildEntireBootstrap(port int, ns, proxyName string) (string, error) {
 		}
 	}
 
-	for i := range clusters {
-		c := &clusters[i]
+	for _, cl := range clusters {
+		c := cl.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 		// remove existing clusters
 		delete(routedCluster, c.Name)
 		if c.GetEdsClusterConfig() != nil {
@@ -230,8 +238,8 @@ func buildEntireBootstrap(port int, ns, proxyName string) (string, error) {
 			}
 
 			// find endpoints
-			for j := range dump.Endpoints {
-				e := &dump.Endpoints[j]
+			for _, en := range endpoints {
+				e := en.ResourceProto().(*envoy_config_endpoint_v3.ClusterLoadAssignment)
 				if e.ClusterName == name {
 					c.LoadAssignment = e
 					c.EdsClusterConfig = nil
@@ -247,7 +255,7 @@ func buildEntireBootstrap(port int, ns, proxyName string) (string, error) {
 	// these are effectively blackhole clusters. in static mode, envoy won't start without them
 	// so just add them as blackhole clusters
 	for c := range routedCluster {
-		clusters = append(clusters, envoy_config_cluster_v3.Cluster{
+		clusters[c] = resource.NewEnvoyResource(&envoy_config_cluster_v3.Cluster{
 			Name: c,
 			ClusterDiscoveryType: &envoy_config_cluster_v3.Cluster_Type{
 				Type: envoy_config_cluster_v3.Cluster_STATIC,
@@ -259,6 +267,16 @@ func buildEntireBootstrap(port int, ns, proxyName string) (string, error) {
 		})
 	}
 
+	var concreteListeners []*envoy_config_listener_v3.Listener
+	for _, v := range listeners {
+		l := v.ResourceProto().(*envoy_config_listener_v3.Listener)
+		concreteListeners = append(concreteListeners, l)
+	}
+	var concreteClusters []*envoy_config_cluster_v3.Cluster
+	for _, v := range clusters {
+		c := v.ResourceProto().(*envoy_config_cluster_v3.Cluster)
+		concreteClusters = append(concreteClusters, c)
+	}
 	bs := envoy_config_bootstrap_v3.Bootstrap{
 		Node: &envoy_config_core_v3.Node{
 			Id:      "test-id",
@@ -277,8 +295,8 @@ func buildEntireBootstrap(port int, ns, proxyName string) (string, error) {
 			},
 		},
 		StaticResources: &envoy_config_bootstrap_v3.Bootstrap_StaticResources{
-			Listeners: toPtr(listeners),
-			Clusters:  toPtr(clusters),
+			Listeners: concreteListeners,
+			Clusters:  concreteClusters,
 		},
 	}
 

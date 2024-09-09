@@ -18,6 +18,7 @@ import (
 	errors "github.com/rotisserie/eris"
 	validationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	bootstrapvalidation "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/validation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
@@ -128,8 +129,9 @@ func (t *translatorInstance) Translate(
 		}
 	}
 
-	// TODO
-	// bootstrap.ValidateEntireBootstrap()
+	if err := bootstrapvalidation.ValidateEntireBootstrap(ctx, xdsSnapshot); err != nil {
+		reports.AddError(proxy, err)
+	}
 
 	return xdsSnapshot, reports, proxyReport
 }
