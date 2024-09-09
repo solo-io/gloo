@@ -5,7 +5,7 @@ import (
 	"hash"
 
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
-	bootstrapvalidation "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/validation"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/go-utils/contextutils"
 	"go.opencensus.io/stats"
 	"google.golang.org/protobuf/runtime/protoiface"
@@ -76,7 +76,7 @@ func (v validator) ValidateConfig(ctx context.Context, config HashableProtoMessa
 		v.cacheMisses,
 	)
 
-	err = bootstrapvalidation.ValidateBootstrap(ctx, v.filterName, config)
+	err = bootstrap.ValidateBootstrap(ctx, v.filterName, config)
 	v.lruCache.Add(hash, err)
 	return err
 }
