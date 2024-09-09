@@ -132,12 +132,30 @@ func buildPerFilterBootstrapYaml(filterName string, msg proto.Message) (string, 
 	return json, nil // returns a json, but json is valid yaml
 }
 
-func ValidateEntireBootstrap(port int, ns string, proxyName string) {
+func ValidateEntireBootstrap(ctx context.Context, port int, ns string, proxyName string) error {
+	bootstrapYaml, err := buildEntireBootstrap(port, ns, proxyName)
+	if err != nil {
+		return err
+	}
+
+	envoyPath := getEnvoyPath()
+	validateCmd := exec.Command(envoyPath, "--mode", "validate", "--config-yaml", bootstrapYaml, "-l", "critical", "--log-format", "%v")
+	if output, err := validateCmd.CombinedOutput(); err != nil {
+		if os.IsNotExist(err) {
+			// log a warning and return nil; will allow users to continue to run Gloo locally without
+			// relying on the Gloo container with Envoy already published to the expected directory
+			contextutils.LoggerFrom(ctx).Warnf("Unable to validate envoy configuration using envoy at %v; "+
+				"skipping additional validation of Gloo config.", envoyPath)
+			return nil
+		}
+		return eris.Errorf("envoy validation mode output: %v, error: %v", string(output), err)
+	}
+	return nil
 }
 
 // buildEntireBootstrap queries the gloo xds dump using cli code and converts the output
 // into valid bootstrap json.
-func buildEntireBootstrap(port int, ns, proxyName string) ([]byte, error) {
+func buildEntireBootstrap(port int, ns, proxyName string) (string, error) {
 
 	dump, err := xdsinspection.GetGlooXdsDump(context.Background(), proxyName, ns, true)
 	if err != nil {
@@ -154,8 +172,11 @@ func buildEntireBootstrap(port int, ns, proxyName string) ([]byte, error) {
 			for _, f := range fc.Filters {
 
 				if f.GetTypedConfig().TypeUrl == "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager" {
-					var hcm envoy_extensions_filters_network_http_connection_manager_v3.HttpConnectionManager
-					if hcm, err = utils.AnyToMessage(f.GetTypedConfig()); err == nil {
+					hcmAny, err := utils.AnyToMessage(f.GetTypedConfig())
+					if err != nil {
+						return "", err
+					}
+					if hcm, ok := hcmAny.(*envoy_extensions_filters_network_http_connection_manager_v3.HttpConnectionManager); ok {
 						if n := hcm.GetRds().RouteConfigName; n != "" {
 							// find route
 							for j := range dump.Routes {
@@ -179,13 +200,13 @@ func buildEntireBootstrap(port int, ns, proxyName string) ([]byte, error) {
 										}
 									}
 
-									hcmAny, err := utils.MessageToAny(&hcm)
+									hcmAny, err := utils.MessageToAny(hcm)
 									if err != nil {
-										return nil, err
+										return "", err
 									}
 
 									f.ConfigType = &envoy_config_listener_v3.Filter_TypedConfig{
-										TypedConfig: toAny(&hcm),
+										TypedConfig: hcmAny,
 									}
 								}
 							}
@@ -264,10 +285,10 @@ func buildEntireBootstrap(port int, ns, proxyName string) ([]byte, error) {
 	// jsonpb marshal
 	j, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(&bs)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return j, nil
+	return string(j), nil
 
 }
 
@@ -277,12 +298,4 @@ func toPtr[T any](s []T) []*T {
 		ptrs[i] = &v
 	}
 	return ptrs
-}
-
-func toAny(m proto.Message) *anypb.Any {
-	anyVal, err := utils.MessageToAny(m)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return anyVal
 }

@@ -128,6 +128,9 @@ func (t *translatorInstance) Translate(
 		}
 	}
 
+	// TODO
+	// bootstrap.ValidateEntireBootstrap()
+
 	return xdsSnapshot, reports, proxyReport
 }
 
