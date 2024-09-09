@@ -131,7 +131,7 @@ You can also patch the `default` *Settings* CR with this value and delete the `d
 Optionally, you may choose to enable Envoy's gzip filter through Gloo Gateway. More information on that can be found [here]({{% versioned_link_path fromRoot="/installation/advanced_configuration/gzip/" %}}).
 
 ### Set up an EDS warming timeout
-Set up the endpoints warming timeout to a non-zero value. More details [here](https://docs.solo.io/gloo-edge/latest/operations/upgrading/v1.3/#recommended-settings).
+Set up the endpoints warming timeout to a non-zero value. More details [here]({{% versioned_link_path fromRoot="/operations/upgrading/" %}}).
 
 
 ## Access Logging
@@ -206,14 +206,15 @@ gatewayProxies:
 
 You can also scale up the ExtAuth service. Typically, one to two instances are sufficient.
 
-If you have multiple instances of the ExtAuth server, you might want to use the same JWT signing key in the OIDC policy for each instance. To reuse the JWT signing key, you must update your Helm configuration file with the following global extension.
+If you have multiple instances of the ExtAuth server, you might want to use the same JWT signing key in the OIDC policy for each instance. To reuse the JWT signing key, you must update your Helm configuration file with the following global extension. The example values use the default secret name.
 
 ```yaml
 global:
   extensions:
     extAuth:
       signingKey:
-        key: abcdef
+        name: extauth-signing-key
+        signing-key: <signing-key-value>
 ```
 
 #### Pod Disruption Budgets and Affinity/Anti-Affinity rules
