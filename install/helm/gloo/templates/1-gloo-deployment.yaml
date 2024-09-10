@@ -216,6 +216,10 @@ spec:
                 name: {{ .Values.license_secret_name }}
                 key: license-key
 {{- end }}
+{{- if .Values.gloo.GOGC }}
+          - name: GOGC
+            value: {{ .Values.gloo.GOGC }}
+{{- end}}
 {{- if .Values.gloo.deployment.customEnv }}
 {{ toYaml .Values.gloo.deployment.customEnv | indent 10 }}
 {{- end }}
