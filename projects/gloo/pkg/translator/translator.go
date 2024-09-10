@@ -129,7 +129,7 @@ func (t *translatorInstance) Translate(
 		}
 	}
 
-	if err := bootstrapvalidation.ValidateEntireBootstrap(ctx, xdsSnapshot); err != nil {
+	if err := bootstrapvalidation.ValidateSnapshotAsBootstrap(ctx, xdsSnapshot); err != nil {
 		reports.AddError(proxy, err)
 	}
 

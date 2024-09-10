@@ -37,41 +37,63 @@ func getEnvoyPath() string {
 	return ep
 }
 
-func ValidateEntireBootstrap(
+func ValidateBootstrap(ctx context.Context, bootstrap string) error {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugf("validating with envoy \n\n%s", bootstrap)
+
+	envoyPath := getEnvoyPath()
+	validateCmd := exec.Command(envoyPath, "--mode", "validate", "--config-yaml", bootstrap, "-l", "critical", "--log-format", "%v")
+	output, err := validateCmd.CombinedOutput()
+	if err != nil {
+		if os.IsNotExist(err) {
+			// log a warning and return nil; will allow users to continue to run Gloo locally without
+			// relying on the Gloo container with Envoy already published to the expected directory
+			logger.Warnf("Unable to validate envoy configuration using envoy at %v; "+
+				"skipping additional validation of Gloo config.", envoyPath)
+			return nil
+		}
+		return eris.Errorf("envoy validation mode output: %v, error: %v", string(output), err)
+	}
+	log.Println(output)
+	return nil
+}
+
+// ValidateSnapshotAsBootstrap accepts an xDS snapshot, clones it, and does the necessary
+// conversions to imitate the same config being provided as static bootsrap config to
+// Envoy, then executes Envoy in validate mode to ensure the config is valid.
+func ValidateSnapshotAsBootstrap(
 	ctx context.Context,
 	snap envoycache.Snapshot,
 ) error {
 	// THIS IS CRITICAL SO WE DO NOT INTERFERE WITH THE CONTROL PLANE.
 	snap = snap.Clone()
 
-	bootstrapYaml, err := buildEntireBootstrap(ctx, snap)
+	logger := contextutils.LoggerFrom(ctx)
+
+	bootstrap, err := BootstrapFromSnapshot(ctx, snap)
 	if err != nil {
-		contextutils.LoggerFrom(ctx).Error(err)
+		logger.Error(err)
 		return err
 	}
-	log.Println("validating with envoy")
-	log.Println(bootstrapYaml)
 
-	envoyPath := getEnvoyPath()
-	validateCmd := exec.Command(envoyPath, "--mode", "validate", "--config-yaml", bootstrapYaml, "-l", "critical", "--log-format", "%v")
-	if output, err := validateCmd.CombinedOutput(); err != nil {
-		if os.IsNotExist(err) {
-			// log a warning and return nil; will allow users to continue to run Gloo locally without
-			// relying on the Gloo container with Envoy already published to the expected directory
-			contextutils.LoggerFrom(ctx).Warnf("Unable to validate envoy configuration using envoy at %v; "+
-				"skipping additional validation of Gloo config.", envoyPath)
-			return nil
-		}
-		return eris.Errorf("envoy validation mode output: %v, error: %v", string(output), err)
+	// jsonpb marshal
+	bootstrapBytes, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(bootstrap)
+	if err != nil {
+		logger.Error(err)
+		return err
 	}
-	return nil
+
+	bootstrapJson := string(bootstrapBytes)
+
+	return ValidateBootstrap(ctx, bootstrapJson)
+
 }
 
-// buildEntireBootstrap accepts an xds Snapshot and converts it into valid bootstrap json.
-func buildEntireBootstrap(
+// BootstrapFromSnapshot accepts an xds Snapshot and converts it into valid bootstrap json.
+func BootstrapFromSnapshot(
 	ctx context.Context,
 	snap envoycache.Snapshot,
-) (string, error) {
+) (*envoy_config_bootstrap_v3.Bootstrap, error) {
 
 	// Get the resources we're going to need.
 	listeners := snap.GetResources(types.ListenerTypeV3).Items
@@ -95,7 +117,7 @@ func buildEntireBootstrap(
 					continue
 				}
 				// If we encountered any other error, fail loudly.
-				return "", err
+				return nil, err
 			}
 
 			// We use Route Discovery Service (RDS) in lieu of static route table config, so we
@@ -109,7 +131,7 @@ func buildEntireBootstrap(
 			for _, rt := range routes {
 				r, ok := rt.ResourceProto().(*envoy_config_route_v3.RouteConfiguration)
 				if !ok {
-					return "", eris.New("found route with wrong type")
+					return nil, eris.New("found route with wrong type")
 				}
 
 				if r.Name != routeConfigName {
@@ -123,7 +145,7 @@ func buildEntireBootstrap(
 				// We need to add our route table as a static config to this hcm instead of
 				// relying on RDS, the we pack it back up and set it back on the filter chain.
 				if err = setStaticRouteConfig(f, hcm, r); err != nil {
-					return "", err
+					return nil, err
 				}
 			}
 
@@ -135,7 +157,7 @@ func buildEntireBootstrap(
 	for _, cl := range clusters {
 		c, ok := cl.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 		if !ok {
-			return "", eris.New("found cluster with wrong type")
+			return nil, eris.New("found cluster with wrong type")
 		}
 
 		delete(routedCluster, c.Name)
@@ -154,7 +176,7 @@ func buildEntireBootstrap(
 			for _, en := range endpoints {
 				e, ok := en.ResourceProto().(*envoy_config_endpoint_v3.ClusterLoadAssignment)
 				if !ok {
-					return "", eris.New("found endpoint with wrong type")
+					return nil, eris.New("found endpoint with wrong type")
 				}
 				if e.ClusterName == clusterName {
 					c.LoadAssignment = e
@@ -222,13 +244,7 @@ func buildEntireBootstrap(
 		},
 	}
 
-	// jsonpb marshal
-	j, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(&bs)
-	if err != nil {
-		return "", err
-	}
-
-	return string(j), nil
+	return &bs, nil
 
 }
 

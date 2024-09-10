@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"os"
-	"os/exec"
 
 	envoy_config_bootstrap_v3 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -15,9 +14,8 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/validation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/go-utils/contextutils"
 )
 
 const defaultEnvoyPath = "/usr/local/bin/envoy"
@@ -40,19 +38,7 @@ func ValidateBootstrap(
 		return err
 	}
 
-	envoyPath := getEnvoyPath()
-	validateCmd := exec.Command(envoyPath, "--mode", "validate", "--config-yaml", bootstrapYaml, "-l", "critical", "--log-format", "%v")
-	if output, err := validateCmd.CombinedOutput(); err != nil {
-		if os.IsNotExist(err) {
-			// log a warning and return nil; will allow users to continue to run Gloo locally without
-			// relying on the Gloo container with Envoy already published to the expected directory
-			contextutils.LoggerFrom(ctx).Warnf("Unable to validate envoy configuration using envoy at %v; "+
-				"skipping additional validation of Gloo config.", envoyPath)
-			return nil
-		}
-		return eris.Errorf("envoy validation mode output: %v, error: %v", string(output), err)
-	}
-	return nil
+	return validation.ValidateBootstrap(ctx, bootstrapYaml)
 }
 
 func buildPerFilterBootstrapYaml(filterName string, msg proto.Message) (string, error) {
