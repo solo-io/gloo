@@ -20,6 +20,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/cors"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/csrf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/deprecated_cipher_passthrough"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/destrule"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/dynamic_forward_proxy"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/enterprise_warning"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
@@ -108,6 +109,7 @@ func Plugins(opts bootstrap.Opts) []plugins.Plugin {
 		grpcjson.NewPlugin(),
 		metadata.NewPlugin(),
 		tunneling.NewPlugin(),
+		destrule.NewPlugin(),
 		dynamic_forward_proxy.NewPlugin(),
 		deprecated_cipher_passthrough.NewPlugin(),
 		local_ratelimit.NewPlugin(),
