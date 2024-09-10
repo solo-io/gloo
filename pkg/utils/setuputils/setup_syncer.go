@@ -95,22 +95,22 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 // ShouldSync compares two snapshots and determines whether a sync is needed based on the following conditions
 // 1. The settings CR has changed
 // 2. A namespace is added / deleted / modified that changes the namespaces to watch
-func (s *SetupSyncer) ShouldSync(ctx context.Context, old, new *v1.SetupSnapshot) bool {
+func (s *SetupSyncer) ShouldSync(ctx context.Context, oldSnapshot, newSnapshot *v1.SetupSnapshot) bool {
 	// Basic sanity checks. Return a true if there is an error to ensure a sync to get into a good state
-	if old == nil {
+	if oldSnapshot == nil {
 		return true
 	}
 
-	if new == nil {
+	if newSnapshot == nil {
 		return true
 	}
 
-	newSettings, err := new.Settings.Find(s.settingsRef.Strings())
+	newSettings, err := newSnapshot.Settings.Find(s.settingsRef.Strings())
 	if err != nil {
 		return true
 	}
 
-	oldSettings, err := old.Settings.Find(s.settingsRef.Strings())
+	oldSettings, err := oldSnapshot.Settings.Find(s.settingsRef.Strings())
 	if err != nil {
 		return true
 	}
@@ -126,7 +126,7 @@ func (s *SetupSyncer) ShouldSync(ctx context.Context, old, new *v1.SetupSnapshot
 
 	// 2. Check if a namespace is added / deleted / modified
 	// If a namespace was modified, check if it changes the namespaces to watch
-	newNamespacesToWatch, err := settingsutil.GenerateNamespacesToWatch(newSettings, new.Kubenamespaces)
+	newNamespacesToWatch, err := settingsutil.GenerateNamespacesToWatch(newSettings, newSnapshot.Kubenamespaces)
 	if err != nil {
 		return true
 	}
