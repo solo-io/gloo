@@ -229,7 +229,7 @@ func (wh *gatewayValidationWebhook) ServeHTTP(w http.ResponseWriter, r *http.Req
 	logger.Infow("received validation request on webhook")
 
 	b, _ := httputil.DumpRequest(r, true)
-	logger.Infof("validation request dump:\n %s", string(b))
+	logger.Debugf("validation request dump:\n %s", string(b))
 
 	// Verify the content type is accurate
 	contentType := r.Header.Get("Content-Type")
@@ -299,7 +299,7 @@ func (wh *gatewayValidationWebhook) ServeHTTP(w http.ResponseWriter, r *http.Req
 		logger.Errorf("Can't write response: %v", err)
 		http.Error(w, fmt.Sprintf("could not write response: %v", err), http.StatusInternalServerError)
 	}
-	logger.Infof("++++++++++++++++++++++++++++++++++++++++ responded with review: %s", resp)
+	logger.Debugf("responded with review: %s", resp)
 }
 
 func (wh *gatewayValidationWebhook) makeAdmissionResponse(ctx context.Context, review *AdmissionReviewWithProxies) *AdmissionResponseWithProxies {
@@ -326,11 +326,9 @@ func (wh *gatewayValidationWebhook) makeAdmissionResponse(ctx context.Context, r
 	watchNamespaces := make([]string, len(wh.watchNamespaces))
 	copy(watchNamespaces, wh.watchNamespaces) // important we make a deep copy
 
-	fmt.Println("---------------------- webhook watchNamespaces : ", wh.watchNamespaces)
 	if req.Kind.Kind == "Namespace" {
 		// if it's not a namespace we watch, do not validate
 		if !slices.Contains(watchNamespaces, req.Name) {
-			fmt.Println("---------------------- webhook Not watching : ", req.Name)
 			return &AdmissionResponseWithProxies{
 				AdmissionResponse: &v1beta1.AdmissionResponse{
 					Allowed: true,
@@ -454,7 +452,6 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 			return &validation.Reports{}, nil
 		}
 	} else if gvk.Group == kubernetesCoreApiGroup && gvk.Kind == "Namespace" {
-		fmt.Println("---------------------- webhook Kind && Name : ", gvk.Kind, ref.GetName())
 		if !isDelete && !isUpdate {
 			contextutils.LoggerFrom(ctx).Infof("unsupported operation validation [%s] for resource namespace [%s] name [%s] group [%s] kind [%s]", admissionRequest.Operation, ref.GetNamespace(), ref.GetName(), gvk.Group, gvk.Kind)
 			return &validation.Reports{}, nil
@@ -463,23 +460,19 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 		if isUpdate {
 			var namespace namespace.KubeNamespace
 			err := json.Unmarshal(admissionRequest.Object.Raw, &namespace)
-			fmt.Println("---------------------- webhook Unmarshal error : ", err)
 			if err != nil {
 				return nil, &multierror.Error{Errors: []error{err}}
 			}
 			kns := kubernetes.KubeNamespace{
 				KubeNamespace: namespace,
 			}
-			fmt.Println("---------------------- webhook namespace : ", namespace)
 			// At this point, any namespace update we receive is a result of modifying a namespace we watch
 			// So check if we still watch the namespace
 			namespaceStillWatched, err := settingsutil.NamespaceWatched(settingsutil.FromContext(ctx), kns)
-			fmt.Println("---------------------- webhook namespace error : ", err)
 			if err != nil {
 				return nil, &multierror.Error{Errors: []error{err}}
 			}
 
-			fmt.Println("---------------------- isDelete, namespaceStillWatched : ", isDelete, namespaceStillWatched)
 			if namespaceStillWatched {
 				// The namespace has changed in a way that does not affect us so we let it through
 				return &validation.Reports{}, nil

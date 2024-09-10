@@ -3,9 +3,7 @@ package setuputils
 import (
 	"context"
 	"flag"
-	"fmt"
 	"os"
-	"reflect"
 	"sync"
 	"time"
 
@@ -90,12 +88,12 @@ func Main(opts SetupOpts) error {
 	}
 
 	var namespaceClient kubernetes.KubeNamespaceClient
+	// Running edge in KubeGateway mode ignores watchNamespaces so there's no need to create a client.
 	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
 		namespaceClient = &namespaces.FakeKubeNamespaceWatcher{}
 	} else {
 		namespaceClient = namespaces.NewKubeNamespaceClient(ctx)
 	}
-	fmt.Println("---------------------------- ", reflect.TypeOf(namespaceClient))
 
 	// settings come from the ResourceClient in the settingsClient
 	// the eventLoop will Watch the emitter's settingsClient to receive settings from the ResourceClient

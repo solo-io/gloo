@@ -2,7 +2,6 @@ package namespaces
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
@@ -16,7 +15,6 @@ import (
 )
 
 func AllNamespaces(watchNamespaces []string) bool {
-
 	if len(watchNamespaces) == 0 {
 		return true
 	}
@@ -79,10 +77,8 @@ func NewKubeNamespaceClient(ctx context.Context) kubernetes.KubeNamespaceClient 
 
 	resp, err := clientset.AuthorizationV1().SelfSubjectAccessReviews().Create(ctx, &selfCheck, metav1.CreateOptions{})
 	if err != nil {
-		fmt.Println("--------------- SelfSubjectAccessReviews error :", err)
 		return &FakeKubeNamespaceWatcher{}
 	}
-	fmt.Println("---------------------------- ", resp.Status)
 
 	if resp.Status.Allowed {
 		kubeCache, err := cache.NewKubeCoreCache(ctx, kubeClient)

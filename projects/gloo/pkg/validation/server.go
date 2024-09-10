@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
 	"sync"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/kubernetes"
@@ -209,15 +208,11 @@ func (s *validator) Validate(ctx context.Context, req *validation.GlooValidation
 }
 
 func HandleResourceDeletion(snapshot *v1snap.ApiSnapshot, resource resources.Resource) error {
-	fmt.Println("----------------------- opts.Resource", resource, reflect.TypeOf(resource))
-	// fmt.Println("----------------------- opts.Resource.(*kubernetes.KubeNamespace)", resource.(*sk_kubernetes.KubeNamespace))
 	if _, ok := resource.(*sk_kubernetes.KubeNamespace); ok {
-		fmt.Println("----------------------- RemoveAllResourcesInNamespace")
 		// Special case to handle namespace deletion
 		snapshot.RemoveAllResourcesInNamespace(resource.GetMetadata().GetName())
 		return nil
 	} else {
-		fmt.Println("----------------------- RemoveFromResourceList 1")
 		return snapshot.RemoveFromResourceList(resource)
 	}
 }

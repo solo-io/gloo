@@ -153,9 +153,6 @@ func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNa
 		return false, err
 	}
 
-	fmt.Println("------------------ WatchNamespaces : ", settings.GetWatchNamespaces())
-	fmt.Println("------------------ Watching : ", newNamespacesToWatch)
-
 	ns, ok := namespacesToWatchCache.Get(settings.MustHash())
 	if ok {
 		currentNamespacesToWatch, ok := ns.([]string)
@@ -213,7 +210,7 @@ func labelSelectorsAsSelectors(labelSelectors []*v1.LabelSelector) ([]labels.Sel
 	return selectors, nil
 }
 
-// TODO: remove this and use k8s.io/apimachinery to do this once the settings proto uses the predefined fields
+// Copied over from k8s.io/apimachinery
 func labelSelectorAsSelector(labelSelectors *v1.LabelSelector) (labels.Selector, error) {
 	if labelSelectors == nil {
 		return labels.Nothing(), nil

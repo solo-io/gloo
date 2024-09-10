@@ -2,7 +2,6 @@ package setuputils
 
 import (
 	"context"
-	"fmt"
 	"slices"
 	"strings"
 
@@ -52,8 +51,6 @@ func NewSetupSyncer(settingsRef *core.ResourceRef, setupFunc SetupFunc, identity
 }
 
 func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
-	fmt.Println("----------------------- Sync")
-
 	settings, err := snap.Settings.Find(s.settingsRef.Strings())
 	if err != nil {
 		return errors.Wrapf(err, "finding bootstrap configuration")
@@ -99,27 +96,22 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 // 1. The settings CR has changed
 // 2. A namespace is added / deleted / modified that changes the namespaces to watch
 func (s *SetupSyncer) ShouldSync(ctx context.Context, old, new *v1.SetupSnapshot) bool {
-	fmt.Println(("------------------------------ ShouldSync"))
 	// Basic sanity checks. Return a true if there is an error to ensure a sync to get into a good state
 	if old == nil {
-		fmt.Println(("------------------------------ ShouldSync old nil true"))
 		return true
 	}
 
 	if new == nil {
-		fmt.Println(("------------------------------ ShouldSync new nil true"))
 		return true
 	}
 
 	newSettings, err := new.Settings.Find(s.settingsRef.Strings())
 	if err != nil {
-		fmt.Println(("------------------------------ ShouldSync new.Settings.Find true"))
 		return true
 	}
 
 	oldSettings, err := old.Settings.Find(s.settingsRef.Strings())
 	if err != nil {
-		fmt.Println(("------------------------------ ShouldSync Settings.Find true"))
 		return true
 	}
 
@@ -129,7 +121,6 @@ func (s *SetupSyncer) ShouldSync(ctx context.Context, old, new *v1.SetupSnapshot
 
 	// 1. Check whether the settings CR is changed
 	if s.currentSettingsHash != newSettings.MustHash() {
-		fmt.Println(("------------------------------ ShouldSync newSettings.MustHash true"))
 		return true
 	}
 
@@ -137,10 +128,8 @@ func (s *SetupSyncer) ShouldSync(ctx context.Context, old, new *v1.SetupSnapshot
 	// If a namespace was modified, check if it changes the namespaces to watch
 	newNamespacesToWatch, err := settingsutil.GenerateNamespacesToWatch(newSettings, new.Kubenamespaces)
 	if err != nil {
-		fmt.Println(("------------------------------ ShouldSync settingsutil.GenerateNamespacesToWatch true"))
 		return true
 	}
 	namespacesChanged := !slices.Equal(newNamespacesToWatch, settingsutil.GetNamespacesToWatch(oldSettings))
-	fmt.Println("------------------------------ ShouldSync namespacesChanged : ", namespacesChanged, settingsutil.GetNamespacesToWatch(oldSettings), newNamespacesToWatch)
 	return namespacesChanged
 }

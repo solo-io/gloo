@@ -7,6 +7,6 @@ import (
 
 func WatchNamespaceSelectorSuiteRunner() e2e.SuiteRunner {
 	watchNamespaceSelectorRunner := e2e.NewSuiteRunner(false)
-	watchNamespaceSelectorRunner.Register("Watch Namespace Selector", watch_namespace_selector.NewTestingSuite)
+	watchNamespaceSelectorRunner.Register("WatchNamespaceSelector", watch_namespace_selector.NewTestingSuite)
 	return watchNamespaceSelectorRunner
 }

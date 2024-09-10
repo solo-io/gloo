@@ -6,7 +6,6 @@ import (
 )
 
 // FakeKubeNamespaceWatcher to eliminate the need for this fake client for non kube environments
-// TODO: consider using regular solo-kit namespace client instead of KubeNamespace client
 type FakeKubeNamespaceWatcher struct{}
 
 func (f *FakeKubeNamespaceWatcher) Watch(opts clients.WatchOpts) (<-chan skkube.KubeNamespaceList, <-chan error, error) {
