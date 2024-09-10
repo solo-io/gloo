@@ -30,7 +30,7 @@ var (
 	namespacesToWatchCache = lru.New(2)
 
 	settingsKey     = settingsKeyStruct{}
-	namespaceClient = utils_namespaces.NewKubeNamespaceClient(context.TODO())
+	namespaceClient kubernetes.KubeNamespaceClient
 )
 
 func WithSettings(ctx context.Context, settings *v1.Settings) context.Context {
@@ -166,6 +166,9 @@ func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNa
 }
 
 func getAllNamespaces() (kubernetes.KubeNamespaceList, error) {
+	if namespaceClient == nil {
+		namespaceClient = utils_namespaces.NewKubeNamespaceClient(context.TODO())
+	}
 	return namespaceClient.List(clients.ListOpts{})
 }
 
