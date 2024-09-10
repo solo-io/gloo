@@ -2,6 +2,7 @@ package validation
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
 	"os/exec"
@@ -24,6 +25,10 @@ import (
 
 const defaultEnvoyPath = "/usr/local/bin/envoy"
 
+var (
+	errNoHcm = eris.New("no HttpConnectionManager found")
+)
+
 func getEnvoyPath() string {
 	ep := os.Getenv("ENVOY_BINARY_PATH")
 	if len(ep) == 0 {
@@ -36,6 +41,9 @@ func ValidateEntireBootstrap(
 	ctx context.Context,
 	snap envoycache.Snapshot,
 ) error {
+	// THIS IS CRITICAL SO WE DO NOT INTERFERE WITH THE CONTROL PLANE.
+	snap = snap.Clone()
+
 	bootstrapYaml, err := buildEntireBootstrap(ctx, snap)
 	if err != nil {
 		contextutils.LoggerFrom(ctx).Error(err)
@@ -59,86 +67,96 @@ func ValidateEntireBootstrap(
 	return nil
 }
 
-// buildEntireBootstrap queries the gloo xds dump using cli code and converts the output
-// into valid bootstrap json.
+// buildEntireBootstrap accepts an xds Snapshot and converts it into valid bootstrap json.
 func buildEntireBootstrap(
 	ctx context.Context,
 	snap envoycache.Snapshot,
 ) (string, error) {
 
-	// get the resources we're going to need
+	// Get the resources we're going to need.
 	listeners := snap.GetResources(types.ListenerTypeV3).Items
 	clusters := snap.GetResources(types.ClusterTypeV3).Items
 	routes := snap.GetResources(types.RouteTypeV3).Items
 	endpoints := snap.GetResources(types.EndpointTypeV3).Items
+
+	// This map will hold the aggregate of all cluster names that are routed to
+	// by a FilterChain.
 	routedCluster := map[string]struct{}{}
+
+	// Gather up all of the clusters that we target with RouteConfigs that are associated with a FilterChain.
 	for _, v := range listeners {
 		l := v.ResourceProto().(*envoy_config_listener_v3.Listener)
 		for _, fc := range l.FilterChains {
-			for _, f := range fc.Filters {
+			// Get the HttpConnectionManager for this FilterChain if it exists.
+			hcm, f, err := getHcmForFilterChain(fc)
+			if err != nil {
+				// If we just don't have an hcm on this filter chain, skip to the next one.
+				if errors.Is(err, errNoHcm) {
+					continue
+				}
+				// If we encountered any other error, fail loudly.
+				return "", err
+			}
 
-				if f.GetTypedConfig().TypeUrl == "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager" {
-					hcmAny, err := utils.AnyToMessage(f.GetTypedConfig())
-					if err != nil {
-						return "", err
-					}
-					if hcm, ok := hcmAny.(*envoy_extensions_filters_network_http_connection_manager_v3.HttpConnectionManager); ok {
-						if n := hcm.GetRds().RouteConfigName; n != "" {
-							// find route
-							for _, rt := range routes {
-								r := rt.ResourceProto().(*envoy_config_route_v3.RouteConfiguration)
-								if r.Name == n {
-									hcm.RouteSpecifier = &envoy_extensions_filters_network_http_connection_manager_v3.HttpConnectionManager_RouteConfig{
-										RouteConfig: r,
-									}
-									for _, v := range r.VirtualHosts {
-										for _, r := range v.Routes {
-											if r.GetRoute() != nil {
-												if c := r.GetRoute().GetCluster(); c != "" {
-													routedCluster[c] = struct{}{}
-												}
-												if c := r.GetRoute().GetWeightedClusters().GetClusters(); len(c) != 0 {
-													for _, c := range c {
-														routedCluster[c.Name] = struct{}{}
-													}
-												}
-											}
-										}
-									}
-
-									hcmAny, err := utils.MessageToAny(hcm)
-									if err != nil {
-										return "", err
-									}
-
-									f.ConfigType = &envoy_config_listener_v3.Filter_TypedConfig{
-										TypedConfig: hcmAny,
-									}
-								}
-							}
-						}
-
-					}
+			// We use Route Discovery Service (RDS) in lieu of static route table config, so we
+			// need to get the RouteConfiguration name to lookup in our Snapshot-provided routes,
+			// which contain what we serve over RDS.
+			routeConfigName := hcm.GetRds().RouteConfigName
+			if routeConfigName == "" {
+				continue
+			}
+			// Find matching route config from snapshot.
+			for _, rt := range routes {
+				r, ok := rt.ResourceProto().(*envoy_config_route_v3.RouteConfiguration)
+				if !ok {
+					return "", eris.New("found route with wrong type")
 				}
 
+				if r.Name != routeConfigName {
+					// These aren't the routes you're looking for.
+					continue
+				}
+
+				// Add clusters targeted by routes on this config to our aggregate list of all targeted clusters
+				findTargetedClusters(r, routedCluster)
+
+				// We need to add our route table as a static config to this hcm instead of
+				// relying on RDS, the we pack it back up and set it back on the filter chain.
+				if err = setStaticRouteConfig(f, hcm, r); err != nil {
+					return "", err
+				}
 			}
+
 		}
 	}
 
+	// Next, we will look through our Snapshot's clusters and delete the ones which are
+	// already routed to.
 	for _, cl := range clusters {
-		c := cl.ResourceProto().(*envoy_config_cluster_v3.Cluster)
-		// remove existing clusters
+		c, ok := cl.ResourceProto().(*envoy_config_cluster_v3.Cluster)
+		if !ok {
+			return "", eris.New("found cluster with wrong type")
+		}
+
 		delete(routedCluster, c.Name)
+
+		// We use Endpoint Discovery Service (EDS) in lieu of static endpoint config, so we
+		// need to get the EDS ServiceName name to lookup in our Snapshot-provided endpoints,
+		// which contain what we serve over EDS.
 		if c.GetEdsClusterConfig() != nil {
-			name := c.Name
-			if n2 := c.GetEdsClusterConfig().GetServiceName(); n2 != "" {
-				name = n2
+			clusterName := c.Name
+			if edsServiceName := c.GetEdsClusterConfig().GetServiceName(); edsServiceName != "" {
+				clusterName = edsServiceName
 			}
 
-			// find endpoints
+			// Find endpoints matching our EDS config and convert the cluster to use
+			// static endpoint config matching that which would have been served over EDS.
 			for _, en := range endpoints {
-				e := en.ResourceProto().(*envoy_config_endpoint_v3.ClusterLoadAssignment)
-				if e.ClusterName == name {
+				e, ok := en.ResourceProto().(*envoy_config_endpoint_v3.ClusterLoadAssignment)
+				if !ok {
+					return "", eris.New("found endpoint with wrong type")
+				}
+				if e.ClusterName == clusterName {
 					c.LoadAssignment = e
 					c.EdsClusterConfig = nil
 					c.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
@@ -149,9 +167,10 @@ func buildEntireBootstrap(
 
 		}
 	}
-	// routedClusters now contains clusters that have a route but no cluster.
-	// these are effectively blackhole clusters. in static mode, envoy won't start without them
-	// so just add them as blackhole clusters
+	// We now need to find clusters which do not exist, even though they are targeted by
+	// a route. In static mode, envoy won't start without these. At this point in the
+	// processing, routedClusters holds this list, so we range over the map and create
+	// blackhole clusters for these routes to target.
 	for c := range routedCluster {
 		clusters[c] = resource.NewEnvoyResource(&envoy_config_cluster_v3.Cluster{
 			Name: c,
@@ -165,6 +184,9 @@ func buildEntireBootstrap(
 		})
 	}
 
+	// Because our snapshot provided us with abstractions over our resources,
+	// we need to convert them to slices of pointers to their concrete types
+	// in order to include them in the bootstrap struct.
 	var concreteListeners []*envoy_config_listener_v3.Listener
 	for _, v := range listeners {
 		l := v.ResourceProto().(*envoy_config_listener_v3.Listener)
@@ -175,10 +197,12 @@ func buildEntireBootstrap(
 		c := v.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 		concreteClusters = append(concreteClusters, c)
 	}
+
+	// Finally, we build the static bootstrap config holding all of our converted xDS config.
 	bs := envoy_config_bootstrap_v3.Bootstrap{
 		Node: &envoy_config_core_v3.Node{
-			Id:      "test-id",
-			Cluster: "test-cluster",
+			Id:      "validation-id",
+			Cluster: "validation-cluster",
 		},
 		Admin: &envoy_config_bootstrap_v3.Admin{
 			Address: &envoy_config_core_v3.Address{
@@ -206,4 +230,66 @@ func buildEntireBootstrap(
 
 	return string(j), nil
 
+}
+
+func getHcmForFilterChain(fc *envoy_config_listener_v3.FilterChain) (
+	*envoy_extensions_filters_network_http_connection_manager_v3.HttpConnectionManager,
+	*envoy_config_listener_v3.Filter,
+	error,
+) {
+
+	for _, f := range fc.Filters {
+
+		if f.GetTypedConfig().TypeUrl == "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager" {
+			hcmAny, err := utils.AnyToMessage(f.GetTypedConfig())
+			if err != nil {
+				return nil, nil, err
+			}
+			if hcm, ok := hcmAny.(*envoy_extensions_filters_network_http_connection_manager_v3.HttpConnectionManager); ok {
+				return hcm, f, nil
+			} else {
+				return nil, nil, eris.New("hcm config casting to concrete failed; likely wrong type")
+			}
+		}
+	}
+	return nil, nil, errNoHcm
+}
+
+func findTargetedClusters(r *envoy_config_route_v3.RouteConfiguration, routedCluster map[string]struct{}) {
+	for _, v := range r.VirtualHosts {
+		for _, r := range v.Routes {
+			if r.GetRoute() == nil {
+				continue
+			}
+
+			if c := r.GetRoute().GetCluster(); c != "" {
+				routedCluster[c] = struct{}{}
+			}
+			if wc := r.GetRoute().GetWeightedClusters().GetClusters(); len(wc) != 0 {
+				for _, c := range wc {
+					routedCluster[c.Name] = struct{}{}
+				}
+			}
+		}
+	}
+}
+
+func setStaticRouteConfig(
+	f *envoy_config_listener_v3.Filter,
+	hcm *envoy_extensions_filters_network_http_connection_manager_v3.HttpConnectionManager,
+	r *envoy_config_route_v3.RouteConfiguration,
+) error {
+	hcm.RouteSpecifier = &envoy_extensions_filters_network_http_connection_manager_v3.HttpConnectionManager_RouteConfig{
+		RouteConfig: r,
+	}
+
+	hcmAny, err := utils.MessageToAny(hcm)
+	if err != nil {
+		return err
+	}
+
+	f.ConfigType = &envoy_config_listener_v3.Filter_TypedConfig{
+		TypedConfig: hcmAny,
+	}
+	return nil
 }
