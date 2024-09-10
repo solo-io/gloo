@@ -127,9 +127,9 @@ var _ = Describe("Settings", func() {
 				Expect(GenerateNamespacesToWatch(settings, namespaces)).To(Equal([]string{"test", "gloo-system"}))
 			})
 
-			It("should return an empty list of watchNamespaces and watchNamespaceSelector are not defined", func() {
+			It("should return nil if watchNamespaces and watchNamespaceSelector are not defined", func() {
 				settings = &v1.Settings{}
-				Expect(GenerateNamespacesToWatch(settings, namespaces)).To(Equal([]string{}))
+				Expect(GenerateNamespacesToWatch(settings, namespaces)).To(BeNil())
 			})
 
 			It("should return namespaces that match watchNamespaceSelector", func() {
