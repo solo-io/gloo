@@ -80,7 +80,7 @@ func IsAllNamespaces(watchNs []string) bool {
 
 // GenerateNamespacesToWatch generates the list of namespaces to watch based on :
 // - If `watchNamespaces` is defined, return it and do not consider `watchNamespaceSelectors`
-// - If `watchNamespaces` and `watchNamespaceSelectors` are not defined, return all namespaces
+// - If `watchNamespaces` and `watchNamespaceSelectors` are not defined, return `watchNamespaces` for backward compatibility
 // - If `watchNamespaces` is not defined and `watchNamespaceSelectors` is defined, return all namespaces that match the `watchNamespaceSelectors`
 // In every case, the `discoveryNamespace` (defaults to `gloo-system`) is appended to the list of namespaces
 func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNamespaceList) ([]string, error) {
@@ -92,9 +92,10 @@ func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.Kube
 		return utils_namespaces.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace), nil
 	}
 
-	// Watch all namespaces if `watchNamespaces` or `watchNamespaceSelectors` is not specified
+	// If neither `watchNamespaces` nor `watchNamespaceSelectors` is specified, return `watchNamespaces`
+	// for backward compatibility. This could either be nil or an empty list.
 	if len(settings.GetWatchNamespaceSelectors()) == 0 {
-		return []string{}, nil
+		return settings.GetWatchNamespaces(), nil
 	}
 
 	var selectors []labels.Selector
