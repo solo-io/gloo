@@ -406,7 +406,7 @@ jobs:
         kube-version: [ { node: 'v1.25.16@sha256:5da57dfc290ac3599e775e63b8b6c49c0c85d3fec771cd7d55b45fae14b38d3b', kubectl: 'v1.25.16', kind: 'v0.20.0', helm: 'v3.13.2' },
                         { node: 'v1.29.2@sha256:51a1434a5397193442f0be2a297b488b6c919ce8a3931be0ce822606ea5ca245', kubectl: 'v1.29.2', kind: 'v0.20.0', helm: 'v3.14.4' }]
         image-variant:
-          - standard
+        - standard
         profile:
         - standard
     steps:
@@ -414,6 +414,10 @@ jobs:
       with:
         ref: main
     - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
+      with:
+        kube-version: ${{ matrix.kube-version }}
+        image-variant: ${{ matrix.image-variant }}
+        profile: ${{ matrix.profile }}
 
   kube_gateway_api_conformance_tests_17:
     name: Conformance (branch=v1.17.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
@@ -427,8 +431,6 @@ jobs:
                         { node: 'v1.29.2@sha256:51a1434a5397193442f0be2a297b488b6c919ce8a3931be0ce822606ea5ca245', kubectl: 'v1.29.2', kind: 'v0.20.0', helm: 'v3.14.4' } ]
         image-variant:
           - standard
-        # profile:
-        # - standard
     steps:
       - uses: actions/checkout@v4
         with:

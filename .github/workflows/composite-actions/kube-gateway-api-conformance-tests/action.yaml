@@ -1,5 +1,40 @@
 name: Conformance Tests
-description: run kubernetes gateway api conformance tests
+description: Run the Kubernetes gateway api conformance tests
+inputs:
+  kube-version:
+    description: "The version of Kubernetes to use."
+    required: true
+    type: object
+    properties:
+      node:
+        description: "The version of the Kubernetes node image to use."
+        required: true
+        type: string
+      kubectl:
+        description: "The version of kubectl to use."
+        required: true
+        type: string
+      kind:
+        description: "The version of kind to use."
+        required: true
+        type: string
+      helm:
+        description: "The version of helm to use."
+        required: true
+        type: string
+  image-variant:
+    description: "The image variant to use."
+    required: false
+    default: "standard"
+  profile:
+    description: "The conformance profile to run."
+    required: false
+    default: "standard"
+  version:
+    description: "The Gloo Gateway release tag to deploy and test. Defaults to main"
+    required: false
+    type: string
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -9,54 +44,57 @@ runs:
     uses: helm/kind-action@v1.10.0
     with:
       install_only: true
-      version: ${{ matrix.kube-version.kind }}
+      version: ${{ inputs.kube-version.kind }}
   - uses: azure/setup-kubectl@v4
     id: kubectl
     with:
-      version: ${{ matrix.kube-version.kubectl }}
+      version: ${{ inputs.kube-version.kubectl }}
   - uses: azure/setup-helm@v4
     with:
-      version: ${{ matrix.kube-version.helm }}
+      version: ${{ inputs.kube-version.helm }}
   - name: Set and retrieve environment variables
     shell: bash
     run: |
       # We want to conditionally set the VERSION variable based on the matrix value
-      if [[ -z "${{ matrix.version }}" ]]; then
+      if [[ -z "${{ inputs.version }}" ]]; then
         echo "VERSION=$(make print-VERSION)" >> $GITHUB_ENV
       else
         # else, set the VERSION variable to the matrix value and
         # skip the docker build step so we use real image tags from
         # the helm repository.
-        echo "VERSION=${{ matrix.version }}" >> $GITHUB_ENV
+        echo "VERSION=${{ inputs.version }}" >> $GITHUB_ENV
         echo "SKIP_DOCKER=true" >> $GITHUB_ENV
       fi
   - name: Setup test env
     shell: bash
     env:
-      CLUSTER_NODE_VERSION: ${{ matrix.kube-version.node }}
-      IMAGE_VARIANT: ${{ matrix.image-variant }}
+      CLUSTER_NODE_VERSION: ${{ inputs.kube-version.node }}
+      IMAGE_VARIANT: ${{ inputs.image-variant }}
       CONFORMANCE: "true"
     run: ./ci/kind/setup-kind.sh
   - name: Install Gloo Gateway with the k8s gateway integration enabled
     shell: bash
     run: |
-      if [[ -z "${{ matrix.version }}" ]]; then
-        # If matrix.version is empty, use the local chart path specified in the Makefile.
+      if [[ -z "${{ inputs.version }}" ]]; then
+        # If input.version is empty, use the local chart path specified in the Makefile.
         helm upgrade -i -n gloo-system gloo ./_test/gloo-${VERSION}.tgz --create-namespace \
           --set kubeGateway.enabled=true \
-          --set global.image.variant=${{ matrix.image-variant }}
+          --set global.image.variant=${{ inputs.image-variant }}
       else
         # Else, use the provided version to install Gloo from the helm repository.
         helm upgrade -i -n gloo-system gloo gloo/gloo --version ${VERSION} --create-namespace \
           --set kubeGateway.enabled=true \
-          --set global.image.variant=${{ matrix.image-variant }}
+          --set global.image.variant=${{ inputs.image-variant }}
       fi
   - name: Run the kubernetes gateway API conformance tests
     shell: bash
     run: |
       # Default to the standard profile if none is provided. Otherwise,
       # assume the profile is experimental.
-      if [[ -z ${{ matrix.profile }} ]]; then
+      #
+      # Note(tim): This will all be refactored once we adopt the GW API
+      # v1.1 release.
+      if [[ -z ${{ inputs.profile }} || ${{ inputs.profile }} == "standard" ]]; then
         make conformance
       else
         make conformance-experimental
@@ -64,10 +102,13 @@ runs:
   - name: Capture debug information when tests fail
     if: ${{ failure() }}
     shell: bash
-    run: kubectl -n gloo-system  get events --sort-by='{.lastTimestamp}'
+    run: kubectl -n gloo-system get events --sort-by='{.lastTimestamp}'
+  # TODO: Should we set an output for this workflow and let the calling workflows
+  # handle the upload of the conformance report?
   - name: Upload conformace reports if profile is experimental
-    if: "${{ matrix.profile == 'experimental' }}"
+    if: "${{ inputs.profile == 'experimental' }}"
+    # TODO(tim): how does this work with the matrix? do we risk overwriting the report?
     uses: actions/upload-artifact@v4
     with:
       name: conformance-gloo-gateway-report
-      path: _test/conformance/report.yaml
+      path: _test/conformance/${{ env.VERSION }}-report.yaml

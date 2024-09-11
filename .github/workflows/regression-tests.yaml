@@ -69,7 +69,7 @@ jobs:
         echo "Regression tests auto-succeeded"
 
   kube_gateway_api_conformance_tests:
-    name: kubernetes gateway api conformance tests (${{matrix.image-variant}})
+    name: kubernetes gateway api conformance tests (${{ matrix.image-variant }})
     needs: prepare_env
     runs-on: ubuntu-22.04
     timeout-minutes: 60
@@ -81,7 +81,7 @@ jobs:
         # use standard since other variants don't currently work with these tests
         # (see https://github.com/solo-io/solo-projects/issues/6094)
         image-variant:
-          - standard
+        - standard
         profile:
         - standard
     steps:
@@ -93,3 +93,7 @@ jobs:
     - id: run-tests
       if: needs.prepare_env.outputs.should-auto-succeed-regression-tests != 'true'
       uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
+      with:
+        kube-version: ${{ matrix.kube-version }}
+        image-variant: ${{ matrix.image-variant }}
+        profile: ${{ matrix.profile }}

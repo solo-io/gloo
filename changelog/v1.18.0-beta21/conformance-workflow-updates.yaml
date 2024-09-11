@@ -1,0 +1,10 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/6334
+    resolvesIssue: false
+    description: >-
+      Update the conformance workflow to use the "input" syntax instead
+      of the "matrix" syntax. Additionally, fix the default logic that
+      determines which suite invariant to run. Previously, this would
+      default to the "experimental" suite when no profile was provided,
+      but that's the incorrect behavior.
