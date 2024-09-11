@@ -6,7 +6,9 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	utils_namespaces "github.com/solo-io/gloo/pkg/utils/namespaces"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -183,6 +185,16 @@ func GetNamespacesToWatch(settings *v1.Settings) []string {
 		currentNamespacesToWatch, ok := ns.([]string)
 		if ok {
 			return currentNamespacesToWatch
+		}
+	}
+
+	// Running edge in KubeGateway mode ignores watchNamespaces so short circuit.
+	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
+		return settings.GetWatchNamespaces()
+	} else {
+		// Another short circuit to avoid creating the namespace client
+		if len(settings.GetWatchNamespaces()) != 0 {
+			return settings.GetWatchNamespaces()
 		}
 	}
 
