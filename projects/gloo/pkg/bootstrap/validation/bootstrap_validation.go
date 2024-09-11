@@ -110,7 +110,7 @@ func BootstrapFromSnapshot(
 	// Gather up all of the clusters that we target with RouteConfigs that are associated with a FilterChain.
 	for _, v := range listeners {
 		l := v.ResourceProto().(*envoy_config_listener_v3.Listener)
-		for _, fc := range l.FilterChains {
+		for _, fc := range l.GetFilterChains() {
 			// Get the HttpConnectionManager for this FilterChain if it exists.
 			hcm, f, err := getHcmForFilterChain(fc)
 			if err != nil {
@@ -125,7 +125,7 @@ func BootstrapFromSnapshot(
 			// We use Route Discovery Service (RDS) in lieu of static route table config, so we
 			// need to get the RouteConfiguration name to lookup in our Snapshot-provided routes,
 			// which contain what we serve over RDS.
-			routeConfigName := hcm.GetRds().RouteConfigName
+			routeConfigName := hcm.GetRds().GetRouteConfigName()
 			if routeConfigName == "" {
 				continue
 			}
@@ -136,7 +136,7 @@ func BootstrapFromSnapshot(
 					return nil, eris.New("found route with wrong type")
 				}
 
-				if r.Name != routeConfigName {
+				if r.GetName() != routeConfigName {
 					// These aren't the routes you're looking for.
 					continue
 				}
@@ -162,13 +162,13 @@ func BootstrapFromSnapshot(
 			return nil, eris.New("found cluster with wrong type")
 		}
 
-		delete(routedCluster, c.Name)
+		delete(routedCluster, c.GetName())
 
 		// We use Endpoint Discovery Service (EDS) in lieu of static endpoint config, so we
 		// need to get the EDS ServiceName name to lookup in our Snapshot-provided endpoints,
 		// which contain what we serve over EDS.
 		if c.GetEdsClusterConfig() != nil {
-			clusterName := c.Name
+			clusterName := c.GetName()
 			if edsServiceName := c.GetEdsClusterConfig().GetServiceName(); edsServiceName != "" {
 				clusterName = edsServiceName
 			}
@@ -180,7 +180,7 @@ func BootstrapFromSnapshot(
 				if !ok {
 					return nil, eris.New("found endpoint with wrong type")
 				}
-				if e.ClusterName == clusterName {
+				if e.GetClusterName() == clusterName {
 					c.LoadAssignment = e
 					c.EdsClusterConfig = nil
 					c.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
@@ -256,9 +256,9 @@ func getHcmForFilterChain(fc *envoy_config_listener_v3.FilterChain) (
 	error,
 ) {
 
-	for _, f := range fc.Filters {
+	for _, f := range fc.GetFilters() {
 
-		if f.GetTypedConfig().TypeUrl == "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager" {
+		if f.GetTypedConfig().GetTypeUrl() == "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager" {
 			hcmAny, err := utils.AnyToMessage(f.GetTypedConfig())
 			if err != nil {
 				return nil, nil, err
@@ -274,8 +274,8 @@ func getHcmForFilterChain(fc *envoy_config_listener_v3.FilterChain) (
 }
 
 func findTargetedClusters(r *envoy_config_route_v3.RouteConfiguration, routedCluster map[string]struct{}) {
-	for _, v := range r.VirtualHosts {
-		for _, r := range v.Routes {
+	for _, v := range r.GetVirtualHosts() {
+		for _, r := range v.GetRoutes() {
 			if r.GetRoute() == nil {
 				continue
 			}
@@ -285,7 +285,7 @@ func findTargetedClusters(r *envoy_config_route_v3.RouteConfiguration, routedClu
 			}
 			if wc := r.GetRoute().GetWeightedClusters().GetClusters(); len(wc) != 0 {
 				for _, c := range wc {
-					routedCluster[c.Name] = struct{}{}
+					routedCluster[c.GetName()] = struct{}{}
 				}
 			}
 		}
