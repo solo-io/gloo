@@ -195,7 +195,10 @@ func GetNamespacesToWatch(settings *v1.Settings) []string {
 
 	// Another short circuit to avoid creating the namespace client
 	if len(settings.GetWatchNamespaces()) != 0 {
-		return settings.GetWatchNamespaces()
+		// Prevent an error where the controller can not read resources written by discovery
+		// if the install or discovery namespace is not watched
+		writeNamespace := generateDiscoveryNamespace(settings)
+		return utils_namespaces.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace)
 	}
 
 	// Fallback to fetching all namespaces and updating the cache if not found
