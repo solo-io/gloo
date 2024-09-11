@@ -255,6 +255,10 @@ spec:
           - name: HEADER_SECRET_REF_NS_MATCHES_US
             value: "true"
         {{- end}}
+        {{- if .Values.experimental.fullEnvoyValidationUnstable }}
+          - name: GG_EXPERIMENTAL_FULL_ENVOY_VALIDATION
+            value: "true"
+        {{- end}}
 {{- if not .Values.global.glooMtls.enabled }}
         readinessProbe:
           tcpSocket:

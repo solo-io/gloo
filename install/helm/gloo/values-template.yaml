@@ -320,3 +320,7 @@ global:
   additionalLabels: {}
   # securitySettings defines global security settings such as `floatingUserId`
   securitySettings: {}
+
+# experimental holds settings which configure features that are not production ready
+experimental:
+  fullEnvoyValidationUnstable: false

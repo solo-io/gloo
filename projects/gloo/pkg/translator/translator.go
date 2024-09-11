@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/solo-io/gloo/pkg/utils/api_conversion"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
@@ -16,6 +17,7 @@ import (
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/proto"
 	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	validationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	bootstrapvalidation "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/validation"
@@ -55,6 +57,7 @@ type translatorInstance struct {
 	settings                  *v1.Settings
 	hasher                    func(resources []envoycache.Resource) (uint64, error)
 	listenerTranslatorFactory *ListenerSubsystemTranslatorFactory
+	// TODO(jbohanon) include a validator here
 }
 
 func NewDefaultTranslator(settings *v1.Settings, pluginRegistry plugins.PluginRegistry) *translatorInstance {
@@ -129,8 +132,10 @@ func (t *translatorInstance) Translate(
 		}
 	}
 
-	if err := bootstrapvalidation.ValidateSnapshotAsBootstrap(ctx, xdsSnapshot); err != nil {
-		reports.AddError(proxy, err)
+	if envutils.IsEnvTruthy(constants.GlooGatewayFullEnvoyValidationEnv) {
+		if err := bootstrapvalidation.ValidateSnapshot(ctx, xdsSnapshot); err != nil {
+			reports.AddError(proxy, err)
+		}
 	}
 
 	return xdsSnapshot, reports, proxyReport

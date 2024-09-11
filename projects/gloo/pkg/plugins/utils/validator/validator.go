@@ -6,7 +6,9 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
+
 	"github.com/solo-io/go-utils/contextutils"
+
 	"go.opencensus.io/stats"
 	"google.golang.org/protobuf/runtime/protoiface"
 	"k8s.io/utils/lru"
@@ -21,9 +23,13 @@ type Validator interface {
 	// ValidateConfig validates the given envoy config and returns any out and error from envoy. Returns nil if the envoy binary is not found.
 	ValidateConfig(ctx context.Context, config HashableProtoMessage) error
 
+	//TODO(jbohanon) include a ValidateSnapshot function here
+
 	// CacheLength returns the returns the number of items in the cache
 	CacheLength() int
 }
+
+var _ Validator = new(validator)
 
 type validator struct {
 	filterName string

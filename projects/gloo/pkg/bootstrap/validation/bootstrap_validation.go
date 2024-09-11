@@ -3,7 +3,7 @@ package validation
 import (
 	"context"
 	"errors"
-	"log"
+	"fmt"
 	"os"
 	"os/exec"
 
@@ -39,7 +39,8 @@ func getEnvoyPath() string {
 
 func ValidateBootstrap(ctx context.Context, bootstrap string) error {
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Debugf("validating with envoy \n\n%s", bootstrap)
+	fmt.Println("validating with envoy:")
+	fmt.Println(bootstrap)
 
 	envoyPath := getEnvoyPath()
 	validateCmd := exec.Command(envoyPath, "--mode", "validate", "--config-yaml", bootstrap, "-l", "critical", "--log-format", "%v")
@@ -54,14 +55,15 @@ func ValidateBootstrap(ctx context.Context, bootstrap string) error {
 		}
 		return eris.Errorf("envoy validation mode output: %v, error: %v", string(output), err)
 	}
-	log.Println(output)
+	fmt.Println("envoy validation output:")
+	fmt.Println(string(output))
 	return nil
 }
 
-// ValidateSnapshotAsBootstrap accepts an xDS snapshot, clones it, and does the necessary
+// ValidateSnapshot accepts an xDS snapshot, clones it, and does the necessary
 // conversions to imitate the same config being provided as static bootsrap config to
 // Envoy, then executes Envoy in validate mode to ensure the config is valid.
-func ValidateSnapshotAsBootstrap(
+func ValidateSnapshot(
 	ctx context.Context,
 	snap envoycache.Snapshot,
 ) error {
