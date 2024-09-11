@@ -217,7 +217,7 @@ func labelSelectorsAsSelectors(labelSelectors []*v1.LabelSelector) ([]labels.Sel
 	return selectors, nil
 }
 
-// Copied over from k8s.io/apimachinery
+// Copied over from https://github.com/istio/istio/blob/cef09ad2a487d829d36a72779bd936412dd82102/pkg/kube/namespace/filter.go#L152-L190
 func labelSelectorAsSelector(labelSelectors *v1.LabelSelector) (labels.Selector, error) {
 	if labelSelectors == nil {
 		return labels.Nothing(), nil

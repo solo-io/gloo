@@ -272,7 +272,7 @@ func generateRules(skipDeleteReources []string) string {
 	for i, rule := range rules {
 		if stringutils.ContainsAny([]string{rule["resources"][0], "*"}, skipDeleteReources) {
 			rule["operations"] = gloostringutils.DeleteOneByValue(rule["operations"], "DELETE")
-			// A namespace with an updated to a label can cause it to no longer be watched,
+			// A namespace with an update to a label can cause it to no longer be watched,
 			// equivalent to deleting it from the controller's perspective
 			if rule["resources"][0] == "namespaces" {
 				rule["operations"] = gloostringutils.DeleteOneByValue(rule["operations"], "UPDATE")

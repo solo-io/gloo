@@ -467,7 +467,7 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 				KubeNamespace: namespace,
 			}
 			// At this point, any namespace update we receive is a result of modifying a namespace we watch
-			// So check if we still watch the namespace
+			// Check if we still watch the namespace after the modification
 			namespaceStillWatched, err := settingsutil.NamespaceWatched(settingsutil.FromContext(ctx), kns)
 			if err != nil {
 				return nil, &multierror.Error{Errors: []error{err}}
