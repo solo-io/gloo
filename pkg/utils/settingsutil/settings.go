@@ -29,8 +29,7 @@ var (
 	// - The new loop about to run when the settings have changed
 	namespacesToWatchCache = lru.New(2)
 
-	settingsKey     = settingsKeyStruct{}
-	namespaceClient kubernetes.KubeNamespaceClient
+	settingsKey = settingsKeyStruct{}
 )
 
 func WithSettings(ctx context.Context, settings *v1.Settings) context.Context {
@@ -166,9 +165,12 @@ func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNa
 }
 
 func getAllNamespaces() (kubernetes.KubeNamespaceList, error) {
-	if namespaceClient == nil {
-		namespaceClient = utils_namespaces.NewKubeNamespaceClient(context.TODO())
-	}
+	// Create a context and cancel it right after we get the list of namespaces
+	// to prevent goroutine leaks
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
+	namespaceClient := utils_namespaces.NewKubeNamespaceClient(ctx)
 	return namespaceClient.List(clients.ListOpts{})
 }
 
