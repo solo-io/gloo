@@ -167,6 +167,8 @@ func UpdateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.KubeNa
 func getAllNamespaces() (kubernetes.KubeNamespaceList, error) {
 	// Create a context and cancel it right after we get the list of namespaces
 	// to prevent goroutine leaks
+	// Since this method is called only when the cache isn't already populated (from the cli or e2e tests)
+	// this should not cause any issues
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
