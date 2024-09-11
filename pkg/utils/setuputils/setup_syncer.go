@@ -97,11 +97,7 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 // 2. A namespace is added / deleted / modified that changes the namespaces to watch
 func (s *SetupSyncer) ShouldSync(ctx context.Context, oldSnapshot, newSnapshot *v1.SetupSnapshot) bool {
 	// Basic sanity checks. Return a true if there is an error to ensure a sync to get into a good state
-	if oldSnapshot == nil {
-		return true
-	}
-
-	if newSnapshot == nil {
+	if oldSnapshot == nil || newSnapshot == nil {
 		return true
 	}
 
