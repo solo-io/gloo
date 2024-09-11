@@ -180,6 +180,10 @@ func getAllNamespaces() (kubernetes.KubeNamespaceList, error) {
 
 // GetNamespacesToWatch returns the list of namespaces to watch based on the last run of `GenerateNamespacesToWatch`
 func GetNamespacesToWatch(settings *v1.Settings) []string {
+	// Run this method synchronously to prevent any issues with caching the namespaces to watch
+	mu.Lock()
+	defer mu.Unlock()
+
 	ns, ok := namespacesToWatchCache.Get(settings.MustHash())
 	if ok {
 		currentNamespacesToWatch, ok := ns.([]string)
@@ -190,6 +194,7 @@ func GetNamespacesToWatch(settings *v1.Settings) []string {
 
 	// Running edge in KubeGateway mode ignores watchNamespaces so short circuit.
 	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
+		setNamespacesToWatch(settings, settings.GetWatchNamespaces())
 		return settings.GetWatchNamespaces()
 	}
 
@@ -198,7 +203,9 @@ func GetNamespacesToWatch(settings *v1.Settings) []string {
 		// Prevent an error where the controller can not read resources written by discovery
 		// if the install or discovery namespace is not watched
 		writeNamespace := generateDiscoveryNamespace(settings)
-		return utils_namespaces.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace)
+		namespaces := utils_namespaces.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace)
+		setNamespacesToWatch(settings, namespaces)
+		return namespaces
 	}
 
 	// Fallback to fetching all namespaces and updating the cache if not found
