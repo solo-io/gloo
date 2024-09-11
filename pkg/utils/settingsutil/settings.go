@@ -191,11 +191,11 @@ func GetNamespacesToWatch(settings *v1.Settings) []string {
 	// Running edge in KubeGateway mode ignores watchNamespaces so short circuit.
 	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
 		return settings.GetWatchNamespaces()
-	} else {
-		// Another short circuit to avoid creating the namespace client
-		if len(settings.GetWatchNamespaces()) != 0 {
-			return settings.GetWatchNamespaces()
-		}
+	}
+
+	// Another short circuit to avoid creating the namespace client
+	if len(settings.GetWatchNamespaces()) != 0 {
+		return settings.GetWatchNamespaces()
 	}
 
 	// Fallback to fetching all namespaces and updating the cache if not found
