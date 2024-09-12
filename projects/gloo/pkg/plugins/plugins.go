@@ -14,6 +14,10 @@ import (
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 )
 
+// SourceLabel can indicate internally the source resource that generated
+// a synthetic upstream.
+const UpstreamSourceLabel = "internal.solo.io/upstream-source"
+
 // Plugin is a named unit of translation, used to produce Envoy configuration
 type Plugin interface {
 	// Name returns a unique identifier for a plugin
@@ -211,6 +215,18 @@ type PluginRegistry interface {
 // A PluginRegistryFactory generates a PluginRegistry
 // It is executed each translation loop, ensuring we have up to date configuration of all plugins
 type PluginRegistryFactory func(ctx context.Context) PluginRegistry
+
+// FilterPlugins attempts to cast each plugin to the given type
+// and returns only elements that cast successfully.
+func FilterPlugins[T Plugin](plugins []Plugin) []T {
+	var out []T
+	for _, p := range plugins {
+		if t, ok := p.(T); ok {
+			out = append(out, t)
+		}
+	}
+	return out
+}
 
 // ExtendedFilterChain is a FilterChain with additional information
 // This extra information may not end up on the final filter chain

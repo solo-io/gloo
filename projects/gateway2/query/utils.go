@@ -11,6 +11,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+
+	istio "istio.io/client-go/pkg/apis/networking/v1beta1"
 )
 
 // ProcessBackendRef is meant to take the result of a call to `GetBackendForRef` as well as a reporter and the original ref.
@@ -28,6 +30,23 @@ func ProcessBackendRef(obj client.Object, err error, reporter reports.ParentRefR
 	case *gloov1.Upstream:
 		name := backendObj.GetName()
 		return &name
+
+	case *istio.ServiceEntry:
+		var port uint32
+		if backendRef.Port != nil {
+			port = uint32(*backendRef.Port)
+		}
+		if port == 0 {
+			reporter.SetCondition(reports.HTTPRouteCondition{
+				Type:    gwv1.RouteConditionResolvedRefs,
+				Status:  metav1.ConditionFalse,
+				Reason:  gwv1.RouteReasonUnsupportedValue,
+				Message: "invalid port value",
+			})
+		} else {
+			name := backendObj.GetName()
+			return &name
+		}
 	case *corev1.Service:
 		var port uint32
 		if backendRef.Port != nil {

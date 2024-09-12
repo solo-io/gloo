@@ -54,6 +54,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/tunneling"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/upstreamconn"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/virtualhost"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/serviceentry"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
 )
@@ -110,6 +111,7 @@ func Plugins(opts bootstrap.Opts) []plugins.Plugin {
 		deprecated_cipher_passthrough.NewPlugin(),
 		local_ratelimit.NewPlugin(),
 		istio_automtls.NewPlugin(opts.GlooGateway.IstioValues.SidecarOnGatewayEnabled),
+		serviceentry.NewPlugin(),
 	)
 
 	if opts.KubeClient != nil {

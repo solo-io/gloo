@@ -70,6 +70,8 @@ func (m *UpstreamSpec) Clone() proto.Message {
 		target.AutoSniRewrite = proto.Clone(m.GetAutoSniRewrite()).(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
 	}
 
+	target.IsMesh = m.GetIsMesh()
+
 	return target
 }
 
