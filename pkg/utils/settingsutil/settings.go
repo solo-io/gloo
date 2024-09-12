@@ -94,7 +94,7 @@ func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.Kube
 	// If neither `watchNamespaces` nor `watchNamespaceSelectors` is specified, return `watchNamespaces`
 	// for backward compatibility. This could either be nil or an empty list.
 	if len(settings.GetWatchNamespaceSelectors()) == 0 {
-		return settings.GetWatchNamespaces(), nil
+		return []string{}, nil
 	}
 
 	var selectors []labels.Selector

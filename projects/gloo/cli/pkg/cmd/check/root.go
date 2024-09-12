@@ -409,7 +409,7 @@ func checkPods(ctx context.Context, printer printers.P, opts *options.Options) e
 
 func getNamespaces(ctx context.Context, settings *v1.Settings) ([]string, error) {
 	namespaces := settingsutil.GetNamespacesToWatch(settings)
-	if namespaces != nil {
+	if len(namespaces) != 0 {
 		return namespaces, nil
 	}
 	return helpers.GetNamespaces(ctx)
