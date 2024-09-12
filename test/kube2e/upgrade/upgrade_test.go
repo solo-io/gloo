@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/helmutils"
+	"github.com/solo-io/skv2/codegen/util"
 
 	kubetestclients "github.com/solo-io/gloo/test/kubernetes/testutils/clients"
 
@@ -240,6 +241,9 @@ func updateValidationWebhookTests(ctx context.Context, crdDir string, kubeClient
 	secret, err = secretClient.Get(ctx, "gateway-validation-certs", metav1.GetOptions{})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(webhookConfig.Webhooks[0].ClientConfig.CABundle).To(Equal(secret.Data[corev1.ServiceAccountRootCAKey]))
+
+	By("accepts and adopts valid configuration after upgrade")
+
 }
 
 // ===================================
@@ -262,7 +266,7 @@ func getGlooServerVersion(ctx context.Context, namespace string) (v string) {
 func installGloo(testHelper *helper.SoloTestHelper, fromRelease string, strictValidation bool) {
 	cwd, err := os.Getwd()
 	Expect(err).NotTo(HaveOccurred(), "working dir could not be retrieved while installing gloo")
-	helmValuesFile := filepath.Join(cwd, "artifacts", "helm.yaml")
+	helmValuesFile := filepath.Join(cwd, "testdata", "helm.yaml")
 
 	// construct helm args
 	var args = []string{"install", testHelper.HelmChartName}
@@ -298,6 +302,10 @@ func installGloo(testHelper *helper.SoloTestHelper, fromRelease string, strictVa
 
 	// Check that everything is OK
 	checkGlooHealthy(testHelper)
+
+	// install assets
+	preUpgradeDataSetup(testHelper)
+
 }
 
 // CRDs are applied to a cluster when performing a `helm install` operation
@@ -355,6 +363,8 @@ func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, targetRelea
 
 	//Check that everything is OK
 	checkGlooHealthy(testHelper)
+
+	postUpgradeDataStep(testHelper)
 }
 
 func uninstallGloo(testHelper *helper.SoloTestHelper, ctx context.Context, cancel context.CancelFunc) {
@@ -435,4 +445,40 @@ func checkGlooHealthy(testHelper *helper.SoloTestHelper) {
 		runAndCleanCommand("kubectl", "rollout", "status", "deployment", "-n", testHelper.InstallNamespace, deploymentName)
 	}
 	kube2e.GlooctlCheckEventuallyHealthy(2, testHelper.InstallNamespace, "90s")
+}
+
+// ===================================
+// Resources for upgrade tests
+// ===================================
+// Sets up resources before upgrading
+
+// TODO(nfuden): either get this on testinstallation or entirely lift and shift the whole suite
+func preUpgradeDataSetup(testHelper *helper.SoloTestHelper) {
+	
+	//hello world example
+	resDirPath := filepath.Join(util.MustGetThisDir(), "testdata", "petstore")
+	resourceFiles, err := os.ReadDir(resDirPath)
+	Expect(err).To(BeNil())
+
+	// Note that this is really unclean, its not ordered and not our current standard.
+	for _, toApplyFile := range resourceFiles {
+		runAndCleanCommand("kubectl", "apply", "-f", filepath.Join(resDirPath ,toApplyFile)
+	}
+
+	checkGlooHealthy(testHelper)
+	validatePetstoreTraffic(testHelper, "/all-pets")
+}
+
+func postUpgradeDataStep(testHelper *helper.SoloTestHelper) {
+	//hello world example
+	resDirPath := filepath.Join(util.MustGetThisDir(), "testdata", "petstoreupdated")
+	resourceFiles, err := os.ReadDir(resDirPath)
+	Expect(err).To(BeNil())
+
+	// Note that this is really unclean, its not ordered and not our current standard.
+	for _, toApplyFile := range resourceFiles {
+		runAndCleanCommand("kubectl", "delete", "-f", filepath.Join(resDirPath ,toApplyFile)
+	}
+	checkGlooHealthy(testHelper)
+	validatePetstoreTraffic(testHelper, "/some-pets")
 }
