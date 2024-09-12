@@ -454,7 +454,7 @@ func checkGlooHealthy(testHelper *helper.SoloTestHelper) {
 
 // TODO(nfuden): either get this on testinstallation or entirely lift and shift the whole suite
 func preUpgradeDataSetup(testHelper *helper.SoloTestHelper) {
-	
+
 	//hello world example
 	resDirPath := filepath.Join(util.MustGetThisDir(), "testdata", "petstore")
 	resourceFiles, err := os.ReadDir(resDirPath)
@@ -462,7 +462,7 @@ func preUpgradeDataSetup(testHelper *helper.SoloTestHelper) {
 
 	// Note that this is really unclean, its not ordered and not our current standard.
 	for _, toApplyFile := range resourceFiles {
-		runAndCleanCommand("kubectl", "apply", "-f", filepath.Join(resDirPath ,toApplyFile)
+		runAndCleanCommand("kubectl", "apply", "-f", filepath.Join(resDirPath, toApplyFile.Name()))
 	}
 
 	checkGlooHealthy(testHelper)
@@ -477,7 +477,7 @@ func postUpgradeDataStep(testHelper *helper.SoloTestHelper) {
 
 	// Note that this is really unclean, its not ordered and not our current standard.
 	for _, toApplyFile := range resourceFiles {
-		runAndCleanCommand("kubectl", "delete", "-f", filepath.Join(resDirPath ,toApplyFile)
+		runAndCleanCommand("kubectl", "delete", "-f", filepath.Join(resDirPath, toApplyFile.Name()))
 	}
 	checkGlooHealthy(testHelper)
 	validatePetstoreTraffic(testHelper, "/some-pets")
