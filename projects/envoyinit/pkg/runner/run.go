@@ -30,7 +30,7 @@ const (
 func RunEnvoyValidate(ctx context.Context, envoyExecutable, bootstrapConfig string) error {
 	logger := contextutils.LoggerFrom(ctx)
 
-	validateCmd := cmdutils.Command(ctx, envoyExecutable, "--mode", "validate", "--config-yaml", bootstrapConfig, "-l", "critical")
+	validateCmd := cmdutils.Command(ctx, envoyExecutable, "--mode", "validate", "--config-yaml", bootstrapConfig, "-l", "critical", "--log-format", "%v")
 	if err := validateCmd.Run(); err != nil {
 		if os.IsNotExist(err) {
 			// log a warning and return nil; will allow users to continue to run Gloo locally without
