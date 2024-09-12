@@ -2,7 +2,6 @@ package validation
 
 import (
 	"context"
-	"os"
 
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/bootstrap"
 	"github.com/solo-io/gloo/pkg/utils/envutils"
@@ -22,15 +21,8 @@ const (
 	defaultEnvoyPath = "/usr/local/bin/envoy"
 )
 
-func getEnvoyPath() string {
-	if envutils.IsEnvDefined(constants.EnvoyBinaryEnv) {
-		return os.Getenv(constants.EnvoyBinaryEnv)
-	}
-	return defaultEnvoyPath
-}
-
 func ValidateBootstrap(ctx context.Context, bootstrap string) error {
-	return runner.RunEnvoyValidate(ctx, getEnvoyPath(), bootstrap)
+	return runner.RunEnvoyValidate(ctx, envutils.GetOrDefault(constants.EnvoyBinaryEnv, defaultEnvoyPath, false), bootstrap)
 }
 
 // ValidateSnapshot accepts an xDS snapshot, clones it, and does the necessary

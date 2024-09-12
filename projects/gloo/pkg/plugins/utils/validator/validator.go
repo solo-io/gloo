@@ -40,12 +40,9 @@ type validator struct {
 	// filterName to be used if validating a specific filter config
 	// e.g. for transformations or waf.
 	filterName string
-	// configCache is a map of: (config hash) -> error state
+	// lruCache is a map of: (config hash) -> error state
 	// this is usually a typed error but may be an untyped nil interface
-	configCache *lru.Cache
-	// configCache is a map of: (config hash) -> error state
-	// this is usually a typed error but may be an untyped nil interface
-	snapshotCache *lru.Cache
+	lruCache *lru.Cache
 	// Counter to increment on cache hits
 	cacheHits *stats.Int64Measure
 	// Counter to increment on cache misses
@@ -59,7 +56,7 @@ func New(name string, opts ...Option) validator {
 	cfg := processOptions(name, opts...)
 	return validator{
 		filterName:  cfg.filterName,
-		configCache: lru.New(cfg.cacheSize),
+		lruCache:    lru.New(cfg.cacheSize),
 		cacheHits:   cfg.cacheHits,
 		cacheMisses: cfg.cacheMisses,
 		hasher:      cfg.hasher,
@@ -81,7 +78,7 @@ func (v validator) ValidateConfig(ctx context.Context, config HashableProtoMessa
 	}
 
 	// This proto has already been validated, return the result
-	if err, ok := v.configCache.Get(hash); ok {
+	if err, ok := v.lruCache.Get(hash); ok {
 		statsutils.MeasureOne(
 			ctx,
 			v.cacheHits,
@@ -102,7 +99,7 @@ func (v validator) ValidateConfig(ctx context.Context, config HashableProtoMessa
 	}
 
 	err = envoyvalidation.ValidateBootstrap(ctx, filterBootstrap)
-	v.configCache.Add(hash, err)
+	v.lruCache.Add(hash, err)
 	return err
 }
 
@@ -114,7 +111,7 @@ func (v validator) ValidateSnapshot(ctx context.Context, snap HashableSnapshot) 
 	}
 
 	// This proto has already been validated, return the result
-	if err, ok := v.snapshotCache.Get(hash); ok {
+	if err, ok := v.lruCache.Get(hash); ok {
 		statsutils.MeasureOne(
 			ctx,
 			v.cacheHits,
@@ -130,12 +127,12 @@ func (v validator) ValidateSnapshot(ctx context.Context, snap HashableSnapshot) 
 	)
 
 	err = envoyvalidation.ValidateSnapshot(ctx, snap)
-	v.snapshotCache.Add(hash, err)
+	v.lruCache.Add(hash, err)
 	return err
 }
 
 func (v validator) CacheLength() int {
-	return v.configCache.Len()
+	return v.lruCache.Len()
 }
 
 func NewHashableSnapshot(snap envoycache.Snapshot) *hashableSnapshot {
