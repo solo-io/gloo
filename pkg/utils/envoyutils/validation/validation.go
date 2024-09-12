@@ -20,13 +20,11 @@ const (
 	// projects/envoyinit/cmd/Dockerfile.envoyinit
 	// https://github.com/solo-io/envoy-gloo/blob/v1.30.4-patch5/ci/Dockerfile
 	defaultEnvoyPath = "/usr/local/bin/envoy"
-
-	envoyPathEnv = constants.EnvoyBinaryEnv
 )
 
 func getEnvoyPath() string {
-	if envutils.IsEnvDefined(envoyPathEnv) {
-		return os.Getenv(envoyPathEnv)
+	if envutils.IsEnvDefined(constants.EnvoyBinaryEnv) {
+		return os.Getenv(constants.EnvoyBinaryEnv)
 	}
 	return defaultEnvoyPath
 }

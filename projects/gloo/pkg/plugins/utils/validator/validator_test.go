@@ -30,8 +30,8 @@ var _ = Describe("Validator", func() {
 		mCacheHits := statsutils.MakeSumCounter(cacheHitsName, "The number of cache hits while validating test config")
 		mCacheMisses := statsutils.MakeSumCounter(cacheMissesName, "The number of cache misses while validating test config")
 
-		validator := New("test", "test",
-			WithCounters(mCacheHits, mCacheMisses))
+		validator := New("test",
+			WithCounters(mCacheHits, mCacheMisses), WithFilterName("test"))
 		Expect(validator.CacheLength()).To(Equal(0))
 
 		validator.ValidateConfig(ctx, testProto)
@@ -75,7 +75,7 @@ var _ = Describe("Validator", func() {
 	})
 
 	It("creates its own counters", func() {
-		validator := New("custom", "custom")
+		validator := New("custom", WithFilterName("custom"))
 
 		cacheHitsName := "gloo.solo.io/custom_validation_cache_hits"
 		cacheMissesName := "gloo.solo.io/custom_validation_cache_misses"

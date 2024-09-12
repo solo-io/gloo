@@ -1841,9 +1841,9 @@ var _ = Describe("Translator", func() {
 			filterMetadata := claConfiguration.Endpoints[0].LbEndpoints[0].GetMetadata().GetFilterMetadata()
 
 			Expect(filterMetadata).NotTo(BeNil())
-			Expect(filterMetadata).To(HaveKey(SoloAnnotations))
-			Expect(filterMetadata[SoloAnnotations].Fields).To(HaveKey("testkey"))
-			Expect(filterMetadata[SoloAnnotations].Fields["testkey"].GetStringValue()).To(Equal("testvalue"))
+			Expect(filterMetadata).To(HaveKey(constants.SoloAnnotations))
+			Expect(filterMetadata[constants.SoloAnnotations].Fields).To(HaveKey("testkey"))
+			Expect(filterMetadata[constants.SoloAnnotations].Fields["testkey"].GetStringValue()).To(Equal("testvalue"))
 		})
 	})
 

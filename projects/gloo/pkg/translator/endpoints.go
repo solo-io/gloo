@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	EnvoyLb         = "envoy.lb"
-	SoloAnnotations = "io.solo.annotations"
+	EnvoyLb = "envoy.lb"
+	// Deprecated. Use projects/gloo/constants.SoloAnnotations
+	SoloAnnotations = constants.SoloAnnotations
 
 	EnvoyTransportSocketMatch = "envoy.transport_socket_match"
 )
