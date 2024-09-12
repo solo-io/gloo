@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"hash"
 
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	"go.opencensus.io/stats"
@@ -11,6 +12,8 @@ type config struct {
 	cacheHits   *stats.Int64Measure
 	cacheMisses *stats.Int64Measure
 	cacheSize   int
+	hasher      hash.Hash64
+	filterName  string
 }
 
 type Option func(*config)
@@ -25,6 +28,18 @@ func WithCounters(cacheHits, cacheMisses *stats.Int64Measure) Option {
 func WithCacheSize(size int) Option {
 	return func(s *config) {
 		s.cacheSize = size
+	}
+}
+
+func WithHasher(h hash.Hash64) Option {
+	return func(c *config) {
+		c.hasher = h
+	}
+}
+
+func WithFilterName(n string) Option {
+	return func(c *config) {
+		c.filterName = n
 	}
 }
 

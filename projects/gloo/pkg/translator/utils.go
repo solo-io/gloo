@@ -1,9 +1,7 @@
 package translator
 
 import (
-	"fmt"
 	"net"
-	"strings"
 
 	errors "github.com/rotisserie/eris"
 
@@ -16,34 +14,16 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
+// Deprecated; use projects/gloo/pkg/utils.UpstreamToClusterName
 // returns the name of the cluster created for a given upstream
 func UpstreamToClusterName(upstream *core.ResourceRef) string {
-
-	// For non-namespaced resources, return only name
-	if upstream.GetNamespace() == "" {
-		return upstream.GetName()
-	}
-
-	// Don't use dots in the name as it messes up prometheus stats
-	return fmt.Sprintf("%s_%s", upstream.GetName(), upstream.GetNamespace())
+	return utils.UpstreamToClusterName(upstream)
 }
 
+// Deprecated; use projects/gloo/pkg/utils.ClusterToUpstreamRef
 // returns the ref of the upstream for a given cluster
 func ClusterToUpstreamRef(cluster string) (*core.ResourceRef, error) {
-
-	split := strings.Split(cluster, "_")
-	if len(split) > 2 || len(split) < 1 {
-		return nil, errors.Errorf("unable to convert cluster %s back to upstream ref", cluster)
-	}
-
-	ref := &core.ResourceRef{
-		Name: split[0],
-	}
-
-	if len(split) == 2 {
-		ref.Namespace = split[1]
-	}
-	return ref, nil
+	return utils.ClusterToUpstreamRef(cluster)
 }
 
 func NewFilterWithTypedConfig(name string, config proto.Message) (*envoy_config_listener_v3.Filter, error) {

@@ -1,8 +1,11 @@
 package utils
 
 import (
+	"fmt"
 	"sort"
+	"strings"
 
+	"github.com/pkg/errors"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	sk_resources "github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -77,4 +80,34 @@ func ResourceListToSecretList(resourceList sk_resources.ResourceList) gloov1.Sec
 		secretList = append(secretList, resource.(*gloov1.Secret))
 	}
 	return secretList
+}
+
+// returns the name of the cluster created for a given upstream
+func UpstreamToClusterName(upstream *core.ResourceRef) string {
+
+	// For non-namespaced resources, return only name
+	if upstream.GetNamespace() == "" {
+		return upstream.GetName()
+	}
+
+	// Don't use dots in the name as it messes up prometheus stats
+	return fmt.Sprintf("%s_%s", upstream.GetName(), upstream.GetNamespace())
+}
+
+// returns the ref of the upstream for a given cluster
+func ClusterToUpstreamRef(cluster string) (*core.ResourceRef, error) {
+
+	split := strings.Split(cluster, "_")
+	if len(split) > 2 || len(split) < 1 {
+		return nil, errors.Errorf("unable to convert cluster %s back to upstream ref", cluster)
+	}
+
+	ref := &core.ResourceRef{
+		Name: split[0],
+	}
+
+	if len(split) == 2 {
+		ref.Namespace = split[1]
+	}
+	return ref, nil
 }

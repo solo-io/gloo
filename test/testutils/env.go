@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"github.com/solo-io/gloo/pkg/utils/envutils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 )
 
 const (
@@ -50,7 +51,7 @@ const (
 	EnvoyImageTag = "ENVOY_IMAGE_TAG"
 
 	// EnvoyBinary is used in e2e tests to specify the path to the envoy binary to use for the tests
-	EnvoyBinary = "ENVOY_BINARY"
+	EnvoyBinary = constants.EnvoyBinaryEnv
 
 	// ConsulBinary is used in e2e tests to specify the path to the consul binary to use for the tests
 	ConsulBinary = "CONSUL_BINARY"

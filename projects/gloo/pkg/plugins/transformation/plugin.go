@@ -78,8 +78,8 @@ func NewPlugin() *Plugin {
 	mCacheMisses := statsutils.MakeSumCounter("gloo.solo.io/transformation_validation_cache_misses", "The number of cache misses while validating transformation config")
 
 	return &Plugin{
-		validator: validator.New(ExtensionName, FilterName,
-			validator.WithCounters(mCacheHits, mCacheMisses)),
+		validator: validator.New(ExtensionName,
+			validator.WithCounters(mCacheHits, mCacheMisses), validator.WithFilterName(FilterName)),
 	}
 }
 

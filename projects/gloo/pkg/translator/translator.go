@@ -20,8 +20,8 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	validationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	bootstrapvalidation "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/validation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils/validator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
@@ -57,7 +57,7 @@ type translatorInstance struct {
 	settings                  *v1.Settings
 	hasher                    func(resources []envoycache.Resource) (uint64, error)
 	listenerTranslatorFactory *ListenerSubsystemTranslatorFactory
-	// TODO(jbohanon) include a validator here
+	validator                 validator.Validator
 }
 
 func NewDefaultTranslator(settings *v1.Settings, pluginRegistry plugins.PluginRegistry) *translatorInstance {
@@ -76,6 +76,9 @@ func NewTranslatorWithHasher(
 		settings:                  settings,
 		hasher:                    hasher,
 		listenerTranslatorFactory: NewListenerSubsystemTranslatorFactory(pluginRegistry, sslConfigTranslator, settings),
+		// TODO(jbohanon) rewire the resource hasher in this package to implement hash.Hash64.
+		// Until then, use the default fnv64 over the entire snapshot implemented in the validator.
+		validator: validator.New("translator", validator.WithHasher( /* hasher*/ nil)),
 	}
 }
 
@@ -133,7 +136,7 @@ func (t *translatorInstance) Translate(
 	}
 
 	if envutils.IsEnvTruthy(constants.GlooGatewayFullEnvoyValidationEnv) {
-		if err := bootstrapvalidation.ValidateSnapshot(ctx, xdsSnapshot); err != nil {
+		if err := t.validator.ValidateSnapshot(ctx, validator.NewHashableSnapshot(xdsSnapshot)); err != nil {
 			reports.AddError(proxy, err)
 		}
 	}
