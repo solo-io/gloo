@@ -137,8 +137,8 @@ func InstallResources(s CommonTestSuite) {
 }
 
 // DeleteResources deletes multiple resources for the test suite
-func DeleteResources(s CommonTestSuite, resources ...Resource) {
-	for _, r := range resources {
+func DeleteResources(s CommonTestSuite) {
+	for _, r := range s.Resources() {
 		r.Delete(s)
 	}
 }
