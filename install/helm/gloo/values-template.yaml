@@ -323,4 +323,4 @@ global:
 
 # experimental holds settings which configure features that are not production ready
 experimental:
-  fullEnvoyValidationUnstable: false
+  fullEnvoyValidationUnstable: true
