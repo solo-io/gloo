@@ -33,6 +33,15 @@ func toEnvoyRateLimits(
 	var ret []*envoy_config_route_v3.RateLimit
 	var allErrors error
 	for _, action := range actions {
+		var rateLimitOverride *envoy_config_route_v3.RateLimit_Override
+		if action.GetLimit() != nil {
+			convertedLimitOverride, overrideErr := ConvertOverride(action.GetLimit())
+			if overrideErr != nil {
+				allErrors = multierror.Append(allErrors, overrideErr)
+			}
+			rateLimitOverride = convertedLimitOverride
+		}
+
 		if len(action.GetActions()) != 0 {
 			rl := &envoy_config_route_v3.RateLimit{
 				Stage: &wrappers.UInt32Value{Value: stage},
@@ -42,6 +51,11 @@ func toEnvoyRateLimits(
 			if err != nil {
 				allErrors = multierror.Append(allErrors, err)
 			}
+
+			if rateLimitOverride != nil {
+				rl.Limit = rateLimitOverride
+			}
+
 			ret = append(ret, rl)
 		}
 	}
@@ -219,3 +233,42 @@ func convertHeader(ctx context.Context, header *solo_rl.Action_HeaderValueMatch_
 }
 
 // TODO: check nil go is annoying.
+
+func ConvertOverride(limit *solo_rl.Override) (*envoy_config_route_v3.RateLimit_Override, error) {
+	if limit == nil {
+		return nil, nil
+	}
+
+	if limit.GetDynamicMetadata() != nil && limit.GetDynamicMetadata().GetMetadataKey() == nil {
+		return nil, eris.New("limit override must specify dynamic metadata key")
+	}
+
+	var envoyPathSegments []*envoy_type_metadata_v3.MetadataKey_PathSegment
+	for _, segment := range limit.GetDynamicMetadata().GetMetadataKey().GetPath() {
+		switch segment.GetSegment().(type) {
+		case *solo_rl.MetaData_MetadataKey_PathSegment_Key:
+			if segment.GetKey() == "" {
+				return nil, eris.New("path segment key for dynamic metadata key used in limit override must be non-empty")
+			}
+
+			envoyPathSegments = append(envoyPathSegments, &envoy_type_metadata_v3.MetadataKey_PathSegment{
+				Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+					Key: segment.GetKey(),
+				},
+			})
+		default:
+			return nil, eris.Errorf("unsupported metadata path segment for limit override %T", segment.GetSegment())
+		}
+	}
+
+	return &envoy_config_route_v3.RateLimit_Override{
+		OverrideSpecifier: &envoy_config_route_v3.RateLimit_Override_DynamicMetadata_{
+			DynamicMetadata: &envoy_config_route_v3.RateLimit_Override_DynamicMetadata{
+				MetadataKey: &envoy_type_metadata_v3.MetadataKey{
+					Key:  limit.GetDynamicMetadata().GetMetadataKey().GetKey(),
+					Path: envoyPathSegments,
+				},
+			},
+		},
+	}, nil
+}
