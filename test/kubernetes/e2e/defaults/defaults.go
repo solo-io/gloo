@@ -125,7 +125,6 @@ Commercial support is available at
 
 // Resource interface
 type Resource interface {
-	EventuallyRunning(s CommonTestSuite)
 	Install(s CommonTestSuite)
 	Delete(s CommonTestSuite)
 }
@@ -145,10 +144,9 @@ func DeleteResources(s CommonTestSuite, resources ...Resource) {
 }
 
 // CurlPodResource
-type CurlPodResource struct {
-}
+type CurlPodResource struct{}
 
-func (c *CurlPodResource) EventuallyRunning(s CommonTestSuite) {
+func (c *CurlPodResource) eventuallyRunning(s CommonTestSuite) {
 	s.TestInstallation().Assertions.EventuallyPodsRunning(s.Ctx(), CurlPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/name=curl",
 	})
@@ -157,7 +155,7 @@ func (c *CurlPodResource) EventuallyRunning(s CommonTestSuite) {
 func (c *CurlPodResource) Install(s CommonTestSuite) {
 	err := s.TestInstallation().Actions.Kubectl().ApplyFile(s.Ctx(), CurlPodManifest)
 	s.Assert().NoError(err)
-	c.EventuallyRunning(s)
+	c.eventuallyRunning(s)
 }
 
 func (c *CurlPodResource) Delete(s CommonTestSuite) {
