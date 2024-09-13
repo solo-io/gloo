@@ -33,7 +33,13 @@ func NewTestingSuite(
 	testInst *e2e.TestInstallation,
 ) suite.TestingSuite {
 	return &testingSuite{
-		CommonTestSuiteImpl: *testdefaults.NewCommonTestSuiteImpl(ctx, testInst),
+		CommonTestSuiteImpl: *testdefaults.NewCommonTestSuiteImpl(
+			ctx,
+			testInst,
+			[]testdefaults.Resource{
+				&testdefaults.CurlPodResource{},
+			},
+		),
 	}
 }
 
@@ -47,7 +53,7 @@ func (s *testingSuite) SetupSuite() {
 		LabelSelector: "app.kubernetes.io/name=nginx",
 	})
 
-	testdefaults.InstallCurlPod(s)
+	testdefaults.InstallResources(s)
 
 	// include gateway manifests for the tests, so we recreate it for each test run
 	s.manifests = map[string][]string{
@@ -61,7 +67,7 @@ func (s *testingSuite) TearDownSuite() {
 	output, err := s.TestInstallation().Actions.Kubectl().DeleteFileWithOutput(s.Ctx(), setupManifest)
 	s.TestInstallation().Assertions.ExpectObjectDeleted(setupManifest, err, output)
 
-	testdefaults.DeleteCurlPod(s)
+	testdefaults.DeleteResources(s)
 }
 
 func (s *testingSuite) BeforeTest(suiteName, testName string) {

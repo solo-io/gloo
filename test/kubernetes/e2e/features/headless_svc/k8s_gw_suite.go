@@ -38,6 +38,12 @@ func (s *k8sGatewaySuite) TestInstallation() *e2e.TestInstallation {
 	return s.testInstallation
 }
 
+func (s *k8sGatewaySuite) Resources() []testdefaults.Resource {
+	return []testdefaults.Resource{
+		&testdefaults.CurlPodResource{},
+	}
+}
+
 func NewK8sGatewayHeadlessSvcSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.TestingSuite {
 	routingManifestFile := filepath.Join(testInst.GeneratedFiles.TempDir, K8sApiRoutingGeneratedFileName)
 	return &k8sGatewaySuite{
@@ -62,7 +68,7 @@ func (s *k8sGatewaySuite) TestConfigureRoutingHeadlessSvc() {
 		s.NoError(err, "can delete setup manifest")
 		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, headlessService)
 
-		testdefaults.DeleteCurlPod(s)
+		testdefaults.DeleteResources(s)
 
 		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, s.routingManifestFile)
 		s.NoError(err, "can delete setup k8s routing manifest")
@@ -76,7 +82,7 @@ func (s *k8sGatewaySuite) TestConfigureRoutingHeadlessSvc() {
 		LabelSelector: "app.kubernetes.io/name=nginx",
 	})
 
-	testdefaults.InstallCurlPod(s)
+	testdefaults.InstallResources(s)
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, s.routingManifestFile)
 	s.NoError(err, "can setup k8s routing manifest")

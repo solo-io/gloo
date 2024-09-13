@@ -43,6 +43,12 @@ func (s *edgeGatewaySuite) TestInstallation() *e2e.TestInstallation {
 	return s.testInstallation
 }
 
+func (s *edgeGatewaySuite) Resources() []testdefaults.Resource {
+	return []testdefaults.Resource{
+		&testdefaults.CurlPodResource{},
+	}
+}
+
 func NewEdgeGatewayHeadlessSvcSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.TestingSuite {
 	manifestFile := filepath.Join(testInst.GeneratedFiles.TempDir, EdgeGatewayApiRoutingGeneratedFileName)
 	return &edgeGatewaySuite{
@@ -65,7 +71,7 @@ func (s *edgeGatewaySuite) TestEdgeGatewayRoutingHeadlessSvc() {
 		s.NoError(err, "can delete setup manifest")
 		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, headlessService)
 
-		testdefaults.DeleteCurlPod(s)
+		testdefaults.DeleteResources(s)
 
 		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, s.routingManifestFile)
 		s.NoError(err, "can delete setup Edge Gateway API routing manifest")
@@ -78,7 +84,7 @@ func (s *edgeGatewaySuite) TestEdgeGatewayRoutingHeadlessSvc() {
 		LabelSelector: "app.kubernetes.io/name=nginx",
 	})
 
-	testdefaults.InstallCurlPod(s)
+	testdefaults.InstallResources(s)
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, s.routingManifestFile)
 	s.NoError(err, "can setup Edge Gateway API routing manifest")
