@@ -56,6 +56,24 @@ func toEnvoyRateLimits(
 				rl.Limit = rateLimitOverride
 			}
 
+			// TODO: remove hardcode after testing
+			rl.Limit = &envoy_config_route_v3.RateLimit_Override{
+				OverrideSpecifier: &envoy_config_route_v3.RateLimit_Override_DynamicMetadata_{
+					DynamicMetadata: &envoy_config_route_v3.RateLimit_Override_DynamicMetadata{
+						MetadataKey: &envoy_type_metadata_v3.MetadataKey{
+							Key: "io.solo.transformation",
+							Path: []*envoy_type_metadata_v3.MetadataKey_PathSegment{
+								{
+									Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+										Key: "ratelimit",
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
 			ret = append(ret, rl)
 		}
 	}
