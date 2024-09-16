@@ -3,9 +3,11 @@ package sslutils
 import (
 	"crypto/tls"
 	"fmt"
+	"strings"
 
 	"github.com/rotisserie/eris"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/util/cert"
 )
 
 var (
@@ -45,5 +47,27 @@ func isValidSslKeyPair(certChain, privateKey, rootCa []byte) error {
 	}
 
 	_, err := tls.X509KeyPair([]byte(certChain), []byte(privateKey))
+	if err != nil {
+		return err
+	}
+	// validate that the parsed piece is valid
+	// this is still faster than a call out to openssl despite this second parsing pass of the cert
+	// pem parsing in go is permissive while envoy is not
+	// this might not be needed once we have larger envoy validation
+	candidateCert, err := cert.ParseCertsPEM(certChain)
+	if err != nil {
+		// return err rather than sanitize. This is to maintain UX with older versions and to prevent a large refactor
+		// for gatewayv2 secret validation code.
+		return err
+	}
+	reencoded, err := cert.EncodeCertificates(candidateCert...)
+	if err != nil {
+		return err
+	}
+	trimmedEncoded := strings.TrimSpace(string(reencoded))
+	if trimmedEncoded != strings.TrimSpace(string(certChain)) {
+		return fmt.Errorf("certificate chain does not match parsed certificate")
+	}
+
 	return err
 }
