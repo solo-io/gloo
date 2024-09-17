@@ -31,6 +31,7 @@ import (
 
 	values "github.com/solo-io/gloo/install/helm/gloo/generate"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/k8s-utils/installutils/kuberesource"
 	. "github.com/solo-io/k8s-utils/manifesttestutils"
@@ -74,6 +75,13 @@ func GetTestExtraEnvVar() corev1.EnvVar {
 func GetValidationEnvVar() corev1.EnvVar {
 	return corev1.EnvVar{
 		Name:  "VALIDATION_MUST_START",
+		Value: "true",
+	}
+}
+
+func GetFullEnvoyValidationEnvVar() corev1.EnvVar {
+	return corev1.EnvVar{
+		Name:  constants.GlooGatewayFullEnvoyValidationEnv,
 		Value: "true",
 	}
 }
@@ -4556,6 +4564,8 @@ spec:
             value: "true"
           - name: VALIDATION_MUST_START
             value: "true"
+          - name: GG_EXPERIMENTAL_FULL_ENVOY_VALIDATION
+            value: "true"
         readinessProbe:
           tcpSocket:
             port: 9977
@@ -4929,7 +4939,7 @@ metadata:
 						selector = map[string]string{
 							"gloo": "gloo",
 						}
-						container := GetQuayContainerSpec("gloo", version, GetPodNamespaceEnvVar(), GetPodNamespaceStats(), GetValidationEnvVar())
+						container := GetQuayContainerSpec("gloo", version, GetPodNamespaceEnvVar(), GetPodNamespaceStats(), GetValidationEnvVar(), GetFullEnvoyValidationEnvVar())
 						glooAnnotations := make(map[string]string)
 						for k, v := range statsAnnotations {
 							glooAnnotations[k] = v
@@ -5066,22 +5076,28 @@ metadata:
 					})
 
 					It("can set log level env var", func() {
-						glooDeployment.Spec.Template.Spec.Containers[0].Env = append(
-							glooDeployment.Spec.Template.Spec.Containers[0].Env,
-							GetLogLevelEnvVar("debug"),
+						// trim the full envoy validation env off of the end and add it to the end
+						glooEnv := glooDeployment.Spec.Template.Spec.Containers[0].Env
+						glooEnv = append(
+							glooEnv[:len(glooEnv)-1],
+							GetLogLevelEnvVar("debug"), GetFullEnvoyValidationEnvVar(),
 						)
+						glooDeployment.Spec.Template.Spec.Containers[0].Env = glooEnv
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{"gloo.logLevel=debug"},
 						})
 						testManifest.ExpectDeploymentAppsV1(glooDeployment)
 					})
 					It("can set disable leader election env var", func() {
-						glooDeployment.Spec.Template.Spec.Containers[0].Env = append(
-							glooDeployment.Spec.Template.Spec.Containers[0].Env,
+						// trim the full envoy validation env off of the end and add it to the end
+						glooEnv := glooDeployment.Spec.Template.Spec.Containers[0].Env
+						glooEnv = append(
+							glooEnv[:len(glooEnv)-1],
 							corev1.EnvVar{
 								Name:  "DISABLE_LEADER_ELECTION",
 								Value: "true",
-							})
+							}, GetFullEnvoyValidationEnvVar())
+						glooDeployment.Spec.Template.Spec.Containers[0].Env = glooEnv
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{"gloo.disableLeaderElection=true"},
 						})
@@ -5094,13 +5110,19 @@ metadata:
 								Name:  "HEADER_SECRET_REF_NS_MATCHES_US",
 								Value: "true",
 							})
+						// swap with the prior value because ordering matters in the deepEqual for some reason
+						containerEnv := glooDeployment.Spec.Template.Spec.Containers[0].Env
+						last := containerEnv[len(containerEnv)-1]
+						containerEnv[len(containerEnv)-1] = containerEnv[len(containerEnv)-2]
+						containerEnv[len(containerEnv)-2] = last
+
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{"gloo.headerSecretRefNsMatchesUs=true"},
 						})
 						testManifest.ExpectDeploymentAppsV1(glooDeployment)
 					})
 					It("can disable validation", func() {
-						glooDeployment.Spec.Template.Spec.Containers[0].Env = []corev1.EnvVar{GetPodNamespaceEnvVar(), GetPodNamespaceStats()}
+						glooDeployment.Spec.Template.Spec.Containers[0].Env = []corev1.EnvVar{GetPodNamespaceEnvVar(), GetPodNamespaceStats(), GetFullEnvoyValidationEnvVar()}
 						glooDeployment.Spec.Template.Spec.Volumes = []corev1.Volume{
 							{
 								Name: "labels-volume",
@@ -5964,6 +5986,10 @@ metadata:
 												},
 												{
 													Name:  "VALIDATION_MUST_START",
+													Value: "true",
+												},
+												{
+													Name:  "GG_EXPERIMENTAL_FULL_ENVOY_VALIDATION",
 													Value: "true",
 												},
 											},
