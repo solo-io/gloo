@@ -54,11 +54,14 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.2.5
 	github.com/solo-io/skv2 v0.41.0
 
-	// Pinned to the `sa-k8s-1.29-bump` tag of solo-apis on `gloo-main` branch
+	// WORK IN PROGRESS
+	// This is currently pinned to a branch with changes. But eventually...
+	//
+	// Pinned to the `sa-k8s-1.31-bump` tag of solo-apis on `gloo-main` branch
 	// Ref: https://github.com/solo-io/gloo/pull/9463/files#r1594409655 && https://solo-io-corp.slack.com/archives/C03MFATU265/p1716913420716729?thread_ts=1716476992.938679&cid=C03MFATU265
 	// as to why it is now based off `gloo-main` and not `gloo-repo-branch`
-	github.com/solo-io/solo-apis v0.0.0-20240528173540-7879b7d12cb9
-	github.com/solo-io/solo-kit v0.35.3
+	github.com/solo-io/solo-apis v0.0.0-20240917010928-7210151ba27e
+	github.com/solo-io/solo-kit v0.36.0
 	github.com/spf13/afero v1.10.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
@@ -74,11 +77,11 @@ require (
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	helm.sh/helm/v3 v3.14.2
-	k8s.io/api v0.31.0
+	k8s.io/api v0.31.1
 	k8s.io/apiextensions-apiserver v0.31.0
-	k8s.io/apimachinery v0.31.0
-	k8s.io/client-go v0.31.0
-	k8s.io/code-generator v0.31.0
+	k8s.io/apimachinery v0.31.1
+	k8s.io/client-go v0.31.1
+	k8s.io/code-generator v0.31.1
 	k8s.io/component-base v0.31.0
 	k8s.io/kubectl v0.31.0
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
@@ -299,8 +302,8 @@ require (
 	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/term v0.23.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
-	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
+	golang.org/x/time v0.5.0 // indirect
+	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
