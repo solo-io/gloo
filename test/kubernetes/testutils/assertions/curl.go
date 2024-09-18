@@ -197,9 +197,9 @@ func (p *Provider) AssertEventualCurlError(
 		Should(Succeed(), testMessage)
 }
 
-func generateCurlOpts(ctx context.Context, host string) []curl.Option {
+func (p *Provider) generateCurlOpts(host string) []curl.Option {
 	var curlOpts = []curl.Option{
-		curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{Name: GatewayProxyName, Namespace: ctx.Value("namespace").(string)})),
+		curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{Name: GatewayProxyName, Namespace: p.glooGatewayContext.InstallNamespace})),
 		curl.WithPort(80),
 		curl.Silent(),
 	}
@@ -233,8 +233,8 @@ func generateCurlOpts(ctx context.Context, host string) []curl.Option {
 	return curlOpts
 }
 
-func generateCurlOptsWithHeaders(ctx context.Context, host string, headers map[string]string) []curl.Option {
-	curlOpts := generateCurlOpts(ctx, host)
+func (p *Provider) generateCurlOptsWithHeaders(host string, headers map[string]string) []curl.Option {
+	curlOpts := p.generateCurlOpts(host)
 	for k, v := range headers {
 		curlOpts = append(curlOpts, curl.WithHeader(k, v))
 	}
@@ -242,7 +242,7 @@ func generateCurlOptsWithHeaders(ctx context.Context, host string, headers map[s
 }
 
 func (p *Provider) CurlConsistentlyRespondsWithStatus(ctx context.Context, host string, status int) {
-	curlOptsHeader := generateCurlOpts(ctx, host)
+	curlOptsHeader := p.generateCurlOpts(host)
 
 	p.AssertEventuallyConsistentCurlResponse(
 		ctx,
@@ -255,7 +255,7 @@ func (p *Provider) CurlConsistentlyRespondsWithStatus(ctx context.Context, host 
 }
 
 func (p *Provider) CurlEventuallyRespondsWithStatus(ctx context.Context, host string, status int) {
-	curlOptsHeader := generateCurlOpts(ctx, host)
+	curlOptsHeader := p.generateCurlOpts(host)
 
 	p.AssertEventualCurlResponse(
 		ctx,
@@ -266,7 +266,7 @@ func (p *Provider) CurlEventuallyRespondsWithStatus(ctx context.Context, host st
 }
 
 func (p *Provider) CurlRespondsWithStatus(ctx context.Context, host string, status int) {
-	curlOptsHeader := generateCurlOpts(ctx, host)
+	curlOptsHeader := p.generateCurlOpts(host)
 
 	p.AssertCurlResponse(
 		ctx,
@@ -277,7 +277,7 @@ func (p *Provider) CurlRespondsWithStatus(ctx context.Context, host string, stat
 }
 
 func (p *Provider) CurlWithHeadersConsistentlyRespondsWithStatus(ctx context.Context, host string, headers map[string]string, status int) {
-	curlOptsHeader := generateCurlOptsWithHeaders(ctx, host, headers)
+	curlOptsHeader := p.generateCurlOptsWithHeaders(host, headers)
 
 	p.AssertEventuallyConsistentCurlResponse(
 		ctx,
@@ -290,7 +290,7 @@ func (p *Provider) CurlWithHeadersConsistentlyRespondsWithStatus(ctx context.Con
 }
 
 func (p *Provider) CurlWithHeadersEventuallyRespondsWithStatus(ctx context.Context, host string, headers map[string]string, status int) {
-	curlOptsHeader := generateCurlOptsWithHeaders(ctx, host, headers)
+	curlOptsHeader := p.generateCurlOptsWithHeaders(host, headers)
 
 	p.AssertEventualCurlResponse(
 		ctx,
@@ -301,7 +301,7 @@ func (p *Provider) CurlWithHeadersEventuallyRespondsWithStatus(ctx context.Conte
 }
 
 func (p *Provider) CurlWithHeadersRespondsWithStatus(ctx context.Context, host string, headers map[string]string, status int) {
-	curlOptsHeader := generateCurlOptsWithHeaders(ctx, host, headers)
+	curlOptsHeader := p.generateCurlOptsWithHeaders(host, headers)
 
 	p.AssertCurlResponse(
 		ctx,

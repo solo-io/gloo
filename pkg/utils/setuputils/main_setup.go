@@ -92,7 +92,11 @@ func Main(opts SetupOpts) error {
 	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
 		namespaceClient = &namespaces.FakeKubeNamespaceWatcher{}
 	} else {
-		namespaceClient = namespaces.NewKubeNamespaceClient(ctx)
+		namespaceClient, err = namespaces.NewKubeNamespaceClient(ctx)
+		// If there is any error when creating a KubeNamespaceClient (RBAC issues) default to a fake client
+		if err != nil {
+			namespaceClient = &namespaces.FakeKubeNamespaceWatcher{}
+		}
 	}
 
 	// settings come from the ResourceClient in the settingsClient

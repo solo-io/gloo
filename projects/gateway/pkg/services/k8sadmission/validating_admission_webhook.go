@@ -442,8 +442,9 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 		return wh.validateList(ctx, admissionRequest.Object.Raw, dryRun)
 	}
 
-	// Kubernetes' Secrets and namespace deletions are the only non-Solo API resource operations we support validation requests for.
-	// For a these resources, we want to skip validation on operations we don't support. We only support DELETEs.
+	// Kubernetes Secrets and Namespace are the only non-Solo API resources we support validation requests for.
+	// For a these resources, we want to skip validation on operations we don't support. For Namespaces, we
+	// support DELETE and UPDATE. For Secrets, we support DELETE.
 	// Else, we expect to find the resource in our ApiGvkToHashableResource map - if the resource is supported.
 
 	if gvk.Group == kubernetesCoreApiGroup && gvk.Kind == "Secret" {

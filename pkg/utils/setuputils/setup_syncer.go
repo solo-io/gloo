@@ -75,21 +75,18 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		tag.Insert(namespacesWatchedKey, watchedNamespacesStr),
 	)
 
-	var returnErr error
-	defer func() {
-		// Run this after the function returns to ensure the hash is changed after we successfully sync
-		if returnErr == nil {
-			s.currentSettingsHash = settings.MustHash()
-		}
-	}()
-
 	statsutils.MeasureOne(
 		ctx,
 		mSetupsRun,
 	)
 
-	returnErr = s.setupFunc(ctx, kube.NewKubeCache(ctx), s.inMemoryCache, settings, s.identity)
-	return returnErr
+	err = s.setupFunc(ctx, kube.NewKubeCache(ctx), s.inMemoryCache, settings, s.identity)
+	if err != nil {
+		return err
+	}
+
+	s.currentSettingsHash = settings.MustHash()
+	return nil
 }
 
 // ShouldSync compares two snapshots and determines whether a sync is needed based on the following conditions

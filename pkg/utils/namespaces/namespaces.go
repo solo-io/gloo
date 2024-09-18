@@ -2,6 +2,7 @@ package namespaces
 
 import (
 	"context"
+	"errors"
 	"os"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
@@ -50,17 +51,16 @@ func GetPodNamespace() string {
 	return "gloo-system"
 }
 
-// NewKubeNamespaceClient returns either an implementation of the KubeNamespaceClient based on the following condition :
-// If the method was able to create the kubeclient and it has permission to list namespaces, `namespace.NewNamespaceClient` else `FakeKubeNamespaceWatcher`
-func NewKubeNamespaceClient(ctx context.Context) kubernetes.KubeNamespaceClient {
+// NewKubeNamespaceClient creates and returns the `namespace.NewNamespaceClient` if it has permissions to list namespaces
+func NewKubeNamespaceClient(ctx context.Context) (kubernetes.KubeNamespaceClient, error) {
 	kubeClient, err := helpers.KubeClientWithKubecontext("")
 	if err != nil {
-		return &FakeKubeNamespaceWatcher{}
+		return nil, err
 	}
 
 	clientset, ok := kubeClient.(*k8s_kubernetes.Clientset)
 	if !ok {
-		return &FakeKubeNamespaceWatcher{}
+		return nil, err
 	}
 
 	action := authv1.ResourceAttributes{
@@ -77,17 +77,16 @@ func NewKubeNamespaceClient(ctx context.Context) kubernetes.KubeNamespaceClient 
 
 	resp, err := clientset.AuthorizationV1().SelfSubjectAccessReviews().Create(ctx, &selfCheck, metav1.CreateOptions{})
 	if err != nil {
-		return &FakeKubeNamespaceWatcher{}
+		return nil, err
 	}
 
 	if resp.Status.Allowed {
 		kubeCache, err := cache.NewKubeCoreCache(ctx, kubeClient)
 		if err != nil {
-			return &FakeKubeNamespaceWatcher{}
+			return nil, err
 		}
 
-		return namespace.NewNamespaceClient(kubeClient, kubeCache)
+		return namespace.NewNamespaceClient(kubeClient, kubeCache), nil
 	}
-
-	return &FakeKubeNamespaceWatcher{}
+	return nil, errors.New("the caller does not have permissions to list namespaces")
 }

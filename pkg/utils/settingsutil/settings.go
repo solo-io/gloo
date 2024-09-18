@@ -94,7 +94,7 @@ func GenerateNamespacesToWatch(settings *v1.Settings, namespaces kubernetes.Kube
 	// If neither `watchNamespaces` nor `watchNamespaceSelectors` is specified, return `watchNamespaces`
 	// for backward compatibility. This could either be nil or an empty list.
 	if len(settings.GetWatchNamespaceSelectors()) == 0 {
-		return []string{}, nil
+		return settings.GetWatchNamespaces(), nil
 	}
 
 	var selectors []labels.Selector
@@ -172,7 +172,11 @@ func getAllNamespaces() (kubernetes.KubeNamespaceList, error) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	namespaceClient := utils_namespaces.NewKubeNamespaceClient(ctx)
+	namespaceClient, err := utils_namespaces.NewKubeNamespaceClient(ctx)
+	// If there is any error when creating a KubeNamespaceClient (RBAC issues) default to a fake client
+	if err != nil {
+		namespaceClient = &utils_namespaces.FakeKubeNamespaceWatcher{}
+	}
 	return namespaceClient.List(clients.ListOpts{})
 }
 
