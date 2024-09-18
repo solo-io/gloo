@@ -21,6 +21,7 @@ rules:
   - endpoints
   - configmaps
   - namespaces
+  - nodes
   verbs:
   - get
   - list

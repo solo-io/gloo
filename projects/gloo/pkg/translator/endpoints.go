@@ -31,13 +31,18 @@ func (t *translatorInstance) computeClusterEndpoints(
 	defer span.End()
 
 	var clusterEndpointAssignments []*envoy_config_endpoint_v3.ClusterLoadAssignment
+	enableAutoMtls := t.settings.GetGloo().GetIstioOptions().GetEnableAutoMtls().GetValue()
 	for _, upstream := range params.Snapshot.Upstreams {
+		epParams := plugins.EndpointParams{
+			Params:          params,
+			RebuildEndpoint: buildEndpointFor(upstream, enableAutoMtls),
+		}
 		clusterEndpoints := upstreamRefKeyToEndpoints[upstream.GetMetadata().Ref().Key()]
 		// if there are any endpoints for this upstream, it's using eds and we need to create a load assignment for it
 		if len(clusterEndpoints) > 0 {
-			loadAssignment := loadAssignmentForUpstream(upstream, clusterEndpoints, t.settings.GetGloo().GetIstioOptions().GetEnableAutoMtls().GetValue())
+			loadAssignment := loadAssignmentForUpstream(upstream, clusterEndpoints, enableAutoMtls)
 			for _, plugin := range t.pluginRegistry.GetEndpointPlugins() {
-				if err := plugin.ProcessEndpoints(params, upstream, loadAssignment); err != nil {
+				if err := plugin.ProcessEndpoints(epParams, upstream, clusterEndpoints, loadAssignment); err != nil {
 					reports.AddError(upstream, err)
 				}
 			}
@@ -45,6 +50,50 @@ func (t *translatorInstance) computeClusterEndpoints(
 		}
 	}
 	return clusterEndpointAssignments
+}
+
+func buildEndpointFor(upstream *v1.Upstream,
+	enableAutoMtls bool) func(addr *v1.Endpoint) *envoy_config_endpoint_v3.LbEndpoint {
+	return func(addr *v1.Endpoint) *envoy_config_endpoint_v3.LbEndpoint {
+		return buildEndpoint(upstream, addr, enableAutoMtls)
+	}
+}
+
+func buildEndpoint(upstream *v1.Upstream, addr *v1.Endpoint,
+	enableAutoMtls bool) *envoy_config_endpoint_v3.LbEndpoint {
+
+	// Get the metadata labels and filter metadata for the envoy load balancer based on the upstream
+	metadata := getLbMetadata(upstream, addr.GetMetadata().GetLabels(), "")
+	// Get the metadata labels for the transport socket match if Istio auto mtls is enabled
+	metadata = addIstioAutomtlsMetadata(metadata, addr.GetMetadata().GetLabels(), enableAutoMtls)
+	// Add the annotations to the metadata
+	metadata = addAnnotations(metadata, addr.GetMetadata().GetAnnotations())
+	var healthCheckConfig *envoy_config_endpoint_v3.Endpoint_HealthCheckConfig
+	if host := addr.GetHealthCheck().GetHostname(); host != "" {
+		healthCheckConfig = &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
+			Hostname: host,
+		}
+	}
+	return &envoy_config_endpoint_v3.LbEndpoint{
+		Metadata: metadata,
+		HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+			Endpoint: &envoy_config_endpoint_v3.Endpoint{
+				Address: &envoy_config_core_v3.Address{
+					Address: &envoy_config_core_v3.Address_SocketAddress{
+						SocketAddress: &envoy_config_core_v3.SocketAddress{
+							Protocol: envoy_config_core_v3.SocketAddress_TCP,
+							Address:  addr.GetAddress(),
+							PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+								PortValue: addr.GetPort(),
+							},
+						},
+					},
+				},
+				HealthCheckConfig: healthCheckConfig,
+				Hostname:          addr.GetHostname(),
+			},
+		},
+	}
 }
 
 func loadAssignmentForUpstream(
@@ -55,39 +104,7 @@ func loadAssignmentForUpstream(
 	clusterName := UpstreamToClusterName(upstream.GetMetadata().Ref())
 	var endpoints []*envoy_config_endpoint_v3.LbEndpoint
 	for _, addr := range clusterEndpoints {
-		// Get the metadata labels and filter metadata for the envoy load balancer based on the upstream
-		metadata := getLbMetadata(upstream, addr.GetMetadata().GetLabels(), "")
-		// Get the metadata labels for the transport socket match if Istio auto mtls is enabled
-		metadata = addIstioAutomtlsMetadata(metadata, addr.GetMetadata().GetLabels(), enableAutoMtls)
-		// Add the annotations to the metadata
-		metadata = addAnnotations(metadata, addr.GetMetadata().GetAnnotations())
-		var healthCheckConfig *envoy_config_endpoint_v3.Endpoint_HealthCheckConfig
-		if host := addr.GetHealthCheck().GetHostname(); host != "" {
-			healthCheckConfig = &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
-				Hostname: host,
-			}
-		}
-		lbEndpoint := envoy_config_endpoint_v3.LbEndpoint{
-			Metadata: metadata,
-			HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
-				Endpoint: &envoy_config_endpoint_v3.Endpoint{
-					Address: &envoy_config_core_v3.Address{
-						Address: &envoy_config_core_v3.Address_SocketAddress{
-							SocketAddress: &envoy_config_core_v3.SocketAddress{
-								Protocol: envoy_config_core_v3.SocketAddress_TCP,
-								Address:  addr.GetAddress(),
-								PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
-									PortValue: addr.GetPort(),
-								},
-							},
-						},
-					},
-					HealthCheckConfig: healthCheckConfig,
-					Hostname:          addr.GetHostname(),
-				},
-			},
-		}
-		endpoints = append(endpoints, &lbEndpoint)
+		endpoints = append(endpoints, buildEndpoint(upstream, addr, enableAutoMtls))
 	}
 
 	return &envoy_config_endpoint_v3.ClusterLoadAssignment{

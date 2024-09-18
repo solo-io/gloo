@@ -13,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	kubelisters "k8s.io/client-go/listers/core/v1"
 
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -181,7 +182,7 @@ func (c *edsWatcher) List(writeNamespace string, opts clients.ListOpts) (v1.Endp
 		endpointList = append(endpointList, endpoints...)
 	}
 
-	eps, warns, errsToLog := FilterEndpoints(ctx, writeNamespace, endpointList, serviceList, podList, c.upstreams)
+	eps, warns, errsToLog := FilterEndpoints(ctx, writeNamespace, endpointList, serviceList, podList, c.upstreams, c.kubeCoreCache.NodeLister())
 
 	warnsToLog = append(warnsToLog, warns...)
 
@@ -317,15 +318,16 @@ func FilterEndpoints(
 	services []*corev1.Service,
 	pods []*corev1.Pod,
 	upstreams map[*core.ResourceRef]*kubeplugin.UpstreamSpec,
+	nodes kubelisters.NodeLister,
 ) (v1.EndpointList, []string, []string) {
 	podLabelSource := generatePodsMap(pods)
-
 	return computeGlooEndpoints(
 		writeNamespace,
 		kubeEndpoints,
 		services,
 		podLabelSource,
 		upstreams,
+		nodes,
 	)
 }
 
@@ -335,6 +337,7 @@ func computeGlooEndpoints(
 	services []*corev1.Service,
 	podLabelSource PodLabelSource,
 	upstreams map[*core.ResourceRef]*kubeplugin.UpstreamSpec,
+	nodes kubelisters.NodeLister,
 ) (v1.EndpointList, []string, []string) {
 	var endpoints v1.EndpointList
 

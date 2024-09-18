@@ -2678,7 +2678,7 @@ var _ = Describe("Translator", func() {
 				Priority: 10,
 			}
 
-			endpointPlugin.ProcessEndpointFunc = func(params plugins.Params, in *v1.Upstream, out *envoy_config_endpoint_v3.ClusterLoadAssignment) error {
+			endpointPlugin.ProcessEndpointFunc = func(in *v1.Upstream, out *envoy_config_endpoint_v3.ClusterLoadAssignment) error {
 				Expect(out.GetEndpoints()).To(HaveLen(1))
 				Expect(out.GetClusterName()).To(Equal(UpstreamToClusterName(upstream.Metadata.Ref())))
 				Expect(out.GetEndpoints()[0].GetLbEndpoints()).To(HaveLen(1))
@@ -2710,7 +2710,7 @@ var _ = Describe("Translator", func() {
 
 			foundEmptyUpstream := false
 
-			endpointPlugin.ProcessEndpointFunc = func(params plugins.Params, in *v1.Upstream, out *envoy_config_endpoint_v3.ClusterLoadAssignment) error {
+			endpointPlugin.ProcessEndpointFunc = func(in *v1.Upstream, out *envoy_config_endpoint_v3.ClusterLoadAssignment) error {
 				if in.Metadata.Name == emptyUpstream.Metadata.Name &&
 					in.Metadata.Namespace == emptyUpstream.Metadata.Namespace {
 					foundEmptyUpstream = true
@@ -4008,11 +4008,11 @@ func (p *routePluginMock) ProcessRoute(params plugins.RouteParams, in *v1.Route,
 }
 
 type endpointPluginMock struct {
-	ProcessEndpointFunc func(params plugins.Params, in *v1.Upstream, out *envoy_config_endpoint_v3.ClusterLoadAssignment) error
+	ProcessEndpointFunc func(in *v1.Upstream, out *envoy_config_endpoint_v3.ClusterLoadAssignment) error
 }
 
-func (e *endpointPluginMock) ProcessEndpoints(params plugins.Params, in *v1.Upstream, out *envoy_config_endpoint_v3.ClusterLoadAssignment) error {
-	return e.ProcessEndpointFunc(params, in, out)
+func (e *endpointPluginMock) ProcessEndpoints(params plugins.EndpointParams, in *v1.Upstream, out *envoy_config_endpoint_v3.ClusterLoadAssignment) error {
+	return e.ProcessEndpointFunc(in, out)
 }
 
 func (e *endpointPluginMock) Name() string {

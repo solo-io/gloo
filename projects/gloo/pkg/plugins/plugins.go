@@ -77,6 +77,11 @@ type RouteActionParams struct {
 	Route *v1.Route
 }
 
+type EndpointParams struct {
+	Params
+	RebuildEndpoint func(addr *v1.Endpoint) *envoy_config_endpoint_v3.LbEndpoint
+}
+
 /*
 	Upstream Plugins
 */
@@ -94,7 +99,7 @@ type UpstreamPlugin interface {
 // NOTE: If one wishes to also modify the corresponding envoy Cluster the above UpstreamPlugin interface should be used.
 type EndpointPlugin interface {
 	Plugin
-	ProcessEndpoints(params Params, in *v1.Upstream, out *envoy_config_endpoint_v3.ClusterLoadAssignment) error
+	ProcessEndpoints(params EndpointParams, in *v1.Upstream, endpoints []*v1.Endpoint, out *envoy_config_endpoint_v3.ClusterLoadAssignment) error
 }
 
 /*
