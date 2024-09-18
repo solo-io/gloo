@@ -60,7 +60,7 @@ func NewKubeNamespaceClient(ctx context.Context) (kubernetes.KubeNamespaceClient
 
 	clientset, ok := kubeClient.(*k8s_kubernetes.Clientset)
 	if !ok {
-		return nil, err
+		return nil, errors.New("unable to create kube client to list namespaces")
 	}
 
 	action := authv1.ResourceAttributes{
