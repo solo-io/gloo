@@ -62,13 +62,13 @@ Name|Version|License
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.34.2|BSD 3-clause "New" or "Revised" License
 [AlecAivazis/survey.v1](https://gopkg.in/AlecAivazis/survey.v1)|v1.8.7|MIT License
 [helm/v3](https://helm.sh/helm/v3)|v3.14.2|Apache License 2.0
-[k8s.io/api](https://k8s.io/api)|v0.31.0|Apache License 2.0
-[k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.31.0|Apache License 2.0
-[k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.31.0|Apache License 2.0
-[k8s.io/client-go](https://k8s.io/client-go)|v0.31.0|Apache License 2.0
-[k8s.io/code-generator](https://k8s.io/code-generator)|v0.31.0|Apache License 2.0
-[k8s.io/component-base](https://k8s.io/component-base)|v0.31.0|Apache License 2.0
-[k8s.io/kubectl](https://k8s.io/kubectl)|v0.31.0|Apache License 2.0
+[k8s.io/api](https://k8s.io/api)|v0.31.1|Apache License 2.0
+[k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.31.1|Apache License 2.0
+[k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.31.1|Apache License 2.0
+[k8s.io/client-go](https://k8s.io/client-go)|v0.31.1|Apache License 2.0
+[k8s.io/code-generator](https://k8s.io/code-generator)|v0.31.1|Apache License 2.0
+[k8s.io/component-base](https://k8s.io/component-base)|v0.31.1|Apache License 2.0
+[k8s.io/kubectl](https://k8s.io/kubectl)|v0.31.1|Apache License 2.0
 [k8s.io/utils](https://k8s.io/utils)|v0.0.0-20240711033017-18e509b52bc8|Apache License 2.0
 [knative.dev/networking](https://knative.dev/networking)|v0.0.0-20211210083629-bace06e98aee|Apache License 2.0
 [knative.dev/pkg](https://knative.dev/pkg)|v0.0.0-20211206113427-18589ac7627e|Apache License 2.0
