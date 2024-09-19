@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"hash/fnv"
+	"maps"
 	"slices"
 	"sync"
-
-	"maps"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_service_discovery_v3 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
@@ -32,22 +31,55 @@ func (c ConnectedClient) Equals(k ConnectedClient) bool {
 	return proto.Equal(c.Node, c.Node)
 }
 
-type callbacksCollection struct {
-	ctx        context.Context
-	clients    map[int64]ConnectedClient
-	fanoutChan chan krt.Event[ConnectedClient]
-	stateLock  sync.RWMutex
+type UniqlyConnectedClient struct {
+	// name namespace of gateway
+	Role   string
+	Labels map[string]string
 
-	eventHandlers handlers[ConnectedClient]
+	resourceName string
 }
 
+func (c UniqlyConnectedClient) ResourceName() string {
+	return c.resourceName
+}
+
+var _ krt.Equaler[UniqlyConnectedClient] = new(UniqlyConnectedClient)
+
+func (c UniqlyConnectedClient) Equals(k UniqlyConnectedClient) bool {
+	return maps.Equal(c.Labels, k.Labels) && c.Role == k.Role
+}
+
+func NewUniqlyConnectedClient(cc ConnectedClient) UniqlyConnectedClient {
+	labels := getLabels(cc.Node.GetMetadata())
+	role := cc.Node.GetMetadata().GetFields()["role"].GetStringValue()
+	return UniqlyConnectedClient{
+		Role:         role,
+		Labels:       labels,
+		resourceName: fmt.Sprintf("%s~%d", role, hashLabels(labels)),
+	}
+}
+
+type callbacksCollection struct {
+	ctx              context.Context
+	clients          map[int64]ConnectedClient
+	uniqClientsCount map[string]uint64
+	uniqClients      map[string]UniqlyConnectedClient
+	fanoutChan       chan krt.Event[UniqlyConnectedClient]
+	stateLock        sync.RWMutex
+
+	eventHandlers handlers[UniqlyConnectedClient]
+}
+
+// THIS IS THE SET OF THINGS WE RUN TRANSLATION FOR
 // add returned callbacks to the xds server.
-func NewConnectedClients(ctx context.Context) (xdsserver.Callbacks, krt.Collection[ConnectedClient]) {
+func NewConnectedClients(ctx context.Context) (xdsserver.Callbacks, krt.Collection[UniqlyConnectedClient]) {
 
 	cb := &callbacksCollection{
-		ctx:        ctx,
-		clients:    make(map[int64]ConnectedClient),
-		fanoutChan: make(chan krt.Event[ConnectedClient], 100),
+		ctx:              ctx,
+		clients:          make(map[int64]ConnectedClient),
+		uniqClientsCount: make(map[string]uint64),
+		uniqClients:      make(map[string]UniqlyConnectedClient),
+		fanoutChan:       make(chan krt.Event[UniqlyConnectedClient], 100),
 	}
 	go func() {
 	Loop:
@@ -68,7 +100,7 @@ func NewConnectedClients(ctx context.Context) (xdsserver.Callbacks, krt.Collecti
 }
 
 var _ xdsserver.Callbacks = new(callbacksCollection)
-var _ krt.Collection[ConnectedClient] = new(callbacksCollection)
+var _ krt.Collection[UniqlyConnectedClient] = new(callbacksCollection)
 
 // OnStreamOpen is called once an xDS stream is open with a stream ID and the type URL (or "" for ADS).
 // Returning an error will end processing and close the stream. OnStreamClosed will still be called.
@@ -78,17 +110,32 @@ func (x *callbacksCollection) OnStreamOpen(_ context.Context, _ int64, _ string)
 
 // OnStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
 func (x *callbacksCollection) OnStreamClosed(sid int64) {
-	x.stateLock.Lock()
-	c, ok := x.clients[sid]
-	delete(x.clients, sid)
-	x.stateLock.Unlock()
-
-	if ok {
-		x.Notify(krt.Event[ConnectedClient]{Old: &c, Event: controllers.EventDelete})
+	ucc := x.del(sid)
+	if ucc != nil {
+		x.Notify(krt.Event[UniqlyConnectedClient]{Old: ucc, Event: controllers.EventDelete})
 	}
 }
 
-func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.DiscoveryRequest) *ConnectedClient {
+func (x *callbacksCollection) del(sid int64) *UniqlyConnectedClient {
+	x.stateLock.Lock()
+	defer x.stateLock.Unlock()
+
+	c, ok := x.clients[sid]
+	delete(x.clients, sid)
+	if ok {
+		ucc := NewUniqlyConnectedClient(c)
+		current := x.uniqClientsCount[ucc.resourceName]
+		x.uniqClientsCount[ucc.resourceName] = current - 1
+		if current == 1 {
+			delete(x.uniqClientsCount, ucc.resourceName)
+			delete(x.uniqClients, ucc.resourceName)
+			return &ucc
+		}
+	}
+	return nil
+}
+
+func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.DiscoveryRequest) *UniqlyConnectedClient {
 	x.stateLock.Lock()
 	defer x.stateLock.Unlock()
 
@@ -97,13 +144,19 @@ func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.Disco
 			Node: r.Node,
 		}
 		x.clients[sid] = c
+		ucc := NewUniqlyConnectedClient(c)
+		current := x.uniqClientsCount[ucc.resourceName]
+		x.uniqClientsCount[ucc.resourceName] = current + 1
+		if current == 0 {
+			x.uniqClients[ucc.resourceName] = ucc
+			return &ucc
+		}
 
-		return &c
 	}
 	return nil
 }
 
-func (x *callbacksCollection) Notify(e krt.Event[ConnectedClient]) {
+func (x *callbacksCollection) Notify(e krt.Event[UniqlyConnectedClient]) {
 	for {
 		// note: do not use a default block here, we want to block if the channel is full, as otherwise we will have inconsistent state in krt.
 		select {
@@ -120,16 +173,16 @@ func (x *callbacksCollection) Notify(e krt.Event[ConnectedClient]) {
 func (x *callbacksCollection) OnStreamRequest(sid int64, r *envoy_service_discovery_v3.DiscoveryRequest) error {
 	c := x.add(sid, r)
 	if c != nil {
-		x.Notify(krt.Event[ConnectedClient]{New: c, Event: controllers.EventAdd})
+		x.Notify(krt.Event[UniqlyConnectedClient]{New: c, Event: controllers.EventAdd})
 	}
 	return nil
 }
 
-func (x *callbacksCollection) getClients() []ConnectedClient {
+func (x *callbacksCollection) getClients() []UniqlyConnectedClient {
 	x.stateLock.RLock()
 	defer x.stateLock.RUnlock()
-	clients := make([]ConnectedClient, 0, len(x.clients))
-	for _, c := range x.clients {
+	clients := make([]UniqlyConnectedClient, 0, len(x.uniqClients))
+	for _, c := range x.uniqClients {
 		clients = append(clients, c)
 	}
 	return clients
@@ -149,15 +202,15 @@ func (x *callbacksCollection) OnFetchRequest(_ context.Context, _ *envoy_service
 func (x *callbacksCollection) OnFetchResponse(_ *envoy_service_discovery_v3.DiscoveryRequest, _ *envoy_service_discovery_v3.DiscoveryResponse) {
 }
 
-func (x *callbacksCollection) Register(f func(o krt.Event[ConnectedClient])) krt.Syncer {
-	return x.RegisterBatch(func(events []krt.Event[ConnectedClient], initialSync bool) {
+func (x *callbacksCollection) Register(f func(o krt.Event[UniqlyConnectedClient])) krt.Syncer {
+	return x.RegisterBatch(func(events []krt.Event[UniqlyConnectedClient], initialSync bool) {
 		for _, o := range events {
 			f(o)
 		}
 	}, true)
 }
 
-func (x *callbacksCollection) RegisterBatch(f func(o []krt.Event[ConnectedClient], initialSync bool), runExistingState bool) krt.Syncer {
+func (x *callbacksCollection) RegisterBatch(f func(o []krt.Event[UniqlyConnectedClient], initialSync bool), runExistingState bool) krt.Syncer {
 	if runExistingState {
 		f(nil, true)
 	}
@@ -165,7 +218,7 @@ func (x *callbacksCollection) RegisterBatch(f func(o []krt.Event[ConnectedClient
 	if runExistingState {
 		for _, v := range x.getClients() {
 
-			f([]krt.Event[ConnectedClient]{{
+			f([]krt.Event[UniqlyConnectedClient]{{
 				New:   &v,
 				Event: controllers.EventAdd,
 			}}, true)
@@ -181,20 +234,18 @@ func (x *callbacksCollection) Synced() krt.Syncer {
 
 // GetKey returns an object by its key, if present. Otherwise, nil is returned.
 
-func (x *callbacksCollection) GetKey(k krt.Key[ConnectedClient]) *ConnectedClient {
-	clients := x.getClients()
-	for _, c := range clients {
-		if string(k) == c.ResourceName() {
-			return &c
-		}
-	}
-	return nil
+func (x *callbacksCollection) GetKey(k krt.Key[UniqlyConnectedClient]) *UniqlyConnectedClient {
+	x.stateLock.RLock()
+	defer x.stateLock.RUnlock()
+
+	u := x.uniqClients[string(k)]
+	return &u
 }
 
 // List returns all objects in the collection.
 // Order of the list is undefined.
 
-func (x *callbacksCollection) List() []ConnectedClient { return x.getClients() }
+func (x *callbacksCollection) List() []UniqlyConnectedClient { return x.getClients() }
 
 type simpleSyncer struct{}
 
@@ -228,68 +279,6 @@ func (o *handlers[O]) Notify(e krt.Event[O]) {
 	for _, f := range cb {
 		events := [1]krt.Event[O]{e}
 		f(events[:], false)
-	}
-}
-
-/////////////////////////////////////////////////// collection of unique clients (i.e. same gateway and same labels)
-
-type UniqlyConnectedClient struct {
-	// name namespace of gateway
-	Role   string
-	Labels map[string]string
-
-	resourceName string
-}
-
-func (c UniqlyConnectedClient) ResourceName() string {
-	return c.resourceName
-}
-
-var _ krt.Equaler[UniqlyConnectedClient] = new(UniqlyConnectedClient)
-
-func (c UniqlyConnectedClient) Equals(k UniqlyConnectedClient) bool {
-	return maps.Equal(c.Labels, k.Labels) && c.Role == k.Role
-}
-
-func NewUniqlyConnectedClient(cc ConnectedClient) UniqlyConnectedClient {
-	labels := getLabels(cc.Node.GetMetadata())
-	role := cc.Node.GetMetadata().GetFields()["role"].GetStringValue()
-	return UniqlyConnectedClient{
-		Role:         role,
-		Labels:       labels,
-		resourceName: fmt.Sprintf("%s~%d", role, hashLabels(labels)),
-	}
-}
-
-// THIS IS THE SET OF THINGS WE RUN TRANSLATION FOR
-func NewUniqlyConnectedClientCollection(c krt.Collection[ConnectedClient]) krt.Collection[UniqlyConnectedClient] {
-	if false {
-		// ideally i want to some something like this, but it is not currently supported.
-		// as the mapping must by 1:1.
-		// i.e. N->N. This mapping is N->M (where N >= M). as we may de-duplicated
-		return krt.NewCollection[ConnectedClient, UniqlyConnectedClient](
-			c,
-			func(ctx krt.HandlerContext, cc ConnectedClient) *UniqlyConnectedClient {
-				ucc := NewUniqlyConnectedClient(cc)
-				return &ucc
-			},
-		)
-	} else {
-		// this works, but is less efficient, as any connected client change will trigger a recompute
-		return krt.NewManyFromNothing[UniqlyConnectedClient](
-			c,
-			func(ctx krt.HandlerContext) []UniqlyConnectedClient {
-				unqiueClients := make(map[string]struct{})
-				var ret []UniqlyConnectedClient
-				for _, cc := range krt.Fetch(ctx, c) {
-					ucc := NewUniqlyConnectedClient(cc)
-					if _, ok := unqiueClients[ucc.resourceName]; ok {
-						continue
-					}
-					ret = append(ret, ucc)
-				}
-				return ret
-			})
 	}
 }
 
