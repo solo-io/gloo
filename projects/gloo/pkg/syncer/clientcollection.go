@@ -82,19 +82,14 @@ func NewConnectedClients(ctx context.Context) (xdsserver.Callbacks, krt.Collecti
 		fanoutChan:       make(chan krt.Event[UniqlyConnectedClient], 100),
 	}
 	go func() {
-	Loop:
 		for {
 			select {
 			case <-ctx.Done():
-				break Loop
+				return
 			case event := <-cb.fanoutChan:
 				cb.eventHandlers.Notify(event)
 			}
 		}
-		// nil out the channel, incase notify is called after the context is done
-		cb.stateLock.Lock()
-		cb.fanoutChan = nil
-		cb.stateLock.Unlock()
 	}()
 	return cb, cb
 }
@@ -125,11 +120,12 @@ func (x *callbacksCollection) del(sid int64) *UniqlyConnectedClient {
 	if ok {
 		ucc := NewUniqlyConnectedClient(c)
 		current := x.uniqClientsCount[ucc.resourceName]
-		x.uniqClientsCount[ucc.resourceName] = current - 1
 		if current == 1 {
 			delete(x.uniqClientsCount, ucc.resourceName)
 			delete(x.uniqClients, ucc.resourceName)
 			return &ucc
+		} else {
+			x.uniqClientsCount[ucc.resourceName] = current - 1
 		}
 	}
 	return nil
@@ -238,8 +234,11 @@ func (x *callbacksCollection) GetKey(k krt.Key[UniqlyConnectedClient]) *UniqlyCo
 	x.stateLock.RLock()
 	defer x.stateLock.RUnlock()
 
-	u := x.uniqClients[string(k)]
-	return &u
+	u, ok := x.uniqClients[string(k)]
+	if ok {
+		return &u
+	}
+	return nil
 }
 
 // List returns all objects in the collection.
