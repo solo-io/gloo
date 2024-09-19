@@ -210,7 +210,10 @@ func (x *callbacksCollection) RegisterBatch(f func(o []krt.Event[UniqlyConnected
 	if runExistingState {
 		f(nil, true)
 	}
-	x.eventHandlers.Insert(f)
+	// notify under lock to make sure that no regular events fire during the initial sync.
+	x.eventHandlers.mu.Lock()
+	defer x.eventHandlers.mu.Unlock()
+	x.eventHandlers.insertLocked(f)
 	if runExistingState {
 		for _, v := range x.getClients() {
 
@@ -266,6 +269,9 @@ func (o *handlers[O]) Insert(f func(o []krt.Event[O], initialSync bool)) {
 	defer o.mu.Unlock()
 	o.h = append(o.h, f)
 }
+func (o *handlers[O]) insertLocked(f func(o []krt.Event[O], initialSync bool)) {
+	o.h = append(o.h, f)
+}
 
 func (o *handlers[O]) Get() []func(o []krt.Event[O], initialSync bool) {
 	o.mu.RLock()
@@ -289,7 +295,6 @@ func hashLabels(labels map[string]string) uint64 {
 		hasher.Write([]byte{0})
 		hasher.Write([]byte(v))
 		hasher.Write([]byte{0})
-		hasher.Reset()
 		finalHash ^= hasher.Sum64()
 	}
 	return finalHash

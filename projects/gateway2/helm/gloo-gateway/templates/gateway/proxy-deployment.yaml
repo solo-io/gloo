@@ -53,6 +53,8 @@ spec:
         volumeMounts:
         - mountPath: /etc/envoy
           name: envoy-config
+        - name: podinfo
+          mountPath: /etc/podinfo
         env:
         - name: POD_NAME
           valueFrom:
@@ -227,6 +229,13 @@ spec:
       - configMap:
           name: {{ include "gloo-gateway.gateway.fullname" . }}
         name: envoy-config
+      - name: podinfo
+        downwardAPI:
+          items:
+            - path: "labels"
+              fieldRef:
+                fieldPath: metadata.labels
+        emptyDir: {}
 {{- if $gateway.istioSDS.enabled }}
       - emptyDir:
           medium: Memory
@@ -314,6 +323,10 @@ data:
       cluster: {{ include "gloo-gateway.gateway.fullname" . }}.{{ .Release.Namespace }}
       metadata:
         role: gloo-kube-gateway-api~{{ $gateway.gatewayNamespace }}~{{ $gateway.gatewayNamespace }}-{{ $gateway.gatewayName | default (include "gloo-gateway.gateway.fullname" .) }}
+        labels:
+{{ `{{ range $key, $value := .PodLabels}}
+          {{$key}}: {{$value}}
+{{ end }}` }}
     static_resources:
       listeners:
       - name: read_config_listener
