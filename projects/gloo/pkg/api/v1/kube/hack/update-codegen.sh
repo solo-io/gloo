@@ -5,46 +5,59 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-SCRIPT_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
-ROOT_PKG=github.com/solo-io/gloo/projects/gloo/pkg/api/v1
-CLIENT_PKG=${ROOT_PKG}/kube/client
-APIS_PKG=${ROOT_PKG}/kube/apis
+# Heavily inspired by <https://github.com/kubernetes-sigs/gateway-api/blob/main/hack/update-codegen.sh>.
 
-# Grab code-generator version from go.sum.
-CODEGEN_PKG=$(go list -f '{{ .Dir }}' -m k8s.io/code-generator)
-GENGO_PKG=$(go list -f '{{ .Dir }}' -m k8s.io/gengo/v2)
+readonly SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE}")"/.. && pwd)"
+readonly OUTPUT_DIR="${SCRIPT_ROOT}/client"
 
-echo ">> Using ${CODEGEN_PKG}"
+readonly GOPATH="$(mktemp -d)"
+mkdir -p $GOPATH/src/github.com/solo-io/gloo
+ln -s $SCRIPT_ROOT $GOPATH/src/github.com/solo-io/gloo
 
-# code-generator does work with go.mod but makes assumptions about
-# the project living in $GOPATH/src. To work around this and support
-# any location; create a temporary directory, use this as an output
-# base, and copy everything back once generated.
-TEMP_DIR=$(mktemp -d)
-cleanup() {
-    echo ">> Removing ${TEMP_DIR}"
-    rm -rf ${TEMP_DIR}
-}
-trap "cleanup" EXIT SIGINT
+readonly CODEGEN_PKG=$(go list -f '{{ .Dir }}' -m k8s.io/code-generator)
+readonly GENGO_PKG=$(go list -f '{{ .Dir }}' -m k8s.io/gengo/v2)
 
-echo ">> Temporary output directory ${TEMP_DIR}"
+readonly ROOT_PKG=github.com/solo-io/gloo/projects/gloo/pkg/api/v1
+readonly OUTPUT_PKG=${ROOT_PKG}/kube/client
+readonly APIS_PKG=${ROOT_PKG}/kube/apis
 
-mkdir -p "${TEMP_DIR}/${ROOT_PKG}/pkg/client/informers" \
-         "${TEMP_DIR}/${ROOT_PKG}/pkg/client/listers" \
-         "${TEMP_DIR}/${ROOT_PKG}/pkg/client/clientset"
+readonly CLIENTSET_NAME=versioned
+readonly CLIENTSET_PKG_NAME=clientset
+readonly VERSIONS=( v1 )
 
-# Ensure we can execute.
-chmod +x ${CODEGEN_PKG}/kube_codegen.sh
+PROJECT_INPUT_DIRS_SPACE=""
+PROJECT_INPUT_DIRS_COMMA=""
+for VERSION in "${VERSIONS[@]}"
+do
+    PROJECT_INPUT_DIRS_SPACE+="${APIS_PKG}/gloo.solo.io/v1 "
+    PROJECT_INPUT_DIRS_COMMA+="${APIS_PKG}/gloo.solo.io/v1,"
+done
+PROJECT_INPUT_DIRS_SPACE="${PROJECT_INPUT_DIRS_SPACE%,}" # drop trailing space
+PROJECT_INPUT_DIRS_COMMA="${PROJECT_INPUT_DIRS_COMMA%,}" # drop trailing comma
 
-source ${CODEGEN_PKG}/kube_codegen.sh kube::codegen::gen_client \
-    --output-dir "${TEMP_DIR}" \
-    --output-pkg "${CLIENT_PKG}" \
-    --with-watch \
-    --boilerplate "${GENGO_PKG}/boilerplate/boilerplate.go.txt" \
-    ${APIS_PKG}
+readonly COMMON_FLAGS="--go-header-file ${GENGO_PKG}/boilerplate/boilerplate.go.txt"
 
-ls -lha $TEMP_DIR
+echo "Generating clientset at ${OUTPUT_PKG}/${CLIENTSET_PKG_NAME}"
+go run $CODEGEN_PKG/cmd/client-gen \
+    --clientset-name "${CLIENTSET_NAME}" \
+    --input-base "${APIS_PKG}" \
+    --input "${PROJECT_INPUT_DIRS_COMMA//${APIS_PKG}/}" \
+    --output-dir "$OUTPUT_DIR/${CLIENTSET_PKG_NAME}" \
+    --output-pkg "${OUTPUT_PKG}/${CLIENTSET_PKG_NAME}" \
+    ${COMMON_FLAGS}
 
-# Copy everything back.
-cp -r "${TEMP_DIR}/${ROOT_PKG}/." "${SCRIPT_ROOT}/"
+echo "Generating listers at ${OUTPUT_PKG}/listers"
+go run $CODEGEN_PKG/cmd/lister-gen \
+    --output-dir "$OUTPUT_DIR/listers" \
+    --output-pkg "${OUTPUT_PKG}/listers" \
+    ${COMMON_FLAGS} \
+    ${PROJECT_INPUT_DIRS_COMMA}
 
+echo "Generating informers at ${OUTPUT_PKG}/informers"
+go run $CODEGEN_PKG/cmd/informer-gen \
+    --versioned-clientset-package "${OUTPUT_PKG}/${CLIENTSET_PKG_NAME}/${CLIENTSET_NAME}" \
+    --listers-package "${OUTPUT_PKG}/listers" \
+    --output-dir "$OUTPUT_DIR/informers" \
+    --output-pkg "${OUTPUT_PKG}/informers" \
+    ${COMMON_FLAGS} \
+    ${PROJECT_INPUT_DIRS_COMMA}
