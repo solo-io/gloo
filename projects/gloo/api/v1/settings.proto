@@ -608,6 +608,7 @@ message Settings {
 // A label selector requirement is a selector that contains values, a key, and an operator that
 // relates the key and values.
 // Copied from Kubernetes to avoid expensive dependency on Kubernetes libraries.
+// Ref: https://github.com/kubernetes/apimachinery/blob/f7615f37d717297aca51101478406af712553c5b/pkg/apis/meta/v1/generated.proto#L442-L453
 message LabelSelector {
     // matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
     // map is equivalent to an element of matchExpressions, whose key field is "key", the
@@ -623,6 +624,7 @@ message LabelSelector {
 // A label selector requirement is a selector that contains values, a key, and an operator that
 // relates the key and values.
 // Copied from Kubernetes to avoid expensive dependency on Kubernetes libraries.
+// Ref: https://github.com/kubernetes/apimachinery/blob/f7615f37d717297aca51101478406af712553c5b/pkg/apis/meta/v1/generated.proto#L455-L472
 message LabelSelectorRequirement {
     // key is the label key that the selector applies to.
     // +patchMergeKey=key
