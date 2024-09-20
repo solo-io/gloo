@@ -653,6 +653,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 
 	errs := make(chan error)
 
+	// MARK: build and run EDS loop
 	discoveryPlugins := plugins.FilterPlugins[discovery.DiscoveryPlugin](pluginRegistry.GetPlugins())
 	for _, p := range discoveryPlugins {
 		p.Init(plugins.InitParams{Ctx: watchOpts.Ctx, Settings: opts.Settings})
@@ -929,6 +930,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 			mgr,
 			k8sgwExt,
 			proxyClient,
+			upstreamClient,
 			sharedTranslator,
 			opts.ControlPlane.SnapshotCache,
 			opts.Settings,
@@ -994,16 +996,11 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		graphqlApiClient,
 		extensions.ApiEmitterChannel,
 	)
+
 	syncers := v1snap.ApiSyncers{
 		validator,
 		translationSync,
 	}
-	// we want ggv2 proxy syncer first so it can reconcile its proxies, which need to be picked up
-	// by extension syncing (via translationSync) and by the snapshot storage for debugging
-	if opts.GlooGateway.EnableK8sGatewayController {
-		syncers = append(syncers, proxySyncer)
-	}
-	// add standard syncers
 	syncers = append(syncers, validator, translationSync)
 	if opts.GatewayControllerEnabled {
 		syncers = append(syncers, gwValidationSyncer)

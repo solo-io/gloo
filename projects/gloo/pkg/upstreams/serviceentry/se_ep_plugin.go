@@ -203,7 +203,8 @@ func meshUpstreams(upstreamsToTrack v1.UpstreamList) (krt.Collection[upstream], 
 // We also return a namespace index to speed up other lookups.
 func serviceEntriesWithUpstreams(
 	ServiceEntries krt.Collection[*networkingclient.ServiceEntry],
-	Upstreams krt.Collection[upstream], MeshUpstreamsIndex krt.Index[string, upstream],
+	Upstreams krt.Collection[upstream],
+	MeshUpstreamsIndex krt.Index[string, upstream],
 ) (krt.Collection[serviceEntryUpstreams], krt.Index[string, serviceEntryUpstreams]) {
 	upstreamServiceEntries := krt.NewCollection(ServiceEntries, func(ctx krt.HandlerContext, se *networkingclient.ServiceEntry) *serviceEntryUpstreams {
 		referencingUs := make(map[uint32][]upstream, len(se.Spec.Ports))

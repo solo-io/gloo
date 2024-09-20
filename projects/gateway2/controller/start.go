@@ -3,10 +3,11 @@ package controller
 import (
 	"context"
 
-	"github.com/solo-io/gloo/pkg/schemes"
+	glooschemes "github.com/solo-io/gloo/pkg/schemes"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 	ctrl "sigs.k8s.io/controller-runtime"
+
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -86,7 +87,7 @@ func BuildMgr(devMode bool) (manager.Manager, error) {
 	ctrl.SetLogger(zap.New(opts...))
 
 	mgrOpts := ctrl.Options{
-		Scheme:           schemes.DefaultScheme(),
+		Scheme:           glooschemes.DefaultScheme(),
 		PprofBindAddress: "127.0.0.1:9099",
 		// if you change the port here, also change the port "health" in the helmchart.
 		HealthProbeBindAddress: ":9093",
@@ -139,3 +140,45 @@ func Start(ctx context.Context, cfg StartConfig) error {
 
 	return cfg.Mgr.Start(ctx)
 }
+
+// 1. krt collection of gloov1.Proxy
+//    a. derived from krt collection for every resource in the current API snapshot (minus the GE specific things)
+//    b. Endpoint krt collection that DOES NOT need an EDS Discovery Plugin minus channel machinery
+//    c. scale benefit: per-dependent resource translation
+//       i. first step could be per Upstream translation
+// 2. possible option: convert ApiSnapshot to interface to allow pluggable impls
+// notes: deprecate UpstreamGroups
+//
+// RouteOptions collection; index by targetRef
+// HTTPRoute collection; index by parentRef
+// Gateway collection
+// Proxy/Gateway collection (fetch HTTPRoutes indexed by parentRef
+// proxy <- Gateway <- HTTPRoutes <- RouteOptions <- AuthConfig
+//   |
+//    --> Listener (xds)
+
+// this theoretically should work, however there's no easy way to do a watch via dynamic client that would return the typed objects
+// we need. we could use a separate client than the ClientGetter, such as:
+// - a typed client
+// - kube client with correct scheme (and Watch() support)
+//   - the challenge here is that we also want this to be backed by a cache so we're in a weird place and would need
+//     to create the client to share the cache etc. from the controller-runtime client. but one of those goals in krt migration
+//     is to not have to use controller runtime directly anymore?
+
+// kubeclient.Register[*sologatewayv1.RouteOption](
+// 	sologatewayv1.SchemeGroupVersion.WithResource("routeoptions"),
+// 	sologatewayv1.SchemeGroupVersion.WithKind("RouteOption"),
+// 	func(c kubeclient.ClientGetter, ns string, o metav1.ListOptions) (runtime.Object, error) {
+// 		rtopts := sologatewayv1.RouteOptionList{}
+// 		l, err := c.Dynamic().Resource(sologatewayv1.SchemeGroupVersion.WithResource("routeoptions")).Namespace(ns).List(ctx, o)
+// 		err = runtime.DefaultUnstructuredConverter.FromUnstructured(l.UnstructuredContent(), &rtopts)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		return &rtopts, err
+// 	},
+// 	func(c kubeclient.ClientGetter, ns string, o metav1.ListOptions) (watch.Interface, error) {
+// 		cfg.Mgr.
+// 		return c.Dynamic().Resource(sologatewayv1.SchemeGroupVersion.WithResource("routeoptions")).Namespace(ns).Watch(ctx, o)
+// 	},
+// )
