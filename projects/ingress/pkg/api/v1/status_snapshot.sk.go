@@ -11,6 +11,7 @@ import (
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -105,17 +106,17 @@ func (s *StatusSnapshot) RemoveFromResourceList(resource resources.Resource) err
 	}
 }
 
-func (s *StatusSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+func (s *StatusSnapshot) RemoveMatches(predicate core.Predicate) {
 	var Services KubeServiceList
 	for _, res := range s.Services {
-		if namespace != res.GetMetadata().GetNamespace() {
+		if matches := predicate(res.GetMetadata()); !matches {
 			Services = append(Services, res)
 		}
 	}
 	s.Services = Services
 	var Ingresses IngressList
 	for _, res := range s.Ingresses {
-		if namespace != res.GetMetadata().GetNamespace() {
+		if matches := predicate(res.GetMetadata()); !matches {
 			Ingresses = append(Ingresses, res)
 		}
 	}

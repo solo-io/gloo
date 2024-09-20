@@ -13,6 +13,7 @@ import (
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -107,17 +108,17 @@ func (s *SetupSnapshot) RemoveFromResourceList(resource resources.Resource) erro
 	}
 }
 
-func (s *SetupSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+func (s *SetupSnapshot) RemoveMatches(predicate core.Predicate) {
 	var Settings SettingsList
 	for _, res := range s.Settings {
-		if namespace != res.GetMetadata().GetNamespace() {
+		if matches := predicate(res.GetMetadata()); !matches {
 			Settings = append(Settings, res)
 		}
 	}
 	s.Settings = Settings
 	var Kubenamespaces github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceList
 	for _, res := range s.Kubenamespaces {
-		if namespace != res.GetMetadata().GetNamespace() {
+		if matches := predicate(res.GetMetadata()); !matches {
 			Kubenamespaces = append(Kubenamespaces, res)
 		}
 	}

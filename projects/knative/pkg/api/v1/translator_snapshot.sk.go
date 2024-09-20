@@ -13,6 +13,7 @@ import (
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -82,10 +83,10 @@ func (s *TranslatorSnapshot) RemoveFromResourceList(resource resources.Resource)
 	}
 }
 
-func (s *TranslatorSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+func (s *TranslatorSnapshot) RemoveMatches(predicate core.Predicate) {
 	var Ingresses github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressList
 	for _, res := range s.Ingresses {
-		if namespace != res.GetMetadata().GetNamespace() {
+		if matches := predicate(res.GetMetadata()); !matches {
 			Ingresses = append(Ingresses, res)
 		}
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -132,24 +133,24 @@ func (s *TranslatorSnapshot) RemoveFromResourceList(resource resources.Resource)
 	}
 }
 
-func (s *TranslatorSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+func (s *TranslatorSnapshot) RemoveMatches(predicate core.Predicate) {
 	var Upstreams gloo_solo_io.UpstreamList
 	for _, res := range s.Upstreams {
-		if namespace != res.GetMetadata().GetNamespace() {
+		if matches := predicate(res.GetMetadata()); !matches {
 			Upstreams = append(Upstreams, res)
 		}
 	}
 	s.Upstreams = Upstreams
 	var Services KubeServiceList
 	for _, res := range s.Services {
-		if namespace != res.GetMetadata().GetNamespace() {
+		if matches := predicate(res.GetMetadata()); !matches {
 			Services = append(Services, res)
 		}
 	}
 	s.Services = Services
 	var Ingresses IngressList
 	for _, res := range s.Ingresses {
-		if namespace != res.GetMetadata().GetNamespace() {
+		if matches := predicate(res.GetMetadata()); !matches {
 			Ingresses = append(Ingresses, res)
 		}
 	}

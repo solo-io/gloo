@@ -11,6 +11,7 @@ import (
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -80,10 +81,10 @@ func (s *EnterpriseSnapshot) RemoveFromResourceList(resource resources.Resource)
 	}
 }
 
-func (s *EnterpriseSnapshot) RemoveAllResourcesInNamespace(namespace string) {
+func (s *EnterpriseSnapshot) RemoveMatches(predicate core.Predicate) {
 	var AuthConfigs AuthConfigList
 	for _, res := range s.AuthConfigs {
-		if namespace != res.GetMetadata().GetNamespace() {
+		if matches := predicate(res.GetMetadata()); !matches {
 			AuthConfigs = append(AuthConfigs, res)
 		}
 	}

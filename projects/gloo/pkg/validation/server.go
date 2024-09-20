@@ -210,7 +210,9 @@ func (s *validator) Validate(ctx context.Context, req *validation.GlooValidation
 func HandleResourceDeletion(snapshot *v1snap.ApiSnapshot, resource resources.Resource) error {
 	if _, ok := resource.(*sk_kubernetes.KubeNamespace); ok {
 		// Special case to handle namespace deletion
-		snapshot.RemoveAllResourcesInNamespace(resource.GetMetadata().GetName())
+		snapshot.RemoveMatches(func(metadata *core.Metadata) bool {
+			return resource.GetMetadata().GetNamespace() == metadata.GetNamespace()
+		})
 		return nil
 	} else {
 		return snapshot.RemoveFromResourceList(resource)
