@@ -2353,6 +2353,16 @@ func (m *GatewayOptions_ValidationOptions) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetFullEnvoyValidation()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetFullEnvoyValidation()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetFullEnvoyValidation(), target.GetFullEnvoyValidation()) {
+			return false
+		}
+	}
+
 	return true
 }
 
