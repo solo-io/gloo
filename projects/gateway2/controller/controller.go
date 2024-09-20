@@ -67,8 +67,6 @@ func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 		},
 	}
 
-	// TODO(Law): Add Endpoints and Pod events to match expectations re: EDS style config
-	// Needed if we will NOT use the Api Snapshot sync as the driver for resyncing
 	return run(ctx,
 		controllerBuilder.watchGwClass,
 		controllerBuilder.watchGw,
@@ -81,6 +79,8 @@ func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 		controllerBuilder.watchVirtualHostOptions,
 		controllerBuilder.watchUpstreams,
 		controllerBuilder.watchServices,
+		controllerBuilder.watchEndpoints,
+		controllerBuilder.watchPods,
 		controllerBuilder.addIndexes,
 		controllerBuilder.addHttpLisOptIndexes,
 		controllerBuilder.addLisOptIndexes,
@@ -356,6 +356,28 @@ func (c *controllerBuilder) watchServices(ctx context.Context) error {
 	return nil
 }
 
+func (c *controllerBuilder) watchPods(ctx context.Context) error {
+	err := ctrl.NewControllerManagedBy(c.cfg.Mgr).
+		// WithEventFilter(predicate.GenerationChangedPredicate{}).
+		For(&corev1.Pod{}).
+		Complete(reconcile.Func(c.reconciler.ReconcilePods))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *controllerBuilder) watchEndpoints(ctx context.Context) error {
+	err := ctrl.NewControllerManagedBy(c.cfg.Mgr).
+		// WithEventFilter(predicate.GenerationChangedPredicate{}).
+		For(&corev1.Endpoints{}).
+		Complete(reconcile.Func(c.reconciler.ReconcileEndpoints))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 type controllerReconciler struct {
 	cli    client.Client
 	scheme *runtime.Scheme
@@ -393,6 +415,18 @@ func (r *controllerReconciler) ReconcileUpstreams(ctx context.Context, req ctrl.
 }
 
 func (r *controllerReconciler) ReconcileServices(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	// eventually reconcile only effected listeners etc
+	r.kick(ctx)
+	return ctrl.Result{}, nil
+}
+
+func (r *controllerReconciler) ReconcilePods(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	// eventually reconcile only effected listeners etc
+	r.kick(ctx)
+	return ctrl.Result{}, nil
+}
+
+func (r *controllerReconciler) ReconcileEndpoints(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// eventually reconcile only effected listeners etc
 	r.kick(ctx)
 	return ctrl.Result{}, nil

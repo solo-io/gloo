@@ -3,7 +3,6 @@ package proxy_syncer
 import (
 	"context"
 	"errors"
-	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -242,7 +241,6 @@ func (us *upstream) Equals(in *upstream) bool {
 
 func (s *ProxySyncer) Start(ctx context.Context) error {
 	ctx = contextutils.WithLogger(ctx, "k8s-gw-syncer")
-	contextutils.LoggerFrom(ctx).Debug("starting syncer for k8s gateway proxies")
 
 	// create krt collections needed for building ApiSnapshot
 	RouteOptions := setupCollectionDynamic[sologatewayv1.RouteOption](
@@ -258,7 +256,8 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	// 	krt.WithName("VirtualHostOptions"),
 	// )
 
-	// TODO: handle cfgmap noisiness: https://github.com/solo-io/gloo/blob/main/projects/gloo/pkg/api/converters/kube/artifact_converter.go#L31
+	// TODO: handle cfgmap noisiness:
+	// https://github.com/solo-io/gloo/blob/main/projects/gloo/pkg/api/converters/kube/artifact_converter.go#L31
 	configMapClient := kclient.New[*corev1.ConfigMap](s.istioClient)
 	ConfigMaps := krt.WrapClient(configMapClient, krt.WithName("ConfigMaps"))
 
@@ -328,13 +327,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		return out
 	}, krt.WithName("GlooEndpoints"))
 
-	var (
-		// totalResyncs is used to track the number of times the proxy syncer has been triggered
-		totalResyncs int
-	)
 	resyncProxies := func() {
-		totalResyncs++
-		contextutils.LoggerFrom(ctx).Debugf("resyncing k8s gateway proxies [%v]", totalResyncs)
 		stopwatch := statsutils.NewTranslatorStopWatch("ProxySyncer")
 		stopwatch.Start()
 		var (
@@ -356,9 +349,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		rm := reports.NewReportMap()
 		r := reports.NewReporter(&rm)
 
-		var (
-			translatedGateways []gwplugins.TranslatedGateway
-		)
+		var translatedGateways []gwplugins.TranslatedGateway
 		for _, gw := range gwl.Items {
 			gatewayTranslator := s.k8sGwExtensions.GetTranslator(ctx, &gw, pluginRegistry)
 			if gatewayTranslator == nil {
@@ -367,14 +358,6 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 			}
 			proxy := gatewayTranslator.TranslateProxy(ctx, &gw, s.writeNamespace, r)
 			if proxy != nil {
-				// Add proxy id to the proxy metadata to track proxies for status reporting
-				proxyAnnotations := proxy.GetMetadata().GetAnnotations()
-				if proxyAnnotations == nil {
-					proxyAnnotations = make(map[string]string)
-				}
-				proxyAnnotations[utils.ProxySyncId] = strconv.Itoa(totalResyncs)
-				proxy.GetMetadata().Annotations = proxyAnnotations
-
 				proxies = append(proxies, proxy)
 				translatedGateways = append(translatedGateways, gwplugins.TranslatedGateway{
 					Gateway: gw,
@@ -422,6 +405,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		latestSnap.RouteOptions = glooRtOpts
 
 		proxiesWithReports := s.proxyTranslator.glooSync(ctx, &latestSnap)
+
 		applyStatusPlugins(ctx, proxiesWithReports, pluginRegistry)
 		s.syncStatus(ctx, rm, gwl)
 		s.syncRouteStatus(ctx, rm)
