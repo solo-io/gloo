@@ -17,6 +17,7 @@ import (
 	// solokubecrd "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	// "github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	istiogvr "istio.io/istio/pkg/config/schema/gvr"
 	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/kube/kclient"
 	"istio.io/istio/pkg/kube/krt"
@@ -166,25 +167,13 @@ func NewProxySyncer(
 	}
 }
 
-type krtCtxKey struct{}
-
-func krtFromCtx(ctx context.Context) (krt.HandlerContext, error) {
-	krtctx, ok := ctx.Value(krtCtxKey{}).(krt.HandlerContext)
-	if !ok {
-		return nil, errors.New("ctx does not wrap a krt.HandlerContext")
-	}
-	return krtctx, nil
-}
-
-func WithKrtCtx(ctx context.Context, krtctx krt.HandlerContext) context.Context {
-	return context.WithValue(ctx, krtCtxKey{}, krtctx)
-}
-
 type ProxyTranslator struct {
 	translator       translator.Translator
 	settings         *gloov1.Settings
 	syncerExtensions []syncer.TranslatorSyncerExtension
 	xdsCache         envoycache.SnapshotCache
+	// used to no-op during extension syncing as we only do it to get reports
+	noopSnapSetter syncer.SnapshotSetter
 }
 
 func NewProxyTranslator(translator translator.Translator,
@@ -197,6 +186,7 @@ func NewProxyTranslator(translator translator.Translator,
 		xdsCache:         xdsCache,
 		settings:         settings,
 		syncerExtensions: syncerExtensions,
+		noopSnapSetter:   &syncer.NoOpSnapshotSetter{},
 	}
 }
 
@@ -327,6 +317,13 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		return out
 	}, krt.WithName("GlooEndpoints"))
 
+	kubeGateways := setupCollectionDynamic[gwv1.Gateway](
+		ctx,
+		s.istioClient,
+		istiogvr.KubernetesGateway_v1,
+		krt.WithName("KubeGateways"),
+	)
+
 	resyncProxies := func() {
 		stopwatch := statsutils.NewTranslatorStopWatch("ProxySyncer")
 		stopwatch.Start()
@@ -338,29 +335,23 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 			contextutils.LoggerFrom(ctx).Debugf("translated and wrote %d proxies in %s", len(proxies), duration.String())
 		}()
 
-		var gwl gwv1.GatewayList
-		err := s.mgr.GetClient().List(ctx, &gwl)
-		if err != nil {
-			// This should never happen, try again?
-			return
-		}
-
 		pluginRegistry := s.k8sGwExtensions.CreatePluginRegistry(ctx)
 		rm := reports.NewReportMap()
 		r := reports.NewReporter(&rm)
 
 		var translatedGateways []gwplugins.TranslatedGateway
-		for _, gw := range gwl.Items {
-			gatewayTranslator := s.k8sGwExtensions.GetTranslator(ctx, &gw, pluginRegistry)
+		gws := kubeGateways.List()
+		for _, gw := range gws {
+			gatewayTranslator := s.k8sGwExtensions.GetTranslator(ctx, gw, pluginRegistry)
 			if gatewayTranslator == nil {
 				contextutils.LoggerFrom(ctx).Errorf("no translator found for Gateway %s (gatewayClass %s)", gw.Name, gw.Spec.GatewayClassName)
 				continue
 			}
-			proxy := gatewayTranslator.TranslateProxy(ctx, &gw, s.writeNamespace, r)
+			proxy := gatewayTranslator.TranslateProxy(ctx, gw, s.writeNamespace, r)
 			if proxy != nil {
 				proxies = append(proxies, proxy)
 				translatedGateways = append(translatedGateways, gwplugins.TranslatedGateway{
-					Gateway: gw,
+					Gateway: *gw,
 				})
 			}
 		}
@@ -407,7 +398,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		proxiesWithReports := s.proxyTranslator.glooSync(ctx, &latestSnap)
 
 		applyStatusPlugins(ctx, proxiesWithReports, pluginRegistry)
-		s.syncStatus(ctx, rm, gwl)
+		s.syncStatus(ctx, rm, gws)
 		s.syncRouteStatus(ctx, rm)
 	}
 
@@ -502,19 +493,19 @@ func (s *ProxySyncer) syncRouteStatus(ctx context.Context, rm reports.ReportMap)
 }
 
 // syncStatus updates the status of the Gateway CRs
-func (s *ProxySyncer) syncStatus(ctx context.Context, rm reports.ReportMap, gwl gwv1.GatewayList) {
+func (s *ProxySyncer) syncStatus(ctx context.Context, rm reports.ReportMap, gws []*gwv1.Gateway) {
 	ctx = contextutils.WithLogger(ctx, "statusSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	stopwatch := statsutils.NewTranslatorStopWatch("GatewayStatusSyncer")
 	stopwatch.Start()
 	defer stopwatch.Stop(ctx)
 
-	for _, gw := range gwl.Items {
+	for _, gw := range gws {
 		gw := gw // pike
-		if status := rm.BuildGWStatus(ctx, gw); status != nil {
+		if status := rm.BuildGWStatus(ctx, *gw); status != nil {
 			if !isGatewayStatusEqual(&gw.Status, status) {
 				gw.Status = *status
-				if err := s.mgr.GetClient().Status().Patch(ctx, &gw, client.Merge); err != nil {
+				if err := s.mgr.GetClient().Status().Patch(ctx, gw, client.Merge); err != nil {
 					logger.Error(err)
 				}
 			}
@@ -535,16 +526,9 @@ func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloov1.Pro
 		s.writeNamespace,
 		proxyList,
 		func(original, desired *gloov1.Proxy) (bool, error) {
-			// only reconcile if proxies are equal
+			// only reconcile if proxies are not equal
 			// we reconcile so ggv2 proxies can be used in extension syncing and debug snap storage
-			// but if we reconcile every time, we end in a loop where the proxies being synced here
-			// trigger an apisnapshot Sync (as Proxies are in the ApiSnapshot) which will cause us to
-			// regen and reconcile Proxies, in an endless loop
-			// also for now, we need to translate and sync on ApiSnapshot syncs because that is the
-			// source-of-truth for Gloo related translation and syncing (e.g. Endpoints)
-			// if we didn't, we would need to watch for e.g. Endpoint events but there's no guarantee the
-			// latest ApiSnapshot we stored would contain that latest Endpoint event
-			return proto.Equal(original, desired), nil
+			return !proto.Equal(original, desired), nil
 		},
 		clients.ListOpts{
 			Ctx:      ctx,
