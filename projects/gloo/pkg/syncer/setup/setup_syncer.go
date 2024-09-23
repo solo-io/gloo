@@ -930,11 +930,11 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 			mgr,
 			k8sgwExt,
 			proxyClient,
-			upstreamClient,
 			sharedTranslator,
 			opts.ControlPlane.SnapshotCache,
 			opts.Settings,
 			syncerExtensions,
+			secretClient,
 		)
 
 		// Share proxyClient and status syncer with the gateway controller
@@ -1179,6 +1179,7 @@ func constructOpts(ctx context.Context, params constructOptsParams) (bootstrap.O
 		kubeCoreCache corecache.KubeCoreCache
 	)
 
+	// MARK: build client factories
 	factoryParams := bootstrap_clients.NewConfigFactoryParams(
 		params.settings,
 		params.memCache,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"google.golang.org/protobuf/runtime/protoiface"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -16,6 +17,8 @@ import (
 	// solokubeclient "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	// solokubecrd "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	// "github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kubesecret"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	istiogvr "istio.io/istio/pkg/config/schema/gvr"
 	"istio.io/istio/pkg/kube"
@@ -74,6 +77,11 @@ type ProxySyncer struct {
 	// used for converting from kube type to gloo type
 	// TODO: abstract away the need for this by refactoring convert func()
 	// legacyClients map[reflect.Type]*solokubeclient.ResourceClient
+
+	// secret client needed to use existing kube secret -> gloo secret converters
+	// the only actually use is to do client.NewResource() to get a gloov1.Secret
+	// we can/should probably break this dependency entirely relatively easily
+	legacySecretClient gloov1.SecretClient
 }
 
 type GatewayInputChannels struct {
@@ -102,26 +110,6 @@ var kubeGatewayProxyLabels = map[string]string{
 	utils.ProxyTypeKey: utils.GatewayApiProxyValue,
 }
 
-// setupCollectionDynamic uses the dynamic client to setup an informer for a resource
-// and then uses an intermediate krt collection to type the unstructured resource.
-// This is a temporary workaround until we update to the latest istio version and can
-// uncomment the code below for registering types.
-// HACK: we don't want to use this long term, but it's letting me push forward with deveopment
-func setupCollectionDynamic[T any](ctx context.Context, client kube.Client, gvr schema.GroupVersionResource, opts ...krt.CollectionOption) krt.Collection[*T] {
-	gatewayClient := kclient.NewDelayedInformer[*unstructured.Unstructured](client, gvr, kubetypes.DynamicInformer, kclient.Filter{})
-	GatewayMapper := krt.WrapClient(gatewayClient, opts...)
-	return krt.NewCollection(GatewayMapper, func(krtctx krt.HandlerContext, i *unstructured.Unstructured) **T {
-		var empty T
-		out := &empty
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(i.UnstructuredContent(), out)
-		if err != nil {
-			contextutils.LoggerFrom(ctx).DPanic("failed converting unstructured into %T: %v", empty, i)
-			return nil
-		}
-		return &out
-	})
-}
-
 // NewProxySyncer returns an implementation of the ProxySyncer
 // The provided GatewayInputChannels are used to trigger syncs.
 // The proxy sync is triggered by the `genericEvent` which is kicked when
@@ -133,11 +121,11 @@ func NewProxySyncer(
 	mgr manager.Manager,
 	k8sGwExtensions extensions.K8sGatewayExtensions,
 	proxyClient gloov1.ProxyClient,
-	upstreamClient gloov1.UpstreamClient,
 	translator translator.Translator,
 	xdsCache envoycache.SnapshotCache,
 	settings *gloov1.Settings,
 	syncerExtensions []syncer.TranslatorSyncerExtension,
+	legacySecretClient gloov1.SecretClient,
 ) *ProxySyncer {
 	restCfg := kube.NewClientConfigForRestConfig(mgr.GetConfig())
 	client, err := kube.NewClient(restCfg, "")
@@ -164,6 +152,7 @@ func NewProxySyncer(
 		proxyTranslator: NewProxyTranslator(translator, xdsCache, settings, syncerExtensions),
 		istioClient:     client,
 		// legacyClients:   legacyClients,
+		legacySecretClient: legacySecretClient,
 	}
 }
 
@@ -239,17 +228,20 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		sologatewayv1.SchemeGroupVersion.WithResource("routeoptions"),
 		krt.WithName("RouteOptions"),
 	)
-	// VHostOptions := setupCollectionDynamic[sologatewayv1.VirtualHostOption](
-	// 	ctx,
-	// 	s.istioClient,
-	// 	sologatewayv1.SchemeGroupVersion.WithResource("virtualhostoptions"),
-	// 	krt.WithName("VirtualHostOptions"),
-	// )
+	VirtualHostOptions := setupCollectionDynamic[sologatewayv1.VirtualHostOption](
+		ctx,
+		s.istioClient,
+		sologatewayv1.SchemeGroupVersion.WithResource("virtualhostoptions"),
+		krt.WithName("VirtualHostOptions"),
+	)
 
 	// TODO: handle cfgmap noisiness:
 	// https://github.com/solo-io/gloo/blob/main/projects/gloo/pkg/api/converters/kube/artifact_converter.go#L31
 	configMapClient := kclient.New[*corev1.ConfigMap](s.istioClient)
 	ConfigMaps := krt.WrapClient(configMapClient, krt.WithName("ConfigMaps"))
+
+	secretClient := kclient.New[*corev1.Secret](s.istioClient)
+	secrets := krt.WrapClient(secretClient, krt.WithName("Secrets"))
 
 	KubeUpstreams := setupCollectionDynamic[glookubev1.Upstream](
 		ctx,
@@ -373,6 +365,27 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		}
 		latestSnap.Artifacts = as
 
+		secretResourceClient, ok := s.legacySecretClient.BaseClient().(*kubesecret.ResourceClient)
+		if !ok {
+			// something is wrong
+		}
+		gs := make([]*gloov1.Secret, 0, len(secrets.List()))
+		for _, i := range secrets.List() {
+			secret, err := kubeconverters.GlooSecretConverterChain.FromKubeSecret(ctx, secretResourceClient, i)
+			if err != nil {
+				// do something
+			}
+			if secret == nil {
+				continue
+			}
+			glooSecret, ok := secret.(*gloov1.Secret)
+			if !ok {
+				// something else is wrong
+			}
+			gs = append(gs, glooSecret)
+		}
+		latestSnap.Secrets = gs
+
 		kus := FinalUpstreams.List()
 		upstreams := make([]*gloov1.Upstream, 0, len(kus))
 		for _, u := range kus {
@@ -385,15 +398,12 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		latestSnap.Endpoints = eps
 
 		krtRouteOpts := RouteOptions.List()
-		glooRtOpts := make([]*gatewayv1.RouteOption, 0, len(krtRouteOpts))
-		for _, u := range krtRouteOpts {
-			glooUs := proto.Clone(&u.Spec).(*gatewayv1.RouteOption)
-			glooUs.Metadata = &core.Metadata{}
-			glooUs.Metadata.Name = u.GetName()
-			glooUs.Metadata.Namespace = u.GetNamespace()
-			glooRtOpts = append(glooRtOpts, glooUs)
-		}
+		glooRtOpts := unwrapGlooKubeTypes[*rtOptWrapper, *gatewayv1.RouteOption](wrapRtOpts(krtRouteOpts))
 		latestSnap.RouteOptions = glooRtOpts
+
+		krtVHostOpts := VirtualHostOptions.List()
+		glooVHostOpts := unwrapGlooKubeTypes[*vhostOptWrapper, *gatewayv1.VirtualHostOption](wrapVhosts(krtVHostOpts))
+		latestSnap.VirtualHostOptions = glooVHostOpts
 
 		proxiesWithReports := s.proxyTranslator.glooSync(ctx, &latestSnap)
 
@@ -420,6 +430,77 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 			resyncProxies()
 		}
 	}
+}
+
+type metaObjWithSpec interface {
+	metav1.Object
+	GetSpec() protoiface.MessageV1
+}
+
+type rtOptWrapper struct {
+	*sologatewayv1.RouteOption
+}
+
+func wrapRtOpts(in []*sologatewayv1.RouteOption) []*rtOptWrapper {
+	out := make([]*rtOptWrapper, 0, len(in))
+	for _, i := range in {
+		out = append(out, &rtOptWrapper{i})
+	}
+	return out
+}
+
+func (x *rtOptWrapper) GetSpec() protoiface.MessageV1 {
+	return &x.Spec
+}
+
+type vhostOptWrapper struct {
+	*sologatewayv1.VirtualHostOption
+}
+
+func wrapVhosts(in []*sologatewayv1.VirtualHostOption) []*vhostOptWrapper {
+	out := make([]*vhostOptWrapper, 0, len(in))
+	for _, i := range in {
+		out = append(out, &vhostOptWrapper{i})
+	}
+	return out
+}
+
+func (x *vhostOptWrapper) GetSpec() protoiface.MessageV1 {
+	return &x.Spec
+}
+
+func unwrapGlooKubeTypes[I metaObjWithSpec, O resources.Resource](in []I) []O {
+	out := make([]O, 0, len(in))
+	for _, i := range in {
+		o := proto.Clone(i.GetSpec()).(O)
+		m := &core.Metadata{
+			Name:      i.GetName(),
+			Namespace: i.GetNamespace(),
+		}
+		o.SetMetadata(m)
+		out = append(out, o)
+	}
+	return out
+}
+
+// setupCollectionDynamic uses the dynamic client to setup an informer for a resource
+// and then uses an intermediate krt collection to type the unstructured resource.
+// This is a temporary workaround until we update to the latest istio version and can
+// uncomment the code below for registering types.
+// HACK: we don't want to use this long term, but it's letting me push forward with deveopment
+func setupCollectionDynamic[T any](ctx context.Context, client kube.Client, gvr schema.GroupVersionResource, opts ...krt.CollectionOption) krt.Collection[*T] {
+	gatewayClient := kclient.NewDelayedInformer[*unstructured.Unstructured](client, gvr, kubetypes.DynamicInformer, kclient.Filter{})
+	GatewayMapper := krt.WrapClient(gatewayClient, opts...)
+	return krt.NewCollection(GatewayMapper, func(krtctx krt.HandlerContext, i *unstructured.Unstructured) **T {
+		var empty T
+		out := &empty
+		err := runtime.DefaultUnstructuredConverter.FromUnstructured(i.UnstructuredContent(), out)
+		if err != nil {
+			contextutils.LoggerFrom(ctx).DPanic("failed converting unstructured into %T: %v", empty, i)
+			return nil
+		}
+		return &out
+	})
 }
 
 // func (p *ProxySyncer) convertCrdToResource(typ reflect.Type, resourceCrd *solokubecrd.Resource) (resources.Resource, error) {
