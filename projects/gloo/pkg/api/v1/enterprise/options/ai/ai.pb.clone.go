@@ -108,6 +108,18 @@ func (m *UpstreamSpec) Clone() proto.Message {
 			}
 		}
 
+	case *UpstreamSpec_AzureOpenai:
+
+		if h, ok := interface{}(m.GetAzureOpenai()).(clone.Cloner); ok {
+			target.Llm = &UpstreamSpec_AzureOpenai{
+				AzureOpenai: h.Clone().(*UpstreamSpec_AzureOpenAI),
+			}
+		} else {
+			target.Llm = &UpstreamSpec_AzureOpenai{
+				AzureOpenai: proto.Clone(m.GetAzureOpenai()).(*UpstreamSpec_AzureOpenAI),
+			}
+		}
+
 	}
 
 	return target
@@ -228,6 +240,18 @@ func (m *Embedding) Clone() proto.Message {
 			}
 		}
 
+	case *Embedding_AzureOpenai:
+
+		if h, ok := interface{}(m.GetAzureOpenai()).(clone.Cloner); ok {
+			target.Embedding = &Embedding_AzureOpenai{
+				AzureOpenai: h.Clone().(*Embedding_AzureOpenAI),
+			}
+		} else {
+			target.Embedding = &Embedding_AzureOpenai{
+				AzureOpenai: proto.Clone(m.GetAzureOpenai()).(*Embedding_AzureOpenAI),
+			}
+		}
+
 	}
 
 	return target
@@ -254,6 +278,8 @@ func (m *SemanticCache) Clone() proto.Message {
 	}
 
 	target.Ttl = m.GetTtl()
+
+	target.Mode = m.GetMode()
 
 	return target
 }
@@ -402,6 +428,35 @@ func (m *UpstreamSpec_OpenAI) Clone() proto.Message {
 }
 
 // Clone function
+func (m *UpstreamSpec_AzureOpenAI) Clone() proto.Message {
+	var target *UpstreamSpec_AzureOpenAI
+	if m == nil {
+		return target
+	}
+	target = &UpstreamSpec_AzureOpenAI{}
+
+	target.Endpoint = m.GetEndpoint()
+
+	switch m.AuthTokenSource.(type) {
+
+	case *UpstreamSpec_AzureOpenAI_AuthToken:
+
+		if h, ok := interface{}(m.GetAuthToken()).(clone.Cloner); ok {
+			target.AuthTokenSource = &UpstreamSpec_AzureOpenAI_AuthToken{
+				AuthToken: h.Clone().(*SingleAuthToken),
+			}
+		} else {
+			target.AuthTokenSource = &UpstreamSpec_AzureOpenAI_AuthToken{
+				AuthToken: proto.Clone(m.GetAuthToken()).(*SingleAuthToken),
+			}
+		}
+
+	}
+
+	return target
+}
+
+// Clone function
 func (m *UpstreamSpec_Mistral) Clone() proto.Message {
 	var target *UpstreamSpec_Mistral
 	if m == nil {
@@ -477,6 +532,39 @@ func (m *Embedding_OpenAI) Clone() proto.Message {
 }
 
 // Clone function
+func (m *Embedding_AzureOpenAI) Clone() proto.Message {
+	var target *Embedding_AzureOpenAI
+	if m == nil {
+		return target
+	}
+	target = &Embedding_AzureOpenAI{}
+
+	target.ApiVersion = m.GetApiVersion()
+
+	target.Endpoint = m.GetEndpoint()
+
+	target.DeploymentName = m.GetDeploymentName()
+
+	switch m.AuthTokenSource.(type) {
+
+	case *Embedding_AzureOpenAI_AuthToken:
+
+		if h, ok := interface{}(m.GetAuthToken()).(clone.Cloner); ok {
+			target.AuthTokenSource = &Embedding_AzureOpenAI_AuthToken{
+				AuthToken: h.Clone().(*SingleAuthToken),
+			}
+		} else {
+			target.AuthTokenSource = &Embedding_AzureOpenAI_AuthToken{
+				AuthToken: proto.Clone(m.GetAuthToken()).(*SingleAuthToken),
+			}
+		}
+
+	}
+
+	return target
+}
+
+// Clone function
 func (m *SemanticCache_Redis) Clone() proto.Message {
 	var target *SemanticCache_Redis
 	if m == nil {
@@ -485,6 +573,27 @@ func (m *SemanticCache_Redis) Clone() proto.Message {
 	target = &SemanticCache_Redis{}
 
 	target.ConnectionString = m.GetConnectionString()
+
+	target.ScoreThreshold = m.GetScoreThreshold()
+
+	return target
+}
+
+// Clone function
+func (m *SemanticCache_Weaviate) Clone() proto.Message {
+	var target *SemanticCache_Weaviate
+	if m == nil {
+		return target
+	}
+	target = &SemanticCache_Weaviate{}
+
+	target.Host = m.GetHost()
+
+	target.HttpPort = m.GetHttpPort()
+
+	target.GrpcPort = m.GetGrpcPort()
+
+	target.Insecure = m.GetInsecure()
 
 	return target
 }
@@ -508,6 +617,18 @@ func (m *SemanticCache_DataStore) Clone() proto.Message {
 		} else {
 			target.Datastore = &SemanticCache_DataStore_Redis{
 				Redis: proto.Clone(m.GetRedis()).(*SemanticCache_Redis),
+			}
+		}
+
+	case *SemanticCache_DataStore_Weaviate:
+
+		if h, ok := interface{}(m.GetWeaviate()).(clone.Cloner); ok {
+			target.Datastore = &SemanticCache_DataStore_Weaviate{
+				Weaviate: h.Clone().(*SemanticCache_Weaviate),
+			}
+		} else {
+			target.Datastore = &SemanticCache_DataStore_Weaviate{
+				Weaviate: proto.Clone(m.GetWeaviate()).(*SemanticCache_Weaviate),
 			}
 		}
 

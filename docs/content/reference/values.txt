@@ -541,6 +541,7 @@
 |gateway.validation.enabled|bool|true|enable Gloo Edge API Gateway validation hook (default true)|
 |gateway.validation.alwaysAcceptResources|bool|true|unless this is set this to false in order to ensure validation webhook rejects invalid resources. by default, validation webhook will only log and report metrics for invalid resource admission without rejecting them outright.|
 |gateway.validation.allowWarnings|bool|true|set this to false in order to ensure validation webhook rejects resources that would have warning status or rejected status, rather than just rejected.|
+|gateway.validation.warnMissingTlsSecret|bool|true|set this to false in order to treat missing tls secret references as errors, causing validation to fail.|
 |gateway.validation.serverEnabled|bool|true|By providing the validation field (parent of this object) the user is implicitly opting into validation. This field allows the user to opt out of the validation server, while still configuring pre-existing fields such as warn_route_short_circuiting and disable_transformation_validation.|
 |gateway.validation.disableTransformationValidation|bool|false|set this to true to disable transformation validation. This may bring signifigant performance benefits if using many transformations, at the cost of possibly incorrect transformations being sent to Envoy. When using this value make sure to pre-validate transformations.|
 |gateway.validation.warnRouteShortCircuiting|bool|false|Write a warning to route resources if validation produced a route ordering warning (defaults to false). By setting to true, this means that Gloo Edge will start assigning warnings to resources that would result in route short-circuiting within a virtual host.|
@@ -555,6 +556,7 @@
 |gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gateway.validation.validationServerGrpcMaxSizeBytes|int|104857600|gRPC max message size in bytes for the gloo validation server|
 |gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
+|gateway.validation.fullEnvoyValidation|bool|false|enable feature which validates all final translated config against envoy Validate mode|
 |gateway.certGenJob.image.tag|string|<release_version, ex: 1.2.3>|The image tag for the container.|
 |gateway.certGenJob.image.repository|string|certgen|The image repository (name) for the container.|
 |gateway.certGenJob.image.digest|string||The container image's hash digest (e.g. 'sha256:12345...'), consumed when variant=standard.|

@@ -14,8 +14,10 @@ spec:
     enableGatewayController: true
     isolateVirtualHostsBySslConfig: false
     validation:
+      fullEnvoyValidation: false
       alwaysAccept: true
       allowWarnings: true
+      warnMissingTlsSecret: true
       serverEnabled: true
       disableTransformationValidation: false
       warnRouteShortCircuiting: false

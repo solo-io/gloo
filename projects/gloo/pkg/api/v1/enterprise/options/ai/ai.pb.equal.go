@@ -150,6 +150,21 @@ func (m *UpstreamSpec) Equal(that interface{}) bool {
 			}
 		}
 
+	case *UpstreamSpec_AzureOpenai:
+		if _, ok := target.Llm.(*UpstreamSpec_AzureOpenai); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetAzureOpenai()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetAzureOpenai()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetAzureOpenai(), target.GetAzureOpenai()) {
+				return false
+			}
+		}
+
 	default:
 		// m is nil but target is not nil
 		if m.Llm != target.Llm {
@@ -364,6 +379,21 @@ func (m *Embedding) Equal(that interface{}) bool {
 			}
 		}
 
+	case *Embedding_AzureOpenai:
+		if _, ok := target.Embedding.(*Embedding_AzureOpenai); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetAzureOpenai()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetAzureOpenai()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetAzureOpenai(), target.GetAzureOpenai()) {
+				return false
+			}
+		}
+
 	default:
 		// m is nil but target is not nil
 		if m.Embedding != target.Embedding {
@@ -416,6 +446,10 @@ func (m *SemanticCache) Equal(that interface{}) bool {
 	}
 
 	if m.GetTtl() != target.GetTtl() {
+		return false
+	}
+
+	if m.GetMode() != target.GetMode() {
 		return false
 	}
 
@@ -684,6 +718,58 @@ func (m *UpstreamSpec_OpenAI) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *UpstreamSpec_AzureOpenAI) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*UpstreamSpec_AzureOpenAI)
+	if !ok {
+		that2, ok := that.(UpstreamSpec_AzureOpenAI)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetEndpoint(), target.GetEndpoint()) != 0 {
+		return false
+	}
+
+	switch m.AuthTokenSource.(type) {
+
+	case *UpstreamSpec_AzureOpenAI_AuthToken:
+		if _, ok := target.AuthTokenSource.(*UpstreamSpec_AzureOpenAI_AuthToken); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetAuthToken()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetAuthToken()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetAuthToken(), target.GetAuthToken()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.AuthTokenSource != target.AuthTokenSource {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *UpstreamSpec_Mistral) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -824,6 +910,66 @@ func (m *Embedding_OpenAI) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *Embedding_AzureOpenAI) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*Embedding_AzureOpenAI)
+	if !ok {
+		that2, ok := that.(Embedding_AzureOpenAI)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetApiVersion(), target.GetApiVersion()) != 0 {
+		return false
+	}
+
+	if strings.Compare(m.GetEndpoint(), target.GetEndpoint()) != 0 {
+		return false
+	}
+
+	if strings.Compare(m.GetDeploymentName(), target.GetDeploymentName()) != 0 {
+		return false
+	}
+
+	switch m.AuthTokenSource.(type) {
+
+	case *Embedding_AzureOpenAI_AuthToken:
+		if _, ok := target.AuthTokenSource.(*Embedding_AzureOpenAI_AuthToken); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetAuthToken()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetAuthToken()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetAuthToken(), target.GetAuthToken()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.AuthTokenSource != target.AuthTokenSource {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *SemanticCache_Redis) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -845,6 +991,50 @@ func (m *SemanticCache_Redis) Equal(that interface{}) bool {
 	}
 
 	if strings.Compare(m.GetConnectionString(), target.GetConnectionString()) != 0 {
+		return false
+	}
+
+	if m.GetScoreThreshold() != target.GetScoreThreshold() {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *SemanticCache_Weaviate) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*SemanticCache_Weaviate)
+	if !ok {
+		that2, ok := that.(SemanticCache_Weaviate)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetHost(), target.GetHost()) != 0 {
+		return false
+	}
+
+	if m.GetHttpPort() != target.GetHttpPort() {
+		return false
+	}
+
+	if m.GetGrpcPort() != target.GetGrpcPort() {
+		return false
+	}
+
+	if m.GetInsecure() != target.GetInsecure() {
 		return false
 	}
 
@@ -885,6 +1075,21 @@ func (m *SemanticCache_DataStore) Equal(that interface{}) bool {
 			}
 		} else {
 			if !proto.Equal(m.GetRedis(), target.GetRedis()) {
+				return false
+			}
+		}
+
+	case *SemanticCache_DataStore_Weaviate:
+		if _, ok := target.Datastore.(*SemanticCache_DataStore_Weaviate); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetWeaviate()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetWeaviate()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetWeaviate(), target.GetWeaviate()) {
 				return false
 			}
 		}

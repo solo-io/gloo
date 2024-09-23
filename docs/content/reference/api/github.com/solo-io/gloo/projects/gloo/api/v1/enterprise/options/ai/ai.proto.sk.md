@@ -15,6 +15,7 @@ weight: 5
 - [UpstreamSpec](#upstreamspec)
 - [CustomHost](#customhost)
 - [OpenAI](#openai)
+- [AzureOpenAI](#azureopenai)
 - [Mistral](#mistral)
 - [Anthropic](#anthropic)
 - [RouteSettings](#routesettings)
@@ -22,9 +23,12 @@ weight: 5
 - [Postgres](#postgres)
 - [Embedding](#embedding)
 - [OpenAI](#openai)
+- [AzureOpenAI](#azureopenai)
 - [SemanticCache](#semanticcache)
 - [Redis](#redis)
+- [Weaviate](#weaviate)
 - [DataStore](#datastore)
+- [Mode](#mode)
 - [RAG](#rag)
 - [DataStore](#datastore)
 - [RateLimiting](#ratelimiting)
@@ -125,14 +129,16 @@ port: 443 # Port is optional and will default to 443 for HTTPS
 "openai": .ai.options.gloo.solo.io.UpstreamSpec.OpenAI
 "mistral": .ai.options.gloo.solo.io.UpstreamSpec.Mistral
 "anthropic": .ai.options.gloo.solo.io.UpstreamSpec.Anthropic
+"azureOpenai": .ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `openai` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) |  Only one of `openai`, `mistral`, or `anthropic` can be set. |
-| `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) |  Only one of `mistral`, `openai`, or `anthropic` can be set. |
-| `anthropic` | [.ai.options.gloo.solo.io.UpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) |  Only one of `anthropic`, `openai`, or `mistral` can be set. |
+| `openai` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) | OpenAI upstream. Only one of `openai`, `mistral`, `anthropic`, or `azureOpenai` can be set. |
+| `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) | Mistral upstream. Only one of `mistral`, `openai`, `anthropic`, or `azureOpenai` can be set. |
+| `anthropic` | [.ai.options.gloo.solo.io.UpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) | Anthropic upstream. Only one of `anthropic`, `openai`, `mistral`, or `azureOpenai` can be set. |
+| `azureOpenai` | [.ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI](../ai.proto.sk/#azureopenai) | Azure OpenAI upstream. Only one of `azureOpenai`, `openai`, `mistral`, or `anthropic` can be set. |
 
 
 
@@ -172,6 +178,26 @@ Settings for the OpenAI API
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | Auth Token to use for the OpenAI API This token will be placed into the `Authorization` header and prefixed with Bearer if not present when sending the request to the upstream. |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional custom host to send the traffic to. |
+
+
+
+
+---
+### AzureOpenAI
+
+ 
+Settings for the Azure OpenAI API
+
+```yaml
+"authToken": .ai.options.gloo.solo.io.SingleAuthToken
+"endpoint": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | Auth Token to use for the OpenAI API This token will be placed into the `api-key` header. |
+| `endpoint` | `string` | (REQUIRED) The endpoint to use This should be the endpoint to the Azure OpenAI API, e.g. my-endpoint.openai.azure.com If the scheme is included it will be stripped. |
 
 
 
@@ -301,12 +327,14 @@ NOTE: These settings may only be applied to a route which uses an LLMProvider ba
 
 ```yaml
 "openai": .ai.options.gloo.solo.io.Embedding.OpenAI
+"azureOpenai": .ai.options.gloo.solo.io.Embedding.AzureOpenAI
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `openai` | [.ai.options.gloo.solo.io.Embedding.OpenAI](../ai.proto.sk/#openai) |  |
+| `openai` | [.ai.options.gloo.solo.io.Embedding.OpenAI](../ai.proto.sk/#openai) | OpenAI embedding. Only one of `openai` or `azureOpenai` can be set. |
+| `azureOpenai` | [.ai.options.gloo.solo.io.Embedding.AzureOpenAI](../ai.proto.sk/#azureopenai) | Azure OpenAI embedding. Only one of `azureOpenai` or `openai` can be set. |
 
 
 
@@ -329,6 +357,29 @@ NOTE: These settings may only be applied to a route which uses an LLMProvider ba
 
 
 ---
+### AzureOpenAI
+
+
+
+```yaml
+"authToken": .ai.options.gloo.solo.io.SingleAuthToken
+"apiVersion": string
+"endpoint": string
+"deploymentName": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | Auth Token to use for the OpenAI API This token will be placed into the `api-key` header. |
+| `apiVersion` | `string` | (REQUIRED) The version of the API to use. |
+| `endpoint` | `string` | (REQUIRED) The endpoint to use This should be the endpoint to the Azure OpenAI API, e.g. https://my-endpoint.openai.azure.com If the scheme isn't included it will be added. |
+| `deploymentName` | `string` | (REQUIRED) The deployment/model name to use. |
+
+
+
+
+---
 ### SemanticCache
 
 
@@ -337,6 +388,7 @@ NOTE: These settings may only be applied to a route which uses an LLMProvider ba
 "datastore": .ai.options.gloo.solo.io.SemanticCache.DataStore
 "embedding": .ai.options.gloo.solo.io.Embedding
 "ttl": int
+"mode": .ai.options.gloo.solo.io.SemanticCache.Mode
 
 ```
 
@@ -345,6 +397,7 @@ NOTE: These settings may only be applied to a route which uses an LLMProvider ba
 | `datastore` | [.ai.options.gloo.solo.io.SemanticCache.DataStore](../ai.proto.sk/#datastore) | Which data store to use. |
 | `embedding` | [.ai.options.gloo.solo.io.Embedding](../ai.proto.sk/#embedding) | Model to use to get embeddings for prompt. |
 | `ttl` | `int` | Time before data in the cache is considered expired. |
+| `mode` | [.ai.options.gloo.solo.io.SemanticCache.Mode](../ai.proto.sk/#mode) | Cache mode to use: READ_WRITE or READ_ONLY. |
 
 
 
@@ -356,12 +409,37 @@ NOTE: These settings may only be applied to a route which uses an LLMProvider ba
 
 ```yaml
 "connectionString": string
+"scoreThreshold": float
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `connectionString` | `string` | Connection string to the Redis database. |
+| `scoreThreshold` | `float` | Similarity score threshold value between 0.0 and 1.0 that determines how similar two queries need to be in order to return a cached result. The lower the number, the more similar the queries need to be for a cache hit. +kubebuilder:validation:Minimum=0 +kubebuilder:validation:Maximum=1. |
+
+
+
+
+---
+### Weaviate
+
+
+
+```yaml
+"host": string
+"httpPort": int
+"grpcPort": int
+"insecure": bool
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `host` | `string` | Connection string to the Weaviate database, scheme should NOT be included. For example: weaviate.my-ns.svc.cluster.local NOT: http://weaviate.my-ns.svc.cluster.local. |
+| `httpPort` | `int` | HTTP port to use, if unset will default to 8080. |
+| `grpcPort` | `int` | GRPC port to use, if unset will default to 50051. |
+| `insecure` | `bool` | Whether or not to use a secure connection, true by default. |
 
 
 
@@ -374,12 +452,27 @@ Data store from which to cache the request/response pairs
 
 ```yaml
 "redis": .ai.options.gloo.solo.io.SemanticCache.Redis
+"weaviate": .ai.options.gloo.solo.io.SemanticCache.Weaviate
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `redis` | [.ai.options.gloo.solo.io.SemanticCache.Redis](../ai.proto.sk/#redis) |  |
+| `redis` | [.ai.options.gloo.solo.io.SemanticCache.Redis](../ai.proto.sk/#redis) |  Only one of `redis` or `weaviate` can be set. |
+| `weaviate` | [.ai.options.gloo.solo.io.SemanticCache.Weaviate](../ai.proto.sk/#weaviate) |  Only one of `weaviate` or `redis` can be set. |
+
+
+
+
+---
+### Mode
+
+
+
+| Name | Description |
+| ----- | ----------- | 
+| `READ_WRITE` | Read and write to the cache as a part of the request/response lifecycle |
+| `READ_ONLY` | Only read from the cache, do not write to it. Data will be written to the cache outside the request/response cycle. |
 
 
 
