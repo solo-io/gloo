@@ -43,6 +43,11 @@ type GatewayParametersSpec struct {
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:pruning:PreserveUnknownFields
 	SelfManaged *SelfManagedGateway `json:"selfManaged,omitempty"`
+
+	// The proxy will be distributed across multiple clusters via the Gloo Gateway Management Plane.
+	//
+	// +kubebuilder:validation:Optional
+	TargetClusters []*TargetCluster `json:"targetClusters,omitempty"`
 }
 
 // The current conditions of the GatewayParameters. This is not currently implemented.
@@ -50,6 +55,11 @@ type GatewayParametersStatus struct {
 }
 
 type SelfManagedGateway struct {
+}
+
+type TargetCluster struct {
+	ClusterName string   `json:"clusterName,omitempty"`
+	Namespaces  []string `json:"namespaces,omitempty"`
 }
 
 // Configuration for the set of Kubernetes resources that will be provisioned
