@@ -9,12 +9,22 @@ import (
 	"sync"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoy_service_discovery_v3 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
+	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	xdsserver "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 	"istio.io/istio/pkg/kube/controllers"
 	"istio.io/istio/pkg/kube/krt"
+	"k8s.io/apimachinery/pkg/types"
+
+	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+
+	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 )
 
 type ConnectedClient struct {
@@ -307,4 +317,126 @@ func getLabels(md *structpb.Struct) map[string]string {
 		labels[k] = v.GetStringValue()
 	}
 	return labels
+}
+
+// /////////////////// sketch of the rest of the syncer ////
+type upstreamRef struct {
+	name      string
+	namespace string
+}
+type proxyRef struct {
+	name       string
+	namespace  string
+	labelsHash string
+}
+
+type Clusters = krt.Index[envoy_config_cluster_v3.Cluster, upstreamRef]
+
+func clusters(krt.Collection[v1.Upstream]) Clusters {
+	panic("implement me")
+}
+
+type Endpoints = krt.Index[envoy_config_endpoint_v3.ClusterLoadAssignment, upstreamRef]
+
+func endpoints(krt.Collection[v1.Upstream]) Endpoints {
+	panic("implement me")
+}
+
+type Listeners = krt.Index[envoy_config_listener_v3.Listener, proxyRef]
+
+func listeners(krt.Collection[v1.Proxy]) Listeners {
+	panic("implement me")
+}
+
+type Routes = krt.Index[envoy_config_route_v3.RouteConfiguration, proxyRef]
+
+func routes(krt.Collection[v1.Proxy]) Routes {
+	panic("implement me")
+}
+
+func snapForProxy(x krt.Collection[v1.Proxy]) krt.Index[xdsSnapshot, proxyRef] {
+	return krt.Index[xdsSnapshot, proxyRef]{}
+}
+
+type xdsSnapshot struct {
+	Upstreams krt.Collection[v1.Upstream]
+	// Proxies   krt.Collection[v1.Proxy]
+	Clusters  Clusters
+	Endpoints Endpoints
+	Listeners Listeners
+	Routes    Routes
+}
+
+func defaultSnapshot(proxies krt.Collection[v1.Proxy], snap xdsSnapshot, xdsCache envoycache.SnapshotCache) {
+	krt.NewCollection(proxies, func(ctx krt.HandlerContext, o v1.Proxy) *proxyRef {
+		// put snapshot in the cache
+		upstreams := snap.Upstreams.List()
+
+		clusters := make([]*envoy_config_cluster_v3.Cluster, 0, len(upstreams))
+		for i := range upstreams {
+			u := upstreams[i]
+			c := snap.Clusters.Lookup(upstreamRef{name: u.Name, namespace: u.Namespace})
+			for i := range c {
+				clusters = append(clusters, &c[i])
+			}
+		}
+		// TODO:
+		var endpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment
+		var routeConfigs []*envoy_config_route_v3.RouteConfiguration
+		listeners := toPtrSlice(snap.Listeners.Lookup(proxyRef{name: o.Name, namespace: o.Namespace}))
+
+		xdsSnapshot := generateXDSSnapshot(clusters, endpoints, routeConfigs, listeners)
+
+		key := xds.SnapshotCacheKey(&o.Spec)
+		xdsCache.SetSnapshot(key, xdsSnapshot)
+		return &proxyRef{
+			name:       o.Name,
+			namespace:  o.Namespace,
+			labelsHash: "",
+		}
+	})
+}
+
+func toPtrSlice[T any](t []T) []*T {
+	out := make([]*T, len(t))
+	for i := range t {
+		out[i] = &t[i]
+	}
+	return out
+}
+
+func snapshotForProxy(clients krt.Collection[UniqlyConnectedClient], proxies krt.Collection[v1.Proxy], snap xdsSnapshot, xdsCache envoycache.SnapshotCache) {
+	krt.NewCollection(clients, func(ctx krt.HandlerContext, o UniqlyConnectedClient) *proxyRef {
+		// fetch the proxy for the client
+
+		//grab proxy name from client role
+		proxy := krt.FetchOne(ctx, proxies, krt.FilterObjectName(types.NamespacedName{Name: "TODO", Namespace: "TODO"}))
+
+		// get the labels of the unique client, see if there are any dest rules that apply to this proxy
+		// (on its namespace, and if selectors match)
+		/*
+			find the relevant proxy
+			see if dest rules are relevant for this proxy
+			if so, re-compute upstreams and endpoints.
+		*/
+
+		// if so, recompute the upstreams and endpoints
+
+		//		and do the same as above with the client's cache key.
+		return &proxyRef{
+			name:       proxy.Name,
+			namespace:  proxy.Namespace,
+			labelsHash: o.ResourceName(),
+		}
+	})
+}
+
+func generateXDSSnapshot(
+	clusters []*envoy_config_cluster_v3.Cluster,
+	endpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment,
+	routeConfigs []*envoy_config_route_v3.RouteConfiguration,
+	listeners []*envoy_config_listener_v3.Listener,
+) envoycache.Snapshot {
+
+	panic("implement me")
 }
