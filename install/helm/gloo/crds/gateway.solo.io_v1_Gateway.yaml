@@ -1099,6 +1099,14 @@ spec:
                                   nullable: true
                                   type: string
                                 type: array
+                              spanDecorators:
+                                properties:
+                                  staticSpanData:
+                                    properties:
+                                      spanName:
+                                        type: string
+                                    type: object
+                                type: object
                               tracePercentages:
                                 properties:
                                   clientSamplePercentage:
@@ -1738,6 +1746,14 @@ spec:
                                   nullable: true
                                   type: string
                                 type: array
+                              spanDecorators:
+                                properties:
+                                  staticSpanData:
+                                    properties:
+                                      spanName:
+                                        type: string
+                                    type: object
+                                type: object
                               tracePercentages:
                                 properties:
                                   clientSamplePercentage:
@@ -3040,6 +3056,14 @@ spec:
                                             nullable: true
                                             type: string
                                           type: array
+                                        spanDecorators:
+                                          properties:
+                                            staticSpanData:
+                                              properties:
+                                                spanName:
+                                                  type: string
+                                              type: object
+                                          type: object
                                         tracePercentages:
                                           properties:
                                             clientSamplePercentage:

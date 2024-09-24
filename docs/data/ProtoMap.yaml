@@ -1955,6 +1955,9 @@ apis:
   tracing.options.gloo.solo.io.RouteTracingSettings:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing.proto.sk/#RouteTracingSettings
     package: tracing.options.gloo.solo.io
+  tracing.options.gloo.solo.io.SpanDecoratorSettings:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing.proto.sk/#SpanDecoratorSettings
+    package: tracing.options.gloo.solo.io
   tracing.options.gloo.solo.io.TracePercentages:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing.proto.sk/#TracePercentages
     package: tracing.options.gloo.solo.io

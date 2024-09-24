@@ -117,6 +117,16 @@ func (m *ListenerTracingSettings) Equal(that interface{}) bool {
 
 	}
 
+	if h, ok := interface{}(m.GetSpanDecorators()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSpanDecorators()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSpanDecorators(), target.GetSpanDecorators()) {
+			return false
+		}
+	}
+
 	switch m.ProviderConfig.(type) {
 
 	case *ListenerTracingSettings_ZipkinConfig:
@@ -190,6 +200,54 @@ func (m *ListenerTracingSettings) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *SpanDecoratorSettings) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*SpanDecoratorSettings)
+	if !ok {
+		that2, ok := that.(SpanDecoratorSettings)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	switch m.SpanDecorator.(type) {
+
+	case *SpanDecoratorSettings_StaticSpanData_:
+		if _, ok := target.SpanDecorator.(*SpanDecoratorSettings_StaticSpanData_); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetStaticSpanData()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetStaticSpanData()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetStaticSpanData(), target.GetStaticSpanData()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.SpanDecorator != target.SpanDecorator {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *RouteTracingSettings) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -230,6 +288,16 @@ func (m *RouteTracingSettings) Equal(that interface{}) bool {
 		}
 	} else {
 		if !proto.Equal(m.GetPropagate(), target.GetPropagate()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetSpanDecorators()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSpanDecorators()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSpanDecorators(), target.GetSpanDecorators()) {
 			return false
 		}
 	}
@@ -384,6 +452,34 @@ func (m *TracingTagLiteral) Equal(that interface{}) bool {
 		if !proto.Equal(m.GetValue(), target.GetValue()) {
 			return false
 		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *SpanDecoratorSettings_StaticSpanData) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*SpanDecoratorSettings_StaticSpanData)
+	if !ok {
+		that2, ok := that.(SpanDecoratorSettings_StaticSpanData)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetSpanName(), target.GetSpanName()) != 0 {
+		return false
 	}
 
 	return true

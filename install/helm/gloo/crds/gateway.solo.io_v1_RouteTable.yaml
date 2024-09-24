@@ -2505,6 +2505,14 @@ spec:
                               type: boolean
                             routeDescriptor:
                               type: string
+                            spanDecorators:
+                              properties:
+                                staticSpanData:
+                                  properties:
+                                    spanName:
+                                      type: string
+                                  type: object
+                              type: object
                             tracePercentages:
                               properties:
                                 clientSamplePercentage:

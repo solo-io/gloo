@@ -43,6 +43,32 @@ message ListenerTracingSettings {
     repeated TracingTagEnvironmentVariable environment_variables_for_tags = 6;
     // Optional. If specified, Envoy will include the literals with the given tag as tracing tags.
     repeated TracingTagLiteral literals_for_tags = 7;
+
+    SpanDecoratorSettings span_decorators = 10;
+}
+
+// Span decorators
+message SpanDecoratorSettings {
+    // Statically add data to the span's name and attributes fields. If any of
+    // these fields are already defined, they will be overwritten.
+    message StaticSpanData {
+        // Value to set for the span name.
+        string span_name = 1;
+
+        // message StaticAttributeData {
+        //     string attribute_key = 1;
+        //     string attribute_value = 2;
+        //     // TODO define an optional "overwrite" field that can toggle
+        //     // whether this field should be overwritten if set.
+        // }
+        // Custom attributes to set for the span. If any of these spans are
+        // already defined, they will be overwritten.
+        // repeated span_attributes = 2;
+    }
+
+    oneof span_decorator {
+      StaticSpanData static_span_data = 1;
+    }
 }
 
 // Contains settings for configuring Envoy's tracing capabilities at the route level.
@@ -51,13 +77,15 @@ message ListenerTracingSettings {
 // See [here](https://docs.solo.io/gloo-edge/latest/guides/observability/tracing/) for additional information about configuring tracing with Gloo Gateway.
 message RouteTracingSettings {
     // Optional. If set, will be used to identify the route that produced the trace.
-    // Note that this value will be overridden if the "x-envoy-decorator-operation" header is passed.
+    // Note that this value will be overridden if the "x-envoy-decorator-operation" header is passed. It may also be overwritten by the span_decorators options.
     string route_descriptor = 1;
     // Requests can produce traces by random sampling or when the `x-client-trace-id` header is provided.
     // TracePercentages defines the limits for random, forced, and overall tracing percentages.
     TracePercentages trace_percentages = 2;
     // Optional. Default is true, If set to false, the tracing headers will not propagate to the upstream.
     google.protobuf.BoolValue propagate = 3;
+
+    SpanDecoratorSettings span_decorators = 4;
 }
 
 // Requests can produce traces by random sampling or when the `x-client-trace-id` header is provided.

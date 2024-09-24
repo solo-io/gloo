@@ -88,6 +88,12 @@ func (m *ListenerTracingSettings) Clone() proto.Message {
 		}
 	}
 
+	if h, ok := interface{}(m.GetSpanDecorators()).(clone.Cloner); ok {
+		target.SpanDecorators = h.Clone().(*SpanDecoratorSettings)
+	} else {
+		target.SpanDecorators = proto.Clone(m.GetSpanDecorators()).(*SpanDecoratorSettings)
+	}
+
 	switch m.ProviderConfig.(type) {
 
 	case *ListenerTracingSettings_ZipkinConfig:
@@ -144,6 +150,33 @@ func (m *ListenerTracingSettings) Clone() proto.Message {
 }
 
 // Clone function
+func (m *SpanDecoratorSettings) Clone() proto.Message {
+	var target *SpanDecoratorSettings
+	if m == nil {
+		return target
+	}
+	target = &SpanDecoratorSettings{}
+
+	switch m.SpanDecorator.(type) {
+
+	case *SpanDecoratorSettings_StaticSpanData_:
+
+		if h, ok := interface{}(m.GetStaticSpanData()).(clone.Cloner); ok {
+			target.SpanDecorator = &SpanDecoratorSettings_StaticSpanData_{
+				StaticSpanData: h.Clone().(*SpanDecoratorSettings_StaticSpanData),
+			}
+		} else {
+			target.SpanDecorator = &SpanDecoratorSettings_StaticSpanData_{
+				StaticSpanData: proto.Clone(m.GetStaticSpanData()).(*SpanDecoratorSettings_StaticSpanData),
+			}
+		}
+
+	}
+
+	return target
+}
+
+// Clone function
 func (m *RouteTracingSettings) Clone() proto.Message {
 	var target *RouteTracingSettings
 	if m == nil {
@@ -163,6 +196,12 @@ func (m *RouteTracingSettings) Clone() proto.Message {
 		target.Propagate = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
 	} else {
 		target.Propagate = proto.Clone(m.GetPropagate()).(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
+	}
+
+	if h, ok := interface{}(m.GetSpanDecorators()).(clone.Cloner); ok {
+		target.SpanDecorators = h.Clone().(*SpanDecoratorSettings)
+	} else {
+		target.SpanDecorators = proto.Clone(m.GetSpanDecorators()).(*SpanDecoratorSettings)
 	}
 
 	return target
@@ -245,6 +284,19 @@ func (m *TracingTagLiteral) Clone() proto.Message {
 	} else {
 		target.Value = proto.Clone(m.GetValue()).(*github_com_golang_protobuf_ptypes_wrappers.StringValue)
 	}
+
+	return target
+}
+
+// Clone function
+func (m *SpanDecoratorSettings_StaticSpanData) Clone() proto.Message {
+	var target *SpanDecoratorSettings_StaticSpanData
+	if m == nil {
+		return target
+	}
+	target = &SpanDecoratorSettings_StaticSpanData{}
+
+	target.SpanName = m.GetSpanName()
 
 	return target
 }

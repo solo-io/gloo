@@ -12,6 +12,8 @@ weight: 5
 
 
 - [ListenerTracingSettings](#listenertracingsettings)
+- [SpanDecoratorSettings](#spandecoratorsettings)
+- [StaticSpanData](#staticspandata)
 - [RouteTracingSettings](#routetracingsettings)
 - [TracePercentages](#tracepercentages)
 - [TracingTagEnvironmentVariable](#tracingtagenvironmentvariable)
@@ -44,6 +46,7 @@ See [here](https://docs.solo.io/gloo-edge/latest/guides/observability/tracing/) 
 "openCensusConfig": .solo.io.envoy.config.trace.v3.OpenCensusConfig
 "environmentVariablesForTags": []tracing.options.gloo.solo.io.TracingTagEnvironmentVariable
 "literalsForTags": []tracing.options.gloo.solo.io.TracingTagLiteral
+"spanDecorators": .tracing.options.gloo.solo.io.SpanDecoratorSettings
 
 ```
 
@@ -58,6 +61,44 @@ See [here](https://docs.solo.io/gloo-edge/latest/guides/observability/tracing/) 
 | `openCensusConfig` | [.solo.io.envoy.config.trace.v3.OpenCensusConfig](../../../../external/envoy/config/trace/v3/opencensus.proto.sk/#opencensusconfig) |  Only one of `openCensusConfig`, `zipkinConfig`, `datadogConfig`, or `openTelemetryConfig` can be set. |
 | `environmentVariablesForTags` | [[]tracing.options.gloo.solo.io.TracingTagEnvironmentVariable](../tracing.proto.sk/#tracingtagenvironmentvariable) | Optional. If specified, Envoy will include the environment variables with the given tag as tracing tags. |
 | `literalsForTags` | [[]tracing.options.gloo.solo.io.TracingTagLiteral](../tracing.proto.sk/#tracingtagliteral) | Optional. If specified, Envoy will include the literals with the given tag as tracing tags. |
+| `spanDecorators` | [.tracing.options.gloo.solo.io.SpanDecoratorSettings](../tracing.proto.sk/#spandecoratorsettings) |  |
+
+
+
+
+---
+### SpanDecoratorSettings
+
+ 
+Span decorators
+
+```yaml
+"staticSpanData": .tracing.options.gloo.solo.io.SpanDecoratorSettings.StaticSpanData
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `staticSpanData` | [.tracing.options.gloo.solo.io.SpanDecoratorSettings.StaticSpanData](../tracing.proto.sk/#staticspandata) |  |
+
+
+
+
+---
+### StaticSpanData
+
+ 
+Statically add data to the span's name and attributes fields. If any of
+these fields are already defined, they will be overwritten.
+
+```yaml
+"spanName": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `spanName` | `string` | Value to set for the span name. |
 
 
 
@@ -75,14 +116,16 @@ See [here](https://docs.solo.io/gloo-edge/latest/guides/observability/tracing/) 
 "routeDescriptor": string
 "tracePercentages": .tracing.options.gloo.solo.io.TracePercentages
 "propagate": .google.protobuf.BoolValue
+"spanDecorators": .tracing.options.gloo.solo.io.SpanDecoratorSettings
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `routeDescriptor` | `string` | Optional. If set, will be used to identify the route that produced the trace. Note that this value will be overridden if the "x-envoy-decorator-operation" header is passed. |
+| `routeDescriptor` | `string` | Optional. If set, will be used to identify the route that produced the trace. Note that this value will be overridden if the "x-envoy-decorator-operation" header is passed. It may also be overwritten by the span_decorators options. |
 | `tracePercentages` | [.tracing.options.gloo.solo.io.TracePercentages](../tracing.proto.sk/#tracepercentages) | Requests can produce traces by random sampling or when the `x-client-trace-id` header is provided. TracePercentages defines the limits for random, forced, and overall tracing percentages. |
 | `propagate` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Optional. Default is true, If set to false, the tracing headers will not propagate to the upstream. |
+| `spanDecorators` | [.tracing.options.gloo.solo.io.SpanDecoratorSettings](../tracing.proto.sk/#spandecoratorsettings) |  |
 
 
 
