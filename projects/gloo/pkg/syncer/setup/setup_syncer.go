@@ -935,6 +935,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 			opts.Settings,
 			syncerExtensions,
 			secretClient,
+			rpt,
 		)
 
 		// Share proxyClient and status syncer with the gateway controller

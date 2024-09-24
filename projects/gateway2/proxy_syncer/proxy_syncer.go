@@ -20,6 +20,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kubesecret"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	istiogvr "istio.io/istio/pkg/config/schema/gvr"
 	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/kube/kclient"
@@ -126,6 +127,7 @@ func NewProxySyncer(
 	settings *gloov1.Settings,
 	syncerExtensions []syncer.TranslatorSyncerExtension,
 	legacySecretClient gloov1.SecretClient,
+	glooReporter reporter.StatusReporter,
 ) *ProxySyncer {
 	restCfg := kube.NewClientConfigForRestConfig(mgr.GetConfig())
 	client, err := kube.NewClient(restCfg, "")
@@ -149,7 +151,7 @@ func NewProxySyncer(
 		mgr:             mgr,
 		k8sGwExtensions: k8sGwExtensions,
 		proxyReconciler: gloov1.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient()),
-		proxyTranslator: NewProxyTranslator(translator, xdsCache, settings, syncerExtensions),
+		proxyTranslator: NewProxyTranslator(translator, xdsCache, settings, syncerExtensions, glooReporter),
 		istioClient:     client,
 		// legacyClients:   legacyClients,
 		legacySecretClient: legacySecretClient,
@@ -163,12 +165,18 @@ type ProxyTranslator struct {
 	xdsCache         envoycache.SnapshotCache
 	// used to no-op during extension syncing as we only do it to get reports
 	noopSnapSetter syncer.SnapshotSetter
+	// we need to report on upstreams/proxies that we are responsible for translating and syncing
+	// so we use this repporter to do so; do we also need to report authconfigs and RLCs...?
+	// TODO: possibly consolidate this with the status reporter used in the plugins
+	// also TODO: copy the leader election stuff (and maybe leaderStartupAction whatever that is)
+	glooReporter reporter.StatusReporter
 }
 
 func NewProxyTranslator(translator translator.Translator,
 	xdsCache envoycache.SnapshotCache,
 	settings *gloov1.Settings,
 	syncerExtensions []syncer.TranslatorSyncerExtension,
+	glooReporter reporter.StatusReporter,
 ) ProxyTranslator {
 	return ProxyTranslator{
 		translator:       translator,
@@ -176,6 +184,7 @@ func NewProxyTranslator(translator translator.Translator,
 		settings:         settings,
 		syncerExtensions: syncerExtensions,
 		noopSnapSetter:   &syncer.NoOpSnapshotSetter{},
+		glooReporter:     glooReporter,
 	}
 }
 

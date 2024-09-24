@@ -2,10 +2,6 @@ package proxy_syncer
 
 import (
 	"context"
-	"sync"
-	"time"
-
-	"github.com/rotisserie/eris"
 
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/hashutils"
@@ -13,7 +9,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
-	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	"github.com/solo-io/gloo/projects/gateway2/translator/translatorutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -52,18 +47,6 @@ func measureResource(ctx context.Context, resource string, length int) {
 	}
 }
 
-type statusSyncer struct {
-	// shared with translator syncer; no data race because we own the reporter.
-	// if translator syncer starts doing writes with the reporter, we should add locks
-	reporter reporter.StatusReporter
-
-	syncNeeded          chan struct{}
-	identity            leaderelector.Identity
-	leaderStartupAction *leaderelector.LeaderStartupAction
-	reportsLock         sync.RWMutex
-	latestReports       reporter.ResourceReports
-}
-
 func (s *ProxyTranslator) glooSync(ctx context.Context, snap *v1snap.ApiSnapshot) []translatorutils.ProxyWithReports {
 	// Reports used to aggregate results from xds and extension translation.
 	// Will contain reports only `Gloo` components (i.e. Proxies, Upstreams, AuthConfigs, etc.)
@@ -83,6 +66,7 @@ func (s *ProxyTranslator) glooSync(ctx context.Context, snap *v1snap.ApiSnapshot
 	// reports now has been merged from the envoy and extension translation/syncs
 	// it also contains reports for all Gloo resources (Upstreams, Proxies, AuthConfigs, RLCs, etc.)
 	// so let's filter out non-Proxy reports
+	// TODO: we actually don't want to do this, we do need to report status
 	filteredReports := reports.FilterByKind("Proxy")
 
 	// build object used by status plugins
@@ -114,49 +98,6 @@ func (s *ProxyTranslator) glooSync(ctx context.Context, snap *v1snap.ApiSnapshot
 
 	contextutils.LoggerFrom(ctx).Info("LAW got proxieswithreports")
 	return proxiesWithReports
-}
-
-// syncExtensions executes each of the TranslatorSyncerExtensions
-// These are responsible for updating xDS cache entries
-func (s *ProxyTranslator) syncExtensions(
-	ctx context.Context,
-	snap *v1snap.ApiSnapshot,
-	reports reporter.ResourceReports,
-) {
-	for _, syncerExtension := range s.syncerExtensions {
-		intermediateReports := make(reporter.ResourceReports)
-		// we use the no-op setter here as we don't actually sync the extensions here,
-		// that is classic edge syncer's job [see: projects/gloo/pkg/syncer/translator_syncer.go#Sync(...)]
-		// all we care about is getting the reports, as our `Proxies` will get reports for errors/warns
-		// related to the extension processing
-		syncerExtension.Sync(ctx, snap, s.settings, s.noopSnapSetter, intermediateReports)
-		reports.Merge(intermediateReports)
-	}
-}
-
-func (s *statusSyncer) syncStatusOnEmit(ctx context.Context) {
-	var retryChan <-chan time.Time
-
-	doSync := func() {
-		err := s.syncStatus(ctx)
-		if err != nil {
-			contextutils.LoggerFrom(ctx).Debugw("failed to sync status; will try again shortly.", "error", err)
-			retryChan = time.After(time.Second)
-		} else {
-			retryChan = nil
-		}
-	}
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-retryChan:
-			doSync()
-		case <-s.syncNeeded:
-			doSync()
-		}
-	}
 }
 
 // syncEnvoy will translate, sanitize, and set the xds snapshot for each of the proxies in the provided api snapshot.
@@ -244,55 +185,45 @@ func (s *ProxyTranslator) syncEnvoy(
 	}
 
 	logger.Debugf("gloo reports to be written: %v", allReports)
+	s.syncStatus(ctx, allReports)
 	return proxyValidationReports
 }
-func (s *statusSyncer) forceSync() {
-	if len(s.syncNeeded) > 0 {
-		// sync is already needed; no reason to block on send
-		return
-	}
-	s.syncNeeded <- struct{}{}
-}
+func (s *ProxyTranslator) syncStatus(ctx context.Context, reports reporter.ResourceReports) error {
+	// leftover from translator_syncer's statusSyncer
+	// analyze our plan for concurrency, data ownership, do we need locks, etc.?
 
-func (s *statusSyncer) syncStatus(ctx context.Context) error {
-	s.reportsLock.RLock()
-	// deep copy the reports so we can release the lock
-	reports := make(reporter.ResourceReports, len(s.latestReports))
-	for k, v := range s.latestReports {
-		reports[k] = v
-	}
-	s.reportsLock.RUnlock()
-
-	if len(reports) == 0 {
-		return nil
-	}
+	// s.reportsLock.RLock()
+	// // deep copy the reports so we can release the lock
+	// reports := make(reporter.ResourceReports, len(s.latestReports))
+	// for k, v := range s.latestReports {
+	// 	reports[k] = v
+	// }
+	// s.reportsLock.RUnlock()
 
 	logger := contextutils.LoggerFrom(ctx)
-	if s.identity.IsLeader() {
-		// Only leaders will write reports
-		//
-		// while tempting to write statuses in parallel to increase performance, we should actually first consider recommending the user tunes k8s qps/burst:
-		// https://github.com/solo-io/gloo/blob/a083522af0a4ce22f4d2adf3a02470f782d5a865/projects/gloo/api/v1/settings.proto#L337-L350
-		//
-		// add TEMPORARY wrap to our WriteReports error that we should remove in Gloo Edge ~v1.16.0+.
-		// to get the status performance improvements, we need to make the assumption that the user has the latest CRDs installed.
-		// if a user forgets the error message is very confusing (invalid request during kubectl patch);
-		// this should help them understand what's going on in case they did not read the changelog.
-		if err := s.reporter.WriteReports(ctx, reports, nil); err != nil {
-			logger.Debugf("Failed writing report for proxies: %v", err)
 
-			wrappedErr := eris.Wrapf(err, "failed to write reports. "+
-				"did you make sure your CRDs have been updated since v1.13.0-beta14 of open-source? (i.e. `status` and `status.statuses` fields exist on your CR)")
-			return wrappedErr
-		}
-	} else {
-		logger.Debugf("Not a leader, skipping reports writing")
-		s.leaderStartupAction.SetAction(func() error {
-			// Store the closure in the StartupAction so that it is invoked if this component becomes the new leader
-			// That way we can be sure that statuses are updated even if no changes occur after election completes
-			// https://github.com/solo-io/gloo/issues/7148
-			return s.reporter.WriteReports(ctx, reports, nil)
-		})
+	// if s.identity.IsLeader() {
+	if err := s.glooReporter.WriteReports(ctx, reports, nil); err != nil {
+		logger.Debugf("Failed writing report for proxies: %v", err)
+		return err
 	}
 	return nil
+}
+
+// syncExtensions executes each of the TranslatorSyncerExtensions
+// These are responsible for updating xDS cache entries
+func (s *ProxyTranslator) syncExtensions(
+	ctx context.Context,
+	snap *v1snap.ApiSnapshot,
+	reports reporter.ResourceReports,
+) {
+	for _, syncerExtension := range s.syncerExtensions {
+		intermediateReports := make(reporter.ResourceReports)
+		// we use the no-op setter here as we don't actually sync the extensions here,
+		// that is classic edge syncer's job [see: projects/gloo/pkg/syncer/translator_syncer.go#Sync(...)]
+		// all we care about is getting the reports, as our `Proxies` will get reports for errors/warns
+		// related to the extension processing
+		syncerExtension.Sync(ctx, snap, s.settings, s.noopSnapSetter, intermediateReports)
+		reports.Merge(intermediateReports)
+	}
 }
