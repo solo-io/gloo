@@ -225,13 +225,15 @@ func (x *callbacksCollection) RegisterBatch(f func(o []krt.Event[UniqlyConnected
 	defer x.eventHandlers.mu.Unlock()
 	x.eventHandlers.insertLocked(f)
 	if runExistingState {
+		var events []krt.Event[UniqlyConnectedClient]
 		for _, v := range x.getClients() {
-
-			f([]krt.Event[UniqlyConnectedClient]{{
+			events = append(events, krt.Event[UniqlyConnectedClient]{
 				New:   &v,
 				Event: controllers.EventAdd,
-			}}, true)
+			})
+
 		}
+		f(events, true)
 	}
 
 	return &simpleSyncer{}
