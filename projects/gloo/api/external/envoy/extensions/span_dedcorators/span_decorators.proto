@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package envoy.config.filter.http.span_decorators.v3;
+
+option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/span_decorator";
+
+message SpanDecorators {
+  // The name of the span
+  string span_name = 1;
+}
+
