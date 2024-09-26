@@ -340,6 +340,7 @@ import (
 	_ "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/http_path"
 	_ "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
 	_ "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/proxylatency"
+	_ "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/span_decorators"
 	_ "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	_ "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
 	_ "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformers/xslt"
