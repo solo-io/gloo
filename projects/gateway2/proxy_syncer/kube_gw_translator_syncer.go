@@ -11,10 +11,12 @@ import (
 
 	"github.com/solo-io/gloo/projects/gateway2/translator/translatorutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	syncerstats "github.com/solo-io/gloo/projects/gloo/pkg/syncer/stats"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -96,8 +98,47 @@ func (s *ProxyTranslator) glooSync(ctx context.Context, snap *v1snap.ApiSnapshot
 
 	// need to write proxy reports
 
-	contextutils.LoggerFrom(ctx).Info("LAW got proxieswithreports")
 	return proxiesWithReports
+}
+
+func (s *ProxyTranslator) buildXdsSnapshot(
+	ctx context.Context,
+	proxy *v1.Proxy,
+	snap *v1snap.ApiSnapshot,
+) (cache.Snapshot, reporter.ResourceReports, *validation.ProxyReport) {
+
+	proxyCtx := ctx
+	metaKey := xds.SnapshotCacheKey(proxy)
+	if ctxWithTags, err := tag.New(proxyCtx, tag.Insert(syncerstats.ProxyNameKey, metaKey)); err == nil {
+		proxyCtx = ctxWithTags
+	}
+
+	params := plugins.Params{
+		Ctx:      proxyCtx,
+		Settings: s.settings,
+		Snapshot: snap,
+		Messages: map[*core.ResourceRef][]string{},
+	}
+
+	xdsSnapshot, reports, proxyReport := s.translator.Translate(params, proxy)
+
+	// Messages are aggregated during translation, and need to be added to reports
+	for _, messages := range params.Messages {
+		reports.AddMessages(proxy, messages...)
+	}
+	return xdsSnapshot, reports, proxyReport
+}
+
+func (s *ProxyTranslator) syncXdsAndStatus(
+	ctx context.Context,
+	xdsSnapshot cache.Snapshot,
+	proxyKey string,
+	reports reporter.ResourceReports,
+) error {
+	// if the snapshot is not consistent, make it so
+	xdsSnapshot.MakeConsistent()
+	s.xdsCache.SetSnapshot(proxyKey, xdsSnapshot)
+	return s.syncStatus(ctx, reports)
 }
 
 // syncEnvoy will translate, sanitize, and set the xds snapshot for each of the proxies in the provided api snapshot.
@@ -159,9 +200,9 @@ func (s *ProxyTranslator) syncEnvoy(
 
 		allReports.Merge(reports)
 
-		key := xds.SnapshotCacheKey(proxy)
 		// if the snapshot is not consistent, make it so
 		xdsSnapshot.MakeConsistent()
+		key := xds.SnapshotCacheKey(proxy)
 		s.xdsCache.SetSnapshot(key, xdsSnapshot)
 
 		// Record some metrics
@@ -184,7 +225,7 @@ func (s *ProxyTranslator) syncEnvoy(
 		logger.Debugf("Full snapshot for proxy %v: %+v", proxy.GetMetadata().GetName(), xdsSnapshot)
 	}
 
-	logger.Debugf("gloo reports to be written: %v", allReports)
+	// TODO: Need to move this out; should group with status syncing for extensions as well
 	s.syncStatus(ctx, allReports)
 	return proxyValidationReports
 }
@@ -201,7 +242,7 @@ func (s *ProxyTranslator) syncStatus(ctx context.Context, reports reporter.Resou
 	// s.reportsLock.RUnlock()
 
 	logger := contextutils.LoggerFrom(ctx)
-
+	logger.Debugf("gloo reports to be written: %v", reports)
 	// if s.identity.IsLeader() {
 	if err := s.glooReporter.WriteReports(ctx, reports, nil); err != nil {
 		logger.Debugf("Failed writing report for proxies: %v", err)
