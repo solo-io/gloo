@@ -418,9 +418,9 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 			contextutils.LoggerFrom(ctx).Debug("context done, stopping proxy syncer")
 			return nil
 		case <-s.inputs.genericEvent.Next():
-			// proxyTrigger.TriggerRecomputation()
+			proxyTrigger.TriggerRecomputation()
 		case <-s.inputs.secretEvent.Next():
-			// proxyTrigger.TriggerRecomputation()
+			proxyTrigger.TriggerRecomputation()
 		}
 	}
 }
