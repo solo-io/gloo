@@ -320,8 +320,8 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	})
 	// TODO: get upstream collections from extensions
 	FinalUpstreams := krt.JoinCollection([]krt.Collection[*upstream]{GlooUpstreams, InMemUpstreams})
-
-	GlooEndpoints := NewGlooK8sEndpoints(ctx, s.proxyTranslator.settings, s.istioClient, Services, FinalUpstreams, nil)
+	inputs := NewGlooK8sEndpointInputs(s.proxyTranslator.settings, s.istioClient, Services, FinalUpstreams)
+	GlooEndpoints := NewGlooK8sEndpoints(ctx, inputs, nil)
 
 	kubeGateways := setupCollectionDynamic[gwv1.Gateway](
 		ctx,

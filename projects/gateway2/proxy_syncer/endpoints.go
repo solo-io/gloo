@@ -194,7 +194,17 @@ func augmentPodLabels(nodes krt.Collection[nodeMetadata]) func(kctx krt.HandlerC
 
 }
 
-func NewGlooK8sEndpoints(ctx context.Context, settings *v1.Settings, istioClient kube.Client, services krt.Collection[*corev1.Service], finalUpstreams krt.Collection[*upstream], lbInfo *LBInfo) krt.Collection[CLA] {
+type EndpointsInputs struct {
+	upstreams      krt.Collection[*upstream]
+	pods           krt.Collection[*corev1.Pod]
+	endpoints      krt.Collection[*corev1.Endpoints]
+	nodes          krt.Collection[nodeMetadata]
+	augmentedPods  krt.Collection[augmentedPod]
+	enableAutoMtls bool
+	services       krt.Collection[*corev1.Service]
+}
+
+func NewGlooK8sEndpointInputs(settings *v1.Settings, istioClient kube.Client, services krt.Collection[*corev1.Service], finalUpstreams krt.Collection[*upstream]) EndpointsInputs {
 	podClient := kclient.New[*corev1.Pod](istioClient)
 	pods := krt.WrapClient(podClient, krt.WithName("Pods"))
 	epClient := kclient.New[*corev1.Endpoints](istioClient)
@@ -204,13 +214,33 @@ func NewGlooK8sEndpoints(ctx context.Context, settings *v1.Settings, istioClient
 	nodes := NewNodeCollection(istioClient)
 
 	augmentedPods := krt.NewCollection(pods, augmentPodLabels(nodes))
+	return EndpointsInputs{
+		upstreams:      finalUpstreams,
+		pods:           pods,
+		endpoints:      kubeEndpoints,
+		nodes:          nodes,
+		augmentedPods:  augmentedPods,
+		enableAutoMtls: enableAutoMtls,
+		services:       services,
+	}
+}
+
+func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs, lbInfo *LBInfo) krt.Collection[CLA] {
+	pods := inputs.pods
+	kubeEndpoints := inputs.endpoints
+	enableAutoMtls := inputs.enableAutoMtls
+
+	nodes := inputs.nodes
+
+	augmentedPods := krt.NewCollection(pods, augmentPodLabels(nodes))
+	services := inputs.services
 
 	var priorities *priorities
 	if lbInfo != nil {
 		priorities = newPriorities(lbInfo.failoverPriority, lbInfo.proxyLabels)
 	}
 
-	return krt.NewCollection(finalUpstreams, func(kctx krt.HandlerContext, us *upstream) *CLA {
+	return krt.NewCollection(inputs.upstreams, func(kctx krt.HandlerContext, us *upstream) *CLA {
 		// TODO: log these
 		var warnsToLog []string
 		defer func() {
@@ -269,11 +299,9 @@ func NewGlooK8sEndpoints(ctx context.Context, settings *v1.Settings, istioClient
 						Name:      podName,
 					}))
 					if maybePod != nil {
-						pod := *maybePod
-						l = pod.locality
-						podLabels = pod.podLabels
-						augmentedLabels = pod.augmentedLabels
-
+						l = maybePod.locality
+						podLabels = maybePod.podLabels
+						augmentedLabels = maybePod.augmentedLabels
 					}
 				}
 				ep := createLbEndpoint(addr.IP, port, podLabels, enableAutoMtls)
