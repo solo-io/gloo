@@ -358,12 +358,12 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	xdsSnapshots := krt.NewCollection(mostXdsSnapshots, func(kctx krt.HandlerContext, snap xdsSnapWrapper) *xdsSnapWrapper {
 		endpoints := krt.Fetch(kctx, GlooEndpoints)
 		clustersVersion := snap.snap.Clusters.Version
-		// TODO: do this in the endpoint set
+		// TODO: do this in the endpoint set?
 		var endpointsProto []envoycache.Resource
 		for _, ep := range endpoints {
 			endpointsProto = append(endpointsProto, resource.NewEnvoyResource(ep.ClusterLoadAssignment))
 		}
-		endpointsVersion, _ := translator.EnvoyCacheResourcesListToFnvHash(endpointsProto)
+		endpointsVersion := EnvoyCacheResourcesSetToFnvHash(endpoints)
 
 		// if clusters are updated, provider a new version of the endpoints,
 		// so the clusters are warm
