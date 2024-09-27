@@ -21,7 +21,6 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"istio.io/api/label"
 	"istio.io/api/networking/v1alpha3"
-	"istio.io/istio/pilot/pkg/networking/util"
 	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/kube/kclient"
 	"istio.io/istio/pkg/kube/krt"
@@ -204,11 +203,6 @@ func NewGlooK8sEndpoints(ctx context.Context, settings *v1.Settings, istioClient
 
 	nodes := NewNodeCollection(istioClient)
 
-	var proxyLabels map[string]string
-	if lbInfo != nil {
-		proxyLabels = lbInfo.proxyLabels
-	}
-
 	augmentedPods := krt.NewCollection(pods, augmentPodLabels(nodes))
 
 	var priorities *priorities
@@ -219,6 +213,12 @@ func NewGlooK8sEndpoints(ctx context.Context, settings *v1.Settings, istioClient
 	return krt.NewCollection(finalUpstreams, func(kctx krt.HandlerContext, us *upstream) *CLA {
 		// TODO: log these
 		var warnsToLog []string
+		defer func() {
+			logger := contextutils.LoggerFrom(ctx)
+			for _, warn := range warnsToLog {
+				logger.Warn(warn)
+			}
+		}()
 
 		kubeUpstream, ok := us.GetUpstreamType().(*v1.Upstream_Kube)
 		// only care about kube upstreams
@@ -293,7 +293,7 @@ func NewGlooK8sEndpoints(ctx context.Context, settings *v1.Settings, istioClient
 				}
 			}
 
-			endpoints := getEndpoints(eps, lbEpsMd[locality], priorities, proxyLabels)
+			endpoints := getEndpoints(eps, lbEpsMd[locality], priorities)
 			for _, ep := range endpoints {
 				ep.Locality = l
 			}
@@ -310,7 +310,6 @@ func NewGlooK8sEndpoints(ctx context.Context, settings *v1.Settings, istioClient
 				}
 				applyLocalityFailover(&proxyLocality, cla, lbInfo.failover)
 			}
-
 		}
 
 		// in theory we want to run endpoint plugins here.
@@ -319,22 +318,19 @@ func NewGlooK8sEndpoints(ctx context.Context, settings *v1.Settings, istioClient
 
 		return &CLA{cla}
 
-	}, krt.WithName("GlooEndpoints"))
+	}, krt.WithName("K8sClusterLoadAssignment"))
 }
 
-func getEndpoints(eps []*envoy_config_endpoint_v3.LbEndpoint, md []endpointMd, p *priorities, proxyLabels map[string]string) []*envoy_config_endpoint_v3.LocalityLbEndpoints {
+func getEndpoints(eps []*envoy_config_endpoint_v3.LbEndpoint, md []endpointMd, p *priorities) []*envoy_config_endpoint_v3.LocalityLbEndpoints {
 	if p == nil {
-
-		return []*envoy_config_endpoint_v3.LocalityLbEndpoints{&envoy_config_endpoint_v3.LocalityLbEndpoints{
+		return []*envoy_config_endpoint_v3.LocalityLbEndpoints{{
 			LbEndpoints: eps,
-		},
-		}
+		}}
 	}
-	return applyFailoverPriorityPerLocality(proxyLabels, eps, md, p)
+	return applyFailoverPriorityPerLocality(eps, md, p)
 }
 
 func applyFailoverPriorityPerLocality(
-	proxyLabels map[string]string,
 	eps []*envoy_config_endpoint_v3.LbEndpoint, md []endpointMd, p *priorities) []*envoy_config_endpoint_v3.LocalityLbEndpoints {
 	// key is priority, value is the index of LocalityLbEndpoints.LbEndpoints
 	priorityMap := map[int][]int{}
@@ -518,7 +514,7 @@ func applyLocalityFailover(
 		// if region/zone match, the priority is 1.
 		// if region matches, the priority is 2.
 		// if locality not match, the priority is 3.
-		priority := util.LbPriority(proxyLocality, localityEndpoint.Locality)
+		priority := LbPriority(proxyLocality, localityEndpoint.Locality)
 		// region not match, apply failover settings when specified
 		// update localityLbEndpoints' priority to 4 if failover not match
 		if priority == 3 {
