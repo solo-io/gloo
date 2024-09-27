@@ -3,16 +3,17 @@ package proxy_syncer
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"google.golang.org/protobuf/runtime/protoiface"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
+	"github.com/envoyproxy/go-control-plane/pkg/cache"
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	glookubev1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 
 	// solokubeclient "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -40,7 +41,6 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/translatorutils"
 	kubeconverters "github.com/solo-io/gloo/projects/gloo/pkg/api/converters/kube"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	kubeupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams/kubernetes"
@@ -48,6 +48,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/resource"
 
 	// "github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	// "github.com/solo-io/solo-kit/pkg/utils/protoutils"
@@ -261,7 +262,6 @@ func (us *upstream) Equals(in *upstream) bool {
 
 type fromKrtSnap struct {
 	cfgMaps   []*corev1.ConfigMap
-	endpoints []*glooEndpoint
 	rtOpts    []*sologatewayv1.RouteOption
 	secrets   []*corev1.Secret
 	upstreams []*upstream
@@ -322,42 +322,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	// TODO: get upstream collections from extensions
 	FinalUpstreams := krt.JoinCollection([]krt.Collection[*upstream]{GlooUpstreams, InMemUpstreams})
 
-	podClient := kclient.New[*corev1.Pod](s.istioClient)
-	Pods := krt.WrapClient(podClient, krt.WithName("Pods"))
-	epClient := kclient.New[*corev1.Endpoints](s.istioClient)
-	KubeEndpoints := krt.WrapClient(epClient, krt.WithName("Endpoints"))
-
-	GlooEndpoints := krt.NewManyCollection(FinalUpstreams, func(kctx krt.HandlerContext, us *upstream) []*glooEndpoint {
-		// ripped from: projects/gloo/pkg/plugins/kubernetes/eds.go#newEndpointsWatcher(...)
-		upstreamSpecs := make(map[*core.ResourceRef]*kubeplugin.UpstreamSpec)
-		for _, us := range FinalUpstreams.List() {
-			kubeUpstream, ok := us.Upstream.GetUpstreamType().(*gloov1.Upstream_Kube)
-			// only care about kube upstreams
-			if !ok {
-				continue
-			}
-			upstreamSpecs[us.GetMetadata().Ref()] = kubeUpstream.Kube
-		}
-		keps := krt.Fetch(kctx, KubeEndpoints)
-		svcs := krt.Fetch(kctx, Services)
-		pods := krt.Fetch(kctx, Pods)
-		endpoints, warns, errs := kubernetes.FilterEndpoints(
-			ctx,
-			"gloo-system",
-			keps,
-			svcs,
-			pods,
-			upstreamSpecs,
-		)
-		if len(warns) > 0 || len(errs) > 0 {
-			// do something
-		}
-		out := make([]*glooEndpoint, 0, len(endpoints))
-		for _, gep := range endpoints {
-			out = append(out, &glooEndpoint{gep})
-		}
-		return out
-	}, krt.WithName("GlooEndpoints"))
+	GlooEndpoints := NewGlooK8sEndpoints(ctx, s.proxyTranslator.settings, s.istioClient, Services, FinalUpstreams)
 
 	kubeGateways := setupCollectionDynamic[gwv1.Gateway](
 		ctx,
@@ -378,20 +343,35 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		return &proxy
 	})
 
-	xdsSnapshots := krt.NewCollection(glooProxies, func(kctx krt.HandlerContext, proxy *glooProxy) **xdsSnapWrapper {
+	mostXdsSnapshots := krt.NewCollection(glooProxies, func(kctx krt.HandlerContext, proxy *glooProxy) *xdsSnapWrapper {
 		krtSnap := &fromKrtSnap{
-			cfgMaps:   krt.Fetch(kctx, ConfigMaps),
-			endpoints: krt.Fetch(kctx, GlooEndpoints),
+			cfgMaps: krt.Fetch(kctx, ConfigMaps),
 			// rtOpts:    krt.Fetch(kctx, RouteOptions),
 			secrets:   krt.Fetch(kctx, secrets),
 			upstreams: krt.Fetch(kctx, FinalUpstreams),
 			// vhostOpts: krt.Fetch(kctx, VirtualHostOptions),
 		}
 		xdsSnap := s.buildXdsSnapshot(ctx, proxy, krtSnap)
-		return &xdsSnap
+		return xdsSnap
 	})
 
-	xdsSnapshots.Register(func(e krt.Event[*xdsSnapWrapper]) {
+	xdsSnapshots := krt.NewCollection(mostXdsSnapshots, func(kctx krt.HandlerContext, snap xdsSnapWrapper) *xdsSnapWrapper {
+		endpoints := krt.Fetch(kctx, GlooEndpoints)
+		clustersVersion := snap.snap.Clusters.Version
+		// TODO: do this in the endpoint set
+		var endpointsProto []envoycache.Resource
+		for _, ep := range endpoints {
+			endpointsProto = append(endpointsProto, resource.NewEnvoyResource(ep.ClusterLoadAssignment))
+		}
+		endpointsVersion, _ := translator.EnvoyCacheResourcesListToFnvHash(endpointsProto)
+
+		// if clusters are updated, provider a new version of the endpoints,
+		// so the clusters are warm
+		snap.snap.Endpoints = cache.NewResources(fmt.Sprintf("%v-%v", clustersVersion, endpointsVersion), endpoints)
+		return &snap
+	})
+
+	xdsSnapshots.Register(func(e krt.Event[xdsSnapWrapper]) {
 		snap := e.Latest()
 
 		err := s.proxyTranslator.syncXdsAndStatus(ctx, snap.snap, snap.proxyKey, snap.fullReports)
@@ -464,10 +444,6 @@ func (s *ProxySyncer) buildXdsSnapshot(ctx context.Context, proxy *glooProxy, k 
 		upstreams = append(upstreams, u.Upstream)
 	}
 	latestSnap.Upstreams = upstreams
-
-	geps := k.endpoints
-	eps := UnwrapEps(geps)
-	latestSnap.Endpoints = eps
 
 	xdsSnapshot, reports, proxyReport := s.proxyTranslator.buildXdsSnapshot(ctx, proxy.proxy, &latestSnap)
 	// TODO(Law): now we not able to merge reports after translation!
