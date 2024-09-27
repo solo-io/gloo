@@ -10,7 +10,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/envoyproxy/go-control-plane/pkg/cache"
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	glookubev1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
@@ -322,7 +321,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	// TODO: get upstream collections from extensions
 	FinalUpstreams := krt.JoinCollection([]krt.Collection[*upstream]{GlooUpstreams, InMemUpstreams})
 
-	GlooEndpoints := NewGlooK8sEndpoints(ctx, s.proxyTranslator.settings, s.istioClient, Services, FinalUpstreams)
+	GlooEndpoints := NewGlooK8sEndpoints(ctx, s.proxyTranslator.settings, s.istioClient, Services, FinalUpstreams, nil)
 
 	kubeGateways := setupCollectionDynamic[gwv1.Gateway](
 		ctx,
@@ -367,7 +366,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 
 		// if clusters are updated, provider a new version of the endpoints,
 		// so the clusters are warm
-		snap.snap.Endpoints = cache.NewResources(fmt.Sprintf("%v-%v", clustersVersion, endpointsVersion), endpoints)
+		snap.snap.Endpoints = envoycache.NewResources(fmt.Sprintf("%v-%v", clustersVersion, endpointsVersion), endpointsProto)
 		return &snap
 	})
 
