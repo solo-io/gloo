@@ -3,6 +3,7 @@ package proxy_syncer
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
@@ -13,6 +14,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"istio.io/api/label"
 	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/kube/kclient"
 	"istio.io/istio/pkg/kube/krt"
@@ -31,7 +33,36 @@ func (c CLA) Equals(in CLA) bool {
 	return proto.Equal(c.ClusterLoadAssignment, in.ClusterLoadAssignment)
 }
 
+type nodeMetadata struct {
+	name   string
+	labels map[string]string
+}
+
+func (c nodeMetadata) ResourceName() string {
+	return c.name
+}
+func (c nodeMetadata) Equals(in nodeMetadata) bool {
+	return c.name == in.name && maps.Equal(c.labels, in.labels)
+}
+
+func NewNodeCollection(istioClient kube.Client) krt.Collection[nodeMetadata] {
+	nodeClient := kclient.New[*corev1.Node](istioClient)
+	nodes := krt.WrapClient(nodeClient, krt.WithName("Nodess"))
+	return krt.NewCollection(nodes, func(kctx krt.HandlerContext, us *corev1.Node) *nodeMetadata {
+		return &nodeMetadata{
+			name:   us.Name,
+			labels: us.Labels,
+		}
+	})
+}
+
 var _ krt.ResourceNamer = &upstream{}
+
+type locality struct {
+	region  string
+	zone    string
+	subzone string
+}
 
 func NewGlooK8sEndpoints(ctx context.Context, settings *v1.Settings, istioClient kube.Client, services krt.Collection[*corev1.Service], finalUpstreams krt.Collection[*upstream]) krt.Collection[CLA] {
 	podClient := kclient.New[*corev1.Pod](istioClient)
@@ -39,6 +70,8 @@ func NewGlooK8sEndpoints(ctx context.Context, settings *v1.Settings, istioClient
 	epClient := kclient.New[*corev1.Endpoints](istioClient)
 	kubeEndpoints := krt.WrapClient(epClient, krt.WithName("Endpoints"))
 	enableAutoMtls := settings.GetGloo().GetIstioOptions().GetEnableAutoMtls().GetValue()
+
+	nodes := NewNodeCollection(istioClient)
 
 	return krt.NewCollection(finalUpstreams, func(kctx krt.HandlerContext, us *upstream) *CLA {
 		// TODO: log these
@@ -62,7 +95,7 @@ func NewGlooK8sEndpoints(ctx context.Context, settings *v1.Settings, istioClient
 		eps := *maybeEps
 
 		cla := createEndpoint(us.Upstream)
-		var lbEps []*envoy_config_endpoint_v3.LbEndpoint
+		lbEps := make(map[locality][]*envoy_config_endpoint_v3.LbEndpoint)
 		for _, subset := range eps.Subsets {
 			port := findFirstPortInEndpointSubsets(subset, singlePortService, kubeServicePort)
 			if port == 0 {
@@ -83,6 +116,7 @@ func NewGlooK8sEndpoints(ctx context.Context, settings *v1.Settings, istioClient
 					}
 				}
 				var podLabels map[string]string
+				var nodeLabels map[string]string
 				if podName != "" {
 					maybePod := krt.FetchOne(kctx, pods, krt.FilterObjectName(types.NamespacedName{
 						Namespace: podNamespace,
@@ -91,28 +125,61 @@ func NewGlooK8sEndpoints(ctx context.Context, settings *v1.Settings, istioClient
 					if maybePod != nil {
 						pod := *maybePod
 						podLabels = pod.Labels
+						nodeName := pod.Spec.NodeName
+						if nodeName != "" {
+							maybeNode := krt.FetchOne(kctx, nodes, krt.FilterObjectName(types.NamespacedName{
+								Name: nodeName,
+							}))
+							if maybeNode != nil {
+								node := *maybeNode
+								nodeLabels = node.labels
+							}
+						}
 					}
 				}
-				ep := createLbEndpoint(addr.IP, port, podLabels, enableAutoMtls)
-				lbEps = append(lbEps, ep)
+				ep, l := createLbEndpoint(addr.IP, port, podLabels, nodeLabels, enableAutoMtls)
+				lbEps[l] = append(lbEps[l], ep)
 			}
 		}
-		cla.Endpoints = []*envoy_config_endpoint_v3.LocalityLbEndpoints{{LbEndpoints: lbEps}}
+		for locality, eps := range lbEps {
+			var l *envoy_config_core_v3.Locality
+			if locality.region != "" {
+				l = &envoy_config_core_v3.Locality{
+					Region:  locality.region,
+					Zone:    locality.zone,
+					SubZone: locality.subzone,
+				}
+			}
+
+			cla.Endpoints = append(cla.Endpoints, &envoy_config_endpoint_v3.LocalityLbEndpoints{
+				Locality:    l,
+				LbEndpoints: eps,
+			})
+		}
 		return &CLA{cla}
 
 	}, krt.WithName("GlooEndpoints"))
 }
 
-func createLbEndpoint(address string, port uint32, labels map[string]string, enableAutoMtls bool) *envoy_config_endpoint_v3.LbEndpoint {
+func createLbEndpoint(address string, port uint32, podLabels, nodeLabels map[string]string, enableAutoMtls bool) (*envoy_config_endpoint_v3.LbEndpoint, locality) {
 	// Don't get the metadata labels and filter metadata for the envoy load balancer based on the upstream, as this is not used
 	// metadata := getLbMetadata(upstream, labels, "")
 	// Get the metadata labels for the transport socket match if Istio auto mtls is enabled
 	metadata := &envoy_config_core_v3.Metadata{
 		FilterMetadata: map[string]*structpb.Struct{},
 	}
-	metadata = addIstioAutomtlsMetadata(metadata, labels, enableAutoMtls)
+	metadata = addIstioAutomtlsMetadata(metadata, podLabels, enableAutoMtls)
 	// Don't add the annotations to the metadata - it's not documented so it's not coming
 	// metadata = addAnnotations(metadata, addr.GetMetadata().GetAnnotations())
+
+	region := nodeLabels[corev1.LabelTopologyRegion]
+	zone := nodeLabels[corev1.LabelTopologyZone]
+	subzone := nodeLabels[label.TopologySubzone.Name]
+	l := locality{
+		region:  region,
+		zone:    zone,
+		subzone: subzone,
+	}
 
 	if len(metadata.GetFilterMetadata()) == 0 {
 		metadata = nil
@@ -135,7 +202,7 @@ func createLbEndpoint(address string, port uint32, labels map[string]string, ena
 				},
 			},
 		},
-	}
+	}, l
 }
 
 func addIstioAutomtlsMetadata(metadata *envoy_config_core_v3.Metadata, labels map[string]string, enableAutoMtls bool) *envoy_config_core_v3.Metadata {
