@@ -615,7 +615,9 @@ message DestinationSpec {
     oneof destination_type {
         aws.options.gloo.solo.io.DestinationSpec aws = 1;
         azure.options.gloo.solo.io.DestinationSpec azure = 2;
+        // Deprecated: removed due to lack of use.
         rest.options.gloo.solo.io.DestinationSpec rest = 3;
+        // Deprecated: removed due to lack of use.
         grpc.options.gloo.solo.io.DestinationSpec grpc = 4;
     }
 }

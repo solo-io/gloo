@@ -861,6 +861,8 @@ message GatewayOptions {
 
     // Set this to persist the Proxy CRD to etcd By default, proxies are kept in memory to improve performance.
     // Proxies can be persisted to etcd to allow external tools and other pods to read the contents the Proxy CRD.
+    // Defaults to false.
+    // Deprecated: This will be removed, so that proxy spec is never persisted.
     google.protobuf.BoolValue persist_proxy_spec = 8;
 
     // This is set based on the install mode. It indicates to gloo whether or not it should run the gateway
