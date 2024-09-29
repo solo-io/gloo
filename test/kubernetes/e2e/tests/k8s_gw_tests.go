@@ -5,6 +5,7 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/admin_server"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/deployer"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/directresponse"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/endpointslices"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/headless_svc"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/http_listener_options"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listener_options"
@@ -27,6 +28,7 @@ func KubeGatewaySuiteRunner() e2e.SuiteRunner {
 	kubeGatewaySuiteRunner.Register("Upstreams", upstreams.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("Services", services.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("HeadlessSvc", headless_svc.NewK8sGatewayHeadlessSvcSuite)
+	kubeGatewaySuiteRunner.Register("EndpointSlices", endpointslices.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("PortRouting", port_routing.NewK8sGatewayTestingSuite)
 	kubeGatewaySuiteRunner.Register("RouteDelegation", route_delegation.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("GlooAdminServer", admin_server.NewTestingSuite)

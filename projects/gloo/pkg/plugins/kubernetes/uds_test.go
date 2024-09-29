@@ -14,6 +14,9 @@ import (
 
 var _ = Describe("Uds", func() {
 
+	// TODO(tim): these tests should be using the plugin's defined methods and not
+	// relying on any exported functions from the plugin package.
+
 	It("should preseve ssl config when updating upstreams", func() {
 		desired := &gloov1.Upstream{
 			UpstreamType: &gloov1.Upstream_Kube{
@@ -59,5 +62,4 @@ var _ = Describe("Uds", func() {
 		Expect(updated).To(BeTrue())
 		Expect(desired.SslConfig).To(BeIdenticalTo(desiredSslConfig))
 	})
-
 })

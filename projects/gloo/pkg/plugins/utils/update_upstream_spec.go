@@ -9,7 +9,6 @@ import (
 // set by discovery but may be set by the user or function discovery.
 // This way they are not overwritten when UDS resyncs
 func UpdateUpstream(original, desired *v1.Upstream) {
-
 	// do not override ssl and subset config if none specified by discovery
 	if desired.GetSslConfig() == nil {
 		desired.SslConfig = original.GetSslConfig()

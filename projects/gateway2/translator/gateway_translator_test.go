@@ -23,7 +23,7 @@ type translatorTestCase struct {
 
 var _ = DescribeTable("Basic GatewayTranslator Tests",
 	func(in translatorTestCase) {
-		ctx := context.TODO()
+		ctx := context.Background()
 		dir := util.MustGetThisDir()
 
 		results, err := TestCase{
