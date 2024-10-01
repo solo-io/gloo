@@ -39,6 +39,21 @@ var _ = Describe("Plugin", func() {
 		cancel()
 	})
 
+	It("Can write span transformations", func() {
+		outputTransformation := &envoytransformation.Transformation{
+			TransformationType: &envoytransformation.Transformation_TransformationTemplate{
+				TransformationTemplate: &envoytransformation.TransformationTemplate{
+					SpanTransformer: &envoytransformation.TransformationTemplate_SpanTransformer{
+						Name: &envoytransformation.InjaTemplate{
+							Text: `{{ header("host")}}`,
+						},
+					},
+				},
+			},
+		}
+		_ = outputTransformation
+	})
+
 	Context("translate transformations", func() {
 
 		BeforeEach(func() {
