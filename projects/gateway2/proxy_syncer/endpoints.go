@@ -15,6 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/solo-io/gloo/projects/gloo/constants"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
@@ -196,7 +197,6 @@ func augmentPodLabels(nodes krt.Collection[nodeMetadata]) func(kctx krt.HandlerC
 
 type EndpointsInputs struct {
 	upstreams      krt.Collection[*upstream]
-	pods           krt.Collection[*corev1.Pod]
 	endpoints      krt.Collection[*corev1.Endpoints]
 	nodes          krt.Collection[nodeMetadata]
 	augmentedPods  krt.Collection[augmentedPod]
@@ -216,7 +216,6 @@ func NewGlooK8sEndpointInputs(settings *v1.Settings, istioClient kube.Client, se
 	augmentedPods := krt.NewCollection(pods, augmentPodLabels(nodes))
 	return EndpointsInputs{
 		upstreams:      finalUpstreams,
-		pods:           pods,
 		endpoints:      kubeEndpoints,
 		nodes:          nodes,
 		augmentedPods:  augmentedPods,
@@ -226,13 +225,10 @@ func NewGlooK8sEndpointInputs(settings *v1.Settings, istioClient kube.Client, se
 }
 
 func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs, lbInfo *LBInfo) krt.Collection[CLA] {
-	pods := inputs.pods
+	augmentedPods := inputs.augmentedPods
 	kubeEndpoints := inputs.endpoints
 	enableAutoMtls := inputs.enableAutoMtls
 
-	nodes := inputs.nodes
-
-	augmentedPods := krt.NewCollection(pods, augmentPodLabels(nodes))
 	services := inputs.services
 
 	var priorities *priorities
@@ -267,7 +263,6 @@ func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs, lbInfo *LB
 		}
 		eps := *maybeEps
 
-		cla := createEndpoint(us.Upstream)
 		lbEps := make(map[locality][]*envoy_config_endpoint_v3.LbEndpoint)
 		lbEpsMd := make(map[locality][]endpointMd)
 		for _, subset := range eps.Subsets {
@@ -311,42 +306,45 @@ func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs, lbInfo *LB
 				})
 			}
 		}
-		for locality, eps := range lbEps {
-			var l *envoy_config_core_v3.Locality
-			if locality.region != "" {
-				l = &envoy_config_core_v3.Locality{
-					Region:  locality.region,
-					Zone:    locality.zone,
-					SubZone: locality.subzone,
-				}
-			}
-
-			endpoints := getEndpoints(eps, lbEpsMd[locality], priorities)
-			for _, ep := range endpoints {
-				ep.Locality = l
-			}
-
-			cla.Endpoints = append(cla.Endpoints, endpoints...)
-		}
-
-		if priorities == nil {
-			if lbInfo != nil && lbInfo.failover != nil {
-				proxyLocality := envoy_config_core_v3.Locality{
-					Region:  lbInfo.proxyLocality.region,
-					Zone:    lbInfo.proxyLocality.zone,
-					SubZone: lbInfo.proxyLocality.subzone,
-				}
-				applyLocalityFailover(&proxyLocality, cla, lbInfo.failover)
-			}
-		}
-
-		// in theory we want to run endpoint plugins here.
-		// we only have one endpoint plugin, and it's not clear if it is in use. so
-		// consider deprecating the functionality.
-
-		return &CLA{cla}
-
+		return prioritize(us.Upstream, lbInfo, priorities, lbEps, lbEpsMd)
 	}, krt.WithName("K8sClusterLoadAssignment"))
+}
+
+func prioritize(us *gloov1.Upstream, lbInfo *LBInfo, priorities *priorities, lbEps map[locality][]*envoy_config_endpoint_v3.LbEndpoint, lbEpsMd map[locality][]endpointMd) *CLA {
+	cla := createEndpoint(us)
+	for loc, eps := range lbEps {
+		var l *envoy_config_core_v3.Locality
+		if loc != (locality{}) {
+			l = &envoy_config_core_v3.Locality{
+				Region:  loc.region,
+				Zone:    loc.zone,
+				SubZone: loc.subzone,
+			}
+		}
+
+		endpoints := getEndpoints(eps, lbEpsMd[loc], priorities)
+		for _, ep := range endpoints {
+			ep.Locality = l
+		}
+
+		cla.Endpoints = append(cla.Endpoints, endpoints...)
+	}
+
+	if priorities == nil {
+		if lbInfo != nil && lbInfo.failover != nil {
+			proxyLocality := envoy_config_core_v3.Locality{
+				Region:  lbInfo.proxyLocality.region,
+				Zone:    lbInfo.proxyLocality.zone,
+				SubZone: lbInfo.proxyLocality.subzone,
+			}
+			applyLocalityFailover(&proxyLocality, cla, lbInfo.failover)
+		}
+	}
+
+	// in theory we want to run endpoint plugins here.
+	// we only have one endpoint plugin, and it's not clear if it is in use. so
+	// consider deprecating the functionality. it's not easy to do as with krt we no longer have gloo 'Endpoint' objects
+	return &CLA{cla}
 }
 
 func getEndpoints(eps []*envoy_config_endpoint_v3.LbEndpoint, md []endpointMd, p *priorities) []*envoy_config_endpoint_v3.LocalityLbEndpoints {
