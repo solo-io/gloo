@@ -9,6 +9,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -321,7 +322,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	// TODO: get upstream collections from extensions
 	FinalUpstreams := krt.JoinCollection([]krt.Collection[*upstream]{GlooUpstreams, InMemUpstreams})
 	inputs := NewGlooK8sEndpointInputs(s.proxyTranslator.settings, s.istioClient, Services, FinalUpstreams)
-	GlooEndpoints := NewGlooK8sEndpoints(ctx, inputs, nil)
+	GlooEndpoints := NewGlooK8sEndpoints(ctx, inputs)
 
 	kubeGateways := setupCollectionDynamic[gwv1.Gateway](
 		ctx,
@@ -354,16 +355,22 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		return xdsSnap
 	})
 
+	mostXdsSnapshotsIndex := krt.NewIndex(mostXdsSnapshots, func(snap xdsSnapWrapper) []types.NamespacedName {
+		// TODO: make sure this matches the gateway name/namespace. or whatever we can correlate to envoy xds node id.
+		return []types.NamespacedName{{Namespace: snap.proxyWithReport.Proxy.Metadata.Namespace, Name: snap.proxyWithReport.Proxy.Metadata.Name}}
+	})
+	mostXdsSnapshotsIndex = mostXdsSnapshotsIndex
+
 	xdsSnapshots := krt.NewCollection(mostXdsSnapshots, func(kctx krt.HandlerContext, snap xdsSnapWrapper) *xdsSnapWrapper {
 		endpoints := krt.Fetch(kctx, GlooEndpoints)
 		clustersVersion := snap.snap.Clusters.Version
 		// TODO: do this in the endpoint set?
 		var endpointsProto []envoycache.Resource
 		for _, ep := range endpoints {
-			endpointsProto = append(endpointsProto, resource.NewEnvoyResource(ep.ClusterLoadAssignment))
+			endpointsProto = append(endpointsProto, resource.NewEnvoyResource(prioritize(ep, nil, nil)))
 		}
-		endpointsVersion := EnvoyCacheResourcesSetToFnvHash(endpoints)
-
+		endpointsVersion := EnvoyCacheResourcesSetToFnvHash(endpointsProto)
+		// fetch destrules with index and see if we have dest rules for us. if so modify the proxy cache key
 		// if clusters are updated, provider a new version of the endpoints,
 		// so the clusters are warm
 		snap.snap.Endpoints = envoycache.NewResources(fmt.Sprintf("%v-%v", clustersVersion, endpointsVersion), endpointsProto)

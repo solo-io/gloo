@@ -15,16 +15,17 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/solo-io/gloo/projects/gloo/constants"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/go-utils/contextutils"
+	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"istio.io/api/label"
 	"istio.io/api/networking/v1alpha3"
 	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/kube/kclient"
 	"istio.io/istio/pkg/kube/krt"
+	"istio.io/istio/pkg/slices"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -224,19 +225,23 @@ func NewGlooK8sEndpointInputs(settings *v1.Settings, istioClient kube.Client, se
 	}
 }
 
-func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs, lbInfo *LBInfo) krt.Collection[CLA] {
+type endpointWithMd struct {
+	*envoy_config_endpoint_v3.LbEndpoint
+	endpointMd endpointMd
+}
+type EndpointsForUpstream struct {
+	lbEps       map[locality][]endpointWithMd
+	clusterName string
+}
+
+func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs) krt.Collection[EndpointsForUpstream] {
 	augmentedPods := inputs.augmentedPods
 	kubeEndpoints := inputs.endpoints
 	enableAutoMtls := inputs.enableAutoMtls
 
 	services := inputs.services
 
-	var priorities *priorities
-	if lbInfo != nil {
-		priorities = newPriorities(lbInfo.failoverPriority, lbInfo.proxyLabels)
-	}
-
-	return krt.NewCollection(inputs.upstreams, func(kctx krt.HandlerContext, us *upstream) *CLA {
+	return krt.NewCollection(inputs.upstreams, func(kctx krt.HandlerContext, us *upstream) *EndpointsForUpstream {
 		// TODO: log these
 		var warnsToLog []string
 		defer func() {
@@ -262,9 +267,12 @@ func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs, lbInfo *LB
 			return nil
 		}
 		eps := *maybeEps
+		clusterName := translator.UpstreamToClusterName(us.GetMetadata().Ref())
 
-		lbEps := make(map[locality][]*envoy_config_endpoint_v3.LbEndpoint)
-		lbEpsMd := make(map[locality][]endpointMd)
+		ret := EndpointsForUpstream{
+			clusterName: getEndpointClusterName(clusterName, us.Upstream),
+			lbEps:       make(map[locality][]endpointWithMd),
+		}
 		for _, subset := range eps.Subsets {
 			port := findFirstPortInEndpointSubsets(subset, singlePortService, kubeServicePort)
 			if port == 0 {
@@ -300,19 +308,23 @@ func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs, lbInfo *LB
 					}
 				}
 				ep := createLbEndpoint(addr.IP, port, podLabels, enableAutoMtls)
-				lbEps[l] = append(lbEps[l], ep)
-				lbEpsMd[l] = append(lbEpsMd[l], endpointMd{
-					labels: augmentedLabels,
+				ret.lbEps[l] = append(ret.lbEps[l], endpointWithMd{
+					LbEndpoint: ep,
+					endpointMd: endpointMd{
+						labels: augmentedLabels,
+					},
 				})
 			}
 		}
-		return prioritize(us.Upstream, lbInfo, priorities, lbEps, lbEpsMd)
+		return &ret
 	}, krt.WithName("K8sClusterLoadAssignment"))
 }
 
-func prioritize(us *gloov1.Upstream, lbInfo *LBInfo, priorities *priorities, lbEps map[locality][]*envoy_config_endpoint_v3.LbEndpoint, lbEpsMd map[locality][]endpointMd) *CLA {
-	cla := createEndpoint(us)
-	for loc, eps := range lbEps {
+func prioritize(ep EndpointsForUpstream, lbInfo *LBInfo, priorities *priorities) *CLA {
+	cla := &envoy_config_endpoint_v3.ClusterLoadAssignment{
+		ClusterName: ep.clusterName,
+	}
+	for loc, eps := range ep.lbEps {
 		var l *envoy_config_core_v3.Locality
 		if loc != (locality{}) {
 			l = &envoy_config_core_v3.Locality{
@@ -322,7 +334,7 @@ func prioritize(us *gloov1.Upstream, lbInfo *LBInfo, priorities *priorities, lbE
 			}
 		}
 
-		endpoints := getEndpoints(eps, lbEpsMd[loc], priorities)
+		endpoints := getEndpoints(eps, priorities)
 		for _, ep := range endpoints {
 			ep.Locality = l
 		}
@@ -347,21 +359,21 @@ func prioritize(us *gloov1.Upstream, lbInfo *LBInfo, priorities *priorities, lbE
 	return &CLA{cla}
 }
 
-func getEndpoints(eps []*envoy_config_endpoint_v3.LbEndpoint, md []endpointMd, p *priorities) []*envoy_config_endpoint_v3.LocalityLbEndpoints {
+func getEndpoints(eps []endpointWithMd, p *priorities) []*envoy_config_endpoint_v3.LocalityLbEndpoints {
 	if p == nil {
 		return []*envoy_config_endpoint_v3.LocalityLbEndpoints{{
-			LbEndpoints: eps,
+			LbEndpoints: slices.Map(eps, func(e endpointWithMd) *envoy_config_endpoint_v3.LbEndpoint { return e.LbEndpoint }),
 		}}
 	}
-	return applyFailoverPriorityPerLocality(eps, md, p)
+	return applyFailoverPriorityPerLocality(eps, p)
 }
 
 func applyFailoverPriorityPerLocality(
-	eps []*envoy_config_endpoint_v3.LbEndpoint, md []endpointMd, p *priorities) []*envoy_config_endpoint_v3.LocalityLbEndpoints {
+	eps []endpointWithMd, p *priorities) []*envoy_config_endpoint_v3.LocalityLbEndpoints {
 	// key is priority, value is the index of LocalityLbEndpoints.LbEndpoints
 	priorityMap := map[int][]int{}
-	for i, epMd := range md {
-		priority := p.getPriority(epMd.labels)
+	for i, ep := range eps {
+		priority := p.getPriority(ep.endpointMd.labels)
 		priorityMap[priority] = append(priorityMap[priority], i)
 	}
 
@@ -377,7 +389,7 @@ func applyFailoverPriorityPerLocality(
 		out[i].Priority = uint32(priority)
 		var weight uint32
 		for _, index := range priorityMap[priority] {
-			out[i].LbEndpoints = append(out[i].LbEndpoints, eps[index])
+			out[i].LbEndpoints = append(out[i].LbEndpoints, eps[index].LbEndpoint)
 			weight += eps[index].GetLoadBalancingWeight().GetValue()
 		}
 		// reset weight
@@ -497,7 +509,7 @@ func getEndpointClusterName(clusterName string, upstream *v1.Upstream) string {
 }
 
 // TODO: generalize this
-func EnvoyCacheResourcesSetToFnvHash(resources []CLA) uint64 {
+func EnvoyCacheResourcesSetToFnvHash(resources []envoycache.Resource) uint64 {
 	hasher := fnv.New64()
 	var hash uint64
 	// 8kb capacity, consider raising if we find the buffer is frequently being
@@ -508,7 +520,7 @@ func EnvoyCacheResourcesSetToFnvHash(resources []CLA) uint64 {
 	mo := proto.MarshalOptions{Deterministic: true}
 	for _, r := range resources {
 		buf := buffer[:0]
-		out, err := mo.MarshalAppend(buf, r.ClusterLoadAssignment)
+		out, err := mo.MarshalAppend(buf, r.ResourceProto().(proto.Message))
 		if err != nil {
 			contextutils.LoggerFrom(context.Background()).DPanic(fmt.Errorf("marshalling envoy snapshot components: %w", err))
 		}
