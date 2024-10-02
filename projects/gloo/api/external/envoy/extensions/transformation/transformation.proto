@@ -154,8 +154,8 @@ message Extraction {
   enum Mode {
     // Default mode. Extract the content of a specified capturing group. In this mode,
     // `subgroup` selects the n-th capturing group, which represents the value that
-    // you want to extract. 
-    EXTRACT = 0; 
+    // you want to extract.
+    EXTRACT = 0;
     // Replace the content of a specified capturing group. In this mode, `subgroup` selects the
     // n-th capturing group, which represents the value that you want to replace with
     // the string provided in `replacement_text`.
