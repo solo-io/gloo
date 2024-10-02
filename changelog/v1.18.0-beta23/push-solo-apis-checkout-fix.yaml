@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      "Update to the push-solo-apis-branch workflow to handle case where the branch already exists."
