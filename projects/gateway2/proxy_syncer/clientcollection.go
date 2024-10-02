@@ -10,54 +10,32 @@ import (
 	"sync"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
-	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
-	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoy_service_discovery_v3 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
-	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	xdsserver "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 	"google.golang.org/protobuf/types/known/structpb"
 	"istio.io/istio/pkg/kube/controllers"
 	"istio.io/istio/pkg/kube/krt"
 	"k8s.io/apimachinery/pkg/types"
-
-	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
-
-	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 )
 
 type ConnectedClient struct {
-	Sid krt.Key[ConnectedClient]
-
-	node   *envoy_config_core_v3.Node
-	podRef types.NamespacedName
+	uniqueClientName string
 }
 
-func newConnectedClient(node *envoy_config_core_v3.Node, sid krt.Key[ConnectedClient]) ConnectedClient {
+func newConnectedClient(uniqueClientName string) ConnectedClient {
 	return ConnectedClient{
-		Sid:    sid,
-		node:   node,
-		podRef: getRef(node),
+		uniqueClientName: uniqueClientName,
 	}
-}
-
-func (w ConnectedClient) ResourceName() string {
-	return string(w.Sid)
-}
-
-var _ krt.Equaler[ConnectedClient] = new(ConnectedClient)
-
-func (c ConnectedClient) Equals(k ConnectedClient) bool {
-	// resource name includes sid; and sid is unique
-	return c.Sid == k.Sid
 }
 
 type UniqlyConnectedClient struct {
 	// name namespace of gateway
-	Role   string
-	Labels map[string]string
+	Role      string
+	Labels    map[string]string
+	Namespace string
 
+	snapshotKey  string
 	resourceName string
 }
 
@@ -68,37 +46,48 @@ func (c UniqlyConnectedClient) ResourceName() string {
 var _ krt.Equaler[UniqlyConnectedClient] = new(UniqlyConnectedClient)
 
 func (c UniqlyConnectedClient) Equals(k UniqlyConnectedClient) bool {
-	return maps.Equal(c.Labels, k.Labels) && c.Role == k.Role
+	return c.Role == k.Role && c.Namespace == k.Namespace && maps.Equal(c.Labels, k.Labels)
 }
 
-func NewUniqlyConnectedClient(cc ConnectedClient, labels map[string]string) UniqlyConnectedClient {
-	role := cc.node.GetMetadata().GetFields()["role"].GetStringValue()
+func labeledRole(role string, labels map[string]string) string {
+	return fmt.Sprintf("%s%s%d", role, xds.KeyDelimiter, hashLabels(labels))
+}
+
+func NewUniqlyConnectedClient(node *envoy_config_core_v3.Node, ns string, labels map[string]string) UniqlyConnectedClient {
+	role := node.GetMetadata().GetFields()[xds.RoleKey].GetStringValue()
+	snapshotKey := labeledRole(role, labels)
 	return UniqlyConnectedClient{
 		Role:         role,
+		Namespace:    ns,
 		Labels:       labels,
-		resourceName: fmt.Sprintf("%s~%d", role, hashLabels(labels)),
+		snapshotKey:  snapshotKey,
+		resourceName: fmt.Sprintf("%s%s%s", snapshotKey, xds.KeyDelimiter, ns),
 	}
 }
 
 type callbacksCollection struct {
-	ctx        context.Context
-	clients    map[krt.Key[ConnectedClient]]ConnectedClient
-	fanoutChan chan krt.Event[ConnectedClient]
-	stateLock  sync.RWMutex
+	ctx              context.Context
+	clients          map[int64]ConnectedClient
+	uniqClientsCount map[string]uint64
+	uniqClients      map[string]UniqlyConnectedClient
+	fanoutChan       chan krt.Event[UniqlyConnectedClient]
+	stateLock        sync.RWMutex
 
-	eventHandlers handlers[ConnectedClient]
+	eventHandlers handlers[UniqlyConnectedClient]
 	augmentedPods krt.Collection[augmentedPod]
 }
 
 // THIS IS THE SET OF THINGS WE RUN TRANSLATION FOR
 // add returned callbacks to the xds server.
-func NewConnectedClients(ctx context.Context, augmentedPods krt.Collection[augmentedPod]) (xdsserver.Callbacks, krt.Collection[ConnectedClient]) {
+func NewUniquelyConnectedClients(ctx context.Context, augmentedPods krt.Collection[augmentedPod]) (xdsserver.Callbacks, krt.Collection[UniqlyConnectedClient]) {
 
 	cb := &callbacksCollection{
-		ctx:           ctx,
-		clients:       make(map[krt.Key[ConnectedClient]]ConnectedClient),
-		fanoutChan:    make(chan krt.Event[ConnectedClient], 100),
-		augmentedPods: augmentedPods,
+		ctx:              ctx,
+		clients:          make(map[int64]ConnectedClient),
+		uniqClientsCount: make(map[string]uint64),
+		uniqClients:      make(map[string]UniqlyConnectedClient),
+		fanoutChan:       make(chan krt.Event[UniqlyConnectedClient], 100),
+		augmentedPods:    augmentedPods,
 	}
 	go func() {
 		for {
@@ -114,7 +103,7 @@ func NewConnectedClients(ctx context.Context, augmentedPods krt.Collection[augme
 }
 
 var _ xdsserver.Callbacks = new(callbacksCollection)
-var _ krt.Collection[ConnectedClient] = new(callbacksCollection)
+var _ krt.Collection[UniqlyConnectedClient] = new(callbacksCollection)
 
 // OnStreamOpen is called once an xDS stream is open with a stream ID and the type URL (or "" for ADS).
 // Returning an error will end processing and close the stream. OnStreamClosed will still be called.
@@ -124,35 +113,37 @@ func (x *callbacksCollection) OnStreamOpen(_ context.Context, _ int64, _ string)
 
 // OnStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
 func (x *callbacksCollection) OnStreamClosed(sid int64) {
-	c := x.del(sid)
-	if c != nil {
-		x.Notify(krt.Event[ConnectedClient]{Old: c, Event: controllers.EventDelete})
+	ucc := x.del(sid)
+	if ucc != nil {
+		x.Notify(krt.Event[UniqlyConnectedClient]{Old: ucc, Event: controllers.EventDelete})
 	}
 }
 
-func resouceName(sid int64) krt.Key[ConnectedClient] {
-	return krt.Key[ConnectedClient](fmt.Sprintf("%d", sid))
-}
-
-func (x *callbacksCollection) del(sid int64) *ConnectedClient {
+func (x *callbacksCollection) del(sid int64) *UniqlyConnectedClient {
 	x.stateLock.Lock()
 	defer x.stateLock.Unlock()
 
-	key := resouceName(sid)
-	c, ok := x.clients[key]
-	delete(x.clients, key)
+	c, ok := x.clients[sid]
+	delete(x.clients, sid)
 	if ok {
-		return &c
+		resouceName := c.uniqueClientName
+		current := x.uniqClientsCount[resouceName]
+		x.uniqClientsCount[resouceName] = current - 1
+		if current == 1 {
+			ucc := x.uniqClients[resouceName]
+			delete(x.uniqClientsCount, resouceName)
+			delete(x.uniqClients, resouceName)
+			return &ucc
+		}
 	}
 	return nil
 }
 
-func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.DiscoveryRequest) (*ConnectedClient, error) {
+func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.DiscoveryRequest) (*UniqlyConnectedClient, error) {
 	x.stateLock.Lock()
 	defer x.stateLock.Unlock()
 
-	key := resouceName(sid)
-	if _, ok := x.clients[key]; !ok && r.Node != nil {
+	if _, ok := x.clients[sid]; !ok && r.Node != nil {
 
 		// TODO: modify request to include the label that are relevant for the client?
 		// error if we can get the pod
@@ -163,14 +154,15 @@ func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.Disco
 			return nil, fmt.Errorf("pod not found for node %v", r.Node)
 		}
 
-		c := newConnectedClient(r.Node, key)
-		x.clients[key] = c
-		return &c, nil
+		ucc := NewUniqlyConnectedClient(r.Node, pod.Namespace, pod.podLabels)
+		c := newConnectedClient(ucc.resourceName)
+		x.clients[sid] = c
+		return &ucc, nil
 	}
 	return nil, nil
 }
 
-func (x *callbacksCollection) Notify(e krt.Event[ConnectedClient]) {
+func (x *callbacksCollection) Notify(e krt.Event[UniqlyConnectedClient]) {
 	for {
 		// note: do not use a default block here, we want to block if the channel is full, as otherwise we will have inconsistent state in krt.
 		select {
@@ -185,21 +177,35 @@ func (x *callbacksCollection) Notify(e krt.Event[ConnectedClient]) {
 // OnStreamRequest is called once a request is received on a stream.
 // Returning an error will end processing and close the stream. OnStreamClosed will still be called.
 func (x *callbacksCollection) OnStreamRequest(sid int64, r *envoy_service_discovery_v3.DiscoveryRequest) error {
-	c, err := x.add(sid, r)
+	ucc, err := x.add(sid, r)
 	if err != nil {
 		return err
 	}
-	if c != nil {
-		x.Notify(krt.Event[ConnectedClient]{New: c, Event: controllers.EventAdd})
+	if ucc != nil {
+		nodeMd := r.Node.GetMetadata()
+		if nodeMd == nil {
+			nodeMd = &structpb.Struct{}
+		}
+		if nodeMd.Fields == nil {
+			nodeMd.Fields = map[string]*structpb.Value{}
+		}
+		role := nodeMd.Fields[xds.RoleKey].GetStringValue()
+		if role != "" {
+			nodeMd.Fields[xds.RoleKey] = structpb.NewStringValue(ucc.resourceName)
+			r.Node.Metadata = nodeMd
+		} else {
+			// TODO: log warning
+		}
+		x.Notify(krt.Event[UniqlyConnectedClient]{New: ucc, Event: controllers.EventAdd})
 	}
 	return nil
 }
 
-func (x *callbacksCollection) getClients() []ConnectedClient {
+func (x *callbacksCollection) getClients() []UniqlyConnectedClient {
 	x.stateLock.RLock()
 	defer x.stateLock.RUnlock()
-	clients := make([]ConnectedClient, 0, len(x.clients))
-	for _, c := range x.clients {
+	clients := make([]UniqlyConnectedClient, 0, len(x.uniqClients))
+	for _, c := range x.uniqClients {
 		clients = append(clients, c)
 	}
 	return clients
@@ -219,15 +225,15 @@ func (x *callbacksCollection) OnFetchRequest(_ context.Context, _ *envoy_service
 func (x *callbacksCollection) OnFetchResponse(_ *envoy_service_discovery_v3.DiscoveryRequest, _ *envoy_service_discovery_v3.DiscoveryResponse) {
 }
 
-func (x *callbacksCollection) Register(f func(o krt.Event[ConnectedClient])) krt.Syncer {
-	return x.RegisterBatch(func(events []krt.Event[ConnectedClient], initialSync bool) {
+func (x *callbacksCollection) Register(f func(o krt.Event[UniqlyConnectedClient])) krt.Syncer {
+	return x.RegisterBatch(func(events []krt.Event[UniqlyConnectedClient], initialSync bool) {
 		for _, o := range events {
 			f(o)
 		}
 	}, true)
 }
 
-func (x *callbacksCollection) RegisterBatch(f func(o []krt.Event[ConnectedClient], initialSync bool), runExistingState bool) krt.Syncer {
+func (x *callbacksCollection) RegisterBatch(f func(o []krt.Event[UniqlyConnectedClient], initialSync bool), runExistingState bool) krt.Syncer {
 	if runExistingState {
 		f(nil, true)
 	}
@@ -236,9 +242,9 @@ func (x *callbacksCollection) RegisterBatch(f func(o []krt.Event[ConnectedClient
 	defer x.eventHandlers.mu.Unlock()
 	x.eventHandlers.insertLocked(f)
 	if runExistingState {
-		var events []krt.Event[ConnectedClient]
+		var events []krt.Event[UniqlyConnectedClient]
 		for _, v := range x.getClients() {
-			events = append(events, krt.Event[ConnectedClient]{
+			events = append(events, krt.Event[UniqlyConnectedClient]{
 				New:   &v,
 				Event: controllers.EventAdd,
 			})
@@ -256,10 +262,10 @@ func (x *callbacksCollection) Synced() krt.Syncer {
 
 // GetKey returns an object by its key, if present. Otherwise, nil is returned.
 
-func (x *callbacksCollection) GetKey(k krt.Key[ConnectedClient]) *ConnectedClient {
+func (x *callbacksCollection) GetKey(k krt.Key[UniqlyConnectedClient]) *UniqlyConnectedClient {
 	x.stateLock.RLock()
 	defer x.stateLock.RUnlock()
-	u, ok := x.clients[k]
+	u, ok := x.uniqClients[string(k)]
 	if ok {
 		return &u
 	}
@@ -269,7 +275,7 @@ func (x *callbacksCollection) GetKey(k krt.Key[ConnectedClient]) *ConnectedClien
 // List returns all objects in the collection.
 // Order of the list is undefined.
 
-func (x *callbacksCollection) List() []ConnectedClient { return x.getClients() }
+func (x *callbacksCollection) List() []UniqlyConnectedClient { return x.getClients() }
 
 type simpleSyncer struct{}
 
@@ -312,12 +318,12 @@ func (o *handlers[O]) Notify(e krt.Event[O]) {
 func hashLabels(labels map[string]string) uint64 {
 	finalHash := uint64(0)
 	for k, v := range labels {
-		hasher := fnv.New64()
-		hasher.Write([]byte(k))
-		hasher.Write([]byte{0})
-		hasher.Write([]byte(v))
-		hasher.Write([]byte{0})
-		finalHash ^= hasher.Sum64()
+		fnv := fnv.New64()
+		fnv.Write([]byte(k))
+		fnv.Write([]byte{0})
+		fnv.Write([]byte(v))
+		fnv.Write([]byte{0})
+		finalHash ^= fnv.Sum64()
 	}
 	return finalHash
 }
@@ -331,156 +337,6 @@ func getLabels(md *structpb.Struct) map[string]string {
 	return labels
 }
 
-// /////////////////// sketch of the rest of the syncer ////
-type upstreamRef struct {
-	name      string
-	namespace string
-}
-type proxyRef struct {
-	name       string
-	namespace  string
-	labelsHash string
-}
-
-type Clusters = krt.Index[upstreamRef, envoy_config_cluster_v3.Cluster]
-
-func clusters(krt.Collection[v1.Upstream]) Clusters {
-	panic("implement me")
-}
-
-type Endpoints = krt.Index[upstreamRef, envoy_config_endpoint_v3.ClusterLoadAssignment]
-
-func endpoints(krt.Collection[v1.Upstream]) Endpoints {
-	panic("implement me")
-}
-
-type Listeners = krt.Index[proxyRef, envoy_config_listener_v3.Listener]
-
-func listeners(krt.Collection[v1.Proxy]) Listeners {
-	panic("implement me")
-}
-
-type Routes = krt.Index[proxyRef, envoy_config_route_v3.RouteConfiguration]
-
-func routes(krt.Collection[v1.Proxy]) Routes {
-	panic("implement me")
-}
-
-func snapForProxy(x krt.Collection[v1.Proxy]) krt.Index[proxyRef, xdsSnapshot] {
-	panic("implement me")
-}
-
-type xdsSnapshot struct {
-	Upstreams krt.Collection[v1.Upstream]
-	// Proxies   krt.Collection[v1.Proxy]
-	Clusters  Clusters
-	Endpoints Endpoints
-	Listeners Listeners
-	Routes    Routes
-}
-
-func defaultSnapshot(proxies krt.Collection[v1.Proxy], snap xdsSnapshot, xdsCache envoycache.SnapshotCache) {
-	krt.NewCollection(proxies, func(ctx krt.HandlerContext, o v1.Proxy) *proxyRef {
-		// put snapshot in the cache
-		upstreams := snap.Upstreams.List()
-
-		clusters := make([]*envoy_config_cluster_v3.Cluster, 0, len(upstreams))
-		for i := range upstreams {
-			u := upstreams[i]
-			c := snap.Clusters.Lookup(upstreamRef{name: u.Name, namespace: u.Namespace})
-			for i := range c {
-				clusters = append(clusters, &c[i])
-			}
-		}
-		// TODO:
-		var endpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment
-		var routeConfigs []*envoy_config_route_v3.RouteConfiguration
-		listeners := toPtrSlice(snap.Listeners.Lookup(proxyRef{name: o.Name, namespace: o.Namespace}))
-
-		xdsSnapshot := generateXDSSnapshot(clusters, endpoints, routeConfigs, listeners)
-
-		key := xds.SnapshotCacheKey(&o.Spec)
-		xdsCache.SetSnapshot(key, xdsSnapshot)
-		return &proxyRef{
-			name:       o.Name,
-			namespace:  o.Namespace,
-			labelsHash: "",
-		}
-	})
-}
-
-func toPtrSlice[T any](t []T) []*T {
-	out := make([]*T, len(t))
-	for i := range t {
-		out[i] = &t[i]
-	}
-	return out
-}
-
-func snapshotForProxy(clients krt.Collection[UniqlyConnectedClient], proxies krt.Collection[v1.Proxy], snap xdsSnapshot, xdsCache envoycache.SnapshotCache) {
-	krt.NewCollection(clients, func(ctx krt.HandlerContext, o UniqlyConnectedClient) *proxyRef {
-		// fetch the proxy for the client
-
-		//grab proxy name from client role
-		proxy := krt.FetchOne(ctx, proxies, krt.FilterObjectName(types.NamespacedName{Name: "TODO", Namespace: "TODO"}))
-
-		// get the labels of the unique client, see if there are any dest rules that apply to this proxy
-		// (on its namespace, and if selectors match)
-		/*
-			find the relevant proxy
-			see if dest rules are relevant for this proxy
-			if so, re-compute upstreams and endpoints.
-		*/
-
-		// if so, recompute the upstreams and endpoints
-
-		//		and do the same as above with the client's cache key.
-		return &proxyRef{
-			name:       proxy.Name,
-			namespace:  proxy.Namespace,
-			labelsHash: o.ResourceName(),
-		}
-	})
-}
-
-func generateXDSSnapshot(
-	clusters []*envoy_config_cluster_v3.Cluster,
-	endpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment,
-	routeConfigs []*envoy_config_route_v3.RouteConfiguration,
-	listeners []*envoy_config_listener_v3.Listener,
-) envoycache.Snapshot {
-
-	panic("implement me")
-}
-
-//////////////////////////////////////////////////////////////////////
-
-func New2(c krt.Collection[ConnectedClient], augmentedPods krt.Collection[augmentedPod]) krt.Collection[UniqlyConnectedClient] {
-	return krt.NewManyFromNothing(
-		func(kctx krt.HandlerContext) []UniqlyConnectedClient {
-			unqiueClients := make(map[string]struct{})
-			var ret []UniqlyConnectedClient
-			for _, cc := range krt.Fetch(kctx, c) {
-				if cc.podRef.Name == "" {
-					continue
-				}
-
-				var labels map[string]string
-				maybePod := krt.FetchOne(kctx, augmentedPods, krt.FilterObjectName(cc.podRef))
-				if maybePod != nil {
-					labels = maybePod.podLabels
-				}
-
-				ucc := NewUniqlyConnectedClient(cc, labels)
-				if _, ok := unqiueClients[ucc.resourceName]; ok {
-					continue
-				}
-				ret = append(ret, ucc)
-			}
-			return ret
-		})
-}
-
 func getRef(node *envoy_config_core_v3.Node) types.NamespacedName {
 	nns := node.Id
 	split := strings.SplitN(nns, ".", 2)
@@ -492,63 +348,3 @@ func getRef(node *envoy_config_core_v3.Node) types.NamespacedName {
 		Namespace: split[1],
 	}
 }
-
-func defaultSnapshot2(proxies krt.Collection[v1.Proxy], snap xdsSnapshot, xdsCache envoycache.SnapshotCache) {
-	krt.NewCollection(proxies, func(ctx krt.HandlerContext, o v1.Proxy) *proxyRef {
-		// put snapshot in the cache
-		upstreams := snap.Upstreams.List()
-
-		clusters := make([]*envoy_config_cluster_v3.Cluster, 0, len(upstreams))
-		for i := range upstreams {
-			u := &upstreams[i]
-			c := snap.Clusters.Lookup(upstreamRef{name: u.Name, namespace: u.Namespace})
-			for i := range c {
-				clusters = append(clusters, &c[i])
-			}
-		}
-		// TODO:
-		var endpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment
-		var routeConfigs []*envoy_config_route_v3.RouteConfiguration
-		listeners := toPtrSlice(snap.Listeners.Lookup(proxyRef{name: o.Name, namespace: o.Namespace}))
-
-		xdsSnapshot := generateXDSSnapshot(clusters, endpoints, routeConfigs, listeners)
-
-		key := xds.SnapshotCacheKey(&o.Spec)
-		xdsCache.SetSnapshot(key, xdsSnapshot)
-		return &proxyRef{
-			name:       o.Name,
-			namespace:  o.Namespace,
-			labelsHash: "",
-		}
-	})
-}
-
-func snapshotForProxy2(clients krt.Collection[UniqlyConnectedClient], proxies krt.Collection[v1.Proxy], snap xdsSnapshot, xdsCache envoycache.SnapshotCache) {
-	krt.NewCollection(clients, func(ctx krt.HandlerContext, o UniqlyConnectedClient) *proxyRef {
-		// fetch the proxy for the client
-		//grab proxy name from client role
-		proxy := krt.FetchOne(ctx, proxies, krt.FilterObjectName(types.NamespacedName{Name: "TODO", Namespace: "TODO"}))
-		// get the labels of the unique client, see if there are any dest rules that apply to this proxy
-		// (on its namespace, and if selectors match)
-		/*
-			find the relevant proxy
-			see if dest rules are relevant for this proxy
-			if so, re-compute upstreams and endpoints.
-		*/
-
-		// set the node hash for the client
-
-		// if so, recompute the upstreams and endpoints
-
-		//		and do the same as above with the client's cache key.
-		return &proxyRef{
-			name:       proxy.Name,
-			namespace:  proxy.Namespace,
-			labelsHash: o.ResourceName(),
-		}
-	})
-}
-
-///// on the watch, we somehow need to feed to the cache the specific proxy key
-// for this client.... a bit hacky but possible - slightly less hacky,
-// modify the request and fix node hasher!

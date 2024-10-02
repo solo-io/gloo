@@ -8,7 +8,6 @@ import (
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-	"k8s.io/apimachinery/pkg/types"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
@@ -656,22 +655,20 @@ func getDestruleFor(destinationRules krt.Collection[*networkingclient.Destinatio
 
 func snapshotPerClient(ucc krt.Collection[UniqlyConnectedClient],
 	glooEndpoints krt.Collection[EndpointsForUpstream], mostXdsSnapshots krt.Collection[xdsSnapWrapper],
-	mostXdsSnapshotsIndex krt.Index[types.NamespacedName, xdsSnapWrapper], wrappedDestRules krt.Collection[DestinationRuleWrapper],
+	mostXdsSnapshotsIndex krt.Index[string, xdsSnapWrapper], wrappedDestRules krt.Collection[DestinationRuleWrapper],
 	destinationRulesByNamespace krt.Index[string, DestinationRuleWrapper]) krt.Collection[xdsSnapWrapper] {
 
 	xdsSnapshotsForUcc := krt.NewCollection(ucc, func(kctx krt.HandlerContext, ucc UniqlyConnectedClient) *xdsSnapWrapper {
 
-		// get the proxy and the labels
-		gwName, gwNamespace := roleToNameNamespace(ucc.Role)
 		podLabels := ucc.Labels
 
-		mostlySnaps := krt.Fetch(kctx, mostXdsSnapshots, krt.FilterIndex(mostXdsSnapshotsIndex, types.NamespacedName{Namespace: gwNamespace, Name: gwName}))
+		mostlySnaps := krt.Fetch(kctx, mostXdsSnapshots, krt.FilterIndex(mostXdsSnapshotsIndex, ucc.Role))
 		if len(mostlySnaps) != 1 {
 			return nil
 		}
 		mostlySnap := mostlySnaps[0]
 
-		destrules := krt.Fetch(kctx, wrappedDestRules, krt.FilterIndex(destinationRulesByNamespace, gwNamespace), krt.FilterSelects(podLabels))
+		destrules := krt.Fetch(kctx, wrappedDestRules, krt.FilterIndex(destinationRulesByNamespace, ucc.Namespace), krt.FilterSelects(podLabels))
 		endpoints := krt.Fetch(kctx, glooEndpoints)
 		var endpointsProto []envoycache.Resource
 		for _, ep := range endpoints {
@@ -695,7 +692,7 @@ func snapshotPerClient(ucc krt.Collection[UniqlyConnectedClient],
 		// if clusters are updated, provider a new version of the endpoints,
 		// so the clusters are warm
 		genericSnap := mostlySnap.snap
-		mostlySnap.proxyKey = "TODO" // compute key that includes the labels
+		mostlySnap.proxyKey = ucc.resourceName
 		mostlySnap.snap = &xds.EnvoySnapshot{
 			Clusters:  genericSnap.Clusters,
 			Endpoints: envoycache.NewResources(fmt.Sprintf("%v-%v", clustersVersion, endpointsVersion), endpointsProto),

@@ -9,7 +9,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -355,9 +354,9 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		return xdsSnap
 	})
 
-	mostXdsSnapshotsIndex := krt.NewIndex(mostXdsSnapshots, func(snap xdsSnapWrapper) []types.NamespacedName {
+	mostXdsSnapshotsIndex := krt.NewIndex(mostXdsSnapshots, func(snap xdsSnapWrapper) []string {
 		// TODO: make sure this matches the gateway name/namespace. or whatever we can correlate to envoy xds node id.
-		return []types.NamespacedName{{Namespace: snap.proxyWithReport.Proxy.Metadata.Namespace, Name: snap.proxyWithReport.Proxy.Metadata.Name}}
+		return []string{snap.proxyKey}
 	})
 	mostXdsSnapshotsIndex = mostXdsSnapshotsIndex
 
