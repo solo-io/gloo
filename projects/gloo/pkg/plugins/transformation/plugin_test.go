@@ -913,7 +913,7 @@ var _ = Describe("Plugin", func() {
 											Body: &transformation.InjaTemplate{Text: "1"},
 										},
 										SpanTransformer: &transformation.TransformationTemplate_SpanTransformer{
-											Name: &transformation.InjaTemplate{Text: "custom_span_name"},
+											Name: &transformation.InjaTemplate{Text: "custom_span_name_1"},
 										},
 									},
 								},
@@ -947,7 +947,7 @@ var _ = Describe("Plugin", func() {
 											Body: &transformation.InjaTemplate{Text: "11"},
 										},
 										SpanTransformer: &transformation.TransformationTemplate_SpanTransformer{
-											Name: &transformation.InjaTemplate{Text: "custom_span_name"},
+											Name: &transformation.InjaTemplate{Text: "custom_span_name_2"},
 										},
 									},
 								},
@@ -981,7 +981,7 @@ var _ = Describe("Plugin", func() {
 											Body: &transformation.InjaTemplate{Text: "111"},
 										},
 										SpanTransformer: &transformation.TransformationTemplate_SpanTransformer{
-											Name: &transformation.InjaTemplate{Text: "custom_span_name"},
+											Name: &transformation.InjaTemplate{Text: "custom_span_name_3"},
 										},
 									},
 								},
@@ -1027,7 +1027,7 @@ var _ = Describe("Plugin", func() {
 												Body: &envoytransformation.InjaTemplate{Text: "1"},
 											},
 											SpanTransformer: &envoytransformation.TransformationTemplate_SpanTransformer{
-												Name: &envoytransformation.InjaTemplate{Text: "custom_span_name"},
+												Name: &envoytransformation.InjaTemplate{Text: "custom_span_name_1"},
 											},
 										},
 									},
@@ -1069,7 +1069,7 @@ var _ = Describe("Plugin", func() {
 												Body: &envoytransformation.InjaTemplate{Text: "11"},
 											},
 											SpanTransformer: &envoytransformation.TransformationTemplate_SpanTransformer{
-												Name: &envoytransformation.InjaTemplate{Text: "custom_span_name"},
+												Name: &envoytransformation.InjaTemplate{Text: "custom_span_name_2"},
 											},
 										},
 									},
@@ -1111,7 +1111,7 @@ var _ = Describe("Plugin", func() {
 												Body: &envoytransformation.InjaTemplate{Text: "111"},
 											},
 											SpanTransformer: &envoytransformation.TransformationTemplate_SpanTransformer{
-												Name: &envoytransformation.InjaTemplate{Text: "custom_span_name"},
+												Name: &envoytransformation.InjaTemplate{Text: "custom_span_name_3"},
 											},
 										},
 									},
