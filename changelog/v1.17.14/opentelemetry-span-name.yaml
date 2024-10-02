@@ -1,11 +1,7 @@
 changelog:
-  - type: NON_USER_FACING
+  - type: FIX
     issueLink: https://github.com/solo-io/gloo/issues/9848
     resolvesIssue: false
     description: >-
-      Import updated envoy-gloo transformation proto into Gloo. We
-      [added](https://github.com/solo-io/envoy-gloo/pull/368) this additional
-      field in the envoy-gloo transformation filter, and are validating in this
-      pull request that we can write to this new field. Control plane API has
-      not yet been finalized or implemented.
-
+      Enable modifying the span name for tracing purposes using InjaTemplates
+      in the transformation filter.
