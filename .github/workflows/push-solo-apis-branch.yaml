@@ -105,16 +105,20 @@ jobs:
           git config --local user.name $GIT_USER_NAME
           git config --local user.email $GIT_USER_EMAIL
           
-          # stage local changes, add the remote solo-apis repo, and fetch its remote branches
+          # add the remote solo-apis repo, and fetch its remote branches
           echo "adding the remote solo-apis repo and fetching its remote branches"
           git remote add --fetch solo-apis git@github.com:solo-io/solo-apis.git
+
+          # stash changes in case branch already exists
+          git add . && git stash
           
-          # switch to the source branch, if it exists then pull the branch and rebase the local changes on top of the latest commit
-          echo "switch to the source branch $SOLO_APIS_SOURCE_BRANCH, if it exists then pull the branch and rebase the local changes on top of the latest commit"
-          (git checkout $SOLO_APIS_SOURCE_BRANCH && git pull --rebase solo-apis $SOLO_APIS_SOURCE_BRANCH) || git checkout -B $SOLO_APIS_SOURCE_BRANCH
+          # switch to the source branch, if it exists then pull the branch
+          echo "switch to the source branch $SOLO_APIS_SOURCE_BRANCH"
+          (git checkout $SOLO_APIS_SOURCE_BRANCH && git pull solo-apis $SOLO_APIS_SOURCE_BRANCH) || git checkout -B $SOLO_APIS_SOURCE_BRANCH
           
+          # stage local changes
           echo "staging local changes"
-          git add .
+          git stash apply && git add .
           
           # commit staged changes (allows empty commits) and push the commit
           echo "committing staged changes"
