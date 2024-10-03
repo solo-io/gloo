@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 
+	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	"github.com/solo-io/gloo/projects/gloo/pkg/debug"
 
 	"google.golang.org/grpc"
@@ -22,6 +23,8 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/consul"
 	"github.com/solo-io/gloo/projects/gloo/pkg/validation"
+	"istio.io/istio/pkg/kube"
+	"istio.io/istio/pkg/kube/krt"
 )
 
 type Opts struct {
@@ -61,7 +64,9 @@ type Opts struct {
 
 	Identity leaderelector.Identity
 
-	GlooGateway GlooGateway
+	GlooGateway           GlooGateway
+	IsitoClient           kube.Client
+	UniqlyConnectedClient krt.Collection[krtcollections.UniqlyConnectedClient]
 }
 
 type IstioValues struct {

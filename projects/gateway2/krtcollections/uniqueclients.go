@@ -1,4 +1,4 @@
-package proxy_syncer
+package krtcollections
 
 import (
 	"context"
@@ -53,7 +53,7 @@ func labeledRole(role string, labels map[string]string) string {
 	return fmt.Sprintf("%s%s%d", role, xds.KeyDelimiter, hashLabels(labels))
 }
 
-func NewUniqlyConnectedClient(node *envoy_config_core_v3.Node, ns string, labels map[string]string) UniqlyConnectedClient {
+func newUniqlyConnectedClient(node *envoy_config_core_v3.Node, ns string, labels map[string]string) UniqlyConnectedClient {
 	role := node.GetMetadata().GetFields()[xds.RoleKey].GetStringValue()
 	snapshotKey := labeledRole(role, labels)
 	return UniqlyConnectedClient{
@@ -74,12 +74,12 @@ type callbacksCollection struct {
 	stateLock        sync.RWMutex
 
 	eventHandlers handlers[UniqlyConnectedClient]
-	augmentedPods krt.Collection[augmentedPod]
+	augmentedPods krt.Collection[LocalityPod]
 }
 
 // THIS IS THE SET OF THINGS WE RUN TRANSLATION FOR
 // add returned callbacks to the xds server.
-func NewUniquelyConnectedClients(ctx context.Context, augmentedPods krt.Collection[augmentedPod]) (xdsserver.Callbacks, krt.Collection[UniqlyConnectedClient]) {
+func NewUniquelyConnectedClients(ctx context.Context, augmentedPods krt.Collection[LocalityPod]) (xdsserver.Callbacks, krt.Collection[UniqlyConnectedClient]) {
 
 	cb := &callbacksCollection{
 		ctx:              ctx,
@@ -148,13 +148,13 @@ func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.Disco
 		// TODO: modify request to include the label that are relevant for the client?
 		// error if we can get the pod
 		podRef := getRef(r.Node)
-		k := krt.Key[augmentedPod](krt.Named{Name: podRef.Name, Namespace: podRef.Namespace}.ResourceName())
+		k := krt.Key[LocalityPod](krt.Named{Name: podRef.Name, Namespace: podRef.Namespace}.ResourceName())
 		pod := x.augmentedPods.GetKey(k)
 		if pod == nil {
 			return nil, fmt.Errorf("pod not found for node %v", r.Node)
 		}
 
-		ucc := NewUniqlyConnectedClient(r.Node, pod.Namespace, pod.podLabels)
+		ucc := newUniqlyConnectedClient(r.Node, pod.Namespace, pod.PodLabels)
 		c := newConnectedClient(ucc.resourceName)
 		x.clients[sid] = c
 		return &ucc, nil

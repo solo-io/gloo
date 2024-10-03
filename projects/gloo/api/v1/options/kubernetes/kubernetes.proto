@@ -26,13 +26,15 @@ message UpstreamSpec {
     // Allows finer-grained filtering of pods for the Upstream. Gloo will select pods based on their labels if
     // any are provided here.
     // (see [Kubernetes labels and selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
+    // Deprecated: NOT supported in GGv2
     map<string, string> selector = 4;
     // An optional Service Spec describing the service listening at this address
-    .options.gloo.solo.io.ServiceSpec service_spec = 5;
+    .options.gloo.solo.io.ServiceSpec service_spec = 5 [deprecated = true];
 
 
     // Subset configuration. For discovery sources that has labels (like kubernetes). this 
     // configuration allows you to partition the upstream to a set of subsets.
     // for each unique set of keys and values, a subset will be created.
-    .options.gloo.solo.io.SubsetSpec subset_spec = 6;
+    // Deprecated: NOT supported in GGv2
+    .options.gloo.solo.io.SubsetSpec subset_spec = 6 [deprecated = true];
 }

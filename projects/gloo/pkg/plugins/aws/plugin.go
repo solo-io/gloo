@@ -82,7 +82,7 @@ func (p *Plugin) Name() string {
 // Init the per run configuration of the plugin including blowing away the known upstreams,
 // the current settings for the plugin, and whether we currently need transformation.
 func (p *Plugin) Init(params plugins.InitParams) {
-	p.recordedUpstreams = make(map[string]*aws.UpstreamSpec)
+	p.recordedUpstreams = nil
 	p.settings = params.Settings.GetGloo().GetAwsOptions()
 	p.upstreamOptions = params.Settings.GetUpstreamOptions()
 	p.requiresTransformationFilter = false
@@ -98,8 +98,6 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		// this is not an aws upstream so we disregard
 		return nil
 	}
-	// even if it failed, route should still be valid
-	p.recordedUpstreams[translator.UpstreamToClusterName(in.GetMetadata().Ref())] = upstreamSpec.Aws
 
 	lambdaHostname := getLambdaHostname(upstreamSpec.Aws)
 
@@ -166,6 +164,20 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 }
 
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
+
+	// lazy load
+	if p.recordedUpstreams == nil {
+		p.recordedUpstreams = make(map[string]*aws.UpstreamSpec)
+		for _, in := range params.Snapshot.Upstreams {
+			upstreamSpec, ok := in.GetUpstreamType().(*v1.Upstream_Aws)
+			if ok {
+				// this is not an aws upstream so we disregard
+				// even if it failed, route should still be valid
+				p.recordedUpstreams[translator.UpstreamToClusterName(in.GetMetadata().Ref())] = upstreamSpec.Aws
+			}
+		}
+	}
+
 	err := pluginutils.MarkPerFilterConfig(params.Ctx, params.Snapshot, in, out, FilterName,
 		func(spec *v1.Destination) (proto.Message, error) {
 			logger := contextutils.LoggerFrom(params.Ctx)

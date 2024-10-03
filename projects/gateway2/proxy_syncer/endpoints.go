@@ -232,6 +232,7 @@ type endpointWithMd struct {
 type EndpointsForUpstream struct {
 	lbEps       map[locality][]endpointWithMd
 	clusterName string
+	upstreamRef types.NamespacedName
 }
 
 func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs) krt.Collection[EndpointsForUpstream] {
@@ -272,6 +273,10 @@ func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs) krt.Collec
 		ret := EndpointsForUpstream{
 			clusterName: getEndpointClusterName(clusterName, us.Upstream),
 			lbEps:       make(map[locality][]endpointWithMd),
+			upstreamRef: types.NamespacedName{
+				Namespace: us.GetMetadata().Namespace,
+				Name:      us.GetMetadata().Name,
+			},
 		}
 		for _, subset := range eps.Subsets {
 			port := findFirstPortInEndpointSubsets(subset, singlePortService, kubeServicePort)

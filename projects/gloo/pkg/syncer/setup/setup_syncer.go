@@ -37,12 +37,12 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	corecache "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 	xdsserver "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/types"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/prototime"
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	"github.com/solo-io/gloo/pkg/utils"
@@ -59,6 +59,7 @@ import (
 	gwvalidation "github.com/solo-io/gloo/projects/gateway/pkg/validation"
 	"github.com/solo-io/gloo/projects/gateway2/controller"
 	ext "github.com/solo-io/gloo/projects/gateway2/extensions"
+	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	"github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/solo-io/gloo/projects/gloo/constants"
@@ -85,6 +86,8 @@ import (
 	sslutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/validation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
+	istiokube "istio.io/istio/pkg/kube"
+	"istio.io/istio/pkg/kube/krt"
 )
 
 // TODO: (copied from gateway) switch AcceptAllResourcesByDefault to false after validation has been tested in user environments
@@ -111,6 +114,17 @@ func NewSetupFuncWithExtensions(extensions Extensions) setuputils.SetupFunc {
 // for use by UDS, FDS, other v1.SetupSyncers
 func NewSetupFuncWithRun(runFunc RunFunc) setuputils.SetupFunc {
 	return NewSetupFuncWithRunAndExtensions(runFunc, nil)
+}
+
+func createKubeClient() istiokube.Client {
+	restCfg := istiokube.NewClientConfigForRestConfig(ctrl.GetConfigOrDie())
+	client, err := istiokube.NewClient(restCfg, "")
+	if err != nil {
+		// TODO move this init somewhere we can handle the err
+		panic(err)
+	}
+	istiokube.EnableCrdWatcher(client)
+	return client
 }
 
 // Called directly by GlooEE
@@ -156,14 +170,17 @@ type setupSyncer struct {
 	controlPlane             bootstrap.ControlPlane
 	validationServer         bootstrap.ValidationServer
 	proxyDebugServer         bootstrap.ProxyDebugServer
-	callbacks                xdsserver.Callbacks
+
+	kubeClient            istiokube.Client
+	pods                  krt.Collection[krtcollections.LocalityPod]
+	uniqlyConnectedClient krt.Collection[krtcollections.UniqlyConnectedClient]
 }
 
 func NewControlPlane(ctx context.Context, grpcServer *grpc.Server, bindAddr net.Addr, kubeControlPlaneCfg bootstrap.KubernetesControlPlaneConfig,
 	callbacks xdsserver.Callbacks, start bool,
 ) bootstrap.ControlPlane {
 	snapshotCache := xds.NewAdsSnapshotCache(ctx)
-	xdsServer := server.NewServer(ctx, snapshotCache, callbacks)
+	xdsServer := xdsserver.NewServer(ctx, snapshotCache, callbacks)
 	reflection.Register(grpcServer)
 
 	return bootstrap.ControlPlane{
@@ -348,6 +365,18 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	emptyValidationServer := bootstrap.ValidationServer{}
 	emptyProxyDebugServer := bootstrap.ProxyDebugServer{}
 
+	if s.kubeClient == nil {
+		// kube client has to have a global lifetime here.
+		// i.e. not be created and destroyed on each setup (which happens on every Settings change).
+		// the reason being, is that the control plane server also has a global lifetime. the callbacks
+		// that we add to the control plane need a pod client, to get the pod labels of incoming clients.
+		// and hence, this needs a global lifetime too.
+		s.kubeClient = createKubeClient()
+		go s.kubeClient.RunAndWait(context.Background().Done())
+		// create agumented pods
+		s.pods = krtcollections.NewPodsCollection(s.kubeClient)
+	}
+
 	// check if we need to restart the control plane
 	if xdsBindAddr != s.previousXdsServer.addr ||
 		xdsHost != s.previousControlPlane.Kube.XdsHost ||
@@ -385,8 +414,19 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 		if s.extensions != nil {
 			callbacks = s.extensions.XdsCallbacks
 		}
+
+		// initialize UniquelyConnectedClients and save it in syncer
+		var multiCallbacks MutltiCallbacks
+		cb, ucc := krtcollections.NewUniquelyConnectedClients(ctx, s.pods)
+		multiCallbacks = append(multiCallbacks, cb)
+
+		if callbacks != nil {
+			multiCallbacks = append(multiCallbacks, callbacks)
+		}
+		s.uniqlyConnectedClient = ucc
+
 		s.controlPlane = NewControlPlane(ctx, s.makeGrpcServer(ctx), xdsTcpAddress,
-			bootstrap.KubernetesControlPlaneConfig{XdsHost: xdsHost, XdsPort: xdsPort}, callbacks, true)
+			bootstrap.KubernetesControlPlaneConfig{XdsHost: xdsHost, XdsPort: xdsPort}, multiCallbacks, true)
 		s.previousXdsServer.cancel = cancel
 		s.previousXdsServer.addr = xdsBindAddr
 		s.previousControlPlane.Kube.XdsHost = xdsHost
@@ -435,6 +475,8 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	opts.KubeClient = clientset
 	opts.DevMode = settings.GetDevMode()
 	opts.Settings = settings
+	opts.IsitoClient = s.kubeClient
+	opts.UniqlyConnectedClient = s.uniqlyConnectedClient
 
 	opts.Consul.DnsServer = settings.GetConsul().GetDnsAddress()
 	if len(opts.Consul.DnsServer) == 0 {
@@ -928,6 +970,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 			opts.WriteNamespace,
 			inputChannels,
 			mgr,
+			opts.IsitoClient, opts.UniqlyConnectedClient,
 			k8sgwExt,
 			proxyClient,
 			sharedTranslator,
@@ -1134,7 +1177,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 }
 
 func startRestXdsServer(opts bootstrap.Opts) {
-	restClient := server.NewHTTPGateway(
+	restClient := xdsserver.NewHTTPGateway(
 		contextutils.LoggerFrom(opts.WatchOpts.Ctx),
 		opts.ControlPlane.XDSServer,
 		map[string]string{

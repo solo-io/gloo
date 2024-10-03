@@ -2,8 +2,6 @@ package proxy_syncer
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"google.golang.org/protobuf/runtime/protoiface"
 	corev1 "k8s.io/api/core/v1"
@@ -22,6 +20,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
+	networkingclient "istio.io/client-go/pkg/apis/networking/v1"
+	"istio.io/istio/pkg/config/schema/gvr"
 	istiogvr "istio.io/istio/pkg/config/schema/gvr"
 	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/kube/kclient"
@@ -34,6 +34,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
+	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	gwplugins "github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
@@ -47,14 +48,13 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/resource"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	// "github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	// "github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
@@ -83,6 +83,8 @@ type ProxySyncer struct {
 	// the only actually use is to do client.NewResource() to get a gloov1.Secret
 	// we can/should probably break this dependency entirely relatively easily
 	legacySecretClient gloov1.SecretClient
+
+	uniqlyConnectedClient krt.Collection[krtcollections.UniqlyConnectedClient]
 }
 
 type GatewayInputChannels struct {
@@ -120,6 +122,8 @@ func NewProxySyncer(
 	writeNamespace string,
 	inputs *GatewayInputChannels,
 	mgr manager.Manager,
+	client kube.Client,
+	uniqlyConnectedClient krt.Collection[krtcollections.UniqlyConnectedClient],
 	k8sGwExtensions extensions.K8sGatewayExtensions,
 	proxyClient gloov1.ProxyClient,
 	translator translator.Translator,
@@ -129,14 +133,6 @@ func NewProxySyncer(
 	legacySecretClient gloov1.SecretClient,
 	glooReporter reporter.StatusReporter,
 ) *ProxySyncer {
-	restCfg := kube.NewClientConfigForRestConfig(mgr.GetConfig())
-	client, err := kube.NewClient(restCfg, "")
-	if err != nil {
-		// TODO move this init somewhere we can handle the err
-		panic(err)
-	}
-	kube.EnableCrdWatcher(client)
-
 	// legacyClients := map[reflect.Type]*solokubeclient.ResourceClient{}
 	// usc := upstreamClient.BaseClient()
 	// if kusc, ok := usc.(*solokubeclient.ResourceClient); !ok {
@@ -148,13 +144,13 @@ func NewProxySyncer(
 		controllerName:  controllerName,
 		writeNamespace:  writeNamespace,
 		inputs:          inputs,
-		mgr:             mgr,
 		k8sGwExtensions: k8sGwExtensions,
 		proxyReconciler: gloov1.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient()),
 		proxyTranslator: NewProxyTranslator(translator, xdsCache, settings, syncerExtensions, glooReporter),
-		istioClient:     client,
 		// legacyClients:   legacyClients,
-		legacySecretClient: legacySecretClient,
+		legacySecretClient:    legacySecretClient,
+		istioClient:           client,
+		uniqlyConnectedClient: uniqlyConnectedClient,
 	}
 }
 
@@ -358,25 +354,17 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		// TODO: make sure this matches the gateway name/namespace. or whatever we can correlate to envoy xds node id.
 		return []string{snap.proxyKey}
 	})
-	mostXdsSnapshotsIndex = mostXdsSnapshotsIndex
 
-	xdsSnapshots := krt.NewCollection(mostXdsSnapshots, func(kctx krt.HandlerContext, snap xdsSnapWrapper) *xdsSnapWrapper {
-		endpoints := krt.Fetch(kctx, GlooEndpoints)
-		clustersVersion := snap.snap.Clusters.Version
-		// TODO: do this in the endpoint set?
-		var endpointsProto []envoycache.Resource
-		for _, ep := range endpoints {
-			endpointsProto = append(endpointsProto, resource.NewEnvoyResource(prioritize(ep, nil, nil)))
-		}
-		endpointsVersion := EnvoyCacheResourcesSetToFnvHash(endpointsProto)
-		// fetch destrules with index and see if we have dest rules for us. if so modify the proxy cache key
-		// if clusters are updated, provider a new version of the endpoints,
-		// so the clusters are warm
-		snap.snap.Endpoints = envoycache.NewResources(fmt.Sprintf("%v-%v", clustersVersion, endpointsVersion), endpointsProto)
-		return &snap
+	destRuleClient := kclient.NewDelayedInformer[*networkingclient.DestinationRule](s.istioClient, gvr.DestinationRule, kubetypes.StandardInformer, kclient.Filter{})
+	rawDestrules := krt.WrapClient(destRuleClient, krt.WithName("DestinationRules"))
+	destrules := krt.NewCollection(rawDestrules, func(kctx krt.HandlerContext, dr *networkingclient.DestinationRule) *DestinationRuleWrapper {
+		return &DestinationRuleWrapper{dr}
 	})
+	destrulesidx := newDestruleIndex(destrules)
+	uccEndpoints := newIndexedEndpoints(s.uniqlyConnectedClient, GlooEndpoints, destrules, destrulesidx)
+	perclientSnapCollection := snapshotPerClient(s.uniqlyConnectedClient, mostXdsSnapshots, mostXdsSnapshotsIndex, uccEndpoints)
 
-	xdsSnapshots.Register(func(e krt.Event[xdsSnapWrapper]) {
+	perclientSnapCollection.Register(func(e krt.Event[xdsSnapWrapper]) {
 		snap := e.Latest()
 
 		err := s.proxyTranslator.syncXdsAndStatus(ctx, snap.snap, snap.proxyKey, snap.fullReports)
@@ -393,9 +381,9 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	go s.istioClient.RunAndWait(ctx.Done())
 
 	// wait for caches to sync before accepting events and syncing xds
-	if !s.mgr.GetCache().WaitForCacheSync(ctx) {
-		return errors.New("kube gateway sync loop waiting for all caches to sync failed")
-	}
+	//	if !s.mgr.GetCache().WaitForCacheSync(ctx) {
+	//		return errors.New("kube gateway sync loop waiting for all caches to sync failed")
+	//	}
 
 	for {
 		select {
