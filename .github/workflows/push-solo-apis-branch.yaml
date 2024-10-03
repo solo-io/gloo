@@ -111,7 +111,7 @@ jobs:
           
           # switch to the source branch, if it exists then pull the branch and rebase the local changes on top of the latest commit
           echo "switch to the source branch $SOLO_APIS_SOURCE_BRANCH, if it exists then pull the branch and rebase the local changes on top of the latest commit"
-          git checkout -B $SOLO_APIS_SOURCE_BRANCH || (git checkout $SOLO_APIS_SOURCE_BRANCH && git pull --rebase solo-apis $SOLO_APIS_SOURCE_BRANCH)
+          (git checkout $SOLO_APIS_SOURCE_BRANCH && git pull --rebase solo-apis $SOLO_APIS_SOURCE_BRANCH) || git checkout -B $SOLO_APIS_SOURCE_BRANCH
           
           echo "staging local changes"
           git add .
@@ -119,4 +119,5 @@ jobs:
           # commit staged changes (allows empty commits) and push the commit
           echo "committing staged changes"
           git commit -m "Sync Gloo APIs. Destination Branch: $SOLO_APIS_DESTINATION_BRANCH" --allow-empty
+          echo "pushing commit"
           git push solo-apis $SOLO_APIS_SOURCE_BRANCH
