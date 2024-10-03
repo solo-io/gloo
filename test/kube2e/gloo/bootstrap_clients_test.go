@@ -455,7 +455,7 @@ var _ = Describe("Bootstrap Clients", func() {
 
 				Eventually(func(g Gomega) {
 					_, err := resourceClientset.VirtualServiceClient().Write(testVS, skclients.WriteOpts{})
-					g.Expect(err).To(BeNil())
+					g.Expect(err).ToNot(HaveOccurred())
 				}, "120s", "1s").Should(Succeed())
 
 				// Since the kube api server can be down when the VS is written,
@@ -467,7 +467,7 @@ var _ = Describe("Bootstrap Clients", func() {
 				defer func() {
 					Eventually(func(g Gomega) {
 						err := resourceClientset.VirtualServiceClient().Delete(testHelper.InstallNamespace, testVS.Metadata.Name, skclients.DeleteOpts{})
-						g.Expect(err).To(BeNil())
+						g.Expect(err).ToNot(HaveOccurred())
 					}, "30s", "1s").Should(Succeed())
 				}()
 
