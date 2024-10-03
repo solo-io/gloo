@@ -463,7 +463,13 @@ var _ = Describe("Bootstrap Clients", func() {
 				helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 					return resourceClientset.VirtualServiceClient().Read(testHelper.InstallNamespace, testVS.Metadata.Name, skclients.ReadOpts{})
 				}, "60s", "10s")
-				defer resourceClientset.VirtualServiceClient().Delete(testHelper.InstallNamespace, testVS.Metadata.Name, skclients.DeleteOpts{})
+
+				defer func() {
+					Eventually(func(g Gomega) {
+						err := resourceClientset.VirtualServiceClient().Delete(testHelper.InstallNamespace, testVS.Metadata.Name, skclients.DeleteOpts{})
+						g.Expect(err).To(BeNil())
+					}, "30s", "1s").Should(Succeed())
+				}()
 
 				testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 					Protocol:          "http",
