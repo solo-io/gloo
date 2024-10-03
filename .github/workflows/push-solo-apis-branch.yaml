@@ -106,6 +106,6 @@ jobs:
           git config --local user.email $GIT_USER_EMAIL
           git add .
           git remote add --fetch solo-apis git@github.com:solo-io/solo-apis.git
-          git checkout -B $SOLO_APIS_SOURCE_BRANCH || (git checkout $SOLO_APIS_SOURCE_BRANCH && git pull origin/$SOLO_APIS_SOURCE_BRANCH $SOLO_APIS_SOURCE_BRANCH)
+          git checkout -B $SOLO_APIS_SOURCE_BRANCH || (git checkout $SOLO_APIS_SOURCE_BRANCH && git pull solo-apis $SOLO_APIS_SOURCE_BRANCH)
           git commit -m "Sync Gloo APIs. Destination Branch: $SOLO_APIS_DESTINATION_BRANCH" --allow-empty
           git push solo-apis $SOLO_APIS_SOURCE_BRANCH
