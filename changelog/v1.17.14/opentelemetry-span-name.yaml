@@ -1,7 +1,0 @@
-changelog:
-  - type: FIX
-    issueLink: https://github.com/solo-io/gloo/issues/9848
-    resolvesIssue: false
-    description: >-
-      Enable modifying the span name for tracing purposes using InjaTemplates
-      in the transformation filter.
