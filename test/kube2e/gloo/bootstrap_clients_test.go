@@ -432,10 +432,6 @@ var _ = Describe("Bootstrap Clients", func() {
 		var verifyTranslation func()
 
 		BeforeEach(func() {
-
-			// TODO (davidjumani) : Fix in a followup - https://solo-io-corp.slack.com/archives/G01EERAK3KJ/p1727966518844649?thread_ts=1727959118.508609&cid=G01EERAK3KJ
-			Skip("Skipping flakey test.")
-
 			deploymentClient = resourceClientset.KubeClients().AppsV1().Deployments(testHelper.InstallNamespace)
 
 			// verifyTranslation creates a VS with a directActionRoute and verifies it has been accepted
@@ -462,7 +458,7 @@ var _ = Describe("Bootstrap Clients", func() {
 				// specify a long enough interval for it to be accepted when the kube api server comes back up
 				helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 					return resourceClientset.VirtualServiceClient().Read(testHelper.InstallNamespace, testVS.Metadata.Name, skclients.ReadOpts{})
-				}, "120s", "10s")
+				}, "300s", "10s")
 				defer resourceClientset.VirtualServiceClient().Delete(testHelper.InstallNamespace, testVS.Metadata.Name, skclients.DeleteOpts{})
 
 				testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
