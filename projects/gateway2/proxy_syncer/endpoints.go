@@ -2,9 +2,10 @@ package proxy_syncer
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
+	"hash"
 	"hash/fnv"
-	"maps"
 	"sort"
 	"strings"
 
@@ -14,13 +15,13 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 
+	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/go-utils/contextutils"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
-	"istio.io/api/label"
 	"istio.io/api/networking/v1alpha3"
 	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/kube/kclient"
@@ -34,10 +35,6 @@ type CLA struct {
 	*envoy_config_endpoint_v3.ClusterLoadAssignment
 }
 
-func newCla(cla *envoy_config_endpoint_v3.ClusterLoadAssignment) *CLA {
-	return &CLA{ClusterLoadAssignment: cla}
-}
-
 func (c CLA) ResourceName() string {
 	return c.ClusterLoadAssignment.ClusterName
 }
@@ -45,65 +42,19 @@ func (c CLA) Equals(in CLA) bool {
 	return proto.Equal(c.ClusterLoadAssignment, in.ClusterLoadAssignment)
 }
 
-type nodeMetadata struct {
-	name   string
+type EndpointMetadata struct {
 	labels map[string]string
-}
-
-func (c nodeMetadata) ResourceName() string {
-	return c.name
-}
-func (c nodeMetadata) Equals(in nodeMetadata) bool {
-	return c.name == in.name && maps.Equal(c.labels, in.labels)
-}
-
-type augmentedPod struct {
-	krt.Named
-	locality        locality
-	podLabels       map[string]string
-	augmentedLabels map[string]string
-}
-
-func (c augmentedPod) Equals(in augmentedPod) bool {
-	return c.Named == in.Named && c.locality == in.locality && maps.Equal(c.podLabels, in.podLabels) && maps.Equal(c.augmentedLabels, in.augmentedLabels)
-}
-
-func NewNodeCollection(istioClient kube.Client) krt.Collection[nodeMetadata] {
-	nodeClient := kclient.New[*corev1.Node](istioClient)
-	nodes := krt.WrapClient(nodeClient, krt.WithName("Nodess"))
-	return krt.NewCollection(nodes, func(kctx krt.HandlerContext, us *corev1.Node) *nodeMetadata {
-		return &nodeMetadata{
-			name:   us.Name,
-			labels: us.Labels,
-		}
-	})
-}
-
-type endpointMd struct {
-	labels map[string]string
-}
-
-type locality struct {
-	region  string
-	zone    string
-	subzone string
 }
 
 type LBInfo struct {
 	// Augmented proxy labels
 	proxyLabels map[string]string
 	// locality info for proxy pod
-	proxyLocality locality
+	proxyLocality krtcollections.PodLocality
 
 	//	Failover []*LocalityLoadBalancerSetting_Failover
 	failoverPriority []string
 	failover         []*v1alpha3.LocalityLoadBalancerSetting_Failover
-}
-
-type epWithLocalityAndLabels struct {
-	ep             envoy_config_endpoint_v3.LbEndpoint
-	labels         map[string]string
-	localityLabels map[string]string
 }
 
 type priorities struct {
@@ -155,71 +106,23 @@ func priorityLabelOverrides(labels []string) ([]string, map[string]string) {
 	return priorityLabels, overriddenValueByLabel
 }
 
-func augmentPodLabels(nodes krt.Collection[nodeMetadata]) func(kctx krt.HandlerContext, pod *corev1.Pod) *augmentedPod {
-	return func(kctx krt.HandlerContext, pod *corev1.Pod) *augmentedPod {
-		labels := maps.Clone(pod.Labels)
-		nodeName := pod.Spec.NodeName
-		var l locality
-		if nodeName != "" {
-			maybeNode := krt.FetchOne(kctx, nodes, krt.FilterObjectName(types.NamespacedName{
-				Name: nodeName,
-			}))
-			if maybeNode != nil {
-				node := *maybeNode
-				nodeLabels := node.labels
-				region := nodeLabels[corev1.LabelTopologyRegion]
-				zone := nodeLabels[corev1.LabelTopologyZone]
-				subzone := nodeLabels[label.TopologySubzone.Name]
-				l = locality{
-					region:  region,
-					zone:    zone,
-					subzone: subzone,
-				}
-
-				// augment labels
-				labels[corev1.LabelTopologyRegion] = region
-				labels[corev1.LabelTopologyZone] = zone
-				labels[label.TopologySubzone.Name] = subzone
-				//	labels[label.TopologyCluster.Name] = clusterID.String()
-				//	labels[LabelHostname] = k8sNode
-				//	labels[label.TopologyNetwork.Name] = networkID.String()
-			}
-		}
-
-		return &augmentedPod{
-			Named:           krt.NewNamed(pod),
-			podLabels:       pod.Labels,
-			augmentedLabels: labels,
-			locality:        l,
-		}
-	}
-
-}
-
 type EndpointsInputs struct {
 	upstreams      krt.Collection[*upstream]
 	endpoints      krt.Collection[*corev1.Endpoints]
-	nodes          krt.Collection[nodeMetadata]
-	augmentedPods  krt.Collection[augmentedPod]
+	pods           krt.Collection[krtcollections.LocalityPod]
 	enableAutoMtls bool
 	services       krt.Collection[*corev1.Service]
 }
 
-func NewGlooK8sEndpointInputs(settings *v1.Settings, istioClient kube.Client, services krt.Collection[*corev1.Service], finalUpstreams krt.Collection[*upstream]) EndpointsInputs {
-	podClient := kclient.New[*corev1.Pod](istioClient)
-	pods := krt.WrapClient(podClient, krt.WithName("Pods"))
+func NewGlooK8sEndpointInputs(settings *v1.Settings, istioClient kube.Client, pods krt.Collection[krtcollections.LocalityPod], services krt.Collection[*corev1.Service], finalUpstreams krt.Collection[*upstream]) EndpointsInputs {
 	epClient := kclient.New[*corev1.Endpoints](istioClient)
 	kubeEndpoints := krt.WrapClient(epClient, krt.WithName("Endpoints"))
 	enableAutoMtls := settings.GetGloo().GetIstioOptions().GetEnableAutoMtls().GetValue()
 
-	nodes := NewNodeCollection(istioClient)
-
-	augmentedPods := krt.NewCollection(pods, augmentPodLabels(nodes))
 	return EndpointsInputs{
 		upstreams:      finalUpstreams,
 		endpoints:      kubeEndpoints,
-		nodes:          nodes,
-		augmentedPods:  augmentedPods,
+		pods:           pods,
 		enableAutoMtls: enableAutoMtls,
 		services:       services,
 	}
@@ -227,16 +130,26 @@ func NewGlooK8sEndpointInputs(settings *v1.Settings, istioClient kube.Client, se
 
 type endpointWithMd struct {
 	*envoy_config_endpoint_v3.LbEndpoint
-	endpointMd endpointMd
+	endpointMd EndpointMetadata
 }
 type EndpointsForUpstream struct {
-	lbEps       map[locality][]endpointWithMd
+	lbEps       map[krtcollections.PodLocality][]endpointWithMd
 	clusterName string
 	upstreamRef types.NamespacedName
+
+	lbEpsEqualityHash uint64
+}
+
+func (c EndpointsForUpstream) ResourceName() string {
+	return c.upstreamRef.String()
+}
+
+func (c EndpointsForUpstream) Equals(in EndpointsForUpstream) bool {
+	return c.upstreamRef == in.upstreamRef && c.lbEpsEqualityHash == in.lbEpsEqualityHash
 }
 
 func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs) krt.Collection[EndpointsForUpstream] {
-	augmentedPods := inputs.augmentedPods
+	augmentedPods := inputs.pods
 	kubeEndpoints := inputs.endpoints
 	enableAutoMtls := inputs.enableAutoMtls
 
@@ -272,7 +185,7 @@ func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs) krt.Collec
 
 		ret := EndpointsForUpstream{
 			clusterName: getEndpointClusterName(clusterName, us.Upstream),
-			lbEps:       make(map[locality][]endpointWithMd),
+			lbEps:       make(map[krtcollections.PodLocality][]endpointWithMd),
 			upstreamRef: types.NamespacedName{
 				Namespace: us.GetMetadata().Namespace,
 				Name:      us.GetMetadata().Name,
@@ -300,22 +213,38 @@ func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs) krt.Collec
 
 				var podLabels map[string]string
 				var augmentedLabels map[string]string
-				var l locality
+				var l krtcollections.PodLocality
 				if podName != "" {
 					maybePod := krt.FetchOne(kctx, augmentedPods, krt.FilterObjectName(types.NamespacedName{
 						Namespace: podNamespace,
 						Name:      podName,
 					}))
 					if maybePod != nil {
-						l = maybePod.locality
-						podLabels = maybePod.podLabels
-						augmentedLabels = maybePod.augmentedLabels
+						l = maybePod.Locality
+						podLabels = maybePod.PodLabels
+						augmentedLabels = maybePod.AugmentedLabels
 					}
 				}
 				ep := createLbEndpoint(addr.IP, port, podLabels, enableAutoMtls)
+
+				// this is slightly fragile.
+				hasher := fnv.New64()
+				hasher.Write([]byte(addr.IP))
+				hashUint64(hasher, uint64(port))
+				hashUint64(hasher, hashLabels(podLabels))
+				hashUint64(hasher, hashLabels(augmentedLabels))
+				hasher.Write([]byte(l.Region))
+				hasher.Write([]byte(l.Zone))
+				hasher.Write([]byte(l.Subzone))
+				if enableAutoMtls {
+					hasher.Write([]byte{1})
+				}
+				// xor it as we dont care about order - if we have the same endpoints in the same locality
+				// we are good.
+				ret.lbEpsEqualityHash ^= hasher.Sum64()
 				ret.lbEps[l] = append(ret.lbEps[l], endpointWithMd{
 					LbEndpoint: ep,
-					endpointMd: endpointMd{
+					endpointMd: EndpointMetadata{
 						labels: augmentedLabels,
 					},
 				})
@@ -325,17 +254,36 @@ func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs) krt.Collec
 	}, krt.WithName("K8sClusterLoadAssignment"))
 }
 
+func hashUint64(hasher hash.Hash64, value uint64) {
+	var bytes [8]byte
+	binary.NativeEndian.PutUint64(bytes[:], value)
+	hasher.Write(bytes[:])
+}
+
+func hashLabels(labels map[string]string) uint64 {
+	finalHash := uint64(0)
+	for k, v := range labels {
+		fnv := fnv.New64()
+		fnv.Write([]byte(k))
+		fnv.Write([]byte{0})
+		fnv.Write([]byte(v))
+		fnv.Write([]byte{0})
+		finalHash ^= fnv.Sum64()
+	}
+	return finalHash
+}
+
 func prioritize(ep EndpointsForUpstream, lbInfo *LBInfo, priorities *priorities) *CLA {
 	cla := &envoy_config_endpoint_v3.ClusterLoadAssignment{
 		ClusterName: ep.clusterName,
 	}
 	for loc, eps := range ep.lbEps {
 		var l *envoy_config_core_v3.Locality
-		if loc != (locality{}) {
+		if loc != (krtcollections.PodLocality{}) {
 			l = &envoy_config_core_v3.Locality{
-				Region:  loc.region,
-				Zone:    loc.zone,
-				SubZone: loc.subzone,
+				Region:  loc.Region,
+				Zone:    loc.Zone,
+				SubZone: loc.Subzone,
 			}
 		}
 
@@ -350,9 +298,9 @@ func prioritize(ep EndpointsForUpstream, lbInfo *LBInfo, priorities *priorities)
 	if priorities == nil {
 		if lbInfo != nil && lbInfo.failover != nil {
 			proxyLocality := envoy_config_core_v3.Locality{
-				Region:  lbInfo.proxyLocality.region,
-				Zone:    lbInfo.proxyLocality.zone,
-				SubZone: lbInfo.proxyLocality.subzone,
+				Region:  lbInfo.proxyLocality.Region,
+				Zone:    lbInfo.proxyLocality.Zone,
+				SubZone: lbInfo.proxyLocality.Subzone,
 			}
 			applyLocalityFailover(&proxyLocality, cla, lbInfo.failover)
 		}

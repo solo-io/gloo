@@ -129,16 +129,15 @@ func (s *ProxyTranslator) buildXdsSnapshot(
 	return xdsSnapshot, reports, proxyReport
 }
 
-func (s *ProxyTranslator) syncXdsAndStatus(
+func (s *ProxyTranslator) syncXds(
 	ctx context.Context,
 	xdsSnapshot cache.Snapshot,
 	proxyKey string,
 	reports reporter.ResourceReports,
-) error {
+) {
 	// if the snapshot is not consistent, make it so
 	xdsSnapshot.MakeConsistent()
 	s.xdsCache.SetSnapshot(proxyKey, xdsSnapshot)
-	return s.syncStatus(ctx, reports)
 }
 
 // syncEnvoy will translate, sanitize, and set the xds snapshot for each of the proxies in the provided api snapshot.

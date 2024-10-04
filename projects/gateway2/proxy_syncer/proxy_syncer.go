@@ -86,6 +86,7 @@ type ProxySyncer struct {
 	legacySecretClient gloov1.SecretClient
 
 	uniqlyConnectedClient krt.Collection[krtcollections.UniqlyConnectedClient]
+	pods                  krt.Collection[krtcollections.LocalityPod]
 }
 
 type GatewayInputChannels struct {
@@ -125,6 +126,7 @@ func NewProxySyncer(
 	mgr manager.Manager,
 	client kube.Client,
 	uniqlyConnectedClient krt.Collection[krtcollections.UniqlyConnectedClient],
+	pods krt.Collection[krtcollections.LocalityPod],
 	k8sGwExtensions extensions.K8sGatewayExtensions,
 	proxyClient gloov1.ProxyClient,
 	translator translator.Translator,
@@ -317,7 +319,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	})
 	// TODO: get upstream collections from extensions
 	FinalUpstreams := krt.JoinCollection([]krt.Collection[*upstream]{GlooUpstreams, InMemUpstreams})
-	inputs := NewGlooK8sEndpointInputs(s.proxyTranslator.settings, s.istioClient, Services, FinalUpstreams)
+	inputs := NewGlooK8sEndpointInputs(s.proxyTranslator.settings, s.istioClient, s.pods, Services, FinalUpstreams)
 	GlooEndpoints := NewGlooK8sEndpoints(ctx, inputs)
 
 	kubeGateways := setupCollectionDynamic[gwv1.Gateway](
@@ -355,7 +357,21 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		// TODO: make sure this matches the gateway name/namespace. or whatever we can correlate to envoy xds node id.
 		return []string{snap.proxyKey}
 	})
+	mostXdsSnapshots.Register(func(e krt.Event[xdsSnapWrapper]) {
+		snap := e.Latest()
 
+		err := s.proxyTranslator.syncStatus(ctx, snap.fullReports)
+		if err != nil {
+			// fixme
+		}
+
+		// TODO: handle garbage collection on status plugins
+		var proxiesWithReports []translatorutils.ProxyWithReports
+		proxiesWithReports = append(proxiesWithReports, snap.proxyWithReport)
+		applyStatusPlugins(ctx, proxiesWithReports, snap.pluginRegistry)
+	})
+
+	// sync snapshot per client
 	destRuleClient := kclient.NewDelayedInformer[*networkingclient.DestinationRule](s.istioClient, gvr.DestinationRule, kubetypes.StandardInformer, kclient.Filter{})
 	rawDestrules := krt.WrapClient(destRuleClient, krt.WithName("DestinationRules"))
 	destrules := krt.NewCollection(rawDestrules, func(kctx krt.HandlerContext, dr *networkingclient.DestinationRule) *DestinationRuleWrapper {
@@ -367,16 +383,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 
 	perclientSnapCollection.Register(func(e krt.Event[xdsSnapWrapper]) {
 		snap := e.Latest()
-
-		err := s.proxyTranslator.syncXdsAndStatus(ctx, snap.snap, snap.proxyKey, snap.fullReports)
-		if err != nil {
-			// fixme
-		}
-
-		// TODO: handle garbage collection on status plugins
-		var proxiesWithReports []translatorutils.ProxyWithReports
-		proxiesWithReports = append(proxiesWithReports, snap.proxyWithReport)
-		applyStatusPlugins(ctx, proxiesWithReports, snap.pluginRegistry)
+		s.proxyTranslator.syncXds(ctx, snap.snap, snap.proxyKey, snap.fullReports)
 	})
 
 	// wait for caches to sync before accepting events and syncing xds

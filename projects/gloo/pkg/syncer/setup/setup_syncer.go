@@ -365,16 +365,18 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	emptyValidationServer := bootstrap.ValidationServer{}
 	emptyProxyDebugServer := bootstrap.ProxyDebugServer{}
 
-	if s.kubeClient == nil {
-		// kube client has to have a global lifetime here.
-		// i.e. not be created and destroyed on each setup (which happens on every Settings change).
-		// the reason being, is that the control plane server also has a global lifetime. the callbacks
-		// that we add to the control plane need a pod client, to get the pod labels of incoming clients.
-		// and hence, this needs a global lifetime too.
-		s.kubeClient = createKubeClient()
-		go s.kubeClient.RunAndWait(context.Background().Done())
-		// create agumented pods
-		s.pods = krtcollections.NewPodsCollection(s.kubeClient)
+	if opts.GlooGateway.EnableK8sGatewayController {
+		if s.kubeClient == nil {
+			// kube client has to have a global lifetime here.
+			// i.e. not be created and destroyed on each setup (which happens on every Settings change).
+			// the reason being, is that the control plane server also has a global lifetime. the callbacks
+			// that we add to the control plane need a pod client, to get the pod labels of incoming clients.
+			// and hence, this needs a global lifetime too.
+			s.kubeClient = createKubeClient()
+			go s.kubeClient.RunAndWait(context.Background().Done())
+			// create agumented pods
+			s.pods = krtcollections.NewPodsCollection(s.kubeClient)
+		}
 	}
 
 	// check if we need to restart the control plane
@@ -417,13 +419,14 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 
 		// initialize UniquelyConnectedClients and save it in syncer
 		var multiCallbacks MutltiCallbacks
-		cb, ucc := krtcollections.NewUniquelyConnectedClients(ctx, s.pods)
-		multiCallbacks = append(multiCallbacks, cb)
-
+		if s.pods != nil {
+			cb, ucc := krtcollections.NewUniquelyConnectedClients(ctx, s.pods)
+			multiCallbacks = append(multiCallbacks, cb)
+			s.uniqlyConnectedClient = ucc
+		}
 		if callbacks != nil {
 			multiCallbacks = append(multiCallbacks, callbacks)
 		}
-		s.uniqlyConnectedClient = ucc
 
 		s.controlPlane = NewControlPlane(ctx, s.makeGrpcServer(ctx), xdsTcpAddress,
 			bootstrap.KubernetesControlPlaneConfig{XdsHost: xdsHost, XdsPort: xdsPort}, multiCallbacks, true)
@@ -477,6 +480,7 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	opts.Settings = settings
 	opts.IsitoClient = s.kubeClient
 	opts.UniqlyConnectedClient = s.uniqlyConnectedClient
+	opts.Pods = s.pods
 
 	opts.Consul.DnsServer = settings.GetConsul().GetDnsAddress()
 	if len(opts.Consul.DnsServer) == 0 {
@@ -970,7 +974,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 			opts.WriteNamespace,
 			inputChannels,
 			mgr,
-			opts.IsitoClient, opts.UniqlyConnectedClient,
+			opts.IsitoClient, opts.UniqlyConnectedClient, opts.Pods,
 			k8sgwExt,
 			proxyClient,
 			sharedTranslator,

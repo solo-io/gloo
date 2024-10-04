@@ -1,0 +1,2156 @@
+admin:
+  address:
+    socketAddress:
+      address: 127.0.0.1
+      portValue: 19000
+node:
+  cluster: test-cluster
+  id: test-id
+staticResources:
+  clusters:
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: gloo-system-gateway-proxy-443_gloo-system-12633666900866258896
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.12
+                portValue: 8443
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gateway-proxy: live
+                gateway-proxy-id: gateway-proxy
+                gloo: gateway-proxy
+                pod-template-hash: 6c799fdb77
+    metadata: {}
+    name: gloo-system-gateway-proxy-443_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: gloo-system-gloo-9977_gloo-system-18400364354277006628
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.13
+                portValue: 9977
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: gloo
+                pod-template-hash: 5547c4f586
+    metadata: {}
+    name: gloo-system-gloo-9977_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-gloo-9979_gloo-system-960689521996939969
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.13
+                portValue: 9979
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: gloo
+                pod-template-hash: 5547c4f586
+    metadata: {}
+    name: kube-svc:gloo-system-gloo-9979_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-gloo-9988_gloo-system-14688636110337265601
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.13
+                portValue: 9988
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: gloo
+                pod-template-hash: 5547c4f586
+    metadata: {}
+    name: kube-svc:gloo-system-gloo-9988_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-glooe-prometheus-kube-state-metrics-v2-8080_gloo-system-1191837013899278591
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.11
+                portValue: 8080
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app.kubernetes.io/component: metrics
+                app.kubernetes.io/instance: gloo
+                app.kubernetes.io/managed-by: Helm
+                app.kubernetes.io/name: kube-state-metrics
+                app.kubernetes.io/part-of: kube-state-metrics
+                app.kubernetes.io/version: 2.6.0
+                helm.sh/chart: kube-state-metrics-4.22.1
+                pod-template-hash: d59dbfd69
+    metadata: {}
+    name: kube-svc:gloo-system-glooe-prometheus-kube-state-metrics-v2-8080_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: default-mock-api-service-8080_gloo-system-11370542458901230376
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.22
+                portValue: 80
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app: mock-api-service
+                pod-template-hash: 75d955cb66
+    metadata: {}
+    name: default-mock-api-service-8080_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-glooe-grafana-80_gloo-system-4577175242149916493
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.21
+                portValue: 3000
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app.kubernetes.io/instance: gloo
+                app.kubernetes.io/name: glooe-grafana
+                pod-template-hash: 786448f4b5
+    metadata: {}
+    name: kube-svc:gloo-system-glooe-grafana-80_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    healthChecks:
+    - grpcHealthCheck:
+        serviceName: ratelimit
+      healthyThreshold: 3
+      interval: 10s
+      noTrafficInterval: 10s
+      timeout: 5s
+      unhealthyThreshold: 3
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: rate-limit_gloo-system-15891676738363403541
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.7
+                portValue: 18081
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: rate-limit
+                pod-template-hash: 85bc85bf6b
+    metadata: {}
+    name: rate-limit_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: gloo-system-glooe-prometheus-kube-state-metrics-v2-8080_gloo-system-16761212718817982935
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.11
+                portValue: 8080
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app.kubernetes.io/component: metrics
+                app.kubernetes.io/instance: gloo
+                app.kubernetes.io/managed-by: Helm
+                app.kubernetes.io/name: kube-state-metrics
+                app.kubernetes.io/part-of: kube-state-metrics
+                app.kubernetes.io/version: 2.6.0
+                helm.sh/chart: kube-state-metrics-4.22.1
+                pod-template-hash: d59dbfd69
+    metadata: {}
+    name: gloo-system-glooe-prometheus-kube-state-metrics-v2-8080_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-redis-6379_gloo-system-6281824395319352302
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.8
+                portValue: 6379
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: redis
+                pod-template-hash: 6c7c489d8c
+    metadata: {}
+    name: kube-svc:gloo-system-redis-6379_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: gloo-system-gloo-443_gloo-system-640169990719494915
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.13
+                portValue: 8443
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: gloo
+                pod-template-hash: 5547c4f586
+    metadata: {}
+    name: gloo-system-gloo-443_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-glooe-prometheus-server-80_gloo-system-13840268202804808398
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.20
+                portValue: 9090
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app: glooe-prometheus
+                chart: prometheus-15.18.0
+                component: server
+                heritage: Helm
+                pod-template-hash: 74ffb696b9
+                release: gloo
+    metadata: {}
+    name: kube-svc:gloo-system-glooe-prometheus-server-80_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: gloo-system-gateway-proxy-80_gloo-system-17149313641133931587
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.12
+                portValue: 8080
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gateway-proxy: live
+                gateway-proxy-id: gateway-proxy
+                gloo: gateway-proxy
+                pod-template-hash: 6c799fdb77
+    metadata: {}
+    name: gloo-system-gateway-proxy-80_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-gateway-proxy-80_gloo-system-11091410598439961863
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.12
+                portValue: 8080
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gateway-proxy: live
+                gateway-proxy-id: gateway-proxy
+                gloo: gateway-proxy
+                pod-template-hash: 6c799fdb77
+    metadata: {}
+    name: kube-svc:gloo-system-gateway-proxy-80_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-gloo-443_gloo-system-13226135997840796315
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.13
+                portValue: 8443
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: gloo
+                pod-template-hash: 5547c4f586
+    metadata: {}
+    name: kube-svc:gloo-system-gloo-443_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-gloo-9966_gloo-system-10682643878872736620
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.13
+                portValue: 9966
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: gloo
+                pod-template-hash: 5547c4f586
+    metadata: {}
+    name: kube-svc:gloo-system-gloo-9966_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-gloo-fed-console-8090_gloo-system-18055567882328898746
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.19
+                portValue: 8090
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app: gloo-fed
+                gloo-fed: console
+                pod-template-hash: 859767dfd9
+    metadata: {}
+    name: kube-svc:gloo-system-gloo-fed-console-8090_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-rate-limit-18081_gloo-system-13847619827130954081
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.7
+                portValue: 18081
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: rate-limit
+                pod-template-hash: 85bc85bf6b
+    metadata: {}
+    name: kube-svc:gloo-system-rate-limit-18081_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: default-kubernetes-443_gloo-system-11437888910174345105
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.89.0.6
+                portValue: 6443
+    metadata: {}
+    name: default-kubernetes-443_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-gloo-9977_gloo-system-1352330964197455273
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.13
+                portValue: 9977
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: gloo
+                pod-template-hash: 5547c4f586
+    metadata: {}
+    name: kube-svc:gloo-system-gloo-9977_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-system-kube-dns-9153_gloo-system-13894643318941635999
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.2
+                portValue: 9153
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                k8s-app: kube-dns
+                pod-template-hash: 76f75df574
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.4
+                portValue: 9153
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                k8s-app: kube-dns
+                pod-template-hash: 76f75df574
+    metadata: {}
+    name: kube-system-kube-dns-9153_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: gloo-system-redis-6379_gloo-system-392825895930248998
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.8
+                portValue: 6379
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: redis
+                pod-template-hash: 6c7c489d8c
+    metadata: {}
+    name: gloo-system-redis-6379_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: gloo-system-gloo-fed-console-8081_gloo-system-9518355167982443591
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.19
+                portValue: 8081
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app: gloo-fed
+                gloo-fed: console
+                pod-template-hash: 859767dfd9
+    metadata: {}
+    name: gloo-system-gloo-fed-console-8081_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: gloo-system-gloo-9988_gloo-system-16437466573137352437
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.13
+                portValue: 9988
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: gloo
+                pod-template-hash: 5547c4f586
+    metadata: {}
+    name: gloo-system-gloo-9988_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-svc:default-mock-api-service-8080_default-9855655742974070128
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.22
+                portValue: 80
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app: mock-api-service
+                pod-template-hash: 75d955cb66
+    metadata: {}
+    name: kube-svc:default-mock-api-service-8080_default
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: gloo-system-gloo-fed-console-10101_gloo-system-2488238350135949079
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.19
+                portValue: 10101
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app: gloo-fed
+                gloo-fed: console
+                pod-template-hash: 859767dfd9
+    metadata: {}
+    name: gloo-system-gloo-fed-console-10101_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-system-kube-dns-53_gloo-system-7498350516078177828
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.2
+                portValue: 53
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                k8s-app: kube-dns
+                pod-template-hash: 76f75df574
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.4
+                portValue: 53
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                k8s-app: kube-dns
+                pod-template-hash: 76f75df574
+    metadata: {}
+    name: kube-system-kube-dns-53_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-svc:default-kubernetes-443_default-8057429479812104425
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.89.0.6
+                portValue: 6443
+    metadata: {}
+    name: kube-svc:default-kubernetes-443_default
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: gloo-system-gloo-9966_gloo-system-10786902394273570128
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.13
+                portValue: 9966
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: gloo
+                pod-template-hash: 5547c4f586
+    metadata: {}
+    name: gloo-system-gloo-9966_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: gloo-system-gloo-9976_gloo-system-8570986446789373687
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.13
+                portValue: 9976
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: gloo
+                pod-template-hash: 5547c4f586
+    metadata: {}
+    name: gloo-system-gloo-9976_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: gloo-system-extauth-8083_gloo-system-11742877208164041648
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.10
+                portValue: 8083
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: extauth
+                pod-template-hash: 66b9d7987b
+    metadata: {}
+    name: gloo-system-extauth-8083_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-gloo-fed-console-8081_gloo-system-981781492247337455
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.19
+                portValue: 8081
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app: gloo-fed
+                gloo-fed: console
+                pod-template-hash: 859767dfd9
+    metadata: {}
+    name: kube-svc:gloo-system-gloo-fed-console-8081_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-svc:kube-system-kube-dns-53_kube-system-3037964598187463032
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.2
+                portValue: 53
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                k8s-app: kube-dns
+                pod-template-hash: 76f75df574
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.4
+                portValue: 53
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                k8s-app: kube-dns
+                pod-template-hash: 76f75df574
+    metadata: {}
+    name: kube-svc:kube-system-kube-dns-53_kube-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-svc:kube-system-kube-dns-9153_kube-system-11051484848926798139
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.2
+                portValue: 9153
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                k8s-app: kube-dns
+                pod-template-hash: 76f75df574
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.4
+                portValue: 9153
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                k8s-app: kube-dns
+                pod-template-hash: 76f75df574
+    metadata: {}
+    name: kube-svc:kube-system-kube-dns-9153_kube-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: gloo-system-glooe-prometheus-server-80_gloo-system-15140810116365619646
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.20
+                portValue: 9090
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app: glooe-prometheus
+                chart: prometheus-15.18.0
+                component: server
+                heritage: Helm
+                pod-template-hash: 74ffb696b9
+                release: gloo
+    metadata: {}
+    name: gloo-system-glooe-prometheus-server-80_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: gloo-system-glooe-grafana-80_gloo-system-9291987501918515773
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.21
+                portValue: 3000
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app.kubernetes.io/instance: gloo
+                app.kubernetes.io/name: glooe-grafana
+                pod-template-hash: 786448f4b5
+    metadata: {}
+    name: gloo-system-glooe-grafana-80_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-gloo-9976_gloo-system-15393712441060542291
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.13
+                portValue: 9976
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: gloo
+                pod-template-hash: 5547c4f586
+    metadata: {}
+    name: kube-svc:gloo-system-gloo-9976_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-gloo-fed-console-10101_gloo-system-18168484821617209295
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.19
+                portValue: 10101
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app: gloo-fed
+                gloo-fed: console
+                pod-template-hash: 859767dfd9
+    metadata: {}
+    name: kube-svc:gloo-system-gloo-fed-console-10101_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: gloo-system-gloo-fed-console-8090_gloo-system-9237178095337282774
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.19
+                portValue: 8090
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app: gloo-fed
+                gloo-fed: console
+                pod-template-hash: 859767dfd9
+    metadata: {}
+    name: gloo-system-gloo-fed-console-8090_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: gloo-system-gloo-9979_gloo-system-4075416210434687645
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.13
+                portValue: 9979
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: gloo
+                pod-template-hash: 5547c4f586
+    metadata: {}
+    name: gloo-system-gloo-9979_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: gloo-system-rate-limit-18081_gloo-system-7490108231630054324
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.7
+                portValue: 18081
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: rate-limit
+                pod-template-hash: 85bc85bf6b
+    metadata: {}
+    name: gloo-system-rate-limit-18081_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-extauth-8083_gloo-system-4394368862500313125
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.10
+                portValue: 8083
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: extauth
+                pod-template-hash: 66b9d7987b
+    metadata: {}
+    name: kube-svc:gloo-system-extauth-8083_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: kube-svc:gloo-system-gateway-proxy-443_gloo-system-14885107584190890748
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.12
+                portValue: 8443
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gateway-proxy: live
+                gateway-proxy-id: gateway-proxy
+                gloo: gateway-proxy
+                pod-template-hash: 6c799fdb77
+    metadata: {}
+    name: kube-svc:gloo-system-gateway-proxy-443_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: mocks-mock-api-service_gloo-system-5977046174982966621
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.22
+                portValue: 80
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                app: mock-api-service
+                pod-template-hash: 75d955cb66
+    metadata: {}
+    name: mocks-mock-api-service_gloo-system
+    type: STRICT_DNS
+  - connectTimeout: 5s
+    healthChecks:
+    - grpcHealthCheck:
+        serviceName: ext-auth
+      healthyThreshold: 3
+      interval: 10s
+      noTrafficInterval: 10s
+      timeout: 5s
+      unhealthyThreshold: 3
+    http2ProtocolOptions: {}
+    loadAssignment:
+      clusterName: extauth_gloo-system-16534186981048726037
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 10.244.0.10
+                portValue: 8083
+          metadata:
+            filterMetadata:
+              envoy.lb:
+                gloo: extauth
+                pod-template-hash: 66b9d7987b
+    metadata: {}
+    name: extauth_gloo-system
+    type: STRICT_DNS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicitHttpConfig:
+          http2ProtocolOptions: {}
+  - loadAssignment:
+      clusterName: graphql.dummy.cluster
+    name: graphql.dummy.cluster
+    type: STATIC
+  listeners:
+  - address:
+      socketAddress:
+        address: '::'
+        ipv4Compat: true
+        portValue: 8080
+    filterChains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typedConfig:
+          '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          httpFilters:
+          - name: envoy.filters.http.fault
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.fault.v3.HTTPFault
+          - name: envoy.filters.http.cors
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+          - name: io.solo.filters.http.transformation_ee
+            typedConfig:
+              '@type': type.googleapis.com/envoy.config.filter.http.transformation_ee.v2.FilterTransformations
+          - name: io.solo.filters.http.modsecurity
+            typedConfig:
+              '@type': type.googleapis.com/envoy.config.filter.http.modsecurity.v2.ModSecurity
+              disabled: true
+          - name: envoy.filters.http.local_ratelimit
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+              stage: 3
+              statPrefix: http_local_ratelimit
+          - name: envoy.filters.http.ratelimit
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
+              domain: crd
+              rateLimitService:
+                grpcService:
+                  envoyGrpc:
+                    clusterName: rate-limit_gloo-system
+                transportApiVersion: V3
+              requestType: both
+              stage: 4
+              timeout: 0.100s
+          - name: envoy.filters.http.ratelimit
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
+              domain: custom
+              rateLimitService:
+                grpcService:
+                  envoyGrpc:
+                    clusterName: rate-limit_gloo-system
+                transportApiVersion: V3
+              requestType: both
+              stage: 3
+              timeout: 0.100s
+          - name: io.solo.filters.http.sanitize
+            typedConfig:
+              '@type': type.googleapis.com/envoy.config.filter.http.sanitize.v2.Sanitize
+              headersToRemove:
+              - x-user-id
+          - name: envoy.filters.http.ext_authz
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+              grpcService:
+                envoyGrpc:
+                  clusterName: extauth_gloo-system
+                timeout: 0.200s
+              metadataContextNamespaces:
+              - envoy.filters.http.jwt_authn
+              transportApiVersion: V3
+          - name: io.solo.filters.http.solo_jwt_authn_staged
+            typedConfig:
+              '@type': type.googleapis.com/envoy.config.filter.http.solo_jwt_authn.v2.JwtWithStage
+              jwtAuthn:
+                filterStateRules:
+                  name: stage0-filterState
+          - name: envoy.filters.http.rbac
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBAC
+          - name: envoy.filters.http.grpc_web
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
+          - name: io.solo.transformation
+            typedConfig:
+              '@type': type.googleapis.com/envoy.api.v2.filter.http.FilterTransformations
+          - name: envoy.filters.http.ratelimit
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
+              domain: crd
+              rateLimitService:
+                grpcService:
+                  envoyGrpc:
+                    clusterName: rate-limit_gloo-system
+                transportApiVersion: V3
+              requestType: both
+              stage: 2
+              timeout: 0.100s
+          - name: envoy.filters.http.ratelimit
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
+              domain: custom
+              rateLimitService:
+                grpcService:
+                  envoyGrpc:
+                    clusterName: rate-limit_gloo-system
+                transportApiVersion: V3
+              requestType: both
+              stage: 1
+              timeout: 0.100s
+          - name: envoy.filters.http.ratelimit
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
+              domain: ingress
+              rateLimitService:
+                grpcService:
+                  envoyGrpc:
+                    clusterName: rate-limit_gloo-system
+                transportApiVersion: V3
+              requestType: both
+              timeout: 0.100s
+          - name: io.solo.filters.http.graphql
+            typedConfig:
+              '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.GraphQLConfig
+          - name: envoy.filters.http.csrf
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.csrf.v3.CsrfPolicy
+              filterEnabled:
+                defaultValue: {}
+          - name: envoy.filters.http.router
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+          normalizePath: true
+          routeConfig:
+            name: listener-::-8080-routes
+            virtualHosts:
+            - domains:
+              - '*'
+              name: gloo-system_default
+              routes:
+              - match:
+                  prefix: /graphql
+                name: gloo-system_default-route-0-matcher-0
+                route:
+                  cluster: graphql.dummy.cluster
+                typedPerFilterConfig:
+                  io.solo.filters.http.graphql:
+                    '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.GraphQLRouteConfig
+                    executableSchema:
+                      executor:
+                        local:
+                          enableIntrospection: true
+                          resolutions:
+                          - matcher:
+                              fieldMatcher:
+                                field: findOneShareholder
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.rest
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.RESTResolver
+                                requestTransform:
+                                  headers:
+                                    :method:
+                                      providerTemplate: GET
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: GET
+                                    :path:
+                                      providerTemplate: /v1/shareholders/{argsid}
+                                      providers:
+                                        argsid:
+                                          graphqlArg:
+                                            argName: id
+                                serverUri:
+                                  cluster: mocks-mock-api-service_gloo-system
+                                  timeout: 1s
+                                  uri: ignored
+                            statPrefix: mocks-mock-api-service_gloo-system|Query|findOneShareholder.
+                          - matcher:
+                              fieldMatcher:
+                                field: findAllDirectors
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.rest
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.RESTResolver
+                                requestTransform:
+                                  headers:
+                                    :method:
+                                      providerTemplate: GET
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: GET
+                                    :path:
+                                      providerTemplate: /v1/directors
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: /v1/directors
+                                  queryParams:
+                                    page[number]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                    page[size]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                serverUri:
+                                  cluster: mocks-mock-api-service_gloo-system
+                                  timeout: 1s
+                                  uri: ignored
+                            statPrefix: mocks-mock-api-service_gloo-system|Query|findAllDirectors.
+                          - matcher:
+                              fieldMatcher:
+                                field: getAllEntities
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.rest
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.RESTResolver
+                                requestTransform:
+                                  headers:
+                                    :method:
+                                      providerTemplate: GET
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: GET
+                                    :path:
+                                      providerTemplate: /v1/entities
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: /v1/entities
+                                  queryParams:
+                                    filter[countryISOCode]:
+                                      providerTemplate: '{argsfilterName}'
+                                      providers:
+                                        argsfilterName:
+                                          graphqlArg:
+                                            argName: filterName
+                                    filter[cusip]:
+                                      providerTemplate: '{argsfilterName}'
+                                      providers:
+                                        argsfilterName:
+                                          graphqlArg:
+                                            argName: filterName
+                                    filter[dowJonesTicker]:
+                                      providerTemplate: '{argsfilterName}'
+                                      providers:
+                                        argsfilterName:
+                                          graphqlArg:
+                                            argName: filterName
+                                    filter[fitchRatedActive]:
+                                      providerTemplate: '{argsfilterName}'
+                                      providers:
+                                        argsfilterName:
+                                          graphqlArg:
+                                            argName: filterName
+                                    filter[id]:
+                                      providerTemplate: '{argsfilterName}'
+                                      providers:
+                                        argsfilterName:
+                                          graphqlArg:
+                                            argName: filterName
+                                    filter[lei]:
+                                      providerTemplate: '{argsfilterName}'
+                                      providers:
+                                        argsfilterName:
+                                          graphqlArg:
+                                            argName: filterName
+                                    filter[name]:
+                                      providerTemplate: '{argsfilterName}'
+                                      providers:
+                                        argsfilterName:
+                                          graphqlArg:
+                                            argName: filterName
+                                    filter[swiftCode]:
+                                      providerTemplate: '{argsfilterName}'
+                                      providers:
+                                        argsfilterName:
+                                          graphqlArg:
+                                            argName: filterName
+                                    page[number]:
+                                      providerTemplate: '{argsfilterName}'
+                                      providers:
+                                        argsfilterName:
+                                          graphqlArg:
+                                            argName: filterName
+                                    page[size]:
+                                      providerTemplate: '{argsfilterName}'
+                                      providers:
+                                        argsfilterName:
+                                          graphqlArg:
+                                            argName: filterName
+                                serverUri:
+                                  cluster: mocks-mock-api-service_gloo-system
+                                  timeout: 1s
+                                  uri: ignored
+                            statPrefix: mocks-mock-api-service_gloo-system|Query|getAllEntities.
+                          - matcher:
+                              fieldMatcher:
+                                field: findOneOfficer
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.rest
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.RESTResolver
+                                requestTransform:
+                                  headers:
+                                    :method:
+                                      providerTemplate: GET
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: GET
+                                    :path:
+                                      providerTemplate: /v1/officers/{argsid}
+                                      providers:
+                                        argsid:
+                                          graphqlArg:
+                                            argName: id
+                                serverUri:
+                                  cluster: mocks-mock-api-service_gloo-system
+                                  timeout: 1s
+                                  uri: ignored
+                            statPrefix: mocks-mock-api-service_gloo-system|Query|findOneOfficer.
+                          - matcher:
+                              fieldMatcher:
+                                field: findOneDirector
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.rest
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.RESTResolver
+                                requestTransform:
+                                  headers:
+                                    :method:
+                                      providerTemplate: GET
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: GET
+                                    :path:
+                                      providerTemplate: /v1/directors/{argsid}
+                                      providers:
+                                        argsid:
+                                          graphqlArg:
+                                            argName: id
+                                serverUri:
+                                  cluster: mocks-mock-api-service_gloo-system
+                                  timeout: 1s
+                                  uri: ignored
+                            statPrefix: mocks-mock-api-service_gloo-system|Query|findOneDirector.
+                          - matcher:
+                              fieldMatcher:
+                                field: getEntityToUltimateParent
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.rest
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.RESTResolver
+                                requestTransform:
+                                  headers:
+                                    :method:
+                                      providerTemplate: GET
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: GET
+                                    :path:
+                                      providerTemplate: /v1/entities/{argsid}/ultimateParent
+                                      providers:
+                                        argsid:
+                                          graphqlArg:
+                                            argName: id
+                                serverUri:
+                                  cluster: mocks-mock-api-service_gloo-system
+                                  timeout: 1s
+                                  uri: ignored
+                            statPrefix: mocks-mock-api-service_gloo-system|Query|getEntityToUltimateParent.
+                          - matcher:
+                              fieldMatcher:
+                                field: findOneEntityRanking
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.rest
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.RESTResolver
+                                requestTransform:
+                                  headers:
+                                    :method:
+                                      providerTemplate: GET
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: GET
+                                    :path:
+                                      providerTemplate: /v1/entityRankings/{argsid}
+                                      providers:
+                                        argsid:
+                                          graphqlArg:
+                                            argName: id
+                                serverUri:
+                                  cluster: mocks-mock-api-service_gloo-system
+                                  timeout: 1s
+                                  uri: ignored
+                            statPrefix: mocks-mock-api-service_gloo-system|Query|findOneEntityRanking.
+                          - matcher:
+                              fieldMatcher:
+                                field: findAllShareholders
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.rest
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.RESTResolver
+                                requestTransform:
+                                  headers:
+                                    :method:
+                                      providerTemplate: GET
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: GET
+                                    :path:
+                                      providerTemplate: /v1/shareholders
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: /v1/shareholders
+                                  queryParams:
+                                    include[shareholders]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                    page[number]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                    page[size]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                serverUri:
+                                  cluster: mocks-mock-api-service_gloo-system
+                                  timeout: 1s
+                                  uri: ignored
+                            statPrefix: mocks-mock-api-service_gloo-system|Query|findAllShareholders.
+                          - matcher:
+                              fieldMatcher:
+                                field: getEntityById
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.rest
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.RESTResolver
+                                requestTransform:
+                                  headers:
+                                    :method:
+                                      providerTemplate: GET
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: GET
+                                    :path:
+                                      providerTemplate: /v1/entities/{argsid}
+                                      providers:
+                                        argsid:
+                                          graphqlArg:
+                                            argName: id
+                                serverUri:
+                                  cluster: mocks-mock-api-service_gloo-system
+                                  timeout: 1s
+                                  uri: ignored
+                            statPrefix: mocks-mock-api-service_gloo-system|Query|getEntityById.
+                          - matcher:
+                              fieldMatcher:
+                                field: findAllOfficers
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.rest
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.RESTResolver
+                                requestTransform:
+                                  headers:
+                                    :method:
+                                      providerTemplate: GET
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: GET
+                                    :path:
+                                      providerTemplate: /v1/officers
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: /v1/officers
+                                  queryParams:
+                                    page[number]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                    page[size]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                serverUri:
+                                  cluster: mocks-mock-api-service_gloo-system
+                                  timeout: 1s
+                                  uri: ignored
+                            statPrefix: mocks-mock-api-service_gloo-system|Query|findAllOfficers.
+                          - matcher:
+                              fieldMatcher:
+                                field: findOneCompany
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.rest
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.RESTResolver
+                                requestTransform:
+                                  headers:
+                                    :method:
+                                      providerTemplate: GET
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: GET
+                                    :path:
+                                      providerTemplate: /v1/companies/{argscompanyId}
+                                      providers:
+                                        argscompanyId:
+                                          graphqlArg:
+                                            argName: companyId
+                                serverUri:
+                                  cluster: mocks-mock-api-service_gloo-system
+                                  timeout: 1s
+                                  uri: ignored
+                            statPrefix: mocks-mock-api-service_gloo-system|Query|findOneCompany.
+                          - matcher:
+                              fieldMatcher:
+                                field: findAllEntityRankings
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.rest
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.RESTResolver
+                                requestTransform:
+                                  headers:
+                                    :method:
+                                      providerTemplate: GET
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: GET
+                                    :path:
+                                      providerTemplate: /v1/entityRankings
+                                      providers:
+                                        ARBITRARY_PROVIDER_NAME:
+                                          typedProvider:
+                                            value: /v1/entityRankings
+                                  queryParams:
+                                    filter[countryISOCode3]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                    filter[fitchEntityId]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                    filter[rankType]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                    filter[rankYear]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                    page[number]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                    page[size]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                    sort[countryRank]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                    sort[globalRank]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                    sort[rankYear]:
+                                      providerTemplate: '{argspageNumber}'
+                                      providers:
+                                        argspageNumber:
+                                          graphqlArg:
+                                            argName: pageNumber
+                                serverUri:
+                                  cluster: mocks-mock-api-service_gloo-system
+                                  timeout: 1s
+                                  uri: ignored
+                            statPrefix: mocks-mock-api-service_gloo-system|Query|findAllEntityRankings.
+                      schemaDefinition:
+                        inlineString: |-
+                          """Marks an element of a GraphQL schema as no longer supported."""
+                          directive @deprecated(
+
+                            """Explains why this element was deprecated, usually also including a suggestion for how to access supported similar data. Formattedin [Markdown](https://daringfireball.net/projects/markdown/)."""
+                            reason: String = "No longer supported"
+                          ) on FIELD_DEFINITION | ENUM_VALUE
+
+                          enum SortCountryRank {
+                            ASC
+                            DESC
+                          }
+
+                          type DisclosureEDA {
+                            regulatoryAgency: String
+                            status: String
+                            endorsementList: String
+                          }
+
+                          enum SortGlobalRank {
+                            ASC
+                            DESC
+                          }
+
+                          type Directors {
+                            data: Data
+                            links: Links2
+                          }
+
+                          type IncludedListItem {
+                            type: String
+                            attributes: Attributes
+                            id: String
+                            links: Links
+                            relationships: Relationships
+                          }
+
+                          type FitchIssuerRatings {
+                            links: Links2
+                            data: Data
+                          }
+
+                          type Relationships2 {
+                            statements: Statements
+                            fitchIssuerRatings: FitchIssuerRatings
+                            nicknames: Nicknames
+                            entityRankings: EntityRankings
+                            shareholders: Shareholders
+                            financialImpliedRatings: FinancialImpliedRatings
+                            regions: Regions2
+                            directors: Directors
+                            immediateParent: ImmediateParent2
+                            issues: Issues
+                            officers: Officers
+                            moodyIssuerRatings: MoodyIssuerRatings
+                            ultimateParent: UltimateParent2
+                            company: Company2
+                            standardAndPoorIssuerRatings: StandardAndPoorIssuerRatings
+                            issuers: Issuers
+                          }
+
+                          type Company2 {
+                            data: Data
+                            links: Links2
+                          }
+
+                          type EntityEDA {
+                            included: [IncludedListItem]
+                            data: Data2
+                          }
+
+                          type Identifiers {
+                            cusip: [String]
+                            dowJonesTicker: [String]
+                            lei: [String]
+                            swiftCode: [String]
+                          }
+
+                          type Descendants {
+                            data: Data
+                            links: Links2
+                          }
+
+                          type StandardAndPoorIssuerRatings {
+                            links: Links2
+                            data: Data
+                          }
+
+                          type Entity2 {
+                            association: JSON
+                            id: String
+                          }
+
+                          type Statement {
+                            association: JSON
+                            id: String
+                          }
+
+                          type EntityRankings {
+                            links: Links2
+                            data: Data
+                          }
+
+                          type UltimateParent2 {
+                            data: Data
+                            links: Links2
+                          }
+
+                          type Issuers {
+                            data: Data
+                            links: Links2
+                          }
+
+                          type Data {
+                            type: String
+                            id: String
+                          }
+
+                          type Nicknames {
+                            data: Data
+                            links: Links2
+                          }
+
+                          enum SortRankYear {
+                            ASC
+                            DESC
+                          }
+
+                          type AnalystEDA {
+                            id: Int
+                            name: String
+                            role: String
+                            description: String
+                            email: String
+                            groupCode: Int
+                          }
+
+                          type Issues {
+                            links: Links2
+                            data: Data
+                          }
+
+                          type Links2 {
+                            related: String
+                            self: String
+                          }
+
+                          type Attributes {
+                            name: String
+                          }
+
+                          """The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)."""
+                          scalar JSON
+
+                          type EntityToUltimateParentResponse {
+                            included: [IncludedListItem]
+                            data: Data2
+                          }
+
+                          type ShareholderEDA {
+                            ownership: [BaseRelationshipEDA]
+                            ownershipPercentage: Float
+                            ownershipType: String
+                            shareholderEntity: ShareholderEntity
+                            shareholderType: String
+                            country: String
+                            id: String
+                            name: String
+                          }
+
+                          type Query {
+
+                            """Equivalent to OpenApiSpec 'Entity Data Service' GET /v1/shareholders/{id}"""
+                            findOneShareholder(id: String!): ShareholderEDA
+
+                            """Equivalent to OpenApiSpec 'Entity Data Service' GET /v1/directors"""
+                            findAllDirectors(pageSize: Int, pageNumber: Int): [DirectorEDA]
+
+                            """
+                            Retrieve reference data for a full or filtered list of Fitch entities including names, identifiers, market sectors, Fitch Rating analyst and regions plus links to additional data sets.
+
+                            Equivalent to OpenApiSpec 'Entity Data Service' GET /v1/entities
+                            """
+                            getAllEntities(
+
+                              """Fitch entity ID. single/comma-separated e.g. 108533"""
+                              filterId: [Float]
+
+                              """Single/comma-separated CUSIP6 e.g. 060505"""
+                              filterCusip: [String]
+
+                              """Single/comma-separated e.g. MLCOUS33"""
+                              filterSwiftCode: [String]
+                              pageNumber: Int
+
+                              """Format: text - at least 3 characters, single/comma-separated."""
+                              filterName: [String]
+
+                              """Example: US"""
+                              filterCountryISOCode: [String]
+
+                              """
+                              Fitch Rated Active flag.
+
+                              Format: boolean, single.
+
+                              Example: true
+                              """
+                              filterFitchRatedActive: Boolean
+
+                              """Single/comma-separated e.g. 213800LBQA1Y9L22JB70"""
+                              filterLei: [String]
+
+                              """Single/comma-separated e.g GDLA,GDLA.X"""
+                              filterDowJonesTicker: [String]
+                              pageSize: Int
+                            ): EntitiesResponse
+
+                            """Equivalent to OpenApiSpec 'Entity Data Service' GET /v1/officers/{id}"""
+                            findOneOfficer(id: String!): OfficerEDA
+
+                            """Equivalent to OpenApiSpec 'Entity Data Service' GET /v1/directors/{id}"""
+                            findOneDirector(id: String!): DirectorEDA
+
+                            """
+                            Retrieve reference data for the ultimate parent of a specific entity including name, identifiers, market sector, Fitch Ratings analyst and region plus links to additional data sets.
+
+                            Equivalent to OpenApiSpec 'Entity Data Service' GET /v1/entities/{id}/ultimateParent
+                            """
+                            getEntityToUltimateParent(
+
+                              """e.g. 108533"""
+                              id: String!
+                            ): EntityToUltimateParentResponse
+
+                            """Equivalent to OpenApiSpec 'Entity Data Service' GET /v1/entityRankings/{id}"""
+                            findOneEntityRanking(id: String!): EntityRankingEDA
+
+                            """Equivalent to OpenApiSpec 'Entity Data Service' GET /v1/shareholders"""
+                            findAllShareholders(pageNumber: Int, pageSize: Int, includeShareholders: JSON): [ShareholderEDA]
+
+                            """
+                            Retrieve reference data for a specific entity including name, identifiers, market sector, Fitch Ratings analyst and region plus links to additional data sets.
+
+                            Equivalent to OpenApiSpec 'Entity Data Service' GET /v1/entities/{id}
+                            """
+                            getEntityById(
+
+                              """e.g. 108533"""
+                              id: String!
+                            ): EntityEDA
+
+                            """Equivalent to OpenApiSpec 'Entity Data Service' GET /v1/officers"""
+                            findAllOfficers(pageSize: Int, pageNumber: Int): [OfficerEDA]
+
+                            """Equivalent to OpenApiSpec 'Entity Data Service' GET /v1/companies/{companyId}"""
+                            findOneCompany(companyId: String!): CompanyEDA
+
+                            """Equivalent to OpenApiSpec 'Entity Data Service' GET /v1/entityRankings"""
+                            findAllEntityRankings(
+                              sortCountryRank: SortCountryRank
+                              filterFitchEntityId: Float
+                              sortGlobalRank: SortGlobalRank
+                              filterRankType: FilterRankType
+
+                              """ISO code, 3 letters case-insensitive"""
+                              filterCountryISOCode3: String
+
+                              """4 digit number"""
+                              filterRankYear: [Float]
+                              sortRankYear: SortRankYear
+                              pageNumber: Int
+                              pageSize: Int
+                            ): [EntityRankingEDA]
+                          }
+
+                          type Attributes2 {
+                            directors: [BaseRelationshipEDA]
+                            address1: String
+                            solicitation: Solicitation
+                            transactionAgentId: String
+                            financialImpliedRatings: [BaseRelationshipEDA]
+                            disclosure: String
+                            city: String
+                            disclosures: [DisclosureEDA]
+                            nicknames: [BaseRelationshipEDA]
+                            address2: String
+                            entityRankings: [BaseRelationshipEDA]
+                            stateCode: String
+                            region: String
+                            identifiers: Identifiers
+                            shareholders: [BaseRelationshipEDA]
+                            immediateParent: ImmediateParent
+                            company: Company
+                            issuers: [BaseRelationshipEDA]
+                            statements: [BaseRelationshipEDA]
+                            marketSectors: [MarketSectorEDA]
+                            state: String
+                            officers: [BaseRelationshipEDA]
+                            zipCode: String
+                            fitchRatedActive: Boolean
+                            name: String
+                            countryISOCode: String
+                            analysts: [AnalystEDA]
+                            issues: [BaseRelationshipEDA]
+                            regions: Regions
+                            id: String
+                            fitchConnectUrl: String
+                            moodyIssuerRatings: [BaseRelationshipEDA]
+                            ultimateParent: UltimateParent
+                            fitchIssuerRatings: [BaseRelationshipEDA]
+                            standardAndPoorIssuerRatings: [BaseRelationshipEDA]
+                            countryName: String
+                            aliases: [String]
+                            address3: String
+                            fitchGroupId: Int
+                          }
+
+                          type Data2 {
+                            type: String
+                            attributes: Attributes2
+                            id: String
+                            links: Links
+                            relationships: Relationships2
+                          }
+
+                          type UltimateParent {
+                            association: JSON
+                            id: String
+                          }
+
+                          type Solicitation {
+                            solicitParticipationFlag: String
+                            solicitTypeDescription: String
+                            solicitFlag: String
+                          }
+
+                          type MarketSectorEDA {
+                            description: String
+                            id: String
+                            primary: Boolean
+                          }
+
+                          type ImmediateParent2 {
+                            data: Data
+                            links: Links2
+                          }
+
+                          type Officers {
+                            links: Links2
+                            data: Data
+                          }
+
+                          type ImmediateParent {
+                            id: String
+                            association: JSON
+                          }
+
+                          type ShareholderEntity {
+                            id: String
+                            association: JSON
+                          }
+
+                          type Statements {
+                            data: Data
+                            links: Links2
+                          }
+
+                          type EntitiesResponse {
+                            meta: Meta
+                            data: [Data3ListItem]
+                            included: [IncludedListItem]
+                            links: Links3
+                          }
+
+                          enum FilterRankType {
+                            OPERATINGPROFITRANKS
+                            TOTALASSETRANKS
+                            TOTALWEIGHTEDRISKSRANKS
+                            TIER1REGULATORYCAPITALRANKS
+                          }
+
+                          type Entity {
+                            links: Links2
+                            data: Data
+                          }
+
+                          type EntityRankingEDA {
+                            countryName: String
+                            dataValuePercentChange: String
+                            statement: Statement
+                            entity: Entity2
+                            rankType: String
+                            globalRankChange: String
+                            countryRankChange: String
+                            globalRank: Int
+                            rankYear: Int
+                            dataValue: Float
+                            countryRank: Int
+                            id: String
+                            countryISOCode3: String
+                          }
+
+                          type Relationships {
+                            descendants: Descendants
+                            entity: Entity
+                          }
+
+                          type Shareholders {
+                            links: Links2
+                            data: Data
+                          }
+
+                          type Meta {
+                            count: String
+                            asOfDate: String
+                          }
+
+                          type Company {
+                            association: JSON
+                            id: String
+                          }
+
+                          type Data3ListItem {
+                            id: String
+                            links: Links
+                            relationships: Relationships2
+                            type: String
+                            attributes: Attributes2
+                          }
+
+                          type Regions {
+                            association: JSON
+                            id: String
+                          }
+
+                          type DirectorEDA {
+                            role: String
+                            entities: [BaseRelationshipEDA]
+                            id: String
+                            name: String
+                            position: String
+                          }
+
+                          type Links {
+                            self: String
+                          }
+
+                          type CompanyEDA {
+                            entity: Entity2
+                            ownershipPercentage: Float
+                            ownershipType: String
+                            parentId: Int
+                            country: String
+                            id: String
+                            ownershipCategory: String
+                            type: String
+                            name: String
+                            descendants: [BaseRelationshipEDA]
+                          }
+
+                          type Regions2 {
+                            links: Links2
+                            data: Data
+                          }
+
+                          type FinancialImpliedRatings {
+                            links: Links2
+                            data: Data
+                          }
+
+                          type MoodyIssuerRatings {
+                            data: Data
+                            links: Links2
+                          }
+
+                          type BaseRelationshipEDA {
+                            association: JSON
+                            id: String
+                          }
+
+                          type OfficerEDA {
+                            id: String
+                            name: String
+                            position: String
+                            entities: [BaseRelationshipEDA]
+                          }
+
+                          type Links3 {
+                            first: String
+                            last: String
+                            next: String
+                            self: String
+                          }
+                    persistedQueryCacheConfig: {}
+                    statPrefix: gloo-system.mocks-mock-api-service.
+              - match:
+                  prefix: /
+                name: gloo-system_default-route-1-matcher-0
+                route:
+                  cluster: mocks-mock-api-service_gloo-system
+              typedPerFilterConfig:
+                envoy.filters.http.ext_authz:
+                  '@type': type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                  disabled: true
+          statPrefix: http
+          upgradeConfigs:
+          - upgradeType: websocket
+    name: listener-::-8080
+

@@ -1,0 +1,447 @@
+admin:
+  address:
+    socketAddress:
+      address: 127.0.0.1
+      portValue: 19000
+node:
+  cluster: test-cluster
+  id: test-id
+staticResources:
+  clusters:
+  - connectTimeout: 5s
+    loadAssignment:
+      clusterName: local-test-upstream-1_default
+      endpoints:
+      - lbEndpoints:
+        - endpoint:
+            address:
+              socketAddress:
+                address: 127.0.0.1
+                portValue: 41929
+            healthCheckConfig:
+              hostname: 127.0.0.1
+            hostname: 127.0.0.1
+          metadata:
+            filterMetadata:
+              envoy.transport_socket_match:
+                127.0.0.1;127.0.0.1:41929: true
+    metadata: {}
+    name: local-test-upstream-1_default
+    type: STATIC
+  - loadAssignment:
+      clusterName: graphql.dummy.cluster
+    name: graphql.dummy.cluster
+    type: STATIC
+  listeners:
+  - address:
+      socketAddress:
+        address: 0.0.0.0
+        portValue: 9081
+    filterChains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typedConfig:
+          '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          httpFilters:
+          - name: envoy.filters.http.fault
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.fault.v3.HTTPFault
+          - name: envoy.filters.http.cors
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+          - name: io.solo.filters.http.transformation_ee
+            typedConfig:
+              '@type': type.googleapis.com/envoy.config.filter.http.transformation_ee.v2.FilterTransformations
+          - name: io.solo.filters.http.modsecurity
+            typedConfig:
+              '@type': type.googleapis.com/envoy.config.filter.http.modsecurity.v2.ModSecurity
+              disabled: true
+          - name: envoy.filters.http.local_ratelimit
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+              stage: 3
+              statPrefix: http_local_ratelimit
+          - name: io.solo.filters.http.sanitize
+            typedConfig:
+              '@type': type.googleapis.com/envoy.config.filter.http.sanitize.v2.Sanitize
+              headersToRemove:
+              - x-user-id
+          - name: io.solo.filters.http.solo_jwt_authn_staged
+            typedConfig:
+              '@type': type.googleapis.com/envoy.config.filter.http.solo_jwt_authn.v2.JwtWithStage
+              jwtAuthn:
+                filterStateRules:
+                  name: stage0-filterState
+          - name: envoy.filters.http.rbac
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBAC
+          - name: envoy.filters.http.grpc_web
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
+          - name: io.solo.transformation
+            typedConfig:
+              '@type': type.googleapis.com/envoy.api.v2.filter.http.FilterTransformations
+          - name: io.solo.filters.http.graphql
+            typedConfig:
+              '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.GraphQLConfig
+          - name: envoy.filters.http.csrf
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.csrf.v3.CsrfPolicy
+              filterEnabled:
+                defaultValue: {}
+          - name: envoy.filters.http.router
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+          normalizePath: true
+          routeConfig:
+            name: listener-routes
+            virtualHosts:
+            - domains:
+              - '*'
+              name: gloo-system_virt1
+              routes:
+              - match:
+                  prefix: /testroute
+                name: gloo-system_virt1-route-0-matcher-0
+                route:
+                  cluster: graphql.dummy.cluster
+                typedPerFilterConfig:
+                  io.solo.filters.http.graphql:
+                    '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.GraphQLRouteConfig
+                    executableSchema:
+                      executor:
+                        local:
+                          enableIntrospection: true
+                          resolutions:
+                          - matcher:
+                              fieldMatcher:
+                                field: products
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.stitching
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.resolver.stitching.v2.StitchingResolver
+                                subschemaName: Graphqlschema-gloo-system.product-gql
+                          - matcher:
+                              fieldMatcher:
+                                field: user
+                                type: Query
+                            resolver:
+                              name: io.solo.graphql.resolver.stitching
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.resolver.stitching.v2.StitchingResolver
+                                subschemaName: Graphqlschema-gloo-system.users-gql
+                          - matcher:
+                              fieldMatcher:
+                                field: addProduct
+                                type: Mutation
+                            resolver:
+                              name: io.solo.graphql.resolver.stitching
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.resolver.stitching.v2.StitchingResolver
+                                subschemaName: Graphqlschema-gloo-system.product-gql
+                          - matcher:
+                              fieldMatcher:
+                                field: userChange
+                                type: Mutation
+                            resolver:
+                              name: io.solo.graphql.resolver.stitching
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.resolver.stitching.v2.StitchingResolver
+                                subschemaName: Graphqlschema-gloo-system.users-gql
+                          - matcher:
+                              fieldMatcher:
+                                field: addUser
+                                type: Mutation
+                            resolver:
+                              name: io.solo.graphql.resolver.stitching
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.resolver.stitching.v2.StitchingResolver
+                                subschemaName: Graphqlschema-gloo-system.users-gql
+                          - matcher:
+                              fieldMatcher:
+                                field: username
+                                type: User
+                            resolver:
+                              name: io.solo.graphql.resolver.stitching
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.resolver.stitching.v2.StitchingResolver
+                                subschemaName: Graphqlschema-gloo-system.users-gql
+                          - matcher:
+                              fieldMatcher:
+                                field: firstName
+                                type: User
+                            resolver:
+                              name: io.solo.graphql.resolver.stitching
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.resolver.stitching.v2.StitchingResolver
+                                subschemaName: Graphqlschema-gloo-system.users-gql
+                          - matcher:
+                              fieldMatcher:
+                                field: lastName
+                                type: User
+                            resolver:
+                              name: io.solo.graphql.resolver.stitching
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.resolver.stitching.v2.StitchingResolver
+                                subschemaName: Graphqlschema-gloo-system.users-gql
+                          - matcher:
+                              fieldMatcher:
+                                field: id
+                                type: Product
+                            resolver:
+                              name: io.solo.graphql.resolver.stitching
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.resolver.stitching.v2.StitchingResolver
+                                subschemaName: Graphqlschema-gloo-system.product-gql
+                          - matcher:
+                              fieldMatcher:
+                                field: seller
+                                type: Product
+                            resolver:
+                              name: io.solo.graphql.resolver.stitching
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.resolver.stitching.v2.StitchingResolver
+                                subschemaName: Graphqlschema-gloo-system.product-gql
+                          - matcher:
+                              fieldMatcher:
+                                field: productName
+                                type: UserMutation
+                            resolver:
+                              name: io.solo.graphql.resolver.stitching
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.resolver.stitching.v2.StitchingResolver
+                                subschemaName: Graphqlschema-gloo-system.product-gql
+                          - matcher:
+                              fieldMatcher:
+                                field: userName
+                                type: UserMutation
+                            resolver:
+                              name: io.solo.graphql.resolver.stitching
+                              typedConfig:
+                                '@type': type.googleapis.com/envoy.config.resolver.stitching.v2.StitchingResolver
+                                subschemaName: Graphqlschema-gloo-system.users-gql
+                      extensions:
+                        stitching_extension:
+                          '@type': type.googleapis.com/envoy.config.resolver.stitching.v2.StitchingInfo
+                          fieldNodesByField:
+                            User:
+                              nodes:
+                                firstName:
+                                  fieldNodes:
+                                  - name: __typename
+                                  - name: username
+                                lastName:
+                                  fieldNodes:
+                                  - name: __typename
+                                  - name: username
+                          fieldNodesByType:
+                            Mutation:
+                              fieldNodes:
+                              - name: __typename
+                            Query:
+                              fieldNodes:
+                              - name: __typename
+                          mergedTypes:
+                            Mutation:
+                              typeName: Mutation
+                            Query:
+                              typeName: Query
+                            User:
+                              declarativeTargetSubschemas:
+                                Graphqlschema-gloo-system.product-gql:
+                                  schemas:
+                                  - Graphqlschema-gloo-system.users-gql
+                              selectionSets:
+                                Graphqlschema-gloo-system.users-gql: |-
+                                  {
+                                    username
+                                  }
+                              subschemaNameToResolverInfo:
+                                Graphqlschema-gloo-system.users-gql:
+                                  args:
+                                  - extractionPath:
+                                    - username
+                                    setterPath:
+                                    - username
+                                  fieldName: user
+                              typeName: User
+                              uniqueFieldsToSubschemaName:
+                                firstName: Graphqlschema-gloo-system.users-gql
+                                lastName: Graphqlschema-gloo-system.users-gql
+                            UserMutation:
+                              typeName: UserMutation
+                          subschemaNameToSubschemaConfig:
+                            Graphqlschema-gloo-system.product-gql:
+                              executableSchema:
+                                executor:
+                                  local:
+                                    enableIntrospection: true
+                                    resolutions:
+                                    - matcher:
+                                        fieldMatcher:
+                                          field: products
+                                          type: Query
+                                      resolver:
+                                        name: io.solo.graphql.resolver.static
+                                        typedConfig:
+                                          '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.StaticResolver
+                                          syncResponse: '{"id":1,"seller":{"username":"user1"}}'
+                                      statPrefix: product_resolver.
+                                    - matcher:
+                                        fieldMatcher:
+                                          field: productName
+                                          type: UserMutation
+                                      resolver:
+                                        name: io.solo.graphql.resolver.static
+                                        typedConfig:
+                                          '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.StaticResolver
+                                          syncResponse: '"product3Name"'
+                                      statPrefix: user_change_resolver.
+                                    - matcher:
+                                        fieldMatcher:
+                                          field: addProduct
+                                          type: Mutation
+                                      resolver:
+                                        name: io.solo.graphql.resolver.static
+                                        typedConfig:
+                                          '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.StaticResolver
+                                          syncResponse: '{"id":2,"seller":{"username":"user2"}}'
+                                      statPrefix: add_product_resolver.
+                                logRequestResponseInfo: true
+                                schemaDefinition:
+                                  inlineString: |-
+                                    type User {
+                                      username: String
+                                    }
+
+                                    type Product {
+                                      id: Int
+                                      seller: User
+                                    }
+
+                                    type Query {
+                                      products: Product
+                                    }
+
+                                    type UserMutation {
+                                      productName(n: String): String
+                                    }
+
+                                    type Mutation {
+                                      addProduct(sellerName: String): Product
+                                      userChange: UserMutation
+                                    }
+                            Graphqlschema-gloo-system.users-gql:
+                              executableSchema:
+                                executor:
+                                  local:
+                                    enableIntrospection: true
+                                    resolutions:
+                                    - matcher:
+                                        fieldMatcher:
+                                          field: user
+                                          type: Query
+                                      resolver:
+                                        name: io.solo.graphql.resolver.static
+                                        typedConfig:
+                                          '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.StaticResolver
+                                          syncResponse: '{"firstName":"User","lastName":"One","username":"user1"}'
+                                      statPrefix: user_resolver.
+                                    - matcher:
+                                        fieldMatcher:
+                                          field: userName
+                                          type: UserMutation
+                                      resolver:
+                                        name: io.solo.graphql.resolver.static
+                                        typedConfig:
+                                          '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.StaticResolver
+                                          syncResponse: '"user3"'
+                                      statPrefix: user_change_resolver.
+                                    - matcher:
+                                        fieldMatcher:
+                                          field: addUser
+                                          type: Mutation
+                                      resolver:
+                                        name: io.solo.graphql.resolver.static
+                                        typedConfig:
+                                          '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.StaticResolver
+                                          syncResponse: '{"firstName":"User2","lastName":"Two","username":"user2"}'
+                                      statPrefix: add_user_resolver.
+                                    - matcher:
+                                        fieldMatcher:
+                                          field: userChange
+                                          type: Mutation
+                                      resolver:
+                                        name: io.solo.graphql.resolver.static
+                                        typedConfig:
+                                          '@type': type.googleapis.com/envoy.config.filter.http.graphql.v2.StaticResolver
+                                          syncResponse: '{}'
+                                      statPrefix: user_change_mutation.
+                                logRequestResponseInfo: true
+                                schemaDefinition:
+                                  inlineString: |-
+                                    type User {
+                                      username: String
+                                      firstName: String
+                                      lastName: String
+                                    }
+
+                                    type Query {
+                                      user: User
+                                    }
+
+                                    type UserMutation {
+                                      userName(n: String): String
+                                    }
+
+                                    type Mutation {
+                                      addUser(name: String): User
+                                      userChange: UserMutation
+                                    }
+                      logRequestResponseInfo: true
+                      schemaDefinition:
+                        inlineString: |-
+                          type Query {
+                            products: Product
+                            user: User
+                          }
+
+                          type Mutation {
+                            addProduct(sellerName: String): Product
+                            userChange: UserMutation
+                            addUser(name: String): User
+                          }
+
+                          type User {
+                            username: String
+                            firstName: String
+                            lastName: String
+                          }
+
+                          type Product {
+                            id: Int
+                            seller: User
+                          }
+
+                          type UserMutation {
+                            productName(n: String): String
+                            userName(n: String): String
+                          }
+                    persistedQueryCacheConfig: {}
+                    statPrefix: gloo-system.stitched-gql.
+              typedPerFilterConfig:
+                envoy.filters.http.cors:
+                  '@type': type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy
+                  allowCredentials: true
+                  allowHeaders: content-type,x-apollo-tracing
+                  allowMethods: POST
+                  allowOriginStringMatch:
+                  - safeRegex:
+                      googleRe2: {}
+                      regex: \*
+          statPrefix: http
+          upgradeConfigs:
+          - upgradeType: websocket
+    name: listener
+

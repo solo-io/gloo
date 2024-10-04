@@ -67,6 +67,7 @@ type Opts struct {
 	GlooGateway           GlooGateway
 	IsitoClient           kube.Client
 	UniqlyConnectedClient krt.Collection[krtcollections.UniqlyConnectedClient]
+	Pods                  krt.Collection[krtcollections.LocalityPod]
 }
 
 type IstioValues struct {
