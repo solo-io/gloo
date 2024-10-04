@@ -31,7 +31,7 @@ kubeGateway:
   enabled: false
 
 gloo:
-  logLevel: debug
+  logLevel: info
   disableLeaderElection: false
   deployment:
     replicas: 1
