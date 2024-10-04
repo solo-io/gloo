@@ -21,131 +21,326 @@ import (
 
 func TestEndpoints(t *testing.T) {
 	g := gomega.NewWithT(t)
-
-	inputs := []any{
-		&corev1.Pod{
-			TypeMeta: metav1.TypeMeta{},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "name",
-				Namespace: "ns",
-			},
-			Spec: corev1.PodSpec{
-				NodeName: "node",
-			},
-			Status: corev1.PodStatus{
-				Phase: corev1.PodRunning,
-				PodIP: "1.2.3.4",
-			},
-		},
-		&corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "node",
-				Labels: map[string]string{
-					corev1.LabelTopologyRegion: "region",
-					corev1.LabelTopologyZone:   "zone",
+	testCases := []struct {
+		name     string
+		inputs   []any
+		upstream UpstreamWrapper
+		result   func(UpstreamWrapper) *EndpointsForUpstream
+	}{
+		{
+			name: "basic",
+			inputs: []any{
+				&corev1.Pod{
+					TypeMeta: metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "name",
+						Namespace: "ns",
+					},
+					Spec: corev1.PodSpec{
+						NodeName: "node",
+					},
+					Status: corev1.PodStatus{
+						Phase: corev1.PodRunning,
+						PodIP: "1.2.3.4",
+					},
 				},
-			},
-		},
-		&corev1.Endpoints{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "svc",
-				Namespace: "ns",
-			},
-			Subsets: []corev1.EndpointSubset{
-				{
-					Ports: []corev1.EndpointPort{
-						{
-							Name: "http",
-							Port: 8080,
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node",
+						Labels: map[string]string{
+							corev1.LabelTopologyRegion: "region",
+							corev1.LabelTopologyZone:   "zone",
 						},
 					},
-					Addresses: []corev1.EndpointAddress{
+				},
+				&corev1.Endpoints{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "svc",
+						Namespace: "ns",
+					},
+					Subsets: []corev1.EndpointSubset{
 						{
-							IP: "1.2.3.4",
-							TargetRef: &corev1.ObjectReference{
-								Kind:      "Pod",
-								Name:      "name",
-								Namespace: "ns",
+							Ports: []corev1.EndpointPort{
+								{
+									Name: "http",
+									Port: 8080,
+								},
 							},
-						},
-					},
-				},
-			},
-		},
-		&corev1.Service{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "svc",
-				Namespace: "ns",
-			},
-			Spec: corev1.ServiceSpec{
-				Ports: []corev1.ServicePort{
-					{
-						Name: "http",
-						Port: 8080,
-					},
-				},
-			},
-		},
-	}
-	// input
-	us := UpstreamWrapper{
-		Upstream: &gloov1.Upstream{
-			Metadata: &core.Metadata{Name: "name", Namespace: "ns"},
-			UpstreamType: &gloov1.Upstream_Kube{
-				Kube: &kubernetes.UpstreamSpec{
-					ServiceName:      "svc",
-					ServiceNamespace: "ns",
-					ServicePort:      8080,
-				},
-			},
-		},
-	}
-	// output
-	emd := EndpointWithMd{
-		LbEndpoint: &endpointv3.LbEndpoint{
-			HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
-				Endpoint: &endpointv3.Endpoint{
-					Address: &envoy_config_core_v3.Address{
-						Address: &envoy_config_core_v3.Address_SocketAddress{
-							SocketAddress: &envoy_config_core_v3.SocketAddress{
-								Address: "1.2.3.4",
-								PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
-									PortValue: 8080,
+							Addresses: []corev1.EndpointAddress{
+								{
+									IP: "1.2.3.4",
+									TargetRef: &corev1.ObjectReference{
+										Kind:      "Pod",
+										Name:      "name",
+										Namespace: "ns",
+									},
 								},
 							},
 						},
 					},
 				},
+				&corev1.Service{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "svc",
+						Namespace: "ns",
+					},
+					Spec: corev1.ServiceSpec{
+						Ports: []corev1.ServicePort{
+							{
+								Name: "http",
+								Port: 8080,
+							},
+						},
+					},
+				},
+			},
+			upstream: UpstreamWrapper{
+				Upstream: &gloov1.Upstream{
+					Metadata: &core.Metadata{Name: "name", Namespace: "ns"},
+					UpstreamType: &gloov1.Upstream_Kube{
+						Kube: &kubernetes.UpstreamSpec{
+							ServiceName:      "svc",
+							ServiceNamespace: "ns",
+							ServicePort:      8080,
+						},
+					},
+				},
+			},
+			result: func(us UpstreamWrapper) *EndpointsForUpstream {
+				// output
+				emd := EndpointWithMd{
+					LbEndpoint: &endpointv3.LbEndpoint{
+						HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
+							Endpoint: &endpointv3.Endpoint{
+								Address: &envoy_config_core_v3.Address{
+									Address: &envoy_config_core_v3.Address_SocketAddress{
+										SocketAddress: &envoy_config_core_v3.SocketAddress{
+											Address: "1.2.3.4",
+											PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+												PortValue: 8080,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					EndpointMd: EndpointMetadata{
+						Labels: map[string]string{
+							corev1.LabelTopologyRegion: "region",
+							corev1.LabelTopologyZone:   "zone",
+						},
+					},
+				}
+				result := NewEndpointsForUpstream(us)
+				result.Add(krtcollections.PodLocality{
+					Region: "region",
+					Zone:   "zone",
+				}, emd)
+				return result
 			},
 		},
-		EndpointMd: EndpointMetadata{
-			Labels: map[string]string{
-				corev1.LabelTopologyRegion: "region",
-				corev1.LabelTopologyZone:   "zone",
+		{
+			name: "two pods two zones",
+			inputs: []any{
+				&corev1.Pod{
+					TypeMeta: metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "name",
+						Namespace: "ns",
+					},
+					Spec: corev1.PodSpec{
+						NodeName: "node",
+					},
+					Status: corev1.PodStatus{
+						Phase: corev1.PodRunning,
+						PodIP: "1.2.3.4",
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node",
+						Labels: map[string]string{
+							corev1.LabelTopologyRegion: "region",
+							corev1.LabelTopologyZone:   "zone",
+						},
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node2",
+						Labels: map[string]string{
+							corev1.LabelTopologyRegion: "region",
+							corev1.LabelTopologyZone:   "zone2",
+						},
+					},
+				},
+				&corev1.Pod{
+					TypeMeta: metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "name2",
+						Namespace: "ns",
+					},
+					Spec: corev1.PodSpec{
+						NodeName: "node2",
+					},
+					Status: corev1.PodStatus{
+						Phase: corev1.PodRunning,
+						PodIP: "1.2.3.5",
+					},
+				},
+				&corev1.Endpoints{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "svc",
+						Namespace: "ns",
+					},
+					Subsets: []corev1.EndpointSubset{
+						{
+							Ports: []corev1.EndpointPort{
+								{
+									Name: "http",
+									Port: 8080,
+								},
+							},
+							Addresses: []corev1.EndpointAddress{
+								{
+									IP: "1.2.3.4",
+									TargetRef: &corev1.ObjectReference{
+										Kind:      "Pod",
+										Name:      "name",
+										Namespace: "ns",
+									},
+								},
+							},
+						}, {
+							Ports: []corev1.EndpointPort{
+								{
+									Name: "http",
+									Port: 8080,
+								},
+							},
+							Addresses: []corev1.EndpointAddress{
+								{
+									IP: "1.2.3.5",
+									TargetRef: &corev1.ObjectReference{
+										Kind:      "Pod",
+										Name:      "name2",
+										Namespace: "ns",
+									},
+								},
+							},
+						},
+					},
+				},
+				&corev1.Service{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "svc",
+						Namespace: "ns",
+					},
+					Spec: corev1.ServiceSpec{
+						Ports: []corev1.ServicePort{
+							{
+								Name: "http",
+								Port: 8080,
+							},
+						},
+					},
+				},
+			},
+			upstream: UpstreamWrapper{
+				Upstream: &gloov1.Upstream{
+					Metadata: &core.Metadata{Name: "name", Namespace: "ns"},
+					UpstreamType: &gloov1.Upstream_Kube{
+						Kube: &kubernetes.UpstreamSpec{
+							ServiceName:      "svc",
+							ServiceNamespace: "ns",
+							ServicePort:      8080,
+						},
+					},
+				},
+			},
+			result: func(us UpstreamWrapper) *EndpointsForUpstream {
+				// output
+				result := NewEndpointsForUpstream(us)
+				result.Add(krtcollections.PodLocality{
+					Region: "region",
+					Zone:   "zone",
+				}, EndpointWithMd{
+					LbEndpoint: &endpointv3.LbEndpoint{
+						HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
+							Endpoint: &endpointv3.Endpoint{
+								Address: &envoy_config_core_v3.Address{
+									Address: &envoy_config_core_v3.Address_SocketAddress{
+										SocketAddress: &envoy_config_core_v3.SocketAddress{
+											Address: "1.2.3.4",
+											PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+												PortValue: 8080,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					EndpointMd: EndpointMetadata{
+						Labels: map[string]string{
+							corev1.LabelTopologyRegion: "region",
+							corev1.LabelTopologyZone:   "zone",
+						},
+					},
+				})
+				result.Add(krtcollections.PodLocality{
+					Region: "region",
+					Zone:   "zone2",
+				}, EndpointWithMd{
+					LbEndpoint: &endpointv3.LbEndpoint{
+						HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
+							Endpoint: &endpointv3.Endpoint{
+								Address: &envoy_config_core_v3.Address{
+									Address: &envoy_config_core_v3.Address_SocketAddress{
+										SocketAddress: &envoy_config_core_v3.SocketAddress{
+											Address: "1.2.3.5",
+											PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+												PortValue: 8080,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					EndpointMd: EndpointMetadata{
+						Labels: map[string]string{
+							corev1.LabelTopologyRegion: "region",
+							corev1.LabelTopologyZone:   "zone2",
+						},
+					},
+				})
+				return result
 			},
 		},
 	}
-	result := NewEndpointsForUpstream(us)
-	result.Add(krtcollections.PodLocality{
-		Region: "region",
-		Zone:   "zone",
-	}, emd)
 
-	mock := krttest.NewMock(t, inputs)
-	nodes := krtcollections.NewNodeMetadataCollection(krttest.GetMockCollection[*corev1.Node](mock))
-	pods := krtcollections.NewLocalityPodsCollection(nodes, krttest.GetMockCollection[*corev1.Pod](mock))
-	pods.Synced().WaitUntilSynced(context.Background().Done())
-	ei := EndpointsInputs{
-		Upstreams:      krttest.GetMockCollection[UpstreamWrapper](mock),
-		Endpoints:      krttest.GetMockCollection[*corev1.Endpoints](mock),
-		Pods:           pods,
-		EnableAutoMtls: false,
-		Services:       krttest.GetMockCollection[*corev1.Service](mock),
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := krttest.NewMock(t, tc.inputs)
+			nodes := krtcollections.NewNodeMetadataCollection(krttest.GetMockCollection[*corev1.Node](mock))
+			pods := krtcollections.NewLocalityPodsCollection(nodes, krttest.GetMockCollection[*corev1.Pod](mock))
+			pods.Synced().WaitUntilSynced(context.Background().Done())
+			ei := EndpointsInputs{
+				Upstreams:      krttest.GetMockCollection[UpstreamWrapper](mock),
+				Endpoints:      krttest.GetMockCollection[*corev1.Endpoints](mock),
+				Pods:           pods,
+				EnableAutoMtls: false,
+				Services:       krttest.GetMockCollection[*corev1.Service](mock),
+			}
+
+			builder := TransformUpstreamsBuilder(context.Background(), ei)
+
+			eps := builder(krt.TestingDummyContext{}, tc.upstream)
+			res := tc.result(tc.upstream)
+			g.Expect(eps.Equals(*res)).To(BeTrue(), "expected %v, got %v", res, eps)
+		})
 	}
-
-	builder := TransformUpstreamsBuilder(context.Background(), ei)
-
-	eps := builder(krt.TestingDummyContext{}, us)
-	g.Expect(eps).To(BeEquivalentTo(result))
 
 }
