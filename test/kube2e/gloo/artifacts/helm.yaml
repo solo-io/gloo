@@ -17,7 +17,8 @@ gateway:
   enabled: true
   persistProxySpec: false
   validation:
-    allowWarnings: true
+    failurePolicy: "Fail"
+    allowWarnings: false
     alwaysAcceptResources: false
     # added to preserve behavior tested by this suite.
     warnMissingTlsSecret: false

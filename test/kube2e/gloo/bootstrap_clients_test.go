@@ -456,13 +456,13 @@ var _ = Describe("Bootstrap Clients", func() {
 				Eventually(func(g Gomega) {
 					_, err := resourceClientset.VirtualServiceClient().Write(testVS, skclients.WriteOpts{})
 					g.Expect(err).ToNot(HaveOccurred())
-				}, "120s", "1s").Should(Succeed())
+				}, "300s", "10s").Should(Succeed())
 
 				// Since the kube api server can be down when the VS is written,
 				// specify a long enough interval for it to be accepted when the kube api server comes back up
 				helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 					return resourceClientset.VirtualServiceClient().Read(testHelper.InstallNamespace, testVS.Metadata.Name, skclients.ReadOpts{})
-				}, "120s", "10s")
+				}, "300s", "10s")
 
 				defer func() {
 					Eventually(func(g Gomega) {
