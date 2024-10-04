@@ -45,6 +45,7 @@ var _ = Describe("EDS", func() {
 			WithDomain(helper.TestServerName).
 			WithRoutePrefixMatcher(helper.TestServerName, "/").
 			WithRouteActionToSingleDestination(helper.TestServerName, testServerDestination).
+			WithSslConfig(nil).
 			Build()
 
 		// The set of resources that these tests will generate
