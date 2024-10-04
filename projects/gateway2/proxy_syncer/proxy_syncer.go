@@ -2,6 +2,7 @@ package proxy_syncer
 
 import (
 	"context"
+	"errors"
 
 	"google.golang.org/protobuf/runtime/protoiface"
 	corev1 "k8s.io/api/core/v1"
@@ -378,12 +379,10 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		applyStatusPlugins(ctx, proxiesWithReports, snap.pluginRegistry)
 	})
 
-	go s.istioClient.RunAndWait(ctx.Done())
-
 	// wait for caches to sync before accepting events and syncing xds
-	//	if !s.mgr.GetCache().WaitForCacheSync(ctx) {
-	//		return errors.New("kube gateway sync loop waiting for all caches to sync failed")
-	//	}
+	if !s.mgr.GetCache().WaitForCacheSync(ctx) {
+		return errors.New("kube gateway sync loop waiting for all caches to sync failed")
+	}
 
 	for {
 		select {
