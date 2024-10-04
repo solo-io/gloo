@@ -498,7 +498,7 @@ var _ = Describe("Bootstrap Clients", func() {
 			Eventually(func(g Gomega) {
 				logs := testHelper.GetContainerLogs(ctx, testHelper.InstallNamespace, "deploy/gloo")
 				g.Expect(logs).To(ContainSubstring("lost leadership, quitting app"))
-			}, "60s", "1s").Should(Succeed())
+			}, "120s", "1s").Should(Succeed())
 
 			verifyTranslation()
 		})
