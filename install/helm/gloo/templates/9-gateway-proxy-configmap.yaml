@@ -192,7 +192,7 @@ data:
                       transport_api_version: V3
                       grpc_services:
                       - envoy_grpc:
-                          cluster_name: gateway_proxy_sds
+                          cluster_name: sds-grpc
               validation_context_sds_secret_config:
                 name: validation_context
                 sds_config:
@@ -202,21 +202,20 @@ data:
                     transport_api_version: V3
                     grpc_services:
                     - envoy_grpc:
-                        cluster_name: gateway_proxy_sds
+                        cluster_name: sds-grpc
 {{- end }}
 {{- if or (or $global.istioSDS.enabled $global.istioIntegration.enabled) $global.glooMtls.enabled }}
-      - name: gateway_proxy_sds
+      - name: sds-grpc
         connect_timeout: 0.25s
         http2_protocol_options: {}
         load_assignment:
-          cluster_name: gateway_proxy_sds
+          cluster_name: sds-grpc
           endpoints:
           - lb_endpoints:
             - endpoint:
                 address:
-                  socket_address:
-                    address: 127.0.0.1
-                    port_value: 8234
+                  pipe:
+                    path: ./var/run/secrets/workload-spiffe-uds/socket
 {{- end }}
       - name: rest_xds_cluster
         alt_stat_name: rest_xds_cluster
@@ -251,7 +250,7 @@ data:
                       transport_api_version: V3
                       grpc_services:
                       - envoy_grpc:
-                          cluster_name: gateway_proxy_sds
+                          cluster_name: sds-grpc
               validation_context_sds_secret_config:
                 name: validation_context
                 sds_config:
@@ -261,7 +260,7 @@ data:
                     transport_api_version: V3
                     grpc_services:
                     - envoy_grpc:
-                        cluster_name: gateway_proxy_sds
+                        cluster_name: sds-grpc
 {{- end }}
       - name: wasm-cache
         connect_timeout: 5.000s

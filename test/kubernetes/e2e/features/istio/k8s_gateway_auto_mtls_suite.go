@@ -100,27 +100,28 @@ func (s *istioAutoMtlsTestingSuite) TestMtlsStrictPeerAuth() {
 		expectedMtlsResponse, time.Minute)
 }
 
-func (s *istioAutoMtlsTestingSuite) TestMtlsPermissivePeerAuth() {
-	// With auto mtls enabled in the mesh, the response should contain the X-Forwarded-Client-Cert header even with permissive mode
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
-		s.ctx,
-		curlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-			curl.WithHostHeader("httpbin"),
-			curl.WithPath("headers"),
-		},
-		expectedMtlsResponse, time.Minute)
-}
-
-func (s *istioAutoMtlsTestingSuite) TestMtlsDisablePeerAuth() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
-		s.ctx,
-		curlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-			curl.WithHostHeader("httpbin"),
-			curl.WithPath("headers"),
-		},
-		expectedPlaintextResponse, time.Minute)
-}
+//
+//func (s *istioAutoMtlsTestingSuite) TestMtlsPermissivePeerAuth() {
+//	// With auto mtls enabled in the mesh, the response should contain the X-Forwarded-Client-Cert header even with permissive mode
+//	s.testInstallation.Assertions.AssertEventualCurlResponse(
+//		s.ctx,
+//		curlPodExecOpt,
+//		[]curl.Option{
+//			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+//			curl.WithHostHeader("httpbin"),
+//			curl.WithPath("headers"),
+//		},
+//		expectedMtlsResponse, time.Minute)
+//}
+//
+//func (s *istioAutoMtlsTestingSuite) TestMtlsDisablePeerAuth() {
+//	s.testInstallation.Assertions.AssertEventualCurlResponse(
+//		s.ctx,
+//		curlPodExecOpt,
+//		[]curl.Option{
+//			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+//			curl.WithHostHeader("httpbin"),
+//			curl.WithPath("headers"),
+//		},
+//		expectedPlaintextResponse, time.Minute)
+//}

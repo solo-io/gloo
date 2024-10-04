@@ -1,6 +1,6 @@
 package constants
 
 const (
-	SdsClusterName = "gateway_proxy_sds"
+	SdsClusterName = "sds-grpc"
 	SdsTargetURI   = "127.0.0.1:8234"
 )
