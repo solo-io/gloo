@@ -1,0 +1,6 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/gloo/issues/10113
+  resolvesIssue: false
+  description: Fix the flaky Bootstrap Clients test by reducing the leader election lease timeouts to ensure that the new pod becomes the leader within the timeout.
+
