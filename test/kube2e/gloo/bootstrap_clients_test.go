@@ -453,16 +453,15 @@ var _ = Describe("Bootstrap Clients", func() {
 					}).
 					Build()
 
+				// Since the kube api server can be down when the VS is written,
+				// specify a long enough interval for it to be accepted when the kube api server comes back up
 				Eventually(func(g Gomega) {
 					_, err := resourceClientset.VirtualServiceClient().Write(testVS, skclients.WriteOpts{})
 					g.Expect(err).ToNot(HaveOccurred())
 				}, "300s", "10s").Should(Succeed())
-
-				// Since the kube api server can be down when the VS is written,
-				// specify a long enough interval for it to be accepted when the kube api server comes back up
 				helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 					return resourceClientset.VirtualServiceClient().Read(testHelper.InstallNamespace, testVS.Metadata.Name, skclients.ReadOpts{})
-				}, "300s", "10s")
+				}, "60s", "10s")
 
 				defer func() {
 					Eventually(func(g Gomega) {
@@ -499,7 +498,7 @@ var _ = Describe("Bootstrap Clients", func() {
 			Eventually(func(g Gomega) {
 				logs := testHelper.GetContainerLogs(ctx, testHelper.InstallNamespace, "deploy/gloo")
 				g.Expect(logs).To(ContainSubstring("lost leadership, quitting app"))
-			}, "30s", "1s").Should(Succeed())
+			}, "60s", "1s").Should(Succeed())
 
 			verifyTranslation()
 		})
