@@ -183,7 +183,7 @@ func applyDestRulesForHostnames(kctx krt.HandlerContext, wrappedDestRules krt.Co
 func fromEndpoint(ep EndpointsForUpstream) string {
 	// get the upstream name and namespace
 	// TODO: suppport other suffixes that are not cluster.local
-	return fmt.Sprintf("%s.%s.svc.cluster.local", ep.upstreamRef.Name, ep.upstreamRef.Namespace)
+	return fmt.Sprintf("%s.%s.svc.cluster.local", ep.UpstreamRef.Name, ep.UpstreamRef.Namespace)
 }
 
 func getDestruleFor(destrules []DestinationRuleWrapper) *LBInfo {

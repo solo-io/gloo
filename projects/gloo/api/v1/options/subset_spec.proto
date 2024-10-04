@@ -9,7 +9,7 @@ option (extproto.clone_all) = true;
 
 // See envoy docs for details:
 // https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/cluster.proto#config-cluster-v3-cluster-lbsubsetconfig
-// Deprecated.
+// Deprecated: not used.
 message SubsetSpec {
   // Defines the set of subsets of the upstream
   repeated Selector selectors = 1;

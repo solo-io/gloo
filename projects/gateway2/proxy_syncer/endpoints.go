@@ -43,7 +43,7 @@ func (c CLA) Equals(in CLA) bool {
 }
 
 type EndpointMetadata struct {
-	labels map[string]string
+	Labels map[string]string
 }
 
 type LBInfo struct {
@@ -107,55 +107,89 @@ func priorityLabelOverrides(labels []string) ([]string, map[string]string) {
 }
 
 type EndpointsInputs struct {
-	upstreams      krt.Collection[*upstream]
-	endpoints      krt.Collection[*corev1.Endpoints]
-	pods           krt.Collection[krtcollections.LocalityPod]
-	enableAutoMtls bool
-	services       krt.Collection[*corev1.Service]
+	Upstreams      krt.Collection[UpstreamWrapper]
+	Endpoints      krt.Collection[*corev1.Endpoints]
+	Pods           krt.Collection[krtcollections.LocalityPod]
+	EnableAutoMtls bool
+	Services       krt.Collection[*corev1.Service]
 }
 
-func NewGlooK8sEndpointInputs(settings *v1.Settings, istioClient kube.Client, pods krt.Collection[krtcollections.LocalityPod], services krt.Collection[*corev1.Service], finalUpstreams krt.Collection[*upstream]) EndpointsInputs {
+func NewGlooK8sEndpointInputs(settings *v1.Settings, istioClient kube.Client, pods krt.Collection[krtcollections.LocalityPod], services krt.Collection[*corev1.Service], finalUpstreams krt.Collection[UpstreamWrapper]) EndpointsInputs {
 	epClient := kclient.New[*corev1.Endpoints](istioClient)
 	kubeEndpoints := krt.WrapClient(epClient, krt.WithName("Endpoints"))
 	enableAutoMtls := settings.GetGloo().GetIstioOptions().GetEnableAutoMtls().GetValue()
 
 	return EndpointsInputs{
-		upstreams:      finalUpstreams,
-		endpoints:      kubeEndpoints,
-		pods:           pods,
-		enableAutoMtls: enableAutoMtls,
-		services:       services,
+		Upstreams:      finalUpstreams,
+		Endpoints:      kubeEndpoints,
+		Pods:           pods,
+		EnableAutoMtls: enableAutoMtls,
+		Services:       services,
 	}
 }
 
-type endpointWithMd struct {
+type EndpointWithMd struct {
 	*envoy_config_endpoint_v3.LbEndpoint
-	endpointMd EndpointMetadata
+	EndpointMd EndpointMetadata
 }
 type EndpointsForUpstream struct {
-	lbEps       map[krtcollections.PodLocality][]endpointWithMd
+	LbEps       map[krtcollections.PodLocality][]EndpointWithMd
 	clusterName string
-	upstreamRef types.NamespacedName
+	UpstreamRef types.NamespacedName
 
 	lbEpsEqualityHash uint64
 }
 
+func NewEndpointsForUpstream(us UpstreamWrapper) *EndpointsForUpstream {
+	clusterName := translator.UpstreamToClusterName(us.GetMetadata().Ref())
+	return &EndpointsForUpstream{
+		LbEps:       make(map[krtcollections.PodLocality][]EndpointWithMd),
+		clusterName: getEndpointClusterName(clusterName, us.Upstream),
+		UpstreamRef: types.NamespacedName{
+			Namespace: us.GetMetadata().Namespace,
+			Name:      us.GetMetadata().Name,
+		},
+	}
+}
+
+func (e *EndpointsForUpstream) Add(l krtcollections.PodLocality, emd EndpointWithMd) {
+	hasher := fnv.New64()
+	hasher.Write([]byte(l.Region))
+	hasher.Write([]byte(l.Zone))
+	hasher.Write([]byte(l.Subzone))
+
+	addr := emd.GetEndpoint().GetAddress().GetSocketAddress().GetAddress()
+	port := emd.GetEndpoint().GetAddress().GetSocketAddress().GetPortValue()
+	hasher.Write([]byte(addr))
+	hashUint64(hasher, uint64(port))
+	hashUint64(hasher, hashLabels(emd.EndpointMd.Labels))
+	// TODO: replaces this with real hash; not just len...
+	hashUint64(hasher, uint64(len(emd.GetMetadata().GetFilterMetadata())))
+	// xor it as we dont care about order - if we have the same endpoints in the same locality
+	// we are good.
+	e.lbEpsEqualityHash ^= hasher.Sum64()
+	e.LbEps[l] = append(e.LbEps[l], emd)
+}
+
 func (c EndpointsForUpstream) ResourceName() string {
-	return c.upstreamRef.String()
+	return c.UpstreamRef.String()
 }
 
 func (c EndpointsForUpstream) Equals(in EndpointsForUpstream) bool {
-	return c.upstreamRef == in.upstreamRef && c.lbEpsEqualityHash == in.lbEpsEqualityHash
+	return c.UpstreamRef == in.UpstreamRef && c.lbEpsEqualityHash == in.lbEpsEqualityHash
 }
 
 func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs) krt.Collection[EndpointsForUpstream] {
-	augmentedPods := inputs.pods
-	kubeEndpoints := inputs.endpoints
-	enableAutoMtls := inputs.enableAutoMtls
+	return krt.NewCollection(inputs.Upstreams, TransformUpstreamsBuilder(ctx, inputs), krt.WithName("K8sClusterLoadAssignment"))
+}
 
-	services := inputs.services
+func TransformUpstreamsBuilder(ctx context.Context, inputs EndpointsInputs) func(kctx krt.HandlerContext, us UpstreamWrapper) *EndpointsForUpstream {
+	augmentedPods := inputs.Pods
+	kubeEndpoints := inputs.Endpoints
+	enableAutoMtls := inputs.EnableAutoMtls
 
-	return krt.NewCollection(inputs.upstreams, func(kctx krt.HandlerContext, us *upstream) *EndpointsForUpstream {
+	services := inputs.Services
+	return func(kctx krt.HandlerContext, us UpstreamWrapper) *EndpointsForUpstream {
 		// TODO: log these
 		var warnsToLog []string
 		defer func() {
@@ -181,16 +215,8 @@ func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs) krt.Collec
 			return nil
 		}
 		eps := *maybeEps
-		clusterName := translator.UpstreamToClusterName(us.GetMetadata().Ref())
 
-		ret := EndpointsForUpstream{
-			clusterName: getEndpointClusterName(clusterName, us.Upstream),
-			lbEps:       make(map[krtcollections.PodLocality][]endpointWithMd),
-			upstreamRef: types.NamespacedName{
-				Namespace: us.GetMetadata().Namespace,
-				Name:      us.GetMetadata().Name,
-			},
-		}
+		ret := NewEndpointsForUpstream(us)
 		for _, subset := range eps.Subsets {
 			port := findFirstPortInEndpointSubsets(subset, singlePortService, kubeServicePort)
 			if port == 0 {
@@ -228,30 +254,16 @@ func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs) krt.Collec
 				ep := createLbEndpoint(addr.IP, port, podLabels, enableAutoMtls)
 
 				// this is slightly fragile.
-				hasher := fnv.New64()
-				hasher.Write([]byte(addr.IP))
-				hashUint64(hasher, uint64(port))
-				hashUint64(hasher, hashLabels(podLabels))
-				hashUint64(hasher, hashLabels(augmentedLabels))
-				hasher.Write([]byte(l.Region))
-				hasher.Write([]byte(l.Zone))
-				hasher.Write([]byte(l.Subzone))
-				if enableAutoMtls {
-					hasher.Write([]byte{1})
-				}
-				// xor it as we dont care about order - if we have the same endpoints in the same locality
-				// we are good.
-				ret.lbEpsEqualityHash ^= hasher.Sum64()
-				ret.lbEps[l] = append(ret.lbEps[l], endpointWithMd{
+				ret.Add(l, EndpointWithMd{
 					LbEndpoint: ep,
-					endpointMd: EndpointMetadata{
-						labels: augmentedLabels,
+					EndpointMd: EndpointMetadata{
+						Labels: augmentedLabels,
 					},
 				})
 			}
 		}
-		return &ret
-	}, krt.WithName("K8sClusterLoadAssignment"))
+		return ret
+	}
 }
 
 func hashUint64(hasher hash.Hash64, value uint64) {
@@ -277,7 +289,7 @@ func prioritize(ep EndpointsForUpstream, lbInfo *LBInfo, priorities *priorities)
 	cla := &envoy_config_endpoint_v3.ClusterLoadAssignment{
 		ClusterName: ep.clusterName,
 	}
-	for loc, eps := range ep.lbEps {
+	for loc, eps := range ep.LbEps {
 		var l *envoy_config_core_v3.Locality
 		if loc != (krtcollections.PodLocality{}) {
 			l = &envoy_config_core_v3.Locality{
@@ -312,21 +324,21 @@ func prioritize(ep EndpointsForUpstream, lbInfo *LBInfo, priorities *priorities)
 	return &CLA{cla}
 }
 
-func getEndpoints(eps []endpointWithMd, p *priorities) []*envoy_config_endpoint_v3.LocalityLbEndpoints {
+func getEndpoints(eps []EndpointWithMd, p *priorities) []*envoy_config_endpoint_v3.LocalityLbEndpoints {
 	if p == nil {
 		return []*envoy_config_endpoint_v3.LocalityLbEndpoints{{
-			LbEndpoints: slices.Map(eps, func(e endpointWithMd) *envoy_config_endpoint_v3.LbEndpoint { return e.LbEndpoint }),
+			LbEndpoints: slices.Map(eps, func(e EndpointWithMd) *envoy_config_endpoint_v3.LbEndpoint { return e.LbEndpoint }),
 		}}
 	}
 	return applyFailoverPriorityPerLocality(eps, p)
 }
 
 func applyFailoverPriorityPerLocality(
-	eps []endpointWithMd, p *priorities) []*envoy_config_endpoint_v3.LocalityLbEndpoints {
+	eps []EndpointWithMd, p *priorities) []*envoy_config_endpoint_v3.LocalityLbEndpoints {
 	// key is priority, value is the index of LocalityLbEndpoints.LbEndpoints
 	priorityMap := map[int][]int{}
 	for i, ep := range eps {
-		priority := p.getPriority(ep.endpointMd.labels)
+		priority := p.getPriority(ep.EndpointMd.Labels)
 		priorityMap[priority] = append(priorityMap[priority], i)
 	}
 

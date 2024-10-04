@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-type nodeMetadata struct {
+type NodeMetadata struct {
 	name   string
 	labels map[string]string
 }
@@ -22,10 +22,10 @@ type PodLocality struct {
 	Subzone string
 }
 
-func (c nodeMetadata) ResourceName() string {
+func (c NodeMetadata) ResourceName() string {
 	return c.name
 }
-func (c nodeMetadata) Equals(in nodeMetadata) bool {
+func (c NodeMetadata) Equals(in NodeMetadata) bool {
 	return c.name == in.name && maps.Equal(c.labels, in.labels)
 }
 
@@ -40,11 +40,15 @@ func (c LocalityPod) Equals(in LocalityPod) bool {
 	return c.Named == in.Named && c.Locality == in.Locality && maps.Equal(c.PodLabels, in.PodLabels) && maps.Equal(c.AugmentedLabels, in.AugmentedLabels)
 }
 
-func newNodeCollection(istioClient kube.Client) krt.Collection[nodeMetadata] {
+func newNodeCollection(istioClient kube.Client) krt.Collection[NodeMetadata] {
 	nodeClient := kclient.New[*corev1.Node](istioClient)
 	nodes := krt.WrapClient(nodeClient, krt.WithName("Nodes"))
-	return krt.NewCollection(nodes, func(kctx krt.HandlerContext, us *corev1.Node) *nodeMetadata {
-		return &nodeMetadata{
+	return NewNodeMetadataCollection(nodes)
+}
+
+func NewNodeMetadataCollection(nodes krt.Collection[*corev1.Node]) krt.Collection[NodeMetadata] {
+	return krt.NewCollection(nodes, func(kctx krt.HandlerContext, us *corev1.Node) *NodeMetadata {
+		return &NodeMetadata{
 			name:   us.Name,
 			labels: us.Labels,
 		}
@@ -56,12 +60,19 @@ func NewPodsCollection(istioClient kube.Client) krt.Collection[LocalityPod] {
 	pods := krt.WrapClient(podClient, krt.WithName("Pods"))
 	nodes := newNodeCollection(istioClient)
 
+	return NewLocalityPodsCollection(nodes, pods)
+}
+
+func NewLocalityPodsCollection(nodes krt.Collection[NodeMetadata], pods krt.Collection[*corev1.Pod]) krt.Collection[LocalityPod] {
 	return krt.NewCollection(pods, augmentPodLabels(nodes))
 }
 
-func augmentPodLabels(nodes krt.Collection[nodeMetadata]) func(kctx krt.HandlerContext, pod *corev1.Pod) *LocalityPod {
+func augmentPodLabels(nodes krt.Collection[NodeMetadata]) func(kctx krt.HandlerContext, pod *corev1.Pod) *LocalityPod {
 	return func(kctx krt.HandlerContext, pod *corev1.Pod) *LocalityPod {
 		labels := maps.Clone(pod.Labels)
+		if labels == nil {
+			labels = make(map[string]string)
+		}
 		nodeName := pod.Spec.NodeName
 		var l PodLocality
 		if nodeName != "" {
@@ -81,9 +92,15 @@ func augmentPodLabels(nodes krt.Collection[nodeMetadata]) func(kctx krt.HandlerC
 				}
 
 				// augment labels
-				labels[corev1.LabelTopologyRegion] = region
-				labels[corev1.LabelTopologyZone] = zone
-				labels[label.TopologySubzone.Name] = subzone
+				if region != "" {
+					labels[corev1.LabelTopologyRegion] = region
+				}
+				if zone != "" {
+					labels[corev1.LabelTopologyZone] = zone
+				}
+				if subzone != "" {
+					labels[label.TopologySubzone.Name] = subzone
+				}
 				//	labels[label.TopologyCluster.Name] = clusterID.String()
 				//	labels[LabelHostname] = k8sNode
 				//	labels[label.TopologyNetwork.Name] = networkID.String()

@@ -85,6 +85,7 @@ message Upstream {
     }
 
     // Failover endpoints for this upstream. If omitted (the default) no failovers will be applied.
+    // Note: Not currently supported for Gloo-gateway v2.
     gloo.solo.io.Failover failover = 18;
 
     //HTTP/1 connection configurations

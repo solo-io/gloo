@@ -244,17 +244,20 @@ func (ep *glooEndpoint) ResourceName() string {
 	return ep.Metadata.GetName() + "/" + ep.Metadata.GetNamespace()
 }
 
-var _ krt.ResourceNamer = &upstream{}
+var _ krt.ResourceNamer = UpstreamWrapper{}
 
 // upstream provides a keying function for Gloo's `v1.Upstream`
-type upstream struct {
+type UpstreamWrapper struct {
 	*gloov1.Upstream
 }
 
-func (us *upstream) ResourceName() string {
-	return us.Metadata.GetName() + "/" + us.Metadata.GetNamespace()
+func (us UpstreamWrapper) ResourceName() string {
+	return krt.Named{
+		Name:      us.Metadata.GetName(),
+		Namespace: us.Metadata.GetNamespace(),
+	}.ResourceName()
 }
-func (us *upstream) Equals(in *upstream) bool {
+func (us UpstreamWrapper) Equals(in UpstreamWrapper) bool {
 	return proto.Equal(us, in)
 }
 
@@ -262,7 +265,7 @@ type fromKrtSnap struct {
 	cfgMaps   []*corev1.ConfigMap
 	rtOpts    []*sologatewayv1.RouteOption
 	secrets   []*corev1.Secret
-	upstreams []*upstream
+	upstreams []UpstreamWrapper
 	vhostOpts []*sologatewayv1.VirtualHostOption
 }
 
@@ -297,28 +300,28 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		glookubev1.SchemeGroupVersion.WithResource("upstreams"),
 		krt.WithName("Upstreams"),
 	)
-	GlooUpstreams := krt.NewCollection(KubeUpstreams, func(kctx krt.HandlerContext, u *glookubev1.Upstream) **upstream {
+	GlooUpstreams := krt.NewCollection(KubeUpstreams, func(kctx krt.HandlerContext, u *glookubev1.Upstream) *UpstreamWrapper {
 		// TODO: not cloning, this is already a copy from the underlying cache, right?!
 		glooUs := &u.Spec
 		glooUs.Metadata = &core.Metadata{}
 		glooUs.Metadata.Name = u.GetName()
 		glooUs.Metadata.Namespace = u.GetNamespace()
-		us := &upstream{glooUs}
+		us := UpstreamWrapper{glooUs}
 		return &us
 	}, krt.WithName("InMemoryUpstreams"))
 
 	serviceClient := kclient.New[*corev1.Service](s.istioClient)
 	Services := krt.WrapClient(serviceClient, krt.WithName("Services"))
-	InMemUpstreams := krt.NewManyCollection(Services, func(kctx krt.HandlerContext, svc *corev1.Service) []*upstream {
-		uss := []*upstream{}
+	InMemUpstreams := krt.NewManyCollection(Services, func(kctx krt.HandlerContext, svc *corev1.Service) []UpstreamWrapper {
+		uss := []UpstreamWrapper{}
 		for _, port := range svc.Spec.Ports {
 			us := kubeupstreams.ServiceToUpstream(ctx, svc, port)
-			uss = append(uss, &upstream{us})
+			uss = append(uss, UpstreamWrapper{us})
 		}
 		return uss
 	})
 	// TODO: get upstream collections from extensions
-	FinalUpstreams := krt.JoinCollection([]krt.Collection[*upstream]{GlooUpstreams, InMemUpstreams})
+	FinalUpstreams := krt.JoinCollection([]krt.Collection[UpstreamWrapper]{GlooUpstreams, InMemUpstreams})
 	inputs := NewGlooK8sEndpointInputs(s.proxyTranslator.settings, s.istioClient, s.pods, Services, FinalUpstreams)
 	GlooEndpoints := NewGlooK8sEndpoints(ctx, inputs)
 
