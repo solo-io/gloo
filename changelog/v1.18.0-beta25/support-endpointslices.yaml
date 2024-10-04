@@ -1,8 +1,0 @@
-changelog:
-  - type: NEW_FEATURE
-    issueLink: https://github.com/solo-io/solo-projects/issues/6910
-    resolvesIssue: false
-    description: >-
-      Add support for EndpointSlices in the Gloo Gateway proxy. This feature
-      allows Gloo to use EndpointSlices to discover endpoints for services
-      instead of the legacy Endpoints API.
