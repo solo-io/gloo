@@ -2,5 +2,5 @@ changelog:
 - type: NON_USER_FACING
   issueLink: https://github.com/solo-io/gloo/issues/10113
   resolvesIssue: false
-  description: Increase the timeout to resolve the flaky Bootstrap Clients test. This increase is to give additional time for the new pod to come up and assume leadership.
+  description: Fix the flaky Bootstrap Clients test by reducing the leader election lease timeouts to ensure that the new pod becomes the leader within the timeout.
 
