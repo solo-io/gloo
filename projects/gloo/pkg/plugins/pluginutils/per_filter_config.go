@@ -4,7 +4,7 @@ import (
 	"context"
 	"reflect"
 
-	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/proto"
@@ -79,7 +79,7 @@ type PerFilterConfigModifyFunc func(spec *v1.Destination, existing *any.Any) (pr
 
 func ModifyPerFilterConfig(
 	ctx context.Context,
-	snap *v1snap.ApiSnapshot,
+	snap *snapshot.Snapshot,
 	in *v1.Route,
 	out *envoy_config_route_v3.Route,
 	filterName string,
@@ -131,7 +131,7 @@ func ModifyPerFilterConfig(
 // call this from
 func MarkPerFilterConfig(
 	ctx context.Context,
-	snap *v1snap.ApiSnapshot,
+	snap *snapshot.Snapshot,
 	in *v1.Route,
 	out *envoy_config_route_v3.Route,
 	filterName string,

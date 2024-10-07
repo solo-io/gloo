@@ -8,6 +8,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
@@ -49,7 +50,7 @@ type GlooValidationReport struct {
 	ResourceReports reporter.ResourceReports
 }
 
-func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snapshot *gloosnapshot.ApiSnapshot, shouldDelete bool) []*GlooValidationReport {
+func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snap *gloosnapshot.ApiSnapshot, shouldDelete bool) []*GlooValidationReport {
 	ctx = contextutils.WithLogger(ctx, "proxy-validator")
 
 	var validationReports []*GlooValidationReport
@@ -59,7 +60,7 @@ func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snaps
 		proxiesToValidate = gloov1.ProxyList{proxy}
 	} else {
 		// if no proxy was passed in, call translate for all proxies in snapshot
-		proxiesToValidate = snapshot.Proxies
+		proxiesToValidate = snap.Proxies
 	}
 
 	if len(proxiesToValidate) == 0 {
@@ -73,7 +74,7 @@ func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snaps
 
 	params := plugins.Params{
 		Ctx:      ctx,
-		Snapshot: snapshot,
+		Snapshot: snapshot.FromApiSnapshot(snap),
 		Settings: gv.settings,
 	}
 	// Validation with gateway occurs in /projects/gateway/pkg/validation/validator.go, where validation for the Gloo
@@ -82,7 +83,7 @@ func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snaps
 		xdsSnapshot, resourceReports, proxyReport := gv.translator.Translate(params, proxy)
 
 		// Sanitize routes before sending report to gateway
-		gv.xdsSanitizer.SanitizeSnapshot(ctx, snapshot, xdsSnapshot, resourceReports)
+		gv.xdsSanitizer.SanitizeSnapshot(ctx, params.Snapshot, xdsSnapshot, resourceReports)
 		routeErrorToWarnings(resourceReports, proxyReport)
 
 		validationReports = append(validationReports, &GlooValidationReport{

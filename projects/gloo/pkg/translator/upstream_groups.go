@@ -10,7 +10,7 @@ import (
 func (t *translatorInstance) verifyUpstreamGroups(params plugins.Params, reports reporter.ResourceReports) {
 
 	upstreams := params.Snapshot.Upstreams
-	upstreamGroups := params.Snapshot.UpstreamGroups
+	upstreamGroups := params.Snapshot.UpstreamGroups.List()
 
 	for _, ug := range upstreamGroups {
 		for i, dest := range ug.GetDestinations() {

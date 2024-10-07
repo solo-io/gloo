@@ -19,6 +19,119 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+func TestEndpointsForUpstreamOrderDoesntMatter(t *testing.T) {
+	g := gomega.NewWithT(t)
+
+	us := UpstreamWrapper{
+		Upstream: &gloov1.Upstream{
+			Metadata: &core.Metadata{Name: "name", Namespace: "ns"},
+			UpstreamType: &gloov1.Upstream_Kube{
+				Kube: &kubernetes.UpstreamSpec{
+					ServiceName:      "svc",
+					ServiceNamespace: "ns",
+					ServicePort:      8080,
+				},
+			},
+		},
+	}
+	// input
+	emd1 := EndpointWithMd{
+		LbEndpoint: &endpointv3.LbEndpoint{
+			HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
+				Endpoint: &endpointv3.Endpoint{
+					Address: &envoy_config_core_v3.Address{
+						Address: &envoy_config_core_v3.Address_SocketAddress{
+							SocketAddress: &envoy_config_core_v3.SocketAddress{
+								Address: "1.2.3.4",
+								PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+									PortValue: 8080,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		EndpointMd: EndpointMetadata{
+			Labels: map[string]string{
+				corev1.LabelTopologyRegion: "region",
+				corev1.LabelTopologyZone:   "zone",
+			},
+		},
+	}
+	emd2 := EndpointWithMd{
+		LbEndpoint: &endpointv3.LbEndpoint{
+			HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
+				Endpoint: &endpointv3.Endpoint{
+					Address: &envoy_config_core_v3.Address{
+						Address: &envoy_config_core_v3.Address_SocketAddress{
+							SocketAddress: &envoy_config_core_v3.SocketAddress{
+								Address: "1.2.3.5",
+								PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+									PortValue: 8080,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		EndpointMd: EndpointMetadata{
+			Labels: map[string]string{
+				corev1.LabelTopologyRegion: "region2",
+				corev1.LabelTopologyZone:   "zone2",
+			},
+		},
+	}
+	result1 := NewEndpointsForUpstream(us)
+	result1.Add(krtcollections.PodLocality{
+		Region: "region",
+		Zone:   "zone",
+	}, emd1)
+	result1.Add(krtcollections.PodLocality{
+		Region: "region2",
+		Zone:   "zone2",
+	}, emd2)
+
+	result2 := NewEndpointsForUpstream(us)
+	result2.Add(krtcollections.PodLocality{
+		Region: "region2",
+		Zone:   "zone2",
+	}, emd2)
+	result2.Add(krtcollections.PodLocality{
+		Region: "region",
+		Zone:   "zone",
+	}, emd1)
+	g.Expect(result1.Equals(*result2)).To(BeTrue(), "expected %v, got %v", result1, result2)
+
+	// test with non matching locality
+	result3 := NewEndpointsForUpstream(us)
+	result3.Add(krtcollections.PodLocality{
+		Region: "region",
+		Zone:   "zone",
+	}, emd1)
+	result3.Add(krtcollections.PodLocality{
+		Region: "region",
+		Zone:   "zone",
+	}, emd2)
+	g.Expect(result1.Equals(*result3)).To(BeFalse(), "not expected %v, got %v", result1, result2)
+
+	// test with non matching labels
+	result4 := NewEndpointsForUpstream(us)
+	result4.Add(krtcollections.PodLocality{
+		Region: "region",
+		Zone:   "zone",
+	}, emd1)
+
+	emd2.EndpointMd.Labels["extra"] = "label"
+	result4.Add(krtcollections.PodLocality{
+		Region: "region2",
+		Zone:   "zone2",
+	}, emd2)
+	g.Expect(result1.Equals(*result4)).To(BeFalse(), "not expected %v, got %v", result1, result2)
+
+}
+
 func TestEndpoints(t *testing.T) {
 	g := gomega.NewWithT(t)
 	testCases := []struct {
@@ -316,6 +429,126 @@ func TestEndpoints(t *testing.T) {
 						},
 					},
 				})
+				return result
+			},
+		},
+		{
+			name: "basic - metadata propagates",
+			inputs: []any{
+				&corev1.Pod{
+					TypeMeta: metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "name",
+						Namespace: "ns",
+						Labels: map[string]string{
+							// pod labels should propagate to endpoint metadata.
+							"label": "value",
+						},
+					},
+					Spec: corev1.PodSpec{
+						NodeName: "node",
+					},
+					Status: corev1.PodStatus{
+						Phase: corev1.PodRunning,
+						PodIP: "1.2.3.4",
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node",
+						Labels: map[string]string{
+							corev1.LabelTopologyRegion: "region",
+							corev1.LabelTopologyZone:   "zone",
+							// this label should not propagate. only node topology labels should.
+							"unralated": "label",
+						},
+					},
+				},
+				&corev1.Endpoints{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "svc",
+						Namespace: "ns",
+					},
+					Subsets: []corev1.EndpointSubset{
+						{
+							Ports: []corev1.EndpointPort{
+								{
+									Name: "http",
+									Port: 8080,
+								},
+							},
+							Addresses: []corev1.EndpointAddress{
+								{
+									IP: "1.2.3.4",
+									TargetRef: &corev1.ObjectReference{
+										Kind:      "Pod",
+										Name:      "name",
+										Namespace: "ns",
+									},
+								},
+							},
+						},
+					},
+				},
+				&corev1.Service{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "svc",
+						Namespace: "ns",
+					},
+					Spec: corev1.ServiceSpec{
+						Ports: []corev1.ServicePort{
+							{
+								Name: "http",
+								Port: 8080,
+							},
+						},
+					},
+				},
+			},
+			upstream: UpstreamWrapper{
+				Upstream: &gloov1.Upstream{
+					Metadata: &core.Metadata{Name: "name", Namespace: "ns"},
+					UpstreamType: &gloov1.Upstream_Kube{
+						Kube: &kubernetes.UpstreamSpec{
+							ServiceName:      "svc",
+							ServiceNamespace: "ns",
+							ServicePort:      8080,
+						},
+					},
+				},
+			},
+			result: func(us UpstreamWrapper) *EndpointsForUpstream {
+				// output
+				emd := EndpointWithMd{
+					LbEndpoint: &endpointv3.LbEndpoint{
+						HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
+							Endpoint: &endpointv3.Endpoint{
+								Address: &envoy_config_core_v3.Address{
+									Address: &envoy_config_core_v3.Address_SocketAddress{
+										SocketAddress: &envoy_config_core_v3.SocketAddress{
+											Address: "1.2.3.4",
+											PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+												PortValue: 8080,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					EndpointMd: EndpointMetadata{
+						Labels: map[string]string{
+							corev1.LabelTopologyRegion: "region",
+							corev1.LabelTopologyZone:   "zone",
+							"label":                    "value",
+						},
+					},
+				}
+				result := NewEndpointsForUpstream(us)
+				result.Add(krtcollections.PodLocality{
+					Region: "region",
+					Zone:   "zone",
+				}, emd)
 				return result
 			},
 		},

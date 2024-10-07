@@ -835,12 +835,15 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 
 	// MARK: build gloo translator
-	sharedTranslator := translator.NewTranslatorWithHasher(
-		sslutils.NewSslConfigTranslator(),
-		opts.Settings,
-		extensions.PluginRegistryFactory(watchOpts.Ctx),
-		resourceHasher,
-	)
+	newTranslator := func() translator.Translator {
+		return translator.NewTranslatorWithHasher(
+			sslutils.NewSslConfigTranslator(),
+			opts.Settings,
+			extensions.PluginRegistryFactory(watchOpts.Ctx),
+			resourceHasher,
+		)
+	}
+	sharedTranslator := newTranslator()
 	routeReplacingSanitizer, err := sanitizer.NewRouteReplacingSanitizer(opts.Settings.GetGloo().GetInvalidConfigPolicy())
 	if err != nil {
 		return err
@@ -977,7 +980,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 			opts.IsitoClient, opts.UniqlyConnectedClient, opts.Pods,
 			k8sgwExt,
 			proxyClient,
-			sharedTranslator,
+			newTranslator,
 			opts.ControlPlane.SnapshotCache,
 			opts.Settings,
 			syncerExtensions,

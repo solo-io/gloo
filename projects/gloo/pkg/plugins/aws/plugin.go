@@ -21,13 +21,13 @@ import (
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/aws"
 	envoy_transform "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/transformation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
-	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -164,16 +164,18 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 }
 
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
-
+	upstreamsList := params.Snapshot.Upstreams
 	// lazy load
 	if p.recordedUpstreams == nil {
 		p.recordedUpstreams = make(map[string]*aws.UpstreamSpec)
-		for _, in := range params.Snapshot.Upstreams {
-			upstreamSpec, ok := in.GetUpstreamType().(*v1.Upstream_Aws)
-			if ok {
-				// this is not an aws upstream so we disregard
-				// even if it failed, route should still be valid
-				p.recordedUpstreams[translator.UpstreamToClusterName(in.GetMetadata().Ref())] = upstreamSpec.Aws
+		if !upstreamsList.IsFindEfficient() {
+			for _, in := range upstreamsList.List() {
+				upstreamSpec, ok := in.GetUpstreamType().(*v1.Upstream_Aws)
+				if ok {
+					// this is not an aws upstream so we disregard
+					// even if it failed, route should still be valid
+					p.recordedUpstreams[translator.UpstreamToClusterName(in.GetMetadata().Ref())] = upstreamSpec.Aws
+				}
 			}
 		}
 	}
@@ -220,6 +222,16 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 			}
 
 			// validate that the upstream is one that we have previously recorded as an aws upstream
+			if upstreamsList.IsFindEfficient() {
+				upstream, err := upstreamsList.Find(upstreamRef.Namespace, upstreamRef.Name)
+				if err == nil {
+					if upstreamSpec, ok := upstream.GetUpstreamType().(*v1.Upstream_Aws); ok {
+						// this is not an aws upstream so we disregard
+						// even if it failed, route should still be valid
+						p.recordedUpstreams[translator.UpstreamToClusterName(upstreamRef)] = upstreamSpec.Aws
+					}
+				}
+			}
 			lambdaSpec, ok := p.recordedUpstreams[translator.UpstreamToClusterName(upstreamRef)]
 			if !ok {
 				if tryingNonExplicitAWSDest {

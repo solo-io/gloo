@@ -2,9 +2,7 @@ package proxy_syncer
 
 import (
 	"context"
-	"encoding/binary"
 	"fmt"
-	"hash"
 	"hash/fnv"
 	"sort"
 	"strings"
@@ -142,13 +140,22 @@ type EndpointsForUpstream struct {
 
 func NewEndpointsForUpstream(us UpstreamWrapper) *EndpointsForUpstream {
 	clusterName := translator.UpstreamToClusterName(us.GetMetadata().Ref())
+	// start with a hash of the cluster name. technically we dont need it for krt, as we can compare the upstream name. but it helps later
+	// to compute the hash we present envoy with.
+	h := fnv.New64()
+	h.Write([]byte(clusterName))
+	lbEpsEqualityHash := h.Sum64()
+
+	// add the upstream hash to the clustername, so that if it changes the envoy cluster will become warm again.
+	clusterName = getEndpointClusterName(clusterName, us.Upstream)
 	return &EndpointsForUpstream{
 		LbEps:       make(map[krtcollections.PodLocality][]EndpointWithMd),
-		clusterName: getEndpointClusterName(clusterName, us.Upstream),
+		clusterName: clusterName,
 		UpstreamRef: types.NamespacedName{
 			Namespace: us.GetMetadata().Namespace,
 			Name:      us.GetMetadata().Name,
 		},
+		lbEpsEqualityHash: lbEpsEqualityHash,
 	}
 }
 
@@ -163,8 +170,8 @@ func (e *EndpointsForUpstream) Add(l krtcollections.PodLocality, emd EndpointWit
 	hasher.Write([]byte(addr))
 	hashUint64(hasher, uint64(port))
 	hashUint64(hasher, hashLabels(emd.EndpointMd.Labels))
-	// TODO: replaces this with real hash; not just len...
-	hashUint64(hasher, uint64(len(emd.GetMetadata().GetFilterMetadata())))
+	hashUint64(hasher, HashMetadata(fnv.New64, emd.GetMetadata()))
+
 	// xor it as we dont care about order - if we have the same endpoints in the same locality
 	// we are good.
 	e.lbEpsEqualityHash ^= hasher.Sum64()
@@ -253,7 +260,6 @@ func TransformUpstreamsBuilder(ctx context.Context, inputs EndpointsInputs) func
 				}
 				ep := createLbEndpoint(addr.IP, port, podLabels, enableAutoMtls)
 
-				// this is slightly fragile.
 				ret.Add(l, EndpointWithMd{
 					LbEndpoint: ep,
 					EndpointMd: EndpointMetadata{
@@ -264,25 +270,6 @@ func TransformUpstreamsBuilder(ctx context.Context, inputs EndpointsInputs) func
 		}
 		return ret
 	}
-}
-
-func hashUint64(hasher hash.Hash64, value uint64) {
-	var bytes [8]byte
-	binary.NativeEndian.PutUint64(bytes[:], value)
-	hasher.Write(bytes[:])
-}
-
-func hashLabels(labels map[string]string) uint64 {
-	finalHash := uint64(0)
-	for k, v := range labels {
-		fnv := fnv.New64()
-		fnv.Write([]byte(k))
-		fnv.Write([]byte{0})
-		fnv.Write([]byte(v))
-		fnv.Write([]byte{0})
-		finalHash ^= fnv.Sum64()
-	}
-	return finalHash
 }
 
 func prioritize(ep EndpointsForUpstream, lbInfo *LBInfo, priorities *priorities) *CLA {

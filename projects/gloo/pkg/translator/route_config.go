@@ -9,6 +9,7 @@ import (
 	"unicode"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/dynamic_forward_proxy"
+	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
@@ -19,7 +20,6 @@ import (
 	validationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	v1plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
@@ -772,7 +772,7 @@ func ValidateVirtualHostDomains(virtualHosts []*v1.VirtualHost, httpListenerRepo
 	}
 }
 
-func ValidateRouteDestinations(snap *v1snap.ApiSnapshot, action *v1.RouteAction) error {
+func ValidateRouteDestinations(snap *snapshot.Snapshot, action *v1.RouteAction) error {
 	upstreams := snap.Upstreams
 	// make sure the destination itself has the right structure
 	switch dest := action.GetDestination().(type) {
@@ -791,7 +791,7 @@ func ValidateRouteDestinations(snap *v1snap.ApiSnapshot, action *v1.RouteAction)
 	return eris.Errorf("must specify either 'singleDestination', 'multipleDestinations', 'upstreamGroup', 'clusterHeader', or 'dynamicForwardProxy' for action")
 }
 
-func ValidateTcpRouteDestinations(snap *v1snap.ApiSnapshot, action *v1.TcpHost_TcpAction) error {
+func ValidateTcpRouteDestinations(snap *snapshot.Snapshot, action *v1.TcpHost_TcpAction) error {
 	upstreams := snap.Upstreams
 	// make sure the destination itself has the right structure
 	switch dest := action.GetDestination().(type) {
@@ -807,7 +807,7 @@ func ValidateTcpRouteDestinations(snap *v1snap.ApiSnapshot, action *v1.TcpHost_T
 	return eris.Errorf("must specify either 'singleDestination', 'multipleDestinations', 'upstreamGroup' or 'forwardSniClusterName' for action")
 }
 
-func validateUpstreamGroup(snap *v1snap.ApiSnapshot, ref *core.ResourceRef) error {
+func validateUpstreamGroup(snap *snapshot.Snapshot, ref *core.ResourceRef) error {
 
 	upstreamGroup, err := snap.UpstreamGroups.Find(ref.GetNamespace(), ref.GetName())
 	if err != nil {
@@ -822,7 +822,7 @@ func validateUpstreamGroup(snap *v1snap.ApiSnapshot, ref *core.ResourceRef) erro
 	return nil
 }
 
-func validateMultiDestination(upstreams []*v1.Upstream, destinations []*v1.WeightedDestination) error {
+func validateMultiDestination(upstreams snapshot.UpstreamList, destinations []*v1.WeightedDestination) error {
 	for _, dest := range destinations {
 		if err := validateSingleDestination(upstreams, dest.GetDestination()); err != nil {
 			return eris.Wrap(err, "invalid destination in weighted destination list")
@@ -831,7 +831,7 @@ func validateMultiDestination(upstreams []*v1.Upstream, destinations []*v1.Weigh
 	return nil
 }
 
-func validateSingleDestination(upstreams v1.UpstreamList, destination *v1.Destination) error {
+func validateSingleDestination(upstreams snapshot.UpstreamList, destination *v1.Destination) error {
 	upstreamRef, err := usconversion.DestinationToUpstreamRef(destination)
 	if err != nil {
 		return err

@@ -8,7 +8,7 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	"github.com/solo-io/gloo/projects/gloo/constants"
-	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -171,7 +171,7 @@ func makeFallbackListenerAndCluster(
 
 func (s *RouteReplacingSanitizer) SanitizeSnapshot(
 	ctx context.Context,
-	glooSnapshot *v1snap.ApiSnapshot,
+	glooSnapshot *snapshot.Snapshot,
 	xdsSnapshot envoycache.Snapshot,
 	reports reporter.ResourceReports,
 ) envoycache.Snapshot {
@@ -237,12 +237,12 @@ func getRoutes(ctx context.Context, snap envoycache.Snapshot) []*envoy_config_ro
 	return routeConfigs
 }
 
-func getClusters(glooSnapshot *v1snap.ApiSnapshot, xdsSnapshot envoycache.Snapshot) map[string]struct{} {
+func getClusters(glooSnapshot *snapshot.Snapshot, xdsSnapshot envoycache.Snapshot) map[string]struct{} {
 	// mark all valid destination clusters, i.e. those that are in both the gloo snapshot and xds snapshot
 	validClusters := make(map[string]struct{})
 	xdsClusters := xdsSnapshot.GetResources(types.ClusterTypeV3)
 
-	for _, up := range glooSnapshot.Upstreams.AsInputResources() {
+	for _, up := range glooSnapshot.Upstreams.List() {
 		clusterName := translator.UpstreamToClusterName(up.GetMetadata().Ref())
 		if xdsClusters.Items[clusterName] != nil {
 			validClusters[clusterName] = struct{}{}

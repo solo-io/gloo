@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
+	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -59,9 +60,9 @@ var (
 )
 
 type SslConfigTranslator interface {
-	ResolveUpstreamSslConfig(secrets v1.SecretList, uc *ssl.UpstreamSslConfig) (*envoyauth.UpstreamTlsContext, error)
-	ResolveDownstreamSslConfig(secrets v1.SecretList, dc *ssl.SslConfig) (*envoyauth.DownstreamTlsContext, error)
-	ResolveCommonSslConfig(cs CertSource, secrets v1.SecretList, mustHaveCert bool) (*envoyauth.CommonTlsContext, error)
+	ResolveUpstreamSslConfig(secrets snapshot.SecretList, uc *ssl.UpstreamSslConfig) (*envoyauth.UpstreamTlsContext, error)
+	ResolveDownstreamSslConfig(secrets snapshot.SecretList, dc *ssl.SslConfig) (*envoyauth.DownstreamTlsContext, error)
+	ResolveCommonSslConfig(cs CertSource, secrets snapshot.SecretList, mustHaveCert bool) (*envoyauth.CommonTlsContext, error)
 	ResolveSslParamsConfig(params *ssl.SslParameters) (*envoyauth.TlsParameters, error)
 }
 
@@ -73,7 +74,7 @@ func NewSslConfigTranslator() *sslConfigTranslator {
 }
 
 func (s *sslConfigTranslator) ResolveUpstreamSslConfig(
-	secrets v1.SecretList,
+	secrets snapshot.SecretList,
 	uc *ssl.UpstreamSslConfig,
 ) (*envoyauth.UpstreamTlsContext, error) {
 	common, err := s.ResolveCommonSslConfig(uc, secrets, false)
@@ -94,7 +95,7 @@ func (s *sslConfigTranslator) ResolveUpstreamSslConfig(
 	}, nil
 }
 
-func (s *sslConfigTranslator) ResolveDownstreamSslConfig(secrets v1.SecretList, dc *ssl.SslConfig) (*envoyauth.DownstreamTlsContext, error) {
+func (s *sslConfigTranslator) ResolveDownstreamSslConfig(secrets snapshot.SecretList, dc *ssl.SslConfig) (*envoyauth.DownstreamTlsContext, error) {
 	common, err := s.ResolveCommonSslConfig(dc, secrets, true)
 	if err != nil {
 		return nil, err
@@ -307,7 +308,7 @@ func (s *sslConfigTranslator) handleSds(sslSecrets *ssl.SDSConfig, matchSan []*e
 	return tlsContext, nil
 }
 
-func (s *sslConfigTranslator) ResolveCommonSslConfig(cs CertSource, secrets v1.SecretList, mustHaveCert bool) (*envoyauth.CommonTlsContext, error) {
+func (s *sslConfigTranslator) ResolveCommonSslConfig(cs CertSource, secrets snapshot.SecretList, mustHaveCert bool) (*envoyauth.CommonTlsContext, error) {
 	var (
 		certChain, privateKey, rootCa, ocspStapleFile string
 		// An OCSP response (staple) is a DER-encoded binary file
@@ -413,7 +414,7 @@ func (s *sslConfigTranslator) ResolveCommonSslConfig(cs CertSource, secrets v1.S
 	return tlsContext, err
 }
 
-func getSslSecrets(ref core.ResourceRef, secrets v1.SecretList) (string, string, string, []byte, error) {
+func getSslSecrets(ref core.ResourceRef, secrets snapshot.SecretList) (string, string, string, []byte, error) {
 	secret, err := secrets.Find(ref.Strings())
 	if err != nil {
 		return "", "", "", nil, sslSecretNotFoundError(err)

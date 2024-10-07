@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/rotisserie/eris"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 	"github.com/solo-io/solo-kit/pkg/utils/prototime"
 
-	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	als2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tcp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -237,7 +237,7 @@ func (p *plugin) convertToWeightedCluster(multiDest *v1.MultiDestination) (*envo
 // create a duplicate of the listener filter chain for each ssl cert we want to serve
 // if there is no SSL config on the listener, the envoy listener will have one insecure filter chain
 func (p *plugin) computeTcpFilterChain(
-	snap *v1snap.ApiSnapshot,
+	snap *snapshot.Snapshot,
 	listenerFilters []*envoy_config_listener_v3.Filter,
 	host *v1.TcpHost,
 ) (*envoy_config_listener_v3.FilterChain, error) {

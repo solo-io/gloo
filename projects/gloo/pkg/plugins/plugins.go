@@ -3,6 +3,7 @@ package plugins
 import (
 	"context"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
@@ -11,7 +12,6 @@ import (
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 )
 
 // SourceLabel can indicate internally the source resource that generated
@@ -33,7 +33,7 @@ type Plugin interface {
 }
 
 /*
-	Params
+Params
 */
 
 type InitParams struct {
@@ -44,7 +44,7 @@ type InitParams struct {
 type Params struct {
 	Ctx      context.Context
 	Settings *v1.Settings
-	Snapshot *v1snap.ApiSnapshot
+	Snapshot *snapshot.Snapshot
 	Messages map[*core.ResourceRef][]string
 }
 

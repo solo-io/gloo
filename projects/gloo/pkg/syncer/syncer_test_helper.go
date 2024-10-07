@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
 
-	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 )
@@ -63,7 +63,7 @@ type MockXdsSanitizer struct {
 	Snap   envoycache.Snapshot
 }
 
-func (s *MockXdsSanitizer) SanitizeSnapshot(ctx context.Context, glooSnapshot *v1snap.ApiSnapshot, xdsSnapshot envoycache.Snapshot, reports reporter.ResourceReports) envoycache.Snapshot {
+func (s *MockXdsSanitizer) SanitizeSnapshot(ctx context.Context, glooSnapshot *snapshot.Snapshot, xdsSnapshot envoycache.Snapshot, reports reporter.ResourceReports) envoycache.Snapshot {
 	s.Called = true
 	if s.Snap != nil {
 		return s.Snap

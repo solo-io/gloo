@@ -28,14 +28,16 @@ func newIndexedEndpoints(uccs krt.Collection[krtcollections.UniqlyConnectedClien
 		podLabels := ucc.Labels
 		endpoints := krt.Fetch(kctx, glooEndpoints)
 		var endpointsProto []envoycache.Resource
+		var endpointsVersion uint64
 		for _, ep := range endpoints {
 			cla := applyDestRulesForHostnames(kctx, wrappedDestRules, destinationRulesIndex, ucc.Namespace, ep, podLabels)
 			endpointsProto = append(endpointsProto, resource.NewEnvoyResource(cla))
+			endpointsVersion ^= ep.lbEpsEqualityHash
 		}
 		return &uccWithEndpoints{
 			UniqlyConnectedClient: ucc,
 			endpoints:             endpointsProto,
-			endpointsVersion:      EnvoyCacheResourcesSetToFnvHash(endpointsProto),
+			endpointsVersion:      endpointsVersion,
 		}
 	})
 	idx := krt.NewIndex(clas, func(ucc uccWithEndpoints) []string {

@@ -14,6 +14,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 	syncerstats "github.com/solo-io/gloo/projects/gloo/pkg/syncer/stats"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
@@ -104,7 +105,7 @@ func (s *ProxyTranslator) glooSync(ctx context.Context, snap *v1snap.ApiSnapshot
 func (s *ProxyTranslator) buildXdsSnapshot(
 	ctx context.Context,
 	proxy *v1.Proxy,
-	snap *v1snap.ApiSnapshot,
+	snap *snapshot.Snapshot,
 ) (cache.Snapshot, reporter.ResourceReports, *validation.ProxyReport) {
 
 	proxyCtx := ctx
@@ -181,7 +182,7 @@ func (s *ProxyTranslator) syncEnvoy(
 		params := plugins.Params{
 			Ctx:      proxyCtx,
 			Settings: s.settings,
-			Snapshot: snap,
+			Snapshot: snapshot.FromApiSnapshot(snap),
 			Messages: map[*core.ResourceRef][]string{},
 		}
 

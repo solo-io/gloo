@@ -20,6 +20,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	upstream_proxy_protocol "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils/upstreamproxyprotocol"
+	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/go-utils/contextutils"
@@ -41,8 +42,8 @@ func (t *translatorInstance) computeClusters(
 	params.Ctx = contextutils.WithLogger(ctx, "compute_clusters")
 
 	// snapshot contains both real and service-derived upstreams
-	upstreamGroups := params.Snapshot.UpstreamGroups
-	upstreams := params.Snapshot.Upstreams
+	upstreamGroups := params.Snapshot.UpstreamGroups.List()
+	upstreams := params.Snapshot.Upstreams.List()
 	clusters := make([]*envoy_config_cluster_v3.Cluster, 0, len(upstreams))
 	validateUpstreamLambdaFunctions(proxy, upstreams, upstreamGroups, reports)
 
@@ -64,7 +65,7 @@ func (t *translatorInstance) computeCluster(
 	shouldEnforceNamespaceMatch bool,
 ) *envoy_config_cluster_v3.Cluster {
 	params.Ctx = contextutils.WithLogger(params.Ctx, upstream.GetMetadata().GetName())
-	out := t.initializeCluster(upstream, upstreamRefKeyToEndpoints, reports, &params.Snapshot.Secrets, shouldEnforceNamespaceMatch)
+	out := t.initializeCluster(upstream, upstreamRefKeyToEndpoints, reports, params.Snapshot.Secrets, shouldEnforceNamespaceMatch)
 
 	for _, plugin := range t.pluginRegistry.GetUpstreamPlugins() {
 		if err := plugin.ProcessUpstream(params, upstream, out); err != nil {
@@ -81,7 +82,7 @@ func (t *translatorInstance) initializeCluster(
 	upstream *v1.Upstream,
 	upstreamRefKeyToEndpoints map[string][]*v1.Endpoint,
 	reports reporter.ResourceReports,
-	secrets *v1.SecretList,
+	secrets snapshot.SecretList,
 	shouldEnforceNamespaceMatch bool,
 ) *envoy_config_cluster_v3.Cluster {
 	hcConfig, err := createHealthCheckConfig(upstream, secrets, shouldEnforceNamespaceMatch)
@@ -119,7 +120,7 @@ func (t *translatorInstance) initializeCluster(
 
 	if sslConfig := upstream.GetSslConfig(); sslConfig != nil {
 		applyDefaultsToUpstreamSslConfig(sslConfig, t.settings.GetUpstreamOptions())
-		cfg, err := utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(*secrets, sslConfig)
+		cfg, err := utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(secrets, sslConfig)
 		if err != nil {
 			// if we are configured to warn on missing tls secret and we match that error, add a
 			// warning instead of error to the report.
@@ -177,7 +178,7 @@ var (
 	minimumDnsRefreshRate = prototime.DurationToProto(time.Millisecond * 1)
 )
 
-func createHealthCheckConfig(upstream *v1.Upstream, secrets *v1.SecretList, shouldEnforceNamespaceMatch bool) ([]*envoy_config_core_v3.HealthCheck, error) {
+func createHealthCheckConfig(upstream *v1.Upstream, secrets snapshot.SecretList, shouldEnforceNamespaceMatch bool) ([]*envoy_config_core_v3.HealthCheck, error) {
 	if upstream == nil {
 		return nil, nil
 	}

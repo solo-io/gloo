@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/dynamic_forward_proxy"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
+	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -65,7 +66,7 @@ func (p *plugin) ProcessRouteAction(
 
 func getMetadataMatch(
 	dest *v1.Destination,
-	allUpstreams v1.UpstreamList,
+	allUpstreams snapshot.UpstreamList,
 ) (*envoy_config_core_v3.Metadata, *core.ResourceRef, error) {
 	usRef, err := upstreams.DestinationToUpstreamRef(dest)
 	if err != nil {

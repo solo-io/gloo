@@ -12,6 +12,7 @@ import (
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	glookubev1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 
 	// solokubeclient "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -68,6 +69,7 @@ type ProxySyncer struct {
 	inputs          *GatewayInputChannels
 	mgr             manager.Manager
 	k8sGwExtensions extensions.K8sGatewayExtensions
+	newTranslator   func() translator.Translator
 
 	// proxyReconciler wraps the client that writes Proxy resources into an in-memory cache
 	// This cache is utilized by RateLimit and the debug.ProxyEndpointServer
@@ -129,7 +131,7 @@ func NewProxySyncer(
 	pods krt.Collection[krtcollections.LocalityPod],
 	k8sGwExtensions extensions.K8sGatewayExtensions,
 	proxyClient gloov1.ProxyClient,
-	translator translator.Translator,
+	newTranslator func() translator.Translator,
 	xdsCache envoycache.SnapshotCache,
 	settings *gloov1.Settings,
 	syncerExtensions []syncer.TranslatorSyncerExtension,
@@ -148,8 +150,9 @@ func NewProxySyncer(
 		writeNamespace:  writeNamespace,
 		inputs:          inputs,
 		k8sGwExtensions: k8sGwExtensions,
+		newTranslator:   newTranslator,
 		proxyReconciler: gloov1.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient()),
-		proxyTranslator: NewProxyTranslator(translator, xdsCache, settings, syncerExtensions, glooReporter),
+		proxyTranslator: NewProxyTranslator(newTranslator(), xdsCache, settings, syncerExtensions, glooReporter),
 		// legacyClients:   legacyClients,
 		legacySecretClient:    legacySecretClient,
 		istioClient:           client,
@@ -447,7 +450,9 @@ func (s *ProxySyncer) buildXdsSnapshot(ctx context.Context, proxy *glooProxy, k 
 	}
 	latestSnap.Upstreams = upstreams
 
-	xdsSnapshot, reports, proxyReport := s.proxyTranslator.buildXdsSnapshot(ctx, proxy.proxy, &latestSnap)
+	snap := snapshot.FromApiSnapshot(&latestSnap)
+
+	xdsSnapshot, reports, proxyReport := s.proxyTranslator.buildXdsSnapshot(ctx, proxy.proxy, snap)
 	// TODO(Law): now we not able to merge reports after translation!
 	filteredReports := reports.FilterByKind("Proxy")
 

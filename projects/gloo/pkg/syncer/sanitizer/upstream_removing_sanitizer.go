@@ -5,13 +5,14 @@ import (
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
-	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/stats"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/go-utils/contextutils"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/types"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 )
 
@@ -36,7 +37,7 @@ func NewUpstreamRemovingSanitizer() *UpstreamRemovingSanitizer {
 // resources, we are good to send it to Envoy.
 func (s *UpstreamRemovingSanitizer) SanitizeSnapshot(
 	ctx context.Context,
-	glooSnapshot *v1snap.ApiSnapshot,
+	glooSnapshot *snapshot.Snapshot,
 	xdsSnapshot envoycache.Snapshot,
 	reports reporter.ResourceReports,
 ) envoycache.Snapshot {
@@ -53,7 +54,7 @@ func (s *UpstreamRemovingSanitizer) SanitizeSnapshot(
 	var removed int64
 
 	// Find all the errored upstreams and remove them from the xDS snapshot
-	for _, up := range glooSnapshot.Upstreams.AsInputResources() {
+	for _, up := range glooSnapshot.Upstreams.List() {
 
 		if reports[up].Errors != nil {
 
@@ -92,7 +93,8 @@ func (s *UpstreamRemovingSanitizer) SanitizeSnapshot(
 	)
 
 	// Convert errors related to upstreams to warnings
-	for _, up := range glooSnapshot.Upstreams.AsInputResources() {
+	for _, ups := range glooSnapshot.Upstreams.List() {
+		var up resources.InputResource = ups
 		if upReport := reports[up]; upReport.Errors != nil {
 			upReport.Warnings = []string{upReport.Errors.Error()}
 			upReport.Errors = nil
