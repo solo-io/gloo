@@ -27,15 +27,20 @@ func (c EnvoyCluster) Equals(in EnvoyCluster) bool {
 	return proto.Equal(c.Cluster, in.Cluster)
 }
 
-func NewGlooK8sUpstreams(ctx context.Context, s *v1.Settings, finalUpstreams krt.Collection[UpstreamWrapper], newTranslator func() translator.Translator) krt.Collection[EnvoyCluster] {
+func NewGlooK8sUpstreams(ctx context.Context, s *v1.Settings, secrets krt.Collection[ResourceWrapper[*gloov1.Secret]], finalUpstreams krt.Collection[UpstreamWrapper], newTranslator func() translator.Translator) krt.Collection[EnvoyCluster] {
 
-	return krt.NewCollection(finalUpstreams, TransformUpstreamBuilder(ctx, s, newTranslator), krt.WithName("EnvoyCluster"))
+	return krt.NewCollection(finalUpstreams, TransformUpstreamBuilder(ctx, s, secrets, newTranslator), krt.WithName("EnvoyCluster"))
 }
 
-func TransformUpstreamBuilder(ctx context.Context, s *v1.Settings, newTranslator func() translator.Translator) func(kctx krt.HandlerContext, us UpstreamWrapper) *EnvoyCluster {
+func TransformUpstreamBuilder(ctx context.Context, s *v1.Settings, secrets krt.Collection[ResourceWrapper[*gloov1.Secret]], newTranslator func() translator.Translator) func(kctx krt.HandlerContext, us UpstreamWrapper) *EnvoyCluster {
 	return func(kctx krt.HandlerContext, us UpstreamWrapper) *EnvoyCluster {
 		snap := snapshot.Snapshot{}
 		snap.Upstreams = snapshot.SliceCollection[*gloov1.Upstream]([]*gloov1.Upstream{us.Inner})
+		snap.Secrets = KrtWrappedCollection[*gloov1.Secret]{
+			C:    secrets,
+			Kctx: kctx,
+		}
+
 		params := plugins.Params{
 			Ctx:      ctx,
 			Settings: s,

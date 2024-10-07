@@ -282,6 +282,7 @@ func (t KrtWrappedCollection[T]) Find(namespace string, name string) (T, error) 
 }
 
 func (t KrtWrappedCollection[T]) List() []T {
+	panic("TODO: this should never be called")
 	out := krt.Fetch(t.Kctx, t.C)
 	out2 := make([]T, len(out))
 	for i, x := range out {
@@ -302,11 +303,11 @@ var _ krt.ResourceNamer = UpstreamWrapper{}
 
 type fromKrtSnap struct {
 	rtOpts    []*sologatewayv1.RouteOption
-	upstreams krt.Collection[UpstreamWrapper]
 	vhostOpts []*sologatewayv1.VirtualHostOption
 
-	artifacts krt.Collection[*gloov1.Artifact]
-	secrets   krt.Collection[*gloov1.Secret]
+	upstreams krt.Collection[UpstreamWrapper]
+	artifacts krt.Collection[ResourceWrapper[*gloov1.Artifact]]
+	secrets   krt.Collection[ResourceWrapper[*gloov1.Secret]]
 }
 
 func (s *ProxySyncer) Start(ctx context.Context) error {
@@ -330,13 +331,17 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	// https://github.com/solo-io/gloo/blob/main/projects/gloo/pkg/api/converters/kube/artifact_converter.go#L31
 	configMapClient := kclient.New[*corev1.ConfigMap](s.istioClient)
 	ConfigMaps := krt.WrapClient(configMapClient, krt.WithName("ConfigMaps"))
-	artifacts := krt.NewCollection(ConfigMaps, func(kctx krt.HandlerContext, cm *corev1.ConfigMap) **gloov1.Artifact {
+	artifacts := krt.NewCollection(ConfigMaps, func(kctx krt.HandlerContext, cm *corev1.ConfigMap) *ResourceWrapper[*gloov1.Artifact] {
 		a := kubeconverters.KubeConfigMapToArtifact(cm)
-		return &a
+		if a == nil {
+			return nil
+		}
+		out := ResourceWrapper[*gloov1.Artifact]{a}
+		return &out
 	})
 	secretClient := kclient.New[*corev1.Secret](s.istioClient)
 	secrets := krt.WrapClient(secretClient, krt.WithName("Secrets"))
-	krtSecrets := krt.NewCollection(secrets, func(kctx krt.HandlerContext, i *corev1.Secret) **gloov1.Secret {
+	krtSecrets := krt.NewCollection(secrets, func(kctx krt.HandlerContext, i *corev1.Secret) *ResourceWrapper[*gloov1.Secret] {
 		secretResourceClient, ok := s.legacySecretClient.BaseClient().(*kubesecret.ResourceClient)
 		if !ok {
 			// something is wrong
@@ -353,7 +358,9 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 			// something else is wrong
 			return nil
 		}
-		return &glooSecret
+
+		out := ResourceWrapper[*gloov1.Secret]{glooSecret}
+		return &out
 	})
 
 	KubeUpstreams := setupCollectionDynamic[glookubev1.Upstream](
@@ -473,11 +480,11 @@ func (s *ProxySyncer) buildXdsSnapshot(ctx context.Context, kctx krt.HandlerCont
 	latestSnap := snapshot.Snapshot{}
 	latestSnap.Proxies = snapshot.SliceCollection[*gloov1.Proxy]([]*gloov1.Proxy{proxy.proxy})
 
-	latestSnap.Artifacts = snapshot.KrtCollection[*gloov1.Artifact]{
+	latestSnap.Artifacts = KrtWrappedCollection[*gloov1.Artifact]{
 		C:    k.artifacts,
 		Kctx: kctx,
 	}
-	latestSnap.Secrets = snapshot.KrtCollection[*gloov1.Secret]{
+	latestSnap.Secrets = KrtWrappedCollection[*gloov1.Secret]{
 		C:    k.secrets,
 		Kctx: kctx,
 	}
