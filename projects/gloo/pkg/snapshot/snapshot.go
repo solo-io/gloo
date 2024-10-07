@@ -60,12 +60,12 @@ func (t SliceCollection[T]) IsFindEfficient() bool {
 }
 
 type KrtCollection[T any] struct {
-	c    krt.Collection[T]
-	kctx krt.HandlerContext
+	C    krt.Collection[T]
+	Kctx krt.HandlerContext
 }
 
 func (t KrtCollection[T]) Find(namespace string, name string) (T, error) {
-	ret := krt.Fetch(t.kctx, t.c, krt.FilterObjectName(types.NamespacedName{Name: name, Namespace: namespace}))
+	ret := krt.Fetch(t.Kctx, t.C, krt.FilterObjectName(types.NamespacedName{Name: name, Namespace: namespace}))
 	if len(ret) != 1 {
 		var zero T
 		return zero, fmt.Errorf("list did not find %T %v.%v", zero, namespace, name)
@@ -74,7 +74,7 @@ func (t KrtCollection[T]) Find(namespace string, name string) (T, error) {
 }
 
 func (t KrtCollection[T]) List() []T {
-	return krt.Fetch(t.kctx, t.c)
+	return krt.Fetch(t.Kctx, t.C)
 }
 
 func (t KrtCollection[T]) IsFindEfficient() bool {

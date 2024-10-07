@@ -35,7 +35,7 @@ func NewGlooK8sUpstreams(ctx context.Context, s *v1.Settings, finalUpstreams krt
 func TransformUpstreamBuilder(ctx context.Context, s *v1.Settings, newTranslator func() translator.Translator) func(kctx krt.HandlerContext, us UpstreamWrapper) *EnvoyCluster {
 	return func(kctx krt.HandlerContext, us UpstreamWrapper) *EnvoyCluster {
 		snap := snapshot.Snapshot{}
-		snap.Upstreams = snapshot.SliceCollection[*gloov1.Upstream]([]*gloov1.Upstream{us.Upstream})
+		snap.Upstreams = snapshot.SliceCollection[*gloov1.Upstream]([]*gloov1.Upstream{us.Inner})
 		params := plugins.Params{
 			Ctx:      ctx,
 			Settings: s,
@@ -52,7 +52,7 @@ func TransformUpstreamBuilder(ctx context.Context, s *v1.Settings, newTranslator
 
 		xdsSnapshot, reports, _ := t.Translate(params, proxy)
 
-		if report, ok := reports[us.Upstream]; ok {
+		if report, ok := reports[us.Inner]; ok {
 
 			// TODO: report error
 			if report.Errors != nil {

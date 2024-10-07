@@ -139,7 +139,7 @@ type EndpointsForUpstream struct {
 }
 
 func NewEndpointsForUpstream(us UpstreamWrapper) *EndpointsForUpstream {
-	clusterName := translator.UpstreamToClusterName(us.GetMetadata().Ref())
+	clusterName := translator.UpstreamToClusterName(us.Inner.GetMetadata().Ref())
 	// start with a hash of the cluster name. technically we dont need it for krt, as we can compare the upstream name. but it helps later
 	// to compute the hash we present envoy with.
 	h := fnv.New64()
@@ -147,13 +147,13 @@ func NewEndpointsForUpstream(us UpstreamWrapper) *EndpointsForUpstream {
 	lbEpsEqualityHash := h.Sum64()
 
 	// add the upstream hash to the clustername, so that if it changes the envoy cluster will become warm again.
-	clusterName = getEndpointClusterName(clusterName, us.Upstream)
+	clusterName = getEndpointClusterName(clusterName, us.Inner)
 	return &EndpointsForUpstream{
 		LbEps:       make(map[krtcollections.PodLocality][]EndpointWithMd),
 		clusterName: clusterName,
 		UpstreamRef: types.NamespacedName{
-			Namespace: us.GetMetadata().Namespace,
-			Name:      us.GetMetadata().Name,
+			Namespace: us.Inner.GetMetadata().Namespace,
+			Name:      us.Inner.GetMetadata().Name,
 		},
 		lbEpsEqualityHash: lbEpsEqualityHash,
 	}
@@ -206,7 +206,7 @@ func TransformUpstreamsBuilder(ctx context.Context, inputs EndpointsInputs) func
 			}
 		}()
 
-		kubeUpstream, ok := us.GetUpstreamType().(*v1.Upstream_Kube)
+		kubeUpstream, ok := us.Inner.GetUpstreamType().(*v1.Upstream_Kube)
 		// only care about kube upstreams
 		if !ok {
 			return nil
@@ -218,7 +218,7 @@ func TransformUpstreamsBuilder(ctx context.Context, inputs EndpointsInputs) func
 			Name:      spec.GetServiceName(),
 		}))
 		if maybeEps == nil {
-			warnsToLog = append(warnsToLog, fmt.Sprintf("upstream %v: endpoints not found for service %v", us.GetMetadata().Ref().Key(), spec.GetServiceName()))
+			warnsToLog = append(warnsToLog, fmt.Sprintf("upstream %v: endpoints not found for service %v", us.Inner.GetMetadata().Ref().Key(), spec.GetServiceName()))
 			return nil
 		}
 		eps := *maybeEps
@@ -227,7 +227,7 @@ func TransformUpstreamsBuilder(ctx context.Context, inputs EndpointsInputs) func
 		for _, subset := range eps.Subsets {
 			port := findFirstPortInEndpointSubsets(subset, singlePortService, kubeServicePort)
 			if port == 0 {
-				warnsToLog = append(warnsToLog, fmt.Sprintf("upstream %v: port %v not found for service %v in endpoint %v", us.Metadata.Ref().Key(), spec.GetServicePort(), spec.GetServiceName(), subset))
+				warnsToLog = append(warnsToLog, fmt.Sprintf("upstream %v: port %v not found for service %v in endpoint %v", us.Inner.Metadata.Ref().Key(), spec.GetServicePort(), spec.GetServiceName(), subset))
 				continue
 			}
 
