@@ -9,8 +9,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/snapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
-	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
-	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"google.golang.org/protobuf/proto"
 	"istio.io/istio/pkg/kube/krt"
@@ -33,39 +31,12 @@ func NewGlooK8sUpstreams(ctx context.Context, s *v1.Settings, secrets krt.Collec
 }
 
 func TransformUpstreamBuilder(ctx context.Context, s *v1.Settings, secrets krt.Collection[ResourceWrapper[*gloov1.Secret]], newTranslator func() translator.Translator) func(kctx krt.HandlerContext, us UpstreamWrapper) *EnvoyCluster {
+	upstreamTranslator := &upstreamTranslator{
+		newTranslator,
+		s,
+	}
 	return func(kctx krt.HandlerContext, us UpstreamWrapper) *EnvoyCluster {
-		snap := snapshot.Snapshot{}
-		snap.Upstreams = snapshot.SliceCollection[*gloov1.Upstream]([]*gloov1.Upstream{us.Inner})
-		snap.Secrets = KrtWrappedCollection[*gloov1.Secret]{
-			C:    secrets,
-			Kctx: kctx,
-		}
-
-		params := plugins.Params{
-			Ctx:      ctx,
-			Settings: s,
-			Snapshot: &snap,
-			Messages: map[*core.ResourceRef][]string{},
-		}
-		t := newTranslator()
-		proxy := &v1.Proxy{
-			Metadata: &core.Metadata{
-				Name:      "temp-proxy",
-				Namespace: "temp-ns",
-			},
-		}
-
-		xdsSnapshot, reports, _ := t.Translate(params, proxy)
-
-		if report, ok := reports[us.Inner]; ok {
-
-			// TODO: report error
-			if report.Errors != nil {
-				// DO SOMETHING
-			}
-
-		}
-		c := getCluster(xdsSnapshot.(*xds.EnvoySnapshot).Clusters)
+		c, _ := upstreamTranslator.translateUpstream(ctx, us.Inner)
 
 		return &EnvoyCluster{Cluster: c}
 	}
@@ -86,35 +57,17 @@ func (t *upstreamTranslator) translateUpstream(ctx context.Context, us *gloov1.U
 		Messages: map[*core.ResourceRef][]string{},
 	}
 	tr := t.newTranslator()
-	proxy := &v1.Proxy{
-		Metadata: &core.Metadata{
-			Name:      "temp-proxy",
-			Namespace: "temp-ns",
-		},
+
+	c, errors := tr.ComputeCluster(params, us, isEds(us))
+	if len(errors) > 0 {
+		// TODO: ???
 	}
 
-	xdsSnapshot, reports, _ := tr.Translate(params, proxy)
-
-	if report, ok := reports[us]; ok {
-
-		// TODO: report error
-		if report.Errors != nil {
-			// DO SOMETHING
-		}
-
-	}
-	c := getCluster(xdsSnapshot.(*xds.EnvoySnapshot).Clusters)
 	return c, nil
 }
 
-func getCluster(r envoycache.Resources) *envoy_config_cluster_v3.Cluster {
-	if len(r.Items) > 1 {
-		// TODO: log error.. this should never happen.
-	}
-	for _, cluster := range r.Items {
-		if c, ok := cluster.ResourceProto().(*envoy_config_cluster_v3.Cluster); ok {
-			return c
-		}
-	}
-	return nil
+func isEds(us *gloov1.Upstream) bool {
+	// TODO: either check if we have endpoints for that upstream, like the translator does today;
+	// or have a per upstream type check
+	panic("unimplemented")
 }

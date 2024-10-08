@@ -74,7 +74,7 @@ func (t *translatorInstance) computeClusters(
 		if eps, ok := upstreamRefKeyToEndpoints[upstream.GetMetadata().Ref().Key()]; ok && len(eps) > 0 {
 			eds = true
 		}
-		cluster, errs := t.computeCluster(params, upstream, eds, shouldEnforceNamespaceMatch)
+		cluster, errs := t.computeCluster(params, upstream, eds)
 		for _, err := range errs {
 			if errors.Is(err, &Warning{}) {
 				reports.AddWarning(upstream, err.Error())
@@ -89,14 +89,23 @@ func (t *translatorInstance) computeClusters(
 	return clusters, clusterToUpstreamMap
 }
 
+func (t *translatorInstance) ComputeCluster(
+	params plugins.Params,
+	upstream *v1.Upstream,
+	eds bool,
+) (*envoy_config_cluster_v3.Cluster, []error) {
+	t.lock.Lock()
+	defer t.lock.Unlock()
+	return t.computeCluster(params, upstream, eds)
+}
+
 func (t *translatorInstance) computeCluster(
 	params plugins.Params,
 	upstream *v1.Upstream,
 	eds bool,
-	shouldEnforceNamespaceMatch bool,
 ) (*envoy_config_cluster_v3.Cluster, []error) {
 	params.Ctx = contextutils.WithLogger(params.Ctx, upstream.GetMetadata().GetName())
-	out, errs := t.initializeCluster(upstream, eds, params.Snapshot.Secrets, shouldEnforceNamespaceMatch)
+	out, errs := t.initializeCluster(upstream, eds, params.Snapshot.Secrets)
 
 	for _, plugin := range t.pluginRegistry.GetUpstreamPlugins() {
 		if err := plugin.ProcessUpstream(params, upstream, out); err != nil {
@@ -113,10 +122,9 @@ func (t *translatorInstance) initializeCluster(
 	upstream *v1.Upstream,
 	eds bool,
 	secrets snapshot.SecretList,
-	shouldEnforceNamespaceMatch bool,
 ) (*envoy_config_cluster_v3.Cluster, []error) {
 	var errorList []error
-	hcConfig, err := createHealthCheckConfig(upstream, secrets, shouldEnforceNamespaceMatch)
+	hcConfig, err := createHealthCheckConfig(upstream, secrets, t.shouldEnforceNamespaceMatch)
 	if err != nil {
 		errorList = append(errorList, err)
 	}
