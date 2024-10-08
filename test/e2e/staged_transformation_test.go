@@ -1,8 +1,12 @@
 package e2e_test
 
 import (
+	"context"
 	"encoding/base64"
+	"fmt"
+	"io"
 
+	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/test/testutils"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -17,6 +21,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 
 	"net/http"
 
@@ -29,7 +34,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 )
 
-var _ = Describe("Staged Transformation", FlakeAttempts(3), func() {
+var _ = FDescribe("Staged Transformation", FlakeAttempts(3), func() {
 	// We added the FlakeAttempts decorator to try to reduce the impact of the flakes outlined in:
 	// https://github.com/solo-io/gloo/issues/9292
 
@@ -954,6 +959,140 @@ var _ = Describe("Staged Transformation", FlakeAttempts(3), func() {
 					"x-solo-1": BeEmpty(),
 				}))
 			}, "15s", ".5s").Should(Succeed())
+		})
+
+		Context("opentelemetry span name transformations", func() {
+			var (
+				ctx context.Context
+				cancel context.CancelFunc
+				// FIXME something func(string) string
+			)
+
+			AfterEach(func() {
+				cancel()
+			})
+
+			BeforeEach(func() {
+				testutils.ValidateRequirementsAndNotifyGinkgo(testutils.LinuxOnly("Uses 127.0.0.1"))
+
+				ctx, cancel = context.WithCancel(context.Background())
+
+				transformationTemplate := &transformation.TransformationTemplate{
+					SpanTransformer: &transformation.TransformationTemplate_SpanTransformer{
+						Name: &transformation.InjaTemplate{
+							Text: `{{ header("Host") }}`,
+						},
+					},
+				}
+				customVs := helpers.NewVirtualServiceBuilder().
+					WithVirtualHostOptions(&gloov1.VirtualHostOptions{
+						StagedTransformations: &transformation.TransformationStages{
+							Regular: &transformation.RequestResponseTransformations{
+								RequestTransforms: []*transformation.RequestMatch{{
+									RequestTransformation: &transformation.Transformation{
+										TransformationType: &transformation.Transformation_TransformationTemplate{
+											TransformationTemplate: transformationTemplate,
+										},
+									},
+								}},
+							},
+						},
+					}).Build()
+				testContext.ResourcesToCreate().VirtualServices = v1.VirtualServiceList{customVs}
+			})
+
+			FIt("should change the span name", func() {
+				testHost := "TEST_HOSTNAME"
+				/*
+otelHandler is an endpoint that expects to receive traces from envoy. the
+handler receives requests, unmarhsals the proto to an object and puts it on a
+channel to be received by ginkgo for assertion validation.
+
+Below is a sample trace message that's received at the span server. Note that
+Envoy sends a LOT of requests to the trace server (once every .1 seconds if I
+had to guess?) so there may be several traces sent where `spans` is an empty
+list and we need to be mindful of this in our assertion logic.
+
+	resourceSpans:
+	  - resource:
+		  attributes:
+			- key: service.name
+			  value:
+				stringValue: unknown_service:envoy
+		scopeSpans:
+		  - scope: {}
+			spans:
+			  - traceId: f6d8c23a8987401ca3fe0a17a00b8824
+				spanId: 42c37622a5fe64ca
+				parentSpanId: ""
+				name: localhost:10000
+				kind: 2
+				startTimeUnixNano: "1728322910606931697"
+				endTimeUnixNano: "1728322910614110478"
+				attributes:
+				  - key: node_id
+					value:
+					  stringValue: ""
+				  - key: zone
+					value:
+					  stringValue: ""
+				  - key: guid:x-request-id
+					value:
+					  stringValue: 4a0e639d-e6bf-9593-8032-b6e81161ef91
+				  - key: http.url
+					value:
+					  stringValue: http://localhost:10000/
+
+				*/
+				exportedTraces := make(chan *ptraceotlp.ExportRequest, 1) // TODO should we increase the size of this channel?
+				otelHandler := http.NewServeMux()
+				otelHandler.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					fmt.Printf("Got a request! %#v\n", r) // TODO DELETE ME
+
+					reqBody, err := io.ReadAll(r.Body)
+					if err != nil {
+						// TODO - find a better way to handle error?
+						return
+					}
+
+					var exportedTrace ptraceotlp.ExportRequest = ptraceotlp.NewExportRequest()
+					err = exportedTrace.UnmarshalProto(reqBody)
+					if err != nil {
+						// TODO - find a better way to handle error?
+						return
+					}
+					exportedTraces <- &exportedTrace
+				}))
+				serverAddr := fmt.Sprintf("%s:%d",
+					testContext.EnvoyInstance().LocalAddr(),
+					tracingCollectorPort)
+				startCancellableTracingServer(ctx, serverAddr, otelHandler)
+
+				requestBuilder := testContext.GetHttpRequestBuilder().WithHost(testHost)
+				Eventually(func(g Gomega) {
+					g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(testmatchers.HaveOkResponse())
+				}).Should(Succeed())
+				Eventually(func() error {
+					for exportedTrace := range exportedTraces {
+						resourceSpans := exportedTrace.Traces().ResourceSpans()
+						for resourceSpanIter := 0; resourceSpanIter < resourceSpans.Len(); resourceSpanIter++ {
+							resourceSpan := resourceSpans.At(resourceSpanIter)
+							scopeSpans := resourceSpan.ScopeSpans()
+							for scopeSpanIter := 0; scopeSpanIter < scopeSpans.Len(); scopeSpanIter++ {
+								scopeSpan := scopeSpans.At(scopeSpanIter)
+								spans := scopeSpan.Spans()
+								for spanIter := 0; spanIter < spans.Len(); spanIter++ {
+									span := spans.At(spanIter)
+									if span.Name() == testHost {
+										return nil
+									}
+								}
+							}
+						}
+					}
+					return errors.New(fmt.Sprintf("No trace received with hostname %s", testHost))
+				}, "15s", "1s").Should(Succeed())
+			})
 		})
 	})
 

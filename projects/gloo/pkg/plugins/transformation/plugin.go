@@ -500,7 +500,7 @@ func translateTransformationTemplate(in *transformation.Transformation_Transform
 		}
 	}
 
-	if spanTransformer := inTemplate.GetSpanTransformer() ; spanTransformer != nil {
+	if spanTransformer := inTemplate.GetSpanTransformer(); spanTransformer != nil {
 		outTemplate.SpanTransformer = &envoytransformation.TransformationTemplate_SpanTransformer{
 			Name: &envoytransformation.InjaTemplate{Text: spanTransformer.GetName().GetText()},
 		}

@@ -459,6 +459,7 @@ var _ = Describe("Tracing config loading", Serial, func() {
 })
 
 func startCancellableTracingServer(serverContext context.Context, address string, handler http.Handler) {
+	Fail("TODO: remove this and use test/testutils/http_server.go instead")
 	tracingServer := &http.Server{
 		Addr:    address,
 		Handler: handler,
