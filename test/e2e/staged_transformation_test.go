@@ -963,7 +963,7 @@ var _ = FDescribe("Staged Transformation", FlakeAttempts(3), func() {
 
 		Context("opentelemetry span name transformations", func() {
 			var (
-				ctx context.Context
+				ctx    context.Context
 				cancel context.CancelFunc
 				// FIXME something func(string) string
 			)
@@ -1004,44 +1004,44 @@ var _ = FDescribe("Staged Transformation", FlakeAttempts(3), func() {
 			FIt("should change the span name", func() {
 				testHost := "TEST_HOSTNAME"
 				/*
-otelHandler is an endpoint that expects to receive traces from envoy. the
-handler receives requests, unmarhsals the proto to an object and puts it on a
-channel to be received by ginkgo for assertion validation.
+					otelHandler is an endpoint that expects to receive traces from envoy. the
+					handler receives requests, unmarhsals the proto to an object and puts it on a
+					channel to be received by ginkgo for assertion validation.
 
-Below is a sample trace message that's received at the span server. Note that
-Envoy sends a LOT of requests to the trace server (once every .1 seconds if I
-had to guess?) so there may be several traces sent where `spans` is an empty
-list and we need to be mindful of this in our assertion logic.
+					Below is a sample trace message that's received at the span server. Note that
+					Envoy sends a LOT of requests to the trace server (once every .1 seconds if I
+					had to guess?) so there may be several traces sent where `spans` is an empty
+					list and we need to be mindful of this in our assertion logic.
 
-	resourceSpans:
-	  - resource:
-		  attributes:
-			- key: service.name
-			  value:
-				stringValue: unknown_service:envoy
-		scopeSpans:
-		  - scope: {}
-			spans:
-			  - traceId: f6d8c23a8987401ca3fe0a17a00b8824
-				spanId: 42c37622a5fe64ca
-				parentSpanId: ""
-				name: localhost:10000
-				kind: 2
-				startTimeUnixNano: "1728322910606931697"
-				endTimeUnixNano: "1728322910614110478"
-				attributes:
-				  - key: node_id
-					value:
-					  stringValue: ""
-				  - key: zone
-					value:
-					  stringValue: ""
-				  - key: guid:x-request-id
-					value:
-					  stringValue: 4a0e639d-e6bf-9593-8032-b6e81161ef91
-				  - key: http.url
-					value:
-					  stringValue: http://localhost:10000/
+						resourceSpans:
+						  - resource:
+							  attributes:
+								- key: service.name
+								  value:
+									stringValue: unknown_service:envoy
+							scopeSpans:
+							  - scope: {}
+								spans:
+								  - traceId: f6d8c23a8987401ca3fe0a17a00b8824
+									spanId: 42c37622a5fe64ca
+									parentSpanId: ""
+									name: localhost:10000
+									kind: 2
+									startTimeUnixNano: "1728322910606931697"
+									endTimeUnixNano: "1728322910614110478"
+									attributes:
+									  - key: node_id
+										value:
+										  stringValue: ""
+									  - key: zone
+										value:
+										  stringValue: ""
+									  - key: guid:x-request-id
+										value:
+										  stringValue: 4a0e639d-e6bf-9593-8032-b6e81161ef91
+									  - key: http.url
+										value:
+										  stringValue: http://localhost:10000/
 
 				*/
 				exportedTraces := make(chan *ptraceotlp.ExportRequest, 1) // TODO should we increase the size of this channel?
