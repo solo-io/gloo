@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
@@ -103,6 +104,7 @@ var _ = Describe("Tracing config loading", Serial, func() {
 		var (
 			testClients  services.TestClients
 			testUpstream *v1helpers.TestUpstream
+			virtualServiceName string = "vs-test"
 
 			resourcesToCreate *gloosnapshot.ApiSnapshot
 		)
@@ -127,7 +129,7 @@ var _ = Describe("Tracing config loading", Serial, func() {
 			testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
 
 			vsToTestUpstream := gloohelpers.NewVirtualServiceBuilder().
-				WithName("vs-test").
+				WithName(virtualServiceName).
 				WithNamespace(writeNamespace).
 				WithDomain("test.com").
 				WithRoutePrefixMatcher("test", "/").
@@ -172,15 +174,22 @@ var _ = Describe("Tracing config loading", Serial, func() {
 			cancel()
 		})
 
-		startTracingCollectionServer := func(collectorApiChannel chan bool, collectionURLPath string) {
-			// Start a dummy server listening on 9411 for tracing requests
+		// Create a handler that writes a boolean to collectorApiChannel when
+		// the endpoint is hit
+		apiHitHandler := func(collectorApiChannel chan bool, collectionURLPath string) *http.ServeMux {
 			tracingCollectorHandler := http.NewServeMux()
 			tracingCollectorHandler.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				Expect(r.URL.Path).To(Equal(collectionURLPath))
 				fmt.Fprintf(w, "Dummy tracing Collector received request on - %q", html.EscapeString(r.URL.Path))
 				collectorApiChannel <- true
 			}))
-			startCancellableTracingServer(ctx, fmt.Sprintf("%s:%d", envoyInstance.LocalAddr(), tracingCollectorPort), tracingCollectorHandler)
+			return tracingCollectorHandler
+		}
+
+		startTracingCollectionServer := func(handler *http.ServeMux) {
+			// Start a dummy server listening on 9411 for tracing requests
+			startCancellableTracingServer(
+				ctx, fmt.Sprintf("%s:%d", envoyInstance.LocalAddr(), tracingCollectorPort), handler)
 
 			// Create Resources
 			err := testClients.WriteSnapshot(ctx, resourcesToCreate)
@@ -210,7 +219,7 @@ var _ = Describe("Tracing config loading", Serial, func() {
 
 		It("should send trace msgs with valid opentelemetry provider (collector_ref)", func() {
 			collectorApiHit := make(chan bool, 1)
-			startTracingCollectionServer(collectorApiHit, openTelemetryCollectionPath)
+			startTracingCollectionServer(apiHitHandler(collectorApiHit, openTelemetryCollectionPath))
 
 			err := gloohelpers.PatchResource(
 				ctx,
@@ -249,9 +258,88 @@ var _ = Describe("Tracing config loading", Serial, func() {
 			}, time.Second*10, time.Second).Should(Succeed(), "tracing server should receive trace request")
 		})
 
+		FIt("should modify span names when span name transformer is configured", func() {
+			// FIXME
+			collectorApiHit := make(chan bool, 1)
+			startTracingCollectionServer(apiHitHandler(collectorApiHit, openTelemetryCollectionPath))
+
+			err := gloohelpers.PatchResource(
+				ctx,
+				&core.ResourceRef{
+					Name: virtualServiceName,
+					Namespace: writeNamespace,
+				},
+				func(resource resources.Resource) resources.Resource {
+					vs := resource.(*gatewayv1.VirtualService)
+					vs.VirtualHost.Options = &gloov1.VirtualHostOptions{
+						StagedTransformations: &transformation.TransformationStages{
+							Regular: &transformation.RequestResponseTransformations{
+								RequestTransforms: []*transformation.RequestMatch{{
+									RequestTransformation: &transformation.Transformation{
+										TransformationType: &transformation.Transformation_TransformationTemplate{
+											TransformationTemplate: &transformation.TransformationTemplate{
+												SpanTransformer: &transformation.TransformationTemplate_SpanTransformer{
+													Name: &transformation.InjaTemplate{
+														Text: "TESTSPANNAME123123", // FIXME `{{ header("Host") }}`,
+													},
+												},
+											},
+										},
+									},
+								}},
+							},
+						},
+					}
+					return vs
+				},
+				testClients.VirtualServiceClient.BaseClient(),
+			)
+			Expect(err).NotTo(HaveOccurred())
+
+			cfg, err := envoyInstance.ConfigDump()
+			Expect(err).NotTo(HaveOccurred())
+			fmt.Println(cfg) // TODO DELETE ME
+
+			err = gloohelpers.PatchResource(
+				ctx,
+				&core.ResourceRef{
+					Name:      gatewaydefaults.GatewayProxyName,
+					Namespace: writeNamespace,
+				},
+				func(resource resources.Resource) resources.Resource {
+					gw := resource.(*gatewayv1.Gateway)
+					gw.GetHttpGateway().Options = &gloov1.HttpListenerOptions{
+						HttpConnectionManagerSettings: &hcm.HttpConnectionManagerSettings{
+							Tracing: &tracing.ListenerTracingSettings{
+								ProviderConfig: &tracing.ListenerTracingSettings_OpenTelemetryConfig{
+									OpenTelemetryConfig: &envoytrace_gloo.OpenTelemetryConfig{
+										CollectorCluster: &envoytrace_gloo.OpenTelemetryConfig_CollectorUpstreamRef{
+											CollectorUpstreamRef: &core.ResourceRef{
+												Name:      tracingCollectorUpstreamName,
+												Namespace: writeNamespace,
+											},
+										},
+									},
+								},
+							},
+						},
+					}
+					return gw
+				},
+				testClients.GatewayClient.BaseClient(),
+			)
+			Expect(err).NotTo(HaveOccurred())
+
+			testRequest := createRequestWithTracingEnabled("localhost", envoyInstance.HttpPort)
+			Eventually(func(g Gomega) {
+				g.Eventually(testRequest, DefaultEventuallyTimeout, DefaultEventuallyPollingInterval).Should(BeEmpty())
+				g.Eventually(collectorApiHit, DefaultEventuallyTimeout, DefaultEventuallyPollingInterval).Should(Receive())
+			}, time.Second*10, time.Second).Should(Succeed(), "tracing server should receive trace request")
+		})
+
 		It("should send trace msgs with valid opentelemetry provider (cluster_name)", func() {
 			collectorApiHit := make(chan bool, 1)
-			startTracingCollectionServer(collectorApiHit, openTelemetryCollectionPath)
+			startTracingCollectionServer(apiHitHandler(collectorApiHit, openTelemetryCollectionPath))
 
 			err := gloohelpers.PatchResource(
 				ctx,
@@ -292,7 +380,7 @@ var _ = Describe("Tracing config loading", Serial, func() {
 
 		It("should not send trace msgs with nil provider", func() {
 			collectorApiHit := make(chan bool, 1)
-			startTracingCollectionServer(collectorApiHit, zipkinCollectionPath)
+			startTracingCollectionServer(apiHitHandler(collectorApiHit, zipkinCollectionPath))
 
 			err := gloohelpers.PatchResource(
 				ctx,
@@ -322,7 +410,7 @@ var _ = Describe("Tracing config loading", Serial, func() {
 
 		It("should send trace msgs with valid zipkin provider (collector_ref)", func() {
 			collectorApiHit := make(chan bool, 1)
-			startTracingCollectionServer(collectorApiHit, zipkinCollectionPath)
+			startTracingCollectionServer(apiHitHandler(collectorApiHit, zipkinCollectionPath))
 
 			err := gloohelpers.PatchResource(
 				ctx,
@@ -365,7 +453,7 @@ var _ = Describe("Tracing config loading", Serial, func() {
 
 		It("should send trace msgs with valid zipkin provider (cluster_name)", func() {
 			collectorApiHit := make(chan bool, 1)
-			startTracingCollectionServer(collectorApiHit, zipkinCollectionPath)
+			startTracingCollectionServer(apiHitHandler(collectorApiHit, zipkinCollectionPath))
 
 			err := gloohelpers.PatchResource(
 				ctx,
@@ -408,7 +496,7 @@ var _ = Describe("Tracing config loading", Serial, func() {
 
 		It("should error with invalid zipkin provider", func() {
 			collectorApiHit := make(chan bool, 1)
-			startTracingCollectionServer(collectorApiHit, zipkinCollectionPath)
+			startTracingCollectionServer(apiHitHandler(collectorApiHit, zipkinCollectionPath))
 
 			err := gloohelpers.PatchResource(
 				ctx,
@@ -459,7 +547,6 @@ var _ = Describe("Tracing config loading", Serial, func() {
 })
 
 func startCancellableTracingServer(serverContext context.Context, address string, handler http.Handler) {
-	Fail("TODO: remove this and use test/testutils/http_server.go instead")
 	tracingServer := &http.Server{
 		Addr:    address,
 		Handler: handler,

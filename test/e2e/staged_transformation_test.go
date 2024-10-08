@@ -34,7 +34,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 )
 
-var _ = FDescribe("Staged Transformation", FlakeAttempts(3), func() {
+var _ = Describe("Staged Transformation", FlakeAttempts(3), func() {
 	// We added the FlakeAttempts decorator to try to reduce the impact of the flakes outlined in:
 	// https://github.com/solo-io/gloo/issues/9292
 
@@ -1001,7 +1001,7 @@ var _ = FDescribe("Staged Transformation", FlakeAttempts(3), func() {
 				testContext.ResourcesToCreate().VirtualServices = v1.VirtualServiceList{customVs}
 			})
 
-			FIt("should change the span name", func() {
+			It("should change the span name", func() {
 				testHost := "TEST_HOSTNAME"
 				/*
 					otelHandler is an endpoint that expects to receive traces from envoy. the
@@ -1044,7 +1044,8 @@ var _ = FDescribe("Staged Transformation", FlakeAttempts(3), func() {
 										  stringValue: http://localhost:10000/
 
 				*/
-				exportedTraces := make(chan *ptraceotlp.ExportRequest, 1) // TODO should we increase the size of this channel?
+				// TODO should we increase the size of this channel?
+				exportedTraces := make(chan *ptraceotlp.ExportRequest, 1)
 				otelHandler := http.NewServeMux()
 				otelHandler.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					fmt.Printf("Got a request! %#v\n", r) // TODO DELETE ME
