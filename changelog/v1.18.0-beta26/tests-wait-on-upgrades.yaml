@@ -1,4 +1,4 @@
 changelog:
 - type: NON_USER_FACING
-  description: Update tests so all pods are in the Running state and for jobs to complete after an upgrade.
+  description: Update tests to wait until all pods are in the Running state after an upgrade.
 
