@@ -8,15 +8,19 @@ import (
 	"net/http"
 	"time"
 
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
+
 	"github.com/solo-io/gloo/test/services/envoy"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 
 	"github.com/solo-io/gloo/test/testutils"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
@@ -186,9 +190,25 @@ var _ = Describe("Tracing config loading", Serial, func() {
 			return tracingCollectorHandler
 		}
 
+		otlpHandler := func(exportedTracesChannel chan *ptraceotlp.ExportRequest) *http.ServeMux {
+			handler := http.NewServeMux()
+			handler.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				fmt.Printf("Got a request! %#v\n", r) // TODO DELETE ME
+
+				reqBody, err := io.ReadAll(r.Body)
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+				exportedTrace := ptraceotlp.NewExportRequest()
+				err = exportedTrace.UnmarshalProto(reqBody)
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+				exportedTracesChannel <- &exportedTrace
+			}))
+			return handler
+		}
+
 		startTracingCollectionServer := func(handler *http.ServeMux) {
 			// Start a dummy server listening on 9411 for tracing requests
-			startCancellableTracingServer(
+			startCancellableTracingServerHttp2(
 				ctx, fmt.Sprintf("%s:%d", envoyInstance.LocalAddr(), tracingCollectorPort), handler)
 
 			// Create Resources
@@ -259,9 +279,8 @@ var _ = Describe("Tracing config loading", Serial, func() {
 		})
 
 		FIt("should modify span names when span name transformer is configured", func() {
-			// FIXME
-			collectorApiHit := make(chan bool, 1)
-			startTracingCollectionServer(apiHitHandler(collectorApiHit, openTelemetryCollectionPath))
+			exportedTraces := make(chan *ptraceotlp.ExportRequest, 1)
+			startTracingCollectionServer(otlpHandler(exportedTraces))
 
 			err := gloohelpers.PatchResource(
 				ctx,
@@ -296,9 +315,11 @@ var _ = Describe("Tracing config loading", Serial, func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 
-			cfg, err := envoyInstance.ConfigDump()
-			Expect(err).NotTo(HaveOccurred())
-			fmt.Println(cfg) // TODO DELETE ME
+			Eventually(func(g Gomega) {
+				cfg, err := envoyInstance.ConfigDump()
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(cfg).To(ContainSubstring("TESTSPANNAME123123"))
+			}, "12s", "2s")
 
 			err = gloohelpers.PatchResource(
 				ctx,
@@ -333,7 +354,25 @@ var _ = Describe("Tracing config loading", Serial, func() {
 			testRequest := createRequestWithTracingEnabled("localhost", envoyInstance.HttpPort)
 			Eventually(func(g Gomega) {
 				g.Eventually(testRequest, DefaultEventuallyTimeout, DefaultEventuallyPollingInterval).Should(BeEmpty())
-				g.Eventually(collectorApiHit, DefaultEventuallyTimeout, DefaultEventuallyPollingInterval).Should(Receive())
+				var exportedTrace *ptraceotlp.ExportRequest
+				g.Eventually(exportedTraces, DefaultEventuallyTimeout, DefaultEventuallyPollingInterval).Should(Receive(&exportedTrace))
+				for exportedTrace := range exportedTraces {
+					resourceSpans := exportedTrace.Traces().ResourceSpans()
+					for resourceSpanIter := 0; resourceSpanIter < resourceSpans.Len(); resourceSpanIter++ {
+						resourceSpan := resourceSpans.At(resourceSpanIter)
+						scopeSpans := resourceSpan.ScopeSpans()
+						for scopeSpanIter := 0; scopeSpanIter < scopeSpans.Len(); scopeSpanIter++ {
+							scopeSpan := scopeSpans.At(scopeSpanIter)
+							spans := scopeSpan.Spans()
+							for spanIter := 0; spanIter < spans.Len(); spanIter++ {
+								span := spans.At(spanIter)
+								if span.Name() == "TESTSPANNAME123123" {
+									return
+								}
+							}
+						}
+					}
+				}
 			}, time.Second*10, time.Second).Should(Succeed(), "tracing server should receive trace request")
 		})
 
@@ -545,6 +584,33 @@ var _ = Describe("Tracing config loading", Serial, func() {
 	})
 
 })
+
+func startCancellableTracingServerHttp2(serverContext context.Context, address string, handler http.Handler) {
+	tracingServer := http.Server{}
+	http2Server := http2.Server{}
+	err := http2.ConfigureServer(&tracingServer, &http2Server)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	// Start a goroutine to handle requests
+	go func() {
+		defer GinkgoRecover()
+		h2cHandler := h2c.NewHandler(handler, &http2.Server{})
+		if err := http.ListenAndServe(address, h2cHandler); err != nil && err != http.ErrServerClosed {
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		}
+	}()
+
+	// Start a goroutine to shutdown the server
+	go func(serverCtx context.Context) {
+		defer GinkgoRecover()
+
+		<-serverCtx.Done()
+		// tracingServer.Shutdown hangs with opentelemetry tests, probably
+		// because the agent leaves the connection open. There's no need for a
+		// graceful shutdown anyway, so just force it using Close() instead
+		tracingServer.Close()
+	}(serverContext)
+}
 
 func startCancellableTracingServer(serverContext context.Context, address string, handler http.Handler) {
 	tracingServer := &http.Server{
