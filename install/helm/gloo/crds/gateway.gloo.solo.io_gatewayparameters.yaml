@@ -1941,6 +1941,17 @@ spec:
               selfManaged:
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
+              targetClusters:
+                items:
+                  properties:
+                    clusterName:
+                      type: string
+                    namespaces:
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                type: array
             type: object
             x-kubernetes-validations:
             - message: only one of 'kube' or 'selfManaged' may be set
