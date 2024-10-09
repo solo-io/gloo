@@ -363,7 +363,6 @@ func (h *SoloTestHelper) UpgradeGloo(ctx context.Context, timeout time.Duration,
 		chartPath,
 		"-n", h.InstallNamespace,
 		"--wait",
-		"--wait-for-jobs",
 		"--history-max",
 		"0",
 	}
