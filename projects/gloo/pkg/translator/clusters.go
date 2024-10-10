@@ -56,7 +56,6 @@ func (t *translatorInstance) computeClusters(
 	reports reporter.ResourceReports,
 	upstreamRefKeyToEndpoints map[string][]*v1.Endpoint,
 	proxy *v1.Proxy,
-	shouldEnforceNamespaceMatch bool,
 ) ([]*envoy_config_cluster_v3.Cluster, map[*envoy_config_cluster_v3.Cluster]*v1.Upstream) {
 	ctx, span := trace.StartSpan(params.Ctx, "gloo.translator.computeClusters")
 	defer span.End()

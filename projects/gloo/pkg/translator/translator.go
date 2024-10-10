@@ -171,7 +171,7 @@ func (t *translatorInstance) translateClusterSubsystemComponents(params plugins.
 	// endpoints and listeners are shared between listeners
 	logger.Debugf("computing envoy clusters for proxy: %v", proxy.GetMetadata().GetName())
 
-	clusters, clusterToUpstreamMap := t.computeClusters(params, reports, upstreamRefKeyToEndpoints, proxy, shouldEnforceNamespaceMatch)
+	clusters, clusterToUpstreamMap := t.computeClusters(params, reports, upstreamRefKeyToEndpoints, proxy)
 	logger.Debugf("computing envoy endpoints for proxy: %v", proxy.GetMetadata().GetName())
 
 	endpoints := t.computeClusterEndpoints(params, upstreamRefKeyToEndpoints, reports)
