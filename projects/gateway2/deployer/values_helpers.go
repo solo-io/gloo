@@ -146,6 +146,13 @@ func getIstioValues(istioValues bootstrap.IstioValues, istioConfig *v1alpha1.Ist
 	}
 }
 
+func getAwsValues(aws *v1alpha1.Aws) *helmAws {
+	return &helmAws{
+		EnableServiceAccountCredentials: aws.GetEnableServiceAccountCredentials(),
+		StsCredentialsRegion:            aws.GetStsCredentialsRegion(),
+	}
+}
+
 // Get the image values for the envoy container in the proxy deployment.
 func getImageValues(image *v1alpha1.Image) *helmImage {
 	if image == nil {

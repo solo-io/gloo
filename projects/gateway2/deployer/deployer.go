@@ -287,6 +287,7 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 	statsConfig := kubeProxyConfig.GetStats()
 	istioContainerConfig := istioConfig.GetIstioProxyContainer()
 	aiExtensionConfig := kubeProxyConfig.GetAiExtension()
+	awsConfig := kubeProxyConfig.GetAws()
 
 	gateway := vals.Gateway
 
@@ -334,10 +335,15 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 	gateway.Istio = getIstioValues(d.inputs.IstioValues, istioConfig)
 	gateway.SdsContainer = getSdsContainerValues(sdsContainerConfig)
 	gateway.IstioContainer = getIstioContainerValues(istioContainerConfig)
+
+	// ai extension values
 	gateway.AIExtension, err = getAIExtensionValues(aiExtensionConfig)
 	if err != nil {
 		return nil, err
 	}
+
+	// aws values
+	gateway.Aws = getAwsValues(awsConfig)
 
 	gateway.Stats = getStatsValues(statsConfig)
 
