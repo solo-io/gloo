@@ -142,7 +142,7 @@ metadata:
   labels:
     app: opentelemetry
     component: otel-collector
-    app.kubernetes.io/name: opentelemetry
+    app.kubernetes.io/name: otel-collector
 spec:
   containers:
   - command:

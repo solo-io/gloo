@@ -11,7 +11,6 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/route_delegation"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/route_options"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/services"
-	"github.com/solo-io/gloo/test/kubernetes/e2e/features/tracing"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/upstreams"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/virtualhost_options"
 )
@@ -30,7 +29,6 @@ func KubeGatewaySuiteRunner() e2e.SuiteRunner {
 	kubeGatewaySuiteRunner.Register("PortRouting", port_routing.NewK8sGatewayTestingSuite)
 	kubeGatewaySuiteRunner.Register("RouteDelegation", route_delegation.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("GlooAdminServer", admin_server.NewTestingSuite)
-	kubeGatewaySuiteRunner.Register("Tracing", tracing.NewTestingSuite) // TODO find a better place to put this test
 
 	return kubeGatewaySuiteRunner
 }

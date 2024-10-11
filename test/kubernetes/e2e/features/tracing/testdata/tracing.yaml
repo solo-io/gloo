@@ -4,11 +4,11 @@ kind: Upstream
 metadata:
   name: echo-server
 spec:
-  useHttp2: true
+  # useHttp2: true
   static:
     hosts:
-    - addr: echo-server
-      port: 8080
+    - addr: http-echo.http-echo.svc.cluster.local # TODO do not hard-code this?
+      port: 3000
 ---
 apiVersion: gloo.solo.io/v1
 kind: Upstream
@@ -19,7 +19,7 @@ spec:
   useHttp2: true
   static:
     hosts:
-      - addr: "otel-collector"
+      - addr: otel-collector.default.svc.cluster.local # TODO avoid hard-coding this path?
         port: 4317
 ---
 apiVersion: gateway.solo.io/v1
@@ -30,7 +30,7 @@ metadata:
   name: gateway-proxy
 spec:
   bindAddress: '::'
-  bindPort: 8080
+  bindPort: 80
   httpGateway:
     options:
       httpConnectionManagerSettings:
@@ -66,6 +66,7 @@ spec:
         single:
           upstream:
             name: echo-server
+            namespace: default
       options:
         autoHostRewrite: true
         # tracing:
@@ -76,6 +77,7 @@ spec:
         single:
           upstream:
             name: echo-server
+            namespace: default
       options:
         autoHostRewrite: true
         # tracing:
@@ -86,6 +88,7 @@ spec:
         single:
           upstream:
             name: echo-server
+            namespace: default
       options:
         autoHostRewrite: true
         # tracing:
