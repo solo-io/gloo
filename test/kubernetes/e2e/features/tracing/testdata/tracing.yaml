@@ -14,6 +14,7 @@ apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   name: "opentelemetry-collector"
+  namespace: default
 spec:
   # REQUIRED FOR OPENTELEMETRY COLLECTION
   useHttp2: true
@@ -28,16 +29,18 @@ metadata:
   labels:
     app: gloo
   name: gateway-proxy
+  namespace: gloo-gateway-edge-test
 spec:
   bindAddress: '::'
-  bindPort: 80
+  bindPort: 8080
   httpGateway:
     options:
       httpConnectionManagerSettings:
         tracing:
           openTelemetryConfig:
             collectorUpstreamRef:
-              name: "opentelemetry-collector"
+              name: opentelemetry-collector
+              namespace: default
 ---
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
