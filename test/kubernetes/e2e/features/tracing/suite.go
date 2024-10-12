@@ -39,16 +39,18 @@ func NewTestingSuite(
 /*
 Overview of tracing tests:
 
-1. install echo-server (upstream) and curl in SetupSuite (this can be done once)
+1. install echo-server (upstream) and curl in SetupSuite (this can be done
+once)
 
-2. install otelcol in the test itself (so stdout is fresh in each test, ie. avoid cross-contamination between tests)
+2. install/reinstall otelcol in BeforeTest - this avoids contamination between
+tests by ensuring the console output is clean for each test.
 
-3. send request(s) to the gateway-proxy so envoy sends a trace/traces to otelcol
+3. send requests to the gateway-proxy so envoy sends traces to otelcol
 
 4. parse stdout from otelcol to see if the trace contains the data that we want
 */
 
-func (s *testingSuite) BeforeTest(string, string) {
+func (s *testingSuite) SetupSuite() {
 	var err error
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.CurlPodManifest)
@@ -70,6 +72,20 @@ func (s *testingSuite) BeforeTest(string, string) {
 			LabelSelector: "app.kubernetes.io/name=http-echo",
 		},
 	)
+}
+
+func (s *testingSuite) TearDownSuite() {
+	var err error
+
+	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.CurlPodManifest)
+	s.Assertions.NoError(err, "can delete curl pod")
+
+	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.HttpEchoPodManifest)
+	s.Assertions.NoError(err, "can delete echo server")
+}
+
+func (s *testingSuite) BeforeTest(string, string) {
+	var err error
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, setupOtelcolManifest)
 	s.NoError(err, "can apply opentelemetry collector")
@@ -94,12 +110,6 @@ func (s *testingSuite) AfterTest(string, string) {
 	var err error
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupOtelcolManifest)
 	s.Assertions.NoError(err, "can delete otel collector")
-
-	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.CurlPodManifest)
-	s.Assertions.NoError(err, "can delete curl pod")
-
-	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.HttpEchoPodManifest)
-	s.Assertions.NoError(err, "can delete echo server")
 
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, tracingConfigManifest)
 	s.Assertions.NoError(err, "can delete gloo tracing config")
