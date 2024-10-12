@@ -45,7 +45,7 @@ spec:
                       text: '{{header("Host")}}'
     routes:
     - matchers:
-       - prefix: /route1
+       - prefix: /path/without/route/descriptor
       routeAction:
         single:
           upstream:
@@ -53,10 +53,8 @@ spec:
             namespace: default
       options:
         autoHostRewrite: true
-        # tracing:
-        #   routeDescriptor: MYTESTROUTEDESCRIPTOR
     - matchers:
-       - prefix: /route2
+       - prefix: /path/with/route/descriptor
       routeAction:
         single:
           upstream:
@@ -64,20 +62,8 @@ spec:
             namespace: default
       options:
         autoHostRewrite: true
-        # tracing:
-        #   routeDescriptor: YETANOTHERROUTEDESCRIPTOR
-    - matchers:
-       - prefix: /
-      routeAction:
-        single:
-          upstream:
-            name: echo-server
-            namespace: default
-      options:
-        autoHostRewrite: true
-        # tracing:
-        #   routeDescriptor: THISROUTEHASNOPREFIX
-
+        tracing:
+          routeDescriptor: THISISAROUTEDESCRIPTOR
 ---
 apiVersion: gateway.solo.io/v1
 kind: Gateway

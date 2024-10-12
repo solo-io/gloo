@@ -113,6 +113,7 @@ func (s *testingSuite) TestSimpleTest() {
 			})),
 			curl.WithHostHeader(testHostname),
 			curl.WithPort(80),
+			curl.WithPath(pathWithoutRouteDescriptor),
 		},
 		&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
@@ -126,5 +127,29 @@ func (s *testingSuite) TestSimpleTest() {
 		// Looking for a line like this:
 		// Name   : gateway-proxy.gloo-gateway-edge-test.svc.cluster.local
 		assert.Regexp(c, "Name *: " + testHostname, logs)
+	}, time.Second * 30, time.Second * 3, "otelcol logs contain span with name == hostname")
+
+	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
+				Name: gatewaydefaults.GatewayProxyName,
+				Namespace: s.testInstallation.Metadata.InstallNamespace,
+			})),
+			curl.WithHostHeader(testHostname),
+			curl.WithPort(80),
+			curl.WithPath(pathWithRouteDescriptor),
+		},
+		&matchers.HttpResponse{
+			StatusCode: http.StatusOK,
+		},
+	)
+
+	s.EventuallyWithT(func(c *assert.CollectT) {
+		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx, otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
+		assert.NoError(c, err, "can get otelcol logs")
+		fmt.Printf(logs)
+		// Looking for a line like this:
+		// Name       : <value of host header>
+		assert.Regexp(c, "Name *: " + routeDescriptorSpanName, logs)
 	}, time.Second * 30, time.Second * 3, "otelcol logs contain span with name == hostname")
 }

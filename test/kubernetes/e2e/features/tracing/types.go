@@ -8,6 +8,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	pathWithRouteDescriptor = "/path/with/route/descriptor"
+	pathWithoutRouteDescriptor = "/path/without/route/descriptor"
+	routeDescriptorSpanName = "THISISAROUTEDESCRIPTOR"
+)
+
 var (
 	setupOtelcolManifest = filepath.Join(util.MustGetThisDir(), "testdata", "setup-otelcol.yaml")
 	tracingConfigManifest = filepath.Join(util.MustGetThisDir(), "testdata", "tracing.yaml")
