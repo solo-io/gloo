@@ -9,17 +9,17 @@ import (
 )
 
 const (
-	pathWithRouteDescriptor = "/path/with/route/descriptor"
+	pathWithRouteDescriptor    = "/path/with/route/descriptor"
 	pathWithoutRouteDescriptor = "/path/without/route/descriptor"
-	routeDescriptorSpanName = "THISISAROUTEDESCRIPTOR"
+	routeDescriptorSpanName    = "THISISAROUTEDESCRIPTOR"
 )
 
 var (
-	setupOtelcolManifest = filepath.Join(util.MustGetThisDir(), "testdata", "setup-otelcol.yaml")
+	setupOtelcolManifest  = filepath.Join(util.MustGetThisDir(), "testdata", "setup-otelcol.yaml")
 	tracingConfigManifest = filepath.Join(util.MustGetThisDir(), "testdata", "tracing.yaml")
 
 	otelcolPod = &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{ Name: "otel-collector", Namespace: "default" },
+		ObjectMeta: metav1.ObjectMeta{Name: "otel-collector", Namespace: "default"},
 	}
 	otelcolSelector = metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/name=otel-collector",
