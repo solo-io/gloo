@@ -2,7 +2,6 @@ package tracing
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -25,8 +24,6 @@ type testingSuite struct {
 	ctx context.Context
 
 	testInstallation *e2e.TestInstallation
-
-	manifests map[string][]string
 }
 
 func NewTestingSuite(
@@ -51,22 +48,10 @@ Overview of tracing tests:
 4. parse stdout from otelcol to see if the trace contains the data that we want
 */
 
-func (s *testingSuite) TestSpanNameTransformations() {
-	s.T().Cleanup(func() {
-		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupOtelcolManifest)
-		s.Assertions.NoError(err, "can delete otel collector")
+func (s *testingSuite) BeforeTest(string, string) {
+	var err error
 
-		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.CurlPodManifest)
-		s.Assertions.NoError(err, "can delete curl pod")
-
-		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.HttpEchoPodManifest)
-		s.Assertions.NoError(err, "can delete echo server")
-
-		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, tracingConfigManifest)
-		s.Assertions.NoError(err, "can delete gloo tracing config")
-	})
-
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.CurlPodManifest)
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.CurlPodManifest)
 	s.NoError(err, "can apply CurlPodManifest")
 	s.testInstallation.Assertions.EventuallyPodsRunning(
 		s.ctx,
@@ -103,8 +88,25 @@ func (s *testingSuite) TestSpanNameTransformations() {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
 		return err == nil
 	}, time.Second*30, time.Second*5, "can apply gloo tracing config")
+}
 
-	testHostname := "test-hostname.com"
+func (s *testingSuite) AfterTest(string, string) {
+	var err error
+	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupOtelcolManifest)
+	s.Assertions.NoError(err, "can delete otel collector")
+
+	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.CurlPodManifest)
+	s.Assertions.NoError(err, "can delete curl pod")
+
+	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.HttpEchoPodManifest)
+	s.Assertions.NoError(err, "can delete echo server")
+
+	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, tracingConfigManifest)
+	s.Assertions.NoError(err, "can delete gloo tracing config")
+}
+
+func (s *testingSuite) TestSpanNameTransformationsWithoutRouteDecorator() {
+	testHostname := "test-really-cool-hostname.com"
 	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
@@ -123,19 +125,20 @@ func (s *testingSuite) TestSpanNameTransformations() {
 	s.EventuallyWithT(func(c *assert.CollectT) {
 		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx, otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
 		assert.NoError(c, err, "can get otelcol logs")
-		fmt.Printf(logs)
 		// Looking for a line like this:
-		// Name   : gateway-proxy.gloo-gateway-edge-test.svc.cluster.local
+		// Name       : <value of host header>
 		assert.Regexp(c, "Name *: "+testHostname, logs)
 	}, time.Second*30, time.Second*3, "otelcol logs contain span with name == hostname")
+}
 
+func (s *testingSuite) TestSpanNameTransformationsWithRouteDecorator() {
 	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
 				Name:      gatewaydefaults.GatewayProxyName,
 				Namespace: s.testInstallation.Metadata.InstallNamespace,
 			})),
-			curl.WithHostHeader(testHostname),
+			curl.WithHostHeader("example.com"),
 			curl.WithPort(80),
 			curl.WithPath(pathWithRouteDescriptor),
 		},
@@ -147,9 +150,8 @@ func (s *testingSuite) TestSpanNameTransformations() {
 	s.EventuallyWithT(func(c *assert.CollectT) {
 		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx, otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
 		assert.NoError(c, err, "can get otelcol logs")
-		fmt.Printf(logs)
 		// Looking for a line like this:
 		// Name       : <value of host header>
 		assert.Regexp(c, "Name *: "+routeDescriptorSpanName, logs)
-	}, time.Second*30, time.Second*3, "otelcol logs contain span with name == hostname")
+	}, time.Second*30, time.Second*3, "otelcol logs contain span with name == routeDescriptor")
 }
