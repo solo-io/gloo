@@ -24,25 +24,6 @@ spec:
         port: 4317
 ---
 apiVersion: gateway.solo.io/v1
-kind: Gateway
-metadata:
-  labels:
-    app: gloo
-  name: gateway-proxy
-  namespace: gloo-gateway-edge-test
-spec:
-  bindAddress: '::'
-  bindPort: 8080
-  httpGateway:
-    options:
-      httpConnectionManagerSettings:
-        tracing:
-          openTelemetryConfig:
-            collectorUpstreamRef:
-              name: opentelemetry-collector
-              namespace: default
----
-apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
   name: default
@@ -97,3 +78,22 @@ spec:
         # tracing:
         #   routeDescriptor: THISROUTEHASNOPREFIX
 
+---
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  labels:
+    app: gloo
+  name: gateway-proxy
+  namespace: gloo-gateway-edge-test
+spec:
+  bindAddress: '::'
+  bindPort: 8080
+  httpGateway:
+    options:
+      httpConnectionManagerSettings:
+        tracing:
+          openTelemetryConfig:
+            collectorUpstreamRef:
+              name: opentelemetry-collector
+              namespace: default
