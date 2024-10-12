@@ -51,7 +51,7 @@ Overview of tracing tests:
 4. parse stdout from otelcol to see if the trace contains the data that we want
 */
 
-func (s *testingSuite) TestSimpleTest() {
+func (s *testingSuite) TestSpanNameTransformations() {
 	s.T().Cleanup(func() {
 		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupOtelcolManifest)
 		s.Assertions.NoError(err, "can delete otel collector")
