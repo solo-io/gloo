@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
+	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
+	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
-	"github.com/solo-io/gloo/test/gomega/matchers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
-	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 )
 
 var _ e2e.NewSuiteFunc = NewTestingSuite
@@ -102,13 +102,13 @@ func (s *testingSuite) TestSimpleTest() {
 	s.Assert().Eventually(func() bool {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
 		return err == nil
-	}, time.Second * 30, time.Second * 5, "can apply gloo tracing config")
+	}, time.Second*30, time.Second*5, "can apply gloo tracing config")
 
 	testHostname := "test-hostname.com"
 	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
-				Name: gatewaydefaults.GatewayProxyName,
+				Name:      gatewaydefaults.GatewayProxyName,
 				Namespace: s.testInstallation.Metadata.InstallNamespace,
 			})),
 			curl.WithHostHeader(testHostname),
@@ -126,13 +126,13 @@ func (s *testingSuite) TestSimpleTest() {
 		fmt.Printf(logs)
 		// Looking for a line like this:
 		// Name   : gateway-proxy.gloo-gateway-edge-test.svc.cluster.local
-		assert.Regexp(c, "Name *: " + testHostname, logs)
-	}, time.Second * 30, time.Second * 3, "otelcol logs contain span with name == hostname")
+		assert.Regexp(c, "Name *: "+testHostname, logs)
+	}, time.Second*30, time.Second*3, "otelcol logs contain span with name == hostname")
 
 	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
-				Name: gatewaydefaults.GatewayProxyName,
+				Name:      gatewaydefaults.GatewayProxyName,
 				Namespace: s.testInstallation.Metadata.InstallNamespace,
 			})),
 			curl.WithHostHeader(testHostname),
@@ -150,6 +150,6 @@ func (s *testingSuite) TestSimpleTest() {
 		fmt.Printf(logs)
 		// Looking for a line like this:
 		// Name       : <value of host header>
-		assert.Regexp(c, "Name *: " + routeDescriptorSpanName, logs)
-	}, time.Second * 30, time.Second * 3, "otelcol logs contain span with name == hostname")
+		assert.Regexp(c, "Name *: "+routeDescriptorSpanName, logs)
+	}, time.Second*30, time.Second*3, "otelcol logs contain span with name == hostname")
 }
