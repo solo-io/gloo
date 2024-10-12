@@ -78,7 +78,6 @@ The below table contains the environment variables that can be used to configure
 | WAIT_ON_FAIL     | 0       | Set to 1 to prevent Ginkgo from cleaning up the Gloo Edge installation in case of failure. Useful to exec into inspect resources created by the test. A command to resume the test run (and thus clean up resources) will be logged to the output. |
 | TEAR_DOWN        | false   | Set to true to uninstall Gloo after the test suite completes                                                                                                                                                                                       |
 | RELEASED_VERSION | ''      | Used by nightlies to tests a specific released version. 'LATEST' will find the latest release                                                                                                                                                      |
-| SKIP_INSTALL     | false   | Skip installing gloo into the cluster - useful if gloo has already been installed in the test cluster                                                                                                                                              |
 
 #### Common Test Errors
 `getting Helm chart version: expected a single entry with name [gloo], found: 5`\
