@@ -3,8 +3,11 @@ package controller
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
+	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -21,9 +24,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+	"sigs.k8s.io/gateway-api/pkg/consts"
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
+	"github.com/solo-io/gloo/projects/gateway2/crds"
 	"github.com/solo-io/gloo/projects/gateway2/deployer"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 	"github.com/solo-io/gloo/projects/gateway2/query"
@@ -62,13 +67,15 @@ func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 	controllerBuilder := &controllerBuilder{
 		cfg: cfg,
 		reconciler: &controllerReconciler{
-			cli:    cfg.Mgr.GetClient(),
-			scheme: cfg.Mgr.GetScheme(),
-			kick:   cfg.Kick,
+			controllerName: cfg.ControllerName,
+			cli:            cfg.Mgr.GetClient(),
+			scheme:         cfg.Mgr.GetScheme(),
+			kick:           cfg.Kick,
 		},
 	}
 
 	return run(ctx,
+		controllerBuilder.watchCRDs,
 		controllerBuilder.watchGwClass,
 		controllerBuilder.watchGw,
 		controllerBuilder.watchHttpRoute,
@@ -249,6 +256,26 @@ func shouldIgnoreStatusChild(gvk schema.GroupVersionKind) bool {
 	return gvk.Kind == "Deployment"
 }
 
+// watchCRDs sets up a controller to watch for changes to specific Gateway API CRDs and triggers
+// GatewayClass reconciliation if generation or annotations change.
+func (c *controllerBuilder) watchCRDs(ctx context.Context) error {
+	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
+		For(&apiextv1.CustomResourceDefinition{}).
+		WithEventFilter(predicate.NewPredicateFuncs(func(object client.Object) bool {
+			// We care about changes to the specific CRDs
+			crd, ok := object.(*apiextv1.CustomResourceDefinition)
+			if !ok {
+				return false
+			}
+			return crds.IsSupported(crd.Name)
+		})).
+		WithEventFilter(predicate.Or(
+			predicate.AnnotationChangedPredicate{},
+			predicate.GenerationChangedPredicate{},
+		)).
+		Complete(reconcile.Func(c.reconciler.ReconcileCRDs))
+}
+
 func (c *controllerBuilder) watchGwClass(_ context.Context) error {
 	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
@@ -335,9 +362,10 @@ func (c *controllerBuilder) watchDirectResponses(_ context.Context) error {
 }
 
 type controllerReconciler struct {
-	cli    client.Client
-	scheme *runtime.Scheme
-	kick   func(ctx context.Context)
+	controllerName string
+	cli            client.Client
+	scheme         *runtime.Scheme
+	kick           func(ctx context.Context)
 }
 
 func (r *controllerReconciler) ReconcileHttpListenerOptions(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -413,8 +441,39 @@ func (r *controllerReconciler) ReconcileReferenceGrants(ctx context.Context, req
 	return ctrl.Result{}, nil
 }
 
+func (r *controllerReconciler) ReconcileCRDs(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := log.FromContext(ctx).WithValues("CustomResourceDefinition", req.Name)
+
+	log.Info("reconciling CustomResourceDefinition")
+
+	var gatewayClassList apiv1.GatewayClassList
+	if err := r.cli.List(ctx, &gatewayClassList); err != nil {
+		log.Error(err, "Failed to list GatewayClasses")
+		return ctrl.Result{}, err
+	}
+
+	for _, gatewayClass := range gatewayClassList.Items {
+		if gatewayClass.Spec.ControllerName == apiv1.GatewayController(r.controllerName) {
+			req := ctrl.Request{
+				NamespacedName: client.ObjectKey{
+					Name: gatewayClass.Name,
+				},
+			}
+
+			if _, err := r.ReconcileGatewayClasses(ctx, req); err != nil {
+				log.Error(err, "Failed to reconcile GatewayClass", "name", gatewayClass.Name)
+				return ctrl.Result{}, err
+			}
+		}
+	}
+
+	log.Info("Reconciled CustomResourceDefinition")
+
+	return ctrl.Result{}, nil
+}
+
 func (r *controllerReconciler) ReconcileGatewayClasses(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := log.FromContext(ctx).WithValues("gwclass", req.NamespacedName)
+	log := log.FromContext(ctx).WithValues("GatewayClass", req.Name)
 
 	gwclass := &apiv1.GatewayClass{}
 	if err := r.cli.Get(ctx, req.NamespacedName, gwclass); err != nil {
@@ -425,31 +484,74 @@ func (r *controllerReconciler) ReconcileGatewayClasses(ctx context.Context, req 
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	log.Info("reconciling gateway class")
+	log.Info("Reconciling GatewayClass")
 
-	// mark it as accepted:
+	// Initialize the status conditions. No need to set LastTransitionTime since it's handled by SetStatusCondition.
+	msg := "Gateway API CRDs are a supported version"
 	acceptedCondition := metav1.Condition{
 		Type:               string(apiv1.GatewayClassConditionStatusAccepted),
 		Status:             metav1.ConditionTrue,
 		Reason:             string(apiv1.GatewayClassReasonAccepted),
+		Message:            msg,
 		ObservedGeneration: gwclass.Generation,
-		// no need to set LastTransitionTime, it will be set automatically by SetStatusCondition
 	}
-	meta.SetStatusCondition(&gwclass.Status.Conditions, acceptedCondition)
-
-	// TODO: This should actually check the version of the CRDs in the cluster to be 100% sure
-	supportedVersionCondition := metav1.Condition{
+	supportedCondition := metav1.Condition{
 		Type:               string(apiv1.GatewayClassConditionStatusSupportedVersion),
 		Status:             metav1.ConditionTrue,
-		ObservedGeneration: gwclass.Generation,
 		Reason:             string(apiv1.GatewayClassReasonSupportedVersion),
+		Message:            msg,
+		ObservedGeneration: gwclass.Generation,
 	}
-	meta.SetStatusCondition(&gwclass.Status.Conditions, supportedVersionCondition)
 
-	if err := r.cli.Status().Update(ctx, gwclass); err != nil {
+	// Check CRD versions
+	supported, err := r.checkCRDVersions(ctx)
+	if err != nil {
+		log.Error(err, "Failed to check CRD versions")
 		return ctrl.Result{}, err
 	}
-	log.Info("updated gateway class status")
+
+	if !supported {
+		// Update the values of status conditions
+		msg = fmt.Sprintf("Unsupported Gateway API CRDs detected. Supported versions are: %s",
+			strings.Join(wellknown.SupportedVersions, ", "))
+		acceptedCondition.Status = metav1.ConditionFalse
+		acceptedCondition.Reason = string(apiv1.GatewayClassReasonUnsupportedVersion)
+		acceptedCondition.Message = msg
+		supportedCondition.Status = metav1.ConditionFalse
+		supportedCondition.Reason = string(apiv1.GatewayClassReasonUnsupportedVersion)
+		supportedCondition.Message = msg
+	}
+
+	// Set the status conditions
+	meta.SetStatusCondition(&gwclass.Status.Conditions, acceptedCondition)
+	meta.SetStatusCondition(&gwclass.Status.Conditions, supportedCondition)
+
+	if err := r.cli.Status().Update(ctx, gwclass); err != nil {
+		log.Error(err, "Failed to update GatewayClass status")
+		return ctrl.Result{}, err
+	}
+
+	log.Info("Reconciled GatewayClass")
 
 	return ctrl.Result{}, nil
+}
+
+// checkCRDVersions checks that the "gateway.networking.k8s.io/bundle-version" annotation key is set
+// to a supported version for each required Gateway API CRD.
+func (r *controllerReconciler) checkCRDVersions(ctx context.Context) (bool, error) {
+	for _, crdName := range crds.Required {
+		crd := &apiextv1.CustomResourceDefinition{}
+		if err := r.cli.Get(ctx, client.ObjectKey{Name: crdName}, crd); err != nil {
+			if errors.IsNotFound(err) {
+				return false, nil
+			}
+			return false, err
+		}
+
+		bundleVersion, exists := crd.Annotations[consts.BundleVersionAnnotation]
+		if !exists || !crds.IsSupportedVersion(bundleVersion) {
+			return false, nil
+		}
+	}
+	return true, nil
 }

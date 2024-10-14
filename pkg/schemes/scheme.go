@@ -9,6 +9,7 @@ import (
 	ratelimitv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
@@ -24,6 +25,9 @@ var SchemeBuilder = runtime.SchemeBuilder{
 	// Kubernetes Core resources
 	corev1.AddToScheme,
 	appsv1.AddToScheme,
+
+	// Kubernetes apiextensions resources
+	apiextv1.AddToScheme,
 
 	// Solo Kubernetes Gateway API resources
 	sologatewayv1alpha1.AddToScheme,
