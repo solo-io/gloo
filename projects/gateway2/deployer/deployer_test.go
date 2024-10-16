@@ -172,6 +172,10 @@ var _ = Describe("Deployer", func() {
 								"default-anno-key": "default-anno-val",
 							},
 						},
+						Aws: &gw2_v1alpha1.Aws{
+							EnableServiceAccountCredentials: ptr.To(false),
+							StsCredentialsRegion:            ptr.To("default-region"),
+						},
 						Stats: &gw2_v1alpha1.StatsConfig{
 							Enabled:                 ptr.To(true),
 							RoutePrefixRewrite:      ptr.To("/stats/prometheus"),
@@ -511,6 +515,10 @@ var _ = Describe("Deployer", func() {
 									"override-anno-key": "override-anno-val",
 								},
 							},
+							Aws: &gw2_v1alpha1.Aws{
+								EnableServiceAccountCredentials: ptr.To(true),
+								StsCredentialsRegion:            ptr.To("override-region"),
+							},
 						},
 					},
 				}
@@ -575,6 +583,10 @@ var _ = Describe("Deployer", func() {
 									"default-anno-key":  "default-anno-val",
 									"override-anno-key": "override-anno-val",
 								},
+							},
+							Aws: &gw2_v1alpha1.Aws{
+								EnableServiceAccountCredentials: ptr.To(true),
+								StsCredentialsRegion:            ptr.To("override-region"),
 							},
 						},
 					},
@@ -731,6 +743,28 @@ var _ = Describe("Deployer", func() {
 
 				cm := objs.findConfigMap(defaultNamespace, defaultConfigMapName)
 				Expect(cm).ToNot(BeNil())
+				envoyYaml := cm.Data["envoy.yaml"]
+
+				// check AWS-specific configmap values
+				var expectedEnableCreds bool
+				var expectedStsRegion string
+				if expectedGwp.GetAws().GetEnableServiceAccountCredentials() != nil {
+					expectedEnableCreds = *expectedGwp.GetAws().GetEnableServiceAccountCredentials()
+				}
+				if expectedGwp.GetAws().GetStsCredentialsRegion() != nil {
+					expectedStsRegion = *expectedGwp.GetAws().GetStsCredentialsRegion()
+				}
+				if expectedEnableCreds {
+					Expect(envoyYaml).To(ContainSubstring("aws_sts_cluster"))
+					if expectedStsRegion != "" {
+						Expect(envoyYaml).To(ContainSubstring(fmt.Sprintf("sni: sts.%s.amazonaws.com", expectedStsRegion)))
+					} else {
+						Expect(envoyYaml).To(ContainSubstring("sni: sts.amazonaws.com"))
+					}
+				} else {
+					Expect(envoyYaml).NotTo(ContainSubstring("aws_sts_cluster"))
+					Expect(envoyYaml).NotTo(ContainSubstring("sni: sts"))
+				}
 
 				logLevelsMap := expectedGwp.EnvoyContainer.Bootstrap.ComponentLogLevels
 				levels := []types.GomegaMatcher{}

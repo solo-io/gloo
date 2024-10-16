@@ -128,9 +128,9 @@ spec:
 {{ toYaml $gg.aiExtension.ports | indent 6 }}
 {{- end }} {{/* if $gg.aiExtension.ports */}}
 {{- end }}{{/* if $gg.aiExtension */}}
-{{- if .Values.settings.aws.enableServiceAccountCredentials }}
+{{- if or (.Values.settings.aws).enableServiceAccountCredentials (.Values.settings.aws).stsCredentialsRegion }}
     aws:
-      enableServiceAccountCredentials: {{ .Values.settings.aws.enableServiceAccountCredentials }}
-      stsCredentialsRegion: {{ .Values.settings.aws.stsCredentialsRegion }}
-{{- end }}{{/* if .Values.settings.aws.enableServiceAccountCredentials */}}
+      enableServiceAccountCredentials: {{ (.Values.settings.aws).enableServiceAccountCredentials }}
+      stsCredentialsRegion: {{ (.Values.settings.aws).stsCredentialsRegion }}
+{{- end }}{{/* if .Values.settings.aws */}}
 {{- end }}{{/* if .Values.kubeGateway.enabled */}}
