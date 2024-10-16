@@ -17,6 +17,7 @@ var (
 	gatewayWithParameters    = filepath.Join(util.MustGetThisDir(), "testdata", "gateway-with-parameters.yaml")
 	gatewayParametersCustom  = filepath.Join(util.MustGetThisDir(), "testdata", "gatewayparameters-custom.yaml")
 	istioGatewayParameters   = filepath.Join(util.MustGetThisDir(), "testdata", "istio-gateway-parameters.yaml")
+	awsGatewayParameters     = filepath.Join(util.MustGetThisDir(), "testdata", "aws-gateway-parameters.yaml")
 	selfManagedGateway       = filepath.Join(util.MustGetThisDir(), "testdata", "self-managed-gateway.yaml")
 
 	// When we apply the deployer-provision.yaml file, we expect resources to be created with this metadata
