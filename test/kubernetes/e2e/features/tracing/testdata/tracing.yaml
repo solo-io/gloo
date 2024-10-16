@@ -1,0 +1,85 @@
+# gloo resources
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: echo-server
+spec:
+  # useHttp2: true
+  static:
+    hosts:
+    - addr: http-echo.http-echo.svc.cluster.local # TODO do not hard-code this?
+      port: 3000
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: "opentelemetry-collector"
+  namespace: default
+spec:
+  # REQUIRED FOR OPENTELEMETRY COLLECTION
+  useHttp2: true
+  static:
+    hosts:
+      - addr: otel-collector.default.svc.cluster.local # TODO avoid hard-coding this path?
+        port: 4317
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: default
+spec:
+  virtualHost:
+    domains:
+    - '*'
+    options:
+      stagedTransformations:
+        regular:
+          requestTransforms:
+            - requestTransformation:
+                transformationTemplate:
+                  headers:
+                    test_header:
+                      text: test_avlue
+                  spanTransformer:
+                    name:
+                      text: '{{header("Host")}}'
+    routes:
+    - matchers:
+       - prefix: /path/without/route/descriptor
+      routeAction:
+        single:
+          upstream:
+            name: echo-server
+            namespace: default
+      options:
+        autoHostRewrite: true
+    - matchers:
+       - prefix: /path/with/route/descriptor
+      routeAction:
+        single:
+          upstream:
+            name: echo-server
+            namespace: default
+      options:
+        autoHostRewrite: true
+        tracing:
+          routeDescriptor: THISISAROUTEDESCRIPTOR
+---
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  labels:
+    app: gloo
+  name: gateway-proxy
+  namespace: gloo-gateway-edge-test
+spec:
+  bindAddress: '::'
+  bindPort: 8080
+  httpGateway:
+    options:
+      httpConnectionManagerSettings:
+        tracing:
+          openTelemetryConfig:
+            collectorUpstreamRef:
+              name: opentelemetry-collector
+              namespace: default
