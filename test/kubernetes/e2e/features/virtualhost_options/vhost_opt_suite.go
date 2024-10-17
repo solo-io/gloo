@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gstruct"
@@ -284,6 +285,8 @@ func (s *testingSuite) TestOptionsMerge() {
 		core.Status_Accepted,
 		defaults.KubeGatewayReporter,
 	)
+
+	time.Sleep(time.Second * 5)
 
 	_, err = s.testInstallation.Actions.Kubectl().ApplyFileWithOutput(s.ctx, extraVhOMergeManifest)
 	s.Require().NoError(err)
