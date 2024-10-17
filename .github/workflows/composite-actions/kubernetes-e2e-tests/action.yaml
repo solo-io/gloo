@@ -66,5 +66,4 @@ runs:
       SLACKBOT_BEARER: ${{ secrets.SLACKBOT_BEARER }}
       # SLACK_CHANNEL=C04CJMXAH7A    #edge-nightly-results by default
       SLACK_CHANNEL=C0314KESVNV    #slack-integration-testing for testing
-    run: |
-      go run .github/workflows/helpers/notify/slack.go '${{ steps.getsummary.outputs.summary }}'
+    run: go run .github/workflows/helpers/notify/slack.go '${{ steps.getsummary.outputs.summary }}'
