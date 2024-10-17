@@ -37,6 +37,7 @@ runs:
     shell: bash
     run: make go-test
   - name: Summarize tests
+    if: ${{ always() }}
     # Print out a summary of ALL tests run under this action. In the future we can use this tool
     # with the --json flag to export the results for centralized processing.
     shell: bash
@@ -53,3 +54,14 @@ runs:
     with:
       name: go-test-summary-${{ inputs.cluster-name }}-${{ inputs.matrix-label }}-attempt-${{ github.run_attempt }}
       path: ./_test/test_log/go-test-summary
+  - name: Read summary file
+    id: getsummary
+    run: echo "::set-output name=summary::$(cat ./_test/test_log/go-test-summary)"
+  - name: Send Slack Message
+    env:
+      PARENT_JOB_URL: https://github.com/solo-io/gloo/actions/runs/${{github.run_id}} # parent job hyperlink
+      SLACKBOT_BEARER: ${{ secrets.SLACKBOT_BEARER }}
+      # SLACK_CHANNEL=C04CJMXAH7A    #edge-nightly-results by default
+      SLACK_CHANNEL=C0314KESVNV    #slack-integration-testing for testing
+    run: |
+      go run .github/workflows/helpers/notify/slack.go '${{ steps.getsummary.outputs.summary }}'
