@@ -56,8 +56,11 @@ runs:
       path: ./_test/test_log/go-test-summary
   - name: Read summary file
     id: getsummary
+    if: ${{ failure() }}
+    shell: bash
     run: echo "::set-output name=summary::$(cat ./_test/test_log/go-test-summary)"
   - name: Send Slack Message
+    if: ${{ failure() }}
     env:
       PARENT_JOB_URL: https://github.com/solo-io/gloo/actions/runs/${{github.run_id}} # parent job hyperlink
       SLACKBOT_BEARER: ${{ secrets.SLACKBOT_BEARER }}
