@@ -57,18 +57,12 @@ runs:
     with:
       name: go-test-summary-${{ inputs.cluster-name }}-${{ inputs.matrix-label }}-attempt-${{ github.run_attempt }}
       path: ./_test/test_log/go-test-summary
-  - name: Read summary file
-    id: getsummary
-    if: ${{ always() }}
-    shell: bash
-    run: echo "summary=$(cat ./_test/test_log/go-test-summary)" >> $GITHUB_OUTPUT
   - name: Send Slack Message
     if: ${{ always() }}
     env:
-      PARENT_JOB_URL: https://github.com/solo-io/gloo/actions/runs/${{github.run_id}} # parent job hyperlink
       SLACKBOT_BEARER: ${{ inputs.slackbot-bearer }}
       # SLACK_CHANNEL: C04CJMXAH7A    #edge-nightly-results by default
       SLACK_CHANNEL: C0314KESVNV    #slack-integration-testing for testing
     shell: bash
     run: |
-      go run .github/workflows/helpers/notify/slack.go '${{ steps.getsummary.outputs.summary }}'
+      go run .github/workflows/helpers/notify/slack_test_summary.go './_test/test_log/go-test-summary'
