@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/rotisserie/eris"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/go-utils/contextutils"
@@ -135,9 +136,9 @@ func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx *plugins.Statu
 	routeOptionReport := make(reporter.ResourceReports)
 	for roKey, status := range p.legacyStatusCache {
 		// get the obj by namespacedName
-		roObj, _ := p.routeOptionClient.Read(roKey.Namespace, roKey.Name, clients.ReadOpts{Ctx: ctx})
-		if roObj == nil {
-			return fmt.Errorf("error reading RouteOption %v in namespace %v", roKey.Name, roKey.Namespace)
+		roObj, err := p.routeOptionClient.Read(roKey.Namespace, roKey.Name, clients.ReadOpts{Ctx: ctx})
+		if err != nil {
+			return eris.Wrapf(err, "error reading RouteOption %s in namespace %s", roKey.Name, roKey.Namespace)
 		}
 
 		// mark this object to be processed
@@ -149,7 +150,7 @@ func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx *plugins.Statu
 		}
 
 		// actually write out the reports!
-		err := p.statusReporter.WriteReports(ctx, routeOptionReport, status.subresourceStatus)
+		err = p.statusReporter.WriteReports(ctx, routeOptionReport, status.subresourceStatus)
 		if err != nil {
 			return fmt.Errorf("error writing status report from RouteOptionPlugin: %w", err)
 		}
