@@ -136,6 +136,9 @@ func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx *plugins.Statu
 	for roKey, status := range p.legacyStatusCache {
 		// get the obj by namespacedName
 		roObj, _ := p.routeOptionClient.Read(roKey.Namespace, roKey.Name, clients.ReadOpts{Ctx: ctx})
+		if roObj == nil {
+			return fmt.Errorf("error reading RouteOption %s from namespace %s", roKey.Name, roKey.Namespace)
+		}
 
 		// mark this object to be processed
 		routeOptionReport.Accept(roObj)
