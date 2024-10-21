@@ -21,6 +21,9 @@ inputs:
   matrix-label:
     required: true
     description: The version of the matrix being used - used to name artifacts to prevent filename collisions
+  slackbot-bearer:
+    required: true
+    description: The secret bearer token for the slackbot integration
 
 runs:
   using: "composite"
@@ -37,6 +40,7 @@ runs:
     shell: bash
     run: make go-test
   - name: Summarize tests
+    if: ${{ always() }}
     # Print out a summary of ALL tests run under this action. In the future we can use this tool
     # with the --json flag to export the results for centralized processing.
     shell: bash
@@ -53,3 +57,12 @@ runs:
     with:
       name: go-test-summary-${{ inputs.cluster-name }}-${{ inputs.matrix-label }}-attempt-${{ github.run_attempt }}
       path: ./_test/test_log/go-test-summary
+  - name: Send Slack Message
+    if: ${{ always() }}
+    env:
+      SLACKBOT_BEARER: ${{ inputs.slackbot-bearer }}
+      # SLACK_CHANNEL: C04CJMXAH7A    #edge-nightly-results by default
+      SLACK_CHANNEL: C0314KESVNV    #slack-integration-testing for testing
+    shell: bash
+    run: |
+      go run .github/workflows/helpers/notify/slack_test_summary.go './_test/test_log/go-test-summary'
