@@ -19,8 +19,9 @@ type Options struct {
 	*options.Options
 
 	InputFile                string
-	OutputFile               string
 	Directory                string
+	Overwrite                bool
+	Stats                    bool
 	GCPRegex                 string
 	RemoveGCPAUthConfig      bool
 	RouteOptionStategicMerge bool
@@ -28,7 +29,8 @@ type Options struct {
 
 func (o *Options) addToFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.InputFile, "input-file", "", "File to convert")
-	flags.StringVar(&o.OutputFile, "output-file", "", "Where to write the output")
+	flags.BoolVar(&o.Overwrite, "overwrite", false, "Overwrite the existing files with the changes")
+	flags.BoolVar(&o.Stats, "stats", false, "Print stats about the conversion")
 	flags.StringVar(&o.Directory, "dir", "", "Directory to read yaml/yml files")
 }
 
@@ -53,7 +55,6 @@ type DelegateParentReference struct {
 type GatewayAPIOutput struct {
 	FileName             string
 	YamlObjects          []string
-	KubernetesObjects    []runtime.Object
 	DelegationReferences []*DelegateParentReference
 	HTTPRoutes           []*gwv1.HTTPRoute
 	RouteOptions         []*gatewaykube.RouteOption
@@ -65,9 +66,6 @@ type GatewayAPIOutput struct {
 
 func (g *GatewayAPIOutput) HasItems() bool {
 
-	if len(g.KubernetesObjects) > 0 {
-		return true
-	}
 	if len(g.HTTPRoutes) > 0 {
 		return true
 	}
@@ -95,7 +93,7 @@ func (g *GatewayAPIOutput) ToString() (string, error) {
 		output += "\n---\n" + y + "\n"
 	}
 
-	for _, obj := range g.KubernetesObjects {
+	for _, obj := range g.Upstreams {
 		o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), obj)
 		if err != nil {
 			return "", err
@@ -107,6 +105,73 @@ func (g *GatewayAPIOutput) ToString() (string, error) {
 		}
 
 		output += "\n---\n" + yaml.String()
+	}
+
+	for _, obj := range g.HTTPRoutes {
+		o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), obj)
+		if err != nil {
+			return "", err
+		}
+
+		var yaml strings.Builder
+		if err := json2yaml.Convert(&yaml, bytes.NewReader(o)); err != nil {
+			return "", err
+		}
+
+		output += "\n---\n" + yaml.String()
+	}
+	for _, op := range g.RouteOptions {
+		marshaller := YamlMarshaller{}
+		yaml, err := marshaller.ToYaml(&op)
+		if err != nil {
+			return "", err
+		}
+
+		output += "\n---\n" + string(yaml)
+	}
+	for _, op := range g.AuthConfigs {
+		marshaller := YamlMarshaller{}
+		yaml, err := marshaller.ToYaml(&op)
+		if err != nil {
+			return "", err
+		}
+
+		output += "\n---\n" + string(yaml)
+	}
+
+	for _, op := range g.VirtualHostOptions {
+		marshaller := YamlMarshaller{}
+		yaml, err := marshaller.ToYaml(&op)
+		if err != nil {
+			return "", err
+		}
+
+		output += "\n---\n" + string(yaml)
+	}
+
+	// need to remove a few values
+	//  creationTimestamp: null
+	// status: {}
+	// status:
+	// parents: null
+	output = strings.ReplaceAll(output, "  creationTimestamp: null\n", "")
+	output = strings.ReplaceAll(output, "status:\n", "")
+	output = strings.ReplaceAll(output, "parents: null\n", "")
+	output = strings.ReplaceAll(output, "status: {}\n", "")
+	output = strings.ReplaceAll(output, "\n\n\n", "\n")
+	output = strings.ReplaceAll(output, "\n\n", "\n")
+	output = strings.ReplaceAll(output, "spec: {}\n", "")
+
+	// TODO remove leading and trailing ---
+	// log.Printf("%s", output)
+	return output, nil
+}
+
+func (g *GlooEdgeInput) ToString() (string, error) {
+	output := ""
+
+	for _, y := range g.YamlObjects {
+		output += "\n---\n" + y + "\n"
 	}
 
 	for _, obj := range g.Upstreams {
@@ -123,7 +188,20 @@ func (g *GatewayAPIOutput) ToString() (string, error) {
 		output += "\n---\n" + yaml.String()
 	}
 
-	for _, obj := range g.HTTPRoutes {
+	for _, obj := range g.RouteTables {
+		o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), obj)
+		if err != nil {
+			return "", err
+		}
+
+		var yaml strings.Builder
+		if err := json2yaml.Convert(&yaml, bytes.NewReader(o)); err != nil {
+			return "", err
+		}
+
+		output += "\n---\n" + yaml.String()
+	}
+	for _, obj := range g.VirtualServices {
 		o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), obj)
 		if err != nil {
 			return "", err

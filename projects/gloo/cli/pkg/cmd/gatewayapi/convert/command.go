@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -29,6 +28,7 @@ import (
 
 const (
 	RandomSuffix = 4
+	RandomSeed   = 1
 )
 
 var runtimeScheme *runtime.Scheme
@@ -36,7 +36,6 @@ var codecs serializer.CodecFactory
 var decoder runtime.Decoder
 
 func RootCmd() *cobra.Command {
-	rand.Seed(1)
 	opts := &Options{}
 	cmd := &cobra.Command{
 		Use:   "convert",
@@ -57,6 +56,7 @@ func run(opts *Options) error {
 		return err
 	}
 
+	filesMetrics.Add(float64(len(foundFiles)))
 	var inputs []*GlooEdgeInput
 
 	for _, file := range foundFiles {
@@ -85,12 +85,39 @@ func run(opts *Options) error {
 
 	// write all the outputs to their files
 	for _, output := range outputs {
-		fmt.Fprintf(os.Stdout, "\n\n---\n# --------------------------------\n# %s\n# --------------------------------", output.FileName)
+		//only write or
 		txt, err := output.ToString()
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(os.Stdout, "%s\n", txt)
+
+		if opts.Overwrite {
+			if output.HasItems() {
+				_, _ = fmt.Fprintf(os.Stdout, "Updated File: %s\n", output.FileName)
+				file, err := os.OpenFile(output.FileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+				if err != nil {
+					log.Fatal(err)
+				}
+				defer file.Close()
+				fmt.Fprintf(file, "%s", txt)
+			} else {
+				_, _ = fmt.Fprintf(os.Stdout, "Skipping File because no Edge APIs Detected: %s\n", output.FileName)
+			}
+		} else {
+			_, _ = fmt.Fprintf(os.Stdout, "\n\n---\n# --------------------------------\n# %s\n# --------------------------------", output.FileName)
+			_, _ = fmt.Fprintf(os.Stdout, "%s\n", txt)
+		}
+		if opts.Stats {
+			totalLines.WithLabelValues("Gateway API").Add(float64(len(strings.Split(txt, "\n"))))
+		}
+	}
+	if opts.Stats {
+		//count total lines of generated yaml (probably expensive)
+		for _, input := range inputs {
+			txt, _ := input.ToString()
+			totalLines.WithLabelValues("Gloo").Add(float64(len(strings.Split(txt, "\n"))))
+		}
+		printMetrics(outputs)
 	}
 
 	return nil
@@ -294,7 +321,7 @@ func convertVirtualHostOptions(
 		},
 		Spec: gloogwv1.VirtualHostOption{
 			Options: options,
-			// TODO we just referenece a non existant gateway today
+			// TODO we just reference a non existent gateway today
 			TargetRefs: []*v3.PolicyTargetReferenceWithSectionName{
 				{
 					Group:     "gateway.networking.k8s.io",
@@ -435,6 +462,7 @@ func convertMatch(m *matchers.Matcher) (gwv1.HTTPRouteMatch, error) {
 	if len(m.Headers) > 0 {
 		hrm.Headers = []gwv1.HTTPHeaderMatch{}
 		for _, h := range m.Headers {
+			// support invert header match https://github.com/solo-io/gloo/blob/main/projects/gateway2/translator/httproute/gateway_http_route_translator.go#L274
 			if h.InvertMatch == true {
 				return hrm, errors.New("invert match not currently supported")
 			}
@@ -452,10 +480,10 @@ func convertMatch(m *matchers.Matcher) (gwv1.HTTPRouteMatch, error) {
 				})
 			}
 		}
-		// TODO support Invert header match https://github.com/solo-io/gloo/blob/main/projects/gateway2/translator/httproute/gateway_http_route_translator.go#L274
+
 	}
 
-	// method mathching
+	// method matching
 	if len(m.Methods) > 0 {
 		if len(m.Methods) > 1 {
 			return hrm, errors.New(fmt.Sprintf("Gateway API only supports 1 method match per rule and %d were detected", len(m.Methods)))
@@ -565,9 +593,9 @@ func generateFilterForURLRewrite(r *gloogwv1.Route) (gwv1.HTTPRouteFilter, error
 		rf.URLRewrite.Path.ReplaceFullPath = nil
 	}
 
-	// TODO regex rewrite, NOT SUPPORTED IN GATEWAY API
+	// regex rewrite, NOT SUPPORTED IN GATEWAY API
 	if r.GetOptions().GetRegexRewrite() != nil {
-		return rf, errors.New(fmt.Sprintf("Reject rewrite not supported, need to convert to another match"))
+		return rf, errors.New(fmt.Sprintf("regex rewrite not supported, need to convert to another match"))
 	}
 	// rr.Filters = append(rr.Filters, gwv1.HTTPRouteFilter{
 	// 	Type: gwv1.HTTPRouteFilterURLRewrite,
@@ -680,10 +708,11 @@ func generateFilterForRedirectAction(r *gloogwv1.Route) (gwv1.HTTPRouteFilter, e
 	if r.GetRedirectAction().HttpsRedirect == true {
 		rf.RequestRedirect.Scheme = ptr.To("https")
 	}
-	// TODO we dont support stripQuery https://github.com/solo-io/gloo/blob/main/projects/gateway2/translator/plugins/redirect/redirect_plugin.go#L43
-	// if r.GetRedirectAction().StripQuery == true {
-	// 	rf.RequestRedirect.
-	// }
+
+	// we dont support stripQuery https://github.com/solo-io/gloo/blob/main/projects/gateway2/translator/plugins/redirect/redirect_plugin.go#L43
+	if r.GetRedirectAction().StripQuery == true {
+		return rf, errors.New("strip query not supported by Gateway API")
+	}
 
 	if r.GetRedirectAction().GetPathRedirect() != "" {
 
@@ -852,12 +881,13 @@ func translateFileToEdgeInput(fileName string) (*GlooEdgeInput, error) {
 				continue
 			}
 
-			// if we cant decode it, don't do anything and continue
-			log.Printf("# Skipping object due to error %s", err)
+			// TODO if we cant decode it, don't do anything and continue
+			//log.Printf("# Skipping object due to error file parsing error %s", err)
 			continue
 		}
 		switch o := obj.(type) {
 		case *v2.AuthConfig:
+			glooConfigMetric.WithLabelValues("AuthConfig").Inc()
 			gei.AuthConfigs = append(gei.AuthConfigs, o)
 		case *glookube.Upstream:
 			glooConfigMetric.WithLabelValues("Upstream").Inc()
