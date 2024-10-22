@@ -96,10 +96,11 @@ func NewSecretResourceClientFactory(ctx context.Context, params SecretFactoryPar
 		if pathPrefix == "" {
 			pathPrefix = DefaultPathPrefix
 		}
+		ignoreGvkPath := source.VaultSecretSource.GetIgnoreGvkInSecretPath()
 		vaultClientFunc := params.VaultClientInitMap[SecretSourceAPIVaultClientInitIndex]
 		// We do not error upon creating a vault ResourceClientFactory, but we can
 		// check for a nil API client here before returning it and error appropriately.
-		f := NewVaultSecretClientFactory(ctx, vaultClientFunc, pathPrefix, rootKey)
+		f := NewVaultSecretClientFactory(ctx, vaultClientFunc, pathPrefix, rootKey, ignoreGvkPath)
 		if vaultClientFactory, ok := f.(*factory.VaultSecretClientFactory); ok && vaultClientFactory.Vault == nil {
 			return nil, errors.New("resource client creation failed due to nil vault API client")
 		}
@@ -240,10 +241,11 @@ func (m *MultiSecretResourceClientFactory) getFactoryForSource(ctx context.Conte
 			if pathPrefix == "" {
 				pathPrefix = DefaultPathPrefix
 			}
+			ignoreGvkPath := source.Vault.GetIgnoreGvkInSecretPath()
 			// We do not error upon creating a ResourceClientFactory, but we can
 			// check for a nil API client when attempting to use the factory to
 			// create a ResourceClient and error here.
-			f := NewVaultSecretClientFactory(ctx, vaultInitFunc, pathPrefix, rootKey)
+			f := NewVaultSecretClientFactory(ctx, vaultInitFunc, pathPrefix, rootKey, ignoreGvkPath)
 			if vaultClientFactory, ok := f.(*factory.VaultSecretClientFactory); ok && vaultClientFactory.Vault == nil {
 				return nil, errors.New("resource client creation failed due to nil vault API client")
 			}

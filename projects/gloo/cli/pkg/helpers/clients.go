@@ -112,10 +112,10 @@ func UseConsulClients(client *api.Client, rootKey string, queryOptions *api.Quer
 }
 
 // only applies to secret clients
-func UseVaultClients(ctx context.Context, client *vaultapi.Client, pathPrefix, rootKey string) {
+func UseVaultClients(ctx context.Context, client *vaultapi.Client, pathPrefix, rootKey string, ignoreGvk bool) {
 	lock.Lock()
 	defer lock.Unlock()
-	vaultClient = clients.NewVaultSecretClientFactory(ctx, clients.NoopVaultClientInitFunc(client), pathPrefix, rootKey)
+	vaultClient = clients.NewVaultSecretClientFactory(ctx, clients.NoopVaultClientInitFunc(client), pathPrefix, rootKey, ignoreGvk)
 }
 
 func MustKubeClient() kubernetes.Interface {

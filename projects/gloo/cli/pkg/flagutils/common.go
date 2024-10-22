@@ -89,6 +89,7 @@ func AddVaultSecretFlags(set *pflag.FlagSet, vault *options.Vault) {
 		"backend for reading and writing secrets")
 	set.StringVar(&vault.PathPrefix, "vault-path-prefix", clients.DefaultPathPrefix, "The Secrets Engine to which Vault should route traffic.")
 	set.StringVar(&vault.RootKey, "vault-root-key", clients.DefaultRootKey, "key prefix for Vault key-value storage inside a storage engine.")
+	set.BoolVar(&vault.IgnoreGvkInSecretPath, "ignore-gvk-in-secret-path", false, "ignore the GVK format when determining the Vault path to store the secret.")
 
 	set.StringVar(&config.Address, "vault-address", config.Address, "address of the Vault server. This should be a complete URL such as \"http://vault.example.com\". "+
 		"Use with --use-vault")

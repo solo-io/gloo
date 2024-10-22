@@ -33,6 +33,7 @@ glooctl create secret oauth [flags]
       --consul-scheme string           URI scheme for the Consul server. Use with --use-consul (default "http")
       --consul-token string            Token is used to provide a per-request ACL token which overrides the agent's default token. Use with --use-consul
       --dry-run                        print kubernetes-formatted yaml rather than creating or updating a resource
+      --ignore-gvk-in-secret-path      ignore the GVK format when determining the Vault path to store the secret.
   -i, --interactive                    use interactive mode
       --kube-context string            kube context to use when interacting with kubernetes
       --kubeconfig string              kubeconfig to use, if not standard one

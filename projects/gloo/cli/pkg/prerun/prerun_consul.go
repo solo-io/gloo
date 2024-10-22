@@ -33,7 +33,7 @@ func EnableVaultClients(ctx context.Context, vault options.Vault) error {
 		if err != nil {
 			return eris.Wrapf(err, "creating Vault client")
 		}
-		helpers.UseVaultClients(ctx, client, vault.PathPrefix, vault.RootKey)
+		helpers.UseVaultClients(ctx, client, vault.PathPrefix, vault.RootKey, vault.IgnoreGvkInSecretPath)
 	}
 	return nil
 }

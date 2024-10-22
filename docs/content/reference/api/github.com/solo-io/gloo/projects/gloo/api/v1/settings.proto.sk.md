@@ -235,6 +235,7 @@ Use [HashiCorp Vault](https://www.vaultproject.io/) as storage for secret data.
 "tlsConfig": .gloo.solo.io.Settings.VaultTlsConfig
 "accessToken": string
 "aws": .gloo.solo.io.Settings.VaultAwsAuth
+"ignoreGvkInSecretPath": bool
 
 ```
 
@@ -253,6 +254,7 @@ Use [HashiCorp Vault](https://www.vaultproject.io/) as storage for secret data.
 | `tlsConfig` | [.gloo.solo.io.Settings.VaultTlsConfig](../settings.proto.sk/#vaulttlsconfig) | Configure TLS options for client connection to Vault. This is only available when running Gloo Gateway outside of an container orchestration tool such as Kubernetes or Nomad. |
 | `accessToken` | `string` |  Only one of `accessToken` or `aws` can be set. |
 | `aws` | [.gloo.solo.io.Settings.VaultAwsAuth](../settings.proto.sk/#vaultawsauth) |  Only one of `aws` or `accessToken` can be set. |
+| `ignoreGvkInSecretPath` | `bool` | Ignore the GVK path (<resource_group>/<group_version>/Secret) in the secret path format. |
 
 
 

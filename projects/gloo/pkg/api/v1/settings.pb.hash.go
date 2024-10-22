@@ -1536,6 +1536,11 @@ func (m *Settings_VaultSecrets) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
+	err = binary.Write(hasher, binary.LittleEndian, m.GetIgnoreGvkInSecretPath())
+	if err != nil {
+		return 0, err
+	}
+
 	switch m.AuthMethod.(type) {
 
 	case *Settings_VaultSecrets_AccessToken:

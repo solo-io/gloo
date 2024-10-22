@@ -937,6 +937,8 @@ spec:
                               type: string
                             clientKey:
                               type: string
+                            ignoreGvkInSecretPath:
+                              type: boolean
                             insecure:
                               nullable: true
                               type: boolean
@@ -1026,6 +1028,8 @@ spec:
                     type: string
                   clientKey:
                     type: string
+                  ignoreGvkInSecretPath:
+                    type: boolean
                   insecure:
                     nullable: true
                     type: boolean

@@ -1072,6 +1072,10 @@ func (m *Settings_VaultSecrets) Equal(that interface{}) bool {
 		}
 	}
 
+	if m.GetIgnoreGvkInSecretPath() != target.GetIgnoreGvkInSecretPath() {
+		return false
+	}
+
 	switch m.AuthMethod.(type) {
 
 	case *Settings_VaultSecrets_AccessToken:

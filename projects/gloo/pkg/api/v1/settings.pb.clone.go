@@ -659,6 +659,8 @@ func (m *Settings_VaultSecrets) Clone() proto.Message {
 		target.TlsConfig = proto.Clone(m.GetTlsConfig()).(*Settings_VaultTlsConfig)
 	}
 
+	target.IgnoreGvkInSecretPath = m.GetIgnoreGvkInSecretPath()
+
 	switch m.AuthMethod.(type) {
 
 	case *Settings_VaultSecrets_AccessToken:

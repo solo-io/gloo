@@ -144,6 +144,9 @@ type Vault struct {
 	// This ensures that you can run multiple instances of Gloo against the same Consul cluster
 	RootKey string
 	Client  func() (*vaultapi.Client, error)
+
+	// Ignore the GVK format when creating secrets
+	IgnoreGvkInSecretPath bool
 }
 
 type Create struct {

@@ -161,6 +161,9 @@ message Settings {
             string access_token = 12;
             VaultAwsAuth aws = 13;
         }
+
+        // Ignore the GVK path (<resource_group>/<group_version>/Secret) in the secret path format
+        bool ignore_gvk_in_secret_path = 14;
     }
 
     // Configure Vault client to authenticate to server via AWS auth (IAM only).

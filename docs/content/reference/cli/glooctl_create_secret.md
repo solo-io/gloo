@@ -19,6 +19,7 @@ glooctl create secret [flags]
 
 ```
   -h, --help                           help for secret
+      --ignore-gvk-in-secret-path      ignore the GVK format when determining the Vault path to store the secret.
       --use-vault                      use Vault Key-Value storage as the backend for reading and writing secrets
       --vault-address string           address of the Vault server. This should be a complete URL such as "http://vault.example.com". Use with --use-vault (default "https://127.0.0.1:8200")
       --vault-ca-cert string           CACert is the path to a PEM-encoded CA cert file to use to verify the Vault server SSL certificate.Use with --use-vault

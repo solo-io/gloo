@@ -25,11 +25,12 @@ func NoopVaultClientInitFunc(c *api.Client) VaultClientInitFunc {
 }
 
 // NewVaultSecretClientFactory consumes a vault client along with a set of basic configurations for retrieving info with the client
-func NewVaultSecretClientFactory(ctx context.Context, clientInit VaultClientInitFunc, pathPrefix, rootKey string) factory.ResourceClientFactory {
+func NewVaultSecretClientFactory(ctx context.Context, clientInit VaultClientInitFunc, pathPrefix, rootKey string, ignoreGvkPath bool) factory.ResourceClientFactory {
 	return &factory.VaultSecretClientFactory{
-		Vault:      clientInit(ctx),
-		RootKey:    rootKey,
-		PathPrefix: pathPrefix,
+		Vault:                 clientInit(ctx),
+		RootKey:               rootKey,
+		PathPrefix:            pathPrefix,
+		IgnoreGvkInSecretPath: ignoreGvkPath,
 	}
 }
 
