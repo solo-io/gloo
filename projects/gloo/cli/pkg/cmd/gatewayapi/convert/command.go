@@ -96,9 +96,13 @@ func run(opts *Options) error {
 		}
 
 		if opts.Overwrite {
+			fileNameSplit := strings.Split(output.FileName, ".")
+			// assuming anything before the first . is the file name
+
+			filename := fmt.Sprintf("%s-%s.%s", fileNameSplit[0], opts.OverwriteSuffix, strings.Join(fileNameSplit[1:], "."))
 			if output.HasItems() {
-				_, _ = fmt.Fprintf(os.Stdout, "Updated File: %s\n", output.FileName)
-				file, err := os.OpenFile(output.FileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+				_, _ = fmt.Fprintf(os.Stdout, "Writing File: %s\n", filename)
+				file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 				if err != nil {
 					log.Fatal(err)
 				}

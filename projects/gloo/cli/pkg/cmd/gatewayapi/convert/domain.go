@@ -21,6 +21,7 @@ type Options struct {
 	InputFile                string
 	Directory                string
 	Overwrite                bool
+	OverwriteSuffix          string
 	Stats                    bool
 	GCPRegex                 string
 	RemoveGCPAUthConfig      bool
@@ -30,6 +31,7 @@ type Options struct {
 func (o *Options) addToFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.InputFile, "input-file", "", "File to convert")
 	flags.BoolVar(&o.Overwrite, "overwrite", false, "Overwrite the existing files with the changes")
+	flags.StringVar(&o.OverwriteSuffix, "suffix", "", "When writing to files add a suffix (to do side by side)")
 	flags.BoolVar(&o.Stats, "stats", false, "Print stats about the conversion")
 	flags.StringVar(&o.Directory, "dir", "", "Directory to read yaml/yml files")
 }
