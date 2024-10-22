@@ -3,10 +3,14 @@ package convert
 import (
 	"errors"
 	"fmt"
+	"github.com/solo-io/gloo/pkg/schemes"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
+	"sigs.k8s.io/yaml"
 	"strings"
 
 	gloogwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -397,7 +401,7 @@ func convertRouteToRule(r *gloogwv1.Route, routeTableName string, routeTableName
 	}
 
 	for _, m := range r.Matchers {
-		match, err := convertMatch(m)
+		match, err := convertMatch(m, routeTableName)
 		if err != nil {
 			return rr, nil, nil, err
 		}
@@ -453,7 +457,7 @@ func convertRouteToRule(r *gloogwv1.Route, routeTableName string, routeTableName
 	return rr, ro, delegate, nil
 }
 
-func convertMatch(m *matchers.Matcher) (gwv1.HTTPRouteMatch, error) {
+func convertMatch(m *matchers.Matcher, routeTableName string) (gwv1.HTTPRouteMatch, error) {
 	hrm := gwv1.HTTPRouteMatch{
 		QueryParams: []gwv1.HTTPQueryParamMatch{},
 	}
@@ -486,7 +490,7 @@ func convertMatch(m *matchers.Matcher) (gwv1.HTTPRouteMatch, error) {
 	// method matching
 	if len(m.Methods) > 0 {
 		if len(m.Methods) > 1 {
-			return hrm, errors.New(fmt.Sprintf("Gateway API only supports 1 method match per rule and %d were detected", len(m.Methods)))
+			return hrm, errors.New(fmt.Sprintf("Gateway API only supports 1 method match per rule and %d were detected for RouteTable %s", len(m.Methods), routeTableName))
 		}
 		hrm.Method = (*gwv1.HTTPMethod)(ptr.To(m.Methods[0]))
 	}
@@ -885,6 +889,31 @@ func translateFileToEdgeInput(fileName string) (*GlooEdgeInput, error) {
 			//log.Printf("# Skipping object due to error file parsing error %s", err)
 			continue
 		}
+
+		// a lot of times lists are missing the group so this object doesnt match
+		if k.Kind == "List" {
+			var list unstructured.UnstructuredList
+			if err := yaml.Unmarshal([]byte(resourceYAML), &list); err != nil {
+				return nil, err
+			}
+
+			for _, item := range list.Items {
+
+				tmpGei, err := parseObjects(item, k)
+				if err != nil {
+					return nil, err
+				}
+				gei.RouteOptions = append(gei.RouteOptions, tmpGei.RouteOptions...)
+				gei.VirtualServices = append(gei.VirtualServices, tmpGei.VirtualServices...)
+				gei.YamlObjects = append(gei.YamlObjects, tmpGei.YamlObjects...)
+				gei.RouteTables = append(gei.RouteTables, tmpGei.RouteTables...)
+				gei.VirtualHostOptions = append(gei.VirtualHostOptions, tmpGei.VirtualHostOptions...)
+				gei.Upstreams = append(gei.Upstreams, tmpGei.Upstreams...)
+				gei.AuthConfigs = append(gei.AuthConfigs, tmpGei.AuthConfigs...)
+			}
+			continue
+		}
+
 		switch o := obj.(type) {
 		case *v2.AuthConfig:
 			glooConfigMetric.WithLabelValues("AuthConfig").Inc()
@@ -892,18 +921,38 @@ func translateFileToEdgeInput(fileName string) (*GlooEdgeInput, error) {
 		case *glookube.Upstream:
 			glooConfigMetric.WithLabelValues("Upstream").Inc()
 			gei.Upstreams = append(gei.Upstreams, o)
+		case *glookube.UpstreamList:
+			for _, upstream := range o.Items {
+				glooConfigMetric.WithLabelValues("Upstream").Inc()
+				gei.Upstreams = append(gei.Upstreams, &upstream)
+			}
 		case *gatewaykube.RouteTable:
 			glooConfigMetric.WithLabelValues("RouteTable").Inc()
 			gei.RouteTables = append(gei.RouteTables, o)
+		case *gatewaykube.RouteTableList:
+			for _, routeTable := range o.Items {
+				glooConfigMetric.WithLabelValues("RouteTable").Inc()
+				gei.RouteTables = append(gei.RouteTables, &routeTable)
+			}
 		case *gatewaykube.VirtualService:
 			glooConfigMetric.WithLabelValues("VirtualService").Inc()
 			gei.VirtualServices = append(gei.VirtualServices, o)
+		case *gatewaykube.VirtualServiceList:
+			for _, vs := range o.Items {
+				glooConfigMetric.WithLabelValues("VirtualService").Inc()
+				gei.VirtualServices = append(gei.VirtualServices, &vs)
+			}
 		case *gatewaykube.RouteOption:
 			glooConfigMetric.WithLabelValues("RouteOption").Inc()
-			gei.YamlObjects = append(gei.YamlObjects, resourceYAML)
+			gei.RouteOptions = append(gei.RouteOptions, o)
+		case *gatewaykube.RouteOptionList:
+			for _, ro := range o.Items {
+				glooConfigMetric.WithLabelValues("RouteOption").Inc()
+				gei.RouteOptions = append(gei.RouteOptions, &ro)
+			}
 		case *gatewaykube.VirtualHostOption:
 			glooConfigMetric.WithLabelValues("VirtualHostOption").Inc()
-			gei.YamlObjects = append(gei.YamlObjects, resourceYAML)
+			gei.VirtualHostOptions = append(gei.VirtualHostOptions, o)
 		case *gatewaykube.Gateway:
 			glooConfigMetric.WithLabelValues("Gateway").Inc()
 			gei.YamlObjects = append(gei.YamlObjects, resourceYAML)
@@ -917,21 +966,81 @@ func translateFileToEdgeInput(fileName string) (*GlooEdgeInput, error) {
 	return gei, nil
 }
 
+func parseObjects(item unstructured.Unstructured, k *schema.GroupVersionKind) (*GlooEdgeInput, error) {
+	gei := &GlooEdgeInput{}
+
+	resourceYaml, err := yaml.Marshal(item)
+	if err != nil {
+		return nil, err
+	}
+	gvk := item.GroupVersionKind()
+	obj, err := runtimeScheme.New(gvk)
+	if runtime.IsNotRegisteredError(err) {
+		// we just want to add the yaml and move on
+		gei.YamlObjects = append(gei.YamlObjects, string(resourceYaml))
+		return gei, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(item.Object, obj); err != nil {
+		return nil, errors.New(fmt.Sprintf("Error converting unstructured to typed: %v", err))
+	}
+
+	switch o := obj.(type) {
+	case *v2.AuthConfig:
+		glooConfigMetric.WithLabelValues("AuthConfig").Inc()
+		gei.AuthConfigs = append(gei.AuthConfigs, o)
+	case *glookube.Upstream:
+		glooConfigMetric.WithLabelValues("Upstream").Inc()
+		gei.Upstreams = append(gei.Upstreams, o)
+	case *gatewaykube.RouteTable:
+		glooConfigMetric.WithLabelValues("RouteTable").Inc()
+		gei.RouteTables = append(gei.RouteTables, o)
+	case *gatewaykube.VirtualService:
+		glooConfigMetric.WithLabelValues("VirtualService").Inc()
+		gei.VirtualServices = append(gei.VirtualServices, o)
+	case *gatewaykube.RouteOption:
+		glooConfigMetric.WithLabelValues("RouteOption").Inc()
+		gei.RouteOptions = append(gei.RouteOptions, o)
+	case *gatewaykube.VirtualHostOption:
+		glooConfigMetric.WithLabelValues("VirtualHostOption").Inc()
+		gei.VirtualHostOptions = append(gei.VirtualHostOptions, o)
+	case *gatewaykube.Gateway:
+		glooConfigMetric.WithLabelValues("Gateway").Inc()
+		gei.YamlObjects = append(gei.YamlObjects, string(resourceYaml))
+	default:
+		// if we dont know what type it is we just add it back
+		// no change so just add it back
+		glooConfigMetric.WithLabelValues(k.Kind).Inc()
+		gei.YamlObjects = append(gei.YamlObjects, string(resourceYaml))
+	}
+	return gei, nil
+}
+
 func init() {
 	runtimeScheme = runtime.NewScheme()
 
-	if err := glookube.AddToScheme(runtimeScheme); err != nil {
+	//if err := metav1.AddToSche; err != nil {
+	//	log.Fatal(err)
+	//}
+	//if err := glookube.AddToScheme(runtimeScheme); err != nil {
+	//	log.Fatal(err)
+	//}
+	//if err := gatewaykube.AddToScheme(runtimeScheme); err != nil {
+	//	log.Fatal(err)
+	//}
+	//if err := v2.AddToScheme(runtimeScheme); err != nil {
+	//	log.Fatal(err)
+	//}
+	//if err := gwv1.Install(runtimeScheme); err != nil {
+	//	log.Fatal(err)
+	//}
+
+	if err := schemes.SchemeBuilder.AddToScheme(runtimeScheme); err != nil {
 		log.Fatal(err)
 	}
-	if err := gatewaykube.AddToScheme(runtimeScheme); err != nil {
-		log.Fatal(err)
-	}
-	if err := v2.AddToScheme(runtimeScheme); err != nil {
-		log.Fatal(err)
-	}
-	if err := gwv1.Install(runtimeScheme); err != nil {
-		log.Fatal(err)
-	}
+
 	codecs = serializer.NewCodecFactory(runtimeScheme)
 	decoder = codecs.UniversalDeserializer()
 }
