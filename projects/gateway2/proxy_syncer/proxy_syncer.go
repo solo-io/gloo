@@ -291,7 +291,7 @@ func (p proxyList) Equals(in proxyList) bool {
 }
 
 func (s *ProxySyncer) Start(ctx context.Context) error {
-	ctx = contextutils.WithLogger(ctx, "k8s-gw-syncer")
+	ctx = contextutils.WithLogger(ctx, "k8s-gw-proxy-syncer")
 	logger := contextutils.LoggerFrom(ctx)
 
 	// TODO: handle cfgmap noisiness? (https://github.com/solo-io/gloo/blob/main/projects/gloo/pkg/api/converters/kube/artifact_converter.go#L31)
@@ -325,9 +325,11 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	// helper collection to map from the runtime.Object Upstream representation to the gloov1.Upstream wrapper
 	glooUpstreams := krt.NewCollection(upstreams, func(kctx krt.HandlerContext, u *glookubev1.Upstream) *upstream {
 		glooUs := &u.Spec
-		glooUs.Metadata = &core.Metadata{}
-		glooUs.GetMetadata().Name = u.GetName()
-		glooUs.GetMetadata().Namespace = u.GetNamespace()
+		md := core.Metadata{
+			Name:      u.GetName(),
+			Namespace: u.GetNamespace(),
+		}
+		glooUs.SetMetadata(&md)
 		us := &upstream{glooUs}
 		return us
 	}, krt.WithName("GlooUpstreams"))
@@ -355,7 +357,6 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	kubeEndpoints := krt.WrapClient(epClient, krt.WithName("Endpoints"))
 
 	glooEndpoints := krt.NewManyFromNothing(func(kctx krt.HandlerContext) []*glooEndpoint {
-		logger.Info("in gloo endpoints transformation")
 		// NOTE: buildEndpoints(...) effectively duplicates the existing GE endpoint logic
 		// into a KRT collection; this will be refactored entirely in a follow up from Yuval
 		return buildEndpoints(kctx, logger, finalUpstreams, kubeEndpoints, services, pods)
@@ -372,13 +373,14 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	proxyTrigger := krt.NewRecomputeTrigger(true)
 
 	glooProxies := krt.NewCollection(kubeGateways, func(kctx krt.HandlerContext, gw *gwv1.Gateway) *glooProxy {
+		logger.Debugf("building proxy for kube gw %s version %s", client.ObjectKeyFromObject(gw), gw.GetResourceVersion())
 		proxyTrigger.MarkDependant(kctx)
 		proxy := s.buildProxy(ctx, gw)
 		return proxy
 	})
 	xdsSnapshots := krt.NewCollection(glooProxies, func(kctx krt.HandlerContext, proxy glooProxy) *xdsSnapWrapper {
 		// we are recomputing xds snapshots as proxies have changed, signal that we need to sync xds with these new snapshots
-		xdsSnap := s.buildXdsSnapshot(
+		xdsSnap := s.translateProxy(
 			ctx,
 			kctx,
 			logger,
@@ -448,6 +450,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		latestReport = o.Latest().ReportMap
 	})
 
+	// TODO: shouldnt this come after the wait for cache sync...?
 	// kick off the istio informers
 	s.istioClient.RunAndWait(ctx.Done())
 
@@ -594,7 +597,7 @@ func (s *ProxySyncer) buildProxy(ctx context.Context, gw *gwv1.Gateway) *glooPro
 	}
 }
 
-func (s *ProxySyncer) buildXdsSnapshot(
+func (s *ProxySyncer) translateProxy(
 	ctx context.Context,
 	kctx krt.HandlerContext,
 	logger *zap.SugaredLogger,
@@ -606,7 +609,6 @@ func (s *ProxySyncer) buildXdsSnapshot(
 	authConfigs krt.Collection[*extauthkubev1.AuthConfig],
 	rlConfigs krt.Collection[*rlkubev1a1.RateLimitConfig],
 ) *xdsSnapWrapper {
-	// TODO: add stopwatch with debug log
 	cfgmaps := krt.Fetch(kctx, kcm)
 	endpoints := krt.Fetch(kctx, kep)
 	secrets := krt.Fetch(kctx, ks)
@@ -624,7 +626,14 @@ func (s *ProxySyncer) buildXdsSnapshot(
 
 	acfgs := make([]*extauthv1.AuthConfig, 0, len(authcfgs))
 	for _, kac := range authcfgs {
-		acfgs = append(acfgs, &kac.Spec)
+		gac := &kac.Spec
+		// only setting Name & Namespace, all we need initially; alternatively, see kubeutils.FromKubeMeta(...)
+		md := core.Metadata{
+			Name:      kac.GetName(),
+			Namespace: kac.GetNamespace(),
+		}
+		gac.SetMetadata(&md)
+		acfgs = append(acfgs, gac)
 	}
 	latestSnap.AuthConfigs = acfgs
 
@@ -758,7 +767,7 @@ func (s *ProxySyncer) syncRouteStatus(ctx context.Context, rm reports.ReportMap)
 	// Sometimes the List returns stale (cached) httproutes, causing the status update to fail
 	// with "the object has been modified" errors. Therefore we try the status updates in a retry loop.
 	err := retry.Do(func() error {
-		for rnn, _ := range rm.Routes {
+		for rnn := range rm.Routes {
 			route := gwv1.HTTPRoute{}
 			err := s.mgr.GetClient().Get(ctx, rnn, &route)
 			if err != nil {
@@ -798,7 +807,7 @@ func (s *ProxySyncer) syncGatewayStatus(ctx context.Context, rm reports.ReportMa
 
 	// TODO: retry within loop per GW rathen that as a full block
 	err := retry.Do(func() error {
-		for gwnn, _ := range rm.Gateways {
+		for gwnn := range rm.Gateways {
 			gw := gwv1.Gateway{}
 			err := s.mgr.GetClient().Get(ctx, gwnn, &gw)
 			if err != nil {
