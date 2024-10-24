@@ -1374,6 +1374,17 @@ func (m *AerospikeApiKeyStorage) Clone() proto.Message {
 }
 
 // Clone function
+func (m *ServerDefaultApiKeyStorage) Clone() proto.Message {
+	var target *ServerDefaultApiKeyStorage
+	if m == nil {
+		return target
+	}
+	target = &ServerDefaultApiKeyStorage{}
+
+	return target
+}
+
+// Clone function
 func (m *ApiKey) Clone() proto.Message {
 	var target *ApiKey
 	if m == nil {
@@ -3196,6 +3207,15 @@ func (m *ExtAuthConfig_OidcAuthorizationCodeConfig) Clone() proto.Message {
 		target.FrontChannelLogout = proto.Clone(m.GetFrontChannelLogout()).(*ExtAuthConfig_OidcAuthorizationCodeConfig_FrontChannelLogout)
 	}
 
+	if m.GetDynamicMetadataFromClaims() != nil {
+		target.DynamicMetadataFromClaims = make(map[string]string, len(m.GetDynamicMetadataFromClaims()))
+		for k, v := range m.GetDynamicMetadataFromClaims() {
+
+			target.DynamicMetadataFromClaims[k] = v
+
+		}
+	}
+
 	switch m.Provider.(type) {
 
 	case *ExtAuthConfig_OidcAuthorizationCodeConfig_Default_:
@@ -3241,6 +3261,15 @@ func (m *ExtAuthConfig_AccessTokenValidationConfig) Clone() proto.Message {
 		target.CacheTimeout = h.Clone().(*google_golang_org_protobuf_types_known_durationpb.Duration)
 	} else {
 		target.CacheTimeout = proto.Clone(m.GetCacheTimeout()).(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	}
+
+	if m.GetDynamicMetadataFromClaims() != nil {
+		target.DynamicMetadataFromClaims = make(map[string]string, len(m.GetDynamicMetadataFromClaims()))
+		for k, v := range m.GetDynamicMetadataFromClaims() {
+
+			target.DynamicMetadataFromClaims[k] = v
+
+		}
 	}
 
 	switch m.ValidationType.(type) {
@@ -3472,6 +3501,18 @@ func (m *ExtAuthConfig_ApiKeyAuthConfig) Clone() proto.Message {
 		} else {
 			target.StorageBackend = &ExtAuthConfig_ApiKeyAuthConfig_AerospikeApikeyStorage{
 				AerospikeApikeyStorage: proto.Clone(m.GetAerospikeApikeyStorage()).(*AerospikeApiKeyStorage),
+			}
+		}
+
+	case *ExtAuthConfig_ApiKeyAuthConfig_ServerDefaultApikeyStorage:
+
+		if h, ok := interface{}(m.GetServerDefaultApikeyStorage()).(clone.Cloner); ok {
+			target.StorageBackend = &ExtAuthConfig_ApiKeyAuthConfig_ServerDefaultApikeyStorage{
+				ServerDefaultApikeyStorage: h.Clone().(*ServerDefaultApiKeyStorage),
+			}
+		} else {
+			target.StorageBackend = &ExtAuthConfig_ApiKeyAuthConfig_ServerDefaultApikeyStorage{
+				ServerDefaultApikeyStorage: proto.Clone(m.GetServerDefaultApikeyStorage()).(*ServerDefaultApiKeyStorage),
 			}
 		}
 

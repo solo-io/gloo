@@ -76,6 +76,7 @@ weight: 5
 - [readModeSc](#readmodesc)
 - [readModeAp](#readmodeap)
 - [tlsCurveID](#tlscurveid)
+- [ServerDefaultApiKeyStorage](#serverdefaultapikeystorage)
 - [ApiKey](#apikey)
 - [ApiKeySecret](#apikeysecret)
 - [OpaAuth](#opaauth)
@@ -1679,6 +1680,22 @@ For the Aerospike backend, this data is stored as bins on the key's record
 
 
 ---
+### ServerDefaultApiKeyStorage
+
+ 
+When no storage backend is specified, the default storage backend defined in the extauth server is used.
+
+```yaml
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+
+
+
+
+---
 ### ApiKey
 
 
@@ -2309,6 +2326,7 @@ Deprecated, prefer OAuth2Config
 "default": .enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.Default
 "azure": .enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.Azure
 "frontChannelLogout": .enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.FrontChannelLogout
+"dynamicMetadataFromClaims": map<string, string>
 
 ```
 
@@ -2340,6 +2358,7 @@ Deprecated, prefer OAuth2Config
 | `default` | [.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.Default](../extauth.proto.sk/#default) |  Only one of `default` or `azure` can be set. |
 | `azure` | [.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.Azure](../extauth.proto.sk/#azure) |  Only one of `azure` or `default` can be set. |
 | `frontChannelLogout` | [.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.FrontChannelLogout](../extauth.proto.sk/#frontchannellogout) | Configuration for front channel logout. This is used to log out the user from multiple apps/clients associated with one OpenId Provider (OP). The path is registered with the OP and is called for each app/client that the user is logged into when the logout endpoint is called. |
+| `dynamicMetadataFromClaims` | `map<string, string>` | Map of metadata key to claim. Ie: dynamic_metadata_from_claims: issuer: iss email: email When specified, the matching claims from the ID token will be emitted as dynamic metadata. Note that metadata keys must be unique, and the claim names must be alphanumeric and use `-` or `_` as separators. The metadata will live in a namespace specified by the canonical name of the ext auth filter (in our case `envoy.filters.http.ext_authz`), and the structure of the claim value will be preserved in the metadata struct. |
 
 
 
@@ -2493,6 +2512,7 @@ For the moment this is just path, but we may want to configure things like iss/s
 "userinfoUrl": string
 "cacheTimeout": .google.protobuf.Duration
 "requiredScopes": .enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList
+"dynamicMetadataFromClaims": map<string, string>
 
 ```
 
@@ -2504,6 +2524,7 @@ For the moment this is just path, but we may want to configure things like iss/s
 | `userinfoUrl` | `string` | The URL for the OIDC userinfo endpoint. If provided, the (opaque) access token provided or received from the oauth endpoint will be queried and the userinfo response (or cached response) will be added to the `AuthorizationRequest` state under the "introspection" key. This can be useful to leverage the userinfo response in, for example, an external auth server plugin. |
 | `cacheTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | How long the token introspection and userinfo endpoint response for a specific access token should be kept in the in-memory cache. The result will be invalidated at this timeout, or at "exp" time from the introspection result, whichever comes sooner. If omitted, defaults to 10 minutes. If zero, then no caching will be done. |
 | `requiredScopes` | [.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList](../extauth.proto.sk/#scopelist) | Require access token to have all of the scopes in the given list. This configuration applies to both opaque and JWT tokens. In the case of opaque tokens, this will check the scopes returned in the "scope" member of introspection response (as described in [Section 2.2 of RFC7662](https://datatracker.ietf.org/doc/html/rfc7662#section-2.2). In case of JWTs the scopes to be validated are expected to be contained in the "scope" claim of the token in the form of a space-separated string. Omitting this field means that scope validation will be skipped. |
+| `dynamicMetadataFromClaims` | `map<string, string>` | Map of metadata key to claim. Ie: dynamic_metadata_from_claims: issuer: iss email: email When specified, the matching claims from the access token will be emitted as dynamic metadata. Note that metadata keys must be unique, and the claim names must be alphanumeric and use `-` or `_` as separators. Works when the access token is a JWT or when the access token is opaque, in which case the claims will refer to field in the response from the token introspection endpoint. The metadata will live in a namespace specified by the canonical name of the ext auth filter (in our case `envoy.filters.http.ext_authz`), and the structure of the claim value will be preserved in the metadata struct. |
 
 
 
@@ -2707,6 +2728,7 @@ These values will be encoded in a basic auth header in order to authenticate the
 "headersFromKeyMetadata": map<string, string>
 "k8SSecretApikeyStorage": .enterprise.gloo.solo.io.K8sSecretApiKeyStorage
 "aerospikeApikeyStorage": .enterprise.gloo.solo.io.AerospikeApiKeyStorage
+"serverDefaultApikeyStorage": .enterprise.gloo.solo.io.ServerDefaultApiKeyStorage
 "skipMetadataValidation": bool
 
 ```
@@ -2716,8 +2738,9 @@ These values will be encoded in a basic auth header in order to authenticate the
 | `validApiKeys` | `map<string, .enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.KeyMetadata>` | A mapping of valid API keys to their associated metadata. This map is automatically populated with the information from the relevant `ApiKey`s. Currently this is only configured when using the k8s Secret storage backend. |
 | `headerName` | `string` | (Optional) When receiving a request, the Gloo Edge Enterprise external auth server will look for an API key in a header with this name. This field is optional; if not provided it defaults to `api-key`. |
 | `headersFromKeyMetadata` | `map<string, string>` | Determines the key metadata that will be included as headers on the upstream request. Each entry represents a header to add: the key is the name of the header, and the value is the key that will be used to look up the data entry in the key metadata. |
-| `k8SSecretApikeyStorage` | [.enterprise.gloo.solo.io.K8sSecretApiKeyStorage](../extauth.proto.sk/#k8ssecretapikeystorage) |  Only one of `k8sSecretApikeyStorage` or `aerospikeApikeyStorage` can be set. |
-| `aerospikeApikeyStorage` | [.enterprise.gloo.solo.io.AerospikeApiKeyStorage](../extauth.proto.sk/#aerospikeapikeystorage) |  Only one of `aerospikeApikeyStorage` or `k8sSecretApikeyStorage` can be set. |
+| `k8SSecretApikeyStorage` | [.enterprise.gloo.solo.io.K8sSecretApiKeyStorage](../extauth.proto.sk/#k8ssecretapikeystorage) |  Only one of `k8sSecretApikeyStorage`, `aerospikeApikeyStorage`, or `serverDefaultApikeyStorage` can be set. |
+| `aerospikeApikeyStorage` | [.enterprise.gloo.solo.io.AerospikeApiKeyStorage](../extauth.proto.sk/#aerospikeapikeystorage) |  Only one of `aerospikeApikeyStorage`, `k8sSecretApikeyStorage`, or `serverDefaultApikeyStorage` can be set. |
+| `serverDefaultApikeyStorage` | [.enterprise.gloo.solo.io.ServerDefaultApiKeyStorage](../extauth.proto.sk/#serverdefaultapikeystorage) |  Only one of `serverDefaultApikeyStorage`, `k8sSecretApikeyStorage`, or `aerospikeApikeyStorage` can be set. |
 | `skipMetadataValidation` | `bool` | API key metadata may contain data is is invalid for a header, such as a newline. By default, this data will be validated in the data plane and mitigated in a way that provides a consistent experience for the user and visibility for the operator. This validation comes with a performance cost, and can be disabled by setting this field to `true`. |
 
 
