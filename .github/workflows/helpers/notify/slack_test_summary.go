@@ -20,6 +20,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -41,9 +42,26 @@ func main() {
 		panic(err)
 	}
 
+	fails, err := findFailures(b)
 	mustSendSlackText(string(b))
 }
 
+func findFailures(b []byte) ([]string, error) {
+
+	var allReasons, failureReasons []string
+
+	allReasons = strings.FieldsFunc(string(b), func(r rune) bool { return r == '\n' })
+
+	for _, reason := range allReasons {
+		if strings.HasPrefix(reason, "FAIL") {
+			failureReasons = append(failureReasons, reason)
+		}
+	}
+
+	// See https://api.slack.com/reference/surfaces/formatting for slack hyperlink formatting
+	text := fmt.Sprintf(":red_circle: <$PARENT_JOB_URL|$PREAMBLE> have failed some jobs:\n%s", strings.Join(failureReasons, "\n"))
+	mustSendSlackText(text)
+}
 func mustSendSlackText(text string) {
 	fmt.Printf("send slack message with text: %s", text)
 	mustSendSlackMessage(Payload{

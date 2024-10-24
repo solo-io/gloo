@@ -114,6 +114,7 @@ func sendFailure(unsuccessfulJobs map[string][]string) {
 		failureReasons = append(failureReasons, reasonBuilder.String())
 	}
 
+	// See https://api.slack.com/reference/surfaces/formatting for slack hyperlink formatting
 	text := fmt.Sprintf(":red_circle: <$PARENT_JOB_URL|$PREAMBLE> have failed some jobs: %s", strings.Join(failureReasons, "\n"))
 	mustSendSlackText(text)
 }

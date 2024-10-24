@@ -24,6 +24,9 @@ inputs:
   slackbot-bearer:
     required: true
     description: The secret bearer token for the slackbot integration
+  branch:
+    required: false
+    description: The branch from which the action was run
 
 runs:
   using: "composite"
@@ -45,6 +48,11 @@ runs:
     # with the --json flag to export the results for centralized processing.
     shell: bash
     run: go run ./ci/github-actions/go-test-summary
+  - name: Summarize tests as json
+    if: ${{ failure() }}
+    # Save out a summary of ALL tests run under this action in json format for further processing
+    shell: bash
+    run: go run ./ci/github-actions/go-test-summary --json --out-file './_test/test_log/go-test-json'
   - name: Archive bug report directory on failure
     if: ${{ failure() }}
     uses: actions/upload-artifact@v4
@@ -57,6 +65,31 @@ runs:
     with:
       name: go-test-summary-${{ inputs.cluster-name }}-${{ inputs.matrix-label }}-attempt-${{ github.run_attempt }}
       path: ./_test/test_log/go-test-summary
+  - name: compute-preamble
+    id: compute-preamble
+    shell: bash
+    run: |
+      echo "SLACK_CHANNEL=C04CJMXAH7A" >> $GITHUB_ENV     #edge-nightly-results by default
+      if [[ ${{github.event_name == 'workflow_dispatch'}} = true ]]; then
+        trigger="Gloo OSS Manual run"
+        branch=${{ inputs.branch }}
+        echo "SLACK_CHANNEL=C0314KESVNV" >> $GITHUB_ENV   #slack-integration-testing if manually run
+      elif [[ ${{github.event.schedule == '0 5 * * *'}} = true ]]; then
+        trigger="Gloo OSS nightlies"
+        branch="main"
+      elif [[ ${{github.event.schedule == '0 6 * * 1'}} = true ]]; then
+        trigger="Gloo OSS weeklies"
+        branch="v1.17.x"
+      elif [[ ${{github.event.schedule == '0 7 * * 1'}} = true ]]; then
+        trigger="Gloo OSS weeklies"
+        branch="v1.16.x"
+      elif [[ ${{github.event.schedule == '0 8 * * 1'}} = true ]]; then
+        trigger="Gloo OSS nightlies"
+        branch="v1.15.x"
+      fi
+      preamble="$trigger ($branch)"
+      echo "Setting PREAMBLE as $preamble"
+      echo "preamble=$preamble" >> $GITHUB_OUTPUT
   - name: Send Slack Message
     if: ${{ always() }}
     env:
@@ -65,4 +98,4 @@ runs:
       SLACK_CHANNEL: C0314KESVNV    #slack-integration-testing for testing
     shell: bash
     run: |
-      go run .github/workflows/helpers/notify/slack_test_summary.go './_test/test_log/go-test-summary'
+      go run .github/workflows/helpers/notify/slack_test_summary.go './_test/test_log/go-test-json'
