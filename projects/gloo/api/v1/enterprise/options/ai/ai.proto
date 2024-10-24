@@ -390,6 +390,7 @@ message RouteSettings {
 
   enum RouteType {
     CHAT = 0;
+    CHAT_STREAMING = 1;
   }
 
   // The type of route this is, currently only CHAT is supported
