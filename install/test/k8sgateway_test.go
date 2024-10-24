@@ -1,7 +1,6 @@
 package test
 
 import (
-	"encoding/json"
 	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -16,6 +15,7 @@ import (
 	. "github.com/solo-io/k8s-utils/manifesttestutils"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/utils/ptr"
 )
 
 var _ = Describe("Kubernetes Gateway API integration", func() {
@@ -66,14 +66,7 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 				testManifest.Expect("ClusterRoleBinding", "", deployerRbacName+"-binding").NotTo(BeNil())
 			})
 			It("renders default GatewayParameters", func() {
-				gwpUnstructured := testManifest.ExpectCustomResource("GatewayParameters", namespace, wellknown.DefaultGatewayParametersName)
-				Expect(gwpUnstructured).NotTo(BeNil())
-
-				var gwp v1alpha1.GatewayParameters
-				b, err := gwpUnstructured.MarshalJSON()
-				Expect(err).ToNot(HaveOccurred())
-				err = json.Unmarshal(b, &gwp)
-				Expect(err).ToNot(HaveOccurred())
+				gwp := getDefaultGatewayParameters(testManifest)
 
 				gwpKube := gwp.Spec.Kube
 				Expect(gwpKube).ToNot(BeNil())
@@ -129,6 +122,8 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 				Expect(gwpKube.GetAiExtension().GetSecurityContext()).To(BeNil())
 				Expect(gwpKube.GetAiExtension().GetResources()).To(BeNil())
 				Expect(gwpKube.GetAiExtension().GetPorts()).To(BeEmpty())
+
+				Expect(gwpKube.GetAws()).To(BeNil())
 
 				Expect(*gwpKube.GetFloatingUserId()).To(BeFalse())
 			})
@@ -194,14 +189,7 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 					valuesArgs = append(valuesArgs, extraValuesArgs...)
 				})
 				It("passes overrides to default GatewayParameters with Istio container", func() {
-					gwpUnstructured := testManifest.ExpectCustomResource("GatewayParameters", namespace, wellknown.DefaultGatewayParametersName)
-					Expect(gwpUnstructured).NotTo(BeNil())
-
-					var gwp v1alpha1.GatewayParameters
-					b, err := gwpUnstructured.MarshalJSON()
-					Expect(err).ToNot(HaveOccurred())
-					err = json.Unmarshal(b, &gwp)
-					Expect(err).ToNot(HaveOccurred())
+					gwp := getDefaultGatewayParameters(testManifest)
 
 					gwpKube := gwp.Spec.Kube
 					Expect(gwpKube).ToNot(BeNil())
@@ -309,14 +297,7 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 					valuesArgs = append(valuesArgs, extraValuesArgs...)
 				})
 				It("passes overrides to default GatewayParameters with custom sidecar", func() {
-					gwpUnstructured := testManifest.ExpectCustomResource("GatewayParameters", namespace, wellknown.DefaultGatewayParametersName)
-					Expect(gwpUnstructured).NotTo(BeNil())
-
-					var gwp v1alpha1.GatewayParameters
-					b, err := gwpUnstructured.MarshalJSON()
-					Expect(err).ToNot(HaveOccurred())
-					err = json.Unmarshal(b, &gwp)
-					Expect(err).ToNot(HaveOccurred())
+					gwp := getDefaultGatewayParameters(testManifest)
 
 					gwpKube := gwp.Spec.Kube
 					Expect(gwpKube).ToNot(BeNil())
@@ -351,12 +332,7 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 					// Updated values so need to re-render
 					prepareHelmManifest(namespace, glootestutils.HelmValues{ValuesArgs: valuesArgs})
 
-					gwpUnstructured := testManifest.ExpectCustomResource("GatewayParameters", namespace, wellknown.DefaultGatewayParametersName)
-					obj, err := kuberesource.ConvertUnstructured(gwpUnstructured)
-					Expect(err).NotTo(HaveOccurred())
-
-					gwp, ok := obj.(*v1alpha1.GatewayParameters)
-					Expect(ok).To(BeTrue())
+					gwp := getDefaultGatewayParameters(testManifest)
 
 					gwpKube := gwp.Spec.Kube
 					Expect(gwpKube).ToNot(BeNil())
@@ -372,6 +348,36 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 					Entry("locally undefined, globally true", true, "global.securitySettings.floatingUserId=true"),
 					Entry("locally undefined, globally false", false, "global.securitySettings.floatingUserId=false"),
 					Entry("locally undefined, globally undefined", false),
+				)
+			})
+
+			Context("aws settings", func() {
+				DescribeTable("different combinations of helm aws settings result in expected aws settings in GatewayParameters", func(expectedAws *v1alpha1.Aws, extraValueArgs ...string) {
+					valuesArgs = append(valuesArgs, extraValueArgs...)
+					// Updated values so need to re-render
+					prepareHelmManifest(namespace, glootestutils.HelmValues{ValuesArgs: valuesArgs})
+
+					gwp := getDefaultGatewayParameters(testManifest)
+
+					aws := gwp.Spec.Kube.GetAws()
+					Expect(aws).To(Equal(expectedAws))
+				},
+					Entry("no aws settings", nil),
+					Entry("unrelated aws settings", nil, "settings.aws.fallbackToFirstFunction=true"),
+					Entry("default values", nil,
+						"settings.aws.enableServiceAccountCredentials=false",
+						"settings.aws.stsCredentialsRegion="),
+					Entry("non-default values", &v1alpha1.Aws{
+						EnableServiceAccountCredentials: ptr.To(true),
+						StsCredentialsRegion:            ptr.To("region1"),
+					}, "settings.aws.enableServiceAccountCredentials=true",
+						"settings.aws.stsCredentialsRegion=region1"),
+					Entry("only enableServiceAccountCredentials set", &v1alpha1.Aws{
+						EnableServiceAccountCredentials: ptr.To(true),
+					}, "settings.aws.enableServiceAccountCredentials=true"),
+					Entry("only stsCredentialsRegion set", &v1alpha1.Aws{
+						StsCredentialsRegion: ptr.To("region1"),
+					}, "settings.aws.stsCredentialsRegion=region1"),
 				)
 			})
 		})
@@ -404,3 +410,13 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 	}
 	runTests(allTests)
 })
+
+func getDefaultGatewayParameters(t TestManifest) *v1alpha1.GatewayParameters {
+	gwpUnstructured := t.ExpectCustomResource("GatewayParameters", namespace, wellknown.DefaultGatewayParametersName)
+	obj, err := kuberesource.ConvertUnstructured(gwpUnstructured)
+	Expect(err).NotTo(HaveOccurred())
+
+	gwp, ok := obj.(*v1alpha1.GatewayParameters)
+	Expect(ok).To(BeTrue())
+	return gwp
+}

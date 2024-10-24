@@ -90,6 +90,7 @@ func deepMergeGatewayParameters(dst, src *v1alpha1.GatewayParameters) *v1alpha1.
 	dstKube.Istio = deepMergeIstioIntegration(dstKube.GetIstio(), srcKube.GetIstio())
 	dstKube.Stats = deepMergeStatsConfig(dstKube.GetStats(), srcKube.GetStats())
 	dstKube.AiExtension = deepMergeAIExtension(dstKube.GetAiExtension(), srcKube.GetAiExtension())
+	dstKube.Aws = deepMergeAws(dstKube.GetAws(), srcKube.GetAws())
 	dstKube.FloatingUserId = mergePointers(dstKube.GetFloatingUserId(), srcKube.GetFloatingUserId())
 
 	return dst
@@ -603,6 +604,22 @@ func deepMergeAIExtensionStats(dst, src *v1alpha1.AiExtensionStats) *v1alpha1.Ai
 	}
 
 	dst.CustomLabels = deepMergeSlices(dst.GetCustomLabels(), src.GetCustomLabels())
+
+	return dst
+}
+
+func deepMergeAws(dst, src *v1alpha1.Aws) *v1alpha1.Aws {
+	// nil src override means just use dst
+	if src == nil {
+		return dst
+	}
+
+	if dst == nil {
+		return src
+	}
+
+	dst.EnableServiceAccountCredentials = mergePointers(dst.GetEnableServiceAccountCredentials(), src.GetEnableServiceAccountCredentials())
+	dst.StsCredentialsRegion = mergePointers(dst.GetStsCredentialsRegion(), src.GetStsCredentialsRegion())
 
 	return dst
 }

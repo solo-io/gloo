@@ -102,6 +102,11 @@ type KubernetesProxyConfig struct {
 	// +kubebuilder:validation:Optional
 	AiExtension *AiExtension `json:"aiExtension,omitempty"`
 
+	// Configuration for AWS integration.
+	//
+	// +kubebuilder:validation:Optional
+	Aws *Aws `json:"aws,omitempty"`
+
 	// Used to unset the `runAsUser` values in security contexts.
 	FloatingUserId *bool `json:"floatingUserId,omitempty"`
 }
@@ -167,6 +172,13 @@ func (in *KubernetesProxyConfig) GetAiExtension() *AiExtension {
 		return nil
 	}
 	return in.AiExtension
+}
+
+func (in *KubernetesProxyConfig) GetAws() *Aws {
+	if in == nil {
+		return nil
+	}
+	return in.Aws
 }
 
 func (in *KubernetesProxyConfig) GetFloatingUserId() *bool {
@@ -724,6 +736,33 @@ func (in *CustomLabel) GetKeyDelimiter() *string {
 		return nil
 	}
 	return in.KeyDelimiter
+}
+
+// Configuration for AWS integration.
+type Aws struct {
+	// Use ServiceAccount credentials to authenticate lambda requests.
+	//
+	// +kubebuilder:validation:Optional
+	EnableServiceAccountCredentials *bool `json:"enableServiceAccountCredentials,omitempty"`
+
+	// Regional endpoint to use for AWS STS requests. If empty, will default to global AWS STS endpoint (`sts.amazonaws.com`)."
+	//
+	// +kubebuilder:validation:Optional
+	StsCredentialsRegion *string `json:"stsCredentialsRegion,omitempty"`
+}
+
+func (in *Aws) GetEnableServiceAccountCredentials() *bool {
+	if in == nil {
+		return nil
+	}
+	return in.EnableServiceAccountCredentials
+}
+
+func (in *Aws) GetStsCredentialsRegion() *string {
+	if in == nil {
+		return nil
+	}
+	return in.StsCredentialsRegion
 }
 
 func init() {
