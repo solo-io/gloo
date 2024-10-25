@@ -42,11 +42,10 @@ func main() {
 		panic(err)
 	}
 
-	fails, err := findFailures(b)
-	mustSendSlackText(string(b))
+	findAndReportFailures(b)
 }
 
-func findFailures(b []byte) ([]string, error) {
+func findAndReportFailures(b []byte) {
 
 	var allReasons, failureReasons []string
 
