@@ -1,4 +1,4 @@
-package httproute
+package route
 
 import (
 	"testing"

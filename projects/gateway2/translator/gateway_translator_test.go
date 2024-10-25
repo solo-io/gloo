@@ -123,7 +123,7 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 				Name:      "example-gateway",
 			},
 			assertReports: func(gwNN types.NamespacedName, reportsMap reports.ReportMap) {
-				route := gwv1.HTTPRoute{
+				route := &gwv1.HTTPRoute{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "example-route",
 						Namespace: "default",
@@ -147,7 +147,7 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 				Name:      "example-gateway",
 			},
 			assertReports: func(gwNN types.NamespacedName, reportsMap reports.ReportMap) {
-				route := gwv1.HTTPRoute{
+				route := &gwv1.HTTPRoute{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "example-route",
 						Namespace: "default",

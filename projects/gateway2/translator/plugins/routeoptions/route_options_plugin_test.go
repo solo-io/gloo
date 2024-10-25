@@ -68,7 +68,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 			plugin := NewPlugin(gwQueries, fakeClient, routeOptionClient, statusReporter)
 
 			rtCtx := &plugins.RouteContext{
-				Route: &gwv1.HTTPRoute{},
+				HTTPRoute: &gwv1.HTTPRoute{},
 				Rule: &gwv1.HTTPRouteRule{
 					Filters: []gwv1.HTTPRouteFilter{{
 						Type: gwv1.HTTPRouteFilterExtensionRef,
@@ -113,9 +113,9 @@ var _ = Describe("RouteOptionsPlugin", func() {
 			parentRefReporter := reporter.Route(route).ParentRef(parentRef())
 
 			rtCtx := &plugins.RouteContext{
-				Route:    route,
-				Rule:     routeRuleWithExtRef(),
-				Reporter: parentRefReporter,
+				HTTPRoute: route,
+				Rule:      routeRuleWithExtRef(),
+				Reporter:  parentRefReporter,
 			}
 
 			outputRoute := &v1.Route{
@@ -139,7 +139,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "default",
@@ -204,7 +204,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "default",
@@ -270,7 +270,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "default",
@@ -354,7 +354,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "default",
@@ -416,7 +416,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "default",
@@ -463,7 +463,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "non-default",
@@ -510,7 +510,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "default",
@@ -616,8 +616,8 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 			ctx := context.Background()
 			routeCtx := &plugins.RouteContext{
-				Route: routeWithFilter(),
-				Rule:  routeRuleWithExtRef(),
+				HTTPRoute: routeWithFilter(),
+				Rule:      routeRuleWithExtRef(),
 			}
 
 			outputRoute := &v1.Route{

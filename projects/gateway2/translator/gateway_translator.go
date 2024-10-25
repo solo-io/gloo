@@ -53,13 +53,13 @@ func (t *translator) TranslateProxy(
 	defer stopwatch.Stop(ctx)
 
 	routesForGw, err := t.queries.GetRoutesForGateway(ctx, gateway)
-	if err != nil {
+	if err != nil || routesForGw == nil {
 		// TODO(ilackarms): fill in the specific error / validation
-		// reporter.Gateway(gateway).Err(err.Error())
+		// reporter.Gateway(gateway).Err(err  .Error())
 		return nil
 	}
 	for _, rErr := range routesForGw.RouteErrors {
-		reporter.Route(&rErr.Route).ParentRef(&rErr.ParentRef).SetCondition(reports.HTTPRouteCondition{
+		reporter.Route(rErr.Route).ParentRef(&rErr.ParentRef).SetCondition(reports.RouteCondition{
 			Type:   gwv1.RouteConditionAccepted,
 			Status: metav1.ConditionFalse,
 			Reason: rErr.Error.Reason,

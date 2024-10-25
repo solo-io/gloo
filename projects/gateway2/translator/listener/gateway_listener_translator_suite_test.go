@@ -1,4 +1,4 @@
-package httproute_test
+package listener_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestHttproute(t *testing.T) {
+func TestListener(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Httproute Suite")
+	RunSpecs(t, "Translator Listener Suite")
 }
