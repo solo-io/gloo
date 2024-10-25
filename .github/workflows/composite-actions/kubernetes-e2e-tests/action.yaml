@@ -49,7 +49,7 @@ runs:
     shell: bash
     run: go run ./ci/github-actions/go-test-summary
   - name: Summarize tests as json
-    if: ${{ failure() }}
+    if: ${{ always() }}
     # Save out a summary of ALL tests run under this action in json format for further processing
     shell: bash
     run: go run ./ci/github-actions/go-test-summary --json --out-file './_test/test_log/go-test-json'
