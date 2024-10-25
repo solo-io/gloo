@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"log"
 	goerr "errors"
 	"archive/zip"
 
@@ -154,11 +155,8 @@ func GetEnvoyAdminData(ctx context.Context, proxySelector, namespace, path strin
 		select {
 		case <-ctx.Done():
 			return "", errors.Errorf("cancelled")
-		case _ = <-errs:
-			// TODO because we are just forking `kubectl` here, we don't know when the port-forward
-			// is actually ready, so we basically can't stop ourselves from trying before its ready,
-			// leading to spurious console errors if we log here.
-			// This should be fixed with a real kube client. Until then the timeout error is sufficient.
+		case err := <-errs:
+			log.Printf("connecting to envoy failed with err %v", err.Error())
 		case res := <-result:
 			return res, nil
 		case <-timer:
