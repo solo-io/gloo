@@ -87,10 +87,14 @@ func GetEnvoyAdminData(ctx context.Context, proxySelector, namespace, path strin
 	portFwd := exec.Command("kubectl", "port-forward", "-n", namespace,
 		proxySelector, adminPort)
 	fwdOut, _ := portFwd.StdoutPipe()
+	fwdErr, _ := portFwd.StderrPipe()
 	if err := portFwd.Start(); err != nil {
 		return "", errors.Wrapf(err, "failed to start port-forward")
 	}
 
+	// Because we are not using a real kube client but are spawning a long-running
+	// subprocess that *attempts* to port-forward, we need to wait until the
+	// port-forward actually completes (stdout scans) before trying to query the endpoint
     outScan := bufio.NewScanner(fwdOut)
     for {
 		outScanned := outScan.Scan()
@@ -101,7 +105,9 @@ func GetEnvoyAdminData(ctx context.Context, proxySelector, namespace, path strin
 				return "", errors.Errorf("failed to start port-forward")
 			}
 		} else {
-			return "", errors.Errorf("failed to start port-forward")
+			outErr := bufio.NewScanner(fwdErr)
+			outErr.Scan()
+			return "", errors.Errorf("failed to start port-forward: %s", outErr.Text())
 		}
     }
 
