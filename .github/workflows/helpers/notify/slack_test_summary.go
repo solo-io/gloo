@@ -57,8 +57,13 @@ func findAndReportFailures(b []byte) {
 		}
 	}
 
+	if len(failureReasons) == 0 {
+		return
+	}
+
 	// See https://api.slack.com/reference/surfaces/formatting for slack hyperlink formatting
 	text := fmt.Sprintf(":red_circle: <$PARENT_JOB_URL|$PREAMBLE> have failed some jobs:\n%s", strings.Join(failureReasons, "\n"))
+
 	mustSendSlackText(text)
 }
 func mustSendSlackText(text string) {
