@@ -39,7 +39,7 @@ func (s *testingSuite) TestProductionRecommendations() {
 
 func (s *testingSuite) TestChangedConfigMapTriggersRollout() {
 	expectConfigDumpToContain := func(str string) {
-		dump, err := gateway.GetEnvoyAdminData(s.Ctx, "gateway-proxy", s.TestHelper.InstallNamespace, "/config_dump", 5*time.Second)
+		dump, err := gateway.GetEnvoyAdminData(s.Ctx, "deployment/gateway-proxy", s.TestHelper.InstallNamespace, "/config_dump", 5*time.Second)
 		s.NoError(err)
 		s.Contains(dump, str)
 	}
