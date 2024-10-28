@@ -1,18 +1,18 @@
 package gateway
 
 import (
+	"archive/zip"
 	"bufio"
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
-	"log"
-	"archive/zip"
 
 	"github.com/solo-io/go-utils/cliutils"
 
@@ -20,7 +20,6 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
-
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -33,12 +32,7 @@ func dumpCfgCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cob
 		Use:   "dump",
 		Short: "dump Envoy config from one of the proxy instances",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfgDump, err := GetEnvoyCfgDump(opts)
-			if err != nil {
-				return err
-			}
-			fmt.Printf("%v", cfgDump)
-			return nil
+			return getEnvoyCfgDump(opts)
 		},
 	}
 	cliutils.ApplyOptions(cmd, optionsFunc)
@@ -50,12 +44,7 @@ func dumpStatsCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *c
 		Use:   "stats",
 		Short: "stats for one of the proxy instances",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfgDump, err := getEnvoyStatsDump(opts)
-			if err != nil {
-				return err
-			}
-			fmt.Printf("%v", cfgDump)
-			return nil
+			return getEnvoyStatsDump(opts)
 		},
 	}
 	cliutils.ApplyOptions(cmd, optionsFunc)
@@ -81,8 +70,7 @@ func writeSnapshotCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc
 	return cmd
 }
 
-
-func writeEnvoyDumpToZip(ctx context.Context, proxySelector, namespace string, zip *zip.Writer) error {
+func buildEnvoyClient(ctx context.Context, proxySelector, namespace string) (*admincli.Client, func(), error) {
 	var selector portforward.Option
 	if sel := strings.Split(proxySelector, "/"); len(sel) == 2 {
 		if strings.HasPrefix(sel[0], "deploy") {
@@ -99,20 +87,32 @@ func writeEnvoyDumpToZip(ctx context.Context, proxySelector, namespace string, z
 		selector,
 		portforward.WithRemotePort(int(defaults.EnvoyAdminPort)))
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	// 2. Close the port-forward when we're done accessing data
-	defer func() {
+	deferFunc := func() {
 		portForwarder.Close()
 		portForwarder.WaitForStop()
-	}()
+	}
 
 	// 3. Create a CLI that connects to the Envoy Admin API
 	adminCli := admincli.NewClient().
 		WithCurlOptions(
 			curl.WithHostPort(portForwarder.Address()),
 		)
+
+	return adminCli, deferFunc, err
+}
+
+func writeEnvoyDumpToZip(ctx context.Context, proxySelector, namespace string, zip *zip.Writer) error {
+
+	adminCli, deferFunc, err := buildEnvoyClient(ctx, proxySelector, namespace)
+	if err != nil {
+		return err
+	}
+
+	defer deferFunc()
 
 	// zip writer has the benefit of not requiring tmpdirs or file ops (all in mem)
 	// - but it can't support async writes, so do these sequentally
@@ -132,7 +132,6 @@ func writeEnvoyDumpToZip(ctx context.Context, proxySelector, namespace string, z
 
 	return nil
 }
-
 
 // GetEnvoyAdminData returns the response from the envoy admin interface identified by `proxySelector`.
 // `proxySelector` can be any valid `kubectl` selection string,
@@ -158,8 +157,8 @@ func GetEnvoyAdminData(ctx context.Context, proxySelector, namespace, path strin
 	// Because we are not using a real kube client but are spawning a long-running
 	// subprocess that *attempts* to port-forward, we need to wait until the
 	// port-forward actually completes (stdout scans) before trying to query the endpoint
-    outScan := bufio.NewScanner(fwdOut)
-    for {
+	outScan := bufio.NewScanner(fwdOut)
+	for {
 		outScanned := outScan.Scan()
 		if outScanned {
 			if strings.Contains(outScan.Text(), "Forwarding from") {
@@ -172,7 +171,7 @@ func GetEnvoyAdminData(ctx context.Context, proxySelector, namespace, path strin
 			outErr.Scan()
 			return "", errors.Errorf("failed to start port-forward: %s", outErr.Text())
 		}
-    }
+	}
 
 	defer func() {
 		if portFwd.Process != nil {
@@ -227,12 +226,26 @@ func GetEnvoyAdminData(ctx context.Context, proxySelector, namespace, path strin
 	}
 }
 
-func GetEnvoyCfgDump(opts *options.Options) (string, error) {
-	return GetEnvoyAdminData(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace(), "/config_dump", 5*time.Second)
+func getEnvoyCfgDump(opts *options.Options) error {
+	adminCli, deferFunc, err := buildEnvoyClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
+	if err != nil {
+		return err
+	}
+
+	defer deferFunc()
+
+	return adminCli.ConfigDumpCmd(opts.Top.Ctx, nil).WithStdout(os.Stdout).Run().Cause()
 }
 
-func getEnvoyStatsDump(opts *options.Options) (string, error) {
-	return GetEnvoyAdminData(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace(), "/stats", 30*time.Second)
+func getEnvoyStatsDump(opts *options.Options) error {
+	adminCli, deferFunc, err := buildEnvoyClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
+	if err != nil {
+		return err
+	}
+
+	defer deferFunc()
+
+	return adminCli.StatsCmd(opts.Top.Ctx).WithStdout(os.Stdout).Run().Cause()
 }
 
 func getEnvoyFullDumpToDisk(opts *options.Options) (string, error) {
@@ -259,19 +272,6 @@ func getEnvoyFullDumpToDisk(opts *options.Options) (string, error) {
 	}
 
 	return proxyOutArchiveFile.Name(), writeErr
-}
-
-func recordEnvoyAdminData(w io.Writer, ctx context.Context, path, proxyName, namespace string) error {
-	cfg, err := GetEnvoyAdminData(ctx, proxyName, namespace, path, 30*time.Second)
-	if err != nil {
-		io.WriteString(w, "*** Unable to get envoy " + path + " dump ***. Reason: " + err.Error() + " \n")
-		return err
-	}
-	fmt.Printf("Snapshotting envoy state for %s from proxy instance %s.%s\n", path, proxyName, namespace)
-	io.WriteString(w, "*** Envoy " + path + " dump ***\n")
-	io.WriteString(w, cfg + "\n")
-	io.WriteString(w, "*** End Envoy " + path + " dump ***\n")
-	return nil
 }
 
 // createArchive forcibly deletes/creates the output directory

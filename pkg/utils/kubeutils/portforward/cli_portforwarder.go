@@ -88,8 +88,8 @@ func (c *cliPortForwarder) startOnce(ctx context.Context) error {
 	// subprocess, wait until the subprocess actually writes a success msg to stdout before
 	// trying to query the endpoint or we will get spurious failures because this func
 	// will return even though the port-forward hasn't happened yet.
-    outScan := bufio.NewScanner(fwdOut)
-    for outScan.Scan() {
+	outScan := bufio.NewScanner(fwdOut)
+	for outScan.Scan() {
 		if strings.Contains(outScan.Text(), "Forwarding from") {
 			// We are good, port-forward is ready.
 			return nil
@@ -97,7 +97,7 @@ func (c *cliPortForwarder) startOnce(ctx context.Context) error {
 	}
 
 	// If we get here, we didn't get any stdout, so grab stderr and return it as error
-    stdErr := bufio.NewScanner(fwdErr)
+	stdErr := bufio.NewScanner(fwdErr)
 	stdErr.Scan()
 	return errors.Errorf("failed to start port-forward: %s", stdErr.Text())
 }
