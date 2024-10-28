@@ -1,6 +1,7 @@
 package admincli
 
 import (
+	"archive/zip"
 	"context"
 	"fmt"
 	"io"
@@ -260,4 +261,35 @@ func (c *Client) GetSingleListenerFromDynamicListeners(
 		return nil, fmt.Errorf("could not unmarshal listener from listener dump: %w", err)
 	}
 	return &listener, nil
+}
+
+// WriteEnvoyDumpToZip will dump config, stats, clusters and listeners to zipfile in the current directory.
+// Useful for diagnostics or testing
+func (c *Client) WriteEnvoyDumpToZip(ctx context.Context, zip *zip.Writer) error {
+	// zip writer has the benefit of not requiring tmpdirs or file ops (all in mem)
+	// - but it can't support async writes, so do these sequentally
+	// Also don't join errors, we want to fast-fail
+	if err := c.ConfigDumpCmd(ctx, nil).WithStdout(fileInArchive(zip, "config.log")).Run().Cause(); err != nil {
+		return err
+	}
+	if err := c.StatsCmd(ctx).WithStdout(fileInArchive(zip, "stats.log")).Run().Cause(); err != nil {
+		return err
+	}
+	if err := c.ClustersCmd(ctx).WithStdout(fileInArchive(zip, "clusters.log")).Run().Cause(); err != nil {
+		return err
+	}
+	if err := c.ListenersCmd(ctx).WithStdout(fileInArchive(zip, "listeners.log")).Run().Cause(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// fileInArchive creates a file at the given path within the archive, and returns the file object for writing.
+func fileInArchive(w *zip.Writer, path string) io.Writer {
+	f, err := w.Create(path)
+	if err != nil {
+		fmt.Printf("unable to create file: %f\n", err)
+	}
+	return f
 }
