@@ -39,6 +39,10 @@ func WithService(name, namespace string) Option {
 	return WithResource(name, namespace, "service")
 }
 
+func WithPod(name, namespace string) Option {
+	return WithResource(name, namespace, "pod")
+}
+
 func WithResource(name, namespace, resourceType string) Option {
 	return func(config *properties) {
 		config.resourceName = name

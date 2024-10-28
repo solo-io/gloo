@@ -12,10 +12,15 @@ import (
 	"strings"
 	"time"
 	"log"
-	goerr "errors"
 	"archive/zip"
 
 	"github.com/solo-io/go-utils/cliutils"
+
+	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
+	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
+
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -62,8 +67,11 @@ func writeSnapshotCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc
 		Use:   "snapshot",
 		Short: "snapshot complete proxy state for the given instance to an archive",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := getEnvoyFullDumpToDisk(opts)
+			dumpFile, err := getEnvoyFullDumpToDisk(opts)
 			if err != nil {
+				// If we have an error writing zip (or fetching dump)
+				// delete the file after it's flushed to clean up.
+				_ = os.Remove(dumpFile)
 				return err
 			}
 			return nil
@@ -72,6 +80,59 @@ func writeSnapshotCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc
 	cliutils.ApplyOptions(cmd, optionsFunc)
 	return cmd
 }
+
+
+func writeEnvoyDumpToZip(ctx context.Context, proxySelector, namespace string, zip *zip.Writer) error {
+	var selector portforward.Option
+	if sel := strings.Split(proxySelector, "/"); len(sel) == 2 {
+		if strings.HasPrefix(sel[0], "deploy") {
+			selector = portforward.WithDeployment(sel[1], namespace)
+		} else if strings.HasPrefix(sel[0], "po") {
+			selector = portforward.WithPod(sel[1], namespace)
+		}
+	} else {
+		selector = portforward.WithPod(proxySelector, namespace)
+	}
+
+	// 1. Open a port-forward to the Kubernetes Deployment, so that we can query the Envoy Admin API directly
+	portForwarder, err := kubectl.NewCli().StartPortForward(ctx,
+		selector,
+		portforward.WithRemotePort(int(defaults.EnvoyAdminPort)))
+	if err != nil {
+		return err
+	}
+
+	// 2. Close the port-forward when we're done accessing data
+	defer func() {
+		portForwarder.Close()
+		portForwarder.WaitForStop()
+	}()
+
+	// 3. Create a CLI that connects to the Envoy Admin API
+	adminCli := admincli.NewClient().
+		WithCurlOptions(
+			curl.WithHostPort(portForwarder.Address()),
+		)
+
+	// zip writer has the benefit of not requiring tmpdirs or file ops (all in mem)
+	// - but it can't support async writes, so do these sequentally
+	// Also don't join errors, we want to fast-fail
+	if err := adminCli.ConfigDumpCmd(ctx, nil).WithStdout(fileInArchive(zip, "config.log")).Run().Cause(); err != nil {
+		return err
+	}
+	if err := adminCli.StatsCmd(ctx).WithStdout(fileInArchive(zip, "stats.log")).Run().Cause(); err != nil {
+		return err
+	}
+	if err := adminCli.ClustersCmd(ctx).WithStdout(fileInArchive(zip, "clusters.log")).Run().Cause(); err != nil {
+		return err
+	}
+	if err := adminCli.ListenersCmd(ctx).WithStdout(fileInArchive(zip, "listeners.log")).Run().Cause(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 
 // GetEnvoyAdminData returns the response from the envoy admin interface identified by `proxySelector`.
 // `proxySelector` can be any valid `kubectl` selection string,
@@ -83,6 +144,7 @@ func GetEnvoyAdminData(ctx context.Context, proxySelector, namespace, path strin
 	if !strings.HasPrefix(path, "/") {
 		path = "/" + path
 	}
+
 	adminPort := strconv.Itoa(int(defaults.EnvoyAdminPort))
 	// TODO	this should use a real Go kube client library someday
 	portFwd := exec.Command("kubectl", "port-forward", "-n", namespace,
@@ -173,10 +235,10 @@ func getEnvoyStatsDump(opts *options.Options) (string, error) {
 	return GetEnvoyAdminData(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace(), "/stats", 30*time.Second)
 }
 
-func getEnvoyFullDumpToDisk(opts *options.Options) error {
+func getEnvoyFullDumpToDisk(opts *options.Options) (string, error) {
 	proxyOutArchiveFile, err := createArchiveFile()
 	if err != nil {
-		return err
+		return proxyOutArchiveFile.Name(), err
 	}
 	proxyOutArchive := zip.NewWriter(proxyOutArchiveFile)
 	defer proxyOutArchiveFile.Close()
@@ -187,18 +249,16 @@ func getEnvoyFullDumpToDisk(opts *options.Options) error {
 	if proxyNamespace == "" {
 		proxyNamespace = defaults.GlooSystem
 	}
-    var errs []error
 
-	errs = append(errs, recordEnvoyAdminData(fileInArchive(proxyOutArchive, "config.log"), opts.Top.Ctx, "/config_dump", proxyName, proxyNamespace))
-	errs = append(errs, recordEnvoyAdminData(fileInArchive(proxyOutArchive, "stats.log"), opts.Top.Ctx, "/stats", proxyName, proxyNamespace))
-	errs = append(errs, recordEnvoyAdminData(fileInArchive(proxyOutArchive, "clusters.log"), opts.Top.Ctx, "/clusters", proxyName, proxyNamespace))
-	errs = append(errs, recordEnvoyAdminData(fileInArchive(proxyOutArchive, "listeners.log"), opts.Top.Ctx, "/listeners", proxyName, proxyNamespace))
+	writeErr := writeEnvoyDumpToZip(opts.Top.Ctx, proxyName, proxyNamespace, proxyOutArchive)
 
-	combinedErr := goerr.Join(errs...)
-	if combinedErr == nil {
+	if writeErr == nil {
 		fmt.Println("proxy snapshot written to " + proxyOutArchiveFile.Name())
+	} else {
+		fmt.Printf("Error writing proxy snapshot: %s", writeErr)
 	}
-	return combinedErr
+
+	return proxyOutArchiveFile.Name(), writeErr
 }
 
 func recordEnvoyAdminData(w io.Writer, ctx context.Context, path, proxyName, namespace string) error {
@@ -223,7 +283,7 @@ func createArchiveFile() (*os.File, error) {
 	return f, err
 }
 
-// fileInArchive creates a file at the given path, and returns the file object
+// fileInArchive creates a file at the given path within the archive, and returns the file object for writing.
 func fileInArchive(w *zip.Writer, path string) io.Writer {
 	f, err := w.Create(path)
 	if err != nil {
