@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	adminv3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	clusterv3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
@@ -14,6 +15,10 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/protoutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/go-utils/threadsafe"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 )
 
 const (
@@ -53,6 +58,47 @@ func NewClient() *Client {
 			curl.WithRetries(3, 0, 10),
 		},
 	}
+}
+
+// NewPortForwardedClient takes a pod selector like <podname> or `deployment/<podname`,
+// and returns a port-forwarded Envoy admin client pointing at that pod,
+// as well as a deferrable shutdown function.
+//
+// Designed to be used by tests and CLI from outside of a cluster where `kubectl` is present.
+// In all other cases, `NewClient` is preferred
+func NewPortForwardedClient(ctx context.Context, proxySelector, namespace string) (*Client, func(), error) {
+	var selector portforward.Option
+	if sel := strings.Split(proxySelector, "/"); len(sel) == 2 {
+		if strings.HasPrefix(sel[0], "deploy") {
+			selector = portforward.WithDeployment(sel[1], namespace)
+		} else if strings.HasPrefix(sel[0], "po") {
+			selector = portforward.WithPod(sel[1], namespace)
+		}
+	} else {
+		selector = portforward.WithPod(proxySelector, namespace)
+	}
+
+	// 1. Open a port-forward to the Kubernetes Deployment, so that we can query the Envoy Admin API directly
+	portForwarder, err := kubectl.NewCli().StartPortForward(ctx,
+		selector,
+		portforward.WithRemotePort(int(defaults.EnvoyAdminPort)))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// 2. Close the port-forward when we're done accessing data
+	deferFunc := func() {
+		portForwarder.Close()
+		portForwarder.WaitForStop()
+	}
+
+	// 3. Create a CLI that connects to the Envoy Admin API
+	adminCli := NewClient().
+		WithCurlOptions(
+			curl.WithHostPort(portForwarder.Address()),
+		)
+
+	return adminCli, deferFunc, err
 }
 
 // WithReceiver sets the io.Writer that will be used by default for the stdout and stderr

@@ -2,18 +2,13 @@ package gateway
 
 import (
 	"archive/zip"
-	"context"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/solo-io/go-utils/cliutils"
 
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
-	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -63,43 +58,8 @@ func writeSnapshotCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc
 	return cmd
 }
 
-func buildEnvoyClient(ctx context.Context, proxySelector, namespace string) (*admincli.Client, func(), error) {
-	var selector portforward.Option
-	if sel := strings.Split(proxySelector, "/"); len(sel) == 2 {
-		if strings.HasPrefix(sel[0], "deploy") {
-			selector = portforward.WithDeployment(sel[1], namespace)
-		} else if strings.HasPrefix(sel[0], "po") {
-			selector = portforward.WithPod(sel[1], namespace)
-		}
-	} else {
-		selector = portforward.WithPod(proxySelector, namespace)
-	}
-
-	// 1. Open a port-forward to the Kubernetes Deployment, so that we can query the Envoy Admin API directly
-	portForwarder, err := kubectl.NewCli().StartPortForward(ctx,
-		selector,
-		portforward.WithRemotePort(int(defaults.EnvoyAdminPort)))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// 2. Close the port-forward when we're done accessing data
-	deferFunc := func() {
-		portForwarder.Close()
-		portForwarder.WaitForStop()
-	}
-
-	// 3. Create a CLI that connects to the Envoy Admin API
-	adminCli := admincli.NewClient().
-		WithCurlOptions(
-			curl.WithHostPort(portForwarder.Address()),
-		)
-
-	return adminCli, deferFunc, err
-}
-
 func getEnvoyCfgDump(opts *options.Options) error {
-	adminCli, deferFunc, err := buildEnvoyClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
+	adminCli, deferFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
 	if err != nil {
 		return err
 	}
@@ -110,7 +70,7 @@ func getEnvoyCfgDump(opts *options.Options) error {
 }
 
 func getEnvoyStatsDump(opts *options.Options) error {
-	adminCli, deferFunc, err := buildEnvoyClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
+	adminCli, deferFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
 	if err != nil {
 		return err
 	}
@@ -134,7 +94,7 @@ func getEnvoyFullDumpToDisk(opts *options.Options) (string, error) {
 		proxyNamespace = defaults.GlooSystem
 	}
 
-	adminCli, deferFunc, err := buildEnvoyClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
+	adminCli, deferFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
 	if err != nil {
 		return proxyOutArchiveFile.Name(), err
 	}
