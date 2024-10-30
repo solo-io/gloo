@@ -2,7 +2,6 @@ package discovery_watchlabels
 
 import (
 	"context"
-
 	"github.com/onsi/gomega"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
@@ -10,11 +9,8 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -65,12 +61,14 @@ func (s *discoveryWatchlabelsSuite) TestDiscoverUpstreamMatchingWatchLabels() {
 
 	// eventually an Upstream should be created for the Service with matching labels
 	labeledUsName := kubernetes.UpstreamName(s.testInstallation.Metadata.InstallNamespace, "example-svc", 8000)
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		func() (resources.InputResource, error) {
-			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, labeledUsName, clients.ReadOpts{Ctx: s.ctx})
+	s.testInstallation.Assertions.EventuallyObjectsExist(
+		s.ctx,
+		&v1.Upstream{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      labeledUsName,
+				Namespace: s.testInstallation.Metadata.InstallNamespace,
+			},
 		},
-		core.Status_Accepted,
-		defaults.GlooReporter,
 	)
 
 	// the Upstream should have DiscoveryMetadata labels matching the parent Service
@@ -130,12 +128,13 @@ func (s *discoveryWatchlabelsSuite) TestDiscoverySpecPreserved() {
 
 	// eventually an Upstream should be created for the Service with matching labels
 	labeledUsName := kubernetes.UpstreamName(s.testInstallation.Metadata.InstallNamespace, "example-svc", 8000)
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		func() (resources.InputResource, error) {
-			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, labeledUsName, clients.ReadOpts{Ctx: s.ctx})
+	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx,
+		&v1.Upstream{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      labeledUsName,
+				Namespace: s.testInstallation.Metadata.InstallNamespace,
+			},
 		},
-		core.Status_Accepted,
-		defaults.GlooReporter,
 	)
 
 	// the Upstream should have DiscoveryMetadata labels matching the parent Service
