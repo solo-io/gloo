@@ -67,11 +67,14 @@ func (c *cliPortForwarder) startOnce(ctx context.Context) error {
 		fmt.Sprintf("%d:%d", c.properties.localPort, c.properties.remotePort),
 	)
 
+	// Errors should not happen here unless some other thing has futzed
+	// with this cmd's stdout/err.
 	fwdOut, err := c.cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
 	fwdErr, err := c.cmd.StderrPipe()
 	if err != nil {
-		// should not happen unless some other thing has futzed
-		// with this cmd's stdout/err
 		return err
 	}
 
@@ -84,7 +87,7 @@ func (c *cliPortForwarder) startOnce(ctx context.Context) error {
 		return err
 	}
 
-	// Because we are not using a real Go-only kube client but are spawning a long-running
+	// TODO Because we are not using a real Go-only kube client but are spawning a long-running
 	// subprocess, wait until the subprocess actually writes a success msg to stdout before
 	// trying to query the endpoint or we will get spurious failures because this func
 	// will return even though the port-forward hasn't happened yet.

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 
 	adminv3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	clusterv3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
@@ -65,16 +64,7 @@ func NewClient() *Client {
 // Designed to be used by tests and CLI from outside of a cluster where `kubectl` is present.
 // In all other cases, `NewClient` is preferred
 func NewPortForwardedClient(ctx context.Context, proxySelector, namespace string) (*Client, func(), error) {
-	var selector portforward.Option
-	if sel := strings.Split(proxySelector, "/"); len(sel) == 2 {
-		if strings.HasPrefix(sel[0], "deploy") {
-			selector = portforward.WithDeployment(sel[1], namespace)
-		} else if strings.HasPrefix(sel[0], "po") {
-			selector = portforward.WithPod(sel[1], namespace)
-		}
-	} else {
-		selector = portforward.WithPod(proxySelector, namespace)
-	}
+	selector := portforward.WithResourceSelector(proxySelector, namespace)
 
 	// 1. Open a port-forward to the Kubernetes Deployment, so that we can query the Envoy Admin API directly
 	portForwarder, err := kubectl.NewCli().StartPortForward(ctx,
