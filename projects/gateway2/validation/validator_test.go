@@ -81,6 +81,7 @@ var _ = Describe("Kube Gateway API Policy Validation Helper", func() {
 			settings,
 			pluginRegistry,
 			translator.EnvoyCacheResourcesListToFnvHash,
+			translator.ForGatewayV2(),
 		)
 		vc = gloovalidation.ValidatorConfig{
 			Ctx: context.Background(),

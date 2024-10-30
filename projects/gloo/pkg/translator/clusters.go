@@ -20,6 +20,7 @@ import (
 	v1_options "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	upstream_proxy_protocol "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils/upstreamproxyprotocol"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
@@ -37,7 +38,6 @@ func (t *translatorInstance) computeClusters(
 	upstreamRefKeyToEndpoints map[string][]*v1.Endpoint,
 	proxy *v1.Proxy,
 ) ([]*envoy_config_cluster_v3.Cluster, map[*envoy_config_cluster_v3.Cluster]*v1.Upstream) {
-
 	ctx, span := trace.StartSpan(params.Ctx, "gloo.translator.computeClusters")
 	defer span.End()
 	params.Ctx = contextutils.WithLogger(ctx, "compute_clusters")
@@ -140,15 +140,23 @@ func (t *translatorInstance) initializeCluster(
 		errorList = append(errorList, err)
 	}
 
+	clusterName := UpstreamToClusterName(upstream.GetMetadata().Ref())
+	// TODO maybe drop the ggv2 flag is redundant
+	if t.opts.ggv2 && t.opts.parseableClusterNames {
+		if k8sStyle, ok := kubernetes.ClusterNameForKube(upstream); ok {
+			clusterName = k8sStyle
+		}
+	}
+
 	circuitBreakers := t.settings.GetGloo().GetCircuitBreakers()
 	out := &envoy_config_cluster_v3.Cluster{
-		Name:             UpstreamToClusterName(upstream.GetMetadata().Ref()),
+		Name:             clusterName,
 		Metadata:         new(envoy_config_core_v3.Metadata),
 		CircuitBreakers:  getCircuitBreakers(upstream.GetCircuitBreakers(), circuitBreakers),
 		LbSubsetConfig:   createLbConfig(upstream),
 		HealthChecks:     hcConfig,
 		OutlierDetection: detectCfg,
-		//defaults to Cluster_USE_CONFIGURED_PROTOCOL
+		// defaults to Cluster_USE_CONFIGURED_PROTOCOL
 		ProtocolSelection: envoy_config_cluster_v3.Cluster_ClusterProtocolSelection(upstream.GetProtocolSelection()),
 		// this field can be overridden by plugins
 		ConnectTimeout:            ptypes.DurationProto(ClusterConnectionTimeout),
@@ -354,7 +362,6 @@ func getCircuitBreakers(cfgs ...*v1.CircuitBreakerConfig) *envoy_config_cluster_
 // it consumes an ordered list of preconnect policies
 // it returns the first non-nil policy
 func getPreconnectPolicy(cfgs ...*v1.PreconnectPolicy) (*envoy_config_cluster_v3.Cluster_PreconnectPolicy, error) {
-
 	// since we dont want strict reliance on envoy's current api
 	// but still able to map as closely as possible
 	// if not nil then convert the gloo configurations to envoy
@@ -380,7 +387,6 @@ func getPreconnectPolicy(cfgs ...*v1.PreconnectPolicy) (*envoy_config_cluster_v3
 			return nil, errors.New("invalid preconnect policy: " + strings.Join(eStrings, "; "))
 		}
 		return &envoy_config_cluster_v3.Cluster_PreconnectPolicy{
-
 			PerUpstreamPreconnectRatio: curConfig.GetPerUpstreamPreconnectRatio(),
 			PredictivePreconnectRatio:  curConfig.GetPredictivePreconnectRatio(),
 		}, nil
@@ -517,7 +523,6 @@ func validateRouteDestinationForValidLambdas(
 			}
 		}
 	}
-
 }
 
 // Apply defaults to UpstreamSslConfig

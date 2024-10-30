@@ -8,12 +8,15 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"istio.io/istio/pkg/kube/krt"
 
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 
@@ -63,7 +66,14 @@ func (s *ProxyTranslator) buildXdsSnapshot(
 		Messages: map[*core.ResourceRef][]string{},
 	}
 
-	xdsSnapshot, reports, proxyReport := s.translator.NewTranslator(ctx, settings).Translate(params, proxy)
+	legacyClusterNames := envutils.IsEnvTruthy(constants.GlooGatewayKubeStyleClusterNames)
+	tx := s.translator.NewTranslator(
+		ctx,
+		settings,
+		translator.ForGatewayV2(),
+		translator.WithParseableClusterNames(!legacyClusterNames),
+	)
+	xdsSnapshot, reports, proxyReport := tx.Translate(params, proxy)
 
 	// Messages are aggregated during translation, and need to be added to reports
 	for _, messages := range params.Messages {
@@ -107,7 +117,6 @@ func (s *ProxyTranslator) syncXds(
 	// a default initial fetch timeout
 	snap.MakeConsistent()
 	s.xdsCache.SetSnapshot(proxyKey, snap)
-
 }
 
 func (s *ProxyTranslator) syncStatus(

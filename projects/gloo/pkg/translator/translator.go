@@ -54,12 +54,11 @@ type ClusterTranslator interface {
 	) (*envoy_config_cluster_v3.Cluster, []error)
 }
 
-var (
-	_ Translator = new(translatorInstance)
-)
+var _ Translator = new(translatorInstance)
 
 // translatorInstance is the implementation for a Translator used during Gloo translation
 type translatorInstance struct {
+	opts                        translatorOpts
 	lock                        sync.Mutex
 	pluginRegistry              plugins.PluginRegistry
 	settings                    *v1.Settings
@@ -68,8 +67,28 @@ type translatorInstance struct {
 	shouldEnforceNamespaceMatch bool
 }
 
-func NewDefaultTranslator(settings *v1.Settings, pluginRegistry plugins.PluginRegistry) *translatorInstance {
-	return NewTranslatorWithHasher(utils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
+type Option func(o *translatorOpts)
+
+// Maybe just have a separate New to make this harder to miss...
+func ForGatewayV2() Option {
+	return func(o *translatorOpts) {
+		o.ggv2 = true
+	}
+}
+
+func WithParseableClusterNames(enabled bool) Option {
+	return func(o *translatorOpts) {
+		o.parseableClusterNames = enabled
+	}
+}
+
+type translatorOpts struct {
+	// ggv2 should only be set for translating ggv2 proxies.
+	ggv2 bool
+	// parseableClusterNames only applies when GGv2 is also true.
+	// When set, we will format cluster names for Kubernetes resources
+	// in a way that is pareseable for telemetry.
+	parseableClusterNames bool
 }
 
 func NewTranslatorWithHasher(
@@ -77,6 +96,7 @@ func NewTranslatorWithHasher(
 	settings *v1.Settings,
 	pluginRegistry plugins.PluginRegistry,
 	hasher func(resources []envoycache.Resource) (uint64, error),
+	opts ...Option,
 ) *translatorInstance {
 	shouldEnforceStr := os.Getenv(api_conversion.MatchingNamespaceEnv)
 	shouldEnforceNamespaceMatch := false
@@ -87,6 +107,12 @@ func NewTranslatorWithHasher(
 			// TODO: what to do here?
 		}
 	}
+
+	o := translatorOpts{}
+	for _, opt := range opts {
+		opt(&o)
+	}
+
 	return &translatorInstance{
 		lock:                        sync.Mutex{},
 		pluginRegistry:              pluginRegistry,
@@ -94,6 +120,7 @@ func NewTranslatorWithHasher(
 		hasher:                      hasher,
 		listenerTranslatorFactory:   NewListenerSubsystemTranslatorFactory(pluginRegistry, sslConfigTranslator, settings),
 		shouldEnforceNamespaceMatch: shouldEnforceNamespaceMatch,
+		opts:                        o,
 	}
 }
 
