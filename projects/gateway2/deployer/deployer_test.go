@@ -37,7 +37,7 @@ import (
 	// Don't take my word for it.
 	//
 	// There is some import within this package that this suite relies on. Chasing that down is
-	// *hard* tho as the gloo import tree is truly incredible.
+	// *hard* tho due to the import tree, and best done in a followup.
 	_ "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
 
