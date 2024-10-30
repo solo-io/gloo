@@ -19,6 +19,8 @@ import (
 	"github.com/onsi/ginkgo/v2"
 	"github.com/solo-io/gloo/pkg/cliutil/install"
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
+
+	_ "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gateway"
 	gateway_defaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/skv2/codegen/util"
