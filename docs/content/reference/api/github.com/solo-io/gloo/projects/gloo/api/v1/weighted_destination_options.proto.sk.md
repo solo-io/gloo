@@ -42,7 +42,7 @@ is selected for routing.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `headerManipulation` | [.headers.options.gloo.solo.io.HeaderManipulation](../options/headers/headers.proto.sk/#headermanipulation) | Append/Remove headers on Requests or Responses to/from this Weighted Destination. |
+| `headerManipulation` | [.headers.options.gloo.solo.io.HeaderManipulation](../options/headers/headers.proto.sk/#headermanipulation) | Append/Remove headers on Requests or Responses to/from this Weighted Destination after any other header manipulation. |
 | `transformations` | [.transformation.options.gloo.solo.io.Transformations](../options/transformation/transformation.proto.sk/#transformations) | Transformations to apply. Note: this field is superseded by `staged_transformations`. If `staged_transformations.regular` is set, this field will be ignored. |
 | `extensions` | [.gloo.solo.io.Extensions](../extensions.proto.sk/#extensions) | Extensions will be passed along from Listeners, Gateways, VirtualServices, Routes, and Route tables to the underlying Proxy, making them useful for controllers, validation tools, etc. which interact with kubernetes yaml. Some sample use cases: * controllers, deployment pipelines, helm charts, etc. which wish to use extensions as a kind of opaque metadata. * In the future, Gloo may support gRPC-based plugins which communicate with the Gloo translator out-of-process. Opaque Extensions enables development of out-of-process plugins without requiring recompiling & redeploying Gloo's API. |
 | `extauth` | [.enterprise.gloo.solo.io.ExtAuthExtension](../enterprise/options/extauth/v1/extauth.proto.sk/#extauthextension) | Enterprise-only: Authentication configuration. |
