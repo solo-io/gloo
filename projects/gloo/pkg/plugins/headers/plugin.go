@@ -10,6 +10,7 @@ import (
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/api_conversion"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -19,9 +20,10 @@ import (
 )
 
 var (
-	_ plugins.RoutePlugin               = new(plugin)
-	_ plugins.VirtualHostPlugin         = new(plugin)
-	_ plugins.WeightedDestinationPlugin = new(plugin)
+	_ plugins.RoutePlugin                 = new(plugin)
+	_ plugins.VirtualHostPlugin           = new(plugin)
+	_ plugins.WeightedDestinationPlugin   = new(plugin)
+	_ plugins.HttpConnectionManagerPlugin = new(plugin)
 )
 
 const (
@@ -38,8 +40,7 @@ var (
 )
 
 // Puts Header Manipulation config on Routes, VirtualHosts, and Weighted Clusters
-type plugin struct {
-}
+type plugin struct{}
 
 func NewPlugin() *plugin {
 	return &plugin{}
@@ -93,7 +94,6 @@ func (p *plugin) ProcessVirtualHost(
 	out *envoy_config_route_v3.VirtualHost,
 ) error {
 	headerManipulation := in.GetOptions().GetHeaderManipulation()
-
 	if headerManipulation == nil {
 		return nil
 	}
@@ -133,11 +133,9 @@ func (p *plugin) ProcessVirtualHost(
 
 func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	headerManipulation := in.GetOptions().GetHeaderManipulation()
-
 	if headerManipulation == nil {
 		return nil
 	}
-
 	enforceMatchingNamespaces, err := getEnforceMatch()
 	if err != nil {
 		return err
@@ -157,6 +155,12 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	out.ResponseHeadersToAdd = envoyHeader.ResponseHeadersToAdd
 	out.ResponseHeadersToRemove = envoyHeader.ResponseHeadersToRemove
 
+	return nil
+}
+
+func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parentListener *v1.Listener,
+	listener *v1.HttpListener, out *envoyhttp.HttpConnectionManager) error {
+	// Implementation here
 	return nil
 }
 

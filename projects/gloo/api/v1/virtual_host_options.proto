@@ -40,9 +40,7 @@ message VirtualHostOptions {
     Extensions extensions = 1;
     retries.options.gloo.solo.io.RetryPolicy retries = 5;
     stats.options.gloo.solo.io.Stats stats = 10;
-    // Append/Remove headers on Requests or Responses on all routes contained in this Virtual Host before any other header manipulation
-    headers.options.gloo.solo.io.HeaderManipulation early_header_manipulation = 21;
-    // Append/Remove headers on Requests or Responses on all routes contained in this Virtual Host after any other header manipulation
+    // Append/Remove headers on Requests or Responses on all routes contained in this Virtual Host
     headers.options.gloo.solo.io.HeaderManipulation header_manipulation = 2;
     // Defines a CORS policy for the virtual host.
     // If a CORS policy is also defined on the route matched by the request, the route policy

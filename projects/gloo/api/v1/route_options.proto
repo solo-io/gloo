@@ -66,9 +66,7 @@ message RouteOptions {
     // Specifies traffic shadowing configuration for the route.
     // See here for additional information on Envoy's shadowing capabilities: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route.proto#envoy-api-msg-route-routeaction-requestmirrorpolicy
     shadowing.options.gloo.solo.io.RouteShadowing shadowing = 8;
-    // Append/Remove headers on Requests or Responses on this Route before any other header manipulation
-    headers.options.gloo.solo.io.HeaderManipulation early_header_manipulation = 33;
-    // Append/Remove headers on Requests or Responses on this Route after any other header manipulation
+    // Append/Remove headers on Requests or Responses on this Route
     headers.options.gloo.solo.io.HeaderManipulation header_manipulation = 9;
     // For requests matched on this route, rewrite the Host header before forwarding upstream
     oneof host_rewrite_type {

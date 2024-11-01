@@ -18,9 +18,7 @@ import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filt
 // Optional, feature-specific configuration that is applied when a specific weighted destination
 // is selected for routing.
 message WeightedDestinationOptions {
-    // Append/Remove headers on Requests or Responses to/from this Weighted Destination before any other header manipulation
-    headers.options.gloo.solo.io.HeaderManipulation early_header_manipulation = 8;
-    // Append/Remove headers on Requests or Responses to/from this Weighted Destination after any other header manipulation
+    // Append/Remove headers on Requests or Responses to/from this Weighted Destination
     headers.options.gloo.solo.io.HeaderManipulation header_manipulation = 1;
     // Transformations to apply. Note: this field is superseded by `staged_transformations`.
     // If `staged_transformations.regular` is set, this field will be ignored.
