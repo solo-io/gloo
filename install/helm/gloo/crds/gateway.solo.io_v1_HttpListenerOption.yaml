@@ -844,6 +844,54 @@ spec:
                         type: string
                       drainTimeout:
                         type: string
+                      earlyHeaderManipulation:
+                        properties:
+                          requestHeadersToAdd:
+                            items:
+                              properties:
+                                append:
+                                  nullable: true
+                                  type: boolean
+                                header:
+                                  properties:
+                                    key:
+                                      type: string
+                                    value:
+                                      type: string
+                                  type: object
+                                headerSecretRef:
+                                  properties:
+                                    name:
+                                      type: string
+                                    namespace:
+                                      type: string
+                                  type: object
+                              type: object
+                            type: array
+                          requestHeadersToRemove:
+                            items:
+                              type: string
+                            type: array
+                          responseHeadersToAdd:
+                            items:
+                              properties:
+                                append:
+                                  nullable: true
+                                  type: boolean
+                                header:
+                                  properties:
+                                    key:
+                                      type: string
+                                    value:
+                                      type: string
+                                  type: object
+                              type: object
+                            type: array
+                          responseHeadersToRemove:
+                            items:
+                              type: string
+                            type: array
+                        type: object
                       enableTrailers:
                         nullable: true
                         type: boolean
