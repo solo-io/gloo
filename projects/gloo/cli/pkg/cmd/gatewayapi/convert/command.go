@@ -70,7 +70,11 @@ func run(opts *Options) error {
 		}
 		inputs = append(inputs, input)
 	}
-	// All the objects have been found in all the files
+
+	// preprocessing
+	for _, input := range inputs {
+		NewPreprocessor().Preprocess(input)
+	}
 
 	// now we need to convert the easy stuff like route tables
 	var outputs []*GatewayAPIOutput
@@ -98,8 +102,10 @@ func run(opts *Options) error {
 		if opts.Overwrite {
 			fileNameSplit := strings.Split(output.FileName, ".")
 			// assuming anything before the first . is the file name
-
-			filename := fmt.Sprintf("%s-%s.%s", fileNameSplit[0], opts.OverwriteSuffix, strings.Join(fileNameSplit[1:], "."))
+			filename := fmt.Sprintf("%s.%s", fileNameSplit[0], strings.Join(fileNameSplit[1:], "."))
+			if opts.OverwriteSuffix != "" {
+				fmt.Sprintf("%s-%s.%s", fileNameSplit[0], opts.OverwriteSuffix, strings.Join(fileNameSplit[1:], "."))
+			}
 			if output.HasItems() {
 				_, _ = fmt.Fprintf(os.Stdout, "Writing File: %s\n", filename)
 				file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
