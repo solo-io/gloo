@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/10250
+    resolvesIssue: false
+    description: >-
+      Assert only that the Upstreams we expect Discovery to create exist and not that they have a particular status,
+      which is the Gloo controller's responsibility to write
