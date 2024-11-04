@@ -14,7 +14,8 @@ glooctl proxy snapshot [flags]
 ### Options
 
 ```
-  -h, --help   help for snapshot
+  -h, --help          help for snapshot
+      --include-eds   include EDS in the config snapshot
 ```
 
 ### Options inherited from parent commands
