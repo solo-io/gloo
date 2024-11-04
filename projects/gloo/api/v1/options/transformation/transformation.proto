@@ -301,6 +301,15 @@ message TransformationTemplate {
     // TODO if we want to set attributes as well, add fields to modify them here.
   }
 
+  // These field numbers are used in envoy-gloo but not exposed. Let's reserve
+  // them so we do not drift in numbers between the transformation filter in
+  // `envoy-gloo` and our gloo control plane API.
+  // 13: merge_json_keys
+  // https://github.com/solo-io/envoy-gloo/blob/0a088716a0cc04409ad926e7364363c6de4a83a5/api/envoy/config/filter/http/transformation/v2/transformation_filter.proto#L276
+  // 14: string_delimiter
+  // https://github.com/solo-io/envoy-gloo/blob/0a088716a0cc04409ad926e7364363c6de4a83a5/api/envoy/config/filter/http/transformation/v2/transformation_filter.proto#L321
+  reserved 13, 14;
+
   // Use this field to modify the span of the trace.
   SpanTransformer span_transformer = 15;
 
