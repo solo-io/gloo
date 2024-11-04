@@ -303,16 +303,16 @@ func (c *Client) WriteEnvoyDumpToZip(ctx context.Context, zip *zip.Writer) error
 	// zip writer has the benefit of not requiring tmpdirs or file ops (all in mem)
 	// - but it can't support async writes, so do these sequentally
 	// Also don't join errors, we want to fast-fail
-	if err := c.ConfigDumpCmd(ctx, nil).WithStdout(fileInArchive(zip, "config.log")).Run().Cause(); err != nil {
+	if err := c.ConfigDumpCmd(ctx, nil).WithStdout(fileInArchive(zip, "config.txt")).Run().Cause(); err != nil {
 		return err
 	}
-	if err := c.StatsCmd(ctx).WithStdout(fileInArchive(zip, "stats.log")).Run().Cause(); err != nil {
+	if err := c.StatsCmd(ctx).WithStdout(fileInArchive(zip, "stats.txt")).Run().Cause(); err != nil {
 		return err
 	}
-	if err := c.ClustersCmd(ctx).WithStdout(fileInArchive(zip, "clusters.log")).Run().Cause(); err != nil {
+	if err := c.ClustersCmd(ctx).WithStdout(fileInArchive(zip, "clusters.txt")).Run().Cause(); err != nil {
 		return err
 	}
-	if err := c.ListenersCmd(ctx).WithStdout(fileInArchive(zip, "listeners.log")).Run().Cause(); err != nil {
+	if err := c.ListenersCmd(ctx).WithStdout(fileInArchive(zip, "listeners.txt")).Run().Cause(); err != nil {
 		return err
 	}
 
