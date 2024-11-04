@@ -16,7 +16,8 @@ metadata:
   name: "opentelemetry-collector"
   namespace: default
 spec:
-  # REQUIRED FOR OPENTELEMETRY COLLECTION
+  # OpenTelemetry collector requires HTTP/2:
+  # https://github.com/open-telemetry/opentelemetry-collector/issues/1916
   useHttp2: true
   static:
     hosts:
