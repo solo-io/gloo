@@ -32,6 +32,12 @@ const (
 	ServerInfoPath     = "server_info"
 )
 
+// DumpOptions should have flags for any kind of underlying optional
+// filtering or inclusion of Envoy dump data, such as including EDS, filters, etc.
+type DumpOptions struct {
+	ConfigIncludeEDS bool
+}
+
 // Client is a utility for executing requests against the Envoy Admin API
 // The Admin API handlers can be found here:
 // https://github.com/envoyproxy/envoy/blob/63bc9b564b1a76a22a0d029bcac35abeffff2a61/source/server/admin/admin.cc#L127
@@ -301,14 +307,19 @@ func (c *Client) GetSingleListenerFromDynamicListeners(
 
 // WriteEnvoyDumpToZip will dump config, stats, clusters and listeners to zipfile in the current directory.
 // Useful for diagnostics or testing
-func (c *Client) WriteEnvoyDumpToZip(ctx context.Context, zip *zip.Writer) error {
+func (c *Client) WriteEnvoyDumpToZip(ctx context.Context, options DumpOptions, zip *zip.Writer) error {
+	configParams := make(map[string]string)
+	if options.ConfigIncludeEDS {
+		configParams["include_eds"] = "on"
+	}
+
 	// zip writer has the benefit of not requiring tmpdirs or file ops (all in mem)
 	// - but it can't support async writes, so do these sequentally
 	// Also don't join errors, we want to fast-fail
-	if err := c.ServerInfoCmd(ctx).WithStdout(fileInArchive(zip, "server_info.txt")).Run().Cause(); err != nil {
+	if err := c.ServerInfoCmd(ctx).WithStdout(fileInArchive(zip, "server_info.json")).Run().Cause(); err != nil {
 		return err
 	}
-	if err := c.ConfigDumpCmd(ctx, nil).WithStdout(fileInArchive(zip, "config.txt")).Run().Cause(); err != nil {
+	if err := c.ConfigDumpCmd(ctx, configParams).WithStdout(fileInArchive(zip, "config.json")).Run().Cause(); err != nil {
 		return err
 	}
 	if err := c.StatsCmd(ctx).WithStdout(fileInArchive(zip, "stats.txt")).Run().Cause(); err != nil {

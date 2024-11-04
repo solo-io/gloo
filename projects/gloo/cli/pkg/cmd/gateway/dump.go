@@ -54,6 +54,7 @@ func writeSnapshotCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc
 			return nil
 		},
 	}
+	cmd.Flags().BoolVar(&opts.Proxy.ConfigDumpEDS, "include-eds", false, "include EDS in the config snapshot")
 	cliutils.ApplyOptions(cmd, optionsFunc)
 	return cmd
 }
@@ -101,7 +102,7 @@ func getEnvoyFullDumpToDisk(opts *options.Options) (string, error) {
 
 	defer shutdownFunc()
 
-	writeErr := adminCli.WriteEnvoyDumpToZip(opts.Top.Ctx, proxyOutArchive)
+	writeErr := adminCli.WriteEnvoyDumpToZip(opts.Top.Ctx, admincli.DumpOptions{ConfigIncludeEDS: opts.Proxy.ConfigDumpEDS}, proxyOutArchive)
 
 	if writeErr == nil {
 		fmt.Println("proxy snapshot written to " + proxyOutArchiveFile.Name())
