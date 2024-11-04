@@ -361,6 +361,9 @@ spec:
                           type: object
                         type: array
                     type: object
+                  listenerTcpStats:
+                    nullable: true
+                    type: boolean
                   perConnectionBufferLimitBytes:
                     maximum: 4294967295
                     minimum: 0

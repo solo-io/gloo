@@ -3,6 +3,7 @@ package listener
 import (
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	envoy_extensions_transport_sockets_tcp_stats_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tcp_stats/v3"
 	errors "github.com/rotisserie/eris"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -40,6 +41,7 @@ func (p *plugin) ProcessListener(_ plugins.Params, in *v1.Listener, out *envoy_c
 	if in.GetOptions().GetSocketOptions() != nil {
 		out.SocketOptions = translateSocketOptions(in.GetOptions().GetSocketOptions())
 	}
+
 	if connectionBalanceConfig := in.GetOptions().GetConnectionBalanceConfig(); connectionBalanceConfig != nil {
 		if connectionBalanceConfig.GetExactBalance() != nil {
 			out.ConnectionBalanceConfig = &envoy_config_listener_v3.Listener_ConnectionBalanceConfig{
@@ -49,6 +51,18 @@ func (p *plugin) ProcessListener(_ plugins.Params, in *v1.Listener, out *envoy_c
 			}
 		} else {
 			return errors.New("connection balancer does not specify balancer type")
+		}
+	}
+
+	if tcpStatsWrap := in.GetOptions().GetListenerTcpStats(); tcpStatsWrap != nil {
+		for _, chain := range out.FilterChains {
+			if chain != nil {
+				if tSock := chain.GetTransportSocket(); tSock != nil {
+					var wrappedSock envoy_config_core_v3.TransportSocket
+					wrappedSock.ConfigType = envoy_extensions_transport_sockets_tcp_stats_v3.Config
+					tSock.
+				}
+			}
 		}
 	}
 
