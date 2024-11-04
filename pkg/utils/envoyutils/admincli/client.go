@@ -145,6 +145,11 @@ func (c *Client) GetStats(ctx context.Context) (string, error) {
 	return outLocation.String(), nil
 }
 
+// ServerInfoCmd returns the cmdutils.Cmd that can be run to request data from the server_info endpoint
+func (c *Client) ServerInfoCmd(ctx context.Context) cmdutils.Cmd {
+	return c.RequestPathCmd(ctx, ServerInfoPath)
+}
+
 // ClustersCmd returns the cmdutils.Cmd that can be run to request data from the clusters endpoint
 func (c *Client) ClustersCmd(ctx context.Context) cmdutils.Cmd {
 	return c.RequestPathCmd(ctx, ClustersPath)
@@ -243,10 +248,7 @@ func (c *Client) GetServerInfo(ctx context.Context) (*adminv3.ServerInfo, error)
 		outLocation threadsafe.Buffer
 	)
 
-	err := c.RequestPathCmd(ctx, ServerInfoPath).
-		WithStdout(&outLocation).
-		Run().
-		Cause()
+	err := c.ServerInfoCmd(ctx).WithStdout(&outLocation).Run().Cause()
 	if err != nil {
 		return nil, err
 	}
@@ -303,6 +305,9 @@ func (c *Client) WriteEnvoyDumpToZip(ctx context.Context, zip *zip.Writer) error
 	// zip writer has the benefit of not requiring tmpdirs or file ops (all in mem)
 	// - but it can't support async writes, so do these sequentally
 	// Also don't join errors, we want to fast-fail
+	if err := c.ServerInfoCmd(ctx).WithStdout(fileInArchive(zip, "server_info.txt")).Run().Cause(); err != nil {
+		return err
+	}
 	if err := c.ConfigDumpCmd(ctx, nil).WithStdout(fileInArchive(zip, "config.txt")).Run().Cause(); err != nil {
 		return err
 	}
