@@ -59,23 +59,23 @@ func writeSnapshotCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc
 }
 
 func getEnvoyCfgDump(opts *options.Options) error {
-	adminCli, deferFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
+	adminCli, shutdownFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
 	if err != nil {
 		return err
 	}
 
-	defer deferFunc()
+	defer shutdownFunc()
 
 	return adminCli.ConfigDumpCmd(opts.Top.Ctx, nil).WithStdout(os.Stdout).Run().Cause()
 }
 
 func getEnvoyStatsDump(opts *options.Options) error {
-	adminCli, deferFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
+	adminCli, shutdownFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
 	if err != nil {
 		return err
 	}
 
-	defer deferFunc()
+	defer shutdownFunc()
 
 	return adminCli.StatsCmd(opts.Top.Ctx).WithStdout(os.Stdout).Run().Cause()
 }
@@ -94,12 +94,12 @@ func getEnvoyFullDumpToDisk(opts *options.Options) (string, error) {
 		proxyNamespace = defaults.GlooSystem
 	}
 
-	adminCli, deferFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
+	adminCli, shutdownFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
 	if err != nil {
 		return proxyOutArchiveFile.Name(), err
 	}
 
-	defer deferFunc()
+	defer shutdownFunc()
 
 	writeErr := adminCli.WriteEnvoyDumpToZip(opts.Top.Ctx, proxyOutArchive)
 
