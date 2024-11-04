@@ -295,7 +295,9 @@ message TransformationTemplate {
 
   // Definitions for span transformations for tracing purposes.
   message SpanTransformer {
-    // A template that sets the span name.
+    // A template that sets the span name. For example, to set the span name to
+    // the value of the host header, you can set this value to
+    // `'{{header("Host")}}'`
     InjaTemplate name = 1;
 
     // TODO if we want to set attributes as well, add fields to modify them here.
