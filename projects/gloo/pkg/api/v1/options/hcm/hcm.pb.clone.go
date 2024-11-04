@@ -261,9 +261,9 @@ func (m *HttpConnectionManagerSettings) Clone() proto.Message {
 	}
 
 	if h, ok := interface{}(m.GetEarlyHeaderManipulation()).(clone.Cloner); ok {
-		target.EarlyHeaderManipulation = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_headers.HeaderManipulation)
+		target.EarlyHeaderManipulation = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_headers.EarlyHeaderManipulation)
 	} else {
-		target.EarlyHeaderManipulation = proto.Clone(m.GetEarlyHeaderManipulation()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_headers.HeaderManipulation)
+		target.EarlyHeaderManipulation = proto.Clone(m.GetEarlyHeaderManipulation()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_headers.EarlyHeaderManipulation)
 	}
 
 	switch m.HeaderFormat.(type) {

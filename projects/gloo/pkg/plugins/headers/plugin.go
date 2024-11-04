@@ -164,70 +164,54 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 
 func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parentListener *v1.Listener,
 	listener *v1.HttpListener, out *envoyhttp.HttpConnectionManager) error {
+
 	in := listener.GetOptions().GetHttpConnectionManagerSettings()
 	if in == nil {
 		return nil
 	}
 
-	earlyHeaderManipulation := in.GetEarlyHeaderManipulation()
-	if earlyHeaderManipulation != nil {
+	inManipulations := in.GetEarlyHeaderManipulation()
+	if inManipulations == nil {
 		return nil
 	}
 
-	envoyHeader, err := convertHeaderConfig(earlyHeaderManipulation, getSecretsFromSnapshot(params.Snapshot),
-		api_conversion.HeaderSecretOptions{})
+	requestAdd, err := api_conversion.ToEnvoyHeaderValueOptionList(inManipulations.GetHeadersToAdd(),
+		getSecretsFromSnapshot(params.Snapshot), api_conversion.HeaderSecretOptions{})
 	if err != nil {
 		return err
 	}
 
-	mutations := []*envoy_config_mutation_rules_v3.HeaderMutation{}
+	outMutations := []*envoy_config_mutation_rules_v3.HeaderMutation{}
 
-	for _, header := range envoyHeader.RequestHeadersToRemove {
-		mutations = append(mutations, &envoy_config_mutation_rules_v3.HeaderMutation{
-			Action: &envoy_config_mutation_rules_v3.HeaderMutation_Remove{
-				Remove: header,
-			},
-		})
-	}
-
-	for _, header := range envoyHeader.RequestHeadersToAdd {
-		mutations = append(mutations, &envoy_config_mutation_rules_v3.HeaderMutation{
+	for _, header := range requestAdd {
+		outMutations = append(outMutations, &envoy_config_mutation_rules_v3.HeaderMutation{
 			Action: &envoy_config_mutation_rules_v3.HeaderMutation_Append{
 				Append: header,
 			},
 		})
 	}
 
-	for _, header := range envoyHeader.ResponseHeadersToRemove {
-		mutations = append(mutations, &envoy_config_mutation_rules_v3.HeaderMutation{
+	for _, header := range inManipulations.GetHeadersToRemove() {
+		outMutations = append(outMutations, &envoy_config_mutation_rules_v3.HeaderMutation{
 			Action: &envoy_config_mutation_rules_v3.HeaderMutation_Remove{
 				Remove: header,
-			},
-		})
-	}
-
-	for _, header := range envoyHeader.ResponseHeadersToAdd {
-		mutations = append(mutations, &envoy_config_mutation_rules_v3.HeaderMutation{
-			Action: &envoy_config_mutation_rules_v3.HeaderMutation_Append{
-				Append: header,
 			},
 		})
 	}
 
 	typedConfig, err := utils.MessageToAny(&envoy_ehm_header_mutation_v3.HeaderMutation{
-		Mutations: mutations,
+		Mutations: outMutations,
 	})
 	if err != nil {
 		return err
 	}
 
-	typedConfigs := []*corev3.TypedExtensionConfig{
+	out.EarlyHeaderMutationExtensions = []*corev3.TypedExtensionConfig{
 		{
 			Name:        "http.early_header_mutation.header_mutation",
 			TypedConfig: typedConfig,
 		},
 	}
-	out.EarlyHeaderMutationExtensions = typedConfigs
 
 	return nil
 }

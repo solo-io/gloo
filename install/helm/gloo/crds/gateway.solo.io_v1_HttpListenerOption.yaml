@@ -846,7 +846,7 @@ spec:
                         type: string
                       earlyHeaderManipulation:
                         properties:
-                          requestHeadersToAdd:
+                          headersToAdd:
                             items:
                               properties:
                                 append:
@@ -868,26 +868,7 @@ spec:
                                   type: object
                               type: object
                             type: array
-                          requestHeadersToRemove:
-                            items:
-                              type: string
-                            type: array
-                          responseHeadersToAdd:
-                            items:
-                              properties:
-                                append:
-                                  nullable: true
-                                  type: boolean
-                                header:
-                                  properties:
-                                    key:
-                                      type: string
-                                    value:
-                                      type: string
-                                  type: object
-                              type: object
-                            type: array
-                          responseHeadersToRemove:
+                          headersToRemove:
                             items:
                               type: string
                             type: array
