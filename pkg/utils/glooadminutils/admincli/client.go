@@ -13,7 +13,7 @@ import (
 
 const (
 	InputSnapshotPath    = "/snapshots/input"
-	DefaultGlooAdminPort = 9091
+	DefaultAdminPort = 9091
 )
 
 // Client is a utility for executing requests against the Gloo Admin API
@@ -33,7 +33,7 @@ func NewClient() *Client {
 		curlOptions: []curl.Option{
 			curl.WithScheme("http"),
 			curl.WithHost("127.0.0.1"),
-			curl.WithPort(DefaultGlooAdminPort),
+			curl.WithPort(DefaultAdminPort),
 			// 3 retries, exponential back-off, 10 second max
 			curl.WithRetries(3, 0, 10),
 		},
