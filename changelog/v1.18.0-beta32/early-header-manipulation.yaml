@@ -1,0 +1,9 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/9604
+    description: >-
+      Added support for early header manipulation on Gateways.
+      This feature allows manipulate headers before significant processing 
+      and routing decisions.
+      Affords the ability to add/remove headers that affect request processing
+      and can be used to implement override headers.
