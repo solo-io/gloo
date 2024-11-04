@@ -40,7 +40,7 @@ spec:
                 transformationTemplate:
                   headers:
                     test_header:
-                      text: test_avlue
+                      text: test_value
                   spanTransformer:
                     name:
                       text: '{{header("Host")}}'
