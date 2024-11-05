@@ -41,7 +41,7 @@ const (
 // ClusterNameForKube builds the cluster name based on _internal_ labels.
 // All of the kind, name, namespace and port must be provided.
 func ClusterNameForKube(us *v1.Upstream) (string, bool) {
-	labels := us.Metadata.GetLabels()
+	labels := us.GetMetadata().GetLabels()
 	kind, kok := labels[KubeSourceResourceLabel]
 	name, nok := labels[KubeNameLabel]
 	ns, nsok := labels[KubeNamespaceLabel]
