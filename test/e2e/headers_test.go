@@ -1,7 +1,9 @@
 package e2e_test
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"time"
@@ -18,6 +20,7 @@ import (
 	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/testutils"
+	"github.com/solo-io/gloo/test/v1helpers"
 	envoycore_sk "github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -353,4 +356,49 @@ var _ = Describe("HeaderManipulation", func() {
 			)
 		})
 	})
+
+	FContext("Early Header Manipulation", func() {
+		var (
+			httpClient     *http.Client
+			requestBuilder *testutils.HttpRequestBuilder
+		)
+
+		type HeaderResponse struct {
+			Headers map[string][]string `json:"headers"`
+		}
+
+		BeforeEach(func() {
+			testContext = testContextFactory.NewTestContext()
+			testContext.SetUpstreamGenerator(v1helpers.NewTestHttpUpstreamWithHttpbin)
+			testContext.BeforeEach()
+
+			httpClient = testutils.DefaultClientBuilder().Build()
+			requestBuilder = testContext.GetHttpRequestBuilder()
+		})
+
+		It("Should not mutate headers", func() {
+			Eventually(func(g Gomega) {
+				req := requestBuilder.
+					WithHeader("Accept", "application/json").
+					WithPath("/headers").
+					WithHeader("X-Foo", "bar").
+					Build()
+
+				res, err := httpClient.Do(req)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(res.StatusCode).To(Equal(http.StatusOK))
+
+				defer res.Body.Close()
+				body, err := io.ReadAll(res.Body)
+				g.Expect(err).NotTo(HaveOccurred())
+
+				var headerResponse HeaderResponse
+				err = json.Unmarshal(body, &headerResponse)
+				g.Expect(err).NotTo(HaveOccurred())
+
+				g.Expect(headerResponse.Headers).To(HaveKeyWithValue("X-Foo", ConsistOf("bar")))
+			}, "5s", "0.5s").Should(Succeed())
+		})
+	})
+
 })
