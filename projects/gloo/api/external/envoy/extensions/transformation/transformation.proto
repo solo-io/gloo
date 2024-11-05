@@ -343,6 +343,11 @@ message TransformationTemplate {
     // TODO if we want to set attributes as well, add fields to modify them here.
   }
 
+  // These two fields (merge_json_keys and string_delimiter) are used in
+  // `envoy-gloo` but not used in the control plane. Let's reserve them to keep
+  // our field numbers in sync.
+  reserved 13, 14;
+
   // Use this field to modify the span of the trace.
   SpanTransformer span_transformer = 15;
 
