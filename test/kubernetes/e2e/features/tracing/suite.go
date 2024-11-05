@@ -161,7 +161,7 @@ func (s *testingSuite) TestSpanNameTransformationsWithRouteDecorator() {
 		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx, otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
 		assert.NoError(c, err, "can get otelcol logs")
 		// Looking for a line like this:
-		// Name       : <value of host header>
+		// Name       : <value of routeDescriptorSpanName>
 		assert.Regexp(c, "Name *: "+routeDescriptorSpanName, logs)
 	}, time.Second*30, time.Second*3, "otelcol logs contain span with name == routeDescriptor")
 }
