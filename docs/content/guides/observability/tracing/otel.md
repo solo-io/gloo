@@ -193,8 +193,8 @@ Gloo supports changing the default span name by using the transformation filter.
        options:
          stagedTransformations:
            regular:
-             responseTransforms:
-               - responseTransformation:
+             requestTransforms:
+               - requestTransformation:
                    transformationTemplate:
                      spanTransformer:
                        name:
