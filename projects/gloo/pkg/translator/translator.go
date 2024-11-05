@@ -69,26 +69,15 @@ type translatorInstance struct {
 
 type Option func(o *translatorOpts)
 
-// Maybe just have a separate New to make this harder to miss...
-func ForGatewayV2() Option {
+func ForKubeGatewayAPI() Option {
 	return func(o *translatorOpts) {
-		o.ggv2 = true
-	}
-}
-
-func WithParseableClusterNames(enabled bool) Option {
-	return func(o *translatorOpts) {
-		o.parseableClusterNames = enabled
+		o.kubeGatewayAPI = true
 	}
 }
 
 type translatorOpts struct {
-	// ggv2 should only be set for translating ggv2 proxies.
-	ggv2 bool
-	// parseableClusterNames only applies when GGv2 is also true.
-	// When set, we will format cluster names for Kubernetes resources
-	// in a way that is pareseable for telemetry.
-	parseableClusterNames bool
+	// kubeGatewayAPI should only be set for translating kubeGatewayAPI proxies.
+	kubeGatewayAPI bool
 }
 
 func NewTranslatorWithHasher(

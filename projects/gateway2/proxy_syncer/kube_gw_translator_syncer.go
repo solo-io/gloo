@@ -8,10 +8,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"istio.io/istio/pkg/kube/krt"
 
-	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
-	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -66,12 +64,10 @@ func (s *ProxyTranslator) buildXdsSnapshot(
 		Messages: map[*core.ResourceRef][]string{},
 	}
 
-	legacyClusterNames := envutils.IsEnvTruthy(constants.GlooGatewayKubeStyleClusterNames)
 	tx := s.translator.NewTranslator(
 		ctx,
 		settings,
-		translator.ForGatewayV2(),
-		translator.WithParseableClusterNames(!legacyClusterNames),
+		translator.ForKubeGatewayAPI(),
 	)
 	xdsSnapshot, reports, proxyReport := tx.Translate(params, proxy)
 

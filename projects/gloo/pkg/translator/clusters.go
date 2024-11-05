@@ -1,11 +1,10 @@
 package translator
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
-
-	"errors"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -20,7 +19,6 @@ import (
 	v1_options "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	upstream_proxy_protocol "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils/upstreamproxyprotocol"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
@@ -141,11 +139,8 @@ func (t *translatorInstance) initializeCluster(
 	}
 
 	clusterName := UpstreamToClusterName(upstream.GetMetadata().Ref())
-	// TODO maybe drop the ggv2 flag is redundant
-	if t.opts.ggv2 && t.opts.parseableClusterNames {
-		if k8sStyle, ok := kubernetes.ClusterNameForKube(upstream); ok {
-			clusterName = k8sStyle
-		}
+	if t.opts.kubeGatewayAPI {
+		clusterName = KubeGatewayUpstreamToClusterName(upstream)
 	}
 
 	circuitBreakers := t.settings.GetGloo().GetCircuitBreakers()
