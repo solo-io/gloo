@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultTestServerImage = "quay.io/solo-io/testrunner:v1.7.0-beta17"
+	defaultTestServerImage = "us-docker.pkg.dev/developers-369321/rav-test/testrunner:v1.7.0-beta17" //"quay.io/solo-io/testrunner:v1.7.0-beta17"
 	TestServerName         = "testserver"
 	TestServerPort         = 1234
 
