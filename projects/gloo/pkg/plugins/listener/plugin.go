@@ -58,17 +58,15 @@ func (p *plugin) ProcessListener(_ plugins.Params, in *v1.Listener, out *envoy_c
 		}
 	}
 
-	if tcpStatsWrap := in.GetOptions().GetListenerTcpStats(); tcpStatsWrap != nil {
+	if tcpStatsWrap := in.GetOptions().GetListenerTcpStats().GetValue(); tcpStatsWrap {
 		for _, chain := range out.FilterChains {
 			if chain != nil {
-				// TODO BML may not need nil check/may not need rawbuf for listener
-				if tSock := chain.GetTransportSocket(); tSock != nil {
-					newS, err := wrapWithTcpStats(tSock)
-					if err != nil {
-						return err
-					}
-					chain.TransportSocket = newS
+				tSock := chain.GetTransportSocket()
+				newS, err := wrapWithTcpStats(tSock)
+				if err != nil {
+					return err
 				}
+				chain.TransportSocket = newS
 			}
 		}
 	}
@@ -76,8 +74,9 @@ func (p *plugin) ProcessListener(_ plugins.Params, in *v1.Listener, out *envoy_c
 	return nil
 }
 
-// WrapWithPPortocol wraps the upstream with a proxy protocol transport socket
-// this is different from the listener level proxy protocol filter as it ends up on the cluster
+// wrapWithTcpStats wraps the existing transport socket with a tcp_stats transport socket
+// if there is no transport socket defined, will create a new raw buffer transport
+// (what envoy would use anyway) and wraps that
 func wrapWithTcpStats(oldTs *envoy_config_core_v3.TransportSocket) (*envoy_config_core_v3.TransportSocket, error) {
 	// if unset envoy uses a raw buffer transport socket
 	// so explicitly make it here
@@ -89,8 +88,8 @@ func wrapWithTcpStats(oldTs *envoy_config_core_v3.TransportSocket) (*envoy_confi
 	}
 
 	tcpStats := &tcp_stats_v3.Config{
-			TransportSocket: oldTs,
-		}
+		TransportSocket: oldTs,
+	}
 	// Convert so it can be set as typed config
 	typCfg, err := utils.MessageToAny(tcpStats)
 	if err != nil {
@@ -99,16 +98,13 @@ func wrapWithTcpStats(oldTs *envoy_config_core_v3.TransportSocket) (*envoy_confi
 	typCfg.TypeUrl = "type.googleapis.com/" + "envoy.extensions.transport_sockets.tcp_stats.v3.Config" // As of writing this is not in go-control-plane's well known
 
 	newTs := &envoy_config_core_v3.TransportSocket{
-		Name: "envoy.transport_sockets.downstream" ,
-		// https://github.com/envoyproxy/envoy/blob/29b46144739578a72a8f18eb8eb0855e23426f6e/api/envoy/extensions/transport_sockets/proxy_protocol/v3/upstream_proxy_protocol.proto#L21
+		Name: "envoy.transport_sockets.tcp_stats",
 		ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{
 			TypedConfig: typCfg,
 		},
 	}
 	return newTs, nil
 }
-
-
 
 func translateSocketOptions(sos []*core.SocketOption) []*envoy_config_core_v3.SocketOption {
 	var socketOptions []*envoy_config_core_v3.SocketOption
