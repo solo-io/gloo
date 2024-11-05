@@ -540,6 +540,10 @@ func NewExtractorError(message, name string, mode transformation.Extraction_Mode
 	return extractorError
 }
 
+func NewInvalidSpanTransformerError(message string) error {
+	return fmt.Errorf("unable to create span transformer: %s", message)
+}
+
 const (
 	ErrMsgReplacementTextSetWhenNotNeeded = "replacement text should not be set"
 	ErrMsgReplacementTextNotSetWhenNeeded = "replacement text must be set"
@@ -646,6 +650,9 @@ func (p *Plugin) getTransformations(
 		requestTransform, err := p.TranslateTransformation(t.GetRequestTransformation(), p.escapeCharacters, stagedEscapeCharacters)
 		if err != nil {
 			return nil, err
+		}
+		if t.GetResponseTransformation().GetTransformationTemplate().GetSpanTransformer() != nil {
+			return nil, NewInvalidSpanTransformerError("cannot create modify span s on response transformer")
 		}
 		responseTransform, err := p.TranslateTransformation(t.GetResponseTransformation(), p.escapeCharacters, stagedEscapeCharacters)
 		if err != nil {

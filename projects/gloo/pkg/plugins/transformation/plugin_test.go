@@ -1127,6 +1127,34 @@ var _ = Describe("Plugin", func() {
 
 			expected = configStruct
 		})
+		It("fails when SpanTransformer is set on responseTransform objects", func() {
+			vh := &v1.VirtualHost{
+				Options: &v1.VirtualHostOptions{
+					StagedTransformations: &transformation.TransformationStages{
+						Regular: &transformation.RequestResponseTransformations{
+							RequestTransforms: []*transformation.RequestMatch{{
+								ResponseTransformation: &transformation.Transformation{
+									TransformationType: &transformation.Transformation_TransformationTemplate{
+										TransformationTemplate: &transformation.TransformationTemplate{
+											SpanTransformer: &transformation.TransformationTemplate_SpanTransformer{
+												Name: &transformation.InjaTemplate{Text: "response_span_transformer"},
+											},
+										},
+									},
+								},
+							}},
+						},
+					},
+				},
+			}
+			out := &envoy_config_route_v3.VirtualHost{}
+			err := p.(plugins.VirtualHostPlugin).ProcessVirtualHost(plugins.VirtualHostParams{
+				Params: plugins.Params{
+					Ctx: ctx,
+				},
+			}, vh, out)
+			Expect(err).NotTo(BeNil())
+		})
 		It("sets transformation config for vhosts", func() {
 			out := &envoy_config_route_v3.VirtualHost{}
 			err := p.(plugins.VirtualHostPlugin).ProcessVirtualHost(plugins.VirtualHostParams{
