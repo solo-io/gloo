@@ -59,7 +59,7 @@ func (p *plugin) ProcessListener(_ plugins.Params, in *v1.Listener, out *envoy_c
 	}
 
 	if tcpStatsWrap := in.GetOptions().GetListenerTcpStats().GetValue(); tcpStatsWrap {
-		for _, chain := range out.FilterChains {
+		for _, chain := range out.GetFilterChains() {
 			if chain != nil {
 				tSock := chain.GetTransportSocket()
 				newS, err := wrapWithTcpStats(tSock)
