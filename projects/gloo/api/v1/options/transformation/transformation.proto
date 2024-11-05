@@ -312,7 +312,9 @@ message TransformationTemplate {
   // https://github.com/solo-io/envoy-gloo/blob/0a088716a0cc04409ad926e7364363c6de4a83a5/api/envoy/config/filter/http/transformation/v2/transformation_filter.proto#L321
   reserved 13, 14;
 
-  // Use this field to modify the span of the trace.
+  // Use this field to modify the span of the trace. This field can only be
+  // applied on requestTransformations. Attempting to set this on a
+  // responseTransformation will result in an error.
   SpanTransformer span_transformer = 15;
 
 }

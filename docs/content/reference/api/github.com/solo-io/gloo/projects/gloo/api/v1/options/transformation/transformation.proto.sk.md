@@ -254,7 +254,7 @@ Defines a transformation template.
 | `ignoreErrorOnParse` | `bool` | If set to true, Envoy will not throw an exception in case the body parsing fails. |
 | `dynamicMetadataValues` | [[]transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue](../transformation.proto.sk/#dynamicmetadatavalue) | Use this field to set Dynamic Metadata. |
 | `escapeCharacters` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Use this field to set Inja behavior when rendering strings which contain characters that would need to be escaped to be valid JSON. Note that this sets the behavior for the entire transformation. Use raw_strings function for fine-grained control within a template. |
-| `spanTransformer` | [.transformation.options.gloo.solo.io.TransformationTemplate.SpanTransformer](../transformation.proto.sk/#spantransformer) | Use this field to modify the span of the trace. |
+| `spanTransformer` | [.transformation.options.gloo.solo.io.TransformationTemplate.SpanTransformer](../transformation.proto.sk/#spantransformer) | Use this field to modify the span of the trace. This field can only be applied on requestTransformations. Attempting to set this on a responseTransformation will result in an error. |
 
 
 
@@ -318,7 +318,7 @@ Definitions for span transformations for tracing purposes.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `name` | [.transformation.options.gloo.solo.io.InjaTemplate](../transformation.proto.sk/#injatemplate) | A template that sets the span name. |
+| `name` | [.transformation.options.gloo.solo.io.InjaTemplate](../transformation.proto.sk/#injatemplate) | A template that sets the span name. For example, to set the span name to the value of the host header, you can set this value to `'{{header("Host")}}'`. |
 
 
 
