@@ -5,10 +5,12 @@ metadata:
   name: echo-server
 spec:
   # useHttp2: true
-  static:
-    hosts:
-    - addr: http-echo.http-echo.svc.cluster.local # TODO do not hard-code this?
-      port: 3000
+  kube:
+    selector:
+      app.kubernetes.io/name: http-echo
+    serviceName: http-echo
+    serviceNamespace: http-echo
+    servicePort: 3000
 ---
 apiVersion: gloo.solo.io/v1
 kind: Upstream
@@ -19,10 +21,12 @@ spec:
   # OpenTelemetry collector requires HTTP/2:
   # https://github.com/open-telemetry/opentelemetry-collector/issues/1916
   useHttp2: true
-  static:
-    hosts:
-      - addr: otel-collector.default.svc.cluster.local # TODO avoid hard-coding this path?
-        port: 4317
+  kube:
+    selector:
+      app.kubernetes.io/name: otel-collector
+    serviceName: otel-collector
+    serviceNamespace: default
+    servicePort: 4317
 ---
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
