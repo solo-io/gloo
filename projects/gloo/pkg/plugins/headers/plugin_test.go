@@ -1,19 +1,25 @@
 package headers
 
 import (
+	"errors"
 	"os"
 
 	"github.com/solo-io/gloo/pkg/utils/api_conversion"
 
+	envoy_config_mutation_rules_v3 "github.com/envoyproxy/go-control-plane/envoy/config/common/mutation_rules/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	envoy_ehm_header_mutation_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/http/early_header_mutation/header_mutation/v3"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/headers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	envoycore_sk "github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 	coreV1 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
@@ -145,26 +151,6 @@ var _ = Describe("Plugin", func() {
 	)
 	Context("Require secrets to match upstream namespace ", func() {
 		var (
-			paramsWithSecret = plugins.Params{
-				Snapshot: &v1snap.ApiSnapshot{
-					Secrets: v1.SecretList{
-						{
-							Kind: &v1.Secret_Header{
-								Header: &v1.HeaderSecret{
-									Headers: map[string]string{
-										"Authorization": "basic dXNlcjpwYXNzd29yZA==",
-									},
-								},
-							},
-							Metadata: &coreV1.Metadata{
-								Name:      "foo",
-								Namespace: "bar",
-							},
-						},
-					},
-				},
-			}
-
 			singleRouteToBadUpstream  *v1.Route
 			singleRouteToGoodUpstream *v1.Route
 			weightedDestinationBadUs  *v1.Destination
@@ -277,7 +263,148 @@ var _ = Describe("Plugin", func() {
 			p = NewPlugin()
 		})
 	})
+
+	Context("ProcessHcmNetworkFilter", func() {
+		var (
+			plugin         *plugin
+			pluginParams   plugins.Params
+			parentListener *v1.Listener
+			listener       *v1.HttpListener
+		)
+
+		BeforeEach(func() {
+			plugin = NewPlugin()
+			pluginParams = plugins.Params{}
+			parentListener = &v1.Listener{}
+			listener = &v1.HttpListener{}
+		})
+
+		DescribeTable("Early header manipulation transforms",
+			func(params plugins.Params, inEhm *headers.EarlyHeaderManipulation,
+				outMutations []*envoy_config_mutation_rules_v3.HeaderMutation, outError error) {
+
+				listener.Options = &v1.HttpListenerOptions{
+					HttpConnectionManagerSettings: &hcm.HttpConnectionManagerSettings{
+						EarlyHeaderManipulation: inEhm,
+					},
+				}
+
+				out := &envoyhttp.HttpConnectionManager{}
+				err := plugin.ProcessHcmNetworkFilter(params, parentListener, listener, out)
+				if outError == nil {
+					Expect(err).NotTo(HaveOccurred())
+				} else {
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal(outError.Error()))
+				}
+
+				if outMutations == nil {
+					Expect(out.EarlyHeaderMutationExtensions).To(BeNil())
+					return
+				}
+
+				typedConfig, err := utils.MessageToAny(&envoy_ehm_header_mutation_v3.HeaderMutation{
+					Mutations: outMutations,
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(out.EarlyHeaderMutationExtensions).To(Equal([]*envoy_config_core_v3.TypedExtensionConfig{
+					{
+						Name:        "http.early_header_mutation.header_mutation",
+						TypedConfig: typedConfig,
+					},
+				}))
+			},
+			Entry("should have nil mutations when emh is nil", pluginParams, nil, nil, nil),
+			Entry("should have no mutations when emh is empty",
+				pluginParams,
+				&headers.EarlyHeaderManipulation{},
+				[]*envoy_config_mutation_rules_v3.HeaderMutation{},
+				nil,
+			),
+			Entry("should have remove action when emh has remove",
+				pluginParams,
+				&headers.EarlyHeaderManipulation{
+					HeadersToRemove: testHeaderManip.RequestHeadersToRemove,
+				},
+				[]*envoy_config_mutation_rules_v3.HeaderMutation{
+					{
+						Action: &envoy_config_mutation_rules_v3.HeaderMutation_Remove{
+							Remove: "a",
+						},
+					},
+				},
+				nil,
+			),
+			Entry("should have append action when emh has add",
+				pluginParams,
+				&headers.EarlyHeaderManipulation{
+					HeadersToAdd: testHeaderManip.RequestHeadersToAdd,
+				},
+				[]*envoy_config_mutation_rules_v3.HeaderMutation{
+					{
+						Action: &envoy_config_mutation_rules_v3.HeaderMutation_Append{
+							Append: &envoy_config_core_v3.HeaderValueOption{
+								Header: &envoy_config_core_v3.HeaderValue{
+									Key:   "foo",
+									Value: "bar",
+								},
+							},
+						},
+					},
+				},
+				nil,
+			),
+			Entry("should have append action with missing secret",
+				pluginParams,
+				&headers.EarlyHeaderManipulation{
+					HeadersToAdd: testHeaderManipWithSecrets.RequestHeadersToAdd,
+				},
+				nil,
+				errors.New("list did not find secret bar.foo"),
+			),
+			Entry("should have append action with missing secret",
+				paramsWithSecret,
+				&headers.EarlyHeaderManipulation{
+					HeadersToAdd: testHeaderManipWithSecrets.RequestHeadersToAdd,
+				},
+				[]*envoy_config_mutation_rules_v3.HeaderMutation{
+					{
+						Action: &envoy_config_mutation_rules_v3.HeaderMutation_Append{
+							Append: &envoy_config_core_v3.HeaderValueOption{
+								Header: &envoy_config_core_v3.HeaderValue{
+									Key:   "Authorization",
+									Value: "basic dXNlcjpwYXNzd29yZA==",
+								},
+							},
+						},
+					},
+				},
+				nil,
+			),
+		)
+	})
 })
+
+var paramsWithSecret = plugins.Params{
+	Snapshot: &v1snap.ApiSnapshot{
+		Secrets: v1.SecretList{
+			{
+				Kind: &v1.Secret_Header{
+					Header: &v1.HeaderSecret{
+						Headers: map[string]string{
+							"Authorization": "basic dXNlcjpwYXNzd29yZA==",
+						},
+					},
+				},
+				Metadata: &coreV1.Metadata{
+					Name:      "foo",
+					Namespace: "bar",
+				},
+			},
+		},
+	},
+}
 
 var testBrokenConfigNoRequestHeader = &headers.HeaderManipulation{
 	RequestHeadersToAdd:     []*envoycore_sk.HeaderValueOption{{HeaderOption: nil, Append: &wrappers.BoolValue{Value: true}}},
