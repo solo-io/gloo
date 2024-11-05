@@ -24,6 +24,8 @@ import (
 // these labels are used to propagate internal data
 // on synthetic Gloo resources generated from other Kubernetes
 // resources (generally Service).
+// The `~` is an invalid character that prevents these labels from ending up
+// on actual Kubernetes resources.
 const (
 	// KubeSourceResourceLabel indicates the kind of resource that the synthetic
 	// resource is based on.
@@ -84,9 +86,10 @@ func (uc *KubeUpstreamConverter) CreateUpstream(ctx context.Context, svc *corev1
 		// preserve parts of the source service in a structured way
 		// so we don't rely on string parsing to recover these
 		// this is more extensible than relying on casting Spec to Upstream_Kube
-		KubeNameLabel:        meta.Name,
-		KubeNamespaceLabel:   meta.Namespace,
-		KubeServicePortLabel: strconv.Itoa(int(port.Port)),
+		KubeSourceResourceLabel: "kube-svc",
+		KubeNameLabel:           meta.Name,
+		KubeNamespaceLabel:      meta.Namespace,
+		KubeServicePortLabel:    strconv.Itoa(int(port.Port)),
 	}
 
 	us := &v1.Upstream{

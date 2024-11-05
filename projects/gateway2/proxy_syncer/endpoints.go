@@ -11,12 +11,14 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	ggv2utils "github.com/solo-io/gloo/projects/gateway2/utils"
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	glookubev1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/go-utils/contextutils"
 	"istio.io/istio/pkg/kube"
@@ -34,12 +36,15 @@ type EndpointsSettings struct {
 	EnableAutoMtls bool
 }
 
-var _ krt.ResourceNamer = EndpointsSettings{}
-var _ krt.Equaler[EndpointsSettings] = EndpointsSettings{}
+var (
+	_ krt.ResourceNamer              = EndpointsSettings{}
+	_ krt.Equaler[EndpointsSettings] = EndpointsSettings{}
+)
 
 func (p EndpointsSettings) Equals(in EndpointsSettings) bool {
 	return p == in
 }
+
 func (p EndpointsSettings) ResourceName() string {
 	return "endpoints-settings"
 }
@@ -104,6 +109,7 @@ func NewEndpointsForUpstream(us UpstreamWrapper, logger *zap.Logger) *EndpointsF
 		lbEpsEqualityHash: lbEpsEqualityHash,
 	}
 }
+
 func hashEndpoints(l krtcollections.PodLocality, emd EndpointWithMd) uint64 {
 	hasher := fnv.New64()
 	hasher.Write([]byte(l.Region))
@@ -263,7 +269,6 @@ func createLbEndpoint(address string, port uint32, podLabels map[string]string, 
 }
 
 func addIstioAutomtlsMetadata(metadata *envoy_config_core_v3.Metadata, labels map[string]string, enableAutoMtls bool) *envoy_config_core_v3.Metadata {
-
 	const EnvoyTransportSocketMatch = "envoy.transport_socket_match"
 	if enableAutoMtls {
 		if _, ok := labels[constants.IstioTlsModeLabel]; ok {
@@ -317,9 +322,14 @@ func findFirstPortInEndpointSubsets(subset corev1.EndpointSubset, singlePortServ
 	return port
 }
 
-// TODO: use exported version from translator?
 func getEndpointClusterName(upstream *v1.Upstream) string {
-	clusterName := translator.UpstreamToClusterName(upstream.GetMetadata().Ref())
+	// TODO it would be nice to avoid duplicating the env logic
+	legacyClusterNames := envutils.IsEnvTruthy(constants.GlooGatewayKubeStyleClusterNames)
+	clusterName, ok := kubernetes.ClusterNameForKube(upstream)
+	if !ok || legacyClusterNames {
+		clusterName = translator.UpstreamToClusterName(upstream.GetMetadata().Ref())
+	}
+
 	endpointClusterName, err := translator.GetEndpointClusterName(clusterName, upstream)
 	if err != nil {
 		panic(err)
