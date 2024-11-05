@@ -1,4 +1,10 @@
 changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo
+    dependencyTag: v1.30.6-patch3
+    description: >
+      Update envoy-gloo to enable support for setting span names via the transformation filter.
   - type: FIX
     issueLink: https://github.com/solo-io/gloo/issues/9848
     resolvesIssue: false
