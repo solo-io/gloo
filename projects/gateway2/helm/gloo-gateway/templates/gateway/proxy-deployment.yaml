@@ -285,6 +285,13 @@ spec:
         {{- end }}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        readinessProbe:
+          exec:
+            command:
+            - socat
+            - -u
+            - OPEN:/dev/null
+            - ABSTRACT-CONNECT:gloo-ai-sock
         volumeMounts:
           - mountPath: /var/run/stats
             name: ai-stats-config
