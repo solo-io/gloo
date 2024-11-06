@@ -78,7 +78,9 @@ var _ = Describe("TCP Stats transport_socket", func() {
 			Context("without tcp_stats transport socket wrapper", func() {
 
 				BeforeEach(func() {
-					testContext.ResourcesToCreate().Gateways[0].Options.ListenerTcpStats = &wrappers.BoolValue{Value: false}
+					testContext.ResourcesToCreate().Gateways[0].Options = &gloov1.ListenerOptions{
+						ListenerTcpStats: &wrappers.BoolValue{Value: false},
+					}
 				})
 
 				It("works", func() {
@@ -104,7 +106,9 @@ var _ = Describe("TCP Stats transport_socket", func() {
 			Context("with tcp_stats transport socket wrapper", func() {
 
 				BeforeEach(func() {
-					testContext.ResourcesToCreate().Gateways[0].Options.ListenerTcpStats = &wrappers.BoolValue{Value: true}
+					testContext.ResourcesToCreate().Gateways[0].Options = &gloov1.ListenerOptions{
+						ListenerTcpStats: &wrappers.BoolValue{Value: true},
+					}
 				})
 
 				It("works", func() {
@@ -159,7 +163,9 @@ var _ = Describe("TCP Stats transport_socket", func() {
 			Context("without tcp_stats transport socket wrapper", func() {
 
 				BeforeEach(func() {
-					testContext.ResourcesToCreate().Gateways[0].Options.ListenerTcpStats = &wrappers.BoolValue{Value: false}
+					testContext.ResourcesToCreate().Gateways[0].Options = &gloov1.ListenerOptions{
+						ListenerTcpStats: &wrappers.BoolValue{Value: false},
+					}
 				})
 
 				It("works", func() {
@@ -185,7 +191,9 @@ var _ = Describe("TCP Stats transport_socket", func() {
 			Context("with tcp_stats transport socket wrapper", func() {
 
 				BeforeEach(func() {
-					testContext.ResourcesToCreate().Gateways[0].Options.ListenerTcpStats = &wrappers.BoolValue{Value: true}
+					testContext.ResourcesToCreate().Gateways[0].Options = &gloov1.ListenerOptions{
+						ListenerTcpStats: &wrappers.BoolValue{Value: true},
+					}
 				})
 
 				It("works", func() {
