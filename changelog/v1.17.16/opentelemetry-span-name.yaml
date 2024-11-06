@@ -5,6 +5,17 @@ changelog:
     dependencyTag: v1.30.6-patch3
     description: >
       Update envoy-gloo to enable support for setting span names via the transformation filter.
+  - type: NON_USER_FACING
+    description: >-
+      Change the image used in our kubernetes/e2e tests from kennship/http-echo
+      to jmalloc/echo-server. This image supports http/2. It is also smaller and
+      faster, which may speed up our e2e tests and reduce CI costs.
+      kennship/http-echo is also an archived project that appears to not have
+      been updated in 6 years.
+
+      This change was also made necessary by the fact that the test was timing
+      out and failing because it was taking too long to download the
+      `kennship/http-echo` image.
   - type: FIX
     issueLink: https://github.com/solo-io/gloo/issues/9848
     resolvesIssue: false
