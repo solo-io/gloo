@@ -15,6 +15,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/headers"
 	"github.com/solo-io/gloo/test/e2e"
 	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
@@ -357,47 +358,182 @@ var _ = Describe("HeaderManipulation", func() {
 		})
 	})
 
-	FContext("Early Header Manipulation", func() {
+	Describe("Early Header Manipulation", func() {
 		var (
 			httpClient     *http.Client
 			requestBuilder *testutils.HttpRequestBuilder
 		)
 
-		type HeaderResponse struct {
+		type HeadersResponse struct {
 			Headers map[string][]string `json:"headers"`
 		}
 
-		BeforeEach(func() {
-			testContext = testContextFactory.NewTestContext()
-			testContext.SetUpstreamGenerator(v1helpers.NewTestHttpUpstreamWithHttpbin)
-			testContext.BeforeEach()
+		prepareEHMTestContext := func(testContext *e2e.TestContext, ehm *headers.EarlyHeaderManipulation) {
+			gateway := testContext.ResourcesToCreate().Gateways[0]
+			Expect(gateway).NotTo(BeNil())
+			httpGateway := gateway.GetHttpGateway()
+			Expect(httpGateway).NotTo(BeNil())
 
-			httpClient = testutils.DefaultClientBuilder().Build()
-			requestBuilder = testContext.GetHttpRequestBuilder()
+			// setup the early header manipulation
+			httpGateway.Options = &gloov1.HttpListenerOptions{
+				HttpConnectionManagerSettings: &hcm.HttpConnectionManagerSettings{
+					EarlyHeaderManipulation: ehm,
+				},
+			}
+		}
+
+		makeHeadersRequest := func() (*HeadersResponse, error) {
+			req := requestBuilder.
+				WithHeader("Accept", "application/json").
+				WithPath("headers").
+				WithHeader("X-Keep", "foo").
+				WithHeader("X-Drop", "bar").
+				Build()
+
+			res, err := httpClient.Do(req)
+			if err != nil {
+				return &HeadersResponse{}, err
+			}
+
+			if res.StatusCode != http.StatusOK {
+				return &HeadersResponse{}, fmt.Errorf("unexpected status code %d", res.StatusCode)
+			}
+
+			defer res.Body.Close()
+			body, err := io.ReadAll(res.Body)
+			if err != nil {
+				return &HeadersResponse{}, err
+			}
+
+			var headerResponse HeadersResponse
+			err = json.Unmarshal(body, &headerResponse)
+			if err != nil {
+				return &HeadersResponse{}, err
+			}
+
+			return &headerResponse, nil
+		}
+
+		Context("No mutations", func() {
+			BeforeEach(func() {
+				testContext = testContextFactory.NewTestContext()
+				testContext.SetUpstreamGenerator(v1helpers.NewTestHttpUpstreamWithHttpbin)
+				testContext.BeforeEach()
+
+				prepareEHMTestContext(testContext, nil)
+
+				httpClient = testutils.DefaultClientBuilder().Build()
+				requestBuilder = testContext.GetHttpRequestBuilder()
+			})
+
+			It("Should do nothing if no mutations are present", func() {
+				Eventually(func(g Gomega) {
+					headersResponse, err := makeHeadersRequest()
+					g.Expect(err).NotTo(HaveOccurred())
+
+					// the headers should be unchanged
+					g.Expect(headersResponse.Headers).To(HaveKeyWithValue("X-Keep", ConsistOf("foo")),
+						"Expected header X-Keep to be present")
+					g.Expect(headersResponse.Headers).To(HaveKeyWithValue("X-Drop", ConsistOf("bar")),
+						"Expected header X-Drop to be present when no mutations are present")
+					g.Expect(headersResponse.Headers).NotTo(HaveKey("X-Add"),
+						"Expected header X-Add to not be present when no mutations are present")
+				}, "5s", "0.5s").Should(Succeed())
+			})
 		})
 
-		It("Should not mutate headers", func() {
-			Eventually(func(g Gomega) {
-				req := requestBuilder.
-					WithHeader("Accept", "application/json").
-					WithPath("/headers").
-					WithHeader("X-Foo", "bar").
-					Build()
+		Context("Add/remove manipulations", func() {
+			BeforeEach(func() {
+				testContext = testContextFactory.NewTestContext()
+				testContext.SetUpstreamGenerator(v1helpers.NewTestHttpUpstreamWithHttpbin)
+				testContext.BeforeEach()
 
-				res, err := httpClient.Do(req)
-				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(res.StatusCode).To(Equal(http.StatusOK))
+				prepareEHMTestContext(testContext, &headers.EarlyHeaderManipulation{
+					HeadersToAdd: []*envoycore_sk.HeaderValueOption{
+						{
+							HeaderOption: &envoycore_sk.HeaderValueOption_Header{
+								Header: &envoycore_sk.HeaderValue{
+									Key:   "X-Add",
+									Value: "baz",
+								},
+							},
+							Append: &wrappers.BoolValue{Value: true},
+						},
+					},
+					HeadersToRemove: []string{"X-Drop"},
+				})
 
-				defer res.Body.Close()
-				body, err := io.ReadAll(res.Body)
-				g.Expect(err).NotTo(HaveOccurred())
+				httpClient = testutils.DefaultClientBuilder().Build()
+				requestBuilder = testContext.GetHttpRequestBuilder()
+			})
 
-				var headerResponse HeaderResponse
-				err = json.Unmarshal(body, &headerResponse)
-				g.Expect(err).NotTo(HaveOccurred())
+			It("Should mutate the headers as expected", func() {
+				Eventually(func(g Gomega) {
+					headersResponse, err := makeHeadersRequest()
+					g.Expect(err).NotTo(HaveOccurred())
 
-				g.Expect(headerResponse.Headers).To(HaveKeyWithValue("X-Foo", ConsistOf("bar")))
-			}, "5s", "0.5s").Should(Succeed())
+					// the headers should be as expected
+					g.Expect(headersResponse.Headers).To(HaveKeyWithValue("X-Keep", ConsistOf("foo")),
+						"Expected header X-Keep to be present")
+					g.Expect(headersResponse.Headers).NotTo(HaveKey("X-Drop"),
+						"Expected header X-Drop to be removed")
+					g.Expect(headersResponse.Headers).To(HaveKeyWithValue("X-Add", ConsistOf("baz")),
+						"Expected header X-Add to be present")
+				}, "5s", "0.5s").Should(Succeed())
+			})
+		})
+
+		Context("Manipulation with secrets", func() {
+			BeforeEach(func() {
+				testContext = testContextFactory.NewTestContext()
+				testContext.SetUpstreamGenerator(v1helpers.NewTestHttpUpstreamWithHttpbin)
+				testContext.BeforeEach()
+
+				prepareEHMTestContext(testContext, &headers.EarlyHeaderManipulation{
+					HeadersToAdd: []*envoycore_sk.HeaderValueOption{
+						{
+							HeaderOption: &envoycore_sk.HeaderValueOption_HeaderSecretRef{
+								HeaderSecretRef: &coreV1.ResourceRef{
+									Name:      "secret",
+									Namespace: writeNamespace,
+								},
+							},
+							Append: &wrappers.BoolValue{Value: true},
+						},
+					},
+				})
+
+				secret := &gloov1.Secret{
+					Kind: &gloov1.Secret_Header{
+						Header: &gloov1.HeaderSecret{
+							Headers: map[string]string{
+								"X-Secret": "something super secret",
+							},
+						},
+					},
+					Metadata: &coreV1.Metadata{
+						Name:      "secret",
+						Namespace: writeNamespace,
+					},
+				}
+
+				testContext.ResourcesToCreate().Secrets = gloov1.SecretList{secret}
+
+				httpClient = testutils.DefaultClientBuilder().Build()
+				requestBuilder = testContext.GetHttpRequestBuilder()
+			})
+
+			It("Should have the secret", func() {
+				Eventually(func(g Gomega) {
+					headersResponse, err := makeHeadersRequest()
+					g.Expect(err).NotTo(HaveOccurred())
+
+					// the headers should be as expected
+					g.Expect(headersResponse.Headers).To(HaveKeyWithValue("X-Secret",
+						ConsistOf("something super secret")),
+						"Expected header X-Secret to be present with secret value")
+				}, "5s", "0.5s").Should(Succeed())
+			})
 		})
 	})
 
