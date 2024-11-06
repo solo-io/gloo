@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"strings"
+
 	"github.com/solo-io/go-utils/cliutils"
 
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
@@ -54,7 +56,7 @@ func writeSnapshotCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc
 			return nil
 		},
 	}
-	cmd.Flags().BoolVar(&opts.Proxy.ConfigDumpEDS, "include-eds", false, "include EDS in the config snapshot")
+	cmd.Flags().BoolVar(&opts.Proxy.ConfigDumpEDS, "include-eds", true, "include EDS in the config snapshot")
 	cliutils.ApplyOptions(cmd, optionsFunc)
 	return cmd
 }
@@ -82,7 +84,7 @@ func getEnvoyStatsDump(opts *options.Options) error {
 }
 
 func getEnvoyFullDumpToDisk(opts *options.Options) (string, error) {
-	proxyOutArchiveFile, err := createArchiveFile()
+	proxyOutArchiveFile, err := createArchiveFile(opts.Proxy.Name, opts.Metadata.GetNamespace())
 	if err != nil {
 		return proxyOutArchiveFile.Name(), err
 	}
@@ -113,9 +115,16 @@ func getEnvoyFullDumpToDisk(opts *options.Options) (string, error) {
 	return proxyOutArchiveFile.Name(), writeErr
 }
 
-// createArchive forcibly deletes/creates the output directory
-func createArchiveFile() (*os.File, error) {
-	f, err := os.Create(fmt.Sprintf("glooctl-proxy-snapshot-%s.zip", time.Now().Format("2006-01-02-T15.04.05")))
+// createArchiveFile creates a snapshot zipfile in the current directory
+// Callers are responsible for removing if error is non-nil
+func createArchiveFile(resourceId, namespace string) (*os.File, error) {
+	// resourceId could be a raw podname, it could also be a `pod/<name>` or `ds/<name>`
+	// split to avoid path sep issues.
+	if resource := strings.Split(resourceId, "/"); len(resource) == 2 {
+		resourceId = resource[1]
+	}
+
+	f, err := os.Create(fmt.Sprintf("glooctl-proxy-snapshot-%s-%s-%s.zip", namespace, resourceId, time.Now().Format("2006-01-02-T15.04.05")))
 	if err != nil {
 		fmt.Printf("error creating proxy snapshot archive: %f\n", err)
 	}
