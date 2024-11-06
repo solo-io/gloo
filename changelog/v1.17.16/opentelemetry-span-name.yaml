@@ -15,7 +15,9 @@ changelog:
 
       This change was also made necessary by the fact that the test was timing
       out and failing because it was taking too long to download the
-      `kennship/http-echo` image.
+      `kennship/http-echo` image. See
+      [here](https://github.com/solo-io/gloo/actions/runs/11693450838/job/32565060282?pr=10123)
+      for a sample run.
   - type: FIX
     issueLink: https://github.com/solo-io/gloo/issues/9848
     resolvesIssue: false
