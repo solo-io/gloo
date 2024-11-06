@@ -97,7 +97,7 @@ var _ = Describe("TCP Stats transport_socket", func() {
 						g.Expect(err).NotTo(HaveOccurred())
 
 						// We expect the Envoy statistics to contain detailed TCP stats
-						g.Expect(stats).ToNot(MatchRegexp("*tcp_stats.cx_rx*"))
+						g.Expect(stats).ToNot(ContainSubstring("tcp_stats.cx_rx"))
 					}, "5s", ".5s").Should(Succeed())
 				})
 
@@ -125,7 +125,7 @@ var _ = Describe("TCP Stats transport_socket", func() {
 						g.Expect(err).NotTo(HaveOccurred())
 
 						// We expect the Envoy statistics to contain detailed TCP stats
-						g.Expect(stats).To(MatchRegexp("*tcp_stats.cx_rx*"))
+						g.Expect(stats).To(ContainSubstring("tcp_stats.cx_rx"))
 					}, "5s", ".5s").Should(Succeed())
 				})
 
@@ -182,7 +182,7 @@ var _ = Describe("TCP Stats transport_socket", func() {
 						g.Expect(err).NotTo(HaveOccurred())
 
 						// We expect the Envoy statistics to contain detailed TCP stats
-						g.Expect(stats).ToNot(MatchRegexp("*tcp_stats.cx_rx*"))
+						g.Expect(stats).ToNot(ContainSubstring("tcp_stats.cx_rx"))
 					}, "5s", ".5s").Should(Succeed())
 				})
 
@@ -210,7 +210,7 @@ var _ = Describe("TCP Stats transport_socket", func() {
 						g.Expect(err).NotTo(HaveOccurred())
 
 						// We expect the Envoy statistics to contain detailed TCP stats
-						g.Expect(stats).To(MatchRegexp("*tcp_stats.cx_rx*"))
+						g.Expect(stats).To(ContainSubstring("tcp_stats.cx_rx"))
 					}, "5s", ".5s").Should(Succeed())
 				})
 
