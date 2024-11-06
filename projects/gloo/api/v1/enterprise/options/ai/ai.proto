@@ -30,6 +30,15 @@ message SingleAuthToken {
   }
 }
 
+
+// Settings to configure a custom host to send the traffic to
+message CustomHost {
+  // Custom host to send the traffic to
+  string host = 1;
+  // Custom port to send the traffic to
+  uint32 port = 2;
+}
+
 /*
   The AI UpstreamSpec represents a logical LLM provider backend.
   The purpose of this spec is a way to configure which backend to use
@@ -86,14 +95,6 @@ message SingleAuthToken {
   ```
 */
 message UpstreamSpec {
-
-  // Settings to configure a custom host to send the traffic to
-  message CustomHost {
-    // Custom host to send the traffic to
-    string host = 1;
-    // Custom port to send the traffic to
-    uint32 port = 2;
-  }
 
   // Settings for the OpenAI API
   message OpenAI {
@@ -472,6 +473,8 @@ message Embedding {
       // re-use the token from the backend
       // google.protobuf.Empty inherit_backend_token = 3;
     }
+
+    CustomHost custom_host = 2;
   }
 
   // Azure OpenAI embedding

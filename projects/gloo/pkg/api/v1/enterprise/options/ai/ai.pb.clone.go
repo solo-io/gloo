@@ -75,6 +75,21 @@ func (m *SingleAuthToken) Clone() proto.Message {
 }
 
 // Clone function
+func (m *CustomHost) Clone() proto.Message {
+	var target *CustomHost
+	if m == nil {
+		return target
+	}
+	target = &CustomHost{}
+
+	target.Host = m.GetHost()
+
+	target.Port = m.GetPort()
+
+	return target
+}
+
+// Clone function
 func (m *UpstreamSpec) Clone() proto.Message {
 	var target *UpstreamSpec
 	if m == nil {
@@ -422,21 +437,6 @@ func (m *SingleAuthToken_Passthrough) Clone() proto.Message {
 }
 
 // Clone function
-func (m *UpstreamSpec_CustomHost) Clone() proto.Message {
-	var target *UpstreamSpec_CustomHost
-	if m == nil {
-		return target
-	}
-	target = &UpstreamSpec_CustomHost{}
-
-	target.Host = m.GetHost()
-
-	target.Port = m.GetPort()
-
-	return target
-}
-
-// Clone function
 func (m *UpstreamSpec_OpenAI) Clone() proto.Message {
 	var target *UpstreamSpec_OpenAI
 	if m == nil {
@@ -451,9 +451,9 @@ func (m *UpstreamSpec_OpenAI) Clone() proto.Message {
 	}
 
 	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
-		target.CustomHost = h.Clone().(*UpstreamSpec_CustomHost)
+		target.CustomHost = h.Clone().(*CustomHost)
 	} else {
-		target.CustomHost = proto.Clone(m.GetCustomHost()).(*UpstreamSpec_CustomHost)
+		target.CustomHost = proto.Clone(m.GetCustomHost()).(*CustomHost)
 	}
 
 	target.Model = m.GetModel()
@@ -579,9 +579,9 @@ func (m *UpstreamSpec_Mistral) Clone() proto.Message {
 	}
 
 	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
-		target.CustomHost = h.Clone().(*UpstreamSpec_CustomHost)
+		target.CustomHost = h.Clone().(*CustomHost)
 	} else {
-		target.CustomHost = proto.Clone(m.GetCustomHost()).(*UpstreamSpec_CustomHost)
+		target.CustomHost = proto.Clone(m.GetCustomHost()).(*CustomHost)
 	}
 
 	target.Model = m.GetModel()
@@ -604,9 +604,9 @@ func (m *UpstreamSpec_Anthropic) Clone() proto.Message {
 	}
 
 	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
-		target.CustomHost = h.Clone().(*UpstreamSpec_CustomHost)
+		target.CustomHost = h.Clone().(*CustomHost)
 	} else {
-		target.CustomHost = proto.Clone(m.GetCustomHost()).(*UpstreamSpec_CustomHost)
+		target.CustomHost = proto.Clone(m.GetCustomHost()).(*CustomHost)
 	}
 
 	target.Version = m.GetVersion()
@@ -758,6 +758,12 @@ func (m *Embedding_OpenAI) Clone() proto.Message {
 		return target
 	}
 	target = &Embedding_OpenAI{}
+
+	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
+		target.CustomHost = h.Clone().(*CustomHost)
+	} else {
+		target.CustomHost = proto.Clone(m.GetCustomHost()).(*CustomHost)
+	}
 
 	switch m.AuthTokenSource.(type) {
 

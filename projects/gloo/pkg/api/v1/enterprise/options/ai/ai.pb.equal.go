@@ -98,6 +98,38 @@ func (m *SingleAuthToken) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *CustomHost) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*CustomHost)
+	if !ok {
+		that2, ok := that.(CustomHost)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetHost(), target.GetHost()) != 0 {
+		return false
+	}
+
+	if m.GetPort() != target.GetPort() {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
 func (m *UpstreamSpec) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -684,38 +716,6 @@ func (m *SingleAuthToken_Passthrough) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *UpstreamSpec_CustomHost) Equal(that interface{}) bool {
-	if that == nil {
-		return m == nil
-	}
-
-	target, ok := that.(*UpstreamSpec_CustomHost)
-	if !ok {
-		that2, ok := that.(UpstreamSpec_CustomHost)
-		if ok {
-			target = &that2
-		} else {
-			return false
-		}
-	}
-	if target == nil {
-		return m == nil
-	} else if m == nil {
-		return false
-	}
-
-	if strings.Compare(m.GetHost(), target.GetHost()) != 0 {
-		return false
-	}
-
-	if m.GetPort() != target.GetPort() {
-		return false
-	}
-
-	return true
-}
-
-// Equal function
 func (m *UpstreamSpec_OpenAI) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -1275,6 +1275,16 @@ func (m *Embedding_OpenAI) Equal(that interface{}) bool {
 		return m == nil
 	} else if m == nil {
 		return false
+	}
+
+	if h, ok := interface{}(m.GetCustomHost()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetCustomHost()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetCustomHost(), target.GetCustomHost()) {
+			return false
+		}
 	}
 
 	switch m.AuthTokenSource.(type) {

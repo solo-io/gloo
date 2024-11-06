@@ -3367,6 +3367,15 @@ spec:
                                                       type: string
                                                   type: object
                                               type: object
+                                            customHost:
+                                              properties:
+                                                host:
+                                                  type: string
+                                                port:
+                                                  maximum: 4294967295
+                                                  minimum: 0
+                                                  type: integer
+                                              type: object
                                           type: object
                                       type: object
                                     promptTemplate:
@@ -3442,6 +3451,15 @@ spec:
                                                     namespace:
                                                       type: string
                                                   type: object
+                                              type: object
+                                            customHost:
+                                              properties:
+                                                host:
+                                                  type: string
+                                                port:
+                                                  maximum: 4294967295
+                                                  minimum: 0
+                                                  type: integer
                                               type: object
                                           type: object
                                       type: object
