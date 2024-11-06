@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Adds a upstream generator that creates an httpbin backed upstream for testing purposes.
+      Useful when needing to assert header values and request details that make it to the 
+      upstream in tests.
