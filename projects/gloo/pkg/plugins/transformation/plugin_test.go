@@ -1153,7 +1153,7 @@ var _ = Describe("Plugin", func() {
 					Ctx: ctx,
 				},
 			}, vh, out)
-			Expect(err).NotTo(BeNil())
+			Expect(err).To(HaveOccurred())
 		})
 		It("sets transformation config for vhosts", func() {
 			out := &envoy_config_route_v3.VirtualHost{}
