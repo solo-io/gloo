@@ -244,3 +244,22 @@ Gloo supports changing the default span name by using the transformation filter.
         -> response_flags: Str(-)
    	{"kind": "exporter", "data_type": "traces", "name": "logging"}
    ```
+
+Note that in this example, the span name was modified at the level of the virtual host, so all routes under the virtual host will exhibit the same span naming pattern. However, it is also possible to override this logic on a _per-route_ basis using the `routeDescriptor` field:
+
+```
+routes:
+- matchers:
+   - prefix: /route2
+  options:
+    autoHostRewrite: true
+    tracing:
+      routeDescriptor: CUSTOM_ROUTE_DESCRIPTOR
+  routeAction:
+    single:
+      upstream:
+        name: echo-server
+        namespace: gloo-system
+```
+
+When this configuration is applied, requests for the `/route2` endpoint will result in spans being reported to the OpenTelemetry collector with the span name set to `"CUSTOM_ROUTE_DESCRIPTOR"`. However, it is also important to note that `routeDescriptor` can only set a static override value and does not support Inja transformation templates.
