@@ -71,6 +71,7 @@ func (s *testingSuite) SetupSuite() {
 		metav1.ListOptions{
 			LabelSelector: "app.kubernetes.io/name=http-echo",
 		},
+		60 * time.Second,
 	)
 }
 
