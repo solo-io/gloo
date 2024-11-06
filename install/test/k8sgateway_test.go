@@ -111,6 +111,8 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 
 				Expect(*gwpKube.GetService().GetType()).To(Equal(corev1.ServiceTypeLoadBalancer))
 
+				Expect(gwpKube.GetServiceAccount()).To(BeNil())
+
 				Expect(*gwpKube.GetStats().GetEnabled()).To(BeTrue())
 				Expect(*gwpKube.GetStats().GetRoutePrefixRewrite()).To(Equal("/stats/prometheus"))
 				Expect(*gwpKube.GetStats().GetEnableStatsRoute()).To(BeTrue())
@@ -146,6 +148,10 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 						fmt.Sprintf("kubeGateway.gatewayParameters.glooGateway.envoyContainer.resources.limits.cpu=%s", envoyLimits["cpu"].ToUnstructured()),
 						"kubeGateway.gatewayParameters.glooGateway.proxyDeployment.replicas=5",
 						"kubeGateway.gatewayParameters.glooGateway.service.type=ClusterIP",
+						"kubeGateway.gatewayParameters.glooGateway.service.extraLabels.svclabel1=x",
+						"kubeGateway.gatewayParameters.glooGateway.service.extraAnnotations.svcanno1=y",
+						"kubeGateway.gatewayParameters.glooGateway.serviceAccount.extraLabels.label1=a",
+						"kubeGateway.gatewayParameters.glooGateway.serviceAccount.extraAnnotations.anno1=b",
 						"kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.tag=sds-override-tag",
 						"kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.registry=sds-override-registry",
 						"kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.repository=sds-override-repository",
@@ -237,6 +243,11 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 					Expect(gwpKube.GetSdsContainer().GetResources().Limits).To(matchers.ContainMapElements(sdsLimits))
 
 					Expect(*gwpKube.GetService().GetType()).To(Equal(corev1.ServiceTypeClusterIP))
+					Expect(gwpKube.GetService().GetExtraLabels()).To(matchers.ContainMapElements(map[string]string{"svclabel1": "x"}))
+					Expect(gwpKube.GetService().GetExtraAnnotations()).To(matchers.ContainMapElements(map[string]string{"svcanno1": "y"}))
+
+					Expect(gwpKube.GetServiceAccount().GetExtraLabels()).To(matchers.ContainMapElements(map[string]string{"label1": "a"}))
+					Expect(gwpKube.GetServiceAccount().GetExtraAnnotations()).To(matchers.ContainMapElements(map[string]string{"anno1": "b"}))
 
 					Expect(*gwpKube.GetStats().GetEnabled()).To(BeFalse())
 					Expect(*gwpKube.GetStats().GetRoutePrefixRewrite()).To(Equal("/foo/bar"))
@@ -260,6 +271,10 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 						"kubeGateway.gatewayParameters.glooGateway.envoyContainer.image.pullPolicy=Always",
 						"kubeGateway.gatewayParameters.glooGateway.proxyDeployment.replicas=5",
 						"kubeGateway.gatewayParameters.glooGateway.service.type=ClusterIP",
+						"kubeGateway.gatewayParameters.glooGateway.service.extraLabels.svclabel1=a",
+						"kubeGateway.gatewayParameters.glooGateway.service.extraAnnotations.svcanno1=b",
+						"kubeGateway.gatewayParameters.glooGateway.serviceAccount.extraLabels.label1=a",
+						"kubeGateway.gatewayParameters.glooGateway.serviceAccount.extraAnnotations.anno1=b",
 						"kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.tag=sds-override-tag",
 						"kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.registry=sds-override-registry",
 						"kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.repository=sds-override-repository",
@@ -306,6 +321,11 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 					Expect(*gwpKube.GetSdsContainer().GetBootstrap().GetLogLevel()).To(Equal("debug"))
 
 					Expect(*gwpKube.GetService().GetType()).To(Equal(corev1.ServiceTypeClusterIP))
+					Expect(gwpKube.GetService().GetExtraLabels()).To(matchers.ContainMapElements(map[string]string{"svclabel1": "a"}))
+					Expect(gwpKube.GetService().GetExtraAnnotations()).To(matchers.ContainMapElements(map[string]string{"svcanno1": "b"}))
+
+					Expect(gwpKube.GetServiceAccount().GetExtraLabels()).To(matchers.ContainMapElements(map[string]string{"label1": "a"}))
+					Expect(gwpKube.GetServiceAccount().GetExtraAnnotations()).To(matchers.ContainMapElements(map[string]string{"anno1": "b"}))
 				})
 			})
 
