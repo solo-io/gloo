@@ -131,6 +131,7 @@ gateway:
   validation:
     enabled: true
     failurePolicy: "Ignore"
+    nonGlooFailurePolicy: "Ignore"
     secretName: gateway-validation-certs
     alwaysAcceptResources: true
     allowWarnings: true
