@@ -372,6 +372,22 @@ func setRouteAction(
 			}
 		}
 
+		fromPlugin := false
+		for _, bp := range pluginRegistry.GetBackendPlugins() {
+			if dest, ok := bp.ApplyBackendPlugin(obj, backendRef.BackendObjectReference); ok {
+				fromPlugin = true
+				weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
+					Destination: dest,
+					Weight:      weight,
+				})
+				break
+			}
+		}
+		// TODO break out a buildDestination func to avoid this awkwardness
+		if fromPlugin {
+			continue
+		}
+
 		var port uint32
 		if backendRef.Port != nil {
 			port = uint32(*backendRef.Port)
