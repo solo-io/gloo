@@ -2,7 +2,6 @@ package tracing
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -66,31 +65,12 @@ func (s *testingSuite) SetupSuite() {
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.HttpEchoPodManifest)
 	s.NoError(err, "can apply HttpEchoPodManifest")
-	go func() {
-		for i := 0; i < 100 ; i++ {
-			name := "pods/" + testdefaults.HttpEchoPod.ObjectMeta.GetName()
-			namespace := testdefaults.HttpEchoPod.ObjectMeta.GetNamespace()
-			logs, err := s.testInstallation.Actions.Kubectl().Describe(
-				s.ctx, namespace, name)
-			if err != nil {
-				fmt.Printf("unable to describe pod %s.%s: %s\n", namespace, name, err)
-			} else {
-				fmt.Printf("\n\n\n\n")
-				fmt.Printf("================")
-				fmt.Printf("http-echo logs are:\n%s\n", logs)
-				fmt.Printf("================")
-				fmt.Printf("\n\n\n\n")
-			}
-			time.Sleep(1 * time.Second)
-		}
-	}()
 	s.testInstallation.Assertions.EventuallyPodsRunning(
 		s.ctx,
 		testdefaults.HttpEchoPod.GetObjectMeta().GetNamespace(),
 		metav1.ListOptions{
 			LabelSelector: "app.kubernetes.io/name=http-echo",
 		},
-		60 * time.Second,
 	)
 }
 
