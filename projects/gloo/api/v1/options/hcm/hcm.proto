@@ -242,5 +242,6 @@ message HttpConnectionManagerSettings {
     // If true, configure Envoy to set the x-fowarded-port header to allow services to find Envoy's listener port.
     google.protobuf.BoolValue append_x_forwarded_port = 40;
 
+    // Configuration for early header manipulation
     headers.options.gloo.solo.io.EarlyHeaderManipulation early_header_manipulation = 41;
 }

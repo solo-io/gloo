@@ -402,7 +402,8 @@ type HttpConnectionManagerSettings struct {
 	// Configuration of internal addresses
 	InternalAddressConfig *HttpConnectionManagerSettings_InternalAddressConfig `protobuf:"bytes,38,opt,name=internal_address_config,json=internalAddressConfig,proto3" json:"internal_address_config,omitempty"`
 	// If true, configure Envoy to set the x-fowarded-port header to allow services to find Envoy's listener port.
-	AppendXForwardedPort    *wrapperspb.BoolValue            `protobuf:"bytes,40,opt,name=append_x_forwarded_port,json=appendXForwardedPort,proto3" json:"append_x_forwarded_port,omitempty"`
+	AppendXForwardedPort *wrapperspb.BoolValue `protobuf:"bytes,40,opt,name=append_x_forwarded_port,json=appendXForwardedPort,proto3" json:"append_x_forwarded_port,omitempty"`
+	// Configuration for early header manipulation
 	EarlyHeaderManipulation *headers.EarlyHeaderManipulation `protobuf:"bytes,41,opt,name=early_header_manipulation,json=earlyHeaderManipulation,proto3" json:"early_header_manipulation,omitempty"`
 }
 

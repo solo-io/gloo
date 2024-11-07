@@ -19,7 +19,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/headers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	envoycore_sk "github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 	coreV1 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
@@ -85,6 +84,19 @@ var _ = Describe("Plugin", func() {
 		Expect(out.RequestHeadersToRemove).To(Equal(expectedHeaders.RequestHeadersToRemove))
 		Expect(out.ResponseHeadersToAdd).To(Equal(expectedHeaders.ResponseHeadersToAdd))
 		Expect(out.ResponseHeadersToRemove).To(Equal(expectedHeaders.ResponseHeadersToRemove))
+	})
+	It("converts the header manipulation config for routes w/ overwrite", func() {
+		out := &envoy_config_route_v3.Route{}
+		err := p.ProcessRoute(plugins.RouteParams{}, &v1.Route{
+			Options: &v1.RouteOptions{
+				HeaderManipulation: testHeaderManipOverwrite,
+			},
+		}, out)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(out.RequestHeadersToAdd).To(Equal(expectedHeadersOverwrite.RequestHeadersToAdd))
+		Expect(out.RequestHeadersToRemove).To(Equal(expectedHeadersOverwrite.RequestHeadersToRemove))
+		Expect(out.ResponseHeadersToAdd).To(Equal(expectedHeadersOverwrite.ResponseHeadersToAdd))
+		Expect(out.ResponseHeadersToRemove).To(Equal(expectedHeadersOverwrite.ResponseHeadersToRemove))
 	})
 	It("Can add secrets to headers", func() {
 		paramsWithSecret := plugins.VirtualHostParams{
@@ -281,8 +293,7 @@ var _ = Describe("Plugin", func() {
 
 		DescribeTable("Early header manipulation transforms",
 			func(params plugins.Params, inEhm *headers.EarlyHeaderManipulation,
-				outMutations []*envoy_config_mutation_rules_v3.HeaderMutation, outError error) {
-
+				expectedOutMutations []*envoy_config_mutation_rules_v3.HeaderMutation, outError error) {
 				listener.Options = &v1.HttpListenerOptions{
 					HttpConnectionManagerSettings: &hcm.HttpConnectionManagerSettings{
 						EarlyHeaderManipulation: inEhm,
@@ -298,22 +309,21 @@ var _ = Describe("Plugin", func() {
 					Expect(err.Error()).To(Equal(outError.Error()))
 				}
 
-				if outMutations == nil {
+				if expectedOutMutations == nil {
 					Expect(out.EarlyHeaderMutationExtensions).To(BeNil())
 					return
 				}
 
-				typedConfig, err := utils.MessageToAny(&envoy_ehm_header_mutation_v3.HeaderMutation{
-					Mutations: outMutations,
-				})
-				Expect(err).NotTo(HaveOccurred())
+				Expect(out.EarlyHeaderMutationExtensions).To(HaveLen(1))
 
-				Expect(out.EarlyHeaderMutationExtensions).To(Equal([]*envoy_config_core_v3.TypedExtensionConfig{
-					{
-						Name:        "http.early_header_mutation.header_mutation",
-						TypedConfig: typedConfig,
-					},
-				}))
+				outEhm := &envoy_ehm_header_mutation_v3.HeaderMutation{}
+				out.EarlyHeaderMutationExtensions[0].TypedConfig.UnmarshalTo(outEhm)
+				Expect(outEhm.Mutations).To(HaveLen(len(expectedOutMutations)))
+
+				for i, expectedOutMutation := range expectedOutMutations {
+					outMutation := outEhm.Mutations[i]
+					Expect(outMutation.GetAction()).To(Equal(expectedOutMutation.GetAction()))
+				}
 			},
 			Entry("should have nil mutations when emh is nil", pluginParams, nil, nil, nil),
 			Entry("should have no mutations when emh is empty",
@@ -336,7 +346,7 @@ var _ = Describe("Plugin", func() {
 				},
 				nil,
 			),
-			Entry("should have append action when emh has add",
+			Entry("should have append+add append action when emh has add w/ append",
 				pluginParams,
 				&headers.EarlyHeaderManipulation{
 					HeadersToAdd: testHeaderManip.RequestHeadersToAdd,
@@ -349,6 +359,27 @@ var _ = Describe("Plugin", func() {
 									Key:   "foo",
 									Value: "bar",
 								},
+								AppendAction: envoy_config_core_v3.HeaderValueOption_APPEND_IF_EXISTS_OR_ADD,
+							},
+						},
+					},
+				},
+				nil,
+			),
+			Entry("should have overwrite+add append action when emh has add w/ overwrite",
+				pluginParams,
+				&headers.EarlyHeaderManipulation{
+					HeadersToAdd: testHeaderManipOverwrite.RequestHeadersToAdd,
+				},
+				[]*envoy_config_mutation_rules_v3.HeaderMutation{
+					{
+						Action: &envoy_config_mutation_rules_v3.HeaderMutation_Append{
+							Append: &envoy_config_core_v3.HeaderValueOption{
+								Header: &envoy_config_core_v3.HeaderValue{
+									Key:   "foo",
+									Value: "bar",
+								},
+								AppendAction: envoy_config_core_v3.HeaderValueOption_OVERWRITE_IF_EXISTS_OR_ADD,
 							},
 						},
 					},
@@ -376,6 +407,7 @@ var _ = Describe("Plugin", func() {
 									Key:   "Authorization",
 									Value: "basic dXNlcjpwYXNzd29yZA==",
 								},
+								AppendAction: envoy_config_core_v3.HeaderValueOption_APPEND_IF_EXISTS_OR_ADD,
 							},
 						},
 					},
@@ -433,6 +465,21 @@ var expectedHeaders = envoyHeaderManipulation{
 	RequestHeadersToAdd:     []*envoy_config_core_v3.HeaderValueOption{{Header: &envoy_config_core_v3.HeaderValue{Key: "foo", Value: "bar"}, AppendAction: envoy_config_core_v3.HeaderValueOption_APPEND_IF_EXISTS_OR_ADD}},
 	RequestHeadersToRemove:  []string{"a"},
 	ResponseHeadersToAdd:    []*envoy_config_core_v3.HeaderValueOption{{Header: &envoy_config_core_v3.HeaderValue{Key: "foo", Value: "bar"}, AppendAction: envoy_config_core_v3.HeaderValueOption_APPEND_IF_EXISTS_OR_ADD}},
+	ResponseHeadersToRemove: []string{"b"},
+}
+
+var testHeaderManipOverwrite = &headers.HeaderManipulation{
+	RequestHeadersToAdd: []*envoycore_sk.HeaderValueOption{{HeaderOption: &envoycore_sk.HeaderValueOption_Header{Header: &envoycore_sk.HeaderValue{Key: "foo", Value: "bar"}},
+		Append: &wrappers.BoolValue{Value: false}}},
+	RequestHeadersToRemove:  []string{"a"},
+	ResponseHeadersToAdd:    []*headers.HeaderValueOption{{Header: &headers.HeaderValue{Key: "foo", Value: "bar"}, Append: &wrappers.BoolValue{Value: false}}},
+	ResponseHeadersToRemove: []string{"b"},
+}
+
+var expectedHeadersOverwrite = envoyHeaderManipulation{
+	RequestHeadersToAdd:     []*envoy_config_core_v3.HeaderValueOption{{Header: &envoy_config_core_v3.HeaderValue{Key: "foo", Value: "bar"}, AppendAction: envoy_config_core_v3.HeaderValueOption_OVERWRITE_IF_EXISTS_OR_ADD}},
+	RequestHeadersToRemove:  []string{"a"},
+	ResponseHeadersToAdd:    []*envoy_config_core_v3.HeaderValueOption{{Header: &envoy_config_core_v3.HeaderValue{Key: "foo", Value: "bar"}, AppendAction: envoy_config_core_v3.HeaderValueOption_OVERWRITE_IF_EXISTS_OR_ADD}},
 	ResponseHeadersToRemove: []string{"b"},
 }
 

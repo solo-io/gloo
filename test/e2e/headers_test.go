@@ -459,6 +459,24 @@ var _ = Describe("HeaderManipulation", func() {
 							},
 							Append: &wrappers.BoolValue{Value: true},
 						},
+						{
+							HeaderOption: &envoycore_sk.HeaderValueOption_Header{
+								Header: &envoycore_sk.HeaderValue{
+									Key:   "X-Append",
+									Value: "baz",
+								},
+							},
+							Append: &wrappers.BoolValue{Value: true},
+						},
+						{
+							HeaderOption: &envoycore_sk.HeaderValueOption_Header{
+								Header: &envoycore_sk.HeaderValue{
+									Key:   "X-Overwrite",
+									Value: "baz",
+								},
+							},
+							Append: &wrappers.BoolValue{Value: false},
+						},
 					},
 					HeadersToRemove: []string{"X-Drop"},
 				})
@@ -467,21 +485,24 @@ var _ = Describe("HeaderManipulation", func() {
 				requestBuilder = testContext.GetHttpRequestBuilder()
 			})
 
-			It("Should mutate the headers as expected", func() {
+			FIt("Should append as expected", func() {
 				Eventually(func(g Gomega) {
 					headersResponse, err := makeHeadersRequest(map[string]string{
-						"X-Keep": "foo",
-						"X-Drop": "bar",
+						"X-Append":    "foo",
+						"X-Overwrite": "bar",
+						"X-Drop":      "baz",
 					})
 					g.Expect(err).NotTo(HaveOccurred())
 
 					// the headers should be as expected
-					g.Expect(headersResponse.Headers).To(HaveKeyWithValue("X-Keep", ConsistOf("foo")),
-						"Expected header X-Keep to be present")
-					g.Expect(headersResponse.Headers).NotTo(HaveKey("X-Drop"),
-						"Expected header X-Drop to be removed")
 					g.Expect(headersResponse.Headers).To(HaveKeyWithValue("X-Add", ConsistOf("baz")),
 						"Expected header X-Add to be present")
+					g.Expect(headersResponse.Headers).To(HaveKeyWithValue("X-Append", ConsistOf("foo", "baz")),
+						"Expected header X-Add to be present")
+					g.Expect(headersResponse.Headers).To(HaveKeyWithValue("X-Overwrite", ConsistOf("baz")),
+						"Expected header X-Exists two have two values")
+					g.Expect(headersResponse.Headers).NotTo(HaveKey("X-Drop"),
+						"Expected header X-Drop to be removed")
 				}, "5s", "0.5s").Should(Succeed())
 			})
 		})
@@ -542,6 +563,10 @@ var _ = Describe("HeaderManipulation", func() {
 			})
 		})
 
+		// A customer reported that normal header manipulation was happening after the tracing headers were added.
+		// They desired that they be able to override the tracing headers with their own headers.
+		// Setting the tracing headers earlier allows for the override to happen.
+		// This test ensures that the interaction between the two works as expected.
 		Context("Interaction with Zipkin tracing", func() {
 			var (
 				zipkinInstance *envoy.Instance

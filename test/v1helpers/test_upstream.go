@@ -291,7 +291,8 @@ func runTestServerWithHealthReply(ctx context.Context, reply, healthReply string
 }
 
 // runTestServerWithHttpbin starts a local server listening on a random port, that responds to
-// requests with go-httpbin
+// requests with go-httpbin. HTTPBin (https://httpbin.org/) provides common introspection
+// endpoints and responses that can be used to simulate a variety of common HTTP behaviors.
 func runTestServerWithHttpbin(ctx context.Context,
 	tlsServer UpstreamTlsRequired) (uint32, <-chan *ReceivedRequest, <-chan *ReturnedResponse) {
 
