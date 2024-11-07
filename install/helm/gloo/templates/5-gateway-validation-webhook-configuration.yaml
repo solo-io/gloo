@@ -52,7 +52,6 @@ specific resources, we will manage the resources that the webhook receives via t
     apiGroups: ["gloo.solo.io"]
     apiVersions: ["v1"]
     resources: ["upstreams"]{{/* TODO(https://github.com/solo-io/gloo/issues/2797): Extend to all gloo resources */}}
-
   - operations: {{ include "gloo.webhookvalidation.operationsForResource" (list "ratelimitconfigs" .Values.gateway.validation.webhook.skipDeleteValidationResources) }}
     apiGroups: ["ratelimit.solo.io"]
     apiVersions: ["v1alpha1"]
@@ -71,6 +70,7 @@ specific resources, we will manage the resources that the webhook receives via t
 
 
 {{/* Webhook for non-gloo resourcs - only render if we need to*/}}
+{{/* Can't use the include for these one because if the operations are empty, we need to drop the whole list element */}}
 {{- if and 
   (not (has "*" .Values.gateway.validation.webhook.skipDeleteValidationResources))
   (and (not (has "secrets" .Values.gateway.validation.webhook.skipDeleteValidationResources))
