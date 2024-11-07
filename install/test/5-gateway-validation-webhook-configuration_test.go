@@ -38,7 +38,6 @@ var _ = Describe("WebhookValidationConfiguration helm test", func() {
 			testManifest = tm
 		}
 
-		//
 		DescribeTable("Can remove DELETEs from webhook rules", func(resources []string, expectedRemoved int) {
 			timeoutSeconds := 5
 
@@ -180,19 +179,20 @@ var _ = Describe("WebhookValidationConfiguration helm test", func() {
 })
 
 func generateExpectedChart(timeoutSeconds int, skipDeletes []string, expectedDeletes int) *unstructured.Unstructured {
-	rules := generateRules(skipDeletes)
+	GinkgoHelper()
+	glooRules, nonGlooRules := generateRules(skipDeletes)
 
 	// indent "rules"
 	m1 := regexp.MustCompile("\n")
-	rules = m1.ReplaceAllString(rules, "\n    ")
+	glooRules = m1.ReplaceAllString(glooRules, "\n    ")
+	nonGlooRules = m1.ReplaceAllString(nonGlooRules, "\n    ")
 
 	// Check that we have the expected number of DELETEs
 	m2 := regexp.MustCompile(`DELETE`)
-	deletes := m2.FindAllStringIndex(rules, -1)
-	Expect(deletes).To(HaveLen(expectedDeletes))
+	deletes := len(m2.FindAllStringIndex(glooRules, -1)) + len(m2.FindAllStringIndex(nonGlooRules, -1))
+	Expect(deletes).To(Equal(expectedDeletes))
 
-	return makeUnstructured(`
-
+	chart := `
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
@@ -212,18 +212,41 @@ webhooks:
       path: "/validation"
     caBundle: "" # update manually or use certgen job
   rules:
-    ` + rules + `
+    ` + glooRules + `
   sideEffects: None
   matchPolicy: Exact
   timeoutSeconds: ` + strconv.Itoa(timeoutSeconds) + `
   admissionReviewVersions:
     - v1beta1
   failurePolicy: Ignore
-`)
+`
+	// Only create the webhook for non-gloo resources if there are any resources being valdiated
+	if nonGlooRules != "[]\n    " {
+		chart += `- name: non-gloo.` + namespace + `.svc  # must be a domain with at least three segments separated by dots
+  clientConfig:
+    service:
+      name: gloo
+      namespace: ` + namespace + `
+      path: "/validation"
+    caBundle: "" # update manually or use certgen job
+  rules:
+    ` + nonGlooRules + `
+  sideEffects: None
+  matchPolicy: Exact
+  timeoutSeconds: ` + strconv.Itoa(timeoutSeconds) + `
+  admissionReviewVersions:
+    - v1beta1
+  failurePolicy: Ignore
+`
+	}
+
+	return makeUnstructured(chart)
 }
 
-func generateRules(skipDeleteReources []string) string {
-	rules := []map[string][]string{
+// generateRules returns gloo rules and non-gloo rules as separate strings
+func generateRules(skipDeleteReources []string) (string, string) {
+	GinkgoHelper()
+	glooRules := []map[string][]string{
 		{
 			"operations":  {"CREATE", "UPDATE", "DELETE"},
 			"apiGroups":   {"gateway.solo.io"},
@@ -249,6 +272,15 @@ func generateRules(skipDeleteReources []string) string {
 			"resources":   {"upstreams"},
 		},
 		{
+			"operations":  {"CREATE", "UPDATE", "DELETE"},
+			"apiGroups":   {"ratelimit.solo.io"},
+			"apiVersions": {"v1alpha1"},
+			"resources":   {"ratelimitconfigs"},
+		},
+	}
+
+	nonGlooRules := []map[string][]string{
+		{
 			"operations":  {"DELETE"},
 			"apiGroups":   {""},
 			"apiVersions": {"v1"},
@@ -260,16 +292,21 @@ func generateRules(skipDeleteReources []string) string {
 			"apiVersions": {"v1"},
 			"resources":   {"namespaces"},
 		},
-		{
-			"operations":  {"CREATE", "UPDATE", "DELETE"},
-			"apiGroups":   {"ratelimit.solo.io"},
-			"apiVersions": {"v1alpha1"},
-			"resources":   {"ratelimitconfigs"},
-		},
 	}
 
-	finalRules := []map[string][]string{}
-	for i, rule := range rules {
+	finalGlooRules := []map[string][]string{}
+	for i, rule := range glooRules {
+		if stringutils.ContainsAny([]string{rule["resources"][0], "*"}, skipDeleteReources) {
+			rule["operations"] = gloostringutils.DeleteOneByValue(rule["operations"], "DELETE")
+		}
+
+		if len(rule["operations"]) != 0 {
+			finalGlooRules = append(finalGlooRules, glooRules[i])
+		}
+	}
+
+	finalNonGlooRules := []map[string][]string{}
+	for i, rule := range nonGlooRules {
 		if stringutils.ContainsAny([]string{rule["resources"][0], "*"}, skipDeleteReources) {
 			rule["operations"] = gloostringutils.DeleteOneByValue(rule["operations"], "DELETE")
 			// A namespace with an update to a label can cause it to no longer be watched,
@@ -280,11 +317,13 @@ func generateRules(skipDeleteReources []string) string {
 		}
 
 		if len(rule["operations"]) != 0 {
-			finalRules = append(finalRules, rules[i])
+			finalNonGlooRules = append(finalNonGlooRules, nonGlooRules[i])
 		}
 	}
 
-	str, err := yaml.Marshal(finalRules)
+	glooRulesYaml, err := yaml.Marshal(finalGlooRules)
 	Expect(err).NotTo(HaveOccurred())
-	return string(str)
+	nonGlooRulesYaml, err := yaml.Marshal(finalNonGlooRules)
+	Expect(err).NotTo(HaveOccurred())
+	return string(glooRulesYaml), string(nonGlooRulesYaml)
 }
