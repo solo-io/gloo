@@ -43,6 +43,10 @@ func (c DestinationRuleWrapper) ResourceName() string {
 	return krt.Named{Namespace: c.Namespace, Name: c.Name}.ResourceName()
 }
 
+func (c DestinationRuleWrapper) String() string {
+	return c.ResourceName()
+}
+
 var _ krt.Equaler[DestinationRuleWrapper] = new(DestinationRuleWrapper)
 
 func (c DestinationRuleWrapper) Equals(k DestinationRuleWrapper) bool {
@@ -70,12 +74,29 @@ func NewEmptyDestRuleIndex() DestinationRuleIndex {
 	}
 }
 
+const exportAllNs = "*"
+
 func newDestruleIndex(destRuleCollection krt.Collection[DestinationRuleWrapper]) krt.Index[NsWithHostname, DestinationRuleWrapper] {
 	idx := krt.NewIndex(destRuleCollection, func(d DestinationRuleWrapper) []NsWithHostname {
-		return []NsWithHostname{{
-			Ns:       d.Namespace,
-			Hostname: d.Spec.GetHost(),
-		}}
+		exportTo := d.Spec.GetExportTo()
+		if len(exportTo) == 0 {
+			return []NsWithHostname{{
+				Ns:       exportAllNs,
+				Hostname: d.Spec.GetHost(),
+			}}
+		}
+		var keys []NsWithHostname
+		for _, ns := range exportTo {
+			if ns == "." {
+				ns = d.Namespace
+			}
+			keys = append(keys, NsWithHostname{
+				Ns:       ns,
+				Hostname: d.Spec.GetHost(),
+			})
+		}
+
+		return keys
 	})
 	return idx
 }
@@ -86,10 +107,17 @@ func (d *DestinationRuleIndex) FetchDestRulesFor(kctx krt.HandlerContext, proxyN
 	}
 
 	key := NsWithHostname{
-		Ns:       proxyNs,
+		Ns:       exportAllNs,
 		Hostname: hostname,
 	}
 	destrules := krt.Fetch(kctx, d.Destrules, krt.FilterIndex(d.ByHostname, key), krt.FilterSelects(podLabels))
+	if len(destrules) == 0 {
+		key := NsWithHostname{
+			Ns:       proxyNs,
+			Hostname: hostname,
+		}
+		destrules = krt.Fetch(kctx, d.Destrules, krt.FilterIndex(d.ByHostname, key), krt.FilterSelects(podLabels))
+	}
 	if len(destrules) == 0 {
 		return nil
 	}
