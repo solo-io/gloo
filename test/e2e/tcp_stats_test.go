@@ -64,7 +64,7 @@ var _ = Describe("TCP Stats transport_socket", func() {
 
 	Context("HttpGateway", func() {
 
-		Context("without TLS", func() {
+		Context("without any existing transport socket defined in filter chain", func() {
 
 			BeforeEach(func() {
 				requestBuilder = testContext.GetHttpRequestBuilder()
@@ -75,15 +75,15 @@ var _ = Describe("TCP Stats transport_socket", func() {
 				}
 			})
 
-			Context("without tcp_stats transport socket wrapper", func() {
+			Context("without outer tcp_stats transport socket wrapper", func() {
 
 				BeforeEach(func() {
 					testContext.ResourcesToCreate().Gateways[0].Options = &gloov1.ListenerOptions{
-						ListenerTcpStats: &wrappers.BoolValue{Value: false},
+						TcpStats: &wrappers.BoolValue{Value: false},
 					}
 				})
 
-				It("works", func() {
+				It("listener functions", func() {
 					client := testutils.DefaultClientBuilder().WithTLSRootCa(rootCACert).Build()
 
 					Eventually(func(g Gomega) {
@@ -103,15 +103,15 @@ var _ = Describe("TCP Stats transport_socket", func() {
 
 			})
 
-			Context("with tcp_stats transport socket wrapper", func() {
+			Context("with outer tcp_stats transport socket wrapper", func() {
 
 				BeforeEach(func() {
 					testContext.ResourcesToCreate().Gateways[0].Options = &gloov1.ListenerOptions{
-						ListenerTcpStats: &wrappers.BoolValue{Value: true},
+						TcpStats: &wrappers.BoolValue{Value: true},
 					}
 				})
 
-				It("works", func() {
+				It("listener functions", func() {
 					client := testutils.DefaultClientBuilder().WithTLSRootCa(rootCACert).Build()
 
 					Eventually(func(g Gomega) {
@@ -133,7 +133,9 @@ var _ = Describe("TCP Stats transport_socket", func() {
 
 		})
 
-		Context("with TLS", func() {
+		// Any kind of preexisting transport socket can be wrapped, TLS is picked here
+		// because it's used a lot, and easy to test/verify in the rig with a client.
+		Context("with existing TLS transport socket defined in filter chain", func() {
 
 			BeforeEach(func() {
 				requestBuilder = testContext.GetHttpsRequestBuilder()
@@ -160,15 +162,15 @@ var _ = Describe("TCP Stats transport_socket", func() {
 				}
 			})
 
-			Context("without tcp_stats transport socket wrapper", func() {
+			Context("without outer tcp_stats transport socket wrapper", func() {
 
 				BeforeEach(func() {
 					testContext.ResourcesToCreate().Gateways[0].Options = &gloov1.ListenerOptions{
-						ListenerTcpStats: &wrappers.BoolValue{Value: false},
+						TcpStats: &wrappers.BoolValue{Value: false},
 					}
 				})
 
-				It("works", func() {
+				It("listener functions", func() {
 					client := testutils.DefaultClientBuilder().WithTLSRootCa(rootCACert).Build()
 
 					Eventually(func(g Gomega) {
@@ -188,15 +190,15 @@ var _ = Describe("TCP Stats transport_socket", func() {
 
 			})
 
-			Context("with tcp_stats transport socket wrapper", func() {
+			Context("with outer tcp_stats transport socket wrapper", func() {
 
 				BeforeEach(func() {
 					testContext.ResourcesToCreate().Gateways[0].Options = &gloov1.ListenerOptions{
-						ListenerTcpStats: &wrappers.BoolValue{Value: true},
+						TcpStats: &wrappers.BoolValue{Value: true},
 					}
 				})
 
-				It("works", func() {
+				It("listener functions", func() {
 					client := testutils.DefaultClientBuilder().WithTLSRootCa(rootCACert).Build()
 
 					Eventually(func(g Gomega) {

@@ -40,7 +40,7 @@ var _ = Describe("Plugin", func() {
 		BeforeEach(func() {
 			in = &v1.Listener{
 				Options: &v1.ListenerOptions{
-					ListenerTcpStats: &wrappers.BoolValue{
+					TcpStats: &wrappers.BoolValue{
 						Value: true,
 					},
 				},
@@ -74,8 +74,8 @@ var _ = Describe("Plugin", func() {
 
 		})
 
-		It("should not wrap if ListenerTcpStats is false", func() {
-			in.Options.ListenerTcpStats.Value = false
+		It("should not wrap if TcpStats is false", func() {
+			in.Options.TcpStats.Value = false
 
 			out.FilterChains = stub_filterchains
 
@@ -136,8 +136,8 @@ var _ = Describe("Plugin", func() {
 			}
 		})
 
-		It("not wrapping existing transport_socket if ListenerTcpStats disabled", func() {
-			in.Options.ListenerTcpStats.Value = false
+		It("not wrapping existing transport_socket if TcpStats disabled", func() {
+			in.Options.TcpStats.Value = false
 
 			cfg := &envoyauth.DownstreamTlsContext{}
 			typedConfig, err := utils.MessageToAny(cfg)

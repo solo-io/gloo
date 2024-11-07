@@ -90,10 +90,10 @@ func (m *ListenerOptions) Clone() proto.Message {
 		target.ListenerAccessLoggingService = proto.Clone(m.GetListenerAccessLoggingService()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_als.AccessLoggingService)
 	}
 
-	if h, ok := interface{}(m.GetListenerTcpStats()).(clone.Cloner); ok {
-		target.ListenerTcpStats = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
+	if h, ok := interface{}(m.GetTcpStats()).(clone.Cloner); ok {
+		target.TcpStats = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
 	} else {
-		target.ListenerTcpStats = proto.Clone(m.GetListenerTcpStats()).(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
+		target.TcpStats = proto.Clone(m.GetTcpStats()).(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
 	}
 
 	return target
