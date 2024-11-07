@@ -485,7 +485,7 @@ var _ = Describe("HeaderManipulation", func() {
 				requestBuilder = testContext.GetHttpRequestBuilder()
 			})
 
-			FIt("Should append as expected", func() {
+			It("Should append as expected", func() {
 				Eventually(func(g Gomega) {
 					headersResponse, err := makeHeadersRequest(map[string]string{
 						"X-Append":    "foo",
