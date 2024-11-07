@@ -41,6 +41,7 @@ clusters:
                 setNodeOnFirstMessageOnly: true
                 transportApiVersion: V3
               resourceApiVersion: V3
+        sni: outbound_.443_._.kubernetes.default.svc.cluster.local
   - match: {}
     name: tlsMode-disabled
     transportSocket:
@@ -98,6 +99,7 @@ clusters:
                 setNodeOnFirstMessageOnly: true
                 transportApiVersion: V3
               resourceApiVersion: V3
+        sni: outbound_.8080_._.reviews.gwtest.svc.cluster.local
   - match: {}
     name: tlsMode-disabled
     transportSocket:
