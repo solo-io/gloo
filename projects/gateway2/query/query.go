@@ -148,6 +148,38 @@ type RouteError struct {
 	Error     Error
 }
 
+type options struct {
+	customBackendResolvers []BackendRefResolver
+}
+
+type Option func(*options)
+
+func WithBackendRefResolvers(
+	customBackendResolvers ...BackendRefResolver,
+) Option {
+	return func(o *options) {
+		o.customBackendResolvers = append(o.customBackendResolvers, customBackendResolvers...)
+	}
+}
+
+func NewData(
+	c client.Client,
+	scheme *runtime.Scheme,
+	reqCRDsExist *bool,
+	opts ...Option,
+) GatewayQueries {
+	builtOpts := &options{}
+	for _, opt := range opts {
+		opt(builtOpts)
+	}
+	return &gatewayQueries{
+		client:                 c,
+		scheme:                 scheme,
+		requiredCRDsExist:      reqCRDsExist,
+		customBackendResolvers: builtOpts.customBackendResolvers,
+	}
+}
+
 // NewRoutesForGwResult creates and returns a new RoutesForGwResult with initialized fields.
 func NewRoutesForGwResult() *RoutesForGwResult {
 	return &RoutesForGwResult{
@@ -156,13 +188,10 @@ func NewRoutesForGwResult() *RoutesForGwResult {
 	}
 }
 
-func NewData(c client.Client, scheme *runtime.Scheme, reqCRDsExist *bool) GatewayQueries {
-	return &gatewayQueries{c, scheme, reqCRDsExist}
-}
-
 type gatewayQueries struct {
-	client client.Client
-	scheme *runtime.Scheme
+	client                 client.Client
+	scheme                 *runtime.Scheme
+	customBackendResolvers []BackendRefResolver
 	// Cache whether the required Gateway API CRDs are installed.
 	requiredCRDsExist *bool
 }
@@ -320,6 +349,12 @@ func (r *gatewayQueries) GetLocalObjRef(ctx context.Context, obj From, localObjR
 }
 
 func (r *gatewayQueries) GetBackendForRef(ctx context.Context, obj From, backend *apiv1.BackendObjectReference) (client.Object, error) {
+	for _, cr := range r.customBackendResolvers {
+		if o, err, ok := cr.GetBackendForRef(ctx, obj, backend); ok {
+			return o, err
+		}
+	}
+
 	backendKind := "Service"
 	backendGroup := ""
 
@@ -332,6 +367,13 @@ func (r *gatewayQueries) GetBackendForRef(ctx context.Context, obj From, backend
 	backendGK := metav1.GroupKind{Group: backendGroup, Kind: backendKind}
 
 	return r.getRef(ctx, obj, string(backend.Name), backend.Namespace, backendGK)
+}
+
+// BackendRefResolver allows resolution of backendRefs with a custom format.
+type BackendRefResolver interface {
+	// GetBackendForRef resolves a custom reference. When the bool return is false,
+	// indicates that the resolver is not responsible for the given ref.
+	GetBackendForRef(ctx context.Context, obj From, backend *apiv1.BackendObjectReference) (client.Object, error, bool)
 }
 
 func (r *gatewayQueries) getRef(ctx context.Context, from From, backendName string, backendNS *apiv1.Namespace, backendGK metav1.GroupKind) (client.Object, error) {
