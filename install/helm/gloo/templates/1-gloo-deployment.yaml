@@ -74,6 +74,11 @@ spec:
           defaultMode: 420
           secretName: {{ .Values.gateway.validation.secretName }}
       {{- end }}
+      {{- if .Values.gloo.kubeconfig }}
+      - name: kubeconfig
+        secret:
+          secretName: {{ .Values.gloo.kubeconfig.secretName}}
+      {{- end }}
       containers:
 {{- if .Values.global.glooMtls.enabled }}
       {{- $sdsImage := merge .Values.global.glooMtls.sds.image .Values.global.image }}
@@ -117,6 +122,11 @@ spec:
         - mountPath: /etc/envoy/ssl
           name: gloo-mtls-certs
           readOnly: true
+{{- if .Values.gloo.kubeconfig }}
+        - mountPath: /etc/kubeconfig
+          name: kubeconfig
+          readOnly: true
+{{- end }}
 {{- if .Values.global.glooMtls.envoySidecarResources }}
         resources:
 {{ toYaml .Values.global.glooMtls.envoySidecarResources | indent 10}}
@@ -272,6 +282,10 @@ spec:
         {{- if .Values.gloo.headerSecretRefNsMatchesUs }}
           - name: HEADER_SECRET_REF_NS_MATCHES_US
             value: "true"
+        {{- end}}
+        {{- if .Values.gloo.kubeconfig }}
+          - name: KUBECONFIG
+            value: "/etc/kubeconfig/config"
         {{- end}}
 {{- if not .Values.global.glooMtls.enabled }}
         readinessProbe:
