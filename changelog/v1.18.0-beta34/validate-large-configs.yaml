@@ -1,0 +1,10 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7089
+    resolvesIssue: false
+    description: >-
+      Fix the validation of large configurations. 
+      Previously, the configuration was being passed as an argument and we were 
+      seeing `argument list too long`. 
+      This change passes the configuration as a file instead, using STDIN (/dev/fd/0)
+      avoiding the need to store the file on disk.
