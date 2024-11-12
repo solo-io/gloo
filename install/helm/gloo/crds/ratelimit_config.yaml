@@ -5,6 +5,8 @@ metadata:
 spec:
   group: ratelimit.solo.io
   names:
+    categories:
+    - solo-io
     kind: RateLimitConfig
     listKind: RateLimitConfigList
     plural: ratelimitconfigs

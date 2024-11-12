@@ -8,6 +8,8 @@ metadata:
 spec:
   group: enterprise.gloo.solo.io
   names:
+    categories:
+    - solo-io
     kind: AuthConfig
     listKind: AuthConfigList
     plural: authconfigs
