@@ -1,4 +1,8 @@
 # Kubernetes End-to-End tests
+
+> These are our legacy Kubernetes E2E tests. We are migrating them to `../kubernetes/e2e`. Create new E2E tests there
+> using the new framework.
+
 See the [developer kube-e2e testing guide](/devel/testing/kube-e2e-tests.md) for more information about the philosophy of these tests.
 
 *Note: All commands should be run from the root directory of the Gloo repository*
