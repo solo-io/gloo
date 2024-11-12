@@ -72,8 +72,11 @@ func StartTestHelper() {
 		installGloo()
 	}
 
+	clusterName := os.Getenv("CLUSTER_NAME")
+	Expect(clusterName).NotTo(BeEmpty(), "CLUSTER_NAME must be set")
+
 	// We rely on the "new" kubernetes/e2e setup code, since it incorporates controller-runtime logging setup
-	clusterContext := cluster.MustKindContext("kind")
+	clusterContext := cluster.MustKindContext(clusterName)
 
 	resourceClientset, err = kube2e.NewKubeResourceClientSet(ctx, clusterContext.RestConfig)
 	Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")

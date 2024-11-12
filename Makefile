@@ -253,9 +253,9 @@ install-protoc:
 
 .PHONY: test
 test: ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
-	$(GINKGO_ENV) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) \
+	CLUSTER_NAME=${CLUSTER_NAME} $(GINKGO_ENV) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) \
 	$(GINKGO_FLAGS) $(GINKGO_REPORT_FLAGS) $(GINKGO_USER_FLAGS) \
-	$(TEST_PKG)
+	$(TEST_PKG) 
 
 # https://go.dev/blog/cover#heat-maps
 .PHONY: test-with-coverage
@@ -289,7 +289,6 @@ run-hashicorp-e2e-tests: test
 .PHONY: run-kube-e2e-tests
 run-kube-e2e-tests: TEST_PKG = ./test/kube2e/$(KUBE2E_TESTS) ## Run the Kubernetes E2E Tests in the {KUBE2E_TESTS} package
 run-kube-e2e-tests: test
-
 
 #----------------------------------------------------------------------------------
 # Go Tests
