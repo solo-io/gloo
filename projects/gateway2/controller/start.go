@@ -16,6 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 
 	gatewaykubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/deployer"
@@ -75,6 +76,8 @@ type StartConfig struct {
 
 	InitialSettings *glookubev1.Settings
 	Settings        krt.Singleton[glookubev1.Settings]
+
+	Debugger *krt.DebugHandler
 }
 
 // Start runs the controllers responsible for processing the K8s Gateway API objects
@@ -96,9 +99,16 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 	}
 	ctrl.SetLogger(zap.New(opts...))
 
+	scheme := glooschemes.DefaultScheme()
+
+	// Extend the scheme if the TCPRoute CRD exists.
+	if err := glooschemes.AddGatewayV1A2Scheme(cfg.RestConfig, scheme); err != nil {
+		return nil, err
+	}
+
 	mgrOpts := ctrl.Options{
 		BaseContext:      func() context.Context { return ctx },
-		Scheme:           glooschemes.DefaultScheme(),
+		Scheme:           scheme,
 		PprofBindAddress: "127.0.0.1:9099",
 		// if you change the port here, also change the port "health" in the helmchart.
 		HealthProbeBindAddress: ":9093",
@@ -142,13 +152,16 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 
 	inputChannels := proxy_syncer.NewGatewayInputChannels()
 	k8sGwExtensions, err := cfg.ExtensionsFactory(ctx, ext.K8sGatewayExtensionsFactoryParameters{
-		Mgr:                         mgr,
-		IstioClient:                 cfg.Client,
-		RouteOptionCollection:       routeOptionCollection,
-		VirtualHostOptionCollection: virtualHostOptionCollection,
-		AuthConfigCollection:        authConfigCollection,
-		StatusReporter:              cfg.KubeGwStatusReporter,
-		KickXds:                     inputChannels.Kick,
+		Mgr:         mgr,
+		IstioClient: cfg.Client,
+		CoreCollections: ext.CoreCollections{
+			AugmentedPods:               cfg.AugmentedPods,
+			RouteOptionCollection:       routeOptionCollection,
+			VirtualHostOptionCollection: virtualHostOptionCollection,
+			AuthConfigCollection:        authConfigCollection,
+		},
+		StatusReporter: cfg.KubeGwStatusReporter,
+		KickXds:        inputChannels.Kick,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to create k8s gw extensions")
@@ -174,7 +187,7 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 		cfg.GlooStatusReporter,
 		cfg.SetupOpts.ProxyReconcileQueue,
 	)
-	proxySyncer.Init(ctx)
+	proxySyncer.Init(ctx, cfg.Debugger)
 
 	if err := mgr.Add(proxySyncer); err != nil {
 		setupLog.Error(err, "unable to add proxySyncer runnable")
@@ -222,6 +235,12 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 		}
 	}
 
+	// Initialize the set of Gateway API CRDs we care about
+	crds, err := getGatewayCRDs(c.cfg.RestConfig)
+	if err != nil {
+		return err
+	}
+
 	gwCfg := GatewayConfig{
 		Mgr:            c.mgr,
 		GWClasses:      sets.New(append(c.cfg.SetupOpts.ExtraGatewayClasses, wellknown.GatewayClassName)...),
@@ -236,6 +255,7 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 		Aws:                     awsInfo,
 		Kick:                    c.inputChannels.Kick,
 		Extensions:              c.k8sGwExtensions,
+		CRDs:                    crds,
 	}
 	if err := NewBaseGatewayController(ctx, gwCfg); err != nil {
 		setupLog.Error(err, "unable to create controller")
@@ -243,4 +263,19 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 	}
 
 	return c.mgr.Start(ctx)
+}
+
+func getGatewayCRDs(restConfig *rest.Config) (sets.Set[string], error) {
+	crds := wellknown.GatewayStandardCRDs
+
+	tcpRouteExists, err := glooschemes.CRDExists(restConfig, gwv1a2.GroupVersion.Group, gwv1a2.GroupVersion.Version, wellknown.TCPRouteKind)
+	if err != nil {
+		return nil, err
+	}
+
+	if tcpRouteExists {
+		crds.Insert(wellknown.TCPRouteCRD)
+	}
+
+	return crds, nil
 }

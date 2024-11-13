@@ -1,7 +1,8 @@
-package proxy_syncer
+package krtcollections
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"hash/fnv"
 
@@ -11,7 +12,6 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
-	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	ggv2utils "github.com/solo-io/gloo/projects/gateway2/utils"
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -23,6 +23,7 @@ import (
 	"istio.io/istio/pkg/kube/kclient"
 	"istio.io/istio/pkg/kube/krt"
 	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -34,40 +35,68 @@ type EndpointsSettings struct {
 	EnableAutoMtls bool
 }
 
-var _ krt.ResourceNamer = EndpointsSettings{}
-var _ krt.Equaler[EndpointsSettings] = EndpointsSettings{}
+var (
+	_ krt.ResourceNamer              = EndpointsSettings{}
+	_ krt.Equaler[EndpointsSettings] = EndpointsSettings{}
+)
 
 func (p EndpointsSettings) Equals(in EndpointsSettings) bool {
 	return p == in
 }
+
 func (p EndpointsSettings) ResourceName() string {
 	return "endpoints-settings"
 }
 
 type EndpointsInputs struct {
-	Upstreams         krt.Collection[UpstreamWrapper]
-	Endpoints         krt.Collection[*corev1.Endpoints]
-	Pods              krt.Collection[krtcollections.LocalityPod]
-	EndpointsSettings krt.Singleton[EndpointsSettings]
-	Services          krt.Collection[*corev1.Service]
+	Upstreams               krt.Collection[UpstreamWrapper]
+	EndpointSlices          krt.Collection[*discoveryv1.EndpointSlice]
+	EndpointSlicesByService krt.Index[types.NamespacedName, *discoveryv1.EndpointSlice]
+	Pods                    krt.Collection[LocalityPod]
+	EndpointsSettings       krt.Singleton[EndpointsSettings]
+	Services                krt.Collection[*corev1.Service]
+
+	Debugger *krt.DebugHandler
 }
 
-func NewGlooK8sEndpointInputs(settings krt.Singleton[glookubev1.Settings], istioClient kube.Client, pods krt.Collection[krtcollections.LocalityPod], services krt.Collection[*corev1.Service], finalUpstreams krt.Collection[UpstreamWrapper]) EndpointsInputs {
-	epClient := kclient.New[*corev1.Endpoints](istioClient)
-	kubeEndpoints := krt.WrapClient(epClient, krt.WithName("Endpoints"))
+func NewGlooK8sEndpointInputs(
+	settings krt.Singleton[glookubev1.Settings],
+	istioClient kube.Client,
+	dbg *krt.DebugHandler,
+	pods krt.Collection[LocalityPod],
+	services krt.Collection[*corev1.Service],
+	finalUpstreams krt.Collection[UpstreamWrapper],
+) EndpointsInputs {
+	withDebug := krt.WithDebugging(dbg)
+	epSliceClient := kclient.New[*discoveryv1.EndpointSlice](istioClient)
+	endpointSlices := krt.WrapClient(epSliceClient, krt.WithName("EndpointSlices"), withDebug)
 	endpointSettings := krt.NewSingleton(func(ctx krt.HandlerContext) *EndpointsSettings {
 		settings := krt.FetchOne(ctx, settings.AsCollection())
 		return &EndpointsSettings{
 			EnableAutoMtls: settings.Spec.GetGloo().GetIstioOptions().GetEnableAutoMtls().GetValue(),
 		}
+	}, withDebug)
+
+	// Create index on EndpointSlices by service name and endpointslice namespace
+	endpointSlicesByService := krt.NewIndex(endpointSlices, func(es *discoveryv1.EndpointSlice) []types.NamespacedName {
+		svcName, ok := es.Labels[discoveryv1.LabelServiceName]
+		if !ok {
+			return nil
+		}
+		return []types.NamespacedName{{
+			Namespace: es.Namespace,
+			Name:      svcName,
+		}}
 	})
 
 	return EndpointsInputs{
-		Upstreams:         finalUpstreams,
-		Endpoints:         kubeEndpoints,
-		Pods:              pods,
-		EndpointsSettings: endpointSettings,
-		Services:          services,
+		Upstreams:               finalUpstreams,
+		EndpointSlices:          endpointSlices,
+		EndpointSlicesByService: endpointSlicesByService,
+		Pods:                    pods,
+		EndpointsSettings:       endpointSettings,
+		Services:                services,
+		Debugger:                dbg,
 	}
 }
 
@@ -75,14 +104,30 @@ type EndpointWithMd struct {
 	*envoy_config_endpoint_v3.LbEndpoint
 	EndpointMd EndpointMetadata
 }
+
+type LocalityLbMap map[PodLocality][]EndpointWithMd
+
+// MarshalJSON implements json.Marshaler. for krt.DebugHandler
+func (l LocalityLbMap) MarshalJSON() ([]byte, error) {
+	out := map[string][]EndpointWithMd{}
+	for locality, eps := range l {
+		out[locality.String()] = eps
+	}
+	return json.Marshal(out)
+}
+
+var _ json.Marshaler = LocalityLbMap{}
+
 type EndpointsForUpstream struct {
-	LbEps       map[krtcollections.PodLocality][]EndpointWithMd
+	LbEps LocalityLbMap
+	// Note - in theory, cluster name should be a function of the UpstreamRef.
+	// But due to an upstream envoy bug, the cluster name also includes the upstream hash.
+	ClusterName string
 	UpstreamRef types.NamespacedName
 	Port        uint32
 	Hostname    string
-	clusterName string
 
-	lbEpsEqualityHash uint64
+	LbEpsEqualityHash uint64
 }
 
 func NewEndpointsForUpstream(us UpstreamWrapper, logger *zap.Logger) *EndpointsForUpstream {
@@ -93,20 +138,21 @@ func NewEndpointsForUpstream(us UpstreamWrapper, logger *zap.Logger) *EndpointsF
 	lbEpsEqualityHash := h.Sum64()
 
 	// add the upstream hash to the clustername, so that if it changes the envoy cluster will become warm again.
-	clusterName := getEndpointClusterName(us.Inner)
+	clusterName := GetEndpointClusterName(us.Inner)
 	return &EndpointsForUpstream{
-		LbEps: make(map[krtcollections.PodLocality][]EndpointWithMd),
+		LbEps:       make(map[PodLocality][]EndpointWithMd),
+		ClusterName: clusterName,
 		UpstreamRef: types.NamespacedName{
 			Namespace: us.Inner.GetMetadata().GetNamespace(),
 			Name:      us.Inner.GetMetadata().GetName(),
 		},
 		Port:              ggv2utils.GetPortForUpstream(us.Inner),
 		Hostname:          ggv2utils.GetHostnameForUpstream(us.Inner),
-		clusterName:       clusterName,
-		lbEpsEqualityHash: lbEpsEqualityHash,
+		LbEpsEqualityHash: lbEpsEqualityHash,
 	}
 }
-func hashEndpoints(l krtcollections.PodLocality, emd EndpointWithMd) uint64 {
+
+func hashEndpoints(l PodLocality, emd EndpointWithMd) uint64 {
 	hasher := fnv.New64()
 	hasher.Write([]byte(l.Region))
 	hasher.Write([]byte(l.Zone))
@@ -117,10 +163,10 @@ func hashEndpoints(l krtcollections.PodLocality, emd EndpointWithMd) uint64 {
 	return hasher.Sum64()
 }
 
-func (e *EndpointsForUpstream) Add(l krtcollections.PodLocality, emd EndpointWithMd) {
+func (e *EndpointsForUpstream) Add(l PodLocality, emd EndpointWithMd) {
 	// xor it as we dont care about order - if we have the same endpoints in the same locality
 	// we are good.
-	e.lbEpsEqualityHash ^= hashEndpoints(l, emd)
+	e.LbEpsEqualityHash ^= hashEndpoints(l, emd)
 	e.LbEps[l] = append(e.LbEps[l], emd)
 }
 
@@ -129,17 +175,16 @@ func (c EndpointsForUpstream) ResourceName() string {
 }
 
 func (c EndpointsForUpstream) Equals(in EndpointsForUpstream) bool {
-	return c.UpstreamRef == in.UpstreamRef && c.Port == in.Port && c.lbEpsEqualityHash == in.lbEpsEqualityHash && c.Hostname == in.Hostname
+	return c.UpstreamRef == in.UpstreamRef && c.ClusterName == in.ClusterName && c.Port == in.Port && c.LbEpsEqualityHash == in.LbEpsEqualityHash && c.Hostname == in.Hostname
 }
 
 func NewGlooK8sEndpoints(ctx context.Context, inputs EndpointsInputs) krt.Collection[EndpointsForUpstream] {
-	return krt.NewCollection(inputs.Upstreams, TransformUpstreamsBuilder(ctx, inputs), krt.WithName("GlooK8sEndpoints"))
+	return krt.NewCollection(inputs.Upstreams, transformK8sEndpoints(ctx, inputs), krt.WithName("GlooK8sEndpoints"), krt.WithDebugging(inputs.Debugger))
 }
 
-func TransformUpstreamsBuilder(ctx context.Context, inputs EndpointsInputs) func(kctx krt.HandlerContext, us UpstreamWrapper) *EndpointsForUpstream {
+func transformK8sEndpoints(ctx context.Context, inputs EndpointsInputs) func(kctx krt.HandlerContext, us UpstreamWrapper) *EndpointsForUpstream {
 	augmentedPods := inputs.Pods
-	kubeEndpoints := inputs.Endpoints
-	services := inputs.Services
+	svcs := inputs.Services
 
 	logger := contextutils.LoggerFrom(ctx).Desugar()
 
@@ -161,66 +206,95 @@ func TransformUpstreamsBuilder(ctx context.Context, inputs EndpointsInputs) func
 			return nil
 		}
 		spec := kubeUpstream.Kube
-		kubeServicePort, singlePortService := findPortForService(kctx, services, spec)
-		if kubeServicePort == nil {
+		kubeSvcPort, singlePortSvc := findPortForService(kctx, svcs, spec)
+		if kubeSvcPort == nil {
 			logger.Debug("findPortForService - not found.", zap.Uint32("port", spec.GetServicePort()), zap.String("svcName", spec.GetServiceName()), zap.String("svcNamespace", spec.GetServiceNamespace()))
 			return nil
 		}
 
-		maybeEps := krt.FetchOne(kctx, kubeEndpoints, krt.FilterObjectName(types.NamespacedName{
-			Namespace: spec.GetServiceNamespace(),
-			Name:      spec.GetServiceName(),
-		}))
-		if maybeEps == nil {
-			warnsToLog = append(warnsToLog, fmt.Sprintf("endpoints not found for service %v", spec.GetServiceName()))
-			logger.Debug("endpoints not found for service")
+		svcNs := spec.GetServiceNamespace()
+		svcName := spec.GetServiceName()
+		// Fetch all EndpointSlices for the service
+		key := types.NamespacedName{
+			Namespace: svcNs,
+			Name:      svcName,
+		}
+
+		endpointSlices := krt.Fetch(kctx, inputs.EndpointSlices, krt.FilterIndex(inputs.EndpointSlicesByService, key))
+		if len(endpointSlices) == 0 {
+			warnsToLog = append(warnsToLog, fmt.Sprintf("EndpointSlices not found for service %v/%v", svcNs, svcName))
 			return nil
 		}
-		eps := *maybeEps
 
+		if len(endpointSlices) == 0 {
+			warnsToLog = append(warnsToLog, fmt.Sprintf("EndpointSlices not found for service %v/%v", svcNs, svcName))
+			logger.Debug("EndpointSlices not found for service")
+			return nil
+		}
+
+		// Initialize the returned EndpointsForUpstream
 		settings := krt.FetchOne(kctx, inputs.EndpointsSettings.AsCollection())
 		enableAutoMtls := settings.EnableAutoMtls
 		ret := NewEndpointsForUpstream(us, logger)
-		for _, subset := range eps.Subsets {
-			port := findFirstPortInEndpointSubsets(subset, singlePortService, kubeServicePort)
+
+		// Handle deduplication of endpoint addresses
+		seenAddresses := make(map[string]struct{})
+
+		// Add an endpoint to the returned EndpointsForUpstream for each EndpointSlice
+		for _, endpointSlice := range endpointSlices {
+			port := findPortInEndpointSlice(endpointSlice, singlePortSvc, kubeSvcPort)
 			if port == 0 {
-				warnsToLog = append(warnsToLog, fmt.Sprintf("port not found (%v) for service %v in endpoint %v", spec.GetServicePort(), spec.GetServiceName(), subset))
+				warnsToLog = append(warnsToLog, fmt.Sprintf("port %v not found for service %v/%v in EndpointSlice %v",
+					spec.GetServicePort(), svcNs, svcName, endpointSlice.Name))
 				continue
 			}
 
-			for _, addr := range subset.Addresses {
-				var podName string
-				podNamespace := eps.Namespace
-				targetRef := addr.TargetRef
-				if targetRef != nil {
-					if targetRef.Kind == "Pod" {
-						podName = targetRef.Name
-						if targetRef.Namespace != "" {
-							podNamespace = targetRef.Namespace
+			for _, endpoint := range endpointSlice.Endpoints {
+				// Skip endpoints that are not ready
+				if endpoint.Conditions.Ready != nil && !*endpoint.Conditions.Ready {
+					continue
+				}
+				// Get the addresses
+				for _, addr := range endpoint.Addresses {
+					// Deduplicate addresses
+					if _, exists := seenAddresses[addr]; exists {
+						continue
+					}
+					seenAddresses[addr] = struct{}{}
+
+					var podName string
+					podNamespace := endpointSlice.Namespace
+					targetRef := endpoint.TargetRef
+					if targetRef != nil {
+						if targetRef.Kind == "Pod" {
+							podName = targetRef.Name
+							if targetRef.Namespace != "" {
+								podNamespace = targetRef.Namespace
+							}
 						}
 					}
-				}
 
-				var augmentedLabels map[string]string
-				var l krtcollections.PodLocality
-				if podName != "" {
-					maybePod := krt.FetchOne(kctx, augmentedPods, krt.FilterObjectName(types.NamespacedName{
-						Namespace: podNamespace,
-						Name:      podName,
-					}))
-					if maybePod != nil {
-						l = maybePod.Locality
-						augmentedLabels = maybePod.AugmentedLabels
+					var augmentedLabels map[string]string
+					var l PodLocality
+					if podName != "" {
+						maybePod := krt.FetchOne(kctx, augmentedPods, krt.FilterObjectName(types.NamespacedName{
+							Namespace: podNamespace,
+							Name:      podName,
+						}))
+						if maybePod != nil {
+							l = maybePod.Locality
+							augmentedLabels = maybePod.AugmentedLabels
+						}
 					}
-				}
-				ep := createLbEndpoint(addr.IP, port, augmentedLabels, enableAutoMtls)
+					ep := CreateLBEndpoint(addr, port, augmentedLabels, enableAutoMtls)
 
-				ret.Add(l, EndpointWithMd{
-					LbEndpoint: ep,
-					EndpointMd: EndpointMetadata{
-						Labels: augmentedLabels,
-					},
-				})
+					ret.Add(l, EndpointWithMd{
+						LbEndpoint: ep,
+						EndpointMd: EndpointMetadata{
+							Labels: augmentedLabels,
+						},
+					})
+				}
 			}
 		}
 		logger.Debug("created endpoint", zap.Int("numAddresses", len(ret.LbEps)))
@@ -228,7 +302,7 @@ func TransformUpstreamsBuilder(ctx context.Context, inputs EndpointsInputs) func
 	}
 }
 
-func createLbEndpoint(address string, port uint32, podLabels map[string]string, enableAutoMtls bool) *envoy_config_endpoint_v3.LbEndpoint {
+func CreateLBEndpoint(address string, port uint32, podLabels map[string]string, enableAutoMtls bool) *envoy_config_endpoint_v3.LbEndpoint {
 	// Don't get the metadata labels and filter metadata for the envoy load balancer based on the upstream, as this is not used
 	// metadata := getLbMetadata(upstream, labels, "")
 	// Get the metadata labels for the transport socket match if Istio auto mtls is enabled
@@ -265,7 +339,6 @@ func createLbEndpoint(address string, port uint32, podLabels map[string]string, 
 }
 
 func addIstioAutomtlsMetadata(metadata *envoy_config_core_v3.Metadata, labels map[string]string, enableAutoMtls bool) *envoy_config_core_v3.Metadata {
-
 	const EnvoyTransportSocketMatch = "envoy.transport_socket_match"
 	if enableAutoMtls {
 		if _, ok := labels[constants.IstioTlsModeLabel]; ok {
@@ -303,16 +376,19 @@ func findPortForService(kctx krt.HandlerContext, services krt.Collection[*corev1
 	return nil, false
 }
 
-func findFirstPortInEndpointSubsets(subset corev1.EndpointSubset, singlePortService bool, kubeServicePort *corev1.ServicePort) uint32 {
+func findPortInEndpointSlice(endpointSlice *discoveryv1.EndpointSlice, singlePortService bool, kubeServicePort *corev1.ServicePort) uint32 {
 	var port uint32
-	for _, p := range subset.Ports {
-		// if the endpoint port is not named, it implies that
+	for _, p := range endpointSlice.Ports {
+		if p.Port == nil {
+			continue
+		}
+		// If the endpoint port is not named, it implies that
 		// the kube service only has a single unnamed port as well.
 		switch {
 		case singlePortService:
-			port = uint32(p.Port)
-		case p.Name == kubeServicePort.Name:
-			port = uint32(p.Port)
+			port = uint32(*p.Port)
+		case p.Name != nil && *p.Name == kubeServicePort.Name:
+			port = uint32(*p.Port)
 			break
 		}
 	}
@@ -320,7 +396,7 @@ func findFirstPortInEndpointSubsets(subset corev1.EndpointSubset, singlePortServ
 }
 
 // TODO: use exported version from translator?
-func getEndpointClusterName(upstream *v1.Upstream) string {
+func GetEndpointClusterName(upstream *v1.Upstream) string {
 	clusterName := translator.UpstreamToClusterName(upstream.GetMetadata().Ref())
 	endpointClusterName, err := translator.GetEndpointClusterName(clusterName, upstream)
 	if err != nil {
