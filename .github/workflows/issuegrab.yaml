@@ -16,7 +16,8 @@ on:
       page_limit:
         description: "pagelimit"
         type: number
-
+  pull_request:
+    types: [opened]
 jobs:
   grab_and_update:
     runs-on: ubuntu-22.04
