@@ -8,6 +8,8 @@ metadata:
 spec:
   group: graphql.gloo.solo.io
   names:
+    categories:
+    - solo-io
     kind: GraphQLApi
     listKind: GraphQLApiList
     plural: graphqlapis
