@@ -100,8 +100,11 @@ func (s *testingSuite) BeforeTest(string, string) {
 	// HttpListener Error: ProcessingError. Reason: *v1.Upstream {
 	// default.opentelemetry-collector } not found"
 	s.Assert().Eventually(func() bool {
-		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
-		return err == nil
+		// TODO clean this up
+		err1 := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
+		err2 := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayConfigManifest,
+			"-n", s.testInstallation.Metadata.InstallNamespace)
+		return err1 == nil && err2 == nil
 	}, time.Second*30, time.Second*5, "can apply gloo tracing config")
 }
 
@@ -111,6 +114,10 @@ func (s *testingSuite) AfterTest(string, string) {
 	s.Assertions.NoError(err, "can delete otel collector")
 
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, tracingConfigManifest)
+	s.Assertions.NoError(err, "can delete gloo tracing config")
+
+	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayConfigManifest,
+			"-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assertions.NoError(err, "can delete gloo tracing config")
 }
 
