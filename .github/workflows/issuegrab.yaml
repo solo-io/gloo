@@ -1,0 +1,35 @@
+name: Grab issue
+run-name: Grab issue by @${{ github.actor }}
+permissions:
+  contents: read
+  issues: write 
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "The branch to run tests against"
+        type: choice
+        options:
+          - solo-io
+          - target
+      page_limit:
+        description: "pagelimit"
+        type: number
+
+jobs:
+  grab_and_update:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: ./releasegrabber/go.mod
+      - name: issue migrate
+        env:
+            repo-token: ${{ secrets.GITHUB_TOKEN }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd issuegrabber
+          go run main.go
