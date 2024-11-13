@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/7105
+    resolvesIssue: false
+    description: >-
+      Kubernetes gateway cluster names for kubernetes services will have a new more parsable format.
+      This behavior for kubernetes gateway can be reverted for now via GG_K8S_GW_LEGACY_CLUSTER_NAMES.
