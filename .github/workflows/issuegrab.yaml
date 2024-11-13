@@ -1,4 +1,4 @@
-name: Grab issue
+name: grabissue
 run-name: Grab issue by @${{ github.actor }}
 permissions:
   contents: read
