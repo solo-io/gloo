@@ -117,7 +117,7 @@ func (s *testingSuite) AfterTest(string, string) {
 	s.Assertions.NoError(err, "can delete gloo tracing config")
 
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayConfigManifest,
-			"-n", s.testInstallation.Metadata.InstallNamespace)
+		"-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assertions.NoError(err, "can delete gloo tracing config")
 }
 
@@ -132,6 +132,7 @@ func (s *testingSuite) TestSpanNameTransformationsWithoutRouteDecorator() {
 			curl.WithHostHeader(testHostname),
 			curl.WithPort(gatewayProxyPort),
 			curl.WithPath(pathWithoutRouteDescriptor),
+			curl.Silent(),
 		},
 		&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
@@ -157,6 +158,7 @@ func (s *testingSuite) TestSpanNameTransformationsWithRouteDecorator() {
 			curl.WithHostHeader("example.com"),
 			curl.WithPort(gatewayProxyPort),
 			curl.WithPath(pathWithRouteDescriptor),
+			curl.Silent(),
 		},
 		&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
