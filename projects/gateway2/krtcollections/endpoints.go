@@ -226,12 +226,6 @@ func transformK8sEndpoints(ctx context.Context, inputs EndpointsInputs) func(kct
 			return nil
 		}
 
-		if len(endpointSlices) == 0 {
-			warnsToLog = append(warnsToLog, fmt.Sprintf("EndpointSlices not found for service %v/%v", svcNs, svcName))
-			logger.Debug("EndpointSlices not found for service")
-			return nil
-		}
-
 		// Initialize the returned EndpointsForUpstream
 		settings := krt.FetchOne(kctx, inputs.EndpointsSettings.AsCollection())
 		enableAutoMtls := settings.EnableAutoMtls
@@ -397,8 +391,7 @@ func findPortInEndpointSlice(endpointSlice *discoveryv1.EndpointSlice, singlePor
 
 // TODO: use exported version from translator?
 func GetEndpointClusterName(upstream *v1.Upstream) string {
-	clusterName := translator.UpstreamToClusterName(upstream.GetMetadata().Ref())
-	//	clusterName := translator.KubeGatewayUpstreamToClusterName(upstream)
+	clusterName := translator.KubeGatewayUpstreamToClusterName(upstream)
 	endpointClusterName, err := translator.GetEndpointClusterName(clusterName, upstream)
 	if err != nil {
 		panic(err)
