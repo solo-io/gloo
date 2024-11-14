@@ -287,7 +287,7 @@ message Settings {
 
         message FdsOptions {
             // Enable function discovery service on GraphQL gRPC and OpenApi upstreams. Defaults to true.
-            google.protobuf.BoolValue graphql_enabled = 1;
+            google.protobuf.BoolValue graphql_enabled = 1 [deprecated = true];
         }
 
         FdsOptions fds_options = 3;
@@ -562,7 +562,7 @@ message Settings {
     ConsoleOptions console_options = 35;
 
     // Enterprise-only: GraphQL settings
-    GraphqlOptions graphql_options = 37;
+    GraphqlOptions graphql_options = 37 [deprecated = true];
 
     // Enterprise-only: External Processing filter settings. These settings are used as
     // defaults globally, and can be overridden by HttpListenerOptions, VirtualHostOptions,
@@ -975,10 +975,10 @@ message ConsoleOptions {
 
     // Whether to enable the GraphQL API Explorer. This feature requires a Gloo Edge Enterprise license with GraphQL enabled.
     // Defaults to true.
-    google.protobuf.BoolValue api_explorer_enabled = 2;
+    google.protobuf.BoolValue api_explorer_enabled = 2 [deprecated = true];
 }
 
-// GraphQL settings used by the control plane and UI.
+// Deprecated: GraphQL settings used by the control plane and UI.
 message GraphqlOptions {
 
     // Options for how to validate changes to schema definitions.

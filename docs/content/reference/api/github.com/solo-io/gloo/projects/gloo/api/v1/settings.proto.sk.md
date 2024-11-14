@@ -977,7 +977,7 @@ Settings used by the Enterprise Console (UI)
 ### GraphqlOptions
 
  
-GraphQL settings used by the control plane and UI.
+Deprecated: GraphQL settings used by the control plane and UI.
 
 ```yaml
 "schemaChangeValidationOptions": .gloo.solo.io.GraphqlOptions.SchemaChangeValidationOptions
