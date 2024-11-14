@@ -1623,7 +1623,7 @@ message PortalAuth {
     string api_key_header = 2;
     // Options to connect to redis. If not provided, data will be cached in memory.
     RedisOptions redis_options = 3;
-    // The frequency at which the validated credential data should be refreshed by quering the portal web server.
+    // The frequency at which the validated credential data should be refreshed by quering the portal web server. Defaults to 60s.
     google.protobuf.Duration cache_duration = 4;
     // Timeout for the portal web server to respond. Defaults to 200ms
     google.protobuf.Duration request_timeout = 5;
