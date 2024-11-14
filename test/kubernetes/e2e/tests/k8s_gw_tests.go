@@ -2,6 +2,7 @@ package tests
 
 import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	crd_categories "github.com/solo-io/gloo/test/kubernetes/e2e/features/CRD_categories"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/admin_server"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/deployer"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/directresponse"
@@ -33,6 +34,7 @@ func KubeGatewaySuiteRunner() e2e.SuiteRunner {
 	kubeGatewaySuiteRunner.Register("RouteDelegation", route_delegation.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("GlooAdminServer", admin_server.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("DirectResponse", directresponse.NewTestingSuite)
+	kubeGatewaySuiteRunner.Register("CRDCategories", crd_categories.NewTestingSuite)
 
 	return kubeGatewaySuiteRunner
 }

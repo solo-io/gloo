@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/stretchr/testify/suite"
@@ -51,7 +50,7 @@ func (s *testingSuite) TestChangedConfigMapTriggersRollout() {
 		err = adminCli.ConfigDumpCmd(s.Ctx, nil).WithStdout(dump).Run().Cause()
 		s.NoError(err)
 
-		strings.Contains(b.String(), str)
+		s.Contains(b.String(), str)
 	}
 
 	getChecksum := func() string {
