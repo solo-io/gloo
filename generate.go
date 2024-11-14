@@ -55,6 +55,11 @@ func main() {
 				DataDir: "/docs/data",
 				ApiDir:  "reference/api",
 			},
+			RenderOptions: &options.RenderOptions{
+				SkipLinksForPackages: []string{
+					"github.com/solo-io/gloo/projects/gloo/api/external",
+				},
+			},
 		},
 		ExternalImports: protoImports,
 		ValidationSchemaOptions: &schemagen.ValidationSchemaOptions{
