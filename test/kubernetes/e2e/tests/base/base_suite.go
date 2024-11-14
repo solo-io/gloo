@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	"github.com/stretchr/testify/suite"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -92,7 +93,7 @@ func (s *BaseTestingSuite) SetupSuite() {
 
 		for _, resource := range s.Setup.Resources {
 			if pod, ok := resource.(*corev1.Pod); ok {
-				s.TestInstallation.Assertions.EventuallyPodsRunning(s.Ctx, pod.Namespace, v1.ListOptions{
+				s.TestInstallation.Assertions.EventuallyPodsRunning(s.Ctx, pod.Namespace, metav1.ListOptions{
 					LabelSelector: fmt.Sprintf("app.kubernetes.io/name=%s", pod.Name),
 				})
 			}

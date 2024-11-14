@@ -81,7 +81,7 @@ jobs:
           go-test-args: '-v -timeout=35m'
           go-test-run-regex: '^TestFullEnvoyValidation$$|^TestValidationStrict$$|^TestValidationAlwaysAccept$$|^TestTransformationValidationDisabled$$|^TestGloomtlsGatewayEdgeGateway$$|^TestWatchNamespaceSelector$$'
 
-        # October 10, 2024: 12 minutes
+        # October 10, 2024: 18 minutes
         - cluster-name: 'cluster-six'
           go-test-args: '-v -timeout=25m'
           go-test-run-regex: '^TestDiscoveryWatchlabels$$|^TestK8sGatewayNoValidation$$|^TestHelm$$|^TestHelmSettings$$|^TestK8sGatewayAws$$|^TestZeroDowntimeRollout$$'
