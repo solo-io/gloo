@@ -3,6 +3,8 @@ package helm
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/CRD_categories"
 	"io"
 	"os"
 	"path/filepath"
@@ -105,6 +107,14 @@ func (s *testingSuite) TestApplyCRDs() {
 		out, _, err := s.TestHelper.Execute(s.Ctx, "get", "crd", crd.GetName())
 		s.NoError(err)
 		s.Contains(out, crd.GetName())
+
+		// Ensure the CRD has the k8sgateway category
+		out, _, err = s.TestHelper.Execute(s.Ctx, "get", "crd", crd.GetName(), "-o", "json")
+		s.NoError(err)
+
+		var crdJson v1.CustomResourceDefinition
+		s.NoError(json.Unmarshal([]byte(out), &crdJson))
+		s.Contains(crdJson.Spec.Names.Categories, crd_categories.CommonCRDCategory)
 	}
 }
 

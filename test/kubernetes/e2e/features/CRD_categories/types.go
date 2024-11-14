@@ -7,6 +7,9 @@ import (
 )
 
 var (
+	enterpriseCRDCategory = "solo-io"
+	CommonCRDCategory     = "k8sgateway"
+
 	enterpriseCRsManifest = filepath.Join(util.MustGetThisDir(), "testdata/manifests", "empty-enterprise-crs.yaml")
 	ossCRsManifest        = filepath.Join(util.MustGetThisDir(), "testdata/manifests", "empty-oss-crs.yaml")
 
@@ -15,4 +18,5 @@ var (
 		"ratelimitconfig.ratelimit.solo.io/empty-ratelimitconfig",
 		"graphqlapi.graphql.gloo.solo.io/empty-graphqlapi",
 	}
+	installedOssCR = "virtualservice.gateway.solo.io/empty-virtualservice"
 )
