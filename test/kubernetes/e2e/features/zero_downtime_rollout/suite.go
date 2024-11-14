@@ -43,9 +43,9 @@ func (s *testingSuite) TestZeroDowntimeRollout() {
 	// Send traffic to the gloo gateway pod while we restart the deployment
 	// Run this for 30s which is long enough to restart the deployment since there's no easy way
 	// to stop this command once the test is over
-	// This executes 600 req @ 4 req/sec = 15s (2 * terminationGracePeriodSeconds (5) + buffer)
+	// This executes 800 req @ 4 req/sec = 20s (3 * terminationGracePeriodSeconds (5) + buffer)
 	// kubectl exec -n hey hey -- hey -disable-keepalive -c 4 -q 10 --cpus 1 -n 1200 -m GET -t 1 -host example.com http://gloo-proxy-gw.default.svc.cluster.local:8080
-	args := []string{"exec", "-n", "hey", "hey", "--", "hey", "-disable-keepalive", "-c", "4", "-q", "10", "--cpus", "1", "-n", "600", "-m", "GET", "-t", "1", "-host", "example.com", "http://gloo-proxy-gw.default.svc.cluster.local:8080"}
+	args := []string{"exec", "-n", "hey", "hey", "--", "hey", "-disable-keepalive", "-c", "4", "-q", "10", "--cpus", "1", "-n", "800", "-m", "GET", "-t", "1", "-host", "example.com", "http://gloo-proxy-gw.default.svc.cluster.local:8080"}
 
 	var err error
 	cmd := s.TestHelper.Cli.Command(s.Ctx, args...)
@@ -111,16 +111,16 @@ func (s *testingSuite) TestZeroDowntimeRollout() {
 	// 		resp read:	0.0003 secs, 0.0001 secs, 0.0039 secs
 	//
 	//   Status code distribution:
-	// 		[200]	600 responses
+	// 		[200]	800 responses
 	//
 	// ***** Should not contain something like this *****
 	//   Status code distribution:
-	// 		[200]	579 responses
+	// 		[200]	779 responses
 	// 	Error distribution:
 	//   	[17]	Get http://gloo-proxy-gw.default.svc.cluster.local:8080: dial tcp 10.96.177.91:8080: connection refused
 	//   	[4]	Get http://gloo-proxy-gw.default.svc.cluster.local:8080: net/http: request canceled while waiting for connection
 
 	// Verify that there were no errors
-	Expect(cmd.Output()).To(ContainSubstring("[200]	600 responses"))
+	Expect(cmd.Output()).To(ContainSubstring("[200]	800 responses"))
 	Expect(cmd.Output()).ToNot(ContainSubstring("Error distribution"))
 }
