@@ -1,5 +1,5 @@
 changelog:
-  - type: HELM
+  - type: FIX
     issueLink: https://github.com/solo-io/solo-projects/issues/7159
     resolvesIssue: false
     description: >-
