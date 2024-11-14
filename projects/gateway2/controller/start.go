@@ -151,6 +151,8 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 		krt.WithName("AuthConfig"))
 
 	inputChannels := proxy_syncer.NewGatewayInputChannels()
+
+	setupLog.Info("initializing k8sgateway extensions")
 	k8sGwExtensions, err := cfg.ExtensionsFactory(ctx, ext.K8sGatewayExtensionsFactoryParameters{
 		Mgr:         mgr,
 		IstioClient: cfg.Client,
@@ -169,6 +171,7 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 	}
 
 	// Create the proxy syncer for the Gateway API resources
+	setupLog.Info("initializing proxy syncer")
 	proxySyncer := proxy_syncer.NewProxySyncer(
 		ctx,
 		cfg.InitialSettings,
@@ -188,7 +191,6 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 		cfg.SetupOpts.ProxyReconcileQueue,
 	)
 	proxySyncer.Init(ctx, cfg.Debugger)
-
 	if err := mgr.Add(proxySyncer); err != nil {
 		setupLog.Error(err, "unable to add proxySyncer runnable")
 		return nil, err
