@@ -7,9 +7,13 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
+	gloo_defaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -94,18 +98,35 @@ func (s *testingSuite) BeforeTest(string, string) {
 		otelcolSelector,
 	)
 
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
+	s.NoError(err, "can apply gloo tracing resources")
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		func() (resources.InputResource, error) {
+			return s.testInstallation.ResourceClients.UpstreamClient().Read(
+				"namespace", "name", clients.ReadOpts{Ctx: s.ctx})
+		},
+		core.Status_Accepted,
+		gloo_defaults.GlooReporter,
+	)
+
+	time.Sleep(10 * time.Second)
+
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayConfigManifest,
+		"-n", s.testInstallation.Metadata.InstallNamespace)
+	s.NoError(err, "can create gateway and service")
+
 	// Attempt to apply tracingConfigManifest multiple times. The first time
 	// fails regularly with this message: "failed to validate Proxy [namespace:
 	// gloo-gateway-edge-test, name: gateway-proxy] with gloo validation:
 	// HttpListener Error: ProcessingError. Reason: *v1.Upstream {
 	// default.opentelemetry-collector } not found"
-	s.Assert().Eventually(func() bool {
-		// TODO clean this up
-		err1 := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
-		err2 := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayConfigManifest,
-			"-n", s.testInstallation.Metadata.InstallNamespace)
-		return err1 == nil && err2 == nil
-	}, time.Second*30, time.Second*5, "can apply gloo tracing config")
+	// s.Assert().Eventually(func() bool {
+	// 	// TODO clean this up
+	// 	err1 := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
+	// 	err2 := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayConfigManifest,
+	// 		"-n", s.testInstallation.Metadata.InstallNamespace)
+	// 	return err1 == nil && err2 == nil
+	// }, time.Second*30, time.Second*5, "can apply gloo tracing config")
 }
 
 func (s *testingSuite) AfterTest(string, string) {
