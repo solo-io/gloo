@@ -15,7 +15,7 @@ import (
 	kube2 "github.com/solo-io/gloo/pkg/bootstrap/leaderelector/kube"
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector/singlereplica"
 	"github.com/solo-io/gloo/pkg/version"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/controller/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
@@ -48,7 +48,7 @@ type SetupOpts struct {
 
 var once sync.Once
 
-// Main is the main entrypoint for running Gloo Edge components
+// Main is the main entrypoint for running k8sgateway components
 // It works by performing the following:
 //  1. Initialize a SettingsClient backed either by Kubernetes or a File
 //  2. Run an event loop, watching events on the Settings resource, and executing the

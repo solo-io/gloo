@@ -11,10 +11,10 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	kubepluginapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
-	"github.com/solo-io/gloo/projects/gloo/pkg/discovery"
-	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
+	v1 "github.com/solo-io/gloo/projects/controller/pkg/api/v1"
+	kubepluginapi "github.com/solo-io/gloo/projects/controller/pkg/api/v1/options/kubernetes"
+	"github.com/solo-io/gloo/projects/controller/pkg/discovery"
+	kubeplugin "github.com/solo-io/gloo/projects/controller/pkg/plugins/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	kubecache "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -23,7 +23,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-// Kubernetes tests for plugin from projects/gloo/pkg/plugins/kubernetes
+// Kubernetes tests for plugin from projects/controller/pkg/plugins/kubernetes
 var _ = Describe("Kubernetes Plugin", func() {
 
 	var (

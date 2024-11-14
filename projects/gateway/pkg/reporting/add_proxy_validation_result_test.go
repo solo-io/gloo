@@ -5,11 +5,11 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	validationapi "github.com/solo-io/gloo/projects/controller/pkg/api/grpc/validation"
+	gloov1 "github.com/solo-io/gloo/projects/controller/pkg/api/v1"
+	gloov1snap "github.com/solo-io/gloo/projects/controller/pkg/api/v1/gloosnapshot"
+	"github.com/solo-io/gloo/projects/controller/pkg/utils/validation"
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
-	validationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
-	"github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/gloo/test/samples"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 

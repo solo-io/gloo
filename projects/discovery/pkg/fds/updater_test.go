@@ -12,10 +12,10 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	core_solo_io "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
+	v1 "github.com/solo-io/gloo/projects/controller/pkg/api/v1"
+	plugins "github.com/solo-io/gloo/projects/controller/pkg/api/v1/options"
+	kubernetes_plugins_gloo_solo_io "github.com/solo-io/gloo/projects/controller/pkg/api/v1/options/kubernetes"
 	. "github.com/solo-io/gloo/projects/discovery/pkg/fds"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
-	kubernetes_plugins_gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 )
 
 type testUpstreamWriterClient struct{}

@@ -16,10 +16,10 @@ import (
 	"google.golang.org/grpc"
 	reflectpb "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 
+	v1 "github.com/solo-io/gloo/projects/controller/pkg/api/v1"
+	plugins "github.com/solo-io/gloo/projects/controller/pkg/api/v1/options"
+	grpc_json_plugins "github.com/solo-io/gloo/projects/controller/pkg/api/v1/options/grpc_json"
 	"github.com/solo-io/gloo/projects/discovery/pkg/fds"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
-	grpc_json_plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc_json"
 )
 
 func getGrpcspec(u *v1.Upstream) *grpc_json_plugins.GrpcJsonTranscoder {

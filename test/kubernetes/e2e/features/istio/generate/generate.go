@@ -5,7 +5,7 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/projects/controller/pkg/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/istio"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/resources"
 	"github.com/solo-io/skv2/codegen/util"
@@ -22,7 +22,7 @@ const (
 func main() {
 	log.Println("starting generate for istio examples")
 
-	// use the Gloo Edge Gateway api resources with automtls enabled
+	// use the k8sgateway Gateway api resources with automtls enabled
 	edgeGatewayApiResources := istio.GetGlooGatewayEdgeResources(exampleNs, istio.UpstreamConfigOpts{})
 	automtlsGeneratedExample := filepath.Join(util.MustGetThisDir(), "generated_example", fmt.Sprintf("automtls-enabled-%s.gen.yaml", istio.EdgeApisRoutingFileName))
 	err := resources.WriteResourcesToFile(edgeGatewayApiResources, automtlsGeneratedExample)

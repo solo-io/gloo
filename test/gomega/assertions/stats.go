@@ -12,7 +12,7 @@ import (
 
 	"k8s.io/utils/pointer"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/projects/controller/pkg/defaults"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/gomega/transforms"
 
@@ -23,7 +23,7 @@ import (
 	"github.com/solo-io/go-utils/stats"
 )
 
-// Gloo Edge exports statistics to provide details about how the system is behaving
+// k8sgateway exports statistics to provide details about how the system is behaving
 // Most stats utilities are defined in: https://github.com/solo-io/go-utils/tree/main/stats
 // This file contains a set of assertions that can be performed by tests to ensure that recorded stats
 // match what we would expect

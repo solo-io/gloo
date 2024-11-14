@@ -62,7 +62,7 @@ func rootApp(ctx context.Context) *cobra.Command {
 func getReleasesCmd(opts *options) *cobra.Command {
 	app := &cobra.Command{
 		Use:   "gen-releases",
-		Short: "cache github releases for gloo edge repository",
+		Short: "cache github releases for k8sgateway repository",
 		RunE:  fetchAndSerializeReleases(opts),
 	}
 	return app
@@ -454,11 +454,9 @@ func fetchEnterpriseHelmValues(_ []string) error {
 	if err != nil {
 		return err
 	}
-	version, err := semver.NewVersion(string(semverReleaseTag))
-	if err != nil {
-		return err
-	}
-	minorReleaseTag := fmt.Sprintf("v%d.%d.x", version.Major(), version.Minor())
+
+	minorReleaseTag := "v" + string(semverReleaseTag)
+
 	files, err := githubutils.GetFilesFromGit(ctx, client, repoOwner, glooEnterpriseRepo, minorReleaseTag, path)
 	if err != nil {
 		return err

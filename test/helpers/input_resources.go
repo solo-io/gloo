@@ -6,7 +6,7 @@ import (
 	"github.com/onsi/gomega/types"
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/projects/controller/pkg/defaults"
 
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gstruct"
@@ -81,7 +81,7 @@ func getResourceStatus(getter InputResourceGetter) (core.Status, error) {
 	statusClient := statusutils.GetStatusClientFromEnvOrDefault(defaults.GlooSystem)
 	status := statusClient.GetStatus(resource)
 
-	// In newer versions of Gloo Edge we provide a default "empty" status, which allows us to patch it to perform updates
+	// In newer versions of k8sgateway we provide a default "empty" status, which allows us to patch it to perform updates
 	// As a result, a nil check isn't enough to determine that that status hasn't been reported
 	// Note: RateLimitConfig statuses can have an empty reporter
 	if status == nil {
