@@ -1,6 +1,6 @@
 changelog:
-  - type: FIX
+  - type: HELM
     issueLink: https://github.com/solo-io/solo-projects/issues/7159
     resolvesIssue: false
     description: >-
-      Mark GraphQL as deprecated
+      The GraphQL feature of Gloo Gateway is deprecated and will be removed in a future release
