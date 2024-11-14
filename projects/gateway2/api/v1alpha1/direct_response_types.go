@@ -8,7 +8,7 @@ import (
 //
 // +kubebuilder:object:root=true
 // +kubebuilder:metadata:labels={app=gloo-gateway,app.kubernetes.io/name=gloo-gateway}
-// +kubebuilder:resource:categories=gloo-gateway,shortName=dr
+// +kubebuilder:resource:categories={gloo-gateway,k8sgateway},shortName=dr
 // +kubebuilder:subresource:status
 type DirectResponse struct {
 	metav1.TypeMeta   `json:",inline"`
