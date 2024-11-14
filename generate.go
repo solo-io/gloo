@@ -56,7 +56,7 @@ func main() {
 				ApiDir:  "reference/api",
 			},
 			RenderOptions: &options.RenderOptions{
-				SkipLinksForPackages: []string{
+				SkipLinksForPathPrefixes: []string{
 					"github.com/solo-io/gloo/projects/gloo/api/external",
 				},
 			},
