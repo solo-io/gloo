@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/solo-kit/pkg/code-generator/cmd"
 	"github.com/solo-io/solo-kit/pkg/code-generator/docgen/options"
@@ -81,5 +83,12 @@ func main() {
 	if err := cmd.Generate(generateOptions); err != nil {
 		log.Fatalf("generate failed!: %v", err)
 	}
+
+	removeExternalDocs()
 	log.Printf("finished generating code for gloo")
+}
+
+func removeExternalDocs() {
+	// as requested here: https://github.com/solo-io/solo-projects/issues/6768
+	os.RemoveAll("docs/content/reference/api/github.com/solo-io/gloo/projects/gloo/api/external/")
 }
