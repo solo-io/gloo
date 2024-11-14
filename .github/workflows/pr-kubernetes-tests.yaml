@@ -58,7 +58,7 @@ jobs:
         # Oct 3, 2024: 24 minutes
         - cluster-name: 'cluster-one'
           go-test-args: '-v -timeout=25m'
-          go-test-run-regex: '^TestK8sGateway$$/^RouteDelegation$$|^TestK8sGateway$$/^Services$$|^TestGlooctlGlooGatewayEdgeGateway$$|^TestGlooctlK8sGateway$$'
+          go-test-run-regex: '^TestK8sGateway$$/^RouteDelegation$$|^TestGlooctlGlooGatewayEdgeGateway$$|^TestGlooctlK8sGateway$$'
 
         # Oct 10, 2024: 24 minutes
         - cluster-name: 'cluster-two'
@@ -84,7 +84,7 @@ jobs:
         # October 10, 2024: 12 minutes
         - cluster-name: 'cluster-six'
           go-test-args: '-v -timeout=25m'
-          go-test-run-regex: '^TestDiscoveryWatchlabels$$|^TestK8sGatewayNoValidation$$|^TestHelm$$|^TestHelmSettings$$|^TestK8sGatewayAws$$|^TestK8sGateway$$/^CRDCategories$$'
+          go-test-run-regex: '^TestDiscoveryWatchlabels$$|^TestK8sGatewayNoValidation$$|^TestHelm$$|^TestHelmSettings$$|^TestK8sGatewayAws$$|^TestK8sGateway$$/^CRDCategories$$|^TestK8sGateway$$/^HTTPRouteServices$$|^TestK8sGateway$$/^TCPRouteServices$$|'
 
         # In our PR tests, we run the suite of tests using the upper ends of versions that we claim to support
         # The versions should mirror: https://docs.solo.io/gloo-edge/latest/reference/support/
