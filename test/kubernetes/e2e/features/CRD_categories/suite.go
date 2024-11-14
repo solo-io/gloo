@@ -3,10 +3,11 @@ package crd_categories
 import (
 	"bytes"
 	"context"
-	"github.com/solo-io/gloo/test/kubernetes/e2e"
-	"github.com/stretchr/testify/suite"
 	"io"
 	"strings"
+
+	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	"github.com/stretchr/testify/suite"
 )
 
 var _ e2e.NewSuiteFunc = NewTestingSuite

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/solo-io/gloo/test/kubernetes/e2e/features/CRD_categories"
 	"io"
 	"os"
 	"path/filepath"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	crd_categories "github.com/solo-io/gloo/test/kubernetes/e2e/features/CRD_categories"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	"github.com/solo-io/skv2/codegen/util"
