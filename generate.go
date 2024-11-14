@@ -84,11 +84,15 @@ func main() {
 		log.Fatalf("generate failed!: %v", err)
 	}
 
-	removeExternalDocs()
+	err := removeExternalApiDocs()
+	if err != nil {
+		log.Fatalf("failed to remove external api docs: %v", err)
+	}
+
 	log.Printf("finished generating code for gloo")
 }
 
-func removeExternalDocs() {
-	// as requested here: https://github.com/solo-io/solo-projects/issues/6768
-	os.RemoveAll("docs/content/reference/api/github.com/solo-io/gloo/projects/gloo/api/external/")
+func removeExternalApiDocs() error {
+	const externalApiDocsPath = "docs/content/reference/api/github.com/solo-io/gloo/projects/gloo/api/external/"
+	return os.RemoveAll(externalApiDocsPath)
 }
