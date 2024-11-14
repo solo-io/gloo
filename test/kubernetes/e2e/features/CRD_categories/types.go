@@ -15,7 +15,7 @@ var (
 
 	installedEnterpriseCRs = []string{
 		"authconfig.enterprise.gloo.solo.io/empty-authconfig",
-		"ratelimitconfig.ratelimit.solo.io/empty-ratelimitconfig",
+		//"ratelimitconfig.ratelimit.solo.io/empty-ratelimitconfig",
 		"graphqlapi.graphql.gloo.solo.io/empty-graphqlapi",
 	}
 	installedOssCR = "virtualservice.gateway.solo.io/empty-virtualservice"
