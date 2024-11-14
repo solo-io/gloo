@@ -10,6 +10,7 @@ spec:
   names:
     categories:
     - solo-io
+    - k8sgateway
     kind: AuthConfig
     listKind: AuthConfigList
     plural: authconfigs

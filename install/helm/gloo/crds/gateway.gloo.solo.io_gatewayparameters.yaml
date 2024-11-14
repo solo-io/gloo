@@ -13,6 +13,7 @@ spec:
   names:
     categories:
     - gloo-gateway
+    - k8sgateway
     kind: GatewayParameters
     listKind: GatewayParametersList
     plural: gatewayparameters

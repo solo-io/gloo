@@ -10,6 +10,8 @@ metadata:
 spec:
   group: gloo.solo.io
   names:
+    categories:
+    - k8sgateway
     kind: Settings
     listKind: SettingsList
     plural: settings
