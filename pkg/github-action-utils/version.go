@@ -35,9 +35,7 @@ func GetLatestEnterpriseVersion(repoRootPath string, repo string, owner string) 
 		return err
 	}
 	defer f.Close()
-	// get the latest version from the helm repo, include unstable versions so it works from the main branches
-	// for LTS branches, unstable versions will be filtered out by the version constraints
-	enterpriseVersion, err := version.GetLatestHelmChartVersionWithMaxVersion(version.EnterpriseHelmRepoIndex, version.GlooEE, false, maxGlooEVersion)
+	enterpriseVersion, err := version.GetLatestHelmChartVersionWithMaxVersion(version.EnterpriseHelmRepoIndex, version.GlooEE, true, maxGlooEVersion)
 	if err != nil {
 		return err
 	}

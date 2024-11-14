@@ -454,9 +454,11 @@ func fetchEnterpriseHelmValues(_ []string) error {
 	if err != nil {
 		return err
 	}
-
-	minorReleaseTag := "v" + string(semverReleaseTag)
-
+	version, err := semver.NewVersion(string(semverReleaseTag))
+	if err != nil {
+		return err
+	}
+	minorReleaseTag := fmt.Sprintf("v%d.%d.x", version.Major(), version.Minor())
 	files, err := githubutils.GetFilesFromGit(ctx, client, repoOwner, glooEnterpriseRepo, minorReleaseTag, path)
 	if err != nil {
 		return err
