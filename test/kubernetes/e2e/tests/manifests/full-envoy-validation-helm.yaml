@@ -4,4 +4,6 @@ gateway:
     allowWarnings: true # These tests to not need to fail on warnings
     # transformation validation is disabled because full envoy validation is enabled.
     disableTransformationValidation: true
+    webhook:
+      timeoutSeconds: 30 # We are seeing Envoy take 10s of seconds to validate some of the larger configurations
     fullEnvoyValidation: true
