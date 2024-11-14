@@ -17,10 +17,10 @@ kubeGateway:
   gatewayParameters:
     glooGateway:
       podTemplate:
-        terminationGracePeriodSeconds: 7
+        terminationGracePeriodSeconds: 5
         gracefulShutdown:
           enabled: true
-          sleepTimeSeconds: 5
+          sleepTimeSeconds: 2
         probes: true
         livenessProbeEnabled: true
 
