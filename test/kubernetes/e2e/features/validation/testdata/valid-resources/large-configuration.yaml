@@ -770,3 +770,247 @@ spec:
         single:
           upstream:
             name: default-httpbin-8000
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: httpbin-3
+spec:
+  virtualHost:
+    domains:
+    - httpbin-3.example.io
+    optionsConfigRefs:
+      delegateOptions:
+      - name: cors-company
+        namespace: full-envoy-validation-test
+      - name: jwt-validation-company
+        namespace: full-envoy-validation-test
+      - name: jwt-decode-company
+        namespace: full-envoy-validation-test
+    routes:
+    - directResponseAction:
+        body: '{"status":"fail","data":{"error":"COUNTRY_BLOCKED"}'
+        status: 451
+      matchers:
+      - headers:
+        - name: x-something-country-blocked
+          value: country_not_allowed
+        prefix: /
+    - matchers:
+      - exact: /gql/v2/healthcheck
+      options:
+        autoHostRewrite: true
+        prefixRewrite: /healthcheck
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: default-httpbin-8000
+    - matchers:
+      - headers:
+        - name: x-something-user-token
+        prefix: /gql/v2
+      options:
+        autoHostRewrite: true
+        prefixRewrite: /
+        stagedTransformations:
+          early:
+            responseTransforms:
+            - responseTransformation:
+                logRequestResponseInfo: true
+                transformationTemplate:
+                  body:
+                    text: '{% if header(":status") == "401" and header("server")
+                      == "Google Frontend" %}{{ body() }}{% else if header(":status")
+                      != "401" %}{{ body() }}{% else %}{"status":"fail","data":{"error":"INVALID_TOKEN"}{%
+                      endif %}'
+                  headers:
+                    :status:
+                      text: '{% if header(":status") == "401" and header("server")
+                        == "Google Frontend" %}401{% else if header(":status") !=
+                        "401" %}{{ header(":status") }}{% else %}403{% endif %}'
+                  ignoreErrorOnParse: true
+          inheritTransformation: true
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: default-httpbin-8000
+    - matchers:
+      - prefix: /ip
+      name: jwt-options-route
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: default-httpbin-8000
+    - matchers:
+      - prefix: /get
+      name: jwt-options-route
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: default-httpbin-8000
+    - matchers:
+      - prefix: /headers
+      name: jwt-options-route
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: default-httpbin-8000
+    - matchers:
+      - prefix: /status
+      name: jwt-options-route
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: default-httpbin-8000
+    - matchers:
+      - prefix: /user-agent
+      name: jwt-options-route
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: default-httpbin-8000
+    - matchers:
+      - prefix: /cookies
+      name: jwt-options-route
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: default-httpbin-8000
+    - matchers:
+      - prefix: /base64
+      name: jwt-options-route
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: default-httpbin-8000
+    - matchers:
+      - headers:
+        - invertMatch: true
+          name: x-something-api-key
+        prefix: /gql/v2
+      options:
+        autoHostRewrite: true
+        prefixRewrite: /
+        stagedTransformations:
+          early:
+            responseTransforms:
+            - responseTransformation:
+                logRequestResponseInfo: true
+                transformationTemplate:
+                  body:
+                    text: '{% if header(":status") == "401" %}{"status":"fail","data":{"error":"INVALID_TOKEN"}}{%
+                      else %}{{ body() }}{% endif%}'
+                  headers:
+                    :status:
+                      text: '{% if header(":status") == "401" %}403{% else %}{{
+                        header(":status") }}{% endif %}'
+                  ignoreErrorOnParse: true
+          inheritTransformation: true
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: default-httpbin-8000
+    - matchers:
+      - headers:
+        - name: x-something-api-key
+          regex: true
+          value: ^$
+        prefix: /gql/v2
+      options:
+        autoHostRewrite: true
+        prefixRewrite: /
+        stagedTransformations:
+          early:
+            responseTransforms:
+            - responseTransformation:
+                logRequestResponseInfo: true
+                transformationTemplate:
+                  body:
+                    text: '{% if header(":status") == "401" and header("server")
+                      == "Frontend" %}{{ body() }}{% else if header(":status")
+                      != "401" %}{{ body() }}{% else %}{"status":"fail","data":{"error":"INVALID_TOKEN"}{%
+                      endif %}'
+                  headers:
+                    :status:
+                      text: '{% if header(":status") == "401" and header("server")
+                        == "Frontend" %}401{% else if header(":status") !=
+                        "401" %}{{ header(":status") }}{% else %}403{% endif %}'
+                  ignoreErrorOnParse: true
+          inheritTransformation: true
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: default-httpbin-8000
+    - matchers:
+      - headers:
+        - name: x-something-api-key
+          regex: true
+          value: .+
+        prefix: /gql/v2
+      options:
+        autoHostRewrite: true
+        extauth:
+          configRef:
+            name: something
+        prefixRewrite: /
+        stagedTransformations:
+          early:
+            responseTransforms:
+            - responseTransformation:
+                transformationTemplate:
+                  body:
+                    text: '{% if header(":status") == "401" %}{"status":"fail","data":{"error":"INVALID_API_KEY"}{%
+                      else %}{{ context() }}{% endif %}'
+                  headers:
+                    :status:
+                      text: '{% if header(":status") == "401" %}403{% else %}{{
+                        header(":status") }}{% endif %}'
+          regular:
+            requestTransforms:
+            - clearRouteCache: true
+              requestTransformation:
+                logRequestResponseInfo: true
+                transformationTemplate:
+                  advancedTemplates: true
+                  headers:
+                    x-something-profile-id:
+                      text: web-app-ssr
+                    x-something-user-id:
+                      text: web-app-ssr
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: default-httpbin-8000
