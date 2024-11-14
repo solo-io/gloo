@@ -160,7 +160,7 @@ func StartGGv2WithConfig(ctx context.Context,
 		Debugger: setupOpts.KrtDebugger,
 	})
 	if err != nil {
-		logger.Error("failed building controller: ", err)
+		logger.Error("failed initializing controller: ", err)
 		return err
 	}
 	/// no collections after this point
