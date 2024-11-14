@@ -2,11 +2,10 @@ package setup
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
-
-	"errors"
 
 	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
@@ -43,9 +42,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-var (
-	settingsGVR = glookubev1.SchemeGroupVersion.WithResource("settings")
-)
+var settingsGVR = glookubev1.SchemeGroupVersion.WithResource("settings")
 
 func createKubeClient(restConfig *rest.Config) (istiokube.Client, error) {
 	restCfg := istiokube.NewClientConfigForRestConfig(restConfig)
@@ -77,15 +74,14 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 		return nil
 	}
 	return out
-
 }
 
 func StartGGv2(ctx context.Context,
 	setupOpts *bootstrap.SetupOpts,
 	uccBuilder krtcollections.UniquelyConnectedClientsBulider,
 	extensionsFactory extensions.K8sGatewayExtensionsFactory,
-	pluginRegistryFactory func(opts registry.PluginOpts) plugins.PluginRegistryFactory) error {
-
+	pluginRegistryFactory func(opts registry.PluginOpts) plugins.PluginRegistryFactory,
+) error {
 	restConfig := ctrl.GetConfigOrDie()
 
 	return StartGGv2WithConfig(ctx, setupOpts, restConfig, uccBuilder, extensionsFactory, pluginRegistryFactory, setuputils.SetupNamespaceName())
@@ -164,6 +160,7 @@ func StartGGv2WithConfig(ctx context.Context,
 		Debugger: setupOpts.KrtDebugger,
 	})
 	if err != nil {
+		logger.Error("failed building controller: ", err)
 		return err
 	}
 	/// no collections after this point
