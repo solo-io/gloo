@@ -5,12 +5,12 @@ metadata:
 spec:
   configs: []
 ---
-#apiVersion: ratelimit.solo.io/v1alpha1
-#kind: RateLimitConfig
-#metadata:
-#  name: empty-ratelimitconfig
-#spec: {}
-#---
+apiVersion: ratelimit.solo.io/v1alpha1
+kind: RateLimitConfig
+metadata:
+  name: empty-ratelimitconfig
+spec: {}
+---
 apiVersion: graphql.gloo.solo.io/v1beta1
 kind: GraphQLApi
 metadata:
