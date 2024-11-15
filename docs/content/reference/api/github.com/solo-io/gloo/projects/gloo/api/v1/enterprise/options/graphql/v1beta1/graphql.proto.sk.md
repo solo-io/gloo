@@ -46,6 +46,7 @@ weight: 5
 ### RequestTemplate
 
  
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release
 Defines a configuration for generating outgoing requests for a resolver.
 
 ```yaml
@@ -67,7 +68,8 @@ Defines a configuration for generating outgoing requests for a resolver.
 ---
 ### ResponseTemplate
 
-
+ 
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release
 
 ```yaml
 "resultRoot": string
@@ -87,6 +89,7 @@ Defines a configuration for generating outgoing requests for a resolver.
 ### GrpcRequestTemplate
 
  
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release
 Defines a configuration for generating outgoing requests for a resolver.
 
 ```yaml
@@ -111,6 +114,7 @@ Defines a configuration for generating outgoing requests for a resolver.
 ### RESTResolver
 
  
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release
 control-plane API
 
 ```yaml
@@ -137,6 +141,7 @@ control-plane API
 ### GrpcDescriptorRegistry
 
  
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release
 Defines a configuration for serializing and deserializing requests for a gRPC resolver.
 Is a Schema Extension
 
@@ -200,7 +205,8 @@ control-plane API
 ---
 ### StitchedSchema
 
-
+ 
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release
 
 ```yaml
 "subschemas": []graphql.gloo.solo.io.StitchedSchema.SubschemaConfig
@@ -259,7 +265,8 @@ control-plane API
 ---
 ### MockResolver
 
-
+ 
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release
 
 ```yaml
 "syncResponse": .google.protobuf.Value
@@ -300,6 +307,7 @@ control-plane API
 ### Resolution
 
  
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release
 Define a named resolver which can be then matched to a field using the `resolve` directive.
 if a field does not have resolver, the default resolver will be used.
 the default resolver takes the field with the same name from the parent, and uses that value
@@ -328,7 +336,7 @@ If a field with the same name does not exist in the parent, null will be used.
 ### GraphQLApi
 
  
-Enterprise-Only: THIS FEATURE IS IN TECH PREVIEW. APIs are versioned as alpha and subject to change.
+Deprecated, Enterprise-Only: THIS FEATURE IS DEPRECATED AND WILL BE REMOVED IN A FUTURE RELEASE. APIs are versioned as alpha and subject to change.
 User-facing CR config for resolving client requests to graphql schemas.
 Routes that have this config will execute graphql queries, and will not make it to the router filter. i.e. this
 filter will terminate the request for these routes.
@@ -383,6 +391,7 @@ configure the routes to point to these schema CRs.
 ### PersistedQueryCacheConfig
 
  
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release
 This message specifies Persisted Query Cache configuration.
 
 ```yaml
@@ -400,7 +409,8 @@ This message specifies Persisted Query Cache configuration.
 ---
 ### ExecutableSchema
 
-
+ 
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release
 
 ```yaml
 "schemaDefinition": string
@@ -421,7 +431,8 @@ This message specifies Persisted Query Cache configuration.
 ---
 ### Executor
 
-
+ 
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release
 
 ```yaml
 "local": .graphql.gloo.solo.io.Executor.Local

@@ -286,6 +286,7 @@ message Settings {
         UdsOptions uds_options = 2;
 
         message FdsOptions {
+            // Deprecated. The GraphQL feature will be removed in a future release.
             // Enable function discovery service on GraphQL gRPC and OpenApi upstreams. Defaults to true.
             google.protobuf.BoolValue graphql_enabled = 1 [deprecated = true];
         }
@@ -561,6 +562,7 @@ message Settings {
     // Enterprise-only: Settings for the Gloo Edge Enterprise Console (UI)
     ConsoleOptions console_options = 35;
 
+    // Deprecated. The GraphQL feature will be removed in a future release.
     // Enterprise-only: GraphQL settings
     GraphqlOptions graphql_options = 37 [deprecated = true];
 
@@ -964,6 +966,7 @@ message GatewayOptions {
     google.protobuf.BoolValue translate_empty_gateways = 11;
 }
 
+// Deprecated. The GraphQL feature will be removed in a future release.
 // Settings used by the Enterprise Console (UI)
 message ConsoleOptions {
     // If true, then custom resources can only be viewed in read-only mode in the UI.
@@ -975,10 +978,11 @@ message ConsoleOptions {
 
     // Whether to enable the GraphQL API Explorer. This feature requires a Gloo Edge Enterprise license with GraphQL enabled.
     // Defaults to true.
-    google.protobuf.BoolValue api_explorer_enabled = 2 [deprecated = true];
+    google.protobuf.BoolValue api_explorer_enabled = 2;
 }
 
-// Deprecated: GraphQL settings used by the control plane and UI.
+// Deprecated. The GraphQL feature will be removed in a future release.
+// GraphQL settings used by the control plane and UI.
 message GraphqlOptions {
 
     // Options for how to validate changes to schema definitions.

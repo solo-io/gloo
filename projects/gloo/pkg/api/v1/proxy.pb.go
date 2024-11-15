@@ -1297,7 +1297,7 @@ type Route_DirectResponseAction struct {
 }
 
 type Route_GraphqlApiRef struct {
-	// Deprecated, Enterprise-Only: THIS FEATURE WILL BE DEPRECATED IN A FUTURE RELEASE. APIs are versioned as alpha and subject to change.
+	// Deprecated, Enterprise-Only: This feature is deprecated and wil. APIs are versioned as alpha and subject to change.
 	// A reference to a GraphQLApi CR. Resolution of the client request to upstream(s) will be delegated to
 	// the resolution policies defined in the GraphQLApi CR. If configured, the graphql filter will operate
 	// instead of the envoy router filter, so configuration (such as retries) that applies to the router filter
