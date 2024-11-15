@@ -188,7 +188,6 @@
 |kubeGateway.gatewayParameters.glooGateway.podTemplate.gracefulShutdown.sleepTimeSeconds|int||Time (in seconds) for the preStop hook to wait before allowing Envoy to terminate|
 |kubeGateway.gatewayParameters.glooGateway.podTemplate.terminationGracePeriodSeconds|int||Time in seconds to wait for the pod to terminate gracefully. See [kubernetes docs](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#istio-lifecycle) for more info.|
 |kubeGateway.gatewayParameters.glooGateway.podTemplate.probes|bool||Set to true to enable a readiness probe (default is false). Then, you can also enable a liveness probe.|
-|kubeGateway.gatewayParameters.glooGateway.podTemplate.livenessProbeEnabled|bool||Set to true to enable a liveness probe (default is false).|
 |kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.exec.command[]|string|||
 |kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.httpGet.path|string|||
 |kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.httpGet.port|int64|||
