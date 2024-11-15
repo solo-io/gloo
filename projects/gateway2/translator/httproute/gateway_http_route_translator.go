@@ -353,13 +353,6 @@ func setRouteAction(
 		clusterName := "blackhole_cluster"
 		ns := "blackhole_ns"
 
-		obj, err := gwroute.GetBackendForRef(backendRef.BackendObjectReference)
-		ptrClusterName := query.ProcessBackendRef(obj, err, reporter, backendRef.BackendObjectReference)
-		if ptrClusterName != nil {
-			clusterName = *ptrClusterName
-			ns = obj.GetNamespace()
-		}
-
 		var weight *wrappers.UInt32Value
 		if backendRef.Weight != nil {
 			weight = &wrappers.UInt32Value{
@@ -372,20 +365,30 @@ func setRouteAction(
 			}
 		}
 
+		obj, err := gwroute.GetBackendForRef(backendRef.BackendObjectReference)
 		fromPlugin := false
-		for _, bp := range pluginRegistry.GetBackendPlugins() {
-			if dest, ok := bp.ApplyBackendPlugin(obj, backendRef.BackendObjectReference); ok {
-				fromPlugin = true
-				weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
-					Destination: dest,
-					Weight:      weight,
-				})
-				break
+		if err == nil {
+			for _, bp := range pluginRegistry.GetBackendPlugins() {
+				if dest, ok := bp.ApplyBackendPlugin(obj, backendRef.BackendObjectReference); ok {
+					fromPlugin = true
+					weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
+						Destination: dest,
+						Weight:      weight,
+					})
+					break
+				}
+			}
+			// TODO break out a buildDestination func to avoid this awkwardness
+			if fromPlugin {
+				continue
 			}
 		}
-		// TODO break out a buildDestination func to avoid this awkwardness
-		if fromPlugin {
-			continue
+
+		// only call ProcessBackendRef when the plugin didn't handle it
+		ptrClusterName := query.ProcessBackendRef(obj, err, reporter, backendRef.BackendObjectReference)
+		if ptrClusterName != nil {
+			clusterName = *ptrClusterName
+			ns = obj.GetNamespace()
 		}
 
 		var port uint32

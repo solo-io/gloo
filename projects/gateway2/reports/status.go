@@ -7,6 +7,7 @@ import (
 	"slices"
 
 	"github.com/solo-io/go-utils/contextutils"
+	"istio.io/istio/pkg/ptr"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -125,6 +126,19 @@ func (r *ReportMap) BuildRouteStatus(ctx context.Context, obj client.Object, cNa
 		finalConditions := make([]metav1.Condition, 0, len(parentStatusReport.Conditions))
 		for _, pCondition := range parentStatusReport.Conditions {
 			pCondition.ObservedGeneration = routeReport.observedGeneration
+
+			if existing := meta.FindStatusCondition(finalConditions, pCondition.Type); existing != nil {
+				contextutils.LoggerFrom(ctx).Debugw(
+					"duplicate condiition",
+					"routeName", obj.GetName(),
+					"routeNamespace", obj.GetNamespace(),
+					"parentRef", string(ptr.OrDefault(parentRef.Namespace, gwv1.Namespace(obj.GetNamespace())))+"/"+string(parentRef.Name),
+					"conditionType", pCondition.Type,
+					"conditionStatus", existing.Status,
+					"conditionConflictingStatus", pCondition.Status,
+				)
+				continue
+			}
 
 			// Copy old condition to preserve LastTransitionTime, if it exists
 			if cond := meta.FindStatusCondition(currentParentRefConditions, pCondition.Type); cond != nil {
