@@ -450,7 +450,7 @@ This option determines the root of the directory tree used to this end.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `graphqlEnabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Deprecated. The GraphQL feature will be removed in a future release. Enable function discovery service on GraphQL gRPC and OpenApi upstreams. Defaults to true. |
+| `graphqlEnabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Deprecated: The GraphQL feature will be removed in a future release. Enable function discovery service on GraphQL gRPC and OpenApi upstreams. Defaults to true. |
 
 
 

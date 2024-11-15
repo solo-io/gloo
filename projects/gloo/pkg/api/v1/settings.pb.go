@@ -2808,7 +2808,7 @@ type Settings_DiscoveryOptions_FdsOptions struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Deprecated. The GraphQL feature will be removed in a future release.
+	// Deprecated: The GraphQL feature will be removed in a future release.
 	// Enable function discovery service on GraphQL gRPC and OpenApi upstreams. Defaults to true.
 	//
 	// Deprecated: Marked as deprecated in github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto.
