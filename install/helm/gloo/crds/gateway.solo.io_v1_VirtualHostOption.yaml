@@ -9,7 +9,7 @@ spec:
   group: gateway.solo.io
   names:
     categories:
-    - k8sgateway
+    - gloo-gateway
     kind: VirtualHostOption
     listKind: VirtualHostOptionList
     plural: virtualhostoptions

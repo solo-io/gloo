@@ -108,7 +108,7 @@ func (s *testingSuite) TestApplyCRDs() {
 		s.NoError(err)
 		s.Contains(out, crd.GetName())
 
-		// Ensure the CRD has the k8sgateway category
+		// Ensure the CRD has the gloo-gateway category
 		out, _, err = s.TestHelper.Execute(s.Ctx, "get", "crd", crd.GetName(), "-o", "json")
 		s.NoError(err)
 

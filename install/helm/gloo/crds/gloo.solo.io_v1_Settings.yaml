@@ -11,7 +11,7 @@ spec:
   group: gloo.solo.io
   names:
     categories:
-    - k8sgateway
+    - gloo-gateway
     kind: Settings
     listKind: SettingsList
     plural: settings

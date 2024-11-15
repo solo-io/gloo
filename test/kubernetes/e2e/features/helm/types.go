@@ -20,7 +20,7 @@ var (
 	}
 
 	enterpriseCRDCategory = "solo-io"
-	CommonCRDCategory     = "k8sgateway"
+	CommonCRDCategory     = "gloo-gateway"
 
 	enterpriseCRDs = []string{
 		"authconfigs.enterprise.gloo.solo.io",

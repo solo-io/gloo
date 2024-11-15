@@ -13,7 +13,6 @@ spec:
   names:
     categories:
     - gloo-gateway
-    - k8sgateway
     kind: DirectResponse
     listKind: DirectResponseList
     plural: directresponses

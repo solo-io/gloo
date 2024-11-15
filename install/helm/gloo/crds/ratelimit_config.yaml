@@ -7,7 +7,7 @@ spec:
   names:
     categories:
     - solo-io
-    - k8sgateway
+    - gloo-gateway
     kind: RateLimitConfig
     listKind: RateLimitConfigList
     plural: ratelimitconfigs

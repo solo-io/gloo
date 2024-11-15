@@ -40,7 +40,7 @@ func (s *testingSuite) TearDownSuite() {
 }
 
 // See TestApplyCRDs() helm test for a future-proofed common category test,
-// which ensures all CRDs in our helm chart include the k8sgateway category.
+// which ensures all CRDs in our helm chart include the gloo-gateway category.
 // This test uses one of those CRs to assert that the resulting end user experience is as desired.
 func (s *testingSuite) TestCommonCategory() {
 	cmd := s.ti.Actions.Kubectl().Command(s.ctx, "get", helm.CommonCRDCategory, "-o", "name")

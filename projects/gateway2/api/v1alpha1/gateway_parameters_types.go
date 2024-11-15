@@ -11,7 +11,7 @@ import (
 //
 // +kubebuilder:object:root=true
 // +kubebuilder:metadata:labels={app=gloo-gateway,app.kubernetes.io/name=gloo-gateway}
-// +kubebuilder:resource:categories={gloo-gateway,k8sgateway},shortName=gwp
+// +kubebuilder:resource:categories=gloo-gateway,shortName=gwp
 // +kubebuilder:subresource:status
 type GatewayParameters struct {
 	metav1.TypeMeta   `json:",inline"`
