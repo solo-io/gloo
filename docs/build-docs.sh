@@ -313,7 +313,7 @@ mkdir -p $tempContentDir
 echo $firebaseJson > $docsSiteDir/firebase.json
 
 git clone https://github.com/solo-io/gloo.git $repoDir
-
+git checkout fix/docsrelease
 export PATH=$workingDir/_output/.bin:$PATH
 
 # Generates a data/Solo.yaml file with $1 being the specified version.
