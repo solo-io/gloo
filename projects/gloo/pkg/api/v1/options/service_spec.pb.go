@@ -37,6 +37,7 @@ type ServiceSpec struct {
 
 	// Note to developers: new Service plugins must be added to this oneof field
 	// to be usable by Gloo. (plugins currently need to be compiled into Gloo)
+	// The GraphQL feature is deprecated and will be removed in a future release.
 	//
 	// Types that are assignable to PluginType:
 	//
