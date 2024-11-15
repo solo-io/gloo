@@ -142,7 +142,7 @@ Represents global settings for all the Gloo components.
 | `observabilityOptions` | [.gloo.solo.io.Settings.ObservabilityOptions](../settings.proto.sk/#observabilityoptions) | Provides settings related to the observability deployment (enterprise only). |
 | `upstreamOptions` | [.gloo.solo.io.UpstreamOptions](../settings.proto.sk/#upstreamoptions) | Default configuration to use for upstreams, when not provided by specific upstream When these properties are defined on an upstream, this configuration will be ignored. |
 | `consoleOptions` | [.gloo.solo.io.ConsoleOptions](../settings.proto.sk/#consoleoptions) | Enterprise-only: Settings for the Gloo Edge Enterprise Console (UI). |
-| `graphqlOptions` | [.gloo.solo.io.GraphqlOptions](../settings.proto.sk/#graphqloptions) | Enterprise-only: GraphQL settings. |
+| `graphqlOptions` | [.gloo.solo.io.GraphqlOptions](../settings.proto.sk/#graphqloptions) | Deprecated: The GraphQL feature will be removed in a future release. Enterprise-only: GraphQL settings. |
 | `extProc` | [.extproc.options.gloo.solo.io.Settings](../enterprise/options/extproc/extproc.proto.sk/#settings) | Enterprise-only: External Processing filter settings. These settings are used as defaults globally, and can be overridden by HttpListenerOptions, VirtualHostOptions, or RouteOptions. |
 | `watchNamespaceSelectors` | [[]gloo.solo.io.LabelSelector](../settings.proto.sk/#labelselector) | A list of Kubernetes selectors that specify the set of namespaces to restrict the namespaces that Gloo controllers take into consideration when watching for resources. Elements in the list are disjunctive (OR semantics), i.e. a namespace will be included if it matches any selector. The following example selects any namespace that matches either below: 1. The namespace has both of these labels: `env: prod` and `region: us-east1` 2. The namespace has label `app` equal to `cassandra` or `spark`. ```yaml watchNamespaceSelectors: - matchLabels: env: prod region: us-east1 - matchExpressions: - key: app operator: In values: - cassandra - spark ``` However, if the match conditions are part of the same same list item, the namespace must match all conditions. ```yaml watchNamespaceSelectors: - matchLabels: env: prod region: us-east1 matchExpressions: - key: app operator: In values: - cassandra - spark ``` Refer to the [Kubernetes selector docs](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors) for additional detail on selector semantics. |
 
@@ -450,7 +450,7 @@ This option determines the root of the directory tree used to this end.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `graphqlEnabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Enable function discovery service on GraphQL gRPC and OpenApi upstreams. Defaults to true. |
+| `graphqlEnabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Deprecated: The GraphQL feature will be removed in a future release. Enable function discovery service on GraphQL gRPC and OpenApi upstreams. Defaults to true. |
 
 
 
@@ -957,6 +957,7 @@ options for configuring admission control / validation
 ### ConsoleOptions
 
  
+Deprecated: The GraphQL feature will be removed in a future release.
 Settings used by the Enterprise Console (UI)
 
 ```yaml
@@ -977,6 +978,7 @@ Settings used by the Enterprise Console (UI)
 ### GraphqlOptions
 
  
+Deprecated: The GraphQL feature will be removed in a future release.
 GraphQL settings used by the control plane and UI.
 
 ```yaml
