@@ -850,6 +850,35 @@ spec:
                             type: string
                           drainTimeout:
                             type: string
+                          earlyHeaderManipulation:
+                            properties:
+                              headersToAdd:
+                                items:
+                                  properties:
+                                    append:
+                                      nullable: true
+                                      type: boolean
+                                    header:
+                                      properties:
+                                        key:
+                                          type: string
+                                        value:
+                                          type: string
+                                      type: object
+                                    headerSecretRef:
+                                      properties:
+                                        name:
+                                          type: string
+                                        namespace:
+                                          type: string
+                                      type: object
+                                  type: object
+                                type: array
+                              headersToRemove:
+                                items:
+                                  type: string
+                                type: array
+                            type: object
                           enableTrailers:
                             nullable: true
                             type: boolean
@@ -1489,6 +1518,35 @@ spec:
                             type: string
                           drainTimeout:
                             type: string
+                          earlyHeaderManipulation:
+                            properties:
+                              headersToAdd:
+                                items:
+                                  properties:
+                                    append:
+                                      nullable: true
+                                      type: boolean
+                                    header:
+                                      properties:
+                                        key:
+                                          type: string
+                                        value:
+                                          type: string
+                                      type: object
+                                    headerSecretRef:
+                                      properties:
+                                        name:
+                                          type: string
+                                        namespace:
+                                          type: string
+                                      type: object
+                                  type: object
+                                type: array
+                              headersToRemove:
+                                items:
+                                  type: string
+                                type: array
+                            type: object
                           enableTrailers:
                             nullable: true
                             type: boolean
@@ -2791,6 +2849,35 @@ spec:
                                       type: string
                                     drainTimeout:
                                       type: string
+                                    earlyHeaderManipulation:
+                                      properties:
+                                        headersToAdd:
+                                          items:
+                                            properties:
+                                              append:
+                                                nullable: true
+                                                type: boolean
+                                              header:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  value:
+                                                    type: string
+                                                type: object
+                                              headerSecretRef:
+                                                properties:
+                                                  name:
+                                                    type: string
+                                                  namespace:
+                                                    type: string
+                                                type: object
+                                            type: object
+                                          type: array
+                                        headersToRemove:
+                                          items:
+                                            type: string
+                                          type: array
+                                      type: object
                                     enableTrailers:
                                       nullable: true
                                       type: boolean
@@ -3734,6 +3821,14 @@ spec:
                                                                   x-kubernetes-int-or-string: true
                                                                 passthrough:
                                                                   type: object
+                                                                spanTransformer:
+                                                                  properties:
+                                                                    name:
+                                                                      properties:
+                                                                        text:
+                                                                          type: string
+                                                                      type: object
+                                                                  type: object
                                                               type: object
                                                           type: object
                                                       type: object
@@ -4059,6 +4154,14 @@ spec:
                                                                             x-kubernetes-int-or-string: true
                                                                           passthrough:
                                                                             type: object
+                                                                          spanTransformer:
+                                                                            properties:
+                                                                              name:
+                                                                                properties:
+                                                                                  text:
+                                                                                    type: string
+                                                                                type: object
+                                                                            type: object
                                                                         type: object
                                                                       xsltTransformation:
                                                                         properties:
@@ -4160,6 +4263,14 @@ spec:
                                                                             type: string
                                                                             x-kubernetes-int-or-string: true
                                                                           passthrough:
+                                                                            type: object
+                                                                          spanTransformer:
+                                                                            properties:
+                                                                              name:
+                                                                                properties:
+                                                                                  text:
+                                                                                    type: string
+                                                                                type: object
                                                                             type: object
                                                                         type: object
                                                                       xsltTransformation:
@@ -4282,6 +4393,14 @@ spec:
                                                                             type: string
                                                                             x-kubernetes-int-or-string: true
                                                                           passthrough:
+                                                                            type: object
+                                                                          spanTransformer:
+                                                                            properties:
+                                                                              name:
+                                                                                properties:
+                                                                                  text:
+                                                                                    type: string
+                                                                                type: object
                                                                             type: object
                                                                         type: object
                                                                       xsltTransformation:
@@ -4445,6 +4564,14 @@ spec:
                                                                             x-kubernetes-int-or-string: true
                                                                           passthrough:
                                                                             type: object
+                                                                          spanTransformer:
+                                                                            properties:
+                                                                              name:
+                                                                                properties:
+                                                                                  text:
+                                                                                    type: string
+                                                                                type: object
+                                                                            type: object
                                                                         type: object
                                                                       xsltTransformation:
                                                                         properties:
@@ -4546,6 +4673,14 @@ spec:
                                                                             type: string
                                                                             x-kubernetes-int-or-string: true
                                                                           passthrough:
+                                                                            type: object
+                                                                          spanTransformer:
+                                                                            properties:
+                                                                              name:
+                                                                                properties:
+                                                                                  text:
+                                                                                    type: string
+                                                                                type: object
                                                                             type: object
                                                                         type: object
                                                                       xsltTransformation:
@@ -4668,6 +4803,14 @@ spec:
                                                                             type: string
                                                                             x-kubernetes-int-or-string: true
                                                                           passthrough:
+                                                                            type: object
+                                                                          spanTransformer:
+                                                                            properties:
+                                                                              name:
+                                                                                properties:
+                                                                                  text:
+                                                                                    type: string
+                                                                                type: object
                                                                             type: object
                                                                         type: object
                                                                       xsltTransformation:
@@ -4823,6 +4966,14 @@ spec:
                                                                             x-kubernetes-int-or-string: true
                                                                           passthrough:
                                                                             type: object
+                                                                          spanTransformer:
+                                                                            properties:
+                                                                              name:
+                                                                                properties:
+                                                                                  text:
+                                                                                    type: string
+                                                                                type: object
+                                                                            type: object
                                                                         type: object
                                                                       xsltTransformation:
                                                                         properties:
@@ -4924,6 +5075,14 @@ spec:
                                                                             type: string
                                                                             x-kubernetes-int-or-string: true
                                                                           passthrough:
+                                                                            type: object
+                                                                          spanTransformer:
+                                                                            properties:
+                                                                              name:
+                                                                                properties:
+                                                                                  text:
+                                                                                    type: string
+                                                                                type: object
                                                                             type: object
                                                                         type: object
                                                                       xsltTransformation:
@@ -5047,6 +5206,14 @@ spec:
                                                                             x-kubernetes-int-or-string: true
                                                                           passthrough:
                                                                             type: object
+                                                                          spanTransformer:
+                                                                            properties:
+                                                                              name:
+                                                                                properties:
+                                                                                  text:
+                                                                                    type: string
+                                                                                type: object
+                                                                            type: object
                                                                         type: object
                                                                       xsltTransformation:
                                                                         properties:
@@ -5157,6 +5324,14 @@ spec:
                                                                   x-kubernetes-int-or-string: true
                                                                 passthrough:
                                                                   type: object
+                                                                spanTransformer:
+                                                                  properties:
+                                                                    name:
+                                                                      properties:
+                                                                        text:
+                                                                          type: string
+                                                                      type: object
+                                                                  type: object
                                                               type: object
                                                             xsltTransformation:
                                                               properties:
@@ -5258,6 +5433,14 @@ spec:
                                                                   type: string
                                                                   x-kubernetes-int-or-string: true
                                                                 passthrough:
+                                                                  type: object
+                                                                spanTransformer:
+                                                                  properties:
+                                                                    name:
+                                                                      properties:
+                                                                        text:
+                                                                          type: string
+                                                                      type: object
                                                                   type: object
                                                               type: object
                                                             xsltTransformation:
@@ -5433,6 +5616,14 @@ spec:
                                                         type: string
                                                         x-kubernetes-int-or-string: true
                                                       passthrough:
+                                                        type: object
+                                                      spanTransformer:
+                                                        properties:
+                                                          name:
+                                                            properties:
+                                                              text:
+                                                                type: string
+                                                            type: object
                                                         type: object
                                                     type: object
                                                 type: object
@@ -6208,6 +6399,14 @@ spec:
                                                         x-kubernetes-int-or-string: true
                                                       passthrough:
                                                         type: object
+                                                      spanTransformer:
+                                                        properties:
+                                                          name:
+                                                            properties:
+                                                              text:
+                                                                type: string
+                                                            type: object
+                                                        type: object
                                                     type: object
                                                 type: object
                                             type: object
@@ -6533,6 +6732,14 @@ spec:
                                                                   x-kubernetes-int-or-string: true
                                                                 passthrough:
                                                                   type: object
+                                                                spanTransformer:
+                                                                  properties:
+                                                                    name:
+                                                                      properties:
+                                                                        text:
+                                                                          type: string
+                                                                      type: object
+                                                                  type: object
                                                               type: object
                                                             xsltTransformation:
                                                               properties:
@@ -6634,6 +6841,14 @@ spec:
                                                                   type: string
                                                                   x-kubernetes-int-or-string: true
                                                                 passthrough:
+                                                                  type: object
+                                                                spanTransformer:
+                                                                  properties:
+                                                                    name:
+                                                                      properties:
+                                                                        text:
+                                                                          type: string
+                                                                      type: object
                                                                   type: object
                                                               type: object
                                                             xsltTransformation:
@@ -6756,6 +6971,14 @@ spec:
                                                                   type: string
                                                                   x-kubernetes-int-or-string: true
                                                                 passthrough:
+                                                                  type: object
+                                                                spanTransformer:
+                                                                  properties:
+                                                                    name:
+                                                                      properties:
+                                                                        text:
+                                                                          type: string
+                                                                      type: object
                                                                   type: object
                                                               type: object
                                                             xsltTransformation:
@@ -6919,6 +7142,14 @@ spec:
                                                                   x-kubernetes-int-or-string: true
                                                                 passthrough:
                                                                   type: object
+                                                                spanTransformer:
+                                                                  properties:
+                                                                    name:
+                                                                      properties:
+                                                                        text:
+                                                                          type: string
+                                                                      type: object
+                                                                  type: object
                                                               type: object
                                                             xsltTransformation:
                                                               properties:
@@ -7020,6 +7251,14 @@ spec:
                                                                   type: string
                                                                   x-kubernetes-int-or-string: true
                                                                 passthrough:
+                                                                  type: object
+                                                                spanTransformer:
+                                                                  properties:
+                                                                    name:
+                                                                      properties:
+                                                                        text:
+                                                                          type: string
+                                                                      type: object
                                                                   type: object
                                                               type: object
                                                             xsltTransformation:
@@ -7142,6 +7381,14 @@ spec:
                                                                   type: string
                                                                   x-kubernetes-int-or-string: true
                                                                 passthrough:
+                                                                  type: object
+                                                                spanTransformer:
+                                                                  properties:
+                                                                    name:
+                                                                      properties:
+                                                                        text:
+                                                                          type: string
+                                                                      type: object
                                                                   type: object
                                                               type: object
                                                             xsltTransformation:
@@ -7297,6 +7544,14 @@ spec:
                                                                   x-kubernetes-int-or-string: true
                                                                 passthrough:
                                                                   type: object
+                                                                spanTransformer:
+                                                                  properties:
+                                                                    name:
+                                                                      properties:
+                                                                        text:
+                                                                          type: string
+                                                                      type: object
+                                                                  type: object
                                                               type: object
                                                             xsltTransformation:
                                                               properties:
@@ -7398,6 +7653,14 @@ spec:
                                                                   type: string
                                                                   x-kubernetes-int-or-string: true
                                                                 passthrough:
+                                                                  type: object
+                                                                spanTransformer:
+                                                                  properties:
+                                                                    name:
+                                                                      properties:
+                                                                        text:
+                                                                          type: string
+                                                                      type: object
                                                                   type: object
                                                               type: object
                                                             xsltTransformation:
@@ -7521,6 +7784,14 @@ spec:
                                                                   x-kubernetes-int-or-string: true
                                                                 passthrough:
                                                                   type: object
+                                                                spanTransformer:
+                                                                  properties:
+                                                                    name:
+                                                                      properties:
+                                                                        text:
+                                                                          type: string
+                                                                      type: object
+                                                                  type: object
                                                               type: object
                                                             xsltTransformation:
                                                               properties:
@@ -7631,6 +7902,14 @@ spec:
                                                         x-kubernetes-int-or-string: true
                                                       passthrough:
                                                         type: object
+                                                      spanTransformer:
+                                                        properties:
+                                                          name:
+                                                            properties:
+                                                              text:
+                                                                type: string
+                                                            type: object
+                                                        type: object
                                                     type: object
                                                   xsltTransformation:
                                                     properties:
@@ -7732,6 +8011,14 @@ spec:
                                                         type: string
                                                         x-kubernetes-int-or-string: true
                                                       passthrough:
+                                                        type: object
+                                                      spanTransformer:
+                                                        properties:
+                                                          name:
+                                                            properties:
+                                                              text:
+                                                                type: string
+                                                            type: object
                                                         type: object
                                                     type: object
                                                   xsltTransformation:
@@ -7907,6 +8194,14 @@ spec:
                                               type: string
                                               x-kubernetes-int-or-string: true
                                             passthrough:
+                                              type: object
+                                            spanTransformer:
+                                              properties:
+                                                name:
+                                                  properties:
+                                                    text:
+                                                      type: string
+                                                  type: object
                                               type: object
                                           type: object
                                       type: object
