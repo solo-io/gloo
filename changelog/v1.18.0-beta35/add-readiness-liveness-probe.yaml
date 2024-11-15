@@ -11,6 +11,5 @@ changelog:
       - `kubeGateway.gatewayParameters.glooGateway.podTemplate.terminationGracePeriodSeconds` to specify the terminationGracePeriodSeconds.
       - `kubeGateway.gatewayParameters.glooGateway.podTemplate.gracefulShutdown` to configure the graceful shutdown config for the envoy container.
       - `kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe` to specify a custom liveness probe for the envoy container.
-      - `kubeGateway.gatewayParameters.glooGateway.podTemplate.livenessProbeEnabled` to enable the liveness probe. If the customLivenessProbe is not specified, no liveness probe is set.
       - `kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe` to specify a custom readiness probe for the envoy container.
       - `kubeGateway.gatewayParameters.glooGateway.podTemplate.probes` to enable the readiness probe. If the customReadinessProbe is not specified, a default readiness probe is set.
