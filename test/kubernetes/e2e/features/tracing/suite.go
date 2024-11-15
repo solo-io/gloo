@@ -100,33 +100,36 @@ func (s *testingSuite) BeforeTest(string, string) {
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
 	s.NoError(err, "can apply gloo tracing resources")
+	// accept the upstream
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
 		func() (resources.InputResource, error) {
 			return s.testInstallation.ResourceClients.UpstreamClient().Read(
-				"namespace", "name", clients.ReadOpts{Ctx: s.ctx})
+				otelcolUpstream.Namespace, otelcolUpstream.Name, clients.ReadOpts{Ctx: s.ctx})
+		},
+		core.Status_Accepted,
+		gloo_defaults.GlooReporter,
+	)
+	// accept the virtual service
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		func() (resources.InputResource, error) {
+			return s.testInstallation.ResourceClients.VirtualServiceClient().Read(
+				tracingVs.Namespace, tracingVs.Name, clients.ReadOpts{Ctx: s.ctx})
 		},
 		core.Status_Accepted,
 		gloo_defaults.GlooReporter,
 	)
 
-	time.Sleep(10 * time.Second)
-
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayConfigManifest,
 		"-n", s.testInstallation.Metadata.InstallNamespace)
 	s.NoError(err, "can create gateway and service")
-
-	// Attempt to apply tracingConfigManifest multiple times. The first time
-	// fails regularly with this message: "failed to validate Proxy [namespace:
-	// gloo-gateway-edge-test, name: gateway-proxy] with gloo validation:
-	// HttpListener Error: ProcessingError. Reason: *v1.Upstream {
-	// default.opentelemetry-collector } not found"
-	// s.Assert().Eventually(func() bool {
-	// 	// TODO clean this up
-	// 	err1 := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
-	// 	err2 := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayConfigManifest,
-	// 		"-n", s.testInstallation.Metadata.InstallNamespace)
-	// 	return err1 == nil && err2 == nil
-	// }, time.Second*30, time.Second*5, "can apply gloo tracing config")
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		func() (resources.InputResource, error) {
+			return s.testInstallation.ResourceClients.GatewayClient().Read(
+				s.testInstallation.Metadata.InstallNamespace, "gateway-proxy-tracing", clients.ReadOpts{Ctx: s.ctx})
+		},
+		core.Status_Accepted,
+		gloo_defaults.GlooReporter,
+	)
 }
 
 func (s *testingSuite) AfterTest(string, string) {
