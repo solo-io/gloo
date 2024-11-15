@@ -1,5 +1,5 @@
 changelog:
-  - type: NON_USER_FACING
+  - type: FIX
     issueLink: https://github.com/solo-io/gloo-mesh-enterprise/issues/19119
     resolvesIssue: false
     description: >-
