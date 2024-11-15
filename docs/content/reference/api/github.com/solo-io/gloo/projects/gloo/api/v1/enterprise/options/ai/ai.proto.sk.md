@@ -81,7 +81,7 @@ For more information about the Upstream resource, see the
 [API reference]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto.sk/" %}}).
 
 {{% notice note %}}
-AI Gateway is an Enterprise-only feature that requires a Gloo Gateway Enterprise license.
+AI Gateway is an Enterprise-only feature that requires a Gloo Gateway Enterprise license with an AI Gateway add-on.
 {{% /notice %}}
 
 ```yaml
