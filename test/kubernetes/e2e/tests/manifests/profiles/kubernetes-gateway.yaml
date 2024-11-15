@@ -13,16 +13,6 @@ global:
 # Configuration for the Kubernetes Gateway integration in Gloo Gateway
 kubeGateway:
   enabled: true
-  # Enable the probes to ensure zero downtime
-  gatewayParameters:
-    glooGateway:
-      podTemplate:
-        terminationGracePeriodSeconds: 5
-        gracefulShutdown:
-          enabled: true
-          sleepTimeSeconds: 2
-        probes: true
-        livenessProbeEnabled: true
 
 # Configuration for the statically deployed gateway-proxy that ships by default with Gloo Gateway
 gatewayProxies:

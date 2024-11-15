@@ -21,7 +21,7 @@ func TestZeroDowntimeRollout(t *testing.T) {
 		&gloogateway.Context{
 			InstallNamespace:          installNs,
 			ProfileValuesManifestFile: e2e.KubernetesGatewayProfilePath,
-			ValuesManifestFile:        e2e.EmptyValuesManifestPath,
+			ValuesManifestFile:        e2e.ManifestPath("zero-downtime-rollout.yaml"),
 		},
 	)
 

@@ -1,0 +1,11 @@
+kubeGateway:
+  # Enable the probes to ensure zero downtime
+  gatewayParameters:
+    glooGateway:
+      podTemplate:
+        terminationGracePeriodSeconds: 5
+        gracefulShutdown:
+          enabled: true
+          sleepTimeSeconds: 2
+        probes: true
+        livenessProbeEnabled: true
