@@ -13,6 +13,10 @@ const (
 	// installation from a previous run
 	SkipInstall = "SKIP_INSTALL"
 
+	// SkipUninstall can be used when running Kube suites consecutively, and you don't want to uninstall Gloo
+	// after the test suite completes
+	SkipUninstall = "SKIP_UNINSTALL"
+
 	// InstallNamespace is the namespace in which Gloo is installed
 	InstallNamespace = "INSTALL_NAMESPACE"
 
@@ -96,6 +100,11 @@ func ShouldTearDown() bool {
 // both the tear down and install of Gloo Edge.
 func ShouldSkipInstall() bool {
 	return IsEnvTruthy(SkipInstall)
+}
+
+// ShouldSkipUninstall returns true if the uninstall of Gloo should be skipped after a test
+func ShouldSkipUninstall() bool {
+	return IsEnvTruthy(SkipUninstall)
 }
 
 // ShouldSkipIstioInstall returns true if any assets that need to be created before a test (for example Gloo being installed)

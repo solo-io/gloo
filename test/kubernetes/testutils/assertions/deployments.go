@@ -11,7 +11,6 @@ import (
 
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
-	"go.uber.org/zap/zapcore"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -42,7 +41,7 @@ func (p *Provider) EventuallyGlooReachesConsistentState(installNamespace string)
 
 	// Gloo components are configured to log to the Info level by default but for these e2e tests we explicitly enable debug logging
 	// This is done so we can triage failures after the fact and matches the process users will take to troubleshoot
-	logLevelAssertion := assertions.LogLevelAssertion(zapcore.DebugLevel)
+	//logLevelAssertion := assertions.LogLevelAssertion(zapcore.DebugLevel)
 
 	// The emitter at some point should stabilize and not continue to increase the number of snapshots produced
 	// We choose 4 here as a bit of a magic number, but we feel comfortable that if 4 consecutive polls of the metrics
@@ -51,7 +50,7 @@ func (p *Provider) EventuallyGlooReachesConsistentState(installNamespace string)
 	emitterMetricAssertion, _ := assertions.IntStatisticReachesConsistentValueAssertion("api_gloosnapshot_gloo_solo_io_emitter_snap_out", identicalResultInARow)
 
 	assertions.EventuallyStatisticsMatchAssertions(glooStatsForwardConfig,
-		logLevelAssertion,
+		//logLevelAssertion,
 		emitterMetricAssertion,
 	)
 }

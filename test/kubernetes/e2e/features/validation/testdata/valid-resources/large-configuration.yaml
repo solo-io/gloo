@@ -2,23 +2,8 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: httpbin
-  namespace: full-envoy-validation-test
+  namespace: full-envoy-validation-test 
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: httpbin
-  namespace: full-envoy-validation-test
-  labels:
-    app: httpbin
-    service: httpbin
-spec:
-  ports:
-    - name: http
-      port: 8000
-      targetPort: 8080
-  selector:
-    app: httpbin
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -67,6 +52,21 @@ spec:
           image: gcr.io/solo-public/docs/hey:0.1.4
           imagePullPolicy: IfNotPresent
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpbin
+  namespace: full-envoy-validation-test
+  labels:
+    app: httpbin
+    service: httpbin
+spec:
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8080
+  selector:
+    app: httpbin
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
