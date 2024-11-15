@@ -18,4 +18,13 @@ var (
 			},
 		},
 	}
+
+	enterpriseCRDCategory = "solo-io"
+	CommonCRDCategory     = "k8sgateway"
+
+	enterpriseCRDs = []string{
+		"authconfigs.enterprise.gloo.solo.io",
+		"ratelimitconfigs.ratelimit.solo.io",
+		"graphqlapis.graphql.gloo.solo.io",
+	}
 )

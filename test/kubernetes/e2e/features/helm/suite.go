@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"time"
 
 	"github.com/stretchr/testify/suite"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
-	crd_categories "github.com/solo-io/gloo/test/kubernetes/e2e/features/CRD_categories"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	"github.com/solo-io/skv2/codegen/util"
@@ -114,7 +114,13 @@ func (s *testingSuite) TestApplyCRDs() {
 
 		var crdJson v1.CustomResourceDefinition
 		s.NoError(json.Unmarshal([]byte(out), &crdJson))
-		s.Contains(crdJson.Spec.Names.Categories, crd_categories.CommonCRDCategory)
+		s.Contains(crdJson.Spec.Names.Categories, CommonCRDCategory)
+
+		// Ensure the CRD has the solo-io category iff it's an enterprise CRD
+		s.Equal(
+			slices.Contains(enterpriseCRDs, crd.GetName()),
+			slices.Contains(crdJson.Spec.Names.Categories, enterpriseCRDCategory),
+		)
 	}
 }
 
