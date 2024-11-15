@@ -7,9 +7,13 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
+	gloo_defaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -94,15 +98,38 @@ func (s *testingSuite) BeforeTest(string, string) {
 		otelcolSelector,
 	)
 
-	// Attempt to apply tracingConfigManifest multiple times. The first time
-	// fails regularly with this message: "failed to validate Proxy [namespace:
-	// gloo-gateway-edge-test, name: gateway-proxy] with gloo validation:
-	// HttpListener Error: ProcessingError. Reason: *v1.Upstream {
-	// default.opentelemetry-collector } not found"
-	s.Assert().Eventually(func() bool {
-		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
-		return err == nil
-	}, time.Second*30, time.Second*5, "can apply gloo tracing config")
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
+	s.NoError(err, "can apply gloo tracing resources")
+	// accept the upstream
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		func() (resources.InputResource, error) {
+			return s.testInstallation.ResourceClients.UpstreamClient().Read(
+				otelcolUpstream.Namespace, otelcolUpstream.Name, clients.ReadOpts{Ctx: s.ctx})
+		},
+		core.Status_Accepted,
+		gloo_defaults.GlooReporter,
+	)
+	// accept the virtual service
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		func() (resources.InputResource, error) {
+			return s.testInstallation.ResourceClients.VirtualServiceClient().Read(
+				tracingVs.Namespace, tracingVs.Name, clients.ReadOpts{Ctx: s.ctx})
+		},
+		core.Status_Accepted,
+		gloo_defaults.GlooReporter,
+	)
+
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayConfigManifest,
+		"-n", s.testInstallation.Metadata.InstallNamespace)
+	s.NoError(err, "can create gateway and service")
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		func() (resources.InputResource, error) {
+			return s.testInstallation.ResourceClients.GatewayClient().Read(
+				s.testInstallation.Metadata.InstallNamespace, "gateway-proxy-tracing", clients.ReadOpts{Ctx: s.ctx})
+		},
+		core.Status_Accepted,
+		gloo_defaults.GlooReporter,
+	)
 }
 
 func (s *testingSuite) AfterTest(string, string) {
@@ -111,6 +138,10 @@ func (s *testingSuite) AfterTest(string, string) {
 	s.Assertions.NoError(err, "can delete otel collector")
 
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, tracingConfigManifest)
+	s.Assertions.NoError(err, "can delete gloo tracing config")
+
+	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayConfigManifest,
+		"-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assertions.NoError(err, "can delete gloo tracing config")
 }
 
@@ -125,10 +156,12 @@ func (s *testingSuite) TestSpanNameTransformationsWithoutRouteDecorator() {
 			curl.WithHostHeader(testHostname),
 			curl.WithPort(gatewayProxyPort),
 			curl.WithPath(pathWithoutRouteDescriptor),
+			curl.Silent(),
 		},
 		&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
 		},
+		5*time.Second, 30*time.Second,
 	)
 
 	s.EventuallyWithT(func(c *assert.CollectT) {
@@ -150,10 +183,12 @@ func (s *testingSuite) TestSpanNameTransformationsWithRouteDecorator() {
 			curl.WithHostHeader("example.com"),
 			curl.WithPort(gatewayProxyPort),
 			curl.WithPath(pathWithRouteDescriptor),
+			curl.Silent(),
 		},
 		&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
 		},
+		5*time.Second, 30*time.Second,
 	)
 
 	s.EventuallyWithT(func(c *assert.CollectT) {
