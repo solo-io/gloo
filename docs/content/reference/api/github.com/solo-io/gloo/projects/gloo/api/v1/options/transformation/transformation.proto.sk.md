@@ -169,7 +169,7 @@ User-facing API for transformation.
 | ----- | ---- | ----------- | 
 | `transformationTemplate` | [.transformation.options.gloo.solo.io.TransformationTemplate](../transformation.proto.sk/#transformationtemplate) | Apply transformation templates. Only one of `transformationTemplate`, `headerBodyTransform`, or `xsltTransformation` can be set. |
 | `headerBodyTransform` | [.transformation.options.gloo.solo.io.HeaderBodyTransform](../transformation.proto.sk/#headerbodytransform) | This type of transformation will make all the headers available in the response body. The resulting JSON body will consist of two attributes: 'headers', containing the headers, and 'body', containing the original body. Only one of `headerBodyTransform`, `transformationTemplate`, or `xsltTransformation` can be set. |
-| `xsltTransformation` | .envoy.config.transformer.xslt.v2.XsltTransformation | (Enterprise Only): Xslt Transformation. Only one of `xsltTransformation`, `transformationTemplate`, or `headerBodyTransform` can be set. |
+| `xsltTransformation` | [.envoy.config.transformer.xslt.v2.XsltTransformation](../../../../external/envoy/extensions/transformers/xslt/xslt_transformer.proto.sk/#xslttransformation) | (Enterprise Only): Xslt Transformation. Only one of `xsltTransformation`, `transformationTemplate`, or `headerBodyTransform` can be set. |
 | `logRequestResponseInfo` | `bool` | When enabled, log request/response body and headers before and after this transformation is applied. |
 
 

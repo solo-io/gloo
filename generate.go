@@ -57,7 +57,7 @@ func main() {
 			},
 			RenderOptions: &options.RenderOptions{
 				SkipLinksForPathPrefixes: []string{
-					"github.com/solo-io/gloo/projects/gloo/api/external",
+					"github.com/solo-io/gloo/projects/gloo/api/external/xds",
 				},
 			},
 		},
@@ -98,6 +98,6 @@ func main() {
 }
 
 func removeExternalApiDocs() error {
-	const externalApiDocsPath = "docs/content/reference/api/github.com/solo-io/gloo/projects/gloo/api/external/"
+	const externalApiDocsPath = "docs/content/reference/api/github.com/solo-io/gloo/projects/gloo/api/external/xds"
 	return os.RemoveAll(externalApiDocsPath)
 }

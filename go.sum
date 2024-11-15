@@ -2711,6 +2711,8 @@ github.com/solo-io/solo-kit v0.36.2-0.20241114201934-415c33bf096d h1:mYz26Bgjvk4
 github.com/solo-io/solo-kit v0.36.2-0.20241114201934-415c33bf096d/go.mod h1:tLK3BllHZZUZsvgG3paVzux8ccmItKadqLSg7nOltDw=
 github.com/solo-io/solo-kit v0.36.2-0.20241114214342-0c728acac7ca h1:BsEUT8gtR/iqr9YNdYgoyYygxYE2pID2kMPNR6HX3QI=
 github.com/solo-io/solo-kit v0.36.2-0.20241114214342-0c728acac7ca/go.mod h1:tLK3BllHZZUZsvgG3paVzux8ccmItKadqLSg7nOltDw=
+github.com/solo-io/solo-kit v0.36.2 h1:oZCrgseICHC2j88TCHeS9y8p5ffRRsXspy3jwWcZewY=
+github.com/solo-io/solo-kit v0.36.2/go.mod h1:tLK3BllHZZUZsvgG3paVzux8ccmItKadqLSg7nOltDw=
 github.com/sourcegraph/conc v0.3.0 h1:OQTbbt6P72L20UqAkXXuLOj79LfEanQ+YQFNpLA9ySo=
 github.com/sourcegraph/conc v0.3.0/go.mod h1:Sdozi7LEKbFPqYX2/J+iBAM6HpqSLTASQIKqDmF7Mt0=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
