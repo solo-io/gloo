@@ -286,7 +286,7 @@ message Settings {
         UdsOptions uds_options = 2;
 
         message FdsOptions {
-            // Deprecated. The GraphQL feature will be removed in a future release.
+            // Deprecated: The GraphQL feature will be removed in a future release.
             // Enable function discovery service on GraphQL gRPC and OpenApi upstreams. Defaults to true.
             google.protobuf.BoolValue graphql_enabled = 1 [deprecated = true];
         }
