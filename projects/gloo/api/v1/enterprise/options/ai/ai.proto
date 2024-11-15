@@ -12,9 +12,10 @@ option (extproto.clone_all) = true;
 // When you deploy the Gloo AI Gateway, you can use the `spec.ai` section of the Upstream resource
 // to represent a backend for a logical Large Language Model (LLM) provider.
 // This section configures the LLM provider that the AI Gateway routes requests to,
-// how the gateway should authenticate with the provider,
-// and any other LLM features, such as prompt guards
-// and prompt enrichment.
+// and how the gateway should authenticate with the provider.
+// Note that other Gloo AI Gateway LLM features, such as prompt guards
+// and prompt enrichment, are configured at the route level in the
+// [`spec.options.ai` section of the RouteOptions resource](#routesettings).
 //
 // To get started, see [About Gloo AI Gateway]({{% versioned_link_path fromRoot="/ai/overview/" %}}).
 // For more information about the Upstream resource, see the
