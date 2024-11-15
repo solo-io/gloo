@@ -94,12 +94,10 @@ spec:
         periodSeconds: 5
         failureThreshold: 2
 {{- end}}{{/* if $gg.podTemplate.customReadinessProbe */}}
-{{- if $gg.podTemplate.livenessProbeEnabled }}
 {{- if $gg.podTemplate.customLivenessProbe }}
       livenessProbe:
 {{ toYaml $gg.podTemplate.customLivenessProbe | indent 8}}
 {{- end }}{{/*if $gg.podTemplate.customLivenessProbe*/}}
-{{- end }}{{/*if $gg.podTemplate.livenessProbeEnabled*/}}
 {{- end }}{{/*if $gg.podTemplate.probes*/}}
 {{- end }}{{/*if $gg.podTemplate */}}
 {{- if $gg.sdsContainer }}

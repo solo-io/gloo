@@ -348,7 +348,6 @@ type GatewayParamsPodTemplate struct {
 	GracefulShutdown              *GracefulShutdownSpec `json:"gracefulShutdown,omitempty"`
 	TerminationGracePeriodSeconds *int                  `json:"terminationGracePeriodSeconds,omitempty" desc:"Time in seconds to wait for the pod to terminate gracefully. See [kubernetes docs](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#istio-lifecycle) for more info."`
 	Probes                        *bool                 `json:"probes,omitempty" desc:"Set to true to enable a readiness probe (default is false). Then, you can also enable a liveness probe."`
-	LivenessProbeEnabled          *bool                 `json:"livenessProbeEnabled,omitempty" desc:"Set to true to enable a liveness probe (default is false)."`
 	CustomReadinessProbe          *corev1.Probe         `json:"customReadinessProbe,omitempty"`
 	CustomLivenessProbe           *corev1.Probe         `json:"customLivenessProbe,omitempty"`
 }

@@ -377,7 +377,6 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 					BeforeEach(func() {
 						extraValuesArgs := []string{
 							"kubeGateway.gatewayParameters.glooGateway.podTemplate.probes=true",
-							"kubeGateway.gatewayParameters.glooGateway.podTemplate.livenessProbeEnabled=true",
 						}
 
 						valuesArgs = append(valuesArgs, extraValuesArgs...)
@@ -415,7 +414,6 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.failureThreshold=1",
 							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.initialDelaySeconds=2",
 							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.periodSeconds=3",
-							"kubeGateway.gatewayParameters.glooGateway.podTemplate.livenessProbeEnabled=true",
 							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.exec.command[0]=wget",
 							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.exec.command[1]=-O",
 							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.exec.command[2]=/dev/null",
