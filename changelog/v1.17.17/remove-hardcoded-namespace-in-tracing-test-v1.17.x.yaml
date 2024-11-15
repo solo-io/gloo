@@ -1,7 +1,8 @@
 changelog:
   - type: NON_USER_FACING
     description: >-
-      Fix failing unit test in `test/kubernetes/testutils/helper/util_test.go`
+      Fix failing unit tests in `test/kubernetes/testutils/helper/util_test.go`
+      and `test/kubernetes/testutils/helper/util_test.go`
   - type: NON_USER_FACING
     issueLink: https://github.com/solo-io/solo-projects/issues/7223
     resolvesIssue: false
