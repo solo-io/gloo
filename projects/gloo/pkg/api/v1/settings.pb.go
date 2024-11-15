@@ -268,7 +268,7 @@ type Settings struct {
 	UpstreamOptions *UpstreamOptions `protobuf:"bytes,32,opt,name=upstreamOptions,proto3" json:"upstreamOptions,omitempty"`
 	// Enterprise-only: Settings for the Gloo Edge Enterprise Console (UI)
 	ConsoleOptions *ConsoleOptions `protobuf:"bytes,35,opt,name=console_options,json=consoleOptions,proto3" json:"console_options,omitempty"`
-	// Deprecated. The GraphQL feature will be removed in a future release.
+	// Deprecated: The GraphQL feature will be removed in a future release.
 	// Enterprise-only: GraphQL settings
 	//
 	// Deprecated: Marked as deprecated in github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto.
@@ -1316,7 +1316,7 @@ func (x *GatewayOptions) GetTranslateEmptyGateways() *wrapperspb.BoolValue {
 	return nil
 }
 
-// Deprecated. The GraphQL feature will be removed in a future release.
+// Deprecated: The GraphQL feature will be removed in a future release.
 // Settings used by the Enterprise Console (UI)
 type ConsoleOptions struct {
 	state         protoimpl.MessageState
@@ -1378,7 +1378,7 @@ func (x *ConsoleOptions) GetApiExplorerEnabled() *wrapperspb.BoolValue {
 	return nil
 }
 
-// Deprecated. The GraphQL feature will be removed in a future release.
+// Deprecated: The GraphQL feature will be removed in a future release.
 // GraphQL settings used by the control plane and UI.
 type GraphqlOptions struct {
 	state         protoimpl.MessageState

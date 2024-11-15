@@ -22,7 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future release.
+// Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 // Only supported in enterprise with the GraphQL addon.
 // This is the service spec describing GraphQL upstreams. This will usually be filled
 // automatically via function discovery (if the upstream supports introspection).

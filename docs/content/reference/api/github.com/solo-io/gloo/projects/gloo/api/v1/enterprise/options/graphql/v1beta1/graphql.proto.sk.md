@@ -46,7 +46,7 @@ weight: 5
 ### RequestTemplate
 
  
-Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future release.
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 Defines a configuration for generating outgoing requests for a resolver.
 
 ```yaml
@@ -69,7 +69,7 @@ Defines a configuration for generating outgoing requests for a resolver.
 ### ResponseTemplate
 
  
-Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future release.
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 
 ```yaml
 "resultRoot": string
@@ -89,7 +89,7 @@ Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future rele
 ### GrpcRequestTemplate
 
  
-Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future release.
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 Defines a configuration for generating outgoing requests for a resolver.
 
 ```yaml
@@ -114,7 +114,7 @@ Defines a configuration for generating outgoing requests for a resolver.
 ### RESTResolver
 
  
-Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future release.
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 control-plane API
 
 ```yaml
@@ -141,7 +141,7 @@ control-plane API
 ### GrpcDescriptorRegistry
 
  
-Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future release.
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 Defines a configuration for serializing and deserializing requests for a gRPC resolver.
 Is a Schema Extension
 
@@ -206,7 +206,7 @@ control-plane API
 ### StitchedSchema
 
  
-Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future release.
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 
 ```yaml
 "subschemas": []graphql.gloo.solo.io.StitchedSchema.SubschemaConfig
@@ -266,7 +266,7 @@ Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future rele
 ### MockResolver
 
  
-Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future release.
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 
 ```yaml
 "syncResponse": .google.protobuf.Value
@@ -307,7 +307,7 @@ Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future rele
 ### Resolution
 
  
-Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future release.
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 Define a named resolver which can be then matched to a field using the `resolve` directive.
 if a field does not have resolver, the default resolver will be used.
 the default resolver takes the field with the same name from the parent, and uses that value
@@ -391,7 +391,7 @@ configure the routes to point to these schema CRs.
 ### PersistedQueryCacheConfig
 
  
-Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future release.
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 This message specifies Persisted Query Cache configuration.
 
 ```yaml
@@ -410,7 +410,7 @@ This message specifies Persisted Query Cache configuration.
 ### ExecutableSchema
 
  
-Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future release.
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 
 ```yaml
 "schemaDefinition": string
@@ -432,7 +432,7 @@ Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future rele
 ### Executor
 
  
-Deprecated. The GraphQL feature of Gloo Gateway will be removed in a future release.
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 
 ```yaml
 "local": .graphql.gloo.solo.io.Executor.Local
