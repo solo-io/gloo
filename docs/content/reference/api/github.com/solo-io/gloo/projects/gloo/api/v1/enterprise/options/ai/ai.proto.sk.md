@@ -395,6 +395,9 @@ on the level of individual routes. These route settings, such as prompt enrichme
 retrieval augmented generation (RAG), and semantic caching, are applicable only
 for routes that send requests to an LLM provider backend.
 
+For more information about the RouteOptions resource, see the
+[API reference]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/route_options.proto.sk/" %}}).
+
 ```yaml
 "promptEnrichment": .ai.options.gloo.solo.io.AIPromptEnrichment
 "promptGuard": .ai.options.gloo.solo.io.AIPromptGuard

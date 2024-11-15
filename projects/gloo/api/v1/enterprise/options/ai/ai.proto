@@ -244,6 +244,9 @@ message UpstreamSpec {
 // on the level of individual routes. These route settings, such as prompt enrichment,
 // retrieval augmented generation (RAG), and semantic caching, are applicable only
 // for routes that send requests to an LLM provider backend.
+//
+// For more information about the RouteOptions resource, see the
+// [API reference]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/route_options.proto.sk/" %}}).
 message RouteSettings {
 
   // Enrich requests sent to the LLM provider by appending and prepending system prompts.
