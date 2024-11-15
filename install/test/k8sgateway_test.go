@@ -386,21 +386,6 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 					It("sets the default values of the probes", func() {
 						gwp := getDefaultGatewayParameters(testManifest)
 						gwpPT := gwp.Spec.Kube.PodTemplate
-						Expect(*gwpPT.LivenessProbe).To(BeEquivalentTo(corev1.Probe{
-							ProbeHandler: corev1.ProbeHandler{
-								Exec: &corev1.ExecAction{
-									Command: []string{
-										"wget",
-										"-O",
-										"/dev/null",
-										"127.0.0.1:19000/server_info",
-									},
-								},
-							},
-							InitialDelaySeconds: 3,
-							PeriodSeconds:       10,
-							FailureThreshold:    3,
-						}))
 						Expect(*gwpPT.ReadinessProbe).To(BeEquivalentTo(corev1.Probe{
 							ProbeHandler: corev1.ProbeHandler{
 								HTTPGet: &corev1.HTTPGetAction{
@@ -415,7 +400,8 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 							PeriodSeconds:       5,
 							FailureThreshold:    2,
 						}))
-
+						// There is no default liveness probe
+						Expect(gwpPT.LivenessProbe).To(BeNil())
 					})
 				})
 
