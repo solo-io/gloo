@@ -161,6 +161,7 @@ func (s *testingSuite) TestSpanNameTransformationsWithoutRouteDecorator() {
 		&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
 		},
+		5*time.Second, 30*time.Second,
 	)
 
 	s.EventuallyWithT(func(c *assert.CollectT) {
@@ -187,6 +188,7 @@ func (s *testingSuite) TestSpanNameTransformationsWithRouteDecorator() {
 		&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
 		},
+		5*time.Second, 30*time.Second,
 	)
 
 	s.EventuallyWithT(func(c *assert.CollectT) {

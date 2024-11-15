@@ -28,11 +28,11 @@ var (
 		LabelSelector: "app.kubernetes.io/name=otel-collector",
 	}
 	otelcolUpstream = &metav1.ObjectMeta{
-		Name: "opentelemetry-collector",
+		Name:      "opentelemetry-collector",
 		Namespace: "default",
 	}
 	tracingVs = &metav1.ObjectMeta{
-		Name: "virtual-service",
+		Name:      "virtual-service",
 		Namespace: "default",
 	}
 )
