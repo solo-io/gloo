@@ -81,7 +81,7 @@ Review this page for a list of commonly used timeout settings in Gloo Gateway, o
   - `sslConfig`
     - `transportSocketConnectTimeout` disabled by default, **unlimited** (or limited by connection/idle timeout). Suggested is 10 seconds.
   - `virtualHost`
-    - `options` (see also {{< protobuf name="gloo.solo.io.VirtualHostOptions" display="VirtualHostOptions" >}} )
+    - `options` (see also {{< protobuf name="gloo.solo.io.Options" display="Options" >}} )
       - `retries`
         - `perTryTimeout` defaults to **15 seconds** (Route timeout)
       - `jwtStaged`
@@ -91,7 +91,7 @@ Review this page for a list of commonly used timeout settings in Gloo Gateway, o
               - `remote`
                 - `cacheDuration` defaults to **5 minutes**
     - `routes`
-      - `options` (see also {{< protobuf name="gloo.solo.io.RouteOptions" display="RouteOptions" >}})
+      - `options` (see also {{< protobuf name="gloo.solo.io.Options" display="Options" >}})
         - `timeout` defaults to **15 seconds**
         - `retries`
           - `perTryTimeout` defaults to **15 seconds** (Route timeout)
