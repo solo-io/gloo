@@ -49,8 +49,6 @@ func (s *testingSuite) TestCommonCategory() {
 	err := cmd.WithStdout(io.Writer(&out)).Run().Cause()
 	s.NoError(err)
 
-	// output should include the installed VS
-	outCRs := strings.Split(strings.TrimSpace(out.String()), "\n")
-	s.Len(outCRs, 1)
-	s.Equal(outCRs[0], installedVs)
+	// output should match the installed VS
+	s.Equal(strings.TrimSpace(out.String()), installedVs)
 }
