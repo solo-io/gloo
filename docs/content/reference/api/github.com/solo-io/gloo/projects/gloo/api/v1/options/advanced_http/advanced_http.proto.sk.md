@@ -1,6 +1,6 @@
 
 ---
-title: "advanced_http.proto"
+title: "AdvancedHttpProto"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `advancedhttp.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ResponseAssertions](#responseassertions)
@@ -27,7 +27,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/advanced_http/advanced_http.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/advanced_http/advanced_http.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/advanced_http/advanced_http.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/advanced_http/advanced_http.proto)**
 
 
 

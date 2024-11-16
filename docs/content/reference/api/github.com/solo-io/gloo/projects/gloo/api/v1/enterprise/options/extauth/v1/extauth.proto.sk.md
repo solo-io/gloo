@@ -1,6 +1,6 @@
 
 ---
-title: "extauth.proto"
+title: "ExtauthProto"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `enterprise.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [AuthConfig](#authconfig) **Top-Level Resource**
@@ -98,7 +98,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto)**
 
 
 

@@ -2709,6 +2709,12 @@ github.com/solo-io/solo-apis v0.0.0-20240917212400-9103ca169358 h1:yNJpr6sKTBUJ0
 github.com/solo-io/solo-apis v0.0.0-20240917212400-9103ca169358/go.mod h1:xWaT1lP+nkAGYCuAtRdG1l4MsdKwphqeomC41AIsemY=
 github.com/solo-io/solo-kit v0.36.3-0.20241116205403-d7976f76f908 h1:bKFdJ9nCIUYepO3ADQaDdQZiePdAkgEbrpAxksZNmAo=
 github.com/solo-io/solo-kit v0.36.3-0.20241116205403-d7976f76f908/go.mod h1:tLK3BllHZZUZsvgG3paVzux8ccmItKadqLSg7nOltDw=
+github.com/solo-io/solo-kit v0.36.3-0.20241116211131-0663e99a0baf h1:zp3e4o403YZk5qVMU+6FCl8INgZOgkc+BUPCe7L23UI=
+github.com/solo-io/solo-kit v0.36.3-0.20241116211131-0663e99a0baf/go.mod h1:tLK3BllHZZUZsvgG3paVzux8ccmItKadqLSg7nOltDw=
+github.com/solo-io/solo-kit v0.36.3-0.20241116211651-bd9d0f12f0f3 h1:CKMLgQdswg2wVbo0dTGFezZXVeUaRPgirobAxXyZmfA=
+github.com/solo-io/solo-kit v0.36.3-0.20241116211651-bd9d0f12f0f3/go.mod h1:tLK3BllHZZUZsvgG3paVzux8ccmItKadqLSg7nOltDw=
+github.com/solo-io/solo-kit v0.36.3-0.20241116212234-514bf6525e3a h1:DZhpDj3ShOjEe9luyVsK1mgUBAKNkWLlw1CH2ypAwBU=
+github.com/solo-io/solo-kit v0.36.3-0.20241116212234-514bf6525e3a/go.mod h1:tLK3BllHZZUZsvgG3paVzux8ccmItKadqLSg7nOltDw=
 github.com/sourcegraph/conc v0.3.0 h1:OQTbbt6P72L20UqAkXXuLOj79LfEanQ+YQFNpLA9ySo=
 github.com/sourcegraph/conc v0.3.0/go.mod h1:Sdozi7LEKbFPqYX2/J+iBAM6HpqSLTASQIKqDmF7Mt0=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=

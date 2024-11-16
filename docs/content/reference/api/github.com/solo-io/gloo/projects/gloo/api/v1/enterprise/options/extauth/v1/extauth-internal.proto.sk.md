@@ -1,6 +1,6 @@
 
 ---
-title: "extauth-internal.proto"
+title: "ExtauthInternalProto"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `enterprise.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ExtAuthConfig](#extauthconfig)
@@ -59,7 +59,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto)**
 
 
 

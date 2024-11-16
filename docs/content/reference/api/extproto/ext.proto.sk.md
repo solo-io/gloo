@@ -1,6 +1,6 @@
 
 ---
-title: "ext.proto"
+title: "ExtProto"
 weight: 5
 ---
 
@@ -9,7 +9,7 @@ weight: 5
 
 ### Package: `extproto`
 
-##### Source File: `extproto/ext.proto`
+**Source File: `extproto/ext.proto`**
 
 
 

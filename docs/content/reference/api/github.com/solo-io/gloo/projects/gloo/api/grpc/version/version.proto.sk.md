@@ -1,6 +1,6 @@
 
 ---
-title: "version.proto"
+title: "VersionProto"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ServerVersion](#serverversion)
@@ -28,7 +28,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/grpc/version/version.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/grpc/version/version.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/grpc/version/version.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/grpc/version/version.proto)**
 
 
 

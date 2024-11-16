@@ -1,6 +1,6 @@
 
 ---
-title: "subset_spec.proto"
+title: "SubsetSpecProto"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [SubsetSpec](#subsetspec)
@@ -25,7 +25,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/subset_spec.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/subset_spec.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/subset_spec.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/subset_spec.proto)**
 
 
 

@@ -1,6 +1,6 @@
 
 ---
-title: "envoy.glooe.solo.io.project"
+title: "EnvoyGlooeSoloIoProject"
 weight: 5
 ---
 
