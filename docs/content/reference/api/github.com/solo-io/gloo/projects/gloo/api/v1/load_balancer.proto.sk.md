@@ -1,6 +1,6 @@
 
 ---
-title: "LoadBalancerProto"
+title: "LoadBalancer"
 weight: 5
 ---
 

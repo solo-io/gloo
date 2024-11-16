@@ -1,6 +1,6 @@
 
 ---
-title: "StatefulSessionProto"
+title: "StatefulSession"
 weight: 5
 ---
 

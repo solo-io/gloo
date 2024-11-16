@@ -1,6 +1,6 @@
 
 ---
-title: "MetricsProto"
+title: "Metrics"
 weight: 5
 ---
 

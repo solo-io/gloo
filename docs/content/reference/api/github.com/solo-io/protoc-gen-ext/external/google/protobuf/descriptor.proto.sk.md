@@ -1,6 +1,6 @@
 
 ---
-title: "DescriptorProto"
+title: "Descriptor"
 weight: 5
 ---
 

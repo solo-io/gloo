@@ -1,6 +1,6 @@
 
 ---
-title: "VersionProto"
+title: "Version"
 weight: 5
 ---
 

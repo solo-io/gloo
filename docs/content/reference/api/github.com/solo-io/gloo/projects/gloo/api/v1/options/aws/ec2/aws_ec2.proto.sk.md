@@ -1,6 +1,6 @@
 
 ---
-title: "AwsEc2Proto"
+title: "AwsEc2"
 weight: 5
 ---
 

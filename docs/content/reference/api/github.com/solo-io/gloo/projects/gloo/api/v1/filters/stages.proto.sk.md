@@ -1,6 +1,6 @@
 
 ---
-title: "StagesProto"
+title: "Stages"
 weight: 5
 ---
 

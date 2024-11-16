@@ -1,6 +1,6 @@
 
 ---
-title: "PercentProto"
+title: "Percent"
 weight: 5
 ---
 

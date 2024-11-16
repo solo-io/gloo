@@ -1,6 +1,6 @@
 
 ---
-title: "TraceProto"
+title: "Trace"
 weight: 5
 ---
 

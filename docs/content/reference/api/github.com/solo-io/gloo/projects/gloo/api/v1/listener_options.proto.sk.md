@@ -1,6 +1,6 @@
 
 ---
-title: "ListenerOptionsProto"
+title: "ListenerOptions"
 weight: 5
 ---
 

@@ -1,6 +1,6 @@
 
 ---
-title: "RetriesProto"
+title: "Retries"
 weight: 5
 ---
 

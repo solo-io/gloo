@@ -1,6 +1,6 @@
 
 ---
-title: "HealthcheckProto"
+title: "Healthcheck"
 weight: 5
 ---
 

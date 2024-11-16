@@ -1,6 +1,6 @@
 
 ---
-title: "GraphqlProto"
+title: "Graphql"
 weight: 5
 ---
 

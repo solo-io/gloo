@@ -1,6 +1,6 @@
 
 ---
-title: "SettingsProto"
+title: "Settings"
 weight: 5
 ---
 

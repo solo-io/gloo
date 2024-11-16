@@ -1,6 +1,6 @@
 
 ---
-title: "ConnectionLimitProto"
+title: "ConnectionLimit"
 weight: 5
 ---
 

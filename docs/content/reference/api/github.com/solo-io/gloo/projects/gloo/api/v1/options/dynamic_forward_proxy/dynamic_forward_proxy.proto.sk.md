@@ -1,6 +1,6 @@
 
 ---
-title: "DynamicForwardProxyProto"
+title: "DynamicForwardProxy"
 weight: 5
 ---
 

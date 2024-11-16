@@ -1,6 +1,6 @@
 
 ---
-title: "MetadataProto"
+title: "Metadata"
 weight: 5
 ---
 

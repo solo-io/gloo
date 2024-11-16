@@ -1,6 +1,6 @@
 
 ---
-title: "PipeProto"
+title: "Pipe"
 weight: 5
 ---
 

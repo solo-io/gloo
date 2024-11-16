@@ -1,6 +1,6 @@
 
 ---
-title: "DeprecationProto"
+title: "Deprecation"
 weight: 5
 ---
 

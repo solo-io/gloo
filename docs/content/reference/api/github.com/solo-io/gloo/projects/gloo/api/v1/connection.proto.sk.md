@@ -1,6 +1,6 @@
 
 ---
-title: "ConnectionProto"
+title: "Connection"
 weight: 5
 ---
 

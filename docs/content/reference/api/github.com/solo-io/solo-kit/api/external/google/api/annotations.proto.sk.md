@@ -1,6 +1,6 @@
 
 ---
-title: "AnnotationsProto"
+title: "Annotations"
 weight: 5
 ---
 

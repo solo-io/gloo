@@ -1,6 +1,6 @@
 
 ---
-title: "ExtensionsProto"
+title: "Extensions"
 weight: 5
 ---
 

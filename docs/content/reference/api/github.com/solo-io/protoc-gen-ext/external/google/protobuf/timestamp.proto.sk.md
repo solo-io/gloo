@@ -1,6 +1,6 @@
 
 ---
-title: "TimestampProto"
+title: "Timestamp"
 weight: 5
 ---
 

@@ -1,6 +1,6 @@
 
 ---
-title: "StatusProto"
+title: "Status"
 weight: 5
 ---
 

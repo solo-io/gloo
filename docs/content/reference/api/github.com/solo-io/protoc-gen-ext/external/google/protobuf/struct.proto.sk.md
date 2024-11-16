@@ -1,6 +1,6 @@
 
 ---
-title: "StructProto"
+title: "Struct"
 weight: 5
 ---
 

@@ -1,6 +1,6 @@
 
 ---
-title: "QueryOptionsProto"
+title: "QueryOptions"
 weight: 5
 ---
 

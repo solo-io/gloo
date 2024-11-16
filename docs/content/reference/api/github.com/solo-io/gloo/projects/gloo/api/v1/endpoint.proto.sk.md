@@ -1,6 +1,6 @@
 
 ---
-title: "EndpointProto"
+title: "Endpoint"
 weight: 5
 ---
 

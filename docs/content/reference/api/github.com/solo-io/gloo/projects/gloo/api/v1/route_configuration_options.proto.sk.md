@@ -1,6 +1,6 @@
 
 ---
-title: "RouteConfigurationOptionsProto"
+title: "RouteConfigurationOptions"
 weight: 5
 ---
 

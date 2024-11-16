@@ -1,6 +1,6 @@
 
 ---
-title: "ShadowingProto"
+title: "Shadowing"
 weight: 5
 ---
 

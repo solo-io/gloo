@@ -1,6 +1,6 @@
 
 ---
-title: "StaticProto"
+title: "Static"
 weight: 5
 ---
 

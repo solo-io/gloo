@@ -1,6 +1,6 @@
 
 ---
-title: "SslProto"
+title: "Ssl"
 weight: 5
 ---
 

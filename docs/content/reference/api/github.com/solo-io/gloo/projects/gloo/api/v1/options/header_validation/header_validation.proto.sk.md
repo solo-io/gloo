@@ -1,6 +1,6 @@
 
 ---
-title: "HeaderValidationProto"
+title: "HeaderValidation"
 weight: 5
 ---
 

@@ -1,6 +1,6 @@
 
 ---
-title: "ProtocolUpgradeProto"
+title: "ProtocolUpgrade"
 weight: 5
 ---
 

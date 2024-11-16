@@ -1,6 +1,6 @@
 
 ---
-title: "KubernetesProto"
+title: "Kubernetes"
 weight: 5
 ---
 

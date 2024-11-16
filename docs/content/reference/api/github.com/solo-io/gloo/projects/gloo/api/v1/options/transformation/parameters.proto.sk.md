@@ -1,6 +1,6 @@
 
 ---
-title: "ParametersProto"
+title: "Parameters"
 weight: 5
 ---
 

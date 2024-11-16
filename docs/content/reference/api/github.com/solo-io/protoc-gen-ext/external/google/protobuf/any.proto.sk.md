@@ -1,6 +1,6 @@
 
 ---
-title: "AnyProto"
+title: "Any"
 weight: 5
 ---
 

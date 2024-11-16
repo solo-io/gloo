@@ -1,6 +1,6 @@
 
 ---
-title: "EnvoyGlooeSoloIoProject"
+title: "EnvoyGlooeSoloIo"
 weight: 5
 ---
 

@@ -1,6 +1,6 @@
 
 ---
-title: "DurationProto"
+title: "Duration"
 weight: 5
 ---
 

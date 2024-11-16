@@ -1,6 +1,6 @@
 
 ---
-title: "RouteTableProto"
+title: "RouteTable"
 weight: 5
 ---
 

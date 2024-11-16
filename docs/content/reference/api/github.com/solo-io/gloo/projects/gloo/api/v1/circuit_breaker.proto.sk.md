@@ -1,6 +1,6 @@
 
 ---
-title: "CircuitBreakerProto"
+title: "CircuitBreaker"
 weight: 5
 ---
 

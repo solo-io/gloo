@@ -1,6 +1,6 @@
 
 ---
-title: "TypeProto"
+title: "Type"
 weight: 5
 ---
 

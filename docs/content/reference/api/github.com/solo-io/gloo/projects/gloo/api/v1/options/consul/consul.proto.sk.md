@@ -1,6 +1,6 @@
 
 ---
-title: "ConsulProto"
+title: "Consul"
 weight: 5
 ---
 

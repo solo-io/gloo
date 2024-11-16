@@ -1,6 +1,6 @@
 
 ---
-title: "SoloKitProto"
+title: "SoloKit"
 weight: 5
 ---
 

@@ -1,6 +1,6 @@
 
 ---
-title: "ClusterProto"
+title: "Cluster"
 weight: 5
 ---
 

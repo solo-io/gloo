@@ -1,6 +1,6 @@
 
 ---
-title: "GlooSoloIoProject"
+title: "GlooSoloIo"
 weight: 5
 ---
 

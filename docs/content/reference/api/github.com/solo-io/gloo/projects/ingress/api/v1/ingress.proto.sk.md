@@ -1,6 +1,6 @@
 
 ---
-title: "IngressProto"
+title: "Ingress"
 weight: 5
 ---
 

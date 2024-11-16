@@ -1,6 +1,6 @@
 
 ---
-title: "GatewayProto"
+title: "Gateway"
 weight: 5
 ---
 

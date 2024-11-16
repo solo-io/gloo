@@ -1,6 +1,6 @@
 
 ---
-title: "AlsProto"
+title: "Als"
 weight: 5
 ---
 

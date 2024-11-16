@@ -1,6 +1,6 @@
 
 ---
-title: "ServiceSpecProto"
+title: "ServiceSpec"
 weight: 5
 ---
 

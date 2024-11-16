@@ -1,6 +1,6 @@
 
 ---
-title: "DestinationSpecProto"
+title: "DestinationSpec"
 weight: 5
 ---
 

@@ -1,6 +1,6 @@
 
 ---
-title: "SoloDiscoveryServiceProto"
+title: "SoloDiscoveryService"
 weight: 5
 ---
 

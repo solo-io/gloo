@@ -1,6 +1,6 @@
 
 ---
-title: "RbacProto"
+title: "Rbac"
 weight: 5
 ---
 

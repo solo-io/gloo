@@ -1,6 +1,6 @@
 
 ---
-title: "ExtauthInternalProto"
+title: "ExtauthInternal"
 weight: 5
 ---
 

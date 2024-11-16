@@ -1,6 +1,6 @@
 
 ---
-title: "WeightedDestinationOptionsProto"
+title: "WeightedDestinationOptions"
 weight: 5
 ---
 

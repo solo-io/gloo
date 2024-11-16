@@ -1,6 +1,6 @@
 
 ---
-title: "ProxyEndpointProto"
+title: "ProxyEndpoint"
 weight: 5
 ---
 

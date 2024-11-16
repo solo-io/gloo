@@ -1,6 +1,6 @@
 
 ---
-title: "EmptyProto"
+title: "Empty"
 weight: 5
 ---
 

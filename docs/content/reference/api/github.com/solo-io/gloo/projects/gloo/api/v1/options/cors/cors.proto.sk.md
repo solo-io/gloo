@@ -1,6 +1,6 @@
 
 ---
-title: "CorsProto"
+title: "Cors"
 weight: 5
 ---
 

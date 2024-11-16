@@ -1,6 +1,6 @@
 
 ---
-title: "InstanceProto"
+title: "Instance"
 weight: 5
 ---
 

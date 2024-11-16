@@ -1,6 +1,6 @@
 
 ---
-title: "FailoverProto"
+title: "Failover"
 weight: 5
 ---
 

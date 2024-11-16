@@ -1,6 +1,6 @@
 
 ---
-title: "AiProto"
+title: "Ai"
 weight: 5
 ---
 

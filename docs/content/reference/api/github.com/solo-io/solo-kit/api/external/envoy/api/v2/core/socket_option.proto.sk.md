@@ -1,6 +1,6 @@
 
 ---
-title: "SocketOptionProto"
+title: "SocketOption"
 weight: 5
 ---
 

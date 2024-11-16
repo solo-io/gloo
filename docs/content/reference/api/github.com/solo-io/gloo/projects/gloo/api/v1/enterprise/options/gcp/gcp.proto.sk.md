@@ -1,6 +1,6 @@
 
 ---
-title: "GcpProto"
+title: "Gcp"
 weight: 5
 ---
 

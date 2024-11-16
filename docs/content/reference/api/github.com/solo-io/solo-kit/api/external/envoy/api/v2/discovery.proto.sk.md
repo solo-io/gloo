@@ -1,6 +1,6 @@
 
 ---
-title: "DiscoveryProto"
+title: "Discovery"
 weight: 5
 ---
 

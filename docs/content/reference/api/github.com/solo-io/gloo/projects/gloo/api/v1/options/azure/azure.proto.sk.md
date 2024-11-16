@@ -1,6 +1,6 @@
 
 ---
-title: "AzureProto"
+title: "Azure"
 weight: 5
 ---
 

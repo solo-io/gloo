@@ -1,6 +1,6 @@
 
 ---
-title: "ProxyProtocolProto"
+title: "ProxyProtocol"
 weight: 5
 ---
 

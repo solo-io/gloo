@@ -1,6 +1,6 @@
 
 ---
-title: "GrpcWebProto"
+title: "GrpcWeb"
 weight: 5
 ---
 

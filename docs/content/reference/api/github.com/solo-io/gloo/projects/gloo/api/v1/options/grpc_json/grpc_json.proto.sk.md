@@ -1,6 +1,6 @@
 
 ---
-title: "GrpcJsonProto"
+title: "GrpcJson"
 weight: 5
 ---
 

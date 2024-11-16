@@ -1,6 +1,6 @@
 
 ---
-title: "RatelimitProto"
+title: "Ratelimit"
 weight: 5
 ---
 

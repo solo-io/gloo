@@ -1,6 +1,6 @@
 
 ---
-title: "AddressProto"
+title: "Address"
 weight: 5
 ---
 

@@ -1,6 +1,6 @@
 
 ---
-title: "VirtualServiceProto"
+title: "VirtualService"
 weight: 5
 ---
 

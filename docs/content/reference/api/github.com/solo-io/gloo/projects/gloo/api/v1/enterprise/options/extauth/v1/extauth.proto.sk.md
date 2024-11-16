@@ -1,6 +1,6 @@
 
 ---
-title: "ExtauthProto"
+title: "Extauth"
 weight: 5
 ---
 

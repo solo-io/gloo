@@ -1,6 +1,6 @@
 
 ---
-title: "HttpGatewayProto"
+title: "HttpGateway"
 weight: 5
 ---
 

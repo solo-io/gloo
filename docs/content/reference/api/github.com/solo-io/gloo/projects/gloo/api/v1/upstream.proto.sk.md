@@ -1,6 +1,6 @@
 
 ---
-title: "UpstreamProto"
+title: "Upstream"
 weight: 5
 ---
 

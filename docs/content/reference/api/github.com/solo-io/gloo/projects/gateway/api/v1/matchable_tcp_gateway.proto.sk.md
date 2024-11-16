@@ -1,6 +1,6 @@
 
 ---
-title: "MatchableTcpGatewayProto"
+title: "MatchableTcpGateway"
 weight: 5
 ---
 

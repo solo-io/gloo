@@ -1,6 +1,6 @@
 
 ---
-title: "SemanticVersionProto"
+title: "SemanticVersion"
 weight: 5
 ---
 

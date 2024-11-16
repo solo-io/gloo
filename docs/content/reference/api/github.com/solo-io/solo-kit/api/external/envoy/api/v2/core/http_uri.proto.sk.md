@@ -1,6 +1,6 @@
 
 ---
-title: "HttpUriProto"
+title: "HttpUri"
 weight: 5
 ---
 

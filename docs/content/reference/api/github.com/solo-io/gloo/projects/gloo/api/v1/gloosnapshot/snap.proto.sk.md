@@ -1,6 +1,6 @@
 
 ---
-title: "SnapProto"
+title: "Snap"
 weight: 5
 ---
 

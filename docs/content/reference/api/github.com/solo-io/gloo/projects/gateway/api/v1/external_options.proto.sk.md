@@ -1,6 +1,6 @@
 
 ---
-title: "ExternalOptionsProto"
+title: "ExternalOptions"
 weight: 5
 ---
 

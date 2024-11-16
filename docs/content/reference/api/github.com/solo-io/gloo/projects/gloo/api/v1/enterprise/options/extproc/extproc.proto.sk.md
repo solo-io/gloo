@@ -1,6 +1,6 @@
 
 ---
-title: "ExtprocProto"
+title: "Extproc"
 weight: 5
 ---
 

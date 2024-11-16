@@ -1,6 +1,6 @@
 
 ---
-title: "HttpListenerOptionsProto"
+title: "HttpListenerOptions"
 weight: 5
 ---
 

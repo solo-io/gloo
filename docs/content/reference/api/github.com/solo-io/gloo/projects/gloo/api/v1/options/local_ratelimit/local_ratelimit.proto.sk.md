@@ -1,6 +1,6 @@
 
 ---
-title: "LocalRatelimitProto"
+title: "LocalRatelimit"
 weight: 5
 ---
 

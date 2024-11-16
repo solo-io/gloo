@@ -1,6 +1,6 @@
 
 ---
-title: "RestProto"
+title: "Rest"
 weight: 5
 ---
 

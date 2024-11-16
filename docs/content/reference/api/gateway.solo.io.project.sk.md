@@ -1,6 +1,6 @@
 
 ---
-title: "GatewaySoloIoProject"
+title: "GatewaySoloIo"
 weight: 5
 ---
 

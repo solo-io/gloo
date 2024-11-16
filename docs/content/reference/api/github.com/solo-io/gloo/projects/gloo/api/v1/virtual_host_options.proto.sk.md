@@ -1,6 +1,6 @@
 
 ---
-title: "VirtualHostOptionsProto"
+title: "VirtualHostOptions"
 weight: 5
 ---
 

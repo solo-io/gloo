@@ -1,6 +1,6 @@
 
 ---
-title: "LbhashProto"
+title: "Lbhash"
 weight: 5
 ---
 

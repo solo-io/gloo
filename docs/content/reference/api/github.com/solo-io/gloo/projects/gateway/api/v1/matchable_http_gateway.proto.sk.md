@@ -1,6 +1,6 @@
 
 ---
-title: "MatchableHttpGatewayProto"
+title: "MatchableHttpGateway"
 weight: 5
 ---
 

@@ -1,6 +1,6 @@
 
 ---
-title: "GlooValidationProto"
+title: "GlooValidation"
 weight: 5
 ---
 

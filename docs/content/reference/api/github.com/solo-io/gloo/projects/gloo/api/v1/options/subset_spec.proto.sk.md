@@ -1,6 +1,6 @@
 
 ---
-title: "SubsetSpecProto"
+title: "SubsetSpec"
 weight: 5
 ---
 

@@ -1,6 +1,6 @@
 
 ---
-title: "StatsProto"
+title: "Stats"
 weight: 5
 ---
 

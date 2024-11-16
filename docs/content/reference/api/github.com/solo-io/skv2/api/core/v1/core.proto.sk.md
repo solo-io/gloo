@@ -1,6 +1,6 @@
 
 ---
-title: "CoreProto"
+title: "Core"
 weight: 5
 ---
 

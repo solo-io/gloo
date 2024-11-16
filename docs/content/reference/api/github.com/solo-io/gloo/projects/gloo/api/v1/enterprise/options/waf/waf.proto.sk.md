@@ -1,6 +1,6 @@
 
 ---
-title: "WafProto"
+title: "Waf"
 weight: 5
 ---
 

@@ -1,6 +1,6 @@
 
 ---
-title: "BaseProto"
+title: "Base"
 weight: 5
 ---
 

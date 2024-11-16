@@ -1,6 +1,6 @@
 
 ---
-title: "WasmProto"
+title: "Wasm"
 weight: 5
 ---
 

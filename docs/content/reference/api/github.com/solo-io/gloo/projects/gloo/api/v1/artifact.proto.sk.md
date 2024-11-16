@@ -1,6 +1,6 @@
 
 ---
-title: "ArtifactProto"
+title: "Artifact"
 weight: 5
 ---
 

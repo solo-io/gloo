@@ -1,6 +1,6 @@
 
 ---
-title: "SecretProto"
+title: "Secret"
 weight: 5
 ---
 
