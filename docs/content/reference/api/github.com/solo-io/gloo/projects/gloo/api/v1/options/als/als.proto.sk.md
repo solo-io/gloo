@@ -175,7 +175,7 @@ Filter on an integer comparison.
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `op` | [.als.options.gloo.solo.io.ComparisonFilter.Op](../als.proto.sk/#op) | Comparison operator. |
-| `value` | [.solo.io.envoy.config.core.v3.RuntimeUInt32](../../../../external/envoy/config/core/v3/base.proto.sk/#runtimeuint32) | Value to compare against. Note that the `defaultValue` field must be defined unless the `runtimeKey` matches a key that is defined in Envoy's [runtime configuration layer](https://www.envoyproxy.io/docs/envoy/v1.30.0/configuration/operations/runtime#config-runtime-bootstrap). Gloo Gateway does not include a key by default. To specify a key-value pair, use the [gatewayProxies.NAME.customStaticLayer]({{< versioned_link_path fromRoot="/reference/helm_chart_values/" >}}) Helm value or set the key at runtime by using the gateway proxy admin interface. |
+| `value` | .solo.io.envoy.config.core.v3.RuntimeUInt32 | Value to compare against. Note that the `defaultValue` field must be defined unless the `runtimeKey` matches a key that is defined in Envoy's [runtime configuration layer](https://www.envoyproxy.io/docs/envoy/v1.30.0/configuration/operations/runtime#config-runtime-bootstrap). Gloo Gateway does not include a key by default. To specify a key-value pair, use the [gatewayProxies.NAME.customStaticLayer]({{< versioned_link_path fromRoot="/reference/helm_chart_values/" >}}) Helm value or set the key at runtime by using the gateway proxy admin interface. |
 
 
 
@@ -280,7 +280,7 @@ Filters for random sampling of requests.
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `runtimeKey` | `string` | Runtime key to get an optional overridden numerator for use in the `percent_sampled` field. If found in runtime, this value will replace the default numerator. |
-| `percentSampled` | [.solo.io.envoy.type.v3.FractionalPercent](../../../../external/envoy/type/v3/percent.proto.sk/#fractionalpercent) | The default sampling percentage. If not specified, defaults to 0% with denominator of 100. |
+| `percentSampled` | .solo.io.envoy.type.v3.FractionalPercent | The default sampling percentage. If not specified, defaults to 0% with denominator of 100. |
 | `useIndependentRandomness` | `bool` | By default, sampling pivots on the header :ref:`x-request-id<config_http_conn_man_headers_x-request-id>` being present. If :ref:`x-request-id<config_http_conn_man_headers_x-request-id>` is present, the filter will consistently sample across multiple hosts based on the runtime key value and the value extracted from :ref:`x-request-id<config_http_conn_man_headers_x-request-id>`. If it is missing, or `use_independent_randomness` is set to true, the filter will randomly sample based on the runtime key value alone. `use_independent_randomness` can be used for logging kill switches within complex nested :ref:`AndFilter <envoy_v3_api_msg_config.accesslog.v3.AndFilter>` and :ref:`OrFilter <envoy_v3_api_msg_config.accesslog.v3.OrFilter>` blocks that are easier to reason about from a probability perspective (i.e., setting to true will cause the filter to behave like an independent random variable when composed within logical operator filters). |
 
 
@@ -339,7 +339,7 @@ Filters requests based on the presence or value of a request header.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `header` | [.solo.io.envoy.config.route.v3.HeaderMatcher](../../../../external/envoy/config/route/v3/route_components.proto.sk/#headermatcher) | Only requests with a header which matches the specified HeaderMatcher will pass the filter check. |
+| `header` | .solo.io.envoy.config.route.v3.HeaderMatcher | Only requests with a header which matches the specified HeaderMatcher will pass the filter check. |
 
 
 
