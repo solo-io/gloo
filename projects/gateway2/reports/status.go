@@ -129,7 +129,7 @@ func (r *ReportMap) BuildRouteStatus(ctx context.Context, obj client.Object, cNa
 
 			if existing := meta.FindStatusCondition(finalConditions, pCondition.Type); existing != nil {
 				contextutils.LoggerFrom(ctx).Debugw(
-					"duplicate condiition",
+					"duplicate condition",
 					"routeName", obj.GetName(),
 					"routeNamespace", obj.GetNamespace(),
 					"parentRef", string(ptr.OrDefault(parentRef.Namespace, gwv1.Namespace(obj.GetNamespace())))+"/"+string(parentRef.Name),
