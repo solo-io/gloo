@@ -4,7 +4,6 @@ metadata:
   name: httpbin
   namespace: full-envoy-validation-test 
 ---
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -492,9 +491,6 @@ spec:
         prefix: /gql/v2
       options:
         autoHostRewrite: true
-        extauth:
-          configRef:
-            name: something
         prefixRewrite: /
         stagedTransformations:
           early:
@@ -737,9 +733,6 @@ spec:
         prefix: /gql/v2
       options:
         autoHostRewrite: true
-        extauth:
-          configRef:
-            name: something
         prefixRewrite: /
         stagedTransformations:
           early:
@@ -981,9 +974,6 @@ spec:
         prefix: /gql/v2
       options:
         autoHostRewrite: true
-        extauth:
-          configRef:
-            name: something
         prefixRewrite: /
         stagedTransformations:
           early:

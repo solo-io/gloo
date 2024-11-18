@@ -7,6 +7,3 @@ gateway:
     webhook:
       timeoutSeconds: 30 # We are seeing Envoy take 10s of seconds to validate some of the larger configurations
     fullEnvoyValidation: true
-
-gloo:
-  logLevel: info
