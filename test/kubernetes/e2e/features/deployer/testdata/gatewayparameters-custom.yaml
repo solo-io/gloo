@@ -13,7 +13,7 @@ spec:
         pod-anno-key: pod-anno-val
     envoyContainer:
       bootstrap:
-        logLevel: debug
+        logLevel: info
         componentLogLevels:
           upstream: debug
           connection: trace

@@ -30,7 +30,7 @@ func TestE2e(t *testing.T) {
 
 	helpers.RegisterCommonFailHandlers()
 	helpers.SetupLog()
-	contextutils.SetLogLevel(zapcore.DebugLevel)
+	contextutils.SetLogLevel(zapcore.InfoLevel)
 	RunSpecs(t, "E2E Suite", Label(labels.E2E))
 }
 

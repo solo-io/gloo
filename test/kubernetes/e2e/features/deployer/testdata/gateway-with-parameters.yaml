@@ -53,7 +53,7 @@ spec:
         sa-anno-key: sa-anno-val
     envoyContainer:
       bootstrap:
-        logLevel: debug
+        logLevel: info
         componentLogLevels:
           upstream: debug
           connection: trace

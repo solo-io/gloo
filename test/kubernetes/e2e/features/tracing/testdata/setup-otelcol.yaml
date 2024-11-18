@@ -118,7 +118,7 @@ data:
         size_mib: 683
     exporters:
       logging:
-        loglevel: debug
+        loglevel: info
       zipkin:
         endpoint: "http://zipkin:9411/api/v2/spans"
         tls:

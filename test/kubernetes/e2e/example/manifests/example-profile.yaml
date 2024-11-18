@@ -17,7 +17,7 @@ kubeGateway:
 
 gloo:
   # We set the profile log level to debug, so that a test can override it
-  logLevel: debug
+  logLevel: info
 
 # This is an example profile, so we disable as many components as possible
 discovery:
