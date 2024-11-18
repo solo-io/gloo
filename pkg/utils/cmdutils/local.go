@@ -29,8 +29,10 @@ type LocalCmder struct{}
 
 // Command returns a Cmd which includes the running process's `Environment`
 func (c *LocalCmder) Command(ctx context.Context, name string, arg ...string) Cmd {
+	var combinedOutput threadsafe.Buffer
 	cmd := &LocalCmd{
-		Cmd: exec.CommandContext(ctx, name, arg...),
+		Cmd:            exec.CommandContext(ctx, name, arg...),
+		combinedOutput: &combinedOutput,
 	}
 
 	// By default, assign the env variables for the command
@@ -41,6 +43,7 @@ func (c *LocalCmder) Command(ctx context.Context, name string, arg ...string) Cm
 // LocalCmd wraps os/exec.Cmd, implementing the cmdutils.Cmd interface
 type LocalCmd struct {
 	*exec.Cmd
+	combinedOutput *threadsafe.Buffer
 }
 
 // WithEnv sets env
@@ -92,4 +95,42 @@ func (cmd *LocalCmd) Run() *RunError {
 		}
 	}
 	return nil
+}
+
+// Start starts the command but doesn't block
+// If the returned error is non-nil, it should be of type *RunError
+func (cmd *LocalCmd) Start() *RunError {
+
+	cmd.Stdout = io.MultiWriter(cmd.Stdout, cmd.combinedOutput)
+	cmd.Stderr = io.MultiWriter(cmd.Stderr, cmd.combinedOutput)
+
+	if err := cmd.Cmd.Start(); err != nil {
+		return &RunError{
+			command:    cmd.Args,
+			output:     cmd.combinedOutput.Bytes(),
+			inner:      err,
+			stackTrace: errors.WithStack(err),
+		}
+	}
+	return nil
+}
+
+// Wait waits for the command to finish
+// If the returned error is non-nil, it should be of type *RunError
+func (cmd *LocalCmd) Wait() *RunError {
+	if err := cmd.Cmd.Wait(); err != nil {
+		return &RunError{
+			command:    cmd.Args,
+			output:     cmd.combinedOutput.Bytes(),
+			inner:      err,
+			stackTrace: errors.WithStack(err),
+		}
+	}
+	return nil
+}
+
+// Output returns the output of the command
+// If the returned error is non-nil, it should be of type *RunError
+func (cmd *LocalCmd) Output() []byte {
+	return cmd.combinedOutput.Bytes()
 }

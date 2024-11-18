@@ -11,6 +11,17 @@ type Cmd interface {
 	// It returns a *RunError if there is any error, nil otherwise
 	Run() *RunError
 
+	// Start starts the command but doesn't block
+	// If the returned error is non-nil, it should be of type *RunError
+	Start() *RunError
+
+	// Wait waits for the command to finish
+	// If the returned error is non-nil, it should be of type *RunError
+	Wait() *RunError
+
+	// Output returns the output of the executed command
+	Output() []byte
+
 	// WithEnv sets the Env variables for the Cmd
 	// Each entry should be of the form "key=value"
 	WithEnv(...string) Cmd
