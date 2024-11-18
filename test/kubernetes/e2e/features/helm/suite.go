@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/rotisserie/eris"
 	"io"
 	"os"
 	"path/filepath"
@@ -86,10 +87,10 @@ func (s *testingSuite) TestApplyCRDs() {
 			return nil
 		}
 
-		// Parse the file, and extract the CRD
+		// Parse the file, and extract the CRD- will fail for any non-yaml files or files not containing a CRD
 		crd, err := schemagen.GetCRDFromFile(crdFile)
 		if err != nil {
-			return err
+			return eris.Wrap(err, "error getting CRD from "+crdFile)
 		}
 		crdsByFileName[crdFile] = crd
 
