@@ -97,8 +97,7 @@ spec:
         livenessProbe:
 {{ toYaml $gateway.livenessProbe | indent 10}}
 {{- end }}{{/*if $gateway.livenessProbe*/}}
-{{- if $gateway.gracefulShutdown }}
-{{- if $gateway.gracefulShutdown.enabled }}
+{{- if ($gateway.gracefulShutdown).enabled }}
         lifecycle:
           preStop:
             exec:
