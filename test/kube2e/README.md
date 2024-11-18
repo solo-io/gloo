@@ -1,3 +1,6 @@
+> [!NOTE]
+> This directory houses legacy tests. All new tests should instead be added to the `test/kubernetes/e2e` directory.
+
 # Kubernetes End-to-End tests
 See the [developer kube-e2e testing guide](/devel/testing/kube-e2e-tests.md) for more information about the philosophy of these tests.
 
