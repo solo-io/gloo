@@ -26,9 +26,9 @@ var _ = Describe("upgrade utils unit tests", func() {
 		It("should return latest patch", func() {
 			ctx := context.Background()
 			client, _ := githubutils.GetClient(ctx)
-			minor, err := getLatestReleasedPatchVersion(ctx, client, "gloo", 1, 8)
+			minor, err := getLatestReleasedPatchVersion(ctx, client, "gloo", 1, 9)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(minor.String()).To(Equal("v1.8.37"))
+			Expect(minor.String()).To(Equal("v1.9.30"))
 		})
 	})
 
