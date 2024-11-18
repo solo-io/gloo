@@ -8,6 +8,8 @@ metadata:
 spec:
   group: gloo.solo.io
   names:
+    categories:
+    - gloo-gateway
     kind: Upstream
     listKind: UpstreamList
     plural: upstreams
