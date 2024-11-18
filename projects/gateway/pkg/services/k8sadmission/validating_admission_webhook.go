@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"slices"
 	"time"
 
@@ -226,6 +227,9 @@ func (wh *gatewayValidationWebhook) ServeHTTP(w http.ResponseWriter, r *http.Req
 	logger := contextutils.LoggerFrom(wh.ctx)
 
 	logger.Debug("received validation request on webhook")
+
+	b, _ := httputil.DumpRequest(r, true)
+	logger.Debugf("validation request dump:\n %s", string(b))
 
 	// Verify the content type is accurate
 	contentType := r.Header.Get("Content-Type")
