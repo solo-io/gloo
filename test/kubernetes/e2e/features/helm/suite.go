@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/rotisserie/eris"
 	"io"
 	"os"
 	"path/filepath"
 	"slices"
 	"time"
 
+	"github.com/rotisserie/eris"
 	"github.com/stretchr/testify/suite"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
