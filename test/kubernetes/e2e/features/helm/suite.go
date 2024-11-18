@@ -82,7 +82,7 @@ func (s *testingSuite) TestApplyCRDs() {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() {
+		if info.IsDir() || info.Name() == "README.md" {
 			return nil
 		}
 
