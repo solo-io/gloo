@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"math"
 	"os/exec"
 	"strconv"
 	"time"
@@ -30,6 +31,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"sigs.k8s.io/yaml"
 )
 
@@ -123,7 +125,7 @@ func getXdsDump(ctx context.Context, xdsPort, proxyName, proxyNamespace string) 
 			Fields: map[string]*structpb.Value{"role": {Kind: &structpb.Value_StringValue{StringValue: xdsDump.Role}}}},
 	}}
 
-	conn, err := grpc.Dial("localhost:"+xdsPort, grpc.WithInsecure())
+	conn, err := grpc.NewClient("localhost:"+xdsPort, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt)))
 	if err != nil {
 		return nil, err
 	}
