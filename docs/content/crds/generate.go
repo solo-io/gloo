@@ -6,19 +6,20 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
+	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/skv2/codegen/util"
+	"github.com/stoewer/go-strcase"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var (
+	// crdocBinary is assumed to be installed locally to this path
+	// see the `install-go-tools` target in the Makefile
 	crdocBinary = filepath.Join(util.GetModuleRoot(), "_output", ".bin", "crdoc")
 )
-
-type CrdReference struct {
-	SourceCrdFile               string
-	DestinationCrdReferenceFile string
-}
 
 func main() {
 	err := generateCrdReferenceDocs(context.Background())
@@ -28,35 +29,63 @@ func main() {
 	}
 }
 
+// generateCrdReferenceDocs is the entrypoint to our automation for updating CRD reference markdown files
 func generateCrdReferenceDocs(ctx context.Context) error {
-	crds := []CrdReference{
-		{
-			SourceCrdFile:               "install/helm/gloo/crds/gateway.gloo.solo.io_gatewayparameters.yaml",
-			DestinationCrdReferenceFile: "docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/gateway_parameters.md",
-		},
-		{
-			SourceCrdFile:               "install/helm/gloo/crds/gateway.gloo.solo.io_directresponses.yaml",
-			DestinationCrdReferenceFile: "docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/direct_response_action.md",
-		},
+	gvks := []schema.GroupVersionKind{
+		v1alpha1.GatewayParametersGVK,
+		v1alpha1.DirectResponseGVK,
 	}
 
 	outErr := &multierror.Error{}
-	for _, crd := range crds {
-		err := generateCrdReferenceMarkdown(ctx, crd)
+	for _, gvk := range gvks {
+		err := generateCrdReferenceMarkdown(ctx, gvk)
 		outErr = multierror.Append(outErr, err)
 	}
 
 	return outErr.ErrorOrNil()
 }
 
-func generateCrdReferenceMarkdown(ctx context.Context, crd CrdReference) error {
+func generateCrdReferenceMarkdown(ctx context.Context, gvk schema.GroupVersionKind) error {
+	// sourceFile is the path to the CRD. This is used as the source of truth for the CRD reference docs
+	sourceFile := filepath.Join(
+		"install",
+		"helm", "gloo",
+		"crds",
+		fmt.Sprintf("%s_%s.yaml", gvk.Group, strings.ToLower(kindPlural(gvk))),
+	)
+
+	// outputFile is the path to the generated reference markdown file.
+	// NOTE: For now, this is tightly coupled to the `gateway2` project, since that is where the APIs that we
+	// rely on are defined, though that may need to change in the future
+	outputFile := filepath.Join(
+		"docs",
+		"content",
+		"reference",
+		"api",
+		"github.com",
+		"solo-io",
+		"gloo",
+		"projects",
+		"gateway2",
+		"api",
+		gvk.Version,
+		fmt.Sprintf("%s.md", strcase.SnakeCase(kindPlural(gvk))))
+
+	// templateFile is the path to the file used as the template for our docs
+	templateFile := filepath.Join(
+		"docs",
+		"content",
+		"crds",
+		"templates",
+		"markdown.tmpl")
+
 	cmd := cmdutils.Command(ctx, crdocBinary,
 		"--resources",
-		crd.SourceCrdFile,
+		sourceFile,
 		"--output",
-		crd.DestinationCrdReferenceFile,
+		outputFile,
 		"--template",
-		filepath.Join("docs", "content", "crds", "templates", "markdown.tmpl"),
+		templateFile,
 	)
 	runErr := cmd.Run()
 
@@ -64,4 +93,12 @@ func generateCrdReferenceMarkdown(ctx context.Context, crd CrdReference) error {
 		return eris.Wrapf(runErr.Cause(), "%s produced error %s", runErr.PrettyCommand(), runErr.Error())
 	}
 	return nil
+}
+
+// kindPlural returns the pluralized kind for a given GVK.
+// This is hacky, but is useful because CRD files are named using this format, so we need a way to look up that file name
+func kindPlural(gvk schema.GroupVersionKind) string {
+	// ensure that kind which ends in s, is not duplicated
+	// ie GatewayParameters becomes gatewayparameters, not gatewayparameterss
+	return strings.TrimSuffix(gvk.Kind, "s") + "s"
 }
