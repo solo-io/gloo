@@ -2,6 +2,7 @@ package assertions
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/onsi/ginkgo/v2"
@@ -31,6 +32,7 @@ func (p *Provider) EventuallyResourceStatusMatchesWarningReasons(getter helpers.
 		status, err := getResourceNamespacedStatus(getter)
 		g.Expect(err).NotTo(gomega.HaveOccurred(), "failed to get resource namespaced status")
 		g.Expect(status).ToNot(gomega.BeNil())
+		fmt.Printf("status: %v\n", status)
 		g.Expect(status).To(gomega.HaveValue(statusWarningsMatcher))
 	}, currentTimeout, pollingInterval).Should(gomega.Succeed())
 }
