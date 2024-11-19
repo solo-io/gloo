@@ -8,6 +8,8 @@ metadata:
 spec:
   group: gateway.solo.io
   names:
+    categories:
+    - gloo-gateway
     kind: VirtualHostOption
     listKind: VirtualHostOptionList
     plural: virtualhostoptions

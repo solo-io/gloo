@@ -339,7 +339,17 @@ type GatewayParameters struct {
 	Stats           *GatewayParamsStatsConfig  `json:"stats,omitempty" desc:"Config used to manage the stats endpoints exposed on the deployed proxies"`
 	AIExtension     *GatewayParamsAIExtension  `json:"aiExtension,omitempty" desc:"Config used to manage the Gloo Gateway AI extension."`
 	FloatingUserId  *bool                      `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container. Default is false."`
+	PodTemplate     *GatewayParamsPodTemplate  `json:"podTemplate,omitempty" desc:"The template used to generate the gatewayParams pod"`
 	// TODO(npolshak): Add support for GlooMtls
+}
+
+// GatewayProxyPodTemplate contains the Helm API available to configure the PodTemplate on the gateway Deployment
+type GatewayParamsPodTemplate struct {
+	GracefulShutdown              *GracefulShutdownSpec `json:"gracefulShutdown,omitempty" desc:"If enabled, it calls the /'healthcheck/fail' endpoint on the envoy container prior to shutdown. This is useful for draining a server prior to shutting it down or doing a full"`
+	TerminationGracePeriodSeconds *int                  `json:"terminationGracePeriodSeconds,omitempty" desc:"Time in seconds to wait for the pod to terminate gracefully. See [kubernetes docs](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#istio-lifecycle) for more info."`
+	Probes                        *bool                 `json:"probes,omitempty" desc:"Set to true to enable a readiness probe (default is false). Then, you can also enable a liveness probe."`
+	CustomReadinessProbe          *corev1.Probe         `json:"customReadinessProbe,omitempty" desc:"Defines a custom readiness probe. If not provided, a default one is set"`
+	CustomLivenessProbe           *corev1.Probe         `json:"customLivenessProbe,omitempty" desc:"Defines a custom liveness probe. If not specified, no default liveness probe is set"`
 }
 
 type GatewayParamsStatsConfig struct {
@@ -563,7 +573,7 @@ type CertGenCron struct {
 type GatewayProxy struct {
 	Kind                           *GatewayProxyKind                `json:"kind,omitempty" desc:"value to determine how the gateway proxy is deployed"`
 	Namespace                      *string                          `json:"namespace,omitempty" desc:"Namespace in which to deploy this gateway proxy. Defaults to the value of Settings.WriteNamespace"`
-	PodTemplate                    *GatewayProxyPodTemplate         `json:"podTemplate,omitempty"`
+	PodTemplate                    *GatewayProxyPodTemplate         `json:"podTemplate,omitempty" desc:"The template used to generate the gateway proxy pod"`
 	ConfigMap                      *ConfigMap                       `json:"configMap,omitempty"`
 	CustomStaticLayer              interface{}                      `json:"customStaticLayer,omitempty" desc:"Configure the static layer for global overrides to Envoy behavior, as defined in the Envoy bootstrap YAML. You cannot use this setting to set overload or upstream layers. For more info, see the Envoy docs. https://www.envoyproxy.io/docs/envoy/latest/configuration/operations/runtime#config-runtime"`
 	GlobalDownstreamMaxConnections *uint32                          `json:"globalDownstreamMaxConnections,omitempty" desc:"the number of concurrent connections needed. limit used to protect against exhausting file descriptors on host machine"`
@@ -682,7 +692,7 @@ type GatewayProxyPodTemplate struct {
 	FloatingUserId                *bool                 `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container. If podSecurityContext is defined, this value is not applied."`
 	RunAsUser                     *float64              `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the processes in the container to run as. Default is 10101. If a SecurityContext is defined for the pod or container, this value is not applied for the pod/container."`
 	FsGroup                       *float64              `json:"fsGroup,omitempty" desc:"Explicitly set the group ID for volume ownership. Default is 10101. If podSecurityContext is defined, this value is not applied."`
-	GracefulShutdown              *GracefulShutdownSpec `json:"gracefulShutdown,omitempty"`
+	GracefulShutdown              *GracefulShutdownSpec `json:"gracefulShutdown,omitempty" desc:"If enabled, it calls the /'healthcheck/fail' endpoint on the envoy container prior to shutdown. This is useful for draining a server prior to shutting it down or doing a full"`
 	TerminationGracePeriodSeconds *int                  `json:"terminationGracePeriodSeconds,omitempty" desc:"Time in seconds to wait for the pod to terminate gracefully. See [kubernetes docs](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#istio-lifecycle) for more info."`
 	CustomReadinessProbe          *corev1.Probe         `json:"customReadinessProbe,omitempty"`
 	CustomLivenessProbe           *corev1.Probe         `json:"customLivenessProbe,omitempty"`

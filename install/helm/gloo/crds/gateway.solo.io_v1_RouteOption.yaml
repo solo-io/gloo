@@ -8,6 +8,8 @@ metadata:
 spec:
   group: gateway.solo.io
   names:
+    categories:
+    - gloo-gateway
     kind: RouteOption
     listKind: RouteOptionList
     plural: routeoptions

@@ -8,6 +8,8 @@ metadata:
 spec:
   group: gloo.solo.io
   names:
+    categories:
+    - gloo-gateway
     kind: Proxy
     listKind: ProxyList
     plural: proxies
