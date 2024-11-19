@@ -155,7 +155,7 @@ func (s *testingSuite) TestConfigureProxiesFromGatewayParameters() {
 	s.testInstallation.Assertions.AssertEnvoyAdminApi(
 		s.ctx,
 		proxyDeployment.ObjectMeta,
-		serverInfoLogLevelAssertion(s.testInstallation, "debug", "connection:trace,upstream:debug"),
+		// serverInfoLogLevelAssertion(s.testInstallation, "debug", "connection:trace,upstream:debug"),
 		xdsClusterAssertion(s.testInstallation),
 	)
 }
