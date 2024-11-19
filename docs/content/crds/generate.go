@@ -50,7 +50,8 @@ func generateCrdReferenceMarkdown(ctx context.Context, gvk schema.GroupVersionKi
 	// sourceFile is the path to the CRD. This is used as the source of truth for the CRD reference docs
 	sourceFile := filepath.Join(
 		"install",
-		"helm", "gloo",
+		"helm",
+		"gloo",
 		"crds",
 		fmt.Sprintf("%s_%s.yaml", gvk.Group, strings.ToLower(kindPlural(gvk))),
 	)
