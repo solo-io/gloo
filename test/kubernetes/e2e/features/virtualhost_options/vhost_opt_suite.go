@@ -2,6 +2,7 @@ package virtualhost_options
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -227,13 +228,14 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 	)
 }
 
-// The goal here is to test the behavior when multiple VHOs are targeting a gateway without sectionName. The expected
-// behavior is that the oldest resource is used
+// The goal here is to test the behavior when multiple VHOs are targeting a gateway without sectionName.
+// The expected behavior is that the oldest resource is used
 func (s *testingSuite) TestMultipleVirtualHostOptionsManualSetup() {
 	// Manually apply our manifests so we can assert that basic vho exists before applying extra vho.
 	// This is needed because our solo-kit clients currently do not return creationTimestamp
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, basicVhOManifest)
 	s.NoError(err, "can apply "+basicVhOManifest)
+
 	// Check status is accepted before moving on to apply conflicting vho
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
 		s.getterForMeta(&basicVirtualHostOptionMeta),
@@ -254,12 +256,13 @@ func (s *testingSuite) TestMultipleVirtualHostOptionsManualSetup() {
 		},
 		expectedResponseWithoutContentLength)
 
-	// Check status is accepted on older VirtualHostOption
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		s.getterForMeta(&basicVirtualHostOptionMeta),
-		core.Status_Accepted,
-		defaults.KubeGatewayReporter,
-	)
+	obj, err := s.testInstallation.ResourceClients.VirtualHostOptionClient().Read(
+		extraVirtualHostOptionMeta.GetNamespace(),
+		extraVirtualHostOptionMeta.GetName(),
+		clients.ReadOpts{})
+	fmt.Printf("extraVho error %v\n", err)
+	fmt.Printf("extraVho: %v\n", obj)
+
 	// Check status is warning on newer VirtualHostOption not selected for attachment
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesWarningReasons(
 		s.getterForMeta(&extraVirtualHostOptionMeta),

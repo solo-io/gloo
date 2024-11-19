@@ -69,6 +69,7 @@ func (p *Provider) EventuallyResourceStatusMatchesState(
 		status, err := getResourceNamespacedStatus(getter)
 		g.Expect(err).NotTo(gomega.HaveOccurred(), "failed to get resource namespaced status")
 		g.Expect(status).ToNot(gomega.BeNil())
+		fmt.Printf("status: %v\n", status)
 		g.Expect(status).To(gomega.HaveValue(statusStateMatcher))
 	}, currentTimeout, pollingInterval).Should(gomega.Succeed())
 }

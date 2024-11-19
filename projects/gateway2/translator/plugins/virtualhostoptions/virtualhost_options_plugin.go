@@ -114,6 +114,13 @@ func (p *plugin) ApplyListenerPlugin(
 		return nil
 	}
 
+	logger := contextutils.LoggerFrom(ctx)
+	for _, opt := range attachedOptions {
+		logger.Infof("VirtualHostOption %s attached to listener %s on Gateway %s/%s: %v",
+			client.ObjectKeyFromObject(opt), listenerCtx.GwListener.Name, listenerCtx.Gateway.Namespace,
+			listenerCtx.Gateway.Name, &opt)
+	}
+
 	// the first option is highest priority, so we will merge all options into this one,
 	// see for more context: https://github.com/solo-io/solo-projects/issues/6313
 	merged := attachedOptions[0]
