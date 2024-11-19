@@ -2,6 +2,7 @@ package base
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"time"
 
@@ -9,6 +10,8 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	"github.com/stretchr/testify/suite"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -86,6 +89,14 @@ func (s *BaseTestingSuite) SetupSuite() {
 	// Ensure the resources exist
 	if s.Setup.Resources != nil {
 		s.TestInstallation.Assertions.EventuallyObjectsExist(s.Ctx, s.Setup.Resources...)
+
+		for _, resource := range s.Setup.Resources {
+			if pod, ok := resource.(*corev1.Pod); ok {
+				s.TestInstallation.Assertions.EventuallyPodsRunning(s.Ctx, pod.Namespace, metav1.ListOptions{
+					LabelSelector: fmt.Sprintf("app.kubernetes.io/name=%s", pod.Name),
+				})
+			}
+		}
 	}
 
 	if s.Setup.UpgradeValues != "" {
@@ -166,6 +177,15 @@ func (s *BaseTestingSuite) BeforeTest(suiteName, testName string) {
 		}, 10*time.Second, 1*time.Second).Should(gomega.Succeed(), "can apply "+manifest)
 	}
 	s.TestInstallation.Assertions.EventuallyObjectsExist(s.Ctx, testCase.Resources...)
+
+	for _, resource := range testCase.Resources {
+		if pod, ok := resource.(*corev1.Pod); ok {
+			s.TestInstallation.Assertions.EventuallyPodsRunning(s.Ctx, pod.Namespace, metav1.ListOptions{
+				LabelSelector: fmt.Sprintf("app.kubernetes.io/name=%s", pod.Name),
+			})
+		}
+	}
+
 }
 
 func (s *BaseTestingSuite) AfterTest(suiteName, testName string) {
