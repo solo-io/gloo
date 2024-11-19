@@ -1,6 +1,6 @@
 
 ---
-title: "envoy.glooe.solo.io.project.sk.md"
+title: "envoy.glooe.solo.io"
 weight: 5
 ---
 
