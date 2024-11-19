@@ -51,7 +51,7 @@ func generateCrdReferenceMarkdown(ctx context.Context, gvk schema.GroupVersionKi
 		"install",
 		"helm", "gloo",
 		"crds",
-		fmt.Sprintf("%s_%s.yaml", gvk.Group, kindPlural(gvk)),
+		fmt.Sprintf("%s_%s.yaml", gvk.Group, strings.ToLower(kindPlural(gvk))),
 	)
 
 	// outputFile is the path to the generated reference markdown file.
@@ -69,7 +69,7 @@ func generateCrdReferenceMarkdown(ctx context.Context, gvk schema.GroupVersionKi
 		"gateway2",
 		"api",
 		gvk.Version,
-		fmt.Sprintf("%s.md", strcase.SnakeCase(gvk.Kind)))
+		fmt.Sprintf("%s.md", strcase.SnakeCase(kindPlural(gvk))))
 
 	// templateFile is the path to the file used as the template for our docs
 	templateFile := filepath.Join(
@@ -95,12 +95,10 @@ func generateCrdReferenceMarkdown(ctx context.Context, gvk schema.GroupVersionKi
 	return nil
 }
 
-// kindPlural returns the pluralized, lower-cased kind for a given GVK.
+// kindPlural returns the pluralized kind for a given GVK.
 // This is hacky, but is useful because CRD files are named using this format, so we need a way to look up that file name
 func kindPlural(gvk schema.GroupVersionKind) string {
-	lowerKind := strings.ToLower(gvk.Kind)
-
 	// ensure that kind which ends in s, is not duplicated
 	// ie GatewayParameters becomes gatewayparameters, not gatewayparameterss
-	return strings.TrimSuffix(lowerKind, "s") + "s"
+	return strings.TrimSuffix(gvk.Kind, "s") + "s"
 }
