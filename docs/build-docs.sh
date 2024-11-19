@@ -266,11 +266,6 @@ firebaseJson=$(cat <<EOF
         "type":"301"
       },
       {
-        "source": "/gloo-edge/:version/v1/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/transformation.proto.sk/",
-        "destination": "/gloo-edge/:version/reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/",
-        "type":"301"
-      },
-      {
         "source": "/gloo-edge/:version/v1/github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk/",
         "destination": "/gloo-edge/:version/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk/",
         "type":"301"
