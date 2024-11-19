@@ -448,7 +448,7 @@ func setRouteAction(
 			})
 
 		default:
-			contextutils.LoggerFrom(ctx).Errorf("unsupported backend type for kind: %v and type: %v", *backendRef.BackendObjectReference.Kind, *backendRef.BackendObjectReference.Group)
+			contextutils.LoggerFrom(ctx).Errorf("unsupported backend type for kind: %v and type: %v", backendRef.BackendObjectReference.Kind, backendRef.BackendObjectReference.Group)
 		}
 	}
 

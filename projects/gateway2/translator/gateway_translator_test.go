@@ -50,7 +50,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "example-gateway",
-			}}),
+			},
+		}),
 	Entry(
 		"https gateway with basic routing",
 		translatorTestCase{
@@ -59,7 +60,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "example-gateway",
-			}}),
+			},
+		}),
 	Entry(
 		"http gateway with multiple listeners on the same port",
 		translatorTestCase{
@@ -68,7 +70,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "http",
-			}}),
+			},
+		}),
 	Entry(
 		"https gateway with multiple listeners on the same port",
 		translatorTestCase{
@@ -77,7 +80,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "http",
-			}}),
+			},
+		}),
 	Entry(
 		"http gateway with multiple routing rules and HeaderModifier filter",
 		translatorTestCase{
@@ -86,7 +90,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "gw",
-			}}),
+			},
+		}),
 	Entry(
 		"http gateway with lambda destination",
 		translatorTestCase{
@@ -95,7 +100,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "gw",
-			}}),
+			},
+		}),
 	Entry(
 		"http gateway with azure destination",
 		translatorTestCase{
@@ -104,7 +110,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "gw",
-			}}),
+			},
+		}),
 	Entry(
 		"gateway with correctly sorted routes",
 		translatorTestCase{
@@ -113,7 +120,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "infra",
 				Name:      "example-gateway",
-			}}),
+			},
+		}),
 	Entry(
 		"route with missing backend reports correctly",
 		translatorTestCase{
@@ -192,6 +200,14 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 				Name:      "example-tcp-gateway",
 			},
 		}),
+	Entry("Plugin Backend", translatorTestCase{
+		inputFile:  "backend-plugin/gateway.yaml",
+		outputFile: "backend-plugin-proxy.yaml",
+		gwNN: types.NamespacedName{
+			Namespace: "default",
+			Name:      "example-gateway",
+		},
+	}),
 )
 
 var _ = DescribeTable("Route Delegation translator",
