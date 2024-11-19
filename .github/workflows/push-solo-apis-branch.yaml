@@ -57,10 +57,11 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 15
     steps:
-      - name: Install SSH Deploy key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+      - name: Setup Private Repo Permissions
+        env:
+          TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          git config --global url."https://${TOKEN}@github.com/solo-io/".insteadOf "https://github.com/solo-io/"
       - name: Check out code into the Go module directory
         uses: actions/checkout@v4
         with:
