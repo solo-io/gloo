@@ -20,7 +20,7 @@ weight: 5
 
  
 
-##### Enums:
+**Enums:**
 
 
 	- [HealthCheckResult](#healthcheckresult)

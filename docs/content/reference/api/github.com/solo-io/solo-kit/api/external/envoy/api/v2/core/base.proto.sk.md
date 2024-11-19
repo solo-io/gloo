@@ -31,7 +31,7 @@ weight: 5
 
  
 
-##### Enums:
+**Enums:**
 
 
 	- [RoutingPriority](#routingpriority)

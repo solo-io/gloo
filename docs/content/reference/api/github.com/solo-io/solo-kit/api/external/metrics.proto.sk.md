@@ -40,7 +40,7 @@ limitations under the License.
 
  
 
-##### Enums:
+**Enums:**
 
 
 	- [MetricType](#metrictype)

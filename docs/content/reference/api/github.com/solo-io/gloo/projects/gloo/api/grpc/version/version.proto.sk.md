@@ -21,7 +21,7 @@ weight: 5
 
  
 
-##### Enums:
+**Enums:**
 
 
 	- [GlooType](#glootype)

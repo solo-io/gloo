@@ -23,7 +23,7 @@ weight: 5
 
  
 
-##### Enums:
+**Enums:**
 
 
 	- [DnsLookupFamily](#dnslookupfamily)

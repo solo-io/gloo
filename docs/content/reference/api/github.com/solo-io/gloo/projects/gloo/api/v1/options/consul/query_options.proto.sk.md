@@ -16,7 +16,7 @@ weight: 5
 
  
 
-##### Enums:
+**Enums:**
 
 
 	- [ConsulConsistencyModes](#consulconsistencymodes)
