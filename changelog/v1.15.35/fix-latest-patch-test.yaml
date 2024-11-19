@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/10369
+    resolvesIssue: false
+    description: >-
+      Updating versions used in upgrade patch tests
