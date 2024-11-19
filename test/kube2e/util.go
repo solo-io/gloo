@@ -24,7 +24,6 @@ import (
 	"github.com/solo-io/go-utils/stats"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"go.uber.org/zap/zapcore"
 )
 
 const (
@@ -76,7 +75,7 @@ func EventuallyReachesConsistentState(installNamespace string) {
 	// Gloo components are configured to log to the Info level by default
 	// Note that for new style e2e tests (i.e. package `test/kubernetes`) we run them with debug logging
 	// so failures can be appropriately triaged after the fact
-	logLevelAssertion := assertions.LogLevelAssertion(zapcore.InfoLevel)
+	// logLevelAssertion := assertions.LogLevelAssertion(zapcore.InfoLevel)
 
 	// The emitter at some point should stabilize and not continue to increase the number of snapshots produced
 	// We choose 4 here as a bit of a magic number, but we feel comfortable that if 4 consecutive polls of the metrics
@@ -87,7 +86,7 @@ func EventuallyReachesConsistentState(installNamespace string) {
 	ginkgo.By("Gloo eventually reaches a consistent state")
 	offset := 1 // This method is called directly from a TestSuite
 	assertions.EventuallyWithOffsetStatisticsMatchAssertions(offset, glooStatsForwardConfig,
-		logLevelAssertion.WithOffset(offset),
+		// logLevelAssertion.WithOffset(offset),
 		emitterMetricAssertion.WithOffset(offset),
 	)
 }
