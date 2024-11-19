@@ -1,6 +1,6 @@
 
 ---
-title: "gateway.solo.io"
+title: "gateway.solo.io.project"
 weight: 5
 ---
 
