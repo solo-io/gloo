@@ -99,6 +99,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/mccutchen/go-httpbin/v2 v2.15.0
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22
+	github.com/stoewer/go-strcase v1.3.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	google.golang.org/genproto/googleapis/api v0.0.0-20241021214115-324edc3d5d38
@@ -301,7 +302,6 @@ require (
 	github.com/solo-io/anyvendor v0.1.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
-	github.com/stoewer/go-strcase v1.3.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect

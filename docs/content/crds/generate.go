@@ -3,6 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/hashicorp/go-multierror"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
@@ -10,9 +14,6 @@ import (
 	"github.com/solo-io/skv2/codegen/util"
 	"github.com/stoewer/go-strcase"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 var (
