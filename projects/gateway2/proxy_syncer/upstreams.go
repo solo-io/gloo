@@ -138,7 +138,7 @@ func translate(ctx context.Context, settings *gloov1.Settings, translator setup.
 
 func ApplyDestRulesForUpstream(destrule *DestinationRuleWrapper, u *gloov1.Upstream) (*gloov1.Upstream, string) {
 	if destrule != nil {
-		trafficPolicy := getTraficPolicy(destrule, ggv2utils.GetPortForUpstream(u))
+		trafficPolicy := getTrafficPolicy(destrule, ggv2utils.GetPortForUpstream(u))
 		if outlier := trafficPolicy.GetOutlierDetection(); outlier != nil {
 			name := krtcollections.GetEndpointClusterName(u)
 
