@@ -146,7 +146,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 	// Regardless, kube gw proxies are filtered out of these reports before reporting in translator_syncer.go
 	allReports.Accept(nonKubeProxies.AsInputResources()...)
 
-	// report Upstream[Group]s as Accepted initially but only if we at least 1 edge proxy
+	// mark Upstream[Group]s as Accepted initially, but only if we have at least 1 edge proxy;
 	// otherwise, we won't actually translate them, and so if there is an error, we will incorrectly report Accepted
 	if len(nonKubeProxies) > 0 {
 		allReports.Accept(snap.Upstreams.AsInputResources()...)
