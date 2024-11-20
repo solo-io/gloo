@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Fix flicker on Upstream status when kube gw syncer rejects a resource and no edge proxies are present
