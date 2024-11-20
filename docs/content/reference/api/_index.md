@@ -26,10 +26,10 @@ Settings
 
 Routing
 - VirtualService: {{< protobuf name="gateway.solo.io.VirtualService" >}}
-  - Options: {{< protobuf name="gloo.solo.io.VirtualHostOptions" >}}
+  - Options: {{< versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options.proto.sk/#virtualhostoptions" >}}
 - RouteTable: {{< protobuf name="gateway.solo.io.RouteTable" >}}
 - Routes: {{< protobuf name="gateway.solo.io.Route" >}} 
-  - Options: {{< protobuf name="gloo.solo.io.RouteOptions" >}}
+  - Options: {{< versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options.proto.sk/#routeoptions" >}}
 - Upstream: {{< protobuf name="gloo.solo.io.Upstream" >}}
 
 ExtAuth
