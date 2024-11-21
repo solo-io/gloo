@@ -91,7 +91,7 @@ type callbacks struct {
 	collection atomic.Pointer[callbacksCollection]
 }
 
-type UniquelyConnectedClientsBulider func(ctx context.Context, augmentedPods krt.Collection[LocalityPod]) krt.Collection[UniqlyConnectedClient]
+type UniquelyConnectedClientsBulider func(ctx context.Context, handler *krt.DebugHandler, augmentedPods krt.Collection[LocalityPod]) krt.Collection[UniqlyConnectedClient]
 
 // THIS IS THE SET OF THINGS WE RUN TRANSLATION FOR
 // add returned callbacks to the xds server.
@@ -102,7 +102,7 @@ func NewUniquelyConnectedClients() (xdsserver.Callbacks, UniquelyConnectedClient
 }
 
 func buildCollection(callbacks *callbacks) UniquelyConnectedClientsBulider {
-	return func(ctx context.Context, augmentedPods krt.Collection[LocalityPod]) krt.Collection[UniqlyConnectedClient] {
+	return func(ctx context.Context, handler *krt.DebugHandler, augmentedPods krt.Collection[LocalityPod]) krt.Collection[UniqlyConnectedClient] {
 		trigger := krt.NewRecomputeTrigger(true)
 		col := &callbacksCollection{
 			logger:           contextutils.LoggerFrom(ctx).Desugar(),
@@ -117,10 +117,10 @@ func buildCollection(callbacks *callbacks) UniquelyConnectedClientsBulider {
 		return krt.NewManyFromNothing(
 			func(ctx krt.HandlerContext) []UniqlyConnectedClient {
 				trigger.MarkDependant(ctx)
-
 				return col.getClients()
 			},
 			krt.WithName("UniqueConnectedClients"),
+			krt.WithDebugging(handler),
 		)
 	}
 }
