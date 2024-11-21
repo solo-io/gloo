@@ -22,4 +22,6 @@ These tests are run by a [GitHub action](/.github/workflows/regression-tests.yam
 If a test fails, you can retry it from a [browser window](https://docs.github.com/en/actions/managing-workflow-runs/re-running-workflows-and-jobs#reviewing-previous-workflow-runs). If you do this, please make sure to comment on the Pull Request with a link to the failed logs for debugging purposes.
 
 ## Local Development
-See the [kube2e test README](/test/kube2e/README.md) for more details about running these tests.
+See the [kubernetes e2e test README](/test/kubernetes/e2e/README.md) and [debugging guide](/test/kubernetes/e2e/debugging.md) for more details about running these tests.
+
+See the [kube2e test README](/test/kube2e/README.md) for more details about running the legacy tests.

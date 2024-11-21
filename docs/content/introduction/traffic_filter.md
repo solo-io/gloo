@@ -103,7 +103,7 @@ Review the following diagram of how Gloo Gateway filters traffic, depending on w
     * **CORS**: See the [Cross-origin resources sharing security guide]({{% versioned_link_path fromRoot="/guides/security/cors/" %}}).
     * **DLP**: See the [Data loss prevention security guide]({{% versioned_link_path fromRoot="/guides/security/data_loss_prevention/" %}}).
     * **WAF**: See the [Web application firewall security guide]({{% versioned_link_path fromRoot="/guides/security/waf/" %}}).
-    * **Sanitize**: See the [sanitize proto reference]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/extauth/sanitize.proto.sk/" %}}).
+    * **Sanitize**
 4.  **Filters only after external auth**: Review the information about other filters that you can apply only after external auth.
     * **RBAC**: Note that the RBAC filter requires the `JwtStaged` filter. See the [RBAC proto reference]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac.proto.sk/" %}}).
     * **gRPC-web**: See the [gRPC web guide]({{% versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/grpc_web/" %}}).
