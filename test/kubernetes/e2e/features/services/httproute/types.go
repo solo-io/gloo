@@ -16,9 +16,6 @@ import (
 )
 
 var (
-	// This is fragile, but symlinks don't work when the tests are imported to another repo, and its better than duplicating the file
-	//repoRoot = filepath.Join(util.MustGetThisDir(), "..", "..", "..", "..", "..", "..")
-
 	routeWithServiceManifest = filepath.Join(util.MustGetThisDir(), "testdata", "route-with-service.yaml")
 	serviceManifest          = filepath.Join(util.MustGetThisDir(), "testdata", "service-for-route.yaml")
 	tcpRouteCrdManifest      = filepath.Join(crds.Directory(), "tcproute-crd.yaml")
