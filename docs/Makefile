@@ -25,7 +25,8 @@ site-common: clean gloo-enterprise-version
 	GO111MODULE=on go run cmd/generate_docs.go gen-releases -r gloo > opensource.out
 	GO111MODULE=on go run cmd/generate_docs.go gen-releases -r glooe > enterprise.out
 	GO111MODULE=on go run cmd/generate_docs.go gen-changelog-md -r gloo > content/static/content/gloo-changelog.docgen
-	GO111MODULE=on go run cmd/generate_docs.go gen-changelog-md -r glooe > content/static/content/glooe-changelog.docgen
+	GO111MODULE=on go run cmd/generate_docs.go gen-changelog-md -r glooe 
+	# > content/static/content/glooe-changelog.docgen
 
 	# generate split security scans for gloo versions which HAVE received new split-templating updates
 	MIN_SCANNED_VERSION=$(MIN_SCANNED_VERSION) GO111MODULE=on go run cmd/generate_docs.go gen-security-scan-md -r gloo > content/static/content/gloo-security-scan.docgen
