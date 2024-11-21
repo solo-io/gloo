@@ -2,6 +2,8 @@ package krtcollections
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
@@ -153,14 +155,16 @@ func NewEndpointsForUpstream(us UpstreamWrapper, logger *zap.Logger) *EndpointsF
 }
 
 func hashEndpoints(l PodLocality, emd EndpointWithMd) uint64 {
-	hasher := fnv.New64()
+	hasher := md5.New()
 	hasher.Write([]byte(l.Region))
 	hasher.Write([]byte(l.Zone))
 	hasher.Write([]byte(l.Subzone))
 
 	ggv2utils.HashUint64(hasher, ggv2utils.HashLabels(emd.EndpointMd.Labels))
 	ggv2utils.HashProtoWithHasher(hasher, emd.LbEndpoint)
-	return hasher.Sum64()
+	var uintbytes [64]byte
+
+	return binary.LittleEndian.Uint64(hasher.Sum(uintbytes[:0])[:8])
 }
 
 func (e *EndpointsForUpstream) Add(l PodLocality, emd EndpointWithMd) {
