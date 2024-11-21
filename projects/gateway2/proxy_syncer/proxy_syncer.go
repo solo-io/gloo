@@ -2,9 +2,11 @@ package proxy_syncer
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"maps"
 	"slices"
 	"time"
@@ -765,13 +767,16 @@ func (s *ProxySyncer) translateProxy(
 	// this must be an EnvoySnapshot, we accept a panic() if not
 	envoySnap := xdsSnapshot.(*xds.EnvoySnapshot)
 	endpointsProto := make([]envoycache.Resource, 0, len(endpoints))
-	var endpointsVersion uint64
+	hasher := fnv.New64()
+	bytes := make([]byte, 8)
 	for _, ep := range endpoints {
 		endpointsProto = append(endpointsProto, ep.Endpoints)
-		endpointsVersion ^= ep.EndpointsVersion
+		binary.LittleEndian.PutUint64(bytes, ep.EndpointsVersion)
+		hasher.Write(bytes)
 	}
+
 	clustersVersion := envoySnap.Clusters.Version
-	envoySnap.Endpoints = envoycache.NewResources(fmt.Sprintf("%v-%v", clustersVersion, endpointsVersion), endpointsProto)
+	envoySnap.Endpoints = envoycache.NewResources(fmt.Sprintf("%v-%v", clustersVersion, hasher.Sum64()), endpointsProto)
 
 	logger.Debugw("added endpoints to snapshot", zap.String("proxyKey", proxy.ResourceName()),
 		zap.Stringer("Listeners", resourcesStringer(envoySnap.Listeners)),
