@@ -18,7 +18,7 @@ import (
 var (
 	routeWithServiceManifest = filepath.Join(util.MustGetThisDir(), "testdata", "route-with-service.yaml")
 	serviceManifest          = filepath.Join(util.MustGetThisDir(), "testdata", "service-for-route.yaml")
-	tcpRouteCrdManifest      = filepath.Join(crds.Directory(), "tcproute-crd.yaml")
+	tcpRouteCrdManifest      = filepath.Join(crds.AbsPathToCrd("tcproute-crd.yaml"))
 
 	// Proxy resource to be translated
 	glooProxyObjectMeta = metav1.ObjectMeta{

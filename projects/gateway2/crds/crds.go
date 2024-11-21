@@ -3,6 +3,7 @@ package crds
 import (
 	_ "embed"
 	"path"
+	"path/filepath"
 	"runtime"
 )
 
@@ -18,8 +19,8 @@ func getDirectory() string {
 // It can't change at runtime, so we can cache it
 var directory = getDirectory()
 
-// Directory returns the absolute path to directory in which crds are stored (currently the same directory as this file)
+// AbsPathToCrd returns the absolute path to directory in which crds are stored (currently the same directory as this file)
 // Used for tests to find the crd files if needed
-func Directory() string {
-	return directory
+func AbsPathToCrd(crdFile string) string {
+	return filepath.Join(directory, crdFile)
 }
