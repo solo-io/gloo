@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/skv2/codegen/util"
 
 	"github.com/onsi/gomega/gstruct"
+	"github.com/solo-io/gloo/projects/gateway2/crds"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,11 +17,11 @@ import (
 
 var (
 	// This is fragile, but symlinks don't work when the tests are imported to another repo, and its better than duplicating the file
-	repoRoot = filepath.Join(util.MustGetThisDir(), "..", "..", "..", "..", "..", "..")
+	//repoRoot = filepath.Join(util.MustGetThisDir(), "..", "..", "..", "..", "..", "..")
 
 	routeWithServiceManifest = filepath.Join(util.MustGetThisDir(), "testdata", "route-with-service.yaml")
 	serviceManifest          = filepath.Join(util.MustGetThisDir(), "testdata", "service-for-route.yaml")
-	tcpRouteCrdManifest      = filepath.Join(repoRoot, "projects", "gateway2", "crds", "tcproute-crd.yaml")
+	tcpRouteCrdManifest      = filepath.Join(crds.Directory(), "tcproute-crd.yaml")
 
 	// Proxy resource to be translated
 	glooProxyObjectMeta = metav1.ObjectMeta{
