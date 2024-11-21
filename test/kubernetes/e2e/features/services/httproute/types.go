@@ -15,9 +15,12 @@ import (
 )
 
 var (
+	// This is fragile, but symlinks don't work when the tests are imported to another repo, and its better than duplicating the file
+	repoRoot = filepath.Join(util.MustGetThisDir(), "..", "..", "..", "..", "..", "..")
+
 	routeWithServiceManifest = filepath.Join(util.MustGetThisDir(), "testdata", "route-with-service.yaml")
 	serviceManifest          = filepath.Join(util.MustGetThisDir(), "testdata", "service-for-route.yaml")
-	tcpRouteCrdManifest      = filepath.Join(util.MustGetThisDir(), "testdata", "tcproute-crd.yaml")
+	tcpRouteCrdManifest      = filepath.Join(repoRoot, "projects", "gateway2", "crds", "tcproute-crd.yaml")
 
 	// Proxy resource to be translated
 	glooProxyObjectMeta = metav1.ObjectMeta{
