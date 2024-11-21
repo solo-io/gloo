@@ -23,7 +23,7 @@ inputs:
     description: The version of Istio
   k8sgateway_api_version:
     required: false
-    default: ""
+    default: "" # If this is undefined the setup-kind script has its own default value
     description: The version of the gateway-api to use
 
 runs:
