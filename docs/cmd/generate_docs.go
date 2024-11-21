@@ -255,18 +255,19 @@ func generateChangelogMd(opts *options) error {
 		if err != nil {
 			return err
 		}
-		// out.AddReleaseData(out2)
-		// j, err := out.GenerateJSON()
-		// if err != nil {
-		// 	return err
-		// }
-		// fmt.Println(j)
+
+		body, err := out2.GenerateJSON()
+		if err != nil {
+			return err
+		}
+		fmt.Println(body)
+
 	case glooEDocGen:
 		// DO_NOT_SUBMIT
-		// err := generateGlooEChangelog(preNameChangeGatewayVersion)
-		// if err != nil {
-		// 	return err
-		// }
+		err := generateGlooEChangelog(preNameChangeGatewayVersion)
+		if err != nil {
+			return err
+		}
 	default:
 		return InvalidInputError(opts.targetRepo)
 	}
