@@ -75,6 +75,7 @@ func (s *testingSuite) TearDownSuite() {
 	}
 }
 
+// TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
 func (s *testingSuite) TestConfigureVirtualHostOptions() {
 	s.T().Cleanup(func() {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBar)
@@ -102,6 +103,7 @@ func (s *testingSuite) TestConfigureVirtualHostOptions() {
 		expectedResponseWithoutXBar)
 }
 
+// TestConfigureInvalidVirtualHostOptions confirms that an invalid VirtualHostOption is rejected
 func (s *testingSuite) TestConfigureInvalidVirtualHostOptions() {
 	s.T().Cleanup(func() {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoWebhookReject)
@@ -127,12 +129,12 @@ func (s *testingSuite) TestConfigureInvalidVirtualHostOptions() {
 	}
 }
 
+// TestConfigureVirtualHostOptionsWithSectionName tests a complex scenario where multiple VirtualHostOptions conflicting
+// across multiple listeners are applied to a single gateway
+//
 // The goal here is to test the behavior when multiple VHOs target a gateway with multiple listeners and only some
 // conflict. This will generate a warning on the conflicted resource, but the VHO should be attached properly and
 // options propagated for the listener.
-//
-// Apply our manifests so we can assert that basic vho exists before applying conflicting VHOs.
-// This is needed because our solo-kit clients currently do not return creationTimestamp
 func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup() {
 	s.T().Cleanup(func() {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBar)
@@ -145,6 +147,8 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoSectionAddXFoo, err, output)
 	})
 
+	// Apply our manifests so we can assert that basic vho exists before applying conflicting VHOs.
+	// This is needed because our solo-kit clients currently do not return creationTimestamp
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoRemoveXBar)
 	s.NoError(err, "can apply "+manifestVhoRemoveXBar)
 
@@ -206,9 +210,11 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 		expectedResponseWithoutXBar)
 }
 
+// TestMultipleVirtualHostOptionsSetup tests a complex scenario where multiple VirtualHostOptions conflict
+//
 // The goal here is to test the behavior when multiple VHOs are targeting a gateway without sectionName.
 // The expected behavior is that the oldest resource is used
-func (s *testingSuite) TestMultipleVirtualHostOptionsManualSetup() {
+func (s *testingSuite) TestMultipleVirtualHostOptionsSetup() {
 	s.T().Cleanup(func() {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBar)
 		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoRemoveXBar, err, output)
