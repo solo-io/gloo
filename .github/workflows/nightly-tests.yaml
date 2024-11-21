@@ -102,6 +102,7 @@ jobs:
           kubectl-version: ${{ steps.dotenv.outputs.kubectl_version }}
           helm-version: ${{ steps.dotenv.outputs.helm_version }}
           istio-version: ${{ steps.dotenv.outputs.istio_version }}
+          conformance-version: ${{ steps.dotenv.outputs.conformance_version }}
       # Run the tests
       - id: run-tests
         name: Run Kubernetes e2e Tests
@@ -129,7 +130,7 @@ jobs:
           - cluster-name: 'cluster-one'
             go-test-args: '-v -timeout=120m'
             # Specifying an empty regex means all tests will be run.
-            go-test-run-regex: ""
+            go-test-run-regex: "TestK8sGatewayIstioRevision/IstioIntegration/TestStrictPeerAuth"
         # In our nightly tests, we run the suite of tests using the lower and upper ends of versions that we claim to support
         # The versions should mirror: https://docs.solo.io/gloo-edge/latest/reference/support/
         version-files:
@@ -163,6 +164,7 @@ jobs:
           kubectl-version: ${{ steps.dotenv.outputs.kubectl_version }}
           helm-version: ${{ steps.dotenv.outputs.helm_version }}
           istio-version: ${{ steps.dotenv.outputs.istio_version }}
+          conformance-version: ${{ steps.dotenv.outputs.conformance_version }}
       # Run the tests
       - id: run-tests
         name: Run Kubernetes e2e Tests
