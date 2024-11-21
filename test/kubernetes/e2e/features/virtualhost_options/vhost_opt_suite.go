@@ -3,7 +3,6 @@ package virtualhost_options
 import (
 	"context"
 	"net/http"
-	"strings"
 
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gstruct"
@@ -33,15 +32,9 @@ type testingSuite struct {
 	// testInstallation contains all the metadata/utilities necessary to execute a series of tests
 	// against an installation of Gloo Gateway
 	testInstallation *e2e.TestInstallation
-
-	// maps test name to a list of manifests to apply before the test
-	manifests map[string][]string
 }
 
-func NewTestingSuite(
-	ctx context.Context,
-	testInst *e2e.TestInstallation,
-) suite.TestingSuite {
+func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.TestingSuite {
 	return &testingSuite{
 		ctx:              ctx,
 		testInstallation: testInst,
@@ -54,28 +47,23 @@ func (s *testingSuite) SetupSuite() {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest)
 		s.NoError(err, "can apply "+manifest)
 	}
-	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment, exampleSvc, nginxPod, testdefaults.CurlPod)
-	// Check that test resources are running
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, nginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=nginx",
-	})
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw",
-	})
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, testdefaults.CurlPod.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=curl",
-	})
 
-	// We include tests with manual setup here because the cleanup is still automated via AfterTest
-	s.manifests = map[string][]string{
-		"TestConfigureVirtualHostOptions":        {basicVhOManifest},
-		"TestConfigureInvalidVirtualHostOptions": {basicVhOManifest, badVhOManifest},
-		// Test creates the manifests to control ordering and timing of resource creation
-		"TestConfigureVirtualHostOptionsWithSectionNameManualSetup": {},
-		"TestMultipleVirtualHostOptionsManualSetup":                 {basicVhOManifest, extraVhOManifest},
-		// Test creates the manifests to control ordering and timing of resource creation
-		"TestOptionsMerge": {},
-	}
+	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment,
+		exampleSvc, nginxPod, testdefaults.CurlPod)
+
+	// Check that test resources are running
+	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, nginxPod.ObjectMeta.GetNamespace(),
+		metav1.ListOptions{
+			LabelSelector: "app.kubernetes.io/name=nginx",
+		})
+	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(),
+		metav1.ListOptions{
+			LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw",
+		})
+	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, testdefaults.CurlPod.GetNamespace(),
+		metav1.ListOptions{
+			LabelSelector: "app.kubernetes.io/name=curl",
+		})
 }
 
 func (s *testingSuite) TearDownSuite() {
@@ -87,36 +75,23 @@ func (s *testingSuite) TearDownSuite() {
 	}
 }
 
-func (s *testingSuite) BeforeTest(suiteName, testName string) {
-	if strings.Contains(testName, "ManualSetup") {
-		return
-	}
-
-	manifests, ok := s.manifests[testName]
-	if !ok {
-		s.FailNow("no manifests found for %s, manifest map contents: %v", testName, s.manifests)
-	}
-
-	for _, manifest := range manifests {
-		output, err := s.testInstallation.Actions.Kubectl().ApplyFileWithOutput(s.ctx, manifest)
-		s.testInstallation.Assertions.ExpectObjectAdmitted(manifest, err, output, "Validating *v1.VirtualHostOption failed")
-	}
-}
-
-func (s *testingSuite) AfterTest(suiteName, testName string) {
-	manifests, ok := s.manifests[testName]
-	if !ok {
-		s.FailNow("no manifests found for " + testName)
-	}
-
-	for _, manifest := range manifests {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest)
-		s.testInstallation.Assertions.ExpectObjectDeleted(manifest, err, output)
-	}
-}
-
 func (s *testingSuite) TestConfigureVirtualHostOptions() {
-	// Check healthy response with no content-length header
+	s.T().Cleanup(func() {
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBar)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoRemoveXBar, err, output)
+	})
+
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoRemoveXBar)
+	s.NoError(err, "can apply "+manifestVhoRemoveXBar)
+
+	// Check status is accepted on VirtualHostOption
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		s.getterForMeta(&vhoRemoveXBar),
+		core.Status_Accepted,
+		defaults.KubeGatewayReporter,
+	)
+
+	// Check healthy response with no x-bar header
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
@@ -124,27 +99,28 @@ func (s *testingSuite) TestConfigureVirtualHostOptions() {
 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
 		},
-		expectedResponseWithoutContentLength)
-
-	// Check status is accepted on VirtualHostOption
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		s.getterForMeta(&basicVirtualHostOptionMeta),
-		core.Status_Accepted,
-		defaults.KubeGatewayReporter,
-	)
+		expectedResponseWithoutXBar)
 }
 
 func (s *testingSuite) TestConfigureInvalidVirtualHostOptions() {
+	s.T().Cleanup(func() {
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoWebhookReject)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoWebhookReject, err, output)
+	})
+
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoWebhookReject)
+	s.NoError(err, "can apply "+manifestVhoWebhookReject)
+
 	if !s.testInstallation.Metadata.ValidationAlwaysAccept {
 		s.testInstallation.Assertions.ExpectGlooObjectNotExist(
 			s.ctx,
-			s.getterForMeta(&badVirtualHostOptionMeta),
-			&badVirtualHostOptionMeta,
+			s.getterForMeta(&vhoWebhookReject),
+			&vhoWebhookReject,
 		)
 	} else {
 		// Check status is rejected on bad VirtualHostOption
 		s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-			s.getterForMeta(&badVirtualHostOptionMeta),
+			s.getterForMeta(&vhoWebhookReject),
 			core.Status_Rejected,
 			defaults.KubeGatewayReporter,
 		)
@@ -154,34 +130,50 @@ func (s *testingSuite) TestConfigureInvalidVirtualHostOptions() {
 // The goal here is to test the behavior when multiple VHOs target a gateway with multiple listeners and only some
 // conflict. This will generate a warning on the conflicted resource, but the VHO should be attached properly and
 // options propagated for the listener.
+//
+// Apply our manifests so we can assert that basic vho exists before applying conflicting VHOs.
+// This is needed because our solo-kit clients currently do not return creationTimestamp
 func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup() {
-	// Manually apply our manifests so we can assert that basic vho exists before applying extra vho.
-	// This is needed because our solo-kit clients currently do not return creationTimestamp
 	s.T().Cleanup(func() {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, basicVhOManifest)
-		s.testInstallation.Assertions.ExpectObjectDeleted(basicVhOManifest, err, output)
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBar)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoRemoveXBar, err, output)
 
-		output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, sectionNameVhOManifest)
-		s.testInstallation.Assertions.ExpectObjectDeleted(sectionNameVhOManifest, err, output)
+		output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVHORemoveXBaz)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVHORemoveXBaz, err, output)
 
-		output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, extraVhOManifest)
-		s.testInstallation.Assertions.ExpectObjectDeleted(extraVhOManifest, err, output)
+		output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoSectionAddXFoo)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoSectionAddXFoo, err, output)
 	})
 
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, basicVhOManifest)
-	s.NoError(err, "can apply "+basicVhOManifest)
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoRemoveXBar)
+	s.NoError(err, "can apply "+manifestVhoRemoveXBar)
+
 	// Check status is accepted before moving on to apply conflicting vho
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		s.getterForMeta(&basicVirtualHostOptionMeta),
+		s.getterForMeta(&vhoRemoveXBar),
 		core.Status_Accepted,
 		defaults.KubeGatewayReporter,
 	)
 
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, extraVhOManifest)
-	s.NoError(err, "can apply "+extraVhOManifest)
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVHORemoveXBaz)
+	s.NoError(err, "can apply "+manifestVHORemoveXBaz)
 
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, sectionNameVhOManifest)
-	s.NoError(err, "can apply "+sectionNameVhOManifest)
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoSectionAddXFoo)
+	s.NoError(err, "can apply "+manifestVhoSectionAddXFoo)
+
+	// Check status is accepted on VirtualHostOption with section name
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		s.getterForMeta(&vhoSectionAddXFoo),
+		core.Status_Accepted,
+		defaults.KubeGatewayReporter,
+	)
+
+	// Check status is warning on VirtualHostOption not selected for attachment
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesWarningReasons(
+		s.getterForMeta(&vhoRemoveXBaz),
+		[]string{"conflict with more specific or older VirtualHostOptions"},
+		defaults.KubeGatewayReporter,
+	)
 
 	// Check healthy response with added foo header to listener targeted by sectionName
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
@@ -192,9 +184,17 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 			curl.WithHostHeader("example.com"),
 			curl.WithPort(8080),
 		},
-		expectedResponseWithFooHeader)
+		expectedResponseWithXFoo)
 
-	// Check healthy response with content-length removed to listener NOT targeted by sectionName
+	// Check status is warning on VirtualHostOption with conflicting attachment,
+	// despite being properly attached to another listener
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesWarningReasons(
+		s.getterForMeta(&vhoRemoveXBar),
+		[]string{"conflict with more specific or older VirtualHostOptions"},
+		defaults.KubeGatewayReporter,
+	)
+
+	// Check healthy response with x-bar removed to listener NOT targeted by sectionName
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
@@ -203,48 +203,43 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 			curl.WithHostHeader("example.com"),
 			curl.WithPort(8081),
 		},
-		expectedResponseWithoutContentLength)
-
-	// Check status is accepted on VirtualHostOption with section name
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		s.getterForMeta(&sectionNameVirtualHostOptionMeta),
-		core.Status_Accepted,
-		defaults.KubeGatewayReporter,
-	)
-	// Check status is warning on VirtualHostOption with conflicting attachment,
-	// despite being properly attached to another listener
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesWarningReasons(
-		s.getterForMeta(&basicVirtualHostOptionMeta),
-		[]string{"conflict with more specific or older VirtualHostOptions"},
-		defaults.KubeGatewayReporter,
-	)
-
-	// Check status is warning on VirtualHostOption not selected for attachment
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesWarningReasons(
-		s.getterForMeta(&extraVirtualHostOptionMeta),
-		[]string{"conflict with more specific or older VirtualHostOptions"},
-		defaults.KubeGatewayReporter,
-	)
+		expectedResponseWithoutXBar)
 }
 
-// The goal here is to test the behavior when multiple VHOs are targeting a gateway without sectionName. The expected
-// behavior is that the oldest resource is used
+// The goal here is to test the behavior when multiple VHOs are targeting a gateway without sectionName.
+// The expected behavior is that the oldest resource is used
 func (s *testingSuite) TestMultipleVirtualHostOptionsManualSetup() {
+	s.T().Cleanup(func() {
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBar)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoRemoveXBar, err, output)
+
+		output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVHORemoveXBaz)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVHORemoveXBaz, err, output)
+	})
+
 	// Manually apply our manifests so we can assert that basic vho exists before applying extra vho.
 	// This is needed because our solo-kit clients currently do not return creationTimestamp
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, basicVhOManifest)
-	s.NoError(err, "can apply "+basicVhOManifest)
-	// Check status is accepted before moving on to apply conflicting vho
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoRemoveXBar)
+	s.NoError(err, "can apply "+manifestVhoRemoveXBar)
+
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVHORemoveXBaz)
+	s.NoError(err, "can apply "+manifestVHORemoveXBaz)
+
+	// Check status is warning on newer VirtualHostOption not selected for attachment
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesWarningReasons(
+		s.getterForMeta(&vhoRemoveXBaz),
+		[]string{"conflict with more specific or older VirtualHostOptions"},
+		defaults.KubeGatewayReporter,
+	)
+
+	// Check status is accepted on older VirtualHostOption
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		s.getterForMeta(&basicVirtualHostOptionMeta),
+		s.getterForMeta(&vhoRemoveXBar),
 		core.Status_Accepted,
 		defaults.KubeGatewayReporter,
 	)
 
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, extraVhOManifest)
-	s.NoError(err, "can apply "+extraVhOManifest)
-
-	// Check healthy response with no content-length header
+	// Check healthy response with no x-bar header
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
@@ -252,43 +247,33 @@ func (s *testingSuite) TestMultipleVirtualHostOptionsManualSetup() {
 			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
 		},
-		expectedResponseWithoutContentLength)
-
-	// Check status is accepted on older VirtualHostOption
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		s.getterForMeta(&basicVirtualHostOptionMeta),
-		core.Status_Accepted,
-		defaults.KubeGatewayReporter,
-	)
-	// Check status is warning on newer VirtualHostOption not selected for attachment
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesWarningReasons(
-		s.getterForMeta(&extraVirtualHostOptionMeta),
-		[]string{"conflict with more specific or older VirtualHostOptions"},
-		defaults.KubeGatewayReporter,
-	)
+		expectedResponseWithoutXBar)
 }
 
+// TestOptionsMerge tests shallow merging of VirtualHostOptions larger in the precedence chain
 func (s *testingSuite) TestOptionsMerge() {
 	s.T().Cleanup(func() {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, basicVhOManifest)
-		s.testInstallation.Assertions.ExpectObjectDeleted(basicVhOManifest, err, output)
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBar)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoRemoveXBar, err, output)
 
-		output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, extraVhOMergeManifest)
-		s.testInstallation.Assertions.ExpectObjectDeleted(extraVhOMergeManifest, err, output)
+		output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoMergeRemoveXBaz)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoMergeRemoveXBaz, err, output)
 	})
 
-	_, err := s.testInstallation.Actions.Kubectl().ApplyFileWithOutput(s.ctx, basicVhOManifest)
+	_, err := s.testInstallation.Actions.Kubectl().ApplyFileWithOutput(s.ctx, manifestVhoRemoveXBar)
 	s.Require().NoError(err)
+
+	_, err = s.testInstallation.Actions.Kubectl().ApplyFileWithOutput(s.ctx, manifestVhoMergeRemoveXBaz)
+	s.Require().NoError(err)
+
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		s.getterForMeta(&basicVirtualHostOptionMeta),
+		s.getterForMeta(&vhoMergeRemoveXBaz),
 		core.Status_Accepted,
 		defaults.KubeGatewayReporter,
 	)
 
-	_, err = s.testInstallation.Actions.Kubectl().ApplyFileWithOutput(s.ctx, extraVhOMergeManifest)
-	s.Require().NoError(err)
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		s.getterForMeta(&extraMergeVirtualHostOptionMeta),
+		s.getterForMeta(&vhoRemoveXBar),
 		core.Status_Accepted,
 		defaults.KubeGatewayReporter,
 	)
@@ -301,12 +286,14 @@ func (s *testingSuite) TestOptionsMerge() {
 			curl.WithHostHeader("example.com"),
 		},
 		// Expect:
-		// - content-length header to be removed by basic-vho.yaml
-		// - x-envoy-attempt-count header to be added by extra-vho-merge.yaml
+		// - x-bar header to be removed by vho-remove-x-bar
+		// - x-baz header to not be removed as the option conflicts with vho-remove-x-bar and is not merged
+		// - x-envoy-attempt-count header to be added by vho-merge-remove-x-baz.yaml
 		&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
 			Custom: gomega.And(
-				gomega.Not(matchers.ContainHeaderKeys([]string{"content-length"})),
+				gomega.Not(matchers.ContainHeaderKeys([]string{"x-bar"})),
+				matchers.ContainHeaderKeys([]string{"x-baz"}),
 				matchers.ContainHeaderKeys([]string{"x-envoy-attempt-count"}),
 			),
 			Body: gstruct.Ignore(),
@@ -316,6 +303,7 @@ func (s *testingSuite) TestOptionsMerge() {
 
 func (s *testingSuite) getterForMeta(meta *metav1.ObjectMeta) helpers.InputResourceGetter {
 	return func() (resources.InputResource, error) {
-		return s.testInstallation.ResourceClients.VirtualHostOptionClient().Read(meta.GetNamespace(), meta.GetName(), clients.ReadOpts{})
+		return s.testInstallation.ResourceClients.VirtualHostOptionClient().Read(meta.GetNamespace(),
+			meta.GetName(), clients.ReadOpts{})
 	}
 }
