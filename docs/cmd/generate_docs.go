@@ -224,7 +224,7 @@ var (
 // Github defaults to a chronological order
 func generateChangelogMd(opts *options) error {
 	client := githubutils.GetClientOrExit(context.Background())
-	preNameChangeGatewayVersion := versionutils.NewVersion(1, 13, 0, "beta", 1)
+	preNameChangeGatewayVersion := versionutils.NewVersion(1, 13, 0, "", 0)
 	switch opts.targetRepo {
 	case glooDocGen:
 
