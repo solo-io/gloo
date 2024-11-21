@@ -1,6 +1,6 @@
 changelog:
   - type: NON_USER_FACING
-    issueLink: https://github.com/solo-io/gloo/issues/10365
+    issueLink: https://github.com/solo-io/gloo/issues/10364
     resolvesIssue: false
     description: >-
       When setting up our kind cluster for tests, we need to ensure that the correct version of the k8sgateway APIs are loaded, as
