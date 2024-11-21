@@ -22,7 +22,7 @@ var (
 
 	manifestVhoRemoveXBar      = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-bar.yaml")
 	manifestVhoSectionAddXFoo  = filepath.Join(util.MustGetThisDir(), "testdata", "vho-section-add-x-foo.yaml")
-	manifestVHORemoveXBaz      = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-baz.yaml")
+	manifestVhoRemoveXBaz      = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-baz.yaml")
 	manifestVhoWebhookReject   = filepath.Join(util.MustGetThisDir(), "testdata", "vho-webhook-reject.yaml")
 	manifestVhoMergeRemoveXBaz = filepath.Join(util.MustGetThisDir(), "testdata", "vho-merge-remove-x-baz.yaml")
 
@@ -77,28 +77,49 @@ var (
 		Namespace: "default",
 	}
 
-	// Expects a 200 response with no x-bar header
+	// Expects a 200 response with x-bar and x-baz headers
+	defaultResponse = &matchers.HttpResponse{
+		StatusCode: http.StatusOK,
+		Custom: gomega.And(
+			gomega.Not(matchers.ContainHeaderKeys([]string{"x-foo"})),
+			matchers.ContainHeaderKeys([]string{"x-bar"}),
+			matchers.ContainHeaderKeys([]string{"x-baz"}),
+		),
+		Body: gstruct.Ignore(),
+	}
+
+	// Expects default response with no x-bar header
 	expectedResponseWithoutXBar = &matchers.HttpResponse{
 		StatusCode: http.StatusOK,
-		Custom:     gomega.Not(matchers.ContainHeaderKeys([]string{"x-bar"})),
-		Body:       gstruct.Ignore(),
+		Custom: gomega.And(
+			gomega.Not(matchers.ContainHeaderKeys([]string{"x-bar"})),
+			matchers.ContainHeaderKeys([]string{"x-baz"}),
+		),
+		Body: gstruct.Ignore(),
 	}
 
-	// Expects a 200 response with no x-baz header
+	// Expects default response with no x-baz header
 	expectedResponseWithoutXBaz = &matchers.HttpResponse{
 		StatusCode: http.StatusOK,
-		Custom:     gomega.Not(matchers.ContainHeaderKeys([]string{"x-baz"})),
-		Body:       gstruct.Ignore(),
+		Custom: gomega.And(
+			matchers.ContainHeaderKeys([]string{"x-bar"}),
+			gomega.Not(matchers.ContainHeaderKeys([]string{"x-baz"})),
+		),
+		Body: gstruct.Ignore(),
 	}
 
-	// Expects a 200 response with x-foo header
+	// Expects default response with x-foo header
 	expectedResponseWithXFoo = &matchers.HttpResponse{
 		StatusCode: http.StatusOK,
 		Headers: map[string]interface{}{
 			"x-foo": gomega.Equal("foo"),
 		},
 		// Make sure the x-bar isn't being removed as a function of the unwanted VHO
-		Custom: matchers.ContainHeaderKeys([]string{"x-bar"}),
-		Body:   gstruct.Ignore(),
+		Custom: gomega.And(
+			matchers.ContainHeaderKeys([]string{"x-foo"}),
+			matchers.ContainHeaderKeys([]string{"x-bar"}),
+			matchers.ContainHeaderKeys([]string{"x-baz"}),
+		),
+		Body: gstruct.Ignore(),
 	}
 )

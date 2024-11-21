@@ -75,6 +75,34 @@ func (s *testingSuite) TearDownSuite() {
 	}
 }
 
+// TestConfirmSetup tests that the setup is correct
+//
+// The default state should have two listeners on the gateway, one on port 8080 and one on port 8081.
+// And the headers x-bar and x-baz should be added to the response.
+func (s *testingSuite) TestConfirmSetup() {
+	s.testInstallation.Assertions.AssertEventualCurlResponse(
+		s.ctx,
+		testdefaults.CurlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHostHeader("example.com"),
+			curl.WithPort(8080),
+		},
+		defaultResponse,
+	)
+
+	s.testInstallation.Assertions.AssertEventualCurlResponse(
+		s.ctx,
+		testdefaults.CurlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHostHeader("example.com"),
+			curl.WithPort(8081),
+		},
+		defaultResponse,
+	)
+}
+
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
 func (s *testingSuite) TestConfigureVirtualHostOptions() {
 	s.T().Cleanup(func() {
@@ -140,8 +168,8 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBar)
 		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoRemoveXBar, err, output)
 
-		output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVHORemoveXBaz)
-		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVHORemoveXBaz, err, output)
+		output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBaz)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoRemoveXBaz, err, output)
 
 		output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoSectionAddXFoo)
 		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoSectionAddXFoo, err, output)
@@ -159,8 +187,8 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 		defaults.KubeGatewayReporter,
 	)
 
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVHORemoveXBaz)
-	s.NoError(err, "can apply "+manifestVHORemoveXBaz)
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoRemoveXBaz)
+	s.NoError(err, "can apply "+manifestVhoRemoveXBaz)
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoSectionAddXFoo)
 	s.NoError(err, "can apply "+manifestVhoSectionAddXFoo)
@@ -173,8 +201,17 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 	)
 
 	// Check status is warning on VirtualHostOption not selected for attachment
+	// to either of the listeners
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesWarningReasons(
 		s.getterForMeta(&vhoRemoveXBaz),
+		[]string{"conflict with more specific or older VirtualHostOptions"},
+		defaults.KubeGatewayReporter,
+	)
+
+	// Check status is warning on VirtualHostOption with conflicting attachment,
+	// despite being properly attached to 8081 listener
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesWarningReasons(
+		s.getterForMeta(&vhoRemoveXBar),
 		[]string{"conflict with more specific or older VirtualHostOptions"},
 		defaults.KubeGatewayReporter,
 	)
@@ -188,15 +225,18 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 			curl.WithHostHeader("example.com"),
 			curl.WithPort(8080),
 		},
-		expectedResponseWithXFoo)
-
-	// Check status is warning on VirtualHostOption with conflicting attachment,
-	// despite being properly attached to another listener
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesWarningReasons(
-		s.getterForMeta(&vhoRemoveXBar),
-		[]string{"conflict with more specific or older VirtualHostOptions"},
-		defaults.KubeGatewayReporter,
-	)
+		&matchers.HttpResponse{
+			StatusCode: http.StatusOK,
+			Custom: gomega.And(
+				// attached to this listener
+				matchers.ContainHeaderKeys([]string{"x-foo"}),
+				// not removed because conflicts with earlier VHO
+				matchers.ContainHeaderKeys([]string{"x-bar"}),
+				// not removed because conflicts with earlier VHO
+				matchers.ContainHeaderKeys([]string{"x-baz"}),
+			),
+			Body: gstruct.Ignore(),
+		})
 
 	// Check healthy response with x-bar removed to listener NOT targeted by sectionName
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
@@ -207,7 +247,18 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 			curl.WithHostHeader("example.com"),
 			curl.WithPort(8081),
 		},
-		expectedResponseWithoutXBar)
+		&matchers.HttpResponse{
+			StatusCode: http.StatusOK,
+			Custom: gomega.And(
+				// not attached to this listener
+				gomega.Not(matchers.ContainHeaderKeys([]string{"x-foo"})),
+				// removed by the earliest VHO
+				gomega.Not(matchers.ContainHeaderKeys([]string{"x-bar"})),
+				// not removed because conflicts with earlier VHO
+				matchers.ContainHeaderKeys([]string{"x-baz"}),
+			),
+			Body: gstruct.Ignore(),
+		})
 }
 
 // TestMultipleVirtualHostOptionsSetup tests a complex scenario where multiple VirtualHostOptions conflict
@@ -219,8 +270,8 @@ func (s *testingSuite) TestMultipleVirtualHostOptionsSetup() {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBar)
 		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoRemoveXBar, err, output)
 
-		output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVHORemoveXBaz)
-		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVHORemoveXBaz, err, output)
+		output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBaz)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoRemoveXBaz, err, output)
 	})
 
 	// Manually apply our manifests so we can assert that basic vho exists before applying extra vho.
@@ -228,8 +279,8 @@ func (s *testingSuite) TestMultipleVirtualHostOptionsSetup() {
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoRemoveXBar)
 	s.NoError(err, "can apply "+manifestVhoRemoveXBar)
 
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVHORemoveXBaz)
-	s.NoError(err, "can apply "+manifestVHORemoveXBaz)
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoRemoveXBaz)
+	s.NoError(err, "can apply "+manifestVhoRemoveXBaz)
 
 	// Check status is warning on newer VirtualHostOption not selected for attachment
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesWarningReasons(
@@ -254,6 +305,76 @@ func (s *testingSuite) TestMultipleVirtualHostOptionsSetup() {
 			curl.WithHostHeader("example.com"),
 		},
 		expectedResponseWithoutXBar)
+}
+
+// TestDeletingNonConflictingVirtualHostOptions tests the behavior when a VHO that was blocking
+// another VHO is deleted
+//
+// The expected behavior is that the previously blocked VHO is now attached and the
+// headers are mutated as expected
+func (s *testingSuite) TestDeletingConflictingVirtualHostOptions() {
+	s.T().Cleanup(func() {
+		// this should already be deleted, confirm
+		s.testInstallation.Assertions.ExpectGlooObjectNotExist(
+			s.ctx,
+			s.getterForMeta(&vhoRemoveXBar),
+			&vhoRemoveXBar,
+		)
+
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBaz)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoRemoveXBaz, err, output)
+	})
+
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoRemoveXBar)
+	s.NoError(err, "can apply "+manifestVhoRemoveXBar)
+
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoRemoveXBaz)
+	s.NoError(err, "can apply "+manifestVhoRemoveXBaz)
+
+	// Check status is warning on newer VirtualHostOption not selected for attachment
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesWarningReasons(
+		s.getterForMeta(&vhoRemoveXBaz),
+		[]string{"conflict with more specific or older VirtualHostOptions"},
+		defaults.KubeGatewayReporter,
+	)
+
+	// Check status is accepted on older VirtualHostOption
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		s.getterForMeta(&vhoRemoveXBar),
+		core.Status_Accepted,
+		defaults.KubeGatewayReporter,
+	)
+
+	// Check healthy response with no x-bar header
+	s.testInstallation.Assertions.AssertEventualCurlResponse(
+		s.ctx,
+		testdefaults.CurlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHostHeader("example.com"),
+		},
+		expectedResponseWithoutXBar)
+
+	// Delete the VHO that was blocking the other VHO
+	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBar)
+	s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoWebhookReject, err, output)
+
+	// Check status is accepted on VirtualHostOption
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		s.getterForMeta(&vhoRemoveXBaz),
+		core.Status_Accepted,
+		defaults.KubeGatewayReporter,
+	)
+
+	// Check healthy response with no x-bar header
+	s.testInstallation.Assertions.AssertEventualCurlResponse(
+		s.ctx,
+		testdefaults.CurlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHostHeader("example.com"),
+		},
+		expectedResponseWithoutXBaz)
 }
 
 // TestOptionsMerge tests shallow merging of VirtualHostOptions larger in the precedence chain
