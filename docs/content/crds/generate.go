@@ -99,8 +99,9 @@ func generateCrdReferenceMarkdown(ctx context.Context, gvk schema.GroupVersionKi
 
 // kindPlural returns the pluralized kind for a given GVK.
 // This is hacky, but is useful because CRD files are named using this format, so we need a way to look up that file name
+// If the name of the file is incorrect, a developer will realize this because the script will fail with a file not found error.
 func kindPlural(gvk schema.GroupVersionKind) string {
 	// ensure that kind which ends in s, is not duplicated
-	// ie GatewayParameters becomes gatewayparameters, not gatewayparameterss
+	// ie GatewayParameters becomes Gatewayparameters, not Gatewayparameterss
 	return strings.TrimSuffix(gvk.Kind, "s") + "s"
 }

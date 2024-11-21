@@ -450,6 +450,7 @@ generate-changelog: ## Generate a changelog entry
 # See docs/content/crds/README.md for more details.
 #----------------------------------------------------------------------------------
 
+# To run this command correctly, you must have executed `install-go-tools`
 .PHONY: generate-crd-reference-docs
 generate-crd-reference-docs:
 	go run docs/content/crds/generate.go
