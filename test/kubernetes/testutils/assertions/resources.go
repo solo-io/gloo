@@ -10,7 +10,7 @@ import (
 )
 
 // Checks GetNamespacedStatuses status for gloo installation namespace
-func (p *Provider) EventuallyResourceExsits(getter helpers.ResourceGetter, timeout ...time.Duration) {
+func (p *Provider) EventuallyResourceExists(getter helpers.ResourceGetter, timeout ...time.Duration) {
 	ginkgo.GinkgoHelper()
 
 	currentTimeout, pollingInterval := helper.GetTimeouts(timeout...)

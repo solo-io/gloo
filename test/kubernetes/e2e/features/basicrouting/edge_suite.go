@@ -75,7 +75,7 @@ func (s *edgeBasicRoutingSuite) TestBasicVirtualServiceRouting() {
 	// other syncers that have translated them, so we can only detect that the objects exist here
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, ossvalidation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assert().NoError(err, "can apply valid upstream")
-	s.testInstallation.Assertions.EventuallyResourceExsits(
+	s.testInstallation.Assertions.EventuallyResourceExists(
 		func() (resources.Resource, error) {
 			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, ossvalidation.ExampleUpstreamName, clients.ReadOpts{Ctx: s.ctx})
 		},

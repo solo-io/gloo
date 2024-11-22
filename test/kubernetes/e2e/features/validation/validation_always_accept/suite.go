@@ -165,7 +165,7 @@ func (s *testingSuite) TestVirtualServiceWithSecretDeletion() {
 	// other syncers that have translated them, so we can only detect that the objects exist here
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assert().NoError(err)
-	s.testInstallation.Assertions.EventuallyResourceExsits(
+	s.testInstallation.Assertions.EventuallyResourceExists(
 		func() (resources.Resource, error) {
 			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, validation.ExampleUpstreamName, clients.ReadOpts{Ctx: s.ctx})
 		},
@@ -245,12 +245,10 @@ func (s *testingSuite) TestPersistInvalidVirtualService() {
 	// First apply Upstream
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assert().NoError(err, "can apply "+validation.ExampleUpstream)
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		func() (resources.InputResource, error) {
+	s.testInstallation.Assertions.EventuallyResourceExists(
+		func() (resources.Resource, error) {
 			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, validation.ExampleUpstreamName, clients.ReadOpts{Ctx: s.ctx})
 		},
-		core.Status_Accepted,
-		gloo_defaults.GlooReporter,
 	)
 
 	// Then apply VirtualService

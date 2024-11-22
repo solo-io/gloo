@@ -101,13 +101,13 @@ func (s *testingSuite) BeforeTest(string, string) {
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
 	s.NoError(err, "can apply gloo tracing resources")
 	// accept the upstream
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		func() (resources.InputResource, error) {
+	// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
+	// other syncers that have translated them, so we can only detect that the objects exist here
+	s.testInstallation.Assertions.EventuallyResourceExists(
+		func() (resources.Resource, error) {
 			return s.testInstallation.ResourceClients.UpstreamClient().Read(
 				otelcolUpstream.Namespace, otelcolUpstream.Name, clients.ReadOpts{Ctx: s.ctx})
 		},
-		core.Status_Accepted,
-		gloo_defaults.GlooReporter,
 	)
 	// accept the virtual service
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(

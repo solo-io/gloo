@@ -65,7 +65,7 @@ func (s *discoveryWatchlabelsSuite) TestDiscoverUpstreamMatchingWatchLabels() {
 	// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
 	// other syncers that have translated them, so we can only detect that the objects exist here
 	labeledUsName := kubernetes.UpstreamName(s.testInstallation.Metadata.InstallNamespace, "example-svc", 8000)
-	s.testInstallation.Assertions.EventuallyResourceExsits(
+	s.testInstallation.Assertions.EventuallyResourceExists(
 		func() (resources.Resource, error) {
 			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, labeledUsName, clients.ReadOpts{Ctx: s.ctx})
 		},
@@ -130,7 +130,7 @@ func (s *discoveryWatchlabelsSuite) TestDiscoverySpecPreserved() {
 	// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
 	// other syncers that have translated them, so we can only detect that the objects exist here
 	labeledUsName := kubernetes.UpstreamName(s.testInstallation.Metadata.InstallNamespace, "example-svc", 8000)
-	s.testInstallation.Assertions.EventuallyResourceExsits(
+	s.testInstallation.Assertions.EventuallyResourceExists(
 		func() (resources.Resource, error) {
 			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, labeledUsName, clients.ReadOpts{Ctx: s.ctx})
 		},
