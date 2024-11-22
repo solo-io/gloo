@@ -1,6 +1,6 @@
 
 ---
-title: "semantic_version.proto"
+title: "SemanticVersion"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `solo.io.envoy.type` 
-#### Types:
+**Types:**
 
 
 - [SemanticVersion](#semanticversion)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/solo-kit/api/external/envoy/type/semantic_version.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/envoy/type/semantic_version.proto)
+**Source File: [github.com/solo-io/solo-kit/api/external/envoy/type/semantic_version.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/envoy/type/semantic_version.proto)**
 
 
 

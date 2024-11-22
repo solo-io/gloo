@@ -1,6 +1,6 @@
 
 ---
-title: "ai.proto"
+title: "Ai"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `ai.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [SingleAuthToken](#singleauthtoken)
@@ -58,7 +58,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/ai/ai.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/ai/ai.proto)**
 
 
 
