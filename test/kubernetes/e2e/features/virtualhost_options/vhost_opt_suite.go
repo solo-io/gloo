@@ -134,8 +134,11 @@ func (s *testingSuite) TestConfigureVirtualHostOptions() {
 // TestConfigureInvalidVirtualHostOptions confirms that an invalid VirtualHostOption is rejected
 func (s *testingSuite) TestConfigureInvalidVirtualHostOptions() {
 	s.T().Cleanup(func() {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoWebhookReject)
-		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoWebhookReject, err, output)
+		if s.testInstallation.Metadata.ValidationAlwaysAccept {
+			// delete the VHO
+			output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoWebhookReject)
+			s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoWebhookReject, err, output)
+		}
 	})
 
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoWebhookReject)
