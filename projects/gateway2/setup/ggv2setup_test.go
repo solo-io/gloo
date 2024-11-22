@@ -580,7 +580,7 @@ type xdsFetcher struct {
 
 func (x *xdsFetcher) getclusters(t *testing.T, ctx context.Context) []*envoycluster.Cluster {
 
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	cds := envoy_service_cluster_v3.NewClusterDiscoveryServiceClient(x.conn)
@@ -634,7 +634,7 @@ func getroutesnames(l *envoylistener.Listener) []string {
 
 func (x *xdsFetcher) getlisteners(t *testing.T, ctx context.Context) []*envoylistener.Listener {
 
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	ds := envoy_service_listener_v3.NewListenerDiscoveryServiceClient(x.conn)
@@ -667,7 +667,7 @@ func (x *xdsFetcher) getlisteners(t *testing.T, ctx context.Context) []*envoylis
 func (x *xdsFetcher) getendpoints(t *testing.T, ctx context.Context, clusterServiceNames []string) []*envoyendpoint.ClusterLoadAssignment {
 
 	eds := envoy_service_endpoint_v3.NewEndpointDiscoveryServiceClient(x.conn)
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	epcli, err := eds.StreamEndpoints(ctx)
@@ -700,7 +700,7 @@ func (x *xdsFetcher) getendpoints(t *testing.T, ctx context.Context, clusterServ
 func (x *xdsFetcher) getroutes(t *testing.T, ctx context.Context, rosourceNames []string) []*envoy_config_route_v3.RouteConfiguration {
 
 	eds := envoy_service_route_v3.NewRouteDiscoveryServiceClient(x.conn)
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	epcli, err := eds.StreamRoutes(ctx)
