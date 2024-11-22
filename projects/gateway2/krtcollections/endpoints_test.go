@@ -134,6 +134,114 @@ func TestEndpointsForUpstreamOrderDoesntMatter(t *testing.T) {
 
 }
 
+func TestEndpointsForUpstreamWithDiscoveredUpstream(t *testing.T) {
+	g := gomega.NewWithT(t)
+
+	us := UpstreamWrapper{
+		Inner: &gloov1.Upstream{
+			Metadata: &core.Metadata{Name: "name", Namespace: "ns"},
+			UpstreamType: &gloov1.Upstream_Kube{
+				Kube: &kubernetes.UpstreamSpec{
+					ServiceName:      "svc",
+					ServiceNamespace: "ns",
+					ServicePort:      8080,
+				},
+			},
+		},
+	}
+	usd := UpstreamWrapper{
+		Inner: &gloov1.Upstream{
+			Metadata: &core.Metadata{Name: "discovered-name", Namespace: "ns"},
+			UpstreamType: &gloov1.Upstream_Kube{
+				Kube: &kubernetes.UpstreamSpec{
+					ServiceName:      "svc",
+					ServiceNamespace: "ns",
+					ServicePort:      8080,
+				},
+			},
+		},
+	}
+	// input
+	emd1 := EndpointWithMd{
+		LbEndpoint: &endpointv3.LbEndpoint{
+			HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
+				Endpoint: &endpointv3.Endpoint{
+					Address: &envoy_config_core_v3.Address{
+						Address: &envoy_config_core_v3.Address_SocketAddress{
+							SocketAddress: &envoy_config_core_v3.SocketAddress{
+								Address: "1.2.3.4",
+								PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+									PortValue: 8080,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		EndpointMd: EndpointMetadata{
+			Labels: map[string]string{
+				corev1.LabelTopologyRegion: "region",
+				corev1.LabelTopologyZone:   "zone",
+			},
+		},
+	}
+	emd2 := EndpointWithMd{
+		LbEndpoint: &endpointv3.LbEndpoint{
+			HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
+				Endpoint: &endpointv3.Endpoint{
+					Address: &envoy_config_core_v3.Address{
+						Address: &envoy_config_core_v3.Address_SocketAddress{
+							SocketAddress: &envoy_config_core_v3.SocketAddress{
+								Address: "1.2.3.5",
+								PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+									PortValue: 8080,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		EndpointMd: EndpointMetadata{
+			Labels: map[string]string{
+				corev1.LabelTopologyRegion: "region",
+				corev1.LabelTopologyZone:   "zone",
+			},
+		},
+	}
+
+	result1 := NewEndpointsForUpstream(us, nil)
+	result1.Add(PodLocality{
+		Region: "region",
+		Zone:   "zone",
+	}, emd1)
+
+	result2 := NewEndpointsForUpstream(usd, nil)
+	result2.Add(PodLocality{
+		Region: "region",
+		Zone:   "zone",
+	}, emd1)
+
+	result3 := NewEndpointsForUpstream(us, nil)
+	result3.Add(PodLocality{
+		Region: "region",
+		Zone:   "zone",
+	}, emd2)
+
+	result4 := NewEndpointsForUpstream(usd, nil)
+	result4.Add(PodLocality{
+		Region: "region",
+		Zone:   "zone",
+	}, emd2)
+
+	h1 := result1.LbEpsEqualityHash ^ result2.LbEpsEqualityHash
+	h2 := result3.LbEpsEqualityHash ^ result4.LbEpsEqualityHash
+
+	g.Expect(h1).NotTo(Equal(h2), "not expected %v, got %v", h1, h2)
+
+}
+
 func TestEndpoints(t *testing.T) {
 	testCases := []struct {
 		name     string
