@@ -134,12 +134,22 @@ func (s *testingSuite) TestConfigureVirtualHostOptions() {
 // TestConfigureInvalidVirtualHostOptions confirms that an invalid VirtualHostOption is rejected
 func (s *testingSuite) TestConfigureInvalidVirtualHostOptions() {
 	s.T().Cleanup(func() {
-		if s.testInstallation.Metadata.ValidationAlwaysAccept {
-			// delete the VHO
-			output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoWebhookReject)
-			s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoWebhookReject, err, output)
-		}
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBar)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoRemoveXBar, err, output)
+
+		output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoWebhookReject)
+		s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoWebhookReject, err, output)
 	})
+
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoRemoveXBar)
+	s.NoError(err, "can apply "+manifestVhoRemoveXBar)
+
+	// Check status is accepted on VirtualHostOption
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		s.getterForMeta(&vhoRemoveXBar),
+		core.Status_Accepted,
+		defaults.KubeGatewayReporter,
+	)
 
 	output, err := s.testInstallation.Actions.Kubectl().ApplyFileWithOutput(s.ctx, manifestVhoWebhookReject)
 	s.testInstallation.Assertions.ExpectObjectAdmitted(manifestVhoWebhookReject, err, output,
@@ -159,6 +169,16 @@ func (s *testingSuite) TestConfigureInvalidVirtualHostOptions() {
 			defaults.KubeGatewayReporter,
 		)
 	}
+
+	// Check healthy response with no x-bar header
+	s.testInstallation.Assertions.AssertEventualCurlResponse(
+		s.ctx,
+		testdefaults.CurlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHostHeader("example.com"),
+		},
+		expectedResponseWithoutXBar)
 }
 
 // TestConfigureVirtualHostOptionsWithSectionName tests a complex scenario where multiple VirtualHostOptions conflicting
