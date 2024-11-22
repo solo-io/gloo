@@ -16,6 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
@@ -366,20 +367,15 @@ func setRouteAction(
 		}
 
 		obj, err := gwroute.GetBackendForRef(backendRef.BackendObjectReference)
-		fromPlugin := false
 		if err == nil {
-			for _, bp := range pluginRegistry.GetBackendPlugins() {
-				if dest, ok := bp.ApplyBackendPlugin(obj, backendRef.BackendObjectReference); ok {
-					fromPlugin = true
-					weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
-						Destination: dest,
-						Weight:      weight,
-					})
-					break
-				}
-			}
-			// TODO break out a buildDestination func to avoid this awkwardness
-			if fromPlugin {
+			// Only apply backend plugin when the backend is resolved.
+			// If any backend plugin matches this ref, we don't need the standard
+			// reports or validation path.
+			if dest, ok := applyBackendPlugins(obj, backendRef.BackendObjectReference, pluginRegistry); ok {
+				weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
+					Destination: dest,
+					Weight:      weight,
+				})
 				continue
 			}
 		}
@@ -522,4 +518,17 @@ func makeDestinationSpec(upstream *gloov1.Upstream, filters []gwv1.HTTPRouteFilt
 		return nil, nonFunctionUpstreamWithParameterError
 	}
 	return nil, nil
+}
+
+func applyBackendPlugins(
+	obj client.Object,
+	backendRef gwv1.BackendObjectReference,
+	plugins registry.PluginRegistry,
+) (*v1.Destination, bool) {
+	for _, bp := range plugins.GetBackendPlugins() {
+		if dest, ok := bp.ApplyBackendPlugin(obj, backendRef); ok {
+			return dest, true
+		}
+	}
+	return nil, false
 }
