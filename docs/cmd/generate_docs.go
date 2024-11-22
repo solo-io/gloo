@@ -263,7 +263,6 @@ func generateChangelogMd(opts *options) error {
 		fmt.Println(body)
 
 	case glooEDocGen:
-		// DO_NOT_SUBMIT
 		err := generateGlooEChangelog(preNameChangeGatewayVersion)
 		if err != nil {
 			return err
@@ -287,21 +286,6 @@ func generateGlooEChangelog(preNameVersion *versionutils.Version) error {
 	if err != nil {
 		return err
 	}
-	// opts := changelogdocutils.Options{
-	// 	NumVersions:           200,
-	// 	MainRepo:              glooEnterpriseRepo,
-	// 	DependentRepo:         glooOpenSourceRepo,
-	// 	MaxVersion:            preNameVersion,
-	// 	RepoOwner:             repoOwner,
-	// 	MainRepoReleases:      getCachedReleases(glooeCachedReleasesFile),
-	// 	DependentRepoReleases: getCachedReleases(glooCachedReleasesFile),
-	// }
-	// depFn, err := changelogdocutils.GetOSDependencyFunc(repoOwner, glooEnterpriseRepo, glooOpenSourceRepo, ghToken)
-	// if err != nil {
-	// 	return err
-	// }
-	// generator := changelogdocutils.NewMergedReleaseGeneratorWithDepFn(opts, client, depFn)
-
 	opts := changelogdocutils.Options{
 		NumVersions:           200,
 		MainRepo:              glooEnterpriseRepo,
