@@ -24,12 +24,13 @@ We rely on our [solo-kit docgen](https://github.com/solo-io/solo-kit/tree/main/p
 make install-go-gools
 ```
 
-2a. Execute the generate.go script
+2. Run the generation script.
+
+This can be done by either using the go script directly:
 ```bash
  go run docs/content/crds/generate.go
 ```
-
-2b. Execute the Make target
+or relying on the Make target:
 ```bash
  make generate-crd-reference-docs
 ```
