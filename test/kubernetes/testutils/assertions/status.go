@@ -2,6 +2,7 @@ package assertions
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/onsi/ginkgo/v2"
@@ -15,6 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 )
 
 // Checks GetNamespacedStatuses status for gloo installation namespace
@@ -161,4 +163,91 @@ func (p *Provider) EventuallyHTTPRouteStatusContainsReason(
 		g.Expect(err).NotTo(gomega.HaveOccurred(), "can get httproute")
 		g.Expect(route.Status.RouteStatus).To(gomega.HaveValue(matcher))
 	}, currentTimeout, pollingInterval).Should(gomega.Succeed())
+}
+
+// EventuallyGatewayCondition checks the provided Gateway condition is set to expect.
+func (p *Provider) EventuallyGatewayCondition(
+	ctx context.Context,
+	gatewayName string,
+	gatewayNamespace string,
+	cond gwv1.GatewayConditionType,
+	expect metav1.ConditionStatus,
+	timeout ...time.Duration,
+) {
+	ginkgo.GinkgoHelper()
+	currentTimeout, pollingInterval := helper.GetTimeouts(timeout...)
+	p.Gomega.Eventually(func(g gomega.Gomega) {
+		gateway := &gwv1.Gateway{}
+		err := p.clusterContext.Client.Get(ctx, types.NamespacedName{Name: gatewayName, Namespace: gatewayNamespace}, gateway)
+		g.Expect(err).NotTo(gomega.HaveOccurred(), "failed to get Gateway")
+
+		condition := getConditionByType(gateway.Status.Conditions, string(cond))
+		g.Expect(condition).NotTo(gomega.BeNil(), fmt.Sprintf("%v condition not found", cond))
+		g.Expect(condition.Status).To(gomega.Equal(expect), fmt.Sprintf("%v condition is not %v", cond, expect))
+	}, currentTimeout, pollingInterval).Should(gomega.Succeed())
+}
+
+// EventuallyGatewayListenerAttachedRoutes checks the provided Gateway contains the expected attached routes for the listener.
+func (p *Provider) EventuallyGatewayListenerAttachedRoutes(
+	ctx context.Context,
+	gatewayName string,
+	gatewayNamespace string,
+	listener gwv1.SectionName,
+	routes int32,
+	timeout ...time.Duration,
+) {
+	ginkgo.GinkgoHelper()
+	currentTimeout, pollingInterval := helper.GetTimeouts(timeout...)
+	p.Gomega.Eventually(func(g gomega.Gomega) {
+		gateway := &gwv1.Gateway{}
+		err := p.clusterContext.Client.Get(ctx, types.NamespacedName{Name: gatewayName, Namespace: gatewayNamespace}, gateway)
+		g.Expect(err).NotTo(gomega.HaveOccurred(), "failed to get Gateway")
+
+		found := false
+		for _, l := range gateway.Status.Listeners {
+			if l.Name == listener {
+				found = true
+				g.Expect(l.AttachedRoutes).To(gomega.Equal(routes), fmt.Sprintf("%v listener does not contain %d attached routes", l, routes))
+			}
+		}
+		g.Expect(found).To(gomega.BeTrue(), fmt.Sprintf("%v listener not found", listener))
+	}, currentTimeout, pollingInterval).Should(gomega.Succeed())
+}
+
+// EventuallyTCPRouteCondition checks that provided TCPRoute condition is set to expect.
+func (p *Provider) EventuallyTCPRouteCondition(
+	ctx context.Context,
+	routeName string,
+	routeNamespace string,
+	cond gwv1.RouteConditionType,
+	expect metav1.ConditionStatus,
+	timeout ...time.Duration,
+) {
+	ginkgo.GinkgoHelper()
+	currentTimeout, pollingInterval := helper.GetTimeouts(timeout...)
+	p.Gomega.Eventually(func(g gomega.Gomega) {
+		route := &gwv1a2.TCPRoute{}
+		err := p.clusterContext.Client.Get(ctx, types.NamespacedName{Name: routeName, Namespace: routeNamespace}, route)
+		g.Expect(err).NotTo(gomega.HaveOccurred(), "failed to get TCPRoute")
+
+		var conditionFound bool
+		for _, parentStatus := range route.Status.Parents {
+			condition := getConditionByType(parentStatus.Conditions, string(cond))
+			if condition != nil && condition.Status == expect {
+				conditionFound = true
+				break
+			}
+		}
+		g.Expect(conditionFound).To(gomega.BeTrue(), fmt.Sprintf("%v condition is not %v for any parent", cond, expect))
+	}, currentTimeout, pollingInterval).Should(gomega.Succeed())
+}
+
+// Helper function to retrieve a condition by type from a list of conditions.
+func getConditionByType(conditions []metav1.Condition, conditionType string) *metav1.Condition {
+	for _, condition := range conditions {
+		if condition.Type == conditionType {
+			return &condition
+		}
+	}
+	return nil
 }
