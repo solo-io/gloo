@@ -1,6 +1,7 @@
 package assertions
 
 import (
+	"context"
 	"time"
 
 	"github.com/onsi/ginkgo/v2"
@@ -18,4 +19,15 @@ func (p *Provider) EventuallyResourceExists(getter helpers.ResourceGetter, timeo
 		_, err := getter()
 		g.Expect(err).NotTo(gomega.HaveOccurred(), "failed to get resource")
 	}, currentTimeout, pollingInterval).Should(gomega.Succeed())
+}
+
+func (p *Provider) ConsistentlyResourceExists(ctx context.Context, getter helpers.ResourceGetter) {
+	p.Gomega.Consistently(ctx, func(innerG gomega.Gomega) {
+		_, err := getter()
+		innerG.Expect(err).NotTo(gomega.HaveOccurred(), "failed to get resource")
+	}).
+		WithContext(ctx).
+		WithTimeout(time.Second*5).
+		WithPolling(time.Second*1).
+		Should(gomega.Succeed(), "resource should be found in cluster")
 }
