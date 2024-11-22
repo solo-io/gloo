@@ -80,6 +80,13 @@ func (s *edgeBasicRoutingSuite) TestBasicVirtualServiceRouting() {
 			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, ossvalidation.ExampleUpstreamName, clients.ReadOpts{Ctx: s.ctx})
 		},
 	)
+	// we need to make sure Gloo has had a chance to process it
+	s.testInstallation.Assertions.ConsistentlyResourceExists(
+		s.ctx,
+		func() (resources.Resource, error) {
+			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, "nginx-upstream", clients.ReadOpts{Ctx: s.ctx})
+		},
+	)
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, ossvalidation.ExampleVS, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assert().NoError(err, "can apply valid virtual service")
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
