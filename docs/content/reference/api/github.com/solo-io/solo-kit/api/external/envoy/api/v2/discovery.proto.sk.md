@@ -1,6 +1,6 @@
 
 ---
-title: "discovery.proto"
+title: "Discovery"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `envoy.api.v2` 
-#### Types:
+**Types:**
 
 
 - [DiscoveryRequest](#discoveryrequest)
@@ -20,7 +20,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/solo-kit/api/external/envoy/api/v2/discovery.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/envoy/api/v2/discovery.proto)
+**Source File: [github.com/solo-io/solo-kit/api/external/envoy/api/v2/discovery.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/envoy/api/v2/discovery.proto)**
 
 
 

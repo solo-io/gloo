@@ -1,6 +1,6 @@
 
 ---
-title: "proxy_endpoint.proto"
+title: "ProxyEndpoint"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ProxyEndpointRequest](#proxyendpointrequest)
@@ -17,7 +17,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/grpc/debug/proxy_endpoint.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/grpc/debug/proxy_endpoint.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/grpc/debug/proxy_endpoint.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/grpc/debug/proxy_endpoint.proto)**
 
 
 

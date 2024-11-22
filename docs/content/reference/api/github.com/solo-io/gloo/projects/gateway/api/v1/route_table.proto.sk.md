@@ -1,6 +1,6 @@
 
 ---
-title: "route_table.proto"
+title: "RouteTable"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gateway.solo.io` 
-#### Types:
+**Types:**
 
 
 - [RouteTable](#routetable) **Top-Level Resource**
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gateway/api/v1/route_table.proto](https://github.com/solo-io/gloo/blob/main/projects/gateway/api/v1/route_table.proto)
+**Source File: [github.com/solo-io/gloo/projects/gateway/api/v1/route_table.proto](https://github.com/solo-io/gloo/blob/main/projects/gateway/api/v1/route_table.proto)**
 
 
 
