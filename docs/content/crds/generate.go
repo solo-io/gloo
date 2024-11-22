@@ -102,6 +102,6 @@ func generateCrdReferenceMarkdown(ctx context.Context, gvk schema.GroupVersionKi
 // If the name of the file is incorrect, a developer will realize this because the script will fail with a file not found error.
 func kindPlural(gvk schema.GroupVersionKind) string {
 	// ensure that kind which ends in s, is not duplicated
-	// ie GatewayParameters becomes Gatewayparameters, not Gatewayparameterss
+	// ie GatewayParameters becomes GatewayParameters, not GatewayParameterss
 	return strings.TrimSuffix(gvk.Kind, "s") + "s"
 }
