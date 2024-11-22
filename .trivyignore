@@ -65,6 +65,6 @@ CVE-2024-27304
 
 # https://github.com/advisories/GHSA-5fhx-39r8-3jwh
 # This is resolved in versions of Gloo Gateway that rely on Go1.22 and above (1.17, 1.18)
-# For ealier versions of Gloo Gateway, we confirmed that the vulnerability is not exploitable
+# For earlier versions of Gloo Gateway, we confirmed that the vulnerability is not exploitable
 # and captured our findings here: https://github.com/solo-io/solo-projects/issues/7157#issuecomment-2463252858
 CVE-2022-30635
