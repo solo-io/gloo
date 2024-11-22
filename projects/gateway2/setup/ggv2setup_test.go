@@ -95,10 +95,9 @@ var (
 	logger = NewTestLogger()
 )
 
-// NewTestLogger creates a zap.Logger that writes to testing.T.
+// NewTestLogger creates a zap.Logger which can be used to write to *testing.T
+// on each test, set the *testing.T on the writer.
 func NewTestLogger() *zap.Logger {
-	//writer := &testingWriter{t: t}
-
 	core := zapcore.NewCore(
 		zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()),
 		zapcore.AddSync(writer),
