@@ -1,6 +1,6 @@
 
 ---
-title: "struct.proto"
+title: "Struct"
 weight: 5
 ---
 
@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
  
-#### Types:
+**Types:**
 
 
 - [Struct](#struct)
@@ -50,14 +50,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  
 
-##### Enums:
+**Enums:**
 
 
 	- [NullValue](#nullvalue)
 
 
 
-##### Source File: [github.com/solo-io/protoc-gen-ext/external/google/protobuf/struct.proto](https://github.com/solo-io/protoc-gen-ext/blob/main/external/google/protobuf/struct.proto)
+**Source File: [github.com/solo-io/protoc-gen-ext/external/google/protobuf/struct.proto](https://github.com/solo-io/protoc-gen-ext/blob/main/external/google/protobuf/struct.proto)**
 
 
 

@@ -1,6 +1,6 @@
 
 ---
-title: "secret.proto"
+title: "Secret"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Secret](#secret) **Top-Level Resource**
@@ -22,7 +22,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/secret.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/secret.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/secret.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/secret.proto)**
 
 
 
