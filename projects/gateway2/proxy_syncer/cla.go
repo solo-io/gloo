@@ -1,6 +1,7 @@
 package proxy_syncer
 
 import (
+	"encoding/binary"
 	"fmt"
 	"hash/fnv"
 
@@ -129,18 +130,23 @@ func NewPerClientEnvoyEndpoints(logger *zap.Logger, dbg *krt.DebugHandler, uccs 
 }
 
 func PrioritizeEndpoints(logger *zap.Logger, destrule *DestinationRuleWrapper, ep krtcollections.EndpointsForUpstream, ucc krtcollections.UniqlyConnectedClient) UccWithEndpoints {
-	var additionalHash uint64
 	var priorityInfo *PriorityInfo
 
+	updatedHash := ep.LbEpsEqualityHash
 	if destrule != nil {
 		trafficPolicy := getTraficPolicy(destrule, ep.Port)
 		localityLb := getLocalityLbSetting(trafficPolicy)
 		if localityLb != nil {
 			priorityInfo = getPriorityInfoFromDestrule(localityLb)
 			hasher := fnv.New64()
+
+			oldHash := make([]byte, 8)
+			binary.LittleEndian.PutUint64(oldHash, updatedHash)
+			hasher.Write(oldHash)
+
 			hasher.Write([]byte(destrule.UID))
 			hasher.Write([]byte(fmt.Sprintf("%v", destrule.Generation)))
-			additionalHash = hasher.Sum64()
+			updatedHash = hasher.Sum64()
 		}
 	}
 	lbInfo := LoadBalancingInfo{
@@ -153,7 +159,7 @@ func PrioritizeEndpoints(logger *zap.Logger, destrule *DestinationRuleWrapper, e
 	return UccWithEndpoints{
 		Client:        ucc,
 		Endpoints:     resource.NewEnvoyResource(cla),
-		EndpointsHash: ep.LbEpsEqualityHash ^ additionalHash,
+		EndpointsHash: updatedHash,
 		endpointsName: ep.ResourceName(),
 	}
 }

@@ -2,6 +2,8 @@ package krtcollections
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/binary"
 	"testing"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -131,7 +133,6 @@ func TestEndpointsForUpstreamOrderDoesntMatter(t *testing.T) {
 		Zone:   "zone2",
 	}, emd2)
 	g.Expect(result1.Equals(*result4)).To(BeFalse(), "not expected %v, got %v", result1, result2)
-
 }
 
 func TestEndpointsForUpstreamWithDiscoveredUpstream(t *testing.T) {
@@ -235,11 +236,23 @@ func TestEndpointsForUpstreamWithDiscoveredUpstream(t *testing.T) {
 		Zone:   "zone",
 	}, emd2)
 
-	h1 := result1.LbEpsEqualityHash ^ result2.LbEpsEqualityHash
-	h2 := result3.LbEpsEqualityHash ^ result4.LbEpsEqualityHash
+	h1 := combineHashes(result1.LbEpsEqualityHash, result2.LbEpsEqualityHash)
+	h2 := combineHashes(result3.LbEpsEqualityHash, result4.LbEpsEqualityHash)
 
 	g.Expect(h1).NotTo(Equal(h2), "not expected %v, got %v", h1, h2)
+}
 
+func combineHashes(hash1, hash2 uint64) uint64 {
+	// Create a buffer for the combined hashes
+	buf := make([]byte, 16)
+	binary.LittleEndian.PutUint64(buf[:8], hash1)
+	binary.LittleEndian.PutUint64(buf[8:], hash2)
+
+	// Hash the combined buffer
+	sum := sha256.Sum256(buf)
+
+	// Return the first 8 bytes of the hash as a uint64
+	return binary.LittleEndian.Uint64(sum[:8])
 }
 
 func TestEndpoints(t *testing.T) {
@@ -960,5 +973,4 @@ func TestEndpoints(t *testing.T) {
 			g.Expect(eps.Equals(*res)).To(BeTrue(), "expected %v, got %v", res, eps)
 		})
 	}
-
 }
