@@ -229,7 +229,7 @@ func (g *genericStatusReporter) WriteReports(ctx context.Context, resourceErrs r
 		if status.Equal(resourceStatus) {
 			// TODO: find a way to log this but it is noisy currently due to once per second status sync
 			// see: projects/gateway2/proxy_syncer/kube_gw_translator_syncer.go#syncStatus(...)
-			// and it's call site in projects/gateway2/proxy_syncer/proxy_syncer.go
+			// and its call site in projects/gateway2/proxy_syncer/proxy_syncer.go
 			// logger.Debugf("skipping report for %v as it has not changed", resource.GetMetadata().Ref())
 			continue
 		}
