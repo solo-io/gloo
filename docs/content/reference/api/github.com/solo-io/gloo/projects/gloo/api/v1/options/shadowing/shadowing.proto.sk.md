@@ -1,6 +1,6 @@
 
 ---
-title: "shadowing.proto"
+title: "Shadowing"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `shadowing.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [RouteShadowing](#routeshadowing)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/shadowing/shadowing.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/shadowing/shadowing.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/shadowing/shadowing.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/shadowing/shadowing.proto)**
 
 
 

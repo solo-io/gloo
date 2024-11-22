@@ -1,6 +1,6 @@
 
 ---
-title: "cluster.proto"
+title: "Cluster"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `multicluster.solo.io` 
-#### Types:
+**Types:**
 
 
 - [KubernetesClusterSpec](#kubernetesclusterspec)
@@ -20,7 +20,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/skv2/api/multicluster/v1alpha1/cluster.proto](https://github.com/solo-io/skv2/blob/main/api/multicluster/v1alpha1/cluster.proto)
+**Source File: [github.com/solo-io/skv2/api/multicluster/v1alpha1/cluster.proto](https://github.com/solo-io/skv2/blob/main/api/multicluster/v1alpha1/cluster.proto)**
 
 
 

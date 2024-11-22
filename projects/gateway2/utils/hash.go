@@ -14,12 +14,12 @@ import (
 )
 
 func HashProto(resource proto.Message) uint64 {
-	hasher := fnv.New64()
+	hasher := fnv.New64a()
 	HashProtoWithHasher(hasher, resource)
 	return hasher.Sum64()
 }
 
-func HashProtoWithHasher(hasher hash.Hash64, resource proto.Message) {
+func HashProtoWithHasher(hasher hash.Hash, resource proto.Message) {
 	var buffer [1024]byte
 	mo := proto.MarshalOptions{Deterministic: true}
 	buf := buffer[:0]

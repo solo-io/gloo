@@ -1,6 +1,6 @@
 
 ---
-title: "wasm.proto"
+title: "Wasm"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `wasm.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [PluginSource](#pluginsource)
@@ -21,7 +21,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/wasm/wasm.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/wasm/wasm.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/wasm/wasm.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/wasm/wasm.proto)**
 
 
 

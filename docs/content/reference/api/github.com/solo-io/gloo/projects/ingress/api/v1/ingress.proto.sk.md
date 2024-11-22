@@ -1,6 +1,6 @@
 
 ---
-title: "ingress.proto"
+title: "Ingress"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `ingress.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Ingress](#ingress) **Top-Level Resource**
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/ingress/api/v1/ingress.proto](https://github.com/solo-io/gloo/blob/main/projects/ingress/api/v1/ingress.proto)
+**Source File: [github.com/solo-io/gloo/projects/ingress/api/v1/ingress.proto](https://github.com/solo-io/gloo/blob/main/projects/ingress/api/v1/ingress.proto)**
 
 
 
