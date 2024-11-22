@@ -16,3 +16,16 @@ func ValidationStrictSuiteRunner() e2e.SuiteRunner {
 
 	return validationSuiteRunner
 }
+
+// This is a copy of the above function with the "ValidationSplitWebhook" test removed
+// The "ValidationSplitWebhook" test has logic that depends on the helm chart/values/helpers
+// that are not valid when the project is imported as a helm dependency
+// https://github.com/k8sgateway/k8sgateway/issues/10374 has been created to create a fix for this
+func ValidationStrictSuiteRunnerForExport() e2e.SuiteRunner {
+	validationSuiteRunner := e2e.NewSuiteRunner(false)
+
+	validationSuiteRunner.Register("ValidationStrictWarnings", validation_strict_warnings.NewTestingSuite)
+	validationSuiteRunner.Register("ValidationRejectInvalid", validation_reject_invalid.NewTestingSuite)
+
+	return validationSuiteRunner
+}
