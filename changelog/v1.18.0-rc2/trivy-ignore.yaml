@@ -4,3 +4,6 @@ changelog:
     resolvesIssue: false
     description: >-
       Update trivyignore contents
+      
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
