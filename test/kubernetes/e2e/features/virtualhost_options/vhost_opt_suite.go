@@ -381,7 +381,7 @@ func (s *testingSuite) TestDeletingConflictingVirtualHostOptions() {
 
 	// Delete the VHO that was blocking the other VHO
 	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBar)
-	s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoWebhookReject, err, output)
+	s.testInstallation.Assertions.ExpectObjectDeleted(manifestVhoRemoveXBar, err, output)
 
 	// Check status is accepted on VirtualHostOption
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
