@@ -50,5 +50,5 @@ func TestValidationStrict(t *testing.T) {
 	// Install Gloo Gateway with correct validation settings
 	testInstallation.InstallGlooGatewayWithTestHelper(ctx, testHelper, 5*time.Minute)
 
-	ValidationStrictSuiteRunner().Run(ctx, t, testInstallation)
+	ValidationStrictSuiteRunnerAll().Run(ctx, t, testInstallation)
 }
