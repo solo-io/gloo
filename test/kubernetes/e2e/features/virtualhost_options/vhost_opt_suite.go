@@ -141,8 +141,9 @@ func (s *testingSuite) TestConfigureInvalidVirtualHostOptions() {
 		}
 	})
 
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoWebhookReject)
-	s.NoError(err, "can apply "+manifestVhoWebhookReject)
+	output, err := s.testInstallation.Actions.Kubectl().ApplyFileWithOutput(s.ctx, manifestVhoWebhookReject)
+	s.testInstallation.Assertions.ExpectObjectAdmitted(manifestVhoWebhookReject, err, output,
+		"Validating *v1.VirtualHostOption failed")
 
 	if !s.testInstallation.Metadata.ValidationAlwaysAccept {
 		s.testInstallation.Assertions.ExpectGlooObjectNotExist(
