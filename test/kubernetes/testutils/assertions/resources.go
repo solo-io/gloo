@@ -10,7 +10,6 @@ import (
 	"github.com/solo-io/gloo/test/kube2e/helper"
 )
 
-// Checks GetNamespacedStatuses status for gloo installation namespace
 func (p *Provider) EventuallyResourceExists(getter helpers.ResourceGetter, timeout ...time.Duration) {
 	ginkgo.GinkgoHelper()
 
