@@ -102,6 +102,13 @@ func (s *testingSuite) TestVirtualServiceWithSecretDeletion() {
 			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, validation.ExampleUpstreamName, clients.ReadOpts{Ctx: s.ctx})
 		},
 	)
+	// we need to make sure Gloo has had a chance to process it
+	s.testInstallation.Assertions.ConsistentlyResourceExists(
+		s.ctx,
+		func() (resources.Resource, error) {
+			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, "nginx-upstream", clients.ReadOpts{Ctx: s.ctx})
+		},
+	)
 	// Apply VS with secret after Upstream and Secret exist
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, []byte(substitutedSecretVS))
 	s.Assert().NoError(err)
