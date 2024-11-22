@@ -74,6 +74,8 @@ gloo:
       limits:
         cpu: 1000m
         memory: 10Gi
+    stats:
+      enabled: true # enable stats server for gloo so we can collect the metrics in CI
 
 # Configuration for the statically deployed gateway-proxy that ships by default with Gloo Gateway
 gatewayProxies:
