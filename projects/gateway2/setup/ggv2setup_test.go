@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -73,11 +74,11 @@ func getAssetsDir(t *testing.T) string {
 
 // testingWriter is a WriteSyncer that writes logs to testing.T.
 type testingWriter struct {
-	t *testing.T
+	t atomic.Value
 }
 
 func (w *testingWriter) Write(p []byte) (n int, err error) {
-	w.t.Log(string(p)) // Write the log to testing.T
+	w.t.Load().(*testing.T).Log(string(p)) // Write the log to testing.T
 	return len(p), nil
 }
 
@@ -85,9 +86,18 @@ func (w *testingWriter) Sync() error {
 	return nil
 }
 
+func (w *testingWriter) set(t *testing.T) {
+	w.t.Store(t)
+}
+
+var (
+	writer = &testingWriter{}
+	logger = NewTestLogger()
+)
+
 // NewTestLogger creates a zap.Logger that writes to testing.T.
-func NewTestLogger(t *testing.T) *zap.Logger {
-	writer := &testingWriter{t: t}
+func NewTestLogger() *zap.Logger {
+	//writer := &testingWriter{t: t}
 
 	core := zapcore.NewCore(
 		zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()),
@@ -100,7 +110,13 @@ func NewTestLogger(t *testing.T) *zap.Logger {
 	return zap.New(core, zap.AddCaller())
 }
 
+func init() {
+	log.SetLogger(zapr.NewLogger(logger))
+
+}
+
 func TestScenarios(t *testing.T) {
+	writer.set(t)
 	os.Setenv("POD_NAMESPACE", "gwtest")
 	testEnv := &envtest.Environment{
 		CRDDirectoryPaths: []string{
@@ -118,11 +134,6 @@ func TestScenarios(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
-	logger := NewTestLogger(t)
-	t.Cleanup(func() { logger.Sync() })
-	//	t.Cleanup(func() { _ = logger.Sync() })
-	log.SetLogger(zapr.NewLogger(logger))
-
 	ctx = contextutils.WithExistingLogger(ctx, logger.Sugar())
 
 	cfg, err := testEnv.Start()
