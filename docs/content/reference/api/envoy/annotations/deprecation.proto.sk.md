@@ -1,6 +1,6 @@
 
 ---
-title: "deprecation.proto"
+title: "Deprecation"
 weight: 5
 ---
 
@@ -9,7 +9,7 @@ weight: 5
 
 ### Package: `solo.io.envoy.annotations`
 
-##### Source File: `envoy/annotations/deprecation.proto`
+**Source File: `envoy/annotations/deprecation.proto`**
 
 
 

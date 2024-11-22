@@ -1,6 +1,6 @@
 
 ---
-title: "rbac.proto"
+title: "Rbac"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `rbac.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Settings](#settings)
@@ -22,7 +22,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/rbac/rbac.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/rbac/rbac.proto)**
 
 
 

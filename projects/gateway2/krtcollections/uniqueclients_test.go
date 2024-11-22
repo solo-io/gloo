@@ -76,7 +76,7 @@ func TestUniqueClients(t *testing.T) {
 			pods.Synced().WaitUntilSynced(context.Background().Done())
 
 			cb, uccBuilder := NewUniquelyConnectedClients()
-			ucc := uccBuilder(context.Background(), pods)
+			ucc := uccBuilder(context.Background(), nil, pods)
 			ucc.Synced().WaitUntilSynced(context.Background().Done())
 
 			// check fetch as well
