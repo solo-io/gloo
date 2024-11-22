@@ -17,7 +17,8 @@ func ValidationStrictSuiteRunner() e2e.SuiteRunner {
 // ValidationStrictSuiteRunnerForExport is used to export the validation tests that can be run when the project is imported as a helm dependency
 // The "ValidationSplitWebhook" test has logic that depends on the helm chart/values/helpers
 // that are not valid when the project is imported as a helm dependency
-// https://github.com/k8sgateway/k8sgateway/issues/10374 has been created to create a fix for this
+// https://github.com/k8sgateway/k8sgateway/issues/10374 has been created to create a fix for this.
+// If more tests are added that depend on the helm chart/values/helpers, the above issue should be resolved instead of using this approach
 func ValidationStrictSuiteRunnerForExport() e2e.SuiteRunner {
 	validationSuiteRunner := e2e.NewSuiteRunner(false)
 
