@@ -17,6 +17,7 @@ weight: 5
 - [CustomHost](#customhost)
 - [OpenAI](#openai)
 - [AzureOpenAI](#azureopenai)
+- [BedRock](#bedrock)
 - [Gemini](#gemini)
 - [VertexAI](#vertexai)
 - [Publisher](#publisher)
@@ -244,6 +245,29 @@ Settings for the Azure OpenAI API
 | `endpoint` | `string` | The endpoint to use This should be the endpoint to the Azure OpenAI API, e.g. my-endpoint.openai.azure.com If the scheme is included it will be stripped. This value can be found https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}. |
 | `deploymentName` | `string` | The deployment/model name to use This value can be found https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}. |
 | `apiVersion` | `string` | The version of the API to use This value can be found https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}. |
+
+
+
+
+---
+### BedRock
+
+
+
+```yaml
+"keySecretRef": .core.solo.io.ResourceRef
+"region": string
+"roleArn": string
+"model": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `keySecretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | AccessKey + Secret Access Key + (optional) Session Token. |
+| `region` | `string` | AWS regiong the service is located in. |
+| `roleArn` | `string` | Role ARN to assume when making the request. |
+| `model` | `string` | Optional: override model name. If not set, the model name will be taken from the request This can be useful when trying model failover scenarios. |
 
 
 

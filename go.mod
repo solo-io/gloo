@@ -13,7 +13,7 @@ require (
 	github.com/census-instrumentation/opencensus-proto v0.4.1
 	github.com/cncf/xds/go v0.0.0-20240905190251-b4127c9b8d78
 	github.com/cratonica/2goarray v0.0.0-20190331194516-514510793eaa
-	github.com/envoyproxy/go-control-plane v0.13.2-0.20241022220226-23b7e55d7f65
+	github.com/envoyproxy/go-control-plane v0.13.2-0.20241024132551-85c0df06d1b6
 	github.com/envoyproxy/protoc-gen-validate v1.1.0
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible
 	github.com/fsnotify/fsnotify v1.7.0

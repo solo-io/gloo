@@ -9,7 +9,7 @@ Name|Version|License
 [census-instrumentation/opencensus-proto](https://github.com/census-instrumentation/opencensus-proto)|v0.2.0|Apache License 2.0
 [xds/go](https://github.com/cncf/xds)|v0.0.0-20240905190251-b4127c9b8d78|Apache License 2.0
 [cratonica/2goarray](https://github.com/cratonica/2goarray)|v0.0.0-20190331194516-514510793eaa|MIT License
-[envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.13.2-0.20241022220226-23b7e55d7f65|Apache License 2.0
+[envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.13.2-0.20241024132551-85c0df06d1b6|Apache License 2.0
 [envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v1.1.0|Apache License 2.0
 [form3tech-oss/jwt-go](https://github.com/form3tech-oss/jwt-go)|v3.2.5+incompatible|MIT License
 [fsnotify/fsnotify](https://github.com/fsnotify/fsnotify)|v1.7.0|BSD 3-clause "New" or "Revised" License

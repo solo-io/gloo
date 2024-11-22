@@ -824,6 +824,66 @@ func (m *UpstreamSpec_AzureOpenAI) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *UpstreamSpec_BedRock) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*UpstreamSpec_BedRock)
+	if !ok {
+		that2, ok := that.(UpstreamSpec_BedRock)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetRegion(), target.GetRegion()) != 0 {
+		return false
+	}
+
+	if strings.Compare(m.GetRoleArn(), target.GetRoleArn()) != 0 {
+		return false
+	}
+
+	if strings.Compare(m.GetModel(), target.GetModel()) != 0 {
+		return false
+	}
+
+	switch m.AuthTokenSource.(type) {
+
+	case *UpstreamSpec_BedRock_KeySecretRef:
+		if _, ok := target.AuthTokenSource.(*UpstreamSpec_BedRock_KeySecretRef); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetKeySecretRef()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetKeySecretRef()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetKeySecretRef(), target.GetKeySecretRef()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.AuthTokenSource != target.AuthTokenSource {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *UpstreamSpec_Gemini) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil

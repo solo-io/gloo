@@ -135,6 +135,21 @@ message UpstreamSpec {
     string api_version = 4;
   }
 
+  message BedRock {
+    // Auth method used for the Bedrock API
+    oneof auth_token_source {
+      // AccessKey + Secret Access Key + (optional) Session Token
+      core.solo.io.ResourceRef key_secret_ref = 1;
+    }
+    // AWS regiong the service is located in
+    string region = 2;
+    // Role ARN to assume when making the request
+    string role_arn = 3;
+    // Optional: override model name. If not set, the model name will be taken from the request
+    // This can be useful when trying model failover scenarios
+    string model = 4;
+  }
+
   // Settings for the Gemini API
   message Gemini {
     // Auth Token to use for the Gemini API

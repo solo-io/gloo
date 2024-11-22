@@ -495,6 +495,39 @@ func (m *UpstreamSpec_AzureOpenAI) Clone() proto.Message {
 }
 
 // Clone function
+func (m *UpstreamSpec_BedRock) Clone() proto.Message {
+	var target *UpstreamSpec_BedRock
+	if m == nil {
+		return target
+	}
+	target = &UpstreamSpec_BedRock{}
+
+	target.Region = m.GetRegion()
+
+	target.RoleArn = m.GetRoleArn()
+
+	target.Model = m.GetModel()
+
+	switch m.AuthTokenSource.(type) {
+
+	case *UpstreamSpec_BedRock_KeySecretRef:
+
+		if h, ok := interface{}(m.GetKeySecretRef()).(clone.Cloner); ok {
+			target.AuthTokenSource = &UpstreamSpec_BedRock_KeySecretRef{
+				KeySecretRef: h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
+			}
+		} else {
+			target.AuthTokenSource = &UpstreamSpec_BedRock_KeySecretRef{
+				KeySecretRef: proto.Clone(m.GetKeySecretRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
+			}
+		}
+
+	}
+
+	return target
+}
+
+// Clone function
 func (m *UpstreamSpec_Gemini) Clone() proto.Message {
 	var target *UpstreamSpec_Gemini
 	if m == nil {
