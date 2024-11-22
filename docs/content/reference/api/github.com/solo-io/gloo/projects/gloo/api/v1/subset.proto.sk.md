@@ -1,6 +1,6 @@
 
 ---
-title: "subset.proto"
+title: "Subset"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Subset](#subset)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/subset.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/subset.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/subset.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/subset.proto)**
 
 
 

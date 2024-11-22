@@ -1,6 +1,6 @@
 
 ---
-title: "selectors.proto"
+title: "Selectors"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `selectors.core.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Selector](#selector)
@@ -18,7 +18,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/core/selectors/selectors.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/core/selectors/selectors.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/core/selectors/selectors.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/core/selectors/selectors.proto)**
 
 
 
