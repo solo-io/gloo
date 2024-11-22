@@ -1,6 +1,6 @@
 
 ---
-title: "retries.proto"
+title: "Retries"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `retries.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [RetryBackOff](#retrybackoff)
@@ -18,7 +18,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/retries/retries.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/retries/retries.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/retries/retries.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/retries/retries.proto)**
 
 
 

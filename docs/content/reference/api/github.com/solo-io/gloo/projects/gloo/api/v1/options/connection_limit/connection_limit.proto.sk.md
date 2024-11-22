@@ -1,6 +1,6 @@
 
 ---
-title: "connection_limit.proto"
+title: "ConnectionLimit"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `connection_limit.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ConnectionLimit](#connectionlimit)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/connection_limit/connection_limit.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/connection_limit/connection_limit.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/connection_limit/connection_limit.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/connection_limit/connection_limit.proto)**
 
 
 

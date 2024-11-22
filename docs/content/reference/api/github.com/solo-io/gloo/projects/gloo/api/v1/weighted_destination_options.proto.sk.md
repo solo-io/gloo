@@ -1,6 +1,6 @@
 
 ---
-title: "weighted_destination_options.proto"
+title: "WeightedDestinationOptions"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [WeightedDestinationOptions](#weighteddestinationoptions)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/weighted_destination_options.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/weighted_destination_options.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/weighted_destination_options.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/weighted_destination_options.proto)**
 
 
 

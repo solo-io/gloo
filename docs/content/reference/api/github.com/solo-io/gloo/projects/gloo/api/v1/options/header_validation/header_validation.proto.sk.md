@@ -1,6 +1,6 @@
 
 ---
-title: "header_validation.proto"
+title: "HeaderValidation"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `header_validation.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [HeaderValidationSettings](#headervalidationsettings)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/header_validation/header_validation.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/header_validation/header_validation.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/header_validation/header_validation.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/header_validation/header_validation.proto)**
 
 
 

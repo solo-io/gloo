@@ -1,6 +1,6 @@
 
 ---
-title: "empty.proto"
+title: "Empty"
 weight: 5
 ---
 
@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
  
-#### Types:
+**Types:**
 
 
 - [Empty](#empty)
@@ -48,7 +48,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
-##### Source File: [github.com/solo-io/protoc-gen-ext/external/google/protobuf/empty.proto](https://github.com/solo-io/protoc-gen-ext/blob/main/external/google/protobuf/empty.proto)
+**Source File: [github.com/solo-io/protoc-gen-ext/external/google/protobuf/empty.proto](https://github.com/solo-io/protoc-gen-ext/blob/main/external/google/protobuf/empty.proto)**
 
 
 

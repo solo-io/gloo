@@ -1,6 +1,6 @@
 
 ---
-title: "external_options.proto"
+title: "ExternalOptions"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gateway.solo.io` 
-#### Types:
+**Types:**
 
 
 - [VirtualHostOption](#virtualhostoption) **Top-Level Resource**
@@ -19,7 +19,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gateway/api/v1/external_options.proto](https://github.com/solo-io/gloo/blob/main/projects/gateway/api/v1/external_options.proto)
+**Source File: [github.com/solo-io/gloo/projects/gateway/api/v1/external_options.proto](https://github.com/solo-io/gloo/blob/main/projects/gateway/api/v1/external_options.proto)**
 
 
 
