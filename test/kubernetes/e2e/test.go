@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -314,6 +315,59 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 	kubectlGetResourcesCmd := i.Actions.Kubectl().Command(ctx, "get", strings.Join(resourcesToGet, ","), "-A", "-owide")
 	_ = kubectlGetResourcesCmd.WithStdout(clusterStateFile).WithStderr(clusterStateFile).Run()
 	clusterStateFile.WriteString("\n")
+
+	podStdOut := bytes.NewBuffer(nil)
+	podStdErr := bytes.NewBuffer(nil)
+
+	// Fetch the name of the Gloo Gateway controller pod
+	getGlooPodNameCmd := i.Actions.Kubectl().Command(ctx, "get", "pod", "-n", i.Metadata.InstallNamespace,
+		"--selector", "gloo=gloo", "--output", "jsonpath='{.items[0].metadata.name}'")
+	_ = getGlooPodNameCmd.WithStdout(podStdOut).WithStderr(podStdErr).Run()
+
+	// Clean up and check the output
+	glooPodName := strings.Trim(podStdOut.String(), "'")
+	if glooPodName == "" {
+		fmt.Printf("Failed to get the name of the Gloo Gateway controller pod: %s\n", podStdErr.String())
+		return
+	}
+
+	// Get the metrics from the Gloo Gateway controller pod and write them to a file
+	metricsFilePath := filepath.Join(failureDir, "metrics.log")
+	metricsFile, err := os.OpenFile(metricsFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	i.Assertions.Require.NoError(err)
+
+	// Using an ephemeral debug pod fetch the metrics from the Gloo Gateway controller
+	metricsCmd := i.Actions.Kubectl().Command(ctx, "debug", "-n", i.Metadata.InstallNamespace,
+		"-it", "--image=curlimages/curl:7.83.1", glooPodName, "--",
+		"curl", "http://localhost:9091/metrics")
+	_ = metricsCmd.WithStdout(metricsFile).WithStderr(metricsFile).Run()
+	metricsFile.Close()
+
+	// Get krt snapshot from the Gloo Gateway controller pod and write it to a file
+	krtSnapshotFilePath := filepath.Join(failureDir, "krt_snapshot.log")
+	krtSnapshotFile, err := os.OpenFile(krtSnapshotFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	i.Assertions.Require.NoError(err)
+
+	// Using an ephemeral debug pod fetch the krt snapshot from the Gloo Gateway controller
+	krtSnapshotCmd := i.Actions.Kubectl().Command(ctx, "debug", "-n", i.Metadata.InstallNamespace,
+		"-it", "--image=curlimages/curl:7.83.1", glooPodName, "--",
+		"curl", "http://localhost:9095/snapshots/krt")
+	_ = krtSnapshotCmd.WithStdout(krtSnapshotFile).WithStderr(krtSnapshotFile).Run()
+	krtSnapshotFile.Close()
+
+	// Get xds snapshot from the Gloo Gateway controller pod and write it to a file
+	xdsSnapshotFilePath := filepath.Join(failureDir, "xds_snapshot.log")
+	xdsSnapshotFile, err := os.OpenFile(xdsSnapshotFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	i.Assertions.Require.NoError(err)
+
+	// Using an ephemeral debug pod fetch the xds snapshot from the Gloo Gateway controller
+	xdsSnapshotCmd := i.Actions.Kubectl().Command(ctx, "debug", "-n", i.Metadata.InstallNamespace,
+		"-it", "--image=curlimages/curl:7.83.1", glooPodName, "--",
+		"curl", "http://localhost:9095/snapshots/xds")
+	_ = xdsSnapshotCmd.WithStdout(xdsSnapshotFile).WithStderr(xdsSnapshotFile).Run()
+	xdsSnapshotFile.Close()
+
+	fmt.Printf("Test failed. Logs and cluster state are available in %s\n", failureDir)
 }
 
 // GeneratedFiles is a collection of files that are generated during the execution of a set of tests

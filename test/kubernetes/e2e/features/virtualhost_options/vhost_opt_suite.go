@@ -225,6 +225,8 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 		[]string{"conflict with more specific or older VirtualHostOptions"},
 		defaults.KubeGatewayReporter,
 	)
+
+	s.Assert().Equal(true, false, "intentionally failing to trigger drump, remove when done debugging")
 }
 
 // The goal here is to test the behavior when multiple VHOs are targeting a gateway without sectionName. The expected
