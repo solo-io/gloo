@@ -2,3 +2,10 @@ changelog:
   - type: NON_USER_FACING
     description: >-
       Fix flicker on Upstream status when kube gw syncer rejects a resource and no edge proxies are present
+    issueLink: https://github.com/solo-io/solo-projects/issues/7243
+    resolvesIssue: true
+  - type: NON_USER_FACING
+    description: >-
+      Fix missing status on krt objects resulting in continuous status updates (and webhook hits)
+    issueLink: https://github.com/solo-io/solo-projects/issues/7257
+    resolvesIssue: true
