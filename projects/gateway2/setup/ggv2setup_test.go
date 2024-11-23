@@ -222,9 +222,20 @@ func TestScenarios(t *testing.T) {
 	}
 	for _, f := range files {
 		// run tests with the yaml files (but not -out.yaml files)/s
+		parentT := t
 		if strings.HasSuffix(f.Name(), ".yaml") && !strings.HasSuffix(f.Name(), "-out.yaml") {
 			fullpath := filepath.Join("testdata", f.Name())
 			t.Run(strings.TrimSuffix(f.Name(), ".yaml"), func(t *testing.T) {
+				writer.set(t)
+				t.Cleanup(func() {
+					writer.set(parentT)
+				})
+				t.Cleanup(func() {
+					if t.Failed() {
+						j, _ := setupOpts.KrtDebugger.MarshalJSON()
+						t.Logf("krt state for failed test: %s %s", t.Name(), string(j))
+					}
+				})
 				//sadly tests can't run yet in parallel, as ggv2 will add all the k8s services as clusters. this means
 				// that we get test pollution.
 				// once we change it to only include the ones in the proxy, we can re-enable this
@@ -234,8 +245,6 @@ func TestScenarios(t *testing.T) {
 			})
 		}
 	}
-
-	t.Log("DONE")
 }
 
 func testScenario(t *testing.T, ctx context.Context, client istiokube.CLIClient, xdsPort int, f string) {
@@ -373,6 +382,7 @@ func (x *xdsDump) Compare(t *testing.T, other xdsDump) {
 		otherc := clusterset[c.Name]
 		if otherc == nil {
 			t.Errorf("cluster %v not found", c.Name)
+			continue
 		}
 		if !proto.Equal(c, otherc) {
 			t.Errorf("cluster %v not equal", c.Name)
@@ -386,6 +396,7 @@ func (x *xdsDump) Compare(t *testing.T, other xdsDump) {
 		otherc := listenerset[c.Name]
 		if otherc == nil {
 			t.Errorf("listener %v not found", c.Name)
+			continue
 		}
 		if !proto.Equal(c, otherc) {
 			t.Errorf("listener %v not equal", c.Name)
@@ -399,6 +410,7 @@ func (x *xdsDump) Compare(t *testing.T, other xdsDump) {
 		otherc := routeset[c.Name]
 		if otherc == nil {
 			t.Errorf("route %v not found", c.Name)
+			continue
 		}
 		if !proto.Equal(c, otherc) {
 			t.Errorf("route %v not equal: %v vs %v", c.Name, c, otherc)
@@ -600,7 +612,7 @@ func (x *xdsFetcher) getclusters(t *testing.T, ctx context.Context) []*envoyclus
 
 	epcli, err := cds.StreamClusters(ctx)
 	if err != nil {
-		t.Fatalf("failed to get eds client: %v", err)
+		t.Fatalf("failed to get cds client: %v", err)
 	}
 	defer epcli.CloseSend()
 	epcli.Send(x.dr)
@@ -608,6 +620,7 @@ func (x *xdsFetcher) getclusters(t *testing.T, ctx context.Context) []*envoyclus
 	if err != nil {
 		t.Fatalf("failed to get response from xds server: %v", err)
 	}
+	t.Logf("got cds response. nonce, version: %s %s", dresp.GetNonce(), dresp.GetVersionInfo())
 	var clusters []*envoycluster.Cluster
 	for _, anyCluster := range dresp.GetResources() {
 
@@ -654,7 +667,7 @@ func (x *xdsFetcher) getlisteners(t *testing.T, ctx context.Context) []*envoylis
 
 	epcli, err := ds.StreamListeners(ctx)
 	if err != nil {
-		t.Fatalf("failed to get eds client: %v", err)
+		t.Fatalf("failed to get lds client: %v", err)
 	}
 	defer epcli.CloseSend()
 	epcli.Send(x.dr)
@@ -662,6 +675,7 @@ func (x *xdsFetcher) getlisteners(t *testing.T, ctx context.Context) []*envoylis
 	if err != nil {
 		t.Fatalf("failed to get response from xds server: %v", err)
 	}
+	t.Logf("got lds response. nonce, version: %s %s", dresp.GetNonce(), dresp.GetVersionInfo())
 	var resources []*envoylistener.Listener
 	for _, anyResource := range dresp.GetResources() {
 
@@ -692,6 +706,7 @@ func (x *xdsFetcher) getendpoints(t *testing.T, ctx context.Context, clusterServ
 	if err != nil {
 		t.Fatalf("failed to get response from xds server: %v", err)
 	}
+	t.Logf("got eds response. nonce, version: %s %s", dresp.GetNonce(), dresp.GetVersionInfo())
 	var clas []*envoyendpoint.ClusterLoadAssignment
 	for _, anyCluster := range dresp.GetResources() {
 
@@ -715,7 +730,7 @@ func (x *xdsFetcher) getroutes(t *testing.T, ctx context.Context, rosourceNames 
 
 	epcli, err := eds.StreamRoutes(ctx)
 	if err != nil {
-		t.Fatalf("failed to get eds client: %v", err)
+		t.Fatalf("failed to get rds client: %v", err)
 	}
 	defer epcli.CloseSend()
 	dr := proto.Clone(x.dr).(*discovery_v3.DiscoveryRequest)
@@ -725,6 +740,7 @@ func (x *xdsFetcher) getroutes(t *testing.T, ctx context.Context, rosourceNames 
 	if err != nil {
 		t.Fatalf("failed to get response from xds server: %v", err)
 	}
+	t.Logf("got rds response. nonce, version: %s %s", dresp.GetNonce(), dresp.GetVersionInfo())
 	var clas []*envoy_config_route_v3.RouteConfiguration
 	for _, anyCluster := range dresp.GetResources() {
 
