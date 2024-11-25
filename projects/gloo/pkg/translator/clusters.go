@@ -138,14 +138,9 @@ func (t *translatorInstance) initializeCluster(
 		errorList = append(errorList, err)
 	}
 
-	clusterName := UpstreamToClusterName(upstream.GetMetadata().Ref())
-	if t.opts.kubeGatewayAPI {
-		clusterName = KubeGatewayUpstreamToClusterName(upstream)
-	}
-
 	circuitBreakers := t.settings.GetGloo().GetCircuitBreakers()
 	out := &envoy_config_cluster_v3.Cluster{
-		Name:             clusterName,
+		Name:             UpstreamToClusterName(upstream.GetMetadata().Ref()),
 		Metadata:         new(envoy_config_core_v3.Metadata),
 		CircuitBreakers:  getCircuitBreakers(upstream.GetCircuitBreakers(), circuitBreakers),
 		LbSubsetConfig:   createLbConfig(upstream),

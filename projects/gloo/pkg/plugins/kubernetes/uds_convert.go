@@ -51,6 +51,7 @@ func (uc *KubeUpstreamConverter) CreateUpstream(ctx context.Context, svc *corev1
 	coremeta.ResourceVersion = ""
 	coremeta.Name = UpstreamName(meta.Namespace, meta.Name, port.Port, true)
 	labels := coremeta.GetLabels()
+	coremeta.Labels = make(map[string]string)
 
 	us := &v1.Upstream{
 		Metadata: coremeta,
@@ -76,14 +77,27 @@ func (uc *KubeUpstreamConverter) CreateUpstream(ctx context.Context, svc *corev1
 	return us
 }
 
-// if real upstream: sanitize always
-// if fake upstream: sanitize only if k8s gw
+// UpstreamName creates an upstream name from a k8s Service name/namespace/port.
+//
+// This function is used in the context of both "real" upstreams written to etcd (e.g. upstream creation by UDS)
+// as well as "fake" upstreams (i.e. those upstreams we only create in the in-memory input snapshot).
+//
+// The caller should set `sanitize` to true if this name is being created for a "real" upstream (since
+// k8s names/namespaces have some character restrictions), and should set `sanitize` to false if this is
+// for an in-memory upstream (so we can make cluster names more parseable by using an invalid k8s character
+// as a separator).
+//
+// The resulting upstream name follows one of two formats:
+//  1. <svcNs>_<svcName>_<svcPort> (underscore-separated): only if kubernetes gateway integration is enabled AND
+//     `sanitize` is false
+//  2. <svcNs>-<svcName>-<svcPort> (hyphen-separated) otherwise.
+//
+// If kubernetes gateway integration is not enabled (i.e. only edge api is being used), we fall back to the legacy
+// (hyphen-separated) format, so as not to cause unexpected changes for existing users.
 func UpstreamName(serviceNamespace, serviceName string, servicePort int32, sanitize bool) string {
-	fmt.Printf("xxxxxxx UpstreamName: using k8s gw? %v\n", envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv))
 	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) && !sanitize {
 		// when kube gateway is enabled, use _ since it makes the service name/namespace easier to
 		// parse out later (namespaces/names cannot have _ in them)
-		fmt.Printf("xxxxxx discovery upstream name: %v\n", fmt.Sprintf("%s_%s_%v", serviceNamespace, serviceName, servicePort))
 		return fmt.Sprintf("%s_%s_%v", serviceNamespace, serviceName, servicePort)
 	}
 	// for edge api, leave the cluster names as they were (we don't want to cause unexpected changes on upgrade)

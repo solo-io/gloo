@@ -2,8 +2,6 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 	"strings"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -12,25 +10,6 @@ import (
 	skkube "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	corev1 "k8s.io/api/core/v1"
-)
-
-// these labels are used to propagate internal data
-// on synthetic Gloo resources generated from other Kubernetes
-// resources (generally Service).
-// The `~` is an invalid character that prevents these labels from ending up
-// on actual Kubernetes resources.
-const (
-	// KubeSourceResourceLabel indicates the kind of resource that the synthetic
-	// resource is based on.
-	KubeSourceResourceLabel = "~internal.solo.io/kubernetes-source-resource"
-	// KubeNameLabel indicates the original name of the resource that
-	// the synthetic resource is based on.
-	KubeNameLabel = "~internal.solo.io/kubernetes-name"
-	// KubeNamespaceLabel indicates the original namespace of the resource
-	// that the synthetic resource is based on.
-	KubeNamespaceLabel = "~internal.solo.io/kubernetes-namespace"
-	// KubeServicePortLabel indicates the service port when applicable.
-	KubeServicePortLabel = "~internal.solo.io/kubernetes-service-port"
 )
 
 func IsKubeUpstream(upstreamName string) bool {
@@ -76,22 +55,5 @@ func ServiceToUpstream(ctx context.Context, svc *corev1.Service, port corev1.Ser
 	us.GetMetadata().Namespace = svc.GetNamespace()
 	us.GetMetadata().ResourceVersion = ""
 
-	additionalLabels := map[string]string{
-		// preserve parts of the source service in a structured way
-		// so we don't rely on string parsing to recover these
-		// this is more extensible than relying on casting Spec to Upstream_Kube
-		KubeSourceResourceLabel: UpstreamNamePrefixNoSeparator,
-		KubeNameLabel:           svc.GetName(),
-		KubeNamespaceLabel:      svc.GetNamespace(),
-		KubeServicePortLabel:    strconv.Itoa(int(port.Port)),
-	}
-	if us.GetMetadata().GetLabels() == nil {
-		us.GetMetadata().Labels = map[string]string{}
-	}
-	for k, v := range additionalLabels {
-		us.GetMetadata().Labels[k] = v
-	}
-
-	fmt.Printf("xxxxxxx ServiceToUpstream: %s\n", us.GetMetadata().GetName())
 	return us
 }

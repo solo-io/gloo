@@ -12,45 +12,14 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
-
-// KubeGatewayUpstreamToClusterName returns the name of the cluster created for a given upstream,
-// for Kubernetes Gateway API proxies only. The upstream must be an in-memory k8s upstream.
-func KubeGatewayUpstreamToClusterName(upstream *v1.Upstream) string {
-	fmt.Printf("xxxxxxx KubeGatewayUpstreamToClusterName: %s.%s\n", upstream.GetMetadata().GetNamespace(), upstream.GetMetadata().GetName())
-	// if clusterName, ok := clusterNameForKube(upstream); ok {
-	// 	fmt.Printf("xxxxxxx upstream %s.%s has the annotations\n", upstream.GetMetadata().GetNamespace(), upstream.GetMetadata().GetName())
-	// 	return clusterName
-	// } else {
-	// 	fmt.Printf("xxxxxxx upstream %s.%s doesn't have the annotations\n", upstream.GetMetadata().GetNamespace(), upstream.GetMetadata().GetName())
-	// }
-	return UpstreamToClusterName(upstream.GetMetadata().Ref())
-}
-
-// clusterNameForKube builds the cluster name based on _internal_ labels.
-// All of the kind, name, namespace and port must be provided.
-func clusterNameForKube(us *v1.Upstream) (string, bool) {
-	labels := us.GetMetadata().GetLabels()
-	kind, kok := labels[kubernetes.KubeSourceResourceLabel]
-	ns, nsok := labels[kubernetes.KubeNamespaceLabel]
-	name, nok := labels[kubernetes.KubeNameLabel]
-	port, pok := labels[kubernetes.KubeServicePortLabel]
-	if !(kok && nok && nsok && pok) {
-		return "", false
-	}
-	return fmt.Sprintf("%s_%s_%s_%s", kind, ns, name, port), true
-}
 
 // UpstreamToClusterName returns the name of the cluster created for a given upstream.
 // This is used by many plugins to convert an upstream route destination to the cluster name
 // to be used in envoy.
 func UpstreamToClusterName(upstream *core.ResourceRef) string {
-	fmt.Printf("xxxxxxx UpstreamToClusterName %s.%s\n", upstream.GetNamespace(), upstream.GetName())
-
 	// For non-namespaced resources, return only name
 	if upstream.GetNamespace() == "" {
 		return upstream.GetName()
