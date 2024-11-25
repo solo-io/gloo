@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/stretchr/testify/suite"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
@@ -42,14 +44,19 @@ func (s *testingSuite) TestConfigureTCPRouteBackingDestinationsWithSingleService
 
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, singleListenerGatewayAndClientManifest)
 	s.Assert().NoError(err, "can apply gateway and client manifest")
+	s.testInstallation.Assertions.EventuallyGatewayCondition(s.ctx, "tcp-gateway", "default", v1.GatewayConditionAccepted, metav1.ConditionTrue, timeout)
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, multiBackendServiceManifest)
 	s.Assert().NoError(err, "can apply backend service manifest")
+	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment)
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, singleTcpRouteManifest)
 	s.Assert().NoError(err, "can apply tcproute manifest")
+	s.testInstallation.Assertions.EventuallyTCPRouteCondition(s.ctx, "tcp-app-1", "default", v1.RouteConditionAccepted, metav1.ConditionTrue, timeout)
+	s.testInstallation.Assertions.EventuallyTCPRouteCondition(s.ctx, "tcp-app-1", "default", v1.RouteConditionResolvedRefs, metav1.ConditionTrue, timeout)
+	s.testInstallation.Assertions.EventuallyGatewayCondition(s.ctx, "tcp-gateway", "default", v1.GatewayConditionProgrammed, metav1.ConditionTrue, timeout)
+	s.testInstallation.Assertions.EventuallyGatewayListenerAttachedRoutes(s.ctx, "tcp-gateway", "default", v1.SectionName("foo"), int32(1), timeout)
 
-	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment)
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
 		defaults.CurlPodExecOpt,
@@ -81,14 +88,22 @@ func (s *testingSuite) TestConfigureTCPRouteBackingDestinationsWithMultiServices
 
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, multiListenerGatewayAndClientManifest)
 	s.Assert().NoError(err, "can apply gateway and client manifest")
+	s.testInstallation.Assertions.EventuallyGatewayCondition(s.ctx, "tcp-gateway", "default", v1.GatewayConditionAccepted, metav1.ConditionTrue, timeout)
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, multiBackendServiceManifest)
 	s.Assert().NoError(err, "can apply backend service manifest")
+	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment)
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, multiTcpRouteManifest)
 	s.Assert().NoError(err, "can apply tcproute manifest")
+	s.testInstallation.Assertions.EventuallyTCPRouteCondition(s.ctx, "tcp-app-1", "default", v1.RouteConditionAccepted, metav1.ConditionTrue, timeout)
+	s.testInstallation.Assertions.EventuallyTCPRouteCondition(s.ctx, "tcp-app-1", "default", v1.RouteConditionResolvedRefs, metav1.ConditionTrue, timeout)
+	s.testInstallation.Assertions.EventuallyTCPRouteCondition(s.ctx, "tcp-app-2", "default", v1.RouteConditionAccepted, metav1.ConditionTrue, timeout)
+	s.testInstallation.Assertions.EventuallyTCPRouteCondition(s.ctx, "tcp-app-2", "default", v1.RouteConditionResolvedRefs, metav1.ConditionTrue, timeout)
+	s.testInstallation.Assertions.EventuallyGatewayCondition(s.ctx, "tcp-gateway", "default", v1.GatewayConditionProgrammed, metav1.ConditionTrue, timeout)
+	s.testInstallation.Assertions.EventuallyGatewayListenerAttachedRoutes(s.ctx, "tcp-gateway", "default", v1.SectionName("foo"), int32(1), timeout)
+	s.testInstallation.Assertions.EventuallyGatewayListenerAttachedRoutes(s.ctx, "tcp-gateway", "default", v1.SectionName("bar"), int32(1), timeout)
 
-	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment)
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
 		defaults.CurlPodExecOpt,
