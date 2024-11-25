@@ -371,6 +371,7 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 			Namespace: u.GetNamespace(),
 		}
 		glooUs.SetMetadata(&md)
+		glooUs.NamespacedStatuses = &u.Status
 		us := &krtcollections.UpstreamWrapper{Inner: glooUs}
 		return us
 	}, krt.WithName("GlooUpstreams"), withDebug)
@@ -715,6 +716,7 @@ func (s *ProxySyncer) translateProxy(
 			Namespace: kac.GetNamespace(),
 		}
 		gac.SetMetadata(&md)
+		gac.NamespacedStatuses = &kac.Status
 		acfgs = append(acfgs, gac)
 	}
 	latestSnap.AuthConfigs = acfgs

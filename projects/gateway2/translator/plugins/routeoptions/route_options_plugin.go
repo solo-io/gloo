@@ -178,6 +178,7 @@ func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx *plugins.Statu
 		roObj.Spec.GetMetadata().Name = roObj.GetName()
 		roObj.Spec.GetMetadata().Namespace = roObj.GetNamespace()
 		roObjSk := &roObj.Spec
+		roObjSk.NamespacedStatuses = &roObj.Status
 
 		// mark this object to be processed
 		routeOptionReport.Accept(roObjSk)
