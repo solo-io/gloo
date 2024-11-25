@@ -353,10 +353,7 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 		portforward.WithDeployment("gloo", i.Metadata.InstallNamespace),
 		portforward.WithPorts(int(admin.AdminPort), int(admin.AdminPort)),
 	)
-	if err != nil {
-		fmt.Printf("Failed to open port-forward: %v\n", err)
-		return
-	}
+	i.Assertions.Require.NoError(err)
 
 	defer func() {
 		portForwarder.Close()
@@ -375,20 +372,22 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 	krtSnapshotFile, err := os.OpenFile(krtSnapshotFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	i.Assertions.Require.NoError(err)
 
-	adminClient.KrtSnapshotCmd(ctx).
+	cmdErr := adminClient.KrtSnapshotCmd(ctx).
 		WithStdout(krtSnapshotFile).
 		WithStderr(krtSnapshotFile).
 		Run()
+	i.Assertions.Require.NoError(cmdErr)
 
 	// Get xds snapshot from the Gloo Gateway controller pod and write it to a file
 	xdsSnapshotFilePath := filepath.Join(failureDir, "xds_snapshot.log")
 	xdsSnapshotFile, err := os.OpenFile(xdsSnapshotFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	i.Assertions.Require.NoError(err)
 
-	adminClient.XdsSnapshotCmd(ctx).
+	cmdErr = adminClient.XdsSnapshotCmd(ctx).
 		WithStdout(xdsSnapshotFile).
 		WithStderr(xdsSnapshotFile).
 		Run()
+	i.Assertions.Require.NoError(cmdErr)
 
 	fmt.Printf("Test failed. Logs and cluster state are available in %s\n", failureDir)
 }
