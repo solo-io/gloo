@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	ExampleVsName       = "example-vs"
-	ExampleUpstreamName = "nginx-upstream"
+	ExampleVsName                 = "example-vs"
+	ExampleUpstreamName           = "nginx-upstream"
+	SplitWebhookBasicUpstreamName = "json-upstream"
 
 	ValidVsName   = "i-am-valid"
 	InvalidVsName = "i-am-invalid"
