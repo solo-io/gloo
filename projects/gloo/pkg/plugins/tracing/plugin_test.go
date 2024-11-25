@@ -108,6 +108,7 @@ var _ = Describe("Plugin", func() {
 		Expect(err).NotTo(HaveOccurred())
 		expected := &envoyhttp.HttpConnectionManager{
 			Tracing: &envoyhttp.HttpConnectionManager_Tracing{
+				SpawnUpstreamSpan: &wrappers.BoolValue{Value: false},
 				CustomTags: []*envoytracing.CustomTag{
 					{
 						Tag: "header1",
@@ -171,11 +172,12 @@ var _ = Describe("Plugin", func() {
 		Expect(err).NotTo(HaveOccurred())
 		expected := &envoyhttp.HttpConnectionManager{
 			Tracing: &envoyhttp.HttpConnectionManager_Tracing{
-				ClientSampling:  &envoy_type.Percent{Value: 100},
-				RandomSampling:  &envoy_type.Percent{Value: 100},
-				OverallSampling: &envoy_type.Percent{Value: 100},
-				Verbose:         false,
-				Provider:        nil,
+				ClientSampling:    &envoy_type.Percent{Value: 100},
+				RandomSampling:    &envoy_type.Percent{Value: 100},
+				OverallSampling:   &envoy_type.Percent{Value: 100},
+				Verbose:           false,
+				Provider:          nil,
+				SpawnUpstreamSpan: &wrappers.BoolValue{Value: false},
 			},
 		}
 		Expect(cfg).To(Equal(expected))
