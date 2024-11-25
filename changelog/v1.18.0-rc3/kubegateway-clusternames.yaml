@@ -5,4 +5,4 @@ changelog:
     description: >-
       When using the Kubernetes Gateway API, cluster names for Kubernetes Services
       are now in a new more parseable format that allows us to extract info about the Service:
-      `kube-svc:<svcNamespace>_<svcName>_<svcPort>_<upstreamNamespace>`
+      
