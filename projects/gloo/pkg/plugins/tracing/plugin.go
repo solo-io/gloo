@@ -87,7 +87,7 @@ func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parent *v1.Liste
 		trCfg.RandomSampling = envoySimplePercent(oneHundredPercent)
 		trCfg.OverallSampling = envoySimplePercent(oneHundredPercent)
 	}
-	trCfg.SpawnUpstreamSpan = wrapperspb.Bool(true)
+	trCfg.SpawnUpstreamSpan = wrapperspb.Bool(tracingSettings.GetSpawnUpstreamSpan())
 	out.Tracing = trCfg
 
 	return nil
