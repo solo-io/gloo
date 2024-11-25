@@ -153,7 +153,7 @@ func PrioritizeEndpoints(logger *zap.Logger, destrule *DestinationRuleWrapper, e
 	return UccWithEndpoints{
 		Client:        ucc,
 		Endpoints:     resource.NewEnvoyResource(cla),
-		EndpointsHash: additionalHash,
+		EndpointsHash: ep.LbEpsEqualityHash ^ additionalHash,
 		endpointsName: ep.ResourceName(),
 	}
 }
