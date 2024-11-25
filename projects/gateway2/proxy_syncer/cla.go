@@ -133,7 +133,7 @@ func PrioritizeEndpoints(logger *zap.Logger, destrule *DestinationRuleWrapper, e
 	var priorityInfo *PriorityInfo
 
 	if destrule != nil {
-		trafficPolicy := getTraficPolicy(destrule, ep.Port)
+		trafficPolicy := getTrafficPolicy(destrule, ep.Port)
 		localityLb := getLocalityLbSetting(trafficPolicy)
 		if localityLb != nil {
 			priorityInfo = getPriorityInfoFromDestrule(localityLb)

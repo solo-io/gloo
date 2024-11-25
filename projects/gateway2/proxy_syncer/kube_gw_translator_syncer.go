@@ -14,6 +14,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 
@@ -63,7 +64,12 @@ func (s *ProxyTranslator) buildXdsSnapshot(
 		Messages: map[*core.ResourceRef][]string{},
 	}
 
-	xdsSnapshot, reports, proxyReport := s.translator.NewTranslator(ctx, settings).Translate(params, proxy)
+	tx := s.translator.NewTranslator(
+		ctx,
+		settings,
+		translator.ForKubeGatewayAPI(),
+	)
+	xdsSnapshot, reports, proxyReport := tx.Translate(params, proxy)
 
 	// Messages are aggregated during translation, and need to be added to reports
 	for _, messages := range params.Messages {

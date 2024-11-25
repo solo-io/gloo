@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strconv"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes/serviceconverter"
 	"github.com/solo-io/go-utils/contextutils"
@@ -19,6 +20,39 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	corev1 "k8s.io/api/core/v1"
 )
+
+// these labels are used to propagate internal data
+// on synthetic Gloo resources generated from other Kubernetes
+// resources (generally Service).
+// The `~` is an invalid character that prevents these labels from ending up
+// on actual Kubernetes resources.
+const (
+	// KubeSourceResourceLabel indicates the kind of resource that the synthetic
+	// resource is based on.
+	KubeSourceResourceLabel = "~internal.solo.io/kubernetes-source-resource"
+	// KubeSourceResourceLabel indicates the original name of the resource that
+	// the synthetic resource is based on.
+	KubeNameLabel = "~internal.solo.io/kubernetes-name"
+	// KubeSourceResourceLabel indicates the original namespace of the resource
+	// that the synthetic resource is based on.
+	KubeNamespaceLabel = "~internal.solo.io/kubernetes-namespace"
+	// KubeSourceResourceLabel indicates the service port when applicable.
+	KubeServicePortLabel = "~internal.solo.io/kubernetes-service-port"
+)
+
+// ClusterNameForKube builds the cluster name based on _internal_ labels.
+// All of the kind, name, namespace and port must be provided.
+func ClusterNameForKube(us *v1.Upstream) (string, bool) {
+	labels := us.GetMetadata().GetLabels()
+	kind, kok := labels[KubeSourceResourceLabel]
+	name, nok := labels[KubeNameLabel]
+	ns, nsok := labels[KubeNamespaceLabel]
+	port, pok := labels[KubeServicePortLabel]
+	if !(kok && nok && nsok && pok) {
+		return "", false
+	}
+	return fmt.Sprintf("%s_%s_%s_%s", kind, name, ns, port), true
+}
 
 type UpstreamConverter interface {
 	UpstreamsForService(ctx context.Context, svc *corev1.Service) v1.UpstreamList
@@ -48,7 +82,15 @@ func (uc *KubeUpstreamConverter) CreateUpstream(ctx context.Context, svc *corev1
 	coremeta.ResourceVersion = ""
 	coremeta.Name = UpstreamName(meta.Namespace, meta.Name, port.Port)
 	labels := coremeta.GetLabels()
-	coremeta.Labels = make(map[string]string)
+	coremeta.Labels = map[string]string{
+		// preserve parts of the source service in a structured way
+		// so we don't rely on string parsing to recover these
+		// this is more extensible than relying on casting Spec to Upstream_Kube
+		KubeSourceResourceLabel: "kube-svc",
+		KubeNameLabel:           meta.Name,
+		KubeNamespaceLabel:      meta.Namespace,
+		KubeServicePortLabel:    strconv.Itoa(int(port.Port)),
+	}
 
 	us := &v1.Upstream{
 		Metadata: coremeta,

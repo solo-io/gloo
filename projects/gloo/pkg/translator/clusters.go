@@ -69,7 +69,7 @@ func (t *translatorInstance) computeClusters(
 }
 
 // This function is intented to be used when translating a single upstream outside of the context of a full snapshot.
-// This happens in GGv2 krt implementation.
+// This happens in the kube gateway krt implementation.
 func (t *translatorInstance) TranslateCluster(
 	params plugins.Params,
 	upstream *v1.Upstream,
@@ -138,9 +138,14 @@ func (t *translatorInstance) initializeCluster(
 		errorList = append(errorList, err)
 	}
 
+	clusterName := UpstreamToClusterName(upstream.GetMetadata().Ref())
+	if t.opts.kubeGatewayAPI {
+		clusterName = KubeGatewayUpstreamToClusterName(upstream)
+	}
+
 	circuitBreakers := t.settings.GetGloo().GetCircuitBreakers()
 	out := &envoy_config_cluster_v3.Cluster{
-		Name:             UpstreamToClusterName(upstream.GetMetadata().Ref()),
+		Name:             clusterName,
 		Metadata:         new(envoy_config_core_v3.Metadata),
 		CircuitBreakers:  getCircuitBreakers(upstream.GetCircuitBreakers(), circuitBreakers),
 		LbSubsetConfig:   createLbConfig(upstream),

@@ -13,12 +13,13 @@ type TranslatorFactory struct {
 	PluginRegistry plugins.PluginRegistryFactory
 }
 
-func (tf TranslatorFactory) NewTranslator(ctx context.Context, settings *v1.Settings) translator.Translator {
+func (tf TranslatorFactory) NewTranslator(ctx context.Context, settings *v1.Settings, opts ...translator.Option) translator.Translator {
 	return translator.NewTranslatorWithHasher(
 		sslutils.NewSslConfigTranslator(),
 		settings,
 		tf.PluginRegistry(ctx),
 		translator.EnvoyCacheResourcesListToFnvHash,
+		opts...,
 	)
 }
 

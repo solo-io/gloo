@@ -12,13 +12,27 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 // returns the name of the cluster created for a given upstream
-func UpstreamToClusterName(upstream *core.ResourceRef) string {
+// used only for kube gateway api (aka ggv2) proxies.
+func KubeGatewayUpstreamToClusterName(upstream *v1.Upstream) string {
+	legacyClusterNames := envutils.IsEnvTruthy(constants.GlooGatewayKubeStyleClusterNames)
+	clusterName, ok := kubernetes.ClusterNameForKube(upstream)
+	if !ok || legacyClusterNames {
+		return UpstreamToClusterName(upstream.GetMetadata().Ref())
+	}
+	return clusterName
+}
 
+// returns the name of the cluster created for a given upstream
+func UpstreamToClusterName(upstream *core.ResourceRef) string {
 	// For non-namespaced resources, return only name
 	if upstream.GetNamespace() == "" {
 		return upstream.GetName()
@@ -30,7 +44,6 @@ func UpstreamToClusterName(upstream *core.ResourceRef) string {
 
 // returns the ref of the upstream for a given cluster
 func ClusterToUpstreamRef(cluster string) (*core.ResourceRef, error) {
-
 	split := strings.Split(cluster, "_")
 	if len(split) > 2 || len(split) < 1 {
 		return nil, errors.Errorf("unable to convert cluster %s back to upstream ref", cluster)
@@ -47,7 +60,6 @@ func ClusterToUpstreamRef(cluster string) (*core.ResourceRef, error) {
 }
 
 func NewFilterWithTypedConfig(name string, config proto.Message) (*envoy_config_listener_v3.Filter, error) {
-
 	s := &envoy_config_listener_v3.Filter{
 		Name: name,
 	}
@@ -107,14 +119,12 @@ func IsIpv4Address(bindAddress string) (validIpv4, strictIPv4 bool, err error) {
 	if bindIP == nil {
 		// If bindAddress is not a valid textual representation of an IP address
 		return false, false, errors.Errorf("bindAddress %s is not a valid IP address", bindAddress)
-
 	} else if bindIP.To4() == nil {
 		// If bindIP is not an IPv4 address, To4 returns nil.
 		// so this is not an acceptable ipv4
 		return false, false, nil
 	}
 	return true, isPureIPv4Address(bindAddress), nil
-
 }
 
 // isPureIPv4Address checks the string to see if it is
