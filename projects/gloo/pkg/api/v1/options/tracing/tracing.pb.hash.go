@@ -154,6 +154,11 @@ func (m *ListenerTracingSettings) Hash(hasher hash.Hash64) (uint64, error) {
 
 	}
 
+	err = binary.Write(hasher, binary.LittleEndian, m.GetSpawnUpstreamSpan())
+	if err != nil {
+		return 0, err
+	}
+
 	switch m.ProviderConfig.(type) {
 
 	case *ListenerTracingSettings_ZipkinConfig:

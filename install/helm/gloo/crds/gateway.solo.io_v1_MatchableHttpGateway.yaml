@@ -1131,12 +1131,16 @@ spec:
                                       namespace:
                                         type: string
                                     type: object
+                                  serviceName:
+                                    type: string
                                 type: object
                               requestHeadersForTags:
                                 items:
                                   nullable: true
                                   type: string
                                 type: array
+                              spawnUpstreamSpan:
+                                type: boolean
                               tracePercentages:
                                 properties:
                                   clientSamplePercentage:

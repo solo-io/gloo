@@ -88,6 +88,8 @@ func (m *ListenerTracingSettings) Clone() proto.Message {
 		}
 	}
 
+	target.SpawnUpstreamSpan = m.GetSpawnUpstreamSpan()
+
 	switch m.ProviderConfig.(type) {
 
 	case *ListenerTracingSettings_ZipkinConfig:

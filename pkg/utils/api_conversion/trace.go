@@ -117,6 +117,8 @@ func isResourceGateway(resource *gloov1.SourceMetadata_SourceRef) bool {
 func gatewayKindsMap() map[string]bool {
 	return map[string]bool{
 		resources.Kind(new(gatewayv1.Gateway)): true,
+		// https://github.com/solo-io/gloo/blob/main/projects/gateway2/translator/listener/gateway_listener_translator.go#L492
+		"Gateway": true,
 	}
 }
 

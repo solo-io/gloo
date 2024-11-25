@@ -46,6 +46,10 @@ func (m *OpenTelemetryConfig) Equal(that interface{}) bool {
 		return false
 	}
 
+	if strings.Compare(m.GetServiceName(), target.GetServiceName()) != 0 {
+		return false
+	}
+
 	switch m.CollectorCluster.(type) {
 
 	case *OpenTelemetryConfig_CollectorUpstreamRef:

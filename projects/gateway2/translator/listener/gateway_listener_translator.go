@@ -480,6 +480,20 @@ func (ml *MergedListener) TranslateListener(
 				TcpListeners:     matchedTcpListeners,
 			},
 		},
+		// Used for tracing to create service_name
+		OpaqueMetadata: &v1.Listener_MetadataStatic{
+			MetadataStatic: &v1.SourceMetadata{
+				Sources: []*v1.SourceMetadata_SourceRef{
+					{
+						ResourceRef: &core.ResourceRef{
+							Name:      ml.name,
+							Namespace: ml.gatewayNamespace,
+						},
+						ResourceKind: "Gateway",
+					},
+				},
+			},
+		},
 		Options:      nil, // Listener options will be added by policy plugins
 		RouteOptions: nil,
 	}
