@@ -66,13 +66,17 @@ func labeledRole(role string, labels map[string]string) string {
 
 func newUniqlyConnectedClient(node *envoy_config_core_v3.Node, ns string, labels map[string]string, locality PodLocality) UniqlyConnectedClient {
 	role := node.GetMetadata().GetFields()[xds.RoleKey].GetStringValue()
-	snapshotKey := labeledRole(role, labels)
+	resourceName := role
+	if ns != "" {
+		snapshotKey := labeledRole(role, labels)
+		resourceName = fmt.Sprintf("%s%s%s", snapshotKey, xds.KeyDelimiter, ns)
+	}
 	return UniqlyConnectedClient{
 		Role:         role,
 		Namespace:    ns,
 		Locality:     locality,
 		Labels:       labels,
-		resourceName: fmt.Sprintf("%s%s%s", snapshotKey, xds.KeyDelimiter, ns),
+		resourceName: resourceName,
 	}
 }
 
@@ -173,7 +177,8 @@ func (x *callbacksCollection) del(sid int64) *UniqlyConnectedClient {
 func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.DiscoveryRequest) (string, bool, error) {
 
 	var pod *LocalityPod
-	if r.GetNode() != nil {
+	usePod := x.augmentedPods != nil
+	if usePod && r.GetNode() != nil {
 		podRef := getRef(r.GetNode())
 		k := krt.Key[LocalityPod](krt.Named{Name: podRef.Name, Namespace: podRef.Namespace}.ResourceName())
 		pod = x.augmentedPods.GetKey(k)
@@ -183,13 +188,22 @@ func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.Disco
 	defer x.stateLock.Unlock()
 	c, ok := x.clients[sid]
 	if !ok {
-		if pod == nil {
-			// error if we can't get the pod
-			return "", false, fmt.Errorf("pod not found for node %v", r.GetNode())
+		var locality PodLocality
+		var ns string
+		var labels map[string]string
+		if usePod {
+			if pod == nil {
+				// error if we can't get the pod
+				return "", false, fmt.Errorf("pod not found for node %v", r.GetNode())
+			} else {
+				locality = pod.Locality
+				ns = pod.Namespace
+				labels = pod.AugmentedLabels
+			}
 		}
-		x.logger.Debug("adding xds client", zap.Any("locality", pod.Locality), zap.String("ns", pod.Namespace), zap.Any("labels", pod.AugmentedLabels))
+		x.logger.Debug("adding xds client", zap.Any("locality", locality), zap.String("ns", ns), zap.Any("labels", labels))
 		// TODO: modify request to include the label that are relevant for the client?
-		ucc := newUniqlyConnectedClient(r.GetNode(), pod.Namespace, pod.AugmentedLabels, pod.Locality)
+		ucc := newUniqlyConnectedClient(r.GetNode(), ns, labels, locality)
 		c = newConnectedClient(ucc.resourceName)
 		x.clients[sid] = c
 		currentUnique := x.uniqClientsCount[ucc.resourceName]
@@ -277,6 +291,11 @@ func (x *callbacks) OnFetchRequest(ctx context.Context, r *envoy_service_discove
 }
 
 func (x *callbacksCollection) fetchRequest(_ context.Context, r *envoy_service_discovery_v3.DiscoveryRequest) error {
+	// nothing special to do in a fetch request, as we don't need to maintain state
+	if x.augmentedPods == nil {
+		return nil
+	}
+
 	var pod *LocalityPod
 	podRef := getRef(r.GetNode())
 	k := krt.Key[LocalityPod](krt.Named{Name: podRef.Name, Namespace: podRef.Namespace}.ResourceName())
