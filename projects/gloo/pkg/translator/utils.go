@@ -22,12 +22,12 @@ import (
 // for Kubernetes Gateway API proxies only. The upstream must be an in-memory k8s upstream.
 func KubeGatewayUpstreamToClusterName(upstream *v1.Upstream) string {
 	fmt.Printf("xxxxxxx KubeGatewayUpstreamToClusterName: %s.%s\n", upstream.GetMetadata().GetNamespace(), upstream.GetMetadata().GetName())
-	if clusterName, ok := clusterNameForKube(upstream); ok {
-		fmt.Printf("xxxxxxx upstream %s.%s has the annotations\n", upstream.GetMetadata().GetNamespace(), upstream.GetMetadata().GetName())
-		return clusterName
-	} else {
-		fmt.Printf("xxxxxxx upstream %s.%s doesn't have the annotations\n", upstream.GetMetadata().GetNamespace(), upstream.GetMetadata().GetName())
-	}
+	// if clusterName, ok := clusterNameForKube(upstream); ok {
+	// 	fmt.Printf("xxxxxxx upstream %s.%s has the annotations\n", upstream.GetMetadata().GetNamespace(), upstream.GetMetadata().GetName())
+	// 	return clusterName
+	// } else {
+	// 	fmt.Printf("xxxxxxx upstream %s.%s doesn't have the annotations\n", upstream.GetMetadata().GetNamespace(), upstream.GetMetadata().GetName())
+	// }
 	return UpstreamToClusterName(upstream.GetMetadata().Ref())
 }
 
@@ -45,8 +45,9 @@ func clusterNameForKube(us *v1.Upstream) (string, bool) {
 	return fmt.Sprintf("%s_%s_%s_%s", kind, ns, name, port), true
 }
 
-// returns the name of the cluster created for a given upstream
-// this is called by plugins,
+// UpstreamToClusterName returns the name of the cluster created for a given upstream.
+// This is used by many plugins to convert an upstream route destination to the cluster name
+// to be used in envoy.
 func UpstreamToClusterName(upstream *core.ResourceRef) string {
 	fmt.Printf("xxxxxxx UpstreamToClusterName %s.%s\n", upstream.GetNamespace(), upstream.GetName())
 
@@ -59,20 +60,27 @@ func UpstreamToClusterName(upstream *core.ResourceRef) string {
 	return fmt.Sprintf("%s_%s", upstream.GetName(), upstream.GetNamespace())
 }
 
-// returns the ref of the upstream for a given cluster
+// ClusterToUpstreamRef converts an envoy cluster name to an upstream ref.
+// (this is only used in the tunneling plugin and the old UI)
 func ClusterToUpstreamRef(cluster string) (*core.ResourceRef, error) {
-	split := strings.Split(cluster, "_")
-	if len(split) > 2 || len(split) < 1 {
+	// the legacy style of generated cluster names had exactly one `_` character:
+	// <upstreamName>_<upstreamNamespace> where upstreamName would be in the format
+	// <svcNamespace>-<svcName>-<svcPort> for kubernetes services.
+	// when k8s gateway api is enabled, we use underscores in the upstream name, so
+	// the full cluster name becomes <svcNamespace>_<svcName>_<svcPort>_<upstreamNamespace>.
+	// to handle both cases, just find the last index of _ to split on
+	lastIdx := strings.LastIndex(cluster, "_")
+	if lastIdx < 0 {
 		return nil, errors.Errorf("unable to convert cluster %s back to upstream ref", cluster)
 	}
+	upstreamName := cluster[:lastIdx]
+	upstreamNamespace := cluster[lastIdx+1:]
 
 	ref := &core.ResourceRef{
-		Name: split[0],
+		Name:      upstreamName,
+		Namespace: upstreamNamespace,
 	}
 
-	if len(split) == 2 {
-		ref.Namespace = split[1]
-	}
 	return ref, nil
 }
 

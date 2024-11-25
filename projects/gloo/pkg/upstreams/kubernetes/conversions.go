@@ -37,6 +37,9 @@ func IsKubeUpstream(upstreamName string) bool {
 	return strings.HasPrefix(upstreamName, UpstreamNamePrefix)
 }
 
+// DestinationToUpstreamRef converts a Destination of type k8s service to an in-memory upstream ref
+// This is called by the generic upstream DestinationToUpstreamRef which is used by many plugins
+// to convert a route destination to an upstream ref.
 func DestinationToUpstreamRef(svcDest *v1.KubernetesServiceDestination) *core.ResourceRef {
 	return &core.ResourceRef{
 		Namespace: svcDest.GetRef().GetNamespace(),
@@ -45,12 +48,13 @@ func DestinationToUpstreamRef(svcDest *v1.KubernetesServiceDestination) *core.Re
 }
 
 func fakeUpstreamName(serviceName, serviceNamespace string, port int32) string {
-	regularServiceName := kubeplugin.UpstreamName(serviceNamespace, serviceName, port)
+	regularServiceName := kubeplugin.UpstreamName(serviceNamespace, serviceName, port, false)
 	return UpstreamNamePrefix + regularServiceName
 }
 
 // KubeServicesToUpstreams converts a list of k8s Services to a list of in-memory Upstreams.
 // Public because it's needed in the translator test
+// Also used by k8s upstream client (List/Watch)
 func KubeServicesToUpstreams(ctx context.Context, services skkube.ServiceList) v1.UpstreamList {
 	var result v1.UpstreamList
 	for _, svc := range services {
@@ -63,7 +67,8 @@ func KubeServicesToUpstreams(ctx context.Context, services skkube.ServiceList) v
 }
 
 // ServiceToUpstream converts a k8s Service to an in-memory Upstream (with the kube-svc prefix).
-// called by KubeServicesToUpstreams and
+// Called by KubeServicesToUpstreams (above) and kube gateway proxy syncer when initializing
+// in-memory upstreams from k8s services.
 func ServiceToUpstream(ctx context.Context, svc *corev1.Service, port corev1.ServicePort) *gloov1.Upstream {
 	us := kubeplugin.DefaultUpstreamConverter().CreateUpstream(ctx, svc, port)
 

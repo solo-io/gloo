@@ -33,6 +33,7 @@ type KubeUpstreamConverter struct {
 	serviceConverters []serviceconverter.ServiceConverter
 }
 
+// UpstreamsForService is called by the k8s uds plugin to convert a service to list of upstreams
 func (uc *KubeUpstreamConverter) UpstreamsForService(ctx context.Context, svc *corev1.Service) v1.UpstreamList {
 	var upstreams v1.UpstreamList
 	for _, port := range svc.Spec.Ports {
@@ -41,11 +42,14 @@ func (uc *KubeUpstreamConverter) UpstreamsForService(ctx context.Context, svc *c
 	return upstreams
 }
 
+// CreateUpstream is called by both:
+// - discovery (when creating an upstream from a k8s service)
+// - controller code that converts services to in-memory upstreams
 func (uc *KubeUpstreamConverter) CreateUpstream(ctx context.Context, svc *corev1.Service, port corev1.ServicePort) *v1.Upstream {
 	meta := svc.ObjectMeta
 	coremeta := kubeutils.FromKubeMeta(meta, false)
 	coremeta.ResourceVersion = ""
-	coremeta.Name = UpstreamName(meta.Namespace, meta.Name, port.Port)
+	coremeta.Name = UpstreamName(meta.Namespace, meta.Name, port.Port, true)
 	labels := coremeta.GetLabels()
 
 	us := &v1.Upstream{
@@ -72,11 +76,15 @@ func (uc *KubeUpstreamConverter) CreateUpstream(ctx context.Context, svc *corev1
 	return us
 }
 
-func UpstreamName(serviceNamespace, serviceName string, servicePort int32) string {
-	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
+// if real upstream: sanitize always
+// if fake upstream: sanitize only if k8s gw
+func UpstreamName(serviceNamespace, serviceName string, servicePort int32, sanitize bool) string {
+	fmt.Printf("xxxxxxx UpstreamName: using k8s gw? %v\n", envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv))
+	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) && !sanitize {
 		// when kube gateway is enabled, use _ since it makes the service name/namespace easier to
 		// parse out later (namespaces/names cannot have _ in them)
-		return sanitizer.SanitizeNameV2(fmt.Sprintf("%s_%s_%v", serviceNamespace, serviceName, servicePort))
+		fmt.Printf("xxxxxx discovery upstream name: %v\n", fmt.Sprintf("%s_%s_%v", serviceNamespace, serviceName, servicePort))
+		return fmt.Sprintf("%s_%s_%v", serviceNamespace, serviceName, servicePort)
 	}
 	// for edge api, leave the cluster names as they were (we don't want to cause unexpected changes on upgrade)
 	return sanitizer.SanitizeNameV2(fmt.Sprintf("%s-%s-%v", serviceNamespace, serviceName, servicePort))
