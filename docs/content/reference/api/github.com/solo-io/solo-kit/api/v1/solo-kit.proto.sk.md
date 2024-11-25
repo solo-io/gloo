@@ -1,6 +1,6 @@
 
 ---
-title: "solo-kit.proto"
+title: "SoloKit"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `core.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Resource](#resource)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/solo-kit/api/v1/solo-kit.proto](https://github.com/solo-io/solo-kit/blob/main/api/v1/solo-kit.proto)
+**Source File: [github.com/solo-io/solo-kit/api/v1/solo-kit.proto](https://github.com/solo-io/solo-kit/blob/main/api/v1/solo-kit.proto)**
 
 
 

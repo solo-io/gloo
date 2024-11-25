@@ -1,6 +1,6 @@
 
 ---
-title: "base.proto"
+title: "Base"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `solo.io.envoy.api.v2.core` 
-#### Types:
+**Types:**
 
 
 - [Locality](#locality)
@@ -31,7 +31,7 @@ weight: 5
 
  
 
-##### Enums:
+**Enums:**
 
 
 	- [RoutingPriority](#routingpriority)
@@ -40,7 +40,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/envoy/api/v2/core/base.proto)
+**Source File: [github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/envoy/api/v2/core/base.proto)**
 
 
 

@@ -1,6 +1,6 @@
 
 ---
-title: "endpoint.proto"
+title: "Endpoint"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Endpoint](#endpoint) **Top-Level Resource**
@@ -17,7 +17,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/endpoint.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/endpoint.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/endpoint.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/endpoint.proto)**
 
 
 
