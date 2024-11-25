@@ -328,12 +328,15 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 	getGlooPodNameCmd := i.Actions.Kubectl().Command(ctx, "get", "pod", "-n", i.Metadata.InstallNamespace,
 		"--selector", "gloo=gloo", "--output", "jsonpath='{.items[0].metadata.name}'")
 	cmdErr := getGlooPodNameCmd.WithStdout(podStdOut).WithStderr(podStdErr).Run()
-	i.Assertions.Require.NoError(cmdErr)
+	if cmdErr != nil {
+		i.Assertions.Require.NoError(cmdErr)
+	}
 
 	// Clean up and check the output
 	glooPodName := strings.Trim(podStdOut.String(), "'")
 	if glooPodName == "" {
-		i.Assertions.Require.NoError(fmt.Errorf("failed to get the Gloo Gateway controller pod name: %s", podStdErr.String()))
+		i.Assertions.Require.NoError(fmt.Errorf("failed to get the Gloo Gateway controller pod name: %s",
+			podStdErr.String()))
 	}
 
 	// Get the metrics from the Gloo Gateway controller pod and write them to a file
@@ -345,8 +348,10 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 	metricsCmd := i.Actions.Kubectl().Command(ctx, "debug", "-n", i.Metadata.InstallNamespace,
 		"-it", "--image=curlimages/curl:7.83.1", glooPodName, "--",
 		"curl", "http://localhost:9091/metrics")
-	_ = metricsCmd.WithStdout(metricsFile).WithStderr(metricsFile).Run()
-	metricsFile.Close()
+	cmdErr = metricsCmd.WithStdout(metricsFile).WithStderr(metricsFile).Run()
+	if cmdErr != nil {
+		i.Assertions.Require.NoError(cmdErr)
+	}
 
 	// Open a port-forward to the Gloo Gateway controller pod's admin port
 	portForwarder, err := i.Actions.Kubectl().StartPortForward(ctx,
@@ -372,11 +377,13 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 	krtSnapshotFile, err := os.OpenFile(krtSnapshotFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	i.Assertions.Require.NoError(err)
 
-	cmdErr := adminClient.KrtSnapshotCmd(ctx).
+	cmdErr = adminClient.KrtSnapshotCmd(ctx).
 		WithStdout(krtSnapshotFile).
 		WithStderr(krtSnapshotFile).
 		Run()
-	i.Assertions.Require.NoError(cmdErr)
+	if cmdErr != nil {
+		i.Assertions.Require.NoError(cmdErr)
+	}
 
 	// Get xds snapshot from the Gloo Gateway controller pod and write it to a file
 	xdsSnapshotFilePath := filepath.Join(failureDir, "xds_snapshot.log")
@@ -387,7 +394,9 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 		WithStdout(xdsSnapshotFile).
 		WithStderr(xdsSnapshotFile).
 		Run()
-	i.Assertions.Require.NoError(cmdErr)
+	if cmdErr != nil {
+		i.Assertions.Require.NoError(cmdErr)
+	}
 
 	fmt.Printf("Test failed. Logs and cluster state are available in %s\n", failureDir)
 }
