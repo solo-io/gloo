@@ -1,6 +1,6 @@
 
 ---
-title: "tcp.proto"
+title: "Tcp"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `tcp.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [TcpProxySettings](#tcpproxysettings)
@@ -19,7 +19,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/tcp/tcp.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/tcp/tcp.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/tcp/tcp.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/tcp/tcp.proto)**
 
 
 

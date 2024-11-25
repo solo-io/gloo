@@ -1,6 +1,6 @@
 
 ---
-title: "placement.proto"
+title: "Placement"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `core.fed.solo.io` 
-#### Types:
+**Types:**
 
 
 - [TemplateMetadata](#templatemetadata)
@@ -20,7 +20,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/solo-apis/api/gloo-fed/fed/core/v1/placement.proto](https://github.com/solo-io/solo-apis/blob/main/api/gloo-fed/fed/core/v1/placement.proto)
+**Source File: [github.com/solo-io/solo-apis/api/gloo-fed/fed/core/v1/placement.proto](https://github.com/solo-io/solo-apis/blob/main/api/gloo-fed/fed/core/v1/placement.proto)**
 
 
 

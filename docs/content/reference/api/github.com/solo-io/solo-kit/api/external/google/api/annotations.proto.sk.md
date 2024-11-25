@@ -1,6 +1,6 @@
 
 ---
-title: "annotations.proto"
+title: "Annotations"
 weight: 5
 ---
 
@@ -25,7 +25,7 @@ limitations under the License.
 
 
 
-##### Source File: [github.com/solo-io/solo-kit/api/external/google/api/annotations.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/google/api/annotations.proto)
+**Source File: [github.com/solo-io/solo-kit/api/external/google/api/annotations.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/google/api/annotations.proto)**
 
 
 

@@ -1,6 +1,6 @@
 
 ---
-title: "grpc_json.proto"
+title: "GrpcJson"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `grpc_json.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [GrpcJsonTranscoder](#grpcjsontranscoder)
@@ -18,7 +18,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_json/grpc_json.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/grpc_json/grpc_json.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_json/grpc_json.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/grpc_json/grpc_json.proto)**
 
 
 

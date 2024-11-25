@@ -1,6 +1,6 @@
 
 ---
-title: "protocol_upgrade.proto"
+title: "ProtocolUpgrade"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `protocol_upgrade.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ProtocolUpgradeConfig](#protocolupgradeconfig)
@@ -17,7 +17,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade.proto)**
 
 
 
