@@ -12,27 +12,44 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/solo-io/gloo/pkg/utils/envutils"
-	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
-// returns the name of the cluster created for a given upstream
-// used only for kube gateway api (aka ggv2) proxies.
+// KubeGatewayUpstreamToClusterName returns the name of the cluster created for a given upstream,
+// for Kubernetes Gateway API proxies only. The upstream must be an in-memory k8s upstream.
 func KubeGatewayUpstreamToClusterName(upstream *v1.Upstream) string {
-	legacyClusterNames := envutils.IsEnvTruthy(constants.GlooGatewayKubeStyleClusterNames)
-	clusterName, ok := kubernetes.ClusterNameForKube(upstream)
-	if !ok || legacyClusterNames {
-		return UpstreamToClusterName(upstream.GetMetadata().Ref())
+	fmt.Printf("xxxxxxx KubeGatewayUpstreamToClusterName: %s.%s\n", upstream.GetMetadata().GetNamespace(), upstream.GetMetadata().GetName())
+	if clusterName, ok := clusterNameForKube(upstream); ok {
+		fmt.Printf("xxxxxxx upstream %s.%s has the annotations\n", upstream.GetMetadata().GetNamespace(), upstream.GetMetadata().GetName())
+		return clusterName
+	} else {
+		fmt.Printf("xxxxxxx upstream %s.%s doesn't have the annotations\n", upstream.GetMetadata().GetNamespace(), upstream.GetMetadata().GetName())
 	}
-	return clusterName
+	return UpstreamToClusterName(upstream.GetMetadata().Ref())
+}
+
+// clusterNameForKube builds the cluster name based on _internal_ labels.
+// All of the kind, name, namespace and port must be provided.
+func clusterNameForKube(us *v1.Upstream) (string, bool) {
+	labels := us.GetMetadata().GetLabels()
+	kind, kok := labels[kubernetes.KubeSourceResourceLabel]
+	ns, nsok := labels[kubernetes.KubeNamespaceLabel]
+	name, nok := labels[kubernetes.KubeNameLabel]
+	port, pok := labels[kubernetes.KubeServicePortLabel]
+	if !(kok && nok && nsok && pok) {
+		return "", false
+	}
+	return fmt.Sprintf("%s_%s_%s_%s", kind, ns, name, port), true
 }
 
 // returns the name of the cluster created for a given upstream
+// this is called by plugins,
 func UpstreamToClusterName(upstream *core.ResourceRef) string {
+	fmt.Printf("xxxxxxx UpstreamToClusterName %s.%s\n", upstream.GetNamespace(), upstream.GetName())
+
 	// For non-namespaced resources, return only name
 	if upstream.GetNamespace() == "" {
 		return upstream.GetName()
