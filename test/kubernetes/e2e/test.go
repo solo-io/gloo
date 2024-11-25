@@ -327,7 +327,8 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 	// Fetch the name of the Gloo Gateway controller pod
 	getGlooPodNameCmd := i.Actions.Kubectl().Command(ctx, "get", "pod", "-n", i.Metadata.InstallNamespace,
 		"--selector", "gloo=gloo", "--output", "jsonpath='{.items[0].metadata.name}'")
-	_ = getGlooPodNameCmd.WithStdout(podStdOut).WithStderr(podStdErr).Run()
+	cmdErr := getGlooPodNameCmd.WithStdout(podStdOut).WithStderr(podStdErr).Run()
+	i.Assertions.Require.NoError(cmdErr)
 
 	// Clean up and check the output
 	glooPodName := strings.Trim(podStdOut.String(), "'")
