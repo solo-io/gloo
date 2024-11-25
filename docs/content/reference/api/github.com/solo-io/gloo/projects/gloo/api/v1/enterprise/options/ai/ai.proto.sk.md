@@ -340,9 +340,9 @@ Settings for the [Anthropic](https://docs.anthropic.com/en/release-notes/api) LL
 ### MultiPool
 
  
-Configure backends for multiple LLM providers in one Upstream resource.
+Configure backends for multiple hosts or models from the same provider in one Upstream resource.
 This method can be useful for creating one logical endpoint that is backed
-by multiple providers.
+by multiple hosts or models.
 
 In the `priorities` section, the order of `pool` entries defines the priority of the backend endpoints.
 The `pool` entries can either define a list of backends or a single backend.
