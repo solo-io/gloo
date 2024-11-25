@@ -183,6 +183,29 @@ var _ = Describe("Plugin", func() {
 		Expect(cfg).To(Equal(expected))
 	})
 
+	It("should properly set spawn_upstream_span", func() {
+		cfg := &envoyhttp.HttpConnectionManager{}
+		hcmSettings = &hcm.HttpConnectionManagerSettings{
+			Tracing: &tracing.ListenerTracingSettings{
+				SpawnUpstreamSpan: true,
+			},
+		}
+
+		err := processHcmNetworkFilter(cfg)
+		Expect(err).NotTo(HaveOccurred())
+		expected := &envoyhttp.HttpConnectionManager{
+			Tracing: &envoyhttp.HttpConnectionManager_Tracing{
+				ClientSampling:    &envoy_type.Percent{Value: 100},
+				RandomSampling:    &envoy_type.Percent{Value: 100},
+				OverallSampling:   &envoy_type.Percent{Value: 100},
+				Verbose:           false,
+				Provider:          nil,
+				SpawnUpstreamSpan: &wrappers.BoolValue{Value: true},
+			},
+		}
+		Expect(cfg).To(Equal(expected))
+	})
+
 	Context("should handle tracing provider config", func() {
 
 		It("when provider config is nil", func() {
