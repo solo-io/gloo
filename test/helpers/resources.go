@@ -21,6 +21,19 @@ const (
 	defaultEventuallyPollingInterval = 1 * time.Second
 )
 
+type ResourceGetter func() (resources.Resource, error)
+
+func EventuallyResourceExists(getter ResourceGetter, intervals ...interface{}) {
+	timeoutInterval, pollingInterval := getTimeoutAndPollingIntervalsOrDefault(intervals...)
+	gomega.Eventually(func() (bool, error) {
+		_, err := getter()
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	}, timeoutInterval, pollingInterval).Should(gomega.BeTrue())
+}
+
 type InputResourceGetter func() (resources.InputResource, error)
 type InputResourceListGetter func() (resources.InputResourceList, error)
 
