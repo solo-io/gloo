@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes/serviceconverter"
-	"github.com/solo-io/go-utils/contextutils"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
-
-	sanitizer "github.com/solo-io/k8s-utils/kubeutils"
-
+	"github.com/solo-io/gloo/pkg/utils/envutils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/discovery"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes/serviceconverter"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
+	"github.com/solo-io/go-utils/contextutils"
+	sanitizer "github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	corev1 "k8s.io/api/core/v1"
@@ -73,9 +72,13 @@ func (uc *KubeUpstreamConverter) CreateUpstream(ctx context.Context, svc *corev1
 	return us
 }
 
-// TODO pass translator name
 func UpstreamName(serviceNamespace, serviceName string, servicePort int32) string {
-	// TODO switch based on translator
+	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
+		// when kube gateway is enabled, use _ since it makes the service name/namespace easier to
+		// parse out later (namespaces/names cannot have _ in them)
+		return sanitizer.SanitizeNameV2(fmt.Sprintf("%s_%s_%v", serviceNamespace, serviceName, servicePort))
+	}
+	// for edge api, leave the cluster names as they were (we don't want to cause unexpected changes on upgrade)
 	return sanitizer.SanitizeNameV2(fmt.Sprintf("%s-%s-%v", serviceNamespace, serviceName, servicePort))
 }
 
