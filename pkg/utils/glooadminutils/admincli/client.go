@@ -14,6 +14,8 @@ import (
 
 const (
 	InputSnapshotPath = "/snapshots/input"
+	xdsSnapshotPath   = "/snapshots/xds"
+	krtSnapshotPath   = "/snapshots/krt"
 )
 
 // Client is a utility for executing requests against the Gloo Admin API
@@ -82,6 +84,16 @@ func (c *Client) RequestPathCmd(ctx context.Context, path string) cmdutils.Cmd {
 // InputSnapshotCmd returns the cmdutils.Cmd that can be run, and will execute a request against the Input Snapshot path
 func (c *Client) InputSnapshotCmd(ctx context.Context) cmdutils.Cmd {
 	return c.Command(ctx, curl.WithPath(InputSnapshotPath))
+}
+
+// XdsSnapshotCmd returns the cmdutils.Cmd that can be run, and will execute a request against the XDS Snapshot path
+func (c *Client) XdsSnapshotCmd(ctx context.Context) cmdutils.Cmd {
+	return c.Command(ctx, curl.WithPath(xdsSnapshotPath))
+}
+
+// KrtSnapshotCmd returns the cmdutils.Cmd that can be run, and will execute a request against the KRT Snapshot path
+func (c *Client) KrtSnapshotCmd(ctx context.Context) cmdutils.Cmd {
+	return c.Command(ctx, curl.WithPath(krtSnapshotPath))
 }
 
 // GetInputSnapshot returns the data that is available at the input snapshot endpoint

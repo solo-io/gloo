@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -13,6 +14,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/solo-io/gloo/pkg/utils/glooadminutils/admincli"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
+	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
+	"github.com/solo-io/gloo/projects/gloo/pkg/servers/admin"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/actions"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/assertions"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/cluster"
@@ -343,29 +348,47 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 	_ = metricsCmd.WithStdout(metricsFile).WithStderr(metricsFile).Run()
 	metricsFile.Close()
 
+	// Open a port-forward to the Gloo Gateway controller pod's admin port
+	portForwarder, err := i.Actions.Kubectl().StartPortForward(ctx,
+		portforward.WithDeployment("gloo", i.Metadata.InstallNamespace),
+		portforward.WithPorts(int(admin.AdminPort), int(admin.AdminPort)),
+	)
+	if err != nil {
+		fmt.Printf("Failed to open port-forward: %v\n", err)
+		return
+	}
+
+	defer func() {
+		portForwarder.Close()
+		portForwarder.WaitForStop()
+	}()
+
+	adminClient := admincli.NewClient().
+		WithReceiver(io.Discard). // adminAssertion can overwrite this
+		WithCurlOptions(
+			curl.WithRetries(3, 0, 10),
+			curl.WithPort(int(admin.AdminPort)),
+		)
+
 	// Get krt snapshot from the Gloo Gateway controller pod and write it to a file
 	krtSnapshotFilePath := filepath.Join(failureDir, "krt_snapshot.log")
 	krtSnapshotFile, err := os.OpenFile(krtSnapshotFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	i.Assertions.Require.NoError(err)
 
-	// Using an ephemeral debug pod fetch the krt snapshot from the Gloo Gateway controller
-	krtSnapshotCmd := i.Actions.Kubectl().Command(ctx, "debug", "-n", i.Metadata.InstallNamespace,
-		"-it", "--image=curlimages/curl:7.83.1", glooPodName, "--",
-		"curl", "http://localhost:9095/snapshots/krt")
-	_ = krtSnapshotCmd.WithStdout(krtSnapshotFile).WithStderr(krtSnapshotFile).Run()
-	krtSnapshotFile.Close()
+	adminClient.KrtSnapshotCmd(ctx).
+		WithStdout(krtSnapshotFile).
+		WithStderr(krtSnapshotFile).
+		Run()
 
 	// Get xds snapshot from the Gloo Gateway controller pod and write it to a file
 	xdsSnapshotFilePath := filepath.Join(failureDir, "xds_snapshot.log")
 	xdsSnapshotFile, err := os.OpenFile(xdsSnapshotFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	i.Assertions.Require.NoError(err)
 
-	// Using an ephemeral debug pod fetch the xds snapshot from the Gloo Gateway controller
-	xdsSnapshotCmd := i.Actions.Kubectl().Command(ctx, "debug", "-n", i.Metadata.InstallNamespace,
-		"-it", "--image=curlimages/curl:7.83.1", glooPodName, "--",
-		"curl", "http://localhost:9095/snapshots/xds")
-	_ = xdsSnapshotCmd.WithStdout(xdsSnapshotFile).WithStderr(xdsSnapshotFile).Run()
-	xdsSnapshotFile.Close()
+	adminClient.XdsSnapshotCmd(ctx).
+		WithStdout(xdsSnapshotFile).
+		WithStderr(xdsSnapshotFile).
+		Run()
 
 	fmt.Printf("Test failed. Logs and cluster state are available in %s\n", failureDir)
 }
