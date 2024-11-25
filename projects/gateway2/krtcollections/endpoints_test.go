@@ -2,8 +2,6 @@ package krtcollections
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/binary"
 	"testing"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
