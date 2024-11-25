@@ -332,8 +332,7 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 	// Clean up and check the output
 	glooPodName := strings.Trim(podStdOut.String(), "'")
 	if glooPodName == "" {
-		fmt.Printf("Failed to get the name of the Gloo Gateway controller pod: %s\n", podStdErr.String())
-		return
+		i.Assertions.Require.NoError(fmt.Errorf("failed to get the Gloo Gateway controller pod name: %s", podStdErr.String()))
 	}
 
 	// Get the metrics from the Gloo Gateway controller pod and write them to a file
