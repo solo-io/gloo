@@ -99,10 +99,12 @@ The following lists consist of the changes that were initially introduced with t
 
 * **Apply JWT policy at the route-level**: Now, you can apply JWT policies to specific routes by configuring the `jwtProvidersStaged` settings in the route option. Previously, JWT policies applied at the gateway level and were configured in only the VirtualHost option. With this new feature, you can apply JWT policies at both the route and gateway level. For more information and example steps, see [Route-level JWT policy]({{< versioned_link_path fromRoot="/security/auth/jwt/route-jwt-policy/" >}}).
 
-<!--
 **Deprecated features**:
-N/A
 
+* **GraphQL integration**: The [GraphQL integration]({{< versioned_link_path fromRoot="/guides/graphql/" >}}) is deprecated in Gloo Gateway 1.18 and will be removed in a future release.
+* **Plugin Auth**: The [Plugin Auth]({{< versioned_link_path fromRoot="/guides/security/auth/extauth/plugin_auth/" >}}) feature is deprecated in Gloo Gateway 1.18 and will be removed in a future release. Consider using the [Passthrough Auth]({{< versioned_link_path fromRoot="/guides/security/auth/extauth/passthrough_auth/" >}}) feature instead.
+
+<!--
 **Removed features**:
 N/A
 -->
