@@ -64,6 +64,7 @@ func labeledRole(role string, labels map[string]string) string {
 	return fmt.Sprintf("%s%s%d", role, xds.KeyDelimiter, utils.HashLabels(labels))
 }
 
+// note: if `ns“ is empty, we assume the user doesn't want to use pod locality info, so we won't modify the role.
 func newUniqlyConnectedClient(node *envoy_config_core_v3.Node, ns string, labels map[string]string, locality PodLocality) UniqlyConnectedClient {
 	role := node.GetMetadata().GetFields()[xds.RoleKey].GetStringValue()
 	resourceName := role
@@ -95,6 +96,7 @@ type callbacks struct {
 	collection atomic.Pointer[callbacksCollection]
 }
 
+// If augmentedPods is nil, we won't use the pod locality info, and all pods for the same gateway will receive the same config.
 type UniquelyConnectedClientsBulider func(ctx context.Context, handler *krt.DebugHandler, augmentedPods krt.Collection[LocalityPod]) krt.Collection[UniqlyConnectedClient]
 
 // THIS IS THE SET OF THINGS WE RUN TRANSLATION FOR
@@ -177,6 +179,7 @@ func (x *callbacksCollection) del(sid int64) *UniqlyConnectedClient {
 func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.DiscoveryRequest) (string, bool, error) {
 
 	var pod *LocalityPod
+	// see if user wants to use pod locality info
 	usePod := x.augmentedPods != nil
 	if usePod && r.GetNode() != nil {
 		podRef := getRef(r.GetNode())
@@ -193,7 +196,7 @@ func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.Disco
 		var labels map[string]string
 		if usePod {
 			if pod == nil {
-				// error if we can't get the pod
+				// we need to use the pod locality info, so it's an error if we can't get the pod
 				return "", false, fmt.Errorf("pod not found for node %v", r.GetNode())
 			} else {
 				locality = pod.Locality
