@@ -408,8 +408,7 @@ func findPortInEndpointSlice(endpointSlice *discoveryv1.EndpointSlice, singlePor
 
 // TODO: use exported version from translator?
 func GetEndpointClusterName(upstream *v1.Upstream) string {
-	//clusterName := translator.UpstreamToClusterName(upstream.GetMetadata().Ref())
-	clusterName := translator.KubeGatewayUpstreamToClusterName(upstream)
+	clusterName := translator.UpstreamToClusterName(upstream.GetMetadata().Ref())
 	endpointClusterName, err := translator.GetEndpointClusterName(clusterName, upstream)
 	if err != nil {
 		panic(err)
