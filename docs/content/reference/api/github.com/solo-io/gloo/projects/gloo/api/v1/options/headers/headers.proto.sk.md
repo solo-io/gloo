@@ -1,6 +1,6 @@
 
 ---
-title: "headers.proto"
+title: "Headers"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `headers.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [HeaderManipulation](#headermanipulation)
@@ -19,7 +19,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/headers/headers.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/headers/headers.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/headers/headers.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/headers/headers.proto)**
 
 
 

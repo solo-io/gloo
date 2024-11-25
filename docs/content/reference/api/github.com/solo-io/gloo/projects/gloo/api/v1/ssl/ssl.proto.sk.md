@@ -1,6 +1,6 @@
 
 ---
-title: "ssl.proto"
+title: "Ssl"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [SslConfig](#sslconfig)
@@ -24,7 +24,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/ssl/ssl.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/ssl/ssl.proto)**
 
 
 

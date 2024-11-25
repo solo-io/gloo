@@ -2,6 +2,7 @@ package krtcollections
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
@@ -128,6 +129,8 @@ type EndpointsForUpstream struct {
 	Hostname    string
 
 	LbEpsEqualityHash uint64
+	upstreamHash      uint64
+	epsEqualityHash   uint64
 }
 
 func NewEndpointsForUpstream(us UpstreamWrapper, logger *zap.Logger) *EndpointsForUpstream {
@@ -135,7 +138,7 @@ func NewEndpointsForUpstream(us UpstreamWrapper, logger *zap.Logger) *EndpointsF
 	// to compute the hash we present envoy with.
 	h := fnv.New64()
 	h.Write([]byte(us.Inner.GetMetadata().Ref().String()))
-	lbEpsEqualityHash := h.Sum64()
+	upstreamHash := h.Sum64()
 
 	// add the upstream hash to the clustername, so that if it changes the envoy cluster will become warm again.
 	clusterName := GetEndpointClusterName(us.Inner)
@@ -148,12 +151,13 @@ func NewEndpointsForUpstream(us UpstreamWrapper, logger *zap.Logger) *EndpointsF
 		},
 		Port:              ggv2utils.GetPortForUpstream(us.Inner),
 		Hostname:          ggv2utils.GetHostnameForUpstream(us.Inner),
-		LbEpsEqualityHash: lbEpsEqualityHash,
+		LbEpsEqualityHash: upstreamHash,
+		upstreamHash:      upstreamHash,
 	}
 }
 
 func hashEndpoints(l PodLocality, emd EndpointWithMd) uint64 {
-	hasher := fnv.New64()
+	hasher := fnv.New64a()
 	hasher.Write([]byte(l.Region))
 	hasher.Write([]byte(l.Zone))
 	hasher.Write([]byte(l.Subzone))
@@ -163,10 +167,23 @@ func hashEndpoints(l PodLocality, emd EndpointWithMd) uint64 {
 	return hasher.Sum64()
 }
 
+func hash(a, b uint64) uint64 {
+	hasher := fnv.New64a()
+	var buf [16]byte
+	binary.NativeEndian.PutUint64(buf[:8], a)
+	binary.NativeEndian.PutUint64(buf[8:], b)
+	hasher.Write(buf[:])
+	return hasher.Sum64()
+}
+
 func (e *EndpointsForUpstream) Add(l PodLocality, emd EndpointWithMd) {
 	// xor it as we dont care about order - if we have the same endpoints in the same locality
 	// we are good.
-	e.LbEpsEqualityHash ^= hashEndpoints(l, emd)
+	e.epsEqualityHash ^= hashEndpoints(l, emd)
+	// we can't xor the endpoint hash with the upstream hash, because upstreams with
+	// different names and similar endpoints will cancel out, so endpoint changes
+	// won't result in different equality hashes.
+	e.LbEpsEqualityHash = hash(e.epsEqualityHash, e.upstreamHash)
 	e.LbEps[l] = append(e.LbEps[l], emd)
 }
 

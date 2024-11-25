@@ -1,6 +1,6 @@
 
 ---
-title: "service.proto"
+title: "Service"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `ingress.solo.io` 
-#### Types:
+**Types:**
 
 
 - [KubeService](#kubeservice) **Top-Level Resource**
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/ingress/api/v1/service.proto](https://github.com/solo-io/gloo/blob/main/projects/ingress/api/v1/service.proto)
+**Source File: [github.com/solo-io/gloo/projects/ingress/api/v1/service.proto](https://github.com/solo-io/gloo/blob/main/projects/ingress/api/v1/service.proto)**
 
 
 

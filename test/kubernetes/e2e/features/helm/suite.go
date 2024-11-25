@@ -3,12 +3,14 @@ package helm
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
+	"slices"
 	"time"
 
+	"github.com/rotisserie/eris"
 	"github.com/stretchr/testify/suite"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
@@ -51,7 +53,7 @@ func (s *testingSuite) TestChangedConfigMapTriggersRollout() {
 		err = adminCli.ConfigDumpCmd(s.Ctx, nil).WithStdout(dump).Run().Cause()
 		s.NoError(err)
 
-		strings.Contains(b.String(), str)
+		s.Contains(b.String(), str)
 	}
 
 	getChecksum := func() string {
@@ -81,14 +83,14 @@ func (s *testingSuite) TestApplyCRDs() {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() {
+		if info.IsDir() || info.Name() == "README.md" {
 			return nil
 		}
 
-		// Parse the file, and extract the CRD
+		// Parse the file, and extract the CRD- will fail for any non-yaml files or files not containing a CRD
 		crd, err := schemagen.GetCRDFromFile(crdFile)
 		if err != nil {
-			return err
+			return eris.Wrap(err, "error getting CRD from "+crdFile)
 		}
 		crdsByFileName[crdFile] = crd
 
@@ -106,6 +108,20 @@ func (s *testingSuite) TestApplyCRDs() {
 		out, _, err := s.TestHelper.Execute(s.Ctx, "get", "crd", crd.GetName())
 		s.NoError(err)
 		s.Contains(out, crd.GetName())
+
+		// Ensure the CRD has the gloo-gateway category
+		out, _, err = s.TestHelper.Execute(s.Ctx, "get", "crd", crd.GetName(), "-o", "json")
+		s.NoError(err)
+
+		var crdJson v1.CustomResourceDefinition
+		s.NoError(json.Unmarshal([]byte(out), &crdJson))
+		s.Contains(crdJson.Spec.Names.Categories, CommonCRDCategory)
+
+		// Ensure the CRD has the solo-io category iff it's an enterprise CRD
+		s.Equal(
+			slices.Contains(enterpriseCRDs, crd.GetName()),
+			slices.Contains(crdJson.Spec.Names.Categories, enterpriseCRDCategory),
+		)
 	}
 }
 
