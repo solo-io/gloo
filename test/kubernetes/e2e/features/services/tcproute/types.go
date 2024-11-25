@@ -3,6 +3,7 @@ package tcproute
 import (
 	"net/http"
 	"path/filepath"
+	"time"
 
 	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
 
@@ -20,6 +21,8 @@ var (
 	multiTcpRouteManifest                  = filepath.Join(util.MustGetThisDir(), "testdata", "multi-tcproute.yaml")
 	singleListenerGatewayAndClientManifest = filepath.Join(util.MustGetThisDir(), "testdata", "single-listener-gateway-and-client.yaml")
 	singleTcpRouteManifest                 = filepath.Join(util.MustGetThisDir(), "testdata", "single-tcproute.yaml")
+	// Test assertion timeout
+	timeout = 30 * time.Second
 
 	// Proxy resource to be translated
 	glooProxyObjectMeta = metav1.ObjectMeta{

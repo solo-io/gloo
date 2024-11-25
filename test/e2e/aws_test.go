@@ -221,7 +221,9 @@ var _ = Describe("AWS Lambda", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		// wait for the upstream to be created
-		helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+		// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
+		// other syncers that have translated them, so we can only detect that the objects exist here
+		helpers.EventuallyResourceExists(func() (resources.Resource, error) {
 			return testClients.UpstreamClient.Read(upstream.Metadata.Namespace, upstream.Metadata.Name, clients.ReadOpts{})
 		}, "30s", "1s")
 	}
