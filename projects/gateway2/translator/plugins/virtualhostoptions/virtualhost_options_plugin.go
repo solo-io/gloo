@@ -241,6 +241,7 @@ func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx *plugins.Statu
 		vhOptObj.Spec.GetMetadata().Name = vhOptObj.GetName()
 		vhOptObj.Spec.GetMetadata().Namespace = vhOptObj.GetNamespace()
 		vhOptObjSk := &vhOptObj.Spec
+		vhOptObjSk.NamespacedStatuses = &vhOptObj.Status
 
 		// mark this object to be processed
 		virtualHostOptionReport.Accept(vhOptObjSk)
