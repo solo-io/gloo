@@ -82,8 +82,7 @@ var (
 		StatusCode: http.StatusOK,
 		Custom: gomega.And(
 			gomega.Not(matchers.ContainHeaderKeys([]string{"x-foo"})),
-			matchers.ContainHeaderKeys([]string{"x-bar"}),
-			matchers.ContainHeaderKeys([]string{"x-baz"}),
+			matchers.ContainHeaderKeys([]string{"x-bar", "x-baz"}),
 		),
 		Body: gstruct.Ignore(),
 	}
@@ -116,9 +115,7 @@ var (
 		},
 		// Make sure the x-bar isn't being removed as a function of the unwanted VHO
 		Custom: gomega.And(
-			matchers.ContainHeaderKeys([]string{"x-foo"}),
-			matchers.ContainHeaderKeys([]string{"x-bar"}),
-			matchers.ContainHeaderKeys([]string{"x-baz"}),
+			matchers.ContainHeaderKeys([]string{"x-foo", "x-bar", "x-baz"}),
 		),
 		Body: gstruct.Ignore(),
 	}
