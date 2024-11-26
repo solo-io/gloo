@@ -168,6 +168,10 @@ func (s *testingSuite) TestSpanNameTransformationsWithoutRouteDecorator() {
 			curl.WithHostHeader(testHostname),
 			curl.WithPort(gatewayProxyPort),
 			curl.WithPath(pathWithoutRouteDescriptor),
+			// We are asserting that a request is consistent. To prevent flakes with that assertion,
+			// we should have some basic retries built into the request
+			curl.WithRetryConnectionRefused(true),
+			curl.WithRetries(3, 0, 10),
 			curl.Silent(),
 		},
 		&matchers.HttpResponse{
@@ -195,6 +199,10 @@ func (s *testingSuite) TestSpanNameTransformationsWithRouteDecorator() {
 			curl.WithHostHeader("example.com"),
 			curl.WithPort(gatewayProxyPort),
 			curl.WithPath(pathWithRouteDescriptor),
+			// We are asserting that a request is consistent. To prevent flakes with that assertion,
+			// we should have some basic retries built into the request
+			curl.WithRetryConnectionRefused(true),
+			curl.WithRetries(3, 0, 10),
 			curl.Silent(),
 		},
 		&matchers.HttpResponse{
