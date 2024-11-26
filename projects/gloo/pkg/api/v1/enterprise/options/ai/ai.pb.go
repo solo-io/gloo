@@ -72,9 +72,9 @@ func (UpstreamSpec_VertexAI_Publisher) EnumDescriptor() ([]byte, []int) {
 type RouteSettings_RouteType int32
 
 const (
-	// The default route type for prompt and response LLM APIs.
+	// The LLM generates the full response before responding to a client.
 	RouteSettings_CHAT RouteSettings_RouteType = 0
-	// Stream responses to a client, which allows partial results for certain prompts.
+	// Stream responses to a client, which allows the LLM to stream out tokens as they are generated.
 	RouteSettings_CHAT_STREAMING RouteSettings_RouteType = 1
 )
 
@@ -752,11 +752,10 @@ type FieldDefault struct {
 
 	// The name of the field.
 	Field string `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
-	// The field default value, in JSON format.
+	// The field default value, which can be any JSON Data Type.
 	Value *structpb.Value `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	// Whether to override the field's value if it already exists.
-	// Defaults do _not_ override the user input fields by default,
-	// unless you explicitly set this field to `true`.
+	// Defaults to false.
 	Override bool `protobuf:"varint,3,opt,name=override,proto3" json:"override,omitempty"`
 }
 
@@ -869,7 +868,7 @@ func (x *Postgres) GetCollectionName() string {
 	return ""
 }
 
-// Configuration for the backend LLM provider authentication token.
+// Configuration of the API used to generate the embedding.
 type Embedding struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1426,7 +1425,7 @@ type UpstreamSpec_OpenAI struct {
 	CustomHost *UpstreamSpec_CustomHost `protobuf:"bytes,2,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
 	// Optional: Override the model name, such as `gpt-4o-mini`.
 	// If unset, the model name is taken from the request.
-	// This setting can be useful when testing model failover scenarios.
+	// This setting can be useful when setting up model failover within the same LLM provider.
 	Model string `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
 }
 
@@ -1500,10 +1499,10 @@ type UpstreamSpec_AzureOpenAI struct {
 	// If the scheme is included, it is stripped.
 	Endpoint string `protobuf:"bytes,2,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
 	// The name of the Azure OpenAI model deployment to use.
-	// For more information, see the [Azure OpenAI model version docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/model-versions).
+	// For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models).
 	DeploymentName string `protobuf:"bytes,3,opt,name=deployment_name,json=deploymentName,proto3" json:"deployment_name,omitempty"`
 	// The version of the Azure OpenAI API to use.
-	// For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions).
+	// For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
 	ApiVersion string `protobuf:"bytes,4,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
 }
 
@@ -1593,7 +1592,7 @@ type UpstreamSpec_Gemini struct {
 	unknownFields protoimpl.UnknownFields
 
 	// The authorization token that the AI gateway uses to access the Gemini API.
-	// This token is automatically sent in the `key` header of the request.
+	// This token is automatically sent in the `key` query parameter of the request.
 	//
 	// Types that are assignable to AuthTokenSource:
 	//
@@ -1671,7 +1670,7 @@ type isUpstreamSpec_Gemini_AuthTokenSource interface {
 
 type UpstreamSpec_Gemini_AuthToken struct {
 	// The authorization token that the AI gateway uses to access the Gemini API.
-	// This token is automatically sent in the `key` header of the request.
+	// This token is automatically sent in the `key` query parameter of the request.
 	AuthToken *SingleAuthToken `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3,oneof"` // TODO: use oauth
 }
 
@@ -1696,7 +1695,7 @@ type UpstreamSpec_VertexAI struct {
 	// For more information, see the [Vertex AI model docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models).
 	Model string `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
 	// The version of the Vertex AI API to use.
-	// For more information, see the [Vertex AI model docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models).
+	// For more information, see the [Vertex AI API reference](https://cloud.google.com/vertex-ai/docs/reference#versions).
 	ApiVersion string `protobuf:"bytes,3,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
 	// The ID of the Google Cloud Project that you use for the Vertex AI.
 	ProjectId string `protobuf:"bytes,4,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"`
@@ -2302,13 +2301,13 @@ type Embedding_AzureOpenAI struct {
 	//	*Embedding_AzureOpenAI_AuthToken
 	AuthTokenSource isEmbedding_AzureOpenAI_AuthTokenSource `protobuf_oneof:"auth_token_source"`
 	// The version of the Azure OpenAI API to use.
-	// For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions).
+	// For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
 	ApiVersion string `protobuf:"bytes,2,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
 	// The endpoint for the Azure OpenAI API to use, such as `my-endpoint.openai.azure.com`.
 	// If the scheme is not included, it is added.
 	Endpoint string `protobuf:"bytes,3,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
 	// The name of the Azure OpenAI model deployment to use.
-	// For more information, see the [Azure OpenAI model version docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/model-versions).
+	// For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models).
 	DeploymentName string `protobuf:"bytes,4,opt,name=deployment_name,json=deploymentName,proto3" json:"deployment_name,omitempty"`
 }
 

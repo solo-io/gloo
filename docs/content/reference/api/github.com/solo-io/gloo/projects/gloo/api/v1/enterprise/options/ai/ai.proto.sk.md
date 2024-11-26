@@ -190,7 +190,7 @@ Settings for the [OpenAI](https://platform.openai.com/docs/overview) LLM provide
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the OpenAI API. This token is automatically sent in the `Authorization` header of the request and prefixed with `Bearer`. |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port, such as to proxy the request, or to use a different backend that is API-compliant with the upstream version. |
-| `model` | `string` | Optional: Override the model name, such as `gpt-4o-mini`. If unset, the model name is taken from the request. This setting can be useful when testing model failover scenarios. |
+| `model` | `string` | Optional: Override the model name, such as `gpt-4o-mini`. If unset, the model name is taken from the request. This setting can be useful when setting up model failover within the same LLM provider. |
 
 
 
@@ -215,8 +215,8 @@ To find the values for the endpoint, deployment name, and API version, you can c
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Azure OpenAI API. This token is automatically sent in the `api-key` header of the request. |
 | `endpoint` | `string` | The endpoint for the Azure OpenAI API to use, such as `my-endpoint.openai.azure.com`. If the scheme is included, it is stripped. |
-| `deploymentName` | `string` | The name of the Azure OpenAI model deployment to use. For more information, see the [Azure OpenAI model version docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/model-versions). |
-| `apiVersion` | `string` | The version of the Azure OpenAI API to use. For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions). |
+| `deploymentName` | `string` | The name of the Azure OpenAI model deployment to use. For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models). |
+| `apiVersion` | `string` | The version of the Azure OpenAI API to use. For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs). |
 
 
 
@@ -238,7 +238,7 @@ To find the values for the model and API version, you can check the fields of an
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Gemini API. This token is automatically sent in the `key` header of the request. |
+| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Gemini API. This token is automatically sent in the `key` query parameter of the request. |
 | `model` | `string` | The Gemini model to use. For more information, see the [Gemini models docs](https://ai.google.dev/gemini-api/docs/models/gemini). |
 | `apiVersion` | `string` | The version of the Gemini API to use. For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions). |
 
@@ -268,7 +268,7 @@ To find the values for the project ID, project location, and publisher, you can 
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Vertex AI API. This token is automatically sent in the `key` header of the request. |
 | `model` | `string` | The Vertex AI model to use. For more information, see the [Vertex AI model docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models). |
-| `apiVersion` | `string` | The version of the Vertex AI API to use. For more information, see the [Vertex AI model docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models). |
+| `apiVersion` | `string` | The version of the Vertex AI API to use. For more information, see the [Vertex AI API reference](https://cloud.google.com/vertex-ai/docs/reference#versions). |
 | `projectId` | `string` | The ID of the Google Cloud Project that you use for the Vertex AI. |
 | `location` | `string` | The location of the Google Cloud Project that you use for the Vertex AI. |
 | `modelPath` | `string` | Optional: The model path to route to. Defaults to the Gemini model path, `generateContent`. |
@@ -472,8 +472,8 @@ The type of route to the LLM provider API.
 
 | Name | Description |
 | ----- | ----------- | 
-| `CHAT` | The default route type for prompt and response LLM APIs. |
-| `CHAT_STREAMING` | Stream responses to a client, which allows partial results for certain prompts. |
+| `CHAT` | The LLM generates the full response before responding to a client. |
+| `CHAT_STREAMING` | Stream responses to a client, which allows the LLM to stream out tokens as they are generated. |
 
 
 
@@ -512,8 +512,8 @@ defaults:
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `field` | `string` | The name of the field. |
-| `value` | [.google.protobuf.Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/value) | The field default value, in JSON format. |
-| `override` | `bool` | Whether to override the field's value if it already exists. Defaults do _not_ override the user input fields by default, unless you explicitly set this field to `true`. |
+| `value` | [.google.protobuf.Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/value) | The field default value, which can be any JSON Data Type. |
+| `override` | `bool` | Whether to override the field's value if it already exists. Defaults to false. |
 
 
 
@@ -542,7 +542,7 @@ Configuration settings for a Postgres datastore.
 ### Embedding
 
  
-Configuration for the backend LLM provider authentication token.
+Configuration of the API used to generate the embedding.
 
 ```yaml
 "openai": .ai.options.gloo.solo.io.Embedding.OpenAI
@@ -593,9 +593,9 @@ Embedding settings for the Azure OpenAI provider.
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Azure OpenAI API. This token is automatically sent in the `api-key` header of the request. |
-| `apiVersion` | `string` | The version of the Azure OpenAI API to use. For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions). |
+| `apiVersion` | `string` | The version of the Azure OpenAI API to use. For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs). |
 | `endpoint` | `string` | The endpoint for the Azure OpenAI API to use, such as `my-endpoint.openai.azure.com`. If the scheme is not included, it is added. |
-| `deploymentName` | `string` | The name of the Azure OpenAI model deployment to use. For more information, see the [Azure OpenAI model version docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/model-versions). |
+| `deploymentName` | `string` | The name of the Azure OpenAI model deployment to use. For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models). |
 
 
 

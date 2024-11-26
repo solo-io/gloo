@@ -101,10 +101,10 @@ message UpstreamSpec {
     // If the scheme is included, it is stripped.
     string endpoint = 2;
     // The name of the Azure OpenAI model deployment to use.
-    // For more information, see the [Azure OpenAI model version docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/model-versions).
+    // For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models).
     string deployment_name = 3;
     // The version of the Azure OpenAI API to use.
-    // For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions).
+    // For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
     string api_version = 4;
   }
 
@@ -113,10 +113,10 @@ message UpstreamSpec {
   // `https://generativelanguage.googleapis.com/{version}/models/{model}:generateContent?key={api_key}`.
   message Gemini {
     // The authorization token that the AI gateway uses to access the Gemini API.
-    // This token is automatically sent in the `key` header of the request.
+    // This token is automatically sent in the `key` query parameter of the request.
     oneof auth_token_source {
       // The authorization token that the AI gateway uses to access the Gemini API.
-      // This token is automatically sent in the `key` header of the request.
+      // This token is automatically sent in the `key` query parameter of the request.
       SingleAuthToken auth_token = 1;
       // TODO: use oauth
     }
@@ -146,7 +146,7 @@ message UpstreamSpec {
     // For more information, see the [Vertex AI model docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models).
     string model = 2;
     // The version of the Vertex AI API to use.
-    // For more information, see the [Vertex AI model docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models).
+    // For more information, see the [Vertex AI API reference](https://cloud.google.com/vertex-ai/docs/reference#versions).
     string api_version = 3;
     // The ID of the Google Cloud Project that you use for the Vertex AI.
     string project_id = 4;
@@ -309,7 +309,7 @@ message RouteSettings {
 
   // The type of route to the LLM provider API.
   enum RouteType {
-    // The default route type for prompt and response LLM APIs.
+    // The LLM generates the full response before responding to a client.
     CHAT = 0;
     // Stream responses to a client, which allows the LLM to stream out tokens as they are generated. 
     CHAT_STREAMING = 1;
@@ -341,11 +341,10 @@ message RouteSettings {
 message FieldDefault {
   // The name of the field.
   string field = 1;
-  // The field default value (any JSON Data Type).
+  // The field default value, which can be any JSON Data Type.
   google.protobuf.Value value = 2;
   // Whether to override the field's value if it already exists.
-  // Defaults do _not_ override the user input fields by default,
-  // unless you explicitly set this field to `true`.
+  // Defaults to false.
   bool override = 3;
 }
 
@@ -359,7 +358,7 @@ message Postgres {
   string collection_name = 2;
 }
 
-// Configuration of API used to generate embedding
+// Configuration of the API used to generate the embedding.
 message Embedding {
 
   // Embedding settings for the OpenAI provider.
@@ -385,13 +384,13 @@ message Embedding {
     }
 
     // The version of the Azure OpenAI API to use.
-    // For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions).
+    // For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
     string api_version = 2;
     // The endpoint for the Azure OpenAI API to use, such as `my-endpoint.openai.azure.com`.
     // If the scheme is not included, it is added.
     string endpoint = 3;
     // The name of the Azure OpenAI model deployment to use.
-    // For more information, see the [Azure OpenAI model version docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/model-versions).
+    // For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models).
     string deployment_name = 4;
   }
 
