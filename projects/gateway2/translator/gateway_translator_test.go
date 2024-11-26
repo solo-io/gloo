@@ -316,4 +316,6 @@ var _ = DescribeTable("Route Delegation translator",
 	Entry("RouteOptions multi level inheritance with child override", "route_options_multi_level_inheritance_override_ok.yaml"),
 	Entry("RouteOptions filter override merge", "route_options_filter_override_merge.yaml"),
 	Entry("Child route matcher does not match parent", "bug-6621.yaml"),
+	// https://github.com/k8sgateway/k8sgateway/issues/10379
+	Entry("Multi-level multiple parents delegation", "bug-10379.yaml"),
 )
