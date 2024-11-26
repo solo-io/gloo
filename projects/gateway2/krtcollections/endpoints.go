@@ -170,8 +170,8 @@ func hashEndpoints(l PodLocality, emd EndpointWithMd) uint64 {
 func hash(a, b uint64) uint64 {
 	hasher := fnv.New64a()
 	var buf [16]byte
-	binary.NativeEndian.PutUint64(buf[:8], a)
-	binary.NativeEndian.PutUint64(buf[8:], b)
+	binary.LittleEndian.PutUint64(buf[:8], a)
+	binary.LittleEndian.PutUint64(buf[8:], b)
 	hasher.Write(buf[:])
 	return hasher.Sum64()
 }
