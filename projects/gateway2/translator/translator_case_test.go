@@ -22,9 +22,11 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
+	"github.com/solo-io/gloo/projects/gateway2/query"
 	gwquery "github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	. "github.com/solo-io/gloo/projects/gateway2/translator"
+	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	httplisquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/httplisteneroptions/query"
 	lisquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/listeneroptions/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
@@ -50,6 +52,36 @@ func CompareProxy(expectedFile string, actualProxy *v1.Proxy) (string, error) {
 		return "", err
 	}
 	return cmp.Diff(expectedProxy, actualProxy, protocmp.Transform(), cmpopts.EquateNaNs()), nil
+}
+
+var (
+	_ plugins.BackendPlugin    = &testBackendPlugin{}
+	_ query.BackendRefResolver = &testBackendPlugin{}
+)
+
+type testBackendPlugin struct{}
+
+// GetBackendForRef implements query.BackendRefResolver.
+func (tp *testBackendPlugin) GetBackendForRef(ctx context.Context, obj gwquery.From, ref *gwv1.BackendObjectReference) (client.Object, error, bool) {
+	if ref.Kind == nil || *ref.Kind != "test-backend-plugin" {
+		return nil, nil, false
+	}
+	// doesn't matter as long as its not nil
+	return &gwv1.HTTPRoute{}, nil, true
+}
+
+func (tp *testBackendPlugin) ApplyBackendPlugin(
+	resolvedBackend client.Object,
+	ref gwv1.BackendObjectReference,
+) (*v1.Destination, bool) {
+	if ref.Kind == nil || *ref.Kind != "test-backend-plugin" {
+		return nil, false
+	}
+	return &v1.Destination{
+		DestinationType: &v1.Destination_Upstream{
+			Upstream: &core.ResourceRef{Name: "test-backend-plugin-us"},
+		},
+	}, true
 }
 
 func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]ActualTestResult, error) {
@@ -94,7 +126,7 @@ func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]ActualTest
 		lisquery.IterateIndices,
 		httplisquery.IterateIndices,
 	)
-	queries := testutils.BuildGatewayQueriesWithClient(fakeClient)
+	queries := testutils.BuildGatewayQueriesWithClient(fakeClient, query.WithBackendRefResolvers(&testBackendPlugin{}))
 
 	resourceClientFactory := &factory.MemoryResourceClientFactory{
 		Cache: memory.NewInMemoryResourceCache(),
@@ -109,7 +141,9 @@ func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]ActualTest
 	routeOptionCollection := krt.NewStaticCollection(routeOptions)
 	vhOptionCollection := krt.NewStatic[*solokubev1.VirtualHostOption](nil, true).AsCollection()
 
-	pluginRegistry := registry.NewPluginRegistry(registry.BuildPlugins(queries, fakeClient, routeOptionCollection, vhOptionCollection, statusReporter))
+	allPlugins := registry.BuildPlugins(queries, fakeClient, routeOptionCollection, vhOptionCollection, statusReporter)
+	allPlugins = append(allPlugins, &testBackendPlugin{})
+	pluginRegistry := registry.NewPluginRegistry(allPlugins)
 
 	results := make(map[types.NamespacedName]ActualTestResult)
 
