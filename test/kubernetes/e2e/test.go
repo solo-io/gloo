@@ -366,7 +366,7 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 	}()
 
 	adminClient := admincli.NewClient().
-		WithReceiver(io.Discard). // adminAssertion can overwrite this
+		WithReceiver(io.Discard).
 		WithCurlOptions(
 			curl.WithRetries(3, 0, 10),
 			curl.WithPort(int(admin.AdminPort)),
