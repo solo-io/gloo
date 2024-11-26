@@ -1,0 +1,53 @@
+---
+listeners:
+- aggregateListener:
+    httpFilterChains:
+    - matcher: {}
+      virtualHostRefs:
+      - http~api_example_com
+    httpResources:
+      virtualHosts:
+        http~api_example_com:
+          domains:
+          - api.example.com
+          name: http~api_example_com
+          routes:
+          - matchers:
+            - prefix: /api1
+            name: httproute-httpbin-default-0-0
+            options:
+              regexRewrite:
+                pattern:
+                  regex: ^/api1\/*
+                substitution: /
+            routeAction:
+              single:
+                kube:
+                  port: 8000
+                  ref:
+                    name: httpbin
+                    namespace: default
+          - matchers:
+            - prefix: /api2
+            name: httproute-httpbin-default-0-0
+            options:
+              regexRewrite:
+                pattern:
+                  regex: ^/api2\/*
+                substitution: /
+            routeAction:
+              single:
+                kube:
+                  port: 8000
+                  ref:
+                    name: httpbin
+                    namespace: default
+  bindAddress: '::'
+  bindPort: 8080
+  name: http
+metadata:
+  labels:
+    created_by: gloo-kube-gateway-api
+    gateway_namespace: infra
+  name: infra-example-gateway
+  namespace: gloo-system
