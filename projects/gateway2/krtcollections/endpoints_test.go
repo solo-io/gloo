@@ -131,7 +131,6 @@ func TestEndpointsForUpstreamOrderDoesntMatter(t *testing.T) {
 		Zone:   "zone2",
 	}, emd2)
 	g.Expect(result1.Equals(*result4)).To(BeFalse(), "not expected %v, got %v", result1, result2)
-
 }
 
 func TestEndpointsForUpstreamWithDiscoveredUpstream(t *testing.T) {
@@ -239,7 +238,6 @@ func TestEndpointsForUpstreamWithDiscoveredUpstream(t *testing.T) {
 	h2 := result3.LbEpsEqualityHash ^ result4.LbEpsEqualityHash
 
 	g.Expect(h1).NotTo(Equal(h2), "not expected %v, got %v", h1, h2)
-
 }
 
 func TestEndpoints(t *testing.T) {
@@ -960,5 +958,4 @@ func TestEndpoints(t *testing.T) {
 			g.Expect(eps.Equals(*res)).To(BeTrue(), "expected %v, got %v", res, eps)
 		})
 	}
-
 }
