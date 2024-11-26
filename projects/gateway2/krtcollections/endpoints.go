@@ -167,12 +167,13 @@ func hashEndpoints(l PodLocality, emd EndpointWithMd) uint64 {
 	return hasher.Sum64()
 }
 
-func hash(a, b uint64) uint64 {
+func hash(a, b uint64, c string) uint64 {
 	hasher := fnv.New64a()
 	var buf [16]byte
 	binary.LittleEndian.PutUint64(buf[:8], a)
 	binary.LittleEndian.PutUint64(buf[8:], b)
 	hasher.Write(buf[:])
+	hasher.Write([]byte(c))
 	return hasher.Sum64()
 }
 
@@ -183,7 +184,9 @@ func (e *EndpointsForUpstream) Add(l PodLocality, emd EndpointWithMd) {
 	// we can't xor the endpoint hash with the upstream hash, because upstreams with
 	// different names and similar endpoints will cancel out, so endpoint changes
 	// won't result in different equality hashes.
-	e.LbEpsEqualityHash = hash(e.epsEqualityHash, e.upstreamHash)
+	// As long as we hash the upstream in the cluster name (due to envoy cluster warming bug), we
+	// also need to include that in the hash
+	e.LbEpsEqualityHash = hash(e.epsEqualityHash, e.upstreamHash, e.ClusterName)
 	e.LbEps[l] = append(e.LbEps[l], emd)
 }
 
