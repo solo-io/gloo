@@ -294,10 +294,18 @@ func testScenario(t *testing.T, ctx context.Context, client istiokube.CLIClient,
 	}
 	t.Log("applied yamls", t.Name())
 	// make sure all yamls reached the control plane
-	time.Sleep(time.Second)
+	timer := time.NewTimer(10 * time.Second)
+	defer timer.Stop()
 
 	dump := getXdsDump(t, ctx, xdsPort, testgwname)
-
+	for len(dump.Listeners) == 0 {
+		select {
+		case <-timer.C:
+			dump = getXdsDump(t, ctx, xdsPort, testgwname)
+		case <-timer.C:
+			t.Fatalf("timed out waiting for listeners")
+		}
+	}
 	if write {
 		t.Logf("writing out file")
 		// serialize xdsDump to yaml

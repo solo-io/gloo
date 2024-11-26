@@ -353,7 +353,7 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 		ctx,
 		s.istioClient,
 		rlkubev1a1.SchemeGroupVersion.WithResource("ratelimitconfigs"),
-		krt.WithName("KubeRateLimitConfwithDebug,igs"),
+		krt.WithName("KubeRateLimitConfigs"), withDebug,
 	)
 
 	upstreams := SetupCollectionDynamic[glookubev1.Upstream](
