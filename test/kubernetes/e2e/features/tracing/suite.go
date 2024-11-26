@@ -98,8 +98,19 @@ func (s *testingSuite) BeforeTest(string, string) {
 		otelcolSelector,
 	)
 
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
-	s.NoError(err, "can apply gloo tracing resources")
+	// Technical Debt!!
+	// https://github.com/k8sgateway/k8sgateway/issues/10293
+	// There is a bug in the Control Plane that results in an Error reported on the status
+	// when the Upstream of the Tracing Collector is not found. This results in the VirtualService
+	// that references that Upstream being rejected. What should occur is a Warning is reported,
+	// and the resource is accepted since validation.allowWarnings=true is set.
+	// We have plans to fix this in the code itself. But for a short-term solution, to reduce the
+	// noise in CI/CD of this test flaking, we perform some simple retry logic here.
+	s.EventuallyWithT(func(c *assert.CollectT) {
+		err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
+		assert.NoError(c, err, "can apply gloo tracing resources")
+	}, time.Second*5, time.Second*1, "can apply tracing resources")
+
 	// accept the upstream
 	// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
 	// other syncers that have translated them, so we can only detect that the objects exist here
@@ -109,6 +120,7 @@ func (s *testingSuite) BeforeTest(string, string) {
 				otelcolUpstream.Namespace, otelcolUpstream.Name, clients.ReadOpts{Ctx: s.ctx})
 		},
 	)
+
 	// accept the virtual service
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
 		func() (resources.InputResource, error) {
