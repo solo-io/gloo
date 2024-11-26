@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: true
+    description: >-
+      Clean docgen
+
+      skipCI-kube-tests:true
