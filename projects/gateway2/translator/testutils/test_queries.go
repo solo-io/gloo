@@ -21,8 +21,8 @@ func BuildIndexedFakeClient(objs []client.Object, funcs ...IndexIteratorFunc) cl
 	return builder.WithObjects(objs...).Build()
 }
 
-func BuildGatewayQueriesWithClient(fakeClient client.Client) query.GatewayQueries {
-	return query.NewData(fakeClient, schemes.TestingScheme())
+func BuildGatewayQueriesWithClient(fakeClient client.Client, opts ...query.Option) query.GatewayQueries {
+	return query.NewData(fakeClient, schemes.TestingScheme(), opts...)
 }
 
 func BuildGatewayQueries(
