@@ -75,6 +75,20 @@ func (s *testingSuite) SetupSuite() {
 			LabelSelector: "app.kubernetes.io/name=http-echo",
 		},
 	)
+
+	// Previously, we would create/delete the Service for each test. However, this would occasionally lead to:
+	// * Hostname gateway-proxy-tracing.gloo-gateway-edge-test.svc.cluster.local was found in DNS cache
+	//*   Trying 10.96.181.139:18080...
+	//* Connection timed out after 3001 milliseconds
+	//
+	// The suspicion is that the rotation of the Service meant that the DNS cache became out of date,
+	// and we would curl the old IP.
+	// The workaround to that is to create the service just once at the beginning of the suite.
+	// This mirrors how Services are typically managed in Gloo Gateway, where they are tied
+	// to an installation, and not dynamically updated
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayProxyServiceManifest,
+		"-n", s.testInstallation.Metadata.InstallNamespace)
+	s.NoError(err, "can apply service/gateway-proxy-tracing")
 }
 
 func (s *testingSuite) TearDownSuite() {
@@ -85,6 +99,10 @@ func (s *testingSuite) TearDownSuite() {
 
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.HttpEchoPodManifest)
 	s.Assertions.NoError(err, "can delete echo server")
+
+	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayProxyServiceManifest,
+		"-n", s.testInstallation.Metadata.InstallNamespace)
+	s.NoError(err, "can delete service/gateway-proxy-tracing")
 }
 
 func (s *testingSuite) BeforeTest(string, string) {
@@ -154,7 +172,7 @@ func (s *testingSuite) AfterTest(string, string) {
 
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayConfigManifest,
 		"-n", s.testInstallation.Metadata.InstallNamespace)
-	s.Assertions.NoError(err, "can delete gloo tracing config")
+	s.Assertions.NoError(err, "can delete gateway config")
 }
 
 func (s *testingSuite) TestSpanNameTransformationsWithoutRouteDecorator() {
