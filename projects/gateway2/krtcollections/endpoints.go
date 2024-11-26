@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"hash/fnv"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -229,24 +228,15 @@ func transformK8sEndpoints(ctx context.Context, inputs EndpointsInputs) func(kct
 			return nil
 		}
 
-		svcNs := spec.GetServiceNamespace()
-		svcName := spec.GetServiceName()
 		// Fetch all EndpointSlices for the service
 		key := types.NamespacedName{
-			Namespace: svcNs,
-			Name:      svcName,
+			Namespace: spec.GetServiceNamespace(),
+			Name:      spec.GetServiceName(),
 		}
 
 		endpointSlices := krt.Fetch(kctx, inputs.EndpointSlices, krt.FilterIndex(inputs.EndpointSlicesByService, key))
 		if len(endpointSlices) == 0 {
-			warnsToLog = append(warnsToLog, fmt.Sprintf("EndpointSlices not found for service %v/%v", svcNs, svcName))
-			return nil
-		}
-
-		if len(endpointSlices) == 0 {
-			warnsToLog = append(warnsToLog, fmt.Sprintf("EndpointSlices not found for service %v/%v", svcNs, svcName))
-			logger.Debug("EndpointSlices not found for service")
-			return nil
+			logger.Debug("no EndpointSlices found for service", zap.String("name", key.Name), zap.String("namespace", key.Namespace))
 		}
 
 		// Initialize the returned EndpointsForUpstream
@@ -261,8 +251,7 @@ func transformK8sEndpoints(ctx context.Context, inputs EndpointsInputs) func(kct
 		for _, endpointSlice := range endpointSlices {
 			port := findPortInEndpointSlice(endpointSlice, singlePortSvc, kubeSvcPort)
 			if port == 0 {
-				warnsToLog = append(warnsToLog, fmt.Sprintf("port %v not found for service %v/%v in EndpointSlice %v",
-					spec.GetServicePort(), svcNs, svcName, endpointSlice.Name))
+				logger.Debug("no port found in EndpointSlice", zap.String("name", endpointSlice.Name), zap.String("namespace", endpointSlice.Namespace))
 				continue
 			}
 
