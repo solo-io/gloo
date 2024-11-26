@@ -80,7 +80,7 @@ message UpstreamSpec {
     CustomHost custom_host = 2;
     // Optional: Override the model name, such as `gpt-4o-mini`.
     // If unset, the model name is taken from the request.
-    // This setting can be useful when testing model failover scenarios.
+    // This setting can be useful when setting up model failover within the same LLM provider.
     string model = 3;
   }
 
@@ -311,7 +311,7 @@ message RouteSettings {
   enum RouteType {
     // The default route type for prompt and response LLM APIs.
     CHAT = 0;
-    // Stream responses to a client, which allows partial results for certain prompts.
+    // Stream responses to a client, which allows the LLM to stream out tokens as they are generated. 
     CHAT_STREAMING = 1;
   }
 
@@ -341,7 +341,7 @@ message RouteSettings {
 message FieldDefault {
   // The name of the field.
   string field = 1;
-  // The field default value, in JSON format.
+  // The field default value (any JSON Data Type).
   google.protobuf.Value value = 2;
   // Whether to override the field's value if it already exists.
   // Defaults do _not_ override the user input fields by default,
@@ -359,7 +359,7 @@ message Postgres {
   string collection_name = 2;
 }
 
-// Configuration for the backend LLM provider authentication token.
+// Configuration of API used to generate embedding
 message Embedding {
 
   // Embedding settings for the OpenAI provider.
