@@ -101,6 +101,7 @@ func portInUseListen(proposedPort uint32) error {
 
 var denyListPorts = map[uint32]struct{}{
 	// See gloo/pkg/servers/admin/server.go
+	// See https://github.com/solo-io/solo-projects/issues/7307 for more details
 	9095: {},
 }
 
