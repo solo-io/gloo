@@ -18,6 +18,23 @@ spec:
         namespaces:
           from: Same
 ---
+apiVersion: gateway.solo.io/v1
+kind: RouteOption
+metadata:
+  name: header-manipulation
+spec:
+  options:
+    headerManipulation:
+      responseHeadersToAdd:
+        - header:
+            key: "x-bar"
+            value: "bar"
+          append: false 
+        - header:
+            key: "x-baz"
+            value: "baz"
+          append: false
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -28,7 +45,13 @@ spec:
   hostnames:
     - "example.com"
   rules:
-    - backendRefs:
+    - filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.solo.io
+            kind: RouteOption
+            name: header-manipulation
+      backendRefs:
         - name: example-svc
           port: 8080
 ---
