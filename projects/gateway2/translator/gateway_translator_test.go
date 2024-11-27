@@ -274,6 +274,14 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			Name:      "example-gateway",
 		},
 	}),
+	FEntry("Proxy with no routes", translatorTestCase{
+		inputFile:  "edge-cases/no_route.yaml",
+		outputFile: "no_route.yaml",
+		gwNN: types.NamespacedName{
+			Namespace: "default",
+			Name:      "example-gateway",
+		},
+	}),
 )
 
 var _ = DescribeTable("Route Delegation translator",
