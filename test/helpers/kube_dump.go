@@ -36,6 +36,9 @@ func StandardGlooDumpOnFail(outLog io.Writer, outDir string, namespaces []string
 
 		kubectlCli := kubectl.NewCli()
 
+		// only wipe at the start of the dump
+		wipeOutDir(outDir)
+
 		KubeDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
 		ControllerDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
 		EnvoyDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
@@ -470,13 +473,16 @@ func EnvoyDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer, 
 	}
 }
 
+func wipeOutDir(outDir string) {
+	err := os.RemoveAll(outDir)
+	if err != nil {
+		fmt.Printf("error wiping out directory: %f\n", err)
+	}
+}
+
 // setupOutDir forcibly deletes/creates the output directory
 func setupOutDir(outdir string) {
-	err := os.RemoveAll(outdir)
-	if err != nil {
-		fmt.Printf("error removing log directory: %f\n", err)
-	}
-	err = os.MkdirAll(outdir, os.ModePerm)
+	err := os.MkdirAll(outdir, os.ModePerm)
 	if err != nil {
 		fmt.Printf("error creating log directory: %f\n", err)
 	}
