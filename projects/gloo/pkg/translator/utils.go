@@ -1,57 +1,16 @@
 package translator
 
 import (
-	"fmt"
 	"net"
-	"strings"
-
-	errors "github.com/rotisserie/eris"
 
 	envoyal "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
 	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
+	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
-
-// UpstreamToClusterName returns the name of the cluster created for a given upstream.
-// This is used by many plugins to convert an upstream route destination to the cluster name
-// to be used in envoy.
-func UpstreamToClusterName(upstream *core.ResourceRef) string {
-	// For non-namespaced resources, return only name
-	if upstream.GetNamespace() == "" {
-		return upstream.GetName()
-	}
-
-	// Don't use dots in the name as it messes up prometheus stats
-	return fmt.Sprintf("%s_%s", upstream.GetName(), upstream.GetNamespace())
-}
-
-// ClusterToUpstreamRef converts an envoy cluster name to an upstream ref.
-// (this is only used in the tunneling plugin and the old UI)
-func ClusterToUpstreamRef(cluster string) (*core.ResourceRef, error) {
-	// the legacy style of generated cluster names had exactly one `_` character:
-	// <upstreamName>_<upstreamNamespace> where upstreamName would be in the format
-	// <svcNamespace>-<svcName>-<svcPort> for kubernetes services.
-	// when k8s gateway api is enabled, we use underscores in the upstream name, so
-	// the full cluster name becomes <svcNamespace>_<svcName>_<svcPort>_<upstreamNamespace>.
-	// to handle both cases, just find the last index of _ to split on
-	lastIdx := strings.LastIndex(cluster, "_")
-	if lastIdx < 0 {
-		return nil, errors.Errorf("unable to convert cluster %s back to upstream ref", cluster)
-	}
-	upstreamName := cluster[:lastIdx]
-	upstreamNamespace := cluster[lastIdx+1:]
-
-	ref := &core.ResourceRef{
-		Name:      upstreamName,
-		Namespace: upstreamNamespace,
-	}
-
-	return ref, nil
-}
 
 func NewFilterWithTypedConfig(name string, config proto.Message) (*envoy_config_listener_v3.Filter, error) {
 	s := &envoy_config_listener_v3.Filter{

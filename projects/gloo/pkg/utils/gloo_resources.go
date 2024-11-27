@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"sort"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -8,6 +9,17 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
+
+// ResourceRefToKey generates a (prometheus-safe) unique resource key from the given resource ref.
+func ResourceRefToKey(ref *core.ResourceRef) string {
+	// For non-namespaced resources, return only name
+	if ref.GetNamespace() == "" {
+		return ref.GetName()
+	}
+
+	// Don't use dots in the name as it messes up prometheus stats
+	return fmt.Sprintf("%s_%s", ref.GetName(), ref.GetNamespace())
+}
 
 // Merges the modified resources into the existing resources, overwriting any existing values,
 // and returns the new list
