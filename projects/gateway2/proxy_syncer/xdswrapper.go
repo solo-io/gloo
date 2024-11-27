@@ -179,10 +179,9 @@ func visitFields(msg protoreflect.Message, ancestor_sensitive bool) {
 }
 
 func visitMessage(msg protoreflect.Message, fd protoreflect.FieldDescriptor, v protoreflect.Value, sensitive bool) {
-	origMsg := v.Message()
-	visitMsg := origMsg
+	visitMsg := v.Message()
 	var anyMsg proto.Message
-	m := origMsg.Interface()
+	m := visitMsg.Interface()
 	if anymsg, ok := m.(*anypb.Any); ok {
 		anyMsg, _ = anypb.UnmarshalNew(anymsg, proto.UnmarshalOptions{})
 		visitMsg = anyMsg.ProtoReflect()
