@@ -13,7 +13,6 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 
 	"github.com/avast/retry-go"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/solo-io/gloo/test/services/envoy"
@@ -68,8 +67,8 @@ var _ = BeforeSuite(func() {
 	testHelper.SetKubeCli(kubectl.NewCli().WithReceiver(GinkgoWriter))
 
 	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
-	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir,
-		metav1.ObjectMeta{Namespace: testHelper.InstallNamespace}))
+	namespaces := []string{testHelper.InstallNamespace}
+	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir, namespaces))
 
 	// Allow skipping of install step for running multiple times
 	if !glootestutils.ShouldSkipInstall() {

@@ -66,8 +66,8 @@ func StartTestHelper() {
 	Expect(err).NotTo(HaveOccurred())
 
 	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
-	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir,
-		metav1.ObjectMeta{Namespace: testHelper.InstallNamespace}))
+	namespaces := []string{testHelper.InstallNamespace}
+	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir, namespaces))
 
 	kubeCli = kubectl.NewCli().WithReceiver(GinkgoWriter)
 

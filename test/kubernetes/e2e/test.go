@@ -1,7 +1,6 @@
 package e2e
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -12,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/actions"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/assertions"
@@ -21,7 +19,6 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	testruntime "github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
 	"github.com/solo-io/gloo/test/testutils"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // MustTestHelper returns the SoloTestHelper used for e2e tests
@@ -242,20 +239,12 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 		i.Assertions.Require.NoError(err)
 	}
 
+	// The kubernetes/e2e tests may use multiple namespaces, so we need to dump all of them
 	namespaces, err := i.Actions.Kubectl().Namespaces(ctx)
 	i.Assertions.Require.NoError(err)
 
-	proxies := []metav1.ObjectMeta{}
-	for _, ns := range namespaces {
-		proxies, err = fetchAndAddProxies(i.Actions.Kubectl(), ns, "gloo=kube-gateway", proxies)
-		i.Assertions.Require.NoError(err)
-
-		proxies, err = fetchAndAddProxies(i.Actions.Kubectl(), ns, "gloo=gateway-proxy", proxies)
-		i.Assertions.Require.NoError(err)
-	}
-
 	// Dump the logs and state of the cluster
-	helpers.StandardGlooDumpOnFail(os.Stdout, failureDir, proxies...)()
+	helpers.StandardGlooDumpOnFail(os.Stdout, failureDir, namespaces)()
 }
 
 // GeneratedFiles is a collection of files that are generated during the execution of a set of tests
@@ -290,31 +279,4 @@ func MustGeneratedFiles(tmpDirId, clusterId string) GeneratedFiles {
 		TempDir:    tmpDir,
 		FailureDir: failureDir,
 	}
-}
-
-func fetchAndAddProxies(kubectl *kubectl.Cli, namespace string, label string,
-	proxies []metav1.ObjectMeta) ([]metav1.ObjectMeta, error) {
-
-	stdout := bytes.NewBuffer(nil)
-	stderr := bytes.NewBuffer(nil)
-
-	// get all deployments in the namespace with the label
-	lookupKubeGatewaysCmd := kubectl.Command(context.Background(), "get",
-		"deployment", "-n", namespace, "--selector", "gloo=kube-gateway",
-		"--no-headers", "-o", `custom-columns=":metadata.name"`)
-	err := lookupKubeGatewaysCmd.WithStdout(stdout).WithStderr(stderr).
-		Run().Cause()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get proxies: %s (%s)", err, stderr.String())
-	}
-
-	// iterate lines in the output and append to the list of proxies
-	for _, line := range bytes.Split(stdout.Bytes(), []byte("\n")) {
-		proxyName := string(bytes.TrimSpace(line))
-		if proxyName != "" {
-			proxies = append(proxies, metav1.ObjectMeta{Namespace: namespace, Name: proxyName})
-		}
-	}
-
-	return proxies, nil
 }
