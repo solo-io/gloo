@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	udpaannontations "github.com/cncf/xds/go/udpa/annotations"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
@@ -18,6 +19,10 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	oldproto "github.com/golang/protobuf/proto"
+)
+
+var (
+	UseDetailedUnmarshalling = true || envutils.IsEnvTruthy("DETAILED_SNAP_UNMARSHALLING")
 )
 
 type XdsSnapWrapper struct {
@@ -46,6 +51,22 @@ func (p XdsSnapWrapper) ResourceName() string {
 // note: i called this MarshalJSON__, as i'm not comfertable releasing this at end of release cycle.
 // once 1.18 is out, remove the __
 func (p XdsSnapWrapper) MarshalJSON() ([]byte, error) {
+	if !UseDetailedUnmarshalling {
+		// use a new struct to prevent infinite recursion
+		return json.Marshal(struct {
+			snap            *xds.EnvoySnapshot
+			proxyKey        string
+			proxyWithReport translatorutils.ProxyWithReports
+			pluginRegistry  registry.PluginRegistry
+			fullReports     reporter.ResourceReports
+		}{
+			snap:            p.snap,
+			proxyKey:        p.proxyKey,
+			proxyWithReport: p.proxyWithReport,
+			pluginRegistry:  p.pluginRegistry,
+			fullReports:     p.fullReports,
+		})
+	}
 
 	snap := p.snap.Clone().(*xds.EnvoySnapshot)
 
@@ -89,7 +110,7 @@ func (p XdsSnapWrapper) MarshalJSON() ([]byte, error) {
 }
 
 func redact(snap *xds.EnvoySnapshot) {
-
+	// clusters and listener might have secrets
 	for _, l := range snap.Listeners.Items {
 		redactProto(l.ResourceProto())
 	}

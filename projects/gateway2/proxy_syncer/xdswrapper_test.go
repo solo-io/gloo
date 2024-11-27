@@ -24,6 +24,9 @@ func mustAny(src proto.Message) *anypb.Any {
 }
 
 func TestRedacted(t *testing.T) {
+	if !UseDetailedUnmarshalling {
+		t.Skip("skipping test, detailed output is not set")
+	}
 	g := gomega.NewWithT(t)
 	c := resource.NewEnvoyResource(&envoy_config_cluster_v3.Cluster{
 		TransportSocket: &corev3.TransportSocket{
