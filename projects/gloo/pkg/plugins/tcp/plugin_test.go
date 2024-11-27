@@ -92,13 +92,13 @@ var _ = Describe("Plugin", func() {
 					Namespace: ns,
 				},
 			}
-			upstream1 = &v1.Upstream{
+			upstream2 = &v1.Upstream{
 				Metadata: &core.Metadata{
 					Name:      "two",
 					Namespace: ns,
 				},
 			}
-			upstream1 = &v1.Upstream{
+			upstream3 = &v1.Upstream{
 				Metadata: &core.Metadata{
 					Name:      "three",
 					Namespace: ns,
