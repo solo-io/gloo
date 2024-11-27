@@ -406,7 +406,7 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 		s.k8sGwExtensions.KRTExtensions().Endpoints()...,
 	), withDebug, krt.WithName("EndpointIRs"))
 
-	clas := newEnvoyEndpoints(endpointIRs)
+	clas := newEnvoyEndpoints(endpointIRs, dbg)
 
 	kubeGateways := SetupCollectionDynamic[gwv1.Gateway](
 		ctx,

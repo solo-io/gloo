@@ -245,7 +245,13 @@ func (r *gatewayQueries) getDelegatedChildren(
 		visited = sets.New[types.NamespacedName]()
 	}
 	parentRef := namespacedName(parent)
+	// `visited` is used to detect cyclic references to routes in the delegation chain.
+	// It is important to remove the route from the set once all its children have been evaluated
+	// in the recursion stack, because a route may have multiple parents that have the same ancestor:
+	// e.g., A -> B1, A -> B2, B1 -> C, B2 -> C. So in this case, even though C is visited twice,
+	// the delegation chain is valid as it is evaluated only once for each parent.
 	visited.Insert(parentRef)
+	defer visited.Delete(parentRef)
 
 	children := NewBackendMap[[]*RouteInfo]()
 	for _, parentRule := range parent.Spec.Rules {
@@ -264,7 +270,7 @@ func (r *gatewayQueries) getDelegatedChildren(
 			for _, childRoute := range referencedRoutes {
 				childRef := namespacedName(&childRoute)
 				if visited.Has(childRef) {
-					err := fmt.Errorf("ignoring child route %s for parent %s: %w", parentRef, childRef, ErrCyclicReference)
+					err := fmt.Errorf("ignoring child route %s for parent %s: %w", childRef, parentRef, ErrCyclicReference)
 					children.AddError(backendRef.BackendObjectReference, err)
 					// Don't resolve invalid child route
 					continue

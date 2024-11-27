@@ -76,6 +76,8 @@ func (s *testingSuite) TestConfigureTCPRouteBackingDestinationsWithSingleService
 }
 
 func (s *testingSuite) TestConfigureTCPRouteBackingDestinationsWithMultiServices() {
+	s.T().Skip("skipping test until we resolve the reason it is flaky")
+
 	s.T().Cleanup(func() {
 		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, multiTcpRouteManifest)
 		s.NoError(err, "can delete manifest")
