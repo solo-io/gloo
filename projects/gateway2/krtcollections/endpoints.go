@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"hash/fnv"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -230,27 +229,32 @@ func transformK8sEndpoints(ctx context.Context, inputs EndpointsInputs) func(kct
 		spec := kubeUpstream.Kube
 		kubeSvcPort, singlePortSvc := findPortForService(kctx, svcs, spec)
 		if kubeSvcPort == nil {
-			logger.Debug("findPortForService - not found.", zap.Uint32("port", spec.GetServicePort()), zap.String("svcName", spec.GetServiceName()), zap.String("svcNamespace", spec.GetServiceNamespace()))
+			logger.Debug("port not found for service", zap.Uint32("port", spec.GetServicePort()), zap.String("name", spec.GetServiceName()), zap.String("namespace", spec.GetServiceNamespace()))
 			return nil
 		}
 
-		svcNs := spec.GetServiceNamespace()
-		svcName := spec.GetServiceName()
-		// Fetch all EndpointSlices for the service
+		// Fetch all EndpointSlices for the upstream service
 		key := types.NamespacedName{
-			Namespace: svcNs,
-			Name:      svcName,
+			Namespace: spec.GetServiceNamespace(),
+			Name:      spec.GetServiceName(),
 		}
 
 		endpointSlices := krt.Fetch(kctx, inputs.EndpointSlices, krt.FilterIndex(inputs.EndpointSlicesByService, key))
 		if len(endpointSlices) == 0 {
-			warnsToLog = append(warnsToLog, fmt.Sprintf("EndpointSlices not found for service %v/%v", svcNs, svcName))
+			logger.Debug("no endpointslices found for service", zap.String("name", key.Name), zap.String("namespace", key.Namespace))
 			return nil
 		}
 
-		if len(endpointSlices) == 0 {
-			warnsToLog = append(warnsToLog, fmt.Sprintf("EndpointSlices not found for service %v/%v", svcNs, svcName))
-			logger.Debug("EndpointSlices not found for service")
+		// Handle potential eventually consistency of EndpointSlices for the upstream service
+		found := false
+		for _, endpointSlice := range endpointSlices {
+			if port := findPortInEndpointSlice(endpointSlice, singlePortSvc, kubeSvcPort); port != 0 {
+				found = true
+				break
+			}
+		}
+		if !found {
+			logger.Debug("no ports found in endpointslices for service", zap.String("name", key.Name), zap.String("namespace", key.Namespace))
 			return nil
 		}
 
@@ -266,8 +270,9 @@ func transformK8sEndpoints(ctx context.Context, inputs EndpointsInputs) func(kct
 		for _, endpointSlice := range endpointSlices {
 			port := findPortInEndpointSlice(endpointSlice, singlePortSvc, kubeSvcPort)
 			if port == 0 {
-				warnsToLog = append(warnsToLog, fmt.Sprintf("port %v not found for service %v/%v in EndpointSlice %v",
-					spec.GetServicePort(), svcNs, svcName, endpointSlice.Name))
+				logger.Debug("no port found in endpointslice; will try next endpointslice if one exists",
+					zap.String("name", endpointSlice.Name),
+					zap.String("namespace", endpointSlice.Namespace))
 				continue
 			}
 
@@ -400,6 +405,11 @@ func findPortForService(kctx krt.HandlerContext, services krt.Collection[*corev1
 
 func findPortInEndpointSlice(endpointSlice *discoveryv1.EndpointSlice, singlePortService bool, kubeServicePort *corev1.ServicePort) uint32 {
 	var port uint32
+
+	if endpointSlice == nil || kubeServicePort == nil {
+		return port
+	}
+
 	for _, p := range endpointSlice.Ports {
 		if p.Port == nil {
 			continue
