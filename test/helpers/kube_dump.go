@@ -340,7 +340,7 @@ func ControllerDumpOnFail(ctx context.Context, kubeCli *kubectl.Cli, outLog io.W
 			}
 
 			if len(glooPodNames) == 0 {
-				fmt.Printf("no controller pods found in namespace %s\n", ns)
+				fmt.Printf("no gloo=gloo pods found in namespace %s\n", ns)
 				continue
 			}
 
