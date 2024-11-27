@@ -3930,7 +3930,7 @@ var _ = Describe("Translator", func() {
 
 	Context("Aggregate Listeners", func() {
 
-		FIt("should translate empty aggragate listener", func() {
+		It("should translate empty aggragate listener", func() {
 
 			proxy = &v1.Proxy{
 				Metadata: &core.Metadata{

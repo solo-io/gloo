@@ -274,7 +274,7 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			Name:      "example-gateway",
 		},
 	}),
-	FEntry("Proxy with no routes", translatorTestCase{
+	Entry("Proxy with no routes", translatorTestCase{
 		inputFile:  "edge-cases/no_route.yaml",
 		outputFile: "no_route.yaml",
 		gwNN: types.NamespacedName{
