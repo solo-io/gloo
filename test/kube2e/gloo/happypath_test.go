@@ -257,6 +257,8 @@ var _ = Describe("Happy path", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				TestUpstreamReachable()
+
+				Expect(true).NotTo(BeTrue(), "intentionally failing a test will remove before merging")
 			})
 		})
 	})
