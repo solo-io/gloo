@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Deflake a test
+
+      skipCI-kube-tests:true
