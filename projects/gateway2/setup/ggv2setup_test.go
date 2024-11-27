@@ -51,6 +51,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 	istiokube "istio.io/istio/pkg/kube"
+	"istio.io/istio/pkg/kube/krt"
 	"istio.io/istio/pkg/slices"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
@@ -240,14 +241,14 @@ func TestScenarios(t *testing.T) {
 				// that we get test pollution.
 				// once we change it to only include the ones in the proxy, we can re-enable this
 				//				t.Parallel()
-				testScenario(t, ctx, client, xdsPort, fullpath)
+				testScenario(t, ctx, setupOpts.KrtDebugger, client, xdsPort, fullpath)
 
 			})
 		}
 	}
 }
 
-func testScenario(t *testing.T, ctx context.Context, client istiokube.CLIClient, xdsPort int, f string) {
+func testScenario(t *testing.T, ctx context.Context, kdbg *krt.DebugHandler, client istiokube.CLIClient, xdsPort int, f string) {
 	fext := filepath.Ext(f)
 	fpre := strings.TrimSuffix(f, fext)
 	fout := fpre + "-out" + fext
@@ -297,12 +298,16 @@ func testScenario(t *testing.T, ctx context.Context, client istiokube.CLIClient,
 	timer := time.NewTimer(10 * time.Second)
 	defer timer.Stop()
 
-	dump := getXdsDump(t, ctx, xdsPort, testgwname)
+	dumper := newXdsDumper(t, xdsPort)
+	defer dumper.Close()
+	dump := dumper.Dump(t, ctx, testgwname)
 	for len(dump.Listeners) == 0 {
 		select {
 		case <-timer.C:
-			dump = getXdsDump(t, ctx, xdsPort, testgwname)
+			dump = dumper.Dump(t, ctx, testgwname)
 		case <-timer.C:
+			j, _ := kdbg.MarshalJSON()
+			t.Logf("timed out waiting - krt state for test: %s %s", t.Name(), string(j))
 			t.Fatalf("timed out waiting for listeners")
 		}
 	}
@@ -320,15 +325,28 @@ func testScenario(t *testing.T, ctx context.Context, client istiokube.CLIClient,
 	fmt.Println("test done")
 }
 
-func getXdsDump(t *testing.T, ctx context.Context, xdsPort int, gwname string) xdsDump {
+type xdsDumper struct {
+	conn *grpc.ClientConn
+}
+
+func (x xdsDumper) Close() {
+	if x.conn != nil {
+		x.conn.Close()
+	}
+}
+
+func newXdsDumper(t *testing.T, xdsPort int) xdsDumper {
 	conn, err := grpc.NewClient(fmt.Sprintf("localhost:%d", xdsPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Fatalf("failed to connect to xds server: %v", err)
 	}
-	defer conn.Close()
+	return xdsDumper{conn: conn}
+}
+
+func (x xdsDumper) Dump(t *testing.T, ctx context.Context, gwname string) xdsDump {
 
 	f := xdsFetcher{
-		conn: conn,
+		conn: x.conn,
 		dr: &discovery_v3.DiscoveryRequest{Node: &envoycore.Node{
 			Id: "gateway.gwtest",
 			Metadata: &structpb.Struct{
