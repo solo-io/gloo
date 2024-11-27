@@ -136,12 +136,17 @@ type EndpointsForUpstream struct {
 func NewEndpointsForUpstream(us UpstreamWrapper, logger *zap.Logger) *EndpointsForUpstream {
 	// start with a hash of the cluster name. technically we dont need it for krt, as we can compare the upstream name. but it helps later
 	// to compute the hash we present envoy with.
-	h := fnv.New64()
-	h.Write([]byte(us.Inner.GetMetadata().Ref().String()))
-	upstreamHash := h.Sum64()
-
 	// add the upstream hash to the clustername, so that if it changes the envoy cluster will become warm again.
 	clusterName := GetEndpointClusterName(us.Inner)
+
+	h := fnv.New64()
+	h.Write([]byte(us.Inner.GetMetadata().Ref().String()))
+	// As long as we hash the upstream in the cluster name (due to envoy cluster warming bug), we
+	// also need to include that in the hash
+	// see: https://github.com/envoyproxy/envoy/issues/13009
+	h.Write([]byte(clusterName))
+	upstreamHash := h.Sum64()
+
 	return &EndpointsForUpstream{
 		LbEps:       make(map[PodLocality][]EndpointWithMd),
 		ClusterName: clusterName,

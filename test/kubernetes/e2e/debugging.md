@@ -8,7 +8,34 @@ The entry point for an e2e test is a Go test function of the form `func TestXyz(
 
 Each feature suite is invoked as a subtest of the top level suite. The subtests use [testify](https://github.com/stretchr/testify) to structure the tests in the feature's test suite and make use of the library's assertions.
 
-## Workflows
+## Step 1: Setting Up A Cluster
+### Using a previously released version
+It is possible to run these tests against a previously released version of Gloo Gateway. This is useful for testing a release candidate, or a nightly build.
+
+There is no setup required for this option, as the test suite will download the helm chart archive and `glooctl` binary from the specified release. You will use the `RELEASED_VERSION` environment variable when running the tests. See the [variable definition](/test/testutils/env.go) for more details.
+
+### Using a locally built version
+For these tests to run, we require the following conditions:
+- Gloo Gateway Helm chart archive is present in the `_test` folder,
+- `glooctl` is built in the `_output` folder
+- A KinD cluster is set up and loaded with the images to be installed by the helm chart
+
+[ci/kind/setup-kind.sh](/ci/kind/setup-kind.sh) gets run in CI to setup the test environment for the above requirements.
+It accepts a number of environment variables, to control the creation of a kind cluster and deployment of Gloo resources to that kind cluster. Please refer to the script itself to see what variables are available.
+
+Example:
+```bash
+CLUSTER_NAME=solo-test-cluster CLUSTER_NODE_VERSION=v1.30.0 VERSION=v1.0.0-solo-test ci/kind/setup-kind.sh
+```
+
+## Step 2: Running Tests
+_To run the regression tests, your kubeconfig file must point to a running Kubernetes cluster:_
+```
+kubectl config current-context`
+```
+_should run `kind-<CLUSTER_NAME>`_
+
+> Note: If you are running tests against a previously released version, you must set RELEASED_VERSION when invoking the tests
 
 ### Running a single feature's suite
 
