@@ -29,9 +29,11 @@ By default, the rate limit server is backed by a Redis instance that Gloo Gatewa
 * Using a database that is external to the cluster, such as for data privacy concerns
 
 Gloo Gateway supports the following external databases for the rate limit server:
-* [Aerospike](#aerospike)
+<!--* [Aerospike](#aerospike)-->
 * [DynamoDB](#dynamodb)
 * [Redis](#redis)
+
+<!-- Request from Keith on Nov 26, 2024 to remove Aerospike from our docs as an option. Leaving it here tagged-out just in case we need this in the future.
 
 ### Aerospike-backed rate limit server {#aerospike}
 
@@ -64,6 +66,8 @@ If you use also use Aerospike to store your Gloo Portal API keys, your Aerospike
 |rateLimit.deployment.aerospike.tls.certSecretName|string| The name of the `kubernetes.io/tls` secret that has the `tls.crt` and `tls.key` data.|
 |rateLimit.deployment.aerospike.tls.rootCASecretName|string|The secret name for the Opaque root CA that sets the key as `tls.crt`.|
 |rateLimit.deployment.aerospike.tls.curveGroups[]|string|The TLS identifier for an elliptic curve. For more information, see [TLS supported groups](https://www.iana.org/assignments/tls-parameters/tls-parameters.xml#tls-parameters-8).|
+
+-->
 
 ### DynamoDB-backed rate limit server {#dynamodb}
 
