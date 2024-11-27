@@ -11,7 +11,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 func (p *plugin) ProcessRouteAction(
@@ -66,7 +65,7 @@ func (p *plugin) ProcessRouteAction(
 func getMetadataMatch(
 	dest *v1.Destination,
 	allUpstreams v1.UpstreamList,
-) (*envoy_config_core_v3.Metadata, *core.ResourceRef, error) {
+) (*envoy_config_core_v3.Metadata, *v1.Upstream, error) {
 	usRef, err := upstreams.DestinationToUpstreamRef(dest)
 	if err != nil {
 		return nil, nil, err
@@ -77,7 +76,7 @@ func getMetadataMatch(
 		return nil, nil, pluginutils.NewUpstreamNotFoundErr(usRef) // should never happen, as we already validated the destination
 	}
 
-	return getSubsetMatch(dest, upstream), usRef, nil
+	return getSubsetMatch(dest, upstream), upstream, nil
 }
 
 func setWeightedClusters(params plugins.Params, multiDest *v1.MultiDestination, out *envoy_config_route_v3.RouteAction) error {
@@ -94,12 +93,12 @@ func setWeightedClusters(params plugins.Params, multiDest *v1.MultiDestination, 
 			continue
 		}
 
-		metadataMatch, usRef, err := getMetadataMatch(weightedDest.GetDestination(), params.Snapshot.Upstreams)
+		metadataMatch, upstream, err := getMetadataMatch(weightedDest.GetDestination(), params.Snapshot.Upstreams)
 		if err != nil {
 			return err
 		}
 
-		clusterName := translator.UpstreamToClusterName(usRef)
+		clusterName := upstreams.UpstreamToClusterName(upstream)
 		correspondentCluster := clusterMap[clusterName]
 
 		correspondentCluster.MetadataMatch = metadataMatch

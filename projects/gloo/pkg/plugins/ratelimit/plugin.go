@@ -115,12 +115,12 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	}
 
 	// Make sure the server exists
-	_, err := params.Snapshot.Upstreams.Find(upstreamRef.GetNamespace(), upstreamRef.GetName())
+	upstream, err := params.Snapshot.Upstreams.Find(upstreamRef.GetNamespace(), upstreamRef.GetName())
 	if err != nil {
 		return nil, ServerNotFound(upstreamRef)
 	}
 
-	rateLimitFilter := GenerateEnvoyHttpFilterConfig(serverSettings)
+	rateLimitFilter := generateEnvoyHttpFilterConfig(upstream, serverSettings)
 	rateLimitFilterStage := GetFilterStageForRateLimitStage(rateLimitFilter.GetStage())
 
 	stagedRateLimitFilter, err := plugins.NewStagedFilter(
@@ -137,11 +137,11 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	}, nil
 }
 
-func GenerateEnvoyHttpFilterConfig(serverSettings *ratelimit.Settings) *envoy_extensions_filters_http_ratelimit_v3.RateLimit {
+func generateEnvoyHttpFilterConfig(rlServerUpstream *v1.Upstream, serverSettings *ratelimit.Settings) *envoy_extensions_filters_http_ratelimit_v3.RateLimit {
 	rateLimitStage := GetRateLimitStageForServerSettings(serverSettings)
 
 	return GenerateEnvoyConfigForFilterWith(
-		serverSettings.GetRatelimitServerRef(),
+		rlServerUpstream,
 		serverSettings.GetGrpcService(),
 		CustomDomain,
 		rateLimitStage,

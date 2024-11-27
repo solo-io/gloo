@@ -1,19 +1,19 @@
 package xdsinspection
 
 import (
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/aws/ec2"
-
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 )
 
-func (xd *XdsDump) GetEc2InstancesForUpstream(upstream *core.ResourceRef) []string {
+func (xd *XdsDump) GetEc2InstancesForUpstream(upstream *gloov1.Upstream) []string {
 	var out []string
 	if xd == nil {
 		out = append(out, "use -o wide for instance details")
 		return out
 	}
-	clusterName := translator.UpstreamToClusterName(upstream)
+	clusterName := upstreams.UpstreamToClusterName(upstream)
 	endpointCount := 0
 	for _, clusterEndpoints := range xd.Endpoints {
 		if clusterEndpoints.GetClusterName() == clusterName {

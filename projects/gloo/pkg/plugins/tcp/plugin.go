@@ -150,11 +150,15 @@ func (p *plugin) tcpProxyFilters(
 		if err != nil {
 			return nil, err
 		}
+		upstream, err := params.Snapshot.Upstreams.Find(usRef.GetNamespace(), usRef.GetName())
+		if err != nil {
+			return nil, pluginutils.NewUpstreamNotFoundErr(usRef)
+		}
 		cfg.ClusterSpecifier = &envoytcp.TcpProxy_Cluster{
-			Cluster: translatorutil.UpstreamToClusterName(usRef),
+			Cluster: usconversion.UpstreamToClusterName(upstream),
 		}
 	case *v1.TcpHost_TcpAction_Multi:
-		wc, err := p.convertToWeightedCluster(dest.Multi)
+		wc, err := p.convertToWeightedCluster(params.Snapshot.Upstreams, dest.Multi)
 		if err != nil {
 			return nil, err
 		}
@@ -171,7 +175,7 @@ func (p *plugin) tcpProxyFilters(
 			Destinations: upstreamGroup.GetDestinations(),
 		}
 
-		wc, err := p.convertToWeightedCluster(md)
+		wc, err := p.convertToWeightedCluster(params.Snapshot.Upstreams, md)
 		if err != nil {
 			return nil, err
 		}
@@ -213,7 +217,7 @@ func (p *plugin) tcpProxyFilters(
 	return filters, nil
 }
 
-func (p *plugin) convertToWeightedCluster(multiDest *v1.MultiDestination) (*envoytcp.TcpProxy_WeightedCluster, error) {
+func (p *plugin) convertToWeightedCluster(allUpstreams v1.UpstreamList, multiDest *v1.MultiDestination) (*envoytcp.TcpProxy_WeightedCluster, error) {
 	if len(multiDest.GetDestinations()) == 0 {
 		return nil, translatorutil.NoDestinationSpecifiedError
 	}
@@ -225,9 +229,12 @@ func (p *plugin) convertToWeightedCluster(multiDest *v1.MultiDestination) (*envo
 		if err != nil {
 			return nil, err
 		}
-
+		upstream, err := allUpstreams.Find(usRef.GetNamespace(), usRef.GetName())
+		if err != nil {
+			return nil, pluginutils.NewUpstreamNotFoundErr(usRef)
+		}
 		wc[i] = &envoytcp.TcpProxy_WeightedCluster_ClusterWeight{
-			Name:   translatorutil.UpstreamToClusterName(usRef),
+			Name:   usconversion.UpstreamToClusterName(upstream),
 			Weight: weightedDest.GetWeight().GetValue(),
 		}
 	}

@@ -429,7 +429,15 @@ func (h *httpRouteConfigurationTranslator) setRouteAction(
 		if err != nil {
 			return err
 		}
-		out.GetClusterSpecifier().(*envoy_config_route_v3.RouteAction_Cluster).Cluster = UpstreamToClusterName(usRef)
+		upstream, err := params.Snapshot.Upstreams.Find(usRef.GetNamespace(), usRef.GetName())
+		if err != nil {
+			// the Upstream isn't found but set a bogus cluster so route replacement will still work
+			out.ClusterSpecifier = &envoy_config_route_v3.RouteAction_Cluster{
+				Cluster: "",
+			}
+			return pluginutils.NewUpstreamNotFoundErr(usRef)
+		}
+		out.GetClusterSpecifier().(*envoy_config_route_v3.RouteAction_Cluster).Cluster = usconversion.UpstreamToClusterName(upstream)
 
 		out.MetadataMatch = getSubsetMatch(dest.Single)
 
@@ -489,6 +497,10 @@ func (h *httpRouteConfigurationTranslator) setWeightedClusters(
 		if err != nil {
 			return err
 		}
+		upstream, err := params.Snapshot.Upstreams.Find(usRef.GetNamespace(), usRef.GetName())
+		if err != nil {
+			return pluginutils.NewUpstreamNotFoundErr(usRef)
+		}
 
 		//Cluster weight can be nil so check if end user did not pass a weight for destination and set the default weight of 0
 		var clusterWeight uint32
@@ -499,7 +511,7 @@ func (h *httpRouteConfigurationTranslator) setWeightedClusters(
 		totalWeight += weightedDest.GetWeight().GetValue()
 
 		weightedCluster := &envoy_config_route_v3.WeightedCluster_ClusterWeight{
-			Name:          UpstreamToClusterName(usRef),
+			Name:          usconversion.UpstreamToClusterName(upstream),
 			Weight:        &wrappers.UInt32Value{Value: clusterWeight},
 			MetadataMatch: getSubsetMatch(weightedDest.GetDestination()),
 		}

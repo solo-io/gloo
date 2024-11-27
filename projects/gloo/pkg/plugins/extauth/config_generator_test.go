@@ -18,7 +18,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/utils/prototime"
@@ -197,7 +197,7 @@ var _ = Describe("ExtAuthzConfigGenerator", func() {
 									Timeout: DefaultTimeout,
 									TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
 										EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-											ClusterName: translator.UpstreamToClusterName(usRef),
+											ClusterName: upstreams.UpstreamToClusterName(upstream),
 										},
 									},
 								},
@@ -261,7 +261,7 @@ var _ = Describe("ExtAuthzConfigGenerator", func() {
 									Timeout: customTimeout,
 									TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
 										EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-											ClusterName: translator.UpstreamToClusterName(usRef),
+											ClusterName: upstreams.UpstreamToClusterName(upstream),
 										},
 									},
 								},
@@ -374,7 +374,7 @@ var _ = Describe("ExtAuthzConfigGenerator", func() {
 										Timeout: DefaultTimeout,
 										Uri:     HttpServerUri,
 										HttpUpstreamType: &envoycore.HttpUri_Cluster{
-											Cluster: translator.UpstreamToClusterName(usRef),
+											Cluster: upstreams.UpstreamToClusterName(upstream),
 										},
 									},
 								},
@@ -413,7 +413,7 @@ var _ = Describe("ExtAuthzConfigGenerator", func() {
 									Timeout: DefaultTimeout,
 									TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
 										EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-											ClusterName: translator.UpstreamToClusterName(usRef),
+											ClusterName: upstreams.UpstreamToClusterName(upstream),
 											Authority:   authority,
 										},
 									},

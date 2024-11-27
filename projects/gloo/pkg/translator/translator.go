@@ -21,6 +21,7 @@ import (
 	validationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
@@ -28,7 +29,6 @@ import (
 	"github.com/solo-io/protoc-gen-ext/pkg/hasher/hashstructure"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/resource"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"go.opencensus.io/trace"
 	proto2 "google.golang.org/protobuf/proto"
@@ -180,14 +180,11 @@ func (t *translatorInstance) translateClusterSubsystemComponents(params plugins.
 	logger.Debugf("computing envoy endpoints for proxy: %v", proxy.GetMetadata().GetName())
 	endpoints := t.computeClusterEndpoints(params, upstreamRefKeyToEndpoints, reports)
 
-	upstreamMap := make(map[string]struct{}, len(params.Snapshot.Upstreams))
+	clusterMap := make(map[string]struct{}, len(params.Snapshot.Upstreams))
 	// make sure to call EndpointPlugin with empty endpoint
 	for _, upstream := range params.Snapshot.Upstreams {
-		key := UpstreamToClusterName(&core.ResourceRef{
-			Name:      upstream.GetMetadata().GetName(),
-			Namespace: upstream.GetMetadata().GetNamespace(),
-		})
-		upstreamMap[key] = struct{}{}
+		key := upstreams.UpstreamToClusterName(upstream)
+		clusterMap[key] = struct{}{}
 	}
 	endpointMap := make(map[string][]*envoy_config_endpoint_v3.ClusterLoadAssignment, len(endpoints))
 	for _, ep := range endpoints {
@@ -225,7 +222,7 @@ ClusterLoop:
 			ClusterName: endpointClusterName,
 		}
 		// make sure to call EndpointPlugin with empty endpoint
-		if _, ok := upstreamMap[c.GetName()]; ok {
+		if _, ok := clusterMap[c.GetName()]; ok {
 			for _, plugin := range t.pluginRegistry.GetEndpointPlugins() {
 				if err := plugin.ProcessEndpoints(params, upstream, emptyEndpointList); err != nil {
 					reports.AddError(upstream, err)

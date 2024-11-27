@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/solo-io/gloo/pkg/utils/envutils"
-	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/discovery"
@@ -49,7 +47,7 @@ func (uc *KubeUpstreamConverter) CreateUpstream(ctx context.Context, svc *corev1
 	meta := svc.ObjectMeta
 	coremeta := kubeutils.FromKubeMeta(meta, false)
 	coremeta.ResourceVersion = ""
-	coremeta.Name = UpstreamName(meta.Namespace, meta.Name, port.Port, true)
+	coremeta.Name = UpstreamName(meta.Namespace, meta.Name, port.Port)
 	labels := coremeta.GetLabels()
 	coremeta.Labels = make(map[string]string)
 
@@ -79,28 +77,9 @@ func (uc *KubeUpstreamConverter) CreateUpstream(ctx context.Context, svc *corev1
 
 // UpstreamName creates an upstream name from a k8s Service name/namespace/port.
 //
-// This function is used in the context of both "real" upstreams written to etcd (e.g. upstream creation by UDS)
+// This function is used in the context of both "real" upstreams written to etcd (e.g. upstreams created by UDS)
 // as well as "fake" upstreams (i.e. those upstreams we only create in the in-memory input snapshot).
-//
-// The caller should set `sanitize` to true if this name is being created for a "real" upstream (since
-// k8s names/namespaces have some character restrictions), and should set `sanitize` to false if this is
-// for an in-memory upstream (so we can make cluster names more parseable by using an invalid k8s character
-// as a separator).
-//
-// The resulting upstream name follows one of two formats:
-//  1. <svcNs>_<svcName>_<svcPort> (underscore-separated): only if kubernetes gateway integration is enabled AND
-//     `sanitize` is false
-//  2. <svcNs>-<svcName>-<svcPort> (hyphen-separated) otherwise.
-//
-// If kubernetes gateway integration is not enabled (i.e. only edge api is being used), we fall back to the legacy
-// (hyphen-separated) format, so as not to cause unexpected changes for existing users.
-func UpstreamName(serviceNamespace, serviceName string, servicePort int32, sanitize bool) string {
-	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) && !sanitize {
-		// when kube gateway is enabled, use _ since it makes the service name/namespace easier to
-		// parse out later (namespaces/names cannot have _ in them)
-		return fmt.Sprintf("%s_%s_%v", serviceNamespace, serviceName, servicePort)
-	}
-	// for edge api, leave the cluster names as they were (we don't want to cause unexpected changes on upgrade)
+func UpstreamName(serviceNamespace, serviceName string, servicePort int32) string {
 	return sanitizer.SanitizeNameV2(fmt.Sprintf("%s-%s-%v", serviceNamespace, serviceName, servicePort))
 }
 

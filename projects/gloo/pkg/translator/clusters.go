@@ -20,6 +20,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	upstream_proxy_protocol "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils/upstreamproxyprotocol"
+	glooupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/go-utils/contextutils"
@@ -140,7 +141,7 @@ func (t *translatorInstance) initializeCluster(
 
 	circuitBreakers := t.settings.GetGloo().GetCircuitBreakers()
 	out := &envoy_config_cluster_v3.Cluster{
-		Name:             UpstreamToClusterName(upstream.GetMetadata().Ref()),
+		Name:             glooupstreams.UpstreamToClusterName(upstream),
 		Metadata:         new(envoy_config_core_v3.Metadata),
 		CircuitBreakers:  getCircuitBreakers(upstream.GetCircuitBreakers(), circuitBreakers),
 		LbSubsetConfig:   createLbConfig(upstream),
@@ -419,11 +420,11 @@ func validateUpstreamLambdaFunctions(proxy *v1.Proxy, upstreams v1.UpstreamList,
 	for _, upstream := range upstreams {
 		lambdaFuncs := upstream.GetAws().GetLambdaFunctions()
 		for _, lambda := range lambdaFuncs {
-			upstreamRef := UpstreamToClusterName(upstream.GetMetadata().Ref())
-			if upstreamLambdas[upstreamRef] == nil {
-				upstreamLambdas[upstreamRef] = make(map[string]bool)
+			upstreamKey := upstream.Metadata.Ref().Key()
+			if upstreamLambdas[upstreamKey] == nil {
+				upstreamLambdas[upstreamKey] = make(map[string]bool)
 			}
-			upstreamLambdas[upstreamRef][lambda.GetLogicalName()] = true
+			upstreamLambdas[upstreamKey][lambda.GetLogicalName()] = true
 		}
 	}
 
@@ -499,11 +500,11 @@ func validateRouteDestinationForValidLambdas(
 
 	// Process destinations (upstreams)
 	for _, dest := range destinations {
-		routeUpstream := dest.GetUpstream()
+		routeUpstreamRef := dest.GetUpstream()
 		// Check that route is pointing to current upstream
-		if routeUpstream != nil {
+		if routeUpstreamRef != nil {
 			// Get the lambda functions that this upstream has
-			lambdaFuncSet := upstreamLambdas[UpstreamToClusterName(routeUpstream)]
+			lambdaFuncSet := upstreamLambdas[routeUpstreamRef.Key()]
 			routeLambda := dest.GetDestinationSpec().GetAws()
 			routeLambdaName := routeLambda.GetLogicalName()
 			// If route is pointing to a lambda that does not exist on this upstream, report error on the upstream

@@ -78,6 +78,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	glooupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/consul"
 	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/upstreams/consul/mocks"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/kubernetes"
@@ -410,7 +411,7 @@ var _ = Describe("Translator", func() {
 		ExpectWithOffset(1, report).To(Equal(validationutils.MakeReport(proxy)))
 
 		clusters := snap.GetResources(types.ClusterTypeV3)
-		clusterResource := clusters.Items[UpstreamToClusterName(upstream.Metadata.Ref())]
+		clusterResource := clusters.Items[glooupstreams.UpstreamToClusterName(upstream)]
 		cluster = clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 		ExpectWithOffset(1, cluster).NotTo(BeNil())
 
@@ -1329,7 +1330,7 @@ var _ = Describe("Translator", func() {
 				Expect(report).To(Equal(validationutils.MakeReport(proxy)))
 
 				clusters := snap.GetResources(types.ClusterTypeV3)
-				clusterResource := clusters.Items[UpstreamToClusterName(upstream.Metadata.Ref())]
+				clusterResource := clusters.Items[glooupstreams.UpstreamToClusterName(upstream)]
 				cluster = clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 				Expect(cluster).NotTo(BeNil())
 				var msgList []proto.Message
@@ -1735,8 +1736,8 @@ var _ = Describe("Translator", func() {
 			Expect(clusters).ToNot(BeNil())
 			Expect(clusters.TotalWeight.Value).To(BeEquivalentTo(2))
 			Expect(clusters.Clusters).To(HaveLen(2))
-			Expect(clusters.Clusters[0].Name).To(Equal(UpstreamToClusterName(upstream.Metadata.Ref())))
-			Expect(clusters.Clusters[1].Name).To(Equal(UpstreamToClusterName(upstream2.Metadata.Ref())))
+			Expect(clusters.Clusters[0].Name).To(Equal(glooupstreams.UpstreamToClusterName(upstream)))
+			Expect(clusters.Clusters[1].Name).To(Equal(glooupstreams.UpstreamToClusterName(upstream2)))
 		})
 
 		It("should error on invalid ref in upstream groups", func() {
@@ -1765,8 +1766,8 @@ var _ = Describe("Translator", func() {
 			clusters := routeConfiguration.VirtualHosts[0].Routes[0].GetRoute().GetWeightedClusters()
 			Expect(clusters).ToNot(BeNil())
 			Expect(clusters.Clusters).To(HaveLen(2))
-			Expect(clusters.Clusters[0].Name).To(Equal(UpstreamToClusterName(upstream.Metadata.Ref())))
-			Expect(clusters.Clusters[1].Name).To(Equal(UpstreamToClusterName(upstream2.Metadata.Ref())))
+			Expect(clusters.Clusters[0].Name).To(Equal(glooupstreams.UpstreamToClusterName(upstream)))
+			Expect(clusters.Clusters[1].Name).To(Equal(glooupstreams.UpstreamToClusterName(upstream2)))
 		})
 	})
 
@@ -2138,10 +2139,10 @@ var _ = Describe("Translator", func() {
 
 			// Clusters have been created for the two "fake" upstreams
 			clusters := snapshot.GetResources(types.ClusterTypeV3)
-			clusterResource := clusters.Items[UpstreamToClusterName(fakeUsList[0].Metadata.Ref())]
+			clusterResource := clusters.Items[glooupstreams.UpstreamToClusterName(fakeUsList[0])]
 			cluster = clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 			Expect(cluster).NotTo(BeNil())
-			clusterResource = clusters.Items[UpstreamToClusterName(fakeUsList[1].Metadata.Ref())]
+			clusterResource = clusters.Items[glooupstreams.UpstreamToClusterName(fakeUsList[1])]
 			cluster = clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 			Expect(cluster).NotTo(BeNil())
 
@@ -2159,7 +2160,7 @@ var _ = Describe("Translator", func() {
 			Expect(ok).To(BeTrue())
 			clusterAction, ok := routeAction.Route.ClusterSpecifier.(*envoy_config_route_v3.RouteAction_Cluster)
 			Expect(ok).To(BeTrue())
-			Expect(clusterAction.Cluster).To(Equal(UpstreamToClusterName(fakeUsList[0].Metadata.Ref())))
+			Expect(clusterAction.Cluster).To(Equal(glooupstreams.UpstreamToClusterName(fakeUsList[0])))
 		})
 	})
 
@@ -2294,7 +2295,7 @@ var _ = Describe("Translator", func() {
 
 			// A cluster has been created for the "fake" upstream and has the expected subset config
 			clusters := snapshot.GetResources(types.ClusterTypeV3)
-			clusterResource := clusters.Items[UpstreamToClusterName(fakeUsList[0].Metadata.Ref())]
+			clusterResource := clusters.Items[glooupstreams.UpstreamToClusterName(fakeUsList[0])]
 			cluster = clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 			Expect(cluster).NotTo(BeNil())
 			Expect(cluster.LbSubsetConfig).NotTo(BeNil())
@@ -2327,7 +2328,7 @@ var _ = Describe("Translator", func() {
 
 			clusterAction, ok := routeAction.Route.ClusterSpecifier.(*envoy_config_route_v3.RouteAction_Cluster)
 			Expect(ok).To(BeTrue())
-			Expect(clusterAction.Cluster).To(Equal(UpstreamToClusterName(fakeUsList[0].Metadata.Ref())))
+			Expect(clusterAction.Cluster).To(Equal(glooupstreams.UpstreamToClusterName(fakeUsList[0])))
 
 			Expect(routeAction.Route).NotTo(BeNil())
 			Expect(routeAction.Route.MetadataMatch).NotTo(BeNil())
@@ -2651,7 +2652,7 @@ var _ = Describe("Translator", func() {
 
 			endpointPlugin.ProcessEndpointFunc = func(params plugins.Params, in *v1.Upstream, out *envoy_config_endpoint_v3.ClusterLoadAssignment) error {
 				Expect(out.GetEndpoints()).To(HaveLen(1))
-				Expect(out.GetClusterName()).To(Equal(UpstreamToClusterName(upstream.Metadata.Ref())))
+				Expect(out.GetClusterName()).To(Equal(glooupstreams.UpstreamToClusterName(upstream)))
 				Expect(out.GetEndpoints()[0].GetLbEndpoints()).To(HaveLen(1))
 
 				out.Endpoints = append(out.Endpoints, additionalEndpoint)
@@ -2900,7 +2901,7 @@ var _ = Describe("Translator", func() {
 
 		tlsContext := func() *envoyauth.UpstreamTlsContext {
 			clusters := snapshot.GetResources(types.ClusterTypeV3)
-			clusterResource := clusters.Items[UpstreamToClusterName(upstream.Metadata.Ref())]
+			clusterResource := clusters.Items[glooupstreams.UpstreamToClusterName(upstream)]
 			cluster := clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 
 			return glooutils.MustAnyToMessage(cluster.TransportSocket.GetTypedConfig()).(*envoyauth.UpstreamTlsContext)
@@ -3032,7 +3033,7 @@ var _ = Describe("Translator", func() {
 					translate()
 
 					clusters := snapshot.GetResources(types.ClusterTypeV3)
-					clusterResource := clusters.Items[UpstreamToClusterName(upstream.Metadata.Ref())]
+					clusterResource := clusters.Items[glooupstreams.UpstreamToClusterName(upstream)]
 					cluster := clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 					transportSocketMatches := cluster.GetTransportSocketMatches()
 					Expect(transportSocketMatches).To(HaveLen(2), "Expect 2 transport socket matches when istio auto mtls is enabled")
@@ -3068,7 +3069,7 @@ var _ = Describe("Translator", func() {
 					translate()
 
 					clusters := snapshot.GetResources(types.ClusterTypeV3)
-					clusterResource := clusters.Items[UpstreamToClusterName(upstream.Metadata.Ref())]
+					clusterResource := clusters.Items[glooupstreams.UpstreamToClusterName(upstream)]
 					cluster := clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 					transportSocketMatches := cluster.GetTransportSocketMatches()
 					Expect(transportSocketMatches).To(BeEmpty(), "Expect no transport socket matches when istio auto mtls is enabled")
@@ -3114,7 +3115,7 @@ var _ = Describe("Translator", func() {
 					translate()
 
 					clusters := snapshot.GetResources(types.ClusterTypeV3)
-					clusterResource := clusters.Items[UpstreamToClusterName(upstream.Metadata.Ref())]
+					clusterResource := clusters.Items[glooupstreams.UpstreamToClusterName(upstream)]
 					cluster := clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 					transportSocketMatches := cluster.GetTransportSocketMatches()
 					Expect(transportSocketMatches).To(HaveLen(1), "Only upstream defined transport socket match should be present")
@@ -3754,7 +3755,7 @@ var _ = Describe("Translator", func() {
 			Expect(report).To(Equal(validationutils.MakeReport(proxy)))
 
 			clusters := snap.GetResources(types.ClusterTypeV3)
-			clusterResource := clusters.Items[UpstreamToClusterName(upstream.Metadata.Ref())]
+			clusterResource := clusters.Items[glooupstreams.UpstreamToClusterName(upstream)]
 			cluster = clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 			Expect(cluster).NotTo(BeNil())
 			Expect(cluster.IgnoreHealthOnHostRemoval).To(Equal(expectedClusterValue))
@@ -3779,7 +3780,7 @@ var _ = Describe("Translator", func() {
 				Expect(errs.Validate()).To(Succeed())
 
 				clusters := snap.GetResources(types.ClusterTypeV3)
-				clusterResource := clusters.Items[UpstreamToClusterName(upstream.Metadata.Ref())]
+				clusterResource := clusters.Items[glooupstreams.UpstreamToClusterName(upstream)]
 				cluster = clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 				Expect(cluster).NotTo(BeNil())
 
@@ -3824,7 +3825,7 @@ var _ = Describe("Translator", func() {
 				Expect(errs.ValidateStrict()).To(reportMatcher, "Ensure the reports contain the necessary errors/warnings")
 
 				clusters := snap.GetResources(types.ClusterTypeV3)
-				clusterResource := clusters.Items[UpstreamToClusterName(upstream.Metadata.Ref())]
+				clusterResource := clusters.Items[glooupstreams.UpstreamToClusterName(upstream)]
 				cluster = clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
 				Expect(cluster.GetDnsRefreshRate()).To(refreshRateMatcher)
 			},
@@ -4018,10 +4019,10 @@ var _ = Describe("Translator", func() {
 	})
 })
 
-// The endpoint Cluster is now the UpstreamToClusterName-<hash of upstream> to facilitate
+// The endpoint Cluster is now the glooupstreams.UpstreamToClusterName-<hash of upstream> to facilitate
 // gRPC EDS updates
 func getEndpointClusterName(upstream *v1.Upstream) string {
-	return fmt.Sprintf("%s-%d", UpstreamToClusterName(upstream.Metadata.Ref()), upstream.MustHash())
+	return fmt.Sprintf("%s-%d", glooupstreams.UpstreamToClusterName(upstream), upstream.MustHash())
 }
 
 func sv(s string) *structpb.Value {

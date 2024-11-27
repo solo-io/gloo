@@ -8,7 +8,8 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/shadowing"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/internal/common"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 )
 
 var (
@@ -60,19 +61,24 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		}
 		outRa = out.GetRoute()
 	}
-	return applyShadowSpec(outRa, shadowSpec)
+	allUpstreams := params.Snapshot.Upstreams
+	return applyShadowSpec(allUpstreams, outRa, shadowSpec)
 }
 
-func applyShadowSpec(out *envoy_config_route_v3.RouteAction, spec *shadowing.RouteShadowing) error {
+func applyShadowSpec(allUpstreams v1.UpstreamList, out *envoy_config_route_v3.RouteAction, spec *shadowing.RouteShadowing) error {
 	if spec.GetUpstream() == nil {
 		return UnspecifiedUpstreamError
 	}
 	if spec.GetPercentage() < 0 || spec.GetPercentage() > 100 {
 		return InvalidNumeratorError(spec.GetPercentage())
 	}
+	upstream, err := allUpstreams.Find(spec.GetUpstream().GetNamespace(), spec.GetUpstream().GetName())
+	if err != nil {
+		return pluginutils.NewUpstreamNotFoundErr(spec.GetUpstream())
+	}
 	out.RequestMirrorPolicies = []*envoy_config_route_v3.RouteAction_RequestMirrorPolicy{
 		{
-			Cluster:         translator.UpstreamToClusterName(spec.GetUpstream()),
+			Cluster:         upstreams.UpstreamToClusterName(upstream),
 			RuntimeFraction: getFractionalPercent(spec.GetPercentage()),
 		},
 	}

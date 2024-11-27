@@ -7,7 +7,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/stats"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/go-utils/contextutils"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
@@ -53,11 +53,11 @@ func (s *UpstreamRemovingSanitizer) SanitizeSnapshot(
 	var removed int64
 
 	// Find all the errored upstreams and remove them from the xDS snapshot
-	for _, up := range glooSnapshot.Upstreams.AsInputResources() {
+	for _, up := range glooSnapshot.Upstreams {
 
 		if reports[up].Errors != nil {
 
-			clusterName := translator.UpstreamToClusterName(up.GetMetadata().Ref())
+			clusterName := upstreams.UpstreamToClusterName(up)
 			if clusters.Items[clusterName] == nil {
 				// cluster has already been removed from the snapshot
 				contextutils.LoggerFrom(ctx).Debugf("cluster %s does not exist in the xds snapshot", clusterName)
@@ -92,7 +92,7 @@ func (s *UpstreamRemovingSanitizer) SanitizeSnapshot(
 	)
 
 	// Convert errors related to upstreams to warnings
-	for _, up := range glooSnapshot.Upstreams.AsInputResources() {
+	for _, up := range glooSnapshot.Upstreams {
 		if upReport := reports[up]; upReport.Errors != nil {
 			upReport.Warnings = []string{upReport.Errors.Error()}
 			upReport.Errors = nil

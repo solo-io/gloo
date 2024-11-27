@@ -44,7 +44,7 @@ import (
 	defaults2 "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	kubernetesplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/linkerd"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	glooupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/kube2e/helper"
@@ -1107,10 +1107,14 @@ var _ = Describe("Kube2e: gateway", func() {
 			_, err = resourceClientset.KubeClients().CoreV1().Services(testHelper.InstallNamespace).Update(ctx, gwSvc, metav1.UpdateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
-			httpEchoClusterName = translator.UpstreamToClusterName(&core.ResourceRef{
-				Namespace: testHelper.InstallNamespace,
-				Name:      kubernetesplugin.UpstreamName(testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
-			})
+			httpEchoClusterName = glooupstreams.UpstreamToClusterName(
+				&gloov1.Upstream{
+					Metadata: &core.Metadata{
+						Name:      kubernetesplugin.UpstreamName(testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
+						Namespace: testHelper.InstallNamespace,
+					},
+				})
+
 		})
 
 		AfterEach(func() {

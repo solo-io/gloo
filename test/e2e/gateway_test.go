@@ -23,7 +23,7 @@ import (
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	glooupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	gloohelpers "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/services"
 	"github.com/solo-io/gloo/test/v1helpers"
@@ -459,7 +459,7 @@ var _ = Describe("Gateway", func() {
 				})
 
 				It("should direct requests that use cluster_header to the proper upstream", func() {
-					upstreamName := translator.UpstreamToClusterName(testUpstream.Upstream.Metadata.Ref())
+					upstreamName := glooupstreams.UpstreamToClusterName(testUpstream.Upstream)
 
 					vs := getTrivialVirtualService(writeNamespace)
 					// Create route that uses cluster header destination
@@ -1039,7 +1039,7 @@ var _ = Describe("Gateway", func() {
 				})
 
 				It("should direct requests that use cluster_header to the proper upstream", func() {
-					upstreamName := translator.UpstreamToClusterName(testUpstream.Upstream.Metadata.Ref())
+					upstreamName := glooupstreams.UpstreamToClusterName(testUpstream.Upstream)
 
 					// Create route that uses cluster header destination
 					virtualService.GetVirtualHost().Routes = []*gatewayv1.Route{{

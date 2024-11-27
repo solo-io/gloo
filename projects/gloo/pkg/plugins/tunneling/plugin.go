@@ -12,7 +12,7 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	glooupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
@@ -63,7 +63,7 @@ func (p *plugin) GeneratedResources(params plugins.Params,
 				// we do not handle the weighted cluster or cluster header cases
 				if cluster := rtAction.GetCluster(); cluster != "" {
 
-					ref, err := translator.ClusterToUpstreamRef(cluster)
+					ref, err := glooupstreams.ClusterToUpstreamRef(cluster)
 					if err != nil {
 						// return what we have so far, so that any modified input resources can still route
 						// successfully to their generated targets

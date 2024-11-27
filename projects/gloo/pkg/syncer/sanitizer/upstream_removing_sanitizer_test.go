@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/rotisserie/eris"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/resource"
@@ -33,7 +33,7 @@ var _ = Describe("UpstreamRemovingSanitizer", func() {
 		clusterType = &envoy_config_cluster_v3.Cluster_Type{
 			Type: envoy_config_cluster_v3.Cluster_EDS,
 		}
-		goodClusterName = translator.UpstreamToClusterName(us.Metadata.Ref())
+		goodClusterName = upstreams.UpstreamToClusterName(us)
 		goodCluster     = &envoyclusterapi.Cluster{
 			Name:                 goodClusterName,
 			ClusterDiscoveryType: clusterType,
@@ -51,7 +51,7 @@ var _ = Describe("UpstreamRemovingSanitizer", func() {
 				Namespace: "upstream",
 			},
 		}
-		badClusterName = translator.UpstreamToClusterName(badUs.Metadata.Ref())
+		badClusterName = upstreams.UpstreamToClusterName(badUs)
 		badCluster     = &envoyclusterapi.Cluster{
 			Name:                 badClusterName,
 			ClusterDiscoveryType: clusterType,

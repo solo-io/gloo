@@ -20,7 +20,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/utils/prototime"
 	"github.com/solo-io/solo-kit/test/matchers"
@@ -33,13 +33,14 @@ var _ = Describe("RateLimit Plugin", func() {
 		initParams       plugins.InitParams
 		params           plugins.Params
 		rlPlugin         plugins.HttpFilterPlugin
+		rlServerUpstream *gloov1.Upstream
 		rlServerRef      *core.ResourceRef
 		extAuthServerRef *core.ResourceRef
 	)
 
 	BeforeEach(func() {
 		rlPlugin = NewPlugin()
-		rlServerUpstream := &gloov1.Upstream{
+		rlServerUpstream = &gloov1.Upstream{
 			Metadata: &core.Metadata{
 				Name:      "rl-upstream",
 				Namespace: "ns",
@@ -123,7 +124,7 @@ var _ = Describe("RateLimit Plugin", func() {
 				TransportApiVersion: envoycore.ApiVersion_V3,
 				GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
 					EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-						ClusterName: translator.UpstreamToClusterName(rlServerRef),
+						ClusterName: upstreams.UpstreamToClusterName(rlServerUpstream),
 					},
 				}},
 			},
@@ -154,7 +155,7 @@ var _ = Describe("RateLimit Plugin", func() {
 				TransportApiVersion: envoycore.ApiVersion_V3,
 				GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
 					EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-						ClusterName: translator.UpstreamToClusterName(rlServerRef),
+						ClusterName: upstreams.UpstreamToClusterName(rlServerUpstream),
 						Authority:   "xyz",
 					},
 				}},

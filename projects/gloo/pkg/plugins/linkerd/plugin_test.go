@@ -14,7 +14,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	glooupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/test/matchers"
 )
@@ -78,17 +78,17 @@ var _ = Describe("linkerd plugin", func() {
 	}
 
 	var clustersAndDestinationsForUpstreams = func(
-		upstreamRefs []*core.ResourceRef,
+		upstreams v1.UpstreamList,
 	) ([]*envoy_config_route_v3.WeightedCluster_ClusterWeight, []*v1.WeightedDestination) {
-		clusters := make([]*envoy_config_route_v3.WeightedCluster_ClusterWeight, len(upstreamRefs))
-		for i, v := range upstreamRefs {
+		clusters := make([]*envoy_config_route_v3.WeightedCluster_ClusterWeight, len(upstreams))
+		for i, up := range upstreams {
 			clusters[i] = &envoy_config_route_v3.WeightedCluster_ClusterWeight{
-				Name: translator.UpstreamToClusterName(v),
+				Name: glooupstreams.UpstreamToClusterName(up),
 			}
 		}
-		destinations := make([]*v1.WeightedDestination, len(upstreamRefs))
-		for i, v := range upstreamRefs {
-			usRef := v
+		destinations := make([]*v1.WeightedDestination, len(upstreams))
+		for i, up := range upstreams {
+			usRef := up.GetMetadata().Ref()
 			destinations[i] = &v1.WeightedDestination{
 				Destination: &v1.Destination{
 					DestinationType: &v1.Destination_Upstream{
@@ -163,7 +163,8 @@ var _ = Describe("linkerd plugin", func() {
 				{ServicePort: port, ServiceName: "two", ServiceNamespace: "one"},
 				{ServicePort: port, ServiceName: "three", ServiceNamespace: "one"},
 			}
-			clusters, destinations := clustersAndDestinationsForUpstreams(upstreamRefs)
+			upstreams := createUpstreamList(upstreamRefs, kubeSpecs)
+			clusters, destinations := clustersAndDestinationsForUpstreams(upstreams)
 			out.Action = &envoy_config_route_v3.Route_Route{
 				Route: &envoy_config_route_v3.RouteAction{
 					ClusterSpecifier: &envoy_config_route_v3.RouteAction_WeightedClusters{
@@ -173,7 +174,6 @@ var _ = Describe("linkerd plugin", func() {
 					},
 				},
 			}
-			upstreams := createUpstreamList(upstreamRefs, kubeSpecs)
 			outCopy := proto.Clone(out)
 			Expect(configForMultiDestination(destinations, upstreams, out)).To(Succeed())
 			Expect(out).NotTo(BeEquivalentTo(outCopy))
@@ -199,7 +199,8 @@ var _ = Describe("linkerd plugin", func() {
 				{ServicePort: port, ServiceName: "two", ServiceNamespace: "one"},
 				nil,
 			}
-			clusters, destinations := clustersAndDestinationsForUpstreams(upstreamRefs)
+			upstreams := createUpstreamList(upstreamRefs, kubeSpecs)
+			clusters, destinations := clustersAndDestinationsForUpstreams(upstreams)
 			out.Action = &envoy_config_route_v3.Route_Route{
 				Route: &envoy_config_route_v3.RouteAction{
 					ClusterSpecifier: &envoy_config_route_v3.RouteAction_WeightedClusters{
@@ -209,7 +210,6 @@ var _ = Describe("linkerd plugin", func() {
 					},
 				},
 			}
-			upstreams := createUpstreamList(upstreamRefs, kubeSpecs)
 			outCopy := proto.Clone(out)
 			Expect(configForMultiDestination(destinations, upstreams, out)).To(Succeed())
 			Expect(out).NotTo(BeEquivalentTo(outCopy))
@@ -242,7 +242,8 @@ var _ = Describe("linkerd plugin", func() {
 				{ServicePort: port, ServiceName: "two", ServiceNamespace: "one"},
 				nil,
 			}
-			clusters, _ := clustersAndDestinationsForUpstreams(upstreamRefs)
+			upstreams := createUpstreamList(upstreamRefs, kubeSpecs)
+			clusters, _ := clustersAndDestinationsForUpstreams(upstreams)
 			out.Action = &envoy_config_route_v3.Route_Route{
 				Route: &envoy_config_route_v3.RouteAction{
 					ClusterSpecifier: &envoy_config_route_v3.RouteAction_WeightedClusters{
@@ -252,7 +253,6 @@ var _ = Describe("linkerd plugin", func() {
 					},
 				},
 			}
-			upstreams := createUpstreamList(upstreamRefs, kubeSpecs)
 			params.Snapshot = &v1snap.ApiSnapshot{
 				Upstreams: upstreams,
 			}

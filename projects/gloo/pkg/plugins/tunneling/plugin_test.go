@@ -14,7 +14,7 @@ import (
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/tunneling"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	glooupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/skv2/test/matchers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -68,7 +68,7 @@ var _ = Describe("Plugin", func() {
 								Action: &envoy_config_route_v3.Route_Route{
 									Route: &envoy_config_route_v3.RouteAction{
 										ClusterSpecifier: &envoy_config_route_v3.RouteAction_Cluster{
-											Cluster: translator.UpstreamToClusterName(us.Metadata.Ref()),
+											Cluster: glooupstreams.UpstreamToClusterName(us),
 										},
 									},
 								},
@@ -80,7 +80,7 @@ var _ = Describe("Plugin", func() {
 		}
 
 		// use UpstreamToClusterName to emulate a real translation loop.
-		clusterName := translator.UpstreamToClusterName(us.Metadata.Ref())
+		clusterName := glooupstreams.UpstreamToClusterName(us)
 		inClusters = []*envoy_config_cluster_v3.Cluster{
 			{
 				Name: clusterName,
@@ -160,7 +160,7 @@ var _ = Describe("Plugin", func() {
 			dupRoute.Action = &envoy_config_route_v3.Route_Route{
 				Route: &envoy_config_route_v3.RouteAction{
 					ClusterSpecifier: &envoy_config_route_v3.RouteAction_Cluster{
-						Cluster: translator.UpstreamToClusterName(us.Metadata.Ref()),
+						Cluster: glooupstreams.UpstreamToClusterName(us),
 					},
 				},
 			}
@@ -193,7 +193,7 @@ var _ = Describe("Plugin", func() {
 			cpRoute.Action = &envoy_config_route_v3.Route_Route{
 				Route: &envoy_config_route_v3.RouteAction{
 					ClusterSpecifier: &envoy_config_route_v3.RouteAction_Cluster{
-						Cluster: translator.UpstreamToClusterName(usCopy.Metadata.Ref()),
+						Cluster: glooupstreams.UpstreamToClusterName(usCopy),
 					},
 				},
 			}
@@ -202,7 +202,7 @@ var _ = Describe("Plugin", func() {
 			// update cluster input such that copied cluster's name matches the copied upstream
 			inCluster := inClusters[0]
 			cpCluster := proto.Clone(inCluster).(*envoy_config_cluster_v3.Cluster)
-			cpCluster.Name = translator.UpstreamToClusterName(usCopy.Metadata.Ref())
+			cpCluster.Name = glooupstreams.UpstreamToClusterName(usCopy)
 			inClusters = append(inClusters, cpCluster)
 		})
 

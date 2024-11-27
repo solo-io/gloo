@@ -5,26 +5,9 @@ import (
 	. "github.com/onsi/gomega"
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 var _ = Describe("Utils", func() {
-
-	It("empty namespace: should convert upstream to cluster name and back properly", func() {
-		ref := &core.ResourceRef{Name: "name", Namespace: ""}
-		clusterName := translator.UpstreamToClusterName(ref)
-		convertedBack, err := translator.ClusterToUpstreamRef(clusterName)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(convertedBack).To(Equal(ref))
-	})
-
-	It("populated namespace: should convert upstream to cluster name and back properly", func() {
-		ref := &core.ResourceRef{Name: "name", Namespace: "namespace"}
-		clusterName := translator.UpstreamToClusterName(ref)
-		convertedBack, err := translator.ClusterToUpstreamRef(clusterName)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(convertedBack).To(Equal(ref))
-	})
 
 	DescribeTable(
 		"IsIpv4Address",

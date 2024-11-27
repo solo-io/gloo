@@ -135,7 +135,7 @@ func upstreamDetails(up *v1.Upstream, xdsDump *xdsinspection.XdsDump) []string {
 			fmt.Sprintf("port:           %v", usType.AwsEc2.GetPort()),
 		)
 		add(getEc2TagFiltersString(usType.AwsEc2.GetFilters())...)
-		instances := xdsDump.GetEc2InstancesForUpstream(up.GetMetadata().Ref())
+		instances := xdsDump.GetEc2InstancesForUpstream(up)
 		add(
 			"EC2 Instance Ids:",
 		)

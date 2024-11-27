@@ -6,6 +6,7 @@ import (
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	glooupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"go.opencensus.io/trace"
 
@@ -52,7 +53,7 @@ func loadAssignmentForUpstream(
 	clusterEndpoints []*v1.Endpoint,
 	enableAutoMtls bool,
 ) *envoy_config_endpoint_v3.ClusterLoadAssignment {
-	clusterName := UpstreamToClusterName(upstream.GetMetadata().Ref())
+	clusterName := glooupstreams.UpstreamToClusterName(upstream)
 	var endpoints []*envoy_config_endpoint_v3.LbEndpoint
 	for _, addr := range clusterEndpoints {
 		// Get the metadata labels and filter metadata for the envoy load balancer based on the upstream

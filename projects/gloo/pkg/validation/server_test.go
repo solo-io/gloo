@@ -349,7 +349,7 @@ var _ = Describe("Validation Server", func() {
 				}
 				kubeSvcUpstream = v1.Upstream{
 					Metadata: &core.Metadata{
-						Name:      fmt.Sprintf("%s%s", upstreams_kubernetes.UpstreamNamePrefix, upstream.GetMetadata().GetName()),
+						Name:      fmt.Sprintf("%s%s", upstreams_kubernetes.FakeUpstreamNamePrefix, upstream.GetMetadata().GetName()),
 						Namespace: upstream.GetMetadata().GetNamespace(),
 					},
 					UpstreamType: usType,

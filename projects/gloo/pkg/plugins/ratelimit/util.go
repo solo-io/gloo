@@ -5,13 +5,13 @@ import (
 	rlconfig "github.com/envoyproxy/go-control-plane/envoy/config/ratelimit/v3"
 	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ratelimit/v3"
 	"github.com/golang/protobuf/ptypes/duration"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 )
 
 func GenerateEnvoyConfigForFilterWith(
-	upstreamRef *core.ResourceRef,
+	upstream *gloov1.Upstream,
 	grpcService *ratelimit.GrpcService,
 	domain string,
 	stage uint32,
@@ -23,7 +23,7 @@ func GenerateEnvoyConfigForFilterWith(
 	svc := &envoycore.GrpcService{
 		TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
 			EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-				ClusterName: translator.UpstreamToClusterName(upstreamRef),
+				ClusterName: upstreams.UpstreamToClusterName(upstream),
 				Authority:   grpcService.GetAuthority(),
 			},
 		}}

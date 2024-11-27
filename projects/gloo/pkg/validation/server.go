@@ -246,7 +246,7 @@ func (s *validator) ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource 
 					kubeSvcUs := &v1.Upstream{
 						Metadata: &core.Metadata{
 							Namespace: resource.GetMetadata().GetNamespace(),
-							Name:      fmt.Sprintf("%s%s", kubernetes.UpstreamNamePrefix, resource.GetMetadata().GetName()),
+							Name:      fmt.Sprintf("%s%s", kubernetes.FakeUpstreamNamePrefix, resource.GetMetadata().GetName()),
 						},
 					}
 					if err := snapCopy.RemoveFromResourceList(kubeSvcUs); err != nil {
@@ -283,7 +283,7 @@ func applyRequestToSnapshot(snap *v1snap.ApiSnapshot, req *validation.GlooValida
 		for _, ref := range req.GetDeletedResources().GetUpstreamRefs() {
 			deletedUpstreamRefs = append(deletedUpstreamRefs, &core.ResourceRef{
 				Namespace: ref.GetNamespace(),
-				Name:      fmt.Sprintf("%s%s", kubernetes.UpstreamNamePrefix, ref.GetName()),
+				Name:      fmt.Sprintf("%s%s", kubernetes.FakeUpstreamNamePrefix, ref.GetName()),
 			})
 		}
 		finalUpstreams := utils.DeleteResources(existingUpstreams, deletedUpstreamRefs)

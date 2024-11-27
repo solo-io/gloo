@@ -15,7 +15,7 @@ import (
 	"github.com/rotisserie/eris"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
@@ -35,7 +35,7 @@ var _ = Describe("RouteReplacingSanitizer", func() {
 				Namespace: "upstream",
 			},
 		}
-		clusterName = translator.UpstreamToClusterName(us.Metadata.Ref())
+		clusterName = upstreams.UpstreamToClusterName(us)
 
 		missingCluster = "missing_cluster"
 

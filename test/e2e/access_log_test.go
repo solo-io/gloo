@@ -26,7 +26,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
 	alsplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/als"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	glooupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 )
 
 var _ = Describe("Access Log", func() {
@@ -106,7 +106,7 @@ var _ = Describe("Access Log", func() {
 
 				var entry *envoy_data_accesslog_v3.HTTPAccessLogEntry
 				g.Eventually(msgChan, 2*time.Second).Should(Receive(&entry))
-				g.Expect(entry.CommonProperties.UpstreamCluster).To(Equal(translator.UpstreamToClusterName(testContext.TestUpstream().Upstream.Metadata.Ref())))
+				g.Expect(entry.CommonProperties.UpstreamCluster).To(Equal(glooupstreams.UpstreamToClusterName(testContext.TestUpstream().Upstream)))
 			}, time.Second*21, time.Second*2).Should(Succeed())
 		})
 

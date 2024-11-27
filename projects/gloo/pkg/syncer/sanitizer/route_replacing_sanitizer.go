@@ -24,6 +24,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/stats"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
@@ -242,8 +243,8 @@ func getClusters(glooSnapshot *v1snap.ApiSnapshot, xdsSnapshot envoycache.Snapsh
 	validClusters := make(map[string]struct{})
 	xdsClusters := xdsSnapshot.GetResources(types.ClusterTypeV3)
 
-	for _, up := range glooSnapshot.Upstreams.AsInputResources() {
-		clusterName := translator.UpstreamToClusterName(up.GetMetadata().Ref())
+	for _, up := range glooSnapshot.Upstreams {
+		clusterName := upstreams.UpstreamToClusterName(up)
 		if xdsClusters.Items[clusterName] != nil {
 			validClusters[clusterName] = struct{}{}
 		}

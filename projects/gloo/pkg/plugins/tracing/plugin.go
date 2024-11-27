@@ -17,7 +17,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/internal/common"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
-	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -306,12 +306,12 @@ func getEnvoyTracingCollectorClusterName(snapshot *v1snap.ApiSnapshot, collector
 	}
 
 	// Make sure the upstream exists
-	_, err := snapshot.Upstreams.Find(collectorUpstreamRef.GetNamespace(), collectorUpstreamRef.GetName())
+	upstream, err := snapshot.Upstreams.Find(collectorUpstreamRef.GetNamespace(), collectorUpstreamRef.GetName())
 	if err != nil {
 		return "", pluginutils.NewUpstreamNotFoundErr(collectorUpstreamRef)
 	}
 
-	return translatorutil.UpstreamToClusterName(collectorUpstreamRef), nil
+	return upstreams.UpstreamToClusterName(upstream), nil
 }
 
 func envoySimplePercent(numerator float32) *envoy_type.Percent {

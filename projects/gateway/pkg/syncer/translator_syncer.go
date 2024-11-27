@@ -12,7 +12,6 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/statsutils/metrics"
 	"github.com/solo-io/gloo/pkg/utils/syncutil"
 
-	gloo_translator "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"go.uber.org/zap/zapcore"
@@ -230,7 +229,7 @@ func (s *statusSyncer) setCurrentProxies(desiredProxies reconciler.GeneratedProx
 	// floating around.  Historically, they were there to envorce an alphabetical processing of
 	//  `proxyToLastStatus`.  See https://github.com/solo-io/gloo/issues/5812 for more details.
 	for proxyRef, reports := range proxyReportsByRef {
-		refKey := gloo_translator.UpstreamToClusterName(proxyRef)
+		refKey := glooutils.ResourceRefToKey(proxyRef)
 		if _, ok := s.proxyToLastStatus[refKey]; !ok {
 			s.proxyToLastStatus[refKey] = reportsAndStatus{}
 		}
@@ -295,7 +294,7 @@ func (s *statusSyncer) setStatuses(list gloov1.ProxyList) {
 	defer s.mapLock.Unlock()
 	for _, proxy := range list {
 		ref := proxy.GetMetadata().Ref()
-		refKey := gloo_translator.UpstreamToClusterName(ref)
+		refKey := glooutils.ResourceRefToKey(ref)
 		status := s.statusClient.GetStatus(proxy)
 		if current, ok := s.proxyToLastStatus[refKey]; ok {
 			current.Status = status
@@ -359,7 +358,7 @@ func (s *statusSyncer) extractCurrentReports() (reporter.ResourceReports, map[re
 
 	var refKeys []string
 	for _, ref := range s.currentGeneratedProxies {
-		refKeys = append(refKeys, gloo_translator.UpstreamToClusterName(ref))
+		refKeys = append(refKeys, glooutils.ResourceRefToKey(ref))
 	}
 
 	// iterate over proxyToLastStatus by alphabetical ordering of keys

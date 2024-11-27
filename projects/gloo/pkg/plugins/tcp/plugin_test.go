@@ -21,6 +21,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/plugins/tcp"
 	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	glooupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	mock_utils "github.com/solo-io/gloo/projects/gloo/pkg/utils/mocks"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -51,8 +52,11 @@ var _ = Describe("Plugin", func() {
 
 	Context("listener filter chain plugin", func() {
 		var (
-			snap *v1snap.ApiSnapshot
-			tcps *tcp.TcpProxySettings
+			snap      *v1snap.ApiSnapshot
+			tcps      *tcp.TcpProxySettings
+			upstream1 *v1.Upstream
+			upstream2 *v1.Upstream
+			upstream3 *v1.Upstream
 
 			ns = "one"
 			wd = []*v1.WeightedDestination{
@@ -82,26 +86,29 @@ var _ = Describe("Plugin", func() {
 		)
 
 		BeforeEach(func() {
+			upstream1 = &v1.Upstream{
+				Metadata: &core.Metadata{
+					Name:      "one",
+					Namespace: ns,
+				},
+			}
+			upstream1 = &v1.Upstream{
+				Metadata: &core.Metadata{
+					Name:      "two",
+					Namespace: ns,
+				},
+			}
+			upstream1 = &v1.Upstream{
+				Metadata: &core.Metadata{
+					Name:      "three",
+					Namespace: ns,
+				},
+			}
 			snap = &v1snap.ApiSnapshot{
 				Upstreams: v1.UpstreamList{
-					{
-						Metadata: &core.Metadata{
-							Name:      "one",
-							Namespace: ns,
-						},
-					},
-					{
-						Metadata: &core.Metadata{
-							Name:      "two",
-							Namespace: ns,
-						},
-					},
-					{
-						Metadata: &core.Metadata{
-							Name:      "three",
-							Namespace: ns,
-						},
-					},
+					upstream1,
+					upstream2,
+					upstream3,
 				},
 			}
 			tcps = &tcp.TcpProxySettings{
@@ -235,7 +242,7 @@ var _ = Describe("Plugin", func() {
 			err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
 			Expect(err).NotTo(HaveOccurred())
 			cluster := cfg.GetCluster()
-			Expect(cluster).To(Equal(translatorutil.UpstreamToClusterName(&core.ResourceRef{Namespace: ns, Name: "one"})))
+			Expect(cluster).To(Equal(glooupstreams.UpstreamToClusterName(upstream1)))
 		})
 
 		It("can transform a multi destination", func() {
@@ -259,9 +266,9 @@ var _ = Describe("Plugin", func() {
 			Expect(err).NotTo(HaveOccurred())
 			clusters := cfg.GetWeightedClusters()
 			Expect(clusters.Clusters).To(HaveLen(2))
-			Expect(clusters.Clusters[0].Name).To(Equal(translatorutil.UpstreamToClusterName(&core.ResourceRef{Namespace: ns, Name: "one"})))
+			Expect(clusters.Clusters[0].Name).To(Equal(glooupstreams.UpstreamToClusterName(upstream1)))
 			Expect(clusters.Clusters[0].Weight).To(Equal(uint32(5)))
-			Expect(clusters.Clusters[1].Name).To(Equal(translatorutil.UpstreamToClusterName(&core.ResourceRef{Namespace: ns, Name: "two"})))
+			Expect(clusters.Clusters[1].Name).To(Equal(glooupstreams.UpstreamToClusterName(upstream2)))
 			Expect(clusters.Clusters[1].Weight).To(Equal(uint32(1)))
 		})
 
@@ -294,9 +301,9 @@ var _ = Describe("Plugin", func() {
 			Expect(err).NotTo(HaveOccurred())
 			clusters := cfg.GetWeightedClusters()
 			Expect(clusters.Clusters).To(HaveLen(2))
-			Expect(clusters.Clusters[0].Name).To(Equal(translatorutil.UpstreamToClusterName(&core.ResourceRef{Namespace: ns, Name: "one"})))
+			Expect(clusters.Clusters[0].Name).To(Equal(glooupstreams.UpstreamToClusterName(upstream1)))
 			Expect(clusters.Clusters[0].Weight).To(Equal(uint32(5)))
-			Expect(clusters.Clusters[1].Name).To(Equal(translatorutil.UpstreamToClusterName(&core.ResourceRef{Namespace: ns, Name: "two"})))
+			Expect(clusters.Clusters[1].Name).To(Equal(glooupstreams.UpstreamToClusterName(upstream2)))
 			Expect(clusters.Clusters[1].Weight).To(Equal(uint32(1)))
 		})
 

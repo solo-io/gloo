@@ -23,10 +23,10 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/test/matchers"
 
+	envoygrpc "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/grpc/v3"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/plugins/als"
 	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
-
-	envoygrpc "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/grpc/v3"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
 
 var _ = Describe("Plugin", func() {
@@ -72,7 +72,7 @@ var _ = Describe("Plugin", func() {
 							GrpcService: &accessLogService.GrpcService{
 								LogName: logName,
 								ServiceRef: &accessLogService.GrpcService_StaticClusterName{
-									StaticClusterName: translatorutil.UpstreamToClusterName(usRef),
+									StaticClusterName: utils.ResourceRefToKey(usRef),
 								},
 								AdditionalRequestHeadersToLog:   extraHeaders,
 								AdditionalResponseHeadersToLog:  extraHeaders,
@@ -98,7 +98,7 @@ var _ = Describe("Plugin", func() {
 				Expect(falCfg.CommonConfig.LogName).To(Equal(logName))
 				envoyGrpc := falCfg.CommonConfig.GetGrpcService().GetEnvoyGrpc()
 				Expect(envoyGrpc).NotTo(BeNil())
-				Expect(envoyGrpc.ClusterName).To(Equal(translatorutil.UpstreamToClusterName(usRef)))
+				Expect(envoyGrpc.ClusterName).To(Equal(utils.ResourceRefToKey(usRef)))
 			})
 
 			DescribeTable("Test each filter is translated properly",
@@ -605,7 +605,7 @@ var _ = Describe("Plugin", func() {
 								GrpcService: &accessLogService.GrpcService{
 									LogName: logName,
 									ServiceRef: &accessLogService.GrpcService_StaticClusterName{
-										StaticClusterName: translatorutil.UpstreamToClusterName(usRef),
+										StaticClusterName: utils.ResourceRefToKey(usRef),
 									},
 									AdditionalRequestHeadersToLog:   extraHeaders,
 									AdditionalResponseHeadersToLog:  extraHeaders,
@@ -634,7 +634,7 @@ var _ = Describe("Plugin", func() {
 				Expect(falCfg.CommonConfig.LogName).To(Equal(logName))
 				envoyGrpc := falCfg.CommonConfig.GetGrpcService().GetEnvoyGrpc()
 				Expect(envoyGrpc).NotTo(BeNil())
-				Expect(envoyGrpc.ClusterName).To(Equal(translatorutil.UpstreamToClusterName(usRef)))
+				Expect(envoyGrpc.ClusterName).To(Equal(utils.ResourceRefToKey(usRef)))
 			})
 
 		})
@@ -787,7 +787,7 @@ var _ = Describe("Plugin", func() {
 									GrpcService: &accessLogService.GrpcService{
 										LogName: logName,
 										ServiceRef: &accessLogService.GrpcService_StaticClusterName{
-											StaticClusterName: translatorutil.UpstreamToClusterName(usRef),
+											StaticClusterName: utils.ResourceRefToKey(usRef),
 										},
 										AdditionalRequestHeadersToLog:   extraHeaders,
 										AdditionalResponseHeadersToLog:  extraHeaders,
@@ -826,7 +826,7 @@ var _ = Describe("Plugin", func() {
 									GrpcService: &accessLogService.GrpcService{
 										LogName: logName,
 										ServiceRef: &accessLogService.GrpcService_StaticClusterName{
-											StaticClusterName: translatorutil.UpstreamToClusterName(usRef),
+											StaticClusterName: utils.ResourceRefToKey(usRef),
 										},
 										AdditionalRequestHeadersToLog:   extraHeaders,
 										AdditionalResponseHeadersToLog:  extraHeaders,
@@ -878,7 +878,7 @@ var _ = Describe("Plugin", func() {
 									GrpcService: &accessLogService.GrpcService{
 										LogName: logName,
 										ServiceRef: &accessLogService.GrpcService_StaticClusterName{
-											StaticClusterName: translatorutil.UpstreamToClusterName(usRef),
+											StaticClusterName: utils.ResourceRefToKey(usRef),
 										},
 										AdditionalRequestHeadersToLog:   extraHeaders,
 										AdditionalResponseHeadersToLog:  extraHeaders,
@@ -932,7 +932,7 @@ var _ = Describe("Plugin", func() {
 									GrpcService: &accessLogService.GrpcService{
 										LogName: logName,
 										ServiceRef: &accessLogService.GrpcService_StaticClusterName{
-											StaticClusterName: translatorutil.UpstreamToClusterName(usRef),
+											StaticClusterName: utils.ResourceRefToKey(usRef),
 										},
 										AdditionalRequestHeadersToLog:   extraHeaders,
 										AdditionalResponseHeadersToLog:  extraHeaders,
@@ -962,7 +962,7 @@ var _ = Describe("Plugin", func() {
 									GrpcService: &accessLogService.GrpcService{
 										LogName: logName,
 										ServiceRef: &accessLogService.GrpcService_StaticClusterName{
-											StaticClusterName: translatorutil.UpstreamToClusterName(usRef),
+											StaticClusterName: utils.ResourceRefToKey(usRef),
 										},
 										AdditionalRequestHeadersToLog:   extraHeaders,
 										AdditionalResponseHeadersToLog:  extraHeaders,

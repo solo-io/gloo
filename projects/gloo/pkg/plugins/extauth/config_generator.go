@@ -18,7 +18,7 @@ import (
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/extauth"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	glooupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/utils/prototime"
 )
@@ -222,7 +222,7 @@ func GenerateEnvoyConfigForFilter(settings *extauthv1.Settings, upstreams v1.Ups
 	}
 
 	// Make sure the server exists
-	_, err := upstreams.Find(extauthUpstreamRef.GetNamespace(), extauthUpstreamRef.GetName())
+	extauthUpstream, err := upstreams.Find(extauthUpstreamRef.GetNamespace(), extauthUpstreamRef.GetName())
 	if err != nil {
 		return nil, ServerNotFound(extauthUpstreamRef)
 	}
@@ -236,7 +236,7 @@ func GenerateEnvoyConfigForFilter(settings *extauthv1.Settings, upstreams v1.Ups
 		svc := &envoycore.GrpcService{
 			TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
 				EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-					ClusterName: translator.UpstreamToClusterName(extauthUpstreamRef),
+					ClusterName: glooupstreams.UpstreamToClusterName(extauthUpstream),
 				},
 			}}
 
@@ -259,7 +259,7 @@ func GenerateEnvoyConfigForFilter(settings *extauthv1.Settings, upstreams v1.Ups
 			Uri:     HttpServerUri,
 			Timeout: settings.GetRequestTimeout(),
 			HttpUpstreamType: &envoycore.HttpUri_Cluster{
-				Cluster: translator.UpstreamToClusterName(extauthUpstreamRef),
+				Cluster: glooupstreams.UpstreamToClusterName(extauthUpstream),
 			},
 		}
 		if httpURI.GetTimeout() == nil {

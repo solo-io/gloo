@@ -13,7 +13,6 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
 
 var (
@@ -132,7 +131,7 @@ func configForMultiDestination(
 			continue
 		}
 		header := createHeaderForUpstream(kubeUs)
-		clusterName := translator.UpstreamToClusterName(us.GetMetadata().Ref())
+		clusterName := usconversions.UpstreamToClusterName(us)
 		clusters := findClustersForName(clusterName, weightedCluster.GetClusters())
 		for _, cluster := range clusters {
 			if _, ok := processedClusters[cluster.GetName()]; ok {

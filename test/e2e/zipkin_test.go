@@ -15,7 +15,7 @@ import (
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	glooupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -102,8 +102,9 @@ var _ = Describe("Tracing config loading", Serial, func() {
 	Context("Tracing defined on Gloo resources", func() {
 
 		var (
-			testClients  services.TestClients
-			testUpstream *v1helpers.TestUpstream
+			testClients        services.TestClients
+			testUpstream       *v1helpers.TestUpstream
+			tracingCollectorUs *gloov1.Upstream
 
 			resourcesToCreate *gloosnapshot.ApiSnapshot
 		)
@@ -136,7 +137,7 @@ var _ = Describe("Tracing config loading", Serial, func() {
 				Build()
 
 			// create tracing collector upstream
-			tracingCollectorUs := &gloov1.Upstream{
+			tracingCollectorUs = &gloov1.Upstream{
 				Metadata: &core.Metadata{
 					Name:      tracingCollectorUpstreamName,
 					Namespace: writeNamespace,
@@ -268,10 +269,7 @@ var _ = Describe("Tracing config loading", Serial, func() {
 								ProviderConfig: &tracing.ListenerTracingSettings_OpenTelemetryConfig{
 									OpenTelemetryConfig: &envoytrace_gloo.OpenTelemetryConfig{
 										CollectorCluster: &envoytrace_gloo.OpenTelemetryConfig_ClusterName{
-											ClusterName: translator.UpstreamToClusterName(&core.ResourceRef{
-												Name:      tracingCollectorUpstreamName,
-												Namespace: writeNamespace,
-											}),
+											ClusterName: glooupstreams.UpstreamToClusterName(tracingCollectorUs),
 										},
 									},
 								},
@@ -382,10 +380,7 @@ var _ = Describe("Tracing config loading", Serial, func() {
 								ProviderConfig: &tracing.ListenerTracingSettings_ZipkinConfig{
 									ZipkinConfig: &envoytrace_gloo.ZipkinConfig{
 										CollectorCluster: &envoytrace_gloo.ZipkinConfig_ClusterName{
-											ClusterName: translator.UpstreamToClusterName(&core.ResourceRef{
-												Name:      tracingCollectorUpstreamName,
-												Namespace: writeNamespace,
-											}),
+											ClusterName: glooupstreams.UpstreamToClusterName(tracingCollectorUs),
 										},
 										CollectorEndpoint:        zipkinCollectionPath,
 										CollectorEndpointVersion: envoytrace_gloo.ZipkinConfig_HTTP_JSON,

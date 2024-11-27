@@ -217,7 +217,7 @@ func (g *genericStatusReporter) WriteReports(ctx context.Context, resourceErrs r
 	for resource, report := range resourceErrsCopy {
 
 		// check if resource is an internal upstream. if so skip it..
-		if kubernetes.IsKubeUpstream(resource.GetMetadata().GetName()) {
+		if kubernetes.IsFakeKubeUpstream(resource.GetMetadata().GetName()) {
 			continue
 		}
 		// check if resource is an internal upstream. Internal upstreams have ':' in their names so
