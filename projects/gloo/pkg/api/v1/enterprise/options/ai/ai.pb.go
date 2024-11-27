@@ -24,6 +24,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// The type of publisher model to use. Currently, only Google is supported.
 type UpstreamSpec_VertexAI_Publisher int32
 
 const (
@@ -67,10 +68,13 @@ func (UpstreamSpec_VertexAI_Publisher) EnumDescriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 4, 0}
 }
 
+// The type of route to the LLM provider API.
 type RouteSettings_RouteType int32
 
 const (
-	RouteSettings_CHAT           RouteSettings_RouteType = 0
+	// The LLM generates the full response before responding to a client.
+	RouteSettings_CHAT RouteSettings_RouteType = 0
+	// Stream responses to a client, which allows the LLM to stream out tokens as they are generated.
 	RouteSettings_CHAT_STREAMING RouteSettings_RouteType = 1
 )
 
@@ -113,12 +117,14 @@ func (RouteSettings_RouteType) EnumDescriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{2, 0}
 }
 
+// The caching mode to use for the request and response lifecycle.
 type SemanticCache_Mode int32
 
 const (
-	// Read and write to the cache as a part of the request/response lifecycle
+	// Read and write to the cache as a part of the request and response lifecycle.
 	SemanticCache_READ_WRITE SemanticCache_Mode = 0
-	// Only read from the cache, do not write to it. Data will be written to the cache outside the request/response cycle.
+	// Only read from the cache, and do not write to it.
+	// Data is written to the cache outside of the request and response cycle.
 	SemanticCache_READ_ONLY SemanticCache_Mode = 1
 )
 
@@ -161,16 +167,19 @@ func (SemanticCache_Mode) EnumDescriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{6, 0}
 }
 
+// Built-in regex patterns for specific types of strings in prompts.
+// For example, if you specify `CREDIT_CARD`, any credit card numbers
+// in the request or response are matched.
 type AIPromptGuard_Regex_BuiltIn int32
 
 const (
-	// Default REGEX for Social Security Numbers
+	// Default regex matching for Social Security numbers.
 	AIPromptGuard_Regex_SSN AIPromptGuard_Regex_BuiltIn = 0
-	// Default REGEX for Credit Card Numbers
+	// Default regex matching for credit card numbers.
 	AIPromptGuard_Regex_CREDIT_CARD AIPromptGuard_Regex_BuiltIn = 1
-	// Default REGEX for Phone Numbers
+	// Default regex matching for phone numbers.
 	AIPromptGuard_Regex_PHONE_NUMBER AIPromptGuard_Regex_BuiltIn = 2
-	// Default REGEX for Email Addresses
+	// Default regex matching for email addresses.
 	AIPromptGuard_Regex_EMAIL AIPromptGuard_Regex_BuiltIn = 3
 )
 
@@ -217,12 +226,14 @@ func (AIPromptGuard_Regex_BuiltIn) EnumDescriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{9, 0, 0}
 }
 
+// The action to take if a regex pattern is matched in a request or response.
+// This setting applies only to request matches. Response matches are always masked by default.
 type AIPromptGuard_Regex_Action int32
 
 const (
-	// Mask the response if the regex matches
+	// Mask the matched data in the request.
 	AIPromptGuard_Regex_MASK AIPromptGuard_Regex_Action = 0
-	// Reject the request if the regex matches
+	// Reject the request if the regex matches content in the request.
 	AIPromptGuard_Regex_REJECT AIPromptGuard_Regex_Action = 1
 )
 
@@ -265,19 +276,20 @@ func (AIPromptGuard_Regex_Action) EnumDescriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{9, 0, 1}
 }
 
+// The header string match type.
 type AIPromptGuard_Webhook_HeaderMatch_MatchType int32
 
 const (
-	// Exact match
+	// The string must match exactly the specified string.
 	AIPromptGuard_Webhook_HeaderMatch_EXACT AIPromptGuard_Webhook_HeaderMatch_MatchType = 0
-	// Prefix match
+	// The string must have the specified prefix.
 	AIPromptGuard_Webhook_HeaderMatch_PREFIX AIPromptGuard_Webhook_HeaderMatch_MatchType = 1
-	// Suffix match
+	// The string must have the specified suffix.
 	AIPromptGuard_Webhook_HeaderMatch_SUFFIX AIPromptGuard_Webhook_HeaderMatch_MatchType = 2
-	// Contains match
+	// The header string must contain the specified string.
 	AIPromptGuard_Webhook_HeaderMatch_CONTAINS AIPromptGuard_Webhook_HeaderMatch_MatchType = 3
-	// Regex match
-	AIPromptGuard_Webhook_HeaderMatch_REGEX AIPromptGuard_Webhook_HeaderMatch_MatchType = 4
+	// The string must match the specified [RE2-style regular expression](https://github.com/google/re2/wiki/) pattern.
+	AIPromptGuard_Webhook_HeaderMatch_regex AIPromptGuard_Webhook_HeaderMatch_MatchType = 4
 )
 
 // Enum value maps for AIPromptGuard_Webhook_HeaderMatch_MatchType.
@@ -287,14 +299,14 @@ var (
 		1: "PREFIX",
 		2: "SUFFIX",
 		3: "CONTAINS",
-		4: "REGEX",
+		4: "regex",
 	}
 	AIPromptGuard_Webhook_HeaderMatch_MatchType_value = map[string]int32{
 		"EXACT":    0,
 		"PREFIX":   1,
 		"SUFFIX":   2,
 		"CONTAINS": 3,
-		"REGEX":    4,
+		"regex":    4,
 	}
 )
 
@@ -325,6 +337,8 @@ func (AIPromptGuard_Webhook_HeaderMatch_MatchType) EnumDescriptor() ([]byte, []i
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{9, 1, 0, 0}
 }
 
+// The authorization token that the AI gateway uses to access the LLM provider API.
+// This token is automatically sent in a request header, depending on the LLM provider.
 type SingleAuthToken struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -401,12 +415,17 @@ type isSingleAuthToken_AuthTokenSource interface {
 }
 
 type SingleAuthToken_Inline struct {
-	// Provide easy inline way to specify a token
+	// Provide the token directly in the configuration for the Upstream.
+	// This option is the least secure. Only use this option for quick tests such as trying out AI Gateway.
 	Inline string `protobuf:"bytes,1,opt,name=inline,proto3,oneof"`
 }
 
 type SingleAuthToken_SecretRef struct {
-	// Reference to a secret in the same namespace as the Upstream
+	// Store the API key in a Kubernetes secret in the same namespace as the Upstream.
+	// Then, refer to the secret in the Upstream configuration. This option is more secure than an inline token,
+	// because the API key is encoded and you can restrict access to secrets through RBAC rules.
+	// You might use this option in proofs of concept, controlled development and staging environments,
+	// or well-controlled prod environments that use secrets.
 	SecretRef *core.ResourceRef `protobuf:"bytes,2,opt,name=secret_ref,json=secretRef,proto3,oneof"`
 }
 
@@ -416,7 +435,7 @@ type SingleAuthToken_Passthrough_ struct {
 	// early in the request lifecycle. This option is useful for
 	// backends which have federated identity setup and can re-use
 	// the token from the client.
-	// Currently this token must exist in the `Authorization` header
+	// Currently, this token must exist in the `Authorization` header.
 	Passthrough *SingleAuthToken_Passthrough `protobuf:"bytes,3,opt,name=passthrough,proto3,oneof"`
 }
 
@@ -426,59 +445,21 @@ func (*SingleAuthToken_SecretRef) isSingleAuthToken_AuthTokenSource() {}
 
 func (*SingleAuthToken_Passthrough_) isSingleAuthToken_AuthTokenSource() {}
 
-// The AI UpstreamSpec represents a logical LLM provider backend.
-// The purpose of this spec is a way to configure which backend to use
-// as well as how to authenticate with the backend.
+// When you deploy the Gloo AI Gateway, you can use the `spec.ai` section of the Upstream resource
+// to represent a backend for a logical Large Language Model (LLM) provider.
+// This section configures the LLM provider that the AI Gateway routes requests to,
+// and how the gateway should authenticate with the provider.
+// Note that other Gloo AI Gateway LLM features, such as prompt guards
+// and prompt enrichment, are configured at the route level in the
+// [`spec.options.ai` section of the RouteOptions resource](#routesettings).
 //
-// Currently the options are:
-// - OpenAI
-// Default Host: api.openai.com
-// Default Port: 443
-// Auth Token: Bearer token to use for the OpenAI API
-// - Mistral
-// Default Host: api.mistral.com
-// Default Port: 443
-// Auth Token: Bearer token to use for the Mistral API
-// - Anthropic
-// Default Host: api.anthropic.com
-// Default Port: 443
-// Auth Token: x-api-key to use for the Anthropic API
-// Version: Optional version header to pass to the Anthropic API
+// To get started, see [About Gloo AI Gateway]({{% versioned_link_path fromRoot="/ai/overview/" %}}).
+// For more information about the Upstream resource, see the
+// [API reference]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto.sk/" %}}).
 //
-// All of the above backends can be configured to use a custom host and port.
-// This option is meant to allow users to proxy the request, or to use a different
-// backend altogether which is API compliant with the upstream version.
-//
-// Examples:
-//
-// OpenAI with inline auth token:
-// ```
-// ai:
-// openai:
-// authToken:
-// inline: "my_token"
-// ```
-//
-// Mistral with secret ref:
-// ```
-// ai:
-// mistral:
-// authToken:
-// secretRef:
-// name: "my-secret"
-// namespace: "my-ns"
-// ```
-//
-// Anthropic with inline token and custom Host:
-// ```
-// ai:
-// anthropic:
-// authToken:
-// inline: "my_token"
-// customHost:
-// host: "my-anthropic-host.com"
-// port: 443 # Port is optional and will default to 443 for HTTPS
-// ```
+// {{% notice note %}}
+// AI Gateway is an Enterprise-only feature that requires a Gloo Gateway Enterprise license with an AI Gateway add-on.
+// {{% /notice %}}
 type UpstreamSpec struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -587,37 +568,37 @@ type isUpstreamSpec_Llm interface {
 }
 
 type UpstreamSpec_Openai struct {
-	// OpenAI upstream
+	// Configure an [OpenAI](https://platform.openai.com/docs/overview) backend.
 	Openai *UpstreamSpec_OpenAI `protobuf:"bytes,1,opt,name=openai,proto3,oneof"`
 }
 
 type UpstreamSpec_Mistral_ struct {
-	// Mistral upstream
+	// Configure a [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) backend.
 	Mistral *UpstreamSpec_Mistral `protobuf:"bytes,2,opt,name=mistral,proto3,oneof"`
 }
 
 type UpstreamSpec_Anthropic_ struct {
-	// Anthropic upstream
+	// Configure an [Anthropic](https://docs.anthropic.com/en/release-notes/api) backend.
 	Anthropic *UpstreamSpec_Anthropic `protobuf:"bytes,3,opt,name=anthropic,proto3,oneof"`
 }
 
 type UpstreamSpec_AzureOpenai struct {
-	// Azure OpenAI upstream
+	// Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) backend.
 	AzureOpenai *UpstreamSpec_AzureOpenAI `protobuf:"bytes,4,opt,name=azure_openai,json=azureOpenai,proto3,oneof"`
 }
 
 type UpstreamSpec_Multi struct {
-	// multi upstream
+	// Configure backends for multiple LLM providers in one logical endpoint.
 	Multi *UpstreamSpec_MultiPool `protobuf:"bytes,5,opt,name=multi,proto3,oneof"`
 }
 
 type UpstreamSpec_Gemini_ struct {
-	// Gemini upstream
+	// Configure a [Gemini](https://ai.google.dev/gemini-api/docs) backend.
 	Gemini *UpstreamSpec_Gemini `protobuf:"bytes,6,opt,name=gemini,proto3,oneof"`
 }
 
 type UpstreamSpec_VertexAi struct {
-	// Vertex AI upstream
+	// Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend.
 	VertexAi *UpstreamSpec_VertexAI `protobuf:"bytes,7,opt,name=vertex_ai,json=vertexAi,proto3,oneof"`
 }
 
@@ -635,127 +616,39 @@ func (*UpstreamSpec_Gemini_) isUpstreamSpec_Llm() {}
 
 func (*UpstreamSpec_VertexAi) isUpstreamSpec_Llm() {}
 
-// RouteSettings is a way to configure the behavior of the LLM provider on a per-route basis
-// This allows users to configure things like:
-// - Prompt Enrichment
-// - Retrieval Augmented Generation
-// - Semantic Caching
-// - Defaults to merge with the user input fields
-// - Guardrails
-// - Route Type
+// When you deploy the Gloo AI Gateway, you can use the `spec.options.ai` section
+// of the RouteOptions resource to configure the behavior of the LLM provider
+// on the level of individual routes. These route settings, such as prompt enrichment,
+// retrieval augmented generation (RAG), and semantic caching, are applicable only
+// for routes that send requests to an LLM provider backend.
 //
-// NOTE: These settings may only be applied to a route which uses an LLMProvider backend!
+// For more information about the RouteOptions resource, see the
+// [API reference]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/route_options.proto.sk/" %}}).
 type RouteSettings struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Config used to enrich the prompt. This can only be used with LLMProviders using the CHAT API type.
-	//
-	// Prompt enrichment allows you to add additional context to the prompt before sending it to the model.
-	// Unlike RAG or other dynamic context methods, prompt enrichment is static and will be applied to every request.
-	//
-	// Note: Some providers, including Anthropic do not support SYSTEM role messages, but rather have a dedicated
-	// system field in the input JSON. In this case, `field_defaults` should be used to set the system field. See the docs
-	// for that field for an example.
-	//
-	// Example:
-	// ```
-	// promptEnrichment:
-	// prepend:
-	// - role: SYSTEM
-	// content: "answer all questions in french"
-	// append:
-	// - role: USER
-	// content: "Describe the painting as if you were a famous art critic from the 17th century"
-	// ```
+	// Enrich requests sent to the LLM provider by appending and prepending system prompts.
+	// This can be configured only for LLM providers that use the `CHAT` API route type.
 	PromptEnrichment *AIPromptEnrichment `protobuf:"bytes,1,opt,name=prompt_enrichment,json=promptEnrichment,proto3" json:"prompt_enrichment,omitempty"`
-	// Guards to apply to the LLM requests on this route.
-	// This can be used to reject requests based on the content of the prompt, as well as
-	// mask responses based on the content of the response. These guards can be also be used
-	// at the same time.
-	//
-	// Below is a simple example of a prompt guard that will reject any prompt that contains
-	// the string "credit card" and will mask any credit card numbers in the response.
-	//
-	// ```
-	// promptGuard:
-	// request:
-	// customResponseMessage: "Rejected due to inappropriate content"
-	// regex:
-	// matches:
-	// - "credit card"
-	// response:
-	// regex:
-	// matches:
-	// # Mastercard
-	// - '(?:^|\D)(5[1-5][0-9]{2}(?:\ |\-|)[0-9]{4}(?:\ |\-|)[0-9]{4}(?:\ |\-|)[0-9]{4})(?:\D|$)'
-	// ````
+	// Set up prompt guards to block unwanted requests to the LLM provider and mask sensitive data.
+	// Prompt guards can be used to reject requests based on the content of the prompt, as well as
+	// mask responses based on the content of the response.
 	PromptGuard *AIPromptGuard `protobuf:"bytes,2,opt,name=prompt_guard,json=promptGuard,proto3" json:"prompt_guard,omitempty"`
-	// Retrieval Augmented Generation. https://research.ibm.com/blog/retrieval-augmented-generation-RAG
-	// Retrieval Augmented Generation is a process by which you "augment" the information
-	// a model has access to by providing it with a set of documents to use as context.
+	// [Retrieval augmented generation (RAG)](https://research.ibm.com/blog/retrieval-augmented-generation-RAG)
+	// is a technique of providing relevant context by retrieving relevant data from one or more
+	// context datasets and augmenting the prompt with the retrieved information.
 	// This can be used to improve the quality of the generated text.
-	// Important Note: The same embedding mechanism must be used for the prompt
-	// which was used for the initial creation of the context documents.
-	//
-	// Example using postgres for storage and OpenAI for embedding:
-	// ```
-	// rag:
-	// datastore:
-	// postgres:
-	// connectionString: postgresql+psycopg://gloo:gloo@172.17.0.1:6024/gloo
-	// collectionName: default
-	// embedding:
-	// openai:
-	// authToken:
-	// secretRef:
-	// name: openai-secret
-	// namespace: gloo-system
-	// ```
 	Rag *RAG `protobuf:"bytes,3,opt,name=rag,proto3" json:"rag,omitempty"`
-	// Semantic caching configuration
-	// Semantic caching allows you to cache previous model responses in order to provide
-	// faster responses to similar requests in the future.
-	// Results will vary depending on the embedding mechanism used, as well
+	// Cache previous model responses to provide faster responses to similar requests in the future.
+	// Results might vary depending on the embedding mechanism used, as well
 	// as the similarity threshold set.
-	//
-	// Example using Redis for storage and OpenAI for embedding:
-	// ```
-	// semanticCache:
-	// datastore:
-	// redis:
-	// connectionString: redis://172.17.0.1:6379
-	// embedding:
-	// openai:
-	// authToken:
-	// secretRef:
-	// name: openai-secret
-	// namespace: gloo-system
-	// ```
 	SemanticCache *SemanticCache `protobuf:"bytes,4,opt,name=semantic_cache,json=semanticCache,proto3" json:"semantic_cache,omitempty"`
-	// A list of defaults to be merged with the user input fields.
-	// These will NOT override the user input fields unless override is explicitly set to true.
-	// Some examples include setting the temperature, max_tokens, etc.
-	//
-	// Example overriding system field for Anthropic:
-	// ```
-	// # Anthropic doesn't support a system chat type
-	// defaults:
-	// - field: "system"
-	// value: "answer all questions in french"
-	// ```
-	//
-	// Example setting the temperature and max_tokens, overriding max_tokens:
-	// ```
-	// defaults:
-	// - field: "temperature"
-	// value: 0.5
-	// - field: "max_tokens"
-	// value: 100
-	// ```
+	// Provide defaults to merge with user input fields.
+	// Defaults do _not_ override the user input fields, unless you explicitly set `override` to `true`.
 	Defaults []*FieldDefault `protobuf:"bytes,5,rep,name=defaults,proto3" json:"defaults,omitempty"`
-	// The type of route this is, currently only CHAT and CHAT_STREAMING are supported
+	// The type of route to the LLM provider API. Currently, `CHAT` and `CHAT_STREAMING` are supported.
 	RouteType RouteSettings_RouteType `protobuf:"varint,6,opt,name=route_type,json=routeType,proto3,enum=ai.options.gloo.solo.io.RouteSettings_RouteType" json:"route_type,omitempty"`
 }
 
@@ -831,16 +724,38 @@ func (x *RouteSettings) GetRouteType() RouteSettings_RouteType {
 	return RouteSettings_CHAT
 }
 
+// Provide defaults to merge with user input fields.
+// Defaults do _not_ override the user input fields, unless you explicitly set `override` to `true`.
+//
+// Example overriding the system field for Anthropic:
+// ```yaml
+// # Anthropic doesn't support a system chat type
+// defaults:
+//   - field: "system"
+//     value: "answer all questions in french"
+//
+// ```
+//
+// Example setting the temperature and overriding `max_tokens`:
+// ```yaml
+// defaults:
+//   - field: "temperature"
+//     value: 0.5
+//   - field: "max_tokens"
+//     value: 100
+//
+// ```
 type FieldDefault struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Field name
+	// The name of the field.
 	Field string `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
-	// Field Value, this can be any valid JSON value
+	// The field default value, which can be any JSON Data Type.
 	Value *structpb.Value `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-	// Whether or not to override the field if it already exists
+	// Whether to override the field's value if it already exists.
+	// Defaults to false.
 	Override bool `protobuf:"varint,3,opt,name=override,proto3" json:"override,omitempty"`
 }
 
@@ -895,14 +810,17 @@ func (x *FieldDefault) GetOverride() bool {
 	return false
 }
 
+// Configuration settings for a Postgres datastore.
 type Postgres struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Connection string to the Postgres database
+	// Connection string to the Postgres database. For example, to use a vector database
+	// deployed to your cluster, your connection string might look similar to
+	// `postgresql+psycopg://gloo:gloo@vector-db.default.svc.cluster.local:5432/gloo`.
 	ConnectionString string `protobuf:"bytes,1,opt,name=connection_string,json=connectionString,proto3" json:"connection_string,omitempty"`
-	// Name of the table to use
+	// Name of the collection table to use.
 	CollectionName string `protobuf:"bytes,2,opt,name=collection_name,json=collectionName,proto3" json:"collection_name,omitempty"`
 }
 
@@ -950,11 +868,14 @@ func (x *Postgres) GetCollectionName() string {
 	return ""
 }
 
+// Configuration of the API used to generate the embedding.
 type Embedding struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Configuration for the backend LLM provider authentication token.
+	//
 	// Types that are assignable to Embedding:
 	//
 	//	*Embedding_Openai
@@ -1018,12 +939,12 @@ type isEmbedding_Embedding interface {
 }
 
 type Embedding_Openai struct {
-	// OpenAI embedding
+	// Embedding settings for the OpenAI provider.
 	Openai *Embedding_OpenAI `protobuf:"bytes,1,opt,name=openai,proto3,oneof"`
 }
 
 type Embedding_AzureOpenai struct {
-	// Azure OpenAI embedding
+	// Embedding settings for the Azure OpenAI provider.
 	AzureOpenai *Embedding_AzureOpenAI `protobuf:"bytes,2,opt,name=azure_openai,json=azureOpenai,proto3,oneof"`
 }
 
@@ -1031,19 +952,38 @@ func (*Embedding_Openai) isEmbedding_Embedding() {}
 
 func (*Embedding_AzureOpenai) isEmbedding_Embedding() {}
 
-// Settings for the Semantic Caching feature
+// Cache previous model responses to provide faster responses to similar requests in the future.
+// Results might vary depending on the embedding mechanism used, as well
+// as the similarity threshold set. Semantic caching reduces the number of requests
+// to the LLM provider, improves the response time, and reduces costs.
+//
+// Example configuring a route to use a `redis` datastore and OpenAI for RAG:
+// ```yaml
+// semanticCache:
+//
+//	datastore:
+//	  redis:
+//	    connectionString: redis://172.17.0.1:6379
+//	embedding:
+//	  openai:
+//	    authToken:
+//	      secretRef:
+//	        name: openai-secret
+//	        namespace: gloo-system
+//
+// ```
 type SemanticCache struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Which data store to use
+	// Data store from which to cache the request and response pairs.
 	Datastore *SemanticCache_DataStore `protobuf:"bytes,1,opt,name=datastore,proto3" json:"datastore,omitempty"`
-	// Model to use to get embeddings for prompt
+	// Model to use to retrieve the embedding mechanism.
 	Embedding *Embedding `protobuf:"bytes,2,opt,name=embedding,proto3" json:"embedding,omitempty"`
-	// Time before data in the cache is considered expired
+	// Time before data in the cache is considered expired.
 	Ttl uint32 `protobuf:"varint,3,opt,name=ttl,proto3" json:"ttl,omitempty"`
-	// Cache mode to use: READ_WRITE or READ_ONLY
+	// The caching mode to use for the request and response lifecycle. Supported values include `READ_WRITE` or `READ_ONLY`.
 	Mode SemanticCache_Mode `protobuf:"varint,4,opt,name=mode,proto3,enum=ai.options.gloo.solo.io.SemanticCache_Mode" json:"mode,omitempty"`
 }
 
@@ -1105,17 +1045,47 @@ func (x *SemanticCache) GetMode() SemanticCache_Mode {
 	return SemanticCache_READ_WRITE
 }
 
-// Settings for the Retrieval Augmented Generation feature
+// [Retrieval augmented generation (RAG)](https://research.ibm.com/blog/retrieval-augmented-generation-RAG)
+// is a technique of providing relevant context by retrieving relevant data from one or more
+// context datasets and augmenting the prompt with the retrieved information.
+// This can be used to improve the quality of the generated text.
+//
+// {{% notice note %}}
+// The same embedding mechanism that was used for the initial
+// creation of the context datasets must be used for the prompt.
+// {{% /notice %}}
+//
+// Example configuring a route to use a `postgres` datastore and OpenAI for RAG:
+// ```yaml
+// rag:
+//
+//	datastore:
+//	  postgres:
+//	    connectionString: postgresql+psycopg://gloo:gloo@172.17.0.1:6024/gloo
+//	    collectionName: default
+//	embedding:
+//	  openai:
+//	    authToken:
+//	      secretRef:
+//	        name: openai-secret
+//	        namespace: gloo-system
+//
+// ```
+//
+// {{% notice tip %}}
+// For an extended example that includes deploying a vector database with a context dataset,
+// check out the [Retrieval augmented generation (RAG) tutorial](https://docs.solo.io/gateway/main/ai/tutorials/rag/).
+// {{% /notice %}}
 type RAG struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Data store from which to fetch the embeddings
+	// Data store from which to fetch the context embeddings.
 	Datastore *RAG_DataStore `protobuf:"bytes,1,opt,name=datastore,proto3" json:"datastore,omitempty"`
-	// Model to use to get embeddings for prompt
+	// Model to use to retrieve the context embeddings.
 	Embedding *Embedding `protobuf:"bytes,2,opt,name=embedding,proto3" json:"embedding,omitempty"`
-	// Template to use to embed the returned context
+	// Template to use to embed the returned context.
 	PromptTemplate string `protobuf:"bytes,3,opt,name=prompt_template,json=promptTemplate,proto3" json:"prompt_template,omitempty"`
 }
 
@@ -1170,15 +1140,51 @@ func (x *RAG) GetPromptTemplate() string {
 	return ""
 }
 
-// Settings for the Prompt Enrichment feature
+// Enrich requests sent to the LLM provider by appending and prepending system prompts.
+// This can be configured only for LLM providers that use the CHAT API type.
+//
+// Prompt enrichment allows you to add additional context to the prompt before sending it to the model.
+// Unlike RAG or other dynamic context methods, prompt enrichment is static and is applied to every request.
+//
+// **Note**: Some providers, including Anthropic, do not support SYSTEM role messages, and instead have a dedicated
+// system field in the input JSON. In this case, use the [`defaults` setting](#fielddefault) to set the system field.
+//
+// The following example prepends a system prompt of `Answer all questions in French.`
+// and appends `Describe the painting as if you were a famous art critic from the 17th century.`
+// to each request that is sent to the `openai` HTTPRoute.
+// ```yaml
+// apiVersion: gateway.solo.io/v1
+// kind: RouteOption
+// metadata:
+//
+//	name: openai-opt
+//	namespace: gloo-system
+//
+// spec:
+//
+//	targetRefs:
+//	- group: gateway.networking.k8s.io
+//	  kind: HTTPRoute
+//	  name: openai
+//	options:
+//	  ai:
+//	    promptEnrichment:
+//	      prepend:
+//	      - role: SYSTEM
+//	        content: "Answer all questions in French."
+//	      append:
+//	      - role: USER
+//	        content: "Describe the painting as if you were a famous art critic from the 17th century."
+//
+// ```
 type AIPromptEnrichment struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// A list of messages to be prepended to the prompt sent by the client
+	// A list of messages to be prepended to the prompt sent by the client.
 	Prepend []*AIPromptEnrichment_Message `protobuf:"bytes,2,rep,name=prepend,proto3" json:"prepend,omitempty"`
-	// A list of messages to be appended to the prompt sent by the client
+	// A list of messages to be appended to the prompt sent by the client.
 	Append []*AIPromptEnrichment_Message `protobuf:"bytes,3,rep,name=append,proto3" json:"append,omitempty"`
 }
 
@@ -1226,15 +1232,38 @@ func (x *AIPromptEnrichment) GetAppend() []*AIPromptEnrichment_Message {
 	return nil
 }
 
-// Settings for the Prompt Guard feature
+// Set up prompt guards to block unwanted requests to the LLM provider and mask sensitive data.
+// Prompt guards can be used to reject requests based on the content of the prompt, as well as
+// mask responses based on the content of the response.
+//
+// This example rejects any request prompts that contain
+// the string "credit card", and masks any credit card numbers in the response.
+// ```yaml
+// promptGuard:
+//
+//	request:
+//	  customResponse:
+//	    message: "Rejected due to inappropriate content"
+//	  regex:
+//	    action: REJECT
+//	    matches:
+//	    - pattern: "credit card"
+//	      name: "CC"
+//	response:
+//	  regex:
+//	    builtins:
+//	    - CREDIT_CARD
+//	    action: MASK
+//
+// ```
 type AIPromptGuard struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Guards for the prompt request
+	// Prompt guards to apply to requests sent by the client.
 	Request *AIPromptGuard_Request `protobuf:"bytes,1,opt,name=request,proto3" json:"request,omitempty"`
-	// Guards for the LLM response
+	// Prompt guards to apply to responses returned by the LLM provider.
 	Response *AIPromptGuard_Response `protobuf:"bytes,2,opt,name=response,proto3" json:"response,omitempty"`
 }
 
@@ -1282,6 +1311,9 @@ func (x *AIPromptGuard) GetResponse() *AIPromptGuard_Response {
 	return nil
 }
 
+// Configuration for passthrough of the existing token.
+// Currently, specifying an empty object (`passthrough: {}`)
+// indicates that passthrough will be used for auth.
 type SingleAuthToken_Passthrough struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1318,15 +1350,16 @@ func (*SingleAuthToken_Passthrough) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{0, 0}
 }
 
-// Settings to configure a custom host to send the traffic to
+// Send requests to a custom host and port, such as to proxy the request,
+// or to use a different backend that is API-compliant with the upstream version.
 type UpstreamSpec_CustomHost struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Custom host to send the traffic to
+	// Custom host to send the traffic requests to.
 	Host string `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
-	// Custom port to send the traffic to
+	// Custom port to send the traffic requests to.
 	Port uint32 `protobuf:"varint,2,opt,name=port,proto3" json:"port,omitempty"`
 }
 
@@ -1374,22 +1407,22 @@ func (x *UpstreamSpec_CustomHost) GetPort() uint32 {
 	return 0
 }
 
-// Settings for the OpenAI API
+// Settings for the [OpenAI](https://platform.openai.com/docs/overview) LLM provider.
 type UpstreamSpec_OpenAI struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Auth Token to use for the OpenAI API
-	// This token will be placed into the `Authorization` header
-	// and prefixed with Bearer if not present
-	// when sending the request to the upstream.
+	// The authorization token that the AI gateway uses to access the OpenAI API.
+	// This token is automatically sent in the `Authorization` header of the
+	// request and prefixed with `Bearer`.
 	AuthToken *SingleAuthToken `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3" json:"auth_token,omitempty"`
-	// Optional custom host to send the traffic to
+	// Optional: Send requests to a custom host and port, such as to proxy the request,
+	// or to use a different backend that is API-compliant with the upstream version.
 	CustomHost *UpstreamSpec_CustomHost `protobuf:"bytes,2,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
-	// Optional: override model name. If not set, the model name will be taken from the request
-	// This can be useful when trying model failover scenarios
-	// e.g. "gpt-4o-mini"
+	// Optional: Override the model name, such as `gpt-4o-mini`.
+	// If unset, the model name is taken from the request.
+	// This setting can be useful when setting up model failover within the same LLM provider.
 	Model string `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
 }
 
@@ -1444,29 +1477,29 @@ func (x *UpstreamSpec_OpenAI) GetModel() string {
 	return ""
 }
 
-// Settings for the Azure OpenAI API
+// Settings for the [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) LLM provider.
+// To find the values for the endpoint, deployment name, and API version, you can check the fields of an API request, such as
+// `https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}`.
 type UpstreamSpec_AzureOpenAI struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Auth Token to use for the Azure OpenAI API
-	// This token will be placed into the `api-key` header
+	// The authorization token that the AI gateway uses to access the Azure OpenAI API.
+	// This token is automatically sent in the `api-key` header of the request.
 	//
 	// Types that are assignable to AuthTokenSource:
 	//
 	//	*UpstreamSpec_AzureOpenAI_AuthToken
 	AuthTokenSource isUpstreamSpec_AzureOpenAI_AuthTokenSource `protobuf_oneof:"auth_token_source"`
-	// The endpoint to use
-	// This should be the endpoint to the Azure OpenAI API, e.g. my-endpoint.openai.azure.com
-	// If the scheme is included it will be stripped.
-	// This value can be found https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}
+	// The endpoint for the Azure OpenAI API to use, such as `my-endpoint.openai.azure.com`.
+	// If the scheme is included, it is stripped.
 	Endpoint string `protobuf:"bytes,2,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
-	// The deployment/model name to use
-	// This value can be found https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}
+	// The name of the Azure OpenAI model deployment to use.
+	// For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models).
 	DeploymentName string `protobuf:"bytes,3,opt,name=deployment_name,json=deploymentName,proto3" json:"deployment_name,omitempty"`
-	// The version of the API to use
-	// This value can be found https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}
+	// The version of the Azure OpenAI API to use.
+	// For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
 	ApiVersion string `protobuf:"bytes,4,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
 }
 
@@ -1540,31 +1573,33 @@ type isUpstreamSpec_AzureOpenAI_AuthTokenSource interface {
 }
 
 type UpstreamSpec_AzureOpenAI_AuthToken struct {
-	// Auth Token to use for the OpenAI API
-	// This token will be placed into the `api-key` header
+	// The authorization token that the AI gateway uses to access the Azure OpenAI API.
+	// This token is automatically sent in the `api-key` header of the request.
 	AuthToken *SingleAuthToken `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3,oneof"` // use AD or other workload identity mechanism
 }
 
 func (*UpstreamSpec_AzureOpenAI_AuthToken) isUpstreamSpec_AzureOpenAI_AuthTokenSource() {}
 
-// Settings for the Gemini API
+// Settings for the [Gemini](https://ai.google.dev/gemini-api/docs) LLM provider.
+// To find the values for the model and API version, you can check the fields of an API request, such as
+// `https://generativelanguage.googleapis.com/{version}/models/{model}:generateContent?key={api_key}`.
 type UpstreamSpec_Gemini struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Auth Token to use for the Gemini API
-	// This token will be placed into the `key` header
+	// The authorization token that the AI gateway uses to access the Gemini API.
+	// This token is automatically sent in the `key` query parameter of the request.
 	//
 	// Types that are assignable to AuthTokenSource:
 	//
 	//	*UpstreamSpec_Gemini_AuthToken
 	AuthTokenSource isUpstreamSpec_Gemini_AuthTokenSource `protobuf_oneof:"auth_token_source"`
-	// The model name to use
-	// This value can be found https://generativelanguage.googleapis.com/{version}/models/{model}:generateContent?key={api_key}
+	// The Gemini model to use.
+	// For more information, see the [Gemini models docs](https://ai.google.dev/gemini-api/docs/models/gemini).
 	Model string `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
-	// The version of the API to use
-	// This value can be found https://generativelanguage.googleapis.com/{api_version}/models/{model}:generateContent?key={api_key}
+	// The version of the Gemini API to use.
+	// For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions).
 	ApiVersion string `protobuf:"bytes,3,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
 }
 
@@ -1631,41 +1666,41 @@ type isUpstreamSpec_Gemini_AuthTokenSource interface {
 }
 
 type UpstreamSpec_Gemini_AuthToken struct {
-	// Auth Token to use for the Gemini API
-	// This token will be placed into the `key` header
+	// The authorization token that the AI gateway uses to access the Gemini API.
+	// This token is automatically sent in the `key` query parameter of the request.
 	AuthToken *SingleAuthToken `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3,oneof"` // TODO: use oauth
 }
 
 func (*UpstreamSpec_Gemini_AuthToken) isUpstreamSpec_Gemini_AuthTokenSource() {}
 
-// Settings for the Vertex AI API
+// Settings for the [Vertex AI](https://cloud.google.com/vertex-ai/docs) LLM provider.
+// To find the values for the project ID, project location, and publisher, you can check the fields of an API request, such as
+// `https://{LOCATION}-aiplatform.googleapis.com/{VERSION}/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/{PROVIDER}/<model-path>`.
 type UpstreamSpec_VertexAI struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Auth Token to use for the  Vertex AI API
-	// This token will be placed into the `key` header
+	// The authorization token that the AI gateway uses to access the Vertex AI API.
+	// This token is automatically sent in the `key` header of the request.
 	//
 	// Types that are assignable to AuthTokenSource:
 	//
 	//	*UpstreamSpec_VertexAI_AuthToken
 	AuthTokenSource isUpstreamSpec_VertexAI_AuthTokenSource `protobuf_oneof:"auth_token_source"`
-	// The model name to use
-	// This value can be found https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models
+	// The Vertex AI model to use.
+	// For more information, see the [Vertex AI model docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models).
 	Model string `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
-	// The version of the API to use. See https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models for supported models for specific publishers.
+	// The version of the Vertex AI API to use.
+	// For more information, see the [Vertex AI API reference](https://cloud.google.com/vertex-ai/docs/reference#versions).
 	ApiVersion string `protobuf:"bytes,3,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
-	// Google Cloud Project ID in
-	// https://{LOCATION}-aiplatform.googleapis.com/{VERSION}/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/{PROVIDER}/<model-path>
+	// The ID of the Google Cloud Project that you use for the Vertex AI.
 	ProjectId string `protobuf:"bytes,4,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"`
-	// Location of the project in
-	// https://{LOCATION}-aiplatform.googleapis.com/{VERSION}/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/{PROVIDER}/<model-path>
+	// The location of the Google Cloud Project that you use for the Vertex AI.
 	Location string `protobuf:"bytes,5,opt,name=location,proto3" json:"location,omitempty"`
-	// Model path (optional). Defaults to Gemini model path (generateContent)
+	// Optional: The model path to route to. Defaults to the Gemini model path, `generateContent`.
 	ModelPath string `protobuf:"bytes,6,opt,name=model_path,json=modelPath,proto3" json:"model_path,omitempty"`
-	// The type of model publishers to use, currently only Google is supported in
-	// https://{LOCATION}-aiplatform.googleapis.com/{VERSION}/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/{PUBLISHER}/<model-path>
+	// The type of publisher model to use. Currently, only Google is supported.
 	Publisher UpstreamSpec_VertexAI_Publisher `protobuf:"varint,7,opt,name=publisher,proto3,enum=ai.options.gloo.solo.io.UpstreamSpec_VertexAI_Publisher" json:"publisher,omitempty"`
 }
 
@@ -1760,28 +1795,29 @@ type isUpstreamSpec_VertexAI_AuthTokenSource interface {
 }
 
 type UpstreamSpec_VertexAI_AuthToken struct {
-	// Auth Token to use for the Vertex AI API
-	// This token will be placed into the `Authorization: Bearer ` header
+	// The authorization token that the AI gateway uses to access the Vertex AI API.
+	// This token is automatically sent in the `key` header of the request.
 	AuthToken *SingleAuthToken `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3,oneof"` // TODO: use oauth
 }
 
 func (*UpstreamSpec_VertexAI_AuthToken) isUpstreamSpec_VertexAI_AuthTokenSource() {}
 
-// Settings for the Mistral API
+// Settings for the [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) LLM provider.
 type UpstreamSpec_Mistral struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Auth Token to use for the Mistral API.
-	// This token will be placed into the `Authorization` header
-	// and prefixed with Bearer if not present
-	// when sending the request to the upstream.
+	// The authorization token that the AI gateway uses to access the OpenAI API.
+	// This token is automatically sent in the `Authorization` header of the
+	// request and prefixed with `Bearer`.
 	AuthToken *SingleAuthToken `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3" json:"auth_token,omitempty"`
-	// Optional custom host to send the traffic to
+	// Optional: Send requests to a custom host and port, such as to proxy the request,
+	// or to use a different backend that is API-compliant with the upstream version.
 	CustomHost *UpstreamSpec_CustomHost `protobuf:"bytes,2,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
-	// Optional: override model name. If not set, the model name will be taken from the request
-	// This can be useful when trying model failover scenarios
+	// Optional: Override the model name.
+	// If unset, the model name is taken from the request.
+	// This setting can be useful when testing model failover scenarios.
 	Model string `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
 }
 
@@ -1836,22 +1872,24 @@ func (x *UpstreamSpec_Mistral) GetModel() string {
 	return ""
 }
 
-// Settings for the Anthropic API
+// Settings for the [Anthropic](https://docs.anthropic.com/en/release-notes/api) LLM provider.
 type UpstreamSpec_Anthropic struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Auth Token to use for the Anthropic API.
-	// This token will be placed into the `x-api-key` header
-	// when sending the request to the upstream.
-	AuthToken  *SingleAuthToken         `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3" json:"auth_token,omitempty"`
+	// The authorization token that the AI gateway uses to access the Anthropic API.
+	// This token is automatically sent in the `x-api-key` header of the request.
+	AuthToken *SingleAuthToken `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3" json:"auth_token,omitempty"`
+	// Optional: Send requests to a custom host and port, such as to proxy the request,
+	// or to use a different backend that is API-compliant with the upstream version.
 	CustomHost *UpstreamSpec_CustomHost `protobuf:"bytes,2,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
-	// An optional version header to pass to the Anthropic API
-	// See: https://docs.anthropic.com/en/api/versioning for more details
+	// Optional: A version header to pass to the Anthropic API.
+	// For more information, see the [Anthropic API versioning docs](https://docs.anthropic.com/en/api/versioning).
 	Version string `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
-	// Optional: override model name. If not set, the model name will be taken from the request
-	// This can be useful when trying model failover scenarios
+	// Optional: Override the model name.
+	// If unset, the model name is taken from the request.
+	// This setting can be useful when testing model failover scenarios.
 	Model string `protobuf:"bytes,4,opt,name=model,proto3" json:"model,omitempty"`
 }
 
@@ -1913,39 +1951,44 @@ func (x *UpstreamSpec_Anthropic) GetModel() string {
 	return ""
 }
 
+// Configure backends for multiple hosts or models from the same provider in one Upstream resource.
+// This method can be useful for creating one logical endpoint that is backed
+// by multiple hosts or models.
+//
+// In the `priorities` section, the order of `pool` entries defines the priority of the backend endpoints.
+// The `pool` entries can either define a list of backends or a single backend.
+// Note: Only two levels of nesting are permitted. Any nested entries after the second level are ignored.
+//
+// ```yaml
 // multi:
-// pools:
-// - pool:
-// - openai:
-// authToken:
-// secretRef:
-// name: openai-secret
-// namespace: gloo-system
-// priority: 1
-// - pool:
-// - azureOpenai:
-// deploymentName: gpt-4o-mini
-// apiVersion: 2024-02-15-preview
-// endpoint: ai-gateway.openai.azure.com
-// authToken:
-// secretRef:
-// name: azure-secret
-// namespace: gloo-system
-// - azureOpenai:
-// deploymentName: gpt-4o-mini-2
-// apiVersion: 2024-02-15-preview
-// endpoint: ai-gateway.openai.azure.com
-// authToken:
-// secretRef:
-// name: azure-secret
-// namespace: gloo-system
-// priority: 2
+//
+//	priorities:
+//	- pool:
+//	  - azureOpenai:
+//	      deploymentName: gpt-4o-mini
+//	      apiVersion: 2024-02-15-preview
+//	      endpoint: ai-gateway.openai.azure.com
+//	      authToken:
+//	        secretRef:
+//	          name: azure-secret
+//	          namespace: gloo-system
+//	- pool:
+//	  - azureOpenai:
+//	      deploymentName: gpt-4o-mini-2
+//	      apiVersion: 2024-02-15-preview
+//	      endpoint: ai-gateway-2.openai.azure.com
+//	      authToken:
+//	        secretRef:
+//	          name: azure-secret-2
+//	          namespace: gloo-system
+//
+// ```
 type UpstreamSpec_MultiPool struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// List of prioritized backend pools
+	// The order of `pool` entries within this section defines the priority of the backend endpoints.
 	Priorities []*UpstreamSpec_MultiPool_Priority `protobuf:"bytes,1,rep,name=priorities,proto3" json:"priorities,omitempty"`
 }
 
@@ -1986,6 +2029,7 @@ func (x *UpstreamSpec_MultiPool) GetPriorities() []*UpstreamSpec_MultiPool_Prior
 	return nil
 }
 
+// An entry represeting an LLM provider backend that the AI Gateway routes requests to.
 type UpstreamSpec_MultiPool_Backend struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2086,32 +2130,32 @@ type isUpstreamSpec_MultiPool_Backend_Llm interface {
 }
 
 type UpstreamSpec_MultiPool_Backend_Openai struct {
-	// OpenAI upstream
+	// Configure an [OpenAI](https://platform.openai.com/docs/overview) backend.
 	Openai *UpstreamSpec_OpenAI `protobuf:"bytes,1,opt,name=openai,proto3,oneof"`
 }
 
 type UpstreamSpec_MultiPool_Backend_Mistral struct {
-	// Mistral upstream
+	// Configure a [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) backend.
 	Mistral *UpstreamSpec_Mistral `protobuf:"bytes,2,opt,name=mistral,proto3,oneof"`
 }
 
 type UpstreamSpec_MultiPool_Backend_Anthropic struct {
-	// Anthropic upstream
+	// Configure an [Anthropic](https://docs.anthropic.com/en/release-notes/api) backend.
 	Anthropic *UpstreamSpec_Anthropic `protobuf:"bytes,3,opt,name=anthropic,proto3,oneof"`
 }
 
 type UpstreamSpec_MultiPool_Backend_AzureOpenai struct {
-	// Azure OpenAI upstream
+	// Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) backend.
 	AzureOpenai *UpstreamSpec_AzureOpenAI `protobuf:"bytes,4,opt,name=azure_openai,json=azureOpenai,proto3,oneof"`
 }
 
 type UpstreamSpec_MultiPool_Backend_Gemini struct {
-	// Gemini upstream
+	// Configure a [Gemini](https://ai.google.dev/gemini-api/docs) backend.
 	Gemini *UpstreamSpec_Gemini `protobuf:"bytes,5,opt,name=gemini,proto3,oneof"`
 }
 
 type UpstreamSpec_MultiPool_Backend_VertexAi struct {
-	// Vertex AI upstream
+	// Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend.
 	VertexAi *UpstreamSpec_VertexAI `protobuf:"bytes,6,opt,name=vertex_ai,json=vertexAi,proto3,oneof"`
 }
 
@@ -2127,13 +2171,13 @@ func (*UpstreamSpec_MultiPool_Backend_Gemini) isUpstreamSpec_MultiPool_Backend_L
 
 func (*UpstreamSpec_MultiPool_Backend_VertexAi) isUpstreamSpec_MultiPool_Backend_Llm() {}
 
-// Priority represents a single endpoint pool with a given priority
+// The order of `pool` entries within this section defines the priority of the backend endpoints.
 type UpstreamSpec_MultiPool_Priority struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// list of backends representing a single endpoint pool
+	// A list of LLM provider backends within a single endpoint pool entry.
 	Pool []*UpstreamSpec_MultiPool_Backend `protobuf:"bytes,1,rep,name=pool,proto3" json:"pool,omitempty"`
 }
 
@@ -2174,7 +2218,7 @@ func (x *UpstreamSpec_MultiPool_Priority) GetPool() []*UpstreamSpec_MultiPool_Ba
 	return nil
 }
 
-// OpenAI embedding
+// Embedding settings for the OpenAI provider.
 type Embedding_OpenAI struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2235,12 +2279,15 @@ type isEmbedding_OpenAI_AuthTokenSource interface {
 }
 
 type Embedding_OpenAI_AuthToken struct {
+	// The authorization token that the AI gateway uses to access the OpenAI API.
+	// This token is automatically sent in the `Authorization` header of the
+	// request and prefixed with `Bearer`.
 	AuthToken *SingleAuthToken `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3,oneof"`
 }
 
 func (*Embedding_OpenAI_AuthToken) isEmbedding_OpenAI_AuthTokenSource() {}
 
-// Azure OpenAI embedding
+// Embedding settings for the Azure OpenAI provider.
 type Embedding_AzureOpenAI struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2250,16 +2297,14 @@ type Embedding_AzureOpenAI struct {
 	//
 	//	*Embedding_AzureOpenAI_AuthToken
 	AuthTokenSource isEmbedding_AzureOpenAI_AuthTokenSource `protobuf_oneof:"auth_token_source"`
-	// The version of the API to use
-	// This value can be found https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}
+	// The version of the Azure OpenAI API to use.
+	// For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
 	ApiVersion string `protobuf:"bytes,2,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
-	// The endpoint to use
-	// This should be the endpoint to the Azure OpenAI API, e.g. https://my-endpoint.openai.azure.com
-	// If the scheme isn't included it will be added.
-	// This value can be found https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}
+	// The endpoint for the Azure OpenAI API to use, such as `my-endpoint.openai.azure.com`.
+	// If the scheme is not included, it is added.
 	Endpoint string `protobuf:"bytes,3,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
-	// The deployment/model name to use
-	// This value can be found https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}
+	// The name of the Azure OpenAI model deployment to use.
+	// For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models).
 	DeploymentName string `protobuf:"bytes,4,opt,name=deployment_name,json=deploymentName,proto3" json:"deployment_name,omitempty"`
 }
 
@@ -2333,24 +2378,24 @@ type isEmbedding_AzureOpenAI_AuthTokenSource interface {
 }
 
 type Embedding_AzureOpenAI_AuthToken struct {
-	// Auth Token to use for the OpenAI API
-	// This token will be placed into the `api-key` header
+	// The authorization token that the AI gateway uses to access the Azure OpenAI API.
+	// This token is automatically sent in the `api-key` header of the request.
 	AuthToken *SingleAuthToken `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3,oneof"`
 }
 
 func (*Embedding_AzureOpenAI_AuthToken) isEmbedding_AzureOpenAI_AuthTokenSource() {}
 
-// Settings for the Redis database
+// Settings for a Redis database.
 type SemanticCache_Redis struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Connection string to the Redis database
+	// Connection string to the Redis database, such as `redis://172.17.0.1:6379`.
 	ConnectionString string `protobuf:"bytes,1,opt,name=connection_string,json=connectionString,proto3" json:"connection_string,omitempty"`
 	// Similarity score threshold value between 0.0 and 1.0 that determines how similar
-	// two queries need to be in order to return a cached result.
-	// The lower the number, the more similar the queries need to be for a cache hit.
+	// two queries must be in order to return a cached result.
+	// The lower the number, the more similar the queries must be for a cache hit.
 	//
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Maximum=1
@@ -2401,21 +2446,22 @@ func (x *SemanticCache_Redis) GetScoreThreshold() float32 {
 	return 0
 }
 
-// Settings for the Weaviate database
+// Settings for a Weaviate database.
 type SemanticCache_Weaviate struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Connection string to the Weaviate database, scheme should NOT be included.
-	// For example: weaviate.my-ns.svc.cluster.local
-	// NOT: http://weaviate.my-ns.svc.cluster.local
+	// Connection string to the Weaviate database.
+	// Do not include the scheme. For example, the format
+	// `weaviate.my-ns.svc.cluster.local` is correct. The format
+	// `http://weaviate.my-ns.svc.cluster.local`, which includes the scheme, is incorrect.
 	Host string `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
-	// HTTP port to use, if unset will default to 8080
+	// HTTP port to use. If unset, defaults to `8080`.
 	HttpPort uint32 `protobuf:"varint,2,opt,name=http_port,json=httpPort,proto3" json:"http_port,omitempty"`
-	// GRPC port to use, if unset will default to 50051
+	// GRPC port to use. If unset, defaults to `50051`.
 	GrpcPort uint32 `protobuf:"varint,3,opt,name=grpc_port,json=grpcPort,proto3" json:"grpc_port,omitempty"`
-	// Whether or not to use a secure connection, true by default
+	// Whether to use a secure connection. Defaults to `true`.
 	Insecure bool `protobuf:"varint,4,opt,name=insecure,proto3" json:"insecure,omitempty"`
 }
 
@@ -2477,7 +2523,7 @@ func (x *SemanticCache_Weaviate) GetInsecure() bool {
 	return false
 }
 
-// Data store from which to cache the request/response pairs
+// Data store from which to cache the request and response pairs.
 type SemanticCache_DataStore struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2546,10 +2592,12 @@ type isSemanticCache_DataStore_Datastore interface {
 }
 
 type SemanticCache_DataStore_Redis struct {
+	// Settings for a Redis database.
 	Redis *SemanticCache_Redis `protobuf:"bytes,1,opt,name=redis,proto3,oneof"`
 }
 
 type SemanticCache_DataStore_Weaviate struct {
+	// Settings for a Weaviate database.
 	Weaviate *SemanticCache_Weaviate `protobuf:"bytes,2,opt,name=weaviate,proto3,oneof"`
 }
 
@@ -2617,21 +2665,22 @@ type isRAG_DataStore_Datastore interface {
 }
 
 type RAG_DataStore_Postgres struct {
+	// Configuration settings for a Postgres datastore.
 	Postgres *Postgres `protobuf:"bytes,1,opt,name=postgres,proto3,oneof"`
 }
 
 func (*RAG_DataStore_Postgres) isRAG_DataStore_Datastore() {}
 
+// An entry for a message to prepend or append to each prompt.
 type AIPromptEnrichment_Message struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Role of the message.
-	// The available roles depend on the backend model being used,
-	// please consult the documentation for more information.
+	// Role of the message. The available roles depend on the backend
+	// LLM provider model, such as `SYSTEM` or `USER` in the OpenAI API.
 	Role string `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
-	// String content of the message
+	// String content of the message.
 	Content string `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
 }
 
@@ -2679,21 +2728,20 @@ func (x *AIPromptEnrichment_Message) GetContent() string {
 	return ""
 }
 
-// Regex settings for prompt guard
+// Regular expression (regex) matching for prompt guards and data masking.
 type AIPromptGuard_Regex struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// A list of Regex patterns to match against the response.
-	// All matches will be masked before being sent back to the client.
-	// matches and builtins are additive.
+	// A list of regex patterns to match against the request or response.
+	// Matches and built-ins are additive.
 	Matches []*AIPromptGuard_Regex_RegexMatch `protobuf:"bytes,1,rep,name=matches,proto3" json:"matches,omitempty"`
-	// A list of built-in regexes to mask in the response.
-	// matches and builtins are additive.
+	// A list of built-in regex patterns to match against the request or response.
+	// Matches and built-ins are additive.
 	Builtins []AIPromptGuard_Regex_BuiltIn `protobuf:"varint,2,rep,packed,name=builtins,proto3,enum=ai.options.gloo.solo.io.AIPromptGuard_Regex_BuiltIn" json:"builtins,omitempty"`
-	// The action to take if the regex matches
-	// NOTE: This will only apply to request matches, response matches will always mask
+	// The action to take if a regex pattern is matched in a request or response.
+	// This setting applies only to request matches. Response matches are always masked by default.
 	Action AIPromptGuard_Regex_Action `protobuf:"varint,3,opt,name=action,proto3,enum=ai.options.gloo.solo.io.AIPromptGuard_Regex_Action" json:"action,omitempty"`
 }
 
@@ -2748,7 +2796,7 @@ func (x *AIPromptGuard_Regex) GetAction() AIPromptGuard_Regex_Action {
 	return AIPromptGuard_Regex_MASK
 }
 
-// Webhook settings for prompt guard
+// Configure a webhook to forward requests or responses to for prompt guarding.
 type AIPromptGuard_Webhook struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2758,7 +2806,7 @@ type AIPromptGuard_Webhook struct {
 	Host string `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
 	// Port to send the traffic to
 	Port uint32 `protobuf:"varint,2,opt,name=port,proto3" json:"port,omitempty"`
-	// Headers to forward with the request
+	// Headers to forward with the request to the webhook.
 	ForwardHeaders []*AIPromptGuard_Webhook_HeaderMatch `protobuf:"bytes,3,rep,name=forwardHeaders,proto3" json:"forwardHeaders,omitempty"`
 }
 
@@ -2813,11 +2861,22 @@ func (x *AIPromptGuard_Webhook) GetForwardHeaders() []*AIPromptGuard_Webhook_Hea
 	return nil
 }
 
+// Pass prompt data through an external moderation model endpoint,
+// which compares the request prompt input to predefined content rules.
+// Any requests that are routed through Gloo AI Gateway pass through the
+// moderation model that you specify. If the content is identified as harmful
+// according to the model's content rules, the request is automatically rejected.
+//
+// You can configure an moderation endpoint either as a standalone prompt guard setting
+// or in addition to other request and response guard settings.
 type AIPromptGuard_Moderation struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Pass prompt data through an external moderation model endpoint,
+	// which compares the request prompt input to predefined content rules.
+	//
 	// Types that are assignable to Moderation:
 	//
 	//	*AIPromptGuard_Moderation_Openai
@@ -2873,27 +2932,27 @@ type isAIPromptGuard_Moderation_Moderation interface {
 }
 
 type AIPromptGuard_Moderation_Openai struct {
-	// OpenAI moderation
+	// Configure an OpenAI moderation endpoint.
 	Openai *AIPromptGuard_Moderation_OpenAI `protobuf:"bytes,1,opt,name=openai,proto3,oneof"`
 }
 
 func (*AIPromptGuard_Moderation_Openai) isAIPromptGuard_Moderation_Moderation() {}
 
-// Request settings for Prompt Guard
+// Prompt guards to apply to requests sent by the client.
 type AIPromptGuard_Request struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Custom response message to send back to the client.
-	// If not specified, the following default message will be used:
-	// "The request was rejected due to inappropriate content"
+	// A custom response message to return to the client. If not specified, defaults to
+	// "The request was rejected due to inappropriate content".
 	CustomResponse *AIPromptGuard_Request_CustomResponse `protobuf:"bytes,1,opt,name=custom_response,json=customResponse,proto3" json:"custom_response,omitempty"`
-	// Regex request guard
+	// Regular expression (regex) matching for prompt guards and data masking.
 	Regex *AIPromptGuard_Regex `protobuf:"bytes,2,opt,name=regex,proto3" json:"regex,omitempty"`
-	// Webhook request guard
+	// Configure a webhook to forward requests to for prompt guarding.
 	Webhook *AIPromptGuard_Webhook `protobuf:"bytes,3,opt,name=webhook,proto3" json:"webhook,omitempty"`
-	// Moderation settings
+	// Pass prompt data through an external moderation model endpoint,
+	// which compares the request prompt input to predefined content rules.
 	Moderation *AIPromptGuard_Moderation `protobuf:"bytes,4,opt,name=moderation,proto3" json:"moderation,omitempty"`
 }
 
@@ -2955,15 +3014,15 @@ func (x *AIPromptGuard_Request) GetModeration() *AIPromptGuard_Moderation {
 	return nil
 }
 
-// Request settings for Prompt Guard
+// Prompt guards to apply to responses returned by the LLM provider.
 type AIPromptGuard_Response struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Regex response guard
+	// Regular expression (regex) matching for prompt guards and data masking.
 	Regex *AIPromptGuard_Regex `protobuf:"bytes,1,opt,name=regex,proto3" json:"regex,omitempty"`
-	// Webhook response guard
+	// Configure a webhook to forward responses to for prompt guarding.
 	Webhook *AIPromptGuard_Webhook `protobuf:"bytes,2,opt,name=webhook,proto3" json:"webhook,omitempty"`
 }
 
@@ -3011,14 +3070,15 @@ func (x *AIPromptGuard_Response) GetWebhook() *AIPromptGuard_Webhook {
 	return nil
 }
 
+// Regular expression (regex) matching for prompt guards and data masking.
 type AIPromptGuard_Regex_RegexMatch struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The regex pattern to match against the response.
+	// The regex pattern to match against the request or response.
 	Pattern string `protobuf:"bytes,1,opt,name=pattern,proto3" json:"pattern,omitempty"`
-	// An optional name for this match which can be used for debugging purposes.
+	// An optional name for this match, which can be used for debugging purposes.
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 }
 
@@ -3066,14 +3126,15 @@ func (x *AIPromptGuard_Regex_RegexMatch) GetName() string {
 	return ""
 }
 
+// Describes how to match a given string in HTTP headers. Match is case-sensitive.
 type AIPromptGuard_Webhook_HeaderMatch struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Header key to match
+	// The header key string to match against.
 	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	// Type of match to use
+	// The type of match to use.
 	MatchType AIPromptGuard_Webhook_HeaderMatch_MatchType `protobuf:"varint,2,opt,name=match_type,json=matchType,proto3,enum=ai.options.gloo.solo.io.AIPromptGuard_Webhook_HeaderMatch_MatchType" json:"match_type,omitempty"`
 }
 
@@ -3121,14 +3182,18 @@ func (x *AIPromptGuard_Webhook_HeaderMatch) GetMatchType() AIPromptGuard_Webhook
 	return AIPromptGuard_Webhook_HeaderMatch_EXACT
 }
 
-// OpenAI Moderation
+// Configure an OpenAI moderation endpoint.
 type AIPromptGuard_Moderation_OpenAI struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The name of the moderation model to use, will default to: `omni-moderation-latest`
+	// The name of the OpenAI moderation model to use. Defaults to
+	// [`omni-moderation-latest`](https://platform.openai.com/docs/guides/moderation).
 	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
+	// The authorization token that the AI gateway uses
+	// to access the OpenAI moderation model.
+	//
 	// Types that are assignable to AuthTokenSource:
 	//
 	//	*AIPromptGuard_Moderation_OpenAI_AuthToken
@@ -3191,22 +3256,25 @@ type isAIPromptGuard_Moderation_OpenAI_AuthTokenSource interface {
 }
 
 type AIPromptGuard_Moderation_OpenAI_AuthToken struct {
+	// The authorization token that the AI gateway uses
+	// to access the OpenAI moderation model.
 	AuthToken *SingleAuthToken `protobuf:"bytes,2,opt,name=auth_token,json=authToken,proto3,oneof"`
 }
 
 func (*AIPromptGuard_Moderation_OpenAI_AuthToken) isAIPromptGuard_Moderation_OpenAI_AuthTokenSource() {
 }
 
+// A custom response to return to the client if request content
+// is matched against a regex pattern and the action is `REJECT`.
 type AIPromptGuard_Request_CustomResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Custom response message to send back to the client.
-	// If not specified, the following default message will be used:
-	// "The request was rejected due to inappropriate content"
+	// A custom response message to return to the client. If not specified, defaults to
+	// "The request was rejected due to inappropriate content".
 	Message string `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	// Status code to send back to the client.
+	// The status code to return to the client.
 	StatusCode uint32 `protobuf:"varint,2,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
 }
 
@@ -3656,8 +3724,8 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_p
 	0x4d, 0x61, 0x74, 0x63, 0x68, 0x54, 0x79, 0x70, 0x65, 0x12, 0x09, 0x0a, 0x05, 0x45, 0x58, 0x41,
 	0x43, 0x54, 0x10, 0x00, 0x12, 0x0a, 0x0a, 0x06, 0x50, 0x52, 0x45, 0x46, 0x49, 0x58, 0x10, 0x01,
 	0x12, 0x0a, 0x0a, 0x06, 0x53, 0x55, 0x46, 0x46, 0x49, 0x58, 0x10, 0x02, 0x12, 0x0c, 0x0a, 0x08,
-	0x43, 0x4f, 0x4e, 0x54, 0x41, 0x49, 0x4e, 0x53, 0x10, 0x03, 0x12, 0x09, 0x0a, 0x05, 0x52, 0x45,
-	0x47, 0x45, 0x58, 0x10, 0x04, 0x1a, 0xee, 0x01, 0x0a, 0x0a, 0x4d, 0x6f, 0x64, 0x65, 0x72, 0x61,
+	0x43, 0x4f, 0x4e, 0x54, 0x41, 0x49, 0x4e, 0x53, 0x10, 0x03, 0x12, 0x09, 0x0a, 0x05, 0x72, 0x65,
+	0x67, 0x65, 0x78, 0x10, 0x04, 0x1a, 0xee, 0x01, 0x0a, 0x0a, 0x4d, 0x6f, 0x64, 0x65, 0x72, 0x61,
 	0x74, 0x69, 0x6f, 0x6e, 0x12, 0x52, 0x0a, 0x06, 0x6f, 0x70, 0x65, 0x6e, 0x61, 0x69, 0x18, 0x01,
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x38, 0x2e, 0x61, 0x69, 0x2e, 0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e,
 	0x73, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x41,
