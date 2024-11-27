@@ -151,11 +151,17 @@ func TestPluginsHttpFilterUsefulness(t *testing.T) {
 				configuredListener,
 			},
 		}
-
+		upstream := &gloov1.Upstream{
+			Metadata: &core.Metadata{
+				Name:      "upstream-name",
+				Namespace: "upstream-namespace",
+			},
+		}
 		params := plugins.Params{
 			Ctx: ctx,
 			Snapshot: &gloov1snap.ApiSnapshot{
-				Proxies: gloov1.ProxyList{proxy},
+				Proxies:   gloov1.ProxyList{proxy},
+				Upstreams: gloov1.UpstreamList{upstream},
 			},
 		}
 		// Filters should not be added to this map without due consideration
