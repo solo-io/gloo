@@ -21,9 +21,7 @@ import (
 	envoylistener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
-	envoy_service_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/service/cluster/v3"
-	envoy_service_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/service/listener/v3"
-	envoy_service_route_v3 "github.com/envoyproxy/go-control-plane/envoy/service/route/v3"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	jsonpb "google.golang.org/protobuf/encoding/protojson"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,7 +30,6 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	discovery_v3 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
-	envoy_service_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/service/endpoint/v3"
 	"github.com/go-logr/zapr"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
@@ -41,6 +38,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
+	"github.com/solo-io/gloo/projects/gloo/pkg/servers/iosnapshot"
 	gloosetup "github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/go-utils/contextutils"
@@ -48,6 +46,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/grpclog"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 	istiokube "istio.io/istio/pkg/kube"
@@ -112,7 +111,7 @@ func NewTestLogger() *zap.Logger {
 
 func init() {
 	log.SetLogger(zapr.NewLogger(logger))
-
+	grpclog.SetLoggerV2(grpclog.NewLoggerV2WithVerbosity(writer, writer, writer, 100))
 }
 
 func TestScenarios(t *testing.T) {
@@ -169,7 +168,8 @@ func TestScenarios(t *testing.T) {
 
 	// setup xDS server:
 	uniqueClientCallbacks, builder := krtcollections.NewUniquelyConnectedClients()
-	setupOpts := bootstrap.NewSetupOpts(xds.NewAdsSnapshotCache(ctx), uniqueClientCallbacks)
+	snapCache := xds.NewAdsSnapshotCache(ctx)
+	setupOpts := bootstrap.NewSetupOpts(snapCache, uniqueClientCallbacks)
 	addr := &net.TCPAddr{
 		IP:   net.IPv4zero,
 		Port: int(0),
@@ -241,14 +241,41 @@ func TestScenarios(t *testing.T) {
 				// that we get test pollution.
 				// once we change it to only include the ones in the proxy, we can re-enable this
 				//				t.Parallel()
-				testScenario(t, ctx, setupOpts.KrtDebugger, client, xdsPort, fullpath)
+				testScenario(t, ctx, setupOpts.KrtDebugger, snapCache, client, xdsPort, fullpath)
 
 			})
 		}
 	}
 }
 
-func testScenario(t *testing.T, ctx context.Context, kdbg *krt.DebugHandler, client istiokube.CLIClient, xdsPort int, f string) {
+func dumpCache(snapCache cache.SnapshotCache) iosnapshot.SnapshotResponseData {
+	cacheKeys := snapCache.GetStatusKeys()
+	cacheEntries := make(map[string]interface{}, len(cacheKeys))
+
+	for _, k := range cacheKeys {
+		xdsSnapshot, err := getXdsSnapshot(snapCache, k)
+		if err != nil {
+			cacheEntries[k] = err.Error()
+		} else {
+			cacheEntries[k] = xdsSnapshot
+		}
+	}
+	return iosnapshot.SnapshotResponseData{
+		Data:  cacheEntries,
+		Error: nil,
+	}
+
+}
+func getXdsSnapshot(snapCache cache.SnapshotCache, k string) (cache cache.Snapshot, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic occurred while getting xds snapshot: %v", r)
+		}
+	}()
+	return snapCache.GetSnapshot(k)
+}
+
+func testScenario(t *testing.T, ctx context.Context, kdbg *krt.DebugHandler, snapCache cache.SnapshotCache, client istiokube.CLIClient, xdsPort int, f string) {
 	fext := filepath.Ext(f)
 	fpre := strings.TrimSuffix(f, fext)
 	fout := fpre + "-out" + fext
@@ -295,21 +322,17 @@ func testScenario(t *testing.T, ctx context.Context, kdbg *krt.DebugHandler, cli
 	}
 	t.Log("applied yamls", t.Name())
 	// make sure all yamls reached the control plane
-	timer := time.NewTimer(10 * time.Second)
-	defer timer.Stop()
+	time.Sleep(time.Second)
 
-	dumper := newXdsDumper(t, xdsPort)
+	dumper := newXdsDumper(t, ctx, xdsPort, testgwname)
 	defer dumper.Close()
-	dump := dumper.Dump(t, ctx, testgwname)
-	for len(dump.Listeners) == 0 {
-		select {
-		case <-timer.C:
-			dump = dumper.Dump(t, ctx, testgwname)
-		case <-timer.C:
-			j, _ := kdbg.MarshalJSON()
-			t.Logf("timed out waiting - krt state for test: %s %s", t.Name(), string(j))
-			t.Fatalf("timed out waiting for listeners")
-		}
+	dump := dumper.Dump(t, ctx)
+	if len(dump.Listeners) == 0 {
+		xdsDump := dumpCache(snapCache).MarshalJSONString()
+		j, _ := kdbg.MarshalJSON()
+		t.Logf("timed out waiting - krt state for test: %s %s", t.Name(), string(j))
+		t.Logf("timed out waiting - xds state for test: %s %s", t.Name(), xdsDump)
+		t.Fatalf("timed out waiting for listeners")
 	}
 	if write {
 		t.Logf("writing out file")
@@ -326,34 +349,109 @@ func testScenario(t *testing.T, ctx context.Context, kdbg *krt.DebugHandler, cli
 }
 
 type xdsDumper struct {
-	conn *grpc.ClientConn
+	conn      *grpc.ClientConn
+	adsClient discovery_v3.AggregatedDiscoveryService_StreamAggregatedResourcesClient
+	dr        *discovery_v3.DiscoveryRequest
+	cancel    context.CancelFunc
 }
 
 func (x xdsDumper) Close() {
 	if x.conn != nil {
 		x.conn.Close()
 	}
+	if x.adsClient != nil {
+		x.adsClient.CloseSend()
+	}
+	if x.cancel != nil {
+		x.cancel()
+	}
 }
 
-func newXdsDumper(t *testing.T, xdsPort int) xdsDumper {
-	conn, err := grpc.NewClient(fmt.Sprintf("localhost:%d", xdsPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
+func newXdsDumper(t *testing.T, ctx context.Context, xdsPort int, gwname string) xdsDumper {
+	conn, err := grpc.NewClient(fmt.Sprintf("localhost:%d", xdsPort),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithIdleTimeout(time.Second*10),
+	)
 	if err != nil {
 		t.Fatalf("failed to connect to xds server: %v", err)
 	}
-	return xdsDumper{conn: conn}
-}
 
-func (x xdsDumper) Dump(t *testing.T, ctx context.Context, gwname string) xdsDump {
-
-	f := xdsFetcher{
-		conn: x.conn,
+	d := xdsDumper{
+		conn: conn,
 		dr: &discovery_v3.DiscoveryRequest{Node: &envoycore.Node{
 			Id: "gateway.gwtest",
 			Metadata: &structpb.Struct{
 				Fields: map[string]*structpb.Value{"role": {Kind: &structpb.Value_StringValue{StringValue: fmt.Sprintf("gloo-kube-gateway-api~%s~%s-%s", "gwtest", "gwtest", gwname)}}}},
 		}},
 	}
-	clusters := f.getclusters(t, ctx)
+
+	ads := discovery_v3.NewAggregatedDiscoveryServiceClient(d.conn)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*30) // long timeout - just in case. we should never reach it.
+	adsClient, err := ads.StreamAggregatedResources(ctx)
+	if err != nil {
+		t.Fatalf("failed to get ads client: %v", err)
+	}
+	d.adsClient = adsClient
+	d.cancel = cancel
+
+	return d
+}
+
+func (x xdsDumper) Dump(t *testing.T, ctx context.Context) xdsDump {
+
+	dr := proto.Clone(x.dr).(*discovery_v3.DiscoveryRequest)
+	dr.TypeUrl = "type.googleapis.com/envoy.config.cluster.v3.Cluster"
+	x.adsClient.Send(dr)
+	dr = proto.Clone(x.dr).(*discovery_v3.DiscoveryRequest)
+	dr.TypeUrl = "type.googleapis.com/envoy.config.listener.v3.Listener"
+	x.adsClient.Send(dr)
+
+	var clusters []*envoycluster.Cluster
+	var listeners []*envoylistener.Listener
+
+	// run this in parallel with a 5s timeout
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for i := 0; i < 2; i++ {
+			dresp, err := x.adsClient.Recv()
+			if err != nil {
+				t.Errorf("failed to get response from xds server: %v", err)
+			}
+			t.Logf("got response: %s len: %d", dresp.GetTypeUrl(), len(dresp.GetResources()))
+			if dresp.GetTypeUrl() == "type.googleapis.com/envoy.config.cluster.v3.Cluster" {
+				for _, anyCluster := range dresp.GetResources() {
+
+					var cluster envoycluster.Cluster
+					if err := anyCluster.UnmarshalTo(&cluster); err != nil {
+						t.Errorf("failed to unmarshal cluster: %v", err)
+					}
+					clusters = append(clusters, &cluster)
+				}
+			} else if dresp.GetTypeUrl() == "type.googleapis.com/envoy.config.listener.v3.Listener" {
+				for _, anyListener := range dresp.GetResources() {
+					var listener envoylistener.Listener
+					if err := anyListener.UnmarshalTo(&listener); err != nil {
+						t.Errorf("failed to unmarshal listener: %v", err)
+					}
+					listeners = append(listeners, &listener)
+				}
+			}
+		}
+	}()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		// don't fatal yet as we want to dump the state while still connected
+		t.Error("timed out waiting for listener/cluster xds dump")
+		return xdsDump{}
+	}
+	if len(listeners) == 0 {
+		t.Error("no listeners found")
+		return xdsDump{}
+	}
+	t.Logf("xds: found %d listeners and %d clusters", len(listeners), len(clusters))
+
 	clusterServiceNames := slices.MapFilter(clusters, func(c *envoycluster.Cluster) *string {
 		if c.GetEdsClusterConfig() != nil {
 			if c.GetEdsClusterConfig().GetServiceName() != "" {
@@ -365,16 +463,68 @@ func (x xdsDumper) Dump(t *testing.T, ctx context.Context, gwname string) xdsDum
 		return nil
 	})
 
-	listeners := f.getlisteners(t, ctx)
 	var routenames []string
 	for _, l := range listeners {
 		routenames = append(routenames, getroutesnames(l)...)
 	}
+
+	dr = proto.Clone(x.dr).(*discovery_v3.DiscoveryRequest)
+	dr.ResourceNames = routenames
+	dr.TypeUrl = "type.googleapis.com/envoy.config.route.v3.RouteConfiguration"
+	x.adsClient.Send(dr)
+	dr = proto.Clone(x.dr).(*discovery_v3.DiscoveryRequest)
+	dr.TypeUrl = "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment"
+	dr.ResourceNames = clusterServiceNames
+	x.adsClient.Send(dr)
+
+	var endpoints []*envoyendpoint.ClusterLoadAssignment
+	var routes []*envoy_config_route_v3.RouteConfiguration
+
+	done = make(chan struct{})
+	go func() {
+		defer close(done)
+		for i := 0; i < 2; i++ {
+			dresp, err := x.adsClient.Recv()
+			if err != nil {
+				t.Errorf("failed to get response from xds server: %v", err)
+			}
+			t.Logf("got response: %s len: %d", dresp.GetTypeUrl(), len(dresp.GetResources()))
+			if dresp.GetTypeUrl() == "type.googleapis.com/envoy.config.route.v3.RouteConfiguration" {
+				for _, anyRoute := range dresp.GetResources() {
+					var route envoy_config_route_v3.RouteConfiguration
+					if err := anyRoute.UnmarshalTo(&route); err != nil {
+						t.Errorf("failed to unmarshal route: %v", err)
+					}
+					routes = append(routes, &route)
+				}
+			} else if dresp.GetTypeUrl() == "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment" {
+				for _, anyCla := range dresp.GetResources() {
+					var cla envoyendpoint.ClusterLoadAssignment
+					if err := anyCla.UnmarshalTo(&cla); err != nil {
+						t.Errorf("failed to unmarshal cla: %v", err)
+					}
+					// remove kube endpoints, as with envtests we will get random ports, so we cant assert on them
+					if !strings.Contains(cla.ClusterName, "kube-svc:default-kubernetes") {
+						endpoints = append(endpoints, &cla)
+					}
+				}
+			}
+		}
+	}()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		// don't fatal yet as we want to dump the state while still connected
+		t.Error("timed out waiting for routes/cla xds dump")
+		return xdsDump{}
+	}
+
+	t.Logf("found %d routes and %d endpoints", len(routes), len(endpoints))
 	return xdsDump{
 		Clusters:  clusters,
 		Listeners: listeners,
-		Endpoints: f.getendpoints(t, ctx, clusterServiceNames),
-		Routes:    f.getroutes(t, ctx, routenames),
+		Endpoints: endpoints,
+		Routes:    routes,
 	}
 }
 
@@ -621,44 +771,6 @@ func protoJsonRoundTrip(c proto.Message) (any, error) {
 	return roundtrip, nil
 }
 
-type xdsFetcher struct {
-	conn *grpc.ClientConn
-	dr   *discovery_v3.DiscoveryRequest
-}
-
-func (x *xdsFetcher) getclusters(t *testing.T, ctx context.Context) []*envoycluster.Cluster {
-
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	cds := envoy_service_cluster_v3.NewClusterDiscoveryServiceClient(x.conn)
-
-	//give ggv2 time to initialize so we don't get
-	// "ggv2 not initialized" error
-
-	epcli, err := cds.StreamClusters(ctx)
-	if err != nil {
-		t.Fatalf("failed to get cds client: %v", err)
-	}
-	defer epcli.CloseSend()
-	epcli.Send(x.dr)
-	dresp, err := epcli.Recv()
-	if err != nil {
-		t.Fatalf("failed to get response from xds server: %v", err)
-	}
-	t.Logf("got cds response. nonce, version: %s %s", dresp.GetNonce(), dresp.GetVersionInfo())
-	var clusters []*envoycluster.Cluster
-	for _, anyCluster := range dresp.GetResources() {
-
-		var cluster envoycluster.Cluster
-		if err := anyCluster.UnmarshalTo(&cluster); err != nil {
-			t.Fatalf("failed to unmarshal cluster: %v", err)
-		}
-		clusters = append(clusters, &cluster)
-	}
-	return clusters
-}
-
 func getroutesnames(l *envoylistener.Listener) []string {
 	var routes []string
 	for _, fc := range l.GetFilterChains() {
@@ -679,104 +791,6 @@ func getroutesnames(l *envoylistener.Listener) []string {
 		}
 	}
 	return routes
-}
-
-func (x *xdsFetcher) getlisteners(t *testing.T, ctx context.Context) []*envoylistener.Listener {
-
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	ds := envoy_service_listener_v3.NewListenerDiscoveryServiceClient(x.conn)
-
-	//give ggv2 time to initialize so we don't get
-	// "ggv2 not initialized" error
-
-	epcli, err := ds.StreamListeners(ctx)
-	if err != nil {
-		t.Fatalf("failed to get lds client: %v", err)
-	}
-	defer epcli.CloseSend()
-	epcli.Send(x.dr)
-	dresp, err := epcli.Recv()
-	if err != nil {
-		t.Fatalf("failed to get response from xds server: %v", err)
-	}
-	t.Logf("got lds response. nonce, version: %s %s", dresp.GetNonce(), dresp.GetVersionInfo())
-	var resources []*envoylistener.Listener
-	for _, anyResource := range dresp.GetResources() {
-
-		var resource envoylistener.Listener
-		if err := anyResource.UnmarshalTo(&resource); err != nil {
-			t.Fatalf("failed to unmarshal resource: %v", err)
-		}
-		resources = append(resources, &resource)
-	}
-	return resources
-}
-
-func (x *xdsFetcher) getendpoints(t *testing.T, ctx context.Context, clusterServiceNames []string) []*envoyendpoint.ClusterLoadAssignment {
-
-	eds := envoy_service_endpoint_v3.NewEndpointDiscoveryServiceClient(x.conn)
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	epcli, err := eds.StreamEndpoints(ctx)
-	if err != nil {
-		t.Fatalf("failed to get eds client: %v", err)
-	}
-	defer epcli.CloseSend()
-	dr := proto.Clone(x.dr).(*discovery_v3.DiscoveryRequest)
-	dr.ResourceNames = clusterServiceNames
-	epcli.Send(dr)
-	dresp, err := epcli.Recv()
-	if err != nil {
-		t.Fatalf("failed to get response from xds server: %v", err)
-	}
-	t.Logf("got eds response. nonce, version: %s %s", dresp.GetNonce(), dresp.GetVersionInfo())
-	var clas []*envoyendpoint.ClusterLoadAssignment
-	for _, anyCluster := range dresp.GetResources() {
-
-		var cla envoyendpoint.ClusterLoadAssignment
-		if err := anyCluster.UnmarshalTo(&cla); err != nil {
-			t.Fatalf("failed to unmarshal cluster: %v", err)
-		}
-		// remove kube endpoints, as with envtests we will get random ports, so we cant assert on them
-		if !strings.Contains(cla.ClusterName, "kube-svc:default-kubernetes") {
-			clas = append(clas, &cla)
-		}
-	}
-	return clas
-}
-
-func (x *xdsFetcher) getroutes(t *testing.T, ctx context.Context, rosourceNames []string) []*envoy_config_route_v3.RouteConfiguration {
-
-	eds := envoy_service_route_v3.NewRouteDiscoveryServiceClient(x.conn)
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	epcli, err := eds.StreamRoutes(ctx)
-	if err != nil {
-		t.Fatalf("failed to get rds client: %v", err)
-	}
-	defer epcli.CloseSend()
-	dr := proto.Clone(x.dr).(*discovery_v3.DiscoveryRequest)
-	dr.ResourceNames = rosourceNames
-	epcli.Send(dr)
-	dresp, err := epcli.Recv()
-	if err != nil {
-		t.Fatalf("failed to get response from xds server: %v", err)
-	}
-	t.Logf("got rds response. nonce, version: %s %s", dresp.GetNonce(), dresp.GetVersionInfo())
-	var clas []*envoy_config_route_v3.RouteConfiguration
-	for _, anyCluster := range dresp.GetResources() {
-
-		var cla envoy_config_route_v3.RouteConfiguration
-		if err := anyCluster.UnmarshalTo(&cla); err != nil {
-			t.Fatalf("failed to unmarshal cluster: %v", err)
-		}
-		clas = append(clas, &cla)
-	}
-	return clas
 }
 
 func generateKubeConfiguration(t *testing.T, restconfig *rest.Config) string {
