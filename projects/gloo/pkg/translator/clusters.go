@@ -420,7 +420,7 @@ func validateUpstreamLambdaFunctions(proxy *v1.Proxy, upstreams v1.UpstreamList,
 	for _, upstream := range upstreams {
 		lambdaFuncs := upstream.GetAws().GetLambdaFunctions()
 		for _, lambda := range lambdaFuncs {
-			upstreamKey := upstream.Metadata.Ref().Key()
+			upstreamKey := upstream.GetMetadata().Ref().Key()
 			if upstreamLambdas[upstreamKey] == nil {
 				upstreamLambdas[upstreamKey] = make(map[string]bool)
 			}
