@@ -12,19 +12,16 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/onsi/ginkgo/v2"
 
-	"github.com/solo-io/go-utils/threadsafe"
-
+	"github.com/solo-io/gloo/pkg/cliutil/install"
+	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
+	glooAdminCli "github.com/solo-io/gloo/pkg/utils/glooadminutils/admincli"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
-
-	"github.com/onsi/ginkgo/v2"
-	"github.com/solo-io/gloo/pkg/cliutil/install"
-	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
-
-	glooAdminCli "github.com/solo-io/gloo/pkg/utils/glooadminutils/admincli"
 	"github.com/solo-io/gloo/projects/gloo/pkg/servers/admin"
+	"github.com/solo-io/go-utils/threadsafe"
 )
 
 // StandardGlooDumpOnFail creates adump of the kubernetes state and certain envoy data from
@@ -37,11 +34,11 @@ func StandardGlooDumpOnFail(outLog io.Writer, outDir string, namespaces []string
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
 
-		kubeCli := kubectl.NewCli()
+		kubectlCli := kubectl.NewCli()
 
-		KubeDumpOnFail(ctx, kubeCli, outLog, outDir, namespaces)()
-		ControllerDumpOnFail(ctx, kubeCli, outLog, outDir, namespaces)()
-		EnvoyDumpOnFail(ctx, kubeCli, outLog, outDir, namespaces)()
+		KubeDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
+		ControllerDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
+		EnvoyDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
 
 		fmt.Printf("Test failed. Logs and cluster state are available in %s\n", outDir)
 	}
@@ -55,7 +52,7 @@ func StandardGlooDumpOnFail(outLog io.Writer, outDir string, namespaces []string
 // - kubernetes state
 // - logs from all pods in the given namespaces
 // - yaml representations of all solo.io CRs in the given namespaces
-func KubeDumpOnFail(ctx context.Context, kubeCli *kubectl.Cli, outLog io.Writer, outDir string,
+func KubeDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, outLog io.Writer, outDir string,
 	namespaces []string) func() {
 	return func() {
 		setupOutDir(outDir)
@@ -329,11 +326,11 @@ func kubeList(namespace string, target string) ([]string, string, error) {
 
 // ControllerDumpOnFail creates a small dump of the controller state when a test fails.
 // This is useful for debugging test failures.
-func ControllerDumpOnFail(ctx context.Context, kubeCli *kubectl.Cli, outLog io.Writer,
+func ControllerDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, outLog io.Writer,
 	outDir string, namespaces []string) func() {
 	return func() {
 		for _, ns := range namespaces {
-			glooPodNames, err := fetchPodNamesByNsAndLabel(ctx, kubeCli, ns, "gloo=gloo")
+			glooPodNames, err := kubectlCli.GetPodsInNsWithLabel(ctx, ns, "gloo=gloo")
 			if err != nil {
 				fmt.Printf("error fetching controller pod names: %f\n", err)
 				continue
@@ -350,11 +347,11 @@ func ControllerDumpOnFail(ctx context.Context, kubeCli *kubectl.Cli, outLog io.W
 			setupOutDir(namespaceOutDir)
 
 			for _, podName := range glooPodNames {
-				writeControllerLog(ctx, namespaceOutDir, ns, podName, kubeCli)
-				writeMetricsLog(ctx, namespaceOutDir, ns, podName, kubeCli)
+				writeControllerLog(ctx, namespaceOutDir, ns, podName, kubectlCli)
+				writeMetricsLog(ctx, namespaceOutDir, ns, podName, kubectlCli)
 
 				// Open a port-forward to the controller pod's admin port
-				portForwarder, err := kubeCli.StartPortForward(ctx,
+				portForwarder, err := kubectlCli.StartPortForward(ctx,
 					portforward.WithPod(podName, ns),
 					portforward.WithPorts(int(admin.AdminPort), int(admin.AdminPort)),
 				)
@@ -399,19 +396,19 @@ func ControllerDumpOnFail(ctx context.Context, kubeCli *kubectl.Cli, outLog io.W
 // - stats
 // - clusters
 // - listeners
-func EnvoyDumpOnFail(ctx context.Context, kubectl *kubectl.Cli, _ io.Writer, outDir string, namespaces []string) func() {
+func EnvoyDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer, outDir string, namespaces []string) func() {
 	return func() {
 		for _, ns := range namespaces {
 			proxies := []string{}
 
-			kubeGatewayProxies, err := fetchPodNamesByNsAndLabel(ctx, kubectl, ns, "gloo=kube-gateway")
+			kubeGatewayProxies, err := kubectlCli.GetPodsInNsWithLabel(ctx, ns, "gloo=kube-gateway")
 			if err != nil {
 				fmt.Printf("error fetching kube-gateway proxies: %f\n", err)
 			} else {
 				proxies = append(proxies, kubeGatewayProxies...)
 			}
 
-			gatewayProxies, err := fetchPodNamesByNsAndLabel(ctx, kubectl, ns, "gloo=gateway-proxy")
+			gatewayProxies, err := kubectlCli.GetPodsInNsWithLabel(ctx, ns, "gloo=gateway-proxy")
 			if err != nil {
 				fmt.Printf("error fetching gateway-proxy proxies: %f\n", err)
 			} else {
@@ -489,60 +486,24 @@ func fileAtPath(path string) *os.File {
 	return f
 }
 
-func fetchPodNamesByNsAndLabel(ctx context.Context, kubectl *kubectl.Cli, ns, label string) ([]string, error) {
-	podStdOut := bytes.NewBuffer(nil)
-	podStdErr := bytes.NewBuffer(nil)
-
-	// Fetch the name of the Gloo Gateway controller pod
-	getGlooPodNamesCmd := kubectl.Command(ctx, "get", "pod", "-n", ns,
-		"--selector", label, "--output", "jsonpath='{.items[*].metadata.name}'")
-	err := getGlooPodNamesCmd.WithStdout(podStdOut).WithStderr(podStdErr).Run().Cause()
-	if err != nil {
-		fmt.Printf("error running get gloo pod name command: %v\n", err)
-	}
-
-	// Clean up and check the output
-	glooPodNamesString := strings.Trim(podStdOut.String(), "'")
-	if glooPodNamesString == "" {
-		fmt.Printf("no %s pods found in namespace %s\n", label, ns)
-		return []string{}, nil
-	}
-
-	// Split the string on whitespace to get the pod names
-	glooPodNames := strings.Fields(glooPodNamesString)
-	return glooPodNames, nil
-}
-
-func writeControllerLog(ctx context.Context, outDir string, ns string, podName string, kubectl *kubectl.Cli) {
+func writeControllerLog(ctx context.Context, outDir string, ns string, podName string, kubectlCli *kubectl.Cli) {
 	// Get the Gloo Gateway controller logs
-	controllerLogsFilePath := filepath.Join(outDir, fmt.Sprintf("%s.controller.log", podName))
-	controllerLogsFile, err := os.OpenFile(controllerLogsFilePath,
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	if err != nil {
-		fmt.Printf("error opening controller log file: %f\n", err)
-	}
-
-	controllerLogsCmd := kubectl.WithReceiver(controllerLogsFile).Command(ctx,
+	controllerLogsFile := fileAtPath(filepath.Join(outDir, fmt.Sprintf("%s.controller.log", podName)))
+	controllerLogsCmd := kubectlCli.WithReceiver(controllerLogsFile).Command(ctx,
 		"-n", ns, "logs", podName, "-c", "gloo", "--tail=1000")
-	err = controllerLogsCmd.Run().Cause()
+	err := controllerLogsCmd.Run().Cause()
 	if err != nil {
 		fmt.Printf("error running controller logs for %s in %s command: %v\n", podName, ns, err)
 	}
 }
 
-func writeMetricsLog(ctx context.Context, outDir string, ns string, podName string, kubectl *kubectl.Cli) {
-	// Get the metrics from the Gloo Gateway controller pod and write them to a file
-	metricsFilePath := filepath.Join(outDir, fmt.Sprintf("%s.metrics.log", podName))
-	metricsFile, err := os.OpenFile(metricsFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	if err != nil {
-		fmt.Printf("error opening metrics file: %f\n", err)
-	}
-
+func writeMetricsLog(ctx context.Context, outDir string, ns string, podName string, kubectlCli *kubectl.Cli) {
 	// Using an ephemeral debug pod fetch the metrics from the Gloo Gateway controller
-	metricsCmd := kubectl.Command(ctx, "debug", "-n", ns,
+	metricsFile := fileAtPath(filepath.Join(outDir, fmt.Sprintf("%s.metrics.log", podName)))
+	metricsCmd := kubectlCli.Command(ctx, "debug", "-n", ns,
 		"-it", "--image=curlimages/curl:7.83.1", podName, "--",
 		"curl", "http://localhost:9091/metrics")
-	err = metricsCmd.WithStdout(metricsFile).WithStderr(metricsFile).Run().Cause()
+	err := metricsCmd.WithStdout(metricsFile).WithStderr(metricsFile).Run().Cause()
 	if err != nil {
 		fmt.Printf("error running metrics command: %f\n", err)
 	}
