@@ -326,6 +326,11 @@ func kubeList(namespace string, target string) ([]string, string, error) {
 
 // ControllerDumpOnFail creates a small dump of the controller state when a test fails.
 // This is useful for debugging test failures.
+// The dump includes:
+// - controller logs
+// - controller metrics
+// - controller xds snapshot
+// - controller krt snapshot
 func ControllerDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, outLog io.Writer,
 	outDir string, namespaces []string) func() {
 	return func() {
@@ -430,7 +435,7 @@ func EnvoyDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer, 
 					fmt.Sprintf("pod/%s", proxy), ns)
 				if err != nil {
 					fmt.Printf("error creating admin cli: %f\n", err)
-					return
+					continue
 				}
 
 				defer shutdown()
