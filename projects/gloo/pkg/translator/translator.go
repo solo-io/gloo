@@ -415,6 +415,8 @@ func GetEndpointClusterName(clusterName string, upstream *v1.Upstream) (string, 
 	if err != nil {
 		return "", err
 	}
+	//note: we add the upstream hash here because of
+	// https://github.com/envoyproxy/envoy/issues/13009
 	endpointClusterName := fmt.Sprintf("%s-%d", clusterName, hash)
 	return endpointClusterName, nil
 }

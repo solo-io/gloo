@@ -31,10 +31,10 @@ func (c EndpointResources) Equals(in EndpointResources) bool {
 
 // TODO: this is needed temporary while we don't have the per-upstream translation done.
 // once the plugins are fixed to support it, we can have the proxy translation skip upstreams/endpoints and remove this collection
-func newEnvoyEndpoints(glooEndpoints krt.Collection[krtcollections.EndpointsForUpstream]) krt.Collection[EndpointResources] {
+func newEnvoyEndpoints(glooEndpoints krt.Collection[krtcollections.EndpointsForUpstream], dbg *krt.DebugHandler) krt.Collection[EndpointResources] {
 	clas := krt.NewCollection(glooEndpoints, func(_ krt.HandlerContext, ep krtcollections.EndpointsForUpstream) *EndpointResources {
 		return TransformEndpointToResources(ep)
-	})
+	}, krt.WithDebugging(dbg), krt.WithName("EnvoyEndpoints"))
 	return clas
 }
 
