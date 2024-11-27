@@ -15,6 +15,8 @@ import (
 	"github.com/solo-io/go-utils/threadsafe"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
+	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/solo-io/gloo/pkg/cliutil/install"
@@ -22,18 +24,14 @@ import (
 
 	gateway_defaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	"github.com/solo-io/skv2/codegen/util"
+	"github.com/solo-io/gloo/projects/gloo/pkg/servers/admin"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var (
-	kubeOutDir  = filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
-	envoyOutDir = filepath.Join(kubeOutDir, "envoy-dump")
-)
-
-// StandardGlooDumpOnFail creates adump of the kubernetes state and certain envoy data from the admin interface when a test fails
+// StandardGlooDumpOnFail creates adump of the kubernetes state and certain envoy data from
+// the admin interface when a test fails.
 // Look at `KubeDumpOnFail` && `EnvoyDumpOnFail` for more details
-func StandardGlooDumpOnFail(out io.Writer, proxies ...metav1.ObjectMeta) func() {
+func StandardGlooDumpOnFail(outLog io.Writer, outDir string, proxies ...metav1.ObjectMeta) func() {
 	return func() {
 		var namespaces []string
 		for _, proxy := range proxies {
@@ -42,29 +40,31 @@ func StandardGlooDumpOnFail(out io.Writer, proxies ...metav1.ObjectMeta) func() 
 			}
 		}
 
-		KubeDumpOnFail(out, namespaces...)()
-		EnvoyDumpOnFail(out, proxies...)()
+		KubeDumpOnFail(outLog, outDir, namespaces...)()
+		ControllerDumpOnFail(outLog, outDir, namespaces...)()
+		EnvoyDumpOnFail(outLog, outDir, proxies...)()
+
+		fmt.Printf("Test failed. Logs and cluster state are available in %s\n", outDir)
 	}
 }
 
 // KubeDumpOnFail creates a small dump of the kubernetes state when a test fails.
 // This is useful for debugging test failures.
-// The dump is written to _output/kube2e-artifacts.
 // The dump includes:
 // - docker state
 // - process state
 // - kubernetes state
 // - logs from all pods in the given namespaces
 // - yaml representations of all solo.io CRs in the given namespaces
-func KubeDumpOnFail(out io.Writer, namespaces ...string) func() {
+func KubeDumpOnFail(outLog io.Writer, outDir string, namespaces ...string) func() {
 	return func() {
-		setupOutDir(kubeOutDir)
+		setupOutDir(outDir)
 
-		recordDockerState(fileAtPath(filepath.Join(kubeOutDir, "docker-state.log")))
-		recordProcessState(fileAtPath(filepath.Join(kubeOutDir, "process-state.log")))
-		recordKubeState(fileAtPath(filepath.Join(kubeOutDir, "kube-state.log")))
+		recordDockerState(fileAtPath(filepath.Join(outDir, "docker-state.log")))
+		recordProcessState(fileAtPath(filepath.Join(outDir, "process-state.log")))
+		recordKubeState(fileAtPath(filepath.Join(outDir, "kube-state.log")))
 
-		recordKubeDump(namespaces...)
+		recordKubeDump(outDir, namespaces...)
 	}
 }
 
@@ -110,11 +110,49 @@ func recordKubeState(f *os.File) {
 	defer f.Close()
 	kubeCli := &install.CmdKubectl{}
 
-	kubeState, err := kubeCli.KubectlOut(nil, "get", "all", "-A")
+	kubeState, err := kubeCli.KubectlOut(nil, "get", "all", "-A", "-o", "wide")
 	if err != nil {
 		f.WriteString("*** Unable to get kube state ***\n")
 		return
 	}
+
+	resourcesToGet := []string{
+		// Kubernetes resources
+		"secrets",
+		// Kube GW API resources
+		"gateways.gateway.networking.k8s.io",
+		"gatewayclasses.gateway.networking.k8s.io",
+		"httproutes.gateway.networking.k8s.io",
+		"referencegrants.gateway.networking.k8s.io",
+		// GG Kube GW resources
+		"gatewayparameters.gateway.gloo.solo.io",
+		"listeneroptions.gateway.solo.io",     // only implemented for kube gw as of now
+		"httplisteneroptions.gateway.solo.io", // only implemented for kube gw as of now
+		// GG Gloo resources
+		"graphqlapis.graphql.gloo.solo.io",
+		"proxies.gloo.solo.io",
+		"settings.gloo.solo.io",
+		"upstreamgroups.gloo.solo.io",
+		"upstreams.gloo.solo.io",
+		// GG Edge GW resources
+		"gateways.gateway.solo.io",
+		"httpgateways.gateway.solo.io",
+		"tcpgateways.gateway.solo.io",
+		"virtualservices.gateway.solo.io",
+		// Shared GW resources
+		"routeoptions.gateway.solo.io",
+		"virtualhostoptions.gateway.solo.io",
+		// Dataplane extensions resources
+		"authconfigs.enterprise.gloo.solo.io",
+		"ratelimitconfigs.ratelimit.solo.io",
+	}
+
+	kubeResources, err := kubeCli.KubectlOut(nil, "get", strings.Join(resourcesToGet, ","), "-A", "-owide")
+	if err != nil {
+		f.WriteString("*** Unable to get kube resources ***. Reason: " + err.Error() + " \n")
+		return
+	}
+
 	// Describe everything to identify the reason for issues such as Pods, LoadBalancers stuck in pending state
 	// (insufficient resources, unable to acquire an IP), etc.
 	// Ie: More context around the output of the previous command `kubectl get all -A`
@@ -123,28 +161,32 @@ func recordKubeState(f *os.File) {
 		f.WriteString("*** Unable to get kube describe ***. Reason: " + err.Error() + " \n")
 		return
 	}
+
 	kubeEndpointsState, err := kubeCli.KubectlOut(nil, "get", "endpoints", "-A")
 	if err != nil {
 		f.WriteString("*** Unable to get endpoint state ***. Reason: " + err.Error() + " \n")
 		return
 	}
+
 	f.WriteString("*** Kube state ***\n")
 	f.WriteString(string(kubeState) + "\n")
+	f.WriteString(string(kubeResources) + "\n")
 	f.WriteString(string(kubeDescribe) + "\n")
 	f.WriteString(string(kubeEndpointsState) + "\n")
+
 	f.WriteString("*** End Kube state ***\n")
 }
 
-func recordKubeDump(namespaces ...string) {
+func recordKubeDump(outDir string, namespaces ...string) {
 	// for each namespace, create a namespace directory that contains...
 	for _, ns := range namespaces {
 		// ...a pod logs subdirectoy
-		if err := recordPods(filepath.Join(kubeOutDir, ns, "_pods"), ns); err != nil {
+		if err := recordPods(filepath.Join(outDir, ns, "_pods"), ns); err != nil {
 			fmt.Printf("error recording pod logs: %f, \n", err)
 		}
 
 		// ...and a subdirectory for each solo.io CRD with non-zero resources
-		if err := recordCRs(filepath.Join(kubeOutDir, ns), ns); err != nil {
+		if err := recordCRs(filepath.Join(outDir, ns), ns); err != nil {
 			fmt.Printf("error recording pod logs: %f, \n", err)
 		}
 	}
@@ -283,18 +325,123 @@ func kubeList(namespace string, target string) ([]string, string, error) {
 	return toReturn, "", nil
 }
 
+// ControllerDumpOnFail creates a small dump of the controller state when a test fails.
+// This is useful for debugging test failures.
+func ControllerDumpOnFail(outLog io.Writer, outDir string, namespaces ...string) func() {
+	return func() {
+		for _, ns := range namespaces {
+			namespaceOutDir := filepath.Join(outDir, ns)
+			setupOutDir(namespaceOutDir)
+
+			// Get the Gloo Gateway controller logs
+			controllerLogsFilePath := filepath.Join(namespaceOutDir, "controller.log")
+			controllerLogsFile, err := os.OpenFile(controllerLogsFilePath,
+				os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
+			if err != nil {
+				fmt.Printf("error opening controller log file: %f\n", err)
+			}
+
+			controllerLogsCmd := kubectl.NewCli().WithReceiver(controllerLogsFile).Command(context.Background(),
+				"-n", ns, "logs", "deployment/gloo", "-c", "gloo", "--tail=1000")
+			err = controllerLogsCmd.Run().Cause()
+			if err != nil {
+				fmt.Printf("error running controller logs command: %f\n", err)
+			}
+
+			// podStdOut := bytes.NewBuffer(nil)
+			// podStdErr := bytes.NewBuffer(nil)
+
+			// Fetch the name of the Gloo Gateway controller pod
+			getGlooPodNameCmd := i.Actions.Kubectl().Command(ctx, "get", "pod", "-n", i.Metadata.InstallNamespace,
+				"--selector", "gloo=gloo", "--output", "jsonpath='{.items[0].metadata.name}'")
+			cmdErr := getGlooPodNameCmd.WithStdout(podStdOut).WithStderr(podStdErr).Run()
+			if cmdErr != nil {
+				i.Assertions.Require.NoError(cmdErr)
+			}
+
+			// Clean up and check the output
+			glooPodName := strings.Trim(podStdOut.String(), "'")
+			if glooPodName == "" {
+				i.Assertions.Require.NoError(fmt.Errorf("failed to get the Gloo Gateway controller pod name: %s",
+					podStdErr.String()))
+			}
+
+			// Get the metrics from the Gloo Gateway controller pod and write them to a file
+			metricsFilePath := filepath.Join(failureDir, "metrics.log")
+			metricsFile, err := os.OpenFile(metricsFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
+			i.Assertions.Require.NoError(err)
+
+			// Using an ephemeral debug pod fetch the metrics from the Gloo Gateway controller
+			metricsCmd := i.Actions.Kubectl().Command(ctx, "debug", "-n", i.Metadata.InstallNamespace,
+				"-it", "--image=curlimages/curl:7.83.1", glooPodName, "--",
+				"curl", "http://localhost:9091/metrics")
+			cmdErr = metricsCmd.WithStdout(metricsFile).WithStderr(metricsFile).Run()
+			if cmdErr != nil {
+				i.Assertions.Require.NoError(cmdErr)
+			}
+
+			// Open a port-forward to the Gloo Gateway controller pod's admin port
+			portForwarder, err := i.Actions.Kubectl().StartPortForward(ctx,
+				portforward.WithDeployment("gloo", i.Metadata.InstallNamespace),
+				portforward.WithPorts(int(admin.AdminPort), int(admin.AdminPort)),
+			)
+			i.Assertions.Require.NoError(err)
+
+			defer func() {
+				portForwarder.Close()
+				portForwarder.WaitForStop()
+			}()
+
+			adminClient := admincli.NewClient().
+				WithReceiver(io.Discard).
+				WithCurlOptions(
+					curl.WithRetries(3, 0, 10),
+					curl.WithPort(int(admin.AdminPort)),
+				)
+
+			// Get krt snapshot from the Gloo Gateway controller pod and write it to a file
+			krtSnapshotFilePath := filepath.Join(failureDir, "krt_snapshot.log")
+			krtSnapshotFile, err := os.OpenFile(krtSnapshotFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
+			i.Assertions.Require.NoError(err)
+
+			cmdErr = adminClient.KrtSnapshotCmd(ctx).
+				WithStdout(krtSnapshotFile).
+				WithStderr(krtSnapshotFile).
+				Run()
+			if cmdErr != nil {
+				i.Assertions.Require.NoError(cmdErr)
+			}
+
+			// Get xds snapshot from the Gloo Gateway controller pod and write it to a file
+			xdsSnapshotFilePath := filepath.Join(failureDir, "xds_snapshot.log")
+			xdsSnapshotFile, err := os.OpenFile(xdsSnapshotFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
+			i.Assertions.Require.NoError(err)
+
+			cmdErr = adminClient.XdsSnapshotCmd(ctx).
+				WithStdout(xdsSnapshotFile).
+				WithStderr(xdsSnapshotFile).
+				Run()
+			if cmdErr != nil {
+				i.Assertions.Require.NoError(cmdErr)
+			}
+
+		}
+	}
+}
+
 // EnvoyDumpOnFail creates a small dump of the envoy admin interface when a test fails.
 // This is useful for debugging test failures.
-// The dump is written to _output/envoy-dump.
 // The dump includes:
 // - config dump
 // - stats
 // - clusters
 // - listeners
-func EnvoyDumpOnFail(_ io.Writer, proxies ...metav1.ObjectMeta) func() {
+func EnvoyDumpOnFail(_ io.Writer, outDir string, proxies ...metav1.ObjectMeta) func() {
 	return func() {
-		setupOutDir(envoyOutDir)
 		for _, proxy := range proxies {
+			envoyOutDir := filepath.Join(outDir, proxy.Namespace, proxy.Name)
+			setupOutDir(envoyOutDir)
+
 			proxyName := proxy.GetName()
 			if proxyName == "" {
 				proxyName = gateway_defaults.GatewayProxyName
@@ -304,13 +451,23 @@ func EnvoyDumpOnFail(_ io.Writer, proxies ...metav1.ObjectMeta) func() {
 				proxyNamespace = defaults.GlooSystem
 			}
 
-			adminCli, shutdown, _ := admincli.NewPortForwardedClient(context.Background(), fmt.Sprintf("deployment/%s", proxyName), proxyNamespace)
+			adminCli, shutdown, err := admincli.NewPortForwardedClient(context.Background(),
+				fmt.Sprintf("deployment/%s", proxyName), proxyNamespace)
+			if err != nil {
+				fmt.Printf("error creating admin cli: %f\n", err)
+				return
+			}
+
 			defer shutdown()
 
-			adminCli.ConfigDumpCmd(context.Background(), nil).WithStdout(fileAtPath(filepath.Join(envoyOutDir, "config.log"))).Run().Cause()
-			adminCli.StatsCmd(context.Background()).WithStdout(fileAtPath(filepath.Join(envoyOutDir, "stats.log"))).Run().Cause()
-			adminCli.ClustersCmd(context.Background()).WithStdout(fileAtPath(filepath.Join(envoyOutDir, "clusters.log"))).Run().Cause()
-			adminCli.ListenersCmd(context.Background()).WithStdout(fileAtPath(filepath.Join(envoyOutDir, "listeners.log"))).Run().Cause()
+			adminCli.ConfigDumpCmd(context.Background(), nil).
+				WithStdout(fileAtPath(filepath.Join(envoyOutDir, "config.log"))).Run().Cause()
+			adminCli.StatsCmd(context.Background()).
+				WithStdout(fileAtPath(filepath.Join(envoyOutDir, "stats.log"))).Run().Cause()
+			adminCli.ClustersCmd(context.Background()).
+				WithStdout(fileAtPath(filepath.Join(envoyOutDir, "clusters.log"))).Run().Cause()
+			adminCli.ListenersCmd(context.Background()).
+				WithStdout(fileAtPath(filepath.Join(envoyOutDir, "listeners.log"))).Run().Cause()
 		}
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/test/kubernetes/testutils/cluster"
+	"github.com/solo-io/skv2/codegen/util"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 
@@ -65,7 +66,10 @@ var _ = BeforeSuite(func() {
 	testHelper, err = kube2e.GetTestHelper(ctx, namespace)
 	Expect(err).NotTo(HaveOccurred())
 	testHelper.SetKubeCli(kubectl.NewCli().WithReceiver(GinkgoWriter))
-	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, metav1.ObjectMeta{Namespace: testHelper.InstallNamespace}))
+
+	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
+	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir,
+		metav1.ObjectMeta{Namespace: testHelper.InstallNamespace}))
 
 	// Allow skipping of install step for running multiple times
 	if !glootestutils.ShouldSkipInstall() {

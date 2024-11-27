@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/test/kubernetes/testutils/cluster"
+	"github.com/solo-io/skv2/codegen/util"
 
 	kubetestclients "github.com/solo-io/gloo/test/kubernetes/testutils/clients"
 
@@ -63,7 +64,10 @@ func StartTestHelper() {
 
 	testHelper, err = kube2e.GetTestHelper(ctx, namespace)
 	Expect(err).NotTo(HaveOccurred())
-	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, metav1.ObjectMeta{Namespace: testHelper.InstallNamespace}))
+
+	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
+	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir,
+		metav1.ObjectMeta{Namespace: testHelper.InstallNamespace}))
 
 	kubeCli = kubectl.NewCli().WithReceiver(GinkgoWriter)
 

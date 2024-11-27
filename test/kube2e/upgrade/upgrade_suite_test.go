@@ -52,7 +52,8 @@ var _ = BeforeSuite(func() {
 	testHelper, err := kube2e.GetTestHelper(suiteCtx, namespace)
 	Expect(err).NotTo(HaveOccurred())
 
-	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter,
+	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
+	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir,
 		metav1.ObjectMeta{Namespace: "upgrade"},
 		metav1.ObjectMeta{Namespace: testHelper.InstallNamespace},
 		metav1.ObjectMeta{Namespace: "other-ns"}))
