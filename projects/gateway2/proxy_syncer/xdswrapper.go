@@ -2,6 +2,7 @@ package proxy_syncer
 
 import (
 	"encoding/json"
+	"fmt"
 
 	udpaannontations "github.com/cncf/xds/go/udpa/annotations"
 	"github.com/solo-io/gloo/pkg/utils/envutils"
@@ -22,7 +23,7 @@ import (
 )
 
 var (
-	UseDetailedUnmarshalling = true || envutils.IsEnvTruthy("DETAILED_SNAP_UNMARSHALLING")
+	UseDetailedUnmarshalling = envutils.IsEnvTruthy("DETAILED_SNAP_UNMARSHALLING")
 )
 
 type XdsSnapWrapper struct {
@@ -48,9 +49,9 @@ func (p XdsSnapWrapper) ResourceName() string {
 	return p.proxyKey
 }
 
-// note: i called this MarshalJSON__, as i'm not comfertable releasing this at end of release cycle.
-// once 1.18 is out, remove the __
-func (p XdsSnapWrapper) MarshalJSON() ([]byte, error) {
+// note: this is feature gated, as i'm not confident the new logic can't panic, in all envoy configs
+// once 1.18 is out, we can remove the feature gate.
+func (p XdsSnapWrapper) MarshalJSON() (out []byte, err error) {
 	if !UseDetailedUnmarshalling {
 		// use a new struct to prevent infinite recursion
 		return json.Marshal(struct {
@@ -69,6 +70,12 @@ func (p XdsSnapWrapper) MarshalJSON() ([]byte, error) {
 	}
 
 	snap := p.snap.Clone().(*xds.EnvoySnapshot)
+
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic handling snapshot: %v", r)
+		}
+	}()
 
 	// redact things
 	redact(snap)

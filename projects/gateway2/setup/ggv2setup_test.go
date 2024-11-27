@@ -413,7 +413,8 @@ func (x xdsDumper) Dump(t *testing.T, ctx context.Context) xdsDump {
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		for i := 0; i < 2; i++ {
+		sent := 2
+		for i := 0; i < sent; i++ {
 			dresp, err := x.adsClient.Recv()
 			if err != nil {
 				t.Errorf("failed to get response from xds server: %v", err)
@@ -429,12 +430,25 @@ func (x xdsDumper) Dump(t *testing.T, ctx context.Context) xdsDump {
 					clusters = append(clusters, &cluster)
 				}
 			} else if dresp.GetTypeUrl() == "type.googleapis.com/envoy.config.listener.v3.Listener" {
+				needMoreListerners := false
 				for _, anyListener := range dresp.GetResources() {
 					var listener envoylistener.Listener
 					if err := anyListener.UnmarshalTo(&listener); err != nil {
 						t.Errorf("failed to unmarshal listener: %v", err)
 					}
 					listeners = append(listeners, &listener)
+					needMoreListerners = needMoreListerners || (len(getroutesnames(&listener)) == 0)
+				}
+
+				if needMoreListerners {
+					// no routes on listener.. request another listener snapshot, after
+					// the control plane processes the listeners
+					sent += 1
+					dr = proto.Clone(x.dr).(*discovery_v3.DiscoveryRequest)
+					dr.TypeUrl = "type.googleapis.com/envoy.config.listener.v3.Listener"
+					dr.VersionInfo = dresp.GetVersionInfo()
+					dr.ResponseNonce = dresp.GetNonce()
+					x.adsClient.Send(dr)
 				}
 			}
 		}
