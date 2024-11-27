@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/shadowing"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	. "github.com/solo-io/go-utils/testutils"
@@ -13,6 +14,29 @@ import (
 )
 
 var _ = Describe("Plugin", func() {
+
+	var (
+		params plugins.RouteParams
+	)
+
+	BeforeEach(func() {
+		params = plugins.RouteParams{
+			VirtualHostParams: plugins.VirtualHostParams{
+				Params: plugins.Params{
+					Snapshot: &v1snap.ApiSnapshot{
+						Upstreams: v1.UpstreamList{
+							{
+								Metadata: &core.Metadata{
+									Name:      "some-upstream",
+									Namespace: "default",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+	})
 
 	It("should work on valid inputs, with uninitialized outputs", func() {
 		p := NewPlugin()
@@ -30,7 +54,7 @@ var _ = Describe("Plugin", func() {
 			},
 		}
 		out := &envoy_config_route_v3.Route{}
-		err := p.ProcessRoute(plugins.RouteParams{}, in, out)
+		err := p.ProcessRoute(params, in, out)
 		Expect(err).NotTo(HaveOccurred())
 		checkFraction(out.GetRoute().GetRequestMirrorPolicies()[0].GetRuntimeFraction(), 100)
 		Expect(out.GetRoute().GetRequestMirrorPolicies()[0].GetCluster()).To(Equal("some-upstream_default"))
@@ -58,7 +82,7 @@ var _ = Describe("Plugin", func() {
 				},
 			},
 		}
-		err := p.ProcessRoute(plugins.RouteParams{}, in, out)
+		err := p.ProcessRoute(params, in, out)
 		Expect(err).NotTo(HaveOccurred())
 		checkFraction(out.GetRoute().GetRequestMirrorPolicies()[0].RuntimeFraction, 100)
 		Expect(out.GetRoute().GetRequestMirrorPolicies()[0].Cluster).To(Equal("some-upstream_default"))
@@ -69,7 +93,7 @@ var _ = Describe("Plugin", func() {
 		p := NewPlugin()
 		in := &v1.Route{}
 		out := &envoy_config_route_v3.Route{}
-		err := p.ProcessRoute(plugins.RouteParams{}, in, out)
+		err := p.ProcessRoute(params, in, out)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -94,7 +118,7 @@ var _ = Describe("Plugin", func() {
 				Redirect: &envoy_config_route_v3.RedirectAction{},
 			},
 		}
-		err := p.ProcessRoute(plugins.RouteParams{}, in, out)
+		err := p.ProcessRoute(params, in, out)
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(HaveInErrorChain(InvalidRouteActionError))
 
@@ -104,7 +128,7 @@ var _ = Describe("Plugin", func() {
 				DirectResponse: &envoy_config_route_v3.DirectResponseAction{},
 			},
 		}
-		err = p.ProcessRoute(plugins.RouteParams{}, in, out)
+		err = p.ProcessRoute(params, in, out)
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(HaveInErrorChain(InvalidRouteActionError))
 	})
@@ -125,7 +149,7 @@ var _ = Describe("Plugin", func() {
 			},
 		}
 		out := &envoy_config_route_v3.Route{}
-		err := p.ProcessRoute(plugins.RouteParams{}, in, out)
+		err := p.ProcessRoute(params, in, out)
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(HaveInErrorChain(InvalidNumeratorError(200)))
 
@@ -137,7 +161,7 @@ var _ = Describe("Plugin", func() {
 			},
 		}
 		out = &envoy_config_route_v3.Route{}
-		err = p.ProcessRoute(plugins.RouteParams{}, in, out)
+		err = p.ProcessRoute(params, in, out)
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(HaveInErrorChain(UnspecifiedUpstreamError))
 	})
