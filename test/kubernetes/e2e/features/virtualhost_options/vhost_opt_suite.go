@@ -283,8 +283,6 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 			),
 			Body: gstruct.Ignore(),
 		})
-
-	s.Assert().Equal(true, false, "intentionally failing to trigger dump, remove when done debugging")
 }
 
 // TestMultipleVirtualHostOptionsSetup tests a complex scenario where multiple VirtualHostOptions conflict
