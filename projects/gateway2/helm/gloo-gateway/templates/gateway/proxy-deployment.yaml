@@ -404,6 +404,7 @@ metadata:
 {{- if $gateway.aiExtension.stats }}
 data:
   stats.json: {{ $gateway.aiExtension.stats }}
+  tracing.json: {{ $gateway.aiExtension.tracing }}
 {{- end}}
 {{- end}}
 ---

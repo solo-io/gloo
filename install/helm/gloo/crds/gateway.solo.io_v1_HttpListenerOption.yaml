@@ -1056,6 +1056,27 @@ spec:
                                   type: string
                               type: object
                             type: array
+                          metadataForTags:
+                            items:
+                              properties:
+                                defaultValue:
+                                  type: string
+                                kind:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                                tag:
+                                  type: string
+                                value:
+                                  properties:
+                                    key:
+                                      type: string
+                                    namespace:
+                                      type: string
+                                    nestedClaimDelimiter:
+                                      type: string
+                                  type: object
+                              type: object
+                            type: array
                           openCensusConfig:
                             properties:
                               grpcAddress:

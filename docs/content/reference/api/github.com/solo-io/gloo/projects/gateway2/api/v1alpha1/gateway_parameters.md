@@ -258,6 +258,13 @@ Resource Types:
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b><a href="#gatewayparametersspeckubeaiextensiontracing">tracing</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -1080,6 +1087,47 @@ Resource Types:
           <br/>
           <br/>
             <i>Enum</i>: envoy.filters.http.jwt_authn, io.solo.transformation<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### GatewayParameters.spec.kube.aiExtension.tracing
+<sup><sup>[↩ Parent](#gatewayparametersspeckubeaiextension)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>insecure</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>otlpGRPCEndpoint</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>otlpHTTPEndpoint</b></td>
+        <td>string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>

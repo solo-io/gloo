@@ -603,6 +603,16 @@ type AiExtension struct {
 	//       metadataKey: "principal:iss"
 	// ```
 	Stats *AiExtensionStats `json:"stats,omitempty"`
+
+	// Tracing configuration for the AI Extension.
+	// +optional
+	// Example:
+	// ```yaml
+	// tracing:
+	//   otlpGRPCEndpoint: "otel-collector.otel-system.svc:4317"
+	//   insecure: true
+	// ```
+	Tracing *AIExtensionTracing `json:"tracing,omitempty"`
 }
 
 func (in *AiExtension) GetEnabled() *bool {
@@ -724,6 +734,53 @@ func (in *CustomLabel) GetKeyDelimiter() *string {
 		return nil
 	}
 	return in.KeyDelimiter
+}
+
+func (in *AiExtension) GetTracing() *AIExtensionTracing {
+	if in == nil {
+		return nil
+	}
+	return in.Tracing
+}
+
+type AIExtensionTracing struct {
+	// The endpoint for the OTLP collector.
+	// Set this to the HTTP endpoint of the OTLP collector.
+	// It is recommended to use Either OTLPHttpEndpoint or OTLPGrpcEndpoint.
+	// +optional
+	OTLPHttpEndpoint string `json:"otlpHTTPEndpoint,omitempty"`
+
+	// gRPC endpoint for the OTLP collector.
+	// Set this to the gRPC endpoint of the OTLP collector.
+	// It is recommended to use Either OTLPHttpEndpoint or OTLPGrpcEndpoint.
+	// +optional
+	OTLPGrpcEndpoint string `json:"otlpGRPCEndpoint,omitempty"`
+
+	// Whether to use insecure connection to the OTLP endpoint.
+	// This will be false by defautl as HTTPS is recommended.
+	// +optional
+	Insecure bool `json:"insecure,omitempty"`
+}
+
+func (in *AIExtensionTracing) GetOTLPHttpEndpoint() string {
+	if in == nil {
+		return ""
+	}
+	return in.OTLPHttpEndpoint
+}
+
+func (in *AIExtensionTracing) GetOTLPGrpcEndpoint() string {
+	if in == nil {
+		return ""
+	}
+	return in.OTLPGrpcEndpoint
+}
+
+func (in *AIExtensionTracing) GetInsecure() bool {
+	if in == nil {
+		return false
+	}
+	return in.Insecure
 }
 
 func init() {

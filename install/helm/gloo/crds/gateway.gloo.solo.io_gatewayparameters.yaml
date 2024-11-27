@@ -267,6 +267,15 @@ spec:
                               type: object
                             type: array
                         type: object
+                      tracing:
+                        properties:
+                          insecure:
+                            type: boolean
+                          otlpGRPCEndpoint:
+                            type: string
+                          otlpHTTPEndpoint:
+                            type: string
+                        type: object
                     type: object
                   deployment:
                     properties:
