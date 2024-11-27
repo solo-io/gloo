@@ -86,8 +86,8 @@ type ProxySyncer struct {
 	proxyReconcileQueue ggv2utils.AsyncQueue[gloov1.ProxyList]
 
 	statusReport            krt.Singleton[report]
-	mostXdsSnapshots        krt.Collection[xdsSnapWrapper]
-	perclientSnapCollection krt.Collection[xdsSnapWrapper]
+	mostXdsSnapshots        krt.Collection[XdsSnapWrapper]
+	perclientSnapCollection krt.Collection[XdsSnapWrapper]
 	proxiesToReconcile      krt.Singleton[proxyList]
 	proxyTrigger            *krt.RecomputeTrigger
 
@@ -182,24 +182,6 @@ func NewProxyTranslator(translator setup.TranslatorFactory,
 		noopSnapSetter:   &syncer.NoOpSnapshotSetter{},
 		glooReporter:     glooReporter,
 	}
-}
-
-type xdsSnapWrapper struct {
-	snap            *xds.EnvoySnapshot
-	proxyKey        string
-	proxyWithReport translatorutils.ProxyWithReports
-	pluginRegistry  registry.PluginRegistry
-	fullReports     reporter.ResourceReports
-}
-
-var _ krt.ResourceNamer = xdsSnapWrapper{}
-
-func (p xdsSnapWrapper) Equals(in xdsSnapWrapper) bool {
-	return p.snap.Equal(in.snap)
-}
-
-func (p xdsSnapWrapper) ResourceName() string {
-	return p.proxyKey
 }
 
 type RedactedSecret krtcollections.ResourceWrapper[*gloov1.Secret]
@@ -424,7 +406,7 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 		proxy := s.buildProxy(ctx, gw)
 		return proxy
 	}, withDebug, krt.WithName("GlooProxies"))
-	s.mostXdsSnapshots = krt.NewCollection(glooProxies, func(kctx krt.HandlerContext, proxy glooProxy) *xdsSnapWrapper {
+	s.mostXdsSnapshots = krt.NewCollection(glooProxies, func(kctx krt.HandlerContext, proxy glooProxy) *XdsSnapWrapper {
 		// we are recomputing xds snapshots as proxies have changed, signal that we need to sync xds with these new snapshots
 		xdsSnap := s.translateProxy(
 			ctx,
@@ -593,7 +575,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		}
 	}()
 
-	s.perclientSnapCollection.RegisterBatch(func(o []krt.Event[xdsSnapWrapper], initialSync bool) {
+	s.perclientSnapCollection.RegisterBatch(func(o []krt.Event[XdsSnapWrapper], initialSync bool) {
 		for _, e := range o {
 			if e.Event != controllers.EventDelete {
 				snapWrap := e.Latest()
@@ -691,7 +673,7 @@ func (s *ProxySyncer) translateProxy(
 	kus krt.Collection[krtcollections.UpstreamWrapper],
 	authConfigs krt.Collection[*extauthkubev1.AuthConfig],
 	rlConfigs krt.Collection[*rlkubev1a1.RateLimitConfig],
-) *xdsSnapWrapper {
+) *XdsSnapWrapper {
 	cfgmaps := krt.Fetch(kctx, kcm)
 	endpoints := krt.Fetch(kctx, kep)
 	secrets := krt.Fetch(kctx, ks)
@@ -781,7 +763,7 @@ func (s *ProxySyncer) translateProxy(
 		zap.Stringer("Routes", resourcesStringer(envoySnap.Routes)),
 		zap.Stringer("Endpoints", resourcesStringer(envoySnap.Endpoints)),
 	)
-	out := xdsSnapWrapper{
+	out := XdsSnapWrapper{
 		snap:            envoySnap,
 		proxyKey:        proxy.ResourceName(),
 		proxyWithReport: proxyWithReport,
