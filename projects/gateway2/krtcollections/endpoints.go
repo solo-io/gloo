@@ -136,12 +136,14 @@ type EndpointsForUpstream struct {
 func NewEndpointsForUpstream(us UpstreamWrapper, logger *zap.Logger) *EndpointsForUpstream {
 	// start with a hash of the cluster name. technically we dont need it for krt, as we can compare the upstream name. but it helps later
 	// to compute the hash we present envoy with.
-	h := fnv.New64()
-	h.Write([]byte(us.Inner.GetMetadata().Ref().String()))
-	upstreamHash := h.Sum64()
-
 	// add the upstream hash to the clustername, so that if it changes the envoy cluster will become warm again.
 	clusterName := GetEndpointClusterName(us.Inner)
+
+	h := fnv.New64()
+	h.Write([]byte(us.Inner.GetMetadata().Ref().String()))
+	h.Write([]byte(clusterName))
+	upstreamHash := h.Sum64()
+
 	return &EndpointsForUpstream{
 		LbEps:       make(map[PodLocality][]EndpointWithMd),
 		ClusterName: clusterName,
@@ -167,13 +169,12 @@ func hashEndpoints(l PodLocality, emd EndpointWithMd) uint64 {
 	return hasher.Sum64()
 }
 
-func hash(a, b uint64, c string) uint64 {
+func hash(a, b uint64) uint64 {
 	hasher := fnv.New64a()
 	var buf [16]byte
 	binary.LittleEndian.PutUint64(buf[:8], a)
 	binary.LittleEndian.PutUint64(buf[8:], b)
 	hasher.Write(buf[:])
-	hasher.Write([]byte(c))
 	return hasher.Sum64()
 }
 
@@ -186,7 +187,7 @@ func (e *EndpointsForUpstream) Add(l PodLocality, emd EndpointWithMd) {
 	// won't result in different equality hashes.
 	// As long as we hash the upstream in the cluster name (due to envoy cluster warming bug), we
 	// also need to include that in the hash
-	e.LbEpsEqualityHash = hash(e.epsEqualityHash, e.upstreamHash, e.ClusterName)
+	e.LbEpsEqualityHash = hash(e.epsEqualityHash, e.upstreamHash)
 	e.LbEps[l] = append(e.LbEps[l], emd)
 }
 
