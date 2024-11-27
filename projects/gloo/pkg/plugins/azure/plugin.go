@@ -17,7 +17,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/transformation"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
@@ -64,7 +63,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		return nil
 	}
 	azureUpstream := upstreamSpec.Azure
-	p.recordedUpstreams[translator.UpstreamToClusterName(in.GetMetadata().Ref())] = azureUpstream
+	p.recordedUpstreams[in.GetMetadata().Ref().Key()] = azureUpstream
 
 	// configure Envoy cluster routing info
 	out.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
@@ -126,7 +125,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 				contextutils.LoggerFrom(p.ctx).Error(err)
 				return nil, err
 			}
-			upstreamSpec, ok := p.recordedUpstreams[translator.UpstreamToClusterName(upstreamRef)]
+			upstreamSpec, ok := p.recordedUpstreams[upstreamRef.Key()]
 			if !ok {
 				// TODO(yuval-k): panic in debug
 				return nil, errors.Errorf("%v is not an Azure upstream", *upstreamRef)
