@@ -444,6 +444,7 @@ func (x xdsDumper) Dump(t *testing.T, ctx context.Context) xdsDump {
 					// no routes on listener.. request another listener snapshot, after
 					// the control plane processes the listeners
 					sent += 1
+					listeners = nil
 					dr = proto.Clone(x.dr).(*discovery_v3.DiscoveryRequest)
 					dr.TypeUrl = "type.googleapis.com/envoy.config.listener.v3.Listener"
 					dr.VersionInfo = dresp.GetVersionInfo()
