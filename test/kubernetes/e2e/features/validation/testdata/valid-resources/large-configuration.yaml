@@ -69,7 +69,7 @@ spec:
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
-  name: nginx.kube-svc:nginx-nginx-8080
+  name: nginx-nginx-8080
   namespace: full-envoy-validation-test
 spec:
   kube:
@@ -313,7 +313,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-user-token
@@ -343,7 +343,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /ip
       name: jwt-options-route
@@ -354,7 +354,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /get
       name: jwt-options-route
@@ -365,7 +365,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /headers
       name: jwt-options-route
@@ -376,7 +376,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /status
       name: jwt-options-route
@@ -387,7 +387,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /user-agent
       name: jwt-options-route
@@ -398,7 +398,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /cookies
       name: jwt-options-route
@@ -409,7 +409,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /base64
       name: jwt-options-route
@@ -420,7 +420,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - invertMatch: true
@@ -448,7 +448,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
             namespace: full-envoy-validation-test
     - matchers:
       - headers:
@@ -481,7 +481,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
             namespace: full-envoy-validation-test
     - matchers:
       - headers:
@@ -520,7 +520,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
             namespace: full-envoy-validation-test
 ---
 apiVersion: gateway.solo.io/v1
@@ -557,7 +557,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-user-token
@@ -587,7 +587,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /ip
       name: jwt-options-route
@@ -598,7 +598,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /get
       name: jwt-options-route
@@ -609,7 +609,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /headers
       name: jwt-options-route
@@ -620,7 +620,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /status
       name: jwt-options-route
@@ -631,7 +631,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /user-agent
       name: jwt-options-route
@@ -642,7 +642,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /cookies
       name: jwt-options-route
@@ -653,7 +653,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /base64
       name: jwt-options-route
@@ -664,7 +664,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - invertMatch: true
@@ -692,7 +692,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-api-key
@@ -724,7 +724,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-api-key
@@ -762,7 +762,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
 ---
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
@@ -798,7 +798,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-user-token
@@ -828,7 +828,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /ip
       name: jwt-options-route
@@ -839,7 +839,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /get
       name: jwt-options-route
@@ -850,7 +850,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /headers
       name: jwt-options-route
@@ -861,7 +861,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /status
       name: jwt-options-route
@@ -872,7 +872,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /user-agent
       name: jwt-options-route
@@ -883,7 +883,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /cookies
       name: jwt-options-route
@@ -894,7 +894,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /base64
       name: jwt-options-route
@@ -905,7 +905,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - invertMatch: true
@@ -933,7 +933,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-api-key
@@ -965,7 +965,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-api-key
@@ -1003,4 +1003,4 @@ spec:
       routeAction:
         single:
           upstream:
-            name: nginx.kube-svc:nginx-nginx-8080
+            name: nginx-nginx-8080
