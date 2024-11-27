@@ -141,6 +141,9 @@ func NewEndpointsForUpstream(us UpstreamWrapper, logger *zap.Logger) *EndpointsF
 
 	h := fnv.New64()
 	h.Write([]byte(us.Inner.GetMetadata().Ref().String()))
+	// As long as we hash the upstream in the cluster name (due to envoy cluster warming bug), we
+	// also need to include that in the hash
+	// see: https://github.com/envoyproxy/envoy/issues/13009
 	h.Write([]byte(clusterName))
 	upstreamHash := h.Sum64()
 
@@ -185,8 +188,6 @@ func (e *EndpointsForUpstream) Add(l PodLocality, emd EndpointWithMd) {
 	// we can't xor the endpoint hash with the upstream hash, because upstreams with
 	// different names and similar endpoints will cancel out, so endpoint changes
 	// won't result in different equality hashes.
-	// As long as we hash the upstream in the cluster name (due to envoy cluster warming bug), we
-	// also need to include that in the hash
 	e.LbEpsEqualityHash = hash(e.epsEqualityHash, e.upstreamHash)
 	e.LbEps[l] = append(e.LbEps[l], emd)
 }
