@@ -250,33 +250,6 @@ func TestScenarios(t *testing.T) {
 	}
 }
 
-func dumpCache(snapCache cache.SnapshotCache) iosnapshot.SnapshotResponseData {
-	cacheKeys := snapCache.GetStatusKeys()
-	cacheEntries := make(map[string]interface{}, len(cacheKeys))
-
-	for _, k := range cacheKeys {
-		xdsSnapshot, err := getXdsSnapshot(snapCache, k)
-		if err != nil {
-			cacheEntries[k] = err.Error()
-		} else {
-			cacheEntries[k] = xdsSnapshot
-		}
-	}
-	return iosnapshot.SnapshotResponseData{
-		Data:  cacheEntries,
-		Error: nil,
-	}
-
-}
-func getXdsSnapshot(snapCache cache.SnapshotCache, k string) (cache cache.Snapshot, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("panic occurred while getting xds snapshot: %v", r)
-		}
-	}()
-	return snapCache.GetSnapshot(k)
-}
-
 func testScenario(t *testing.T, ctx context.Context, kdbg *krt.DebugHandler, snapCache cache.SnapshotCache, client istiokube.CLIClient, xdsPort int, f string) {
 	fext := filepath.Ext(f)
 	fpre := strings.TrimSuffix(f, fext)
@@ -330,7 +303,7 @@ func testScenario(t *testing.T, ctx context.Context, kdbg *krt.DebugHandler, sna
 	defer dumper.Close()
 	dump := dumper.Dump(t, ctx)
 	if len(dump.Listeners) == 0 {
-		xdsDump := dumpCache(snapCache).MarshalJSONString()
+		xdsDump := iosnapshot.GetXdsSnapshotDataFromCache(snapCache).MarshalJSONString()
 		j, _ := kdbg.MarshalJSON()
 		t.Logf("timed out waiting - krt state for test: %s %s", t.Name(), string(j))
 		t.Logf("timed out waiting - xds state for test: %s %s", t.Name(), xdsDump)
