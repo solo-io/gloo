@@ -33,6 +33,7 @@ import (
 	"github.com/go-logr/zapr"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
+	"github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
 	ggv2setup "github.com/solo-io/gloo/projects/gateway2/setup"
 	ggv2utils "github.com/solo-io/gloo/projects/gateway2/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -115,6 +116,7 @@ func init() {
 }
 
 func TestScenarios(t *testing.T) {
+	proxy_syncer.UseDetailedUnmarshalling = true
 	writer.set(t)
 	os.Setenv("POD_NAMESPACE", "gwtest")
 	testEnv := &envtest.Environment{

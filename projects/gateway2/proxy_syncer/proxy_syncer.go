@@ -213,7 +213,7 @@ func (l RedactedSecret) MarshalJSON() ([]byte, error) {
 var _ json.Marshaler = RedactedSecret{}
 
 type glooProxy struct {
-	proxy *gloov1.Proxy
+	Proxy *gloov1.Proxy
 	// plugins used to generate this proxy
 	pluginRegistry registry.PluginRegistry
 	// the GWAPI reports generated for translation from a GW->Proxy
@@ -224,7 +224,7 @@ type glooProxy struct {
 var _ krt.ResourceNamer = glooProxy{}
 
 func (p glooProxy) Equals(in glooProxy) bool {
-	if !proto.Equal(p.proxy, in.proxy) {
+	if !proto.Equal(p.Proxy, in.Proxy) {
 		return false
 	}
 	if !maps.Equal(p.reportMap.Gateways, in.reportMap.Gateways) {
@@ -240,7 +240,7 @@ func (p glooProxy) Equals(in glooProxy) bool {
 }
 
 func (p glooProxy) ResourceName() string {
-	return xds.SnapshotCacheKey(p.proxy)
+	return xds.SnapshotCacheKey(p.Proxy)
 }
 
 type report struct {
@@ -437,7 +437,7 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 		proxies := krt.Fetch(kctx, glooProxies)
 		var l gloov1.ProxyList
 		for _, p := range proxies {
-			l = append(l, p.proxy)
+			l = append(l, p.Proxy)
 		}
 		return &proxyList{l}
 	})
@@ -656,7 +656,7 @@ func (s *ProxySyncer) buildProxy(ctx context.Context, gw *gwv1.Gateway) *glooPro
 	})
 
 	return &glooProxy{
-		proxy:          proxy,
+		Proxy:          proxy,
 		pluginRegistry: pluginRegistry,
 		reportMap:      rm,
 	}
@@ -687,7 +687,7 @@ func (s *ProxySyncer) translateProxy(
 	// see also: https://github.com/solo-io/solo-projects/issues/7080
 
 	latestSnap := gloosnapshot.ApiSnapshot{}
-	latestSnap.Proxies = gloov1.ProxyList{proxy.proxy}
+	latestSnap.Proxies = gloov1.ProxyList{proxy.Proxy}
 
 	acfgs := make([]*extauthv1.AuthConfig, 0, len(authcfgs))
 	for _, kac := range authcfgs {
@@ -728,18 +728,18 @@ func (s *ProxySyncer) translateProxy(
 	}
 	latestSnap.Upstreams = gupstreams
 
-	xdsSnapshot, reports, proxyReport := s.proxyTranslator.buildXdsSnapshot(kctx, ctx, proxy.proxy, &latestSnap)
+	xdsSnapshot, reports, proxyReport := s.proxyTranslator.buildXdsSnapshot(kctx, ctx, proxy.Proxy, &latestSnap)
 
 	// TODO(Law): now we not able to merge reports after translation!
 
 	// build ResourceReports struct containing only this Proxy
 	r := make(reporter.ResourceReports)
 	filteredReports := reports.FilterByKind("Proxy")
-	r[proxy.proxy] = filteredReports[proxy.proxy]
+	r[proxy.Proxy] = filteredReports[proxy.Proxy]
 
 	// build object used by status plugins
 	proxyWithReport := translatorutils.ProxyWithReports{
-		Proxy: proxy.proxy,
+		Proxy: proxy.Proxy,
 		Reports: translatorutils.TranslationReports{
 			ProxyReport:     proxyReport,
 			ResourceReports: r,
