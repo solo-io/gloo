@@ -441,6 +441,9 @@ func (x xdsDumper) Dump(t *testing.T, ctx context.Context) xdsDump {
 					listeners = append(listeners, &listener)
 					needMoreListerners = needMoreListerners || (len(getroutesnames(&listener)) == 0)
 				}
+				if len(listeners) == 0 {
+					needMoreListerners = true
+				}
 
 				if needMoreListerners {
 					// no routes on listener.. request another listener snapshot, after
