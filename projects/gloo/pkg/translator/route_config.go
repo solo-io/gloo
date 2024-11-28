@@ -432,12 +432,9 @@ func (h *httpRouteConfigurationTranslator) setRouteAction(
 		var clusterName string
 		upstream, err := params.Snapshot.Upstreams.Find(usRef.GetNamespace(), usRef.GetName())
 		if err != nil {
-			// the Upstream isn't found but set a bogus cluster so route replacement will still work
-			// out.ClusterSpecifier = &envoy_config_route_v3.RouteAction_Cluster{
-			// 	Cluster: "",
-			// }
-			//TODOzzz
-			//return pluginutils.NewUpstreamNotFoundErr(usRef)
+			// we don't want to return early here, as it will skip further translation and change existing behavior.
+			// so if there's an error, fall back to returning the "legacy" cluster name format that is based on the
+			// upstream ref (there won't be an actual cluster with this name, since the upstream doesn't exist).
 			clusterName = utils.ResourceRefToKey(usRef)
 		} else {
 			clusterName = usconversion.UpstreamToClusterName(upstream)
@@ -505,8 +502,9 @@ func (h *httpRouteConfigurationTranslator) setWeightedClusters(
 		var clusterName string
 		upstream, err := params.Snapshot.Upstreams.Find(usRef.GetNamespace(), usRef.GetName())
 		if err != nil {
-			//TODOzzz
-			//return pluginutils.NewUpstreamNotFoundErr(usRef)
+			// we don't want to return early here, as it will skip further translation and change existing behavior.
+			// so if there's an error, fall back to returning the "legacy" cluster name format that is based on the
+			// upstream ref (there won't be an actual cluster with this name, since the upstream doesn't exist).
 			clusterName = utils.ResourceRefToKey(usRef)
 		} else {
 			clusterName = usconversion.UpstreamToClusterName(upstream)
@@ -521,7 +519,7 @@ func (h *httpRouteConfigurationTranslator) setWeightedClusters(
 		totalWeight += weightedDest.GetWeight().GetValue()
 
 		weightedCluster := &envoy_config_route_v3.WeightedCluster_ClusterWeight{
-			Name:          clusterName, //usconversion.UpstreamToClusterName(upstream),
+			Name:          clusterName,
 			Weight:        &wrappers.UInt32Value{Value: clusterWeight},
 			MetadataMatch: getSubsetMatch(weightedDest.GetDestination()),
 		}
