@@ -429,15 +429,20 @@ func (h *httpRouteConfigurationTranslator) setRouteAction(
 		if err != nil {
 			return err
 		}
+		var clusterName string
 		upstream, err := params.Snapshot.Upstreams.Find(usRef.GetNamespace(), usRef.GetName())
 		if err != nil {
 			// the Upstream isn't found but set a bogus cluster so route replacement will still work
-			out.ClusterSpecifier = &envoy_config_route_v3.RouteAction_Cluster{
-				Cluster: "",
-			}
-			return pluginutils.NewUpstreamNotFoundErr(usRef)
+			// out.ClusterSpecifier = &envoy_config_route_v3.RouteAction_Cluster{
+			// 	Cluster: "",
+			// }
+			//TODOzzz
+			//return pluginutils.NewUpstreamNotFoundErr(usRef)
+			clusterName = utils.ResourceRefToKey(usRef)
+		} else {
+			clusterName = usconversion.UpstreamToClusterName(upstream)
 		}
-		out.GetClusterSpecifier().(*envoy_config_route_v3.RouteAction_Cluster).Cluster = usconversion.UpstreamToClusterName(upstream)
+		out.GetClusterSpecifier().(*envoy_config_route_v3.RouteAction_Cluster).Cluster = clusterName
 
 		out.MetadataMatch = getSubsetMatch(dest.Single)
 
@@ -497,9 +502,14 @@ func (h *httpRouteConfigurationTranslator) setWeightedClusters(
 		if err != nil {
 			return err
 		}
+		var clusterName string
 		upstream, err := params.Snapshot.Upstreams.Find(usRef.GetNamespace(), usRef.GetName())
 		if err != nil {
-			return pluginutils.NewUpstreamNotFoundErr(usRef)
+			//TODOzzz
+			//return pluginutils.NewUpstreamNotFoundErr(usRef)
+			clusterName = utils.ResourceRefToKey(usRef)
+		} else {
+			clusterName = usconversion.UpstreamToClusterName(upstream)
 		}
 
 		//Cluster weight can be nil so check if end user did not pass a weight for destination and set the default weight of 0
@@ -511,7 +521,7 @@ func (h *httpRouteConfigurationTranslator) setWeightedClusters(
 		totalWeight += weightedDest.GetWeight().GetValue()
 
 		weightedCluster := &envoy_config_route_v3.WeightedCluster_ClusterWeight{
-			Name:          usconversion.UpstreamToClusterName(upstream),
+			Name:          clusterName, //usconversion.UpstreamToClusterName(upstream),
 			Weight:        &wrappers.UInt32Value{Value: clusterWeight},
 			MetadataMatch: getSubsetMatch(weightedDest.GetDestination()),
 		}
