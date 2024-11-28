@@ -8,10 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 	"time"
 
+	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/actions"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/assertions"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/cluster"
@@ -227,7 +227,6 @@ func (i *TestInstallation) UninstallGlooGateway(ctx context.Context, uninstallFn
 
 // PreFailHandler is the function that is invoked if a test in the given TestInstallation fails
 func (i *TestInstallation) PreFailHandler(ctx context.Context) {
-	// This is a work in progress
 	// The idea here is we want to accumulate ALL information about this TestInstallation into a single directory
 	// That way we can upload it in CI, or inspect it locally
 
@@ -240,80 +239,12 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 		i.Assertions.Require.NoError(err)
 	}
 
-	glooLogFilePath := filepath.Join(failureDir, "gloo.log")
-	glooLogFile, err := os.OpenFile(glooLogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	i.Assertions.Require.NoError(err)
-	defer glooLogFile.Close()
-
-	glooLogsCmd := i.Actions.Kubectl().Command(ctx, "logs", "-n", i.Metadata.InstallNamespace, "deployments/gloo")
-	_ = glooLogsCmd.WithStdout(glooLogFile).WithStderr(glooLogFile).Run()
-
-	edgeGatewayLogFilePath := filepath.Join(failureDir, "edge_gateway.log")
-	edgeGatewayLogFile, err := os.OpenFile(edgeGatewayLogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	i.Assertions.Require.NoError(err)
-	defer edgeGatewayLogFile.Close()
-
-	kubeGatewayLogFilePath := filepath.Join(failureDir, "kube_gateway.log")
-	kubeGatewayLogFile, err := os.OpenFile(kubeGatewayLogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	i.Assertions.Require.NoError(err)
-	defer kubeGatewayLogFile.Close()
-
+	// The kubernetes/e2e tests may use multiple namespaces, so we need to dump all of them
 	namespaces, err := i.Actions.Kubectl().Namespaces(ctx)
 	i.Assertions.Require.NoError(err)
-	for _, n := range namespaces {
-		edgeGatewayLogFile.WriteString(fmt.Sprintf("Logs for edge gateway proxies in namespace %s\n", n))
-		edgeGatewayLogsCmd := i.Actions.Kubectl().Command(ctx, "logs", "--all-containers", "--namespace", n, "--prefix", "-l", "gloo=gateway-proxy")
-		_ = edgeGatewayLogsCmd.WithStdout(edgeGatewayLogFile).WithStderr(edgeGatewayLogFile).Run()
-		edgeGatewayLogFile.WriteString("----------------------------------------------------------------------------------------------------------\n")
 
-		kubeGatewayLogFile.WriteString(fmt.Sprintf("Logs for kube gateway proxies in namespace %s\n", n))
-		kubeGatewayLogsCmd := i.Actions.Kubectl().Command(ctx, "logs", "--all-containers", "--namespace", n, "--prefix", "-l", "gloo=kube-gateway")
-		_ = kubeGatewayLogsCmd.WithStdout(kubeGatewayLogFile).WithStderr(kubeGatewayLogFile).Run()
-		kubeGatewayLogFile.WriteString("----------------------------------------------------------------------------------------------------------\n")
-	}
-
-	clusterStateFilePath := filepath.Join(failureDir, "cluster_state.log")
-	clusterStateFile, err := os.OpenFile(clusterStateFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	i.Assertions.Require.NoError(err)
-	defer clusterStateFile.Close()
-
-	kubectlGetAllCmd := i.Actions.Kubectl().Command(ctx, "get", "all", "-A", "-owide")
-	_ = kubectlGetAllCmd.WithStdout(clusterStateFile).WithStderr(clusterStateFile).Run()
-	clusterStateFile.WriteString("\n")
-
-	resourcesToGet := []string{
-		// Kubernetes resources
-		"secrets",
-		// Kube GW API resources
-		"gateways.gateway.networking.k8s.io",
-		"gatewayclasses.gateway.networking.k8s.io",
-		"httproutes.gateway.networking.k8s.io",
-		"referencegrants.gateway.networking.k8s.io",
-		// GG Kube GW resources
-		"gatewayparameters.gateway.gloo.solo.io",
-		"listeneroptions.gateway.solo.io",     // only implemented for kube gw as of now
-		"httplisteneroptions.gateway.solo.io", // only implemented for kube gw as of now
-		// GG Gloo resources
-		"graphqlapis.graphql.gloo.solo.io",
-		"proxies.gloo.solo.io",
-		"settings.gloo.solo.io",
-		"upstreamgroups.gloo.solo.io",
-		"upstreams.gloo.solo.io",
-		// GG Edge GW resources
-		"gateways.gateway.solo.io",
-		"httpgateways.gateway.solo.io",
-		"tcpgateways.gateway.solo.io",
-		"virtualservices.gateway.solo.io",
-		// Shared GW resources
-		"routeoptions.gateway.solo.io",
-		"virtualhostoptions.gateway.solo.io",
-		// Dataplane extensions resources
-		"authconfigs.enterprise.gloo.solo.io",
-		"ratelimitconfigs.ratelimit.solo.io",
-	}
-	kubectlGetResourcesCmd := i.Actions.Kubectl().Command(ctx, "get", strings.Join(resourcesToGet, ","), "-A", "-owide")
-	_ = kubectlGetResourcesCmd.WithStdout(clusterStateFile).WithStderr(clusterStateFile).Run()
-	clusterStateFile.WriteString("\n")
+	// Dump the logs and state of the cluster
+	helpers.StandardGlooDumpOnFail(os.Stdout, failureDir, namespaces)()
 }
 
 // GeneratedFiles is a collection of files that are generated during the execution of a set of tests

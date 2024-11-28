@@ -13,7 +13,6 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	"github.com/solo-io/go-utils/versionutils"
 	"github.com/solo-io/skv2/codegen/util"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/solo-io/gloo/test/helpers"
@@ -52,10 +51,9 @@ var _ = BeforeSuite(func() {
 	testHelper, err := kube2e.GetTestHelper(suiteCtx, namespace)
 	Expect(err).NotTo(HaveOccurred())
 
-	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter,
-		metav1.ObjectMeta{Namespace: "upgrade"},
-		metav1.ObjectMeta{Namespace: testHelper.InstallNamespace},
-		metav1.ObjectMeta{Namespace: "other-ns"}))
+	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
+	namespaces := []string{"upgrade", testHelper.InstallNamespace, "other-ns"}
+	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir, namespaces))
 
 	crdDir = filepath.Join(util.GetModuleRoot(), "install", "helm", "gloo", "crds")
 	targetReleasedVersion = kube2e.GetTestReleasedVersion(suiteCtx, "gloo")
