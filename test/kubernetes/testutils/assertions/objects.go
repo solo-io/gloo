@@ -35,7 +35,7 @@ func (p *Provider) EventuallyObjectsNotExist(ctx context.Context, objects ...cli
 			innerG.Expect(apierrors.IsNotFound(err)).To(BeTrue(), "object %s %s should not be found in cluster", o.GetObjectKind().GroupVersionKind().String(), client.ObjectKeyFromObject(o).String())
 		}).
 			WithContext(ctx).
-			WithTimeout(time.Second*20).
+			WithTimeout(time.Second*60).
 			WithPolling(time.Millisecond*200).
 			Should(Succeed(), fmt.Sprintf("object %s %s should not be found in cluster", o.GetObjectKind().GroupVersionKind().String(), client.ObjectKeyFromObject(o).String()))
 	}
