@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/k8sgateway/k8sgateway/issues/10379
+    resolvesIssue: false
+    description: |
+      Gateway: add unit test for multi-level and multi-parent delegation.
+
