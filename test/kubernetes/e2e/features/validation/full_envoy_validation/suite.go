@@ -85,15 +85,12 @@ func (s *testingSuite) TestLargeConfiguration() {
 			s.testInstallation.Metadata.InstallNamespace)
 		s.Assertions.NoError(err, "can delete large configuration")
 
-		err = s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, testdefaults.NginxPodManifest)
-		s.Assertions.NoError(err, "can delete nginx pod")
+		err = s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.ExampleUpstream)
+		s.Assertions.NoError(err, "can delete example upstream")
 	})
-
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.NginxPodManifest)
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assert().NoError(err)
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, testdefaults.NginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=nginx",
-	})
+
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.LargeConfiguration, "-n",
 		s.testInstallation.Metadata.InstallNamespace)
 	s.Assert().NoError(err)
