@@ -48,3 +48,12 @@ Context around the xDS Snapshot and other xDS concepts can be found in the [xDS 
 ### ProxyReport
 
 [ProxyReport](https://github.com/solo-io/gloo/blob/1f457f4ef5f32aedabc58ef164aeea92acbf481e/projects/gloo/pkg/api/grpc/validation/gloo_validation.pb.go#L837) is an aggregated set of reports for all sub-resources of a Proxy.
+
+## Performance Tests
+
+You can run the `performance_test.go` locally with the make target:
+```bash
+make install-test-tools run-performance-tests
+```
+
+Or through GitHub actions via the `performance-test` workflow.
