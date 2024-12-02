@@ -25,7 +25,6 @@ on:
           - v1.18.x
           - v1.17.x
           - v1.16.x
-          - v1.15.x
           - workflow_initiating_branch
       run-regression:
         description: "Run regression tests"
