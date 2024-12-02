@@ -31,15 +31,13 @@ const (
 func RunEnvoyValidate(ctx context.Context, envoyExecutable, bootstrapConfig string) error {
 	logger := contextutils.LoggerFrom(ctx)
 
-	logger.Debugf("starting full envoy validation with size %d", len(bootstrapConfig))
-
 	validateCmd := cmdutils.Command(ctx, envoyExecutable, "--mode", "validate", "--config-path", "/dev/fd/0",
 		"-l", "critical", "--log-format", "%v")
 	validateCmd = validateCmd.WithStdin(bytes.NewBufferString(bootstrapConfig))
 
 	start := time.Now()
 	err := validateCmd.Run()
-	logger.Debugf("full envoy validation of %d size completed in %s", len(bootstrapConfig), time.Since(start))
+	logger.Debugf("envoy validation of %d size completed in %s", len(bootstrapConfig), time.Since(start))
 
 	if err != nil {
 		if os.IsNotExist(err) {
