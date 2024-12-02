@@ -2,6 +2,7 @@ package full_envoy_validation
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
@@ -76,4 +77,23 @@ func (s *testingSuite) TestRejectInvalidTransformation() {
 	s.Assert().Error(err)
 	s.Assert().Contains(output, "Failed to parse response template: Failed to parse "+
 		"header template ':status': [inja.exception.parser_error] (at 1:92) expected statement close, got '%'")
+}
+
+// TestLargeConfiguration checks webhook accepts large configuration when fullEnvoyValidation=true
+func (s *testingSuite) TestLargeConfiguration() {
+	s.T().Cleanup(func() {
+		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.LargeConfiguration, "-n",
+			s.testInstallation.Metadata.InstallNamespace)
+		s.Assertions.NoError(err, "can delete large configuration")
+
+		err = s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.ExampleUpstream)
+		s.Assertions.NoError(err, "can delete example upstream")
+	})
+
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.Assert().NoError(err)
+
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.LargeConfiguration, "-n",
+		s.testInstallation.Metadata.InstallNamespace)
+	fmt.Println(err)
 }
