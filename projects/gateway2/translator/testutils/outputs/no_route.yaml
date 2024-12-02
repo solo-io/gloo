@@ -1,0 +1,14 @@
+metadata:
+  labels:
+    created_by: gloo-kube-gateway-api
+    gateway_namespace: default
+  name: default-example-gateway
+  namespace: gloo-system
+listeners:
+- aggregateListener:
+    httpFilterChains:
+    - matcher: {}
+    httpResources: {}
+  bindAddress: '::'
+  bindPort: 8080
+  name: http
