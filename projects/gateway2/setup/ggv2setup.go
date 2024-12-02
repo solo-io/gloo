@@ -118,7 +118,12 @@ func StartGGv2WithConfig(ctx context.Context,
 		settingsGVR,
 		krt.WithName("GlooSettings"))
 
-	ucc := uccBuilder(ctx, setupOpts.KrtDebugger, augmentedPods)
+	augmentedPodsForUcc := augmentedPods
+	if envutils.IsEnvTruthy("DISABLE_POD_LOCALITY_XDS") {
+		augmentedPodsForUcc = nil
+	}
+
+	ucc := uccBuilder(ctx, setupOpts.KrtDebugger, augmentedPodsForUcc)
 
 	settingsSingle := krt.NewSingleton(func(ctx krt.HandlerContext) *glookubev1.Settings {
 		s := krt.FetchOne(ctx, setting,

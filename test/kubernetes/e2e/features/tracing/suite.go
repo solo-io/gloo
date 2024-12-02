@@ -75,6 +75,20 @@ func (s *testingSuite) SetupSuite() {
 			LabelSelector: "app.kubernetes.io/name=http-echo",
 		},
 	)
+
+	// Previously, we would create/delete the Service for each test. However, this would occasionally lead to:
+	// * Hostname gateway-proxy-tracing.gloo-gateway-edge-test.svc.cluster.local was found in DNS cache
+	//*   Trying 10.96.181.139:18080...
+	//* Connection timed out after 3001 milliseconds
+	//
+	// The suspicion is that the rotation of the Service meant that the DNS cache became out of date,
+	// and we would curl the old IP.
+	// The workaround to that is to create the service just once at the beginning of the suite.
+	// This mirrors how Services are typically managed in Gloo Gateway, where they are tied
+	// to an installation, and not dynamically updated
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayProxyServiceManifest,
+		"-n", s.testInstallation.Metadata.InstallNamespace)
+	s.NoError(err, "can apply service/gateway-proxy-tracing")
 }
 
 func (s *testingSuite) TearDownSuite() {
@@ -85,6 +99,10 @@ func (s *testingSuite) TearDownSuite() {
 
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.HttpEchoPodManifest)
 	s.Assertions.NoError(err, "can delete echo server")
+
+	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayProxyServiceManifest,
+		"-n", s.testInstallation.Metadata.InstallNamespace)
+	s.NoError(err, "can delete service/gateway-proxy-tracing")
 }
 
 func (s *testingSuite) BeforeTest(string, string) {
@@ -98,8 +116,19 @@ func (s *testingSuite) BeforeTest(string, string) {
 		otelcolSelector,
 	)
 
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
-	s.NoError(err, "can apply gloo tracing resources")
+	// Technical Debt!!
+	// https://github.com/k8sgateway/k8sgateway/issues/10293
+	// There is a bug in the Control Plane that results in an Error reported on the status
+	// when the Upstream of the Tracing Collector is not found. This results in the VirtualService
+	// that references that Upstream being rejected. What should occur is a Warning is reported,
+	// and the resource is accepted since validation.allowWarnings=true is set.
+	// We have plans to fix this in the code itself. But for a short-term solution, to reduce the
+	// noise in CI/CD of this test flaking, we perform some simple retry logic here.
+	s.EventuallyWithT(func(c *assert.CollectT) {
+		err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
+		assert.NoError(c, err, "can apply gloo tracing resources")
+	}, time.Second*5, time.Second*1, "can apply tracing resources")
+
 	// accept the upstream
 	// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
 	// other syncers that have translated them, so we can only detect that the objects exist here
@@ -109,6 +138,7 @@ func (s *testingSuite) BeforeTest(string, string) {
 				otelcolUpstream.Namespace, otelcolUpstream.Name, clients.ReadOpts{Ctx: s.ctx})
 		},
 	)
+
 	// accept the virtual service
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
 		func() (resources.InputResource, error) {
@@ -142,7 +172,7 @@ func (s *testingSuite) AfterTest(string, string) {
 
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayConfigManifest,
 		"-n", s.testInstallation.Metadata.InstallNamespace)
-	s.Assertions.NoError(err, "can delete gloo tracing config")
+	s.Assertions.NoError(err, "can delete gateway config")
 }
 
 func (s *testingSuite) TestSpanNameTransformationsWithoutRouteDecorator() {
@@ -156,6 +186,10 @@ func (s *testingSuite) TestSpanNameTransformationsWithoutRouteDecorator() {
 			curl.WithHostHeader(testHostname),
 			curl.WithPort(gatewayProxyPort),
 			curl.WithPath(pathWithoutRouteDescriptor),
+			// We are asserting that a request is consistent. To prevent flakes with that assertion,
+			// we should have some basic retries built into the request
+			curl.WithRetryConnectionRefused(true),
+			curl.WithRetries(3, 0, 10),
 			curl.Silent(),
 		},
 		&matchers.HttpResponse{
@@ -183,6 +217,10 @@ func (s *testingSuite) TestSpanNameTransformationsWithRouteDecorator() {
 			curl.WithHostHeader("example.com"),
 			curl.WithPort(gatewayProxyPort),
 			curl.WithPath(pathWithRouteDescriptor),
+			// We are asserting that a request is consistent. To prevent flakes with that assertion,
+			// we should have some basic retries built into the request
+			curl.WithRetryConnectionRefused(true),
+			curl.WithRetries(3, 0, 10),
 			curl.Silent(),
 		},
 		&matchers.HttpResponse{

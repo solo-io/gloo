@@ -3445,6 +3445,10 @@ type GatewayOptions_ValidationOptions struct {
 	//
 	// This feature is disabled by default and is not recommended for production deployments unless
 	// the performance implications are well understood and acceptable.
+	//
+	// Large configurations can take more than 10 seconds to validate, causing the validating webhook to timeout.
+	// When enabling this feature, consider increasing the timeout for the validating webhook
+	// (`.Values.gateway.validation.webhook.timeoutSeconds`).
 	FullEnvoyValidation *wrapperspb.BoolValue `protobuf:"bytes,14,opt,name=full_envoy_validation,json=fullEnvoyValidation,proto3" json:"full_envoy_validation,omitempty"`
 }
 

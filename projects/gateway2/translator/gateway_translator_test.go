@@ -51,7 +51,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "example-gateway",
-			}}),
+			},
+		}),
 	Entry(
 		"https gateway with basic routing",
 		translatorTestCase{
@@ -60,7 +61,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "example-gateway",
-			}}),
+			},
+		}),
 	Entry(
 		"http gateway with multiple listeners on the same port",
 		translatorTestCase{
@@ -69,7 +71,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "http",
-			}}),
+			},
+		}),
 	Entry(
 		"https gateway with multiple listeners on the same port",
 		translatorTestCase{
@@ -78,7 +81,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "http",
-			}}),
+			},
+		}),
 	Entry(
 		"http gateway with multiple routing rules and HeaderModifier filter",
 		translatorTestCase{
@@ -87,7 +91,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "gw",
-			}}),
+			},
+		}),
 	Entry(
 		"http gateway with lambda destination",
 		translatorTestCase{
@@ -96,7 +101,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "gw",
-			}}),
+			},
+		}),
 	Entry(
 		"http gateway with azure destination",
 		translatorTestCase{
@@ -105,7 +111,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "gw",
-			}}),
+			},
+		}),
 	Entry(
 		"gateway with correctly sorted routes",
 		translatorTestCase{
@@ -114,7 +121,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "infra",
 				Name:      "example-gateway",
-			}}),
+			},
+		}),
 	Entry(
 		"httproute with missing backend reports correctly",
 		translatorTestCase{
@@ -258,6 +266,22 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 				Name:      "example-tcp-gateway",
 			},
 		}),
+	Entry("Plugin Backend", translatorTestCase{
+		inputFile:  "backend-plugin/gateway.yaml",
+		outputFile: "backend-plugin-proxy.yaml",
+		gwNN: types.NamespacedName{
+			Namespace: "default",
+			Name:      "example-gateway",
+		},
+	}),
+	Entry("Proxy with no routes", translatorTestCase{
+		inputFile:  "edge-cases/no_route.yaml",
+		outputFile: "no_route.yaml",
+		gwNN: types.NamespacedName{
+			Namespace: "default",
+			Name:      "example-gateway",
+		},
+	}),
 )
 
 var _ = DescribeTable("Route Delegation translator",
@@ -300,4 +324,6 @@ var _ = DescribeTable("Route Delegation translator",
 	Entry("RouteOptions multi level inheritance with child override", "route_options_multi_level_inheritance_override_ok.yaml"),
 	Entry("RouteOptions filter override merge", "route_options_filter_override_merge.yaml"),
 	Entry("Child route matcher does not match parent", "bug-6621.yaml"),
+	// https://github.com/k8sgateway/k8sgateway/issues/10379
+	Entry("Multi-level multiple parents delegation", "bug-10379.yaml"),
 )

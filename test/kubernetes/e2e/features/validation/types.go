@@ -46,6 +46,9 @@ var (
 	VSTransformationHeaderText    = filepath.Join(util.MustGetThisDir(), "testdata", "transformation", "vs-transform-header-text.yaml")
 	VSTransformationSingleReplace = filepath.Join(util.MustGetThisDir(), "testdata", "transformation", "vs-transform-single-replace.yaml")
 
+	// Valid resources
+	LargeConfiguration = filepath.Join(util.MustGetThisDir(), "testdata", "valid-resources", "large-configuration.yaml")
+
 	// Split webhook validation
 	BasicUpstream = filepath.Join(util.MustGetThisDir(), "testdata", "split-webhook", "basic-upstream.yaml")
 

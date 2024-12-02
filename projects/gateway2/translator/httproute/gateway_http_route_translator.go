@@ -16,6 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
@@ -353,13 +354,6 @@ func setRouteAction(
 		clusterName := "blackhole_cluster"
 		ns := "blackhole_ns"
 
-		obj, err := gwroute.GetBackendForRef(backendRef.BackendObjectReference)
-		ptrClusterName := query.ProcessBackendRef(obj, err, reporter, backendRef.BackendObjectReference)
-		if ptrClusterName != nil {
-			clusterName = *ptrClusterName
-			ns = obj.GetNamespace()
-		}
-
 		var weight *wrappers.UInt32Value
 		if backendRef.Weight != nil {
 			weight = &wrappers.UInt32Value{
@@ -372,20 +366,25 @@ func setRouteAction(
 			}
 		}
 
-		fromPlugin := false
-		for _, bp := range pluginRegistry.GetBackendPlugins() {
-			if dest, ok := bp.ApplyBackendPlugin(obj, backendRef.BackendObjectReference); ok {
-				fromPlugin = true
+		obj, err := gwroute.GetBackendForRef(backendRef.BackendObjectReference)
+		if err == nil {
+			// Only apply backend plugin when the backend is resolved.
+			// If any backend plugin matches this ref, we don't need the standard
+			// reports or validation path.
+			if dest, ok := applyBackendPlugins(obj, backendRef.BackendObjectReference, pluginRegistry); ok {
 				weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
 					Destination: dest,
 					Weight:      weight,
 				})
-				break
+				continue
 			}
 		}
-		// TODO break out a buildDestination func to avoid this awkwardness
-		if fromPlugin {
-			continue
+
+		// only call ProcessBackendRef when the plugin didn't handle it
+		ptrClusterName := query.ProcessBackendRef(obj, err, reporter, backendRef.BackendObjectReference)
+		if ptrClusterName != nil {
+			clusterName = *ptrClusterName
+			ns = obj.GetNamespace()
 		}
 
 		var port uint32
@@ -445,7 +444,7 @@ func setRouteAction(
 			})
 
 		default:
-			contextutils.LoggerFrom(ctx).Errorf("unsupported backend type for kind: %v and type: %v", *backendRef.BackendObjectReference.Kind, *backendRef.BackendObjectReference.Group)
+			contextutils.LoggerFrom(ctx).Errorf("unsupported backend type for kind: %v and type: %v", backendRef.BackendObjectReference.Kind, backendRef.BackendObjectReference.Group)
 		}
 	}
 
@@ -519,4 +518,17 @@ func makeDestinationSpec(upstream *gloov1.Upstream, filters []gwv1.HTTPRouteFilt
 		return nil, nonFunctionUpstreamWithParameterError
 	}
 	return nil, nil
+}
+
+func applyBackendPlugins(
+	obj client.Object,
+	backendRef gwv1.BackendObjectReference,
+	plugins registry.PluginRegistry,
+) (*v1.Destination, bool) {
+	for _, bp := range plugins.GetBackendPlugins() {
+		if dest, ok := bp.ApplyBackendPlugin(obj, backendRef); ok {
+			return dest, true
+		}
+	}
+	return nil, false
 }

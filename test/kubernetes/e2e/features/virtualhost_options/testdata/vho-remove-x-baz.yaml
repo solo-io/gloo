@@ -1,7 +1,7 @@
 apiVersion: gateway.solo.io/v1
 kind: VirtualHostOption
 metadata:
-  name: remove-content-length
+  name: remove-x-baz-header
 spec:
   targetRefs:
   - group: gateway.networking.k8s.io
@@ -10,4 +10,4 @@ spec:
   options:
     headerManipulation:
       responseHeadersToRemove:
-        - "content-length"
+        - "x-baz"

@@ -131,7 +131,6 @@ func TestEndpointsForUpstreamOrderDoesntMatter(t *testing.T) {
 		Zone:   "zone2",
 	}, emd2)
 	g.Expect(result1.Equals(*result4)).To(BeFalse(), "not expected %v, got %v", result1, result2)
-
 }
 
 func TestEndpointsForUpstreamWithDiscoveredUpstream(t *testing.T) {
@@ -239,7 +238,39 @@ func TestEndpointsForUpstreamWithDiscoveredUpstream(t *testing.T) {
 	h2 := result3.LbEpsEqualityHash ^ result4.LbEpsEqualityHash
 
 	g.Expect(h1).NotTo(Equal(h2), "not expected %v, got %v", h1, h2)
+}
 
+// Note: if we find out the envoy bug was fixed (where changed clusters don't warm until EDS updates)
+// this test can be removed.
+func TestEndpointsForUpstreamWhenUpstreamLabelsAdded(t *testing.T) {
+	g := gomega.NewWithT(t)
+
+	usGen := func() UpstreamWrapper {
+		return UpstreamWrapper{
+			Inner: &gloov1.Upstream{
+				Metadata: &core.Metadata{Name: "name", Namespace: "ns"},
+				UpstreamType: &gloov1.Upstream_Kube{
+					Kube: &kubernetes.UpstreamSpec{
+						ServiceName:      "svc",
+						ServiceNamespace: "ns",
+						ServicePort:      8080,
+					},
+				},
+			},
+		}
+	}
+	// 2 copies
+	us1 := usGen()
+	us2 := usGen()
+	us2.Inner.DiscoveryMetadata = &gloov1.DiscoveryMetadata{
+		Labels: map[string]string{
+			"extra": "label",
+		},
+	}
+	efu1 := NewEndpointsForUpstream(us1, nil)
+	efu2 := NewEndpointsForUpstream(us2, nil)
+
+	g.Expect(efu1.LbEpsEqualityHash).NotTo(Equal(efu2.LbEpsEqualityHash))
 }
 
 func TestEndpoints(t *testing.T) {
@@ -960,5 +991,4 @@ func TestEndpoints(t *testing.T) {
 			g.Expect(eps.Equals(*res)).To(BeTrue(), "expected %v, got %v", res, eps)
 		})
 	}
-
 }

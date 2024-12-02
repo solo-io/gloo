@@ -119,7 +119,7 @@ func hashValue(newhash func() hash.Hash64, h hash.Hash, value *structpb.Value) e
 
 func HashUint64(hasher io.Writer, value uint64) {
 	var bytes [8]byte
-	binary.NativeEndian.PutUint64(bytes[:], value)
+	binary.LittleEndian.PutUint64(bytes[:], value)
 	hasher.Write(bytes[:])
 }
 
