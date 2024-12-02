@@ -8,7 +8,7 @@ import (
 	. "github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	networkingv1alpha3 "istio.io/api/networking/v1alpha3"
-	networkingclient "istio.io/client-go/pkg/apis/networking/v1"
+	networkingclient "istio.io/client-go/pkg/apis/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

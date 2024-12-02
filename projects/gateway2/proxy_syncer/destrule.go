@@ -6,7 +6,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 	"istio.io/api/networking/v1alpha3"
-	networkingclient "istio.io/client-go/pkg/apis/networking/v1"
+	networkingclient "istio.io/client-go/pkg/apis/networking/v1beta1"
 	"istio.io/istio/pkg/config/schema/gvr"
 	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/kube/kclient"
