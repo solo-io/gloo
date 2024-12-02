@@ -287,9 +287,8 @@ run-hashicorp-e2e-tests: GINKGO_FLAGS += --label-filter="end-to-end && !performa
 run-hashicorp-e2e-tests: test
 
 .PHONY: run-kube-e2e-tests
-run-kube-e2e-tests: TEST_PKG = ./test/kube2e/$(KUBE2E_TESTS) ## Run the Kubernetes E2E Tests in the {KUBE2E_TESTS} package
+run-kube-e2e-tests: TEST_PKG = ./test/kube2e/$(KUBE2E_TESTS) ## Run the legacy Kubernetes E2E Tests in the {KUBE2E_TESTS} package
 run-kube-e2e-tests: test
-
 
 #----------------------------------------------------------------------------------
 # Go Tests
@@ -1079,6 +1078,9 @@ endif # distroless images
 
 CLUSTER_NAME ?= kind
 INSTALL_NAMESPACE ?= gloo-system
+
+kind-setup:
+	VERSION=${VERSION} CLUSTER_NAME=${CLUSTER_NAME} ./ci/kind/setup-kind.sh
 
 kind-load-%-distroless:
 	kind load docker-image $(IMAGE_REGISTRY)/$*:$(VERSION)-distroless --name $(CLUSTER_NAME)

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"syscall"
+	"time"
 
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
@@ -30,8 +31,15 @@ const (
 func RunEnvoyValidate(ctx context.Context, envoyExecutable, bootstrapConfig string) error {
 	logger := contextutils.LoggerFrom(ctx)
 
-	validateCmd := cmdutils.Command(ctx, envoyExecutable, "--mode", "validate", "--config-yaml", bootstrapConfig, "-l", "critical", "--log-format", "%v")
-	if err := validateCmd.Run(); err != nil {
+	validateCmd := cmdutils.Command(ctx, envoyExecutable, "--mode", "validate", "--config-path", "/dev/fd/0",
+		"-l", "critical", "--log-format", "%v")
+	validateCmd = validateCmd.WithStdin(bytes.NewBufferString(bootstrapConfig))
+
+	start := time.Now()
+	err := validateCmd.Run()
+	logger.Debugf("envoy validation of %d size completed in %s", len(bootstrapConfig), time.Since(start))
+
+	if err != nil {
 		if os.IsNotExist(err) {
 			// log a warning and return nil; will allow users to continue to run Gloo locally without
 			// relying on the Gloo container with Envoy already published to the expected directory
