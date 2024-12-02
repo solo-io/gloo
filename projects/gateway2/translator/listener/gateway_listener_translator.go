@@ -261,21 +261,17 @@ func buildTcpHost(
 	tcpHost := &v1.TcpHost{Name: tcpRouteName}
 
 	var weightedDestinations []*v1.WeightedDestination
-	resolvedRefs := true
-	hasValidBackend := false
 
 	for _, ref := range backendRefs {
 		// Try to get the backend object
 		obj, err := routeInfo.GetBackendForRef(ref.BackendObjectReference)
 		if err != nil {
-			// Process error and set ResolvedRefs condition to False
-			resolvedRefs = false
+			// Process error and set the appropriate status conditions
 			for _, parentRefReporter := range parentRefReporters {
 				query.ProcessBackendError(err, parentRefReporter)
 			}
 			continue
 		}
-		hasValidBackend = true
 
 		// Process the backend object
 		var destination *v1.Destination
@@ -301,7 +297,6 @@ func buildTcpHost(
 		} else {
 			// Unsupported kind
 			err := query.ErrUnknownBackendKind
-			resolvedRefs = false
 			for _, parentRefReporter := range parentRefReporters {
 				query.ProcessBackendError(err, parentRefReporter)
 			}
@@ -314,34 +309,7 @@ func buildTcpHost(
 		})
 	}
 
-	if !hasValidBackend {
-		// No valid backends, do not create TcpHost
-		return nil
-	}
-
-	// Handle ResolvedRefs condition
-	if !resolvedRefs {
-		// Set ResolvedRefs condition to False
-		for _, parentRefReporter := range parentRefReporters {
-			parentRefReporter.SetCondition(reports.RouteCondition{
-				Type:   gwv1.RouteConditionResolvedRefs,
-				Status: metav1.ConditionFalse,
-				Reason: gwv1.RouteReasonRefNotPermitted,
-			})
-		}
-		// Do not create TcpHost
-		return nil
-	}
-
-	// Set ResolvedRefs condition to True
-	for _, parentRefReporter := range parentRefReporters {
-		parentRefReporter.SetCondition(reports.RouteCondition{
-			Type:   gwv1.RouteConditionResolvedRefs,
-			Status: metav1.ConditionTrue,
-			Reason: gwv1.RouteReasonResolvedRefs,
-		})
-	}
-
+	// Set the TcpHost destination type
 	if len(weightedDestinations) == 0 {
 		// No valid destinations, return nil
 		return nil

@@ -36,7 +36,7 @@ var _ = Describe("Query", func() {
 	}
 
 	BeforeEach(func() {
-		scheme = schemes.TestingScheme()
+		scheme = schemes.GatewayScheme()
 		builder = fake.NewClientBuilder().WithScheme(scheme)
 		err := query.IterateIndices(func(o client.Object, f string, fun client.IndexerFunc) error {
 			builder.WithIndex(o, f, fun)

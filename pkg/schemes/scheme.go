@@ -64,8 +64,9 @@ func DefaultScheme() *runtime.Scheme {
 	return s
 }
 
-// TestingScheme unconditionally includes the default and required Gateway API schemes.
-func TestingScheme() *runtime.Scheme {
+// GatewayScheme unconditionally includes the default and required Gateway API schemes.
+// Use the Default scheme with AddGatewayV1A2Scheme to conditionally add the v1alpha2 scheme.
+func GatewayScheme() *runtime.Scheme {
 	s := DefaultScheme()
 	if err := gwv1a2.Install(s); err != nil {
 		panic(fmt.Sprintf("Failed to install gateway v1alpha2 scheme: %v", err))

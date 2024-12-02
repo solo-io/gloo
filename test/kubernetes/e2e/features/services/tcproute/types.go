@@ -35,8 +35,9 @@ const (
 	multiSvcTCPRouteName2    = "tcp-route-2"
 
 	// Constants for CrossNamespaceTCPRouteWithReferenceGrant
+	crossNsTestName           = "CrossNamespaceTCPRouteWithReferenceGrant"
 	crossNsClientName         = "cross-namespace-allowed-client-ns"
-	crossNsBackendName        = "cross-namespace-allowed-backend-ns"
+	crossNsBackendNsName      = "cross-namespace-allowed-backend-ns"
 	crossNsGatewayName        = "gateway"
 	crossNsListenerName       = "listener-8080"
 	crossNsBackendSvcName     = "backend-svc"
@@ -44,8 +45,9 @@ const (
 	crossNsReferenceGrantName = "reference-grant"
 
 	// Constants for CrossNamespaceTCPRouteWithoutReferenceGrant
-	crossNsNoRefGrantClientName     = "client-ns-no-refgrant"
-	crossNsNoRefGrantBackendName    = "backend-ns-no-refgrant"
+	crossNsNoRefGrantTestName       = "CrossNamespaceTCPRouteWithoutReferenceGrant"
+	crossNsNoRefGrantClientNsName   = "client-ns-no-refgrant"
+	crossNsNoRefGrantBackendNsName  = "backend-ns-no-refgrant"
 	crossNsNoRefGrantGatewayName    = "gateway"
 	crossNsNoRefGrantListenerName   = "listener-8080"
 	crossNsNoRefGrantBackendSvcName = "backend-svc"
@@ -68,7 +70,7 @@ var (
 	// Manifests for CrossNamespaceTCPRouteWithReferenceGrant
 	crossNsClientNsManifest       = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-client-ns.yaml")
 	crossNsBackendNsManifest      = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-backend-ns.yaml")
-	crossNsGatewayManifest        = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-gateway.yaml")
+	crossNsGatewayManifest        = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-gateway-and-client.yaml")
 	crossNsBackendSvcManifest     = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-backend-service.yaml")
 	crossNsTCPRouteManifest       = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-tcproute.yaml")
 	crossNsReferenceGrantManifest = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-referencegrant.yaml")
@@ -76,7 +78,7 @@ var (
 	// Manifests for CrossNamespaceTCPRouteWithoutReferenceGrant
 	crossNsNoRefGrantClientNsManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-client-ns.yaml")
 	crossNsNoRefGrantBackendNsManifest  = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-backend-ns.yaml")
-	crossNsNoRefGrantGatewayManifest    = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-gateway.yaml")
+	crossNsNoRefGrantGatewayManifest    = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-gateway-and-client.yaml")
 	crossNsNoRefGrantBackendSvcManifest = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-backend-service.yaml")
 	crossNsNoRefGrantTCPRouteManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-tcproute.yaml")
 
@@ -131,7 +133,7 @@ var (
 
 	crossNsNoRefGrantGlooProxy = metav1.ObjectMeta{
 		Name:      "gloo-proxy-gateway",
-		Namespace: crossNsNoRefGrantClientName,
+		Namespace: crossNsNoRefGrantClientNsName,
 	}
 	crossNsNoRefGrantProxyDeployment = &appsv1.Deployment{ObjectMeta: crossNsNoRefGrantGlooProxy}
 	crossNsNoRefGrantProxyService    = &corev1.Service{ObjectMeta: crossNsNoRefGrantGlooProxy}
@@ -155,7 +157,7 @@ var (
 	expectedCrossNsResp = &testmatchers.HttpResponse{
 		StatusCode: http.StatusOK,
 		Body: gomega.SatisfyAll(
-			gomega.MatchRegexp(fmt.Sprintf(`"namespace"\s*:\s*"%s"`, crossNsBackendName)),
+			gomega.MatchRegexp(fmt.Sprintf(`"namespace"\s*:\s*"%s"`, crossNsBackendNsName)),
 			gomega.MatchRegexp(fmt.Sprintf(`"service"\s*:\s*"%s"`, crossNsBackendSvcName)),
 		),
 	}

@@ -2,7 +2,6 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: single-tcp-gateway
-  namespace: single-tcp-route
 spec:
   gatewayClassName: gloo-gateway
   listeners:
@@ -17,7 +16,6 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: curl
-  namespace: single-tcp-route
   labels:
     app: curl
     version: v1

@@ -120,7 +120,7 @@ func (s *testingSuite) TestConfigureTCPRouteBackingDestinations() {
 			tcpRouteNames:       []string{multiSvcTCPRouteName1, multiSvcTCPRouteName2},
 		},
 		{
-			name:             "CrossNamespaceTCPRouteWithReferenceGrant",
+			name:             crossNsTestName,
 			nsManifest:       crossNsClientNsManifest,
 			gtwName:          crossNsGatewayName,
 			gtwNs:            crossNsClientName,
@@ -140,10 +140,10 @@ func (s *testingSuite) TestConfigureTCPRouteBackingDestinations() {
 			tcpRouteNames:       []string{crossNsTCPRouteName},
 		},
 		{
-			name:              "CrossNamespaceTCPRouteWithoutReferenceGrant",
+			name:              crossNsNoRefGrantTestName,
 			nsManifest:        crossNsNoRefGrantClientNsManifest,
 			gtwName:           crossNsNoRefGrantGatewayName,
-			gtwNs:             crossNsNoRefGrantClientName,
+			gtwNs:             crossNsNoRefGrantClientNsName,
 			gtwManifest:       crossNsNoRefGrantGatewayManifest,
 			svcManifest:       crossNsNoRefGrantBackendSvcManifest,
 			tcpRouteManifest:  crossNsNoRefGrantTCPRouteManifest,
@@ -164,33 +164,30 @@ func (s *testingSuite) TestConfigureTCPRouteBackingDestinations() {
 		s.Run(tc.name, func() {
 			// Cleanup function
 			s.T().Cleanup(func() {
-				err := s.deleteManifests(tc.nsManifest)
-				s.Require().NoError(err, fmt.Sprintf("Failed to delete manifest %s", tc.nsManifest))
+				s.deleteManifests(tc.nsManifest)
 
 				// Delete additional namespaces if any
 				if tc.name == "CrossNamespaceTCPRouteWithReferenceGrant" {
-					err = s.deleteManifests(crossNsBackendNsManifest)
-					s.Require().NoError(err, fmt.Sprintf("Failed to delete manifest %s", crossNsBackendNsManifest))
+					s.deleteManifests(crossNsBackendNsManifest)
 				}
 
-				if tc.name == "CrossNamespaceTCPRouteWithoutReferenceGrant" {
-					err = s.deleteManifests(crossNsNoRefGrantBackendNsManifest)
-					s.Require().NoError(err, fmt.Sprintf("Failed to delete manifest %s", crossNsNoRefGrantBackendNsManifest))
+				if tc.name == crossNsNoRefGrantTestName {
+					s.deleteManifests(crossNsNoRefGrantBackendNsManifest)
 				}
 
 				s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: tc.gtwNs}})
 			})
 
 			// Setup environment for ReferenceGrant test cases
-			if tc.name == "CrossNamespaceTCPRouteWithReferenceGrant" {
-				s.applyManifests(crossNsBackendNsManifest)
-				s.applyManifests(crossNsBackendSvcManifest)
-				s.applyManifests(crossNsReferenceGrantManifest)
+			if tc.name == crossNsTestName {
+				s.applyManifests(crossNsBackendNsName, crossNsBackendNsManifest)
+				s.applyManifests(crossNsBackendNsName, crossNsBackendSvcManifest)
+				s.applyManifests(crossNsBackendNsName, crossNsReferenceGrantManifest)
 			}
 
-			if tc.name == "CrossNamespaceTCPRouteWithoutReferenceGrant" {
-				s.applyManifests(crossNsNoRefGrantBackendNsManifest)
-				s.applyManifests(crossNsNoRefGrantBackendSvcManifest)
+			if tc.name == crossNsNoRefGrantTestName {
+				s.applyManifests(crossNsNoRefGrantBackendNsName, crossNsNoRefGrantBackendNsManifest)
+				s.applyManifests(crossNsNoRefGrantBackendNsName, crossNsNoRefGrantBackendSvcManifest)
 				// ReferenceGrant not applied
 			}
 
@@ -206,15 +203,14 @@ func (s *testingSuite) TestConfigureTCPRouteBackingDestinations() {
 			)
 
 			// Apply TCPRoute manifest
-			err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tc.tcpRouteManifest)
-			s.Require().NoError(err, fmt.Sprintf("Failed to apply manifest %s", tc.tcpRouteManifest))
+			s.applyManifests(tc.gtwNs, tc.tcpRouteManifest)
 
 			// Assert gateway conditions
 			s.testInstallation.Assertions.EventuallyGatewayCondition(s.ctx, tc.gtwName, tc.gtwNs, v1.GatewayConditionAccepted, metav1.ConditionTrue, timeout)
 
 			// Set the expected status conditions based on the test case
 			expected := metav1.ConditionTrue
-			if tc.name == "CrossNamespaceTCPRouteWithoutReferenceGrant" {
+			if tc.name == crossNsNoRefGrantTestName {
 				expected = metav1.ConditionFalse
 			}
 
@@ -235,7 +231,7 @@ func (s *testingSuite) TestConfigureTCPRouteBackingDestinations() {
 
 			// Assert expected responses
 			for i, port := range tc.ports {
-				if tc.name == "CrossNamespaceTCPRouteWithoutReferenceGrant" {
+				if tc.name == crossNsNoRefGrantTestName {
 					s.testInstallation.Assertions.AssertEventualCurlError(
 						s.ctx,
 						s.execOpts(tc.gtwNs),
@@ -269,35 +265,27 @@ func validateManifestFile(path string) error {
 }
 
 func (s *testingSuite) setupTestEnvironment(nsManifest, gtwName, gtwNs, gtwManifest, svcManifest string, proxySvc *corev1.Service, proxyDeploy *appsv1.Deployment) {
-	s.applyManifests(nsManifest)
+	s.applyManifests(gtwNs, nsManifest)
 
-	s.applyManifests(gtwManifest)
+	s.applyManifests(gtwNs, gtwManifest)
 	s.testInstallation.Assertions.EventuallyGatewayCondition(s.ctx, gtwName, gtwNs, v1.GatewayConditionAccepted, metav1.ConditionTrue, timeout)
 
-	s.applyManifests(svcManifest)
+	s.applyManifests(gtwNs, svcManifest)
 	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxySvc, proxyDeploy)
 }
 
-func (s *testingSuite) applyManifests(manifests ...string) {
+func (s *testingSuite) applyManifests(ns string, manifests ...string) {
 	for _, manifest := range manifests {
-		s.Eventually(func() bool {
-			err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest)
-			if err != nil {
-				s.T().Logf("Retrying apply manifest: %s, error: %v", manifest, err)
-				return false
-			}
-			return true
-		}, waitTime, tickTime, fmt.Sprintf("Can apply manifest %s", manifest))
+		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest, "-n", ns)
+		s.Require().NoError(err, fmt.Sprintf("Failed to apply manifest %s", manifest))
 	}
 }
 
-func (s *testingSuite) deleteManifests(manifests ...string) error {
+func (s *testingSuite) deleteManifests(manifests ...string) {
 	for _, manifest := range manifests {
-		if err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, manifest); err != nil {
-			return err
-		}
+		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, manifest)
+		s.Require().NoError(err, fmt.Sprintf("Failed to delete manifest %s", manifest))
 	}
-	return nil
 }
 
 func (s *testingSuite) execOpts(ns string) kubectl.PodExecOptions {
