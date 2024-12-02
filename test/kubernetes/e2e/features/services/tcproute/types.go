@@ -68,12 +68,12 @@ var (
 	singleSvcTcpRouteManifest         = filepath.Join(util.MustGetThisDir(), "testdata", "single-tcproute.yaml")
 
 	// Manifests for CrossNamespaceTCPRouteWithReferenceGrant
-	crossNsClientNsManifest       = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-client-ns.yaml")
-	crossNsBackendNsManifest      = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-backend-ns.yaml")
-	crossNsGatewayManifest        = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-gateway-and-client.yaml")
-	crossNsBackendSvcManifest     = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-backend-service.yaml")
-	crossNsTCPRouteManifest       = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-tcproute.yaml")
-	crossNsReferenceGrantManifest = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-referencegrant.yaml")
+	crossNsClientNsManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-client-ns.yaml")
+	crossNsBackendNsManifest  = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-backend-ns.yaml")
+	crossNsGatewayManifest    = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-gateway-and-client.yaml")
+	crossNsBackendSvcManifest = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-backend-service.yaml")
+	crossNsTCPRouteManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-tcproute.yaml")
+	crossNsRefGrantManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-referencegrant.yaml")
 
 	// Manifests for CrossNamespaceTCPRouteWithoutReferenceGrant
 	crossNsNoRefGrantClientNsManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-client-ns.yaml")
@@ -84,9 +84,6 @@ var (
 
 	// Assertion test timers
 	ctxTimeout = 5 * time.Minute
-	timeout    = 30 * time.Second
-	waitTime   = 5 * time.Second
-	tickTime   = 1 * time.Second
 
 	// Proxy resources to be translated
 	singleSvcNS = &corev1.Namespace{
@@ -102,7 +99,7 @@ var (
 	singleSvcProxyDeployment = &appsv1.Deployment{ObjectMeta: singleGlooProxy}
 	singleSvcProxyService    = &corev1.Service{ObjectMeta: singleGlooProxy}
 
-	multieSvcNS = &corev1.Namespace{
+	multiSvcNS = &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: multiSvcNsName,
 		},
@@ -160,10 +157,5 @@ var (
 			gomega.MatchRegexp(fmt.Sprintf(`"namespace"\s*:\s*"%s"`, crossNsBackendNsName)),
 			gomega.MatchRegexp(fmt.Sprintf(`"service"\s*:\s*"%s"`, crossNsBackendSvcName)),
 		),
-	}
-
-	// Expected 503 response due to no ReferenceGrant
-	expectedCrossNsNoRefGrantResp = &testmatchers.HttpResponse{
-		StatusCode: http.StatusServiceUnavailable,
 	}
 )
