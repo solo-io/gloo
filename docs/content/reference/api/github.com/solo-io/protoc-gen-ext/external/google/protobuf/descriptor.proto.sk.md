@@ -1,6 +1,6 @@
 
 ---
-title: "descriptor.proto"
+title: "Descriptor"
 weight: 5
 ---
 
@@ -47,7 +47,7 @@ without any other information (e.g. without reading its imports).
 
 
  
-#### Types:
+**Types:**
 
 
 - [FileDescriptorSet](#filedescriptorset)
@@ -87,7 +87,7 @@ without any other information (e.g. without reading its imports).
 
 
 
-##### Source File: [github.com/solo-io/protoc-gen-ext/external/google/protobuf/descriptor.proto](https://github.com/solo-io/protoc-gen-ext/blob/main/external/google/protobuf/descriptor.proto)
+**Source File: [github.com/solo-io/protoc-gen-ext/external/google/protobuf/descriptor.proto](https://github.com/solo-io/protoc-gen-ext/blob/main/external/google/protobuf/descriptor.proto)**
 
 
 

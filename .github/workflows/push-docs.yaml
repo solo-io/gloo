@@ -25,6 +25,8 @@ jobs:
 
   copy-docs:
     runs-on: ubuntu-latest
+    outputs:
+      minor: ${{ steps.version-variables.outputs.minor }}
     steps:
     - name: Get LTS branch version
       id: lts-version
@@ -162,16 +164,17 @@ jobs:
 
   slack-notification:
     runs-on: ubuntu-latest
-    needs:
-      - copy-docs
+    if: ${{ always() }}
+    needs: copy-docs
     steps:
     - name: Notify on workflow success
       if: |
         needs.copy-docs.result == 'success'
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        VERSION: ${{needs.copy-docs.outputs.minor}}
       run: |
-        MESSAGE="✅ *Success:* Automated copy of reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <https://github.com/solo-io/docs/pulls|Review the PR>"
+        MESSAGE="✅ *Success:* Automated copy of reference docs for ${VERSION} was successful. <https://github.com/solo-io/docs/pulls|Review the PR>"
 
         curl \
           -d "text=$MESSAGE" \
@@ -185,7 +188,7 @@ jobs:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       run: |
         JOB_URL=https://github.com/solo-io/gloo/actions/runs/${GITHUB_RUN_ID}
-        MESSAGE="❌ *Failure:* Automated copy of reference docs for ${{ steps.version-variables.outputs.minor }} failed. <${JOB_URL}|Review the workflow failure>"
+        MESSAGE="❌ *Failure:* Automated copy of reference docs for ${VERSION} failed. <${JOB_URL}|Review the workflow failure>"
 
         curl \
           -d "text=$MESSAGE" \

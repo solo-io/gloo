@@ -1,6 +1,6 @@
 
 ---
-title: "listener_options.proto"
+title: "ListenerOptions"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ListenerOptions](#listeneroptions)
@@ -18,7 +18,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/listener_options.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/listener_options.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/listener_options.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/listener_options.proto)**
 
 
 

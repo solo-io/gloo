@@ -1,6 +1,6 @@
 
 ---
-title: "protocol.proto"
+title: "Protocol"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `protocol.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [HttpProtocolOptions](#httpprotocoloptions)
@@ -19,7 +19,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol/protocol.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/protocol/protocol.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol/protocol.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/protocol/protocol.proto)**
 
 
 

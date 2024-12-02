@@ -1,6 +1,6 @@
 
 ---
-title: "caching.proto"
+title: "Caching"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `caching.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Settings](#settings)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/caching/caching.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/caching/caching.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/caching/caching.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/caching/caching.proto)**
 
 
 

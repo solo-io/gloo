@@ -1,6 +1,6 @@
 
 ---
-title: "query_options.proto"
+title: "QueryOptions"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `consul.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [QueryOptions](#queryoptions)
@@ -16,14 +16,14 @@ weight: 5
 
  
 
-##### Enums:
+**Enums:**
 
 
 	- [ConsulConsistencyModes](#consulconsistencymodes)
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/consul/query_options.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/consul/query_options.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/consul/query_options.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/consul/query_options.proto)**
 
 
 

@@ -1,6 +1,6 @@
 
 ---
-title: "route.proto"
+title: "Route"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `solo.io.envoy.api.v2.route` 
-#### Types:
+**Types:**
 
 
 - [VirtualHost](#virtualhost)
@@ -54,7 +54,7 @@ weight: 5
 
 
 
-##### Source File: `envoy/api/v2/route/route.proto`
+**Source File: `envoy/api/v2/route/route.proto`**
 
 
 

@@ -62,3 +62,9 @@ CVE-2024-45258
 # Therefore we include this entry for now and should remove it once 1.14 is no longer an LTS branch
 CVE-2024-27289
 CVE-2024-27304
+
+# https://github.com/advisories/GHSA-5fhx-39r8-3jwh
+# This is resolved in versions of Gloo Gateway that rely on Go1.22 and above (1.17, 1.18)
+# For earlier versions of Gloo Gateway, we confirmed that the vulnerability is not exploitable
+# and captured our findings here: https://github.com/solo-io/solo-projects/issues/7157#issuecomment-2463252858
+CVE-2022-30635

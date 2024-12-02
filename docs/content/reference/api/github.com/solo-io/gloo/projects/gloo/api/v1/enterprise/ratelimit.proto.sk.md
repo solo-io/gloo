@@ -1,6 +1,6 @@
 
 ---
-title: "ratelimit.proto"
+title: "Ratelimit"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `glooe.solo.io` 
-#### Types:
+**Types:**
 
 
 - [RateLimitConfig](#ratelimitconfig)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/ratelimit.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/ratelimit.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/ratelimit.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/ratelimit.proto)**
 
 
 

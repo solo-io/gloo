@@ -1,6 +1,6 @@
 
 ---
-title: "failover.proto"
+title: "Failover"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `fed.solo.io` 
-#### Types:
+**Types:**
 
 
 - [FailoverSchemeSpec](#failoverschemespec)
@@ -21,7 +21,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/solo-apis/api/gloo-fed/fed/v1/failover.proto](https://github.com/solo-io/solo-apis/blob/main/api/gloo-fed/fed/v1/failover.proto)
+**Source File: [github.com/solo-io/solo-apis/api/gloo-fed/fed/v1/failover.proto](https://github.com/solo-io/solo-apis/blob/main/api/gloo-fed/fed/v1/failover.proto)**
 
 
 

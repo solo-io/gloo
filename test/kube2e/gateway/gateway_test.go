@@ -1290,7 +1290,9 @@ var _ = Describe("Kube2e: gateway", func() {
 
 			upstreamName = kubernetesplugin.UpstreamName(testHelper.InstallNamespace, service.Name, 5678)
 			// wait for upstream to get created by discovery
-			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+			// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
+			// other syncers that have translated them, so we can only detect that the objects exist here
+			helpers.EventuallyResourceExists(func() (resources.Resource, error) {
 				return resourceClientset.UpstreamClient().Read(testHelper.InstallNamespace, upstreamName, clients.ReadOpts{Ctx: ctx})
 			})
 			// add subset spec to upstream

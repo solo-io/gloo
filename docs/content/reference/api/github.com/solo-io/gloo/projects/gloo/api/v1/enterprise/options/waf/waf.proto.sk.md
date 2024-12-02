@@ -1,6 +1,6 @@
 
 ---
-title: "waf.proto"
+title: "Waf"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `waf.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Settings](#settings)
@@ -18,7 +18,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/waf/waf.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/waf/waf.proto)**
 
 
 

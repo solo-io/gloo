@@ -1,6 +1,6 @@
 
 ---
-title: "upstream.proto"
+title: "Upstream"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Upstream](#upstream) **Top-Level Resource**
@@ -20,7 +20,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/upstream.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/upstream.proto)**
 
 
 

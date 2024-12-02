@@ -10,11 +10,9 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -64,13 +62,13 @@ func (s *discoveryWatchlabelsSuite) TestDiscoverUpstreamMatchingWatchLabels() {
 	s.Assert().NoError(err, "can apply service")
 
 	// eventually an Upstream should be created for the Service with matching labels
+	// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
+	// other syncers that have translated them, so we can only detect that the objects exist here
 	labeledUsName := kubernetes.UpstreamName(s.testInstallation.Metadata.InstallNamespace, "example-svc", 8000)
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		func() (resources.InputResource, error) {
+	s.testInstallation.Assertions.EventuallyResourceExists(
+		func() (resources.Resource, error) {
 			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, labeledUsName, clients.ReadOpts{Ctx: s.ctx})
 		},
-		core.Status_Accepted,
-		defaults.GlooReporter,
 	)
 
 	// the Upstream should have DiscoveryMetadata labels matching the parent Service
@@ -129,13 +127,13 @@ func (s *discoveryWatchlabelsSuite) TestDiscoverySpecPreserved() {
 	s.Assert().NoError(err, "can apply service")
 
 	// eventually an Upstream should be created for the Service with matching labels
+	// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
+	// other syncers that have translated them, so we can only detect that the objects exist here
 	labeledUsName := kubernetes.UpstreamName(s.testInstallation.Metadata.InstallNamespace, "example-svc", 8000)
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		func() (resources.InputResource, error) {
+	s.testInstallation.Assertions.EventuallyResourceExists(
+		func() (resources.Resource, error) {
 			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, labeledUsName, clients.ReadOpts{Ctx: s.ctx})
 		},
-		core.Status_Accepted,
-		defaults.GlooReporter,
 	)
 
 	// the Upstream should have DiscoveryMetadata labels matching the parent Service

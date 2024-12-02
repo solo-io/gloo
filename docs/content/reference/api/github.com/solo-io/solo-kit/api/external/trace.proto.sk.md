@@ -1,6 +1,6 @@
 
 ---
-title: "trace.proto"
+title: "Trace"
 weight: 5
 ---
 
@@ -24,7 +24,7 @@ limitations under the License.
 
 
  
-#### Types:
+**Types:**
 
 
 - [Span](#span)
@@ -49,7 +49,7 @@ limitations under the License.
 
 
 
-##### Source File: [github.com/solo-io/solo-kit/api/external/trace.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/trace.proto)
+**Source File: [github.com/solo-io/solo-kit/api/external/trace.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/trace.proto)**
 
 
 

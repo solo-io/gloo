@@ -4,8 +4,8 @@ weight: 90
 description: Extend Gloo Gateway's built-in auth server with custom Go plugins
 ---
 
-{{% notice note %}}
-This feature was introduced with **Gloo Gateway Enterprise**, release 0.18.11. If you are using an earlier version, this tutorial will not work.
+{{% notice warning %}}
+This feature is deprecated in Gloo Gateway 1.18 and will be removed in a future release. Consider using the [Passthrough Auth]({{< versioned_link_path fromRoot="/guides/security/auth/extauth/passthrough_auth/" >}}) feature instead.
 {{% /notice %}}
 
 We have seen that one way of implementing custom authentication logic is by [providing your own auth server]({{< versioned_link_path fromRoot="/guides/security/auth/custom_auth" >}}). While this approach gives you great freedom, it also comes at a cost: 

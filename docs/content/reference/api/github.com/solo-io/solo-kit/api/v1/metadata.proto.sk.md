@@ -1,6 +1,6 @@
 
 ---
-title: "metadata.proto"
+title: "Metadata"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `core.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Metadata](#metadata)
@@ -17,7 +17,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/solo-kit/api/v1/metadata.proto](https://github.com/solo-io/solo-kit/blob/main/api/v1/metadata.proto)
+**Source File: [github.com/solo-io/solo-kit/api/v1/metadata.proto](https://github.com/solo-io/solo-kit/blob/main/api/v1/metadata.proto)**
 
 
 

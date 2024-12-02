@@ -1,6 +1,6 @@
 
 ---
-title: "hcm.proto"
+title: "Hcm"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `hcm.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [HttpConnectionManagerSettings](#httpconnectionmanagersettings)
@@ -25,7 +25,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/hcm/hcm.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/hcm/hcm.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/hcm/hcm.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/hcm/hcm.proto)**
 
 
 

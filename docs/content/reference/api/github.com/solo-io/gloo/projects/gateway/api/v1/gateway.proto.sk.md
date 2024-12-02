@@ -1,6 +1,6 @@
 
 ---
-title: "gateway.proto"
+title: "Gateway"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gateway.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Gateway](#gateway) **Top-Level Resource**
@@ -22,7 +22,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gateway/api/v1/gateway.proto](https://github.com/solo-io/gloo/blob/main/projects/gateway/api/v1/gateway.proto)
+**Source File: [github.com/solo-io/gloo/projects/gateway/api/v1/gateway.proto](https://github.com/solo-io/gloo/blob/main/projects/gateway/api/v1/gateway.proto)**
 
 
 

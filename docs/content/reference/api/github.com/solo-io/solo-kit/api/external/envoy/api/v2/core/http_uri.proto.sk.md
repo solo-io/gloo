@@ -1,6 +1,6 @@
 
 ---
-title: "http_uri.proto"
+title: "HttpUri"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `solo.io.envoy.api.v2.core` 
-#### Types:
+**Types:**
 
 
 - [HttpUri](#httpuri)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/http_uri.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/envoy/api/v2/core/http_uri.proto)
+**Source File: [github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/http_uri.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/envoy/api/v2/core/http_uri.proto)**
 
 
 

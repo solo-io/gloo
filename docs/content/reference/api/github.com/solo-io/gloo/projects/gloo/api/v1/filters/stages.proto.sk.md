@@ -1,6 +1,6 @@
 
 ---
-title: "stages.proto"
+title: "Stages"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `filters.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [FilterStage](#filterstage)
@@ -18,7 +18,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/filters/stages.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/filters/stages.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/filters/stages.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/filters/stages.proto)**
 
 
 

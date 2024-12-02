@@ -157,7 +157,9 @@ var _ = Describe("Happy path", func() {
 				err := envoyInstance.RunWithRole(role, testClients.GlooPort)
 				Expect(err).NotTo(HaveOccurred())
 
-				testhelpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
+				// other syncers that have translated them, so we can only detect that the objects exist here
+				testhelpers.EventuallyResourceExists(func() (resources.Resource, error) {
 					return getUpstream()
 				}, "20s", ".5s")
 			})
@@ -239,9 +241,11 @@ var _ = Describe("Happy path", func() {
 			})
 
 			It("watch all namespaces", func() {
-				testhelpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
+				// other syncers that have translated them, so we can only detect that the objects exist here
+				testhelpers.EventuallyResourceExists(func() (resources.Resource, error) {
 					return getUpstream()
-				})
+				}, "20s", ".5s")
 
 				up, err := getUpstream()
 				Expect(err).NotTo(HaveOccurred())

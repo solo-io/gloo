@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/test/kubernetes/testutils/cluster"
+	"github.com/solo-io/skv2/codegen/util"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 
 	"github.com/avast/retry-go"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/solo-io/gloo/test/services/envoy"
@@ -23,6 +23,7 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/kube2e/helper"
+	testruntime "github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
 	glootestutils "github.com/solo-io/gloo/test/testutils"
 	"github.com/solo-io/go-utils/testutils"
 
@@ -65,7 +66,10 @@ var _ = BeforeSuite(func() {
 	testHelper, err = kube2e.GetTestHelper(ctx, namespace)
 	Expect(err).NotTo(HaveOccurred())
 	testHelper.SetKubeCli(kubectl.NewCli().WithReceiver(GinkgoWriter))
-	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, metav1.ObjectMeta{Namespace: testHelper.InstallNamespace}))
+
+	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
+	namespaces := []string{testHelper.InstallNamespace}
+	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir, namespaces))
 
 	// Allow skipping of install step for running multiple times
 	if !glootestutils.ShouldSkipInstall() {
@@ -73,7 +77,8 @@ var _ = BeforeSuite(func() {
 	}
 
 	// We rely on the "new" kubernetes/e2e setup code, since it incorporates controller-runtime logging setup
-	clusterContext := cluster.MustKindContext("kind")
+	runtimeContext := testruntime.NewContext()
+	clusterContext := cluster.MustKindContext(runtimeContext.ClusterName)
 
 	resourceClientset, err = kube2e.NewKubeResourceClientSet(ctx, clusterContext.RestConfig)
 	Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")

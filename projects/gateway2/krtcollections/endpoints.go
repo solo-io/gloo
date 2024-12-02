@@ -2,8 +2,8 @@ package krtcollections
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"hash/fnv"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -128,17 +128,24 @@ type EndpointsForUpstream struct {
 	Hostname    string
 
 	LbEpsEqualityHash uint64
+	upstreamHash      uint64
+	epsEqualityHash   uint64
 }
 
 func NewEndpointsForUpstream(us UpstreamWrapper, logger *zap.Logger) *EndpointsForUpstream {
 	// start with a hash of the cluster name. technically we dont need it for krt, as we can compare the upstream name. but it helps later
 	// to compute the hash we present envoy with.
-	h := fnv.New64()
-	h.Write([]byte(us.Inner.GetMetadata().Ref().String()))
-	lbEpsEqualityHash := h.Sum64()
-
 	// add the upstream hash to the clustername, so that if it changes the envoy cluster will become warm again.
 	clusterName := GetEndpointClusterName(us.Inner)
+
+	h := fnv.New64()
+	h.Write([]byte(us.Inner.GetMetadata().Ref().String()))
+	// As long as we hash the upstream in the cluster name (due to envoy cluster warming bug), we
+	// also need to include that in the hash
+	// see: https://github.com/envoyproxy/envoy/issues/13009
+	h.Write([]byte(clusterName))
+	upstreamHash := h.Sum64()
+
 	return &EndpointsForUpstream{
 		LbEps:       make(map[PodLocality][]EndpointWithMd),
 		ClusterName: clusterName,
@@ -148,12 +155,13 @@ func NewEndpointsForUpstream(us UpstreamWrapper, logger *zap.Logger) *EndpointsF
 		},
 		Port:              ggv2utils.GetPortForUpstream(us.Inner),
 		Hostname:          ggv2utils.GetHostnameForUpstream(us.Inner),
-		LbEpsEqualityHash: lbEpsEqualityHash,
+		LbEpsEqualityHash: upstreamHash,
+		upstreamHash:      upstreamHash,
 	}
 }
 
 func hashEndpoints(l PodLocality, emd EndpointWithMd) uint64 {
-	hasher := fnv.New64()
+	hasher := fnv.New64a()
 	hasher.Write([]byte(l.Region))
 	hasher.Write([]byte(l.Zone))
 	hasher.Write([]byte(l.Subzone))
@@ -163,10 +171,23 @@ func hashEndpoints(l PodLocality, emd EndpointWithMd) uint64 {
 	return hasher.Sum64()
 }
 
+func hash(a, b uint64) uint64 {
+	hasher := fnv.New64a()
+	var buf [16]byte
+	binary.LittleEndian.PutUint64(buf[:8], a)
+	binary.LittleEndian.PutUint64(buf[8:], b)
+	hasher.Write(buf[:])
+	return hasher.Sum64()
+}
+
 func (e *EndpointsForUpstream) Add(l PodLocality, emd EndpointWithMd) {
 	// xor it as we dont care about order - if we have the same endpoints in the same locality
 	// we are good.
-	e.LbEpsEqualityHash ^= hashEndpoints(l, emd)
+	e.epsEqualityHash ^= hashEndpoints(l, emd)
+	// we can't xor the endpoint hash with the upstream hash, because upstreams with
+	// different names and similar endpoints will cancel out, so endpoint changes
+	// won't result in different equality hashes.
+	e.LbEpsEqualityHash = hash(e.epsEqualityHash, e.upstreamHash)
 	e.LbEps[l] = append(e.LbEps[l], emd)
 }
 
@@ -208,27 +229,32 @@ func transformK8sEndpoints(ctx context.Context, inputs EndpointsInputs) func(kct
 		spec := kubeUpstream.Kube
 		kubeSvcPort, singlePortSvc := findPortForService(kctx, svcs, spec)
 		if kubeSvcPort == nil {
-			logger.Debug("findPortForService - not found.", zap.Uint32("port", spec.GetServicePort()), zap.String("svcName", spec.GetServiceName()), zap.String("svcNamespace", spec.GetServiceNamespace()))
+			logger.Debug("port not found for service", zap.Uint32("port", spec.GetServicePort()), zap.String("name", spec.GetServiceName()), zap.String("namespace", spec.GetServiceNamespace()))
 			return nil
 		}
 
-		svcNs := spec.GetServiceNamespace()
-		svcName := spec.GetServiceName()
-		// Fetch all EndpointSlices for the service
+		// Fetch all EndpointSlices for the upstream service
 		key := types.NamespacedName{
-			Namespace: svcNs,
-			Name:      svcName,
+			Namespace: spec.GetServiceNamespace(),
+			Name:      spec.GetServiceName(),
 		}
 
 		endpointSlices := krt.Fetch(kctx, inputs.EndpointSlices, krt.FilterIndex(inputs.EndpointSlicesByService, key))
 		if len(endpointSlices) == 0 {
-			warnsToLog = append(warnsToLog, fmt.Sprintf("EndpointSlices not found for service %v/%v", svcNs, svcName))
+			logger.Debug("no endpointslices found for service", zap.String("name", key.Name), zap.String("namespace", key.Namespace))
 			return nil
 		}
 
-		if len(endpointSlices) == 0 {
-			warnsToLog = append(warnsToLog, fmt.Sprintf("EndpointSlices not found for service %v/%v", svcNs, svcName))
-			logger.Debug("EndpointSlices not found for service")
+		// Handle potential eventually consistency of EndpointSlices for the upstream service
+		found := false
+		for _, endpointSlice := range endpointSlices {
+			if port := findPortInEndpointSlice(endpointSlice, singlePortSvc, kubeSvcPort); port != 0 {
+				found = true
+				break
+			}
+		}
+		if !found {
+			logger.Debug("no ports found in endpointslices for service", zap.String("name", key.Name), zap.String("namespace", key.Namespace))
 			return nil
 		}
 
@@ -244,8 +270,9 @@ func transformK8sEndpoints(ctx context.Context, inputs EndpointsInputs) func(kct
 		for _, endpointSlice := range endpointSlices {
 			port := findPortInEndpointSlice(endpointSlice, singlePortSvc, kubeSvcPort)
 			if port == 0 {
-				warnsToLog = append(warnsToLog, fmt.Sprintf("port %v not found for service %v/%v in EndpointSlice %v",
-					spec.GetServicePort(), svcNs, svcName, endpointSlice.Name))
+				logger.Debug("no port found in endpointslice; will try next endpointslice if one exists",
+					zap.String("name", endpointSlice.Name),
+					zap.String("namespace", endpointSlice.Namespace))
 				continue
 			}
 
@@ -378,6 +405,11 @@ func findPortForService(kctx krt.HandlerContext, services krt.Collection[*corev1
 
 func findPortInEndpointSlice(endpointSlice *discoveryv1.EndpointSlice, singlePortService bool, kubeServicePort *corev1.ServicePort) uint32 {
 	var port uint32
+
+	if endpointSlice == nil || kubeServicePort == nil {
+		return port
+	}
+
 	for _, p := range endpointSlice.Ports {
 		if p.Port == nil {
 			continue

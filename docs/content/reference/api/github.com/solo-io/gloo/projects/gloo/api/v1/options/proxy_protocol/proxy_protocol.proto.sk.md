@@ -1,6 +1,6 @@
 
 ---
-title: "proxy_protocol.proto"
+title: "ProxyProtocol"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `proxy_protocol.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ProxyProtocol](#proxyprotocol)
@@ -18,7 +18,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/proxy_protocol/proxy_protocol.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/proxy_protocol/proxy_protocol.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/proxy_protocol/proxy_protocol.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/proxy_protocol/proxy_protocol.proto)**
 
 
 

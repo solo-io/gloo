@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/test/kubernetes/testutils/cluster"
+	"github.com/solo-io/skv2/codegen/util"
 
 	kubetestclients "github.com/solo-io/gloo/test/kubernetes/testutils/clients"
 
@@ -22,6 +23,7 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/kube2e/helper"
+	testruntime "github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -63,7 +65,10 @@ func StartTestHelper() {
 
 	testHelper, err = kube2e.GetTestHelper(ctx, namespace)
 	Expect(err).NotTo(HaveOccurred())
-	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, metav1.ObjectMeta{Namespace: testHelper.InstallNamespace}))
+
+	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
+	namespaces := []string{testHelper.InstallNamespace}
+	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir, namespaces))
 
 	kubeCli = kubectl.NewCli().WithReceiver(GinkgoWriter)
 
@@ -73,7 +78,8 @@ func StartTestHelper() {
 	}
 
 	// We rely on the "new" kubernetes/e2e setup code, since it incorporates controller-runtime logging setup
-	clusterContext := cluster.MustKindContext("kind")
+	runtimeContext := testruntime.NewContext()
+	clusterContext := cluster.MustKindContext(runtimeContext.ClusterName)
 
 	resourceClientset, err = kube2e.NewKubeResourceClientSet(ctx, clusterContext.RestConfig)
 	Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")

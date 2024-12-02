@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	ExampleVsName       = "example-vs"
-	ExampleUpstreamName = "nginx-upstream"
+	ExampleVsName                 = "example-vs"
+	ExampleUpstreamName           = "nginx-upstream"
+	SplitWebhookBasicUpstreamName = "json-upstream"
 
 	ValidVsName   = "i-am-valid"
 	InvalidVsName = "i-am-invalid"
@@ -44,6 +45,9 @@ var (
 	VSTransformationExtractors    = filepath.Join(util.MustGetThisDir(), "testdata", "transformation", "vs-transform-extractors.yaml")
 	VSTransformationHeaderText    = filepath.Join(util.MustGetThisDir(), "testdata", "transformation", "vs-transform-header-text.yaml")
 	VSTransformationSingleReplace = filepath.Join(util.MustGetThisDir(), "testdata", "transformation", "vs-transform-single-replace.yaml")
+
+	// Valid resources
+	LargeConfiguration = filepath.Join(util.MustGetThisDir(), "testdata", "valid-resources", "large-configuration.yaml")
 
 	// Split webhook validation
 	BasicUpstream = filepath.Join(util.MustGetThisDir(), "testdata", "split-webhook", "basic-upstream.yaml")

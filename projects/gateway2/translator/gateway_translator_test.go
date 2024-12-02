@@ -11,6 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 )
@@ -50,7 +51,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "example-gateway",
-			}}),
+			},
+		}),
 	Entry(
 		"https gateway with basic routing",
 		translatorTestCase{
@@ -59,7 +61,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "example-gateway",
-			}}),
+			},
+		}),
 	Entry(
 		"http gateway with multiple listeners on the same port",
 		translatorTestCase{
@@ -68,7 +71,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "http",
-			}}),
+			},
+		}),
 	Entry(
 		"https gateway with multiple listeners on the same port",
 		translatorTestCase{
@@ -77,7 +81,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "http",
-			}}),
+			},
+		}),
 	Entry(
 		"http gateway with multiple routing rules and HeaderModifier filter",
 		translatorTestCase{
@@ -86,7 +91,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "gw",
-			}}),
+			},
+		}),
 	Entry(
 		"http gateway with lambda destination",
 		translatorTestCase{
@@ -95,7 +101,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "gw",
-			}}),
+			},
+		}),
 	Entry(
 		"http gateway with azure destination",
 		translatorTestCase{
@@ -104,7 +111,8 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "gw",
-			}}),
+			},
+		}),
 	Entry(
 		"gateway with correctly sorted routes",
 		translatorTestCase{
@@ -113,9 +121,10 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "infra",
 				Name:      "example-gateway",
-			}}),
+			},
+		}),
 	Entry(
-		"route with missing backend reports correctly",
+		"httproute with missing backend reports correctly",
 		translatorTestCase{
 			inputFile:  "http-routing-missing-backend",
 			outputFile: "http-routing-missing-backend.yaml",
@@ -139,7 +148,7 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			},
 		}),
 	Entry(
-		"route with invalid backend reports correctly",
+		"httproute with invalid backend reports correctly",
 		translatorTestCase{
 			inputFile:  "http-routing-invalid-backend",
 			outputFile: "http-routing-invalid-backend.yaml",
@@ -181,6 +190,71 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 				Namespace: "default",
 				Name:      "example-gateway",
 			},
+			assertReports: func(gwNN types.NamespacedName, reportsMap reports.ReportMap) {
+				route := &gwv1a2.TCPRoute{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "example-tcp-route",
+						Namespace: "default",
+					},
+				}
+				routeStatus := reportsMap.BuildRouteStatus(context.TODO(), route, "")
+				Expect(routeStatus).NotTo(BeNil())
+				Expect(routeStatus.Parents).To(HaveLen(1))
+				resolvedRefs := meta.FindStatusCondition(routeStatus.Parents[0].Conditions, string(gwv1.RouteConditionResolvedRefs))
+				Expect(resolvedRefs).NotTo(BeNil())
+				Expect(resolvedRefs.Status).To(Equal(metav1.ConditionTrue))
+				Expect(resolvedRefs.Reason).To(Equal(string(gwv1.RouteReasonResolvedRefs)))
+			},
+		}),
+	Entry(
+		"tcproute with missing backend reports correctly",
+		translatorTestCase{
+			inputFile:  "tcp-routing/missing-backend.yaml",
+			outputFile: "tcp-routing/missing-backend.yaml",
+			gwNN: types.NamespacedName{
+				Namespace: "default",
+				Name:      "example-gateway",
+			},
+			assertReports: func(gwNN types.NamespacedName, reportsMap reports.ReportMap) {
+				route := &gwv1a2.TCPRoute{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "example-tcp-route",
+						Namespace: "default",
+					},
+				}
+				routeStatus := reportsMap.BuildRouteStatus(context.TODO(), route, "")
+				Expect(routeStatus).NotTo(BeNil())
+				Expect(routeStatus.Parents).To(HaveLen(1))
+				resolvedRefs := meta.FindStatusCondition(routeStatus.Parents[0].Conditions, string(gwv1.RouteConditionResolvedRefs))
+				Expect(resolvedRefs).NotTo(BeNil())
+				Expect(resolvedRefs.Status).To(Equal(metav1.ConditionFalse))
+				Expect(resolvedRefs.Message).To(Equal("services \"example-tcp-svc\" not found"))
+			},
+		}),
+	Entry(
+		"tcproute with invalid backend reports correctly",
+		translatorTestCase{
+			inputFile:  "tcp-routing/invalid-backend.yaml",
+			outputFile: "tcp-routing/invalid-backend.yaml",
+			gwNN: types.NamespacedName{
+				Namespace: "default",
+				Name:      "example-gateway",
+			},
+			assertReports: func(gwNN types.NamespacedName, reportsMap reports.ReportMap) {
+				route := &gwv1a2.TCPRoute{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "example-tcp-route",
+						Namespace: "default",
+					},
+				}
+				routeStatus := reportsMap.BuildRouteStatus(context.TODO(), route, "")
+				Expect(routeStatus).NotTo(BeNil())
+				Expect(routeStatus.Parents).To(HaveLen(1))
+				resolvedRefs := meta.FindStatusCondition(routeStatus.Parents[0].Conditions, string(gwv1.RouteConditionResolvedRefs))
+				Expect(resolvedRefs).NotTo(BeNil())
+				Expect(resolvedRefs.Status).To(Equal(metav1.ConditionFalse))
+				Expect(resolvedRefs.Message).To(Equal("unknown backend kind"))
+			},
 		}),
 	Entry(
 		"tcp gateway with multiple backend services",
@@ -192,6 +266,22 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 				Name:      "example-tcp-gateway",
 			},
 		}),
+	Entry("Plugin Backend", translatorTestCase{
+		inputFile:  "backend-plugin/gateway.yaml",
+		outputFile: "backend-plugin-proxy.yaml",
+		gwNN: types.NamespacedName{
+			Namespace: "default",
+			Name:      "example-gateway",
+		},
+	}),
+	Entry("Proxy with no routes", translatorTestCase{
+		inputFile:  "edge-cases/no_route.yaml",
+		outputFile: "no_route.yaml",
+		gwNN: types.NamespacedName{
+			Namespace: "default",
+			Name:      "example-gateway",
+		},
+	}),
 )
 
 var _ = DescribeTable("Route Delegation translator",
@@ -234,4 +324,6 @@ var _ = DescribeTable("Route Delegation translator",
 	Entry("RouteOptions multi level inheritance with child override", "route_options_multi_level_inheritance_override_ok.yaml"),
 	Entry("RouteOptions filter override merge", "route_options_filter_override_merge.yaml"),
 	Entry("Child route matcher does not match parent", "bug-6621.yaml"),
+	// https://github.com/k8sgateway/k8sgateway/issues/10379
+	Entry("Multi-level multiple parents delegation", "bug-10379.yaml"),
 )

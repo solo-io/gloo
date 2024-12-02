@@ -1,6 +1,6 @@
 
 ---
-title: "matchable_http_gateway.proto"
+title: "MatchableHttpGateway"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gateway.solo.io` 
-#### Types:
+**Types:**
 
 
 - [MatchableHttpGateway](#matchablehttpgateway) **Top-Level Resource**
@@ -17,7 +17,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gateway/api/v1/matchable_http_gateway.proto](https://github.com/solo-io/gloo/blob/main/projects/gateway/api/v1/matchable_http_gateway.proto)
+**Source File: [github.com/solo-io/gloo/projects/gateway/api/v1/matchable_http_gateway.proto](https://github.com/solo-io/gloo/blob/main/projects/gateway/api/v1/matchable_http_gateway.proto)**
 
 
 

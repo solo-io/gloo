@@ -8,13 +8,11 @@ import (
 	"time"
 
 	"github.com/onsi/gomega"
-	gloo_defaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/validation"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/stretchr/testify/suite"
@@ -196,12 +194,21 @@ var (
 	}
 
 	validateUpstreamCreated = func(s *testingSuite) {
-		s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-			func() (resources.InputResource, error) {
-				return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, "json-upstream", clients.ReadOpts{Ctx: s.ctx})
+		// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
+		// other syncers that have translated them, so we can only detect that the objects exist here
+		s.testInstallation.Assertions.EventuallyResourceExists(
+			func() (resources.Resource, error) {
+				uc := s.testInstallation.ResourceClients.UpstreamClient()
+				return uc.Read(s.testInstallation.Metadata.InstallNamespace, validation.SplitWebhookBasicUpstreamName, clients.ReadOpts{Ctx: s.ctx})
 			},
-			core.Status_Accepted,
-			gloo_defaults.GlooReporter,
+		)
+		// we need to make sure Gloo has had a chance to process it
+		s.testInstallation.Assertions.ConsistentlyResourceExists(
+			s.ctx,
+			func() (resources.Resource, error) {
+				uc := s.testInstallation.ResourceClients.UpstreamClient()
+				return uc.Read(s.testInstallation.Metadata.InstallNamespace, validation.SplitWebhookBasicUpstreamName, clients.ReadOpts{Ctx: s.ctx})
+			},
 		)
 	}
 

@@ -118,7 +118,12 @@ func StartGGv2WithConfig(ctx context.Context,
 		settingsGVR,
 		krt.WithName("GlooSettings"))
 
-	ucc := uccBuilder(ctx, augmentedPods)
+	augmentedPodsForUcc := augmentedPods
+	if envutils.IsEnvTruthy("DISABLE_POD_LOCALITY_XDS") {
+		augmentedPodsForUcc = nil
+	}
+
+	ucc := uccBuilder(ctx, setupOpts.KrtDebugger, augmentedPodsForUcc)
 
 	settingsSingle := krt.NewSingleton(func(ctx krt.HandlerContext) *glookubev1.Settings {
 		s := krt.FetchOne(ctx, setting,
@@ -227,7 +232,10 @@ func (g *genericStatusReporter) WriteReports(ctx context.Context, resourceErrs r
 		resourceStatus := g.statusClient.GetStatus(resource)
 
 		if status.Equal(resourceStatus) {
-			logger.Debugf("skipping report for %v as it has not changed", resource.GetMetadata().Ref())
+			// TODO: find a way to log this but it is noisy currently due to once per second status sync
+			// see: projects/gateway2/proxy_syncer/kube_gw_translator_syncer.go#syncStatus(...)
+			// and its call site in projects/gateway2/proxy_syncer/proxy_syncer.go
+			// logger.Debugf("skipping report for %v as it has not changed", resource.GetMetadata().Ref())
 			continue
 		}
 
