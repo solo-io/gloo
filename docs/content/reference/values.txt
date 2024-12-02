@@ -42,7 +42,7 @@
 |kubeGateway.gatewayParameters.glooGateway.service.type|string|LoadBalancer|K8s service type. If set to null, a default of LoadBalancer will be imposed.|
 |kubeGateway.gatewayParameters.glooGateway.service.extraLabels.NAME|string||Extra labels to add to the service.|
 |kubeGateway.gatewayParameters.glooGateway.service.extraAnnotations.NAME|string||Extra annotations to add to the service.|
-|kubeGateway.gatewayParameters.glooGateway.service.externalTrafficPolicy|string|||
+|kubeGateway.gatewayParameters.glooGateway.service.externalTrafficPolicy|string||Set the external traffic policy on the provisioned service.|
 |kubeGateway.gatewayParameters.glooGateway.serviceAccount.extraLabels.NAME|string||Extra labels to add to the service account.|
 |kubeGateway.gatewayParameters.glooGateway.serviceAccount.extraAnnotations.NAME|string||Extra annotations to add to the service account.|
 |kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.tag|string|<release_version, ex: 1.2.3>|The image tag for the container.|
@@ -1003,7 +1003,7 @@
 |gatewayProxies.NAME.service.httpsNodePort|int||HTTPS nodeport for the gateway service if using type NodePort|
 |gatewayProxies.NAME.service.clusterIP|string||static clusterIP (or `None`) when `gatewayProxies[].gatewayProxy.service.type` is `ClusterIP`|
 |gatewayProxies.NAME.service.extraAnnotations.NAME|string|||
-|gatewayProxies.NAME.service.externalTrafficPolicy|string|||
+|gatewayProxies.NAME.service.externalTrafficPolicy|string||Set the external traffic policy on the gateway proxy service.|
 |gatewayProxies.NAME.service.name|string||Custom name override for the service resource of the proxy|
 |gatewayProxies.NAME.service.httpsFirst|bool||List HTTPS port before HTTP|
 |gatewayProxies.NAME.service.loadBalancerIP|string||IP address of the load balancer|
@@ -1256,7 +1256,7 @@
 |gatewayProxies.gatewayProxy.service.httpsNodePort|int||HTTPS nodeport for the gateway service if using type NodePort|
 |gatewayProxies.gatewayProxy.service.clusterIP|string||static clusterIP (or `None`) when `gatewayProxies[].gatewayProxy.service.type` is `ClusterIP`|
 |gatewayProxies.gatewayProxy.service.extraAnnotations.NAME|string|||
-|gatewayProxies.gatewayProxy.service.externalTrafficPolicy|string|||
+|gatewayProxies.gatewayProxy.service.externalTrafficPolicy|string||Set the external traffic policy on the gateway proxy service.|
 |gatewayProxies.gatewayProxy.service.name|string||Custom name override for the service resource of the proxy|
 |gatewayProxies.gatewayProxy.service.httpsFirst|bool||List HTTPS port before HTTP|
 |gatewayProxies.gatewayProxy.service.loadBalancerIP|string||IP address of the load balancer|
