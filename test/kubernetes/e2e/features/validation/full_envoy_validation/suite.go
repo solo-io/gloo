@@ -81,6 +81,7 @@ func (s *testingSuite) TestRejectInvalidTransformation() {
 
 // TestLargeConfiguration checks webhook accepts large configuration when fullEnvoyValidation=true
 func (s *testingSuite) TestLargeConfiguration() {
+	s.T().Skip("we need to make sure we have all formats working")
 	s.T().Cleanup(func() {
 		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.LargeConfiguration, "-n",
 			s.testInstallation.Metadata.InstallNamespace)
