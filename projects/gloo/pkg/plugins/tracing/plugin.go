@@ -1,9 +1,12 @@
 package tracing
 
 import (
+	"strings"
+
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoy_config_trace_v3 "github.com/envoyproxy/go-control-plane/envoy/config/trace/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	envoy_type_metadata_v3 "github.com/envoyproxy/go-control-plane/envoy/type/metadata/v3"
 	envoytracing "github.com/envoyproxy/go-control-plane/envoy/type/tracing/v3"
 	envoy_type "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	"github.com/golang/protobuf/ptypes"
@@ -20,6 +23,7 @@ import (
 	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	"istio.io/istio/pkg/slices"
 )
 
 var (
@@ -129,6 +133,34 @@ func customTags(tracingSettings *tracing.ListenerTracingSettings) []*envoytracin
 			},
 		}
 		customTags = append(customTags, tag)
+	}
+	for _, metadataTag := range tracingSettings.GetMetadataForTags() {
+		tag := &envoytracing.CustomTag_Metadata{
+			MetadataKey: &envoy_type_metadata_v3.MetadataKey{
+				Key: metadataTag.Value.GetNamespace(),
+				Path: slices.Map(strings.Split(metadataTag.Value.GetKey(), "."), func(key string) *envoy_type_metadata_v3.MetadataKey_PathSegment {
+					return &envoy_type_metadata_v3.MetadataKey_PathSegment{Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{Key: key}}
+				}),
+			},
+			DefaultValue: metadataTag.GetDefaultValue(),
+		}
+		switch metadataTag.GetKind() {
+		case tracing.TracingTagMetadata_REQUEST:
+			tag.Kind = &envoy_type_metadata_v3.MetadataKind{
+				Kind: &envoy_type_metadata_v3.MetadataKind_Request_{Request: &envoy_type_metadata_v3.MetadataKind_Request{}},
+			}
+		case tracing.TracingTagMetadata_ENDPOINT:
+			tag.Kind = &envoy_type_metadata_v3.MetadataKind{
+				Kind: &envoy_type_metadata_v3.MetadataKind_Host_{Host: &envoy_type_metadata_v3.MetadataKind_Host{}},
+			}
+
+		}
+		customTags = append(customTags, &envoytracing.CustomTag{
+			Tag: metadataTag.GetTag(),
+			Type: &envoytracing.CustomTag_Metadata_{
+				Metadata: tag,
+			},
+		})
 	}
 
 	return customTags
