@@ -3,6 +3,8 @@ changelog:
     issueLink: https://github.com/solo-io/solo-projects/issues/7105
     resolvesIssue: false
     description: >-
-      When using the Kubernetes Gateway API, cluster names for Kubernetes Services
-      are now in a new more parseable format that allows us to extract info about the Service:
-      
+      When using the Kubernetes Gateway API, envoy cluster names corresponding to Kubernetes Service Upstreams
+      are now in a new more parseable format that allows us to extract info about the Service for metrics:
+      `upstreamName_upstreamNs_svcNs_svcName_svcPort` (underscore-separated). Note that as long as Kubernetes
+      Gateway integration is enabled (i.e. Gloo Gateway installed with `kubeGateway.enabled=true`), both
+      Edge and Kubernetes Gateway proxies will use the new cluster format.
