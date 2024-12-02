@@ -84,9 +84,20 @@ func (s *testingSuite) TestLargeConfiguration() {
 		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.LargeConfiguration, "-n",
 			s.testInstallation.Metadata.InstallNamespace)
 		s.Assertions.NoError(err, "can delete large configuration")
+
+		err = s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, testdefaults.NginxPodManifest)
+		s.Assertions.NoError(err, "can delete nginx pod")
 	})
 
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.LargeConfiguration, "-n",
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.NginxPodManifest)
+	s.Assert().NoError(err)
+	s.testInstallation.Assertions.EventuallyResourceExists(
+		func() (resources.Resource, error) {
+			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, "nginx-upstream", clients.ReadOpts{Ctx: s.ctx})
+		},
+	)
+
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.LargeConfiguration, "-n",
 		s.testInstallation.Metadata.InstallNamespace)
 	s.Assert().NoError(err)
 }

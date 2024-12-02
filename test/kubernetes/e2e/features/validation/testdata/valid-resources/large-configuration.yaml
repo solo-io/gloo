@@ -71,12 +71,12 @@ spec:
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
-  name: postman-echo
+  name: nginx-upstream
   namespace: full-envoy-validation-test
 spec:
   static:
     hosts:
-    - addr: postman-echo.com
+    - addr: nginx-upstream.com
       port: 80
 ---
 apiVersion: gateway.solo.io/v1
@@ -315,7 +315,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - headers:
         - name: x-something-user-token
@@ -345,7 +345,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /ip
       name: jwt-options-route
@@ -356,7 +356,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /get
       name: jwt-options-route
@@ -367,7 +367,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /headers
       name: jwt-options-route
@@ -378,7 +378,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /status
       name: jwt-options-route
@@ -389,7 +389,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /user-agent
       name: jwt-options-route
@@ -400,7 +400,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /cookies
       name: jwt-options-route
@@ -411,7 +411,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /base64
       name: jwt-options-route
@@ -422,7 +422,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - headers:
         - invertMatch: true
@@ -450,7 +450,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
             namespace: full-envoy-validation-test
     - matchers:
       - headers:
@@ -483,7 +483,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
             namespace: full-envoy-validation-test
     - matchers:
       - headers:
@@ -522,7 +522,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
             namespace: full-envoy-validation-test
 ---
 apiVersion: gateway.solo.io/v1
@@ -559,7 +559,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - headers:
         - name: x-something-user-token
@@ -589,7 +589,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /ip
       name: jwt-options-route
@@ -600,7 +600,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /get
       name: jwt-options-route
@@ -611,7 +611,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /headers
       name: jwt-options-route
@@ -622,7 +622,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /status
       name: jwt-options-route
@@ -633,7 +633,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /user-agent
       name: jwt-options-route
@@ -644,7 +644,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /cookies
       name: jwt-options-route
@@ -655,7 +655,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /base64
       name: jwt-options-route
@@ -666,7 +666,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - headers:
         - invertMatch: true
@@ -694,7 +694,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - headers:
         - name: x-something-api-key
@@ -726,7 +726,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - headers:
         - name: x-something-api-key
@@ -764,7 +764,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
 ---
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
@@ -800,7 +800,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - headers:
         - name: x-something-user-token
@@ -830,7 +830,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /ip
       name: jwt-options-route
@@ -841,7 +841,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /get
       name: jwt-options-route
@@ -852,7 +852,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /headers
       name: jwt-options-route
@@ -863,7 +863,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /status
       name: jwt-options-route
@@ -874,7 +874,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /user-agent
       name: jwt-options-route
@@ -885,7 +885,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /cookies
       name: jwt-options-route
@@ -896,7 +896,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - prefix: /base64
       name: jwt-options-route
@@ -907,7 +907,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - headers:
         - invertMatch: true
@@ -935,7 +935,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - headers:
         - name: x-something-api-key
@@ -967,7 +967,7 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
     - matchers:
       - headers:
         - name: x-something-api-key
@@ -1005,4 +1005,4 @@ spec:
       routeAction:
         single:
           upstream:
-            name: postman-echo
+            name: nginx-upstream
