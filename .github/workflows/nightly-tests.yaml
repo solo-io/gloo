@@ -341,7 +341,7 @@ jobs:
   performance_tests_on_demand:
     name: on demand performance tests
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'workflow_initiating_branch' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04-8core
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -350,53 +350,54 @@ jobs:
       - uses: ./.github/workflows/composite-actions/prep-go-runner
       - uses: ./.github/workflows/composite-actions/performance-tests
 
-  performance_tests_main:
-    name: main performance tests
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'main') || github.event.schedule == '0 5 * * *' }}
-    runs-on: ubuntu-22.04
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-      - uses: ./.github/workflows/composite-actions/prep-go-runner
-      - uses: ./.github/workflows/composite-actions/performance-tests
-
-  performance_tests_17:
-    name: v1.17.x performance tests
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.17.x') || github.event.schedule == '0 6 * * 1' }}
-    runs-on: ubuntu-22.04
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: v1.17.x
-      - uses: ./.github/workflows/composite-actions/prep-go-runner
-      - uses: ./.github/workflows/composite-actions/performance-tests
-
-  performance_tests_16:
-    name: v1.16.x performance tests
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.16.x') || github.event.schedule == '0 7 * * 1' }}
-    runs-on: ubuntu-22.04
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: v1.16.x
-      - uses: ./.github/workflows/composite-actions/prep-go-runner
-      - uses: ./.github/workflows/composite-actions/performance-tests
-
-  performance_tests_15:
-    name: v1.15.x performance tests
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.15.x') || github.event.schedule == '0 8 * * 1' }}
-    runs-on: ubuntu-22.04
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: v1.15.x
-      - uses: ./.github/workflows/composite-actions/prep-go-runner
-      - uses: ./.github/workflows/composite-actions/performance-tests
+# Performance test are disabled on nightlys: https://github.com/k8sgateway/k8sgateway/issues/10369
+#  performance_tests_main:
+#    name: main performance tests
+#    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'main') || github.event.schedule == '0 5 * * *' }}
+#    runs-on: ubuntu-22.04
+#    timeout-minutes: 60
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          ref: main
+#      - uses: ./.github/workflows/composite-actions/prep-go-runner
+#      - uses: ./.github/workflows/composite-actions/performance-tests
+#
+#  performance_tests_17:
+#    name: v1.17.x performance tests
+#    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.17.x') || github.event.schedule == '0 6 * * 1' }}
+#    runs-on: ubuntu-22.04
+#    timeout-minutes: 60
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          ref: v1.17.x
+#      - uses: ./.github/workflows/composite-actions/prep-go-runner
+#      - uses: ./.github/workflows/composite-actions/performance-tests
+#
+#  performance_tests_16:
+#    name: v1.16.x performance tests
+#    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.16.x') || github.event.schedule == '0 7 * * 1' }}
+#    runs-on: ubuntu-22.04
+#    timeout-minutes: 60
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          ref: v1.16.x
+#      - uses: ./.github/workflows/composite-actions/prep-go-runner
+#      - uses: ./.github/workflows/composite-actions/performance-tests
+#
+#  performance_tests_15:
+#    name: v1.15.x performance tests
+#    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.15.x') || github.event.schedule == '0 8 * * 1' }}
+#    runs-on: ubuntu-22.04
+#    timeout-minutes: 60
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          ref: v1.15.x
+#      - uses: ./.github/workflows/composite-actions/prep-go-runner
+#      - uses: ./.github/workflows/composite-actions/performance-tests
 
   kube_gateway_api_conformance_tests_main:
     name: Conformance (branch=main, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
