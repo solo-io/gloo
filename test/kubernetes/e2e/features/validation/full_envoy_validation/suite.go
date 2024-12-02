@@ -88,14 +88,12 @@ func (s *testingSuite) TestLargeConfiguration() {
 		s.Assert().NoError(err)
 	})
 
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.NginxPodManifest)
-	s.Assert().NoError(err)
 	// Check that test resources are running
 	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, testdefaults.NginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/name=nginx",
 	})
 
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.LargeConfiguration, "-n",
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.LargeConfiguration, "-n",
 		s.testInstallation.Metadata.InstallNamespace)
 	s.Assert().NoError(err)
 }
