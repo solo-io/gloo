@@ -309,9 +309,11 @@ spec:
       options:
         autoHostRewrite: true
         prefixRewrite: /healthcheck
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-user-token
@@ -337,51 +339,88 @@ spec:
                         "401" %}{{ header(":status") }}{% else %}403{% endif %}'
                   ignoreErrorOnParse: true
           inheritTransformation: true
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /ip
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /get
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /headers
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /status
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /user-agent
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /cookies
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /base64
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - invertMatch: true
@@ -405,9 +444,11 @@ spec:
                         header(":status") }}{% endif %}'
                   ignoreErrorOnParse: true
           inheritTransformation: true
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
             namespace: full-envoy-validation-test
     - matchers:
       - headers:
@@ -436,9 +477,11 @@ spec:
                         "401" %}{{ header(":status") }}{% else %}403{% endif %}'
                   ignoreErrorOnParse: true
           inheritTransformation: true
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
             namespace: full-envoy-validation-test
     - matchers:
       - headers:
@@ -473,9 +516,11 @@ spec:
                       text: web-app-ssr
                     x-something-user-id:
                       text: web-app-ssr
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
             namespace: full-envoy-validation-test
 ---
 apiVersion: gateway.solo.io/v1
@@ -508,9 +553,11 @@ spec:
       options:
         autoHostRewrite: true
         prefixRewrite: /healthcheck
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-user-token
@@ -536,51 +583,88 @@ spec:
                         "401" %}{{ header(":status") }}{% else %}403{% endif %}'
                   ignoreErrorOnParse: true
           inheritTransformation: true
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /ip
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /get
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /headers
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /status
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /user-agent
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /cookies
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /base64
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - invertMatch: true
@@ -604,9 +688,11 @@ spec:
                         header(":status") }}{% endif %}'
                   ignoreErrorOnParse: true
           inheritTransformation: true
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-api-key
@@ -634,9 +720,11 @@ spec:
                         "401" %}{{ header(":status") }}{% else %}403{% endif %}'
                   ignoreErrorOnParse: true
           inheritTransformation: true
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-api-key
@@ -670,9 +758,11 @@ spec:
                       text: web-app-ssr
                     x-something-user-id:
                       text: web-app-ssr
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
 ---
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
@@ -704,9 +794,11 @@ spec:
       options:
         autoHostRewrite: true
         prefixRewrite: /healthcheck
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-user-token
@@ -732,51 +824,88 @@ spec:
                         "401" %}{{ header(":status") }}{% else %}403{% endif %}'
                   ignoreErrorOnParse: true
           inheritTransformation: true
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /ip
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /get
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /headers
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /status
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /user-agent
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /cookies
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - prefix: /base64
       name: jwt-options-route
-      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+      optionsConfigRefs:
+        delegateOptions:
+        - name: jwt-route-ip
+          namespace: full-envoy-validation-test
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - invertMatch: true
@@ -800,9 +929,11 @@ spec:
                         header(":status") }}{% endif %}'
                   ignoreErrorOnParse: true
           inheritTransformation: true
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-api-key
@@ -830,9 +961,11 @@ spec:
                         "401" %}{{ header(":status") }}{% else %}403{% endif %}'
                   ignoreErrorOnParse: true
           inheritTransformation: true
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
     - matchers:
       - headers:
         - name: x-something-api-key
@@ -866,6 +999,8 @@ spec:
                       text: web-app-ssr
                     x-something-user-id:
                       text: web-app-ssr
-        timeout: 31s      directResponseAction:
-        status: 200
-        body: "Hello, world!"
+        timeout: 31s
+      routeAction:
+        single:
+          upstream:
+            name: nginx-nginx-8080
