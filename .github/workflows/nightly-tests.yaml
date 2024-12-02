@@ -106,7 +106,7 @@ jobs:
           run-regex: ${{ matrix.test.go-test-run-regex }}
           istio-version: ${{ steps.dotenv.outputs.istio_version }}
           matrix-label: ${{ matrix.version-files.label }}
-  
+
   regression_tests_on_demand:
     name: on demand regression tests
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'workflow_initiating_branch' }}
