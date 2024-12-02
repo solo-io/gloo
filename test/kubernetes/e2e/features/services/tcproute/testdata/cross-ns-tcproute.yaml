@@ -1,0 +1,13 @@
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TCPRoute
+metadata:
+  name: tcp-route
+  namespace: cross-namespace-allowed-client-ns
+spec:
+  parentRefs:
+    - name: gateway
+  rules:
+    - backendRefs:
+        - name: backend-svc
+          namespace: cross-namespace-allowed-backend-ns
+          port: 3001

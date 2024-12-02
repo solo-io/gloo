@@ -2,8 +2,6 @@
 listeners:
 - aggregateListener:
     httpResources: {}
-    tcpListeners:
-    - tcpListener: {}
   bindAddress: '::'
   bindPort: 8080
   name: tcp

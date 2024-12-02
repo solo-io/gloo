@@ -244,11 +244,9 @@ func (ml *MergedListeners) AppendTcpListener(
 	})
 }
 
-// buildTcpHost builds a Gateway API TcpHost from backend references.
+// buildTcpHost builds a Gloo TcpHost from the provided parameters.
 func buildTcpHost(
-	ctx context.Context,
 	routeInfo *query.RouteInfo,
-	tRoute *gwv1a2.TCPRoute,
 	parentRefReporters []reports.ParentRefReporter,
 	tcpRouteName string,
 	defaultPort gwv1.PortNumber,
@@ -264,6 +262,7 @@ func buildTcpHost(
 
 	var weightedDestinations []*v1.WeightedDestination
 	resolvedRefs := true
+	hasValidBackend := false
 
 	for _, ref := range backendRefs {
 		// Try to get the backend object
@@ -276,6 +275,7 @@ func buildTcpHost(
 			}
 			continue
 		}
+		hasValidBackend = true
 
 		// Process the backend object
 		var destination *v1.Destination
@@ -314,15 +314,32 @@ func buildTcpHost(
 		})
 	}
 
-	if resolvedRefs {
-		// Set ResolvedRefs condition to True
+	if !hasValidBackend {
+		// No valid backends, do not create TcpHost
+		return nil
+	}
+
+	// Handle ResolvedRefs condition
+	if !resolvedRefs {
+		// Set ResolvedRefs condition to False
 		for _, parentRefReporter := range parentRefReporters {
 			parentRefReporter.SetCondition(reports.RouteCondition{
 				Type:   gwv1.RouteConditionResolvedRefs,
-				Status: metav1.ConditionTrue,
-				Reason: gwv1.RouteReasonResolvedRefs,
+				Status: metav1.ConditionFalse,
+				Reason: gwv1.RouteReasonRefNotPermitted,
 			})
 		}
+		// Do not create TcpHost
+		return nil
+	}
+
+	// Set ResolvedRefs condition to True
+	for _, parentRefReporter := range parentRefReporters {
+		parentRefReporter.SetCondition(reports.RouteCondition{
+			Type:   gwv1.RouteConditionResolvedRefs,
+			Status: metav1.ConditionTrue,
+			Reason: gwv1.RouteReasonResolvedRefs,
+		})
 	}
 
 	if len(weightedDestinations) == 0 {
@@ -335,6 +352,7 @@ func buildTcpHost(
 			},
 		}
 	} else {
+		// Multiple destinations, set up a Multi destination
 		tcpHost.Destination = &v1.TcpHost_TcpAction{
 			Destination: &v1.TcpHost_TcpAction_Multi{
 				Multi: &v1.MultiDestination{
@@ -459,10 +477,11 @@ func (ml *MergedListener) TranslateListener(
 
 	// Translate TCP listeners (if any exist)
 	for _, tfc := range ml.TcpFilterChains {
-		tcpListener := tfc.translateTcpFilterChain(ctx, ml.listener, pluginRegistry, reporter)
-		matchedTcpListeners = append(matchedTcpListeners, &v1.MatchedTcpListener{
-			TcpListener: tcpListener,
-		})
+		if tcpListener := tfc.translateTcpFilterChain(ml.listener, reporter); tcpListener != nil {
+			matchedTcpListeners = append(matchedTcpListeners, &v1.MatchedTcpListener{
+				TcpListener: tcpListener,
+			})
+		}
 	}
 
 	// Create and return the listener with all filter chains and TCP listeners
@@ -497,12 +516,7 @@ type tcpFilterChainParent struct {
 	routesWithHosts     []*query.RouteInfo
 }
 
-func (tc *tcpFilterChain) translateTcpFilterChain(
-	ctx context.Context,
-	listener gwv1.Listener,
-	pluginRegistry registry.PluginRegistry,
-	reporter reports.Reporter,
-) *v1.TcpListener {
+func (tc *tcpFilterChain) translateTcpFilterChain(listener gwv1.Listener, reporter reports.Reporter) *v1.TcpListener {
 	var tcpHosts []*v1.TcpHost
 	for _, parent := range tc.parents {
 		for _, r := range parent.routesWithHosts {
@@ -526,12 +540,17 @@ func (tc *tcpFilterChain) translateTcpFilterChain(
 			for i, rule := range tRoute.Spec.Rules {
 				// Ensure unique names by appending the rule index to the TCPRoute name
 				tcpHostName := fmt.Sprintf("%s-rule-%d", tRoute.Name, i)
-				tcpHost := buildTcpHost(ctx, r, tRoute, parentRefReporters, tcpHostName, listener.Port, rule.BackendRefs)
+				tcpHost := buildTcpHost(r, parentRefReporters, tcpHostName, listener.Port, rule.BackendRefs)
 				if tcpHost != nil {
 					tcpHosts = append(tcpHosts, tcpHost)
 				}
 			}
 		}
+	}
+
+	// Avoid creating a TcpListener if there are no TcpHosts
+	if len(tcpHosts) == 0 {
+		return nil
 	}
 
 	return &v1.TcpListener{

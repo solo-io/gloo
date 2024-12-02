@@ -58,7 +58,7 @@ var _ = Describe("Translator TCPRoute Listener", func() {
 			GatewayNamespace: "default",
 		}
 
-		// Set up expectations for GetBackendForRef
+		// The default backendRefs expectation for test cases
 		queries.EXPECT().
 			GetBackendForRef(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, from query.From, ref *gwv1.BackendObjectReference) (client.Object, error) {
@@ -201,12 +201,7 @@ var _ = Describe("Translator TCPRoute Listener", func() {
 			Expect(translatedListener).NotTo(BeNil())
 			aggregateListener := translatedListener.GetAggregateListener()
 			Expect(aggregateListener).NotTo(BeNil())
-			Expect(aggregateListener.TcpListeners).To(HaveLen(1))
-
-			matchedTcpListener := aggregateListener.TcpListeners[0]
-			tcpListener := matchedTcpListener.TcpListener
-			Expect(tcpListener).NotTo(BeNil())
-			Expect(tcpListener.TcpHosts).To(BeEmpty(), "Expected no TCP hosts due to empty backend references")
+			Expect(aggregateListener.TcpListeners).To(BeEmpty(), "Expected no TCP listeners due to empty backend references")
 		})
 
 		It("should not append a listener for an unsupported protocol", func() {
@@ -440,6 +435,152 @@ var _ = Describe("Translator TCPRoute Listener", func() {
 			Expect(dest2.GetDestination().GetKube().GetPort()).To(Equal(uint32(8082)))
 			Expect(dest2.Weight.GetValue()).To(Equal(uint32(40)))
 		})
+	})
+
+	It("should not create a DestinationSpec when backendRef refers to a service in a different namespace without a permitting ReferenceGrant", func() {
+		By("Creating a TCPRoute with a backendRef to a different namespace")
+		tcpRoute := tcpRoute("cross-namespace-tcp-route", "default")
+		tcpRoute.Spec = gwv1a2.TCPRouteSpec{
+			CommonRouteSpec: gwv1.CommonRouteSpec{
+				ParentRefs: []gwv1.ParentReference{
+					{
+						Name:      gwv1.ObjectName("test-gateway"),
+						Namespace: ptr.To(gwv1.Namespace("default")),
+						Kind:      ptr.To(gwv1.Kind(wellknown.GatewayKind)),
+					},
+				},
+			},
+			Rules: []gwv1a2.TCPRouteRule{
+				{
+					BackendRefs: []gwv1.BackendRef{
+						{
+							BackendObjectReference: gwv1.BackendObjectReference{
+								Name:      "backend-svc",
+								Namespace: ptr.To(gwv1.Namespace("other-namespace")),
+								Port:      ptr.To(gwv1.PortNumber(8080)),
+							},
+						},
+					},
+				},
+			},
+		}
+
+		By("Setting up the mock to return an error when ReferenceGrant is missing")
+		queries.EXPECT().
+			GetBackendForRef(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, from query.From, ref *gwv1.BackendObjectReference) (client.Object, error) {
+				if ref.Namespace != nil && *ref.Namespace != "default" {
+					return nil, query.ErrMissingReferenceGrant
+				}
+				return &corev1.Service{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      string(ref.Name),
+						Namespace: string(*ref.Namespace),
+					},
+				}, nil
+			}).
+			AnyTimes()
+
+		By("Creating the RouteInfo")
+		routes := []*query.RouteInfo{
+			{
+				Object:   tcpRoute,
+				Backends: populateBackends(tcpRoute),
+			},
+		}
+
+		By("Appending the TCP listener")
+		ml.AppendTcpListener(gwListener, routes, listenerReporter)
+
+		By("Validating that a TCP listener is created with no TCPHosts")
+		Expect(ml.Listeners).To(HaveLen(1))
+
+		translatedListener := ml.Listeners[0].TranslateListener(ctx, registry.PluginRegistry{}, nil, reporter)
+		Expect(translatedListener).NotTo(BeNil())
+		aggregateListener := translatedListener.GetAggregateListener()
+		Expect(aggregateListener).NotTo(BeNil())
+		Expect(aggregateListener.TcpListeners).To(HaveLen(1))
+
+		matchedTcpListener := aggregateListener.TcpListeners[0]
+		tcpListener := matchedTcpListener.TcpListener
+		Expect(tcpListener).NotTo(BeNil())
+		Expect(tcpListener.TcpHosts).To(HaveLen(1))
+
+		tcpHost := tcpListener.TcpHosts[0]
+		Expect(tcpHost.Destination.GetSingle()).NotTo(BeNil())
+		Expect(tcpHost.Destination.GetSingle().GetDestinationSpec()).To(BeNil())
+	})
+
+	It("should create a TCP listener when backendRef refers to a service in a different namespace with a permitting ReferenceGrant", func() {
+		By("Creating a TCPRoute with a backendRef to a different namespace")
+		tcpRoute := tcpRoute("cross-namespace-tcp-route", "default")
+		tcpRoute.Spec = gwv1a2.TCPRouteSpec{
+			CommonRouteSpec: gwv1.CommonRouteSpec{
+				ParentRefs: []gwv1.ParentReference{
+					{
+						Name:      gwv1.ObjectName("test-gateway"),
+						Namespace: ptr.To(gwv1.Namespace("default")),
+						Kind:      ptr.To(gwv1.Kind(wellknown.GatewayKind)),
+					},
+				},
+			},
+			Rules: []gwv1a2.TCPRouteRule{
+				{
+					BackendRefs: []gwv1.BackendRef{
+						{
+							BackendObjectReference: gwv1.BackendObjectReference{
+								Name:      "backend-svc",
+								Namespace: ptr.To(gwv1.Namespace("other-namespace")),
+								Port:      ptr.To(gwv1.PortNumber(8080)),
+							},
+						},
+					},
+				},
+			},
+		}
+
+		By("Setting up the mock to return the service when ReferenceGrant allows it")
+		queries.EXPECT().
+			GetBackendForRef(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, from query.From, ref *gwv1.BackendObjectReference) (client.Object, error) {
+				return &corev1.Service{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      string(ref.Name),
+						Namespace: string(*ref.Namespace),
+					},
+				}, nil
+			}).
+			AnyTimes()
+
+		By("Creating the RouteInfo")
+		routes := []*query.RouteInfo{
+			{
+				Object:   tcpRoute,
+				Backends: populateBackends(tcpRoute),
+			},
+		}
+
+		By("Appending the TCP listener")
+		ml.AppendTcpListener(gwListener, routes, listenerReporter)
+
+		By("Validating that a TCP listener is created with TCPHosts")
+		Expect(ml.Listeners).To(HaveLen(1))
+
+		translatedListener := ml.Listeners[0].TranslateListener(ctx, registry.PluginRegistry{}, nil, reporter)
+		Expect(translatedListener).NotTo(BeNil())
+		aggregateListener := translatedListener.GetAggregateListener()
+		Expect(aggregateListener).NotTo(BeNil())
+		Expect(aggregateListener.TcpListeners).To(HaveLen(1))
+
+		matchedTcpListener := aggregateListener.TcpListeners[0]
+		tcpListener := matchedTcpListener.TcpListener
+		Expect(tcpListener).NotTo(BeNil())
+		Expect(tcpListener.TcpHosts).To(HaveLen(1))
+
+		tcpHost := tcpListener.TcpHosts[0]
+		Expect(tcpHost.Destination.GetSingle()).NotTo(BeNil())
+		Expect(tcpHost.Destination.GetSingle().GetKube().GetRef().Name).To(Equal("backend-svc"))
+		Expect(tcpHost.Destination.GetSingle().GetKube().GetRef().Namespace).To(Equal("other-namespace"))
 	})
 })
 

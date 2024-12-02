@@ -1,0 +1,13 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: reference-grant
+  namespace: cross-namespace-allowed-backend-ns
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: TCPRoute
+      namespace: cross-namespace-allowed-client-ns
+  to:
+    - group: ""
+      kind: Service

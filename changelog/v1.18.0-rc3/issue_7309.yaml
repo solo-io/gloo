@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7309
+    resolvesIssue: true
+    description: >-
+      Adds ReferenceGRant support for the TCPRoute type.

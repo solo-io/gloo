@@ -64,11 +64,14 @@ func DefaultScheme() *runtime.Scheme {
 	return s
 }
 
-// TestingScheme unconditionally includes the default scheme and the gwv1a2 scheme (which includes TCPRoute).
+// TestingScheme unconditionally includes the default and required Gateway API schemes.
 func TestingScheme() *runtime.Scheme {
 	s := DefaultScheme()
 	if err := gwv1a2.Install(s); err != nil {
-		panic(fmt.Sprintf("Failed to install gwv1a2 scheme: %v", err))
+		panic(fmt.Sprintf("Failed to install gateway v1alpha2 scheme: %v", err))
+	}
+	if err := gwv1b1.Install(s); err != nil {
+		panic(fmt.Sprintf("Failed to install gateway v1beta1 scheme: %v", err))
 	}
 	return s
 }
