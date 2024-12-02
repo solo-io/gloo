@@ -84,8 +84,6 @@ func (s *testingSuite) TestLargeConfiguration() {
 		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.LargeConfiguration, "-n",
 			s.testInstallation.Metadata.InstallNamespace)
 		s.Assertions.NoError(err, "can delete large configuration")
-		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.NginxPodManifest)
-		s.Assert().NoError(err)
 	})
 
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.LargeConfiguration, "-n",
