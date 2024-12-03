@@ -744,10 +744,10 @@ func (in *AiExtension) GetTracing() *AIExtensionTracing {
 }
 
 type AIExtensionTracing struct {
-	// gRPC endpoint for the OTLP collector.
-	// Set this to the gRPC endpoint of the OTLP collector.
+	// gRPC Config for the OTLP collector.
+	// Set this to use gRPC streaming of traces to the OTLP collector.
 	// +optional
-	OTLPGrpcEndpoint string `json:"otlpGRPCEndpoint,omitempty"`
+	Grpc *AIExtensionTracingGrpc `json:"grpc,omitempty"`
 
 	// Whether to use insecure connection to the OTLP endpoint.
 	// This will be false by defautl as HTTPS is recommended.
@@ -755,11 +755,11 @@ type AIExtensionTracing struct {
 	Insecure bool `json:"insecure,omitempty"`
 }
 
-func (in *AIExtensionTracing) GetOTLPGrpcEndpoint() string {
+func (in *AIExtensionTracing) GetGrpc() *AIExtensionTracingGrpc {
 	if in == nil {
-		return ""
+		return nil
 	}
-	return in.OTLPGrpcEndpoint
+	return in.Grpc
 }
 
 func (in *AIExtensionTracing) GetInsecure() bool {
@@ -767,6 +767,30 @@ func (in *AIExtensionTracing) GetInsecure() bool {
 		return false
 	}
 	return in.Insecure
+}
+
+type AIExtensionTracingGrpc struct {
+	// The gRPC endpoint for the OTLP collector.
+	// +kubebuilder:validation:MinLength=1
+	Host string `json:"host"`
+
+	// The port for the OTLP collector.
+	// +kubebuilder:validation:Minimum=1
+	Port uint32 `json:"port"`
+}
+
+func (in *AIExtensionTracingGrpc) GetHost() string {
+	if in == nil {
+		return ""
+	}
+	return in.Host
+}
+
+func (in *AIExtensionTracingGrpc) GetPort() uint32 {
+	if in == nil {
+		return 0
+	}
+	return in.Port
 }
 
 func init() {

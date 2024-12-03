@@ -1110,26 +1110,56 @@ Resource Types:
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#gatewayparametersspeckubeaiextensiontracinggrpc">grpc</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>insecure</b></td>
         <td>boolean</td>
         <td>
           <br/>
         </td>
         <td>false</td>
-      </tr><tr>
-        <td><b>otlpGRPCEndpoint</b></td>
+      </tr></tbody>
+</table>
+
+
+### GatewayParameters.spec.kube.aiExtension.tracing.grpc
+<sup><sup>[↩ Parent](#gatewayparametersspeckubeaiextensiontracing)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>host</b></td>
         <td>string</td>
         <td>
           <br/>
         </td>
-        <td>false</td>
+        <td>true</td>
       </tr><tr>
-        <td><b>otlpHTTPEndpoint</b></td>
-        <td>string</td>
+        <td><b>port</b></td>
+        <td>integer</td>
         <td>
           <br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+            <i>Minimum</i>: 1<br/>
         </td>
-        <td>false</td>
+        <td>true</td>
       </tr></tbody>
 </table>
 

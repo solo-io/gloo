@@ -269,12 +269,21 @@ spec:
                         type: object
                       tracing:
                         properties:
+                          grpc:
+                            properties:
+                              host:
+                                minLength: 1
+                                type: string
+                              port:
+                                format: int32
+                                minimum: 1
+                                type: integer
+                            required:
+                            - host
+                            - port
+                            type: object
                           insecure:
                             type: boolean
-                          otlpGRPCEndpoint:
-                            type: string
-                          otlpHTTPEndpoint:
-                            type: string
                         type: object
                     type: object
                   deployment:

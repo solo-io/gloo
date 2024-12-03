@@ -750,8 +750,24 @@ func deepMergeAiExtensionTracing(dst, src *v1alpha1.AIExtensionTracing) *v1alpha
 		return src
 	}
 
-	dst.OTLPGrpcEndpoint = mergeComparable(dst.GetOTLPGrpcEndpoint(), src.GetOTLPGrpcEndpoint())
+	dst.Grpc = deepMergeAiExtensionTracingGrpc(dst.GetGrpc(), src.GetGrpc())
 	dst.Insecure = mergeComparable(dst.GetInsecure(), src.GetInsecure())
+
+	return dst
+}
+
+func deepMergeAiExtensionTracingGrpc(dst, src *v1alpha1.AIExtensionTracingGrpc) *v1alpha1.AIExtensionTracingGrpc {
+	// nil src override means just use dst
+	if src == nil {
+		return dst
+	}
+
+	if dst == nil {
+		return src
+	}
+
+	dst.Host = mergeComparable(dst.GetHost(), src.GetHost())
+	dst.Port = mergeComparable(dst.GetPort(), src.GetPort())
 
 	return dst
 }
