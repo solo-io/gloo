@@ -66,7 +66,6 @@ ifneq ($(IS_ARM_MACHINE), )
 	ifneq ($(GOARCH), amd64)
 		GOARCH := arm64
 	endif
-	PLATFORM := --platform=linux/$(GOARCH)
 else
 	# currently we only support arm64 and amd64 as a GOARCH option.
 	ifneq ($(GOARCH), arm64)
@@ -74,6 +73,7 @@ else
 	endif
 endif
 
+PLATFORM := --platform=linux/$(GOARCH)
 PLATFORM_MULTIARCH := $(PLATFORM)
 LOAD_OR_PUSH := --load
 ifeq ($(MULTIARCH), true)
