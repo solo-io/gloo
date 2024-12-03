@@ -12,76 +12,36 @@ Developing on Gloo Gateway requires the following to be installed on your system
 
 - [`make`](https://www.gnu.org/software/make/)
 - [`git`](https://git-scm.com/)
-- [`go`](https://golang.org/) (`solo-io` projects are built using version `1.16.3`)
+- [`go`](https://golang.org/) (`solo-io` projects are built using version `1.23.3`)
 - `protoc` (`solo-io` projects are built using version `3.6.1`)
-- the `github.com/gogo/protobuf` go package
 - standard development tools like `gcc`
 
-To install all the requirements, run the following:
-
-On macOS:
-
+To install all the requirements, do the following:
 ```bash
 # install the Command Line Tools package if not already installed
 xcode-select --install
 
-# install protoc
-# note that you can also try simply running `make install-protoc` instead of running the below instructions
-curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-osx-x86_64.zip
-unzip protoc-3.6.1-osx-x86_64.zip
-sudo mv bin/protoc /usr/local/bin/
-rm -rf bin include protoc-3.6.1-osx-x86_64.zip readme.txt
-
-# install go
-curl https://raw.githubusercontent.com/canha/golang-tools-install-script/master/goinstall.sh | bash
-
-# install gogo-proto
-go get -u github.com/gogo/protobuf/...
-
-```
-
-On Debian/Ubuntu linux:
-
-```bash
-# install make and unzip and build tools
-sudo apt install make unzip build-essential -y
+# install version of go in go.mod with brew
+# MacOS:
+brew install go@1.23
+# on other operating systems:
+# follow directions at https://go.dev/doc/install
 
 # install protoc
-# note that you can also try simply running `make install-protoc` instead of running the below instructions
-curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip
-unzip protoc-3.6.1-linux-x86_64.zip
-sudo mv bin/protoc /usr/local/bin/
-rm -rf bin include protoc-3.6.1-linux-x86_64.zip readme.txt
+make install-protoc
 
-# install go
-curl https://raw.githubusercontent.com/canha/golang-tools-install-script/master/goinstall.sh | bash
-
-# install gogo-proto
-go get -u github.com/gogo/protobuf/...
-
+# install go related tools
+make install-go-tools
 ```
 
-### Setting up the Solo-Kit and Gloo Gateway Repositories
+### Setting up the Gloo Gateway Repositories
 
 Next, we'll clone the Gloo Gateway and Solo-Kit source code. Solo-Kit is required for code generation in Gloo Gateway. 
 
-{{% notice info %}}
-Currently, Gloo Gateway plugins must live inside the [Gloo Gateway repository](https://github.com/solo-io/gloo) itself. 
-{{% /notice %}}
-
-Ensure you've installed `go` and have a your `$GOPATH` set. If unset, it will default to `${HOME}/go`. The Gloo Gateway repo 
-should live in `${GOPATH}/src/github.com/solo-io/gloo`. 
-
-To clone your fork of the repository:
-
+To clone the repository:
 ```bash
-mkdir -p ${GOPATH}/src/github.com/solo-io
-cd ${GOPATH}/src/github.com/solo-io
 git clone https://github.com/solo-io/gloo
-```
-
-```bash
-# alternatively you can clone using your SSH key:
+# or with SSH
 git clone git@github.com:solo-io/gloo.git
 ```
 
@@ -101,27 +61,33 @@ go run projects/gloo/cmd/main.go
 go run projects/discovery/cmd/main.go
 # run gateway locally
 go run projects/gateway/cmd/main.go
-
 ```
 
 Awesome! You're ready to start developing on Gloo Gateway! Check out the [Writing Upstream Plugins Guide]({{% versioned_link_path fromRoot="/guides/dev/writing-upstream-plugins" %}}) to see how to add plugins to gloo.
 
+### Developing with a local K8s cluster (kind)
 
-### Enabling Code Generation
-
-To generate or re-generate code in Gloo Gateway, some additional dependencies are required. Follow these steps if you are making changes to Gloo Gateway's Protobuf-based API.
-
-Install Solo-Kit and required go packages:
-
+After installing [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation):
 ```bash
-cd ${GOPATH}/src/github.com/solo-io/gloo
+# prepare kind cluster, build images, and upload them
+make kind-setup
 
-# install required go packages
-make install-go-tools
+# install Gloo
+helm upgrade --install -n gloo-system --create-namespace gloo ./_test/gloo-1.0.1-dev.tgz --values ./test/kubernetes/e2e/tests/manifests/common-recommendations.yaml
+
+############################################
+# make changes to the code in the repo ...
+############################################
+
+# update what is running in the cluster with your changes
+make -B kind-build-and-load-gloo
 ```
 
-You can test that code generation works with Gloo Gateway:
+### Code Generation
 
+Follow these steps if you are making changes to Gloo Gateway's Protobuf-based API.
+
+Confirm code generation works with Gloo Gateway:
 ```bash
 make -B generated-code
 echo $?
