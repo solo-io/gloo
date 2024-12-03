@@ -54,8 +54,10 @@ steps:
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.10.2'
   id: 'build-certgen-arm64-binary'
   args:
-  - 'GOARCH=arm64 make certgen-docker -B'
+  - 'certgen-docker'
   dir: *dir
+  env:
+  - 'GOARCH=arm64'
 
 # Run make targets to push docker images to quay.io
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.10.2'
