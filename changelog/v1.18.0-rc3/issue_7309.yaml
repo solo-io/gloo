@@ -1,6 +1,0 @@
-changelog:
-  - type: FIX
-    issueLink: https://github.com/solo-io/solo-projects/issues/7309
-    resolvesIssue: true
-    description: >-
-      Adds ReferenceGrant support for the TCPRoute type, allowing cross namespace references.
