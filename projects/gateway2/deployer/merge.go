@@ -751,7 +751,6 @@ func deepMergeAiExtensionTracing(dst, src *v1alpha1.AIExtensionTracing) *v1alpha
 	}
 
 	dst.OTLPGrpcEndpoint = mergeComparable(dst.GetOTLPGrpcEndpoint(), src.GetOTLPGrpcEndpoint())
-	dst.OTLPHttpEndpoint = mergeComparable(dst.GetOTLPHttpEndpoint(), src.GetOTLPHttpEndpoint())
 	dst.Insecure = mergeComparable(dst.GetInsecure(), src.GetInsecure())
 
 	return dst

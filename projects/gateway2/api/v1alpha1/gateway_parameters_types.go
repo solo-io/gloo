@@ -744,15 +744,8 @@ func (in *AiExtension) GetTracing() *AIExtensionTracing {
 }
 
 type AIExtensionTracing struct {
-	// The endpoint for the OTLP collector.
-	// Set this to the HTTP endpoint of the OTLP collector.
-	// It is recommended to use Either OTLPHttpEndpoint or OTLPGrpcEndpoint.
-	// +optional
-	OTLPHttpEndpoint string `json:"otlpHTTPEndpoint,omitempty"`
-
 	// gRPC endpoint for the OTLP collector.
 	// Set this to the gRPC endpoint of the OTLP collector.
-	// It is recommended to use Either OTLPHttpEndpoint or OTLPGrpcEndpoint.
 	// +optional
 	OTLPGrpcEndpoint string `json:"otlpGRPCEndpoint,omitempty"`
 
@@ -760,13 +753,6 @@ type AIExtensionTracing struct {
 	// This will be false by defautl as HTTPS is recommended.
 	// +optional
 	Insecure bool `json:"insecure,omitempty"`
-}
-
-func (in *AIExtensionTracing) GetOTLPHttpEndpoint() string {
-	if in == nil {
-		return ""
-	}
-	return in.OTLPHttpEndpoint
 }
 
 func (in *AIExtensionTracing) GetOTLPGrpcEndpoint() string {
