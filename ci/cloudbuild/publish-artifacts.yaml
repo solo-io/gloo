@@ -43,7 +43,7 @@ steps:
   - 'compute/zone'
   - 'us-central1-a'
 
-# Initialize Docker Buildx for multi-platform builds
+# Initialize Docker Buildx for multiarch builds
 - name: 'gcr.io/cloud-builders/docker'
   id: 'init-buildx'
   args:
@@ -58,19 +58,6 @@ steps:
   dir: *dir
   env:
   - 'GOARCH=arm64'
-
-- name: 'gcr.io/cloud-builders/gcloud'
-  id: 'debug-certgen-binary'
-  dir: *dir
-  entrypoint: 'bash'
-  args:
-  - '-c'
-  - |
-    find _output
-    find . | grep certgen-linux
-
-  waitFor:
-  - 'build-certgen-arm64-binary'
 
 # Run make targets to push docker images to quay.io
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.10.2'
