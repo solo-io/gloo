@@ -1,0 +1,6 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: moby
+    dependencyRepo: moby
+    dependencyTag: v26.0.0
+    issueLink: https://github.com/solo-io/solo-projects/issues/7353
