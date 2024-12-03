@@ -23,6 +23,7 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/kube2e/helper"
+	testruntime "github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -77,7 +78,8 @@ func StartTestHelper() {
 	}
 
 	// We rely on the "new" kubernetes/e2e setup code, since it incorporates controller-runtime logging setup
-	clusterContext := cluster.MustKindContext("kind")
+	runtimeContext := testruntime.NewContext()
+	clusterContext := cluster.MustKindContext(runtimeContext.ClusterName)
 
 	resourceClientset, err = kube2e.NewKubeResourceClientSet(ctx, clusterContext.RestConfig)
 	Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
