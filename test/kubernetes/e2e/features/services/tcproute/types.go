@@ -84,6 +84,7 @@ var (
 
 	// Assertion test timers
 	ctxTimeout = 5 * time.Minute
+	timeout    = 60 * time.Second
 
 	// Proxy resources to be translated
 	singleSvcNS = &corev1.Namespace{
