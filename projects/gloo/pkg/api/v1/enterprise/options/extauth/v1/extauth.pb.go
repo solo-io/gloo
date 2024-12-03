@@ -3432,6 +3432,8 @@ type ApiKeyAuth_K8SSecretApikeyStorage struct {
 }
 
 type ApiKeyAuth_AerospikeApikeyStorage struct {
+	// <b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release.
+	// Use of this feature is not recommended.
 	AerospikeApikeyStorage *AerospikeApiKeyStorage `protobuf:"bytes,7,opt,name=aerospike_apikey_storage,json=aerospikeApikeyStorage,proto3,oneof"`
 }
 
@@ -3496,6 +3498,8 @@ func (x *K8SSecretApiKeyStorage) GetApiKeySecretRefs() []*core.ResourceRef {
 	return nil
 }
 
+// <b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release.
+// Use of this feature is not recommended.
 type AerospikeApiKeyStorage struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
