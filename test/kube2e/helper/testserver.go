@@ -15,7 +15,7 @@ const (
 	TestServerPort         = 1234
 
 	// This response is given by the testserver when the SimpleServer is started
-	SimpleHttpResponse = `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">`
+	SimpleHttpResponse    = `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">`
 	SimpleHttpResponseArm = `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">`
 )
 

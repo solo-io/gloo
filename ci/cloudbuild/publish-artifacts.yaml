@@ -49,6 +49,9 @@ steps:
   args:
   - 'publish-docker'
   dir: *dir
+  env:
+  - 'MULTIARCH=true'
+  - 'MULTIARCH_PUSH=true'
   secretEnv:
   - 'GITHUB_TOKEN'
   waitFor:

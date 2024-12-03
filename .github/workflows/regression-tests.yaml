@@ -63,6 +63,9 @@ jobs:
     - id: run-tests
       if: needs.prepare_env.outputs.should-auto-succeed-regression-tests != 'true'
       uses: ./.github/workflows/composite-actions/regression-tests
+      with:
+        MULTIARCH: true
+        MULTIARCH_PUSH: true
     - id: auto-succeed-tests
       if: needs.prepare_env.outputs.should-auto-succeed-regression-tests == 'true'
       run: |

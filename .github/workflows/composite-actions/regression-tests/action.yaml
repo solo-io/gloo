@@ -1,6 +1,11 @@
 name: Gloo Regression Tests
 
 description: Tests which run Gloo Edge in a Kubernetes cluster
+inputs:
+  MULTIARCH:
+    required: false
+  MULTIARCH_PUSH:
+    required: false
 
 runs:
   using: "composite"
@@ -30,6 +35,8 @@ runs:
     env:
       KUBE2E_TESTS: ${{ matrix.kube-e2e-test-type }}
       IMAGE_VARIANT: ${{ matrix.image-variant }}
+      MULTIARCH: ${{ inputs.MULTIARCH }}
+      MULTIARCH: ${{ inputs.MULTIARCH_PUSH }}
     shell: bash
     run: make install-test-tools run-kube-e2e-tests
   - uses: actions/upload-artifact@v4
