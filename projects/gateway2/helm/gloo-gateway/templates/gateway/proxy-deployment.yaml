@@ -401,7 +401,7 @@ metadata:
   labels:
     {{- include "gloo-gateway.gateway.constLabels" . | nindent 4 }}
     {{- include "gloo-gateway.gateway.labels" . | nindent 4 }}
-{{- if $gateway.aiExtension.stats }}
+{{- if or $gateway.aiExtension.stats $gateway.aiExtension.tracing }}
 data:
   stats.json: {{ $gateway.aiExtension.stats }}
   tracing.json: {{ $gateway.aiExtension.tracing }}
