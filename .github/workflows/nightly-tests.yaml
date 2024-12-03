@@ -21,6 +21,8 @@ on:
         description: "The branch to run tests against"
         type: choice
         options:
+          # TODO: undo after testing
+          - rav/multiarch
           - main
           - v1.17.x
           - v1.16.x
