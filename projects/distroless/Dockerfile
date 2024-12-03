@@ -1,18 +1,18 @@
-# Since we only publish amd64 images, we use the amd64 variant.
-
 ARG PACKAGE_DONOR_IMAGE
 ARG BASE_IMAGE
 ARG TARGETARCH
 
 FROM --platform=linux/amd64 $PACKAGE_DONOR_IMAGE AS donor-amd64
 FROM --platform=linux/arm64 $PACKAGE_DONOR_IMAGE AS donor-arm64
-FROM --platform=linux/$TARGETARCH $PACKAGE_DONOR_IMAGE as donor
+
+FROM $PACKAGE_DONOR_IMAGE AS donor
+
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install --no-install-recommends -y ca-certificates
 
-FROM --platform=linux/$TARGETARCH $BASE_IMAGE
+FROM $BASE_IMAGE
 
 # ca-certificates depends on openssl
 COPY --from=donor /etc/ssl /etc/ssl
