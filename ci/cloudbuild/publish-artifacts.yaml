@@ -59,6 +59,19 @@ steps:
   env:
   - 'GOARCH=arm64'
 
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'debug-certgen-binary'
+  dir: *dir
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    find _output
+    find . | grep certgen-linux
+
+  waitFor:
+  - 'build-certgen-arm64-binary'
+
 # Run make targets to push docker images to quay.io
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.10.2'
   id: 'publish-docker'
