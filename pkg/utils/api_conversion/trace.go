@@ -8,6 +8,7 @@ import (
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoytrace "github.com/envoyproxy/go-control-plane/envoy/config/trace/v3"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	envoytracegloo "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/trace/v3"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
@@ -118,7 +119,7 @@ func gatewayKindsMap() map[string]bool {
 	return map[string]bool{
 		resources.Kind(new(gatewayv1.Gateway)): true,
 		// https://github.com/solo-io/gloo/blob/main/projects/gateway2/translator/listener/gateway_listener_translator.go#L492
-		"Gateway": true,
+		wellknown.GatewayGroup + wellknown.GatewayKind: true,
 	}
 }
 

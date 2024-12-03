@@ -24,6 +24,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 	"github.com/solo-io/gloo/projects/gateway2/translator/routeutils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/sslutils"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
@@ -489,7 +490,7 @@ func (ml *MergedListener) TranslateListener(
 							Name:      ml.name,
 							Namespace: ml.gatewayNamespace,
 						},
-						ResourceKind: "Gateway",
+						ResourceKind: wellknown.GatewayGroup + "/" + wellknown.GatewayKind,
 					},
 				},
 			},
