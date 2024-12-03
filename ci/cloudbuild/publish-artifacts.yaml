@@ -51,6 +51,12 @@ steps:
   - create
   - --use
 
+- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.10.2'
+  id: 'build-certgen-arm64-binary'
+  args:
+  - 'GOARCH=arm64 make certgen-docker -B'
+  dir: *dir
+
 # Run make targets to push docker images to quay.io
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.10.2'
   id: 'publish-docker'
@@ -65,6 +71,7 @@ steps:
   waitFor:
   - 'docker-login'
   - 'init-buildx'
+  - 'build-certgen-arm64-binary'
 
 # Publish helm chart, compile manifests, produce release artifacts, deploy docs
 # isolating this portion of the release in order to force the manifest to be regenerated with the tagged version
