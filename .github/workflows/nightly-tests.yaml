@@ -13,8 +13,8 @@ on:
   schedule:
     - cron: "0 5 * * *" # every day @ 05:00 UTC, run tests against latest main
     - cron: "0 6 * * 1" # monday    @ 06:00 UTC, run expanded tests against v1.18.x
-    - cron: "0 7 * * 1" # monday    @ 06:00 UTC, run expanded tests against v1.17.x
-    - cron: "0 8 * * 1" # monday    @ 07:00 UTC, run expanded tests against v1.16.x
+    - cron: "0 7 * * 1" # monday    @ 07:00 UTC, run expanded tests against v1.17.x
+    - cron: "0 8 * * 1" # monday    @ 08:00 UTC, run expanded tests against v1.16.x
   workflow_dispatch:
     inputs:
       branch:
