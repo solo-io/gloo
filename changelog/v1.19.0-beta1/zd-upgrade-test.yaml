@@ -3,5 +3,4 @@ changelog:
     description: >-
       Add a kube gateway zero-downtime upgrade test.
       
-      skipCI-kube-tests:true
       skipCI-docs-build:true
