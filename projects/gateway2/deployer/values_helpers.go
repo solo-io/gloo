@@ -226,9 +226,9 @@ func getAIExtensionValues(config *v1alpha1.AiExtension) (*helmAIExtension, error
 		}
 	}
 	var tracingByt []byte
-	if config.GetStats() != nil {
+	if config.GetTracing() != nil {
 		var err error
-		tracingByt, err = json.Marshal(config.GetStats())
+		tracingByt, err = json.Marshal(config.GetTracing())
 		if err != nil {
 			return nil, err
 		}
