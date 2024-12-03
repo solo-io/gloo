@@ -194,7 +194,7 @@ TracingTagLiteral defines a literal which gets added as custom tag.
 ```yaml
 "namespace": string
 "key": string
-"nestedClaimDelimiter": string
+"nestedFieldDelimiter": string
 
 ```
 
@@ -202,7 +202,7 @@ TracingTagLiteral defines a literal which gets added as custom tag.
 | ----- | ---- | ----------- | 
 | `namespace` | `string` | The key to extract the value from the metadata. If empty will default to JWT principal namespace. |
 | `key` | `string` | The key to extract the value from the metadata. For example, `principal.iss` or `principal.sub` to extract those claims from the JWT ns. |
-| `nestedClaimDelimiter` | `string` | The delimiter to use when specifying nested ketss. Default is `.`. This is commonly set to `.`, allowing for nested claim names of the form `parent.child.grandchild`. |
+| `nestedFieldDelimiter` | `string` | The delimiter to use when specifying nested fields. Default is `.`. This is commonly set to `.`, allowing for nested fields names of the form `parent.child.grandchild`. |
 
 
 

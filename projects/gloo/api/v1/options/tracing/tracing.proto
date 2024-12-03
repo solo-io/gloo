@@ -126,11 +126,11 @@ message TracingTagMetadata {
       // The key to extract the value from the metadata.
       // For example, `principal.iss` or `principal.sub` to extract those claims from the JWT ns
       string key = 2;
-      // The delimiter to use when specifying nested ketss.
+      // The delimiter to use when specifying nested fields.
       // Default is `.`.
-      // This is commonly set to `.`, allowing for nested claim names of the form
+      // This is commonly set to `.`, allowing for nested fields names of the form
       // `parent.child.grandchild`
-      string nested_claim_delimiter = 3;
+      string nested_field_delimiter = 3;
     }
     // The metadata value to extract the tag value from.
     MetadataValue value = 3;

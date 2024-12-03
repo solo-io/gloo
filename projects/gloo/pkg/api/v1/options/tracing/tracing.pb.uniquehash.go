@@ -680,10 +680,10 @@ func (m *TracingTagMetadata_MetadataValue) HashUnique(hasher hash.Hash64) (uint6
 		return 0, err
 	}
 
-	if _, err = hasher.Write([]byte("NestedClaimDelimiter")); err != nil {
+	if _, err = hasher.Write([]byte("NestedFieldDelimiter")); err != nil {
 		return 0, err
 	}
-	if _, err = hasher.Write([]byte(m.GetNestedClaimDelimiter())); err != nil {
+	if _, err = hasher.Write([]byte(m.GetNestedFieldDelimiter())); err != nil {
 		return 0, err
 	}
 

@@ -135,10 +135,14 @@ func customTags(tracingSettings *tracing.ListenerTracingSettings) []*envoytracin
 		customTags = append(customTags, tag)
 	}
 	for _, metadataTag := range tracingSettings.GetMetadataForTags() {
+		keyDelimiter := "."
+		if metadataTag.GetValue().GetNestedFieldDelimiter() != "" {
+			keyDelimiter = metadataTag.GetValue().GetNestedFieldDelimiter()
+		}
 		tag := &envoytracing.CustomTag_Metadata{
 			MetadataKey: &envoy_type_metadata_v3.MetadataKey{
-				Key: metadataTag.Value.GetNamespace(),
-				Path: slices.Map(strings.Split(metadataTag.Value.GetKey(), "."), func(key string) *envoy_type_metadata_v3.MetadataKey_PathSegment {
+				Key: metadataTag.GetValue().GetNamespace(),
+				Path: slices.Map(strings.Split(metadataTag.GetValue().GetKey(), keyDelimiter), func(key string) *envoy_type_metadata_v3.MetadataKey_PathSegment {
 					return &envoy_type_metadata_v3.MetadataKey_PathSegment{Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{Key: key}}
 				}),
 			},

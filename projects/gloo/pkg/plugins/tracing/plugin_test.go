@@ -6,6 +6,7 @@ import (
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoytrace "github.com/envoyproxy/go-control-plane/envoy/config/trace/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	envoy_type_metadata_v3 "github.com/envoyproxy/go-control-plane/envoy/type/metadata/v3"
 	envoytracing "github.com/envoyproxy/go-control-plane/envoy/type/tracing/v3"
 	envoy_type "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	"github.com/golang/protobuf/ptypes"
@@ -94,6 +95,34 @@ var _ = Describe("Plugin", func() {
 						Value: &wrappers.StringValue{Value: "bar"},
 					},
 				},
+				MetadataForTags: []*tracing.TracingTagMetadata{
+					{
+						Tag:  "envoy.metadata.foo",
+						Kind: tracing.TracingTagMetadata_REQUEST,
+						Value: &tracing.TracingTagMetadata_MetadataValue{
+							Namespace: "namespace",
+							Key:       "nested.key",
+						},
+					},
+					{
+						Tag:  "envoy.metadata.bar",
+						Kind: tracing.TracingTagMetadata_ENDPOINT,
+						Value: &tracing.TracingTagMetadata_MetadataValue{
+							Namespace: "namespace",
+							Key:       "nested.key",
+						},
+					},
+					{
+						Tag:          "envoy.metadata.baz",
+						Kind:         tracing.TracingTagMetadata_REQUEST,
+						DefaultValue: "default",
+						Value: &tracing.TracingTagMetadata_MetadataValue{
+							Namespace:            "namespace",
+							Key:                  "nested:key",
+							NestedFieldDelimiter: ":",
+						},
+					},
+				},
 				Verbose: &wrappers.BoolValue{Value: true},
 				TracePercentages: &tracing.TracePercentages{
 					ClientSamplePercentage:  &wrappers.FloatValue{Value: 10},
@@ -148,6 +177,88 @@ var _ = Describe("Plugin", func() {
 						Type: &envoytracing.CustomTag_Literal_{
 							Literal: &envoytracing.CustomTag_Literal{
 								Value: "bar",
+							},
+						},
+					},
+					{
+						Tag: "envoy.metadata.foo",
+						Type: &envoytracing.CustomTag_Metadata_{
+							Metadata: &envoytracing.CustomTag_Metadata{
+								MetadataKey: &envoy_type_metadata_v3.MetadataKey{
+									Key: "namespace",
+									Path: []*envoy_type_metadata_v3.MetadataKey_PathSegment{
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "nested",
+											},
+										},
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "key",
+											},
+										},
+									},
+								},
+								Kind: &envoy_type_metadata_v3.MetadataKind{
+									Kind: &envoy_type_metadata_v3.MetadataKind_Request_{
+										Request: &envoy_type_metadata_v3.MetadataKind_Request{},
+									},
+								},
+							},
+						},
+					},
+					{
+						Tag: "envoy.metadata.bar",
+						Type: &envoytracing.CustomTag_Metadata_{
+							Metadata: &envoytracing.CustomTag_Metadata{
+								MetadataKey: &envoy_type_metadata_v3.MetadataKey{
+									Key: "namespace",
+									Path: []*envoy_type_metadata_v3.MetadataKey_PathSegment{
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "nested",
+											},
+										},
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "key",
+											},
+										},
+									},
+								},
+								Kind: &envoy_type_metadata_v3.MetadataKind{
+									Kind: &envoy_type_metadata_v3.MetadataKind_Host_{
+										Host: &envoy_type_metadata_v3.MetadataKind_Host{},
+									},
+								},
+							},
+						},
+					},
+					{
+						Tag: "envoy.metadata.baz",
+						Type: &envoytracing.CustomTag_Metadata_{
+							Metadata: &envoytracing.CustomTag_Metadata{
+								MetadataKey: &envoy_type_metadata_v3.MetadataKey{
+									Key: "namespace",
+									Path: []*envoy_type_metadata_v3.MetadataKey_PathSegment{
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "nested",
+											},
+										},
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "key",
+											},
+										},
+									},
+								},
+								DefaultValue: "default",
+								Kind: &envoy_type_metadata_v3.MetadataKind{
+									Kind: &envoy_type_metadata_v3.MetadataKind_Request_{
+										Request: &envoy_type_metadata_v3.MetadataKind_Request{},
+									},
+								},
 							},
 						},
 					},

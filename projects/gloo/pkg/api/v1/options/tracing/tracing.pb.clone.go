@@ -299,7 +299,7 @@ func (m *TracingTagMetadata_MetadataValue) Clone() proto.Message {
 
 	target.Key = m.GetKey()
 
-	target.NestedClaimDelimiter = m.GetNestedClaimDelimiter()
+	target.NestedFieldDelimiter = m.GetNestedFieldDelimiter()
 
 	return target
 }

@@ -1081,7 +1081,7 @@ spec:
                                           type: string
                                         namespace:
                                           type: string
-                                        nestedClaimDelimiter:
+                                        nestedFieldDelimiter:
                                           type: string
                                       type: object
                                   type: object
@@ -1784,7 +1784,7 @@ spec:
                                           type: string
                                         namespace:
                                           type: string
-                                        nestedClaimDelimiter:
+                                        nestedFieldDelimiter:
                                           type: string
                                       type: object
                                   type: object
@@ -3153,7 +3153,7 @@ spec:
                                                     type: string
                                                   namespace:
                                                     type: string
-                                                  nestedClaimDelimiter:
+                                                  nestedFieldDelimiter:
                                                     type: string
                                                 type: object
                                             type: object

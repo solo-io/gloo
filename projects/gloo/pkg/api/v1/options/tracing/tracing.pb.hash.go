@@ -640,7 +640,7 @@ func (m *TracingTagMetadata_MetadataValue) Hash(hasher hash.Hash64) (uint64, err
 		return 0, err
 	}
 
-	if _, err = hasher.Write([]byte(m.GetNestedClaimDelimiter())); err != nil {
+	if _, err = hasher.Write([]byte(m.GetNestedFieldDelimiter())); err != nil {
 		return 0, err
 	}
 

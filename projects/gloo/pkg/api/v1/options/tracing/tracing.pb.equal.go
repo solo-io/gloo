@@ -485,7 +485,7 @@ func (m *TracingTagMetadata_MetadataValue) Equal(that interface{}) bool {
 		return false
 	}
 
-	if strings.Compare(m.GetNestedClaimDelimiter(), target.GetNestedClaimDelimiter()) != 0 {
+	if strings.Compare(m.GetNestedFieldDelimiter(), target.GetNestedFieldDelimiter()) != 0 {
 		return false
 	}
 
