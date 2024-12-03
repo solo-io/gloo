@@ -9,4 +9,6 @@ Gloo container images are scanned using [Trivy](https://github.com/aquasecurity/
 {{< readfile file="static/content/gloo-security-scan-0.docgen" markdown="true" type="SECURITY_SCAN" >}}
 {{< readfile file="static/content/gloo-security-scan-1.docgen" markdown="true" type="SECURITY_SCAN" >}}
 {{< readfile file="static/content/gloo-security-scan-2.docgen" markdown="true" type="SECURITY_SCAN" >}}
+{{ if fileExists "static/content/gloo-security-scan-3.docgen" }}
 {{< readfile file="static/content/gloo-security-scan-3.docgen" markdown="true" type="SECURITY_SCAN" >}}
+{{ end }}
