@@ -807,7 +807,7 @@ The SameSite options. The default value is LaxMode.
 | ----- | ----------- | 
 | `DefaultMode` | Default Mode is the same as LaxMode but will not show up in the Cookie Header. This value is ignored. |
 | `LaxMode` | Cookies are not sent on normal cross-site subrequests, but are sent when navigating to the origin site. |
-| `StrictMode` | Only be sent in a first-party context and not be sent along with requests initiated by third party websites. |
+| `StrictMode` | Cookies are sent only in first-party contexts and are not sent along with requests initiated by third-party websites. **Warning**: Do not use this mode if the app and the IdP have different domains. In this case, some browsers incorrectly detect the redirect from `/callback` to `/login` as a cross-site request. |
 | `NoneMode` | Cookies are sent in all contexts. Cookie NotSecure must be unset. |
 
 

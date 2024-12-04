@@ -4,3 +4,4 @@ changelog:
     resolvesIssue: true
     description: >-
       Add a not-recommended notice for Aerospike.
+      skipCI-kube-tests:true
