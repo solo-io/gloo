@@ -471,6 +471,7 @@ The type of route to the LLM provider API.
 | ----- | ----------- | 
 | `CHAT` | The LLM generates the full response before responding to a client. |
 | `CHAT_STREAMING` | Stream responses to a client, which allows the LLM to stream out tokens as they are generated. |
+| `REALTIME` | REALTIME 2 way streaming connection between client/server. |
 
 
 
