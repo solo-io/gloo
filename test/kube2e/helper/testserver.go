@@ -15,8 +15,10 @@ const (
 	TestServerPort         = 1234
 
 	// This response is given by the testserver when the SimpleServer is started
-	SimpleHttpResponse    = `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">`
-	SimpleHttpResponseArm = `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">`
+	SimpleHttpResponse = `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<title>Directory listing for /</title>`
+	SimpleHttpResponseArm = `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<title>Directory listing for /</title>`
 )
 
 // tests relying on the test server should be ported using the default nginx deployment located at
