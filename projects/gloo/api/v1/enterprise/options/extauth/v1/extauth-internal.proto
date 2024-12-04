@@ -580,6 +580,8 @@ message ExtAuthConfig {
 
         oneof storage_backend {
             K8sSecretApiKeyStorage k8s_secret_apikey_storage = 4;
+            // <b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release.
+            // Use of this feature is not recommended.
             AerospikeApiKeyStorage aerospike_apikey_storage = 5;
             ServerDefaultApiKeyStorage server_default_apikey_storage = 7;
         }
