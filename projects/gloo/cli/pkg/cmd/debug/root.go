@@ -26,6 +26,8 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 	cmd.AddCommand(DebugLogCmd(opts))
 	cmd.AddCommand(DebugYamlCmd(opts))
 	cmd.AddCommand(DebugKubeCmd(opts))
+	cmd.AddCommand(DebugGlooCmd(opts))
+	cmd.AddCommand(DebugEnvoyCmd(opts))
 	cliutils.ApplyOptions(cmd, optionsFunc)
 	return cmd
 }
@@ -75,9 +77,57 @@ func DebugKubeCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *c
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 			defer cancel()
 
-			kubectlCli := kubectl.NewCli()
+			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
 
 			helpers.KubeDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			return nil
+		},
+	}
+
+	pflags := cmd.PersistentFlags()
+	flagutils.AddNamespacesFlag(pflags, &opts.Debug.Namespaces)
+	flagutils.AddDirectoryFlag(pflags, &opts.Debug.Directory)
+	cliutils.ApplyOptions(cmd, optionsFunc)
+
+	return cmd
+}
+
+func DebugGlooCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   constants.DEBUG_GLOO_COMMAND.Use,
+		Short: constants.DEBUG_GLOO_COMMAND.Short,
+		Long:  constants.DEBUG_GLOO_COMMAND.Long,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+			defer cancel()
+
+			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
+
+			helpers.ControllerDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			return nil
+		},
+	}
+
+	pflags := cmd.PersistentFlags()
+	flagutils.AddNamespacesFlag(pflags, &opts.Debug.Namespaces)
+	flagutils.AddDirectoryFlag(pflags, &opts.Debug.Directory)
+	cliutils.ApplyOptions(cmd, optionsFunc)
+
+	return cmd
+}
+
+func DebugEnvoyCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   constants.DEBUG_ENVOY_COMMAND.Use,
+		Short: constants.DEBUG_ENVOY_COMMAND.Short,
+		Long:  constants.DEBUG_ENVOY_COMMAND.Long,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+			defer cancel()
+
+			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
+
+			helpers.EnvoyDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
 			return nil
 		},
 	}

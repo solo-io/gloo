@@ -103,6 +103,22 @@ var (
 			"The dump includes: docker state, process state, kubernetes state, logs from all pods in the given namespaces, and yaml representations of all solo.io CRs in the given namespaces.",
 	}
 
+	DEBUG_GLOO_COMMAND = cobra.Command{
+		Use:   "gloo",
+		Short: "Dump Gloo Gateway controller state to a local directory (requires Gloo running on Kubernetes)",
+		Long: "Dump Gloo Gateway controller state to a local directory (requires Gloo running on Kubernetes). " +
+			"This is useful for debugging failures. " +
+			"The dump includes the gloo controller logs, metrics, xds snapshot, and krt snapshot.",
+	}
+
+	DEBUG_ENVOY_COMMAND = cobra.Command{
+		Use:   "envoy",
+		Short: "Dump envoy admin interface to a local directory (requires Gloo running on Kubernetes)",
+		Long: "Dump envoy admin interface to a local directory (requires Gloo running on Kubernetes). " +
+			"This is useful for debugging failures. " +
+			"The dump includes the envoy config dump, stats, clusters, and listeners.",
+	}
+
 	DELETE_COMMAND = cobra.Command{
 		Use:     "delete",
 		Aliases: []string{"d"},
