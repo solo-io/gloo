@@ -477,7 +477,7 @@ jobs:
 
   kube_gateway_api_conformance_tests_main:
     name: Conformance (branch=main, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'main') || github.event.schedule == '0 5 * * *' }}
+    #if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'main') || github.event.schedule == '0 5 * * *' }}
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     strategy:

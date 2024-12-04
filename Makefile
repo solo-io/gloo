@@ -75,11 +75,9 @@ endif
 
 PLATFORM := --platform=linux/$(GOARCH)
 PLATFORM_MULTIARCH := $(PLATFORM)
-LOAD := --load
-LOAD_OR_PUSH := $(LOAD)
+LOAD_OR_PUSH := --load
 ifeq ($(MULTIARCH), true)
 	PLATFORM_MULTIARCH := --platform=linux/amd64,linux/arm64
-	LOAD :=
 	LOAD_OR_PUSH :=
 
 	ifeq ($(MULTIARCH_PUSH), true)
@@ -510,7 +508,7 @@ $(DISTROLESS_OUTPUT_DIR)/Dockerfile: $(DISTROLESS_DIR)/Dockerfile
 
 .PHONY: distroless-docker
 distroless-docker: $(DISTROLESS_OUTPUT_DIR)/Dockerfile
-	docker buildx build $(LOAD) $(PLATFORM_MULTIARCH) $(DISTROLESS_OUTPUT_DIR) -f $(DISTROLESS_OUTPUT_DIR)/Dockerfile \
+	docker buildx build $(LOAD_OR_PUSH) $(PLATFORM_MULTIARCH) $(DISTROLESS_OUTPUT_DIR) -f $(DISTROLESS_OUTPUT_DIR)/Dockerfile \
 		--build-arg PACKAGE_DONOR_IMAGE=$(PACKAGE_DONOR_IMAGE) \
 		--build-arg BASE_IMAGE=$(DISTROLESS_BASE_IMAGE) \
 		-t $(GLOO_DISTROLESS_BASE_IMAGE) $(QUAY_EXPIRATION_LABEL)
@@ -521,7 +519,7 @@ $(DISTROLESS_OUTPUT_DIR)/Dockerfile.utils: $(DISTROLESS_DIR)/Dockerfile.utils
 
 .PHONY: distroless-with-utils-docker
 distroless-with-utils-docker: distroless-docker $(DISTROLESS_OUTPUT_DIR)/Dockerfile.utils
-	docker buildx build $(LOAD) $(PLATFORM_MULTIARCH) $(DISTROLESS_OUTPUT_DIR) -f $(DISTROLESS_OUTPUT_DIR)/Dockerfile.utils \
+	docker buildx build $(LOAD_OR_PUSH) $(PLATFORM_MULTIARCH) $(DISTROLESS_OUTPUT_DIR) -f $(DISTROLESS_OUTPUT_DIR)/Dockerfile.utils \
 		--build-arg UTILS_DONOR_IMAGE=$(UTILS_DONOR_IMAGE) \
 		--build-arg BASE_IMAGE=$(GLOO_DISTROLESS_BASE_IMAGE) \
 		-t  $(GLOO_DISTROLESS_BASE_WITH_UTILS_IMAGE) $(QUAY_EXPIRATION_LABEL)
