@@ -24,9 +24,9 @@ import (
 	"github.com/solo-io/go-utils/threadsafe"
 )
 
-// StandardGlooDumpOnFail creates adump of the kubernetes state and certain envoy data from
-// the admin interface when a test fails.
-// Look at `KubeDumpOnFail` && `EnvoyDumpOnFail` for more details
+// StandardGlooDumpOnFail creates a dump of the kubernetes state, gloo controller state,
+// and certain envoy data from the admin interface.
+// Look at `KubeDumpOnFail`, `ControllerDumpOnFail`, && `EnvoyDumpOnFail` for more details
 func StandardGlooDumpOnFail(outLog io.Writer, outDir string, namespaces []string) func() {
 	return func() {
 		fmt.Printf("Test failed. Dumping state from %s...\n", strings.Join(namespaces, ", "))
@@ -47,15 +47,15 @@ func StandardGlooDumpOnFail(outLog io.Writer, outDir string, namespaces []string
 	}
 }
 
-// KubeDumpOnFail creates a small dump of the kubernetes state when a test fails.
-// This is useful for debugging test failures.
+// KubeDumpOnFail creates a small dump of the kubernetes state.
+// This is useful for debugging failures.
 // The dump includes:
 // - docker state
 // - process state
 // - kubernetes state
 // - logs from all pods in the given namespaces
 // - yaml representations of all solo.io CRs in the given namespaces
-func KubeDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, outLog io.Writer, outDir string,
+func KubeDumpOnFail(_ context.Context, _ *kubectl.Cli, _ io.Writer, outDir string,
 	namespaces []string) func() {
 	return func() {
 		setupOutDir(outDir)
@@ -327,14 +327,14 @@ func kubeList(namespace string, target string) ([]string, string, error) {
 	return toReturn, "", nil
 }
 
-// ControllerDumpOnFail creates a small dump of the controller state when a test fails.
-// This is useful for debugging test failures.
+// ControllerDumpOnFail creates a small dump of the gloo controller state.
+// This is useful for debugging failures.
 // The dump includes:
 // - controller logs
 // - controller metrics
 // - controller xds snapshot
 // - controller krt snapshot
-func ControllerDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, outLog io.Writer,
+func ControllerDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer,
 	outDir string, namespaces []string) func() {
 	return func() {
 		for _, ns := range namespaces {
@@ -397,8 +397,8 @@ func ControllerDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, outLog i
 	}
 }
 
-// EnvoyDumpOnFail creates a small dump of the envoy admin interface when a test fails.
-// This is useful for debugging test failures.
+// EnvoyDumpOnFail creates a small dump of the envoy admin interface.
+// This is useful for debugging failures.
 // The dump includes:
 // - config dump
 // - stats
