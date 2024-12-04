@@ -120,7 +120,7 @@ message TracingTagMetadata {
     Kind kind = 2;
 
     message MetadataValue {
-      // The key to extract the value from the metadata.
+      // The namespace to extract the value from the metadata.
       // If empty will default to JWT principal namespace.
       string namespace = 1;
       // The key to extract the value from the metadata.
