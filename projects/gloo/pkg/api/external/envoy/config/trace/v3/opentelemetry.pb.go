@@ -40,6 +40,8 @@ type OpenTelemetryConfig struct {
 	//	*OpenTelemetryConfig_ClusterName
 	CollectorCluster isOpenTelemetryConfig_CollectorCluster `protobuf_oneof:"collector_cluster"`
 	// Optional. If set, the service name will be used as the service name in the trace.
+	// If this is not set it will be automatically set to the name of the
+	// listener + the namespace of the Gateway object
 	ServiceName string `protobuf:"bytes,3,opt,name=service_name,json=serviceName,proto3" json:"service_name,omitempty"`
 }
 

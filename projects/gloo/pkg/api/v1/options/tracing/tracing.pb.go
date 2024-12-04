@@ -520,7 +520,7 @@ func (x *TracingTagLiteral) GetValue() *wrapperspb.StringValue {
 }
 
 // Requests can produce traces with custom tags.
-// TracingTagLiteral defines a literal which gets added as custom tag.
+// TracingTagMetadata defines a dynamic metadata tag which gets added as custom tag.
 type TracingTagMetadata struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -599,7 +599,7 @@ type TracingTagMetadata_MetadataValue struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The key to extract the value from the metadata.
+	// The namespace to extract the value from the metadata.
 	// If empty will default to JWT principal namespace.
 	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	// The key to extract the value from the metadata.

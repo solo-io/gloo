@@ -166,7 +166,7 @@ TracingTagLiteral defines a literal which gets added as custom tag.
 
  
 Requests can produce traces with custom tags.
-TracingTagLiteral defines a literal which gets added as custom tag.
+TracingTagMetadata defines a dynamic metadata tag which gets added as custom tag.
 
 ```yaml
 "tag": string
@@ -200,7 +200,7 @@ TracingTagLiteral defines a literal which gets added as custom tag.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `namespace` | `string` | The key to extract the value from the metadata. If empty will default to JWT principal namespace. |
+| `namespace` | `string` | The namespace to extract the value from the metadata. If empty will default to JWT principal namespace. |
 | `key` | `string` | The key to extract the value from the metadata. For example, `principal.iss` or `principal.sub` to extract those claims from the JWT ns. |
 | `nestedFieldDelimiter` | `string` | The delimiter to use when specifying nested fields. Default is `.`. This is commonly set to `.`, allowing for nested fields names of the form `parent.child.grandchild`. |
 

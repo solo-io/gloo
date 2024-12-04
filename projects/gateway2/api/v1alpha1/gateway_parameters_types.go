@@ -609,7 +609,9 @@ type AiExtension struct {
 	// Example:
 	// ```yaml
 	// tracing:
-	//   otlpGRPCEndpoint: "otel-collector.otel-system.svc:4317"
+	//   grpc:
+	//     host: "otel-collector.otel-system.svc"
+	//     port: 4317
 	//   insecure: true
 	// ```
 	Tracing *AIExtensionTracing `json:"tracing,omitempty"`
