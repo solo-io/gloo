@@ -1015,20 +1015,28 @@ docker-standard-push: docker-push-gloo
 docker-standard-push: docker-push-discovery
 docker-standard-push: docker-push-gloo-envoy-wrapper
 docker-standard-push: docker-push-sds
+ifeq ($(MULTIARCH), )
 docker-standard-push: docker-push-certgen
+endif
 docker-standard-push: docker-push-ingress
 docker-standard-push: docker-push-access-logger
+ifeq ($(MULTIARCH), )
 docker-standard-push: docker-push-kubectl
+endif
 
 .PHONY: docker-distroless-push
 docker-distroless-push: docker-push-gloo-distroless
 docker-distroless-push: docker-push-discovery-distroless
 docker-distroless-push: docker-push-gloo-envoy-wrapper-distroless
 docker-distroless-push: docker-push-sds-distroless
+ifeq ($(MULTIARCH), )
 docker-distroless-push: docker-push-certgen-distroless
+endif
 docker-distroless-push: docker-push-ingress-distroless
 docker-distroless-push: docker-push-access-logger-distroless
+ifeq ($(MULTIARCH), )
 docker-distroless-push: docker-push-kubectl-distroless
+endif
 
 # Push docker images to the defined IMAGE_REGISTRY
 .PHONY: docker-push
