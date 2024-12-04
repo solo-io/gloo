@@ -228,13 +228,13 @@ func (s *testingSuite) TestRejectTransformation() {
 	// this should be rejected
 	output, err = s.testInstallation.Actions.Kubectl().ApplyFileWithOutput(s.ctx, validation.VSTransformationExtractors, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assert().Error(err)
-	s.Assert().Contains(output, "envoy validation mode output: error initializing configuration '': Failed to parse response template: group 1 requested for regex with only 0 sub groups")
+	s.Assert().Contains(output, "Failed to parse response template: group 1 requested for regex with only 0 sub groups")
 
 	// Single replace mode -- rejects invalid subgroup in transformation
 	// note that the regex has no subgroups, but we are trying to extract the first subgroup
 	// this should be rejected
 	output, err = s.testInstallation.Actions.Kubectl().ApplyFileWithOutput(s.ctx, validation.VSTransformationSingleReplace, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assert().Error(err)
-	s.Assert().Contains(output, "envoy validation mode output: error initializing configuration '': Failed to parse response template: group 1 requested for regex with only 0 sub groups")
+	s.Assert().Contains(output, "Failed to parse response template: group 1 requested for regex with only 0 sub groups")
 
 }
