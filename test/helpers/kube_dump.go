@@ -434,7 +434,7 @@ func EnvoyDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer, 
 			setupOutDir(envoyOutDir)
 
 			for _, proxy := range proxies {
-				adminCli, shutdown, err := admincli.NewPortForwardedClient(ctx,
+				adminCli, shutdown, err := admincli.NewPortForwardedClient(ctx, kubectlCli,
 					fmt.Sprintf("pod/%s", proxy), ns)
 				if err != nil {
 					fmt.Printf("error creating admin cli: %f\n", err)

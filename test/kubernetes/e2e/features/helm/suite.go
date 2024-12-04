@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"io"
 	"os"
 	"path/filepath"
@@ -44,7 +45,7 @@ func (s *testingSuite) TestProductionRecommendations() {
 
 func (s *testingSuite) TestChangedConfigMapTriggersRollout() {
 	expectConfigDumpToContain := func(str string) {
-		adminCli, shutdown, err := admincli.NewPortForwardedClient(s.Ctx, "deployment/gateway-proxy", s.TestHelper.InstallNamespace)
+		adminCli, shutdown, err := admincli.NewPortForwardedClient(s.Ctx, kubectl.NewCli(), "deployment/gateway-proxy", s.TestHelper.InstallNamespace)
 		s.NoError(err)
 		defer shutdown()
 
