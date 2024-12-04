@@ -94,6 +94,15 @@ var (
 		Short: "Dump YAML representing the current Gloo state (requires Gloo running on Kubernetes)",
 	}
 
+	DEBUG_KUBE_COMMAND = cobra.Command{
+		Use:     "kube",
+		Aliases: []string{"kubernetes", "k8s"},
+		Short:   "Dump kubernetes state to a local directory (requires Gloo running on Kubernetes)",
+		Long: "Dump kubernetes state to a local directory (requires Gloo running on Kubernetes). " +
+			"This is useful for debugging failures. " +
+			"The dump includes: docker state, process state, kubernetes state, logs from all pods in the given namespaces, and yaml representations of all solo.io CRs in the given namespaces.",
+	}
+
 	DELETE_COMMAND = cobra.Command{
 		Use:     "delete",
 		Aliases: []string{"d"},

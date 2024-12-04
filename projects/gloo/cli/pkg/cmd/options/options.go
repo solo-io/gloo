@@ -36,6 +36,7 @@ type Options struct {
 	Check           Check
 	CheckCRD        CheckCRD
 	ValidateLicense ValidateLicense
+	Debug           Debug
 }
 type Top struct {
 	contextoptions.ContextAccessible
@@ -496,4 +497,9 @@ type CheckCRD struct {
 
 type ValidateLicense struct {
 	LicenseKey string
+}
+
+type Debug struct {
+	Directory  string
+	Namespaces []string
 }
