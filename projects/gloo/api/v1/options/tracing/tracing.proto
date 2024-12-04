@@ -106,7 +106,7 @@ message TracingTagLiteral {
 }
 
 // Requests can produce traces with custom tags.
-// TracingTagLiteral defines a literal which gets added as custom tag.
+// TracingTagMetadata defines a dynamic metadata tag which gets added as custom tag.
 message TracingTagMetadata {
     enum Kind {
       // The metadata is extracted from the stream metadata.
