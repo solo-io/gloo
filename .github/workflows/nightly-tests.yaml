@@ -56,7 +56,7 @@ on:
 jobs:
   end_to_end_tests_on_demand:
     name: End-to-End (branch=${{ github.ref_name }}, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'workflow_initiating_branch' }}
+    #if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'workflow_initiating_branch' }}
     runs-on: ubuntu-22.04
     timeout-minutes: 180
     strategy:
@@ -304,7 +304,7 @@ jobs:
 
   regression_tests_on_demand:
     name: on demand regression tests
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'workflow_initiating_branch' }}
+    #if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'workflow_initiating_branch' }}
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     strategy:
@@ -417,7 +417,7 @@ jobs:
 
   performance_tests_on_demand:
     name: on demand performance tests
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'workflow_initiating_branch' }}
+    #if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'workflow_initiating_branch' }}
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     steps:
@@ -490,7 +490,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: main
+        ref: ${{ github.ref_name }} #main
     - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
 
   kube_gateway_api_conformance_tests_18:
@@ -530,67 +530,67 @@ jobs:
           ref: v1.17.x
       - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
 
-  publish_results:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 5
-    if: ${{ always() }}
-    needs:
-      - end_to_end_tests_main
-      - end_to_end_tests_18
-      - end_to_end_tests_17
-      - regression_tests_main
-      - regression_tests_18
-      - regression_tests_17
-      - regression_tests_16
-      - performance_tests_main
-      - performance_tests_18
-      - performance_tests_17
-      - performance_tests_16
-      - kube_gateway_api_conformance_tests_main
-      - kube_gateway_api_conformance_tests_18
-      - kube_gateway_api_conformance_tests_17
-      - end_to_end_tests_on_demand
-      - regression_tests_on_demand
-      - performance_tests_on_demand
-    steps:
-      - uses: actions/checkout@v4
-      - name: compute-preamble
-        id: compute-preamble
-        shell: bash
-        run: |
-          echo "SLACK_CHANNEL=C04CJMXAH7A" >> $GITHUB_ENV     #edge-nightly-results by default
-          if [[ ${{github.event_name == 'workflow_dispatch'}} = true ]]; then
-            trigger="Gloo OSS Manual run"
-            branch=${{ inputs.branch }}
-            echo "SLACK_CHANNEL=C0314KESVNV" >> $GITHUB_ENV   #slack-integration-testing if manually run
-          elif [[ ${{github.event.schedule == '0 5 * * *'}} = true ]]; then
-            trigger="Gloo OSS nightlies"
-            branch="main"
-          elif [[ ${{github.event.schedule == '0 6 * * 1'}} = true ]]; then
-            trigger="Gloo OSS weeklies"
-            branch="v1.18.x"
-          elif [[ ${{github.event.schedule == '0 7 * * 1'}} = true ]]; then
-            trigger="Gloo OSS weeklies"
-            branch="v1.17.x"
-          elif [[ ${{github.event.schedule == '0 8 * * 1'}} = true ]]; then
-            trigger="Gloo OSS nightlies"
-            branch="v1.16.x"
-          fi
-          preamble="$trigger ($branch)"
-          echo "Setting PREAMBLE as $preamble"
-          echo "preamble=$preamble" >> $GITHUB_OUTPUT
-      - uses: actions/setup-go@v5
-        with:
-          # Caching in setup-go is on by default
-          # In our prep-go-runner we use a more configurable cache https://github.com/actions/cache
-          # In this step, we don't need to store a new cache entry because it runs infrequently and
-          # will pollute the cache entries
-          cache: false
-          go-version-file: go.mod
-      - name: Send Slack Message
-        env:
-          PARENT_JOB_URL: https://github.com/solo-io/gloo/actions/runs/${{github.run_id}} # parent job hyperlink
-          PREAMBLE: ${{ steps.compute-preamble.outputs.preamble }}  # text to hyperlink at start of slack message
-          SLACKBOT_BEARER: ${{ secrets.SLACKBOT_BEARER }}
-        run: |
-          go run .github/workflows/helpers/notify/slack.go '${{ toJSON(needs) }}'
+  # publish_results:
+  #   runs-on: ubuntu-22.04
+  #   timeout-minutes: 5
+  #   if: ${{ always() }}
+  #   needs:
+  #     - end_to_end_tests_main
+  #     - end_to_end_tests_18
+  #     - end_to_end_tests_17
+  #     - regression_tests_main
+  #     - regression_tests_18
+  #     - regression_tests_17
+  #     - regression_tests_16
+  #     - performance_tests_main
+  #     - performance_tests_18
+  #     - performance_tests_17
+  #     - performance_tests_16
+  #     - kube_gateway_api_conformance_tests_main
+  #     - kube_gateway_api_conformance_tests_18
+  #     - kube_gateway_api_conformance_tests_17
+  #     - end_to_end_tests_on_demand
+  #     - regression_tests_on_demand
+  #     - performance_tests_on_demand
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: compute-preamble
+  #       id: compute-preamble
+  #       shell: bash
+  #       run: |
+  #         echo "SLACK_CHANNEL=C04CJMXAH7A" >> $GITHUB_ENV     #edge-nightly-results by default
+  #         if [[ ${{github.event_name == 'workflow_dispatch'}} = true ]]; then
+  #           trigger="Gloo OSS Manual run"
+  #           branch=${{ inputs.branch }}
+  #           echo "SLACK_CHANNEL=C0314KESVNV" >> $GITHUB_ENV   #slack-integration-testing if manually run
+  #         elif [[ ${{github.event.schedule == '0 5 * * *'}} = true ]]; then
+  #           trigger="Gloo OSS nightlies"
+  #           branch="main"
+  #         elif [[ ${{github.event.schedule == '0 6 * * 1'}} = true ]]; then
+  #           trigger="Gloo OSS weeklies"
+  #           branch="v1.18.x"
+  #         elif [[ ${{github.event.schedule == '0 7 * * 1'}} = true ]]; then
+  #           trigger="Gloo OSS weeklies"
+  #           branch="v1.17.x"
+  #         elif [[ ${{github.event.schedule == '0 8 * * 1'}} = true ]]; then
+  #           trigger="Gloo OSS nightlies"
+  #           branch="v1.16.x"
+  #         fi
+  #         preamble="$trigger ($branch)"
+  #         echo "Setting PREAMBLE as $preamble"
+  #         echo "preamble=$preamble" >> $GITHUB_OUTPUT
+  #     - uses: actions/setup-go@v5
+  #       with:
+  #         # Caching in setup-go is on by default
+  #         # In our prep-go-runner we use a more configurable cache https://github.com/actions/cache
+  #         # In this step, we don't need to store a new cache entry because it runs infrequently and
+  #         # will pollute the cache entries
+  #         cache: false
+  #         go-version-file: go.mod
+  #     - name: Send Slack Message
+  #       env:
+  #         PARENT_JOB_URL: https://github.com/solo-io/gloo/actions/runs/${{github.run_id}} # parent job hyperlink
+  #         PREAMBLE: ${{ steps.compute-preamble.outputs.preamble }}  # text to hyperlink at start of slack message
+  #         SLACKBOT_BEARER: ${{ secrets.SLACKBOT_BEARER }}
+  #       run: |
+  #         go run .github/workflows/helpers/notify/slack.go '${{ toJSON(needs) }}'
