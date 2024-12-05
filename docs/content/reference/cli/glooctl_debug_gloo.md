@@ -1,20 +1,24 @@
 ---
-title: "glooctl proxy served-config"
-description: "Reference for the 'glooctl proxy served-config' command."
+title: "glooctl debug gloo"
+description: "Reference for the 'glooctl debug gloo' command."
 weight: 5
 ---
-## glooctl proxy served-config
+## glooctl debug gloo
 
-dump Envoy config being served by the Gloo xDS server
+Dump Gloo Gateway controller state to a local directory (requires Gloo running on Kubernetes)
+
+### Synopsis
+
+Dump Gloo Gateway controller state to a local directory (requires Gloo running on Kubernetes). This is useful for debugging failures. The dump includes the gloo controller logs, metrics, xds snapshot, and krt snapshot.
 
 ```
-glooctl proxy served-config [flags]
+glooctl debug gloo [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for served-config
+  -h, --help   help for gloo
 ```
 
 ### Options inherited from parent commands
@@ -27,16 +31,15 @@ glooctl proxy served-config [flags]
       --consul-root-key string     key prefix for the Consul key-value storage. (default "gloo")
       --consul-scheme string       URI scheme for the Consul server. Use with --use-consul (default "http")
       --consul-token string        Token is used to provide a per-request ACL token which overrides the agent's default token. Use with --use-consul
+  -d, --directory string           directory to write debug info to (default "debug")
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
-      --name string                the name of the proxy pod/deployment to use
-  -n, --namespace string           namespace for reading or writing resources (default "gloo-system")
-      --port string                the name of the service port to connect to (default "http")
+  -N, --namespaces stringArray     namespaces from which to dump logs and resources (use flag multiple times to specify multiple namespaces, e.g. '-N gloo-system -N default') (default [gloo-system])
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)
 ```
 
 ### SEE ALSO
 
-* [glooctl proxy](../glooctl_proxy)	 - interact with proxy instances managed by Gloo
+* [glooctl debug](../glooctl_debug)	 - Debug Gloo (requires Gloo running on Kubernetes)
 

@@ -38,7 +38,7 @@ glooctl is the unified CLI for Gloo.
 * [glooctl completion](../glooctl_completion)	 - generate auto completion for your shell
 * [glooctl create](../glooctl_create)	 - Create a Gloo resource
 * [glooctl dashboard](../glooctl_dashboard)	 - Open Gloo dashboard
-* [glooctl debug](../glooctl_debug)	 - Debug a Gloo resource (requires Gloo running on Kubernetes)
+* [glooctl debug](../glooctl_debug)	 - Debug Gloo (requires Gloo running on Kubernetes)
 * [glooctl delete](../glooctl_delete)	 - Delete a Gloo resource
 * [glooctl demo](../glooctl_demo)	 - Demos (requires 4 tools to be installed and accessible via the PATH: glooctl, kubectl, docker, and kind.)
 * [glooctl edit](../glooctl_edit)	 - Edit a Gloo resource
