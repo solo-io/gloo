@@ -18,11 +18,9 @@ on:
 
 jobs:
   run-conformance-tests:
-    name: Conformance Tests for ${{ matrix.gateway-api-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        gateway-api-version: [v1.1.0, v1.2.0]
         # TODO(tim): Avoid hardcoding versions here. It's a bit tricky based on
         # how this was setup and there's a limited # of dispatch inputs that GH
         # supports. We can revisit this later.
@@ -35,18 +33,27 @@ jobs:
           - ${{ inputs.image-variant }}
         version:
           - ${{ inputs.version }}
+        version-files:
+          - label: 'min'
+            file: './.github/workflows/.env/pr-tests/min_versions.env'
+          - label: 'max'
+            file: './.github/workflows/.env/pr-tests/max_versions.env'
     steps:
+      # Checkout the branch that initiated the action
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Export GATEWAY_API_VERSION
-        shell: bash
-        run: echo "GATEWAY_API_VERSION=${{ matrix.gateway-api-version }}" >> $GITHUB_ENV
-
+      # The dotenv action is used to load key-value pairs from files.
+      # In this case, the file is specified in the matrix and will contain the versions of the tools to use
+      - name: Dotenv Action
+        uses: falti/dotenv-action@v1.1.4
+        id: dotenv
+        with:
+          path: ${{ matrix.version-files.file }}
+          log-variables: true
+      # Run the k8s gateway api conformance tests
       - name: Run Conformance Tests
         uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
         with:
-          gateway-api-version: ${{ matrix.gateway-api-version }}
-
+          k8sgateway-api-version: ${{ steps.dotenv.outputs.k8sgateway_api_version }}
       # TODO(tim): Add support for downloading the test results and creating
       # a pull request whenever a new release > 1.17+ is cut.
