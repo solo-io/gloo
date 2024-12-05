@@ -15,6 +15,8 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/api_conversion"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1_options "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
@@ -155,6 +157,10 @@ func (t *translatorInstance) initializeCluster(
 		RespectDnsTtl:             upstream.GetRespectDnsTtl().GetValue(),
 		DnsRefreshRate:            dnsRefreshRate,
 		PreconnectPolicy:          preconnect,
+	}
+	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
+		//TODOzzz
+		out.AltStatName = UpstreamToClusterStatsName(upstream)
 	}
 
 	if sslConfig := upstream.GetSslConfig(); sslConfig != nil {

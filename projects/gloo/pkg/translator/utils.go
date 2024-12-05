@@ -5,13 +5,13 @@ import (
 	"net"
 	"strings"
 
-	errors "github.com/rotisserie/eris"
-
 	envoyal "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
 	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
+	errors "github.com/rotisserie/eris"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
@@ -26,6 +26,11 @@ func UpstreamToClusterName(upstream *core.ResourceRef) string {
 
 	// Don't use dots in the name as it messes up prometheus stats
 	return fmt.Sprintf("%s_%s", upstream.GetName(), upstream.GetNamespace())
+}
+
+// TODOzzz update this with the right logic
+func UpstreamToClusterStatsName(upstream *gloov1.Upstream) string {
+	return strings.ReplaceAll(UpstreamToClusterName(upstream.GetMetadata().Ref()), ":", "_")
 }
 
 // returns the ref of the upstream for a given cluster
