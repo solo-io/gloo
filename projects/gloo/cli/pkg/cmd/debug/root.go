@@ -97,11 +97,7 @@ func DebugKubeCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *c
 		},
 	}
 
-	pflags := cmd.PersistentFlags()
-	flagutils.AddNamespacesFlag(pflags, &opts.Debug.Namespaces)
-	flagutils.AddDirectoryFlag(pflags, &opts.Debug.Directory)
 	cliutils.ApplyOptions(cmd, optionsFunc)
-
 	return cmd
 }
 
@@ -121,11 +117,7 @@ func DebugGlooCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *c
 		},
 	}
 
-	pflags := cmd.PersistentFlags()
-	flagutils.AddNamespacesFlag(pflags, &opts.Debug.Namespaces)
-	flagutils.AddDirectoryFlag(pflags, &opts.Debug.Directory)
 	cliutils.ApplyOptions(cmd, optionsFunc)
-
 	return cmd
 }
 
@@ -145,10 +137,6 @@ func DebugEnvoyCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *
 		},
 	}
 
-	pflags := cmd.PersistentFlags()
-	flagutils.AddNamespacesFlag(pflags, &opts.Debug.Namespaces)
-	flagutils.AddDirectoryFlag(pflags, &opts.Debug.Directory)
 	cliutils.ApplyOptions(cmd, optionsFunc)
-
 	return cmd
 }
