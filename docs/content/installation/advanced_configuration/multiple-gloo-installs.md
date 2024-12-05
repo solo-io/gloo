@@ -14,15 +14,15 @@ In this document, we will review how to deploy multiple instances of Gloo Gatewa
 
 ## Scope Gloo Gateway to specific namespaces
 
-By default, Gloo Gateway watches all namespaces in a cluster for Kubernetes services and Gloo Gateway custom resources. However, if you have many namespaces, translation time might slow due to the amount of resources that Gloo Gateway must attempt to process.
+By default, Gloo Gateway watches all namespaces in a cluster for Kubernetes services and Gloo Gateway custom resources. However, if you have many namespaces, translation time might slow down due to the amount of resources that Gloo Gateway must attempt to process.
 
 In this case, you might want to scope Gloo Gateway to watch only specific namespaces. Gloo Gateway can detect Kubernetes services and Gloo Gateway resources only in namespaces that you list, and cannot detect services and custom resources in any other namespaces. This setting can improve translation time by reducing the number of resources that Gloo Gateway attempts to process across all namespaces in your cluster.
 
 Additionally, Gloo Gateway reads configuration for the Gateway custom resource only in the namespace that the gateway controller is deployed to by default. For Gateway configuration in other namespaces, such as to support multiple gateways, you can enable the `gateway.readGatewaysFromAllNamespaces` setting.
 
-### Specify namespaces to watch for Kuberenetes services and Gloo CRs
+### Specify namespaces to watch for Kuberenetes services and Gloo Gateway CRs
 
-To configure namespaces for Gloo Gateway to watch, you can use one of the following Helm settings:
+To configure namespaces for Gloo Gateway to watch for Kubernetes services and Gloo Gateway CRs, you can use one of the following Helm settings:
 * `settings.watchNamespaces`: Create a static list of namespaces for Gloo Gateway to watch. This setting is recommended if you have a set of configuration namespaces that is unlikely to change often.
 * `settings.watchNamespaceSelectors.matchLabels` and `settings.watchNamespaceSelectors.matchExpressions`: Configure Gloo Gateway to watch namespaces based on a namespace selector, such as a label or an expression. This setting helps you dynamically determine the list of namespaces to watch, instead of using a static list of namespaces that you must update if you need to add or remove a namespace.
 
@@ -60,7 +60,7 @@ To help you monitor the namespaces that Gloo Gateway watches, you can use the fo
 * `"received updated list of namespaces", zap.Any("namespaces", newSnapshot.Kubenamespaces)`
 * `"list of namespaces to watch", zap.Any("oldNamespacesToWatch", oldNamespacesToWatch), zap.Any("newNamespacesToWatch", newNamespacesToWatch), zap.Any("namespacesChanged", namespacesChanged)`
 
-**Metrics**: This metric indicates how many namespaces Gloo Gateway currently watches. You can use metric in conjunction with the `gloo.solo.io/setups_run` metric to determine whether namespace cycling casues more setups to run than necessary.
+**Metrics**: This metric indicates how many namespaces Gloo Gateway currently watches. You can use this metric in conjunction with the `gloo.solo.io/setups_run` metric to determine whether namespace cycling causes more setups to run than necessary.
 * `gloo.solo.io/namespaces_watched`
 
 ---
@@ -70,7 +70,7 @@ To help you monitor the namespaces that Gloo Gateway watches, you can use the fo
 By leveraging namespace scoping options, you can install Gloo Gateway to as many namespaces as needed without overlap.
 
 {{% notice note %}}
-`watchNamespaces` can be shared between Gloo Gateway instances, so long as any Virtual Services are not written to a shared namespace. When this happens, both Gloo Gateway instances will attempt to apply the same routing config, which can cause domain conflicts.
+`watchNamespaces` can be shared between Gloo Gateway instances, as long as any Virtual Services are not written to a shared namespace. When this happens, both Gloo Gateway instances will attempt to apply the same routing config, which can cause domain conflicts.
 {{% /notice %}}
 
 In this section we'll deploy Gloo Gateway twice, each instance to a different namespace, with two different Helm value files. 
