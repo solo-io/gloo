@@ -403,8 +403,12 @@ metadata:
     {{- include "gloo-gateway.gateway.labels" . | nindent 4 }}
 {{- if or $gateway.aiExtension.stats $gateway.aiExtension.tracing }}
 data:
+{{- if $gateway.aiExtension.stats }}
   stats.json: {{ $gateway.aiExtension.stats }}
+{{- end}}
+{{- if $gateway.aiExtension.tracing }}
   tracing.json: {{ $gateway.aiExtension.tracing }}
+{{- end}}
 {{- end}}
 {{- end}}
 ---
