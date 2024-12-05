@@ -18,10 +18,23 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 	cmd := &cobra.Command{
 		Use:   constants.DEBUG_COMMAND.Use,
 		Short: constants.DEBUG_COMMAND.Short,
+		Long:  constants.DEBUG_COMMAND.Long,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return constants.SubcommandError
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+			defer cancel()
+
+			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
+
+			helpers.KubeDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			helpers.ControllerDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			helpers.EnvoyDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			return nil
 		},
 	}
+
+	pflags := cmd.PersistentFlags()
+	flagutils.AddNamespacesFlag(pflags, &opts.Debug.Namespaces)
+	flagutils.AddDirectoryFlag(pflags, &opts.Debug.Directory)
 
 	cmd.AddCommand(DebugLogCmd(opts))
 	cmd.AddCommand(DebugYamlCmd(opts))

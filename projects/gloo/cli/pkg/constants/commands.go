@@ -80,7 +80,11 @@ var (
 
 	DEBUG_COMMAND = cobra.Command{
 		Use:   "debug",
-		Short: "Debug a Gloo resource (requires Gloo running on Kubernetes)",
+		Short: "Debug Gloo (requires Gloo running on Kubernetes)",
+		Long: "Dumps state information to a local directory (or to stdout, for some subcommands). " +
+			"This is useful for debugging failures. " +
+			"If no subcommand is specified, all state information from the `kube`, `gloo`, and `envoy` subcommands will be included. " +
+			"See the subcommand descriptions for more details.",
 	}
 
 	DEBUG_LOG_COMMAND = cobra.Command{
