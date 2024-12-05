@@ -60,7 +60,7 @@ To help you monitor the namespaces that Gloo Gateway watches, you can use the fo
 * `"received updated list of namespaces", zap.Any("namespaces", newSnapshot.Kubenamespaces)`
 * `"list of namespaces to watch", zap.Any("oldNamespacesToWatch", oldNamespacesToWatch), zap.Any("newNamespacesToWatch", newNamespacesToWatch), zap.Any("namespacesChanged", namespacesChanged)`
 
-**Metrics**: This metric indicates how many namespaces Gloo Gateway currently watches. You can use this metric in conjunction with the `gloo.solo.io/setups_run` metric to determine whether namespace cycling causes more setups to run than necessary.
+**Metrics**: This metric indicates how many namespaces Gloo Gateway currently watches. You can use this metric in conjunction with the `gloo.solo.io/setups_run` metric, which indicates how often the control plane configuration reloads due to Settings configuration changes. These metrics can help you determine whether namespace cycling causes more control plane configuration reloads to run than necessary.
 * `gloo.solo.io/namespaces_watched`
 
 ---
