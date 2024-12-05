@@ -24,9 +24,9 @@ import (
 	"github.com/solo-io/go-utils/threadsafe"
 )
 
-// StandardGlooDumpOnFail creates a dump of the kubernetes state, gloo controller state,
-// and certain envoy data from the admin interface.
-// Look at `KubeDumpOnFail`, `ControllerDumpOnFail`, && `EnvoyDumpOnFail` for more details
+// StandardGlooDumpOnFail creates a dump of the CI system state, kubernetes state, gloo controller state,
+// and certain envoy data from the admin interface when a test fails.
+// Look at `CISystemDumpOnFail`, `KubeDumpOnFail`, `ControllerDumpOnFail`, && `EnvoyDumpOnFail` for more details
 func StandardGlooDumpOnFail(outLog io.Writer, outDir string, namespaces []string) func() {
 	return func() {
 		fmt.Printf("Test failed. Dumping state from %s...\n", strings.Join(namespaces, ", "))
@@ -39,6 +39,7 @@ func StandardGlooDumpOnFail(outLog io.Writer, outDir string, namespaces []string
 		// only wipe at the start of the dump
 		wipeOutDir(outDir)
 
+		CISystemDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
 		KubeDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
 		ControllerDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
 		EnvoyDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
@@ -47,12 +48,27 @@ func StandardGlooDumpOnFail(outLog io.Writer, outDir string, namespaces []string
 	}
 }
 
-// KubeDumpOnFail creates a small dump of the kubernetes state.
-// This is useful for debugging failures.
+// CISystemDumpOnFail creates a small dump of the local docker and process state.
+// This is useful for debugging test failures in CI.
 // The dump includes:
 // - docker state
 // - process state
-// - kubernetes state
+func CISystemDumpOnFail(_ context.Context, _ *kubectl.Cli, _ io.Writer, outDir string,
+	_ []string) func() {
+	return func() {
+		setupOutDir(outDir)
+
+		recordDockerState(fileAtPath(filepath.Join(outDir, "docker-state.log")))
+		recordProcessState(fileAtPath(filepath.Join(outDir, "process-state.log")))
+
+		fmt.Printf("Finished dumping docker and process state\n")
+	}
+}
+
+// KubeDumpOnFail creates a small dump of the kubernetes state.
+// This is useful for debugging failures.
+// The dump includes:
+// - kubernetes cluster state
 // - logs from all pods in the given namespaces
 // - yaml representations of all solo.io CRs in the given namespaces
 func KubeDumpOnFail(_ context.Context, _ *kubectl.Cli, _ io.Writer, outDir string,
@@ -60,8 +76,6 @@ func KubeDumpOnFail(_ context.Context, _ *kubectl.Cli, _ io.Writer, outDir strin
 	return func() {
 		setupOutDir(outDir)
 
-		recordDockerState(fileAtPath(filepath.Join(outDir, "docker-state.log")))
-		recordProcessState(fileAtPath(filepath.Join(outDir, "process-state.log")))
 		recordKubeState(fileAtPath(filepath.Join(outDir, "kube-state.log")))
 
 		recordKubeDump(outDir, namespaces...)
@@ -82,6 +96,7 @@ func recordDockerState(f *os.File) {
 	err := dockerCmd.Run()
 	if err != nil {
 		f.WriteString("*** Unable to get docker state ***. Reason: " + err.Error() + " \n")
+		f.WriteString(dockerState.String() + "\n")
 		return
 	}
 	f.WriteString("*** Docker state ***\n")
@@ -101,6 +116,7 @@ func recordProcessState(f *os.File) {
 	err := psCmd.Run()
 	if err != nil {
 		f.WriteString("unable to get process state. Reason: " + err.Error() + " \n")
+		f.WriteString(psState.String() + "\n")
 		return
 	}
 	f.WriteString("*** Process state ***\n")
@@ -112,11 +128,13 @@ func recordKubeState(f *os.File) {
 	defer f.Close()
 	kubeCli := &install.CmdKubectl{}
 
+	f.WriteString("*** Kube state ***\n")
+
 	kubeState, err := kubeCli.KubectlOut(nil, "get", "all", "-A", "-o", "wide")
 	if err != nil {
 		f.WriteString("*** Unable to get kube state ***\n")
-		return
 	}
+	f.WriteString(string(kubeState) + "\n")
 
 	resourcesToGet := []string{
 		// Kubernetes resources
@@ -152,8 +170,8 @@ func recordKubeState(f *os.File) {
 	kubeResources, err := kubeCli.KubectlOut(nil, "get", strings.Join(resourcesToGet, ","), "-A", "-owide")
 	if err != nil {
 		f.WriteString("*** Unable to get kube resources ***. Reason: " + err.Error() + " \n")
-		return
 	}
+	f.WriteString(string(kubeResources) + "\n")
 
 	// Describe everything to identify the reason for issues such as Pods, LoadBalancers stuck in pending state
 	// (insufficient resources, unable to acquire an IP), etc.
@@ -161,19 +179,13 @@ func recordKubeState(f *os.File) {
 	kubeDescribe, err := kubeCli.KubectlOut(nil, "describe", "all", "-A")
 	if err != nil {
 		f.WriteString("*** Unable to get kube describe ***. Reason: " + err.Error() + " \n")
-		return
 	}
+	f.WriteString(string(kubeDescribe) + "\n")
 
 	kubeEndpointsState, err := kubeCli.KubectlOut(nil, "get", "endpoints", "-A")
 	if err != nil {
 		f.WriteString("*** Unable to get endpoint state ***. Reason: " + err.Error() + " \n")
-		return
 	}
-
-	f.WriteString("*** Kube state ***\n")
-	f.WriteString(string(kubeState) + "\n")
-	f.WriteString(string(kubeResources) + "\n")
-	f.WriteString(string(kubeDescribe) + "\n")
 	f.WriteString(string(kubeEndpointsState) + "\n")
 
 	f.WriteString("*** End Kube state ***\n")
@@ -182,7 +194,7 @@ func recordKubeState(f *os.File) {
 func recordKubeDump(outDir string, namespaces ...string) {
 	// for each namespace, create a namespace directory that contains...
 	for _, ns := range namespaces {
-		// ...a pod logs subdirectoy
+		// ...a pod logs subdirectory
 		if err := recordPods(filepath.Join(outDir, ns, "_pods"), ns); err != nil {
 			fmt.Printf("error recording pod logs: %f, \n", err)
 		}
@@ -380,13 +392,13 @@ func ControllerDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Wri
 					)
 
 				krtSnapshotFile := fileAtPath(filepath.Join(namespaceOutDir, fmt.Sprintf("%s.krt_snapshot.log", podName)))
-				err = adminClient.KrtSnapshotCmd(ctx).WithStdout(krtSnapshotFile).Run().Cause()
+				err = adminClient.KrtSnapshotCmd(ctx).WithStdout(krtSnapshotFile).WithStderr(os.Stderr).Run().Cause()
 				if err != nil {
 					fmt.Printf("error running krt snapshot command: %f\n", err)
 				}
 
 				xdsSnapshotFile := fileAtPath(filepath.Join(namespaceOutDir, fmt.Sprintf("%s.xds_snapshot.log", podName)))
-				err = adminClient.XdsSnapshotCmd(ctx).WithStdout(xdsSnapshotFile).Run().Cause()
+				err = adminClient.XdsSnapshotCmd(ctx).WithStdout(xdsSnapshotFile).WithStderr(os.Stderr).Run().Cause()
 				if err != nil {
 					fmt.Printf("error running xds snapshot command: %f\n", err)
 				}

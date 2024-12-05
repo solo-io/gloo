@@ -104,7 +104,7 @@ var (
 		Short:   "Dump kubernetes state to a local directory (requires Gloo running on Kubernetes)",
 		Long: "Dump kubernetes state to a local directory (requires Gloo running on Kubernetes). " +
 			"This is useful for debugging failures. " +
-			"The dump includes: docker state, process state, kubernetes state, logs from all pods in the given namespaces, and yaml representations of all solo.io CRs in the given namespaces.",
+			"The dump includes: kubernetes cluster state, logs from all pods in the given namespaces, and yaml representations of all solo.io CRs in the given namespaces.",
 	}
 
 	DEBUG_GLOO_COMMAND = cobra.Command{
