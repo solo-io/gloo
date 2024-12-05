@@ -19,7 +19,7 @@ import (
 
 // MustKindContext returns the Context for a KinD cluster with the given name
 func MustKindContext(clusterName string) *Context {
-	return MustKindContextWithScheme(clusterName, schemes.TestingScheme())
+	return MustKindContextWithScheme(clusterName, schemes.GatewayScheme())
 }
 
 // MustKindContextWithScheme returns the Context for a KinD cluster with the given name and scheme
