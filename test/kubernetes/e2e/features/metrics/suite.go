@@ -102,8 +102,8 @@ func metricsAssertion(testInstallation *e2e.TestInstallation, metricName string,
 
 			stats := resp["stats"]
 			g.Expect(stats).To(gomega.HaveLen(1), "expected 1 matching stats result")
-			g.Expect(stats[0].Name).To(gomega.Equal(metricName))
-			g.Expect(stats[0].Value).To(gomega.Equal(uint64(expectedMetricValue)))
+			g.Expect(stats[0].GetName()).To(gomega.Equal(metricName))
+			g.Expect(stats[0].GetValue()).To(gomega.Equal(uint64(expectedMetricValue)))
 		}).
 			WithContext(ctx).
 			WithTimeout(time.Second * 10).
