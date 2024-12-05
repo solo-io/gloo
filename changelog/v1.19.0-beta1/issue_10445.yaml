@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/10445
+    resolvesIssue: true
+    description: >-
+      Adds the `sync-gateway-crds` Make target for managing Gateway API CRDs.
