@@ -1438,7 +1438,7 @@ var _ = Describe("Deployer", func() {
 // initialize a fake controller-runtime client with the given list of objects
 func newFakeClientWithObjs(objs ...client.Object) client.Client {
 	return fake.NewClientBuilder().
-		WithScheme(schemes.TestingScheme()).
+		WithScheme(schemes.GatewayScheme()).
 		WithObjects(objs...).
 		Build()
 }

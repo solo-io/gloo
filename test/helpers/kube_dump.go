@@ -450,7 +450,7 @@ func EnvoyDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer, 
 				}
 
 				statsFile := fileAtPath(filepath.Join(envoyOutDir, fmt.Sprintf("%s.stats.log", proxy)))
-				err = adminCli.StatsCmd(ctx).WithStdout(statsFile).Run().Cause()
+				err = adminCli.StatsCmd(ctx, nil).WithStdout(statsFile).Run().Cause()
 				if err != nil {
 					fmt.Printf("error running stats command: %f\n", err)
 				}
