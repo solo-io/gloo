@@ -68,6 +68,7 @@ type tcpRouteTestCase struct {
 	proxyService        *corev1.Service
 	proxyDeployment     *appsv1.Deployment
 	expectedResponses   []*matchers.HttpResponse
+	expectedErrorCode   int
 	ports               []int
 	listenerNames       []v1.SectionName
 	expectedRouteCounts []int32
@@ -118,6 +119,44 @@ func (s *testingSuite) TestConfigureTCPRouteBackingDestinations() {
 			expectedRouteCounts: []int32{1, 1},
 			tcpRouteNames:       []string{multiSvcTCPRouteName1, multiSvcTCPRouteName2},
 		},
+		{
+			name:             crossNsTestName,
+			nsManifest:       crossNsClientNsManifest,
+			gtwName:          crossNsGatewayName,
+			gtwNs:            crossNsClientName,
+			gtwManifest:      crossNsGatewayManifest,
+			svcManifest:      crossNsBackendSvcManifest,
+			tcpRouteManifest: crossNsTCPRouteManifest,
+			proxyService:     crossNsProxyService,
+			proxyDeployment:  crossNsProxyDeployment,
+			expectedResponses: []*matchers.HttpResponse{
+				expectedCrossNsResp,
+			},
+			ports: []int{8080},
+			listenerNames: []v1.SectionName{
+				v1.SectionName(crossNsListenerName),
+			},
+			expectedRouteCounts: []int32{1},
+			tcpRouteNames:       []string{crossNsTCPRouteName},
+		},
+		{
+			name:              crossNsNoRefGrantTestName,
+			nsManifest:        crossNsNoRefGrantClientNsManifest,
+			gtwName:           crossNsNoRefGrantGatewayName,
+			gtwNs:             crossNsNoRefGrantClientNsName,
+			gtwManifest:       crossNsNoRefGrantGatewayManifest,
+			svcManifest:       crossNsNoRefGrantBackendSvcManifest,
+			tcpRouteManifest:  crossNsNoRefGrantTCPRouteManifest,
+			proxyService:      crossNsNoRefGrantProxyService,
+			proxyDeployment:   crossNsNoRefGrantProxyDeployment,
+			expectedErrorCode: 7,
+			ports:             []int{8080},
+			listenerNames: []v1.SectionName{
+				v1.SectionName(crossNsNoRefGrantListenerName),
+			},
+			expectedRouteCounts: []int32{1},
+			tcpRouteNames:       []string{crossNsNoRefGrantTCPRouteName},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -125,11 +164,32 @@ func (s *testingSuite) TestConfigureTCPRouteBackingDestinations() {
 		s.Run(tc.name, func() {
 			// Cleanup function
 			s.T().Cleanup(func() {
-				err := s.deleteManifests(tc.nsManifest)
-				s.Require().NoError(err, fmt.Sprintf("Failed to delete manifest %s", tc.nsManifest))
+				s.deleteManifests(tc.nsManifest)
+
+				// Delete additional namespaces if any
+				if tc.name == "CrossNamespaceTCPRouteWithReferenceGrant" {
+					s.deleteManifests(crossNsBackendNsManifest)
+				}
+
+				if tc.name == crossNsNoRefGrantTestName {
+					s.deleteManifests(crossNsNoRefGrantBackendNsManifest)
+				}
 
 				s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: tc.gtwNs}})
 			})
+
+			// Setup environment for ReferenceGrant test cases
+			if tc.name == crossNsTestName {
+				s.applyManifests(crossNsBackendNsName, crossNsBackendNsManifest)
+				s.applyManifests(crossNsBackendNsName, crossNsBackendSvcManifest)
+				s.applyManifests(crossNsBackendNsName, crossNsRefGrantManifest)
+			}
+
+			if tc.name == crossNsNoRefGrantTestName {
+				s.applyManifests(crossNsNoRefGrantBackendNsName, crossNsNoRefGrantBackendNsManifest)
+				s.applyManifests(crossNsNoRefGrantBackendNsName, crossNsNoRefGrantBackendSvcManifest)
+				// ReferenceGrant not applied
+			}
 
 			// Setup environment
 			s.setupTestEnvironment(
@@ -143,16 +203,18 @@ func (s *testingSuite) TestConfigureTCPRouteBackingDestinations() {
 			)
 
 			// Apply TCPRoute manifest
-			err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tc.tcpRouteManifest)
-			s.Require().NoError(err, fmt.Sprintf("Failed to apply manifest %s", tc.tcpRouteManifest))
+			s.applyManifests(tc.gtwNs, tc.tcpRouteManifest)
 
-			// Assert gateway conditions
-			s.testInstallation.Assertions.EventuallyGatewayCondition(s.ctx, tc.gtwName, tc.gtwNs, v1.GatewayConditionAccepted, metav1.ConditionTrue, timeout)
+			// Set the expected status conditions based on the test case
+			expected := metav1.ConditionTrue
+			if tc.name == crossNsNoRefGrantTestName {
+				expected = metav1.ConditionFalse
+			}
 
 			// Assert TCPRoute conditions
 			for _, tcpRouteName := range tc.tcpRouteNames {
 				s.testInstallation.Assertions.EventuallyTCPRouteCondition(s.ctx, tcpRouteName, tc.gtwNs, v1.RouteConditionAccepted, metav1.ConditionTrue, timeout)
-				s.testInstallation.Assertions.EventuallyTCPRouteCondition(s.ctx, tcpRouteName, tc.gtwNs, v1.RouteConditionResolvedRefs, metav1.ConditionTrue, timeout)
+				s.testInstallation.Assertions.EventuallyTCPRouteCondition(s.ctx, tcpRouteName, tc.gtwNs, v1.RouteConditionResolvedRefs, expected, timeout)
 			}
 
 			// Assert gateway programmed condition
@@ -166,15 +228,27 @@ func (s *testingSuite) TestConfigureTCPRouteBackingDestinations() {
 
 			// Assert expected responses
 			for i, port := range tc.ports {
-				expectedResponse := tc.expectedResponses[i]
-				s.testInstallation.Assertions.AssertEventualCurlResponse(
-					s.ctx,
-					s.execOpts(tc.gtwNs),
-					[]curl.Option{
-						curl.WithHost(kubeutils.ServiceFQDN(tc.proxyService.ObjectMeta)),
-						curl.WithPort(port),
-					},
-					expectedResponse)
+				if tc.name == crossNsNoRefGrantTestName {
+					s.testInstallation.Assertions.AssertEventualCurlError(
+						s.ctx,
+						s.execOpts(tc.gtwNs),
+						[]curl.Option{
+							curl.WithHost(kubeutils.ServiceFQDN(tc.proxyService.ObjectMeta)),
+							curl.WithPort(port),
+							curl.VerboseOutput(),
+						},
+						tc.expectedErrorCode)
+				} else {
+					s.testInstallation.Assertions.AssertEventualCurlResponse(
+						s.ctx,
+						s.execOpts(tc.gtwNs),
+						[]curl.Option{
+							curl.WithHost(kubeutils.ServiceFQDN(tc.proxyService.ObjectMeta)),
+							curl.WithPort(port),
+							curl.VerboseOutput(),
+						},
+						tc.expectedResponses[i])
+				}
 			}
 		})
 	}
@@ -188,35 +262,27 @@ func validateManifestFile(path string) error {
 }
 
 func (s *testingSuite) setupTestEnvironment(nsManifest, gtwName, gtwNs, gtwManifest, svcManifest string, proxySvc *corev1.Service, proxyDeploy *appsv1.Deployment) {
-	s.applyManifests(nsManifest)
+	s.applyManifests(gtwNs, nsManifest)
 
-	s.applyManifests(gtwManifest)
+	s.applyManifests(gtwNs, gtwManifest)
 	s.testInstallation.Assertions.EventuallyGatewayCondition(s.ctx, gtwName, gtwNs, v1.GatewayConditionAccepted, metav1.ConditionTrue, timeout)
 
-	s.applyManifests(svcManifest)
+	s.applyManifests(gtwNs, svcManifest)
 	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxySvc, proxyDeploy)
 }
 
-func (s *testingSuite) applyManifests(manifests ...string) {
+func (s *testingSuite) applyManifests(ns string, manifests ...string) {
 	for _, manifest := range manifests {
-		s.Eventually(func() bool {
-			err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest)
-			if err != nil {
-				s.T().Logf("Retrying apply manifest: %s, error: %v", manifest, err)
-				return false
-			}
-			return true
-		}, waitTime, tickTime, fmt.Sprintf("Can apply manifest %s", manifest))
+		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest, "-n", ns)
+		s.Require().NoError(err, fmt.Sprintf("Failed to apply manifest %s", manifest))
 	}
 }
 
-func (s *testingSuite) deleteManifests(manifests ...string) error {
+func (s *testingSuite) deleteManifests(manifests ...string) {
 	for _, manifest := range manifests {
-		if err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, manifest); err != nil {
-			return err
-		}
+		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, manifest)
+		s.Require().NoError(err, fmt.Sprintf("Failed to delete manifest %s", manifest))
 	}
-	return nil
 }
 
 func (s *testingSuite) execOpts(ns string) kubectl.PodExecOptions {

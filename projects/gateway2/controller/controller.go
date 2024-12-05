@@ -130,7 +130,7 @@ func (c *controllerBuilder) addIndexes(ctx context.Context) error {
 	}
 
 	// Conditionally index for TCPRoute
-	if c.cfg.CRDs.Has(wellknown.TCPRouteCRD) {
+	if c.cfg.CRDs.Has(wellknown.TCPRouteCRDName) {
 		if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1a2.TCPRoute{}, query.TcpRouteTargetField, query.IndexerByObjType); err != nil {
 			errs = append(errs, err)
 		}
@@ -317,7 +317,7 @@ func (c *controllerBuilder) watchHttpRoute(_ context.Context) error {
 }
 
 func (c *controllerBuilder) watchTcpRoute(ctx context.Context) error {
-	if !c.cfg.CRDs.Has(wellknown.TCPRouteCRD) {
+	if !c.cfg.CRDs.Has(wellknown.TCPRouteCRDName) {
 		log.FromContext(ctx).Info("TCPRoute type not registered in scheme; skipping TCPRoute controller setup")
 		return nil
 	}
