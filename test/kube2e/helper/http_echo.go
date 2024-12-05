@@ -1,7 +1,8 @@
 package helper
 
 const (
-	defaultHttpEchoImage = "kennship/http-echo@sha256:144322e8e96be2be6675dcf6e3ee15697c5d052d14d240e8914871a2a83990af"
+	// kennship/http-echo@sha256:144322e8e96be2be6675dcf6e3ee15697c5d052d14d240e8914871a2a83990af
+	defaultHttpEchoImage = "gcr.io/solo-test-236622/kennship-http-echo:latest"
 	HttpEchoName         = "http-echo"
 	HttpEchoPort         = 3000
 )
