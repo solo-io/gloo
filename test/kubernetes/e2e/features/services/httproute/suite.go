@@ -7,6 +7,7 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 )
@@ -65,6 +66,7 @@ func (s *testingSuite) TestConfigureHTTPRouteBackingDestinationsWithServiceAndWi
 		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, proxyService, proxyDeployment)
 		err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tcpRouteCrdManifest)
 		s.NoError(err, "can apply manifest")
+		s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, &wellknown.TCPRouteCRD)
 	})
 
 	// Remove the TCPRoute CRD to assert HTTPRoute services still work.

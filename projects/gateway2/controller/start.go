@@ -276,7 +276,7 @@ func getGatewayCRDs(restConfig *rest.Config) (sets.Set[string], error) {
 	}
 
 	if tcpRouteExists {
-		crds.Insert(wellknown.TCPRouteCRD)
+		crds.Insert(wellknown.TCPRouteCRDName)
 	}
 
 	return crds, nil
