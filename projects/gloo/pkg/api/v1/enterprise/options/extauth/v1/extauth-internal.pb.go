@@ -1997,6 +1997,8 @@ type ExtAuthConfig_ApiKeyAuthConfig_K8SSecretApikeyStorage struct {
 }
 
 type ExtAuthConfig_ApiKeyAuthConfig_AerospikeApikeyStorage struct {
+	// <b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release.
+	// Use of this feature is not recommended.
 	AerospikeApikeyStorage *AerospikeApiKeyStorage `protobuf:"bytes,5,opt,name=aerospike_apikey_storage,json=aerospikeApikeyStorage,proto3,oneof"`
 }
 
