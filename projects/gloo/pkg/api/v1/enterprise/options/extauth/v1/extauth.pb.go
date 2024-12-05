@@ -132,8 +132,12 @@ const (
 	// Cookies are not sent on normal cross-site subrequests, but are sent when
 	// navigating to the origin site.
 	UserSession_CookieOptions_LaxMode UserSession_CookieOptions_SameSite = 1
-	// Only be sent in a first-party context and not be sent along with requests
-	// initiated by third party websites.
+	// Cookies are sent only in first-party contexts and are not sent along with requests
+	// initiated by third-party websites.
+	//
+	// **Warning**: Do not use this mode if the app and the IdP have different domains.
+	// In this case, some browsers incorrectly detect the redirect from `/callback` to `/login`
+	// as a cross-site request.
 	UserSession_CookieOptions_StrictMode UserSession_CookieOptions_SameSite = 2
 	// Cookies are sent in all contexts. Cookie NotSecure must be unset.
 	UserSession_CookieOptions_NoneMode UserSession_CookieOptions_SameSite = 3
@@ -3432,6 +3436,8 @@ type ApiKeyAuth_K8SSecretApikeyStorage struct {
 }
 
 type ApiKeyAuth_AerospikeApikeyStorage struct {
+	// <b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release.
+	// Use of this feature is not recommended.
 	AerospikeApikeyStorage *AerospikeApiKeyStorage `protobuf:"bytes,7,opt,name=aerospike_apikey_storage,json=aerospikeApikeyStorage,proto3,oneof"`
 }
 
@@ -3496,6 +3502,8 @@ func (x *K8SSecretApiKeyStorage) GetApiKeySecretRefs() []*core.ResourceRef {
 	return nil
 }
 
+// <b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release.
+// Use of this feature is not recommended.
 type AerospikeApiKeyStorage struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
