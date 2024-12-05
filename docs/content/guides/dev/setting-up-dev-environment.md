@@ -21,10 +21,12 @@ To install all the requirements, do the following:
 # install the Command Line Tools package if not already installed
 xcode-select --install
 
-# install version of go in go.mod with brew
+############################################
+# install version of go in go.mod
+############################################
 # MacOS:
 brew install go@1.23
-# on other operating systems:
+# other Operating systems:
 # follow directions at https://go.dev/doc/install
 
 # install protoc

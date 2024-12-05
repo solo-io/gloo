@@ -2,10 +2,22 @@
 These end-to-end tests install each of the 3 Gloo Gateway flavors (`gateway`, `ingress`, and `knative`) in a Kubernetes cluster, and run
 end-to-end tests against them.
 
+- [Quick Start](#quick-start)
 - [Background](#background)
   - [How do the tests work?](#how-do-the-tests-work)
 - [CI](#ci)
 - [Local Development](#local-development)
+
+## Quick Start
+
+In the root of the Gloo repo:
+```bash
+# create kind K8s cluster
+make kind-setup
+
+# run the tests (KUBE2E_TESTS can be gloo, gateway, or upgrade)
+KUBE2E_TESTS=gloo make run-kube-e2e-tests
+```
 
 ## Background
 Kubernetes may be relied on for scheduling, persistence or security. These tests validate that Gloo Gateway can successfully operate within a Kubernetes cluster.
