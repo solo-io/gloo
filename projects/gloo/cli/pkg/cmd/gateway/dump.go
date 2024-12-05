@@ -3,17 +3,15 @@ package gateway
 import (
 	"archive/zip"
 	"fmt"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"os"
+	"strings"
 	"time"
 
-	"strings"
+	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 
 	"github.com/solo-io/go-utils/cliutils"
-
-	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
-
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/spf13/cobra"
 )
 
