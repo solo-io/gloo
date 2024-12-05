@@ -1257,6 +1257,11 @@ conformance-%: $(TEST_ASSET_DIR)/conformance/conformance_test.go
 	go test -mod=mod -ldflags=$(LDFLAGS) -tags conformance -test.v $(TEST_ASSET_DIR)/conformance/... -args $(CONFORMANCE_ARGS) \
 	-run-test=$*
 
+.PHONY: sync-gateway-crds
+
+sync-gateway-crds: ## Syncronize Gateway API CRDs in the repo with the CI configuration
+	@./ci/sync-gateway-crds.sh
+
 #----------------------------------------------------------------------------------
 # Security Scan
 #----------------------------------------------------------------------------------
