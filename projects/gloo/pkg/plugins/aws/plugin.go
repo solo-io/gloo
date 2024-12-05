@@ -26,7 +26,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/transformation"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
@@ -99,7 +98,7 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		return nil
 	}
 	// even if it failed, route should still be valid
-	p.recordedUpstreams[translator.UpstreamToClusterName(in.GetMetadata().Ref())] = upstreamSpec.Aws
+	p.recordedUpstreams[in.GetMetadata().Ref().Key()] = upstreamSpec.Aws
 
 	lambdaHostname := getLambdaHostname(upstreamSpec.Aws)
 
@@ -208,7 +207,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 			}
 
 			// validate that the upstream is one that we have previously recorded as an aws upstream
-			lambdaSpec, ok := p.recordedUpstreams[translator.UpstreamToClusterName(upstreamRef)]
+			lambdaSpec, ok := p.recordedUpstreams[upstreamRef.Key()]
 			if !ok {
 				if tryingNonExplicitAWSDest {
 					// skip the lambda plugin as the route was not explicitly set to be an aws route
