@@ -1,17 +1,23 @@
 package proxy_syncer
 
 import (
+	"context"
 	"fmt"
 	"slices"
 
 	"google.golang.org/protobuf/proto"
 	"istio.io/api/networking/v1alpha3"
 	networkingclient "istio.io/client-go/pkg/apis/networking/v1beta1"
+	"istio.io/istio/pkg/config/schema/gvk"
 	"istio.io/istio/pkg/config/schema/gvr"
+	"istio.io/istio/pkg/config/schema/kubeclient"
 	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/kube/kclient"
 	"istio.io/istio/pkg/kube/krt"
 	"istio.io/istio/pkg/kube/kubetypes"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
 )
 
 type NsWithHostname struct {
@@ -54,8 +60,22 @@ func (c DestinationRuleWrapper) Equals(k DestinationRuleWrapper) bool {
 	return proto.Equal(&c.Spec, &k.Spec)
 }
 
+func init() {
+	// if not using the latest CR version, ensure this matches the type argument to NewDelayedInformer
+	kubeclient.Register[*networkingclient.DestinationRule](
+		gvr.DestinationRule_v1beta1,
+		gvk.DestinationRule_v1beta1.Kubernetes(),
+		func(c kubeclient.ClientGetter, namespace string, o v1.ListOptions) (runtime.Object, error) {
+			return c.Istio().NetworkingV1beta1().DestinationRules(namespace).List(context.Background(), o)
+		},
+		func(c kubeclient.ClientGetter, namespace string, o v1.ListOptions) (watch.Interface, error) {
+			return c.Istio().NetworkingV1beta1().DestinationRules(namespace).Watch(context.Background(), o)
+		},
+	)
+}
+
 func NewDestRuleIndex(istioClient kube.Client, dbg *krt.DebugHandler) DestinationRuleIndex {
-	destRuleClient := kclient.NewDelayedInformer[*networkingclient.DestinationRule](istioClient, gvr.DestinationRule, kubetypes.StandardInformer, kclient.Filter{})
+	destRuleClient := kclient.NewDelayedInformer[*networkingclient.DestinationRule](istioClient, gvr.DestinationRule_v1beta1, kubetypes.StandardInformer, kclient.Filter{})
 	rawDestrules := krt.WrapClient(destRuleClient, krt.WithName("DestinationRules"), krt.WithDebugging(dbg))
 	destrules := krt.NewCollection(rawDestrules, func(kctx krt.HandlerContext, dr *networkingclient.DestinationRule) *DestinationRuleWrapper {
 		return &DestinationRuleWrapper{dr}

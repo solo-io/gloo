@@ -167,7 +167,7 @@ func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx *plugins.Statu
 	var multierr *multierror.Error
 	for roKey, status := range p.legacyStatusCache {
 		// get the obj by namespacedName
-		mayberoObj := p.routeOptionCollection.GetKey(krt.Key[*solokubev1.RouteOption](krt.Named{Namespace: roKey.Namespace, Name: roKey.Name}.ResourceName()))
+		mayberoObj := p.routeOptionCollection.GetKey(krt.Named{Namespace: roKey.Namespace, Name: roKey.Name}.ResourceName())
 		if mayberoObj == nil {
 			err := errors.New("RouteOption not found")
 			multierr = multierror.Append(multierr, eris.Wrapf(err, "%s %s in namespace %s", ReadingRouteOptionErrStr, roKey.Name, roKey.Namespace))

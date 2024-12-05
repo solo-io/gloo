@@ -13,7 +13,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	networkingv1alpha3 "istio.io/api/networking/v1alpha3"
-	networkingclient "istio.io/client-go/pkg/apis/networking/v1beta1"
+	networkingclient "istio.io/client-go/pkg/apis/networking/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -93,7 +93,6 @@ func TestTransformsEndpointsWithLocality(t *testing.T) {
 	regions := []string{locality1.Region, locality2.Region}
 	g.Expect(regions).To(gomega.ContainElement("R1"))
 	g.Expect(regions).To(gomega.ContainElement("R2"))
-
 }
 
 func TestTranslatesDestrulesFailoverPriority(t *testing.T) {
