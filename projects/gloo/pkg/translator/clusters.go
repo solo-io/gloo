@@ -71,7 +71,7 @@ func (t *translatorInstance) computeClusters(
 }
 
 // This function is intented to be used when translating a single upstream outside of the context of a full snapshot.
-// This happens in GGv2 krt implementation.
+// This happens in the kube gateway krt implementation.
 func (t *translatorInstance) TranslateCluster(
 	params plugins.Params,
 	upstream *v1.Upstream,

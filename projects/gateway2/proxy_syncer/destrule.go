@@ -141,7 +141,7 @@ func getLocalityLbSetting(trafficPolicy *v1alpha3.TrafficPolicy) *v1alpha3.Local
 	return localityLb
 }
 
-func getTraficPolicy(destrule *DestinationRuleWrapper, port uint32) *v1alpha3.TrafficPolicy {
+func getTrafficPolicy(destrule *DestinationRuleWrapper, port uint32) *v1alpha3.TrafficPolicy {
 	trafficPolicy := destrule.Spec.GetTrafficPolicy()
 	if trafficPolicy == nil {
 		return nil
