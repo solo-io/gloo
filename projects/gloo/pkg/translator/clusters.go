@@ -15,6 +15,8 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/api_conversion"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1_options "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
@@ -69,7 +71,7 @@ func (t *translatorInstance) computeClusters(
 }
 
 // This function is intented to be used when translating a single upstream outside of the context of a full snapshot.
-// This happens in GGv2 krt implementation.
+// This happens in the kube gateway krt implementation.
 func (t *translatorInstance) TranslateCluster(
 	params plugins.Params,
 	upstream *v1.Upstream,
@@ -155,6 +157,10 @@ func (t *translatorInstance) initializeCluster(
 		RespectDnsTtl:             upstream.GetRespectDnsTtl().GetValue(),
 		DnsRefreshRate:            dnsRefreshRate,
 		PreconnectPolicy:          preconnect,
+	}
+	// for kube gateway, use new stats name format
+	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
+		out.AltStatName = UpstreamToClusterStatsName(upstream)
 	}
 
 	if sslConfig := upstream.GetSslConfig(); sslConfig != nil {
