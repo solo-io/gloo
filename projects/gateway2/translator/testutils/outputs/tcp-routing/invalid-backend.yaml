@@ -1,3 +1,4 @@
+# Expected listeners when a TCPRoute contains an unsupported backendRef.
 ---
 listeners:
 - name: tcp
@@ -5,8 +6,6 @@ listeners:
   bindPort: 8080
   aggregateListener:
     httpResources: {}
-    tcpListeners:
-      - tcpListener: {}
 metadata:
   labels:
     created_by: gloo-kube-gateway-api
