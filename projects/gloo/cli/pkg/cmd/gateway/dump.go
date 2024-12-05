@@ -80,7 +80,7 @@ func getEnvoyStatsDump(opts *options.Options) error {
 
 	defer shutdownFunc()
 
-	return adminCli.StatsCmd(opts.Top.Ctx).WithStdout(os.Stdout).Run().Cause()
+	return adminCli.StatsCmd(opts.Top.Ctx, nil).WithStdout(os.Stdout).Run().Cause()
 }
 
 func getEnvoyFullDumpToDisk(opts *options.Options) (string, error) {

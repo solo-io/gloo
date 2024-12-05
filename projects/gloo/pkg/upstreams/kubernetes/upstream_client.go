@@ -12,10 +12,6 @@ import (
 	skkube "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 )
 
-// UpstreamNamePrefix is a prefix used to create/identify in-memory Upstreams for Kubernetes Services
-// It contains an invalid character so any accidental attempt to write to storage fails
-const UpstreamNamePrefix = "kube-svc:"
-
 const notImplementedErrMsg = "this operation is not supported by this client"
 
 func NewKubernetesUpstreamClient(serviceClient skkube.ServiceClient) v1.UpstreamClient {
