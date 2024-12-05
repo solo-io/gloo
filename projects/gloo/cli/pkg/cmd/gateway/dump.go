@@ -14,7 +14,6 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/spf13/cobra"
 )
 
@@ -92,11 +91,6 @@ func getEnvoyFullDumpToDisk(opts *options.Options) (string, error) {
 	proxyOutArchive := zip.NewWriter(proxyOutArchiveFile)
 	defer proxyOutArchiveFile.Close()
 	defer proxyOutArchive.Close()
-
-	proxyNamespace := opts.Metadata.GetNamespace()
-	if proxyNamespace == "" {
-		proxyNamespace = defaults.GlooSystem
-	}
 
 	adminCli, shutdownFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, kubectl.NewCli().WithKubeContext(opts.Top.KubeContext), opts.Proxy.Name, opts.Metadata.GetNamespace())
 	if err != nil {
