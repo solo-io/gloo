@@ -12,11 +12,13 @@ import (
 	"github.com/golang/protobuf/ptypes/any"
 	errors "github.com/rotisserie/eris"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
-// returns the name of the cluster created for a given upstream
+// UpstreamToClusterName converts an Upstream ref to a cluster name to be used in envoy.
 func UpstreamToClusterName(upstream *core.ResourceRef) string {
 
 	// For non-namespaced resources, return only name
@@ -28,12 +30,35 @@ func UpstreamToClusterName(upstream *core.ResourceRef) string {
 	return fmt.Sprintf("%s_%s", upstream.GetName(), upstream.GetNamespace())
 }
 
-// TODOzzz update this with the right logic
+// UpstreamToClusterStatsName gets a cluster stats name from which key info about the upstream can be parsed out.
+// Currently only kube-type upstreams are handled, and the rest will fall back to using the cluster name.
 func UpstreamToClusterStatsName(upstream *gloov1.Upstream) string {
-	return strings.ReplaceAll(UpstreamToClusterName(upstream.GetMetadata().Ref()), ":", "_")
+	statsName := UpstreamToClusterName(upstream.GetMetadata().Ref())
+
+	switch upstreamType := upstream.GetUpstreamType().(type) {
+	case *v1.Upstream_Kube:
+		upstreamName := upstream.GetMetadata().GetName()
+		// Add an identifying prefix if it's a "real" upstream (fake upstreams already have such a prefix).
+		if !kubernetes.IsFakeKubeUpstream(upstreamName) {
+			upstreamName = fmt.Sprintf("%s%s", kubernetes.KubeUpstreamStatsPrefix, upstreamName)
+		}
+		statsName = fmt.Sprintf("%s_%s_%s_%s_%v",
+			upstreamName,
+			upstream.GetMetadata().GetNamespace(),
+			upstreamType.Kube.GetServiceNamespace(),
+			upstreamType.Kube.GetServiceName(),
+			upstreamType.Kube.GetServicePort(),
+		)
+	}
+
+	// although envoy will do this before emitting stats, we sanitize here because some of our tests call
+	// this function to get expected stats names
+	return strings.ReplaceAll(statsName, ":", "_")
 }
 
-// returns the ref of the upstream for a given cluster
+// ClusterToUpstreamRef converts an envoy cluster name back to an upstream ref.
+// (this is currently only used in the tunneling plugin and the old UI)
+// This does the inverse of UpstreamToClusterName
 func ClusterToUpstreamRef(cluster string) (*core.ResourceRef, error) {
 
 	split := strings.Split(cluster, "_")

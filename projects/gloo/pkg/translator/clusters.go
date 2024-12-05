@@ -158,8 +158,8 @@ func (t *translatorInstance) initializeCluster(
 		DnsRefreshRate:            dnsRefreshRate,
 		PreconnectPolicy:          preconnect,
 	}
+	// for kube gateway, use new stats name format
 	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
-		//TODOzzz
 		out.AltStatName = UpstreamToClusterStatsName(upstream)
 	}
 
