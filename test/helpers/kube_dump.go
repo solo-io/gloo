@@ -376,7 +376,7 @@ func ControllerDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Wri
 					portforward.WithPorts(int(admin.AdminPort), int(admin.AdminPort)),
 				)
 				if err != nil {
-					fmt.Printf("error starting port forward to controller admin port: %f\n", err)
+					fmt.Printf("error starting port forward to controller admin port: %s\n", err.Error())
 				}
 
 				defer func() {
@@ -394,16 +394,16 @@ func ControllerDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Wri
 				krtSnapshotFile := fileAtPath(filepath.Join(namespaceOutDir, fmt.Sprintf("%s.krt_snapshot.log", podName)))
 				err = adminClient.KrtSnapshotCmd(ctx).WithStdout(krtSnapshotFile).WithStderr(os.Stderr).Run().Cause()
 				if err != nil {
-					fmt.Printf("error running krt snapshot command: %f\n", err)
+					fmt.Printf("error running krt snapshot command: %s\n", err.Error())
 				}
 
 				xdsSnapshotFile := fileAtPath(filepath.Join(namespaceOutDir, fmt.Sprintf("%s.xds_snapshot.log", podName)))
 				err = adminClient.XdsSnapshotCmd(ctx).WithStdout(xdsSnapshotFile).WithStderr(os.Stderr).Run().Cause()
 				if err != nil {
-					fmt.Printf("error running xds snapshot command: %f\n", err)
+					fmt.Printf("error running xds snapshot command: %s\n", err.Error())
 				}
 
-				fmt.Printf("finished dumping controller state\n")
+				fmt.Print("finished dumping controller state\n")
 			}
 		}
 	}
