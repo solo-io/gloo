@@ -26,7 +26,7 @@ To configure namespaces for Gloo Gateway to watch for Kubernetes services and Gl
 * `settings.watchNamespaces`: Create a static list of namespaces for Gloo Gateway to watch. This setting is recommended if you have a set of configuration namespaces that is unlikely to change often.
 * `settings.watchNamespaceSelectors.matchLabels` and `settings.watchNamespaceSelectors.matchExpressions`: Configure Gloo Gateway to watch namespaces based on a namespace selector, such as a label or an expression. This setting helps you dynamically determine the list of namespaces to watch, instead of using a static list of namespaces that you must update if you need to add or remove a namespace.
 
-For example, to dynamically watch namespaces based on selectors, your Helm settings might look like the following:
+For example, to dynamically watch namespaces that have the `gloo-translate: enabled` label, the `env: prod` label, or the `env: dev` label, your Helm settings might look like the following.
 ```yaml
 ...
 settings:
