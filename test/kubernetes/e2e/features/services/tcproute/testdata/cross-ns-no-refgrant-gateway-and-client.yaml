@@ -1,22 +1,13 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: multi-tcp-gateway
+  name: gateway
 spec:
   gatewayClassName: gloo-gateway
   listeners:
-  - name: listener-8088
-    protocol: TCP
-    port: 8088
-    allowedRoutes:
-      kinds:
-      - kind: TCPRoute
-  - name: listener-8089
-    protocol: TCP
-    port: 8089
-    allowedRoutes:
-      kinds:
-      - kind: TCPRoute
+    - name: listener-8080
+      port: 8080
+      protocol: TCP
 ---
 apiVersion: v1
 kind: Pod
