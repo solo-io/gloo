@@ -1,5 +1,5 @@
 changelog:
-  - type: BREAKING_CHANGE
+  - type: FIX
     issueLink: https://github.com/solo-io/solo-projects/issues/7105
     resolvesIssue: false
     description: >-
