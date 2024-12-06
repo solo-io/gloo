@@ -83,7 +83,7 @@ var (
 		Short: "Debug Gloo (requires Gloo running on Kubernetes)",
 		Long: "Dumps state information to a local directory (or to stdout, for some subcommands). " +
 			"This is useful for debugging failures. " +
-			"If no subcommand is specified, all state information from the `kube`, `gloo`, and `envoy` subcommands will be included. " +
+			"If no subcommand is specified, this command dumps all the state information from the `kube`, `gloo`, and `envoy` subcommands. " +
 			"See the subcommand descriptions for more details.",
 	}
 
@@ -101,10 +101,11 @@ var (
 	DEBUG_KUBE_COMMAND = cobra.Command{
 		Use:     "kube",
 		Aliases: []string{"kubernetes", "k8s"},
-		Short:   "Dump kubernetes state to a local directory (requires Gloo running on Kubernetes)",
-		Long: "Dump kubernetes state to a local directory (requires Gloo running on Kubernetes). " +
+		Short:   "Dump Kubernetes state to a local directory (requires Gloo running on Kubernetes)",
+		Long: "Dump Kubernetes state to a local directory (requires Gloo running on Kubernetes). " +
 			"This is useful for debugging failures. " +
-			"The dump includes: kubernetes cluster state, logs from all pods in the given namespaces, and yaml representations of all solo.io CRs in the given namespaces.",
+			"The dump includes the Kubernetes cluster state, logs from all pods in the given namespaces, " +
+			"and YAML manifests of all solo.io CR in the given namespaces.",
 	}
 
 	DEBUG_GLOO_COMMAND = cobra.Command{
@@ -117,8 +118,8 @@ var (
 
 	DEBUG_ENVOY_COMMAND = cobra.Command{
 		Use:   "envoy",
-		Short: "Dump envoy admin interface to a local directory (requires Gloo running on Kubernetes)",
-		Long: "Dump envoy admin interface to a local directory (requires Gloo running on Kubernetes). " +
+		Short: "Dump information from the Envoy admin interface for gateway proxies to a local directory (requires Gloo running on Kubernetes)",
+		Long: "Dump information from the Envoy admin interface for any gateway proxies in the given namespaces to a local directory (requires Gloo running on Kubernetes). " +
 			"This is useful for debugging failures. " +
 			"The dump includes the envoy config dump, stats, clusters, and listeners.",
 	}

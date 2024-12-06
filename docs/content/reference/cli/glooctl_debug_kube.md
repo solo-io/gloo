@@ -5,11 +5,11 @@ weight: 5
 ---
 ## glooctl debug kube
 
-Dump kubernetes state to a local directory (requires Gloo running on Kubernetes)
+Dump Kubernetes state to a local directory (requires Gloo running on Kubernetes)
 
 ### Synopsis
 
-Dump kubernetes state to a local directory (requires Gloo running on Kubernetes). This is useful for debugging failures. The dump includes: kubernetes cluster state, logs from all pods in the given namespaces, and yaml representations of all solo.io CRs in the given namespaces.
+Dump Kubernetes state to a local directory (requires Gloo running on Kubernetes). This is useful for debugging failures. The dump includes the Kubernetes cluster state, logs from all pods in the given namespaces, and YAML manifests of all solo.io CR in the given namespaces.
 
 ```
 glooctl debug kube [flags]
