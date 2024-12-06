@@ -93,7 +93,6 @@ func TestTransformsEndpointsWithLocality(t *testing.T) {
 	regions := []string{locality1.Region, locality2.Region}
 	g.Expect(regions).To(gomega.ContainElement("R1"))
 	g.Expect(regions).To(gomega.ContainElement("R2"))
-
 }
 
 func TestTranslatesDestrulesFailoverPriority(t *testing.T) {

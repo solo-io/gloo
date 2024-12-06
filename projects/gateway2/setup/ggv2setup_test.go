@@ -239,12 +239,11 @@ func TestScenarios(t *testing.T) {
 						t.Logf("krt state for failed test: %s %s", t.Name(), string(j))
 					}
 				})
-				//sadly tests can't run yet in parallel, as ggv2 will add all the k8s services as clusters. this means
+				// sadly tests can't run yet in parallel, as ggv2 will add all the k8s services as clusters. this means
 				// that we get test pollution.
 				// once we change it to only include the ones in the proxy, we can re-enable this
 				//				t.Parallel()
 				testScenario(t, ctx, setupOpts.KrtDebugger, snapCache, client, xdsPort, fullpath)
-
 			})
 		}
 	}
@@ -265,6 +264,9 @@ func testScenario(t *testing.T, ctx context.Context, kdbg *krt.DebugHandler, sna
 	if err != nil {
 		t.Fatalf("failed to read file: %v", err)
 	}
+	if os.Getenv("REFRESH_GOLDEN") != "" {
+		write = true
+	}
 	var expectedXdsDump xdsDump
 	err = expectedXdsDump.FromYaml(ya)
 	if err != nil {
@@ -281,7 +283,7 @@ func testScenario(t *testing.T, ctx context.Context, kdbg *krt.DebugHandler, sna
 	testyaml := strings.ReplaceAll(string(testyamlbytes), gwname, testgwname)
 
 	yamlfile := filepath.Join(t.TempDir(), "test.yaml")
-	os.WriteFile(yamlfile, []byte(testyaml), 0644)
+	os.WriteFile(yamlfile, []byte(testyaml), 0o644)
 
 	err = client.ApplyYAMLFiles("", yamlfile)
 	defer func() {
@@ -316,7 +318,7 @@ func testScenario(t *testing.T, ctx context.Context, kdbg *krt.DebugHandler, sna
 		if err != nil {
 			t.Fatalf("failed to serialize xdsDump: %v", err)
 		}
-		os.WriteFile(fout, d, 0644)
+		os.WriteFile(fout, d, 0o644)
 		t.Fatal("wrote out file - nothing to test")
 	}
 	dump.Compare(t, expectedXdsDump)
@@ -356,7 +358,8 @@ func newXdsDumper(t *testing.T, ctx context.Context, xdsPort int, gwname string)
 		dr: &discovery_v3.DiscoveryRequest{Node: &envoycore.Node{
 			Id: "gateway.gwtest",
 			Metadata: &structpb.Struct{
-				Fields: map[string]*structpb.Value{"role": {Kind: &structpb.Value_StringValue{StringValue: fmt.Sprintf("gloo-kube-gateway-api~%s~%s-%s", "gwtest", "gwtest", gwname)}}}},
+				Fields: map[string]*structpb.Value{"role": {Kind: &structpb.Value_StringValue{StringValue: fmt.Sprintf("gloo-kube-gateway-api~%s~%s-%s", "gwtest", "gwtest", gwname)}}},
+			},
 		}},
 	}
 
@@ -373,7 +376,6 @@ func newXdsDumper(t *testing.T, ctx context.Context, xdsPort int, gwname string)
 }
 
 func (x xdsDumper) Dump(t *testing.T, ctx context.Context) xdsDump {
-
 	dr := proto.Clone(x.dr).(*discovery_v3.DiscoveryRequest)
 	dr.TypeUrl = "type.googleapis.com/envoy.config.cluster.v3.Cluster"
 	x.adsClient.Send(dr)

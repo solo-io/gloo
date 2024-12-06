@@ -13,7 +13,6 @@ import (
 )
 
 func TestApplyDestRulesForUpstream(t *testing.T) {
-
 	destRule := &networkingclient.DestinationRule{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "networking.istio.io/v1alpha3",
@@ -57,5 +56,4 @@ func TestApplyDestRulesForUpstream(t *testing.T) {
 	if u.OutlierDetection.BaseEjectionTime.Seconds != 900 {
 		t.Errorf("expected base ejection time to be set")
 	}
-
 }
