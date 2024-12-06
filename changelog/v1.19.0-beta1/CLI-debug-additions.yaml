@@ -1,5 +1,0 @@
-changelog:
-- type: NEW_FEATURE
-  description: Adds a new top level `glooctl debug` CLI command as well as subcommands which collect kubernetes, gloo controller, and envoy state information to aid in debugging failures.
-  issueLink: https://github.com/solo-io/solo-projects/issues/7298
-  resolvesIssue: false
