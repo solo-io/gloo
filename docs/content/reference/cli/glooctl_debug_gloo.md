@@ -1,24 +1,24 @@
 ---
-title: "glooctl debug logs"
-description: "Reference for the 'glooctl debug logs' command."
+title: "glooctl debug gloo"
+description: "Reference for the 'glooctl debug gloo' command."
 weight: 5
 ---
-## glooctl debug logs
+## glooctl debug gloo
 
-Debug Gloo logs (requires Gloo running on Kubernetes)
+Dump Gloo Gateway controller state to a local directory (requires Gloo running on Kubernetes)
+
+### Synopsis
+
+Dump Gloo Gateway controller state to a local directory (requires Gloo running on Kubernetes). This is useful for debugging failures. The dump includes the gloo controller logs, metrics, xds snapshot, and krt snapshot.
 
 ```
-glooctl debug logs [flags]
+glooctl debug gloo [flags]
 ```
 
 ### Options
 
 ```
-      --errors-only        filter for error logs only
-  -f, --file string        file to be read or written to
-  -h, --help               help for logs
-  -n, --namespace string   namespace for reading or writing resources (default "gloo-system")
-      --zip                save logs to a tar file (specify location with -f)
+  -h, --help   help for gloo
 ```
 
 ### Options inherited from parent commands

@@ -30,7 +30,7 @@ glooctl proxy dump [flags]
   -i, --interactive                use interactive mode
       --kube-context string        kube context to use when interacting with kubernetes
       --kubeconfig string          kubeconfig to use, if not standard one
-      --name string                the name of the proxy service/deployment to use (default "gateway-proxy")
+      --name string                the name of the proxy pod/deployment to use
   -n, --namespace string           namespace for reading or writing resources (default "gloo-system")
       --port string                the name of the service port to connect to (default "http")
       --use-consul                 use Consul Key-Value storage as the backend for reading and writing config (VirtualServices, Upstreams, and Proxies)

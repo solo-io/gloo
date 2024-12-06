@@ -1,24 +1,24 @@
 ---
-title: "glooctl debug logs"
-description: "Reference for the 'glooctl debug logs' command."
+title: "glooctl debug kube"
+description: "Reference for the 'glooctl debug kube' command."
 weight: 5
 ---
-## glooctl debug logs
+## glooctl debug kube
 
-Debug Gloo logs (requires Gloo running on Kubernetes)
+Dump Kubernetes state to a local directory (requires Gloo running on Kubernetes)
+
+### Synopsis
+
+Dump Kubernetes state to a local directory (requires Gloo running on Kubernetes). This is useful for debugging failures. The dump includes the Kubernetes cluster state, logs from all pods in the given namespaces, and YAML manifests of all solo.io CR in the given namespaces.
 
 ```
-glooctl debug logs [flags]
+glooctl debug kube [flags]
 ```
 
 ### Options
 
 ```
-      --errors-only        filter for error logs only
-  -f, --file string        file to be read or written to
-  -h, --help               help for logs
-  -n, --namespace string   namespace for reading or writing resources (default "gloo-system")
-      --zip                save logs to a tar file (specify location with -f)
+  -h, --help   help for kube
 ```
 
 ### Options inherited from parent commands

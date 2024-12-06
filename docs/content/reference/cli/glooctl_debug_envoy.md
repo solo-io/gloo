@@ -1,24 +1,24 @@
 ---
-title: "glooctl debug logs"
-description: "Reference for the 'glooctl debug logs' command."
+title: "glooctl debug envoy"
+description: "Reference for the 'glooctl debug envoy' command."
 weight: 5
 ---
-## glooctl debug logs
+## glooctl debug envoy
 
-Debug Gloo logs (requires Gloo running on Kubernetes)
+Dump information from the Envoy admin interface for gateway proxies to a local directory (requires Gloo running on Kubernetes)
+
+### Synopsis
+
+Dump information from the Envoy admin interface for any gateway proxies in the given namespaces to a local directory (requires Gloo running on Kubernetes). This is useful for debugging failures. The dump includes the envoy config dump, stats, clusters, and listeners.
 
 ```
-glooctl debug logs [flags]
+glooctl debug envoy [flags]
 ```
 
 ### Options
 
 ```
-      --errors-only        filter for error logs only
-  -f, --file string        file to be read or written to
-  -h, --help               help for logs
-  -n, --namespace string   namespace for reading or writing resources (default "gloo-system")
-      --zip                save logs to a tar file (specify location with -f)
+  -h, --help   help for envoy
 ```
 
 ### Options inherited from parent commands
