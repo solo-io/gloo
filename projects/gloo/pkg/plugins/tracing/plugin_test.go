@@ -6,6 +6,7 @@ import (
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoytrace "github.com/envoyproxy/go-control-plane/envoy/config/trace/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	envoy_type_metadata_v3 "github.com/envoyproxy/go-control-plane/envoy/type/metadata/v3"
 	envoytracing "github.com/envoyproxy/go-control-plane/envoy/type/tracing/v3"
 	envoy_type "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	"github.com/golang/protobuf/ptypes"
@@ -94,6 +95,34 @@ var _ = Describe("Plugin", func() {
 						Value: &wrappers.StringValue{Value: "bar"},
 					},
 				},
+				MetadataForTags: []*tracing.TracingTagMetadata{
+					{
+						Tag:  "envoy.metadata.foo",
+						Kind: tracing.TracingTagMetadata_REQUEST,
+						Value: &tracing.TracingTagMetadata_MetadataValue{
+							Namespace: "namespace",
+							Key:       "nested.key",
+						},
+					},
+					{
+						Tag:  "envoy.metadata.bar",
+						Kind: tracing.TracingTagMetadata_ENDPOINT,
+						Value: &tracing.TracingTagMetadata_MetadataValue{
+							Namespace: "namespace",
+							Key:       "nested.key",
+						},
+					},
+					{
+						Tag:          "envoy.metadata.baz",
+						Kind:         tracing.TracingTagMetadata_REQUEST,
+						DefaultValue: "default",
+						Value: &tracing.TracingTagMetadata_MetadataValue{
+							Namespace:            "namespace",
+							Key:                  "nested:key",
+							NestedFieldDelimiter: ":",
+						},
+					},
+				},
 				Verbose: &wrappers.BoolValue{Value: true},
 				TracePercentages: &tracing.TracePercentages{
 					ClientSamplePercentage:  &wrappers.FloatValue{Value: 10},
@@ -108,6 +137,7 @@ var _ = Describe("Plugin", func() {
 		Expect(err).NotTo(HaveOccurred())
 		expected := &envoyhttp.HttpConnectionManager{
 			Tracing: &envoyhttp.HttpConnectionManager_Tracing{
+				SpawnUpstreamSpan: &wrappers.BoolValue{Value: false},
 				CustomTags: []*envoytracing.CustomTag{
 					{
 						Tag: "header1",
@@ -150,6 +180,88 @@ var _ = Describe("Plugin", func() {
 							},
 						},
 					},
+					{
+						Tag: "envoy.metadata.foo",
+						Type: &envoytracing.CustomTag_Metadata_{
+							Metadata: &envoytracing.CustomTag_Metadata{
+								MetadataKey: &envoy_type_metadata_v3.MetadataKey{
+									Key: "namespace",
+									Path: []*envoy_type_metadata_v3.MetadataKey_PathSegment{
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "nested",
+											},
+										},
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "key",
+											},
+										},
+									},
+								},
+								Kind: &envoy_type_metadata_v3.MetadataKind{
+									Kind: &envoy_type_metadata_v3.MetadataKind_Request_{
+										Request: &envoy_type_metadata_v3.MetadataKind_Request{},
+									},
+								},
+							},
+						},
+					},
+					{
+						Tag: "envoy.metadata.bar",
+						Type: &envoytracing.CustomTag_Metadata_{
+							Metadata: &envoytracing.CustomTag_Metadata{
+								MetadataKey: &envoy_type_metadata_v3.MetadataKey{
+									Key: "namespace",
+									Path: []*envoy_type_metadata_v3.MetadataKey_PathSegment{
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "nested",
+											},
+										},
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "key",
+											},
+										},
+									},
+								},
+								Kind: &envoy_type_metadata_v3.MetadataKind{
+									Kind: &envoy_type_metadata_v3.MetadataKind_Host_{
+										Host: &envoy_type_metadata_v3.MetadataKind_Host{},
+									},
+								},
+							},
+						},
+					},
+					{
+						Tag: "envoy.metadata.baz",
+						Type: &envoytracing.CustomTag_Metadata_{
+							Metadata: &envoytracing.CustomTag_Metadata{
+								MetadataKey: &envoy_type_metadata_v3.MetadataKey{
+									Key: "namespace",
+									Path: []*envoy_type_metadata_v3.MetadataKey_PathSegment{
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "nested",
+											},
+										},
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "key",
+											},
+										},
+									},
+								},
+								DefaultValue: "default",
+								Kind: &envoy_type_metadata_v3.MetadataKind{
+									Kind: &envoy_type_metadata_v3.MetadataKind_Request_{
+										Request: &envoy_type_metadata_v3.MetadataKind_Request{},
+									},
+								},
+							},
+						},
+					},
 				},
 				ClientSampling:  &envoy_type.Percent{Value: 10},
 				RandomSampling:  &envoy_type.Percent{Value: 20},
@@ -171,11 +283,35 @@ var _ = Describe("Plugin", func() {
 		Expect(err).NotTo(HaveOccurred())
 		expected := &envoyhttp.HttpConnectionManager{
 			Tracing: &envoyhttp.HttpConnectionManager_Tracing{
-				ClientSampling:  &envoy_type.Percent{Value: 100},
-				RandomSampling:  &envoy_type.Percent{Value: 100},
-				OverallSampling: &envoy_type.Percent{Value: 100},
-				Verbose:         false,
-				Provider:        nil,
+				ClientSampling:    &envoy_type.Percent{Value: 100},
+				RandomSampling:    &envoy_type.Percent{Value: 100},
+				OverallSampling:   &envoy_type.Percent{Value: 100},
+				Verbose:           false,
+				Provider:          nil,
+				SpawnUpstreamSpan: &wrappers.BoolValue{Value: false},
+			},
+		}
+		Expect(cfg).To(Equal(expected))
+	})
+
+	It("should properly set spawn_upstream_span", func() {
+		cfg := &envoyhttp.HttpConnectionManager{}
+		hcmSettings = &hcm.HttpConnectionManagerSettings{
+			Tracing: &tracing.ListenerTracingSettings{
+				SpawnUpstreamSpan: true,
+			},
+		}
+
+		err := processHcmNetworkFilter(cfg)
+		Expect(err).NotTo(HaveOccurred())
+		expected := &envoyhttp.HttpConnectionManager{
+			Tracing: &envoyhttp.HttpConnectionManager_Tracing{
+				ClientSampling:    &envoy_type.Percent{Value: 100},
+				RandomSampling:    &envoy_type.Percent{Value: 100},
+				OverallSampling:   &envoy_type.Percent{Value: 100},
+				Verbose:           false,
+				Provider:          nil,
+				SpawnUpstreamSpan: &wrappers.BoolValue{Value: true},
 			},
 		}
 		Expect(cfg).To(Equal(expected))
@@ -766,6 +902,47 @@ var _ = Describe("Plugin", func() {
 						},
 					},
 					ServiceName: "gateway",
+				}
+				expectedEnvoyConfigMarshalled, _ := ptypes.MarshalAny(expectedEnvoyConfig)
+				expectedEnvoyTracingProvider := &envoytrace.Tracing_Http{
+					Name: "envoy.tracers.opentelemetry",
+					ConfigType: &envoytrace.Tracing_Http_TypedConfig{
+						TypedConfig: expectedEnvoyConfigMarshalled,
+					},
+				}
+				Expect(cfg.Tracing.Provider.GetName()).To(Equal(expectedEnvoyTracingProvider.GetName()))
+				Expect(cfg.Tracing.Provider.GetTypedConfig()).To(Equal(expectedEnvoyTracingProvider.GetTypedConfig()))
+			})
+
+			It("can override the service_name", func() {
+				testClusterName := "test-cluster"
+				otelConfig := &envoytrace_gloo.OpenTelemetryConfig{
+					CollectorCluster: &envoytrace_gloo.OpenTelemetryConfig_ClusterName{
+						ClusterName: testClusterName,
+					},
+					ServiceName: "custom-service-name",
+				}
+
+				cfg := &envoyhttp.HttpConnectionManager{}
+				hcmSettings = &hcm.HttpConnectionManagerSettings{
+					Tracing: &tracing.ListenerTracingSettings{
+						ProviderConfig: &tracing.ListenerTracingSettings_OpenTelemetryConfig{
+							OpenTelemetryConfig: otelConfig,
+						},
+					},
+				}
+				err := processHcmNetworkFilter(cfg)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedEnvoyConfig := &envoytrace.OpenTelemetryConfig{
+					GrpcService: &envoy_config_core_v3.GrpcService{
+						TargetSpecifier: &envoy_config_core_v3.GrpcService_EnvoyGrpc_{
+							EnvoyGrpc: &envoy_config_core_v3.GrpcService_EnvoyGrpc{
+								ClusterName: testClusterName,
+							},
+						},
+					},
+					ServiceName: "custom-service-name",
 				}
 				expectedEnvoyConfigMarshalled, _ := ptypes.MarshalAny(expectedEnvoyConfig)
 				expectedEnvoyTracingProvider := &envoytrace.Tracing_Http{

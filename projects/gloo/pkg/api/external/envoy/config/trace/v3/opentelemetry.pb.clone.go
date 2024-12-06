@@ -35,6 +35,8 @@ func (m *OpenTelemetryConfig) Clone() proto.Message {
 	}
 	target = &OpenTelemetryConfig{}
 
+	target.ServiceName = m.GetServiceName()
+
 	switch m.CollectorCluster.(type) {
 
 	case *OpenTelemetryConfig_CollectorUpstreamRef:

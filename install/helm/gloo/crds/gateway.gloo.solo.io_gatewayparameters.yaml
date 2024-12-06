@@ -267,6 +267,24 @@ spec:
                               type: object
                             type: array
                         type: object
+                      tracing:
+                        properties:
+                          grpc:
+                            properties:
+                              host:
+                                minLength: 1
+                                type: string
+                              port:
+                                format: int32
+                                minimum: 1
+                                type: integer
+                            required:
+                            - host
+                            - port
+                            type: object
+                          insecure:
+                            type: boolean
+                        type: object
                     type: object
                   deployment:
                     properties:
