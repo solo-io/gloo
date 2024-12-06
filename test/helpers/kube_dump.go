@@ -287,8 +287,9 @@ func recordCRs(namespaceDir string, namespace string) error {
 				errF.WriteString(errOutput)
 				errF.Close()
 			}
-
-			return err
+			if err != nil {
+				return err
+			}
 		}
 	}
 
