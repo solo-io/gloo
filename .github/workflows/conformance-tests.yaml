@@ -33,12 +33,27 @@ jobs:
           - ${{ inputs.image-variant }}
         version:
           - ${{ inputs.version }}
+        version-files:
+          - label: 'min'
+            file: './.github/workflows/.env/pr-tests/min_versions.env'
+          - label: 'max'
+            file: './.github/workflows/.env/pr-tests/max_versions.env'
     steps:
+      # Checkout the branch that initiated the action
       - name: Checkout Repository
         uses: actions/checkout@v4
-
+      # The dotenv action is used to load key-value pairs from files.
+      # In this case, the file is specified in the matrix and will contain the versions of the tools to use
+      - name: Dotenv Action
+        uses: falti/dotenv-action@v1.1.4
+        id: dotenv
+        with:
+          path: ${{ matrix.version-files.file }}
+          log-variables: true
+      # Run the k8s gateway api conformance tests
       - name: Run Conformance Tests
         uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
-
+        with:
+          k8sgateway-api-version: ${{ steps.dotenv.outputs.k8sgateway_api_version }}
       # TODO(tim): Add support for downloading the test results and creating
       # a pull request whenever a new release > 1.17+ is cut.
