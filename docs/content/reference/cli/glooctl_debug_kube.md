@@ -41,5 +41,5 @@ glooctl debug kube [flags]
 
 ### SEE ALSO
 
-* [glooctl debug](../glooctl_debug)	 - Debug Gloo (requires Gloo running on Kubernetes)
+* [glooctl debug](../glooctl_debug)	 - Debug Gloo Gateway (requires Gloo running on Kubernetes)
 

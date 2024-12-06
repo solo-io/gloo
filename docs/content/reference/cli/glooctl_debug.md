@@ -5,7 +5,7 @@ weight: 5
 ---
 ## glooctl debug
 
-Debug Gloo (requires Gloo running on Kubernetes)
+Debug Gloo Gateway (requires Gloo running on Kubernetes)
 
 ### Synopsis
 
