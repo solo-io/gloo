@@ -10,74 +10,15 @@ import (
 )
 
 const (
-	defaultTestServerImage = "quay.io/solo-io/testrunner:v1.7.0-beta17"
+	defaultTestServerImage = "gcr.io/solo-test-236622/testrunner:v1.7.0-beta18"
 	TestServerName         = "testserver"
 	TestServerPort         = 1234
 
 	// This response is given by the testserver when the SimpleServer is started
 	SimpleHttpResponse = `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"><html>
-<title>Directory listing for /</title>
-<body>
-<h2>Directory listing for /</h2>
-<hr>
-<ul>
-<li><a href="bin/">bin/</a>
-<li><a href="boot/">boot/</a>
-<li><a href="dev/">dev/</a>
-<li><a href="etc/">etc/</a>
-<li><a href="home/">home/</a>
-<li><a href="lib/">lib/</a>
-<li><a href="lib64/">lib64/</a>
-<li><a href="media/">media/</a>
-<li><a href="mnt/">mnt/</a>
-<li><a href="opt/">opt/</a>
-<li><a href="proc/">proc/</a>
-<li><a href="product_name">product_name</a>
-<li><a href="product_uuid">product_uuid</a>
-<li><a href="root/">root/</a>
-<li><a href="root.crt">root.crt</a>
-<li><a href="run/">run/</a>
-<li><a href="sbin/">sbin/</a>
-<li><a href="srv/">srv/</a>
-<li><a href="sys/">sys/</a>
-<li><a href="tmp/">tmp/</a>
-<li><a href="usr/">usr/</a>
-<li><a href="var/">var/</a>
-</ul>
-<hr>
-</body>
-</html>`
+<title>Directory listing for /</title>`
 	SimpleHttpResponseArm = `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"><html>
-<title>Directory listing for /</title>
-<body>
-<h2>Directory listing for /</h2>
-<hr>
-<ul>
-<li><a href="bin/">bin/</a>
-<li><a href="boot/">boot/</a>
-<li><a href="dev/">dev/</a>
-<li><a href="etc/">etc/</a>
-<li><a href="home/">home/</a>
-<li><a href="lib/">lib/</a>
-<li><a href="lib64/">lib64/</a>
-<li><a href="media/">media/</a>
-<li><a href="mnt/">mnt/</a>
-<li><a href="opt/">opt/</a>
-<li><a href="proc/">proc/</a>
-<li><a href="product_uuid">product_uuid</a>
-<li><a href="root/">root/</a>
-<li><a href="root.crt">root.crt</a>
-<li><a href="run/">run/</a>
-<li><a href="sbin/">sbin/</a>
-<li><a href="srv/">srv/</a>
-<li><a href="sys/">sys/</a>
-<li><a href="tmp/">tmp/</a>
-<li><a href="usr/">usr/</a>
-<li><a href="var/">var/</a>
-</ul>
-<hr>
-</body>
-</html>`
+<title>Directory listing for /</title>`
 )
 
 // tests relying on the test server should be ported using the default nginx deployment located at
