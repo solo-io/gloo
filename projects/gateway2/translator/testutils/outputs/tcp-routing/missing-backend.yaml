@@ -1,9 +1,8 @@
+# Expected listeners when a TCPRoute references a non-existent Service as a backendRef.
 ---
 listeners:
 - aggregateListener:
     httpResources: {}
-    tcpListeners:
-    - tcpListener: {}
   bindAddress: '::'
   bindPort: 8080
   name: tcp

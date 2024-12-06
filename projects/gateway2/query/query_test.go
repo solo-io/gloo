@@ -36,7 +36,7 @@ var _ = Describe("Query", func() {
 	}
 
 	BeforeEach(func() {
-		scheme = schemes.TestingScheme()
+		scheme = schemes.GatewayScheme()
 		builder = fake.NewClientBuilder().WithScheme(scheme)
 		err := query.IterateIndices(func(o client.Object, f string, fun client.IndexerFunc) error {
 			builder.WithIndex(o, f, fun)
@@ -721,6 +721,98 @@ var _ = Describe("Query", func() {
 			Expect(routes.ListenerResults["foo-tcp"].Routes).To(HaveLen(1))
 			Expect(routes.ListenerResults["bar"].Routes).To(BeEmpty())
 		})
+
+		It("should get service from same namespace with TCPRoute", func() {
+			fakeClient := fake.NewFakeClient(svc("default"))
+
+			gq := query.NewData(fakeClient, scheme)
+			ref := &apiv1.BackendObjectReference{
+				Name: "foo",
+			}
+
+			fromTCPRoute := tcpRoute("test-tcp-route", "default")
+
+			backend, err := gq.GetBackendForRef(context.Background(), tofrom(fromTCPRoute), ref)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(backend).NotTo(BeNil())
+			Expect(backend.GetName()).To(Equal("foo"))
+			Expect(backend.GetNamespace()).To(Equal("default"))
+		})
+
+		It("should get service from different ns with TCPRoute if we have a ref grant", func() {
+			rg := refGrantForTCPRoute()
+			fakeClient := builder.WithObjects(svc("default2"), rg).Build()
+			gq := query.NewData(fakeClient, scheme)
+			ref := &apiv1.BackendObjectReference{
+				Name:      "foo",
+				Namespace: nsptr("default2"),
+			}
+
+			fromTCPRoute := tcpRoute("test-tcp-route", "default")
+
+			backend, err := gq.GetBackendForRef(context.Background(), tofrom(fromTCPRoute), ref)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(backend).NotTo(BeNil())
+			Expect(backend.GetName()).To(Equal("foo"))
+			Expect(backend.GetNamespace()).To(Equal("default2"))
+		})
+
+		It("should fail getting a service from different ns with TCPRoute when no ref grant", func() {
+			fakeClient := builder.WithObjects(svc("default2")).Build()
+			gq := query.NewData(fakeClient, scheme)
+			ref := &apiv1.BackendObjectReference{
+				Name:      "foo",
+				Namespace: nsptr("default2"),
+			}
+
+			fromTCPRoute := tcpRoute("test-tcp-route", "default")
+
+			backend, err := gq.GetBackendForRef(context.Background(), tofrom(fromTCPRoute), ref)
+			Expect(err).To(MatchError(query.ErrMissingReferenceGrant))
+			Expect(backend).To(BeNil())
+		})
+
+		It("should fail getting a service with TCPRoute when ref grant has wrong from", func() {
+			rg := &apiv1beta1.ReferenceGrant{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "default2",
+					Name:      "foo",
+				},
+				Spec: apiv1beta1.ReferenceGrantSpec{
+					From: []apiv1beta1.ReferenceGrantFrom{
+						{
+							Group:     apiv1.Group(apiv1a2.GroupName),
+							Kind:      apiv1.Kind("NotTCPRoute"),
+							Namespace: apiv1.Namespace("default"),
+						},
+						{
+							Group:     apiv1.Group(apiv1a2.GroupName),
+							Kind:      apiv1.Kind("TCPRoute"),
+							Namespace: apiv1.Namespace("default2"),
+						},
+					},
+					To: []apiv1beta1.ReferenceGrantTo{
+						{
+							Group: apiv1.Group("core"),
+							Kind:  apiv1.Kind("Service"),
+						},
+					},
+				},
+			}
+			fakeClient := builder.WithObjects(rg, svc("default2")).Build()
+
+			gq := query.NewData(fakeClient, scheme)
+			ref := &apiv1.BackendObjectReference{
+				Name:      "foo",
+				Namespace: nsptr("default2"),
+			}
+
+			fromTCPRoute := tcpRoute("test-tcp-route", "default")
+
+			backend, err := gq.GetBackendForRef(context.Background(), tofrom(fromTCPRoute), ref)
+			Expect(err).To(MatchError(query.ErrMissingReferenceGrant))
+			Expect(backend).To(BeNil())
+		})
 	})
 })
 
@@ -828,4 +920,28 @@ func tcpRoute(name, ns string) *apiv1a2.TCPRoute {
 func nsptr(s string) *apiv1.Namespace {
 	var ns apiv1.Namespace = apiv1.Namespace(s)
 	return &ns
+}
+
+func refGrantForTCPRoute() *apiv1beta1.ReferenceGrant {
+	return &apiv1beta1.ReferenceGrant{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "default2",
+			Name:      "foo",
+		},
+		Spec: apiv1beta1.ReferenceGrantSpec{
+			From: []apiv1beta1.ReferenceGrantFrom{
+				{
+					Group:     apiv1.Group(apiv1a2.GroupName),
+					Kind:      apiv1.Kind("TCPRoute"),
+					Namespace: apiv1.Namespace("default"),
+				},
+			},
+			To: []apiv1beta1.ReferenceGrantTo{
+				{
+					Group: apiv1.Group("core"),
+					Kind:  apiv1.Kind("Service"),
+				},
+			},
+		},
+	}
 }

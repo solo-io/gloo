@@ -2,7 +2,6 @@ apiVersion: gateway.networking.k8s.io/v1alpha2
 kind: TCPRoute
 metadata:
   name: tcp-route-1
-  namespace: multi-tcp-route
 spec:
   parentRefs:
   - name: multi-tcp-gateway
@@ -17,7 +16,6 @@ apiVersion: gateway.networking.k8s.io/v1alpha2
 kind: TCPRoute
 metadata:
   name: tcp-route-2
-  namespace: multi-tcp-route
 spec:
   parentRefs:
   - name: multi-tcp-gateway
