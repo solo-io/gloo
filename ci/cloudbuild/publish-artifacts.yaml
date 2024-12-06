@@ -100,14 +100,15 @@ steps:
   waitFor:
   - 'gcr-auth'
 
-# Run make targets to retag and push docker images to GCR
+# Run make targets to build and push docker images to GCR
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.10.2'
-  id: 'docker-push-extended-gcr'
+  id: 'publish-docker-extended-gcr'
   dir: *dir
   args:
-  - 'publish-docker-retag'
+  - publish-docker
   env:
-  - 'ORIGINAL_IMAGE_REGISTRY=quay.io/solo-io'
+  - 'MULTIARCH=true'
+  - 'MULTIARCH_PUSH=true'
   - 'IMAGE_REGISTRY=gcr.io/gloo-edge'
   secretEnv:
   - 'GITHUB_TOKEN'
