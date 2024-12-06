@@ -33,6 +33,25 @@ const (
 	multiSvc2Name            = "multi-svc-2"
 	multiSvcTCPRouteName1    = "tcp-route-1"
 	multiSvcTCPRouteName2    = "tcp-route-2"
+
+	// Constants for CrossNamespaceTCPRouteWithReferenceGrant
+	crossNsTestName           = "CrossNamespaceTCPRouteWithReferenceGrant"
+	crossNsClientName         = "cross-namespace-allowed-client-ns"
+	crossNsBackendNsName      = "cross-namespace-allowed-backend-ns"
+	crossNsGatewayName        = "gateway"
+	crossNsListenerName       = "listener-8080"
+	crossNsBackendSvcName     = "backend-svc"
+	crossNsTCPRouteName       = "tcp-route"
+	crossNsReferenceGrantName = "reference-grant"
+
+	// Constants for CrossNamespaceTCPRouteWithoutReferenceGrant
+	crossNsNoRefGrantTestName       = "CrossNamespaceTCPRouteWithoutReferenceGrant"
+	crossNsNoRefGrantClientNsName   = "client-ns-no-refgrant"
+	crossNsNoRefGrantBackendNsName  = "backend-ns-no-refgrant"
+	crossNsNoRefGrantGatewayName    = "gateway"
+	crossNsNoRefGrantListenerName   = "listener-8080"
+	crossNsNoRefGrantBackendSvcName = "backend-svc"
+	crossNsNoRefGrantTCPRouteName   = "tcp-route"
 )
 
 var (
@@ -48,11 +67,24 @@ var (
 	singleSvcBackendManifest          = filepath.Join(util.MustGetThisDir(), "testdata", "single-backend-service.yaml")
 	singleSvcTcpRouteManifest         = filepath.Join(util.MustGetThisDir(), "testdata", "single-tcproute.yaml")
 
+	// Manifests for CrossNamespaceTCPRouteWithReferenceGrant
+	crossNsClientNsManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-client-ns.yaml")
+	crossNsBackendNsManifest  = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-backend-ns.yaml")
+	crossNsGatewayManifest    = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-gateway-and-client.yaml")
+	crossNsBackendSvcManifest = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-backend-service.yaml")
+	crossNsTCPRouteManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-tcproute.yaml")
+	crossNsRefGrantManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-referencegrant.yaml")
+
+	// Manifests for CrossNamespaceTCPRouteWithoutReferenceGrant
+	crossNsNoRefGrantClientNsManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-client-ns.yaml")
+	crossNsNoRefGrantBackendNsManifest  = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-backend-ns.yaml")
+	crossNsNoRefGrantGatewayManifest    = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-gateway-and-client.yaml")
+	crossNsNoRefGrantBackendSvcManifest = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-backend-service.yaml")
+	crossNsNoRefGrantTCPRouteManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-tcproute.yaml")
+
 	// Assertion test timers
 	ctxTimeout = 5 * time.Minute
-	timeout    = 30 * time.Second
-	waitTime   = 5 * time.Second
-	tickTime   = 1 * time.Second
+	timeout    = 60 * time.Second
 
 	// Proxy resources to be translated
 	singleSvcNS = &corev1.Namespace{
@@ -68,7 +100,7 @@ var (
 	singleSvcProxyDeployment = &appsv1.Deployment{ObjectMeta: singleGlooProxy}
 	singleSvcProxyService    = &corev1.Service{ObjectMeta: singleGlooProxy}
 
-	multieSvcNS = &corev1.Namespace{
+	multiSvcNS = &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: multiSvcNsName,
 		},
@@ -90,6 +122,20 @@ var (
 		),
 	}
 
+	crossNsGlooProxy = metav1.ObjectMeta{
+		Name:      "gloo-proxy-gateway",
+		Namespace: crossNsClientName,
+	}
+	crossNsProxyDeployment = &appsv1.Deployment{ObjectMeta: crossNsGlooProxy}
+	crossNsProxyService    = &corev1.Service{ObjectMeta: crossNsGlooProxy}
+
+	crossNsNoRefGrantGlooProxy = metav1.ObjectMeta{
+		Name:      "gloo-proxy-gateway",
+		Namespace: crossNsNoRefGrantClientNsName,
+	}
+	crossNsNoRefGrantProxyDeployment = &appsv1.Deployment{ObjectMeta: crossNsNoRefGrantGlooProxy}
+	crossNsNoRefGrantProxyService    = &corev1.Service{ObjectMeta: crossNsNoRefGrantGlooProxy}
+
 	expectedMultiSvc1Resp = &testmatchers.HttpResponse{
 		StatusCode: http.StatusOK,
 		Body: gomega.SatisfyAll(
@@ -103,6 +149,14 @@ var (
 		Body: gomega.SatisfyAll(
 			gomega.MatchRegexp(fmt.Sprintf(`"namespace"\s*:\s*"%s"`, multiSvcNsName)),
 			gomega.MatchRegexp(fmt.Sprintf(`"service"\s*:\s*"%s"`, multiSvc2Name)),
+		),
+	}
+
+	expectedCrossNsResp = &testmatchers.HttpResponse{
+		StatusCode: http.StatusOK,
+		Body: gomega.SatisfyAll(
+			gomega.MatchRegexp(fmt.Sprintf(`"namespace"\s*:\s*"%s"`, crossNsBackendNsName)),
+			gomega.MatchRegexp(fmt.Sprintf(`"service"\s*:\s*"%s"`, crossNsBackendSvcName)),
 		),
 	}
 )

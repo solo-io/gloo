@@ -43,16 +43,37 @@ steps:
   - 'compute/zone'
   - 'us-central1-a'
 
+# Initialize Docker Buildx for multiarch builds
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'init-buildx'
+  args:
+  - buildx
+  - create
+  - --use
+
+- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.10.2'
+  id: 'build-certgen-arm64-binary'
+  args:
+  - 'certgen-docker'
+  dir: *dir
+  env:
+  - 'GOARCH=arm64'
+
 # Run make targets to push docker images to quay.io
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.10.2'
   id: 'publish-docker'
   args:
   - 'publish-docker'
   dir: *dir
+  env:
+  - 'MULTIARCH=true'
+  - 'MULTIARCH_PUSH=true'
   secretEnv:
   - 'GITHUB_TOKEN'
   waitFor:
   - 'docker-login'
+  - 'init-buildx'
+  - 'build-certgen-arm64-binary'
 
 # Publish helm chart, compile manifests, produce release artifacts, deploy docs
 # isolating this portion of the release in order to force the manifest to be regenerated with the tagged version
@@ -79,14 +100,15 @@ steps:
   waitFor:
   - 'gcr-auth'
 
-# Run make targets to retag and push docker images to GCR
+# Run make targets to build and push docker images to GCR
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.10.2'
-  id: 'docker-push-extended-gcr'
+  id: 'publish-docker-extended-gcr'
   dir: *dir
   args:
-  - 'publish-docker-retag'
+  - publish-docker
   env:
-  - 'ORIGINAL_IMAGE_REGISTRY=quay.io/solo-io'
+  - 'MULTIARCH=true'
+  - 'MULTIARCH_PUSH=true'
   - 'IMAGE_REGISTRY=gcr.io/gloo-edge'
   secretEnv:
   - 'GITHUB_TOKEN'
