@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Add a kube gateway zero-downtime upgrade test.
+      
+      skipCI-docs-build:true

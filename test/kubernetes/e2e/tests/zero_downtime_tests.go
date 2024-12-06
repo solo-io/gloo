@@ -7,6 +7,6 @@ import (
 
 func ZeroDowntimeRolloutSuiteRunner() e2e.SuiteRunner {
 	zeroDowntimeSuiteRunner := e2e.NewSuiteRunner(false)
-	zeroDowntimeSuiteRunner.Register("ZeroDowntimeRollout", zero_downtime_rollout.NewTestingSuite)
+	zeroDowntimeSuiteRunner.Register("ZeroDowntimeRollout", zero_downtime_rollout.NewNonUpgradeSuite)
 	return zeroDowntimeSuiteRunner
 }

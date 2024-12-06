@@ -3,10 +3,6 @@ package zero_downtime_rollout
 import (
 	"path/filepath"
 
-	"github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
-	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/solo-io/skv2/codegen/util"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -29,15 +25,6 @@ var (
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "hey",
 			Namespace: "hey",
-		},
-	}
-
-	zeroDowntimeTestCases = map[string]*base.TestCase{
-		"TestZeroDowntimeRollout": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{defaults.CurlPodManifest, serviceManifest, routeWithServiceManifest},
-				Resources: []client.Object{proxyDeployment, proxyService, defaults.CurlPod, heyPod},
-			},
 		},
 	}
 )
