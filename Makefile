@@ -916,6 +916,10 @@ HELM_BUCKET ?= gs://solo-public-tagged-helm
 # modifier to docker builds which can auto-delete docker images after a set time
 QUAY_EXPIRATION_LABEL ?= --label quay.expires-after=3w
 
+ifeq (,$(findstring quay,$(IMAGE_REGISTRY)))
+	QUAY_EXPIRATION_LABEL :=
+endif
+
 # define empty publish targets so calls won't fail
 .PHONY: publish-docker
 .PHONY: publish-docker-retag
