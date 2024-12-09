@@ -1056,6 +1056,27 @@ spec:
                                   type: string
                               type: object
                             type: array
+                          metadataForTags:
+                            items:
+                              properties:
+                                defaultValue:
+                                  type: string
+                                kind:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                                tag:
+                                  type: string
+                                value:
+                                  properties:
+                                    key:
+                                      type: string
+                                    namespace:
+                                      type: string
+                                    nestedFieldDelimiter:
+                                      type: string
+                                  type: object
+                              type: object
+                            type: array
                           openCensusConfig:
                             properties:
                               grpcAddress:
@@ -1128,12 +1149,16 @@ spec:
                                   namespace:
                                     type: string
                                 type: object
+                              serviceName:
+                                type: string
                             type: object
                           requestHeadersForTags:
                             items:
                               nullable: true
                               type: string
                             type: array
+                          spawnUpstreamSpan:
+                            type: boolean
                           tracePercentages:
                             properties:
                               clientSamplePercentage:

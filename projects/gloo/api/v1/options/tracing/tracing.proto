@@ -43,6 +43,13 @@ message ListenerTracingSettings {
     repeated TracingTagEnvironmentVariable environment_variables_for_tags = 6;
     // Optional. If specified, Envoy will include the literals with the given tag as tracing tags.
     repeated TracingTagLiteral literals_for_tags = 7;
+    // Optional. If specified, Envoy will include tags from the dynamic metadata.
+    repeated TracingTagMetadata metadata_for_tags = 11;
+
+    // Optional
+    // Create separate tracing span for each upstream request if true. And if this flag is set to true, the tracing provider will assume that Envoy 
+    // will be independent hop in the trace chain and may set span type to client or server based on this flag. 
+    bool spawn_upstream_span = 10;
 }
 
 // Contains settings for configuring Envoy's tracing capabilities at the route level.
@@ -96,4 +103,37 @@ message TracingTagLiteral {
     google.protobuf.StringValue tag = 1;
     // Static literal value to populate the tag value.
     google.protobuf.StringValue value = 2;
+}
+
+// Requests can produce traces with custom tags.
+// TracingTagMetadata defines a dynamic metadata tag which gets added as custom tag.
+message TracingTagMetadata {
+    enum Kind {
+      // The metadata is extracted from the stream metadata.
+      REQUEST = 0;
+      // The metadata is extracted from the endpoint metadata.
+      ENDPOINT = 1;
+    }
+    // Used to populate the tag name.
+    string tag = 1;
+    // The kind of metadata to extract the value from 
+    Kind kind = 2;
+
+    message MetadataValue {
+      // The namespace to extract the value from the metadata.
+      // If empty will default to JWT principal namespace.
+      string namespace = 1;
+      // The key to extract the value from the metadata.
+      // For example, `principal.iss` or `principal.sub` to extract those claims from the JWT ns
+      string key = 2;
+      // The delimiter to use when specifying nested fields.
+      // Default is `.`.
+      // This is commonly set to `.`, allowing for nested fields names of the form
+      // `parent.child.grandchild`
+      string nested_field_delimiter = 3;
+    }
+    // The metadata value to extract the tag value from.
+    MetadataValue value = 3;
+    // When no valid metadata is found, the tag value would be populated with this default value if specified, otherwise no tag would be populated.
+    string default_value = 4;
 }

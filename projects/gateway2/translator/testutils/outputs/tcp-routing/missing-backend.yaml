@@ -5,6 +5,12 @@ listeners:
     httpResources: {}
   bindAddress: '::'
   bindPort: 8080
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: tcp
+        namespace: default
   name: tcp
 metadata:
   labels:

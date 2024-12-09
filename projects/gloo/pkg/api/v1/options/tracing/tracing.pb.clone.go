@@ -88,6 +88,21 @@ func (m *ListenerTracingSettings) Clone() proto.Message {
 		}
 	}
 
+	if m.GetMetadataForTags() != nil {
+		target.MetadataForTags = make([]*TracingTagMetadata, len(m.GetMetadataForTags()))
+		for idx, v := range m.GetMetadataForTags() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.MetadataForTags[idx] = h.Clone().(*TracingTagMetadata)
+			} else {
+				target.MetadataForTags[idx] = proto.Clone(v).(*TracingTagMetadata)
+			}
+
+		}
+	}
+
+	target.SpawnUpstreamSpan = m.GetSpawnUpstreamSpan()
+
 	switch m.ProviderConfig.(type) {
 
 	case *ListenerTracingSettings_ZipkinConfig:
@@ -245,6 +260,46 @@ func (m *TracingTagLiteral) Clone() proto.Message {
 	} else {
 		target.Value = proto.Clone(m.GetValue()).(*google_golang_org_protobuf_types_known_wrapperspb.StringValue)
 	}
+
+	return target
+}
+
+// Clone function
+func (m *TracingTagMetadata) Clone() proto.Message {
+	var target *TracingTagMetadata
+	if m == nil {
+		return target
+	}
+	target = &TracingTagMetadata{}
+
+	target.Tag = m.GetTag()
+
+	target.Kind = m.GetKind()
+
+	if h, ok := interface{}(m.GetValue()).(clone.Cloner); ok {
+		target.Value = h.Clone().(*TracingTagMetadata_MetadataValue)
+	} else {
+		target.Value = proto.Clone(m.GetValue()).(*TracingTagMetadata_MetadataValue)
+	}
+
+	target.DefaultValue = m.GetDefaultValue()
+
+	return target
+}
+
+// Clone function
+func (m *TracingTagMetadata_MetadataValue) Clone() proto.Message {
+	var target *TracingTagMetadata_MetadataValue
+	if m == nil {
+		return target
+	}
+	target = &TracingTagMetadata_MetadataValue{}
+
+	target.Namespace = m.GetNamespace()
+
+	target.Key = m.GetKey()
+
+	target.NestedFieldDelimiter = m.GetNestedFieldDelimiter()
 
 	return target
 }

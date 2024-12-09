@@ -603,6 +603,18 @@ type AiExtension struct {
 	//       metadataKey: "principal:iss"
 	// ```
 	Stats *AiExtensionStats `json:"stats,omitempty"`
+
+	// Tracing configuration for the AI Extension.
+	// +optional
+	// Example:
+	// ```yaml
+	// tracing:
+	//   grpc:
+	//     host: "otel-collector.otel-system.svc"
+	//     port: 4317
+	//   insecure: true
+	// ```
+	Tracing *AIExtensionTracing `json:"tracing,omitempty"`
 }
 
 func (in *AiExtension) GetEnabled() *bool {
@@ -724,6 +736,63 @@ func (in *CustomLabel) GetKeyDelimiter() *string {
 		return nil
 	}
 	return in.KeyDelimiter
+}
+
+func (in *AiExtension) GetTracing() *AIExtensionTracing {
+	if in == nil {
+		return nil
+	}
+	return in.Tracing
+}
+
+type AIExtensionTracing struct {
+	// gRPC Config for the OTLP collector.
+	// Set this to use gRPC streaming of traces to the OTLP collector.
+	// +optional
+	Grpc *AIExtensionTracingGrpc `json:"grpc,omitempty"`
+
+	// Whether to use insecure connection to the OTLP endpoint.
+	// This will be false by defautl as HTTPS is recommended.
+	// +optional
+	Insecure bool `json:"insecure,omitempty"`
+}
+
+func (in *AIExtensionTracing) GetGrpc() *AIExtensionTracingGrpc {
+	if in == nil {
+		return nil
+	}
+	return in.Grpc
+}
+
+func (in *AIExtensionTracing) GetInsecure() bool {
+	if in == nil {
+		return false
+	}
+	return in.Insecure
+}
+
+type AIExtensionTracingGrpc struct {
+	// The gRPC endpoint for the OTLP collector.
+	// +kubebuilder:validation:MinLength=1
+	Host string `json:"host"`
+
+	// The port for the OTLP collector.
+	// +kubebuilder:validation:Minimum=1
+	Port uint32 `json:"port"`
+}
+
+func (in *AIExtensionTracingGrpc) GetHost() string {
+	if in == nil {
+		return ""
+	}
+	return in.Host
+}
+
+func (in *AIExtensionTracingGrpc) GetPort() uint32 {
+	if in == nil {
+		return 0
+	}
+	return in.Port
 }
 
 func init() {

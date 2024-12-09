@@ -29,6 +29,12 @@ listeners:
                     namespace: default
   bindAddress: '::'
   bindPort: 8443
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: https
+        namespace: default
   name: https
 metadata:
   labels:
