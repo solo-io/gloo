@@ -5,7 +5,7 @@ weight: 5
 ---
 ## glooctl debug logs
 
-Debug Gloo logs (requires Gloo running on Kubernetes)
+Print Gloo logs from a Kubernetes cluster
 
 ```
 glooctl debug logs [flags]

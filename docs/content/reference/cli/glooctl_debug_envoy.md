@@ -5,11 +5,11 @@ weight: 5
 ---
 ## glooctl debug envoy
 
-Dump information from the Envoy admin interface for gateway proxies to a local directory (requires Gloo running on Kubernetes)
+Dump information from the Envoy admin interface for gateway proxies to a local directory
 
 ### Synopsis
 
-Dump information from the Envoy admin interface for any gateway proxies in the given namespaces to a local directory (requires Gloo running on Kubernetes). This is useful for debugging failures. The dump includes the envoy config dump, stats, clusters, and listeners.
+Dump information from the Envoy admin interface for any gateway proxies in the given namespaces to a local directory. This is useful for debugging failures. The dump includes the envoy config dump, stats, clusters, and listeners.
 
 ```
 glooctl debug envoy [flags]

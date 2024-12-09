@@ -5,7 +5,7 @@ weight: 5
 ---
 ## glooctl debug yaml
 
-Dump YAML representing the current Gloo state (requires Gloo running on Kubernetes)
+Print YAML representing the current Gloo state of a Kubernetes cluster
 
 ```
 glooctl debug yaml [flags]

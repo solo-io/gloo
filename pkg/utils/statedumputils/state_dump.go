@@ -61,7 +61,7 @@ func CISystemDumpOnFail(_ context.Context, _ *kubectl.Cli, _ io.Writer, outDir s
 		recordDockerState(fileAtPath(filepath.Join(outDir, "docker-state.log")))
 		recordProcessState(fileAtPath(filepath.Join(outDir, "process-state.log")))
 
-		fmt.Printf("Finished dumping docker and process state\n")
+		fmt.Printf("Finished writing Docker and process state information to the `%s` directory.\n", outDir)
 	}
 }
 
@@ -80,7 +80,7 @@ func KubeDumpOnFail(_ context.Context, _ *kubectl.Cli, _ io.Writer, outDir strin
 
 		recordKubeDump(outDir, namespaces...)
 
-		fmt.Printf("Finished dumping kubernetes state\n")
+		fmt.Printf("Finished writing Kubernetes state information to the `%s` directory.\n", outDir)
 	}
 }
 
@@ -408,7 +408,7 @@ func ControllerDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Wri
 					fmt.Println(stderr)
 				}
 
-				fmt.Print("finished dumping controller state\n")
+				fmt.Printf("Finished writing Gloo Gateway controller state information to the `%s` directory.\n", outDir)
 			}
 		}
 	}
@@ -484,7 +484,7 @@ func EnvoyDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer, 
 					fmt.Printf("error running listeners command: %f\n", err)
 				}
 
-				fmt.Printf("finished dumping envoy state\n")
+				fmt.Printf("Finished writing Envoy state information to the `%s` directory.\n", outDir)
 			}
 		}
 	}

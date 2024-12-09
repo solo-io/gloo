@@ -5,11 +5,11 @@ weight: 5
 ---
 ## glooctl debug gloo
 
-Dump Gloo Gateway controller state to a local directory (requires Gloo running on Kubernetes)
+Dump Gloo Gateway controller state to a local directory
 
 ### Synopsis
 
-Dump Gloo Gateway controller state to a local directory (requires Gloo running on Kubernetes). This is useful for debugging failures. The dump includes the gloo controller logs, metrics, xds snapshot, and krt snapshot.
+Dump Gloo Gateway controller state to a local directory. This is useful for debugging failures. The dump includes the gloo controller logs, metrics, xds snapshot, and krt snapshot.
 
 ```
 glooctl debug gloo [flags]
