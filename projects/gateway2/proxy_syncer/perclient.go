@@ -13,8 +13,8 @@ import (
 )
 
 func snapshotPerClient(l *zap.Logger, dbg *krt.DebugHandler, uccCol krt.Collection[krtcollections.UniqlyConnectedClient],
-	mostXdsSnapshots krt.Collection[XdsSnapWrapper], endpoints PerClientEnvoyEndpoints, clusters PerClientEnvoyClusters) krt.Collection[XdsSnapWrapper] {
-
+	mostXdsSnapshots krt.Collection[XdsSnapWrapper], endpoints PerClientEnvoyEndpoints, clusters PerClientEnvoyClusters,
+) krt.Collection[XdsSnapWrapper] {
 	xdsSnapshotsForUcc := krt.NewCollection(uccCol, func(kctx krt.HandlerContext, ucc krtcollections.UniqlyConnectedClient) *XdsSnapWrapper {
 		maybeMostlySnap := krt.FetchOne(kctx, mostXdsSnapshots, krt.FilterKey(ucc.Role))
 		if maybeMostlySnap == nil {
@@ -22,7 +22,20 @@ func snapshotPerClient(l *zap.Logger, dbg *krt.DebugHandler, uccCol krt.Collecti
 			return nil
 		}
 		genericSnap := maybeMostlySnap.snap
-		clustersForUcc := clusters.FetchClustersForClient(kctx, ucc)
+		clustersForUccFetch := clusters.FetchClustersForClient(kctx, ucc)
+
+		// HACK: there are bogus clusters that act as a marker that this client had
+		// clusters processed for it; this prevents blips where we first send generic clusters
+		if len(clustersForUccFetch) == 0 {
+			return nil
+		}
+		clustersForUcc := make([]uccWithCluster, 0, len(clustersForUccFetch)/2)
+		for _, c := range clustersForUccFetch {
+			if c.Cluster == nil {
+				continue
+			}
+			clustersForUcc = append(clustersForUcc, c)
+		}
 
 		clustersProto := make([]envoycache.Resource, 0, len(clustersForUcc))
 		var clustersHash uint64
