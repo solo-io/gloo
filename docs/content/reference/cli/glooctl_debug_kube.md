@@ -1,22 +1,24 @@
 ---
-title: "glooctl debug yaml"
-description: "Reference for the 'glooctl debug yaml' command."
+title: "glooctl debug kube"
+description: "Reference for the 'glooctl debug kube' command."
 weight: 5
 ---
-## glooctl debug yaml
+## glooctl debug kube
 
-Print YAML representing the current Gloo state of a Kubernetes cluster
+Dump Kubernetes state to a local directory
+
+### Synopsis
+
+Dump Kubernetes state to a local directory. This is useful for debugging failures. The dump includes the Kubernetes cluster state, logs from all pods in the given namespaces, and YAML manifests of all solo.io CR in the given namespaces.
 
 ```
-glooctl debug yaml [flags]
+glooctl debug kube [flags]
 ```
 
 ### Options
 
 ```
-  -f, --file string        file to be read or written to
-  -h, --help               help for yaml
-  -n, --namespace string   namespace for reading or writing resources (default "gloo-system")
+  -h, --help   help for kube
 ```
 
 ### Options inherited from parent commands

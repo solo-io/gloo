@@ -1,22 +1,24 @@
 ---
-title: "glooctl debug yaml"
-description: "Reference for the 'glooctl debug yaml' command."
+title: "glooctl debug envoy"
+description: "Reference for the 'glooctl debug envoy' command."
 weight: 5
 ---
-## glooctl debug yaml
+## glooctl debug envoy
 
-Print YAML representing the current Gloo state of a Kubernetes cluster
+Dump information from the Envoy admin interface for gateway proxies to a local directory
+
+### Synopsis
+
+Dump information from the Envoy admin interface for any gateway proxies in the given namespaces to a local directory. This is useful for debugging failures. The dump includes the envoy config dump, stats, clusters, and listeners.
 
 ```
-glooctl debug yaml [flags]
+glooctl debug envoy [flags]
 ```
 
 ### Options
 
 ```
-  -f, --file string        file to be read or written to
-  -h, --help               help for yaml
-  -n, --namespace string   namespace for reading or writing resources (default "gloo-system")
+  -h, --help   help for envoy
 ```
 
 ### Options inherited from parent commands

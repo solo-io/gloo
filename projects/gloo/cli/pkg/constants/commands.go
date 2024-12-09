@@ -80,18 +80,48 @@ var (
 
 	DEBUG_COMMAND = cobra.Command{
 		Use:   "debug",
-		Short: "Debug a Gloo resource (requires Gloo running on Kubernetes)",
+		Short: "Debug Gloo Gateway (requires Gloo running on Kubernetes)",
+		Long: "Dumps state information to a local directory (or to stdout, for some subcommands). " +
+			"This is useful for debugging failures. " +
+			"If no subcommand is specified, this command dumps all the state information from the `kube`, `gloo`, and `envoy` subcommands. " +
+			"See the subcommand descriptions for more details.",
 	}
 
 	DEBUG_LOG_COMMAND = cobra.Command{
 		Use:     "logs",
 		Aliases: []string{"log"},
-		Short:   "Debug Gloo logs (requires Gloo running on Kubernetes)",
+		Short:   "Print Gloo logs from a Kubernetes cluster",
 	}
 
 	DEBUG_YAML_COMMAND = cobra.Command{
 		Use:   "yaml",
-		Short: "Dump YAML representing the current Gloo state (requires Gloo running on Kubernetes)",
+		Short: "Print YAML representing the current Gloo state of a Kubernetes cluster",
+	}
+
+	DEBUG_KUBE_COMMAND = cobra.Command{
+		Use:     "kube",
+		Aliases: []string{"kubernetes", "k8s"},
+		Short:   "Dump Kubernetes state to a local directory",
+		Long: "Dump Kubernetes state to a local directory. " +
+			"This is useful for debugging failures. " +
+			"The dump includes the Kubernetes cluster state, logs from all pods in the given namespaces, " +
+			"and YAML manifests of all solo.io CR in the given namespaces.",
+	}
+
+	DEBUG_GLOO_COMMAND = cobra.Command{
+		Use:   "gloo",
+		Short: "Dump Gloo Gateway controller state to a local directory",
+		Long: "Dump Gloo Gateway controller state to a local directory. " +
+			"This is useful for debugging failures. " +
+			"The dump includes the gloo controller logs, metrics, xds snapshot, and krt snapshot.",
+	}
+
+	DEBUG_ENVOY_COMMAND = cobra.Command{
+		Use:   "envoy",
+		Short: "Dump information from the Envoy admin interface for gateway proxies to a local directory",
+		Long: "Dump information from the Envoy admin interface for any gateway proxies in the given namespaces to a local directory. " +
+			"This is useful for debugging failures. " +
+			"The dump includes the envoy config dump, stats, clusters, and listeners.",
 	}
 
 	DELETE_COMMAND = cobra.Command{

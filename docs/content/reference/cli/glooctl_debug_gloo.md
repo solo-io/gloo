@@ -1,22 +1,24 @@
 ---
-title: "glooctl debug yaml"
-description: "Reference for the 'glooctl debug yaml' command."
+title: "glooctl debug gloo"
+description: "Reference for the 'glooctl debug gloo' command."
 weight: 5
 ---
-## glooctl debug yaml
+## glooctl debug gloo
 
-Print YAML representing the current Gloo state of a Kubernetes cluster
+Dump Gloo Gateway controller state to a local directory
+
+### Synopsis
+
+Dump Gloo Gateway controller state to a local directory. This is useful for debugging failures. The dump includes the gloo controller logs, metrics, xds snapshot, and krt snapshot.
 
 ```
-glooctl debug yaml [flags]
+glooctl debug gloo [flags]
 ```
 
 ### Options
 
 ```
-  -f, --file string        file to be read or written to
-  -h, --help               help for yaml
-  -n, --namespace string   namespace for reading or writing resources (default "gloo-system")
+  -h, --help   help for gloo
 ```
 
 ### Options inherited from parent commands

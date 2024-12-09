@@ -5,7 +5,11 @@ weight: 5
 ---
 ## glooctl debug
 
-Debug a Gloo resource (requires Gloo running on Kubernetes)
+Debug Gloo Gateway (requires Gloo running on Kubernetes)
+
+### Synopsis
+
+Dumps state information to a local directory (or to stdout, for some subcommands). This is useful for debugging failures. If no subcommand is specified, this command dumps all the state information from the `kube`, `gloo`, and `envoy` subcommands. See the subcommand descriptions for more details.
 
 ```
 glooctl debug [flags]
@@ -14,7 +18,9 @@ glooctl debug [flags]
 ### Options
 
 ```
-  -h, --help   help for debug
+  -d, --directory string         directory to write debug info to (default "debug")
+  -h, --help                     help for debug
+  -N, --namespaces stringArray   namespaces from which to dump logs and resources (use flag multiple times to specify multiple namespaces, e.g. '-N gloo-system -N default') (default [gloo-system])
 ```
 
 ### Options inherited from parent commands
@@ -36,6 +42,9 @@ glooctl debug [flags]
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
-* [glooctl debug logs](../glooctl_debug_logs)	 - Debug Gloo logs (requires Gloo running on Kubernetes)
-* [glooctl debug yaml](../glooctl_debug_yaml)	 - Dump YAML representing the current Gloo state (requires Gloo running on Kubernetes)
+* [glooctl debug envoy](../glooctl_debug_envoy)	 - Dump information from the Envoy admin interface for gateway proxies to a local directory
+* [glooctl debug gloo](../glooctl_debug_gloo)	 - Dump Gloo Gateway controller state to a local directory
+* [glooctl debug kube](../glooctl_debug_kube)	 - Dump Kubernetes state to a local directory
+* [glooctl debug logs](../glooctl_debug_logs)	 - Print Gloo logs from a Kubernetes cluster
+* [glooctl debug yaml](../glooctl_debug_yaml)	 - Print YAML representing the current Gloo state of a Kubernetes cluster
 
