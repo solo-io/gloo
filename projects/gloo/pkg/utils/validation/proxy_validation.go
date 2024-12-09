@@ -193,7 +193,7 @@ func formattedWarning(level, errType, reason string) string {
 	return fmt.Sprintf("%v Warning: %v. Reason: %v", level, errType, reason)
 }
 
-func GetListenerErr(listener *validation.ListenerReport) []error {
+func getListenerErr(listener *validation.ListenerReport) []error {
 	var errs []error
 	for _, errReport := range listener.GetErrors() {
 		errs = append(errs, formattedError("Listener", errReport.GetType().String(), errReport.GetReason()))
@@ -201,7 +201,7 @@ func GetListenerErr(listener *validation.ListenerReport) []error {
 	return errs
 }
 
-func GetListenerWarning(listener *validation.ListenerReport) []string {
+func getListenerWarn(listener *validation.ListenerReport) []string {
 	var warnings []string
 	for _, warning := range listener.GetWarnings() {
 		warnings = append(warnings, formattedWarning("Listener", warning.GetType().String(), warning.GetReason()))
@@ -215,6 +215,14 @@ func GetHttpListenerErr(httpListener *validation.HttpListenerReport) []error {
 		errs = append(errs, formattedError("HttpListener", errReport.GetType().String(), errReport.GetReason()))
 	}
 	return errs
+}
+
+func GetHttpListenerWarning(httpListener *validation.HttpListenerReport) []string {
+	var warnings []string
+	for _, warning := range httpListener.GetWarnings() {
+		warnings = append(warnings, formattedWarning("HttpListener", warning.GetType().String(), warning.GetReason()))
+	}
+	return warnings
 }
 
 func GetVirtualHostErr(virtualHost *validation.VirtualHostReport) []error {
@@ -250,6 +258,14 @@ func GetTcpListenerErr(tcpListener *validation.TcpListenerReport) []error {
 	return errs
 }
 
+func GetTcpListenerWarning(tcpListener *validation.TcpListenerReport) []string {
+	var warnings []string
+	for _, warning := range tcpListener.GetWarnings() {
+		warnings = append(warnings, formattedWarning("TcpListener", warning.GetType().String(), warning.GetReason()))
+	}
+	return warnings
+}
+
 func GetTcpHostErr(tcpHost *validation.TcpHostReport) []error {
 	var errs []error
 	for _, errReport := range tcpHost.GetErrors() {
@@ -271,7 +287,7 @@ func GetTcpHostWarning(tcpHost *validation.TcpHostReport) []string {
 func GetListenerError(listener *validation.ListenerReport) []error {
 	var errs []error
 
-	if err := GetListenerErr(listener); err != nil {
+	if err := getListenerErr(listener); err != nil {
 		errs = append(errs, err...)
 	}
 	switch listenerType := listener.GetListenerTypeReport().(type) {
@@ -301,6 +317,41 @@ func GetListenerError(listener *validation.ListenerReport) []error {
 	}
 
 	return errs
+}
+
+func GetListenerWarning(listener *validation.ListenerReport) []string {
+	var warnings []string
+
+	if warning := getListenerWarn(listener); warning != nil {
+		warnings = append(warnings, warning...)
+	}
+	switch listenerType := listener.GetListenerTypeReport().(type) {
+	case *validation.ListenerReport_HttpListenerReport:
+		warnings = append(warnings, getHttpListenerReportWarns(listenerType.HttpListenerReport)...)
+
+	case *validation.ListenerReport_TcpListenerReport:
+		warnings = append(warnings, getTcpListenerReportWarns(listenerType.TcpListenerReport)...)
+
+	case *validation.ListenerReport_HybridListenerReport:
+		for _, mr := range listenerType.HybridListenerReport.GetMatchedListenerReports() {
+			switch lrt := mr.GetListenerReportType().(type) {
+			case *validation.MatchedListenerReport_HttpListenerReport:
+				warnings = append(warnings, getHttpListenerReportWarns(lrt.HttpListenerReport)...)
+			case *validation.MatchedListenerReport_TcpListenerReport:
+				warnings = append(warnings, getTcpListenerReportWarns(lrt.TcpListenerReport)...)
+			}
+		}
+
+	case *validation.ListenerReport_AggregateListenerReport:
+		for _, httpListenerReport := range listenerType.AggregateListenerReport.GetHttpListenerReports() {
+			warnings = append(warnings, getHttpListenerReportWarns(httpListenerReport)...)
+		}
+		for _, tcpListenerReport := range listenerType.AggregateListenerReport.GetTcpListenerReports() {
+			warnings = append(warnings, getTcpListenerReportWarns(tcpListenerReport)...)
+		}
+	}
+
+	return warnings
 }
 
 func GetProxyError(proxyRpt *validation.ProxyReport) error {
@@ -336,6 +387,21 @@ func getTcpListenerReportErrs(tcpListenerReport *validation.TcpListenerReport) [
 	return errs
 }
 
+func getTcpListenerReportWarns(tcpListenerReport *validation.TcpListenerReport) []string {
+	var warnings []string
+
+	if warning := GetTcpListenerWarning(tcpListenerReport); warning != nil {
+		warnings = append(warnings, warning...)
+	}
+	for _, hostReport := range tcpListenerReport.GetTcpHostReports() {
+		if err := GetTcpHostWarning(hostReport); err != nil {
+			warnings = append(warnings, err...)
+		}
+	}
+
+	return warnings
+}
+
 func getHttpListenerReportErrs(httpListenerReport *validation.HttpListenerReport) []error {
 	var errs []error
 
@@ -356,21 +422,28 @@ func getHttpListenerReportErrs(httpListenerReport *validation.HttpListenerReport
 	return errs
 }
 
+func getHttpListenerReportWarns(httpListenerReport *validation.HttpListenerReport) []string {
+	var warnings []string
+
+	if err := GetHttpListenerWarning(httpListenerReport); err != nil {
+		warnings = append(warnings, err...)
+	}
+	for _, vhReport := range httpListenerReport.GetVirtualHostReports() {
+		for _, routeReport := range vhReport.GetRouteReports() {
+			if err := GetRouteWarning(routeReport); err != nil {
+				warnings = append(warnings, err...)
+			}
+		}
+	}
+
+	return warnings
+}
+
 func GetProxyWarning(proxyRpt *validation.ProxyReport) []string {
 	var warnings []string
 
 	for _, listenerReport := range proxyRpt.GetListenerReports() {
 		warnings = append(warnings, GetListenerWarning(listenerReport)...)
-		vhostReports := utils.GetVhostReportsFromListenerReport(listenerReport)
-		for _, vhReport := range vhostReports {
-			for _, routeReport := range vhReport.GetRouteReports() {
-				warnings = append(warnings, GetRouteWarning(routeReport)...)
-			}
-		}
-		for _, tcpHostReport := range utils.GetTcpHostReportsFromListenerReport(listenerReport) {
-			warnings = append(warnings, GetTcpHostWarning(tcpHostReport)...)
-		}
-
 	}
 
 	return warnings
@@ -412,8 +485,22 @@ func AppendHTTPListenerError(httpListenerReport *validation.HttpListenerReport, 
 	})
 }
 
+func AppendHTTPListenerWarning(httpListenerReport *validation.HttpListenerReport, errType validation.HttpListenerReport_Warning_Type, reason string) {
+	httpListenerReport.Warnings = append(httpListenerReport.GetWarnings(), &validation.HttpListenerReport_Warning{
+		Type:   errType,
+		Reason: reason,
+	})
+}
+
 func AppendTCPListenerError(tcpListenerReport *validation.TcpListenerReport, errType validation.TcpListenerReport_Error_Type, reason string) {
 	tcpListenerReport.Errors = append(tcpListenerReport.GetErrors(), &validation.TcpListenerReport_Error{
+		Type:   errType,
+		Reason: reason,
+	})
+}
+
+func AppendTCPListenerWarning(httpListenerReport *validation.TcpListenerReport, errType validation.TcpListenerReport_Warning_Type, reason string) {
+	httpListenerReport.Warnings = append(httpListenerReport.GetWarnings(), &validation.TcpListenerReport_Warning{
 		Type:   errType,
 		Reason: reason,
 	})
