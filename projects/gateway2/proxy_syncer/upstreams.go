@@ -69,6 +69,11 @@ func NewPerClientEnvoyClusters(
 		settings := &ksettings.Spec
 
 		for _, ucc := range uccs {
+			// HACK: write at least one element for every UCC as a marker that it was processed
+			uccWithClusterRet = append(uccWithClusterRet, uccWithCluster{
+				Client:       ucc,
+				upstreamName: "bogus-" + up.ResourceName(),
+			})
 			logger.Debug("applying destination rules for upstream", zap.String("ucc", ucc.ResourceName()))
 
 			hostname := ggv2utils.GetHostnameForUpstream(up.Inner)

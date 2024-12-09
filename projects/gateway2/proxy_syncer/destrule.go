@@ -75,7 +75,12 @@ func init() {
 }
 
 func NewDestRuleIndex(istioClient kube.Client, dbg *krt.DebugHandler) DestinationRuleIndex {
-	destRuleClient := kclient.NewDelayedInformer[*networkingclient.DestinationRule](istioClient, gvr.DestinationRule_v1beta1, kubetypes.StandardInformer, kclient.Filter{})
+	destRuleClient := kclient.NewDelayedInformer[*networkingclient.DestinationRule](
+		istioClient,
+		gvr.DestinationRule_v1beta1,
+		kubetypes.StandardInformer,
+		kclient.Filter{},
+	)
 	rawDestrules := krt.WrapClient(destRuleClient, krt.WithName("DestinationRules"), krt.WithDebugging(dbg))
 	destrules := krt.NewCollection(rawDestrules, func(kctx krt.HandlerContext, dr *networkingclient.DestinationRule) *DestinationRuleWrapper {
 		return &DestinationRuleWrapper{dr}

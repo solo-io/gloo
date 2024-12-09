@@ -233,12 +233,6 @@ func TestScenarios(t *testing.T) {
 				t.Cleanup(func() {
 					writer.set(parentT)
 				})
-				t.Cleanup(func() {
-					if t.Failed() {
-						j, _ := setupOpts.KrtDebugger.MarshalJSON()
-						t.Logf("krt state for failed test: %s %s", t.Name(), string(j))
-					}
-				})
 				// sadly tests can't run yet in parallel, as ggv2 will add all the k8s services as clusters. this means
 				// that we get test pollution.
 				// once we change it to only include the ones in the proxy, we can re-enable this
@@ -321,7 +315,12 @@ func testScenario(t *testing.T, ctx context.Context, kdbg *krt.DebugHandler, sna
 		os.WriteFile(fout, d, 0o644)
 		t.Fatal("wrote out file - nothing to test")
 	}
+
 	dump.Compare(t, expectedXdsDump)
+	if t.Failed() {
+		j, _ := kdbg.MarshalJSON()
+		t.Logf("krt state for failed test: %s %s", t.Name(), string(j))
+	}
 	fmt.Println("test done")
 }
 
