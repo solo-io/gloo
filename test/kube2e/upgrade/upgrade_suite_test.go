@@ -54,7 +54,7 @@ var _ = BeforeSuite(func() {
 
 	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
 	namespaces := []string{"upgrade", testHelper.InstallNamespace, "other-ns"}
-	skhelpers.RegisterPreFailHandler(state_dump_utils.StandardGlooDumpOnFail(GinkgoWriter, outDir, namespaces))
+	skhelpers.RegisterPreFailHandler(state_dump_utils.StandardCIDumpOnFail(GinkgoWriter, outDir, namespaces))
 
 	crdDir = filepath.Join(util.GetModuleRoot(), "install", "helm", "gloo", "crds")
 	targetReleasedVersion = kube2e.GetTestReleasedVersion(suiteCtx, "gloo")

@@ -70,7 +70,7 @@ var _ = BeforeSuite(func() {
 
 	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
 	namespaces := []string{testHelper.InstallNamespace}
-	skhelpers.RegisterPreFailHandler(state_dump_utils.StandardGlooDumpOnFail(GinkgoWriter, outDir, namespaces))
+	skhelpers.RegisterPreFailHandler(state_dump_utils.StandardCIDumpOnFail(GinkgoWriter, outDir, namespaces))
 
 	// Allow skipping of install step for running multiple times
 	if !glootestutils.ShouldSkipInstall() {

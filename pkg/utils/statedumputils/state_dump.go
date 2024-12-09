@@ -24,10 +24,10 @@ import (
 	"github.com/solo-io/go-utils/threadsafe"
 )
 
-// StandardGlooDumpOnFail creates a dump of the CI system state, kubernetes state, gloo controller state,
+// StandardCIDumpOnFail creates a dump of the CI system state, kubernetes state, gloo controller state,
 // and certain envoy data from the admin interface when a test fails.
 // Look at `CISystemDumpOnFail`, `KubeDumpOnFail`, `ControllerDumpOnFail`, && `EnvoyDumpOnFail` for more details
-func StandardGlooDumpOnFail(outLog io.Writer, outDir string, namespaces []string) func() {
+func StandardCIDumpOnFail(outLog io.Writer, outDir string, namespaces []string) func() {
 	return func() {
 		fmt.Printf("Test failed. Dumping state from %s...\n", strings.Join(namespaces, ", "))
 
