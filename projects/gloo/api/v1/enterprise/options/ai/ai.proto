@@ -310,8 +310,6 @@ message RouteSettings {
     CHAT = 0;
     // Stream responses to a client, which allows the LLM to stream out tokens as they are generated. 
     CHAT_STREAMING = 1;
-    
-    REALTIME = 2;
   }
 
   // The type of route to the LLM provider API. Currently, `CHAT` and `CHAT_STREAMING` are supported.
