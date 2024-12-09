@@ -115,8 +115,8 @@ func AddProxyValidationResult(resourceReports reporter.ResourceReports, proxy *g
 }
 
 func addListenerResult(resourceReports reporter.ResourceReports, listener *gloov1.Listener, listenerReport *validation.ListenerReport) error {
-	listenerErrs := getListenerLevelErrors(listenerReport)
-	listenerWarnings := getListenerLevelWarnings(listenerReport)
+	listenerErrs := validationutils.GetListenerError(listenerReport)
+	listenerWarnings := validationutils.GetListenerWarning(listenerReport)
 
 	return translator.ForEachSource(listener, func(src translator.SourceRef) error {
 		srcResource, _ := resourceReports.Find(src.ResourceKind, &core.ResourceRef{Name: src.Name, Namespace: src.Namespace})
@@ -141,54 +141,6 @@ func addVirtualHostResult(resourceReports reporter.ResourceReports, virtualHost 
 		resourceReports.AddWarnings(srcResource, virtualHostWarnings...)
 		return nil
 	})
-}
-
-// get errors that can be caused by gateways
-func getListenerLevelErrors(listenerReport *validation.ListenerReport) []error {
-	listenerErrs := validationutils.GetListenerErr(listenerReport)
-
-	switch listenerType := listenerReport.GetListenerTypeReport().(type) {
-	case *validation.ListenerReport_HttpListenerReport:
-		httpListener := listenerType.HttpListenerReport
-		listenerErrs = append(listenerErrs, validationutils.GetHttpListenerErr(httpListener)...)
-
-	case *validation.ListenerReport_TcpListenerReport:
-		tcpListener := listenerType.TcpListenerReport
-		listenerErrs = append(listenerErrs, validationutils.GetTcpListenerErr(tcpListener)...)
-
-		for _, hostReport := range tcpListener.GetTcpHostReports() {
-			listenerErrs = append(listenerErrs, validationutils.GetTcpHostErr(hostReport)...)
-		}
-	case *validation.ListenerReport_HybridListenerReport:
-		for _, matchedListenerReport := range listenerType.HybridListenerReport.GetMatchedListenerReports() {
-			switch matchedListenerType := matchedListenerReport.GetListenerReportType().(type) {
-			case *validation.MatchedListenerReport_HttpListenerReport:
-				httpListener := matchedListenerType.HttpListenerReport
-				listenerErrs = append(listenerErrs, validationutils.GetHttpListenerErr(httpListener)...)
-			case *validation.MatchedListenerReport_TcpListenerReport:
-				tcpListener := matchedListenerType.TcpListenerReport
-				listenerErrs = append(listenerErrs, validationutils.GetTcpListenerErr(tcpListener)...)
-
-				for _, hostReport := range tcpListener.GetTcpHostReports() {
-					listenerErrs = append(listenerErrs, validationutils.GetTcpHostErr(hostReport)...)
-				}
-			}
-		}
-	case *validation.ListenerReport_AggregateListenerReport:
-		for _, httpListenerReport := range listenerType.AggregateListenerReport.GetHttpListenerReports() {
-			listenerErrs = append(listenerErrs, validationutils.GetHttpListenerErr(httpListenerReport)...)
-		}
-	}
-
-	return listenerErrs
-}
-func getListenerLevelWarnings(listenerReport *validation.ListenerReport) []string {
-	listenerWarnings := validationutils.GetListenerWarning(listenerReport)
-
-	// TODO(jbohanon) implement warnings on various listener types and account for them here
-	// similarly to the errors aggregation func above.
-
-	return listenerWarnings
 }
 
 // get errors that can be caused by virtual services

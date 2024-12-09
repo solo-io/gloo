@@ -188,7 +188,7 @@ func (t *tcpFilterChainTranslator) computeNetworkFilters(params plugins.Params) 
 	for _, plug := range t.networkPlugins {
 		stagedFilters, err := plug.NetworkFiltersTCP(params, t.listener)
 		if err != nil {
-			validation.AppendTCPListenerError(t.report, validationapi.TcpListenerReport_Error_ProcessingError, err.Error())
+			reportTCPListenerProcessingError(params, t.report, err)
 		}
 
 		for _, nf := range stagedFilters {

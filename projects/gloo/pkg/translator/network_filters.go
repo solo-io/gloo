@@ -76,7 +76,7 @@ func (n *httpNetworkFilterTranslator) computePreHCMFilters(params plugins.Params
 	for _, plug := range n.networkPlugins {
 		stagedFilters, err := plug.NetworkFiltersHTTP(params, n.listener)
 		if err != nil {
-			validation.AppendHTTPListenerError(n.report, validationapi.HttpListenerReport_Error_ProcessingError, err.Error())
+			reportHTTPListenerProcessingError(params, n.report, err)
 		}
 
 		for _, nf := range stagedFilters {
@@ -170,9 +170,7 @@ func (h *hcmNetworkFilterTranslator) ComputeNetworkFilter(params plugins.Params)
 	// 3. Allow any HCM plugins to make their changes, with respect to any changes the core plugin made
 	for _, hcmPlugin := range h.hcmPlugins {
 		if err := hcmPlugin.ProcessHcmNetworkFilter(params, h.parentListener, h.listener, httpConnectionManager); err != nil {
-			validation.AppendHTTPListenerError(h.report,
-				validationapi.HttpListenerReport_Error_ProcessingError,
-				err.Error())
+			reportHTTPListenerProcessingError(params, h.report, err)
 		}
 	}
 
@@ -219,7 +217,7 @@ func (h *hcmNetworkFilterTranslator) computeHttpFilters(params plugins.Params) [
 	for _, plug := range h.httpPlugins {
 		stagedFilters, err := plug.HttpFilters(params, h.listener)
 		if err != nil {
-			validation.AppendHTTPListenerError(h.report, validationapi.HttpListenerReport_Error_ProcessingError, err.Error())
+			reportHTTPListenerProcessingError(params, h.report, err)
 		}
 
 		for _, httpFilter := range stagedFilters {
@@ -261,7 +259,7 @@ func (h *hcmNetworkFilterTranslator) computeHttpFilters(params plugins.Params) [
 		plugins.AfterStage(plugins.RouteStage),
 	)
 	if err != nil {
-		validation.AppendHTTPListenerError(h.report, validationapi.HttpListenerReport_Error_ProcessingError, err.Error())
+		reportHTTPListenerProcessingError(params, h.report, err)
 	}
 
 	envoyHttpFilters = append(envoyHttpFilters, newStagedFilter.Filter)
@@ -274,7 +272,7 @@ func (h *hcmNetworkFilterTranslator) computeUpstreamHTTPFilters(params plugins.P
 	for _, plug := range h.upstreamHttpPlugins {
 		stagedFilters, err := plug.UpstreamHttpFilters(params, h.listener)
 		if err != nil {
-			validation.AppendHTTPListenerError(h.report, validationapi.HttpListenerReport_Error_ProcessingError, err.Error())
+			reportHTTPListenerProcessingError(params, h.report, err)
 		}
 		upstreamHttpFilters = append(upstreamHttpFilters, stagedFilters...)
 	}

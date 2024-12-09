@@ -787,6 +787,36 @@ func (m *HttpListenerReport) HashUnique(hasher hash.Hash64) (uint64, error) {
 
 	}
 
+	if _, err = hasher.Write([]byte("Warnings")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetWarnings() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
+
+		if h, ok := interface{}(v).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("v")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(v, nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("v")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	}
+
 	return hasher.Sum64(), nil
 }
 
@@ -998,6 +1028,36 @@ func (m *TcpListenerReport) HashUnique(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 	for i, v := range m.GetTcpHostReports() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
+
+		if h, ok := interface{}(v).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("v")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(v, nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("v")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	}
+
+	if _, err = hasher.Write([]byte("Warnings")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetWarnings() {
 		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
 			return 0, err
 		}
@@ -1463,6 +1523,40 @@ func (m *HttpListenerReport_Error) HashUnique(hasher hash.Hash64) (uint64, error
 // hashing field name and value pairs.
 // Replaces Hash due to original hashing implemention only using field values. The omission
 // of the field name in the hash calculation can lead to hash collisions.
+func (m *HttpListenerReport_Warning) HashUnique(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation.HttpListenerReport_Warning")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("Type")); err != nil {
+		return 0, err
+	}
+	err = binary.Write(hasher, binary.LittleEndian, m.GetType())
+	if err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("Reason")); err != nil {
+		return 0, err
+	}
+	if _, err = hasher.Write([]byte(m.GetReason())); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
 func (m *VirtualHostReport_Error) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1614,6 +1708,40 @@ func (m *TcpListenerReport_Error) HashUnique(hasher hash.Hash64) (uint64, error)
 	}
 	var err error
 	if _, err = hasher.Write([]byte("gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation.TcpListenerReport_Error")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("Type")); err != nil {
+		return 0, err
+	}
+	err = binary.Write(hasher, binary.LittleEndian, m.GetType())
+	if err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("Reason")); err != nil {
+		return 0, err
+	}
+	if _, err = hasher.Write([]byte(m.GetReason())); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *TcpListenerReport_Warning) HashUnique(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation.TcpListenerReport_Warning")); err != nil {
 		return 0, err
 	}
 
