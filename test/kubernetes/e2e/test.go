@@ -19,7 +19,7 @@ import (
 	testruntime "github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
 	"github.com/solo-io/gloo/test/testutils"
 
-	"github.com/solo-io/gloo/pkg/utils/statedumputils"
+	state_dump_utils "github.com/solo-io/gloo/pkg/utils/statedumputils"
 )
 
 // MustTestHelper returns the SoloTestHelper used for e2e tests

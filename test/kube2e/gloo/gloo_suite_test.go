@@ -11,7 +11,7 @@ import (
 	"github.com/solo-io/skv2/codegen/util"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
-	"github.com/solo-io/gloo/pkg/utils/statedumputils"
+	state_dump_utils "github.com/solo-io/gloo/pkg/utils/statedumputils"
 
 	"github.com/avast/retry-go"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"

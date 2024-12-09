@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/solo-io/gloo/pkg/utils/helmutils"
-	"github.com/solo-io/gloo/pkg/utils/statedumputils"
+	state_dump_utils "github.com/solo-io/gloo/pkg/utils/statedumputils"
 
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/test/kube2e"

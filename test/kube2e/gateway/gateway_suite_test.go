@@ -25,7 +25,7 @@ import (
 	kubeutils2 "github.com/solo-io/gloo/test/testutils"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
-	"github.com/solo-io/gloo/pkg/utils/statedumputils"
+	state_dump_utils "github.com/solo-io/gloo/pkg/utils/statedumputils"
 	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 )
