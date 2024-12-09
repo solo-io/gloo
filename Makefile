@@ -95,9 +95,9 @@ TEST_ASSET_DIR ?= $(ROOTDIR)/_test
 # Directory to store downloaded conformance tests for different versions
 CONFORMANCE_DIR ?= $(TEST_ASSET_DIR)/conformance
 # Gateway API version used for conformance testing
-GATEWAY_API_VERSION ?= v1.2.0
+CONFORMANCE_VERSION ?= v1.2.0
 # Fetch the module directory for the specified version of the Gateway API
-GATEWAY_API_MODULE_DIR := $(shell go list -m -json sigs.k8s.io/gateway-api@$(GATEWAY_API_VERSION) | jq -r '.Dir')
+GATEWAY_API_MODULE_DIR := $(shell go mod download -json sigs.k8s.io/gateway-api@$(CONFORMANCE_VERSION) | jq -r '.Dir')
 
 # This is the location where assets are placed after a test failure
 # This is used by our e2e tests to emit information about the running instance of Gloo Gateway
@@ -1244,14 +1244,14 @@ build-test-chart: ## Build the Helm chart and place it in the _test directory
 #----------------------------------------------------------------------------------
 
 # Download and prepare the conformance test suite for a specific Gateway API version
-$(CONFORMANCE_DIR)/$(GATEWAY_API_VERSION)/conformance_test.go:
-	mkdir -p $(CONFORMANCE_DIR)/$(GATEWAY_API_VERSION)
-	go mod download sigs.k8s.io/gateway-api@$(GATEWAY_API_VERSION)
+$(CONFORMANCE_DIR)/$(CONFORMANCE_VERSION)/conformance_test.go:
+	mkdir -p $(CONFORMANCE_DIR)/$(CONFORMANCE_VERSION)
+	go mod download sigs.k8s.io/gateway-api@$(CONFORMANCE_VERSION)
 	cp $(GATEWAY_API_MODULE_DIR)/conformance/conformance_test.go $@
 
 # Install the correct version of Gateway API CRDs in the Kubernetes cluster
 install-crds:
-	kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/$(GATEWAY_API_VERSION)/experimental-install.yaml
+	kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/$(CONFORMANCE_VERSION)/experimental-install.yaml
 
 # Update go.mod to replace Gateway API module with the version used for conformance testing
 update-mod:
@@ -1265,18 +1265,18 @@ reset-mod:
 # Common arguments for conformance testing
 CONFORMANCE_SUPPORTED_FEATURES ?= -supported-features=Gateway,ReferenceGrant,HTTPRoute,HTTPRouteQueryParamMatching,HTTPRouteMethodMatching,HTTPRouteResponseHeaderModification,HTTPRoutePortRedirect,HTTPRouteHostRewrite,HTTPRouteSchemeRedirect,HTTPRoutePathRedirect,HTTPRouteHostRewrite,HTTPRoutePathRewrite,HTTPRouteRequestMirror
 CONFORMANCE_SUPPORTED_PROFILES ?= -conformance-profiles=GATEWAY-HTTP
-CONFORMANCE_REPORT_ARGS ?= -report-output=$(CONFORMANCE_DIR)/$(GATEWAY_API_VERSION)/$(VERSION)-report.yaml -organization=solo.io -project=gloo-gateway -version=$(VERSION) -url=github.com/solo-io/gloo -contact=github.com/solo-io/gloo/issues/new/choose
+CONFORMANCE_REPORT_ARGS ?= -report-output=$(CONFORMANCE_DIR)/$(CONFORMANCE_VERSION)/$(VERSION)-report.yaml -organization=solo.io -project=gloo-gateway -version=$(VERSION) -url=github.com/solo-io/gloo -contact=github.com/solo-io/gloo/issues/new/choose
 CONFORMANCE_ARGS := -gateway-class=gloo-gateway $(CONFORMANCE_SUPPORTED_FEATURES) $(CONFORMANCE_SUPPORTED_PROFILES) $(CONFORMANCE_REPORT_ARGS)
 
 # Run conformance tests for the specified Gateway API version
 .PHONY: conformance
-conformance: $(CONFORMANCE_DIR)/$(GATEWAY_API_VERSION)/conformance_test.go install-crds update-mod
+conformance: $(CONFORMANCE_DIR)/$(CONFORMANCE_VERSION)/conformance_test.go install-crds update-mod
 	@trap "make reset-mod" EXIT; \
-	go test -mod=mod -ldflags=$(LDFLAGS) -tags conformance -test.v $(CONFORMANCE_DIR)/$(GATEWAY_API_VERSION)/... -args $(CONFORMANCE_ARGS)
+	go test -mod=mod -ldflags=$(LDFLAGS) -tags conformance -test.v $(CONFORMANCE_DIR)/$(CONFORMANCE_VERSION)/... -args $(CONFORMANCE_ARGS)
 
 .PHONY: conformance-% ## Run the conformance test suite
-conformance-%: $(CONFORMANCE_DIR)/$(GATEWAY_API_VERSION)/conformance_test.go
-	go test -mod=mod -ldflags=$(LDFLAGS) -tags conformance -test.v $(CONFORMANCE_DIR)/$(GATEWAY_API_VERSION)/... -args $(CONFORMANCE_ARGS) \
+conformance-%: $(CONFORMANCE_DIR)/$(CONFORMANCE_VERSION)/conformance_test.go
+	go test -mod=mod -ldflags=$(LDFLAGS) -tags conformance -test.v $(CONFORMANCE_DIR)/$(CONFORMANCE_VERSION)/... -args $(CONFORMANCE_ARGS) \
 	-run-test=$*
 
 #----------------------------------------------------------------------------------
