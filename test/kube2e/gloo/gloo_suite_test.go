@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/skv2/codegen/util"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	"github.com/solo-io/gloo/pkg/utils/statedumputils"
 
 	"github.com/avast/retry-go"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -69,7 +70,7 @@ var _ = BeforeSuite(func() {
 
 	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
 	namespaces := []string{testHelper.InstallNamespace}
-	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir, namespaces))
+	skhelpers.RegisterPreFailHandler(state_dump_utils.StandardGlooDumpOnFail(GinkgoWriter, outDir, namespaces))
 
 	// Allow skipping of install step for running multiple times
 	if !glootestutils.ShouldSkipInstall() {

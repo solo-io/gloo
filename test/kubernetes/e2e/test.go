@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/actions"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/assertions"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/cluster"
@@ -19,6 +18,8 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	testruntime "github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
 	"github.com/solo-io/gloo/test/testutils"
+
+	"github.com/solo-io/gloo/pkg/utils/statedumputils"
 )
 
 // MustTestHelper returns the SoloTestHelper used for e2e tests
@@ -244,7 +245,7 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 	i.Assertions.Require.NoError(err)
 
 	// Dump the logs and state of the cluster
-	helpers.StandardGlooDumpOnFail(os.Stdout, failureDir, namespaces)()
+	state_dump_utils.StandardGlooDumpOnFail(os.Stdout, failureDir, namespaces)()
 }
 
 // GeneratedFiles is a collection of files that are generated during the execution of a set of tests

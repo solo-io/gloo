@@ -6,11 +6,10 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	"github.com/solo-io/gloo/pkg/utils/statedumputils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
-	"github.com/solo-io/gloo/test/helpers"
-
 	"github.com/solo-io/go-utils/cliutils"
 	"github.com/spf13/cobra"
 )
@@ -26,9 +25,9 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 
 			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
 
-			helpers.KubeDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
-			helpers.ControllerDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
-			helpers.EnvoyDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			state_dump_utils.KubeDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			state_dump_utils.ControllerDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			state_dump_utils.EnvoyDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
 			return nil
 		},
 	}
@@ -93,7 +92,7 @@ func DebugKubeCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *c
 
 			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
 
-			helpers.KubeDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			state_dump_utils.KubeDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
 			return nil
 		},
 	}
@@ -113,7 +112,7 @@ func DebugGlooCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *c
 
 			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
 
-			helpers.ControllerDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			state_dump_utils.ControllerDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
 			return nil
 		},
 	}
@@ -133,7 +132,7 @@ func DebugEnvoyCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *
 
 			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
 
-			helpers.EnvoyDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			state_dump_utils.EnvoyDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
 			return nil
 		},
 	}
