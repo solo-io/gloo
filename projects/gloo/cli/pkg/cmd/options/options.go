@@ -499,6 +499,7 @@ type ValidateLicense struct {
 	LicenseKey string
 }
 
+// options for the "glooctl debug" command, see projects/gloo/cli/pkg/cmd/debug/root.go
 type Debug struct {
 	Directory  string
 	Namespaces []string

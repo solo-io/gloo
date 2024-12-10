@@ -285,7 +285,8 @@ func recordCRs(ctx context.Context, namespaceDir string, namespace string) error
 				errF.WriteString(stderr)
 				errF.Close()
 			}
-			// Typically return immediately on err; opted to print stdout and stderr first if non-empty
+			// We don't expect an error to occur when executing this request.
+			// If it does, we intentionally print stdout and stderr to the respective files so that we can more easily debug the error.
 			if err != nil {
 				return err
 			}
