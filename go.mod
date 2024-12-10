@@ -378,6 +378,9 @@ replace (
 	// Required for proper serialization of CRDs
 	github.com/renstrom/dedent => github.com/lithammer/dedent v1.0.0
 
+	// Pin istio to 69f298c279d4683891d092ead92f996e73fee456
+	istio.io/istio => istio.io/istio v0.0.0-20241205190107-69f298c279d4
+
 	// Pin Kube libraries to v0.31
 	// These should be upgraded collectively
 	k8s.io/api => k8s.io/api v0.31.1

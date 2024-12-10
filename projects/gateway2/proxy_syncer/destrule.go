@@ -15,7 +15,7 @@ import (
 	"istio.io/istio/pkg/kube/kclient"
 	"istio.io/istio/pkg/kube/krt"
 	"istio.io/istio/pkg/kube/kubetypes"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 )
@@ -65,10 +65,10 @@ func init() {
 	kubeclient.Register[*networkingclient.DestinationRule](
 		gvr.DestinationRule_v1beta1,
 		gvk.DestinationRule_v1beta1.Kubernetes(),
-		func(c kubeclient.ClientGetter, namespace string, o v1.ListOptions) (runtime.Object, error) {
+		func(c kubeclient.ClientGetter, namespace string, o metav1.ListOptions) (runtime.Object, error) {
 			return c.Istio().NetworkingV1beta1().DestinationRules(namespace).List(context.Background(), o)
 		},
-		func(c kubeclient.ClientGetter, namespace string, o v1.ListOptions) (watch.Interface, error) {
+		func(c kubeclient.ClientGetter, namespace string, o metav1.ListOptions) (watch.Interface, error) {
 			return c.Istio().NetworkingV1beta1().DestinationRules(namespace).Watch(context.Background(), o)
 		},
 	)
