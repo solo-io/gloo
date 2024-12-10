@@ -285,6 +285,11 @@ func (c *Cli) ExecuteOn(ctx context.Context, kubeContext string, args ...string)
 	return c.Execute(ctx, args...)
 }
 
+func (c *Cli) Get(ctx context.Context, args ...string) (string, string, error) {
+	args = append([]string{"get"}, args...)
+	return c.Execute(ctx, args...)
+}
+
 func (c *Cli) Execute(ctx context.Context, args ...string) (string, string, error) {
 	if c.kubeContext != "" {
 		if !slices.Contains(args, "--context") {

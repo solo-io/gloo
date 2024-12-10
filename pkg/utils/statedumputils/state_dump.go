@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/onsi/ginkgo/v2"
 
 	"github.com/solo-io/gloo/pkg/cliutil/install"
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
@@ -71,14 +70,14 @@ func CISystemDumpOnFail(_ context.Context, _ *kubectl.Cli, _ io.Writer, outDir s
 // - kubernetes cluster state
 // - logs from all pods in the given namespaces
 // - yaml representations of all solo.io CRs in the given namespaces
-func KubeDumpOnFail(_ context.Context, _ *kubectl.Cli, _ io.Writer, outDir string,
+func KubeDumpOnFail(ctx context.Context, _ *kubectl.Cli, _ io.Writer, outDir string,
 	namespaces []string) func() {
 	return func() {
 		setupOutDir(outDir)
 
 		recordKubeState(fileAtPath(filepath.Join(outDir, "kube-state.log")))
 
-		recordKubeDump(outDir, namespaces...)
+		recordKubeDump(ctx, outDir, namespaces...)
 
 		fmt.Printf("Finished writing Kubernetes state information to the `%s` directory.\n", outDir)
 	}
@@ -191,7 +190,7 @@ func recordKubeState(f *os.File) {
 	f.WriteString("*** End Kube state ***\n")
 }
 
-func recordKubeDump(outDir string, namespaces ...string) {
+func recordKubeDump(ctx context.Context, outDir string, namespaces ...string) {
 	// for each namespace, create a namespace directory that contains...
 	for _, ns := range namespaces {
 		// ...a pod logs subdirectory
@@ -200,7 +199,7 @@ func recordKubeDump(outDir string, namespaces ...string) {
 		}
 
 		// ...and a subdirectory for each solo.io CRD with non-zero resources
-		if err := recordCRs(filepath.Join(outDir, ns), ns); err != nil {
+		if err := recordCRs(ctx, filepath.Join(outDir, ns), ns); err != nil {
 			fmt.Printf("error recording pod logs: %f, \n", err)
 		}
 	}
@@ -246,7 +245,7 @@ func recordPods(podDir, namespace string) error {
 }
 
 // recordCRs records all unique CRs floating about to _output/kube2e-artifacts/$namespace/$crd/$cr.yaml
-func recordCRs(namespaceDir string, namespace string) error {
+func recordCRs(ctx context.Context, namespaceDir string, namespace string) error {
 	crds, _, err := kubeList(namespace, "crd")
 	if err != nil {
 		return err
@@ -274,19 +273,19 @@ func recordCRs(namespaceDir string, namespace string) error {
 
 		// we record each one in its own .yaml representation
 		for _, cr := range crs {
-			f := fileAtPath(filepath.Join(crdDir, cr+".yaml"))
-			errF := fileAtPath(filepath.Join(crdDir, cr+"-error.log"))
-
-			crDetails, errOutput, err := kubeGet(namespace, crd, cr)
-
-			if crDetails != "" {
-				f.WriteString(crDetails)
+			args := []string{"-n", namespace, crd, cr, "-oyaml"}
+			stdout, stderr, err := kubectl.NewCli().Get(ctx, args...)
+			if stdout != "" {
+				f := fileAtPath(filepath.Join(crdDir, cr+".yaml"))
+				f.WriteString(stdout)
 				f.Close()
 			}
-			if errOutput != "" {
-				errF.WriteString(errOutput)
+			if stderr != "" {
+				errF := fileAtPath(filepath.Join(crdDir, cr+"-error.log"))
+				errF.WriteString(stderr)
 				errF.Close()
 			}
+			// Typically return immediately on err; opted to print stdout and stderr first if non-empty
 			if err != nil {
 				return err
 			}
@@ -302,17 +301,9 @@ func kubeLogs(namespace string, pod string) (string, string, error) {
 	return kubeExecute(args)
 }
 
-// kubeGet runs $(kubectl -n $namespace get $kubeType $name -oyaml) and returns the string result
-func kubeGet(namespace string, kubeType string, name string) (string, string, error) {
-	args := []string{"-n", namespace, "get", kubeType, name, "-oyaml"}
-	return kubeExecute(args)
-}
-
 func kubeExecute(args []string) (string, string, error) {
-	cli := kubectl.NewCli().WithReceiver(ginkgo.GinkgoWriter)
-
 	var outLocation threadsafe.Buffer
-	runError := cli.Command(context.Background(), args...).WithStdout(&outLocation).Run()
+	runError := kubectl.NewCli().Command(context.Background(), args...).WithStdout(&outLocation).Run()
 	if runError != nil {
 		return outLocation.String(), runError.OutputString(), runError.Cause()
 	}
