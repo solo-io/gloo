@@ -49,7 +49,7 @@ jobs:
       run: make --always-make --ignore-errors validate-test-coverage
     - name: Emit metrics for results in JUnit XML
       shell: bash
-      run: |
+      run: >
         cat _output/junit.xml | docker run --rm -i --volume "$(pwd):/opt/projectname" \
           --env OTEL_EXPORTER_OTLP_ENDPOINT=https://test-metrics-otel-collector-54kqckfreq-ul.a.run.app:443 \
 		      --env TARGET_BRANCH=main --env BRANCH=main \
