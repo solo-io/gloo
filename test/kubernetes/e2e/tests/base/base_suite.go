@@ -152,7 +152,7 @@ func (s *BaseTestingSuite) BeforeTest(suiteName, testName string) {
 
 	testCase, ok := s.TestCase[testName]
 	if !ok {
-		s.FailNow("no manifests found for " + testName)
+		return
 	}
 
 	if testCase.UpgradeValues != "" {
@@ -196,7 +196,7 @@ func (s *BaseTestingSuite) AfterTest(suiteName, testName string) {
 	// Delete test-specific manifests
 	testCase, ok := s.TestCase[testName]
 	if !ok {
-		s.FailNow("no manifests found for " + testName)
+		return
 	}
 
 	if testCase.UpgradeValues != "" {

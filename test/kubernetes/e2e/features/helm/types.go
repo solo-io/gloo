@@ -17,12 +17,6 @@ var (
 				UpgradeValues: productionRecommendationsSetup,
 			},
 		},
-		"TestChangedConfigMapTriggersRollout": {
-			SimpleTestCase: base.SimpleTestCase{},
-		},
-		"TestApplyCRDs": {
-			SimpleTestCase: base.SimpleTestCase{},
-		},
 	}
 
 	enterpriseCRDCategory = "solo-io"
