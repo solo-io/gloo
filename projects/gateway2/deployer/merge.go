@@ -724,6 +724,7 @@ func deepMergeAIExtension(dst, src *v1alpha1.AiExtension) *v1alpha1.AiExtension 
 	dst.Env = deepMergeSlices(dst.GetEnv(), src.GetEnv())
 	dst.Ports = deepMergeSlices(dst.GetPorts(), src.GetPorts())
 	dst.Stats = deepMergeAIExtensionStats(dst.GetStats(), src.GetStats())
+	dst.Tracing = deepMergeAiExtensionTracing(dst.GetTracing(), src.GetTracing())
 
 	return dst
 }
@@ -739,6 +740,38 @@ func deepMergeAIExtensionStats(dst, src *v1alpha1.AiExtensionStats) *v1alpha1.Ai
 	}
 
 	dst.CustomLabels = deepMergeSlices(dst.GetCustomLabels(), src.GetCustomLabels())
+
+	return dst
+}
+
+func deepMergeAiExtensionTracing(dst, src *v1alpha1.AIExtensionTracing) *v1alpha1.AIExtensionTracing {
+	// nil src override means just use dst
+	if src == nil {
+		return dst
+	}
+
+	if dst == nil {
+		return src
+	}
+
+	dst.Grpc = deepMergeAiExtensionTracingGrpc(dst.GetGrpc(), src.GetGrpc())
+	dst.Insecure = mergeComparable(dst.GetInsecure(), src.GetInsecure())
+
+	return dst
+}
+
+func deepMergeAiExtensionTracingGrpc(dst, src *v1alpha1.AIExtensionTracingGrpc) *v1alpha1.AIExtensionTracingGrpc {
+	// nil src override means just use dst
+	if src == nil {
+		return dst
+	}
+
+	if dst == nil {
+		return src
+	}
+
+	dst.Host = mergeComparable(dst.GetHost(), src.GetHost())
+	dst.Port = mergeComparable(dst.GetPort(), src.GetPort())
 
 	return dst
 }

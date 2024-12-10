@@ -173,6 +173,44 @@ func (m *ListenerTracingSettings) HashUnique(hasher hash.Hash64) (uint64, error)
 
 	}
 
+	if _, err = hasher.Write([]byte("MetadataForTags")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetMetadataForTags() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
+
+		if h, ok := interface{}(v).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("v")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(v, nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("v")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	}
+
+	if _, err = hasher.Write([]byte("SpawnUpstreamSpan")); err != nil {
+		return 0, err
+	}
+	err = binary.Write(hasher, binary.LittleEndian, m.GetSpawnUpstreamSpan())
+	if err != nil {
+		return 0, err
+	}
+
 	switch m.ProviderConfig.(type) {
 
 	case *ListenerTracingSettings_ZipkinConfig:
@@ -546,6 +584,107 @@ func (m *TracingTagLiteral) HashUnique(hasher hash.Hash64) (uint64, error) {
 				return 0, err
 			}
 		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *TracingTagMetadata) HashUnique(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("tracing.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tracing.TracingTagMetadata")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("Tag")); err != nil {
+		return 0, err
+	}
+	if _, err = hasher.Write([]byte(m.GetTag())); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("Kind")); err != nil {
+		return 0, err
+	}
+	err = binary.Write(hasher, binary.LittleEndian, m.GetKind())
+	if err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetValue()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Value")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetValue(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Value")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if _, err = hasher.Write([]byte("DefaultValue")); err != nil {
+		return 0, err
+	}
+	if _, err = hasher.Write([]byte(m.GetDefaultValue())); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *TracingTagMetadata_MetadataValue) HashUnique(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("tracing.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tracing.TracingTagMetadata_MetadataValue")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("Namespace")); err != nil {
+		return 0, err
+	}
+	if _, err = hasher.Write([]byte(m.GetNamespace())); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("Key")); err != nil {
+		return 0, err
+	}
+	if _, err = hasher.Write([]byte(m.GetKey())); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("NestedFieldDelimiter")); err != nil {
+		return 0, err
+	}
+	if _, err = hasher.Write([]byte(m.GetNestedFieldDelimiter())); err != nil {
+		return 0, err
 	}
 
 	return hasher.Sum64(), nil
