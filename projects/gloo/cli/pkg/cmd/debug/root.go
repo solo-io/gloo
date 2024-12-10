@@ -2,6 +2,7 @@ package debug
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -38,18 +39,16 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 
 	cmd.AddCommand(DebugLogCmd(opts))
 	cmd.AddCommand(DebugYamlCmd(opts))
-	cmd.AddCommand(DebugKubeCmd(opts))
-	cmd.AddCommand(DebugGlooCmd(opts))
-	cmd.AddCommand(DebugEnvoyCmd(opts))
 	cliutils.ApplyOptions(cmd, optionsFunc)
 	return cmd
 }
 
 func DebugLogCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     constants.DEBUG_LOG_COMMAND.Use,
-		Aliases: constants.DEBUG_LOG_COMMAND.Aliases,
-		Short:   constants.DEBUG_LOG_COMMAND.Short,
+		Use:        constants.DEBUG_LOG_COMMAND.Use,
+		Aliases:    constants.DEBUG_LOG_COMMAND.Aliases,
+		Short:      constants.DEBUG_LOG_COMMAND.Short,
+		Deprecated: constants.DEBUG_LOG_COMMAND.Deprecated,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return DebugLogs(opts, os.Stdout)
 		},
@@ -67,6 +66,9 @@ func DebugYamlCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *c
 	cmd := &cobra.Command{
 		Use:   constants.DEBUG_YAML_COMMAND.Use,
 		Short: constants.DEBUG_YAML_COMMAND.Short,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			fmt.Println("Top level \"debug\" command is preferred over \"debug yaml\".")
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return DebugYaml(opts, os.Stdout)
 		},
@@ -77,66 +79,5 @@ func DebugYamlCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *c
 	flagutils.AddNamespaceFlag(pflags, &opts.Metadata.Namespace)
 	cliutils.ApplyOptions(cmd, optionsFunc)
 
-	return cmd
-}
-
-func DebugKubeCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     constants.DEBUG_KUBE_COMMAND.Use,
-		Aliases: constants.DEBUG_KUBE_COMMAND.Aliases,
-		Short:   constants.DEBUG_KUBE_COMMAND.Short,
-		Long:    constants.DEBUG_KUBE_COMMAND.Long,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-			defer cancel()
-
-			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
-
-			state_dump_utils.KubeDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
-			return nil
-		},
-	}
-
-	cliutils.ApplyOptions(cmd, optionsFunc)
-	return cmd
-}
-
-func DebugGlooCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   constants.DEBUG_GLOO_COMMAND.Use,
-		Short: constants.DEBUG_GLOO_COMMAND.Short,
-		Long:  constants.DEBUG_GLOO_COMMAND.Long,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-			defer cancel()
-
-			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
-
-			state_dump_utils.ControllerDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
-			return nil
-		},
-	}
-
-	cliutils.ApplyOptions(cmd, optionsFunc)
-	return cmd
-}
-
-func DebugEnvoyCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   constants.DEBUG_ENVOY_COMMAND.Use,
-		Short: constants.DEBUG_ENVOY_COMMAND.Short,
-		Long:  constants.DEBUG_ENVOY_COMMAND.Long,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-			defer cancel()
-
-			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
-
-			state_dump_utils.EnvoyDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
-			return nil
-		},
-	}
-
-	cliutils.ApplyOptions(cmd, optionsFunc)
 	return cmd
 }
