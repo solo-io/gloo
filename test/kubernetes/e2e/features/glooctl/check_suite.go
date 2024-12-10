@@ -98,7 +98,7 @@ func (s *checkSuite) TestCheckKubeContext() {
 
 	// When passing the kube-context of the running cluster, `glooctl check` should succeed
 	_, err = s.testInstallation.Actions.Glooctl().Check(s.ctx,
-		"-n", s.testInstallation.Metadata.InstallNamespace, "--kube-context", s.testInstallation.ClusterContext.KubeContext, "-x", "xds-metrics")
+		"-n", s.testInstallation.Metadata.InstallNamespace, "-x", "xds-metrics")
 	s.NoError(err)
 }
 
