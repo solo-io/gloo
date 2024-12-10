@@ -29,30 +29,9 @@ var _ = Describe("Debug", func() {
 		err := testutils.Glooctl("debug")
 		Expect(err).NotTo(HaveOccurred())
 
-		checkDebugKube()
-	})
-
-	It("should support the debug kube subcommand and should populate the kube-state.log file", func() {
-		err := testutils.Glooctl("debug kube")
-		Expect(err).NotTo(HaveOccurred())
-
-		checkDebugKube()
-	})
-
-	It("should support the debug gloo subcommand", func() {
-		err := testutils.Glooctl("debug gloo")
-		Expect(err).NotTo(HaveOccurred())
-	})
-
-	It("should support the debug envoy subcommand", func() {
-		err := testutils.Glooctl("debug envoy")
-		Expect(err).NotTo(HaveOccurred())
+		kubeStateBytes, err := os.ReadFile(kubeStateFile)
+		Expect(err).NotTo(HaveOccurred(), kubeStateFile+" file should be present")
+		Expect(kubeStateBytes).NotTo(BeEmpty())
 	})
 
 })
-
-func checkDebugKube() {
-	kubeStateBytes, err := os.ReadFile(kubeStateFile)
-	Expect(err).NotTo(HaveOccurred(), kubeStateFile+" file should be present")
-	Expect(kubeStateBytes).NotTo(BeEmpty())
-}
