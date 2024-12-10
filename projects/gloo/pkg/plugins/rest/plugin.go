@@ -11,7 +11,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/transformation"
 	transformutils "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils/transformation"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -69,7 +68,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, _ *envo
 		if restServiceSpec.Rest == nil {
 			return errors.Errorf("%v has an empty rest service spec", in.GetMetadata().Ref())
 		}
-		p.recordedUpstreams[translator.UpstreamToClusterName(in.GetMetadata().Ref())] = restServiceSpec
+		p.recordedUpstreams[in.GetMetadata().Ref().Key()] = restServiceSpec
 	}
 	return nil
 }
@@ -92,7 +91,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 				contextutils.LoggerFrom(params.Ctx).Error(err)
 				return nil, err
 			}
-			restServiceSpec, ok := p.recordedUpstreams[translator.UpstreamToClusterName(upstreamRef)]
+			restServiceSpec, ok := p.recordedUpstreams[upstreamRef.Key()]
 			if !ok {
 				return nil, errors.Errorf("%s does not have a rest service spec", upstreamRef)
 			}

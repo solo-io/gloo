@@ -5,16 +5,13 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes/serviceconverter"
-	"github.com/solo-io/go-utils/contextutils"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
-
-	sanitizer "github.com/solo-io/k8s-utils/kubeutils"
-
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/discovery"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes/serviceconverter"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
+	"github.com/solo-io/go-utils/contextutils"
+	sanitizer "github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	corev1 "k8s.io/api/core/v1"
@@ -34,6 +31,7 @@ type KubeUpstreamConverter struct {
 	serviceConverters []serviceconverter.ServiceConverter
 }
 
+// UpstreamsForService is called by the k8s uds plugin to convert a service to list of upstreams
 func (uc *KubeUpstreamConverter) UpstreamsForService(ctx context.Context, svc *corev1.Service) v1.UpstreamList {
 	var upstreams v1.UpstreamList
 	for _, port := range svc.Spec.Ports {
@@ -42,6 +40,9 @@ func (uc *KubeUpstreamConverter) UpstreamsForService(ctx context.Context, svc *c
 	return upstreams
 }
 
+// CreateUpstream is called by both:
+// - discovery (when creating an upstream from a k8s service)
+// - controller code that converts services to in-memory upstreams
 func (uc *KubeUpstreamConverter) CreateUpstream(ctx context.Context, svc *corev1.Service, port corev1.ServicePort) *v1.Upstream {
 	meta := svc.ObjectMeta
 	coremeta := kubeutils.FromKubeMeta(meta, false)
@@ -74,6 +75,10 @@ func (uc *KubeUpstreamConverter) CreateUpstream(ctx context.Context, svc *corev1
 	return us
 }
 
+// UpstreamName creates an upstream name from a k8s Service name/namespace/port.
+//
+// This function is used in the context of both "real" upstreams written to etcd (e.g. upstreams created by UDS)
+// as well as "fake" upstreams (i.e. those upstreams we only create in the in-memory input snapshot).
 func UpstreamName(serviceNamespace, serviceName string, servicePort int32) string {
 	return sanitizer.SanitizeNameV2(fmt.Sprintf("%s-%s-%v", serviceNamespace, serviceName, servicePort))
 }

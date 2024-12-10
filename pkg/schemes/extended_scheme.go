@@ -13,7 +13,7 @@ import (
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 )
 
-// AddGatewayV1A2Scheme adds the gwv1a2 scheme to the provided scheme if the TCPRoute CRD exists.
+// AddGatewayV1A2Scheme adds the Gateway v1alpha2 scheme to the provided scheme if the TCPRoute CRD exists.
 func AddGatewayV1A2Scheme(restConfig *rest.Config, scheme *runtime.Scheme) error {
 	exists, err := CRDExists(restConfig, gwv1a2.GroupVersion.Group, gwv1a2.GroupVersion.Version, wellknown.TCPRouteKind)
 	if err != nil {

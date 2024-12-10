@@ -81,7 +81,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	// If the upstream uses the new API we should record that it exists for use in `ProcessRoute` but not make any changes
 	_, ok = upstreamType.GetServiceSpec().GetPluginType().(*glooplugins.ServiceSpec_GrpcJsonTranscoder)
 	if ok {
-		p.recordedUpstreams[translator.UpstreamToClusterName(in.GetMetadata().Ref())] = in
+		p.recordedUpstreams[in.GetMetadata().Ref().Key()] = in
 		return nil
 	}
 	grpcWrapper, ok := upstreamType.GetServiceSpec().GetPluginType().(*glooplugins.ServiceSpec_Grpc)
@@ -116,7 +116,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 
 	addWellKnownProtos(descriptors)
 
-	p.recordedUpstreams[translator.UpstreamToClusterName(in.GetMetadata().Ref())] = in
+	p.recordedUpstreams[in.GetMetadata().Ref().Key()] = in
 	p.upstreamServices = append(p.upstreamServices, ServicesAndDescriptor{
 		Descriptors: descriptors,
 		Spec:        grpcSpec,
@@ -184,7 +184,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 				return nil, err
 			}
 
-			upstream := p.recordedUpstreams[translator.UpstreamToClusterName(upstreamRef)]
+			upstream := p.recordedUpstreams[upstreamRef.Key()]
 			if upstream == nil {
 				return nil, errors.New(fmt.Sprintf("upstream %v was not recorded for grpc route", upstreamRef))
 			}

@@ -325,7 +325,7 @@ func (ei *Instance) StructuredConfigDump() (*adminv3.ConfigDump, error) {
 }
 
 func (ei *Instance) Statistics() (string, error) {
-	return ei.AdminClient().GetStats(context.Background())
+	return ei.AdminClient().GetStats(context.Background(), nil)
 }
 
 func (ei *Instance) AdminClient() *admincli.Client {
