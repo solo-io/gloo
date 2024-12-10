@@ -22,6 +22,12 @@ listeners:
                   name: test-backend-plugin-us
   bindAddress: '::'
   bindPort: 8080
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: http
+        namespace: default
   name: http
 metadata:
   labels:
