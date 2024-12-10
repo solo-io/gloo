@@ -5,7 +5,7 @@ weight: 5
 ---
 ## glooctl debug yaml
 
-Print YAML representing the current Gloo state of a Kubernetes cluster
+Print YAML representing the current Gloo state of a Kubernetes cluster (top level "debug" command is preferred)
 
 ```
 glooctl debug yaml [flags]
