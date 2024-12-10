@@ -493,8 +493,12 @@ message UserSession {
             // Cookies are not sent on normal cross-site subrequests, but are sent when
             // navigating to the origin site.
             LaxMode = 1;
-            // Only be sent in a first-party context and not be sent along with requests
-            // initiated by third party websites.
+            // Cookies are sent only in first-party contexts and are not sent along with requests
+            // initiated by third-party websites.
+            //
+            // **Warning**: Do not use this mode if the app and the IdP have different domains.
+            // In this case, some browsers incorrectly detect the redirect from `/callback` to `/login`
+            // as a cross-site request.
             StrictMode = 2;
             // Cookies are sent in all contexts. Cookie NotSecure must be unset.
             NoneMode = 3;
@@ -1154,6 +1158,8 @@ message ApiKeyAuth {
 
     oneof storage_backend {
         K8sSecretApiKeyStorage k8s_secret_apikey_storage = 6;
+        // <b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release.
+        // Use of this feature is not recommended.
         AerospikeApiKeyStorage aerospike_apikey_storage = 7;
     }
 
@@ -1195,6 +1201,8 @@ message K8sSecretApiKeyStorage {
     repeated core.solo.io.ResourceRef api_key_secret_refs = 2;
 }
 
+// <b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release.
+// Use of this feature is not recommended.
 message AerospikeApiKeyStorage {
     // The IP address or hostname of one of the cluster members of your Aerospike database. The address must be reachable from Gloo Edge, such as in a virtual machine with a public IP address or in a pod in the cluster.
     // The client automatically discovers other members of the cluster after establishing a connection.

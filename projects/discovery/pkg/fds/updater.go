@@ -16,7 +16,6 @@ import (
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
 
 var errorUndetectableUpstream = errors.New("upstream type cannot be detected")
@@ -115,7 +114,7 @@ func (u *Updater) UpstreamUpdated(upstream *v1.Upstream) {
 
 func (u *Updater) UpstreamAdded(upstream *v1.Upstream) {
 	// upstream already tracked. ignore.
-	key := translator.UpstreamToClusterName(upstream.GetMetadata().Ref())
+	key := upstream.GetMetadata().Ref().Key()
 	if _, ok := u.activeUpstreams[key]; ok {
 		return
 	}
@@ -144,7 +143,7 @@ func (u *Updater) UpstreamAdded(upstream *v1.Upstream) {
 }
 
 func (u *Updater) UpstreamRemoved(upstream *v1.Upstream) {
-	key := translator.UpstreamToClusterName(upstream.GetMetadata().Ref())
+	key := upstream.GetMetadata().Ref().Key()
 	if upstreamState, ok := u.activeUpstreams[key]; ok {
 		upstreamState.cancel()
 		delete(u.activeUpstreams, key)

@@ -1,11 +1,16 @@
+# Expected listeners when a TCPRoute references a non-existent Service as a backendRef.
 ---
 listeners:
 - aggregateListener:
     httpResources: {}
-    tcpListeners:
-    - tcpListener: {}
   bindAddress: '::'
   bindPort: 8080
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: tcp
+        namespace: default
   name: tcp
 metadata:
   labels:

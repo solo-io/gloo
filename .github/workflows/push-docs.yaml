@@ -48,6 +48,9 @@ jobs:
         if [[ "${{ steps.lts-version.outputs.lts }}" == "main" ]]; then
           minor="1.18"
           directory="main"
+        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.18.x" ]]; then
+          minor="1.18"
+          directory="main"
         elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.17.x" ]]; then
           minor="1.17"
           directory="latest"

@@ -138,7 +138,7 @@ var _ = Describe("Happy path", func() {
 			// This will hit the virtual host with the above virtual cluster config
 			TestUpstreamReachable()
 
-			stats, err := envoyInstance.AdminClient().GetStats(ctx)
+			stats, err := envoyInstance.AdminClient().GetStats(ctx, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			// Verify that stats for the above virtual cluster are present
