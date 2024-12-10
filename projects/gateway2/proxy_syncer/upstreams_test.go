@@ -3,7 +3,7 @@ package proxy_syncer_test
 import (
 	"testing"
 
-	duration "github.com/golang/protobuf/ptypes/duration"
+	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
