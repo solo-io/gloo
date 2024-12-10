@@ -4,6 +4,12 @@ listeners:
     httpResources: {}
   bindAddress: '::'
   bindPort: 8443
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: https-httpbin~https-bookinfo
+        namespace: default
   name: https-httpbin~https-bookinfo
 metadata:
   labels:

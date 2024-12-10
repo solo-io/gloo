@@ -24,6 +24,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 	"github.com/solo-io/gloo/projects/gateway2/translator/routeutils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/sslutils"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
@@ -465,6 +466,20 @@ func (ml *MergedListener) TranslateListener(
 				},
 				HttpFilterChains: httpFilterChains,
 				TcpListeners:     matchedTcpListeners,
+			},
+		},
+		// Used for tracing to create service_name
+		OpaqueMetadata: &v1.Listener_MetadataStatic{
+			MetadataStatic: &v1.SourceMetadata{
+				Sources: []*v1.SourceMetadata_SourceRef{
+					{
+						ResourceRef: &core.ResourceRef{
+							Name:      ml.name,
+							Namespace: ml.gatewayNamespace,
+						},
+						ResourceKind: wellknown.GatewayGroup + "/" + wellknown.GatewayKind,
+					},
+				},
 			},
 		},
 		Options:      nil, // Listener options will be added by policy plugins
