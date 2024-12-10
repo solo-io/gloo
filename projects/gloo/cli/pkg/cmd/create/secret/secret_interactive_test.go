@@ -66,7 +66,7 @@ var _ = Describe("Secret Interactive Mode", func() {
 				expectMeta(opts.Metadata)
 				Expect(opts.Create.InputSecret.AwsSecret.AccessKey).To(Equal(accessKey))
 				Expect(opts.Create.InputSecret.AwsSecret.SecretKey).To(Equal(secretKey))
-			})
+			}, nil)
 		})
 	})
 
@@ -111,7 +111,7 @@ var _ = Describe("Secret Interactive Mode", func() {
 				// terminals used in testing it would fail.
 				// In a real terminal, the "doesNotComeThrough": "needsInvestigation" key-value pair would be included.
 				Expect(opts.Create.InputSecret.AzureSecret.ApiKeys.MustMap()).To(BeEquivalentTo(map[string]string{key1: val1, key2: val2}))
-			})
+			}, nil)
 		})
 	})
 
@@ -154,7 +154,7 @@ var _ = Describe("Secret Interactive Mode", func() {
 				Expect(opts.Create.InputSecret.TlsSecret.PrivateKeyFilename).To(Equal(privateKey))
 				Expect(opts.Create.InputSecret.TlsSecret.CertChainFilename).To(Equal(certChainFilename))
 				Expect(opts.Create.InputSecret.TlsSecret.OCSPStapleFilename).To(Equal(ocspStapleFilename))
-			})
+			}, nil)
 		})
 	})
 })
