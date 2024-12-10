@@ -193,7 +193,7 @@ func formattedWarning(level, errType, reason string) string {
 	return fmt.Sprintf("%v Warning: %v. Reason: %v", level, errType, reason)
 }
 
-func getListenerErr(listener *validation.ListenerReport) []error {
+func GetListenerErr(listener *validation.ListenerReport) []error {
 	var errs []error
 	for _, errReport := range listener.GetErrors() {
 		errs = append(errs, formattedError("Listener", errReport.GetType().String(), errReport.GetReason()))
@@ -201,7 +201,7 @@ func getListenerErr(listener *validation.ListenerReport) []error {
 	return errs
 }
 
-func getListenerWarn(listener *validation.ListenerReport) []string {
+func GetListenerWarn(listener *validation.ListenerReport) []string {
 	var warnings []string
 	for _, warning := range listener.GetWarnings() {
 		warnings = append(warnings, formattedWarning("Listener", warning.GetType().String(), warning.GetReason()))
@@ -287,7 +287,7 @@ func GetTcpHostWarning(tcpHost *validation.TcpHostReport) []string {
 func GetListenerError(listener *validation.ListenerReport) []error {
 	var errs []error
 
-	if err := getListenerErr(listener); err != nil {
+	if err := GetListenerErr(listener); err != nil {
 		errs = append(errs, err...)
 	}
 	switch listenerType := listener.GetListenerTypeReport().(type) {
@@ -322,7 +322,7 @@ func GetListenerError(listener *validation.ListenerReport) []error {
 func GetListenerWarning(listener *validation.ListenerReport) []string {
 	var warnings []string
 
-	if warning := getListenerWarn(listener); warning != nil {
+	if warning := GetListenerWarn(listener); warning != nil {
 		warnings = append(warnings, warning...)
 	}
 	switch listenerType := listener.GetListenerTypeReport().(type) {
