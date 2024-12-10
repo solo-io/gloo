@@ -76,6 +76,6 @@ var _ = Describe("Routes interactive", func() {
 			ug := vs.VirtualHost.Routes[0].GetRouteAction().GetUpstreamGroup()
 			Expect(ug.GetName()).To(Equal("default"))
 			Expect(ug.GetNamespace()).To(Equal("default"))
-		})
+		}, nil)
 	})
 })
