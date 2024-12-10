@@ -3,6 +3,7 @@ package debug_test
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"time"
 
 	"os"
 
@@ -12,6 +13,8 @@ import (
 )
 
 const defaultOutDir = "debug"
+
+var timeout = 20 * time.Second
 
 var kubeStateFile = func(outDir string) string {
 	if outDir == "" {
@@ -42,7 +45,7 @@ var _ = Describe("Debug", func() {
 			kubeStateBytes, err := os.ReadFile(kubeStateFile(""))
 			Expect(err).NotTo(HaveOccurred(), kubeStateFile("")+" file should be present")
 			Expect(kubeStateBytes).NotTo(BeEmpty())
-		})
+		}, &timeout)
 	})
 
 	When("a directory is specified", func() {
@@ -70,7 +73,7 @@ var _ = Describe("Debug", func() {
 				_, err = os.ReadDir(defaultOutDir)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(os.ErrNotExist))
-			})
+			}, &timeout)
 		})
 	})
 
@@ -87,7 +90,7 @@ var _ = Describe("Debug", func() {
 			_, err = os.ReadDir(defaultOutDir)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(os.ErrNotExist))
-		})
+		}, nil)
 	})
 
 })

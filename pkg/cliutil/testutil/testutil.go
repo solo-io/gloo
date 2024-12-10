@@ -17,7 +17,8 @@ func Stdio(c *expect.Console) terminal.Stdio {
 	return terminal.Stdio{c.Tty(), c.Tty(), c.Tty()}
 }
 
-func ExpectInteractive(userInput func(*Console), testCli func()) {
+// timeout is the max execution time for testCli()
+func ExpectInteractive(userInput func(*Console), testCli func(), timeout *time.Duration) {
 	c, state, err := vt10x.NewVT10XConsole()
 	Expect(err).NotTo(HaveOccurred())
 	defer c.Close()
@@ -44,8 +45,12 @@ func ExpectInteractive(userInput func(*Console), testCli func()) {
 		<-doneC
 	}()
 
+	after := 10 * time.Second
+	if timeout != nil {
+		after = *timeout
+	}
 	select {
-	case <-time.After(30 * time.Second):
+	case <-time.After(after):
 		c.Tty().Close()
 		Fail("test timed out")
 	case <-doneC:
