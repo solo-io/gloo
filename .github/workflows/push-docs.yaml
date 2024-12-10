@@ -191,7 +191,7 @@ jobs:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       run: |
         JOB_URL=https://github.com/solo-io/gloo/actions/runs/${GITHUB_RUN_ID}
-        MESSAGE="❌ *Failure:* Automated copy of reference docs for ${VERSION} failed. <${JOB_URL}|Review the workflow failure>"
+        MESSAGE="❌ *Failure:* Automated copy of reference docs for ${{ steps.version-variables.outputs.minor }} failed. <${JOB_URL}|Review the workflow failure>"
 
         curl \
           -d "text=$MESSAGE" \
