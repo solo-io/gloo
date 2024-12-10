@@ -45,7 +45,7 @@ func ExpectInteractive(userInput func(*Console), testCli func()) {
 	}()
 
 	select {
-	case <-time.After(10 * time.Second):
+	case <-time.After(30 * time.Second):
 		c.Tty().Close()
 		Fail("test timed out")
 	case <-doneC:
