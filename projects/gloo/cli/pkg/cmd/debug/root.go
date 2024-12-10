@@ -6,12 +6,15 @@ import (
 	"os"
 	"time"
 
+	"github.com/solo-io/gloo/pkg/cliutil"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	state_dump_utils "github.com/solo-io/gloo/pkg/utils/statedumputils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	"github.com/solo-io/go-utils/cliutils"
+
+	"github.com/rotisserie/eris"
 	"github.com/spf13/cobra"
 )
 
@@ -20,6 +23,25 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 		Use:   constants.DEBUG_COMMAND.Use,
 		Short: constants.DEBUG_COMMAND.Short,
 		Long:  constants.DEBUG_COMMAND.Long,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			var consent bool
+			if err := cliutil.GetBoolInput(
+				fmt.Sprintf("This command will overwrite the \"%s\" directory, if present. Are you sure you want to proceed?", opts.Debug.Directory),
+				&consent,
+			); err != nil {
+				return err
+			}
+
+			if !consent {
+				return eris.New(fmt.Sprintf("Aborting: cannot proceed without overwriting \"%s\" directory.\n"+
+					"You may use \"--directory\" to specify a different directory to overwrite.", opts.Debug.Directory))
+			}
+
+			if err := os.RemoveAll(opts.Debug.Directory); err != nil {
+				return eris.Wrap(err, "error wiping out directory")
+			}
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 			defer cancel()
