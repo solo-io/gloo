@@ -116,18 +116,8 @@ func (s *testingSuite) BeforeTest(string, string) {
 		otelcolSelector,
 	)
 
-	// Technical Debt!!
-	// https://github.com/k8sgateway/k8sgateway/issues/10293
-	// There is a bug in the Control Plane that results in an Error reported on the status
-	// when the Upstream of the Tracing Collector is not found. This results in the VirtualService
-	// that references that Upstream being rejected. What should occur is a Warning is reported,
-	// and the resource is accepted since validation.allowWarnings=true is set.
-	// We have plans to fix this in the code itself. But for a short-term solution, to reduce the
-	// noise in CI/CD of this test flaking, we perform some simple retry logic here.
-	s.EventuallyWithT(func(c *assert.CollectT) {
-		err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
-		assert.NoError(c, err, "can apply gloo tracing resources")
-	}, time.Second*5, time.Second*1, "can apply tracing resources")
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, tracingConfigManifest)
+	s.NoError(err, err, "can apply gloo tracing resources")
 
 	// accept the upstream
 	// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
@@ -186,10 +176,6 @@ func (s *testingSuite) TestSpanNameTransformationsWithoutRouteDecorator() {
 			curl.WithHostHeader(testHostname),
 			curl.WithPort(gatewayProxyPort),
 			curl.WithPath(pathWithoutRouteDescriptor),
-			// We are asserting that a request is consistent. To prevent flakes with that assertion,
-			// we should have some basic retries built into the request
-			curl.WithRetryConnectionRefused(true),
-			curl.WithRetries(3, 0, 10),
 			curl.Silent(),
 		},
 		&matchers.HttpResponse{
@@ -217,10 +203,6 @@ func (s *testingSuite) TestSpanNameTransformationsWithRouteDecorator() {
 			curl.WithHostHeader("example.com"),
 			curl.WithPort(gatewayProxyPort),
 			curl.WithPath(pathWithRouteDescriptor),
-			// We are asserting that a request is consistent. To prevent flakes with that assertion,
-			// we should have some basic retries built into the request
-			curl.WithRetryConnectionRefused(true),
-			curl.WithRetries(3, 0, 10),
 			curl.Silent(),
 		},
 		&matchers.HttpResponse{
