@@ -27,7 +27,7 @@ func TestUpgradeFromLastPatchPreviousMinor(t *testing.T) {
 		&gloogateway.Context{
 			InstallNamespace:          "upgrade-from-last-patch-previous-minor",
 			ProfileValuesManifestFile: e2e.FullGatewayProfilePath,
-			ValuesManifestFile:        e2e.EmptyValuesManifestPath,
+			ValuesManifestFile:        e2e.ManifestPath("zero-downtime-rollout.yaml"),
 			ValidationAlwaysAccept:    false,
 			ReleasedVersion:           lastPatchPreviousMinorVersion.String(),
 		},
@@ -54,7 +54,7 @@ func TestUpgradeFromCurrentPatchLatestMinor(t *testing.T) {
 		&gloogateway.Context{
 			InstallNamespace:          "upgrade-from-current-patch-latest-minor",
 			ProfileValuesManifestFile: e2e.FullGatewayProfilePath,
-			ValuesManifestFile:        e2e.EmptyValuesManifestPath,
+			ValuesManifestFile:        e2e.ManifestPath("zero-downtime-rollout.yaml"),
 			ValidationAlwaysAccept:    false,
 			ReleasedVersion:           currentPatchMostRecentMinorVersion.String(),
 		},
