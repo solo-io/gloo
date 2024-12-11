@@ -193,48 +193,54 @@ func formattedWarning(level, errType, reason string) string {
 	return fmt.Sprintf("%v Warning: %v. Reason: %v", level, errType, reason)
 }
 
+// GetListenerErr returns the formatted errors on the ListenerReport only. It does NOT recursively aggregate errors in its sub-reports such as its host report, route report, etc.
 func GetListenerErr(listener *validation.ListenerReport) []error {
-	var errs []error
+	errs := make([]error, len(listener.GetErrors()))
 	for _, errReport := range listener.GetErrors() {
 		errs = append(errs, formattedError("Listener", errReport.GetType().String(), errReport.GetReason()))
 	}
 	return errs
 }
 
+// GetListenerWarn returns the formatted warnings on the ListenerReport only. It does NOT recursively aggregate errors in its sub-reports such as its host report, route report, etc.
 func GetListenerWarn(listener *validation.ListenerReport) []string {
-	var warnings []string
+	warnings := make([]string, len(listener.GetWarnings()))
 	for _, warning := range listener.GetWarnings() {
 		warnings = append(warnings, formattedWarning("Listener", warning.GetType().String(), warning.GetReason()))
 	}
 	return warnings
 }
 
+// GetHttpListenerErr returns the formatted errors on the HttpListenerReport only. It does NOT recursively aggregate errors in its sub-reports such as VirtualHostReports, RouteReports, etc.
 func GetHttpListenerErr(httpListener *validation.HttpListenerReport) []error {
-	var errs []error
+	errs := make([]error, len(httpListener.GetErrors()))
 	for _, errReport := range httpListener.GetErrors() {
 		errs = append(errs, formattedError("HttpListener", errReport.GetType().String(), errReport.GetReason()))
 	}
 	return errs
 }
 
+// GetHttpListenerWarning returns the formatted warnings on the HttpListenerReport only. It does NOT recursively aggregate warnings in its sub-reports such as VirtualHostReports, RouteReports, etc.
 func GetHttpListenerWarning(httpListener *validation.HttpListenerReport) []string {
-	var warnings []string
+	warnings := make([]string, len(httpListener.GetWarnings()))
 	for _, warning := range httpListener.GetWarnings() {
 		warnings = append(warnings, formattedWarning("HttpListener", warning.GetType().String(), warning.GetReason()))
 	}
 	return warnings
 }
 
+// GetVirtualHostErr returns the formatted errors on the VirtualHostReport only. It does NOT recursively aggregate errors in its sub-reports such as Routes, etc.
 func GetVirtualHostErr(virtualHost *validation.VirtualHostReport) []error {
-	var errs []error
+	errs := make([]error, len(virtualHost.GetErrors()))
 	for _, errReport := range virtualHost.GetErrors() {
 		errs = append(errs, formattedError("VirtualHost", errReport.GetType().String(), errReport.GetReason()))
 	}
 	return errs
 }
 
+// GetRouteErr returns the formatted errors on the RouteReport.
 func GetRouteErr(route *validation.RouteReport) []error {
-	var errs []error
+	errs := make([]error, len(route.GetErrors()))
 	for _, errReport := range route.GetErrors() {
 		routeError := errors.Errorf("%v. Reason: %v", errReport.GetType().String(), errReport.GetReason())
 		errs = append(errs, errors.Wrap(routeError, RouteErrorMsg))
@@ -242,48 +248,53 @@ func GetRouteErr(route *validation.RouteReport) []error {
 	return errs
 }
 
+// GetRouteWarning returns the formatted warnings on the RouteReport.
 func GetRouteWarning(route *validation.RouteReport) []string {
-	var warnings []string
+	warnings := make([]string, len(route.GetWarnings()))
 	for _, warning := range route.GetWarnings() {
 		warnings = append(warnings, formattedWarning("Route", warning.GetType().String(), warning.GetReason()))
 	}
 	return warnings
 }
 
+// GetTcpListenerErr returns the formatted errors on the TcpListenerReport only. It does NOT recursively aggregate errors in its sub-reports such as TcpHostReports, etc.
 func GetTcpListenerErr(tcpListener *validation.TcpListenerReport) []error {
-	var errs []error
+	errs := make([]error, len(tcpListener.GetErrors()))
 	for _, errReport := range tcpListener.GetErrors() {
 		errs = append(errs, formattedError("TcpListener", errReport.GetType().String(), errReport.GetReason()))
 	}
 	return errs
 }
 
+// GetTcpListenerWarning returns the formatted warnings on the TcpListenerReport only. It does NOT recursively aggregate warnings in its sub-reports such as TcpHostReports, etc.
 func GetTcpListenerWarning(tcpListener *validation.TcpListenerReport) []string {
-	var warnings []string
+	warnings := make([]string, len(tcpListener.GetWarnings()))
 	for _, warning := range tcpListener.GetWarnings() {
 		warnings = append(warnings, formattedWarning("TcpListener", warning.GetType().String(), warning.GetReason()))
 	}
 	return warnings
 }
 
+// GetTcpHostErr returns the formatted errors on the TcpHostReport.
 func GetTcpHostErr(tcpHost *validation.TcpHostReport) []error {
-	var errs []error
+	errs := make([]error, len(tcpHost.GetErrors()))
 	for _, errReport := range tcpHost.GetErrors() {
 		errs = append(errs, formattedError("TcpHost", errReport.GetType().String(), errReport.GetReason()))
 	}
 	return errs
 }
 
-// Extract, format and return all warnings on this TcpHost instance as a list
-// of strings
+// GetTcpHostWarning returns the formatted warnings on the TcpHostReport.
 func GetTcpHostWarning(tcpHost *validation.TcpHostReport) []string {
-	var warnings []string
+	warnings := make([]string, len(tcpHost.GetWarnings()))
 	for _, warning := range tcpHost.GetWarnings() {
 		warnings = append(warnings, formattedWarning("TcpHost", warning.GetType().String(), warning.GetReason()))
 	}
 	return warnings
 }
 
+// GetListenerError returns the aggregated errors on the ListenerReport. Based on the type of listener,
+// it aggregates the errors in its sub-reports such as its host report, route report, etc.
 func GetListenerError(listener *validation.ListenerReport) []error {
 	var errs []error
 
@@ -319,6 +330,8 @@ func GetListenerError(listener *validation.ListenerReport) []error {
 	return errs
 }
 
+// GetListenerWarning returns the aggregated warnings on the ListenerReport. Based on the type of listener,
+// it aggregates the warnings in its sub-reports such as its host report, route report, etc.
 func GetListenerWarning(listener *validation.ListenerReport) []string {
 	var warnings []string
 
@@ -354,6 +367,8 @@ func GetListenerWarning(listener *validation.ListenerReport) []string {
 	return warnings
 }
 
+// GetProxyError returns the aggregated errors on the ProxyReport. It iterates through the listeners and
+// based on the type of listener, it aggregates the errors in its sub-reports such as its host report, route report, etc.
 func GetProxyError(proxyRpt *validation.ProxyReport) error {
 	var errs []error
 	for _, listener := range proxyRpt.GetListenerReports() {
@@ -372,6 +387,8 @@ func GetProxyError(proxyRpt *validation.ProxyReport) error {
 	return combinedErr
 }
 
+// getTcpListenerReportErrs returns the aggregated errors on the TcpListenerReport.
+// It aggregates the errors in its sub-reports such as TcpHostReports, etc.
 func getTcpListenerReportErrs(tcpListenerReport *validation.TcpListenerReport) []error {
 	var errs []error
 
@@ -387,6 +404,8 @@ func getTcpListenerReportErrs(tcpListenerReport *validation.TcpListenerReport) [
 	return errs
 }
 
+// getTcpListenerReportWarns returns the aggregated warnings on the TcpListenerReport.
+// It aggregates the warnings in its sub-reports such as TcpHostReports, etc.
 func getTcpListenerReportWarns(tcpListenerReport *validation.TcpListenerReport) []string {
 	var warnings []string
 
@@ -402,6 +421,8 @@ func getTcpListenerReportWarns(tcpListenerReport *validation.TcpListenerReport) 
 	return warnings
 }
 
+// getHttpListenerReportErrs returns the aggregated errors on the HttpListenerReport.
+// It aggregates the errors in its sub-reports such as VirtualHostReports, RouteReports, etc.
 func getHttpListenerReportErrs(httpListenerReport *validation.HttpListenerReport) []error {
 	var errs []error
 
@@ -422,6 +443,8 @@ func getHttpListenerReportErrs(httpListenerReport *validation.HttpListenerReport
 	return errs
 }
 
+// getHttpListenerReportWarns returns the aggregated warnings on the HttpListenerReport.
+// It aggregates the warnings in its sub-reports such as Routes, etc.
 func getHttpListenerReportWarns(httpListenerReport *validation.HttpListenerReport) []string {
 	var warnings []string
 
@@ -439,6 +462,8 @@ func getHttpListenerReportWarns(httpListenerReport *validation.HttpListenerRepor
 	return warnings
 }
 
+// GetProxyWarning returns the aggregated warnings on the ProxyReport. It iterates through the listeners and
+// based on the type of listener, it aggregates the warnings in its sub-reports such as its host report, route report, etc.
 func GetProxyWarning(proxyRpt *validation.ProxyReport) []string {
 	var warnings []string
 
