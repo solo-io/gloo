@@ -107,7 +107,7 @@ var _ = Describe("Route", func() {
 			_, idx, err := SelectRouteInteractive(&opts, "vsvc prompt:", "route prompt:")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(idx).To(Equal(1))
-		})
+		}, nil)
 	})
 
 	It("should populate the correct flags", func() {
@@ -140,7 +140,7 @@ var _ = Describe("Route", func() {
 			Expect(opts.Add.Route.Destination.Upstream.Namespace).To(Equal("gloo-system"))
 			Expect(opts.Add.Route.Destination.Upstream.Name).To(Equal("gloo-system.some-ns-test-svc-1234"))
 
-		})
+		}, nil)
 	})
 
 	It("should allow you to choose a function", func() {
@@ -176,7 +176,7 @@ var _ = Describe("Route", func() {
 			Expect(opts.Add.Route.Destination.Upstream.Name).To(Equal("gloo-system.some-ns-test-svc-5678"))
 			Expect(opts.Add.Route.Destination.DestinationSpec.Aws.LogicalName).To(Equal("function1"))
 
-		})
+		}, nil)
 	})
 
 	It("should allow you to skip choosing a function", func() {
@@ -215,6 +215,6 @@ var _ = Describe("Route", func() {
 			Expect(opts.Add.Route.Destination.DestinationSpec.Aws.LogicalName).To(Equal(NoneOfTheAbove))
 			Expect(opts.Add.Route.Plugins.PrefixRewrite.Value).To(HaveValue(Equal("/api/pets")))
 
-		})
+		}, nil)
 	})
 })

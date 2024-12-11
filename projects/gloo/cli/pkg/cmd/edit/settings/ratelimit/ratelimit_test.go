@@ -156,7 +156,7 @@ var _ = Describe("RateLimit", func() {
 				Expect(rlSettings.DenyOnFail).To(Equal(expectedSettings.DenyOnFail))
 				Expect(rlSettings.EnableXRatelimitHeaders).To(Equal(expectedSettings.EnableXRatelimitHeaders))
 				Expect(rlSettings.RateLimitBeforeAuth).To(Equal(expectedSettings.RateLimitBeforeAuth))
-			})
+			}, nil)
 		})
 
 	})

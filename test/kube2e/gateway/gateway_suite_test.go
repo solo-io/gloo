@@ -7,29 +7,27 @@ import (
 	"testing"
 	"time"
 
-	"github.com/solo-io/gloo/test/kubernetes/testutils/cluster"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/solo-io/skv2/codegen/util"
-
-	kubetestclients "github.com/solo-io/gloo/test/kubernetes/testutils/clients"
-
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
-
-	kubeutils2 "github.com/solo-io/gloo/test/testutils"
-
-	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
-
-	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/kube2e/helper"
+	kubetestclients "github.com/solo-io/gloo/test/kubernetes/testutils/clients"
+	"github.com/solo-io/gloo/test/kubernetes/testutils/cluster"
 	testruntime "github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
-	skhelpers "github.com/solo-io/solo-kit/test/helpers"
+	kubeutils2 "github.com/solo-io/gloo/test/testutils"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	state_dump_utils "github.com/solo-io/gloo/pkg/utils/statedumputils"
+	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 )
 
 func TestGateway(t *testing.T) {
@@ -68,7 +66,7 @@ func StartTestHelper() {
 
 	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
 	namespaces := []string{testHelper.InstallNamespace}
-	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir, namespaces))
+	skhelpers.RegisterPreFailHandler(state_dump_utils.StandardCIDumpOnFail(GinkgoWriter, outDir, namespaces))
 
 	kubeCli = kubectl.NewCli().WithReceiver(GinkgoWriter)
 
