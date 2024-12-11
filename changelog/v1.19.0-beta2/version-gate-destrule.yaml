@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7400
+    resolvesIssue: true
+    description: >-
+      When the v1 DestinationRule CRD does not exist, don't attemp to read DestinationRule.

@@ -1,0 +1,8 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/7295
+    resolvesIssue: false
+    description: >-
+      Add API for AI related tracing operations, as well as general QOL tracing updates
+      for Gateway API.
+

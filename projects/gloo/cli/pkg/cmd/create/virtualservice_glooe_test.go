@@ -49,7 +49,7 @@ var _ = Describe("VirtualService", func() {
 				Expect(err).NotTo(HaveOccurred())
 				_, err = helpers.MustVirtualServiceClient(ctx).Read("gloo-system", "default", clients.ReadOpts{})
 				Expect(err).NotTo(HaveOccurred())
-			})
+			}, nil)
 		})
 
 		It("should create vs with auth config", func() {
@@ -79,7 +79,7 @@ var _ = Describe("VirtualService", func() {
 				acRef := vs.VirtualHost.Options.Extauth.Spec.(*v1.ExtAuthExtension_ConfigRef).ConfigRef
 				Expect(acRef.Name).To(Equal("ac1"))
 				Expect(acRef.Namespace).To(Equal("ns1"))
-			})
+			}, nil)
 		})
 	})
 
