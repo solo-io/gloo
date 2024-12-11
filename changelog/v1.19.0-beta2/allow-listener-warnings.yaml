@@ -3,3 +3,7 @@ changelog:
   issueLink: https://github.com/k8sgateway/k8sgateway/issues/10293
   resolvesIssue: false
   description: Adds support for listener level warnings. This way when a listener or its plugin returns an error, it can be checked if it is a configuration error that can be treated as a warning and processed accordingly.
+- type: FIX
+  issueLink: https://github.com/k8sgateway/k8sgateway/issues/10293
+  resolvesIssue: false
+  description: Fixes an issue where an error is thrown instead of an InvalidDestinationWarning when a tracing collector references a missing upstream.
