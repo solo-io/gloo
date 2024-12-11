@@ -47,7 +47,7 @@ var _ = Describe("Upstream Interactive Mode", func() {
 			err := AddUpstreamFlagsInteractive(ctx, &upstream)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("interactive mode not currently available for type kube"))
-		})
+		}, nil)
 	})
 
 	It("should not be allowed for Consul", func() {
@@ -60,7 +60,7 @@ var _ = Describe("Upstream Interactive Mode", func() {
 			err := AddUpstreamFlagsInteractive(ctx, &upstream)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("interactive mode not currently available for type consul"))
-		})
+		}, nil)
 	})
 
 	It("should error out for AWS when there's no secret", func() {
@@ -76,7 +76,7 @@ var _ = Describe("Upstream Interactive Mode", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("no AWS secrets found. create an AWS credentials secret using " +
 				"glooctl create secret aws --help"))
-		})
+		}, nil)
 	})
 
 	Context("AWS with secret", func() {
@@ -129,7 +129,7 @@ var _ = Describe("Upstream Interactive Mode", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(&upstream.Aws.Secret).To(matchers.MatchProto(localSecretRef))
 				Expect(upstream.Aws.Region).To(Equal(defaultAwsRegion))
-			})
+			}, nil)
 		})
 
 		It("should work with custom region", func() {
@@ -148,7 +148,7 @@ var _ = Describe("Upstream Interactive Mode", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(&upstream.Aws.Secret).To(matchers.MatchProto(localSecretRef))
 				Expect(upstream.Aws.Region).To(Equal("custom-region"))
-			})
+			}, nil)
 		})
 	})
 
@@ -164,7 +164,7 @@ var _ = Describe("Upstream Interactive Mode", func() {
 			err := AddUpstreamFlagsInteractive(ctx, &upstream)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(upstream.Static.Hosts).To(BeNil())
-		})
+		}, nil)
 	})
 
 	It("should work for static with hosts", func() {
@@ -183,7 +183,7 @@ var _ = Describe("Upstream Interactive Mode", func() {
 			err := AddUpstreamFlagsInteractive(ctx, &upstream)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(upstream.Static.Hosts).To(BeEquivalentTo([]string{"foo", "bar"}))
-		})
+		}, nil)
 	})
 
 	It("should error out for Azure when there's no secret", func() {
@@ -199,7 +199,7 @@ var _ = Describe("Upstream Interactive Mode", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("no Azure secrets found. create an Azure credentials secret using " +
 				"glooctl create secret azure --help"))
-		})
+		}, nil)
 	})
 
 	Context("Azure with secret", func() {
@@ -253,7 +253,7 @@ var _ = Describe("Upstream Interactive Mode", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(upstream.Azure.Secret).To(Equal(localSecretRef))
 				Expect(upstream.Azure.FunctionAppName).To(Equal(""))
-			})
+			}, nil)
 		})
 
 		It("should work with custom function app name", func() {
@@ -273,7 +273,7 @@ var _ = Describe("Upstream Interactive Mode", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(upstream.Azure.Secret).To(Equal(localSecretRef))
 				Expect(upstream.Azure.FunctionAppName).To(Equal("custom"))
-			})
+			}, nil)
 		})
 	})
 
