@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/10456
+    resolvesIssue: true
+    description: >-
+      Bumps Gateway API dependencies from v1.2.0 to v1.2.1.

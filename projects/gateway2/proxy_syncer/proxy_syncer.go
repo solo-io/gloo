@@ -13,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 
 	rlexternal "github.com/solo-io/gloo/projects/gloo/api/external/solo/ratelimit"
@@ -75,6 +76,7 @@ type ProxySyncer struct {
 	initialSettings *glookubev1.Settings
 	inputs          *GatewayInputChannels
 	mgr             manager.Manager
+	restCfg         *rest.Config
 	k8sGwExtensions extensions.K8sGatewayExtensions
 
 	proxyTranslator ProxyTranslator
@@ -117,6 +119,7 @@ func NewProxySyncer(
 	ctx context.Context,
 	initialSettings *glookubev1.Settings,
 	settings krt.Singleton[glookubev1.Settings],
+	restCfg *rest.Config,
 	controllerName string,
 	writeNamespace string,
 	inputs *GatewayInputChannels,
@@ -137,6 +140,7 @@ func NewProxySyncer(
 		writeNamespace:      writeNamespace,
 		inputs:              inputs,
 		mgr:                 mgr,
+		restCfg:             restCfg,
 		k8sGwExtensions:     k8sGwExtensions,
 		proxyTranslator:     NewProxyTranslator(translator, xdsCache, settings, syncerExtensions, glooReporter),
 		istioClient:         client,
@@ -189,12 +193,15 @@ type RedactedSecret krtcollections.ResourceWrapper[*gloov1.Secret]
 func (us RedactedSecret) ResourceName() string {
 	return (krtcollections.ResourceWrapper[*gloov1.Secret](us)).ResourceName()
 }
+
 func (us RedactedSecret) Equals(in RedactedSecret) bool {
 	return proto.Equal(us.Inner, in.Inner)
 }
 
-var _ krt.ResourceNamer = RedactedSecret{}
-var _ krt.Equaler[RedactedSecret] = RedactedSecret{}
+var (
+	_ krt.ResourceNamer           = RedactedSecret{}
+	_ krt.Equaler[RedactedSecret] = RedactedSecret{}
+)
 
 func (l RedactedSecret) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
@@ -298,7 +305,8 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 			// Annotation is never used - and may cause jitter as these are used for leader election.
 			t.GetObjectMeta().SetAnnotations(nil)
 			return obj, nil
-		}})
+		},
+	})
 	configMaps := krt.WrapClient(configMapClient, krt.WithName("ConfigMaps"), withDebug)
 
 	secretClient := kclient.New[*corev1.Secret](s.istioClient)
@@ -424,7 +432,7 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 	}, withDebug, krt.WithName("MostXdsSnapshots"))
 
 	if s.initialSettings.Spec.GetGloo().GetIstioOptions().GetEnableIntegration().GetValue() {
-		s.destRules = NewDestRuleIndex(s.istioClient, dbg)
+		s.destRules = NewDestRuleIndex(ctx, s.restCfg, s.istioClient, dbg)
 	} else {
 		s.destRules = NewEmptyDestRuleIndex()
 	}

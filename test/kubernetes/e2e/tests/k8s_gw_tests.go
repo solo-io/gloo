@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/headless_svc"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/http_listener_options"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listener_options"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/metrics"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/port_routing"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/route_delegation"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/route_options"
@@ -35,6 +36,7 @@ func KubeGatewaySuiteRunner() e2e.SuiteRunner {
 	kubeGatewaySuiteRunner.Register("GlooAdminServer", admin_server.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("DirectResponse", directresponse.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("CRDCategories", crd_categories.NewTestingSuite)
+	kubeGatewaySuiteRunner.Register("Metrics", metrics.NewTestingSuite)
 
 	return kubeGatewaySuiteRunner
 }

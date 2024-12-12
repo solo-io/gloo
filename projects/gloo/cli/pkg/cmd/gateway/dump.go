@@ -4,16 +4,14 @@ import (
 	"archive/zip"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
-	"strings"
+	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 
 	"github.com/solo-io/go-utils/cliutils"
-
-	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
-
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/spf13/cobra"
 )
 
@@ -62,7 +60,7 @@ func writeSnapshotCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc
 }
 
 func getEnvoyCfgDump(opts *options.Options) error {
-	adminCli, shutdownFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
+	adminCli, shutdownFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, kubectl.NewCli().WithKubeContext(opts.Top.KubeContext), opts.Proxy.Name, opts.Metadata.GetNamespace())
 	if err != nil {
 		return err
 	}
@@ -73,14 +71,14 @@ func getEnvoyCfgDump(opts *options.Options) error {
 }
 
 func getEnvoyStatsDump(opts *options.Options) error {
-	adminCli, shutdownFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
+	adminCli, shutdownFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, kubectl.NewCli().WithKubeContext(opts.Top.KubeContext), opts.Proxy.Name, opts.Metadata.GetNamespace())
 	if err != nil {
 		return err
 	}
 
 	defer shutdownFunc()
 
-	return adminCli.StatsCmd(opts.Top.Ctx).WithStdout(os.Stdout).Run().Cause()
+	return adminCli.StatsCmd(opts.Top.Ctx, nil).WithStdout(os.Stdout).Run().Cause()
 }
 
 func getEnvoyFullDumpToDisk(opts *options.Options) (string, error) {
@@ -92,12 +90,7 @@ func getEnvoyFullDumpToDisk(opts *options.Options) (string, error) {
 	defer proxyOutArchiveFile.Close()
 	defer proxyOutArchive.Close()
 
-	proxyNamespace := opts.Metadata.GetNamespace()
-	if proxyNamespace == "" {
-		proxyNamespace = defaults.GlooSystem
-	}
-
-	adminCli, shutdownFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, opts.Proxy.Name, opts.Metadata.GetNamespace())
+	adminCli, shutdownFunc, err := admincli.NewPortForwardedClient(opts.Top.Ctx, kubectl.NewCli().WithKubeContext(opts.Top.KubeContext), opts.Proxy.Name, opts.Metadata.GetNamespace())
 	if err != nil {
 		return proxyOutArchiveFile.Name(), err
 	}

@@ -2,7 +2,6 @@ apiVersion: gateway.networking.k8s.io/v1alpha2
 kind: TCPRoute
 metadata:
   name: single-tcp-route
-  namespace: single-tcp-route
 spec:
   parentRefs:
   - name: single-tcp-gateway

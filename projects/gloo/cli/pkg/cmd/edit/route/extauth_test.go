@@ -104,7 +104,7 @@ var _ = Describe("Extauth", func() {
 				Expect(extension).To(test_matchers.MatchProto(&extauthpb.ExtAuthExtension{
 					Spec: &extauthpb.ExtAuthExtension_Disable{Disable: true},
 				}))
-			})
+			}, nil)
 		})
 
 	})
