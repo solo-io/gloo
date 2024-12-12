@@ -25,7 +25,7 @@ func backendToRefKey(ref gwv1.BackendObjectReference) backendRefKey {
 	const delim = "~"
 	return backendRefKey(
 		string(ptrOrDefault(ref.Group, "")) + delim +
-			string(ptrOrDefault(ref.Kind, "")) + delim +
+			string(ptrOrDefault(ref.Kind, "Service")) + delim +
 			string(ref.Name) + delim +
 			string(ptrOrDefault(ref.Namespace, "")),
 	)

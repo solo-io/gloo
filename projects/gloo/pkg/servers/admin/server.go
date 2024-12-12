@@ -55,6 +55,7 @@ func ServerHandlers(ctx context.Context, history iosnapshot.History, dbg *krt.De
 		})
 		profiles["/snapshots/xds"] = "XDS Snapshot"
 
+		// if kubeGateway.enabled is false, krt snapshot will be null
 		m.HandleFunc("/snapshots/krt", func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, dbg, r)
 		})

@@ -88,3 +88,6 @@ body:
         line 13
         ...
         ```
+
+        The `glooctl debug` command can be used to collect state information about your system.
+        Consider uploading logs, YAML manfests, Envoy listeners, etc. that may be relevant.

@@ -61,6 +61,8 @@ func (c *cliPortForwarder) startOnce(ctx context.Context) error {
 		cmdCtx,
 		"kubectl",
 		"port-forward",
+		"--context",
+		c.properties.kubeContext,
 		"-n",
 		c.properties.resourceNamespace,
 		fmt.Sprintf("%s/%s", c.properties.resourceType, c.properties.resourceName),

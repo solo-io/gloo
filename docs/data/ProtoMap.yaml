@@ -2069,6 +2069,9 @@ apis:
   tracing.options.gloo.solo.io.TracingTagLiteral:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing.proto.sk/#TracingTagLiteral
     package: tracing.options.gloo.solo.io
+  tracing.options.gloo.solo.io.TracingTagMetadata:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing.proto.sk/#TracingTagMetadata
+    package: tracing.options.gloo.solo.io
   transformation.options.gloo.solo.io.Extraction:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/transformation/transformation.proto.sk/#Extraction
     package: transformation.options.gloo.solo.io

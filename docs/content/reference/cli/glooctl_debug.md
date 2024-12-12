@@ -5,7 +5,16 @@ weight: 5
 ---
 ## glooctl debug
 
-Debug a Gloo resource (requires Gloo running on Kubernetes)
+Debug Gloo Gateway (requires Gloo running on Kubernetes)
+
+### Synopsis
+
+Dumps Kubernetes, Gloo Gateway controller, and Envoy state information to a local directory. This is useful for debugging failures. The dump includes:
+- the Kubernetes cluster state
+- logs from all pods in the given namespaces
+- YAML manifests of all solo.io CRs in the given namespaces
+- the gloo controller logs, metrics, xds snapshot, and krt snapshot
+- the envoy config dump, stats, clusters, and listeners
 
 ```
 glooctl debug [flags]
@@ -14,7 +23,9 @@ glooctl debug [flags]
 ### Options
 
 ```
-  -h, --help   help for debug
+  -d, --directory string         directory to write debug info to (default "debug")
+  -h, --help                     help for debug
+  -N, --namespaces stringArray   namespaces from which to dump logs and resources (use flag multiple times to specify multiple namespaces, e.g. '-N gloo-system -N default') (default [gloo-system])
 ```
 
 ### Options inherited from parent commands
@@ -36,6 +47,5 @@ glooctl debug [flags]
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
-* [glooctl debug logs](../glooctl_debug_logs)	 - Debug Gloo logs (requires Gloo running on Kubernetes)
-* [glooctl debug yaml](../glooctl_debug_yaml)	 - Dump YAML representing the current Gloo state (requires Gloo running on Kubernetes)
+* [glooctl debug yaml](../glooctl_debug_yaml)	 - Print YAML representing the current Gloo state of a Kubernetes cluster (top level "debug" command is preferred)
 
