@@ -1,4 +1,4 @@
-package helpers
+package state_dump_utils
 
 import (
 	"bytes"
@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/onsi/ginkgo/v2"
 
 	"github.com/solo-io/gloo/pkg/cliutil/install"
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
@@ -24,10 +23,10 @@ import (
 	"github.com/solo-io/go-utils/threadsafe"
 )
 
-// StandardGlooDumpOnFail creates adump of the kubernetes state and certain envoy data from
-// the admin interface when a test fails.
-// Look at `KubeDumpOnFail` && `EnvoyDumpOnFail` for more details
-func StandardGlooDumpOnFail(outLog io.Writer, outDir string, namespaces []string) func() {
+// StandardCIDumpOnFail creates a dump of the CI system state, kubernetes state, gloo controller state,
+// and certain envoy data from the admin interface when a test fails.
+// Look at `CISystemDumpOnFail`, `KubeDumpOnFail`, `ControllerDumpOnFail`, && `EnvoyDumpOnFail` for more details
+func StandardCIDumpOnFail(outLog io.Writer, outDir string, namespaces []string) func() {
 	return func() {
 		fmt.Printf("Test failed. Dumping state from %s...\n", strings.Join(namespaces, ", "))
 
@@ -39,6 +38,7 @@ func StandardGlooDumpOnFail(outLog io.Writer, outDir string, namespaces []string
 		// only wipe at the start of the dump
 		wipeOutDir(outDir)
 
+		CISystemDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
 		KubeDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
 		ControllerDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
 		EnvoyDumpOnFail(ctx, kubectlCli, outLog, outDir, namespaces)()
@@ -47,26 +47,39 @@ func StandardGlooDumpOnFail(outLog io.Writer, outDir string, namespaces []string
 	}
 }
 
-// KubeDumpOnFail creates a small dump of the kubernetes state when a test fails.
-// This is useful for debugging test failures.
+// CISystemDumpOnFail creates a small dump of the local docker and process state.
+// This is useful for debugging test failures in CI.
 // The dump includes:
 // - docker state
 // - process state
-// - kubernetes state
-// - logs from all pods in the given namespaces
-// - yaml representations of all solo.io CRs in the given namespaces
-func KubeDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, outLog io.Writer, outDir string,
-	namespaces []string) func() {
+func CISystemDumpOnFail(_ context.Context, _ *kubectl.Cli, _ io.Writer, outDir string,
+	_ []string) func() {
 	return func() {
 		setupOutDir(outDir)
 
 		recordDockerState(fileAtPath(filepath.Join(outDir, "docker-state.log")))
 		recordProcessState(fileAtPath(filepath.Join(outDir, "process-state.log")))
+
+		fmt.Printf("Finished writing Docker and process state information to the \"%s\" directory.\n", outDir)
+	}
+}
+
+// KubeDumpOnFail creates a small dump of the kubernetes state.
+// This is useful for debugging failures.
+// The dump includes:
+// - kubernetes cluster state
+// - logs from all pods in the given namespaces
+// - yaml representations of all solo.io CRs in the given namespaces
+func KubeDumpOnFail(ctx context.Context, _ *kubectl.Cli, _ io.Writer, outDir string,
+	namespaces []string) func() {
+	return func() {
+		setupOutDir(outDir)
+
 		recordKubeState(fileAtPath(filepath.Join(outDir, "kube-state.log")))
 
-		recordKubeDump(outDir, namespaces...)
+		recordKubeDump(ctx, outDir, namespaces...)
 
-		fmt.Printf("Finished dumping kubernetes state\n")
+		fmt.Printf("Finished writing Kubernetes state information to the \"%s\" directory.\n", outDir)
 	}
 }
 
@@ -82,6 +95,7 @@ func recordDockerState(f *os.File) {
 	err := dockerCmd.Run()
 	if err != nil {
 		f.WriteString("*** Unable to get docker state ***. Reason: " + err.Error() + " \n")
+		f.WriteString(dockerState.String() + "\n")
 		return
 	}
 	f.WriteString("*** Docker state ***\n")
@@ -101,6 +115,7 @@ func recordProcessState(f *os.File) {
 	err := psCmd.Run()
 	if err != nil {
 		f.WriteString("unable to get process state. Reason: " + err.Error() + " \n")
+		f.WriteString(psState.String() + "\n")
 		return
 	}
 	f.WriteString("*** Process state ***\n")
@@ -112,11 +127,13 @@ func recordKubeState(f *os.File) {
 	defer f.Close()
 	kubeCli := &install.CmdKubectl{}
 
+	f.WriteString("*** Kube state ***\n")
+
 	kubeState, err := kubeCli.KubectlOut(nil, "get", "all", "-A", "-o", "wide")
 	if err != nil {
 		f.WriteString("*** Unable to get kube state ***\n")
-		return
 	}
+	f.WriteString(string(kubeState) + "\n")
 
 	resourcesToGet := []string{
 		// Kubernetes resources
@@ -152,8 +169,8 @@ func recordKubeState(f *os.File) {
 	kubeResources, err := kubeCli.KubectlOut(nil, "get", strings.Join(resourcesToGet, ","), "-A", "-owide")
 	if err != nil {
 		f.WriteString("*** Unable to get kube resources ***. Reason: " + err.Error() + " \n")
-		return
 	}
+	f.WriteString(string(kubeResources) + "\n")
 
 	// Describe everything to identify the reason for issues such as Pods, LoadBalancers stuck in pending state
 	// (insufficient resources, unable to acquire an IP), etc.
@@ -161,34 +178,28 @@ func recordKubeState(f *os.File) {
 	kubeDescribe, err := kubeCli.KubectlOut(nil, "describe", "all", "-A")
 	if err != nil {
 		f.WriteString("*** Unable to get kube describe ***. Reason: " + err.Error() + " \n")
-		return
 	}
+	f.WriteString(string(kubeDescribe) + "\n")
 
 	kubeEndpointsState, err := kubeCli.KubectlOut(nil, "get", "endpoints", "-A")
 	if err != nil {
 		f.WriteString("*** Unable to get endpoint state ***. Reason: " + err.Error() + " \n")
-		return
 	}
-
-	f.WriteString("*** Kube state ***\n")
-	f.WriteString(string(kubeState) + "\n")
-	f.WriteString(string(kubeResources) + "\n")
-	f.WriteString(string(kubeDescribe) + "\n")
 	f.WriteString(string(kubeEndpointsState) + "\n")
 
 	f.WriteString("*** End Kube state ***\n")
 }
 
-func recordKubeDump(outDir string, namespaces ...string) {
+func recordKubeDump(ctx context.Context, outDir string, namespaces ...string) {
 	// for each namespace, create a namespace directory that contains...
 	for _, ns := range namespaces {
-		// ...a pod logs subdirectoy
+		// ...a pod logs subdirectory
 		if err := recordPods(filepath.Join(outDir, ns, "_pods"), ns); err != nil {
 			fmt.Printf("error recording pod logs: %f, \n", err)
 		}
 
 		// ...and a subdirectory for each solo.io CRD with non-zero resources
-		if err := recordCRs(filepath.Join(outDir, ns), ns); err != nil {
+		if err := recordCRs(ctx, filepath.Join(outDir, ns), ns); err != nil {
 			fmt.Printf("error recording pod logs: %f, \n", err)
 		}
 	}
@@ -234,7 +245,7 @@ func recordPods(podDir, namespace string) error {
 }
 
 // recordCRs records all unique CRs floating about to _output/kube2e-artifacts/$namespace/$crd/$cr.yaml
-func recordCRs(namespaceDir string, namespace string) error {
+func recordCRs(ctx context.Context, namespaceDir string, namespace string) error {
 	crds, _, err := kubeList(namespace, "crd")
 	if err != nil {
 		return err
@@ -262,21 +273,23 @@ func recordCRs(namespaceDir string, namespace string) error {
 
 		// we record each one in its own .yaml representation
 		for _, cr := range crs {
-			f := fileAtPath(filepath.Join(crdDir, cr+".yaml"))
-			errF := fileAtPath(filepath.Join(crdDir, cr+"-error.log"))
-
-			crDetails, errOutput, err := kubeGet(namespace, crd, cr)
-
-			if crDetails != "" {
-				f.WriteString(crDetails)
+			args := []string{"-n", namespace, crd, cr, "-oyaml"}
+			stdout, stderr, err := kubectl.NewCli().Get(ctx, args...)
+			if stdout != "" {
+				f := fileAtPath(filepath.Join(crdDir, cr+".yaml"))
+				f.WriteString(stdout)
 				f.Close()
 			}
-			if errOutput != "" {
-				errF.WriteString(errOutput)
+			if stderr != "" {
+				errF := fileAtPath(filepath.Join(crdDir, cr+"-error.log"))
+				errF.WriteString(stderr)
 				errF.Close()
 			}
-
-			return err
+			// We don't expect an error to occur when executing this request.
+			// If it does, we intentionally print stdout and stderr to the respective files so that we can more easily debug the error.
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -289,17 +302,9 @@ func kubeLogs(namespace string, pod string) (string, string, error) {
 	return kubeExecute(args)
 }
 
-// kubeGet runs $(kubectl -n $namespace get $kubeType $name -oyaml) and returns the string result
-func kubeGet(namespace string, kubeType string, name string) (string, string, error) {
-	args := []string{"-n", namespace, "get", kubeType, name, "-oyaml"}
-	return kubeExecute(args)
-}
-
 func kubeExecute(args []string) (string, string, error) {
-	cli := kubectl.NewCli().WithReceiver(ginkgo.GinkgoWriter)
-
 	var outLocation threadsafe.Buffer
-	runError := cli.Command(context.Background(), args...).WithStdout(&outLocation).Run()
+	runError := kubectl.NewCli().Command(context.Background(), args...).WithStdout(&outLocation).Run()
 	if runError != nil {
 		return outLocation.String(), runError.OutputString(), runError.Cause()
 	}
@@ -327,14 +332,14 @@ func kubeList(namespace string, target string) ([]string, string, error) {
 	return toReturn, "", nil
 }
 
-// ControllerDumpOnFail creates a small dump of the controller state when a test fails.
-// This is useful for debugging test failures.
+// ControllerDumpOnFail creates a small dump of the gloo controller state.
+// This is useful for debugging failures.
 // The dump includes:
 // - controller logs
 // - controller metrics
 // - controller xds snapshot
 // - controller krt snapshot
-func ControllerDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, outLog io.Writer,
+func ControllerDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer,
 	outDir string, namespaces []string) func() {
 	return func() {
 		for _, ns := range namespaces {
@@ -361,10 +366,10 @@ func ControllerDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, outLog i
 				// Open a port-forward to the controller pod's admin port
 				portForwarder, err := kubectlCli.StartPortForward(ctx,
 					portforward.WithPod(podName, ns),
-					portforward.WithPorts(int(admin.AdminPort), int(admin.AdminPort)),
+					portforward.WithPorts(admin.AdminPort, admin.AdminPort),
 				)
 				if err != nil {
-					fmt.Printf("error starting port forward to controller admin port: %f\n", err)
+					fmt.Printf("error starting port forward to controller admin port: %s\n", err.Error())
 				}
 
 				defer func() {
@@ -376,29 +381,33 @@ func ControllerDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, outLog i
 					WithReceiver(io.Discard).
 					WithCurlOptions(
 						curl.WithRetries(3, 0, 10),
-						curl.WithPort(int(admin.AdminPort)),
+						curl.WithPort(admin.AdminPort),
 					)
 
+				stderr := &bytes.Buffer{}
 				krtSnapshotFile := fileAtPath(filepath.Join(namespaceOutDir, fmt.Sprintf("%s.krt_snapshot.log", podName)))
-				err = adminClient.KrtSnapshotCmd(ctx).WithStdout(krtSnapshotFile).Run().Cause()
+				err = adminClient.KrtSnapshotCmd(ctx).WithStdout(krtSnapshotFile).WithStderr(stderr).Run().Cause()
 				if err != nil {
-					fmt.Printf("error running krt snapshot command: %f\n", err)
+					fmt.Printf("error running krt snapshot command: %s\n", err.Error())
+					fmt.Println(stderr)
 				}
 
+				stderr = &bytes.Buffer{}
 				xdsSnapshotFile := fileAtPath(filepath.Join(namespaceOutDir, fmt.Sprintf("%s.xds_snapshot.log", podName)))
-				err = adminClient.XdsSnapshotCmd(ctx).WithStdout(xdsSnapshotFile).Run().Cause()
+				err = adminClient.XdsSnapshotCmd(ctx).WithStdout(xdsSnapshotFile).WithStderr(stderr).Run().Cause()
 				if err != nil {
-					fmt.Printf("error running xds snapshot command: %f\n", err)
+					fmt.Printf("error running xds snapshot command: %s\n", err.Error())
+					fmt.Println(stderr)
 				}
 
-				fmt.Printf("finished dumping controller state\n")
+				fmt.Printf("Finished writing Gloo Gateway controller state information to the \"%s\" directory.\n", outDir)
 			}
 		}
 	}
 }
 
-// EnvoyDumpOnFail creates a small dump of the envoy admin interface when a test fails.
-// This is useful for debugging test failures.
+// EnvoyDumpOnFail creates a small dump of the envoy admin interface.
+// This is useful for debugging failures.
 // The dump includes:
 // - config dump
 // - stats
@@ -434,7 +443,7 @@ func EnvoyDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer, 
 			setupOutDir(envoyOutDir)
 
 			for _, proxy := range proxies {
-				adminCli, shutdown, err := admincli.NewPortForwardedClient(ctx,
+				adminCli, shutdown, err := admincli.NewPortForwardedClient(ctx, kubectlCli,
 					fmt.Sprintf("pod/%s", proxy), ns)
 				if err != nil {
 					fmt.Printf("error creating admin cli: %f\n", err)
@@ -467,7 +476,7 @@ func EnvoyDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer, 
 					fmt.Printf("error running listeners command: %f\n", err)
 				}
 
-				fmt.Printf("finished dumping envoy state\n")
+				fmt.Printf("Finished writing Envoy state information to the \"%s\" directory.\n", outDir)
 			}
 		}
 	}

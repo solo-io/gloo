@@ -176,6 +176,7 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 		ctx,
 		cfg.InitialSettings,
 		cfg.Settings,
+		cfg.RestConfig,
 		wellknown.GatewayControllerName,
 		setup.GetWriteNamespace(&cfg.InitialSettings.Spec),
 		inputChannels,

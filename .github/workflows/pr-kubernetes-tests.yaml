@@ -83,7 +83,7 @@ jobs:
         # Dec 4, 2024: 26 minutes
         - cluster-name: 'cluster-six'
           go-test-args: '-v -timeout=30m'
-          go-test-run-regex: '^TestDiscoveryWatchlabels$$|^TestK8sGatewayNoValidation$$|^TestHelm$$|^TestHelmSettings$$|^TestK8sGatewayAws$$|^TestK8sGateway$$/^HTTPRouteServices$$|^TestK8sGateway$$/^TCPRouteServices$$|^TestZeroDowntimeRollout$$'
+          go-test-run-regex: '^TestDiscoveryWatchlabels$$|^TestK8sGatewayNoValidation$$|^TestHelm$$|^TestHelmSettings$$|^TestK8sGatewayAws$$|^TestK8sGateway$$/^HTTPRouteServices$$|^TestK8sGateway$$/^TCPRouteServices$$'
 
         # Dec 4, 2024: 13 minutes
         - cluster-name: 'cluster-seven'

@@ -36,6 +36,7 @@ type Options struct {
 	Check           Check
 	CheckCRD        CheckCRD
 	ValidateLicense ValidateLicense
+	Debug           Debug
 }
 type Top struct {
 	contextoptions.ContextAccessible
@@ -496,4 +497,10 @@ type CheckCRD struct {
 
 type ValidateLicense struct {
 	LicenseKey string
+}
+
+// options for the "glooctl debug" command, see projects/gloo/cli/pkg/cmd/debug/root.go
+type Debug struct {
+	Directory  string
+	Namespaces []string
 }
