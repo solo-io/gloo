@@ -4,3 +4,6 @@ changelog:
     resolvesIssue: false
     description: >-
       Changelog placeholder for the 1.18.0 release
+      
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
