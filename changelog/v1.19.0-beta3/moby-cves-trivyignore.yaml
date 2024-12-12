@@ -6,5 +6,9 @@ changelog:
     description: This also resolves the issue for 1.15
     issueLink: https://github.com/solo-io/solo-projects/issues/7358
   - type: NON_USER_FACING
-    description: This also resolves the issue for 1.14
     issueLink: https://github.com/solo-io/solo-projects/issues/7359
+    description: >-
+      This also resolves the issue for 1.14
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
