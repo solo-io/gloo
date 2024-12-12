@@ -389,30 +389,30 @@ var _ = Describe("Translator", func() {
 	// returns md5 Sum of current snapshot
 	translate := func() {
 		snap, errs, report := translator.Translate(params, proxy)
-		ExpectWithOffset(1, errs.Validate()).NotTo(HaveOccurred())
-		ExpectWithOffset(1, snap).NotTo(BeNil())
-		ExpectWithOffset(1, report).To(Equal(validationutils.MakeReport(proxy)))
+		Expect(errs.Validate()).NotTo(HaveOccurred())
+		Expect(snap).NotTo(BeNil())
+		Expect(report).To(Equal(validationutils.MakeReport(proxy)))
 
 		clusters := snap.GetResources(types.ClusterTypeV3)
 		clusterResource := clusters.Items[UpstreamToClusterName(upstream.Metadata.Ref())]
 		cluster = clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
-		ExpectWithOffset(1, cluster).NotTo(BeNil())
+		Expect(cluster).NotTo(BeNil())
 
 		listeners := snap.GetResources(types.ListenerTypeV3)
 		listenerResource := listeners.Items["http-listener"]
 		listener = listenerResource.ResourceProto().(*envoy_config_listener_v3.Listener)
-		ExpectWithOffset(1, listener).NotTo(BeNil())
+		Expect(listener).NotTo(BeNil())
 
 		hcmFilter := listener.FilterChains[0].Filters[0]
 		hcmCfg = &envoyhttp.HttpConnectionManager{}
 		err := ParseTypedConfig(hcmFilter, hcmCfg)
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		routes := snap.GetResources(types.RouteTypeV3)
-		ExpectWithOffset(1, routes.Items).To(HaveKey("http-listener-routes"))
+		Expect(routes.Items).To(HaveKey("http-listener-routes"))
 		routeResource := routes.Items["http-listener-routes"]
 		routeConfiguration = routeResource.ResourceProto().(*envoy_config_route_v3.RouteConfiguration)
-		ExpectWithOffset(1, routeConfiguration).NotTo(BeNil())
+		Expect(routeConfiguration).NotTo(BeNil())
 
 		endpoints = snap.GetResources(types.EndpointTypeV3)
 
@@ -611,7 +611,7 @@ var _ = Describe("Translator", func() {
 			translate()
 			fooRoute := routeConfiguration.VirtualHosts[0].Routes[0]
 			Expect(fooRoute.Match.GetPrefix()).To(Equal("/foo"))
-			Expect(fooRoute.Match.CaseSensitive.Value).To(Equal(true))
+			Expect(fooRoute.Match.CaseSensitive.GetValue()).To(BeTrue())
 		})
 
 		It("should translate path matcher with case insensitive", func() {
@@ -628,7 +628,7 @@ var _ = Describe("Translator", func() {
 			translate()
 			fooRoute := routeConfiguration.VirtualHosts[0].Routes[0]
 			Expect(fooRoute.Match.GetPrefix()).To(Equal("/foo"))
-			Expect(fooRoute.Match.CaseSensitive).To(Equal(&wrappers.BoolValue{Value: false}))
+			Expect(fooRoute.Match.CaseSensitive.GetValue()).To(BeFalse())
 		})
 
 		It("should translate path matcher with regex rewrite on redirectAction", func() {
@@ -684,7 +684,7 @@ var _ = Describe("Translator", func() {
 			actualRegexRedirect := envoyRoute.Action.(*envoy_config_route_v3.Route_Redirect).Redirect.GetRegexRewrite()
 			Expect(actualRegexRedirect.Pattern.Regex).To(Equal(expectedRedirectAction.Redirect.GetRegexRewrite().Pattern.Regex))
 			Expect(actualRegexRedirect.Substitution).To(Equal(expectedRedirectAction.Redirect.GetRegexRewrite().Substitution))
-			Expect(envoyRoute.Match.CaseSensitive).To(Equal(&wrappers.BoolValue{Value: false}))
+			Expect(envoyRoute.Match.CaseSensitive.GetValue()).To(BeFalse())
 		})
 	})
 
