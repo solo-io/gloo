@@ -389,30 +389,30 @@ var _ = Describe("Translator", func() {
 	// returns md5 Sum of current snapshot
 	translate := func() {
 		snap, errs, report := translator.Translate(params, proxy)
-		Expect(errs.Validate()).NotTo(HaveOccurred())
-		Expect(snap).NotTo(BeNil())
-		Expect(report).To(Equal(validationutils.MakeReport(proxy)))
+		ExpectWithOffset(1, errs.Validate()).NotTo(HaveOccurred())
+		ExpectWithOffset(1, snap).NotTo(BeNil())
+		ExpectWithOffset(1, report).To(Equal(validationutils.MakeReport(proxy)))
 
 		clusters := snap.GetResources(types.ClusterTypeV3)
 		clusterResource := clusters.Items[UpstreamToClusterName(upstream.Metadata.Ref())]
 		cluster = clusterResource.ResourceProto().(*envoy_config_cluster_v3.Cluster)
-		Expect(cluster).NotTo(BeNil())
+		ExpectWithOffset(1, cluster).NotTo(BeNil())
 
 		listeners := snap.GetResources(types.ListenerTypeV3)
 		listenerResource := listeners.Items["http-listener"]
 		listener = listenerResource.ResourceProto().(*envoy_config_listener_v3.Listener)
-		Expect(listener).NotTo(BeNil())
+		ExpectWithOffset(1, listener).NotTo(BeNil())
 
 		hcmFilter := listener.FilterChains[0].Filters[0]
 		hcmCfg = &envoyhttp.HttpConnectionManager{}
 		err := ParseTypedConfig(hcmFilter, hcmCfg)
-		Expect(err).NotTo(HaveOccurred())
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 		routes := snap.GetResources(types.RouteTypeV3)
-		Expect(routes.Items).To(HaveKey("http-listener-routes"))
+		ExpectWithOffset(1, routes.Items).To(HaveKey("http-listener-routes"))
 		routeResource := routes.Items["http-listener-routes"]
 		routeConfiguration = routeResource.ResourceProto().(*envoy_config_route_v3.RouteConfiguration)
-		Expect(routeConfiguration).NotTo(BeNil())
+		ExpectWithOffset(1, routeConfiguration).NotTo(BeNil())
 
 		endpoints = snap.GetResources(types.EndpointTypeV3)
 
