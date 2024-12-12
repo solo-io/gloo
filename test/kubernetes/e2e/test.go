@@ -22,6 +22,10 @@ import (
 	state_dump_utils "github.com/solo-io/gloo/pkg/utils/statedumputils"
 )
 
+const (
+	defaultTearDown = true
+)
+
 // MustTestHelper returns the SoloTestHelper used for e2e tests
 // The SoloTestHelper is a wrapper around `glooctl` and we should eventually phase it out
 // in favor of using the exact tool that users rely on
@@ -194,14 +198,12 @@ func (i *TestInstallation) InstallGlooGatewayWithTestHelper(ctx context.Context,
 }
 
 func (i *TestInstallation) isGatewayInstalled(ctx context.Context) bool {
-	fmt.Printf("Checking if Gloo Gateway is installed in namespace %s\n", i.Metadata.InstallNamespace)
-
 	return i.Assertions.CheckResourcesOk(ctx) == nil
 }
 
 func (i *TestInstallation) InstallGlooGateway(ctx context.Context, installFn func(ctx context.Context) error) {
 
-	if !i.isGatewayInstalled(ctx) || !testutils.ShouldSkipInstall() {
+	if !testutils.ShouldSkipInstall(i.isGatewayInstalled(ctx)) {
 		err := installFn(ctx)
 		i.Assertions.Require.NoError(err)
 		i.Assertions.EventuallyInstallationSucceeded(ctx)
@@ -225,7 +227,7 @@ func (i *TestInstallation) UninstallGlooGatewayWithTestHelper(ctx context.Contex
 }
 
 func (i *TestInstallation) UninstallGlooGateway(ctx context.Context, uninstallFn func(ctx context.Context) error) {
-	if testutils.ShouldSkipInstall() {
+	if !testutils.ShouldTearDown(defaultTearDown) {
 		return
 	}
 	err := uninstallFn(ctx)
