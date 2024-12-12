@@ -1,0 +1,6 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: moby
+    dependencyRepo: moby
+    dependencyTag: v27.2.0
+    description: Imported indirectly as docker/docker which is an alias for moby/moby
