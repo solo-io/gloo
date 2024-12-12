@@ -8,7 +8,7 @@ SETUP_KIND_FILE="./ci/kind/setup-kind.sh"
 # Function to source specific variables from the setup-kind.sh script
 source_specific_vars() {
     local vars_to_source=("CONFORMANCE_VERSION" "CONFORMANCE_CHANNEL")
-    
+
     for var in "${vars_to_source[@]}"; do
         eval $(grep "^$var=" "$SETUP_KIND_FILE")
     done
@@ -100,7 +100,7 @@ download_gateway_crd() {
 
     echo "Downloading Gateway CRD from $url to $dest..."
     curl -sLo "$dest.tmp" "$url"
-    
+
     if [ -f "$dest" ] && cmp -s "$dest" "$dest.tmp"; then
         echo "No changes detected in $dest."
         rm "$dest.tmp"
@@ -116,7 +116,7 @@ download_tcproute_crd() {
 
     echo "Downloading TCPRoute CRD from $url to $dest..."
     curl -sLo "$dest.tmp" "$url"
-    
+
     # Always create the temporary file with the header
     echo "$HEADER" > "$dest.tmp.full"
     cat "$dest.tmp" >> "$dest.tmp.full"
