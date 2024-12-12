@@ -71,10 +71,10 @@ CVE-2022-30635
 
 # https://github.com/advisories/GHSA-2mj3-vfvx-fc43
 # https://github.com/advisories/GHSA-gh5c-3h97-2f3q
-# These are not expected to impact us and are difficult to resolve due to breaking API changes that impact WASM plugin
+# These are not expected to impact us and are difficult to resolve due to breaking API changes that impact our
 # code
-# More detail can be found here: https://github.com/solo-io/solo-projects/issues/7348#issuecomment-2518727997
-# We can remove these once moby/moby has been upgrade to v26+ on all LTS branches and/or the WASM plugin has been
+# While this has been resolved on v1.16+, backporting it to lower versions is complicated and we opted to skip it
+# Ref: https://solo-io-corp.slack.com/archives/C03MFATU265/p1733926775760049?thread_ts=1733429266.473749&cid=C03MFATU265
 # removed from all LTS branches
 CVE-2024-36621
 CVE-2024-36623

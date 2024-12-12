@@ -3,9 +3,6 @@ changelog:
     description: Add CVE-2024-36621 and CVE-2024-36623 to trivyignore
     issueLink: https://github.com/solo-io/solo-projects/issues/7353
   - type: NON_USER_FACING
-    description: This also resolves the issue for 1.16
-    issueLink: https://github.com/solo-io/solo-projects/issues/7357
-  - type: NON_USER_FACING
     description: This also resolves the issue for 1.15
     issueLink: https://github.com/solo-io/solo-projects/issues/7358
   - type: NON_USER_FACING
