@@ -625,7 +625,7 @@ var _ = Describe("Translator", func() {
 			translate()
 			fooRoute := routeConfiguration.VirtualHosts[0].Routes[0]
 			Expect(fooRoute.Match.GetPrefix()).To(Equal("/foo"))
-			Expect(fooRoute.Match.CaseSensitive.Value).To(BeTrue())
+			Expect(fooRoute.Match.CaseSensitive.GetValue()).To(BeTrue())
 		})
 
 		It("should translate path matcher with case insensitive", func() {
@@ -642,7 +642,7 @@ var _ = Describe("Translator", func() {
 			translate()
 			fooRoute := routeConfiguration.VirtualHosts[0].Routes[0]
 			Expect(fooRoute.Match.GetPrefix()).To(Equal("/foo"))
-			Expect(fooRoute.Match.CaseSensitive).To(Equal(&wrappers.BoolValue{Value: false}))
+			Expect(fooRoute.Match.CaseSensitive.GetValue()).To(BeFalse())
 		})
 
 		It("should translate path matcher with regex rewrite on redirectAction", func() {
@@ -698,7 +698,7 @@ var _ = Describe("Translator", func() {
 			actualRegexRedirect := envoyRoute.Action.(*envoy_config_route_v3.Route_Redirect).Redirect.GetRegexRewrite()
 			Expect(actualRegexRedirect.Pattern.Regex).To(Equal(expectedRedirectAction.Redirect.GetRegexRewrite().Pattern.Regex))
 			Expect(actualRegexRedirect.Substitution).To(Equal(expectedRedirectAction.Redirect.GetRegexRewrite().Substitution))
-			Expect(envoyRoute.Match.CaseSensitive).To(Equal(&wrappers.BoolValue{Value: false}))
+			Expect(envoyRoute.Match.CaseSensitive.GetValue()).To(BeFalse())
 		})
 	})
 
