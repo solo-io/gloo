@@ -11,6 +11,11 @@ func IsEnvTruthy(envVarName string) bool {
 	return IsTruthyValue(os.Getenv(envVarName))
 }
 
+// EnvVal returns the value of an environment variable
+func GetEnv(envVarName string) string {
+	return os.Getenv(envVarName)
+}
+
 // IsEnvDefined returns true if a given environment variable has any value
 func IsEnvDefined(envVarName string) bool {
 	envValue := os.Getenv(envVarName)

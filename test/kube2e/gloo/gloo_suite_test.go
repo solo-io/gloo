@@ -72,7 +72,7 @@ var _ = BeforeSuite(func() {
 	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir, namespaces))
 
 	// Allow skipping of install step for running multiple times
-	if !glootestutils.ShouldSkipInstall() {
+	if !glootestutils.ShouldSkipInstall(testHelper.IsGlooInstalled(ctx)) {
 		installGloo()
 	}
 
@@ -97,7 +97,7 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	defer cancel()
 
-	if glootestutils.ShouldTearDown() {
+	if glootestutils.ShouldTearDown(helpers.DefaultTearDown) {
 		uninstallGloo()
 	}
 })

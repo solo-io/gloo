@@ -13,22 +13,27 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
 )
 
+// CheckResourcesOk asserts that `glooctl check` succeeds
+func (p *Provider) CheckResourcesOk(ctx context.Context) error {
+	contextWithCancel, cancel := context.WithCancel(ctx)
+	defer cancel()
+	opts := &options.Options{
+		Metadata: core.Metadata{
+			Namespace: p.glooGatewayContext.InstallNamespace,
+		},
+		Top: options.Top{
+			Ctx: contextWithCancel,
+		},
+	}
+	return check.CheckResources(contextWithCancel, printers.P{}, opts)
+}
+
 // EventuallyCheckResourcesOk asserts that `glooctl check` eventually responds Ok
 func (p *Provider) EventuallyCheckResourcesOk(ctx context.Context) {
 	p.expectGlooGatewayContextDefined()
 
 	p.Gomega.Eventually(func(innerG Gomega) {
-		contextWithCancel, cancel := context.WithCancel(ctx)
-		defer cancel()
-		opts := &options.Options{
-			Metadata: core.Metadata{
-				Namespace: p.glooGatewayContext.InstallNamespace,
-			},
-			Top: options.Top{
-				Ctx: contextWithCancel,
-			},
-		}
-		err := check.CheckResources(contextWithCancel, printers.P{}, opts)
+		err := p.CheckResourcesOk(ctx)
 		innerG.Expect(err).NotTo(HaveOccurred())
 	}).
 		WithContext(ctx).
