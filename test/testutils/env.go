@@ -102,7 +102,7 @@ func ShouldTearDown(defaultTearDown bool) bool {
 	tearDown := defaultTearDown
 
 	// If TearDown is defined, use that value
-	if envutils.IsEnvDefined(TearDown) == true {
+	if envutils.IsEnvDefined(TearDown) {
 		tearDown = IsEnvTruthy(TearDown)
 	} else if IsEnvTruthy(PersistInstall) {
 		// If TearDown is not defined, and persist install is truthy, don't tear down
@@ -122,7 +122,7 @@ func ShouldSkipInstall(alreadyInstalled bool) bool {
 	// - PersistInstall is true and Gloo is already installed
 
 	// If SkipInstall is true and PersistInstall is false, warn the user
-	if IsEnvTruthy(SkipInstall) && (envutils.IsEnvDefined(PersistInstall) == true && !IsEnvTruthy(PersistInstall)) {
+	if IsEnvTruthy(SkipInstall) && (envutils.IsEnvDefined(PersistInstall) && !IsEnvTruthy(PersistInstall)) {
 		log.Printf("Warning: %s is set to true, but %s is set to false. This is likely a mistake. Gloo will be installed.", SkipInstall, PersistInstall)
 	}
 	return IsEnvTruthy(SkipInstall) || (IsEnvTruthy(PersistInstall) && alreadyInstalled)
