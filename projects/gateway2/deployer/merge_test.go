@@ -138,12 +138,11 @@ var _ = Describe("deepMergeGatewayParameters", func() {
 
 	It("merges service strings", func() {
 
-		externalTrafficPolicy := ptr.To(corev1.ServiceExternalTrafficPolicyLocal)
 		dst := &gw2_v1alpha1.GatewayParameters{
 			Spec: gw2_v1alpha1.GatewayParametersSpec{
 				Kube: &gw2_v1alpha1.KubernetesProxyConfig{
 					Service: &gw2_v1alpha1.Service{
-						ExternalTrafficPolicy: externalTrafficPolicy,
+						ExternalTrafficPolicy:  ptr.To(corev1.ServiceExternalTrafficPolicyLocal),
 					},
 				},
 			},
@@ -152,13 +151,13 @@ var _ = Describe("deepMergeGatewayParameters", func() {
 			Spec: gw2_v1alpha1.GatewayParametersSpec{
 				Kube: &gw2_v1alpha1.KubernetesProxyConfig{
 					Service: &gw2_v1alpha1.Service{
-						ExternalTrafficPolicy: externalTrafficPolicy,
+						ExternalTrafficPolicy: ptr.To(corev1.ServiceExternalTrafficPolicyCluster),
 					},
 				},
 			},
 		}
 
 		out := deepMergeGatewayParameters(dst, src)
-		Expect(out.Spec.Kube.Service.ExternalTrafficPolicy).To(Equal(externalTrafficPolicy))
+		Expect(out.Spec.Kube.Service.ExternalTrafficPolicy).To(Equal(corev1.ServiceExternalTrafficPolicyLocal))
 	})
 })
