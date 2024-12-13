@@ -189,3 +189,43 @@ func reportPluginProcessingErrorOrWarning(
 	//	- A plugin returns a ConfigurationError, but explicitly defines it to NOT be a warning.
 	doReportErr()
 }
+
+func reportHTTPListenerProcessingError(
+	params plugins.Params,
+	report *validationapi.HttpListenerReport,
+	err error,
+) {
+	doReportErr := func() {
+		validation.AppendHTTPListenerError(report,
+			validationapi.HttpListenerReport_Error_ProcessingError,
+			err.Error())
+	}
+
+	doReportWarning := func() {
+		validation.AppendHTTPListenerWarning(report,
+			validationapi.HttpListenerReport_Warning_Type(validationapi.HttpListenerReport_Warning_InvalidDestinationWarning),
+			err.Error())
+	}
+
+	reportPluginProcessingErrorOrWarning(err, doReportErr, doReportWarning)
+}
+
+func reportTCPListenerProcessingError(
+	params plugins.Params,
+	report *validationapi.TcpListenerReport,
+	err error,
+) {
+	doReportErr := func() {
+		validation.AppendTCPListenerError(report,
+			validationapi.TcpListenerReport_Error_ProcessingError,
+			err.Error())
+	}
+
+	doReportWarning := func() {
+		validation.AppendTCPListenerWarning(report,
+			validationapi.TcpListenerReport_Warning_InvalidDestinationWarning,
+			err.Error())
+	}
+
+	reportPluginProcessingErrorOrWarning(err, doReportErr, doReportWarning)
+}

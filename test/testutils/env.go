@@ -102,7 +102,7 @@ func ShouldTearDown(defaultTearDown bool) bool {
 	tearDown := defaultTearDown
 
 	// If TearDown is defined, use that value
-	if GetEnv(TearDown) != "" {
+	if envutils.IsEnvDefined(TearDown) {
 		tearDown = IsEnvTruthy(TearDown)
 	} else if IsEnvTruthy(PersistInstall) {
 		// If TearDown is not defined, and persist install is truthy, don't tear down
@@ -122,7 +122,7 @@ func ShouldSkipInstall(alreadyInstalled bool) bool {
 	// - PersistInstall is true and Gloo is already installed
 
 	// If SkipInstall is true and PersistInstall is false, warn the user
-	if IsEnvTruthy(SkipInstall) && (GetEnv(PersistInstall) != "" && !IsEnvTruthy(PersistInstall)) {
+	if IsEnvTruthy(SkipInstall) && (envutils.IsEnvDefined(PersistInstall) && !IsEnvTruthy(PersistInstall)) {
 		log.Printf("Warning: %s is set to true, but %s is set to false. This is likely a mistake. Gloo will be installed.", SkipInstall, PersistInstall)
 	}
 	return IsEnvTruthy(SkipInstall) || (IsEnvTruthy(PersistInstall) && alreadyInstalled)
@@ -156,9 +156,4 @@ func IsEnvTruthy(envVarName string) bool {
 // Deprecated: Prefer envutils.IsEnvDefined
 func IsEnvDefined(envVarName string) bool {
 	return envutils.IsEnvDefined(envVarName)
-}
-
-// GetEnv returns the value of an environment variable
-func GetEnv(key string) string {
-	return envutils.GetEnv(key)
 }
