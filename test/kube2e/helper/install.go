@@ -16,6 +16,7 @@ import (
 
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	"github.com/solo-io/gloo/test/testutils"
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/go-utils/testutils/exec"
 	"github.com/solo-io/k8s-utils/testutils/kube"
@@ -355,4 +356,8 @@ func GenerateVariantValuesFile(variant string) (string, error) {
 	}
 
 	return tmpFile.Name(), nil
+}
+
+func (h *SoloTestHelper) IsGlooInstalled(ctx context.Context) bool {
+	return testutils.CheckResourcesOk(ctx, h.InstallNamespace) == nil
 }

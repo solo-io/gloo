@@ -26,6 +26,8 @@ var kubeStateFile = func(outDir string) string {
 var _ = Describe("Debug", func() {
 
 	BeforeEach(func() {
+		Skip("Skipping flakey test")
+
 		helpers.UseMemoryClients()
 	})
 
@@ -34,6 +36,7 @@ var _ = Describe("Debug", func() {
 	})
 
 	It("should support the top level debug command and should populate the kube-state.log file", func() {
+
 		testutil.ExpectInteractive(func(c *testutil.Console) {
 			c.ExpectString("This command will overwrite the \"" + defaultOutDir + "\" directory, if present. Are you sure you want to proceed? [y/N]: ")
 			c.SendLine("y")

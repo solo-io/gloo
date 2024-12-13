@@ -2,6 +2,7 @@ package validation_test
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
@@ -407,5 +408,179 @@ var _ = Describe("validation utils", func() {
 			Expect(err.Error()).To(ContainSubstring("TcpHost Error: ProcessingError. Reason: testing processing error"))
 		})
 
+	})
+
+	var _ = Describe("GetProxyWarning", func() {
+		It("aggregates the warnings at every level for http listener", func() {
+			rpt := MakeReport(makeHttpProxy())
+
+			rpt.ListenerReports[1].Warnings = append(rpt.ListenerReports[1].Warnings,
+				&validation.ListenerReport_Warning{
+					Type:   validation.ListenerReport_Warning_Type(validation.ListenerReport_Warning_SSLConfigWarning),
+					Reason: "invalid ssl config",
+				},
+			)
+			httpListenerReport := rpt.ListenerReports[2].ListenerTypeReport.(*validation.ListenerReport_HttpListenerReport).HttpListenerReport
+			httpListenerReport.Warnings = append(httpListenerReport.Warnings, &validation.HttpListenerReport_Warning{
+				Type:   validation.HttpListenerReport_Warning_UnknownWarning,
+				Reason: "unknown warning",
+			})
+
+			routeReport := rpt.ListenerReports[1].ListenerTypeReport.(*validation.ListenerReport_HttpListenerReport).HttpListenerReport.VirtualHostReports[3].RouteReports[2]
+
+			routeReport.Warnings = append(routeReport.Warnings,
+				&validation.RouteReport_Warning{
+					Type:   validation.RouteReport_Warning_InvalidDestinationWarning,
+					Reason: "bad destination",
+				},
+			)
+
+			warnings := GetProxyWarning(rpt)
+			Expect(warnings).To(HaveLen(3))
+			Expect(warnings[0]).To(ContainSubstring("Listener Warning: SSLConfigWarning. Reason: invalid ssl config"))
+			Expect(warnings[1]).To(ContainSubstring("Route Warning: InvalidDestinationWarning. Reason: bad destination"))
+			Expect(warnings[2]).To(ContainSubstring("HttpListener Warning: UnknownWarning. Reason: unknown warning"))
+		})
+
+		It("aggregates the warnings at every level for aggregate listener", func() {
+			proxy := makeInvalidAggregateListenerProxyTcp()
+			rpt := MakeReport(proxy)
+
+			rpt.ListenerReports[0].Warnings = append(rpt.ListenerReports[0].Warnings,
+				&validation.ListenerReport_Warning{
+					Type:   validation.ListenerReport_Warning_SSLConfigWarning,
+					Reason: "invalid ssl config",
+				},
+			)
+
+			tcpMatcher := &v1.Matcher{
+				SourcePrefixRanges: []*v3.CidrRange{
+					&v3.CidrRange{
+						AddressPrefix: "tcp-0",
+					},
+				},
+			}
+			tcpListenerReport := rpt.ListenerReports[0].ListenerTypeReport.(*validation.ListenerReport_AggregateListenerReport).AggregateListenerReport.TcpListenerReports[utils.MatchedRouteConfigName(proxy.GetListeners()[0], tcpMatcher)]
+
+			// populate the warnings - we should hit all cases in
+			// getTcpListenerReportWarns with the warnings we create here
+			tcpListenerReport.Warnings = append(tcpListenerReport.Warnings,
+				&validation.TcpListenerReport_Warning{
+					Type:   validation.TcpListenerReport_Warning_UnknownWarning,
+					Reason: "unknown warning",
+				},
+			)
+			tcpListenerReport.TcpHostReports = append(tcpListenerReport.TcpHostReports,
+				&validation.TcpHostReport{
+					Warnings: []*validation.TcpHostReport_Warning{
+						{
+							Type:   validation.TcpHostReport_Warning_InvalidDestinationWarning,
+							Reason: "testing invalid destination warning",
+						},
+						{
+							Type:   validation.TcpHostReport_Warning_InvalidDestinationWarning,
+							Reason: "testing invalid destination warning",
+						},
+					},
+				})
+
+			httpMatcher := &v1.Matcher{
+				SourcePrefixRanges: []*v3.CidrRange{
+					&v3.CidrRange{
+						AddressPrefix: "http-0",
+					},
+				},
+			}
+			httpListenerReport := rpt.ListenerReports[0].ListenerTypeReport.(*validation.ListenerReport_AggregateListenerReport).AggregateListenerReport.HttpListenerReports[utils.MatchedRouteConfigName(proxy.GetListeners()[0], httpMatcher)]
+			httpListenerReport.Warnings = append(httpListenerReport.Warnings, &validation.HttpListenerReport_Warning{
+				Type:   validation.HttpListenerReport_Warning_InvalidDestinationWarning,
+				Reason: "testing invalid destination warning",
+			})
+
+			warnings := GetProxyWarning(rpt)
+			Expect(warnings).To(HaveLen(5))
+			// Since the order of the warnings can't be guaranteed, convert it to a string and ensure
+			// every warning has been added
+			warningsStr := strings.Join(warnings, " ")
+			Expect(warningsStr).To(ContainSubstring("Listener Warning: SSLConfigWarning. Reason: invalid ssl config"))
+			Expect(warningsStr).To(ContainSubstring("HttpListener Warning: InvalidDestinationWarning. Reason: testing invalid destination warning"))
+			Expect(warningsStr).To(ContainSubstring("TcpListener Warning: UnknownWarning. Reason: unknown warning"))
+			Expect(warningsStr).To(ContainSubstring("TcpHost Warning: InvalidDestinationWarning. Reason: testing invalid destination warning"))
+			Expect(warningsStr).To(ContainSubstring("TcpHost Warning: InvalidDestinationWarning. Reason: testing invalid destination warning"))
+		})
+
+		It("aggregates the warnings at every level for hybrid listener", func() {
+			proxy := makeHybridProxy()
+			rpt := MakeReport(proxy)
+
+			rpt.ListenerReports[1].Warnings = append(rpt.ListenerReports[1].Warnings,
+				&validation.ListenerReport_Warning{
+					Type:   validation.ListenerReport_Warning_SSLConfigWarning,
+					Reason: "invalid ssl config",
+				},
+			)
+			tcpMatcher := &v1.Matcher{
+				SourcePrefixRanges: []*v3.CidrRange{
+					&v3.CidrRange{
+						AddressPrefix: "tcp-0",
+					},
+				},
+			}
+			httpMatcher := &v1.Matcher{
+				SourcePrefixRanges: []*v3.CidrRange{
+					&v3.CidrRange{
+						AddressPrefix: "http-0",
+					},
+				},
+			}
+
+			httpListenerReport := rpt.ListenerReports[2].ListenerTypeReport.(*validation.ListenerReport_HybridListenerReport).HybridListenerReport.MatchedListenerReports[utils.MatchedRouteConfigName(proxy.GetListeners()[2], httpMatcher)].GetHttpListenerReport()
+			httpListenerReport.Warnings = append(httpListenerReport.Warnings, &validation.HttpListenerReport_Warning{
+				Type:   validation.HttpListenerReport_Warning_InvalidDestinationWarning,
+				Reason: "invalid destination",
+			})
+
+			routeReport := rpt.ListenerReports[2].ListenerTypeReport.(*validation.ListenerReport_HybridListenerReport).HybridListenerReport.MatchedListenerReports[utils.MatchedRouteConfigName(proxy.GetListeners()[2], httpMatcher)].GetHttpListenerReport().VirtualHostReports[3].RouteReports[2]
+
+			routeReport.Warnings = append(routeReport.Warnings,
+				&validation.RouteReport_Warning{
+					Type:   validation.RouteReport_Warning_InvalidDestinationWarning,
+					Reason: "bad destination",
+				},
+			)
+
+			tcpListenerReport := rpt.ListenerReports[2].ListenerTypeReport.(*validation.ListenerReport_HybridListenerReport).HybridListenerReport.MatchedListenerReports[utils.MatchedRouteConfigName(proxy.GetListeners()[2], tcpMatcher)].GetTcpListenerReport()
+			tcpListenerReport.Warnings = append(tcpListenerReport.Warnings,
+				&validation.TcpListenerReport_Warning{
+					Type:   validation.TcpListenerReport_Warning_UnknownWarning,
+					Reason: "unknown warning",
+				},
+			)
+			tcpListenerReport.TcpHostReports = append(tcpListenerReport.TcpHostReports,
+				&validation.TcpHostReport{
+					Warnings: []*validation.TcpHostReport_Warning{
+						{
+							Type:   validation.TcpHostReport_Warning_InvalidDestinationWarning,
+							Reason: "testing invalid destination warning",
+						},
+						{
+							Type:   validation.TcpHostReport_Warning_InvalidDestinationWarning,
+							Reason: "testing invalid destination warning",
+						},
+					},
+				})
+
+			warnings := GetProxyWarning(rpt)
+			Expect(warnings).To(HaveLen(6))
+			// Since the order of the warnings can't be guaranteed, convert it to a string and ensure
+			// every warning has been added
+			warningsStr := strings.Join(warnings, " ")
+			Expect(warningsStr).To(ContainSubstring("Listener Warning: SSLConfigWarning. Reason: invalid ssl config"))
+			Expect(warningsStr).To(ContainSubstring("TcpListener Warning: UnknownWarning. Reason: unknown warning"))
+			Expect(warningsStr).To(ContainSubstring("TcpHost Warning: InvalidDestinationWarning. Reason: testing invalid destination warning"))
+			Expect(warningsStr).To(ContainSubstring("TcpHost Warning: InvalidDestinationWarning. Reason: testing invalid destination warning"))
+			Expect(warningsStr).To(ContainSubstring("HttpListener Warning: InvalidDestinationWarning. Reason: invalid destination"))
+			Expect(warningsStr).To(ContainSubstring("Route Warning: InvalidDestinationWarning. Reason: bad destination"))
+		})
 	})
 })
