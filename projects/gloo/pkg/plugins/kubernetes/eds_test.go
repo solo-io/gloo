@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/constants"
+	sets_v2 "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -113,7 +114,7 @@ var _ = Describe("Eds", func() {
 
 			endpoints, warnsToLog, errorsToLog := FilterEndpoints(ctx, // do not use for logging! return logging messages as strings and log them after hashing (see https://github.com/solo-io/gloo/issues/3761)
 				writeNamespace,
-				[]*corev1.Endpoints{
+				sets_v2.NewResourceSet[*corev1.Endpoints]([]*corev1.Endpoints{
 					{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "bar",
@@ -141,8 +142,8 @@ var _ = Describe("Eds", func() {
 							},
 						},
 					},
-				},
-				[]*corev1.Service{
+				}...),
+				sets_v2.NewResourceSet[*corev1.Service]([]*corev1.Service{
 					{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "bar",
@@ -163,8 +164,8 @@ var _ = Describe("Eds", func() {
 							},
 						},
 					},
-				},
-				[]*corev1.Pod{
+				}...),
+				sets_v2.NewResourceSet[*corev1.Pod]([]*corev1.Pod{
 					{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "bar-7d4d7c7b4b-4z5zv",
@@ -176,7 +177,7 @@ var _ = Describe("Eds", func() {
 						},
 						Spec: corev1.PodSpec{},
 					},
-				},
+				}...),
 				map[*core.ResourceRef]*kubeplugin.UpstreamSpec{
 					up.Metadata.Ref(): up.GetKube(),
 				})
