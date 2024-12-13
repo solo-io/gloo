@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Prepare 1.18 docs.
+      skipCI-kube-tests:true
