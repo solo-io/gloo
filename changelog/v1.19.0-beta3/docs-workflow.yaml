@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >- 
+      Update docs workflow for 1.18 release. 
+      skipCI-kube-tests:true
