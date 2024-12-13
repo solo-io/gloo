@@ -158,6 +158,6 @@ var _ = Describe("deepMergeGatewayParameters", func() {
 		}
 
 		out := deepMergeGatewayParameters(dst, src)
-		Expect(out.Spec.Kube.Service.ExternalTrafficPolicy).To(Equal(corev1.ServiceExternalTrafficPolicyLocal))
+		Expect(out.Spec.Kube.Service.ExternalTrafficPolicy).To(Equal(ptr.To(corev1.ServiceExternalTrafficPolicyCluster)))
 	})
 })
