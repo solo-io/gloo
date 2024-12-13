@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 
 	"github.com/solo-io/go-utils/contextutils"
+	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets"
 	sets_v2 "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	corecache "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
@@ -323,13 +324,6 @@ func findPortForService(svc *corev1.Service, spec *kubeplugin.UpstreamSpec) (*co
 	return nil, false
 }
 
-func getServiceFromUpstreamSpec(spec *kubeplugin.UpstreamSpec, services sets_v2.ResourceSet[*corev1.Service]) *corev1.Service {
-	return services.Get(&core.Metadata{
-		Name:      spec.GetServiceName(),
-		Namespace: spec.GetServiceNamespace(),
-	})
-}
-
 // FilterEndpoints computes the endpoints for Gloo from the given Kubernetes endpoints, services, and Gloo upstreams.
 // It is exported to provide an injection point into our existing EDS solution for the Gloo K8s Gateway integration.
 // It returns the endpoints, warnings, and errors.
@@ -369,9 +363,15 @@ func computeGlooEndpoints(
 		warnsToLog = append(warnsToLog, warnings...)
 	}
 
+	serviceMap := services.Map()
+	kubeEndpointsMap := kubeEndpoints.Map()
+
 	// for each upstream
 	for usRef, spec := range upstreams {
-		svc := getServiceFromUpstreamSpec(spec, services)
+		svc := serviceMap[sk_sets.Key(&core.Metadata{
+			Name:      spec.GetServiceName(),
+			Namespace: spec.GetServiceNamespace(),
+		})]
 		kubeServicePort, singlePortService := findPortForService(svc, spec)
 		if kubeServicePort == nil {
 			errorsToLog = append(errorsToLog, fmt.Sprintf("upstream %v: port %v not found for service %v", usRef.Key(), spec.GetServicePort(), spec.GetServiceName()))
@@ -398,10 +398,10 @@ func computeGlooEndpoints(
 		}
 
 		// find each matching endpoint
-		eps := kubeEndpoints.Get(&core.Metadata{
+		eps := kubeEndpointsMap[sk_sets.Key(&core.Metadata{
 			Name:      spec.GetServiceName(),
 			Namespace: spec.GetServiceNamespace(),
-		})
+		})]
 		if eps == nil {
 			continue
 		}
