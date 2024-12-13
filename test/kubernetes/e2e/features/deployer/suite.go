@@ -140,7 +140,7 @@ func (s *testingSuite) TestConfigureProxiesFromGatewayParameters() {
 		gomega.HaveKeyWithValue("svc-label-key", "svc-label-val"))
 	s.testInstallation.Assertions.Gomega.Expect(svc.GetAnnotations()).To(
 		gomega.HaveKeyWithValue("svc-anno-key", "svc-anno-val"))
-	
+
 	// check that external traffic policy got passwed through from GatewayParameters to the Service
 	s.testInstallation.Assertions.Gomega.Expect(svc.Spec.ExternalTrafficPolicy).To(
 		gomega.Equal(corev1.ServiceExternalTrafficPolicyLocal))

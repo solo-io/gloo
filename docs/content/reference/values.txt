@@ -1003,7 +1003,7 @@
 |gatewayProxies.NAME.service.httpsNodePort|int||HTTPS nodeport for the gateway service if using type NodePort|
 |gatewayProxies.NAME.service.clusterIP|string||static clusterIP (or `None`) when `gatewayProxies[].gatewayProxy.service.type` is `ClusterIP`|
 |gatewayProxies.NAME.service.extraAnnotations.NAME|string|||
-|gatewayProxies.NAME.service.externalTrafficPolicy|string||Set the external traffic policy on the gateway proxy service.|
+|gatewayProxies.NAME.service.externalTrafficPolicy|string||Set the external traffic policy on the provisioned service.|
 |gatewayProxies.NAME.service.name|string||Custom name override for the service resource of the proxy|
 |gatewayProxies.NAME.service.httpsFirst|bool||List HTTPS port before HTTP|
 |gatewayProxies.NAME.service.loadBalancerIP|string||IP address of the load balancer|
@@ -1256,7 +1256,7 @@
 |gatewayProxies.gatewayProxy.service.httpsNodePort|int||HTTPS nodeport for the gateway service if using type NodePort|
 |gatewayProxies.gatewayProxy.service.clusterIP|string||static clusterIP (or `None`) when `gatewayProxies[].gatewayProxy.service.type` is `ClusterIP`|
 |gatewayProxies.gatewayProxy.service.extraAnnotations.NAME|string|||
-|gatewayProxies.gatewayProxy.service.externalTrafficPolicy|string||Set the external traffic policy on the gateway proxy service.|
+|gatewayProxies.gatewayProxy.service.externalTrafficPolicy|string||Set the external traffic policy on the provisioned service.|
 |gatewayProxies.gatewayProxy.service.name|string||Custom name override for the service resource of the proxy|
 |gatewayProxies.gatewayProxy.service.httpsFirst|bool||List HTTPS port before HTTP|
 |gatewayProxies.gatewayProxy.service.loadBalancerIP|string||IP address of the load balancer|

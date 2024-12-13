@@ -142,7 +142,7 @@ var _ = Describe("deepMergeGatewayParameters", func() {
 			Spec: gw2_v1alpha1.GatewayParametersSpec{
 				Kube: &gw2_v1alpha1.KubernetesProxyConfig{
 					Service: &gw2_v1alpha1.Service{
-						ExternalTrafficPolicy:  ptr.To(corev1.ServiceExternalTrafficPolicyLocal),
+						ExternalTrafficPolicy: ptr.To(corev1.ServiceExternalTrafficPolicyLocal),
 					},
 				},
 			},
