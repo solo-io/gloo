@@ -179,14 +179,44 @@ func getListenerLevelErrors(listenerReport *validation.ListenerReport) []error {
 			listenerErrs = append(listenerErrs, validationutils.GetHttpListenerErr(httpListenerReport)...)
 		}
 	}
-
 	return listenerErrs
 }
-func getListenerLevelWarnings(listenerReport *validation.ListenerReport) []string {
-	listenerWarnings := validationutils.GetListenerWarning(listenerReport)
 
-	// TODO(jbohanon) implement warnings on various listener types and account for them here
-	// similarly to the errors aggregation func above.
+func getListenerLevelWarnings(listenerReport *validation.ListenerReport) []string {
+	listenerWarnings := validationutils.GetListenerWarn(listenerReport)
+
+	switch listenerType := listenerReport.GetListenerTypeReport().(type) {
+	case *validation.ListenerReport_HttpListenerReport:
+		httpListener := listenerType.HttpListenerReport
+		listenerWarnings = append(listenerWarnings, validationutils.GetHttpListenerWarning(httpListener)...)
+
+	case *validation.ListenerReport_TcpListenerReport:
+		tcpListener := listenerType.TcpListenerReport
+		listenerWarnings = append(listenerWarnings, validationutils.GetTcpListenerWarning(tcpListener)...)
+
+		for _, hostReport := range tcpListener.GetTcpHostReports() {
+			listenerWarnings = append(listenerWarnings, validationutils.GetTcpHostWarning(hostReport)...)
+		}
+	case *validation.ListenerReport_HybridListenerReport:
+		for _, matchedListenerReport := range listenerType.HybridListenerReport.GetMatchedListenerReports() {
+			switch matchedListenerType := matchedListenerReport.GetListenerReportType().(type) {
+			case *validation.MatchedListenerReport_HttpListenerReport:
+				httpListener := matchedListenerType.HttpListenerReport
+				listenerWarnings = append(listenerWarnings, validationutils.GetHttpListenerWarning(httpListener)...)
+			case *validation.MatchedListenerReport_TcpListenerReport:
+				tcpListener := matchedListenerType.TcpListenerReport
+				listenerWarnings = append(listenerWarnings, validationutils.GetTcpListenerWarning(tcpListener)...)
+
+				for _, hostReport := range tcpListener.GetTcpHostReports() {
+					listenerWarnings = append(listenerWarnings, validationutils.GetTcpHostWarning(hostReport)...)
+				}
+			}
+		}
+	case *validation.ListenerReport_AggregateListenerReport:
+		for _, httpListenerReport := range listenerType.AggregateListenerReport.GetHttpListenerReports() {
+			listenerWarnings = append(listenerWarnings, validationutils.GetHttpListenerWarning(httpListenerReport)...)
+		}
+	}
 
 	return listenerWarnings
 }

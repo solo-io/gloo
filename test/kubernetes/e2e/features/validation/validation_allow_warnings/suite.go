@@ -35,7 +35,7 @@ func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.
 }
 
 // TestMissingUpstream tests behaviors when Gloo allows invalid VirtualServices to be persisted
-func (s *testingSuite) TestMissingUpstream() {
+func (s *testingSuite) TestMissingUpstreamOnVirtualService() {
 	s.T().Cleanup(func() {
 		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
 		s.Assert().NoError(err, "can delete "+validation.ExampleUpstream)
@@ -83,6 +83,49 @@ func (s *testingSuite) TestMissingUpstream() {
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
 		func() (resources.InputResource, error) {
 			return s.testInstallation.ResourceClients.VirtualServiceClient().Read(s.testInstallation.Metadata.InstallNamespace, validation.ExampleVsName, clients.ReadOpts{Ctx: s.ctx})
+		},
+		core.Status_Accepted,
+		gloo_defaults.GlooReporter,
+	)
+}
+
+func (s *testingSuite) TestMissingUpstreamOnGateway() {
+	s.T().Cleanup(func() {
+		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, validation.InvalidGatewayMissingUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
+		s.Assert().NoError(err)
+
+		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, validation.OTELUpstream)
+		s.Assert().NoError(err)
+
+		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, validation.SetupOTEL, "-n", s.testInstallation.Metadata.InstallNamespace)
+		s.Assert().NoError(err)
+	})
+
+	// Apply setup
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.SetupOTEL, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.Assert().NoError(err)
+
+	// First apply invalid gateway with the missing upstream
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.InvalidGatewayMissingUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.Assert().NoError(err)
+
+	// Apply the gateway with the missing otel upsteram
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		func() (resources.InputResource, error) {
+			return s.testInstallation.ResourceClients.GatewayClient().Read(s.testInstallation.Metadata.InstallNamespace, validation.OTELGatewayName, clients.ReadOpts{Ctx: s.ctx})
+		},
+		core.Status_Warning,
+		gloo_defaults.GlooReporter,
+	)
+
+	// Apply upstream
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.OTELUpstream)
+	s.Assert().NoError(err)
+
+	// Status should be fixed
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		func() (resources.InputResource, error) {
+			return s.testInstallation.ResourceClients.GatewayClient().Read(s.testInstallation.Metadata.InstallNamespace, validation.OTELGatewayName, clients.ReadOpts{Ctx: s.ctx})
 		},
 		core.Status_Accepted,
 		gloo_defaults.GlooReporter,
