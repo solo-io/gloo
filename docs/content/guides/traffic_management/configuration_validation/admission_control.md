@@ -70,6 +70,9 @@ In addition to strict resource validation, you can enable full Envoy validation 
 {{% notice note %}}
 The full Envoy validation is a beta feature. 
 {{% /notice %}}
+{{% notice warning %}}
+Enabling full Envoy validation is a resource-intensive operation that can have a negative performance impact on your environment, especially if the environment has a lot of resources. 
+{{% /notice %}}
 
 1. Follow the [Hello World guide]({{% versioned_link_path fromRoot="/guides/traffic_management/hello_world/" %}}) to set up the hello world app and expose it with a VirtualService.
 2. Edit the Settings to enable strict resource validation without the full Envoy validation. Make sure to also set `disableTransformationValidation: true` to disable the transformation validation. To persist this setting between Gloo Gateway upgrades, add this setting to your Helm values file instead. 
