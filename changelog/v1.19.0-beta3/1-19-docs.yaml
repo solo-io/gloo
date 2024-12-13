@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/7397
+    resolvesIssue: false
+    description: >-
+      Update active_versions in docs
+      
+      skipCI-kube-tests:true
