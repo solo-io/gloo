@@ -50,12 +50,12 @@ type BaseTestingSuite struct {
 	Setup            SimpleTestCase
 }
 
-// NewBaseTestingSuite returns a BaseTestingSuite that performs all the pre-requisites of upgrading helm installations,
+// NewBaseTestingSuiteWithUpgrades returns a BaseTestingSuite that performs all the pre-requisites of upgrading helm installations,
 // applying manifests and verifying resources exist before a suite and tests and the corresponding post-run cleanup.
 // The pre-requisites for the suite are defined in the setup parameter and for each test in the individual testCase.
-// Currently, tests that require upgrades (eg: to change settings) can not be run in Enterprise. To do so,
-// the test must be written without upgrades and call the `NewBaseTestingSuiteWithoutUpgrades` constructor.
-func NewBaseTestingSuite(ctx context.Context, testInst *e2e.TestInstallation, testHelper *helper.SoloTestHelper, setup SimpleTestCase, testCase map[string]*TestCase) *BaseTestingSuite {
+// WARNING: Testing suites that call this method can not run in enterprise as they require upgrades (eg: to change settings).
+// To use the BaseTestingSuite, the test must be written without upgrades and call the `NewBaseTestingSuiteWithoutUpgrades` constructor.
+func NewBaseTestingSuiteWithUpgrades(ctx context.Context, testInst *e2e.TestInstallation, testHelper *helper.SoloTestHelper, setup SimpleTestCase, testCase map[string]*TestCase) *BaseTestingSuite {
 	namespace = testInst.Metadata.InstallNamespace
 	return &BaseTestingSuite{
 		Ctx:              ctx,
@@ -66,9 +66,10 @@ func NewBaseTestingSuite(ctx context.Context, testInst *e2e.TestInstallation, te
 	}
 }
 
-// NewBaseTestingSuiteWithoutUpgrades returns a BaseTestingSuite without allowing upgrades and reverts before the suite and tests.
-// This is useful when creating tests that need to run in Enterprise since the helm values change between OSS and Enterprise installations.
-func NewBaseTestingSuiteWithoutUpgrades(ctx context.Context, testInst *e2e.TestInstallation, setup SimpleTestCase, testCase map[string]*TestCase) *BaseTestingSuite {
+// NewBaseTestingSuite returns a BaseTestingSuite without allowing upgrades and reverts before the suite and tests.
+// Testing suites that call this method can safely run in Enterprise since the helm values change between OSS and Enterprise installations.
+// If tests require upgrades, call the `NewBaseTestingSuiteWithoutUpgrades` constructor, however those tests can not run in Enterprise.
+func NewBaseTestingSuite(ctx context.Context, testInst *e2e.TestInstallation, setup SimpleTestCase, testCase map[string]*TestCase) *BaseTestingSuite {
 	namespace = testInst.Metadata.InstallNamespace
 	return &BaseTestingSuite{
 		Ctx:              ctx,
