@@ -71,7 +71,7 @@ func StartTestHelper() {
 	kubeCli = kubectl.NewCli().WithReceiver(GinkgoWriter)
 
 	// Allow skipping of install step for running multiple times
-	if !kubeutils2.ShouldSkipInstall() {
+	if !kubeutils2.ShouldSkipInstall(testHelper.IsGlooInstalled(ctx)) {
 		installGloo()
 	}
 
@@ -86,7 +86,7 @@ func StartTestHelper() {
 }
 
 func TearDownTestHelper() {
-	if kubeutils2.ShouldTearDown() {
+	if kubeutils2.ShouldTearDown(helpers.DefaultTearDown) {
 		uninstallGloo()
 	}
 	cancel()
