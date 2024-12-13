@@ -65,13 +65,6 @@ The Envoy dependency in Gloo Gateway 1.18 was upgraded from 1.29.x to 1.31.x. Th
 * **HTTP/2**: HTTP/2 colon prefixed headers are now sanitized by Envoy. Previously, sanitation was performed by the `nghttp2` library, which caused pseudo headers with upper case letters to fail validation. Now, these pseudo headers pass validation. You can temporarily revert this change by setting the runtime guard `envoy.reloadable_features.sanitize_http2_headers_without_nghttp2` to `false`. 
 * **Local ratelimit**: The token bucket implementation changed. Previously, a timer-based token bucket was used to assign tokens to connections. In Envoy 1.31.x, the new AtomicToken bucket is used that is no longer timer-based. Tokens are now automatically refilled when the token bucket is accessed. Because of this change, the `x-ratelimit-reset` header is no longer sent. You can temporarily revert this change by setting the runtime guard `envoy.reloadable_features.no_timer_based_rate_limit_token_bucket` to `false`.
 
-
-<!-- ggv2-related changes:
-ggv2 - Disable Istio Envoy proxy from running by default and only rely on proxyless Istio agent mtls integration. Note: Although this is a change to the default behavior of the istio integration, this should not have any impact on most users as the sidecar proxy was unused in the data path. (https://github.com/solo-io/solo-projects/issues/5711)
-
-ggv2 - glooctl get proxy will not work if you have persisted Proxy CRs in etcD and you are querying and older server version (1.16 and below). In general, we recommend that you keep your client and server versions in sync. You can verify the client/server versions you are currently running by calling glooctl version. (https://github.com/solo-io/gloo/pull/9226)
--->
-
 ### Changelogs
 
 Check the changelogs for the type of Gloo Gateway deployment that you have. Focus especially on any **Breaking Changes** that might require a different upgrade procedure. For Gloo Gateway Enterprise, you might also review the open source changelogs because most of the proto definitions are open source.
@@ -87,7 +80,8 @@ Check the changelogs for the type of Gloo Gateway deployment that you have. Focu
 You can use the changelogs' built-in [comparison tool]({{< versioned_link_path fromRoot="/reference/changelog/open_source/#compareversions" >}}) to compare between your current version and the version that you want to upgrade to.
 {{% /notice %}}
 
-### Feature changes {#features}
+
+## Feature changes
 
 Review the following summary of important new, deprecated, or removed features.
 
@@ -95,14 +89,69 @@ Review the following summary of important new, deprecated, or removed features.
 The following lists consist of the changes that were initially introduced with the {{< readfile file="static/content/version_geoss_latest_minor.md" markdown="true">}}.0 release. These changes might be backported to earlier versions of Gloo Gateway. Additionally, there might be other changes that are introduced in later {{< readfile file="static/content/version_geoss_latest_minor.md" markdown="true">}} patch releases. For patch release changes, check the [changelogs](#changelogs).
 {{% /notice %}}
 
-**New or improved features**:
+### New features
 
-* **Apply JWT policy at the route-level**: Now, you can apply JWT policies to specific routes by configuring the `jwtProvidersStaged` settings in the route option. Previously, JWT policies applied at the gateway level and were configured in only the VirtualHost option. With this new feature, you can apply JWT policies at both the route and gateway level. For more information and example steps, see [Route-level JWT policy]({{< versioned_link_path fromRoot="/security/auth/jwt/route-jwt-policy/" >}}).
+#### Watch namespace based on label 
 
-**Deprecated features**:
+Previously, the namespaces that you wanted Gloo Gateway to watch for resources needed to be provided as a static list via the `watchNamespaces` setting in the Settings resource and had to be updated manually every time a namespace was added or deleted. Starting in 1.18.0, you can now define the namespaces that you want to watch by using the `WatchNamespaceSelectors` option on the Settings CR. This way, Gloo Gateway automatically includes new namespaces that have the required selectors. 
+
+Label selectors can use exact matches or an `In`, `NotIn`, `Exists`, or `DoesNotExist` expression. You can also chain label selectors to form logical `AND` or `OR` expressions as shown in the following example. 
+
+```yaml
+settings: 
+  watchNamespaceSelectors: 
+    - matchLabels: 
+        label: match
+    - matchLabels: 
+        label: and
+    - matchExpressions: 
+      - key: expression
+        operator: In
+        values: 
+          - and
+```
+        
+{{% notice note %}}
+If you specify both the `watchNamespaces` and `watchNamespaceSelectors` setting, the `watchNamespaces` setting takes precedence.  
+{{% /notice %}}
+
+For more information, see [Specify namespaces to watch for Kuberenetes services and Gloo Gateway CRs]({{% versioned_link_path fromRoot="/installation/advanced_configuration/multiple-gloo-installs/#specify-namespaces-to-watch-for-kuberenetes-services-and-gloo-gateway-crs " %}}).
+
+#### ARM images
+
+In Gloo Gateway Enterprise, ARM images are now supported for Gloo Gateway components. An image that is tagged with -arm is compatible with ARM64 architectures. Note that ARM images are currently not published for VMs.
+
+#### Kubernetes 1.30 and 1.31 support 
+
+Starting in version 1.18.0, Gloo Gateway can now run on Kubernetes 1.30 and 1.31. For more information about supported Kubernetes, Envoy, and Istio versions, see [Supported versions]({{% versioned_link_path fromRoot="/reference/support/" %}}).
+
+#### Front channel logout
+
+You can configure a front channel logout path on an AuthConfig that configures OIDC authorization code for your apps.
+
+Front channel logout is a security mechanism that is used in the context of Single Sign-On (SSO) and Identity and Access Management (IAM) systems to ensure that when a user logs out of one app or service, they are also automatically logged out of the Identity Provider (IdP) and therefore all related apps and services in a secure and synchronized manner. Without front channel logout, the user is logged out of the requested app only.
+
+For more information, see [Front channel logout]({{% versioned_link_path fromRoot="/guides/security/auth/extauth/oauth/#front-channel-logout" %}}).
+
+#### Apply JWT policy at the route-level
+
+Now, you can apply JWT policies to specific routes by configuring the `jwtProvidersStaged` settings in the route option. Previously, JWT policies applied at the gateway level and were configured in only the VirtualHost option. With this new feature, you can apply JWT policies at both the route and gateway level. For more information and example steps, see [Route-level JWT policy]({{< versioned_link_path fromRoot="/security/auth/jwt/route-jwt-policy/" >}}).
+
+### Deprecated features**:
 
 * **GraphQL integration**: The [GraphQL integration]({{< versioned_link_path fromRoot="/guides/graphql/" >}}) is deprecated in Gloo Gateway 1.18 and will be removed in a future release.
 * **Plugin Auth**: The [Plugin Auth]({{< versioned_link_path fromRoot="/guides/security/auth/extauth/plugin_auth/" >}}) feature is deprecated in Gloo Gateway 1.18 and will be removed in a future release. Consider using the [Passthrough Auth]({{< versioned_link_path fromRoot="/guides/security/auth/extauth/passthrough_auth/" >}}) feature instead.
+
+
+<!-- ggv2-related changes:
+ggv2 - Disable Istio Envoy proxy from running by default and only rely on proxyless Istio agent mtls integration. Note: Although this is a change to the default behavior of the istio integration, this should not have any impact on most users as the sidecar proxy was unused in the data path. (https://github.com/solo-io/solo-projects/issues/5711)
+
+ggv2 - glooctl get proxy will not work if you have persisted Proxy CRs in etcD and you are querying and older server version (1.16 and below). In general, we recommend that you keep your client and server versions in sync. You can verify the client/server versions you are currently running by calling glooctl version. (https://github.com/solo-io/gloo/pull/9226)
+-->
+
+
+
+
 
 <!--
 **Removed features**:
@@ -184,7 +233,7 @@ New CRDs are automatically applied to your cluster when performing a `helm insta
 
 Review the following summary of important new, deprecated, or removed CRD updates. For full details, see the [changelogs](#changelogs).
 
-As part of the {{< readfile file="static/content/version_geoss_latest.md" markdown="true">}} release, no CLI changes were introduced.
+As part of the {{< readfile file="static/content/version_geoss_latest.md" markdown="true">}} release, no CRD changes were introduced.
 <!--
 **New and updated CRDs**:
 
@@ -200,13 +249,15 @@ N/A
 
 You must upgrade `glooctl` before you upgrade Gloo Gateway. Because `glooctl` can create resources in your cluster, such as with `glooctl add route`, you might have errors in Gloo Gateway if you create resources with an older version of `glooctl`.
 
-As part of the {{< readfile file="static/content/version_geoss_latest.md" markdown="true">}} release, no CLI changes were introduced.
-<!--
+
 Review the following summary of important new, deprecated, or removed CLI options. For full details, see the [changelogs](#changelogs).
 
 **New CLI commands or options**:
 
-* `glooctl create secret encryptionkey`: [Create encryption secrets]({{% versioned_link_path fromRoot="/reference/cli/glooctl_create_secret_encryptionkey/" %}}), such as to use in the `cipherConfig` field of the `ExtAuthConfig` resource.
+* `glooctl proxy snapshot`: [Create a snapshot of the current state in Envoy]({{% versioned_link_path fromRoot="/reference/cli/glooctl_proxy_snapshot/" %}}) for the purpose of simplified issue reporting and triaging.
+
+<!-->
+As part of the {{< readfile file="static/content/version_geoss_latest.md" markdown="true">}} release, no CLI changes were introduced.
 
 **Changed behavior**:-->
 

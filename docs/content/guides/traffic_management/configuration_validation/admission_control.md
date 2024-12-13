@@ -15,7 +15,7 @@ You can enable strict validation by setting the `alwaysAcceptResources` Helm opt
 
 For more information about how resource configuration validation works in Gloo Gateway, see [Resource validation in Gloo Gateway]({{% versioned_link_path fromRoot="/guides/traffic_management/configuration_validation/#resource-validation-in-gloo-edge" %}}). 
 
-## Enable strict resource validation
+## Enable strict resource validation 
 
 Configure the validating admission webhook to reject invalid Gloo custom resources before they are applied in the cluster. 
 
@@ -63,12 +63,16 @@ Configure the validating admission webhook to reject invalid Gloo custom resourc
       You can also use the validating admission webhook by running the <code>kubectl apply --dry-run=server</code> command to test your Gloo configuration before you apply it to your cluster. For more information, see <a href="#test-resource-configurations">Test resource configurations</a>. 
       {{< /notice >}}
       
-## Enable full Envoy validation (beta)
+## Enable full Envoy validation (beta) {#envoy-validation}
 
 In addition to strict resource validation, you can enable full Envoy validation in your Gloo Gateway setup. The full Envoy validation adds another validation layer to the validation webhook by converting the translated xDS snapshot into static bootstrap configuration that can be fed into Envoy. This way, you can validate configuration that is typically accepted by Gloo Gateway, but later rejected by Envoy. For example, you might have a transformation policy in your VirtualService that uses an invalid Inja template. Gloo Gateway cannot validate the Inja template and therefore accepts the configuration. However, with the full Envoy validation enabled, this configuration is checked against Envoy and rejected if Envoy detects invalid configuration. 
 
 {{% notice note %}}
 The full Envoy validation is a beta feature. 
+{{% /notice %}}
+
+{{% notice warning %}}
+Enabling full Envoy validation is a resource-intensive operation that can have a negative performance impact on your environment, especially if the environment has a lot of resources. 
 {{% /notice %}}
 
 1. Follow the [Hello World guide]({{% versioned_link_path fromRoot="/guides/traffic_management/hello_world/" %}}) to set up the hello world app and expose it with a VirtualService.
@@ -123,7 +127,7 @@ spec:
 EOF
    {{< /highlight >}}
    
-4. Review the logs of the `gateway-proxy` pod. Verify that although Gloo Gateway accepted the configuration, an error regarding the malformatted Inja template is reported by Envoy. 
+4. Review the logs of the `gateway-proxy` pod. Verify that although Gloo Gateway accepted the configuration, a warning regarding the malformatted Inja template is reported by Envoy. 
    ```sh
    kubectl logs -f -n gloo-system -l gateway-proxy
    ```
