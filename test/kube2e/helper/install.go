@@ -11,15 +11,12 @@ import (
 
 	"github.com/avast/retry-go"
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/spf13/afero"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
+	"github.com/solo-io/gloo/test/testutils"
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/go-utils/testutils/exec"
 	"github.com/solo-io/k8s-utils/testutils/kube"
@@ -361,20 +358,6 @@ func GenerateVariantValuesFile(variant string) (string, error) {
 	return tmpFile.Name(), nil
 }
 
-func (h *SoloTestHelper) CheckResourcesOk(ctx context.Context) error {
-	contextWithCancel, cancel := context.WithCancel(ctx)
-	defer cancel()
-	opts := &options.Options{
-		Metadata: core.Metadata{
-			Namespace: h.InstallNamespace,
-		},
-		Top: options.Top{
-			Ctx: contextWithCancel,
-		},
-	}
-	return check.CheckResources(contextWithCancel, printers.P{}, opts)
-}
-
 func (h *SoloTestHelper) IsGlooInstalled(ctx context.Context) bool {
-	return h.CheckResourcesOk(ctx) == nil
+	return testutils.CheckResourcesOk(ctx, h.InstallNamespace) == nil
 }
