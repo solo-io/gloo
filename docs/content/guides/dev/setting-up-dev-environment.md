@@ -72,7 +72,14 @@ Awesome! You're ready to start developing on Gloo Gateway! Check out the [Writin
 
 ### Developing with a local K8s cluster (kind)
 
-After installing [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation):
+Developers without a K8s cluster are encouraged to use [Docker](https://docs.docker.com) and [Kind](https://kind.sigs.k8s.io).
+
+Prerequisites:
+* [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
+* [Docker](https://docs.docker.com/install/)
+* [Helm](https://github.com/helm/helm)
+
+Stand up Gloo Gateway running on Kind and begin making changes:
 ```bash
 # prepare kind cluster, build images, and upload them
 make kind-setup
