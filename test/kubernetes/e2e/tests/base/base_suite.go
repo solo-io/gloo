@@ -54,7 +54,7 @@ type BaseTestingSuite struct {
 // applying manifests and verifying resources exist before a suite and tests and the corresponding post-run cleanup.
 // The pre-requisites for the suite are defined in the setup parameter and for each test in the individual testCase.
 // WARNING: Testing suites that call this method can not run in enterprise as they require upgrades (eg: to change settings).
-// To use the BaseTestingSuite, the test must be written without upgrades and call the `NewBaseTestingSuiteWithoutUpgrades` constructor.
+// To use the BaseTestingSuite, the test must be written without upgrades and call the `NewBaseTestingSuite` constructor.
 func NewBaseTestingSuiteWithUpgrades(ctx context.Context, testInst *e2e.TestInstallation, testHelper *helper.SoloTestHelper, setup SimpleTestCase, testCase map[string]*TestCase) *BaseTestingSuite {
 	namespace = testInst.Metadata.InstallNamespace
 	return &BaseTestingSuite{
@@ -68,7 +68,7 @@ func NewBaseTestingSuiteWithUpgrades(ctx context.Context, testInst *e2e.TestInst
 
 // NewBaseTestingSuite returns a BaseTestingSuite without allowing upgrades and reverts before the suite and tests.
 // Testing suites that call this method can safely run in Enterprise since the helm values change between OSS and Enterprise installations.
-// If tests require upgrades, call the `NewBaseTestingSuiteWithoutUpgrades` constructor, however those tests can not run in Enterprise.
+// If tests require upgrades, call the `NewBaseTestingSuiteWithUpgrades` constructor, however those tests can not run in Enterprise.
 func NewBaseTestingSuite(ctx context.Context, testInst *e2e.TestInstallation, setup SimpleTestCase, testCase map[string]*TestCase) *BaseTestingSuite {
 	namespace = testInst.Metadata.InstallNamespace
 	return &BaseTestingSuite{
