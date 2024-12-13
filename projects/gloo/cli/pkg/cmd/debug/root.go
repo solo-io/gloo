@@ -24,7 +24,7 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 		Short: constants.DEBUG_COMMAND.Short,
 		Long:  constants.DEBUG_COMMAND.Long,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("ARIANA getting consent", time.Now())
+			fmt.Println("ARIANA", time.Now(), opts.Debug.Directory, "PreRunE: getting consent")
 			var consent bool
 			if err := cliutil.GetBoolInput(
 				fmt.Sprintf("This command will overwrite the \"%s\" directory, if present. Are you sure you want to proceed?", opts.Debug.Directory),
@@ -38,12 +38,12 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 					"You may use \"--directory\" to specify a different directory to overwrite.", opts.Debug.Directory))
 			}
 
-			fmt.Println("ARIANA removing dir", time.Now())
+			fmt.Println("ARIANA", time.Now(), opts.Debug.Directory, "PreRunE: removing dir")
 			if err := os.RemoveAll(opts.Debug.Directory); err != nil {
 				return eris.Wrap(err, "error wiping out directory")
 			}
 
-			fmt.Println("ARIANA exiting PreRunE", time.Now())
+			fmt.Println("ARIANA", time.Now(), opts.Debug.Directory, "PreRunE: exiting PreRunE")
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -52,13 +52,13 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 
 			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
 
-			fmt.Println("ARIANA running KubeDumpOnFail", time.Now())
+			fmt.Println("ARIANA", time.Now(), opts.Debug.Directory, "RunE: running KubeDumpOnFail")
 			state_dump_utils.KubeDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
-			fmt.Println("ARIANA running ControllerDumpOnFail", time.Now())
+			fmt.Println("ARIANA", time.Now(), opts.Debug.Directory, "RunE: running ControllerDumpOnFail")
 			state_dump_utils.ControllerDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
-			fmt.Println("ARIANA running EnvoyDumpOnFail", time.Now())
+			fmt.Println("ARIANA", time.Now(), opts.Debug.Directory, "RunE: running EnvoyDumpOnFail")
 			state_dump_utils.EnvoyDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
-			fmt.Println("ARIANA exiting RunE", time.Now())
+			fmt.Println("ARIANA", time.Now(), opts.Debug.Directory, "RunE: exiting RunE")
 			return nil
 		},
 	}
