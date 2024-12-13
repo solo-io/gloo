@@ -5,27 +5,15 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/version"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
+
+	"github.com/solo-io/gloo/test/testutils"
 )
 
 // CheckResourcesOk asserts that `glooctl check` succeeds
 func (p *Provider) CheckResourcesOk(ctx context.Context) error {
-	contextWithCancel, cancel := context.WithCancel(ctx)
-	defer cancel()
-	opts := &options.Options{
-		Metadata: core.Metadata{
-			Namespace: p.glooGatewayContext.InstallNamespace,
-		},
-		Top: options.Top{
-			Ctx: contextWithCancel,
-		},
-	}
-	return check.CheckResources(contextWithCancel, printers.P{}, opts)
+	return testutils.CheckResourcesOk(ctx, p.glooGatewayContext.InstallNamespace)
 }
 
 // EventuallyCheckResourcesOk asserts that `glooctl check` eventually responds Ok
