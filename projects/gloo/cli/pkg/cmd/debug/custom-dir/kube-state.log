@@ -1,0 +1,3717 @@
+*** Kube state ***
+NAMESPACE            NAME                                             READY   STATUS    RESTARTS   AGE     IP             NODE                 NOMINATED NODE   READINESS GATES
+gloo-system          pod/curl-7787697d4b-s6g5j                        1/1     Running   0          7d23h   10.244.0.248   kind-control-plane   <none>           <none>
+gloo-system          pod/gateway-proxy-67bb564b94-7n2nb               1/1     Running   0          7d23h   10.244.0.179   kind-control-plane   <none>           <none>
+gloo-system          pod/gloo-587694c798-92qlk                        1/1     Running   0          7d23h   10.244.0.113   kind-control-plane   <none>           <none>
+kube-system          pod/cilium-grl8k                                 1/1     Running   0          7d23h   172.21.0.2     kind-control-plane   <none>           <none>
+kube-system          pod/cilium-operator-767587d447-6ttff             1/1     Running   0          7d23h   172.21.0.2     kind-control-plane   <none>           <none>
+kube-system          pod/coredns-6f6b679f8f-rvfrv                     1/1     Running   0          7d23h   10.244.0.48    kind-control-plane   <none>           <none>
+kube-system          pod/coredns-6f6b679f8f-zq697                     1/1     Running   0          7d23h   10.244.0.63    kind-control-plane   <none>           <none>
+kube-system          pod/etcd-kind-control-plane                      1/1     Running   0          7d23h   172.21.0.2     kind-control-plane   <none>           <none>
+kube-system          pod/kube-apiserver-kind-control-plane            1/1     Running   0          7d23h   172.21.0.2     kind-control-plane   <none>           <none>
+kube-system          pod/kube-controller-manager-kind-control-plane   1/1     Running   0          7d23h   172.21.0.2     kind-control-plane   <none>           <none>
+kube-system          pod/kube-proxy-vhgwz                             1/1     Running   0          7d23h   172.21.0.2     kind-control-plane   <none>           <none>
+kube-system          pod/kube-scheduler-kind-control-plane            1/1     Running   0          7d23h   172.21.0.2     kind-control-plane   <none>           <none>
+local-path-storage   pod/local-path-provisioner-57c5987fd4-mbk6g      1/1     Running   0          7d23h   10.244.0.140   kind-control-plane   <none>           <none>
+
+NAMESPACE     NAME                    TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                                AGE     SELECTOR
+default       service/kubernetes      ClusterIP      10.96.0.1       <none>        443/TCP                                                7d23h   <none>
+gloo-system   service/gateway-proxy   LoadBalancer   10.96.19.211    <pending>     80:31177/TCP,443:30174/TCP                             7d23h   gateway-proxy-id=gateway-proxy,gateway-proxy=live
+gloo-system   service/gloo            ClusterIP      10.96.131.251   <none>        9977/TCP,9976/TCP,9988/TCP,9966/TCP,9979/TCP,443/TCP   7d23h   gloo=gloo
+kube-system   service/hubble-peer     ClusterIP      10.96.85.47     <none>        443/TCP                                                7d23h   k8s-app=cilium
+kube-system   service/kube-dns        ClusterIP      10.96.0.10      <none>        53/UDP,53/TCP,9153/TCP                                 7d23h   k8s-app=kube-dns
+
+NAMESPACE     NAME                        DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE     CONTAINERS     IMAGES                                                                                                  SELECTOR
+kube-system   daemonset.apps/cilium       1         1         1       1            1           kubernetes.io/os=linux   7d23h   cilium-agent   quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40   k8s-app=cilium
+kube-system   daemonset.apps/kube-proxy   1         1         1       1            1           kubernetes.io/os=linux   7d23h   kube-proxy     registry.k8s.io/kube-proxy:v1.31.0                                                                      k8s-app=kube-proxy
+
+NAMESPACE            NAME                                     READY   UP-TO-DATE   AVAILABLE   AGE     CONTAINERS               IMAGES                                                                                                            SELECTOR
+gloo-system          deployment.apps/curl                     1/1     1            1           7d23h   curl                     curlimages/curl:7.83.1                                                                                            app=curl
+gloo-system          deployment.apps/gateway-proxy            1/1     1            1           7d23h   gateway-proxy            quay.io/solo-io/gloo-envoy-wrapper:1.0.1-dev                                                                      gateway-proxy-id=gateway-proxy,gloo=gateway-proxy
+gloo-system          deployment.apps/gloo                     1/1     1            1           7d23h   gloo                     quay.io/solo-io/gloo:1.0.1-dev                                                                                    gloo=gloo
+kube-system          deployment.apps/cilium-operator          1/1     1            1           7d23h   cilium-operator          quay.io/cilium/operator-generic:v1.15.5@sha256:f5d3d19754074ca052be6aac5d1ffb1de1eb5f2d947222b5f10f6d97ad4383e8   io.cilium/app=operator,name=cilium-operator
+kube-system          deployment.apps/coredns                  2/2     2            2           7d23h   coredns                  registry.k8s.io/coredns/coredns:v1.11.1                                                                           k8s-app=kube-dns
+local-path-storage   deployment.apps/local-path-provisioner   1/1     1            1           7d23h   local-path-provisioner   docker.io/kindest/local-path-provisioner:v20240813-c6f155d6                                                       app=local-path-provisioner
+
+NAMESPACE            NAME                                                DESIRED   CURRENT   READY   AGE     CONTAINERS               IMAGES                                                                                                            SELECTOR
+gloo-system          replicaset.apps/curl-7787697d4b                     1         1         1       7d23h   curl                     curlimages/curl:7.83.1                                                                                            app=curl,pod-template-hash=7787697d4b
+gloo-system          replicaset.apps/gateway-proxy-67bb564b94            1         1         1       7d23h   gateway-proxy            quay.io/solo-io/gloo-envoy-wrapper:1.0.1-dev                                                                      gateway-proxy-id=gateway-proxy,gloo=gateway-proxy,pod-template-hash=67bb564b94
+gloo-system          replicaset.apps/gloo-587694c798                     1         1         1       7d23h   gloo                     quay.io/solo-io/gloo:1.0.1-dev                                                                                    gloo=gloo,pod-template-hash=587694c798
+kube-system          replicaset.apps/cilium-operator-767587d447          1         1         1       7d23h   cilium-operator          quay.io/cilium/operator-generic:v1.15.5@sha256:f5d3d19754074ca052be6aac5d1ffb1de1eb5f2d947222b5f10f6d97ad4383e8   io.cilium/app=operator,name=cilium-operator,pod-template-hash=767587d447
+kube-system          replicaset.apps/coredns-6f6b679f8f                  2         2         2       7d23h   coredns                  registry.k8s.io/coredns/coredns:v1.11.1                                                                           k8s-app=kube-dns,pod-template-hash=6f6b679f8f
+local-path-storage   replicaset.apps/local-path-provisioner-57c5987fd4   1         1         1       7d23h   local-path-provisioner   docker.io/kindest/local-path-provisioner:v20240813-c6f155d6                                                       app=local-path-provisioner,pod-template-hash=57c5987fd4
+
+NAMESPACE     NAME                                  TYPE                 DATA   AGE
+gloo-system   secret/gateway-validation-certs       kubernetes.io/tls    3      7d23h
+gloo-system   secret/sh.helm.release.v1.gloo.v1     helm.sh/release.v1   1      7d23h
+kube-system   secret/cilium-ca                      Opaque               2      7d23h
+kube-system   secret/hubble-server-certs            kubernetes.io/tls    3      7d23h
+kube-system   secret/sh.helm.release.v1.cilium.v1   helm.sh/release.v1   1      7d23h
+
+NAMESPACE     NAME                            AGE
+gloo-system   settings.gloo.solo.io/default   7d23h
+
+NAMESPACE     NAME                                        AGE
+gloo-system   gateway.gateway.solo.io/gateway-proxy       7d23h
+gloo-system   gateway.gateway.solo.io/gateway-proxy-ssl   7d23h
+
+Name:             curl-7787697d4b-s6g5j
+Namespace:        gloo-system
+Priority:         0
+Service Account:  default
+Node:             kind-control-plane/172.21.0.2
+Start Time:       Thu, 05 Dec 2024 16:48:16 -0500
+Labels:           app=curl
+                  pod-template-hash=7787697d4b
+                  version=v1
+Annotations:      <none>
+Status:           Running
+IP:               10.244.0.248
+IPs:
+  IP:           10.244.0.248
+Controlled By:  ReplicaSet/curl-7787697d4b
+Containers:
+  curl:
+    Container ID:  containerd://9f3eafd1072e516694c3d94520aca6eb691b62c198703922a454f95189d2c37b
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      tail
+      -f
+      /dev/null
+    State:          Running
+      Started:      Thu, 05 Dec 2024 16:48:17 -0500
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-q6h27 (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  kube-api-access-q6h27:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:                      <none>
+
+
+Name:             gateway-proxy-67bb564b94-7n2nb
+Namespace:        gloo-system
+Priority:         0
+Service Account:  gateway-proxy
+Node:             kind-control-plane/172.21.0.2
+Start Time:       Thu, 05 Dec 2024 16:38:27 -0500
+Labels:           gateway-proxy=live
+                  gateway-proxy-id=gateway-proxy
+                  gloo=gateway-proxy
+                  pod-template-hash=67bb564b94
+Annotations:      checksum/gateway-proxy-envoy-config: 2c71eb571769ab20e166ba76c3dbdc9347b6b7a734d05ddd9fd542ab38e36b0c
+                  prometheus.io/path: /metrics
+                  prometheus.io/port: 8081
+                  prometheus.io/scrape: true
+Status:           Running
+IP:               10.244.0.179
+IPs:
+  IP:           10.244.0.179
+Controlled By:  ReplicaSet/gateway-proxy-67bb564b94
+Containers:
+  gateway-proxy:
+    Container ID:    containerd://c32103a20054b1cd4c2d3c1d36d9749e887ec1e20eb5aa961ed9ed8ccf8cab2e
+    Image:           quay.io/solo-io/gloo-envoy-wrapper:1.0.1-dev
+    Image ID:        docker.io/library/import-2024-12-05@sha256:eb00bf953ad43c436da38e6ab40faac5aa99f39ab29130377414644ea6ba2c59
+    Ports:           8080/TCP, 8443/TCP
+    Host Ports:      0/TCP, 0/TCP
+    SeccompProfile:  RuntimeDefault
+    Args:
+      --disable-hot-restart
+    State:          Running
+      Started:      Thu, 05 Dec 2024 16:38:27 -0500
+    Ready:          True
+    Restart Count:  0
+    Requests:
+      cpu:      100m
+      memory:   256Mi
+    Liveness:   exec [wget -O /dev/null 127.0.0.1:19000/server_info] delay=3s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  exec [wget -O /dev/null 127.0.0.1:19000/ready] delay=3s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      POD_NAMESPACE:       gloo-system (v1:metadata.namespace)
+      POD_NAME:            gateway-proxy-67bb564b94-7n2nb (v1:metadata.name)
+      DISABLE_CORE_DUMPS:  false
+    Mounts:
+      /etc/envoy from envoy-config (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-m49sl (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  envoy-config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      gateway-proxy-envoy-config
+    Optional:  false
+  kube-api-access-m49sl:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:                      <none>
+
+
+Name:             gloo-587694c798-92qlk
+Namespace:        gloo-system
+Priority:         0
+Service Account:  gloo
+Node:             kind-control-plane/172.21.0.2
+Start Time:       Thu, 05 Dec 2024 16:38:27 -0500
+Labels:           gloo=gloo
+                  pod-template-hash=587694c798
+Annotations:      gloo.solo.io/oss-image-tag: 1.0.1-dev
+                  prometheus.io/path: /metrics
+                  prometheus.io/port: 9091
+                  prometheus.io/scrape: true
+Status:           Running
+IP:               10.244.0.113
+IPs:
+  IP:           10.244.0.113
+Controlled By:  ReplicaSet/gloo-587694c798
+Containers:
+  gloo:
+    Container ID:    containerd://5f2227bfc5214f222b1388e26bc289f94494b424f27a52506760703cab9c4d15
+    Image:           quay.io/solo-io/gloo:1.0.1-dev
+    Image ID:        docker.io/library/import-2024-12-05@sha256:86f4e5c01f8909f915d375e885aeb5b3a8eaedaa9f645bc9cb64ab73c7322dea
+    Ports:           9977/TCP, 9976/TCP, 9988/TCP, 9966/TCP, 9979/TCP
+    Host Ports:      0/TCP, 0/TCP, 0/TCP, 0/TCP, 0/TCP
+    SeccompProfile:  RuntimeDefault
+    State:           Running
+      Started:       Thu, 05 Dec 2024 16:38:27 -0500
+    Ready:           True
+    Restart Count:   0
+    Limits:
+      cpu:     1
+      memory:  10Gi
+    Requests:
+      cpu:      100m
+      memory:   256Mi
+    Liveness:   http-get http://:8765/healthz delay=3s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  tcp-socket :9977 delay=3s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      GOMEMLIMIT:                      10737418240 (limits.memory)
+      GOMAXPROCS:                      1 (limits.cpu)
+      LEADER_ELECTION_LEASE_DURATION:  4s
+      LEADER_ELECTION_RENEW_PERIOD:    3s
+      LEADER_ELECTION_RETRY_PERIOD:    1s
+      POD_NAMESPACE:                   gloo-system (v1:metadata.namespace)
+      START_STATS_SERVER:              true
+      VALIDATION_MUST_START:           true
+      LOG_LEVEL:                       debug
+    Mounts:
+      /etc/gateway/validation-certs from validation-certs (rw)
+      /etc/gloo from labels-volume (ro)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-kpcvk (ro)
+Ephemeral Containers:
+  debugger-rs2zb:
+    Container ID:  containerd://1eb02d79b05013049e897374a675b654151c009df1d2767bcb6104b15e408551
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Thu, 05 Dec 2024 16:46:06 -0500
+      Finished:     Thu, 05 Dec 2024 16:46:06 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-r7w5n:
+    Container ID:  containerd://1ebd117dcebd4efeb3af43904027b3f925fb366d518a04f45a7a61f4b0dbdaec
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Thu, 05 Dec 2024 16:46:11 -0500
+      Finished:     Thu, 05 Dec 2024 16:46:11 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-th5nv:
+    Container ID:  containerd://15abd9cf6348da4f5b1185ed57f7bf0a6958c03d960a18f9b085db369fee03f9
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 06 Dec 2024 11:09:38 -0500
+      Finished:     Fri, 06 Dec 2024 11:09:38 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-8m7p7:
+    Container ID:  containerd://93fe2caef33496fc5875419125f62a191be71327d8049a1fec7cf16fc7ddb318
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 06 Dec 2024 11:10:47 -0500
+      Finished:     Fri, 06 Dec 2024 11:10:47 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-wkm9j:
+    Container ID:  containerd://b0daa435e6a8eb34e63bedb3ae6e87fe90dfd1d4fecb5f0359092dead8be0103
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 06 Dec 2024 11:12:48 -0500
+      Finished:     Fri, 06 Dec 2024 11:12:48 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-p9sdx:
+    Container ID:  containerd://feba7b1163ebb4f2c5b9f92d72e4ac6541d8fbbbf0f65a1ed57245b06911a42a
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 06 Dec 2024 11:14:59 -0500
+      Finished:     Fri, 06 Dec 2024 11:14:59 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-cc45l:
+    Container ID:  containerd://6aac2981c2d0da528fcf64478c6edc724033d29ed887e7ec36a0af316b8c8a16
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 06 Dec 2024 11:15:41 -0500
+      Finished:     Fri, 06 Dec 2024 11:15:41 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-64nsb:
+    Container ID:  containerd://7c0cc9ea48c37110ec6794e8cc5ccc132ea797ab8adca74fec4a02b9475df510
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 06 Dec 2024 11:16:39 -0500
+      Finished:     Fri, 06 Dec 2024 11:16:39 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-lrrb7:
+    Container ID:  containerd://c7ed85f52763b574876e215e3f10e3b300e2f5fcec5ed9b1effc4a6b7826ff31
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 06 Dec 2024 11:18:03 -0500
+      Finished:     Fri, 06 Dec 2024 11:18:03 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-g26d7:
+    Container ID:  containerd://238294bc931d57466fe630f697003c23e06bd7e3e1a2c77608e952a03e77564b
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 06 Dec 2024 11:26:24 -0500
+      Finished:     Fri, 06 Dec 2024 11:26:24 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-4grnq:
+    Container ID:  containerd://280951df3fa8a381796a84e0aee495c11144621b0e3a4beeba9f439fbafebacc
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 06 Dec 2024 11:56:46 -0500
+      Finished:     Fri, 06 Dec 2024 11:56:46 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-59zp8:
+    Container ID:  containerd://3d4b5326b7a0d19842dc213192b26c81e4a06a7a669df87c7912ce800960e340
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Mon, 09 Dec 2024 14:28:18 -0500
+      Finished:     Mon, 09 Dec 2024 14:28:18 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-4kxgl:
+    Container ID:  containerd://bf7fb8f97839ecb25e67b4bee2e0a68163489656861de62ca1003e2380694808
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Mon, 09 Dec 2024 14:29:07 -0500
+      Finished:     Mon, 09 Dec 2024 14:29:07 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-wsg2w:
+    Container ID:  containerd://69d0e3e14638127769995afd2e5f1ee2eb1fdee03d10ad2d1385397d3e1c06c7
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Mon, 09 Dec 2024 15:17:10 -0500
+      Finished:     Mon, 09 Dec 2024 15:17:10 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-25ntk:
+    Container ID:  containerd://db3c993f778e3799a9078405a2b1acc60dab72a8106de69cc3ac46000bcc5d6d
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Mon, 09 Dec 2024 17:02:22 -0500
+      Finished:     Mon, 09 Dec 2024 17:02:22 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-rd8bg:
+    Container ID:  containerd://ae2f404d8ddb776352270e35ecdba7fbbe876a8247cf703b0fe7e5c2ade5aa74
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Mon, 09 Dec 2024 17:45:41 -0500
+      Finished:     Mon, 09 Dec 2024 17:45:41 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-k526d:
+    Container ID:  containerd://b027ec0175299786f43702db055a43d32cd1163a2dea31298f13bef94b0f92f5
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Mon, 09 Dec 2024 18:15:53 -0500
+      Finished:     Mon, 09 Dec 2024 18:15:53 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-zxvn5:
+    Container ID:  containerd://5f798726d896e4959257e8d18b628f1da0a631ba185087e2f8c1b16f7a58037e
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Mon, 09 Dec 2024 18:26:06 -0500
+      Finished:     Mon, 09 Dec 2024 18:26:06 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-gpxtk:
+    Container ID:  containerd://aec120b7e5885a42267c8c434c77214be4aa1b2818b7600bd007306c5d8c993a
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 10:32:52 -0500
+      Finished:     Tue, 10 Dec 2024 10:32:52 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-xwnrv:
+    Container ID:  containerd://fc6e7ef3d7a01aa547f06fcc10255bd69ba46e9944d6e780dda80b6ac2136ad5
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 10:34:18 -0500
+      Finished:     Tue, 10 Dec 2024 10:34:18 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-7tpcg:
+    Container ID:  containerd://e34a6c9c182f1c945d5ac3f792a2bb0545c1ea3a903d70df8112c3533d08b0f7
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 10:46:47 -0500
+      Finished:     Tue, 10 Dec 2024 10:46:47 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-p4m8p:
+    Container ID:  containerd://d457de8a441adda53b92c3d48842dd4a124144eb355688837ee4ea37ea284172
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 10:47:20 -0500
+      Finished:     Tue, 10 Dec 2024 10:47:20 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-vm664:
+    Container ID:  containerd://76689366a576817cc9dc693c37207019602c9fae7a620e2c0841d5e564cab3dd
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 10:53:20 -0500
+      Finished:     Tue, 10 Dec 2024 10:53:20 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-k5frm:
+    Container ID:  containerd://b22224802f6cb0892e6529a7ec3cf2f5d6ddf59fe22fd1caa5a9e078277d1aee
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 10:54:54 -0500
+      Finished:     Tue, 10 Dec 2024 10:54:54 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-q4cw5:
+    Container ID:  containerd://0fae4a0f588487892566ecd17e2bda08f646bb4d4193e629946922cfc364b001
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 10:57:20 -0500
+      Finished:     Tue, 10 Dec 2024 10:57:20 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-btbwm:
+    Container ID:  containerd://1c27dca0b5ad0a42fa7c6c1146c75a352d1ea62196537f6078de49b73ffcad24
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:05:39 -0500
+      Finished:     Tue, 10 Dec 2024 11:05:39 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-bn8tj:
+    Container ID:  containerd://ecacf1ba918015f68d927d9ce46abba0e5f1e66e925476ca54e7ede4465c8efe
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:14:30 -0500
+      Finished:     Tue, 10 Dec 2024 11:14:30 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-zqqqp:
+    Container ID:  containerd://a9dd01d59154163797b59acf9e6e40c7342dfc1cb8fe194487f5781645c29679
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:16:01 -0500
+      Finished:     Tue, 10 Dec 2024 11:16:01 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-snmmp:
+    Container ID:  containerd://cd736c78ff7ab8a8cc150a4fceb510da3f6638994686ad0b0d819a0630b3d1c4
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:23:38 -0500
+      Finished:     Tue, 10 Dec 2024 11:23:38 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-9gl98:
+    Container ID:  containerd://8580e156c281bd3aeecf1463580ca6b3c30e571268439b198a14a6a2c4871f0a
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:23:46 -0500
+      Finished:     Tue, 10 Dec 2024 11:23:46 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-hnrvb:
+    Container ID:  containerd://cc9193a432c872d2fa42a2a1eb2cc12104586b035e4b917300dcb5d2f563beb2
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:24:31 -0500
+      Finished:     Tue, 10 Dec 2024 11:24:31 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-hhqm9:
+    Container ID:  containerd://c890c0d9d5a2689e8ea0f4988278860eb72d497020355591f16366b04d5e8acc
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:24:38 -0500
+      Finished:     Tue, 10 Dec 2024 11:24:38 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-b5x2p:
+    Container ID:  containerd://bc3453600e0a320efe28fb350ff3517411ac99f0832209f017defe65104f97a5
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:27:55 -0500
+      Finished:     Tue, 10 Dec 2024 11:27:55 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-8fm79:
+    Container ID:  containerd://d875d229167e10bef01a7a4d77acf7562df5f67b8815b66be93fa8a371b46614
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:28:03 -0500
+      Finished:     Tue, 10 Dec 2024 11:28:03 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-tslc7:
+    Container ID:  containerd://8dd25d75788f9e739b0a6630e510e507b93f2f7864e52fd3f3eef407174948a6
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:29:12 -0500
+      Finished:     Tue, 10 Dec 2024 11:29:12 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-j6w7r:
+    Container ID:  containerd://07f1ccaff7fd9f2e2f6a89de170bd255f4e436bee1e0af1e8dd8ebafeef33335
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:29:19 -0500
+      Finished:     Tue, 10 Dec 2024 11:29:19 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-t9bnf:
+    Container ID:  containerd://7cd4239fc8788d5864e8257771157e39c744e261afdc4bc10bca2142b608d325
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:30:39 -0500
+      Finished:     Tue, 10 Dec 2024 11:30:39 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-grbpg:
+    Container ID:  containerd://331362764f66e6930618472e8aa9abcda3c0ef71920722efa890561680087b2e
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:30:48 -0500
+      Finished:     Tue, 10 Dec 2024 11:30:48 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-snzff:
+    Container ID:  containerd://3cbb853ca98fb8d7e43766ddbe219a298c5f706cf80fdbb41d6ce1bcd804523a
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:32:09 -0500
+      Finished:     Tue, 10 Dec 2024 11:32:09 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-ddtzd:
+    Container ID:  containerd://a4d13f284b2ee1025816e9db7a555596320903904f6f87080d2434a3f949220d
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:32:18 -0500
+      Finished:     Tue, 10 Dec 2024 11:32:19 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-zxdvc:
+    Container ID:  containerd://26539a21b9aad5d85262c237a86af21d4659776bf932a28f24428b5898f05433
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:33:19 -0500
+      Finished:     Tue, 10 Dec 2024 11:33:19 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-nmgwf:
+    Container ID:  containerd://bc06efaecdbc81e7bc7066f2bc5c5f17eeb30caa7babd5b2c49fba53021b2501
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:33:28 -0500
+      Finished:     Tue, 10 Dec 2024 11:33:28 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-fz4fg:
+    Container ID:  containerd://e33d1b5267c54827e6fdada58e742f385278df6aaa580ef935fecd24ca07fbda
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:35:39 -0500
+      Finished:     Tue, 10 Dec 2024 11:35:39 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-k9m8m:
+    Container ID:  containerd://17727f080481b7118c8335a4a69e19b59668f35faa5e7ab0799b7b8cfbd9493c
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:35:49 -0500
+      Finished:     Tue, 10 Dec 2024 11:35:49 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-7p8wx:
+    Container ID:  containerd://5ad0d6e9934119d377f724e88e094ab9db14dc79e089d1a5ceb9806c8ac40a32
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:37:29 -0500
+      Finished:     Tue, 10 Dec 2024 11:37:29 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-lxt92:
+    Container ID:  containerd://2f8726adf8e79bb3bff54f31cb3685495f061647c020f9778e5f000ba9e657e8
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:37:39 -0500
+      Finished:     Tue, 10 Dec 2024 11:37:39 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-69hh4:
+    Container ID:  containerd://569fa6b810d666b284a9f1f9d8fe45bd6d48026daaed55e6eeb0b7ee6d97bb9e
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:38:28 -0500
+      Finished:     Tue, 10 Dec 2024 11:38:29 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-twrgv:
+    Container ID:  containerd://c8844ad0dd9f2736c9f0acb3b3ef3cbecee2e796b3f2eda315ff1bea78016f44
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:39:01 -0500
+      Finished:     Tue, 10 Dec 2024 11:39:01 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-9xxdr:
+    Container ID:  containerd://adab324a705db88b65f01cb66d5b8d4a73410950f32a4de2371f99babfc0a0cd
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 11:39:11 -0500
+      Finished:     Tue, 10 Dec 2024 11:39:11 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-lj7z4:
+    Container ID:  containerd://cd0f5d76cf833e258c6051b26df180465106818b927ea8f43c4c3459ad357614
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 15:53:38 -0500
+      Finished:     Tue, 10 Dec 2024 15:53:38 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-6zn8j:
+    Container ID:  containerd://f20ea26922b68a22037b7ac27b6ed73141d56ff8fca0e4e11eee5ae2f6833889
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 15:59:38 -0500
+      Finished:     Tue, 10 Dec 2024 15:59:38 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-d2829:
+    Container ID:  containerd://8a177a4c82c85ce21cd2538fefe6f35af031bde6c8bf50d06c381aea7da49511
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:01:04 -0500
+      Finished:     Tue, 10 Dec 2024 16:01:04 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-6bgrm:
+    Container ID:  containerd://991628399683057ecfad7fe9d3f415074cbd8ab7287ec6851a5d1b1c5348b5c9
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:02:02 -0500
+      Finished:     Tue, 10 Dec 2024 16:02:02 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-kj7zg:
+    Container ID:  containerd://d39abb2607424bf91a1eca628fda20a2910c0193850b11dd46c2c0b92ecac48a
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:02:37 -0500
+      Finished:     Tue, 10 Dec 2024 16:02:37 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-qqlw2:
+    Container ID:  containerd://da369e19889ab315bd316061b4c992495dfb4173d1ac6028f9dc11662d04c907
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:02:46 -0500
+      Finished:     Tue, 10 Dec 2024 16:02:46 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-p2j2s:
+    Container ID:  containerd://bca53d824bfda76483c24d485fec66830ce6398b522597af22337a72de3abc60
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:04:53 -0500
+      Finished:     Tue, 10 Dec 2024 16:04:53 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-hbnwn:
+    Container ID:  containerd://23499c3372911d3ecc6123ce001cd4af6c1457f8dcecdbd175ef825683dced6e
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:06:27 -0500
+      Finished:     Tue, 10 Dec 2024 16:06:27 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-w2zft:
+    Container ID:  containerd://454bf7ebf68c337802530d1aea1c2da648ed439f6d05b6212affb278cbbda0d1
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:08:44 -0500
+      Finished:     Tue, 10 Dec 2024 16:08:44 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-tv7p6:
+    Container ID:  containerd://70ba3e28dcaa8adccb315fee7ea276b604ddb9add04196e1005159af8a95b516
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:10:02 -0500
+      Finished:     Tue, 10 Dec 2024 16:10:02 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-gxfkr:
+    Container ID:  containerd://f33ec1f4ee037787983b3cee56ceb964622dbd71329097a1569001c7e8a1d545
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:10:12 -0500
+      Finished:     Tue, 10 Dec 2024 16:10:12 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-nr8xc:
+    Container ID:  containerd://4b1216f71572d401f7a0fa682ce24be174647aec8d11ffd9a85fa84244063f6c
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:10:46 -0500
+      Finished:     Tue, 10 Dec 2024 16:10:46 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-29kmb:
+    Container ID:  containerd://3d6b4e65a404f52d94baac99e729f0c02969457f56a1b3dc08d83db62eb64c30
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:10:56 -0500
+      Finished:     Tue, 10 Dec 2024 16:10:56 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-rh6k4:
+    Container ID:  containerd://4bb75cbbb3c86bfdfd9c007f611d090faf68ca8100ce7803980d9f19751408d7
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:20:27 -0500
+      Finished:     Tue, 10 Dec 2024 16:20:27 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-87n42:
+    Container ID:  containerd://bb78aba146d1ffeeb0a3d69dd4cff583b6c57fa401a5f4371153dadef516b72b
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:23:57 -0500
+      Finished:     Tue, 10 Dec 2024 16:23:57 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-rp52f:
+    Container ID:  containerd://c2e0c6cfc7a8b925bf2d57f7e36173a88eb67d1c1c284627060d820286c4eb7c
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:24:38 -0500
+      Finished:     Tue, 10 Dec 2024 16:24:38 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-bmlg5:
+    Container ID:  containerd://298eb403b54afcb4c45b4856a8fc30656b0e20917d66820425e44067d1bcf3cb
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:25:02 -0500
+      Finished:     Tue, 10 Dec 2024 16:25:02 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-pp6mt:
+    Container ID:  containerd://0b13ddee30718f42d53576718ee6e1bfa6c2b193bc54f69014d983d3fb6371ee
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:25:31 -0500
+      Finished:     Tue, 10 Dec 2024 16:25:31 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-mphxm:
+    Container ID:  containerd://b454766ea831d06e1d0aa2b558841220e06da584d29a603f351ace6b6a08ee8c
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:26:20 -0500
+      Finished:     Tue, 10 Dec 2024 16:26:20 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-4hhpz:
+    Container ID:  containerd://5a139da0c3de1eccee0543d277b6bbb4f46f3e0c51d020f4192ed15e8b402fb0
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:26:35 -0500
+      Finished:     Tue, 10 Dec 2024 16:26:35 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-gk5jr:
+    Container ID:  containerd://bfb933f272e40d3e84915ea4f89bdf1ad8510301522cd610bda40b55e2423445
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:27:36 -0500
+      Finished:     Tue, 10 Dec 2024 16:27:36 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-l869m:
+    Container ID:  containerd://6cc9afa2e0f57577a3f6dfa81265e7e1ceaf1fe7411015600b4365c80f278a98
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:27:52 -0500
+      Finished:     Tue, 10 Dec 2024 16:27:52 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-p2r6k:
+    Container ID:  containerd://6f47b00137153ba3be8f2357904e357fb8b1ea94ff8c95f33b06f73b3af9193e
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:46:01 -0500
+      Finished:     Tue, 10 Dec 2024 16:46:01 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-cdbl7:
+    Container ID:  containerd://8ef747d895da2fa3399c7f6bb6ada45de65ee5b764a7f80d9bc3a6f2ec503c79
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:46:17 -0500
+      Finished:     Tue, 10 Dec 2024 16:46:17 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-f5zvv:
+    Container ID:  containerd://b33f08d4384db5e836774735db89e9c7597bb3c5292002916885647bff0ebac2
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:56:20 -0500
+      Finished:     Tue, 10 Dec 2024 16:56:20 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-rnbqf:
+    Container ID:  containerd://969b081fadb42c452b6c8fba6f594e64168f9aae950f9119d23894c152beedbe
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:56:39 -0500
+      Finished:     Tue, 10 Dec 2024 16:56:39 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-8jcqn:
+    Container ID:  containerd://8e476ce0fd40a2aa1811c6658b444f403eb8b02234ad99efe4e57716c9a34301
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 16:56:59 -0500
+      Finished:     Tue, 10 Dec 2024 16:56:59 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-hmpg6:
+    Container ID:  containerd://cf14ea1eda54d4daa777e78767c787f71143aedbed2bc29325f013c89f1c5dd1
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 10 Dec 2024 18:06:14 -0500
+      Finished:     Tue, 10 Dec 2024 18:06:14 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-dwlnf:
+    Container ID:  containerd://decc2caae491218c66e315c766c6c2636d8380b5c3f0c32e46426c31e1e7e508
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Wed, 11 Dec 2024 10:30:55 -0500
+      Finished:     Wed, 11 Dec 2024 10:30:55 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-9kt87:
+    Container ID:  containerd://8364f26565f03e12e79b99ebc0c69ead4aecfe1b1be544feb3f1c66a04589b78
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Wed, 11 Dec 2024 10:31:12 -0500
+      Finished:     Wed, 11 Dec 2024 10:31:12 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-gxbhf:
+    Container ID:  containerd://282e9174d53c46c09de2e5c2eef64c9e4be25ee37b6344cc71827ae42f5b79ec
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Wed, 11 Dec 2024 10:31:36 -0500
+      Finished:     Wed, 11 Dec 2024 10:31:36 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-29x6t:
+    Container ID:  containerd://da709786895e982d4d9f9eb4dbe81165f6ec3ee552c807211d1ed94b4266f68d
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Wed, 11 Dec 2024 10:31:54 -0500
+      Finished:     Wed, 11 Dec 2024 10:31:54 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-bqxm2:
+    Container ID:  containerd://9a7238ffd9e0d402005b05a284442853aeceb832f9aea7c3da02855428fc0cec
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 13 Dec 2024 14:44:39 -0500
+      Finished:     Fri, 13 Dec 2024 14:44:39 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-flf6f:
+    Container ID:  containerd://47e7cf9163a5910c8c2210d2891b4d31a03eb82352211a73b84b4c6ceb80cedb
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 13 Dec 2024 14:44:57 -0500
+      Finished:     Fri, 13 Dec 2024 14:44:57 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+  debugger-9bg4k:
+    Container ID:  containerd://951314fd10b50c52cdf14b6c8021cad2a71043c0aa54bb35468f4695271ac936
+    Image:         curlimages/curl:7.83.1
+    Image ID:      docker.io/curlimages/curl@sha256:e83fef2d5a036d40df4ded829141e8c0ec41871490d252fb8c81cb4580ebb35b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      curl
+      http://localhost:9091/metrics
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 13 Dec 2024 14:46:23 -0500
+      Finished:     Fri, 13 Dec 2024 14:46:23 -0500
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  labels-volume:
+    Type:  DownwardAPI (a volume populated by information about the pod)
+    Items:
+      metadata.labels -> labels
+  validation-certs:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  gateway-validation-certs
+    Optional:    false
+  kube-api-access-kpcvk:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:                      <none>
+
+
+Name:                 cilium-grl8k
+Namespace:            kube-system
+Priority:             2000001000
+Priority Class Name:  system-node-critical
+Service Account:      cilium
+Node:                 kind-control-plane/172.21.0.2
+Start Time:           Thu, 05 Dec 2024 16:22:02 -0500
+Labels:               app.kubernetes.io/name=cilium-agent
+                      app.kubernetes.io/part-of=cilium
+                      controller-revision-hash=5d49574d9f
+                      k8s-app=cilium
+                      pod-template-generation=1
+Annotations:          container.apparmor.security.beta.kubernetes.io/apply-sysctl-overwrites: unconfined
+                      container.apparmor.security.beta.kubernetes.io/cilium-agent: unconfined
+                      container.apparmor.security.beta.kubernetes.io/clean-cilium-state: unconfined
+                      container.apparmor.security.beta.kubernetes.io/config: unconfined
+                      container.apparmor.security.beta.kubernetes.io/install-cni-binaries: unconfined
+                      container.apparmor.security.beta.kubernetes.io/mount-bpf-fs: unconfined
+                      container.apparmor.security.beta.kubernetes.io/mount-cgroup: unconfined
+Status:               Running
+IP:                   172.21.0.2
+IPs:
+  IP:           172.21.0.2
+Controlled By:  DaemonSet/cilium
+Init Containers:
+  config:
+    Container ID:  containerd://7a7d580e1b9d51372052576ca8a5de67bd27c04232a636dc12e7586b79f8d6b2
+    Image:         quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Image ID:      quay.io/cilium/cilium@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      cilium-dbg
+      build-config
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Thu, 05 Dec 2024 16:22:30 -0500
+      Finished:     Thu, 05 Dec 2024 16:22:30 -0500
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      K8S_NODE_NAME:          (v1:spec.nodeName)
+      CILIUM_K8S_NAMESPACE:  kube-system (v1:metadata.namespace)
+    Mounts:
+      /tmp from tmp (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-bfpz7 (ro)
+  mount-cgroup:
+    Container ID:  containerd://6fcfe2320811e6527bca97da0a123104b4624e671419ad05cde1296ab0940f27
+    Image:         quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Image ID:      quay.io/cilium/cilium@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      sh
+      -ec
+      cp /usr/bin/cilium-mount /hostbin/cilium-mount;
+      nsenter --cgroup=/hostproc/1/ns/cgroup --mount=/hostproc/1/ns/mnt "${BIN_PATH}/cilium-mount" $CGROUP_ROOT;
+      rm /hostbin/cilium-mount
+      
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Thu, 05 Dec 2024 16:22:31 -0500
+      Finished:     Thu, 05 Dec 2024 16:22:31 -0500
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      CGROUP_ROOT:  /run/cilium/cgroupv2
+      BIN_PATH:     /opt/cni/bin
+    Mounts:
+      /hostbin from cni-path (rw)
+      /hostproc from hostproc (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-bfpz7 (ro)
+  apply-sysctl-overwrites:
+    Container ID:  containerd://e71c3efffeb453a3c04559b9b0a2afbdd3dad80e92b347a2ad9d40241ee3fc11
+    Image:         quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Image ID:      quay.io/cilium/cilium@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      sh
+      -ec
+      cp /usr/bin/cilium-sysctlfix /hostbin/cilium-sysctlfix;
+      nsenter --mount=/hostproc/1/ns/mnt "${BIN_PATH}/cilium-sysctlfix";
+      rm /hostbin/cilium-sysctlfix
+      
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Thu, 05 Dec 2024 16:22:32 -0500
+      Finished:     Thu, 05 Dec 2024 16:22:32 -0500
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      BIN_PATH:  /opt/cni/bin
+    Mounts:
+      /hostbin from cni-path (rw)
+      /hostproc from hostproc (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-bfpz7 (ro)
+  mount-bpf-fs:
+    Container ID:  containerd://1e6db1191e541fa7498ddbfbe552c8b74eab2c4a1f191b5030b0a71f468adf76
+    Image:         quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Image ID:      quay.io/cilium/cilium@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      /bin/bash
+      -c
+      --
+    Args:
+      mount | grep "/sys/fs/bpf type bpf" || mount -t bpf bpf /sys/fs/bpf
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Thu, 05 Dec 2024 16:22:33 -0500
+      Finished:     Thu, 05 Dec 2024 16:22:33 -0500
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /sys/fs/bpf from bpf-maps (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-bfpz7 (ro)
+  clean-cilium-state:
+    Container ID:  containerd://c19f94a93b28a2784d44246cd29986a4f28bb327169b189875633f37c07d68f5
+    Image:         quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Image ID:      quay.io/cilium/cilium@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      /init-container.sh
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Thu, 05 Dec 2024 16:22:34 -0500
+      Finished:     Thu, 05 Dec 2024 16:22:34 -0500
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      CILIUM_ALL_STATE:           <set to the key 'clean-cilium-state' of config map 'cilium-config'>         Optional: true
+      CILIUM_BPF_STATE:           <set to the key 'clean-cilium-bpf-state' of config map 'cilium-config'>     Optional: true
+      WRITE_CNI_CONF_WHEN_READY:  <set to the key 'write-cni-conf-when-ready' of config map 'cilium-config'>  Optional: true
+    Mounts:
+      /run/cilium/cgroupv2 from cilium-cgroup (rw)
+      /sys/fs/bpf from bpf-maps (rw)
+      /var/run/cilium from cilium-run (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-bfpz7 (ro)
+  install-cni-binaries:
+    Container ID:  containerd://2f1a06fa96a52c69e484d6003cc7661e3de42a840bf8c37e4d9bfe01914f08c1
+    Image:         quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Image ID:      quay.io/cilium/cilium@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      /install-plugin.sh
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Thu, 05 Dec 2024 16:22:35 -0500
+      Finished:     Thu, 05 Dec 2024 16:22:35 -0500
+    Ready:          True
+    Restart Count:  0
+    Requests:
+      cpu:        100m
+      memory:     10Mi
+    Environment:  <none>
+    Mounts:
+      /host/opt/cni/bin from cni-path (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-bfpz7 (ro)
+Containers:
+  cilium-agent:
+    Container ID:  containerd://12d08bbfc0194d4d0908beaba04e55e486020960a948ed92f586cbd77e5098fa
+    Image:         quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Image ID:      quay.io/cilium/cilium@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      cilium-agent
+    Args:
+      --config-dir=/tmp/cilium/config-map
+    State:          Running
+      Started:      Thu, 05 Dec 2024 16:22:36 -0500
+    Ready:          True
+    Restart Count:  0
+    Liveness:       http-get http://127.0.0.1:9879/healthz delay=0s timeout=5s period=30s #success=1 #failure=10
+    Readiness:      http-get http://127.0.0.1:9879/healthz delay=0s timeout=5s period=30s #success=1 #failure=3
+    Startup:        http-get http://127.0.0.1:9879/healthz delay=5s timeout=1s period=2s #success=1 #failure=105
+    Environment:
+      K8S_NODE_NAME:               (v1:spec.nodeName)
+      CILIUM_K8S_NAMESPACE:       kube-system (v1:metadata.namespace)
+      CILIUM_CLUSTERMESH_CONFIG:  /var/lib/cilium/clustermesh/
+      GOMEMLIMIT:                 node allocatable (limits.memory)
+    Mounts:
+      /host/etc/cni/net.d from etc-cni-netd (rw)
+      /host/proc/sys/kernel from host-proc-sys-kernel (rw)
+      /host/proc/sys/net from host-proc-sys-net (rw)
+      /lib/modules from lib-modules (ro)
+      /run/xtables.lock from xtables-lock (rw)
+      /sys/fs/bpf from bpf-maps (rw)
+      /tmp from tmp (rw)
+      /var/lib/cilium/clustermesh from clustermesh-secrets (ro)
+      /var/lib/cilium/tls/hubble from hubble-tls (ro)
+      /var/run/cilium from cilium-run (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-bfpz7 (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  tmp:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  cilium-run:
+    Type:          HostPath (bare host directory volume)
+    Path:          /var/run/cilium
+    HostPathType:  DirectoryOrCreate
+  bpf-maps:
+    Type:          HostPath (bare host directory volume)
+    Path:          /sys/fs/bpf
+    HostPathType:  DirectoryOrCreate
+  hostproc:
+    Type:          HostPath (bare host directory volume)
+    Path:          /proc
+    HostPathType:  Directory
+  cilium-cgroup:
+    Type:          HostPath (bare host directory volume)
+    Path:          /run/cilium/cgroupv2
+    HostPathType:  DirectoryOrCreate
+  cni-path:
+    Type:          HostPath (bare host directory volume)
+    Path:          /opt/cni/bin
+    HostPathType:  DirectoryOrCreate
+  etc-cni-netd:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/cni/net.d
+    HostPathType:  DirectoryOrCreate
+  lib-modules:
+    Type:          HostPath (bare host directory volume)
+    Path:          /lib/modules
+    HostPathType:  
+  xtables-lock:
+    Type:          HostPath (bare host directory volume)
+    Path:          /run/xtables.lock
+    HostPathType:  FileOrCreate
+  clustermesh-secrets:
+    Type:                Projected (a volume that contains injected data from multiple sources)
+    SecretName:          cilium-clustermesh
+    SecretOptionalName:  0x140004fe2b8
+    SecretName:          clustermesh-apiserver-remote-cert
+    SecretOptionalName:  0x140004fe34e
+  host-proc-sys-net:
+    Type:          HostPath (bare host directory volume)
+    Path:          /proc/sys/net
+    HostPathType:  Directory
+  host-proc-sys-kernel:
+    Type:          HostPath (bare host directory volume)
+    Path:          /proc/sys/kernel
+    HostPathType:  Directory
+  hubble-tls:
+    Type:                Projected (a volume that contains injected data from multiple sources)
+    SecretName:          hubble-server-certs
+    SecretOptionalName:  0x140004fe3dd
+  kube-api-access-bfpz7:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              kubernetes.io/os=linux
+Tolerations:                 op=Exists
+                             node.kubernetes.io/disk-pressure:NoSchedule op=Exists
+                             node.kubernetes.io/memory-pressure:NoSchedule op=Exists
+                             node.kubernetes.io/network-unavailable:NoSchedule op=Exists
+                             node.kubernetes.io/not-ready:NoExecute op=Exists
+                             node.kubernetes.io/pid-pressure:NoSchedule op=Exists
+                             node.kubernetes.io/unreachable:NoExecute op=Exists
+                             node.kubernetes.io/unschedulable:NoSchedule op=Exists
+Events:                      <none>
+
+
+Name:                 cilium-operator-767587d447-6ttff
+Namespace:            kube-system
+Priority:             2000000000
+Priority Class Name:  system-cluster-critical
+Service Account:      cilium-operator
+Node:                 kind-control-plane/172.21.0.2
+Start Time:           Thu, 05 Dec 2024 16:22:02 -0500
+Labels:               app.kubernetes.io/name=cilium-operator
+                      app.kubernetes.io/part-of=cilium
+                      io.cilium/app=operator
+                      name=cilium-operator
+                      pod-template-hash=767587d447
+Annotations:          prometheus.io/port: 9963
+                      prometheus.io/scrape: true
+Status:               Running
+IP:                   172.21.0.2
+IPs:
+  IP:           172.21.0.2
+Controlled By:  ReplicaSet/cilium-operator-767587d447
+Containers:
+  cilium-operator:
+    Container ID:  containerd://96452fd36b5bdfda8fd667718667b949771c779896dfa3465be3b613281635b1
+    Image:         quay.io/cilium/operator-generic:v1.15.5@sha256:f5d3d19754074ca052be6aac5d1ffb1de1eb5f2d947222b5f10f6d97ad4383e8
+    Image ID:      quay.io/cilium/operator-generic@sha256:f5d3d19754074ca052be6aac5d1ffb1de1eb5f2d947222b5f10f6d97ad4383e8
+    Port:          9963/TCP
+    Host Port:     9963/TCP
+    Command:
+      cilium-operator-generic
+    Args:
+      --config-dir=/tmp/cilium/config-map
+      --debug=$(CILIUM_DEBUG)
+    State:          Running
+      Started:      Thu, 05 Dec 2024 16:22:36 -0500
+    Ready:          True
+    Restart Count:  0
+    Liveness:       http-get http://127.0.0.1:9234/healthz delay=60s timeout=3s period=10s #success=1 #failure=3
+    Readiness:      http-get http://127.0.0.1:9234/healthz delay=0s timeout=3s period=5s #success=1 #failure=5
+    Environment:
+      K8S_NODE_NAME:          (v1:spec.nodeName)
+      CILIUM_K8S_NAMESPACE:  kube-system (v1:metadata.namespace)
+      CILIUM_DEBUG:          <set to the key 'debug' of config map 'cilium-config'>  Optional: true
+    Mounts:
+      /tmp/cilium/config-map from cilium-config-path (ro)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-m8xw9 (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  cilium-config-path:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      cilium-config
+    Optional:  false
+  kube-api-access-m8xw9:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              kubernetes.io/os=linux
+Tolerations:                 op=Exists
+Events:                      <none>
+
+
+Name:                 coredns-6f6b679f8f-rvfrv
+Namespace:            kube-system
+Priority:             2000000000
+Priority Class Name:  system-cluster-critical
+Service Account:      coredns
+Node:                 kind-control-plane/172.21.0.2
+Start Time:           Thu, 05 Dec 2024 16:22:38 -0500
+Labels:               k8s-app=kube-dns
+                      pod-template-hash=6f6b679f8f
+Annotations:          <none>
+Status:               Running
+IP:                   10.244.0.48
+IPs:
+  IP:           10.244.0.48
+Controlled By:  ReplicaSet/coredns-6f6b679f8f
+Containers:
+  coredns:
+    Container ID:  containerd://1a0ae73fdcdb84413c007d534f4bb8f2d18fe80a967864641295c227a910d8d7
+    Image:         registry.k8s.io/coredns/coredns:v1.11.1
+    Image ID:      sha256:2437cf762177702dec2dfe99a09c37427a15af6d9a57c456b65352667c223d93
+    Ports:         53/UDP, 53/TCP, 9153/TCP
+    Host Ports:    0/UDP, 0/TCP, 0/TCP
+    Args:
+      -conf
+      /etc/coredns/Corefile
+    State:          Running
+      Started:      Thu, 05 Dec 2024 16:22:40 -0500
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      memory:  170Mi
+    Requests:
+      cpu:        100m
+      memory:     70Mi
+    Liveness:     http-get http://:8080/health delay=60s timeout=5s period=10s #success=1 #failure=5
+    Readiness:    http-get http://:8181/ready delay=0s timeout=1s period=10s #success=1 #failure=3
+    Environment:  <none>
+    Mounts:
+      /etc/coredns from config-volume (ro)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-6lnpc (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  config-volume:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      coredns
+    Optional:  false
+  kube-api-access-6lnpc:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              kubernetes.io/os=linux
+Tolerations:                 CriticalAddonsOnly op=Exists
+                             node-role.kubernetes.io/control-plane:NoSchedule
+                             node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:                      <none>
+
+
+Name:                 coredns-6f6b679f8f-zq697
+Namespace:            kube-system
+Priority:             2000000000
+Priority Class Name:  system-cluster-critical
+Service Account:      coredns
+Node:                 kind-control-plane/172.21.0.2
+Start Time:           Thu, 05 Dec 2024 16:22:38 -0500
+Labels:               k8s-app=kube-dns
+                      pod-template-hash=6f6b679f8f
+Annotations:          <none>
+Status:               Running
+IP:                   10.244.0.63
+IPs:
+  IP:           10.244.0.63
+Controlled By:  ReplicaSet/coredns-6f6b679f8f
+Containers:
+  coredns:
+    Container ID:  containerd://9471405bd87ce751617f40787d06edd5a13d98e8dd4bcae85c77ca124a7853e1
+    Image:         registry.k8s.io/coredns/coredns:v1.11.1
+    Image ID:      sha256:2437cf762177702dec2dfe99a09c37427a15af6d9a57c456b65352667c223d93
+    Ports:         53/UDP, 53/TCP, 9153/TCP
+    Host Ports:    0/UDP, 0/TCP, 0/TCP
+    Args:
+      -conf
+      /etc/coredns/Corefile
+    State:          Running
+      Started:      Thu, 05 Dec 2024 16:22:40 -0500
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      memory:  170Mi
+    Requests:
+      cpu:        100m
+      memory:     70Mi
+    Liveness:     http-get http://:8080/health delay=60s timeout=5s period=10s #success=1 #failure=5
+    Readiness:    http-get http://:8181/ready delay=0s timeout=1s period=10s #success=1 #failure=3
+    Environment:  <none>
+    Mounts:
+      /etc/coredns from config-volume (ro)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-j964p (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  config-volume:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      coredns
+    Optional:  false
+  kube-api-access-j964p:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              kubernetes.io/os=linux
+Tolerations:                 CriticalAddonsOnly op=Exists
+                             node-role.kubernetes.io/control-plane:NoSchedule
+                             node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:                      <none>
+
+
+Name:                 etcd-kind-control-plane
+Namespace:            kube-system
+Priority:             2000001000
+Priority Class Name:  system-node-critical
+Node:                 kind-control-plane/172.21.0.2
+Start Time:           Thu, 05 Dec 2024 16:21:55 -0500
+Labels:               component=etcd
+                      tier=control-plane
+Annotations:          kubeadm.kubernetes.io/etcd.advertise-client-urls: https://172.21.0.2:2379
+                      kubernetes.io/config.hash: 98cb3ec043902fc9007390abf41d4af3
+                      kubernetes.io/config.mirror: 98cb3ec043902fc9007390abf41d4af3
+                      kubernetes.io/config.seen: 2024-12-05T21:21:50.182291002Z
+                      kubernetes.io/config.source: file
+Status:               Running
+SeccompProfile:       RuntimeDefault
+IP:                   172.21.0.2
+IPs:
+  IP:           172.21.0.2
+Controlled By:  Node/kind-control-plane
+Containers:
+  etcd:
+    Container ID:  containerd://455a192dc5a6f8d82aec800b694a07aaadcd3615e849370eb5a7b9368faa62de
+    Image:         registry.k8s.io/etcd:3.5.15-0
+    Image ID:      sha256:27e3830e1402783674d8b594038967deea9d51f0d91b34c93c8f39d2f68af7da
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      etcd
+      --advertise-client-urls=https://172.21.0.2:2379
+      --cert-file=/etc/kubernetes/pki/etcd/server.crt
+      --client-cert-auth=true
+      --data-dir=/var/lib/etcd
+      --experimental-initial-corrupt-check=true
+      --experimental-watch-progress-notify-interval=5s
+      --initial-advertise-peer-urls=https://172.21.0.2:2380
+      --initial-cluster=kind-control-plane=https://172.21.0.2:2380
+      --key-file=/etc/kubernetes/pki/etcd/server.key
+      --listen-client-urls=https://127.0.0.1:2379,https://172.21.0.2:2379
+      --listen-metrics-urls=http://127.0.0.1:2381
+      --listen-peer-urls=https://172.21.0.2:2380
+      --name=kind-control-plane
+      --peer-cert-file=/etc/kubernetes/pki/etcd/peer.crt
+      --peer-client-cert-auth=true
+      --peer-key-file=/etc/kubernetes/pki/etcd/peer.key
+      --peer-trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+      --snapshot-count=10000
+      --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+    State:          Running
+      Started:      Thu, 05 Dec 2024 16:21:51 -0500
+    Ready:          True
+    Restart Count:  0
+    Requests:
+      cpu:        100m
+      memory:     100Mi
+    Liveness:     http-get http://127.0.0.1:2381/livez delay=10s timeout=15s period=10s #success=1 #failure=8
+    Readiness:    http-get http://127.0.0.1:2381/readyz delay=0s timeout=15s period=1s #success=1 #failure=3
+    Startup:      http-get http://127.0.0.1:2381/readyz delay=10s timeout=15s period=10s #success=1 #failure=24
+    Environment:  <none>
+    Mounts:
+      /etc/kubernetes/pki/etcd from etcd-certs (rw)
+      /var/lib/etcd from etcd-data (rw)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  etcd-certs:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/kubernetes/pki/etcd
+    HostPathType:  DirectoryOrCreate
+  etcd-data:
+    Type:          HostPath (bare host directory volume)
+    Path:          /var/lib/etcd
+    HostPathType:  DirectoryOrCreate
+QoS Class:         Burstable
+Node-Selectors:    <none>
+Tolerations:       :NoExecute op=Exists
+Events:            <none>
+
+
+Name:                 kube-apiserver-kind-control-plane
+Namespace:            kube-system
+Priority:             2000001000
+Priority Class Name:  system-node-critical
+Node:                 kind-control-plane/172.21.0.2
+Start Time:           Thu, 05 Dec 2024 16:21:55 -0500
+Labels:               component=kube-apiserver
+                      tier=control-plane
+Annotations:          kubeadm.kubernetes.io/kube-apiserver.advertise-address.endpoint: 172.21.0.2:6443
+                      kubernetes.io/config.hash: 0ddfc5bbb2103fa5a403ec228c68a04f
+                      kubernetes.io/config.mirror: 0ddfc5bbb2103fa5a403ec228c68a04f
+                      kubernetes.io/config.seen: 2024-12-05T21:21:55.231613296Z
+                      kubernetes.io/config.source: file
+Status:               Running
+SeccompProfile:       RuntimeDefault
+IP:                   172.21.0.2
+IPs:
+  IP:           172.21.0.2
+Controlled By:  Node/kind-control-plane
+Containers:
+  kube-apiserver:
+    Container ID:  containerd://7bfd5cde838326990fb175e5e6429eee162fdce756c5acb8e921eab5a98be028
+    Image:         registry.k8s.io/kube-apiserver:v1.31.0
+    Image ID:      docker.io/library/import-2024-08-13@sha256:12503b5bb710c8e2834bfc7d31f831a4fdbcca675085a6fd0f8d9b6966074df6
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      kube-apiserver
+      --advertise-address=172.21.0.2
+      --allow-privileged=true
+      --authorization-mode=Node,RBAC
+      --client-ca-file=/etc/kubernetes/pki/ca.crt
+      --enable-admission-plugins=NodeRestriction
+      --enable-bootstrap-token-auth=true
+      --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
+      --etcd-certfile=/etc/kubernetes/pki/apiserver-etcd-client.crt
+      --etcd-keyfile=/etc/kubernetes/pki/apiserver-etcd-client.key
+      --etcd-servers=https://127.0.0.1:2379
+      --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt
+      --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
+      --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+      --proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt
+      --proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key
+      --requestheader-allowed-names=front-proxy-client
+      --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+      --requestheader-extra-headers-prefix=X-Remote-Extra-
+      --requestheader-group-headers=X-Remote-Group
+      --requestheader-username-headers=X-Remote-User
+      --runtime-config=
+      --secure-port=6443
+      --service-account-issuer=https://kubernetes.default.svc.cluster.local
+      --service-account-key-file=/etc/kubernetes/pki/sa.pub
+      --service-account-signing-key-file=/etc/kubernetes/pki/sa.key
+      --service-cluster-ip-range=10.96.0.0/16
+      --tls-cert-file=/etc/kubernetes/pki/apiserver.crt
+      --tls-private-key-file=/etc/kubernetes/pki/apiserver.key
+    State:          Running
+      Started:      Thu, 05 Dec 2024 16:21:51 -0500
+    Ready:          True
+    Restart Count:  0
+    Requests:
+      cpu:        250m
+    Liveness:     http-get https://172.21.0.2:6443/livez delay=10s timeout=15s period=10s #success=1 #failure=8
+    Readiness:    http-get https://172.21.0.2:6443/readyz delay=0s timeout=15s period=1s #success=1 #failure=3
+    Startup:      http-get https://172.21.0.2:6443/livez delay=10s timeout=15s period=10s #success=1 #failure=24
+    Environment:  <none>
+    Mounts:
+      /etc/ca-certificates from etc-ca-certificates (ro)
+      /etc/kubernetes/pki from k8s-certs (ro)
+      /etc/ssl/certs from ca-certs (ro)
+      /usr/local/share/ca-certificates from usr-local-share-ca-certificates (ro)
+      /usr/share/ca-certificates from usr-share-ca-certificates (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  ca-certs:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/ssl/certs
+    HostPathType:  DirectoryOrCreate
+  etc-ca-certificates:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/ca-certificates
+    HostPathType:  DirectoryOrCreate
+  k8s-certs:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/kubernetes/pki
+    HostPathType:  DirectoryOrCreate
+  usr-local-share-ca-certificates:
+    Type:          HostPath (bare host directory volume)
+    Path:          /usr/local/share/ca-certificates
+    HostPathType:  DirectoryOrCreate
+  usr-share-ca-certificates:
+    Type:          HostPath (bare host directory volume)
+    Path:          /usr/share/ca-certificates
+    HostPathType:  DirectoryOrCreate
+QoS Class:         Burstable
+Node-Selectors:    <none>
+Tolerations:       :NoExecute op=Exists
+Events:            <none>
+
+
+Name:                 kube-controller-manager-kind-control-plane
+Namespace:            kube-system
+Priority:             2000001000
+Priority Class Name:  system-node-critical
+Node:                 kind-control-plane/172.21.0.2
+Start Time:           Thu, 05 Dec 2024 16:21:55 -0500
+Labels:               component=kube-controller-manager
+                      tier=control-plane
+Annotations:          kubernetes.io/config.hash: 7e9e9ec5e3483420ce6070ae7308f53f
+                      kubernetes.io/config.mirror: 7e9e9ec5e3483420ce6070ae7308f53f
+                      kubernetes.io/config.seen: 2024-12-05T21:21:55.231614046Z
+                      kubernetes.io/config.source: file
+Status:               Running
+SeccompProfile:       RuntimeDefault
+IP:                   172.21.0.2
+IPs:
+  IP:           172.21.0.2
+Controlled By:  Node/kind-control-plane
+Containers:
+  kube-controller-manager:
+    Container ID:  containerd://a16682d05187e07ad54243428fae5301f38ab9712bfbed673b5649bb328326fa
+    Image:         registry.k8s.io/kube-controller-manager:v1.31.0
+    Image ID:      docker.io/library/import-2024-08-13@sha256:7d525a0c3dee3e92634859df3f4671a49e5b76f7dc23e84d98270b5d6abd5e9e
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      kube-controller-manager
+      --allocate-node-cidrs=true
+      --authentication-kubeconfig=/etc/kubernetes/controller-manager.conf
+      --authorization-kubeconfig=/etc/kubernetes/controller-manager.conf
+      --bind-address=127.0.0.1
+      --client-ca-file=/etc/kubernetes/pki/ca.crt
+      --cluster-cidr=10.244.0.0/16
+      --cluster-name=kind
+      --cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt
+      --cluster-signing-key-file=/etc/kubernetes/pki/ca.key
+      --controllers=*,bootstrapsigner,tokencleaner
+      --enable-hostpath-provisioner=true
+      --kubeconfig=/etc/kubernetes/controller-manager.conf
+      --leader-elect=true
+      --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+      --root-ca-file=/etc/kubernetes/pki/ca.crt
+      --service-account-private-key-file=/etc/kubernetes/pki/sa.key
+      --service-cluster-ip-range=10.96.0.0/16
+      --use-service-account-credentials=true
+    State:          Running
+      Started:      Thu, 05 Dec 2024 16:21:51 -0500
+    Ready:          True
+    Restart Count:  0
+    Requests:
+      cpu:        200m
+    Liveness:     http-get https://127.0.0.1:10257/healthz delay=10s timeout=15s period=10s #success=1 #failure=8
+    Startup:      http-get https://127.0.0.1:10257/healthz delay=10s timeout=15s period=10s #success=1 #failure=24
+    Environment:  <none>
+    Mounts:
+      /etc/ca-certificates from etc-ca-certificates (ro)
+      /etc/kubernetes/controller-manager.conf from kubeconfig (ro)
+      /etc/kubernetes/pki from k8s-certs (ro)
+      /etc/ssl/certs from ca-certs (ro)
+      /usr/libexec/kubernetes/kubelet-plugins/volume/exec from flexvolume-dir (rw)
+      /usr/local/share/ca-certificates from usr-local-share-ca-certificates (ro)
+      /usr/share/ca-certificates from usr-share-ca-certificates (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  ca-certs:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/ssl/certs
+    HostPathType:  DirectoryOrCreate
+  etc-ca-certificates:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/ca-certificates
+    HostPathType:  DirectoryOrCreate
+  flexvolume-dir:
+    Type:          HostPath (bare host directory volume)
+    Path:          /usr/libexec/kubernetes/kubelet-plugins/volume/exec
+    HostPathType:  DirectoryOrCreate
+  k8s-certs:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/kubernetes/pki
+    HostPathType:  DirectoryOrCreate
+  kubeconfig:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/kubernetes/controller-manager.conf
+    HostPathType:  FileOrCreate
+  usr-local-share-ca-certificates:
+    Type:          HostPath (bare host directory volume)
+    Path:          /usr/local/share/ca-certificates
+    HostPathType:  DirectoryOrCreate
+  usr-share-ca-certificates:
+    Type:          HostPath (bare host directory volume)
+    Path:          /usr/share/ca-certificates
+    HostPathType:  DirectoryOrCreate
+QoS Class:         Burstable
+Node-Selectors:    <none>
+Tolerations:       :NoExecute op=Exists
+Events:            <none>
+
+
+Name:                 kube-proxy-vhgwz
+Namespace:            kube-system
+Priority:             2000001000
+Priority Class Name:  system-node-critical
+Service Account:      kube-proxy
+Node:                 kind-control-plane/172.21.0.2
+Start Time:           Thu, 05 Dec 2024 16:22:02 -0500
+Labels:               controller-revision-hash=5976bc5f75
+                      k8s-app=kube-proxy
+                      pod-template-generation=1
+Annotations:          <none>
+Status:               Running
+IP:                   172.21.0.2
+IPs:
+  IP:           172.21.0.2
+Controlled By:  DaemonSet/kube-proxy
+Containers:
+  kube-proxy:
+    Container ID:  containerd://ff780efc474172502c36a0864d537af0ec553df95097b7b62aa6d3615298bb55
+    Image:         registry.k8s.io/kube-proxy:v1.31.0
+    Image ID:      docker.io/library/import-2024-08-13@sha256:d057bfee39e5f7333a8b835d2fcfbccda66fe0bb7fb853fa0ef2f423afad2cd7
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      /usr/local/bin/kube-proxy
+      --config=/var/lib/kube-proxy/config.conf
+      --hostname-override=$(NODE_NAME)
+    State:          Running
+      Started:      Thu, 05 Dec 2024 16:22:03 -0500
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      NODE_NAME:   (v1:spec.nodeName)
+    Mounts:
+      /lib/modules from lib-modules (ro)
+      /run/xtables.lock from xtables-lock (rw)
+      /var/lib/kube-proxy from kube-proxy (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-n28mw (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  kube-proxy:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      kube-proxy
+    Optional:  false
+  xtables-lock:
+    Type:          HostPath (bare host directory volume)
+    Path:          /run/xtables.lock
+    HostPathType:  FileOrCreate
+  lib-modules:
+    Type:          HostPath (bare host directory volume)
+    Path:          /lib/modules
+    HostPathType:  
+  kube-api-access-n28mw:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              kubernetes.io/os=linux
+Tolerations:                 op=Exists
+                             node.kubernetes.io/disk-pressure:NoSchedule op=Exists
+                             node.kubernetes.io/memory-pressure:NoSchedule op=Exists
+                             node.kubernetes.io/network-unavailable:NoSchedule op=Exists
+                             node.kubernetes.io/not-ready:NoExecute op=Exists
+                             node.kubernetes.io/pid-pressure:NoSchedule op=Exists
+                             node.kubernetes.io/unreachable:NoExecute op=Exists
+                             node.kubernetes.io/unschedulable:NoSchedule op=Exists
+Events:                      <none>
+
+
+Name:                 kube-scheduler-kind-control-plane
+Namespace:            kube-system
+Priority:             2000001000
+Priority Class Name:  system-node-critical
+Node:                 kind-control-plane/172.21.0.2
+Start Time:           Thu, 05 Dec 2024 16:21:55 -0500
+Labels:               component=kube-scheduler
+                      tier=control-plane
+Annotations:          kubernetes.io/config.hash: 216366b07956e646a3d2a2698a971f74
+                      kubernetes.io/config.mirror: 216366b07956e646a3d2a2698a971f74
+                      kubernetes.io/config.seen: 2024-12-05T21:21:55.231614505Z
+                      kubernetes.io/config.source: file
+Status:               Running
+SeccompProfile:       RuntimeDefault
+IP:                   172.21.0.2
+IPs:
+  IP:           172.21.0.2
+Controlled By:  Node/kind-control-plane
+Containers:
+  kube-scheduler:
+    Container ID:  containerd://bfa06ae1f949d7ed48bbec0f7941ad18d0482e79991496e6d6f71fcb4b030553
+    Image:         registry.k8s.io/kube-scheduler:v1.31.0
+    Image ID:      docker.io/library/import-2024-08-13@sha256:8e9383515598018b0cb76fe045274b2acfeda6156856f0131df9529753053a7b
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      kube-scheduler
+      --authentication-kubeconfig=/etc/kubernetes/scheduler.conf
+      --authorization-kubeconfig=/etc/kubernetes/scheduler.conf
+      --bind-address=127.0.0.1
+      --kubeconfig=/etc/kubernetes/scheduler.conf
+      --leader-elect=true
+    State:          Running
+      Started:      Thu, 05 Dec 2024 16:21:51 -0500
+    Ready:          True
+    Restart Count:  0
+    Requests:
+      cpu:        100m
+    Liveness:     http-get https://127.0.0.1:10259/healthz delay=10s timeout=15s period=10s #success=1 #failure=8
+    Startup:      http-get https://127.0.0.1:10259/healthz delay=10s timeout=15s period=10s #success=1 #failure=24
+    Environment:  <none>
+    Mounts:
+      /etc/kubernetes/scheduler.conf from kubeconfig (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  kubeconfig:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/kubernetes/scheduler.conf
+    HostPathType:  FileOrCreate
+QoS Class:         Burstable
+Node-Selectors:    <none>
+Tolerations:       :NoExecute op=Exists
+Events:            <none>
+
+
+Name:             local-path-provisioner-57c5987fd4-mbk6g
+Namespace:        local-path-storage
+Priority:         0
+Service Account:  local-path-provisioner-service-account
+Node:             kind-control-plane/172.21.0.2
+Start Time:       Thu, 05 Dec 2024 16:22:38 -0500
+Labels:           app=local-path-provisioner
+                  pod-template-hash=57c5987fd4
+Annotations:      <none>
+Status:           Running
+IP:               10.244.0.140
+IPs:
+  IP:           10.244.0.140
+Controlled By:  ReplicaSet/local-path-provisioner-57c5987fd4
+Containers:
+  local-path-provisioner:
+    Container ID:  containerd://11a623db0c159423645aa36dcc436ac88e4959e9e2e70b3aad7a43c862d504e2
+    Image:         docker.io/kindest/local-path-provisioner:v20240813-c6f155d6
+    Image ID:      sha256:282f619d10d4dda6c93fe329249dca6155c9deff5e96eef4420b6f6c30ff5a83
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      local-path-provisioner
+      --debug
+      start
+      --helper-image
+      docker.io/kindest/local-path-helper:v20230510-486859a6
+      --config
+      /etc/config/config.json
+    State:          Running
+      Started:      Thu, 05 Dec 2024 16:22:41 -0500
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      POD_NAMESPACE:  local-path-storage (v1:metadata.namespace)
+    Mounts:
+      /etc/config/ from config-volume (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-vz78x (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  config-volume:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      local-path-config
+    Optional:  false
+  kube-api-access-vz78x:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              kubernetes.io/os=linux
+Tolerations:                 node-role.kubernetes.io/control-plane:NoSchedule
+                             node-role.kubernetes.io/master:NoSchedule
+                             node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:                      <none>
+
+
+Name:              kubernetes
+Namespace:         default
+Labels:            component=apiserver
+                   provider=kubernetes
+Annotations:       <none>
+Selector:          <none>
+Type:              ClusterIP
+IP Family Policy:  SingleStack
+IP Families:       IPv4
+IP:                10.96.0.1
+IPs:               10.96.0.1
+Port:              https  443/TCP
+TargetPort:        6443/TCP
+Endpoints:         172.21.0.2:6443
+Session Affinity:  None
+Events:            <none>
+
+
+Name:                     gateway-proxy
+Namespace:                gloo-system
+Labels:                   app=gloo
+                          app.kubernetes.io/managed-by=Helm
+                          gateway-proxy-id=gateway-proxy
+                          gloo=gateway-proxy
+Annotations:              meta.helm.sh/release-name: gloo
+                          meta.helm.sh/release-namespace: gloo-system
+Selector:                 gateway-proxy-id=gateway-proxy,gateway-proxy=live
+Type:                     LoadBalancer
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       10.96.19.211
+IPs:                      10.96.19.211
+Port:                     http  80/TCP
+TargetPort:               8080/TCP
+NodePort:                 http  31177/TCP
+Endpoints:                10.244.0.179:8080
+Port:                     https  443/TCP
+TargetPort:               8443/TCP
+NodePort:                 https  30174/TCP
+Endpoints:                10.244.0.179:8443
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+
+
+Name:              gloo
+Namespace:         gloo-system
+Labels:            app=gloo
+                   app.kubernetes.io/managed-by=Helm
+                   gloo=gloo
+Annotations:       meta.helm.sh/release-name: gloo
+                   meta.helm.sh/release-namespace: gloo-system
+Selector:          gloo=gloo
+Type:              ClusterIP
+IP Family Policy:  SingleStack
+IP Families:       IPv4
+IP:                10.96.131.251
+IPs:               10.96.131.251
+Port:              grpc-xds  9977/TCP
+TargetPort:        9977/TCP
+Endpoints:         10.244.0.113:9977
+Port:              rest-xds  9976/TCP
+TargetPort:        9976/TCP
+Endpoints:         10.244.0.113:9976
+Port:              grpc-validation  9988/TCP
+TargetPort:        9988/TCP
+Endpoints:         10.244.0.113:9988
+Port:              grpc-proxydebug  9966/TCP
+TargetPort:        9966/TCP
+Endpoints:         10.244.0.113:9966
+Port:              wasm-cache  9979/TCP
+TargetPort:        9979/TCP
+Endpoints:         10.244.0.113:9979
+Port:              https  443/TCP
+TargetPort:        8443/TCP
+Endpoints:         10.244.0.113:8443
+Session Affinity:  None
+Events:            <none>
+
+
+Name:              hubble-peer
+Namespace:         kube-system
+Labels:            app.kubernetes.io/managed-by=Helm
+                   app.kubernetes.io/name=hubble-peer
+                   app.kubernetes.io/part-of=cilium
+                   k8s-app=cilium
+Annotations:       meta.helm.sh/release-name: cilium
+                   meta.helm.sh/release-namespace: kube-system
+Selector:          k8s-app=cilium
+Type:              ClusterIP
+IP Family Policy:  SingleStack
+IP Families:       IPv4
+IP:                10.96.85.47
+IPs:               10.96.85.47
+Port:              peer-service  443/TCP
+TargetPort:        4244/TCP
+Endpoints:         172.21.0.2:4244
+Session Affinity:  None
+Events:            <none>
+
+
+Name:              kube-dns
+Namespace:         kube-system
+Labels:            k8s-app=kube-dns
+                   kubernetes.io/cluster-service=true
+                   kubernetes.io/name=CoreDNS
+Annotations:       prometheus.io/port: 9153
+                   prometheus.io/scrape: true
+Selector:          k8s-app=kube-dns
+Type:              ClusterIP
+IP Family Policy:  SingleStack
+IP Families:       IPv4
+IP:                10.96.0.10
+IPs:               10.96.0.10
+Port:              dns  53/UDP
+TargetPort:        53/UDP
+Endpoints:         10.244.0.48:53,10.244.0.63:53
+Port:              dns-tcp  53/TCP
+TargetPort:        53/TCP
+Endpoints:         10.244.0.48:53,10.244.0.63:53
+Port:              metrics  9153/TCP
+TargetPort:        9153/TCP
+Endpoints:         10.244.0.48:9153,10.244.0.63:9153
+Session Affinity:  None
+Events:            <none>
+
+
+Name:           cilium
+Selector:       k8s-app=cilium
+Node-Selector:  kubernetes.io/os=linux
+Labels:         app.kubernetes.io/managed-by=Helm
+                app.kubernetes.io/name=cilium-agent
+                app.kubernetes.io/part-of=cilium
+                k8s-app=cilium
+Annotations:    deprecated.daemonset.template.generation: 1
+                meta.helm.sh/release-name: cilium
+                meta.helm.sh/release-namespace: kube-system
+Desired Number of Nodes Scheduled: 1
+Current Number of Nodes Scheduled: 1
+Number of Nodes Scheduled with Up-to-date Pods: 1
+Number of Nodes Scheduled with Available Pods: 1
+Number of Nodes Misscheduled: 0
+Pods Status:  1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:           app.kubernetes.io/name=cilium-agent
+                    app.kubernetes.io/part-of=cilium
+                    k8s-app=cilium
+  Service Account:  cilium
+  Init Containers:
+   config:
+    Image:      quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      cilium-dbg
+      build-config
+    Environment:
+      K8S_NODE_NAME:          (v1:spec.nodeName)
+      CILIUM_K8S_NAMESPACE:   (v1:metadata.namespace)
+    Mounts:
+      /tmp from tmp (rw)
+   mount-cgroup:
+    Image:      quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      sh
+      -ec
+      cp /usr/bin/cilium-mount /hostbin/cilium-mount;
+      nsenter --cgroup=/hostproc/1/ns/cgroup --mount=/hostproc/1/ns/mnt "${BIN_PATH}/cilium-mount" $CGROUP_ROOT;
+      rm /hostbin/cilium-mount
+      
+    Environment:
+      CGROUP_ROOT:  /run/cilium/cgroupv2
+      BIN_PATH:     /opt/cni/bin
+    Mounts:
+      /hostbin from cni-path (rw)
+      /hostproc from hostproc (rw)
+   apply-sysctl-overwrites:
+    Image:      quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      sh
+      -ec
+      cp /usr/bin/cilium-sysctlfix /hostbin/cilium-sysctlfix;
+      nsenter --mount=/hostproc/1/ns/mnt "${BIN_PATH}/cilium-sysctlfix";
+      rm /hostbin/cilium-sysctlfix
+      
+    Environment:
+      BIN_PATH:  /opt/cni/bin
+    Mounts:
+      /hostbin from cni-path (rw)
+      /hostproc from hostproc (rw)
+   mount-bpf-fs:
+    Image:      quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /bin/bash
+      -c
+      --
+    Args:
+      mount | grep "/sys/fs/bpf type bpf" || mount -t bpf bpf /sys/fs/bpf
+    Environment:  <none>
+    Mounts:
+      /sys/fs/bpf from bpf-maps (rw)
+   clean-cilium-state:
+    Image:      quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /init-container.sh
+    Environment:
+      CILIUM_ALL_STATE:           <set to the key 'clean-cilium-state' of config map 'cilium-config'>         Optional: true
+      CILIUM_BPF_STATE:           <set to the key 'clean-cilium-bpf-state' of config map 'cilium-config'>     Optional: true
+      WRITE_CNI_CONF_WHEN_READY:  <set to the key 'write-cni-conf-when-ready' of config map 'cilium-config'>  Optional: true
+    Mounts:
+      /run/cilium/cgroupv2 from cilium-cgroup (rw)
+      /sys/fs/bpf from bpf-maps (rw)
+      /var/run/cilium from cilium-run (rw)
+   install-cni-binaries:
+    Image:      quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /install-plugin.sh
+    Requests:
+      cpu:        100m
+      memory:     10Mi
+    Environment:  <none>
+    Mounts:
+      /host/opt/cni/bin from cni-path (rw)
+  Containers:
+   cilium-agent:
+    Image:      quay.io/cilium/cilium:v1.15.5@sha256:4ce1666a73815101ec9a4d360af6c5b7f1193ab00d89b7124f8505dee147ca40
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      cilium-agent
+    Args:
+      --config-dir=/tmp/cilium/config-map
+    Liveness:   http-get http://127.0.0.1:9879/healthz delay=0s timeout=5s period=30s #success=1 #failure=10
+    Readiness:  http-get http://127.0.0.1:9879/healthz delay=0s timeout=5s period=30s #success=1 #failure=3
+    Startup:    http-get http://127.0.0.1:9879/healthz delay=5s timeout=1s period=2s #success=1 #failure=105
+    Environment:
+      K8S_NODE_NAME:               (v1:spec.nodeName)
+      CILIUM_K8S_NAMESPACE:        (v1:metadata.namespace)
+      CILIUM_CLUSTERMESH_CONFIG:  /var/lib/cilium/clustermesh/
+      GOMEMLIMIT:                 node allocatable (limits.memory)
+    Mounts:
+      /host/etc/cni/net.d from etc-cni-netd (rw)
+      /host/proc/sys/kernel from host-proc-sys-kernel (rw)
+      /host/proc/sys/net from host-proc-sys-net (rw)
+      /lib/modules from lib-modules (ro)
+      /run/xtables.lock from xtables-lock (rw)
+      /sys/fs/bpf from bpf-maps (rw)
+      /tmp from tmp (rw)
+      /var/lib/cilium/clustermesh from clustermesh-secrets (ro)
+      /var/lib/cilium/tls/hubble from hubble-tls (ro)
+      /var/run/cilium from cilium-run (rw)
+  Volumes:
+   tmp:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+   cilium-run:
+    Type:          HostPath (bare host directory volume)
+    Path:          /var/run/cilium
+    HostPathType:  DirectoryOrCreate
+   bpf-maps:
+    Type:          HostPath (bare host directory volume)
+    Path:          /sys/fs/bpf
+    HostPathType:  DirectoryOrCreate
+   hostproc:
+    Type:          HostPath (bare host directory volume)
+    Path:          /proc
+    HostPathType:  Directory
+   cilium-cgroup:
+    Type:          HostPath (bare host directory volume)
+    Path:          /run/cilium/cgroupv2
+    HostPathType:  DirectoryOrCreate
+   cni-path:
+    Type:          HostPath (bare host directory volume)
+    Path:          /opt/cni/bin
+    HostPathType:  DirectoryOrCreate
+   etc-cni-netd:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/cni/net.d
+    HostPathType:  DirectoryOrCreate
+   lib-modules:
+    Type:          HostPath (bare host directory volume)
+    Path:          /lib/modules
+    HostPathType:  
+   xtables-lock:
+    Type:          HostPath (bare host directory volume)
+    Path:          /run/xtables.lock
+    HostPathType:  FileOrCreate
+   clustermesh-secrets:
+    Type:                Projected (a volume that contains injected data from multiple sources)
+    SecretName:          cilium-clustermesh
+    SecretOptionalName:  0x14000919878
+    SecretName:          clustermesh-apiserver-remote-cert
+    SecretOptionalName:  0x1400091991e
+   host-proc-sys-net:
+    Type:          HostPath (bare host directory volume)
+    Path:          /proc/sys/net
+    HostPathType:  Directory
+   host-proc-sys-kernel:
+    Type:          HostPath (bare host directory volume)
+    Path:          /proc/sys/kernel
+    HostPathType:  Directory
+   hubble-tls:
+    Type:                Projected (a volume that contains injected data from multiple sources)
+    SecretName:          hubble-server-certs
+    SecretOptionalName:  0x140009199ad
+  Priority Class Name:   system-node-critical
+Events:                  <none>
+
+
+Name:           kube-proxy
+Selector:       k8s-app=kube-proxy
+Node-Selector:  kubernetes.io/os=linux
+Labels:         k8s-app=kube-proxy
+Annotations:    deprecated.daemonset.template.generation: 1
+Desired Number of Nodes Scheduled: 1
+Current Number of Nodes Scheduled: 1
+Number of Nodes Scheduled with Up-to-date Pods: 1
+Number of Nodes Scheduled with Available Pods: 1
+Number of Nodes Misscheduled: 0
+Pods Status:  1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:           k8s-app=kube-proxy
+  Service Account:  kube-proxy
+  Containers:
+   kube-proxy:
+    Image:      registry.k8s.io/kube-proxy:v1.31.0
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /usr/local/bin/kube-proxy
+      --config=/var/lib/kube-proxy/config.conf
+      --hostname-override=$(NODE_NAME)
+    Environment:
+      NODE_NAME:   (v1:spec.nodeName)
+    Mounts:
+      /lib/modules from lib-modules (ro)
+      /run/xtables.lock from xtables-lock (rw)
+      /var/lib/kube-proxy from kube-proxy (rw)
+  Volumes:
+   kube-proxy:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      kube-proxy
+    Optional:  false
+   xtables-lock:
+    Type:          HostPath (bare host directory volume)
+    Path:          /run/xtables.lock
+    HostPathType:  FileOrCreate
+   lib-modules:
+    Type:               HostPath (bare host directory volume)
+    Path:               /lib/modules
+    HostPathType:       
+  Priority Class Name:  system-node-critical
+Events:                 <none>
+
+
+Name:                   curl
+Namespace:              gloo-system
+CreationTimestamp:      Thu, 05 Dec 2024 16:48:16 -0500
+Labels:                 app=curl
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=curl
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=curl
+           version=v1
+  Containers:
+   curl:
+    Image:      curlimages/curl:7.83.1
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      tail
+      -f
+      /dev/null
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   curl-7787697d4b (1/1 replicas created)
+Events:          <none>
+
+
+Name:                   gateway-proxy
+Namespace:              gloo-system
+CreationTimestamp:      Thu, 05 Dec 2024 16:38:27 -0500
+Labels:                 app=gloo
+                        app.kubernetes.io/managed-by=Helm
+                        gateway-proxy-id=gateway-proxy
+                        gloo=gateway-proxy
+Annotations:            deployment.kubernetes.io/revision: 1
+                        meta.helm.sh/release-name: gloo
+                        meta.helm.sh/release-namespace: gloo-system
+Selector:               gateway-proxy-id=gateway-proxy,gloo=gateway-proxy
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:           gateway-proxy=live
+                    gateway-proxy-id=gateway-proxy
+                    gloo=gateway-proxy
+  Annotations:      checksum/gateway-proxy-envoy-config: 2c71eb571769ab20e166ba76c3dbdc9347b6b7a734d05ddd9fd542ab38e36b0c
+                    prometheus.io/path: /metrics
+                    prometheus.io/port: 8081
+                    prometheus.io/scrape: true
+  Service Account:  gateway-proxy
+  Containers:
+   gateway-proxy:
+    Image:           quay.io/solo-io/gloo-envoy-wrapper:1.0.1-dev
+    Ports:           8080/TCP, 8443/TCP
+    Host Ports:      0/TCP, 0/TCP
+    SeccompProfile:  RuntimeDefault
+    Args:
+      --disable-hot-restart
+    Requests:
+      cpu:      100m
+      memory:   256Mi
+    Liveness:   exec [wget -O /dev/null 127.0.0.1:19000/server_info] delay=3s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  exec [wget -O /dev/null 127.0.0.1:19000/ready] delay=3s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      POD_NAMESPACE:        (v1:metadata.namespace)
+      POD_NAME:             (v1:metadata.name)
+      DISABLE_CORE_DUMPS:  false
+    Mounts:
+      /etc/envoy from envoy-config (rw)
+  Volumes:
+   envoy-config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      gateway-proxy-envoy-config
+    Optional:  false
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   gateway-proxy-67bb564b94 (1/1 replicas created)
+Events:          <none>
+
+
+Name:                   gloo
+Namespace:              gloo-system
+CreationTimestamp:      Thu, 05 Dec 2024 16:38:27 -0500
+Labels:                 app=gloo
+                        app.kubernetes.io/managed-by=Helm
+                        gloo=gloo
+Annotations:            deployment.kubernetes.io/revision: 1
+                        meta.helm.sh/release-name: gloo
+                        meta.helm.sh/release-namespace: gloo-system
+Selector:               gloo=gloo
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:           gloo=gloo
+  Annotations:      gloo.solo.io/oss-image-tag: 1.0.1-dev
+                    prometheus.io/path: /metrics
+                    prometheus.io/port: 9091
+                    prometheus.io/scrape: true
+  Service Account:  gloo
+  Containers:
+   gloo:
+    Image:           quay.io/solo-io/gloo:1.0.1-dev
+    Ports:           9977/TCP, 9976/TCP, 9988/TCP, 9966/TCP, 9979/TCP
+    Host Ports:      0/TCP, 0/TCP, 0/TCP, 0/TCP, 0/TCP
+    SeccompProfile:  RuntimeDefault
+    Limits:
+      cpu:     1
+      memory:  10Gi
+    Requests:
+      cpu:      100m
+      memory:   256Mi
+    Liveness:   http-get http://:8765/healthz delay=3s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  tcp-socket :9977 delay=3s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      GOMEMLIMIT:                      10737418240 (limits.memory)
+      GOMAXPROCS:                      1 (limits.cpu)
+      LEADER_ELECTION_LEASE_DURATION:  4s
+      LEADER_ELECTION_RENEW_PERIOD:    3s
+      LEADER_ELECTION_RETRY_PERIOD:    1s
+      POD_NAMESPACE:                    (v1:metadata.namespace)
+      START_STATS_SERVER:              true
+      VALIDATION_MUST_START:           true
+      LOG_LEVEL:                       debug
+    Mounts:
+      /etc/gateway/validation-certs from validation-certs (rw)
+      /etc/gloo from labels-volume (ro)
+  Volumes:
+   labels-volume:
+    Type:  DownwardAPI (a volume populated by information about the pod)
+    Items:
+      metadata.labels -> labels
+   validation-certs:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  gateway-validation-certs
+    Optional:    false
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   gloo-587694c798 (1/1 replicas created)
+Events:          <none>
+
+
+Name:                   cilium-operator
+Namespace:              kube-system
+CreationTimestamp:      Thu, 05 Dec 2024 16:22:02 -0500
+Labels:                 app.kubernetes.io/managed-by=Helm
+                        app.kubernetes.io/name=cilium-operator
+                        app.kubernetes.io/part-of=cilium
+                        io.cilium/app=operator
+                        name=cilium-operator
+Annotations:            deployment.kubernetes.io/revision: 1
+                        meta.helm.sh/release-name: cilium
+                        meta.helm.sh/release-namespace: kube-system
+Selector:               io.cilium/app=operator,name=cilium-operator
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  100% max unavailable, 25% max surge
+Pod Template:
+  Labels:           app.kubernetes.io/name=cilium-operator
+                    app.kubernetes.io/part-of=cilium
+                    io.cilium/app=operator
+                    name=cilium-operator
+  Annotations:      prometheus.io/port: 9963
+                    prometheus.io/scrape: true
+  Service Account:  cilium-operator
+  Containers:
+   cilium-operator:
+    Image:      quay.io/cilium/operator-generic:v1.15.5@sha256:f5d3d19754074ca052be6aac5d1ffb1de1eb5f2d947222b5f10f6d97ad4383e8
+    Port:       9963/TCP
+    Host Port:  9963/TCP
+    Command:
+      cilium-operator-generic
+    Args:
+      --config-dir=/tmp/cilium/config-map
+      --debug=$(CILIUM_DEBUG)
+    Liveness:   http-get http://127.0.0.1:9234/healthz delay=60s timeout=3s period=10s #success=1 #failure=3
+    Readiness:  http-get http://127.0.0.1:9234/healthz delay=0s timeout=3s period=5s #success=1 #failure=5
+    Environment:
+      K8S_NODE_NAME:          (v1:spec.nodeName)
+      CILIUM_K8S_NAMESPACE:   (v1:metadata.namespace)
+      CILIUM_DEBUG:          <set to the key 'debug' of config map 'cilium-config'>  Optional: true
+    Mounts:
+      /tmp/cilium/config-map from cilium-config-path (ro)
+  Volumes:
+   cilium-config-path:
+    Type:               ConfigMap (a volume populated by a ConfigMap)
+    Name:               cilium-config
+    Optional:           false
+  Priority Class Name:  system-cluster-critical
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   cilium-operator-767587d447 (1/1 replicas created)
+Events:          <none>
+
+
+Name:                   coredns
+Namespace:              kube-system
+CreationTimestamp:      Thu, 05 Dec 2024 16:21:55 -0500
+Labels:                 k8s-app=kube-dns
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               k8s-app=kube-dns
+Replicas:               2 desired | 2 updated | 2 total | 2 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  1 max unavailable, 25% max surge
+Pod Template:
+  Labels:           k8s-app=kube-dns
+  Service Account:  coredns
+  Containers:
+   coredns:
+    Image:       registry.k8s.io/coredns/coredns:v1.11.1
+    Ports:       53/UDP, 53/TCP, 9153/TCP
+    Host Ports:  0/UDP, 0/TCP, 0/TCP
+    Args:
+      -conf
+      /etc/coredns/Corefile
+    Limits:
+      memory:  170Mi
+    Requests:
+      cpu:        100m
+      memory:     70Mi
+    Liveness:     http-get http://:8080/health delay=60s timeout=5s period=10s #success=1 #failure=5
+    Readiness:    http-get http://:8181/ready delay=0s timeout=1s period=10s #success=1 #failure=3
+    Environment:  <none>
+    Mounts:
+      /etc/coredns from config-volume (ro)
+  Volumes:
+   config-volume:
+    Type:               ConfigMap (a volume populated by a ConfigMap)
+    Name:               coredns
+    Optional:           false
+  Priority Class Name:  system-cluster-critical
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   coredns-6f6b679f8f (2/2 replicas created)
+Events:          <none>
+
+
+Name:                   local-path-provisioner
+Namespace:              local-path-storage
+CreationTimestamp:      Thu, 05 Dec 2024 16:21:56 -0500
+Labels:                 <none>
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=local-path-provisioner
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:           app=local-path-provisioner
+  Service Account:  local-path-provisioner-service-account
+  Containers:
+   local-path-provisioner:
+    Image:      docker.io/kindest/local-path-provisioner:v20240813-c6f155d6
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      local-path-provisioner
+      --debug
+      start
+      --helper-image
+      docker.io/kindest/local-path-helper:v20230510-486859a6
+      --config
+      /etc/config/config.json
+    Environment:
+      POD_NAMESPACE:   (v1:metadata.namespace)
+    Mounts:
+      /etc/config/ from config-volume (rw)
+  Volumes:
+   config-volume:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      local-path-config
+    Optional:  false
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   local-path-provisioner-57c5987fd4 (1/1 replicas created)
+Events:          <none>
+
+
+Name:           curl-7787697d4b
+Namespace:      gloo-system
+Selector:       app=curl,pod-template-hash=7787697d4b
+Labels:         app=curl
+                pod-template-hash=7787697d4b
+                version=v1
+Annotations:    deployment.kubernetes.io/desired-replicas: 1
+                deployment.kubernetes.io/max-replicas: 2
+                deployment.kubernetes.io/revision: 1
+Controlled By:  Deployment/curl
+Replicas:       1 current / 1 desired
+Pods Status:    1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=curl
+           pod-template-hash=7787697d4b
+           version=v1
+  Containers:
+   curl:
+    Image:      curlimages/curl:7.83.1
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      tail
+      -f
+      /dev/null
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Events:           <none>
+
+
+Name:           gateway-proxy-67bb564b94
+Namespace:      gloo-system
+Selector:       gateway-proxy-id=gateway-proxy,gloo=gateway-proxy,pod-template-hash=67bb564b94
+Labels:         gateway-proxy=live
+                gateway-proxy-id=gateway-proxy
+                gloo=gateway-proxy
+                pod-template-hash=67bb564b94
+Annotations:    deployment.kubernetes.io/desired-replicas: 1
+                deployment.kubernetes.io/max-replicas: 2
+                deployment.kubernetes.io/revision: 1
+                meta.helm.sh/release-name: gloo
+                meta.helm.sh/release-namespace: gloo-system
+Controlled By:  Deployment/gateway-proxy
+Replicas:       1 current / 1 desired
+Pods Status:    1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:           gateway-proxy=live
+                    gateway-proxy-id=gateway-proxy
+                    gloo=gateway-proxy
+                    pod-template-hash=67bb564b94
+  Annotations:      checksum/gateway-proxy-envoy-config: 2c71eb571769ab20e166ba76c3dbdc9347b6b7a734d05ddd9fd542ab38e36b0c
+                    prometheus.io/path: /metrics
+                    prometheus.io/port: 8081
+                    prometheus.io/scrape: true
+  Service Account:  gateway-proxy
+  Containers:
+   gateway-proxy:
+    Image:           quay.io/solo-io/gloo-envoy-wrapper:1.0.1-dev
+    Ports:           8080/TCP, 8443/TCP
+    Host Ports:      0/TCP, 0/TCP
+    SeccompProfile:  RuntimeDefault
+    Args:
+      --disable-hot-restart
+    Requests:
+      cpu:      100m
+      memory:   256Mi
+    Liveness:   exec [wget -O /dev/null 127.0.0.1:19000/server_info] delay=3s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  exec [wget -O /dev/null 127.0.0.1:19000/ready] delay=3s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      POD_NAMESPACE:        (v1:metadata.namespace)
+      POD_NAME:             (v1:metadata.name)
+      DISABLE_CORE_DUMPS:  false
+    Mounts:
+      /etc/envoy from envoy-config (rw)
+  Volumes:
+   envoy-config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      gateway-proxy-envoy-config
+    Optional:  false
+Events:        <none>
+
+
+Name:           gloo-587694c798
+Namespace:      gloo-system
+Selector:       gloo=gloo,pod-template-hash=587694c798
+Labels:         gloo=gloo
+                pod-template-hash=587694c798
+Annotations:    deployment.kubernetes.io/desired-replicas: 1
+                deployment.kubernetes.io/max-replicas: 2
+                deployment.kubernetes.io/revision: 1
+                meta.helm.sh/release-name: gloo
+                meta.helm.sh/release-namespace: gloo-system
+Controlled By:  Deployment/gloo
+Replicas:       1 current / 1 desired
+Pods Status:    1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:           gloo=gloo
+                    pod-template-hash=587694c798
+  Annotations:      gloo.solo.io/oss-image-tag: 1.0.1-dev
+                    prometheus.io/path: /metrics
+                    prometheus.io/port: 9091
+                    prometheus.io/scrape: true
+  Service Account:  gloo
+  Containers:
+   gloo:
+    Image:           quay.io/solo-io/gloo:1.0.1-dev
+    Ports:           9977/TCP, 9976/TCP, 9988/TCP, 9966/TCP, 9979/TCP
+    Host Ports:      0/TCP, 0/TCP, 0/TCP, 0/TCP, 0/TCP
+    SeccompProfile:  RuntimeDefault
+    Limits:
+      cpu:     1
+      memory:  10Gi
+    Requests:
+      cpu:      100m
+      memory:   256Mi
+    Liveness:   http-get http://:8765/healthz delay=3s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  tcp-socket :9977 delay=3s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      GOMEMLIMIT:                      10737418240 (limits.memory)
+      GOMAXPROCS:                      1 (limits.cpu)
+      LEADER_ELECTION_LEASE_DURATION:  4s
+      LEADER_ELECTION_RENEW_PERIOD:    3s
+      LEADER_ELECTION_RETRY_PERIOD:    1s
+      POD_NAMESPACE:                    (v1:metadata.namespace)
+      START_STATS_SERVER:              true
+      VALIDATION_MUST_START:           true
+      LOG_LEVEL:                       debug
+    Mounts:
+      /etc/gateway/validation-certs from validation-certs (rw)
+      /etc/gloo from labels-volume (ro)
+  Volumes:
+   labels-volume:
+    Type:  DownwardAPI (a volume populated by information about the pod)
+    Items:
+      metadata.labels -> labels
+   validation-certs:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  gateway-validation-certs
+    Optional:    false
+Events:          <none>
+
+
+Name:           cilium-operator-767587d447
+Namespace:      kube-system
+Selector:       io.cilium/app=operator,name=cilium-operator,pod-template-hash=767587d447
+Labels:         app.kubernetes.io/name=cilium-operator
+                app.kubernetes.io/part-of=cilium
+                io.cilium/app=operator
+                name=cilium-operator
+                pod-template-hash=767587d447
+Annotations:    deployment.kubernetes.io/desired-replicas: 1
+                deployment.kubernetes.io/max-replicas: 2
+                deployment.kubernetes.io/revision: 1
+                meta.helm.sh/release-name: cilium
+                meta.helm.sh/release-namespace: kube-system
+Controlled By:  Deployment/cilium-operator
+Replicas:       1 current / 1 desired
+Pods Status:    1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:           app.kubernetes.io/name=cilium-operator
+                    app.kubernetes.io/part-of=cilium
+                    io.cilium/app=operator
+                    name=cilium-operator
+                    pod-template-hash=767587d447
+  Annotations:      prometheus.io/port: 9963
+                    prometheus.io/scrape: true
+  Service Account:  cilium-operator
+  Containers:
+   cilium-operator:
+    Image:      quay.io/cilium/operator-generic:v1.15.5@sha256:f5d3d19754074ca052be6aac5d1ffb1de1eb5f2d947222b5f10f6d97ad4383e8
+    Port:       9963/TCP
+    Host Port:  9963/TCP
+    Command:
+      cilium-operator-generic
+    Args:
+      --config-dir=/tmp/cilium/config-map
+      --debug=$(CILIUM_DEBUG)
+    Liveness:   http-get http://127.0.0.1:9234/healthz delay=60s timeout=3s period=10s #success=1 #failure=3
+    Readiness:  http-get http://127.0.0.1:9234/healthz delay=0s timeout=3s period=5s #success=1 #failure=5
+    Environment:
+      K8S_NODE_NAME:          (v1:spec.nodeName)
+      CILIUM_K8S_NAMESPACE:   (v1:metadata.namespace)
+      CILIUM_DEBUG:          <set to the key 'debug' of config map 'cilium-config'>  Optional: true
+    Mounts:
+      /tmp/cilium/config-map from cilium-config-path (ro)
+  Volumes:
+   cilium-config-path:
+    Type:               ConfigMap (a volume populated by a ConfigMap)
+    Name:               cilium-config
+    Optional:           false
+  Priority Class Name:  system-cluster-critical
+Events:                 <none>
+
+
+Name:           coredns-6f6b679f8f
+Namespace:      kube-system
+Selector:       k8s-app=kube-dns,pod-template-hash=6f6b679f8f
+Labels:         k8s-app=kube-dns
+                pod-template-hash=6f6b679f8f
+Annotations:    deployment.kubernetes.io/desired-replicas: 2
+                deployment.kubernetes.io/max-replicas: 3
+                deployment.kubernetes.io/revision: 1
+Controlled By:  Deployment/coredns
+Replicas:       2 current / 2 desired
+Pods Status:    2 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:           k8s-app=kube-dns
+                    pod-template-hash=6f6b679f8f
+  Service Account:  coredns
+  Containers:
+   coredns:
+    Image:       registry.k8s.io/coredns/coredns:v1.11.1
+    Ports:       53/UDP, 53/TCP, 9153/TCP
+    Host Ports:  0/UDP, 0/TCP, 0/TCP
+    Args:
+      -conf
+      /etc/coredns/Corefile
+    Limits:
+      memory:  170Mi
+    Requests:
+      cpu:        100m
+      memory:     70Mi
+    Liveness:     http-get http://:8080/health delay=60s timeout=5s period=10s #success=1 #failure=5
+    Readiness:    http-get http://:8181/ready delay=0s timeout=1s period=10s #success=1 #failure=3
+    Environment:  <none>
+    Mounts:
+      /etc/coredns from config-volume (ro)
+  Volumes:
+   config-volume:
+    Type:               ConfigMap (a volume populated by a ConfigMap)
+    Name:               coredns
+    Optional:           false
+  Priority Class Name:  system-cluster-critical
+Events:                 <none>
+
+
+Name:           local-path-provisioner-57c5987fd4
+Namespace:      local-path-storage
+Selector:       app=local-path-provisioner,pod-template-hash=57c5987fd4
+Labels:         app=local-path-provisioner
+                pod-template-hash=57c5987fd4
+Annotations:    deployment.kubernetes.io/desired-replicas: 1
+                deployment.kubernetes.io/max-replicas: 2
+                deployment.kubernetes.io/revision: 1
+Controlled By:  Deployment/local-path-provisioner
+Replicas:       1 current / 1 desired
+Pods Status:    1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:           app=local-path-provisioner
+                    pod-template-hash=57c5987fd4
+  Service Account:  local-path-provisioner-service-account
+  Containers:
+   local-path-provisioner:
+    Image:      docker.io/kindest/local-path-provisioner:v20240813-c6f155d6
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      local-path-provisioner
+      --debug
+      start
+      --helper-image
+      docker.io/kindest/local-path-helper:v20230510-486859a6
+      --config
+      /etc/config/config.json
+    Environment:
+      POD_NAMESPACE:   (v1:metadata.namespace)
+    Mounts:
+      /etc/config/ from config-volume (rw)
+  Volumes:
+   config-volume:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      local-path-config
+    Optional:  false
+Events:        <none>
+
+NAMESPACE     NAME            ENDPOINTS                                                           AGE
+default       kubernetes      172.21.0.2:6443                                                     7d23h
+gloo-system   gateway-proxy   10.244.0.179:8443,10.244.0.179:8080                                 7d23h
+gloo-system   gloo            10.244.0.113:9977,10.244.0.113:8443,10.244.0.113:9966 + 3 more...   7d23h
+kube-system   hubble-peer     172.21.0.2:4244                                                     7d23h
+kube-system   kube-dns        10.244.0.48:53,10.244.0.63:53,10.244.0.48:53 + 3 more...            7d23h
+
+*** End Kube state ***

@@ -44,12 +44,12 @@ var _ = Describe("Debug", func() {
 			fmt.Println("ARIANA", time.Now(), "debug TEST: running debug")
 			err := testutils.Glooctl("debug")
 			Expect(err).NotTo(HaveOccurred())
-
-			fmt.Println("ARIANA", time.Now(), "debug TEST: getting kube state file")
-			kubeStateBytes, err := os.ReadFile(kubeStateFile(""))
-			Expect(err).NotTo(HaveOccurred(), kubeStateFile("")+" file should be present")
-			Expect(kubeStateBytes).NotTo(BeEmpty())
 		}, &timeout)
+
+		fmt.Println("ARIANA", time.Now(), "debug TEST: AFTER timeout")
+		kubeStateBytes, err := os.ReadFile(kubeStateFile(""))
+		Expect(err).NotTo(HaveOccurred(), kubeStateFile("")+" file should be present")
+		Expect(kubeStateBytes).NotTo(BeEmpty())
 	})
 
 	When("a directory is specified", func() {
@@ -69,17 +69,17 @@ var _ = Describe("Debug", func() {
 				fmt.Println("ARIANA", time.Now(), "custom-dir TEST: running debug")
 				err := testutils.Glooctl("debug --directory " + customDir)
 				Expect(err).NotTo(HaveOccurred())
-
-				fmt.Println("ARIANA", time.Now(), "custom-dir TEST: getting kube state file")
-				kubeStateBytes, err := os.ReadFile(kubeStateFile(customDir))
-				Expect(err).NotTo(HaveOccurred(), kubeStateFile(customDir)+" file should be present")
-				Expect(kubeStateBytes).NotTo(BeEmpty())
-
-				// default dir should not exist
-				_, err = os.ReadDir(defaultOutDir)
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(os.ErrNotExist))
 			}, &timeout)
+
+			fmt.Println("ARIANA", time.Now(), "custom-dir TEST: AFTER timeout")
+			kubeStateBytes, err := os.ReadFile(kubeStateFile(customDir))
+			Expect(err).NotTo(HaveOccurred(), kubeStateFile(customDir)+" file should be present")
+			Expect(kubeStateBytes).NotTo(BeEmpty())
+
+			// default dir should not exist
+			_, err = os.ReadDir(defaultOutDir)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(os.ErrNotExist))
 		})
 	})
 
@@ -89,14 +89,16 @@ var _ = Describe("Debug", func() {
 			c.SendLine("N")
 			c.ExpectEOF()
 		}, func() {
+			fmt.Println("ARIANA", time.Now(), "N-debug TEST: running debug")
 			err := testutils.Glooctl("debug")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Aborting: cannot proceed without overwriting \"" + defaultOutDir + "\" directory"))
-
-			_, err = os.ReadDir(defaultOutDir)
-			Expect(err).To(HaveOccurred())
-			Expect(err).To(MatchError(os.ErrNotExist))
 		}, nil)
+
+		fmt.Println("ARIANA", time.Now(), "N-debug TEST: AFTER timeout")
+		_, err := os.ReadDir(defaultOutDir)
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError(os.ErrNotExist))
 	})
 
 })

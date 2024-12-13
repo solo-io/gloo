@@ -1,0 +1,27 @@
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"gateway.solo.io/v1","kind":"Gateway","metadata":{"annotations":{},"labels":{"app":"gloo"},"name":"gateway-proxy-ssl","namespace":"gloo-system"},"spec":{"bindAddress":"::","bindPort":8443,"httpGateway":{},"proxyNames":["gateway-proxy"],"ssl":true,"useProxyProto":false}}
+  creationTimestamp: "2024-12-05T21:38:38Z"
+  generation: 2
+  labels:
+    app: gloo
+  name: gateway-proxy-ssl
+  namespace: gloo-system
+  resourceVersion: "2614"
+  uid: 9cbaaa2e-63b7-4eb2-948a-2280f15c8de0
+spec:
+  bindAddress: '::'
+  bindPort: 8443
+  httpGateway: {}
+  proxyNames:
+  - gateway-proxy
+  ssl: true
+  useProxyProto: false
+status:
+  statuses:
+    gloo-system:
+      reportedBy: gloo
+      state: Accepted

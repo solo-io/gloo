@@ -1,0 +1,217 @@
+Defaulting debug container name to debugger-bhf5t.
+# HELP api_gloosnapshot_gloo_solo_io_emitter_resources_in The number of resource lists received on open watch channels
+# TYPE api_gloosnapshot_gloo_solo_io_emitter_resources_in counter
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="artifact"} 2737
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="auth_config"} 1
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="endpoint"} 18126
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="gateway"} 7
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="graph_ql_api"} 1
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="matchable_http_gateway"} 1
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="matchable_tcp_gateway"} 1
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="proxy"} 3007
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="rate_limit_config"} 1
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="route_option"} 1
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="route_table"} 1
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="secret"} 1
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="upstream"} 1
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="upstream_group"} 1
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="virtual_host_option"} 1
+api_gloosnapshot_gloo_solo_io_emitter_resources_in{namespace="",resource="virtual_service"} 2
+# HELP api_gloosnapshot_gloo_solo_io_emitter_snap_in Deprecated. Use api.gloosnapshot.gloo.solo.io/emitter/resources_in. The number of snapshots updates coming in.
+# TYPE api_gloosnapshot_gloo_solo_io_emitter_snap_in counter
+api_gloosnapshot_gloo_solo_io_emitter_snap_in 23890
+# HELP api_gloosnapshot_gloo_solo_io_emitter_snap_out The number of snapshots updates going out
+# TYPE api_gloosnapshot_gloo_solo_io_emitter_snap_out counter
+api_gloosnapshot_gloo_solo_io_emitter_snap_out 4
+# HELP api_gloosnapshot_gloo_solo_io_sync_time_sec The time taken for a given sync
+# TYPE api_gloosnapshot_gloo_solo_io_sync_time_sec histogram
+api_gloosnapshot_gloo_solo_io_sync_time_sec_bucket{syncer_name="gloosnapshot.ApiSyncers",le="0.01"} 1
+api_gloosnapshot_gloo_solo_io_sync_time_sec_bucket{syncer_name="gloosnapshot.ApiSyncers",le="0.05"} 5
+api_gloosnapshot_gloo_solo_io_sync_time_sec_bucket{syncer_name="gloosnapshot.ApiSyncers",le="0.1"} 5
+api_gloosnapshot_gloo_solo_io_sync_time_sec_bucket{syncer_name="gloosnapshot.ApiSyncers",le="0.25"} 5
+api_gloosnapshot_gloo_solo_io_sync_time_sec_bucket{syncer_name="gloosnapshot.ApiSyncers",le="0.5"} 5
+api_gloosnapshot_gloo_solo_io_sync_time_sec_bucket{syncer_name="gloosnapshot.ApiSyncers",le="1"} 5
+api_gloosnapshot_gloo_solo_io_sync_time_sec_bucket{syncer_name="gloosnapshot.ApiSyncers",le="5"} 5
+api_gloosnapshot_gloo_solo_io_sync_time_sec_bucket{syncer_name="gloosnapshot.ApiSyncers",le="10"} 5
+api_gloosnapshot_gloo_solo_io_sync_time_sec_bucket{syncer_name="gloosnapshot.ApiSyncers",le="60"} 5
+api_gloosnapshot_gloo_solo_io_sync_time_sec_bucket{syncer_name="gloosnapshot.ApiSyncers",le="+Inf"} 5
+api_gloosnapshot_gloo_solo_io_sync_time_sec_sum{syncer_name="gloosnapshot.ApiSyncers"} 0.101019292
+api_gloosnapshot_gloo_solo_io_sync_time_sec_count{syncer_name="gloosnapshot.ApiSyncers"} 5
+# HELP eds_gloo_solo_io_emitter_resources_in The number of resource lists received on open watch channels
+# TYPE eds_gloo_solo_io_emitter_resources_in counter
+eds_gloo_solo_io_emitter_resources_in{namespace="",resource="upstream"} 1
+# HELP eds_gloo_solo_io_emitter_snap_in Deprecated. Use eds.gloo.solo.io/emitter/resources_in. The number of snapshots updates coming in.
+# TYPE eds_gloo_solo_io_emitter_snap_in counter
+eds_gloo_solo_io_emitter_snap_in 1
+# HELP eds_gloo_solo_io_sync_time_sec The time taken for a given sync
+# TYPE eds_gloo_solo_io_sync_time_sec histogram
+eds_gloo_solo_io_sync_time_sec_bucket{syncer_name="*discovery.syncer",le="0.01"} 0
+eds_gloo_solo_io_sync_time_sec_bucket{syncer_name="*discovery.syncer",le="0.05"} 0
+eds_gloo_solo_io_sync_time_sec_bucket{syncer_name="*discovery.syncer",le="0.1"} 0
+eds_gloo_solo_io_sync_time_sec_bucket{syncer_name="*discovery.syncer",le="0.25"} 1
+eds_gloo_solo_io_sync_time_sec_bucket{syncer_name="*discovery.syncer",le="0.5"} 1
+eds_gloo_solo_io_sync_time_sec_bucket{syncer_name="*discovery.syncer",le="1"} 1
+eds_gloo_solo_io_sync_time_sec_bucket{syncer_name="*discovery.syncer",le="5"} 1
+eds_gloo_solo_io_sync_time_sec_bucket{syncer_name="*discovery.syncer",le="10"} 1
+eds_gloo_solo_io_sync_time_sec_bucket{syncer_name="*discovery.syncer",le="60"} 1
+eds_gloo_solo_io_sync_time_sec_bucket{syncer_name="*discovery.syncer",le="+Inf"} 1
+eds_gloo_solo_io_sync_time_sec_sum{syncer_name="*discovery.syncer"} 0.104649542
+eds_gloo_solo_io_sync_time_sec_count{syncer_name="*discovery.syncer"} 1
+# HELP gloo_edge_translation_time_sec how long the translator takes in seconds
+# TYPE gloo_edge_translation_time_sec histogram
+gloo_edge_translation_time_sec_bucket{translator_name="EdgeSnapshotTranslator",le="0.01"} 0
+gloo_edge_translation_time_sec_bucket{translator_name="EdgeSnapshotTranslator",le="0.05"} 1
+gloo_edge_translation_time_sec_bucket{translator_name="EdgeSnapshotTranslator",le="0.1"} 1
+gloo_edge_translation_time_sec_bucket{translator_name="EdgeSnapshotTranslator",le="0.25"} 1
+gloo_edge_translation_time_sec_bucket{translator_name="EdgeSnapshotTranslator",le="0.5"} 1
+gloo_edge_translation_time_sec_bucket{translator_name="EdgeSnapshotTranslator",le="1"} 1
+gloo_edge_translation_time_sec_bucket{translator_name="EdgeSnapshotTranslator",le="5"} 1
+gloo_edge_translation_time_sec_bucket{translator_name="EdgeSnapshotTranslator",le="10"} 1
+gloo_edge_translation_time_sec_bucket{translator_name="EdgeSnapshotTranslator",le="60"} 1
+gloo_edge_translation_time_sec_bucket{translator_name="EdgeSnapshotTranslator",le="+Inf"} 1
+gloo_edge_translation_time_sec_sum{translator_name="EdgeSnapshotTranslator"} 0.028570625
+gloo_edge_translation_time_sec_count{translator_name="EdgeSnapshotTranslator"} 1
+gloo_edge_translation_time_sec_bucket{translator_name="EnvoySyncer",le="0.01"} 5
+gloo_edge_translation_time_sec_bucket{translator_name="EnvoySyncer",le="0.05"} 5
+gloo_edge_translation_time_sec_bucket{translator_name="EnvoySyncer",le="0.1"} 5
+gloo_edge_translation_time_sec_bucket{translator_name="EnvoySyncer",le="0.25"} 5
+gloo_edge_translation_time_sec_bucket{translator_name="EnvoySyncer",le="0.5"} 5
+gloo_edge_translation_time_sec_bucket{translator_name="EnvoySyncer",le="1"} 5
+gloo_edge_translation_time_sec_bucket{translator_name="EnvoySyncer",le="5"} 5
+gloo_edge_translation_time_sec_bucket{translator_name="EnvoySyncer",le="10"} 5
+gloo_edge_translation_time_sec_bucket{translator_name="EnvoySyncer",le="60"} 5
+gloo_edge_translation_time_sec_bucket{translator_name="EnvoySyncer",le="+Inf"} 5
+gloo_edge_translation_time_sec_sum{translator_name="EnvoySyncer"} 0.019579459
+gloo_edge_translation_time_sec_count{translator_name="EnvoySyncer"} 5
+# HELP gloo_solo_io_namespaces_watched The number of namespaces watched by the gloo controller
+# TYPE gloo_solo_io_namespaces_watched gauge
+gloo_solo_io_namespaces_watched 0
+# HELP gloo_solo_io_sanitizer_routes_replaced The number routes replaced in the sanitized xds snapshot
+# TYPE gloo_solo_io_sanitizer_routes_replaced gauge
+gloo_solo_io_sanitizer_routes_replaced{proxy_name="",route_config_name="listener-::-8080-routes"} 0
+# HELP gloo_solo_io_setups_run The number of times the main setup loop has run
+# TYPE gloo_solo_io_setups_run counter
+gloo_solo_io_setups_run 1
+# HELP kube_events_count The number of events sent from kuberenets to us
+# TYPE kube_events_count counter
+kube_events_count 19
+# HELP kube_lists_count The number of list calls
+# TYPE kube_lists_count counter
+kube_lists_count{kind="ConfigMap",ns="<all>"} 2
+kube_lists_count{kind="Namespaces",ns="<all>"} 2
+kube_lists_count{kind="Pods",ns="<all>"} 2
+kube_lists_count{kind="Secrets",ns="<all>"} 2
+kube_lists_count{kind="Services",ns="<all>"} 2
+kube_lists_count{kind="v1AuthConfig",ns="<all>"} 1
+kube_lists_count{kind="v1Gateway",ns="<all>"} 2
+kube_lists_count{kind="v1MatchableHttpGateway",ns="<all>"} 2
+kube_lists_count{kind="v1MatchableTcpGateway",ns="<all>"} 1
+kube_lists_count{kind="v1Proxy",ns="<all>"} 1
+kube_lists_count{kind="v1RouteOption",ns="<all>"} 1
+kube_lists_count{kind="v1RouteTable",ns="<all>"} 1
+kube_lists_count{kind="v1Settings",ns="gloo-system"} 1
+kube_lists_count{kind="v1Upstream",ns="<all>"} 1
+kube_lists_count{kind="v1UpstreamGroup",ns="<all>"} 1
+kube_lists_count{kind="v1VirtualHostOption",ns="<all>"} 1
+kube_lists_count{kind="v1VirtualService",ns="<all>"} 1
+kube_lists_count{kind="v1alpha1RateLimitConfig",ns="<all>"} 1
+kube_lists_count{kind="v1beta1GraphQLApi",ns="<all>"} 1
+# HELP kube_req_in_flight The number of requests in flight
+# TYPE kube_req_in_flight counter
+kube_req_in_flight{kind="ConfigMap",op="list"} 0
+kube_req_in_flight{kind="ConfigMap",op="watch"} 0
+kube_req_in_flight{kind="Namespaces",op="list"} 0
+kube_req_in_flight{kind="Namespaces",op="watch"} 0
+kube_req_in_flight{kind="Pods",op="list"} 0
+kube_req_in_flight{kind="Pods",op="watch"} 0
+kube_req_in_flight{kind="Secrets",op="list"} 0
+kube_req_in_flight{kind="Secrets",op="watch"} 0
+kube_req_in_flight{kind="Services",op="list"} 0
+kube_req_in_flight{kind="Services",op="watch"} 0
+kube_req_in_flight{kind="v1AuthConfig",op="list"} 0
+kube_req_in_flight{kind="v1AuthConfig",op="watch"} 0
+kube_req_in_flight{kind="v1Gateway",op="list"} 0
+kube_req_in_flight{kind="v1Gateway",op="patch"} 0
+kube_req_in_flight{kind="v1Gateway",op="watch"} 0
+kube_req_in_flight{kind="v1MatchableHttpGateway",op="list"} 0
+kube_req_in_flight{kind="v1MatchableHttpGateway",op="watch"} 0
+kube_req_in_flight{kind="v1MatchableTcpGateway",op="list"} 0
+kube_req_in_flight{kind="v1MatchableTcpGateway",op="watch"} 0
+kube_req_in_flight{kind="v1Proxy",op="list"} 0
+kube_req_in_flight{kind="v1Proxy",op="watch"} 0
+kube_req_in_flight{kind="v1RouteOption",op="list"} 0
+kube_req_in_flight{kind="v1RouteOption",op="watch"} 0
+kube_req_in_flight{kind="v1RouteTable",op="list"} 0
+kube_req_in_flight{kind="v1RouteTable",op="watch"} 0
+kube_req_in_flight{kind="v1Settings",op="list"} 0
+kube_req_in_flight{kind="v1Settings",op="watch"} 0
+kube_req_in_flight{kind="v1Upstream",op="list"} 0
+kube_req_in_flight{kind="v1Upstream",op="watch"} 0
+kube_req_in_flight{kind="v1UpstreamGroup",op="list"} 0
+kube_req_in_flight{kind="v1UpstreamGroup",op="watch"} 0
+kube_req_in_flight{kind="v1VirtualHostOption",op="list"} 0
+kube_req_in_flight{kind="v1VirtualHostOption",op="watch"} 0
+kube_req_in_flight{kind="v1VirtualService",op="list"} 0
+kube_req_in_flight{kind="v1VirtualService",op="watch"} 0
+kube_req_in_flight{kind="v1alpha1RateLimitConfig",op="list"} 0
+kube_req_in_flight{kind="v1alpha1RateLimitConfig",op="watch"} 0
+kube_req_in_flight{kind="v1beta1GraphQLApi",op="list"} 0
+kube_req_in_flight{kind="v1beta1GraphQLApi",op="watch"} 0
+# HELP kube_watches_count The number of watch calls
+# TYPE kube_watches_count counter
+kube_watches_count{kind="ConfigMap",ns="<all>"} 804
+kube_watches_count{kind="Namespaces",ns="<all>"} 809
+kube_watches_count{kind="Pods",ns="<all>"} 794
+kube_watches_count{kind="Secrets",ns="<all>"} 812
+kube_watches_count{kind="Services",ns="<all>"} 808
+kube_watches_count{kind="v1AuthConfig",ns="<all>"} 403
+kube_watches_count{kind="v1Gateway",ns="<all>"} 405
+kube_watches_count{kind="v1MatchableHttpGateway",ns="<all>"} 405
+kube_watches_count{kind="v1MatchableTcpGateway",ns="<all>"} 399
+kube_watches_count{kind="v1Proxy",ns="<all>"} 395
+kube_watches_count{kind="v1RouteOption",ns="<all>"} 400
+kube_watches_count{kind="v1RouteTable",ns="<all>"} 394
+kube_watches_count{kind="v1Settings",ns="gloo-system"} 399
+kube_watches_count{kind="v1Upstream",ns="<all>"} 400
+kube_watches_count{kind="v1UpstreamGroup",ns="<all>"} 408
+kube_watches_count{kind="v1VirtualHostOption",ns="<all>"} 405
+kube_watches_count{kind="v1VirtualService",ns="<all>"} 407
+kube_watches_count{kind="v1alpha1RateLimitConfig",ns="<all>"} 401
+kube_watches_count{kind="v1beta1GraphQLApi",ns="<all>"} 403
+# HELP runtime_goroutines The number of goroutines
+# TYPE runtime_goroutines counter
+runtime_goroutines 375
+# HELP setup_gloo_solo_io_emitter_resources_in The number of resource lists received on open watch channels
+# TYPE setup_gloo_solo_io_emitter_resources_in counter
+setup_gloo_solo_io_emitter_resources_in{namespace="<all>",resource="kube_namespace"} 157
+setup_gloo_solo_io_emitter_resources_in{namespace="gloo-system",resource="settings"} 6
+# HELP setup_gloo_solo_io_emitter_snap_in Deprecated. Use setup.gloo.solo.io/emitter/resources_in. The number of snapshots updates coming in.
+# TYPE setup_gloo_solo_io_emitter_snap_in counter
+setup_gloo_solo_io_emitter_snap_in 163
+# HELP setup_gloo_solo_io_sync_time_sec The time taken for a given sync
+# TYPE setup_gloo_solo_io_sync_time_sec histogram
+setup_gloo_solo_io_sync_time_sec_bucket{syncer_name="*setuputils.SetupSyncer",le="0.01"} 0
+setup_gloo_solo_io_sync_time_sec_bucket{syncer_name="*setuputils.SetupSyncer",le="0.05"} 0
+setup_gloo_solo_io_sync_time_sec_bucket{syncer_name="*setuputils.SetupSyncer",le="0.1"} 0
+setup_gloo_solo_io_sync_time_sec_bucket{syncer_name="*setuputils.SetupSyncer",le="0.25"} 0
+setup_gloo_solo_io_sync_time_sec_bucket{syncer_name="*setuputils.SetupSyncer",le="0.5"} 0
+setup_gloo_solo_io_sync_time_sec_bucket{syncer_name="*setuputils.SetupSyncer",le="1"} 0
+setup_gloo_solo_io_sync_time_sec_bucket{syncer_name="*setuputils.SetupSyncer",le="5"} 1
+setup_gloo_solo_io_sync_time_sec_bucket{syncer_name="*setuputils.SetupSyncer",le="10"} 1
+setup_gloo_solo_io_sync_time_sec_bucket{syncer_name="*setuputils.SetupSyncer",le="60"} 1
+setup_gloo_solo_io_sync_time_sec_bucket{syncer_name="*setuputils.SetupSyncer",le="+Inf"} 1
+setup_gloo_solo_io_sync_time_sec_sum{syncer_name="*setuputils.SetupSyncer"} 4.169396668
+setup_gloo_solo_io_sync_time_sec_count{syncer_name="*setuputils.SetupSyncer"} 1
+# HELP validation_gateway_solo_io_certificate_reload_success Number of successful certificate reloads
+# TYPE validation_gateway_solo_io_certificate_reload_success counter
+validation_gateway_solo_io_certificate_reload_success 1
+# HELP validation_gateway_solo_io_resources_accepted The number of resources accepted
+# TYPE validation_gateway_solo_io_resources_accepted counter
+validation_gateway_solo_io_resources_accepted 9
+# HELP validation_gateway_solo_io_valid_config A boolean that indicates whether the Gloo configuration is valid. However, its behavior changes depending upon the validation configuration. Configuration status metrics provide a better solution: https://docs.solo.io/gloo-edge/latest/guides/traffic_management/configuration_validation/
+# TYPE validation_gateway_solo_io_valid_config gauge
+validation_gateway_solo_io_valid_config 1
+# HELP xds_responses The times gloo responded to xds request
+# TYPE xds_responses counter
+xds_responses{type="type.googleapis.com/envoy.config.cluster.v3.Cluster"} 1
+xds_responses{type="type.googleapis.com/envoy.config.listener.v3.Listener"} 1
