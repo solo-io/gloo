@@ -63,7 +63,7 @@ Configure the validating admission webhook to reject invalid Gloo custom resourc
       You can also use the validating admission webhook by running the <code>kubectl apply --dry-run=server</code> command to test your Gloo configuration before you apply it to your cluster. For more information, see <a href="#test-resource-configurations">Test resource configurations</a>. 
       {{< /notice >}}
       
-## Enable full Envoy validation (beta)
+## Enable full Envoy validation (beta) {#envoy-validation}
 
 In addition to strict resource validation, you can enable full Envoy validation in your Gloo Gateway setup. The full Envoy validation adds another validation layer to the validation webhook by converting the translated xDS snapshot into static bootstrap configuration that can be fed into Envoy. This way, you can validate configuration that is typically accepted by Gloo Gateway, but later rejected by Envoy. For example, you might have a transformation policy in your VirtualService that uses an invalid Inja template. Gloo Gateway cannot validate the Inja template and therefore accepts the configuration. However, with the full Envoy validation enabled, this configuration is checked against Envoy and rejected if Envoy detects invalid configuration. 
 
