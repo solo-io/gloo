@@ -19,6 +19,7 @@ For more information about how resource configuration validation works in Gloo G
 
 Configure the validating admission webhook to reject invalid Gloo custom resources before they are applied in the cluster. 
 
+
 1. Enable strict resource validation by updating your Gloo Gateway installation and set the following Helm values.
    ```bash
    --set gateway.validation.alwaysAcceptResources=false
@@ -61,7 +62,170 @@ Configure the validating admission webhook to reject invalid Gloo custom resourc
       {{< notice tip >}}
       You can also use the validating admission webhook by running the <code>kubectl apply --dry-run=server</code> command to test your Gloo configuration before you apply it to your cluster. For more information, see <a href="#test-resource-configurations">Test resource configurations</a>. 
       {{< /notice >}}
+      
+## Enable full Envoy validation (beta) {#envoy-validation}
 
+In addition to strict resource validation, you can enable full Envoy validation in your Gloo Gateway setup. The full Envoy validation adds another validation layer to the validation webhook by converting the translated xDS snapshot into static bootstrap configuration that can be fed into Envoy. This way, you can validate configuration that is typically accepted by Gloo Gateway, but later rejected by Envoy. For example, you might have a transformation policy in your VirtualService that uses an invalid Inja template. Gloo Gateway cannot validate the Inja template and therefore accepts the configuration. However, with the full Envoy validation enabled, this configuration is checked against Envoy and rejected if Envoy detects invalid configuration. 
+
+{{% notice note %}}
+The full Envoy validation is a beta feature. 
+{{% /notice %}}
+{{% notice warning %}}
+Enabling full Envoy validation is a resource-intensive operation that can have a negative performance impact on your environment, especially if the environment has a lot of resources. 
+{{% /notice %}}
+
+1. Follow the [Hello World guide]({{% versioned_link_path fromRoot="/guides/traffic_management/hello_world/" %}}) to set up the hello world app and expose it with a VirtualService.
+2. Edit the Settings to enable strict resource validation without the full Envoy validation. Make sure to also set `disableTransformationValidation: true` to disable the transformation validation. To persist this setting between Gloo Gateway upgrades, add this setting to your Helm values file instead. 
+   ```sh
+   kubectl edit settings default -n gloo-system
+   ```
+   
+   Enter the following values: 
+   ```yaml
+   ...
+   spec:
+     gateway:
+       validation:
+         allowWarnings: false
+         alwaysAccept: false
+         disableTransformationValidation: true
+         fullEnvoyValidation: false
+   ...
+   ```
+   
+3. Add a transformation policy to the hello world VirtualService that uses an invalid Inja template. The following example does not close the else statement. Verify that this configuration is accepted by Gloo Gateway. 
+   {{< highlight yaml "hl_lines=23" >}}
+kubectl apply -f- <<EOF
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: default
+  namespace: gloo-system
+spec:
+  virtualHost:
+    domains:
+    - '*'
+    routes:
+    - matchers:
+      - exact: /all-pets
+      options:
+        prefixRewrite: /api/pets
+        stagedTransformations:
+          regular: 
+            responseTransforms: 
+            - responseTransformation: 
+                transformationTemplate: 
+                  headers: 
+                    test_header: 
+                      text: '{% if default(data.error.message, "") != %}400{% else '
+      routeAction:
+        single:
+          upstream:
+            name: default-petstore-8080
+            namespace: gloo-system
+EOF
+   {{< /highlight >}}
+   
+4. Review the logs of the `gateway-proxy` pod. Verify that although Gloo Gateway accepted the configuration, a warning regarding the malformatted Inja template is reported by Envoy. 
+   ```sh
+   kubectl logs -f -n gloo-system -l gateway-proxy
+   ```
+   
+   Example output: 
+   ```
+   [2024-12-13 18:43:12.090][1][warning][config] [external/envoy/source/extensions/config_subscription/grpc/grpc_subscription_impl.cc:138] gRPC config for type.googleapis.com/envoy.config.route.v3.RouteConfiguration rejected: Failed to parse response template on response matcher: Failed to parse header template 'test_header': [inja.exception.parser_error] (at 1:42) too few arguments
+   ```
+   
+5. Restore the old VirtualService again. 
+   ```yaml
+   kubectl apply -f- <<EOF                                      
+   apiVersion: gateway.solo.io/v1
+   kind: VirtualService
+   metadata:
+     name: default
+     namespace: gloo-system
+   spec:
+     virtualHost:
+       domains:
+       - '*'
+       routes:
+       - matchers:
+         - exact: /all-pets
+         options:
+           prefixRewrite: /api/pets
+         routeAction:            
+           single:   
+             upstream:            
+               name: default-petstore-8080
+               namespace: gloo-system   
+   EOF  
+   ```    
+
+5. Edit the Settings resource to enable full Envoy validation. Note that you can leave `disableTransformationValidation: true`, because the transformation validation is included in the full Envoy validation. 
+   ```sh
+   kubectl edit settings default -n gloo-system
+   ```
+   
+   Enter the following values: 
+   ```yaml
+   ...
+   spec:
+     gateway:
+       validation:
+         allowWarnings: false
+         alwaysAccept: false
+         disableTransformationValidation: true
+         fullEnvoyValidation: true
+   ...
+   ```
+   
+6. Try to apply the invalid VirtualService again. Verify that the resource is now rejected and the Envoy error about the invalid Inja template is surfaced to you. 
+   {{< highlight yaml "hl_lines=23" >}}
+kubectl apply -f- <<EOF
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: default
+  namespace: gloo-system
+spec:
+  virtualHost:
+    domains:
+    - '*'
+    routes:
+    - matchers:
+      - exact: /all-pets
+      options:
+        prefixRewrite: /api/pets
+        stagedTransformations:
+          regular: 
+            responseTransforms: 
+            - responseTransformation: 
+                transformationTemplate: 
+                  headers: 
+                    test_header: 
+                      text: '{% if default(data.error.message, "") != %}400{% else '
+      routeAction:
+        single:
+          upstream:
+            name: default-petstore-8080
+            namespace: gloo-system
+EOF
+   {{< /highlight >}}
+   
+   Example output: 
+   ```
+   Error from server: error when applying patch:
+   {"metadata":{"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"gateway.solo.io/v1\",\"kind\":\"VirtualService\",\"metadata\":{\"annotations\":{},\"name\":\"default\",\"namespace\":\"gloo-system\"},\"spec\":{\"virtualHost\":{\"domains\":[\"*\"],\"routes\":[{\"matchers\":[{\"exact\":\"/all-pets\"}],\"options\":{\"prefixRewrite\":\"/api/pets\",\"stagedTransformations\":{\"regular\":{\"responseTransforms\":[{\"responseTransformation\":{\"transformationTemplate\":{\"headers\":{\"test_header\":{\"text\":\"{% if default(data.error.message, \\\"\\\") != %}400{% else \"}}}}}]}}},\"routeAction\":{\"single\":{\"upstream\":{\"name\":\"default-petstore-8080\",\"namespace\":\"gloo-system\"}}}}]}}}\n"}},"spec":{"virtualHost":{"routes":[{"matchers":[{"exact":"/all-pets"}],"options":{"prefixRewrite":"/api/pets","stagedTransformations":{"regular":{"responseTransforms":[{"responseTransformation":{"transformationTemplate":{"headers":{"test_header":{"text":"{% if default(data.error.message, \"\") != %}400{% else "}}}}}]}}},"routeAction":{"single":{"upstream":{"name":"default-petstore-8080","namespace":"gloo-system"}}}}]}}}
+   to:
+   Resource: "gateway.solo.io/v1, Resource=virtualservices", GroupVersionKind: "gateway.solo.io/v1, Kind=VirtualService"
+   Name: "default", Namespace: "gloo-system"
+   for: "STDIN": error when patching "STDIN": admission webhook "gloo.gloo-system.svc" denied the request: resource incompatible with current Gloo snapshot: [Validating *v1.VirtualService failed: 1 error occurred:
+	   * Validating *v1.VirtualService failed: validating *v1.VirtualService name:"default"  namespace:"gloo-system": 1 error occurred:
+	   * failed gloo validation resource reports: 2 errors occurred:
+	   * invalid resource gloo-system.gateway-proxy
+	   * envoy validation mode output: error initializing configuration '/dev/fd/0': Failed to parse response template on response matcher: Failed to parse header template 'test_header': [inja.exception.parser_error] (at 1:42) too few arguments
+   , error: command ""/usr/local/bin/envoy" "--mode" "validate" "--config-path" "/dev/fd/0" "-l" "critical" "--log-format" "%v"" failed with error: exit status 1
+   ```
 
 ## View the current validating admission webhook configuration
 
