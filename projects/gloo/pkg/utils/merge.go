@@ -21,7 +21,7 @@ const (
 	// OptionsMergedPartial indicates that some but not all fields were merged from src to dst.
 	OptionsMergedPartial
 
-	// OptionsMergedFull indicates that all fields were merged from src to dst.
+	// OptionsMergedFull indicates that all fields set in dst were overwritten by src.
 	OptionsMergedFull
 )
 

@@ -103,33 +103,7 @@ func (p *plugin) ApplyRoutePlugin(
 		return nil
 	}
 
-	// By default, lower priority options cannot override higher priority ones
-	// and can only augment them during a merge such that fields unset in the higher
-	// priority options can be merged in from the lower priority options.
-	// In the case of delegated routes, a parent route can enable child routes to override
-	// all (wildcard *) or specific fields using the policyOverrideAnnotation.
-	fieldsAllowedToOverride := sets.New[string]()
-
-	// If the route already has options set, we should override/augment them.
-	// This is important because for delegated routes, the plugin will
-	// be invoked on the child routes multiple times for each parent route
-	// that may override/augment them.
-	//
-	// By default, parent options (routeOptions) are preferred, unless the parent explicitly
-	// enabled child routes (outputRoute.Options) to override parent options.
-	fieldsStr, delegatedPolicyOverride := routeCtx.HTTPRoute.Annotations[policyOverrideAnnotation]
-	if delegatedPolicyOverride {
-		delegatedFieldsToOverride := parseDelegationFieldOverrides(fieldsStr)
-		if delegatedFieldsToOverride.Len() == 0 {
-			// Invalid annotation value, so log an error but enforce the default behavior of preferring the parent options.
-			contextutils.LoggerFrom(ctx).Errorf("invalid value %q for annotation %s on route %s; must be %s or a comma-separated list of field names",
-				fieldsStr, policyOverrideAnnotation, client.ObjectKeyFromObject(routeCtx.HTTPRoute), wildcardField)
-		} else {
-			fieldsAllowedToOverride = delegatedFieldsToOverride
-		}
-	}
-
-	merged, OptionsMergeResult := glooutils.MergeRouteOptionsWithOverrides(routeOptions, outputRoute.GetOptions(), fieldsAllowedToOverride)
+	merged, OptionsMergeResult := mergeOptionsForRoute(ctx, routeCtx.HTTPRoute, routeOptions, outputRoute.GetOptions())
 	if OptionsMergeResult == glooutils.OptionsMergedNone {
 		// No existing options merged into 'sources', so set the 'sources' on the outputRoute
 		routeutils.SetRouteSources(outputRoute, sources)
@@ -146,6 +120,40 @@ func (p *plugin) ApplyRoutePlugin(
 	p.trackAcceptedRouteOptions(outputRoute.GetMetadataStatic().GetSources())
 
 	return nil
+}
+
+func mergeOptionsForRoute(
+	ctx context.Context,
+	route *gwv1.HTTPRoute,
+	dst, src *gloov1.RouteOptions,
+) (*gloov1.RouteOptions, glooutils.OptionsMergeResult) {
+	// By default, lower priority options cannot override higher priority ones
+	// and can only augment them during a merge such that fields unset in the higher
+	// priority options can be merged in from the lower priority options.
+	// In the case of delegated routes, a parent route can enable child routes to override
+	// all (wildcard *) or specific fields using the policyOverrideAnnotation.
+	fieldsAllowedToOverride := sets.New[string]()
+
+	// If the route already has options set, we should override/augment them.
+	// This is important because for delegated routes, the plugin will
+	// be invoked on the child routes multiple times for each parent route
+	// that may override/augment them.
+	//
+	// By default, parent options (routeOptions) are preferred, unless the parent explicitly
+	// enabled child routes (outputRoute.Options) to override parent options.
+	fieldsStr, delegatedPolicyOverride := route.Annotations[policyOverrideAnnotation]
+	if delegatedPolicyOverride {
+		delegatedFieldsToOverride := parseDelegationFieldOverrides(fieldsStr)
+		if delegatedFieldsToOverride.Len() == 0 {
+			// Invalid annotation value, so log an error but enforce the default behavior of preferring the parent options.
+			contextutils.LoggerFrom(ctx).Errorf("invalid value %q for annotation %s on route %s; must be %s or a comma-separated list of field names",
+				fieldsStr, policyOverrideAnnotation, client.ObjectKeyFromObject(route), wildcardField)
+		} else {
+			fieldsAllowedToOverride = delegatedFieldsToOverride
+		}
+	}
+
+	return glooutils.MergeRouteOptionsWithOverrides(dst, src, fieldsAllowedToOverride)
 }
 
 func (p *plugin) InitStatusPlugin(ctx context.Context, statusCtx *plugins.StatusContext) error {
