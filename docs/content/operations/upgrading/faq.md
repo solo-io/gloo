@@ -65,6 +65,13 @@ The Envoy dependency in Gloo Gateway 1.18 was upgraded from 1.29.x to 1.31.x. Th
 * **HTTP/2**: HTTP/2 colon prefixed headers are now sanitized by Envoy. Previously, sanitation was performed by the `nghttp2` library, which caused pseudo headers with upper case letters to fail validation. Now, these pseudo headers pass validation. You can temporarily revert this change by setting the runtime guard `envoy.reloadable_features.sanitize_http2_headers_without_nghttp2` to `false`. 
 * **Local ratelimit**: The token bucket implementation changed. Previously, a timer-based token bucket was used to assign tokens to connections. In Envoy 1.31.x, the new AtomicToken bucket is used that is no longer timer-based. Tokens are now automatically refilled when the token bucket is accessed. Because of this change, the `x-ratelimit-reset` header is no longer sent. You can temporarily revert this change by setting the runtime guard `envoy.reloadable_features.no_timer_based_rate_limit_token_bucket` to `false`.
 
+
+<!-- ggv2-related changes:
+ggv2 - Disable Istio Envoy proxy from running by default and only rely on proxyless Istio agent mtls integration. Note: Although this is a change to the default behavior of the istio integration, this should not have any impact on most users as the sidecar proxy was unused in the data path. (https://github.com/solo-io/solo-projects/issues/5711)
+
+ggv2 - glooctl get proxy will not work if you have persisted Proxy CRs in etcD and you are querying and older server version (1.16 and below). In general, we recommend that you keep your client and server versions in sync. You can verify the client/server versions you are currently running by calling glooctl version. (https://github.com/solo-io/gloo/pull/9226)
+-->
+
 ### Changelogs
 
 Check the changelogs for the type of Gloo Gateway deployment that you have. Focus especially on any **Breaking Changes** that might require a different upgrade procedure. For Gloo Gateway Enterprise, you might also review the open source changelogs because most of the proto definitions are open source.
@@ -136,6 +143,12 @@ For more information, see [Front channel logout]({{% versioned_link_path fromRoo
 #### Apply JWT policy at the route-level
 
 Now, you can apply JWT policies to specific routes by configuring the `jwtProvidersStaged` settings in the route option. Previously, JWT policies applied at the gateway level and were configured in only the VirtualHost option. With this new feature, you can apply JWT policies at both the route and gateway level. For more information and example steps, see [Route-level JWT policy]({{< versioned_link_path fromRoot="/security/auth/jwt/route-jwt-policy/" >}}).
+
+#### Full Envoy validation
+
+In addition to strict resource validation, you can now enable full Envoy validation in your Gloo Gateway setup. The full Envoy validation adds another validation layer to the validation webhook by converting the translated xDS snapshot into static bootstrap configuration that can be fed into Envoy. This way, you can validate configuration that is typically accepted by Gloo Gateway, but later rejected by Envoy. For example, you might have a transformation policy in your VirtualService that uses an invalid Inja template. Gloo Gateway cannot validate the Inja template and therefore accepts the configuration. However, with the full Envoy validation enabled, this configuration is checked against Envoy and rejected if Envoy detects invalid configuration.
+
+To learn more about this feature, see [Enable full Envoy validation]({{% versioned_link_path fromRoot="/guides/traffic_management/configuration_validation/admission_control/#envoy-validation" %}}). 
 
 ### Deprecated features**:
 
