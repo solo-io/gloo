@@ -26,8 +26,6 @@ var kubeStateFile = func(outDir string) string {
 var _ = Describe("Debug", func() {
 
 	BeforeEach(func() {
-		Skip("Skipping flakey test")
-
 		helpers.UseMemoryClients()
 	})
 
