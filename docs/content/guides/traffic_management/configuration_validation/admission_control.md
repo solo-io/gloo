@@ -123,7 +123,7 @@ spec:
 EOF
    {{< /highlight >}}
    
-4. Review the logs of the `gateway-proxy` pod. Verify that although Gloo Gateway accepted the configuration, an error regarding the malformatted Inja template is reported by Envoy. 
+4. Review the logs of the `gateway-proxy` pod. Verify that although Gloo Gateway accepted the configuration, a warning regarding the malformatted Inja template is reported by Envoy. 
    ```sh
    kubectl logs -f -n gloo-system -l gateway-proxy
    ```
