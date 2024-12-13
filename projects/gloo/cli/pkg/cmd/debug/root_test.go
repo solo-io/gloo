@@ -1,6 +1,7 @@
 package debug_test
 
 import (
+	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -40,9 +41,11 @@ var _ = Describe("Debug", func() {
 			c.SendLine("y")
 			c.ExpectEOF()
 		}, func() {
+			fmt.Println("ARIANA running debug", time.Now())
 			err := testutils.Glooctl("debug")
 			Expect(err).NotTo(HaveOccurred())
 
+			fmt.Println("ARIANA getting kube state file", time.Now())
 			kubeStateBytes, err := os.ReadFile(kubeStateFile(""))
 			Expect(err).NotTo(HaveOccurred(), kubeStateFile("")+" file should be present")
 			Expect(kubeStateBytes).NotTo(BeEmpty())
@@ -63,9 +66,11 @@ var _ = Describe("Debug", func() {
 				c.SendLine("y")
 				c.ExpectEOF()
 			}, func() {
+				fmt.Println("ARIANA running debug", time.Now())
 				err := testutils.Glooctl("debug --directory " + customDir)
 				Expect(err).NotTo(HaveOccurred())
 
+				fmt.Println("ARIANA getting kube state file", time.Now())
 				kubeStateBytes, err := os.ReadFile(kubeStateFile(customDir))
 				Expect(err).NotTo(HaveOccurred(), kubeStateFile(customDir)+" file should be present")
 				Expect(kubeStateBytes).NotTo(BeEmpty())
