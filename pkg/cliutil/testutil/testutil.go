@@ -30,11 +30,14 @@ func ExpectInteractive(userInput func(*Console), testCli func(), timeout *time.D
 
 	runId := rand.Int()
 
+	// doneC represents when we're done with the console, indicated by closing the channel
 	doneC := make(chan struct{})
 	go func() {
 		defer GinkgoRecover()
-		defer close(doneC)
-		defer fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: closed doneC")
+		defer func() {
+			close(doneC)
+			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: closed doneC")
+		}()
 
 		userInput(&Console{console: c})
 	}()
@@ -50,8 +53,10 @@ func ExpectInteractive(userInput func(*Console), testCli func(), timeout *time.D
 		c.Tty().Close()
 		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: closed console")
 		<-doneC
-		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: sent to doneC")
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: received on doneC")
 	}()
+
+	fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: sent off goroutines")
 
 	after := 10 * time.Second
 	if timeout != nil {
@@ -63,8 +68,10 @@ func ExpectInteractive(userInput func(*Console), testCli func(), timeout *time.D
 		c.Tty().Close()
 		Fail("test timed out")
 	case <-doneC:
-		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: received on doneC")
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: final received on doneC")
 	}
+
+	fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: exiting")
 }
 
 type Console struct {
@@ -105,6 +112,7 @@ func (c *Console) SendLine(s string) int {
 func (c *Console) ExpectEOF() string {
 	ret, err := c.console.ExpectEOF()
 	Expect(err).NotTo(HaveOccurred())
+	fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "CONSOLE EOF", ret)
 	return ret
 }
 
