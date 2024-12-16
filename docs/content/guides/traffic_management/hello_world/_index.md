@@ -377,7 +377,7 @@ At this point we have a Virtual Service with a routing rule sending traffic on t
 Let’s test the route rule by retrieving the URL of Gloo Gateway, and sending a web request to the `/all-pets` path of the URL using curl. 
 
 ```shell
-curl $(glooctl proxy url)/all-pets
+curl $(glooctl proxy url --name gateway-proxy)/all-pets
 ```
 
 ```json
