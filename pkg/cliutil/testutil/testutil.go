@@ -3,6 +3,7 @@ package testutil
 import (
 	"fmt"
 	"io"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -27,10 +28,13 @@ func ExpectInteractive(userInput func(*Console), testCli func(), timeout *time.D
 	// Dump the terminal's screen.
 	defer func() { GinkgoWriter.Write([]byte(expect.StripTrailingEmptyLines(state.String()))) }()
 
+	runId := rand.Int()
+
 	doneC := make(chan struct{})
 	go func() {
 		defer GinkgoRecover()
 		defer close(doneC)
+		defer fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: closed doneC")
 
 		userInput(&Console{console: c})
 	}()
@@ -41,12 +45,12 @@ func ExpectInteractive(userInput func(*Console), testCli func(), timeout *time.D
 
 		testCli()
 
-		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "ExpectInteractive: finished testCli()")
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: finished testCli()")
 		// Close the slave end of the pty, and read the remaining bytes from the master end.
 		c.Tty().Close()
-		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "ExpectInteractive: closed console")
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: closed console")
 		<-doneC
-		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "ExpectInteractive: sent to doneC")
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: sent to doneC")
 	}()
 
 	after := 10 * time.Second
@@ -55,11 +59,11 @@ func ExpectInteractive(userInput func(*Console), testCli func(), timeout *time.D
 	}
 	select {
 	case <-time.After(after):
-		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "ExpectInteractive: test timed out")
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: test timed out")
 		c.Tty().Close()
 		Fail("test timed out")
 	case <-doneC:
-		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "ExpectInteractive: received on doneC")
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: received on doneC")
 	}
 }
 
