@@ -1,12 +1,21 @@
 # In Memory End-to-End tests
 These end-to-end tests do not require Kubernetes, and persist configuration in memory.
 
+- [Quick Start](#quick-start)
 - [Background](#background)
   - [Where are the tests?](#where-are-the-tests)
   - [How do the tests work?](#how-do-the-tests-work)
   - [Example Test](#example-test)
 - [CI](#ci)
 - [Local Development](#local-development)
+
+## Quick Start
+
+In the root of the Gloo repo:
+```bash
+# run all in-memory e2e tests
+TEST_PKG=./test/e2e/... make test
+```
 
 ## Background
 This is the most common and preferred type of end-to-end test, since it is the quickest to set up and easiest to debug. Additionally, Gloo Gateway may be run using various backing stores; these tests provide a single space to validate the translation of Gloo resources into Envoy resources, independently of where Gloo Gateway is deployed. These test do not rely on Kubernetes, so if there is any Kubernetes behavior that needs to be tested, write a [kubernetes end-to-end test](../../test/kubernetes/e2e) instead.
