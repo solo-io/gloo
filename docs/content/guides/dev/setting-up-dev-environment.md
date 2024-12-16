@@ -97,7 +97,7 @@ make -B kind-build-and-load-gloo
 
 ### Code Generation
 
-Follow these steps if you are making changes to Gloo Gateway's Protobuf-based API.
+Follow these steps to make changes to Gloo Gateway's Protobuf-based API.
 
 Confirm code generation works with Gloo Gateway:
 ```bash
