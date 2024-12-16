@@ -75,8 +75,10 @@ func KubeDumpOnFail(ctx context.Context, _ *kubectl.Cli, _ io.Writer, outDir str
 	return func() {
 		setupOutDir(outDir)
 
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "KubeDumpOnFail: recordKubeState")
 		recordKubeState(fileAtPath(filepath.Join(outDir, "kube-state.log")))
 
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "KubeDumpOnFail: recordKubeDump")
 		recordKubeDump(ctx, outDir, namespaces...)
 
 		fmt.Printf("Finished writing Kubernetes state information to the \"%s\" directory.\n", outDir)

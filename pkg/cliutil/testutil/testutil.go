@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"fmt"
 	"io"
 	"strings"
 	"time"
@@ -52,6 +53,7 @@ func ExpectInteractive(userInput func(*Console), testCli func(), timeout *time.D
 	select {
 	case <-time.After(after):
 		c.Tty().Close()
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "ExpectInteractive: test timed out")
 		Fail("test timed out")
 	case <-doneC:
 	}
