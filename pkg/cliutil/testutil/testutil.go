@@ -44,6 +44,7 @@ func ExpectInteractive(userInput func(*Console), testCli func(), timeout *time.D
 		// Close the slave end of the pty, and read the remaining bytes from the master end.
 		c.Tty().Close()
 		<-doneC
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "ExpectInteractive: sent to doneC")
 	}()
 
 	after := 10 * time.Second
@@ -52,10 +53,11 @@ func ExpectInteractive(userInput func(*Console), testCli func(), timeout *time.D
 	}
 	select {
 	case <-time.After(after):
-		c.Tty().Close()
 		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "ExpectInteractive: test timed out")
+		c.Tty().Close()
 		Fail("test timed out")
 	case <-doneC:
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "ExpectInteractive: received on doneC")
 	}
 }
 
