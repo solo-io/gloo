@@ -3492,6 +3492,8 @@ spec:
                                               type: boolean
                                           type: object
                                       type: object
+                                    distanceThreshold:
+                                      type: number
                                     embedding:
                                       properties:
                                         azureOpenai:
