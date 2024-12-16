@@ -22,7 +22,7 @@ Gloo Gateway's plugin based architecture makes it easy to extend functionality i
 - [Gloo Gateway's API](https://github.com/solo-io/gloo/tree/main/projects/gloo/api/v1): You can extend the API by using [Protocol Buffers](https://developers.google.com/protocol-buffers/) along with [Solo-Kit](https://github.com/solo-io/solo-kit).
 - [Service discovery plugins](https://github.com/solo-io/gloo/blob/main/projects/gloo/pkg/discovery/discovery.go#L21): Automatically discover service endpoints from catalogs such as [Kubernetes](https://github.com/solo-io/gloo/tree/main/projects/gloo/pkg/plugins/kubernetes) and [Consul](https://github.com/solo-io/gloo/tree/main/projects/gloo/pkg/plugins/consul).
 - [Function discovery plugins](https://github.com/solo-io/gloo/blob/main/projects/discovery/pkg/fds/interface.go#L31): Discover and automatically annotate services with discovered service information, such as OpenAPI endpoints and gRPC methods.
-- [Routing plugins](https://github.com/solo-io/gloo/blob/main/projects/gloo/pkg/plugins/plugin_interface.go#L53): Customize the routing decisions for requests that match a particular route or virtual host. ```
+- [Routing plugins](https://github.com/solo-io/gloo/blob/main/projects/gloo/pkg/plugins/plugin_interface.go#L53): Customize the routing decisions for requests that match a particular route or virtual host. 
 - [Upstream plugins](https://github.com/solo-io/gloo/tree/main/projects/gloo/pkg/plugins): Customize the routing rules for requests to a particular service.  
 
 To get started with development around Gloo Gateway, we recommend taking a look at our [Developer Guides]({{% versioned_link_path fromRoot="/guides/dev/" %}}).
