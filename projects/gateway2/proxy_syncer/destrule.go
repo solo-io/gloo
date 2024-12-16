@@ -1,9 +1,12 @@
 package proxy_syncer
 
 import (
+	"context"
 	"fmt"
 	"slices"
 
+	"github.com/solo-io/gloo/pkg/schemes"
+	"github.com/solo-io/go-utils/contextutils"
 	"google.golang.org/protobuf/proto"
 	"istio.io/api/networking/v1alpha3"
 	networkingclient "istio.io/client-go/pkg/apis/networking/v1"
@@ -12,6 +15,7 @@ import (
 	"istio.io/istio/pkg/kube/kclient"
 	"istio.io/istio/pkg/kube/krt"
 	"istio.io/istio/pkg/kube/kubetypes"
+	"k8s.io/client-go/rest"
 )
 
 type NsWithHostname struct {
@@ -54,15 +58,32 @@ func (c DestinationRuleWrapper) Equals(k DestinationRuleWrapper) bool {
 	return proto.Equal(&c.Spec, &k.Spec)
 }
 
-func NewDestRuleIndex(istioClient kube.Client, dbg *krt.DebugHandler) DestinationRuleIndex {
-	destRuleClient := kclient.NewDelayedInformer[*networkingclient.DestinationRule](istioClient, gvr.DestinationRule, kubetypes.StandardInformer, kclient.Filter{})
-	rawDestrules := krt.WrapClient(destRuleClient, krt.WithName("DestinationRules"), krt.WithDebugging(dbg))
-	destrules := krt.NewCollection(rawDestrules, func(kctx krt.HandlerContext, dr *networkingclient.DestinationRule) *DestinationRuleWrapper {
-		return &DestinationRuleWrapper{dr}
-	})
+func NewDestRuleIndex(
+	ctx context.Context,
+	restCfg *rest.Config,
+	istioClient kube.Client,
+	dbg *krt.DebugHandler,
+) DestinationRuleIndex {
+	var wrappedDestRules krt.Collection[DestinationRuleWrapper]
+	if ok, err := schemes.CRDExists(
+		restCfg,
+		networkingclient.SchemeGroupVersion.Group,
+		networkingclient.SchemeGroupVersion.Version,
+		"DestinationRule",
+	); ok && err == nil {
+		destRuleClient := kclient.NewDelayedInformer[*networkingclient.DestinationRule](istioClient, gvr.DestinationRule, kubetypes.StandardInformer, kclient.Filter{})
+		rawDestrules := krt.WrapClient(destRuleClient, krt.WithName("DestinationRules"), krt.WithDebugging(dbg))
+		wrappedDestRules = krt.NewCollection(rawDestrules, func(kctx krt.HandlerContext, dr *networkingclient.DestinationRule) *DestinationRuleWrapper {
+			return &DestinationRuleWrapper{dr}
+		})
+	} else {
+		contextutils.LoggerFrom(ctx).Warn("DestinatonRule v1 CRD not found; running without DestinationRule support")
+		wrappedDestRules = krt.NewStaticCollection[DestinationRuleWrapper]([]DestinationRuleWrapper{})
+	}
+
 	return DestinationRuleIndex{
-		Destrules:  destrules,
-		ByHostname: newDestruleIndex(destrules),
+		Destrules:  wrappedDestRules,
+		ByHostname: newDestruleIndex(wrappedDestRules),
 	}
 }
 
@@ -141,7 +162,7 @@ func getLocalityLbSetting(trafficPolicy *v1alpha3.TrafficPolicy) *v1alpha3.Local
 	return localityLb
 }
 
-func getTraficPolicy(destrule *DestinationRuleWrapper, port uint32) *v1alpha3.TrafficPolicy {
+func getTrafficPolicy(destrule *DestinationRuleWrapper, port uint32) *v1alpha3.TrafficPolicy {
 	trafficPolicy := destrule.Spec.GetTrafficPolicy()
 	if trafficPolicy == nil {
 		return nil

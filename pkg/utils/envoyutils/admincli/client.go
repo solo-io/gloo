@@ -69,11 +69,11 @@ func NewClient() *Client {
 //
 // Designed to be used by tests and CLI from outside of a cluster where `kubectl` is present.
 // In all other cases, `NewClient` is preferred
-func NewPortForwardedClient(ctx context.Context, proxySelector, namespace string) (*Client, func(), error) {
+func NewPortForwardedClient(ctx context.Context, kubectlCli *kubectl.Cli, proxySelector, namespace string) (*Client, func(), error) {
 	selector := portforward.WithResourceSelector(proxySelector, namespace)
 
 	// 1. Open a port-forward to the Kubernetes Deployment, so that we can query the Envoy Admin API directly
-	portForwarder, err := kubectl.NewCli().StartPortForward(ctx,
+	portForwarder, err := kubectlCli.StartPortForward(ctx,
 		selector,
 		portforward.WithRemotePort(int(defaults.EnvoyAdminPort)))
 	if err != nil {
@@ -135,15 +135,18 @@ func (c *Client) RequestPathCmd(ctx context.Context, path string) cmdutils.Cmd {
 }
 
 // StatsCmd returns the cmdutils.Cmd that can be run to request data from the stats endpoint
-func (c *Client) StatsCmd(ctx context.Context) cmdutils.Cmd {
-	return c.RequestPathCmd(ctx, StatsPath)
+func (c *Client) StatsCmd(ctx context.Context, queryParams map[string]string) cmdutils.Cmd {
+	return c.Command(ctx,
+		curl.WithPath(StatsPath),
+		curl.WithQueryParameters(queryParams),
+	)
 }
 
 // GetStats returns the data that is available at the stats endpoint
-func (c *Client) GetStats(ctx context.Context) (string, error) {
+func (c *Client) GetStats(ctx context.Context, queryParams map[string]string) (string, error) {
 	var outLocation threadsafe.Buffer
 
-	err := c.StatsCmd(ctx).WithStdout(&outLocation).Run().Cause()
+	err := c.StatsCmd(ctx, queryParams).WithStdout(&outLocation).Run().Cause()
 	if err != nil {
 		return "", err
 	}
@@ -322,7 +325,7 @@ func (c *Client) WriteEnvoyDumpToZip(ctx context.Context, options DumpOptions, z
 	if err := c.ConfigDumpCmd(ctx, configParams).WithStdout(fileInArchive(zip, "config.json")).Run().Cause(); err != nil {
 		return err
 	}
-	if err := c.StatsCmd(ctx).WithStdout(fileInArchive(zip, "stats.txt")).Run().Cause(); err != nil {
+	if err := c.StatsCmd(ctx, nil).WithStdout(fileInArchive(zip, "stats.txt")).Run().Cause(); err != nil {
 		return err
 	}
 	if err := c.ClustersCmd(ctx).WithStdout(fileInArchive(zip, "clusters.txt")).Run().Cause(); err != nil {

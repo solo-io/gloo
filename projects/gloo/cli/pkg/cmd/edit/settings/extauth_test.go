@@ -123,7 +123,7 @@ var _ = Describe("Extauth", func() {
 						Namespace: "gloo-system",
 					},
 				}))
-			})
+			}, nil)
 		})
 
 	})

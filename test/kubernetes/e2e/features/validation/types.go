@@ -13,6 +13,8 @@ const (
 	ExampleVsName                 = "example-vs"
 	ExampleUpstreamName           = "nginx-upstream"
 	SplitWebhookBasicUpstreamName = "json-upstream"
+	OTELGatewayName               = "otel-gateway"
+	OTELCollectorUpstreamName     = "opentelemetry-collector"
 
 	ValidVsName   = "i-am-valid"
 	InvalidVsName = "i-am-invalid"
@@ -22,6 +24,8 @@ var (
 	// setup configs
 	ExampleVS       = filepath.Join(util.MustGetThisDir(), "testdata", "example-vs.yaml")
 	ExampleUpstream = filepath.Join(util.MustGetThisDir(), "testdata", "example-upstream.yaml")
+	SetupOTEL       = filepath.Join(util.MustGetThisDir(), "testdata", "setup-otel.yaml")
+	OTELUpstream    = filepath.Join(util.MustGetThisDir(), "testdata", "otel-upstream.yaml")
 
 	// Switch VirtualService configs (allow warnings)
 	InvalidVS = filepath.Join(util.MustGetThisDir(), "testdata", "switch-vs", "invalid-vs.yaml")
@@ -40,11 +44,15 @@ var (
 	InvalidVirtualServiceTypo     = filepath.Join(util.MustGetThisDir(), "testdata", "invalid-resources", "vs-typo.yaml")
 	InvalidVirtualMissingUpstream = filepath.Join(util.MustGetThisDir(), "testdata", "invalid-resources", "vs-no-upstream.yaml")
 	InvalidRLC                    = filepath.Join(util.MustGetThisDir(), "testdata", "invalid-resources", "rlc.yaml")
+	InvalidGatewayMissingUpstream = filepath.Join(util.MustGetThisDir(), "testdata", "invalid-resources", "gateway-no-upstream.yaml")
 
 	// transformation validation (allow warnings, server_enabled)
 	VSTransformationExtractors    = filepath.Join(util.MustGetThisDir(), "testdata", "transformation", "vs-transform-extractors.yaml")
 	VSTransformationHeaderText    = filepath.Join(util.MustGetThisDir(), "testdata", "transformation", "vs-transform-header-text.yaml")
 	VSTransformationSingleReplace = filepath.Join(util.MustGetThisDir(), "testdata", "transformation", "vs-transform-single-replace.yaml")
+
+	// Valid resources
+	LargeConfiguration = filepath.Join(util.MustGetThisDir(), "testdata", "valid-resources", "large-configuration.yaml")
 
 	// Split webhook validation
 	BasicUpstream = filepath.Join(util.MustGetThisDir(), "testdata", "split-webhook", "basic-upstream.yaml")

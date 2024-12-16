@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/skv2/codegen/util"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	state_dump_utils "github.com/solo-io/gloo/pkg/utils/statedumputils"
 
 	"github.com/avast/retry-go"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -23,6 +24,7 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/kube2e/helper"
+	testruntime "github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
 	glootestutils "github.com/solo-io/gloo/test/testutils"
 	"github.com/solo-io/go-utils/testutils"
 
@@ -68,15 +70,16 @@ var _ = BeforeSuite(func() {
 
 	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
 	namespaces := []string{testHelper.InstallNamespace}
-	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, outDir, namespaces))
+	skhelpers.RegisterPreFailHandler(state_dump_utils.StandardCIDumpOnFail(GinkgoWriter, outDir, namespaces))
 
 	// Allow skipping of install step for running multiple times
-	if !glootestutils.ShouldSkipInstall() {
+	if !glootestutils.ShouldSkipInstall(testHelper.IsGlooInstalled(ctx)) {
 		installGloo()
 	}
 
 	// We rely on the "new" kubernetes/e2e setup code, since it incorporates controller-runtime logging setup
-	clusterContext := cluster.MustKindContext("kind")
+	runtimeContext := testruntime.NewContext()
+	clusterContext := cluster.MustKindContext(runtimeContext.ClusterName)
 
 	resourceClientset, err = kube2e.NewKubeResourceClientSet(ctx, clusterContext.RestConfig)
 	Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
@@ -95,7 +98,7 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	defer cancel()
 
-	if glootestutils.ShouldTearDown() {
+	if glootestutils.ShouldTearDown(helpers.DefaultTearDown) {
 		uninstallGloo()
 	}
 })

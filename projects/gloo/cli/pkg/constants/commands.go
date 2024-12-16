@@ -80,18 +80,27 @@ var (
 
 	DEBUG_COMMAND = cobra.Command{
 		Use:   "debug",
-		Short: "Debug a Gloo resource (requires Gloo running on Kubernetes)",
+		Short: "Debug Gloo Gateway (requires Gloo running on Kubernetes)",
+		Long: "Dumps Kubernetes, Gloo Gateway controller, and Envoy state information to a local directory. " +
+			"This is useful for debugging failures. " +
+			"The dump includes:\n" +
+			"- the Kubernetes cluster state\n" +
+			"- logs from all pods in the given namespaces\n" +
+			"- YAML manifests of all solo.io CRs in the given namespaces\n" +
+			"- the gloo controller logs, metrics, xds snapshot, and krt snapshot\n" +
+			"- the envoy config dump, stats, clusters, and listeners",
 	}
 
 	DEBUG_LOG_COMMAND = cobra.Command{
-		Use:     "logs",
-		Aliases: []string{"log"},
-		Short:   "Debug Gloo logs (requires Gloo running on Kubernetes)",
+		Use:        "logs",
+		Aliases:    []string{"log"},
+		Short:      "Print Gloo logs from a Kubernetes cluster",
+		Deprecated: "will be removed in a future release. Use top level \"debug\" command instead.",
 	}
 
 	DEBUG_YAML_COMMAND = cobra.Command{
 		Use:   "yaml",
-		Short: "Dump YAML representing the current Gloo state (requires Gloo running on Kubernetes)",
+		Short: "Print YAML representing the current Gloo state of a Kubernetes cluster (top level \"debug\" command is preferred)",
 	}
 
 	DELETE_COMMAND = cobra.Command{
