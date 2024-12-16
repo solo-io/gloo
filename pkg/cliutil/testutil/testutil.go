@@ -33,13 +33,15 @@ func ExpectInteractive(userInput func(*Console), testCli func(), timeout *time.D
 	// doneC represents when we're done with the console, indicated by closing the channel
 	doneC := make(chan struct{})
 	go func() {
-		defer GinkgoRecover()
 		defer func() {
+			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: running GinkgoRecover()")
+			GinkgoRecover()
 			close(doneC)
 			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: closed doneC")
 		}()
 
 		userInput(&Console{console: c})
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), runId, "ExpectInteractive: userInput func returned; console EOF")
 	}()
 
 	//	time.Sleep(time.Hour)
