@@ -43,6 +43,7 @@ var _ = Describe("Debug", func() {
 		}, func() {
 			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "debug TEST: running debug")
 			err := testutils.Glooctl("debug")
+			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "debug TEST: AFTER debug")
 			Expect(err).NotTo(HaveOccurred())
 		}, &timeout)
 
@@ -68,6 +69,7 @@ var _ = Describe("Debug", func() {
 			}, func() {
 				fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "custom-dir TEST: running debug")
 				err := testutils.Glooctl("debug --directory " + customDir)
+				fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "custom-dir TEST: AFTER debug")
 				Expect(err).NotTo(HaveOccurred())
 			}, &timeout)
 
@@ -91,6 +93,7 @@ var _ = Describe("Debug", func() {
 		}, func() {
 			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "N-debug TEST: running debug")
 			err := testutils.Glooctl("debug")
+			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "N-debug TEST: AFTER debug")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Aborting: cannot proceed without overwriting \"" + defaultOutDir + "\" directory"))
 		}, nil)
