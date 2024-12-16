@@ -10,8 +10,6 @@ Check out the following developer guides:
 
 {{% children description="true" %}}
 
-> Note: the Controller tutorial does not require modifying any Gloo Gateway code.
-
 ## Gloo Gateway API Concepts
 
 
