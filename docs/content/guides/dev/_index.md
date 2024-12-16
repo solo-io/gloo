@@ -6,7 +6,7 @@ description: Extending Gloo Gateway's functionality with the use of plugins
 
 ## Guides
 
-This Section includes the following developer guides:
+Check out the following developer guides: 
 
 {{% children description="true" %}}
 
