@@ -25,3 +25,4 @@ Gloo Gateway's plugin based architecture makes it easy to extend functionality i
 - [Routing plugins](https://github.com/solo-io/gloo/blob/main/projects/gloo/pkg/plugins/plugin_interface.go#L53): Customize the routing decisions for requests that match a particular route or virtual host. ```
 - [Upstream plugins](https://github.com/solo-io/gloo/tree/main/projects/gloo/pkg/plugins): Customize the routing rules for requests to a particular service.  
 
+To get started with development around Gloo Gateway, we recommend taking a look at our [Developer Guides]({{% versioned_link_path fromRoot="/guides/dev/" %}}).
