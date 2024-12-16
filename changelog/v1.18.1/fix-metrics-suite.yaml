@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/solo-projects/issues/7405
+  description: Fixes the failing K8sGateway/Metrics in enterprise caused by using the wrong BaseTestingSuite constructor.
+
