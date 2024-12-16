@@ -45,6 +45,9 @@ func (s *testingSuite) SetupSuite() {
 	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, nginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/name=nginx",
 	})
+	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, testdefaults.CurlPod.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app=curl",
+	})
 
 	// include gateway manifests for the tests, so we recreate it for each test run
 	s.manifests = map[string][]string{
@@ -88,6 +91,10 @@ func (s *testingSuite) AfterTest(suiteName, testName string) {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest)
 		s.testInstallation.Assertions.ExpectObjectDeleted(manifest, err, output)
 	}
+	s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, proxyService, proxyDeployment)
+	s.testInstallation.Assertions.EventuallyPodsNotExist(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw",
+	})
 }
 
 func (s *testingSuite) TestConfigureHttpListenerOptions() {
