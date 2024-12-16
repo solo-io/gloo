@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/rotisserie/eris"
@@ -14,6 +15,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
@@ -28,6 +30,15 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
+)
+
+const (
+	// policyOverrideAnnotation can be set by parent routes to allow child routes to override
+	// all (wildcard *) or specific fields (comma separated field names) in RouteOptions inherited from the parent route.
+	policyOverrideAnnotation = "delegation.gateway.solo.io/enable-policy-overrides"
+
+	// wildcardField is used to enable overriding all fields in RouteOptions inherited from the parent route.
+	wildcardField = "*"
 )
 
 var (
@@ -82,7 +93,7 @@ func (p *plugin) ApplyRoutePlugin(
 	routeCtx *plugins.RouteContext,
 	outputRoute *gloov1.Route,
 ) error {
-	// check for RouteOptions applied to full Route
+	// check for RouteOptions applied to the given routeCtx
 	routeOptions, _, sources, err := p.handleAttachment(ctx, routeCtx)
 	if err != nil {
 		return err
@@ -91,20 +102,57 @@ func (p *plugin) ApplyRoutePlugin(
 		return nil
 	}
 
-	// If the route already has options set, we should override them.
-	// This is important because for delegated routes, the plugin will
-	// be invoked on the child routes multiple times for each parent route
-	// that may override them.
-	merged, usedExistingSources := glooutils.ShallowMergeRouteOptions(routeOptions, outputRoute.GetOptions())
+	merged, OptionsMergeResult := mergeOptionsForRoute(ctx, routeCtx.Route, routeOptions, outputRoute.GetOptions())
+	if OptionsMergeResult == glooutils.OptionsMergedNone {
+		// No existing options merged into 'sources', so set the 'sources' on the outputRoute
+		routeutils.SetRouteSources(outputRoute, sources)
+	} else if OptionsMergeResult == glooutils.OptionsMergedPartial {
+		// Some existing options merged into 'sources', so append the 'sources' on the outputRoute
+		routeutils.AppendRouteSources(outputRoute, sources)
+	} // In case OptionsMergedFull, the correct sources are already set on the outputRoute
+
+	// Set the merged RouteOptions on the outputRoute
 	outputRoute.Options = merged
 
-	// Track the RouteOption policy sources that are used so we can report status on it
-	routeutils.AppendSourceToRoute(outputRoute, sources, usedExistingSources)
 	// Track that we used this RouteOption is our status cache
 	// we do this so we can persist status later for all attached RouteOptions
-	p.trackAcceptedRouteOptions(sources)
+	p.trackAcceptedRouteOptions(outputRoute.GetMetadataStatic().GetSources())
 
 	return nil
+}
+
+func mergeOptionsForRoute(
+	ctx context.Context,
+	route *gwv1.HTTPRoute,
+	dst, src *gloov1.RouteOptions,
+) (*gloov1.RouteOptions, glooutils.OptionsMergeResult) {
+	// By default, lower priority options cannot override higher priority ones
+	// and can only augment them during a merge such that fields unset in the higher
+	// priority options can be merged in from the lower priority options.
+	// In the case of delegated routes, a parent route can enable child routes to override
+	// all (wildcard *) or specific fields using the policyOverrideAnnotation.
+	fieldsAllowedToOverride := sets.New[string]()
+
+	// If the route already has options set, we should override/augment them.
+	// This is important because for delegated routes, the plugin will
+	// be invoked on the child routes multiple times for each parent route
+	// that may override/augment them.
+	//
+	// By default, parent options (routeOptions) are preferred, unless the parent explicitly
+	// enabled child routes (outputRoute.Options) to override parent options.
+	fieldsStr, delegatedPolicyOverride := route.Annotations[policyOverrideAnnotation]
+	if delegatedPolicyOverride {
+		delegatedFieldsToOverride := parseDelegationFieldOverrides(fieldsStr)
+		if delegatedFieldsToOverride.Len() == 0 {
+			// Invalid annotation value, so log an error but enforce the default behavior of preferring the parent options.
+			contextutils.LoggerFrom(ctx).Errorf("invalid value %q for annotation %s on route %s; must be %s or a comma-separated list of field names",
+				fieldsStr, policyOverrideAnnotation, client.ObjectKeyFromObject(route), wildcardField)
+		} else {
+			fieldsAllowedToOverride = delegatedFieldsToOverride
+		}
+	}
+
+	return glooutils.MergeRouteOptionsWithOverrides(dst, src, fieldsAllowedToOverride)
 }
 
 func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx *plugins.StatusContext) error {
@@ -263,4 +311,17 @@ func extractRouteOptionSourceKeys(routeErr *validation.RouteReport_Error) (types
 	}
 
 	return types.NamespacedName{}, false
+}
+
+func parseDelegationFieldOverrides(val string) sets.Set[string] {
+	if val == wildcardField {
+		return sets.New(wildcardField)
+	}
+
+	set := sets.New[string]()
+	parts := strings.Split(val, ",")
+	for _, part := range parts {
+		set.Insert(strings.ToLower(strings.TrimSpace(part)))
+	}
+	return set
 }
