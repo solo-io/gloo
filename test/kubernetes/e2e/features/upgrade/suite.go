@@ -29,7 +29,7 @@ func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.
 	testInst.Metadata.ReleasedVersion = releaseVersion
 
 	return &testingSuite{
-		base.NewBaseTestingSuite(ctx, testInst, testHelper, base.SimpleTestCase{}, nil),
+		base.NewBaseTestingSuiteWithUpgrades(ctx, testInst, testHelper, base.SimpleTestCase{}, nil),
 	}
 }
 
