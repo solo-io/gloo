@@ -39,7 +39,7 @@ make install-protoc
 make install-go-tools
 ```
 
-### Setting up the Gloo Gateway Repositories
+### Setting up the Gloo Gateway repositories
 
 Next, we'll clone the Gloo Gateway and Solo-Kit source code. Solo-Kit is required for code generation in Gloo Gateway. 
 
@@ -72,23 +72,24 @@ Awesome! You're ready to start developing on Gloo Gateway! Check out the [Writin
 
 ### Developing with a local K8s cluster (kind)
 
-Developers without a K8s cluster are encouraged to use [Docker](https://docs.docker.com) and [Kind](https://kind.sigs.k8s.io).
+Developers without a K8s cluster are encouraged to use [Docker](https://docs.docker.com) and [Kind](https://kind.sigs.k8s.io) to build a development and test environment. 
 
 Prerequisites:
+Install the following tools: 
 * [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 * [Docker](https://docs.docker.com/install/)
 * [Helm](https://github.com/helm/helm)
 
-Stand up Gloo Gateway running on Kind and begin making changes:
+Install Gloo Gateway on a Kind cluster so that you can start making changes to the Gloo Gateway code. 
 ```bash
-# prepare kind cluster, build images, and upload them
+# Prepare the kind cluster, build images, and upload them.
 make kind-setup
 
-# install Gloo
+# Install Gloo Gateway
 helm upgrade --install -n gloo-system --create-namespace gloo ./_test/gloo-1.0.1-dev.tgz --values ./test/kubernetes/e2e/tests/manifests/common-recommendations.yaml
 
 ############################################
-# make changes to the code in the repo ...
+# Make changes to the code in the Gloo Gateway repo. 
 ############################################
 
 # Update the Gloo Gateway installation in your cluster to apply your changes
