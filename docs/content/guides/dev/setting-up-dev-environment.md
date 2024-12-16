@@ -91,7 +91,7 @@ helm upgrade --install -n gloo-system --create-namespace gloo ./_test/gloo-1.0.1
 # make changes to the code in the repo ...
 ############################################
 
-# update what is running in the cluster with your changes
+# Update the Gloo Gateway installation in your cluster to apply your changes
 make -B kind-build-and-load-gloo
 ```
 
