@@ -506,6 +506,10 @@ func (m *SemanticCache) Equal(that interface{}) bool {
 		return false
 	}
 
+	if m.GetDistanceThreshold() != target.GetDistanceThreshold() {
+		return false
+	}
+
 	return true
 }
 

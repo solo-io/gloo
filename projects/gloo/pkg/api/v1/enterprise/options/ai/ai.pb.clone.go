@@ -322,6 +322,8 @@ func (m *SemanticCache) Clone() proto.Message {
 
 	target.Mode = m.GetMode()
 
+	target.DistanceThreshold = m.GetDistanceThreshold()
+
 	return target
 }
 

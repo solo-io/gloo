@@ -38,7 +38,7 @@ func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.
 	testInst.Metadata.ReleasedVersion = releaseVersion
 
 	return &testingSuite{
-		base.NewBaseTestingSuite(ctx, testInst, testHelper, base.SimpleTestCase{}, testCases),
+		base.NewBaseTestingSuiteWithUpgrades(ctx, testInst, testHelper, base.SimpleTestCase{}, testCases),
 	}
 }
 
