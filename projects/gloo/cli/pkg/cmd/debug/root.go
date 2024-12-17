@@ -49,6 +49,12 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 
 			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
 
+			stdout, stderr, err := kubectlCli.Execute(ctx, "config", "unset", "current-context")
+			fmt.Printf("ARIANA kubectl config unset current-context\n\tstdout: %s\n\tstderr: %s\n", stdout, stderr)
+			if err != nil {
+				fmt.Println("ARIANA err:", err.Error())
+			}
+
 			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), opts.Debug.Directory, "RunE: running KubeDumpOnFail")
 			state_dump_utils.KubeDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
 			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), opts.Debug.Directory, "RunE: running ControllerDumpOnFail")
