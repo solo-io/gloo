@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	cliutil "github.com/solo-io/gloo/pkg/cliutil/install"
 	"github.com/solo-io/gloo/pkg/cliutil/testutil"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/testutils"
@@ -26,19 +27,23 @@ var kubeStateFile = func(outDir string) string {
 
 var _ = Describe("Debug", func() {
 
-	var kubeConfigEnv = os.Getenv("KUBECONFIG")
-	fmt.Println("kubeConfigEnv:", kubeConfigEnv)
+	var currentContext string
 
 	BeforeEach(func() {
 		helpers.UseMemoryClients()
-		os.Rename("~/.kube/config", "~/.kube/config.backup")
-		os.Setenv("KUBECONFIG", "")
+
+		out, err := cliutil.KubectlOut(nil, "config", "current-context")
+		currentContext = string(out)
+		Expect(err).NotTo(HaveOccurred(), err.Error()+", "+currentContext)
+		fmt.Println("ARIANA BeforeEach current-context", currentContext)
+
+		Expect(cliutil.Kubectl(nil, "config", "unset", "current-context")).NotTo(HaveOccurred())
 	})
 
 	AfterEach(func() {
 		Expect(os.RemoveAll(defaultOutDir)).NotTo(HaveOccurred())
-		os.Rename("~/.kube/config.backup", "~/.kube/config")
-		os.Setenv("KUBECONFIG", kubeConfigEnv)
+
+		Expect(cliutil.Kubectl(nil, "config", "use-context", currentContext)).NotTo(HaveOccurred())
 	})
 
 	It("should support the top level debug command and should populate the kube-state.log file", func() {
