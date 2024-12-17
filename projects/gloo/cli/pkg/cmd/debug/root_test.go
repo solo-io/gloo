@@ -26,12 +26,19 @@ var kubeStateFile = func(outDir string) string {
 
 var _ = Describe("Debug", func() {
 
+	var kubeConfigEnv = os.Getenv("KUBECONFIG")
+	fmt.Println("kubeConfigEnv:", kubeConfigEnv)
+
 	BeforeEach(func() {
 		helpers.UseMemoryClients()
+		os.Rename("~/.kube/config", "~/.kube/config.backup")
+		os.Setenv("KUBECONFIG", "")
 	})
 
 	AfterEach(func() {
 		Expect(os.RemoveAll(defaultOutDir)).NotTo(HaveOccurred())
+		os.Rename("~/.kube/config.backup", "~/.kube/config")
+		os.Setenv("KUBECONFIG", kubeConfigEnv)
 	})
 
 	It("should support the top level debug command and should populate the kube-state.log file", func() {
