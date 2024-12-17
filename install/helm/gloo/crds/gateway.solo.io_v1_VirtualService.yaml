@@ -201,8 +201,7 @@ spec:
                                     type: string
                                     x-kubernetes-int-or-string: true
                                   numerator:
-                                    maximum: 4294967295
-                                    minimum: 0
+                                    format: int32
                                     type: integer
                                 type: object
                               runtimeKey:
@@ -216,8 +215,7 @@ spec:
                                     type: string
                                     x-kubernetes-int-or-string: true
                                   numerator:
-                                    maximum: 4294967295
-                                    minimum: 0
+                                    format: int32
                                     type: integer
                                 type: object
                               runtimeKey:
@@ -253,8 +251,7 @@ spec:
                                           regex:
                                             type: string
                                           subgroup:
-                                            maximum: 4294967295
-                                            minimum: 0
+                                            format: int32
                                             type: integer
                                         type: object
                                       type: array
@@ -729,8 +726,7 @@ spec:
                               fillInterval:
                                 type: string
                               maxTokens:
-                                maximum: 4294967295
-                                minimum: 0
+                                format: int32
                                 type: integer
                               tokensPerFill:
                                 maximum: 4294967295
@@ -933,8 +929,7 @@ spec:
                           anonymousLimits:
                             properties:
                               requestsPerUnit:
-                                maximum: 4294967295
-                                minimum: 0
+                                format: int32
                                 type: integer
                               unit:
                                 type: string
@@ -943,8 +938,7 @@ spec:
                           authorizedLimits:
                             properties:
                               requestsPerUnit:
-                                maximum: 4294967295
-                                minimum: 0
+                                format: int32
                                 type: integer
                               unit:
                                 type: string
@@ -958,8 +952,7 @@ spec:
                               fillInterval:
                                 type: string
                               maxTokens:
-                                maximum: 4294967295
-                                minimum: 0
+                                format: int32
                                 type: integer
                               tokensPerFill:
                                 maximum: 4294967295
@@ -1164,8 +1157,7 @@ spec:
                               fillInterval:
                                 type: string
                               maxTokens:
-                                maximum: 4294967295
-                                minimum: 0
+                                format: int32
                                 type: integer
                               tokensPerFill:
                                 maximum: 4294967295
@@ -1404,8 +1396,7 @@ spec:
                       retries:
                         properties:
                           numRetries:
-                            maximum: 4294967295
-                            minimum: 0
+                            format: int32
                             type: integer
                           perTryTimeout:
                             type: string
@@ -1522,8 +1513,7 @@ spec:
                                                     nullable: true
                                                     type: string
                                                   subgroup:
-                                                    maximum: 4294967295
-                                                    minimum: 0
+                                                    format: int32
                                                     type: integer
                                                 type: object
                                               type: object
@@ -1622,8 +1612,7 @@ spec:
                                                     nullable: true
                                                     type: string
                                                   subgroup:
-                                                    maximum: 4294967295
-                                                    minimum: 0
+                                                    format: int32
                                                     type: integer
                                                 type: object
                                               type: object
@@ -1742,8 +1731,7 @@ spec:
                                                     nullable: true
                                                     type: string
                                                   subgroup:
-                                                    maximum: 4294967295
-                                                    minimum: 0
+                                                    format: int32
                                                     type: integer
                                                 type: object
                                               type: object
@@ -1902,8 +1890,7 @@ spec:
                                                     nullable: true
                                                     type: string
                                                   subgroup:
-                                                    maximum: 4294967295
-                                                    minimum: 0
+                                                    format: int32
                                                     type: integer
                                                 type: object
                                               type: object
@@ -2002,8 +1989,7 @@ spec:
                                                     nullable: true
                                                     type: string
                                                   subgroup:
-                                                    maximum: 4294967295
-                                                    minimum: 0
+                                                    format: int32
                                                     type: integer
                                                 type: object
                                               type: object
@@ -2122,8 +2108,7 @@ spec:
                                                     nullable: true
                                                     type: string
                                                   subgroup:
-                                                    maximum: 4294967295
-                                                    minimum: 0
+                                                    format: int32
                                                     type: integer
                                                 type: object
                                               type: object
@@ -2244,8 +2229,7 @@ spec:
                                           nullable: true
                                           type: string
                                         subgroup:
-                                          maximum: 4294967295
-                                          minimum: 0
+                                          format: int32
                                           type: integer
                                       type: object
                                     type: object
@@ -2344,8 +2328,7 @@ spec:
                                           nullable: true
                                           type: string
                                         subgroup:
-                                          maximum: 4294967295
-                                          minimum: 0
+                                          format: int32
                                           type: integer
                                       type: object
                                     type: object
@@ -2509,8 +2492,7 @@ spec:
                             body:
                               type: string
                             status:
-                              maximum: 4294967295
-                              minimum: 0
+                              format: int32
                               type: integer
                           type: object
                         graphqlApiRef:
@@ -2658,8 +2640,7 @@ spec:
                                           type: string
                                           x-kubernetes-int-or-string: true
                                         numerator:
-                                          maximum: 4294967295
-                                          minimum: 0
+                                          format: int32
                                           type: integer
                                       type: object
                                     runtimeKey:
@@ -2673,8 +2654,7 @@ spec:
                                           type: string
                                           x-kubernetes-int-or-string: true
                                         numerator:
-                                          maximum: 4294967295
-                                          minimum: 0
+                                          format: int32
                                           type: integer
                                       type: object
                                     runtimeKey:
@@ -2710,8 +2690,7 @@ spec:
                                                 regex:
                                                   type: string
                                                 subgroup:
-                                                  maximum: 4294967295
-                                                  minimum: 0
+                                                  format: int32
                                                   type: integer
                                               type: object
                                             type: array
@@ -2865,8 +2844,7 @@ spec:
                                 abort:
                                   properties:
                                     httpStatus:
-                                      maximum: 4294967295
-                                      minimum: 0
+                                      format: int32
                                       type: integer
                                     percentage:
                                       type: number
@@ -3050,8 +3028,7 @@ spec:
                                     fillInterval:
                                       type: string
                                     maxTokens:
-                                      maximum: 4294967295
-                                      minimum: 0
+                                      format: int32
                                       type: integer
                                     tokensPerFill:
                                       maximum: 4294967295
@@ -3254,8 +3231,7 @@ spec:
                                 anonymousLimits:
                                   properties:
                                     requestsPerUnit:
-                                      maximum: 4294967295
-                                      minimum: 0
+                                      format: int32
                                       type: integer
                                     unit:
                                       type: string
@@ -3264,8 +3240,7 @@ spec:
                                 authorizedLimits:
                                   properties:
                                     requestsPerUnit:
-                                      maximum: 4294967295
-                                      minimum: 0
+                                      format: int32
                                       type: integer
                                     unit:
                                       type: string
@@ -3281,8 +3256,7 @@ spec:
                                     fillInterval:
                                       type: string
                                     maxTokens:
-                                      maximum: 4294967295
-                                      minimum: 0
+                                      format: int32
                                       type: integer
                                     tokensPerFill:
                                       maximum: 4294967295
@@ -3489,8 +3463,7 @@ spec:
                                     fillInterval:
                                       type: string
                                     maxTokens:
-                                      maximum: 4294967295
-                                      minimum: 0
+                                      format: int32
                                       type: integer
                                     tokensPerFill:
                                       maximum: 4294967295
@@ -3747,8 +3720,7 @@ spec:
                             retries:
                               properties:
                                 numRetries:
-                                  maximum: 4294967295
-                                  minimum: 0
+                                  format: int32
                                   type: integer
                                 perTryTimeout:
                                   type: string
@@ -3877,8 +3849,7 @@ spec:
                                                           nullable: true
                                                           type: string
                                                         subgroup:
-                                                          maximum: 4294967295
-                                                          minimum: 0
+                                                          format: int32
                                                           type: integer
                                                       type: object
                                                     type: object
@@ -3977,8 +3948,7 @@ spec:
                                                           nullable: true
                                                           type: string
                                                         subgroup:
-                                                          maximum: 4294967295
-                                                          minimum: 0
+                                                          format: int32
                                                           type: integer
                                                       type: object
                                                     type: object
@@ -4097,8 +4067,7 @@ spec:
                                                           nullable: true
                                                           type: string
                                                         subgroup:
-                                                          maximum: 4294967295
-                                                          minimum: 0
+                                                          format: int32
                                                           type: integer
                                                       type: object
                                                     type: object
@@ -4257,8 +4226,7 @@ spec:
                                                           nullable: true
                                                           type: string
                                                         subgroup:
-                                                          maximum: 4294967295
-                                                          minimum: 0
+                                                          format: int32
                                                           type: integer
                                                       type: object
                                                     type: object
@@ -4357,8 +4325,7 @@ spec:
                                                           nullable: true
                                                           type: string
                                                         subgroup:
-                                                          maximum: 4294967295
-                                                          minimum: 0
+                                                          format: int32
                                                           type: integer
                                                       type: object
                                                     type: object
@@ -4477,8 +4444,7 @@ spec:
                                                           nullable: true
                                                           type: string
                                                         subgroup:
-                                                          maximum: 4294967295
-                                                          minimum: 0
+                                                          format: int32
                                                           type: integer
                                                       type: object
                                                     type: object
@@ -4607,8 +4573,7 @@ spec:
                                                 nullable: true
                                                 type: string
                                               subgroup:
-                                                maximum: 4294967295
-                                                minimum: 0
+                                                format: int32
                                                 type: integer
                                             type: object
                                           type: object
@@ -4707,8 +4672,7 @@ spec:
                                                 nullable: true
                                                 type: string
                                               subgroup:
-                                                maximum: 4294967295
-                                                minimum: 0
+                                                format: int32
                                                 type: integer
                                             type: object
                                           type: object
@@ -5007,8 +4971,7 @@ spec:
                                                               nullable: true
                                                               type: string
                                                             subgroup:
-                                                              maximum: 4294967295
-                                                              minimum: 0
+                                                              format: int32
                                                               type: integer
                                                           type: object
                                                         type: object
@@ -5050,8 +5013,7 @@ spec:
                                           kube:
                                             properties:
                                               port:
-                                                maximum: 4294967295
-                                                minimum: 0
+                                                format: int32
                                                 type: integer
                                               ref:
                                                 properties:
@@ -5127,8 +5089,7 @@ spec:
                                                         type: string
                                                         x-kubernetes-int-or-string: true
                                                       numerator:
-                                                        maximum: 4294967295
-                                                        minimum: 0
+                                                        format: int32
                                                         type: integer
                                                     type: object
                                                   runtimeKey:
@@ -5142,8 +5103,7 @@ spec:
                                                         type: string
                                                         x-kubernetes-int-or-string: true
                                                       numerator:
-                                                        maximum: 4294967295
-                                                        minimum: 0
+                                                        format: int32
                                                         type: integer
                                                     type: object
                                                   runtimeKey:
@@ -5330,8 +5290,7 @@ spec:
                                                                         nullable: true
                                                                         type: string
                                                                       subgroup:
-                                                                        maximum: 4294967295
-                                                                        minimum: 0
+                                                                        format: int32
                                                                         type: integer
                                                                     type: object
                                                                   type: object
@@ -5430,8 +5389,7 @@ spec:
                                                                         nullable: true
                                                                         type: string
                                                                       subgroup:
-                                                                        maximum: 4294967295
-                                                                        minimum: 0
+                                                                        format: int32
                                                                         type: integer
                                                                     type: object
                                                                   type: object
@@ -5550,8 +5508,7 @@ spec:
                                                                         nullable: true
                                                                         type: string
                                                                       subgroup:
-                                                                        maximum: 4294967295
-                                                                        minimum: 0
+                                                                        format: int32
                                                                         type: integer
                                                                     type: object
                                                                   type: object
@@ -5710,8 +5667,7 @@ spec:
                                                                         nullable: true
                                                                         type: string
                                                                       subgroup:
-                                                                        maximum: 4294967295
-                                                                        minimum: 0
+                                                                        format: int32
                                                                         type: integer
                                                                     type: object
                                                                   type: object
@@ -5810,8 +5766,7 @@ spec:
                                                                         nullable: true
                                                                         type: string
                                                                       subgroup:
-                                                                        maximum: 4294967295
-                                                                        minimum: 0
+                                                                        format: int32
                                                                         type: integer
                                                                     type: object
                                                                   type: object
@@ -5930,8 +5885,7 @@ spec:
                                                                         nullable: true
                                                                         type: string
                                                                       subgroup:
-                                                                        maximum: 4294967295
-                                                                        minimum: 0
+                                                                        format: int32
                                                                         type: integer
                                                                     type: object
                                                                   type: object
@@ -6038,8 +5992,7 @@ spec:
                                                               nullable: true
                                                               type: string
                                                             subgroup:
-                                                              maximum: 4294967295
-                                                              minimum: 0
+                                                              format: int32
                                                               type: integer
                                                           type: object
                                                         type: object
@@ -6138,8 +6091,7 @@ spec:
                                                               nullable: true
                                                               type: string
                                                             subgroup:
-                                                              maximum: 4294967295
-                                                              minimum: 0
+                                                              format: int32
                                                               type: integer
                                                           type: object
                                                         type: object
@@ -6311,8 +6263,7 @@ spec:
                                                     nullable: true
                                                     type: string
                                                   subgroup:
-                                                    maximum: 4294967295
-                                                    minimum: 0
+                                                    format: int32
                                                     type: integer
                                                 type: object
                                               type: object
@@ -6354,8 +6305,7 @@ spec:
                                 kube:
                                   properties:
                                     port:
-                                      maximum: 4294967295
-                                      minimum: 0
+                                      format: int32
                                       type: integer
                                     ref:
                                       properties:
