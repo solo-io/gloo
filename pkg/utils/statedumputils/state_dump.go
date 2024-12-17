@@ -131,10 +131,26 @@ func recordKubeState(f *os.File) {
 
 	f.WriteString("*** Kube state ***\n")
 
+	fmt.Println("ARIANA kubectl config current-context:")
+	currentContext, err := kubeCli.KubectlOut(nil, "config", "current-context")
+	if err != nil {
+		fmt.Println("ARIANA error running kubectl config current-context")
+	}
+	fmt.Println("ARIANA current-context:", string(currentContext))
+
+	fmt.Println("ARIANA kubectl config get-contexts:")
+	getContexts, err := kubeCli.KubectlOut(nil, "config", "get-contexts")
+	if err != nil {
+		fmt.Println("ARIANA error running kubectl config get-contexts")
+	}
+	fmt.Println("ARIANA get-contexts:", string(getContexts))
+
 	kubeState, err := kubeCli.KubectlOut(nil, "get", "all", "-A", "-o", "wide")
 	if err != nil {
 		f.WriteString("*** Unable to get kube state ***\n")
 	}
+	fmt.Println("ARIANA kubectl get all -A -o wide:")
+	fmt.Println(string(kubeState))
 	f.WriteString(string(kubeState) + "\n")
 
 	resourcesToGet := []string{
