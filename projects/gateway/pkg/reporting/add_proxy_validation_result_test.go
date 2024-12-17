@@ -38,6 +38,10 @@ var _ = Describe("AddProxyValidationResult", func() {
 					validationapi.ListenerReport_Error_ProcessingError,
 					"bad listener")
 
+				validation.AppendListenerWarning(lis,
+					validationapi.ListenerReport_Warning_SSLConfigWarning,
+					"misconfigured listener")
+
 				availableVirtualHostReports := lis.GetHttpListenerReport().GetVirtualHostReports()
 				for _, httpReport := range lis.GetAggregateListenerReport().GetHttpListenerReports() {
 					availableVirtualHostReports = append(availableVirtualHostReports, httpReport.GetVirtualHostReports()...)
@@ -57,6 +61,11 @@ var _ = Describe("AddProxyValidationResult", func() {
 							"bad route",
 							"route-0",
 						)
+
+						validation.AppendRouteWarning(route,
+							validationapi.RouteReport_Warning_Type(validationapi.RouteReport_Warning_InvalidDestinationWarning),
+							"invalid route route-0",
+						)
 					}
 				}
 			}
@@ -68,6 +77,9 @@ var _ = Describe("AddProxyValidationResult", func() {
 				Expect(reports[gw].Errors).To(HaveOccurred())
 				Expect(reports[gw].Errors.Error()).To(ContainSubstring(`1 error occurred:
 	* Listener Error: ProcessingError. Reason: bad listener`))
+
+				Expect(reports[gw].Warnings).To(HaveLen(1))
+				Expect(reports[gw].Warnings[0]).To(ContainSubstring(`Listener Warning: SSLConfigWarning. Reason: misconfigured listener`))
 			}
 
 			for _, vs := range snap.VirtualServices {
@@ -76,6 +88,10 @@ var _ = Describe("AddProxyValidationResult", func() {
 				Expect(reports[vs].Errors.Error()).To(ContainSubstring(`4 errors occurred:
 	* VirtualHost Error: DomainsNotUniqueError. Reason: bad vhost
 	* Route Error: InvalidMatcherError. Reason: bad route. Route Name: route-0`))
+
+				Expect(reports[vs].Warnings).To(HaveLen(2))
+				Expect(reports[vs].Warnings[0]).To(ContainSubstring(`Route Warning: InvalidDestinationWarning. Reason: invalid route route-0`))
+				Expect(reports[vs].Warnings[1]).To(ContainSubstring(`Route Warning: InvalidDestinationWarning. Reason: invalid route route-0`))
 			}
 		},
 		Entry("default translators", translator.Opts{
