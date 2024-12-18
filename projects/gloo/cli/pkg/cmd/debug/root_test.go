@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	cliutil "github.com/solo-io/gloo/pkg/cliutil/install"
 	"github.com/solo-io/gloo/pkg/cliutil/testutil"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/testutils"
@@ -41,6 +42,13 @@ var _ = Describe("Debug", func() {
 			c.SendLine("y")
 			c.ExpectEOF()
 		}, func() {
+			out, err := cliutil.KubectlOut(nil, "config", "current-context")
+			currentContext := string(out)
+			Expect(err).NotTo(HaveOccurred(), err.Error()+", "+currentContext)
+			fmt.Println("ARIANA BeforeSuite current-context", currentContext)
+
+			Expect(cliutil.Kubectl(nil, "config", "unset", "current-context")).NotTo(HaveOccurred())
+
 			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "debug TEST: running debug")
 			err := testutils.Glooctl("debug")
 			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "debug TEST: AFTER debug")
@@ -67,6 +75,13 @@ var _ = Describe("Debug", func() {
 				c.SendLine("y")
 				c.ExpectEOF()
 			}, func() {
+				out, err := cliutil.KubectlOut(nil, "config", "current-context")
+				currentContext := string(out)
+				Expect(err).NotTo(HaveOccurred(), err.Error()+", "+currentContext)
+				fmt.Println("ARIANA BeforeSuite current-context", currentContext)
+
+				Expect(cliutil.Kubectl(nil, "config", "unset", "current-context")).NotTo(HaveOccurred())
+
 				fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "custom-dir TEST: running debug")
 				err := testutils.Glooctl("debug --directory " + customDir)
 				fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "custom-dir TEST: AFTER debug")
