@@ -1,0 +1,9 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang.org
+    dependencyRepo: crypto
+    dependencyTag: v0.31.0
+    issueLink: https://github.com/solo-io/gloo/issues/10431
+    description: Update golang.org/x/crypto to address https://avd.aquasec.com/nvd/cve-2024-45337
+    resolvesIssue: false
+
