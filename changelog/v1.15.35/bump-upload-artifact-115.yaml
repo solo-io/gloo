@@ -1,0 +1,8 @@
+changelog:
+- type: NON_USER_FACING
+  description: >-
+    Bump EOL'd github upload action
+    
+    skipCI-kube-tests:true
+    skipCI-docs-build:true
+

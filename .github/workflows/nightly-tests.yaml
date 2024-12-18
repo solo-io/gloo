@@ -110,7 +110,7 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
       - name: send slack message
         env:
           PARENT_JOB_URL: https://github.com/solo-io/gloo/actions/runs/${{github.run_id}} # parent job hyperlink
