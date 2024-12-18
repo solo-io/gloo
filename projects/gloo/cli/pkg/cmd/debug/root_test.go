@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"fmt"
 	"os"
 	"time"
 
@@ -26,8 +27,6 @@ var kubeStateFile = func(outDir string) string {
 var _ = Describe("Debug", func() {
 
 	BeforeEach(func() {
-		Skip("Skipping flakey test")
-
 		helpers.UseMemoryClients()
 	})
 
@@ -42,13 +41,16 @@ var _ = Describe("Debug", func() {
 			c.SendLine("y")
 			c.ExpectEOF()
 		}, func() {
+			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "debug TEST: running debug")
 			err := testutils.Glooctl("debug")
+			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "debug TEST: AFTER debug")
 			Expect(err).NotTo(HaveOccurred())
-
-			kubeStateBytes, err := os.ReadFile(kubeStateFile(""))
-			Expect(err).NotTo(HaveOccurred(), kubeStateFile("")+" file should be present")
-			Expect(kubeStateBytes).NotTo(BeEmpty())
 		}, &timeout)
+
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "debug TEST: AFTER timeout")
+		kubeStateBytes, err := os.ReadFile(kubeStateFile(""))
+		Expect(err).NotTo(HaveOccurred(), kubeStateFile("")+" file should be present")
+		Expect(kubeStateBytes).NotTo(BeEmpty())
 	})
 
 	When("a directory is specified", func() {
@@ -65,18 +67,21 @@ var _ = Describe("Debug", func() {
 				c.SendLine("y")
 				c.ExpectEOF()
 			}, func() {
+				fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "custom-dir TEST: running debug")
 				err := testutils.Glooctl("debug --directory " + customDir)
+				fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "custom-dir TEST: AFTER debug")
 				Expect(err).NotTo(HaveOccurred())
-
-				kubeStateBytes, err := os.ReadFile(kubeStateFile(customDir))
-				Expect(err).NotTo(HaveOccurred(), kubeStateFile(customDir)+" file should be present")
-				Expect(kubeStateBytes).NotTo(BeEmpty())
-
-				// default dir should not exist
-				_, err = os.ReadDir(defaultOutDir)
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(os.ErrNotExist))
 			}, &timeout)
+
+			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "custom-dir TEST: AFTER timeout")
+			kubeStateBytes, err := os.ReadFile(kubeStateFile(customDir))
+			Expect(err).NotTo(HaveOccurred(), kubeStateFile(customDir)+" file should be present")
+			Expect(kubeStateBytes).NotTo(BeEmpty())
+
+			// default dir should not exist
+			_, err = os.ReadDir(defaultOutDir)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(os.ErrNotExist))
 		})
 	})
 
@@ -86,14 +91,17 @@ var _ = Describe("Debug", func() {
 			c.SendLine("N")
 			c.ExpectEOF()
 		}, func() {
+			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "N-debug TEST: running debug")
 			err := testutils.Glooctl("debug")
+			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "N-debug TEST: AFTER debug")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Aborting: cannot proceed without overwriting \"" + defaultOutDir + "\" directory"))
-
-			_, err = os.ReadDir(defaultOutDir)
-			Expect(err).To(HaveOccurred())
-			Expect(err).To(MatchError(os.ErrNotExist))
 		}, nil)
+
+		fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "N-debug TEST: AFTER timeout")
+		_, err := os.ReadDir(defaultOutDir)
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError(os.ErrNotExist))
 	})
 
 })

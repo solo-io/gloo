@@ -1,0 +1,8 @@
+changelog:
+- type: NON_USER_FACING
+  description: >-
+    Fix flaky cli debug tests
+    
+    skipCI-kube-tests:true
+    skipCI-docs-build:true
+
