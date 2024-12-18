@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/solo-projects/issues/6617
+  description: Fix flakey TestConfigureNotAttachedHttpListenerOptions caused by the gateway-proxy pod being deployed after the test begins leading to a timeout.
