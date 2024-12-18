@@ -1,6 +1,6 @@
 name: Performance Tests
 description: Runs tests with the performance label
-  
+
 runs:
   using: "composite"
   steps:
@@ -12,7 +12,7 @@ runs:
     shell: bash
     run: mkdir -p _output/performance-artifacts && echo '{"url":"https://github.com/solo-io/gloo/actions/runs/${{github.run_id}}",
             "name":"performance"}' > _output/performance-artifacts/test-out.json
-  - uses: actions/upload-artifact@v3
+  - uses: actions/upload-artifact@v4
     if: ${{ failure() }}
     with:
       name: performance-dump
