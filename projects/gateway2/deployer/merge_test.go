@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gw2_v1alpha1 "github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/ptr"
 )
 
@@ -133,5 +134,30 @@ var _ = Describe("deepMergeGatewayParameters", func() {
 		Expect(out.Spec.Kube.Service.ExtraAnnotations).To(Equal(expectedMap))
 		Expect(out.Spec.Kube.ServiceAccount.ExtraLabels).To(Equal(expectedMap))
 		Expect(out.Spec.Kube.ServiceAccount.ExtraAnnotations).To(Equal(expectedMap))
+	})
+
+	It("merges service strings", func() {
+
+		dst := &gw2_v1alpha1.GatewayParameters{
+			Spec: gw2_v1alpha1.GatewayParametersSpec{
+				Kube: &gw2_v1alpha1.KubernetesProxyConfig{
+					Service: &gw2_v1alpha1.Service{
+						ExternalTrafficPolicy: ptr.To(corev1.ServiceExternalTrafficPolicyLocal),
+					},
+				},
+			},
+		}
+		src := &gw2_v1alpha1.GatewayParameters{
+			Spec: gw2_v1alpha1.GatewayParametersSpec{
+				Kube: &gw2_v1alpha1.KubernetesProxyConfig{
+					Service: &gw2_v1alpha1.Service{
+						ExternalTrafficPolicy: ptr.To(corev1.ServiceExternalTrafficPolicyCluster),
+					},
+				},
+			},
+		}
+
+		out := deepMergeGatewayParameters(dst, src)
+		Expect(out.Spec.Kube.Service.ExternalTrafficPolicy).To(Equal(ptr.To(corev1.ServiceExternalTrafficPolicyCluster)))
 	})
 })
