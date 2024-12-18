@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/solo-io/gloo/pkg/cliutil/testutil"
 	cli "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd"
 )
 
@@ -63,6 +64,29 @@ func (c *GlooCli) DebugLogs(ctx context.Context, extraArgs ...string) error {
 		"logs",
 	}, extraArgs...)
 	return ExecuteCommandWithArgs(c.NewCommand(ctx), debugLogsArgs...)
+}
+
+// Debug attempts to write debug information to a specified directory, and returns an error if one was encountered
+func (c *GlooCli) Debug(ctx context.Context, userConsent bool, extraArgs ...string) error {
+	debugLogsArgs := append([]string{
+		"debug",
+	}, extraArgs...)
+
+	var err error
+	testutil.ExpectInteractive(func(c *testutil.Console) {
+		c.ExpectString("This command will overwrite")
+		c.SendLine(func() string {
+			if userConsent {
+				return "y"
+			}
+			return "N"
+		}())
+		c.ExpectEOF()
+	}, func() {
+		err = ExecuteCommandWithArgs(c.NewCommand(ctx), debugLogsArgs...)
+	}, nil)
+
+	return err
 }
 
 // IstioInject inject istio-proxy and sds
