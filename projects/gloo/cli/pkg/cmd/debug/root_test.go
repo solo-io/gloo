@@ -50,7 +50,7 @@ var _ = Describe("Debug", func() {
 			Expect(cliutil.Kubectl(nil, "config", "unset", "current-context")).NotTo(HaveOccurred())
 
 			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "debug TEST: running debug")
-			err := testutils.Glooctl("debug")
+			err = testutils.Glooctl("debug")
 			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "debug TEST: AFTER debug")
 			Expect(err).NotTo(HaveOccurred())
 		}, &timeout)
@@ -83,7 +83,7 @@ var _ = Describe("Debug", func() {
 				Expect(cliutil.Kubectl(nil, "config", "unset", "current-context")).NotTo(HaveOccurred())
 
 				fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "custom-dir TEST: running debug")
-				err := testutils.Glooctl("debug --directory " + customDir)
+				err = testutils.Glooctl("debug --directory " + customDir)
 				fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "custom-dir TEST: AFTER debug")
 				Expect(err).NotTo(HaveOccurred())
 			}, &timeout)
