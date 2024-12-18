@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: fixes flaky glooctl debug tests by moving them from unit to e2e tests
+  skipCI-kube-tests:false
