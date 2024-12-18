@@ -33,7 +33,7 @@ type testingSuite struct {
 
 func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.TestingSuite {
 	return &testingSuite{
-		base.NewBaseTestingSuite(ctx, testInst, e2e.MustTestHelper(ctx, testInst), base.SimpleTestCase{}, helmTestCases),
+		base.NewBaseTestingSuiteWithUpgrades(ctx, testInst, e2e.MustTestHelper(ctx, testInst), base.SimpleTestCase{}, helmTestCases),
 	}
 }
 

@@ -9,9 +9,6 @@ You can build and deploy Gloo Gateway Open Source from the source code.
 
 1. Follow the [setup guide]({{% versioned_link_path fromRoot="/guides/dev/setting-up-dev-environment/" %}}) to clone the Gloo Gateway repository and install the project dependencies.
 2. In your terminal, navigate to the Gloo Gateway project.
-   ```sh
-   cd ${GOPATH}/src/github.com/solo-io/gloo
-   ```
 3. Continue with this guide to learn how you can build Gloo Gateway from the top-level [Makefile](https://github.com/solo-io/gloo/blob/main/Makefile).
 
 ## Set up build dependencies and code generation {#setup}
