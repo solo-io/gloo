@@ -1,6 +1,8 @@
 package testutils
 
 import (
+	"log"
+
 	"github.com/solo-io/gloo/pkg/utils/envutils"
 )
 
@@ -12,6 +14,10 @@ const (
 	// SkipInstall can be used when running Kube suites consecutively, and you didn't tear down the Gloo
 	// installation from a previous run
 	SkipInstall = "SKIP_INSTALL"
+
+	// PersistInstall can be used when running Kube suites consecutively. It will install Gloo if it is not installed,
+	// and it won't tear down after the test suite completes
+	PersistInstall = "PERSIST_INSTALL"
 
 	// InstallNamespace is the namespace in which Gloo is installed
 	InstallNamespace = "INSTALL_NAMESPACE"
@@ -87,15 +93,39 @@ const (
 
 // ShouldTearDown returns true if any assets that were created before a test (for example Gloo being installed)
 // should be torn down after the test.
-func ShouldTearDown() bool {
-	return IsEnvTruthy(TearDown)
+func ShouldTearDown(defaultTearDown bool) bool {
+	if IsEnvTruthy(TearDown) && IsEnvTruthy(PersistInstall) {
+		log.Printf("Warning: %s and %s are both set to true. This is likely a mistake.  Gloo will be uninstalled.", TearDown, PersistInstall)
+	}
+
+	// Start with the default tear down value
+	tearDown := defaultTearDown
+
+	// If TearDown is defined, use that value
+	if envutils.IsEnvDefined(TearDown) {
+		tearDown = IsEnvTruthy(TearDown)
+	} else if IsEnvTruthy(PersistInstall) {
+		// If TearDown is not defined, and persist install is truthy, don't tear down
+		tearDown = false
+	}
+
+	return tearDown
 }
 
 // ShouldSkipInstall returns true if any assets that need to be created before a test (for example Gloo being installed)
 // should be skipped. This is typically used in tandem with ShouldTearDown when running consecutive tests and skipping
 // both the tear down and install of Gloo Edge.
-func ShouldSkipInstall() bool {
-	return IsEnvTruthy(SkipInstall)
+func ShouldSkipInstall(alreadyInstalled bool) bool {
+	// Skip install if:
+	// - SkipInstall is true
+	// OR
+	// - PersistInstall is true and Gloo is already installed
+
+	// If SkipInstall is true and PersistInstall is false, warn the user
+	if IsEnvTruthy(SkipInstall) && (envutils.IsEnvDefined(PersistInstall) && !IsEnvTruthy(PersistInstall)) {
+		log.Printf("Warning: %s is set to true, but %s is set to false. This is likely a mistake. Gloo will be installed.", SkipInstall, PersistInstall)
+	}
+	return IsEnvTruthy(SkipInstall) || (IsEnvTruthy(PersistInstall) && alreadyInstalled)
 }
 
 // ShouldSkipIstioInstall returns true if any assets that need to be created before a test (for example Gloo being installed)
