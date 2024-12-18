@@ -56,8 +56,8 @@ Name|Version|License
 [x/exp](https://golang.org/x/exp)|v0.0.0-20231006140011-7918f672742d|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.10.0|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.21.1-0.20240508182429-e35e4ccd0d2d|BSD 3-clause "New" or "Revised" License
-[googleapis/api](https://google.golang.org/genproto/googleapis/api)|v0.0.0-20230822172742-b8732ec3820d|Apache License 2.0
-[googleapis/rpc](https://google.golang.org/genproto/googleapis/rpc)|v0.0.0-20230822172742-b8732ec3820d|Apache License 2.0
+[googleapis/api](https://google.golang.org/genproto/googleapis/api)|v0.0.0-20231120223509-83a465c0220f|Apache License 2.0
+[googleapis/rpc](https://google.golang.org/genproto/googleapis/rpc)|v0.0.0-20231212172506-995d672761c0|Apache License 2.0
 [google.golang.org/grpc](https://google.golang.org/grpc)|v1.59.0|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.33.0|BSD 3-clause "New" or "Revised" License
 [AlecAivazis/survey.v1](https://gopkg.in/AlecAivazis/survey.v1)|v1.8.7|MIT License
