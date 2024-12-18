@@ -1,5 +1,9 @@
 name: Conformance Tests
-description: run kubernetes gateway api conformance tests
+description: Run Kubernetes Gateway API conformance tests for multiple versions
+inputs:
+  k8sgateway-api-version:
+    description: The version of the Kubernetes Gateway API CRDs to use for testing
+    required: true
 runs:
   using: "composite"
   steps:
@@ -36,6 +40,7 @@ runs:
       CLUSTER_NODE_VERSION: ${{ matrix.kube-version.node }}
       IMAGE_VARIANT: ${{ matrix.image-variant }}
       CONFORMANCE: "true"
+      CONFORMANCE_VERSION: ${{ inputs.k8sgateway-api-version }}
     run: ./ci/kind/setup-kind.sh
   - name: Install Gloo Gateway with the k8s gateway integration enabled
     shell: bash
@@ -54,6 +59,8 @@ runs:
   - name: Run the kubernetes gateway API conformance tests
     shell: bash
     run: make conformance
+    env:
+      CONFORMANCE_VERSION: ${{ inputs.k8sgateway-api-version }}
   - name: Capture debug information when tests fail
     if: ${{ failure() }}
     shell: bash
