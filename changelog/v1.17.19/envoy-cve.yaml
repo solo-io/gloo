@@ -1,0 +1,11 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    issueLink: https://github.com/solo-io/envoy-gloo-ee/issues/868
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo
+    dependencyTag: v1.30.9-patch1
+    resolvesIssue: false
+    description: >-
+      CVE-2024-53269: Happy Eyeballs: Validate that additional_address are IP addresses instead of crashing when sorting.
+      CVE-2024-53270: HTTP/1: sending overload crashes when the request is reset beforehand
+      CVE-2024-53271: HTTP/1.1 multiple issues with envoy.reloadable_features.http1_balsa_delay_reset
