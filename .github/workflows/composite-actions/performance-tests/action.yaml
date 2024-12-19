@@ -15,6 +15,6 @@ runs:
   - uses: actions/upload-artifact@v4
     if: ${{ failure() }}
     with:
-      name: performance-dump
+      name: performance-dump-attempt-${{ github.run_attempt }}
       path: "_output/performance-artifacts"
       if-no-files-found: warn
