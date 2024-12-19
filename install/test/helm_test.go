@@ -2840,7 +2840,7 @@ spec:
 							// This annotation was introduced to resolve https://github.com/solo-io/gloo/issues/8392
 							// It triggers a new rollout of the gateway proxy if the config map it uses changes
 							// As of PR 8733, changing the values of the deployment spec doesn't change the gateway-proxy config map, so it is safe to hardcode the checksum in the tests
-							"checksum/gateway-proxy-envoy-config": "27068cd033014d38f6c77522484e957ab25fa1be34a900a1f5241b8f7d62f525",
+							"checksum/gateway-proxy-envoy-config": "fed66fbbc5278b29a38e095ba2fab43c362bf4551cb997b63b300ce0dcee86f9",
 						}
 						deploy.Spec.Template.Spec.Volumes = []corev1.Volume{{
 							Name: "envoy-config",
