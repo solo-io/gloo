@@ -35,6 +35,9 @@ data:
           upstream:
             healthy_panic_threshold:
               value: {{ $spec.healthyPanicThreshold }}
+          envoy: #  ON_LTS_UPDATE remove the reloadable feature block and this envoy  block
+            reloadable_features:
+              check_switch_protocol_websocket_handshake: false
       - name: admin_layer
         admin_layer: {}
     node:

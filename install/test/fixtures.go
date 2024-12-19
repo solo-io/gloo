@@ -1,5 +1,6 @@
 package test
 
+// ON_LTS_UPDATE remove the reloadable feature block
 var awsFmtString = `
 layered_runtime:
   layers:
@@ -10,6 +11,9 @@ layered_runtime:
       upstream:
         healthy_panic_threshold:
           value: 50
+      envoy:
+        reloadable_features:
+          check_switch_protocol_websocket_handshake : false
   - name: admin_layer
     admin_layer: {}
 node:
@@ -192,6 +196,9 @@ layered_runtime:
       upstream:
         healthy_panic_threshold:
           value: 50
+      envoy:
+        reloadable_features:
+          check_switch_protocol_websocket_handshake : false
   - name: admin_layer
     admin_layer: {}
 node:
@@ -335,6 +342,9 @@ layered_runtime:
       upstream:
         healthy_panic_threshold:
           value: 50
+      envoy:
+        reloadable_features:
+          check_switch_protocol_websocket_handshake : false
   - name: admin_layer
     admin_layer: {}
 node:
@@ -492,6 +502,9 @@ layered_runtime:
       upstream:
         healthy_panic_threshold:
           value: 50
+      envoy:
+        reloadable_features:
+          check_switch_protocol_websocket_handshake : false
   - name: admin_layer
     admin_layer: {}
 node:
@@ -686,6 +699,9 @@ layered_runtime:
       upstream:
         healthy_panic_threshold:
           value: 50
+      envoy:
+        reloadable_features:
+          check_switch_protocol_websocket_handshake : false
   - name: admin_layer
     admin_layer: {}
 node:
