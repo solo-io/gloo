@@ -311,7 +311,7 @@ func (c *controllerBuilder) watchCustomResourceDefinitions(_ context.Context) er
 
 func (c *controllerBuilder) watchHttpRoute(_ context.Context) error {
 	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
-		WithEventFilter(predicate.GenerationChangedPredicate{}).
+		WithEventFilter(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.AnnotationChangedPredicate{})).
 		For(&apiv1.HTTPRoute{}).
 		Complete(reconcile.Func(c.reconciler.ReconcileHttpRoutes))
 }
