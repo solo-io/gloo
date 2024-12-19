@@ -40,6 +40,7 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 			if err := os.RemoveAll(opts.Debug.Directory); err != nil {
 				return eris.Wrap(err, "error wiping out directory")
 			}
+
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -48,9 +49,13 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 
 			kubectlCli := kubectl.NewCli().WithKubeContext(opts.Top.KubeContext)
 
+			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), opts.Debug.Directory, "RunE: running KubeDumpOnFail")
 			state_dump_utils.KubeDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), opts.Debug.Directory, "RunE: running ControllerDumpOnFail")
 			state_dump_utils.ControllerDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), opts.Debug.Directory, "RunE: running EnvoyDumpOnFail")
 			state_dump_utils.EnvoyDumpOnFail(ctx, kubectlCli, os.Stdout, opts.Debug.Directory, opts.Debug.Namespaces)()
+			fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), opts.Debug.Directory, "RunE: exiting RunE")
 			return nil
 		},
 	}

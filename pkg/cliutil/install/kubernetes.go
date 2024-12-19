@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/solo-io/gloo/pkg/cliutil"
 )
@@ -42,6 +43,7 @@ func Kubectl(stdin io.Reader, args ...string) error {
 
 // Deprecated: Prefer kubectl.Cli
 func KubectlOut(stdin io.Reader, args ...string) ([]byte, error) {
+	fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "KubectlOut before", args)
 	kubectl := exec.Command("kubectl", args...)
 
 	if stdin != nil {
@@ -67,5 +69,6 @@ func KubectlOut(stdin io.Reader, args ...string) ([]byte, error) {
 
 	err := kubectl.Run()
 
+	fmt.Println("ARIANA", time.Now().Format("15:04:05.999999999"), "KubectlOut after", args)
 	return buf.Bytes(), err
 }
