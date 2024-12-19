@@ -85,7 +85,6 @@ func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 		controllerBuilder.addVhOptIndexes,
 		controllerBuilder.addGwParamsIndexes,
 	)
-
 }
 
 func run(ctx context.Context, funcs ...func(ctx context.Context) error) error {
@@ -258,7 +257,7 @@ func (c *controllerBuilder) watchGwClass(ctx context.Context) error {
 
 func (c *controllerBuilder) watchHttpRoute(ctx context.Context) error {
 	err := ctrl.NewControllerManagedBy(c.cfg.Mgr).
-		WithEventFilter(predicate.GenerationChangedPredicate{}).
+		WithEventFilter(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.AnnotationChangedPredicate{})).
 		For(&apiv1.HTTPRoute{}).
 		Complete(reconcile.Func(c.reconciler.ReconcileHttpRoutes))
 	if err != nil {
@@ -414,7 +413,6 @@ func (r *controllerReconciler) ReconcileHttpRoutes(ctx context.Context, req ctrl
 }
 
 func (r *controllerReconciler) ReconcileReferenceGrants(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-
 	// reconcile all things?!
 	r.kick(ctx)
 	return ctrl.Result{}, nil
