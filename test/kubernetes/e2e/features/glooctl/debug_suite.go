@@ -116,25 +116,25 @@ func (s *debugSuite) checkPodLogsDir(podsDir string) {
 	files, err := os.ReadDir(podsDir)
 	s.NoError(err)
 
-	s.Len(files, 4)
-	for i, file := range files {
-		// rely on os.ReadDir returns dir sorted by filename
-		var prefix string
-		switch i {
-		case 0:
-			prefix = "gateway-proxy-"
-		case 1:
-			prefix = "gloo-"
-		case 2, 3:
-			prefix = "public-gw-"
-		}
-
+	s.GreaterOrEqual(len(files), 4)
+	var glooPods, gatewayProxyPods, publicGwPods int
+	for _, file := range files {
 		fileName := file.Name()
 		s.True(strings.HasSuffix(fileName, ".log"))
-		s.True(strings.HasPrefix(fileName, prefix), "expected pod logs file %s at index %d to have prefix %s", fileName, i, prefix)
+
+		if strings.HasPrefix(fileName, "gloo-") && !strings.HasPrefix(fileName, "gloo-resource-") {
+			glooPods += 1
+		} else if strings.HasPrefix(file.Name(), "gateway-proxy-") {
+			gatewayProxyPods += 1
+		} else if strings.HasPrefix(file.Name(), "public-gw-") {
+			publicGwPods += 1
+		}
 
 		s.checkNonEmptyFile(filepath.Join(podsDir, fileName))
 	}
+	s.Equal(glooPods, 1)
+	s.Equal(gatewayProxyPods, 1)
+	s.Equal(publicGwPods, 2)
 }
 
 func (s *debugSuite) checkEnvoyAndGlooControllerInfo(nsDir string) {
