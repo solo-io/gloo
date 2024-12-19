@@ -66,13 +66,14 @@ func (c *GlooCli) DebugLogs(ctx context.Context, extraArgs ...string) error {
 	return ExecuteCommandWithArgs(c.NewCommand(ctx), debugLogsArgs...)
 }
 
-// Debug attempts to write debug information to a specified directory, and returns an error if one was encountered
-func (c *GlooCli) Debug(ctx context.Context, userConsent bool, extraArgs ...string) error {
+// Debug attempts to write debug information to a specified directory, depending on the consent of the user to do so.
+// It runs a function passed by the caller on the returned error (even if nil),
+// the intention of which is to allow the caller to make assertions about the error, e.g. by passing s.NoError as the errAssertions func
+func (c *GlooCli) Debug(ctx context.Context, userConsent bool, errAssertions func(error, ...interface{}) bool, extraArgs ...string) {
 	debugLogsArgs := append([]string{
 		"debug",
 	}, extraArgs...)
 
-	var err error
 	testutil.ExpectInteractive(func(c *testutil.Console) {
 		c.ExpectString("This command will overwrite")
 		c.SendLine(func() string {
@@ -83,10 +84,9 @@ func (c *GlooCli) Debug(ctx context.Context, userConsent bool, extraArgs ...stri
 		}())
 		c.ExpectEOF()
 	}, func() {
-		err = ExecuteCommandWithArgs(c.NewCommand(ctx), debugLogsArgs...)
+		err := ExecuteCommandWithArgs(c.NewCommand(ctx), debugLogsArgs...)
+		errAssertions(err)
 	}, nil)
-
-	return err
 }
 
 // IstioInject inject istio-proxy and sds
