@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/stretchr/testify/suite"
@@ -93,10 +94,119 @@ func (s *debugSuite) TestDebugFile() {
 		"-N", s.testInstallation.Metadata.InstallNamespace, "--directory", outputDir)
 
 	// should populate the kube-state.log file
-	kubeStateBytes, err := os.ReadFile(kubeStateFile(outputDir))
-	s.NoError(err, kubeStateFile(outputDir)+" file should have been generated")
-	s.NotEmpty(kubeStateBytes)
+	s.checkNonEmptyFile(kubeStateFile(outputDir))
+
+	// should populate ns directory
+	s.DirExists(filepath.Join(outputDir, s.testInstallation.Metadata.InstallNamespace))
+
+	// _pods directory should contain expected logs
+	s.checkPodLogsDir(filepath.Join(outputDir, s.testInstallation.Metadata.InstallNamespace, "_pods"))
+
+	// ns dir should contain envoy or gloo controller info for each pod
+	s.checkEnvoyAndGlooControllerInfo(filepath.Join(outputDir, s.testInstallation.Metadata.InstallNamespace))
+
+	// ns dir should contain dirs for expected CRDs with expected files for each CR
+	s.checkCRs(filepath.Join(outputDir, s.testInstallation.Metadata.InstallNamespace))
 
 	// default dir should not exist
 	s.NoDirExists("debug")
+}
+
+func (s *debugSuite) checkPodLogsDir(podsDir string) {
+	files, err := os.ReadDir(podsDir)
+	s.NoError(err)
+
+	s.Len(files, 4)
+	for i, file := range files {
+		// rely on os.ReadDir returns dir sorted by filename
+		var prefix string
+		switch i {
+		case 0:
+			prefix = "gateway-proxy-"
+		case 1:
+			prefix = "gloo-"
+		case 2, 3:
+			prefix = "public-gw-"
+		}
+
+		fileName := file.Name()
+		s.True(strings.HasSuffix(fileName, ".log"))
+		s.True(strings.HasPrefix(fileName, prefix), "expected pod logs file %s at index %d to have prefix %s", fileName, i, prefix)
+
+		s.checkNonEmptyFile(filepath.Join(podsDir, fileName))
+	}
+}
+
+func (s *debugSuite) checkEnvoyAndGlooControllerInfo(nsDir string) {
+	files, err := os.ReadDir(nsDir)
+	s.NoError(err)
+
+	var fileIdx int
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		s.Less(fileIdx, 4*4) // 4 pods, 4 pieces of info each
+
+		// rely on os.ReadDir returns dir sorted by filename
+		var prefix string
+		switch fileIdx / 4 {
+		case 0:
+			prefix = "gateway-proxy-"
+		case 1:
+			prefix = "gloo-"
+		case 2, 3:
+			prefix = "public-gw-"
+		}
+
+		var gwSuffix string
+		var glooSuffix string
+		switch fileIdx % 4 {
+		case 0:
+			gwSuffix = ".clusters.log"
+			glooSuffix = ".controller.log"
+		case 1:
+			gwSuffix = ".config.log"
+			glooSuffix = ".krt_snapshot.log"
+		case 2:
+			gwSuffix = ".listeners.log"
+			glooSuffix = ".metrics.log"
+		case 3:
+			gwSuffix = ".stats.log"
+			glooSuffix = ".xds_snapshot.log"
+		}
+
+		fileName := file.Name()
+		s.True(strings.HasPrefix(fileName, prefix), "expected file %s at index %d to have prefix %s", fileName, fileIdx, prefix)
+		if prefix == "gloo-" {
+			s.True(strings.HasSuffix(fileName, glooSuffix), "expected file %s at index %d to have suffix %s", fileName, fileIdx, glooSuffix)
+		} else {
+			s.True(strings.HasSuffix(fileName, gwSuffix), "expected file %s at index %d to have suffix %s", fileName, fileIdx, gwSuffix)
+		}
+
+		s.checkNonEmptyFile(filepath.Join(nsDir, fileName))
+
+		fileIdx++
+	}
+}
+
+func (s *debugSuite) checkCRs(nsDir string) {
+	gws, err := os.ReadDir(filepath.Join(nsDir, "gateways.gateway.solo.io"))
+	s.NoError(err)
+	s.Len(gws, 3)
+	s.checkNonEmptyFile(filepath.Join(nsDir, "gateways.gateway.solo.io", "gateway-proxy.yaml"))
+	s.checkNonEmptyFile(filepath.Join(nsDir, "gateways.gateway.solo.io", "gateway-proxy-ssl.yaml"))
+	s.checkNonEmptyFile(filepath.Join(nsDir, "gateways.gateway.solo.io", "public-gw-ssl.yaml"))
+
+	settings, err := os.ReadDir(filepath.Join(nsDir, "settings.gloo.solo.io"))
+	s.NoError(err)
+	s.Len(settings, 1)
+	s.checkNonEmptyFile(filepath.Join(nsDir, "settings.gloo.solo.io", "default.yaml"))
+}
+
+func (s *debugSuite) checkNonEmptyFile(filepath string) {
+	bytes, err := os.ReadFile(filepath)
+	s.NoError(err, filepath+" file should have been generated")
+	s.NotEmpty(bytes, filepath+" file should not be empty")
 }
