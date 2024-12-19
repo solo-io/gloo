@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7514
+    resolvesIssue: false
+    description: |
+      Route delegation makes use of delegation.gateway.solo.io/*
+      annotations, so changes to annotations should reconcile HTTPRoutes.
