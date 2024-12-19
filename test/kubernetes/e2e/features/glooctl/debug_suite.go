@@ -11,6 +11,10 @@ import (
 
 var _ e2e.NewSuiteFunc = NewDebugSuite
 
+var kubeStateFile = func(outDir string) string {
+	return filepath.Join(outDir, "kube-state.log")
+}
+
 // debugSuite contains the set of tests to validate the behavior of `glooctl debug`
 // These tests attempt to mirror: https://github.com/solo-io/gloo/blob/v1.16.x/test/kube2e/glooctl/debug_test.go
 type debugSuite struct {
@@ -67,4 +71,32 @@ func (s *debugSuite) TestLogsFile() {
 
 	_, err = os.Stat(outputFile)
 	s.NoError(err, "Output file should have been generated")
+}
+
+func (s *debugSuite) TestDebugDeny() {
+	outputDir := filepath.Join(s.tmpDir, "debug")
+
+	// should error and abort if the user does not consent
+	s.testInstallation.Actions.Glooctl().Debug(s.ctx, false,
+		func(err error, msgAndArgs ...interface{}) bool {
+			return s.ErrorContains(err, "Aborting: cannot proceed without overwriting \""+outputDir+"\" directory")
+		},
+		"-N", s.testInstallation.Metadata.InstallNamespace, "--directory", outputDir)
+
+	s.NoDirExists(outputDir)
+}
+
+func (s *debugSuite) TestDebugFile() {
+	outputDir := filepath.Join(s.tmpDir, "debug")
+
+	s.testInstallation.Actions.Glooctl().Debug(s.ctx, true, s.NoError,
+		"-N", s.testInstallation.Metadata.InstallNamespace, "--directory", outputDir)
+
+	// should populate the kube-state.log file
+	kubeStateBytes, err := os.ReadFile(kubeStateFile(outputDir))
+	s.NoError(err, kubeStateFile(outputDir)+" file should have been generated")
+	s.NotEmpty(kubeStateBytes)
+
+	// default dir should not exist
+	s.NoDirExists("debug")
 }
