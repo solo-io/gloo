@@ -13,7 +13,7 @@ layered_runtime:
           value: 50
       envoy:
         reloadable_features:
-          check_switch_protocol_websocket_handshake : false
+          check_switch_protocol_websocket_handshake: false
   - name: admin_layer
     admin_layer: {}
 node:
@@ -198,7 +198,7 @@ layered_runtime:
           value: 50
       envoy:
         reloadable_features:
-          check_switch_protocol_websocket_handshake : false
+          check_switch_protocol_websocket_handshake: false
   - name: admin_layer
     admin_layer: {}
 node:
@@ -344,7 +344,7 @@ layered_runtime:
           value: 50
       envoy:
         reloadable_features:
-          check_switch_protocol_websocket_handshake : false
+          check_switch_protocol_websocket_handshake: false
   - name: admin_layer
     admin_layer: {}
 node:
@@ -504,7 +504,7 @@ layered_runtime:
           value: 50
       envoy:
         reloadable_features:
-          check_switch_protocol_websocket_handshake : false
+          check_switch_protocol_websocket_handshake: false
   - name: admin_layer
     admin_layer: {}
 node:
@@ -701,7 +701,7 @@ layered_runtime:
           value: 50
       envoy:
         reloadable_features:
-          check_switch_protocol_websocket_handshake : false
+          check_switch_protocol_websocket_handshake: false
   - name: admin_layer
     admin_layer: {}
 node:

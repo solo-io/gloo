@@ -430,7 +430,7 @@ data:
         static_layer:
           envoy: #  ON_LTS_UPDATE remove the reloadable feature block and this envoy  block
             reloadable_features:
-              check_switch_protocol_websocket_handshake : false
+              check_switch_protocol_websocket_handshake: false
     node:
       cluster: {{ include "gloo-gateway.gateway.fullname" . }}.{{ .Release.Namespace }}
       metadata:

@@ -43,6 +43,7 @@ func (fbb *fileBootstrapBuilder) Build(ei *Instance) string {
 	return b.String()
 }
 
+// ON_LTS_UPDATE remove the reloadable feature block
 const boostrapText = `
 layered_runtime:
   layers:
@@ -53,7 +54,7 @@ layered_runtime:
           value: 0
       envoy:
         reloadable_features:
-          check_switch_protocol_websocket_handshake : false
+          check_switch_protocol_websocket_handshake: false
   - name: admin_layer
     admin_layer: {}
 node:
