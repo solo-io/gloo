@@ -3661,7 +3661,7 @@ spec:
 						})
 						// Since changing the value of gatewayProxies.gatewayProxy.readConfig changes the gateway-proxy-envoy-config configmap, we need to update the checksum on the deployment as well.
 						// This also doubles as a check to validate that changes in the configmap change the checksum annotation on the deployment which will trigger a rollout.
-						gatewayProxyDeployment.Spec.Template.Annotations["checksum/gateway-proxy-envoy-config"] = "3e431b3dbb3fa7e31cedf9594474ad19e6ecc0e5a7bba59b99cf044d51546eaa"
+						gatewayProxyDeployment.Spec.Template.Annotations["checksum/gateway-proxy-envoy-config"] = "7cf7a91c3ed010347053ffd1e4711c3e1ed85b70e381ca7ca3eb6ae4911dda4d"
 
 						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 					})
