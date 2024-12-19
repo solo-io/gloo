@@ -23,20 +23,4 @@ spec:
             collectorUpstreamRef:
               name: opentelemetry-collector
               namespace: default
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: gateway-proxy-tracing
-  labels:
-    app.kubernetes.io/name: gateway-proxy-tracing-service
-spec:
-  ports:
-  - name: gateway-proxy-tracing
-    port: 18080
-    protocol: TCP
-    targetPort: 18080
-  selector:
-    gateway-proxy: live
-    gateway-proxy-id: gateway-proxy
 
