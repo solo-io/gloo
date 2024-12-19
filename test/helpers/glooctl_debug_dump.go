@@ -8,6 +8,11 @@ import (
 	"github.com/solo-io/go-utils/testutils"
 )
 
+const (
+	// TearDown is used to TearDown assets after a test completes. This is used in kube2e tests to uninstall
+	DefaultTearDown = false
+)
+
 func RegisterGlooDebugLogPrintHandlerAndClearLogs() {
 	_ = os.Remove(cliutil.GetLogsPath())
 	RegisterGlooDebugLogPrintHandler()
