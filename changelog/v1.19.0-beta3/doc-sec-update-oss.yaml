@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >- 
+      Adds security scan 4 file to Enterprise.
+      skipCI-kube-tests:true
