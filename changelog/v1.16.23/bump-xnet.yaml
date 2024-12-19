@@ -1,0 +1,6 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang.org
+    dependencyRepo: x/net
+    dependencyTag: v0.33.0
+    description: Update golang.org/x/net to address https://avd.aquasec.com/nvd/cve-2024-45338
