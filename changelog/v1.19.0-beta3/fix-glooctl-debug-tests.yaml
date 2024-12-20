@@ -1,0 +1,13 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/k8sgateway/k8sgateway/issues/10400
+  description: >-
+    fixes flaky glooctl debug tests by moving them from unit to e2e tests
+
+    skipCI-docs-build:true
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/gloo/issues/10482
+  description: >-
+    fixes flaky glooctl debug tests by moving them from unit to e2e tests
+
+    skipCI-docs-build:true
