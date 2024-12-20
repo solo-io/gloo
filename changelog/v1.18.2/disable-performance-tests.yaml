@@ -1,7 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    description: |
-      Disable the performance tests in CI and add legacy instructions for developers to be able to run locally and trigger in CI with a larger runner. 
-      The EE tests will keep running them in CI so they shouldn't become out of date.
-    issueLink: https://github.com/k8sgateway/k8sgateway/issues/10369
-    resolvesIssue: true
