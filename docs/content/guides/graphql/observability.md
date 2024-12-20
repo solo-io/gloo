@@ -69,5 +69,7 @@ If you encounter errors or unexpected behavior in your Gloo GraphQL setup, you c
    {{< /highlight >}}
 
 3. Use the following command. Logs are now collected for your GraphQL resources, and are served by the gateway proxy pod.
+   
    ```sh
-   glooctl proxy logs debug
+   glooctl proxy logs --name gateway-proxy debug
+   ```

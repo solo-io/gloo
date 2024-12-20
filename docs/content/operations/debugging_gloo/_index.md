@@ -167,7 +167,7 @@ Finally, you can use the Solo.io Envoy UI to browse the config. You can safely u
 If things look okay (within your ability to tell), another good place to look is the Envoy proxy logs. You can very quickly turn on `debug` logging to Envoy as well as `tail` the logs with this handy `glooctl` command:
 
 ```bash
-glooctl proxy logs -f
+glooctl proxy logs --name gateway-proxy -f
 ```
 
 When you have the logging window up, send requests through to the proxy and you can get some very detailed debugging logging going through the log tail.
