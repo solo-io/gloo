@@ -110,19 +110,19 @@ jobs:
       run: |
         pushd docs || exit 1
         # OSS
-        cp ../gloo/docs/content/static/content/gloo-security-scan.docgen static/content/gg-security-updates/gloo-security-scan.docgen
-        cp ../gloo/docs/content/static/content/gloo-security-scan-0.docgen static/content/gg-security-updates/gloo-security-scan-0.docgen
-        cp ../gloo/docs/content/static/content/gloo-security-scan-1.docgen static/content/gg-security-updates/gloo-security-scan-1.docgen
-        cp ../gloo/docs/content/static/content/gloo-security-scan-2.docgen static/content/gg-security-updates/gloo-security-scan-2.docgen
-        cp ../gloo/docs/content/static/content/gloo-security-scan-3.docgen static/content/gg-security-updates/gloo-security-scan-3.docgen
-        cp ../gloo/docs/content/static/content/gloo-security-scan-4.docgen static/content/gg-security-updates/gloo-security-scan-4.docgen
+        [ -f ../gloo/docs/content/static/content/gloo-security-scan.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan.docgen static/content/gg-security-updates/gloo-security-scan.docgen
+        [ -f ../gloo/docs/content/static/content/gloo-security-scan-0.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-0.docgen static/content/gg-security-updates/gloo-security-scan-0.docgen
+        [ -f ../gloo/docs/content/static/content/gloo-security-scan-1.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-1.docgen static/content/gg-security-updates/gloo-security-scan-1.docgen
+        [ -f ../gloo/docs/content/static/content/gloo-security-scan-2.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-2.docgen static/content/gg-security-updates/gloo-security-scan-2.docgen
+        [ -f ../gloo/docs/content/static/content/gloo-security-scan-3.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-3.docgen static/content/gg-security-updates/gloo-security-scan-3.docgen
+        [ -f ../gloo/docs/content/static/content/gloo-security-scan-4.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-4.docgen static/content/gg-security-updates/gloo-security-scan-4.docgen
         # Enterprise
-        cp ../gloo/docs/content/static/content/glooe-security-scan.docgen static/content/gg-security-updates/glooe-security-scan.docgen
-        cp ../gloo/docs/content/static/content/glooe-security-scan-0.docgen static/content/gg-security-updates/glooe-security-scan-0.docgen
-        cp ../gloo/docs/content/static/content/glooe-security-scan-1.docgen static/content/gg-security-updates/glooe-security-scan-1.docgen
-        cp ../gloo/docs/content/static/content/glooe-security-scan-2.docgen static/content/gg-security-updates/glooe-security-scan-2.docgen
-        cp ../gloo/docs/content/static/content/glooe-security-scan-3.docgen static/content/gg-security-updates/glooe-security-scan-3.docgen
-        cp ../gloo/docs/content/static/content/glooe-security-scan-4.docgen static/content/gg-security-updates/glooe-security-scan-4.docgen
+        [ -f ../gloo/docs/content/static/content/glooe-security-scan.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan.docgen static/content/gg-security-updates/glooe-security-scan.docgen
+        [ -f ../gloo/docs/content/static/content/glooe-security-scan-0.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan-0.docgen static/content/gg-security-updates/glooe-security-scan-0.docgen
+        [ -f ../gloo/docs/content/static/content/glooe-security-scan-1.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan-1.docgen static/content/gg-security-updates/glooe-security-scan-1.docgen
+        [ -f ../gloo/docs/content/static/content/glooe-security-scan-2.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan-2.docgen static/content/gg-security-updates/glooe-security-scan-2.docgen
+        [ -f ../gloo/docs/content/static/content/glooe-security-scan-3.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan-3.docgen static/content/gg-security-updates/glooe-security-scan-3.docgen
+        [ -f ../gloo/docs/content/static/content/glooe-security-scan-4.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan-4.docgen static/content/gg-security-updates/glooe-security-scan-4.docgen
         popd || exit 1
     - name: Copy security posture
       run: |
@@ -150,6 +150,14 @@ jobs:
         cp ../gloo/docs/content/reference/cli/glooctl_install_gateway_enterprise.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_install_gateway_enterprise.md
         cp ../gloo/docs/content/reference/cli/glooctl_uninstall.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_uninstall.md
         cp ../gloo/docs/content/reference/cli/glooctl_upgrade.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_upgrade.md
+        popd || exit 1
+    - name: Copy API
+      run: |
+        pushd docs || exit 1
+        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/direct_responses.md assets/conrefs/pages/gateway/reference/direct_responses_${{ steps.lts-version.outputs.lts }}.md
+        sed -i '1,2d' assets/conrefs/pages/gateway/reference/direct_responses_${{ steps.lts-version.outputs.lts }}.md
+        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/gateway_parameters.md assets/conrefs/pages/gateway/reference/gateway_parameters_${{ steps.lts-version.outputs.lts }}.md
+        sed -i '1,2d' assets/conrefs/pages/gateway/reference/gateway_parameters_${{ steps.lts-version.outputs.lts }}.md
         popd || exit 1
     - name: Push and create PR
       env:
