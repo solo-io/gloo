@@ -31,6 +31,9 @@ spec:
 {{- end }}{{/* if $gg.service */}}
     service:
       type: {{ $serviceType }}
+      {{- with ($gg.service).externalTrafficPolicy }}
+      externalTrafficPolicy: {{ . }}
+      {{- end }}
       {{- with ($gg.service).extraLabels }}
       extraLabels:
         {{- toYaml . | nindent 8 }}
