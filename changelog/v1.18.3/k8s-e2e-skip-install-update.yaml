@@ -1,0 +1,11 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7432
+    resolvesIssue: true
+    description: >-
+      Add `PERSIST_INSTALL` environment variable to control Gloo installation while running e2e tests (both new and old versions).
+      If set to `true`, the the installation of Gloo will be skipped if it is already installed, and will install Gloo if not already
+      installed. When set to `true`, teardown will also be skipped.
+
+      The TEAR_DOWN flag will now also be usable with the new kubernetes e2e tests, and common logic is now beign used to control
+      Gloo installtion and teardown for both new and old e2e tests.
