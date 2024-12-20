@@ -643,6 +643,14 @@ func (m *SemanticCache) HashUnique(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	if _, err = hasher.Write([]byte("DistanceThreshold")); err != nil {
+		return 0, err
+	}
+	err = binary.Write(hasher, binary.LittleEndian, m.GetDistanceThreshold())
+	if err != nil {
+		return 0, err
+	}
+
 	return hasher.Sum64(), nil
 }
 
