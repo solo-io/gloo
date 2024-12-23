@@ -25,6 +25,8 @@ jobs:
 
   copy-docs:
     runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: receiver
     outputs:
       minor: ${{ steps.version-variables.outputs.minor }}
     steps:
@@ -35,7 +37,7 @@ jobs:
         if [[ "${{ github.event_name }}" == "release" ]]; then
           version=${{ github.event.release.target_commitish }}
         elif [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
-          version=${{ steps.dispatch-receiver.outputs.dispatch_lts }}
+          version=${{ needs.receiver.outputs.dispatch_lts }}
         else
           version=${{ inputs.branch }}
         fi
