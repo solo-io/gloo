@@ -25,6 +25,8 @@ jobs:
 
   copy-docs:
     runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: receiver
     outputs:
       minor: ${{ steps.version-variables.outputs.minor }}
     steps:
@@ -35,7 +37,7 @@ jobs:
         if [[ "${{ github.event_name }}" == "release" ]]; then
           version=${{ github.event.release.target_commitish }}
         elif [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
-          version=${{ steps.dispatch-receiver.outputs.dispatch_lts }}
+          version=${{ needs.receiver.outputs.dispatch_lts }}
         else
           version=${{ inputs.branch }}
         fi
@@ -154,10 +156,10 @@ jobs:
     - name: Copy API
       run: |
         pushd docs || exit 1
-        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/direct_responses.md assets/conrefs/pages/gateway/reference/direct_responses_${{ steps.lts-version.outputs.lts }}.md
-        sed -i '1,2d' assets/conrefs/pages/gateway/reference/direct_responses_${{ steps.lts-version.outputs.lts }}.md
-        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/gateway_parameters.md assets/conrefs/pages/gateway/reference/gateway_parameters_${{ steps.lts-version.outputs.lts }}.md
-        sed -i '1,2d' assets/conrefs/pages/gateway/reference/gateway_parameters_${{ steps.lts-version.outputs.lts }}.md
+        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/direct_responses.md assets/conrefs/pages/gateway/reference/direct_responses_${{ steps.version-variables.outputs.minor }}.md
+        sed -i '1,2d' assets/conrefs/pages/gateway/reference/direct_responses_${{ steps.version-variables.outputs.minor }}.md
+        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/gateway_parameters.md assets/conrefs/pages/gateway/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
+        sed -i '1,2d' assets/conrefs/pages/gateway/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
         popd || exit 1
     - name: Push and create PR
       env:
