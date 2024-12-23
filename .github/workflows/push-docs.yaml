@@ -153,14 +153,6 @@ jobs:
         cp ../gloo/docs/content/reference/cli/glooctl_uninstall.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_uninstall.md
         cp ../gloo/docs/content/reference/cli/glooctl_upgrade.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_upgrade.md
         popd || exit 1
-    - name: Copy API
-      run: |
-        pushd docs || exit 1
-        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/direct_responses.md assets/conrefs/pages/gateway/reference/direct_responses_${{ steps.version-variables.outputs.minor }}.md
-        sed -i '1,2d' assets/conrefs/pages/gateway/reference/direct_responses_${{ steps.version-variables.outputs.minor }}.md
-        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/gateway_parameters.md assets/conrefs/pages/gateway/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
-        sed -i '1,2d' assets/conrefs/pages/gateway/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
-        popd || exit 1
     - name: Push and create PR
       env:
         GITHUB_TOKEN: ${{ secrets.DOCS_TOKEN }}
