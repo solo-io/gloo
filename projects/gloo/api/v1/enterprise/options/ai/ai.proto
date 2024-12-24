@@ -664,7 +664,7 @@ message AIPromptGuard {
         // The header string must contain the specified string.
         CONTAINS = 3;
         // The string must match the specified [RE2-style regular expression](https://github.com/google/re2/wiki/) pattern.
-        regex = 4;
+        REGEX = 4;
       }
       // The header key string to match against.
       string key = 1;
