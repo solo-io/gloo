@@ -7736,6 +7736,13 @@ Resource Types:
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>externalTrafficPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>extraAnnotations</b></td>
         <td>map[string]string</td>
         <td>
