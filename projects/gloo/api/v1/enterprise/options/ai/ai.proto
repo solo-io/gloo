@@ -664,10 +664,10 @@ message AIPromptGuard {
         SUFFIX = 2;
         // The header string must contain the specified string.
         CONTAINS = 3;
-        // Do not use. Use `REGEX` (fully capitalized) instead.
-        regex = 4;
         // The string must match the specified [RE2-style regular expression](https://github.com/google/re2/wiki/) pattern.
         REGEX = 4;
+        // Do not use. Use `REGEX` (fully capitalized) instead.
+        regex = 4;
       }
       // The header key string to match against.
       string key = 1;
