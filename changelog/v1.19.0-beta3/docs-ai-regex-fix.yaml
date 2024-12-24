@@ -1,4 +1,4 @@
 changelog:
   - type: NON_USER_FACING
     description: >-
-      Reverts an incorrect regex capitalization in the ai proto introduced by docs revisions.
+      Adds an alias for incorrect regex capitalization in the ai proto introduced by docs revisions.
