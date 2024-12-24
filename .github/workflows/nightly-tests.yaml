@@ -2,6 +2,10 @@ name: Nightly
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }} # necessary to pass upgrade tests
+  # https://github.com/solo-io/gloo/issues/10534
+  # Performance tests have been disabled. See the above issue for context around it
+  # To re-enable those tests (even temporarily) just set this boolean to true
+  ENABLE_PERFORMANCE_TESTS: false
 
 on:
   # https://pubs.opengroup.org/onlinepubs/9699919799/utilities/crontab.html#tag_20_25_07
@@ -377,7 +381,6 @@ jobs:
           ref: v1.18.x
       - uses: ./.github/workflows/composite-actions/regression-tests
 
-
   regression_tests_17:
     name: v1.17.x regression tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.17.x') || github.event.schedule == '0 7 * * 1' }}
@@ -415,7 +418,7 @@ jobs:
 
   performance_tests_on_demand:
     name: on demand performance tests
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'workflow_initiating_branch' }}
+    if: ${{ env.ENABLE_PERFORMANCE_TESTS == 'true' && (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'workflow_initiating_branch') }}
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     steps:
@@ -427,7 +430,7 @@ jobs:
 
   performance_tests_main:
     name: main performance tests
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'main') || github.event.schedule == '0 5 * * *' }}
+    if: ${{ env.ENABLE_PERFORMANCE_TESTS == 'true' && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'main') || github.event.schedule == '0 5 * * *') }}
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     steps:
@@ -439,7 +442,7 @@ jobs:
 
   performance_tests_18:
     name: v1.18.x performance tests
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.18.x') || github.event.schedule == '0 6 * * 1' }}
+    if: ${{ env.ENABLE_PERFORMANCE_TESTS == 'true' && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.18.x') || github.event.schedule == '0 6 * * 1') }}
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     steps:
@@ -451,7 +454,7 @@ jobs:
 
   performance_tests_17:
     name: v1.17.x performance tests
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.17.x') || github.event.schedule == '0 7 * * 1' }}
+    if: ${{ env.ENABLE_PERFORMANCE_TESTS == 'true' && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.17.x') || github.event.schedule == '0 7 * * 1') }}
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     steps:
@@ -463,7 +466,7 @@ jobs:
 
   performance_tests_16:
     name: v1.16.x performance tests
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.16.x') || github.event.schedule == '0 8 * * 1' }}
+    if: ${{ env.ENABLE_PERFORMANCE_TESTS == 'true' && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.16.x') || github.event.schedule == '0 8 * * 1') }}
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     steps:
