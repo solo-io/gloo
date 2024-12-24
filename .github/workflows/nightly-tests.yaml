@@ -418,7 +418,9 @@ jobs:
 
   performance_tests_on_demand:
     name: on demand performance tests
-    if: ${{ env.ENABLE_PERFORMANCE_TESTS == 'true' && (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'workflow_initiating_branch') }}
+    # This job does not respect the environment value of ENABLE_PERFORMANCE_TESTS
+    # This way, if a developer wanted to run the job on-demand, they could
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'workflow_initiating_branch' }}
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     steps:
