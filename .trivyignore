@@ -77,3 +77,12 @@ CVE-2022-30635
 # Ref: https://solo-io-corp.slack.com/archives/C03MFATU265/p1733926775760049?thread_ts=1733429266.473749&cid=C03MFATU265
 CVE-2024-36621
 CVE-2024-36623
+
+# https://github.com/kubernetes/kubernetes/issues/129347
+# We have updated our direct dependencies to use version of x/net that are not affected
+# However, our kubectl image, which is based on the upstream one, still warns of this
+# vulnerability. Per the linked issue above, there is agreement that Kubernetes is
+# not affected, and thus we are skipping that vulnerability for Gloo as well
+CVE-2024-45338
+
+
