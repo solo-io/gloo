@@ -289,6 +289,8 @@ const (
 	// The header string must contain the specified string.
 	AIPromptGuard_Webhook_HeaderMatch_CONTAINS AIPromptGuard_Webhook_HeaderMatch_MatchType = 3
 	// The string must match the specified [RE2-style regular expression](https://github.com/google/re2/wiki/) pattern.
+	AIPromptGuard_Webhook_HeaderMatch_REGEX AIPromptGuard_Webhook_HeaderMatch_MatchType = 4
+	// Do not use. Use `REGEX` (fully capitalized) instead.
 	AIPromptGuard_Webhook_HeaderMatch_regex AIPromptGuard_Webhook_HeaderMatch_MatchType = 4
 )
 
@@ -299,13 +301,15 @@ var (
 		1: "PREFIX",
 		2: "SUFFIX",
 		3: "CONTAINS",
-		4: "regex",
+		4: "REGEX",
+		// Duplicate value: 4: "regex",
 	}
 	AIPromptGuard_Webhook_HeaderMatch_MatchType_value = map[string]int32{
 		"EXACT":    0,
 		"PREFIX":   1,
 		"SUFFIX":   2,
 		"CONTAINS": 3,
+		"REGEX":    4,
 		"regex":    4,
 	}
 )
