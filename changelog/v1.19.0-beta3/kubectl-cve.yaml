@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/10527
+    resolvesIssue: false
+    description: >-
+      Update the trivyignore to exclude CVE-2024-45338
+      
+      skipCI-kube-tests:true
+      skipCI-docs-build:true

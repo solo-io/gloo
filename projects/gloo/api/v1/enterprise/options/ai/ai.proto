@@ -657,6 +657,7 @@ message AIPromptGuard {
     message HeaderMatch {
       // The header string match type.
       enum MatchType {
+        option allow_alias = true;
         // The string must match exactly the specified string.
         EXACT = 0;
         // The string must have the specified prefix.
@@ -666,6 +667,8 @@ message AIPromptGuard {
         // The header string must contain the specified string.
         CONTAINS = 3;
         // The string must match the specified [RE2-style regular expression](https://github.com/google/re2/wiki/) pattern.
+        REGEX = 4;
+        // Do not use. Use `REGEX` (fully capitalized) instead.
         regex = 4;
       }
       // The header key string to match against.
