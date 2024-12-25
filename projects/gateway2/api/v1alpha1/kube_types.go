@@ -96,6 +96,12 @@ type Service struct {
 	//
 	// +kubebuilder:validation:Optional
 	ExtraAnnotations map[string]string `json:"extraAnnotations,omitempty"`
+
+	// Static Node Ports to be used for the service. The key is the port number as
+	// specified in the Gateway resource, and the value is the NodePort to be used.
+	//
+	// +kubebuilder:validation:Optional
+	NodePorts map[int32]int32 `json:"nodePorts,omitempty"`
 }
 
 func (in *Service) GetType() *corev1.ServiceType {
@@ -124,6 +130,13 @@ func (in *Service) GetExtraAnnotations() map[string]string {
 		return nil
 	}
 	return in.ExtraAnnotations
+}
+
+func (in *Service) GetNodePorts() map[int32]int32 {
+	if in == nil {
+		return nil
+	}
+	return in.NodePorts
 }
 
 type ServiceAccount struct {

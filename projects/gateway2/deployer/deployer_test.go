@@ -1253,6 +1253,39 @@ var _ = Describe("Deployer", func() {
 					return nil
 				},
 			}),
+			Entry("static NodePort", &input{
+				dInputs:    defaultDeployerInputs(),
+				gw:         defaultGatewayWithGatewayParams(gwpOverrideName),
+				defaultGwp: defaultGatewayParams(),
+				overrideGwp: &gw2_v1alpha1.GatewayParameters{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      gwpOverrideName,
+						Namespace: defaultNamespace,
+					},
+					Spec: gw2_v1alpha1.GatewayParametersSpec{
+						Kube: &gw2_v1alpha1.KubernetesProxyConfig{
+							Service: &gw2_v1alpha1.Service{
+								Type: ptr.To(corev1.ServiceTypeNodePort),
+								NodePorts: map[int32]int32{
+									80: 30000,
+								},
+							},
+						},
+					},
+				},
+			}, &expectedOutput{
+				validationFunc: func(objs clientObjects, inp *input) error {
+					svc := objs.findService(defaultNamespace, defaultServiceName)
+					Expect(svc).NotTo(BeNil())
+
+					port := svc.Spec.Ports[0]
+					Expect(port.Port).To(Equal(int32(80)))
+					Expect(port.TargetPort.IntVal).To(Equal(int32(8080)))
+					Expect(port.NodePort).To(Equal(int32(30000)))
+					return nil
+				},
+			}),
+
 			Entry("duplicate ports", &input{
 				dInputs: defaultDeployerInputs(),
 				gw: &api.Gateway{

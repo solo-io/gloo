@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/ports"
 	"golang.org/x/exp/slices"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/ptr"
 	api "sigs.k8s.io/gateway-api/apis/v1"
 )
@@ -24,7 +25,7 @@ var ComponentLogLevelEmptyError = func(key string, value string) error {
 // Extract the listener ports from a Gateway. These will be used to populate:
 // 1. the ports exposed on the envoy container
 // 2. the ports exposed on the proxy service
-func getPortsValues(gw *api.Gateway) []helmPort {
+func getPortsValues(gw *api.Gateway, gwp *v1alpha1.GatewayParameters) []helmPort {
 	gwPorts := []helmPort{}
 	for _, l := range gw.Spec.Listeners {
 		listenerPort := uint16(l.Port)
@@ -38,11 +39,19 @@ func getPortsValues(gw *api.Gateway) []helmPort {
 		portName := string(l.Name)
 		protocol := "TCP"
 
+		var nodePort *uint16 = nil
+		if gwp.Spec.GetKube().GetService().GetType() != nil && *(gwp.Spec.GetKube().GetService().GetType()) == corev1.ServiceTypeNodePort {
+			if port, ok := gwp.Spec.GetKube().GetService().GetNodePorts()[int32(listenerPort)]; ok {
+				nodePort = ptr.To(uint16(port))
+			}
+		}
+
 		gwPorts = append(gwPorts, helmPort{
 			Port:       &listenerPort,
 			TargetPort: &targetPort,
 			Name:       &portName,
 			Protocol:   &protocol,
+			NodePort:   nodePort,
 		})
 	}
 	return gwPorts
