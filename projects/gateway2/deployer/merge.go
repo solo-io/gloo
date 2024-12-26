@@ -442,7 +442,7 @@ func deepMergeService(dst, src *v1alpha1.Service) *v1alpha1.Service {
 
 	dst.ExtraLabels = deepMergeMaps(dst.GetExtraLabels(), src.GetExtraLabels())
 	dst.ExtraAnnotations = deepMergeMaps(dst.GetExtraAnnotations(), src.GetExtraAnnotations())
-	dst.NodePorts = deepMergeMaps(dst.GetNodePorts(), src.GetNodePorts())
+	dst.Ports = deepMergeSlices(dst.GetPorts(), src.GetPorts())
 
 	return dst
 }

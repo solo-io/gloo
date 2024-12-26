@@ -1266,8 +1266,11 @@ var _ = Describe("Deployer", func() {
 						Kube: &gw2_v1alpha1.KubernetesProxyConfig{
 							Service: &gw2_v1alpha1.Service{
 								Type: ptr.To(corev1.ServiceTypeNodePort),
-								NodePorts: map[int32]int32{
-									80: 30000,
+								Ports: []*gw2_v1alpha1.Port{
+									{
+										Port:     80,
+										NodePort: ptr.To(int32(30000)),
+									},
 								},
 							},
 						},

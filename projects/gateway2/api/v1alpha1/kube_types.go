@@ -97,11 +97,12 @@ type Service struct {
 	// +kubebuilder:validation:Optional
 	ExtraAnnotations map[string]string `json:"extraAnnotations,omitempty"`
 
-	// Static Node Ports to be used for the service. The key is the port number as
-	// specified in the Gateway resource, and the value is the NodePort to be used.
+	// Additional configuration for the service ports.
+	// The actual port numbers are specified in the Gateway resource.
 	//
-	// +kubebuilder:validation:Optional
-	NodePorts map[int32]int32 `json:"nodePorts,omitempty"`
+	// +optional
+	// +kubebuilder:validation:MaxProperties=8
+	Ports []*Port `json:"ports"`
 }
 
 func (in *Service) GetType() *corev1.ServiceType {
@@ -132,11 +133,38 @@ func (in *Service) GetExtraAnnotations() map[string]string {
 	return in.ExtraAnnotations
 }
 
-func (in *Service) GetNodePorts() map[int32]int32 {
+func (in *Service) GetPorts() []*Port {
 	if in == nil {
 		return nil
 	}
-	return in.NodePorts
+	return in.Ports
+}
+
+type Port struct {
+	// The port number to match on the Gateway
+	//
+	// +kubebuilder:validation:Required
+	Port int32 `json:"port"`
+
+	// The NodePort to be used for the service. If not specified, a random port
+	// will be assigned by the Kubernetes API server.
+	//
+	// +kubebuilder:validation:Optional
+	NodePort *int32 `json:"nodePort,omitempty"`
+}
+
+func (in *Port) GetPort() int32 {
+	if in == nil {
+		return 0
+	}
+	return in.Port
+}
+
+func (in *Port) GetNodePort() *int32 {
+	if in == nil {
+		return nil
+	}
+	return in.NodePort
 }
 
 type ServiceAccount struct {
