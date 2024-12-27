@@ -1,0 +1,20 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7315
+    resolvesIssue: false
+    description: |
+      gateway2/delegation: enable inherited policy overrides
+
+      Adds the ability to override inherited policy fields when
+      explicitly permitted by a parent route using the annotation
+      delegation.gateway.solo.io/enable-policy-overrides.
+      It supports a wildcard value "*" or a comma separated list
+      of field names such as "faults,timeouts,retries,headermanipulation".
+
+      Functionally, a child RouteOption may only override the RouteOptions
+      derived from its parent if the above annotation exists on the parent
+      route. This is required to make the override behavior safe to use.
+
+      Testing done:
+      - Translator tests for the new scenarios.
+
