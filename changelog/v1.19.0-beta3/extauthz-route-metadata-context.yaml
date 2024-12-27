@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/7484
+    description: > 
+      Add reserved portal filter namespaces to the ExtAuthz envoy filter config's `RouteMetadataContextNamespaces` list 
+      to ensure that the route metadata is passed to the ext_authz service at route_metadata_context in CheckRequest.
+    resolvesIssue: false
