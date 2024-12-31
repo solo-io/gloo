@@ -369,9 +369,10 @@ type ProvisionedDeployment struct {
 }
 
 type ProvisionedService struct {
-	Type             *string           `json:"type,omitempty" desc:"K8s service type. If set to null, a default of LoadBalancer will be imposed."`
-	ExtraLabels      map[string]string `json:"extraLabels,omitempty" desc:"Extra labels to add to the service."`
-	ExtraAnnotations map[string]string `json:"extraAnnotations,omitempty" desc:"Extra annotations to add to the service."`
+	Type                  *string           `json:"type,omitempty" desc:"K8s service type. If set to null, a default of LoadBalancer will be imposed."`
+	ExtraLabels           map[string]string `json:"extraLabels,omitempty" desc:"Extra labels to add to the service."`
+	ExtraAnnotations      map[string]string `json:"extraAnnotations,omitempty" desc:"Extra annotations to add to the service."`
+	ExternalTrafficPolicy *string           `json:"externalTrafficPolicy,omitempty" desc:"Set the external traffic policy on the provisioned service."`
 }
 
 type ProvisionedServiceAccount struct {
@@ -717,7 +718,7 @@ type GatewayProxyService struct {
 	HttpsNodePort            *int                  `json:"httpsNodePort,omitempty" desc:"HTTPS nodeport for the gateway service if using type NodePort"`
 	ClusterIP                *string               "json:\"clusterIP,omitempty\" desc:\"static clusterIP (or `None`) when `gatewayProxies[].gatewayProxy.service.type` is `ClusterIP`\""
 	ExtraAnnotations         map[string]string     `json:"extraAnnotations,omitempty"`
-	ExternalTrafficPolicy    *string               `json:"externalTrafficPolicy,omitempty"`
+	ExternalTrafficPolicy    *string               `json:"externalTrafficPolicy,omitempty" desc:"Set the external traffic policy on the provisioned service."`
 	Name                     *string               `json:"name,omitempty" desc:"Custom name override for the service resource of the proxy"`
 	HttpsFirst               *bool                 `json:"httpsFirst,omitempty" desc:"List HTTPS port before HTTP"`
 	LoadBalancerIP           *string               `json:"loadBalancerIP,omitempty" desc:"IP address of the load balancer"`
