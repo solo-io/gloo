@@ -101,7 +101,7 @@ type Service struct {
 	// The actual port numbers are specified in the Gateway resource.
 	//
 	// +optional
-	// +kubebuilder:validation:MaxProperties=8
+	// +kubebuilder:validation:MaxItems=8
 	Ports []*Port `json:"ports"`
 	// External Traffic Policy on the Service object.
 	//
