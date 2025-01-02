@@ -439,8 +439,8 @@ data:
       metadata:
         role: gloo-kube-gateway-api~{{ $gateway.gatewayNamespace }}~{{ $gateway.gatewayNamespace }}-{{ $gateway.gatewayName | default (include "gloo-gateway.gateway.fullname" .) }}
     static_resources:
-      listeners:
 {{- if $statsConfig.enabled }}
+      listeners:
       - name: prometheus_listener
         address:
           socket_address:
@@ -489,6 +489,8 @@ data:
                     - name: envoy.filters.http.router
                       typed_config:
                         "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+{{- else}}
+      listeners: []
 {{- end }} {{/* if $gateway.stats.enabled */}}
       clusters:
         - name: xds_cluster
