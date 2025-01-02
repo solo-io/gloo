@@ -44,7 +44,7 @@ func getPortsValues(gw *api.Gateway, gwp *v1alpha1.GatewayParameters) []helmPort
 		var nodePort *uint16 = nil
 		if gwp.Spec.GetKube().GetService().GetType() != nil && *(gwp.Spec.GetKube().GetService().GetType()) == corev1.ServiceTypeNodePort {
 			if idx := slices.IndexFunc(gwp.Spec.GetKube().GetService().GetPorts(), func(p *v1alpha1.Port) bool {
-				return p.GetPort() == int32(listenerPort)
+				return p.GetPort() == uint16(listenerPort)
 			}); idx != -1 {
 				nodePort = ptr.To(uint16(*gwp.Spec.GetKube().GetService().GetPorts()[idx].GetNodePort()))
 			}

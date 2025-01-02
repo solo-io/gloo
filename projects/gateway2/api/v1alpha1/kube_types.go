@@ -144,23 +144,23 @@ type Port struct {
 	// The port number to match on the Gateway
 	//
 	// +kubebuilder:validation:Required
-	Port int32 `json:"port"`
+	Port uint16 `json:"port"`
 
 	// The NodePort to be used for the service. If not specified, a random port
 	// will be assigned by the Kubernetes API server.
 	//
 	// +kubebuilder:validation:Optional
-	NodePort *int32 `json:"nodePort,omitempty"`
+	NodePort *uint16 `json:"nodePort,omitempty"`
 }
 
-func (in *Port) GetPort() int32 {
+func (in *Port) GetPort() uint16 {
 	if in == nil {
 		return 0
 	}
 	return in.Port
 }
 
-func (in *Port) GetNodePort() *int32 {
+func (in *Port) GetNodePort() *uint16 {
 	if in == nil {
 		return nil
 	}
