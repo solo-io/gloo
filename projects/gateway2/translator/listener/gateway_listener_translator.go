@@ -789,7 +789,8 @@ func makeVhostName(
 	return utils.SanitizeForEnvoy(ctx, parentName+"~"+domain, "vHost")
 }
 
-// AppendHealthCheckListener returns the listener list with a listener with the health check plugin
+// AppendHealthCheckListener appends a readiness listener with the health check plugin defined on it
+// and returns the updated listener list
 func AppendHealthCheckListener(listeners []*v1.Listener) []*v1.Listener {
 	healthCheckOption := &v1.HttpListenerOptions{
 		HealthCheck: &healthcheck.HealthCheck{
