@@ -1,4 +1,4 @@
-package httplisteneroptions
+package httplisteneroptions_test
 
 import (
 	"testing"

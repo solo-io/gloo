@@ -792,6 +792,11 @@ func makeVhostName(
 // AppendHealthCheckListener appends a readiness listener with the health check plugin defined on it
 // and returns the updated listener list
 func AppendHealthCheckListener(listeners []*v1.Listener) []*v1.Listener {
+	return append(listeners, GenerateHealthCheckListener())
+}
+
+// GenerateHealthCheckListener returns a readiness listener with the health check plugin defined on it
+func GenerateHealthCheckListener() *v1.Listener {
 	healthCheckOption := &v1.HttpListenerOptions{
 		HealthCheck: &healthcheck.HealthCheck{
 			Path: "/envoy-hc",
@@ -800,7 +805,7 @@ func AppendHealthCheckListener(listeners []*v1.Listener) []*v1.Listener {
 	httpOptionsByName := map[string]*v1.HttpListenerOptions{}
 	httpOptionsRef := edgegwutils.HashAndStoreHttpOptions(healthCheckOption, httpOptionsByName)
 
-	listeners = append(listeners, &v1.Listener{
+	return &v1.Listener{
 		Name:        "readiness_listener",
 		BindAddress: "::",
 		BindPort:    8082,
@@ -824,7 +829,5 @@ func AppendHealthCheckListener(listeners []*v1.Listener) []*v1.Listener {
 		},
 		Options:      nil, // Listener options will be added by policy plugins
 		RouteOptions: nil,
-	})
-
-	return listeners
+	}
 }

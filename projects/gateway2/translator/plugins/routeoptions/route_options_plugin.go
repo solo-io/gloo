@@ -34,9 +34,9 @@ import (
 )
 
 const (
-	// policyOverrideAnnotation can be set by parent routes to allow child routes to override
+	// PolicyOverrideAnnotation can be set by parent routes to allow child routes to override
 	// all (wildcard *) or specific fields (comma separated field names) in RouteOptions inherited from the parent route.
-	policyOverrideAnnotation = "delegation.gateway.solo.io/enable-policy-overrides"
+	PolicyOverrideAnnotation = "delegation.gateway.solo.io/enable-policy-overrides"
 
 	// wildcardField is used to enable overriding all fields in RouteOptions inherited from the parent route.
 	wildcardField = "*"
@@ -103,7 +103,7 @@ func (p *plugin) ApplyRoutePlugin(
 		return nil
 	}
 
-	merged, OptionsMergeResult := mergeOptionsForRoute(ctx, routeCtx.HTTPRoute, routeOptions, outputRoute.GetOptions())
+	merged, OptionsMergeResult := MergeOptionsForRoute(ctx, routeCtx.HTTPRoute, routeOptions, outputRoute.GetOptions())
 	if OptionsMergeResult == glooutils.OptionsMergedNone {
 		// No existing options merged into 'sources', so set the 'sources' on the outputRoute
 		routeutils.SetRouteSources(outputRoute, sources)
@@ -122,7 +122,7 @@ func (p *plugin) ApplyRoutePlugin(
 	return nil
 }
 
-func mergeOptionsForRoute(
+func MergeOptionsForRoute(
 	ctx context.Context,
 	route *gwv1.HTTPRoute,
 	dst, src *gloov1.RouteOptions,
@@ -141,13 +141,13 @@ func mergeOptionsForRoute(
 	//
 	// By default, parent options (routeOptions) are preferred, unless the parent explicitly
 	// enabled child routes (outputRoute.Options) to override parent options.
-	fieldsStr, delegatedPolicyOverride := route.Annotations[policyOverrideAnnotation]
+	fieldsStr, delegatedPolicyOverride := route.Annotations[PolicyOverrideAnnotation]
 	if delegatedPolicyOverride {
 		delegatedFieldsToOverride := parseDelegationFieldOverrides(fieldsStr)
 		if delegatedFieldsToOverride.Len() == 0 {
 			// Invalid annotation value, so log an error but enforce the default behavior of preferring the parent options.
 			contextutils.LoggerFrom(ctx).Errorf("invalid value %q for annotation %s on route %s; must be %s or a comma-separated list of field names",
-				fieldsStr, policyOverrideAnnotation, client.ObjectKeyFromObject(route), wildcardField)
+				fieldsStr, PolicyOverrideAnnotation, client.ObjectKeyFromObject(route), wildcardField)
 		} else {
 			fieldsAllowedToOverride = delegatedFieldsToOverride
 		}
