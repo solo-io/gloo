@@ -15,6 +15,7 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 
+	edgegwutils "github.com/solo-io/gloo/projects/gateway/pkg/translator/utils"
 	"github.com/solo-io/gloo/projects/gateway2/ports"
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
@@ -26,6 +27,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/sslutils"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/healthcheck"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
@@ -785,4 +787,47 @@ func makeVhostName(
 	domain string,
 ) string {
 	return utils.SanitizeForEnvoy(ctx, parentName+"~"+domain, "vHost")
+}
+
+// AppendHealthCheckListener appends a readiness listener with the health check plugin defined on it
+// and returns the updated listener list
+func AppendHealthCheckListener(listeners []*v1.Listener) []*v1.Listener {
+	return append(listeners, GenerateHealthCheckListener())
+}
+
+// GenerateHealthCheckListener returns a readiness listener with the health check plugin defined on it
+func GenerateHealthCheckListener() *v1.Listener {
+	healthCheckOption := &v1.HttpListenerOptions{
+		HealthCheck: &healthcheck.HealthCheck{
+			Path: "/envoy-hc",
+		},
+	}
+	httpOptionsByName := map[string]*v1.HttpListenerOptions{}
+	httpOptionsRef := edgegwutils.HashAndStoreHttpOptions(healthCheckOption, httpOptionsByName)
+
+	return &v1.Listener{
+		Name:        "readiness_listener",
+		BindAddress: "::",
+		BindPort:    8082,
+
+		ListenerType: &v1.Listener_AggregateListener{
+			AggregateListener: &v1.AggregateListener{
+				HttpResources: &v1.AggregateListener_HttpResources{
+					VirtualHosts: map[string]*v1.VirtualHost{
+						"local_service": {
+							Name:    "local_service",
+							Domains: []string{"*"}},
+					},
+					HttpOptions: httpOptionsByName,
+				},
+				HttpFilterChains: []*v1.AggregateListener_HttpFilterChain{{
+					VirtualHostRefs: []string{"local_service"},
+					HttpOptionsRef:  httpOptionsRef,
+				}},
+				TcpListeners: nil,
+			},
+		},
+		Options:      nil, // Listener options will be added by policy plugins
+		RouteOptions: nil,
+	}
 }

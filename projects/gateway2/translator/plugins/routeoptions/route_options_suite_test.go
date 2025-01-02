@@ -1,4 +1,4 @@
-package routeoptions
+package routeoptions_test
 
 import (
 	"testing"

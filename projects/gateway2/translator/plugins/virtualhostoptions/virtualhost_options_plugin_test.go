@@ -1,4 +1,4 @@
-package virtualhostoptions
+package virtualhostoptions_test
 
 import (
 	"context"
@@ -17,6 +17,7 @@ import (
 	gwquery "github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
+	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/virtualhostoptions"
 	vhoptquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/virtualhostoptions/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/translatorutils"
@@ -39,12 +40,17 @@ var _ = Describe("VirtualHostOptions Plugin", func() {
 	Describe("Attaching VirtualHostOptions via policy attachment", func() {
 		var (
 			deps   []client.Object
-			plugin *plugin
+			plugin plugins.ListenerPlugin
 			ctx    context.Context
 
 			listenerCtx     *plugins.ListenerContext
 			outputListener  *v1.Listener
 			expectedOptions *v1.VirtualHostOptions
+
+			fakeClient         client.Client
+			gwQueries          gwquery.GatewayQueries
+			vhOptionCollection krt.StaticSingleton[*solokubev1.VirtualHostOption]
+			statusReporter     reporter.StatusReporter
 		)
 		BeforeEach(func() {
 			ctx = context.Background()
@@ -79,17 +85,17 @@ var _ = Describe("VirtualHostOptions Plugin", func() {
 			}
 		})
 		JustBeforeEach(func() {
-			fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, vhoptquery.IterateIndices)
-			gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
+			fakeClient = testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, vhoptquery.IterateIndices)
+			gwQueries = testutils.BuildGatewayQueriesWithClient(fakeClient)
 			resourceClientFactory := &factory.MemoryResourceClientFactory{
 				Cache: memory.NewInMemoryResourceCache(),
 			}
 
 			vhOptionClient, _ := sologatewayv1.NewVirtualHostOptionClient(ctx, resourceClientFactory)
-			vhOptionCollection := krt.NewStatic[*gatewaykubev1.VirtualHostOption](nil, true)
+			vhOptionCollection = krt.NewStatic[*gatewaykubev1.VirtualHostOption](nil, true)
 			statusClient := statusutils.GetStatusClientForNamespace("gloo-system")
-			statusReporter := reporter.NewReporter(defaults.KubeGatewayReporter, statusClient, vhOptionClient.BaseClient())
-			plugin = NewPlugin(gwQueries, fakeClient, vhOptionCollection.AsCollection(), statusReporter)
+			statusReporter = reporter.NewReporter(defaults.KubeGatewayReporter, statusClient, vhOptionClient.BaseClient())
+			plugin = virtualhostoptions.NewPlugin(gwQueries, fakeClient, vhOptionCollection.AsCollection(), statusReporter)
 		})
 		When("outListener is not an AggregateListener", func() {
 			BeforeEach(func() {
@@ -202,6 +208,8 @@ var _ = Describe("VirtualHostOptions Plugin", func() {
 
 		When("There is an error reading the VirtualHostOptions", func() {
 			It("errors out", func() {
+				plugin := virtualhostoptions.NewPlugin(gwQueries, fakeClient, vhOptionCollection.AsCollection(), statusReporter)
+
 				plugin.ApplyListenerPlugin(ctx, listenerCtx, outputListener)
 
 				statusCtx := &plugins.StatusContext{
@@ -217,7 +225,7 @@ var _ = Describe("VirtualHostOptions Plugin", func() {
 				}
 
 				err := plugin.ApplyStatusPlugin(ctx, statusCtx)
-				Expect(err).To(MatchError(ContainSubstring(ReadingVirtualHostOptionErrStr)))
+				Expect(err).To(MatchError(ContainSubstring(virtualhostoptions.ReadingVirtualHostOptionErrStr)))
 			})
 		})
 	})

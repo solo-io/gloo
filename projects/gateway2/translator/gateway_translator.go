@@ -91,6 +91,8 @@ func (t *translator) TranslateProxy(
 		reporter,
 	)
 
+	listeners = listener.AppendHealthCheckListener(listeners)
+
 	return &v1.Proxy{
 		Metadata:  proxyMetadata(gateway, writeNamespace),
 		Listeners: listeners,

@@ -1,4 +1,4 @@
-package listeneroptions
+package listeneroptions_test
 
 import (
 	"testing"

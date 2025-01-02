@@ -1,4 +1,4 @@
-package httplisteneroptions
+package httplisteneroptions_test
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	gwquery "github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
+	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/httplisteneroptions"
 	httplisoptquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/httplisteneroptions/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
@@ -27,7 +28,7 @@ var _ = Describe("HttpListenerOptions Plugin", func() {
 	Describe("Attaching HttpListenerOptions via policy attachment", func() {
 		var (
 			deps   []client.Object
-			plugin *plugin
+			plugin plugins.ListenerPlugin
 			ctx    context.Context
 
 			listenerCtx     *plugins.ListenerContext
@@ -67,7 +68,7 @@ var _ = Describe("HttpListenerOptions Plugin", func() {
 		JustBeforeEach(func() {
 			fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, httplisoptquery.IterateIndices)
 			gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
-			plugin = NewPlugin(gwQueries, fakeClient)
+			plugin = httplisteneroptions.NewPlugin(gwQueries, fakeClient)
 		})
 
 		When("HttpListenerOptions exist in the same namespace and are attached correctly", func() {

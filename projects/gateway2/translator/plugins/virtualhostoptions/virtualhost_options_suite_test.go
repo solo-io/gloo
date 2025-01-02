@@ -1,4 +1,4 @@
-package virtualhostoptions
+package virtualhostoptions_test
 
 import (
 	"testing"

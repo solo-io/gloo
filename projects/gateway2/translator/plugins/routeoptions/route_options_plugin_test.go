@@ -1,4 +1,4 @@
-package routeoptions
+package routeoptions_test
 
 import (
 	"context"
@@ -19,6 +19,7 @@ import (
 	gwquery "github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
+	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/routeoptions"
 	rtoptquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/routeoptions/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/translatorutils"
@@ -90,7 +91,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 			deps := []client.Object{routeOption()}
 			fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
 			gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
-			plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
+			plugin := routeoptions.NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 			rtCtx := &plugins.RouteContext{
 				HTTPRoute: &gwv1.HTTPRoute{},
@@ -130,7 +131,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 			deps := []client.Object{}
 			fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
 			gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
-			plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
+			plugin := routeoptions.NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 			route := routeWithFilter()
 			reportsMap := reports.NewReportMap()
@@ -160,7 +161,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 				deps := []client.Object{attachedRouteOption()}
 				fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
 				gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
-				plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
+				plugin := routeoptions.NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
@@ -225,7 +226,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 				deps := []client.Object{attachedRouteOptionOmitNamespace()}
 				fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
 				gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
-				plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
+				plugin := routeoptions.NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
@@ -304,7 +305,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 					deps := []client.Object{attachedRouteOption()}
 					fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
 					gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
-					plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
+					plugin := routeoptions.NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 					ctx := context.Background()
 					routeCtx := &plugins.RouteContext{
@@ -322,7 +323,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 					plugin.ApplyRoutePlugin(ctx, routeCtx, outputRoute)
 
 					err := plugin.ApplyStatusPlugin(ctx, statusCtx)
-					Expect(err).To(MatchError(ContainSubstring(ReadingRouteOptionErrStr)))
+					Expect(err).To(MatchError(ContainSubstring(routeoptions.ReadingRouteOptionErrStr)))
 				})
 			})
 
@@ -331,7 +332,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 					deps := []client.Object{routeOption()}
 					fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
 					gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
-					plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
+					plugin := routeoptions.NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 					rtCtx := &plugins.RouteContext{
 						HTTPRoute: &gwv1.HTTPRoute{},
@@ -353,7 +354,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 					plugin.ApplyRoutePlugin(context.Background(), rtCtx, outputRoute)
 
 					err := plugin.ApplyStatusPlugin(ctx, statusCtx)
-					Expect(err).To(MatchError(ContainSubstring(ReadingRouteOptionErrStr)))
+					Expect(err).To(MatchError(ContainSubstring(routeoptions.ReadingRouteOptionErrStr)))
 				})
 			})
 		})
@@ -364,7 +365,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 				deps := []client.Object{attachedRouteOption(), attachedRouteOptionBefore()}
 				fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
 				gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
-				plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
+				plugin := routeoptions.NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
@@ -446,7 +447,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 				deps := []client.Object{firstOpt, secondOpt, thirdOpt}
 				fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
 				gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
-				plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
+				plugin := routeoptions.NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
@@ -508,7 +509,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 				deps := []client.Object{nonAttachedRouteOption()}
 				fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
 				gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
-				plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
+				plugin := routeoptions.NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
@@ -555,7 +556,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 				deps := []client.Object{attachedRouteOption()}
 				fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
 				gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
-				plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
+				plugin := routeoptions.NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
@@ -602,7 +603,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 				deps := []client.Object{attachedInvalidRouteOption()}
 				fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
 				gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
-				plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
+				plugin := routeoptions.NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
@@ -708,7 +709,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 			deps := []client.Object{routeOption(), attachedRouteOption()}
 			fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
 			gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
-			plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
+			plugin := routeoptions.NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 			ctx := context.Background()
 			routeCtx := &plugins.RouteContext{
@@ -736,7 +737,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 var _ = DescribeTable("mergeOptionsForRoute",
 	func(route *gwv1.HTTPRoute, dst, src *v1.RouteOptions, expectedOptions *v1.RouteOptions, expectedResult glooutils.OptionsMergeResult) {
-		mergedOptions, result := mergeOptionsForRoute(context.TODO(), route, dst, src)
+		mergedOptions, result := routeoptions.MergeOptionsForRoute(context.TODO(), route, dst, src)
 		Expect(proto.Equal(mergedOptions, expectedOptions)).To(BeTrue())
 		Expect(result).To(Equal(expectedResult))
 	},
@@ -771,7 +772,7 @@ var _ = DescribeTable("mergeOptionsForRoute",
 	Entry("override dst options with annotation: full override",
 		&gwv1.HTTPRoute{
 			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{policyOverrideAnnotation: "*"},
+				Annotations: map[string]string{routeoptions.PolicyOverrideAnnotation: "*"},
 			},
 		},
 		&v1.RouteOptions{
@@ -802,7 +803,7 @@ var _ = DescribeTable("mergeOptionsForRoute",
 	Entry("override dst options with annotation: partial override",
 		&gwv1.HTTPRoute{
 			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{policyOverrideAnnotation: "*"},
+				Annotations: map[string]string{routeoptions.PolicyOverrideAnnotation: "*"},
 			},
 		},
 		&v1.RouteOptions{
@@ -835,7 +836,7 @@ var _ = DescribeTable("mergeOptionsForRoute",
 	Entry("override dst options with annotation: no override",
 		&gwv1.HTTPRoute{
 			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{policyOverrideAnnotation: "*"},
+				Annotations: map[string]string{routeoptions.PolicyOverrideAnnotation: "*"},
 			},
 		},
 		&v1.RouteOptions{
@@ -858,7 +859,7 @@ var _ = DescribeTable("mergeOptionsForRoute",
 	Entry("override dst options with annotation: specific fields",
 		&gwv1.HTTPRoute{
 			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{policyOverrideAnnotation: "faults,timeout"},
+				Annotations: map[string]string{routeoptions.PolicyOverrideAnnotation: "faults,timeout"},
 			},
 		},
 		&v1.RouteOptions{

@@ -14,6 +14,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/protoutils"
+	"github.com/solo-io/gloo/projects/gateway2/translator/listener"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
 	"github.com/ghodss/yaml"
@@ -162,6 +163,8 @@ func ReadProxyFromFile(filename string) (*v1.Proxy, error) {
 	if err := protoutils.UnmarshalYaml(data, &proxy); err != nil {
 		return nil, eris.Wrapf(err, "parsing proxy from file")
 	}
+	// Append the healthcheck listener here to avoid adding it to every file
+	proxy.Listeners = listener.AppendHealthCheckListener(proxy.GetListeners())
 	return &proxy, nil
 }
 
