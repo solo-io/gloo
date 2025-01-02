@@ -27,7 +27,6 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/sslutils"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/healthcheck"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
@@ -790,8 +789,8 @@ func makeVhostName(
 	return utils.SanitizeForEnvoy(ctx, parentName+"~"+domain, "vHost")
 }
 
-// AppendHealthCheckListener adds a listener with the health check plugin
-func AppendHealthCheckListener(listeners []*v1.Listener) {
+// AppendHealthCheckListener returns the listener list with a listener with the health check plugin
+func AppendHealthCheckListener(listeners []*v1.Listener) []*v1.Listener {
 	healthCheckOption := &v1.HttpListenerOptions{
 		HealthCheck: &healthcheck.HealthCheck{
 			Path: "/envoy-hc",
@@ -811,24 +810,7 @@ func AppendHealthCheckListener(listeners []*v1.Listener) {
 					VirtualHosts: map[string]*v1.VirtualHost{
 						"local_service": {
 							Name:    "local_service",
-							Domains: []string{"*"},
-							Routes: []*v1.Route{{
-								Matchers: []*matchers.Matcher{{
-									PathSpecifier: &matchers.Matcher_Exact{
-										Exact: "/ready",
-									},
-									Headers: []*matchers.HeaderMatcher{{
-										Name:  ":method",
-										Value: "GET",
-									}},
-								}},
-								Action: &v1.Route_DirectResponseAction{
-									DirectResponseAction: &v1.DirectResponseAction{
-										Body: "ready",
-									},
-								},
-							}},
-						},
+							Domains: []string{"*"}},
 					},
 					HttpOptions: httpOptionsByName,
 				},
@@ -839,22 +821,9 @@ func AppendHealthCheckListener(listeners []*v1.Listener) {
 				TcpListeners: nil,
 			},
 		},
-		// Used for tracing to create service_name
-		OpaqueMetadata: &v1.Listener_MetadataStatic{
-			MetadataStatic: &v1.SourceMetadata{
-				Sources: []*v1.SourceMetadata_SourceRef{
-					{
-						ResourceRef: &core.ResourceRef{
-							Name:      "health_check",
-							Namespace: "default",
-						},
-						ResourceKind: wellknown.GatewayGroup + "/" + wellknown.GatewayKind,
-					},
-				},
-			},
-		},
 		Options:      nil, // Listener options will be added by policy plugins
 		RouteOptions: nil,
 	})
 
+	return listeners
 }
