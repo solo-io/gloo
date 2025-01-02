@@ -800,7 +800,7 @@ func AppendHealthCheckListener(listeners []*v1.Listener) []*v1.Listener {
 	httpOptionsRef := edgegwutils.HashAndStoreHttpOptions(healthCheckOption, httpOptionsByName)
 
 	listeners = append(listeners, &v1.Listener{
-		Name:        "health_check",
+		Name:        "readiness_listener",
 		BindAddress: "::",
 		BindPort:    8082,
 
