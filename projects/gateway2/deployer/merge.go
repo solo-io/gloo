@@ -444,6 +444,10 @@ func deepMergeService(dst, src *v1alpha1.Service) *v1alpha1.Service {
 	dst.ExtraAnnotations = deepMergeMaps(dst.GetExtraAnnotations(), src.GetExtraAnnotations())
 	dst.Ports = deepMergeSlices(dst.GetPorts(), src.GetPorts())
 
+	if src.GetExternalTrafficPolicy() != nil {
+		dst.ExternalTrafficPolicy = src.GetExternalTrafficPolicy()
+	}
+
 	return dst
 }
 

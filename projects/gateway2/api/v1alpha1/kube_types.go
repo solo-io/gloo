@@ -103,6 +103,10 @@ type Service struct {
 	// +optional
 	// +kubebuilder:validation:MaxProperties=8
 	Ports []*Port `json:"ports"`
+	// External Traffic Policy on the Service object.
+	//
+	// +kubebuilder:validation:Optional
+	ExternalTrafficPolicy *corev1.ServiceExternalTrafficPolicy `json:"externalTrafficPolicy,omitempty"`
 }
 
 func (in *Service) GetType() *corev1.ServiceType {
@@ -138,6 +142,13 @@ func (in *Service) GetPorts() []*Port {
 		return nil
 	}
 	return in.Ports
+}
+
+func (in *Service) GetExternalTrafficPolicy() *corev1.ServiceExternalTrafficPolicy {
+	if in == nil {
+		return nil
+	}
+	return in.ExternalTrafficPolicy
 }
 
 type Port struct {
