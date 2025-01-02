@@ -164,7 +164,7 @@ func ReadProxyFromFile(filename string) (*v1.Proxy, error) {
 		return nil, eris.Wrapf(err, "parsing proxy from file")
 	}
 	// Append the healthcheck listener here to avoid adding it to every file
-	proxy.Listeners = listener.AppendHealthCheckListener(proxy.Listeners)
+	proxy.Listeners = listener.AppendHealthCheckListener(proxy.GetListeners())
 	return &proxy, nil
 }
 
