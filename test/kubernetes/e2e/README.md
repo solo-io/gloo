@@ -53,6 +53,17 @@ Some tests may require environment variables to be set. Some required env vars a
 
 - Istio features: Require `ISTIO_VERSION` to be set. The tests running in CI use `ISTIO_VERSION="${ISTIO_VERSION:-1.19.9}"` to default to a specific version of Istio.
 
+### Optional Environment Variables
+| Name             | Default | Description                                                                                                                                                                                                                                        |
+|------------------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| KUBE2E_TESTS     | gateway | Name of the test suite to be run. Options: `'gateway', 'gloo', 'ingress', 'helm', 'glooctl', 'upgrade', 'istio'`                                                                                                                                   |
+| DEBUG            | 0       | Set to 1 for debug log output                                                                                                                                                                                                                      |
+| TEAR_DOWN        | false   | Set to true to uninstall Gloo after the test suite completes                                                                                                                                                                                       |
+| SKIP_INSTALL     | false   | Set to true to use previously installed Gloo for the tests                                                                                                                                                                                        |
+| PERSIST_INSTALL  | false   | Set to true to conditionally install Gloo if it is not already installed and leave Gloo installed after the test run. Useful when running tests repeatedly. If TEAR_DOWN or SKIP_INSTALL values are defined and conflict with PERSIST_INSTALL behavior, the TEAR_DOWN or SKIP_INSTALL values will be considered to be more specific and will take precedence                      |
+| RELEASED_VERSION | ''      | Used by nightlies to tests a specific released version. 'LATEST' will find the latest release                                                                                                                                                      |
+| CLUSTER_NAME     | kind    | Used to control which Kind cluster to run the tests inside | 
+
 ## Debugging
 
 Refer to the [Debugging guide](./debugging.md) for more information on how to debug tests.
