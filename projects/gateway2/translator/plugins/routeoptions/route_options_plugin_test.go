@@ -5,9 +5,11 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
@@ -717,7 +719,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 var _ = DescribeTable("mergeOptionsForRoute",
 	func(route *gwv1.HTTPRoute, dst, src *v1.RouteOptions, expectedOptions *v1.RouteOptions, expectedResult glooutils.OptionsMergeResult) {
 		mergedOptions, result := mergeOptionsForRoute(context.TODO(), route, dst, src)
-		Expect(proto.Equal(mergedOptions, expectedOptions)).To(BeTrue())
+		Expect(cmp.Diff(mergedOptions, expectedOptions, protocmp.Transform())).To(BeEmpty())
 		Expect(result).To(Equal(expectedResult))
 	},
 	Entry("prefer dst options by default",
@@ -866,6 +868,40 @@ var _ = DescribeTable("mergeOptionsForRoute",
 				},
 			},
 			PrefixRewrite: &wrapperspb.StringValue{Value: "/dst"},
+			Timeout:       durationpb.New(10 * time.Second),
+		},
+		glooutils.OptionsMergedFull,
+	),
+	Entry("override and augment dst options with annotation: specific fields",
+		&gwv1.HTTPRoute{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{policyOverrideAnnotation: "faults,timeout"},
+			},
+		},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 500,
+				},
+			},
+			Timeout: durationpb.New(5 * time.Second),
+		},
+		&v1.RouteOptions{
+			PrefixRewrite: &wrapperspb.StringValue{Value: "/src"},
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 100,
+				},
+			},
+			Timeout: durationpb.New(10 * time.Second),
+		},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 100,
+				},
+			},
+			PrefixRewrite: &wrapperspb.StringValue{Value: "/src"},
 			Timeout:       durationpb.New(10 * time.Second),
 		},
 		glooutils.OptionsMergedFull,

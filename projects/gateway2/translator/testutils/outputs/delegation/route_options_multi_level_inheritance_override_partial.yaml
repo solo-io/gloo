@@ -37,6 +37,7 @@ listeners:
               headerManipulation:
                 requestHeadersToRemove:
                 - override
+              prefixRewrite: /rewrite/path
             routeAction:
               single:
                 kube:
