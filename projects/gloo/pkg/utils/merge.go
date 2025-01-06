@@ -147,7 +147,10 @@ func MergeRouteOptionsWithOverrides(dst, src *v1.RouteOptions, allowedOverrides 
 	var dstFieldsOverwritten int
 	for i := range dstValue.NumField() {
 		dstField, srcField := dstValue.Field(i), srcValue.Field(i)
-		if overwriteByDefault && !(allowedOverrides.Has(wildcardField) ||
+		// Allow overrides if the field in dst is unset as merging from src into dst by default
+		// allows src to augment dst by setting fields unset in dst, hence the override check only
+		// applies when the field in dst is set: !isEmptyValue(dstField).
+		if !isEmptyValue(dstField) && overwriteByDefault && !(allowedOverrides.Has(wildcardField) ||
 			allowedOverrides.Has(strings.ToLower(dstValue.Type().Field(i).Name))) {
 			continue
 		}

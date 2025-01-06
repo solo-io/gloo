@@ -112,6 +112,12 @@ spec:
     - path:
         type: PathPrefix
         value: /a/1
+    filters:
+      - type: URLRewrite
+        urlRewrite:
+          path:
+            replacePrefixMatch: /rewrite/path
+            type: ReplacePrefixMatch
     backendRefs:
     - name: svc-a
       port: 8080
