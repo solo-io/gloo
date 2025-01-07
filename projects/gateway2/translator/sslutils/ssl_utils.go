@@ -1,13 +1,16 @@
 package sslutils
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
+	"github.com/solo-io/go-utils/contextutils"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/util/cert"
@@ -75,10 +78,15 @@ func cleanedSslKeyPair(certChain, privateKey, rootCa string) (cleanedChain strin
 	return cleanedChain, err
 }
 
-func ApplySslExtensionOptions(in *gwv1.GatewayTLSConfig, out *ssl.SslConfig) {
+// ApplySslExtensionOptions applies the GatewayTLSConfig options to the SslConfig
+// This function will never exit early, even if an error is encountered.
+// It will apply all options and return all errors encountered.
+func ApplySslExtensionOptions(ctx context.Context, in *gwv1.GatewayTLSConfig, out *ssl.SslConfig) error {
 	if len(in.Options) == 0 {
-		return
+		return nil
 	}
+
+	var err error
 
 	if oneWayTls, ok := in.Options[GatewaySslOneWayTls]; ok {
 		if strings.ToLower(string(oneWayTls)) == "true" {
@@ -100,12 +108,19 @@ func ApplySslExtensionOptions(in *gwv1.GatewayTLSConfig, out *ssl.SslConfig) {
 	if minTlsVersion, ok := in.Options[GatewaySslMinimumTlsVersion]; ok {
 		if parsed, ok := ssl.SslParameters_ProtocolVersion_value[string(minTlsVersion)]; ok {
 			out.Parameters.MinimumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
+		} else {
+			contextutils.LoggerFrom(ctx).Debugf("invalid minimum tls version: %s", minTlsVersion)
+			err = multierror.Append(err, eris.Errorf("invalid minimum tls version: %s", minTlsVersion))
 		}
 	}
 
 	if maxTlsVersion, ok := in.Options[GatewaySslMaximumTlsVersion]; ok {
 		if parsed, ok := ssl.SslParameters_ProtocolVersion_value[string(maxTlsVersion)]; ok {
 			out.Parameters.MaximumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
+		} else {
+			contextutils.LoggerFrom(ctx).Debugf("invalid maximum tls version: %s", maxTlsVersion)
+			err = multierror.Append(err, eris.Errorf("invalid maximum tls version: %s", maxTlsVersion))
 		}
 	}
+	return err
 }

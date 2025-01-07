@@ -778,7 +778,7 @@ func translateSslConfig(
 	}
 
 	// Apply known SSL Extension options
-	sslutils.ApplySslExtensionOptions(tls, cfg)
+	sslutils.ApplySslExtensionOptions(ctx, tls, cfg)
 
 	return cfg, nil
 }
