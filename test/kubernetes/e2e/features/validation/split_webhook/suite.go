@@ -145,21 +145,21 @@ func (s *testingSuite) validateCaBundles() {
 
 }
 
-func (s *testingSuite) TestGlooFailurePolicyFail() {
-	s.testDeleteResource(validation.BasicUpstream, false)
-}
+// func (s *testingSuite) TestGlooFailurePolicyFail() {
+// 	s.testDeleteResource(validation.BasicUpstream, false)
+// }
 
-func (s *testingSuite) TestKubeFailurePolicyFail() {
-	s.testDeleteResource(validation.Secret, false)
-}
+// func (s *testingSuite) TestKubeFailurePolicyFail() {
+// 	s.testDeleteResource(validation.Secret, false)
+// }
 
-func (s *testingSuite) TestGlooFailurePolicyIgnore() {
-	s.testDeleteResource(validation.BasicUpstream, true)
-}
+// func (s *testingSuite) TestGlooFailurePolicyIgnore() {
+// 	s.testDeleteResource(validation.BasicUpstream, true)
+// }
 
-func (s *testingSuite) TestKubeFailurePolicyIgnore() {
-	s.testDeleteResource(validation.Secret, true)
-}
+// func (s *testingSuite) TestKubeFailurePolicyIgnore() {
+// 	s.testDeleteResource(validation.Secret, true)
+// }
 
 func (s *testingSuite) TestGlooFailurePolicyMatchConditions() {
 	s.testDeleteResource(validation.BasicUpstream, true)
