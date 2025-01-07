@@ -3,10 +3,25 @@ package sslutils
 import (
 	"crypto/tls"
 	"fmt"
+	"strings"
 
 	"github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/util/cert"
+	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+)
+
+const (
+	GatewaySslOptionsPrefix = wellknown.GatewayAnnotationPrefix + "/ssl"
+
+	GatewaySslCipherSuitesOption   = GatewaySslOptionsPrefix + "/cipher-suites"
+	GatewaySslMinimumTlsVersion    = GatewaySslOptionsPrefix + "/minimum-tls-version"
+	GatewaySslMaximumTlsVersion    = GatewaySslOptionsPrefix + "/maximum-tls-version"
+	GatewaySslOneWayTls            = GatewaySslOptionsPrefix + "/one-way-tls"
+	GatewaySslVerifySubjectAltName = GatewaySslOptionsPrefix + "/verify-subject-alt-name"
 )
 
 var (
@@ -58,4 +73,39 @@ func cleanedSslKeyPair(certChain, privateKey, rootCa string) (cleanedChain strin
 	cleanedChain = string(cleanedChainBytes)
 
 	return cleanedChain, err
+}
+
+func ApplySslExtensionOptions(in *gwv1.GatewayTLSConfig, out *ssl.SslConfig) {
+	if len(in.Options) == 0 {
+		return
+	}
+
+	if oneWayTls, ok := in.Options[GatewaySslOneWayTls]; ok {
+		if strings.ToLower(string(oneWayTls)) == "true" {
+			out.OneWayTls = wrapperspb.Bool(true)
+		}
+	}
+
+	if varifySubjectAltNameStr, ok := in.Options[GatewaySslVerifySubjectAltName]; ok {
+		altNames := strings.Split(string(varifySubjectAltNameStr), ",")
+		out.VerifySubjectAltName = altNames
+	}
+
+	out.Parameters = &ssl.SslParameters{}
+	if cipherSuitesStr, ok := in.Options[GatewaySslCipherSuitesOption]; ok {
+		cipherSuites := strings.Split(string(cipherSuitesStr), ",")
+		out.Parameters.CipherSuites = cipherSuites
+	}
+
+	if minTlsVersion, ok := in.Options[GatewaySslMinimumTlsVersion]; ok {
+		if parsed, ok := ssl.SslParameters_ProtocolVersion_value[string(minTlsVersion)]; ok {
+			out.Parameters.MinimumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
+		}
+	}
+
+	if maxTlsVersion, ok := in.Options[GatewaySslMaximumTlsVersion]; ok {
+		if parsed, ok := ssl.SslParameters_ProtocolVersion_value[string(maxTlsVersion)]; ok {
+			out.Parameters.MaximumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
+		}
+	}
 }
