@@ -1255,6 +1255,7 @@ var _ = Describe("Deployer", func() {
 					port := svc.Spec.Ports[0]
 					Expect(port.Port).To(Equal(int32(80)))
 					Expect(port.TargetPort.IntVal).To(Equal(int32(8080)))
+					Expect(port.NodePort).To(Equal(int32(0)))
 					return nil
 				},
 			}),

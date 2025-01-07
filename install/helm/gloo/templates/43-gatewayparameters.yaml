@@ -42,8 +42,8 @@ spec:
       extraAnnotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with ($gg.service).nodePorts }}
-      nodePorts:
+      {{- with ($gg.service).ports }}
+      ports:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 {{- if $gg.serviceAccount }}
