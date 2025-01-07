@@ -17,6 +17,7 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
+// Gateway API has an extension point for implementation specific tls settings, they can be found [here](https://gateway-api.sigs.k8s.io/guides/tls/#extensions)
 const (
 	GatewaySslOptionsPrefix = wellknown.GatewayAnnotationPrefix + "/ssl"
 
