@@ -161,6 +161,14 @@ func (s *testingSuite) TestKubeFailurePolicyIgnore() {
 	s.testDeleteResource(validation.Secret, true)
 }
 
+func (s *testingSuite) TestGlooFailurePolicyMatchConditions() {
+	s.testDeleteResource(validation.BasicUpstream, true)
+}
+
+func (s *testingSuite) TestKubeFailurePolicyMatchConditions() {
+	s.testDeleteResource(validation.Secret, true)
+}
+
 func (s *testingSuite) testDeleteResource(fileName string, shouldDelete bool) {
 	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, fileName, "-n", s.testInstallation.Metadata.InstallNamespace)
 
@@ -176,10 +184,12 @@ func (s *testingSuite) testDeleteResource(fileName string, shouldDelete bool) {
 }
 
 var upgradeValues = map[string]string{
-	"TestGlooFailurePolicyFail":   validation.GlooFailurePolicyFailValues,
-	"TestKubeFailurePolicyFail":   validation.KubeFailurePolicyFailValues,
-	"TestGlooFailurePolicyIgnore": validation.GlooFailurePolicyIgnoreValues,
-	"TestKubeFailurePolicyIgnore": validation.KubeFailurePolicyIgnoreValues,
+	"TestGlooFailurePolicyFail":            validation.GlooFailurePolicyFailValues,
+	"TestKubeFailurePolicyFail":            validation.KubeFailurePolicyFailValues,
+	"TestGlooFailurePolicyIgnore":          validation.GlooFailurePolicyIgnoreValues,
+	"TestKubeFailurePolicyIgnore":          validation.KubeFailurePolicyIgnoreValues,
+	"TestGlooFailurePolicyMatchConditions": validation.GlooFailurePolicyMatchConditions,
+	"TestKubeFailurePolicyMatchConditions": validation.KubeFailurePolicyMatchConditions,
 }
 
 // These tests create one resource and try to delete it, so don't need lists of resources
@@ -223,9 +233,11 @@ var (
 	}
 
 	manifests = map[string]*testManifest{
-		"TestGlooFailurePolicyFail":   upstreamManifest,
-		"TestGlooFailurePolicyIgnore": upstreamManifest,
-		"TestKubeFailurePolicyFail":   secretManifest,
-		"TestKubeFailurePolicyIgnore": secretManifest,
+		"TestGlooFailurePolicyFail":            upstreamManifest,
+		"TestGlooFailurePolicyIgnore":          upstreamManifest,
+		"TestGlooFailurePolicyMatchConditions": upstreamManifest,
+		"TestKubeFailurePolicyFail":            secretManifest,
+		"TestKubeFailurePolicyIgnore":          secretManifest,
+		"TestKubeFailurePolicyMatchConditions": secretManifest,
 	}
 )
