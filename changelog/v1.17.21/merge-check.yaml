@@ -1,0 +1,17 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: |
+      gateway2: use safer merging to avoid assuming zero values as being unset
+
+      The legacy Edge code uses ShallowMerge() which can undesirably overwrite
+      zero values mistaking them for unset values. RouteOptions merging in
+      GatewayV2 uses the same API, but this can result in undesirable effects
+      if the merging considers zero valued fields as being unset. To avoid
+      this, the options merging used by GatewayV2 relies on a safer merge
+      that only allows merging of values that can be set to Nil (pointers,
+      slices, maps, etc.) which works since all user-facing fields on the
+      RouteOptions are nil-able. Functionally, this is the same as before
+      due to all fields being nil-able, but is a bit clearer to readers.
+      Moreover, trying to merge a non-nil field will panic which can catch
+      potential misuse of the API.
