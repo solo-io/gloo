@@ -496,8 +496,8 @@ type GatewayValidation struct {
 	ValidationServerGrpcMaxSizeBytes *int                     `json:"validationServerGrpcMaxSizeBytes,omitempty" desc:"gRPC max message size in bytes for the gloo validation server"`
 	LivenessProbeEnabled             *bool                    `json:"livenessProbeEnabled,omitempty" desc:"Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true."`
 	FullEnvoyValidation              *bool                    `json:"fullEnvoyValidation,omitempty" desc:"enable feature which validates all final translated config against envoy Validate mode"`
-	MatchConditions                  []map[string]interface{} `json:"matchConditions,omitempty" desc:"Common Expression Language (CEL) conditions that should evaluate to true for the Gloo webhook to be called. Used for fine-grained request filtering"`
-	KubeCoreMatchConditions          []map[string]interface{} `json:"kubeCoreMatchConditions,omitempty" desc:"Common Expression Language (CEL) conditions that should evaluate to true for the Kubernetes core resources webhook to be called. Used for fine-grained request filtering"`
+	MatchConditions                  []map[string]interface{} `json:"matchConditions,omitempty" desc:"Match conditions defined via Common Expression Language (CEL) that should evaluate to true for the Gloo resources webhook to be called. Used for fine-grained request filtering"`
+	KubeCoreMatchConditions          []map[string]interface{} `json:"kubeCoreMatchConditions,omitempty" desc:"Match conditions defined via Common Expression Language (CEL) that should evaluate to true for the Kubernetes core resources webhook to be called. Used for fine-grained request filtering"`
 }
 
 type Webhook struct {
