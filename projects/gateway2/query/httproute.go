@@ -257,8 +257,8 @@ func (r *gatewayQueries) getDelegatedChildren(
 	for _, parentRule := range parent.Spec.Rules {
 		var refChildren []*RouteInfo
 		for _, backendRef := range parentRule.BackendRefs {
-			// Check if the backend reference is an HTTPRoute
-			if !backendref.RefIsHTTPRoute(backendRef.BackendObjectReference) {
+			// Check if the backend delegated route reference
+			if !backendref.RefIsDelegatedHTTPRoute(backendRef.BackendObjectReference) {
 				continue
 			}
 			// Fetch child routes based on the backend reference
@@ -302,35 +302,41 @@ func (r *gatewayQueries) fetchChildRoutes(
 	backendRef gwv1.HTTPBackendRef,
 ) ([]gwv1.HTTPRoute, error) {
 	delegatedNs := parentNamespace
-	if !backendref.RefIsHTTPRoute(backendRef.BackendObjectReference) {
-		return nil, nil
-	}
 	// Use the namespace specified in the backend reference if available
 	if backendRef.Namespace != nil {
 		delegatedNs = string(*backendRef.Namespace)
 	}
 
 	var refChildren []gwv1.HTTPRoute
-	if string(backendRef.Name) == "" || string(backendRef.Name) == "*" {
-		// Handle wildcard references by listing all HTTPRoutes in the specified namespace
+	if backendref.RefIsHTTPRoute(backendRef.BackendObjectReference) {
+		if string(backendRef.Name) == "" || string(backendRef.Name) == "*" {
+			// Handle wildcard references by listing all HTTPRoutes in the specified namespace
+			var hrlist gwv1.HTTPRouteList
+			err := r.client.List(ctx, &hrlist, client.InNamespace(delegatedNs))
+			if err != nil {
+				return nil, err
+			}
+			refChildren = hrlist.Items
+		} else {
+			// Lookup a specific child route by its name
+			delegatedRef := types.NamespacedName{
+				Namespace: delegatedNs,
+				Name:      string(backendRef.Name),
+			}
+			child := &gwv1.HTTPRoute{}
+			err := r.client.Get(ctx, delegatedRef, child)
+			if err != nil {
+				return nil, err
+			}
+			refChildren = append(refChildren, *child)
+		}
+	} else if backendref.RefIsHTTPRouteDelegationLabelSelector(backendRef.BackendObjectReference) {
 		var hrlist gwv1.HTTPRouteList
-		err := r.client.List(ctx, &hrlist, client.InNamespace(delegatedNs))
+		err := r.client.List(ctx, &hrlist, client.InNamespace(delegatedNs), client.MatchingFields{HttpRouteDelegatedLabelSelector: string(backendRef.Name)})
 		if err != nil {
 			return nil, err
 		}
-		refChildren = append(refChildren, hrlist.Items...)
-	} else {
-		// Lookup a specific child route by its name
-		delegatedRef := types.NamespacedName{
-			Namespace: delegatedNs,
-			Name:      string(backendRef.Name),
-		}
-		child := &gwv1.HTTPRoute{}
-		err := r.client.Get(ctx, delegatedRef, child)
-		if err != nil {
-			return nil, err
-		}
-		refChildren = append(refChildren, *child)
+		refChildren = hrlist.Items
 	}
 	// Check if no child routes were resolved and log an error if needed
 	if len(refChildren) == 0 {
