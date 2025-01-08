@@ -72,7 +72,7 @@ func MergeSslConfig(dst, src *ssl.SslConfig) *ssl.SslConfig {
 
 	for i := range dstValue.NumField() {
 		dstField, srcField := dstValue.Field(i), srcValue.Field(i)
-		utils.ShallowMerge(dstField, srcField, false)
+		utils.ShallowMerge(dstField, srcField)
 	}
 
 	return dst
