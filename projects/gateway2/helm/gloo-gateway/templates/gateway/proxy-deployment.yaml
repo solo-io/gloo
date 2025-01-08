@@ -380,6 +380,9 @@ metadata:
     {{- end }}
 spec:
   type: {{ $gateway.service.type }}
+  {{- if $gateway.service.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ $gateway.service.externalTrafficPolicy }}
+  {{- end }}
   {{- with $gateway.service.clusterIP }}
   clusterIP: {{ . }}
   {{- end }}
@@ -389,6 +392,7 @@ spec:
     protocol: {{ $p.protocol }}
     targetPort: {{ $p.targetPort }}
     port: {{ $p.port }}
+    nodePort: {{ $p.nodePort }}
   {{- end }}
   selector:
     {{- include "gloo-gateway.gateway.selectorLabels" . | nindent 4 }}

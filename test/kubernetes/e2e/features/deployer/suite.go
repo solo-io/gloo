@@ -141,6 +141,10 @@ func (s *testingSuite) TestConfigureProxiesFromGatewayParameters() {
 	s.testInstallation.Assertions.Gomega.Expect(svc.GetAnnotations()).To(
 		gomega.HaveKeyWithValue("svc-anno-key", "svc-anno-val"))
 
+	// check that external traffic policy got passwed through from GatewayParameters to the Service
+	s.testInstallation.Assertions.Gomega.Expect(svc.Spec.ExternalTrafficPolicy).To(
+		gomega.Equal(corev1.ServiceExternalTrafficPolicyCluster))
+
 	// Update the Gateway to use the custom GatewayParameters
 	gwName := types.NamespacedName{Name: gw.Name, Namespace: gw.Namespace}
 	err = s.testInstallation.ClusterContext.Client.Get(s.ctx, gwName, gw)
@@ -181,6 +185,11 @@ func (s *testingSuite) TestProvisionResourcesUpdatedWithValidParameters() {
 	// the GatewayParameters modification should cause the deployer to re-run and update the
 	// deployment to have 2 replicas
 	s.testInstallation.Assertions.EventuallyRunningReplicas(s.ctx, proxyDeployment.ObjectMeta, gomega.Equal(2))
+
+	// modify the external traffic policy in the GatewayParameters
+	s.patchGatewayParameters(gwParamsDefault.ObjectMeta, func(parameters *v1alpha1.GatewayParameters) {
+		parameters.Spec.Kube.Service.ExternalTrafficPolicy = ptr.To(corev1.ServiceExternalTrafficPolicyLocal)
+	})
 }
 
 func (s *testingSuite) TestProvisionResourcesNotUpdatedWithInvalidParameters() {

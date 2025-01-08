@@ -74,6 +74,7 @@ type helmPort struct {
 	Protocol   *string `json:"protocol,omitempty"`
 	Name       *string `json:"name,omitempty"`
 	TargetPort *uint16 `json:"targetPort,omitempty"`
+	NodePort   *uint16 `json:"nodePort,omitempty"`
 }
 
 type helmImage struct {
@@ -85,10 +86,11 @@ type helmImage struct {
 }
 
 type helmService struct {
-	Type             *string           `json:"type,omitempty"`
-	ClusterIP        *string           `json:"clusterIP,omitempty"`
-	ExtraAnnotations map[string]string `json:"extraAnnotations,omitempty"`
-	ExtraLabels      map[string]string `json:"extraLabels,omitempty"`
+	Type                  *string           `json:"type,omitempty"`
+	ClusterIP             *string           `json:"clusterIP,omitempty"`
+	ExtraAnnotations      map[string]string `json:"extraAnnotations,omitempty"`
+	ExtraLabels           map[string]string `json:"extraLabels,omitempty"`
+	ExternalTrafficPolicy *string           `json:"externalTrafficPolicy,omitempty"`
 }
 
 type helmServiceAccount struct {

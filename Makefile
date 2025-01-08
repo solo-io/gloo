@@ -405,6 +405,7 @@ generated-code: go-generate-all generate-cli-docs getter-check mod-tidy
 generated-code: verify-enterprise-protos generate-helm-files update-licenses
 generated-code: generate-crd-reference-docs
 generated-code: fmt
+generated-code: sync-gateway-api # Sync Gateway API version with the provided $CONFORMANCE_VERSION
 
 .PHONY: go-generate-all
 go-generate-all: clean-vendor-any ## Run all go generate directives in the repo, including codegen for protos, mockgen, and more
@@ -1256,6 +1257,10 @@ conformance: $(TEST_ASSET_DIR)/conformance/conformance_test.go
 conformance-%: $(TEST_ASSET_DIR)/conformance/conformance_test.go
 	go test -mod=mod -ldflags=$(LDFLAGS) -tags conformance -test.v $(TEST_ASSET_DIR)/conformance/... -args $(CONFORMANCE_ARGS) \
 	-run-test=$*
+
+.PHONY: sync-gateway-api
+sync-gateway-api: ## Syncronize the Gateway API version used by the repo with the provided $CONFORMANCE_VERSION.
+	@./ci/sync-gateway-api.sh
 
 #----------------------------------------------------------------------------------
 # Security Scan
