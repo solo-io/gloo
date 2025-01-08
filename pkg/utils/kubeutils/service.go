@@ -9,7 +9,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-// GetPodsForService gets all pods backing a deployment
+// GetService gets the service from the provided name/namespace
 func GetService(
 	ctx context.Context,
 	kubeClient *kubernetes.Clientset,

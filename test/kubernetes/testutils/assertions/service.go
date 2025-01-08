@@ -12,7 +12,6 @@ import (
 
 func (p *Provider) ExternalTrafficPolicy(ctx context.Context, service corev1.Service, externalTrafficPolicyMatcher types.GomegaMatcher) {
 	p.Gomega.Eventually(func(innerG Gomega) {
-		// We intentionally rely only on Pods that have marked themselves as ready as a way of defining more explicit assertions
 		service, err := kubeutils.GetService(ctx, p.clusterContext.Clientset, service.Name, service.Namespace)
 		innerG.Expect(err).NotTo(HaveOccurred(), "can get service")
 		innerG.Expect(service.Spec.ExternalTrafficPolicy).To(externalTrafficPolicyMatcher, "externalTrafficPolicy to match")
