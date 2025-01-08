@@ -134,7 +134,7 @@ var SslExtensionOptionFuncs = map[string]SslExtensionOptionFunc{
 
 // ApplySslExtensionOptions applies the GatewayTLSConfig options to the SslConfig
 // This function will never exit early, even if an error is encountered.
-// It will apply all options and return all errors encountered.
+// It will apply all options and log all errors encountered.
 func ApplySslExtensionOptions(ctx context.Context, in *gwv1.GatewayTLSConfig, out *ssl.SslConfig) {
 	if out.Parameters == nil {
 		out.Parameters = &ssl.SslParameters{}
