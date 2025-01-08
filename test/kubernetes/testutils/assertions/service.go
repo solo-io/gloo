@@ -10,7 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func (p *Provider) ExternalTrafficPolicy(ctx context.Context, service corev1.Service, externalTrafficPolicyMatcher types.GomegaMatcher) {
+func (p *Provider) EventuallyExternalTrafficPolicy(ctx context.Context, service corev1.Service, externalTrafficPolicyMatcher types.GomegaMatcher) {
 	p.Gomega.Eventually(func(innerG Gomega) {
 		service, err := kubeutils.GetService(ctx, p.clusterContext.Clientset, service.Name, service.Namespace)
 		innerG.Expect(err).NotTo(HaveOccurred(), "can get service")
