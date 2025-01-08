@@ -95,8 +95,8 @@ func ApplySslExtensionOptions(ctx context.Context, in *gwv1.GatewayTLSConfig, ou
 		}
 	}
 
-	if varifySubjectAltNameStr, ok := in.Options[GatewaySslVerifySubjectAltName]; ok {
-		altNames := strings.Split(string(varifySubjectAltNameStr), ",")
+	if verifySubjectAltNameStr, ok := in.Options[GatewaySslVerifySubjectAltName]; ok {
+		altNames := strings.Split(string(verifySubjectAltNameStr), ",")
 		out.VerifySubjectAltName = altNames
 	}
 
