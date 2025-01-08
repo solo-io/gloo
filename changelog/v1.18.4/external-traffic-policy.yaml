@@ -1,5 +1,5 @@
 changelog:
-  - type: NEW_FEATURE
+  - type: FIX
     issueLink: https://github.com/k8sgateway/k8sgateway/issues/9879
     resolvesIssue: true
     description: >-
