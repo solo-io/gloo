@@ -21,7 +21,7 @@ import (
 const (
 	GatewaySslOptionsPrefix = wellknown.GatewayAnnotationPrefix + "/ssl"
 
-	GatewaySslCipherSuitesOption   = GatewaySslOptionsPrefix + "/cipher-suites"
+	GatewaySslCipherSuites   = GatewaySslOptionsPrefix + "/cipher-suites"
 	GatewaySslMinimumTlsVersion    = GatewaySslOptionsPrefix + "/minimum-tls-version"
 	GatewaySslMaximumTlsVersion    = GatewaySslOptionsPrefix + "/maximum-tls-version"
 	GatewaySslOneWayTls            = GatewaySslOptionsPrefix + "/one-way-tls"
