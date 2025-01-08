@@ -21,7 +21,7 @@ import (
 const (
 	GatewaySslOptionsPrefix = wellknown.GatewayAnnotationPrefix + "/ssl"
 
-	GatewaySslCipherSuites   = GatewaySslOptionsPrefix + "/cipher-suites"
+	GatewaySslCipherSuites         = GatewaySslOptionsPrefix + "/cipher-suites"
 	GatewaySslMinimumTlsVersion    = GatewaySslOptionsPrefix + "/minimum-tls-version"
 	GatewaySslMaximumTlsVersion    = GatewaySslOptionsPrefix + "/maximum-tls-version"
 	GatewaySslOneWayTls            = GatewaySslOptionsPrefix + "/one-way-tls"
@@ -79,49 +79,79 @@ func cleanedSslKeyPair(certChain, privateKey, rootCa string) (cleanedChain strin
 	return cleanedChain, err
 }
 
+type SslExtensionOptionFunc = func(ctx context.Context, in string, out *ssl.SslConfig) error
+
+func ApplyCipherSuites(ctx context.Context, in string, out *ssl.SslConfig) error {
+	cipherSuites := strings.Split(in, ",")
+	out.Parameters.CipherSuites = cipherSuites
+	return nil
+}
+
+func ApplyMinimumTlsVersion(ctx context.Context, in string, out *ssl.SslConfig) error {
+	if parsed, ok := ssl.SslParameters_ProtocolVersion_value[in]; ok {
+		out.Parameters.MinimumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
+		if out.Parameters.MaximumProtocolVersion != ssl.SslParameters_TLS_AUTO && !(out.Parameters.MinimumProtocolVersion <= out.Parameters.MaximumProtocolVersion) {
+			return eris.Errorf("maximum tls version %s is less than minimum tls version %s", in, out.Parameters.MinimumProtocolVersion.String())
+		}
+	} else {
+		return eris.Errorf("invalid minimum tls version: %s", in)
+	}
+	return nil
+}
+
+func ApplyMaximumTlsVersion(ctx context.Context, in string, out *ssl.SslConfig) error {
+	if parsed, ok := ssl.SslParameters_ProtocolVersion_value[in]; ok {
+		out.Parameters.MaximumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
+		if out.Parameters.MaximumProtocolVersion != ssl.SslParameters_TLS_AUTO && !(out.Parameters.MinimumProtocolVersion <= out.Parameters.MaximumProtocolVersion) {
+			return eris.Errorf("maximum tls version %s is less than minimum tls version %s", in, out.Parameters.MinimumProtocolVersion.String())
+		}
+	} else {
+		contextutils.LoggerFrom(ctx).Debugf("invalid maximum tls version: %s", in)
+	}
+	return nil
+}
+
+func ApplyOneWayTls(ctx context.Context, in string, out *ssl.SslConfig) error {
+	if strings.ToLower(in) == "true" {
+		out.OneWayTls = wrapperspb.Bool(true)
+	}
+	return nil
+}
+
+func ApplyVerifySubjectAltName(ctx context.Context, in string, out *ssl.SslConfig) error {
+	altNames := strings.Split(in, ",")
+	out.VerifySubjectAltName = altNames
+	return nil
+}
+
+var SslExtensionOptionFuncs = map[string]SslExtensionOptionFunc{
+	GatewaySslCipherSuites:         ApplyCipherSuites,
+	GatewaySslMinimumTlsVersion:    ApplyMinimumTlsVersion,
+	GatewaySslMaximumTlsVersion:    ApplyMaximumTlsVersion,
+	GatewaySslOneWayTls:            ApplyOneWayTls,
+	GatewaySslVerifySubjectAltName: ApplyVerifySubjectAltName,
+}
+
 // ApplySslExtensionOptions applies the GatewayTLSConfig options to the SslConfig
 // This function will never exit early, even if an error is encountered.
 // It will apply all options and return all errors encountered.
-func ApplySslExtensionOptions(ctx context.Context, in *gwv1.GatewayTLSConfig, out *ssl.SslConfig) error {
-	if len(in.Options) == 0 {
-		return nil
+func ApplySslExtensionOptions(ctx context.Context, in *gwv1.GatewayTLSConfig, out *ssl.SslConfig) {
+	if out.Parameters == nil {
+		out.Parameters = &ssl.SslParameters{}
 	}
 
-	var err error
-
-	if oneWayTls, ok := in.Options[GatewaySslOneWayTls]; ok {
-		if strings.ToLower(string(oneWayTls)) == "true" {
-			out.OneWayTls = wrapperspb.Bool(true)
-		}
-	}
-
-	if verifySubjectAltNameStr, ok := in.Options[GatewaySslVerifySubjectAltName]; ok {
-		altNames := strings.Split(string(verifySubjectAltNameStr), ",")
-		out.VerifySubjectAltName = altNames
-	}
-
-	out.Parameters = &ssl.SslParameters{}
-	if cipherSuitesStr, ok := in.Options[GatewaySslCipherSuitesOption]; ok {
-		cipherSuites := strings.Split(string(cipherSuitesStr), ",")
-		out.Parameters.CipherSuites = cipherSuites
-	}
-
-	if minTlsVersion, ok := in.Options[GatewaySslMinimumTlsVersion]; ok {
-		if parsed, ok := ssl.SslParameters_ProtocolVersion_value[string(minTlsVersion)]; ok {
-			out.Parameters.MinimumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
+	var wrapped error
+	for key, option := range in.Options {
+		if extensionFunc, ok := SslExtensionOptionFuncs[string(key)]; ok {
+			if err := extensionFunc(ctx, string(option), out); err != nil {
+				wrapped = multierror.Append(wrapped, err)
+			}
 		} else {
-			contextutils.LoggerFrom(ctx).Debugf("invalid minimum tls version: %s", minTlsVersion)
-			err = multierror.Append(err, eris.Errorf("invalid minimum tls version: %s", minTlsVersion))
+			contextutils.LoggerFrom(ctx).Warnf("unknown ssl option: %s", key)
 		}
 	}
 
-	if maxTlsVersion, ok := in.Options[GatewaySslMaximumTlsVersion]; ok {
-		if parsed, ok := ssl.SslParameters_ProtocolVersion_value[string(maxTlsVersion)]; ok {
-			out.Parameters.MaximumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
-		} else {
-			contextutils.LoggerFrom(ctx).Debugf("invalid maximum tls version: %s", maxTlsVersion)
-			err = multierror.Append(err, eris.Errorf("invalid maximum tls version: %s", maxTlsVersion))
-		}
+	if wrapped != nil {
+		contextutils.LoggerFrom(ctx).Warnf("error applying ssl extension options: %v", wrapped)
 	}
-	return err
 }
