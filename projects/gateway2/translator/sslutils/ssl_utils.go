@@ -91,7 +91,7 @@ func ApplyMinimumTlsVersion(ctx context.Context, in string, out *ssl.SslConfig) 
 	if parsed, ok := ssl.SslParameters_ProtocolVersion_value[in]; ok {
 		out.Parameters.MinimumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
 		if out.Parameters.MaximumProtocolVersion != ssl.SslParameters_TLS_AUTO && (out.Parameters.MaximumProtocolVersion < out.Parameters.MinimumProtocolVersion) {
-			return eris.Errorf("maximum tls version %s is less than minimum tls version %s", in, out.Parameters.MinimumProtocolVersion.String())
+			return eris.Errorf("maximum tls version %s is less than minimum tls version %s", out.Parameters.MaximumProtocolVersion.String(), in)
 		}
 	} else {
 		return eris.Errorf("invalid minimum tls version: %s", in)
