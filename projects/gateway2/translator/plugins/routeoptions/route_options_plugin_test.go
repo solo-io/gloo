@@ -890,7 +890,7 @@ var _ = DescribeTable("mergeOptionsForRoute",
 			PrefixRewrite: &wrapperspb.StringValue{Value: "/dst"},
 			Timeout:       durationpb.New(10 * time.Second),
 		},
-		glooutils.OptionsMergedPartial, // PrefixRewrite is not overwriten
+		glooutils.OptionsMergedPartial, // PrefixRewrite is not overwritten
 	),
 	Entry("override and augment dst options with annotation: specific fields",
 		&gwv1.HTTPRoute{
