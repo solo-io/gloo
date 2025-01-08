@@ -1375,15 +1375,15 @@ func runQueue(ctx context.Context, proxyReconcileQueue ggv2utils.AsyncQueue[gloo
 		// the proxy type key/value must stay in sync with the one defined in projects/gateway2/translator/gateway_translator.go
 		utils.ProxyTypeKey: utils.GatewayApiProxyValue,
 	}
+	ctx = contextutils.WithLogger(ctx, "proxyCache")
+	logger := contextutils.LoggerFrom(ctx)
+
 	proxyReconciler := gloov1.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient())
 	for {
 		proxyList, err := proxyReconcileQueue.Dequeue(ctx)
 		if err != nil {
 			return
 		}
-		ctx = contextutils.WithLogger(ctx, "proxyCache")
-		logger := contextutils.LoggerFrom(ctx)
-
 		// Proxy CR is located in the writeNamespace, which may be different from the originating Gateway CR
 		err = proxyReconciler.Reconcile(
 			writeNamespace,
