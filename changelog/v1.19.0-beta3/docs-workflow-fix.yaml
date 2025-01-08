@@ -1,5 +1,5 @@
 changelog:
   - type: NON_USER_FACING
-    description: Adds an alias for incorrect regex capitalization in the ai proto introduced by docs revisions.
-  - type: NON_USER_FACING
-    description: Fixes an error in the doc workflow.
+    description: >- 
+      Update docs workflow. 
+      skipCI-kube-tests:true
