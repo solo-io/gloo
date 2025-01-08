@@ -378,11 +378,11 @@ func (c *Cli) GetPodsInNsWithLabel(ctx context.Context, namespace string, label 
 
 // Version returns the unmarshalled output of `kubectl version -o json`
 func (c *Cli) Version(ctx context.Context) (version.Version, error) {
-	version := version.Version{}
+	ver := version.Version{}
 	out, _, err := c.Execute(ctx, "version", "-o", "json")
 	if err != nil {
-		return version, err
+		return ver, err
 	}
-	err = json.Unmarshal([]byte(out), &version)
-	return version, err
+	err = json.Unmarshal([]byte(out), &ver)
+	return ver, err
 }
