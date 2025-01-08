@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Doc workflow typo fix.
+      skipCI-kube-tests:true
