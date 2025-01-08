@@ -193,7 +193,7 @@ func (s *testingSuite) TestProvisionResourcesUpdatedWithValidParameters() {
 
 	// the GatewayParameters modification should cause the deployer to re-run and update the
 	// service to have ExternalTrafficPolicy = Local
-	s.testInstallation.Assertions.ExternalTrafficPolicy(s.ctx, *proxyService, gomega.Equal(corev1.ServiceExternalTrafficPolicyLocal))
+	s.testInstallation.Assertions.EventuallyExternalTrafficPolicy(s.ctx, *proxyService, gomega.Equal(corev1.ServiceExternalTrafficPolicyLocal))
 
 }
 
