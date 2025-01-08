@@ -90,7 +90,7 @@ func ApplyCipherSuites(ctx context.Context, in string, out *ssl.SslConfig) error
 func ApplyMinimumTlsVersion(ctx context.Context, in string, out *ssl.SslConfig) error {
 	if parsed, ok := ssl.SslParameters_ProtocolVersion_value[in]; ok {
 		out.Parameters.MinimumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
-		if out.Parameters.MaximumProtocolVersion != ssl.SslParameters_TLS_AUTO && !(out.Parameters.MinimumProtocolVersion <= out.Parameters.MaximumProtocolVersion) {
+		if out.Parameters.MaximumProtocolVersion != ssl.SslParameters_TLS_AUTO && (out.Parameters.MaximumProtocolVersion < out.Parameters.MinimumProtocolVersion) {
 			return eris.Errorf("maximum tls version %s is less than minimum tls version %s", in, out.Parameters.MinimumProtocolVersion.String())
 		}
 	} else {
