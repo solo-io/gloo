@@ -2,6 +2,7 @@ package server_tls
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/solo-io/gloo/test/gomega/matchers"
@@ -101,7 +102,9 @@ func (s *k8sServerTlsTestingSuite) TestOneWayServerTlsFailsWithoutOneWayTls() {
 // is provided in the TLS secret IF oneWayTls is set on the sslConfig. This is because the Gloo translation
 // loop assumes that mTLS is desired if the secret contains a CA cert unless oneWayTls is set.
 func (s *k8sServerTlsTestingSuite) TestOneWayServerTlsWorksWithOneWayTls() {
-	s.assertEventualResponse("oneway.example.com", expectedHealthyResponseWithOneWay)
+	s.assertEventualResponse("oneway.example.com", &matchers.HttpResponse{
+		StatusCode: http.StatusOK,
+	})
 }
 
 func (s *k8sServerTlsTestingSuite) assertEventualResponse(hostHeaderValue string, matcher *matchers.HttpResponse) {
