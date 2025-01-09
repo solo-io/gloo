@@ -28,7 +28,7 @@ var (
 	vsWithoutOneWayManifest = func() ([]byte, error) { return manifestFromFile("edge/vs-without-oneway.yaml") }
 
 	gatewayManifest   = func() ([]byte, error) { return manifestFromFile("k8s/gateway.yaml") }
-	httprouteManifest = func() ([]byte, error) { return manifestFromFile("k8s/httproute.yaml") }
+	httpRouteManifest = func() ([]byte, error) { return manifestFromFile("k8s/httproute.yaml") }
 	setupManifest     = func() ([]byte, error) { return manifestFromFile("k8s/setup.yaml") }
 
 	// When we apply the deployer-provision.yaml file, we expect resources to be created with this metadata

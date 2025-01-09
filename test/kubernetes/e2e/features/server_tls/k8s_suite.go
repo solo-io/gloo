@@ -43,7 +43,7 @@ var manifests = map[string]func() ([]byte, error){
 	"tls_secret":         tlsSecret1Manifest,
 	"tls_secret_with_ca": tlsSecretWithCaManifest,
 	"gateway":            gatewayManifest,
-	"http_route":         httprouteManifest,
+	"http_route":         httpRouteManifest,
 	"setup":              setupManifest,
 }
 

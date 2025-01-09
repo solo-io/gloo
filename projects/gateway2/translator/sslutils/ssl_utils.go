@@ -131,6 +131,8 @@ func ApplyOneWayTls(ctx context.Context, in string, out *ssl.SslConfig) error {
 		out.OneWayTls = wrapperspb.Bool(true)
 	} else if strings.ToLower(in) == "false" {
 		out.OneWayTls = wrapperspb.Bool(false)
+	} else {
+		return eris.Errorf("invalid value for one-way-tls: %s", in)
 	}
 	return nil
 }

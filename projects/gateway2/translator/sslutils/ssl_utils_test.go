@@ -68,6 +68,16 @@ func TestApplySslExtensionOptions(t *testing.T) {
 			},
 		},
 		{
+			name: "one_way_tls_false_incorrect_casing",
+			out:  &ssl.SslConfig{},
+			in: &gwv1.GatewayTLSConfig{
+				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
+					GatewaySslOneWayTls: "Foo",
+				},
+			},
+			errors: []string{"invalid value for one-way-tls: Foo"},
+		},
+		{
 			name: "cipher_suites",
 			out: &ssl.SslConfig{
 				Parameters: &ssl.SslParameters{
@@ -136,12 +146,14 @@ func TestApplySslExtensionOptions(t *testing.T) {
 		{
 			name: "maximium_tls_version_less_than_minimum",
 			out: &ssl.SslConfig{
-				Parameters: &ssl.SslParameters{},
+				VerifySubjectAltName: []string{"foo", "bar"},
+				Parameters:           &ssl.SslParameters{},
 			},
 			in: &gwv1.GatewayTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
-					GatewaySslMinimumTlsVersion: "TLSv1_3",
-					GatewaySslMaximumTlsVersion: "TLSv1_2",
+					GatewaySslMinimumTlsVersion:    "TLSv1_3",
+					GatewaySslMaximumTlsVersion:    "TLSv1_2",
+					GatewaySslVerifySubjectAltName: "foo,bar",
 				},
 			},
 			errors: []string{
