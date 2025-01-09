@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/onsi/gomega"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
+	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	kubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/skv2/codegen/util"
@@ -19,10 +21,16 @@ var (
 	tlsSecret1Manifest      = func() ([]byte, error) { return manifestFromFile("tls-secret-1.yaml") }
 	tlsSecret2Manifest      = func() ([]byte, error) { return manifestFromFile("tls-secret-2.yaml") }
 	tlsSecretWithCaManifest = func() ([]byte, error) { return manifestFromFile("tls-secret-with-ca.yaml") }
+
 	vs1Manifest             = func() ([]byte, error) { return manifestFromFile("edge/vs-1.yaml") }
 	vs2Manifest             = func() ([]byte, error) { return manifestFromFile("edge/vs-2.yaml") }
 	vsWithOneWayManifest    = func() ([]byte, error) { return manifestFromFile("edge/vs-with-oneway.yaml") }
 	vsWithoutOneWayManifest = func() ([]byte, error) { return manifestFromFile("edge/vs-without-oneway.yaml") }
+
+	gatewayManifest   = func() ([]byte, error) { return manifestFromFile("k8s/gateway.yaml") }
+	httprouteManifest = func() ([]byte, error) { return manifestFromFile("k8s/httproute.yaml") }
+	setupManifest     = func() ([]byte, error) { return manifestFromFile("k8s/setup.yaml") }
+	curlManifest      = func() ([]byte, error) { return manifestFromFile("k8s/curl.yaml") }
 
 	// When we apply the deployer-provision.yaml file, we expect resources to be created with this metadata
 	glooProxyObjectMeta = func(ns string) metav1.ObjectMeta {
@@ -134,4 +142,16 @@ func withSubstitutions(fname string) ([]byte, error) {
 
 	// Replace environment variables placeholders with their values
 	return []byte(os.ExpandEnv(string(raw))), nil
+}
+
+func curlOptions(name, ns, hostHeaderValue string) []curl.Option {
+	return []curl.Option{
+		curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{Name: name, Namespace: ns})),
+		// The host header must match the domain in the VirtualService
+		curl.WithHostHeader(hostHeaderValue),
+		curl.WithPort(443),
+		curl.IgnoreServerCert(),
+		curl.WithScheme("https"),
+		curl.WithSni(hostHeaderValue),
+	}
 }
