@@ -19,10 +19,10 @@ var (
 	tlsSecret1Manifest      = func() ([]byte, error) { return manifestFromFile("tls-secret-1.yaml") }
 	tlsSecret2Manifest      = func() ([]byte, error) { return manifestFromFile("tls-secret-2.yaml") }
 	tlsSecretWithCaManifest = func() ([]byte, error) { return manifestFromFile("tls-secret-with-ca.yaml") }
-	vs1Manifest             = func() ([]byte, error) { return manifestFromFile("vs-1.yaml") }
-	vs2Manifest             = func() ([]byte, error) { return manifestFromFile("vs-2.yaml") }
-	vsWithOneWayManifest    = func() ([]byte, error) { return manifestFromFile("vs-with-oneway.yaml") }
-	vsWithoutOneWayManifest = func() ([]byte, error) { return manifestFromFile("vs-without-oneway.yaml") }
+	vs1Manifest             = func() ([]byte, error) { return manifestFromFile("edge/vs-1.yaml") }
+	vs2Manifest             = func() ([]byte, error) { return manifestFromFile("edge/vs-2.yaml") }
+	vsWithOneWayManifest    = func() ([]byte, error) { return manifestFromFile("edge/vs-with-oneway.yaml") }
+	vsWithoutOneWayManifest = func() ([]byte, error) { return manifestFromFile("edge/vs-without-oneway.yaml") }
 
 	// When we apply the deployer-provision.yaml file, we expect resources to be created with this metadata
 	glooProxyObjectMeta = func(ns string) metav1.ObjectMeta {

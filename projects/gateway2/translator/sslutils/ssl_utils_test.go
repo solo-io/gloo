@@ -24,13 +24,46 @@ func TestApplySslExtensionOptions(t *testing.T) {
 		errors []string
 	}{
 		{
-			name: "one_way_tls",
+			name: "one_way_tls_true",
 			out: &ssl.SslConfig{
 				OneWayTls: wrapperspb.Bool(true),
 			},
 			in: &gwv1.GatewayTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslOneWayTls: "true",
+				},
+			},
+		},
+		{
+			name: "one_way_tls_true_incorrect_casing",
+			out: &ssl.SslConfig{
+				OneWayTls: wrapperspb.Bool(true),
+			},
+			in: &gwv1.GatewayTLSConfig{
+				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
+					GatewaySslOneWayTls: "True",
+				},
+			},
+		},
+		{
+			name: "one_way_tls_false",
+			out: &ssl.SslConfig{
+				OneWayTls: wrapperspb.Bool(false),
+			},
+			in: &gwv1.GatewayTLSConfig{
+				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
+					GatewaySslOneWayTls: "false",
+				},
+			},
+		},
+		{
+			name: "one_way_tls_false_incorrect_casing",
+			out: &ssl.SslConfig{
+				OneWayTls: wrapperspb.Bool(false),
+			},
+			in: &gwv1.GatewayTLSConfig{
+				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
+					GatewaySslOneWayTls: "False",
 				},
 			},
 		},
@@ -115,6 +148,39 @@ func TestApplySslExtensionOptions(t *testing.T) {
 				"maximum tls version TLSv1_2 is less than minimum tls version TLSv1_3",
 			},
 		},
+		{
+			name: "multiple_options",
+			out: &ssl.SslConfig{
+				VerifySubjectAltName: []string{"foo", "bar"},
+				OneWayTls:            wrapperspb.Bool(true),
+				Parameters: &ssl.SslParameters{
+					MaximumProtocolVersion: ssl.SslParameters_TLSv1_3,
+					MinimumProtocolVersion: ssl.SslParameters_TLSv1_2,
+					CipherSuites:           []string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
+				},
+			},
+			in: &gwv1.GatewayTLSConfig{
+				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
+					GatewaySslMaximumTlsVersion:    "TLSv1_3",
+					GatewaySslMinimumTlsVersion:    "TLSv1_2",
+					GatewaySslVerifySubjectAltName: "foo,bar",
+					GatewaySslOneWayTls:            "true",
+					GatewaySslCipherSuites:         "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+				},
+			},
+		},
+		{
+			name: "misspelled_option",
+			out:  &ssl.SslConfig{},
+			in: &gwv1.GatewayTLSConfig{
+				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
+					GatewaySslMinimumTlsVersion + "s": "TLSv1_3",
+				},
+			},
+			errors: []string{
+				"unknown ssl option: gateway.gloo.solo.io/ssl/minimum-tls-versions",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -130,10 +196,11 @@ func TestApplySslExtensionOptions(t *testing.T) {
 			ApplySslExtensionOptions(ctx, tc.in, out)
 			assert.Empty(t, cmp.Diff(tc.out, out, protocmp.Transform()))
 			if len(tc.errors) > 0 {
-				assert.Contains(t, b.String(), "error applying ssl extension options")
 				for _, err := range tc.errors {
 					assert.Contains(t, b.String(), err)
 				}
+			} else {
+				assert.Empty(t, b.String())
 			}
 		})
 
