@@ -121,20 +121,6 @@ func (s *k8sServerTlsTestingSuite) assertEventualResponse(hostHeaderValue string
 		matcher)
 }
 
-func (s *k8sServerTlsTestingSuite) assertEventuallyConsistentResponse(hostHeaderValue string, matcher *matchers.HttpResponse, timeouts ...time.Duration) {
-	// Check curl works against expected response
-	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(
-		s.ctx,
-		kubectl.PodExecOptions{
-			Name:      "curl",
-			Namespace: s.ns,
-			Container: "curl",
-		},
-		append(curlOptions("gloo-proxy-gw", s.ns, hostHeaderValue), curl.WithPath("/status/200")),
-		matcher,
-		timeouts...)
-}
-
 func (s *k8sServerTlsTestingSuite) assertEventualError(hostHeaderValue string, code int) {
 	// Check curl works against expected response
 	s.testInstallation.Assertions.AssertEventualCurlError(
