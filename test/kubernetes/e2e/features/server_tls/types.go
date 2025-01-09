@@ -30,7 +30,6 @@ var (
 	gatewayManifest   = func() ([]byte, error) { return manifestFromFile("k8s/gateway.yaml") }
 	httprouteManifest = func() ([]byte, error) { return manifestFromFile("k8s/httproute.yaml") }
 	setupManifest     = func() ([]byte, error) { return manifestFromFile("k8s/setup.yaml") }
-	curlManifest      = func() ([]byte, error) { return manifestFromFile("k8s/curl.yaml") }
 
 	// When we apply the deployer-provision.yaml file, we expect resources to be created with this metadata
 	glooProxyObjectMeta = func(ns string) metav1.ObjectMeta {
