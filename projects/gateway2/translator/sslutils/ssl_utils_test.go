@@ -196,6 +196,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 			ApplySslExtensionOptions(ctx, tc.in, out)
 			assert.Empty(t, cmp.Diff(tc.out, out, protocmp.Transform()))
 			if len(tc.errors) > 0 {
+				assert.Contains(t, b.String(), "error applying ssl extension options")
 				for _, err := range tc.errors {
 					assert.Contains(t, b.String(), err)
 				}

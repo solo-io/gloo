@@ -160,7 +160,7 @@ func ApplySslExtensionOptions(ctx context.Context, in *gwv1.GatewayTLSConfig, ou
 				wrapped = multierror.Append(wrapped, err)
 			}
 		} else {
-			contextutils.LoggerFrom(ctx).Warnf("unknown ssl option: %s", key)
+			wrapped = multierror.Append(wrapped, eris.Errorf("unknown ssl option: %s", key))
 		}
 	}
 
