@@ -7679,8 +7679,49 @@ Resource Types:
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#gatewayparametersspeckubeserviceportsindex">ports</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>type</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### GatewayParameters.spec.kube.service.ports[index]
+<sup><sup>[↩ Parent](#gatewayparametersspeckubeservice)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>port</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>nodePort</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
