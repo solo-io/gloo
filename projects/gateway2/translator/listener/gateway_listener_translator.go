@@ -750,7 +750,7 @@ func translateSslConfig(
 	if sniDomain != nil {
 		sniDomains = []string{string(*sniDomain)}
 	}
-	return &ssl.SslConfig{
+	cfg := &ssl.SslConfig{
 		SslSecrets:                    &ssl.SslConfig_SecretRef{SecretRef: secretRef},
 		SniDomains:                    sniDomains,
 		VerifySubjectAltName:          nil,
@@ -760,7 +760,12 @@ func translateSslConfig(
 		DisableTlsSessionResumption:   nil,
 		TransportSocketConnectTimeout: nil,
 		OcspStaplePolicy:              0,
-	}, nil
+	}
+
+	// Apply known SSL Extension options
+	sslutils.ApplySslExtensionOptions(ctx, tls, cfg)
+
+	return cfg, nil
 }
 
 // makeVhostName computes the name of a virtual host based on the parent name and domain.
