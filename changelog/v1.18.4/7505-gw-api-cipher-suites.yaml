@@ -1,6 +1,6 @@
 
 changelog:
-- type: NEW_FEATURE
+- type: FIX
   issueLink: https://github.com/solo-io/solo-projects/issues/7505
   resolvesIssue: true
   description: > 
