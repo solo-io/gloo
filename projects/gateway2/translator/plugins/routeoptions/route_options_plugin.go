@@ -28,16 +28,13 @@ import (
 	rtoptquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/routeoptions/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/routeutils"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
 
 const (
-	// policyOverrideAnnotation can be set by parent routes to allow child routes to override
-	// all (wildcard *) or specific fields (comma separated field names) in RouteOptions inherited from the parent route.
-	policyOverrideAnnotation = "delegation.gateway.solo.io/enable-policy-overrides"
-
 	// wildcardField is used to enable overriding all fields in RouteOptions inherited from the parent route.
 	wildcardField = "*"
 )
@@ -131,7 +128,7 @@ func mergeOptionsForRoute(
 	// and can only augment them during a merge such that fields unset in the higher
 	// priority options can be merged in from the lower priority options.
 	// In the case of delegated routes, a parent route can enable child routes to override
-	// all (wildcard *) or specific fields using the policyOverrideAnnotation.
+	// all (wildcard *) or specific fields using the wellknown.PolicyOverrideAnnotation.
 	fieldsAllowedToOverride := sets.New[string]()
 
 	// If the route already has options set, we should override/augment them.
@@ -141,13 +138,13 @@ func mergeOptionsForRoute(
 	//
 	// By default, parent options (routeOptions) are preferred, unless the parent explicitly
 	// enabled child routes (outputRoute.Options) to override parent options.
-	fieldsStr, delegatedPolicyOverride := route.Annotations[policyOverrideAnnotation]
+	fieldsStr, delegatedPolicyOverride := route.Annotations[wellknown.PolicyOverrideAnnotation]
 	if delegatedPolicyOverride {
 		delegatedFieldsToOverride := parseDelegationFieldOverrides(fieldsStr)
 		if delegatedFieldsToOverride.Len() == 0 {
 			// Invalid annotation value, so log an error but enforce the default behavior of preferring the parent options.
 			contextutils.LoggerFrom(ctx).Errorf("invalid value %q for annotation %s on route %s; must be %s or a comma-separated list of field names",
-				fieldsStr, policyOverrideAnnotation, client.ObjectKeyFromObject(route), wildcardField)
+				fieldsStr, wellknown.PolicyOverrideAnnotation, client.ObjectKeyFromObject(route), wildcardField)
 		} else {
 			fieldsAllowedToOverride = delegatedFieldsToOverride
 		}

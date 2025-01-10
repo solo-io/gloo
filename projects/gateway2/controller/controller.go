@@ -123,6 +123,10 @@ func (c *controllerBuilder) addIndexes(ctx context.Context) error {
 	if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1.HTTPRoute{}, query.HttpRouteTargetField, query.IndexerByObjType); err != nil {
 		errs = append(errs, err)
 	}
+	// Index HTTPRoutes by the delegation.gateway.solo.io/label label value to lookup delegatee routes using the label
+	if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1.HTTPRoute{}, query.HttpRouteDelegatedLabelSelector, query.IndexByHTTPRouteDelegationLabelSelector); err != nil {
+		errs = append(errs, err)
+	}
 
 	// Index for ReferenceGrant
 	if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1beta1.ReferenceGrant{}, query.ReferenceGrantFromField, query.IndexerByObjType); err != nil {
