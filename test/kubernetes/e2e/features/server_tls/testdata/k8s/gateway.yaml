@@ -1,0 +1,45 @@
+kind: Gateway
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: gw
+spec:
+  gatewayClassName: gloo-gateway
+  listeners:
+    - protocol: HTTPS
+      port: 443
+      name: standard
+      hostname: "standard.example.com"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: tls-secret-1
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All
+    - protocol: HTTPS
+      port: 443
+      name: oneway
+      hostname: "oneway.example.com"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: tls-secret-with-ca
+            kind: Secret
+        options:
+          "gateway.gloo.solo.io/ssl/one-way-tls": "true"
+      allowedRoutes:
+        namespaces:
+          from: All
+    - protocol: HTTPS
+      port: 443
+      name: nooneway
+      hostname: "nooneway.example.com"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: tls-secret-with-ca
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All

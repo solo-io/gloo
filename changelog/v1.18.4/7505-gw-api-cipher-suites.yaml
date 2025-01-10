@@ -1,0 +1,9 @@
+
+changelog:
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/solo-projects/issues/7505
+  resolvesIssue: true
+  description: > 
+    Add new SSL options to GatewayTLSConfig to enable configuring additional SSL options
+    which were previously available using the edge API. This includes cipher suites, minimum TLS version,
+    maximum TLS version, client certificate validation, and one way TLS.
