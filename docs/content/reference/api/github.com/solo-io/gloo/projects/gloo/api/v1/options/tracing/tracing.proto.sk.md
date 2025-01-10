@@ -44,6 +44,7 @@ See [here](https://docs.solo.io/gloo-edge/latest/guides/observability/tracing/) 
 "openCensusConfig": .solo.io.envoy.config.trace.v3.OpenCensusConfig
 "environmentVariablesForTags": []tracing.options.gloo.solo.io.TracingTagEnvironmentVariable
 "literalsForTags": []tracing.options.gloo.solo.io.TracingTagLiteral
+"spawnUpstreamSpan": bool
 
 ```
 
@@ -58,6 +59,7 @@ See [here](https://docs.solo.io/gloo-edge/latest/guides/observability/tracing/) 
 | `openCensusConfig` | .solo.io.envoy.config.trace.v3.OpenCensusConfig |  Only one of `openCensusConfig`, `zipkinConfig`, `datadogConfig`, or `openTelemetryConfig` can be set. |
 | `environmentVariablesForTags` | [[]tracing.options.gloo.solo.io.TracingTagEnvironmentVariable](../tracing.proto.sk/#tracingtagenvironmentvariable) | Optional. If specified, Envoy will include the environment variables with the given tag as tracing tags. |
 | `literalsForTags` | [[]tracing.options.gloo.solo.io.TracingTagLiteral](../tracing.proto.sk/#tracingtagliteral) | Optional. If specified, Envoy will include the literals with the given tag as tracing tags. |
+| `spawnUpstreamSpan` | `bool` | Optional Create separate tracing span for each upstream request if true. And if this flag is set to true, the tracing provider will assume that Envoy will be independent hop in the trace chain and may set span type to client or server based on this flag. |
 
 
 
