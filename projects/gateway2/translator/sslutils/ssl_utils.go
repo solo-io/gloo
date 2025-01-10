@@ -82,24 +82,24 @@ func cleanedSslKeyPair(certChain, privateKey, rootCa string) (cleanedChain strin
 type SslExtensionOptionFunc = func(ctx context.Context, in string, out *ssl.SslConfig) error
 
 func ApplyCipherSuites(ctx context.Context, in string, out *ssl.SslConfig) error {
-	if out.Parameters == nil {
+	if out.GetParameters() == nil {
 		out.Parameters = &ssl.SslParameters{}
 	}
 	cipherSuites := strings.Split(in, ",")
-	out.Parameters.CipherSuites = cipherSuites
+	out.GetParameters().CipherSuites = cipherSuites
 	return nil
 }
 
 func ApplyMinimumTlsVersion(ctx context.Context, in string, out *ssl.SslConfig) error {
-	if out.Parameters == nil {
+	if out.GetParameters() == nil {
 		out.Parameters = &ssl.SslParameters{}
 	}
 	if parsed, ok := ssl.SslParameters_ProtocolVersion_value[in]; ok {
-		out.Parameters.MinimumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
-		if out.Parameters.MaximumProtocolVersion != ssl.SslParameters_TLS_AUTO && out.Parameters.MaximumProtocolVersion < out.Parameters.MinimumProtocolVersion {
-			err := eris.Errorf("maximum tls version %s is less than minimum tls version %s", out.Parameters.MaximumProtocolVersion.String(), in)
-			out.Parameters.MaximumProtocolVersion = ssl.SslParameters_TLS_AUTO
-			out.Parameters.MinimumProtocolVersion = ssl.SslParameters_TLS_AUTO
+		out.GetParameters().MinimumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
+		if out.GetParameters().GetMaximumProtocolVersion() != ssl.SslParameters_TLS_AUTO && out.GetParameters().GetMaximumProtocolVersion() < out.GetParameters().GetMinimumProtocolVersion() {
+			err := eris.Errorf("maximum tls version %s is less than minimum tls version %s", out.GetParameters().GetMaximumProtocolVersion().String(), in)
+			out.GetParameters().MaximumProtocolVersion = ssl.SslParameters_TLS_AUTO
+			out.GetParameters().MinimumProtocolVersion = ssl.SslParameters_TLS_AUTO
 			return err
 		}
 	} else {
@@ -109,15 +109,15 @@ func ApplyMinimumTlsVersion(ctx context.Context, in string, out *ssl.SslConfig) 
 }
 
 func ApplyMaximumTlsVersion(ctx context.Context, in string, out *ssl.SslConfig) error {
-	if out.Parameters == nil {
+	if out.GetParameters() == nil {
 		out.Parameters = &ssl.SslParameters{}
 	}
 	if parsed, ok := ssl.SslParameters_ProtocolVersion_value[in]; ok {
-		out.Parameters.MaximumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
-		if out.Parameters.MaximumProtocolVersion != ssl.SslParameters_TLS_AUTO && out.Parameters.MaximumProtocolVersion < out.Parameters.MinimumProtocolVersion {
-			err := eris.Errorf("maximum tls version %s is less than minimum tls version %s", in, out.Parameters.MinimumProtocolVersion.String())
-			out.Parameters.MaximumProtocolVersion = ssl.SslParameters_TLS_AUTO
-			out.Parameters.MinimumProtocolVersion = ssl.SslParameters_TLS_AUTO
+		out.GetParameters().MaximumProtocolVersion = ssl.SslParameters_ProtocolVersion(parsed)
+		if out.GetParameters().GetMaximumProtocolVersion() != ssl.SslParameters_TLS_AUTO && out.GetParameters().GetMaximumProtocolVersion() < out.GetParameters().GetMinimumProtocolVersion() {
+			err := eris.Errorf("maximum tls version %s is less than minimum tls version %s", in, out.GetParameters().GetMinimumProtocolVersion().String())
+			out.GetParameters().MaximumProtocolVersion = ssl.SslParameters_TLS_AUTO
+			out.GetParameters().MinimumProtocolVersion = ssl.SslParameters_TLS_AUTO
 			return err
 		}
 	} else {
