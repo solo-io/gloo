@@ -23,7 +23,11 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/prototime"
 )
 
-const JWTFilterName = "envoy.filters.http.jwt_authn"
+const (
+	JWTFilterName                  = "envoy.filters.http.jwt_authn"
+	PortalMetadataFilterName       = "io.solo.gloo.portal"
+	PortalCustomMetadataFilterName = "io.solo.gloo.portal.custom_metadata"
+)
 
 var (
 	DefaultTimeout = prototime.DurationToProto(200 * time.Millisecond)
@@ -228,7 +232,8 @@ func GenerateEnvoyConfigForFilter(settings *extauthv1.Settings, upstreams v1.Ups
 	}
 
 	cfg := &envoyauth.ExtAuthz{
-		MetadataContextNamespaces: []string{JWTFilterName},
+		MetadataContextNamespaces:      []string{JWTFilterName},
+		RouteMetadataContextNamespaces: []string{PortalMetadataFilterName, PortalCustomMetadataFilterName},
 	}
 
 	httpService := settings.GetHttpService()
