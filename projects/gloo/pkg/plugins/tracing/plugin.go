@@ -19,6 +19,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var (
@@ -86,6 +87,7 @@ func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parent *v1.Liste
 		trCfg.RandomSampling = envoySimplePercent(oneHundredPercent)
 		trCfg.OverallSampling = envoySimplePercent(oneHundredPercent)
 	}
+	trCfg.SpawnUpstreamSpan = wrapperspb.Bool(tracingSettings.GetSpawnUpstreamSpan())
 	out.Tracing = trCfg
 	return nil
 }

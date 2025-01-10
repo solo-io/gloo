@@ -1,0 +1,10 @@
+
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/6748
+  resolvesIssue: true
+  description: > 
+    Expose spawn_upstream_span on the tracing API. This setting tells
+    envoy to spawn a new span for each upstream request.
+
+

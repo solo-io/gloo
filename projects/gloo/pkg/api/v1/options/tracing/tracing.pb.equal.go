@@ -117,6 +117,10 @@ func (m *ListenerTracingSettings) Equal(that interface{}) bool {
 
 	}
 
+	if m.GetSpawnUpstreamSpan() != target.GetSpawnUpstreamSpan() {
+		return false
+	}
+
 	switch m.ProviderConfig.(type) {
 
 	case *ListenerTracingSettings_ZipkinConfig:

@@ -1137,6 +1137,8 @@ spec:
                                   nullable: true
                                   type: string
                                 type: array
+                              spawnUpstreamSpan:
+                                type: boolean
                               tracePercentages:
                                 properties:
                                   clientSamplePercentage:
