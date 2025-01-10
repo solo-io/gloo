@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/port_routing"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/route_delegation"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/route_options"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/server_tls"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/services/httproute"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/services/tcproute"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/upstreams"
@@ -37,6 +38,7 @@ func KubeGatewaySuiteRunner() e2e.SuiteRunner {
 	kubeGatewaySuiteRunner.Register("DirectResponse", directresponse.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("CRDCategories", crd_categories.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("Metrics", metrics.NewTestingSuite)
+	kubeGatewaySuiteRunner.Register("ServerTls", server_tls.NewK8sTestingSuite)
 
 	return kubeGatewaySuiteRunner
 }
