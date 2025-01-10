@@ -14,15 +14,14 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
-	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 )
 
-var _ e2e.NewSuiteFunc = NewTestingSuite
+var _ e2e.NewSuiteFunc = NewEdgeTestingSuite
 
-// serverTlsTestingSuite is the entire Suite of tests for gloo gateway proxy serving terminated TLS.
+// edgeServerTlsTestingSuite is the entire Suite of tests for gloo gateway proxy serving terminated TLS.
 // The assertions in these tests assume that the warnMissingTlsSecret setting is "false"
-type serverTlsTestingSuite struct {
+type edgeServerTlsTestingSuite struct {
 	suite.Suite
 
 	ctx context.Context
@@ -38,15 +37,15 @@ type serverTlsTestingSuite struct {
 	vs1, vs2, vsWithOneWay, vsWithoutOneWay []byte
 }
 
-func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.TestingSuite {
-	return &serverTlsTestingSuite{
+func NewEdgeTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.TestingSuite {
+	return &edgeServerTlsTestingSuite{
 		ctx:              ctx,
 		testInstallation: testInst,
 		ns:               testInst.Metadata.InstallNamespace,
 	}
 }
 
-func (s *serverTlsTestingSuite) SetupSuite() {
+func (s *edgeServerTlsTestingSuite) SetupSuite() {
 	var err error
 	// These functions each substitute our namespace for placeholders in the given manifest
 	// file via os.ExpandEnv in order to place our referenced resources in our NS.
@@ -70,14 +69,14 @@ func (s *serverTlsTestingSuite) SetupSuite() {
 
 }
 
-func (s *serverTlsTestingSuite) TearDownSuite() {
+func (s *edgeServerTlsTestingSuite) TearDownSuite() {
 	err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.CurlPodManifest)
 	s.NoError(err, "can delete Curl setup manifest")
 }
 
 // TestOneVirtualService validates the happy path that a VirtualService referencing an existent TLS secret
 // terminates TLS and responds appropriately.
-func (s *serverTlsTestingSuite) TestOneVirtualService() {
+func (s *edgeServerTlsTestingSuite) TestOneVirtualService() {
 	vs1 := vs1(s.ns)
 	s.T().Cleanup(func() {
 		// ordering here matters if strict validation enabled
@@ -105,7 +104,7 @@ func (s *serverTlsTestingSuite) TestOneVirtualService() {
 
 // TestTwoVirtualServices validates the happy path that two VirtualServices referencing existent TLS secrets
 // terminate TLS and respond appropriately.
-func (s *serverTlsTestingSuite) TestTwoVirtualServices() {
+func (s *edgeServerTlsTestingSuite) TestTwoVirtualServices() {
 	vs1 := vs1(s.ns)
 	vs2 := vs2(s.ns)
 	s.T().Cleanup(func() {
@@ -147,7 +146,7 @@ func (s *serverTlsTestingSuite) TestTwoVirtualServices() {
 // to test this properly, we require persistProxySpec to be off, validating that both VS are working correctly,
 // then we delete the secret for one of the VS and restart the Gloo pod. This ensures that we are still
 // serving on the other VS.
-func (s *serverTlsTestingSuite) TestTwoVirtualServicesOneMissingTlsSecret() {
+func (s *edgeServerTlsTestingSuite) TestTwoVirtualServicesOneMissingTlsSecret() {
 	vs1 := vs1(s.ns)
 	vs2 := vs2(s.ns)
 	s.T().Cleanup(func() {
@@ -207,7 +206,7 @@ func (s *serverTlsTestingSuite) TestTwoVirtualServicesOneMissingTlsSecret() {
 // TestOneWayServerTlsFailsWithoutOneWayTls validates that one-way server TLS traffic fails when CA data
 // is provided in the TLS secret. This is because the Gloo translation loop assumes that mTLS is desired
 // if the secret contains a CA cert.
-func (s *serverTlsTestingSuite) TestOneWayServerTlsFailsWithoutOneWayTls() {
+func (s *edgeServerTlsTestingSuite) TestOneWayServerTlsFailsWithoutOneWayTls() {
 	vs := vsWithoutOneWay(s.ns)
 	s.T().Cleanup(func() {
 		// ordering here matters if strict validation enabled
@@ -235,7 +234,7 @@ func (s *serverTlsTestingSuite) TestOneWayServerTlsFailsWithoutOneWayTls() {
 // TestOneWayServerTlsWorksWithOneWayTls validates that one-way server TLS traffic succeeds when CA data
 // is provided in the TLS secret IF oneWayTls is set on the sslConfig. This is because the Gloo translation
 // loop assumes that mTLS is desired if the secret contains a CA cert unless oneWayTls is set.
-func (s *serverTlsTestingSuite) TestOneWayServerTlsWorksWithOneWayTls() {
+func (s *edgeServerTlsTestingSuite) TestOneWayServerTlsWorksWithOneWayTls() {
 	vs := vsWithOneWay(s.ns)
 	s.T().Cleanup(func() {
 		// ordering here matters if strict validation enabled
@@ -259,19 +258,7 @@ func (s *serverTlsTestingSuite) TestOneWayServerTlsWorksWithOneWayTls() {
 	s.assertEventualResponse(vs.GetName(), expectedHealthyResponseWithOneWay)
 }
 
-func curlOptions(ns, hostHeaderValue string) []curl.Option {
-	return []curl.Option{
-		curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{Name: defaults.GatewayProxyName, Namespace: ns})),
-		// The host header must match the domain in the VirtualService
-		curl.WithHostHeader(hostHeaderValue),
-		curl.WithPort(443),
-		curl.IgnoreServerCert(),
-		curl.WithScheme("https"),
-		curl.WithSni(hostHeaderValue),
-	}
-}
-
-func (s *serverTlsTestingSuite) assertEventualResponse(hostHeaderValue string, matcher *matchers.HttpResponse) {
+func (s *edgeServerTlsTestingSuite) assertEventualResponse(hostHeaderValue string, matcher *matchers.HttpResponse) {
 
 	// Make sure our proxy pod is running
 	listOpts := metav1.ListOptions{
@@ -283,11 +270,11 @@ func (s *serverTlsTestingSuite) assertEventualResponse(hostHeaderValue string, m
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
-		curlOptions(s.ns, hostHeaderValue),
+		curlOptions(defaults.GatewayProxyName, s.ns, hostHeaderValue),
 		matcher)
 }
 
-func (s *serverTlsTestingSuite) assertEventuallyConsistentResponse(hostHeaderValue string, matcher *matchers.HttpResponse, timeouts ...time.Duration) {
+func (s *edgeServerTlsTestingSuite) assertEventuallyConsistentResponse(hostHeaderValue string, matcher *matchers.HttpResponse, timeouts ...time.Duration) {
 
 	// Make sure our proxy pod is running
 	listOpts := metav1.ListOptions{
@@ -299,12 +286,12 @@ func (s *serverTlsTestingSuite) assertEventuallyConsistentResponse(hostHeaderVal
 	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
-		curlOptions(s.ns, hostHeaderValue),
+		curlOptions(defaults.GatewayProxyName, s.ns, hostHeaderValue),
 		matcher,
 		timeouts...)
 }
 
-func (s *serverTlsTestingSuite) assertEventualError(hostHeaderValue string, code int) {
+func (s *edgeServerTlsTestingSuite) assertEventualError(hostHeaderValue string, code int) {
 
 	// Make sure our proxy pod is running
 	listOpts := metav1.ListOptions{
@@ -316,11 +303,11 @@ func (s *serverTlsTestingSuite) assertEventualError(hostHeaderValue string, code
 	s.testInstallation.Assertions.AssertEventualCurlError(
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
-		curlOptions(s.ns, hostHeaderValue),
+		curlOptions(defaults.GatewayProxyName, s.ns, hostHeaderValue),
 		code)
 }
 
-func (s *serverTlsTestingSuite) eventuallyInSnapshot(gvk schema.GroupVersionKind, meta metav1.ObjectMeta) {
+func (s *edgeServerTlsTestingSuite) eventuallyInSnapshot(gvk schema.GroupVersionKind, meta metav1.ObjectMeta) {
 	s.testInstallation.Assertions.AssertGlooAdminApi(
 		s.ctx,
 		metav1.ObjectMeta{
@@ -330,7 +317,7 @@ func (s *serverTlsTestingSuite) eventuallyInSnapshot(gvk schema.GroupVersionKind
 		s.testInstallation.Assertions.InputSnapshotContainsElement(gvk, meta),
 	)
 }
-func (s *serverTlsTestingSuite) eventuallyNotInSnapshot(gvk schema.GroupVersionKind, meta metav1.ObjectMeta) {
+func (s *edgeServerTlsTestingSuite) eventuallyNotInSnapshot(gvk schema.GroupVersionKind, meta metav1.ObjectMeta) {
 	s.testInstallation.Assertions.AssertGlooAdminApi(
 		s.ctx,
 		metav1.ObjectMeta{
