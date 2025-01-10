@@ -44,7 +44,7 @@ message ExtAuthConfig {
         // The client secret of the ExtAuthService app that is registered with MS Entra to communicate with the MS Graph API.
         string client_secret = 3 [(extproto.sensitive) = true];
 
-        // Redis connection details to cache MS Entera claims.
+        // Redis connection details to cache MS Entra claims.
         // This way, you avoid performance issues of accessing the Microsoft Graph API too many times.
         // Note that this setting does NOT turn on Redis caching for the user session.
         // To turn on Redis user session caching, use the `userSessionConfig` field.

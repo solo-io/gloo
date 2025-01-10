@@ -43,8 +43,8 @@ spec:
 
 Once that is saved, you're all set. Traffic on the http gateway will call the gzip filter.
 
-More information about the Gzip filter can be found in the [relevant Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/gzip_filter). If data is not being compressed, you may want to check that all the necessary conditions for the Envoy filter are met.
-See the [How it works](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/gzip_filter#how-it-works)
+More information about the Gzip filter can be found in the [relevant Envoy docs](https://www.envoyproxy.io/docs/envoy/v1.27.6/api-v3/extensions/filters/http/gzip/v3/gzip.proto.html#enum-extensions-filters-http-gzip-v3-gzip-compressionlevel-enum). If data is not being compressed, you may want to check that all the necessary conditions for the Envoy filter are met.
+See the [How it works](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/compressor_filter#how-it-works)
 section for information on when compression will be skipped.
 
 ## Example

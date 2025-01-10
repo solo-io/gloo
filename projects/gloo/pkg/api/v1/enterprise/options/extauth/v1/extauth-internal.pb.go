@@ -533,7 +533,7 @@ type ExtAuthConfig_Azure struct {
 	TenantId string `protobuf:"bytes,2,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
 	// The client secret of the ExtAuthService app that is registered with MS Entra to communicate with the MS Graph API.
 	ClientSecret string `protobuf:"bytes,3,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
-	// Redis connection details to cache MS Entera claims.
+	// Redis connection details to cache MS Entra claims.
 	// This way, you avoid performance issues of accessing the Microsoft Graph API too many times.
 	// Note that this setting does NOT turn on Redis caching for the user session.
 	// To turn on Redis user session caching, use the `userSessionConfig` field.
