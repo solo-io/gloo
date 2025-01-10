@@ -773,7 +773,7 @@ var _ = DescribeTable("mergeOptionsForRoute",
 	Entry("override dst options with annotation: full override",
 		&gwv1.HTTPRoute{
 			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{policyOverrideAnnotation: "*"},
+				Annotations: map[string]string{wellknown.PolicyOverrideAnnotation: "*"},
 			},
 		},
 		&v1.RouteOptions{
@@ -804,7 +804,7 @@ var _ = DescribeTable("mergeOptionsForRoute",
 	Entry("override dst options with annotation: partial override",
 		&gwv1.HTTPRoute{
 			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{policyOverrideAnnotation: "*"},
+				Annotations: map[string]string{wellknown.PolicyOverrideAnnotation: "*"},
 			},
 		},
 		&v1.RouteOptions{
@@ -837,7 +837,7 @@ var _ = DescribeTable("mergeOptionsForRoute",
 	Entry("override dst options with annotation: no override",
 		&gwv1.HTTPRoute{
 			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{policyOverrideAnnotation: "*"},
+				Annotations: map[string]string{wellknown.PolicyOverrideAnnotation: "*"},
 			},
 		},
 		&v1.RouteOptions{
@@ -860,7 +860,7 @@ var _ = DescribeTable("mergeOptionsForRoute",
 	Entry("override dst options with annotation: specific fields",
 		&gwv1.HTTPRoute{
 			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{policyOverrideAnnotation: "faults,timeout"},
+				Annotations: map[string]string{wellknown.PolicyOverrideAnnotation: "faults,timeout"},
 			},
 		},
 		&v1.RouteOptions{
@@ -895,7 +895,7 @@ var _ = DescribeTable("mergeOptionsForRoute",
 	Entry("override and augment dst options with annotation: specific fields",
 		&gwv1.HTTPRoute{
 			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{policyOverrideAnnotation: "faults,timeout"},
+				Annotations: map[string]string{wellknown.PolicyOverrideAnnotation: "faults,timeout"},
 			},
 		},
 		&v1.RouteOptions{

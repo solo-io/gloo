@@ -27,6 +27,18 @@ func RefIsHTTPRoute(ref gwv1.BackendObjectReference) bool {
 	return (ref.Kind != nil && *ref.Kind == wellknown.HTTPRouteKind) && (ref.Group != nil && *ref.Group == gwv1.GroupName)
 }
 
+// RefIsHTTPRouteDelegationLabelSelector checks if the BackendObjectReference is an HTTPRoute delegation label selector
+// Parent routes may delegate to child routes using an HTTPRoute backend reference.
+func RefIsHTTPRouteDelegationLabelSelector(ref gwv1.BackendObjectReference) bool {
+	return ref.Group != nil && ref.Kind != nil && (string(*ref.Group)+"/"+string(*ref.Kind)) == wellknown.RouteDelegationLabelSelector
+}
+
+// RefIsDelegatedHTTPRoute checks if the BackendObjectReference is a delegated HTTPRoute
+// selected by an HTTPRoute GVK reference or a delegation label selector.
+func RefIsDelegatedHTTPRoute(ref gwv1.BackendObjectReference) bool {
+	return RefIsHTTPRoute(ref) || RefIsHTTPRouteDelegationLabelSelector(ref)
+}
+
 // ToString returns a string representation of the BackendObjectReference
 func ToString(ref gwv1.BackendObjectReference) string {
 	var group, kind, namespace string
