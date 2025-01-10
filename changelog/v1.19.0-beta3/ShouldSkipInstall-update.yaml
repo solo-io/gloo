@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7432
+    resolvesIssue: false
+    description: >-
+      Export IsGatewayInstalled for use in other packages
