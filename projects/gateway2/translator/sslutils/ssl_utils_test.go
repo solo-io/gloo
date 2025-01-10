@@ -68,7 +68,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 			},
 		},
 		{
-			name: "one_way_tls_false_incorrect_casing",
+			name: "invalid_one_way_tls",
 			out:  &ssl.SslConfig{},
 			in: &gwv1.GatewayTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
