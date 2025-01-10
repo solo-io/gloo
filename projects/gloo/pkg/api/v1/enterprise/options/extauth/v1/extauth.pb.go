@@ -259,7 +259,7 @@ type AuthConfig struct {
 	// +kubebuilder:validation:MinItems=1
 	Configs []*AuthConfig_Config `protobuf:"bytes,3,rep,name=configs,proto3" json:"configs,omitempty"`
 	// How to handle processing of named configs within an auth config chain.
-	// An example config might be: `( basic1 || basic2 || (oidc1 && !oidc2) )`
+	// An example config might be: `( basic1 \|\| basic2 \|\| (oidc1 && !oidc2) )`
 	// The boolean expression is evaluated left to right but honors parenthesis and short-circuiting.
 	BooleanExpr *wrapperspb.StringValue `protobuf:"bytes,10,opt,name=boolean_expr,json=booleanExpr,proto3" json:"boolean_expr,omitempty"`
 	// How the service should handle a redirect response from an OIDC issuer. In the default false mode,
@@ -2142,7 +2142,7 @@ type Azure struct {
 	// The client secret of the ExtAuthService app that is registered with MS Entra to communicate with the MS Graph API.
 	// The client secret data must be placed in a k8s secret under a key called 'client-secret'.
 	ClientSecret *core.ResourceRef `protobuf:"bytes,3,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
-	// Redis connection details to cache MS Entera claims.
+	// Redis connection details to cache MS Entra claims.
 	// This way, you avoid performance issues of accessing the Microsoft Graph API too many times.
 	// Note that this setting does NOT turn on Redis caching for the user session.
 	// To turn on Redis user session caching, use the `userSessionConfig` field.
