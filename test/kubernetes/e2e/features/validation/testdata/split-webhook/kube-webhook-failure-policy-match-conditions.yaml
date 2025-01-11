@@ -1,0 +1,8 @@
+gateway:
+  validation:
+    kubeCoreFailurePolicy: Fail # For "strict" validation mode, fail the validation if webhook server is not available
+    kubeCoreMatchConditions:
+      - name: skip-secrets
+        expression: '!(request.resource.group == "" && request.resource.resource == "secrets")' # Match non-secret resources.
+    webhook:
+      skipDeleteValidationResources: []

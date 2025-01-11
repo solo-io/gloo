@@ -1,0 +1,9 @@
+changelog:
+- type: HELM
+  issueLink: https://github.com/k8sgateway/k8sgateway/issues/9828
+  resolvesIssue: false
+  description: >-
+    Adds support for match conditions (defined via Common Expression Language (CEL)) to the validating webhook to allow fine grained request filtering. They can be set via two new helm values :
+    - `gateway.validation.matchConditions` on the Gloo webhook
+    - `gateway.validation.kubeCoreMatchConditions` on the Kube webhook
+    Note that match labels are supported from Kubernetes v1.30+ but need to be enabled in Kubernetes v1.27 to v1.30 via the AdmissionWebhookMatchConditions feature gate.

@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"golang.org/x/mod/semver"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/stretchr/testify/suite"
@@ -62,6 +63,8 @@ func (s *testingSuite) SetupSuite() {
 }
 
 func (s *testingSuite) BeforeTest(suiteName, testName string) {
+	s.skipUnsupportedTests(testName)
+
 	// Apply the upgrade values file
 	var err error
 	s.rollback, err = s.testHelper.UpgradeGloo(s.ctx, 600*time.Second, helper.WithExtraArgs([]string{
@@ -99,6 +102,8 @@ func (s *testingSuite) BeforeTest(suiteName, testName string) {
 }
 
 func (s *testingSuite) AfterTest(suiteName, testName string) {
+	s.skipUnsupportedTests(testName)
+
 	// Scale gloo deployment back to original replica count
 	err := s.testInstallation.Actions.Kubectl().Scale(s.ctx, s.testInstallation.Metadata.InstallNamespace, "deployment/gloo", uint(s.glooReplicas))
 	s.Assert().NoError(err, "can scale gloo deployment back to %d", s.glooReplicas)
@@ -161,6 +166,14 @@ func (s *testingSuite) TestKubeFailurePolicyIgnore() {
 	s.testDeleteResource(validation.Secret, true)
 }
 
+func (s *testingSuite) TestGlooFailurePolicyMatchConditions() {
+	s.testDeleteResource(validation.BasicUpstream, true)
+}
+
+func (s *testingSuite) TestKubeFailurePolicyMatchConditions() {
+	s.testDeleteResource(validation.Secret, true)
+}
+
 func (s *testingSuite) testDeleteResource(fileName string, shouldDelete bool) {
 	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, fileName, "-n", s.testInstallation.Metadata.InstallNamespace)
 
@@ -172,14 +185,29 @@ func (s *testingSuite) testDeleteResource(fileName string, shouldDelete bool) {
 		s.Assert().Error(err)
 		s.Assert().Contains(output, "Internal error occurred: failed calling webhook")
 	}
+}
 
+func (s *testingSuite) skipUnsupportedTests(testName string) {
+	// Skip the MatchCondition tests as they are supported only in k8s v1.30+
+	if strings.Contains(testName, "MatchConditions") {
+		ver, _ := s.testInstallation.Actions.Kubectl().Version(s.ctx)
+		serverVersion := ver.ServerVersion.GitVersion
+		// This handles scenarios where the server version is invalid or the prior command returns an error
+		// semver.Compare("v1.30.0", "") = 1
+		// semver.Compare("v1.30.0", "v1.28.8") = 1
+		if semver.Compare("v1.30.0", serverVersion) == 1 {
+			s.T().Skip(fmt.Sprintf("Skipping %s as the k8s version %s is below the required version (v1.30.0+)", testName, serverVersion))
+		}
+	}
 }
 
 var upgradeValues = map[string]string{
-	"TestGlooFailurePolicyFail":   validation.GlooFailurePolicyFailValues,
-	"TestKubeFailurePolicyFail":   validation.KubeFailurePolicyFailValues,
-	"TestGlooFailurePolicyIgnore": validation.GlooFailurePolicyIgnoreValues,
-	"TestKubeFailurePolicyIgnore": validation.KubeFailurePolicyIgnoreValues,
+	"TestGlooFailurePolicyFail":            validation.GlooFailurePolicyFailValues,
+	"TestKubeFailurePolicyFail":            validation.KubeFailurePolicyFailValues,
+	"TestGlooFailurePolicyIgnore":          validation.GlooFailurePolicyIgnoreValues,
+	"TestKubeFailurePolicyIgnore":          validation.KubeFailurePolicyIgnoreValues,
+	"TestGlooFailurePolicyMatchConditions": validation.GlooFailurePolicyMatchConditions,
+	"TestKubeFailurePolicyMatchConditions": validation.KubeFailurePolicyMatchConditions,
 }
 
 // These tests create one resource and try to delete it, so don't need lists of resources
@@ -223,9 +251,11 @@ var (
 	}
 
 	manifests = map[string]*testManifest{
-		"TestGlooFailurePolicyFail":   upstreamManifest,
-		"TestGlooFailurePolicyIgnore": upstreamManifest,
-		"TestKubeFailurePolicyFail":   secretManifest,
-		"TestKubeFailurePolicyIgnore": secretManifest,
+		"TestGlooFailurePolicyFail":            upstreamManifest,
+		"TestGlooFailurePolicyIgnore":          upstreamManifest,
+		"TestGlooFailurePolicyMatchConditions": upstreamManifest,
+		"TestKubeFailurePolicyFail":            secretManifest,
+		"TestKubeFailurePolicyIgnore":          secretManifest,
+		"TestKubeFailurePolicyMatchConditions": secretManifest,
 	}
 )
