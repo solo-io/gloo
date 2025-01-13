@@ -3,6 +3,7 @@ package transformation
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/go-utils/contextutils"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
@@ -327,6 +328,7 @@ func (p *Plugin) ConvertTransformation(
 	}
 
 	stagedEscapeCharacters := stagedTransformations.GetEscapeCharacters()
+	contextutils.LoggerFrom(ctx).Infof("staged early transformation: %v", stagedTransformations.GetEarly())
 	if early := stagedTransformations.GetEarly(); early != nil {
 		p.RequireEarlyTransformation = true
 		transformations, err := p.getTransformations(ctx, EarlyStageNumber, early, stagedEscapeCharacters)
@@ -669,6 +671,9 @@ func (p *Plugin) getTransformations(
 	}
 
 	for _, t := range transformations.GetRequestTransforms() {
+		if stage == EarlyStageNumber {
+			contextutils.LoggerFrom(ctx).Infof("gloo staged early transformation: %v", *t.RequestTransformation.GetTransformationTemplate())
+		}
 		requestTransform, err := p.TranslateTransformation(t.GetRequestTransformation(), p.escapeCharacters, stagedEscapeCharacters)
 		if err != nil {
 			return nil, err
