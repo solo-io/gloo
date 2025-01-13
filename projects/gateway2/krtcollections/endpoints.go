@@ -13,10 +13,10 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	ggv2utils "github.com/solo-io/gloo/projects/gateway2/utils"
-	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	glookubev1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/istio_automtls"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/go-utils/contextutils"
 	"istio.io/istio/pkg/kube"
@@ -336,7 +336,7 @@ func CreateLBEndpoint(address string, port uint32, podLabels map[string]string, 
 	metadata := &envoy_config_core_v3.Metadata{
 		FilterMetadata: map[string]*structpb.Struct{},
 	}
-	metadata = addIstioAutomtlsMetadata(metadata, podLabels, enableAutoMtls)
+	metadata = istio_automtls.AddIstioAutomtlsMetadata(metadata, podLabels, enableAutoMtls)
 	// Don't add the annotations to the metadata - it's not documented so it's not coming
 	// metadata = addAnnotations(metadata, addr.GetMetadata().GetAnnotations())
 
@@ -363,24 +363,6 @@ func CreateLBEndpoint(address string, port uint32, podLabels map[string]string, 
 			},
 		},
 	}
-}
-
-func addIstioAutomtlsMetadata(metadata *envoy_config_core_v3.Metadata, labels map[string]string, enableAutoMtls bool) *envoy_config_core_v3.Metadata {
-	const EnvoyTransportSocketMatch = "envoy.transport_socket_match"
-	if enableAutoMtls {
-		if _, ok := labels[constants.IstioTlsModeLabel]; ok {
-			metadata.GetFilterMetadata()[EnvoyTransportSocketMatch] = &structpb.Struct{
-				Fields: map[string]*structpb.Value{
-					constants.TLSModeLabelShortname: {
-						Kind: &structpb.Value_StringValue{
-							StringValue: constants.IstioMutualTLSModeLabel,
-						},
-					},
-				},
-			}
-		}
-	}
-	return metadata
 }
 
 func findPortForService(kctx krt.HandlerContext, services krt.Collection[*corev1.Service], spec *kubeplugin.UpstreamSpec) (*corev1.ServicePort, bool) {
