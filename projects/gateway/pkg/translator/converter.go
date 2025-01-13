@@ -1,7 +1,9 @@
 package translator
 
 import (
+	"context"
 	"fmt"
+	"github.com/solo-io/go-utils/contextutils"
 	"strings"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
@@ -524,7 +526,9 @@ func validateAndMergeParentRoute(child *gatewayv1.Route, parent *routeInfo) (*ga
 
 	// Merge options from parent routes
 	// If an option is defined on a parent route, it will override the child route's option
+	contextutils.LoggerFrom(context.Background()).Infof("child staged early transformations pre merge: %v", child.GetOptions().GetStagedTransformations().GetEarly())
 	child.Options, _ = utils.ShallowMergeRouteOptions(child.GetOptions(), parent.options)
+	contextutils.LoggerFrom(context.Background()).Infof("child staged early transformations post merge: %v", child.GetOptions().GetStagedTransformations().GetEarly())
 
 	return child, nil
 }
