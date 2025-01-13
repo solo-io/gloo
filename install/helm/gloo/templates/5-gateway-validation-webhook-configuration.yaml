@@ -61,6 +61,10 @@ specific resources, we will manage the resources that the webhook receives via t
 {{- if .Values.gateway.validation.webhook.timeoutSeconds }}
   timeoutSeconds: {{ .Values.gateway.validation.webhook.timeoutSeconds }}
 {{- end }}
+{{- with .Values.gateway.validation.matchConditions }}
+  matchConditions:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
   admissionReviewVersions:
     - v1beta1 # v1beta1 still live in 1.22 https://github.com/kubernetes/api/blob/release-1.22/admission/v1beta1/types.go#L33
 {{- if .Values.gateway.validation.failurePolicy }}
@@ -68,7 +72,7 @@ specific resources, we will manage the resources that the webhook receives via t
 {{- end }} {{- /* if .Values.gateway.validation.failurePolicy */}}
 
 {{/* Webhook for core resources - only render if we need to */}}
-{{- if and 
+{{- if and
   (not (has "*" .Values.gateway.validation.webhook.skipDeleteValidationResources))
   (or (not (has "secrets" .Values.gateway.validation.webhook.skipDeleteValidationResources))
        (not (has "namespaces" .Values.gateway.validation.webhook.skipDeleteValidationResources)))
@@ -99,6 +103,10 @@ specific resources, we will manage the resources that the webhook receives via t
   matchPolicy: Exact
 {{- if .Values.gateway.validation.webhook.timeoutSeconds }}
   timeoutSeconds: {{ .Values.gateway.validation.webhook.timeoutSeconds }}
+{{- end }}
+{{- with .Values.gateway.validation.kubeCoreMatchConditions }}
+  matchConditions:
+    {{- toYaml . | nindent 4 }}
 {{- end }}
   admissionReviewVersions:
     - v1beta1 # v1beta1 still live in 1.22 https://github.com/kubernetes/api/blob/release-1.22/admission/v1beta1/types.go#L33
