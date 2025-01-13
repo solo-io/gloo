@@ -1,0 +1,9 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    issueLink: https://github.com/solo-io/solo-projects/issues/7635
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo
+    dependencyTag: v1.31.5-patch2
+    resolvesIssue: false
+    description: >-
+      Fixes an issue where a header is a source for an extractor, is modified and then that extractor is used later.
