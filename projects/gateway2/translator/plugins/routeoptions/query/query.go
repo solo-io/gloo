@@ -71,7 +71,9 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 	}
 	for _, opt := range filterAttachments {
 		optionUsed := false
+		contextutils.LoggerFrom(context.Background()).Infof("route staged early transformations pre merge: %v", merged.Spec.GetOptions().GetStagedTransformations().GetEarly())
 		merged.Spec.Options, optionUsed = glooutils.ShallowMergeRouteOptions(merged.Spec.GetOptions(), opt.Spec.GetOptions())
+		contextutils.LoggerFrom(context.Background()).Infof("route staged early transformations post merge: %v", merged.Spec.GetOptions().GetStagedTransformations().GetEarly())
 		if optionUsed {
 			sources = append(sources, routeOptionToSourceRef(opt))
 		}
