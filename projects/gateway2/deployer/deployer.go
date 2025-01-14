@@ -124,6 +124,9 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 				"enabled": false,
 			},
 			"image": map[string]any{},
+			"glooMtls": map[string]any{
+				"enabled": false,
+			},
 		},
 	}
 
@@ -256,6 +259,7 @@ func (d *Deployer) getGatewayClassFromGateway(ctx context.Context, gw *api.Gatew
 }
 
 func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameters) (*helmConfig, error) {
+	mtlsEnabled := true
 	// construct the default values
 	vals := &helmConfig{
 		Gateway: &helmGateway{
@@ -268,6 +272,9 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 				// This is the socket address that the Proxy will connect to on startup, to receive xds updates
 				Host: &d.inputs.ControlPlane.XdsHost,
 				Port: &d.inputs.ControlPlane.XdsPort,
+			},
+			GlooMtls: &mtls{
+				Enabled: &mtlsEnabled,
 			},
 		},
 	}
