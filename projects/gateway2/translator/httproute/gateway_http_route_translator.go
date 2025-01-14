@@ -186,20 +186,26 @@ func translateGatewayHTTPRouteRule(
 
 		// Apply the plugins for this route
 		for _, plugin := range pluginRegistry.GetRoutePlugins() {
+			contextutils.LoggerFrom(ctx).Infof("pre apply route plugin type: %T output route early transform: %v", plugin, outputRoute.GetOptions().GetStagedTransformations().GetEarly())
 			err := plugin.ApplyRoutePlugin(ctx, rtCtx, outputRoute)
 			if err != nil {
 				contextutils.LoggerFrom(ctx).Errorf("error in RoutePlugin: %v", err)
 			}
 
+			contextutils.LoggerFrom(ctx).Infof("post apply route plugin type: %T output route early transform: %v", plugin, outputRoute.GetOptions().GetStagedTransformations().GetEarly())
+
 			// If this parent route has delegatee routes, override any applied policies
 			// that are on the child with the parent's policies.
 			// When a plugin is invoked on a route, it must override the existing route.
 			for _, child := range delegatedRoutes {
+				contextutils.LoggerFrom(ctx).Infof("pre child apply route plugin type: %T output route early transform: %v", plugin, child.GetOptions().GetStagedTransformations().GetEarly())
 				err := plugin.ApplyRoutePlugin(ctx, rtCtx, child)
 				if err != nil {
 					contextutils.LoggerFrom(ctx).Errorf("error applying RoutePlugin to child route %s: %v", child.GetName(), err)
 				}
+				contextutils.LoggerFrom(ctx).Infof("post child apply route plugin type: %T output route early transform: %v", plugin, child.GetOptions().GetStagedTransformations().GetEarly())
 			}
+
 		}
 		// Add the delegatee output routes to the final output list
 		*outputs = append(*outputs, delegatedRoutes...)
