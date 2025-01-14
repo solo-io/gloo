@@ -137,7 +137,7 @@ func (h *httpRouteConfigurationTranslator) computeVirtualHost(
 	}
 	var envoyRoutes []*envoy_config_route_v3.Route
 	for i, route := range virtualHost.GetRoutes() {
-
+		contextutils.LoggerFrom(context.Background()).Infof("in route: %v early transformations: %v", route.GetName(), route.GetOptions().GetStagedTransformations().GetEarly())
 		routeParams := plugins.RouteParams{
 			VirtualHostParams: params,
 			VirtualHost:       virtualHost,
@@ -280,7 +280,6 @@ func (h *httpRouteConfigurationTranslator) setAction(
 	in *v1.Route,
 	out *envoy_config_route_v3.Route,
 ) {
-	contextutils.LoggerFrom(params.Ctx).Debugf("processing route action type %T, in route early transformation: %v", in.GetAction(), in.GetOptions().GetStagedTransformations().GetEarly())
 	switch action := in.GetAction().(type) {
 	case *v1.Route_RouteAction:
 		if err := ValidateRouteDestinations(params.Snapshot, action.RouteAction); err != nil {

@@ -121,6 +121,7 @@ func (p *Plugin) ProcessVirtualHost(
 	in *v1.VirtualHost,
 	out *envoy_config_route_v3.VirtualHost,
 ) error {
+	contextutils.LoggerFrom(context.Background()).Info("processing virtual host")
 	envoyTransformation, err := p.ConvertTransformation(
 		params.Ctx,
 		in.GetOptions().GetTransformations(),
@@ -144,6 +145,7 @@ func (p *Plugin) ProcessVirtualHost(
 }
 
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
+	contextutils.LoggerFrom(context.Background()).Info("processing route")
 	envoyTransformation, err := p.ConvertTransformation(
 		params.Ctx,
 		in.GetOptions().GetTransformations(),
@@ -171,6 +173,7 @@ func (p *Plugin) ProcessWeightedDestination(
 	in *v1.WeightedDestination,
 	out *envoy_config_route_v3.WeightedCluster_ClusterWeight,
 ) error {
+	contextutils.LoggerFrom(context.Background()).Info("processing weighted destination")
 	envoyTransformation, err := p.ConvertTransformation(
 		params.Ctx,
 		in.GetOptions().GetTransformations(),
