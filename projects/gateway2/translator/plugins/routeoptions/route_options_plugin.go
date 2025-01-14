@@ -103,6 +103,7 @@ func (p *plugin) ApplyRoutePlugin(
 		return nil
 	}
 
+	contextutils.LoggerFrom(ctx).Infof("route option plugin pre merge output route early transform: %v", outputRoute.GetOptions().GetStagedTransformations().GetEarly())
 	merged, OptionsMergeResult := mergeOptionsForRoute(ctx, routeCtx.HTTPRoute, routeOptions, outputRoute.GetOptions())
 	if OptionsMergeResult == glooutils.OptionsMergedNone {
 		// No existing options merged into 'sources', so set the 'sources' on the outputRoute
@@ -112,6 +113,7 @@ func (p *plugin) ApplyRoutePlugin(
 		routeutils.AppendRouteSources(outputRoute, sources)
 	} // In case OptionsMergedFull, the correct sources are already set on the outputRoute
 
+	contextutils.LoggerFrom(ctx).Infof("route option plugin post merge output route early transform: %v", merged.GetStagedTransformations().GetEarly())
 	// Set the merged RouteOptions on the outputRoute
 	outputRoute.Options = merged
 
