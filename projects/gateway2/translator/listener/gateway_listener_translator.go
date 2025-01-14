@@ -43,6 +43,7 @@ func TranslateListeners(
 
 	mergedListeners := mergeGWListeners(queries, gateway.Namespace, validatedListeners, *gateway, routesForGw, reporter.Gateway(gateway))
 	translatedListeners := mergedListeners.translateListeners(ctx, pluginRegistry, queries, reporter)
+
 	return translatedListeners
 }
 
@@ -351,6 +352,18 @@ func (ml *MergedListeners) translateListeners(
 	var listeners []*v1.Listener
 	for _, mergedListener := range ml.Listeners {
 		listener := mergedListener.TranslateListener(ctx, pluginRegistry, queries, reporter)
+
+		contextutils.LoggerFrom(context.Background()).Infof("listener type: %T", listener)
+		if listener.GetAggregateListener() != nil {
+			aggListener := listener.GetAggregateListener()
+			contextutils.LoggerFrom(context.Background()).Infof("has virtual hosts: %v", len(aggListener.GetHttpResources().GetVirtualHosts()))
+			for _, vh := range aggListener.GetHttpResources().GetVirtualHosts() {
+				contextutils.LoggerFrom(context.Background()).Infof("has routes: %v", len(vh.GetRoutes()))
+				for _, route := range vh.GetRoutes() {
+					contextutils.LoggerFrom(context.Background()).Infof("has route: %v, route transform: %v", route.GetName(), route.GetOptions().GetStagedTransformations().GetEarly())
+				}
+			}
+		}
 
 		// run listener plugins
 		for _, listenerPlugin := range pluginRegistry.GetListenerPlugins() {

@@ -63,20 +63,6 @@ func (s *ProxyTranslator) buildXdsSnapshot(
 		Messages: map[*core.ResourceRef][]string{},
 	}
 
-	contextutils.LoggerFrom(context.Background()).Infof("proxy listeners: %v", len(proxy.GetListeners()))
-	for _, listener := range proxy.GetListeners() {
-		contextutils.LoggerFrom(context.Background()).Infof("listener type: %T", listener)
-		if listener.GetAggregateListener() != nil {
-			aggListener := listener.GetAggregateListener()
-			contextutils.LoggerFrom(context.Background()).Infof("has virtual hosts: %v", len(aggListener.GetHttpResources().GetVirtualHosts()))
-			for _, vh := range aggListener.GetHttpResources().GetVirtualHosts() {
-				contextutils.LoggerFrom(context.Background()).Infof("has routes: %v", len(vh.GetRoutes()))
-				for _, route := range vh.GetRoutes() {
-					contextutils.LoggerFrom(context.Background()).Infof("has route: %v, route transform: %v", route.GetName(), route.GetOptions().GetStagedTransformations().GetEarly())
-				}
-			}
-		}
-	}
 	xdsSnapshot, reports, proxyReport := s.translator.NewTranslator(ctx, settings).Translate(params, proxy)
 
 	// Messages are aggregated during translation, and need to be added to reports
