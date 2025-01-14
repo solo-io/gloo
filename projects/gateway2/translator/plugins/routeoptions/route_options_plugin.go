@@ -115,7 +115,10 @@ func (p *plugin) ApplyRoutePlugin(
 	} // In case OptionsMergedFull, the correct sources are already set on the outputRoute
 
 	// merge portal specific transformations into the destination route options post merge
-	mergePortalTransformations(merged, outputRoute.GetOptions())
+	err = mergePortalTransformations(merged, outputRoute.GetOptions())
+	if err != nil {
+		contextutils.LoggerFrom(ctx).Errorf("error merging portal transformations: %v", err)
+	}
 
 	// Set the merged RouteOptions on the outputRoute
 	outputRoute.Options = merged
@@ -380,7 +383,7 @@ func mergePortalTransformations(dst, src *gloov1.RouteOptions) error {
 				// extract portal specific transformations and add them to the destination route options
 				srcDynamicMetadataTransformations := transformation.GetRequestTransformation().GetTransformationTemplate().GetDynamicMetadataValues()
 				for _, srcDynamicMetadataTransformation := range srcDynamicMetadataTransformations {
-					if srcDynamicMetadataTransformation.GetKey() == PortalMetadataNamespace || srcDynamicMetadataTransformation.GetKey() == PortalCustomMetadataNamespace {
+					if srcDynamicMetadataTransformation.GetMetadataNamespace() == PortalMetadataNamespace || srcDynamicMetadataTransformation.GetMetadataNamespace() == PortalCustomMetadataNamespace {
 						portalDynamicMetadataTransformations = append(portalDynamicMetadataTransformations, srcDynamicMetadataTransformation)
 					}
 				}
