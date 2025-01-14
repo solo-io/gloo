@@ -273,6 +273,17 @@ func (t *translatorInstance) translateListenerSubsystemComponents(params plugins
 
 		// 1. Compute RouteConfiguration
 		// This way we call ProcessVirtualHost / ProcessRoute first
+		contextutils.LoggerFrom(context.Background()).Infof("has http listener: %v", listener.GetHttpListener())
+		if listener.GetHttpListener() != nil {
+			httpListener := listener.GetHttpListener()
+			contextutils.LoggerFrom(context.Background()).Infof("has virtual hosts: %v", len(httpListener.GetVirtualHosts()))
+			for _, vh := range httpListener.GetVirtualHosts() {
+				contextutils.LoggerFrom(context.Background()).Infof("has routes: %v", len(vh.GetRoutes()))
+				for _, route := range vh.GetRoutes() {
+					contextutils.LoggerFrom(context.Background()).Infof("has route: %v, route transform: %v", route, route.GetOptions().GetStagedTransformations().GetEarly())
+				}
+			}
+		}
 		envoyRouteConfiguration := routeConfigurationTranslator.ComputeRouteConfiguration(params)
 
 		// 2. Compute Listener
