@@ -121,19 +121,6 @@ func (t *translatorInstance) Translate(
 		p.Init(plugins.InitParams{Ctx: params.Ctx, Settings: t.settings})
 	}
 
-	for _, l := range proxy.GetListeners() {
-		contextutils.LoggerFrom(context.Background()).Infof("listener: %v", l.GetName())
-		if l.GetHttpListener() != nil {
-			for _, vh := range l.GetHttpListener().GetVirtualHosts() {
-				contextutils.LoggerFrom(context.Background()).Infof("virtual host: %v", vh.GetName())
-				for _, route := range vh.GetRoutes() {
-					contextutils.LoggerFrom(context.Background()).Infof("route early staged transformation: %v", route.GetOptions().GetStagedTransformations().GetEarly())
-				}
-			}
-
-		}
-	}
-
 	// prepare reports used to aggregate Warnings/Errors encountered during translation
 	reports := make(reporter.ResourceReports)
 	proxyReport := validation.MakeReport(proxy)
@@ -287,6 +274,18 @@ func (t *translatorInstance) translateListenerSubsystemComponents(params plugins
 		// 1. Compute RouteConfiguration
 		// This way we call ProcessVirtualHost / ProcessRoute first
 		envoyRouteConfiguration := routeConfigurationTranslator.ComputeRouteConfiguration(params)
+
+		for _, l := range proxy.GetListeners() {
+			contextutils.LoggerFrom(context.Background()).Infof("listener: %v", l.GetName())
+			if l.GetHttpListener() != nil {
+				for _, vh := range l.GetHttpListener().GetVirtualHosts() {
+					contextutils.LoggerFrom(context.Background()).Infof("virtual host: %v", vh.GetName())
+					for _, route := range vh.GetRoutes() {
+						contextutils.LoggerFrom(context.Background()).Infof("route early staged transformation: %v", route.GetOptions().GetStagedTransformations().GetEarly())
+					}
+				}
+			}
+		}
 
 		// 2. Compute Listener
 		// This way we evaluate HttpFilters second, which allows us to avoid appending an HttpFilter
