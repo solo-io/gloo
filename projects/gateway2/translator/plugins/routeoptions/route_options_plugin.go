@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	transformation1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
+	"sort"
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
@@ -36,7 +38,9 @@ import (
 
 const (
 	// wildcardField is used to enable overriding all fields in RouteOptions inherited from the parent route.
-	wildcardField = "*"
+	wildcardField                 = "*"
+	PortalMetadataNamespace       = "io.solo.gloo.portal"
+	PortalCustomMetadataNamespace = "io.solo.gloo.portal.custom_metadata"
 )
 
 var (
@@ -108,6 +112,9 @@ func (p *plugin) ApplyRoutePlugin(
 		// Some existing options merged into 'sources', so append the 'sources' on the outputRoute
 		routeutils.AppendRouteSources(outputRoute, sources)
 	} // In case OptionsMergedFull, the correct sources are already set on the outputRoute
+
+	// merge portal specific transformations into the destination route options post merge
+	mergePortalTransformations(merged, outputRoute.GetOptions())
 
 	// Set the merged RouteOptions on the outputRoute
 	outputRoute.Options = merged
@@ -357,4 +364,140 @@ func parseDelegationFieldOverrides(val string) sets.Set[string] {
 		set.Insert(strings.ToLower(strings.TrimSpace(part)))
 	}
 	return set
+}
+
+func mergePortalTransformations(dst, src *gloov1.RouteOptions) error {
+	if src == nil || src.GetStagedTransformations().GetEarly() == nil {
+		return nil // nothing to merge
+	}
+
+	var portalDynamicMetadataTransformations []*transformation1.TransformationTemplate_DynamicMetadataValue
+	// portal transformations are applied in the early stage so extract the appropriate transformations from the source route options
+	if src.GetStagedTransformations().GetEarly() != nil {
+		for _, transformation := range src.GetStagedTransformations().GetEarly().GetRequestTransforms() {
+			if transformation.GetRequestTransformation().GetTransformationTemplate().GetDynamicMetadataValues() != nil {
+				// extract portal specific transformations and add them to the destination route options
+				srcDynamicMetadataTransformations := transformation.GetRequestTransformation().GetTransformationTemplate().GetDynamicMetadataValues()
+				for _, srcDynamicMetadataTransformation := range srcDynamicMetadataTransformations {
+					if srcDynamicMetadataTransformation.GetKey() == PortalMetadataNamespace || srcDynamicMetadataTransformation.GetKey() == PortalCustomMetadataNamespace {
+						portalDynamicMetadataTransformations = append(portalDynamicMetadataTransformations, srcDynamicMetadataTransformation)
+					}
+				}
+			}
+		}
+	}
+
+	var portalTransformation *transformation1.Transformation
+	if len(portalDynamicMetadataTransformations) == 0 {
+		return nil // nothing to merge
+	}
+
+	portalTransformation = &transformation1.Transformation{
+		TransformationType: &transformation1.Transformation_TransformationTemplate{
+			TransformationTemplate: &transformation1.TransformationTemplate{
+				ParseBodyBehavior:     transformation1.TransformationTemplate_DontParse,
+				DynamicMetadataValues: portalDynamicMetadataTransformations,
+			},
+		},
+	}
+
+	// if there are no staged early request transformations in the destination route option, we can add the portal metadata transformation as-is
+	if dst.GetStagedTransformations().GetEarly().GetRequestTransforms() == nil {
+		if dst.StagedTransformations == nil {
+			dst.StagedTransformations = &transformation1.TransformationStages{}
+		}
+		if dst.StagedTransformations.Early == nil {
+			dst.StagedTransformations.Early = &transformation1.RequestResponseTransformations{}
+		}
+
+		dst.GetStagedTransformations().GetEarly().RequestTransforms = []*transformation1.RequestMatch{{
+			RequestTransformation: portalTransformation,
+		}}
+		return nil
+	}
+
+	// if there are early transforms, merge the portal metadata with any existing transformation templates
+	for _, requestMatch := range dst.GetStagedTransformations().GetEarly().GetRequestTransforms() {
+		// an error should only occur if the request match is nil
+		err := setMetadataOnMatch(requestMatch, portalTransformation)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// setMetadataOnMatch merges the portal transformation metadata into a user's transformation in-place.
+// If a user redefines a portal metadata, meaning they reuse a key and namespace, the user's value is prioritized over the portal's value.
+func setMetadataOnMatch(match *transformation1.RequestMatch, transform *transformation1.Transformation) error {
+	// we can't modify a nil request match, this is done for defensive programming, although it should never happen
+	if match == nil {
+		return eris.New("request match is nil")
+	}
+
+	// add the portal transformation to the existing request transformation, if it exists
+	if requestTransform := match.RequestTransformation; requestTransform != nil {
+		err := mergePortalTransformation(requestTransform, transform)
+		if err != nil {
+			return err
+		}
+	} else {
+		// if the request transformation does not exist, set it as the portal transformation
+		match.RequestTransformation = transform
+	}
+
+	return nil
+}
+
+// mergePortalTransformation merges the src transformation (portal) into a dest transformation (user) in-place, only merging the values needed for portal metadata.
+// It sorts the dynamic metadata values for deterministic output.
+// If the dest transformation is nil, an error is returned.
+func mergePortalTransformation(dest, src *transformation1.Transformation) error {
+	// we can't modify a nil transformation
+	if dest == nil {
+		return eris.New("cannot merge into nil transformation")
+	}
+	// do not merge if the src is nil
+	if src == nil {
+		return nil
+	}
+
+	// we can only merge onto transformation templates
+	if userTemplate, ok := dest.GetTransformationType().(*transformation1.Transformation_TransformationTemplate); ok {
+		// set the parse body behavior from the new transform (which should be DontParse for the portal metadata)
+		userTemplate.TransformationTemplate.ParseBodyBehavior = src.GetTransformationTemplate().GetParseBodyBehavior()
+
+		metadataMap := make(map[string]*transformation1.TransformationTemplate_DynamicMetadataValue, len(userTemplate.TransformationTemplate.GetDynamicMetadataValues()))
+		for _, value := range userTemplate.TransformationTemplate.GetDynamicMetadataValues() {
+			key := getDynamicMetadataKey(value)
+			metadataMap[key] = value
+		}
+
+		for _, value := range src.GetTransformationTemplate().GetDynamicMetadataValues() {
+			key := getDynamicMetadataKey(value)
+			// if the key does not exist in the dynamic metadata map, add it so that we don't overwrite user-defined values or have duplicates
+			if _, ok := metadataMap[key]; !ok {
+				metadataMap[key] = value
+			}
+		}
+
+		// sort existing and new metadata for deterministic output
+		sortedKeys := make([]string, 0, len(metadataMap))
+		for key := range metadataMap {
+			sortedKeys = append(sortedKeys, key)
+		}
+		sort.Slice(sortedKeys, func(i, j int) bool { return sortedKeys[i] < sortedKeys[j] })
+
+		dynamicMetadataValues := make([]*transformation1.TransformationTemplate_DynamicMetadataValue, 0, len(sortedKeys))
+		for _, key := range sortedKeys {
+			dynamicMetadataValues = append(dynamicMetadataValues, metadataMap[key])
+		}
+		userTemplate.TransformationTemplate.DynamicMetadataValues = dynamicMetadataValues
+	}
+	return nil
+}
+
+// getDynamicMetadataKey returns a unique key for a dynamic metadata value.
+func getDynamicMetadataKey(v *transformation1.TransformationTemplate_DynamicMetadataValue) string {
+	return v.MetadataNamespace + "." + v.Key
 }
