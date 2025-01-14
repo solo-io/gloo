@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	transformation1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	"sort"
 	"strings"
+
+	transformation1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/rotisserie/eris"
@@ -403,11 +404,11 @@ func mergePortalTransformations(dst, src *gloov1.RouteOptions) error {
 
 	// if there are no staged early request transformations in the destination route option, we can add the portal metadata transformation as-is
 	if dst.GetStagedTransformations().GetEarly().GetRequestTransforms() == nil {
-		if dst.StagedTransformations == nil {
+		if dst.GetStagedTransformations() == nil {
 			dst.StagedTransformations = &transformation1.TransformationStages{}
 		}
-		if dst.StagedTransformations.Early == nil {
-			dst.StagedTransformations.Early = &transformation1.RequestResponseTransformations{}
+		if dst.GetStagedTransformations().GetEarly() == nil {
+			dst.GetStagedTransformations().Early = &transformation1.RequestResponseTransformations{}
 		}
 
 		dst.GetStagedTransformations().GetEarly().RequestTransforms = []*transformation1.RequestMatch{{
@@ -436,7 +437,7 @@ func setMetadataOnMatch(match *transformation1.RequestMatch, transform *transfor
 	}
 
 	// add the portal transformation to the existing request transformation, if it exists
-	if requestTransform := match.RequestTransformation; requestTransform != nil {
+	if requestTransform := match.GetRequestTransformation(); requestTransform != nil {
 		err := mergePortalTransformation(requestTransform, transform)
 		if err != nil {
 			return err
@@ -499,5 +500,5 @@ func mergePortalTransformation(dest, src *transformation1.Transformation) error 
 
 // getDynamicMetadataKey returns a unique key for a dynamic metadata value.
 func getDynamicMetadataKey(v *transformation1.TransformationTemplate_DynamicMetadataValue) string {
-	return v.MetadataNamespace + "." + v.Key
+	return v.GetMetadataNamespace() + "." + v.GetKey()
 }
