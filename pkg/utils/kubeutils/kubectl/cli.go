@@ -3,6 +3,7 @@ package kubectl
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -11,13 +12,14 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/kubectl/pkg/cmd/version"
 
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/k8s-utils/testutils/kube"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
 )
 
 // Cli is a utility for executing `kubectl` commands
@@ -366,4 +368,15 @@ func (c *Cli) GetPodsInNsWithLabel(ctx context.Context, namespace string, label 
 	// Split the string on whitespace to get the pod names
 	glooPodNames := strings.Fields(glooPodNamesString)
 	return glooPodNames, nil
+}
+
+// Version returns the unmarshalled output of `kubectl version -o json`
+func (c *Cli) Version(ctx context.Context) (version.Version, error) {
+	ver := version.Version{}
+	out, _, err := c.Execute(ctx, "version", "-o", "json")
+	if err != nil {
+		return ver, err
+	}
+	err = json.Unmarshal([]byte(out), &ver)
+	return ver, err
 }

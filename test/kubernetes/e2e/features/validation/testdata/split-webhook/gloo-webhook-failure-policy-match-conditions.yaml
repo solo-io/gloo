@@ -1,0 +1,8 @@
+gateway:
+  validation:
+    failurePolicy: Fail # For "strict" validation mode, fail the validation if webhook server is not available
+    matchConditions:
+      - name: skip-upstreams
+        expression: '!(request.resource.group == "gloo.solo.io" && request.resource.resource == "upstreams")' # Match non-upstream resources.
+    webhook:
+      skipDeleteValidationResources: []
