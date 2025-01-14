@@ -280,6 +280,7 @@ func (h *httpRouteConfigurationTranslator) setAction(
 	in *v1.Route,
 	out *envoy_config_route_v3.Route,
 ) {
+	contextutils.LoggerFrom(context.Background()).Infof("action: %v, type: %T", in.GetAction(), in.GetAction())
 	switch action := in.GetAction().(type) {
 	case *v1.Route_RouteAction:
 		if err := ValidateRouteDestinations(params.Snapshot, action.RouteAction); err != nil {
