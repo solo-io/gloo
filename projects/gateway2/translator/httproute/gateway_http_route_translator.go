@@ -186,7 +186,7 @@ func translateGatewayHTTPRouteRule(
 
 		// Apply the plugins for this route
 		for _, plugin := range pluginRegistry.GetRoutePlugins() {
-			contextutils.LoggerFrom(ctx).Infof("pre apply route plugin type: %T output route early transform: %v", plugin, outputRoute.GetOptions().GetStagedTransformations().GetEarly())
+			contextutils.LoggerFrom(ctx).Infof("pre apply route plugin type: %T output route early transform: %v parent route: %v", plugin, outputRoute.GetOptions().GetStagedTransformations().GetEarly(), outputRoute)
 			err := plugin.ApplyRoutePlugin(ctx, rtCtx, outputRoute)
 			if err != nil {
 				contextutils.LoggerFrom(ctx).Errorf("error in RoutePlugin: %v", err)
@@ -198,7 +198,7 @@ func translateGatewayHTTPRouteRule(
 			// that are on the child with the parent's policies.
 			// When a plugin is invoked on a route, it must override the existing route.
 			for _, child := range delegatedRoutes {
-				contextutils.LoggerFrom(ctx).Infof("pre child apply route plugin type: %T output route early transform: %v", plugin, child.GetOptions().GetStagedTransformations().GetEarly())
+				contextutils.LoggerFrom(ctx).Infof("pre child apply route plugin type: %T output route early transform: %v, child route: %v", plugin, child.GetOptions().GetStagedTransformations().GetEarly(), child)
 				err := plugin.ApplyRoutePlugin(ctx, rtCtx, child)
 				if err != nil {
 					contextutils.LoggerFrom(ctx).Errorf("error applying RoutePlugin to child route %s: %v", child.GetName(), err)
