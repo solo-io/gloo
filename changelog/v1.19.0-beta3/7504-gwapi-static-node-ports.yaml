@@ -1,0 +1,9 @@
+
+changelog:
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/solo-projects/issues/7504
+  resolvesIssue: true
+  description: > 
+    Add a new Ports field to the `GatewayParameters` `Kube.Service` Spec in order to allow admin users
+    to configure additional information about the ports that the Gateway should listen on. This is useful
+    if the user wants to specify a static `NodePort`.

@@ -197,13 +197,13 @@ func (i *TestInstallation) InstallGlooGatewayWithTestHelper(ctx context.Context,
 	i.InstallGlooGateway(ctx, installFn)
 }
 
-func (i *TestInstallation) isGatewayInstalled(ctx context.Context) bool {
+func (i *TestInstallation) IsGatewayInstalled(ctx context.Context) bool {
 	return i.Assertions.CheckResourcesOk(ctx) == nil
 }
 
 func (i *TestInstallation) InstallGlooGateway(ctx context.Context, installFn func(ctx context.Context) error) {
 
-	if !testutils.ShouldSkipInstall(i.isGatewayInstalled(ctx)) {
+	if !testutils.ShouldSkipInstall(i.IsGatewayInstalled(ctx)) {
 		err := installFn(ctx)
 		i.Assertions.Require.NoError(err)
 		i.Assertions.EventuallyInstallationSucceeded(ctx)

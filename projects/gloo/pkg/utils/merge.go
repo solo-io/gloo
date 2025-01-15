@@ -25,14 +25,28 @@ const (
 	OptionsMergedFull
 )
 
-// ShallowMerge sets dst to the value of src, if src is non-zero and dst is zero-valued or overwrite=true.
+// ShallowMerge sets dst to the value of src, if src is non-zero and dst is zero-valued
 // It returns a boolean indicating whether src overwrote dst.
-func ShallowMerge(dst, src reflect.Value, overwrite bool) bool {
+func ShallowMerge(dst, src reflect.Value) bool {
 	if !src.IsValid() {
 		return false
 	}
 
-	if dst.CanSet() && !isEmptyValue(src) && (overwrite || isEmptyValue(dst)) {
+	if dst.CanSet() && !isEmptyValue(src) && isEmptyValue(dst) {
+		dst.Set(src)
+		return true
+	}
+
+	return false
+}
+
+// maySetValue sets dst to the value of src if:
+// - src is set (has a non-nil value) and
+// - dst is nil or overwrite is true
+//
+// It returns a boolean indicating whether src overwrote dst.
+func maySetValue(dst, src reflect.Value, overwrite bool) bool {
+	if src.CanSet() && !src.IsNil() && dst.CanSet() && (overwrite || dst.IsNil()) {
 		dst.Set(src)
 		return true
 	}
@@ -84,7 +98,7 @@ func ShallowMergeRouteOptions(dst, src *v1.RouteOptions) (*v1.RouteOptions, bool
 	overwrote := false
 	for i := range dstValue.NumField() {
 		dstField, srcField := dstValue.Field(i), srcValue.Field(i)
-		if srcOverride := ShallowMerge(dstField, srcField, false); srcOverride {
+		if srcOverride := ShallowMerge(dstField, srcField); srcOverride {
 			overwrote = true
 		}
 	}
@@ -110,7 +124,7 @@ func ShallowMergeVirtualHostOptions(dst, src *v1.VirtualHostOptions) (*v1.Virtua
 	overwrote := false
 	for i := range dstValue.NumField() {
 		dstField, srcField := dstValue.Field(i), srcValue.Field(i)
-		if srcOverride := ShallowMerge(dstField, srcField, false); srcOverride {
+		if srcOverride := ShallowMerge(dstField, srcField); srcOverride {
 			overwrote = true
 		}
 	}
@@ -147,20 +161,25 @@ func MergeRouteOptionsWithOverrides(dst, src *v1.RouteOptions, allowedOverrides 
 	var dstFieldsOverwritten int
 	for i := range dstValue.NumField() {
 		dstField, srcField := dstValue.Field(i), srcValue.Field(i)
-		if overwriteByDefault && !(allowedOverrides.Has(wildcardField) ||
+
+		// NOTE: important to pre-compute this because dstFieldsOverwritten must be
+		// incremented based on the original value of dstField and not the overwritten value
+		dstIsSet := dstField.CanSet() && !dstField.IsNil()
+		if dstIsSet {
+			dstFieldsSet++
+		}
+
+		// Allow overrides if the field in dst is unset as merging from src into dst by default
+		// allows src to augment dst by setting fields unset in dst, hence the override check only
+		// applies when the field in dst is set (dstIsSet=true).
+		if dstIsSet && overwriteByDefault && !(allowedOverrides.Has(wildcardField) ||
 			allowedOverrides.Has(strings.ToLower(dstValue.Type().Field(i).Name))) {
 			continue
 		}
-		// NOTE: important to pre-compute this for use in the conditional below
-		// because dstFieldsOverwritten needs to be incremented based on the original value of dstField
-		// and not the state of the field after the merge
-		dstOverridable := dstField.CanSet() && !isEmptyValue(dstField)
-		if dstOverridable {
-			dstFieldsSet++
-		}
-		if srcOverride := ShallowMerge(dstField, srcField, overwriteByDefault); srcOverride {
+
+		if srcOverride := maySetValue(dstField, srcField, overwriteByDefault); srcOverride {
 			srcFieldsUsed++
-			if dstOverridable {
+			if dstIsSet {
 				dstFieldsOverwritten++
 			}
 		}

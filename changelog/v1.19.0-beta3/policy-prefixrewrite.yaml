@@ -1,0 +1,14 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7601
+    resolvesIssue: false
+    description: |
+      When merging parent-child policies, the merging should allow child
+      policies to augment parent policies such that fields unset on the
+      parent can be set by the child. There is a bug when using policy
+      override capability with route delegation that disallows this when
+      the annotation specifies non-wildcard fields, such that even if
+      a field is unset by the parent only the fields specified in the
+      override annotation are merged in - which is incorrect because
+      the annotation only applies to fields that are being overriden
+      (set by the parent). This change fixes the bug.

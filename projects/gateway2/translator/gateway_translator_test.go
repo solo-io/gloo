@@ -329,4 +329,5 @@ var _ = DescribeTable("Route Delegation translator",
 	Entry("RouteOptions prefer child override when allowed", "route_options_inheritance_child_override_allow.yaml"),
 	Entry("RouteOptions multi level inheritance with child override when allowed", "route_options_multi_level_inheritance_override_allow.yaml"),
 	Entry("RouteOptions multi level inheritance with partial child override", "route_options_multi_level_inheritance_override_partial.yaml"),
+	Entry("Label based delegation", "label_based.yaml"),
 )
