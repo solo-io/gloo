@@ -118,6 +118,8 @@ type KubernetesProxyConfig struct {
 
 	// Used to unset the `runAsUser` values in security contexts.
 	FloatingUserId *bool `json:"floatingUserId,omitempty"`
+
+	GlooMtls *GlooMtls `json:"glooMtls,omitempty"`
 }
 
 func (in *KubernetesProxyConfig) GetDeployment() *ProxyDeployment {
@@ -807,6 +809,25 @@ func (in *AIExtensionTracingGrpc) GetPort() uint32 {
 		return 0
 	}
 	return in.Port
+}
+
+type GlooMtls struct {
+	// Whether to enable Gloo mTLS.
+	Enabled bool `json:"enabled,omitempty"`
+}
+
+func (in *KubernetesProxyConfig) GetGlooMtls() *GlooMtls {
+	if in == nil {
+		return nil
+	}
+	return in.GlooMtls
+}
+
+func (in *GlooMtls) GetEnabled() bool {
+	if in == nil {
+		return false
+	}
+	return in.Enabled
 }
 
 func init() {

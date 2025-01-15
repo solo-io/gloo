@@ -368,6 +368,10 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 
 	gateway.Stats = getStatsValues(statsConfig)
 
+	logger := log.FromContext(context.Background())
+	logger.V(1).Info("deployer getVals",
+		"values", vals)
+
 	return vals, nil
 }
 

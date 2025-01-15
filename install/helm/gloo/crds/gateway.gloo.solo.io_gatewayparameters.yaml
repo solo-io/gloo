@@ -424,6 +424,11 @@ spec:
                     type: object
                   floatingUserId:
                     type: boolean
+                  glooMtls:
+                    properties:
+                      enabled:
+                        type: boolean
+                    type: object
                   istio:
                     properties:
                       customSidecars:
