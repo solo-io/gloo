@@ -19,6 +19,7 @@ func AddIstioAutomtlsMetadata(
 ) *envoy_config_core_v3.Metadata {
 	if enableAutoMtls {
 		// Valid label values are 'istio', 'disabled'
+		// https://github.com/istio/api/blob/5b3f065ee1c2802fb4bc6010ac847c181caa6cc3/label/labels.gen.go#L285
 		if value, ok := workloadLabels[constants.IstioTlsModeLabel]; ok && value == constants.IstioMutualTLSModeLabel {
 			metadata.GetFilterMetadata()[EnvoyTransportSocketMatch] = &structpb.Struct{
 				Fields: map[string]*structpb.Value{
