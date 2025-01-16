@@ -1,5 +1,12 @@
 {{- $gateway := .Values.gateway }}
 {{- $statsConfig := $gateway.stats }}
+{{- $mtlsEnabled := false }}
+{{- if $gateway.glooMtls }}
+  {{- if $gateway.glooMtls.enabled }}
+    {{- $mtlsEnabled = true }}
+  {{- end }} {{/* if $gateway.glooMtls */}}
+{{- end }} {{/* if $gateway.glooMtls.enabled */}}
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -68,11 +75,11 @@ spec:
         volumeMounts:
         - mountPath: /etc/envoy
           name: envoy-config
-{{- if $gateway.glooMtls.enabled }}
+{{- if  $mtlsEnabled }}
         - mountPath: /etc/envoy/ssl
           name: gloo-mtls-certs
           readOnly: true
-{{- end }} {{/* if $gateway.glooMtls.enabled */}}
+{{- end }} {{/* if  $mtlsEnabled*/}}
         env:
         - name: POD_NAME
           valueFrom:
@@ -115,7 +122,7 @@ spec:
         resources:
           {{- toYaml $gateway.resources | nindent 10 }}
 {{- end }} {{/* if $gateway.resources */}}
-{{- if or $gateway.glooMtls.enabled $gateway.istio.enabled }}
+{{- if or $mtlsEnabled $gateway.istio.enabled }}
       - name: sds
         image: "{{ template "gloo-gateway.gateway.image" $gateway.sdsContainer.image }}"
         {{- if $gateway.sdsContainer.image.pullPolicy }}
@@ -136,10 +143,10 @@ spec:
           - name: ISTIO_MTLS_SDS_ENABLED
             value: "true"
 {{- end }} {{/* if $gateway.istio.enabled */}}
-{{- if $gateway.glooMtls.enabled }}
+{{- if  $mtlsEnabled }}
           - name: GLOO_MTLS_SDS_ENABLED
             value: "true"
-{{- end }} {{/* if $gateway.glooMtls.enabled */}}
+{{- end }} {{/*  $mtlsEnabled */}}
           - name: LOG_LEVEL
             value: {{ $gateway.sdsContainer.sdsBootstrap.logLevel }}
         ports:
@@ -169,12 +176,12 @@ spec:
           - mountPath: /etc/envoy
             name: envoy-config
 {{- end }} {{/* if $gateway.istio.enabled */}}
-{{- if $gateway.glooMtls.enabled }}
+{{- if  $mtlsEnabled }}
           - mountPath: /etc/envoy/ssl
             name: gloo-mtls-certs
             readOnly: true
-{{- end }} {{/* if $gateway.glooMtls.enabled */}}
-{{- end }} {{/* if or $gateway.glooMtls.enabled $gateway.istio.enabled */}}
+{{- end }} {{/* if  $mtlsEnabled */}}
+{{- end }} {{/* if or $mtlsEnabled $gateway.istio.enabled */}}
 {{- if $gateway.istio.enabled }}
           - mountPath: /etc/istio-certs/
             name: istio-certs
@@ -334,12 +341,12 @@ spec:
       - configMap:
           name: {{ include "gloo-gateway.gateway.fullname" . }}
         name: envoy-config
-{{- if $gateway.glooMtls.enabled }}
+{{-  if $mtlsEnabled }}
       - name: gloo-mtls-certs
         secret:
           defaultMode: 420
           secretName: gloo-mtls-certs
-{{- end }} {{/* if $gateway.glooMtls.enabled */}}
+{{- end }} {{/* if $mtlsEnabled */}}
 {{- if (($gateway.aiExtension).enabled) }}
       - configMap:
           name: {{ include "gloo-gateway.gateway.fullname" . }}-ai-stats-config
@@ -575,7 +582,7 @@ data:
               keepalive_time: 10
           type: STRICT_DNS
           respect_dns_ttl: true
-{{- if $gateway.glooMtls.enabled }}
+{{- if  $mtlsEnabled }}
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
@@ -601,7 +608,7 @@ data:
                       grpc_services:
                       - envoy_grpc:
                           cluster_name: gateway_proxy_sds
-{{- end }} {{/* if $gateway.glooMtls.enabled */}}
+{{- end }} {{/* if  $mtlsEnabled */}}
         - name: admin_port_cluster
           connect_timeout: 5.000s
           type: STATIC
@@ -615,7 +622,7 @@ data:
                     socket_address:
                       address: 127.0.0.1
                       port_value: 19000
-        {{- if or $gateway.glooMtls.enabled $gateway.istio.enabled }}
+        {{- if or  $mtlsEnabled $gateway.istio.enabled }}
         - name: gateway_proxy_sds
           connect_timeout: 0.25s
           http2_protocol_options: {}
@@ -628,7 +635,7 @@ data:
                       socket_address:
                         address: 127.0.0.1
                         port_value: 8234
-        {{- end }} {{/* if or $gateway.glooMtls.enabled $gateway.istio.enabled */}}
+        {{- end }} {{/* if or  $mtlsEnabled $gateway.istio.enabled */}}
         {{- if ($gateway.aws).enableServiceAccountCredentials }}
         - name: {{ $gateway.aws.stsClusterName }}
           connect_timeout: 5.000s

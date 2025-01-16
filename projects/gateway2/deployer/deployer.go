@@ -124,9 +124,6 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 				"enabled": false,
 			},
 			"image": map[string]any{},
-			"glooMtls": map[string]any{
-				"enabled": false,
-			},
 		},
 	}
 
