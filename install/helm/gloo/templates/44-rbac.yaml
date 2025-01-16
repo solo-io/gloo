@@ -24,6 +24,11 @@ rules:
   - nodes
   - secrets
   - namespaces
+  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - ""
+  resources:
+  - secrets
   verbs: ["get", "list", "watch", "create", "patch"]
 - apiGroups:
   - "discovery.k8s.io"

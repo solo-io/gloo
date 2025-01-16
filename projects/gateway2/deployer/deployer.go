@@ -259,7 +259,6 @@ func (d *Deployer) getGatewayClassFromGateway(ctx context.Context, gw *api.Gatew
 }
 
 func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameters) (*helmConfig, error) {
-	mtlsEnabled := true
 	// construct the default values
 	vals := &helmConfig{
 		Gateway: &helmGateway{
@@ -272,9 +271,6 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 				// This is the socket address that the Proxy will connect to on startup, to receive xds updates
 				Host: &d.inputs.ControlPlane.XdsHost,
 				Port: &d.inputs.ControlPlane.XdsPort,
-			},
-			GlooMtls: &mtls{
-				Enabled: &mtlsEnabled,
 			},
 		},
 	}
@@ -368,9 +364,11 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 
 	gateway.Stats = getStatsValues(statsConfig)
 
-	logger := log.FromContext(context.Background())
-	logger.V(1).Info("deployer getVals",
-		"values", vals)
+	// mtls values
+	mtlsEnabled := kubeProxyConfig.GetGlooMtls().GetEnabled()
+	gateway.GlooMtls = &mtls{
+		Enabled: &mtlsEnabled,
+	}
 
 	return vals, nil
 }
@@ -431,7 +429,7 @@ func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]clie
 	if err != nil {
 		return nil, fmt.Errorf("failed to get values to render objects for gateway %s.%s: %w", gw.GetNamespace(), gw.GetName(), err)
 	}
-	logger.V(1).Info("got deployer helm values",
+	logger.Info("got deployer helm values",
 		"gatewayName", gw.GetName(),
 		"gatewayNamespace", gw.GetNamespace(),
 		"values", vals)
