@@ -4,7 +4,7 @@ runs:
   using: "composite"
   steps:
   - name: Prep Go Runner
-    uses: ./.github/workflows/composite-actions/prep-go-runner
+    uses: ./.github/actions/prep-go-runner
   - name: Install kind
     uses: helm/kind-action@v1.10.0
     with:

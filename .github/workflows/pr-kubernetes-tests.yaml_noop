@@ -26,7 +26,7 @@
 #         # which compares the state of two branches
 #         fetch-depth: 0
 #     - id: process-skip-directives
-#       uses: ./.github/workflows/composite-actions/process-skip-directives
+#       uses: ./.github/actions/process-skip-directives
 #       with:
 #         base-ref: ${{ github.base_ref }}
 #     - id: run-strategy
@@ -101,7 +101,7 @@
 #         echo "Regression tests auto-succeeded"
 #     - uses: actions/checkout@v4
 #     - name: Prep Go Runner
-#       uses: ./.github/workflows/composite-actions/prep-go-runner
+#       uses: ./.github/actions/prep-go-runner
 #       if: needs.prepare_env.outputs.should-auto-succeed-kube-tests != 'true'
 #     # The dotenv action is used to load key-value pairs from files.
 #     # In this case, the file is specified in the matrix and will contain the versions of the tools to use
@@ -115,7 +115,7 @@
 #     - id: setup-kind-cluster
 #       name: Setup KinD Cluster
 #       if: needs.prepare_env.outputs.should-auto-succeed-kube-tests != 'true'
-#       uses: ./.github/workflows/composite-actions/setup-kind-cluster
+#       uses: ./.github/actions/setup-kind-cluster
 #       with:
 #         cluster-name: ${{ matrix.test.cluster-name }}
 #         kind-node-version: ${{ steps.dotenv.outputs.node_version }}
@@ -125,7 +125,7 @@
 #         istio-version: ${{ steps.dotenv.outputs.istio_version }}
 #     - id: run-tests
 #       if: needs.prepare_env.outputs.should-auto-succeed-kube-tests != 'true'
-#       uses: ./.github/workflows/composite-actions/kubernetes-e2e-tests
+#       uses: ./.github/actions/kubernetes-e2e-tests
 #       with:
 #         cluster-name: ${{ matrix.test.cluster-name }}
 #         test-args: ${{ matrix.test.go-test-args }}
