@@ -1,6 +1,6 @@
 
 ---
-title: "graphql.proto"
+title: "Graphql"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `graphql.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [RequestTemplate](#requesttemplate)
@@ -36,7 +36,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/graphql/v1beta1/graphql.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/graphql/v1beta1/graphql.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/graphql/v1beta1/graphql.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/graphql/v1beta1/graphql.proto)**
 
 
 
@@ -46,6 +46,7 @@ weight: 5
 ### RequestTemplate
 
  
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 Defines a configuration for generating outgoing requests for a resolver.
 
 ```yaml
@@ -67,7 +68,8 @@ Defines a configuration for generating outgoing requests for a resolver.
 ---
 ### ResponseTemplate
 
-
+ 
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 
 ```yaml
 "resultRoot": string
@@ -87,6 +89,7 @@ Defines a configuration for generating outgoing requests for a resolver.
 ### GrpcRequestTemplate
 
  
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 Defines a configuration for generating outgoing requests for a resolver.
 
 ```yaml
@@ -111,6 +114,7 @@ Defines a configuration for generating outgoing requests for a resolver.
 ### RESTResolver
 
  
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 control-plane API
 
 ```yaml
@@ -137,6 +141,7 @@ control-plane API
 ### GrpcDescriptorRegistry
 
  
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 Defines a configuration for serializing and deserializing requests for a gRPC resolver.
 Is a Schema Extension
 
@@ -149,8 +154,8 @@ Is a Schema Extension
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `protoDescriptor` | `string` | Supplies the filename of :ref:`the proto descriptor set <config_grpc_json_generate_proto_descriptor_set>` for the gRPC services. Only one of `protoDescriptor`, `protoDescriptorBin`, or `protoRefsList` can be set. |
-| `protoDescriptorBin` | `bytes` | Supplies the binary content of :ref:`the proto descriptor set <config_grpc_json_generate_proto_descriptor_set>` for the gRPC services. Note: in yaml, this must be provided as a base64 standard encoded string; yaml cannot handle binary bytes. Only one of `protoDescriptorBin`, `protoDescriptor`, or `protoRefsList` can be set. |
+| `protoDescriptor` | `string` | Supplies the filename of the proto descriptor set for the gRPC services. Only one of `protoDescriptor`, `protoDescriptorBin`, or `protoRefsList` can be set. |
+| `protoDescriptorBin` | `bytes` | Supplies the binary content of the proto descriptor set for the gRPC services. Note: in yaml, this must be provided as a base64 standard encoded string; yaml cannot handle binary bytes. Only one of `protoDescriptorBin`, `protoDescriptor`, or `protoRefsList` can be set. |
 | `protoRefsList` | [.graphql.gloo.solo.io.GrpcDescriptorRegistry.ProtoRefs](../graphql.proto.sk/#protorefs) | Allows the user to put proto descriptor set binary content in configmaps; The descriptor set binary content in these config maps must be base64 encoded Generating the proto descriptor binary and base64 encoding it can be done using the following command `protoc ./your-proto-here.proto --proto_path . --descriptor_set_out="/dev/stdout" --include_imports | base64`. Only one of `protoRefsList`, `protoDescriptor`, or `protoDescriptorBin` can be set. |
 
 
@@ -200,7 +205,8 @@ control-plane API
 ---
 ### StitchedSchema
 
-
+ 
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 
 ```yaml
 "subschemas": []graphql.gloo.solo.io.StitchedSchema.SubschemaConfig
@@ -259,7 +265,8 @@ control-plane API
 ---
 ### MockResolver
 
-
+ 
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 
 ```yaml
 "syncResponse": .google.protobuf.Value
@@ -300,6 +307,7 @@ control-plane API
 ### Resolution
 
  
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 Define a named resolver which can be then matched to a field using the `resolve` directive.
 if a field does not have resolver, the default resolver will be used.
 the default resolver takes the field with the same name from the parent, and uses that value
@@ -328,7 +336,7 @@ If a field with the same name does not exist in the parent, null will be used.
 ### GraphQLApi
 
  
-Enterprise-Only: THIS FEATURE IS IN TECH PREVIEW. APIs are versioned as alpha and subject to change.
+Deprecated, Enterprise-Only: THIS FEATURE IS DEPRECATED AND WILL BE REMOVED IN A FUTURE RELEASE. APIs are versioned as alpha and subject to change.
 User-facing CR config for resolving client requests to graphql schemas.
 Routes that have this config will execute graphql queries, and will not make it to the router filter. i.e. this
 filter will terminate the request for these routes.
@@ -383,6 +391,7 @@ configure the routes to point to these schema CRs.
 ### PersistedQueryCacheConfig
 
  
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 This message specifies Persisted Query Cache configuration.
 
 ```yaml
@@ -400,7 +409,8 @@ This message specifies Persisted Query Cache configuration.
 ---
 ### ExecutableSchema
 
-
+ 
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 
 ```yaml
 "schemaDefinition": string
@@ -421,7 +431,8 @@ This message specifies Persisted Query Cache configuration.
 ---
 ### Executor
 
-
+ 
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 
 ```yaml
 "local": .graphql.gloo.solo.io.Executor.Local

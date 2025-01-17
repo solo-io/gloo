@@ -24,5 +24,7 @@ Once the change has been merged into the main branch, create a PR to backport th
   - Resolve any conflicts that have arisen due to drift between LTS branches
   - If there is significant drift that causes the cherry-pick to be non-trivial, consider re-implementing the change from scratch rather than "backporting"
 - Modify the changelog to be in the proper directory
+  - Note: In the rare case that a new feature (indicated by `NEW_FEATURE` in the [changelog file](https://github.com/solo-io/go-utils/blob/main/changelogutils/README.md)) is being backported, changelog-bot
+    will complain with an error similar to `Only one version greater than the latest release <release> valid, found...`. This is because our changelog-bot does not allow `NEW_FEATURE` in a backport/patch release. To get around this error, change the changelog type from `NEW_FEATURE` to `FIX` for backports.
 - Validate that Proto fields have the same numbers as in main
-- Title your pr to start with the major.minor version that you are backporting to (e.g. 1.13 for 1.13.x branch)
+- Title your PR to start with the major.minor version that you are backporting to (e.g. 1.13 for 1.13.x branch)

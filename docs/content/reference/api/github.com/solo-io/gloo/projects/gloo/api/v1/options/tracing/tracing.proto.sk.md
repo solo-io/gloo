@@ -1,6 +1,6 @@
 
 ---
-title: "tracing.proto"
+title: "Tracing"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `tracing.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ListenerTracingSettings](#listenertracingsettings)
@@ -16,11 +16,14 @@ weight: 5
 - [TracePercentages](#tracepercentages)
 - [TracingTagEnvironmentVariable](#tracingtagenvironmentvariable)
 - [TracingTagLiteral](#tracingtagliteral)
+- [TracingTagMetadata](#tracingtagmetadata)
+- [MetadataValue](#metadatavalue)
+- [Kind](#kind)
   
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/tracing/tracing.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/tracing/tracing.proto)**
 
 
 
@@ -44,6 +47,8 @@ See [here](https://docs.solo.io/gloo-edge/latest/guides/observability/tracing/) 
 "openCensusConfig": .solo.io.envoy.config.trace.v3.OpenCensusConfig
 "environmentVariablesForTags": []tracing.options.gloo.solo.io.TracingTagEnvironmentVariable
 "literalsForTags": []tracing.options.gloo.solo.io.TracingTagLiteral
+"metadataForTags": []tracing.options.gloo.solo.io.TracingTagMetadata
+"spawnUpstreamSpan": bool
 
 ```
 
@@ -52,12 +57,14 @@ See [here](https://docs.solo.io/gloo-edge/latest/guides/observability/tracing/) 
 | `requestHeadersForTags` | [[]google.protobuf.StringValue](../../../../../../../../protoc-gen-ext/external/google/protobuf/wrappers.proto.sk/#stringvalue) | Optional. If specified, Envoy will include the headers and header values for any matching request headers. |
 | `verbose` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Optional. If true, Envoy will include logs for streaming events. Default: false. |
 | `tracePercentages` | [.tracing.options.gloo.solo.io.TracePercentages](../tracing.proto.sk/#tracepercentages) | Requests can produce traces by random sampling or when the `x-client-trace-id` header is provided. TracePercentages defines the limits for random, forced, and overall tracing percentages. |
-| `zipkinConfig` | [.solo.io.envoy.config.trace.v3.ZipkinConfig](../../../../external/envoy/config/trace/v3/zipkin.proto.sk/#zipkinconfig) |  Only one of `zipkinConfig`, `datadogConfig`, `openTelemetryConfig`, or `openCensusConfig` can be set. |
-| `datadogConfig` | [.solo.io.envoy.config.trace.v3.DatadogConfig](../../../../external/envoy/config/trace/v3/datadog.proto.sk/#datadogconfig) |  Only one of `datadogConfig`, `zipkinConfig`, `openTelemetryConfig`, or `openCensusConfig` can be set. |
-| `openTelemetryConfig` | [.solo.io.envoy.config.trace.v3.OpenTelemetryConfig](../../../../external/envoy/config/trace/v3/opentelemetry.proto.sk/#opentelemetryconfig) |  Only one of `openTelemetryConfig`, `zipkinConfig`, `datadogConfig`, or `openCensusConfig` can be set. |
-| `openCensusConfig` | [.solo.io.envoy.config.trace.v3.OpenCensusConfig](../../../../external/envoy/config/trace/v3/opencensus.proto.sk/#opencensusconfig) |  Only one of `openCensusConfig`, `zipkinConfig`, `datadogConfig`, or `openTelemetryConfig` can be set. |
+| `zipkinConfig` | .solo.io.envoy.config.trace.v3.ZipkinConfig |  Only one of `zipkinConfig`, `datadogConfig`, `openTelemetryConfig`, or `openCensusConfig` can be set. |
+| `datadogConfig` | .solo.io.envoy.config.trace.v3.DatadogConfig |  Only one of `datadogConfig`, `zipkinConfig`, `openTelemetryConfig`, or `openCensusConfig` can be set. |
+| `openTelemetryConfig` | .solo.io.envoy.config.trace.v3.OpenTelemetryConfig |  Only one of `openTelemetryConfig`, `zipkinConfig`, `datadogConfig`, or `openCensusConfig` can be set. |
+| `openCensusConfig` | .solo.io.envoy.config.trace.v3.OpenCensusConfig |  Only one of `openCensusConfig`, `zipkinConfig`, `datadogConfig`, or `openTelemetryConfig` can be set. |
 | `environmentVariablesForTags` | [[]tracing.options.gloo.solo.io.TracingTagEnvironmentVariable](../tracing.proto.sk/#tracingtagenvironmentvariable) | Optional. If specified, Envoy will include the environment variables with the given tag as tracing tags. |
 | `literalsForTags` | [[]tracing.options.gloo.solo.io.TracingTagLiteral](../tracing.proto.sk/#tracingtagliteral) | Optional. If specified, Envoy will include the literals with the given tag as tracing tags. |
+| `metadataForTags` | [[]tracing.options.gloo.solo.io.TracingTagMetadata](../tracing.proto.sk/#tracingtagmetadata) | Optional. If specified, Envoy will include tags from the dynamic metadata. |
+| `spawnUpstreamSpan` | `bool` | Optional Create separate tracing span for each upstream request if true. And if this flag is set to true, the tracing provider will assume that Envoy will be independent hop in the trace chain and may set span type to client or server based on this flag. |
 
 
 
@@ -150,6 +157,65 @@ TracingTagLiteral defines a literal which gets added as custom tag.
 | ----- | ---- | ----------- | 
 | `tag` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | Used to populate the tag name. |
 | `value` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | Static literal value to populate the tag value. |
+
+
+
+
+---
+### TracingTagMetadata
+
+ 
+Requests can produce traces with custom tags.
+TracingTagMetadata defines a dynamic metadata tag which gets added as custom tag.
+
+```yaml
+"tag": string
+"kind": .tracing.options.gloo.solo.io.TracingTagMetadata.Kind
+"value": .tracing.options.gloo.solo.io.TracingTagMetadata.MetadataValue
+"defaultValue": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `tag` | `string` | Used to populate the tag name. |
+| `kind` | [.tracing.options.gloo.solo.io.TracingTagMetadata.Kind](../tracing.proto.sk/#kind) | The kind of metadata to extract the value from. |
+| `value` | [.tracing.options.gloo.solo.io.TracingTagMetadata.MetadataValue](../tracing.proto.sk/#metadatavalue) | The metadata value to extract the tag value from. |
+| `defaultValue` | `string` | When no valid metadata is found, the tag value would be populated with this default value if specified, otherwise no tag would be populated. |
+
+
+
+
+---
+### MetadataValue
+
+
+
+```yaml
+"namespace": string
+"key": string
+"nestedFieldDelimiter": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `namespace` | `string` | The namespace to extract the value from the metadata. If empty will default to JWT principal namespace. |
+| `key` | `string` | The key to extract the value from the metadata. For example, `principal.iss` or `principal.sub` to extract those claims from the JWT ns. |
+| `nestedFieldDelimiter` | `string` | The delimiter to use when specifying nested fields. Default is `.`. This is commonly set to `.`, allowing for nested fields names of the form `parent.child.grandchild`. |
+
+
+
+
+---
+### Kind
+
+
+
+| Name | Description |
+| ----- | ----------- | 
+| `REQUEST` | The metadata is extracted from the stream metadata. |
+| `ENDPOINT` | The metadata is extracted from the endpoint metadata. |
 
 
 

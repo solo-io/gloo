@@ -1,4 +1,4 @@
-package iosnapshot
+package iosnapshot_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	gomegatypes "github.com/onsi/gomega/types"
 	"github.com/solo-io/gloo/pkg/schemes"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/servers/iosnapshot"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 
 	wellknownkube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/wellknown"
@@ -52,16 +53,16 @@ var _ = Describe("History", func() {
 		ctx context.Context
 
 		clientBuilder *fake.ClientBuilder
-		history       History
+		history       iosnapshot.History
 
-		historyFactorParams HistoryFactoryParameters
+		historyFactorParams iosnapshot.HistoryFactoryParameters
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
 		clientBuilder = fake.NewClientBuilder().WithScheme(schemes.DefaultScheme())
 
-		historyFactorParams = HistoryFactoryParameters{
+		historyFactorParams = iosnapshot.HistoryFactoryParameters{
 			Settings: &v1.Settings{
 				Metadata: &core.Metadata{
 					Name:      "my-settings",
@@ -98,11 +99,11 @@ var _ = Describe("History", func() {
 					},
 				}
 
-				history = NewHistory(
+				history = iosnapshot.NewHistory(
 					historyFactorParams.Cache,
 					historyFactorParams.Settings,
 					clientBuilder.WithObjects(clientObjects...).Build(),
-					append(CompleteInputSnapshotGVKs, deploymentGvk), // include the Deployment GVK
+					append(iosnapshot.CompleteInputSnapshotGVKs, deploymentGvk), // include the Deployment GVK
 				)
 			})
 
@@ -136,7 +137,7 @@ var _ = Describe("History", func() {
 					},
 				}
 
-				history = NewHistory(&xds.MockXdsCache{},
+				history = iosnapshot.NewHistory(&xds.MockXdsCache{},
 					&v1.Settings{
 						Metadata: &core.Metadata{
 							Name:      "my-settings",
@@ -144,7 +145,7 @@ var _ = Describe("History", func() {
 						},
 					},
 					clientBuilder.WithObjects(clientObjects...).Build(),
-					CompleteInputSnapshotGVKs, // do not include the Deployment GVK
+					iosnapshot.CompleteInputSnapshotGVKs, // do not include the Deployment GVK
 				)
 			})
 
@@ -377,11 +378,11 @@ var _ = Describe("History", func() {
 				},
 			}
 
-			history = NewHistory(
+			history = iosnapshot.NewHistory(
 				historyFactorParams.Cache,
 				historyFactorParams.Settings,
 				clientBuilder.WithObjects(clientObjects...).Build(),
-				CompleteInputSnapshotGVKs)
+				iosnapshot.CompleteInputSnapshotGVKs)
 		})
 
 		Context("Kubernetes Core Resources", func() {
@@ -663,11 +664,11 @@ var _ = Describe("History", func() {
 	Context("GetEdgeApiSnapshot", func() {
 
 		BeforeEach(func() {
-			history = NewHistory(
+			history = iosnapshot.NewHistory(
 				historyFactorParams.Cache,
 				historyFactorParams.Settings,
 				clientBuilder.Build(), // no objects, because this API doesn't rely on the kube client
-				CompleteInputSnapshotGVKs,
+				iosnapshot.CompleteInputSnapshotGVKs,
 			)
 		})
 
@@ -758,11 +759,11 @@ var _ = Describe("History", func() {
 	Context("GetProxySnapshot", func() {
 
 		BeforeEach(func() {
-			history = NewHistory(
+			history = iosnapshot.NewHistory(
 				historyFactorParams.Cache,
 				historyFactorParams.Settings,
 				clientBuilder.Build(), // no objects, because this API doesn't rely on the kube client
-				CompleteInputSnapshotGVKs,
+				iosnapshot.CompleteInputSnapshotGVKs,
 			)
 		})
 
@@ -794,7 +795,7 @@ var _ = Describe("History", func() {
 
 })
 
-func getInputSnapshotObjects(ctx context.Context, history History) []client.Object {
+func getInputSnapshotObjects(ctx context.Context, history iosnapshot.History) []client.Object {
 	snapshotResponse := history.GetInputSnapshot(ctx)
 	Expect(snapshotResponse.Error).NotTo(HaveOccurred())
 
@@ -804,7 +805,7 @@ func getInputSnapshotObjects(ctx context.Context, history History) []client.Obje
 	return responseObjects
 }
 
-func getProxySnapshotResources(ctx context.Context, history History) []crdv1.Resource {
+func getProxySnapshotResources(ctx context.Context, history iosnapshot.History) []crdv1.Resource {
 	snapshotResponse := history.GetProxySnapshot(ctx)
 	Expect(snapshotResponse.Error).NotTo(HaveOccurred())
 
@@ -814,7 +815,7 @@ func getProxySnapshotResources(ctx context.Context, history History) []crdv1.Res
 	return responseObjects
 }
 
-func getEdgeApiSnapshot(ctx context.Context, history History) *v1snap.ApiSnapshot {
+func getEdgeApiSnapshot(ctx context.Context, history iosnapshot.History) *v1snap.ApiSnapshot {
 	snapshotResponse := history.GetEdgeApiSnapshot(ctx)
 	Expect(snapshotResponse.Error).NotTo(HaveOccurred())
 
@@ -827,7 +828,7 @@ func getEdgeApiSnapshot(ctx context.Context, history History) *v1snap.ApiSnapsho
 // setSnapshotOnHistory sets the ApiSnapshot on the history, and blocks until it has been processed
 // This is a utility method to help developers write tests, without having to worry about the asynchronous
 // nature of the `Set` API on the History
-func setSnapshotOnHistory(ctx context.Context, history History, snap *v1snap.ApiSnapshot) {
+func setSnapshotOnHistory(ctx context.Context, history iosnapshot.History, snap *v1snap.ApiSnapshot) {
 	gwSignal := &gatewayv1.Gateway{
 		// We append a custom Gateway to the Snapshot, and then use that object
 		// to verify the Snapshot has been processed

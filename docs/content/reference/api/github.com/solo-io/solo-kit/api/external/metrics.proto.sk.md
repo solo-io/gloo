@@ -1,6 +1,6 @@
 
 ---
-title: "metrics.proto"
+title: "Metrics"
 weight: 5
 ---
 
@@ -23,7 +23,7 @@ limitations under the License.
 
 
  
-#### Types:
+**Types:**
 
 
 - [LabelPair](#labelpair)
@@ -40,14 +40,14 @@ limitations under the License.
 
  
 
-##### Enums:
+**Enums:**
 
 
 	- [MetricType](#metrictype)
 
 
 
-##### Source File: [github.com/solo-io/solo-kit/api/external/metrics.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/metrics.proto)
+**Source File: [github.com/solo-io/solo-kit/api/external/metrics.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/metrics.proto)**
 
 
 

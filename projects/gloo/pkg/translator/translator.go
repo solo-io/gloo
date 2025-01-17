@@ -179,7 +179,7 @@ func (t *translatorInstance) translateClusterSubsystemComponents(params plugins.
 
 	upstreamRefKeyToEndpoints := createUpstreamToEndpointsMap(params.Snapshot.Upstreams, params.Snapshot.Endpoints)
 
-	// endpoints and listeners are shared between listeners
+	// endpoints and clusters are shared between listeners
 	logger.Debugf("computing envoy clusters for proxy: %v", proxy.GetMetadata().GetName())
 	clusters, clusterToUpstreamMap := t.computeClusters(params, reports, upstreamRefKeyToEndpoints, proxy)
 	logger.Debugf("computing envoy endpoints for proxy: %v", proxy.GetMetadata().GetName())
@@ -415,6 +415,8 @@ func GetEndpointClusterName(clusterName string, upstream *v1.Upstream) (string, 
 	if err != nil {
 		return "", err
 	}
+	//note: we add the upstream hash here because of
+	// https://github.com/envoyproxy/envoy/issues/13009
 	endpointClusterName := fmt.Sprintf("%s-%d", clusterName, hash)
 	return endpointClusterName, nil
 }

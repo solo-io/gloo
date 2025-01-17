@@ -1,6 +1,6 @@
 
 ---
-title: "wrappers.proto"
+title: "Wrappers"
 weight: 5
 ---
 
@@ -49,7 +49,7 @@ individual entries of a map or fields of a oneof can already detect presence.
 
 
  
-#### Types:
+**Types:**
 
 
 - [DoubleValue](#doublevalue)
@@ -65,7 +65,7 @@ individual entries of a map or fields of a oneof can already detect presence.
 
 
 
-##### Source File: [github.com/solo-io/protoc-gen-ext/external/google/protobuf/wrappers.proto](https://github.com/solo-io/protoc-gen-ext/blob/main/external/google/protobuf/wrappers.proto)
+**Source File: [github.com/solo-io/protoc-gen-ext/external/google/protobuf/wrappers.proto](https://github.com/solo-io/protoc-gen-ext/blob/main/external/google/protobuf/wrappers.proto)**
 
 
 

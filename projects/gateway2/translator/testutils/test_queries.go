@@ -10,7 +10,7 @@ import (
 type IndexIteratorFunc = func(f func(client.Object, string, client.IndexerFunc) error) error
 
 func BuildIndexedFakeClient(objs []client.Object, funcs ...IndexIteratorFunc) client.Client {
-	builder := fake.NewClientBuilder().WithScheme(schemes.DefaultScheme())
+	builder := fake.NewClientBuilder().WithScheme(schemes.GatewayScheme())
 	for _, f := range funcs {
 		f(func(o client.Object, s string, ifunc client.IndexerFunc) error {
 			builder.WithIndex(o, s, ifunc)
@@ -21,15 +21,14 @@ func BuildIndexedFakeClient(objs []client.Object, funcs ...IndexIteratorFunc) cl
 	return builder.WithObjects(objs...).Build()
 }
 
-func BuildGatewayQueriesWithClient(fakeClient client.Client) query.GatewayQueries {
-	reqCRDsExist := true
-	return query.NewData(fakeClient, schemes.DefaultScheme(), &reqCRDsExist)
+func BuildGatewayQueriesWithClient(fakeClient client.Client, opts ...query.Option) query.GatewayQueries {
+	return query.NewData(fakeClient, schemes.GatewayScheme(), opts...)
 }
 
 func BuildGatewayQueries(
 	objs []client.Object,
 ) query.GatewayQueries {
-	builder := fake.NewClientBuilder().WithScheme(schemes.DefaultScheme())
+	builder := fake.NewClientBuilder().WithScheme(schemes.GatewayScheme())
 	query.IterateIndices(func(o client.Object, f string, fun client.IndexerFunc) error {
 		builder.WithIndex(o, f, fun)
 		return nil
@@ -37,7 +36,5 @@ func BuildGatewayQueries(
 
 	fakeClient := builder.WithObjects(objs...).Build()
 
-	reqCRDsExist := true
-
-	return query.NewData(fakeClient, schemes.DefaultScheme(), &reqCRDsExist)
+	return query.NewData(fakeClient, schemes.GatewayScheme())
 }

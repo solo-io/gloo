@@ -2,10 +2,10 @@ package setup
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
-
-	"errors"
+	"strings"
 
 	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
@@ -42,9 +42,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-var (
-	settingsGVR = glookubev1.SchemeGroupVersion.WithResource("settings")
-)
+var settingsGVR = glookubev1.SchemeGroupVersion.WithResource("settings")
 
 func createKubeClient(restConfig *rest.Config) (istiokube.Client, error) {
 	restCfg := istiokube.NewClientConfigForRestConfig(restConfig)
@@ -76,15 +74,14 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 		return nil
 	}
 	return out
-
 }
 
 func StartGGv2(ctx context.Context,
 	setupOpts *bootstrap.SetupOpts,
 	uccBuilder krtcollections.UniquelyConnectedClientsBulider,
 	extensionsFactory extensions.K8sGatewayExtensionsFactory,
-	pluginRegistryFactory func(opts registry.PluginOpts) plugins.PluginRegistryFactory) error {
-
+	pluginRegistryFactory func(opts registry.PluginOpts) plugins.PluginRegistryFactory,
+) error {
 	restConfig := ctrl.GetConfigOrDie()
 
 	return StartGGv2WithConfig(ctx, setupOpts, restConfig, uccBuilder, extensionsFactory, pluginRegistryFactory, setuputils.SetupNamespaceName())
@@ -114,14 +111,19 @@ func StartGGv2WithConfig(ctx context.Context,
 	}
 
 	logger.Info("creating krt collections")
-	augmentedPods := krtcollections.NewPodsCollection(ctx, kubeClient)
+	augmentedPods := krtcollections.NewPodsCollection(ctx, kubeClient, setupOpts.KrtDebugger)
 	setting := proxy_syncer.SetupCollectionDynamic[glookubev1.Settings](
 		ctx,
 		kubeClient,
 		settingsGVR,
 		krt.WithName("GlooSettings"))
 
-	ucc := uccBuilder(ctx, augmentedPods)
+	augmentedPodsForUcc := augmentedPods
+	if envutils.IsEnvTruthy("DISABLE_POD_LOCALITY_XDS") {
+		augmentedPodsForUcc = nil
+	}
+
+	ucc := uccBuilder(ctx, setupOpts.KrtDebugger, augmentedPodsForUcc)
 
 	settingsSingle := krt.NewSingleton(func(ctx krt.HandlerContext) *glookubev1.Settings {
 		s := krt.FetchOne(ctx, setting,
@@ -158,10 +160,12 @@ func StartGGv2WithConfig(ctx context.Context,
 
 		InitialSettings: initialSettings,
 		Settings:        settingsSingle,
-		// Useful for development purposes; not currently tied to any user-facing API
-		Dev: false,
+		// Dev flag may be useful for development purposes; not currently tied to any user-facing API
+		Dev:      false,
+		Debugger: setupOpts.KrtDebugger,
 	})
 	if err != nil {
+		logger.Error("failed initializing controller: ", err)
 		return err
 	}
 	/// no collections after this point
@@ -213,7 +217,12 @@ func (g *genericStatusReporter) WriteReports(ctx context.Context, resourceErrs r
 	for resource, report := range resourceErrsCopy {
 
 		// check if resource is an internal upstream. if so skip it..
-		if kubernetes.IsKubeUpstream(resource.GetMetadata().GetName()) {
+		if kubernetes.IsFakeKubeUpstream(resource.GetMetadata().GetName()) {
+			continue
+		}
+		// check if resource is an internal upstream. Internal upstreams have ':' in their names so
+		// the cannot be written to the cluster. if so skip it..
+		if strings.IndexRune(resource.GetMetadata().GetName(), ':') >= 0 {
 			continue
 		}
 
@@ -223,7 +232,10 @@ func (g *genericStatusReporter) WriteReports(ctx context.Context, resourceErrs r
 		resourceStatus := g.statusClient.GetStatus(resource)
 
 		if status.Equal(resourceStatus) {
-			logger.Debugf("skipping report for %v as it has not changed", resource.GetMetadata().Ref())
+			// TODO: find a way to log this but it is noisy currently due to once per second status sync
+			// see: projects/gateway2/proxy_syncer/kube_gw_translator_syncer.go#syncStatus(...)
+			// and its call site in projects/gateway2/proxy_syncer/proxy_syncer.go
+			// logger.Debugf("skipping report for %v as it has not changed", resource.GetMetadata().Ref())
 			continue
 		}
 

@@ -1,6 +1,6 @@
 
 ---
-title: "connection.proto"
+title: "Connection"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ConnectionConfig](#connectionconfig)
@@ -17,7 +17,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/connection.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/connection.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/connection.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/connection.proto)**
 
 
 

@@ -49,10 +49,11 @@ func (iu *PerClientEnvoyClusters) FetchClustersForClient(kctx krt.HandlerContext
 
 func NewPerClientEnvoyClusters(
 	ctx context.Context,
+	dbg *krt.DebugHandler,
 	translator setup.TranslatorFactory,
 	upstreams krt.Collection[krtcollections.UpstreamWrapper],
 	uccs krt.Collection[krtcollections.UniqlyConnectedClient],
-	ks krt.Collection[krtcollections.ResourceWrapper[*gloov1.Secret]],
+	ks krt.Collection[RedactedSecret],
 	settings krt.Singleton[glookubev1.Settings],
 	destinationRulesIndex DestinationRuleIndex,
 ) PerClientEnvoyClusters {
@@ -105,7 +106,7 @@ func NewPerClientEnvoyClusters(
 			})
 		}
 		return uccWithClusterRet
-	})
+	}, krt.WithName("PerClientEnvoyClusters"), krt.WithDebugging(dbg))
 	idx := krt.NewIndex(clusters, func(ucc uccWithCluster) []string {
 		return []string{ucc.Client.ResourceName()}
 	})
@@ -137,7 +138,7 @@ func translate(ctx context.Context, settings *gloov1.Settings, translator setup.
 
 func ApplyDestRulesForUpstream(destrule *DestinationRuleWrapper, u *gloov1.Upstream) (*gloov1.Upstream, string) {
 	if destrule != nil {
-		trafficPolicy := getTraficPolicy(destrule, ggv2utils.GetPortForUpstream(u))
+		trafficPolicy := getTrafficPolicy(destrule, ggv2utils.GetPortForUpstream(u))
 		if outlier := trafficPolicy.GetOutlierDetection(); outlier != nil {
 			name := krtcollections.GetEndpointClusterName(u)
 

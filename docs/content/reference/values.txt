@@ -42,6 +42,7 @@
 |kubeGateway.gatewayParameters.glooGateway.service.type|string|LoadBalancer|K8s service type. If set to null, a default of LoadBalancer will be imposed.|
 |kubeGateway.gatewayParameters.glooGateway.service.extraLabels.NAME|string||Extra labels to add to the service.|
 |kubeGateway.gatewayParameters.glooGateway.service.extraAnnotations.NAME|string||Extra annotations to add to the service.|
+|kubeGateway.gatewayParameters.glooGateway.service.externalTrafficPolicy|string||Set the external traffic policy on the provisioned service.|
 |kubeGateway.gatewayParameters.glooGateway.serviceAccount.extraLabels.NAME|string||Extra labels to add to the service account.|
 |kubeGateway.gatewayParameters.glooGateway.serviceAccount.extraAnnotations.NAME|string||Extra annotations to add to the service account.|
 |kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.tag|string|<release_version, ex: 1.2.3>|The image tag for the container.|
@@ -184,6 +185,52 @@
 |kubeGateway.gatewayParameters.glooGateway.aiExtension.ports[].protocol|string|||
 |kubeGateway.gatewayParameters.glooGateway.aiExtension.ports[].hostIP|string|||
 |kubeGateway.gatewayParameters.glooGateway.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container. Default is false.|
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.gracefulShutdown.enabled|bool||Enable grace period before shutdown to finish current requests while Envoy health checks fail to e.g. notify external load balancers. *NOTE:* This will not have any effect if you have not defined health checks via the health check filter|
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.gracefulShutdown.sleepTimeSeconds|int||Time (in seconds) for the preStop hook to wait before allowing Envoy to terminate|
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.terminationGracePeriodSeconds|int||Time in seconds to wait for the pod to terminate gracefully. See [kubernetes docs](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#istio-lifecycle) for more info.|
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.probes|bool||Set to true to enable a readiness probe (default is false). Then, you can also enable a liveness probe.|
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.exec.command[]|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.httpGet.path|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.httpGet.port|int64|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.httpGet.port|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.httpGet.port|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.httpGet.host|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.httpGet.scheme|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.httpGet.httpHeaders[].name|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.httpGet.httpHeaders[].value|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.tcpSocket.port|int64|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.tcpSocket.port|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.tcpSocket.port|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.tcpSocket.host|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.grpc.port|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.grpc.service|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.initialDelaySeconds|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.timeoutSeconds|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.periodSeconds|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.successThreshold|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.failureThreshold|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.terminationGracePeriodSeconds|int64|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.exec.command[]|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.httpGet.path|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.httpGet.port|int64|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.httpGet.port|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.httpGet.port|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.httpGet.host|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.httpGet.scheme|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.httpGet.httpHeaders[].name|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.httpGet.httpHeaders[].value|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.tcpSocket.port|int64|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.tcpSocket.port|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.tcpSocket.port|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.tcpSocket.host|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.grpc.port|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.grpc.service|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.initialDelaySeconds|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.timeoutSeconds|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.periodSeconds|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.successThreshold|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.failureThreshold|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.terminationGracePeriodSeconds|int64|||
 |kubeGateway.portal.enabled|bool|false|Enable the Gloo Gateway Portal controller and web server.|
 |settings.watchNamespaces[]|string||whitelist of namespaces for Gloo Edge to watch for services and CRDs. Empty list means all namespaces. If this and WatchNamespaceSelectors are specified, this takes precedence and WatchNamespaceSelectors is ignored|
 |settings.watchNamespaceSelectors|interface||A list of Kubernetes selectors that specify the set of namespaces to restrict the namespaces that Gloo controllers take into consideration when watching for resources. Elements in the list are disjunctive (OR semantics), i.e. a namespace will be included if it matches any selector. An empty list means all namespaces. If this and WatchNamespaces are specified, WatchNamespaces takes precedence and this is ignored|
@@ -569,7 +616,8 @@
 |gateway.validation.disableTransformationValidation|bool|false|set this to true to disable transformation validation. This may bring significant performance benefits if using many transformations, at the cost of possibly incorrect transformations being sent to Envoy. When using this value make sure to pre-validate transformations.|
 |gateway.validation.warnRouteShortCircuiting|bool|false|Write a warning to route resources if validation produced a route ordering warning (defaults to false). By setting to true, this means that Gloo Edge will start assigning warnings to resources that would result in route short-circuiting within a virtual host.|
 |gateway.validation.secretName|string|gateway-validation-certs|Name of the Kubernetes Secret containing TLS certificates used by the validation webhook server. This secret will be created by the certGen Job if the certGen Job is enabled.|
-|gateway.validation.failurePolicy|string|Ignore|failurePolicy defines how unrecognized errors from the Gateway validation endpoint are handled - allowed values are 'Ignore' or 'Fail'. Defaults to Ignore |
+|gateway.validation.failurePolicy|string|Ignore|Specify how to handle unrecognized errors for Gloo resources that are returned from the Gateway validation endpoint. Supported values are 'Ignore' or 'Fail'|
+|gateway.validation.kubeCoreFailurePolicy|string|Ignore|Specify how to handle unrecognized errors for Kubernetes core resources that are returned by the Gateway validation endpoint. Currently the [validation webhook](https://github.com/solo-io/gloo/blob/main/install/helm/gloo/templates/5-gateway-validation-webhook-configuration.yaml) is configured to handle errors for Kubernetes secrets and namespaces. Supported values are 'Ignore' or 'Fail'. If you set this value to 'Fail', you cannot modify these core resources if the 'gloo' service is unavailable.|
 |gateway.validation.webhook.enabled|bool|true|enable validation webhook (default true)|
 |gateway.validation.webhook.disableHelmHook|bool|false|do not create the webhook as helm hook (default false)|
 |gateway.validation.webhook.timeoutSeconds|int||the timeout for the webhook, defaults to 10|
@@ -580,6 +628,8 @@
 |gateway.validation.validationServerGrpcMaxSizeBytes|int|104857600|gRPC max message size in bytes for the gloo validation server|
 |gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
 |gateway.validation.fullEnvoyValidation|bool|false|enable feature which validates all final translated config against envoy Validate mode|
+|gateway.validation.matchConditions[].NAME|interface||Match conditions defined via Common Expression Language (CEL) that should evaluate to true for the Gloo resources webhook to be called. Used for fine-grained request filtering|
+|gateway.validation.kubeCoreMatchConditions[].NAME|interface||Match conditions defined via Common Expression Language (CEL) that should evaluate to true for the Kubernetes core resources webhook to be called. Used for fine-grained request filtering|
 |gateway.certGenJob.image.tag|string|<release_version, ex: 1.2.3>|The image tag for the container.|
 |gateway.certGenJob.image.repository|string|certgen|The image repository (name) for the container.|
 |gateway.certGenJob.image.digest|string||The container image's hash digest (e.g. 'sha256:12345...'), consumed when variant=standard.|
@@ -955,7 +1005,7 @@
 |gatewayProxies.NAME.service.httpsNodePort|int||HTTPS nodeport for the gateway service if using type NodePort|
 |gatewayProxies.NAME.service.clusterIP|string||static clusterIP (or `None`) when `gatewayProxies[].gatewayProxy.service.type` is `ClusterIP`|
 |gatewayProxies.NAME.service.extraAnnotations.NAME|string|||
-|gatewayProxies.NAME.service.externalTrafficPolicy|string|||
+|gatewayProxies.NAME.service.externalTrafficPolicy|string||Set the external traffic policy on the provisioned service.|
 |gatewayProxies.NAME.service.name|string||Custom name override for the service resource of the proxy|
 |gatewayProxies.NAME.service.httpsFirst|bool||List HTTPS port before HTTP|
 |gatewayProxies.NAME.service.loadBalancerIP|string||IP address of the load balancer|
@@ -1208,7 +1258,7 @@
 |gatewayProxies.gatewayProxy.service.httpsNodePort|int||HTTPS nodeport for the gateway service if using type NodePort|
 |gatewayProxies.gatewayProxy.service.clusterIP|string||static clusterIP (or `None`) when `gatewayProxies[].gatewayProxy.service.type` is `ClusterIP`|
 |gatewayProxies.gatewayProxy.service.extraAnnotations.NAME|string|||
-|gatewayProxies.gatewayProxy.service.externalTrafficPolicy|string|||
+|gatewayProxies.gatewayProxy.service.externalTrafficPolicy|string||Set the external traffic policy on the provisioned service.|
 |gatewayProxies.gatewayProxy.service.name|string||Custom name override for the service resource of the proxy|
 |gatewayProxies.gatewayProxy.service.httpsFirst|bool||List HTTPS port before HTTP|
 |gatewayProxies.gatewayProxy.service.loadBalancerIP|string||IP address of the load balancer|

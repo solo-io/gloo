@@ -31,10 +31,10 @@ func (c EndpointResources) Equals(in EndpointResources) bool {
 
 // TODO: this is needed temporary while we don't have the per-upstream translation done.
 // once the plugins are fixed to support it, we can have the proxy translation skip upstreams/endpoints and remove this collection
-func newEnvoyEndpoints(glooEndpoints krt.Collection[krtcollections.EndpointsForUpstream]) krt.Collection[EndpointResources] {
+func newEnvoyEndpoints(glooEndpoints krt.Collection[krtcollections.EndpointsForUpstream], dbg *krt.DebugHandler) krt.Collection[EndpointResources] {
 	clas := krt.NewCollection(glooEndpoints, func(_ krt.HandlerContext, ep krtcollections.EndpointsForUpstream) *EndpointResources {
 		return TransformEndpointToResources(ep)
-	})
+	}, krt.WithDebugging(dbg), krt.WithName("EnvoyEndpoints"))
 	return clas
 }
 
@@ -104,7 +104,7 @@ func (ie *PerClientEnvoyEndpoints) FetchEndpointsForClient(kctx krt.HandlerConte
 	return krt.Fetch(kctx, ie.endpoints, krt.FilterIndex(ie.index, ucc.ResourceName()))
 }
 
-func NewPerClientEnvoyEndpoints(logger *zap.Logger, uccs krt.Collection[krtcollections.UniqlyConnectedClient],
+func NewPerClientEnvoyEndpoints(logger *zap.Logger, dbg *krt.DebugHandler, uccs krt.Collection[krtcollections.UniqlyConnectedClient],
 	glooEndpoints krt.Collection[krtcollections.EndpointsForUpstream],
 	destinationRulesIndex DestinationRuleIndex,
 ) PerClientEnvoyEndpoints {
@@ -117,7 +117,7 @@ func NewPerClientEnvoyEndpoints(logger *zap.Logger, uccs krt.Collection[krtcolle
 			uccWithEndpointsRet = append(uccWithEndpointsRet, uccWithEp)
 		}
 		return uccWithEndpointsRet
-	})
+	}, krt.WithName("PerClientEnvoyEndpoints"), krt.WithDebugging(dbg))
 	idx := krt.NewIndex(clas, func(ucc UccWithEndpoints) []string {
 		return []string{ucc.Client.ResourceName()}
 	})
@@ -133,7 +133,7 @@ func PrioritizeEndpoints(logger *zap.Logger, destrule *DestinationRuleWrapper, e
 	var priorityInfo *PriorityInfo
 
 	if destrule != nil {
-		trafficPolicy := getTraficPolicy(destrule, ep.Port)
+		trafficPolicy := getTrafficPolicy(destrule, ep.Port)
 		localityLb := getLocalityLbSetting(trafficPolicy)
 		if localityLb != nil {
 			priorityInfo = getPriorityInfoFromDestrule(localityLb)

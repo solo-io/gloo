@@ -1,6 +1,6 @@
 
 ---
-title: "caching.proto"
+title: "Caching"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `caching.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Settings](#settings)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/caching/caching.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/caching/caching.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/caching/caching.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/caching/caching.proto)**
 
 
 
@@ -38,7 +38,7 @@ weight: 5
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `cachingServiceRef` | [.core.solo.io.ResourceRef](../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | The basic reference for the service. Details name and namespace. |
-| `allowedVaryHeaders` | [[]solo.io.envoy.type.matcher.v3.StringMatcher](../../../../../external/envoy/type/matcher/v3/string.proto.sk/#stringmatcher) | A list of string matchers that state what headers are allowed to vary and still be cached. Per upstream envoy allowed vary headers. |
+| `allowedVaryHeaders` | []solo.io.envoy.type.matcher.v3.StringMatcher | A list of string matchers that state what headers are allowed to vary and still be cached. Per upstream envoy allowed vary headers. |
 | `timeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Connection timeout for retrieval from an sync cache. |
 | `maxPayloadSize` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | Max payload size to cache. If unset defaults to a reasonable value. If explicitly set to 0 will prevent anything with a body from being cached. |
 

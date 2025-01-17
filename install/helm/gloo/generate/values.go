@@ -339,7 +339,17 @@ type GatewayParameters struct {
 	Stats           *GatewayParamsStatsConfig  `json:"stats,omitempty" desc:"Config used to manage the stats endpoints exposed on the deployed proxies"`
 	AIExtension     *GatewayParamsAIExtension  `json:"aiExtension,omitempty" desc:"Config used to manage the Gloo Gateway AI extension."`
 	FloatingUserId  *bool                      `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container. Default is false."`
+	PodTemplate     *GatewayParamsPodTemplate  `json:"podTemplate,omitempty" desc:"The template used to generate the gatewayParams pod"`
 	// TODO(npolshak): Add support for GlooMtls
+}
+
+// GatewayProxyPodTemplate contains the Helm API available to configure the PodTemplate on the gateway Deployment
+type GatewayParamsPodTemplate struct {
+	GracefulShutdown              *GracefulShutdownSpec `json:"gracefulShutdown,omitempty" desc:"If enabled, it calls the /'healthcheck/fail' endpoint on the envoy container prior to shutdown. This is useful for draining a server prior to shutting it down or doing a full"`
+	TerminationGracePeriodSeconds *int                  `json:"terminationGracePeriodSeconds,omitempty" desc:"Time in seconds to wait for the pod to terminate gracefully. See [kubernetes docs](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#istio-lifecycle) for more info."`
+	Probes                        *bool                 `json:"probes,omitempty" desc:"Set to true to enable a readiness probe (default is false). Then, you can also enable a liveness probe."`
+	CustomReadinessProbe          *corev1.Probe         `json:"customReadinessProbe,omitempty" desc:"Defines a custom readiness probe. If not provided, a default one is set"`
+	CustomLivenessProbe           *corev1.Probe         `json:"customLivenessProbe,omitempty" desc:"Defines a custom liveness probe. If not specified, no default liveness probe is set"`
 }
 
 type GatewayParamsStatsConfig struct {
@@ -359,9 +369,10 @@ type ProvisionedDeployment struct {
 }
 
 type ProvisionedService struct {
-	Type             *string           `json:"type,omitempty" desc:"K8s service type. If set to null, a default of LoadBalancer will be imposed."`
-	ExtraLabels      map[string]string `json:"extraLabels,omitempty" desc:"Extra labels to add to the service."`
-	ExtraAnnotations map[string]string `json:"extraAnnotations,omitempty" desc:"Extra annotations to add to the service."`
+	Type                  *string           `json:"type,omitempty" desc:"K8s service type. If set to null, a default of LoadBalancer will be imposed."`
+	ExtraLabels           map[string]string `json:"extraLabels,omitempty" desc:"Extra labels to add to the service."`
+	ExtraAnnotations      map[string]string `json:"extraAnnotations,omitempty" desc:"Extra annotations to add to the service."`
+	ExternalTrafficPolicy *string           `json:"externalTrafficPolicy,omitempty" desc:"Set the external traffic policy on the provisioned service."`
 }
 
 type ProvisionedServiceAccount struct {
@@ -471,19 +482,22 @@ type ServiceAccount struct {
 }
 
 type GatewayValidation struct {
-	Enabled                          *bool    `json:"enabled,omitempty" desc:"enable Gloo Edge API Gateway validation hook (default true)"`
-	AlwaysAcceptResources            *bool    `json:"alwaysAcceptResources,omitempty" desc:"unless this is set this to false in order to ensure validation webhook rejects invalid resources. by default, validation webhook will only log and report metrics for invalid resource admission without rejecting them outright."`
-	AllowWarnings                    *bool    `json:"allowWarnings,omitempty" desc:"set this to false in order to ensure validation webhook rejects resources that would have warning status or rejected status, rather than just rejected."`
-	WarnMissingTlsSecret             *bool    `json:"warnMissingTlsSecret,omitempty" desc:"set this to false in order to treat missing tls secret references as errors, causing validation to fail."`
-	ServerEnabled                    *bool    `json:"serverEnabled,omitempty" desc:"By providing the validation field (parent of this object) the user is implicitly opting into validation. This field allows the user to opt out of the validation server, while still configuring pre-existing fields such as warn_route_short_circuiting and disable_transformation_validation."`
-	DisableTransformationValidation  *bool    `json:"disableTransformationValidation,omitempty" desc:"set this to true to disable transformation validation. This may bring significant performance benefits if using many transformations, at the cost of possibly incorrect transformations being sent to Envoy. When using this value make sure to pre-validate transformations."`
-	WarnRouteShortCircuiting         *bool    `json:"warnRouteShortCircuiting,omitempty" desc:"Write a warning to route resources if validation produced a route ordering warning (defaults to false). By setting to true, this means that Gloo Edge will start assigning warnings to resources that would result in route short-circuiting within a virtual host."`
-	SecretName                       *string  `json:"secretName,omitempty" desc:"Name of the Kubernetes Secret containing TLS certificates used by the validation webhook server. This secret will be created by the certGen Job if the certGen Job is enabled."`
-	FailurePolicy                    *string  `json:"failurePolicy,omitempty" desc:"failurePolicy defines how unrecognized errors from the Gateway validation endpoint are handled - allowed values are 'Ignore' or 'Fail'. Defaults to Ignore "`
-	Webhook                          *Webhook `json:"webhook,omitempty" desc:"webhook specific configuration"`
-	ValidationServerGrpcMaxSizeBytes *int     `json:"validationServerGrpcMaxSizeBytes,omitempty" desc:"gRPC max message size in bytes for the gloo validation server"`
-	LivenessProbeEnabled             *bool    `json:"livenessProbeEnabled,omitempty" desc:"Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true."`
-	FullEnvoyValidation              *bool    `json:"fullEnvoyValidation,omitempty" desc:"enable feature which validates all final translated config against envoy Validate mode"`
+	Enabled                          *bool                    `json:"enabled,omitempty" desc:"enable Gloo Edge API Gateway validation hook (default true)"`
+	AlwaysAcceptResources            *bool                    `json:"alwaysAcceptResources,omitempty" desc:"unless this is set this to false in order to ensure validation webhook rejects invalid resources. by default, validation webhook will only log and report metrics for invalid resource admission without rejecting them outright."`
+	AllowWarnings                    *bool                    `json:"allowWarnings,omitempty" desc:"set this to false in order to ensure validation webhook rejects resources that would have warning status or rejected status, rather than just rejected."`
+	WarnMissingTlsSecret             *bool                    `json:"warnMissingTlsSecret,omitempty" desc:"set this to false in order to treat missing tls secret references as errors, causing validation to fail."`
+	ServerEnabled                    *bool                    `json:"serverEnabled,omitempty" desc:"By providing the validation field (parent of this object) the user is implicitly opting into validation. This field allows the user to opt out of the validation server, while still configuring pre-existing fields such as warn_route_short_circuiting and disable_transformation_validation."`
+	DisableTransformationValidation  *bool                    `json:"disableTransformationValidation,omitempty" desc:"set this to true to disable transformation validation. This may bring significant performance benefits if using many transformations, at the cost of possibly incorrect transformations being sent to Envoy. When using this value make sure to pre-validate transformations."`
+	WarnRouteShortCircuiting         *bool                    `json:"warnRouteShortCircuiting,omitempty" desc:"Write a warning to route resources if validation produced a route ordering warning (defaults to false). By setting to true, this means that Gloo Edge will start assigning warnings to resources that would result in route short-circuiting within a virtual host."`
+	SecretName                       *string                  `json:"secretName,omitempty" desc:"Name of the Kubernetes Secret containing TLS certificates used by the validation webhook server. This secret will be created by the certGen Job if the certGen Job is enabled."`
+	FailurePolicy                    *string                  `json:"failurePolicy,omitempty" desc:"Specify how to handle unrecognized errors for Gloo resources that are returned from the Gateway validation endpoint. Supported values are 'Ignore' or 'Fail'"`
+	KubeCoreFailurePolicy            *string                  `json:"kubeCoreFailurePolicy,omitempty" desc:"Specify how to handle unrecognized errors for Kubernetes core resources that are returned by the Gateway validation endpoint. Currently the [validation webhook](https://github.com/solo-io/gloo/blob/main/install/helm/gloo/templates/5-gateway-validation-webhook-configuration.yaml) is configured to handle errors for Kubernetes secrets and namespaces. Supported values are 'Ignore' or 'Fail'. If you set this value to 'Fail', you cannot modify these core resources if the 'gloo' service is unavailable."`
+	Webhook                          *Webhook                 `json:"webhook,omitempty" desc:"webhook specific configuration"`
+	ValidationServerGrpcMaxSizeBytes *int                     `json:"validationServerGrpcMaxSizeBytes,omitempty" desc:"gRPC max message size in bytes for the gloo validation server"`
+	LivenessProbeEnabled             *bool                    `json:"livenessProbeEnabled,omitempty" desc:"Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true."`
+	FullEnvoyValidation              *bool                    `json:"fullEnvoyValidation,omitempty" desc:"enable feature which validates all final translated config against envoy Validate mode"`
+	MatchConditions                  []map[string]interface{} `json:"matchConditions,omitempty" desc:"Match conditions defined via Common Expression Language (CEL) that should evaluate to true for the Gloo resources webhook to be called. Used for fine-grained request filtering"`
+	KubeCoreMatchConditions          []map[string]interface{} `json:"kubeCoreMatchConditions,omitempty" desc:"Match conditions defined via Common Expression Language (CEL) that should evaluate to true for the Kubernetes core resources webhook to be called. Used for fine-grained request filtering"`
 }
 
 type Webhook struct {
@@ -562,7 +576,7 @@ type CertGenCron struct {
 type GatewayProxy struct {
 	Kind                           *GatewayProxyKind                `json:"kind,omitempty" desc:"value to determine how the gateway proxy is deployed"`
 	Namespace                      *string                          `json:"namespace,omitempty" desc:"Namespace in which to deploy this gateway proxy. Defaults to the value of Settings.WriteNamespace"`
-	PodTemplate                    *GatewayProxyPodTemplate         `json:"podTemplate,omitempty"`
+	PodTemplate                    *GatewayProxyPodTemplate         `json:"podTemplate,omitempty" desc:"The template used to generate the gateway proxy pod"`
 	ConfigMap                      *ConfigMap                       `json:"configMap,omitempty"`
 	CustomStaticLayer              interface{}                      `json:"customStaticLayer,omitempty" desc:"Configure the static layer for global overrides to Envoy behavior, as defined in the Envoy bootstrap YAML. You cannot use this setting to set overload or upstream layers. For more info, see the Envoy docs. https://www.envoyproxy.io/docs/envoy/latest/configuration/operations/runtime#config-runtime"`
 	GlobalDownstreamMaxConnections *uint32                          `json:"globalDownstreamMaxConnections,omitempty" desc:"the number of concurrent connections needed. limit used to protect against exhausting file descriptors on host machine"`
@@ -681,7 +695,7 @@ type GatewayProxyPodTemplate struct {
 	FloatingUserId                *bool                 `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container. If podSecurityContext is defined, this value is not applied."`
 	RunAsUser                     *float64              `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the processes in the container to run as. Default is 10101. If a SecurityContext is defined for the pod or container, this value is not applied for the pod/container."`
 	FsGroup                       *float64              `json:"fsGroup,omitempty" desc:"Explicitly set the group ID for volume ownership. Default is 10101. If podSecurityContext is defined, this value is not applied."`
-	GracefulShutdown              *GracefulShutdownSpec `json:"gracefulShutdown,omitempty"`
+	GracefulShutdown              *GracefulShutdownSpec `json:"gracefulShutdown,omitempty" desc:"If enabled, it calls the /'healthcheck/fail' endpoint on the envoy container prior to shutdown. This is useful for draining a server prior to shutting it down or doing a full"`
 	TerminationGracePeriodSeconds *int                  `json:"terminationGracePeriodSeconds,omitempty" desc:"Time in seconds to wait for the pod to terminate gracefully. See [kubernetes docs](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#istio-lifecycle) for more info."`
 	CustomReadinessProbe          *corev1.Probe         `json:"customReadinessProbe,omitempty"`
 	CustomLivenessProbe           *corev1.Probe         `json:"customLivenessProbe,omitempty"`
@@ -706,7 +720,7 @@ type GatewayProxyService struct {
 	HttpsNodePort            *int                  `json:"httpsNodePort,omitempty" desc:"HTTPS nodeport for the gateway service if using type NodePort"`
 	ClusterIP                *string               "json:\"clusterIP,omitempty\" desc:\"static clusterIP (or `None`) when `gatewayProxies[].gatewayProxy.service.type` is `ClusterIP`\""
 	ExtraAnnotations         map[string]string     `json:"extraAnnotations,omitempty"`
-	ExternalTrafficPolicy    *string               `json:"externalTrafficPolicy,omitempty"`
+	ExternalTrafficPolicy    *string               `json:"externalTrafficPolicy,omitempty" desc:"Set the external traffic policy on the provisioned service."`
 	Name                     *string               `json:"name,omitempty" desc:"Custom name override for the service resource of the proxy"`
 	HttpsFirst               *bool                 `json:"httpsFirst,omitempty" desc:"List HTTPS port before HTTP"`
 	LoadBalancerIP           *string               `json:"loadBalancerIP,omitempty" desc:"IP address of the load balancer"`

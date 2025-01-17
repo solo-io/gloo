@@ -3,6 +3,7 @@ package kubectl
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -11,13 +12,14 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/kubectl/pkg/cmd/version"
 
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/k8s-utils/testutils/kube"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
 )
 
 // Cli is a utility for executing `kubectl` commands
@@ -285,6 +287,12 @@ func (c *Cli) ExecuteOn(ctx context.Context, kubeContext string, args ...string)
 	return c.Execute(ctx, args...)
 }
 
+// Get executes a `kubectl get` command and returns the contents of stdout, stderr, and any error that occurred while running the command
+func (c *Cli) Get(ctx context.Context, args ...string) (string, string, error) {
+	args = append([]string{"get"}, args...)
+	return c.Execute(ctx, args...)
+}
+
 func (c *Cli) Execute(ctx context.Context, args ...string) (string, string, error) {
 	if c.kubeContext != "" {
 		if !slices.Contains(args, "--context") {
@@ -331,8 +339,50 @@ func (c *Cli) RestartDeploymentAndWait(ctx context.Context, name string, extraAr
 	return c.DeploymentRolloutStatus(ctx, name, extraArgs...)
 }
 
+// Describe the container status (equivalent of running `kubectl describe`)
+func (c *Cli) Describe(ctx context.Context, namespace string, name string) (string, error) {
+	stdout, stderr, err := c.Execute(ctx, "-n", namespace, "describe", name)
+	return stdout + stderr, err
+}
+
 // GetContainerLogs retrieves the logs for the specified container
 func (c *Cli) GetContainerLogs(ctx context.Context, namespace string, name string) (string, error) {
 	stdout, stderr, err := c.Execute(ctx, "-n", namespace, "logs", name)
 	return stdout + stderr, err
+}
+
+// GetPodsInNsWithLabel returns the pods in the specified namespace with the specified label
+func (c *Cli) GetPodsInNsWithLabel(ctx context.Context, namespace string, label string) ([]string, error) {
+	podStdOut := bytes.NewBuffer(nil)
+	podStdErr := bytes.NewBuffer(nil)
+
+	// Fetch the name of the Gloo Gateway controller pod
+	getGlooPodNamesCmd := c.Command(ctx, "get", "pod", "-n", namespace,
+		"--selector", label, "--output", "jsonpath='{.items[*].metadata.name}'")
+	err := getGlooPodNamesCmd.WithStdout(podStdOut).WithStderr(podStdErr).Run().Cause()
+	if err != nil {
+		fmt.Printf("error running get gloo pod name command: %v\n", err)
+	}
+
+	// Clean up and check the output
+	glooPodNamesString := strings.Trim(podStdOut.String(), "'")
+	if glooPodNamesString == "" {
+		fmt.Printf("no %s pods found in namespace %s\n", label, namespace)
+		return []string{}, nil
+	}
+
+	// Split the string on whitespace to get the pod names
+	glooPodNames := strings.Fields(glooPodNamesString)
+	return glooPodNames, nil
+}
+
+// Version returns the unmarshalled output of `kubectl version -o json`
+func (c *Cli) Version(ctx context.Context) (version.Version, error) {
+	ver := version.Version{}
+	out, _, err := c.Execute(ctx, "version", "-o", "json")
+	if err != nil {
+		return ver, err
+	}
+	err = json.Unmarshal([]byte(out), &ver)
+	return ver, err
 }

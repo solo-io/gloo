@@ -2,6 +2,7 @@ package proxy_syncer
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
@@ -12,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 
 	rlexternal "github.com/solo-io/gloo/projects/gloo/api/external/solo/ratelimit"
@@ -74,6 +76,7 @@ type ProxySyncer struct {
 	initialSettings *glookubev1.Settings
 	inputs          *GatewayInputChannels
 	mgr             manager.Manager
+	restCfg         *rest.Config
 	k8sGwExtensions extensions.K8sGatewayExtensions
 
 	proxyTranslator ProxyTranslator
@@ -85,8 +88,9 @@ type ProxySyncer struct {
 	proxyReconcileQueue ggv2utils.AsyncQueue[gloov1.ProxyList]
 
 	statusReport            krt.Singleton[report]
-	mostXdsSnapshots        krt.Collection[xdsSnapWrapper]
-	perclientSnapCollection krt.Collection[xdsSnapWrapper]
+	mostXdsSnapshots        krt.Collection[XdsSnapWrapper]
+	perclientSnapCollection krt.Collection[XdsSnapWrapper]
+	proxiesToReconcile      krt.Singleton[proxyList]
 	proxyTrigger            *krt.RecomputeTrigger
 
 	destRules  DestinationRuleIndex
@@ -115,6 +119,7 @@ func NewProxySyncer(
 	ctx context.Context,
 	initialSettings *glookubev1.Settings,
 	settings krt.Singleton[glookubev1.Settings],
+	restCfg *rest.Config,
 	controllerName string,
 	writeNamespace string,
 	inputs *GatewayInputChannels,
@@ -135,6 +140,7 @@ func NewProxySyncer(
 		writeNamespace:      writeNamespace,
 		inputs:              inputs,
 		mgr:                 mgr,
+		restCfg:             restCfg,
 		k8sGwExtensions:     k8sGwExtensions,
 		proxyTranslator:     NewProxyTranslator(translator, xdsCache, settings, syncerExtensions, glooReporter),
 		istioClient:         client,
@@ -182,26 +188,39 @@ func NewProxyTranslator(translator setup.TranslatorFactory,
 	}
 }
 
-type xdsSnapWrapper struct {
-	snap            *xds.EnvoySnapshot
-	proxyKey        string
-	proxyWithReport translatorutils.ProxyWithReports
-	pluginRegistry  registry.PluginRegistry
-	fullReports     reporter.ResourceReports
+type RedactedSecret krtcollections.ResourceWrapper[*gloov1.Secret]
+
+func (us RedactedSecret) ResourceName() string {
+	return (krtcollections.ResourceWrapper[*gloov1.Secret](us)).ResourceName()
 }
 
-var _ krt.ResourceNamer = xdsSnapWrapper{}
-
-func (p xdsSnapWrapper) Equals(in xdsSnapWrapper) bool {
-	return p.snap.Equal(in.snap)
+func (us RedactedSecret) Equals(in RedactedSecret) bool {
+	return proto.Equal(us.Inner, in.Inner)
 }
 
-func (p xdsSnapWrapper) ResourceName() string {
-	return p.proxyKey
+var (
+	_ krt.ResourceNamer           = RedactedSecret{}
+	_ krt.Equaler[RedactedSecret] = RedactedSecret{}
+)
+
+func (l RedactedSecret) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Name      string
+		Namespace string
+		Kind      string
+		Data      string
+	}{
+		Name:      l.Inner.GetMetadata().GetName(),
+		Namespace: l.Inner.GetMetadata().GetNamespace(),
+		Kind:      fmt.Sprintf("%T", l.Inner.GetKind()),
+		Data:      "[REDACTED]",
+	})
 }
+
+var _ json.Marshaler = RedactedSecret{}
 
 type glooProxy struct {
-	proxy *gloov1.Proxy
+	Proxy *gloov1.Proxy
 	// plugins used to generate this proxy
 	pluginRegistry registry.PluginRegistry
 	// the GWAPI reports generated for translation from a GW->Proxy
@@ -212,7 +231,7 @@ type glooProxy struct {
 var _ krt.ResourceNamer = glooProxy{}
 
 func (p glooProxy) Equals(in glooProxy) bool {
-	if !proto.Equal(p.proxy, in.proxy) {
+	if !proto.Equal(p.Proxy, in.Proxy) {
 		return false
 	}
 	if !maps.Equal(p.reportMap.Gateways, in.reportMap.Gateways) {
@@ -228,7 +247,7 @@ func (p glooProxy) Equals(in glooProxy) bool {
 }
 
 func (p glooProxy) ResourceName() string {
-	return xds.SnapshotCacheKey(p.proxy)
+	return xds.SnapshotCacheKey(p.Proxy)
 }
 
 type report struct {
@@ -269,9 +288,10 @@ func (p proxyList) Equals(in proxyList) bool {
 	})
 }
 
-func (s *ProxySyncer) Init(ctx context.Context) error {
+func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 	ctx = contextutils.WithLogger(ctx, "k8s-gw-proxy-syncer")
 	logger := contextutils.LoggerFrom(ctx)
+	withDebug := krt.WithDebugging(dbg)
 
 	configMapClient := kclient.NewFiltered[*corev1.ConfigMap](s.istioClient, kclient.Filter{
 		ObjectTransform: func(obj any) (any, error) {
@@ -285,17 +305,18 @@ func (s *ProxySyncer) Init(ctx context.Context) error {
 			// Annotation is never used - and may cause jitter as these are used for leader election.
 			t.GetObjectMeta().SetAnnotations(nil)
 			return obj, nil
-		}})
-	configMaps := krt.WrapClient(configMapClient, krt.WithName("ConfigMaps"))
+		},
+	})
+	configMaps := krt.WrapClient(configMapClient, krt.WithName("ConfigMaps"), withDebug)
 
 	secretClient := kclient.New[*corev1.Secret](s.istioClient)
-	k8sSecrets := krt.WrapClient(secretClient, krt.WithName("Secrets"))
+	k8sSecrets := krt.WrapClient(secretClient, krt.WithName("Secrets") /* no debug here - we don't want raw secrets printed*/)
 	legacySecretClient := &kubesecret.ResourceClient{
 		KubeCoreResourceClient: common.KubeCoreResourceClient{
 			ResourceType: &gloov1.Secret{},
 		},
 	}
-	secrets := krt.NewCollection(k8sSecrets, func(kctx krt.HandlerContext, i *corev1.Secret) *krtcollections.ResourceWrapper[*gloov1.Secret] {
+	secrets := krt.NewCollection(k8sSecrets, func(kctx krt.HandlerContext, i *corev1.Secret) *RedactedSecret {
 		secret, err := kubeconverters.GlooSecretConverterChain.FromKubeSecret(ctx, legacySecretClient, i)
 		if err != nil {
 			logger.Errorf(
@@ -307,29 +328,29 @@ func (s *ProxySyncer) Init(ctx context.Context) error {
 			return nil
 		}
 		// this must be a gloov1 secret, we accept a panic if not
-		res := krtcollections.ResourceWrapper[*gloov1.Secret]{Inner: secret.(*gloov1.Secret)}
+		res := RedactedSecret{Inner: secret.(*gloov1.Secret)}
 		return &res
-	})
+	}, withDebug)
 
 	authConfigs := SetupCollectionDynamic[extauthkubev1.AuthConfig](
 		ctx,
 		s.istioClient,
 		extauthkubev1.SchemeGroupVersion.WithResource("authconfigs"),
-		krt.WithName("KubeAuthConfigs"),
+		krt.WithName("KubeAuthConfigs"), withDebug,
 	)
 
 	rlConfigs := SetupCollectionDynamic[rlkubev1a1.RateLimitConfig](
 		ctx,
 		s.istioClient,
 		rlkubev1a1.SchemeGroupVersion.WithResource("ratelimitconfigs"),
-		krt.WithName("KubeRateLimitConfigs"),
+		krt.WithName("KubeRateLimitConfigs"), withDebug,
 	)
 
 	upstreams := SetupCollectionDynamic[glookubev1.Upstream](
 		ctx,
 		s.istioClient,
 		glookubev1.SchemeGroupVersion.WithResource("upstreams"),
-		krt.WithName("KubeUpstreams"),
+		krt.WithName("KubeUpstreams"), withDebug,
 	)
 
 	// helper collection to map from the runtime.Object Upstream representation to the gloov1.Upstream wrapper
@@ -340,12 +361,13 @@ func (s *ProxySyncer) Init(ctx context.Context) error {
 			Namespace: u.GetNamespace(),
 		}
 		glooUs.SetMetadata(&md)
+		glooUs.NamespacedStatuses = &u.Status
 		us := &krtcollections.UpstreamWrapper{Inner: glooUs}
 		return us
-	}, krt.WithName("GlooUpstreams"))
+	}, krt.WithName("GlooUpstreams"), withDebug)
 
 	serviceClient := kclient.New[*corev1.Service](s.istioClient)
-	services := krt.WrapClient(serviceClient, krt.WithName("Services"))
+	services := krt.WrapClient(serviceClient, krt.WithName("Services"), withDebug)
 
 	k8sServiceUpstreams := krt.NewManyCollection(services, func(kctx krt.HandlerContext, svc *corev1.Service) []krtcollections.UpstreamWrapper {
 		uss := []krtcollections.UpstreamWrapper{}
@@ -354,7 +376,7 @@ func (s *ProxySyncer) Init(ctx context.Context) error {
 			uss = append(uss, krtcollections.UpstreamWrapper{Inner: us})
 		}
 		return uss
-	}, krt.WithName("KubernetesServiceUpstreams"))
+	}, krt.WithName("KubernetesServiceUpstreams"), withDebug)
 
 	finalUpstreams := krt.JoinCollection(append(
 		[]krt.Collection[krtcollections.UpstreamWrapper]{
@@ -362,9 +384,9 @@ func (s *ProxySyncer) Init(ctx context.Context) error {
 			k8sServiceUpstreams,
 		},
 		s.k8sGwExtensions.KRTExtensions().Upstreams()...,
-	))
+	), withDebug, krt.WithName("FinalUpstreams"))
 
-	inputs := krtcollections.NewGlooK8sEndpointInputs(s.proxyTranslator.settings, s.istioClient, s.augmentedPods, services, finalUpstreams)
+	inputs := krtcollections.NewGlooK8sEndpointInputs(s.proxyTranslator.settings, s.istioClient, dbg, s.augmentedPods, services, finalUpstreams)
 
 	// build Endpoint intermediate representation from kubernetes service and extensions
 	// TODO move kube service to be an extension
@@ -372,15 +394,15 @@ func (s *ProxySyncer) Init(ctx context.Context) error {
 		krtcollections.NewGlooK8sEndpoints(ctx, inputs),
 	},
 		s.k8sGwExtensions.KRTExtensions().Endpoints()...,
-	))
+	), withDebug, krt.WithName("EndpointIRs"))
 
-	clas := newEnvoyEndpoints(endpointIRs)
+	clas := newEnvoyEndpoints(endpointIRs, dbg)
 
 	kubeGateways := SetupCollectionDynamic[gwv1.Gateway](
 		ctx,
 		s.istioClient,
 		istiogvr.KubernetesGateway_v1,
-		krt.WithName("KubeGateways"),
+		krt.WithName("KubeGateways"), withDebug,
 	)
 
 	// alternatively we could start as not synced, and mark ready once ctrl-runtime caches are synced
@@ -391,8 +413,8 @@ func (s *ProxySyncer) Init(ctx context.Context) error {
 		s.proxyTrigger.MarkDependant(kctx)
 		proxy := s.buildProxy(ctx, gw)
 		return proxy
-	})
-	s.mostXdsSnapshots = krt.NewCollection(glooProxies, func(kctx krt.HandlerContext, proxy glooProxy) *xdsSnapWrapper {
+	}, withDebug, krt.WithName("GlooProxies"))
+	s.mostXdsSnapshots = krt.NewCollection(glooProxies, func(kctx krt.HandlerContext, proxy glooProxy) *XdsSnapWrapper {
 		// we are recomputing xds snapshots as proxies have changed, signal that we need to sync xds with these new snapshots
 		xdsSnap := s.translateProxy(
 			ctx,
@@ -407,33 +429,25 @@ func (s *ProxySyncer) Init(ctx context.Context) error {
 			rlConfigs,
 		)
 		return xdsSnap
-	})
+	}, withDebug, krt.WithName("MostXdsSnapshots"))
 
 	if s.initialSettings.Spec.GetGloo().GetIstioOptions().GetEnableIntegration().GetValue() {
-		s.destRules = NewDestRuleIndex(s.istioClient)
+		s.destRules = NewDestRuleIndex(ctx, s.restCfg, s.istioClient, dbg)
 	} else {
 		s.destRules = NewEmptyDestRuleIndex()
 	}
-	epPerClient := NewPerClientEnvoyEndpoints(logger.Desugar(), s.uniqueClients, endpointIRs, s.destRules)
-	clustersPerClient := NewPerClientEnvoyClusters(ctx, s.translator, finalUpstreams, s.uniqueClients, secrets, s.proxyTranslator.settings, s.destRules)
-	s.perclientSnapCollection = snapshotPerClient(logger.Desugar(), s.uniqueClients, s.mostXdsSnapshots, epPerClient, clustersPerClient)
+	epPerClient := NewPerClientEnvoyEndpoints(logger.Desugar(), dbg, s.uniqueClients, endpointIRs, s.destRules)
+	clustersPerClient := NewPerClientEnvoyClusters(ctx, dbg, s.translator, finalUpstreams, s.uniqueClients, secrets, s.proxyTranslator.settings, s.destRules)
+	s.perclientSnapCollection = snapshotPerClient(logger.Desugar(), dbg, s.uniqueClients, s.mostXdsSnapshots, epPerClient, clustersPerClient)
 
 	// build ProxyList collection as glooProxies change
-	proxiesToReconcile := krt.NewSingleton(func(kctx krt.HandlerContext) *proxyList {
+	s.proxiesToReconcile = krt.NewSingleton(func(kctx krt.HandlerContext) *proxyList {
 		proxies := krt.Fetch(kctx, glooProxies)
 		var l gloov1.ProxyList
 		for _, p := range proxies {
-			l = append(l, p.proxy)
+			l = append(l, p.Proxy)
 		}
 		return &proxyList{l}
-	})
-	// handler to reconcile ProxyList for in-memory proxy client
-	proxiesToReconcile.Register(func(o krt.Event[proxyList]) {
-		var l gloov1.ProxyList
-		if o.Event != controllers.EventDelete {
-			l = o.Latest().list
-		}
-		s.reconcileProxies(l)
 	})
 
 	// as proxies are created, they also contain a reportMap containing status for the Gateway and associated xRoutes (really parentRefs)
@@ -480,7 +494,7 @@ func (s *ProxySyncer) Init(ctx context.Context) error {
 		configMaps.Synced().HasSynced,
 		secrets.Synced().HasSynced,
 		services.Synced().HasSynced,
-		inputs.Endpoints.Synced().HasSynced,
+		inputs.EndpointSlices.Synced().HasSynced,
 		inputs.Pods.Synced().HasSynced,
 		inputs.Upstreams.Synced().HasSynced,
 		endpointIRs.Synced().HasSynced,
@@ -506,13 +520,6 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	// latestReport will be constantly updated to contain the merged status report for Kube Gateway status
 	// when timer ticks, we will use the state of the mergedReports at that point in time to sync the status to k8s
 	latestReportQueue := ggv2utils.NewAsyncQueue[reports.ReportMap]()
-	s.statusReport.Register(func(o krt.Event[report]) {
-		if o.Event == controllers.EventDelete {
-			// TODO: handle garbage collection (see: https://github.com/solo-io/solo-projects/issues/7086)
-			return
-		}
-		latestReportQueue.Enqueue(o.Latest().ReportMap)
-	})
 	logger.Infof("waiting for cache to sync")
 
 	// wait for krt collections to sync
@@ -528,6 +535,25 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	}
 
 	logger.Infof("caches warm!")
+
+	// caches are warm, now we can do registrations
+	s.statusReport.Register(func(o krt.Event[report]) {
+		if o.Event == controllers.EventDelete {
+			// TODO: handle garbage collection (see: https://github.com/solo-io/solo-projects/issues/7086)
+			return
+		}
+		latestReportQueue.Enqueue(o.Latest().ReportMap)
+	})
+
+	// handler to reconcile ProxyList for in-memory proxy client
+	s.proxiesToReconcile.Register(func(o krt.Event[proxyList]) {
+		var l gloov1.ProxyList
+		if o.Event != controllers.EventDelete {
+			l = o.Latest().list
+		}
+		s.reconcileProxies(l)
+	})
+
 	go func() {
 		timer := time.NewTicker(time.Second * 1)
 		for {
@@ -536,7 +562,6 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 				logger.Debug("context done, stopping proxy syncer")
 				return
 			case <-timer.C:
-				logger.Debug("syncing status plugins")
 				snaps := s.mostXdsSnapshots.List()
 				for _, snapWrap := range snaps {
 					var proxiesWithReports []translatorutils.ProxyWithReports
@@ -545,7 +570,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 					initStatusPlugins(ctx, proxiesWithReports, snapWrap.pluginRegistry)
 				}
 				for _, snapWrap := range snaps {
-					err := s.proxyTranslator.syncStatus(ctx, snapWrap.snap, snapWrap.proxyKey, snapWrap.fullReports)
+					err := s.proxyTranslator.syncStatus(ctx, snapWrap.proxyKey, snapWrap.fullReports)
 					if err != nil {
 						logger.Errorf("error while syncing proxy '%s': %s", snapWrap.proxyKey, err.Error())
 					}
@@ -558,7 +583,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		}
 	}()
 
-	s.perclientSnapCollection.RegisterBatch(func(o []krt.Event[xdsSnapWrapper], initialSync bool) {
+	s.perclientSnapCollection.RegisterBatch(func(o []krt.Event[XdsSnapWrapper], initialSync bool) {
 		for _, e := range o {
 			if e.Event != controllers.EventDelete {
 				snapWrap := e.Latest()
@@ -639,7 +664,7 @@ func (s *ProxySyncer) buildProxy(ctx context.Context, gw *gwv1.Gateway) *glooPro
 	})
 
 	return &glooProxy{
-		proxy:          proxy,
+		Proxy:          proxy,
 		pluginRegistry: pluginRegistry,
 		reportMap:      rm,
 	}
@@ -652,11 +677,11 @@ func (s *ProxySyncer) translateProxy(
 	proxy *glooProxy,
 	kcm krt.Collection[*corev1.ConfigMap],
 	kep krt.Collection[EndpointResources],
-	ks krt.Collection[krtcollections.ResourceWrapper[*gloov1.Secret]],
+	ks krt.Collection[RedactedSecret],
 	kus krt.Collection[krtcollections.UpstreamWrapper],
 	authConfigs krt.Collection[*extauthkubev1.AuthConfig],
 	rlConfigs krt.Collection[*rlkubev1a1.RateLimitConfig],
-) *xdsSnapWrapper {
+) *XdsSnapWrapper {
 	cfgmaps := krt.Fetch(kctx, kcm)
 	endpoints := krt.Fetch(kctx, kep)
 	secrets := krt.Fetch(kctx, ks)
@@ -670,7 +695,7 @@ func (s *ProxySyncer) translateProxy(
 	// see also: https://github.com/solo-io/solo-projects/issues/7080
 
 	latestSnap := gloosnapshot.ApiSnapshot{}
-	latestSnap.Proxies = gloov1.ProxyList{proxy.proxy}
+	latestSnap.Proxies = gloov1.ProxyList{proxy.Proxy}
 
 	acfgs := make([]*extauthv1.AuthConfig, 0, len(authcfgs))
 	for _, kac := range authcfgs {
@@ -681,6 +706,7 @@ func (s *ProxySyncer) translateProxy(
 			Namespace: kac.GetNamespace(),
 		}
 		gac.SetMetadata(&md)
+		gac.NamespacedStatuses = &kac.Status
 		acfgs = append(acfgs, gac)
 	}
 	latestSnap.AuthConfigs = acfgs
@@ -710,18 +736,18 @@ func (s *ProxySyncer) translateProxy(
 	}
 	latestSnap.Upstreams = gupstreams
 
-	xdsSnapshot, reports, proxyReport := s.proxyTranslator.buildXdsSnapshot(kctx, ctx, proxy.proxy, &latestSnap)
+	xdsSnapshot, reports, proxyReport := s.proxyTranslator.buildXdsSnapshot(kctx, ctx, proxy.Proxy, &latestSnap)
 
 	// TODO(Law): now we not able to merge reports after translation!
 
 	// build ResourceReports struct containing only this Proxy
 	r := make(reporter.ResourceReports)
 	filteredReports := reports.FilterByKind("Proxy")
-	r[proxy.proxy] = filteredReports[proxy.proxy]
+	r[proxy.Proxy] = filteredReports[proxy.Proxy]
 
 	// build object used by status plugins
 	proxyWithReport := translatorutils.ProxyWithReports{
-		Proxy: proxy.proxy,
+		Proxy: proxy.Proxy,
 		Reports: translatorutils.TranslationReports{
 			ProxyReport:     proxyReport,
 			ResourceReports: r,
@@ -745,7 +771,7 @@ func (s *ProxySyncer) translateProxy(
 		zap.Stringer("Routes", resourcesStringer(envoySnap.Routes)),
 		zap.Stringer("Endpoints", resourcesStringer(envoySnap.Endpoints)),
 	)
-	out := xdsSnapWrapper{
+	out := XdsSnapWrapper{
 		snap:            envoySnap,
 		proxyKey:        proxy.ResourceName(),
 		proxyWithReport: proxyWithReport,

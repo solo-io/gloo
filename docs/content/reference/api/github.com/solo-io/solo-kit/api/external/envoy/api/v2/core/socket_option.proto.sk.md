@@ -1,6 +1,6 @@
 
 ---
-title: "socket_option.proto"
+title: "SocketOption"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `solo.io.envoy.api.v2.core` 
-#### Types:
+**Types:**
 
 
 - [SocketOption](#socketoption)
@@ -17,7 +17,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/socket_option.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/envoy/api/v2/core/socket_option.proto)
+**Source File: [github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/socket_option.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/envoy/api/v2/core/socket_option.proto)**
 
 
 

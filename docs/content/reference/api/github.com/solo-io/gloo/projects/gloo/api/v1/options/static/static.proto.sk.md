@@ -1,6 +1,6 @@
 
 ---
-title: "static.proto"
+title: "Static"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `static.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [UpstreamSpec](#upstreamspec)
@@ -18,7 +18,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/static/static.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/static/static.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/static/static.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/static/static.proto)**
 
 
 

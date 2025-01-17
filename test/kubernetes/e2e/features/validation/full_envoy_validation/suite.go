@@ -2,14 +2,13 @@ package full_envoy_validation
 
 import (
 	"context"
+	"fmt"
 
-	gloo_defaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/validation"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -54,14 +53,21 @@ func (s *testingSuite) TestRejectInvalidTransformation() {
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assert().NoError(err)
-	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
-		func() (resources.InputResource, error) {
+	// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
+	// other syncers that have translated them, so we can only detect that the objects exist here
+	s.testInstallation.Assertions.EventuallyResourceExists(
+		func() (resources.Resource, error) {
 			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, "nginx-upstream", clients.ReadOpts{Ctx: s.ctx})
 		},
-		core.Status_Accepted,
-		gloo_defaults.GlooReporter,
 	)
 
+	// we need to make sure Gloo has had a chance to process it
+	s.testInstallation.Assertions.ConsistentlyResourceExists(
+		s.ctx,
+		func() (resources.Resource, error) {
+			return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, "nginx-upstream", clients.ReadOpts{Ctx: s.ctx})
+		},
+	)
 	s.T().Cleanup(func() {
 		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.VSTransformationHeaderText, "-n", s.testInstallation.Metadata.InstallNamespace)
 		s.Assert().NoError(err)
@@ -71,4 +77,24 @@ func (s *testingSuite) TestRejectInvalidTransformation() {
 	s.Assert().Error(err)
 	s.Assert().Contains(output, "Failed to parse response template: Failed to parse "+
 		"header template ':status': [inja.exception.parser_error] (at 1:92) expected statement close, got '%'")
+}
+
+// TestLargeConfiguration checks webhook accepts large configuration when fullEnvoyValidation=true
+func (s *testingSuite) TestLargeConfiguration() {
+	s.T().Skip("we need to make sure we have all formats working")
+	s.T().Cleanup(func() {
+		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.LargeConfiguration, "-n",
+			s.testInstallation.Metadata.InstallNamespace)
+		s.Assertions.NoError(err, "can delete large configuration")
+
+		err = s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.ExampleUpstream)
+		s.Assertions.NoError(err, "can delete example upstream")
+	})
+
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.Assert().NoError(err)
+
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.LargeConfiguration, "-n",
+		s.testInstallation.Metadata.InstallNamespace)
+	fmt.Println(err)
 }

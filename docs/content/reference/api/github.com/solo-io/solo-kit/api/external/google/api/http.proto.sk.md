@@ -1,6 +1,6 @@
 
 ---
-title: "http.proto"
+title: "Http"
 weight: 5
 ---
 
@@ -24,7 +24,7 @@ limitations under the License.
 
 
  
-#### Types:
+**Types:**
 
 
 - [Http](#http)
@@ -34,7 +34,7 @@ limitations under the License.
 
 
 
-##### Source File: [github.com/solo-io/solo-kit/api/external/google/api/http.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/google/api/http.proto)
+**Source File: [github.com/solo-io/solo-kit/api/external/google/api/http.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/google/api/http.proto)**
 
 
 

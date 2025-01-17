@@ -3928,6 +3928,49 @@ var _ = Describe("Translator", func() {
 		})
 	})
 
+	Context("Aggregate Listeners", func() {
+
+		It("should translate empty aggragate listener", func() {
+
+			proxy = &v1.Proxy{
+				Metadata: &core.Metadata{
+					Name:      "test",
+					Namespace: "gloo-system",
+				},
+				Listeners: []*v1.Listener{
+					{
+						BindAddress: "::",
+						BindPort:    8080,
+						Name:        "http",
+						ListenerType: &v1.Listener_AggregateListener{
+							AggregateListener: &v1.AggregateListener{
+								HttpResources: &v1.AggregateListener_HttpResources{},
+								HttpFilterChains: []*v1.AggregateListener_HttpFilterChain{
+									{
+										Matcher: &v1.Matcher{},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			snap, errs, report := translator.Translate(params, proxy)
+			Expect(errs.Validate()).NotTo(HaveOccurred())
+			Expect(snap).NotTo(BeNil())
+			Expect(report).To(Equal(validationutils.MakeReport(proxy)))
+
+			Expect(snap.GetResources(types.ListenerTypeV3).Items).To(BeEmpty())
+			// NOTE: the below assertions should be correct, but not:
+			// see: https://github.com/solo-io/solo-projects/issues/7328
+			//			Expect(snap.GetResources(types.ListenerTypeV3).Items).To(HaveKey("http"))
+			//
+			//			lis := snap.GetResources(types.ListenerTypeV3).Items["http"].ResourceProto().(*listenerv3.Listener)
+			//			Expect(lis).NotTo(BeNil())
+
+		})
+
+	})
 	Context("Custom filters", func() {
 		It("http", func() {
 			hybridListener := proxy.Listeners[2]

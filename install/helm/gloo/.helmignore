@@ -28,3 +28,6 @@
 # generator files
 *.go
 generate/
+
+# READMEs
+README.md

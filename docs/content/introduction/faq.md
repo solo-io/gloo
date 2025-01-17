@@ -398,7 +398,7 @@ You can then compare the output to what the Envoy config should look like.
 If you want to quickly get the logs for the proxy:
 
 ```bash
-glooctl proxy logs -f
+glooctl proxy logs --name gateway-proxy -f
 ```
 
 ### Why are the ports on my gateway proxy not opened?

@@ -8,13 +8,14 @@ import (
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
+	"github.com/solo-io/gloo/projects/gloo/pkg/servers/admin"
 	"github.com/solo-io/go-utils/threadsafe"
 )
 
 const (
 	InputSnapshotPath = "/snapshots/input"
-
-	DefaultAdminPort = 9091
+	xdsSnapshotPath   = "/snapshots/xds"
+	krtSnapshotPath   = "/snapshots/krt"
 )
 
 // Client is a utility for executing requests against the Gloo Admin API
@@ -34,7 +35,7 @@ func NewClient() *Client {
 		curlOptions: []curl.Option{
 			curl.WithScheme("http"),
 			curl.WithHost("127.0.0.1"),
-			curl.WithPort(DefaultAdminPort),
+			curl.WithPort(admin.AdminPort),
 			// 3 retries, exponential back-off, 10 second max
 			curl.WithRetries(3, 0, 10),
 		},
@@ -83,6 +84,16 @@ func (c *Client) RequestPathCmd(ctx context.Context, path string) cmdutils.Cmd {
 // InputSnapshotCmd returns the cmdutils.Cmd that can be run, and will execute a request against the Input Snapshot path
 func (c *Client) InputSnapshotCmd(ctx context.Context) cmdutils.Cmd {
 	return c.Command(ctx, curl.WithPath(InputSnapshotPath))
+}
+
+// XdsSnapshotCmd returns the cmdutils.Cmd that can be run, and will execute a request against the XDS Snapshot path
+func (c *Client) XdsSnapshotCmd(ctx context.Context) cmdutils.Cmd {
+	return c.Command(ctx, curl.WithPath(xdsSnapshotPath))
+}
+
+// KrtSnapshotCmd returns the cmdutils.Cmd that can be run, and will execute a request against the KRT Snapshot path
+func (c *Client) KrtSnapshotCmd(ctx context.Context) cmdutils.Cmd {
+	return c.Command(ctx, curl.WithPath(krtSnapshotPath))
 }
 
 // GetInputSnapshot returns the data that is available at the input snapshot endpoint

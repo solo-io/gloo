@@ -1,6 +1,6 @@
 
 ---
-title: "grpc_web.proto"
+title: "GrpcWeb"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `grpc_web.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [GrpcWeb](#grpcweb)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_web/grpc_web.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/grpc_web/grpc_web.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_web/grpc_web.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/grpc_web/grpc_web.proto)**
 
 
 

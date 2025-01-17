@@ -15,7 +15,10 @@ import (
 	"istio.io/istio/pkg/kube/krt"
 	"istio.io/istio/pkg/kube/krt/krttest"
 	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 )
 
 func TestEndpointsForUpstreamOrderDoesntMatter(t *testing.T) {
@@ -128,7 +131,146 @@ func TestEndpointsForUpstreamOrderDoesntMatter(t *testing.T) {
 		Zone:   "zone2",
 	}, emd2)
 	g.Expect(result1.Equals(*result4)).To(BeFalse(), "not expected %v, got %v", result1, result2)
+}
 
+func TestEndpointsForUpstreamWithDiscoveredUpstream(t *testing.T) {
+	g := gomega.NewWithT(t)
+
+	us := UpstreamWrapper{
+		Inner: &gloov1.Upstream{
+			Metadata: &core.Metadata{Name: "name", Namespace: "ns"},
+			UpstreamType: &gloov1.Upstream_Kube{
+				Kube: &kubernetes.UpstreamSpec{
+					ServiceName:      "svc",
+					ServiceNamespace: "ns",
+					ServicePort:      8080,
+				},
+			},
+		},
+	}
+	usd := UpstreamWrapper{
+		Inner: &gloov1.Upstream{
+			Metadata: &core.Metadata{Name: "discovered-name", Namespace: "ns"},
+			UpstreamType: &gloov1.Upstream_Kube{
+				Kube: &kubernetes.UpstreamSpec{
+					ServiceName:      "svc",
+					ServiceNamespace: "ns",
+					ServicePort:      8080,
+				},
+			},
+		},
+	}
+	// input
+	emd1 := EndpointWithMd{
+		LbEndpoint: &endpointv3.LbEndpoint{
+			HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
+				Endpoint: &endpointv3.Endpoint{
+					Address: &envoy_config_core_v3.Address{
+						Address: &envoy_config_core_v3.Address_SocketAddress{
+							SocketAddress: &envoy_config_core_v3.SocketAddress{
+								Address: "1.2.3.4",
+								PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+									PortValue: 8080,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		EndpointMd: EndpointMetadata{
+			Labels: map[string]string{
+				corev1.LabelTopologyRegion: "region",
+				corev1.LabelTopologyZone:   "zone",
+			},
+		},
+	}
+	emd2 := EndpointWithMd{
+		LbEndpoint: &endpointv3.LbEndpoint{
+			HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
+				Endpoint: &endpointv3.Endpoint{
+					Address: &envoy_config_core_v3.Address{
+						Address: &envoy_config_core_v3.Address_SocketAddress{
+							SocketAddress: &envoy_config_core_v3.SocketAddress{
+								Address: "1.2.3.5",
+								PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+									PortValue: 8080,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		EndpointMd: EndpointMetadata{
+			Labels: map[string]string{
+				corev1.LabelTopologyRegion: "region",
+				corev1.LabelTopologyZone:   "zone",
+			},
+		},
+	}
+
+	result1 := NewEndpointsForUpstream(us, nil)
+	result1.Add(PodLocality{
+		Region: "region",
+		Zone:   "zone",
+	}, emd1)
+
+	result2 := NewEndpointsForUpstream(usd, nil)
+	result2.Add(PodLocality{
+		Region: "region",
+		Zone:   "zone",
+	}, emd1)
+
+	result3 := NewEndpointsForUpstream(us, nil)
+	result3.Add(PodLocality{
+		Region: "region",
+		Zone:   "zone",
+	}, emd2)
+
+	result4 := NewEndpointsForUpstream(usd, nil)
+	result4.Add(PodLocality{
+		Region: "region",
+		Zone:   "zone",
+	}, emd2)
+
+	h1 := result1.LbEpsEqualityHash ^ result2.LbEpsEqualityHash
+	h2 := result3.LbEpsEqualityHash ^ result4.LbEpsEqualityHash
+
+	g.Expect(h1).NotTo(Equal(h2), "not expected %v, got %v", h1, h2)
+}
+
+// Note: if we find out the envoy bug was fixed (where changed clusters don't warm until EDS updates)
+// this test can be removed.
+func TestEndpointsForUpstreamWhenUpstreamLabelsAdded(t *testing.T) {
+	g := gomega.NewWithT(t)
+
+	usGen := func() UpstreamWrapper {
+		return UpstreamWrapper{
+			Inner: &gloov1.Upstream{
+				Metadata: &core.Metadata{Name: "name", Namespace: "ns"},
+				UpstreamType: &gloov1.Upstream_Kube{
+					Kube: &kubernetes.UpstreamSpec{
+						ServiceName:      "svc",
+						ServiceNamespace: "ns",
+						ServicePort:      8080,
+					},
+				},
+			},
+		}
+	}
+	// 2 copies
+	us1 := usGen()
+	us2 := usGen()
+	us2.Inner.DiscoveryMetadata = &gloov1.DiscoveryMetadata{
+		Labels: map[string]string{
+			"extra": "label",
+		},
+	}
+	efu1 := NewEndpointsForUpstream(us1, nil)
+	efu2 := NewEndpointsForUpstream(us2, nil)
+
+	g.Expect(efu1.LbEpsEqualityHash).NotTo(Equal(efu2.LbEpsEqualityHash))
 }
 
 func TestEndpoints(t *testing.T) {
@@ -164,29 +306,33 @@ func TestEndpoints(t *testing.T) {
 						},
 					},
 				},
-				&corev1.Endpoints{
+				&discoveryv1.EndpointSlice{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "svc",
+						Name:      "svc-abcde", // Unique name for the EndpointSlice
 						Namespace: "ns",
+						Labels: map[string]string{
+							"kubernetes.io/service-name": "svc",
+						},
 					},
-					Subsets: []corev1.EndpointSubset{
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
 						{
-							Ports: []corev1.EndpointPort{
-								{
-									Name: "http",
-									Port: 8080,
-								},
+							Addresses: []string{"1.2.3.4"},
+							Conditions: discoveryv1.EndpointConditions{
+								Ready: ptr.To(true),
 							},
-							Addresses: []corev1.EndpointAddress{
-								{
-									IP: "1.2.3.4",
-									TargetRef: &corev1.ObjectReference{
-										Kind:      "Pod",
-										Name:      "name",
-										Namespace: "ns",
-									},
-								},
+							TargetRef: &corev1.ObjectReference{
+								Kind:      "Pod",
+								Name:      "name",
+								Namespace: "ns",
 							},
+						},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{
+							Name:     ptr.To("http"),
+							Port:     ptr.To(int32(8080)),
+							Protocol: ptr.To(corev1.ProtocolTCP),
 						},
 					},
 				},
@@ -301,46 +447,44 @@ func TestEndpoints(t *testing.T) {
 						PodIP: "1.2.3.5",
 					},
 				},
-				&corev1.Endpoints{
+				&discoveryv1.EndpointSlice{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "svc",
+						Name:      "svc-abcde",
 						Namespace: "ns",
+						Labels: map[string]string{
+							"kubernetes.io/service-name": "svc",
+						},
 					},
-					Subsets: []corev1.EndpointSubset{
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
 						{
-							Ports: []corev1.EndpointPort{
-								{
-									Name: "http",
-									Port: 8080,
-								},
+							Addresses: []string{"1.2.3.4"},
+							Conditions: discoveryv1.EndpointConditions{
+								Ready: ptr.To(true),
 							},
-							Addresses: []corev1.EndpointAddress{
-								{
-									IP: "1.2.3.4",
-									TargetRef: &corev1.ObjectReference{
-										Kind:      "Pod",
-										Name:      "name",
-										Namespace: "ns",
-									},
-								},
+							TargetRef: &corev1.ObjectReference{
+								Kind:      "Pod",
+								Name:      "name",
+								Namespace: "ns",
 							},
-						}, {
-							Ports: []corev1.EndpointPort{
-								{
-									Name: "http",
-									Port: 8080,
-								},
+						},
+						{
+							Addresses: []string{"1.2.3.5"},
+							Conditions: discoveryv1.EndpointConditions{
+								Ready: ptr.To(true),
 							},
-							Addresses: []corev1.EndpointAddress{
-								{
-									IP: "1.2.3.5",
-									TargetRef: &corev1.ObjectReference{
-										Kind:      "Pod",
-										Name:      "name2",
-										Namespace: "ns",
-									},
-								},
+							TargetRef: &corev1.ObjectReference{
+								Kind:      "Pod",
+								Name:      "name2",
+								Namespace: "ns",
 							},
+						},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{
+							Name:     ptr.To("http"),
+							Port:     ptr.To(int32(8080)),
+							Protocol: ptr.To(corev1.ProtocolTCP),
 						},
 					},
 				},
@@ -465,29 +609,33 @@ func TestEndpoints(t *testing.T) {
 						},
 					},
 				},
-				&corev1.Endpoints{
+				&discoveryv1.EndpointSlice{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "svc",
+						Name:      "svc-abcde",
 						Namespace: "ns",
+						Labels: map[string]string{
+							"kubernetes.io/service-name": "svc",
+						},
 					},
-					Subsets: []corev1.EndpointSubset{
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
 						{
-							Ports: []corev1.EndpointPort{
-								{
-									Name: "http",
-									Port: 8080,
-								},
+							Addresses: []string{"1.2.3.4"},
+							Conditions: discoveryv1.EndpointConditions{
+								Ready: ptr.To(true),
 							},
-							Addresses: []corev1.EndpointAddress{
-								{
-									IP: "1.2.3.4",
-									TargetRef: &corev1.ObjectReference{
-										Kind:      "Pod",
-										Name:      "name",
-										Namespace: "ns",
-									},
-								},
+							TargetRef: &corev1.ObjectReference{
+								Kind:      "Pod",
+								Name:      "name",
+								Namespace: "ns",
 							},
+						},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{
+							Name:     ptr.To("http"),
+							Port:     ptr.To(int32(8080)),
+							Protocol: ptr.To(corev1.ProtocolTCP),
 						},
 					},
 				},
@@ -554,6 +702,250 @@ func TestEndpoints(t *testing.T) {
 				return result
 			},
 		},
+		{
+			name: "deduplication of endpoints across endpointslices",
+			inputs: []any{
+				&corev1.Pod{
+					TypeMeta: metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "pod1",
+						Namespace: "ns",
+						Labels: map[string]string{
+							"app": "test",
+						},
+					},
+					Spec: corev1.PodSpec{
+						NodeName: "node1",
+					},
+					Status: corev1.PodStatus{
+						Phase: corev1.PodRunning,
+						PodIP: "1.2.3.4",
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node1",
+						Labels: map[string]string{
+							corev1.LabelTopologyRegion: "region1",
+							corev1.LabelTopologyZone:   "zone1",
+						},
+					},
+				},
+				&discoveryv1.EndpointSlice{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "svc1-slice1",
+						Namespace: "ns",
+						Labels: map[string]string{
+							"kubernetes.io/service-name": "svc1",
+						},
+					},
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
+						{
+							Addresses: []string{"1.2.3.4"},
+							Conditions: discoveryv1.EndpointConditions{
+								Ready: ptr.To(true),
+							},
+							TargetRef: &corev1.ObjectReference{
+								Kind:      "Pod",
+								Name:      "pod1",
+								Namespace: "ns",
+							},
+						},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{
+							Name:     ptr.To("http"),
+							Port:     ptr.To(int32(8080)),
+							Protocol: ptr.To(corev1.ProtocolTCP),
+						},
+					},
+				},
+				&discoveryv1.EndpointSlice{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "svc1-slice2",
+						Namespace: "ns",
+						Labels: map[string]string{
+							"kubernetes.io/service-name": "svc1",
+						},
+					},
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
+						{
+							Addresses: []string{"1.2.3.4"}, // Duplicate endpoint
+							Conditions: discoveryv1.EndpointConditions{
+								Ready: ptr.To(true),
+							},
+							TargetRef: &corev1.ObjectReference{
+								Kind:      "Pod",
+								Name:      "pod1",
+								Namespace: "ns",
+							},
+						},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{
+							Name:     ptr.To("http"),
+							Port:     ptr.To(int32(8080)),
+							Protocol: ptr.To(corev1.ProtocolTCP),
+						},
+					},
+				},
+				&corev1.Service{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "svc1",
+						Namespace: "ns",
+					},
+					Spec: corev1.ServiceSpec{
+						Ports: []corev1.ServicePort{
+							{
+								Name: "http",
+								Port: 8080,
+							},
+						},
+					},
+				},
+			},
+			upstream: UpstreamWrapper{
+				Inner: &gloov1.Upstream{
+					Metadata: &core.Metadata{Name: "name", Namespace: "ns"},
+					UpstreamType: &gloov1.Upstream_Kube{
+						Kube: &kubernetes.UpstreamSpec{
+							ServiceName:      "svc1",
+							ServiceNamespace: "ns",
+							ServicePort:      8080,
+						},
+					},
+				},
+			},
+			result: func(us UpstreamWrapper) *EndpointsForUpstream {
+				// Only one endpoint should be present after deduplication
+				emd := EndpointWithMd{
+					LbEndpoint: &endpointv3.LbEndpoint{
+						LoadBalancingWeight: wrapperspb.UInt32(1),
+						HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
+							Endpoint: &endpointv3.Endpoint{
+								Address: &envoy_config_core_v3.Address{
+									Address: &envoy_config_core_v3.Address_SocketAddress{
+										SocketAddress: &envoy_config_core_v3.SocketAddress{
+											Address: "1.2.3.4",
+											PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+												PortValue: 8080,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					EndpointMd: EndpointMetadata{
+						Labels: map[string]string{
+							corev1.LabelTopologyRegion: "region1",
+							corev1.LabelTopologyZone:   "zone1",
+							"app":                      "test",
+						},
+					},
+				}
+				result := NewEndpointsForUpstream(us, nil)
+				result.Add(PodLocality{
+					Region: "region1",
+					Zone:   "zone1",
+				}, emd)
+				return result
+			},
+		},
+		{
+			name: "filter out unready endpoints",
+			inputs: []any{
+				&corev1.Pod{
+					TypeMeta: metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "pod1",
+						Namespace: "ns",
+						Labels: map[string]string{
+							"app": "test",
+						},
+					},
+					Spec: corev1.PodSpec{
+						NodeName: "node1",
+					},
+					Status: corev1.PodStatus{
+						Phase: corev1.PodRunning,
+						PodIP: "1.2.3.4",
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node1",
+						Labels: map[string]string{
+							corev1.LabelTopologyRegion: "region1",
+							corev1.LabelTopologyZone:   "zone1",
+						},
+					},
+				},
+				&discoveryv1.EndpointSlice{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "svc1-slice-unready",
+						Namespace: "ns",
+						Labels: map[string]string{
+							"kubernetes.io/service-name": "svc1",
+						},
+					},
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
+						{
+							Addresses: []string{"1.2.3.4"},
+							Conditions: discoveryv1.EndpointConditions{
+								Ready: ptr.To(false), // This endpoint is unready
+							},
+							TargetRef: &corev1.ObjectReference{
+								Kind:      "Pod",
+								Name:      "pod1",
+								Namespace: "ns",
+							},
+						},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{
+							Name:     ptr.To("http"),
+							Port:     ptr.To(int32(8080)),
+							Protocol: ptr.To(corev1.ProtocolTCP),
+						},
+					},
+				},
+				&corev1.Service{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "svc1",
+						Namespace: "ns",
+					},
+					Spec: corev1.ServiceSpec{
+						Ports: []corev1.ServicePort{
+							{
+								Name: "http",
+								Port: 8080,
+							},
+						},
+					},
+				},
+			},
+			upstream: UpstreamWrapper{
+				Inner: &gloov1.Upstream{
+					Metadata: &core.Metadata{Name: "name", Namespace: "ns"},
+					UpstreamType: &gloov1.Upstream_Kube{
+						Kube: &kubernetes.UpstreamSpec{
+							ServiceName:      "svc1",
+							ServiceNamespace: "ns",
+							ServicePort:      8080,
+						},
+					},
+				},
+			},
+			result: func(us UpstreamWrapper) *EndpointsForUpstream {
+				// The result should be empty since no ready endpoints are available.
+				result := NewEndpointsForUpstream(us, nil)
+				return result
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -561,19 +953,35 @@ func TestEndpoints(t *testing.T) {
 			g := gomega.NewWithT(t)
 			mock := krttest.NewMock(t, tc.inputs)
 			nodes := NewNodeMetadataCollection(krttest.GetMockCollection[*corev1.Node](mock))
-			pods := NewLocalityPodsCollection(nodes, krttest.GetMockCollection[*corev1.Pod](mock))
+			pods := NewLocalityPodsCollection(nodes, krttest.GetMockCollection[*corev1.Pod](mock), nil)
 			pods.Synced().WaitUntilSynced(context.Background().Done())
 			es := EndpointsSettings{
 				EnableAutoMtls: false,
 			}
 			endpointSettings := krt.NewStatic(&es, true)
 
+			// Get the EndpointSlices collection
+			endpointSlices := krttest.GetMockCollection[*discoveryv1.EndpointSlice](mock)
+
+			// Initialize the EndpointSlicesByService index
+			endpointSlicesByService := krt.NewIndex(endpointSlices, func(es *discoveryv1.EndpointSlice) []types.NamespacedName {
+				svcName, ok := es.Labels[discoveryv1.LabelServiceName]
+				if !ok {
+					return nil
+				}
+				return []types.NamespacedName{{
+					Namespace: es.Namespace,
+					Name:      svcName,
+				}}
+			})
+
 			ei := EndpointsInputs{
-				Upstreams:         krttest.GetMockCollection[UpstreamWrapper](mock),
-				Endpoints:         krttest.GetMockCollection[*corev1.Endpoints](mock),
-				Pods:              pods,
-				EndpointsSettings: endpointSettings,
-				Services:          krttest.GetMockCollection[*corev1.Service](mock),
+				Upstreams:               krttest.GetMockCollection[UpstreamWrapper](mock),
+				EndpointSlices:          endpointSlices,
+				EndpointSlicesByService: endpointSlicesByService,
+				Pods:                    pods,
+				EndpointsSettings:       endpointSettings,
+				Services:                krttest.GetMockCollection[*corev1.Service](mock),
 			}
 
 			builder := transformK8sEndpoints(context.Background(), ei)
@@ -583,5 +991,4 @@ func TestEndpoints(t *testing.T) {
 			g.Expect(eps.Equals(*res)).To(BeTrue(), "expected %v, got %v", res, eps)
 		})
 	}
-
 }

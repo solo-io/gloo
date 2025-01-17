@@ -262,7 +262,7 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 			Name:             &gw.Name,
 			GatewayName:      &gw.Name,
 			GatewayNamespace: &gw.Namespace,
-			Ports:            getPortsValues(gw),
+			Ports:            getPortsValues(gw, gwParam),
 			Xds: &helmXds{
 				// The xds host/port MUST map to the Service definition for the Control Plane
 				// This is the socket address that the Proxy will connect to on startup, to receive xds updates
@@ -326,6 +326,10 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 	gateway.NodeSelector = podConfig.GetNodeSelector()
 	gateway.Affinity = podConfig.GetAffinity()
 	gateway.Tolerations = podConfig.GetTolerations()
+	gateway.ReadinessProbe = podConfig.GetReadinessProbe()
+	gateway.LivenessProbe = podConfig.GetLivenessProbe()
+	gateway.GracefulShutdown = podConfig.GetGracefulShutdown()
+	gateway.TerminationGracePeriodSeconds = podConfig.GetTerminationGracePeriodSeconds()
 
 	// envoy container values
 	logLevel := envoyContainerConfig.GetBootstrap().GetLogLevel()

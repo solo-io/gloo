@@ -165,7 +165,7 @@ var _ = Describe("Root", func() {
 				Expect(ref.Name).To(Equal("sslname"))
 				Expect(ref.Namespace).To(Equal("sslnamespace"))
 				Expect(sslconfig.Sni).To(Equal("somesni"))
-			})
+			}, nil)
 		})
 	})
 })

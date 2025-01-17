@@ -366,12 +366,12 @@ message Route {
         // Return an arbitrary HTTP response directly, without proxying.
         DirectResponseAction direct_response_action = 4;
 
-        // Enterprise-Only: THIS FEATURE IS IN TECH PREVIEW. APIs are versioned as alpha and subject to change.
+        // Deprecated, Enterprise-Only: This feature is deprecated and will be removed in a future release. APIs are versioned as alpha and subject to change.
         // A reference to a GraphQLApi CR. Resolution of the client request to upstream(s) will be delegated to
         // the resolution policies defined in the GraphQLApi CR. If configured, the graphql filter will operate
         // instead of the envoy router filter, so configuration (such as retries) that applies to the router filter
         // will not be applied.
-        core.solo.io.ResourceRef graphql_api_ref = 8;
+        core.solo.io.ResourceRef graphql_api_ref = 8 [deprecated = true];
     }
 
     // Route Options extend the behavior of routes.
@@ -548,22 +548,22 @@ message RedirectAction {
         // Only one of :ref:`prefix_rewrite <envoy_api_field_config.route.v3.RouteAction.prefix_rewrite>`
         // or *regex_rewrite* may be specified.
         //
-        // Examples using Google's `RE2 <https://github.com/google/re2>`_ engine:
+        // Examples using Google's [RE2](https://github.com/google/re2) engine:
         //
-        // * The path pattern ``^/service/([^/]+)(/.*)$`` paired with a substitution
-        //   string of ``\2/instance/\1`` would transform ``/service/foo/v1/api``
-        //   into ``/v1/api/instance/foo``.
+        // * The path pattern `^/service/([^/]+)(/.*)$` paired with a substitution
+        //   string of `\2/instance/\1` would transform `/service/foo/v1/api`
+        //   into `/v1/api/instance/foo`.
         //
-        // * The pattern ``one`` paired with a substitution string of ``two`` would
-        //   transform ``/xxx/one/yyy/one/zzz`` into ``/xxx/two/yyy/two/zzz``.
+        // * The pattern `one` paired with a substitution string of `two` would
+        //   transform `/xxx/one/yyy/one/zzz` into `/xxx/two/yyy/two/zzz`.
         //
-        // * The pattern ``^(.*?)one(.*)$`` paired with a substitution string of
-        //   ``\1two\2`` would replace only the first occurrence of ``one``,
-        //   transforming path ``/xxx/one/yyy/one/zzz`` into ``/xxx/two/yyy/one/zzz``.
+        // * The pattern `^(.*?)one(.*)$` paired with a substitution string of
+        //   `\1two\2` would replace only the first occurrence of `one`,
+        //   transforming path `/xxx/one/yyy/one/zzz` into `/xxx/two/yyy/one/zzz`.
         //
-        // * The pattern ``(?i)/xxx/`` paired with a substitution string of ``/yyy/``
-        //   would do a case-insensitive match and transform path ``/aaa/XxX/bbb`` to
-        //   ``/aaa/yyy/bbb``.
+        // * The pattern `(?i)/xxx/` paired with a substitution string of `/yyy/`
+        //   would do a case-insensitive match and transform path `/aaa/XxX/bbb` to
+        //   `/aaa/yyy/bbb`.
         .solo.io.envoy.type.matcher.v3.RegexMatchAndSubstitute regex_rewrite = 32;
     }
 

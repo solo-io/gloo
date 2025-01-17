@@ -15,6 +15,8 @@ on:
 jobs:
   receiver:
     runs-on: ubuntu-latest
+    outputs:
+      dispatch_lts: ${{ steps.dispatch-receiver.outputs.dispatch_lts }}
     steps:
       - name: The glooe-release-created event is received when a relase is cut in solo-projects repo
         id: dispatch-receiver
@@ -25,6 +27,10 @@ jobs:
 
   copy-docs:
     runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: receiver
+    outputs:
+      minor: ${{ steps.version-variables.outputs.minor }}
     steps:
     - name: Get LTS branch version
       id: lts-version
@@ -33,7 +39,7 @@ jobs:
         if [[ "${{ github.event_name }}" == "release" ]]; then
           version=${{ github.event.release.target_commitish }}
         elif [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
-          version=${{ steps.dispatch-receiver.outputs.dispatch_lts }}
+          version=${{ needs.receiver.outputs.dispatch_lts }}
         else
           version=${{ inputs.branch }}
         fi
@@ -44,13 +50,19 @@ jobs:
         minor=""
         directory=""
         if [[ "${{ steps.lts-version.outputs.lts }}" == "main" ]]; then
-          minor="1.18"
+          minor="1.19"
           directory="main"
+        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.19.x" ]]; then
+          minor="1.19"
+          directory="main"
+        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.18.x" ]]; then
+          minor="1.18"
+          directory="latest"
         elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.17.x" ]]; then
           minor="1.17"
-          directory="latest"
+          directory="1.17.x"
         else
-          minor="1.18"
+          minor="1.19"
           directory="main"
         fi
         echo "minor=${minor}" >> $GITHUB_OUTPUT
@@ -102,19 +114,19 @@ jobs:
       run: |
         pushd docs || exit 1
         # OSS
-        cp ../gloo/docs/content/static/content/gloo-security-scan.docgen static/content/gg-security-updates/gloo-security-scan.docgen
-        cp ../gloo/docs/content/static/content/gloo-security-scan-0.docgen static/content/gg-security-updates/gloo-security-scan-0.docgen
-        cp ../gloo/docs/content/static/content/gloo-security-scan-1.docgen static/content/gg-security-updates/gloo-security-scan-1.docgen
-        cp ../gloo/docs/content/static/content/gloo-security-scan-2.docgen static/content/gg-security-updates/gloo-security-scan-2.docgen
-        cp ../gloo/docs/content/static/content/gloo-security-scan-3.docgen static/content/gg-security-updates/gloo-security-scan-3.docgen
-        cp ../gloo/docs/content/static/content/gloo-security-scan-4.docgen static/content/gg-security-updates/gloo-security-scan-4.docgen
+        [ -f ../gloo/docs/content/static/content/gloo-security-scan.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan.docgen static/content/gg-security-updates/gloo-security-scan.docgen
+        [ -f ../gloo/docs/content/static/content/gloo-security-scan-0.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-0.docgen static/content/gg-security-updates/gloo-security-scan-0.docgen
+        [ -f ../gloo/docs/content/static/content/gloo-security-scan-1.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-1.docgen static/content/gg-security-updates/gloo-security-scan-1.docgen
+        [ -f ../gloo/docs/content/static/content/gloo-security-scan-2.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-2.docgen static/content/gg-security-updates/gloo-security-scan-2.docgen
+        [ -f ../gloo/docs/content/static/content/gloo-security-scan-3.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-3.docgen static/content/gg-security-updates/gloo-security-scan-3.docgen
+        [ -f ../gloo/docs/content/static/content/gloo-security-scan-4.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-4.docgen static/content/gg-security-updates/gloo-security-scan-4.docgen
         # Enterprise
-        cp ../gloo/docs/content/static/content/glooe-security-scan.docgen static/content/gg-security-updates/glooe-security-scan.docgen
-        cp ../gloo/docs/content/static/content/glooe-security-scan-0.docgen static/content/gg-security-updates/glooe-security-scan-0.docgen
-        cp ../gloo/docs/content/static/content/glooe-security-scan-1.docgen static/content/gg-security-updates/glooe-security-scan-1.docgen
-        cp ../gloo/docs/content/static/content/glooe-security-scan-2.docgen static/content/gg-security-updates/glooe-security-scan-2.docgen
-        cp ../gloo/docs/content/static/content/glooe-security-scan-3.docgen static/content/gg-security-updates/glooe-security-scan-3.docgen
-        cp ../gloo/docs/content/static/content/glooe-security-scan-4.docgen static/content/gg-security-updates/glooe-security-scan-4.docgen
+        [ -f ../gloo/docs/content/static/content/glooe-security-scan.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan.docgen static/content/gg-security-updates/glooe-security-scan.docgen
+        [ -f ../gloo/docs/content/static/content/glooe-security-scan-0.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan-0.docgen static/content/gg-security-updates/glooe-security-scan-0.docgen
+        [ -f ../gloo/docs/content/static/content/glooe-security-scan-1.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan-1.docgen static/content/gg-security-updates/glooe-security-scan-1.docgen
+        [ -f ../gloo/docs/content/static/content/glooe-security-scan-2.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan-2.docgen static/content/gg-security-updates/glooe-security-scan-2.docgen
+        [ -f ../gloo/docs/content/static/content/glooe-security-scan-3.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan-3.docgen static/content/gg-security-updates/glooe-security-scan-3.docgen
+        [ -f ../gloo/docs/content/static/content/glooe-security-scan-4.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan-4.docgen static/content/gg-security-updates/glooe-security-scan-4.docgen
         popd || exit 1
     - name: Copy security posture
       run: |
@@ -143,6 +155,14 @@ jobs:
         cp ../gloo/docs/content/reference/cli/glooctl_uninstall.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_uninstall.md
         cp ../gloo/docs/content/reference/cli/glooctl_upgrade.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_upgrade.md
         popd || exit 1
+    - name: Copy API
+      run: |
+        pushd docs || exit 1
+        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/direct_responses.md assets/conrefs/pages/gateway/reference/direct_responses_${{ steps.version-variables.outputs.minor }}.md
+        sed -i '1,2d' assets/conrefs/pages/gateway/reference/direct_responses_${{ steps.version-variables.outputs.minor }}.md
+        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/gateway_parameters.md assets/conrefs/pages/gateway/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
+        sed -i '1,2d' assets/conrefs/pages/gateway/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
+        popd || exit 1
     - name: Push and create PR
       env:
         GITHUB_TOKEN: ${{ secrets.DOCS_TOKEN }}
@@ -162,14 +182,17 @@ jobs:
 
   slack-notification:
     runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: copy-docs
     steps:
     - name: Notify on workflow success
       if: |
         needs.copy-docs.result == 'success'
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        VERSION: ${{needs.copy-docs.outputs.minor}}
       run: |
-        MESSAGE="✅ *Success:* Automated copy of reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <https://github.com/solo-io/docs/pulls|Review the PR>"
+        MESSAGE="✅ *Success:* Automated copy of reference docs for ${VERSION} was successful. <https://github.com/solo-io/docs/pulls|Review the PR>"
 
         curl \
           -d "text=$MESSAGE" \
@@ -183,7 +206,7 @@ jobs:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       run: |
         JOB_URL=https://github.com/solo-io/gloo/actions/runs/${GITHUB_RUN_ID}
-        MESSAGE="❌ *Failure:* Automated copy of reference docs for ${{ steps.version-variables.outputs.minor }} failed. <${JOB_URL}|Review the workflow failure>"
+        MESSAGE="❌ *Failure:* Automated copy of reference docs for ${VERSION} failed. <${JOB_URL}|Review the workflow failure>"
 
         curl \
           -d "text=$MESSAGE" \

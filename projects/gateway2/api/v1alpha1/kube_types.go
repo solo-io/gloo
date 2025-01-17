@@ -96,6 +96,17 @@ type Service struct {
 	//
 	// +kubebuilder:validation:Optional
 	ExtraAnnotations map[string]string `json:"extraAnnotations,omitempty"`
+
+	// Additional configuration for the service ports.
+	// The actual port numbers are specified in the Gateway resource.
+	//
+	// +optional
+	// +kubebuilder:validation:MaxItems=8
+	Ports []*Port `json:"ports"`
+	// External Traffic Policy on the Service object.
+	//
+	// +kubebuilder:validation:Optional
+	ExternalTrafficPolicy *corev1.ServiceExternalTrafficPolicy `json:"externalTrafficPolicy,omitempty"`
 }
 
 func (in *Service) GetType() *corev1.ServiceType {
@@ -124,6 +135,47 @@ func (in *Service) GetExtraAnnotations() map[string]string {
 		return nil
 	}
 	return in.ExtraAnnotations
+}
+
+func (in *Service) GetPorts() []*Port {
+	if in == nil {
+		return nil
+	}
+	return in.Ports
+}
+
+func (in *Service) GetExternalTrafficPolicy() *corev1.ServiceExternalTrafficPolicy {
+	if in == nil {
+		return nil
+	}
+	return in.ExternalTrafficPolicy
+}
+
+type Port struct {
+	// The port number to match on the Gateway
+	//
+	// +kubebuilder:validation:Required
+	Port uint16 `json:"port"`
+
+	// The NodePort to be used for the service. If not specified, a random port
+	// will be assigned by the Kubernetes API server.
+	//
+	// +kubebuilder:validation:Optional
+	NodePort *uint16 `json:"nodePort,omitempty"`
+}
+
+func (in *Port) GetPort() uint16 {
+	if in == nil {
+		return 0
+	}
+	return in.Port
+}
+
+func (in *Port) GetNodePort() *uint16 {
+	if in == nil {
+		return nil
+	}
+	return in.NodePort
 }
 
 type ServiceAccount struct {
@@ -199,6 +251,34 @@ type Pod struct {
 	//
 	// +kubebuilder:validation:Optional
 	Tolerations []*corev1.Toleration `json:"tolerations,omitempty"`
+
+	// If specified, the pod's graceful shutdown spec.
+	//
+	// +kubebuilder:validation:Optional
+	GracefulShutdown *GracefulShutdownSpec `json:"gracefulShutdown,omitempty"`
+
+	// If specified, the pod's termination grace period in seconds. See
+	// https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#pod-v1-core
+	// for details
+	//
+	// +kubebuilder:validation:Optional
+	TerminationGracePeriodSeconds *int `json:"terminationGracePeriodSeconds,omitempty"`
+
+	// If specified, the pod's readiness probe. Periodic probe of container service readiness.
+	// Container will be removed from service endpoints if the probe fails. See
+	// https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#probe-v1-core
+	// for details.
+	//
+	// +kubebuilder:validation:Optional
+	ReadinessProbe *corev1.Probe `json:"readinessProbe,omitempty"`
+
+	// If specified, the pod's liveness probe. Periodic probe of container service readiness.
+	// Container will be restarted if the probe fails. See
+	// https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#probe-v1-core
+	// for details.
+	//
+	// +kubebuilder:validation:Optional
+	LivenessProbe *corev1.Probe `json:"livenessProbe,omitempty"`
 }
 
 func (in *Pod) GetExtraLabels() map[string]string {
@@ -248,4 +328,58 @@ func (in *Pod) GetTolerations() []*corev1.Toleration {
 		return nil
 	}
 	return in.Tolerations
+}
+
+func (in *Pod) GetReadinessProbe() *corev1.Probe {
+	if in == nil {
+		return nil
+	}
+	return in.ReadinessProbe
+}
+
+func (in *Pod) GetGracefulShutdown() *GracefulShutdownSpec {
+	if in == nil {
+		return nil
+	}
+	return in.GracefulShutdown
+}
+
+func (in *Pod) GetTerminationGracePeriodSeconds() *int {
+	if in == nil {
+		return nil
+	}
+	return in.TerminationGracePeriodSeconds
+}
+
+func (in *Pod) GetLivenessProbe() *corev1.Probe {
+	if in == nil {
+		return nil
+	}
+	return in.LivenessProbe
+}
+
+type GracefulShutdownSpec struct {
+	// Enable grace period before shutdown to finish current requests while Envoy health checks fail to e.g. notify external load balancers. *NOTE:* This will not have any effect if you have not defined health checks via the health check filter
+	//
+	// +kubebuilder:validation:Optional
+	Enabled *bool `json:"enabled,omitempty"`
+
+	// Time (in seconds) for the preStop hook to wait before allowing Envoy to terminate
+	//
+	// +kubebuilder:validation:Optional
+	SleepTimeSeconds *int `json:"sleepTimeSeconds,omitempty"`
+}
+
+func (in *GracefulShutdownSpec) GetEnabled() *bool {
+	if in == nil {
+		return nil
+	}
+	return in.Enabled
+}
+
+func (in *GracefulShutdownSpec) GetSleepTimeSeconds() *int {
+	if in == nil {
+		return nil
+	}
+	return in.SleepTimeSeconds
 }

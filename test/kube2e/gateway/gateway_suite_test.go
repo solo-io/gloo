@@ -7,27 +7,27 @@ import (
 	"testing"
 	"time"
 
-	"github.com/solo-io/gloo/test/kubernetes/testutils/cluster"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
-	kubetestclients "github.com/solo-io/gloo/test/kubernetes/testutils/clients"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
-
-	kubeutils2 "github.com/solo-io/gloo/test/testutils"
-
-	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
-
-	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/skv2/codegen/util"
+	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/gloo/test/kube2e/helper"
-	skhelpers "github.com/solo-io/solo-kit/test/helpers"
+	kubetestclients "github.com/solo-io/gloo/test/kubernetes/testutils/clients"
+	"github.com/solo-io/gloo/test/kubernetes/testutils/cluster"
+	testruntime "github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
+	kubeutils2 "github.com/solo-io/gloo/test/testutils"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	state_dump_utils "github.com/solo-io/gloo/pkg/utils/statedumputils"
+	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 )
 
 func TestGateway(t *testing.T) {
@@ -63,17 +63,21 @@ func StartTestHelper() {
 
 	testHelper, err = kube2e.GetTestHelper(ctx, namespace)
 	Expect(err).NotTo(HaveOccurred())
-	skhelpers.RegisterPreFailHandler(helpers.StandardGlooDumpOnFail(GinkgoWriter, metav1.ObjectMeta{Namespace: testHelper.InstallNamespace}))
+
+	outDir := filepath.Join(util.GetModuleRoot(), "_output", "kube2e-artifacts")
+	namespaces := []string{testHelper.InstallNamespace}
+	skhelpers.RegisterPreFailHandler(state_dump_utils.StandardCIDumpOnFail(GinkgoWriter, outDir, namespaces))
 
 	kubeCli = kubectl.NewCli().WithReceiver(GinkgoWriter)
 
 	// Allow skipping of install step for running multiple times
-	if !kubeutils2.ShouldSkipInstall() {
+	if !kubeutils2.ShouldSkipInstall(testHelper.IsGlooInstalled(ctx)) {
 		installGloo()
 	}
 
 	// We rely on the "new" kubernetes/e2e setup code, since it incorporates controller-runtime logging setup
-	clusterContext := cluster.MustKindContext("kind")
+	runtimeContext := testruntime.NewContext()
+	clusterContext := cluster.MustKindContext(runtimeContext.ClusterName)
 
 	resourceClientset, err = kube2e.NewKubeResourceClientSet(ctx, clusterContext.RestConfig)
 	Expect(err).NotTo(HaveOccurred(), "can create kube resource client set")
@@ -82,7 +86,7 @@ func StartTestHelper() {
 }
 
 func TearDownTestHelper() {
-	if kubeutils2.ShouldTearDown() {
+	if kubeutils2.ShouldTearDown(helpers.DefaultTearDown) {
 		uninstallGloo()
 	}
 	cancel()

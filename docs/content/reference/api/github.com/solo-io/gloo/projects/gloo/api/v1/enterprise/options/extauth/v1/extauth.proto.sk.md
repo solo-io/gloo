@@ -1,6 +1,6 @@
 
 ---
-title: "extauth.proto"
+title: "Extauth"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `enterprise.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [AuthConfig](#authconfig) **Top-Level Resource**
@@ -94,11 +94,12 @@ weight: 5
 - [PassThroughHttp](#passthroughhttp)
 - [Request](#request)
 - [Response](#response)
+- [PortalAuth](#portalauth)
   
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto)**
 
 
 
@@ -126,7 +127,7 @@ format that will be included in the extauth snapshot.
 | `namespacedStatuses` | [.core.solo.io.NamespacedStatuses](../../../../../../../../../../solo-kit/api/v1/status.proto.sk/#namespacedstatuses) | NamespacedStatuses indicates the validation status of this resource. NamespacedStatuses is read-only by clients, and set by gloo during validation. |
 | `metadata` | [.core.solo.io.Metadata](../../../../../../../../../../solo-kit/api/v1/metadata.proto.sk/#metadata) | Metadata contains the object metadata for this resource. |
 | `configs` | [[]enterprise.gloo.solo.io.AuthConfig.Config](../extauth-internal.proto.sk/#config) | List of auth configs to be checked for requests on a route referencing this auth config, By default, every config must be authorized for the entire request to be authorized. This behavior can be changed by defining names for each config and defining `boolean_expr` below. State is shared between successful requests on the chain, i.e., the headers returned from each successful auth service get appended into the final auth response. +kubebuilder:validation:Required +kubebuilder:validation:MinItems=1. |
-| `booleanExpr` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | How to handle processing of named configs within an auth config chain. An example config might be: `( basic1 || basic2 || (oidc1 && !oidc2) )` The boolean expression is evaluated left to right but honors parenthesis and short-circuiting. |
+| `booleanExpr` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | How to handle processing of named configs within an auth config chain. An example config might be: `( basic1 \|\| basic2 \|\| (oidc1 && !oidc2) )` The boolean expression is evaluated left to right but honors parenthesis and short-circuiting. |
 | `failOnRedirect` | `bool` | How the service should handle a redirect response from an OIDC issuer. In the default false mode, the redirect will be considered a successful response, and the client will receive a 302 with a location header. If this is set to true, the client will instead receive a 401 unauthorized response. This is useful in cases where API calls are being made or other such occurrences where the client cannot handle the redirect. |
 
 
@@ -150,23 +151,25 @@ format that will be included in the extauth snapshot.
 "passThroughAuth": .enterprise.gloo.solo.io.PassThroughAuth
 "hmacAuth": .enterprise.gloo.solo.io.HmacAuth
 "opaServerAuth": .enterprise.gloo.solo.io.OpaServerAuth
+"portalAuth": .enterprise.gloo.solo.io.PortalAuth
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `name` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | optional: used when defining complex boolean logic, if `boolean_expr` is defined below. Also used in logging. If omitted, an automatically generated name will be used (e.g. config_0, of the pattern 'config_$INDEX_IN_CHAIN'). In the case of plugin auth, this field is ignored in favor of the name assigned on the plugin config itself. |
-| `basicAuth` | [.enterprise.gloo.solo.io.BasicAuth](../extauth.proto.sk/#basicauth) | +kubebuilder:validation:XValidation:rule="has(self.apr) ? !has(self.encryption) && !has(self.userList) : has(self.encryption) && has(self.userList)",message="Either apr or both encryption and userSource must be set; apr may not be set alongside either encryption or userSource". Only one of `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `oauth` | [.enterprise.gloo.solo.io.OAuth](../extauth.proto.sk/#oauth) |  Only one of `oauth`, `basicAuth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `oauth2` | [.enterprise.gloo.solo.io.OAuth2](../extauth.proto.sk/#oauth2) |  Only one of `oauth2`, `basicAuth`, `oauth`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `apiKeyAuth` | [.enterprise.gloo.solo.io.ApiKeyAuth](../extauth.proto.sk/#apikeyauth) |  Only one of `apiKeyAuth`, `basicAuth`, `oauth`, `oauth2`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `pluginAuth` | [.enterprise.gloo.solo.io.AuthPlugin](../extauth.proto.sk/#authplugin) |  Only one of `pluginAuth`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `opaAuth` | [.enterprise.gloo.solo.io.OpaAuth](../extauth.proto.sk/#opaauth) |  Only one of `opaAuth`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `ldap` | [.enterprise.gloo.solo.io.Ldap](../extauth.proto.sk/#ldap) |  Only one of `ldap`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `jwt` | [.google.protobuf.Empty](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/empty) | This is a "dummy" extauth service which can be used to support multiple auth mechanisms with JWT authentication. If Jwt authentication is to be used in the [boolean expression](https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#authconfig) in an AuthConfig, you can use this auth config type to include Jwt as an Auth config. In addition, `allow_missing_or_failed_jwt` must be set on the Virtual Host or Route that uses JWT auth or else the JWT filter will short circuit this behaviour. Only one of `jwt`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `passThroughAuth` | [.enterprise.gloo.solo.io.PassThroughAuth](../extauth.proto.sk/#passthroughauth) | +kubebuilder:validation:XValidation:rule="has(self.grpc) || has(self.http)",message="Must specify grpc or http". Only one of `passThroughAuth`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `hmacAuth` | [.enterprise.gloo.solo.io.HmacAuth](../extauth.proto.sk/#hmacauth) |  Only one of `hmacAuth`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, or `opaServerAuth` can be set. |
-| `opaServerAuth` | [.enterprise.gloo.solo.io.OpaServerAuth](../extauth.proto.sk/#opaserverauth) |  Only one of `opaServerAuth`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, or `hmacAuth` can be set. |
+| `basicAuth` | [.enterprise.gloo.solo.io.BasicAuth](../extauth.proto.sk/#basicauth) | +kubebuilder:validation:XValidation:rule="has(self.apr) ? !has(self.encryption) && !has(self.userList) : has(self.encryption) && has(self.userList)",message="Either apr or both encryption and userSource must be set; apr may not be set alongside either encryption or userSource". Only one of `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `oauth` | [.enterprise.gloo.solo.io.OAuth](../extauth.proto.sk/#oauth) |  Only one of `oauth`, `basicAuth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `oauth2` | [.enterprise.gloo.solo.io.OAuth2](../extauth.proto.sk/#oauth2) |  Only one of `oauth2`, `basicAuth`, `oauth`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `apiKeyAuth` | [.enterprise.gloo.solo.io.ApiKeyAuth](../extauth.proto.sk/#apikeyauth) |  Only one of `apiKeyAuth`, `basicAuth`, `oauth`, `oauth2`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `pluginAuth` | [.enterprise.gloo.solo.io.AuthPlugin](../extauth.proto.sk/#authplugin) |  Only one of `pluginAuth`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `opaAuth` | [.enterprise.gloo.solo.io.OpaAuth](../extauth.proto.sk/#opaauth) |  Only one of `opaAuth`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `ldap` | [.enterprise.gloo.solo.io.Ldap](../extauth.proto.sk/#ldap) |  Only one of `ldap`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `jwt` | [.google.protobuf.Empty](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/empty) | This is a "dummy" extauth service which can be used to support multiple auth mechanisms with JWT authentication. If Jwt authentication is to be used in the [boolean expression](https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#authconfig) in an AuthConfig, you can use this auth config type to include Jwt as an Auth config. In addition, `allow_missing_or_failed_jwt` must be set on the Virtual Host or Route that uses JWT auth or else the JWT filter will short circuit this behaviour. Only one of `jwt`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `passThroughAuth` | [.enterprise.gloo.solo.io.PassThroughAuth](../extauth.proto.sk/#passthroughauth) | +kubebuilder:validation:XValidation:rule="has(self.grpc) || has(self.http)",message="Must specify grpc or http". Only one of `passThroughAuth`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `hmacAuth` | [.enterprise.gloo.solo.io.HmacAuth](../extauth.proto.sk/#hmacauth) |  Only one of `hmacAuth`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `opaServerAuth` | [.enterprise.gloo.solo.io.OpaServerAuth](../extauth.proto.sk/#opaserverauth) |  Only one of `opaServerAuth`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, or `portalAuth` can be set. |
+| `portalAuth` | [.enterprise.gloo.solo.io.PortalAuth](../extauth.proto.sk/#portalauth) |  Only one of `portalAuth`, `basicAuth`, `oauth`, `oauth2`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
 
 
 
@@ -804,7 +807,7 @@ The SameSite options. The default value is LaxMode.
 | ----- | ----------- | 
 | `DefaultMode` | Default Mode is the same as LaxMode but will not show up in the Cookie Header. This value is ignored. |
 | `LaxMode` | Cookies are not sent on normal cross-site subrequests, but are sent when navigating to the origin site. |
-| `StrictMode` | Only be sent in a first-party context and not be sent along with requests initiated by third party websites. |
+| `StrictMode` | Cookies are sent only in first-party contexts and are not sent along with requests initiated by third-party websites. **Warning**: Do not use this mode if the app and the IdP have different domains. In this case, some browsers incorrectly detect the redirect from `/callback` to `/login` as a cross-site request. |
 | `NoneMode` | Cookies are sent in all contexts. Cookie NotSecure must be unset. |
 
 
@@ -1008,7 +1011,7 @@ This way, you can enable distributed claims and caching for when users are membe
 | `clientId` | `string` | The client ID for the ExtAuthService app that is registered in MS Entra, to access the Microsoft Graph API to retrieve distributed claims. This app is NOT the app that you want to configure external auth for. |
 | `tenantId` | `string` | The tenant ID represents the MS Entra organization ID where the ExtAuthService app is registered. This tenant ID may or may not be the same as in the top level `OidcAuthorizationCodeConfig`, depending on how your Azure account is provisioned. |
 | `clientSecret` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | The client secret of the ExtAuthService app that is registered with MS Entra to communicate with the MS Graph API. The client secret data must be placed in a k8s secret under a key called 'client-secret'. |
-| `claimsCachingOptions` | [.enterprise.gloo.solo.io.RedisOptions](../extauth.proto.sk/#redisoptions) | Redis connection details to cache MS Entera claims. This way, you avoid performance issues of accessing the Microsoft Graph API too many times. Note that this setting does NOT turn on Redis caching for the user session. To turn on Redis user session caching, use the `userSessionConfig` field. |
+| `claimsCachingOptions` | [.enterprise.gloo.solo.io.RedisOptions](../extauth.proto.sk/#redisoptions) | Redis connection details to cache MS Entra claims. This way, you avoid performance issues of accessing the Microsoft Graph API too many times. Note that this setting does NOT turn on Redis caching for the user session. To turn on Redis user session caching, use the `userSessionConfig` field. |
 
 
 
@@ -1480,7 +1483,7 @@ added to the `AuthorizationRequest` state under the "api_key_value" key name.
 | `headersFromMetadata` | `map<string, .enterprise.gloo.solo.io.ApiKeyAuth.SecretKey>` | DEPRECATED: use headers_from_metadata_entry. |
 | `headersFromMetadataEntry` | `map<string, map<string, bool>>` | API key structures might contain additional data (e.g. the ID of the user that the API key belongs to) in the form of extra fields included in the API key metadata structure. This configuration can be used to add this data to the headers of successfully authenticated requests. Each key in the map represents the name of header to be added; the corresponding value determines the key in the API key metadata structure that will be inspected to determine the value for the header. When the provided API key token has been successfully validated, and this field has been configured, then any extra API key metadata fields that were able to be discovered will be added to the `AuthorizationRequest` state under the key name that was configured. For example, using the `x-user-name` string as the header name, and referencing an existing "user-email" API key metadata entry will result in the value of this "user-email" metadata entry being accessable in other auth modules in the `AuthorizationRequest.State["x-user-name"]` key. This behavior allows other modules (e.g. OPA) to build more powerful rules to further validate the contents of the extra API key metadata than what's possible using the standalone API key module. |
 | `k8SSecretApikeyStorage` | [.enterprise.gloo.solo.io.K8sSecretApiKeyStorage](../extauth.proto.sk/#k8ssecretapikeystorage) |  Only one of `k8sSecretApikeyStorage` or `aerospikeApikeyStorage` can be set. |
-| `aerospikeApikeyStorage` | [.enterprise.gloo.solo.io.AerospikeApiKeyStorage](../extauth.proto.sk/#aerospikeapikeystorage) |  Only one of `aerospikeApikeyStorage` or `k8sSecretApikeyStorage` can be set. |
+| `aerospikeApikeyStorage` | [.enterprise.gloo.solo.io.AerospikeApiKeyStorage](../extauth.proto.sk/#aerospikeapikeystorage) | <b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release. Use of this feature is not recommended. Only one of `aerospikeApikeyStorage` or `k8sSecretApikeyStorage` can be set. |
 | `skipMetadataValidation` | `bool` | API key metadata may contain data is is invalid for a header, such as a newline. By default, this data will be validated in the data plane and mitigated in a way that provides a consistent experience for the user and visibility for the operator. This validation comes with a performance cost, and can be disabled by setting this field to `true`. |
 
 
@@ -1549,7 +1552,9 @@ For the Aerospike backend, this data is stored as bins on the key's record
 ---
 ### AerospikeApiKeyStorage
 
-
+ 
+<b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release.
+Use of this feature is not recommended.
 
 ```yaml
 "hostname": string
@@ -2061,6 +2066,33 @@ JSON marshalling.
 | `allowedClientHeadersOnDenied` | `[]string` | When this is set, authorization response headers in this list will be added to the response to the downstream client when the auth request is denied. If the response header already exists, it will replace the response header. If this is empty, by default, no authorization response headers will be added to the response to the downstream client. |
 | `readStateFromResponse` | `bool` | If this is set to true, the body of the response from the http passthrough auth server is expected to have shape { "state": object (map[string]interface{}) } The state will be marshalled from the response body and this is the state that will be passed on to other auth configs. Because of the marshalling from JSON to Go map, this will add some latency to the request. If the marshalling fails, the authorization check will fail and the request will be unauthorized after the ext-auth-service pod logs the marshal error. |
 | `allowedUpstreamHeadersToOverwrite` | `[]string` | When this is set, authorization response headers that have a header in this list will be added to the original client request and sent to the upstream when the auth request is successful. These will overwrite to any request headers that already exist. If this and allowed_upstream_headers are empty, by default, no authorization response headers will be added to the upstream request. Header names may not be included in both allowed_upstream_headers and allowed_upstream_headers_to_overwrite. |
+
+
+
+
+---
+### PortalAuth
+
+ 
+PortalAuth is used to authorize requests for credentials generated by the portal web server.
+This API is only supported for Gloo Gateway Portal.
+
+```yaml
+"url": string
+"apiKeyHeader": string
+"redisOptions": .enterprise.gloo.solo.io.RedisOptions
+"cacheDuration": .google.protobuf.Duration
+"requestTimeout": .google.protobuf.Duration
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `url` | `string` | The portal web server url used to validate credentials generated by the portal for the backing service(s). |
+| `apiKeyHeader` | `string` | The api key header name used to find the api key in the request headers. If provided will not authorize requests without the api key in the request headers. If not provided, will authorize requests with a Bearer token but must be chained with an AccessTokenValidation AuthConfig which will validate the token. |
+| `redisOptions` | [.enterprise.gloo.solo.io.RedisOptions](../extauth.proto.sk/#redisoptions) | Options to connect to redis. If not provided, data will be cached in memory. |
+| `cacheDuration` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | The frequency at which the validated credential data should be refreshed by quering the portal web server. Defaults to 60s. |
+| `requestTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Timeout for the portal web server to respond. Defaults to 200ms. |
 
 
 

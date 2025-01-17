@@ -1,4 +1,11 @@
+> [!NOTE]
+> This directory houses legacy tests. All new tests should instead be added to the `test/kubernetes/e2e` directory.
+
 # Kubernetes End-to-End tests
+
+> These are our legacy Kubernetes E2E tests. We are migrating them to `../kubernetes/e2e`. Create new E2E tests there
+> using the new framework.
+
 See the [developer kube-e2e testing guide](/devel/testing/kube-e2e-tests.md) for more information about the philosophy of these tests.
 
 *Note: All commands should be run from the root directory of the Gloo repository*
@@ -65,7 +72,7 @@ To run the regression tests, your kubeconfig file must point to a running Kubern
 
 Use the same command that CI relies on:
 ```bash
-KUBE2E_TESTS=<test-to-run> make run-kube-e2e-tests
+CLUSTER_NAME=solo-test-cluster KUBE2E_TESTS=<test-to-run> make run-kube-e2e-tests
 ```
 
 #### Test Environment Variables
@@ -73,11 +80,10 @@ The below table contains the environment variables that can be used to configure
 
 | Name             | Default | Description                                                                                                                                                                                                                                        |
 |------------------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| KUBE2E_TESTS     | gateway | Name of the test suite to be run. Options: `'gateway', 'gloo', 'ingress', 'helm', 'glooctl', 'upgrade', 'istio'`                                                                                                                                   |
-| DEBUG            | 0       | Set to 1 for debug log output                                                                                                                                                                                                                      |
-| WAIT_ON_FAIL     | 0       | Set to 1 to prevent Ginkgo from cleaning up the Gloo Edge installation in case of failure. Useful to exec into inspect resources created by the test. A command to resume the test run (and thus clean up resources) will be logged to the output. |
-| TEAR_DOWN        | false   | Set to true to uninstall Gloo after the test suite completes                                                                                                                                                                                       |
-| RELEASED_VERSION | ''      | Used by nightlies to tests a specific released version. 'LATEST' will find the latest release                                                                                                                                                      |
+| TEAR_DOWN        | true   | Set to true to uninstall Gloo after the test suite completes                                                                                                                                                                                       |
+| SKIP_INSTALL     | false   | Set to true to use previously installed Gloo for the tests                                                                                                                                                                                        |
+| PERSIST_INSTALL  | false   | Set to true to conditionally install Gloo if it is not already installed and leave Gloo installed after the test run. Useful when running tests repeatedly. If TEAR_DOWN or SKIP_INSTALL values are defined (not just using the default values) and conflict with PERSIST_INSTALL behavior, the TEAR_DOWN or SKIP_INSTALL values will be considered to be more specific and will take precedence.                      |
+| CLUSTER_NAME     | kind    | Used to control which Kind cluster to run the tests inside | 
 
 #### Common Test Errors
 `getting Helm chart version: expected a single entry with name [gloo], found: 5`\

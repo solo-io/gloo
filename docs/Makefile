@@ -11,7 +11,7 @@ HUGO_VERSION := 0.81.0
 SOLO_HUGO_THEME_REVISION := v0.0.29
 
 # The minimum version to maintain in our public docs
-MIN_SCANNED_VERSION ?= v1.13.0
+MIN_SCANNED_VERSION ?= v1.15.0
 
 #----------------------------------------------------------------------------------
 # Docs
@@ -22,20 +22,20 @@ MIN_SCANNED_VERSION ?= v1.13.0
 site-common: clean gloo-enterprise-version
 	if [ ! -d themes/hugo-theme-soloio ]; then git clone https://github.com/solo-io/hugo-theme-soloio themes/hugo-theme-soloio; fi
 	git -C themes/hugo-theme-soloio checkout $(SOLO_HUGO_THEME_REVISION)
-	GO111MODULE=on go run cmd/generate_docs.go gen-releases -r gloo > opensource.out
-	GO111MODULE=on go run cmd/generate_docs.go gen-releases -r glooe > enterprise.out
-	GO111MODULE=on go run cmd/generate_docs.go gen-changelog-md -r gloo > content/static/content/gloo-changelog.docgen
-	GO111MODULE=on go run cmd/generate_docs.go gen-changelog-md -r glooe > content/static/content/glooe-changelog.docgen
+	go run cmd/generate_docs.go gen-releases -r gloo > opensource.out
+	go run cmd/generate_docs.go gen-releases -r glooe > enterprise.out
+	go run cmd/generate_docs.go gen-changelog-md -r gloo > content/static/content/gloo-changelog.docgen
+	go run cmd/generate_docs.go gen-changelog-md -r glooe > content/static/content/glooe-changelog.docgen
 
 	# generate split security scans for gloo versions which HAVE received new split-templating updates
-	MIN_SCANNED_VERSION=$(MIN_SCANNED_VERSION) GO111MODULE=on go run cmd/generate_docs.go gen-security-scan-md -r gloo > content/static/content/gloo-security-scan.docgen
-	MIN_SCANNED_VERSION=$(MIN_SCANNED_VERSION) GO111MODULE=on go run cmd/generate_docs.go gen-security-scan-md -r glooe > content/static/content/glooe-security-scan.docgen
+	MIN_SCANNED_VERSION=$(MIN_SCANNED_VERSION) go run cmd/generate_docs.go gen-security-scan-md -r gloo > content/static/content/gloo-security-scan.docgen
+	MIN_SCANNED_VERSION=$(MIN_SCANNED_VERSION) go run cmd/generate_docs.go gen-security-scan-md -r glooe > content/static/content/glooe-security-scan.docgen
 	cat content/static/content/gloo-security-scan.docgen
 	./split-file-by-delimiter.sh content/static/content/gloo-security-scan.docgen \\\*\\\*\\\*
 	./split-file-by-delimiter.sh content/static/content/glooe-security-scan.docgen \\\*\\\*\\\*
 
 	# get enterprise helm values based on contents of _output/gloo-enterprise-version
-	GO111MODULE=on go run cmd/generate_docs.go get-enterprise-helm-values > content/static/content/glooe-values.docgen
+	go run cmd/generate_docs.go get-enterprise-helm-values > content/static/content/glooe-values.docgen
 	rm -f opensource.out enterprise.out
 
 
@@ -90,7 +90,7 @@ build-site: clean
 # corresponding to content in changelog directory.
 .PHONY: gloo-enterprise-version
 gloo-enterprise-version:
-	cd .. && GO111MODULE=on go run hack/find_latest_enterprise_version/main.go
+	cd .. && go run hack/find_latest_enterprise_version/main.go
 
 #----------------------------------------------------------------------------------
 # Printing makefile variables utility

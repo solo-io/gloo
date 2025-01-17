@@ -182,11 +182,15 @@ func (h *historyImpl) GetProxySnapshot(_ context.Context) SnapshotResponseData {
 // GetXdsSnapshot returns the entire cache of xDS snapshots
 // NOTE: This contains sensitive data, as it is the exact inputs that used by Envoy
 func (h *historyImpl) GetXdsSnapshot(_ context.Context) SnapshotResponseData {
-	cacheKeys := h.xdsCache.GetStatusKeys()
+	return GetXdsSnapshotDataFromCache(h.xdsCache)
+}
+
+func GetXdsSnapshotDataFromCache(xdsCache cache.SnapshotCache) SnapshotResponseData {
+	cacheKeys := xdsCache.GetStatusKeys()
 	cacheEntries := make(map[string]interface{}, len(cacheKeys))
 
 	for _, k := range cacheKeys {
-		xdsSnapshot, err := h.xdsCache.GetSnapshot(k)
+		xdsSnapshot, err := getXdsSnapshot(xdsCache, k)
 		if err != nil {
 			cacheEntries[k] = err.Error()
 		} else {
@@ -195,6 +199,15 @@ func (h *historyImpl) GetXdsSnapshot(_ context.Context) SnapshotResponseData {
 	}
 
 	return completeSnapshotResponse(cacheEntries)
+}
+
+func getXdsSnapshot(xdsCache cache.SnapshotCache, k string) (cache cache.Snapshot, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = eris.New(fmt.Sprintf("panic occurred while getting xds snapshot: %v", r))
+		}
+	}()
+	return xdsCache.GetSnapshot(k)
 }
 
 // getRedactedApiSnapshot gets an in-memory copy of the ApiSnapshot

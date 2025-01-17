@@ -25,11 +25,22 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/utils/pointer"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	api "sigs.k8s.io/gateway-api/apis/v1"
+
+	// TODO BML tests in this suite fail if this no-op import is not imported first.
+	//
+	// I know, I know, you're reading this, and you're skeptical. I can feel it.
+	// Don't take my word for it.
+	//
+	// There is some import within this package that this suite relies on. Chasing that down is
+	// *hard* tho due to the import tree, and best done in a followup.
+	_ "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
 
 // testBootstrap implements resources.Resource in order to use protoutils.UnmarshalYAML
@@ -205,6 +216,7 @@ var _ = Describe("Deployer", func() {
 							ExtraAnnotations: map[string]string{
 								"foo": "bar",
 							},
+							ExternalTrafficPolicy: ptr.To(corev1.ServiceExternalTrafficPolicyCluster),
 						},
 						ServiceAccount: &gw2_v1alpha1.ServiceAccount{
 							ExtraLabels: map[string]string{
@@ -587,6 +599,7 @@ var _ = Describe("Deployer", func() {
 								ExtraAnnotations: map[string]string{
 									"override-foo": "override-bar",
 								},
+								ExternalTrafficPolicy: ptr.To(corev1.ServiceExternalTrafficPolicyLocal),
 							},
 							ServiceAccount: &gw2_v1alpha1.ServiceAccount{
 								ExtraLabels: map[string]string{
@@ -654,6 +667,7 @@ var _ = Describe("Deployer", func() {
 									"foo":          "bar",
 									"override-foo": "override-bar",
 								},
+								ExternalTrafficPolicy: ptr.To(corev1.ServiceExternalTrafficPolicyLocal),
 							},
 							ServiceAccount: &gw2_v1alpha1.ServiceAccount{
 								ExtraLabels: map[string]string{
@@ -752,6 +766,18 @@ var _ = Describe("Deployer", func() {
 				return fullyDefinedGatewayParameters(wellknown.DefaultGatewayParametersName, defaultNamespace)
 			}
 
+			fullyDefinedGatewayParamsWithProbes = func() *gw2_v1alpha1.GatewayParameters {
+				params := fullyDefinedGatewayParameters(wellknown.DefaultGatewayParametersName, defaultNamespace)
+				params.Spec.Kube.PodTemplate.LivenessProbe = generateLivenessProbe()
+				params.Spec.Kube.PodTemplate.ReadinessProbe = generateReadinessProbe()
+				params.Spec.Kube.PodTemplate.TerminationGracePeriodSeconds = pointer.Int(5)
+				params.Spec.Kube.PodTemplate.GracefulShutdown = &gw2_v1alpha1.GracefulShutdownSpec{
+					Enabled:          pointer.Bool(true),
+					SleepTimeSeconds: pointer.Int(7),
+				}
+				return params
+			}
+
 			fullyDefinedGatewayParamsWithFloatingUserId = func() *gw2_v1alpha1.GatewayParameters {
 				params := fullyDefinedGatewayParameters(wellknown.DefaultGatewayParametersName, defaultNamespace)
 				params.Spec.Kube.FloatingUserId = ptr.To(true)
@@ -795,6 +821,7 @@ var _ = Describe("Deployer", func() {
 					Expect(dep.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring(":" + version.Version))
 				}
 				Expect(dep.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(Equal(*expectedGwp.EnvoyContainer.Image.PullPolicy))
+
 				Expect(dep.Spec.Template.Annotations).To(matchers.ContainMapElements(expectedGwp.PodTemplate.ExtraAnnotations))
 				Expect(dep.Spec.Template.Annotations).To(HaveKeyWithValue("prometheus.io/scrape", "true"))
 				Expect(dep.Spec.Template.Spec.SecurityContext.RunAsUser).To(Equal(expectedGwp.PodTemplate.SecurityContext.RunAsUser))
@@ -808,6 +835,7 @@ var _ = Describe("Deployer", func() {
 				Expect(svc.GetLabels()).To(matchers.ContainMapElements(expectedGwp.Service.ExtraLabels))
 				Expect(svc.Spec.Type).To(Equal(*expectedGwp.Service.Type))
 				Expect(svc.Spec.ClusterIP).To(Equal(*expectedGwp.Service.ClusterIP))
+				Expect(svc.Spec.ExternalTrafficPolicy).To(Equal(*expectedGwp.Service.ExternalTrafficPolicy))
 
 				sa := objs.findServiceAccount(defaultNamespace, defaultServiceAccountName)
 				Expect(sa).ToNot(BeNil())
@@ -924,6 +952,7 @@ var _ = Describe("Deployer", func() {
 			Expect(svc.GetLabels()).To(matchers.ContainMapElements(expectedGwp.Service.ExtraLabels))
 			Expect(svc.Spec.Type).To(Equal(*expectedGwp.Service.Type))
 			Expect(svc.Spec.ClusterIP).To(Equal(*expectedGwp.Service.ClusterIP))
+			Expect(svc.Spec.ExternalTrafficPolicy).To(Equal(*expectedGwp.Service.ExternalTrafficPolicy))
 
 			sa := objs.findServiceAccount(defaultNamespace, defaultServiceAccountName)
 			Expect(sa).ToNot(BeNil())
@@ -969,6 +998,27 @@ var _ = Describe("Deployer", func() {
 
 			istioContainer := dep.Spec.Template.Spec.Containers[2]
 			Expect(istioContainer.SecurityContext.RunAsUser).To(Equal(expectedGwp.Istio.IstioProxyContainer.SecurityContext.RunAsUser))
+
+			return nil
+		}
+
+		fullyDefinedValidationWithProbes := func(objs clientObjects, inp *input) error {
+			err := fullyDefinedValidationWithoutRunAsUser(objs, inp)
+			if err != nil {
+				return err
+			}
+
+			dep := objs.findDeployment(defaultNamespace, defaultDeploymentName)
+			Expect(*dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(int64(5)))
+
+			envoyContainer := dep.Spec.Template.Spec.Containers[0]
+			Expect(envoyContainer.LivenessProbe).To(BeEquivalentTo(generateLivenessProbe()))
+			Expect(envoyContainer.ReadinessProbe).To(BeEquivalentTo(generateReadinessProbe()))
+			Expect(envoyContainer.Lifecycle.PreStop.Exec.Command).To(BeEquivalentTo([]string{
+				"/bin/sh",
+				"-c",
+				"wget --post-data \"\" -O /dev/null 127.0.0.1:19000/healthcheck/fail; sleep 7",
+			}))
 
 			return nil
 		}
@@ -1143,6 +1193,14 @@ var _ = Describe("Deployer", func() {
 			}, &expectedOutput{
 				validationFunc: fullyDefinedValidation,
 			}),
+			Entry("Fully defined GatewayParameters with probes", &input{
+				dInputs:    istioEnabledDeployerInputs(),
+				gw:         defaultGateway(),
+				defaultGwp: fullyDefinedGatewayParamsWithProbes(),
+			}, &expectedOutput{
+				validationFunc: fullyDefinedValidationWithProbes,
+			}),
+
 			Entry("Fully defined GatewayParameters with floating user id", &input{
 				dInputs:    istioEnabledDeployerInputs(),
 				gw:         defaultGateway(),
@@ -1197,9 +1255,46 @@ var _ = Describe("Deployer", func() {
 					port := svc.Spec.Ports[0]
 					Expect(port.Port).To(Equal(int32(80)))
 					Expect(port.TargetPort.IntVal).To(Equal(int32(8080)))
+					Expect(port.NodePort).To(Equal(int32(0)))
 					return nil
 				},
 			}),
+			Entry("static NodePort", &input{
+				dInputs:    defaultDeployerInputs(),
+				gw:         defaultGatewayWithGatewayParams(gwpOverrideName),
+				defaultGwp: defaultGatewayParams(),
+				overrideGwp: &gw2_v1alpha1.GatewayParameters{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      gwpOverrideName,
+						Namespace: defaultNamespace,
+					},
+					Spec: gw2_v1alpha1.GatewayParametersSpec{
+						Kube: &gw2_v1alpha1.KubernetesProxyConfig{
+							Service: &gw2_v1alpha1.Service{
+								Type: ptr.To(corev1.ServiceTypeNodePort),
+								Ports: []*gw2_v1alpha1.Port{
+									{
+										Port:     80,
+										NodePort: ptr.To(uint16(30000)),
+									},
+								},
+							},
+						},
+					},
+				},
+			}, &expectedOutput{
+				validationFunc: func(objs clientObjects, inp *input) error {
+					svc := objs.findService(defaultNamespace, defaultServiceName)
+					Expect(svc).NotTo(BeNil())
+
+					port := svc.Spec.Ports[0]
+					Expect(port.Port).To(Equal(int32(80)))
+					Expect(port.TargetPort.IntVal).To(Equal(int32(8080)))
+					Expect(port.NodePort).To(Equal(int32(30000)))
+					return nil
+				},
+			}),
+
 			Entry("duplicate ports", &input{
 				dInputs: defaultDeployerInputs(),
 				gw: &api.Gateway{
@@ -1385,7 +1480,7 @@ var _ = Describe("Deployer", func() {
 // initialize a fake controller-runtime client with the given list of objects
 func newFakeClientWithObjs(objs ...client.Object) client.Client {
 	return fake.NewClientBuilder().
-		WithScheme(schemes.DefaultScheme()).
+		WithScheme(schemes.GatewayScheme()).
 		WithObjects(objs...).
 		Build()
 }
@@ -1499,6 +1594,7 @@ func fullyDefinedGatewayParameters(name, namespace string) *gw2_v1alpha1.Gateway
 					ExtraLabels: map[string]string{
 						"service-label": "foo",
 					},
+					ExternalTrafficPolicy: ptr.To(corev1.ServiceExternalTrafficPolicyLocal),
 				},
 				ServiceAccount: &gw2_v1alpha1.ServiceAccount{
 					ExtraLabels: map[string]string{
@@ -1548,5 +1644,40 @@ func fullyDefinedGatewayParameters(name, namespace string) *gw2_v1alpha1.Gateway
 				},
 			},
 		},
+	}
+}
+
+func generateLivenessProbe() *corev1.Probe {
+	return &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			Exec: &corev1.ExecAction{
+				Command: []string{
+					"wget",
+					"-O",
+					"/dev/null",
+					"127.0.0.1:19000/server_info",
+				},
+			},
+		},
+		InitialDelaySeconds: 3,
+		PeriodSeconds:       10,
+		FailureThreshold:    3,
+	}
+}
+
+func generateReadinessProbe() *corev1.Probe {
+	return &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Scheme: "HTTP",
+				Port: intstr.IntOrString{
+					IntVal: 8082,
+				},
+				Path: "/envoy-hc",
+			},
+		},
+		InitialDelaySeconds: 5,
+		PeriodSeconds:       5,
+		FailureThreshold:    2,
 	}
 }

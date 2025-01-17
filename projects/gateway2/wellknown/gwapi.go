@@ -1,6 +1,8 @@
 package wellknown
 
 import (
+	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/sets"
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -35,6 +37,9 @@ const (
 	GatewayListKind        = "GatewayList"
 	GatewayClassListKind   = "GatewayClassList"
 	ReferenceGrantListKind = "ReferenceGrantList"
+
+	// Gateway API CRD names
+	TCPRouteCRDName = "tcproutes.gateway.networking.k8s.io"
 )
 
 var (
@@ -85,16 +90,18 @@ var (
 		Kind:    ReferenceGrantListKind,
 	}
 
-	GatewayCRDs = sets.New[string](
+	// GatewayStandardCRDs defines the set of Gateway API CRDs from the standard release channel.
+	GatewayStandardCRDs = sets.New[string](
 		"gatewayclasses.gateway.networking.k8s.io",
 		"gateways.gateway.networking.k8s.io",
 		"httproutes.gateway.networking.k8s.io",
-		"tcproutes.gateway.networking.k8s.io",
+		"grpcroutes.gateway.networking.k8s.io",
 		"referencegrants.gateway.networking.k8s.io",
 	)
 
-	GatewayRouteCRDs = []string{
-		"httproutes.gateway.networking.k8s.io",
-		"tcproutes.gateway.networking.k8s.io",
+	TCPRouteCRD = apiextv1.CustomResourceDefinition{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: TCPRouteCRDName,
+		},
 	}
 )

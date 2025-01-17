@@ -66,7 +66,7 @@ var _ = Describe("Client", func() {
 						curl.WithoutRetries(),
 					)
 
-				statsCmd := client.StatsCmd(ctx).
+				statsCmd := client.StatsCmd(ctx, nil).
 					WithStdout(&outLocation).
 					WithStderr(&errLocation)
 

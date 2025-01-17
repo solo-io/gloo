@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/utils/ptr"
@@ -246,14 +245,20 @@ func (r *gatewayQueries) getDelegatedChildren(
 		visited = sets.New[types.NamespacedName]()
 	}
 	parentRef := namespacedName(parent)
+	// `visited` is used to detect cyclic references to routes in the delegation chain.
+	// It is important to remove the route from the set once all its children have been evaluated
+	// in the recursion stack, because a route may have multiple parents that have the same ancestor:
+	// e.g., A -> B1, A -> B2, B1 -> C, B2 -> C. So in this case, even though C is visited twice,
+	// the delegation chain is valid as it is evaluated only once for each parent.
 	visited.Insert(parentRef)
+	defer visited.Delete(parentRef)
 
 	children := NewBackendMap[[]*RouteInfo]()
 	for _, parentRule := range parent.Spec.Rules {
 		var refChildren []*RouteInfo
 		for _, backendRef := range parentRule.BackendRefs {
-			// Check if the backend reference is an HTTPRoute
-			if !backendref.RefIsHTTPRoute(backendRef.BackendObjectReference) {
+			// Check if the backend delegated route reference
+			if !backendref.RefIsDelegatedHTTPRoute(backendRef.BackendObjectReference) {
 				continue
 			}
 			// Fetch child routes based on the backend reference
@@ -265,7 +270,7 @@ func (r *gatewayQueries) getDelegatedChildren(
 			for _, childRoute := range referencedRoutes {
 				childRef := namespacedName(&childRoute)
 				if visited.Has(childRef) {
-					err := fmt.Errorf("ignoring child route %s for parent %s: %w", parentRef, childRef, ErrCyclicReference)
+					err := fmt.Errorf("ignoring child route %s for parent %s: %w", childRef, parentRef, ErrCyclicReference)
 					children.AddError(backendRef.BackendObjectReference, err)
 					// Don't resolve invalid child route
 					continue
@@ -297,35 +302,41 @@ func (r *gatewayQueries) fetchChildRoutes(
 	backendRef gwv1.HTTPBackendRef,
 ) ([]gwv1.HTTPRoute, error) {
 	delegatedNs := parentNamespace
-	if !backendref.RefIsHTTPRoute(backendRef.BackendObjectReference) {
-		return nil, nil
-	}
 	// Use the namespace specified in the backend reference if available
 	if backendRef.Namespace != nil {
 		delegatedNs = string(*backendRef.Namespace)
 	}
 
 	var refChildren []gwv1.HTTPRoute
-	if string(backendRef.Name) == "" || string(backendRef.Name) == "*" {
-		// Handle wildcard references by listing all HTTPRoutes in the specified namespace
+	if backendref.RefIsHTTPRoute(backendRef.BackendObjectReference) {
+		if string(backendRef.Name) == "" || string(backendRef.Name) == "*" {
+			// Handle wildcard references by listing all HTTPRoutes in the specified namespace
+			var hrlist gwv1.HTTPRouteList
+			err := r.client.List(ctx, &hrlist, client.InNamespace(delegatedNs))
+			if err != nil {
+				return nil, err
+			}
+			refChildren = hrlist.Items
+		} else {
+			// Lookup a specific child route by its name
+			delegatedRef := types.NamespacedName{
+				Namespace: delegatedNs,
+				Name:      string(backendRef.Name),
+			}
+			child := &gwv1.HTTPRoute{}
+			err := r.client.Get(ctx, delegatedRef, child)
+			if err != nil {
+				return nil, err
+			}
+			refChildren = append(refChildren, *child)
+		}
+	} else if backendref.RefIsHTTPRouteDelegationLabelSelector(backendRef.BackendObjectReference) {
 		var hrlist gwv1.HTTPRouteList
-		err := r.client.List(ctx, &hrlist, client.InNamespace(delegatedNs))
+		err := r.client.List(ctx, &hrlist, client.InNamespace(delegatedNs), client.MatchingFields{HttpRouteDelegatedLabelSelector: string(backendRef.Name)})
 		if err != nil {
 			return nil, err
 		}
-		refChildren = append(refChildren, hrlist.Items...)
-	} else {
-		// Lookup a specific child route by its name
-		delegatedRef := types.NamespacedName{
-			Namespace: delegatedNs,
-			Name:      string(backendRef.Name),
-		}
-		child := &gwv1.HTTPRoute{}
-		err := r.client.Get(ctx, delegatedRef, child)
-		if err != nil {
-			return nil, err
-		}
-		refChildren = append(refChildren, *child)
+		refChildren = hrlist.Items
 	}
 	// Check if no child routes were resolved and log an error if needed
 	if len(refChildren) == 0 {
@@ -341,22 +352,18 @@ func (r *gatewayQueries) GetRoutesForGateway(ctx context.Context, gw *gwv1.Gatew
 		Name:      gw.Name,
 	}
 
-	// Check if the required Gateway API CRDs exist
-	if err := r.checkCRDs(ctx); err != nil {
-		return nil, err
-	}
-
-	// If requiredCRDsExist is false, return an empty result
-	if r.requiredCRDsExist != nil && !*r.requiredCRDsExist {
-		return NewRoutesForGwResult(), nil
-	}
-
 	// List of route types to process based on installed CRDs
-	routeListTypes := []client.ObjectList{}
+	routeListTypes := []client.ObjectList{&gwv1.HTTPRouteList{}}
 
-	// Add route types based on available CRDs
-	// Since we have confirmed that both CRDs exist, we can proceed to add them
-	routeListTypes = append(routeListTypes, &gwv1.HTTPRouteList{}, &gwv1a2.TCPRouteList{})
+	// Conditionally include TCPRouteList
+	tcpRouteGVK := schema.GroupVersionKind{
+		Group:   gwv1a2.GroupVersion.Group,
+		Version: gwv1a2.GroupVersion.Version,
+		Kind:    wellknown.TCPRouteKind,
+	}
+	if r.scheme.Recognizes(tcpRouteGVK) {
+		routeListTypes = append(routeListTypes, &gwv1a2.TCPRouteList{})
+	}
 
 	var routes []client.Object
 	for _, routeList := range routeListTypes {
@@ -483,29 +490,6 @@ func (r *gatewayQueries) processRoute(ctx context.Context, gw *gwv1.Gateway, rou
 			})
 		}
 	}
-
-	return nil
-}
-
-func (r *gatewayQueries) checkCRDs(ctx context.Context) error {
-	if r.requiredCRDsExist != nil && *r.requiredCRDsExist {
-		// CRDs are already known to exist, return early
-		return nil
-	}
-
-	for _, crdName := range wellknown.GatewayRouteCRDs {
-		crd := &apiextensionsv1.CustomResourceDefinition{}
-		err := r.client.Get(ctx, client.ObjectKey{Name: crdName}, crd)
-		if err != nil {
-			if errors.IsNotFound(err) {
-				r.requiredCRDsExist = ptr.To(false)
-				return nil
-			}
-			return fmt.Errorf("error checking for %s CRD: %w", crdName, err)
-		}
-	}
-	// All required CRDs are installed
-	r.requiredCRDsExist = ptr.To(true)
 
 	return nil
 }

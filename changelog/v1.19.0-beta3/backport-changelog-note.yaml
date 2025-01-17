@@ -1,0 +1,8 @@
+changelog:
+- type: NON_USER_FACING
+  description: >-
+    Add a note about changelogs in backports.
+
+    skipCI-kube-tests:true
+    skipCI-docs-build:true
+

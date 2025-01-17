@@ -12,10 +12,10 @@ import (
 	"istio.io/istio/pkg/kube/krt"
 )
 
-func snapshotPerClient(l *zap.Logger, uccCol krt.Collection[krtcollections.UniqlyConnectedClient],
-	mostXdsSnapshots krt.Collection[xdsSnapWrapper], endpoints PerClientEnvoyEndpoints, clusters PerClientEnvoyClusters) krt.Collection[xdsSnapWrapper] {
+func snapshotPerClient(l *zap.Logger, dbg *krt.DebugHandler, uccCol krt.Collection[krtcollections.UniqlyConnectedClient],
+	mostXdsSnapshots krt.Collection[XdsSnapWrapper], endpoints PerClientEnvoyEndpoints, clusters PerClientEnvoyClusters) krt.Collection[XdsSnapWrapper] {
 
-	xdsSnapshotsForUcc := krt.NewCollection(uccCol, func(kctx krt.HandlerContext, ucc krtcollections.UniqlyConnectedClient) *xdsSnapWrapper {
+	xdsSnapshotsForUcc := krt.NewCollection(uccCol, func(kctx krt.HandlerContext, ucc krtcollections.UniqlyConnectedClient) *XdsSnapWrapper {
 		maybeMostlySnap := krt.FetchOne(kctx, mostXdsSnapshots, krt.FilterKey(ucc.Role))
 		if maybeMostlySnap == nil {
 			l.Debug("snapshotPerClient - snapshot missing", zap.String("proxyKey", ucc.Role))
@@ -74,6 +74,6 @@ func snapshotPerClient(l *zap.Logger, uccCol krt.Collection[krtcollections.Uniql
 		)
 
 		return &mostlySnap
-	})
+	}, krt.WithDebugging(dbg), krt.WithName("PerClientXdsSnapshots"))
 	return xdsSnapshotsForUcc
 }

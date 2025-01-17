@@ -13,26 +13,28 @@ import (
 )
 
 const (
-	HttpRouteTargetField    = "http-route-target"
-	TcpRouteTargetField     = "tcp-route-target"
-	ReferenceGrantFromField = "ref-grant-from"
+	HttpRouteTargetField            = "http-route-target"
+	HttpRouteDelegatedLabelSelector = "http-route-delegated-label-selector"
+	TcpRouteTargetField             = "tcp-route-target"
+	ReferenceGrantFromField         = "ref-grant-from"
 )
 
 // IterateIndices calls the provided function for each indexable object with the appropriate indexer function.
 func IterateIndices(f func(client.Object, string, client.IndexerFunc) error) error {
 	return errors.Join(
-		f(&gwv1.HTTPRoute{}, HttpRouteTargetField, indexerByObjType),
-		f(&gwv1a2.TCPRoute{}, TcpRouteTargetField, indexerByObjType),
-		f(&gwv1b1.ReferenceGrant{}, ReferenceGrantFromField, indexerByObjType),
+		f(&gwv1.HTTPRoute{}, HttpRouteTargetField, IndexerByObjType),
+		f(&gwv1.HTTPRoute{}, HttpRouteDelegatedLabelSelector, IndexByHTTPRouteDelegationLabelSelector),
+		f(&gwv1a2.TCPRoute{}, TcpRouteTargetField, IndexerByObjType),
+		f(&gwv1b1.ReferenceGrant{}, ReferenceGrantFromField, IndexerByObjType),
 	)
 }
 
-// indexerByObjType indexes objects based on the provided object type. The following object types are supported:
+// IndexerByObjType indexes objects based on the provided object type. The following object types are supported:
 //
 //   - HTTPRoute
 //   - TCPRoute
 //   - ReferenceGrant
-func indexerByObjType(obj client.Object) []string {
+func IndexerByObjType(obj client.Object) []string {
 	var results []string
 
 	switch resource := obj.(type) {
@@ -84,6 +86,15 @@ func indexerByObjType(obj client.Object) []string {
 	}
 
 	return results
+}
+
+func IndexByHTTPRouteDelegationLabelSelector(obj client.Object) []string {
+	route := obj.(*gwv1.HTTPRoute)
+	value, ok := route.Labels[wellknown.RouteDelegationLabelSelector]
+	if !ok {
+		return nil
+	}
+	return []string{value}
 }
 
 // resolveNs resolves the namespace from an optional Namespace field.
