@@ -50,11 +50,12 @@ func (s *testingSuite) AfterTest(suiteName, testName string) {
 	// it afterward, PreFailHandler() should be called here (before the resources are deleted) so we can
 	// capture the log before the pod is destroyed.
 
-	// WARNING: In this example test, another place calling PreFailHandler() is in main _test.go file where it
-	// setup the go test cleanup function with t.Cleanup(). That clean up function is only called once
-	// after all the tests in all registered suites finished. If PreFailHandler() is called here, the one in the cleanup
-	// function should be removed as it would wipe out the entire output directory (including these per-test logs).
-	// before dumping out the logs at the very end
+	// WARNING: In this example test, another place calling PreFailHandler() is in the main _test.go file
+	// (test/kubernetes/e2e/example/info_logging_test.go) where it sets up the go test cleanup function with t.Cleanup().
+	// That clean up function is only called once/ after all the tests in all registered suites finished.
+	// If PreFailHandler() is called here, the one in the cleanup function should be removed as it would wipe out the
+	// entire output directory (including these per-test logs) before dumping out the logs at the very end.
+	// If you only need to dump the logs once at the very end, the following should be removed.
 	if s.T().Failed() {
 		// Calling PreFailHandler() with optional TestName so that the logs would go into
 		// a per test directory
