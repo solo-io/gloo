@@ -1,0 +1,5 @@
+  - type: NON_USER_FACING
+    description: >-
+      If we generate any ListenerOptions from a Gateway to Proxy
+      translator, they will no longer be overridden by user
+      ListenerOptions.
