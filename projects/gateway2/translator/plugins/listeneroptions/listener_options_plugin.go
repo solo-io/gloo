@@ -8,6 +8,8 @@ import (
 	lisquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/listeneroptions/query"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
+	"google.golang.org/protobuf/proto"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -47,7 +49,11 @@ func (p *plugin) ApplyListenerPlugin(
 	// use the first option (highest in priority)
 	// see for more context: https://github.com/solo-io/solo-projects/issues/6313
 	optToUse := attachedOptions[0]
-	outListener.Options = optToUse.Spec.GetOptions()
+	if outListener.GetOptions() != nil {
+		proto.Merge(outListener.GetOptions(), optToUse.Spec.GetOptions())
+	} else {
+		outListener.Options = optToUse.Spec.GetOptions()
+	}
 
 	return nil
 }

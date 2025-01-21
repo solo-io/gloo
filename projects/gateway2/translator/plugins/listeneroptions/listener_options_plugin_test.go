@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/proxy_protocol"
 	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -48,12 +49,17 @@ var _ = Describe("ListenerOptions Plugin", func() {
 				},
 			}
 
-			outputListener = &v1.Listener{}
+			outputListener = &v1.Listener{
+				Options: &v1.ListenerOptions{
+					ProxyProtocol: &proxy_protocol.ProxyProtocol{},
+				},
+			}
 
 			expectedOptions = &v1.ListenerOptions{
 				PerConnectionBufferLimitBytes: &wrapperspb.UInt32Value{
 					Value: uint32(419),
 				},
+				ProxyProtocol: &proxy_protocol.ProxyProtocol{},
 			}
 		})
 		JustBeforeEach(func() {
@@ -118,7 +124,6 @@ var _ = Describe("ListenerOptions Plugin", func() {
 			})
 		})
 	})
-
 })
 
 func attachedListenerOption() *solokubev1.ListenerOption {
@@ -144,6 +149,7 @@ func attachedListenerOption() *solokubev1.ListenerOption {
 		},
 	}
 }
+
 func attachedListenerOptionWithSectionName() *solokubev1.ListenerOption {
 	listOpt := attachedListenerOption()
 	listOpt.Spec.TargetRefs[0].SectionName = &wrapperspb.StringValue{
