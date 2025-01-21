@@ -56,9 +56,11 @@ var _ = Describe("ListenerOptions Plugin", func() {
 			}
 
 			expectedOptions = &v1.ListenerOptions{
+				// from config
 				PerConnectionBufferLimitBytes: &wrapperspb.UInt32Value{
 					Value: uint32(419),
 				},
+				// base
 				ProxyProtocol: &proxy_protocol.ProxyProtocol{},
 			}
 		})
@@ -108,7 +110,7 @@ var _ = Describe("ListenerOptions Plugin", func() {
 			It("does not add buffer limit", func() {
 				err := plugin.ApplyListenerPlugin(ctx, listenerCtx, outputListener)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(outputListener.GetOptions()).To(BeNil())
+				Expect(outputListener.GetOptions().GetPerConnectionBufferLimitBytes()).To(BeNil())
 			})
 		})
 
@@ -120,7 +122,7 @@ var _ = Describe("ListenerOptions Plugin", func() {
 			It("does not add buffer limit", func() {
 				err := plugin.ApplyListenerPlugin(ctx, listenerCtx, outputListener)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(outputListener.GetOptions()).To(BeNil())
+				Expect(outputListener.GetOptions().GetPerConnectionBufferLimitBytes()).To(BeNil())
 			})
 		})
 	})
