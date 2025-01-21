@@ -22,14 +22,13 @@ rules:
   - services
   - pods
   - nodes
-  - secrets
   - namespaces
   verbs: ["get", "list", "watch"]
 - apiGroups:
   - ""
   resources:
   - secrets
-  verbs: ["get", "list", "watch", "create", "patch"]
+  verbs: ["get", "list", "watch", "create", "patch", "update"]
 - apiGroups:
   - "discovery.k8s.io"
   resources:

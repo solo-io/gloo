@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -479,6 +480,54 @@ func (r *controllerReconciler) ReconcileEndpointSlices(ctx context.Context, req 
 }
 
 func (r *controllerReconciler) ReconcileSecrets(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	logger := log.FromContext(ctx).WithValues("gwclass", req.NamespacedName)
+	logger.Info("Reconciling Secrets")
+
+	// TODOS: Don't hardcode anything, loop over all relevant namespaces. Move somewhere else for that data?
+
+	if req.NamespacedName.Name == "gloo-mtls-certs" && req.NamespacedName.Namespace == "gloo-system" {
+		sourceSecret := &corev1.Secret{}
+		err := r.cli.Get(ctx, req.NamespacedName, sourceSecret)
+		if err != nil {
+			logger.Info("Failed to get cert")
+		} else {
+			logger.Info("Got cert")
+		}
+
+		destSecret := &corev1.Secret{}
+		destKey := types.NamespacedName{
+			Name:      "gloo-mtls-certs",
+			Namespace: "default",
+		}
+		err = r.cli.Get(ctx, destKey, destSecret)
+
+		if err != nil {
+			logger.Info("Failed to get dest cert, creating")
+			createSecret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "gloo-mtls-certs",
+					Namespace: "default",
+				},
+				Data: sourceSecret.Data,
+				Type: "kubernetes.io/tls",
+			}
+
+			err = r.cli.Create(ctx, createSecret)
+			if err != nil {
+				logger.Info("Error creating secret: ", "err", err)
+			}
+		} else {
+			// TODO: Compare before updating?
+			logger.Info("Got dest cert, updating")
+			destSecret.Data = sourceSecret.Data
+
+			err = r.cli.Update(ctx, destSecret)
+			if err != nil {
+				logger.Info("Error updating secret: ", "err", err)
+			}
+		}
+	}
+
 	// eventually reconcile only effected listeners etc
 	r.kick(ctx)
 	return ctrl.Result{}, nil
