@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -235,12 +236,19 @@ func (i *TestInstallation) UninstallGlooGateway(ctx context.Context, uninstallFn
 	i.Assertions.EventuallyUninstallationSucceeded(ctx)
 }
 
+type PreFailHandlerOption struct {
+	TestName string
+}
+
 // PreFailHandler is the function that is invoked if a test in the given TestInstallation fails
-func (i *TestInstallation) PreFailHandler(ctx context.Context) {
+func (i *TestInstallation) PreFailHandler(ctx context.Context, options ...PreFailHandlerOption) {
 	// The idea here is we want to accumulate ALL information about this TestInstallation into a single directory
 	// That way we can upload it in CI, or inspect it locally
 
 	failureDir := i.GeneratedFiles.FailureDir
+	if len(options) > 0 && len(options[0].TestName) > 0 {
+		failureDir = path.Join(failureDir, options[0].TestName)
+	}
 	err := os.Mkdir(failureDir, os.ModePerm)
 	// We don't want to fail on the output directory already existing. This could occur
 	// if multiple tests running in the same cluster from the same installation namespace

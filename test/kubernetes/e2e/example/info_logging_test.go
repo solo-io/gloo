@@ -46,6 +46,11 @@ func TestInstallationWithInfoLogLevel(t *testing.T) {
 		if !nsEnvPredefined {
 			os.Unsetenv(testutils.InstallNamespace)
 		}
+
+		// This clean up function is called only once after all the tests in all the registered suites are done.
+		// Moreover, PreFailHandler() will wipe out the output directory before dumping out the stats and
+		// logs of the cluster. If PreFailHandler() is called in the suite's AfterTest() function already,
+		// The following should be removed.
 		if t.Failed() {
 			testInstallation.PreFailHandler(ctx)
 		}
