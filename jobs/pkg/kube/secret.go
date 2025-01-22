@@ -224,10 +224,6 @@ func makeTlsSecret(args TlsSecret) *corev1.Secret {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      args.SecretName,
 			Namespace: args.SecretNamespace,
-			Annotations: map[string]string{
-				"reflector.v1.k8s.emberstack.com/reflection-allowed":      "true",
-				"reflector.v1.k8s.emberstack.com/reflection-auto-enabled": "true",
-			},
 		},
 		Type: corev1.SecretTypeTLS,
 		Data: map[string][]byte{

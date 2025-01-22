@@ -7,6 +7,19 @@
   {{- end }} {{/* if $gateway.glooMtls */}}
 {{- end }} {{/* if $gateway.glooMtls.enabled */}}
 
+{{- if $mtlsEnabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+ {{/* TODO - is name configurable?*/}}
+  name: gloo-mtls-certs 
+data:
+  ca.crt: {{ $gateway.glooMtls.caCert }}
+  tls.crt: {{ $gateway.glooMtls.tlsCert }}
+  tls.key: {{ $gateway.glooMtls.tlsKey }}
+type: kubernetes.io/tls
+{{- end }} {{/* if $mtlsEnabled */}}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

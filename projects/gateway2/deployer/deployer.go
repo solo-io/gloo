@@ -68,6 +68,7 @@ type Inputs struct {
 	IstioIntegrationEnabled bool
 	ControlPlane            ControlPlaneInfo
 	Aws                     *AwsInfo
+	GlooMtls                *v1alpha1.GlooMtls
 }
 
 // NewDeployer creates a new gateway deployer
@@ -114,6 +115,18 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 			Namespace: "default",
 		},
 	}
+
+	fmt.Printf("chart values: %v\n", d.chart.Values)
+	enableMtls := false
+	gatewayValues := d.chart.Values["gateway"]
+	if gatewayValues != nil {
+		glooMtls := gatewayValues.(map[string]interface{})["glooMtls"]
+		if glooMtls != nil {
+			enableMtls = glooMtls.(map[string]interface{})["enabled"].(bool)
+		}
+	}
+
+	log.FromContext(ctx).Info("preping GvksToWatch", "enableMtls", enableMtls)
 	// TODO(Law): these must be set explicitly as we don't have defaults for them
 	// and the internal template isn't robust enough.
 	// This should be empty eventually -- the template must be resilient against nil-pointers
@@ -124,6 +137,9 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 				"enabled": false,
 			},
 			"image": map[string]any{},
+			"glooMtls": map[string]any{
+				"enabled": enableMtls,
+			},
 		},
 	}
 
@@ -139,7 +155,7 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 		}
 	}
 
-	log.FromContext(ctx).V(1).Info("watching GVKs", "GVKs", ret)
+	log.FromContext(ctx).Info("watching GVKs", "GVKs", ret)
 	return ret, nil
 }
 
@@ -363,7 +379,7 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 
 	// mtls values
 	mtlsEnabled := kubeProxyConfig.GetGlooMtls().GetEnabled()
-	gateway.GlooMtls = &mtls{
+	gateway.GlooMtls = &helmMtls{
 		Enabled: &mtlsEnabled,
 	}
 

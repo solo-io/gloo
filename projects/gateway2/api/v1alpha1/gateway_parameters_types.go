@@ -811,9 +811,37 @@ func (in *AIExtensionTracingGrpc) GetPort() uint32 {
 	return in.Port
 }
 
+type TlsSecret struct {
+	CaCert  string `json:"caCert,omitempty"`
+	TlsCert string `json:"tlsCert,omitempty"`
+	TlsKey  string `json:"tlsKey,omitempty"`
+}
+
+func (in *TlsSecret) GetCaCert() string {
+	if in == nil {
+		return ""
+	}
+	return in.CaCert
+}
+
+func (in *TlsSecret) GetTlsCert() string {
+	if in == nil {
+		return ""
+	}
+	return in.TlsCert
+}
+
+func (in *TlsSecret) GetTlsKey() string {
+	if in == nil {
+		return ""
+	}
+	return in.TlsKey
+}
+
 type GlooMtls struct {
 	// Whether to enable Gloo mTLS.
-	Enabled bool `json:"enabled,omitempty"`
+	Enabled   bool       `json:"enabled,omitempty"`
+	TlsSecret *TlsSecret `json:"tlsSecret,omitempty"`
 }
 
 func (in *KubernetesProxyConfig) GetGlooMtls() *GlooMtls {
@@ -828,6 +856,13 @@ func (in *GlooMtls) GetEnabled() bool {
 		return false
 	}
 	return in.Enabled
+}
+
+func (in *GlooMtls) GetTlsSecret() *TlsSecret {
+	if in == nil {
+		return nil
+	}
+	return in.TlsSecret
 }
 
 func init() {
