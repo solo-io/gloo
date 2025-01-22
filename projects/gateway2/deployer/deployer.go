@@ -51,14 +51,20 @@ type Deployer struct {
 }
 
 type ControlPlaneInfo struct {
-	XdsHost string
-	XdsPort int32
+	XdsHost  string
+	XdsPort  int32
+	GlooMtls *GlooMtlsInfo
 }
 
 type AwsInfo struct {
 	EnableServiceAccountCredentials bool
 	StsClusterName                  string
 	StsUri                          string
+}
+
+type GlooMtlsInfo struct {
+	Enabled bool
+	TlsCert *corev1.Secret // TODO: corev1 or break down into components?
 }
 
 // Inputs is the set of options used to configure the gateway deployer deployment
@@ -68,7 +74,6 @@ type Inputs struct {
 	IstioIntegrationEnabled bool
 	ControlPlane            ControlPlaneInfo
 	Aws                     *AwsInfo
-	GlooMtls                *v1alpha1.GlooMtls
 }
 
 // NewDeployer creates a new gateway deployer
@@ -116,14 +121,9 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 		},
 	}
 
-	fmt.Printf("chart values: %v\n", d.chart.Values)
 	enableMtls := false
-	gatewayValues := d.chart.Values["gateway"]
-	if gatewayValues != nil {
-		glooMtls := gatewayValues.(map[string]interface{})["glooMtls"]
-		if glooMtls != nil {
-			enableMtls = glooMtls.(map[string]interface{})["enabled"].(bool)
-		}
+	if d.inputs.ControlPlane.GlooMtls != nil {
+		enableMtls = d.inputs.ControlPlane.GlooMtls.Enabled
 	}
 
 	log.FromContext(ctx).Info("preping GvksToWatch", "enableMtls", enableMtls)
@@ -378,12 +378,31 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 	gateway.Stats = getStatsValues(statsConfig)
 
 	// mtls values
-	mtlsEnabled := kubeProxyConfig.GetGlooMtls().GetEnabled()
-	gateway.GlooMtls = &helmMtls{
-		Enabled: &mtlsEnabled,
-	}
+	gateway.GlooMtls = getGlooMtlsValues(d.inputs.ControlPlane.GlooMtls, kubeProxyConfig.GetGlooMtls())
 
 	return vals, nil
+}
+
+func getGlooMtlsValues(inputs *GlooMtlsInfo, glooMtls *v1alpha1.GlooMtls) *helmMtls {
+	if glooMtls == nil {
+		return &helmMtls{}
+	}
+	mtlsEnabled := glooMtls.GetEnabled()
+	return &helmMtls{
+		Enabled:   &mtlsEnabled,
+		TlsSecret: helmTlsFromSecret(inputs.TlsCert),
+	}
+}
+
+func helmTlsFromSecret(secret *corev1.Secret) *helmTls {
+	if secret == nil {
+		return nil
+	}
+	return &helmTls{
+		CaCert:  secret.Data["ca.crt"],
+		TlsCert: secret.Data["tls.crt"],
+		TlsKey:  secret.Data["tls.key"],
+	}
 }
 
 // Render relies on a `helm install` to render the Chart with the injected values

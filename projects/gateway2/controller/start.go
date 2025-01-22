@@ -77,6 +77,8 @@ type StartConfig struct {
 	InitialSettings *glookubev1.Settings
 	Settings        krt.Singleton[glookubev1.Settings]
 
+	GlooMtls *deployer.GlooMtlsInfo
+
 	Debugger *krt.DebugHandler
 }
 
@@ -252,6 +254,7 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 		ControlPlane: deployer.ControlPlaneInfo{
 			XdsHost: xdsHost,
 			XdsPort: xdsPort,
+			//GlooMtls: ,
 		},
 		// TODO pass in the settings so that the deloyer can register to it for changes.
 		IstioIntegrationEnabled: integrationEnabled,

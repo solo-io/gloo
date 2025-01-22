@@ -168,12 +168,12 @@ type helmAws struct {
 }
 
 type helmTls struct {
-	CaCert  *string `json:"caCert,omitempty"`
-	TlsCert *string `json:"tlsCert,omitempty"`
-	TlsKey  *string `json:"tlsKey,omitempty"`
+	CaCert  []byte `json:"caCert,omitempty"`
+	TlsCert []byte `json:"tlsCert,omitempty"`
+	TlsKey  []byte `json:"tlsKey,omitempty"`
 }
 
 type helmMtls struct {
-	Enabled *bool    `json:"enabled,omitempty" desc:"Enables internal mtls authentication"`
-	TlsCert *helmTls `json:"tlsCert,omitempty" desc:"The tls cert and key for the gateway to use for mtls authentication"`
+	Enabled   *bool    `json:"enabled,omitempty" desc:"Enables internal mtls authentication"`
+	TlsSecret *helmTls `json:"tlsCert,omitempty" desc:"The tls cert and key for the gateway to use for mtls authentication"`
 }

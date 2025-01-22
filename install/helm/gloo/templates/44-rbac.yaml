@@ -29,7 +29,7 @@ rules:
   - ""
   resources:
   - secrets
-  verbs: ["get", "list", "watch", "create", "patch","update"]
+  verbs: ["get", "list", "watch", "create", "patch"]
 - apiGroups:
   - "discovery.k8s.io"
   resources:

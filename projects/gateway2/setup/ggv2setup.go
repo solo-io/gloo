@@ -12,6 +12,7 @@ import (
 	gloostatusutils "github.com/solo-io/gloo/pkg/utils/statusutils"
 	gateway "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway2/controller"
+	"github.com/solo-io/gloo/projects/gateway2/deployer"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	"github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
@@ -134,6 +135,13 @@ func StartGGv2WithConfig(ctx context.Context,
 		return nil
 	}, krt.WithName("GlooSettingsSingleton"))
 
+	// Get
+	glooMtls := &deployer.GlooMtlsInfo{}
+
+	// if initialSettings.Spec. {
+
+	// }
+
 	serviceClient := kclient.New[*corev1.Service](kubeClient)
 	services := krt.WrapClient(serviceClient, krt.WithName("Services"))
 
@@ -162,6 +170,7 @@ func StartGGv2WithConfig(ctx context.Context,
 		Settings:        settingsSingle,
 		// Dev flag may be useful for development purposes; not currently tied to any user-facing API
 		Dev:      false,
+		GlooMtls: glooMtls,
 		Debugger: setupOpts.KrtDebugger,
 	})
 	if err != nil {
