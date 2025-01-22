@@ -45,9 +45,11 @@ var _ = Describe("Trace utils", func() {
 	})
 
 	Context("creates the OpenTelemetryConfig", func() {
+		clusterName := "cluster-name"
+		serviceName := "service-name"
+		authority := "authority"
+
 		It("calling ToEnvoyOpenTelemetryConfiguration", func() {
-			clusterName := "cluster-name"
-			serviceName := "service-name"
 			expectedConfig := &envoytrace.OpenTelemetryConfig{
 				GrpcService: &envoy_config_core_v3.GrpcService{
 					TargetSpecifier: &envoy_config_core_v3.GrpcService_EnvoyGrpc_{
@@ -59,8 +61,25 @@ var _ = Describe("Trace utils", func() {
 				ServiceName: serviceName,
 			}
 
-			actutalConfig := ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName)
-			Expect(actutalConfig).To(Equal(expectedConfig))
+			actualConfig := ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName, "")
+			Expect(actualConfig).To(Equal(expectedConfig))
+		})
+
+		It("calling ToEnvoyOpenTelemetryConfiguration with authority", func() {
+			expectedConfig := &envoytrace.OpenTelemetryConfig{
+				GrpcService: &envoy_config_core_v3.GrpcService{
+					TargetSpecifier: &envoy_config_core_v3.GrpcService_EnvoyGrpc_{
+						EnvoyGrpc: &envoy_config_core_v3.GrpcService_EnvoyGrpc{
+							ClusterName: clusterName,
+							Authority:   "authority",
+						},
+					},
+				},
+				ServiceName: serviceName,
+			}
+
+			actualConfig := ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName, authority)
+			Expect(actualConfig).To(Equal(expectedConfig))
 		})
 	})
 })
