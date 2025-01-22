@@ -22,6 +22,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"istio.io/istio/pkg/slices"
 )
@@ -303,9 +304,14 @@ func processEnvoyOpenTelemetryTracing(
 		serviceName = api_conversion.GetGatewayNameFromParent(params.Ctx, parent)
 	}
 
-	envoyConfig := api_conversion.ToEnvoyOpenTelemetryConfiguration(collectorClusterName, serviceName)
+	authority := ""
+	grpcService := openTelemetryTracingSettings.OpenTelemetryConfig.GetGrpcService()
+	if grpcService != nil {
+		authority = grpcService.GetAuthority()
+	}
 
-	marshalledEnvoyConfig, err := ptypes.MarshalAny(envoyConfig)
+	envoyConfig := api_conversion.ToEnvoyOpenTelemetryConfiguration(collectorClusterName, serviceName, authority)
+	marshalledEnvoyConfig, err := anypb.New(envoyConfig)
 	if err != nil {
 		return nil, err
 	}
