@@ -189,7 +189,6 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 	log := log.FromContext(ctx)
 
 	log.Info("creating deployer", "ctrlname", c.cfg.ControllerName, "server", c.cfg.ControlPlane.XdsHost, "port", c.cfg.ControlPlane.XdsPort)
-	log.Info("controlPlane for deployer", "controlPlane", c.cfg.ControlPlane)
 	d, err := deployer.NewDeployer(c.cfg.Mgr.GetClient(), &deployer.Inputs{
 		ControllerName:          c.cfg.ControllerName,
 		Dev:                     c.cfg.Dev,
@@ -221,10 +220,29 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 			),
 		))
 
-	// watch for changes in GatewayParameters
 	cli := c.cfg.Mgr.GetClient()
+	buildr.Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(
+		// fmt.Println("WATCHING")
+		func(ctx context.Context, obj client.Object) []reconcile.Request {
+			fmt.Println("------ RECONCILING SECRET:", obj.GetName(), obj.GetNamespace())
+			if obj.GetName() == "gloo-mtls-certs" && obj.GetNamespace() == "gloo-system" {
+				fmt.Println("------ RECONCILING ALL GWS")
+				var gwList apiv1.GatewayList
+				err := cli.List(ctx, &gwList, client.InNamespace(corev1.NamespaceAll))
+				fmt.Println("------", gwList, err)
+				var reqs []reconcile.Request
+				for _, gw := range gwList.Items {
+					reqs = append(reqs, reconcile.Request{NamespacedName: client.ObjectKey{Namespace: gw.Namespace, Name: gw.Name}})
+				}
+				return reqs
+			}
+			return []reconcile.Request{{}}
+		}))
+
+	// watch for changes in GatewayParameters
 	buildr.Watches(&v1alpha1.GatewayParameters{}, handler.EnqueueRequestsFromMapFunc(
 		func(ctx context.Context, obj client.Object) []reconcile.Request {
+			// fmt.Println("------ RECONCILING GWP:", obj.GetName(), obj.GetNamespace())
 			gwpName := obj.GetName()
 			gwpNamespace := obj.GetNamespace()
 			// look up the Gateways that are using this GatewayParameters object
