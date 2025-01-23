@@ -2,7 +2,6 @@ package tracing
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -242,9 +241,6 @@ func (s *testingSuite) TestGatewayWithoutOtelTracingGrpcAuthority() {
 	s.EventuallyWithT(func(c *assert.CollectT) {
 		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx, otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
 		assert.NoError(c, err, "can get otelcol logs")
-
-		fmt.Printf("logs: %s\n", logs)
-
 		assert.Regexp(c, `-> authority: Str\(opentelemetry-collector_default\)`, logs)
 		//s.Fail("this test is not implemented yet")
 	}, time.Second*30, time.Second*3, "otelcol logs contain cluster name as authority")
@@ -292,9 +288,6 @@ func (s *testingSuite) TestGatewayWithOtelTracingGrpcAuthority() {
 		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx,
 			otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
 		assert.NoError(c, err, "can get otelcol logs")
-
-		fmt.Printf("logs: %s\n", logs)
-
 		assert.Regexp(c, `-> authority: Str\(test-authority\)`, logs)
 		//s.Fail("this test is not implemented yet")
 	}, time.Second*30, time.Second*3, "otelcol logs contain authority set in gateway")
