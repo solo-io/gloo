@@ -155,8 +155,6 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 
 	inputChannels := proxy_syncer.NewGatewayInputChannels()
 
-	// TODO(sheidkamp) Add secret collection here?
-
 	setupLog.Info("initializing k8sgateway extensions")
 	k8sGwExtensions, err := cfg.ExtensionsFactory(ctx, ext.K8sGatewayExtensionsFactoryParameters{
 		Mgr:         mgr,
