@@ -2,6 +2,7 @@ package tracing
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -218,4 +219,66 @@ func (s *testingSuite) TestSpanNameTransformationsWithRouteDecorator() {
 		// Name       : <value of routeDescriptorSpanName>
 		assert.Regexp(c, "Name *: "+routeDescriptorSpanName, logs)
 	}, time.Second*30, time.Second*3, "otelcol logs contain span with name == routeDescriptor")
+}
+
+func (s *testingSuite) TestGatewayWithoutOtelTracingGrpcAuthority() {
+	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
+				Name:      gatewayProxyHost,
+				Namespace: s.testInstallation.Metadata.InstallNamespace,
+			})),
+			curl.WithHostHeader("example.com"),
+			curl.WithPort(gatewayProxyPort),
+			curl.WithPath(pathWithRouteDescriptor),
+			curl.Silent(),
+		},
+		&matchers.HttpResponse{
+			StatusCode: http.StatusOK,
+		},
+		5*time.Second, 30*time.Second,
+	)
+
+	s.EventuallyWithT(func(c *assert.CollectT) {
+		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx, otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
+		assert.NoError(c, err, "can get otelcol logs")
+
+		fmt.Printf("logs: %s\n", logs)
+
+		assert.Regexp(c, `-> authority: Str\(opentelemetry-collector_default\)`, logs)
+		//s.Fail("this test is not implemented yet")
+	}, time.Second*30, time.Second*3, "otelcol logs contain cluster name as authority")
+}
+
+func (s *testingSuite) TestGatewayWithOtelTracingGrpcAuthority() {
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayAuthorityConfigManifest,
+		"-n", s.testInstallation.Metadata.InstallNamespace)
+	s.NoError(err, "can apply service/gateway-proxy-tracing")
+
+	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
+				Name:      gatewayProxyHost,
+				Namespace: s.testInstallation.Metadata.InstallNamespace,
+			})),
+			curl.WithHostHeader("example.com"),
+			curl.WithPort(gatewayProxyPort),
+			curl.WithPath(pathWithRouteDescriptor),
+			curl.Silent(),
+		},
+		&matchers.HttpResponse{
+			StatusCode: http.StatusOK,
+		},
+		5*time.Second, 30*time.Second,
+	)
+
+	s.EventuallyWithT(func(c *assert.CollectT) {
+		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx, otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
+		assert.NoError(c, err, "can get otelcol logs")
+
+		fmt.Printf("logs: %s\n", logs)
+
+		assert.Regexp(c, `-> authority: Str\(test-authority\)`, logs)
+		//s.Fail("this test is not implemented yet")
+	}, time.Second*30, time.Second*3, "otelcol logs contain authority set in gateway")
 }

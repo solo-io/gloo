@@ -23,4 +23,3 @@ spec:
             collectorUpstreamRef:
               name: opentelemetry-collector
               namespace: default
-
