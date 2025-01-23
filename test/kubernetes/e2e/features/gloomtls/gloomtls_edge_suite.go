@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/istio"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -21,44 +22,22 @@ var _ e2e.NewSuiteFunc = NewGloomtlsEdgeGatewayApiTestingSuite
 
 // gloomtlsEdgeGatewayTestingSuite is the entire Suite of tests for the "Gloo mtls" cases
 type gloomtlsEdgeGatewayTestingSuite struct {
-	suite.Suite
-
-	ctx context.Context
-
-	// testInstallation contains all the metadata/utilities necessary to execute a series of tests
-	// against an installation of Gloo Gateway
-	testInstallation *e2e.TestInstallation
+	*base.BaseTestingSuite
 }
 
 func NewGloomtlsEdgeGatewayApiTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.TestingSuite {
 	return &gloomtlsEdgeGatewayTestingSuite{
-		ctx:              ctx,
-		testInstallation: testInst,
+		base.NewBaseTestingSuite(ctx, testInst, edgeGatewaySetupSuite, nil),
 	}
-}
-
-func (s *gloomtlsEdgeGatewayTestingSuite) SetupSuite() {
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.NginxPodManifest)
-	s.NoError(err, "can apply Nginx setup manifest")
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.CurlPodManifest)
-	s.NoError(err, "can apply Curl setup manifest")
-
-}
-
-func (s *gloomtlsEdgeGatewayTestingSuite) TearDownSuite() {
-	err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.NginxPodManifest)
-	s.NoError(err, "can delete Nginx setup manifest")
-	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.CurlPodManifest)
-	s.NoError(err, "can delete Curl setup manifest")
 }
 
 func (s *gloomtlsEdgeGatewayTestingSuite) TestRouteSecureRequestToUpstream() {
 	s.T().Cleanup(func() {
-		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, edgeRoutingResources, "-n", s.testInstallation.Metadata.InstallNamespace)
+		err := s.TestInstallation.Actions.Kubectl().DeleteFile(s.Ctx, edgeRoutingResources, "-n", s.TestInstallation.Metadata.InstallNamespace)
 		s.NoError(err)
 	})
 
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, edgeRoutingResources, "-n", s.testInstallation.Metadata.InstallNamespace)
+	err := s.TestInstallation.Actions.Kubectl().ApplyFile(s.Ctx, edgeRoutingResources, "-n", s.TestInstallation.Metadata.InstallNamespace)
 	s.NoError(err)
 
 	// Check sds container is present
@@ -69,14 +48,14 @@ func (s *gloomtlsEdgeGatewayTestingSuite) TestRouteSecureRequestToUpstream() {
 		matchers.PodMatches(matchers.ExpectedPod{ContainerName: istio.SDSContainerName}),
 	)
 
-	s.testInstallation.Assertions.EventuallyPodsMatches(s.ctx, s.testInstallation.Metadata.InstallNamespace, listOpts, matcher, time.Minute*2)
+	s.TestInstallation.Assertions.EventuallyPodsMatches(s.Ctx, s.TestInstallation.Metadata.InstallNamespace, listOpts, matcher, time.Minute*2)
 
 	// Check curl works
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
-		s.ctx,
+	s.TestInstallation.Assertions.AssertEventualCurlResponse(
+		s.Ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{Name: defaults.GatewayProxyName, Namespace: s.testInstallation.Metadata.InstallNamespace})),
+			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{Name: defaults.GatewayProxyName, Namespace: s.TestInstallation.Metadata.InstallNamespace})),
 			// The host header must match the domain in the VirtualService
 			curl.WithHostHeader("example.com"),
 			curl.WithPort(80),
