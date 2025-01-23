@@ -37,8 +37,10 @@ message OpenTelemetryConfig {
   // listener + the namespace of the Gateway object
   string service_name = 3;
 
+  // Optional. Current only gRPC is supported, but are intentionally using a oneof
+  // to allow for future support of HTTP. This structure matches Envoy's.
   oneof service_type {
-    // Optional, if set the communication to the collector will be over gRPC.
+    // Optional gRPC transport options
     GrpcService grpc_service = 4;
   }
 }

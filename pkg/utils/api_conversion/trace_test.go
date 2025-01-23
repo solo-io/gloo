@@ -71,7 +71,7 @@ var _ = Describe("Trace utils", func() {
 					TargetSpecifier: &envoy_config_core_v3.GrpcService_EnvoyGrpc_{
 						EnvoyGrpc: &envoy_config_core_v3.GrpcService_EnvoyGrpc{
 							ClusterName: clusterName,
-							Authority:   "authority",
+							Authority:   authority,
 						},
 					},
 				},
