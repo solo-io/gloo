@@ -320,9 +320,9 @@ generate-all-debug: generate-all
 # Generates all required code, cleaning and formatting as well; this target is executed in CI
 .PHONY: generated-code
 generated-code: check-go-version
-generated-code: go-generate-all generate-cli-docs getter-check mod-tidy
+generated-code: go-generate-all getter-check mod-tidy
 generated-code: update-licenses
-generated-code: generate-crd-reference-docs
+# generated-code: generate-crd-reference-docs
 generated-code: fmt
 
 .PHONY: go-generate-all
@@ -338,9 +338,10 @@ generate-cli-docs: clean-cli-docs ## Removes existing CLI docs and re-generates 
 	GO111MODULE=on go run projects/gloo/cli/cmd/docs/main.go
 
 # Ensures that accesses for fields which have "getter" functions are exclusively done via said "getter" functions
+# TODO: do we still want this?
 .PHONY: getter-check
 getter-check:
-	go run github.com/saiskee/gettercheck -ignoretests -ignoregenerated -write ./...
+	go run github.com/saiskee/gettercheck -ignoretests -ignoregenerated -write ./projects/gateway2/...
 
 .PHONY: mod-tidy
 mod-tidy:
@@ -408,61 +409,25 @@ distroless-with-utils-docker: distroless-docker $(DISTROLESS_OUTPUT_DIR)/Dockerf
 		-t  $(GLOO_DISTROLESS_BASE_WITH_UTILS_IMAGE)
 
 #----------------------------------------------------------------------------------
-# Discovery
-#----------------------------------------------------------------------------------
-
-DISCOVERY_DIR=projects/discovery
-DISCOVERY_SOURCES=$(call get_sources,$(DISCOVERY_DIR))
-DISCOVERY_OUTPUT_DIR=$(OUTPUT_DIR)/$(DISCOVERY_DIR)
-
-$(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(GOARCH): $(DISCOVERY_SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags='$(LDFLAGS)' -gcflags='$(GCFLAGS)' -o $@ $(DISCOVERY_DIR)/cmd/main.go
-
-.PHONY: discovery
-discovery: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(GOARCH)
-
-$(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery: $(DISCOVERY_DIR)/cmd/Dockerfile
-	cp $< $@
-
-.PHONY: discovery-docker
-discovery-docker: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(GOARCH) $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery
-	docker buildx build --load $(PLATFORM) $(DISCOVERY_OUTPUT_DIR) -f $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery \
-		--build-arg GOARCH=$(GOARCH) \
-		--build-arg BASE_IMAGE=$(ALPINE_BASE_IMAGE) \
-		-t $(IMAGE_REGISTRY)/discovery:$(VERSION)
-
-$(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery.distroless: $(DISCOVERY_DIR)/cmd/Dockerfile.distroless
-	cp $< $@
-
-.PHONY: discovery-distroless-docker
-discovery-distroless-docker: $(DISCOVERY_OUTPUT_DIR)/discovery-linux-$(GOARCH) $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery.distroless distroless-docker
-	docker buildx build --load $(PLATFORM) $(DISCOVERY_OUTPUT_DIR) -f $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery.distroless \
-		--build-arg GOARCH=$(GOARCH) \
-		--build-arg BASE_IMAGE=$(GLOO_DISTROLESS_BASE_IMAGE) \
-		-t $(IMAGE_REGISTRY)/discovery:$(VERSION)-distroless
-
-#----------------------------------------------------------------------------------
 # Gloo
 #----------------------------------------------------------------------------------
 
-GLOO_DIR=projects/gloo
-EDGE_GATEWAY_DIR=projects/gateway
 K8S_GATEWAY_DIR=projects/gateway2
-GLOO_SOURCES=$(call get_sources,$(GLOO_DIR))
+# GLOO_SOURCES=$(call get_sources,$(GLOO_DIR))
 EDGE_GATEWAY_SOURCES=$(call get_sources,$(EDGE_GATEWAY_DIR))
 K8S_GATEWAY_SOURCES=$(call get_sources,$(K8S_GATEWAY_DIR))
-GLOO_OUTPUT_DIR=$(OUTPUT_DIR)/$(GLOO_DIR)
+GLOO_OUTPUT_DIR=$(OUTPUT_DIR)/$(K8S_GATEWAY_DIR)
 export GLOO_IMAGE_REPO ?= gloo
 
 # We include the files in EDGE_GATEWAY_DIR and K8S_GATEWAY_DIR as dependencies to the gloo build
 # so changes in those directories cause the make target to rebuild
-$(GLOO_OUTPUT_DIR)/gloo-linux-$(GOARCH): $(GLOO_SOURCES) $(EDGE_GATEWAY_SOURCES) $(K8S_GATEWAY_SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags='$(LDFLAGS)' -gcflags='$(GCFLAGS)' -o $@ $(GLOO_DIR)/cmd/main.go
+$(GLOO_OUTPUT_DIR)/gloo-linux-$(GOARCH): $(K8S_GATEWAY_SOURCES)
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags='$(LDFLAGS)' -gcflags='$(GCFLAGS)' -o $@ $(K8S_GATEWAY_DIR)/cmd/main.go
 
 .PHONY: gloo
 gloo: $(GLOO_OUTPUT_DIR)/gloo-linux-$(GOARCH)
 
-$(GLOO_OUTPUT_DIR)/Dockerfile.gloo: $(GLOO_DIR)/cmd/Dockerfile
+$(GLOO_OUTPUT_DIR)/Dockerfile.gloo: $(K8S_GATEWAY_DIR)/cmd/Dockerfile
 	cp $< $@
 
 .PHONY: gloo-docker
@@ -571,21 +536,21 @@ sds-distroless-docker: $(SDS_OUTPUT_DIR)/sds-linux-$(GOARCH) $(SDS_OUTPUT_DIR)/D
 # Envoy init (BASE/SIDECAR)
 #----------------------------------------------------------------------------------
 
-ENVOYINIT_DIR=projects/envoyinit/cmd
-ENVOYINIT_SOURCES=$(call get_sources,$(ENVOYINIT_DIR))
-ENVOYINIT_OUTPUT_DIR=$(OUTPUT_DIR)/$(ENVOYINIT_DIR)
+# ENVOYINIT_DIR=projects/envoyinit/cmd
+# ENVOYINIT_SOURCES=$(call get_sources,$(ENVOYINIT_DIR))
+# ENVOYINIT_OUTPUT_DIR=$(OUTPUT_DIR)/$(ENVOYINIT_DIR)
 
-$(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(GOARCH): $(ENVOYINIT_SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags='$(LDFLAGS)' -gcflags='$(GCFLAGS)' -o $@ $(ENVOYINIT_DIR)/main.go
+# $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(GOARCH): $(ENVOYINIT_SOURCES)
+# 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags='$(LDFLAGS)' -gcflags='$(GCFLAGS)' -o $@ $(ENVOYINIT_DIR)/main.go
 
-.PHONY: envoyinit
-envoyinit: $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(GOARCH)
+# .PHONY: envoyinit
+# envoyinit: $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(GOARCH)
 
-$(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile.envoyinit
-	cp $< $@
+# $(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile.envoyinit
+# 	cp $< $@
 
-$(ENVOYINIT_OUTPUT_DIR)/docker-entrypoint.sh: $(ENVOYINIT_DIR)/docker-entrypoint.sh
-	cp $< $@
+# $(ENVOYINIT_OUTPUT_DIR)/docker-entrypoint.sh: $(ENVOYINIT_DIR)/docker-entrypoint.sh
+# 	cp $< $@
 
 .PHONY: gloo-envoy-wrapper-docker
 gloo-envoy-wrapper-docker: $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(GOARCH) $(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit $(ENVOYINIT_OUTPUT_DIR)/docker-entrypoint.sh
@@ -594,8 +559,8 @@ gloo-envoy-wrapper-docker: $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(GOARCH) $(E
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
 		-t $(IMAGE_REGISTRY)/gloo-envoy-wrapper:$(VERSION)
 
-$(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit.distroless: $(ENVOYINIT_DIR)/Dockerfile.envoyinit.distroless
-	cp $< $@
+# $(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit.distroless: $(ENVOYINIT_DIR)/Dockerfile.envoyinit.distroless
+# 	cp $< $@
 
 # Explicitly specify the base image is amd64 as we only build the amd64 flavour of gloo envoy
 .PHONY: gloo-envoy-wrapper-distroless-docker
@@ -798,20 +763,14 @@ docker-push-%:
 .PHONY: docker-standard
 docker-standard: check-go-version ## Build docker images (standard only)
 docker-standard: gloo-docker
-docker-standard: discovery-docker
-docker-standard: gloo-envoy-wrapper-docker
+# docker-standard: gloo-envoy-wrapper-docker
 docker-standard: sds-docker
-docker-standard: certgen-docker
-docker-standard: kubectl-docker
 
 .PHONY: docker-distroless
 docker-distroless: check-go-version ## Build docker images (distroless only)
 docker-distroless: gloo-distroless-docker
-docker-distroless: discovery-distroless-docker
 docker-distroless: gloo-envoy-wrapper-distroless-docker
 docker-distroless: sds-distroless-docker
-docker-distroless: certgen-distroless-docker
-docker-distroless: kubectl-distroless-docker
 
 IMAGE_VARIANT ?= all
 # Build docker images using the defined IMAGE_REGISTRY, VERSION
@@ -946,19 +905,15 @@ kind-reload-gloo-envoy-wrapper:
 
 .PHONY: kind-build-and-load-standard
 kind-build-and-load-standard: kind-build-and-load-gloo
-kind-build-and-load-standard: kind-build-and-load-discovery
-kind-build-and-load-standard: kind-build-and-load-gloo-envoy-wrapper
-kind-build-and-load-standard: kind-build-and-load-sds
-kind-build-and-load-standard: kind-build-and-load-certgen
-kind-build-and-load-standard: kind-build-and-load-kubectl
+# kind-build-and-load-standard: kind-build-and-load-gloo-envoy-wrapper
+# kind-build-and-load-standard: kind-build-and-load-sds
+# kind-build-and-load-standard: kind-build-and-load-certgen
 
 .PHONY: kind-build-and-load-distroless
 kind-build-and-load-distroless: kind-build-and-load-gloo-distroless
-kind-build-and-load-distroless: kind-build-and-load-discovery-distroless
 kind-build-and-load-distroless: kind-build-and-load-gloo-envoy-wrapper-distroless
 kind-build-and-load-distroless: kind-build-and-load-sds-distroless
 kind-build-and-load-distroless: kind-build-and-load-certgen-distroless
-kind-build-and-load-distroless: kind-build-and-load-kubectl-distroless
 
 .PHONY: kind-build-and-load ## Use to build all images and load them into kind
 kind-build-and-load: # Standard images
@@ -975,19 +930,15 @@ kind-build-and-load: kind-build-and-load-sds
 # Load existing images. This can speed up development if the images have already been built / are unchanged
 .PHONY: kind-load-standard
 kind-load-standard: kind-load-gloo
-kind-load-standard: kind-load-discovery
 kind-load-standard: kind-load-gloo-envoy-wrapper
 kind-load-standard: kind-load-sds
 kind-load-standard: kind-load-certgen
-kind-load-standard: kind-load-kubectl
 
 .PHONY: kind-build-and-load-distroless
 kind-load-distroless: kind-load-gloo-distroless
-kind-load-distroless: kind-load-discovery-distroless
 kind-load-distroless: kind-load-gloo-envoy-wrapper-distroless
 kind-load-distroless: kind-load-sds-distroless
 kind-load-distroless: kind-load-certgen-distroless
-kind-load-distroless: kind-load-kubectl-distroless
 
 .PHONY: kind-load ## Use to build all images and load them into kind
 kind-load: # Standard images
