@@ -21,6 +21,7 @@ spec:
     - name: gw
   hostnames:
     - "example.com"
+    - "example.org"
   rules:
     - backendRefs:
         - name: example-svc
