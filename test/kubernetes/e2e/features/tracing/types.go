@@ -14,6 +14,8 @@ const (
 	routeDescriptorSpanName    = "THISISAROUTEDESCRIPTOR"
 	gatewayProxyHost           = "gateway-proxy-tracing"
 	gatewayProxyPort           = 18080
+	gatewayAuthorityProxyHost  = "gateway-proxy-tracing-authority"
+	gatewayAuthorityProxyPort  = 18082
 )
 
 var (

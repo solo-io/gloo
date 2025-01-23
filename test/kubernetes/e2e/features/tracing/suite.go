@@ -251,18 +251,34 @@ func (s *testingSuite) TestGatewayWithoutOtelTracingGrpcAuthority() {
 }
 
 func (s *testingSuite) TestGatewayWithOtelTracingGrpcAuthority() {
+	// create new gateway with grpc authority set
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayAuthorityConfigManifest,
 		"-n", s.testInstallation.Metadata.InstallNamespace)
-	s.NoError(err, "can apply service/gateway-proxy-tracing")
+	s.NoError(err, "can create gateway and service")
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		func() (resources.InputResource, error) {
+			return s.testInstallation.ResourceClients.GatewayClient().Read(
+				s.testInstallation.Metadata.InstallNamespace, "gateway-proxy-tracing-authority", clients.ReadOpts{Ctx: s.ctx})
+		},
+		core.Status_Accepted,
+		gloo_defaults.GlooReporter,
+	)
+
+	s.T().Cleanup(func() {
+		// cleanup the gateway
+		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayAuthorityConfigManifest,
+			"-n", s.testInstallation.Metadata.InstallNamespace)
+		s.Assertions.NoError(err, "can delete gateway config")
+	})
 
 	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
-				Name:      gatewayProxyHost,
+				Name:      gatewayAuthorityProxyHost,
 				Namespace: s.testInstallation.Metadata.InstallNamespace,
 			})),
 			curl.WithHostHeader("example.com"),
-			curl.WithPort(gatewayProxyPort),
+			curl.WithPort(gatewayAuthorityProxyPort),
 			curl.WithPath(pathWithRouteDescriptor),
 			curl.Silent(),
 		},
@@ -273,7 +289,8 @@ func (s *testingSuite) TestGatewayWithOtelTracingGrpcAuthority() {
 	)
 
 	s.EventuallyWithT(func(c *assert.CollectT) {
-		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx, otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
+		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx,
+			otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
 		assert.NoError(c, err, "can get otelcol logs")
 
 		fmt.Printf("logs: %s\n", logs)
