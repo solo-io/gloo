@@ -64,7 +64,13 @@ type AwsInfo struct {
 
 type GlooMtlsInfo struct {
 	Enabled bool
-	TlsCert *corev1.Secret // TODO: corev1 or break down into components?
+	TlsCert *TlsCertInfo
+}
+
+type TlsCertInfo struct {
+	CaCert  []byte
+	TlsCert []byte
+	TlsKey  []byte
 }
 
 // Inputs is the set of options used to configure the gateway deployer deployment
@@ -126,6 +132,7 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 		enableMtls = d.inputs.ControlPlane.GlooMtls.Enabled
 	}
 
+	log.FromContext(ctx).Info("preping GvksToWatch", "d.inputs.ControlPlane.GlooMtls", d.inputs.ControlPlane.GlooMtls)
 	log.FromContext(ctx).Info("preping GvksToWatch", "enableMtls", enableMtls)
 	// TODO(Law): these must be set explicitly as we don't have defaults for them
 	// and the internal template isn't robust enough.
@@ -138,7 +145,7 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 			},
 			"image": map[string]any{},
 			"glooMtls": map[string]any{
-				"enabled": enableMtls,
+				"enabled": false, // DO_NOT_SUBMIT - I think we need to find a way to get that into "true" to get the secret into "GVKs to watch". Currrently blows up with an error about the sds image if true
 			},
 		},
 	}
@@ -378,30 +385,40 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 	gateway.Stats = getStatsValues(statsConfig)
 
 	// mtls values
+	fmt.Printf("=====ControlPlane=====\n%+v\n", d.inputs.ControlPlane)
+	fmt.Printf("=====KubeProxyConfigMtls=====\n%+v\n", kubeProxyConfig.GetGlooMtls())
 	gateway.GlooMtls = getGlooMtlsValues(d.inputs.ControlPlane.GlooMtls, kubeProxyConfig.GetGlooMtls())
 
+	fmt.Printf("GlooMtls: %+v\n", gateway.GlooMtls)
 	return vals, nil
 }
 
 func getGlooMtlsValues(inputs *GlooMtlsInfo, glooMtls *v1alpha1.GlooMtls) *helmMtls {
+	helmMtls := &helmMtls{}
 	if glooMtls == nil {
-		return &helmMtls{}
+		return helmMtls
 	}
+
 	mtlsEnabled := glooMtls.GetEnabled()
-	return &helmMtls{
-		Enabled:   &mtlsEnabled,
-		TlsSecret: helmTlsFromSecret(inputs.TlsCert),
+	helmMtls.Enabled = &mtlsEnabled
+
+	if inputs != nil {
+		helmMtls.TlsSecret = helmTlsFromSecret(inputs.TlsCert)
+	} else {
+		fmt.Printf("=====NIL TLS INPUTS=====\n")
 	}
+	return helmMtls
 }
 
-func helmTlsFromSecret(secret *corev1.Secret) *helmTls {
+func helmTlsFromSecret(secret *TlsCertInfo) *helmTls {
 	if secret == nil {
 		return nil
 	}
+
 	return &helmTls{
-		CaCert:  secret.Data["ca.crt"],
-		TlsCert: secret.Data["tls.crt"],
-		TlsKey:  secret.Data["tls.key"],
+		CaCert:  secret.CaCert,
+		TlsCert: secret.TlsCert,
+		TlsKey:  secret.TlsKey,
 	}
 }
 
@@ -433,6 +450,8 @@ func (d *Deployer) Render(name, ns string, vals map[string]any) ([]client.Object
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert helm manifest yaml to objects for gateway %s.%s: %w", ns, name, err)
 	}
+
+	fmt.Printf("=====RENDERED OBJECTS=====\n%+v\n===============\n", objs)
 	return objs, nil
 }
 
@@ -446,6 +465,9 @@ func (d *Deployer) Render(name, ns string, vals map[string]any) ([]client.Object
 //
 // * returns the objects to be deployed by the caller
 func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]client.Object, error) {
+	logger := log.FromContext(ctx)
+
+	logger.Info("getting objects to deploy for gateway", "glooMtsl", d.inputs.ControlPlane.GlooMtls)
 	gwParam, err := d.getGatewayParametersForGateway(ctx, gw)
 	if err != nil {
 		return nil, err
@@ -454,8 +476,6 @@ func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]clie
 	if gwParam != nil && gwParam.Spec.SelfManaged != nil {
 		return nil, nil
 	}
-
-	logger := log.FromContext(ctx)
 
 	vals, err := d.getValues(gw, gwParam)
 	if err != nil {

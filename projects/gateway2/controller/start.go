@@ -94,6 +94,7 @@ type ControllerBuilder struct {
 }
 
 func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuilder, error) {
+	setupLog.Info("creating new gateway controller with glooMtls", "cfg", cfg.GlooMtls)
 	var opts []zap.Opts
 	if cfg.Dev {
 		setupLog.Info("starting log in dev mode")
@@ -153,6 +154,8 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 		krt.WithName("AuthConfig"))
 
 	inputChannels := proxy_syncer.NewGatewayInputChannels()
+
+	// TODO(sheidkamp) Add secret collection here?
 
 	setupLog.Info("initializing k8sgateway extensions")
 	k8sGwExtensions, err := cfg.ExtensionsFactory(ctx, ext.K8sGatewayExtensionsFactoryParameters{
@@ -219,6 +222,7 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 	}
 
 	logger.Infow("got xds address for deployer", uzap.String("xds_host", xdsHost), uzap.Int32("xds_port", xdsPort))
+	logger.Infow("glooMtls config", uzap.Any("glooMtls", c.cfg.GlooMtls))
 
 	integrationEnabled := c.cfg.InitialSettings.Spec.GetGloo().GetIstioOptions().GetEnableIntegration().GetValue()
 
@@ -252,9 +256,9 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 		ControllerName: wellknown.GatewayControllerName,
 		AutoProvision:  AutoProvision,
 		ControlPlane: deployer.ControlPlaneInfo{
-			XdsHost: xdsHost,
-			XdsPort: xdsPort,
-			//GlooMtls: ,
+			XdsHost:  xdsHost,
+			XdsPort:  xdsPort,
+			GlooMtls: c.cfg.GlooMtls,
 		},
 		// TODO pass in the settings so that the deloyer can register to it for changes.
 		IstioIntegrationEnabled: integrationEnabled,

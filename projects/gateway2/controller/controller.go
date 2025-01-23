@@ -189,6 +189,7 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 	log := log.FromContext(ctx)
 
 	log.Info("creating deployer", "ctrlname", c.cfg.ControllerName, "server", c.cfg.ControlPlane.XdsHost, "port", c.cfg.ControlPlane.XdsPort)
+	log.Info("controlPlane for deployer", "controlPlane", c.cfg.ControlPlane)
 	d, err := deployer.NewDeployer(c.cfg.Mgr.GetClient(), &deployer.Inputs{
 		ControllerName:          c.cfg.ControllerName,
 		Dev:                     c.cfg.Dev,

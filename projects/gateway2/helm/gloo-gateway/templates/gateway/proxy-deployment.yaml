@@ -13,10 +13,10 @@ kind: Secret
 metadata:
  {{/* TODO - is name configurable?*/}}
   name: gloo-mtls-certs 
-data:
-  ca.crt: {{ $gateway.glooMtls.caCert }}
-  tls.crt: {{ $gateway.glooMtls.tlsCert }}
-  tls.key: {{ $gateway.glooMtls.tlsKey }}
+stringData:
+  ca.crt:  {{ $gateway.glooMtls.tlsCert.caCert | toString }}
+  tls.crt: {{ $gateway.glooMtls.tlsCert.tlsCert | toString }}
+  tls.key: {{ $gateway.glooMtls.tlsCert.tlsKey | toString }}
 type: kubernetes.io/tls
 {{- end }} {{/* if $mtlsEnabled */}}
 ---
