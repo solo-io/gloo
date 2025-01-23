@@ -127,13 +127,12 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 		},
 	}
 
-	enableMtls := false
-	if d.inputs.ControlPlane.GlooMtls != nil {
-		enableMtls = d.inputs.ControlPlane.GlooMtls.Enabled
-	}
+	// DO_NOT_SUBMIT - if MTLS is enabled do we need to generate a secret resource here so it gets watched?
+	// enableMtls := false
+	// if d.inputs.ControlPlane.GlooMtls != nil {
+	// 	enableMtls = d.inputs.ControlPlane.GlooMtls.Enabled
+	// }
 
-	log.FromContext(ctx).Info("preping GvksToWatch", "d.inputs.ControlPlane.GlooMtls", d.inputs.ControlPlane.GlooMtls)
-	log.FromContext(ctx).Info("preping GvksToWatch", "enableMtls", enableMtls)
 	// TODO(Law): these must be set explicitly as we don't have defaults for them
 	// and the internal template isn't robust enough.
 	// This should be empty eventually -- the template must be resilient against nil-pointers
@@ -145,7 +144,7 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 			},
 			"image": map[string]any{},
 			"glooMtls": map[string]any{
-				"enabled": false, // DO_NOT_SUBMIT - I think we need to find a way to get that into "true" to get the secret into "GVKs to watch". Currrently blows up with an error about the sds image if true
+				"enabled": false, // DO_NOT_SUBMIT - I think we need to find a way to get that into "true" to get the secret into "GVKs to watch". Currrently blows up with an error about the sds image if true (template renders find if glooMtls is omitted)
 			},
 		},
 	}
@@ -385,7 +384,6 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 	gateway.Stats = getStatsValues(statsConfig)
 
 	// mtls values
-	fmt.Printf("=====ControlPlane=====\n%+v\n", d.inputs.ControlPlane)
 	gateway.GlooMtls = getGlooMtlsValues(d.inputs.ControlPlane.GlooMtls)
 
 	fmt.Printf("GlooMtls: %+v\n", gateway.GlooMtls)
@@ -396,7 +394,6 @@ func getGlooMtlsValues(inputs *GlooMtlsInfo) *helmMtls {
 	helmMtls := &helmMtls{}
 
 	if inputs == nil {
-		fmt.Printf("=====NIL TLS INPUTS=====\n")
 		return helmMtls
 	}
 
@@ -448,7 +445,6 @@ func (d *Deployer) Render(name, ns string, vals map[string]any) ([]client.Object
 		return nil, fmt.Errorf("failed to convert helm manifest yaml to objects for gateway %s.%s: %w", ns, name, err)
 	}
 
-	fmt.Printf("=====RENDERED OBJECTS=====\n%+v\n===============\n", objs)
 	return objs, nil
 }
 
@@ -464,7 +460,6 @@ func (d *Deployer) Render(name, ns string, vals map[string]any) ([]client.Object
 func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]client.Object, error) {
 	logger := log.FromContext(ctx)
 
-	logger.Info("getting objects to deploy for gateway", "glooMtsl", d.inputs.ControlPlane.GlooMtls)
 	gwParam, err := d.getGatewayParametersForGateway(ctx, gw)
 	if err != nil {
 		return nil, err

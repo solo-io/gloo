@@ -44,6 +44,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
+	cgkubernetes "k8s.io/client-go/kubernetes" // DO_NOT_SUBMIT remove client-go code
 )
 
 var settingsGVR = glookubev1.SchemeGroupVersion.WithResource("settings")
@@ -81,7 +82,7 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 	return out
 }
 
-func getInitialSecret(ctx context.Context, nns types.NamespacedName) *corev1.Secret {
+func getGlooMtlsCertsSecret(ctx context.Context, kubeClient cgkubernetes.Interface, nns types.NamespacedName) *corev1.Secret {
 	// // get initial settings
 	// logger := contextutils.LoggerFrom(ctx)
 	// logger.Infof("getting  mtls secret. gvr: %v", secretsGVR)
@@ -106,7 +107,6 @@ func getInitialSecret(ctx context.Context, nns types.NamespacedName) *corev1.Sec
 	// return out
 
 	//nns = types.NamespacedName{Name: "gloo-mtls-certs", Namespace: "gloo-system"}
-	kubeClient := helpers.MustKubeClient()
 
 	secretClient := kubeClient.CoreV1().Secrets(nns.Namespace)
 	existing, err := secretClient.Get(ctx, nns.Name, metav1.GetOptions{})
@@ -127,27 +127,55 @@ func getInitialSecret(ctx context.Context, nns types.NamespacedName) *corev1.Sec
 
 }
 
-func getGlooMtls(ctx context.Context) *deployer.GlooMtlsInfo {
+// checkGlooMtlsEnabled checks if gloo mtls is enabled by looking at the gloo deployment and checking if the sds container is present
+// DO_NOT_SUBMIT - get off of client-go
+func checkGlooMtlsEnabled(ctx context.Context, kubeClient cgkubernetes.Interface, namespace string) bool {
 	logger := contextutils.LoggerFrom(ctx)
-	// DO_NOT_SUBMIT - Check if TLS is enabled first (check for sds container on gloo pod)
-	// DO_NOT_SUBMIT - Pass in namespace (whole nns?)
-	secretNns := types.NamespacedName{Name: "gloo-mtls-certs", Namespace: "gloo-system"}
-	initialSecret := getInitialSecret(ctx, secretNns)
-	glooMtls := &deployer.GlooMtlsInfo{}
-	if initialSecret != nil {
+	deploymentClient := kubeClient.AppsV1().Deployments(namespace)
+	deployment, err := deploymentClient.Get(ctx, "gloo", metav1.GetOptions{})
+	if err != nil {
+		logger.Error("checkGlooMtlsEnabled - failed to get gloo deployment", "err", err)
+		return false
+	}
 
-		tlsCert := initialSecret.Data[corev1.TLSCertKey]
-		tlsKey := initialSecret.Data[corev1.TLSPrivateKeyKey]
-		caCert := initialSecret.Data[corev1.ServiceAccountRootCAKey]
+	for _, container := range deployment.Spec.Template.Spec.Containers {
+		if container.Name == "sds" {
+			logger.Info("Found SDS container in gloo pod")
+			return true
+		}
+	}
 
-		logger.Info("Got initial certs", "caCert", caCert, "tlsCert", tlsCert, "tlsKey", tlsKey)
+	logger.Info("Did not find SDS container in gloo pod")
+	return false
+}
 
-		glooMtls = &deployer.GlooMtlsInfo{
+// getGlooMtlsInfo gets the gloo mtls config to be used by the deployer
+func getGlooMtlsInfo(ctx context.Context, secretNns types.NamespacedName) *deployer.GlooMtlsInfo {
+	logger := contextutils.LoggerFrom(ctx)
+
+	kubeClient := helpers.MustKubeClient()
+	glooMtlsInfo := &deployer.GlooMtlsInfo{}
+
+	// Use the secrets namespace, as it has to be in the same namespace as the gloo deployment
+	if !checkGlooMtlsEnabled(ctx, kubeClient, secretNns.Namespace) {
+		logger.Info("Gloo mtls not enabled")
+		return glooMtlsInfo
+	}
+
+	glooMtlsCertsSecret := getGlooMtlsCertsSecret(ctx, kubeClient, secretNns)
+
+	if glooMtlsCertsSecret != nil {
+
+		tlsCert := glooMtlsCertsSecret.Data[corev1.TLSCertKey]
+		tlsKey := glooMtlsCertsSecret.Data[corev1.TLSPrivateKeyKey]
+		caCert := glooMtlsCertsSecret.Data[corev1.ServiceAccountRootCAKey]
+
+		glooMtlsInfo = &deployer.GlooMtlsInfo{
 			Enabled: true,
 			TlsCert: &deployer.TlsCertInfo{
-				CaCert:  caCert,  //[]byte(base64.StdEncoding.EncodeToString(caCert)),
-				TlsCert: tlsCert, //[]byte(base64.StdEncoding.EncodeToString(tlsCert)),
-				TlsKey:  tlsKey,  //[]byte(base64.StdEncoding.EncodeToString(tlsKey)),
+				CaCert:  caCert,
+				TlsCert: tlsCert,
+				TlsKey:  tlsKey,
 			},
 		}
 
@@ -155,7 +183,7 @@ func getGlooMtls(ctx context.Context) *deployer.GlooMtlsInfo {
 		logger.Info("No TLS secret found")
 	}
 
-	return glooMtls
+	return glooMtlsInfo
 }
 
 func StartGGv2(ctx context.Context,
@@ -216,7 +244,8 @@ func StartGGv2WithConfig(ctx context.Context,
 		return nil
 	}, krt.WithName("GlooSettingsSingleton"))
 
-	glooMtls := getGlooMtls(ctx)
+	secretNns := types.NamespacedName{Name: "gloo-mtls-certs", Namespace: "gloo-system"}
+	glooMtls := getGlooMtlsInfo(ctx, secretNns)
 	logger.Info("Got glooMtls", "glooMtls", glooMtls)
 
 	serviceClient := kclient.New[*corev1.Service](kubeClient)
