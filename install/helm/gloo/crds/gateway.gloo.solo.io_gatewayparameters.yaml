@@ -424,20 +424,6 @@ spec:
                     type: object
                   floatingUserId:
                     type: boolean
-                  glooMtls:
-                    properties:
-                      enabled:
-                        type: boolean
-                      tlsSecret:
-                        properties:
-                          caCert:
-                            type: string
-                          tlsCert:
-                            type: string
-                          tlsKey:
-                            type: string
-                        type: object
-                    type: object
                   istio:
                     properties:
                       customSidecars:

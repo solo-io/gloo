@@ -386,27 +386,24 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 
 	// mtls values
 	fmt.Printf("=====ControlPlane=====\n%+v\n", d.inputs.ControlPlane)
-	fmt.Printf("=====KubeProxyConfigMtls=====\n%+v\n", kubeProxyConfig.GetGlooMtls())
-	gateway.GlooMtls = getGlooMtlsValues(d.inputs.ControlPlane.GlooMtls, kubeProxyConfig.GetGlooMtls())
+	gateway.GlooMtls = getGlooMtlsValues(d.inputs.ControlPlane.GlooMtls)
 
 	fmt.Printf("GlooMtls: %+v\n", gateway.GlooMtls)
 	return vals, nil
 }
 
-func getGlooMtlsValues(inputs *GlooMtlsInfo, glooMtls *v1alpha1.GlooMtls) *helmMtls {
+func getGlooMtlsValues(inputs *GlooMtlsInfo) *helmMtls {
 	helmMtls := &helmMtls{}
-	if glooMtls == nil {
+
+	if inputs == nil {
+		fmt.Printf("=====NIL TLS INPUTS=====\n")
 		return helmMtls
 	}
 
-	mtlsEnabled := glooMtls.GetEnabled()
+	mtlsEnabled := inputs.Enabled
 	helmMtls.Enabled = &mtlsEnabled
+	helmMtls.TlsSecret = helmTlsFromSecret(inputs.TlsCert)
 
-	if inputs != nil {
-		helmMtls.TlsSecret = helmTlsFromSecret(inputs.TlsCert)
-	} else {
-		fmt.Printf("=====NIL TLS INPUTS=====\n")
-	}
 	return helmMtls
 }
 

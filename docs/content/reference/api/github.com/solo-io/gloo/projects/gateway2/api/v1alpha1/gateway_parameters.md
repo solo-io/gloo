@@ -148,13 +148,6 @@ Resource Types:
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#gatewayparametersspeckubegloomtls">glooMtls</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b><a href="#gatewayparametersspeckubeistio">istio</a></b></td>
         <td>object</td>
         <td>
@@ -1709,81 +1702,6 @@ Resource Types:
         <td>false</td>
       </tr><tr>
         <td><b>runAsUserName</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### GatewayParameters.spec.kube.glooMtls
-<sup><sup>[↩ Parent](#gatewayparametersspeckube)</sup></sup>
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>enabled</b></td>
-        <td>boolean</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#gatewayparametersspeckubegloomtlstlssecret">tlsSecret</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### GatewayParameters.spec.kube.glooMtls.tlsSecret
-<sup><sup>[↩ Parent](#gatewayparametersspeckubegloomtls)</sup></sup>
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>caCert</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>tlsCert</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>tlsKey</b></td>
         <td>string</td>
         <td>
           <br/>
