@@ -34,7 +34,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	api "sigs.k8s.io/gateway-api/apis/v1"
 
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	cgkubernetes "k8s.io/client-go/kubernetes" // DO_NOT_SUBMIT remove client-go code
 )
 
@@ -57,26 +56,18 @@ type Deployer struct {
 }
 
 type ControlPlaneInfo struct {
-	XdsHost  string
-	XdsPort  int32
-	GlooMtls *GlooMtlsInfo
+	XdsHost string
+	XdsPort int32
+	// The data in this struct is static, so is a good place to keep track of if mtls is enabled
+	// The data in this struct is static, so is a bad place to store the actual mtls secret
+	GlooMtlsEnabled bool
+	//GlooMtls *GlooMtlsInfo
 }
 
 type AwsInfo struct {
 	EnableServiceAccountCredentials bool
 	StsClusterName                  string
 	StsUri                          string
-}
-
-type GlooMtlsInfo struct {
-	Enabled bool
-	TlsCert *TlsCertInfo
-}
-
-type TlsCertInfo struct {
-	CaCert  []byte
-	TlsCert []byte
-	TlsKey  []byte
 }
 
 // Inputs is the set of options used to configure the gateway deployer deployment
@@ -133,12 +124,6 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 		},
 	}
 
-	// DO_NOT_SUBMIT - if MTLS is enabled do we need to generate a secret resource here so it gets watched?
-	// enableMtls := false
-	// if d.inputs.ControlPlane.GlooMtls != nil {
-	// 	enableMtls = d.inputs.ControlPlane.GlooMtls.Enabled
-	// }
-
 	// TODO(Law): these must be set explicitly as we don't have defaults for them
 	// and the internal template isn't robust enough.
 	// This should be empty eventually -- the template must be resilient against nil-pointers
@@ -149,9 +134,6 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 				"enabled": false,
 			},
 			"image": map[string]any{},
-			"glooMtls": map[string]any{
-				"enabled": false, // DO_NOT_SUBMIT - I think we need to find a way to get that into "true" to get the secret into "GVKs to watch". Currrently blows up with an error about the sds image if true (template renders find if glooMtls is omitted)
-			},
 		},
 	}
 
@@ -390,85 +372,82 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 	gateway.Stats = getStatsValues(statsConfig)
 
 	// mtls values
-	gateway.GlooMtls = getGlooMtlsValues(d.inputs.ControlPlane.GlooMtls)
+	gateway.GlooMtls, err = getHelmMtlsConfig(d.inputs.ControlPlane.GlooMtlsEnabled)
+	if err != nil {
+		return nil, err
+	}
 
 	fmt.Printf("GlooMtls: %+v\n", gateway.GlooMtls)
 	return vals, nil
 }
 
-func getGlooMtlsValues(inputs *GlooMtlsInfo) *helmMtls {
-	helmMtls := &helmMtls{}
+func getHelmMtlsConfig(enabled bool) (*helmMtlsConfig, error) {
 
-	if inputs == nil {
-		return helmMtls
+	if !enabled {
+		return &helmMtlsConfig{
+			Enabled: ptr.To(false),
+		}, nil
 	}
 
-	mtlsEnabled := inputs.Enabled
-	helmMtls.Enabled = &mtlsEnabled
-	helmMtls.TlsSecret = helmTlsFromSecret(getGlooMtlsInfo(context.TODO(), types.NamespacedName{Name: "gloo-mtls-certs", Namespace: "gloo-system"}).TlsCert)
-
-	return helmMtls
-}
-
-func helmTlsFromSecret(secret *TlsCertInfo) *helmTls {
-	if secret == nil {
-		return nil
-	}
-
-	return &helmTls{
-		CaCert:  secret.CaCert,
-		TlsCert: secret.TlsCert,
-		TlsKey:  secret.TlsKey,
-	}
-}
-
-func getGlooMtlsCertsSecret(ctx context.Context, kubeClient cgkubernetes.Interface, nns types.NamespacedName) *corev1.Secret {
-	// // get initial settings
-	// logger := contextutils.LoggerFrom(ctx)
-	// logger.Infof("getting  mtls secret. gvr: %v", secretsGVR)
-
-	// nns = types.NamespacedName{Name: "gloo-mtls-certs", Namespace: "gloo-system"}
-	// i, err := c.Dynamic().Resource(secretsGVR).Namespace(nns.Namespace).Get(ctx, nns.Name, metav1.GetOptions{})
-	// if err != nil {
-	// 	logger.Error("failed to get initial secret: %v", err)
-	// 	return nil
-	// }
-	// logger.Infof("got initial secret")
-
-	// var empty glookubev1.Secret
-	// out := &empty
-	// err = runtime.DefaultUnstructuredConverter.FromUnstructured(i.UnstructuredContent(), out)
-	// if err != nil {
-	// 	logger.Error("failed converting unstructured into secret: %v", i)
-	// 	return nil
-	// }
-
-	// logger.Info("Got getInitialSecret ", "secret", out)
-	// return out
-
-	//nns = types.NamespacedName{Name: "gloo-mtls-certs", Namespace: "gloo-system"}
-
-	secretClient := kubeClient.CoreV1().Secrets(nns.Namespace)
-	existing, err := secretClient.Get(ctx, nns.Name, metav1.GetOptions{})
+	helmTls, err := getHelmTlsSecretData(
+		context.TODO(),
+		types.NamespacedName{
+			Name:      "gloo-mtls-certs",
+			Namespace: "gloo-system",
+		}, // DO_NOT_SUBMIT - not hardcoded
+	)
 
 	if err != nil {
-		if k8serrors.IsNotFound(err) {
-			return nil
-		}
-		return nil
+		return nil, err
 	}
 
-	if existing.Type != corev1.SecretTypeTLS {
-		fmt.Printf("unexpected secret type, expected %s and got %s", corev1.SecretTypeTLS, existing.Type)
-		return nil
+	return &helmMtlsConfig{
+		Enabled:   ptr.To(true),
+		TlsSecret: helmTls,
+	}, nil
+}
+
+// DO_NOT_SUBMIT - move code that interacts with k8s to a separate package?
+// getHelmTlsSecretData builds a helmTls object built from the gloo-mtls-certs secret data, which it fetches
+// This function does not check if mtls is enabled, and a missing secret will return an error via getGlooMtlsCertsSecret
+func getHelmTlsSecretData(ctx context.Context, secretNns types.NamespacedName) (*helmTlsSecretData, error) {
+
+	kubeClient := helpers.MustKubeClient()
+	helmTls := &helmTlsSecretData{}
+
+	glooMtlsCertsSecret, err := getGlooMtlsCertsSecret(ctx, kubeClient, secretNns)
+
+	if err != nil {
+		return nil, eris.Wrap(err, "generating helmTls")
 	}
 
-	return existing
+	helmTls.TlsCert = glooMtlsCertsSecret.Data[corev1.TLSCertKey]
+	helmTls.TlsKey = glooMtlsCertsSecret.Data[corev1.TLSPrivateKeyKey]
+	helmTls.CaCert = glooMtlsCertsSecret.Data[corev1.ServiceAccountRootCAKey]
+
+	return helmTls, nil
+}
+
+// DO_NOT_SUBMIT - off client go, (err := d.cli...?)
+func getGlooMtlsCertsSecret(ctx context.Context, kubeClient cgkubernetes.Interface, nns types.NamespacedName) (*corev1.Secret, error) {
+
+	secretClient := kubeClient.CoreV1().Secrets(nns.Namespace)
+	mtlsSecret, err := secretClient.Get(ctx, nns.Name, metav1.GetOptions{})
+
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to get gloo mtls secret")
+	}
+
+	if mtlsSecret.Type != corev1.SecretTypeTLS {
+		return nil, eris.New(fmt.Sprintf("unexpected secret type, expected %s and got %s", corev1.SecretTypeTLS, mtlsSecret.Type))
+	}
+
+	return mtlsSecret, nil
 
 }
 
 // checkGlooMtlsEnabled checks if gloo mtls is enabled by looking at the gloo deployment and checking if the sds container is present
-// DO_NOT_SUBMIT - get off of client-go
+// DO_NOT_SUBMIT - get off of client-go (err := d.cli...?)
 func checkGlooMtlsEnabled(ctx context.Context, kubeClient cgkubernetes.Interface, namespace string) bool {
 	logger := contextutils.LoggerFrom(ctx)
 	deploymentClient := kubeClient.AppsV1().Deployments(namespace)
@@ -487,43 +466,6 @@ func checkGlooMtlsEnabled(ctx context.Context, kubeClient cgkubernetes.Interface
 
 	logger.Info("Did not find SDS container in gloo pod")
 	return false
-}
-
-// getGlooMtlsInfo gets the gloo mtls config to be used by the deployer
-func getGlooMtlsInfo(ctx context.Context, secretNns types.NamespacedName) *GlooMtlsInfo {
-	logger := contextutils.LoggerFrom(ctx)
-
-	kubeClient := helpers.MustKubeClient()
-	glooMtlsInfo := &GlooMtlsInfo{}
-
-	// Use the secrets namespace, as it has to be in the same namespace as the gloo deployment
-	if !checkGlooMtlsEnabled(ctx, kubeClient, secretNns.Namespace) {
-		logger.Info("Gloo mtls not enabled")
-		return glooMtlsInfo
-	}
-
-	glooMtlsCertsSecret := getGlooMtlsCertsSecret(ctx, kubeClient, secretNns)
-
-	if glooMtlsCertsSecret != nil {
-
-		tlsCert := glooMtlsCertsSecret.Data[corev1.TLSCertKey]
-		tlsKey := glooMtlsCertsSecret.Data[corev1.TLSPrivateKeyKey]
-		caCert := glooMtlsCertsSecret.Data[corev1.ServiceAccountRootCAKey]
-
-		glooMtlsInfo = &GlooMtlsInfo{
-			Enabled: true,
-			TlsCert: &TlsCertInfo{
-				CaCert:  caCert,
-				TlsCert: tlsCert,
-				TlsKey:  tlsKey,
-			},
-		}
-
-	} else {
-		logger.Info("No TLS secret found")
-	}
-
-	return glooMtlsInfo
 }
 
 // Render relies on a `helm install` to render the Chart with the injected values

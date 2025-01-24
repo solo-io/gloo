@@ -12,7 +12,6 @@ import (
 	gloostatusutils "github.com/solo-io/gloo/pkg/utils/statusutils"
 	gateway "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway2/controller"
-	"github.com/solo-io/gloo/projects/gateway2/deployer"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	"github.com/solo-io/gloo/projects/gateway2/proxy_syncer"
@@ -44,7 +43,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
-	cgkubernetes "k8s.io/client-go/kubernetes" // DO_NOT_SUBMIT remove client-go code
 )
 
 var settingsGVR = glookubev1.SchemeGroupVersion.WithResource("settings")
@@ -82,54 +80,11 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 	return out
 }
 
-func getGlooMtlsCertsSecret(ctx context.Context, kubeClient cgkubernetes.Interface, nns types.NamespacedName) *corev1.Secret {
-	// // get initial settings
-	// logger := contextutils.LoggerFrom(ctx)
-	// logger.Infof("getting  mtls secret. gvr: %v", secretsGVR)
-
-	// nns = types.NamespacedName{Name: "gloo-mtls-certs", Namespace: "gloo-system"}
-	// i, err := c.Dynamic().Resource(secretsGVR).Namespace(nns.Namespace).Get(ctx, nns.Name, metav1.GetOptions{})
-	// if err != nil {
-	// 	logger.Error("failed to get initial secret: %v", err)
-	// 	return nil
-	// }
-	// logger.Infof("got initial secret")
-
-	// var empty glookubev1.Secret
-	// out := &empty
-	// err = runtime.DefaultUnstructuredConverter.FromUnstructured(i.UnstructuredContent(), out)
-	// if err != nil {
-	// 	logger.Error("failed converting unstructured into secret: %v", i)
-	// 	return nil
-	// }
-
-	// logger.Info("Got getInitialSecret ", "secret", out)
-	// return out
-
-	//nns = types.NamespacedName{Name: "gloo-mtls-certs", Namespace: "gloo-system"}
-
-	secretClient := kubeClient.CoreV1().Secrets(nns.Namespace)
-	existing, err := secretClient.Get(ctx, nns.Name, metav1.GetOptions{})
-
-	if err != nil {
-		if k8serrors.IsNotFound(err) {
-			return nil
-		}
-		return nil
-	}
-
-	if existing.Type != corev1.SecretTypeTLS {
-		fmt.Printf("unexpected secret type, expected %s and got %s", corev1.SecretTypeTLS, existing.Type)
-		return nil
-	}
-
-	return existing
-
-}
-
 // checkGlooMtlsEnabled checks if gloo mtls is enabled by looking at the gloo deployment and checking if the sds container is present
 // DO_NOT_SUBMIT - get off of client-go
-func checkGlooMtlsEnabled(ctx context.Context, kubeClient cgkubernetes.Interface, namespace string) bool {
+func checkGlooMtlsEnabled(ctx context.Context, namespace string) bool {
+	kubeClient := helpers.MustKubeClient()
+
 	logger := contextutils.LoggerFrom(ctx)
 	deploymentClient := kubeClient.AppsV1().Deployments(namespace)
 	deployment, err := deploymentClient.Get(ctx, "gloo", metav1.GetOptions{})
@@ -147,43 +102,6 @@ func checkGlooMtlsEnabled(ctx context.Context, kubeClient cgkubernetes.Interface
 
 	logger.Info("Did not find SDS container in gloo pod")
 	return false
-}
-
-// getGlooMtlsInfo gets the gloo mtls config to be used by the deployer
-func getGlooMtlsInfo(ctx context.Context, secretNns types.NamespacedName) *deployer.GlooMtlsInfo {
-	logger := contextutils.LoggerFrom(ctx)
-
-	kubeClient := helpers.MustKubeClient()
-	glooMtlsInfo := &deployer.GlooMtlsInfo{}
-
-	// Use the secrets namespace, as it has to be in the same namespace as the gloo deployment
-	if !checkGlooMtlsEnabled(ctx, kubeClient, secretNns.Namespace) {
-		logger.Info("Gloo mtls not enabled")
-		return glooMtlsInfo
-	}
-
-	glooMtlsCertsSecret := getGlooMtlsCertsSecret(ctx, kubeClient, secretNns)
-
-	if glooMtlsCertsSecret != nil {
-
-		tlsCert := glooMtlsCertsSecret.Data[corev1.TLSCertKey]
-		tlsKey := glooMtlsCertsSecret.Data[corev1.TLSPrivateKeyKey]
-		caCert := glooMtlsCertsSecret.Data[corev1.ServiceAccountRootCAKey]
-
-		glooMtlsInfo = &deployer.GlooMtlsInfo{
-			Enabled: true,
-			TlsCert: &deployer.TlsCertInfo{
-				CaCert:  caCert,
-				TlsCert: tlsCert,
-				TlsKey:  tlsKey,
-			},
-		}
-
-	} else {
-		logger.Info("No TLS secret found")
-	}
-
-	return glooMtlsInfo
 }
 
 func StartGGv2(ctx context.Context,
@@ -245,7 +163,7 @@ func StartGGv2WithConfig(ctx context.Context,
 	}, krt.WithName("GlooSettingsSingleton"))
 
 	secretNns := types.NamespacedName{Name: "gloo-mtls-certs", Namespace: "gloo-system"}
-	glooMtls := getGlooMtlsInfo(ctx, secretNns)
+	glooMtls := checkGlooMtlsEnabled(ctx, secretNns.Namespace)
 	logger.Info("Got glooMtls", "glooMtls", glooMtls)
 
 	serviceClient := kclient.New[*corev1.Service](kubeClient)
@@ -275,9 +193,9 @@ func StartGGv2WithConfig(ctx context.Context,
 		InitialSettings: initialSettings,
 		Settings:        settingsSingle,
 		// Dev flag may be useful for development purposes; not currently tied to any user-facing API
-		Dev:      false,
-		GlooMtls: glooMtls,
-		Debugger: setupOpts.KrtDebugger,
+		Dev:             false,
+		GlooMtlsEnabled: glooMtls,
+		Debugger:        setupOpts.KrtDebugger,
 	})
 	if err != nil {
 		logger.Error("failed initializing controller: ", err)

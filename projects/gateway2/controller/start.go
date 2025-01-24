@@ -77,7 +77,7 @@ type StartConfig struct {
 	InitialSettings *glookubev1.Settings
 	Settings        krt.Singleton[glookubev1.Settings]
 
-	GlooMtls *deployer.GlooMtlsInfo
+	GlooMtlsEnabled bool
 
 	Debugger *krt.DebugHandler
 }
@@ -94,7 +94,7 @@ type ControllerBuilder struct {
 }
 
 func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuilder, error) {
-	setupLog.Info("creating new gateway controller with glooMtls", "cfg", cfg.GlooMtls)
+	setupLog.Info("creating new gateway controller with glooMtls", "cfg.GlooMtlsEnabled", cfg.GlooMtlsEnabled)
 	var opts []zap.Opts
 	if cfg.Dev {
 		setupLog.Info("starting log in dev mode")
@@ -220,7 +220,7 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 	}
 
 	logger.Infow("got xds address for deployer", uzap.String("xds_host", xdsHost), uzap.Int32("xds_port", xdsPort))
-	logger.Infow("glooMtls config", uzap.Any("glooMtls", c.cfg.GlooMtls))
+	logger.Infow("glooMtls config", uzap.Any("glooMtlsEnabled", c.cfg.GlooMtlsEnabled))
 
 	integrationEnabled := c.cfg.InitialSettings.Spec.GetGloo().GetIstioOptions().GetEnableIntegration().GetValue()
 
@@ -254,9 +254,9 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 		ControllerName: wellknown.GatewayControllerName,
 		AutoProvision:  AutoProvision,
 		ControlPlane: deployer.ControlPlaneInfo{
-			XdsHost:  xdsHost,
-			XdsPort:  xdsPort,
-			GlooMtls: c.cfg.GlooMtls,
+			XdsHost:         xdsHost,
+			XdsPort:         xdsPort,
+			GlooMtlsEnabled: c.cfg.GlooMtlsEnabled,
 		},
 		// TODO pass in the settings so that the deloyer can register to it for changes.
 		IstioIntegrationEnabled: integrationEnabled,
