@@ -17,7 +17,6 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 )
 
 const (
@@ -31,6 +30,8 @@ const (
 	LoggingPath        = "logging"
 	ServerInfoPath     = "server_info"
 )
+
+var envoyAdminPort uint32 = 19000
 
 // DumpOptions should have flags for any kind of underlying optional
 // filtering or inclusion of Envoy dump data, such as including EDS, filters, etc.
@@ -56,7 +57,7 @@ func NewClient() *Client {
 		curlOptions: []curl.Option{
 			curl.WithScheme("http"),
 			curl.WithHost("127.0.0.1"),
-			curl.WithPort(int(defaults.EnvoyAdminPort)),
+			curl.WithPort(int(envoyAdminPort)),
 			// 3 retries, exponential back-off, 10 second max
 			curl.WithRetries(3, 0, 10),
 		},
@@ -75,7 +76,7 @@ func NewPortForwardedClient(ctx context.Context, proxySelector, namespace string
 	// 1. Open a port-forward to the Kubernetes Deployment, so that we can query the Envoy Admin API directly
 	portForwarder, err := kubectl.NewCli().StartPortForward(ctx,
 		selector,
-		portforward.WithRemotePort(int(defaults.EnvoyAdminPort)))
+		portforward.WithRemotePort(int(envoyAdminPort)))
 	if err != nil {
 		return nil, nil, err
 	}
