@@ -221,23 +221,27 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 		))
 
 	cli := c.cfg.Mgr.GetClient()
-	buildr.Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(
-		// fmt.Println("WATCHING")
-		func(ctx context.Context, obj client.Object) []reconcile.Request {
-			fmt.Println("------ RECONCILING SECRET:", obj.GetName(), obj.GetNamespace())
-			if obj.GetName() == "gloo-mtls-certs" && obj.GetNamespace() == "gloo-system" {
-				fmt.Println("------ RECONCILING ALL GWS")
-				var gwList apiv1.GatewayList
-				err := cli.List(ctx, &gwList, client.InNamespace(corev1.NamespaceAll))
-				fmt.Println("------", gwList, err)
-				var reqs []reconcile.Request
-				for _, gw := range gwList.Items {
-					reqs = append(reqs, reconcile.Request{NamespacedName: client.ObjectKey{Namespace: gw.Namespace, Name: gw.Name}})
+
+	// Only watch for secrets if mtls is enabled
+	if c.cfg.ControlPlane.GlooMtlsEnabled {
+		buildr.Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(
+			// fmt.Println("WATCHING")
+			func(ctx context.Context, obj client.Object) []reconcile.Request {
+				fmt.Println("------ RECONCILING SECRET:", obj.GetName(), obj.GetNamespace())
+				if obj.GetName() == "gloo-mtls-certs" && obj.GetNamespace() == "gloo-system" {
+					fmt.Println("------ RECONCILING ALL GWS")
+					var gwList apiv1.GatewayList
+					err := cli.List(ctx, &gwList, client.InNamespace(corev1.NamespaceAll))
+					fmt.Println("------", gwList, err)
+					var reqs []reconcile.Request
+					for _, gw := range gwList.Items {
+						reqs = append(reqs, reconcile.Request{NamespacedName: client.ObjectKey{Namespace: gw.Namespace, Name: gw.Name}})
+					}
+					return reqs
 				}
-				return reqs
-			}
-			return []reconcile.Request{{}}
-		}))
+				return []reconcile.Request{{}}
+			}))
+	}
 
 	// watch for changes in GatewayParameters
 	buildr.Watches(&v1alpha1.GatewayParameters{}, handler.EnqueueRequestsFromMapFunc(

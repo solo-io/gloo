@@ -33,6 +33,7 @@ import (
 	istiokube "istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/kube/kclient"
 	"istio.io/istio/pkg/kube/krt"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,12 +42,10 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
-
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 )
 
 var settingsGVR = glookubev1.SchemeGroupVersion.WithResource("settings")
-var secretsGVR = schema.GroupVersion{Group: "", Version: "v1"}.WithResource("secrets")
+var deploymentGVR = schema.GroupVersion{Group: "apps", Version: "v1"}.WithResource("deployments")
 
 func createKubeClient(restConfig *rest.Config) (istiokube.Client, error) {
 	restCfg := istiokube.NewClientConfigForRestConfig(restConfig)
@@ -81,25 +80,30 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 }
 
 // checkGlooMtlsEnabled checks if gloo mtls is enabled by looking at the gloo deployment and checking if the sds container is present
-// DO_NOT_SUBMIT - get off of client-go
-func checkGlooMtlsEnabled(ctx context.Context, namespace string) bool {
-	kubeClient := helpers.MustKubeClient()
+func checkGlooMtlsEnabled(ctx context.Context, c istiokube.Client, namespace string) bool {
 
 	logger := contextutils.LoggerFrom(ctx)
-	deploymentClient := kubeClient.AppsV1().Deployments(namespace)
-	deployment, err := deploymentClient.Get(ctx, "gloo", metav1.GetOptions{})
+
+	i, err := c.Dynamic().Resource(deploymentGVR).Namespace(namespace).Get(ctx, "gloo", metav1.GetOptions{})
 	if err != nil {
-		logger.Error("checkGlooMtlsEnabled - failed to get gloo deployment", "err", err)
+		logger.Panicf("failed to get gloo deployment: %v", err)
 		return false
 	}
 
-	for _, container := range deployment.Spec.Template.Spec.Containers {
+	var empty appsv1.Deployment
+	glooDeployment := &empty
+	err = runtime.DefaultUnstructuredConverter.FromUnstructured(i.UnstructuredContent(), glooDeployment)
+	if err != nil {
+		logger.Panicf("failed converting unstructured into deployment: %v", i)
+		return false
+	}
+
+	for _, container := range glooDeployment.Spec.Template.Spec.Containers {
 		if container.Name == "sds" {
 			logger.Info("Found SDS container in gloo pod")
 			return true
 		}
 	}
-
 	logger.Info("Did not find SDS container in gloo pod")
 	return false
 }
@@ -162,8 +166,7 @@ func StartGGv2WithConfig(ctx context.Context,
 		return nil
 	}, krt.WithName("GlooSettingsSingleton"))
 
-	secretNns := types.NamespacedName{Name: "gloo-mtls-certs", Namespace: "gloo-system"}
-	glooMtls := checkGlooMtlsEnabled(ctx, secretNns.Namespace)
+	glooMtls := checkGlooMtlsEnabled(ctx, kubeClient, "gloo-system")
 	logger.Info("Got glooMtls", "glooMtls", glooMtls)
 
 	serviceClient := kclient.New[*corev1.Service](kubeClient)

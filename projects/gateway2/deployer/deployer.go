@@ -14,8 +14,6 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/helm"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
-	"github.com/solo-io/go-utils/contextutils"
 	"golang.org/x/exp/slices"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -33,8 +31,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	api "sigs.k8s.io/gateway-api/apis/v1"
-
-	cgkubernetes "k8s.io/client-go/kubernetes" // DO_NOT_SUBMIT remove client-go code
 )
 
 var (
@@ -52,7 +48,8 @@ type Deployer struct {
 	chart *chart.Chart
 	cli   client.Client
 
-	inputs *Inputs
+	inputs          *Inputs
+	GlooMtlsEnabled bool
 }
 
 type ControlPlaneInfo struct {
@@ -61,7 +58,6 @@ type ControlPlaneInfo struct {
 	// The data in this struct is static, so is a good place to keep track of if mtls is enabled
 	// The data in this struct is static, so is a bad place to store the actual mtls secret
 	GlooMtlsEnabled bool
-	//GlooMtls *GlooMtlsInfo
 }
 
 type AwsInfo struct {
@@ -134,6 +130,8 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 				"enabled": false,
 			},
 			"image": map[string]any{},
+			// DO_NOT_SUBMIT - do we need to do something to render the secret when mtls is enabled?
+			//  we can't at the moment just set enabled to true, as we don't have the data to render the sds container
 		},
 	}
 
@@ -372,7 +370,7 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 	gateway.Stats = getStatsValues(statsConfig)
 
 	// mtls values
-	gateway.GlooMtls, err = getHelmMtlsConfig(d.inputs.ControlPlane.GlooMtlsEnabled)
+	gateway.GlooMtls, err = d.getHelmMtlsConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -381,16 +379,16 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 	return vals, nil
 }
 
-func getHelmMtlsConfig(enabled bool) (*helmMtlsConfig, error) {
+func (d *Deployer) getHelmMtlsConfig() (*helmMtlsConfig, error) {
 
-	if !enabled {
+	if !d.inputs.ControlPlane.GlooMtlsEnabled {
 		return &helmMtlsConfig{
 			Enabled: ptr.To(false),
 		}, nil
 	}
 
-	helmTls, err := getHelmTlsSecretData(
-		context.TODO(),
+	helmTls, err := d.getHelmTlsSecretData(
+		context.TODO(), // DO_NOT_SUBMIT - real context
 		types.NamespacedName{
 			Name:      "gloo-mtls-certs",
 			Namespace: "gloo-system",
@@ -407,15 +405,13 @@ func getHelmMtlsConfig(enabled bool) (*helmMtlsConfig, error) {
 	}, nil
 }
 
-// DO_NOT_SUBMIT - move code that interacts with k8s to a separate package?
 // getHelmTlsSecretData builds a helmTls object built from the gloo-mtls-certs secret data, which it fetches
 // This function does not check if mtls is enabled, and a missing secret will return an error via getGlooMtlsCertsSecret
-func getHelmTlsSecretData(ctx context.Context, secretNns types.NamespacedName) (*helmTlsSecretData, error) {
+func (d *Deployer) getHelmTlsSecretData(ctx context.Context, secretNns types.NamespacedName) (*helmTlsSecretData, error) {
 
-	kubeClient := helpers.MustKubeClient()
 	helmTls := &helmTlsSecretData{}
 
-	glooMtlsCertsSecret, err := getGlooMtlsCertsSecret(ctx, kubeClient, secretNns)
+	glooMtlsCertsSecret, err := d.getGlooMtlsCertsSecret(ctx, secretNns)
 
 	if err != nil {
 		return nil, eris.Wrap(err, "generating helmTls")
@@ -429,10 +425,10 @@ func getHelmTlsSecretData(ctx context.Context, secretNns types.NamespacedName) (
 }
 
 // DO_NOT_SUBMIT - off client go, (err := d.cli...?)
-func getGlooMtlsCertsSecret(ctx context.Context, kubeClient cgkubernetes.Interface, nns types.NamespacedName) (*corev1.Secret, error) {
+func (d *Deployer) getGlooMtlsCertsSecret(ctx context.Context, mtlsSecretNns types.NamespacedName) (*corev1.Secret, error) {
 
-	secretClient := kubeClient.CoreV1().Secrets(nns.Namespace)
-	mtlsSecret, err := secretClient.Get(ctx, nns.Name, metav1.GetOptions{})
+	mtlsSecret := &corev1.Secret{}
+	err := d.cli.Get(ctx, mtlsSecretNns, mtlsSecret)
 
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get gloo mtls secret")
@@ -444,28 +440,6 @@ func getGlooMtlsCertsSecret(ctx context.Context, kubeClient cgkubernetes.Interfa
 
 	return mtlsSecret, nil
 
-}
-
-// checkGlooMtlsEnabled checks if gloo mtls is enabled by looking at the gloo deployment and checking if the sds container is present
-// DO_NOT_SUBMIT - get off of client-go (err := d.cli...?)
-func checkGlooMtlsEnabled(ctx context.Context, kubeClient cgkubernetes.Interface, namespace string) bool {
-	logger := contextutils.LoggerFrom(ctx)
-	deploymentClient := kubeClient.AppsV1().Deployments(namespace)
-	deployment, err := deploymentClient.Get(ctx, "gloo", metav1.GetOptions{})
-	if err != nil {
-		logger.Error("checkGlooMtlsEnabled - failed to get gloo deployment", "err", err)
-		return false
-	}
-
-	for _, container := range deployment.Spec.Template.Spec.Containers {
-		if container.Name == "sds" {
-			logger.Info("Found SDS container in gloo pod")
-			return true
-		}
-	}
-
-	logger.Info("Did not find SDS container in gloo pod")
-	return false
 }
 
 // Render relies on a `helm install` to render the Chart with the injected values
