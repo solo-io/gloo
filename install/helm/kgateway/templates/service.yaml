@@ -5,11 +5,11 @@ metadata:
   labels:
     {{- include "kgateway.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.controller.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
+  - name: grpc-xds
+    protocol: TCP
+    port: {{ .Values.controller.service.ports.grpc }}
+    targetPort: {{ .Values.controller.service.ports.grpc }}
   selector:
     {{- include "kgateway.selectorLabels" . | nindent 4 }}
