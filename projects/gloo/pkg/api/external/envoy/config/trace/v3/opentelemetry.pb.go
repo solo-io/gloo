@@ -43,6 +43,9 @@ type OpenTelemetryConfig struct {
 	// If this is not set it will be automatically set to the name of the
 	// listener + the namespace of the Gateway object
 	ServiceName string `protobuf:"bytes,3,opt,name=service_name,json=serviceName,proto3" json:"service_name,omitempty"`
+	// Optional. Current only gRPC is supported, but are intentionally using a oneof
+	// to allow for future support of HTTP. This structure matches Envoy's.
+	//
 	// Types that are assignable to ServiceType:
 	//
 	//	*OpenTelemetryConfig_GrpcService
@@ -145,7 +148,7 @@ type isOpenTelemetryConfig_ServiceType interface {
 }
 
 type OpenTelemetryConfig_GrpcService struct {
-	// Optional, if set the communication to the collector will be over gRPC.
+	// Optional gRPC transport options
 	GrpcService *GrpcService `protobuf:"bytes,4,opt,name=grpc_service,json=grpcService,proto3,oneof"`
 }
 

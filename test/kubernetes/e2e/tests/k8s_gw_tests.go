@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/server_tls"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/services/httproute"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/services/tcproute"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/tracing"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/upstreams"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/virtualhost_options"
 )
@@ -38,6 +39,7 @@ func KubeGatewaySuiteRunner() e2e.SuiteRunner {
 	kubeGatewaySuiteRunner.Register("DirectResponse", directresponse.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("CRDCategories", crd_categories.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("Metrics", metrics.NewTestingSuite)
+	kubeGatewaySuiteRunner.Register("Tracing", tracing.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("ServerTls", server_tls.NewK8sTestingSuite)
 
 	return kubeGatewaySuiteRunner
