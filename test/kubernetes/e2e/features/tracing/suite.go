@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	"github.com/solo-io/gloo/test/kubernetes/testutils/gloogateway"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -155,6 +156,10 @@ func (s *testingSuite) AfterTest(string, string) {
 
 // BeforeGlooGatewayTest sets up the Gloo Gateway resources
 func (s *testingSuite) BeforeGlooGatewayTest() {
+	if !HasEdgeGateway(s.testInstallation.Metadata) {
+		s.T().Skip("Installation of Gloo Gateway does not have Edge Gateway enabled, skipping test as there is nothing to test")
+	}
+
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayConfigManifest,
 		"-n", s.testInstallation.Metadata.InstallNamespace)
 	s.NoError(err, "can create gateway and service")
@@ -178,7 +183,7 @@ func (s *testingSuite) AfterGlooGatewayTest() {
 
 // BeforeK8sGatewayTest sets up the K8s Gateway resources
 func (s *testingSuite) BeforeK8sGatewayTest(hloManifest string) {
-	if !s.testInstallation.Metadata.K8sGatewayEnabled {
+	if !HasK8sGateway(s.testInstallation.Metadata) {
 		s.T().Skip("Installation of Gloo Gateway does not have K8s Gateway enabled, skipping test as there is nothing to test")
 	}
 
@@ -391,4 +396,16 @@ func (s *testingSuite) TestK8sGatewayWithOtelTracingGrpcAuthority() {
 
 		assert.Regexp(c, `-> authority: Str\(test-authority\)`, logs)
 	}, time.Second*30, time.Second*3, "otelcol logs contain authority set in gateway")
+}
+
+// HasEdgeGateway returns true if the installation has the Edge Gateway enabled
+func HasEdgeGateway(c *gloogateway.Context) bool {
+	return c.ProfileValuesManifestFile == e2e.EdgeGatewayProfilePath ||
+		c.ProfileValuesManifestFile == e2e.FullGatewayProfilePath
+}
+
+// HasK8sGateway returns true if the installation has the K8s Gateway enabled
+func HasK8sGateway(c *gloogateway.Context) bool {
+	return c.ProfileValuesManifestFile == e2e.KubernetesGatewayProfilePath ||
+		c.K8sGatewayEnabled
 }
