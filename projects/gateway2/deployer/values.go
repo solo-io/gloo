@@ -174,7 +174,6 @@ type helmTlsSecretData struct {
 }
 
 type helmMtlsConfig struct {
-	Enabled      *bool              `json:"enabled,omitempty" desc:"Enables internal mtls authentication"`
-	RenderSecret *bool              `json:"renderSecret,omitempty" desc:"If true, the deployer will render the mtls secrets. Used for creating the intial sceret resource for mointoring before the full config is available"`
-	TlsSecret    *helmTlsSecretData `json:"tlsCert,omitempty" desc:"The tls cert and key for the gateway to use for mtls authentication"`
+	Enabled   *bool              `json:"enabled,omitempty" desc:"Enables internal mtls authentication"`
+	TlsSecret *helmTlsSecretData `json:"tlsCert,omitempty" desc:"The tls cert and key for the gateway to use for mtls authentication"`
 }

@@ -1,24 +1,24 @@
 {{- $gateway := .Values.gateway }}
 {{- $statsConfig := $gateway.stats }}
-{{- $glooMtls := dict -}}
+{{- $mtlsEnabled := false }}
 {{- if $gateway.glooMtls }}
-  {{-  $glooMtls = $gateway.glooMtls -}}
+  {{- if $gateway.glooMtls.enabled }}
+    {{- $mtlsEnabled = true }}
+  {{- end }} {{/* if $gateway.glooMtls */}}
 {{- end }} {{/* if $gateway.glooMtls.enabled */}}
 
-{{- if or $glooMtls.enabled $glooMtls.renderSecret }}
+{{- if $mtlsEnabled }}
 apiVersion: v1
 kind: Secret
 metadata:
-  name: gloo-mtls-certs
+ {{/* TODO - is name configurable?*/}}
+  name: gloo-mtls-certs 
 data:
-  {{-/* When initially rendering the template to get the list of GVKs to watch there won't be secret data */}}
-  {{- if $glooMtls.tlsCert }} 
-  ca.crt:  {{ $glooMtls.tlsCert.caCert }}
-  tls.crt: {{ $glooMtls.tlsCert.tlsCert }}
-  tls.key: {{ $glooMtls.tlsCert.tlsKey }}
-  {{- end }} {{/* if $glooMtls.tlsCert */}}
+  ca.crt:  {{ $gateway.glooMtls.tlsCert.caCert }}
+  tls.crt: {{ $gateway.glooMtls.tlsCert.tlsCert }}
+  tls.key: {{ $gateway.glooMtls.tlsCert.tlsKey }}
 type: kubernetes.io/tls
-{{- end }} {{/* if $glooMtls.enabled */}}
+{{- end }} {{/* if $mtlsEnabled */}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -88,11 +88,11 @@ spec:
         volumeMounts:
         - mountPath: /etc/envoy
           name: envoy-config
-{{- if  $glooMtls.enabled }}
+{{- if  $mtlsEnabled }}
         - mountPath: /etc/envoy/ssl
           name: gloo-mtls-certs
           readOnly: true
-{{- end }} {{/* if  $glooMtls.enabled*/}}
+{{- end }} {{/* if  $mtlsEnabled*/}}
         env:
         - name: POD_NAME
           valueFrom:
@@ -135,7 +135,7 @@ spec:
         resources:
           {{- toYaml $gateway.resources | nindent 10 }}
 {{- end }} {{/* if $gateway.resources */}}
-{{- if or $glooMtls.enabled $gateway.istio.enabled }}
+{{- if or $mtlsEnabled $gateway.istio.enabled }}
       - name: sds
         image: "{{ template "gloo-gateway.gateway.image" $gateway.sdsContainer.image }}"
         {{- if $gateway.sdsContainer.image.pullPolicy }}
@@ -156,10 +156,10 @@ spec:
           - name: ISTIO_MTLS_SDS_ENABLED
             value: "true"
 {{- end }} {{/* if $gateway.istio.enabled */}}
-{{- if  $glooMtls.enabled }}
+{{- if  $mtlsEnabled }}
           - name: GLOO_MTLS_SDS_ENABLED
             value: "true"
-{{- end }} {{/*  $glooMtls.enabled */}}
+{{- end }} {{/*  $mtlsEnabled */}}
           - name: LOG_LEVEL
             value: {{ $gateway.sdsContainer.sdsBootstrap.logLevel }}
         ports:
@@ -189,12 +189,12 @@ spec:
           - mountPath: /etc/envoy
             name: envoy-config
 {{- end }} {{/* if $gateway.istio.enabled */}}
-{{- if  $glooMtls.enabled }}
+{{- if  $mtlsEnabled }}
           - mountPath: /etc/envoy/ssl
             name: gloo-mtls-certs
             readOnly: true
-{{- end }} {{/* if  $glooMtls.enabled */}}
-{{- end }} {{/* if or $glooMtls.enabled $gateway.istio.enabled */}}
+{{- end }} {{/* if  $mtlsEnabled */}}
+{{- end }} {{/* if or $mtlsEnabled $gateway.istio.enabled */}}
 {{- if $gateway.istio.enabled }}
           - mountPath: /etc/istio-certs/
             name: istio-certs
@@ -354,12 +354,12 @@ spec:
       - configMap:
           name: {{ include "gloo-gateway.gateway.fullname" . }}
         name: envoy-config
-{{-  if $glooMtls.enabled }}
+{{-  if $mtlsEnabled }}
       - name: gloo-mtls-certs
         secret:
           defaultMode: 420
           secretName: gloo-mtls-certs
-{{- end }} {{/* if $glooMtls.enabled */}}
+{{- end }} {{/* if $mtlsEnabled */}}
 {{- if (($gateway.aiExtension).enabled) }}
       - configMap:
           name: {{ include "gloo-gateway.gateway.fullname" . }}-ai-stats-config
@@ -595,7 +595,7 @@ data:
               keepalive_time: 10
           type: STRICT_DNS
           respect_dns_ttl: true
-{{- if  $glooMtls.enabled }}
+{{- if  $mtlsEnabled }}
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
@@ -621,7 +621,7 @@ data:
                       grpc_services:
                       - envoy_grpc:
                           cluster_name: gateway_proxy_sds
-{{- end }} {{/* if  $glooMtls.enabled */}}
+{{- end }} {{/* if  $mtlsEnabled */}}
         - name: admin_port_cluster
           connect_timeout: 5.000s
           type: STATIC
@@ -635,7 +635,7 @@ data:
                     socket_address:
                       address: 127.0.0.1
                       port_value: 19000
-        {{- if or  $glooMtls.enabled $gateway.istio.enabled }}
+        {{- if or  $mtlsEnabled $gateway.istio.enabled }}
         - name: gateway_proxy_sds
           connect_timeout: 0.25s
           http2_protocol_options: {}
@@ -648,7 +648,7 @@ data:
                       socket_address:
                         address: 127.0.0.1
                         port_value: 8234
-        {{- end }} {{/* if or  $glooMtls.enabled $gateway.istio.enabled */}}
+        {{- end }} {{/* if or  $mtlsEnabled $gateway.istio.enabled */}}
         {{- if ($gateway.aws).enableServiceAccountCredentials }}
         - name: {{ $gateway.aws.stsClusterName }}
           connect_timeout: 5.000s

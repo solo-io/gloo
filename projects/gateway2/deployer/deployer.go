@@ -48,14 +48,15 @@ type Deployer struct {
 	chart *chart.Chart
 	cli   client.Client
 
-	inputs *Inputs
+	inputs          *Inputs
+	GlooMtlsEnabled bool
 }
 
 type ControlPlaneInfo struct {
 	XdsHost string
 	XdsPort int32
 	// The data in this struct is static, so is a good place to keep track of if mtls is enabled
-	// and a bad place to store the actual mtls secret data
+	// The data in this struct is static, so is a bad place to store the actual mtls secret
 	GlooMtlsEnabled bool
 }
 
@@ -107,14 +108,11 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 	//   as we only care about the GVKs of the rendered resources)
 	// - the minimal values that render all the proxy resources (HPA is not included because it's not
 	//   fully integrated/working at the moment)
-	// - a flag to indicate whether mtls is enabled, so we can render the secret if needed
 	//
 	// Note: another option is to hardcode the GVKs here, but rendering the helm chart is a
 	// _slightly_ more dynamic way of getting the GVKs. It isn't a perfect solution since if
 	// we add more resources to the helm chart that are gated by a flag, we may forget to
 	// update the values here to enable them.
-	// Currently the only resource that is gated by a flag is the mtls secret.
-
 	emptyGw := &api.Gateway{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "default",
@@ -132,12 +130,8 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 				"enabled": false,
 			},
 			"image": map[string]any{},
-			// Render the secret based on the mtls flag so we can watch it.
-			// This is an exception to the "TODO" above as this is not protection against nil-pointers,
-			// it is determining which resources to render based on ControlPlane configuration.
-			"glooMtls": map[string]any{
-				"renderSecret": d.inputs.ControlPlane.GlooMtlsEnabled,
-			},
+			// DO_NOT_SUBMIT - do we need to do something to render the secret when mtls is enabled?
+			//  we can't at the moment just set enabled to true, as we don't have the data to render the sds container
 		},
 	}
 
@@ -145,8 +139,6 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 	if err != nil {
 		return nil, err
 	}
-
-	log.FromContext(ctx).Info("watching GVK objs", "GVKs", objs)
 	var ret []schema.GroupVersionKind
 	for _, obj := range objs {
 		gvk := obj.GetObjectKind().GroupVersionKind()
@@ -271,7 +263,7 @@ func (d *Deployer) getGatewayClassFromGateway(ctx context.Context, gw *api.Gatew
 	return gwc, nil
 }
 
-func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway, gwParam *v1alpha1.GatewayParameters) (*helmConfig, error) {
+func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameters) (*helmConfig, error) {
 	// construct the default values
 	vals := &helmConfig{
 		Gateway: &helmGateway{
@@ -378,7 +370,7 @@ func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway, gwParam *v1al
 	gateway.Stats = getStatsValues(statsConfig)
 
 	// mtls values
-	gateway.GlooMtls, err = d.getHelmMtlsConfig(ctx)
+	gateway.GlooMtls, err = d.getHelmMtlsConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -387,7 +379,7 @@ func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway, gwParam *v1al
 	return vals, nil
 }
 
-func (d *Deployer) getHelmMtlsConfig(ctx context.Context) (*helmMtlsConfig, error) {
+func (d *Deployer) getHelmMtlsConfig() (*helmMtlsConfig, error) {
 
 	if !d.inputs.ControlPlane.GlooMtlsEnabled {
 		return &helmMtlsConfig{
@@ -396,7 +388,7 @@ func (d *Deployer) getHelmMtlsConfig(ctx context.Context) (*helmMtlsConfig, erro
 	}
 
 	helmTls, err := d.getHelmTlsSecretData(
-		ctx,
+		context.TODO(), // DO_NOT_SUBMIT - real context
 		types.NamespacedName{
 			Name:      "gloo-mtls-certs",
 			Namespace: "gloo-system",
@@ -432,7 +424,7 @@ func (d *Deployer) getHelmTlsSecretData(ctx context.Context, secretNns types.Nam
 	return helmTls, nil
 }
 
-// getGlooMtlsCertsSecret fetches the gloo-mtls-certs secret from the cluster
+// DO_NOT_SUBMIT - off client go, (err := d.cli...?)
 func (d *Deployer) getGlooMtlsCertsSecret(ctx context.Context, mtlsSecretNns types.NamespacedName) (*corev1.Secret, error) {
 
 	mtlsSecret := &corev1.Secret{}
@@ -503,7 +495,7 @@ func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]clie
 		return nil, nil
 	}
 
-	vals, err := d.getValues(ctx, gw, gwParam)
+	vals, err := d.getValues(gw, gwParam)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get values to render objects for gateway %s.%s: %w", gw.GetNamespace(), gw.GetName(), err)
 	}
