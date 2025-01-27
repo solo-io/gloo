@@ -1,4 +1,4 @@
-//go:build exclude
+//go:build ignore
 
 package full_envoy_validation
 

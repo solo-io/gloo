@@ -1,4 +1,4 @@
-//go:build exclude
+//go:build ignore
 
 package azure_test
 
