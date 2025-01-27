@@ -16,12 +16,14 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var _ e2e.NewSuiteFunc = NewTestingSuite
+var _ e2e.NewSuiteFunc = NewEdgeGatewayTestingSuite
 
-type testingSuite struct {
+type edgeTestingSuite struct {
 	suite.Suite
 
 	ctx context.Context
@@ -29,11 +31,11 @@ type testingSuite struct {
 	testInstallation *e2e.TestInstallation
 }
 
-func NewTestingSuite(
+func NewEdgeGatewayTestingSuite(
 	ctx context.Context,
 	testInst *e2e.TestInstallation,
 ) suite.TestingSuite {
-	return &testingSuite{
+	return &edgeTestingSuite{
 		ctx:              ctx,
 		testInstallation: testInst,
 	}
@@ -53,7 +55,8 @@ tests by ensuring the console output is clean for each test.
 4. parse stdout from otelcol to see if the trace contains the data that we want
 */
 
-func (s *testingSuite) SetupSuite() {
+// SetupSuite installs the echo-server and curl pods
+func (s *edgeTestingSuite) SetupSuite() {
 	var err error
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.CurlPodManifest)
@@ -91,7 +94,8 @@ func (s *testingSuite) SetupSuite() {
 	s.NoError(err, "can apply service/gateway-proxy-tracing")
 }
 
-func (s *testingSuite) TearDownSuite() {
+// TearDownSuite cleans up the resources created in SetupSuite
+func (s *edgeTestingSuite) TearDownSuite() {
 	var err error
 
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.CurlPodManifest)
@@ -105,7 +109,8 @@ func (s *testingSuite) TearDownSuite() {
 	s.NoError(err, "can delete service/gateway-proxy-tracing")
 }
 
-func (s *testingSuite) BeforeTest(string, string) {
+// BeforeTest sets up the common resources (otel, upstreams, virtual services)
+func (s *edgeTestingSuite) BeforeTest(string, string) {
 	var err error
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, setupOtelcolManifest)
@@ -142,6 +147,7 @@ func (s *testingSuite) BeforeTest(string, string) {
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayConfigManifest,
 		"-n", s.testInstallation.Metadata.InstallNamespace)
 	s.NoError(err, "can create gateway and service")
+
 	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
 		func() (resources.InputResource, error) {
 			return s.testInstallation.ResourceClients.GatewayClient().Read(
@@ -150,22 +156,31 @@ func (s *testingSuite) BeforeTest(string, string) {
 		core.Status_Accepted,
 		gloo_defaults.GlooReporter,
 	)
+
+	glooProxyObjectMeta := metav1.ObjectMeta{
+		Name:      "gateway-proxy",
+		Namespace: s.testInstallation.Metadata.InstallNamespace}
+
+	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx,
+		&corev1.Service{ObjectMeta: glooProxyObjectMeta},
+		&appsv1.Deployment{ObjectMeta: glooProxyObjectMeta},
+	)
 }
 
-func (s *testingSuite) AfterTest(string, string) {
-	var err error
+// AfterTest cleans up the common resources (otel, upstreams, virtual services)
+func (s *edgeTestingSuite) AfterTest(string, string) {
+	err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayConfigManifest,
+		"-n", s.testInstallation.Metadata.InstallNamespace)
+	s.Assertions.NoError(err, "can delete gateway config")
+
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupOtelcolManifest)
 	s.Assertions.NoError(err, "can delete otel collector")
 
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, tracingConfigManifest)
 	s.Assertions.NoError(err, "can delete gloo tracing config")
-
-	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayConfigManifest,
-		"-n", s.testInstallation.Metadata.InstallNamespace)
-	s.Assertions.NoError(err, "can delete gateway config")
 }
 
-func (s *testingSuite) TestSpanNameTransformationsWithoutRouteDecorator() {
+func (s *edgeTestingSuite) TestSpanNameTransformationsWithoutRouteDecorator() {
 	testHostname := "test-really-cool-hostname.com"
 	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
 		[]curl.Option{
@@ -193,7 +208,7 @@ func (s *testingSuite) TestSpanNameTransformationsWithoutRouteDecorator() {
 	}, time.Second*30, time.Second*3, "otelcol logs contain span with name == hostname")
 }
 
-func (s *testingSuite) TestSpanNameTransformationsWithRouteDecorator() {
+func (s *edgeTestingSuite) TestSpanNameTransformationsWithRouteDecorator() {
 	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
@@ -218,4 +233,77 @@ func (s *testingSuite) TestSpanNameTransformationsWithRouteDecorator() {
 		// Name       : <value of routeDescriptorSpanName>
 		assert.Regexp(c, "Name *: "+routeDescriptorSpanName, logs)
 	}, time.Second*30, time.Second*3, "otelcol logs contain span with name == routeDescriptor")
+}
+
+func (s *edgeTestingSuite) TestWithoutOtelTracingGrpcAuthority() {
+	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
+				Name:      gatewayProxyHost,
+				Namespace: s.testInstallation.Metadata.InstallNamespace,
+			})),
+			curl.WithHostHeader("example.com"),
+			curl.WithPort(gatewayProxyPort),
+			curl.WithPath(pathWithRouteDescriptor),
+			curl.Silent(),
+		},
+		&matchers.HttpResponse{
+			StatusCode: http.StatusOK,
+		},
+		5*time.Second, 30*time.Second,
+	)
+
+	s.EventuallyWithT(func(c *assert.CollectT) {
+		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx, otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
+		assert.NoError(c, err, "can get otelcol logs")
+		assert.Regexp(c, `-> authority: Str\(opentelemetry-collector_default\)`, logs)
+		//s.Fail("this test is not implemented yet")
+	}, time.Second*30, time.Second*3, "otelcol logs contain cluster name as authority")
+}
+
+func (s *edgeTestingSuite) TestWithOtelTracingGrpcAuthority() {
+	s.T().Cleanup(func() {
+		// cleanup the gateway
+		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayAuthorityConfigManifest,
+			"-n", s.testInstallation.Metadata.InstallNamespace)
+		s.Assertions.NoError(err, "can delete gateway config")
+	})
+
+	// create new gateway with grpc authority set
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayAuthorityConfigManifest,
+		"-n", s.testInstallation.Metadata.InstallNamespace)
+	s.NoError(err, "can create gateway and service")
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		func() (resources.InputResource, error) {
+			return s.testInstallation.ResourceClients.GatewayClient().Read(
+				s.testInstallation.Metadata.InstallNamespace, "gateway-proxy-tracing-authority", clients.ReadOpts{Ctx: s.ctx})
+		},
+		core.Status_Accepted,
+		gloo_defaults.GlooReporter,
+	)
+
+	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
+				Name:      gatewayProxyHost,
+				Namespace: s.testInstallation.Metadata.InstallNamespace,
+			})),
+			curl.WithHostHeader("example.com"),
+			curl.WithPort(gatewayAuthorityProxyPort),
+			curl.WithPath(pathWithRouteDescriptor),
+			curl.Silent(),
+		},
+		&matchers.HttpResponse{
+			StatusCode: http.StatusOK,
+		},
+		5*time.Second, 30*time.Second,
+	)
+
+	s.EventuallyWithT(func(c *assert.CollectT) {
+		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx,
+			otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
+		assert.NoError(c, err, "can get otelcol logs")
+		assert.Regexp(c, `-> authority: Str\(test-authority\)`, logs)
+		//s.Fail("this test is not implemented yet")
+	}, time.Second*30, time.Second*3, "otelcol logs contain authority set in gateway")
 }

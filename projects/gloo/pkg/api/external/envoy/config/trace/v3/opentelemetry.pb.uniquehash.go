@@ -85,5 +85,57 @@ func (m *OpenTelemetryConfig) HashUnique(hasher hash.Hash64) (uint64, error) {
 
 	}
 
+	switch m.ServiceType.(type) {
+
+	case *OpenTelemetryConfig_GrpcService:
+
+		if h, ok := interface{}(m.GetGrpcService()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("GrpcService")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetGrpcService(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("GrpcService")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *GrpcService) HashUnique(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("solo.io.envoy.config.trace.v3.github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/trace/v3.GrpcService")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("Authority")); err != nil {
+		return 0, err
+	}
+	if _, err = hasher.Write([]byte(m.GetAuthority())); err != nil {
+		return 0, err
+	}
+
 	return hasher.Sum64(), nil
 }
