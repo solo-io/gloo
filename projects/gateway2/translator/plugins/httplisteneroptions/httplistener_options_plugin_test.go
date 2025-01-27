@@ -162,17 +162,6 @@ var _ = Describe("HttpListenerOptions Plugin", func() {
 		})
 	})
 
-	Describe("HttpListenerOptions Tracing", func() {
-		When("OTEL tracing is enabled", func() {
-			It("should not have authority set by default", func() {
-
-			})
-
-			It("should have authority set when specified", func() {
-
-			})
-		})
-	})
 })
 
 func attachedHttpListenerOption() *solokubev1.HttpListenerOption {
