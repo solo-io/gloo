@@ -12,6 +12,8 @@ import (
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -74,8 +76,8 @@ func (s *k8sTestingSuite) SetupSuite() {
 	)
 
 	// Previously, we would create/delete the Service for each test. However, this would occasionally lead to:
-	// * Hostname gateway-proxy-tracing.gloo-gateway-edge-test.svc.cluster.local was found in DNS cache
-	//*   Trying 10.96.181.139:18080...
+	// * Hostname k8s-gateway-proxy-tracing.default.svc.cluster.local was found in DNS cache
+	//*   Trying 10.96.181.139:8080...
 	//* Connection timed out after 3001 milliseconds
 	//
 	// The suspicion is that the rotation of the Service meant that the DNS cache became out of date,
@@ -83,9 +85,8 @@ func (s *k8sTestingSuite) SetupSuite() {
 	// The workaround to that is to create the service just once at the beginning of the suite.
 	// This mirrors how Services are typically managed in Gloo Gateway, where they are tied
 	// to an installation, and not dynamically updated
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayProxyServiceManifest,
-		"-n", s.testInstallation.Metadata.InstallNamespace)
-	s.NoError(err, "can apply service/gateway-proxy-tracing")
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, k8sGatewayProxyServiceManifest, "-n", "default")
+	s.NoError(err, "can apply service/k8s-gateway-proxy-tracing")
 }
 
 // TearDownSuite cleans up the resources created in SetupSuite
@@ -98,9 +99,8 @@ func (s *k8sTestingSuite) TearDownSuite() {
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.HttpEchoPodManifest)
 	s.Assertions.NoError(err, "can delete echo server")
 
-	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayProxyServiceManifest,
-		"-n", s.testInstallation.Metadata.InstallNamespace)
-	s.NoError(err, "can delete service/gateway-proxy-tracing")
+	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, k8sGatewayProxyServiceManifest, "-n", "default")
+	s.NoError(err, "can delete service/k8s-gateway-proxy-tracing")
 }
 
 // BeforeTest sets up the common resources (otel, upstreams, virtual services)
@@ -145,7 +145,14 @@ func (s *k8sTestingSuite) BeforeK8sGatewayTest(hloManifest string) {
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, k8sGatewayManifest)
 	s.Assertions.NoError(err, "can apply k8s gateway resources")
 
-	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment)
+	glooProxyObjectMeta := metav1.ObjectMeta{
+		Name:      "gloo-proxy-gw",
+		Namespace: "default",
+	}
+	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx,
+		&corev1.Service{ObjectMeta: glooProxyObjectMeta},
+		&appsv1.Deployment{ObjectMeta: glooProxyObjectMeta},
+	)
 }
 
 func (s *k8sTestingSuite) TestWithOtelTracing() {
@@ -155,7 +162,11 @@ func (s *k8sTestingSuite) TestWithOtelTracing() {
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
+				Name:      k8sGatewayHost,
+				Namespace: "default",
+			})),
+			curl.WithPort(k8sGatewayPort),
 			curl.WithHostHeader("example.com"),
 			curl.Silent(),
 		},
@@ -181,7 +192,11 @@ func (s *k8sTestingSuite) TestWithOtelTracingGrpcAuthority() {
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
+				Name:      k8sGatewayHost,
+				Namespace: "default",
+			})),
+			curl.WithPort(k8sGatewayPort),
 			curl.WithHostHeader("example.com"),
 			curl.Silent(),
 		},

@@ -16,6 +16,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -154,6 +156,15 @@ func (s *edgeTestingSuite) BeforeTest(string, string) {
 		core.Status_Accepted,
 		gloo_defaults.GlooReporter,
 	)
+
+	glooProxyObjectMeta := metav1.ObjectMeta{
+		Name:      "gateway-proxy",
+		Namespace: s.testInstallation.Metadata.InstallNamespace}
+
+	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx,
+		&corev1.Service{ObjectMeta: glooProxyObjectMeta},
+		&appsv1.Deployment{ObjectMeta: glooProxyObjectMeta},
+	)
 }
 
 // AfterTest cleans up the common resources (otel, upstreams, virtual services)
@@ -274,7 +285,7 @@ func (s *edgeTestingSuite) TestWithOtelTracingGrpcAuthority() {
 	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
-				Name:      gatewayAuthorityProxyHost,
+				Name:      gatewayProxyHost,
 				Namespace: s.testInstallation.Metadata.InstallNamespace,
 			})),
 			curl.WithHostHeader("example.com"),

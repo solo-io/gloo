@@ -4,7 +4,6 @@ import (
 	"path/filepath"
 
 	"github.com/solo-io/skv2/codegen/util"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -15,20 +14,20 @@ const (
 	routeDescriptorSpanName    = "THISISAROUTEDESCRIPTOR"
 	gatewayProxyHost           = "gateway-proxy-tracing"
 	gatewayProxyPort           = 18080
-	gatewayAuthorityProxyHost  = "gateway-proxy-tracing-authority"
 	gatewayAuthorityProxyPort  = 18082
-	k8sGatewayHost             = "k8s-gateway-tracing"
+	k8sGatewayHost             = "k8s-gateway-proxy-tracing"
 	k8sGatewayPort             = 8080
 )
 
 var (
-	setupOtelcolManifest        = filepath.Join(util.MustGetThisDir(), "testdata", "setup-otelcol.yaml")
-	tracingConfigManifest       = filepath.Join(util.MustGetThisDir(), "testdata", "tracing.yaml")
-	gatewayProxyServiceManifest = filepath.Join(util.MustGetThisDir(), "testdata", "gw-proxy-tracing-service.yaml")
+	setupOtelcolManifest  = filepath.Join(util.MustGetThisDir(), "testdata", "setup-otelcol.yaml")
+	tracingConfigManifest = filepath.Join(util.MustGetThisDir(), "testdata", "tracing.yaml")
 
+	gatewayProxyServiceManifest    = filepath.Join(util.MustGetThisDir(), "testdata", "gw-proxy-tracing-service.yaml")
 	gatewayConfigManifest          = filepath.Join(util.MustGetThisDir(), "testdata", "gateway.yaml")
 	gatewayAuthorityConfigManifest = filepath.Join(util.MustGetThisDir(), "testdata", "gateway-authority.yaml")
 
+	k8sGatewayProxyServiceManifest = filepath.Join(util.MustGetThisDir(), "testdata", "k8s-gateway-service.yaml")
 	k8sGatewayManifest             = filepath.Join(util.MustGetThisDir(), "testdata", "k8s-gateway.yaml")
 	k8sGatewayHloTracingManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "k8s-gateway-hlo-tracing.yaml")
 	k8sGatewayHloAuthorityManifest = filepath.Join(util.MustGetThisDir(), "testdata", "k8s-gateway-hlo-tracing-authority.yaml")
@@ -47,12 +46,4 @@ var (
 		Name:      "virtual-service",
 		Namespace: "default",
 	}
-
-	// Proxy resource to be translated
-	glooProxyObjectMeta = metav1.ObjectMeta{
-		Name:      "gloo-proxy-gw",
-		Namespace: "default",
-	}
-	proxyDeployment = &appsv1.Deployment{ObjectMeta: glooProxyObjectMeta}
-	proxyService    = &corev1.Service{ObjectMeta: glooProxyObjectMeta}
 )
