@@ -1,0 +1,17 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/7626
+    resolvesIssue: false
+    description: |
+      gateway2: allow route delegation using wellknown label
+
+      There is a product requirement to enable users to use
+      a label to select HTTPRoutes to delegate to instead
+      of GVK ref to other HTTPRoutes (includes wildcards).
+
+      To strike a balance between flexibility and performance,
+      this change implements the proposal to use a well known
+      label `delegation.gateway.solo.io/label=<value>` to
+      allow users to delegate to other HTTPRoutes using a label.
+      HTTPRoutes are indexed using this well known label key that
+      enable O(1) lookups of routes matching this label value.

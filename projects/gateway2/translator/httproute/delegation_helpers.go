@@ -13,11 +13,6 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
-// inheritMatcherAnnotation is the annotation used on an child HTTPRoute that
-// participates in a delegation chain to indicate that child route should inherit
-// the route matcher from the parent route.
-const inheritMatcherAnnotation = "delegation.gateway.solo.io/inherit-parent-matcher"
-
 // filterDelegatedChildren filters the referenced children and their rules based
 // on parent matchers, filters their hostnames, and applies parent matcher
 // inheritance
@@ -184,7 +179,7 @@ func isDelegatedRouteMatch(
 // shouldInheritMatcher returns true if the route indicates that it should inherit
 // its parent's matcher.
 func shouldInheritMatcher(route *gwv1.HTTPRoute) bool {
-	val, ok := route.Annotations[inheritMatcherAnnotation]
+	val, ok := route.Annotations[wellknown.InheritMatcherAnnotation]
 	if !ok {
 		return false
 	}

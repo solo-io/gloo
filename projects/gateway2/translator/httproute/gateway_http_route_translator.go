@@ -329,7 +329,7 @@ func setRouteAction(
 	for _, backendRef := range backendRefs {
 		// If the backend is an HTTPRoute, it implies route delegation
 		// for which delegated routes are recursively flattened and translated
-		if backendref.RefIsHTTPRoute(backendRef.BackendObjectReference) {
+		if backendref.RefIsDelegatedHTTPRoute(backendRef.BackendObjectReference) {
 			delegates = true
 			// Flatten delegated HTTPRoute references
 			err := flattenDelegatedRoutes(

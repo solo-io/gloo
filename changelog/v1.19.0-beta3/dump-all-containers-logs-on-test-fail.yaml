@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Added pod/container name prefix to log lines and make sure all containers are logged on test failure
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
