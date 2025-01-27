@@ -8,6 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/config"
 
 	glooschemes "github.com/solo-io/gloo/pkg/schemes"
+	"github.com/solo-io/gloo/pkg/utils/namespaces"
 	"github.com/solo-io/go-utils/contextutils"
 
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -257,6 +258,7 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 			XdsHost:         xdsHost,
 			XdsPort:         xdsPort,
 			GlooMtlsEnabled: c.cfg.GlooMtlsEnabled,
+			Namespace:       namespaces.GetPodNamespace(),
 		},
 		// TODO pass in the settings so that the deloyer can register to it for changes.
 		IstioIntegrationEnabled: integrationEnabled,

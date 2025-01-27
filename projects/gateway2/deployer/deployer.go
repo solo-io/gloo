@@ -57,6 +57,8 @@ type ControlPlaneInfo struct {
 	// The data in this struct is static, so is a good place to keep track of if mtls is enabled
 	// and a bad place to store the actual mtls secret data
 	GlooMtlsEnabled bool
+	// We could lookup the pod namespace from the env, but it's cleaner to pass it in
+	Namespace string
 }
 
 type AwsInfo struct {
@@ -395,13 +397,7 @@ func (d *Deployer) getHelmMtlsConfig(ctx context.Context) (*helmMtlsConfig, erro
 		}, nil
 	}
 
-	helmTls, err := d.getHelmTlsSecretData(
-		ctx,
-		types.NamespacedName{
-			Name:      "gloo-mtls-certs",
-			Namespace: "gloo-system",
-		}, // DO_NOT_SUBMIT - not hardcoded
-	)
+	helmTls, err := d.getHelmTlsSecretData(ctx)
 
 	if err != nil {
 		return nil, err
@@ -413,13 +409,20 @@ func (d *Deployer) getHelmMtlsConfig(ctx context.Context) (*helmMtlsConfig, erro
 	}, nil
 }
 
+func (d *Deployer) getGlooMtlsCertsSecretNns() types.NamespacedName {
+	return types.NamespacedName{
+		Name:      "gloo-mtls-certs",
+		Namespace: d.inputs.ControlPlane.Namespace,
+	}
+}
+
 // getHelmTlsSecretData builds a helmTls object built from the gloo-mtls-certs secret data, which it fetches
 // This function does not check if mtls is enabled, and a missing secret will return an error via getGlooMtlsCertsSecret
-func (d *Deployer) getHelmTlsSecretData(ctx context.Context, secretNns types.NamespacedName) (*helmTlsSecretData, error) {
+func (d *Deployer) getHelmTlsSecretData(ctx context.Context) (*helmTlsSecretData, error) {
 
 	helmTls := &helmTlsSecretData{}
 
-	glooMtlsCertsSecret, err := d.getGlooMtlsCertsSecret(ctx, secretNns)
+	glooMtlsCertsSecret, err := d.getGlooMtlsCertsSecret(ctx, d.getGlooMtlsCertsSecretNns())
 
 	if err != nil {
 		return nil, eris.Wrap(err, "generating helmTls")

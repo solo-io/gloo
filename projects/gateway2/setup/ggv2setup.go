@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/solo-io/gloo/pkg/utils/envutils"
+	"github.com/solo-io/gloo/pkg/utils/namespaces"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	gloostatusutils "github.com/solo-io/gloo/pkg/utils/statusutils"
 	gateway "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -164,7 +165,7 @@ func StartGGv2WithConfig(ctx context.Context,
 		return nil
 	}, krt.WithName("GlooSettingsSingleton"))
 
-	glooMtls, err := checkGlooMtlsEnabled(ctx, kubeClient, "gloo-system") // DO_NOT_SUBMIT - not hardcoded
+	glooMtls, err := checkGlooMtlsEnabled(ctx, kubeClient, namespaces.GetPodNamespace())
 	if err != nil {
 		logger.Error("failed to check if gloo mtls is enabled", err)
 		return err
