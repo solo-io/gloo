@@ -232,7 +232,7 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 			// fmt.Println("WATCHING")
 			func(ctx context.Context, obj client.Object) []reconcile.Request {
 				fmt.Println("------ RECONCILING SECRET:", obj.GetName(), obj.GetNamespace())
-				if obj.GetName() == "gloo-mtls-certs" && obj.GetNamespace() == "gloo-system" {
+				if obj.GetName() == "gloo-mtls-certs" && obj.GetNamespace() == "gloo-system" { // DO_NOT_SUBMIT - not hardcoded
 					fmt.Println("------ RECONCILING ALL GWS")
 					var gwList apiv1.GatewayList
 					err := cli.List(ctx, &gwList, client.InNamespace(corev1.NamespaceAll))

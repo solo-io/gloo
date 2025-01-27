@@ -11,8 +11,7 @@ kind: Secret
 metadata:
   name: gloo-mtls-certs
 data:
-  {{-/* When initially rendering the template to get the list of GVKs to watch there won't be secret data */}}
-  {{- if $glooMtls.tlsCert }} 
+  {{- if $glooMtls.tlsCert }} {{/* When initially rendering the template to get the list of GVKs to watch there won't be secret data */}}
   ca.crt:  {{ $glooMtls.tlsCert.caCert }}
   tls.crt: {{ $glooMtls.tlsCert.tlsCert }}
   tls.key: {{ $glooMtls.tlsCert.tlsKey }}

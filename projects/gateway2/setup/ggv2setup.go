@@ -80,32 +80,30 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 }
 
 // checkGlooMtlsEnabled checks if gloo mtls is enabled by looking at the gloo deployment and checking if the sds container is present
-func checkGlooMtlsEnabled(ctx context.Context, c istiokube.Client, namespace string) bool {
+func checkGlooMtlsEnabled(ctx context.Context, c istiokube.Client, namespace string) (bool, error) {
 
 	logger := contextutils.LoggerFrom(ctx)
 
 	i, err := c.Dynamic().Resource(deploymentGVR).Namespace(namespace).Get(ctx, "gloo", metav1.GetOptions{})
 	if err != nil {
-		logger.Panicf("failed to get gloo deployment: %v", err)
-		return false
+		return false, err
 	}
 
 	var empty appsv1.Deployment
 	glooDeployment := &empty
 	err = runtime.DefaultUnstructuredConverter.FromUnstructured(i.UnstructuredContent(), glooDeployment)
 	if err != nil {
-		logger.Panicf("failed converting unstructured into deployment: %v", i)
-		return false
+		return false, err
 	}
 
 	for _, container := range glooDeployment.Spec.Template.Spec.Containers {
 		if container.Name == "sds" {
 			logger.Info("Found SDS container in gloo pod")
-			return true
+			return true, nil
 		}
 	}
 	logger.Info("Did not find SDS container in gloo pod")
-	return false
+	return false, nil
 }
 
 func StartGGv2(ctx context.Context,
@@ -130,7 +128,7 @@ func StartGGv2WithConfig(ctx context.Context,
 	ctx = contextutils.WithLogger(ctx, "k8s")
 
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Info("starting gloo gateway")
+	logger.Info("starting gloo gateway", "namespace", settingsNns.Namespace)
 
 	kubeClient, err := createKubeClient(restConfig)
 	if err != nil {
@@ -166,8 +164,11 @@ func StartGGv2WithConfig(ctx context.Context,
 		return nil
 	}, krt.WithName("GlooSettingsSingleton"))
 
-	glooMtls := checkGlooMtlsEnabled(ctx, kubeClient, "gloo-system")
-	logger.Info("Got glooMtls", "glooMtls", glooMtls)
+	glooMtls, err := checkGlooMtlsEnabled(ctx, kubeClient, "gloo-system") // DO_NOT_SUBMIT - not hardcoded
+	if err != nil {
+		logger.Error("failed to check if gloo mtls is enabled", err)
+		return err
+	}
 
 	serviceClient := kclient.New[*corev1.Service](kubeClient)
 	services := krt.WrapClient(serviceClient, krt.WithName("Services"))
