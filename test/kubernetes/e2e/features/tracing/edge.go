@@ -169,7 +169,7 @@ func (s *edgeTestingSuite) AfterTest(string, string) {
 	s.Assertions.NoError(err, "can delete gloo tracing config")
 }
 
-func (s *edgeTestingSuite) TestGlooGatewaySpanNameTransformationsWithoutRouteDecorator() {
+func (s *edgeTestingSuite) TestSpanNameTransformationsWithoutRouteDecorator() {
 	testHostname := "test-really-cool-hostname.com"
 	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
 		[]curl.Option{
