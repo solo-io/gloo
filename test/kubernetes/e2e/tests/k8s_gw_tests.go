@@ -39,7 +39,7 @@ func KubeGatewaySuiteRunner() e2e.SuiteRunner {
 	kubeGatewaySuiteRunner.Register("DirectResponse", directresponse.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("CRDCategories", crd_categories.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("Metrics", metrics.NewTestingSuite)
-	kubeGatewaySuiteRunner.Register("Tracing", tracing.NewTestingSuite)
+	kubeGatewaySuiteRunner.Register("Tracing", tracing.NewK8sGatewayTestingSuite)
 	kubeGatewaySuiteRunner.Register("ServerTls", server_tls.NewK8sTestingSuite)
 
 	return kubeGatewaySuiteRunner

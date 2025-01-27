@@ -11,7 +11,6 @@ import (
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
-	"github.com/solo-io/gloo/test/kubernetes/testutils/gloogateway"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -20,9 +19,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var _ e2e.NewSuiteFunc = NewTestingSuite
+var _ e2e.NewSuiteFunc = NewEdgeGatewayTestingSuite
 
-type testingSuite struct {
+type edgeTestingSuite struct {
 	suite.Suite
 
 	ctx context.Context
@@ -30,11 +29,11 @@ type testingSuite struct {
 	testInstallation *e2e.TestInstallation
 }
 
-func NewTestingSuite(
+func NewEdgeGatewayTestingSuite(
 	ctx context.Context,
 	testInst *e2e.TestInstallation,
 ) suite.TestingSuite {
-	return &testingSuite{
+	return &edgeTestingSuite{
 		ctx:              ctx,
 		testInstallation: testInst,
 	}
@@ -55,7 +54,7 @@ tests by ensuring the console output is clean for each test.
 */
 
 // SetupSuite installs the echo-server and curl pods
-func (s *testingSuite) SetupSuite() {
+func (s *edgeTestingSuite) SetupSuite() {
 	var err error
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.CurlPodManifest)
@@ -94,7 +93,7 @@ func (s *testingSuite) SetupSuite() {
 }
 
 // TearDownSuite cleans up the resources created in SetupSuite
-func (s *testingSuite) TearDownSuite() {
+func (s *edgeTestingSuite) TearDownSuite() {
 	var err error
 
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.CurlPodManifest)
@@ -109,7 +108,7 @@ func (s *testingSuite) TearDownSuite() {
 }
 
 // BeforeTest sets up the common resources (otel, upstreams, virtual services)
-func (s *testingSuite) BeforeTest(string, string) {
+func (s *edgeTestingSuite) BeforeTest(string, string) {
 	var err error
 
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, setupOtelcolManifest)
@@ -142,25 +141,8 @@ func (s *testingSuite) BeforeTest(string, string) {
 		core.Status_Accepted,
 		gloo_defaults.GlooReporter,
 	)
-}
 
-// AfterTest cleans up the common resources (otel, upstreams, virtual services)
-func (s *testingSuite) AfterTest(string, string) {
-	var err error
-	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupOtelcolManifest)
-	s.Assertions.NoError(err, "can delete otel collector")
-
-	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, tracingConfigManifest)
-	s.Assertions.NoError(err, "can delete gloo tracing config")
-}
-
-// BeforeGlooGatewayTest sets up the Gloo Gateway resources
-func (s *testingSuite) BeforeGlooGatewayTest() {
-	if !HasEdgeGateway(s.testInstallation.Metadata) {
-		s.T().Skip("Installation of Gloo Gateway does not have Edge Gateway enabled, skipping test as there is nothing to test")
-	}
-
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayConfigManifest,
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, gatewayConfigManifest,
 		"-n", s.testInstallation.Metadata.InstallNamespace)
 	s.NoError(err, "can create gateway and service")
 
@@ -174,39 +156,20 @@ func (s *testingSuite) BeforeGlooGatewayTest() {
 	)
 }
 
-// AfterGlooGatewayTest cleans up the Gloo Gateway resources
-func (s *testingSuite) AfterGlooGatewayTest() {
+// AfterTest cleans up the common resources (otel, upstreams, virtual services)
+func (s *edgeTestingSuite) AfterTest(string, string) {
 	err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayConfigManifest,
 		"-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assertions.NoError(err, "can delete gateway config")
+
+	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupOtelcolManifest)
+	s.Assertions.NoError(err, "can delete otel collector")
+
+	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, tracingConfigManifest)
+	s.Assertions.NoError(err, "can delete gloo tracing config")
 }
 
-// BeforeK8sGatewayTest sets up the K8s Gateway resources
-func (s *testingSuite) BeforeK8sGatewayTest(hloManifest string) {
-	if !HasK8sGateway(s.testInstallation.Metadata) {
-		s.T().Skip("Installation of Gloo Gateway does not have K8s Gateway enabled, skipping test as there is nothing to test")
-	}
-
-	s.T().Cleanup(func() {
-		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, k8sGatewayManifest)
-		s.Assertions.NoError(err, "cannot delete k8s gateway resources")
-
-		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, hloManifest)
-		s.Assertions.NoError(err, "cannot delete k8s gateway hlo")
-	})
-
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, hloManifest)
-	s.Assertions.NoError(err, "can apply k8s gateway hlo")
-
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, k8sGatewayManifest)
-	s.Assertions.NoError(err, "can apply k8s gateway resources")
-
-	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment)
-}
-
-func (s *testingSuite) TestGlooGatewaySpanNameTransformationsWithoutRouteDecorator() {
-	s.BeforeGlooGatewayTest()
-
+func (s *edgeTestingSuite) TestGlooGatewaySpanNameTransformationsWithoutRouteDecorator() {
 	testHostname := "test-really-cool-hostname.com"
 	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
 		[]curl.Option{
@@ -232,13 +195,9 @@ func (s *testingSuite) TestGlooGatewaySpanNameTransformationsWithoutRouteDecorat
 		// Name       : <value of host header>
 		assert.Regexp(c, "Name *: "+testHostname, logs)
 	}, time.Second*30, time.Second*3, "otelcol logs contain span with name == hostname")
-
-	s.AfterGlooGatewayTest()
 }
 
-func (s *testingSuite) TestGlooGatewaySpanNameTransformationsWithRouteDecorator() {
-	s.BeforeGlooGatewayTest()
-
+func (s *edgeTestingSuite) TestSpanNameTransformationsWithRouteDecorator() {
 	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
@@ -263,13 +222,9 @@ func (s *testingSuite) TestGlooGatewaySpanNameTransformationsWithRouteDecorator(
 		// Name       : <value of routeDescriptorSpanName>
 		assert.Regexp(c, "Name *: "+routeDescriptorSpanName, logs)
 	}, time.Second*30, time.Second*3, "otelcol logs contain span with name == routeDescriptor")
-
-	s.AfterGlooGatewayTest()
 }
 
-func (s *testingSuite) TestGlooGatewayWithoutOtelTracingGrpcAuthority() {
-	s.BeforeGlooGatewayTest()
-
+func (s *edgeTestingSuite) TestWithoutOtelTracingGrpcAuthority() {
 	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, testdefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
@@ -293,13 +248,9 @@ func (s *testingSuite) TestGlooGatewayWithoutOtelTracingGrpcAuthority() {
 		assert.Regexp(c, `-> authority: Str\(opentelemetry-collector_default\)`, logs)
 		//s.Fail("this test is not implemented yet")
 	}, time.Second*30, time.Second*3, "otelcol logs contain cluster name as authority")
-
-	s.AfterGlooGatewayTest()
 }
 
-func (s *testingSuite) TestGlooGatewayWithOtelTracingGrpcAuthority() {
-	s.BeforeGlooGatewayTest()
-
+func (s *edgeTestingSuite) TestWithOtelTracingGrpcAuthority() {
 	s.T().Cleanup(func() {
 		// cleanup the gateway
 		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, gatewayAuthorityConfigManifest,
@@ -344,68 +295,4 @@ func (s *testingSuite) TestGlooGatewayWithOtelTracingGrpcAuthority() {
 		assert.Regexp(c, `-> authority: Str\(test-authority\)`, logs)
 		//s.Fail("this test is not implemented yet")
 	}, time.Second*30, time.Second*3, "otelcol logs contain authority set in gateway")
-}
-
-func (s *testingSuite) TestK8sGatewayWithOtelTracing() {
-	s.BeforeK8sGatewayTest(k8sGatewayHloTracingManifest)
-
-	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(
-		s.ctx,
-		testdefaults.CurlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-			curl.WithHostHeader("example.com"),
-			curl.Silent(),
-		},
-		&matchers.HttpResponse{
-			StatusCode: http.StatusOK,
-		},
-		5*time.Second, 30*time.Second,
-	)
-
-	s.EventuallyWithT(func(c *assert.CollectT) {
-		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx,
-			otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
-		assert.NoError(c, err, "can get otelcol logs")
-
-		assert.Regexp(c, `-> authority: Str\(opentelemetry-collector_default\)`, logs)
-	}, time.Second*30, time.Second*3, "otelcol logs contain cluster name as authority")
-}
-
-func (s *testingSuite) TestK8sGatewayWithOtelTracingGrpcAuthority() {
-	s.BeforeK8sGatewayTest(k8sGatewayHloAuthorityManifest)
-
-	s.testInstallation.Assertions.AssertEventuallyConsistentCurlResponse(
-		s.ctx,
-		testdefaults.CurlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-			curl.WithHostHeader("example.com"),
-			curl.Silent(),
-		},
-		&matchers.HttpResponse{
-			StatusCode: http.StatusOK,
-		},
-		5*time.Second, 30*time.Second,
-	)
-
-	s.EventuallyWithT(func(c *assert.CollectT) {
-		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx,
-			otelcolPod.ObjectMeta.GetNamespace(), otelcolPod.ObjectMeta.GetName())
-		assert.NoError(c, err, "can get otelcol logs")
-
-		assert.Regexp(c, `-> authority: Str\(test-authority\)`, logs)
-	}, time.Second*30, time.Second*3, "otelcol logs contain authority set in gateway")
-}
-
-// HasEdgeGateway returns true if the installation has the Edge Gateway enabled
-func HasEdgeGateway(c *gloogateway.Context) bool {
-	return c.ProfileValuesManifestFile == e2e.EdgeGatewayProfilePath ||
-		c.ProfileValuesManifestFile == e2e.FullGatewayProfilePath
-}
-
-// HasK8sGateway returns true if the installation has the K8s Gateway enabled
-func HasK8sGateway(c *gloogateway.Context) bool {
-	return c.ProfileValuesManifestFile == e2e.KubernetesGatewayProfilePath ||
-		c.K8sGatewayEnabled
 }
