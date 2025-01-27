@@ -14,7 +14,7 @@ func ValidationAlwaysAcceptSuiteRunner() e2e.SuiteRunner {
 	validationSuiteRunner.Register("ValidationAllowWarnings", validation_allow_warnings.NewTestingSuite)
 	// Server TLS tests are run here because they rely on VirtualService resources being applied
 	// with missing TLS references. This is an error in validation unless warnMissingTlsSecret=true
-	validationSuiteRunner.Register("ServerTls", server_tls.NewTestingSuite)
+	validationSuiteRunner.Register("ServerTls", server_tls.NewEdgeTestingSuite)
 
 	return validationSuiteRunner
 }

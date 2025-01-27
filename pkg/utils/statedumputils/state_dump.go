@@ -298,7 +298,7 @@ func recordCRs(ctx context.Context, namespaceDir string, namespace string) error
 
 // kubeLogs runs $(kubectl -n $namespace logs $pod --all-containers) and returns the string result
 func kubeLogs(namespace string, pod string) (string, string, error) {
-	args := []string{"-n", namespace, "logs", pod, "--all-containers"}
+	args := []string{"-n", namespace, "logs", pod, "--all-containers=true", "--prefix=true"}
 	return kubeExecute(args)
 }
 
