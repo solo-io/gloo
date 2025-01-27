@@ -4,16 +4,16 @@ import (
 	"container/list"
 	"context"
 
+	"github.com/kgateway-dev/kgateway/projects/gateway2/ir"
 	"github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/projects/gateway2/ir"
 	"github.com/solo-io/go-utils/contextutils"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
-	"github.com/solo-io/gloo/projects/gateway2/query"
-	"github.com/solo-io/gloo/projects/gateway2/reports"
+	"github.com/kgateway-dev/kgateway/projects/gateway2/query"
+	"github.com/kgateway-dev/kgateway/projects/gateway2/reports"
 )
 
 var (

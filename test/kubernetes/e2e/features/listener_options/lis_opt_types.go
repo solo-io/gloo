@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/kgateway-dev/kgateway/test/gomega/matchers"
+	e2edefaults "github.com/kgateway-dev/kgateway/test/kubernetes/e2e/defaults"
 	"github.com/onsi/gomega"
-	"github.com/solo-io/gloo/test/gomega/matchers"
-	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/skv2/codegen/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"

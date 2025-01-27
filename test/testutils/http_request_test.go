@@ -3,9 +3,9 @@
 package testutils_test
 
 import (
+	"github.com/kgateway-dev/kgateway/test/gomega/assertions"
+	"github.com/kgateway-dev/kgateway/test/testutils"
 	. "github.com/onsi/ginkgo/v2"
-	"github.com/solo-io/gloo/test/gomega/assertions"
-	"github.com/solo-io/gloo/test/testutils"
 )
 
 var _ = Describe("HttpRequestBuilder", func() {

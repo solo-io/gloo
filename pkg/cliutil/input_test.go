@@ -1,10 +1,10 @@
 package cliutil_test
 
 import (
+	. "github.com/kgateway-dev/kgateway/pkg/cliutil"
+	"github.com/kgateway-dev/kgateway/pkg/cliutil/testutil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	. "github.com/solo-io/gloo/pkg/cliutil"
-	"github.com/solo-io/gloo/pkg/cliutil/testutil"
 )
 
 var _ = Describe("GetBoolInput", func() {

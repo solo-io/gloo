@@ -5,11 +5,11 @@ package helpers
 import (
 	"time"
 
+	"github.com/kgateway-dev/kgateway/projects/gloo/pkg/defaults"
 	"github.com/onsi/ginkgo/v2"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 
 	"github.com/avast/retry-go"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	"github.com/kgateway-dev/kgateway/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 )

@@ -3,10 +3,10 @@ package validation
 import (
 	"context"
 
+	"github.com/kgateway-dev/kgateway/pkg/utils/envoyutils/bootstrap"
+	"github.com/kgateway-dev/kgateway/pkg/utils/envutils"
+	"github.com/kgateway-dev/kgateway/projects/envoyinit/pkg/runner"
 	"github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/pkg/utils/envoyutils/bootstrap"
-	"github.com/solo-io/gloo/pkg/utils/envutils"
-	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
 	"github.com/solo-io/go-utils/contextutils"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 )

@@ -10,9 +10,9 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/kgateway-dev/kgateway/test/testutils"
 	"github.com/onsi/gomega"
 	errors "github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/test/testutils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

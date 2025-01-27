@@ -16,8 +16,8 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	anypb "github.com/golang/protobuf/ptypes/any"
+	"github.com/kgateway-dev/kgateway/projects/gateway2/utils"
 	"github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/projects/gateway2/utils"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 )
 
