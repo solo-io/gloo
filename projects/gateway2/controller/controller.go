@@ -226,28 +226,6 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 
 	cli := c.cfg.Mgr.GetClient()
 
-	// watch for secrets if mtls is enabled
-	if c.cfg.ControlPlane.GlooMtlsEnabled {
-		buildr.Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(
-			func(ctx context.Context, obj client.Object) []reconcile.Request {
-				var reqs []reconcile.Request
-				if obj.GetName() == "gloo-mtls-certs" && obj.GetNamespace() == c.cfg.ControlPlane.Namespace {
-					var gwList apiv1.GatewayList
-					err := cli.List(ctx, &gwList, client.InNamespace(corev1.NamespaceAll))
-					if err != nil {
-						log.Error(err, "could not list Secrets", "namespace", corev1.NamespaceAll)
-						return reqs
-					}
-
-					for _, gw := range gwList.Items {
-						reqs = append(reqs, reconcile.Request{NamespacedName: client.ObjectKey{Namespace: gw.Namespace, Name: gw.Name}})
-					}
-					return reqs
-				}
-				return reqs
-			}))
-	}
-
 	// watch for changes in GatewayParameters
 	buildr.Watches(&v1alpha1.GatewayParameters{}, handler.EnqueueRequestsFromMapFunc(
 		func(ctx context.Context, obj client.Object) []reconcile.Request {
@@ -433,6 +411,46 @@ func (c *controllerBuilder) watchEndpointSlices(ctx context.Context) error {
 }
 
 func (c *controllerBuilder) watchSecrets(ctx context.Context) error {
+	log := log.FromContext(ctx)
+
+	cli := c.cfg.Mgr.GetClient()
+	buildr := ctrl.NewControllerManagedBy(c.cfg.Mgr).
+		// Don't use WithEventFilter here as it also filters events for Owned objects.
+		For(&apiv1.Gateway{}, builder.WithPredicates(predicate.NewPredicateFuncs(func(object client.Object) bool {
+			// We only care about Gateways that use our GatewayClass
+			if gw, ok := object.(*apiv1.Gateway); ok {
+				return c.cfg.GWClasses.Has(string(gw.Spec.GatewayClassName))
+			}
+			return false
+		}),
+			predicate.Or(
+				predicate.AnnotationChangedPredicate{},
+				predicate.GenerationChangedPredicate{},
+			),
+		))
+
+	// Specific case when watching for mtls secrets
+	if c.cfg.ControlPlane.GlooMtlsEnabled {
+		buildr.Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(
+			func(ctx context.Context, obj client.Object) []reconcile.Request {
+				var reqs []reconcile.Request
+				if obj.GetName() == deployer.GlooMtlsCertName && obj.GetNamespace() == c.cfg.ControlPlane.Namespace {
+					var gwList apiv1.GatewayList
+					err := cli.List(ctx, &gwList, client.InNamespace(corev1.NamespaceAll))
+					if err != nil {
+						log.Error(err, "could not list Secrets", "namespace", corev1.NamespaceAll)
+						return reqs
+					}
+
+					for _, gw := range gwList.Items {
+						reqs = append(reqs, reconcile.Request{NamespacedName: client.ObjectKey{Namespace: gw.Namespace, Name: gw.Name}})
+					}
+					return reqs
+				}
+				return reqs
+			}))
+	}
+
 	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
 		For(&corev1.Secret{}).
 		Complete(reconcile.Func(c.reconciler.ReconcileSecrets))

@@ -28,6 +28,7 @@ rules:
   - ""
   resources:
   - secrets
+  {{/* This is needed as the gateway deployer would need to create / patch the mtls certs if enabled */}}
   verbs: ["get", "list", "watch", "create", "patch"]
 - apiGroups:
   - "discovery.k8s.io"

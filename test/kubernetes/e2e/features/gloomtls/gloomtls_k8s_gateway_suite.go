@@ -9,6 +9,7 @@ import (
 	"github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
+	"github.com/solo-io/gloo/projects/gateway2/deployer"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/istio"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
@@ -96,7 +97,7 @@ func (s *gloomtlsK8sGatewayTestingSuite) ensureGlooAndProxyCertsMatch() {
 }
 
 func (s *gloomtlsK8sGatewayTestingSuite) getMtlsCerts(namespace string) *corev1.Secret {
-	secretString, _, err := s.TestInstallation.Actions.Kubectl().Get(s.Ctx, "secret", "gloo-mtls-certs", "-n", namespace, "-o", "json")
+	secretString, _, err := s.TestInstallation.Actions.Kubectl().Get(s.Ctx, "secret", deployer.GlooMtlsCertName, "-n", namespace, "-o", "json")
 	s.NoError(err)
 
 	var mtlsSecret corev1.Secret

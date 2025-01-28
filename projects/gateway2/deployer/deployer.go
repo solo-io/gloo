@@ -33,6 +33,8 @@ import (
 	api "sigs.k8s.io/gateway-api/apis/v1"
 )
 
+const GlooMtlsCertName = "gloo-mtls-certs"
+
 var (
 	GetGatewayParametersError = eris.New("could not retrieve GatewayParameters")
 	getGatewayParametersError = func(err error, gwpNamespace, gwpName, gwNamespace, gwName, resourceType string) error {
@@ -409,7 +411,7 @@ func (d *Deployer) getHelmMtlsConfig(ctx context.Context) (*helmMtlsConfig, erro
 
 func (d *Deployer) getGlooMtlsCertsSecretNns() types.NamespacedName {
 	return types.NamespacedName{
-		Name:      "gloo-mtls-certs",
+		Name:      GlooMtlsCertName,
 		Namespace: d.inputs.ControlPlane.Namespace,
 	}
 }
