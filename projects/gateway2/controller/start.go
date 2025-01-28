@@ -95,7 +95,6 @@ type ControllerBuilder struct {
 }
 
 func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuilder, error) {
-	setupLog.Info("creating new gateway controller with glooMtls", "cfg.GlooMtlsEnabled", cfg.GlooMtlsEnabled)
 	var opts []zap.Opts
 	if cfg.Dev {
 		setupLog.Info("starting log in dev mode")
@@ -220,8 +219,7 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 		return ctx.Err()
 	}
 
-	logger.Infow("got xds address for deployer", uzap.String("xds_host", xdsHost), uzap.Int32("xds_port", xdsPort))
-	logger.Infow("glooMtls config", uzap.Any("glooMtlsEnabled", c.cfg.GlooMtlsEnabled))
+	logger.Infow("got xds address for deployer", uzap.String("xds_host", xdsHost), uzap.Int32("xds_port", xdsPort), uzap.Any("glooMtlsEnabled", c.cfg.GlooMtlsEnabled))
 
 	integrationEnabled := c.cfg.InitialSettings.Spec.GetGloo().GetIstioOptions().GetEnableIntegration().GetValue()
 

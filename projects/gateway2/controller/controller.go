@@ -229,19 +229,17 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 	// watch for secrets if mtls is enabled
 	if c.cfg.ControlPlane.GlooMtlsEnabled {
 		buildr.Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(
-			// fmt.Println("WATCHING")
-
 			func(ctx context.Context, obj client.Object) []reconcile.Request {
 				var reqs []reconcile.Request
-				fmt.Println("------ RECONCILING SECRET:", obj.GetName(), obj.GetNamespace())
 				if obj.GetName() == "gloo-mtls-certs" && obj.GetNamespace() == c.cfg.ControlPlane.Namespace {
-					fmt.Println("------ RECONCILING ALL GWS")
 					var gwList apiv1.GatewayList
 					err := cli.List(ctx, &gwList, client.InNamespace(corev1.NamespaceAll))
-					fmt.Println("------", gwList, err)
+					if err != nil {
+						log.Error(err, "could not list Secrets", "namespace", corev1.NamespaceAll)
+						return reqs
+					}
 
 					for _, gw := range gwList.Items {
-						fmt.Println("------ RECONCILING GWS:", gw.GetName(), gw.GetNamespace())
 						reqs = append(reqs, reconcile.Request{NamespacedName: client.ObjectKey{Namespace: gw.Namespace, Name: gw.Name}})
 					}
 					return reqs
@@ -253,7 +251,6 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 	// watch for changes in GatewayParameters
 	buildr.Watches(&v1alpha1.GatewayParameters{}, handler.EnqueueRequestsFromMapFunc(
 		func(ctx context.Context, obj client.Object) []reconcile.Request {
-			// fmt.Println("------ RECONCILING GWP:", obj.GetName(), obj.GetNamespace())
 			gwpName := obj.GetName()
 			gwpNamespace := obj.GetNamespace()
 			// look up the Gateways that are using this GatewayParameters object

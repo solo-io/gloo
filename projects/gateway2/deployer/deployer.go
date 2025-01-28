@@ -148,7 +148,6 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 		return nil, err
 	}
 
-	log.FromContext(ctx).Info("watching GVK objs", "GVKs", objs)
 	var ret []schema.GroupVersionKind
 	for _, obj := range objs {
 		gvk := obj.GetObjectKind().GroupVersionKind()
@@ -157,7 +156,7 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 		}
 	}
 
-	log.FromContext(ctx).Info("watching GVKs", "GVKs", ret)
+	log.FromContext(ctx).V(1).Info("watching GVKs", "GVKs", ret)
 	return ret, nil
 }
 
@@ -385,7 +384,6 @@ func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway, gwParam *v1al
 		return nil, err
 	}
 
-	fmt.Printf("GlooMtls: %+v\n", gateway.GlooMtls)
 	return vals, nil
 }
 
@@ -510,7 +508,7 @@ func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]clie
 	if err != nil {
 		return nil, fmt.Errorf("failed to get values to render objects for gateway %s.%s: %w", gw.GetNamespace(), gw.GetName(), err)
 	}
-	logger.Info("got deployer helm values",
+	logger.V(1).Info("got deployer helm values",
 		"gatewayName", gw.GetName(),
 		"gatewayNamespace", gw.GetNamespace(),
 		"values", vals)

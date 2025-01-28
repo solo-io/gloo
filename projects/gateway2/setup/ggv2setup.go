@@ -82,9 +82,6 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 
 // checkGlooMtlsEnabled checks if gloo mtls is enabled by looking at the gloo deployment and checking if the sds container is present
 func checkGlooMtlsEnabled(ctx context.Context, c istiokube.Client, namespace string) (bool, error) {
-
-	logger := contextutils.LoggerFrom(ctx)
-
 	i, err := c.Dynamic().Resource(deploymentGVR).Namespace(namespace).Get(ctx, "gloo", metav1.GetOptions{})
 	if err != nil {
 		return false, err
@@ -99,11 +96,10 @@ func checkGlooMtlsEnabled(ctx context.Context, c istiokube.Client, namespace str
 
 	for _, container := range glooDeployment.Spec.Template.Spec.Containers {
 		if container.Name == "sds" {
-			logger.Info("Found SDS container in gloo pod")
 			return true, nil
 		}
 	}
-	logger.Info("Did not find SDS container in gloo pod")
+
 	return false, nil
 }
 
@@ -129,7 +125,7 @@ func StartGGv2WithConfig(ctx context.Context,
 	ctx = contextutils.WithLogger(ctx, "k8s")
 
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Info("starting gloo gateway", "namespace", settingsNns.Namespace)
+	logger.Info("starting gloo gateway")
 
 	kubeClient, err := createKubeClient(restConfig)
 	if err != nil {
@@ -165,14 +161,14 @@ func StartGGv2WithConfig(ctx context.Context,
 		return nil
 	}, krt.WithName("GlooSettingsSingleton"))
 
-	glooMtls, err := checkGlooMtlsEnabled(ctx, kubeClient, namespaces.GetPodNamespace())
-	if err != nil {
-		logger.Error("failed to check if gloo mtls is enabled", err)
-		return err
-	}
-
 	serviceClient := kclient.New[*corev1.Service](kubeClient)
 	services := krt.WrapClient(serviceClient, krt.WithName("Services"))
+
+	logger.Info("checking if gloo mtls is enabled")
+	glooMtls, err := checkGlooMtlsEnabled(ctx, kubeClient, namespaces.GetPodNamespace())
+	if err != nil {
+		return err
+	}
 
 	logger.Info("creating reporter")
 	kubeGwStatusReporter := NewGenericStatusReporter(kubeClient, defaults.KubeGatewayReporter)
