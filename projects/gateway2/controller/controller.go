@@ -231,7 +231,7 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 		buildr.Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(
 			func(ctx context.Context, obj client.Object) []reconcile.Request {
 				var reqs []reconcile.Request
-				if obj.GetName() == deployer.GlooMtlsCertName && obj.GetNamespace() == c.cfg.ControlPlane.Namespace {
+				if obj.GetName() == wellknown.GlooMtlsCertName && obj.GetNamespace() == c.cfg.ControlPlane.Namespace {
 					var gwList apiv1.GatewayList
 					err := cli.List(ctx, &gwList, client.InNamespace(corev1.NamespaceAll))
 					if err != nil {
