@@ -7,8 +7,6 @@ import (
 
 func GloomtlsK8sGwSuiteRunner() e2e.SuiteRunner {
 	gloomtlsEdgeGwSuiteRunner := e2e.NewSuiteRunner(false)
-
 	gloomtlsEdgeGwSuiteRunner.Register("Gloomtls", gloomtls.NewGloomtlsK8sGatewayApiTestingSuite)
-
 	return gloomtlsEdgeGwSuiteRunner
 }

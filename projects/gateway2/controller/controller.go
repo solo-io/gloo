@@ -224,9 +224,8 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 			),
 		))
 
-	cli := c.cfg.Mgr.GetClient()
-
 	// watch for changes in GatewayParameters
+	cli := c.cfg.Mgr.GetClient()
 	buildr.Watches(&v1alpha1.GatewayParameters{}, handler.EnqueueRequestsFromMapFunc(
 		func(ctx context.Context, obj client.Object) []reconcile.Request {
 			gwpName := obj.GetName()
