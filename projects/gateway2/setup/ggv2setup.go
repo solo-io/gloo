@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
 	"github.com/solo-io/gloo/pkg/utils/envutils"
-	"github.com/solo-io/gloo/pkg/utils/namespaces"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	gloostatusutils "github.com/solo-io/gloo/pkg/utils/statusutils"
 	gateway "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -34,7 +34,6 @@ import (
 	istiokube "istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/kube/kclient"
 	"istio.io/istio/pkg/kube/krt"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -81,26 +80,8 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 }
 
 // checkGlooMtlsEnabled checks if gloo mtls is enabled by looking at the gloo deployment and checking if the sds container is present
-func checkGlooMtlsEnabled(ctx context.Context, c istiokube.Client, namespace string) (bool, error) {
-	i, err := c.Dynamic().Resource(deploymentGVR).Namespace(namespace).Get(ctx, "gloo", metav1.GetOptions{})
-	if err != nil {
-		return false, err
-	}
-
-	var empty appsv1.Deployment
-	glooDeployment := &empty
-	err = runtime.DefaultUnstructuredConverter.FromUnstructured(i.UnstructuredContent(), glooDeployment)
-	if err != nil {
-		return false, err
-	}
-
-	for _, container := range glooDeployment.Spec.Template.Spec.Containers {
-		if container.Name == "sds" {
-			return true, nil
-		}
-	}
-
-	return false, nil
+func checkGlooMtlsEnabled() bool {
+	return os.Getenv("GLOO_MTLS_SDS_ENABLED") == "true"
 }
 
 func StartGGv2(ctx context.Context,
@@ -165,10 +146,7 @@ func StartGGv2WithConfig(ctx context.Context,
 	services := krt.WrapClient(serviceClient, krt.WithName("Services"))
 
 	logger.Info("checking if gloo mtls is enabled")
-	glooMtls, err := checkGlooMtlsEnabled(ctx, kubeClient, namespaces.GetPodNamespace())
-	if err != nil {
-		return err
-	}
+	glooMtls := checkGlooMtlsEnabled()
 
 	logger.Info("creating reporter")
 	kubeGwStatusReporter := NewGenericStatusReporter(kubeClient, defaults.KubeGatewayReporter)
