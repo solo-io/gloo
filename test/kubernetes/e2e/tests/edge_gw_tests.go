@@ -21,7 +21,7 @@ func EdgeGwSuiteRunner() e2e.SuiteRunner {
 	edgeGwSuiteRunner.Register("ValidationAllowWarnings", validation_allow_warnings.NewTestingSuite)
 	edgeGwSuiteRunner.Register("GlooAdminServer", admin_server.NewTestingSuite)
 	edgeGwSuiteRunner.Register("ClientTls", client_tls.NewTestingSuite)
-	edgeGwSuiteRunner.Register("Tracing", tracing.NewTestingSuite)
+	edgeGwSuiteRunner.Register("Tracing", tracing.NewEdgeGatewayTestingSuite)
 	edgeGwSuiteRunner.Register("BasicRouting", basicrouting.NewBasicEdgeRoutingSuite)
 
 	return edgeGwSuiteRunner

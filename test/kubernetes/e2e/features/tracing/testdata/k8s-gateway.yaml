@@ -1,0 +1,40 @@
+---
+kind: Gateway
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: gw
+spec:
+  gatewayClassName: gloo-gateway
+  listeners:
+    - protocol: HTTP
+      port: 8080
+      name: http
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: http-echo-grant
+  namespace: http-echo
+spec:
+  from:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    namespace: default
+  to:
+  - group: ""
+    kind: Service
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: http-echo
+spec:
+  parentRefs:
+    - name: gw
+  hostnames:
+    - "example.com"
+  rules:
+    - backendRefs:
+        - name: http-echo
+          port: 3000
+          namespace: http-echo

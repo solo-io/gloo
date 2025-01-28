@@ -124,12 +124,13 @@ func gatewayKindsMap() map[string]bool {
 }
 
 // ToEnvoyOpenTelemetryConfiguration converts a Gloo OpenTelemetryConfig to an Envoy OpenTelemetryConfig
-func ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName string) *envoytrace.OpenTelemetryConfig {
+func ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName, authority string) *envoytrace.OpenTelemetryConfig {
 	envoyOpenTelemetryConfig := &envoytrace.OpenTelemetryConfig{
 		GrpcService: &envoy_config_core_v3.GrpcService{
 			TargetSpecifier: &envoy_config_core_v3.GrpcService_EnvoyGrpc_{
 				EnvoyGrpc: &envoy_config_core_v3.GrpcService_EnvoyGrpc{
 					ClusterName: clusterName,
+					Authority:   authority,
 				},
 			},
 		},

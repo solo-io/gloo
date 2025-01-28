@@ -36,6 +36,18 @@ message OpenTelemetryConfig {
   // If this is not set it will be automatically set to the name of the 
   // listener + the namespace of the Gateway object
   string service_name = 3;
+
+  // Optional. Current only gRPC is supported, but are intentionally using a oneof
+  // to allow for future support of HTTP. This structure matches Envoy's.
+  oneof service_type {
+    // Optional gRPC transport options
+    GrpcService grpc_service = 4;
+  }
+}
+
+message GrpcService {
+  // Set the authority header when calling the gRPC service.
+  string authority = 1;
 }
 
 option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/trace/v3";

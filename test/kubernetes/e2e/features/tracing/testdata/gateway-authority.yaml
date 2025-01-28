@@ -6,11 +6,11 @@ kind: Gateway
 metadata:
   labels:
     app: gloo
-    app.kubernetes.io/name: gateway-proxy-tracing
-  name: gateway-proxy-tracing
+    app.kubernetes.io/name: gateway-proxy-tracing-authority
+  name: gateway-proxy-tracing-authority
 spec:
   bindAddress: '::'
-  bindPort: 18080
+  bindPort: 18082
   proxyNames:
     - gateway-proxy
   httpGateway:
@@ -23,3 +23,5 @@ spec:
             collectorUpstreamRef:
               name: opentelemetry-collector
               namespace: default
+            grpcService:
+              authority: test-authority
