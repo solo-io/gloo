@@ -409,36 +409,15 @@ func (d *Deployer) getHelmMtlsConfig(ctx context.Context) (*helmMtlsConfig, erro
 	}, nil
 }
 
-func (d *Deployer) getGlooMtlsCertsSecretNns() types.NamespacedName {
-	return types.NamespacedName{
-		Name:      GlooMtlsCertName,
-		Namespace: d.inputs.ControlPlane.Namespace,
-	}
-}
-
 // getHelmTlsSecretData builds a helmTls object built from the gloo-mtls-certs secret data, which it fetches
 // This function does not check if mtls is enabled, and a missing secret will return an error via getGlooMtlsCertsSecret
 func (d *Deployer) getHelmTlsSecretData(ctx context.Context) (*helmTlsSecretData, error) {
 
-	helmTls := &helmTlsSecretData{}
-
-	glooMtlsCertsSecret, err := d.getGlooMtlsCertsSecret(ctx, d.getGlooMtlsCertsSecretNns())
-
-	if err != nil {
-		return nil, eris.Wrap(err, "generating helmTls")
-	}
-
-	helmTls.TlsCert = glooMtlsCertsSecret.Data[corev1.TLSCertKey]
-	helmTls.TlsKey = glooMtlsCertsSecret.Data[corev1.TLSPrivateKeyKey]
-	helmTls.CaCert = glooMtlsCertsSecret.Data[corev1.ServiceAccountRootCAKey]
-
-	return helmTls, nil
-}
-
-// getGlooMtlsCertsSecret fetches the gloo-mtls-certs secret from the cluster
-func (d *Deployer) getGlooMtlsCertsSecret(ctx context.Context, mtlsSecretNns types.NamespacedName) (*corev1.Secret, error) {
-
 	mtlsSecret := &corev1.Secret{}
+	mtlsSecretNns := types.NamespacedName{
+		Name:      GlooMtlsCertName,
+		Namespace: d.inputs.ControlPlane.Namespace,
+	}
 	err := d.cli.Get(ctx, mtlsSecretNns, mtlsSecret)
 
 	if err != nil {
@@ -449,8 +428,11 @@ func (d *Deployer) getGlooMtlsCertsSecret(ctx context.Context, mtlsSecretNns typ
 		return nil, eris.New(fmt.Sprintf("unexpected secret type, expected %s and got %s", corev1.SecretTypeTLS, mtlsSecret.Type))
 	}
 
-	return mtlsSecret, nil
-
+	return &helmTlsSecretData{
+		TlsCert: mtlsSecret.Data[corev1.TLSCertKey],
+		TlsKey:  mtlsSecret.Data[corev1.TLSPrivateKeyKey],
+		CaCert:  mtlsSecret.Data[corev1.ServiceAccountRootCAKey],
+	}, nil
 }
 
 // Render relies on a `helm install` to render the Chart with the injected values
