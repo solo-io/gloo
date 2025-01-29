@@ -188,6 +188,11 @@ func (c *controllerBuilder) addHttpLisOptIndexes(ctx context.Context) error {
 	})
 }
 
+func (c *controllerBuilder) shouldWatchSecrets() bool {
+	// watch for secrets if mtls is enabled
+	return c.cfg.ControlPlane.GlooMtlsEnabled
+}
+
 func (c *controllerBuilder) watchGw(ctx context.Context) error {
 	// setup a deployer
 	log := log.FromContext(ctx)
@@ -226,8 +231,8 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 
 	cli := c.cfg.Mgr.GetClient()
 
-	// watch for secrets if mtls is enabled
-	if c.cfg.ControlPlane.GlooMtlsEnabled {
+	// watch for secrets if needed
+	if c.shouldWatchSecrets() {
 		buildr.Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(
 			func(ctx context.Context, obj client.Object) []reconcile.Request {
 				var reqs []reconcile.Request
