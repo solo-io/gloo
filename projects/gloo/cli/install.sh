@@ -3,6 +3,8 @@
 set -eu
 
 if [ -z "${GLOO_VERSION:-}" ]; then
+  # `select(.tag_name | test("-") | not)` should filter out any prerelease versions which contain hyphens (eg. 1.19.0-beta1)
+  # `select(.tag_name | startswith("v1."))` will filter out any "v2". Though we might be able to get rid of this (see https://github.com/kgateway-dev/kgateway/pull/8856)
   GLOO_VERSIONS=$(curl -sHL "Accept: application/vnd.github.v3+json" https://api.github.com/repos/solo-io/gloo/releases | jq -r '[.[] | select(.tag_name | test("-") | not) | select(.tag_name | startswith("v1.")) | .tag_name] | sort_by(.) | reverse | .[0]')
 else
   GLOO_VERSIONS="${GLOO_VERSION}"
