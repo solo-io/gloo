@@ -916,7 +916,7 @@ var _ = Describe("Deployer", func() {
 				Expect(cm).ToNot(BeNil())
 
 				if mtlsEnabled {
-					secret := objs.findSecret(defaultNamespace, "gloo-mtls-certs")
+					secret := objs.findSecret(defaultNamespace, wellknown.GlooMtlsCertName)
 					Expect(secret).ToNot(BeNil())
 					Expect(secret.Type).To(Equal(corev1.SecretTypeTLS))
 					Expect(secret.Data).To(BeEquivalentTo(mtlsSecretData()))
@@ -1231,7 +1231,7 @@ var _ = Describe("Deployer", func() {
 
 			secret := &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "gloo-mtls-certs",
+					Name:      wellknown.GlooMtlsCertName,
 					Namespace: defaultNamespace,
 				},
 				Type: corev1.SecretTypeTLS,
