@@ -60,12 +60,7 @@ func (s *gloomtlsK8sGatewayTestingSuite) TestRouteSecureRequestToUpstream() {
 	oldCerts := s.getMtlsCerts(s.TestInstallation.Metadata.InstallNamespace)
 
 	// Run the certgen job manually instead of upgrading - this simulates the cronjob
-	// Delete the job if it still exists after completion. This ensures that the job will run and the certs rotated
-	s.TestInstallation.Actions.Kubectl().DeleteFile(s.Ctx, filepath.Join(util.MustGetThisDir(), "testdata/certgen.yaml"), "-n", s.TestInstallation.Metadata.InstallNamespace)
-	s.TestInstallation.Actions.Kubectl().ApplyFile(s.Ctx, filepath.Join(util.MustGetThisDir(), "testdata/certgen.yaml"), "-n", s.TestInstallation.Metadata.InstallNamespace)
-
-	// Wait until the job has completed and the certs have been rotated
-	s.TestInstallation.Actions.Kubectl().RunCommand(s.Ctx, "-n", s.TestInstallation.Metadata.InstallNamespace, "wait", "--for=condition=complete", "job", "gloo-mtls-certgen", "--timeout=600s")
+	s.rotateMtlsCerts()
 
 	newCerts := s.getMtlsCerts(s.TestInstallation.Metadata.InstallNamespace)
 	s.NotEqual(oldCerts.Data, newCerts.Data)
@@ -105,4 +100,15 @@ func (s *gloomtlsK8sGatewayTestingSuite) getMtlsCerts(namespace string) *corev1.
 	s.NoError(err)
 
 	return &mtlsSecret
+}
+
+func (s *gloomtlsK8sGatewayTestingSuite) rotateMtlsCerts() {
+	// Delete the job if it still exists after completion. This ensures that the job will run and the certs rotated
+	s.TestInstallation.Actions.Kubectl().DeleteFile(s.Ctx, filepath.Join(util.MustGetThisDir(), "testdata/certgen.yaml"), "-n", s.TestInstallation.Metadata.InstallNamespace)
+	err := s.TestInstallation.Actions.Kubectl().ApplyFile(s.Ctx, filepath.Join(util.MustGetThisDir(), "testdata/certgen.yaml"), "-n", s.TestInstallation.Metadata.InstallNamespace)
+	s.NoError(err)
+
+	// Wait until the job has completed and the certs have been rotated
+	s.TestInstallation.Actions.Kubectl().RunCommand(s.Ctx, "-n", s.TestInstallation.Metadata.InstallNamespace, "wait", "--for=condition=complete", "job", "gloo-mtls-certgen", "--timeout=600s")
+
 }
