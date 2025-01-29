@@ -2,33 +2,10 @@
 
 set -eu
 
-python_version=
-if [ -x "$(command -v python)" ]; then
-  python_version="$(command -v python)"
-  echo "Using $python_version"
-fi
-
-if [ ! $python_version ]; then
-  if [ -x "$(command -v python3)" ]; then
-    python_version="$(command -v python3)"
-    echo "Using $python_version"
-  fi
-fi
-
-if [ ! $python_version ]; then
-  if [ -x "$(command -v python2)" ]; then
-    python_version="$(command -v python2)"
-    echo "Using $python_version"
-  fi
-fi
-
-if [ ! $python_version ]; then
-  echo Python is required to install glooctl
-  exit 1
-fi
-
 if [ -z "${GLOO_VERSION:-}" ]; then
-  GLOO_VERSIONS=$(curl -sHL"Accept: application/vnd.github.v3+json" https://api.github.com/repos/solo-io/gloo/releases | $python_version -c "import sys; from distutils.version import StrictVersion, LooseVersion; from json import loads as l; releases = l(sys.stdin.read()); releases = [release['tag_name'] for release in releases];  filtered_releases = list(filter(lambda release_string: len(release_string) > 0 and StrictVersion.version_re.match(release_string[1:]) != None and StrictVersion(release_string[1:]) < StrictVersion('2.0.0') , releases)); filtered_releases.sort(key=LooseVersion, reverse=True); print('\n'.join(filtered_releases))")
+  # `select(.tag_name | test("-") | not)` should filter out any prerelease versions which contain hyphens (eg. 1.19.0-beta1)
+  # `select(.tag_name | startswith("v1."))` will filter out any "v2". Though we might be able to get rid of this (see https://github.com/kgateway-dev/kgateway/pull/8856)
+  GLOO_VERSIONS=$(curl -sHL "Accept: application/vnd.github.v3+json" https://api.github.com/repos/solo-io/gloo/releases | jq -r '[.[] | select(.tag_name | test("-") | not) | select(.tag_name | startswith("v1.")) | .tag_name] | sort_by(.) | reverse | .[0]')
 else
   GLOO_VERSIONS="${GLOO_VERSION}"
 fi
