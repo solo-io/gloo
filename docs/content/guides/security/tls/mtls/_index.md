@@ -285,7 +285,7 @@ The gloo-proxy-gw deployment is changed to provide the certs to the pod.
           secretName: gloo-mtls-certs
 {{< /highlight >}}
 
-An SDS sidecar is also added to the gloo-proxy-gw deployment. This sidecar is also created is Istio is enabled with a separate env variable and secret mount. If both Istio and mTLS are enabled, both sets of configuration are applied:
+An SDS sidecar is also added to the gloo-proxy-gw deployment. This sidecar is also created if Istio is enabled with a separate env variable and secret mount. If both Istio and mTLS are enabled, both sets of configuration are applied:
 
 ```yaml
       - name: sds
@@ -300,7 +300,7 @@ An SDS sidecar is also added to the gloo-proxy-gw deployment. This sidecar is al
           readOnly: true
 ```
 
-Because the secrets are mounted into the containers and scerets can not be mounted across namespaces, the `gloo-mtls-certs` secret will be mirrored to the namespace of the gloo-proxy-gw deployment.
+Because the secrets are mounted into the containers and secrets can not be mounted across namespaces, the `gloo-mtls-certs` secret will be mirrored to the namespace of the gloo-proxy-gw deployment.
 
 ### Extauth Server
 

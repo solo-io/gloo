@@ -80,7 +80,7 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 
 // checkGlooMtlsEnabled checks if gloo mtls is enabled by looking at the gloo deployment and checking if the sds container is present
 func checkGlooMtlsEnabled() bool {
-	return envutils.IsTruthyValue("GLOO_MTLS_SDS_ENABLED")
+	return envutils.IsEnvTruthy("GLOO_MTLS_SDS_ENABLED")
 }
 
 func StartGGv2(ctx context.Context,
