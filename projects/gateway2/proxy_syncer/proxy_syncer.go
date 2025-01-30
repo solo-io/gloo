@@ -409,6 +409,9 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 	s.proxyTrigger = krt.NewRecomputeTrigger(true)
 
 	glooProxies := krt.NewCollection(kubeGateways, func(kctx krt.HandlerContext, gw *gwv1.Gateway) *glooProxy {
+		if gw.Spec.GatewayClassName != wellknown.GatewayClassName {
+			return nil
+		}
 		logger.Debugf("building proxy for kube gw %s version %s", client.ObjectKeyFromObject(gw), gw.GetResourceVersion())
 		s.proxyTrigger.MarkDependant(kctx)
 		proxy := s.buildProxy(ctx, gw)
