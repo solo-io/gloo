@@ -5,8 +5,6 @@ description: Ensure that communications between Gloo Gateway and Envoy is secure
 ---
 
 {{% notice note %}}
-This feature was introduced in version 1.3.6 of Gloo Gateway and version 1.3.0-beta3 of Gloo Gateway Enterprise. If you are using earlier versions of Gloo Gateway, this feature will not be available
-<br><br>
 Kubernetes Gateway support for this feature was added in 1.19.0-beta5/1.18.7 of Gloo Gateway and 1.19.0-beta1/1.18.4 of Gloo Gateway Enterprise. If you are using earlier versions of Gloo Gateway, this feature will not be available.
 {{% /notice %}}
 
