@@ -5,7 +5,9 @@ description: Ensure that communications between Gloo Gateway and Envoy is secure
 ---
 
 {{% notice note %}}
-This feature was introduced in version 1.3.6 of Gloo Gateway and version 1.3.0-beta3 of Gloo Gateway Enterprise. If you are using earlier versions of Gloo Gateway, this feature will not be available.
+This feature was introduced in version 1.3.6 of Gloo Gateway and version 1.3.0-beta3 of Gloo Gateway Enterprise. If you are using earlier versions of Gloo Gateway, this feature will not be available
+<br><br>
+Kubernetes Gateway support for this feature was added in 1.19.0-beta5/1.18.7 of Gloo Gateway and 1.19.0-beta1/1.18.4 of Gloo Gateway Enterprise. If you are using earlier versions of Gloo Gateway, this feature will not be available.
 {{% /notice %}}
 
 Gloo Gateway and Envoy communicate through the [xDS protocol](https://www.envoyproxy.io/docs/envoy/latest/api-docs/xds_protocol#streaming-grpc-subscriptions). Since the Envoy configuration can contain secret data, plaintext communication between Gloo Gateway and Envoy may be too insecure. This is especially true if your setup has the Gloo Gateway control plane and Envoy instances running in separate clusters.
@@ -211,6 +213,94 @@ An SDS sidecar is also added to the gateway-proxy deployment:
           name: gloo-mtls-certs
           readOnly: true
 ```
+#### Kubernetes Gateway Proxy
+The gloo-proxy pod is changed so that Envoy will initialize the connection to Gloo Gateway using TLS.
+
+The `gloo-proxy-gw` configmap has the following change:
+
+{{< highlight yaml "hl_lines=24-48" >}}
+      clusters:
+        - name: xds_cluster
+          alt_stat_name: xds_cluster
+          connect_timeout: 5.000s
+          load_assignment:
+            cluster_name: xds_cluster
+            endpoints:
+            - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 19000
+          typed_extension_protocol_options:
+            envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+              "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+              explicit_http_config:
+                http2_protocol_options: {}
+          upstream_connection_options:
+            tcp_keepalive:
+              keepalive_time: 10
+          type: STRICT_DNS
+          respect_dns_ttl: true
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+              common_tls_context:
+                tls_certificate_sds_secret_configs:
+                  - name: server_cert
+                    sds_config:
+                      resource_api_version: V3
+                      api_config_source:
+                        api_type: GRPC
+                        transport_api_version: V3
+                        grpc_services:
+                        - envoy_grpc:
+                            cluster_name: gateway_proxy_sds
+                validation_context_sds_secret_config:
+                  name: validation_context
+                  sds_config:
+                    resource_api_version: V3
+                    api_config_source:
+                      api_type: GRPC
+                      transport_api_version: V3
+                      grpc_services:
+                      - envoy_grpc:
+                          cluster_name: gateway_proxy_sds
+{{< /highlight >}}
+
+The gloo-proxy-gw deployment is changed to provide the certs to the pod.
+{{< highlight yaml "hl_lines=4-6 9-13" >}}
+        volumeMounts:
+        - mountPath: /etc/envoy
+          name: envoy-config
+        - mountPath: /etc/envoy/ssl
+          name: gloo-mtls-certs
+          readOnly: true
+...
+      volumes:
+      - name: gloo-mtls-certs
+        secret:
+          defaultMode: 420
+          secretName: gloo-mtls-certs
+{{< /highlight >}}
+
+An SDS sidecar is also added to the gloo-proxy-gw deployment. This sidecar is also created is Istio is enabled with a separate env variable and secret mount. If both Istio and mTLS are enabled, both sets of configuration are applied:
+
+```yaml
+      - name: sds
+        image: "quay.io/solo-io/sds:1.19.0-beta1"
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: GLOO_MTLS_SDS_ENABLED
+          value: "true"
+        volumeMounts:
+        - mountPath: /etc/envoy/ssl
+          name: gloo-mtls-certs
+          readOnly: true
+```
+
+Because the secrets are mounted into the containers and scerets can not be mounted across namespaces, the `gloo-mtls-certs` secret will be mirrored to the namespace of the gloo-proxy-gw deployment.
 
 ### Extauth Server
 
@@ -279,6 +369,11 @@ kubectl logs -n gloo-system deploy/gloo sds
 kubectl logs -n gloo-system deploy/gateway-proxy sds
 kubectl logs -n gloo-system deploy/extauth sds
 kubectl logs -n gloo-system deploy/rate-limit sds
+```
+
+For a Kubernetes gateway:
+```
+kubectl logs -n <namespace> deploy/gloo-proxy-gw sds
 ```
 
 You should see logs like:
