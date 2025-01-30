@@ -24,6 +24,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	rlkubev1a1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/common"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kubesecret"
@@ -93,8 +94,9 @@ type ProxySyncer struct {
 	proxiesToReconcile      krt.Singleton[proxyList]
 	proxyTrigger            *krt.RecomputeTrigger
 
-	destRules  DestinationRuleIndex
-	translator setup.TranslatorFactory
+	destRules             DestinationRuleIndex
+	translator            setup.TranslatorFactory
+	allowedGatewayClasses sets.Set[string]
 
 	waitForSync []cache.InformerSynced
 }
@@ -133,6 +135,7 @@ func NewProxySyncer(
 	syncerExtensions []syncer.TranslatorSyncerExtension,
 	glooReporter reporter.StatusReporter,
 	proxyReconcileQueue ggv2utils.AsyncQueue[gloov1.ProxyList],
+	allowedGatewayClasses sets.Set[string],
 ) *ProxySyncer {
 	return &ProxySyncer{
 		initialSettings:     initialSettings,
@@ -154,7 +157,8 @@ func NewProxySyncer(
 		// once we audit the plugins to be safe for concurrent use, we can instantiate the translator here.
 		// this will also have the advantage, that the plugin life-cycle will outlive a single translation
 		// so that they could own krt collections internally.
-		translator: translator,
+		translator:            translator,
+		allowedGatewayClasses: allowedGatewayClasses,
 	}
 }
 
@@ -409,7 +413,7 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 	s.proxyTrigger = krt.NewRecomputeTrigger(true)
 
 	glooProxies := krt.NewCollection(kubeGateways, func(kctx krt.HandlerContext, gw *gwv1.Gateway) *glooProxy {
-		if gw.Spec.GatewayClassName != wellknown.GatewayClassName {
+		if !s.allowedGatewayClasses.Has(string(gw.Spec.GatewayClassName)) {
 			return nil
 		}
 		logger.Debugf("building proxy for kube gw %s version %s", client.ObjectKeyFromObject(gw), gw.GetResourceVersion())

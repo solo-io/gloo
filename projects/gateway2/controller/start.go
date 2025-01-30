@@ -84,11 +84,12 @@ type StartConfig struct {
 // It is intended to be run in a goroutine as the function will block until the supplied
 // context is cancelled
 type ControllerBuilder struct {
-	proxySyncer     *proxy_syncer.ProxySyncer
-	inputChannels   *proxy_syncer.GatewayInputChannels
-	cfg             StartConfig
-	k8sGwExtensions ext.K8sGatewayExtensions
-	mgr             ctrl.Manager
+	proxySyncer           *proxy_syncer.ProxySyncer
+	inputChannels         *proxy_syncer.GatewayInputChannels
+	cfg                   StartConfig
+	k8sGwExtensions       ext.K8sGatewayExtensions
+	mgr                   ctrl.Manager
+	allowedGatewayClasses sets.Set[string]
 }
 
 func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuilder, error) {
@@ -170,6 +171,8 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 		return nil, err
 	}
 
+	allowedGatewayClasses := sets.New(append(cfg.SetupOpts.ExtraGatewayClasses, wellknown.GatewayClassName)...)
+
 	// Create the proxy syncer for the Gateway API resources
 	setupLog.Info("initializing proxy syncer")
 	proxySyncer := proxy_syncer.NewProxySyncer(
@@ -190,6 +193,7 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 		cfg.SyncerExtensions,
 		cfg.GlooStatusReporter,
 		cfg.SetupOpts.ProxyReconcileQueue,
+		allowedGatewayClasses,
 	)
 	proxySyncer.Init(ctx, cfg.Debugger)
 	if err := mgr.Add(proxySyncer); err != nil {
@@ -198,11 +202,12 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 	}
 
 	return &ControllerBuilder{
-		proxySyncer:     proxySyncer,
-		inputChannels:   inputChannels,
-		cfg:             cfg,
-		k8sGwExtensions: k8sGwExtensions,
-		mgr:             mgr,
+		proxySyncer:           proxySyncer,
+		inputChannels:         inputChannels,
+		cfg:                   cfg,
+		k8sGwExtensions:       k8sGwExtensions,
+		mgr:                   mgr,
+		allowedGatewayClasses: allowedGatewayClasses,
 	}, nil
 }
 
@@ -246,7 +251,7 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 
 	gwCfg := GatewayConfig{
 		Mgr:            c.mgr,
-		GWClasses:      sets.New(append(c.cfg.SetupOpts.ExtraGatewayClasses, wellknown.GatewayClassName)...),
+		GWClasses:      c.allowedGatewayClasses,
 		ControllerName: wellknown.GatewayControllerName,
 		AutoProvision:  AutoProvision,
 		ControlPlane: deployer.ControlPlaneInfo{
