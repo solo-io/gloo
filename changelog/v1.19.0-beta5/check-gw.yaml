@@ -1,7 +1,0 @@
-changelog:
-  - type: FIX
-    issueLink: https://github.com/solo-io/solo-projects/issues/7768
-    resolvesIssue: false
-    description: |
-      Fixes a bug where we translate Gateways that do not belong to us.
-
