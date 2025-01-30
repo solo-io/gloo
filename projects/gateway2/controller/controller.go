@@ -240,7 +240,7 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 					var gwList apiv1.GatewayList
 					err := cli.List(ctx, &gwList, client.InNamespace(corev1.NamespaceAll))
 					if err != nil {
-						log.Error(err, "could not list Secrets", "namespace", corev1.NamespaceAll)
+						log.Error(err, "could not list Gateways", "namespace", corev1.NamespaceAll)
 						return reqs
 					}
 
