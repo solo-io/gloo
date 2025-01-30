@@ -20,4 +20,7 @@ const (
 	// DefaultGatewayParametersName is the name of the GatewayParameters which is attached by
 	// parametersRef to the GatewayClass.
 	DefaultGatewayParametersName = "gloo-gateway"
+
+	// GlooMtlsCertName is the name of the TLS secret that contains the Gloo mTLS Certificates
+	GlooMtlsCertName = "gloo-mtls-certs"
 )
