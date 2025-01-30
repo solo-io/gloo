@@ -2,12 +2,12 @@
 helm_installation_name: gloo-oss
 helm_values_files:
 - ./test/kubernetes/e2e/tests/manifests/common-recommendations.yaml
-# - ./test/kubernetes/e2e/tests/manifests/profiles/kubernetes-gateway.yaml
+- ./test/kubernetes/e2e/tests/manifests/profiles/kubernetes-gateway.yaml
 helm_installation_namespace: gloo-system
 
 enabled_providers:
   - gloo
-  - gateway-proxy
+  # - gateway-proxy
 
 metal_lb: false
 
@@ -17,6 +17,7 @@ providers:
     image: quay.io/solo-io/gloo
     live_reload_deps:
       - projects/gloo
+      - projects/gateway2
     label: gloo
     build_binary: GCFLAGS='all="-N -l"' make -B gloo
     binary_name: gloo-linux-$ARCH

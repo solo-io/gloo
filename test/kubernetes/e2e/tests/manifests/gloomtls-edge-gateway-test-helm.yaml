@@ -1,3 +1,6 @@
+gateway:
+  certGenJob:
+    forceRotation: true
 global:
   glooMtls:
     enabled: true
