@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/gloo/issues/10594
+  description: Potentially fixes the TestConfigureNotAttachedHttpListenerOptions flake. It was noticed that the second test generally took longer to run since the inital connections to the proxy would fail. This could be because the proxy does not come up in time or the DNS cache became out of date, and we would curl the old IP
