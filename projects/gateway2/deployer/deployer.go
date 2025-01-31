@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -53,6 +54,11 @@ type Deployer struct {
 type ControlPlaneInfo struct {
 	XdsHost string
 	XdsPort int32
+	// The data in this struct is static, so is a good place to keep track of if mtls is enabled
+	// and a bad place to store the actual mtls secret data
+	GlooMtlsEnabled bool
+	// We could lookup the pod namespace from the env, but it's cleaner to pass it in
+	Namespace string
 }
 
 type AwsInfo struct {
@@ -103,17 +109,21 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 	//   as we only care about the GVKs of the rendered resources)
 	// - the minimal values that render all the proxy resources (HPA is not included because it's not
 	//   fully integrated/working at the moment)
+	// - a flag to indicate whether mtls is enabled, so we can render the secret if needed
 	//
 	// Note: another option is to hardcode the GVKs here, but rendering the helm chart is a
 	// _slightly_ more dynamic way of getting the GVKs. It isn't a perfect solution since if
 	// we add more resources to the helm chart that are gated by a flag, we may forget to
 	// update the values here to enable them.
+	// Currently the only resource that is gated by a flag is the mtls secret.
+
 	emptyGw := &api.Gateway{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "default",
 			Namespace: "default",
 		},
 	}
+
 	// TODO(Law): these must be set explicitly as we don't have defaults for them
 	// and the internal template isn't robust enough.
 	// This should be empty eventually -- the template must be resilient against nil-pointers
@@ -124,6 +134,12 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 				"enabled": false,
 			},
 			"image": map[string]any{},
+			// Render the secret based on the mtls flag so we can watch it.
+			// This is an exception to the "TODO" above as this is not protection against nil-pointers,
+			// it is determining which resources to render based on ControlPlane configuration.
+			"glooMtls": map[string]any{
+				"renderSecret": d.inputs.ControlPlane.GlooMtlsEnabled,
+			},
 		},
 	}
 
@@ -131,6 +147,7 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 	if err != nil {
 		return nil, err
 	}
+
 	var ret []schema.GroupVersionKind
 	for _, obj := range objs {
 		gvk := obj.GetObjectKind().GroupVersionKind()
@@ -255,7 +272,7 @@ func (d *Deployer) getGatewayClassFromGateway(ctx context.Context, gw *api.Gatew
 	return gwc, nil
 }
 
-func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameters) (*helmConfig, error) {
+func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway, gwParam *v1alpha1.GatewayParameters) (*helmConfig, error) {
 	// construct the default values
 	vals := &helmConfig{
 		Gateway: &helmGateway{
@@ -361,7 +378,59 @@ func (d *Deployer) getValues(gw *api.Gateway, gwParam *v1alpha1.GatewayParameter
 
 	gateway.Stats = getStatsValues(statsConfig)
 
+	// mtls values
+	gateway.GlooMtls, err = d.getHelmMtlsConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return vals, nil
+}
+
+func (d *Deployer) getHelmMtlsConfig(ctx context.Context) (*helmMtlsConfig, error) {
+
+	if !d.inputs.ControlPlane.GlooMtlsEnabled {
+		return &helmMtlsConfig{
+			Enabled: ptr.To(false),
+		}, nil
+	}
+
+	helmTls, err := d.getHelmTlsSecretData(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &helmMtlsConfig{
+		Enabled:   ptr.To(true),
+		TlsSecret: helmTls,
+	}, nil
+}
+
+// getHelmTlsSecretData builds a helmTls object built from the gloo-mtls-certs secret data, which it fetches
+// This function does not check if mtls is enabled, and a missing secret will return an error via getGlooMtlsCertsSecret
+func (d *Deployer) getHelmTlsSecretData(ctx context.Context) (*helmTlsSecretData, error) {
+
+	mtlsSecret := &corev1.Secret{}
+	mtlsSecretNns := types.NamespacedName{
+		Name:      wellknown.GlooMtlsCertName,
+		Namespace: d.inputs.ControlPlane.Namespace,
+	}
+	err := d.cli.Get(ctx, mtlsSecretNns, mtlsSecret)
+
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to get gloo mtls secret")
+	}
+
+	if mtlsSecret.Type != corev1.SecretTypeTLS {
+		return nil, eris.New(fmt.Sprintf("unexpected secret type, expected %s and got %s", corev1.SecretTypeTLS, mtlsSecret.Type))
+	}
+
+	return &helmTlsSecretData{
+		TlsCert: mtlsSecret.Data[corev1.TLSCertKey],
+		TlsKey:  mtlsSecret.Data[corev1.TLSPrivateKeyKey],
+		CaCert:  mtlsSecret.Data[corev1.ServiceAccountRootCAKey],
+	}, nil
 }
 
 // Render relies on a `helm install` to render the Chart with the injected values
@@ -392,6 +461,7 @@ func (d *Deployer) Render(name, ns string, vals map[string]any) ([]client.Object
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert helm manifest yaml to objects for gateway %s.%s: %w", ns, name, err)
 	}
+
 	return objs, nil
 }
 
@@ -405,6 +475,8 @@ func (d *Deployer) Render(name, ns string, vals map[string]any) ([]client.Object
 //
 // * returns the objects to be deployed by the caller
 func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]client.Object, error) {
+	logger := log.FromContext(ctx)
+
 	gwParam, err := d.getGatewayParametersForGateway(ctx, gw)
 	if err != nil {
 		return nil, err
@@ -414,9 +486,7 @@ func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]clie
 		return nil, nil
 	}
 
-	logger := log.FromContext(ctx)
-
-	vals, err := d.getValues(gw, gwParam)
+	vals, err := d.getValues(ctx, gw, gwParam)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get values to render objects for gateway %s.%s: %w", gw.GetNamespace(), gw.GetName(), err)
 	}
