@@ -25,6 +25,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/utils/pointer"
@@ -106,6 +107,17 @@ func (objs *clientObjects) findConfigMap(namespace, name string) *corev1.ConfigM
 	return nil
 }
 
+func (objs *clientObjects) findSecret(namespace, name string) *corev1.Secret {
+	for _, obj := range *objs {
+		if secret, ok := obj.(*corev1.Secret); ok {
+			if secret.Name == name && secret.Namespace == namespace {
+				return secret
+			}
+		}
+	}
+	return nil
+}
+
 func (objs *clientObjects) getEnvoyConfig(namespace, name string) *testBootstrap {
 	cm := objs.findConfigMap(namespace, name).Data
 	var bootstrapCfg testBootstrap
@@ -118,13 +130,19 @@ func proxyName(name string) string {
 	return fmt.Sprintf("gloo-proxy-%s", name)
 }
 
+func mtlsSecretData() map[string][]byte {
+	return map[string][]byte{
+		"tls.crt": []byte("cert"),
+		"tls.key": []byte("key"),
+		"ca.crt":  []byte("ca"),
+	}
+}
+
 var _ = Describe("Deployer", func() {
 	const (
 		defaultNamespace = "default"
 	)
 	var (
-		d *deployer.Deployer
-
 		defaultGatewayClass = func() *api.GatewayClass {
 			return &api.GatewayClass{
 				ObjectMeta: metav1.ObjectMeta{
@@ -235,6 +253,12 @@ var _ = Describe("Deployer", func() {
 					},
 				},
 			}
+		}
+
+		defaultGatewayParamsWithSds = func() *gw2_v1alpha1.GatewayParameters {
+			gwp := defaultGatewayParams()
+			gwp.Spec.Kube.SdsContainer = defaultSdsContainer()
+			return gwp
 		}
 
 		defaultDeploymentName     = proxyName(defaultGateway().Name)
@@ -413,32 +437,60 @@ var _ = Describe("Deployer", func() {
 		})
 	})
 
+	Context("GetGvksToWatch", func() {
+		var gwc *api.GatewayClass
+
+		BeforeEach(func() {
+			gwc = defaultGatewayClass()
+		})
+
+		DescribeTable("gets correct gvks", func(inputs *deployer.Inputs, expectedGvks []schema.GroupVersionKind) {
+			d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGatewayParams()), inputs)
+			Expect(err).NotTo(HaveOccurred())
+			gvks, err := d.GetGvksToWatch(context.Background())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(gvks).To(HaveLen(len(expectedGvks)))
+			Expect(gvks).To(ConsistOf(expectedGvks))
+
+		},
+			Entry("glooMtls enabled",
+				&deployer.Inputs{
+					ControllerName: wellknown.GatewayControllerName,
+					Dev:            false,
+					ControlPlane: deployer.ControlPlaneInfo{
+						XdsHost: "something.cluster.local", XdsPort: 1234,
+						GlooMtlsEnabled: true,
+					},
+				},
+				[]schema.GroupVersionKind{
+					wellknownkube.DeploymentGVK,
+					wellknownkube.ServiceGVK,
+					wellknownkube.ServiceAccountGVK,
+					wellknownkube.ConfigMapGVK,
+					wellknownkube.SecretGVK,
+				}),
+			Entry("glooMtls disabled",
+				&deployer.Inputs{
+					ControllerName: wellknown.GatewayControllerName,
+					Dev:            false,
+					ControlPlane: deployer.ControlPlaneInfo{
+						XdsHost: "something.cluster.local", XdsPort: 1234,
+					},
+				},
+				[]schema.GroupVersionKind{
+					wellknownkube.DeploymentGVK,
+					wellknownkube.ServiceGVK,
+					wellknownkube.ServiceAccountGVK,
+					wellknownkube.ConfigMapGVK,
+				},
+			))
+
+	})
+
 	Context("special cases", func() {
 		var gwc *api.GatewayClass
 		BeforeEach(func() {
 			gwc = defaultGatewayClass()
-			var err error
-
-			d, err = deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGatewayParams()), &deployer.Inputs{
-				ControllerName: wellknown.GatewayControllerName,
-				Dev:            false,
-				ControlPlane: deployer.ControlPlaneInfo{
-					XdsHost: "something.cluster.local", XdsPort: 1234,
-				},
-			})
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		It("should get gvks", func() {
-			gvks, err := d.GetGvksToWatch(context.Background())
-			Expect(err).NotTo(HaveOccurred())
-			Expect(gvks).To(HaveLen(4))
-			Expect(gvks).To(ConsistOf(
-				wellknownkube.DeploymentGVK,
-				wellknownkube.ServiceGVK,
-				wellknownkube.ServiceAccountGVK,
-				wellknownkube.ConfigMapGVK,
-			))
 		})
 
 		It("support segmenting by release", func() {
@@ -546,6 +598,13 @@ var _ = Describe("Deployer", func() {
 			istioEnabledDeployerInputs = func() *deployer.Inputs {
 				inp := defaultDeployerInputs()
 				inp.IstioIntegrationEnabled = true
+				return inp
+			}
+
+			mtlsEnabledInputs = func() *deployer.Inputs {
+				inp := defaultDeployerInputs()
+				inp.ControlPlane.GlooMtlsEnabled = true
+				inp.ControlPlane.Namespace = defaultNamespace
 				return inp
 			}
 
@@ -801,11 +860,20 @@ var _ = Describe("Deployer", func() {
 				}
 			}
 
-			validateGatewayParametersPropagation = func(objs clientObjects, gwp *gw2_v1alpha1.GatewayParameters) error {
+			mtlsEnabled  = true
+			mtlsDisabled = false
+
+			validateGatewayParametersPropagation = func(objs clientObjects, gwp *gw2_v1alpha1.GatewayParameters, mtlsEnabled bool) error {
 				expectedGwp := gwp.Spec.Kube
 				Expect(objs).NotTo(BeEmpty())
-				// Check we have Deployment, ConfigMap, ServiceAccount, Service
-				Expect(objs).To(HaveLen(4))
+				if mtlsEnabled {
+					// Check we have Deployment, ConfigMap, ServiceAccount, Service, Secret
+					Expect(objs).To(HaveLen(5))
+				} else {
+					// Check we have Deployment, ConfigMap, ServiceAccount, Service
+					Expect(objs).To(HaveLen(4))
+				}
+
 				dep := objs.findDeployment(defaultNamespace, defaultDeploymentName)
 				Expect(dep).ToNot(BeNil())
 				Expect(dep.Spec.Replicas).ToNot(BeNil())
@@ -846,6 +914,13 @@ var _ = Describe("Deployer", func() {
 
 				cm := objs.findConfigMap(defaultNamespace, defaultConfigMapName)
 				Expect(cm).ToNot(BeNil())
+
+				if mtlsEnabled {
+					secret := objs.findSecret(defaultNamespace, wellknown.GlooMtlsCertName)
+					Expect(secret).ToNot(BeNil())
+					Expect(secret.Type).To(Equal(corev1.SecretTypeTLS))
+					Expect(secret.Data).To(BeEquivalentTo(mtlsSecretData()))
+				}
 
 				logLevelsMap := expectedGwp.EnvoyContainer.Bootstrap.ComponentLogLevels
 				levels := []types.GomegaMatcher{}
@@ -1154,7 +1229,16 @@ var _ = Describe("Deployer", func() {
 				overrideGwp = &gw2_v1alpha1.GatewayParameters{}
 			}
 
-			d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGwp, overrideGwp), inp.dInputs)
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      wellknown.GlooMtlsCertName,
+					Namespace: defaultNamespace,
+				},
+				Type: corev1.SecretTypeTLS,
+				Data: mtlsSecretData(),
+			}
+
+			d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGwp, overrideGwp, secret), inp.dInputs)
 			if checkErr(err, expected.newDeployerErr) {
 				return
 			}
@@ -1173,7 +1257,7 @@ var _ = Describe("Deployer", func() {
 				defaultGwp: defaultGatewayParams(),
 			}, &expectedOutput{
 				validationFunc: func(objs clientObjects, inp *input) error {
-					return validateGatewayParametersPropagation(objs, defaultGatewayParams())
+					return validateGatewayParametersPropagation(objs, defaultGatewayParams(), mtlsDisabled)
 				},
 			}),
 			Entry("GatewayParameters overrides", &input{
@@ -1183,7 +1267,7 @@ var _ = Describe("Deployer", func() {
 				overrideGwp: defaultGatewayParamsOverride(),
 			}, &expectedOutput{
 				validationFunc: func(objs clientObjects, inp *input) error {
-					return validateGatewayParametersPropagation(objs, mergedGatewayParams())
+					return validateGatewayParametersPropagation(objs, mergedGatewayParams(), mtlsDisabled)
 				},
 			}),
 			Entry("Fully defined GatewayParameters", &input{
@@ -1473,6 +1557,15 @@ var _ = Describe("Deployer", func() {
 					return nil
 				},
 			}),
+			Entry("glooMtls enabled", &input{
+				dInputs:    mtlsEnabledInputs(),
+				gw:         defaultGateway(),
+				defaultGwp: defaultGatewayParamsWithSds(),
+			}, &expectedOutput{
+				validationFunc: func(objs clientObjects, inp *input) error {
+					return validateGatewayParametersPropagation(objs, defaultGatewayParamsWithSds(), mtlsEnabled)
+				},
+			}),
 		)
 	})
 })
@@ -1483,6 +1576,28 @@ func newFakeClientWithObjs(objs ...client.Object) client.Client {
 		WithScheme(schemes.GatewayScheme()).
 		WithObjects(objs...).
 		Build()
+}
+
+func defaultSdsContainer() *gw2_v1alpha1.SdsContainer {
+	return &gw2_v1alpha1.SdsContainer{
+		Image: &gw2_v1alpha1.Image{
+			Registry:   ptr.To("sds-registry"),
+			Repository: ptr.To("sds-repository"),
+			Tag:        ptr.To("sds-tag"),
+			Digest:     ptr.To("sds-digest"),
+			PullPolicy: ptr.To(corev1.PullAlways),
+		},
+		SecurityContext: &corev1.SecurityContext{
+			RunAsUser: ptr.To(int64(222)),
+		},
+		Resources: &corev1.ResourceRequirements{
+			Limits:   corev1.ResourceList{"cpu": resource.MustParse("201m")},
+			Requests: corev1.ResourceList{"cpu": resource.MustParse("203m")},
+		},
+		Bootstrap: &gw2_v1alpha1.SdsBootstrap{
+			LogLevel: ptr.To("debug"),
+		},
+	}
 }
 
 func fullyDefinedGatewayParameters(name, namespace string) *gw2_v1alpha1.GatewayParameters {
@@ -1524,25 +1639,7 @@ func fullyDefinedGatewayParameters(name, namespace string) *gw2_v1alpha1.Gateway
 						Requests: corev1.ResourceList{"cpu": resource.MustParse("103m")},
 					},
 				},
-				SdsContainer: &gw2_v1alpha1.SdsContainer{
-					Image: &gw2_v1alpha1.Image{
-						Registry:   ptr.To("sds-registry"),
-						Repository: ptr.To("sds-repository"),
-						Tag:        ptr.To("sds-tag"),
-						Digest:     ptr.To("sds-digest"),
-						PullPolicy: ptr.To(corev1.PullAlways),
-					},
-					SecurityContext: &corev1.SecurityContext{
-						RunAsUser: ptr.To(int64(222)),
-					},
-					Resources: &corev1.ResourceRequirements{
-						Limits:   corev1.ResourceList{"cpu": resource.MustParse("201m")},
-						Requests: corev1.ResourceList{"cpu": resource.MustParse("203m")},
-					},
-					Bootstrap: &gw2_v1alpha1.SdsBootstrap{
-						LogLevel: ptr.To("debug"),
-					},
-				},
+				SdsContainer: defaultSdsContainer(),
 				PodTemplate: &gw2_v1alpha1.Pod{
 					ExtraAnnotations: map[string]string{
 						"pod-anno": "foo",

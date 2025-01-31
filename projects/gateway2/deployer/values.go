@@ -66,6 +66,9 @@ type helmGateway struct {
 
 	// AWS values
 	Aws *helmAws `json:"aws,omitempty"`
+
+	// Gloo mTLS
+	GlooMtls *helmMtlsConfig `json:"glooMtls,omitempty" desc:"Config used to enable internal mtls authentication."`
 }
 
 // helmPort represents a Gateway Listener port
@@ -162,4 +165,16 @@ type helmAws struct {
 	EnableServiceAccountCredentials *bool   `json:"enableServiceAccountCredentials,omitempty"`
 	StsClusterName                  *string `json:"stsClusterName,omitempty"`
 	StsUri                          *string `json:"stsUri,omitempty"`
+}
+
+type helmTlsSecretData struct {
+	CaCert  []byte `json:"caCert,omitempty"`
+	TlsCert []byte `json:"tlsCert,omitempty"`
+	TlsKey  []byte `json:"tlsKey,omitempty"`
+}
+
+type helmMtlsConfig struct {
+	Enabled      *bool              `json:"enabled,omitempty" desc:"Enables internal mtls authentication"`
+	RenderSecret *bool              `json:"renderSecret,omitempty" desc:"If true, the deployer will render the mtls secrets. Used for creating the intial sceret resource for mointoring before the full config is available"`
+	TlsSecret    *helmTlsSecretData `json:"tlsCert,omitempty" desc:"The tls cert and key for the gateway to use for mtls authentication"`
 }
