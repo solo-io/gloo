@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -37,12 +38,14 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 var settingsGVR = glookubev1.SchemeGroupVersion.WithResource("settings")
+var deploymentGVR = schema.GroupVersion{Group: "apps", Version: "v1"}.WithResource("deployments")
 
 func createKubeClient(restConfig *rest.Config) (istiokube.Client, error) {
 	restCfg := istiokube.NewClientConfigForRestConfig(restConfig)
@@ -74,6 +77,11 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 		return nil
 	}
 	return out
+}
+
+// checkGlooMtlsEnabled checks if gloo mtls is enabled by looking at the gloo deployment and checking if the sds container is present
+func checkGlooMtlsEnabled() bool {
+	return os.Getenv("GLOO_MTLS_SDS_ENABLED") == "true"
 }
 
 func StartGGv2(ctx context.Context,
@@ -137,6 +145,9 @@ func StartGGv2WithConfig(ctx context.Context,
 	serviceClient := kclient.New[*corev1.Service](kubeClient)
 	services := krt.WrapClient(serviceClient, krt.WithName("Services"))
 
+	logger.Info("checking if gloo mtls is enabled")
+	glooMtls := checkGlooMtlsEnabled()
+
 	logger.Info("creating reporter")
 	kubeGwStatusReporter := NewGenericStatusReporter(kubeClient, defaults.KubeGatewayReporter)
 
@@ -161,13 +172,15 @@ func StartGGv2WithConfig(ctx context.Context,
 		InitialSettings: initialSettings,
 		Settings:        settingsSingle,
 		// Dev flag may be useful for development purposes; not currently tied to any user-facing API
-		Dev:      false,
-		Debugger: setupOpts.KrtDebugger,
+		Dev:             false,
+		GlooMtlsEnabled: glooMtls,
+		Debugger:        setupOpts.KrtDebugger,
 	})
 	if err != nil {
 		logger.Error("failed initializing controller: ", err)
 		return err
 	}
+
 	/// no collections after this point
 
 	logger.Info("waiting for cache sync")

@@ -340,7 +340,6 @@ type GatewayParameters struct {
 	AIExtension     *GatewayParamsAIExtension  `json:"aiExtension,omitempty" desc:"Config used to manage the Gloo Gateway AI extension."`
 	FloatingUserId  *bool                      `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container. Default is false."`
 	PodTemplate     *GatewayParamsPodTemplate  `json:"podTemplate,omitempty" desc:"The template used to generate the gatewayParams pod"`
-	// TODO(npolshak): Add support for GlooMtls
 }
 
 // GatewayProxyPodTemplate contains the Helm API available to configure the PodTemplate on the gateway Deployment

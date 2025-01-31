@@ -1,5 +1,24 @@
 {{- $gateway := .Values.gateway }}
 {{- $statsConfig := $gateway.stats }}
+{{- $glooMtls := dict -}}
+{{- if $gateway.glooMtls }}
+  {{-  $glooMtls = $gateway.glooMtls -}}
+{{- end }} {{/* if $gateway.glooMtls.enabled */}}
+
+{{- if or $glooMtls.enabled $glooMtls.renderSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gloo-mtls-certs
+data:
+  {{- if $glooMtls.tlsCert }} {{/* When initially rendering the template to get the list of GVKs to watch there won't be secret data */}}
+  ca.crt:  {{ $glooMtls.tlsCert.caCert }}
+  tls.crt: {{ $glooMtls.tlsCert.tlsCert }}
+  tls.key: {{ $glooMtls.tlsCert.tlsKey }}
+  {{- end }} {{/* if $glooMtls.tlsCert */}}
+type: kubernetes.io/tls
+{{- end }} {{/* if $glooMtls.enabled */}}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -68,6 +87,11 @@ spec:
         volumeMounts:
         - mountPath: /etc/envoy
           name: envoy-config
+{{- if  $glooMtls.enabled }}
+        - mountPath: /etc/envoy/ssl
+          name: gloo-mtls-certs
+          readOnly: true
+{{- end }} {{/* if  $glooMtls.enabled*/}}
         env:
         - name: POD_NAME
           valueFrom:
@@ -110,7 +134,7 @@ spec:
         resources:
           {{- toYaml $gateway.resources | nindent 10 }}
 {{- end }} {{/* if $gateway.resources */}}
-{{- if $gateway.istio.enabled }}
+{{- if or $glooMtls.enabled $gateway.istio.enabled }}
       - name: sds
         image: "{{ template "gloo-gateway.gateway.image" $gateway.sdsContainer.image }}"
         {{- if $gateway.sdsContainer.image.pullPolicy }}
@@ -127,8 +151,14 @@ spec:
               fieldRef:
                 apiVersion: v1
                 fieldPath: metadata.namespace
+{{- if $gateway.istio.enabled }}
           - name: ISTIO_MTLS_SDS_ENABLED
             value: "true"
+{{- end }} {{/* if $gateway.istio.enabled */}}
+{{- if  $glooMtls.enabled }}
+          - name: GLOO_MTLS_SDS_ENABLED
+            value: "true"
+{{- end }} {{/*  $glooMtls.enabled */}}
           - name: LOG_LEVEL
             value: {{ $gateway.sdsContainer.sdsBootstrap.logLevel }}
         ports:
@@ -154,9 +184,16 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         volumeMounts:
+{{- if $gateway.istio.enabled }}
           - mountPath: /etc/envoy
             name: envoy-config
 {{- end }} {{/* if $gateway.istio.enabled */}}
+{{- if  $glooMtls.enabled }}
+          - mountPath: /etc/envoy/ssl
+            name: gloo-mtls-certs
+            readOnly: true
+{{- end }} {{/* if  $glooMtls.enabled */}}
+{{- end }} {{/* if or $glooMtls.enabled $gateway.istio.enabled */}}
 {{- if $gateway.istio.enabled }}
           - mountPath: /etc/istio-certs/
             name: istio-certs
@@ -316,6 +353,12 @@ spec:
       - configMap:
           name: {{ include "gloo-gateway.gateway.fullname" . }}
         name: envoy-config
+{{-  if $glooMtls.enabled }}
+      - name: gloo-mtls-certs
+        secret:
+          defaultMode: 420
+          secretName: gloo-mtls-certs
+{{- end }} {{/* if $glooMtls.enabled */}}
 {{- if (($gateway.aiExtension).enabled) }}
       - configMap:
           name: {{ include "gloo-gateway.gateway.fullname" . }}-ai-stats-config
@@ -546,6 +589,33 @@ data:
               keepalive_time: 10
           type: STRICT_DNS
           respect_dns_ttl: true
+{{- if  $glooMtls.enabled }}
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+              common_tls_context:
+                tls_certificate_sds_secret_configs:
+                  - name: server_cert
+                    sds_config:
+                      resource_api_version: V3
+                      api_config_source:
+                        api_type: GRPC
+                        transport_api_version: V3
+                        grpc_services:
+                        - envoy_grpc:
+                            cluster_name: gateway_proxy_sds
+                validation_context_sds_secret_config:
+                  name: validation_context
+                  sds_config:
+                    resource_api_version: V3
+                    api_config_source:
+                      api_type: GRPC
+                      transport_api_version: V3
+                      grpc_services:
+                      - envoy_grpc:
+                          cluster_name: gateway_proxy_sds
+{{- end }} {{/* if  $glooMtls.enabled */}}
         - name: admin_port_cluster
           connect_timeout: 5.000s
           type: STATIC
@@ -559,7 +629,7 @@ data:
                     socket_address:
                       address: 127.0.0.1
                       port_value: 19000
-        {{- if $gateway.istio.enabled }}
+        {{- if or  $glooMtls.enabled $gateway.istio.enabled }}
         - name: gateway_proxy_sds
           connect_timeout: 0.25s
           http2_protocol_options: {}
@@ -572,7 +642,7 @@ data:
                       socket_address:
                         address: 127.0.0.1
                         port_value: 8234
-        {{- end }} {{/* if $gateway.istio.enabled */}}
+        {{- end }} {{/* if or  $glooMtls.enabled $gateway.istio.enabled */}}
         {{- if ($gateway.aws).enableServiceAccountCredentials }}
         - name: {{ $gateway.aws.stsClusterName }}
           connect_timeout: 5.000s
