@@ -134,6 +134,11 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 	// Each of these are responsible for updating a single entry in the SnapshotCache
 	s.syncExtensions(ctx, snap, reports)
 
+	// reset the resource metrics before we write the new statuses, this ensures that
+	// deleted resources are removed from the metrics
+	logger.Warnf("Clearing resource metrics")
+	s.statusMetrics.ClearMetrics(ctx)
+
 	// Update resource status metrics and filter out kube gateway proxies
 	filteredReports := make(reporter.ResourceReports)
 	for resource, report := range reports {
@@ -145,6 +150,7 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 		}
 		filteredReports[resource] = report
 		status := s.reporter.StatusFromReport(report, nil)
+		logger.Warnf("Setting status for resource %v: %v", resource.GetMetadata().Ref(), status)
 		s.statusMetrics.SetResourceStatus(ctx, resource, status)
 	}
 

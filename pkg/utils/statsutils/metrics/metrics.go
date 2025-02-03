@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/util/jsonpath"
@@ -43,6 +44,7 @@ var descriptions = map[schema.GroupVersionKind]string{
 // ConfigStatusMetrics is a collection of metrics, each of which records if the configuration for
 // a particular resource type is valid
 type ConfigStatusMetrics struct {
+	opts    map[string]*MetricLabels
 	metrics map[schema.GroupVersionKind]*resourceMetric
 }
 
@@ -60,21 +62,33 @@ func GetDefaultConfigStatusOptions() map[string]*MetricLabels {
 // NewConfigStatusMetrics creates and returns a ConfigStatusMetrics from the specified options.
 // If the options are invalid, an error is returned.
 func NewConfigStatusMetrics(opts map[string]*MetricLabels) (ConfigStatusMetrics, error) {
-	configMetrics := ConfigStatusMetrics{
-		metrics: make(map[schema.GroupVersionKind]*resourceMetric),
+	metrics, err := prepareMetrics(opts)
+	if err != nil {
+		return ConfigStatusMetrics{}, err
 	}
+
+	configMetrics := ConfigStatusMetrics{
+		opts:    opts,
+		metrics: metrics,
+	}
+
+	return configMetrics, nil
+}
+
+func prepareMetrics(opts map[string]*MetricLabels) (map[schema.GroupVersionKind]*resourceMetric, error) {
+	metrics := make(map[schema.GroupVersionKind]*resourceMetric)
 	for gvkString, labels := range opts {
 		gvk, err := parseGroupVersionKind(gvkString)
 		if err != nil {
-			return ConfigStatusMetrics{}, err
+			return metrics, err
 		}
 		metric, err := newResourceMetric(gvk, labels.GetLabelToPath())
 		if err != nil {
-			return ConfigStatusMetrics{}, err
+			return metrics, err
 		}
-		configMetrics.insertMetric(gvk, metric)
+		metrics[gvk] = metric
 	}
-	return configMetrics, nil
+	return metrics, nil
 }
 
 func parseGroupVersionKind(arg string) (schema.GroupVersionKind, error) {
@@ -126,6 +140,7 @@ func (m *ConfigStatusMetrics) SetResourceValid(ctx context.Context, resource res
 	log := contextutils.LoggerFrom(ctx)
 	gvk, err := resourceToGVK(resource)
 	if err != nil {
+		log.Warnf("Error setting '%s' config metric valid: %s", resource.GetMetadata().Ref(), err.Error())
 		log.Debugf(err.Error())
 		return
 	}
@@ -136,6 +151,8 @@ func (m *ConfigStatusMetrics) SetResourceValid(ctx context.Context, resource res
 			log.Errorf("Error setting labels on %s: %s", Names[gvk], err.Error())
 		}
 		statsutils.MeasureZero(ctx, m.metrics[gvk].gauge, mutators...)
+	} else {
+		log.Warnf("Skipping setting valid metric for resource %s, no metric configured", resource.GetMetadata().Ref())
 	}
 }
 
@@ -143,6 +160,7 @@ func (m *ConfigStatusMetrics) SetResourceInvalid(ctx context.Context, resource r
 	log := contextutils.LoggerFrom(ctx)
 	gvk, err := resourceToGVK(resource)
 	if err != nil {
+		log.Warnf("Error setting '%s' config metric invalid: %s", resource.GetMetadata().Ref(), err.Error())
 		log.Debugf(err.Error())
 		return
 	}
@@ -153,11 +171,27 @@ func (m *ConfigStatusMetrics) SetResourceInvalid(ctx context.Context, resource r
 			log.Errorf("Error setting labels on %s: %s", Names[gvk], err.Error())
 		}
 		statsutils.MeasureOne(ctx, m.metrics[gvk].gauge, mutators...)
+	} else {
+		log.Warnf("Skipping setting invalid metric for resource %s, no metric configured", resource.GetMetadata().Ref())
 	}
 }
 
-func (m *ConfigStatusMetrics) insertMetric(gvk schema.GroupVersionKind, metric *resourceMetric) {
-	m.metrics[gvk] = metric
+// ClearMetrics removes all metrics from the ConfigStatusMetrics
+func (m *ConfigStatusMetrics) ClearMetrics(ctx context.Context) {
+	log := contextutils.LoggerFrom(ctx)
+	log.Warnf("Clearing %d resource metrics", len(m.metrics))
+
+	for _, metric := range m.metrics {
+		view.Unregister(metric.gauge.Name())
+	}
+
+	var err error
+	m.metrics, err = prepareMetrics(m.opts)
+	if err != nil {
+		log.Errorf("Error clearing resource metrics: %s", err.Error())
+	}
+
+	log.Warnf("After cleaning %d resource metrics", len(m.metrics))
 }
 
 func getMutators(metric *resourceMetric, resource resources.Resource) ([]tag.Mutator, error) {
