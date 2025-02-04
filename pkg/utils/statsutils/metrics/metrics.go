@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
@@ -179,19 +180,32 @@ func (m *ConfigStatusMetrics) SetResourceInvalid(ctx context.Context, resource r
 // ClearMetrics removes all metrics from the ConfigStatusMetrics
 func (m *ConfigStatusMetrics) ClearMetrics(ctx context.Context) {
 	log := contextutils.LoggerFrom(ctx)
-	log.Warnf("Clearing %d resource metrics", len(m.metrics))
 
+	someViewsUnregistered := false
+
+	// Iterate through the resource metrics and unregister them
 	for _, metric := range m.metrics {
-		view.Unregister(metric.gauge.Name())
+		v := view.Find(metric.gauge.Name())
+		if v != nil {
+			view.Unregister(v)
+			someViewsUnregistered = true
+		}
 	}
 
+	// Only sleep some metrics were unregistered
+	if !someViewsUnregistered {
+		// Wait for the view to be unregistered (a channel is used)
+		// This is necessary because the view is unregistered asynchronously.
+		// We may not need this after we upgrade to an newer metrics package
+		time.Sleep(1 * time.Second)
+	}
+
+	// Add fresh metrics
 	var err error
 	m.metrics, err = prepareMetrics(m.opts)
 	if err != nil {
 		log.Errorf("Error clearing resource metrics: %s", err.Error())
 	}
-
-	log.Warnf("After cleaning %d resource metrics", len(m.metrics))
 }
 
 func getMutators(metric *resourceMetric, resource resources.Resource) ([]tag.Mutator, error) {
