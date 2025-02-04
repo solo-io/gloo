@@ -11,7 +11,7 @@ Upstreams with working health checks will not be removed from Envoy's service di
 {{% /notice %}}
 ## Configuration
 
-Descriptions of the options available for configuring health checks can be found {{< protobuf name="solo.io.envoy.api.v2.core.HealthCheck" display="here" >}}.
+Descriptions of the options available for configuring health checks can be found [here]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/healthcheck/healthcheck.proto.sk/" %}}).
 
 ### Custom paths for HttpHealthChecks
 
