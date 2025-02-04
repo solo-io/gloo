@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/6210
+    resolvesIssue: false
+    description: >-
+      Add support for xDS over mTLS for communication between the Gloo pod and the Kubernetes Gateway proxies. This can be enabled by setting the 'global.glooMtls.enabled' helm value to true.
