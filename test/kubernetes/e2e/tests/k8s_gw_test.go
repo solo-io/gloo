@@ -25,8 +25,6 @@ func TestK8sGateway(t *testing.T) {
 			InstallNamespace:          installNs,
 			ProfileValuesManifestFile: e2e.KubernetesGatewayProfilePath,
 			ValuesManifestFile:        e2e.EmptyValuesManifestPath,
-			ValidationAlwaysAccept:    false,
-			K8sGatewayEnabled:         true,
 		},
 	)
 
