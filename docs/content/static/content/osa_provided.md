@@ -40,6 +40,8 @@ Name|Version|License
 [onsi/gomega](https://github.com/onsi/gomega)|v1.35.0|MIT License
 [pkg/browser](https://github.com/pkg/browser)|v0.0.0-20180916011732-0a3d74bf9ce4|BSD 2-clause "Simplified" License
 [pkg/errors](https://github.com/pkg/errors)|v0.9.1|BSD 2-clause "Simplified" License
+[prometheus/client_model](https://github.com/prometheus/client_model)|v0.6.1|Apache License 2.0
+[prometheus/common](https://github.com/prometheus/common)|v0.60.1|Apache License 2.0
 [go-ruleguard/dsl](https://github.com/quasilyte/go-ruleguard)|v0.3.22|BSD 3-clause "New" or "Revised" License
 [rotisserie/eris](https://github.com/rotisserie/eris)|v0.5.4|MIT License
 [saiskee/gettercheck](https://github.com/saiskee/gettercheck)|v0.0.0-20210820204958-38443d06ebe0|MIT License
