@@ -173,8 +173,6 @@ func (m *ConfigStatusMetrics) SetResourceInvalid(ctx context.Context, resource r
 
 // ClearMetrics removes all metrics from the ConfigStatusMetrics
 func (m *ConfigStatusMetrics) ClearMetrics(ctx context.Context) {
-	log := contextutils.LoggerFrom(ctx)
-
 	someViewsUnregistered := false
 
 	// Iterate through the resource metrics and unregister them
@@ -198,7 +196,7 @@ func (m *ConfigStatusMetrics) ClearMetrics(ctx context.Context) {
 	var err error
 	m.metrics, err = prepareMetrics(m.opts)
 	if err != nil {
-		log.Errorf("Error clearing resource metrics: %s", err.Error())
+		contextutils.LoggerFrom(ctx).Errorf("Error clearing resource metrics: %s", err.Error())
 	}
 }
 
