@@ -115,6 +115,11 @@ func (s *prometheusMetricsTestingSuite) fetchMetrics() (map[string]*dto.MetricFa
 	res, err := http.Get(fmt.Sprintf("http://localhost:%d/metrics", s.portForwarder.LocalPort()))
 	s.Require().NoError(err, "can get metrics")
 
+	defer func() {
+		err := res.Body.Close()
+		s.Require().NoError(err, "can close response body")
+	}()
+
 	// make sure the response is successful
 	s.Require().Equal(http.StatusOK, res.StatusCode, "response status code is 200")
 

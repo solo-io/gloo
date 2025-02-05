@@ -127,8 +127,6 @@ func resourceToGVK(resource resources.Resource) (schema.GroupVersionKind, error)
 }
 
 func (m *ConfigStatusMetrics) SetResourceStatus(ctx context.Context, resource resources.Resource, status *core.Status) {
-	fmt.Printf("SetResourceStatus: %s\n, %s\n", resource.GetMetadata().Ref(), status.GetState())
-
 	if status.GetState() == core.Status_Warning || status.GetState() == core.Status_Rejected {
 		m.SetResourceInvalid(ctx, resource)
 		return
@@ -153,8 +151,6 @@ func (m *ConfigStatusMetrics) SetResourceValid(ctx context.Context, resource res
 			log.Errorf("Error setting labels on %s: %s", Names[gvk], err.Error())
 		}
 		statsutils.MeasureZero(ctx, m.metrics[gvk].gauge, mutators...)
-	} else {
-		log.Warnf("Skipping setting valid metric for resource %s, no metric configured", resource.GetMetadata().Ref())
 	}
 }
 
@@ -172,8 +168,6 @@ func (m *ConfigStatusMetrics) SetResourceInvalid(ctx context.Context, resource r
 			log.Errorf("Error setting labels on %s: %s", Names[gvk], err.Error())
 		}
 		statsutils.MeasureOne(ctx, m.metrics[gvk].gauge, mutators...)
-	} else {
-		log.Warnf("Skipping setting invalid metric for resource %s, no metric configured", resource.GetMetadata().Ref())
 	}
 }
 
