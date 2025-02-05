@@ -410,7 +410,6 @@ func (s *statusSyncer) syncStatus(ctx context.Context) error {
 
 	// reset the resource metrics before we write the new statuses, this ensures that
 	// deleted resources are removed from the metrics
-	contextutils.LoggerFrom(ctx).Warn("Clearing resource metrics")
 	s.statusMetrics.ClearMetrics(ctx)
 
 	var errs error
@@ -456,8 +455,8 @@ func (s *statusSyncer) syncStatus(ctx context.Context) error {
 		}
 
 		status := s.reporter.StatusFromReport(subresourceStatuses, currentStatuses)
-		contextutils.LoggerFrom(ctx).Warnf("Setting status for %v to %v", inputResource.GetMetadata().Ref().Key(), status)
 		s.statusMetrics.SetResourceStatus(ctx, inputResource, status)
 	}
+
 	return errs
 }

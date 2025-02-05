@@ -127,6 +127,8 @@ func resourceToGVK(resource resources.Resource) (schema.GroupVersionKind, error)
 }
 
 func (m *ConfigStatusMetrics) SetResourceStatus(ctx context.Context, resource resources.Resource, status *core.Status) {
+	fmt.Printf("SetResourceStatus: %s\n, %s\n", resource.GetMetadata().Ref(), status.GetState())
+
 	if status.GetState() == core.Status_Warning || status.GetState() == core.Status_Rejected {
 		m.SetResourceInvalid(ctx, resource)
 		return
@@ -141,7 +143,6 @@ func (m *ConfigStatusMetrics) SetResourceValid(ctx context.Context, resource res
 	log := contextutils.LoggerFrom(ctx)
 	gvk, err := resourceToGVK(resource)
 	if err != nil {
-		log.Warnf("Error setting '%s' config metric valid: %s", resource.GetMetadata().Ref(), err.Error())
 		log.Debugf(err.Error())
 		return
 	}
@@ -161,7 +162,6 @@ func (m *ConfigStatusMetrics) SetResourceInvalid(ctx context.Context, resource r
 	log := contextutils.LoggerFrom(ctx)
 	gvk, err := resourceToGVK(resource)
 	if err != nil {
-		log.Warnf("Error setting '%s' config metric invalid: %s", resource.GetMetadata().Ref(), err.Error())
 		log.Debugf(err.Error())
 		return
 	}
@@ -193,7 +193,7 @@ func (m *ConfigStatusMetrics) ClearMetrics(ctx context.Context) {
 	}
 
 	// Only sleep some metrics were unregistered
-	if !someViewsUnregistered {
+	if someViewsUnregistered {
 		// Wait for the view to be unregistered (a channel is used)
 		// This is necessary because the view is unregistered asynchronously.
 		// We may not need this after we upgrade to an newer metrics package

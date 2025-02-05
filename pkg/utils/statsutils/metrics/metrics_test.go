@@ -131,4 +131,37 @@ var _ = Describe("ConfigStatusMetrics Test", func() {
 		Entry("Secret", "Secret.v1.gloo.solo.io", metrics.Names[gloov1.SecretGVK], makeSecret),
 		Entry("Proxy", "Proxy.v1.gloo.solo.io", metrics.Names[gloov1.ProxyGVK], makeProxy),
 	)
+
+	Describe("ClearMetrics", func() {
+		It("should clear metrics", func() {
+			metricName, ok := metrics.Names[gwv1.VirtualServiceGVK]
+			Expect(ok).To(BeTrue())
+
+			opts := map[string]*metrics.MetricLabels{
+				"VirtualService.v1.gateway.solo.io": {
+					LabelToPath: map[string]string{
+						"name": "{.metadata.name}",
+					},
+				},
+			}
+			c, err := metrics.NewConfigStatusMetrics(opts)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(c).NotTo(BeNil())
+
+			// Create two resources
+			res := makeVirtualService("clear")
+			resName := res.GetMetadata().GetName()
+
+			// Metrics should not have any data initially
+			_, err = helpers.ReadMetricByLabel(metricName, "name", resName)
+			Expect(err).To(HaveOccurred())
+
+			c.SetResourceInvalid(context.TODO(), res)
+			Expect(helpers.ReadMetricByLabel(metricName, "name", resName)).To(Equal(1))
+
+			c.ClearMetrics(context.TODO())
+			_, err = helpers.ReadMetricByLabel(metricName, "name", resName)
+			Expect(err).To(HaveOccurred())
+		})
+	})
 })

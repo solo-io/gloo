@@ -136,7 +136,6 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 
 	// reset the resource metrics before we write the new statuses, this ensures that
 	// deleted resources are removed from the metrics
-	logger.Warnf("Clearing resource metrics")
 	s.statusMetrics.ClearMetrics(ctx)
 
 	// Update resource status metrics and filter out kube gateway proxies
@@ -150,7 +149,6 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 		}
 		filteredReports[resource] = report
 		status := s.reporter.StatusFromReport(report, nil)
-		logger.Warnf("Setting status for resource %v: %v", resource.GetMetadata().Ref(), status)
 		s.statusMetrics.SetResourceStatus(ctx, resource, status)
 	}
 
