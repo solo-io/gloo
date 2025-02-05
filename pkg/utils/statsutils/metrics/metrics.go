@@ -186,7 +186,7 @@ func (m *ConfigStatusMetrics) ClearMetrics(ctx context.Context) {
 		}
 	}
 
-	// Only sleep some metrics were unregistered
+	// Only sleep when some metrics were unregistered
 	if someViewsUnregistered {
 		// Wait for the view to be unregistered (a channel is used)
 		// This is necessary because the view is unregistered asynchronously.
