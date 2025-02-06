@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: Potentially fix the flaky ValidationStrct test by ensuring the kubeCoreFailurePolicy is set to Fail
+
