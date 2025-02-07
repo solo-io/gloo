@@ -81,7 +81,7 @@ func prepareMetrics(opts map[string]*MetricLabels) (map[schema.GroupVersionKind]
 	for gvkString, labels := range opts {
 		gvk, err := parseGroupVersionKind(gvkString)
 		if err != nil {
-			return metrics, err
+			return map[schema.GroupVersionKind]*resourceMetric{}, err
 		}
 		metric, err := newResourceMetric(gvk, labels.GetLabelToPath())
 		if err != nil {
