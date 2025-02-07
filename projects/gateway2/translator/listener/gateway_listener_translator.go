@@ -353,7 +353,7 @@ func (ml *MergedListeners) AppendTlsListener(
 	var validRouteInfos []*query.RouteInfo
 
 	for _, routeInfo := range routeInfos {
-		tRoute, ok := routeInfo.Object.(*gwv1a2.TCPRoute)
+		tRoute, ok := routeInfo.Object.(*gwv1a2.TLSRoute)
 		if !ok {
 			continue
 		}
