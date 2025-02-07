@@ -813,6 +813,35 @@ var _ = Describe("Query", func() {
 			Expect(err).To(MatchError(query.ErrMissingReferenceGrant))
 			Expect(backend).To(BeNil())
 		})
+
+		It("should match TLSRoutes for Listener", func() {
+			gw := gw()
+			gw.Spec.Listeners = []apiv1.Listener{
+				{
+					Name:     "foo-tls",
+					Protocol: apiv1.TLSProtocolType,
+				},
+			}
+
+			tlsRoute := tlsRoute("test-tls-route", gw.Namespace)
+			tlsRoute.Spec = apiv1a2.TLSRouteSpec{
+				CommonRouteSpec: apiv1.CommonRouteSpec{
+					ParentRefs: []apiv1.ParentReference{
+						{
+							Name: apiv1.ObjectName(gw.Name),
+						},
+					},
+				},
+			}
+
+			fakeClient := builder.WithObjects(tlsRoute).Build()
+			gq := query.NewData(fakeClient, scheme)
+			routes, err := gq.GetRoutesForGateway(context.Background(), gw)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(routes.ListenerResults[string(gw.Spec.Listeners[0].Name)].Routes).To(HaveLen(1))
+			Expect(routes.ListenerResults[string(gw.Spec.Listeners[0].Name)].Error).NotTo(HaveOccurred())
+		})
 	})
 })
 
@@ -906,6 +935,19 @@ func svc(ns string) *corev1.Service {
 
 func tcpRoute(name, ns string) *apiv1a2.TCPRoute {
 	return &apiv1a2.TCPRoute{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       wellknown.TCPRouteKind,
+			APIVersion: apiv1a2.GroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: ns,
+		},
+	}
+}
+
+func tlsRoute(name, ns string) *apiv1a2.TLSRoute {
+	return &apiv1a2.TLSRoute{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       wellknown.TCPRouteKind,
 			APIVersion: apiv1a2.GroupVersion.String(),
