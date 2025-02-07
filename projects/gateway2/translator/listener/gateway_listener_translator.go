@@ -96,6 +96,8 @@ func (ml *MergedListeners) AppendListener(
 	// TODO default handling
 	case gwv1.TCPProtocolType:
 		ml.AppendTcpListener(listener, routes, reporter)
+	case gwv1.TLSProtocolType:
+		ml.AppendTlsListener(listener, routes, reporter)
 	default:
 		return eris.Errorf("unsupported protocol: %v", listener.Protocol)
 	}
@@ -342,6 +344,71 @@ func getWeight(backendRef gwv1.BackendRef) *wrapperspb.UInt32Value {
 	return &wrapperspb.UInt32Value{Value: 1}
 }
 
+// could reuse AppendTCPListener ?
+func (ml *MergedListeners) AppendTlsListener(
+	listener gwv1.Listener,
+	routeInfos []*query.RouteInfo,
+	reporter reports.ListenerReporter,
+) {
+	var validRouteInfos []*query.RouteInfo
+
+	for _, routeInfo := range routeInfos {
+		tRoute, ok := routeInfo.Object.(*gwv1a2.TCPRoute)
+		if !ok {
+			continue
+		}
+
+		if len(tRoute.Spec.ParentRefs) == 0 {
+			contextutils.LoggerFrom(context.Background()).Warnf(
+				"No parent references found for TCPRoute %s", tRoute.Name,
+			)
+			continue
+		}
+
+		validRouteInfos = append(validRouteInfos, routeInfo)
+	}
+
+	// If no valid routes are found, do not create a listener
+	if len(validRouteInfos) == 0 {
+		contextutils.LoggerFrom(context.Background()).Errorf(
+			"No valid routes found for listener %s", listener.Name,
+		)
+		return
+	}
+
+	parent := tcpFilterChainParent{
+		gatewayListenerName: string(listener.Name),
+		routesWithHosts:     validRouteInfos,
+	}
+
+	fc := tcpFilterChain{
+		parents:   []tcpFilterChainParent{parent},
+		tls:       listener.TLS,
+		sniDomain: listener.Hostname,
+	}
+	listenerName := string(listener.Name)
+	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
+
+	for _, lis := range ml.Listeners {
+		if lis.port == finalPort {
+			// concatenate the names on the parent output listener
+			lis.name += "~" + listenerName
+			lis.TcpFilterChains = append(lis.TcpFilterChains, fc)
+			return
+		}
+	}
+
+	// create a new filter chain for the listener
+	ml.Listeners = append(ml.Listeners, &MergedListener{
+		name:             listenerName,
+		gatewayNamespace: ml.GatewayNamespace,
+		port:             finalPort,
+		TcpFilterChains:  []tcpFilterChain{fc},
+		listenerReporter: reporter,
+		listener:         listener,
+	})
+}
+
 func (ml *MergedListeners) translateListeners(
 	ctx context.Context,
 	pluginRegistry registry.PluginRegistry,
@@ -446,7 +513,14 @@ func (ml *MergedListener) TranslateListener(
 
 	// Translate TCP listeners (if any exist)
 	for _, tfc := range ml.TcpFilterChains {
-		if tcpListener := tfc.translateTcpFilterChain(ml.listener, reporter); tcpListener != nil {
+		if tcpListener := tfc.translateTcpFilterChain(
+			ctx,
+			ml.listener,
+			reporter,
+			ml.listenerReporter,
+			queries,
+			ml.gatewayNamespace,
+		); tcpListener != nil {
 			matchedTcpListeners = append(matchedTcpListeners, &v1.MatchedTcpListener{
 				TcpListener: tcpListener,
 			})
@@ -491,7 +565,9 @@ func (ml *MergedListener) TranslateListener(
 // (with distinct filter chains). In the case where no Gateway listener merging takes place, every listener
 // will use a Gloo AggregatedListener with one TCP filter chain.
 type tcpFilterChain struct {
-	parents []tcpFilterChainParent
+	parents   []tcpFilterChainParent
+	tls       *gwv1.GatewayTLSConfig
+	sniDomain *gwv1.Hostname
 }
 
 type tcpFilterChainParent struct {
@@ -499,33 +575,88 @@ type tcpFilterChainParent struct {
 	routesWithHosts     []*query.RouteInfo
 }
 
-func (tc *tcpFilterChain) translateTcpFilterChain(listener gwv1.Listener, reporter reports.Reporter) *v1.TcpListener {
+func (tc *tcpFilterChain) translateTcpFilterChain(
+	ctx context.Context,
+	listener gwv1.Listener,
+	reporter reports.Reporter,
+	listenerReporter reports.ListenerReporter,
+	queries query.GatewayQueries,
+	gatewayNamespace string,
+) *v1.TcpListener {
 	var tcpHosts []*v1.TcpHost
 	for _, parent := range tc.parents {
 		for _, r := range parent.routesWithHosts {
-			tRoute, ok := r.Object.(*gwv1a2.TCPRoute)
-			if !ok {
-				continue
-			}
+			// TODO dedpupe
+			switch r.Object.(type) {
+			case *gwv1a2.TLSRoute:
+				tRoute := r.Object.(*gwv1a2.TLSRoute)
+				// Collect ParentRefReporters for the TCPRoute
+				parentRefReporters := make([]reports.ParentRefReporter, 0, len(tRoute.Spec.ParentRefs))
+				for _, parentRef := range tRoute.Spec.ParentRefs {
+					parentRefReporter := reporter.Route(tRoute).ParentRef(&parentRef)
+					parentRefReporter.SetCondition(reports.RouteCondition{
+						Type:   gwv1.RouteConditionAccepted,
+						Status: metav1.ConditionTrue,
+						Reason: gwv1.RouteReasonAccepted,
+					})
+					parentRefReporters = append(parentRefReporters, parentRefReporter)
+				}
 
-			// Collect ParentRefReporters for the TCPRoute
-			parentRefReporters := make([]reports.ParentRefReporter, 0, len(tRoute.Spec.ParentRefs))
-			for _, parentRef := range tRoute.Spec.ParentRefs {
-				parentRefReporter := reporter.Route(tRoute).ParentRef(&parentRef)
-				parentRefReporter.SetCondition(reports.RouteCondition{
-					Type:   gwv1.RouteConditionAccepted,
-					Status: metav1.ConditionTrue,
-					Reason: gwv1.RouteReasonAccepted,
-				})
-				parentRefReporters = append(parentRefReporters, parentRefReporter)
-			}
+				for i, rule := range tRoute.Spec.Rules {
+					// Ensure unique names by appending the rule index to the TCPRoute name
+					tcpHostName := fmt.Sprintf("%s-rule-%d", tRoute.Name, i)
+					tcpHost := buildTcpHost(r, parentRefReporters, tcpHostName, listener.Port, rule.BackendRefs)
+					if tcpHost != nil {
+						sslConfig, err := translateSslConfig(
+							ctx,
+							gatewayNamespace,
+							tc.sniDomain,
+							tc.tls,
+							queries,
+						)
+						if err != nil {
+							reason := gwv1.ListenerReasonRefNotPermitted
+							if !errors.Is(err, query.ErrMissingReferenceGrant) {
+								reason = gwv1.ListenerReasonInvalidCertificateRef
+							}
+							listenerReporter.SetCondition(reports.ListenerCondition{
+								Type:   gwv1.ListenerConditionResolvedRefs,
+								Status: metav1.ConditionFalse,
+								Reason: reason,
+							})
+							// listener with no ssl is invalid. We return nil so set programmed to false
+							listenerReporter.SetCondition(reports.ListenerCondition{
+								Type:   gwv1.ListenerConditionProgrammed,
+								Status: metav1.ConditionFalse,
+								Reason: gwv1.ListenerReasonInvalid,
+							})
+							return nil
+						}
+						tcpHost.SslConfig = sslConfig
+						tcpHosts = append(tcpHosts, tcpHost)
+					}
+				}
+			case *gwv1a2.TCPRoute:
+				tRoute := r.Object.(*gwv1a2.TCPRoute)
+				// Collect ParentRefReporters for the TCPRoute
+				parentRefReporters := make([]reports.ParentRefReporter, 0, len(tRoute.Spec.ParentRefs))
+				for _, parentRef := range tRoute.Spec.ParentRefs {
+					parentRefReporter := reporter.Route(tRoute).ParentRef(&parentRef)
+					parentRefReporter.SetCondition(reports.RouteCondition{
+						Type:   gwv1.RouteConditionAccepted,
+						Status: metav1.ConditionTrue,
+						Reason: gwv1.RouteReasonAccepted,
+					})
+					parentRefReporters = append(parentRefReporters, parentRefReporter)
+				}
 
-			for i, rule := range tRoute.Spec.Rules {
-				// Ensure unique names by appending the rule index to the TCPRoute name
-				tcpHostName := fmt.Sprintf("%s-rule-%d", tRoute.Name, i)
-				tcpHost := buildTcpHost(r, parentRefReporters, tcpHostName, listener.Port, rule.BackendRefs)
-				if tcpHost != nil {
-					tcpHosts = append(tcpHosts, tcpHost)
+				for i, rule := range tRoute.Spec.Rules {
+					// Ensure unique names by appending the rule index to the TCPRoute name
+					tcpHostName := fmt.Sprintf("%s-rule-%d", tRoute.Name, i)
+					tcpHost := buildTcpHost(r, parentRefReporters, tcpHostName, listener.Port, rule.BackendRefs)
+					if tcpHost != nil {
+						tcpHosts = append(tcpHosts, tcpHost)
+					}
 				}
 			}
 		}
@@ -722,43 +853,44 @@ func translateSslConfig(
 	}
 
 	// TODO support passthrough mode
-	if tls.Mode == nil ||
-		*tls.Mode != gwv1.TLSModeTerminate {
+	if tls.Mode == nil {
 		return nil, nil
 	}
 
 	var secretRef *core.ResourceRef
-	for _, certRef := range tls.CertificateRefs {
-		// validate via query
-		secret, err := queries.GetSecretForRef(ctx, query.FromGkNs{
-			Gk: metav1.GroupKind{
-				Group: gwv1.GroupName,
-				Kind:  "Gateway",
-			},
-			Ns: parentNamespace,
-		}, certRef)
-		if err != nil {
-			return nil, err
-		}
-		// The resulting sslconfig will still have to go through a real translation where we run through this again.
-		// This means that while its nice to still fail early here we dont need to scrub the actual contents of the secret.
-		if _, err := sslutils.ValidateTlsSecret(secret.(*corev1.Secret)); err != nil {
-			return nil, err
-		}
+	if *tls.Mode == gwv1.TLSModeTerminate {
+		for _, certRef := range tls.CertificateRefs {
+			// validate via query
+			secret, err := queries.GetSecretForRef(ctx, query.FromGkNs{
+				Gk: metav1.GroupKind{
+					Group: gwv1.GroupName,
+					Kind:  "Gateway",
+				},
+				Ns: parentNamespace,
+			}, certRef)
+			if err != nil {
+				return nil, err
+			}
+			// The resulting sslconfig will still have to go through a real translation where we run through this again.
+			// This means that while its nice to still fail early here we dont need to scrub the actual contents of the secret.
+			if _, err := sslutils.ValidateTlsSecret(secret.(*corev1.Secret)); err != nil {
+				return nil, err
+			}
 
-		// TODO verify secret ref / grant using query
-		secretNamespace := parentNamespace
-		if certRef.Namespace != nil {
-			secretNamespace = string(*certRef.Namespace)
+			// TODO verify secret ref / grant using query
+			secretNamespace := parentNamespace
+			if certRef.Namespace != nil {
+				secretNamespace = string(*certRef.Namespace)
+			}
+			secretRef = &core.ResourceRef{
+				Name:      string(certRef.Name),
+				Namespace: secretNamespace,
+			}
+			break // TODO support multiple certs
 		}
-		secretRef = &core.ResourceRef{
-			Name:      string(certRef.Name),
-			Namespace: secretNamespace,
+		if secretRef == nil {
+			return nil, nil
 		}
-		break // TODO support multiple certs
-	}
-	if secretRef == nil {
-		return nil, nil
 	}
 
 	var sniDomains []string
@@ -766,7 +898,7 @@ func translateSslConfig(
 		sniDomains = []string{string(*sniDomain)}
 	}
 	cfg := &ssl.SslConfig{
-		SslSecrets:                    &ssl.SslConfig_SecretRef{SecretRef: secretRef},
+		SslSecrets:                    nil,
 		SniDomains:                    sniDomains,
 		VerifySubjectAltName:          nil,
 		Parameters:                    nil,
@@ -775,6 +907,9 @@ func translateSslConfig(
 		DisableTlsSessionResumption:   nil,
 		TransportSocketConnectTimeout: nil,
 		OcspStaplePolicy:              0,
+	}
+	if secretRef != nil {
+		cfg.SslSecrets = &ssl.SslConfig_SecretRef{SecretRef: secretRef}
 	}
 
 	// Apply known SSL Extension options

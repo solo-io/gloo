@@ -34,11 +34,18 @@ func getSupportedProtocolsRoutes() map[protocol]map[groupName][]routeKind {
 		string(gwv1.HTTPSProtocolType): {
 			gwv1.GroupName: []string{
 				wellknown.HTTPRouteKind,
+				// wellknown.TLSRouteKind, // question: TLSRoute supported?
 			},
 		},
 		string(gwv1.TCPProtocolType): {
 			gwv1.GroupName: []string{
 				wellknown.TCPRouteKind,
+			},
+		},
+		string(gwv1.TLSProtocolType): {
+			gwv1.GroupName: []string{
+				wellknown.TLSRouteKind,
+				// wellknown.TCPRouteKind, // question: TCPRoute supported?
 			},
 		},
 	}
