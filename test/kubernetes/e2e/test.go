@@ -102,6 +102,12 @@ func CreateTestInstallationForCluster(
 			WithClusterContext(clusterContext).
 			WithGlooGatewayContext(glooGatewayContext),
 
+		AssertionsT: func(t *testing.T) *assertions.Provider {
+			return assertions.NewProvider(t).
+				WithClusterContext(clusterContext).
+				WithGlooGatewayContext(glooGatewayContext)
+		},
+
 		// GeneratedFiles contains the unique location where files generated during the execution
 		// of tests against this installation will be stored
 		// By creating a unique location, per TestInstallation and per Cluster.Name we guarantee isolation
@@ -133,7 +139,11 @@ type TestInstallation struct {
 	Actions *actions.Provider
 
 	// Assertions is the entity that creates assertions that can be executed by the Operator
+	// DEPRECATED: Use AssertionsT instead (which is scoped to a specific test and not the root suite)
 	Assertions *assertions.Provider
+
+	// AssertionsT creates an assertion provide that is scoped to the provided test
+	AssertionsT func(*testing.T) *assertions.Provider
 
 	// GeneratedFiles is the collection of directories and files that this test installation _may_ create
 	GeneratedFiles GeneratedFiles
