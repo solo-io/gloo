@@ -128,6 +128,8 @@ func (r *gatewayQueries) GetRouteChain(
 	case *gwv1a2.TCPRoute:
 		backends = r.resolveRouteBackends(ctx, typedRoute)
 		// TODO (danehans): Should TCPRoute delegation support be added in the future?
+	case *gwv1a2.TLSRoute:
+		backends = r.resolveRouteBackends(ctx, typedRoute)
 	default:
 		return nil
 	}
@@ -221,6 +223,14 @@ func (r *gatewayQueries) resolveRouteBackends(ctx context.Context, obj client.Ob
 			processBackendRefs(refs)
 		}
 	case *gwv1a2.TCPRoute:
+		for _, rule := range rt.Spec.Rules {
+			var refs []gwv1.BackendObjectReference
+			for _, ref := range rule.BackendRefs {
+				refs = append(refs, ref.BackendObjectReference)
+			}
+			processBackendRefs(refs)
+		}
+	case *gwv1a2.TLSRoute:
 		for _, rule := range rt.Spec.Rules {
 			var refs []gwv1.BackendObjectReference
 			for _, ref := range rule.BackendRefs {
