@@ -142,7 +142,7 @@ type TestInstallation struct {
 	// DEPRECATED: Use AssertionsT instead (which is scoped to a specific test and not the root suite)
 	Assertions *assertions.Provider
 
-	// AssertionsT creates an assertion provide that is scoped to the provided test
+	// AssertionsT creates an assertion provider that is scoped to the provided test
 	AssertionsT func(*testing.T) *assertions.Provider
 
 	// GeneratedFiles is the collection of directories and files that this test installation _may_ create
