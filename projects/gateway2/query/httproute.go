@@ -365,6 +365,16 @@ func (r *gatewayQueries) GetRoutesForGateway(ctx context.Context, gw *gwv1.Gatew
 		routeListTypes = append(routeListTypes, &gwv1a2.TCPRouteList{})
 	}
 
+	// Conditionally include TLSRouteList
+	tlsRouteGVK := schema.GroupVersionKind{
+		Group:   gwv1a2.GroupVersion.Group,
+		Version: gwv1a2.GroupVersion.Version,
+		Kind:    wellknown.TLSRouteKind,
+	}
+	if r.scheme.Recognizes(tlsRouteGVK) {
+		routeListTypes = append(routeListTypes, &gwv1a2.TLSRouteList{})
+	}
+
 	var routes []client.Object
 	for _, routeList := range routeListTypes {
 		if err := fetchRoutes(ctx, r, routeList, nns, &routes); err != nil {
@@ -405,6 +415,10 @@ func fetchRoutes(ctx context.Context, r *gatewayQueries, routeList client.Object
 	case *gwv1a2.TCPRouteList:
 		if err := listAndAppendRoutes(list, TcpRouteTargetField); err != nil {
 			return fmt.Errorf("failed to list TCPRoutes: %w", err)
+		}
+	case *gwv1a2.TLSRouteList:
+		if err := listAndAppendRoutes(list, TlsRouteTargetField); err != nil {
+			return fmt.Errorf("failed to list TLSRoutes: %w", err)
 		}
 	default:
 		return fmt.Errorf("unsupported route list type: %T", list)
@@ -452,12 +466,22 @@ func (r *gatewayQueries) processRoute(ctx context.Context, gw *gwv1.Gateway, rou
 			}
 			anyListenerMatched = true
 
-			// If the route is an HTTPRoute, check the hostname intersection
+			// If the route is an HTTPRoute or TLSRoute, check the hostname intersection
 			var hostnames []string
 			if routeKind == wellknown.HTTPRouteKind {
 				if hr, ok := route.(*gwv1.HTTPRoute); ok {
 					var ok bool
-					ok, hostnames = hostnameIntersect(&l, hr)
+					ok, hostnames = hostnameIntersect(&l, hr.Spec.Hostnames)
+					if !ok {
+						continue
+					}
+					anyHostsMatch = true
+				}
+			}
+			if routeKind == wellknown.TLSRouteKind {
+				if tr, ok := route.(*gwv1a2.TLSRoute); ok {
+					var ok bool
+					ok, hostnames = hostnameIntersect(&l, tr.Spec.Hostnames)
 					if !ok {
 						continue
 					}
@@ -527,6 +551,12 @@ func getRouteItems(list client.ObjectList) ([]client.Object, error) {
 		}
 		return objs, nil
 	case *gwv1a2.TCPRouteList:
+		var objs []client.Object
+		for i := range routes.Items {
+			objs = append(objs, &routes.Items[i])
+		}
+		return objs, nil
+	case *gwv1a2.TLSRouteList:
 		var objs []client.Object
 		for i := range routes.Items {
 			objs = append(objs, &routes.Items[i])
