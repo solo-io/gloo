@@ -106,6 +106,8 @@ func (r *ReportMap) newRouteReport(obj client.Object) *RouteReport {
 		r.HTTPRoutes[key] = rr
 	case *gwv1alpha2.TCPRoute:
 		r.TCPRoutes[key] = rr
+	case *gwv1alpha2.TLSRoute:
+		r.TLSRoutes[key] = rr
 	default:
 		contextutils.LoggerFrom(context.TODO()).Warnf("Unsupported route type: %T", obj)
 		return nil
