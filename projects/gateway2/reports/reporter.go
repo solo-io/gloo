@@ -16,6 +16,7 @@ type ReportMap struct {
 	Gateways   map[types.NamespacedName]*GatewayReport
 	HTTPRoutes map[types.NamespacedName]*RouteReport
 	TCPRoutes  map[types.NamespacedName]*RouteReport
+	TLSRoutes  map[types.NamespacedName]*RouteReport
 }
 
 type GatewayReport struct {
