@@ -108,9 +108,8 @@ func (s *k8sServerTlsTestingSuite) TestOneWayServerTlsWorksWithOneWayTls() {
 }
 
 func (s *k8sServerTlsTestingSuite) assertEventualResponse(hostHeaderValue string, matcher *matchers.HttpResponse) {
-
 	// Check curl works against expected response
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		kubectl.PodExecOptions{
 			Name:      "curl",
@@ -123,7 +122,7 @@ func (s *k8sServerTlsTestingSuite) assertEventualResponse(hostHeaderValue string
 
 func (s *k8sServerTlsTestingSuite) assertEventualError(hostHeaderValue string, code int) {
 	// Check curl works against expected response
-	s.testInstallation.Assertions.AssertEventualCurlError(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlError(
 		s.ctx,
 		kubectl.PodExecOptions{
 			Name:      "curl",
