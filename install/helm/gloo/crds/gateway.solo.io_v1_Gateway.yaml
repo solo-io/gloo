@@ -1158,6 +1158,11 @@ spec:
                                       namespace:
                                         type: string
                                     type: object
+                                  grpcService:
+                                    properties:
+                                      authority:
+                                        type: string
+                                    type: object
                                   serviceName:
                                     type: string
                                 type: object
@@ -1859,6 +1864,11 @@ spec:
                                       name:
                                         type: string
                                       namespace:
+                                        type: string
+                                    type: object
+                                  grpcService:
+                                    properties:
+                                      authority:
                                         type: string
                                     type: object
                                   serviceName:
@@ -3228,6 +3238,11 @@ spec:
                                                 name:
                                                   type: string
                                                 namespace:
+                                                  type: string
+                                              type: object
+                                            grpcService:
+                                              properties:
+                                                authority:
                                                   type: string
                                               type: object
                                             serviceName:

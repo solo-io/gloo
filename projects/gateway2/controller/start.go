@@ -8,6 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/config"
 
 	glooschemes "github.com/solo-io/gloo/pkg/schemes"
+	"github.com/solo-io/gloo/pkg/utils/namespaces"
 	"github.com/solo-io/go-utils/contextutils"
 
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -77,6 +78,8 @@ type StartConfig struct {
 	InitialSettings *glookubev1.Settings
 	Settings        krt.Singleton[glookubev1.Settings]
 
+	GlooMtlsEnabled bool
+
 	Debugger *krt.DebugHandler
 }
 
@@ -84,11 +87,12 @@ type StartConfig struct {
 // It is intended to be run in a goroutine as the function will block until the supplied
 // context is cancelled
 type ControllerBuilder struct {
-	proxySyncer     *proxy_syncer.ProxySyncer
-	inputChannels   *proxy_syncer.GatewayInputChannels
-	cfg             StartConfig
-	k8sGwExtensions ext.K8sGatewayExtensions
-	mgr             ctrl.Manager
+	proxySyncer           *proxy_syncer.ProxySyncer
+	inputChannels         *proxy_syncer.GatewayInputChannels
+	cfg                   StartConfig
+	k8sGwExtensions       ext.K8sGatewayExtensions
+	mgr                   ctrl.Manager
+	allowedGatewayClasses sets.Set[string]
 }
 
 func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuilder, error) {
@@ -170,6 +174,8 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 		return nil, err
 	}
 
+	allowedGatewayClasses := sets.New(append(cfg.SetupOpts.ExtraGatewayClasses, wellknown.GatewayClassName)...)
+
 	// Create the proxy syncer for the Gateway API resources
 	setupLog.Info("initializing proxy syncer")
 	proxySyncer := proxy_syncer.NewProxySyncer(
@@ -190,6 +196,7 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 		cfg.SyncerExtensions,
 		cfg.GlooStatusReporter,
 		cfg.SetupOpts.ProxyReconcileQueue,
+		allowedGatewayClasses,
 	)
 	proxySyncer.Init(ctx, cfg.Debugger)
 	if err := mgr.Add(proxySyncer); err != nil {
@@ -198,11 +205,12 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 	}
 
 	return &ControllerBuilder{
-		proxySyncer:     proxySyncer,
-		inputChannels:   inputChannels,
-		cfg:             cfg,
-		k8sGwExtensions: k8sGwExtensions,
-		mgr:             mgr,
+		proxySyncer:           proxySyncer,
+		inputChannels:         inputChannels,
+		cfg:                   cfg,
+		k8sGwExtensions:       k8sGwExtensions,
+		mgr:                   mgr,
+		allowedGatewayClasses: allowedGatewayClasses,
 	}, nil
 }
 
@@ -216,7 +224,7 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 		return ctx.Err()
 	}
 
-	logger.Infow("got xds address for deployer", uzap.String("xds_host", xdsHost), uzap.Int32("xds_port", xdsPort))
+	logger.Infow("got xds address for deployer", uzap.String("xds_host", xdsHost), uzap.Int32("xds_port", xdsPort), uzap.Any("glooMtlsEnabled", c.cfg.GlooMtlsEnabled))
 
 	integrationEnabled := c.cfg.InitialSettings.Spec.GetGloo().GetIstioOptions().GetEnableIntegration().GetValue()
 
@@ -246,12 +254,14 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 
 	gwCfg := GatewayConfig{
 		Mgr:            c.mgr,
-		GWClasses:      sets.New(append(c.cfg.SetupOpts.ExtraGatewayClasses, wellknown.GatewayClassName)...),
+		GWClasses:      c.allowedGatewayClasses,
 		ControllerName: wellknown.GatewayControllerName,
 		AutoProvision:  AutoProvision,
 		ControlPlane: deployer.ControlPlaneInfo{
-			XdsHost: xdsHost,
-			XdsPort: xdsPort,
+			XdsHost:         xdsHost,
+			XdsPort:         xdsPort,
+			GlooMtlsEnabled: c.cfg.GlooMtlsEnabled,
+			Namespace:       namespaces.GetPodNamespace(),
 		},
 		// TODO pass in the settings so that the deloyer can register to it for changes.
 		IstioIntegrationEnabled: integrationEnabled,

@@ -188,6 +188,11 @@ func (c *controllerBuilder) addHttpLisOptIndexes(ctx context.Context) error {
 	})
 }
 
+func (c *controllerBuilder) shouldWatchSecrets() bool {
+	// watch for secrets if mtls is enabled
+	return c.cfg.ControlPlane.GlooMtlsEnabled
+}
+
 func (c *controllerBuilder) watchGw(ctx context.Context) error {
 	// setup a deployer
 	log := log.FromContext(ctx)
@@ -224,8 +229,31 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 			),
 		))
 
-	// watch for changes in GatewayParameters
 	cli := c.cfg.Mgr.GetClient()
+
+	// watch for secrets if needed
+	if c.shouldWatchSecrets() {
+		buildr.Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(
+			func(ctx context.Context, obj client.Object) []reconcile.Request {
+				var reqs []reconcile.Request
+				if obj.GetName() == wellknown.GlooMtlsCertName && obj.GetNamespace() == c.cfg.ControlPlane.Namespace {
+					var gwList apiv1.GatewayList
+					err := cli.List(ctx, &gwList, client.InNamespace(corev1.NamespaceAll))
+					if err != nil {
+						log.Error(err, "could not list Gateways", "namespace", corev1.NamespaceAll)
+						return reqs
+					}
+
+					for _, gw := range gwList.Items {
+						reqs = append(reqs, reconcile.Request{NamespacedName: client.ObjectKey{Namespace: gw.Namespace, Name: gw.Name}})
+					}
+					return reqs
+				}
+				return reqs
+			}))
+	}
+
+	// watch for changes in GatewayParameters
 	buildr.Watches(&v1alpha1.GatewayParameters{}, handler.EnqueueRequestsFromMapFunc(
 		func(ctx context.Context, obj client.Object) []reconcile.Request {
 			gwpName := obj.GetName()

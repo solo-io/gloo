@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-gateway-proxy-tracing
+  labels:
+    app.kubernetes.io/name: k8s-gateway-proxy-tracing
+spec:
+  type: LoadBalancer
+  ports:
+    # This service exposes the Port 8080, used by the Gateway defined in ./k8s-gateway.yaml
+    - name: k8s-gateway-proxy-tracing
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  # This selector is meant to match the Selector of the deployed proxy ervice
+  # We intend to route traffic to the proxy pod(s) that are deployed at install time
+  selector:
+    gateway.networking.k8s.io/gateway-name: gw
