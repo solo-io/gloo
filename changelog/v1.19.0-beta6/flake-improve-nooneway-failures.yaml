@@ -1,6 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    description: |
-      Adjusted timeout in an effort to reduce failures of these tests.
-    issueLink: https://github.com/solo-io/solo-projects/issues/7685
-    resolvesIssue: false
