@@ -31,6 +31,7 @@ Construct a container image name from a registry, repository, tag, and digest.
 {{- define "gloo.image" -}}
 {{- $image := printf "%s/%s" .registry .repository -}}
 
+{{- /* This has been copied over to _gg-helpers.tpl and should be kept in sync */ -}}
 {{- /*
 for fips or fips-distroless variants: add -fips to the image repo (name)
 */ -}}
@@ -170,7 +171,7 @@ It takes 4 values:
   .defaults - the default securityContext for the pod or container
   .globalSec - global security settings, usually from .Values.global.securitySettings
   .indent - the number of spaces to indent the output. If not set, the output will not be indented.
-    The indentation argument is necessary because it is possible that no output will be rendered. 
+    The indentation argument is necessary because it is possible that no output will be rendered.
     If that happens and the caller handles the indentation the result will be a line of whitespace, which gets caught by the whitespace tests
 
   Depending upon the value of .values.merge, the securityContext will be merged with the defaults or completely replaced.
@@ -234,7 +235,7 @@ It takes 4 values:
   .podSecurityStandards - podSecurityStandard from values.yaml
   .globalSec - global security settings, usually from .Values.global.securitySettings
   .indent - the number of spaces to indent the output. If not set, the output will not be indented.
-    The indentation argument is necessary because it is possible that no output will be rendered. 
+    The indentation argument is necessary because it is possible that no output will be rendered.
     If that happens and the caller handles the indentation the result will be a line of whitespace, which gets caught by the whitespace tests
 
   If .podSecurityStandards.container.enableRestrictedContainerDefaults is true, the defaults will be set to a restricted set of values.
@@ -260,7 +261,7 @@ It takes 4 values:
 {{- end -}}
 {{- /* set default seccompProfileType */ -}}
 
-{{- $pss_restricted_defaults := dict 
+{{- $pss_restricted_defaults := dict
     "runAsNonRoot" true
     "capabilities" (dict "drop" (list "ALL"))
     "allowPrivilegeEscalation" false }}
@@ -280,7 +281,7 @@ It takes 4 values:
   {{- end -}}
 {{- end -}}
 {{- /* call general securityContext template */ -}}
-{{- include "gloo.securityContext" (dict 
+{{- include "gloo.securityContext" (dict
             "values" $values
             "defaults" $defaults
             "indent" $indent

@@ -46,11 +46,36 @@ ref Image api in projects/gateway2/api/v1alpha1/kube/container.proto
 {{- if $image.registry }}
 registry: {{ $image.registry }}
 {{- end -}}{{/* if $image.registry */}}
+
+{{- /* This has been copied from _helpers.tpl and should be kept in sync */ -}}
 {{- if $image.repository }}
-repository: {{ $image.repository }}
+{{- $repository := $image.repository -}}
+{{- /*
+for fips or fips-distroless variants: add -fips to the image repo (name)
+*/ -}}
+{{- if or $image.fips (has $image.variant (list "fips" "fips-distroless")) -}}
+{{- $fipsSupportedImages := list "gloo-ee" "extauth-ee" "gloo-ee-envoy-wrapper" "rate-limit-ee" "discovery-ee" "sds-ee" -}}
+{{- if (has $image.repository $fipsSupportedImages) -}}
+{{- $repository = printf "%s-fips" $repository -}}
+{{- end -}}{{- /* if (has .repository $fipsSupportedImages) */ -}}
+{{- end -}}{{- /* if or .fips (has .variant (list "fips" "fips-distroless")) */ -}}
+{{ printf "\n" }}
+repository: {{ $repository }}
 {{- end -}}{{/* if $image.repository */}}
+
 {{- if $image.tag }}
-tag: {{ $image.tag }}
+{{- $tag := $image.tag -}}
+{{- /*
+for distroless or fips-distroless variants: add -distroless to the tag
+*/ -}}
+{{- if has $image.variant (list "distroless" "fips-distroless") -}}
+{{- $distrolessSupportedImages := list "gloo" "gloo-envoy-wrapper" "discovery" "sds" "certgen" "kubectl" "access-logger" "ingress" "gloo-ee" "extauth-ee" "gloo-ee-envoy-wrapper" "rate-limit-ee" "discovery-ee" "sds-ee" "observability-ee" "caching-ee" -}}
+{{- if (has $image.repository $distrolessSupportedImages) -}}
+{{- $tag = printf "%s-distroless" $tag -}} {{- /* Add distroless suffix to the tag since it contains the same binaries in a different container */ -}}
+{{- end -}}{{- /* if (has .repository $distrolessSupportedImages) */ -}}
+{{- end }}{{- /* if and .tag (has .variant (list "distroless" "fips-distroless")) */ -}}
+{{ printf "\n" }}
+tag: {{ $tag }}
 {{- end -}}{{/* if $image.tag */}}
 {{- if $image.digest }}
 digest: {{ $image.digest }}
