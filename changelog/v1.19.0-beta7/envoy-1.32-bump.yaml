@@ -1,0 +1,12 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo
+    dependencyTag: v1.32.3-patch2
+    issueLink: https://github.com/solo-io/solo-projects/issues/7608
+  - type: BREAKING_CHANGE
+    issueLink: https://github.com/solo-io/solo-projects/issues/7608
+    description: >-
+      The default configuration of Envoy will continue to trust internal addresses while in the future it will not trust them by default. If you have tooling such as probes on your private network which need to be treated as trusted (e.g. changing arbitrary x-envoy headers) please explicitly include those addresses or CIDR ranges into [internal_address_config](https://www.envoyproxy.io/docs/envoy/v1.32.3/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto.html#envoy-v3-api-field-extensions-filters-network-http-connection-manager-v3-httpconnectionmanager-internal-address-config). See the config examples from the above internal_address_config link. You can turn up or test the upcoming internal address defaults by setting runtime guard envoy.reloadable_features.explicit_internal_address_config to true.
+
+      For more information, see: https://github.com/envoyproxy/envoy/pull/36221
