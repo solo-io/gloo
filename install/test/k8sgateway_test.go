@@ -488,7 +488,7 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 				})
 			})
 
-			FContext("distroless and fips", func() {
+			Context("distroless and fips", func() {
 				DescribeTable("Uses the correct image for the sds-ee container", func(variant string, expectedImage string) {
 					extraValueArgs := []string{
 						"kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.registry=my-sds-reg",
