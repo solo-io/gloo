@@ -2,6 +2,7 @@ package tcp
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -245,6 +246,17 @@ func (p *plugin) computeTcpFilterChain(
 	if sslConfig == nil {
 		return &envoy_config_listener_v3.FilterChain{
 			Filters: listenerFilters,
+		}, nil
+	}
+
+	// needed to handle passthrough
+	fmt.Println("listerFilters", listenerFilters)
+	if sslConfig.GetSslSecrets() == nil && len(sslConfig.GetSniDomains()) != 0 {
+		return &envoy_config_listener_v3.FilterChain{
+			Filters: listenerFilters,
+			FilterChainMatch: &envoy_config_listener_v3.FilterChainMatch{
+				ServerNames: sslConfig.SniDomains,
+			},
 		}, nil
 	}
 
