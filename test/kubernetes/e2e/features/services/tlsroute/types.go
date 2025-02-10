@@ -17,24 +17,24 @@ import (
 )
 
 const (
-	// Constants used by TestConfigureTCPRouteBackingDestinationsWithSingleService
-	singleSvcNsName           = "single-tls-route"
-	singleSvcGatewayName      = "single-tls-gateway"
-	singleSvcListenerName8087 = "listener-443"
-	singleSvcName             = "single-svc"
-	singleSvcTLSRouteName     = "single-tls-route"
+	// Constants used by TestConfigureTLSRouteBackingDestinationsWithSingleService
+	singleSvcNsName          = "single-tls-route"
+	singleSvcGatewayName     = "single-tls-gateway"
+	singleSvcListenerName443 = "listener-443"
+	singleSvcName            = "single-svc"
+	singleSvcTLSRouteName    = "single-tls-route"
 
-	// Constants used by TestConfigureTCPRouteBackingDestinationsWithMultiServices
-	multiSvcNsName           = "multi-tcp-route"
-	multiSvcGatewayName      = "multi-tcp-gateway"
-	multiSvcListenerName8089 = "listener-8089"
-	multiSvcListenerName8088 = "listener-8088"
+	// Constants used by TestConfigureTLSRouteBackingDestinationsWithMultiServices
+	multiSvcNsName           = "multi-tls-route"
+	multiSvcGatewayName      = "multi-tls-gateway"
+	multiSvcListenerName6443 = "listener-6443"
+	multiSvcListenerName8443 = "listener-8443"
 	multiSvc1Name            = "multi-svc-1"
 	multiSvc2Name            = "multi-svc-2"
-	multiSvcTCPRouteName1    = "tcp-route-1"
-	multiSvcTCPRouteName2    = "tcp-route-2"
+	multiSvcTLSRouteName1    = "tls-route-1"
+	multiSvcTLSRouteName2    = "tls-route-2"
 
-	// Constants for CrossNamespaceTCPRouteWithReferenceGrant
+	// Constants for CrossNamespaceTLSRouteWithReferenceGrant
 	crossNsTestName           = "CrossNamespaceTCPRouteWithReferenceGrant"
 	crossNsClientName         = "cross-namespace-allowed-client-ns"
 	crossNsBackendNsName      = "cross-namespace-allowed-backend-ns"
@@ -59,7 +59,7 @@ var (
 	multiSvcNsManifest               = filepath.Join(util.MustGetThisDir(), "testdata", "multi-ns.yaml")
 	multiSvcGatewayAndClientManifest = filepath.Join(util.MustGetThisDir(), "testdata", "multi-listener-gateway-and-client.yaml")
 	multiSvcBackendManifest          = filepath.Join(util.MustGetThisDir(), "testdata", "multi-backend-service.yaml")
-	multiSvcTcpRouteManifest         = filepath.Join(util.MustGetThisDir(), "testdata", "multi-tcproute.yaml")
+	multiSvcTlsRouteManifest         = filepath.Join(util.MustGetThisDir(), "testdata", "multi-tlsroute.yaml")
 
 	// Variables used by TestConfigureTCPRouteBackingDestinationsWithMultiServices
 	singleSvcNsManifest               = filepath.Join(util.MustGetThisDir(), "testdata", "single-ns.yaml")
@@ -108,7 +108,7 @@ var (
 	}
 
 	multiGlooProxy = metav1.ObjectMeta{
-		Name:      "gloo-proxy-multi-tcp-gateway",
+		Name:      "gloo-proxy-multi-tls-gateway",
 		Namespace: multiSvcNsName,
 	}
 	multiProxyDeployment = &appsv1.Deployment{ObjectMeta: multiGlooProxy}
