@@ -360,7 +360,7 @@ func (ml *MergedListeners) AppendTlsListener(
 
 		if len(tRoute.Spec.ParentRefs) == 0 {
 			contextutils.LoggerFrom(context.Background()).Warnf(
-				"No parent references found for TCPRoute %s", tRoute.Name,
+				"No parent references found for TLSRoute %s", tRoute.Name,
 			)
 			continue
 		}
