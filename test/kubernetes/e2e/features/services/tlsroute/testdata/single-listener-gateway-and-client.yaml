@@ -7,7 +7,7 @@ spec:
   listeners:
   - name: listener-443
     protocol: TLS
-    port: 443
+    port: 6443
     hostname: "example.com"
     tls:
       mode: Passthrough
@@ -36,3 +36,11 @@ spec:
           cpu: "100m"
         limits:
           cpu: "200m"
+      volumeMounts:
+        - name: server-certs
+          mountPath: /etc/server-certs
+          readOnly: true
+  volumes:
+    - name: server-certs
+      secret:
+        secretName: tls-secret

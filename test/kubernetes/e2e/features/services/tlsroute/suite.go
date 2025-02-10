@@ -92,7 +92,7 @@ func (s *testingSuite) TestConfigureTLSRouteBackingDestinations() {
 			expectedResponses: []*matchers.HttpResponse{
 				expectedSingleSvcResp,
 			},
-			ports: []int{8087},
+			ports: []int{6443},
 			listenerNames: []v1.SectionName{
 				v1.SectionName(singleSvcListenerName8087),
 			},
@@ -249,7 +249,8 @@ func (s *testingSuite) TestConfigureTLSRouteBackingDestinations() {
 						[]curl.Option{
 							curl.WithHost(kubeutils.ServiceFQDN(tc.proxyService.ObjectMeta)),
 							curl.WithPort(port),
-							// curl.WithCaFile(caCertPath),
+							curl.WithCaFile("/etc/server-certs/tls.crt"),
+							curl.WithScheme("https"),
 							curl.WithSni("example.com"),
 							curl.IgnoreServerCert(),
 							curl.VerboseOutput(),
