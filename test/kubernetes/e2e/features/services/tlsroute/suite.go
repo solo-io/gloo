@@ -47,10 +47,10 @@ func (s *testingSuite) SetupSuite() {
 		singleSvcGatewayAndClientManifest,
 		singleSvcBackendManifest,
 		singleSvcTLSRouteManifest,
-		// multiSvcNsManifest,
-		// multiSvcGatewayAndClientManifest,
-		// multiSvcBackendManifest,
-		// multiSvcTcpRouteManifest,
+		multiSvcNsManifest,
+		multiSvcGatewayAndClientManifest,
+		multiSvcBackendManifest,
+		multiSvcTlsRouteManifest,
 	}
 	for _, file := range manifests {
 		s.Require().NoError(validateManifestFile(file), "Invalid manifest file: %s", file)
@@ -94,71 +94,74 @@ func (s *testingSuite) TestConfigureTLSRouteBackingDestinations() {
 			},
 			ports: []int{6443},
 			listenerNames: []v1.SectionName{
-				v1.SectionName(singleSvcListenerName8087),
+				v1.SectionName(singleSvcListenerName443),
 			},
 			expectedRouteCounts: []int32{1},
 			tlsRouteNames:       []string{singleSvcTLSRouteName},
 		},
-		// {
-		// 	name:             "MultiServicesTCPRoute",
-		// 	nsManifest:       multiSvcNsManifest,
-		// 	gtwName:          multiSvcGatewayName,
-		// 	gtwNs:            multiSvcNsName,
-		// 	gtwManifest:      multiSvcGatewayAndClientManifest,
-		// 	svcManifest:      multiSvcBackendManifest,
-		// 	tlsRouteManifest: multiSvcTcpRouteManifest,
-		// 	proxyService:     multiProxyService,
-		// 	proxyDeployment:  multiProxyDeployment,
-		// 	expectedResponses: []*matchers.HttpResponse{
-		// 		expectedMultiSvc1Resp,
-		// 		expectedMultiSvc2Resp,
-		// 	},
-		// 	ports: []int{8088, 8089},
-		// 	listenerNames: []v1.SectionName{
-		// 		v1.SectionName(multiSvcListenerName8088),
-		// 		v1.SectionName(multiSvcListenerName8089),
-		// 	},
-		// 	expectedRouteCounts: []int32{1, 1},
-		// 	tcpRouteNames:       []string{multiSvcTCPRouteName1, multiSvcTCPRouteName2},
-		// },
-		// {
-		// 	name:             crossNsTestName,
-		// 	nsManifest:       crossNsClientNsManifest,
-		// 	gtwName:          crossNsGatewayName,
-		// 	gtwNs:            crossNsClientName,
-		// 	gtwManifest:      crossNsGatewayManifest,
-		// 	svcManifest:      crossNsBackendSvcManifest,
-		// 	tlsRouteManifest: crossNsTCPRouteManifest,
-		// 	proxyService:     crossNsProxyService,
-		// 	proxyDeployment:  crossNsProxyDeployment,
-		// 	expectedResponses: []*matchers.HttpResponse{
-		// 		expectedCrossNsResp,
-		// 	},
-		// 	ports: []int{8080},
-		// 	listenerNames: []v1.SectionName{
-		// 		v1.SectionName(crossNsListenerName),
-		// 	},
-		// 	expectedRouteCounts: []int32{1},
-		// 	tcpRouteNames:       []string{crossNsTCPRouteName},
-		// },
-		// {
-		// 	name:              crossNsNoRefGrantTestName,
-		// 	nsManifest:        crossNsNoRefGrantClientNsManifest,
-		// 	gtwName:           crossNsNoRefGrantGatewayName,
-		// 	gtwNs:             crossNsNoRefGrantClientNsName,
-		// 	gtwManifest:       crossNsNoRefGrantGatewayManifest,
-		// 	svcManifest:       crossNsNoRefGrantBackendSvcManifest,
-		// 	tlsRouteManifest:  crossNsNoRefGrantTCPRouteManifest,
-		// 	proxyService:      crossNsNoRefGrantProxyService,
-		// 	proxyDeployment:   crossNsNoRefGrantProxyDeployment,
-		// 	expectedErrorCode: 7,
-		// 	ports:             []int{8080},
-		// 	listenerNames: []v1.SectionName{
-		// 		v1.SectionName(crossNsNoRefGrantListenerName),
-		// 	},
-		// 	expectedRouteCounts: []int32{1},
-		// 	tcpRouteNames:       []string{crossNsNoRefGrantTCPRouteName},
-		// },
+		{
+			name:              "MultiServicesTLSRoute",
+			nsManifest:        multiSvcNsManifest,
+			gtwName:           multiSvcGatewayName,
+			gtwNs:             multiSvcNsName,
+			gtwManifest:       multiSvcGatewayAndClientManifest,
+			svcManifest:       multiSvcBackendManifest,
+			tlsRouteManifest:  multiSvcTlsRouteManifest,
+			tlsSecretManifest: singleSecretManifest,
+			proxyService:      multiProxyService,
+			proxyDeployment:   multiProxyDeployment,
+			expectedResponses: []*matchers.HttpResponse{
+				expectedMultiSvc1Resp,
+				expectedMultiSvc2Resp,
+			},
+			ports: []int{6443, 8443},
+			listenerNames: []v1.SectionName{
+				v1.SectionName(multiSvcListenerName6443),
+				v1.SectionName(multiSvcListenerName8443),
+			},
+			expectedRouteCounts: []int32{1, 1},
+			tlsRouteNames:       []string{multiSvcTLSRouteName1, multiSvcTLSRouteName2},
+		},
+		{
+			name:              crossNsTestName,
+			nsManifest:        crossNsClientNsManifest,
+			gtwName:           crossNsGatewayName,
+			gtwNs:             crossNsClientName,
+			gtwManifest:       crossNsGatewayManifest,
+			svcManifest:       crossNsBackendSvcManifest,
+			tlsRouteManifest:  crossNsTLSRouteManifest,
+			tlsSecretManifest: singleSecretManifest,
+			proxyService:      crossNsProxyService,
+			proxyDeployment:   crossNsProxyDeployment,
+			expectedResponses: []*matchers.HttpResponse{
+				expectedCrossNsResp,
+			},
+			ports: []int{8443},
+			listenerNames: []v1.SectionName{
+				v1.SectionName(crossNsListenerName),
+			},
+			expectedRouteCounts: []int32{1},
+			tlsRouteNames:       []string{crossNsTLSRouteName},
+		},
+		{
+			name:              crossNsNoRefGrantTestName,
+			nsManifest:        crossNsNoRefGrantClientNsManifest,
+			gtwName:           crossNsNoRefGrantGatewayName,
+			gtwNs:             crossNsNoRefGrantClientNsName,
+			gtwManifest:       crossNsNoRefGrantGatewayManifest,
+			svcManifest:       crossNsNoRefGrantBackendSvcManifest,
+			tlsRouteManifest:  crossNsNoRefGrantTLSRouteManifest,
+			tlsSecretManifest: singleSecretManifest,
+			proxyService:      crossNsNoRefGrantProxyService,
+			proxyDeployment:   crossNsNoRefGrantProxyDeployment,
+			expectedErrorCode: 7,
+			ports:             []int{8443},
+			listenerNames: []v1.SectionName{
+				v1.SectionName(crossNsNoRefGrantListenerName),
+			},
+			expectedRouteCounts: []int32{1},
+			tlsRouteNames:       []string{crossNsNoRefGrantTLSRouteName},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -169,7 +172,7 @@ func (s *testingSuite) TestConfigureTLSRouteBackingDestinations() {
 				s.deleteManifests(tc.nsManifest)
 
 				// Delete additional namespaces if any
-				if tc.name == "CrossNamespaceTCPRouteWithReferenceGrant" {
+				if tc.name == "CrossNamespaceTLSRouteWithReferenceGrant" {
 					s.deleteManifests(crossNsBackendNsManifest)
 				}
 
@@ -185,11 +188,13 @@ func (s *testingSuite) TestConfigureTLSRouteBackingDestinations() {
 				s.applyManifests(crossNsBackendNsName, crossNsBackendNsManifest)
 				s.applyManifests(crossNsBackendNsName, crossNsBackendSvcManifest)
 				s.applyManifests(crossNsBackendNsName, crossNsRefGrantManifest)
+				s.applyManifests(crossNsBackendNsName, singleSecretManifest)
 			}
 
 			if tc.name == crossNsNoRefGrantTestName {
 				s.applyManifests(crossNsNoRefGrantBackendNsName, crossNsNoRefGrantBackendNsManifest)
 				s.applyManifests(crossNsNoRefGrantBackendNsName, crossNsNoRefGrantBackendSvcManifest)
+				s.applyManifests(crossNsNoRefGrantBackendNsName, singleSecretManifest)
 				// ReferenceGrant not applied
 			}
 

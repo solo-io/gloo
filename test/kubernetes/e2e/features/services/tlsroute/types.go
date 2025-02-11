@@ -35,23 +35,23 @@ const (
 	multiSvcTLSRouteName2    = "tls-route-2"
 
 	// Constants for CrossNamespaceTLSRouteWithReferenceGrant
-	crossNsTestName           = "CrossNamespaceTCPRouteWithReferenceGrant"
+	crossNsTestName           = "CrossNamespaceTLSRouteWithReferenceGrant"
 	crossNsClientName         = "cross-namespace-allowed-client-ns"
 	crossNsBackendNsName      = "cross-namespace-allowed-backend-ns"
 	crossNsGatewayName        = "gateway"
-	crossNsListenerName       = "listener-8080"
+	crossNsListenerName       = "listener-8443"
 	crossNsBackendSvcName     = "backend-svc"
-	crossNsTCPRouteName       = "tcp-route"
+	crossNsTLSRouteName       = "tls-route"
 	crossNsReferenceGrantName = "reference-grant"
 
-	// Constants for CrossNamespaceTCPRouteWithoutReferenceGrant
-	crossNsNoRefGrantTestName       = "CrossNamespaceTCPRouteWithoutReferenceGrant"
+	// Constants for CrossNamespaceTLSRouteWithoutReferenceGrant
+	crossNsNoRefGrantTestName       = "CrossNamespaceTLSRouteWithoutReferenceGrant"
 	crossNsNoRefGrantClientNsName   = "client-ns-no-refgrant"
 	crossNsNoRefGrantBackendNsName  = "backend-ns-no-refgrant"
 	crossNsNoRefGrantGatewayName    = "gateway"
-	crossNsNoRefGrantListenerName   = "listener-8080"
+	crossNsNoRefGrantListenerName   = "listener-8443"
 	crossNsNoRefGrantBackendSvcName = "backend-svc"
-	crossNsNoRefGrantTCPRouteName   = "tcp-route"
+	crossNsNoRefGrantTLSRouteName   = "tls-route"
 )
 
 var (
@@ -68,12 +68,12 @@ var (
 	singleSvcTLSRouteManifest         = filepath.Join(util.MustGetThisDir(), "testdata", "single-tlsroute.yaml")
 	singleSecretManifest              = filepath.Join(util.MustGetThisDir(), "testdata", "tls-secret.yaml")
 
-	// Manifests for CrossNamespaceTCPRouteWithReferenceGrant
+	// Manifests for CrossNamespaceTLSRouteWithReferenceGrant
 	crossNsClientNsManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-client-ns.yaml")
 	crossNsBackendNsManifest  = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-backend-ns.yaml")
 	crossNsGatewayManifest    = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-gateway-and-client.yaml")
 	crossNsBackendSvcManifest = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-backend-service.yaml")
-	crossNsTCPRouteManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-tcproute.yaml")
+	crossNsTLSRouteManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-tlsroute.yaml")
 	crossNsRefGrantManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-referencegrant.yaml")
 
 	// Manifests for CrossNamespaceTCPRouteWithoutReferenceGrant
@@ -81,7 +81,7 @@ var (
 	crossNsNoRefGrantBackendNsManifest  = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-backend-ns.yaml")
 	crossNsNoRefGrantGatewayManifest    = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-gateway-and-client.yaml")
 	crossNsNoRefGrantBackendSvcManifest = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-backend-service.yaml")
-	crossNsNoRefGrantTCPRouteManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-tcproute.yaml")
+	crossNsNoRefGrantTLSRouteManifest   = filepath.Join(util.MustGetThisDir(), "testdata", "cross-ns-no-refgrant-tlsroute.yaml")
 
 	// Assertion test timers
 	ctxTimeout = 5 * time.Minute
