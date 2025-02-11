@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: |
+      Introducing TestInstallation.AssertionsT method that provides a better 
+      scoped assertions provider.
