@@ -91,7 +91,7 @@ Construct a container image name from a registry, repository, tag, and digest.
 {{- if $tag -}}
 {{- $image = printf "%s:%s" $image $tag -}}
 {{- end -}}{{- /* if .tag */ -}}
-{{- $digest = include  "gloo.image.digest" . -}}
+{{- $digest := include  "gloo.image.digest" . -}}
 {{- if $digest -}}
 {{- $image = printf "%s@%s" $image $digest -}}
 {{- end -}}{{- /* if .digest */ -}}
