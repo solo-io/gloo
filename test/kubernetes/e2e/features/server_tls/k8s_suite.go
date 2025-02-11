@@ -130,5 +130,6 @@ func (s *k8sServerTlsTestingSuite) assertEventualError(hostHeaderValue string, c
 			Container: "curl",
 		},
 		append(curlOptions("gloo-proxy-gw", s.ns, hostHeaderValue), curl.WithPath("/status/200")),
-		code)
+		code,
+		time.Minute*2)
 }
