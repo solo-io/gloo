@@ -359,6 +359,57 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 					Entry("locally undefined, globally undefined", false),
 				)
 			})
+
+			Context("distroless and fips", func() {
+				DescribeTable("Uses the correct image for the sds-ee container", func(variant string, expectedImage string) {
+					extraValueArgs := []string{
+						"kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.registry=my-sds-reg",
+						"kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.tag=my-sds-tag",
+						"kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.repository=sds-ee",
+						"global.image.variant=" + variant,
+					}
+					valuesArgs = append(valuesArgs, extraValueArgs...)
+					// Updated values so need to re-render
+					prepareHelmManifest(namespace, glootestutils.HelmValues{ValuesArgs: valuesArgs})
+
+					gwp := getDefaultGatewayParameters(testManifest)
+					gwpKube := gwp.Spec.Kube
+					Expect(gwpKube).ToNot(BeNil())
+					sdsContainer := gwpKube.SdsContainer.Image
+					image := fmt.Sprintf("%s/%s:%s", *sdsContainer.Registry, *sdsContainer.Repository, *sdsContainer.Tag)
+					Expect(image).To(Equal(expectedImage))
+				},
+					Entry("No variant specified", "", "my-sds-reg/sds-ee:my-sds-tag"),
+					Entry("Standard variant", "standard", "my-sds-reg/sds-ee:my-sds-tag"),
+					Entry("Fips variant", "fips", "my-sds-reg/sds-ee-fips:my-sds-tag"),
+					Entry("Distroless variant", "distroless", "my-sds-reg/sds-ee:my-sds-tag-distroless"),
+					Entry("Fips-Distroless variant", "fips-distroless", "my-sds-reg/sds-ee-fips:my-sds-tag-distroless"))
+
+				DescribeTable("Uses the correct image for the gloo-ee-envoy-wrapper container", func(variant string, expectedImage string) {
+					extraValueArgs := []string{
+						"kubeGateway.gatewayParameters.glooGateway.envoyContainer.image.registry=my-gloo-ee-envoy-wrapper-reg",
+						"kubeGateway.gatewayParameters.glooGateway.envoyContainer.image.tag=my-gloo-ee-envoy-wrapper-tag",
+						"kubeGateway.gatewayParameters.glooGateway.envoyContainer.image.repository=gloo-ee-envoy-wrapper",
+						"global.image.variant=" + variant,
+					}
+					valuesArgs = append(valuesArgs, extraValueArgs...)
+					// Updated values so need to re-render
+					prepareHelmManifest(namespace, glootestutils.HelmValues{ValuesArgs: valuesArgs})
+
+					gwp := getDefaultGatewayParameters(testManifest)
+					gwpKube := gwp.Spec.Kube
+					Expect(gwpKube).ToNot(BeNil())
+					envoyContainer := gwpKube.EnvoyContainer.Image
+					image := fmt.Sprintf("%s/%s:%s", *envoyContainer.Registry, *envoyContainer.Repository, *envoyContainer.Tag)
+					Expect(image).To(Equal(expectedImage))
+				},
+					Entry("No variant specified", "", "my-gloo-ee-envoy-wrapper-reg/gloo-ee-envoy-wrapper:my-gloo-ee-envoy-wrapper-tag"),
+					Entry("Standard variant", "standard", "my-gloo-ee-envoy-wrapper-reg/gloo-ee-envoy-wrapper:my-gloo-ee-envoy-wrapper-tag"),
+					Entry("Fips variant", "fips", "my-gloo-ee-envoy-wrapper-reg/gloo-ee-envoy-wrapper-fips:my-gloo-ee-envoy-wrapper-tag"),
+					Entry("Distroless variant", "distroless", "my-gloo-ee-envoy-wrapper-reg/gloo-ee-envoy-wrapper:my-gloo-ee-envoy-wrapper-tag-distroless"),
+					Entry("Fips-Distroless variant", "fips-distroless", "my-gloo-ee-envoy-wrapper-reg/gloo-ee-envoy-wrapper-fips:my-gloo-ee-envoy-wrapper-tag-distroless"))
+
+			})
 		})
 
 		When("kube gateway integration is disabled (default)", func() {
@@ -389,3 +440,13 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 	}
 	runTests(allTests)
 })
+
+func getDefaultGatewayParameters(t TestManifest) *v1alpha1.GatewayParameters {
+	gwpUnstructured := t.ExpectCustomResource("GatewayParameters", namespace, wellknown.DefaultGatewayParametersName)
+	obj, err := kuberesource.ConvertUnstructured(gwpUnstructured)
+	Expect(err).NotTo(HaveOccurred())
+
+	gwp, ok := obj.(*v1alpha1.GatewayParameters)
+	Expect(ok).To(BeTrue())
+	return gwp
+}
