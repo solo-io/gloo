@@ -153,7 +153,7 @@ func (r *gatewayQueries) allowedRoutes(gw *gwv1.Gateway, l *gwv1.Listener) (func
 	case gwv1.HTTPProtocolType:
 		allowedKinds = []metav1.GroupKind{{Kind: wellknown.HTTPRouteKind, Group: gwv1.GroupName}}
 	case gwv1.TLSProtocolType:
-		fallthrough
+		allowedKinds = []metav1.GroupKind{{Kind: wellknown.TLSRouteKind, Group: gwv1a2.GroupName}}
 	case gwv1.TCPProtocolType:
 		allowedKinds = []metav1.GroupKind{{Kind: wellknown.TCPRouteKind, Group: gwv1a2.GroupName}}
 	case gwv1.UDPProtocolType:
