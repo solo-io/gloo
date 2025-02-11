@@ -2,5 +2,4 @@ changelog:
 - type: FIX
   issueLink: https://github.com/solo-io/gloo/issues/10602
   resolvesIssue: false
-  description: Fixes the gateway params image to respect the fips and distroless variants specified by global.image.variant
-
+  description: Fixes the gateway params image to respect the fips and distroless variants specified by global.image.variant. This only applies to the kubernetes gateway proxy.
