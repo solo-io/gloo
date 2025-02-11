@@ -73,11 +73,10 @@ for distroless or fips-distroless variants: add -distroless to the tag
   {{- end -}}{{- /* if .fipsDistrolessDigest */ -}}
 {{- else -}}
   {{- if .digest -}}{{- /* standard image digest */ -}}
-    {{- $image = .digest -}}
+    {{- $digest = .digest -}}
   {{- end -}}{{- /* if .digest */ -}}
-{{ $digest }}
 {{- end -}}
-
+{{ $digest }}
 {{- end -}}{{- /* define "gloo.image.digest" */ -}}
 
 
