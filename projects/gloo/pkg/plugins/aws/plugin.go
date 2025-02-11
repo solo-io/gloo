@@ -63,6 +63,7 @@ type Plugin struct {
 	settings                     *v1.GlooOptions_AWSOptions
 	upstreamOptions              *v1.UpstreamOptions
 	requiresTransformationFilter bool
+	blameTransforms              []string
 }
 
 // NewPlugin creates an instance of the aws plugin and sets the non-per run
@@ -85,6 +86,7 @@ func (p *Plugin) Init(params plugins.InitParams) {
 	p.settings = params.Settings.GetGloo().GetAwsOptions()
 	p.upstreamOptions = params.Settings.GetUpstreamOptions()
 	p.requiresTransformationFilter = false
+	p.blameTransforms = []string{}
 }
 
 func getLambdaHostname(s *aws.UpstreamSpec) string {
@@ -283,7 +285,9 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 						},
 					},
 				}
+				p.blameTransforms = append(p.blameTransforms, fmt.Sprintf("%s:true", in.Name))
 			} else {
+				p.blameTransforms = append(p.blameTransforms, fmt.Sprintf("%s:false", in.Name))
 				p.requiresTransformationFilter = false
 			}
 
@@ -303,7 +307,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	)
 }
 
-func (p *Plugin) HttpFilters(_ plugins.Params, _ *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+func (p *Plugin) HttpFilters(param plugins.Params, in *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	if len(p.recordedUpstreams) == 0 {
 		// no upstreams no filter
 		return nil, nil
@@ -332,7 +336,9 @@ func (p *Plugin) HttpFilters(_ plugins.Params, _ *v1.HttpListener) ([]plugins.St
 	filters := []plugins.StagedHttpFilter{
 		f,
 	}
+	contextutils.LoggerFrom(param.Ctx).Debugf("httpfilter blaming transforms: %v", p.blameTransforms)
 	if p.requiresTransformationFilter {
+
 		awsStageConfig := &envoy_transform.FilterTransformations{
 			Stage: transformation.AwsStageNumber,
 		}
