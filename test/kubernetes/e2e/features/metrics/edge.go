@@ -74,8 +74,14 @@ func (s *prometheusMetricsTestingSuite) TestResourceStatusMetrics() {
 		assert.NoError(c, err, "can fetch metrics")
 
 		assert.Contains(c, mf, gatewayMetric, "metrics does not contain %s", gatewayMetric)
-		assert.NotContains(c, mf, vsMetric, "metrics contain %s", vsMetric)
-		assert.NotContains(c, mf, upstreamMetric, "metrics contain %s", upstreamMetric)
+
+		// if clear status metrics are set to true, we should not see status metrics
+		// for these virtual services and upstreams. If set false, we may see them depending
+		// the the tests that ran before this one.
+		if s.TestInstallation.Metadata.ValuesManifestFile == e2e.ManifestPath("clear-status-metrics.yaml") {
+			assert.NotContains(c, mf, vsMetric, "metrics contain %s", vsMetric)
+			assert.NotContains(c, mf, upstreamMetric, "metrics contain %s", upstreamMetric)
+		}
 	}, time.Second*20, time.Second*1)
 
 	// Added the echo server
