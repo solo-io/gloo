@@ -3,6 +3,7 @@ package metrics
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -18,6 +19,10 @@ import (
 	"go.opencensus.io/tag"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/util/jsonpath"
+)
+
+const (
+	ClearStatusMetricsEnvVar = "GLOO_CLEAR_STATUS_METRICS"
 )
 
 type MetricLabels = gloov1.Settings_ObservabilityOptions_MetricLabels
@@ -173,6 +178,15 @@ func (m *ConfigStatusMetrics) SetResourceInvalid(ctx context.Context, resource r
 
 // ClearMetrics removes all metrics from the ConfigStatusMetrics
 func (m *ConfigStatusMetrics) ClearMetrics(ctx context.Context) {
+	// Our current metrics package uses a channel to unregister views,
+	// forcing callers sleep after calling ClearMetrics.
+	// We are concerned that required sleep may cause metrics to flicker.
+	// So, we are making this behavior opt-in.
+	// This is a temporary solution until we upgrade to another metrics package.
+	if os.Getenv(ClearStatusMetricsEnvVar) != "true" {
+		return
+	}
+
 	someViewsUnregistered := false
 
 	// Iterate through the resource metrics and unregister them

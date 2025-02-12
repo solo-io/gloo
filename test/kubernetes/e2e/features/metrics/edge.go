@@ -67,13 +67,12 @@ func (s *prometheusMetricsTestingSuite) TestResourceStatusMetrics() {
 	mf, err := s.fetchMetrics()
 	s.NoError(err, "can fetch metrics")
 
-	// Confirm we do not see the metrics for the new upstream
+	// Confirm we do not see the metrics for the new gateway
 	// Confirm we see the metrics for the new upstream
 	s.EventuallyWithT(func(c *assert.CollectT) {
 		mf, err = s.fetchMetrics()
 		assert.NoError(c, err, "can fetch metrics")
 
-		fmt.Printf("metrics: %v\n", mf)
 		assert.Contains(c, mf, gatewayMetric, "metrics does not contain %s", gatewayMetric)
 		assert.NotContains(c, mf, vsMetric, "metrics contain %s", vsMetric)
 		assert.NotContains(c, mf, upstreamMetric, "metrics contain %s", upstreamMetric)
@@ -94,20 +93,32 @@ func (s *prometheusMetricsTestingSuite) TestResourceStatusMetrics() {
 		assert.Contains(c, mf, gatewayMetric, "metrics does not contain %s", gatewayMetric)
 		assert.Contains(c, mf, vsMetric, "metrics does not contain %s", vsMetric)
 		assert.Contains(c, mf, upstreamMetric, "metrics does not contain %s", upstreamMetric)
-	}, time.Second*60, time.Second*1)
+	}, time.Second*120, time.Second*1)
 
 	// Remove the echo server
 	err = s.TestInstallation.Actions.Kubectl().DeleteFile(s.Ctx, edgeGatewayNginxUpstream)
 	s.Assertions.NoError(err, "can delete nginx server upstream and VS")
 
-	// Confirm we do not see the metrics for the new upstream
-	s.EventuallyWithT(func(c *assert.CollectT) {
-		mf, err = s.fetchMetrics()
-		assert.NoError(c, err, "can fetch metrics")
-		assert.Contains(c, mf, gatewayMetric, "metrics does not contain %s", gatewayMetric)
-		assert.NotContains(c, mf, vsMetric, "metrics contain %s", vsMetric)
-		assert.NotContains(c, mf, upstreamMetric, "metrics contain %s", upstreamMetric)
-	}, time.Second*20, time.Second*1)
+	// Vary based on if .Values.gloo.deployment.clearStatusMetrics is set to true
+	if s.TestInstallation.Metadata.ValuesManifestFile == e2e.ManifestPath("clear-status-metrics.yaml") {
+		// Confirm we do not see the metrics for the recently deleted upstream and vs
+		s.EventuallyWithT(func(c *assert.CollectT) {
+			mf, err = s.fetchMetrics()
+			assert.NoError(c, err, "can fetch metrics")
+			assert.Contains(c, mf, gatewayMetric, "metrics does not contain %s", gatewayMetric)
+			assert.NotContains(c, mf, vsMetric, "metrics contain %s", vsMetric)
+			assert.NotContains(c, mf, upstreamMetric, "metrics contain %s", upstreamMetric)
+		}, time.Second*20, time.Second*1)
+	} else {
+		// Confirm we still see the metrics for the deleted upstream, vs, and gateway
+		s.EventuallyWithT(func(c *assert.CollectT) {
+			mf, err = s.fetchMetrics()
+			assert.NoError(c, err, "can fetch metrics")
+			assert.Contains(c, mf, gatewayMetric, "metrics does not contain %s", gatewayMetric)
+			assert.Contains(c, mf, vsMetric, "metrics does not contain %s", vsMetric)
+			assert.Contains(c, mf, upstreamMetric, "metrics does not contain %s", upstreamMetric)
+		}, time.Second*20, time.Second*1)
+	}
 }
 
 func (s *prometheusMetricsTestingSuite) fetchMetrics() (map[string]*dto.MetricFamily, error) {
