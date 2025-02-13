@@ -13,8 +13,8 @@ import (
 )
 
 func snapshotPerClient(l *zap.Logger, dbg *krt.DebugHandler, uccCol krt.Collection[krtcollections.UniqlyConnectedClient],
-	mostXdsSnapshots krt.Collection[XdsSnapWrapper], endpoints PerClientEnvoyEndpoints, clusters PerClientEnvoyClusters) krt.Collection[XdsSnapWrapper] {
-
+	mostXdsSnapshots krt.Collection[XdsSnapWrapper], endpoints PerClientEnvoyEndpoints, clusters PerClientEnvoyClusters,
+) krt.Collection[XdsSnapWrapper] {
 	xdsSnapshotsForUcc := krt.NewCollection(uccCol, func(kctx krt.HandlerContext, ucc krtcollections.UniqlyConnectedClient) *XdsSnapWrapper {
 		maybeMostlySnap := krt.FetchOne(kctx, mostXdsSnapshots, krt.FilterKey(ucc.Role))
 		if maybeMostlySnap == nil {
@@ -23,6 +23,21 @@ func snapshotPerClient(l *zap.Logger, dbg *krt.DebugHandler, uccCol krt.Collecti
 		}
 		genericSnap := maybeMostlySnap.snap
 		clustersForUcc := clusters.FetchClustersForClient(kctx, ucc)
+
+		// HACK
+		// Without this, we will send a "blip" where the DestinationRule
+		// or other per-client config is not applied to the clusters
+		// by sending the genericSnap clusters on the first pass, then
+		// the correct ones.
+		// This happens because the event for the new connected client
+		// triggers the per-client cluster transformation in parallel
+		// with this snapshotPerClient transformation. This Fetch is racing
+		// with that computation and will almost always lose.
+		// While we're looking for a way to make this ordering predictable
+		// to avoid hacks like this, it will do for now.
+		if len(clustersForUcc) == 0 {
+			return nil
+		}
 
 		clustersProto := make([]envoycache.Resource, 0, len(clustersForUcc))
 		var clustersHash uint64
