@@ -290,5 +290,14 @@ func getGatewayCRDs(restConfig *rest.Config) (sets.Set[string], error) {
 		crds.Insert(wellknown.TCPRouteCRDName)
 	}
 
+	tlsRouteExists, err := glooschemes.CRDExists(restConfig, gwv1a2.GroupVersion.Group, gwv1a2.GroupVersion.Version, wellknown.TLSRouteKind)
+	if err != nil {
+		return nil, err
+	}
+
+	if tlsRouteExists {
+		crds.Insert(wellknown.TLSRouteCRDName)
+	}
+
 	return crds, nil
 }

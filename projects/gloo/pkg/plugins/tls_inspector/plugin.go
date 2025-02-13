@@ -67,6 +67,14 @@ func includeTlsInspectorForAggregateListener(in *v1.AggregateListener) bool {
 		}
 	}
 
+	for _, tcpListener := range in.GetTcpListeners() {
+		for _, host := range tcpListener.GetTcpListener().GetTcpHosts() {
+			if host.GetSslConfig() != nil {
+				return true
+			}
+		}
+	}
+
 	return false
 }
 

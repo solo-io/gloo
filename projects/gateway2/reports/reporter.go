@@ -16,6 +16,7 @@ type ReportMap struct {
 	Gateways   map[types.NamespacedName]*GatewayReport
 	HTTPRoutes map[types.NamespacedName]*RouteReport
 	TCPRoutes  map[types.NamespacedName]*RouteReport
+	TLSRoutes  map[types.NamespacedName]*RouteReport
 }
 
 type GatewayReport struct {
@@ -45,13 +46,15 @@ type ParentRefKey struct {
 }
 
 func NewReportMap() ReportMap {
-	gr := make(map[types.NamespacedName]*GatewayReport)
-	hr := make(map[types.NamespacedName]*RouteReport)
-	tr := make(map[types.NamespacedName]*RouteReport)
+	gateways := make(map[types.NamespacedName]*GatewayReport)
+	httpRoutes := make(map[types.NamespacedName]*RouteReport)
+	tcpRoutes := make(map[types.NamespacedName]*RouteReport)
+	tlsRoutes := make(map[types.NamespacedName]*RouteReport)
 	return ReportMap{
-		Gateways:   gr,
-		HTTPRoutes: hr,
-		TCPRoutes:  tr,
+		Gateways:   gateways,
+		HTTPRoutes: httpRoutes,
+		TCPRoutes:  tcpRoutes,
+		TLSRoutes:  tlsRoutes,
 	}
 }
 
@@ -87,6 +90,8 @@ func (r *ReportMap) route(obj client.Object) *RouteReport {
 		return r.HTTPRoutes[key]
 	case *gwv1alpha2.TCPRoute:
 		return r.TCPRoutes[key]
+	case *gwv1alpha2.TLSRoute:
+		return r.TLSRoutes[key]
 	default:
 		contextutils.LoggerFrom(context.TODO()).Warnf("Unsupported route type: %T", obj)
 		return nil
@@ -105,6 +110,8 @@ func (r *ReportMap) newRouteReport(obj client.Object) *RouteReport {
 		r.HTTPRoutes[key] = rr
 	case *gwv1alpha2.TCPRoute:
 		r.TCPRoutes[key] = rr
+	case *gwv1alpha2.TLSRoute:
+		r.TLSRoutes[key] = rr
 	default:
 		contextutils.LoggerFrom(context.TODO()).Warnf("Unsupported route type: %T", obj)
 		return nil

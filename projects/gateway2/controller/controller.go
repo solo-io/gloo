@@ -80,6 +80,7 @@ func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 		controllerBuilder.watchGw,
 		controllerBuilder.watchHttpRoute,
 		controllerBuilder.watchTcpRoute,
+		controllerBuilder.watchTlsRoute,
 		controllerBuilder.watchReferenceGrant,
 		controllerBuilder.watchNamespaces,
 		controllerBuilder.watchHttpListenerOptions,
@@ -136,6 +137,12 @@ func (c *controllerBuilder) addIndexes(ctx context.Context) error {
 	// Conditionally index for TCPRoute
 	if c.cfg.CRDs.Has(wellknown.TCPRouteCRDName) {
 		if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1a2.TCPRoute{}, query.TcpRouteTargetField, query.IndexerByObjType); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if c.cfg.CRDs.Has(wellknown.TLSRouteCRDName) {
+		if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1a2.TLSRoute{}, query.TlsRouteTargetField, query.IndexerByObjType); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -361,6 +368,19 @@ func (c *controllerBuilder) watchTcpRoute(ctx context.Context) error {
 		Complete(reconcile.Func(c.reconciler.ReconcileTcpRoutes))
 }
 
+func (c *controllerBuilder) watchTlsRoute(ctx context.Context) error {
+	if !c.cfg.CRDs.Has(wellknown.TLSRouteCRDName) {
+		log.FromContext(ctx).Info("TLSRoute type not registered in scheme; skipping TLSRoute controller setup")
+		return nil
+	}
+
+	// Proceed to set up the controller for TLSRoute
+	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
+		For(&apiv1a2.TLSRoute{}).
+		Complete(reconcile.Func(c.reconciler.ReconcileTlsRoutes))
+}
+
 func (c *controllerBuilder) watchReferenceGrant(_ context.Context) error {
 	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
@@ -541,6 +561,17 @@ func (r *controllerReconciler) ReconcileHttpRoutes(ctx context.Context, req ctrl
 }
 
 func (r *controllerReconciler) ReconcileTcpRoutes(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	// TODO: consider finding impacted gateways and queue them
+	// TODO: consider enabling this
+	//	// reconcile this specific route:
+	//	queries := query.NewData(r.cli, r.scheme)
+	//	httproute.TranslateGatewayHTTPRouteRules(queries, hr, nil)
+
+	r.kick(ctx)
+	return ctrl.Result{}, nil
+}
+
+func (r *controllerReconciler) ReconcileTlsRoutes(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// TODO: consider finding impacted gateways and queue them
 	// TODO: consider enabling this
 	//	// reconcile this specific route:
