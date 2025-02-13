@@ -949,7 +949,7 @@ func tcpRoute(name, ns string) *apiv1a2.TCPRoute {
 func tlsRoute(name, ns string) *apiv1a2.TLSRoute {
 	return &apiv1a2.TLSRoute{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       wellknown.TCPRouteKind,
+			Kind:       wellknown.TLSRouteKind,
 			APIVersion: apiv1a2.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
