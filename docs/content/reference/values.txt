@@ -515,6 +515,7 @@
 |gloo.headerSecretRefNsMatchesUs|bool||Set to true to require that secrets sent in headers via headerSecretRefs come from the same namespace as the destination upstream. Default: false|
 |gloo.podDisruptionBudget.minAvailable|string||Corresponds directly with the _minAvailable_ field in the [PodDisruptionBudgetSpec](https://kubernetes.io/docs/reference/kubernetes-api/policy-resources/pod-disruption-budget-v1/#PodDisruptionBudgetSpec). This value is mutually exclusive with _maxUnavailable_.|
 |gloo.podDisruptionBudget.maxUnavailable|string||Corresponds directly with the _maxUnavailable_ field in the [PodDisruptionBudgetSpec](https://kubernetes.io/docs/reference/kubernetes-api/policy-resources/pod-disruption-budget-v1/#PodDisruptionBudgetSpec). This value is mutually exclusive with _minAvailable_.|
+|gloo.clearStatusMetrics|bool||Set to true to clear status metrics for deleted resources. Default is false.|
 |discovery.deployment.image.tag|string|<release_version, ex: 1.2.3>|The image tag for the container.|
 |discovery.deployment.image.repository|string|discovery|The image repository (name) for the container.|
 |discovery.deployment.image.digest|string||The container image's hash digest (e.g. 'sha256:12345...'), consumed when variant=standard.|
