@@ -195,9 +195,9 @@ var _ = Describe("ConfigStatusMetrics Test", func() {
 
 			c.ClearMetrics(context.TODO())
 
-			_, err = helpers.ReadMetricByLabel(metricName, "name", resName)
+			v, err := helpers.ReadMetricByLabel(metricName, "name", resName)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(helpers.ReadMetricByLabel(metricName, "name", resName)).To(Equal(1))
+			Expect(v).To(Equal(1))
 		})
 	})
 })
