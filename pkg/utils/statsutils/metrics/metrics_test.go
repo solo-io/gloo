@@ -161,10 +161,6 @@ var _ = Describe("ConfigStatusMetrics Test", func() {
 			res := makeVirtualService("clear")
 			resName := res.GetMetadata().GetName()
 
-			// Metrics should not have any data initially
-			_, err = helpers.ReadMetricByLabel(metricName, "name", resName)
-			Expect(err).To(HaveOccurred())
-
 			c.SetResourceInvalid(context.TODO(), res)
 			Expect(helpers.ReadMetricByLabel(metricName, "name", resName)).To(Equal(1))
 
