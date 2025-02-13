@@ -8,12 +8,17 @@ import (
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
+	"github.com/solo-io/gloo/pkg/utils/statsutils/metrics"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
+	"github.com/solo-io/gloo/test/kubernetes/testutils/clients"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ e2e.NewSuiteFunc = NewPrometheusMetricsTestingSuite
@@ -21,7 +26,8 @@ var _ e2e.NewSuiteFunc = NewPrometheusMetricsTestingSuite
 type prometheusMetricsTestingSuite struct {
 	*base.BaseTestingSuite
 
-	portForwarder portforward.PortForwarder
+	portForwarder             portforward.PortForwarder
+	hasGlooClearMetricsEnvVar bool
 }
 
 func NewPrometheusMetricsTestingSuite(
@@ -32,6 +38,9 @@ func NewPrometheusMetricsTestingSuite(
 		BaseTestingSuite: base.NewBaseTestingSuite(ctx, testInst, base.SimpleTestCase{
 			Manifests: []string{
 				testdefaults.NginxPodManifest,
+			},
+			Resources: []client.Object{
+				testdefaults.NginxSvc,
 			},
 		}, nil),
 	}
@@ -46,6 +55,27 @@ func (s *prometheusMetricsTestingSuite) SetupSuite() {
 	)
 	s.NoError(err, "can open port-forward")
 	s.portForwarder = portForwarder
+
+	// Fetch the deployment to check if the clear status metrics env var is set
+	clientset := clients.MustClientset()
+	deployment, err := clientset.AppsV1().Deployments(s.TestInstallation.Metadata.InstallNamespace).
+		Get(s.Ctx, "gloo", metav1.GetOptions{})
+	s.NoError(err, "can get deployment")
+
+	// Check if the clear status metrics env var is set
+	for _, container := range deployment.Spec.Template.Spec.Containers {
+		if container.Name == "gloo" {
+			for _, envVar := range container.Env {
+				if envVar.Name == metrics.ClearStatusMetricsEnvVar && envutils.IsTruthyValue(envVar.Value) {
+					s.hasGlooClearMetricsEnvVar = true
+					break
+				}
+			}
+		}
+	}
+
+	// Print out the value of the clear status metrics env var to aid the nest person debugging
+	fmt.Printf("%s: %v\n", metrics.ClearStatusMetricsEnvVar, s.hasGlooClearMetricsEnvVar)
 }
 
 func (s *prometheusMetricsTestingSuite) TearDownSuite() {
@@ -53,6 +83,8 @@ func (s *prometheusMetricsTestingSuite) TearDownSuite() {
 		s.portForwarder.Close()
 		s.portForwarder.WaitForStop()
 	}
+
+	s.BaseTestingSuite.TearDownSuite()
 }
 
 func (s *prometheusMetricsTestingSuite) TestResourceStatusMetrics() {
@@ -74,7 +106,7 @@ func (s *prometheusMetricsTestingSuite) TestResourceStatusMetrics() {
 		// if clear status metrics are set to true, we should not see status metrics
 		// for these virtual services and upstreams. If set false, we may see them depending
 		// the the tests that ran before this one.
-		if s.TestInstallation.Metadata.ValuesManifestFile == e2e.ManifestPath("clear-status-metrics.yaml") {
+		if s.hasGlooClearMetricsEnvVar {
 			assert.NotContains(c, mf, vsMetric, "metrics contain %s", vsMetric)
 			assert.NotContains(c, mf, upstreamMetric, "metrics contain %s", upstreamMetric)
 		}
@@ -101,11 +133,8 @@ func (s *prometheusMetricsTestingSuite) TestResourceStatusMetrics() {
 	err = s.TestInstallation.Actions.Kubectl().DeleteFile(s.Ctx, edgeGatewayNginxUpstream)
 	s.Assertions.NoError(err, "can delete nginx server upstream and VS")
 
-	// Vary based on if .Values.gloo.deployment.clearStatusMetrics is set to true
-	// This test cast is run as part of two larger tests, TestGlooGatewayEdgeGateway and TestGlooGatewayEdgeGatewayClearMetrics.
-	// The former uses edge-gateway-test-helm.yaml, which does not set clearStatusMetrics to true.
-	// The later uses clear-status-metrics.yaml file, which sets the clearStatusMetrics to true.
-	if s.TestInstallation.Metadata.ValuesManifestFile == e2e.ManifestPath("clear-status-metrics.yaml") {
+	// Vary based on if the deployment has the clear status metrics env var set
+	if s.hasGlooClearMetricsEnvVar {
 		// Confirm we do not see the metrics for the recently deleted upstream and vs
 		s.EventuallyWithT(func(c *assert.CollectT) {
 			mf, err := s.fetchMetrics()
