@@ -323,12 +323,7 @@ func (x *callbacksCollection) fetchRequest(_ context.Context, r *envoy_service_d
 func (x *callbacks) OnFetchResponse(_ *envoy_service_discovery_v3.DiscoveryRequest, _ *envoy_service_discovery_v3.DiscoveryResponse) {
 }
 
-func (x *callbacksCollection) Synced() krt.Syncer {
-	return &simpleSyncer{}
-}
-
 // GetKey returns an object by its key, if present. Otherwise, nil is returned.
-
 func (x *callbacksCollection) GetKey(k string) *UniqlyConnectedClient {
 	x.stateLock.RLock()
 	defer x.stateLock.RUnlock()
@@ -344,13 +339,11 @@ func (x *callbacksCollection) GetKey(k string) *UniqlyConnectedClient {
 
 func (x *callbacksCollection) List() []UniqlyConnectedClient { return x.getClients() }
 
-type simpleSyncer struct{}
-
-func (s *simpleSyncer) WaitUntilSynced(stop <-chan struct{}) bool {
+func (s *callbacksCollection) WaitUntilSynced(stop <-chan struct{}) bool {
 	return true
 }
 
-func (s *simpleSyncer) HasSynced() bool {
+func (s *callbacksCollection) HasSynced() bool {
 	return true
 }
 
