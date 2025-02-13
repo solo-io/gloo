@@ -3,11 +3,11 @@ package metrics
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
 	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	gwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -183,7 +183,7 @@ func (m *ConfigStatusMetrics) ClearMetrics(ctx context.Context) {
 	// We are concerned that required sleep may cause metrics to flicker.
 	// So, we are making this behavior opt-in.
 	// This is a temporary solution until we upgrade to another metrics package.
-	if os.Getenv(ClearStatusMetricsEnvVar) != "true" {
+	if !envutils.IsEnvTruthy(ClearStatusMetricsEnvVar) {
 		return
 	}
 

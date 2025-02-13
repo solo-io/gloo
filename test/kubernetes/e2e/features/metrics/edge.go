@@ -29,20 +29,16 @@ func NewPrometheusMetricsTestingSuite(
 	testInst *e2e.TestInstallation,
 ) suite.TestingSuite {
 	return &prometheusMetricsTestingSuite{
-		BaseTestingSuite: base.NewBaseTestingSuite(ctx, testInst, base.SimpleTestCase{}, nil),
+		BaseTestingSuite: base.NewBaseTestingSuite(ctx, testInst, base.SimpleTestCase{
+			Manifests: []string{
+				testdefaults.NginxPodManifest,
+			},
+		}, nil),
 	}
 }
 
 func (s *prometheusMetricsTestingSuite) SetupSuite() {
 	s.BaseTestingSuite.SetupSuite()
-
-	// Added the echo server
-	err := s.TestInstallation.Actions.Kubectl().ApplyFile(s.Ctx, testdefaults.NginxPodManifest)
-	s.NoError(err, "can apply HttpEchoPodManifest")
-	s.T().Cleanup(func() {
-		err := s.TestInstallation.Actions.Kubectl().DeleteFile(s.Ctx, testdefaults.NginxPodManifest)
-		s.NoError(err, "can delete echo server")
-	})
 
 	portForwarder, err := s.TestInstallation.Actions.Kubectl().StartPortForward(s.Ctx,
 		portforward.WithDeployment("gloo", s.TestInstallation.Metadata.InstallNamespace),
@@ -64,13 +60,13 @@ func (s *prometheusMetricsTestingSuite) TestResourceStatusMetrics() {
 	vsMetric := "validation_gateway_solo_io_virtual_service_config_status"
 	upstreamMetric := "validation_gateway_solo_io_upstream_config_status"
 
-	mf, err := s.fetchMetrics()
+	_, err := s.fetchMetrics()
 	s.NoError(err, "can fetch metrics")
 
 	// Confirm we do not see the metrics for the new gateway
 	// Confirm we see the metrics for the new upstream
 	s.EventuallyWithT(func(c *assert.CollectT) {
-		mf, err = s.fetchMetrics()
+		mf, err := s.fetchMetrics()
 		assert.NoError(c, err, "can fetch metrics")
 
 		assert.Contains(c, mf, gatewayMetric, "metrics does not contain %s", gatewayMetric)
@@ -94,7 +90,7 @@ func (s *prometheusMetricsTestingSuite) TestResourceStatusMetrics() {
 
 	// Confirm we see the metrics for the new upstream
 	s.EventuallyWithT(func(c *assert.CollectT) {
-		mf, err = s.fetchMetrics()
+		mf, err := s.fetchMetrics()
 		assert.NoError(c, err, "can fetch metrics")
 		assert.Contains(c, mf, gatewayMetric, "metrics does not contain %s", gatewayMetric)
 		assert.Contains(c, mf, vsMetric, "metrics does not contain %s", vsMetric)
@@ -106,10 +102,13 @@ func (s *prometheusMetricsTestingSuite) TestResourceStatusMetrics() {
 	s.Assertions.NoError(err, "can delete nginx server upstream and VS")
 
 	// Vary based on if .Values.gloo.deployment.clearStatusMetrics is set to true
+	// This test cast is run as part of two larger tests, TestGlooGatewayEdgeGateway and TestGlooGatewayEdgeGatewayClearMetrics.
+	// The former uses edge-gateway-test-helm.yaml, which does not set clearStatusMetrics to true.
+	// The later uses clear-status-metrics.yaml file, which sets the clearStatusMetrics to true.
 	if s.TestInstallation.Metadata.ValuesManifestFile == e2e.ManifestPath("clear-status-metrics.yaml") {
 		// Confirm we do not see the metrics for the recently deleted upstream and vs
 		s.EventuallyWithT(func(c *assert.CollectT) {
-			mf, err = s.fetchMetrics()
+			mf, err := s.fetchMetrics()
 			assert.NoError(c, err, "can fetch metrics")
 			assert.Contains(c, mf, gatewayMetric, "metrics does not contain %s", gatewayMetric)
 			assert.NotContains(c, mf, vsMetric, "metrics contain %s", vsMetric)
@@ -118,7 +117,7 @@ func (s *prometheusMetricsTestingSuite) TestResourceStatusMetrics() {
 	} else {
 		// Confirm we still see the metrics for the deleted upstream, vs, and gateway
 		s.EventuallyWithT(func(c *assert.CollectT) {
-			mf, err = s.fetchMetrics()
+			mf, err := s.fetchMetrics()
 			assert.NoError(c, err, "can fetch metrics")
 			assert.Contains(c, mf, gatewayMetric, "metrics does not contain %s", gatewayMetric)
 			assert.Contains(c, mf, vsMetric, "metrics does not contain %s", vsMetric)
