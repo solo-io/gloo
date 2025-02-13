@@ -253,7 +253,7 @@ func (p *plugin) computeTcpFilterChain(
 		return &envoy_config_listener_v3.FilterChain{
 			Filters: listenerFilters,
 			FilterChainMatch: &envoy_config_listener_v3.FilterChainMatch{
-				ServerNames: sslConfig.SniDomains,
+				ServerNames: sslConfig.GetSniDomains(),
 			},
 		}, nil
 	}
