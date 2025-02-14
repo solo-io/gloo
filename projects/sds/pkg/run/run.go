@@ -45,6 +45,9 @@ func Run(ctx context.Context, secrets []server.Secret, sdsClient, sdsServerAddre
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
+	// call watchFiles here before calling it again in the
+	// goroutine, otherwise the two calls may race when adding
+	// watches to `watcer`
 	watchFiles(ctx, watcher, secrets)
 	go func() {
 		for {
@@ -53,6 +56,7 @@ func Run(ctx context.Context, secrets []server.Secret, sdsClient, sdsServerAddre
 			case event := <-watcher.Events:
 				contextutils.LoggerFrom(ctx).Infow("received event", zap.Any("event", event))
 				sdsServer.UpdateSDSConfig(ctx)
+				watchFiles(ctx, watcher, secrets)
 			// watch for errors
 			case err := <-watcher.Errors:
 				contextutils.LoggerFrom(ctx).Warnw("Received error from file watcher", zap.Error(err))
