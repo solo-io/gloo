@@ -194,7 +194,9 @@ func testScenariosWithCRDs(
 		t.Fatalf("failed to apply yaml: %v", err)
 	}
 
-	err = waitForAllPodsReady(client, "")
+	// there may be a slight delay in EndpointSlices being generated
+	// but if we query xDS before then, the test will fail
+	err = waitForEndpointSlices(client, "gwtest")
 	if err != nil {
 		t.Fatalf("pods did not become ready: %v", err)
 	}
@@ -859,25 +861,44 @@ func generateKubeConfiguration(t *testing.T, restconfig *rest.Config) string {
 }
 
 // waitForPodReady waits for a pod to be in the 'Running' state
-func waitForAllPodsReady(client istiokube.Client, namespace string) error {
+func waitForEndpointSlices(client istiokube.Client, namespace string) error {
 	timeout := 15 * time.Second
 	interval := 1 * time.Second
 
 	return wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(ctx context.Context) (bool, error) {
-		pods, err := client.Kube().CoreV1().Pods(namespace).List(ctx, v1.ListOptions{})
+		services, err := client.Kube().CoreV1().Services(namespace).List(ctx, v1.ListOptions{})
 		if err != nil {
-			return false, err
+			return false, fmt.Errorf("failed to list services: %v", err)
 		}
 
-		for _, pod := range pods.Items {
-			if pod.Status.Phase != "Running" {
-				return false, fmt.Errorf("pod \"%s/%s\" is not running", namespace, pod.Name)
-			}
-			for _, cond := range pod.Status.Conditions {
-				if cond.Type == "Ready" && cond.Status != "True" {
-					return false, fmt.Errorf("pod \"%s/%s\" is not ready", namespace, pod.Name)
+		endpointSlices, err := client.Kube().DiscoveryV1().EndpointSlices(namespace).List(ctx, v1.ListOptions{})
+		if err != nil {
+			return false, fmt.Errorf("failed to list EndpointSlices: %v", err)
+		}
+
+		// Track which services have an EndpointSlice
+		serviceHasEndpoint := make(map[string]bool)
+		for _, es := range endpointSlices.Items {
+			for _, svc := range es.OwnerReferences {
+				if svc.Kind == "Service" {
+					serviceHasEndpoint[svc.Name] = true
 				}
 			}
+		}
+
+		// Collect all services missing an EndpointSlice
+		var missingServices []string
+		var foundServices []string
+		for _, svc := range services.Items {
+			if serviceHasEndpoint[svc.Name] {
+				foundServices = append(foundServices, svc.Name)
+			} else {
+				missingServices = append(missingServices, svc.Name)
+			}
+		}
+
+		if len(missingServices) > 0 {
+			return false, fmt.Errorf("services missing EndpointSlices: %s; services with EndpointSlices: %s", strings.Join(missingServices, ", "), strings.Join(foundServices, ", "))
 		}
 
 		return true, nil
