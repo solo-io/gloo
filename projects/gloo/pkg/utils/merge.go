@@ -80,6 +80,32 @@ func isEmptyValue(v reflect.Value) bool {
 	return false
 }
 
+// ShallowMergeListenerOptions merges the top-level fields of src into dst.
+// The fields in dst that have non-zero values will not be overwritten.
+// It performs a shallow merge of top-level fields only.
+// It returns a boolean indicating whether any fields in src overwrote dst.
+func ShallowMergeListenerOptions(dst, src *v1.ListenerOptions) (*v1.ListenerOptions, bool) {
+	if src == nil {
+		return dst, false
+	}
+
+	if dst == nil {
+		return src.Clone().(*v1.ListenerOptions), true
+	}
+
+	dstValue, srcValue := reflect.ValueOf(dst).Elem(), reflect.ValueOf(src).Elem()
+
+	overwrote := false
+	for i := range dstValue.NumField() {
+		dstField, srcField := dstValue.Field(i), srcValue.Field(i)
+		if srcOverride := ShallowMerge(dstField, srcField); srcOverride {
+			overwrote = true
+		}
+	}
+
+	return dst, overwrote
+}
+
 // ShallowMergeRouteOptions merges the top-level fields of src into dst.
 // The fields in dst that have non-zero values will not be overwritten.
 // It performs a shallow merge of top-level fields only.

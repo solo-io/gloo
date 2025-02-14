@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/7300
+    resolvesIssue: true
+    description: >-
+      If we generate any ListenerOptions from a Gateway to Proxy
+      translator, they will no longer be overridden by user
+      ListenerOptions.
