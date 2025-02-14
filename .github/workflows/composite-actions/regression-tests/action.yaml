@@ -12,6 +12,7 @@ runs:
     with:
       install_only: true
       version: ${{ matrix.kube-version.kind }}
+      node_image: kindest/node:${{ matrix.kube-version.node }}
   - uses: azure/setup-kubectl@v4
     id: kubectl
     with:
