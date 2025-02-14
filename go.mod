@@ -377,7 +377,7 @@ replace (
 	// Required for proper serialization of CRDs
 	github.com/renstrom/dedent => github.com/lithammer/dedent v1.0.0
 
-	// Pin Kube libraries to v0.31
+	// Pin Kube libraries to v0.32
 	// These should be upgraded collectively
 	k8s.io/api => k8s.io/api v0.32.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.32.2
