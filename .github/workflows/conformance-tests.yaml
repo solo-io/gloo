@@ -25,10 +25,10 @@ jobs:
         # how this was setup and there's a limited # of dispatch inputs that GH
         # supports. We can revisit this later.
         kube-version:
-        - node: 'v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865'
-          kubectl: 'v1.31.0'
-          kind: 'v0.24.0'
-          helm: 'v3.14.4'
+        - node: 'v1.32.1@sha256:6afef2b7f69d627ea7bf27ee6696b6868d18e03bf98167c420df486da4662db6'
+          kubectl: 'v1.32.2'
+          kind: 'v0.26.0'
+          helm: 'v3.17.1'
         image-variant:
           - ${{ inputs.image-variant }}
         version:
