@@ -34,7 +34,7 @@ var (
 	customGlooDeploymentName = helpers.GlooDeploymentName
 )
 
-func ResourcesSyncedOverXds(stats, deploymentName string) bool {
+func ResourcesSyncedOverXds(printer printers.P, stats, deploymentName string) bool {
 	var outOfSyncResources []string
 	metrics := parseMetrics(stats, []string{glooeTotalEntites, glooeInSyncEntities}, deploymentName)
 	for metric, val := range metrics {
@@ -53,9 +53,9 @@ func ResourcesSyncedOverXds(stats, deploymentName string) bool {
 	}
 
 	if len(metrics) == 0 {
-		fmt.Println("No xds metrics to check")
+		printer.AppendStatus("xds metrics", "No xds metrics to check")
 	} else {
-		fmt.Println("OK")
+		printer.AppendStatus("xds metrics", "OK")
 	}
 	return true
 }
@@ -110,7 +110,7 @@ func checkXdsMetrics(ctx context.Context, printer printers.P, opts *options.Opti
 		return fmt.Errorf(err)
 	}
 
-	if !ResourcesSyncedOverXds(stats, customGlooDeploymentName) {
+	if !ResourcesSyncedOverXds(printer, stats, customGlooDeploymentName) {
 		fmt.Println(errMessage)
 		return fmt.Errorf(errMessage)
 	}

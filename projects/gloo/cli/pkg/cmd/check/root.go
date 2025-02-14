@@ -952,7 +952,7 @@ func checkSecrets(ctx context.Context, printer printers.P, _ *options.Options, n
 	client, err := helpers.GetSecretClient(ctx, namespaces)
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
-		printer.AppendStatus("secrets", fmt.Sprintf("%v Errors!", multiErr.Len()))
+		printer.AppendStatus("Secrets", fmt.Sprintf("%v Errors!", multiErr.Len()))
 		return multiErr
 	}
 
