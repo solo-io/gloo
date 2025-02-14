@@ -55,7 +55,6 @@ func (p *plugin) Init(_ plugins.InitParams) {
 
 // Manage the tracing portion of the HCM settings
 func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parent *v1.Listener, listener *v1.HttpListener, out *envoyhttp.HttpConnectionManager) error {
-
 	// only apply tracing config to the listener is using the HCM plugin
 	in := listener.GetOptions().GetHttpConnectionManagerSettings()
 	if in == nil {
@@ -192,9 +191,6 @@ func processEnvoyTracingProvider(
 	case *tracing.ListenerTracingSettings_OpenTelemetryConfig:
 		return processEnvoyOpenTelemetryTracing(params, typed, parent)
 
-	case *tracing.ListenerTracingSettings_OpenCensusConfig:
-		return processEnvoyOpenCensusTracing(typed)
-
 	default:
 		return nil, errors.Errorf("Unsupported Tracing.ProviderConfiguration: %v", typed)
 	}
@@ -318,27 +314,6 @@ func processEnvoyOpenTelemetryTracing(
 
 	return &envoy_config_trace_v3.Tracing_Http{
 		Name: "envoy.tracers.opentelemetry",
-		ConfigType: &envoy_config_trace_v3.Tracing_Http_TypedConfig{
-			TypedConfig: marshalledEnvoyConfig,
-		},
-	}, nil
-}
-
-func processEnvoyOpenCensusTracing(
-	openCensusTracingSettings *tracing.ListenerTracingSettings_OpenCensusConfig,
-) (*envoy_config_trace_v3.Tracing_Http, error) {
-	envoyConfig, err := api_conversion.ToEnvoyOpenCensusConfiguration(openCensusTracingSettings.OpenCensusConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	marshalledEnvoyConfig, err := ptypes.MarshalAny(envoyConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	return &envoy_config_trace_v3.Tracing_Http{
-		Name: "envoy.tracers.opencensus",
 		ConfigType: &envoy_config_trace_v3.Tracing_Http_TypedConfig{
 			TypedConfig: marshalledEnvoyConfig,
 		},

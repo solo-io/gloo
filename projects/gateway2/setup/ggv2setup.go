@@ -44,8 +44,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-var settingsGVR = glookubev1.SchemeGroupVersion.WithResource("settings")
-var deploymentGVR = schema.GroupVersion{Group: "apps", Version: "v1"}.WithResource("deployments")
+var (
+	settingsGVR   = glookubev1.SchemeGroupVersion.WithResource("settings")
+	deploymentGVR = schema.GroupVersion{Group: "apps", Version: "v1"}.WithResource("deployments")
+)
 
 func createKubeClient(restConfig *rest.Config) (istiokube.Client, error) {
 	restCfg := istiokube.NewClientConfigForRestConfig(restConfig)
@@ -120,6 +122,7 @@ func StartGGv2WithConfig(ctx context.Context,
 
 	logger.Info("creating krt collections")
 	augmentedPods := krtcollections.NewPodsCollection(ctx, kubeClient, setupOpts.KrtDebugger)
+
 	setting := proxy_syncer.SetupCollectionDynamic[glookubev1.Settings](
 		ctx,
 		kubeClient,
@@ -133,11 +136,11 @@ func StartGGv2WithConfig(ctx context.Context,
 
 	ucc := uccBuilder(ctx, setupOpts.KrtDebugger, augmentedPodsForUcc)
 
-	settingsSingle := krt.NewSingleton(func(ctx krt.HandlerContext) *glookubev1.Settings {
+	settingsSingle := krt.NewSingleton(func(ctx krt.HandlerContext) **glookubev1.Settings {
 		s := krt.FetchOne(ctx, setting,
 			krt.FilterObjectName(settingsNns))
 		if s != nil {
-			return *s
+			return s
 		}
 		return nil
 	}, krt.WithName("GlooSettingsSingleton"))
@@ -185,7 +188,7 @@ func StartGGv2WithConfig(ctx context.Context,
 
 	logger.Info("waiting for cache sync")
 	kubeClient.RunAndWait(ctx.Done())
-	setting.Synced().WaitUntilSynced(ctx.Done())
+	setting.WaitUntilSynced(ctx.Done())
 
 	logger.Info("starting controller")
 	return c.Start(ctx)

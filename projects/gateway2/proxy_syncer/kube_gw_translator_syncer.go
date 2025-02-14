@@ -7,6 +7,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"istio.io/istio/pkg/kube/krt"
+	"istio.io/istio/pkg/ptr"
 
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
@@ -51,7 +52,7 @@ func (s *ProxyTranslator) buildXdsSnapshot(
 	// the reason for this is because we need to set Upstream status even if no edge proxies are being translated
 	// here we Accept() upstreams in snap so we can report accepted status (without this we wouldn't report on positive case)
 	allReports.Accept(snap.Upstreams.AsInputResources()...)
-	ksettings := krt.FetchOne(kctx, s.settings.AsCollection())
+	ksettings := ptr.Flatten(krt.FetchOne(kctx, s.settings.AsCollection()))
 	settings := &ksettings.Spec
 
 	ctx = settingsutil.WithSettings(ctx, settings)
@@ -107,7 +108,6 @@ func (s *ProxyTranslator) syncXds(
 	// a default initial fetch timeout
 	snap.MakeConsistent()
 	s.xdsCache.SetSnapshot(proxyKey, snap)
-
 }
 
 func (s *ProxyTranslator) syncStatus(

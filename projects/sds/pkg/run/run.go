@@ -45,6 +45,10 @@ func Run(ctx context.Context, secrets []server.Secret, sdsClient, sdsServerAddre
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
+	// call watchFiles here before calling it again in the
+	// goroutine, otherwise the two calls may race when adding
+	// watches to `watcer`
+	watchFiles(ctx, watcher, secrets)
 	go func() {
 		for {
 			select {
@@ -61,7 +65,6 @@ func Run(ctx context.Context, secrets []server.Secret, sdsClient, sdsServerAddre
 			}
 		}
 	}()
-	watchFiles(ctx, watcher, secrets)
 
 	<-sigs
 	cancel()
