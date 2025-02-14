@@ -51,6 +51,12 @@ func ResourcesSyncedOverXds(stats, deploymentName string) bool {
 		fmt.Println(resourcesOutOfSyncMessage(outOfSyncResources))
 		return false
 	}
+
+	if len(metrics) == 0 {
+		fmt.Println("No xds metrics to check")
+	} else {
+		fmt.Println("OK")
+	}
 	return true
 }
 
@@ -69,6 +75,7 @@ func RateLimitIsConnected(stats string) bool {
 }
 
 func checkXdsMetrics(ctx context.Context, printer printers.P, opts *options.Options, deployments *appsv1.DeploymentList) error {
+	printer.AppendCheck("Checking xds metrics... ")
 	errMessage := "Problem while checking for gloo xds errors"
 	if deployments == nil {
 		fmt.Println("Skipping due to an error in checking deployments")

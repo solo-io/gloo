@@ -12,6 +12,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// TODO(nfuden): Fix clusterloadassignment issues that forced xds-metrics to be excluded.
+// Consider https://github.com/envoyproxy/envoy/issues/7529#issuecomment-1227724217
+
 var _ e2e.NewSuiteFunc = NewCheckSuite
 
 // checkSuite contains the set of tests to validate the behavior of `glooctl check`
@@ -23,9 +26,7 @@ type checkSuite struct {
 	testInstallation *e2e.TestInstallation
 }
 
-// NewChecksuite for glooctl check validation
-// TODO(nfuden): Fix clusterloadassignment issues that forced xds-metrics to be excluded.
-// Consider https://github.com/envoyproxy/envoy/issues/7529#issuecomment-1227724217
+// NewCheckSuite for glooctl check validation
 func NewCheckSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.TestingSuite {
 	return &checkSuite{
 		ctx:              ctx,
@@ -34,6 +35,7 @@ func NewCheckSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.Te
 }
 
 func (s *checkSuite) TestCheck() {
+	// exclude xds-metrics check due to Envoy bug: see TODO at top of file
 	output, err := s.testInstallation.Actions.Glooctl().Check(s.ctx,
 		"-n", s.testInstallation.Metadata.InstallNamespace, "-x", "xds-metrics")
 	s.NoError(err)
@@ -50,6 +52,7 @@ func (s *checkSuite) TestCheck() {
 }
 
 func (s *checkSuite) TestCheckExclude() {
+	// exclude xds-metrics check due to Envoy bug: see TODO at top of file
 	for excludeKey, expectedOutput := range checkCommonGlooGatewayOutputByKey {
 		output, err := s.testInstallation.Actions.Glooctl().Check(s.ctx,
 			"-n", s.testInstallation.Metadata.InstallNamespace, "-x", fmt.Sprintf("xds-metrics,%s", excludeKey))
@@ -68,6 +71,7 @@ func (s *checkSuite) TestCheckExclude() {
 }
 
 func (s *checkSuite) TestCheckReadOnly() {
+	// exclude xds-metrics check due to Envoy bug: see TODO at top of file
 	output, err := s.testInstallation.Actions.Glooctl().Check(s.ctx,
 		"-n", s.testInstallation.Metadata.InstallNamespace, "--read-only", "-x", "xds-metrics")
 	s.NoError(err)
@@ -92,11 +96,12 @@ func (s *checkSuite) TestCheckReadOnly() {
 func (s *checkSuite) TestCheckKubeContext() {
 	// When passing an invalid kube-context, `glooctl check` should succeed
 	_, err := s.testInstallation.Actions.Glooctl().Check(s.ctx,
-		"-n", s.testInstallation.Metadata.InstallNamespace, "--kube-context", "invalid-context")
+		"-n", s.testInstallation.Metadata.InstallNamespace, "--kube-context", "invalid-context", "-x", "xds-metrics")
 	s.Error(err)
 	s.Contains(err.Error(), "Could not get kubernetes client: Error retrieving Kubernetes configuration: context \"invalid-context\" does not exist")
 
 	// When passing the kube-context of the running cluster, `glooctl check` should succeed
+	// exclude xds-metrics check due to Envoy bug: see TODO at top of file
 	_, err = s.testInstallation.Actions.Glooctl().Check(s.ctx,
 		"-n", s.testInstallation.Metadata.InstallNamespace, "--kube-context", s.testInstallation.ClusterContext.KubeContext, "-x", "xds-metrics")
 	s.NoError(err)
@@ -110,7 +115,7 @@ func (s *checkSuite) TestCheckTimeout() {
 	s.NoError(err)
 
 	_, err = s.testInstallation.Actions.Glooctl().Check(s.ctx,
-		"-n", s.testInstallation.Metadata.InstallNamespace,
+		"-n", s.testInstallation.Metadata.InstallNamespace, "-x", "xds-metrics",
 		"-c", shortTimeoutValues.Name())
 	s.Error(err)
 	s.Contains(err.Error(), "context deadline exceeded")
@@ -121,30 +126,28 @@ func (s *checkSuite) TestCheckTimeout() {
 	_, err = normalTimeoutValues.Write([]byte(`checkTimeoutSeconds: 300s`))
 	s.NoError(err)
 
-	// Note: This test does not use `"-x", "xds-metrics"`, so it will require the xds-metrics check to pass with no errors
-	// In gloo-ee the prometheus metrics must be enabled for the check to pass
+	// exclude xds-metrics due to Envoy bug: see TODO at top of file
 	_, err = s.testInstallation.Actions.Glooctl().Check(s.ctx,
-		"-n", s.testInstallation.Metadata.InstallNamespace,
+		"-n", s.testInstallation.Metadata.InstallNamespace, "-x", "xds-metrics",
 		"-c", normalTimeoutValues.Name())
 	s.NoError(err)
 }
 
 func (s *checkSuite) TestCheckNamespace() {
 	// namespace does not exist
-	output, err := s.testInstallation.Actions.Glooctl().Check(s.ctx, "-n", "not-gloo-system")
+	output, err := s.testInstallation.Actions.Glooctl().Check(s.ctx, "-n", "not-gloo-system", "-x", "xds-metrics")
 	s.Error(err)
 	s.Contains(output, "Could not communicate with kubernetes cluster: namespaces \"not-gloo-system\" not found")
 
 	// gloo not in namespace
-	output, err = s.testInstallation.Actions.Glooctl().Check(s.ctx, "-n", "default")
+	output, err = s.testInstallation.Actions.Glooctl().Check(s.ctx, "-n", "default", "-x", "xds-metrics")
 	s.Error(err)
 	s.Contains(output, "Warning: The provided label selector (gloo) applies to no pods")
 
 	// pod does not exist
-	// Note: This test does not use `"-x", "xds-metrics"`, so it will require the xds-metrics check to pass with no errors
-	// In gloo-ee the prometheus metrics must be enabled for the check to pass
+	// exclude xds-metrics check due to Envoy bug: see TODO at top of file
 	output, err = s.testInstallation.Actions.Glooctl().Check(s.ctx,
-		"-n", s.testInstallation.Metadata.InstallNamespace,
+		"-n", s.testInstallation.Metadata.InstallNamespace, "-x", "xds-metrics",
 		"-p", "not-gloo")
 	s.NoError(err)
 	s.Contains(output, "Warning: The provided label selector (not-gloo) applies to no pods")
@@ -152,7 +155,7 @@ func (s *checkSuite) TestCheckNamespace() {
 
 	// resource namespace does not exist
 	output, err = s.testInstallation.Actions.Glooctl().Check(s.ctx,
-		"-n", s.testInstallation.Metadata.InstallNamespace,
+		"-n", s.testInstallation.Metadata.InstallNamespace, "-x", "xds-metrics",
 		"-r", "not-gloo-system")
 	s.Error(err)
 	s.Contains(output, fmt.Sprintf("No namespaces specified are currently being watched (defaulting to '%s' namespace)", s.testInstallation.Metadata.InstallNamespace))
@@ -192,6 +195,7 @@ func (s *checkSuite) TestNoGateways() {
 		Namespace: s.testInstallation.Metadata.InstallNamespace,
 	}, gomega.Equal(0))
 
+	// exclude xds-metrics check due to Envoy bug: see TODO at top of file
 	_, err = s.testInstallation.Actions.Glooctl().Check(s.ctx,
 		"-n", s.testInstallation.Metadata.InstallNamespace, "--kube-context", s.testInstallation.ClusterContext.KubeContext, "-x", "xds-metrics")
 	s.Error(err)
@@ -219,6 +223,7 @@ func (s *checkSuite) TestEdgeGatewayScaled() {
 		Namespace: s.testInstallation.Metadata.InstallNamespace,
 	}, gomega.Equal(0))
 
+	// exclude xds-metrics check due to Envoy bug: see TODO at top of file
 	output, err := s.testInstallation.Actions.Glooctl().Check(s.ctx,
 		"-n", s.testInstallation.Metadata.InstallNamespace, "--kube-context", s.testInstallation.ClusterContext.KubeContext, "-x", "xds-metrics")
 	s.NoError(err)
@@ -252,9 +257,10 @@ func (s *checkSuite) TestEdgeResourceError() {
 	s.NoError(err)
 
 	// Run check. This needs to run in eventually to get all errors reported
+	// exclude xds-metrics check due to Envoy bug: see TODO at top of file
 	gomega.Eventually(func() error {
 		_, err = s.testInstallation.Actions.Glooctl().Check(s.ctx,
-			"-n", s.testInstallation.Metadata.InstallNamespace, "--kube-context", s.testInstallation.ClusterContext.KubeContext)
+			"-n", s.testInstallation.Metadata.InstallNamespace, "--kube-context", s.testInstallation.ClusterContext.KubeContext, "-x", "xds-metrics")
 		return err
 	}, time.Minute*2, time.Second*10).Should(gomega.SatisfyAll(
 		gomega.MatchError(gomega.ContainSubstring(fmt.Sprintf("* Found rejected virtual service by '%s': default reject-me-too (Reason: 2 errors occurred:", s.testInstallation.Metadata.InstallNamespace))),
