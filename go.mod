@@ -352,6 +352,7 @@ require (
 )
 
 replace (
+
 	github.com/apache/thrift => github.com/apache/thrift v0.14.0
 	github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.2.0 // indirect
 	// required for ci https://github.com/solo-io/gloo/pull/4147#discussion_r562911110
@@ -362,6 +363,8 @@ replace (
 	// to avoid error about it being used for two different module paths
 	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v0.0.0-20210511163231-5b2d2b5f6c34
 	github.com/docker/docker => github.com/moby/moby v26.0.0+incompatible
+	// https://github.com/fsnotify/fsnotify/issues/672
+	github.com/fsnotify/fsnotify => github.com/fsnotify/fsnotify v1.7.0
 
 	// Pin this to a version compatible with protoc-gen-openapi
 	github.com/getkin/kin-openapi => github.com/getkin/kin-openapi v0.107.0
