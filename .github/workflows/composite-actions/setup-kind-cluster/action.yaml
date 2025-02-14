@@ -34,6 +34,7 @@ runs:
       with:
         install_only: true
         version: ${{ inputs.kind-version }}
+        node_image: kindest/node:${{ matrix.kube-version.node }}
     - uses: azure/setup-kubectl@v4
       id: kubectl
       with:
