@@ -25,7 +25,6 @@ import (
 	jsonpb "google.golang.org/protobuf/encoding/protojson"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -866,12 +865,12 @@ func waitForEndpointSlices(client istiokube.Client, namespace string) error {
 	interval := 1 * time.Second
 
 	return wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(ctx context.Context) (bool, error) {
-		services, err := client.Kube().CoreV1().Services(namespace).List(ctx, v1.ListOptions{})
+		services, err := client.Kube().CoreV1().Services(namespace).List(ctx, metav1.ListOptions{})
 		if err != nil {
 			return false, fmt.Errorf("failed to list services: %v", err)
 		}
 
-		endpointSlices, err := client.Kube().DiscoveryV1().EndpointSlices(namespace).List(ctx, v1.ListOptions{})
+		endpointSlices, err := client.Kube().DiscoveryV1().EndpointSlices(namespace).List(ctx, metav1.ListOptions{})
 		if err != nil {
 			return false, fmt.Errorf("failed to list EndpointSlices: %v", err)
 		}
