@@ -25,6 +25,8 @@ import (
 	jsonpb "google.golang.org/protobuf/encoding/protojson"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -190,6 +192,11 @@ func testScenariosWithCRDs(
 	err = client.ApplyYAMLFiles("gwtest", "testdata/setupyaml/pods.yaml")
 	if err != nil {
 		t.Fatalf("failed to apply yaml: %v", err)
+	}
+
+	err = waitForAllPodsReady(client, "")
+	if err != nil {
+		t.Fatalf("pods did not become ready: %v", err)
 	}
 
 	// setup xDS server:
@@ -849,4 +856,30 @@ func generateKubeConfiguration(t *testing.T, restconfig *rest.Config) string {
 	}
 
 	return tmpfile
+}
+
+// waitForPodReady waits for a pod to be in the 'Running' state
+func waitForAllPodsReady(client istiokube.Client, namespace string) error {
+	timeout := 15 * time.Second
+	interval := 1 * time.Second
+
+	return wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(ctx context.Context) (bool, error) {
+		pods, err := client.Kube().CoreV1().Pods(namespace).List(ctx, v1.ListOptions{})
+		if err != nil {
+			return false, err
+		}
+
+		for _, pod := range pods.Items {
+			if pod.Status.Phase != "Running" {
+				return false, fmt.Errorf("pod \"%s/%s\" is not running", namespace, pod.Name)
+			}
+			for _, cond := range pod.Status.Conditions {
+				if cond.Type == "Ready" && cond.Status != "True" {
+					return false, fmt.Errorf("pod \"%s/%s\" is not ready", namespace, pod.Name)
+				}
+			}
+		}
+
+		return true, nil
+	})
 }

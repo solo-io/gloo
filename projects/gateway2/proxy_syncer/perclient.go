@@ -22,7 +22,9 @@ func snapshotPerClient(l *zap.Logger, dbg *krt.DebugHandler, uccCol krt.Collecti
 			return nil
 		}
 		genericSnap := maybeMostlySnap.snap
+
 		clustersForUcc := clusters.FetchClustersForClient(kctx, ucc)
+		l.Debug("found perclient clusters", zap.String("client", ucc.ResourceName()), zap.Int("clusters", len(clustersForUcc)))
 
 		// HACK
 		// Without this, we will send a "blip" where the DestinationRule
@@ -36,6 +38,7 @@ func snapshotPerClient(l *zap.Logger, dbg *krt.DebugHandler, uccCol krt.Collecti
 		// While we're looking for a way to make this ordering predictable
 		// to avoid hacks like this, it will do for now.
 		if len(clustersForUcc) == 0 {
+			l.Info("no perclient clusters; defer building snapshot", zap.String("client", ucc.ResourceName()))
 			return nil
 		}
 
