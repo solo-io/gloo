@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Pin golangci-lint-action to `6.4.1` to avoid breaking changes in `6.5.0`
