@@ -63,12 +63,16 @@ var (
 	// gloo-gateway-translator removed in 1.17
 	// gateway removed in 1.12
 	proxyLabelSelectorOptions = clients.ListOpts{
-		Selector:           proxyLabelsToWrite,
-		ExpressionSelector: glooutils.GetTranslatorSelectorExpression(glooutils.GlooEdgeProxyValue, "gloo-gateway-translator", "gateway"),
+		Selector: proxyLabelsToWrite,
+		ExpressionSelector: glooutils.GetTranslatorSelectorExpression(glooutils.GlooEdgeProxyValue,
+			"gloo-gateway-translator", "gateway"),
 	}
 )
 
-func NewTranslatorSyncer(ctx context.Context, writeNamespace string, proxyWatcher gloov1.ProxyClient, proxyReconciler reconciler.ProxyReconciler, reporter reporter.StatusReporter, translator translator.Translator, statusClient resources.StatusClient, statusMetrics metrics.ConfigStatusMetrics, identity leaderelector.Identity) *TranslatorSyncer {
+func NewTranslatorSyncer(ctx context.Context, writeNamespace string, proxyWatcher gloov1.ProxyClient,
+	proxyReconciler reconciler.ProxyReconciler, reporter reporter.StatusReporter,
+	translator translator.Translator, statusClient resources.StatusClient, statusMetrics metrics.ConfigStatusMetrics,
+	identity leaderelector.Identity) *TranslatorSyncer {
 	t := &TranslatorSyncer{
 		writeNamespace:  writeNamespace,
 		proxyReconciler: proxyReconciler,
@@ -191,7 +195,9 @@ type statusSyncer struct {
 	leaderStartupAction *leaderelector.LeaderStartupAction
 }
 
-func newStatusSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter reporter.StatusReporter, statusClient resources.StatusClient, statusMetrics metrics.ConfigStatusMetrics, identity leaderelector.Identity) statusSyncer {
+func newStatusSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter reporter.StatusReporter,
+	statusClient resources.StatusClient, statusMetrics metrics.ConfigStatusMetrics,
+	identity leaderelector.Identity) statusSyncer {
 	return statusSyncer{
 		proxyToLastStatus:       map[string]reportsAndStatus{},
 		currentGeneratedProxies: nil,
@@ -402,6 +408,10 @@ func (s *statusSyncer) extractCurrentReports() (reporter.ResourceReports, map[re
 func (s *statusSyncer) syncStatus(ctx context.Context) error {
 	allReports, inputResourceBySubresourceStatuses, localInputResourceLastStatus := s.extractCurrentReports()
 
+	// reset the resource metrics before we write the new statuses, this ensures that
+	// deleted resources are removed from the metrics
+	s.statusMetrics.ClearMetrics(ctx)
+
 	var errs error
 	for inputResource, subresourceStatuses := range allReports {
 		// write reports may update the status, so clone the object
@@ -447,5 +457,6 @@ func (s *statusSyncer) syncStatus(ctx context.Context) error {
 		status := s.reporter.StatusFromReport(subresourceStatuses, currentStatuses)
 		s.statusMetrics.SetResourceStatus(ctx, inputResource, status)
 	}
+
 	return errs
 }
