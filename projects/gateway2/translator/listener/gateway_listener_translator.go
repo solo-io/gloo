@@ -344,7 +344,6 @@ func getWeight(backendRef gwv1.BackendRef) *wrapperspb.UInt32Value {
 	return &wrapperspb.UInt32Value{Value: 1}
 }
 
-// could reuse AppendTCPListener ?
 func (ml *MergedListeners) AppendTlsListener(
 	listener gwv1.Listener,
 	routeInfos []*query.RouteInfo,
@@ -864,7 +863,7 @@ func translateSslConfig(
 			secret, err := queries.GetSecretForRef(ctx, query.FromGkNs{
 				Gk: metav1.GroupKind{
 					Group: gwv1.GroupName,
-					Kind:  "Gateway",
+					Kind:  wellknown.GatewayKind,
 				},
 				Ns: parentNamespace,
 			}, certRef)
