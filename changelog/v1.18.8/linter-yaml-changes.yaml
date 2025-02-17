@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Updates for golangci-lint-action  breaking changes in `6.5.0`
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
