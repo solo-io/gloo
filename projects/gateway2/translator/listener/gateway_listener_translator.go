@@ -585,7 +585,7 @@ func (tc *tcpFilterChain) translateTcpFilterChain(
 	var tcpHosts []*v1.TcpHost
 	for _, parent := range tc.parents {
 		for _, r := range parent.routesWithHosts {
-			// TODO dedpupe
+			// TODO(puertomontt): deduplicate logic for TLSRoute and TCPRoute
 			switch r.Object.(type) {
 			case *gwv1a2.TLSRoute:
 				tRoute := r.Object.(*gwv1a2.TLSRoute)
