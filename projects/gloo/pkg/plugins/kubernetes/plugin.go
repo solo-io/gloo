@@ -81,13 +81,12 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *cl
 	// in a future PR plugins will have access to krt context, so they can use fetch.
 	if p.svcCollection != nil {
 		// TODO: change this to fetch once we have krt context in plugins in a follow-up
-		if p.svcCollection.GetKey(krt.Key[*corev1.Service](krt.Named{
+		if p.svcCollection.GetKey(krt.Named{
 			Name:      kube.Kube.GetServiceName(),
 			Namespace: kube.Kube.GetServiceNamespace(),
-		}.ResourceName())) != nil {
+		}.ResourceName()) != nil {
 			return nil
 		}
-
 	} else {
 
 		lister := p.kubeCoreCache.NamespacedServiceLister(kube.Kube.GetServiceNamespace())
