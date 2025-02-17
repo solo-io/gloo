@@ -1,6 +1,0 @@
-changelog:
-  - type: NEW_FEATURE
-    issueLink: https://github.com/kgateway-dev/kgateway/issues/10074
-    resolvesIssue: false
-    description: >-
-      "Add support for sig gateway's TLS Routes."
