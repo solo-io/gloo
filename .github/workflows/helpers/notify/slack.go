@@ -144,6 +144,10 @@ func mustSendSlackMessage(data Payload) {
 	}
 
 	resp, err := netClient.Do(req)
+
+	fmt.Printf("slack response: %+v", resp)
+	fmt.Printf("slack StatusCode code: %v", resp.StatusCode)
+
 	if err != nil {
 		panic(err)
 	}
