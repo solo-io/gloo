@@ -1024,7 +1024,7 @@ var _ = Describe("Query", func() {
 			Expect(backend.GetNamespace()).To(Equal("default2"))
 		})
 
-		It("should fail getting a service from different ns with TCPRoute when no ref grant", func() {
+		It("should fail getting a service from different ns with TLSRoute when no ref grant", func() {
 			fakeClient := builder.WithObjects(svc("default2")).Build()
 			gq := query.NewData(fakeClient, scheme)
 			ref := &apiv1.BackendObjectReference{
