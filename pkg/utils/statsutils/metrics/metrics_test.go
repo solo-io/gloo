@@ -2,6 +2,7 @@ package metrics_test
 
 import (
 	"context"
+	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -131,4 +132,72 @@ var _ = Describe("ConfigStatusMetrics Test", func() {
 		Entry("Secret", "Secret.v1.gloo.solo.io", metrics.Names[gloov1.SecretGVK], makeSecret),
 		Entry("Proxy", "Proxy.v1.gloo.solo.io", metrics.Names[gloov1.ProxyGVK], makeProxy),
 	)
+
+	Describe("ClearMetrics", func() {
+		previousValue := os.Getenv(metrics.ClearStatusMetricsEnvVar)
+
+		AfterEach(func() {
+			os.Setenv(metrics.ClearStatusMetricsEnvVar, previousValue)
+		})
+
+		It("should clear metrics", func() {
+			os.Setenv(metrics.ClearStatusMetricsEnvVar, "true")
+
+			metricName, ok := metrics.Names[gwv1.VirtualServiceGVK]
+			Expect(ok).To(BeTrue())
+
+			opts := map[string]*metrics.MetricLabels{
+				"VirtualService.v1.gateway.solo.io": {
+					LabelToPath: map[string]string{
+						"name": "{.metadata.name}",
+					},
+				},
+			}
+			c, err := metrics.NewConfigStatusMetrics(opts)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(c).NotTo(BeNil())
+
+			// Create two resources
+			res := makeVirtualService("clear")
+			resName := res.GetMetadata().GetName()
+
+			c.SetResourceInvalid(context.TODO(), res)
+			Expect(helpers.ReadMetricByLabel(metricName, "name", resName)).To(Equal(1))
+
+			c.ClearMetrics(context.TODO())
+			_, err = helpers.ReadMetricByLabel(metricName, "name", resName)
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("should not clear metrics if the environment variable is not set", func() {
+			os.Unsetenv(metrics.ClearStatusMetricsEnvVar)
+
+			metricName, ok := metrics.Names[gwv1.VirtualServiceGVK]
+			Expect(ok).To(BeTrue())
+
+			opts := map[string]*metrics.MetricLabels{
+				"VirtualService.v1.gateway.solo.io": {
+					LabelToPath: map[string]string{
+						"name": "{.metadata.name}",
+					},
+				},
+			}
+			c, err := metrics.NewConfigStatusMetrics(opts)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(c).NotTo(BeNil())
+
+			// Create two resources
+			res := makeVirtualService("clear")
+			resName := res.GetMetadata().GetName()
+
+			c.SetResourceInvalid(context.TODO(), res)
+			Expect(helpers.ReadMetricByLabel(metricName, "name", resName)).To(Equal(1))
+
+			c.ClearMetrics(context.TODO())
+
+			v, err := helpers.ReadMetricByLabel(metricName, "name", resName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(v).To(Equal(1))
+		})
+	})
 })

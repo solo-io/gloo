@@ -129,6 +129,11 @@ func (f *apiPortForwarder) Address() string {
 	return net.JoinHostPort(f.properties.localAddress, strconv.Itoa(f.properties.localPort))
 }
 
+// LocalPort returns the local port that is being forwarded to the remote port
+func (f *apiPortForwarder) LocalPort() int {
+	return f.properties.localPort
+}
+
 func (f *apiPortForwarder) Close() {
 	close(f.stopCh)
 	// Closing the stop channel should close anything

@@ -46,11 +46,7 @@ func MeasureOne(ctx context.Context, counter *stats.Int64Measure, tags ...tag.Mu
 
 // Measure records the given value to the given counter
 func Measure(ctx context.Context, counter *stats.Int64Measure, val int64, tags ...tag.Mutator) {
-	if err := stats.RecordWithTags(
-		ctx,
-		tags,
-		counter.M(val),
-	); err != nil {
+	if err := stats.RecordWithTags(ctx, tags, counter.M(val)); err != nil {
 		contextutils.LoggerFrom(ctx).Errorf("setting counter %v: %v", counter.Name(), err)
 	}
 }

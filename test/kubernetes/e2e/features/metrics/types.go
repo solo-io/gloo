@@ -21,6 +21,7 @@ var (
 	exampleServiceManifest            = filepath.Join(util.MustGetThisDir(), "testdata", "service.yaml")
 	gatewayAndRouteToServiceManifest  = filepath.Join(util.MustGetThisDir(), "testdata", "gateway-and-route-to-service.yaml")
 	gatewayAndRouteToUpstreamManifest = filepath.Join(util.MustGetThisDir(), "testdata", "gateway-and-route-to-upstream.yaml")
+	edgeGatewayNginxUpstream          = filepath.Join(util.MustGetThisDir(), "testdata", "edge-gateway-nginx.yaml")
 
 	// objects
 	glooProxyObjectMeta = metav1.ObjectMeta{

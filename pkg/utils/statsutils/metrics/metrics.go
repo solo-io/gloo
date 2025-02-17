@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	gwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -13,9 +15,14 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/util/jsonpath"
+)
+
+const (
+	ClearStatusMetricsEnvVar = "GLOO_CLEAR_STATUS_METRICS"
 )
 
 type MetricLabels = gloov1.Settings_ObservabilityOptions_MetricLabels
@@ -43,6 +50,7 @@ var descriptions = map[schema.GroupVersionKind]string{
 // ConfigStatusMetrics is a collection of metrics, each of which records if the configuration for
 // a particular resource type is valid
 type ConfigStatusMetrics struct {
+	opts    map[string]*MetricLabels
 	metrics map[schema.GroupVersionKind]*resourceMetric
 }
 
@@ -60,21 +68,33 @@ func GetDefaultConfigStatusOptions() map[string]*MetricLabels {
 // NewConfigStatusMetrics creates and returns a ConfigStatusMetrics from the specified options.
 // If the options are invalid, an error is returned.
 func NewConfigStatusMetrics(opts map[string]*MetricLabels) (ConfigStatusMetrics, error) {
-	configMetrics := ConfigStatusMetrics{
-		metrics: make(map[schema.GroupVersionKind]*resourceMetric),
+	metrics, err := prepareMetrics(opts)
+	if err != nil {
+		return ConfigStatusMetrics{}, err
 	}
+
+	configMetrics := ConfigStatusMetrics{
+		opts:    opts,
+		metrics: metrics,
+	}
+
+	return configMetrics, nil
+}
+
+func prepareMetrics(opts map[string]*MetricLabels) (map[schema.GroupVersionKind]*resourceMetric, error) {
+	metrics := make(map[schema.GroupVersionKind]*resourceMetric)
 	for gvkString, labels := range opts {
 		gvk, err := parseGroupVersionKind(gvkString)
 		if err != nil {
-			return ConfigStatusMetrics{}, err
+			return map[schema.GroupVersionKind]*resourceMetric{}, err
 		}
 		metric, err := newResourceMetric(gvk, labels.GetLabelToPath())
 		if err != nil {
-			return ConfigStatusMetrics{}, err
+			return map[schema.GroupVersionKind]*resourceMetric{}, err
 		}
-		configMetrics.insertMetric(gvk, metric)
+		metrics[gvk] = metric
 	}
-	return configMetrics, nil
+	return metrics, nil
 }
 
 func parseGroupVersionKind(arg string) (schema.GroupVersionKind, error) {
@@ -156,8 +176,42 @@ func (m *ConfigStatusMetrics) SetResourceInvalid(ctx context.Context, resource r
 	}
 }
 
-func (m *ConfigStatusMetrics) insertMetric(gvk schema.GroupVersionKind, metric *resourceMetric) {
-	m.metrics[gvk] = metric
+// ClearMetrics removes all metrics from the ConfigStatusMetrics
+func (m *ConfigStatusMetrics) ClearMetrics(ctx context.Context) {
+	// Our current metrics package uses a channel to unregister views,
+	// forcing callers sleep after calling ClearMetrics.
+	// We are concerned that required sleep may cause metrics to flicker.
+	// So, we are making this behavior opt-in.
+	// This is a temporary solution until we upgrade to another metrics package.
+	if !envutils.IsEnvTruthy(ClearStatusMetricsEnvVar) {
+		return
+	}
+
+	someViewsUnregistered := false
+
+	// Iterate through the resource metrics and unregister them
+	for _, metric := range m.metrics {
+		v := view.Find(metric.gauge.Name())
+		if v != nil {
+			view.Unregister(v)
+			someViewsUnregistered = true
+		}
+	}
+
+	// Only sleep when some metrics were unregistered
+	if someViewsUnregistered {
+		// Wait for the view to be unregistered (a channel is used)
+		// This is necessary because the view is unregistered asynchronously.
+		// We may not need this after we upgrade to an newer metrics package
+		time.Sleep(1 * time.Second)
+	}
+
+	// Add fresh metrics
+	var err error
+	m.metrics, err = prepareMetrics(m.opts)
+	if err != nil {
+		contextutils.LoggerFrom(ctx).Errorf("Error clearing resource metrics: %s", err.Error())
+	}
 }
 
 func getMutators(metric *resourceMetric, resource resources.Resource) ([]tag.Mutator, error) {

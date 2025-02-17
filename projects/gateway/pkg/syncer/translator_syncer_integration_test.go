@@ -161,7 +161,7 @@ var _ = Describe("TranslatorSyncer integration test", func() {
 				return core.Status_Pending, fmt.Errorf("no state")
 			}
 			return proxyState.GetState(), nil
-		})
+		}, "10s", "1s")
 	}
 
 	EventuallyProxyStatus := func() gomega.AsyncAssertion {
