@@ -313,6 +313,7 @@ type Gloo struct {
 	DisableLeaderElection      *bool                 `json:"disableLeaderElection,omitempty" desc:"Set to true to disable leader election, and ensure all running replicas are considered the leader. Do not enable this with multiple replicas of Gloo"`
 	HeaderSecretRefNsMatchesUs *bool                 `json:"headerSecretRefNsMatchesUs,omitempty" desc:"Set to true to require that secrets sent in headers via headerSecretRefs come from the same namespace as the destination upstream. Default: false"`
 	PodDisruptionBudget        *PodDisruptionBudget  `json:"podDisruptionBudget,omitempty"`
+	ClearStatusMetrics         *bool                 `json:"clearStatusMetrics,omitempty" desc:"Set to true to clear status metrics for deleted resources. This may cause metric scraping to infrequently not see status metrics. Default is false."`
 }
 
 type KubeGateway struct {

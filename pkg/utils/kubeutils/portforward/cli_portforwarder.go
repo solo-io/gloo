@@ -111,6 +111,11 @@ func (c *cliPortForwarder) Address() string {
 	return net.JoinHostPort(c.properties.localAddress, strconv.Itoa(c.properties.localPort))
 }
 
+// LocalPort returns the local port that is being forwarded to the remote port
+func (c *cliPortForwarder) LocalPort() int {
+	return c.properties.localPort
+}
+
 func (c *cliPortForwarder) Close() {
 	if c.cmdCancel != nil {
 		c.cmdCancel()
