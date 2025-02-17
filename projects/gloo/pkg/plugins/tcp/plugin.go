@@ -249,11 +249,12 @@ func (p *plugin) computeTcpFilterChain(
 	}
 
 	// needed to handle passthrough
-	if sslConfig.GetSslSecrets() == nil && len(sslConfig.GetSniDomains()) != 0 {
+	sniDomains := sslConfig.GetSniDomains()
+	if sslConfig.GetSslSecrets() == nil && len(sniDomains) != 0 {
 		return &envoy_config_listener_v3.FilterChain{
 			Filters: listenerFilters,
 			FilterChainMatch: &envoy_config_listener_v3.FilterChainMatch{
-				ServerNames: sslConfig.GetSniDomains(),
+				ServerNames: sniDomains,
 			},
 		}, nil
 	}
