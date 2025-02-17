@@ -1,6 +1,0 @@
-changelog:
-- type: FIX
-  issueLink: https://github.com/solo-io/gloo/issues/10541
-  resolvesIssue: false
-  description: Fixes a bug where the envoy pod passes the readiness probe before receving the xds config.
-
