@@ -590,7 +590,7 @@ func (tc *tcpFilterChain) translateTcpFilterChain(
 			switch r.Object.(type) {
 			case *gwv1a2.TLSRoute:
 				tRoute := r.Object.(*gwv1a2.TLSRoute)
-				// Collect ParentRefReporters for the TCPRoute
+				// Collect ParentRefReporters for the TLSRoute
 				parentRefReporters := make([]reports.ParentRefReporter, 0, len(tRoute.Spec.ParentRefs))
 				for _, parentRef := range tRoute.Spec.ParentRefs {
 					parentRefReporter := reporter.Route(tRoute).ParentRef(&parentRef)
@@ -603,7 +603,7 @@ func (tc *tcpFilterChain) translateTcpFilterChain(
 				}
 
 				for i, rule := range tRoute.Spec.Rules {
-					// Ensure unique names by appending the rule index to the TCPRoute name
+					// Ensure unique names by appending the rule index to the TLSRoute name
 					tcpHostName := fmt.Sprintf("%s-rule-%d", tRoute.Name, i)
 					tcpHost := buildTcpHost(r, parentRefReporters, tcpHostName, listener.Port, rule.BackendRefs)
 					if tcpHost != nil {
