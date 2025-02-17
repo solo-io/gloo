@@ -1,3 +1,15 @@
+Common Name: *
+Subject Alternative Names: *
+Organization: gateway
+Organization Unit:
+Locality:
+State:
+Country:
+Valid From: November 8, 2023
+Valid To: November 5, 2033
+Issuer: *, root
+Key Size: 2048 bit
+Serial Number: 0 (0x0)
 -----BEGIN CERTIFICATE-----
 MIIEPTCCAiWgAwIBAgIBADANBgkqhkiG9w0BAQsFADAbMQowCAYDVQQDDAEqMQ0w
 CwYDVQQKDARyb290MB4XDTIzMTEwODE2NDQ1N1oXDTMzMTEwNTE2NDQ1N1owHjEK
