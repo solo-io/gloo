@@ -434,6 +434,7 @@
 |gloo.deployment.podSecurityContext.seccompProfile.localhostProfile|string|||
 |gloo.deployment.podSecurityContext.appArmorProfile.type|string|||
 |gloo.deployment.podSecurityContext.appArmorProfile.localhostProfile|string|||
+|gloo.deployment.podSecurityContext.seLinuxChangePolicy|string|||
 |gloo.deployment.podSecurityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this value to false. Default value is "".|
 |gloo.deployment.replicas|int|1|number of instances to deploy|
 |gloo.deployment.customEnv[].name|string|||
@@ -959,6 +960,7 @@
 |gatewayProxies.NAME.podTemplate.podSecurityContext.seccompProfile.localhostProfile|string|||
 |gatewayProxies.NAME.podTemplate.podSecurityContext.appArmorProfile.type|string|||
 |gatewayProxies.NAME.podTemplate.podSecurityContext.appArmorProfile.localhostProfile|string|||
+|gatewayProxies.NAME.podTemplate.podSecurityContext.seLinuxChangePolicy|string|||
 |gatewayProxies.NAME.podTemplate.podSecurityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this value to false. Default value is "".|
 |gatewayProxies.NAME.podTemplate.image.tag|string||The image tag for the container.|
 |gatewayProxies.NAME.podTemplate.image.repository|string||The image repository (name) for the container.|
@@ -1212,6 +1214,7 @@
 |gatewayProxies.gatewayProxy.podTemplate.podSecurityContext.seccompProfile.localhostProfile|string|||
 |gatewayProxies.gatewayProxy.podTemplate.podSecurityContext.appArmorProfile.type|string|||
 |gatewayProxies.gatewayProxy.podTemplate.podSecurityContext.appArmorProfile.localhostProfile|string|||
+|gatewayProxies.gatewayProxy.podTemplate.podSecurityContext.seLinuxChangePolicy|string|||
 |gatewayProxies.gatewayProxy.podTemplate.podSecurityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this value to false. Default value is "".|
 |gatewayProxies.gatewayProxy.podTemplate.image.tag|string|<release_version, ex: 1.2.3>|The image tag for the container.|
 |gatewayProxies.gatewayProxy.podTemplate.image.repository|string|gloo-envoy-wrapper|The image repository (name) for the container.|
