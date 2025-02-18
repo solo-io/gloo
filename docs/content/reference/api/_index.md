@@ -19,7 +19,7 @@ Gloo Edge is a high-performance, plugin-extendable, platform-agnostic API Gatewa
 Gateway
 - Gateway: {{< protobuf name="gateway.solo.io.Gateway" >}}
 - HTTPGateway: {{< protobuf name="gateway.solo.io.HttpGateway" >}}
-- HTTPListenerOptions: {{< protobuf name="gloo.solo.io.HTTPListenerOptions" >}}
+- HTTPListenerOptions: {{< protobuf name="gloo.solo.io.HttpListenerOptions" >}}
 - ListenerOptions: {{< protobuf name="gloo.solo.io.ListenerOptions" >}}
 - TCPGateway: {{< protobuf name="gateway.solo.io.TcpGateway" >}}
 

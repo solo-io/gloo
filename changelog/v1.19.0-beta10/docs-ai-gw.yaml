@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: true
+    description: >-
+      Weekly doc fixes and minor updates.
