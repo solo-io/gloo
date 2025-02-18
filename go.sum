@@ -2706,8 +2706,8 @@ github.com/solo-io/protoc-gen-openapi v0.2.5 h1:l8YKsVks6JDFRzA9liYZIqauqpYRxHXn
 github.com/solo-io/protoc-gen-openapi v0.2.5/go.mod h1:osEjRl1miHqlq4Wl/8SEqHFoyydptPL1EzEdM9c4vfE=
 github.com/solo-io/skv2 v0.42.0 h1:MrrBJauarReCJdkVCB2PtWOVULE1IoJNTTWlQrfX4mc=
 github.com/solo-io/skv2 v0.42.0/go.mod h1:LP0CYAp2tblmttNP4rlHbYUnIUHazh+LU8QLV36yHAo=
-github.com/solo-io/solo-apis v0.0.0-20250214162835-14d31f37e82f h1:oObQ7np9U37iGDYoB7a/jEA8kENIMXXhcjLvYkHlaiU=
-github.com/solo-io/solo-apis v0.0.0-20250214162835-14d31f37e82f/go.mod h1:n69+QnkG+YEbZtrAsLYjW9BEqfy2vPGrafan2+fUrMA=
+github.com/solo-io/solo-apis v0.0.0-20250218202255-bad789c9de63 h1:5SI9O39qJ1NZydCqfwVUK1kwLU6C2WHBu2xb2qXtZao=
+github.com/solo-io/solo-apis v0.0.0-20250218202255-bad789c9de63/go.mod h1:n69+QnkG+YEbZtrAsLYjW9BEqfy2vPGrafan2+fUrMA=
 github.com/solo-io/solo-kit v0.37.0 h1:hQmxb4OkA24MuFAfERtyK1loUxXdgrEaIrwPLp57urs=
 github.com/solo-io/solo-kit v0.37.0/go.mod h1:Jdj9cmv2gWF+KIDAlmz9XMmb2MnDTtR6dkbw5gWfJOY=
 github.com/sourcegraph/conc v0.3.0 h1:OQTbbt6P72L20UqAkXXuLOj79LfEanQ+YQFNpLA9ySo=

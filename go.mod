@@ -59,7 +59,7 @@ require (
 	// Pinned to the `sa-k8s-1.29-bump` tag of solo-apis on `gloo-main` branch
 	// Ref: https://github.com/solo-io/gloo/pull/9463/files#r1594409655 && https://solo-io-corp.slack.com/archives/C03MFATU265/p1716913420716729?thread_ts=1716476992.938679&cid=C03MFATU265
 	// as to why it is now based off `gloo-main` and not `gloo-repo-branch`
-	github.com/solo-io/solo-apis v0.0.0-20250214162835-14d31f37e82f
+	github.com/solo-io/solo-apis v0.0.0-20250218202255-bad789c9de63
 	github.com/solo-io/solo-kit v0.37.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.1

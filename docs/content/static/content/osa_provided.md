@@ -38,8 +38,8 @@ Name|Version|License
 [kelseyhightower/envconfig](https://github.com/kelseyhightower/envconfig)|v1.4.0|MIT License
 [go-httpbin/v2](https://github.com/mccutchen/go-httpbin)|v2.15.0|MIT License
 [olekukonko/tablewriter](https://github.com/olekukonko/tablewriter)|v0.0.5|MIT License
-[ginkgo/v2](https://github.com/onsi/ginkgo)|v2.21.0|MIT License
-[onsi/gomega](https://github.com/onsi/gomega)|v1.35.1|MIT License
+[ginkgo/v2](https://github.com/onsi/ginkgo)|v2.22.1|MIT License
+[onsi/gomega](https://github.com/onsi/gomega)|v1.36.2|MIT License
 [pkg/browser](https://github.com/pkg/browser)|v0.0.0-20180916011732-0a3d74bf9ce4|BSD 2-clause "Simplified" License
 [pkg/errors](https://github.com/pkg/errors)|v0.9.1|BSD 2-clause "Simplified" License
 [prometheus/client_model](https://github.com/prometheus/client_model)|v0.6.1|Apache License 2.0
@@ -62,16 +62,16 @@ Name|Version|License
 [x/exp](https://golang.org/x/exp)|v0.0.0-20241215155358-4a5509556b9e|BSD 3-clause "New" or "Revised" License
 [x/mod](https://golang.org/x/mod)|v0.22.0|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.10.0|BSD 3-clause "New" or "Revised" License
-[x/tools](https://golang.org/x/tools)|v0.26.0|BSD 3-clause "New" or "Revised" License
-[googleapis/api](https://google.golang.org/genproto/googleapis/api)|v0.0.0-20241021214115-324edc3d5d38|Apache License 2.0
-[googleapis/rpc](https://google.golang.org/genproto/googleapis/rpc)|v0.0.0-20241021214115-324edc3d5d38|Apache License 2.0
-[google.golang.org/grpc](https://google.golang.org/grpc)|v1.67.1|Apache License 2.0
-[google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.35.1|BSD 3-clause "New" or "Revised" License
+[x/tools](https://golang.org/x/tools)|v0.29.0|BSD 3-clause "New" or "Revised" License
+[googleapis/api](https://google.golang.org/genproto/googleapis/api)|v0.0.0-20250122153221-138b5a5a4fd4|Apache License 2.0
+[googleapis/rpc](https://google.golang.org/genproto/googleapis/rpc)|v0.0.0-20250122153221-138b5a5a4fd4|Apache License 2.0
+[google.golang.org/grpc](https://google.golang.org/grpc)|v1.70.0|Apache License 2.0
+[google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.36.5|BSD 3-clause "New" or "Revised" License
 [AlecAivazis/survey.v1](https://gopkg.in/AlecAivazis/survey.v1)|v1.8.7|MIT License
-[helm/v3](https://helm.sh/helm/v3)|v3.16.2|Apache License 2.0
-[istio.io/api](https://istio.io/api)|v1.24.0-alpha.0.0.20241106042855-9e26cdd3450a|Apache License 2.0
-[istio.io/client-go](https://istio.io/client-go)|v1.24.0-alpha.0.0.20241106043554-b5828356941f|Apache License 2.0
-[istio.io/istio](https://istio.io/istio)|v0.0.0-20241107203726-094b9e700412|Apache License 2.0
+[helm/v3](https://helm.sh/helm/v3)|v3.17.0|Apache License 2.0
+[istio.io/api](https://istio.io/api)|v1.25.0-alpha.0.0.20250210220544-0b64afd2de85|Apache License 2.0
+[istio.io/client-go](https://istio.io/client-go)|v1.25.0-alpha.0.0.20250210220843-5a4065fded65|Apache License 2.0
+[istio.io/istio](https://istio.io/istio)|v0.0.0-20250212203644-c2ac935c5888|Apache License 2.0
 [k8s.io/api](https://k8s.io/api)|v0.32.2|Apache License 2.0
 [k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.32.2|Apache License 2.0
 [k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.32.2|Apache License 2.0
@@ -85,7 +85,7 @@ Name|Version|License
 [sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.20.1|Apache License 2.0
 [sigs.k8s.io/controller-tools](https://sigs.k8s.io/controller-tools)|v0.16.3|Apache License 2.0
 [sigs.k8s.io/gateway-api](https://sigs.k8s.io/gateway-api)|v1.2.1|Apache License 2.0
-[structured-merge-diff/v4](https://sigs.k8s.io/structured-merge-diff/v4)|v4.4.2|Apache License 2.0
+[structured-merge-diff/v4](https://sigs.k8s.io/structured-merge-diff/v4)|v4.5.0|Apache License 2.0
 [sigs.k8s.io/yaml](https://sigs.k8s.io/yaml)|v1.4.0|MIT License
 [cmd/goimports](https://golang.org/x/tools/cmd/goimports)|latest|MIT License
 [gogo/protobuf](https://github.com/gogo/protobuf)|latest|MIT License
