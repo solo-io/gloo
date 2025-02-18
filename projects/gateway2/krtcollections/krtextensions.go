@@ -6,7 +6,7 @@ import (
 
 // KRTExtensions allows appending to the core KRT collections used for XDS.
 type KRTExtensions interface {
-	Synced() krt.Syncer
+	HasSynced() bool
 	Endpoints() []krt.Collection[EndpointsForUpstream]
 	Upstreams() []krt.Collection[UpstreamWrapper]
 }
@@ -37,47 +37,15 @@ func (a aggregate) Upstreams() (out []krt.Collection[UpstreamWrapper]) {
 }
 
 func (a aggregate) HasSynced() bool {
-	return a.Synced().HasSynced()
-}
-
-func (a aggregate) WaitUntilSynced(stop <-chan struct{}) bool {
-	return a.Synced().WaitUntilSynced(stop)
-}
-
-func (a aggregate) Synced() krt.Syncer {
-	syncers := FlattenedSyncers{}
 	for _, c := range a.Endpoints() {
-		syncers = append(syncers, c.Synced())
+		if !c.HasSynced() {
+			return false
+		}
 	}
 	for _, c := range a.Upstreams() {
-		syncers = append(syncers, c.Synced())
-	}
-	return syncers
-}
-
-var _ krt.Syncer = FlattenedSyncers{}
-
-type FlattenedSyncers []krt.Syncer
-
-func (f FlattenedSyncers) HasSynced() bool {
-	for _, s := range f {
-		if !s.HasSynced() {
+		if !c.HasSynced() {
 			return false
 		}
 	}
 	return true
-}
-
-func (f FlattenedSyncers) WaitUntilSynced(stop <-chan struct{}) bool {
-	allSynced := true
-	for _, k := range f {
-		select {
-		case <-stop:
-			return false
-		default:
-			// don't return early if one is false
-			allSynced = allSynced && k.WaitUntilSynced(stop)
-		}
-	}
-	return allSynced
 }

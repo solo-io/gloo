@@ -6823,6 +6823,13 @@ Resource Types:
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>seLinuxChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#gatewayparametersspeckubepodtemplatesecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
         <td>object</td>
         <td>
