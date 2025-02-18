@@ -214,7 +214,7 @@ global:
     extAuth:
       signingKey:
         name: extauth-signing-key
-        signing-key: <signing-key-value>
+        key: <signing-key-value>
 ```
 
 #### Pod Disruption Budgets and Affinity/Anti-Affinity rules
