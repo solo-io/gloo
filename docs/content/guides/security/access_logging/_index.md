@@ -411,14 +411,14 @@ You can apply different filters on your access logs to reduce and optimize the n
 
 ### Using status code filters
 
-You can apply access log filters to requests that match a specific HTTP status code by using the `defaultValue` or `runtimeKey` option. 
+You can apply access log filters to requests that match a specific HTTP status code by using the `defaultValue` and `runtimeKey` option. 
 
 **Option 1: Use `defaultValue`** </br>
 
 Use the `defaultValue` option in the Gateway resource to specify the HTTP status code for which you want to apply the access log filter. Note that the `defaultValue` is set for a specific Gateway only. To apply the same HTTP status code to multiple Gateway resources, see `Option 2: Override the default value with a runtime key-value pair`. 
 
 1. Follow the steps in [File-based](#file-based-access-logging) or [gRPC](#grpc-access-logging) access logging to enable access logging for your gateway.
-2. To apply additional filters to your access logs, you create or edit your gateway resource and add the access log filters to the `spec.options.accessLoggingService.accessLog` section. The following example uses file-based access logging and captures access logs only for requests with an HTTP response code that is greater than or equal to 400. 
+2. To apply additional filters to your access logs, you create or edit your gateway resource and add the access log filters to the `spec.options.accessLoggingService.accessLog` section. The following example uses file-based access logging and captures access logs only for requests with an HTTP response code that is greater than or equal to 400. Note that the `runtimeKey` overrides any settings in `defaultValue`, so in this example, the `runtimeKey` is also set to 400.
    ```yaml
    apiVersion: gateway.solo.io/v1
    kind: Gateway
@@ -445,6 +445,7 @@ Use the `defaultValue` option in the Gateway resource to specify the HTTP status
                  op: GE
                  value: 
                    defaultValue: 400
+                   runtimeKey: "400"
      proxyNames:
      - gateway-proxy
      ssl: false
@@ -467,7 +468,7 @@ Note that the `runtimeKey` is enforced only if it matches a key that is defined 
 3. Create or edit your gateway resource and add the access log filters to the `spec.options.accessLoggingService.accessLog` section. The following example uses file-based access logging and captures access logs only for requests with an HTTP response code that is greater than or equal to what is defined in the `access_log_status_filter` runtime value.
 
    {{% notice note %}}
-   Note that the `runtimeKey` overrides any settings in `defaultValue`
+   Note that the `runtimeKey` overrides any settings in `defaultValue`.
    {{% /notice %}}
    
    ```yaml
