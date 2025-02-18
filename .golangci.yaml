@@ -62,6 +62,9 @@ issues:
   # Set to 0 to disable.
   max-same-issues: 0
 
+  # Make issues output unique by line.
+  uniq-by-line: true
+
 run:
   # Number of CPUs to use when running golangci-lint.
   # Default: the number of logical CPUs in the machine
@@ -103,9 +106,6 @@ output:
 
   # Print linter name in the end of issue text.
   print-linter-name: true
-
-  # Make issues output unique by line.
-  uniq-by-line: true
 
   # Sort results by: filepath, line and column.
   sort-results: true
