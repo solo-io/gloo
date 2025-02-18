@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Bump timeouts for nightly e2e tests.
