@@ -55,8 +55,7 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.2.5
 	github.com/solo-io/skv2 v0.42.0
 
-	// DO_NOT_SUBMIT: update comment
-	// Pinned to the `sa-k8s-1.29-bump` tag of solo-apis on `gloo-main` branch
+	// Pinned to the `k8s-1.32-bump` tag of solo-apis on `gloo-main` branch
 	// Ref: https://github.com/solo-io/gloo/pull/9463/files#r1594409655 && https://solo-io-corp.slack.com/archives/C03MFATU265/p1716913420716729?thread_ts=1716476992.938679&cid=C03MFATU265
 	// as to why it is now based off `gloo-main` and not `gloo-repo-branch`
 	github.com/solo-io/solo-apis v0.0.0-20250218202255-bad789c9de63
