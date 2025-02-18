@@ -17,6 +17,7 @@ package xds
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 
@@ -29,15 +30,15 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/types"
 )
 
-var (
-	// Compile-time assertion
-	_ cache.Snapshot = new(EnvoySnapshot)
-)
+// Compile-time assertion
+var _ cache.Snapshot = new(EnvoySnapshot)
 
 // Snapshot is an internally consistent snapshot of xDS resources.
 // Consistently is important for the convergence as different resource types
 // from the snapshot may be delivered to the proxy in arbitrary order.
 type EnvoySnapshot struct {
+	mu sync.RWMutex
+
 	// Endpoints are items in the EDS V3 response payload.
 	Endpoints cache.Resources
 
@@ -105,6 +106,9 @@ func (s *EnvoySnapshot) Consistent() error {
 	if s == nil {
 		return errors.New("nil snapshot")
 	}
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	endpoints := resource.GetResourceReferences(s.Clusters.Items)
 	if len(endpoints) != len(s.Endpoints.Items) {
 		return fmt.Errorf("mismatched endpoint reference and resource lengths: length of %v does not equal length of %v", endpoints, s.Endpoints.Items)
@@ -123,6 +127,8 @@ func (s *EnvoySnapshot) Consistent() error {
 // MakeConsistent removes any items that fail to link to parent resources in the snapshot.
 // It will also add placeholder routes for listeners referencing non-existent routes.
 func (s *EnvoySnapshot) MakeConsistent() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if s == nil {
 		s.Listeners = cache.Resources{
 			Version: "empty",
@@ -163,7 +169,7 @@ func (s *EnvoySnapshot) MakeConsistent() {
 
 	// remove each endpoint not referenced by a cluster
 	// it is safe to delete from a map you are iterating over, example in effective go https://go.dev/doc/effective_go#for
-	for name, _ := range s.Endpoints.Items {
+	for name := range s.Endpoints.Items {
 		if _, exists := childEndpoints[name]; !exists {
 			delete(s.Endpoints.Items, name)
 		}
@@ -214,7 +220,7 @@ func (s *EnvoySnapshot) MakeConsistent() {
 
 	// remove each route not referenced by a listener
 	// it is safe to delete from a map you are iterating over, example in effective go https://go.dev/doc/effective_go#for
-	for name, _ := range s.Routes.Items {
+	for name := range s.Routes.Items {
 		if _, exists := childRoutes[name]; !exists {
 			delete(s.Routes.Items, name)
 		}
@@ -223,6 +229,8 @@ func (s *EnvoySnapshot) MakeConsistent() {
 
 // GetResources selects snapshot resources by type.
 func (s *EnvoySnapshot) GetResources(typ string) cache.Resources {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	if s == nil {
 		return cache.Resources{}
 	}
@@ -240,6 +248,8 @@ func (s *EnvoySnapshot) GetResources(typ string) cache.Resources {
 }
 
 func (s *EnvoySnapshot) Clone() cache.Snapshot {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	snapshotClone := &EnvoySnapshot{}
 
 	snapshotClone.Endpoints = cache.Resources{
@@ -277,6 +287,12 @@ func cloneItems(items map[string]cache.Resource) map[string]cache.Resource {
 
 // Equal checks is 2 snapshots are equal, important since reflect.DeepEqual no longer works with proto4
 func (this *EnvoySnapshot) Equal(that *EnvoySnapshot) bool {
+	this.mu.RLock()
+	defer this.mu.RUnlock()
+
+	that.mu.RLock()
+	defer that.mu.RUnlock()
+
 	if len(this.Clusters.Items) != len(that.Clusters.Items) || this.Clusters.Version != that.Clusters.Version {
 		return false
 	}

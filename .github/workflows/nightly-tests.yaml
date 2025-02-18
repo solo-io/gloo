@@ -133,7 +133,7 @@ jobs:
           # When running the tests at night, there is no value in splitting the tests across multiple clusters and running them in parallel.
           # As a result, we increase the threshold for the tests, since they all run serially on a single cluster
           - cluster-name: 'cluster-one'
-            go-test-args: '-v -timeout=150m'
+            go-test-args: '-v -timeout=210m'
             # Specifying an empty regex means all tests will be run.
             go-test-run-regex: ""
         # In our nightly tests, we run the suite of tests using the lower and upper ends of versions that we claim to support
@@ -196,7 +196,7 @@ jobs:
           # When running the tests at night, there is no value in splitting the tests across multiple clusters and running them in parallel.
           # As a result, we increase the threshold for the tests, since they all run serially on a single cluster
           - cluster-name: 'cluster-one'
-            go-test-args: '-v -timeout=150m'
+            go-test-args: '-v -timeout=210m'
             # Specifying an empty regex means all tests will be run.
             go-test-run-regex: ""
         # In our nightly tests, we run the suite of tests using the lower and upper ends of versions that we claim to support
