@@ -604,6 +604,6 @@ jobs:
         env:
           PARENT_JOB_URL: https://github.com/solo-io/gloo/actions/runs/${{github.run_id}} # parent job hyperlink
           PREAMBLE: ${{ steps.compute-preamble.outputs.preamble }}  # text to hyperlink at start of slack message
-          SLACKBOT_BEARER: ${{ secrets.SLACKBOT_BEARER }}
+          SLACKBOT_BEARER: ${{ secrets.SLACK_BOT_TOKEN }}
         run: |
           go run .github/workflows/helpers/notify/slack.go '${{ toJSON(needs) }}'
