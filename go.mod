@@ -1,6 +1,10 @@
 module github.com/solo-io/gloo
 
+<<<<<<< HEAD
 go 1.24.0
+=======
+go 1.23.6
+>>>>>>> main
 
 // Note for developers: upgrading go will also require upgrading go in the following files:
 // ./cloudbuild-cache.yaml,
@@ -49,17 +53,17 @@ require (
 	github.com/saiskee/gettercheck v0.0.0-20210820204958-38443d06ebe0
 	github.com/sergi/go-diff v1.2.0
 	github.com/solo-io/go-list-licenses v0.1.4
-	github.com/solo-io/go-utils v0.27.3
-	github.com/solo-io/k8s-utils v0.8.1
+	github.com/solo-io/go-utils v0.27.4
+	github.com/solo-io/k8s-utils v0.9.0
 	github.com/solo-io/protoc-gen-ext v0.0.25
 	github.com/solo-io/protoc-gen-openapi v0.2.5
-	github.com/solo-io/skv2 v0.41.0
+	github.com/solo-io/skv2 v0.42.0
 
-	// Pinned to the `sa-k8s-1.29-bump` tag of solo-apis on `gloo-main` branch
+	// Pinned to the `k8s-1.32-bump` tag of solo-apis on `gloo-main` branch
 	// Ref: https://github.com/solo-io/gloo/pull/9463/files#r1594409655 && https://solo-io-corp.slack.com/archives/C03MFATU265/p1716913420716729?thread_ts=1716476992.938679&cid=C03MFATU265
 	// as to why it is now based off `gloo-main` and not `gloo-repo-branch`
-	github.com/solo-io/solo-apis v0.0.0-20240917212400-9103ca169358
-	github.com/solo-io/solo-kit v0.36.4
+	github.com/solo-io/solo-apis v0.0.0-20250218202255-bad789c9de63
+	github.com/solo-io/solo-kit v0.37.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
@@ -75,13 +79,13 @@ require (
 	google.golang.org/protobuf v1.36.5
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	helm.sh/helm/v3 v3.17.0
-	k8s.io/api v0.32.1
-	k8s.io/apiextensions-apiserver v0.32.1
-	k8s.io/apimachinery v0.32.1
-	k8s.io/client-go v0.32.1
-	k8s.io/code-generator v0.32.1
-	k8s.io/component-base v0.32.1
-	k8s.io/kubectl v0.32.1
+	k8s.io/api v0.32.2
+	k8s.io/apiextensions-apiserver v0.32.2
+	k8s.io/apimachinery v0.32.2
+	k8s.io/client-go v0.32.2
+	k8s.io/code-generator v0.32.2
+	k8s.io/component-base v0.32.2
+	k8s.io/kubectl v0.32.2
 	k8s.io/utils v0.0.0-20241210054802-24370beab758
 	knative.dev/networking v0.0.0-20211210083629-bace06e98aee
 	knative.dev/pkg v0.0.0-20211206113427-18589ac7627e
@@ -338,14 +342,14 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiserver v0.32.1 // indirect
-	k8s.io/cli-runtime v0.32.1 // indirect
-	k8s.io/component-helpers v0.32.1 // indirect
+	k8s.io/apiserver v0.32.2 // indirect
+	k8s.io/cli-runtime v0.32.2 // indirect
+	k8s.io/component-helpers v0.32.2 // indirect
 	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
 	k8s.io/gengo/v2 v2.0.0-20240911193312-2b36238f13e9 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20241212222426-2c72e554b1e7 // indirect
-	k8s.io/metrics v0.32.1 // indirect
+	k8s.io/metrics v0.32.2 // indirect
 	oras.land/oras-go v1.2.5 // indirect
 	sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 // indirect
 	sigs.k8s.io/kustomize/api v0.18.0 // indirect
@@ -386,20 +390,20 @@ replace (
 
 	// Pin Kube libraries to v0.32
 	// These should be upgraded collectively
-	k8s.io/api => k8s.io/api v0.32.1
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.32.1
-	k8s.io/apimachinery => k8s.io/apimachinery v0.32.1
-	k8s.io/apiserver => k8s.io/apiserver v0.32.1
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.32.1
-	k8s.io/client-go => k8s.io/client-go v0.32.1
-	k8s.io/code-generator => k8s.io/code-generator v0.32.1
-	k8s.io/component-base => k8s.io/component-base v0.32.1
-	k8s.io/component-helpers => k8s.io/component-helpers v0.32.1
-	// version of kube-openapi used by client-go v0.32.1
-	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20240827152857-f7e401e7b4c2
-	k8s.io/kubectl => k8s.io/kubectl v0.32.1
-	k8s.io/metrics => k8s.io/metrics v0.32.1
-	k8s.io/utils => k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
+	k8s.io/api => k8s.io/api v0.32.2
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.32.2
+	k8s.io/apimachinery => k8s.io/apimachinery v0.32.2
+	k8s.io/apiserver => k8s.io/apiserver v0.32.2
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.32.2
+	k8s.io/client-go => k8s.io/client-go v0.32.2
+	k8s.io/code-generator => k8s.io/code-generator v0.32.2
+	k8s.io/component-base => k8s.io/component-base v0.32.2
+	k8s.io/component-helpers => k8s.io/component-helpers v0.32.2
+	// version of kube-openapi used by client-go v0.32.2
+	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f
+	k8s.io/kubectl => k8s.io/kubectl v0.32.2
+	k8s.io/metrics => k8s.io/metrics v0.32.2
+	k8s.io/utils => k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738
 )
 
 exclude (
