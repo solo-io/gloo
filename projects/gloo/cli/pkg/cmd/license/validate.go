@@ -67,7 +67,7 @@ func validateLicense(licenseKey string) error {
 	if err != nil {
 		return fmt.Errorf("can't parse license key")
 	}
-	fmt.Printf(formatLicenseDetail(licenseClaims.CreationDate, licenseClaims.ExpirationDate, licenseClaims.Product, licenseClaims.LicenseType == "trial"))
+	fmt.Print(formatLicenseDetail(licenseClaims.CreationDate, licenseClaims.ExpirationDate, licenseClaims.Product, licenseClaims.LicenseType == "trial"))
 	return nil
 }
 
@@ -78,7 +78,7 @@ func validateLegacyLicense(licenseKey string) error {
 	if err != nil {
 		return fmt.Errorf("can't parse license key")
 	}
-	fmt.Printf(formatLicenseDetail(licenseLegacyClaim.Iat, licenseLegacyClaim.Exp, licenseLegacyClaim.Product, licenseLegacyClaim.LicType == "trial"))
+	fmt.Print(formatLicenseDetail(licenseLegacyClaim.Iat, licenseLegacyClaim.Exp, licenseLegacyClaim.Product, licenseLegacyClaim.LicType == "trial"))
 	return nil
 }
 

@@ -45,10 +45,10 @@ var (
 
 	InvalidTlsSecretError = func(ref *core.ResourceRef, err error) error {
 		if ref == nil {
-			return eris.Wrapf(err, "Invalid TLS secret")
+			return eris.Wrap(err, "Invalid TLS secret")
 		} else {
 			errorString := fmt.Sprintf("%v is not a valid TLS secret", ref)
-			return eris.Wrapf(err, errorString)
+			return eris.Wrap(err, errorString)
 		}
 	}
 
