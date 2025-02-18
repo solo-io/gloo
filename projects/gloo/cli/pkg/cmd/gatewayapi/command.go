@@ -2,6 +2,7 @@ package gatewayapi
 
 import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/convert"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/gmg"
 	"github.com/spf13/cobra"
 )
 
@@ -12,5 +13,6 @@ func RootCmd() *cobra.Command {
 	}
 	cmd.SilenceUsage = true
 	cmd.AddCommand(convert.RootCmd())
+	cmd.AddCommand(gmg.RootCmd())
 	return cmd
 }
