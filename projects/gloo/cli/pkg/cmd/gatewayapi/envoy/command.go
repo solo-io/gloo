@@ -3,7 +3,9 @@ package envoy
 import (
 	"fmt"
 	adminv3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
+	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	http_connection_managerv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	tcp_proxyv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
@@ -22,6 +24,8 @@ import (
 	"log"
 	"os"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	"strconv"
+	"strings"
 )
 
 func init() {
@@ -60,17 +64,19 @@ func RootCmd() *cobra.Command {
 
 func run(opts *Options) error {
 	// Read the Envoy configuration file
-	//data, err := ioutil.ReadFile("envoy.nick.json")
-	data, err := ioutil.ReadFile("config_dump.grainger.nick.json")
+	data, err := ioutil.ReadFile("envoy.nick.json")
+	//data, err := ioutil.ReadFile("config_dump.grainger.nick.json")
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
 
+	log.Printf("Parsing envoy configuration")
 	// Parse the configuration
 	snapshot, err := parseEnvoyConfig(data)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
+	log.Printf("Completed parsing envoy configuration")
 
 	err = generateGatwayAPIConfig(snapshot)
 	if err != nil {
@@ -177,43 +183,12 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 					//No SNIs exist so we pull it from the HTTP connection manager
 					for i, filter := range fc.Filters {
 						if filter.Name == "envoy.filters.network.tcp_proxy" {
-							if len(snis) > 0 {
-								for i, sni := range snis {
-									listener := gwv1.Listener{
-										Port:     gwv1.PortNumber(v3Listener.Address.GetSocketAddress().GetPortValue()),
-										Hostname: ptr.To(gwv1.Hostname(sni)),
-										Protocol: gwv1.TLSProtocolType,
-										Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d", fi, i)),
-										AllowedRoutes: &gwv1.AllowedRoutes{
-											Kinds: []gwv1.RouteGroupKind{
-												{
-													Kind: "TCPRoute",
-												},
-											},
-										},
-									}
-									if tlsContext != nil {
-										listener.TLS = tlsContext
-									}
-									gwGateway.Spec.Listeners = append(gwGateway.Spec.Listeners, listener)
-								}
-							} else {
-								listener := gwv1.Listener{
-									Port:     gwv1.PortNumber(v3Listener.Address.GetSocketAddress().GetPortValue()),
-									Protocol: gwv1.TCPProtocolType,
-									Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d", fi, i)),
-									AllowedRoutes: &gwv1.AllowedRoutes{
-										Kinds: []gwv1.RouteGroupKind{
-											{
-												Kind: "TCPRoute",
-											},
-										},
-									},
-								}
-								if tlsContext != nil {
-									listener.TLS = tlsContext
-								}
-								gwGateway.Spec.Listeners = append(gwGateway.Spec.Listeners, listener)
+							tcpListeners, err := generateTCPListeners(snis, fi, tlsContext, i, v3Listener.Address.GetSocketAddress().GetPortValue())
+							if err != nil {
+								return err
+							}
+							for _, listener := range tcpListeners {
+								gwGateway.Spec.Listeners = append(gwGateway.Spec.Listeners, *listener)
 							}
 
 							var tcpp tcp_proxyv3.TcpProxy
@@ -222,67 +197,47 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 							}
 							//TODO need to generate the TCP Route to the backend
 							//tcpp.
-							//	listener := gwv1.Listener{
-							//	Port:     gwv1.PortNumber(v3Listener.Address.GetSocketAddress().GetPortValue()),
-							//	Hostname: ptr.To(gwv1.Hostname(domain)),
-							//	Protocol: gwv1.HTTPProtocolType,
-							//	Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d-%d", fi, i, j)),
 
 						}
 						if filter.Name == "envoy.filters.network.http_connection_manager" {
-							//SNIs exist so we use those as the listener domains
-							if len(snis) > 0 {
-								for i, sni := range snis {
-									listener := gwv1.Listener{
-										Port:     gwv1.PortNumber(v3Listener.Address.GetSocketAddress().GetPortValue()),
-										Hostname: ptr.To(gwv1.Hostname(sni)),
-										Protocol: gwv1.HTTPSProtocolType,
-										Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d", fi, i)),
-									}
-									if tlsContext != nil {
-										listener.TLS = tlsContext
-									}
-									gwGateway.Spec.Listeners = append(gwGateway.Spec.Listeners, listener)
-								}
+							httpListeners, err := generateHTTPListeners(filter, snis, fi, tlsContext, i, v3Listener.Address.GetSocketAddress().GetPortValue())
+							if err != nil {
+								return err
 							}
+							gwGateway.Spec.Listeners = append(gwGateway.Spec.Listeners, httpListeners...)
+
 							var hcm http_connection_managerv3.HttpConnectionManager
 							if err := filter.GetTypedConfig().UnmarshalTo(&hcm); err != nil {
 								return err
 							}
-							if hcm.GetRouteConfig() != nil {
-								for j, vh := range hcm.GetRouteConfig().VirtualHosts {
-									for _, domain := range vh.Domains {
-										listener := gwv1.Listener{
-											Port:     gwv1.PortNumber(v3Listener.Address.GetSocketAddress().GetPortValue()),
-											Hostname: ptr.To(gwv1.Hostname(domain)),
-											Protocol: gwv1.HTTPProtocolType,
-											Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d-%d", fi, i, j)),
-										}
-										if tlsContext != nil {
-											listener.TLS = tlsContext
-											listener.Protocol = gwv1.HTTPSProtocolType
-										}
-										gwGateway.Spec.Listeners = append(gwGateway.Spec.Listeners, listener)
-									}
+							if hcm.GetRds() != nil {
+								//// pull in the route
+								routeName := hcm.GetRds().RouteConfigName
+								//
+								rt, err := snapshot.GetRouteByName(routeName)
+								if err != nil {
+									return err
+								}
+								if rt == nil {
+									log.Printf("Route not found: %s", routeName)
+								}
+								routes, upstreams, err := generateHTTPRoutes(gwGateway.Name, gwGateway.Namespace, rt, snapshot)
+								if err != nil {
+									return err
+								}
+								for _, upstream := range upstreams {
+									output.Upstreams = append(output.Upstreams, upstream)
+								}
+								for _, rt := range routes {
+									output.HTTPRoutes = append(output.HTTPRoutes, rt)
 								}
 							}
-							//// pull in the route
-							//routeName := hcm.Config.GetRds().RouteConfigName
-							////
-							//rt, err := snapshot.GetRouteByName(routeName)
-							//if err != nil {
-							//	return err
-							//}
-							//listener.Name = gwv1.SectionName(routeName)
-
 						}
 					}
 				}
 			}
-
 			output.Gateways = append(output.Gateways, gwGateway)
 		}
-
 	}
 
 	// write all the outputs to their files
@@ -294,4 +249,298 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 	_, _ = fmt.Fprintf(os.Stdout, "%s\n", txt)
 
 	return nil
+}
+
+func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteConfiguration, snapshot *EnvoySnapshot) ([]*gwv1.HTTPRoute, []*glookube.Upstream, error) {
+	httpRoutes := make([]*gwv1.HTTPRoute, 0)
+	upstreams := make([]*glookube.Upstream, 0)
+
+	for _, virtualHost := range route.VirtualHosts {
+		// Generate a route per virtualhost
+		gwRoute := &gwv1.HTTPRoute{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      virtualHost.Name,
+				Namespace: "gloo-system",
+			},
+			Spec: gwv1.HTTPRouteSpec{
+				CommonRouteSpec: gwv1.CommonRouteSpec{
+					ParentRefs: []gwv1.ParentReference{
+						{
+							Namespace: ptr.To(gwv1.Namespace(gwNamespace)),
+							Name:      gwv1.ObjectName(gwName),
+						},
+					},
+				},
+				Hostnames: make([]gwv1.Hostname, 0),
+				Rules:     make([]gwv1.HTTPRouteRule, 0),
+			},
+		}
+		for _, route := range virtualHost.Routes {
+			// matches
+			gwrr := &gwv1.HTTPRouteRule{
+				Matches:     make([]gwv1.HTTPRouteMatch, 0),
+				Filters:     make([]gwv1.HTTPRouteFilter, 0),
+				BackendRefs: make([]gwv1.HTTPBackendRef, 0),
+			}
+			match, err := convertMatcher(route.Match)
+			if err != nil {
+				return nil, upstreams, err
+			}
+			gwrr.Matches = append(gwrr.Matches, match)
+
+			// Add the filters and the upstreams
+			//cluster lookup
+			//"outbound|8080||campaign-service-webserver.mesh.internal"
+			cluster, err := snapshot.GetClusterByName(route.GetRoute().GetCluster())
+			if err != nil {
+				return nil, upstreams, err
+			}
+			if cluster == nil {
+				log.Printf("cluster not found " + route.GetRoute().GetCluster())
+			}
+			if cluster != nil {
+				backendRef, upstream, err := generateBackendRef(route, cluster)
+				if err != nil {
+					return nil, upstreams, err
+				}
+				if upstream != nil {
+					upstreams = append(upstreams, upstream)
+				}
+				if backendRef != nil {
+					gwrr.BackendRefs = append(gwrr.BackendRefs, *backendRef)
+				}
+			}
+
+			gwRoute.Spec.Rules = append(gwRoute.Spec.Rules, *gwrr)
+		}
+		httpRoutes = append(httpRoutes, gwRoute)
+	}
+
+	return httpRoutes, upstreams, nil
+}
+
+func generateBackendRef(r *route.Route, cluster *envoy_config_cluster_v3.Cluster) (*gwv1.HTTPBackendRef, *glookube.Upstream, error) {
+
+	backendRef := &gwv1.HTTPBackendRef{}
+	if cluster == nil {
+		return nil, nil, nil
+	}
+	// need to determine if the cluster is an upstream of k8s service
+	if cluster.GetType() == envoy_config_cluster_v3.Cluster_EDS {
+		if cluster.GetEdsClusterConfig() != nil && cluster.GetEdsClusterConfig().GetServiceName() != "" {
+			serviceName := cluster.GetEdsClusterConfig().GetServiceName()
+			parsed := strings.Split(serviceName, "|")
+
+			if strings.HasSuffix(parsed[3], "svc.cluster.local") {
+				//its a k8s service
+				serviceSplit := strings.Split(parsed[3], ".")
+				backendRef.Name = gwv1.ObjectName(serviceSplit[0])
+				backendRef.Namespace = ptr.To(gwv1.Namespace(serviceSplit[1]))
+				i, err := strconv.Atoi(parsed[1])
+				if err != nil {
+					return nil, nil, err
+				}
+				backendRef.Port = ptr.To(gwv1.PortNumber(i))
+			} else {
+				foundIstioMTLS := false
+				if len(cluster.GetTransportSocketMatches()) > 0 {
+					for _, match := range cluster.GetTransportSocketMatches() {
+						if match.Name == "tlsMode-istio" {
+							foundIstioMTLS = true
+						}
+					}
+				}
+				if foundIstioMTLS {
+					// if the cluster is type EDS, has mTLS enabled, and is not svc.cluster.local, probably a VirtualDestination
+					backendRef.Name = gwv1.ObjectName(parsed[3])
+					backendRef.Kind = ptr.To(gwv1.Kind("Hostname"))
+					backendRef.Group = ptr.To(gwv1.Group("networking.istio.io"))
+					i, err := strconv.Atoi(parsed[1])
+					if err != nil {
+						return nil, nil, err
+					}
+					backendRef.Port = ptr.To(gwv1.PortNumber(i))
+				} else {
+					log.Printf("unknown cluster type, cant convert to backendRef %v", cluster.Name)
+				}
+
+			}
+		}
+
+		return backendRef, nil, nil
+	}
+
+	//TODO non k8s services
+	return nil, nil, nil
+}
+
+func convertMatcher(match *route.RouteMatch) (gwv1.HTTPRouteMatch, error) {
+	gwMatch := gwv1.HTTPRouteMatch{}
+
+	if match.GetPrefix() != "" {
+		gwMatch.Path = &gwv1.HTTPPathMatch{
+			Type:  ptr.To(gwv1.PathMatchPathPrefix),
+			Value: ptr.To(match.GetPrefix()),
+		}
+	}
+	if match.GetPath() != "" {
+		gwMatch.Path = &gwv1.HTTPPathMatch{
+			Type:  ptr.To(gwv1.PathMatchExact),
+			Value: ptr.To(match.GetPath()),
+		}
+	}
+	if len(match.GetHeaders()) > 0 {
+
+		for _, header := range match.GetHeaders() {
+			gwHM := gwv1.HTTPHeaderMatch{}
+			gwHM.Name = gwv1.HTTPHeaderName(header.Name)
+
+			if header.GetStringMatch() != nil {
+				//TODO GWAPI does nto support prefix header matching
+				//if header.GetStringMatch().GetPrefix() != "" {
+				//	gwHM.Type = ptr.To(gwv1.HeaderMatchExact)
+				//}
+				if header.GetStringMatch().GetExact() != "" {
+					gwHM.Type = ptr.To(gwv1.HeaderMatchExact)
+					gwHM.Value = header.GetStringMatch().GetExact()
+				}
+			}
+			if gwMatch.Headers == nil {
+				gwMatch.Headers = make([]gwv1.HTTPHeaderMatch, 0)
+			}
+			gwMatch.Headers = append(gwMatch.Headers, gwHM)
+		}
+	}
+	return gwMatch, nil
+}
+
+func generateHTTPListeners(filter *v3.Filter, snis []string, fi int, tlsContext *gwv1.GatewayTLSConfig, i int, port uint32) ([]gwv1.Listener, error) {
+	httpListeners := make([]gwv1.Listener, 0)
+	var hcm http_connection_managerv3.HttpConnectionManager
+	if err := filter.GetTypedConfig().UnmarshalTo(&hcm); err != nil {
+		return nil, err
+	}
+	//SNIs exist so we use those as the listener domains
+	if len(snis) > 0 {
+		for i, sni := range snis {
+			listener := gwv1.Listener{
+				Port:     gwv1.PortNumber(port),
+				Hostname: ptr.To(gwv1.Hostname(sni)),
+				Protocol: gwv1.HTTPSProtocolType,
+				Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d", fi, i)),
+				AllowedRoutes: &gwv1.AllowedRoutes{
+					Namespaces: &gwv1.RouteNamespaces{
+						From: ptr.To(gwv1.FromNamespaces("gloo-system")),
+					},
+					Kinds: []gwv1.RouteGroupKind{
+						{
+							Kind: "HTTPRoute",
+						},
+					},
+				},
+			}
+			if tlsContext != nil {
+				listener.TLS = tlsContext
+			}
+			httpListeners = append(httpListeners, listener)
+		}
+	} else {
+		//TODO hcm http_filters become listener filters
+		// there are no SNIs so we should look at the VirtualHosts
+		if hcm.GetRouteConfig() != nil {
+			for j, vh := range hcm.GetRouteConfig().VirtualHosts {
+				for _, domain := range vh.Domains {
+					listener := gwv1.Listener{
+						Port:     gwv1.PortNumber(port),
+						Hostname: ptr.To(gwv1.Hostname(domain)),
+						Protocol: gwv1.HTTPProtocolType,
+						Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d-%d", fi, i, j)),
+						AllowedRoutes: &gwv1.AllowedRoutes{
+							Namespaces: &gwv1.RouteNamespaces{
+								From: ptr.To(gwv1.FromNamespaces("gloo-system")),
+							},
+							Kinds: []gwv1.RouteGroupKind{
+								{
+									Kind: "HTTPRoute",
+								},
+							},
+						},
+					}
+					if tlsContext != nil {
+						listener.TLS = tlsContext
+						listener.Protocol = gwv1.HTTPSProtocolType
+					}
+					httpListeners = append(httpListeners, listener)
+				}
+			}
+
+		} else { // hcm.GetRouteConfig
+			// wild card listener
+			listener := gwv1.Listener{
+				Port:     gwv1.PortNumber(port),
+				Hostname: ptr.To(gwv1.Hostname("*")),
+				Protocol: gwv1.HTTPProtocolType,
+				Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d", fi, i)),
+				AllowedRoutes: &gwv1.AllowedRoutes{
+					Namespaces: &gwv1.RouteNamespaces{
+						From: ptr.To(gwv1.FromNamespaces("gloo-system")),
+					},
+					Kinds: []gwv1.RouteGroupKind{
+						{
+							Kind: "HTTPRoute",
+						},
+					},
+				},
+			}
+			if tlsContext != nil {
+				listener.TLS = tlsContext
+				listener.Protocol = gwv1.HTTPSProtocolType
+			}
+			httpListeners = append(httpListeners, listener)
+		}
+	}
+	return httpListeners, nil
+}
+
+func generateTCPListeners(snis []string, fi int, tlsContext *gwv1.GatewayTLSConfig, i int, port uint32) ([]*gwv1.Listener, error) {
+	tcpListeners := make([]*gwv1.Listener, 0)
+	if len(snis) > 0 {
+		for i, sni := range snis {
+			listener := gwv1.Listener{
+				Port:     gwv1.PortNumber(port),
+				Hostname: ptr.To(gwv1.Hostname(sni)),
+				Protocol: gwv1.TLSProtocolType,
+				Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d", fi, i)),
+				AllowedRoutes: &gwv1.AllowedRoutes{
+					Kinds: []gwv1.RouteGroupKind{
+						{
+							Kind: "TCPRoute",
+						},
+					},
+				},
+			}
+			if tlsContext != nil {
+				listener.TLS = tlsContext
+			}
+			tcpListeners = append(tcpListeners, &listener)
+		}
+	} else {
+		listener := gwv1.Listener{
+			Port:     gwv1.PortNumber(port),
+			Protocol: gwv1.TCPProtocolType,
+			Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d", fi, i)),
+			AllowedRoutes: &gwv1.AllowedRoutes{
+				Kinds: []gwv1.RouteGroupKind{
+					{
+						Kind: "TCPRoute",
+					},
+				},
+			},
+		}
+		if tlsContext != nil {
+			listener.TLS = tlsContext
+		}
+		tcpListeners = append(tcpListeners, &listener)
+	}
+	return tcpListeners, nil
 }

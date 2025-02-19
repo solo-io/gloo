@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	adminv3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
+	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
@@ -40,15 +41,28 @@ type EnvoySnapshot struct {
 	Routes    adminv3.RoutesConfigDump
 }
 
+func (e *EnvoySnapshot) GetClusterByName(clusterName string) (*envoy_config_cluster_v3.Cluster, error) {
+
+	for _, cluster := range e.Clusters.DynamicActiveClusters {
+		var cl envoy_config_cluster_v3.Cluster
+		if err := cluster.Cluster.UnmarshalTo(&cl); err != nil {
+			return nil, err
+		}
+		if cl.Name == clusterName {
+			return &cl, nil
+		}
+	}
+	return nil, nil
+}
 func (e *EnvoySnapshot) GetRouteByName(routeName string) (*route.RouteConfiguration, error) {
 
 	for _, rt := range e.Routes.DynamicRouteConfigs {
-		var rc *route.RouteConfiguration
-		if err := rt.RouteConfig.UnmarshalTo(rc); err != nil {
+		var rc route.RouteConfiguration
+		if err := rt.RouteConfig.UnmarshalTo(&rc); err != nil {
 			return nil, err
 		}
 		if rc.Name == routeName {
-			return rc, nil
+			return &rc, nil
 		}
 	}
 	return nil, nil
