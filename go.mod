@@ -49,10 +49,10 @@ require (
 	github.com/saiskee/gettercheck v0.0.0-20210820204958-38443d06ebe0
 	github.com/sergi/go-diff v1.2.0
 	github.com/solo-io/go-list-licenses v0.1.4
-	github.com/solo-io/go-utils v0.27.4
-	github.com/solo-io/k8s-utils v0.9.0
-	github.com/solo-io/protoc-gen-ext v0.0.25
-	github.com/solo-io/protoc-gen-openapi v0.2.5
+	github.com/solo-io/go-utils v0.28.4
+	github.com/solo-io/k8s-utils v0.10.0
+	github.com/solo-io/protoc-gen-ext v0.1.0
+	github.com/solo-io/protoc-gen-openapi v0.3.0
 	github.com/solo-io/skv2 v0.42.0
 
 	// Pinned to the `k8s-1.32-bump` tag of solo-apis on `gloo-main` branch
