@@ -108,7 +108,9 @@ func (f *statusSyncerFactory) HandleProxyReports(ctx context.Context, proxiesWit
 			continue
 		}
 
-		if f.resyncsPerIteration[proxySyncCount] == nil {
+		if f.resyncsPerIteration[proxySyncCount] == nil || len(f.resyncsPerIteration[proxySyncCount]) == 0 {
+			// remove the key so the map does not indefinitely grow
+			delete(f.resyncsPerIteration, proxySyncCount)
 			// re-sync already happened, nothing to do
 			continue
 		} else {
@@ -119,6 +121,11 @@ func (f *statusSyncerFactory) HandleProxyReports(ctx context.Context, proxiesWit
 				}
 			}
 			f.resyncsPerIteration[proxySyncCount] = updatedList
+
+			if len(f.resyncsPerIteration[proxySyncCount]) == 0 {
+				// remove the key so the map does not indefinitely grow
+				delete(f.resyncsPerIteration, proxySyncCount)
+			}
 		}
 
 		proxiesToReport[proxySyncCount] = append(proxiesToReport[proxySyncCount], proxyWithReport)
