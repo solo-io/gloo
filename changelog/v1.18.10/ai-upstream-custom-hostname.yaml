@@ -1,0 +1,6 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/7831
+  resolvesIssue: false
+  description: >
+    Added optional `hostname` to the AI Upstream CustomHost setting to override SNI and host header value 
