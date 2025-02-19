@@ -27,5 +27,8 @@ func (p *Provider) EventuallyKgatewayUninstallSucceeded(ctx context.Context) {
 func (p *Provider) EventuallyKgatewayUpgradeSucceeded(ctx context.Context, version string) {
 	p.expectInstallContextDefined()
 
-	// TODO check other things here, e.g. expected pods are up
+	p.EventuallyPodsRunning(ctx, p.installContext.InstallNamespace,
+		metav1.ListOptions{
+			LabelSelector: "app.kubernetes.io/name=kgateway",
+		})
 }
