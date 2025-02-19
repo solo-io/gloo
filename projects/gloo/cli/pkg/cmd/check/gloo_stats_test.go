@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
 )
 
 var _ = Describe("Gloo Stats", func() {
@@ -14,7 +15,7 @@ var _ = Describe("Gloo Stats", func() {
 
 	Context("check resources in sync", func() {
 		It("returns true when there are no stats", func() {
-			result := check.ResourcesSyncedOverXds("", deploymentName)
+			result := check.ResourcesSyncedOverXds(printers.P{}, "", deploymentName)
 			Expect(result).To(BeTrue())
 		})
 
@@ -38,7 +39,7 @@ glooe_solo_io_xds_total_entities{resource="type.googleapis.com/envoy.api.v2.List
 glooe_solo_io_xds_total_entities{resource="type.googleapis.com/envoy.api.v2.RouteConfiguration"} 1
 glooe_solo_io_xds_total_entities{resource="type.googleapis.com/glooe.solo.io.RateLimitConfig"} 1
 `
-			result := check.ResourcesSyncedOverXds(stats, deploymentName)
+			result := check.ResourcesSyncedOverXds(printers.P{}, stats, deploymentName)
 			Expect(result).To(BeFalse())
 		})
 
@@ -59,7 +60,7 @@ glooe_solo_io_xds_total_entities{resource="type.googleapis.com/envoy.api.v2.List
 glooe_solo_io_xds_total_entities{resource="type.googleapis.com/envoy.api.v2.RouteConfiguration"} 1
 glooe_solo_io_xds_total_entities{resource="type.googleapis.com/glooe.solo.io.RateLimitConfig"} 1
 `
-			result := check.ResourcesSyncedOverXds(stats, deploymentName)
+			result := check.ResourcesSyncedOverXds(printers.P{}, stats, deploymentName)
 			Expect(result).To(BeTrue())
 		})
 	})

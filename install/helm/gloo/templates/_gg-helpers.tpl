@@ -42,18 +42,18 @@ Images valid for the GatewayParameters
 ref Image api in projects/gateway2/api/v1alpha1/kube/container.proto
 */}}
 {{- define "gloo-gateway.gatewayParametersImage" -}}
-{{- $image := . -}}
+{{ $image := . }}
 {{- if $image.registry }}
 registry: {{ $image.registry }}
 {{- end -}}{{/* if $image.registry */}}
 {{- if $image.repository }}
-repository: {{ $image.repository }}
+repository: {{ template "gloo.image.repository" $image }}
 {{- end -}}{{/* if $image.repository */}}
 {{- if $image.tag }}
-tag: {{ $image.tag }}
+tag: {{ template "gloo.image.tag" $image }}
 {{- end -}}{{/* if $image.tag */}}
 {{- if $image.digest }}
-digest: {{ $image.digest }}
+digest: {{ template "gloo.image.digest" $image }}
 {{- end -}}{{/* if $image.digest */}}
 {{- if $image.pullPolicy }}
 pullPolicy: {{ $image.pullPolicy }}
