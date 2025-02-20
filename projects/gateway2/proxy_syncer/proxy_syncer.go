@@ -235,7 +235,6 @@ func (s *ProxySyncer) syncStatus(ctx context.Context, rm reports.ReportMap, gwl 
 // This cache is utilized by the debug.ProxyEndpointServer
 // As well as to resync the Gloo Xds Translator (when it receives new proxies using a MultiResourceClient)
 func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloo_solo_io.ProxyList) {
-	ctx = contextutils.WithLogger(ctx, "proxyCache")
 	logger := contextutils.LoggerFrom(ctx)
 
 	// Proxy CR is located in the writeNamespace, which may be different from the originating Gateway CR
