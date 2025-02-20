@@ -7,6 +7,7 @@ import (
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	faultv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/fault/v3"
 	http_connection_managerv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	tcp_proxyv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
@@ -17,6 +18,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
 	v5 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/cors"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/headers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
 	"github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
@@ -411,6 +413,14 @@ func generateRouteOption(r *route.Route) (*gatewaykube.RouteOption, error) {
 				roCors := generateCorsPolicy(&corsPolicy)
 				ro.Spec.Options.Cors = roCors
 			}
+			if filterName == "envoy.filters.http.fault" {
+				var fault faultv3.HTTPFault
+				if err := filterConfig.UnmarshalTo(&fault); err != nil {
+					return nil, err
+				}
+				roFault := generateRouteFaults(&fault)
+				ro.Spec.Options.Faults = roFault
+			}
 		}
 	}
 
@@ -474,6 +484,24 @@ func generateRouteOption(r *route.Route) (*gatewaykube.RouteOption, error) {
 		}
 	}
 	return ro, nil
+}
+
+func generateRouteFaults(fault *faultv3.HTTPFault) *faultinjection.RouteFaults {
+	roFault := &faultinjection.RouteFaults{}
+
+	if fault.Abort != nil && fault.Abort.GetHttpStatus() != 0 {
+		roFault.Abort = &faultinjection.RouteAbort{
+			Percentage: float32(100.0),
+			HttpStatus: fault.Abort.GetHttpStatus(),
+		}
+	}
+	if fault.Delay != nil && fault.Delay.GetFixedDelay().Seconds != 0 {
+		roFault.Delay = &faultinjection.RouteDelay{
+			Percentage: float32(100.0),
+			FixedDelay: fault.Delay.GetFixedDelay(),
+		}
+	}
+	return roFault
 }
 
 func generateCorsPolicy(corsPolicy *route.CorsPolicy) *v5.CorsPolicy {
