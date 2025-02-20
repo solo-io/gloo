@@ -159,13 +159,15 @@ or to use a different backend that is API-compliant with the upstream version.
 ```yaml
 "host": string
 "port": int
+"hostname": .google.protobuf.StringValue
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `host` | `string` | Custom host to send the traffic requests to. |
+| `host` | `string` | Custom host or IP address to send the traffic requests to. |
 | `port` | `int` | Custom port to send the traffic requests to. |
+| `hostname` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | Optional: hostname used to set the SNI (if is secure connection) and the host request header. If hostname is not set, host will be used instead. |
 
 
 
