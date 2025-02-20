@@ -14,9 +14,12 @@ import (
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	api "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
+	v6 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/jwt_authn/v3"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
 	v4 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	jwt2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	rbac2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
 	v5 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/cors"
@@ -24,6 +27,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/headers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
 	"github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
+	core2 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -77,8 +81,8 @@ func RootCmd() *cobra.Command {
 
 func run(opts *Options) error {
 	// Read the Envoy configuration file
-	//data, err := ioutil.ReadFile("envoy.nick.json")
-	data, err := ioutil.ReadFile("config_dump.grainger.nick.json")
+	data, err := ioutil.ReadFile("envoy.nick.json")
+	//data, err := ioutil.ReadFile("config_dump.grainger.nick.json")
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
@@ -192,6 +196,18 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 							}
 						}
 					}
+					jwtProviders := map[string]*v6.JwtProvider{}
+					for _, filter := range fc.Filters {
+						// extract all the JWT Policies to feed the RouteOptions
+						if filter.Name == "io.solo.filters.http.solo_jwt_authn_staged" {
+							var jwtPolicy jwt.JwtWithStage
+							if err := filter.GetTypedConfig().UnmarshalTo(&jwtPolicy); err != nil {
+								return err
+							}
+							jwtProviders = jwtPolicy.JwtAuthn.Providers
+							break
+						}
+					}
 
 					//No SNIs exist so we pull it from the HTTP connection manager
 					for i, filter := range fc.Filters {
@@ -234,7 +250,7 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 								if rt == nil {
 									log.Printf("Route not found: %s", routeName)
 								}
-								routes, upstreams, routeOptions, err := generateHTTPRoutes(gwGateway.Name, gwGateway.Namespace, rt, snapshot)
+								routes, upstreams, routeOptions, err := generateHTTPRoutes(gwGateway.Name, gwGateway.Namespace, rt, snapshot, jwtProviders)
 								if err != nil {
 									return err
 								}
@@ -267,7 +283,7 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 	return nil
 }
 
-func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteConfiguration, snapshot *EnvoySnapshot) ([]*gwv1.HTTPRoute, []*glookube.Upstream, []*gatewaykube.RouteOption, error) {
+func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteConfiguration, snapshot *EnvoySnapshot, jwtProviders map[string]*v6.JwtProvider) ([]*gwv1.HTTPRoute, []*glookube.Upstream, []*gatewaykube.RouteOption, error) {
 	httpRoutes := make([]*gwv1.HTTPRoute, 0)
 	upstreams := make([]*glookube.Upstream, 0)
 	routeOptions := make([]*gatewaykube.RouteOption, 0)
@@ -306,7 +322,7 @@ func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteCon
 			gwrr.Matches = append(gwrr.Matches, match)
 
 			// Add the filters and the upstreams
-			routeOption, err := generateRouteOption(route)
+			routeOption, err := generateRouteOption(route, jwtProviders)
 			if err != nil {
 				return nil, nil, nil, err
 			}
@@ -352,7 +368,7 @@ func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteCon
 	return httpRoutes, upstreams, routeOptions, nil
 }
 
-func generateRouteOption(r *route.Route) (*gatewaykube.RouteOption, error) {
+func generateRouteOption(r *route.Route, jwtProviders map[string]*v6.JwtProvider) (*gatewaykube.RouteOption, error) {
 
 	if r == nil {
 		return nil, nil
@@ -458,24 +474,52 @@ func generateRouteOption(r *route.Route) (*gatewaykube.RouteOption, error) {
 				//                                      space_delimited_claims:
 				//                                        - scope
 				// TODO Should generate JWT Policies from Listeners, will need to reference them as a filter here though
-				// JWT Authentication, combined with 'envoy.filters.http.rbac'
-				//var extAuth ext_authzv3.ExtAuthzPerRoute
-				//if err := filterConfig.UnmarshalTo(&extAuth); err != nil {
-				//	return nil, err
-				//}
-				////roJWT := &v2.RouteOptions_Jwt{
-				////	Jwt: &jwt.RouteExtension{
-				////
-				////	}
-				////}
-				//roJWT := &v2.RouteOptions_JwtStaged{
-				//	JwtStaged: &jwt.JwtStagedRouteExtension{
-				//		AfterExtAuth: &jwt.RouteExtension{},
-				//	},
-				//}
-				////roJWT :=  &v2.RouteOptions_JwtProvidersStaged{}
-				//
-				//ro.Spec.Options.JwtConfig = roJWT
+				// TODO lookup filter by name
+				var jwtPerRoute jwt.StagedJwtAuthnPerRoute
+				if err := filterConfig.UnmarshalTo(&jwtPerRoute); err != nil {
+					return nil, err
+				}
+				jwtProvider := jwtProviders[jwtPerRoute.JwtConfigs[0].Requirement]
+				providerName := strings.Split(jwtPerRoute.JwtConfigs[0].Requirement, ".")[2]
+
+				roProvider := &jwt2.Provider{
+					Jwks:             nil,
+					Audiences:        jwtProvider.Audiences,
+					Issuer:           jwtProvider.Issuer,
+					TokenSource:      nil,
+					KeepToken:        jwtProvider.Forward,
+					ClaimsToHeaders:  nil,
+					ClockSkewSeconds: wrapperspb.UInt32(jwtProvider.ClockSkewSeconds),
+				}
+				if jwtProvider.GetRemoteJwks() != nil {
+					//TODO we may need to create an Upstream Ref For this....
+					roJWKS := &jwt2.Jwks{
+						Jwks: &jwt2.Jwks_Remote{
+							Remote: &jwt2.RemoteJwks{
+								Url: jwtProvider.GetRemoteJwks().HttpUri.Uri,
+								// TODO upstream ref
+								UpstreamRef:   &core2.ResourceRef{Name: "TODO UNKNOWN"},
+								CacheDuration: jwtProvider.GetRemoteJwks().CacheDuration,
+								AsyncFetch:    jwtProvider.GetRemoteJwks().AsyncFetch,
+							},
+						},
+					}
+					roProvider.Jwks = roJWKS
+				}
+
+				roJWT := &v2.RouteOptions_JwtProvidersStaged{
+					JwtProvidersStaged: &jwt2.JwtStagedRouteProvidersExtension{
+						AfterExtAuth: &jwt2.VhostExtension{
+							Providers: map[string]*jwt2.Provider{
+								providerName: roProvider,
+							},
+							//TODO need to figure out AllowMissingOrFailed (filter_state_rules)
+							//AllowMissingOrFailedJwt: false,
+							//ValidationPolicy:        0,
+						},
+					},
+				}
+				ro.Spec.Options.JwtConfig = roJWT
 			}
 		}
 	}
