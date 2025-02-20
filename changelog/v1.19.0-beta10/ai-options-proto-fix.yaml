@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7875
+    resolvesIssue: false
+    description: >-
+      Remove `regex` field from ai options proto enum to avoid generated code conflicts with `REGEX` field
