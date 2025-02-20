@@ -2701,6 +2701,8 @@ github.com/soheilhy/cmux v0.1.4/go.mod h1:IM3LyeVVIOuxMH7sFAkER9+bJ4dT7Ms6E4xg4k
 github.com/soheilhy/cmux v0.1.5/go.mod h1:T7TcVDs9LWfQgPlPsdngu6I6QIoyIFZDDC6sNE1GqG0=
 github.com/solo-io/anyvendor v0.1.0 h1:pzqilD2dxOJnosCe01gl7bU91EHrYjBnfB6W3lQmFx4=
 github.com/solo-io/anyvendor v0.1.0/go.mod h1:pm4oeT20nrF6moqurCc7U4fEC1oi1RzkqoD/Lp/z/4Y=
+github.com/solo-io/anyvendor v0.2.0 h1:L8AnSGS/PW7TA24vZpMXrfTlolXi3IyMMFjoDXOH5z4=
+github.com/solo-io/anyvendor v0.2.0/go.mod h1:WIJdoBmSQCii7hsiCpjXNWa0AnRzOLbg6PCYkVK4LDE=
 github.com/solo-io/cue v0.4.7 h1:X65mDmyBrS3ODvDvAgzIt9aTxbwBtdt+ayg4w9XKoaA=
 github.com/solo-io/cue v0.4.7/go.mod h1:P1tN9y6nBPAMoEK5aJxI8kn0VUcjVcRc+8esieRzQ7M=
 github.com/solo-io/go-list-licenses v0.1.4 h1:u4xh1OUORT4iSWuAp3Q4NsfHcDaeUV8QRDH8ACQqbxw=
@@ -2716,10 +2718,14 @@ github.com/solo-io/protoc-gen-openapi v0.3.0 h1:9Cb45r7GtZcWTPQx+VJ6ba4DB6f47/ON
 github.com/solo-io/protoc-gen-openapi v0.3.0/go.mod h1:3Zvq9oDldIwsP7UGfsIxeR9CxRovRhFPDvp4gns0C0w=
 github.com/solo-io/skv2 v0.42.0 h1:MrrBJauarReCJdkVCB2PtWOVULE1IoJNTTWlQrfX4mc=
 github.com/solo-io/skv2 v0.42.0/go.mod h1:LP0CYAp2tblmttNP4rlHbYUnIUHazh+LU8QLV36yHAo=
+github.com/solo-io/skv2 v0.43.0 h1:c7LWTGH3NxaWN8hEwwTS2X78iIdh8IezKZB6/wyfcLE=
+github.com/solo-io/skv2 v0.43.0/go.mod h1:jAscToVhZ0mnagAhmePjg8QV/AuA+icUp+uGlELVTMI=
 github.com/solo-io/solo-apis v0.0.0-20250218202255-bad789c9de63 h1:5SI9O39qJ1NZydCqfwVUK1kwLU6C2WHBu2xb2qXtZao=
 github.com/solo-io/solo-apis v0.0.0-20250218202255-bad789c9de63/go.mod h1:n69+QnkG+YEbZtrAsLYjW9BEqfy2vPGrafan2+fUrMA=
 github.com/solo-io/solo-kit v0.37.0 h1:hQmxb4OkA24MuFAfERtyK1loUxXdgrEaIrwPLp57urs=
 github.com/solo-io/solo-kit v0.37.0/go.mod h1:Jdj9cmv2gWF+KIDAlmz9XMmb2MnDTtR6dkbw5gWfJOY=
+github.com/solo-io/solo-kit v0.38.0 h1:+Z94eImktdqTghXcLU2BGB97F84wl9hE0WIoAS78YXI=
+github.com/solo-io/solo-kit v0.38.0/go.mod h1:Xm7Nauvqk1+trE4Na8p7pdw87E3F1oEqiwQwCqWdSaM=
 github.com/sourcegraph/conc v0.3.0 h1:OQTbbt6P72L20UqAkXXuLOj79LfEanQ+YQFNpLA9ySo=
 github.com/sourcegraph/conc v0.3.0/go.mod h1:Sdozi7LEKbFPqYX2/J+iBAM6HpqSLTASQIKqDmF7Mt0=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
