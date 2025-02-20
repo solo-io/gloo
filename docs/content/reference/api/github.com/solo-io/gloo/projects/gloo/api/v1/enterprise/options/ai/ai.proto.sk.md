@@ -1030,7 +1030,6 @@ The header string match type.
 | `SUFFIX` | The string must have the specified suffix. |
 | `CONTAINS` | The header string must contain the specified string. |
 | `REGEX` | The string must match the specified [RE2-style regular expression](https://github.com/google/re2/wiki/) pattern. |
-| `regex` | Do not use. Use `REGEX` (fully capitalized) instead. |
 
 
 
