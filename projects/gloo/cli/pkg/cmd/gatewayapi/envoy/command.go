@@ -1,7 +1,9 @@
 package envoy
 
 import (
+	"encoding/json"
 	"fmt"
+	v8 "github.com/cncf/xds/go/udpa/type/v1"
 	adminv3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -200,11 +202,41 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 					for _, filter := range fc.Filters {
 						// extract all the JWT Policies to feed the RouteOptions
 						if filter.Name == "io.solo.filters.http.solo_jwt_authn_staged" {
-							var jwtPolicy jwt.JwtWithStage
-							if err := filter.GetTypedConfig().UnmarshalTo(&jwtPolicy); err != nil {
+
+							// TOTO listener JWT TypedStruct
+
+							var ts v8.TypedStruct
+							if err := filter.GetTypedConfig().UnmarshalTo(&ts); err != nil {
 								return err
 							}
-							jwtProviders = jwtPolicy.JwtAuthn.Providers
+
+							jsonData, err := ts.Value.MarshalJSON()
+							if err != nil {
+								return err
+							}
+
+							// Convert JSON to map interface
+							var result map[string]interface{}
+							err = json.Unmarshal(jsonData, &result)
+							if err != nil {
+								return err
+							}
+
+							providers := result["jwt_authn"].(map[string]interface{})["providers"].(map[string]interface{})
+
+							for name, provider := range providers {
+								// map each provider to a JwtProvider
+								var jwtp v6.JwtProvider
+								pjson, err := json.Marshal(provider)
+								if err != nil {
+									return err
+								}
+								err = json.Unmarshal(pjson, &jwtp)
+								if err != nil {
+									return err
+								}
+								jwtProviders[name] = &jwtp
+							}
 							break
 						}
 					}
@@ -278,7 +310,15 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 	if err != nil {
 		return err
 	}
-	_, _ = fmt.Fprintf(os.Stdout, "%s\n", txt)
+	filename := "gateway-api.rendered.nick.yaml"
+	_, _ = fmt.Fprintf(os.Stdout, "Writing File: %s\n", filename)
+	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	fmt.Fprintf(file, "%s", txt)
+	//_, _ = fmt.Fprintf(os.Stdout, "%s\n", txt)
 
 	return nil
 }
@@ -439,48 +479,83 @@ func generateRouteOption(r *route.Route, jwtProviders map[string]*v6.JwtProvider
 				ro.Spec.Options.Faults = roFault
 			}
 			if filterName == "envoy.filters.http.rbac" {
-				var rbac rbacv3.RBACPerRoute
-				if err := filterConfig.UnmarshalTo(&rbac); err != nil {
-					return nil, err
-				}
-				roRbac := generateJWTRBAC(&rbac)
-				if roRbac != nil {
-					ro.Spec.Options.Rbac = roRbac
-				}
+				//var ts v8.TypedStruct
+				//if err := filterConfig.UnmarshalTo(&ts); err != nil {
+				//	return nil, err
+				//}
+				//
+				//jsonData, err := ts.Value.MarshalJSON()
+				//if err != nil {
+				//	return nil, err
+				//}
+				//data := ts.Value.Fields
+				//log.Fatalf("%v", data)
+				//
+				//// Convert JSON to RBACPerRoute
+				//var rbacPerRoute rbacv3.RBACPerRoute
+				//err = json.Unmarshal(jsonData, &rbacPerRoute)
+				//if err != nil {
+				//	return nil, err
+				//}
+				//
+				//roRbac := generateJWTRBAC(&rbacPerRoute)
+				//if roRbac != nil {
+				//	ro.Spec.Options.Rbac = roRbac
+				//}
 			}
 			if filterName == "io.solo.filters.http.solo_jwt_authn_staged" {
-				//                        - name: io.solo.filters.http.solo_jwt_authn_staged
-				//                          typed_config:
-				//                            "@type": type.googleapis.com/udpa.type.v1.TypedStruct
-				//                            type_url: envoy.config.filter.http.solo_jwt_authn.v2.JwtWithStage
-				//                            value:
-				//                              jwt_authn:
-				//                                providers:
-				//                                  cf-mgmt-nonprod-ue2.edx-team-config.icp-api-services-qa-epro-product-read-availability-qa.auth:
-				//                                    issuer: https://sts-qa.grainger-development.auth0app.com/
-				//                                    audiences:
-				//                                      - https://api-nonprod.grainger.com/businesssystem/epro-product-info
-				//                                    remote_jwks:
-				//                                      http_uri:
-				//                                        uri: http://sts-qa.grainger-development.auth0app.com/.well-known/jwks.json
-				//                                        cluster: outbound|80||sts-qa.grainger-development.auth0app.com
-				//                                        timeout: 1s
-				//                                      cache_duration: 3600s
-				//                                      async_fetch:
-				//                                        fast_listener: true
-				//                                    payload_in_metadata: cf-mgmt-nonprod-ue2.edx-team-config.icp-api-services-qa-epro-product-read-availability-qa.auth
-				//                                    clock_skew_seconds: 60
-				//                                    normalize_payload_in_metadata:
-				//                                      space_delimited_claims:
-				//                                        - scope
+				//                     io.solo.filters.http.solo_jwt_authn_staged:
+				//                      "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+				//                      type_url: envoy.config.filter.http.solo_jwt_authn.v2.StagedJwtAuthnPerRoute
+				//                      value:
+				//                        jwt_configs:
+				//                          "0":
+				//                            requirement: solo-mapping-key
+				//                            claims_to_headers:
+				//                              principal:
+				//                                claims:
+				//                                  - claim: scope
+				//                                    header: x-user-scopes
+				//                                  - claim: https://www.shipt.com/shipt_user_id
+				//                                    header: X-user-id
+				//                            clear_route_cache: true
 				// TODO Should generate JWT Policies from Listeners, will need to reference them as a filter here though
 				// TODO lookup filter by name
-				var jwtPerRoute jwt.StagedJwtAuthnPerRoute
-				if err := filterConfig.UnmarshalTo(&jwtPerRoute); err != nil {
+				var ts v8.TypedStruct
+				if err := filterConfig.UnmarshalTo(&ts); err != nil {
 					return nil, err
 				}
-				jwtProvider := jwtProviders[jwtPerRoute.JwtConfigs[0].Requirement]
-				providerName := strings.Split(jwtPerRoute.JwtConfigs[0].Requirement, ".")[2]
+
+				jsonData, err := ts.Value.MarshalJSON()
+
+				if err != nil {
+					return nil, err
+				}
+
+				// Convert JSON to RBACPerRoute
+				var jwtPerRoute jwt.SoloJwtAuthnPerRoute
+				var result map[string]interface{}
+
+				err = json.Unmarshal(jsonData, &result)
+				if err != nil {
+					return nil, err
+				}
+
+				perRouteJson, err := json.Marshal(result["jwt_configs"].(map[string]interface{})["0"])
+				if err != nil {
+					return nil, err
+				}
+
+				if err := json.Unmarshal(perRouteJson, &jwtPerRoute); err != nil {
+					return nil, err
+				}
+
+				jwtProviderName := jwtPerRoute.Requirement
+				//jwtSpecName := strings.Split(jwtProviderName, ".")[2]
+
+				jwtProvider := jwtProviders[jwtProviderName]
+
+				log.Printf("%v", jwtProvider)
 
 				roProvider := &jwt2.Provider{
 					Jwks:             nil,
@@ -511,7 +586,7 @@ func generateRouteOption(r *route.Route, jwtProviders map[string]*v6.JwtProvider
 					JwtProvidersStaged: &jwt2.JwtStagedRouteProvidersExtension{
 						AfterExtAuth: &jwt2.VhostExtension{
 							Providers: map[string]*jwt2.Provider{
-								providerName: roProvider,
+								//providerName: roProvider,
 							},
 							//TODO need to figure out AllowMissingOrFailed (filter_state_rules)
 							//AllowMissingOrFailedJwt: false,
@@ -594,7 +669,9 @@ func generateJWTRBAC(rbac *rbacv3.RBACPerRoute) *rbac2.ExtensionSettings {
 	}
 	if rbac.Rbac != nil && rbac.Rbac.Rules != nil && rbac.Rbac.Rules.Policies != nil {
 		for name, policy := range rbac.Rbac.Rules.Policies {
-			roPolicy := &rbac2.Policy{}
+			roPolicy := &rbac2.Policy{
+				Principals: make([]*rbac2.Principal, 0),
+			}
 			//
 			//                  cds-account-segmentation-dev-acct-seg-read-jwt-dev:
 			//                    permissions:
