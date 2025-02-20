@@ -259,8 +259,6 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 				return nil, nil
 			}
 
-			p.requiresTransformationFilter = true
-
 			var reqTransform *envoy_transform.Transformation
 			if requiresRequestTransformation {
 				reqTransform = &envoy_transform.Transformation{
@@ -283,8 +281,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 						},
 					},
 				}
-			} else {
-				p.requiresTransformationFilter = false
+				p.requiresTransformationFilter = true
 			}
 
 			var transforms envoy_transform.RouteTransformations
