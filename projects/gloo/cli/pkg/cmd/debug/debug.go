@@ -163,7 +163,7 @@ func zip(fs afero.Fs, dir string, file string) error {
 }
 
 func displayLogs(w io.Writer, logs strings.Builder) error {
-	_, err := fmt.Fprintf(w, logs.String())
+	_, err := fmt.Fprint(w, logs.String())
 	return err
 }
 

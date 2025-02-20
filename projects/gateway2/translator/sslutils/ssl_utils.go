@@ -12,7 +12,7 @@ import (
 var (
 	InvalidTlsSecretError = func(secret *corev1.Secret, err error) error {
 		errorString := fmt.Sprintf("%v.%v is not a valid TLS secret", secret.Namespace, secret.Name)
-		return eris.Wrapf(err, errorString)
+		return eris.Wrap(err, errorString)
 	}
 
 	NoCertificateFoundError = eris.New("no certificate information found")
