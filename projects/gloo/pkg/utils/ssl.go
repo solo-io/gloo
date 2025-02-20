@@ -36,7 +36,7 @@ var (
 	// indicating a missing secret reference. This can be compared against using errors.Is.
 	SslSecretNotFoundError = eris.New("SSL secret not found")
 	sslSecretNotFoundError = func(err error) error {
-		return eris.Wrapf(err, SslSecretNotFoundError.Error())
+		return eris.Wrap(err, SslSecretNotFoundError.Error())
 	}
 
 	NotTlsSecretError = func(ref *core.ResourceRef) error {
@@ -45,10 +45,10 @@ var (
 
 	InvalidTlsSecretError = func(ref *core.ResourceRef, err error) error {
 		if ref == nil {
-			return eris.Wrapf(err, "Invalid TLS secret")
+			return eris.Wrap(err, "Invalid TLS secret")
 		} else {
 			errorString := fmt.Sprintf("%v is not a valid TLS secret", ref)
-			return eris.Wrapf(err, errorString)
+			return eris.Wrap(err, errorString)
 		}
 	}
 
