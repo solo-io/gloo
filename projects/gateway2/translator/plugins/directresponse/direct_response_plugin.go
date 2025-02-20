@@ -8,6 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
+	"github.com/solo-io/cue/cue/errors"
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
@@ -49,7 +50,7 @@ func (p *plugin) ApplyRoutePlugin(
 			Message: errMsg,
 		})
 		outputRoute.Action = ErrorResponseAction()
-		return fmt.Errorf(errMsg)
+		return errors.New(errMsg)
 	}
 
 	// verify the DR reference is valid and get the DR object from the cluster.
@@ -78,7 +79,7 @@ func (p *plugin) ApplyRoutePlugin(
 			Message: errMsg,
 		})
 		outputRoute.Action = ErrorResponseAction()
-		return fmt.Errorf(errMsg)
+		return errors.New(errMsg)
 	}
 
 	outputRoute.Action = &v1.Route_DirectResponseAction{

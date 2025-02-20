@@ -1,6 +1,7 @@
 package cliutil
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -200,7 +201,7 @@ func SelectJoinedData(message string, target *string, list []JoinerData) error {
 
 func EnsureCsv(message string, source string, target *[]string, staticMode bool) error {
 	if staticMode && source == "" {
-		return fmt.Errorf(message)
+		return errors.New(message)
 	}
 	if !staticMode {
 		if err := GetStringInput(message, &source); err != nil {

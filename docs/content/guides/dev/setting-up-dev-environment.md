@@ -12,7 +12,7 @@ Developing on Gloo Gateway requires the following to be installed on your system
 
 - [`Make`](https://www.gnu.org/software/make/)
 - [`Git`](https://git-scm.com/)
-- [`Go`](https://golang.org/) (`solo-io` projects are built using version `1.23.3`)
+- [`Go`](https://golang.org/) (`solo-io` projects are built using version `1.24.0`)
 - `Protoc` (`solo-io` projects are built using version `3.6.1`)
 - Standard development tools like `gcc`
 
@@ -28,7 +28,7 @@ xcode-select --install
 # install version of go in go.mod
 ############################################
 # - macOS:
-brew install go@1.23
+brew install go@1.24
 # - other operating systems:
 # follow directions at https://go.dev/doc/install
 

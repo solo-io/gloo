@@ -2,6 +2,7 @@ package check
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -95,7 +96,7 @@ func checkProxyConnectedState(stats string, deploymentName string, genericErrMes
 	}
 
 	if !strings.Contains(stats, "envoy_control_plane_connected_state{} 1") {
-		err := fmt.Errorf(connectedStateErrMessage)
+		err := errors.New(connectedStateErrMessage)
 		return err
 	}
 
