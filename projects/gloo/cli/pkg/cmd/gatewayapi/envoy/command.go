@@ -4,14 +4,24 @@ import (
 	"fmt"
 	adminv3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	http_connection_managerv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	tcp_proxyv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
+	api "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
+	v4 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
+	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
+	v5 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/cors"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/headers"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
+	"github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/encoding/protojson"
 	"io/ioutil"
@@ -64,8 +74,8 @@ func RootCmd() *cobra.Command {
 
 func run(opts *Options) error {
 	// Read the Envoy configuration file
-	data, err := ioutil.ReadFile("envoy.nick.json")
-	//data, err := ioutil.ReadFile("config_dump.grainger.nick.json")
+	//data, err := ioutil.ReadFile("envoy.nick.json")
+	data, err := ioutil.ReadFile("config_dump.grainger.nick.json")
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
@@ -221,9 +231,12 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 								if rt == nil {
 									log.Printf("Route not found: %s", routeName)
 								}
-								routes, upstreams, err := generateHTTPRoutes(gwGateway.Name, gwGateway.Namespace, rt, snapshot)
+								routes, upstreams, routeOptions, err := generateHTTPRoutes(gwGateway.Name, gwGateway.Namespace, rt, snapshot)
 								if err != nil {
 									return err
+								}
+								for _, ro := range routeOptions {
+									output.RouteOptions = append(output.RouteOptions, ro)
 								}
 								for _, upstream := range upstreams {
 									output.Upstreams = append(output.Upstreams, upstream)
@@ -251,9 +264,10 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 	return nil
 }
 
-func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteConfiguration, snapshot *EnvoySnapshot) ([]*gwv1.HTTPRoute, []*glookube.Upstream, error) {
+func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteConfiguration, snapshot *EnvoySnapshot) ([]*gwv1.HTTPRoute, []*glookube.Upstream, []*gatewaykube.RouteOption, error) {
 	httpRoutes := make([]*gwv1.HTTPRoute, 0)
 	upstreams := make([]*glookube.Upstream, 0)
+	routeOptions := make([]*gatewaykube.RouteOption, 0)
 
 	for _, virtualHost := range route.VirtualHosts {
 		// Generate a route per virtualhost
@@ -284,16 +298,32 @@ func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteCon
 			}
 			match, err := convertMatcher(route.Match)
 			if err != nil {
-				return nil, upstreams, err
+				return nil, nil, nil, err
 			}
 			gwrr.Matches = append(gwrr.Matches, match)
 
 			// Add the filters and the upstreams
+			routeOption, err := generateRouteOption(route)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			if routeOption != nil {
+				gwrr.Filters = append(gwrr.Filters, gwv1.HTTPRouteFilter{
+					Type: "ExtensionRef",
+					ExtensionRef: &gwv1.LocalObjectReference{
+						Group: "gateway.solo.io",
+						Kind:  "RouteOption",
+						Name:  gwv1.ObjectName(routeOption.Name),
+					},
+				})
+				routeOptions = append(routeOptions, routeOption)
+			}
+
 			//cluster lookup
 			//"outbound|8080||campaign-service-webserver.mesh.internal"
 			cluster, err := snapshot.GetClusterByName(route.GetRoute().GetCluster())
 			if err != nil {
-				return nil, upstreams, err
+				return nil, nil, nil, err
 			}
 			if cluster == nil {
 				log.Printf("cluster not found " + route.GetRoute().GetCluster())
@@ -301,7 +331,7 @@ func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteCon
 			if cluster != nil {
 				backendRef, upstream, err := generateBackendRef(route, cluster)
 				if err != nil {
-					return nil, upstreams, err
+					return nil, nil, nil, err
 				}
 				if upstream != nil {
 					upstreams = append(upstreams, upstream)
@@ -316,7 +346,161 @@ func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteCon
 		httpRoutes = append(httpRoutes, gwRoute)
 	}
 
-	return httpRoutes, upstreams, nil
+	return httpRoutes, upstreams, routeOptions, nil
+}
+
+func generateRouteOption(r *route.Route) (*gatewaykube.RouteOption, error) {
+
+	if r == nil {
+		return nil, nil
+	}
+	ro := &gatewaykube.RouteOption{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "RouteOption",
+			APIVersion: gatewaykube.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      RandStringRunes(8),
+			Namespace: "gloo-system",
+		},
+		Spec: api.RouteOption{
+			Options: &v2.RouteOptions{},
+		},
+	}
+	if r.GetRoute() != nil {
+		if r.GetRoute().GetPrefixRewrite() != "" {
+			ro.Spec.Options.PrefixRewrite = wrapperspb.String(r.GetRoute().GetPrefixRewrite())
+		}
+		if r.GetRoute().GetRegexRewrite() != nil && r.GetRoute().GetRegexRewrite().GetPattern() != nil {
+			ro.Spec.Options.RegexRewrite = &v4.RegexMatchAndSubstitute{
+				Pattern: &v4.RegexMatcher{
+					EngineType: &v4.RegexMatcher_GoogleRe2{},
+					Regex:      r.GetRoute().GetRegexRewrite().GetPattern().GetRegex(),
+				},
+				Substitution: r.GetRoute().GetRegexRewrite().GetSubstitution(),
+			}
+			r.GetRoute().GetRegexRewrite().String()
+		}
+		if r.GetRoute().RetryPolicy != nil {
+			rtp := r.GetRoute().RetryPolicy
+			roRTP := &retries.RetryPolicy{
+				RetryOn:       rtp.RetryOn,
+				NumRetries:    rtp.NumRetries.Value,
+				PerTryTimeout: rtp.PerTryTimeout,
+				//PriorityPredicate:    nil,
+				RetriableStatusCodes: rtp.RetriableStatusCodes,
+			}
+			if rtp.RetryBackOff != nil {
+				roRTP.RetryBackOff = &retries.RetryBackOff{
+					BaseInterval: rtp.RetryBackOff.GetBaseInterval(),
+					MaxInterval:  rtp.RetryBackOff.GetMaxInterval(),
+				}
+			}
+			ro.Spec.Options.Retries = roRTP
+		}
+	}
+	// filters
+	if len(r.GetTypedPerFilterConfig()) > 0 {
+		for filterName, filterConfig := range r.GetTypedPerFilterConfig() {
+			if filterName == "envoy.filters.http.cors" {
+				//cors
+				var corsPolicy route.CorsPolicy
+				if err := filterConfig.UnmarshalTo(&corsPolicy); err != nil {
+					return nil, err
+				}
+				roCors := generateCorsPolicy(&corsPolicy)
+				ro.Spec.Options.Cors = roCors
+			}
+		}
+	}
+
+	if len(r.GetRequestHeadersToRemove()) > 0 {
+		if ro.Spec.Options.HeaderManipulation == nil {
+			ro.Spec.Options.HeaderManipulation = &headers.HeaderManipulation{}
+		}
+		ro.Spec.Options.HeaderManipulation.RequestHeadersToRemove = r.GetRequestHeadersToRemove()
+	}
+	if len(r.GetRequestHeadersToAdd()) > 0 {
+		if ro.Spec.Options.HeaderManipulation == nil {
+			ro.Spec.Options.HeaderManipulation = &headers.HeaderManipulation{
+				RequestHeadersToAdd: []*core.HeaderValueOption{},
+			}
+		}
+		for _, a := range r.GetRequestHeadersToAdd() {
+			addRequestHeader := &core.HeaderValueOption{
+				HeaderOption: &core.HeaderValueOption_Header{
+					Header: &core.HeaderValue{
+						Key:   a.Header.Key,
+						Value: a.Header.Value,
+					},
+				},
+			}
+			if a.AppendAction == corev3.HeaderValueOption_OVERWRITE_IF_EXISTS_OR_ADD {
+				addRequestHeader.Append = wrapperspb.Bool(false)
+			}
+			if a.AppendAction == corev3.HeaderValueOption_APPEND_IF_EXISTS_OR_ADD {
+				addRequestHeader.Append = wrapperspb.Bool(true)
+			}
+			ro.Spec.Options.HeaderManipulation.RequestHeadersToAdd = append(ro.Spec.Options.HeaderManipulation.RequestHeadersToAdd, addRequestHeader)
+		}
+	}
+	if len(r.GetResponseHeadersToRemove()) > 0 {
+		if ro.Spec.Options.HeaderManipulation == nil {
+			ro.Spec.Options.HeaderManipulation = &headers.HeaderManipulation{}
+		}
+		ro.Spec.Options.HeaderManipulation.ResponseHeadersToRemove = r.GetResponseHeadersToRemove()
+	}
+
+	if len(r.GetResponseHeadersToAdd()) > 0 {
+		if ro.Spec.Options.HeaderManipulation == nil {
+			ro.Spec.Options.HeaderManipulation = &headers.HeaderManipulation{
+				ResponseHeadersToAdd: []*headers.HeaderValueOption{},
+			}
+		}
+		for _, a := range r.GetResponseHeadersToAdd() {
+			responseHeaderToAdd := &headers.HeaderValueOption{
+				Header: &headers.HeaderValue{
+					Key:   a.Header.Key,
+					Value: a.Header.Value,
+				},
+			}
+			if a.AppendAction == corev3.HeaderValueOption_OVERWRITE_IF_EXISTS_OR_ADD {
+				responseHeaderToAdd.Append = wrapperspb.Bool(false)
+			}
+			if a.AppendAction == corev3.HeaderValueOption_APPEND_IF_EXISTS_OR_ADD {
+				responseHeaderToAdd.Append = wrapperspb.Bool(true)
+			}
+			ro.Spec.Options.HeaderManipulation.ResponseHeadersToAdd = append(ro.Spec.Options.HeaderManipulation.ResponseHeadersToAdd, responseHeaderToAdd)
+		}
+	}
+	return ro, nil
+}
+
+func generateCorsPolicy(corsPolicy *route.CorsPolicy) *v5.CorsPolicy {
+	roCors := &v5.CorsPolicy{
+		AllowOrigin:      make([]string, 0),
+		AllowOriginRegex: make([]string, 0),
+		AllowMethods:     strings.Split(strings.ReplaceAll(corsPolicy.AllowMethods, " ", ""), ","),
+		AllowHeaders:     strings.Split(strings.ReplaceAll(corsPolicy.AllowHeaders, " ", ""), ","),
+		ExposeHeaders:    strings.Split(strings.ReplaceAll(corsPolicy.ExposeHeaders, " ", ""), ","),
+		MaxAge:           corsPolicy.MaxAge,
+		AllowCredentials: corsPolicy.AllowCredentials.Value,
+		DisableForRoute:  false,
+	}
+	if corsPolicy.ShadowEnabled != nil && corsPolicy.ShadowEnabled.DefaultValue != nil && corsPolicy.ShadowEnabled.DefaultValue.Numerator != 100 {
+		roCors.DisableForRoute = true
+	}
+	if len(corsPolicy.AllowOriginStringMatch) > 0 {
+		for _, origin := range corsPolicy.AllowOriginStringMatch {
+			if origin.GetExact() != "" {
+				roCors.AllowOrigin = append(roCors.AllowOrigin, origin.GetExact())
+			}
+			if origin.GetSafeRegex() != nil && origin.GetSafeRegex().Regex != "" {
+				roCors.AllowOriginRegex = append(roCors.AllowOriginRegex, origin.GetSafeRegex().Regex)
+			}
+		}
+	}
+	return roCors
 }
 
 func generateBackendRef(r *route.Route, cluster *envoy_config_cluster_v3.Cluster) (*gwv1.HTTPBackendRef, *glookube.Upstream, error) {
@@ -389,6 +573,13 @@ func convertMatcher(match *route.RouteMatch) (gwv1.HTTPRouteMatch, error) {
 			Value: ptr.To(match.GetPath()),
 		}
 	}
+	if match.GetSafeRegex() != nil && match.GetSafeRegex().Regex != "" {
+		gwMatch.Path = &gwv1.HTTPPathMatch{
+			Type:  ptr.To(gwv1.PathMatchRegularExpression),
+			Value: ptr.To(match.GetSafeRegex().Regex),
+		}
+	}
+
 	if len(match.GetHeaders()) > 0 {
 
 		for _, header := range match.GetHeaders() {
