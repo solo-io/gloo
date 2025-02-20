@@ -8,6 +8,7 @@ import (
 	v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	faultv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/fault/v3"
+	rbacv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/rbac/v3"
 	http_connection_managerv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	tcp_proxyv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
@@ -16,16 +17,16 @@ import (
 	v4 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	rbac2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
 	v5 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/cors"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/headers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
 	"github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
-	"google.golang.org/protobuf/types/known/wrapperspb"
-
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 	"io/ioutil"
 	_ "istio.io/api/envoy/config/filter/network/metadata_exchange"
 	_ "istio.io/api/envoy/extensions/stats"
@@ -421,6 +422,61 @@ func generateRouteOption(r *route.Route) (*gatewaykube.RouteOption, error) {
 				roFault := generateRouteFaults(&fault)
 				ro.Spec.Options.Faults = roFault
 			}
+			if filterName == "envoy.filters.http.rbac" {
+				var rbac rbacv3.RBACPerRoute
+				if err := filterConfig.UnmarshalTo(&rbac); err != nil {
+					return nil, err
+				}
+				roRbac := generateJWTRBAC(&rbac)
+				if roRbac != nil {
+					ro.Spec.Options.Rbac = roRbac
+				}
+			}
+			if filterName == "io.solo.filters.http.solo_jwt_authn_staged" {
+				//                        - name: io.solo.filters.http.solo_jwt_authn_staged
+				//                          typed_config:
+				//                            "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+				//                            type_url: envoy.config.filter.http.solo_jwt_authn.v2.JwtWithStage
+				//                            value:
+				//                              jwt_authn:
+				//                                providers:
+				//                                  cf-mgmt-nonprod-ue2.edx-team-config.icp-api-services-qa-epro-product-read-availability-qa.auth:
+				//                                    issuer: https://sts-qa.grainger-development.auth0app.com/
+				//                                    audiences:
+				//                                      - https://api-nonprod.grainger.com/businesssystem/epro-product-info
+				//                                    remote_jwks:
+				//                                      http_uri:
+				//                                        uri: http://sts-qa.grainger-development.auth0app.com/.well-known/jwks.json
+				//                                        cluster: outbound|80||sts-qa.grainger-development.auth0app.com
+				//                                        timeout: 1s
+				//                                      cache_duration: 3600s
+				//                                      async_fetch:
+				//                                        fast_listener: true
+				//                                    payload_in_metadata: cf-mgmt-nonprod-ue2.edx-team-config.icp-api-services-qa-epro-product-read-availability-qa.auth
+				//                                    clock_skew_seconds: 60
+				//                                    normalize_payload_in_metadata:
+				//                                      space_delimited_claims:
+				//                                        - scope
+				// TODO Should generate JWT Policies from Listeners, will need to reference them as a filter here though
+				// JWT Authentication, combined with 'envoy.filters.http.rbac'
+				//var extAuth ext_authzv3.ExtAuthzPerRoute
+				//if err := filterConfig.UnmarshalTo(&extAuth); err != nil {
+				//	return nil, err
+				//}
+				////roJWT := &v2.RouteOptions_Jwt{
+				////	Jwt: &jwt.RouteExtension{
+				////
+				////	}
+				////}
+				//roJWT := &v2.RouteOptions_JwtStaged{
+				//	JwtStaged: &jwt.JwtStagedRouteExtension{
+				//		AfterExtAuth: &jwt.RouteExtension{},
+				//	},
+				//}
+				////roJWT :=  &v2.RouteOptions_JwtProvidersStaged{}
+				//
+				//ro.Spec.Options.JwtConfig = roJWT
+			}
 		}
 	}
 
@@ -484,6 +540,54 @@ func generateRouteOption(r *route.Route) (*gatewaykube.RouteOption, error) {
 		}
 	}
 	return ro, nil
+}
+
+func generateJWTRBAC(rbac *rbacv3.RBACPerRoute) *rbac2.ExtensionSettings {
+	// JWT RBAC
+	roRbac := &rbac2.ExtensionSettings{
+		Disable:  false,
+		Policies: make(map[string]*rbac2.Policy),
+	}
+	if rbac.Rbac != nil && rbac.Rbac.Rules != nil && rbac.Rbac.Rules.Policies != nil {
+		for name, policy := range rbac.Rbac.Rules.Policies {
+			roPolicy := &rbac2.Policy{}
+			//
+			//                  cds-account-segmentation-dev-acct-seg-read-jwt-dev:
+			//                    permissions:
+			//                    - any: true
+			//                    principals:
+			//                    - metadata:
+			//                        filter: envoy.filters.http.jwt_authn
+			//                        path:
+			//                        - key: principal
+			//                        - key: scope
+			//                        value:
+			//                          list_match:
+			//                            one_of:
+			//                              string_match:
+			//                                exact: read:SegOnboarding
+
+			// add a principal for both scope and principal?
+			roPolicy.Principals = append(roPolicy.Principals, &rbac2.Principal{
+				JwtPrincipal: &rbac2.JWTPrincipal{
+					Claims: map[string]string{
+						"scope": policy.Principals[0].GetMetadata().Value.GetListMatch().GetOneOf().GetStringMatch().GetExact(),
+					},
+				},
+			})
+			roPolicy.Principals = append(roPolicy.Principals, &rbac2.Principal{
+				JwtPrincipal: &rbac2.JWTPrincipal{
+					Claims: map[string]string{
+						"principal": policy.Principals[0].GetMetadata().Value.GetListMatch().GetOneOf().GetStringMatch().GetExact(),
+					},
+				},
+			})
+
+			roRbac.Policies[name] = roPolicy
+		}
+		return roRbac
+	}
+	return nil
 }
 
 func generateRouteFaults(fault *faultv3.HTTPFault) *faultinjection.RouteFaults {
