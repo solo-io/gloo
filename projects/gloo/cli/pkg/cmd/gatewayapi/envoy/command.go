@@ -32,6 +32,7 @@ import (
 	core2 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"io/ioutil"
 	_ "istio.io/api/envoy/config/filter/network/metadata_exchange"
@@ -45,6 +46,7 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func init() {
@@ -83,8 +85,9 @@ func RootCmd() *cobra.Command {
 
 func run(opts *Options) error {
 	// Read the Envoy configuration file
-	data, err := ioutil.ReadFile("envoy.nick.json")
-	//data, err := ioutil.ReadFile("config_dump.grainger.nick.json")
+	data, err := ioutil.ReadFile("nick/shipt/envoy.nick.json")
+	//data, err := ioutil.ReadFile("nick/grainger/config_dump.grainger.nick.json")
+	//data, err := ioutil.ReadFile("nick/demo/demo-central.nick.json")
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
@@ -152,6 +155,7 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 			return err
 		}
 		if v3Listener.Address.GetSocketAddress().Address == "0.0.0.0" {
+			log.Printf("Evaluating Listener %v", listener.Name)
 			// this is a listener we want to generate output for each port
 			gwGateway := &gwv1.Gateway{
 				//TypeMeta: metav1.TypeMeta{},
@@ -168,77 +172,21 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 			}
 
 			//TODO what to do about multiple filter chains?!!?
-			var snis []string
+			var snis map[string]string
 			for fi, fc := range v3Listener.FilterChains {
 				if fc.FilterChainMatch != nil {
-					// there is a TLS listener?
+					var err error
 					var tlsContext *gwv1.GatewayTLSConfig
-
-					if fc.TransportSocket != nil && fc.TransportSocket.Name == "envoy.transport_sockets.tls" {
-						//we need to generate a listener per SNI if they exist
-						//TODO MTLS
-						snis = fc.FilterChainMatch.ServerNames
-						tlsContext = &gwv1.GatewayTLSConfig{
-							Mode:            ptr.To(gwv1.TLSModeTerminate),
-							CertificateRefs: []gwv1.SecretObjectReference{},
-							// TODO CIPHERS
-							//Options:            nil,
-						}
-						var downstreamTLSContext tlsv3.DownstreamTlsContext
-						if err := fc.TransportSocket.GetTypedConfig().UnmarshalTo(&downstreamTLSContext); err != nil {
-							return err
-						}
-						if len(downstreamTLSContext.CommonTlsContext.TlsCertificateSdsSecretConfigs) > 0 {
-							for _, secret := range downstreamTLSContext.CommonTlsContext.TlsCertificateSdsSecretConfigs {
-								//TODO no namespace support kubernetes://prod-wildcard-shipt-com-tls
-
-								tlsContext.CertificateRefs = append(tlsContext.CertificateRefs, gwv1.SecretObjectReference{
-									Name: gwv1.ObjectName(secret.Name[13:]), //remove kubernetes://
-								})
-							}
-						}
+					tlsContext, snis, err = findSNIs(fc)
+					if err != nil {
+						return err
 					}
-					jwtProviders := map[string]*v6.JwtProvider{}
-					for _, filter := range fc.Filters {
-						// extract all the JWT Policies to feed the RouteOptions
-						if filter.Name == "io.solo.filters.http.solo_jwt_authn_staged" {
+					var jwtProviders map[string]interface{}
 
-							// TOTO listener JWT TypedStruct
+					jwtProviders, err = findJWTProviders(fc)
 
-							var ts v8.TypedStruct
-							if err := filter.GetTypedConfig().UnmarshalTo(&ts); err != nil {
-								return err
-							}
-
-							jsonData, err := ts.Value.MarshalJSON()
-							if err != nil {
-								return err
-							}
-
-							// Convert JSON to map interface
-							var result map[string]interface{}
-							err = json.Unmarshal(jsonData, &result)
-							if err != nil {
-								return err
-							}
-
-							providers := result["jwt_authn"].(map[string]interface{})["providers"].(map[string]interface{})
-
-							for name, provider := range providers {
-								// map each provider to a JwtProvider
-								var jwtp v6.JwtProvider
-								pjson, err := json.Marshal(provider)
-								if err != nil {
-									return err
-								}
-								err = json.Unmarshal(pjson, &jwtp)
-								if err != nil {
-									return err
-								}
-								jwtProviders[name] = &jwtp
-							}
-							break
-						}
+					if err != nil {
+						return err
 					}
 
 					//No SNIs exist so we pull it from the HTTP connection manager
@@ -323,7 +271,81 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 	return nil
 }
 
-func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteConfiguration, snapshot *EnvoySnapshot, jwtProviders map[string]*v6.JwtProvider) ([]*gwv1.HTTPRoute, []*glookube.Upstream, []*gatewaykube.RouteOption, error) {
+func findJWTProviders(fc *v3.FilterChain) (map[string]interface{}, error) {
+	jwtProviders := make(map[string]interface{})
+	for _, filter := range fc.Filters {
+		// extract all the JWT Policies to feed the RouteOptions
+		if filter.Name == "envoy.filters.network.http_connection_manager" {
+			var hcm http_connection_managerv3.HttpConnectionManager
+			if err := filter.GetTypedConfig().UnmarshalTo(&hcm); err != nil {
+				return nil, err
+			}
+
+			for _, ftlr := range hcm.GetHttpFilters() {
+				if ftlr.Name == "io.solo.filters.http.solo_jwt_authn_staged" {
+
+					// TOTO listener JWT TypedStruct
+
+					var ts v8.TypedStruct
+					if err := ftlr.GetTypedConfig().UnmarshalTo(&ts); err != nil {
+						return nil, err
+					}
+
+					jsonData, err := ts.Value.MarshalJSON()
+					if err != nil {
+						return nil, err
+					}
+
+					// Convert JSON to map interface
+					var result map[string]interface{}
+					err = json.Unmarshal(jsonData, &result)
+					if err != nil {
+						return nil, err
+					}
+					providers := result["jwt_authn"].(map[string]interface{})["providers"].(map[string]interface{})
+					log.Printf("Added %d providers for %s", len(providers), hcm.GetRds().GetRouteConfigName())
+					jwtProviders[hcm.GetRds().GetRouteConfigName()] = providers
+
+				}
+			}
+		}
+	}
+	return jwtProviders, nil
+}
+
+func findSNIs(fc *v3.FilterChain) (*gwv1.GatewayTLSConfig, map[string]string, error) {
+	// there is a TLS listener?
+	var tlsContext *gwv1.GatewayTLSConfig
+
+	snis := make(map[string]string)
+	if fc.TransportSocket != nil && fc.TransportSocket.Name == "envoy.transport_sockets.tls" {
+		//we need to generate a listener per SNI if they exist
+		//TODO MTLS
+		//snis[hcm.Ger] = fc.FilterChainMatch.ServerNames
+		tlsContext = &gwv1.GatewayTLSConfig{
+			Mode:            ptr.To(gwv1.TLSModeTerminate),
+			CertificateRefs: []gwv1.SecretObjectReference{},
+			// TODO CIPHERS
+			//Options:            nil,
+		}
+		var downstreamTLSContext tlsv3.DownstreamTlsContext
+		if err := fc.TransportSocket.GetTypedConfig().UnmarshalTo(&downstreamTLSContext); err != nil {
+			return nil, nil, err
+		}
+		if len(downstreamTLSContext.CommonTlsContext.TlsCertificateSdsSecretConfigs) > 0 {
+			for _, secret := range downstreamTLSContext.CommonTlsContext.TlsCertificateSdsSecretConfigs {
+				//TODO no namespace support kubernetes://prod-wildcard-shipt-com-tls
+
+				tlsContext.CertificateRefs = append(tlsContext.CertificateRefs, gwv1.SecretObjectReference{
+					Name: gwv1.ObjectName(secret.Name[13:]), //remove kubernetes://
+				})
+			}
+		}
+	}
+	return tlsContext, snis, nil
+}
+
+func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteConfiguration, snapshot *EnvoySnapshot, jwtProviders map[string]interface{}) ([]*gwv1.HTTPRoute, []*glookube.Upstream, []*gatewaykube.RouteOption, error) {
 	httpRoutes := make([]*gwv1.HTTPRoute, 0)
 	upstreams := make([]*glookube.Upstream, 0)
 	routeOptions := make([]*gatewaykube.RouteOption, 0)
@@ -408,7 +430,7 @@ func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteCon
 	return httpRoutes, upstreams, routeOptions, nil
 }
 
-func generateRouteOption(r *route.Route, jwtProviders map[string]*v6.JwtProvider) (*gatewaykube.RouteOption, error) {
+func generateRouteOption(r *route.Route, jwtProviders map[string]interface{}) (*gatewaykube.RouteOption, error) {
 
 	if r == nil {
 		return nil, nil
@@ -504,21 +526,6 @@ func generateRouteOption(r *route.Route, jwtProviders map[string]*v6.JwtProvider
 				//}
 			}
 			if filterName == "io.solo.filters.http.solo_jwt_authn_staged" {
-				//                     io.solo.filters.http.solo_jwt_authn_staged:
-				//                      "@type": type.googleapis.com/udpa.type.v1.TypedStruct
-				//                      type_url: envoy.config.filter.http.solo_jwt_authn.v2.StagedJwtAuthnPerRoute
-				//                      value:
-				//                        jwt_configs:
-				//                          "0":
-				//                            requirement: solo-mapping-key
-				//                            claims_to_headers:
-				//                              principal:
-				//                                claims:
-				//                                  - claim: scope
-				//                                    header: x-user-scopes
-				//                                  - claim: https://www.shipt.com/shipt_user_id
-				//                                    header: X-user-id
-				//                            clear_route_cache: true
 				// TODO Should generate JWT Policies from Listeners, will need to reference them as a filter here though
 				// TODO lookup filter by name
 				var ts v8.TypedStruct
@@ -552,32 +559,62 @@ func generateRouteOption(r *route.Route, jwtProviders map[string]*v6.JwtProvider
 
 				jwtProviderName := jwtPerRoute.Requirement
 				//jwtSpecName := strings.Split(jwtProviderName, ".")[2]
-
-				jwtProvider := jwtProviders[jwtProviderName]
+				if jwtProviders[r.Name].(map[string]interface{})[jwtProviderName] == nil {
+					log.Fatalf("JWT provider %s not found", jwtProviderName)
+				}
+				jwtProvider := jwtProviders[jwtProviderName].(map[string]interface{})
 
 				log.Printf("%v", jwtProvider)
 
 				roProvider := &jwt2.Provider{
 					Jwks:             nil,
-					Audiences:        jwtProvider.Audiences,
-					Issuer:           jwtProvider.Issuer,
+					Audiences:        jwtProvider["audiences"].([]string),
+					Issuer:           jwtProvider["issuer"].(string),
 					TokenSource:      nil,
-					KeepToken:        jwtProvider.Forward,
+					KeepToken:        jwtProvider["forward"].(bool),
 					ClaimsToHeaders:  nil,
-					ClockSkewSeconds: wrapperspb.UInt32(jwtProvider.ClockSkewSeconds),
+					ClockSkewSeconds: wrapperspb.UInt32(jwtProvider["clock_skew_seconds"].(uint32)),
 				}
-				if jwtProvider.GetRemoteJwks() != nil {
+				if jwtProvider["remote_jwks"] != nil {
+					//remote_jwks:
+					//                                      http_uri:
+					//                                        uri: https://member-auth-poc.shipt.com/.well-known/jwks.json
+					//                                        cluster: outbound|80||member-auth-poc.shipt.com
+					//                                        timeout: 5s
+					//                                      async_fetch:
+					//                                        fast_listener: true
+					//                                    forward: true
+					//                                    from_headers:
+					//                                      - name: Authorization
+					//                                        value_prefix: "Bearer "
+					//                                    from_params:
+					//                                      - access_token
+					//                                    payload_in_metadata: principal
+					//                                    clock_skew_seconds: 60
+					httpURI := jwtProvider["remote_jwks"].(map[string]interface{})["http_uri"].(map[string]string)
+
 					//TODO we may need to create an Upstream Ref For this....
+					// TODO need to support local too
 					roJWKS := &jwt2.Jwks{
 						Jwks: &jwt2.Jwks_Remote{
 							Remote: &jwt2.RemoteJwks{
-								Url: jwtProvider.GetRemoteJwks().HttpUri.Uri,
+								Url: httpURI["uri"],
 								// TODO upstream ref
-								UpstreamRef:   &core2.ResourceRef{Name: "TODO UNKNOWN"},
-								CacheDuration: jwtProvider.GetRemoteJwks().CacheDuration,
-								AsyncFetch:    jwtProvider.GetRemoteJwks().AsyncFetch,
+								UpstreamRef: &core2.ResourceRef{Name: "TODO UNKNOWN"},
 							},
 						},
+					}
+					if jwtProvider["remote_jwks"].(map[string]interface{})["cache_duration"] != nil {
+						t, err := time.ParseDuration(jwtProvider["remote_jwks"].(map[string]interface{})["cache_duration"].(string))
+						if err != nil {
+							return nil, err
+						}
+						roJWKS.GetRemote().CacheDuration = durationpb.New(t)
+					}
+					if jwtProvider["remote_jwks"].(map[string]interface{})["async_fetch"] != nil {
+						roJWKS.GetRemote().AsyncFetch = &v6.JwksAsyncFetch{
+							FastListener: jwtProvider["remote_jwks"].(map[string]interface{})["async_fetch"].(map[string]bool)["fast_listener"],
+						}
 					}
 					roProvider.Jwks = roJWKS
 				}
