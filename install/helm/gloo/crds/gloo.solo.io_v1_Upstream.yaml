@@ -47,6 +47,9 @@ spec:
                         properties:
                           host:
                             type: string
+                          hostname:
+                            nullable: true
+                            type: string
                           port:
                             maximum: 4294967295
                             minimum: 0
@@ -121,6 +124,9 @@ spec:
                         properties:
                           host:
                             type: string
+                          hostname:
+                            nullable: true
+                            type: string
                           port:
                             maximum: 4294967295
                             minimum: 0
@@ -156,6 +162,9 @@ spec:
                                       customHost:
                                         properties:
                                           host:
+                                            type: string
+                                          hostname:
+                                            nullable: true
                                             type: string
                                           port:
                                             maximum: 4294967295
@@ -231,6 +240,9 @@ spec:
                                         properties:
                                           host:
                                             type: string
+                                          hostname:
+                                            nullable: true
+                                            type: string
                                           port:
                                             maximum: 4294967295
                                             minimum: 0
@@ -258,6 +270,9 @@ spec:
                                       customHost:
                                         properties:
                                           host:
+                                            type: string
+                                          hostname:
+                                            nullable: true
                                             type: string
                                           port:
                                             maximum: 4294967295
@@ -321,6 +336,9 @@ spec:
                       customHost:
                         properties:
                           host:
+                            type: string
+                          hostname:
+                            nullable: true
                             type: string
                           port:
                             maximum: 4294967295

@@ -1,0 +1,9 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/7440
+  resolvesIssue: false
+  description: > 
+    Fixes an issue where the ai semantic caching distance is not being set correctly in the cache. Also 
+    move the distance threshold to the cache configuration, rather than per datastore.
+
+
