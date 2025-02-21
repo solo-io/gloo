@@ -290,14 +290,15 @@ func processFilterChain(gwName string, gwNamespace string, snapshot *EnvoySnapsh
 }
 
 // TODO will need to find the other providers too
-func findJWTProviders(fc *v3.FilterChain) (map[string]interface{}, error) {
+func findJWTProviders(fc *v3.FilterChain) (map[string]interface{}, map[string][]string, error) {
 	jwtProviders := make(map[string]interface{})
+	filterStateRules := make(map[string][]string)
 	for _, filter := range fc.Filters {
 		// extract all the JWT Policies to feed the RouteOptions
 		if filter.Name == "envoy.filters.network.http_connection_manager" {
 			var hcm http_connection_managerv3.HttpConnectionManager
 			if err := filter.GetTypedConfig().UnmarshalTo(&hcm); err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			for _, ftlr := range hcm.GetHttpFilters() {
@@ -307,29 +308,53 @@ func findJWTProviders(fc *v3.FilterChain) (map[string]interface{}, error) {
 
 					var ts v8.TypedStruct
 					if err := ftlr.GetTypedConfig().UnmarshalTo(&ts); err != nil {
-						return nil, err
+						return nil, nil, err
 					}
 
 					jsonData, err := ts.Value.MarshalJSON()
 					if err != nil {
-						return nil, err
+						return nil, nil, err
 					}
 
 					// Convert JSON to map interface
 					var result map[string]interface{}
 					err = json.Unmarshal(jsonData, &result)
 					if err != nil {
-						return nil, err
+						return nil, nil, err
 					}
+
+					// filter state rules
+					fsr := result["jwt_authn"].(map[string]interface{})["filter_state_rules"].(map[string]interface{})
+					for name, mapping := range fsr {
+						mappings := make([]string,0)
+
+						//TODO if there are more than 1 mapping then we need to create a RouteOption with two options.
+						for n, value := range mapping.(map[string]interface{}) {
+							if n == "requires_any"{
+								//                      requires_any:
+								//                        requirements:
+								//                        - allow_missing_or_failed: {}
+								//                        - provider_name: cf-mgmt-nonprod-ue2.customer-order-core-order-visibility-data-team-config.order-order-search-api-qa-jwt-order-search-api-qa.auth
+							}
+							if n == "provider_name" {
+								if filterStateRules[name] == nil {
+									filterStateRules[name] = make([]string, 0)
+								}
+								filterStateRules[name] = append(filterStateRules[name], value.(string))
+							}
+						}
+
+						filterStateRules[name] :=
+					}
+
 					providers := result["jwt_authn"].(map[string]interface{})["providers"].(map[string]interface{})
 					log.Printf("Added %d providers for %s", len(providers), hcm.GetRds().GetRouteConfigName())
 					jwtProviders[hcm.GetRds().GetRouteConfigName()] = providers
-
 				}
 			}
 		}
 	}
-	return jwtProviders, nil
+	return jwtProviders,filterStateRules nil
 }
 
 func findTLSContext(fc *v3.FilterChain) (*gwv1.GatewayTLSConfig, []string, error) {
