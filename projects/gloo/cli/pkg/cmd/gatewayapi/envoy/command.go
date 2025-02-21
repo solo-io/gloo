@@ -16,8 +16,6 @@ import (
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	api "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
-	v6 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/jwt_authn/v3"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
 	v4 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
@@ -29,10 +27,8 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/headers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
 	"github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
-	core2 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"io/ioutil"
 	_ "istio.io/api/envoy/config/filter/network/metadata_exchange"
@@ -46,7 +42,6 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	"strconv"
 	"strings"
-	"time"
 )
 
 var (
@@ -220,7 +215,7 @@ func processFilterChain(gwName string, gwNamespace string, snapshot *EnvoySnapsh
 		}
 
 		var jwtProviders map[string]interface{}
-		jwtProviders, err = findJWTProviders(fc)
+		jwtProviders, _, err = findJWTProviders(fc)
 
 		if err != nil {
 			return nil, err
@@ -303,9 +298,6 @@ func findJWTProviders(fc *v3.FilterChain) (map[string]interface{}, map[string][]
 
 			for _, ftlr := range hcm.GetHttpFilters() {
 				if ftlr.Name == "io.solo.filters.http.solo_jwt_authn_staged" {
-
-					// TOTO listener JWT TypedStruct
-
 					var ts v8.TypedStruct
 					if err := ftlr.GetTypedConfig().UnmarshalTo(&ts); err != nil {
 						return nil, nil, err
@@ -324,37 +316,20 @@ func findJWTProviders(fc *v3.FilterChain) (map[string]interface{}, map[string][]
 					}
 
 					// filter state rules
-					fsr := result["jwt_authn"].(map[string]interface{})["filter_state_rules"].(map[string]interface{})
-					for name, mapping := range fsr {
-						mappings := make([]string,0)
-
-						//TODO if there are more than 1 mapping then we need to create a RouteOption with two options.
-						for n, value := range mapping.(map[string]interface{}) {
-							if n == "requires_any"{
-								//                      requires_any:
-								//                        requirements:
-								//                        - allow_missing_or_failed: {}
-								//                        - provider_name: cf-mgmt-nonprod-ue2.customer-order-core-order-visibility-data-team-config.order-order-search-api-qa-jwt-order-search-api-qa.auth
-							}
-							if n == "provider_name" {
-								if filterStateRules[name] == nil {
-									filterStateRules[name] = make([]string, 0)
-								}
-								filterStateRules[name] = append(filterStateRules[name], value.(string))
-							}
-						}
-
-						filterStateRules[name] :=
+					fsr := result["jwt_authn"].(map[string]interface{})
+					authConfigMapping := NewAuthGenerator()
+					ros, err := authConfigMapping.TransformJWT(fsr)
+					if err != nil {
+						return nil, nil, err
 					}
-
-					providers := result["jwt_authn"].(map[string]interface{})["providers"].(map[string]interface{})
-					log.Printf("Added %d providers for %s", len(providers), hcm.GetRds().GetRouteConfigName())
-					jwtProviders[hcm.GetRds().GetRouteConfigName()] = providers
+					for _, ro := range ros {
+						output.RouteOptions = append(output.RouteOptions, ro)
+					}
 				}
 			}
 		}
 	}
-	return jwtProviders,filterStateRules nil
+	return jwtProviders, filterStateRules, nil
 }
 
 func findTLSContext(fc *v3.FilterChain) (*gwv1.GatewayTLSConfig, []string, error) {
@@ -570,98 +545,72 @@ func generateRouteOption(routeName string, r *route.Route, jwtProviders map[stri
 				//}
 			}
 			if filterName == "io.solo.filters.http.solo_jwt_authn_staged" {
-				// TODO Should generate JWT Policies from Listeners, will need to reference them as a filter here though
-				// TODO lookup filter by name
-				var ts v8.TypedStruct
-				if err := filterConfig.UnmarshalTo(&ts); err != nil {
-					return nil, err
-				}
+				// TODO for inline JWT policies we need to generate a new RouteOption. If its just a reference we need to look htat up
+				//var ts v8.TypedStruct
+				//if err := filterConfig.UnmarshalTo(&ts); err != nil {
+				//	return nil, err
+				//}
+				//
+				//jsonData, err := ts.Value.MarshalJSON()
+				//
+				//if err != nil {
+				//	return nil, err
+				//}
+				//
+				//// Convert JSON to RBACPerRoute
+				//var jwtPerRoute jwt.SoloJwtAuthnPerRoute
+				//var result map[string]interface{}
+				//
+				//err = json.Unmarshal(jsonData, &result)
+				//if err != nil {
+				//	return nil, err
+				//}
+				//
+				//perRouteJson, err := json.Marshal(result["jwt_configs"].(map[string]interface{})["0"])
+				//if err != nil {
+				//	return nil, err
+				//}
 
-				jsonData, err := ts.Value.MarshalJSON()
-
-				if err != nil {
-					return nil, err
-				}
-
-				// Convert JSON to RBACPerRoute
-				var jwtPerRoute jwt.SoloJwtAuthnPerRoute
-				var result map[string]interface{}
-
-				err = json.Unmarshal(jsonData, &result)
-				if err != nil {
-					return nil, err
-				}
-
-				perRouteJson, err := json.Marshal(result["jwt_configs"].(map[string]interface{})["0"])
-				if err != nil {
-					return nil, err
-				}
-
-				if err := json.Unmarshal(perRouteJson, &jwtPerRoute); err != nil {
-					return nil, err
-				}
-
-				jwtProviderName := jwtPerRoute.Requirement
-				//jwtSpecName := strings.Split(jwtProviderName, ".")[2]
-				if jwtProviders[routeName].(map[string]interface{})[jwtProviderName] == nil {
-					log.Fatalf("JWT provider %s not found", jwtProviderName)
-				}
-				jwtProvider := jwtProviders[jwtProviderName].(map[string]interface{})
-
-				log.Printf("%v", jwtProvider)
-
-				roProvider := &jwt2.Provider{
-					Jwks:             nil,
-					Audiences:        jwtProvider["audiences"].([]string),
-					Issuer:           jwtProvider["issuer"].(string),
-					TokenSource:      nil,
-					KeepToken:        jwtProvider["forward"].(bool),
-					ClaimsToHeaders:  nil,
-					ClockSkewSeconds: wrapperspb.UInt32(jwtProvider["clock_skew_seconds"].(uint32)),
-				}
-				if jwtProvider["remote_jwks"] != nil {
-					//remote_jwks:
-					//                                      http_uri:
-					//                                        uri: https://member-auth-poc.shipt.com/.well-known/jwks.json
-					//                                        cluster: outbound|80||member-auth-poc.shipt.com
-					//                                        timeout: 5s
-					//                                      async_fetch:
-					//                                        fast_listener: true
-					//                                    forward: true
-					//                                    from_headers:
-					//                                      - name: Authorization
-					//                                        value_prefix: "Bearer "
-					//                                    from_params:
-					//                                      - access_token
-					//                                    payload_in_metadata: principal
-					//                                    clock_skew_seconds: 60
-					httpURI := jwtProvider["remote_jwks"].(map[string]interface{})["http_uri"].(map[string]string)
-
-					//TODO we may need to create an Upstream Ref For this....
-					// TODO need to support local too
-					roJWKS := &jwt2.Jwks{
-						Jwks: &jwt2.Jwks_Remote{
-							Remote: &jwt2.RemoteJwks{
-								Url: httpURI["uri"],
-								// TODO upstream ref
-								UpstreamRef: &core2.ResourceRef{Name: "TODO UNKNOWN"},
-							},
-						},
-					}
-					if jwtProvider["remote_jwks"].(map[string]interface{})["cache_duration"] != nil {
-						t, err := time.ParseDuration(jwtProvider["remote_jwks"].(map[string]interface{})["cache_duration"].(string))
-						if err != nil {
-							return nil, err
-						}
-						roJWKS.GetRemote().CacheDuration = durationpb.New(t)
-					}
-					if jwtProvider["remote_jwks"].(map[string]interface{})["async_fetch"] != nil {
-						roJWKS.GetRemote().AsyncFetch = &v6.JwksAsyncFetch{
-							FastListener: jwtProvider["remote_jwks"].(map[string]interface{})["async_fetch"].(map[string]bool)["fast_listener"],
-						}
-					}
-					roProvider.Jwks = roJWKS
-				}
+				//if err := json.Unmarshal(perRouteJson, &jwtPerRoute); err != nil {
+				//	return nil, err
+				//}
+				//
+				//jwtProviderName := jwtPerRoute.Requirement
+				////jwtSpecName := strings.Split(jwtProviderName, ".")[2]
+				//if jwtProviders[routeName].(map[string]interface{})[jwtProviderName] == nil {
+				//	log.Fatalf("JWT provider %s not found", jwtProviderName)
+				//}
+				//jwtProvider := jwtProviders[jwtProviderName].(map[string]interface{})
+				//
+				//log.Printf("%v", jwtProvider)
+				//
+				//roProvider := &jwt2.Provider{
+				//	Jwks:             nil,
+				//	Audiences:        jwtProvider["audiences"].([]string),
+				//	Issuer:           jwtProvider["issuer"].(string),
+				//	TokenSource:      nil,
+				//	KeepToken:        jwtProvider["forward"].(bool),
+				//	ClaimsToHeaders:  nil,
+				//	ClockSkewSeconds: wrapperspb.UInt32(jwtProvider["clock_skew_seconds"].(uint32)),
+				//}
+				//if jwtProvider["remote_jwks"] != nil {
+				//remote_jwks:
+				//                                      http_uri:
+				//                                        uri: https://member-auth-poc.shipt.com/.well-known/jwks.json
+				//                                        cluster: outbound|80||member-auth-poc.shipt.com
+				//                                        timeout: 5s
+				//                                      async_fetch:
+				//                                        fast_listener: true
+				//                                    forward: true
+				//                                    from_headers:
+				//                                      - name: Authorization
+				//                                        value_prefix: "Bearer "
+				//                                    from_params:
+				//                                      - access_token
+				//                                    payload_in_metadata: principal
+				//                                    clock_skew_seconds: 60
+				//roProvider.Jwks = roJWKS
+				//}
 
 				roJWT := &v2.RouteOptions_JwtProvidersStaged{
 					JwtProvidersStaged: &jwt2.JwtStagedRouteProvidersExtension{
