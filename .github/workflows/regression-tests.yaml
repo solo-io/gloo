@@ -82,12 +82,29 @@ jobs:
         # (see https://github.com/solo-io/solo-projects/issues/6094)
         image-variant:
           - standard
+        version-files:
+          - label: 'min'
+            file: './.github/workflows/.env/pr-tests/min_versions.env'
+          - label: 'max'
+            file: './.github/workflows/.env/pr-tests/max_versions.env'
     steps:
+    # Checkout the branch that initiated the action
     - uses: actions/checkout@v4
     - id: auto-succeed-tests
       if: needs.prepare_env.outputs.should-auto-succeed-regression-tests == 'true'
       run: |
         echo "Kubernetes Gateway API conformance tests auto-succeeded"
+    # The dotenv action is used to load key-value pairs from files.
+    # In this case, the file is specified in the matrix and will contain the versions of the tools to use
+    - name: Dotenv Action
+      uses: falti/dotenv-action@v1.1.4
+      id: dotenv
+      with:
+        path: ${{ matrix.version-files.file }}
+        log-variables: true
+    # Run the k8s gateway api conformance tests
     - id: run-tests
       if: needs.prepare_env.outputs.should-auto-succeed-regression-tests != 'true'
       uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
+      with:
+        k8sgateway-api-version: ${{ steps.dotenv.outputs.k8sgateway_api_version }}
