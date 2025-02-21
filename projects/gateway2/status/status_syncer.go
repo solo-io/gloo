@@ -80,9 +80,6 @@ func (f *statusSyncerFactory) QueueStatusForProxies(
 		f.resyncsPerIteration[totalSyncCount] = append(f.resyncsPerIteration[totalSyncCount], proxyKey)
 	}
 
-	// remove the n - 2 iteration values so the map doesn't grow
-	delete(f.resyncsPerIteration, totalSyncCount-2)
-
 	// the plugin registry that produced the proxies is the same for all proxies in a given sync
 	f.registryPerSync[totalSyncCount] = pluginRegistry
 }
@@ -166,6 +163,7 @@ func (s *statusSyncer) applyStatusPlugins(
 	ctx context.Context,
 	proxiesWithReports []translatorutils.ProxyWithReports,
 ) {
+	ctx = contextutils.WithLogger(ctx, "k8sGatewayStatusPlugins")
 	logger := contextutils.LoggerFrom(ctx)
 
 	// filter only the proxies that were produced by k8s gws
