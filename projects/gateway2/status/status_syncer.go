@@ -82,6 +82,9 @@ func (f *statusSyncerFactory) QueueStatusForProxies(
 
 	// the plugin registry that produced the proxies is the same for all proxies in a given sync
 	f.registryPerSync[totalSyncCount] = pluginRegistry
+
+	delete(f.resyncsPerIteration, totalSyncCount-2)
+	delete(f.registryPerSync, totalSyncCount-2)
 }
 
 // HandleProxyReports is a callback that applies status plugins to the proxies that have been queued
