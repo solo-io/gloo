@@ -49,6 +49,17 @@ import (
 	"time"
 )
 
+var (
+	output = &GatewayAPIOutput{
+		HTTPRoutes:         make([]*gwv1.HTTPRoute, 0),
+		RouteOptions:       make([]*gatewaykube.RouteOption, 0),
+		VirtualHostOptions: make([]*gatewaykube.VirtualHostOption, 0),
+		Upstreams:          make([]*glookube.Upstream, 0),
+		AuthConfigs:        make([]*v1.AuthConfig, 0),
+		Gateways:           make([]*gwv1.Gateway, 0),
+	}
+)
+
 func init() {
 	runtimeScheme = runtime.NewScheme()
 
@@ -140,15 +151,6 @@ func parseEnvoyConfig(data []byte) (*EnvoySnapshot, error) {
 
 func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 
-	output := &GatewayAPIOutput{
-		HTTPRoutes:         make([]*gwv1.HTTPRoute, 0),
-		RouteOptions:       make([]*gatewaykube.RouteOption, 0),
-		VirtualHostOptions: make([]*gatewaykube.VirtualHostOption, 0),
-		Upstreams:          make([]*glookube.Upstream, 0),
-		AuthConfigs:        make([]*v1.AuthConfig, 0),
-		Gateways:           make([]*gwv1.Gateway, 0),
-	}
-
 	for _, listener := range snapshot.Listeners.DynamicListeners {
 		var v3Listener v3.Listener
 		if err := listener.ActiveState.Listener.UnmarshalTo(&v3Listener); err != nil {
@@ -165,90 +167,22 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 				},
 				Spec: gwv1.GatewaySpec{
 					GatewayClassName: "gloo-gateway",
+					Listeners:        []gwv1.Listener{},
 				},
 				//Addresses:      nil,
 				//Infrastructure: nil,
 				//BackendTLS:     nil,
 			}
 
-			//TODO what to do about multiple filter chains?!!?
-			var snis map[string]string
 			for fi, fc := range v3Listener.FilterChains {
-				if fc.FilterChainMatch != nil {
-					var err error
-					var tlsContext *gwv1.GatewayTLSConfig
-					tlsContext, snis, err = findSNIs(fc)
-					if err != nil {
-						return err
-					}
-					var jwtProviders map[string]interface{}
-
-					jwtProviders, err = findJWTProviders(fc)
-
-					if err != nil {
-						return err
-					}
-
-					//No SNIs exist so we pull it from the HTTP connection manager
-					for i, filter := range fc.Filters {
-						if filter.Name == "envoy.filters.network.tcp_proxy" {
-							tcpListeners, err := generateTCPListeners(snis, fi, tlsContext, i, v3Listener.Address.GetSocketAddress().GetPortValue())
-							if err != nil {
-								return err
-							}
-							for _, listener := range tcpListeners {
-								gwGateway.Spec.Listeners = append(gwGateway.Spec.Listeners, *listener)
-							}
-
-							var tcpp tcp_proxyv3.TcpProxy
-							if err := filter.GetTypedConfig().UnmarshalTo(&tcpp); err != nil {
-								return err
-							}
-							//TODO need to generate the TCP Route to the backend
-							//tcpp.
-
-						}
-						if filter.Name == "envoy.filters.network.http_connection_manager" {
-							httpListeners, err := generateHTTPListeners(filter, snis, fi, tlsContext, i, v3Listener.Address.GetSocketAddress().GetPortValue())
-							if err != nil {
-								return err
-							}
-							gwGateway.Spec.Listeners = append(gwGateway.Spec.Listeners, httpListeners...)
-
-							var hcm http_connection_managerv3.HttpConnectionManager
-							if err := filter.GetTypedConfig().UnmarshalTo(&hcm); err != nil {
-								return err
-							}
-							if hcm.GetRds() != nil {
-								//// pull in the route
-								routeName := hcm.GetRds().RouteConfigName
-								//
-								rt, err := snapshot.GetRouteByName(routeName)
-								if err != nil {
-									return err
-								}
-								if rt == nil {
-									log.Printf("Route not found: %s", routeName)
-								}
-								routes, upstreams, routeOptions, err := generateHTTPRoutes(gwGateway.Name, gwGateway.Namespace, rt, snapshot, jwtProviders)
-								if err != nil {
-									return err
-								}
-								for _, ro := range routeOptions {
-									output.RouteOptions = append(output.RouteOptions, ro)
-								}
-								for _, upstream := range upstreams {
-									output.Upstreams = append(output.Upstreams, upstream)
-								}
-								for _, rt := range routes {
-									output.HTTPRoutes = append(output.HTTPRoutes, rt)
-								}
-							}
-						}
-					}
+				listeners, err := processFilterChain(gwGateway.Name, gwGateway.Namespace, snapshot, fc, fi, &v3Listener)
+				if err != nil {
+					return err
 				}
+				gwGateway.Spec.Listeners = append(gwGateway.Spec.Listeners, listeners...)
+				output.Gateways = append(output.Gateways, gwGateway)
 			}
-			output.Gateways = append(output.Gateways, gwGateway)
+
 		}
 	}
 
@@ -271,6 +205,91 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 	return nil
 }
 
+// For each filter chain we need to gather a bunch of information then process the routes.
+// Need to get the HCM name, SNIs, and Filters that need to be available to reference from the routes
+func processFilterChain(gwName string, gwNamespace string, snapshot *EnvoySnapshot, fc *v3.FilterChain, fi int, v3Listener *v3.Listener) ([]gwv1.Listener, error) {
+	var snis []string
+	var gwListeners []gwv1.Listener
+	if fc.FilterChainMatch != nil {
+		var err error
+		var tlsContext *gwv1.GatewayTLSConfig
+		//grabs the tls information if it exists
+		tlsContext, snis, err = findTLSContext(fc)
+		if err != nil {
+			return nil, err
+		}
+
+		var jwtProviders map[string]interface{}
+		jwtProviders, err = findJWTProviders(fc)
+
+		if err != nil {
+			return nil, err
+		}
+
+		//No SNIs exist so we pull it from the HTTP connection manager
+		var routeName string // HCM Route Name for reference
+		for i, filter := range fc.Filters {
+			if filter.Name == "envoy.filters.network.tcp_proxy" {
+				tcpListeners, err := generateTCPListeners(snis, fi, tlsContext, i, v3Listener.Address.GetSocketAddress().GetPortValue())
+				if err != nil {
+					return nil, err
+				}
+				for _, listener := range tcpListeners {
+					gwListeners = append(gwListeners, *listener)
+				}
+
+				var tcpp tcp_proxyv3.TcpProxy
+				if err := filter.GetTypedConfig().UnmarshalTo(&tcpp); err != nil {
+					return nil, err
+				}
+				//TODO need to generate the TCP Route to the backend
+				//tcpp.
+
+			}
+			if filter.Name == "envoy.filters.network.http_connection_manager" {
+				httpListeners, err := generateHTTPListeners(filter, snis, fi, tlsContext, i, v3Listener.Address.GetSocketAddress().GetPortValue())
+				if err != nil {
+					return nil, err
+				}
+				gwListeners = append(gwListeners, httpListeners...)
+
+				var hcm http_connection_managerv3.HttpConnectionManager
+				if err := filter.GetTypedConfig().UnmarshalTo(&hcm); err != nil {
+					return nil, err
+				}
+				if hcm.GetRds() != nil {
+					//// pull in the route
+					routeName = hcm.GetRds().RouteConfigName
+					log.Printf("grabbing route: %s", routeName)
+					//
+					rt, err := snapshot.GetRouteByName(routeName)
+					if err != nil {
+						return nil, err
+					}
+					if rt == nil {
+						log.Printf("Route not found: %s", routeName)
+					}
+					routes, upstreams, routeOptions, err := generateHTTPRoutes(gwName, gwNamespace, rt, snapshot, jwtProviders)
+					if err != nil {
+						return nil, err
+					}
+					for _, ro := range routeOptions {
+						output.RouteOptions = append(output.RouteOptions, ro)
+					}
+					for _, upstream := range upstreams {
+						output.Upstreams = append(output.Upstreams, upstream)
+					}
+					for _, rt := range routes {
+						output.HTTPRoutes = append(output.HTTPRoutes, rt)
+					}
+				}
+			}
+		}
+	}
+	return gwListeners, nil
+}
+
+// TODO will need to find the other providers too
 func findJWTProviders(fc *v3.FilterChain) (map[string]interface{}, error) {
 	jwtProviders := make(map[string]interface{})
 	for _, filter := range fc.Filters {
@@ -313,15 +332,15 @@ func findJWTProviders(fc *v3.FilterChain) (map[string]interface{}, error) {
 	return jwtProviders, nil
 }
 
-func findSNIs(fc *v3.FilterChain) (*gwv1.GatewayTLSConfig, map[string]string, error) {
+func findTLSContext(fc *v3.FilterChain) (*gwv1.GatewayTLSConfig, []string, error) {
 	// there is a TLS listener?
 	var tlsContext *gwv1.GatewayTLSConfig
 
-	snis := make(map[string]string)
+	snis := []string{}
 	if fc.TransportSocket != nil && fc.TransportSocket.Name == "envoy.transport_sockets.tls" {
 		//we need to generate a listener per SNI if they exist
 		//TODO MTLS
-		//snis[hcm.Ger] = fc.FilterChainMatch.ServerNames
+		snis = fc.FilterChainMatch.ServerNames
 		tlsContext = &gwv1.GatewayTLSConfig{
 			Mode:            ptr.To(gwv1.TLSModeTerminate),
 			CertificateRefs: []gwv1.SecretObjectReference{},
@@ -370,21 +389,21 @@ func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteCon
 				Rules:     make([]gwv1.HTTPRouteRule, 0),
 			},
 		}
-		for _, route := range virtualHost.Routes {
+		for _, vhRoute := range virtualHost.Routes {
 			// matches
 			gwrr := &gwv1.HTTPRouteRule{
 				Matches:     make([]gwv1.HTTPRouteMatch, 0),
 				Filters:     make([]gwv1.HTTPRouteFilter, 0),
 				BackendRefs: make([]gwv1.HTTPBackendRef, 0),
 			}
-			match, err := convertMatcher(route.Match)
+			match, err := convertMatcher(vhRoute.Match)
 			if err != nil {
 				return nil, nil, nil, err
 			}
 			gwrr.Matches = append(gwrr.Matches, match)
 
 			// Add the filters and the upstreams
-			routeOption, err := generateRouteOption(route, jwtProviders)
+			routeOption, err := generateRouteOption(route.Name, vhRoute, jwtProviders)
 			if err != nil {
 				return nil, nil, nil, err
 			}
@@ -402,15 +421,15 @@ func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteCon
 
 			//cluster lookup
 			//"outbound|8080||campaign-service-webserver.mesh.internal"
-			cluster, err := snapshot.GetClusterByName(route.GetRoute().GetCluster())
+			cluster, err := snapshot.GetClusterByName(vhRoute.GetRoute().GetCluster())
 			if err != nil {
 				return nil, nil, nil, err
 			}
 			if cluster == nil {
-				log.Printf("cluster not found " + route.GetRoute().GetCluster())
+				log.Printf("cluster not found " + vhRoute.GetRoute().GetCluster())
 			}
 			if cluster != nil {
-				backendRef, upstream, err := generateBackendRef(route, cluster)
+				backendRef, upstream, err := generateBackendRef(vhRoute, cluster)
 				if err != nil {
 					return nil, nil, nil, err
 				}
@@ -430,7 +449,7 @@ func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteCon
 	return httpRoutes, upstreams, routeOptions, nil
 }
 
-func generateRouteOption(r *route.Route, jwtProviders map[string]interface{}) (*gatewaykube.RouteOption, error) {
+func generateRouteOption(routeName string, r *route.Route, jwtProviders map[string]interface{}) (*gatewaykube.RouteOption, error) {
 
 	if r == nil {
 		return nil, nil
@@ -559,7 +578,7 @@ func generateRouteOption(r *route.Route, jwtProviders map[string]interface{}) (*
 
 				jwtProviderName := jwtPerRoute.Requirement
 				//jwtSpecName := strings.Split(jwtProviderName, ".")[2]
-				if jwtProviders[r.Name].(map[string]interface{})[jwtProviderName] == nil {
+				if jwtProviders[routeName].(map[string]interface{})[jwtProviderName] == nil {
 					log.Fatalf("JWT provider %s not found", jwtProviderName)
 				}
 				jwtProvider := jwtProviders[jwtProviderName].(map[string]interface{})
