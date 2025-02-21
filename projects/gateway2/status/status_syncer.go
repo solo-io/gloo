@@ -85,6 +85,9 @@ func (f *statusSyncerFactory) QueueStatusForProxies(
 
 	// the plugin registry that produced the proxies is the same for all proxies in a given sync
 	f.registryPerSync[totalSyncCount] = pluginRegistry
+
+	// remove the n - 2 iteration values so the map doesn't grow
+	delete(f.registryPerSync, totalSyncCount-2)
 }
 
 // HandleProxyReports is a callback that applies status plugins to the proxies that have been queued
@@ -144,7 +147,7 @@ func (f *statusSyncerFactory) HandleProxyReports(ctx context.Context, proxiesWit
 		}
 
 		// If there are no more proxies for the sync iteration, delete the sync count
-		if len(f.resyncsPerIteration) == 0 {
+		if len(f.resyncsPerIteration[syncCount]) == 0 {
 			delete(f.registryPerSync, syncCount)
 		}
 	}
