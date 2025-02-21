@@ -12,10 +12,6 @@ With external processing, you can implement an external processing server that c
 External processing is an Enterprise-only feature. 
 {{% /notice %}}
 
-{{% notice warning %}}
-Envoy's external processing filter is considered a work in progress and has an unknown security posture. Use caution when using this feature in production environments. For more information, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_proc_filter#external-processing).
-{{% /notice %}}
-
 ### How it works
 
 The following diagram shows an example for how request header manipulation works when an external processing server is used. 
