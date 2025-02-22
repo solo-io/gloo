@@ -1,0 +1,6 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/7805
+  resolvesIssue: false
+  description: Fixes a memory leak caused by an indefinitely growing map
+

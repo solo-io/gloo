@@ -72,14 +72,19 @@ func (f *statusSyncerFactory) QueueStatusForProxies(
 
 	// queue each proxy for a given sync iteration
 	for _, proxy := range proxiesToQueue {
+		proxyKey := getProxyNameNamespace(proxy)
 		// overwrite the sync count for the proxy with the most recent sync count
-		f.resyncsPerProxy[getProxyNameNamespace(proxy)] = totalSyncCount
+		f.resyncsPerProxy[proxyKey] = totalSyncCount
 
 		// keep track of proxies to check all proxies are handled in debugger
-		f.resyncsPerIteration[totalSyncCount] = append(f.resyncsPerIteration[totalSyncCount], getProxyNameNamespace(proxy))
+		f.resyncsPerIteration[totalSyncCount] = append(f.resyncsPerIteration[totalSyncCount], proxyKey)
 	}
+
 	// the plugin registry that produced the proxies is the same for all proxies in a given sync
 	f.registryPerSync[totalSyncCount] = pluginRegistry
+
+	delete(f.resyncsPerIteration, totalSyncCount-2)
+	delete(f.registryPerSync, totalSyncCount-2)
 }
 
 // HandleProxyReports is a callback that applies status plugins to the proxies that have been queued
@@ -108,7 +113,9 @@ func (f *statusSyncerFactory) HandleProxyReports(ctx context.Context, proxiesWit
 			continue
 		}
 
-		if f.resyncsPerIteration[proxySyncCount] == nil {
+		if len(f.resyncsPerIteration[proxySyncCount]) == 0 {
+			// remove the key so the map does not indefinitely grow
+			delete(f.resyncsPerIteration, proxySyncCount)
 			// re-sync already happened, nothing to do
 			continue
 		} else {
@@ -119,6 +126,11 @@ func (f *statusSyncerFactory) HandleProxyReports(ctx context.Context, proxiesWit
 				}
 			}
 			f.resyncsPerIteration[proxySyncCount] = updatedList
+
+			if len(f.resyncsPerIteration[proxySyncCount]) == 0 {
+				// remove the key so the map does not indefinitely grow
+				delete(f.resyncsPerIteration, proxySyncCount)
+			}
 		}
 
 		proxiesToReport[proxySyncCount] = append(proxiesToReport[proxySyncCount], proxyWithReport)
@@ -132,7 +144,7 @@ func (f *statusSyncerFactory) HandleProxyReports(ctx context.Context, proxiesWit
 		}
 
 		// If there are no more proxies for the sync iteration, delete the sync count
-		if len(f.resyncsPerIteration) == 0 {
+		if len(f.resyncsPerIteration[syncCount]) == 0 {
 			delete(f.registryPerSync, syncCount)
 		}
 	}
