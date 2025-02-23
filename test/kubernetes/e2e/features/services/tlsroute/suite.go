@@ -237,7 +237,7 @@ func (s *testingSuite) TestConfigureTLSRouteBackingDestinations() {
 
 			// Assert expected responses
 			for i, port := range tc.ports {
-				if tc.name == crossNsNoRefGrantTestName {
+				if tc.expectedErrorCode != 0 {
 					s.testInstallation.Assertions.AssertEventualCurlError(
 						s.ctx,
 						s.execOpts(tc.gtwNs),
