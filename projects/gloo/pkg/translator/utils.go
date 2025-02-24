@@ -18,9 +18,35 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
+// ClusterStatNameLabel allows synthetic upstreams to override the
+// stat name at the time of their generation.
+const ClusterStatNameLabel = "internal.solo.io/cluster-stat-name"
+
+// FormatClusterStatName produces a parseable alt_stat_name.
+func FormatClusterStatName(
+	prefix string,
+	upstreamName,
+	upstreamNamespace,
+	serviceNamespace,
+	ServiceName string,
+	servicePort uint32,
+) string {
+	stat := fmt.Sprintf(
+		"%s_%s_%s_%s_%v",
+		upstreamName,
+		upstreamNamespace,
+		serviceNamespace,
+		ServiceName,
+		servicePort,
+	)
+	if prefix != "" {
+		return prefix + stat
+	}
+	return stat
+}
+
 // UpstreamToClusterName converts an Upstream ref to a cluster name to be used in envoy.
 func UpstreamToClusterName(upstream *core.ResourceRef) string {
-
 	// For non-namespaced resources, return only name
 	if upstream.GetNamespace() == "" {
 		return upstream.GetName()
@@ -39,16 +65,22 @@ func UpstreamToClusterStatsName(upstream *gloov1.Upstream) string {
 	case *v1.Upstream_Kube:
 		upstreamName := upstream.GetMetadata().GetName()
 		// Add an identifying prefix if it's a "real" upstream (fake upstreams already have such a prefix).
+		var prefix string
 		if !kubernetes.IsFakeKubeUpstream(upstreamName) {
-			upstreamName = fmt.Sprintf("%s%s", kubernetes.KubeUpstreamStatsPrefix, upstreamName)
+			prefix = kubernetes.KubeUpstreamStatsPrefix
 		}
-		statsName = fmt.Sprintf("%s_%s_%s_%s_%v",
+		statsName = FormatClusterStatName(
+			prefix,
 			upstreamName,
 			upstream.GetMetadata().GetNamespace(),
 			upstreamType.Kube.GetServiceNamespace(),
 			upstreamType.Kube.GetServiceName(),
 			upstreamType.Kube.GetServicePort(),
 		)
+	}
+
+	if override, ok := upstream.GetMetadata().GetLabels()[ClusterStatNameLabel]; ok && override != "" {
+		statsName = override
 	}
 
 	// although envoy will do this before emitting stats, we sanitize here because some of our tests call
@@ -60,7 +92,6 @@ func UpstreamToClusterStatsName(upstream *gloov1.Upstream) string {
 // (this is currently only used in the tunneling plugin and the old UI)
 // This does the inverse of UpstreamToClusterName
 func ClusterToUpstreamRef(cluster string) (*core.ResourceRef, error) {
-
 	split := strings.Split(cluster, "_")
 	if len(split) > 2 || len(split) < 1 {
 		return nil, errors.Errorf("unable to convert cluster %s back to upstream ref", cluster)
@@ -77,7 +108,6 @@ func ClusterToUpstreamRef(cluster string) (*core.ResourceRef, error) {
 }
 
 func NewFilterWithTypedConfig(name string, config proto.Message) (*envoy_config_listener_v3.Filter, error) {
-
 	s := &envoy_config_listener_v3.Filter{
 		Name: name,
 	}
@@ -137,14 +167,12 @@ func IsIpv4Address(bindAddress string) (validIpv4, strictIPv4 bool, err error) {
 	if bindIP == nil {
 		// If bindAddress is not a valid textual representation of an IP address
 		return false, false, errors.Errorf("bindAddress %s is not a valid IP address", bindAddress)
-
 	} else if bindIP.To4() == nil {
 		// If bindIP is not an IPv4 address, To4 returns nil.
 		// so this is not an acceptable ipv4
 		return false, false, nil
 	}
 	return true, isPureIPv4Address(bindAddress), nil
-
 }
 
 // isPureIPv4Address checks the string to see if it is
