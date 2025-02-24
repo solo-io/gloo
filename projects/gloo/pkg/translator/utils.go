@@ -20,7 +20,7 @@ import (
 
 // ClusterStatNameLabel allows synthetic upstreams to override the
 // stat name at the time of their generation.
-const ClusterStatNameLabel = "internal.solo.io/cluster-stat-name"
+const ClusterStatNameLabel = "~internal.solo.io/cluster-stat-name"
 
 // FormatClusterStatName produces a parseable alt_stat_name.
 func FormatClusterStatName(
@@ -28,7 +28,7 @@ func FormatClusterStatName(
 	upstreamName,
 	upstreamNamespace,
 	serviceNamespace,
-	ServiceName string,
+	serviceName string,
 	servicePort uint32,
 ) string {
 	stat := fmt.Sprintf(
@@ -36,7 +36,7 @@ func FormatClusterStatName(
 		upstreamName,
 		upstreamNamespace,
 		serviceNamespace,
-		ServiceName,
+		serviceName,
 		servicePort,
 	)
 	if prefix != "" {
@@ -59,6 +59,10 @@ func UpstreamToClusterName(upstream *core.ResourceRef) string {
 // UpstreamToClusterStatsName gets a cluster stats name from which key info about the upstream can be parsed out.
 // Currently only kube-type upstreams are handled, and the rest will fall back to using the cluster name.
 func UpstreamToClusterStatsName(upstream *gloov1.Upstream) string {
+	if override, ok := upstream.GetMetadata().GetLabels()[ClusterStatNameLabel]; ok && override != "" {
+		return override
+	}
+
 	statsName := UpstreamToClusterName(upstream.GetMetadata().Ref())
 
 	switch upstreamType := upstream.GetUpstreamType().(type) {
@@ -77,10 +81,6 @@ func UpstreamToClusterStatsName(upstream *gloov1.Upstream) string {
 			upstreamType.Kube.GetServiceName(),
 			upstreamType.Kube.GetServicePort(),
 		)
-	}
-
-	if override, ok := upstream.GetMetadata().GetLabels()[ClusterStatNameLabel]; ok && override != "" {
-		statsName = override
 	}
 
 	// although envoy will do this before emitting stats, we sanitize here because some of our tests call
