@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Fix broken CI build due to qemu segfault for multiarch images.
+
+      skipCI-docs-build:true
