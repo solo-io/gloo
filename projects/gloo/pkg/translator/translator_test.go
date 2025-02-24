@@ -2507,8 +2507,8 @@ var _ = Describe("Translator", func() {
 		)
 
 		BeforeEach(func() {
-			testUpstream1 := createStaticUpstream("test1", "gloo-system")
-			testUpstream2 := createStaticUpstream("test2", "gloo-system")
+			testUpstream1 := createStaticUpstream("test1", "gloo-system", nil)
+			testUpstream2 := createStaticUpstream("test2", "gloo-system", nil)
 
 			weightedDestNoWeightPassed := createWeightedDestination(false, 0, testUpstream1)
 			weightedDestZeroWeight = createWeightedDestination(true, 0, testUpstream1)
@@ -3929,9 +3929,7 @@ var _ = Describe("Translator", func() {
 	})
 
 	Context("Aggregate Listeners", func() {
-
 		It("should translate empty aggragate listener", func() {
-
 			proxy = &v1.Proxy{
 				Metadata: &core.Metadata{
 					Name:      "test",
@@ -3967,9 +3965,7 @@ var _ = Describe("Translator", func() {
 			//
 			//			lis := snap.GetResources(types.ListenerTypeV3).Items["http"].ResourceProto().(*listenerv3.Listener)
 			//			Expect(lis).NotTo(BeNil())
-
 		})
-
 	})
 	Context("Custom filters", func() {
 		It("http", func() {
@@ -4105,11 +4101,15 @@ func (e *endpointPluginMock) Name() string {
 func (e *endpointPluginMock) Init(params plugins.InitParams) {
 }
 
-func createStaticUpstream(name, namespace string) *v1.Upstream {
+func createStaticUpstream(name, namespace string, labels map[string]string) *v1.Upstream {
+	if labels == nil {
+		labels = map[string]string{}
+	}
 	return &v1.Upstream{
 		Metadata: &core.Metadata{
 			Name:      name,
 			Namespace: namespace,
+			Labels:    labels,
 		},
 		UpstreamType: &v1.Upstream_Static{
 			Static: &v1static.UpstreamSpec{

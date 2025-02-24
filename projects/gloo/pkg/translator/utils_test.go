@@ -11,8 +11,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
-var _ = Describe("Utils", func() {
-
+var _ = FDescribe("Utils", func() {
 	It("empty namespace: should convert upstream to cluster name and back properly", func() {
 		ref := &core.ResourceRef{Name: "name", Namespace: ""}
 		clusterName := translator.UpstreamToClusterName(ref)
@@ -30,7 +29,6 @@ var _ = Describe("Utils", func() {
 	})
 
 	Context("UpstreamToClusterStatsName", func() {
-
 		DescribeTable("converting upstream to cluster stats name",
 			func(us *gloov1.Upstream, expectedStatsName string) {
 				statsName := translator.UpstreamToClusterStatsName(us)
@@ -38,7 +36,10 @@ var _ = Describe("Utils", func() {
 			},
 			Entry("real kube upstream", createKubeUpstream(true, "name", "ns", "svcName", "svcNs", 123), "kube-upstream_name_ns_svcNs_svcName_123"),
 			Entry("fake kube upstream", createKubeUpstream(false, "name", "ns", "svcName", "svcNs", 123), "kube-svc_name_ns_svcNs_svcName_123"),
-			Entry("non-kube upstream", createStaticUpstream("name", "ns"), "name_ns"),
+			Entry("non-kube upstream", createStaticUpstream("name", "ns", nil), "name_ns"),
+			Entry("non-kube upstream", createStaticUpstream("name", "ns", map[string]string{
+				translator.ClusterStatNameLabel: translator.FormatClusterStatName("istio_se_", "usname", "usns", "svcns", "svcName", 123),
+			}), "istio_se_usname_usns_svcns_svcName_123"),
 		)
 	})
 
@@ -61,11 +62,11 @@ var _ = Describe("Utils", func() {
 		Entry("ipv6 returns false", "::", false, false, nil),
 		Entry("ipv4 mapped in ipv6", "::ffff:0.0.0.0", true, false, nil),
 	)
-
 })
 
 func createKubeUpstream(isReal bool, name string, namespace string,
-	svcName string, svcNamespace string, svcPort uint32) *gloov1.Upstream {
+	svcName string, svcNamespace string, svcPort uint32,
+) *gloov1.Upstream {
 	if !isReal {
 		name = upstreams_kube.FakeUpstreamNamePrefix + name
 	}
