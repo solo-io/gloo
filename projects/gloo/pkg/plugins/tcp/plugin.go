@@ -248,6 +248,17 @@ func (p *plugin) computeTcpFilterChain(
 		}, nil
 	}
 
+	// needed to handle passthrough
+	sniDomains := sslConfig.GetSniDomains()
+	if sslConfig.GetSslSecrets() == nil && len(sniDomains) != 0 {
+		return &envoy_config_listener_v3.FilterChain{
+			Filters: listenerFilters,
+			FilterChainMatch: &envoy_config_listener_v3.FilterChainMatch{
+				ServerNames: sniDomains,
+			},
+		}, nil
+	}
+
 	downstreamConfig, err := p.sslConfigTranslator.ResolveDownstreamSslConfig(snap.Secrets, sslConfig)
 	if err != nil {
 		return nil, InvalidSecretsError(err, host.GetName())

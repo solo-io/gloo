@@ -95,7 +95,7 @@ jobs:
         # 2025-02-13: 26m29s
         - cluster-name: 'cluster-seven'
           go-test-args: '-v -timeout=25m'
-          go-test-run-regex: '^TestK8sGateway$$/^CRDCategories$$|^TestK8sGateway$$/^Metrics$$|^TestGloomtlsGatewayEdgeGateway$$|^TestGloomtlsGatewayK8sGateway$$|^TestGlooGatewayEdgeGatewayClearMetrics$$|^TestWatchNamespaceSelector$$'
+          go-test-run-regex: '^TestK8sGateway$$/^CRDCategories$$|^TestK8sGateway$$/^Metrics$$|^TestGloomtlsGatewayEdgeGateway$$|^TestGloomtlsGatewayK8sGateway$$|^TestGlooGatewayEdgeGatewayClearMetrics$$|^TestWatchNamespaceSelector$$|^TestK8sGateway$$/^TLSRouteServices$$'
 
         # In our PR tests, we run the suite of tests using the upper ends of versions that we claim to support
         # The versions should mirror: https://docs.solo.io/gloo-edge/latest/reference/support/
