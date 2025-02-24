@@ -38,8 +38,8 @@ var _ = FDescribe("Utils", func() {
 			Entry("fake kube upstream", createKubeUpstream(false, "name", "ns", "svcName", "svcNs", 123), "kube-svc_name_ns_svcNs_svcName_123"),
 			Entry("non-kube upstream", createStaticUpstream("name", "ns", nil), "name_ns"),
 			Entry("non-kube upstream", createStaticUpstream("name", "ns", map[string]string{
-				translator.ClusterStatNameLabel: translator.FormatClusterStatName("istio_se_", "usname", "usns", "svcns", "svcName", 123),
-			}), "istio_se_usname_usns_svcns_svcName_123"),
+				translator.ClusterStatNameLabel: translator.FormatClusterStatName("istio-se_", "usname", "usns", "svcns", "svcName", 123),
+			}), "istio-se_usname_usns_svcns_svcName_123"),
 		)
 	})
 
