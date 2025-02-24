@@ -51,6 +51,14 @@ steps:
   - create
   - --use
 
+# Reset QEMU to avoid segfaults for multiarch images
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'reset-qemu'
+  entrypoint: 'sh'
+  args:
+    - '-c'
+    - 'docker run --rm --privileged multiarch/qemu-user-static --reset -p yes -c yes'
+
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.12.0'
   id: 'build-certgen-arm64-binary'
   args:
