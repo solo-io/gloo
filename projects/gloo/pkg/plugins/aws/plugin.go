@@ -260,6 +260,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 			}
 
 			var reqTransform *envoy_transform.Transformation
+			var transform *envoy_transform.RouteTransformations_RouteTransformation
 			if requiresRequestTransformation {
 				reqTransform = &envoy_transform.Transformation{
 					TransformationType: &envoy_transform.Transformation_HeaderBodyTransform{
@@ -268,10 +269,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 						},
 					},
 				}
-			}
 
-			var transform *envoy_transform.RouteTransformations_RouteTransformation
-			if requiresRequestTransformation {
 				// Early stage transform: place all headers in the request body
 				transform = &envoy_transform.RouteTransformations_RouteTransformation{
 					Stage: transformation.AwsStageNumber,
