@@ -45,3 +45,11 @@ spec:
           cpu: "100m"
         limits:
           cpu: "200m"
+      volumeMounts:
+        - name: server-certs
+          mountPath: /etc/server-certs
+          readOnly: true
+  volumes:
+    - name: server-certs
+      secret:
+        secretName: tls-secret
