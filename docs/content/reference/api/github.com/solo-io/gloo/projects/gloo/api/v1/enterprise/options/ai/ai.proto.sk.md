@@ -159,13 +159,15 @@ or to use a different backend that is API-compliant with the upstream version.
 ```yaml
 "host": string
 "port": int
+"hostname": .google.protobuf.StringValue
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `host` | `string` | Custom host to send the traffic requests to. |
+| `host` | `string` | Custom host or IP address to send the traffic requests to. |
 | `port` | `int` | Custom port to send the traffic requests to. |
+| `hostname` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | Optional: hostname used to set the SNI (if is secure connection) and the host request header. If hostname is not set, host will be used instead. |
 
 
 
@@ -625,6 +627,7 @@ semanticCache:
 "embedding": .ai.options.gloo.solo.io.Embedding
 "ttl": int
 "mode": .ai.options.gloo.solo.io.SemanticCache.Mode
+"distanceThreshold": float
 
 ```
 
@@ -634,6 +637,7 @@ semanticCache:
 | `embedding` | [.ai.options.gloo.solo.io.Embedding](../ai.proto.sk/#embedding) | Model to use to retrieve the embedding mechanism. |
 | `ttl` | `int` | Time before data in the cache is considered expired. |
 | `mode` | [.ai.options.gloo.solo.io.SemanticCache.Mode](../ai.proto.sk/#mode) | The caching mode to use for the request and response lifecycle. Supported values include `READ_WRITE` or `READ_ONLY`. |
+| `distanceThreshold` | `float` | Distance score threshold value between 0.0 and 1.0 that determines how similar two queries must be in order to return a cached result. The lower the number, the more similar the queries must be for a cache hit. +kubebuilder:validation:Minimum=0 +kubebuilder:validation:Maximum=1. |
 
 
 
@@ -653,7 +657,7 @@ Settings for a Redis database.
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `connectionString` | `string` | Connection string to the Redis database, such as `redis://172.17.0.1:6379`. |
-| `scoreThreshold` | `float` | Similarity score threshold value between 0.0 and 1.0 that determines how similar two queries must be in order to return a cached result. The lower the number, the more similar the queries must be for a cache hit. +kubebuilder:validation:Minimum=0 +kubebuilder:validation:Maximum=1. |
+| `scoreThreshold` | `float` | Similarity score threshold value between 0.0 and 1.0 that determines how similar two queries must be in order to return a cached result. The lower the number, the more similar the queries must be for a cache hit. +kubebuilder:validation:Minimum=0 +kubebuilder:validation:Maximum=1 Deprecated: Prefer setting the distance threshold in the RouteOptions.SemanticCache resource. |
 
 
 
