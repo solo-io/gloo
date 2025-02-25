@@ -9,6 +9,8 @@ spec:
       port: 8443
       protocol: TLS
       hostname: "example.com"
+      tls:
+        mode: Passthrough
 ---
 apiVersion: v1
 kind: Pod
