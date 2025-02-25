@@ -716,6 +716,16 @@ func (m *UpstreamSpec_CustomHost) Equal(that interface{}) bool {
 		return false
 	}
 
+	if h, ok := interface{}(m.GetHostname()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetHostname()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetHostname(), target.GetHostname()) {
+			return false
+		}
+	}
+
 	return true
 }
 
