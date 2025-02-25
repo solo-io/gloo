@@ -894,6 +894,23 @@ spec:
                               type: string
                             connectionTimeout:
                               type: string
+                            request:
+                              properties:
+                                allowedHeaders:
+                                  items:
+                                    type: string
+                                  type: array
+                                headersToAdd:
+                                  additionalProperties:
+                                    type: string
+                                  type: object
+                                passThroughBody:
+                                  type: boolean
+                                passThroughFilterMetadata:
+                                  type: boolean
+                                passThroughState:
+                                  type: boolean
+                              type: object
                             retryPolicy:
                               properties:
                                 numRetries:

@@ -1512,6 +1512,63 @@ message PassThroughGrpc {
     // Indicates the retry policy for re-establishing the gRPC stream.
     // This field is optional and failed calls will not retry unless configured.
     RetryPolicy retry_policy = 4;
+
+        /* The passthrough http request can be configured to pass through the incoming request body,
+     the ext-auth state (which is shared between different auth methods within one ext-auth instance), and
+     the [filterMetadata](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/advanced/data_sharing_between_filters#metadata)
+     The body of the passthrough auth request will be a JSON as follows:
+     {
+       "body" : string,
+       "state": object (map[string]interface{}),
+       "filterMetadata": object (map[string]protobuf.Struct),
+       "config": object (protobuf.Struct),
+     }
+     `config` is the struct block specified under the passthrough auth configuration.
+     If `passthrough_body`, `passthrough_state`, `passthrough_filter_metadata`, and `config` are all false/nil,
+     the body of the auth request will remain empty. Setting any of these will increase latency slightly due to
+     JSON marshalling.
+
+    */
+    message Request {
+        // These headers will be copied from the incoming request to the request going
+        // to the auth server. By default, no headers are copied from the incoming request.
+        // Pseudo-headers such as `:Path`, and `:Method` can not be specified here.
+        repeated string allowed_headers = 1;
+
+        // These headers that will be included to the request to authorization service. Note that
+        // client request of the same key will be overridden.
+        // Pseudo-headers such as `:Path`, and `:Method` can not be specified here.
+        map<string, string> headers_to_add = 2;
+
+        // Whether or not to include the ext-auth state object in the passthrough request body.
+        // If this is set to true, it is expected that the state is returned in the HTTP response from the
+        // passthrough service. The state received from the response will be the state that is shared with
+        // other ext-auth service methods.
+        // If pass_through_body, pass_through_filter_metadata and pass_through_state are false,
+        // the authorization request body will be empty. A non-empty body will increase latency times
+        // slightly, so this is set to false by default, and should only be set to to true if the
+        // extauth state is needed in the auth request.
+        bool pass_through_state = 3;
+
+        // Whether or not to include the filter metadata in the passthrough request body.
+        // If pass_through_body, pass_through_filter_metadata and pass_through_state are false,
+        // the authorization request body will be empty. A non-empty body will increase latency times
+        // slightly, so this is set to false by default, and should only be set to to true if the
+        // filter metadata is needed in the auth request.
+        bool pass_through_filter_metadata = 4;
+
+        // Whether or not to include the body in the passthrough request body.
+        // In order for this to work, the settings.extauth.requestBody must be set in the Gloo Edge Settings CRD so that
+        // the request body is buffered and sent to the ext-auth service.
+        // If pass_through_body, pass_through_filter_metadata and pass_through_state are false,
+        // the authorization request body will be empty. A non-empty body will increase latency times
+        // slightly, so this is set to false by default, and should only be set to to true if the
+        // request body is needed in the auth request.
+        bool pass_through_body = 5;
+    }
+    // Pass through the incoming request body, ext auth state, and filter metadata.
+    // For more information, see the [PassThrough Http Request description](#request-1).
+    Request request = 5;
 }
 // TLS configuration for the extauth grpc passthrough connection
 message PassThroughGrpcTLSConfig {

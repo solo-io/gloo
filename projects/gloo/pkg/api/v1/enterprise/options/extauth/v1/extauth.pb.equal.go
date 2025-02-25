@@ -2996,6 +2996,16 @@ func (m *PassThroughGrpc) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetRequest()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetRequest()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetRequest(), target.GetRequest()) {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -4665,6 +4675,64 @@ func (m *Ldap_ConnectionPool) Equal(that interface{}) bool {
 		if !proto.Equal(m.GetInitialSize(), target.GetInitialSize()) {
 			return false
 		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *PassThroughGrpc_Request) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*PassThroughGrpc_Request)
+	if !ok {
+		that2, ok := that.(PassThroughGrpc_Request)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if len(m.GetAllowedHeaders()) != len(target.GetAllowedHeaders()) {
+		return false
+	}
+	for idx, v := range m.GetAllowedHeaders() {
+
+		if strings.Compare(v, target.GetAllowedHeaders()[idx]) != 0 {
+			return false
+		}
+
+	}
+
+	if len(m.GetHeadersToAdd()) != len(target.GetHeadersToAdd()) {
+		return false
+	}
+	for k, v := range m.GetHeadersToAdd() {
+
+		if strings.Compare(v, target.GetHeadersToAdd()[k]) != 0 {
+			return false
+		}
+
+	}
+
+	if m.GetPassThroughState() != target.GetPassThroughState() {
+		return false
+	}
+
+	if m.GetPassThroughFilterMetadata() != target.GetPassThroughFilterMetadata() {
+		return false
+	}
+
+	if m.GetPassThroughBody() != target.GetPassThroughBody() {
+		return false
 	}
 
 	return true

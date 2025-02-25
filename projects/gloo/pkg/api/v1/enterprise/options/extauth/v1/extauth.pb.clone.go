@@ -1778,6 +1778,12 @@ func (m *PassThroughGrpc) Clone() proto.Message {
 		target.RetryPolicy = proto.Clone(m.GetRetryPolicy()).(*RetryPolicy)
 	}
 
+	if h, ok := interface{}(m.GetRequest()).(clone.Cloner); ok {
+		target.Request = h.Clone().(*PassThroughGrpc_Request)
+	} else {
+		target.Request = proto.Clone(m.GetRequest()).(*PassThroughGrpc_Request)
+	}
+
 	return target
 }
 
@@ -2730,6 +2736,41 @@ func (m *Ldap_ConnectionPool) Clone() proto.Message {
 	} else {
 		target.InitialSize = proto.Clone(m.GetInitialSize()).(*google_golang_org_protobuf_types_known_wrapperspb.UInt32Value)
 	}
+
+	return target
+}
+
+// Clone function
+func (m *PassThroughGrpc_Request) Clone() proto.Message {
+	var target *PassThroughGrpc_Request
+	if m == nil {
+		return target
+	}
+	target = &PassThroughGrpc_Request{}
+
+	if m.GetAllowedHeaders() != nil {
+		target.AllowedHeaders = make([]string, len(m.GetAllowedHeaders()))
+		for idx, v := range m.GetAllowedHeaders() {
+
+			target.AllowedHeaders[idx] = v
+
+		}
+	}
+
+	if m.GetHeadersToAdd() != nil {
+		target.HeadersToAdd = make(map[string]string, len(m.GetHeadersToAdd()))
+		for k, v := range m.GetHeadersToAdd() {
+
+			target.HeadersToAdd[k] = v
+
+		}
+	}
+
+	target.PassThroughState = m.GetPassThroughState()
+
+	target.PassThroughFilterMetadata = m.GetPassThroughFilterMetadata()
+
+	target.PassThroughBody = m.GetPassThroughBody()
 
 	return target
 }
