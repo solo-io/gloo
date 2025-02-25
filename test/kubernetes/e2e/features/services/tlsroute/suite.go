@@ -257,7 +257,6 @@ func (s *testingSuite) TestConfigureTLSRouteBackingDestinations() {
 							curl.WithCaFile("/etc/server-certs/tls.crt"),
 							curl.WithScheme("https"),
 							curl.WithSni("example.com"),
-							curl.IgnoreServerCert(),
 							curl.VerboseOutput(),
 						},
 						tc.expectedResponses[i])

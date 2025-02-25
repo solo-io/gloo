@@ -5,7 +5,7 @@ metadata:
 spec:
   gatewayClassName: gloo-gateway
   listeners:
-  - name: listener-6443 # do one listener with multiple hostnames? 
+  - name: listener-6443  
     protocol: TLS
     port: 6443
     hostname: "example.com"
@@ -17,6 +17,9 @@ spec:
   - name: listener-8443
     protocol: TLS
     port: 8443
+    hostname: "example.com"
+    tls:
+      mode: Passthrough
     allowedRoutes:
       kinds:
       - kind: TLSRoute
@@ -42,3 +45,11 @@ spec:
           cpu: "100m"
         limits:
           cpu: "200m"
+      volumeMounts:
+        - name: server-certs
+          mountPath: /etc/server-certs
+          readOnly: true
+  volumes:
+    - name: server-certs
+      secret:
+        secretName: tls-secret

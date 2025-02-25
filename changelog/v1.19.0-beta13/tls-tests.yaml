@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      "fix e2e tls route tests that were failing on nightlies using GW API v1.0.0"
