@@ -4,6 +4,7 @@ option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise
 
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "google/protobuf/struct.proto";
+import "google/protobuf/wrappers.proto";
 import "extproto/ext.proto";
 option (extproto.equal_all) = true;
 option (extproto.hash_all) = true;
@@ -60,10 +61,13 @@ message UpstreamSpec {
   // Send requests to a custom host and port, such as to proxy the request,
   // or to use a different backend that is API-compliant with the upstream version.
   message CustomHost {
-    // Custom host to send the traffic requests to.
+    // Custom host or IP address to send the traffic requests to.
     string host = 1;
     // Custom port to send the traffic requests to.
     uint32 port = 2;
+    // Optional: hostname used to set the SNI (if is secure connection) and the host request header.
+    // If hostname is not set, host will be used instead 
+    google.protobuf.StringValue hostname = 3;
   }
 
   // Settings for the [OpenAI](https://platform.openai.com/docs/overview) LLM provider.
@@ -431,6 +435,7 @@ message SemanticCache {
     //
     // +kubebuilder:validation:Minimum=0
     // +kubebuilder:validation:Maximum=1
+    // Deprecated: Prefer setting the distance threshold in the RouteOptions.SemanticCache resource.
     float score_threshold = 2;
   }
 
@@ -474,6 +479,14 @@ message SemanticCache {
   uint32 ttl = 3;
   // The caching mode to use for the request and response lifecycle. Supported values include `READ_WRITE` or `READ_ONLY`.
   Mode mode = 4;
+
+    // Distance score threshold value between 0.0 and 1.0 that determines how similar
+    // two queries must be in order to return a cached result.
+    // The lower the number, the more similar the queries must be for a cache hit.
+    //
+    // +kubebuilder:validation:Minimum=0
+    // +kubebuilder:validation:Maximum=1
+    float distance_threshold = 5;
 }
 
 // [Retrieval augmented generation (RAG)](https://research.ibm.com/blog/retrieval-augmented-generation-RAG)
