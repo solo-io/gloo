@@ -156,6 +156,7 @@ weight: 5
 "keepToken": bool
 "claimsToHeaders": []jwt.options.gloo.solo.io.ClaimToHeader
 "clockSkewSeconds": .google.protobuf.UInt32Value
+"attachFailedStatusInMetadata": string
 
 ```
 
@@ -168,6 +169,7 @@ weight: 5
 | `keepToken` | `bool` | Should the token forwarded upstream. if false, the header containing the token will be removed. |
 | `claimsToHeaders` | [[]jwt.options.gloo.solo.io.ClaimToHeader](../jwt.proto.sk/#claimtoheader) | What claims should be copied to upstream headers. |
 | `clockSkewSeconds` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | Optional: ClockSkewSeconds is used to verify time constraints, such as `exp` and `npf`. Default is 60s. |
+| `attachFailedStatusInMetadata` | `string` | Optional: If this field is not empty, the JWT failure status code and message are added to DynamicMetadata under the provided value. This is particularly useful when logging the status with access logs. For example, if the value of `attach_failed_status_in_metadata` is 'custom_auth_failure_status' then the status can be accessed in the access log as '%DYNAMIC_METADATA(envoy.filters.http.jwt_authn:custom_auth_failure_status:message)'. |
 
 
 

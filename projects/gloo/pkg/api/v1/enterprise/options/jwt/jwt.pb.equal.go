@@ -321,6 +321,10 @@ func (m *Provider) Equal(that interface{}) bool {
 		}
 	}
 
+	if strings.Compare(m.GetAttachFailedStatusInMetadata(), target.GetAttachFailedStatusInMetadata()) != 0 {
+		return false
+	}
+
 	return true
 }
 

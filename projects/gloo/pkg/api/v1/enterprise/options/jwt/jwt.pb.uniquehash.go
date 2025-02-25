@@ -446,6 +446,13 @@ func (m *Provider) HashUnique(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
+	if _, err = hasher.Write([]byte("AttachFailedStatusInMetadata")); err != nil {
+		return 0, err
+	}
+	if _, err = hasher.Write([]byte(m.GetAttachFailedStatusInMetadata())); err != nil {
+		return 0, err
+	}
+
 	return hasher.Sum64(), nil
 }
 

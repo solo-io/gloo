@@ -831,6 +831,8 @@ spec:
                                 providers:
                                   additionalProperties:
                                     properties:
+                                      attachFailedStatusInMetadata:
+                                        type: string
                                       audiences:
                                         items:
                                           type: string
@@ -911,6 +913,8 @@ spec:
                                 providers:
                                   additionalProperties:
                                     properties:
+                                      attachFailedStatusInMetadata:
+                                        type: string
                                       audiences:
                                         items:
                                           type: string
