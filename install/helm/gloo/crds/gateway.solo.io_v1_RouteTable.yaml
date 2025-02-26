@@ -831,7 +831,7 @@ spec:
                                 providers:
                                   additionalProperties:
                                     properties:
-                                      attachFailedStatusInMetadata:
+                                      attachFailedStatusToMetadata:
                                         type: string
                                       audiences:
                                         items:
@@ -913,7 +913,7 @@ spec:
                                 providers:
                                   additionalProperties:
                                     properties:
-                                      attachFailedStatusInMetadata:
+                                      attachFailedStatusToMetadata:
                                         type: string
                                       audiences:
                                         items:

@@ -417,7 +417,7 @@ func (m *Provider) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
-	if _, err = hasher.Write([]byte(m.GetAttachFailedStatusInMetadata())); err != nil {
+	if _, err = hasher.Write([]byte(m.GetAttachFailedStatusToMetadata())); err != nil {
 		return 0, err
 	}
 

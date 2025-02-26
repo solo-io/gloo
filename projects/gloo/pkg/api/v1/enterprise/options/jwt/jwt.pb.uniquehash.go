@@ -446,10 +446,10 @@ func (m *Provider) HashUnique(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
-	if _, err = hasher.Write([]byte("AttachFailedStatusInMetadata")); err != nil {
+	if _, err = hasher.Write([]byte("AttachFailedStatusToMetadata")); err != nil {
 		return 0, err
 	}
-	if _, err = hasher.Write([]byte(m.GetAttachFailedStatusInMetadata())); err != nil {
+	if _, err = hasher.Write([]byte(m.GetAttachFailedStatusToMetadata())); err != nil {
 		return 0, err
 	}
 
