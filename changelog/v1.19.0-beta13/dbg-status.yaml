@@ -1,0 +1,12 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: |
+      gateway2/status: preserve external conditions
+
+      There is a requirement to allow external controllers to update
+      the statuses on Gateway objects by writing Conditions that do
+      not conflict with the Types owned by the Gateway. Currently, only
+      condition.Types that are a part of the status reporter are set as
+      the final list of conditions. This change allows external controllers
+      to write Condition.Types that do not conflict.
