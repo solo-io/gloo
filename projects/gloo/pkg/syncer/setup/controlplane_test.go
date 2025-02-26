@@ -37,10 +37,7 @@ var _ = Describe("ControlPlane", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			svc1 = skkube.NewService("gloo-system", kubeutils.GlooServiceName)
-			svc1.Labels = map[string]string{
-				"app":  kubeutils.GlooServiceAppLabel,
-				"gloo": kubeutils.GlooServiceGlooLabel,
-			}
+			svc1.Labels = kubeutils.GlooServiceLabels
 			svc1.Spec = corev1.ServiceSpec{
 				Ports: []corev1.ServicePort{
 					{
@@ -51,10 +48,7 @@ var _ = Describe("ControlPlane", func() {
 			}
 
 			svc2 = skkube.NewService("other-ns", kubeutils.GlooServiceName)
-			svc2.Labels = map[string]string{
-				"app":  kubeutils.GlooServiceAppLabel,
-				"gloo": kubeutils.GlooServiceGlooLabel,
-			}
+			svc2.Labels = kubeutils.GlooServiceLabels
 			svc2.Spec = corev1.ServiceSpec{
 				Ports: []corev1.ServicePort{
 					{
@@ -118,10 +112,7 @@ var _ = Describe("ControlPlane", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			dupeSvc := skkube.NewService("other-ns", "duplicate-gloo-service")
-			dupeSvc.Labels = map[string]string{
-				"app":  kubeutils.GlooServiceAppLabel,
-				"gloo": kubeutils.GlooServiceGlooLabel,
-			}
+			dupeSvc.Labels = kubeutils.GlooServiceLabels
 			dupeSvc.Spec = corev1.ServiceSpec{
 				Ports: []corev1.ServicePort{
 					{

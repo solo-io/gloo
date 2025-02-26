@@ -10,3 +10,10 @@ const (
 	// See: install/helm/gloo/templates/2-gloo-service.yaml
 	GlooXdsPortName = "grpc-xds"
 )
+
+var (
+	GlooServiceLabels = map[string]string{
+		"app":  GlooServiceAppLabel,
+		"gloo": GlooServiceGlooLabel,
+	}
+)

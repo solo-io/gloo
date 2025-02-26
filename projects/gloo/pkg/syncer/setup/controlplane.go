@@ -30,11 +30,8 @@ var (
 func GetControlPlaneService(ctx context.Context, svcClient skkube.ServiceClient) (*skkube.Service, error) {
 	svcNamespace := namespaces.GetPodNamespace()
 	opts := clients.ListOpts{
-		Ctx: ctx,
-		Selector: map[string]string{
-			"app":  kubeutils.GlooServiceAppLabel,
-			"gloo": kubeutils.GlooServiceGlooLabel,
-		},
+		Ctx:      ctx,
+		Selector: kubeutils.GlooServiceLabels,
 	}
 	services, err := svcClient.List(svcNamespace, opts)
 	if err != nil {
