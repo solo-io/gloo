@@ -10,7 +10,7 @@ Explore the features of the Gloo UI to help you get an at-a-glance view of your 
 
 * **Gloo Gateway dashboard**: Use the Gloo UI dashboard to quickly review the health of your Gloo Gateway setup, and any insights that were detected. If you use the Gloo UI in a multicluster setup, you can also review the health of the Gloo management server and agents. 
 * **Insights**: The Gloo UI comes with an insights engine that automatically analyzes your Gloo Gateway setup for health issues. These issues are shared in the UI along with recommendations to harden your Gloo Gateway setup. The insights give you a checklist to address issues that might otherwise be hard to detect across your environment. For more information, see [Insights](#insights).
-* **Traffic resource overview**: Review the Gateways, routes, policies, and destinations that are set up in your environment and the traffic management rules that you applied to them. 
+* **Traffic resource overview**: Review the gateways, routes, policies, and destinations that are set up in your environment and the traffic management rules that you applied to them. 
 * **Security and compliance**: The **Dashboard** and **Security Insights** pages of the Gloo UI can help you review the overall security posture of your setup, including insights and recommendations regarding your certificates, encrypted traffic, FIPS compliance, and more.
 * **Drill into apps and services**: Review what services can communicate with other services and how traffic between services is secured.
 * **Visualize and monitor metrics**: With the built-in Prometheus integration, the Gloo UI has access to workload-specific metrics, such as the number of requests that were received for a workload. This data is visualized in the Gloo UI graph. 
