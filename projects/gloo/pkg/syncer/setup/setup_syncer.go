@@ -338,11 +338,19 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	var xdsPort int32
 	switch settings.GetConfigSource().(type) {
 	case *v1.Settings_KubernetesConfigSource:
-		xdsHost = GetControlPlaneXdsHost()
-		xdsPort, err = GetControlPlaneXdsPort(ctx, opts.KubeServiceClient)
+		glooService, err := GetControlPlaneService(ctx, opts.KubeServiceClient)
 		if err != nil {
 			return err
 		}
+
+		xdsHost = GetControlPlaneXdsHost(glooService)
+		xdsPort, err = GetControlPlaneXdsPort(glooService)
+		if err != nil {
+			return err
+		}
+
+		logger := contextutils.LoggerFrom(ctx)
+		logger.Infof("using xds host %v and xds port %v", xdsHost, xdsPort)
 	}
 
 	// process grpcserver options to understand if any servers will need a restart
