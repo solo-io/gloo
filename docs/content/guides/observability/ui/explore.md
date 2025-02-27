@@ -137,7 +137,7 @@ Visualize traffic in the Gloo UI.
 ### Graph
 
 {{% notice note %}}
-The Gloo UI Graph visualizes traffic in your cluster and is available only gateways that use the Kubernetes Gateway API. Gateways that use the Gloo Edge API are not supported. To learn more about the Graph and how you can visualize traffic in your cluster, see [Graph](https://docs.solo.io/gateway/latest/observability/ui/explore/#graph) in the Gloo Gateway (Kubernetes Gateway API) documentation. 
+The Gloo UI Graph visualizes traffic in your cluster and is available only for gateways that use the Kubernetes Gateway API. Gateways that use the Gloo Edge API are not supported. To learn more about the Graph and how you can visualize traffic in your cluster, see [Graph](https://docs.solo.io/gateway/latest/observability/ui/explore/#graph) in the Gloo Gateway (Kubernetes Gateway API) documentation. 
 {{% /notice %}}
 
 ![Gloo UI Graph (Kubernetes Gateway API only)]({{< versioned_link_path fromRoot="/img/ui-graph.png" >}}) 
