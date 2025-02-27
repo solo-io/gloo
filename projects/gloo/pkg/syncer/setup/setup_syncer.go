@@ -338,10 +338,18 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	var xdsPort int32
 	switch settings.GetConfigSource().(type) {
 	case *v1.Settings_KubernetesConfigSource:
-		xdsHost = GetControlPlaneXdsHost()
-		xdsPort, err = GetControlPlaneXdsPort(ctx, opts.KubeServiceClient)
-		if err != nil {
-			return err
+		if settings.GetGloo().GetXdsClusterAddr() != "" {
+			xdsHost = settings.GetGloo().GetXdsClusterAddr()
+		} else {
+			xdsHost = GetControlPlaneXdsHost()
+		}
+		if settings.GetGloo().GetXdsClusterPort() != 0 {
+			xdsPort = settings.GetGloo().GetXdsClusterPort()
+		} else {
+			xdsPort, err = GetControlPlaneXdsPort(ctx, opts.KubeServiceClient)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

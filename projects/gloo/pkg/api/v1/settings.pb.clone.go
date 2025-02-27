@@ -530,6 +530,10 @@ func (m *GlooOptions) Clone() proto.Message {
 		target.IstioOptions = proto.Clone(m.GetIstioOptions()).(*GlooOptions_IstioOptions)
 	}
 
+	target.XdsClusterAddr = m.GetXdsClusterAddr()
+
+	target.XdsClusterPort = m.GetXdsClusterPort()
+
 	return target
 }
 
