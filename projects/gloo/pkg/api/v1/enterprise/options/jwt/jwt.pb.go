@@ -382,11 +382,12 @@ type Provider struct {
 	ClaimsToHeaders []*ClaimToHeader `protobuf:"bytes,6,rep,name=claims_to_headers,json=claimsToHeaders,proto3" json:"claims_to_headers,omitempty"`
 	// Optional: ClockSkewSeconds is used to verify time constraints, such as `exp` and `npf`. Default is 60s
 	ClockSkewSeconds *wrapperspb.UInt32Value `protobuf:"bytes,8,opt,name=clock_skew_seconds,json=clockSkewSeconds,proto3" json:"clock_skew_seconds,omitempty"`
-	// Optional: If this field is not empty, the JWT failure status code and message are added to DynamicMetadata under the provided value.
-	// This is particularly useful when logging the status.
+	// Optional: When this field is set, the specified value is used as the key in DynamicMetadata to store the JWT failure status code and message under that key. If the value is empty (i.e., ""), it is ignored.
+	// This field is particularly useful when logging the failure status.
 	//
 	// For example, if the value of `attach_failed_status_to_metadata` is 'custom_auth_failure_status' then
 	// the failure status can be accessed in the access log as '%DYNAMIC_METADATA(envoy.filters.http.jwt_authn:custom_auth_failure_status)'
+	// Note: status code and message can be individually accessed as '%DYNAMIC_METADATA(envoy.filters.http.jwt_authn:custom_auth_failure_status.code)' and '%DYNAMIC_METADATA(envoy.filters.http.jwt_authn:custom_auth_failure_status.message)' respectively.
 	AttachFailedStatusToMetadata string `protobuf:"bytes,9,opt,name=attach_failed_status_to_metadata,json=attachFailedStatusToMetadata,proto3" json:"attach_failed_status_to_metadata,omitempty"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
