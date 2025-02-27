@@ -1,7 +1,7 @@
 ---
 title: Set up the Gloo UI
-weight: 
-description: Install the Gloo UI to get an at-a-glance view of the configuration, health, and compliance status of your Gloo Gateway setup and the workloads in your cluster. 
+weight: 10
+description: Install the Gloo UI and start gaining insights into the configuration and health of your Gloo Gateway setup and the workloads in your cluster. 
 ---
 Install the Gloo UI to get an at-a-glance view of the configuration, health, and compliance status of your Gloo Gateway setup and the workloads in your cluster. 
 
@@ -9,7 +9,7 @@ To learn more about the features of the Gloo UI, see [About the Gloo UI]({{< ver
 
 ## Before you begin
 
-Install GG
+Follow the steps to [install Gloo Gateway with the Enterprise Edition]({{< versioned_link_path fromRoot="/installation/enterprise/" >}}). 
 
 ## Set up the Gloo UI
 
@@ -48,8 +48,6 @@ Use these instructions to install the Gloo UI in the same cluster as Gloo Gatewa
      insightsConfiguration: true
    glooInsightsEngine:
      enabled: true
-   glooAnalyzer:
-     enabled: true
    glooUi:
      enabled: true
    licensing:
@@ -81,33 +79,6 @@ Use these instructions to install the Gloo UI in the same cluster as Gloo Gatewa
    {{< /highlight >}}
    
    
-## Visualize traffic
-
-1. Follow the petstore [hello world example]({{< versioned_link_path fromRoot="/guides/traffic_management/hello_world/" >}}). This example deploys the petstore sample app and exposes a route to the app on your gateway proxy.  
-   
-2. Send a few requests to the httpbin app. 
-   ```sh
-   for i in {1..10}; do curl $(glooctl proxy url --name gateway-proxy)/all-pets; done
-   ```
-   
-7. Open the Gloo UI. 
-   1. Port-forward the Gloo UI pod. 
-      ```sh
-      kubectl port-forward deployment/gloo-mesh-ui -n gloo-system 8090
-      ```
-   2. Open the Gloo UI dashboard. 
-      ```sh
-      open http://localhost:8090/dashboard
-      ```
-      
-      ![Gloo UI dashboard]({{% versioned_link_path fromRoot="/img/ui-dashboard.png" %}})
-
-8. Go to **Observability** > **Graph** to see the Gloo UI Graph. Select your cluster from the **Cluster** drop-down list, and the `httpbin` and `gloo-system` namespaces from the **Namespace** drop-down list. Verify that you see requests from the gateway proxy to the httpbin app. Note that it might take a few seconds for the graph to show the requests that you sent.
-
-   ![Gloo UI Graph]({{< versioned_link_path fromRoot="/img/ui-graph.png" >}})
-         
-
-
 ## Next
 
 Continue with [exploring the features of the Gloo UI]({{< versioned_link_path fromRoot="/guides/observability/ui/explore" >}}). 
