@@ -122,7 +122,7 @@ For Kubernetes services, you click on **Details** to perform the following tasks
 
 
 ## Security
-
+Review details of the security setup of your Gloo Gateway environment.
 ### Certificates
 
 {{% notice note %}}
