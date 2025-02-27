@@ -81,16 +81,16 @@ EOF
 Now let's configure Gloo Gateway to route requests to the upstream we just created. To do that, we define a simple Virtual 
 Service to match all requests that:
 
-- contain a `Host` header with value `foo` and
+- contain a `Host` header with value `foo-grpc` and
 - have a path that starts with `/` (this will match all requests).
 
 Apply the following virtual service:
-{{< readfile file="guides/security/auth/extauth/basic_auth/test-no-auth-vs.yaml" markdown="true">}}
+{{< readfile file="guides/security/auth/extauth/passthrough_auth/grpc/test-no-auth-vs.yaml" markdown="true">}}
 
 Let's send a request that matches the above route to the gateway proxy and make sure it works:
 
 ```shell
-curl -H "Host: foo" $(glooctl proxy url)/posts/1
+curl -H "Host: foo-grpc" $(glooctl proxy url)/posts/1
 ```
 
 The above command should produce the following output:
@@ -116,7 +116,7 @@ kubectl apply -f - <<EOF
 apiVersion: enterprise.gloo.solo.io/v1
 kind: AuthConfig
 metadata:
-  name: passthrough-auth
+  name: grpc-passthrough-auth
   namespace: gloo-system
 spec:
   configs:
@@ -146,7 +146,7 @@ metadata:
 spec:
   virtualHost:
     domains:
-      - 'foo'
+      - 'foo-grpc'
     routes:
       - matchers:
         - prefix: /
@@ -156,11 +156,11 @@ spec:
               name: json-upstream
               namespace: gloo-system
         options:
-          autoHostRewrite: true      
+          autoHostRewrite: true
     options:
       extauth:
         configRef:
-          name: passthrough-auth
+          name: grpc-passthrough-auth
           namespace: gloo-system
 EOF
 {{< /highlight >}}
@@ -193,19 +193,19 @@ For more information on how Gloo Gateway handles observability and metrics, view
 The virtual service that we have created should now be secured using our external authentication service. To test this, we can try our original command, and the request should not be allowed through because of missing authentication.
 
 ```shell
-curl -H "Host: foo" $(glooctl proxy url)/posts/1
+curl -H "Host: foo-grpc" $(glooctl proxy url)/posts/1
 ```
 
 The output should be empty. In fact, we can see the 403 (Unauthorized) HTTP status code if we run the same curl, but with a modification to print the http code to the console.
 
 ```shell
-curl -s -o /dev/null -w "%{http_code}" -H "Host: foo" $(glooctl proxy url)/posts/1
+curl -s -o /dev/null -w "%{http_code}" -H "Host: foo-grpc" $(glooctl proxy url)/posts/1
 ```
 
 The sample gRPC authentication service has been implemented such that any request with the header `authorization: authorize me` will be authorized. We can easily add this header to our curl request as follows:
 
 ```shell
-curl -H "Host: foo" -H "authorization: authorize me" $(glooctl proxy url)/posts/1
+curl -H "Host: foo-grpc" -H "authorization: authorize me" $(glooctl proxy url)/posts/1
 ```
 
 The request should now be authorized!
@@ -223,7 +223,7 @@ You can configure the Gloo ExtAuth server to retry the connection to the passthr
 apiVersion: enterprise.gloo.solo.io/v1
 kind: AuthConfig
 metadata:
-  name: passthrough-auth
+  name: grpc-passthrough-auth
   namespace: gloo-system
 spec:
   configs:
@@ -262,7 +262,7 @@ State from other auth steps is sent to the passthrough service via [CheckRequest
 
 State from the passthrough service can be sent to other auth steps via [CheckResponse DynamicMetadata](https://github.com/envoyproxy/envoy/blob/50e722cbb0486268c128b0f1d0ef76217387799f/api/envoy/service/auth/v3/external_auth.proto#L126) under a unique key: `solo.auth.passthrough`.
 
-### Passing in custom configuration to Passthrough Auth Service from AuthConfigs
+### Passing custom configuration to the Passthrough Auth Service from AuthConfigs
 {{% notice note %}}
 This feature was introduced with **Gloo Gateway Enterprise**, release 1.6.15. If you are using an earlier version, this will not work.
 {{% /notice %}}
@@ -274,7 +274,7 @@ kubectl apply -f - <<EOF
 apiVersion: enterprise.gloo.solo.io/v1
 kind: AuthConfig
   metadata:
-    name: passthrough-auth
+    name: grpc-passthrough-auth
     namespace: gloo-system
   spec:
     configs:
@@ -291,6 +291,9 @@ EOF
 {{< /highlight >}}
 
 This config is accessible via the [CheckRequest FilterMetadata](https://github.com/envoyproxy/envoy/blob/50e722cbb0486268c128b0f1d0ef76217387799f/api/envoy/service/auth/v3/external_auth.proto#L36) under a unique key: `solo.auth.passthrough.config`.
+
+## Pass request body to the Passthrough Auth Service
+In order for the body to be passed through to the auth service, the `settings.extauth.requestBody` must be set in the Gloo Gateway Settings CRD so that the request body is buffered and sent to the ext-auth service. Headers are always passed through.
 
 ## Summary
 
