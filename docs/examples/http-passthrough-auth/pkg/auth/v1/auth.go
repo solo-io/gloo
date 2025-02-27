@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/httputil"
+
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 )
 
 type HttpPassthroughService struct{}
@@ -16,6 +19,12 @@ func (h *HttpPassthroughService) StartServer() {
 		fmt.Printf("received request with url: %s, with headers %+v\n", r.URL.String(), r.Header)
 		switch r.URL.Path {
 		case "/auth":
+
+			if envutils.IsEnvTruthy("REQUEST_LOGGING") {
+				dumped, _ := httputil.DumpRequest(r, true)
+				log.Printf("request:\n%s\n", dumped)
+			}
+
 			if r.Header.Get("authorization") == "authorize me" {
 				rw.WriteHeader(200)
 			} else {
