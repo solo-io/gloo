@@ -13,7 +13,7 @@ Follow the steps to [install Gloo Gateway with the Enterprise Edition]({{< versi
 
 ## Set up the Gloo UI
 
-Use these instructions to install the Gloo UI in the same cluster as Gloo Gateway. The Gloo UI analyzes your Gloo Gateway setup and provides metrics and insights to you. 
+Install the Gloo UI components in your cluster. 
 
 1. Set the name of your cluster and your Gloo Gateway license key as an environment variable.
    ```sh
