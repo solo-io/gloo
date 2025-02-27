@@ -116,7 +116,7 @@ To filter the list of resources, you can choose between the following options:
 ![Gloo UI destinations]({{< versioned_link_path fromRoot="/img/ui-destinations.png" >}})
 
 For Kubernetes services, you click on **Details** to perform the following tasks:
-* To debug the service, click **View YAML** to view the destination’s YAML configuration.
+* Review the destination's configuration with the **YAML** button. The YAML details can help you debug the service.
 * See an analysis of the service’s error rate and latency in the **Service Signals** card.
 * View the **Graph** tab to visualize the network traffic that reaches your destination. For more information about how to use the graph, see [Graph](#graph). 
 
