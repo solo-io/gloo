@@ -98,7 +98,7 @@ On the **Policies** page, you can view any policies that you applied in your env
 To filter the list of resources, you can choose between the following options: 
 * Use the **Status** field to filter between healthy and unhealthy gateway resources.
 * Use the **Label key** and **value** fields to filter resources by their labels. 
-* Use the **Filter** to display the resource types that you are interested in. 
+* Use the **Filter by** dropdown list to display the resource types that you are interested in. 
 * Use the **Search** bar to find a resource by name, namespace, or other properties
 
 ![Gloo UI policies]({{< versioned_link_path fromRoot="/img/ui-policies.png" >}})
