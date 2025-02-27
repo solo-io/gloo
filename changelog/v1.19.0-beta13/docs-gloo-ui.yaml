@@ -2,4 +2,4 @@ changelog:
   - type: NON_USER_FACING
     resolvesIssue: true
     description: >-
-      Adds documentation for usign the Gloo UI with Gloo Gateway. 
+      Adds documentation for using the Gloo UI with Gloo Gateway. 
