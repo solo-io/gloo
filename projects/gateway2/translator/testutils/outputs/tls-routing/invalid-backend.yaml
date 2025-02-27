@@ -1,0 +1,19 @@
+---
+listeners:
+- aggregateListener:
+    httpResources: {}
+  bindAddress: '::'
+  bindPort: 8443
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: tls
+        namespace: default
+  name: tls
+metadata:
+  labels:
+    created_by: gloo-kube-gateway-api
+    gateway_namespace: default
+  name: default-example-gateway
+  namespace: gloo-system
