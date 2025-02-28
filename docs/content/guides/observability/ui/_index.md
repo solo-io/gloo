@@ -13,5 +13,3 @@ You can install the Gloo UI with a separate Helm chart to get an at-a-glance vie
 To learn more, see the following guides: 
 
 {{< children descriptions="true" >}}
-
-![Gloo UI dashboard]({{< versioned_link_path fromRoot="/img/ui-dashboard.png" >}})
