@@ -650,6 +650,22 @@ var _ = Describe("Plugin", func() {
 				err = awsPlugin.(plugins.RoutePlugin).ProcessRoute(plugins.RouteParams{VirtualHostParams: vhostParams}, route, outroute)
 				Expect(err).To(MatchError("only one of unwrapAsAlb and unwrapAsApiGateway/responseTransformation may be set"))
 			})
+			It("should respect RequestTransformation irrespective of route ordering", func() {
+				err := awsPlugin.(plugins.UpstreamPlugin).ProcessUpstream(params, upstream, out)
+				Expect(err).NotTo(HaveOccurred())
+				route.GetRouteAction().GetSingle().GetDestinationSpec().GetAws().RequestTransformation = true
+				err = awsPlugin.(plugins.RoutePlugin).ProcessRoute(plugins.RouteParams{VirtualHostParams: vhostParams}, route, outroute)
+				Expect(err).NotTo(HaveOccurred())
+
+				route.GetRouteAction().GetSingle().GetDestinationSpec().GetAws().RequestTransformation = false
+				route.GetRouteAction().GetSingle().GetDestinationSpec().GetAws().UnwrapAsApiGateway = true
+				err = awsPlugin.(plugins.RoutePlugin).ProcessRoute(plugins.RouteParams{VirtualHostParams: vhostParams}, route, outroute)
+				Expect(err).NotTo(HaveOccurred())
+
+				filters, err := awsPlugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(filters).To(HaveLen(2))
+			})
 		})
 	})
 
