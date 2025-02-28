@@ -235,6 +235,7 @@ type Settings struct {
 	DevMode       *bool         `json:"devMode,omitempty" desc:"Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not recommended for production. Warning: this value is deprecated as of 1.17 and will be removed in a future release."`
 	SecretOptions SecretOptions `json:"secretOptions,omitempty" desc:"Options for how Gloo Edge should handle secrets."`
 	*KubeResourceOverride
+	XdsAddress *string `json:"xdsAddress,omitempty" desc:"Override the XDS address that gloo proxies use to monitor for configuration chamges."`
 }
 
 type AwsSettings struct {

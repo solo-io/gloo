@@ -395,6 +395,7 @@
 |settings.secretOptions.sources[].vault.aws.leaseIncrement|uint32||The time increment, in seconds, used in renewing the lease of the Vault token. See: https://developer.hashicorp.com/vault/docs/concepts/lease#lease-durations-and-renewal. Defaults to 0, which causes the default TTL to be used.|
 |settings.secretOptions.sources[].directory.directory|string||Directory to read secrets from.|
 |settings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|settings.xdsAddress|string||Override the XDS address that gloo proxies use to monitor for configuration chamges.|
 |gloo.deployment.xdsPort|int|9977|port where gloo serves xDS API to Envoy.|
 |gloo.deployment.restXdsPort|uint32|9976|port where gloo serves REST xDS API to Envoy.|
 |gloo.deployment.validationPort|int|9988|port where gloo serves gRPC Proxy Validation to Gateway.|
@@ -517,7 +518,6 @@
 |gloo.podDisruptionBudget.minAvailable|string||Corresponds directly with the _minAvailable_ field in the [PodDisruptionBudgetSpec](https://kubernetes.io/docs/reference/kubernetes-api/policy-resources/pod-disruption-budget-v1/#PodDisruptionBudgetSpec). This value is mutually exclusive with _maxUnavailable_.|
 |gloo.podDisruptionBudget.maxUnavailable|string||Corresponds directly with the _maxUnavailable_ field in the [PodDisruptionBudgetSpec](https://kubernetes.io/docs/reference/kubernetes-api/policy-resources/pod-disruption-budget-v1/#PodDisruptionBudgetSpec). This value is mutually exclusive with _minAvailable_.|
 |gloo.clearStatusMetrics|bool||Set to true to clear status metrics for deleted resources. This may cause metric scraping to infrequently not see status metrics. Default is false.|
-|gloo.xdsAddress|string||The address that should be used by gloo proxies to connect with XDS on Gloo deployment|
 |discovery.deployment.image.tag|string|<release_version, ex: 1.2.3>|The image tag for the container.|
 |discovery.deployment.image.repository|string|discovery|The image repository (name) for the container.|
 |discovery.deployment.image.digest|string||The container image's hash digest (e.g. 'sha256:12345...'), consumed when variant=standard.|
