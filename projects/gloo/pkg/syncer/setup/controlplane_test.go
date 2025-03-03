@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
@@ -72,7 +73,7 @@ var _ = Describe("ControlPlane", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// should return the port from gloo service in gloo-system
-			service, err := setup.GetControlPlaneService(ctx, svcClient)
+			service, err := setup.GetControlPlaneService(ctx, defaults.GlooSystem, svcClient)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(service).NotTo(BeNil())
 			Expect(service.Name).To(Equal(svc1.Name))
@@ -102,7 +103,7 @@ var _ = Describe("ControlPlane", func() {
 			_, err = svcClient.Write(svc1, clients.WriteOpts{Ctx: ctx})
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = setup.GetControlPlaneService(ctx, svcClient)
+			_, err = setup.GetControlPlaneService(ctx, defaults.GlooSystem, svcClient)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(setup.NoGlooSvcFoundError))
 		})
@@ -128,7 +129,7 @@ var _ = Describe("ControlPlane", func() {
 			_, err = svcClient.Write(dupeSvc, clients.WriteOpts{Ctx: ctx})
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = setup.GetControlPlaneService(ctx, svcClient)
+			_, err = setup.GetControlPlaneService(ctx, defaults.GlooSystem, svcClient)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(setup.MultipleGlooSvcFoundError))
 		})

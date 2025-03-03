@@ -331,7 +331,8 @@ func xdsClusterAssertion(testInstallation *e2e.TestInstallation) func(ctx contex
 				Namespace: testInstallation.Metadata.InstallNamespace,
 			})), "xds socket address points to gloo service, in installation namespace")
 
-			service, err := setup.GetControlPlaneService(ctx, testInstallation.ResourceClients.ServiceClient())
+			service, err := setup.GetControlPlaneService(ctx, testInstallation.Metadata.InstallNamespace,
+				testInstallation.ResourceClients.ServiceClient())
 			g.Expect(err).NotTo(gomega.HaveOccurred())
 			g.Expect(service).NotTo(gomega.BeNil())
 

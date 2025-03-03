@@ -15,7 +15,6 @@ const (
 
 var (
 	GlooServiceLabels = map[string]string{
-		"app":  GlooServiceAppLabel,
 		"gloo": GlooServiceGlooLabel,
 	}
 )

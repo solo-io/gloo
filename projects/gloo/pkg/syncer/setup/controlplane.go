@@ -7,7 +7,6 @@ import (
 
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
-	"github.com/solo-io/gloo/pkg/utils/namespaces"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	skkube "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 )
@@ -27,8 +26,7 @@ var (
 	}
 )
 
-func GetControlPlaneService(ctx context.Context, svcClient skkube.ServiceClient) (*skkube.Service, error) {
-	svcNamespace := namespaces.GetPodNamespace()
+func GetControlPlaneService(ctx context.Context, svcNamespace string, svcClient skkube.ServiceClient) (*skkube.Service, error) {
 	opts := clients.ListOpts{
 		Ctx:      ctx,
 		Selector: kubeutils.GlooServiceLabels,
