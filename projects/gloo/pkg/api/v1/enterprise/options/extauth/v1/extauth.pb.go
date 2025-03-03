@@ -4584,6 +4584,8 @@ type RetryPolicy_RetryBackOff struct {
 func (*RetryPolicy_RetryBackOff) isRetryPolicy_Strategy() {}
 
 // Authorizes requests by querying a custom extauth grpc server
+// To send the request body to the ext-auth service, the settings.extauth.requestBody must be set in the Gloo Edge Settings CRD so that
+// the request body is buffered and sent.
 // Assumes that the server implements the envoy external authorization spec:
 // https://github.com/envoyproxy/envoy/blob/ae1ed1fa74f096dabe8dd5b19fc70333621b0309/api/envoy/service/auth/v3/external_auth.proto#L29
 type PassThroughGrpc struct {
