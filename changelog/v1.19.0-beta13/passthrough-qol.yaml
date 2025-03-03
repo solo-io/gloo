@@ -5,4 +5,6 @@ changelog:
     description: >-
       Update grpc and http passthrough example servers to optionlly log full request info
       Update grpc and http passthrough examples to be able to run at the same time.
+      Update PassThroughGrpc description to call out use of `settings.extauth.requestBody` to send request body to extauth server.
+
 
