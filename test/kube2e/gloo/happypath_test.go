@@ -26,7 +26,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-var _ = FDescribe("Happy path", func() {
+var _ = Describe("Happy path", func() {
 
 	var (
 		testClients   services.TestClients
