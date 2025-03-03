@@ -18,11 +18,11 @@ var (
 	}
 	NoGlooSvcFoundError = eris.New("failed to find Gloo service")
 	noGlooSvcFoundError = func(svcNamespace string) error {
-		return eris.Wrapf(NoGlooSvcFoundError, "service in %s with labels gloo=gloo and app=gloo", svcNamespace)
+		return eris.Wrapf(NoGlooSvcFoundError, "service in %s with gloo=gloo label", svcNamespace)
 	}
 	MultipleGlooSvcFoundError = eris.New("found multiple Gloo services")
 	multipleGlooSvcFoundError = func(svcNamespace string) error {
-		return eris.Wrapf(MultipleGlooSvcFoundError, "found multiple services in %s with labels gloo=gloo and app=gloo", svcNamespace)
+		return eris.Wrapf(MultipleGlooSvcFoundError, "found multiple services in %s with gloo=glo label", svcNamespace)
 	}
 )
 

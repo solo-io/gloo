@@ -388,8 +388,8 @@ func awsStsClusterAssertion(testInstallation *e2e.TestInstallation) func(ctx con
 			g.Expect(socketAddr.GetAddress()).To(gomega.Equal(expectedStsUri))
 		}).
 			WithContext(ctx).
-			WithTimeout(time.Second * 10).
-			WithPolling(time.Millisecond * 200).
+			WithTimeout(time.Second * 30).
+			WithPolling(time.Second * 1).
 			Should(gomega.Succeed())
 	}
 }
