@@ -3,7 +3,6 @@ package deployer
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
@@ -333,13 +332,8 @@ func xdsClusterAssertion(testInstallation *e2e.TestInstallation) func(ctx contex
 				Namespace: testInstallation.Metadata.InstallNamespace,
 			})), "xds socket address points to gloo service, in installation namespace")
 
-			// getting the control plane service requires setting the POD_NAMESPACE env var
-			// to the installation namespace as if it was actually running in the cluster
-			prevPodNS := os.Getenv("POD_NAMESPACE")
-			os.Setenv("POD_NAMESPACE", testInstallation.Metadata.InstallNamespace)
-			defer os.Setenv("POD_NAMESPACE", prevPodNS)
-
-			service, err := setup.GetControlPlaneService(ctx, testInstallation.ResourceClients.ServiceClient())
+			service, err := setup.GetControlPlaneService(ctx, testInstallation.Metadata.InstallNamespace,
+				testInstallation.ResourceClients.ServiceClient())
 			g.Expect(err).NotTo(gomega.HaveOccurred())
 			g.Expect(service).NotTo(gomega.BeNil())
 

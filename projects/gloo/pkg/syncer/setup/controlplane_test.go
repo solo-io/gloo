@@ -16,6 +16,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+const (
+	ns = "gloo-system"
+)
+
 var _ = Describe("ControlPlane", func() {
 
 	Context("xds service", func() {
@@ -36,7 +40,7 @@ var _ = Describe("ControlPlane", func() {
 			svcClient, err = skkube.NewServiceClient(ctx, inMemoryFactory)
 			Expect(err).NotTo(HaveOccurred())
 
-			svc1 = skkube.NewService("gloo-system", kubeutils.GlooServiceName)
+			svc1 = skkube.NewService(ns, kubeutils.GlooServiceName)
 			svc1.Labels = kubeutils.GlooServiceLabels
 			svc1.Spec = corev1.ServiceSpec{
 				Ports: []corev1.ServicePort{
@@ -72,7 +76,7 @@ var _ = Describe("ControlPlane", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// should return the port from gloo service in gloo-system
-			service, err := setup.GetControlPlaneService(ctx, svcClient)
+			service, err := setup.GetControlPlaneService(ctx, ns, svcClient)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(service).NotTo(BeNil())
 			Expect(service.Name).To(Equal(svc1.Name))
@@ -102,7 +106,7 @@ var _ = Describe("ControlPlane", func() {
 			_, err = svcClient.Write(svc1, clients.WriteOpts{Ctx: ctx})
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = setup.GetControlPlaneService(ctx, svcClient)
+			_, err = setup.GetControlPlaneService(ctx, ns, svcClient)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(setup.NoGlooSvcFoundError))
 		})
@@ -128,7 +132,7 @@ var _ = Describe("ControlPlane", func() {
 			_, err = svcClient.Write(dupeSvc, clients.WriteOpts{Ctx: ctx})
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = setup.GetControlPlaneService(ctx, svcClient)
+			_, err = setup.GetControlPlaneService(ctx, ns, svcClient)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(setup.MultipleGlooSvcFoundError))
 		})
