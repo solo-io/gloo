@@ -572,11 +572,11 @@ data:
                         "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 {{- end }} {{/* if $gateway.stats.enabled */}}
       clusters:
-        - name: xds_cluster
+        - name: {{ $gateway.xds.host }}
           alt_stat_name: xds_cluster
           connect_timeout: 5.000s
           load_assignment:
-            cluster_name: xds_cluster
+            cluster_name: {{ $gateway.xds.host }}
             endpoints:
             - lb_endpoints:
               - endpoint:
@@ -675,7 +675,7 @@ data:
         rate_limit_settings: {}
         grpc_services:
         - envoy_grpc:
-            cluster_name: xds_cluster
+            cluster_name: {{ $gateway.xds.host }}
       cds_config:
         resource_api_version: V3
         ads: {}
