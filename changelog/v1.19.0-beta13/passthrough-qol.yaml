@@ -1,0 +1,10 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/7893
+    resolvesIssue: false
+    description: >-
+      Update grpc and http passthrough example servers to optionlly log full request info
+      Update grpc and http passthrough examples to be able to run at the same time.
+      Update PassThroughGrpc description to call out use of `settings.extauth.requestBody` to send request body to extauth server.
+
+

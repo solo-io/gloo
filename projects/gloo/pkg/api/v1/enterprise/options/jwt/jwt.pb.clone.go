@@ -195,6 +195,8 @@ func (m *Provider) Clone() proto.Message {
 		target.ClockSkewSeconds = proto.Clone(m.GetClockSkewSeconds()).(*google_golang_org_protobuf_types_known_wrapperspb.UInt32Value)
 	}
 
+	target.AttachFailedStatusToMetadata = m.GetAttachFailedStatusToMetadata()
+
 	return target
 }
 
