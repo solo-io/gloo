@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/7837
+    resolvesIssue: false
+    description: >
+      Added a new field `attachFailedStatusToMetadata` to attach JWT failure status to dynamic metadata so that the status code and message can be logged.
