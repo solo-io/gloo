@@ -136,7 +136,7 @@ kubectl apply -f - <<EOF
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
-  name: auth-tutorial
+  name: http-auth-tutorial
   namespace: gloo-system
 spec:
   virtualHost:
