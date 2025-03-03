@@ -676,6 +676,11 @@ spec:
                     type: string
                   xdsBindAddr:
                     type: string
+                  xdsClusterAddr:
+                    type: string
+                  xdsClusterPort:
+                    format: int32
+                    type: integer
                 type: object
               graphqlOptions:
                 properties:

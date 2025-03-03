@@ -830,6 +830,10 @@ message GlooOptions {
     }
 
     IstioOptions istio_options = 18;
+
+    string xds_cluster_addr = 19;
+
+    int32 xds_cluster_port = 20;
 }
 
 

@@ -803,6 +803,14 @@ func (m *GlooOptions) Equal(that interface{}) bool {
 		}
 	}
 
+	if strings.Compare(m.GetXdsClusterAddr(), target.GetXdsClusterAddr()) != 0 {
+		return false
+	}
+
+	if m.GetXdsClusterPort() != target.GetXdsClusterPort() {
+		return false
+	}
+
 	return true
 }
 

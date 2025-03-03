@@ -762,6 +762,8 @@ Settings specific to the gloo (Envoy xDS server) controller
 "logTransformationRequestResponseInfo": .google.protobuf.BoolValue
 "transformationEscapeCharacters": .google.protobuf.BoolValue
 "istioOptions": .gloo.solo.io.GlooOptions.IstioOptions
+"xdsClusterAddr": string
+"xdsClusterPort": int
 
 ```
 
@@ -785,6 +787,8 @@ Settings specific to the gloo (Envoy xDS server) controller
 | `logTransformationRequestResponseInfo` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | When enabled, log the request/response body and headers before and after any transformations are applied. May be useful in the case where many transformations are applied and it is difficult to determine which are causing issues. Defaults to false. |
 | `transformationEscapeCharacters` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set escapeCharacters for all TransformationTemplates on all vhosts and routes. This setting can be overridden in individual TransformationTemplates. |
 | `istioOptions` | [.gloo.solo.io.GlooOptions.IstioOptions](../settings.proto.sk/#istiooptions) |  |
+| `xdsClusterAddr` | `string` |  |
+| `xdsClusterPort` | `int` |  |
 
 
 
