@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
@@ -14,10 +15,6 @@ import (
 	skkube "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
 	corev1 "k8s.io/api/core/v1"
-)
-
-const (
-	ns = "gloo-system"
 )
 
 var _ = Describe("ControlPlane", func() {
@@ -40,7 +37,7 @@ var _ = Describe("ControlPlane", func() {
 			svcClient, err = skkube.NewServiceClient(ctx, inMemoryFactory)
 			Expect(err).NotTo(HaveOccurred())
 
-			svc1 = skkube.NewService(ns, kubeutils.GlooServiceName)
+			svc1 = skkube.NewService(defaults.GlooSystem, kubeutils.GlooServiceName)
 			svc1.Labels = kubeutils.GlooServiceLabels
 			svc1.Spec = corev1.ServiceSpec{
 				Ports: []corev1.ServicePort{
@@ -76,7 +73,7 @@ var _ = Describe("ControlPlane", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// should return the port from gloo service in gloo-system
-			service, err := setup.GetControlPlaneService(ctx, ns, svcClient)
+			service, err := setup.GetControlPlaneService(ctx, defaults.GlooSystem, svcClient)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(service).NotTo(BeNil())
 			Expect(service.Name).To(Equal(svc1.Name))
@@ -106,7 +103,7 @@ var _ = Describe("ControlPlane", func() {
 			_, err = svcClient.Write(svc1, clients.WriteOpts{Ctx: ctx})
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = setup.GetControlPlaneService(ctx, ns, svcClient)
+			_, err = setup.GetControlPlaneService(ctx, defaults.GlooSystem, svcClient)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(setup.NoGlooSvcFoundError))
 		})
@@ -132,7 +129,7 @@ var _ = Describe("ControlPlane", func() {
 			_, err = svcClient.Write(dupeSvc, clients.WriteOpts{Ctx: ctx})
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = setup.GetControlPlaneService(ctx, ns, svcClient)
+			_, err = setup.GetControlPlaneService(ctx, defaults.GlooSystem, svcClient)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(setup.MultipleGlooSvcFoundError))
 		})
