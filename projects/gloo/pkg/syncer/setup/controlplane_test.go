@@ -17,6 +17,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+const (
+	otherNS = "other-ns"
+)
+
 var _ = Describe("ControlPlane", func() {
 
 	Context("xds service", func() {
@@ -37,7 +41,7 @@ var _ = Describe("ControlPlane", func() {
 			svcClient, err = skkube.NewServiceClient(ctx, inMemoryFactory)
 			Expect(err).NotTo(HaveOccurred())
 
-			svc1 = skkube.NewService("gloo-system", kubeutils.GlooServiceName)
+			svc1 = skkube.NewService(defaults.GlooSystem, kubeutils.GlooServiceName)
 			svc1.Labels = kubeutils.GlooServiceLabels
 			svc1.Spec = corev1.ServiceSpec{
 				Ports: []corev1.ServicePort{
@@ -48,7 +52,7 @@ var _ = Describe("ControlPlane", func() {
 				},
 			}
 
-			svc2 = skkube.NewService("other-ns", kubeutils.GlooServiceName)
+			svc2 = skkube.NewService(otherNS, kubeutils.GlooServiceName)
 			svc2.Labels = kubeutils.GlooServiceLabels
 			svc2.Spec = corev1.ServiceSpec{
 				Ports: []corev1.ServicePort{
@@ -80,38 +84,17 @@ var _ = Describe("ControlPlane", func() {
 			Expect(service.Namespace).To(Equal(svc1.Namespace))
 		})
 
-		It("returns xds service from gloo service in the POD_NAMESPACE namespace", func() {
-			err := os.Setenv(statusutils.PodNamespaceEnvName, "other-ns")
-			Expect(err).NotTo(HaveOccurred())
-
-			// write both services
-			_, err = svcClient.Write(svc1, clients.WriteOpts{Ctx: ctx})
-			Expect(err).NotTo(HaveOccurred())
-
-			svc, err := svcClient.Write(svc2, clients.WriteOpts{Ctx: ctx})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(svc).NotTo(BeNil())
-			Expect(svc.Name).To(Equal(svc2.Name))
-			Expect(svc.Namespace).To(Equal(svc2.Namespace))
-		})
-
 		It("returns error when no gloo service exists in the namespace", func() {
-			err := os.Setenv(statusutils.PodNamespaceEnvName, "other-ns")
-			Expect(err).NotTo(HaveOccurred())
-
 			// only write svc1
 			_, err = svcClient.Write(svc1, clients.WriteOpts{Ctx: ctx})
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = setup.GetControlPlaneService(ctx, defaults.GlooSystem, svcClient)
+			_, err = setup.GetControlPlaneService(ctx, "another-ns", svcClient)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(setup.NoGlooSvcFoundError))
 		})
 
 		It("returns error when multiple gloo services exist in the namespace", func() {
-			err := os.Setenv(statusutils.PodNamespaceEnvName, "other-ns")
-			Expect(err).NotTo(HaveOccurred())
-
 			dupeSvc := skkube.NewService("other-ns", "duplicate-gloo-service")
 			dupeSvc.Labels = kubeutils.GlooServiceLabels
 			dupeSvc.Spec = corev1.ServiceSpec{
@@ -129,7 +112,7 @@ var _ = Describe("ControlPlane", func() {
 			_, err = svcClient.Write(dupeSvc, clients.WriteOpts{Ctx: ctx})
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = setup.GetControlPlaneService(ctx, defaults.GlooSystem, svcClient)
+			_, err = setup.GetControlPlaneService(ctx, otherNS, svcClient)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(setup.MultipleGlooSvcFoundError))
 		})
@@ -137,7 +120,7 @@ var _ = Describe("ControlPlane", func() {
 
 	Context("xds host", func() {
 		It("get FQDN for service", func() {
-			svc := skkube.NewService("gloo-system", kubeutils.GlooServiceName)
+			svc := skkube.NewService(defaults.GlooSystem, kubeutils.GlooServiceName)
 			xdsHost := setup.GetControlPlaneXdsHost(svc)
 			Expect(xdsHost).To(Equal("gloo.gloo-system.svc.cluster.local"))
 		})
@@ -145,7 +128,7 @@ var _ = Describe("ControlPlane", func() {
 
 	Context("xds port", func() {
 		It("returns xds port", func() {
-			svc := skkube.NewService("gloo-system", kubeutils.GlooServiceName)
+			svc := skkube.NewService(defaults.GlooSystem, kubeutils.GlooServiceName)
 			svc.Spec = corev1.ServiceSpec{
 				Ports: []corev1.ServicePort{
 					{
@@ -161,7 +144,7 @@ var _ = Describe("ControlPlane", func() {
 		})
 
 		It("returns error when the expected port name is not found", func() {
-			svc := skkube.NewService("gloo-system", kubeutils.GlooServiceName)
+			svc := skkube.NewService(defaults.GlooSystem, kubeutils.GlooServiceName)
 			svc.Spec = corev1.ServiceSpec{
 				Ports: []corev1.ServicePort{
 					{
