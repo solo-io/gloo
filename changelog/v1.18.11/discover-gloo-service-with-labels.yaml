@@ -1,9 +1,0 @@
-changelog:
-- type: FIX
-  description: >-
-    Discover the Gloo service using labels.
-    In some environments, services must be renamed.
-    This change allows the service to still be discovered when it's been renamed.
-    In the event that multiple services in the namespace have the gloo=gloo label, an error will occur.
-  issueLink: https://github.com/solo-io/solo-projects/issues/7646
-  resolvesIssue: false
