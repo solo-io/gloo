@@ -2,15 +2,18 @@ package e2e_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/testutils"
 
 	"github.com/solo-io/gloo/test/gomega/matchers"
 
 	envoy_data_accesslog_v3 "github.com/envoyproxy/go-control-plane/envoy/data/accesslog/v3"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+
 	"github.com/solo-io/gloo/test/e2e"
 
 	envoyals "github.com/envoyproxy/go-control-plane/envoy/service/accesslog/v3"
@@ -25,6 +28,7 @@ import (
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/dynamic_forward_proxy"
 	alsplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/als"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
@@ -107,6 +111,105 @@ var _ = Describe("Access Log", func() {
 				var entry *envoy_data_accesslog_v3.HTTPAccessLogEntry
 				g.Eventually(msgChan, 2*time.Second).Should(Receive(&entry))
 				g.Expect(entry.CommonProperties.UpstreamCluster).To(Equal(translator.UpstreamToClusterName(testContext.TestUpstream().Upstream.Metadata.Ref())))
+			}, time.Second*21, time.Second*2).Should(Succeed())
+		})
+
+	})
+
+	FContext("Grpc with filter state objects", func() {
+
+		var (
+			msgChan <-chan *envoy_data_accesslog_v3.HTTPAccessLogEntry
+		)
+
+		BeforeEach(func() {
+			msgChan = runAccessLog(testContext.Ctx(), testContext.EnvoyInstance().AccessLogPort)
+
+			gw := gwdefaults.DefaultGateway(writeNamespace)
+			gw.Options = &gloov1.ListenerOptions{
+				AccessLoggingService: &als.AccessLoggingService{
+					AccessLog: []*als.AccessLog{
+						{
+							OutputDestination: &als.AccessLog_GrpcService{
+								GrpcService: &als.GrpcService{
+									LogName: "test-log",
+									ServiceRef: &als.GrpcService_StaticClusterName{
+										StaticClusterName: alsplugin.ClusterName,
+									},
+									FilterStateObjectsToLog: []string{
+										"envoy.network.upstream_server_name",
+										"envoy.network.application_protocols",
+										"envoy.network.upstream_subject_alt_names",
+										"envoy.tcp_proxy.cluster",
+										"envoy.udp_proxy.cluster",
+										"envoy.network.transport_socket.original_dst_address",
+										"envoy.filters.listener.original_dst.local_ip",
+										"envoy.filters.listener.original_dst.remote_ip",
+										"envoy.upstream.dynamic_host",
+										"envoy.upstream.dynamic_port",
+										"envoy.tcp_proxy.disable_tunneling",
+										"envoy.filters.network.http_connection_manager.local_reply_owner",
+										"envoy.string",
+										"envoy.tcp_proxy.per_connection_idle_timeout_ms",
+										"envoy.ratelimit.hits_addend",
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			// enable dynamic forward proxy to save upstream address in filter state
+			gw.GetHttpGateway().Options = &gloov1.HttpListenerOptions{
+				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{
+					SaveUpstreamAddress: true,
+				}, // pick up system defaults to resolve DNS
+			}
+
+			testContext.ResourcesToCreate().Gateways = v1.GatewayList{
+				gw,
+			}
+
+			vs := helpers.NewVirtualServiceBuilder().
+				WithName(e2e.DefaultVirtualServiceName).
+				WithNamespace(writeNamespace).
+				WithDomain(e2e.DefaultHost).
+				WithRoutePrefixMatcher(e2e.DefaultRouteName, "/").
+				WithRouteAction(e2e.DefaultRouteName, &gloov1.RouteAction{
+					Destination: &gloov1.RouteAction_DynamicForwardProxy{
+						DynamicForwardProxy: &dynamic_forward_proxy.PerRouteConfig{
+							HostRewriteSpecifier: &dynamic_forward_proxy.PerRouteConfig_AutoHostRewriteHeader{
+								AutoHostRewriteHeader: "x-rewrite-me",
+							},
+						},
+					},
+				}).
+				Build()
+
+			testContext.ResourcesToCreate().VirtualServices = v1.VirtualServiceList{
+				vs,
+			}
+		})
+
+		It("can stream access logs with filter state objects", func() {
+			requestBuilder := testContext.GetHttpRequestBuilder().
+				WithPath("get").
+				WithHeader("x-rewrite-me", "postman-echo.com")
+
+			Eventually(func(g Gomega) {
+				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
+					StatusCode: http.StatusOK,
+					Body:       ContainSubstring(`"host": "postman-echo.com"`),
+				}))
+
+				var entry *envoy_data_accesslog_v3.HTTPAccessLogEntry
+				g.Eventually(msgChan, 2*time.Second).Should(Receive(&entry))
+
+				fmt.Printf("entry.CommonProperties.UpstreamCluster: %s\n", entry.CommonProperties.UpstreamCluster)
+				fmt.Printf("entry.CommonProperties.FilterStateObjects: %+v\n", entry.CommonProperties.FilterStateObjects)
+				g.Expect(entry.CommonProperties.UpstreamCluster).To(Equal("solo_io_generated_dfp:13273938298451159843"))
+				g.Expect(entry.CommonProperties.FilterStateObjects).To(ContainSubstring(`"upstream_remote_address":"10.244.0.1:80"`))
 			}, time.Second*21, time.Second*2).Should(Succeed())
 		})
 
