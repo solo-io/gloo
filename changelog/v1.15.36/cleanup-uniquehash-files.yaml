@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: >-
+    Removing uniquehash files that shouldn't have been committed.
