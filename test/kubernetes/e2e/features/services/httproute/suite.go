@@ -7,6 +7,7 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
@@ -35,6 +36,16 @@ func (s *testingSuite) TestConfigureHTTPRouteBackingDestinationsWithService() {
 }
 
 func (s *testingSuite) TestConfigureHTTPRouteBackingDestinationsWithServiceAndWithoutTCPRoute() {
+	s.T().Cleanup(func() {
+		err := s.TestInstallation.Actions.Kubectl().ApplyFile(s.Ctx, tcpRouteCrdManifest)
+		s.NoError(err, "can apply manifest")
+		s.TestInstallation.Assertions.EventuallyObjectsExist(s.Ctx, &wellknown.TCPRouteCRD)
+	})
+
+	// Remove the TCPRoute CRD to assert HTTPRoute services still work.
+	err := s.TestInstallation.Actions.Kubectl().DeleteFile(s.Ctx, tcpRouteCrdManifest)
+	s.NoError(err, "can delete manifest")
+
 	s.TestInstallation.Assertions.AssertEventualCurlResponse(
 		s.Ctx,
 		defaults.CurlPodExecOpt,
