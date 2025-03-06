@@ -2,7 +2,6 @@ package serviceconverter
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
@@ -37,7 +36,6 @@ type UseHttp2Converter struct{}
 
 func (u *UseHttp2Converter) ConvertService(ctx context.Context, svc *corev1.Service, port corev1.ServicePort, us *v1.Upstream) error {
 	us.UseHttp2 = useHttp2(ctx, svc, port)
-	fmt.Println("================ ConvertService", svc.GetName(), port, us.UseHttp2.GetValue())
 	return nil
 }
 
