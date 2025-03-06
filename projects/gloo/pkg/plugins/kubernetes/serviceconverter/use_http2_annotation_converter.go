@@ -19,6 +19,15 @@ var http2PortNames = []string{
 	"http2",
 }
 
+var http2AppProtocolNames = map[string]bool{
+	// Defined by istio : https://istio.io/latest/docs/ops/configuration/traffic-management/protocol-selection/
+	"http2":    true,
+	"grpc":     true,
+	"grpc-web": true,
+	// Defined by GEP-1911 : https://gateway-api.sigs.k8s.io/geps/gep-1911/#api-semantics
+	"kubernetes.io/h2c": true,
+}
+
 // UseHttp2Converter sets UseHttp2 on the upstream if:
 // (1) the service has the "h2_service" annotation; or
 // (2) the "h2_service" annotation defined in Settings.UpstreamOptions; or
@@ -44,6 +53,10 @@ func useHttp2(ctx context.Context, svc *corev1.Service, port corev1.ServicePort)
 		} else if globalAnnotations[GlooH2Annotation] == "false" {
 			return &wrappers.BoolValue{Value: false}
 		}
+	}
+
+	if port.AppProtocol != nil && http2AppProtocolNames[*port.AppProtocol] {
+		return &wrappers.BoolValue{Value: true}
 	}
 
 	for _, http2Name := range http2PortNames {
