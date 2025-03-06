@@ -6,6 +6,8 @@ import (
 	v8 "github.com/cncf/xds/go/udpa/type/v1"
 	adminv3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	v3_extensions "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/cors/v3"
+
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
@@ -91,8 +93,8 @@ func RootCmd() *cobra.Command {
 
 func run(opts *Options) error {
 	// Read the Envoy configuration file
-	data, err := ioutil.ReadFile("nick/shipt/envoy.nick.json")
-	//data, err := ioutil.ReadFile("nick/grainger/config_dump.grainger.nick.json")
+	//data, err := ioutil.ReadFile("nick/shipt/envoy.nick.json")
+	data, err := ioutil.ReadFile("nick/grainger/config_dump.grainger.nick.json")
 	//data, err := ioutil.ReadFile("nick/demo/demo-central.nick.json")
 	if err != nil {
 		log.Fatalf("error: %v", err)
@@ -504,7 +506,7 @@ func generateRouteOption(routeName string, r *route.Route, jwtProviders map[stri
 		for filterName, filterConfig := range r.GetTypedPerFilterConfig() {
 			if filterName == "envoy.filters.http.cors" {
 				//cors
-				var corsPolicy route.CorsPolicy
+				var corsPolicy v3_extensions.CorsPolicy
 				if err := filterConfig.UnmarshalTo(&corsPolicy); err != nil {
 					return nil, err
 				}
@@ -759,7 +761,7 @@ func generateRouteFaults(fault *faultv3.HTTPFault) *faultinjection.RouteFaults {
 	return roFault
 }
 
-func generateCorsPolicy(corsPolicy *route.CorsPolicy) *v5.CorsPolicy {
+func generateCorsPolicy(corsPolicy *v3_extensions.CorsPolicy) *v5.CorsPolicy {
 	roCors := &v5.CorsPolicy{
 		AllowOrigin:      make([]string, 0),
 		AllowOriginRegex: make([]string, 0),

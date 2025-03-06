@@ -123,7 +123,9 @@ func generateRouteOptionsForProviders(providers map[string]interface{}, authMapp
 		jwtProvider := provider.(map[string]interface{})
 		roProvider := &jwt2.Provider{}
 		if jwtProvider["audiences"] != nil {
-			roProvider.Audiences = jwtProvider["audiences"].([]string)
+			for _, aud := range jwtProvider["audiences"].([]interface{}) {
+				roProvider.Audiences = append(roProvider.Audiences, aud.(string))
+			}
 		}
 		if jwtProvider["issuer"] != nil {
 			roProvider.Issuer = jwtProvider["issuer"].(string)
@@ -151,10 +153,14 @@ func generateRouteOptionsForProviders(providers map[string]interface{}, authMapp
 					if tokenSource.Headers == nil {
 						tokenSource.Headers = make([]*jwt2.TokenSource_HeaderSource, 0)
 					}
-					tokenSource.Headers = append(tokenSource.Headers, &jwt2.TokenSource_HeaderSource{
-						Header: h["name"].(string),
-						Prefix: h["value_prefix"].(string),
-					})
+					headerSource := &jwt2.TokenSource_HeaderSource{}
+					if h["name"] != nil {
+						headerSource.Header = h["name"].(string)
+					}
+					if h["value_prefix"] != nil {
+						headerSource.Prefix = h["value_prefix"].(string)
+					}
+					tokenSource.Headers = append(tokenSource.Headers, headerSource)
 				}
 			}
 			roProvider.TokenSource = tokenSource
@@ -258,14 +264,15 @@ func generateAuthConfigMappings(filterStateRules map[string]interface{}) map[str
 				//                        requirements:
 				//                        - allow_missing_or_failed: {}
 				//                        - provider_name: cf-mgmt-nonprod-ue2.customer-order-core-order-visibility-data-team-config.order-order-search-api-qa-jwt-order-search-api-qa.auth
-				requirements := value.(map[string]interface{})["requirements"].([]map[string]interface{})
+				requirements := value.(map[string]interface{})["requirements"].([]interface{})
 				for _, requirement := range requirements {
-					_, ok := requirement["allow_missing_or_failed"]
+					rq := requirement.(map[string]interface{})
+					_, ok := rq["allow_missing_or_failed"]
 					// If the key exists
 					if ok {
 						authConfigMapping.AllowMissingOrFailed = true
 					}
-					providerName, ok := requirement["provider_name"]
+					providerName, ok := rq["provider_name"]
 					// If the key exists
 					if ok {
 						authConfigMapping.Providers = append(authConfigMapping.Providers, providerName.(string))
