@@ -53,6 +53,8 @@ import (
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_router "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/router"
 
+	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_set_filter_state "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/set_filter_state"
+
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_tap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tap"
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_wasm "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/wasm"
@@ -227,6 +229,12 @@ func (m *HttpListenerOptions) Clone() proto.Message {
 		target.HeaderValidationSettings = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_header_validation.HeaderValidationSettings)
 	} else {
 		target.HeaderValidationSettings = proto.Clone(m.GetHeaderValidationSettings()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_header_validation.HeaderValidationSettings)
+	}
+
+	if h, ok := interface{}(m.GetSetFilterState()).(clone.Cloner); ok {
+		target.SetFilterState = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_set_filter_state.SetFilterState)
+	} else {
+		target.SetFilterState = proto.Clone(m.GetSetFilterState()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_set_filter_state.SetFilterState)
 	}
 
 	switch m.ExtProcConfig.(type) {
