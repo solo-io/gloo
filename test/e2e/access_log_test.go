@@ -27,6 +27,7 @@ import (
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/set_filter_state"
 	alsplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/als"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
@@ -142,6 +143,25 @@ var _ = Describe("Access Log", func() {
 						},
 					},
 				},
+			}
+
+			setFilterState := &set_filter_state.SetFilterState{
+				OnRequestHeaders: []*set_filter_state.FilterStateValue{
+					{
+						Key: &set_filter_state.FilterStateValue_ObjectKey{
+							ObjectKey: "envoy.ratelimit.hits_addend",
+						},
+						//Value: "1",
+					},
+				},
+			}
+
+			if opts := gw.GetHttpGateway().GetOptions(); opts == nil {
+				gw.GetHttpGateway().Options = &gloov1.HttpListenerOptions{
+					SetFilterState: setFilterState,
+				}
+			} else {
+				opts.SetFilterState = setFilterState
 			}
 
 			testContext.ResourcesToCreate().Gateways = v1.GatewayList{

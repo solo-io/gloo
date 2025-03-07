@@ -39,13 +39,13 @@ message FilterStateValue {
   // for a list of valid factory keys.
   string factory_key = 6;
 
-  // oneof value {
-  //   option (validate.required) = true;
+  oneof value {
+    option (validate.required) = true;
 
-  //   // Uses the :ref:`format string <config_access_log_format_strings>` to
-  //   // instantiate the filter state object value.
-  //   .solo.io.envoy.config.core.v3.SubstitutionFormatString format_string = 2;
-  // }
+    // Uses the :ref:`format string <config_access_log_format_strings>` to
+    // instantiate the filter state object value.
+    .solo.io.envoy.config.core.v3.SubstitutionFormatString format_string = 2;
+  }
 
   // If marked as read-only, the filter state key value is locked, and cannot
   // be overridden by any filter, including this filter.

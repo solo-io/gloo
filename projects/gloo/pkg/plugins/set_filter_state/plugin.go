@@ -48,7 +48,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	cfg := in.GetOptions().GetSetFilterState()
 	if cfg == nil {
 		fmt.Printf("--------------------------------\nSET STATE FILTER ProcessRoute (NULL) \n--------------------------------\n")
-		//return nil
+		return nil
 	} else {
 		fmt.Printf("--------------------------------\nSET STATE FILTER ProcessRoute %+v \n--------------------------------\n", cfg)
 	}
@@ -80,9 +80,9 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	cfg := listener.GetOptions().GetSetFilterState()
 	if cfg == nil {
 		fmt.Printf("--------------------------------\nSET STATE FILTER HttpFilters (NULL) \n--------------------------------\n")
-		//return filters, nil
+		return filters, nil
 	} else {
-		fmt.Printf("--------------------------------\nSET STATE FILTER HttpFilters %+v \n--------------------------------\n", cfg)
+		fmt.Printf("--------------------------------\nSET STATE FILTER HttpFilters (NOT NULL) %+v \n--------------------------------\n", cfg)
 	}
 
 	// fsv := toEnvoyFilterStateValue(&set_filter_state.FilterStateValue{})
