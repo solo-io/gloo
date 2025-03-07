@@ -50,7 +50,7 @@ var (
 		},
 		"TestConfigureHTTPRouteBackingDestinationsWithServiceAndWithoutTCPRoute": {
 			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{tcpRouteCrdManifest, routeWithServiceManifest, serviceManifest},
+				Manifests: []string{routeWithServiceManifest, serviceManifest},
 				Resources: []client.Object{proxyService, proxyDeployment},
 			},
 		},
