@@ -47,6 +47,8 @@ import (
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_retries "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
 
+	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_set_filter_state "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/set_filter_state"
+
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_shadowing "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/shadowing"
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_tracing "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tracing"
@@ -253,6 +255,12 @@ func (m *RouteOptions) Clone() proto.Message {
 		target.Ai = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_ai.RouteSettings)
 	} else {
 		target.Ai = proto.Clone(m.GetAi()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_ai.RouteSettings)
+	}
+
+	if h, ok := interface{}(m.GetSetFilterState()).(clone.Cloner); ok {
+		target.SetFilterState = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_set_filter_state.SetFilterState)
+	} else {
+		target.SetFilterState = proto.Clone(m.GetSetFilterState()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_set_filter_state.SetFilterState)
 	}
 
 	switch m.HostRewriteType.(type) {

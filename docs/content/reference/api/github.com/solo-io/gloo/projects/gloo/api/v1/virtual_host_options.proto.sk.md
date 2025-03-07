@@ -58,6 +58,7 @@ to be usable by Gloo. (plugins currently need to be compiled into Gloo)
 "stagedTransformations": .transformation.options.gloo.solo.io.TransformationStages
 "extProc": .extproc.options.gloo.solo.io.RouteSettings
 "corsPolicyMergeSettings": .cors.options.gloo.solo.io.CorsPolicyMergeSettings
+"setFilterState": .set_filter_state.options.gloo.solo.io.SetFilterState
 
 ```
 
@@ -89,6 +90,7 @@ to be usable by Gloo. (plugins currently need to be compiled into Gloo)
 | `stagedTransformations` | [.transformation.options.gloo.solo.io.TransformationStages](../options/transformation/transformation.proto.sk/#transformationstages) | Early transformations stage. These transformations run before most other options are processed. If the `regular` field is set in here, the `transformations` field is ignored. |
 | `extProc` | [.extproc.options.gloo.solo.io.RouteSettings](../enterprise/options/extproc/extproc.proto.sk/#routesettings) | Enterprise-only: External Processing filter settings for the virtual host. This can be used to override certain HttpListenerOptions settings, and can be overridden by RouteOptions settings. |
 | `corsPolicyMergeSettings` | [.cors.options.gloo.solo.io.CorsPolicyMergeSettings](../options/cors/cors.proto.sk/#corspolicymergesettings) | Settings for determining merge strategy for CORS settings when present at both Route and VirtualHost levels. |
+| `setFilterState` | [.set_filter_state.options.gloo.solo.io.SetFilterState](../options/set_filter_state/set_filter_state.proto.sk/#setfilterstate) | SetFilterState can be used to set filter state on the request. For more, see https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/filter/http/set_filter_state/v2/set_filter_state.proto. |
 
 
 

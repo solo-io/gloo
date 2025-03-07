@@ -1456,6 +1456,25 @@ spec:
                           retryOn:
                             type: string
                         type: object
+                      setFilterState:
+                        properties:
+                          onRequestHeaders:
+                            items:
+                              properties:
+                                factoryKey:
+                                  type: string
+                                objectKey:
+                                  type: string
+                                readOnly:
+                                  type: boolean
+                                sharedWithUpstream:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                                skipIfEmpty:
+                                  type: boolean
+                              type: object
+                            type: array
+                        type: object
                       stagedTransformations:
                         properties:
                           early:
@@ -4920,6 +4939,25 @@ spec:
                                   type: object
                                 retryOn:
                                   type: string
+                              type: object
+                            setFilterState:
+                              properties:
+                                onRequestHeaders:
+                                  items:
+                                    properties:
+                                      factoryKey:
+                                        type: string
+                                      objectKey:
+                                        type: string
+                                      readOnly:
+                                        type: boolean
+                                      sharedWithUpstream:
+                                        type: string
+                                        x-kubernetes-int-or-string: true
+                                      skipIfEmpty:
+                                        type: boolean
+                                    type: object
+                                  type: array
                               type: object
                             shadowing:
                               properties:

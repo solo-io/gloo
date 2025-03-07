@@ -22,7 +22,7 @@ import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp.
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto";
-
+import "github.com/solo-io/gloo/projects/gloo/api/v1/options/set_filter_state/set_filter_state.proto";
 import "google/protobuf/wrappers.proto";
 
 // Optional, feature-specific configuration that lives on virtual hosts.
@@ -158,4 +158,8 @@ message VirtualHostOptions {
 
     // Settings for determining merge strategy for CORS settings when present at both Route and VirtualHost levels.
     cors.options.gloo.solo.io.CorsPolicyMergeSettings cors_policy_merge_settings = 20;
+
+    // SetFilterState can be used to set filter state on the request.
+    // For more, see https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/filter/http/set_filter_state/v2/set_filter_state.proto
+    set_filter_state.options.gloo.solo.io.SetFilterState  set_filter_state = 21;
 }

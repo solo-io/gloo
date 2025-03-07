@@ -1523,6 +1523,12 @@ apis:
   selectors.core.gloo.solo.io.Selector:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/core/selectors/selectors.proto.sk/#Selector
     package: selectors.core.gloo.solo.io
+  set_filter_state.options.gloo.solo.io.FilterStateValue:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/set_filter_state/set_filter_state.proto.sk/#FilterStateValue
+    package: set_filter_state.options.gloo.solo.io
+  set_filter_state.options.gloo.solo.io.SetFilterState:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/set_filter_state/set_filter_state.proto.sk/#SetFilterState
+    package: set_filter_state.options.gloo.solo.io
   shadowing.options.gloo.solo.io.RouteShadowing:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/shadowing/shadowing.proto.sk/#RouteShadowing
     package: shadowing.options.gloo.solo.io

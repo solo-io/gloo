@@ -296,6 +296,16 @@ func (m *HttpListenerOptions) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetSetFilterState()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSetFilterState()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSetFilterState(), target.GetSetFilterState()) {
+			return false
+		}
+	}
+
 	switch m.ExtProcConfig.(type) {
 
 	case *HttpListenerOptions_DisableExtProc:

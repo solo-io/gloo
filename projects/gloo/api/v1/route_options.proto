@@ -28,6 +28,7 @@ import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filt
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/options/set_filter_state/set_filter_state.proto";
 
 
 import "google/protobuf/wrappers.proto";
@@ -251,4 +252,7 @@ message RouteOptions {
     // Enterprise-only: Settings to configure ai settings for a route.
     // These settings will only apply if the backend is an `ai` Upstream.
     ai.options.gloo.solo.io.RouteSettings ai = 31;
+
+    // Settings to configure set-filter-state settings for a route.
+    set_filter_state.options.gloo.solo.io.SetFilterState set_filter_state = 33;
 }
