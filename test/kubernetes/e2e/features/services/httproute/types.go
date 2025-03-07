@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/solo-io/gloo/test/gomega/matchers"
 	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -37,7 +38,7 @@ var (
 
 	expectedHTTP2SvcResp = &testmatchers.HttpResponse{
 		StatusCode: http.StatusOK,
-		Protocol:   "HTTP/2",
+		Protocol:   matchers.HTTP2Protocol,
 	}
 
 	// test cases

@@ -12,7 +12,7 @@ const (
 	HTTP2Protocol = "HTTP/2"
 )
 
-// HaveProtocol expects a http response with the given protocol
+// HaveProtocol expects an http response with the given protocol
 func HaveProtocol(protocol string) types.GomegaMatcher {
 	if protocol == "" {
 		// If no keys are defined, we create a matcher that always succeeds
@@ -23,12 +23,12 @@ func HaveProtocol(protocol string) types.GomegaMatcher {
 	return gomega.WithTransform(transforms.WithProtocol(), gomega.Equal(protocol))
 }
 
-// HaveHTTP1Protocol expects a http response with the HTTP/1.1 protocol
+// HaveHTTP1Protocol expects an http response with the HTTP/1.1 protocol
 func HaveHTTP1Protocol() types.GomegaMatcher {
 	return HaveProtocol(HTTP1Protocol)
 }
 
-// HaveHTTP2Protocol expects a http response with the HTTP/2 protocol
+// HaveHTTP2Protocol expects an http response with the HTTP/2 protocol
 func HaveHTTP2Protocol() types.GomegaMatcher {
 	return HaveProtocol(HTTP2Protocol)
 }
