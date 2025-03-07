@@ -1729,6 +1729,8 @@ spec:
                                   type: object
                                 omitEmptyValues:
                                   type: boolean
+                                textFormat:
+                                  type: string
                                 textFormatSource:
                                   properties:
                                     filename:

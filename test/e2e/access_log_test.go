@@ -121,6 +121,10 @@ var _ = Describe("Access Log", func() {
 			msgChan <-chan *envoy_data_accesslog_v3.HTTPAccessLogEntry
 		)
 
+		const (
+			filterStateObjectName = "envoy.ratelimit.hits_addend"
+		)
+
 		BeforeEach(func() {
 			msgChan = runAccessLog(testContext.Ctx(), testContext.EnvoyInstance().AccessLogPort)
 
@@ -136,7 +140,7 @@ var _ = Describe("Access Log", func() {
 										StaticClusterName: alsplugin.ClusterName,
 									},
 									FilterStateObjectsToLog: []string{
-										"envoy.ratelimit.hits_addend",
+										filterStateObjectName,
 									},
 								},
 							},
@@ -149,9 +153,19 @@ var _ = Describe("Access Log", func() {
 				OnRequestHeaders: []*set_filter_state.FilterStateValue{
 					{
 						Key: &set_filter_state.FilterStateValue_ObjectKey{
-							ObjectKey: "envoy.ratelimit.hits_addend",
+							ObjectKey: filterStateObjectName,
 						},
-						//Value: "1",
+						Value: &set_filter_state.FilterStateValue_FormatString{
+							FormatString: &gloo_envoy_v3.SubstitutionFormatString{
+								Format: &gloo_envoy_v3.SubstitutionFormatString_TextFormatSource{
+									TextFormatSource: &gloo_envoy_v3.DataSource{
+										Specifier: &gloo_envoy_v3.DataSource_InlineString{
+											InlineString: "1",
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			}
@@ -168,25 +182,6 @@ var _ = Describe("Access Log", func() {
 				gw,
 			}
 
-			// vs := helpers.NewVirtualServiceBuilder().
-			// 	WithName(e2e.DefaultVirtualServiceName).
-			// 	WithNamespace(writeNamespace).
-			// 	WithDomain(e2e.DefaultHost).
-			// 	WithRoutePrefixMatcher(e2e.DefaultRouteName, "/").
-			// 	WithRouteAction(e2e.DefaultRouteName, &gloov1.RouteAction{
-			// 		Destination: &gloov1.RouteAction_DynamicForwardProxy{
-			// 			DynamicForwardProxy: &dynamic_forward_proxy.PerRouteConfig{
-			// 				HostRewriteSpecifier: &dynamic_forward_proxy.PerRouteConfig_AutoHostRewriteHeader{
-			// 					AutoHostRewriteHeader: "x-rewrite-me",
-			// 				},
-			// 			},
-			// 		},
-			// 	}).
-			// 	Build()
-
-			// testContext.ResourcesToCreate().VirtualServices = v1.VirtualServiceList{
-			// 	vs,
-			// }
 		})
 
 		It("can stream access logs with filter state objects", func() {

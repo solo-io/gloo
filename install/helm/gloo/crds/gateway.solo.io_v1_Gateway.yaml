@@ -1376,6 +1376,8 @@ spec:
                                       type: object
                                     omitEmptyValues:
                                       type: boolean
+                                    textFormat:
+                                      type: string
                                     textFormatSource:
                                       properties:
                                         filename:
@@ -3512,6 +3514,8 @@ spec:
                                                 type: object
                                               omitEmptyValues:
                                                 type: boolean
+                                              textFormat:
+                                                type: string
                                               textFormatSource:
                                                 properties:
                                                   filename:
