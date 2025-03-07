@@ -16,6 +16,7 @@ const (
 	HttpRouteTargetField            = "http-route-target"
 	HttpRouteDelegatedLabelSelector = "http-route-delegated-label-selector"
 	TcpRouteTargetField             = "tcp-route-target"
+	TlsRouteTargetField             = "tls-route-target"
 	ReferenceGrantFromField         = "ref-grant-from"
 )
 
@@ -25,6 +26,7 @@ func IterateIndices(f func(client.Object, string, client.IndexerFunc) error) err
 		f(&gwv1.HTTPRoute{}, HttpRouteTargetField, IndexerByObjType),
 		f(&gwv1.HTTPRoute{}, HttpRouteDelegatedLabelSelector, IndexByHTTPRouteDelegationLabelSelector),
 		f(&gwv1a2.TCPRoute{}, TcpRouteTargetField, IndexerByObjType),
+		f(&gwv1a2.TLSRoute{}, TlsRouteTargetField, IndexerByObjType),
 		f(&gwv1b1.ReferenceGrant{}, ReferenceGrantFromField, IndexerByObjType),
 	)
 }
@@ -33,6 +35,7 @@ func IterateIndices(f func(client.Object, string, client.IndexerFunc) error) err
 //
 //   - HTTPRoute
 //   - TCPRoute
+//   - TLSRoute
 //   - ReferenceGrant
 func IndexerByObjType(obj client.Object) []string {
 	var results []string
@@ -57,6 +60,24 @@ func IndexerByObjType(obj client.Object) []string {
 			results = append(results, nns.String())
 		}
 	case *gwv1a2.TCPRoute:
+		for _, pRef := range resource.Spec.ParentRefs {
+			if pRef.Group != nil && *pRef.Group != gwv1a2.GroupName {
+				continue
+			}
+			if pRef.Kind != nil && *pRef.Kind != wellknown.GatewayKind {
+				continue
+			}
+			ns := resolveNs(pRef.Namespace)
+			if ns == "" {
+				ns = resource.Namespace
+			}
+			nns := types.NamespacedName{
+				Namespace: ns,
+				Name:      string(pRef.Name),
+			}
+			results = append(results, nns.String())
+		}
+	case *gwv1a2.TLSRoute:
 		for _, pRef := range resource.Spec.ParentRefs {
 			if pRef.Group != nil && *pRef.Group != gwv1a2.GroupName {
 				continue

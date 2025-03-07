@@ -1,0 +1,43 @@
+---
+listeners:
+- aggregateListener:
+    httpResources: {}
+    tcpListeners:
+    - tcpListener:
+        tcpHosts:
+        - destination:
+            multi:
+              destinations:
+              - destination:
+                  kube:
+                    port: 443
+                    ref:
+                      name: example-tls-svc
+                      namespace: default
+                weight: 65
+              - destination:
+                  kube:
+                    port: 443
+                    ref:
+                      name: example-tls-svc-2
+                      namespace: default
+                weight: 35
+          name: example-tls-route-rule-0
+          sslConfig:
+            sniDomains:
+            - example.com
+  bindAddress: '::'
+  bindPort: 8443
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: tls
+        namespace: default
+  name: tls
+metadata:
+  labels:
+    created_by: gloo-kube-gateway-api
+    gateway_namespace: default
+  name: default-example-gateway
+  namespace: gloo-system
