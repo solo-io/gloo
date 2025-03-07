@@ -101,7 +101,7 @@ var _ = Describe("UdsConvert", func() {
 			Entry("exactly http2", "http2"),
 		)
 
-		DescribeTable("should create upstream with use_http2=true when port appProtocol is a supported type", func(appProtocol string) {
+		DescribeTable("should create upstream with use_http2=true when port appProtocol is a supported type", func(appProtocol string, useHttp2 bool) {
 			svc := &corev1.Service{
 				Spec: corev1.ServiceSpec{},
 			}
@@ -113,12 +113,15 @@ var _ = Describe("UdsConvert", func() {
 				AppProtocol: &appProtocol,
 			}
 			up := uc.CreateUpstream(context.TODO(), svc, port)
-			Expect(up.GetUseHttp2().GetValue()).To(BeTrue())
+			Expect(up.GetUseHttp2().GetValue()).To(Equal(useHttp2))
 		},
-			Entry("http2", "http2"),
-			Entry("grpc", "grpc"),
-			Entry("grpc-web", "grpc-web"),
-			Entry("kubernetes.io/h2c", "kubernetes.io/h2c"),
+			Entry("http2", "http2", true),
+			Entry("grpc", "grpc", true),
+			Entry("grpc-web", "grpc-web", true),
+			Entry("kubernetes.io/h2c", "kubernetes.io/h2c", true),
+			Entry("http2-suffix", "http2-suffix", false),
+			Entry("grpc-suffix", "grpc-suffix", false),
+			Entry("tcp", "tcp", false),
 		)
 
 		Describe("Upstream Config when Annotations Exist", func() {

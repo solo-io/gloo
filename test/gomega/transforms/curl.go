@@ -108,14 +108,14 @@ func processResponseHeader(line string) (string, string) {
 	return "", ""
 }
 
-// processResponseCode processes the current line if it's a response status code.
-// Returns the status code if the line was processed, otherwise returns 0.
+// processResponseCodeAndProtocol processes the current line if it's a response status code with the protocol.
+// Returns the status code and protocol if the line was processed, otherwise returns 0 and an empty string.
 func processResponseCodeAndProtocol(line string) (string, int) {
 	// check for response status. the line with the response code will be in the format
-	// `< HTTP/1.1 <code> <message>` or `< HTTP/2 <code> <message>`
+	// `< HTTP/1.1 <code> <message>` or `< HTTP/2 <code>`
 	if strings.HasPrefix(line, responseStatusPrefix1dot1) || strings.HasPrefix(line, responseStatusPrefix2) {
 		statusParts := strings.Split(line, " ")
-		if len(statusParts) >= 4 {
+		if len(statusParts) >= 3 {
 			statusCode, err := strconv.Atoi(statusParts[2])
 			if err == nil {
 				return statusParts[1], statusCode
