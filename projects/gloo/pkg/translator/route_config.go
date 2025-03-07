@@ -375,8 +375,6 @@ func (h *httpRouteConfigurationTranslator) runRoutePlugins(
 	in *v1.Route,
 	out *envoy_config_route_v3.Route) {
 	// run the plugins for RoutePlugin
-
-	fmt.Printf("Process route plugins, out: %+v\n", out)
 	for _, plugin := range h.pluginRegistry.GetRoutePlugins() {
 		fmt.Printf("ProcessRoute plugin: %s\n", plugin.Name())
 		if err := plugin.ProcessRoute(params, in, out); err != nil {
@@ -389,7 +387,6 @@ func (h *httpRouteConfigurationTranslator) runRoutePlugins(
 				err)
 		}
 	}
-	fmt.Printf("Done Process route plugins, out: %+v\n", out)
 }
 
 func (h *httpRouteConfigurationTranslator) runRouteActionPlugins(
