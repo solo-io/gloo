@@ -8,6 +8,7 @@ import (
 
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gstruct"
+	"github.com/solo-io/gloo/test/gomega/transforms"
 
 	"github.com/onsi/gomega/matchers"
 	"github.com/onsi/gomega/types"
@@ -120,9 +121,7 @@ func HaveHttpResponse(expected *HttpResponse) types.GomegaMatcher {
 		})
 	}
 	if expected.Protocol != "" {
-		partialResponseMatchers = append(partialResponseMatchers, &HaveHTTPProtocolMatcher{
-			Expected: expected.Protocol,
-		})
+		partialResponseMatchers = append(partialResponseMatchers, gomega.WithTransform(transforms.WithProtocol(), gomega.Equal(expected.Protocol)))
 	}
 	for headerName, headerMatch := range expected.Headers {
 		partialResponseMatchers = append(partialResponseMatchers, &matchers.HaveHTTPHeaderWithValueMatcher{
