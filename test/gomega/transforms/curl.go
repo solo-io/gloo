@@ -22,7 +22,7 @@ const (
 // WithCurlHttpResponse is a Gomega Transform that converts the string returned by an exec.Curl
 // and transforms it into an http.Response. This is useful to be used in tandem with matchers.HaveHttpResponse
 // NOTE: This is not feature complete, as we do not convert the entire response.
-// For now, we handle HTTP/1.1 response headers, status, and body.
+// For now, we handle HTTP/1.1 && HTTP/2 response headers, status, protocol and body.
 // The curl must be executed with verbose=true to include both the response headers/status
 // and response body.
 func WithCurlHttpResponse(curlResponse string) *http.Response {

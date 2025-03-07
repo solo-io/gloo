@@ -15,8 +15,7 @@ const (
 // HaveProtocol expects an http response with the given protocol
 func HaveProtocol(protocol string) types.GomegaMatcher {
 	if protocol == "" {
-		// If protocol is defined, we create a matcher that always succeeds
-		// If we do not do this, we will eventually create an And matcher for 0 objects, which leads to a panic
+		// If protocol is not defined, we create a matcher that always succeeds
 		return gstruct.Ignore()
 	}
 	//nolint:bodyclose // The caller of this matcher constructor should be responsible for ensuring the body close

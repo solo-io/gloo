@@ -10,7 +10,7 @@ import (
 
 var _ = Describe("HaveProtocol", func() {
 
-	It("ignores if there is no protocol specified", func() {
+	It("succeeds if there is no protocol specified", func() {
 		httpResponse := &http.Response{
 			Proto: matchers.HTTP1Protocol,
 		}
