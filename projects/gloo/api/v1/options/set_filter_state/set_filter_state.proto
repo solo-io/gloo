@@ -5,6 +5,7 @@ package set_filter_state.options.gloo.solo.io;
 option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/set_filter_state";
 import "extproto/ext.proto";
 import "validate/validate.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/substitution_format_string.proto";
 
 // Configuration for the Set-Filter-State HTTP Filter
 message SetFilterState {

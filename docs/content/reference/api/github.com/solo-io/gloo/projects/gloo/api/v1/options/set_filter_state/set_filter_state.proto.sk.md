@@ -51,6 +51,7 @@ A filter state key and value pair.
 ```yaml
 "objectKey": string
 "factoryKey": string
+"formatString": .solo.io.envoy.config.core.v3.SubstitutionFormatString
 "readOnly": bool
 "sharedWithUpstream": .set_filter_state.options.gloo.solo.io.FilterStateValue.SharedWithUpstream
 "skipIfEmpty": bool
@@ -61,6 +62,7 @@ A filter state key and value pair.
 | ----- | ---- | ----------- | 
 | `objectKey` | `string` | Filter state object key. The key is used to lookup the object factory, unless :ref:`factory_key <envoy_v3_api_field_extensions.filters.common.set_filter_state.v3.FilterStateValue.factory_key>` is set. See :ref:`the well-known filter state keys <well_known_filter_state>` for a list of valid object keys. |
 | `factoryKey` | `string` | Optional filter object factory lookup key. See :ref:`the well-known filter state keys <well_known_filter_state>` for a list of valid factory keys. |
+| `formatString` | .solo.io.envoy.config.core.v3.SubstitutionFormatString | Uses the :ref:`format string <config_access_log_format_strings>` to instantiate the filter state object value. |
 | `readOnly` | `bool` | If marked as read-only, the filter state key value is locked, and cannot be overridden by any filter, including this filter. |
 | `sharedWithUpstream` | [.set_filter_state.options.gloo.solo.io.FilterStateValue.SharedWithUpstream](../set_filter_state.proto.sk/#sharedwithupstream) | Configures the object to be shared with the upstream internal connections. See :ref:`internal upstream transport <config_internal_upstream_transport>` for more details on the filter state sharing with the internal connections. |
 | `skipIfEmpty` | `bool` | Skip the update if the value evaluates to an empty string. This option can be used to supply multiple alternatives for the same filter state object key. |

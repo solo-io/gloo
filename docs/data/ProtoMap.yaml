@@ -1712,6 +1712,9 @@ apis:
   solo.io.envoy.config.core.v3.HttpUri:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/http_uri.proto.sk/#HttpUri
     package: solo.io.envoy.config.core.v3
+  solo.io.envoy.config.core.v3.JsonFormatOptions:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/substitution_format_string.proto.sk/#JsonFormatOptions
+    package: solo.io.envoy.config.core.v3
   solo.io.envoy.config.core.v3.Locality:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/base.proto.sk/#Locality
     package: solo.io.envoy.config.core.v3
@@ -1753,6 +1756,9 @@ apis:
     package: solo.io.envoy.config.core.v3
   solo.io.envoy.config.core.v3.SocketOption:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/socket_option.proto.sk/#SocketOption
+    package: solo.io.envoy.config.core.v3
+  solo.io.envoy.config.core.v3.SubstitutionFormatString:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/substitution_format_string.proto.sk/#SubstitutionFormatString
     package: solo.io.envoy.config.core.v3
   solo.io.envoy.config.core.v3.TcpKeepalive:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/address.proto.sk/#TcpKeepalive

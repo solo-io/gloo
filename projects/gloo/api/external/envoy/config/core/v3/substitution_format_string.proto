@@ -14,7 +14,7 @@ option java_package = "io.envoyproxy.solo.io.envoy.config.core.v3";
 option java_outer_classname = "SubstitutionFormatStringProto";
 option java_multiple_files = true;
 
-option (solo.io.udpa.annotations.file_status).package_version_status = ACTIVE;
+//option (solo.io.udpa.annotations.file_status).package_version_status = ACTIVE;
 // [#protodoc-title: Substitution format string]
 
 // Optional configuration options to be used with json_format.
@@ -27,6 +27,7 @@ message JsonFormatOptions {
 // to generate a new string in either plain text or JSON format.
 // [#next-free-field: 8]
 message SubstitutionFormatString {
+
   oneof format {
     option (validate.required) = true;
 
@@ -101,3 +102,5 @@ message SubstitutionFormatString {
   // If json_format is used, the options will be applied to the output JSON string.
   JsonFormatOptions json_format_options = 7;
 }
+
+option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3";
