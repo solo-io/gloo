@@ -48,7 +48,7 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		return nil, nil
 	}
 
-	filter, err := translateFilter(cfg)
+	filter, err := TranslateFilter(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 // 	)
 // }
 
-func translateFilter(cfg *set_filter_state.SetFilterState) (*http_set_filter_state_v3.Config, error) {
+func TranslateFilter(cfg *set_filter_state.SetFilterState) (*http_set_filter_state_v3.Config, error) {
 	onRequestHeaders := cfg.GetOnRequestHeaders()
 
 	if onRequestHeaders == nil {

@@ -403,26 +403,6 @@ func (m *VirtualHostOptions) HashUnique(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
-	if h, ok := interface{}(m.GetSetFilterState()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("SetFilterState")); err != nil {
-			return 0, err
-		}
-		if _, err = h.Hash(hasher); err != nil {
-			return 0, err
-		}
-	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetSetFilterState(), nil); err != nil {
-			return 0, err
-		} else {
-			if _, err = hasher.Write([]byte("SetFilterState")); err != nil {
-				return 0, err
-			}
-			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
-				return 0, err
-			}
-		}
-	}
-
 	switch m.RateLimitEarlyConfigType.(type) {
 
 	case *VirtualHostOptions_RatelimitEarly:

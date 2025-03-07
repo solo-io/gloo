@@ -252,7 +252,4 @@ message RouteOptions {
     // Enterprise-only: Settings to configure ai settings for a route.
     // These settings will only apply if the backend is an `ai` Upstream.
     ai.options.gloo.solo.io.RouteSettings ai = 31;
-
-    // Settings to configure set-filter-state settings for a route.
-    set_filter_state.options.gloo.solo.io.SetFilterState set_filter_state = 33;
 }

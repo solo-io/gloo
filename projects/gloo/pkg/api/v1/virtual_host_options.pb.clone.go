@@ -37,8 +37,6 @@ import (
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_retries "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
 
-	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_set_filter_state "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/set_filter_state"
-
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_stats "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/stats"
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_transformation "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
@@ -171,12 +169,6 @@ func (m *VirtualHostOptions) Clone() proto.Message {
 		target.CorsPolicyMergeSettings = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_cors.CorsPolicyMergeSettings)
 	} else {
 		target.CorsPolicyMergeSettings = proto.Clone(m.GetCorsPolicyMergeSettings()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_cors.CorsPolicyMergeSettings)
-	}
-
-	if h, ok := interface{}(m.GetSetFilterState()).(clone.Cloner); ok {
-		target.SetFilterState = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_set_filter_state.SetFilterState)
-	} else {
-		target.SetFilterState = proto.Clone(m.GetSetFilterState()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_set_filter_state.SetFilterState)
 	}
 
 	switch m.RateLimitEarlyConfigType.(type) {
