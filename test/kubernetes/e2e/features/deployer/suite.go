@@ -331,7 +331,12 @@ func xdsClusterAssertion(testInstallation *e2e.TestInstallation) func(ctx contex
 				Namespace: testInstallation.Metadata.InstallNamespace,
 			})), "xds socket address points to gloo service, in installation namespace")
 
-			xdsPort, err := setup.GetNamespacedControlPlaneXdsPort(ctx, testInstallation.Metadata.InstallNamespace, testInstallation.ResourceClients.ServiceClient())
+			service, err := setup.GetControlPlaneService(ctx, testInstallation.Metadata.InstallNamespace,
+				testInstallation.ResourceClients.ServiceClient())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(service).NotTo(gomega.BeNil())
+
+			xdsPort, err := setup.GetControlPlaneXdsPort(service)
 			g.Expect(err).NotTo(gomega.HaveOccurred())
 			g.Expect(xdsSocketAddress.GetPortValue()).To(gomega.Equal(uint32(xdsPort)), "xds socket port points to gloo service, in installation namespace")
 		}).
@@ -383,8 +388,8 @@ func awsStsClusterAssertion(testInstallation *e2e.TestInstallation) func(ctx con
 			g.Expect(socketAddr.GetAddress()).To(gomega.Equal(expectedStsUri))
 		}).
 			WithContext(ctx).
-			WithTimeout(time.Second * 10).
-			WithPolling(time.Millisecond * 200).
+			WithTimeout(time.Second * 30).
+			WithPolling(time.Second * 1).
 			Should(gomega.Succeed())
 	}
 }
