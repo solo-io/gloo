@@ -67,3 +67,10 @@ func BytesToInt(b []byte) int {
 	Expect(err).NotTo(HaveOccurred())
 	return i
 }
+
+// WithProtocol returns a Gomega Transform that extracts the protocol of a request
+func WithProtocol() func(response *http.Response) string {
+	return func(response *http.Response) string {
+		return response.Proto
+	}
+}

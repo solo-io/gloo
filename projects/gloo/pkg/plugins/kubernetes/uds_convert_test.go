@@ -101,6 +101,29 @@ var _ = Describe("UdsConvert", func() {
 			Entry("exactly http2", "http2"),
 		)
 
+		DescribeTable("should create upstream with use_http2=true when port appProtocol is a supported type", func(appProtocol string, useHttp2 bool) {
+			svc := &corev1.Service{
+				Spec: corev1.ServiceSpec{},
+			}
+			svc.Name = "test"
+			svc.Namespace = "test-ns"
+
+			port := corev1.ServicePort{
+				Port:        123,
+				AppProtocol: &appProtocol,
+			}
+			up := uc.CreateUpstream(context.TODO(), svc, port)
+			Expect(up.GetUseHttp2().GetValue()).To(Equal(useHttp2))
+		},
+			Entry("http2", "http2", true),
+			Entry("grpc", "grpc", true),
+			Entry("grpc-web", "grpc-web", true),
+			Entry("kubernetes.io/h2c", "kubernetes.io/h2c", true),
+			Entry("http2-suffix", "http2-suffix", false),
+			Entry("grpc-suffix", "grpc-suffix", false),
+			Entry("tcp", "tcp", false),
+		)
+
 		Describe("Upstream Config when Annotations Exist", func() {
 
 			It("Should create upstream with use_http2=true when annotation exists", testSetUseHttp2Converter)
