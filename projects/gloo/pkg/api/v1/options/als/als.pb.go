@@ -425,8 +425,6 @@ type GrpcService struct {
 	// Additional filter state objects to log in filter_state_objects. Logger will call FilterState::Object::serializeAsProto to serialize the filter state object.
 	// See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/access_loggers/grpc/v3/als.proto#extensions-access-loggers-grpc-v3-commongrpcaccesslogconfig
 	FilterStateObjectsToLog []string `protobuf:"bytes,7,rep,name=filter_state_objects_to_log,json=filterStateObjectsToLog,proto3" json:"filter_state_objects_to_log,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
 }
 
 func (x *GrpcService) Reset() {
@@ -1534,7 +1532,7 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_rawD
 	0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x67, 0x6c, 0x6f, 0x6f, 0x2f,
 	0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x31, 0x2f, 0x6f, 0x70, 0x74, 0x69, 0x6f,
 	0x6e, 0x73, 0x2f, 0x61, 0x6c, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
-})
+}
 
 var (
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_rawDescOnce sync.Once
