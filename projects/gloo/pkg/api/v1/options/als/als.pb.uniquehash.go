@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"hash"
 	"hash/fnv"
+	"strconv"
 
 	safe_hasher "github.com/solo-io/protoc-gen-ext/pkg/hasher"
 	"github.com/solo-io/protoc-gen-ext/pkg/hasher/hashstructure"
@@ -21,12 +22,16 @@ var (
 	_ = binary.LittleEndian
 	_ = new(hash.Hash64)
 	_ = fnv.New64
+	_ = strconv.Itoa
 	_ = hashstructure.Hash
 	_ = new(safe_hasher.SafeHasher)
 )
 
-// Hash function
-func (m *AccessLoggingService) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *AccessLoggingService) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -38,10 +43,16 @@ func (m *AccessLoggingService) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	for _, v := range m.GetAccessLog() {
+	if _, err = hasher.Write([]byte("AccessLog")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetAccessLog() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
 
 		if h, ok := interface{}(v).(safe_hasher.SafeHasher); ok {
-			if _, err = hasher.Write([]byte("")); err != nil {
+			if _, err = hasher.Write([]byte("v")); err != nil {
 				return 0, err
 			}
 			if _, err = h.Hash(hasher); err != nil {
@@ -51,7 +62,7 @@ func (m *AccessLoggingService) Hash(hasher hash.Hash64) (uint64, error) {
 			if fieldValue, err := hashstructure.Hash(v, nil); err != nil {
 				return 0, err
 			} else {
-				if _, err = hasher.Write([]byte("")); err != nil {
+				if _, err = hasher.Write([]byte("v")); err != nil {
 					return 0, err
 				}
 				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -65,8 +76,11 @@ func (m *AccessLoggingService) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *AccessLog) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *AccessLog) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -149,8 +163,11 @@ func (m *AccessLog) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *FileSink) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *FileSink) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -162,6 +179,9 @@ func (m *FileSink) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	if _, err = hasher.Write([]byte("Path")); err != nil {
+		return 0, err
+	}
 	if _, err = hasher.Write([]byte(m.GetPath())); err != nil {
 		return 0, err
 	}
@@ -170,6 +190,9 @@ func (m *FileSink) Hash(hasher hash.Hash64) (uint64, error) {
 
 	case *FileSink_StringFormat:
 
+		if _, err = hasher.Write([]byte("StringFormat")); err != nil {
+			return 0, err
+		}
 		if _, err = hasher.Write([]byte(m.GetStringFormat())); err != nil {
 			return 0, err
 		}
@@ -201,8 +224,11 @@ func (m *FileSink) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *GrpcService) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *GrpcService) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -214,36 +240,75 @@ func (m *GrpcService) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	if _, err = hasher.Write([]byte("LogName")); err != nil {
+		return 0, err
+	}
 	if _, err = hasher.Write([]byte(m.GetLogName())); err != nil {
 		return 0, err
 	}
 
-	for _, v := range m.GetAdditionalRequestHeadersToLog() {
+	if _, err = hasher.Write([]byte("AdditionalRequestHeadersToLog")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetAdditionalRequestHeadersToLog() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
 
+		if _, err = hasher.Write([]byte("v")); err != nil {
+			return 0, err
+		}
 		if _, err = hasher.Write([]byte(v)); err != nil {
 			return 0, err
 		}
 
 	}
 
-	for _, v := range m.GetAdditionalResponseHeadersToLog() {
+	if _, err = hasher.Write([]byte("AdditionalResponseHeadersToLog")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetAdditionalResponseHeadersToLog() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
 
+		if _, err = hasher.Write([]byte("v")); err != nil {
+			return 0, err
+		}
 		if _, err = hasher.Write([]byte(v)); err != nil {
 			return 0, err
 		}
 
 	}
 
-	for _, v := range m.GetAdditionalResponseTrailersToLog() {
+	if _, err = hasher.Write([]byte("AdditionalResponseTrailersToLog")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetAdditionalResponseTrailersToLog() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
 
+		if _, err = hasher.Write([]byte("v")); err != nil {
+			return 0, err
+		}
 		if _, err = hasher.Write([]byte(v)); err != nil {
 			return 0, err
 		}
 
 	}
 
-	for _, v := range m.GetFilterStateObjectsToLog() {
+	if _, err = hasher.Write([]byte("FilterStateObjectsToLog")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetFilterStateObjectsToLog() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
 
+		if _, err = hasher.Write([]byte("v")); err != nil {
+			return 0, err
+		}
 		if _, err = hasher.Write([]byte(v)); err != nil {
 			return 0, err
 		}
@@ -254,6 +319,9 @@ func (m *GrpcService) Hash(hasher hash.Hash64) (uint64, error) {
 
 	case *GrpcService_StaticClusterName:
 
+		if _, err = hasher.Write([]byte("StaticClusterName")); err != nil {
+			return 0, err
+		}
 		if _, err = hasher.Write([]byte(m.GetStaticClusterName())); err != nil {
 			return 0, err
 		}
@@ -263,8 +331,11 @@ func (m *GrpcService) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *AccessLogFilter) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *AccessLogFilter) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -503,8 +574,11 @@ func (m *AccessLogFilter) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *ComparisonFilter) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *ComparisonFilter) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -516,6 +590,9 @@ func (m *ComparisonFilter) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	if _, err = hasher.Write([]byte("Op")); err != nil {
+		return 0, err
+	}
 	err = binary.Write(hasher, binary.LittleEndian, m.GetOp())
 	if err != nil {
 		return 0, err
@@ -544,8 +621,11 @@ func (m *ComparisonFilter) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *StatusCodeFilter) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *StatusCodeFilter) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -580,8 +660,11 @@ func (m *StatusCodeFilter) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *DurationFilter) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *DurationFilter) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -616,8 +699,11 @@ func (m *DurationFilter) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *NotHealthCheckFilter) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *NotHealthCheckFilter) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -632,8 +718,11 @@ func (m *NotHealthCheckFilter) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *TraceableFilter) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *TraceableFilter) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -648,8 +737,11 @@ func (m *TraceableFilter) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *RuntimeFilter) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *RuntimeFilter) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -661,6 +753,9 @@ func (m *RuntimeFilter) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	if _, err = hasher.Write([]byte("RuntimeKey")); err != nil {
+		return 0, err
+	}
 	if _, err = hasher.Write([]byte(m.GetRuntimeKey())); err != nil {
 		return 0, err
 	}
@@ -685,6 +780,9 @@ func (m *RuntimeFilter) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
+	if _, err = hasher.Write([]byte("UseIndependentRandomness")); err != nil {
+		return 0, err
+	}
 	err = binary.Write(hasher, binary.LittleEndian, m.GetUseIndependentRandomness())
 	if err != nil {
 		return 0, err
@@ -693,8 +791,11 @@ func (m *RuntimeFilter) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *AndFilter) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *AndFilter) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -706,10 +807,16 @@ func (m *AndFilter) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	for _, v := range m.GetFilters() {
+	if _, err = hasher.Write([]byte("Filters")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetFilters() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
 
 		if h, ok := interface{}(v).(safe_hasher.SafeHasher); ok {
-			if _, err = hasher.Write([]byte("")); err != nil {
+			if _, err = hasher.Write([]byte("v")); err != nil {
 				return 0, err
 			}
 			if _, err = h.Hash(hasher); err != nil {
@@ -719,7 +826,7 @@ func (m *AndFilter) Hash(hasher hash.Hash64) (uint64, error) {
 			if fieldValue, err := hashstructure.Hash(v, nil); err != nil {
 				return 0, err
 			} else {
-				if _, err = hasher.Write([]byte("")); err != nil {
+				if _, err = hasher.Write([]byte("v")); err != nil {
 					return 0, err
 				}
 				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -733,8 +840,11 @@ func (m *AndFilter) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *OrFilter) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *OrFilter) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -746,10 +856,16 @@ func (m *OrFilter) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	for _, v := range m.GetFilters() {
+	if _, err = hasher.Write([]byte("Filters")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetFilters() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
 
 		if h, ok := interface{}(v).(safe_hasher.SafeHasher); ok {
-			if _, err = hasher.Write([]byte("")); err != nil {
+			if _, err = hasher.Write([]byte("v")); err != nil {
 				return 0, err
 			}
 			if _, err = h.Hash(hasher); err != nil {
@@ -759,7 +875,7 @@ func (m *OrFilter) Hash(hasher hash.Hash64) (uint64, error) {
 			if fieldValue, err := hashstructure.Hash(v, nil); err != nil {
 				return 0, err
 			} else {
-				if _, err = hasher.Write([]byte("")); err != nil {
+				if _, err = hasher.Write([]byte("v")); err != nil {
 					return 0, err
 				}
 				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -773,8 +889,11 @@ func (m *OrFilter) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *HeaderFilter) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *HeaderFilter) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -809,8 +928,11 @@ func (m *HeaderFilter) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *ResponseFlagFilter) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *ResponseFlagFilter) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -822,8 +944,17 @@ func (m *ResponseFlagFilter) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	for _, v := range m.GetFlags() {
+	if _, err = hasher.Write([]byte("Flags")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetFlags() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
 
+		if _, err = hasher.Write([]byte("v")); err != nil {
+			return 0, err
+		}
 		if _, err = hasher.Write([]byte(v)); err != nil {
 			return 0, err
 		}
@@ -833,8 +964,11 @@ func (m *ResponseFlagFilter) Hash(hasher hash.Hash64) (uint64, error) {
 	return hasher.Sum64(), nil
 }
 
-// Hash function
-func (m *GrpcStatusFilter) Hash(hasher hash.Hash64) (uint64, error) {
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *GrpcStatusFilter) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -846,8 +980,17 @@ func (m *GrpcStatusFilter) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	for _, v := range m.GetStatuses() {
+	if _, err = hasher.Write([]byte("Statuses")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetStatuses() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
 
+		if _, err = hasher.Write([]byte("v")); err != nil {
+			return 0, err
+		}
 		err = binary.Write(hasher, binary.LittleEndian, v)
 		if err != nil {
 			return 0, err
@@ -855,6 +998,9 @@ func (m *GrpcStatusFilter) Hash(hasher hash.Hash64) (uint64, error) {
 
 	}
 
+	if _, err = hasher.Write([]byte("Exclude")); err != nil {
+		return 0, err
+	}
 	err = binary.Write(hasher, binary.LittleEndian, m.GetExclude())
 	if err != nil {
 		return 0, err

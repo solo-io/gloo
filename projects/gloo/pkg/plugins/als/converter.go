@@ -251,9 +251,10 @@ func copyGrpcSettings(cfg *envoygrpc.HttpGrpcAccessLogConfig, alsSettings *als.A
 	cfg.AdditionalResponseHeadersToLog = alsSettings.GrpcService.GetAdditionalResponseHeadersToLog()
 	cfg.AdditionalResponseTrailersToLog = alsSettings.GrpcService.GetAdditionalResponseTrailersToLog()
 	cfg.CommonConfig = &envoygrpc.CommonGrpcAccessLogConfig{
-		LogName:             alsSettings.GrpcService.GetLogName(),
-		GrpcService:         svc,
-		TransportApiVersion: envoycore.ApiVersion_V3,
+		LogName:                 alsSettings.GrpcService.GetLogName(),
+		GrpcService:             svc,
+		TransportApiVersion:     envoycore.ApiVersion_V3,
+		FilterStateObjectsToLog: alsSettings.GrpcService.GetFilterStateObjectsToLog(),
 	}
 	return cfg.Validate()
 }
