@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 
 	envoy_data_accesslog_v3 "github.com/envoyproxy/go-control-plane/envoy/data/accesslog/v3"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+
 	"github.com/solo-io/gloo/test/e2e"
 
 	envoyals "github.com/envoyproxy/go-control-plane/envoy/service/accesslog/v3"
@@ -25,6 +27,7 @@ import (
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/set_filter_state"
 	alsplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/als"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
@@ -107,6 +110,93 @@ var _ = Describe("Access Log", func() {
 				var entry *envoy_data_accesslog_v3.HTTPAccessLogEntry
 				g.Eventually(msgChan, 2*time.Second).Should(Receive(&entry))
 				g.Expect(entry.CommonProperties.UpstreamCluster).To(Equal(translator.UpstreamToClusterName(testContext.TestUpstream().Upstream.Metadata.Ref())))
+			}, time.Second*21, time.Second*2).Should(Succeed())
+		})
+
+	})
+
+	FContext("Grpc with filter state objects", func() {
+
+		var (
+			msgChan <-chan *envoy_data_accesslog_v3.HTTPAccessLogEntry
+		)
+
+		const (
+			filterStateObjectName = "envoy.ratelimit.hits_addend"
+		)
+
+		BeforeEach(func() {
+			msgChan = runAccessLog(testContext.Ctx(), testContext.EnvoyInstance().AccessLogPort)
+
+			gw := gwdefaults.DefaultGateway(writeNamespace)
+			gw.Options = &gloov1.ListenerOptions{
+				AccessLoggingService: &als.AccessLoggingService{
+					AccessLog: []*als.AccessLog{
+						{
+							OutputDestination: &als.AccessLog_GrpcService{
+								GrpcService: &als.GrpcService{
+									LogName: "test-log",
+									ServiceRef: &als.GrpcService_StaticClusterName{
+										StaticClusterName: alsplugin.ClusterName,
+									},
+									FilterStateObjectsToLog: []string{
+										filterStateObjectName,
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			setFilterState := &set_filter_state.SetFilterState{
+				OnRequestHeaders: []*set_filter_state.FilterStateValue{
+					{
+						Key: &set_filter_state.FilterStateValue_ObjectKey{
+							ObjectKey: filterStateObjectName,
+						},
+						Value: &set_filter_state.FilterStateValue_FormatString{
+							FormatString: &gloo_envoy_v3.SubstitutionFormatString{
+								Format: &gloo_envoy_v3.SubstitutionFormatString_TextFormatSource{
+									TextFormatSource: &gloo_envoy_v3.DataSource{
+										Specifier: &gloo_envoy_v3.DataSource_InlineString{
+											InlineString: "1",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			if opts := gw.GetHttpGateway().GetOptions(); opts == nil {
+				gw.GetHttpGateway().Options = &gloov1.HttpListenerOptions{
+					SetFilterState: setFilterState,
+				}
+			} else {
+				opts.SetFilterState = setFilterState
+			}
+
+			testContext.ResourcesToCreate().Gateways = v1.GatewayList{
+				gw,
+			}
+
+		})
+
+		It("can stream access logs with filter state objects", func() {
+			requestBuilder := testContext.GetHttpRequestBuilder()
+
+			Eventually(func(g Gomega) {
+				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveOkResponse())
+
+				var entry *envoy_data_accesslog_v3.HTTPAccessLogEntry
+				g.Eventually(msgChan, 2*time.Second).Should(Receive(&entry))
+				g.Expect(entry.CommonProperties.UpstreamCluster).To(Equal(translator.UpstreamToClusterName(testContext.TestUpstream().Upstream.Metadata.Ref())))
+
+				fmt.Printf("entry.CommonProperties.UpstreamCluster: %s\n", entry.CommonProperties.UpstreamCluster)
+				fmt.Printf("entry.CommonProperties.FilterStateObjects: %+v\n", entry.CommonProperties.FilterStateObjects)
+				g.Expect(entry.CommonProperties.FilterStateObjects).To(HaveKey("envoy.ratelimit.hits_addend"))
 			}, time.Second*21, time.Second*2).Should(Succeed())
 		})
 

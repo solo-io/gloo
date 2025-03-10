@@ -22,7 +22,7 @@ import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp.
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto";
-
+import "github.com/solo-io/gloo/projects/gloo/api/v1/options/set_filter_state/set_filter_state.proto";
 import "google/protobuf/wrappers.proto";
 
 // Optional, feature-specific configuration that lives on virtual hosts.

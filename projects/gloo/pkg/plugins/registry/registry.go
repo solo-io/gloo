@@ -45,6 +45,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/proxyprotocol"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/rest"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/set_filter_state"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/shadowing"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/stats"
@@ -125,6 +126,7 @@ func Plugins(opts PluginOpts) []plugins.Plugin {
 		cors.NewPlugin(),
 		linkerd.NewPlugin(),
 		stats.NewPlugin(),
+		set_filter_state.NewPlugin(),
 	)
 	if ec2Plugin != nil {
 		glooPlugins = append(glooPlugins, ec2Plugin)

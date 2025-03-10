@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 
@@ -85,6 +86,8 @@ func Run() {
 				case *pb.StreamAccessLogsMessage_HttpLogs:
 					for _, v := range msg.HttpLogs.GetLogEntry() {
 
+						objJson, _ := json.MarshalIndent(v, "", "\t")
+						fmt.Printf("objJson: %s\n", string(objJson))
 						meta := v.GetCommonProperties().GetMetadata().GetFilterMetadata()
 						// we could put any other kind of data into the transformation metadata, including more
 						// detailed request info or info that gets dropped once translated into envoy config. For
