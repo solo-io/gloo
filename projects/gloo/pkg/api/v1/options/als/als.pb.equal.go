@@ -258,6 +258,17 @@ func (m *GrpcService) Equal(that interface{}) bool {
 
 	}
 
+	if len(m.GetFilterStateObjectsToLog()) != len(target.GetFilterStateObjectsToLog()) {
+		return false
+	}
+	for idx, v := range m.GetFilterStateObjectsToLog() {
+
+		if strings.Compare(v, target.GetFilterStateObjectsToLog()[idx]) != 0 {
+			return false
+		}
+
+	}
+
 	switch m.ServiceRef.(type) {
 
 	case *GrpcService_StaticClusterName:

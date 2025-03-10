@@ -111,6 +111,7 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v
 "additionalRequestHeadersToLog": []string
 "additionalResponseHeadersToLog": []string
 "additionalResponseTrailersToLog": []string
+"filterStateObjectsToLog": []string
 
 ```
 
@@ -121,6 +122,7 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v
 | `additionalRequestHeadersToLog` | `[]string` |  |
 | `additionalResponseHeadersToLog` | `[]string` |  |
 | `additionalResponseTrailersToLog` | `[]string` |  |
+| `filterStateObjectsToLog` | `[]string` | Additional filter state objects to log in filter_state_objects. Logger will call FilterState::Object::serializeAsProto to serialize the filter state object. See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/access_loggers/grpc/v3/als.proto#extensions-access-loggers-grpc-v3-commongrpcaccesslogconfig. |
 
 
 
