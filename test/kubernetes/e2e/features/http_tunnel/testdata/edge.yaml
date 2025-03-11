@@ -1,0 +1,18 @@
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: squid-proxy
+spec:
+  virtualHost:
+    domains:
+      - 'httpbin.example.com'
+    routes:
+      - matchers:
+         - prefix: /
+        routeAction:
+          single:
+            upstream:
+              name: squid-proxy
+        options:
+          autoHostRewrite: true
