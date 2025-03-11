@@ -30,7 +30,7 @@ The `test` make target runs ginkgo with a set of useful flags. See [run-tests](/
 
 | Name              | Default | Description                                                                                                                                                                                                                                        |
 |-------------------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| ENVOY_BINARY      | ""      | The location of an Envoy binary in the local filesystem. If provided, the e2e tests will run this Envoy binary directly instead of unwrapping it from a docker image.                                                                              |
+| ENVOY_BINARY      | ""      | The location of an Envoy binary in the local filesystem. If provided, the e2e tests will ignore ENVOY_IMAGE_TAG and run this Envoy binary directly instead of unwrapping it from a docker image.                                                   |
 | ENVOY_IMAGE_TAG   | ""      | The tag of the gloo-envoy-wrapper-docker image built during setup                                                                                                                                                                                  |
 | SERVICE_LOG_LEVEL | ""      | The log levels used for services. See "Controlling Log Verbosity of Services" below.                                                                                                                                                               |
 
