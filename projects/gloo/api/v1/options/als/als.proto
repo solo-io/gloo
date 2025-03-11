@@ -63,6 +63,10 @@ message GrpcService {
     repeated string additional_response_headers_to_log = 5;
 
     repeated string additional_response_trailers_to_log = 6;
+
+    // Additional filter state objects to log in filter_state_objects. Logger will call FilterState::Object::serializeAsProto to serialize the filter state object.
+    // See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/access_loggers/grpc/v3/als.proto#extensions-access-loggers-grpc-v3-commongrpcaccesslogconfig
+    repeated string filter_state_objects_to_log = 7;
 }
 
 message AccessLogFilter {
