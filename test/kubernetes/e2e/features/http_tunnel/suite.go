@@ -137,10 +137,7 @@ func (s *testingSuite) TestHttpTunnel() {
 		opts,
 		&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
-			// Headers: map[string]any{
-			// 	"Host": httpbinExampleCom,
-			// },
-			Body: matchers.JSONContains([]byte(`{"headers":{"Host":"httpbin.example.com"}}`)),
+			Body:       matchers.JSONContains([]byte(`{"headers":{"Host":"httpbin.example.com"}}`)),
 		},
 	)
 

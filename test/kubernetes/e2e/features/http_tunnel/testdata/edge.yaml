@@ -3,6 +3,7 @@ apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
   name: squid-proxy
+  namespace: default
 spec:
   virtualHost:
     domains:
@@ -14,5 +15,6 @@ spec:
           single:
             upstream:
               name: squid-proxy
+              namespace: default
         options:
           autoHostRewrite: true
