@@ -9,6 +9,8 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	"go.uber.org/zap"
+
+	istiolabel "istio.io/api/label"
 	"istio.io/api/networking/v1alpha3"
 )
 
@@ -22,6 +24,9 @@ type LoadBalancingInfo struct {
 
 	// dest rule info:
 	PriorityInfo *PriorityInfo
+
+	// DefaultNetwork for the cluster
+	DefaultNetwork string
 }
 
 type PriorityInfo struct {
@@ -48,14 +53,29 @@ func NewPriorities(failoverPriority []string) *Prioritizer {
 	}
 }
 
-func (p *Prioritizer) GetPriority(proxyLabels, upstreamEndpointLabels map[string]string) int {
+func (p *Prioritizer) GetPriority(proxyLabels, upstreamEndpointLabels map[string]string, defaultNetwork string) int {
 	for j, label := range p.priorityLabels {
 		valueForProxy, ok := p.priorityLabelOverrides[label]
 		if !ok {
-			valueForProxy = proxyLabels[label]
+			valueForProxy, ok = proxyLabels[label]
+			if !ok && label == istiolabel.TopologyNetwork.Name {
+				valueForProxy = defaultNetwork
+			}
 		}
 
-		if valueForProxy != upstreamEndpointLabels[label] {
+		valueForEndpoint, ok := upstreamEndpointLabels[label]
+		if !ok && label == istiolabel.TopologyNetwork.Name {
+			valueForEndpoint = defaultNetwork
+		}
+
+		valuesEqual := valueForProxy == valueForEndpoint
+
+		// istio network semantic: if either side is empty, assume flat network
+		if !valuesEqual && label == istiolabel.TopologyNetwork.Name {
+			valuesEqual = valueForProxy == "" || valueForEndpoint == ""
+		}
+
+		if !valuesEqual {
 			return p.lowestPriority - j
 		}
 	}
@@ -151,7 +171,7 @@ func applyFailoverPriorityPerLocality(
 	// key is priority, value is the index of LocalityLbEndpoints.LbEndpoints
 	priorityMap := map[int][]int{}
 	for i, ep := range eps {
-		priority := lbinfo.PriorityInfo.FailoverPriority.GetPriority(lbinfo.PodLabels, ep.EndpointMd.Labels)
+		priority := lbinfo.PriorityInfo.FailoverPriority.GetPriority(lbinfo.PodLabels, ep.EndpointMd.Labels, lbinfo.DefaultNetwork)
 		priorityMap[priority] = append(priorityMap[priority], i)
 	}
 
