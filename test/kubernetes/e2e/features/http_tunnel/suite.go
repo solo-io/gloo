@@ -2,10 +2,11 @@ package http_tunnel
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"regexp"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
@@ -135,7 +136,7 @@ func (s *testingSuite) TestHttpTunnel() {
 		opts,
 		&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
-			Body:       matchers.JSONContains([]byte(`{"headers":{"Host":"httpbin.example.com"}}`)),
+			Body:       matchers.JSONContains([]byte(`{"headers":{"Host":["httpbin.example.com"]}}`)),
 		},
 	)
 
@@ -143,9 +144,17 @@ func (s *testingSuite) TestHttpTunnel() {
 	s.testInstallation.AssertionsT(s.T()).Assert.Eventually(func() bool {
 		logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx, "default", "squid")
 		if err != nil {
+			fmt.Printf("Error getting squid logs: %v\n", err)
 			return false
 		}
 
-		return assert.Regexp(s.T(), "TCP_TUNNEL/200 [0-9]+ CONNECT httpbin.httpbin.svc.cluster.local:8080", logs)
+		pattern := "TCP_TUNNEL/200 [0-9]+ CONNECT httpbin.httpbin.svc.cluster.local:8080"
+		match, err := regexp.Match(pattern, []byte(logs))
+		if err != nil {
+			fmt.Printf("Error matching squid logs: %v\n", err)
+			return false
+		}
+
+		return match
 	}, time.Second*30, time.Second*3, "squid logs should indicate a connection to the httpbin service")
 }
