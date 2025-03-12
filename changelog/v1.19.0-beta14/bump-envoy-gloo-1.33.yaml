@@ -1,0 +1,9 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    issueLink: TODO
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo
+    dependencyTag: v1.33.0-patch1
+    resolvesIssue: false
+    description: >-
+      Update Envoy version to 1.33.x branch
