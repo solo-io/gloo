@@ -12,6 +12,7 @@ import (
 
 	istiolabel "istio.io/api/label"
 	"istio.io/api/networking/v1alpha3"
+	"istio.io/istio/pkg/ptr"
 )
 
 type LoadBalancingInfo struct {
@@ -57,29 +58,40 @@ func (p *Prioritizer) GetPriority(proxyLabels, upstreamEndpointLabels map[string
 	for j, label := range p.priorityLabels {
 		valueForProxy, ok := p.priorityLabelOverrides[label]
 		if !ok {
-			valueForProxy, ok = proxyLabels[label]
-			if !ok && label == istiolabel.TopologyNetwork.Name {
-				valueForProxy = defaultNetwork
+			valueForProxy = proxyLabels[label]
+		}
+		valueForEndpoint := upstreamEndpointLabels[label]
+
+		if label == istiolabel.TopologyNetwork.Name {
+			if !checkFlatIstioNetwork(valueForProxy, valueForEndpoint, defaultNetwork) {
+				return p.lowestPriority - j
+			}
+		} else {
+			// other labels just want exact equality
+			if valueForProxy != valueForEndpoint {
+				return p.lowestPriority - j
 			}
 		}
 
-		valueForEndpoint, ok := upstreamEndpointLabels[label]
-		if !ok && label == istiolabel.TopologyNetwork.Name {
-			valueForEndpoint = defaultNetwork
-		}
-
-		valuesEqual := valueForProxy == valueForEndpoint
-
-		// istio network semantic: if either side is empty, assume flat network
-		if !valuesEqual && label == istiolabel.TopologyNetwork.Name {
-			valuesEqual = valueForProxy == "" || valueForEndpoint == ""
-		}
-
-		if !valuesEqual {
-			return p.lowestPriority - j
-		}
 	}
 	return 0
+}
+
+// topology.istio.io/network is a bit special:
+// * Pod/worklaod label defaults are derived from the istio-system namespace
+// * If either side is "" we consider them equal (reachable on a flat network)
+func checkFlatIstioNetwork(clientNetwork, remoteNetwork, defaultNetwork string) bool {
+	// if we don't have a value, use the default
+	clientNetwork = ptr.NonEmptyOrDefault(clientNetwork, defaultNetwork)
+	remoteNetwork = ptr.NonEmptyOrDefault(remoteNetwork, defaultNetwork)
+
+	// if there is no pod/endpoint label AND there is no defaultNetwork
+	// due to the istio-system Namespace being unlabeled, assume reachabiltiy/locality
+	if clientNetwork == "" || remoteNetwork == "" {
+		return true
+	}
+
+	return clientNetwork == remoteNetwork
 }
 
 // Returning the label names in a separate array as the iteration of map is not ordered.
