@@ -98,8 +98,6 @@ func (s *testingSuite) TearDownSuite() {
 	s.Require().NoError(err)
 }
 
-func (s *testingSuite) BeforeTest(suiteName, testName string) {}
-
 func (s *testingSuite) AfterTest(suiteName, testName string) {
 	if s.T().Failed() {
 		s.testInstallation.PreFailHandler(s.ctx, e2e.PreFailHandlerOption{
