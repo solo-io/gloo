@@ -3,7 +3,7 @@ changelog:
     dependencyOwner: solo-io
     dependencyRepo: envoy-gloo
     dependencyTag: v1.33.0-patch2
-    issueLink: https://github.com/kgateway-dev/kgateway/issues/10192
+    issueLink: https://github.com/solo-io/solo-projects/issues/7787
   - type: FIX
     issueLink: https://github.com/kgateway-dev/kgateway/issues/10192
     resolvesIssue: true
