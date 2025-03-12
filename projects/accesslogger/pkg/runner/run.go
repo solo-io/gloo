@@ -154,6 +154,7 @@ func Run() {
 							zap.Any("start_time", v.GetCommonProperties().GetStartTime()),
 							zap.Any("downstream_resp_time", downstreamRespTimeNs),
 							zap.Any("upstream_resp_time", upstreamRespTimeNs),
+							zap.Any("filter_state_objects", v.GetCommonProperties().GetFilterStateObjects()),
 						).Info("received http request")
 					}
 				case *pb.StreamAccessLogsMessage_TcpLogs:

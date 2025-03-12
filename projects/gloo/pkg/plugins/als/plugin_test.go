@@ -49,17 +49,19 @@ var _ = Describe("Plugin", func() {
 	// to make sure we copied/pasted correctly and that no changes made to the Envoy definitions broke anything
 	Describe("Test each Filter", func() {
 		var (
-			alsSettings      *accessLogService.AccessLoggingService
-			logName          string
-			extraHeaders     []string
-			usRef            *core.ResourceRef
-			accessLogConfigs []*envoyal.AccessLog
-			err              error
+			alsSettings             *accessLogService.AccessLoggingService
+			logName                 string
+			extraHeaders            []string
+			filterStateObjectsToLog []string
+			usRef                   *core.ResourceRef
+			accessLogConfigs        []*envoyal.AccessLog
+			err                     error
 		)
 
 		BeforeEach(func() {
 			logName = "test"
 			extraHeaders = []string{"test"}
+			filterStateObjectsToLog = []string{"filtertest"}
 			usRef = &core.ResourceRef{
 				Name:      "default",
 				Namespace: "default",
@@ -77,6 +79,7 @@ var _ = Describe("Plugin", func() {
 								AdditionalRequestHeadersToLog:   extraHeaders,
 								AdditionalResponseHeadersToLog:  extraHeaders,
 								AdditionalResponseTrailersToLog: extraHeaders,
+								FilterStateObjectsToLog:         filterStateObjectsToLog,
 							},
 						},
 					},
@@ -96,6 +99,7 @@ var _ = Describe("Plugin", func() {
 				Expect(falCfg.AdditionalResponseHeadersToLog).To(Equal(extraHeaders))
 				Expect(falCfg.AdditionalResponseTrailersToLog).To(Equal(extraHeaders))
 				Expect(falCfg.CommonConfig.LogName).To(Equal(logName))
+				Expect(falCfg.CommonConfig.FilterStateObjectsToLog).To(Equal(filterStateObjectsToLog))
 				envoyGrpc := falCfg.CommonConfig.GetGrpcService().GetEnvoyGrpc()
 				Expect(envoyGrpc).NotTo(BeNil())
 				Expect(envoyGrpc.ClusterName).To(Equal(translatorutil.UpstreamToClusterName(usRef)))
