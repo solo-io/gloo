@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/directresponse"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/headless_svc"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/http_listener_options"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/http_tunnel"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listener_options"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/metrics"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/port_routing"
@@ -43,6 +44,7 @@ func KubeGatewaySuiteRunner() e2e.SuiteRunner {
 	kubeGatewaySuiteRunner.Register("Metrics", metrics.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("Tracing", tracing.NewK8sGatewayTestingSuite)
 	kubeGatewaySuiteRunner.Register("ServerTls", server_tls.NewK8sTestingSuite)
+	kubeGatewaySuiteRunner.Register("HTTPTunnel", http_tunnel.NewTestingSuite)
 
 	return kubeGatewaySuiteRunner
 }
