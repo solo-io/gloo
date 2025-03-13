@@ -2,6 +2,6 @@ changelog:
 - type: FIX
   description: >-
     Improved HTTP tunneling documentation and added note about remote JWKS configuration
-    using a upstream with `httpProxyHostname` requiring additional configuration.
+    using an upstream with `httpProxyHostname` requiring additional configuration.
   issueLink: https://github.com/solo-io/solo-projects/issues/7497
   resolvesIssue: false
