@@ -45,3 +45,22 @@ func (p *Provider) EventuallyPodsMatches(
 		WithPolling(pollingInterval).
 		Should(gomega.Succeed(), fmt.Sprintf("Failed to match pod in namespace %s", podNamespace))
 }
+
+// EventuallyPodsNotExist asserts that the pod(s) are no longer present
+func (p *Provider) EventuallyPodsNotExist(
+	ctx context.Context,
+	podNamespace string,
+	listOpt metav1.ListOptions,
+	timeout ...time.Duration,
+) {
+	currentTimeout, pollingInterval := helper.GetTimeouts(timeout...)
+
+	p.Gomega.Eventually(func(g gomega.Gomega) {
+		pods, err := p.clusterContext.Clientset.CoreV1().Pods(podNamespace).List(ctx, listOpt)
+		g.Expect(err).NotTo(gomega.HaveOccurred(), "Failed to list pods")
+		g.Expect(pods.Items).To(gomega.BeEmpty(), "Pods found")
+	}).
+		WithTimeout(currentTimeout).
+		WithPolling(pollingInterval).
+		Should(gomega.Succeed(), fmt.Sprintf("Failed to match pod in namespace %s", podNamespace))
+}
