@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/kgateway-dev/kgateway/issues/10114
+  resolvesIssue: false
+  description: Make the route delegation e2e tests more robust against flakes.
