@@ -76,16 +76,16 @@ EOF
 Now let's configure Gloo Gateway to route requests to the upstream we just created. To do that, we define a simple Virtual 
 Service to match all requests that:
 
-- contain a `Host` header with value `foo` and
+- contain a `Host` header with value `foo-http` and
 - have a path that starts with `/` (this will match all requests).
 
 Apply the following virtual service:
-{{< readfile file="guides/security/auth/extauth/basic_auth/test-no-auth-vs.yaml" markdown="true">}}
+{{< readfile file="guides/security/auth/extauth/passthrough_auth/http/test-no-auth-vs.yaml" markdown="true">}}
 
 Let's send a request that matches the above route to the gateway proxy and make sure it works:
 
 ```shell
-curl -H "Host: foo" $(glooctl proxy url)/posts/1
+curl -H "Host: foo-http" $(glooctl proxy url)/posts/1
 ```
 
 The above command should produce the following output:
@@ -111,14 +111,14 @@ kubectl apply -f - <<EOF
 apiVersion: enterprise.gloo.solo.io/v1
 kind: AuthConfig
 metadata:
-  name: passthrough-auth
+  name: http-passthrough-auth
   namespace: gloo-system
 spec:
   configs:
   - passThroughAuth:
       http:
         # Url of the http auth server to use for auth
-        url: http://example-http-auth-service.default.svc.cluster.local:9001
+        url: http://example-http-auth-service.default.svc.cluster.local:9001/auth
         # Set a connection timeout to external service, default is 5 seconds
         connectionTimeout: 3s
 EOF
@@ -136,12 +136,12 @@ kubectl apply -f - <<EOF
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
-  name: auth-tutorial
+  name: http-auth-tutorial
   namespace: gloo-system
 spec:
   virtualHost:
     domains:
-      - 'foo'
+      - 'foo-http'
     routes:
       - matchers:
         - prefix: /
@@ -151,11 +151,11 @@ spec:
               name: json-upstream
               namespace: gloo-system
         options:
-          autoHostRewrite: true      
+          autoHostRewrite: true
     options:
       extauth:
         configRef:
-          name: passthrough-auth
+          name: http-passthrough-auth
           namespace: gloo-system
 EOF
 {{< /highlight >}}
@@ -189,7 +189,7 @@ If the auth config has been received successfully, you should see the log line:
 The virtual service that we have created should now be secured using our external authentication service. To test this, we can try our original command, and the request should not be allowed through because of missing authentication.
 
 ```shell
-curl -v -H "Host: foo" $(glooctl proxy url)/posts/1
+curl -v -H "Host: foo-http" $(glooctl proxy url)/posts/1
 ```
 
 In fact, if we check the logs of our sample http auth service, we see the following message:
@@ -205,7 +205,7 @@ kubectl apply -f - <<EOF
 apiVersion: enterprise.gloo.solo.io/v1
 kind: AuthConfig
 metadata:
-  name: passthrough-auth
+  name: http-passthrough-auth
   namespace: gloo-system
 spec:
   configs:
@@ -226,7 +226,7 @@ The sample Http authentication service has been implemented such that any reques
 passthrough auth to use the `/auth` path with the http auth server and to passthrough `Authorization` header. We can now add this header to our curl request as follows:
 
 ```shell
-curl -H "Host: foo" -H "authorization: authorize me" $(glooctl proxy url)/posts/1
+curl -H "Host: foo-http" -H "authorization: authorize me" $(glooctl proxy url)/posts/1
 ```
 
 The request should now be authorized!
@@ -239,7 +239,7 @@ For more information about configuration options, see the [API docs]({{< version
 apiVersion: enterprise.gloo.solo.io/v1
 kind: AuthConfig
 metadata:
-  name: passthrough-auth
+  name: http-passthrough-auth
   namespace: gloo-system
 spec:
   configs:
@@ -248,7 +248,7 @@ spec:
         # Url of the http auth server to use for auth
         # This can include path, and can also use https. 
         # In order to use a https passthrough server, provide the cert in the HTTPS_PASSTHROUGH_CA_CERT environment variable to the ext-auth-service pod as a base64-encoded string.
-        url: http://example-http-auth-service.default.svc.cluster.local:9001
+        url: http://example-http-auth-service.default.svc.cluster.local:9001/auth
         # Set a connection timeout to external service, default is 5 seconds
         connectionTimeout: 3s
         # These options will modify the request going to the passthrough auth server

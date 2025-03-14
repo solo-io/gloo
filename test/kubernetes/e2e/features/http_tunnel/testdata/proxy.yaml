@@ -1,0 +1,12 @@
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: squid-proxy
+  namespace: default
+spec:
+  static:
+    hosts:
+    - addr: squid.default.svc.cluster.local
+      port: 3128
+  httpProxyHostname: "httpbin.httpbin.svc.cluster.local:8080"

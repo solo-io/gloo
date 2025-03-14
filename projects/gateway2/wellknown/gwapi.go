@@ -23,6 +23,9 @@ const (
 	// Kind string for TCPRoute resource
 	TCPRouteKind = "TCPRoute"
 
+	// Kind string for TLSRoute resource
+	TLSRouteKind = "TLSRoute"
+
 	// Kind string for Gateway resource
 	GatewayKind = "Gateway"
 
@@ -40,6 +43,7 @@ const (
 
 	// Gateway API CRD names
 	TCPRouteCRDName = "tcproutes.gateway.networking.k8s.io"
+	TLSRouteCRDName = "tlsroutes.gateway.networking.k8s.io"
 )
 
 var (
@@ -79,7 +83,7 @@ var (
 		Version: apiv1.GroupVersion.Version,
 		Kind:    HTTPRouteListKind,
 	}
-	HTCPRouteListGVK = schema.GroupVersionKind{
+	HTCPRouteListGVK = schema.GroupVersionKind{ // Remove?
 		Group:   GatewayGroup,
 		Version: apiv1alpha2.GroupVersion.Version,
 		Kind:    HTTPRouteListKind,

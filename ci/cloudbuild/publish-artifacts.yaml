@@ -1,6 +1,6 @@
 steps:
 
-- name: 'gcr.io/$PROJECT_ID/prepare-go-workspace:0.11.1'
+- name: 'gcr.io/$PROJECT_ID/prepare-go-workspace:0.12.1'
   id: 'prepare-workspace'
   args:
   - '--repo-name'
@@ -51,7 +51,15 @@ steps:
   - create
   - --use
 
-- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.11.1'
+# Reset QEMU to avoid segfaults for multiarch images
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'reset-qemu'
+  entrypoint: 'sh'
+  args:
+    - '-c'
+    - 'docker run --rm --privileged multiarch/qemu-user-static --reset -p yes -c yes'
+
+- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.12.1'
   id: 'build-certgen-arm64-binary'
   args:
   - 'certgen-docker'
@@ -60,7 +68,7 @@ steps:
   - 'GOARCH=arm64'
 
 # Run make targets to push docker images to quay.io
-- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.11.1'
+- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.12.1'
   id: 'publish-docker'
   args:
   - 'publish-docker'
@@ -86,7 +94,7 @@ steps:
   waitFor:
   - 'publish-docker'
 
-- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.11.1'
+- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.12.1'
   id: 'release-chart'
   dir: *dir
   args:
@@ -101,7 +109,7 @@ steps:
   - 'gcr-auth'
 
 # Run make targets to build and push docker images to GCR
-- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.11.1'
+- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.12.1'
   id: 'publish-docker-extended-gcr'
   dir: *dir
   args:

@@ -7,10 +7,8 @@ import (
 
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
-	"github.com/solo-io/gloo/pkg/utils/namespaces"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	skkube "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 var (
@@ -19,42 +17,51 @@ var (
 		return eris.Wrapf(NoXdsPortFoundError, "no port with the name %s found in service %s.%s", portName, svcNamespace, svcName)
 	}
 	NoGlooSvcFoundError = eris.New("failed to find Gloo service")
-	noGlooSvcFoundError = func(err error, svcNamespace string, svcName string) error {
-		wrapped := eris.Wrap(err, NoGlooSvcFoundError.Error())
-		return eris.Wrapf(wrapped, "service %s.%s", svcNamespace, svcName)
+	noGlooSvcFoundError = func(svcNamespace string) error {
+		return eris.Wrapf(NoGlooSvcFoundError, "service in %s with gloo=gloo label", svcNamespace)
+	}
+	MultipleGlooSvcFoundError = eris.New("found multiple Gloo services")
+	multipleGlooSvcFoundError = func(svcNamespace string) error {
+		return eris.Wrapf(MultipleGlooSvcFoundError, "found multiple services in %s with gloo=glo label", svcNamespace)
 	}
 )
 
-// GetControlPlaneXdsPort gets the xDS port from the gloo Service.
-func GetControlPlaneXdsPort(ctx context.Context, svcClient skkube.ServiceClient) (int32, error) {
-	// When this code is invoked from within the running Pod, this will contain the namespace where Gloo is running
-	svcNamespace := namespaces.GetPodNamespace()
-	return GetNamespacedControlPlaneXdsPort(ctx, svcNamespace, svcClient)
-}
-
-// GetNamespacedControlPlaneXdsPort gets the xDS port from the Gloo Service, provided the namespace the Service is running in
-func GetNamespacedControlPlaneXdsPort(ctx context.Context, svcNamespace string, svcClient skkube.ServiceClient) (int32, error) {
-	glooSvc, err := svcClient.Read(svcNamespace, kubeutils.GlooServiceName, clients.ReadOpts{Ctx: ctx})
+func GetControlPlaneService(ctx context.Context, svcNamespace string, svcClient skkube.ServiceClient) (*skkube.Service, error) {
+	opts := clients.ListOpts{
+		Ctx:      ctx,
+		Selector: kubeutils.GlooServiceLabels,
+	}
+	services, err := svcClient.List(svcNamespace, opts)
 	if err != nil {
-		if apierrors.IsNotFound(err) {
-			return 0, noGlooSvcFoundError(err, svcNamespace, kubeutils.GlooServiceName)
-		}
-		return 0, err
+		return nil, err
 	}
 
+	if len(services) == 0 {
+		return nil, noGlooSvcFoundError(svcNamespace)
+	}
+
+	if len(services) > 1 {
+		return nil, multipleGlooSvcFoundError(svcNamespace)
+	}
+
+	return services[0], nil
+}
+
+// GetControlPlaneXdsPort gets the xDS port from the Gloo Service
+func GetControlPlaneXdsPort(service *skkube.Service) (int32, error) {
 	// find the xds port on the Gloo Service
-	for _, port := range glooSvc.Spec.Ports {
+	for _, port := range service.Spec.Ports {
 		if port.Name == kubeutils.GlooXdsPortName {
 			return port.Port, nil
 		}
 	}
-	return 0, noXdsPortFoundError(kubeutils.GlooXdsPortName, svcNamespace, kubeutils.GlooServiceName)
+	return 0, noXdsPortFoundError(kubeutils.GlooXdsPortName, service.Namespace, service.Name)
 }
 
 // GetControlPlaneXdsHost gets the xDS address from the gloo Service.
-func GetControlPlaneXdsHost() string {
+func GetControlPlaneXdsHost(service *skkube.Service) string {
 	return kubeutils.ServiceFQDN(metav1.ObjectMeta{
-		Name:      kubeutils.GlooServiceName,
-		Namespace: namespaces.GetPodNamespace(),
+		Name:      service.Name,
+		Namespace: service.Namespace,
 	})
 }

@@ -6,13 +6,13 @@ skip reading security scan for file <em>{{ $file }}</em>
 
 {{- else -}}
 
-{{$file := .Get "file"}}
-{{ if (fileExists $file ) -}}
-{{- if eq (.Get "markdown") "true" -}}
-{{- $file  | readFile | markdownify -}}
-{{- else -}}
-{{ $file  | readFile | safeHTML }}
-{{- end -}}
-{{- end -}}
+  {{$file := .Get "file"}}
+  {{- if (fileExists $file ) -}}
+    {{- if eq (.Get "markdown") "true" -}}
+      {{- $file  | readFile | markdownify -}}
+    {{- else -}}
+      {{- $file  | readFile | safeHTML -}}
+    {{- end -}}
+  {{- end -}}
 
 {{- end -}}

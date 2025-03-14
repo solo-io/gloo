@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/directresponse"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/headless_svc"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/http_listener_options"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/http_tunnel"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listener_options"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/metrics"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/port_routing"
@@ -16,6 +17,7 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/server_tls"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/services/httproute"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/services/tcproute"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/services/tlsroute"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/tracing"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/upstreams"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/virtualhost_options"
@@ -32,6 +34,7 @@ func KubeGatewaySuiteRunner() e2e.SuiteRunner {
 	kubeGatewaySuiteRunner.Register("Upstreams", upstreams.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("HTTPRouteServices", httproute.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("TCPRouteServices", tcproute.NewTestingSuite)
+	kubeGatewaySuiteRunner.Register("TLSRouteServices", tlsroute.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("HeadlessSvc", headless_svc.NewK8sGatewayHeadlessSvcSuite)
 	kubeGatewaySuiteRunner.Register("PortRouting", port_routing.NewK8sGatewayTestingSuite)
 	kubeGatewaySuiteRunner.Register("RouteDelegation", route_delegation.NewTestingSuite)
@@ -41,6 +44,7 @@ func KubeGatewaySuiteRunner() e2e.SuiteRunner {
 	kubeGatewaySuiteRunner.Register("Metrics", metrics.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("Tracing", tracing.NewK8sGatewayTestingSuite)
 	kubeGatewaySuiteRunner.Register("ServerTls", server_tls.NewK8sTestingSuite)
+	kubeGatewaySuiteRunner.Register("HTTPTunnel", http_tunnel.NewTestingSuite)
 
 	return kubeGatewaySuiteRunner
 }

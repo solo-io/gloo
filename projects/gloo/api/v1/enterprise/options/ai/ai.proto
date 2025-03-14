@@ -4,6 +4,7 @@ option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise
 
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "google/protobuf/struct.proto";
+import "google/protobuf/wrappers.proto";
 import "extproto/ext.proto";
 option (extproto.equal_all) = true;
 option (extproto.hash_all) = true;
@@ -60,10 +61,13 @@ message UpstreamSpec {
   // Send requests to a custom host and port, such as to proxy the request,
   // or to use a different backend that is API-compliant with the upstream version.
   message CustomHost {
-    // Custom host to send the traffic requests to.
+    // Custom host or IP address to send the traffic requests to.
     string host = 1;
     // Custom port to send the traffic requests to.
     uint32 port = 2;
+    // Optional: hostname used to set the SNI (if is secure connection) and the host request header.
+    // If hostname is not set, host will be used instead 
+    google.protobuf.StringValue hostname = 3;
   }
 
   // Settings for the [OpenAI](https://platform.openai.com/docs/overview) LLM provider.
@@ -655,7 +659,6 @@ message AIPromptGuard {
     message HeaderMatch {
       // The header string match type.
       enum MatchType {
-        option allow_alias = true;
         // The string must match exactly the specified string.
         EXACT = 0;
         // The string must have the specified prefix.
@@ -666,8 +669,6 @@ message AIPromptGuard {
         CONTAINS = 3;
         // The string must match the specified [RE2-style regular expression](https://github.com/google/re2/wiki/) pattern.
         REGEX = 4;
-        // Do not use. Use `REGEX` (fully capitalized) instead.
-        regex = 4;
       }
       // The header key string to match against.
       string key = 1;

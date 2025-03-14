@@ -480,7 +480,6 @@ type ServiceAccount struct {
 	DisableAutomount *bool             `json:"disableAutomount,omitempty" desc:"disable automounting the service account to the gateway proxy. not mounting the token hardens the proxy container, but may interfere with service mesh integrations"`
 	*KubeResourceOverride
 }
-
 type GatewayValidation struct {
 	Enabled                          *bool                    `json:"enabled,omitempty" desc:"Enable the Gateway validation webhook for Gloo Edge API resources (default true)."`
 	AlwaysAcceptResources            *bool                    `json:"alwaysAcceptResources,omitempty" desc:"By default, the validation webhook admits, logs, and reports metrics for invalid resources instead of rejecting them. To reject the invalid resources, set this value to false."`

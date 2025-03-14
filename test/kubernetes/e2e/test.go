@@ -139,7 +139,10 @@ type TestInstallation struct {
 	Actions *actions.Provider
 
 	// Assertions is the entity that creates assertions that can be executed by the Operator
-	// DEPRECATED: Use AssertionsT instead (which is scoped to a specific test and not the root suite)
+	//
+	// Deprecated: Use AssertionsT to scope the assertion to the current test and not the root suite.
+	// This avoids failure being triggered on the parent and T.Failed being set incorrectly in
+	// AfterTest handlers.
 	Assertions *assertions.Provider
 
 	// AssertionsT creates an assertion provider that is scoped to the provided test

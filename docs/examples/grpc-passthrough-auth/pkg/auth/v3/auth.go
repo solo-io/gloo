@@ -2,6 +2,7 @@ package v3
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"strings"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 
 	envoy_service_auth_v3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/genproto/googleapis/rpc/status"
 )
@@ -28,6 +30,12 @@ func New() envoy_service_auth_v3.AuthorizationServer {
 func (s *server) Check(
 	ctx context.Context,
 	req *envoy_service_auth_v3.CheckRequest) (*envoy_service_auth_v3.CheckResponse, error) {
+
+	if envutils.IsEnvTruthy("REQUEST_LOGGING") {
+		jreq, _ := json.MarshalIndent(req, "", "\t")
+		log.Printf("request: %s\n", jreq)
+	}
+
 	authorization := req.Attributes.Request.Http.Headers["authorization"]
 	if strings.Contains(authorization, "authorize me") {
 		log.Println("Received request with correct authorization header")

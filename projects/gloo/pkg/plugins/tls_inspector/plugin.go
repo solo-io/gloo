@@ -66,6 +66,15 @@ func includeTlsInspectorForAggregateListener(in *v1.AggregateListener) bool {
 			return true
 		}
 	}
+	// for the case of TLS Passthrough over TCP, which is the usecase for TLSRoutes,
+	// we need to add the tls inspector
+	for _, tcpListener := range in.GetTcpListeners() {
+		for _, host := range tcpListener.GetTcpListener().GetTcpHosts() {
+			if host.GetSslConfig() != nil {
+				return true
+			}
+		}
+	}
 
 	return false
 }
