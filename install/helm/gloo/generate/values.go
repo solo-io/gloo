@@ -26,6 +26,7 @@ type Config struct {
 
 type Global struct {
 	Image                *Image                `json:"image,omitempty"`
+	DeploymentImages     *DeploymentImage      `json:"deploymentImage,omitempty"`
 	Extensions           interface{}           `json:"extensions,omitempty"`
 	GlooRbac             *Rbac                 `json:"glooRbac,omitempty"`
 	GlooStats            Stats                 `json:"glooStats,omitempty" desc:"Config used as the default values for Prometheus stats published from Gloo Edge pods. Can be overridden by individual deployments."`
@@ -41,6 +42,11 @@ type Global struct {
 	AdditionalLabels     map[string]string     `json:"additionalLabels,omitempty" desc:"Additional labels to add to all gloo resources."`
 	PodSecurityStandards *PodSecurityStandards `json:"podSecurityStandards,omitempty" desc:"Configuration related to [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/)."`
 	SecuritySettings     *SecuritySettings     `json:"securitySettings,omitempty" desc:"Global settings for pod and container security contexts"`
+}
+
+type DeploymentImage struct {
+	Image       *Image   `json:"image,omitempty"`
+	Deployments []string `json:"deployments,omitempty"`
 }
 
 type SecuritySettings struct {

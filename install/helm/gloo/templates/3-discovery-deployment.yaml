@@ -2,9 +2,17 @@
 {{- if .Values.discovery.enabled }}
 {{- $statsConfig := coalesce .Values.discovery.deployment.stats .Values.global.glooStats -}}
 {{- $image := .Values.discovery.deployment.image }}
-{{- if .Values.global  }}
-{{- $image = merge .Values.discovery.deployment.image .Values.global.image }}
+{{- $overrideImage := (dict) }}
+{{- if .Values.global.deploymentImages }}
+  {{- range .Values.global.deploymentImages.deployments }}
+    {{- if and (eq .  "discovery") $.Values.global.deploymentImages.image }}
+      {{- $overrideImage = $.Values.global.deploymentImages.image }}
+    {{- end }}
+  {{- end }}
 {{- end }}
+
+{{- $image = merge .Values.discovery.deployment.image $overrideImage  (or .Values.global.image (dict)) }}
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
