@@ -7,7 +7,7 @@ description: Filter, monitor, and block potentially harmful HTTP traffic.
 Filter, monitor, and block potentially harmful HTTP traffic with a Web Application Firewall (WAF) policy.
 
 {{% notice note %}}
-The WAF feature was introduced with **Gloo Gateway Enterprise**, release 0.18.23. If you are using an earlier version, this tutorial will not work.
+{{< readfile file="static/content/enterprise_only_feature_disclaimer" markdown="true">}}
 {{% /notice %}}
 
 ## About web application firewalls
@@ -21,7 +21,7 @@ In this section, you can learn about the following WAF topics:
 
 ### ModSecurity rule sets {#about-rule-sets}
 
-Gloo supports the popular Web Application Firewall framework and ruleset [ModSecurity](https://www.github.com/SpiderLabs/ModSecurity) **version 3.0.4**. ModSecurity uses a simple rules language to interpret and process incoming HTTP traffic. Because it is open source, ModSecurity is a flexible, cross-platform solution that incorporates transparent security practices to protect apps against a range web attacks. 
+Gloo supports the popular Web Application Firewall framework and ruleset [ModSecurity](https://www.github.com/SpiderLabs/ModSecurity) **version 3.2.1**. ModSecurity uses a simple rules language to interpret and process incoming HTTP traffic. Because it is open source, ModSecurity is a flexible, cross-platform solution that incorporates transparent security practices to protect apps against a range web attacks. 
 
 You have several options for using ModSecurity to write WAF policies:
 * Use publicly available rule sets that provide a generic set of detection rules to protect against the most common security threats. For example, the [OWASP Core Rule Set](https://github.com/coreruleset/coreruleset) is an open source project that protects apps against a wide range of attacks, including the "OWASP Top Ten."
@@ -510,7 +510,7 @@ kubectl -n gloo-system logs deploy/gateway-proxy
 
 and you should see the following output:
 ```json
-{"transaction":{"request":{"http_version":1.1,"body":"","headers":{":path":"/api/pets/1","x-forwarded-proto":"http","accept":"*/*","host":"172.17.0.2:32608","user-agent":"scammer",":authority":"172.17.0.2:32608",":method":"GET","x-request-id":"a91986b2-5928-427e-a557-15f5cbeec104"},"uri":"/api/pets/1","method":"GET"},"host_port":0,"host_ip":"","unique_id":"158879653826.189180","client_ip":"10.244.0.1","time_stamp":"Wed May  6 20:22:18 2020","messages":[{"message":"blocked scammer","details":{"maturity":"0","match":"Matched \"Operator `Rx' with parameter `scammer' against variable `REQUEST_HEADERS:user-agent' (Value: `scammer' )","reference":"o0,7v133,7","lineNumber":"7","ruleId":"107","severity":"0","file":"\u003c\u003creference missing or not informed\u003e\u003e","ver":"","rev":"","data":"","tags":[],"accuracy":"0"}}],"client_port":48839,"producer":{"secrules_engine":"Enabled","modsecurity":"ModSecurity v3.0.4 (Linux)","components":[],"connector":"envoy v0.1.0"},"response":{"http_code":200,"headers":{}},"server_id":"4ce9d7cf1298296878f1ae2e9d40de00b290a3a4"}}
+{"transaction":{"request":{"http_version":1.1,"body":"","headers":{":path":"/api/pets/1","x-forwarded-proto":"http","accept":"*/*","host":"172.17.0.2:32608","user-agent":"scammer",":authority":"172.17.0.2:32608",":method":"GET","x-request-id":"a91986b2-5928-427e-a557-15f5cbeec104"},"uri":"/api/pets/1","method":"GET"},"host_port":0,"host_ip":"","unique_id":"158879653826.189180","client_ip":"10.244.0.1","time_stamp":"Wed May  6 20:22:18 2020","messages":[{"message":"blocked scammer","details":{"maturity":"0","match":"Matched \"Operator `Rx' with parameter `scammer' against variable `REQUEST_HEADERS:user-agent' (Value: `scammer' )","reference":"o0,7v133,7","lineNumber":"7","ruleId":"107","severity":"0","file":"\u003c\u003creference missing or not informed\u003e\u003e","ver":"","rev":"","data":"","tags":[],"accuracy":"0"}}],"client_port":48839,"producer":{"secrules_engine":"Enabled","modsecurity":"ModSecurity v3.2.1 (Linux)","components":[],"connector":"envoy v0.1.0"},"response":{"http_code":200,"headers":{}},"server_id":"4ce9d7cf1298296878f1ae2e9d40de00b290a3a4"}}
 ```
 
 {{% notice tip %}}
