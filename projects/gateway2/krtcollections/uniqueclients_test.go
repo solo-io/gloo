@@ -131,7 +131,7 @@ func TestUniqueClients(t *testing.T) {
 			g.Expect(fetchNames).To(Equal(tc.result))
 			g.Expect(names).To(Equal(tc.result))
 			for i := range tc.requests {
-				for j := 0; j < 10; j++ {
+				for j := range 10 {
 					g.Expect(ucc.List()).To(HaveLen(len(allUcc) - i))
 					cb.OnStreamClosed(int64(i*10 + j))
 				}

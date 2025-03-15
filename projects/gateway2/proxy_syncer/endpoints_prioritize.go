@@ -9,7 +9,10 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	"go.uber.org/zap"
+
+	istiolabel "istio.io/api/label"
 	"istio.io/api/networking/v1alpha3"
+	"istio.io/istio/pkg/ptr"
 )
 
 type LoadBalancingInfo struct {
@@ -22,6 +25,9 @@ type LoadBalancingInfo struct {
 
 	// dest rule info:
 	PriorityInfo *PriorityInfo
+
+	// DefaultNetwork for the cluster
+	DefaultNetwork string
 }
 
 type PriorityInfo struct {
@@ -48,18 +54,44 @@ func NewPriorities(failoverPriority []string) *Prioritizer {
 	}
 }
 
-func (p *Prioritizer) GetPriority(proxyLabels, upstreamEndpointLabels map[string]string) int {
+func (p *Prioritizer) GetPriority(proxyLabels, upstreamEndpointLabels map[string]string, defaultNetwork string) int {
 	for j, label := range p.priorityLabels {
 		valueForProxy, ok := p.priorityLabelOverrides[label]
 		if !ok {
 			valueForProxy = proxyLabels[label]
 		}
+		valueForEndpoint := upstreamEndpointLabels[label]
 
-		if valueForProxy != upstreamEndpointLabels[label] {
-			return p.lowestPriority - j
+		if label == istiolabel.TopologyNetwork.Name {
+			if !checkFlatIstioNetwork(valueForProxy, valueForEndpoint, defaultNetwork) {
+				return p.lowestPriority - j
+			}
+		} else {
+			// other labels just want exact equality
+			if valueForProxy != valueForEndpoint {
+				return p.lowestPriority - j
+			}
 		}
+
 	}
 	return 0
+}
+
+// topology.istio.io/network is a bit special:
+// * Pod/worklaod label defaults are derived from the istio-system namespace
+// * If either side is "" we consider them equal (reachable on a flat network)
+func checkFlatIstioNetwork(clientNetwork, remoteNetwork, defaultNetwork string) bool {
+	// if we don't have a value, use the default
+	clientNetwork = ptr.NonEmptyOrDefault(clientNetwork, defaultNetwork)
+	remoteNetwork = ptr.NonEmptyOrDefault(remoteNetwork, defaultNetwork)
+
+	// if there is no pod/endpoint label AND there is no defaultNetwork
+	// due to the istio-system Namespace being unlabeled, assume reachabiltiy/locality
+	if clientNetwork == "" || remoteNetwork == "" {
+		return true
+	}
+
+	return clientNetwork == remoteNetwork
 }
 
 // Returning the label names in a separate array as the iteration of map is not ordered.
@@ -151,7 +183,7 @@ func applyFailoverPriorityPerLocality(
 	// key is priority, value is the index of LocalityLbEndpoints.LbEndpoints
 	priorityMap := map[int][]int{}
 	for i, ep := range eps {
-		priority := lbinfo.PriorityInfo.FailoverPriority.GetPriority(lbinfo.PodLabels, ep.EndpointMd.Labels)
+		priority := lbinfo.PriorityInfo.FailoverPriority.GetPriority(lbinfo.PodLabels, ep.EndpointMd.Labels, lbinfo.DefaultNetwork)
 		priorityMap[priority] = append(priorityMap[priority], i)
 	}
 
