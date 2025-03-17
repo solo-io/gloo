@@ -324,3 +324,6 @@ Wrap the request to the function in the same way as an AWS API Gateway.
    {"body": "gloo edge is inserting this body", "headers": {":authority": "localhost:8080", ":method": "POST", ":path": "/", ":scheme": "http", "accept": "*/*", "content-length": "32", "content-type": "application/x-www-form-urlencoded", "test-header-key": "test-header-value", "user-agent": "curl/7.85.0", "x-forwarded-proto": "http", "x-request-id": "347975da-fa61-4d8a-9285-ee0826202819"}, "httpMethod": "POST", "isBase64Encoded": false, "multiValueHeaders": null, "multiValueQueryStringParameters": null, "path": "/", "pathParameters": null, "queryStringParameters": null, "requestContext": {"httpMethod": "POST", "path": "/", "protocol": "HTTP/1.1", "resourcePath": "/"}, "resource": "/", "routeKey": "POST /", "stageVariables": null, "version": "1.0"}%
    ```
 
+##### Rate-limited Lambda Function
+
+If the upstream Lambda destination is rate-limited, AWS will send a 429 response to Gloo. In this case, Gloo Gateway will change the status code to `500`. Additionally, it will set the `X-Envoygloo-Lambda-Statuscode` header to `429`, and the `X-Envoygloo-Lambda-Statusreason` header will be set with the reason the Lambda function was throttled. For more information, see the [AWS Lambda Documentation](https://docs.aws.amazon.com/lambda/latest/api/API_Invoke.html).
