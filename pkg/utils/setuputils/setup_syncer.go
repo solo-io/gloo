@@ -60,7 +60,7 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 	for {
 		err = nil
 		settings, err = snap.Settings.Find(s.settingsRef.Strings())
-		if err == nil {
+		if settings != nil {
 			break
 		}
 
