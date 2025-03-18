@@ -59,8 +59,8 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 	// Try to find settings, with retry logic
 	for {
 		found, queryErr := snap.Settings.Find(s.settingsRef.Strings())
-		contextutils.LoggerFrom(ctx).Infof("Settings %v", settings)
-		contextutils.LoggerFrom(ctx).Infof("Err %v", err)
+		contextutils.LoggerFrom(ctx).Infof("Settings %v", found)
+		contextutils.LoggerFrom(ctx).Infof("Err %v", queryErr)
 		if found != nil {
 			settings = found
 			break
