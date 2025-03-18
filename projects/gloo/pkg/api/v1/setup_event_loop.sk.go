@@ -122,6 +122,10 @@ func (el *setupEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-ch
 				ctx, canc := context.WithCancel(ctx)
 				cancel = canc
 				err := el.syncer.Sync(ctx, snapshot)
+				if errors.IsNotExist(err) {
+					continue
+				}
+
 				stats.RecordWithTags(
 					ctx,
 					[]tag.Mutator{

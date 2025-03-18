@@ -103,6 +103,9 @@ func (el *setupSimpleEventLoop) Run(ctx context.Context) (<-chan error, error) {
 					ctx, span := trace.StartSpan(ctx, fmt.Sprintf("setup.gloo.solo.io.SimpleEventLoopSync-%T", syncer))
 					ctx, canc := context.WithCancel(ctx)
 					err := syncer.Sync(ctx, snapshot)
+					if errors.IsNotExist(err) {
+						continue
+					}
 					stats.RecordWithTags(
 						ctx,
 						[]tag.Mutator{
