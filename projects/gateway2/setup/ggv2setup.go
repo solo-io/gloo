@@ -64,7 +64,7 @@ func createKubeClient(restConfig *rest.Config) (istiokube.Client, error) {
 func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.NamespacedName) *glookubev1.Settings {
 	// get initial settings
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Infof("getting initial settings. gvr: %v", settingsGVR)
+	logger.Infof("attempting to get initial settings. gvr: %v", settingsGVR)
 
 	var i *unstructured.Unstructured
 	var err error
@@ -77,7 +77,7 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 		}
 
 		if k8serrors.IsNotFound(err) {
-			logger.Debugf("settings %s/%s not found, waiting...", nns.Namespace, nns.Name)
+			logger.Infof("settings %s/%s not found, waiting...", nns.Namespace, nns.Name)
 			// Check if context is done to avoid infinite loop if canceled
 			select {
 			case <-ctx.Done():
