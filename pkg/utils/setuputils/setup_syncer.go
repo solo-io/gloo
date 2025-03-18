@@ -53,12 +53,13 @@ func NewSetupSyncer(settingsRef *core.ResourceRef, setupFunc SetupFunc, identity
 
 func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 	var settings *v1.Settings
+	var err error
 
 	contextutils.LoggerFrom(ctx).Infof("attempting to find settings %v", s.settingsRef)
 	// Try to find settings, with retry logic
 	for {
-		found, err := snap.Settings.Find(s.settingsRef.Strings())
-		contextutils.LoggerFrom(ctx).Infof("Settings %v", found)
+		found, queryErr := snap.Settings.Find(s.settingsRef.Strings())
+		contextutils.LoggerFrom(ctx).Infof("Settings %v", settings)
 		contextutils.LoggerFrom(ctx).Infof("Err %v", err)
 		if found != nil {
 			settings = found
@@ -66,7 +67,7 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		}
 
 		// If settings not found, wait and retry
-		if err != nil {
+		if queryErr != nil {
 			contextutils.LoggerFrom(ctx).Infof("settings %v not found, waiting 5 seconds before retrying...", s.settingsRef)
 			select {
 			case <-ctx.Done():
