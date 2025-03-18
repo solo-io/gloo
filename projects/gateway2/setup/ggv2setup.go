@@ -7,6 +7,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
@@ -37,6 +38,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -64,9 +66,31 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infof("getting initial settings. gvr: %v", settingsGVR)
 
-	i, err := c.Dynamic().Resource(settingsGVR).Namespace(nns.Namespace).Get(ctx, nns.Name, metav1.GetOptions{})
-	if err != nil {
-		logger.Panicf("failed to get initial settings: %v", err)
+	var i *unstructured.Unstructured
+	var err error
+
+	// Wait for settings to appear, checking every 5 seconds
+	for {
+		i, err = c.Dynamic().Resource(settingsGVR).Namespace(nns.Namespace).Get(ctx, nns.Name, metav1.GetOptions{})
+		if err == nil {
+			break
+		}
+
+		if k8serrors.IsNotFound(err) {
+			logger.Debugf("settings %s/%s not found, waiting...", nns.Namespace, nns.Name)
+			// Check if context is done to avoid infinite loop if canceled
+			select {
+			case <-ctx.Done():
+				logger.Errorf("context canceled while waiting for settings: %v", ctx.Err())
+				return nil
+			case <-time.After(5 * time.Second):
+				// Wait 5 seconds before trying again
+			}
+			continue
+		}
+
+		// For other errors, log and return nil
+		logger.Errorf("failed to get initial settings: %v", err)
 		return nil
 	}
 	logger.Infof("got initial settings")
