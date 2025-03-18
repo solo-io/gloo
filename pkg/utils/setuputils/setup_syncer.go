@@ -4,6 +4,7 @@ import (
 	"context"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
@@ -17,6 +18,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"go.uber.org/zap"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 var (
@@ -51,10 +53,32 @@ func NewSetupSyncer(settingsRef *core.ResourceRef, setupFunc SetupFunc, identity
 }
 
 func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
-	settings, err := snap.Settings.Find(s.settingsRef.Strings())
-	if err != nil {
+	var settings *v1.Settings
+	var err error
+
+	// Try to find settings, with retry logic
+	for {
+		settings, err = snap.Settings.Find(s.settingsRef.Strings())
+		if err == nil {
+			break
+		}
+
+		// If settings not found, wait and retry
+		if k8serrors.IsNotFound(err) {
+			contextutils.LoggerFrom(ctx).Debugf("settings %v not found, waiting 5 seconds before retrying...", s.settingsRef)
+			select {
+			case <-ctx.Done():
+				return errors.Wrapf(ctx.Err(), "context canceled while waiting for settings %v", s.settingsRef)
+			case <-time.After(5 * time.Second):
+				// Wait 5 seconds before trying again
+				continue
+			}
+		}
+
+		// For other types of errors, return immediately
 		return errors.Wrapf(err, "finding bootstrap configuration")
 	}
+
 	ctx = settingsutil.WithSettings(ctx, settings)
 
 	contextutils.LoggerFrom(ctx).Debugw("received settings snapshot", zap.Any("settings", settings))
