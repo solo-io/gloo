@@ -55,6 +55,7 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 	var settings *v1.Settings
 	var err error
 
+	contextutils.LoggerFrom(ctx).Infof("attempting to find settings %v", s.settingsRef)
 	// Try to find settings, with retry logic
 	for {
 		settings, err = snap.Settings.Find(s.settingsRef.Strings())
