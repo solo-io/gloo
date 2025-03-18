@@ -18,7 +18,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"go.uber.org/zap"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 var (
@@ -64,8 +63,8 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		}
 
 		// If settings not found, wait and retry
-		if k8serrors.IsNotFound(err) {
-			contextutils.LoggerFrom(ctx).Debugf("settings %v not found, waiting 5 seconds before retrying...", s.settingsRef)
+		if err != nil {
+			contextutils.LoggerFrom(ctx).Infof("settings %v not found, waiting 5 seconds before retrying...", s.settingsRef)
 			select {
 			case <-ctx.Done():
 				return errors.Wrapf(ctx.Err(), "context canceled while waiting for settings %v", s.settingsRef)
@@ -76,7 +75,7 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		}
 
 		// For other types of errors, return immediately
-		return errors.Wrapf(err, "finding bootstrap configuration")
+		// return errors.Wrapf(err, "finding bootstrap configuration")
 	}
 
 	ctx = settingsutil.WithSettings(ctx, settings)
