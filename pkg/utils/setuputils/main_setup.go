@@ -3,7 +3,10 @@ package setuputils
 import (
 	"context"
 	"flag"
+	"io"
+	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -26,6 +29,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	zaputil "sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"crypto/tls"
+	"k8s.io/client-go/tools/clientcmd"
+	"github.com/pkg/errors"
 )
 
 type SetupOpts struct {
@@ -69,6 +75,13 @@ func Main(opts SetupOpts) error {
 	ctx = contextutils.WithLogger(ctx, opts.LoggerName)
 	loggingContext := append([]interface{}{"version", opts.Version}, opts.LoggingPrefixVals...)
 	ctx = contextutils.WithLoggerValues(ctx, loggingContext...)
+
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Infof("Waiting for Kubernetes API server to be healthy...")
+	// Wait for Kubernetes API server to be healthy
+	if err := waitForKubeApiServer(ctx); err != nil {
+		return err
+	}
 
 	settingsClient, err := fileOrKubeSettingsClient(ctx, setupNamespace, setupDir)
 	if err != nil {
@@ -170,4 +183,71 @@ func SetupLogging(ctx context.Context, loggerName string) {
 
 	// controller-runtime
 	log.SetLogger(zapr.NewLogger(baseLogger))
+}
+
+// waitForKubeApiServer polls the Kubernetes API server until it's healthy or the context is canceled
+func waitForKubeApiServer(ctx context.Context) error {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Infof("Waiting for Kubernetes API server to be healthy...")
+	
+	config, err := clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
+	if err != nil {
+		return errors.Wrap(err, "building kube config")
+	}
+	
+	// Create a client for the /healthz endpoint
+	client := http.Client{
+		Timeout: 5 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: config.TLSClientConfig.Insecure,
+			},
+		},
+	}
+	
+	// Construct the API server health check URL
+	healthzURL := config.Host
+	if !strings.HasSuffix(healthzURL, "/") {
+		healthzURL += "/"
+	}
+	healthzURL += "healthz"
+	
+	// Poll until healthy
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			req, err := http.NewRequestWithContext(ctx, "GET", healthzURL, nil)
+			if err != nil {
+				logger.Warnf("Error creating request to check API server health: %v", err)
+				time.Sleep(5 * time.Second)
+				continue
+			}
+			
+			// Add auth if needed
+			if config.BearerToken != "" {
+				req.Header.Set("Authorization", "Bearer "+config.BearerToken)
+			}
+			
+			resp, err := client.Do(req)
+			if err != nil {
+				logger.Debugf("API server health check failed: %v, retrying in 5 seconds", err)
+				time.Sleep(5 * time.Second)
+				continue
+			}
+			defer resp.Body.Close()
+			
+			if resp.StatusCode == http.StatusOK {
+				body, _ := io.ReadAll(resp.Body)
+				if string(body) == "ok" {
+					logger.Infof("Kubernetes API server is healthy")
+					return nil
+				}
+			}
+			
+			logger.Debugf("API server returned non-OK status: %d, retrying in 5 seconds", resp.StatusCode)
+			time.Sleep(5 * time.Second)
+		}
+	}
 }
