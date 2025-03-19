@@ -99,10 +99,9 @@ func buildWrapperType(
 	for i := range list.Items {
 		item := &list.Items[i]
 
-		// warn for multiple targetRefs until we actually support this
-		// TODO: remove this as part of https://github.com/solo-io/solo-projects/issues/6286
-		if len(item.Spec.GetTargetRefs()) > 1 {
-			contextutils.LoggerFrom(ctx).Warnf(utils.MultipleTargetRefErrStr, item.GetNamespace(), item.GetName())
+		// TargetRefs are limited to 16
+		if refs := len(item.Spec.GetTargetRefs()); refs > 16 {
+			contextutils.LoggerFrom(ctx).Warnf(utils.TooManyTargetRefErrStr, item.GetNamespace(), item.GetName(), refs)
 		}
 
 		policy := httpListenerOptionPolicy{

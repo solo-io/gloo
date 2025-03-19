@@ -20,12 +20,15 @@ var (
 		e2edefaults.CurlPodManifest,
 	}
 
-	manifestVhoRemoveXBar      = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-bar.yaml")
-	manifestVhoSectionAddXFoo  = filepath.Join(util.MustGetThisDir(), "testdata", "vho-section-add-x-foo.yaml")
-	manifestVhoRemoveXBaz      = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-baz.yaml")
-	manifestVhoWebhookReject   = filepath.Join(util.MustGetThisDir(), "testdata", "vho-webhook-reject.yaml")
-	manifestVhoMergeRemoveXBaz = filepath.Join(util.MustGetThisDir(), "testdata", "vho-merge-remove-x-baz.yaml")
+	manifestVhoRemoveXBar         = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-bar.yaml")
+	manifestVhoSectionAddXFoo     = filepath.Join(util.MustGetThisDir(), "testdata", "vho-section-add-x-foo.yaml")
+	manifestVhoRemoveXBaz         = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-baz.yaml")
+	manifestVhoWebhookReject      = filepath.Join(util.MustGetThisDir(), "testdata", "vho-webhook-reject.yaml")
+	manifestVhoMergeRemoveXBaz    = filepath.Join(util.MustGetThisDir(), "testdata", "vho-merge-remove-x-baz.yaml")
+	manifestVhoMultipleTargetRefs = filepath.Join(util.MustGetThisDir(), "testdata", "vho-multiple-target-refs.yaml")
+	manifestVhoSectionTargetRef   = filepath.Join(util.MustGetThisDir(), "testdata", "vho-section-target-ref.yaml")
 
+	// When we apply the setup file, we expect resources to be created with this metadata
 	// When we apply the setup file, we expect resources to be created with this metadata
 	glooProxyObjectMeta = metav1.ObjectMeta{
 		Name:      "gloo-proxy-gw",
@@ -76,6 +79,11 @@ var (
 		Name:      "bad-retries",
 		Namespace: "default",
 	}
+	// VHO to add a x-foo header with multiple target refs
+	vhoMultipleTargetRefs = metav1.ObjectMeta{
+		Name:      "add-x-foo-header-multiple-target-refs",
+		Namespace: "default",
+	}
 
 	// Expects a 200 response with x-bar and x-baz headers
 	defaultResponse = &matchers.HttpResponse{
@@ -104,6 +112,18 @@ var (
 			matchers.ContainHeaderKeys([]string{"x-bar"}),
 			gomega.Not(matchers.ContainHeaderKeys([]string{"x-baz"})),
 		),
+	}
+
+	// Expects default response with x-foo header
+	expectedResponseWithXFooBarBaz = &matchers.HttpResponse{
+		StatusCode: http.StatusOK,
+		Headers: map[string]interface{}{
+			"x-foo": gomega.Equal("foo"),
+		},
+		// Make sure the x-bar isn't being removed as a function of the unwanted VHO
+		Custom: gomega.And(
+			matchers.ContainHeaderKeys([]string{"x-foo", "x-bar", "x-baz"}),
+		),
 		Body: gstruct.Ignore(),
 	}
 
@@ -113,9 +133,13 @@ var (
 		Headers: map[string]interface{}{
 			"x-foo": gomega.Equal("foo"),
 		},
-		// Make sure the x-bar isn't being removed as a function of the unwanted VHO
+		Body: gstruct.Ignore(),
+	}
+
+	expectedResponseWithoutXFoo = &matchers.HttpResponse{
+		StatusCode: http.StatusOK,
 		Custom: gomega.And(
-			matchers.ContainHeaderKeys([]string{"x-foo", "x-bar", "x-baz"}),
+			gomega.Not(matchers.ContainHeaderKeys([]string{"x-foo"})),
 		),
 		Body: gstruct.Ignore(),
 	}

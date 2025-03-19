@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
@@ -137,14 +138,29 @@ func GetPrioritizedListenerPolicies[T client.Object](
 	var optsWithSectionName, optsWithoutSectionName []T
 	for i := range items {
 		item := items[i]
-		// only use the first targetRef in the list for now; user should be warned by caller of this function
-		targetRef := item.GetTargetRefs()[0]
-		if sectionName := targetRef.GetSectionName(); sectionName != nil && sectionName.GetValue() != "" {
-			// we have a section name, now check if it matches the specific listener provided
-			if sectionName.GetValue() == string(listener.Name) {
-				optsWithSectionName = append(optsWithSectionName, item.GetObject())
+
+		// Loop over all targetRefs and check if any have a section name
+		appendOptsWithoutSectionName := false
+		for _, targetRef := range item.GetTargetRefs() {
+			fmt.Println("targetRef", targetRef, "-- sectionName", targetRef.GetSectionName())
+			if targetRef.GetSectionName() != nil {
+				fmt.Println("sectionNameValue", targetRef.GetSectionName().GetValue())
 			}
-		} else {
+
+			if sectionName := targetRef.GetSectionName(); sectionName != nil && sectionName.GetValue() != "" {
+				// we have a section name, now check if it matches the specific listener provided
+				fmt.Println("Have section name, checking if it matches listener name", string(listener.Name))
+				if sectionName.GetValue() == string(listener.Name) {
+					fmt.Println("Section name matches listener name")
+					optsWithSectionName = append(optsWithSectionName, item.GetObject())
+					// break?
+				}
+			} else {
+				appendOptsWithoutSectionName = true
+			}
+		}
+
+		if appendOptsWithoutSectionName {
 			// attach all matched items that do not have a section name and let the caller be discerning
 			optsWithoutSectionName = append(optsWithoutSectionName, item.GetObject())
 		}
@@ -160,8 +176,9 @@ func GetPrioritizedListenerPolicies[T client.Object](
 	return append(optsWithSectionName, optsWithoutSectionName...)
 }
 
-// TODO: remove this as part of https://github.com/solo-io/solo-projects/issues/6286
-const MultipleTargetRefErrStr = "found ListenerOption %s/%s that contains multiple targetRefs which is not currently supported, only the first targetRef will be used"
+const MaxTargetRefs = 16
+
+var TooManyTargetRefErrStr = "found ListenerOption %s/%s that contains %d targetRefs which is not currently supported, only the first" + strconv.Itoa(MaxTargetRefs) + " targetRef will be used"
 
 var (
 	ErrUnexpectedListenerType = errors.New("unexpected listener type")
