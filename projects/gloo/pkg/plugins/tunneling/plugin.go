@@ -1,6 +1,8 @@
 package tunneling
 
 import (
+	"fmt"
+
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
@@ -11,9 +13,11 @@ import (
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/projects/gloo/constants"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/go-utils/contextutils"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
@@ -40,118 +44,262 @@ func (p *plugin) Name() string {
 func (p *plugin) Init(_ plugins.InitParams) {
 }
 
+// GeneratedResources generates the tunneling resources
 func (p *plugin) GeneratedResources(params plugins.Params,
 	inClusters []*envoy_config_cluster_v3.Cluster,
 	inEndpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment,
 	inRouteConfigurations []*envoy_config_route_v3.RouteConfiguration,
 	inListeners []*envoy_config_listener_v3.Listener,
-) ([]*envoy_config_cluster_v3.Cluster, []*envoy_config_endpoint_v3.ClusterLoadAssignment, []*envoy_config_route_v3.RouteConfiguration, []*envoy_config_listener_v3.Listener, error) {
+) (
+	[]*envoy_config_cluster_v3.Cluster,
+	[]*envoy_config_endpoint_v3.ClusterLoadAssignment,
+	[]*envoy_config_route_v3.RouteConfiguration,
+	[]*envoy_config_listener_v3.Listener,
+	error,
+) {
+	logger := contextutils.LoggerFrom(params.Ctx)
 
-	var generatedClusters []*envoy_config_cluster_v3.Cluster
-	var generatedListeners []*envoy_config_listener_v3.Listener
+	var newClusters []*envoy_config_cluster_v3.Cluster
+	var newListeners []*envoy_config_listener_v3.Listener
 
 	upstreams := params.Snapshot.Upstreams
 
 	// keep track of clusters we've seen in case of multiple routes to same cluster
-	processedClusters := sets.NewString()
+	processedClusters := sets.Set[string]{}
 
 	// find all the route config that points to upstreams with tunneling
-	for _, rtConfig := range inRouteConfigurations {
-		for _, vh := range rtConfig.GetVirtualHosts() {
-			for _, rt := range vh.GetRoutes() {
-				rtAction := rt.GetRoute()
-				// we do not handle the weighted cluster or cluster header cases
-				if cluster := rtAction.GetCluster(); cluster != "" {
+	// for _, rtConfig := range inRouteConfigurations {
+	// 	for _, vh := range rtConfig.GetVirtualHosts() {
+	// 		for _, rt := range vh.GetRoutes() {
+	// 			rtAction := rt.GetRoute()
+	// 			// we do not handle the weighted cluster or cluster header cases
+	// 			if cluster := rtAction.GetCluster(); cluster != "" {
+	// 				fmt.Printf("candidate cluster for tunneling: %v\n", cluster)
+	// 				var err error
+	// 				newClusters, newListeners, err = setupTunnel(cluster, upstreams, params,
+	// 					inClusters, rtAction, newClusters, newListeners, processedClusters)
+	// 				if err != nil {
+	// 					// return what we have so far, so that any modified input resources can still route
+	// 					fmt.Printf("error setting up tunneling for cluster %v: %v\n", cluster, err)
+	// 					return newClusters, nil, nil, newListeners, nil
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 
-					ref, err := translator.ClusterToUpstreamRef(cluster)
-					if err != nil {
-						// return what we have so far, so that any modified input resources can still route
-						// successfully to their generated targets
-						return generatedClusters, nil, nil, generatedListeners, nil
-					}
+	// find all upstreams with tunneling enabled
+	for _, us := range upstreams {
+		clusterName := translator.UpstreamToClusterName(us.GetMetadata().Ref())
 
-					us, err := upstreams.Find(ref.GetNamespace(), ref.GetName())
-					if err != nil {
-						// return what we have so far, so that any modified input resources can still route
-						// successfully to their generated targets
-						return generatedClusters, nil, nil, generatedListeners, nil
-					}
+		// check if this cluster has already been updated, if so move on
+		if processedClusters.Has(clusterName) {
+			continue
+		}
 
-					// the existence of this value is our indicator that this is a tunneling upstream
-					tunnelingHostname := us.GetHttpProxyHostname().GetValue()
-					if tunnelingHostname == "" {
-						continue
-					}
+		// skip if the upstream does not have tunneling enabled
+		httpProxyHostname := us.GetHttpProxyHostname().GetValue()
+		if httpProxyHostname == "" {
+			continue
+		}
 
-					var tunnelingHeaders []*envoy_config_core_v3.HeaderValueOption
-					for _, header := range us.GetHttpConnectHeaders() {
-						tunnelingHeaders = append(tunnelingHeaders, &envoy_config_core_v3.HeaderValueOption{
-							Header: &envoy_config_core_v3.HeaderValue{
-								Key:   header.GetKey(),
-								Value: header.GetValue(),
-							},
-							Append: &wrappers.BoolValue{Value: false},
-						})
-					}
+		// find the cluster to update
+		cluster := findClusters(inClusters, clusterName)
+		if cluster == nil {
+			fmt.Printf("cluster %v not found\n", clusterName)
+			continue
+		}
 
-					selfCluster := TunnelingAutogeneratedClusterPrefix + cluster
-					selfPipe := "@/" + cluster // use an in-memory pipe to ourselves (only works on linux)
+		// change the original cluster name to avoid conflicts with the new cluster
+		newOriginalClusterName := clusterName + "_original"
+		cluster.Name = newOriginalClusterName
 
-					// update the old cluster to route to ourselves first
-					rtAction.ClusterSpecifier = &envoy_config_route_v3.RouteAction_Cluster{Cluster: selfCluster}
+		// use an in-memory pipe to ourselves (only works on linux)
+		selfPipe := "@/" + clusterName
 
-					// we only want to generate a new encapsulating cluster and pipe to ourselves if we have not done so already
-					if processedClusters.Has(cluster) {
-						continue
-					}
-					var originalTransportSocket *envoy_config_core_v3.TransportSocket
-					for _, inCluster := range inClusters {
-						if inCluster.GetName() == cluster {
-							if inCluster.GetTransportSocket() != nil {
-								tmp := *inCluster.GetTransportSocket()
-								originalTransportSocket = &tmp
-							}
-							// we copy the transport socket to the generated cluster.
-							// the generated cluster will use upstream TLS context to leverage TLS origination;
-							// when we encapsulate in HTTP Connect the tcp data being proxied will
-							// be encrypted (thus we don't need the original transport socket metadata here)
-							inCluster.TransportSocket = nil
-							inCluster.TransportSocketMatches = nil
+		var originalTransportSocket *envoy_config_core_v3.TransportSocket
+		if cluster.GetTransportSocket() != nil {
+			tmp := *cluster.GetTransportSocket()
+			originalTransportSocket = &tmp
+		}
 
-							if us.GetHttpConnectSslConfig() == nil {
-								break
-							}
-							// user told us to configure ssl for the http connect proxy
-							cfg, err := utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(params.Snapshot.Secrets, us.GetHttpConnectSslConfig())
-							if err != nil {
-								// return what we have so far, so that any modified input resources can still route
-								// successfully to their generated targets
-								return generatedClusters, nil, nil, generatedListeners, nil
-							}
-							typedConfig, err := utils.MessageToAny(cfg)
-							if err != nil {
-								return nil, nil, nil, nil, err
-							}
-							inCluster.TransportSocket = &envoy_config_core_v3.TransportSocket{
-								Name:       wellknown.TransportSocketTls,
-								ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{TypedConfig: typedConfig},
-							}
-							break
-						}
-					}
-					generatedClusters = append(generatedClusters, generateSelfCluster(selfCluster, selfPipe, originalTransportSocket))
-					forwardingTcpListener, err := generateForwardingTcpListener(cluster, selfPipe, tunnelingHostname, tunnelingHeaders)
-					if err != nil {
-						return nil, nil, nil, nil, err
-					}
-					generatedListeners = append(generatedListeners, forwardingTcpListener)
-					processedClusters.Insert(cluster)
+		// we copy the transport socket to the generated cluster.
+		// the generated cluster will use upstream TLS context to leverage TLS origination;
+		// when we encapsulate in HTTP Connect the tcp data being proxied will
+		// be encrypted (thus we don't need the original transport socket metadata here)
+		cluster.TransportSocket = nil
+		cluster.TransportSocketMatches = nil
+
+		if us.GetHttpConnectSslConfig() != nil {
+			// user told us to configure ssl for the http connect proxy
+			cfg, err := utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(params.Snapshot.Secrets,
+				us.GetHttpConnectSslConfig())
+			if err != nil {
+				logger.Errorf("error resolving ssl config for cluster %v: %v", clusterName, err)
+			} else {
+				typedConfig, err := utils.MessageToAny(cfg)
+				if err != nil {
+					return newClusters, nil, nil, newListeners, err
+				}
+
+				cluster.TransportSocket = &envoy_config_core_v3.TransportSocket{
+					Name:       wellknown.TransportSocketTls,
+					ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{TypedConfig: typedConfig},
 				}
 			}
 		}
+
+		// generate new cluster and replace the old cluster
+		newCluster := generateSelfCluster(clusterName, selfPipe, originalTransportSocket)
+		newClusters = append(newClusters, newCluster)
+
+		tunnelingHeaders := envoyHeadersFromHttpConnectHeaders(us)
+
+		// create the listener with the tunneling configuration
+		listener, err := generateForwardingTcpListener(clusterName, newOriginalClusterName,
+			selfPipe, httpProxyHostname, tunnelingHeaders)
+		if err != nil {
+			return newClusters, nil, nil, newListeners, err
+		}
+
+		newListeners = append(newListeners, listener)
+
+		// mark this cluster as processed
+		processedClusters.Insert(clusterName)
+
+		// replace the cluster with a new cluster that routes to the generated listener
+
+		// var err error
+		// newClusters, newListeners, err = setupTunnel(cluster, upstreams, params,
+		// 	inClusters, nil, newClusters, newListeners, processedClusters)
+		// if err != nil {
+		// 	// return what we have so far, so that any modified input resources can still route
+		// 	fmt.Printf("error setting up tunneling for cluster %v: %v\n", cluster, err)
+		// 	return newClusters, nil, nil, newListeners, nil
+		// }
 	}
 
-	return generatedClusters, nil, nil, generatedListeners, nil
+	return newClusters, nil, nil, newListeners, nil
+}
+
+// setupTunnel prepare the tunneling configuration for the given cluster
+func setupTunnel(
+	clusterName string,
+	upstreams v1.UpstreamList,
+	params plugins.Params,
+	inClusters []*envoy_config_cluster_v3.Cluster,
+	rtAction *envoy_config_route_v3.RouteAction,
+	generatedClusters []*envoy_config_cluster_v3.Cluster,
+	generatedListeners []*envoy_config_listener_v3.Listener,
+	processedClusters sets.Set[string],
+) (
+	[]*envoy_config_cluster_v3.Cluster,
+	[]*envoy_config_listener_v3.Listener,
+	error,
+) {
+	ref, err := translator.ClusterToUpstreamRef(clusterName)
+	if err != nil {
+		// return what we have so far, so that any modified input resources can still route
+		// successfully to their generated targets
+		fmt.Printf("error getting upstream ref for cluster %v: %v\n", clusterName, err)
+		return generatedClusters, generatedListeners, nil
+	}
+
+	us, err := upstreams.Find(ref.GetNamespace(), ref.GetName())
+	if err != nil {
+		// return what we have so far, so that any modified input resources can still route
+		// successfully to their generated targets
+		fmt.Printf("error finding upstream %v: %v\n", ref, err)
+		return generatedClusters, generatedListeners, nil
+	}
+
+	// the existence of this value is our indicator that this is a tunneling upstream
+	tunnelingHostname := us.GetHttpProxyHostname().GetValue()
+	if tunnelingHostname == "" {
+		fmt.Print("tunneling hostname is empty\n")
+		return generatedClusters, generatedListeners, nil
+	}
+
+	var tunnelingHeaders []*envoy_config_core_v3.HeaderValueOption
+	for _, header := range us.GetHttpConnectHeaders() {
+		tunnelingHeaders = append(tunnelingHeaders, &envoy_config_core_v3.HeaderValueOption{
+			Header: &envoy_config_core_v3.HeaderValue{
+				Key:   header.GetKey(),
+				Value: header.GetValue(),
+			},
+			Append: &wrappers.BoolValue{Value: false},
+		})
+	}
+
+	selfClusterName := TunnelingAutogeneratedClusterPrefix + clusterName
+	selfPipe := "@/" + clusterName // use an in-memory pipe to ourselves (only works on linux)
+
+	// update the old cluster to route to ourselves first
+	if rtAction != nil {
+		rtAction.ClusterSpecifier = &envoy_config_route_v3.RouteAction_Cluster{Cluster: selfClusterName}
+	}
+
+	// we only want to generate a new encapsulating cluster and pipe to ourselves if we have not done so already
+	if processedClusters.Has(clusterName) {
+		fmt.Printf("cluster %v already processed\n", clusterName)
+		return generatedClusters, generatedListeners, nil
+	}
+
+	// find the cluster and updates it's transport socket to use the generated cluster if needed
+	var originalTransportSocket *envoy_config_core_v3.TransportSocket
+	for _, inCluster := range inClusters {
+		if inCluster.GetName() == clusterName {
+			if inCluster.GetTransportSocket() != nil {
+				tmp := *inCluster.GetTransportSocket()
+				originalTransportSocket = &tmp
+			}
+
+			// we copy the transport socket to the generated cluster.
+			// the generated cluster will use upstream TLS context to leverage TLS origination;
+			// when we encapsulate in HTTP Connect the tcp data being proxied will
+			// be encrypted (thus we don't need the original transport socket metadata here)
+			inCluster.TransportSocket = nil
+			inCluster.TransportSocketMatches = nil
+
+			if us.GetHttpConnectSslConfig() == nil {
+				break
+			}
+
+			// user told us to configure ssl for the http connect proxy
+			cfg, err := utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(params.Snapshot.Secrets,
+				us.GetHttpConnectSslConfig())
+			if err != nil {
+				break
+			}
+
+			typedConfig, err := utils.MessageToAny(cfg)
+			if err != nil {
+				return generatedClusters, generatedListeners, err
+			}
+
+			inCluster.TransportSocket = &envoy_config_core_v3.TransportSocket{
+				Name:       wellknown.TransportSocketTls,
+				ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{TypedConfig: typedConfig},
+			}
+
+			break
+		}
+	}
+
+	generatedClusters = append(generatedClusters, generateSelfCluster(selfClusterName,
+		selfPipe, originalTransportSocket))
+
+	forwardingTcpListener, err := generateForwardingTcpListener(clusterName, clusterName, selfPipe,
+		tunnelingHostname, tunnelingHeaders)
+	if err != nil {
+		return generatedClusters, generatedListeners, err
+	}
+
+	generatedListeners = append(generatedListeners, forwardingTcpListener)
+
+	processedClusters.Insert(clusterName)
+
+	return generatedClusters, generatedListeners, nil
 }
 
 // the initial route is updated to route to this generated cluster, which routes envoy back to itself (to the
@@ -160,27 +308,36 @@ func (p *plugin) GeneratedResources(params plugins.Params,
 // the purpose of doing this is to allow both the HTTP Connection Manager filter and TCP filter to run.
 // the HTTP Connection Manager runs to allow route-level matching on HTTP parameters (such as request path),
 // but then we forward the bytes as raw TCP to the HTTP Connect proxy (which can only be done on a TCP listener)
-func generateSelfCluster(selfCluster, selfPipe string, originalTransportSocket *envoy_config_core_v3.TransportSocket) *envoy_config_cluster_v3.Cluster {
+func generateSelfCluster(
+	selfClusterName,
+	selfPipe string,
+	originalTransportSocket *envoy_config_core_v3.TransportSocket,
+) *envoy_config_cluster_v3.Cluster {
 	return &envoy_config_cluster_v3.Cluster{
 		ClusterDiscoveryType: &envoy_config_cluster_v3.Cluster_Type{
 			Type: envoy_config_cluster_v3.Cluster_STATIC,
 		},
 		ConnectTimeout:  &duration.Duration{Seconds: 5},
-		Name:            selfCluster,
+		Name:            selfClusterName,
 		TransportSocket: originalTransportSocket,
-		LoadAssignment: &envoy_config_endpoint_v3.ClusterLoadAssignment{
-			ClusterName: selfCluster,
-			Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
-				{
-					LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
-						{
-							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
-								Endpoint: &envoy_config_endpoint_v3.Endpoint{
-									Address: &envoy_config_core_v3.Address{
-										Address: &envoy_config_core_v3.Address_Pipe{
-											Pipe: &envoy_config_core_v3.Pipe{
-												Path: selfPipe,
-											},
+		LoadAssignment:  selfPipeLoadAssignment(selfClusterName, selfPipe),
+	}
+}
+
+// selfPipeLoadAssignment returns a load assignment for the pipe
+func selfPipeLoadAssignment(clusterName, pipeName string) *envoy_config_endpoint_v3.ClusterLoadAssignment {
+	return &envoy_config_endpoint_v3.ClusterLoadAssignment{
+		ClusterName: clusterName,
+		Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
+			{
+				LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
+					{
+						HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+							Endpoint: &envoy_config_endpoint_v3.Endpoint{
+								Address: &envoy_config_core_v3.Address{
+									Address: &envoy_config_core_v3.Address_Pipe{
+										Pipe: &envoy_config_core_v3.Pipe{
+											Path: pipeName,
 										},
 									},
 								},
@@ -194,22 +351,30 @@ func generateSelfCluster(selfCluster, selfPipe string, originalTransportSocket *
 }
 
 // the generated cluster routes to this generated listener, which forwards TCP traffic to an HTTP Connect proxy
-func generateForwardingTcpListener(cluster, selfPipe, tunnelingHostname string, tunnelingHeadersToAdd []*envoy_config_core_v3.HeaderValueOption) (*envoy_config_listener_v3.Listener, error) {
+func generateForwardingTcpListener(
+	cluster,
+	originalCluster,
+	selfPipePath,
+	tunnelingHostname string,
+	tunnelingHeadersToAdd []*envoy_config_core_v3.HeaderValueOption,
+) (*envoy_config_listener_v3.Listener, error) {
 	cfg := &envoytcp.TcpProxy{
-		StatPrefix:       "soloioTcpStats" + cluster,
-		TunnelingConfig:  &envoytcp.TcpProxy_TunnelingConfig{Hostname: tunnelingHostname, HeadersToAdd: tunnelingHeadersToAdd},
-		ClusterSpecifier: &envoytcp.TcpProxy_Cluster{Cluster: cluster}, // route to original target
+		StatPrefix: "soloioTcpStats" + cluster,
+		TunnelingConfig: &envoytcp.TcpProxy_TunnelingConfig{Hostname: tunnelingHostname,
+			HeadersToAdd: tunnelingHeadersToAdd},
+		ClusterSpecifier: &envoytcp.TcpProxy_Cluster{Cluster: originalCluster}, // route to original target
 	}
 	typedConfig, err := utils.MessageToAny(cfg)
 	if err != nil {
 		return nil, err
 	}
+
 	return &envoy_config_listener_v3.Listener{
 		Name: "solo_io_generated_self_listener_" + cluster,
 		Address: &envoy_config_core_v3.Address{
 			Address: &envoy_config_core_v3.Address_Pipe{
 				Pipe: &envoy_config_core_v3.Pipe{
-					Path: selfPipe,
+					Path: selfPipePath,
 				},
 			},
 		},
@@ -226,4 +391,28 @@ func generateForwardingTcpListener(cluster, selfPipe, tunnelingHostname string, 
 			},
 		},
 	}, nil
+}
+
+func envoyHeadersFromHttpConnectHeaders(us *v1.Upstream) []*envoy_config_core_v3.HeaderValueOption {
+	var tunnelingHeaders []*envoy_config_core_v3.HeaderValueOption
+	for _, header := range us.GetHttpConnectHeaders() {
+		tunnelingHeaders = append(tunnelingHeaders, &envoy_config_core_v3.HeaderValueOption{
+			Header: &envoy_config_core_v3.HeaderValue{
+				Key:   header.GetKey(),
+				Value: header.GetValue(),
+			},
+			Append: &wrappers.BoolValue{Value: false},
+		})
+	}
+	return tunnelingHeaders
+}
+
+// findClusters returns the cluster in the slice of clusters
+func findClusters(clusters []*envoy_config_cluster_v3.Cluster, clusterName string) *envoy_config_cluster_v3.Cluster {
+	for _, cluster := range clusters {
+		if cluster.GetName() == clusterName {
+			return cluster
+		}
+	}
+	return nil
 }
