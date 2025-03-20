@@ -1,7 +1,7 @@
 changelog: 
 - type: FIX
   description: |
-    Refactored HTTP tunneling plugin to support tunneling on all Upstreams, not just
+    Updated HTTP tunneling plugin to support HTTP CONNECT tunneling on all Upstreams, not just
     those bound to a Route.
   resolvesIssue: false
   issueLink: https://github.com/solo-io/solo-projects/issues/7497

@@ -264,7 +264,8 @@ var _ = Describe("Plugin", func() {
 		It("should generate resources", func() {
 			p := tunneling.NewPlugin()
 
-			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters, nil, inRouteConfigurations, nil)
+			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters,
+				nil, inRouteConfigurations, nil)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(newClusters).To(HaveLen(1), "should generate a cluster for the upstream")
 			Expect(newListeners).To(HaveLen(1), "should generate a listener for the upstream")
@@ -278,7 +279,8 @@ var _ = Describe("Plugin", func() {
 
 			p := tunneling.NewPlugin()
 
-			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters, nil, inRouteConfigurations, nil)
+			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters,
+				nil, inRouteConfigurations, nil)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(newClusters).To(HaveLen(1), "should generate a single cluster for the upstream")
 			Expect(newListeners).To(HaveLen(1), "should generate a single listener for the upstream")
@@ -293,7 +295,8 @@ var _ = Describe("Plugin", func() {
 		It("should not generate resources", func() {
 			p := tunneling.NewPlugin()
 
-			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters, nil, inRouteConfigurations, nil)
+			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters,
+				nil, inRouteConfigurations, nil)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(newClusters).To(BeNil(), "should not generate a cluster for the upstream")
 			Expect(newListeners).To(BeNil(), "should not generate a listener for the upstream")
@@ -329,7 +332,5 @@ func validateForwarding(
 	tcpConfig := typedTcpConfig.(*envoytcp.TcpProxy)
 
 	Expect(tcpConfig.GetCluster()).To(Equal(adjustedClusterName), "should forward to original destination")
-
-	// original cluster should have the updated name
 	Expect(inClusters[0].Name).To(Equal(adjustedClusterName), "should have updated the original cluster name")
 }
