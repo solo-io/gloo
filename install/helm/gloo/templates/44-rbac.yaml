@@ -18,6 +18,11 @@ rules:
   - referencegrants
   verbs: ["get", "list", "watch"]
 - apiGroups:
+  - "gateway.networking.x-k8s.io"
+  resources:
+  - xlistenersets
+  verbs: ["get", "list", "watch"]
+- apiGroups:
   - ""
   resources:
   - services
