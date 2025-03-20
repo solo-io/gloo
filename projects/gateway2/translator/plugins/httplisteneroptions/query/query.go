@@ -99,9 +99,8 @@ func buildWrapperType(
 	for i := range list.Items {
 		item := &list.Items[i]
 
-		// TargetRefs are limited to 16
-		if refs := len(item.Spec.GetTargetRefs()); refs > 16 {
-			contextutils.LoggerFrom(ctx).Warnf(utils.TooManyTargetRefErrStr, item.GetNamespace(), item.GetName(), refs)
+		if err := utils.CheckTargetRefCount(item.Spec.GetTargetRefs()); err != nil {
+			contextutils.LoggerFrom(ctx).Warnf(err.Error())
 		}
 
 		policy := httpListenerOptionPolicy{
