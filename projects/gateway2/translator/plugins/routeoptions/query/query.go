@@ -90,15 +90,6 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 		return nilOptionIfEmpty(merged), sources, nil
 	}
 
-	// warn for multiple targetRefs until we actually support this
-	// TODO: remove this as part of https://github.com/solo-io/solo-projects/issues/6286
-	// for i := range list.Items {
-	// 	item := &list.Items[i]
-	// 	if len(item.Spec.GetTargetRefs()) > 1 {
-	// 		contextutils.LoggerFrom(ctx).Warnf(utils.MultipleTargetRefErrStr, item.GetNamespace(), item.GetName())
-	// 	}
-	// }
-
 	out := make([]*solokubev1.RouteOption, len(list.Items))
 	for i := range list.Items {
 		out[i] = &list.Items[i]
