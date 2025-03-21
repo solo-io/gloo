@@ -10,6 +10,7 @@ import (
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
 	"github.com/rotisserie/eris"
 
@@ -54,7 +55,8 @@ func (p *plugin) GeneratedResources(params plugins.Params,
 	_ []*envoy_config_cluster_v3.Cluster,
 	_ []*envoy_config_endpoint_v3.ClusterLoadAssignment,
 	_ []*envoy_config_route_v3.RouteConfiguration,
-	_ []*envoy_config_listener_v3.Listener) (
+	_ []*envoy_config_listener_v3.Listener,
+	_ reporter.ResourceReports) (
 	[]*envoy_config_cluster_v3.Cluster,
 	[]*envoy_config_endpoint_v3.ClusterLoadAssignment,
 	[]*envoy_config_route_v3.RouteConfiguration,

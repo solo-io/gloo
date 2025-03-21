@@ -172,7 +172,7 @@ var _ = Describe("dynamic forward proxy plugin", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// use plugin to compute expected envoy cluster
-			clusters, _, _, _, _ := p.GeneratedResources(params, nil, nil, nil, nil)
+			clusters, _, _, _, _ := p.GeneratedResources(params, nil, nil, nil, nil, nil)
 			Expect(clusters).To(HaveLen(1))
 
 			// evaluate contents of generated cluster

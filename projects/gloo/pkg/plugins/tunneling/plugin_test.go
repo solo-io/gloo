@@ -19,6 +19,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/skv2/test/matchers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -44,6 +45,8 @@ var _ = Describe("Plugin", func() {
 
 		// use UpstreamToClusterName to emulate a real translation loop.
 		clusterName = translator.UpstreamToClusterName(us.Metadata.Ref())
+
+		reports reporter.ResourceReports
 	)
 
 	BeforeEach(func() {
@@ -109,12 +112,15 @@ var _ = Describe("Plugin", func() {
 				},
 			},
 		}
+
+		reports = reporter.ResourceReports{}
 	})
 
 	It("should update resources properly", func() {
 		p := tunneling.NewPlugin()
 
-		generatedClusters, _, _, generatedListeners, err := p.GeneratedResources(params, inClusters, nil, inRouteConfigurations, nil)
+		generatedClusters, _, _, generatedListeners, err := p.GeneratedResources(params,
+			inClusters, nil, inRouteConfigurations, nil, reports)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(generatedClusters).ToNot(BeNil())
 		Expect(generatedListeners).ToNot(BeNil())
@@ -154,7 +160,8 @@ var _ = Describe("Plugin", func() {
 
 		It("should allow multiple routes to same upstream", func() {
 			p := tunneling.NewPlugin()
-			generatedClusters, _, _, _, err := p.GeneratedResources(params, inClusters, nil, inRouteConfigurations, nil)
+			generatedClusters, _, _, _, err := p.GeneratedResources(params, inClusters,
+				nil, inRouteConfigurations, nil, reports)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(generatedClusters).To(HaveLen(1), "should generate a single cluster for the upstream")
 			Expect(generatedClusters[0].GetTransportSocket()).ToNot(BeNil())
@@ -194,7 +201,8 @@ var _ = Describe("Plugin", func() {
 		It("should namespace generated clusters, avoiding duplicates", func() {
 			p := tunneling.NewPlugin()
 
-			generatedClusters, _, _, _, err := p.GeneratedResources(params, inClusters, nil, inRouteConfigurations, nil)
+			generatedClusters, _, _, _, err := p.GeneratedResources(params, inClusters,
+				nil, inRouteConfigurations, nil, reports)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(generatedClusters).To(HaveLen(2), "should generate a cluster for each input route")
 
@@ -220,7 +228,8 @@ var _ = Describe("Plugin", func() {
 		It("should namespace generated listeners, avoiding duplicates", func() {
 			p := tunneling.NewPlugin()
 
-			_, _, _, generatedListeners, err := p.GeneratedResources(params, inClusters, nil, inRouteConfigurations, nil)
+			_, _, _, generatedListeners, err := p.GeneratedResources(params, inClusters,
+				nil, inRouteConfigurations, nil, reports)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(generatedListeners).To(HaveLen(2), "should generate a listener for each input route")
 
@@ -265,7 +274,7 @@ var _ = Describe("Plugin", func() {
 			p := tunneling.NewPlugin()
 
 			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters,
-				nil, inRouteConfigurations, nil)
+				nil, inRouteConfigurations, nil, reports)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(newClusters).To(HaveLen(1), "should generate a cluster for the upstream")
 			Expect(newListeners).To(HaveLen(1), "should generate a listener for the upstream")
@@ -280,7 +289,7 @@ var _ = Describe("Plugin", func() {
 			p := tunneling.NewPlugin()
 
 			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters,
-				nil, inRouteConfigurations, nil)
+				nil, inRouteConfigurations, nil, reports)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(newClusters).To(HaveLen(1), "should generate a single cluster for the upstream")
 			Expect(newListeners).To(HaveLen(1), "should generate a single listener for the upstream")
@@ -296,7 +305,7 @@ var _ = Describe("Plugin", func() {
 			p := tunneling.NewPlugin()
 
 			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters,
-				nil, inRouteConfigurations, nil)
+				nil, inRouteConfigurations, nil, reports)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(newClusters).To(BeNil(), "should not generate a cluster for the upstream")
 			Expect(newListeners).To(BeNil(), "should not generate a listener for the upstream")
