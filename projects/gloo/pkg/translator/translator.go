@@ -133,14 +133,15 @@ func (t *translatorInstance) Translate(
 	routeConfigs, listeners := t.translateListenerSubsystemComponents(params, proxy, proxyReport)
 	// run Resource Generator Plugins
 	for _, plugin := range t.pluginRegistry.GetResourceGeneratorPlugins() {
-		generatedClusters, generatedEndpoints, generatedRouteConfigs, generatedListeners, err := plugin.GeneratedResources(params, clusters, endpoints, routeConfigs, listeners)
+		newClusters, newEndpoints, newRouteConfigs, newListeners, err := plugin.GeneratedResources(params,
+			clusters, endpoints, routeConfigs, listeners, reports)
 		if err != nil {
 			reports.AddError(proxy, err)
 		}
-		clusters = append(clusters, generatedClusters...)
-		endpoints = append(endpoints, generatedEndpoints...)
-		routeConfigs = append(routeConfigs, generatedRouteConfigs...)
-		listeners = append(listeners, generatedListeners...)
+		clusters = append(clusters, newClusters...)
+		endpoints = append(endpoints, newEndpoints...)
+		routeConfigs = append(routeConfigs, newRouteConfigs...)
+		listeners = append(listeners, newListeners...)
 	}
 
 	xdsSnapshot := t.generateXDSSnapshot(params, clusters, endpoints, routeConfigs, listeners)

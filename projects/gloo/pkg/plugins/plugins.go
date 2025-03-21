@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
@@ -184,6 +185,7 @@ type ResourceGeneratorPlugin interface {
 		inEndpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment,
 		inRouteConfigurations []*envoy_config_route_v3.RouteConfiguration,
 		inListeners []*envoy_config_listener_v3.Listener,
+		reports reporter.ResourceReports,
 	) ([]*envoy_config_cluster_v3.Cluster, []*envoy_config_endpoint_v3.ClusterLoadAssignment, []*envoy_config_route_v3.RouteConfiguration, []*envoy_config_listener_v3.Listener, error)
 }
 
