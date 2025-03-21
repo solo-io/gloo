@@ -56,6 +56,13 @@ weight: 5
 - [Response](#response)
   
 
+ 
+
+**Enums:**
+
+
+	- [ApiJsonSchema](#apijsonschema)
+
 
 
 **Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/ai/ai.proto)**
@@ -237,7 +244,7 @@ To find the values for the model and API version, you can check the fields of an
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Gemini API. This token is automatically sent in the `key` query parameter of the request. |
+| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Gemini API. This token is automatically sent in the `x-goog-api-key` header of the request. |
 | `model` | `string` | The Gemini model to use. For more information, see the [Gemini models docs](https://ai.google.dev/gemini-api/docs/models/gemini). |
 | `apiVersion` | `string` | The version of the Gemini API to use. For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions). |
 
@@ -260,6 +267,7 @@ To find the values for the project ID, project location, and publisher, you can 
 "location": string
 "modelPath": string
 "publisher": .ai.options.gloo.solo.io.UpstreamSpec.VertexAI.Publisher
+"jsonSchema": .ai.options.gloo.solo.io.ApiJsonSchema
 
 ```
 
@@ -272,6 +280,7 @@ To find the values for the project ID, project location, and publisher, you can 
 | `location` | `string` | The location of the Google Cloud Project that you use for the Vertex AI. |
 | `modelPath` | `string` | Optional: The model path to route to. Defaults to the Gemini model path, `generateContent`. |
 | `publisher` | [.ai.options.gloo.solo.io.UpstreamSpec.VertexAI.Publisher](../ai.proto.sk/#publisher) | The type of publisher model to use. Currently, only Google is supported. |
+| `jsonSchema` | [.ai.options.gloo.solo.io.ApiJsonSchema](../ai.proto.sk/#apijsonschema) | Optional: Specify the API json schema the model uses, default to GEMINI if not set. |
 
 
 
@@ -329,7 +338,7 @@ Settings for the [Anthropic](https://docs.anthropic.com/en/release-notes/api) LL
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Anthropic API. This token is automatically sent in the `x-api-key` header of the request. |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port, such as to proxy the request, or to use a different backend that is API-compliant with the upstream version. |
-| `version` | `string` | Optional: A version header to pass to the Anthropic API. For more information, see the [Anthropic API versioning docs](https://docs.anthropic.com/en/api/versioning). |
+| `version` | `string` | Optional: The version string used to override the `anthropic-version` header to pass to the Anthropic API. Note: This does not control the api version (eg `/v1`) in the url. For more information, see the [Anthropic API versioning docs](https://docs.anthropic.com/en/api/versioning). |
 | `model` | `string` | Optional: Override the model name. If unset, the model name is taken from the request. This setting can be useful when testing model failover scenarios. |
 
 
@@ -1143,6 +1152,17 @@ Prompt guards to apply to responses returned by the LLM provider.
 
 
 
+  
+### ApiJsonSchema
+
+Description: 
+
+| Name | Description |
+| ----- | ----------- | 
+| NOT_SET |  |
+| ANTHROPIC |  |
+| GEMINI |  |
+| OPENAI |  |
 
 
 <!-- Start of HubSpot Embed Code -->

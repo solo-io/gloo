@@ -12,12 +12,19 @@ import "validate/validate.proto";
 import "envoy/api/v2/route/route.proto";
 import "github.com/solo-io/solo-kit/api/external/envoy/type/percent.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/route/v3/route_components.proto";
+import "google/protobuf/struct.proto";
 
 
 message FilterTransformations {
     // Specifies transformations based on the route matches. The first matched transformation will be
     // applied. If there are overlapped match conditions, please put the most specific match first.
     repeated TransformationRule transformations = 1;
+
+    // Logs request/response sensitive information
+    // By default, this is false so no request or response sensitive information is logged.
+    // If set to true, the filter will log the request/response body and headers before and
+    // after any transformation is applied.
+    bool log_request_response_info = 2;
 }
 
 message TransformationRule {
@@ -53,6 +60,7 @@ message Transformation {
     // Template is in the transformed request language domain
     oneof transformation_type {
         DlpTransformation dlp_transformation = 1;
+        AiTransformation ai_transformation = 2;
     }
 }
 
@@ -118,4 +126,38 @@ message RegexAction {
     string regex = 1 [ (validate.rules).string.min_bytes = 1 ];
     // If provided and not 0, only this specific subgroup of the regex will be masked.
     uint32 subgroup = 2;
+}
+
+message FieldDefault {
+    // The name of the field.
+    string field = 1;
+    // The field default value, which can be any JSON Data Type.
+    google.protobuf.Value value = 2;
+    // Whether to override the field's value if it already exists.
+    // Defaults to false.
+    bool override = 3;
+}
+
+message PromptEnrichment {
+    // An entry for a message to prepend or append to each prompt.
+    message Message {
+        // Role of the message. The available roles depend on the backend
+        // LLM provider model, such as `SYSTEM` or `USER` in the OpenAI API.
+        string role = 1;
+        // String content of the message.
+        string content = 2;
+    }
+    // A list of messages to be prepended to the prompt sent by the client.
+    repeated Message prepend = 2;
+    // A list of messages to be appended to the prompt sent by the client.
+    repeated Message append = 3;
+}
+
+message AiTransformation {
+    // Rewrite the request to enable chat streaming
+    bool enable_chat_streaming = 1;
+    // Set defaults for fields in the request body
+    repeated FieldDefault field_defaults = 2;
+    // Inject prompts into the request body
+    PromptEnrichment prompt_enrichment = 3;
 }

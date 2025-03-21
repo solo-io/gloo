@@ -17,6 +17,7 @@ import (
 	_type "github.com/solo-io/solo-kit/pkg/api/external/envoy/type"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 const (
@@ -31,8 +32,13 @@ type FilterTransformations struct {
 	// Specifies transformations based on the route matches. The first matched transformation will be
 	// applied. If there are overlapped match conditions, please put the most specific match first.
 	Transformations []*TransformationRule `protobuf:"bytes,1,rep,name=transformations,proto3" json:"transformations,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Logs request/response sensitive information
+	// By default, this is false so no request or response sensitive information is logged.
+	// If set to true, the filter will log the request/response body and headers before and
+	// after any transformation is applied.
+	LogRequestResponseInfo bool `protobuf:"varint,2,opt,name=log_request_response_info,json=logRequestResponseInfo,proto3" json:"log_request_response_info,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *FilterTransformations) Reset() {
@@ -70,6 +76,13 @@ func (x *FilterTransformations) GetTransformations() []*TransformationRule {
 		return x.Transformations
 	}
 	return nil
+}
+
+func (x *FilterTransformations) GetLogRequestResponseInfo() bool {
+	if x != nil {
+		return x.LogRequestResponseInfo
+	}
+	return false
 }
 
 type TransformationRule struct {
@@ -220,6 +233,7 @@ type Transformation struct {
 	// Types that are valid to be assigned to TransformationType:
 	//
 	//	*Transformation_DlpTransformation
+	//	*Transformation_AiTransformation
 	TransformationType isTransformation_TransformationType `protobuf_oneof:"transformation_type"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
@@ -271,6 +285,15 @@ func (x *Transformation) GetDlpTransformation() *DlpTransformation {
 	return nil
 }
 
+func (x *Transformation) GetAiTransformation() *AiTransformation {
+	if x != nil {
+		if x, ok := x.TransformationType.(*Transformation_AiTransformation); ok {
+			return x.AiTransformation
+		}
+	}
+	return nil
+}
+
 type isTransformation_TransformationType interface {
 	isTransformation_TransformationType()
 }
@@ -279,7 +302,13 @@ type Transformation_DlpTransformation struct {
 	DlpTransformation *DlpTransformation `protobuf:"bytes,1,opt,name=dlp_transformation,json=dlpTransformation,proto3,oneof"`
 }
 
+type Transformation_AiTransformation struct {
+	AiTransformation *AiTransformation `protobuf:"bytes,2,opt,name=ai_transformation,json=aiTransformation,proto3,oneof"`
+}
+
 func (*Transformation_DlpTransformation) isTransformation_TransformationType() {}
+
+func (*Transformation_AiTransformation) isTransformation_TransformationType() {}
 
 type DlpTransformation struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -515,6 +544,187 @@ func (x *RegexAction) GetSubgroup() uint32 {
 	return 0
 }
 
+type FieldDefault struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The name of the field.
+	Field string `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
+	// The field default value, which can be any JSON Data Type.
+	Value *structpb.Value `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	// Whether to override the field's value if it already exists.
+	// Defaults to false.
+	Override      bool `protobuf:"varint,3,opt,name=override,proto3" json:"override,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FieldDefault) Reset() {
+	*x = FieldDefault{}
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FieldDefault) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FieldDefault) ProtoMessage() {}
+
+func (x *FieldDefault) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FieldDefault.ProtoReflect.Descriptor instead.
+func (*FieldDefault) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *FieldDefault) GetField() string {
+	if x != nil {
+		return x.Field
+	}
+	return ""
+}
+
+func (x *FieldDefault) GetValue() *structpb.Value {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+func (x *FieldDefault) GetOverride() bool {
+	if x != nil {
+		return x.Override
+	}
+	return false
+}
+
+type PromptEnrichment struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A list of messages to be prepended to the prompt sent by the client.
+	Prepend []*PromptEnrichment_Message `protobuf:"bytes,2,rep,name=prepend,proto3" json:"prepend,omitempty"`
+	// A list of messages to be appended to the prompt sent by the client.
+	Append        []*PromptEnrichment_Message `protobuf:"bytes,3,rep,name=append,proto3" json:"append,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PromptEnrichment) Reset() {
+	*x = PromptEnrichment{}
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PromptEnrichment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PromptEnrichment) ProtoMessage() {}
+
+func (x *PromptEnrichment) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PromptEnrichment.ProtoReflect.Descriptor instead.
+func (*PromptEnrichment) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *PromptEnrichment) GetPrepend() []*PromptEnrichment_Message {
+	if x != nil {
+		return x.Prepend
+	}
+	return nil
+}
+
+func (x *PromptEnrichment) GetAppend() []*PromptEnrichment_Message {
+	if x != nil {
+		return x.Append
+	}
+	return nil
+}
+
+type AiTransformation struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Rewrite the request to enable chat streaming
+	EnableChatStreaming bool `protobuf:"varint,1,opt,name=enable_chat_streaming,json=enableChatStreaming,proto3" json:"enable_chat_streaming,omitempty"`
+	// Set defaults for fields in the request body
+	FieldDefaults []*FieldDefault `protobuf:"bytes,2,rep,name=field_defaults,json=fieldDefaults,proto3" json:"field_defaults,omitempty"`
+	// Inject prompts into the request body
+	PromptEnrichment *PromptEnrichment `protobuf:"bytes,3,opt,name=prompt_enrichment,json=promptEnrichment,proto3" json:"prompt_enrichment,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *AiTransformation) Reset() {
+	*x = AiTransformation{}
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AiTransformation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AiTransformation) ProtoMessage() {}
+
+func (x *AiTransformation) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AiTransformation.ProtoReflect.Descriptor instead.
+func (*AiTransformation) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *AiTransformation) GetEnableChatStreaming() bool {
+	if x != nil {
+		return x.EnableChatStreaming
+	}
+	return false
+}
+
+func (x *AiTransformation) GetFieldDefaults() []*FieldDefault {
+	if x != nil {
+		return x.FieldDefaults
+	}
+	return nil
+}
+
+func (x *AiTransformation) GetPromptEnrichment() *PromptEnrichment {
+	if x != nil {
+		return x.PromptEnrichment
+	}
+	return nil
+}
+
 // List of regexes to apply to the response body to match data which should be
 // masked. They will be applied iteratively in the order which they are
 // specified.
@@ -527,7 +737,7 @@ type Action_RegexMatcher struct {
 
 func (x *Action_RegexMatcher) Reset() {
 	*x = Action_RegexMatcher{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[7]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -539,7 +749,7 @@ func (x *Action_RegexMatcher) String() string {
 func (*Action_RegexMatcher) ProtoMessage() {}
 
 func (x *Action_RegexMatcher) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[7]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -575,7 +785,7 @@ type Action_KeyValueMatcher struct {
 
 func (x *Action_KeyValueMatcher) Reset() {
 	*x = Action_KeyValueMatcher{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[8]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -587,7 +797,7 @@ func (x *Action_KeyValueMatcher) String() string {
 func (*Action_KeyValueMatcher) ProtoMessage() {}
 
 func (x *Action_KeyValueMatcher) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[8]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -623,7 +833,7 @@ type Action_DlpMatcher struct {
 
 func (x *Action_DlpMatcher) Reset() {
 	*x = Action_DlpMatcher{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[9]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -635,7 +845,7 @@ func (x *Action_DlpMatcher) String() string {
 func (*Action_DlpMatcher) ProtoMessage() {}
 
 func (x *Action_DlpMatcher) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[9]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -692,13 +902,70 @@ func (*Action_DlpMatcher_RegexMatcher) isAction_DlpMatcher_Matcher() {}
 
 func (*Action_DlpMatcher_KeyValueMatcher) isAction_DlpMatcher_Matcher() {}
 
+// An entry for a message to prepend or append to each prompt.
+type PromptEnrichment_Message struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Role of the message. The available roles depend on the backend
+	// LLM provider model, such as `SYSTEM` or `USER` in the OpenAI API.
+	Role string `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	// String content of the message.
+	Content       string `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PromptEnrichment_Message) Reset() {
+	*x = PromptEnrichment_Message{}
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PromptEnrichment_Message) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PromptEnrichment_Message) ProtoMessage() {}
+
+func (x *PromptEnrichment_Message) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PromptEnrichment_Message.ProtoReflect.Descriptor instead.
+func (*PromptEnrichment_Message) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_rawDescGZIP(), []int{8, 0}
+}
+
+func (x *PromptEnrichment_Message) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *PromptEnrichment_Message) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
 var File_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto protoreflect.FileDescriptor
 
 const file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_rawDesc = "" +
 	"\n" +
-	"jgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto\x12-envoy.config.filter.http.transformation_ee.v2\x1a\x17validate/validate.proto\x1a\x1eenvoy/api/v2/route/route.proto\x1aAgithub.com/solo-io/solo-kit/api/external/envoy/type/percent.proto\x1a_github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/route/v3/route_components.proto\"\x84\x01\n" +
+	"jgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto\x12-envoy.config.filter.http.transformation_ee.v2\x1a\x17validate/validate.proto\x1a\x1eenvoy/api/v2/route/route.proto\x1aAgithub.com/solo-io/solo-kit/api/external/envoy/type/percent.proto\x1a_github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/route/v3/route_components.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xbf\x01\n" +
 	"\x15FilterTransformations\x12k\n" +
-	"\x0ftransformations\x18\x01 \x03(\v2A.envoy.config.filter.http.transformation_ee.v2.TransformationRuleR\x0ftransformations\"\x92\x02\n" +
+	"\x0ftransformations\x18\x01 \x03(\v2A.envoy.config.filter.http.transformation_ee.v2.TransformationRuleR\x0ftransformations\x129\n" +
+	"\x19log_request_response_info\x18\x02 \x01(\bR\x16logRequestResponseInfo\"\x92\x02\n" +
 	"\x12TransformationRule\x12<\n" +
 	"\x05match\x18\x01 \x01(\v2&.solo.io.envoy.api.v2.route.RouteMatchR\x05match\x12D\n" +
 	"\bmatch_v3\x18\x03 \x01(\v2).solo.io.envoy.config.route.v3.RouteMatchR\amatchV3\x12x\n" +
@@ -707,9 +974,10 @@ const file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_t
 	"\x16request_transformation\x18\x01 \x01(\v2=.envoy.config.filter.http.transformation_ee.v2.TransformationR\x15requestTransformation\x12*\n" +
 	"\x11clear_route_cache\x18\x03 \x01(\bR\x0fclearRouteCache\x12v\n" +
 	"\x17response_transformation\x18\x02 \x01(\v2=.envoy.config.filter.http.transformation_ee.v2.TransformationR\x16responseTransformation\x12\x8c\x01\n" +
-	"#on_stream_completion_transformation\x18\x04 \x01(\v2=.envoy.config.filter.http.transformation_ee.v2.TransformationR onStreamCompletionTransformation\"\x9a\x01\n" +
+	"#on_stream_completion_transformation\x18\x04 \x01(\v2=.envoy.config.filter.http.transformation_ee.v2.TransformationR onStreamCompletionTransformation\"\x8a\x02\n" +
 	"\x0eTransformation\x12q\n" +
-	"\x12dlp_transformation\x18\x01 \x01(\v2@.envoy.config.filter.http.transformation_ee.v2.DlpTransformationH\x00R\x11dlpTransformationB\x15\n" +
+	"\x12dlp_transformation\x18\x01 \x01(\v2@.envoy.config.filter.http.transformation_ee.v2.DlpTransformationH\x00R\x11dlpTransformation\x12n\n" +
+	"\x11ai_transformation\x18\x02 \x01(\v2?.envoy.config.filter.http.transformation_ee.v2.AiTransformationH\x00R\x10aiTransformationB\x15\n" +
 	"\x13transformation_type\"\xfb\x01\n" +
 	"\x11DlpTransformation\x12O\n" +
 	"\aactions\x18\x01 \x03(\v25.envoy.config.filter.http.transformation_ee.v2.ActionR\aactions\x12@\n" +
@@ -734,7 +1002,21 @@ const file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_t
 	"\amatcher\"H\n" +
 	"\vRegexAction\x12\x1d\n" +
 	"\x05regex\x18\x01 \x01(\tB\a\xfaB\x04r\x02 \x01R\x05regex\x12\x1a\n" +
-	"\bsubgroup\x18\x02 \x01(\rR\bsubgroupB\xb7\x01\n" +
+	"\bsubgroup\x18\x02 \x01(\rR\bsubgroup\"n\n" +
+	"\fFieldDefault\x12\x14\n" +
+	"\x05field\x18\x01 \x01(\tR\x05field\x12,\n" +
+	"\x05value\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\x05value\x12\x1a\n" +
+	"\boverride\x18\x03 \x01(\bR\boverride\"\x8f\x02\n" +
+	"\x10PromptEnrichment\x12a\n" +
+	"\aprepend\x18\x02 \x03(\v2G.envoy.config.filter.http.transformation_ee.v2.PromptEnrichment.MessageR\aprepend\x12_\n" +
+	"\x06append\x18\x03 \x03(\v2G.envoy.config.filter.http.transformation_ee.v2.PromptEnrichment.MessageR\x06append\x1a7\n" +
+	"\aMessage\x12\x12\n" +
+	"\x04role\x18\x01 \x01(\tR\x04role\x12\x18\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\"\x98\x02\n" +
+	"\x10AiTransformation\x122\n" +
+	"\x15enable_chat_streaming\x18\x01 \x01(\bR\x13enableChatStreaming\x12b\n" +
+	"\x0efield_defaults\x18\x02 \x03(\v2;.envoy.config.filter.http.transformation_ee.v2.FieldDefaultR\rfieldDefaults\x12l\n" +
+	"\x11prompt_enrichment\x18\x03 \x01(\v2?.envoy.config.filter.http.transformation_ee.v2.PromptEnrichmentR\x10promptEnrichmentB\xb7\x01\n" +
 	";io.envoyproxy.envoy.config.filter.http.transformation_ee.v2B\x1bTransformationEEFilterProtoP\x01ZYgithub.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_eeb\x06proto3"
 
 var (
@@ -749,43 +1031,54 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_tr
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_rawDescData
 }
 
-var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_goTypes = []any{
-	(*FilterTransformations)(nil),  // 0: envoy.config.filter.http.transformation_ee.v2.FilterTransformations
-	(*TransformationRule)(nil),     // 1: envoy.config.filter.http.transformation_ee.v2.TransformationRule
-	(*RouteTransformations)(nil),   // 2: envoy.config.filter.http.transformation_ee.v2.RouteTransformations
-	(*Transformation)(nil),         // 3: envoy.config.filter.http.transformation_ee.v2.Transformation
-	(*DlpTransformation)(nil),      // 4: envoy.config.filter.http.transformation_ee.v2.DlpTransformation
-	(*Action)(nil),                 // 5: envoy.config.filter.http.transformation_ee.v2.Action
-	(*RegexAction)(nil),            // 6: envoy.config.filter.http.transformation_ee.v2.RegexAction
-	(*Action_RegexMatcher)(nil),    // 7: envoy.config.filter.http.transformation_ee.v2.Action.RegexMatcher
-	(*Action_KeyValueMatcher)(nil), // 8: envoy.config.filter.http.transformation_ee.v2.Action.KeyValueMatcher
-	(*Action_DlpMatcher)(nil),      // 9: envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher
-	(*route.RouteMatch)(nil),       // 10: solo.io.envoy.api.v2.route.RouteMatch
-	(*v3.RouteMatch)(nil),          // 11: solo.io.envoy.config.route.v3.RouteMatch
-	(*_type.Percent)(nil),          // 12: solo.io.envoy.type.Percent
+	(*FilterTransformations)(nil),    // 0: envoy.config.filter.http.transformation_ee.v2.FilterTransformations
+	(*TransformationRule)(nil),       // 1: envoy.config.filter.http.transformation_ee.v2.TransformationRule
+	(*RouteTransformations)(nil),     // 2: envoy.config.filter.http.transformation_ee.v2.RouteTransformations
+	(*Transformation)(nil),           // 3: envoy.config.filter.http.transformation_ee.v2.Transformation
+	(*DlpTransformation)(nil),        // 4: envoy.config.filter.http.transformation_ee.v2.DlpTransformation
+	(*Action)(nil),                   // 5: envoy.config.filter.http.transformation_ee.v2.Action
+	(*RegexAction)(nil),              // 6: envoy.config.filter.http.transformation_ee.v2.RegexAction
+	(*FieldDefault)(nil),             // 7: envoy.config.filter.http.transformation_ee.v2.FieldDefault
+	(*PromptEnrichment)(nil),         // 8: envoy.config.filter.http.transformation_ee.v2.PromptEnrichment
+	(*AiTransformation)(nil),         // 9: envoy.config.filter.http.transformation_ee.v2.AiTransformation
+	(*Action_RegexMatcher)(nil),      // 10: envoy.config.filter.http.transformation_ee.v2.Action.RegexMatcher
+	(*Action_KeyValueMatcher)(nil),   // 11: envoy.config.filter.http.transformation_ee.v2.Action.KeyValueMatcher
+	(*Action_DlpMatcher)(nil),        // 12: envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher
+	(*PromptEnrichment_Message)(nil), // 13: envoy.config.filter.http.transformation_ee.v2.PromptEnrichment.Message
+	(*route.RouteMatch)(nil),         // 14: solo.io.envoy.api.v2.route.RouteMatch
+	(*v3.RouteMatch)(nil),            // 15: solo.io.envoy.config.route.v3.RouteMatch
+	(*_type.Percent)(nil),            // 16: solo.io.envoy.type.Percent
+	(*structpb.Value)(nil),           // 17: google.protobuf.Value
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_depIdxs = []int32{
 	1,  // 0: envoy.config.filter.http.transformation_ee.v2.FilterTransformations.transformations:type_name -> envoy.config.filter.http.transformation_ee.v2.TransformationRule
-	10, // 1: envoy.config.filter.http.transformation_ee.v2.TransformationRule.match:type_name -> solo.io.envoy.api.v2.route.RouteMatch
-	11, // 2: envoy.config.filter.http.transformation_ee.v2.TransformationRule.match_v3:type_name -> solo.io.envoy.config.route.v3.RouteMatch
+	14, // 1: envoy.config.filter.http.transformation_ee.v2.TransformationRule.match:type_name -> solo.io.envoy.api.v2.route.RouteMatch
+	15, // 2: envoy.config.filter.http.transformation_ee.v2.TransformationRule.match_v3:type_name -> solo.io.envoy.config.route.v3.RouteMatch
 	2,  // 3: envoy.config.filter.http.transformation_ee.v2.TransformationRule.route_transformations:type_name -> envoy.config.filter.http.transformation_ee.v2.RouteTransformations
 	3,  // 4: envoy.config.filter.http.transformation_ee.v2.RouteTransformations.request_transformation:type_name -> envoy.config.filter.http.transformation_ee.v2.Transformation
 	3,  // 5: envoy.config.filter.http.transformation_ee.v2.RouteTransformations.response_transformation:type_name -> envoy.config.filter.http.transformation_ee.v2.Transformation
 	3,  // 6: envoy.config.filter.http.transformation_ee.v2.RouteTransformations.on_stream_completion_transformation:type_name -> envoy.config.filter.http.transformation_ee.v2.Transformation
 	4,  // 7: envoy.config.filter.http.transformation_ee.v2.Transformation.dlp_transformation:type_name -> envoy.config.filter.http.transformation_ee.v2.DlpTransformation
-	5,  // 8: envoy.config.filter.http.transformation_ee.v2.DlpTransformation.actions:type_name -> envoy.config.filter.http.transformation_ee.v2.Action
-	6,  // 9: envoy.config.filter.http.transformation_ee.v2.Action.regex_actions:type_name -> envoy.config.filter.http.transformation_ee.v2.RegexAction
-	12, // 10: envoy.config.filter.http.transformation_ee.v2.Action.percent:type_name -> solo.io.envoy.type.Percent
-	9,  // 11: envoy.config.filter.http.transformation_ee.v2.Action.matcher:type_name -> envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher
-	6,  // 12: envoy.config.filter.http.transformation_ee.v2.Action.RegexMatcher.regex_actions:type_name -> envoy.config.filter.http.transformation_ee.v2.RegexAction
-	7,  // 13: envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher.regex_matcher:type_name -> envoy.config.filter.http.transformation_ee.v2.Action.RegexMatcher
-	8,  // 14: envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher.key_value_matcher:type_name -> envoy.config.filter.http.transformation_ee.v2.Action.KeyValueMatcher
-	15, // [15:15] is the sub-list for method output_type
-	15, // [15:15] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	9,  // 8: envoy.config.filter.http.transformation_ee.v2.Transformation.ai_transformation:type_name -> envoy.config.filter.http.transformation_ee.v2.AiTransformation
+	5,  // 9: envoy.config.filter.http.transformation_ee.v2.DlpTransformation.actions:type_name -> envoy.config.filter.http.transformation_ee.v2.Action
+	6,  // 10: envoy.config.filter.http.transformation_ee.v2.Action.regex_actions:type_name -> envoy.config.filter.http.transformation_ee.v2.RegexAction
+	16, // 11: envoy.config.filter.http.transformation_ee.v2.Action.percent:type_name -> solo.io.envoy.type.Percent
+	12, // 12: envoy.config.filter.http.transformation_ee.v2.Action.matcher:type_name -> envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher
+	17, // 13: envoy.config.filter.http.transformation_ee.v2.FieldDefault.value:type_name -> google.protobuf.Value
+	13, // 14: envoy.config.filter.http.transformation_ee.v2.PromptEnrichment.prepend:type_name -> envoy.config.filter.http.transformation_ee.v2.PromptEnrichment.Message
+	13, // 15: envoy.config.filter.http.transformation_ee.v2.PromptEnrichment.append:type_name -> envoy.config.filter.http.transformation_ee.v2.PromptEnrichment.Message
+	7,  // 16: envoy.config.filter.http.transformation_ee.v2.AiTransformation.field_defaults:type_name -> envoy.config.filter.http.transformation_ee.v2.FieldDefault
+	8,  // 17: envoy.config.filter.http.transformation_ee.v2.AiTransformation.prompt_enrichment:type_name -> envoy.config.filter.http.transformation_ee.v2.PromptEnrichment
+	6,  // 18: envoy.config.filter.http.transformation_ee.v2.Action.RegexMatcher.regex_actions:type_name -> envoy.config.filter.http.transformation_ee.v2.RegexAction
+	10, // 19: envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher.regex_matcher:type_name -> envoy.config.filter.http.transformation_ee.v2.Action.RegexMatcher
+	11, // 20: envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher.key_value_matcher:type_name -> envoy.config.filter.http.transformation_ee.v2.Action.KeyValueMatcher
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() {
@@ -797,8 +1090,9 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_tr
 	}
 	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[3].OneofWrappers = []any{
 		(*Transformation_DlpTransformation)(nil),
+		(*Transformation_AiTransformation)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[9].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[12].OneofWrappers = []any{
 		(*Action_DlpMatcher_RegexMatcher)(nil),
 		(*Action_DlpMatcher_KeyValueMatcher)(nil),
 	}
@@ -808,7 +1102,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_tr
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
