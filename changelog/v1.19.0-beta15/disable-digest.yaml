@@ -1,4 +1,4 @@
-chagnelog:
+changelog:
 - type: HELM
   issueLink: https://github.com/solo-io/gloo/issues/10690
   resolvesIssue: false
