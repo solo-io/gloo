@@ -124,6 +124,9 @@ message RemoteJwks {
     // This is used to set the host and path in the request
     string url = 1;
     // The Upstream representing the Json Web Key Set server
+    //
+    // Note: Setting this to an upstream using an HTTP tunnel (`httpProxyHostname`)
+    // requires also using that upstream in a route.
     core.solo.io.ResourceRef upstream_ref = 2;
     // Duration after which the cached JWKS should be expired. 
     // If not specified, default cache duration is 5 minutes.

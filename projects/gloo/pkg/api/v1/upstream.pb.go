@@ -165,8 +165,10 @@ type Upstream struct {
 	//
 	// See [RFC7540, sec. 8.1](https://datatracker.ietf.org/doc/html/rfc7540#section-8.1) for details.
 	OverrideStreamErrorOnInvalidHttpMessage *wrapperspb.BoolValue `protobuf:"bytes,26,opt,name=override_stream_error_on_invalid_http_message,json=overrideStreamErrorOnInvalidHttpMessage,proto3" json:"override_stream_error_on_invalid_http_message,omitempty"`
-	// Tells envoy that the upstream is an HTTP proxy (e.g., another proxy in a DMZ) that supports HTTP Connect.
-	// This configuration sets the hostname used as part of the HTTP Connect request.
+	// Tells Envoy that the upstream is an HTTP proxy that supports [HTTP CONNECT method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT).
+	// The hostname is the destination of the tunnel established by the proxy.
+	// Some Envoy Command Operators (.e.g `%REQUESTED_SERVER_NAME%`) are supported allowing for dynamic destinations.
+	//
 	// For example, setting to: host.com:443 and making a request routed to the upstream such as `curl <envoy>:<port>/v1`
 	// would result in the following request:
 	//
@@ -178,7 +180,7 @@ type Upstream struct {
 	//	user-agent: curl/7.64.1
 	//	accept: */*
 	//
-	// Note: if setting this field to a hostname rather than IP:PORT, you may want to also set `host_rewrite` on the route
+	// Note: If setting this field to a hostname rather than IP:PORT, you may want to also set `host_rewrite` on the route
 	HttpProxyHostname *wrapperspb.StringValue `protobuf:"bytes,21,opt,name=http_proxy_hostname,json=httpProxyHostname,proto3" json:"http_proxy_hostname,omitempty"`
 	// HttpConnectSslConfig contains the options necessary to configure envoy to originate TLS to an HTTP Connect proxy.
 	// If you also want to ensure the bytes proxied by the HTTP Connect proxy are encrypted, you should also

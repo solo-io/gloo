@@ -569,6 +569,9 @@ type RemoteJwks struct {
 	// This is used to set the host and path in the request
 	Url string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
 	// The Upstream representing the Json Web Key Set server
+	//
+	// Note: Setting this to an upstream using an HTTP tunnel (`httpProxyHostname`)
+	// requires also using that upstream in a route.
 	UpstreamRef *core.ResourceRef `protobuf:"bytes,2,opt,name=upstream_ref,json=upstreamRef,proto3" json:"upstream_ref,omitempty"`
 	// Duration after which the cached JWKS should be expired.
 	// If not specified, default cache duration is 5 minutes.
