@@ -281,6 +281,7 @@ global:
   image:
     registry: quay.io/solo-io
     pullPolicy: IfNotPresent
+    disableDigest: false
   glooRbac:
     create: true
     namespaced: false

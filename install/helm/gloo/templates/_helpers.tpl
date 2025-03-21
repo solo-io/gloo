@@ -59,23 +59,25 @@ for distroless or fips-distroless variants: add -distroless to the tag
 
 {{- define "gloo.image.digest" -}}
 {{- $digest := "" -}}
-{{- if or .fips (eq .variant "fips") -}}
-  {{- if .fipsDigest -}}
-    {{- $digest = .fipsDigest -}}
-  {{- end -}}{{- /* if .fipsDigest */ -}}
-{{- else if eq .variant "distroless" -}}
-  {{- if .distrolessDigest -}}
-    {{- $digest = .distrolessDigest -}}
-  {{- end -}}{{- /* if .distrolessDigest */ -}}
-{{- else if eq .variant "fips-distroless" -}}
-  {{- if .fipsDistrolessDigest -}}
-    {{- $digest = .fipsDistrolessDigest -}}
-  {{- end -}}{{- /* if .fipsDistrolessDigest */ -}}
-{{- else -}}
-  {{- if .digest -}}{{- /* standard image digest */ -}}
-    {{- $digest = .digest -}}
-  {{- end -}}{{- /* if .digest */ -}}
-{{- end -}}
+{{- if not .disableDigest -}}
+  {{- if or .fips (eq .variant "fips") -}}
+    {{- if .fipsDigest -}}
+      {{- $digest = .fipsDigest -}}
+    {{- end -}}{{- /* if .fipsDigest */ -}}
+  {{- else if eq .variant "distroless" -}}
+    {{- if .distrolessDigest -}}
+      {{- $digest = .distrolessDigest -}}
+    {{- end -}}{{- /* if .distrolessDigest */ -}}
+  {{- else if eq .variant "fips-distroless" -}}
+    {{- if .fipsDistrolessDigest -}}
+      {{- $digest = .fipsDistrolessDigest -}}
+    {{- end -}}{{- /* if .fipsDistrolessDigest */ -}}
+  {{- else -}}
+    {{- if .digest -}}{{- /* standard image digest */ -}}
+      {{- $digest = .digest -}}
+    {{- end -}}{{- /* if .digest */ -}}
+  {{- end -}}
+{{- end -}}{{- /* if not .disableDigests" */ -}}
 {{ $digest }}
 {{- end -}}{{- /* define "gloo.image.digest" */ -}}
 
