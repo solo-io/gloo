@@ -220,6 +220,7 @@ type Transformation struct {
 	// Types that are valid to be assigned to TransformationType:
 	//
 	//	*Transformation_DlpTransformation
+	//	*Transformation_AiTransformation
 	TransformationType isTransformation_TransformationType `protobuf_oneof:"transformation_type"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
@@ -271,6 +272,15 @@ func (x *Transformation) GetDlpTransformation() *DlpTransformation {
 	return nil
 }
 
+func (x *Transformation) GetAiTransformation() *AiTransformation {
+	if x != nil {
+		if x, ok := x.TransformationType.(*Transformation_AiTransformation); ok {
+			return x.AiTransformation
+		}
+	}
+	return nil
+}
+
 type isTransformation_TransformationType interface {
 	isTransformation_TransformationType()
 }
@@ -279,7 +289,13 @@ type Transformation_DlpTransformation struct {
 	DlpTransformation *DlpTransformation `protobuf:"bytes,1,opt,name=dlp_transformation,json=dlpTransformation,proto3,oneof"`
 }
 
+type Transformation_AiTransformation struct {
+	AiTransformation *AiTransformation `protobuf:"bytes,2,opt,name=ai_transformation,json=aiTransformation,proto3,oneof"`
+}
+
 func (*Transformation_DlpTransformation) isTransformation_TransformationType() {}
+
+func (*Transformation_AiTransformation) isTransformation_TransformationType() {}
 
 type DlpTransformation struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -515,6 +531,106 @@ func (x *RegexAction) GetSubgroup() uint32 {
 	return 0
 }
 
+type AiTransformation struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Provider         string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
+	PlatformApiRegex string                 `protobuf:"bytes,2,opt,name=platform_api_regex,json=platformApiRegex,proto3" json:"platform_api_regex,omitempty"`
+	JsonSchema       string                 `protobuf:"bytes,3,opt,name=json_schema,json=jsonSchema,proto3" json:"json_schema,omitempty"`
+	Model            string                 `protobuf:"bytes,4,opt,name=model,proto3" json:"model,omitempty"`
+	ApiVersion       string                 `protobuf:"bytes,5,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
+	Project          string                 `protobuf:"bytes,6,opt,name=project,proto3" json:"project,omitempty"`
+	Location         string                 `protobuf:"bytes,7,opt,name=location,proto3" json:"location,omitempty"`
+	Publisher        string                 `protobuf:"bytes,8,opt,name=publisher,proto3" json:"publisher,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *AiTransformation) Reset() {
+	*x = AiTransformation{}
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AiTransformation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AiTransformation) ProtoMessage() {}
+
+func (x *AiTransformation) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AiTransformation.ProtoReflect.Descriptor instead.
+func (*AiTransformation) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *AiTransformation) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+func (x *AiTransformation) GetPlatformApiRegex() string {
+	if x != nil {
+		return x.PlatformApiRegex
+	}
+	return ""
+}
+
+func (x *AiTransformation) GetJsonSchema() string {
+	if x != nil {
+		return x.JsonSchema
+	}
+	return ""
+}
+
+func (x *AiTransformation) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *AiTransformation) GetApiVersion() string {
+	if x != nil {
+		return x.ApiVersion
+	}
+	return ""
+}
+
+func (x *AiTransformation) GetProject() string {
+	if x != nil {
+		return x.Project
+	}
+	return ""
+}
+
+func (x *AiTransformation) GetLocation() string {
+	if x != nil {
+		return x.Location
+	}
+	return ""
+}
+
+func (x *AiTransformation) GetPublisher() string {
+	if x != nil {
+		return x.Publisher
+	}
+	return ""
+}
+
 // List of regexes to apply to the response body to match data which should be
 // masked. They will be applied iteratively in the order which they are
 // specified.
@@ -527,7 +643,7 @@ type Action_RegexMatcher struct {
 
 func (x *Action_RegexMatcher) Reset() {
 	*x = Action_RegexMatcher{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[7]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -539,7 +655,7 @@ func (x *Action_RegexMatcher) String() string {
 func (*Action_RegexMatcher) ProtoMessage() {}
 
 func (x *Action_RegexMatcher) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[7]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -575,7 +691,7 @@ type Action_KeyValueMatcher struct {
 
 func (x *Action_KeyValueMatcher) Reset() {
 	*x = Action_KeyValueMatcher{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[8]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -587,7 +703,7 @@ func (x *Action_KeyValueMatcher) String() string {
 func (*Action_KeyValueMatcher) ProtoMessage() {}
 
 func (x *Action_KeyValueMatcher) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[8]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -623,7 +739,7 @@ type Action_DlpMatcher struct {
 
 func (x *Action_DlpMatcher) Reset() {
 	*x = Action_DlpMatcher{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[9]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -635,7 +751,7 @@ func (x *Action_DlpMatcher) String() string {
 func (*Action_DlpMatcher) ProtoMessage() {}
 
 func (x *Action_DlpMatcher) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[9]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -772,7 +888,7 @@ var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_tra
 	0x65, 0x65, 0x2e, 0x76, 0x32, 0x2e, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61,
 	0x74, 0x69, 0x6f, 0x6e, 0x52, 0x20, 0x6f, 0x6e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x43, 0x6f,
 	0x6d, 0x70, 0x6c, 0x65, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72,
-	0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x9a, 0x01, 0x0a, 0x0e, 0x54, 0x72, 0x61, 0x6e, 0x73,
+	0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x8a, 0x02, 0x0a, 0x0e, 0x54, 0x72, 0x61, 0x6e, 0x73,
 	0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x71, 0x0a, 0x12, 0x64, 0x6c, 0x70,
 	0x5f, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x40, 0x2e, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2e, 0x63, 0x6f,
@@ -780,6 +896,13 @@ var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_tra
 	0x2e, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f,
 	0x65, 0x65, 0x2e, 0x76, 0x32, 0x2e, 0x44, 0x6c, 0x70, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f,
 	0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x48, 0x00, 0x52, 0x11, 0x64, 0x6c, 0x70, 0x54, 0x72,
+	0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x6e, 0x0a, 0x11,
+	0x61, 0x69, 0x5f, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x3f, 0x2e, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2e,
+	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x2e, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x2e, 0x68, 0x74,
+	0x74, 0x70, 0x2e, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x5f, 0x65, 0x65, 0x2e, 0x76, 0x32, 0x2e, 0x41, 0x69, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66,
+	0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x48, 0x00, 0x52, 0x10, 0x61, 0x69, 0x54, 0x72,
 	0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x15, 0x0a, 0x13,
 	0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x74,
 	0x79, 0x70, 0x65, 0x22, 0xfb, 0x01, 0x0a, 0x11, 0x44, 0x6c, 0x70, 0x54, 0x72, 0x61, 0x6e, 0x73,
@@ -851,19 +974,37 @@ var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_tra
 	0x05, 0x72, 0x65, 0x67, 0x65, 0x78, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x07, 0xfa, 0x42,
 	0x04, 0x72, 0x02, 0x20, 0x01, 0x52, 0x05, 0x72, 0x65, 0x67, 0x65, 0x78, 0x12, 0x1a, 0x0a, 0x08,
 	0x73, 0x75, 0x62, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x08,
-	0x73, 0x75, 0x62, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x42, 0xb7, 0x01, 0x0a, 0x3b, 0x69, 0x6f, 0x2e,
-	0x65, 0x6e, 0x76, 0x6f, 0x79, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x2e, 0x65, 0x6e, 0x76, 0x6f, 0x79,
-	0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x2e, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x2e, 0x68,
-	0x74, 0x74, 0x70, 0x2e, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x5f, 0x65, 0x65, 0x2e, 0x76, 0x32, 0x42, 0x1b, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66,
-	0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x45, 0x45, 0x46, 0x69, 0x6c, 0x74, 0x65, 0x72,
-	0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x59, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
-	0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x67, 0x6c, 0x6f, 0x6f,
-	0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x70,
-	0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f,
-	0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2f, 0x65, 0x78, 0x74, 0x65, 0x6e, 0x73, 0x69, 0x6f, 0x6e, 0x73,
-	0x2f, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f,
-	0x65, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x73, 0x75, 0x62, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x22, 0xa3, 0x02, 0x0a, 0x10, 0x41, 0x69, 0x54,
+	0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x23, 0x0a,
+	0x08, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42,
+	0x07, 0xfa, 0x42, 0x04, 0x72, 0x02, 0x20, 0x01, 0x52, 0x08, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64,
+	0x65, 0x72, 0x12, 0x35, 0x0a, 0x12, 0x70, 0x6c, 0x61, 0x74, 0x66, 0x6f, 0x72, 0x6d, 0x5f, 0x61,
+	0x70, 0x69, 0x5f, 0x72, 0x65, 0x67, 0x65, 0x78, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x07,
+	0xfa, 0x42, 0x04, 0x72, 0x02, 0x20, 0x01, 0x52, 0x10, 0x70, 0x6c, 0x61, 0x74, 0x66, 0x6f, 0x72,
+	0x6d, 0x41, 0x70, 0x69, 0x52, 0x65, 0x67, 0x65, 0x78, 0x12, 0x28, 0x0a, 0x0b, 0x6a, 0x73, 0x6f,
+	0x6e, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x42, 0x07,
+	0xfa, 0x42, 0x04, 0x72, 0x02, 0x20, 0x01, 0x52, 0x0a, 0x6a, 0x73, 0x6f, 0x6e, 0x53, 0x63, 0x68,
+	0x65, 0x6d, 0x61, 0x12, 0x14, 0x0a, 0x05, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x18, 0x04, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x05, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x12, 0x1f, 0x0a, 0x0b, 0x61, 0x70, 0x69,
+	0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a,
+	0x61, 0x70, 0x69, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x18, 0x0a, 0x07, 0x70, 0x72,
+	0x6f, 0x6a, 0x65, 0x63, 0x74, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x70, 0x72, 0x6f,
+	0x6a, 0x65, 0x63, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x18, 0x07, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x12, 0x1c, 0x0a, 0x09, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x65, 0x72, 0x18, 0x08, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x09, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x65, 0x72, 0x42, 0xb7,
+	0x01, 0x0a, 0x3b, 0x69, 0x6f, 0x2e, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x70, 0x72, 0x6f, 0x78, 0x79,
+	0x2e, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x2e, 0x66, 0x69,
+	0x6c, 0x74, 0x65, 0x72, 0x2e, 0x68, 0x74, 0x74, 0x70, 0x2e, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66,
+	0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x65, 0x65, 0x2e, 0x76, 0x32, 0x42, 0x1b,
+	0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x45, 0x45,
+	0x46, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x59, 0x67,
+	0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69,
+	0x6f, 0x2f, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f,
+	0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x65, 0x78, 0x74,
+	0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2f, 0x65, 0x78, 0x74, 0x65,
+	0x6e, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x2f, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x65, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -878,7 +1019,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_tr
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_rawDescData
 }
 
-var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_goTypes = []any{
 	(*FilterTransformations)(nil),  // 0: envoy.config.filter.http.transformation_ee.v2.FilterTransformations
 	(*TransformationRule)(nil),     // 1: envoy.config.filter.http.transformation_ee.v2.TransformationRule
@@ -887,34 +1028,36 @@ var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_tra
 	(*DlpTransformation)(nil),      // 4: envoy.config.filter.http.transformation_ee.v2.DlpTransformation
 	(*Action)(nil),                 // 5: envoy.config.filter.http.transformation_ee.v2.Action
 	(*RegexAction)(nil),            // 6: envoy.config.filter.http.transformation_ee.v2.RegexAction
-	(*Action_RegexMatcher)(nil),    // 7: envoy.config.filter.http.transformation_ee.v2.Action.RegexMatcher
-	(*Action_KeyValueMatcher)(nil), // 8: envoy.config.filter.http.transformation_ee.v2.Action.KeyValueMatcher
-	(*Action_DlpMatcher)(nil),      // 9: envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher
-	(*route.RouteMatch)(nil),       // 10: solo.io.envoy.api.v2.route.RouteMatch
-	(*v3.RouteMatch)(nil),          // 11: solo.io.envoy.config.route.v3.RouteMatch
-	(*_type.Percent)(nil),          // 12: solo.io.envoy.type.Percent
+	(*AiTransformation)(nil),       // 7: envoy.config.filter.http.transformation_ee.v2.AiTransformation
+	(*Action_RegexMatcher)(nil),    // 8: envoy.config.filter.http.transformation_ee.v2.Action.RegexMatcher
+	(*Action_KeyValueMatcher)(nil), // 9: envoy.config.filter.http.transformation_ee.v2.Action.KeyValueMatcher
+	(*Action_DlpMatcher)(nil),      // 10: envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher
+	(*route.RouteMatch)(nil),       // 11: solo.io.envoy.api.v2.route.RouteMatch
+	(*v3.RouteMatch)(nil),          // 12: solo.io.envoy.config.route.v3.RouteMatch
+	(*_type.Percent)(nil),          // 13: solo.io.envoy.type.Percent
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_depIdxs = []int32{
 	1,  // 0: envoy.config.filter.http.transformation_ee.v2.FilterTransformations.transformations:type_name -> envoy.config.filter.http.transformation_ee.v2.TransformationRule
-	10, // 1: envoy.config.filter.http.transformation_ee.v2.TransformationRule.match:type_name -> solo.io.envoy.api.v2.route.RouteMatch
-	11, // 2: envoy.config.filter.http.transformation_ee.v2.TransformationRule.match_v3:type_name -> solo.io.envoy.config.route.v3.RouteMatch
+	11, // 1: envoy.config.filter.http.transformation_ee.v2.TransformationRule.match:type_name -> solo.io.envoy.api.v2.route.RouteMatch
+	12, // 2: envoy.config.filter.http.transformation_ee.v2.TransformationRule.match_v3:type_name -> solo.io.envoy.config.route.v3.RouteMatch
 	2,  // 3: envoy.config.filter.http.transformation_ee.v2.TransformationRule.route_transformations:type_name -> envoy.config.filter.http.transformation_ee.v2.RouteTransformations
 	3,  // 4: envoy.config.filter.http.transformation_ee.v2.RouteTransformations.request_transformation:type_name -> envoy.config.filter.http.transformation_ee.v2.Transformation
 	3,  // 5: envoy.config.filter.http.transformation_ee.v2.RouteTransformations.response_transformation:type_name -> envoy.config.filter.http.transformation_ee.v2.Transformation
 	3,  // 6: envoy.config.filter.http.transformation_ee.v2.RouteTransformations.on_stream_completion_transformation:type_name -> envoy.config.filter.http.transformation_ee.v2.Transformation
 	4,  // 7: envoy.config.filter.http.transformation_ee.v2.Transformation.dlp_transformation:type_name -> envoy.config.filter.http.transformation_ee.v2.DlpTransformation
-	5,  // 8: envoy.config.filter.http.transformation_ee.v2.DlpTransformation.actions:type_name -> envoy.config.filter.http.transformation_ee.v2.Action
-	6,  // 9: envoy.config.filter.http.transformation_ee.v2.Action.regex_actions:type_name -> envoy.config.filter.http.transformation_ee.v2.RegexAction
-	12, // 10: envoy.config.filter.http.transformation_ee.v2.Action.percent:type_name -> solo.io.envoy.type.Percent
-	9,  // 11: envoy.config.filter.http.transformation_ee.v2.Action.matcher:type_name -> envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher
-	6,  // 12: envoy.config.filter.http.transformation_ee.v2.Action.RegexMatcher.regex_actions:type_name -> envoy.config.filter.http.transformation_ee.v2.RegexAction
-	7,  // 13: envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher.regex_matcher:type_name -> envoy.config.filter.http.transformation_ee.v2.Action.RegexMatcher
-	8,  // 14: envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher.key_value_matcher:type_name -> envoy.config.filter.http.transformation_ee.v2.Action.KeyValueMatcher
-	15, // [15:15] is the sub-list for method output_type
-	15, // [15:15] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	7,  // 8: envoy.config.filter.http.transformation_ee.v2.Transformation.ai_transformation:type_name -> envoy.config.filter.http.transformation_ee.v2.AiTransformation
+	5,  // 9: envoy.config.filter.http.transformation_ee.v2.DlpTransformation.actions:type_name -> envoy.config.filter.http.transformation_ee.v2.Action
+	6,  // 10: envoy.config.filter.http.transformation_ee.v2.Action.regex_actions:type_name -> envoy.config.filter.http.transformation_ee.v2.RegexAction
+	13, // 11: envoy.config.filter.http.transformation_ee.v2.Action.percent:type_name -> solo.io.envoy.type.Percent
+	10, // 12: envoy.config.filter.http.transformation_ee.v2.Action.matcher:type_name -> envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher
+	6,  // 13: envoy.config.filter.http.transformation_ee.v2.Action.RegexMatcher.regex_actions:type_name -> envoy.config.filter.http.transformation_ee.v2.RegexAction
+	8,  // 14: envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher.regex_matcher:type_name -> envoy.config.filter.http.transformation_ee.v2.Action.RegexMatcher
+	9,  // 15: envoy.config.filter.http.transformation_ee.v2.Action.DlpMatcher.key_value_matcher:type_name -> envoy.config.filter.http.transformation_ee.v2.Action.KeyValueMatcher
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() {
@@ -926,8 +1069,9 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_tr
 	}
 	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[3].OneofWrappers = []any{
 		(*Transformation_DlpTransformation)(nil),
+		(*Transformation_AiTransformation)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[9].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_msgTypes[10].OneofWrappers = []any{
 		(*Action_DlpMatcher_RegexMatcher)(nil),
 		(*Action_DlpMatcher_KeyValueMatcher)(nil),
 	}
@@ -937,7 +1081,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_tr
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
