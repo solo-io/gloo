@@ -321,8 +321,8 @@ var _ = Describe("Plugin", func() {
 
 			Expect(inClusters[0].Name).ToNot(ContainSubstring(tunneling.OriginalClusterSuffix),
 				"should not have updated the original cluster name")
-			Expect(newClusters).To(HaveLen(0), "should not generate a cluster for the upstream")
-			Expect(newListeners).To(HaveLen(0), "should not generate a listener for the upstream")
+			Expect(newClusters).To(BeEmpty(), "should not generate a cluster for the upstream")
+			Expect(newListeners).To(BeEmpty(), "should not generate a listener for the upstream")
 		})
 	})
 
@@ -396,8 +396,8 @@ var _ = Describe("Plugin", func() {
 				nil, inRouteConfigurations, nil, reports)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(newClusters).To(HaveLen(0), "should not generate a cluster for the upstream")
-			Expect(newListeners).To(HaveLen(0), "should not generate a listener for the upstream")
+			Expect(newClusters).To(BeEmpty(), "should not generate a cluster for the upstream")
+			Expect(newListeners).To(BeEmpty(), "should not generate a listener for the upstream")
 
 			Expect(reports).To(HaveLen(1), "should have a report for the upstream")
 
