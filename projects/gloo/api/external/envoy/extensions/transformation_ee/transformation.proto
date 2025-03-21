@@ -53,6 +53,7 @@ message Transformation {
     // Template is in the transformed request language domain
     oneof transformation_type {
         DlpTransformation dlp_transformation = 1;
+        AiTransformation ai_transformation = 2;
     }
 }
 
@@ -118,4 +119,15 @@ message RegexAction {
     string regex = 1 [ (validate.rules).string.min_bytes = 1 ];
     // If provided and not 0, only this specific subgroup of the regex will be masked.
     uint32 subgroup = 2;
+}
+
+message AiTransformation {
+    string provider = 1 [ (validate.rules).string.min_bytes = 1 ];
+    string platform_api_regex = 2 [ (validate.rules).string.min_bytes = 1 ];
+    string json_schema = 3 [ (validate.rules).string.min_bytes = 1 ];
+    string model = 4;
+    string api_version = 5;
+    string project = 6;
+    string location = 7;
+    string publisher = 8;
 }
