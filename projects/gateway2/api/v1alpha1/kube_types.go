@@ -279,6 +279,14 @@ type Pod struct {
 	//
 	// +kubebuilder:validation:Optional
 	LivenessProbe *corev1.Probe `json:"livenessProbe,omitempty"`
+
+	// If specified, this sets pod's topology spread constrains. Controls how Pods are spread
+	// across your cluster among failure-domains such as regions, zones, nodes, and other user-defined topology domains.
+	// See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#topologyspreadconstraint-v1-core
+	// for further details.
+	//
+	// +kubebuilder:validation:Optional
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 
 func (in *Pod) GetExtraLabels() map[string]string {
@@ -356,6 +364,13 @@ func (in *Pod) GetLivenessProbe() *corev1.Probe {
 		return nil
 	}
 	return in.LivenessProbe
+}
+
+func (in *Pod) GetTopologySpreadConstraints() []corev1.TopologySpreadConstraint {
+	if in == nil {
+		return nil
+	}
+	return in.TopologySpreadConstraints
 }
 
 type GracefulShutdownSpec struct {

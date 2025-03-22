@@ -940,6 +940,12 @@ var _ = Describe("Deployer", func() {
 				))
 				return nil
 			}
+
+			fullyDefinedGatewayParamsWithTopologySpreadConstraints = func() *gw2_v1alpha1.GatewayParameters {
+				params := fullyDefinedGatewayParameters(wellknown.DefaultGatewayParametersName, defaultNamespace)
+				params.Spec.Kube.PodTemplate.TopologySpreadConstraints = getTopologySpreadConstraints()
+				return params
+			}
 		)
 
 		// fullyDefinedValidationWithoutRunAsUser doesn't check "runAsUser"
@@ -1196,6 +1202,18 @@ var _ = Describe("Deployer", func() {
 			return generalAiAndSdsValidationFunc(objs, inp, true) // true: don't expect null runAsUser
 		}
 
+		validateGatewayParamsWithTopologySpreadConstraints := func(objs clientObjects, inp *input) error {
+			err := fullyDefinedValidationWithoutRunAsUser(objs, inp)
+			if err != nil {
+				return err
+			}
+
+			dep := objs.findDeployment(defaultNamespace, defaultDeploymentName)
+			Expect(dep.Spec.Template.Spec.TopologySpreadConstraints).To(BeEquivalentTo(getTopologySpreadConstraints()))
+
+			return nil
+		}
+
 		DescribeTable("create and validate objs", func(inp *input, expected *expectedOutput) {
 			checkErr := func(err, expectedErr error) (shouldReturn bool) {
 				GinkgoHelper()
@@ -1292,6 +1310,7 @@ var _ = Describe("Deployer", func() {
 			}, &expectedOutput{
 				validationFunc: fullyDefinedValidationFloatingUserId,
 			}),
+
 			Entry("correct deployment with sds and AI extension enabled", &input{
 				dInputs:     istioEnabledDeployerInputs(),
 				gw:          defaultGatewayWithGatewayParams(gwpOverrideName),
@@ -1566,6 +1585,14 @@ var _ = Describe("Deployer", func() {
 					return validateGatewayParametersPropagation(objs, defaultGatewayParamsWithSds(), mtlsEnabled)
 				},
 			}),
+
+			Entry("Defining GatewayParameters with TopologySpreadConstraints", &input{
+				dInputs:    istioEnabledDeployerInputs(),
+				gw:         defaultGateway(),
+				defaultGwp: fullyDefinedGatewayParamsWithTopologySpreadConstraints(),
+			}, &expectedOutput{
+				validationFunc: validateGatewayParamsWithTopologySpreadConstraints,
+			}),
 		)
 	})
 })
@@ -1776,5 +1803,18 @@ func generateReadinessProbe() *corev1.Probe {
 		InitialDelaySeconds: 5,
 		PeriodSeconds:       5,
 		FailureThreshold:    2,
+	}
+}
+
+func getTopologySpreadConstraints() []corev1.TopologySpreadConstraint {
+	return []corev1.TopologySpreadConstraint{
+		{
+			MaxSkew:           1,
+			TopologyKey:       "kubernetes.io/hostname",
+			WhenUnsatisfiable: corev1.DoNotSchedule,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{"pod-label": "default"},
+			},
+		},
 	}
 }

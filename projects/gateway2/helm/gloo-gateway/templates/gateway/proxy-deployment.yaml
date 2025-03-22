@@ -349,6 +349,10 @@ spec:
       {{- if $gateway.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ $gateway.terminationGracePeriodSeconds }}
       {{- end }}
+      {{- with $gateway.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
       - configMap:
           name: {{ include "gloo-gateway.gateway.fullname" . }}
