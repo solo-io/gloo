@@ -383,7 +383,7 @@ var _ = Describe("Plugin", func() {
 
 			upstreamTlsContext := msg.(*envoyauth.UpstreamTlsContext)
 			Expect(upstreamTlsContext.GetCommonTlsContext()).ToNot(BeNil(), "should have a common TLS context")
-			Expect(upstreamTlsContext.GetSni()).To(Equal("'ssni.example.com"),
+			Expect(upstreamTlsContext.GetSni()).To(Equal("ansni.example.com"),
 				"should have the correct SNI on the original cluster")
 		})
 
