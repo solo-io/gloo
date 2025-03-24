@@ -1,0 +1,9 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    issueLink: https://github.com/solo-io/solo-projects/issues/8041
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo
+    dependencyTag: v1.30.10-patch1
+    resolvesIssue: false
+    description: >-
+      CVE-2025-30157: Fix a bug where local replies were incorrectly sent to the ext_proc server
