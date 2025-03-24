@@ -122,12 +122,5 @@ message RegexAction {
 }
 
 message AiTransformation {
-    string provider = 1 [ (validate.rules).string.min_bytes = 1 ];
-    string platform_api_regex = 2 [ (validate.rules).string.min_bytes = 1 ];
-    string json_schema = 3 [ (validate.rules).string.min_bytes = 1 ];
-    string model = 4;
-    string api_version = 5;
-    string project = 6;
-    string location = 7;
-    string publisher = 8;
+    bool enable_chat_streaming = 1;
 }
