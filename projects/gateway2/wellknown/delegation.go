@@ -4,6 +4,9 @@ const (
 	// RouteDelegationLabelSelector is the label used to select delegated HTTPRoutes
 	RouteDelegationLabelSelector = "delegation.gateway.solo.io/label"
 
+	// RouteDelegationLabelSelectorWildcard wildcards the namespace to select delegatee routes by label
+	RouteDelegationLabelSelectorWildcardNamespace = "*"
+
 	// InheritMatcherAnnotation is the annotation used on an child HTTPRoute that
 	// participates in a delegation chain to indicate that child route should inherit
 	// the route matcher from the parent route.
