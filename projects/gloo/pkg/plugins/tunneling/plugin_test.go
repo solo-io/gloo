@@ -33,6 +33,7 @@ const (
 var _ = Describe("Plugin", func() {
 
 	var (
+		proxy                 *v1.Proxy
 		params                plugins.Params
 		inRouteConfigurations []*envoy_config_route_v3.RouteConfiguration
 		inClusters            []*envoy_config_cluster_v3.Cluster
@@ -44,6 +45,12 @@ var _ = Describe("Plugin", func() {
 	)
 
 	BeforeEach(func() {
+		proxy = &v1.Proxy{
+			Metadata: &core.Metadata{
+				Name:      "test",
+				Namespace: "gloo-system",
+			},
+		}
 		us = &v1.Upstream{
 			Metadata: &core.Metadata{
 				Name:      "http-proxy-upstream",
@@ -128,9 +135,9 @@ var _ = Describe("Plugin", func() {
 	It("should update resources properly", func() {
 		p := tunneling.NewPlugin()
 
-		generatedClusters, _, _, generatedListeners, err := p.GeneratedResources(params,
-			inClusters, nil, inRouteConfigurations, nil, reports)
-		Expect(err).ToNot(HaveOccurred())
+		generatedClusters, _, _, generatedListeners := p.GeneratedResources(params,
+			proxy, inClusters, nil, inRouteConfigurations, nil, reports)
+		Expect(reports).To(BeEmpty())
 		Expect(generatedClusters).ToNot(BeNil())
 		Expect(generatedListeners).ToNot(BeNil())
 
@@ -169,9 +176,9 @@ var _ = Describe("Plugin", func() {
 
 		It("should allow multiple routes to same upstream", func() {
 			p := tunneling.NewPlugin()
-			generatedClusters, _, _, _, err := p.GeneratedResources(params, inClusters,
+			generatedClusters, _, _, _ := p.GeneratedResources(params, proxy, inClusters,
 				nil, inRouteConfigurations, nil, reports)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(reports).To(BeEmpty())
 			Expect(generatedClusters).To(HaveLen(1), "should generate a single cluster for the upstream")
 			Expect(generatedClusters[0].GetTransportSocket()).ToNot(BeNil())
 		})
@@ -210,9 +217,9 @@ var _ = Describe("Plugin", func() {
 		It("should namespace generated clusters, avoiding duplicates", func() {
 			p := tunneling.NewPlugin()
 
-			generatedClusters, _, _, _, err := p.GeneratedResources(params, inClusters,
+			generatedClusters, _, _, _ := p.GeneratedResources(params, proxy, inClusters,
 				nil, inRouteConfigurations, nil, reports)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(reports).To(BeEmpty())
 			Expect(generatedClusters).To(HaveLen(2), "should generate a cluster for each input route")
 
 			Expect(generatedClusters[0].Name).ToNot(Equal(generatedClusters[1].Name), "should not have name collisions")
@@ -237,9 +244,9 @@ var _ = Describe("Plugin", func() {
 		It("should namespace generated listeners, avoiding duplicates", func() {
 			p := tunneling.NewPlugin()
 
-			_, _, _, generatedListeners, err := p.GeneratedResources(params, inClusters,
+			_, _, _, generatedListeners := p.GeneratedResources(params, proxy, inClusters,
 				nil, inRouteConfigurations, nil, reports)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(reports).To(BeEmpty())
 			Expect(generatedListeners).To(HaveLen(2), "should generate a listener for each input route")
 
 			listener1Pipe := generatedListeners[0].GetAddress().GetPipe().GetPath()
@@ -282,9 +289,9 @@ var _ = Describe("Plugin", func() {
 		It("should generate resources", func() {
 			p := tunneling.NewPlugin()
 
-			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters,
+			newClusters, _, _, newListeners := p.GeneratedResources(params, proxy, inClusters,
 				nil, inRouteConfigurations, nil, reports)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(reports).To(BeEmpty())
 			Expect(newClusters).To(HaveLen(1), "should generate a cluster for the upstream")
 			Expect(newListeners).To(HaveLen(1), "should generate a listener for the upstream")
 
@@ -297,9 +304,9 @@ var _ = Describe("Plugin", func() {
 
 			p := tunneling.NewPlugin()
 
-			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters,
+			newClusters, _, _, newListeners := p.GeneratedResources(params, proxy, inClusters,
 				nil, inRouteConfigurations, nil, reports)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(reports).To(BeEmpty())
 			Expect(newClusters).To(HaveLen(1), "should generate a single cluster for the upstream")
 			Expect(newListeners).To(HaveLen(1), "should generate a single listener for the upstream")
 		})
@@ -313,9 +320,9 @@ var _ = Describe("Plugin", func() {
 		It("should not generate resources", func() {
 			p := tunneling.NewPlugin()
 
-			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters,
+			newClusters, _, _, newListeners := p.GeneratedResources(params, proxy, inClusters,
 				nil, inRouteConfigurations, nil, reports)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(reports).To(BeEmpty())
 			Expect(newClusters).To(BeNil(), "should not generate a cluster for the upstream")
 			Expect(newListeners).To(BeNil(), "should not generate a listener for the upstream")
 
@@ -360,10 +367,9 @@ var _ = Describe("Plugin", func() {
 
 			fmt.Println("params: ", params.Snapshot.Upstreams)
 
-			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters,
+			newClusters, _, _, newListeners := p.GeneratedResources(params, proxy, inClusters,
 				nil, inRouteConfigurations, nil, reports)
-			Expect(err).ToNot(HaveOccurred())
-
+			Expect(reports).To(BeEmpty())
 			Expect(newClusters).To(HaveLen(1), "should generate a cluster for the upstream")
 			Expect(newListeners).To(HaveLen(1), "should generate a listener for the upstream")
 
@@ -392,14 +398,11 @@ var _ = Describe("Plugin", func() {
 
 			params.Snapshot.Secrets = nil
 
-			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters,
+			newClusters, _, _, newListeners := p.GeneratedResources(params, proxy, inClusters,
 				nil, inRouteConfigurations, nil, reports)
-			Expect(err).ToNot(HaveOccurred())
-
+			Expect(reports).To(HaveLen(1), "should have a report for the upstream")
 			Expect(newClusters).To(BeEmpty(), "should not generate a cluster for the upstream")
 			Expect(newListeners).To(BeEmpty(), "should not generate a listener for the upstream")
-
-			Expect(reports).To(HaveLen(1), "should have a report for the upstream")
 
 			report, ok := reports[us]
 			Expect(ok).To(BeTrue(), "should have a report for the upstream")
@@ -416,14 +419,11 @@ var _ = Describe("Plugin", func() {
 				WarnMissingTlsSecret: &wrappers.BoolValue{Value: true},
 			}
 
-			newClusters, _, _, newListeners, err := p.GeneratedResources(params, inClusters,
+			newClusters, _, _, newListeners := p.GeneratedResources(params, proxy, inClusters,
 				nil, inRouteConfigurations, nil, reports)
-			Expect(err).ToNot(HaveOccurred())
-
+			Expect(reports).To(HaveLen(1), "should have a report for the upstream")
 			Expect(newClusters).To(HaveLen(1), "should generate a cluster for the upstream")
 			Expect(newListeners).To(HaveLen(1), "should generate a listener for the upstream")
-
-			Expect(reports).To(HaveLen(1), "should have a report for the upstream")
 
 			report, ok := reports[us]
 			Expect(ok).To(BeTrue(), "should have a report for the upstream")

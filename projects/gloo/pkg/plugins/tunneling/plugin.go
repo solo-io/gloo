@@ -17,7 +17,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
@@ -56,7 +55,9 @@ func (p *plugin) Init(_ plugins.InitParams) {
 //
 // The SSL configuration for the original cluster is copied to the generated cluster and the
 // supplied proxy SSL configuration is set on the original cluster.
-func (p *plugin) GeneratedResources(params plugins.Params,
+func (p *plugin) GeneratedResources(
+	params plugins.Params,
+	proxy *v1.Proxy,
 	inClusters []*envoy_config_cluster_v3.Cluster,
 	inEndpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment,
 	inRouteConfigurations []*envoy_config_route_v3.RouteConfiguration,
@@ -67,10 +68,7 @@ func (p *plugin) GeneratedResources(params plugins.Params,
 	[]*envoy_config_endpoint_v3.ClusterLoadAssignment,
 	[]*envoy_config_route_v3.RouteConfiguration,
 	[]*envoy_config_listener_v3.Listener,
-	error,
 ) {
-	logger := contextutils.LoggerFrom(params.Ctx)
-
 	var newClusters []*envoy_config_cluster_v3.Cluster
 	var newListeners []*envoy_config_listener_v3.Listener
 
@@ -83,7 +81,6 @@ func (p *plugin) GeneratedResources(params plugins.Params,
 
 		// skip if the cluster has already been processed
 		if processedClusters.Has(clusterName) {
-			logger.Warnf("cluster %v already processed", clusterName)
 			continue
 		}
 
@@ -109,7 +106,7 @@ func (p *plugin) GeneratedResources(params plugins.Params,
 		}
 	}
 
-	return newClusters, nil, nil, newListeners, nil
+	return newClusters, nil, nil, newListeners
 }
 
 func processUpstream(
@@ -130,7 +127,8 @@ func processUpstream(
 	// find the cluster to update
 	cluster := findClusters(inClusters, clusterName)
 	if cluster == nil {
-		return nil, nil, nil, fmt.Errorf("cluster %s not found", clusterName)
+		return nil, nil, nil, fmt.Errorf("The cluster for the %s Upstream was not found."+
+			"Check the status of the Upstream resources for errors.", clusterName)
 	}
 
 	// change the original cluster name to avoid conflicts with the new cluster
@@ -194,7 +192,9 @@ func processUpstream(
 	// the new listener's pipe
 	newCluster := generateForwardingCluster(clusterName, forwardingPipe, originalTransportSocket)
 
-	// update the original route's cluster name
+	// to avoid having to change the parent's reference to the new cluster, we change the name
+	// of the original cluster and use the original cluster name for the new cluster
+	// this saves this plugin having to know about every place a parent may reference a cluster
 	cluster.Name = newOriginalClusterName
 
 	return newCluster, newListener, warningList, nil

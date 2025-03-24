@@ -131,13 +131,11 @@ func (t *translatorInstance) Translate(
 	var endpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment
 	clusters, endpoints = t.translateClusterSubsystemComponents(params, proxy, reports)
 	routeConfigs, listeners := t.translateListenerSubsystemComponents(params, proxy, proxyReport)
+
 	// run Resource Generator Plugins
 	for _, plugin := range t.pluginRegistry.GetResourceGeneratorPlugins() {
-		newClusters, newEndpoints, newRouteConfigs, newListeners, err := plugin.GeneratedResources(params,
+		newClusters, newEndpoints, newRouteConfigs, newListeners := plugin.GeneratedResources(params, proxy,
 			clusters, endpoints, routeConfigs, listeners, reports)
-		if err != nil {
-			reports.AddError(proxy, err)
-		}
 		clusters = append(clusters, newClusters...)
 		endpoints = append(endpoints, newEndpoints...)
 		routeConfigs = append(routeConfigs, newRouteConfigs...)
