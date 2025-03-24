@@ -8,6 +8,7 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwv1b1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 )
@@ -18,6 +19,7 @@ const (
 	TcpRouteTargetField             = "tcp-route-target"
 	TlsRouteTargetField             = "tls-route-target"
 	ReferenceGrantFromField         = "ref-grant-from"
+	ListenerSetTargetField          = "listener-set-target"
 )
 
 // IterateIndices calls the provided function for each indexable object with the appropriate indexer function.
@@ -28,6 +30,7 @@ func IterateIndices(f func(client.Object, string, client.IndexerFunc) error) err
 		f(&gwv1a2.TCPRoute{}, TcpRouteTargetField, IndexerByObjType),
 		f(&gwv1a2.TLSRoute{}, TlsRouteTargetField, IndexerByObjType),
 		f(&gwv1b1.ReferenceGrant{}, ReferenceGrantFromField, IndexerByObjType),
+		f(&gwxv1a1.XListenerSet{}, ListenerSetTargetField, IndexerByObjType),
 	)
 }
 
@@ -95,6 +98,23 @@ func IndexerByObjType(obj client.Object) []string {
 			}
 			results = append(results, nns.String())
 		}
+	case *gwxv1a1.XListenerSet:
+		if resource.Spec.ParentRef.Group != nil && *resource.Spec.ParentRef.Group != gwv1a2.GroupName {
+			break
+		}
+		if resource.Spec.ParentRef.Kind != nil && *resource.Spec.ParentRef.Kind != wellknown.GatewayKind {
+			break
+		}
+		ns := resolveNs(resource.Spec.ParentRef.Namespace)
+		if ns == "" {
+			ns = resource.Namespace
+		}
+		nns := types.NamespacedName{
+			Namespace: ns,
+			Name:      string(resource.Spec.ParentRef.Name),
+		}
+		results = append(results, nns.String())
+
 	case *gwv1b1.ReferenceGrant:
 		for _, from := range resource.Spec.From {
 			if from.Namespace != "" {

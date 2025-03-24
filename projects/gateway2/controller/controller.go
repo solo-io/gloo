@@ -25,6 +25,7 @@ import (
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
 	apiv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
@@ -78,6 +79,7 @@ func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 		controllerBuilder.watchCustomResourceDefinitions,
 		controllerBuilder.watchGwClass,
 		controllerBuilder.watchGw,
+		controllerBuilder.watchListenerSets,
 		controllerBuilder.watchHttpRoute,
 		controllerBuilder.watchTcpRoute,
 		controllerBuilder.watchTlsRoute,
@@ -119,6 +121,11 @@ type controllerBuilder struct {
 
 func (c *controllerBuilder) addIndexes(ctx context.Context) error {
 	var errs []error
+
+	// Index for ListenerSets
+	if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apixv1a1.XListenerSet{}, query.ListenerSetTargetField, query.IndexerByObjType); err != nil {
+		errs = append(errs, err)
+	}
 
 	// Index for HTTPRoute
 	if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1.HTTPRoute{}, query.HttpRouteTargetField, query.IndexerByObjType); err != nil {
@@ -348,6 +355,13 @@ func (c *controllerBuilder) watchCustomResourceDefinitions(_ context.Context) er
 		Complete(reconcile.Func(c.reconciler.ReconcileCustomResourceDefinitions))
 }
 
+func (c *controllerBuilder) watchListenerSets(_ context.Context) error {
+	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
+		For(&apixv1a1.XListenerSet{}).
+		Complete(reconcile.Func(c.reconciler.ReconcileListenerSets))
+}
+
 func (c *controllerBuilder) watchHttpRoute(_ context.Context) error {
 	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
 		WithEventFilter(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.AnnotationChangedPredicate{})).
@@ -467,6 +481,13 @@ type controllerReconciler struct {
 	cli    client.Client
 	scheme *runtime.Scheme
 	kick   func(ctx context.Context)
+}
+
+func (r *controllerReconciler) ReconcileListenerSets(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	// TODO: consider finding impacted gateways and queue them
+	fmt.Println("============ ReconcileListenerSets : ")
+	r.kick(ctx)
+	return ctrl.Result{}, nil
 }
 
 func (r *controllerReconciler) ReconcileHttpListenerOptions(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
