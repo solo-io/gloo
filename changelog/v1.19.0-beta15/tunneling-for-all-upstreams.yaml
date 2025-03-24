@@ -2,6 +2,7 @@ changelog:
 - type: FIX
   description: |
     Updated HTTP tunneling plugin to support HTTP CONNECT tunneling on all Upstreams, not just
-    those bound to a Route.
+    those bound to a Route. This allows Upstreams referenced by various settings (e.g. remote JWKS, 
+    tracing, and more) to use a forward proxy without creating a Route for each Upstream.
   resolvesIssue: false
   issueLink: https://github.com/solo-io/solo-projects/issues/7497
