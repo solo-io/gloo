@@ -10,7 +10,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	sologatewayv1alpha1 "github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/spf13/pflag"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -31,8 +30,10 @@ var (
 
 type Options struct {
 	*options.Options
-	InputFile string
-	Stats     bool
+	InputFile          string
+	OutputDir          string
+	FolderPerNamespace bool
+	Stats              bool
 }
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz")
@@ -49,6 +50,10 @@ func RandStringRunes(n int) string {
 func (o *Options) addToFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.InputFile, "input-file", "", "File to convert")
 	flags.BoolVar(&o.Stats, "stats", false, "Print stats about the conversion")
+	flags.StringVar(&o.OutputDir, "_output", "./_output",
+		"Where to write files")
+	flags.BoolVar(&o.FolderPerNamespace, "folder-per-namespace", false,
+		"Organize files by namespace")
 }
 
 type EnvoySnapshot struct {
@@ -85,12 +90,13 @@ func (e *EnvoySnapshot) GetRouteByName(routeName string) (*route.RouteConfigurat
 }
 
 type GatewayAPIOutput struct {
+	OutputDir          string
 	HTTPRoutes         []*gwv1.HTTPRoute
+	ListenerSets       []*ListenerSet
 	RouteOptions       []*gatewaykube.RouteOption
 	VirtualHostOptions []*gatewaykube.VirtualHostOption
 	Upstreams          []*glookube.Upstream
-	AuthConfigs        []*v1.AuthConfig
-	Gateways           []*gwv1.Gateway
+	Gateway            *gwv1.Gateway
 }
 
 type YamlMarshaller struct{}
@@ -124,9 +130,6 @@ func (g *GatewayAPIOutput) HasItems() bool {
 	if len(g.Upstreams) > 0 {
 		return true
 	}
-	if len(g.AuthConfigs) > 0 {
-		return true
-	}
 	// if there are only yaml objects then skip because we didnt change anything in the file
 
 	return false
@@ -148,27 +151,26 @@ func removeNullFields(m map[string]interface{}) {
 		}
 	}
 }
+
 func (g *GatewayAPIOutput) ToString() (string, error) {
 	output := ""
 
-	for _, gw := range g.Gateways {
-		o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), gw)
-		if err != nil {
-			return "", err
-		}
-
-		var data map[string]interface{}
-		if err := json.Unmarshal(o, &data); err != nil {
-			return "", err
-		}
-		removeNullFields(data)
-
-		yamlData, err := yaml.Marshal(data)
-		if err != nil {
-			return "", err
-		}
-		output += "\n---\n" + string(yamlData)
+	o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), g.Gateway)
+	if err != nil {
+		return "", err
 	}
+
+	var data map[string]interface{}
+	if err := json.Unmarshal(o, &data); err != nil {
+		return "", err
+	}
+	removeNullFields(data)
+
+	yamlData, err := yaml.Marshal(data)
+	if err != nil {
+		return "", err
+	}
+	output += "\n---\n" + string(yamlData)
 
 	for _, obj := range g.Upstreams {
 		o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), obj)
@@ -208,15 +210,6 @@ func (g *GatewayAPIOutput) ToString() (string, error) {
 		output += "\n---\n" + string(yamlData)
 	}
 	for _, op := range g.RouteOptions {
-		marshaller := YamlMarshaller{}
-		yaml, err := marshaller.ToYaml(&op)
-		if err != nil {
-			return "", err
-		}
-
-		output += "\n---\n" + string(yaml)
-	}
-	for _, op := range g.AuthConfigs {
 		marshaller := YamlMarshaller{}
 		yaml, err := marshaller.ToYaml(&op)
 		if err != nil {

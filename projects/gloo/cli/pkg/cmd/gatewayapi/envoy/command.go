@@ -4,23 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	v8 "github.com/cncf/xds/go/udpa/type/v1"
-	adminv3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
-	v3_extensions "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/cors/v3"
-
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	v3_extensions "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/cors/v3"
 	faultv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/fault/v3"
 	rbacv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/rbac/v3"
 	http_connection_managerv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	tcp_proxyv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
+	"github.com/ghodss/yaml"
 	api "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	v4 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	jwt2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	rbac2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
@@ -30,11 +28,10 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
 	"github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 	"github.com/spf13/cobra"
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-	"io/ioutil"
 	_ "istio.io/api/envoy/config/filter/network/metadata_exchange"
 	_ "istio.io/api/envoy/extensions/stats"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -46,26 +43,12 @@ import (
 	"strings"
 )
 
-var (
-	output = &GatewayAPIOutput{
-		HTTPRoutes:         make([]*gwv1.HTTPRoute, 0),
-		RouteOptions:       make([]*gatewaykube.RouteOption, 0),
-		VirtualHostOptions: make([]*gatewaykube.VirtualHostOption, 0),
-		Upstreams:          make([]*glookube.Upstream, 0),
-		AuthConfigs:        make([]*v1.AuthConfig, 0),
-		Gateways:           make([]*gwv1.Gateway, 0),
-	}
-)
-
 func init() {
 	runtimeScheme = runtime.NewScheme()
-
 	if err := SchemeBuilder.AddToScheme(runtimeScheme); err != nil {
 		log.Fatal(err)
 	}
-
 	codecs = serializer.NewCodecFactory(runtimeScheme)
-	decoder = codecs.UniversalDeserializer()
 }
 
 const (
@@ -75,7 +58,6 @@ const (
 
 var runtimeScheme *runtime.Scheme
 var codecs serializer.CodecFactory
-var decoder runtime.Decoder
 
 func RootCmd() *cobra.Command {
 	opts := &Options{}
@@ -87,67 +69,160 @@ func RootCmd() *cobra.Command {
 		},
 	}
 	opts.addToFlags(cmd.PersistentFlags())
+
 	cmd.SilenceUsage = true
 	return cmd
 }
 
 func run(opts *Options) error {
-	// Read the Envoy configuration file
-	//data, err := ioutil.ReadFile("nick/shipt/envoy.nick.json")
-	data, err := ioutil.ReadFile("nick/grainger/config_dump.grainger.nick.json")
-	//data, err := ioutil.ReadFile("nick/demo/demo-central.nick.json")
-	if err != nil {
-		log.Fatalf("error: %v", err)
-	}
 
-	log.Printf("Parsing envoy configuration")
 	// Parse the configuration
-	snapshot, err := parseEnvoyConfig(data)
+	snapshot, err := parseEnvoyConfig(opts.InputFile)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-	log.Printf("Completed parsing envoy configuration")
 
-	err = generateGatwayAPIConfig(snapshot)
+	g := &GatewayAPIOutput{
+		OutputDir:          opts.OutputDir,
+		HTTPRoutes:         make([]*gwv1.HTTPRoute, 0),
+		RouteOptions:       make([]*gatewaykube.RouteOption, 0),
+		VirtualHostOptions: make([]*gatewaykube.VirtualHostOption, 0),
+		Upstreams:          make([]*glookube.Upstream, 0),
+		ListenerSets:       make([]*ListenerSet, 0),
+	}
+
+	err = g.Convert(snapshot)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	err = g.Write()
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
 	return nil
 }
 
-// Function to parse Envoy configuration
-func parseEnvoyConfig(data []byte) (*EnvoySnapshot, error) {
-	// Unmarshal the JSON into the ConfigDump struct
-	var configDump adminv3.ConfigDump
-	if err := protojson.Unmarshal(data, &configDump); err != nil {
-		log.Fatalf("Failed to unmarshal JSON: %v", err)
+func (g *GatewayAPIOutput) Write() error {
+
+	err := os.MkdirAll(g.OutputDir, os.ModePerm)
+
+	// Gateway
+	o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), g.Gateway)
+	if err != nil {
+		return err
 	}
 
-	envoysnapshot := &EnvoySnapshot{}
-
-	for _, config := range configDump.Configs {
-		if config.GetTypeUrl() == "type.googleapis.com/envoy.admin.v3.ListenersConfigDump" {
-			if err := config.UnmarshalTo(&envoysnapshot.Listeners); err != nil {
-				log.Fatalf("Failed to unmarshal message: %v", err)
-			}
-		}
-		if config.GetTypeUrl() == "type.googleapis.com/envoy.admin.v3.RoutesConfigDump" {
-			if err := config.UnmarshalTo(&envoysnapshot.Routes); err != nil {
-				log.Fatalf("Failed to unmarshal message: %v", err)
-			}
-		}
-		if config.GetTypeUrl() == "type.googleapis.com/envoy.admin.v3.ClustersConfigDump" {
-			if err := config.UnmarshalTo(&envoysnapshot.Clusters); err != nil {
-				log.Fatalf("Failed to unmarshal message: %v", err)
-			}
-		}
+	gwYaml, err2 := cleanYAMLData(o, err)
+	if err2 != nil {
+		return err2
 	}
 
-	return envoysnapshot, nil
+	err = os.WriteFile(fmt.Sprintf("%s/gateway-%s.yaml", g.OutputDir, g.Gateway.Name), gwYaml, 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	// Write Routes
+	for _, httpRoute := range g.HTTPRoutes {
+		o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), httpRoute)
+		if err != nil {
+			return err
+		}
+		routeYaml, err2 := cleanYAMLData(o, err)
+		if err2 != nil {
+			return err2
+		}
+		err = os.WriteFile(fmt.Sprintf("%s/httproute-%s.yaml", g.OutputDir, httpRoute.Name), routeYaml, 0644)
+		if err != nil {
+			panic(err)
+		}
+	}
+	for _, listenerSet := range g.ListenerSets {
+		listenerSetYaml, err := yaml.Marshal(listenerSet)
+		if err != nil {
+			panic(err)
+		}
+		err = os.WriteFile(fmt.Sprintf("%s/listenerset-%s.yaml", g.OutputDir, listenerSet.Name), removeNullYamlFields(listenerSetYaml), 0644)
+		if err != nil {
+			panic(err)
+		}
+	}
+	for _, routeOption := range g.RouteOptions {
+		routeOptionYaml, err := yaml.Marshal(routeOption)
+		if err != nil {
+			panic(err)
+		}
+		err = os.WriteFile(fmt.Sprintf("%s/routeoption-%s.yaml", g.OutputDir, routeOption.Name), removeNullYamlFields(routeOptionYaml), 0644)
+		if err != nil {
+			panic(err)
+		}
+	}
+	for _, upstream := range g.Upstreams {
+		upstreamYaml, err := yaml.Marshal(upstream)
+		if err != nil {
+			panic(err)
+		}
+		err = os.WriteFile(fmt.Sprintf("%s/upstream-%s.yaml", g.OutputDir, upstream.Name), removeNullYamlFields(upstreamYaml), 0644)
+		if err != nil {
+			panic(err)
+		}
+	}
+	for _, virtualHostOptions := range g.VirtualHostOptions {
+		virtualHostOptionYaml, err := yaml.Marshal(virtualHostOptions)
+		if err != nil {
+			panic(err)
+		}
+		err = os.WriteFile(fmt.Sprintf("%s/virtualhostoption-%s.yaml", g.OutputDir, virtualHostOptions.Name), removeNullYamlFields(virtualHostOptionYaml), 0644)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return nil
 }
 
-func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
+func cleanYAMLData(o []byte, err error) ([]byte, error) {
+	var data map[string]interface{}
+	if err := json.Unmarshal(o, &data); err != nil {
+		return nil, err
+	}
+	removeNullFields(data)
 
+	yamlData, err := yaml.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return removeNullYamlFields(yamlData), nil
+}
+
+func removeNullYamlFields(yamlData []byte) []byte {
+	stringData := strings.ReplaceAll(string(yamlData), "  creationTimestamp: null\n", "")
+	stringData = strings.ReplaceAll(stringData, "status:\n", "")
+	stringData = strings.ReplaceAll(stringData, "parents: null\n", "")
+	stringData = strings.ReplaceAll(stringData, "status: {}\n", "")
+	stringData = strings.ReplaceAll(stringData, "\n\n\n", "\n")
+	stringData = strings.ReplaceAll(stringData, "\n\n", "\n")
+	stringData = strings.ReplaceAll(stringData, "spec: {}\n", "")
+	return []byte(stringData)
+}
+
+func (g *GatewayAPIOutput) Convert(snapshot *EnvoySnapshot) error {
+	// this is a listener we want to generate output for each port
+	gwGateway := &gwv1.Gateway{
+		//TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ingress",
+			Namespace: "gloo-system",
+		},
+		Spec: gwv1.GatewaySpec{
+			GatewayClassName: "gloo-gateway",
+			Listeners:        []gwv1.Listener{},
+		},
+		//Addresses:      nil,
+		//Infrastructure: nil,
+		//BackendTLS:     nil,
+	}
 	for _, listener := range snapshot.Listeners.DynamicListeners {
 		var v3Listener v3.Listener
 		if err := listener.ActiveState.Listener.UnmarshalTo(&v3Listener); err != nil {
@@ -155,69 +230,37 @@ func generateGatwayAPIConfig(snapshot *EnvoySnapshot) error {
 		}
 		if v3Listener.Address.GetSocketAddress().Address == "0.0.0.0" {
 			log.Printf("Evaluating Listener %v", listener.Name)
-			// this is a listener we want to generate output for each port
-			gwGateway := &gwv1.Gateway{
-				//TypeMeta: metav1.TypeMeta{},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      fmt.Sprintf("ingress-%d", v3Listener.Address.GetSocketAddress().GetPortValue()),
-					Namespace: "gloo-system",
-				},
-				Spec: gwv1.GatewaySpec{
-					GatewayClassName: "gloo-gateway",
-					Listeners:        []gwv1.Listener{},
-				},
-				//Addresses:      nil,
-				//Infrastructure: nil,
-				//BackendTLS:     nil,
-			}
 
-			for fi, fc := range v3Listener.FilterChains {
-				listeners, err := processFilterChain(gwGateway.Name, gwGateway.Namespace, snapshot, fc, fi, &v3Listener)
+			for _, fc := range v3Listener.FilterChains {
+				listeners, err := g.ProcessFilterChain(gwGateway.Name, gwGateway.Namespace, snapshot, fc, v3Listener.Address.GetSocketAddress().GetPortValue())
 				if err != nil {
 					return err
 				}
 				gwGateway.Spec.Listeners = append(gwGateway.Spec.Listeners, listeners...)
-				output.Gateways = append(output.Gateways, gwGateway)
 			}
-
 		}
 	}
-
-	// write all the outputs to their files
-	//only write or
-	txt, err := output.ToString()
-	if err != nil {
-		return err
-	}
-	filename := "gateway-api.rendered.nick.yaml"
-	_, _ = fmt.Fprintf(os.Stdout, "Writing File: %s\n", filename)
-	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-	fmt.Fprintf(file, "%s", txt)
-	//_, _ = fmt.Fprintf(os.Stdout, "%s\n", txt)
-
+	g.Gateway = gwGateway
 	return nil
 }
 
 // For each filter chain we need to gather a bunch of information then process the routes.
 // Need to get the HCM name, SNIs, and Filters that need to be available to reference from the routes
-func processFilterChain(gwName string, gwNamespace string, snapshot *EnvoySnapshot, fc *v3.FilterChain, fi int, v3Listener *v3.Listener) ([]gwv1.Listener, error) {
+func (g *GatewayAPIOutput) ProcessFilterChain(gwName string, gwNamespace string, snapshot *EnvoySnapshot, fc *v3.FilterChain, gatewayPort uint32) ([]gwv1.Listener, error) {
 	var snis []string
 	var gwListeners []gwv1.Listener
-	if fc.FilterChainMatch != nil {
+	if len(fc.Filters) > 0 {
 		var err error
 		var tlsContext *gwv1.GatewayTLSConfig
 		//grabs the tls information if it exists
-		tlsContext, snis, err = findTLSContext(fc)
-		if err != nil {
-			return nil, err
+		if fc.FilterChainMatch != nil {
+			tlsContext, snis, err = findTLSContext(fc)
+			if err != nil {
+				return nil, err
+			}
 		}
-
 		var jwtProviders map[string]interface{}
-		jwtProviders, _, err = findJWTProviders(fc)
+		jwtProviders, _, err = g.FindJWTProviders(fc)
 
 		if err != nil {
 			return nil, err
@@ -225,9 +268,9 @@ func processFilterChain(gwName string, gwNamespace string, snapshot *EnvoySnapsh
 
 		//No SNIs exist so we pull it from the HTTP connection manager
 		var routeName string // HCM Route Name for reference
-		for i, filter := range fc.Filters {
+		for _, filter := range fc.Filters {
 			if filter.Name == "envoy.filters.network.tcp_proxy" {
-				tcpListeners, err := generateTCPListeners(snis, fi, tlsContext, i, v3Listener.Address.GetSocketAddress().GetPortValue())
+				tcpListeners, err := generateTCPListeners(snis, tlsContext, gatewayPort)
 				if err != nil {
 					return nil, err
 				}
@@ -244,7 +287,7 @@ func processFilterChain(gwName string, gwNamespace string, snapshot *EnvoySnapsh
 
 			}
 			if filter.Name == "envoy.filters.network.http_connection_manager" {
-				httpListeners, err := generateHTTPListeners(filter, snis, fi, tlsContext, i, v3Listener.Address.GetSocketAddress().GetPortValue())
+				httpListeners, err := g.GenerateHTTPListeners(filter, snis, tlsContext, gatewayPort)
 				if err != nil {
 					return nil, err
 				}
@@ -266,19 +309,11 @@ func processFilterChain(gwName string, gwNamespace string, snapshot *EnvoySnapsh
 					if rt == nil {
 						log.Printf("Route not found: %s", routeName)
 					}
-					routes, upstreams, routeOptions, err := generateHTTPRoutes(gwName, gwNamespace, rt, snapshot, jwtProviders)
+					err = g.GenerateHTTPRoutes(gwName, gwNamespace, rt, snapshot, jwtProviders)
 					if err != nil {
 						return nil, err
 					}
-					for _, ro := range routeOptions {
-						output.RouteOptions = append(output.RouteOptions, ro)
-					}
-					for _, upstream := range upstreams {
-						output.Upstreams = append(output.Upstreams, upstream)
-					}
-					for _, rt := range routes {
-						output.HTTPRoutes = append(output.HTTPRoutes, rt)
-					}
+
 				}
 			}
 		}
@@ -287,7 +322,7 @@ func processFilterChain(gwName string, gwNamespace string, snapshot *EnvoySnapsh
 }
 
 // TODO will need to find the other providers too
-func findJWTProviders(fc *v3.FilterChain) (map[string]interface{}, map[string][]string, error) {
+func (g *GatewayAPIOutput) FindJWTProviders(fc *v3.FilterChain) (map[string]interface{}, map[string][]string, error) {
 	jwtProviders := make(map[string]interface{})
 	filterStateRules := make(map[string][]string)
 	for _, filter := range fc.Filters {
@@ -325,7 +360,7 @@ func findJWTProviders(fc *v3.FilterChain) (map[string]interface{}, map[string][]
 						return nil, nil, err
 					}
 					for _, ro := range ros {
-						output.RouteOptions = append(output.RouteOptions, ro)
+						g.RouteOptions = append(g.RouteOptions, ro)
 					}
 				}
 			}
@@ -366,7 +401,7 @@ func findTLSContext(fc *v3.FilterChain) (*gwv1.GatewayTLSConfig, []string, error
 	return tlsContext, snis, nil
 }
 
-func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteConfiguration, snapshot *EnvoySnapshot, jwtProviders map[string]interface{}) ([]*gwv1.HTTPRoute, []*glookube.Upstream, []*gatewaykube.RouteOption, error) {
+func (g *GatewayAPIOutput) GenerateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteConfiguration, snapshot *EnvoySnapshot, jwtProviders map[string]interface{}) error {
 	httpRoutes := make([]*gwv1.HTTPRoute, 0)
 	upstreams := make([]*glookube.Upstream, 0)
 	routeOptions := make([]*gatewaykube.RouteOption, 0)
@@ -400,14 +435,14 @@ func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteCon
 			}
 			match, err := convertMatcher(vhRoute.Match)
 			if err != nil {
-				return nil, nil, nil, err
+				return err
 			}
 			gwrr.Matches = append(gwrr.Matches, match)
 
 			// Add the filters and the upstreams
 			routeOption, err := generateRouteOption(route.Name, vhRoute, jwtProviders)
 			if err != nil {
-				return nil, nil, nil, err
+				return err
 			}
 			if routeOption != nil {
 				gwrr.Filters = append(gwrr.Filters, gwv1.HTTPRouteFilter{
@@ -425,7 +460,7 @@ func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteCon
 			//"outbound|8080||campaign-service-webserver.mesh.internal"
 			cluster, err := snapshot.GetClusterByName(vhRoute.GetRoute().GetCluster())
 			if err != nil {
-				return nil, nil, nil, err
+				return err
 			}
 			if cluster == nil {
 				log.Printf("cluster not found " + vhRoute.GetRoute().GetCluster())
@@ -433,7 +468,7 @@ func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteCon
 			if cluster != nil {
 				backendRef, upstream, err := generateBackendRef(vhRoute, cluster)
 				if err != nil {
-					return nil, nil, nil, err
+					return err
 				}
 				if upstream != nil {
 					upstreams = append(upstreams, upstream)
@@ -448,7 +483,17 @@ func generateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteCon
 		httpRoutes = append(httpRoutes, gwRoute)
 	}
 
-	return httpRoutes, upstreams, routeOptions, nil
+	for _, ro := range routeOptions {
+		g.RouteOptions = append(g.RouteOptions, ro)
+	}
+	for _, upstream := range upstreams {
+		g.Upstreams = append(g.Upstreams, upstream)
+	}
+	for _, rt := range httpRoutes {
+		g.HTTPRoutes = append(g.HTTPRoutes, rt)
+	}
+
+	return nil
 }
 
 func generateRouteOption(routeName string, r *route.Route, jwtProviders map[string]interface{}) (*gatewaykube.RouteOption, error) {
@@ -890,7 +935,7 @@ func convertMatcher(match *route.RouteMatch) (gwv1.HTTPRouteMatch, error) {
 	return gwMatch, nil
 }
 
-func generateHTTPListeners(filter *v3.Filter, snis []string, fi int, tlsContext *gwv1.GatewayTLSConfig, i int, port uint32) ([]gwv1.Listener, error) {
+func (g *GatewayAPIOutput) GenerateHTTPListeners(filter *v3.Filter, snis []string, tlsContext *gwv1.GatewayTLSConfig, port uint32) ([]gwv1.Listener, error) {
 	httpListeners := make([]gwv1.Listener, 0)
 	var hcm http_connection_managerv3.HttpConnectionManager
 	if err := filter.GetTypedConfig().UnmarshalTo(&hcm); err != nil {
@@ -898,12 +943,12 @@ func generateHTTPListeners(filter *v3.Filter, snis []string, fi int, tlsContext 
 	}
 	//SNIs exist so we use those as the listener domains
 	if len(snis) > 0 {
-		for i, sni := range snis {
+		for _, sni := range snis {
 			listener := gwv1.Listener{
 				Port:     gwv1.PortNumber(port),
 				Hostname: ptr.To(gwv1.Hostname(sni)),
 				Protocol: gwv1.HTTPSProtocolType,
-				Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d", fi, i)),
+				Name:     gwv1.SectionName(fmt.Sprintf("listener-%d", port)),
 				AllowedRoutes: &gwv1.AllowedRoutes{
 					Namespaces: &gwv1.RouteNamespaces{
 						From: ptr.To(gwv1.FromNamespaces("gloo-system")),
@@ -930,7 +975,7 @@ func generateHTTPListeners(filter *v3.Filter, snis []string, fi int, tlsContext 
 						Port:     gwv1.PortNumber(port),
 						Hostname: ptr.To(gwv1.Hostname(domain)),
 						Protocol: gwv1.HTTPProtocolType,
-						Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d-%d", fi, i, j)),
+						Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d", port, j)),
 						AllowedRoutes: &gwv1.AllowedRoutes{
 							Namespaces: &gwv1.RouteNamespaces{
 								From: ptr.To(gwv1.FromNamespaces("gloo-system")),
@@ -956,7 +1001,7 @@ func generateHTTPListeners(filter *v3.Filter, snis []string, fi int, tlsContext 
 				Port:     gwv1.PortNumber(port),
 				Hostname: ptr.To(gwv1.Hostname("*")),
 				Protocol: gwv1.HTTPProtocolType,
-				Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d", fi, i)),
+				Name:     gwv1.SectionName(fmt.Sprintf("listener-%d", port)),
 				AllowedRoutes: &gwv1.AllowedRoutes{
 					Namespaces: &gwv1.RouteNamespaces{
 						From: ptr.To(gwv1.FromNamespaces("gloo-system")),
@@ -978,15 +1023,15 @@ func generateHTTPListeners(filter *v3.Filter, snis []string, fi int, tlsContext 
 	return httpListeners, nil
 }
 
-func generateTCPListeners(snis []string, fi int, tlsContext *gwv1.GatewayTLSConfig, i int, port uint32) ([]*gwv1.Listener, error) {
+func generateTCPListeners(snis []string, tlsContext *gwv1.GatewayTLSConfig, port uint32) ([]*gwv1.Listener, error) {
 	tcpListeners := make([]*gwv1.Listener, 0)
 	if len(snis) > 0 {
-		for i, sni := range snis {
+		for _, sni := range snis {
 			listener := gwv1.Listener{
 				Port:     gwv1.PortNumber(port),
 				Hostname: ptr.To(gwv1.Hostname(sni)),
 				Protocol: gwv1.TLSProtocolType,
-				Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d", fi, i)),
+				Name:     gwv1.SectionName(fmt.Sprintf("listener-%d", port)),
 				AllowedRoutes: &gwv1.AllowedRoutes{
 					Kinds: []gwv1.RouteGroupKind{
 						{
@@ -1004,7 +1049,7 @@ func generateTCPListeners(snis []string, fi int, tlsContext *gwv1.GatewayTLSConf
 		listener := gwv1.Listener{
 			Port:     gwv1.PortNumber(port),
 			Protocol: gwv1.TCPProtocolType,
-			Name:     gwv1.SectionName(fmt.Sprintf("listener-%d-%d", fi, i)),
+			Name:     gwv1.SectionName(fmt.Sprintf("listener-%d", port)),
 			AllowedRoutes: &gwv1.AllowedRoutes{
 				Kinds: []gwv1.RouteGroupKind{
 					{
