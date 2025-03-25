@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/6928
+    resolvesIssue: false
+    description: >
+      This adds the ability to configure Gateway Pod Topology Spread Constraints via GatewayParams `spec.kube.podTemplate.topologySpreadConstraints`.
+      This can also be managed via Helm specifying `kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints`.
