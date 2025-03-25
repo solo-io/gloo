@@ -1105,6 +1105,11 @@ func (m *UpstreamSpec_VertexAI) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	err = binary.Write(hasher, binary.LittleEndian, m.GetJsonSchema())
+	if err != nil {
+		return 0, err
+	}
+
 	switch m.AuthTokenSource.(type) {
 
 	case *UpstreamSpec_VertexAI_AuthToken:
@@ -1255,7 +1260,7 @@ func (m *UpstreamSpec_Anthropic) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
-	if _, err = hasher.Write([]byte(m.GetVersion())); err != nil {
+	if _, err = hasher.Write([]byte(m.GetApiVersion())); err != nil {
 		return 0, err
 	}
 

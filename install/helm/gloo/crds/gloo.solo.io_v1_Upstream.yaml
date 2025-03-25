@@ -29,6 +29,8 @@ spec:
                 properties:
                   anthropic:
                     properties:
+                      apiVersion:
+                        type: string
                       authToken:
                         properties:
                           inline:
@@ -56,8 +58,6 @@ spec:
                             type: integer
                         type: object
                       model:
-                        type: string
-                      version:
                         type: string
                     type: object
                   azureOpenai:
@@ -145,6 +145,8 @@ spec:
                                 properties:
                                   anthropic:
                                     properties:
+                                      apiVersion:
+                                        type: string
                                       authToken:
                                         properties:
                                           inline:
@@ -172,8 +174,6 @@ spec:
                                             type: integer
                                         type: object
                                       model:
-                                        type: string
-                                      version:
                                         type: string
                                     type: object
                                   azureOpenai:
@@ -300,6 +300,9 @@ spec:
                                                 type: string
                                             type: object
                                         type: object
+                                      jsonSchema:
+                                        type: string
+                                        x-kubernetes-int-or-string: true
                                       location:
                                         type: string
                                       model:
@@ -366,6 +369,9 @@ spec:
                                 type: string
                             type: object
                         type: object
+                      jsonSchema:
+                        type: string
+                        x-kubernetes-int-or-string: true
                       location:
                         type: string
                       model:

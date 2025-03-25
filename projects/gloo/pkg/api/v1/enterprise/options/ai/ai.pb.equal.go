@@ -938,6 +938,10 @@ func (m *UpstreamSpec_VertexAI) Equal(that interface{}) bool {
 		return false
 	}
 
+	if m.GetJsonSchema() != target.GetJsonSchema() {
+		return false
+	}
+
 	switch m.AuthTokenSource.(type) {
 
 	case *UpstreamSpec_VertexAI_AuthToken:
@@ -1054,7 +1058,7 @@ func (m *UpstreamSpec_Anthropic) Equal(that interface{}) bool {
 		}
 	}
 
-	if strings.Compare(m.GetVersion(), target.GetVersion()) != 0 {
+	if strings.Compare(m.GetApiVersion(), target.GetApiVersion()) != 0 {
 		return false
 	}
 

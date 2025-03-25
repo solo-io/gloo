@@ -41,6 +41,13 @@ message SingleAuthToken {
   }
 }
 
+enum ApiJsonSchema {
+  NOT_SET = 0;
+  ANTHROPIC = 1;
+  GEMINI = 2;
+  OPENAI = 3;
+}
+
 // When you deploy the Gloo AI Gateway, you can use the `spec.ai` section of the Upstream resource
 // to represent a backend for a logical Large Language Model (LLM) provider.
 // This section configures the LLM provider that the AI Gateway routes requests to,
@@ -107,6 +114,8 @@ message UpstreamSpec {
     // The version of the Azure OpenAI API to use.
     // For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
     string api_version = 4;
+
+
   }
 
   // Settings for the [Gemini](https://ai.google.dev/gemini-api/docs) LLM provider.
@@ -163,6 +172,9 @@ message UpstreamSpec {
 
     // The type of publisher model to use. Currently, only Google is supported.
     Publisher publisher = 7;
+
+    // Optional: Specify the API json schema the model uses, default to GEMINI if not set
+    ApiJsonSchema json_schema = 8;
   }
 
   // Settings for the [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) LLM provider.
@@ -188,9 +200,9 @@ message UpstreamSpec {
     // Optional: Send requests to a custom host and port, such as to proxy the request,
     // or to use a different backend that is API-compliant with the upstream version.
     CustomHost custom_host = 2;
-    // Optional: A version header to pass to the Anthropic API.
+    // Optional: A api version header to pass to the Anthropic API.
     // For more information, see the [Anthropic API versioning docs](https://docs.anthropic.com/en/api/versioning).
-    string version = 3;
+    string api_version = 3;
     // Optional: Override the model name.
     // If unset, the model name is taken from the request.
     // This setting can be useful when testing model failover scenarios.

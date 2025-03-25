@@ -555,6 +555,8 @@ func (m *UpstreamSpec_VertexAI) Clone() proto.Message {
 
 	target.Publisher = m.GetPublisher()
 
+	target.JsonSchema = m.GetJsonSchema()
+
 	switch m.AuthTokenSource.(type) {
 
 	case *UpstreamSpec_VertexAI_AuthToken:
@@ -619,7 +621,7 @@ func (m *UpstreamSpec_Anthropic) Clone() proto.Message {
 		target.CustomHost = proto.Clone(m.GetCustomHost()).(*UpstreamSpec_CustomHost)
 	}
 
-	target.Version = m.GetVersion()
+	target.ApiVersion = m.GetApiVersion()
 
 	target.Model = m.GetModel()
 
