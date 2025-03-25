@@ -122,11 +122,6 @@ type controllerBuilder struct {
 func (c *controllerBuilder) addIndexes(ctx context.Context) error {
 	var errs []error
 
-	// Index for ListenerSets
-	if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apixv1a1.XListenerSet{}, query.ListenerSetTargetField, query.IndexerByObjType); err != nil {
-		errs = append(errs, err)
-	}
-
 	// Index for HTTPRoute
 	if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1.HTTPRoute{}, query.HttpRouteTargetField, query.IndexerByObjType); err != nil {
 		errs = append(errs, err)
@@ -150,6 +145,12 @@ func (c *controllerBuilder) addIndexes(ctx context.Context) error {
 
 	if c.cfg.CRDs.Has(wellknown.TLSRouteCRDName) {
 		if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1a2.TLSRoute{}, query.TlsRouteTargetField, query.IndexerByObjType); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if c.cfg.CRDs.Has(wellknown.XListenerSetKind) {
+		if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apixv1a1.XListenerSet{}, query.ListenerSetTargetField, query.IndexerByObjType); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -485,7 +486,6 @@ type controllerReconciler struct {
 
 func (r *controllerReconciler) ReconcileListenerSets(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// TODO: consider finding impacted gateways and queue them
-	fmt.Println("============ ReconcileListenerSets : ")
 	r.kick(ctx)
 	return ctrl.Result{}, nil
 }
