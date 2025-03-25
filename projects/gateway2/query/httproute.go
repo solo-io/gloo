@@ -342,7 +342,12 @@ func (r *gatewayQueries) fetchChildRoutes(
 		}
 	} else if backendref.RefIsHTTPRouteDelegationLabelSelector(backendRef.BackendObjectReference) {
 		var hrlist gwv1.HTTPRouteList
-		err := r.client.List(ctx, &hrlist, client.InNamespace(delegatedNs), client.MatchingFields{HttpRouteDelegatedLabelSelector: string(backendRef.Name)})
+		opts := []client.ListOption{client.MatchingFields{HttpRouteDelegatedLabelSelector: string(backendRef.Name)}}
+		// If the namespace is not explicitly set to a wildcard, restrict the List to the delegated namespace
+		if delegatedNs != wellknown.RouteDelegationLabelSelectorWildcardNamespace {
+			opts = append(opts, client.InNamespace(delegatedNs))
+		}
+		err := r.client.List(ctx, &hrlist, opts...)
 		if err != nil {
 			return nil, err
 		}
