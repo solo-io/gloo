@@ -72,6 +72,7 @@ func (o *Outputs) convertVH(vh *envoy_config_route_v3.VirtualHost, filtersOnChai
 						Group: "gateway.solo.io",
 						Kind:  "RouteOption",
 					},
+					Type: gwv1.HTTPRouteFilterExtensionRef,
 				},
 			}
 			o.RouteOptions = append(o.RouteOptions, rp)
