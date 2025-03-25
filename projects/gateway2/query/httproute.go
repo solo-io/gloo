@@ -14,6 +14,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	"sigs.k8s.io/gateway-api/apisx/v1alpha1"
+	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	"github.com/solo-io/gloo/projects/gateway2/translator/backendref"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
@@ -143,7 +145,7 @@ func (r *gatewayQueries) GetRouteChain(
 	}
 }
 
-func (r *gatewayQueries) allowedRoutes(gw *gwv1.Gateway, l *gwv1.Listener) (func(string) bool, []metav1.GroupKind, error) {
+func (r *gatewayQueries) allowedRoutes(resource client.Object, l *gwv1.Listener) (func(string) bool, []metav1.GroupKind, error) {
 	var allowedKinds []metav1.GroupKind
 
 	// Determine the allowed route kinds based on the listener's protocol
@@ -163,7 +165,7 @@ func (r *gatewayQueries) allowedRoutes(gw *gwv1.Gateway, l *gwv1.Listener) (func
 		allowedKinds = []metav1.GroupKind{{Kind: wellknown.HTTPRouteKind, Group: gwv1.GroupName}}
 	}
 
-	allowedNs := SameNamespace(gw.Namespace)
+	allowedNs := SameNamespace(resource.GetNamespace())
 	if ar := l.AllowedRoutes; ar != nil {
 		// Override the allowed route kinds if specified in AllowedRoutes
 		if ar.Kinds != nil {
@@ -356,10 +358,10 @@ func (r *gatewayQueries) fetchChildRoutes(
 	return refChildren, nil
 }
 
-func (r *gatewayQueries) GetRoutesForGateway(ctx context.Context, gw *gwv1.Gateway) (*RoutesForGwResult, error) {
+func (r *gatewayQueries) GetRoutesForResource(ctx context.Context, resource client.Object) (*RoutesForGwResult, error) {
 	nns := types.NamespacedName{
-		Namespace: gw.Namespace,
-		Name:      gw.Name,
+		Namespace: resource.GetNamespace(),
+		Name:      resource.GetName(),
 	}
 
 	// List of route types to process based on installed CRDs
@@ -395,12 +397,20 @@ func (r *gatewayQueries) GetRoutesForGateway(ctx context.Context, gw *gwv1.Gatew
 	// Process each route
 	ret := NewRoutesForGwResult()
 	for _, route := range routes {
-		if err := r.processRoute(ctx, gw, route, ret); err != nil {
+		if err := r.processRoute(ctx, resource, route, ret); err != nil {
 			return nil, err
 		}
 	}
 
 	return ret, nil
+}
+
+func (r *gatewayQueries) GetRoutesForGateway(ctx context.Context, gw *gwv1.Gateway) (*RoutesForGwResult, error) {
+	return r.GetRoutesForResource(ctx, gw)
+}
+
+func (r *gatewayQueries) GetRoutesForListenerSet(ctx context.Context, ls *apixv1a1.XListenerSet) (*RoutesForGwResult, error) {
+	return r.GetRoutesForResource(ctx, ls)
 }
 
 // fetchRoutes is a helper function to fetch routes and add to the routes slice.
@@ -437,16 +447,48 @@ func fetchRoutes(ctx context.Context, r *gatewayQueries, routeList client.Object
 	return nil
 }
 
-func (r *gatewayQueries) processRoute(ctx context.Context, gw *gwv1.Gateway, route client.Object, ret *RoutesForGwResult) error {
-	refs := getParentRefsForGw(gw, route)
+func getListeners(resource client.Object) ([]gwv1.Listener, error) {
+	var listeners []gwv1.Listener
+	switch typed := resource.(type) {
+	case *gwv1.Gateway:
+		listeners = typed.Spec.Listeners
+	case *apixv1a1.XListenerSet:
+		toListener := func(le v1alpha1.ListenerEntry) gwv1.Listener {
+			copy := le.DeepCopy()
+			return gwv1.Listener{
+				Name:          copy.Name,
+				Hostname:      copy.Hostname,
+				Port:          copy.Port,
+				Protocol:      copy.Protocol,
+				TLS:           copy.TLS,
+				AllowedRoutes: copy.AllowedRoutes,
+			}
+		}
+
+		for _, l := range typed.Spec.Listeners {
+			listeners = append(listeners, toListener(l))
+		}
+	default:
+		return nil, fmt.Errorf("unknown type")
+	}
+	return listeners, nil
+}
+
+func (r *gatewayQueries) processRoute(ctx context.Context, gw client.Object, route client.Object, ret *RoutesForGwResult) error {
+	refs := getParentRefsForResource(gw, route)
 	routeKind := route.GetObjectKind().GroupVersionKind().Kind
+
+	listeners, err := getListeners(gw)
+	if err != nil {
+		return err
+	}
 
 	for _, ref := range refs {
 		anyRoutesAllowed := false
 		anyListenerMatched := false
 		anyHostsMatch := false
 
-		for _, l := range gw.Spec.Listeners {
+		for _, l := range listeners {
 			lr := ret.ListenerResults[string(l.Name)]
 			if lr == nil {
 				lr = &ListenerResult{}

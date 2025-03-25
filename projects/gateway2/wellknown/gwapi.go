@@ -44,6 +44,9 @@ const (
 	// Gateway API CRD names
 	TCPRouteCRDName = "tcproutes.gateway.networking.k8s.io"
 	TLSRouteCRDName = "tlsroutes.gateway.networking.k8s.io"
+
+	// Kind string for XListenerSet resource
+	XListenerSetKind = "XListenerSet"
 )
 
 var (
