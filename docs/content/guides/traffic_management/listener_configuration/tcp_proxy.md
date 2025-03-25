@@ -186,6 +186,18 @@ status:
 
 The important part here is the entry on port `8000` for our TCP service. Once the service has been saved to Kubernetes, get the NodePort from the service port entry and save it for later.
 
+For deployments using Helm, this should be managed with the values.yaml file. To continue with the guide, you still need to get the NodePort from the service entry.
+```yaml
+gloo:
+  gatewayProxies:
+    gatewayProxy:
+      service:
+        customPorts:
+          - name: tcp
+            port: 8000
+            protocol: TCP
+```
+
 The next and final step is routing to the service.
 
 ### Routing to the TCP service
