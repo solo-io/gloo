@@ -235,6 +235,17 @@
 |kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.successThreshold|int32|||
 |kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.failureThreshold|int32|||
 |kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.terminationGracePeriodSeconds|int64|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].maxSkew|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].topologyKey|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].whenUnsatisfiable|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].labelSelector.matchLabels.NAME|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].labelSelector.matchExpressions[].key|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].labelSelector.matchExpressions[].operator|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].labelSelector.matchExpressions[].values[]|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].minDomains|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].nodeAffinityPolicy|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].nodeTaintsPolicy|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].matchLabelKeys[]|string|||
 |kubeGateway.portal.enabled|bool|false|Enable the Gloo Gateway Portal controller and web server.|
 |settings.watchNamespaces[]|string||whitelist of namespaces for Gloo Edge to watch for services and CRDs. Empty list means all namespaces. If this and WatchNamespaceSelectors are specified, this takes precedence and WatchNamespaceSelectors is ignored|
 |settings.watchNamespaceSelectors|interface||A list of Kubernetes selectors that specify the set of namespaces to restrict the namespaces that Gloo controllers take into consideration when watching for resources. Elements in the list are disjunctive (OR semantics), i.e. a namespace will be included if it matches any selector. An empty list means all namespaces. If this and WatchNamespaces are specified, WatchNamespaces takes precedence and this is ignored|

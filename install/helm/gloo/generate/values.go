@@ -346,11 +346,12 @@ type GatewayParameters struct {
 
 // GatewayProxyPodTemplate contains the Helm API available to configure the PodTemplate on the gateway Deployment
 type GatewayParamsPodTemplate struct {
-	GracefulShutdown              *GracefulShutdownSpec `json:"gracefulShutdown,omitempty" desc:"If enabled, it calls the /'healthcheck/fail' endpoint on the envoy container prior to shutdown. This is useful for draining a server prior to shutting it down or doing a full"`
-	TerminationGracePeriodSeconds *int                  `json:"terminationGracePeriodSeconds,omitempty" desc:"Time in seconds to wait for the pod to terminate gracefully. See [kubernetes docs](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#istio-lifecycle) for more info."`
-	Probes                        *bool                 `json:"probes,omitempty" desc:"Set to true to enable a readiness probe (default is false). Then, you can also enable a liveness probe."`
-	CustomReadinessProbe          *corev1.Probe         `json:"customReadinessProbe,omitempty" desc:"Defines a custom readiness probe. If not provided, a default one is set"`
-	CustomLivenessProbe           *corev1.Probe         `json:"customLivenessProbe,omitempty" desc:"Defines a custom liveness probe. If not specified, no default liveness probe is set"`
+	GracefulShutdown              *GracefulShutdownSpec             `json:"gracefulShutdown,omitempty" desc:"If enabled, it calls the /'healthcheck/fail' endpoint on the envoy container prior to shutdown. This is useful for draining a server prior to shutting it down or doing a full"`
+	TerminationGracePeriodSeconds *int                              `json:"terminationGracePeriodSeconds,omitempty" desc:"Time in seconds to wait for the pod to terminate gracefully. See [kubernetes docs](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#istio-lifecycle) for more info."`
+	Probes                        *bool                             `json:"probes,omitempty" desc:"Set to true to enable a readiness probe (default is false). Then, you can also enable a liveness probe."`
+	CustomReadinessProbe          *corev1.Probe                     `json:"customReadinessProbe,omitempty" desc:"Defines a custom readiness probe. If not provided, a default one is set."`
+	CustomLivenessProbe           *corev1.Probe                     `json:"customLivenessProbe,omitempty" desc:"Defines a custom liveness probe. If not specified, no default liveness probe is set."`
+	TopologySpreadConstraints     []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty" desc:"Default topology spread constraints. If not specified, pod topology spread constraints will be ignored."`
 }
 
 type GatewayParamsStatsConfig struct {
