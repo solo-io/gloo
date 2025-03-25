@@ -14,7 +14,6 @@ import (
 	http_connection_managerv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	tcp_proxyv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
-	"github.com/ghodss/yaml"
 	api "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	v4 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
@@ -31,13 +30,11 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	_ "istio.io/api/envoy/config/filter/network/metadata_exchange"
 	_ "istio.io/api/envoy/extensions/stats"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/utils/ptr"
 	"log"
-	"os"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	"strconv"
 	"strings"
@@ -50,14 +47,6 @@ func init() {
 	}
 	codecs = serializer.NewCodecFactory(runtimeScheme)
 }
-
-const (
-	RandomSuffix = 4
-	RandomSeed   = 1
-)
-
-var runtimeScheme *runtime.Scheme
-var codecs serializer.CodecFactory
 
 func RootCmd() *cobra.Command {
 	opts := &Options{}
@@ -84,11 +73,12 @@ func run(opts *Options) error {
 
 	g := &GatewayAPIOutput{
 		OutputDir:          opts.OutputDir,
+		FolderPerNamespace: opts.FolderPerNamespace,
 		HTTPRoutes:         make([]*gwv1.HTTPRoute, 0),
+		ListenerSets:       make([]*ListenerSet, 0),
 		RouteOptions:       make([]*gatewaykube.RouteOption, 0),
 		VirtualHostOptions: make([]*gatewaykube.VirtualHostOption, 0),
 		Upstreams:          make([]*glookube.Upstream, 0),
-		ListenerSets:       make([]*ListenerSet, 0),
 	}
 
 	err = g.Convert(snapshot)
@@ -101,110 +91,6 @@ func run(opts *Options) error {
 		log.Fatalf("error: %v", err)
 	}
 	return nil
-}
-
-func (g *GatewayAPIOutput) Write() error {
-
-	err := os.MkdirAll(g.OutputDir, os.ModePerm)
-
-	// Gateway
-	o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), g.Gateway)
-	if err != nil {
-		return err
-	}
-
-	gwYaml, err2 := cleanYAMLData(o, err)
-	if err2 != nil {
-		return err2
-	}
-
-	err = os.WriteFile(fmt.Sprintf("%s/gateway-%s.yaml", g.OutputDir, g.Gateway.Name), gwYaml, 0644)
-	if err != nil {
-		panic(err)
-	}
-
-	// Write Routes
-	for _, httpRoute := range g.HTTPRoutes {
-		o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), httpRoute)
-		if err != nil {
-			return err
-		}
-		routeYaml, err2 := cleanYAMLData(o, err)
-		if err2 != nil {
-			return err2
-		}
-		err = os.WriteFile(fmt.Sprintf("%s/httproute-%s.yaml", g.OutputDir, httpRoute.Name), routeYaml, 0644)
-		if err != nil {
-			panic(err)
-		}
-	}
-	for _, listenerSet := range g.ListenerSets {
-		listenerSetYaml, err := yaml.Marshal(listenerSet)
-		if err != nil {
-			panic(err)
-		}
-		err = os.WriteFile(fmt.Sprintf("%s/listenerset-%s.yaml", g.OutputDir, listenerSet.Name), removeNullYamlFields(listenerSetYaml), 0644)
-		if err != nil {
-			panic(err)
-		}
-	}
-	for _, routeOption := range g.RouteOptions {
-		routeOptionYaml, err := yaml.Marshal(routeOption)
-		if err != nil {
-			panic(err)
-		}
-		err = os.WriteFile(fmt.Sprintf("%s/routeoption-%s.yaml", g.OutputDir, routeOption.Name), removeNullYamlFields(routeOptionYaml), 0644)
-		if err != nil {
-			panic(err)
-		}
-	}
-	for _, upstream := range g.Upstreams {
-		upstreamYaml, err := yaml.Marshal(upstream)
-		if err != nil {
-			panic(err)
-		}
-		err = os.WriteFile(fmt.Sprintf("%s/upstream-%s.yaml", g.OutputDir, upstream.Name), removeNullYamlFields(upstreamYaml), 0644)
-		if err != nil {
-			panic(err)
-		}
-	}
-	for _, virtualHostOptions := range g.VirtualHostOptions {
-		virtualHostOptionYaml, err := yaml.Marshal(virtualHostOptions)
-		if err != nil {
-			panic(err)
-		}
-		err = os.WriteFile(fmt.Sprintf("%s/virtualhostoption-%s.yaml", g.OutputDir, virtualHostOptions.Name), removeNullYamlFields(virtualHostOptionYaml), 0644)
-		if err != nil {
-			panic(err)
-		}
-	}
-	return nil
-}
-
-func cleanYAMLData(o []byte, err error) ([]byte, error) {
-	var data map[string]interface{}
-	if err := json.Unmarshal(o, &data); err != nil {
-		return nil, err
-	}
-	removeNullFields(data)
-
-	yamlData, err := yaml.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return removeNullYamlFields(yamlData), nil
-}
-
-func removeNullYamlFields(yamlData []byte) []byte {
-	stringData := strings.ReplaceAll(string(yamlData), "  creationTimestamp: null\n", "")
-	stringData = strings.ReplaceAll(stringData, "status:\n", "")
-	stringData = strings.ReplaceAll(stringData, "parents: null\n", "")
-	stringData = strings.ReplaceAll(stringData, "status: {}\n", "")
-	stringData = strings.ReplaceAll(stringData, "\n\n\n", "\n")
-	stringData = strings.ReplaceAll(stringData, "\n\n", "\n")
-	stringData = strings.ReplaceAll(stringData, "spec: {}\n", "")
-	return []byte(stringData)
 }
 
 func (g *GatewayAPIOutput) Convert(snapshot *EnvoySnapshot) error {
@@ -246,6 +132,7 @@ func (g *GatewayAPIOutput) Convert(snapshot *EnvoySnapshot) error {
 
 // For each filter chain we need to gather a bunch of information then process the routes.
 // Need to get the HCM name, SNIs, and Filters that need to be available to reference from the routes
+
 func (g *GatewayAPIOutput) ProcessFilterChain(gwName string, gwNamespace string, snapshot *EnvoySnapshot, fc *v3.FilterChain, gatewayPort uint32) ([]gwv1.Listener, error) {
 	var snis []string
 	var gwListeners []gwv1.Listener
@@ -313,7 +200,6 @@ func (g *GatewayAPIOutput) ProcessFilterChain(gwName string, gwNamespace string,
 					if err != nil {
 						return nil, err
 					}
-
 				}
 			}
 		}
@@ -402,10 +288,6 @@ func findTLSContext(fc *v3.FilterChain) (*gwv1.GatewayTLSConfig, []string, error
 }
 
 func (g *GatewayAPIOutput) GenerateHTTPRoutes(gwName string, gwNamespace string, route *route.RouteConfiguration, snapshot *EnvoySnapshot, jwtProviders map[string]interface{}) error {
-	httpRoutes := make([]*gwv1.HTTPRoute, 0)
-	upstreams := make([]*glookube.Upstream, 0)
-	routeOptions := make([]*gatewaykube.RouteOption, 0)
-
 	for _, virtualHost := range route.VirtualHosts {
 		// Generate a route per virtualhost
 		gwRoute := &gwv1.HTTPRoute{
@@ -440,10 +322,11 @@ func (g *GatewayAPIOutput) GenerateHTTPRoutes(gwName string, gwNamespace string,
 			gwrr.Matches = append(gwrr.Matches, match)
 
 			// Add the filters and the upstreams
-			routeOption, err := generateRouteOption(route.Name, vhRoute, jwtProviders)
+			routeOption, err := generateRouteOption(vhRoute)
 			if err != nil {
 				return err
 			}
+			routeOption.Name = fmt.Sprintf("%s-%s", virtualHost.Name, vhRoute.Name)
 			if routeOption != nil {
 				gwrr.Filters = append(gwrr.Filters, gwv1.HTTPRouteFilter{
 					Type: "ExtensionRef",
@@ -453,7 +336,7 @@ func (g *GatewayAPIOutput) GenerateHTTPRoutes(gwName string, gwNamespace string,
 						Name:  gwv1.ObjectName(routeOption.Name),
 					},
 				})
-				routeOptions = append(routeOptions, routeOption)
+				g.RouteOptions = append(g.RouteOptions, routeOption)
 			}
 
 			//cluster lookup
@@ -466,12 +349,12 @@ func (g *GatewayAPIOutput) GenerateHTTPRoutes(gwName string, gwNamespace string,
 				log.Printf("cluster not found " + vhRoute.GetRoute().GetCluster())
 			}
 			if cluster != nil {
-				backendRef, upstream, err := generateBackendRef(vhRoute, cluster)
+				backendRef, upstream, err := generateBackendRef(cluster)
 				if err != nil {
 					return err
 				}
 				if upstream != nil {
-					upstreams = append(upstreams, upstream)
+					g.Upstreams = append(g.Upstreams, upstream)
 				}
 				if backendRef != nil {
 					gwrr.BackendRefs = append(gwrr.BackendRefs, *backendRef)
@@ -480,23 +363,13 @@ func (g *GatewayAPIOutput) GenerateHTTPRoutes(gwName string, gwNamespace string,
 
 			gwRoute.Spec.Rules = append(gwRoute.Spec.Rules, *gwrr)
 		}
-		httpRoutes = append(httpRoutes, gwRoute)
-	}
-
-	for _, ro := range routeOptions {
-		g.RouteOptions = append(g.RouteOptions, ro)
-	}
-	for _, upstream := range upstreams {
-		g.Upstreams = append(g.Upstreams, upstream)
-	}
-	for _, rt := range httpRoutes {
-		g.HTTPRoutes = append(g.HTTPRoutes, rt)
+		g.HTTPRoutes = append(g.HTTPRoutes, gwRoute)
 	}
 
 	return nil
 }
 
-func generateRouteOption(routeName string, r *route.Route, jwtProviders map[string]interface{}) (*gatewaykube.RouteOption, error) {
+func generateRouteOption(r *route.Route) (*gatewaykube.RouteOption, error) {
 
 	if r == nil {
 		return nil, nil
@@ -507,7 +380,6 @@ func generateRouteOption(routeName string, r *route.Route, jwtProviders map[stri
 			APIVersion: gatewaykube.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      RandStringRunes(8),
 			Namespace: "gloo-system",
 		},
 		Spec: api.RouteOption{
@@ -833,7 +705,7 @@ func generateCorsPolicy(corsPolicy *v3_extensions.CorsPolicy) *v5.CorsPolicy {
 	return roCors
 }
 
-func generateBackendRef(r *route.Route, cluster *envoy_config_cluster_v3.Cluster) (*gwv1.HTTPBackendRef, *glookube.Upstream, error) {
+func generateBackendRef(cluster *envoy_config_cluster_v3.Cluster) (*gwv1.HTTPBackendRef, *glookube.Upstream, error) {
 
 	backendRef := &gwv1.HTTPBackendRef{}
 	if cluster == nil {

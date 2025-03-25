@@ -2,7 +2,6 @@ package envoy
 
 import (
 	"bytes"
-	"encoding/json"
 	adminv3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
@@ -14,18 +13,35 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"math/rand"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 	"sigs.k8s.io/yaml"
-	"strings"
+)
 
-	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
-	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
+const (
+	RandomSuffix = 4
+	RandomSeed   = 1
 )
 
 var (
-	r = rand.New(rand.NewSource(RandomSeed))
+	runtimeScheme *runtime.Scheme
+	codecs        serializer.CodecFactory
+	letterRunes   = []rune("abcdefghijklmnopqrstuvwxyz")
+	r             = rand.New(rand.NewSource(RandomSeed))
+	SchemeBuilder = runtime.SchemeBuilder{
+		// K8s Gateway API resources
+		gwv1.Install,
+		apiv1beta1.Install,
+
+		// Kubernetes Core resources
+		corev1.AddToScheme,
+		appsv1.AddToScheme,
+
+		// Solo Kubernetes Gateway API resources
+		sologatewayv1alpha1.AddToScheme,
+	}
 )
 
 type Options struct {
@@ -34,17 +50,6 @@ type Options struct {
 	OutputDir          string
 	FolderPerNamespace bool
 	Stats              bool
-}
-
-var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz")
-
-func RandStringRunes(n int) string {
-
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letterRunes[r.Intn(len(letterRunes))]
-	}
-	return string(b)
 }
 
 func (o *Options) addToFlags(flags *pflag.FlagSet) {
@@ -89,16 +94,6 @@ func (e *EnvoySnapshot) GetRouteByName(routeName string) (*route.RouteConfigurat
 	return nil, nil
 }
 
-type GatewayAPIOutput struct {
-	OutputDir          string
-	HTTPRoutes         []*gwv1.HTTPRoute
-	ListenerSets       []*ListenerSet
-	RouteOptions       []*gatewaykube.RouteOption
-	VirtualHostOptions []*gatewaykube.VirtualHostOption
-	Upstreams          []*glookube.Upstream
-	Gateway            *gwv1.Gateway
-}
-
 type YamlMarshaller struct{}
 
 func (YamlMarshaller) ToYaml(resource interface{}) ([]byte, error) {
@@ -116,146 +111,11 @@ func (YamlMarshaller) ToYaml(resource interface{}) ([]byte, error) {
 	}
 }
 
-func (g *GatewayAPIOutput) HasItems() bool {
+func RandStringRunes(n int) string {
 
-	if len(g.HTTPRoutes) > 0 {
-		return true
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[r.Intn(len(letterRunes))]
 	}
-	if len(g.RouteOptions) > 0 {
-		return true
-	}
-	if len(g.VirtualHostOptions) > 0 {
-		return true
-	}
-	if len(g.Upstreams) > 0 {
-		return true
-	}
-	// if there are only yaml objects then skip because we didnt change anything in the file
-
-	return false
-}
-
-// removeNullFields recursively removes fields with null values from a map
-func removeNullFields(m map[string]interface{}) {
-	for k, v := range m {
-		if v == nil {
-			delete(m, k)
-		} else if nestedMap, ok := v.(map[string]interface{}); ok {
-			removeNullFields(nestedMap)
-		} else if nestedSlice, ok := v.([]interface{}); ok {
-			for _, item := range nestedSlice {
-				if nestedItemMap, ok := item.(map[string]interface{}); ok {
-					removeNullFields(nestedItemMap)
-				}
-			}
-		}
-	}
-}
-
-func (g *GatewayAPIOutput) ToString() (string, error) {
-	output := ""
-
-	o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), g.Gateway)
-	if err != nil {
-		return "", err
-	}
-
-	var data map[string]interface{}
-	if err := json.Unmarshal(o, &data); err != nil {
-		return "", err
-	}
-	removeNullFields(data)
-
-	yamlData, err := yaml.Marshal(data)
-	if err != nil {
-		return "", err
-	}
-	output += "\n---\n" + string(yamlData)
-
-	for _, obj := range g.Upstreams {
-		o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), obj)
-		if err != nil {
-			return "", err
-		}
-
-		var data map[string]interface{}
-		if err := json.Unmarshal(o, &data); err != nil {
-			return "", err
-		}
-		removeNullFields(data)
-
-		yamlData, err := yaml.Marshal(data)
-		if err != nil {
-			return "", err
-		}
-		output += "\n---\n" + string(yamlData)
-	}
-
-	for _, obj := range g.HTTPRoutes {
-		o, err := runtime.Encode(codecs.LegacyCodec(corev1.SchemeGroupVersion, gwv1.SchemeGroupVersion, gatewaykube.SchemeGroupVersion, glookube.SchemeGroupVersion), obj)
-		if err != nil {
-			return "", err
-		}
-
-		var data map[string]interface{}
-		if err := json.Unmarshal(o, &data); err != nil {
-			return "", err
-		}
-		removeNullFields(data)
-
-		yamlData, err := yaml.Marshal(data)
-		if err != nil {
-			return "", err
-		}
-		output += "\n---\n" + string(yamlData)
-	}
-	for _, op := range g.RouteOptions {
-		marshaller := YamlMarshaller{}
-		yaml, err := marshaller.ToYaml(&op)
-		if err != nil {
-			return "", err
-		}
-
-		output += "\n---\n" + string(yaml)
-	}
-
-	for _, op := range g.VirtualHostOptions {
-		marshaller := YamlMarshaller{}
-		yaml, err := marshaller.ToYaml(&op)
-		if err != nil {
-			return "", err
-		}
-
-		output += "\n---\n" + string(yaml)
-	}
-
-	// need to remove a few values
-	//  creationTimestamp: null
-	// status: {}
-	// status:
-	// parents: null
-	output = strings.ReplaceAll(output, "  creationTimestamp: null\n", "")
-	output = strings.ReplaceAll(output, "status:\n", "")
-	output = strings.ReplaceAll(output, "parents: null\n", "")
-	output = strings.ReplaceAll(output, "status: {}\n", "")
-	output = strings.ReplaceAll(output, "\n\n\n", "\n")
-	output = strings.ReplaceAll(output, "\n\n", "\n")
-	output = strings.ReplaceAll(output, "spec: {}\n", "")
-
-	// TODO remove leading and trailing ---
-	// log.Printf("%s", output)
-	return output, nil
-}
-
-var SchemeBuilder = runtime.SchemeBuilder{
-	// K8s Gateway API resources
-	gwv1.Install,
-	apiv1beta1.Install,
-
-	// Kubernetes Core resources
-	corev1.AddToScheme,
-	appsv1.AddToScheme,
-
-	// Solo Kubernetes Gateway API resources
-	sologatewayv1alpha1.AddToScheme,
+	return string(b)
 }
