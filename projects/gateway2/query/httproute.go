@@ -388,6 +388,16 @@ func (r *gatewayQueries) GetRoutesForResource(ctx context.Context, resource clie
 	}
 
 	var routes []client.Object
+	// If a listenerset, initially populate it with the list of routes attached to the parent gateway
+	if ls, ok := resource.(*apixv1a1.XListenerSet); ok {
+		parentGwNNS := getParentGatewayRef(ls)
+		for _, routeList := range routeListTypes {
+			if err := fetchRoutes(ctx, r, routeList, *parentGwNNS, &routes); err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	for _, routeList := range routeListTypes {
 		if err := fetchRoutes(ctx, r, routeList, nns, &routes); err != nil {
 			return nil, err
@@ -411,6 +421,37 @@ func (r *gatewayQueries) GetRoutesForGateway(ctx context.Context, gw *gwv1.Gatew
 
 func (r *gatewayQueries) GetRoutesForListenerSet(ctx context.Context, ls *apixv1a1.XListenerSet) (*RoutesForGwResult, error) {
 	return r.GetRoutesForResource(ctx, ls)
+}
+
+func (r *gatewayQueries) GetRoutesForGatewayWithListenerSets(ctx context.Context, gw *gwv1.Gateway) (*RoutesForGwResult, error) {
+	routes, err := r.GetRoutesForResource(ctx, gw)
+	if err != nil {
+		return nil, err
+	}
+
+	listenerSets, err := r.GetListenerSetsForGateway(ctx, gw)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, ls := range listenerSets {
+		lsRoutes, err := r.GetRoutesForResource(ctx, ls)
+
+		if err != nil {
+			return nil, err
+		}
+
+		for routeName, route := range lsRoutes.ListenerResults {
+			routes.ListenerResults[GenerateListenerSetListenerKey(ls, routeName)] = route
+		}
+		routes.RouteErrors = append(routes.RouteErrors, lsRoutes.RouteErrors...)
+	}
+
+	return routes, nil
+}
+
+func GenerateListenerSetListenerKey(ls Namespaced, listenerName string) string {
+	return fmt.Sprintf("%s/%s/%s", ls.GetNamespace(), ls.GetName(), listenerName)
 }
 
 // fetchRoutes is a helper function to fetch routes and add to the routes slice.

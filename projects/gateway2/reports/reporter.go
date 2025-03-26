@@ -2,6 +2,7 @@ package reports
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/solo-io/go-utils/contextutils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -10,13 +11,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gwxv1alpha1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 type ReportMap struct {
-	Gateways   map[types.NamespacedName]*GatewayReport
-	HTTPRoutes map[types.NamespacedName]*RouteReport
-	TCPRoutes  map[types.NamespacedName]*RouteReport
-	TLSRoutes  map[types.NamespacedName]*RouteReport
+	Gateways     map[types.NamespacedName]*GatewayReport
+	ListenerSets map[types.NamespacedName]*GatewayReport
+	HTTPRoutes   map[types.NamespacedName]*RouteReport
+	TCPRoutes    map[types.NamespacedName]*RouteReport
+	TLSRoutes    map[types.NamespacedName]*RouteReport
 }
 
 type GatewayReport struct {
@@ -47,14 +50,16 @@ type ParentRefKey struct {
 
 func NewReportMap() ReportMap {
 	gateways := make(map[types.NamespacedName]*GatewayReport)
+	listenerSets := make(map[types.NamespacedName]*GatewayReport)
 	httpRoutes := make(map[types.NamespacedName]*RouteReport)
 	tcpRoutes := make(map[types.NamespacedName]*RouteReport)
 	tlsRoutes := make(map[types.NamespacedName]*RouteReport)
 	return ReportMap{
-		Gateways:   gateways,
-		HTTPRoutes: httpRoutes,
-		TCPRoutes:  tcpRoutes,
-		TLSRoutes:  tlsRoutes,
+		Gateways:     gateways,
+		ListenerSets: listenerSets,
+		HTTPRoutes:   httpRoutes,
+		TCPRoutes:    tcpRoutes,
+		TLSRoutes:    tlsRoutes,
 	}
 }
 
@@ -73,6 +78,24 @@ func (r *ReportMap) newGatewayReport(gateway *gwv1.Gateway) *GatewayReport {
 	gr.observedGeneration = gateway.Generation
 	key := client.ObjectKeyFromObject(gateway)
 	r.Gateways[key] = gr
+	return gr
+}
+
+// Returns a ListenerSetReport for the provided ListenerSet, nil if there is not a report present.
+// This is different than the Reporter.ListenerSet() method, as we need to understand when
+// reports are not generated for a ListenerSet that has been translated.
+//
+// NOTE: Exported for unit testing, validation_test.go should be refactored to reduce this visibility
+func (r *ReportMap) ListenerSet(listenerSet *gwxv1alpha1.XListenerSet) *GatewayReport {
+	key := client.ObjectKeyFromObject(listenerSet)
+	return r.ListenerSets[key]
+}
+
+func (r *ReportMap) newListenerSetReport(listenerSet *gwxv1alpha1.XListenerSet) *GatewayReport {
+	gr := &GatewayReport{}
+	gr.observedGeneration = listenerSet.Generation
+	key := client.ObjectKeyFromObject(listenerSet)
+	r.ListenerSets[key] = gr
 	return gr
 }
 
@@ -164,6 +187,7 @@ func NewListenerReport(name string) *ListenerReport {
 }
 
 func (l *ListenerReport) SetCondition(lc ListenerCondition) {
+	fmt.Println("============ SetCondition : ", lc)
 	condition := metav1.Condition{
 		Type:    string(lc.Type),
 		Status:  lc.Status,
@@ -190,6 +214,15 @@ func (r *reporter) Gateway(gateway *gwv1.Gateway) GatewayReporter {
 	if gr == nil {
 		gr = r.report.newGatewayReport(gateway)
 	}
+	return gr
+}
+
+func (r *reporter) ListenerSet(listenerSet *gwxv1alpha1.XListenerSet) GatewayReporter {
+	gr := r.report.ListenerSet(listenerSet)
+	if gr == nil {
+		gr = r.report.newListenerSetReport(listenerSet)
+	}
+	fmt.Println("========== ListenerSet : ", r.report.ListenerSets)
 	return gr
 }
 
@@ -276,6 +309,7 @@ func NewReporter(reportMap *ReportMap) Reporter {
 
 type Reporter interface {
 	Gateway(gateway *gwv1.Gateway) GatewayReporter
+	ListenerSet(listenerSet *gwxv1alpha1.XListenerSet) GatewayReporter
 	Route(obj client.Object) RouteReporter
 }
 

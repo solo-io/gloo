@@ -14,6 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	"github.com/solo-io/gloo/projects/gateway2/ports"
 	"github.com/solo-io/gloo/projects/gateway2/query"
@@ -24,6 +25,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
 	"github.com/solo-io/gloo/projects/gateway2/translator/routeutils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/sslutils"
+	"github.com/solo-io/gloo/projects/gateway2/translator/types"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
@@ -35,30 +37,49 @@ func TranslateListeners(
 	ctx context.Context,
 	queries query.GatewayQueries,
 	pluginRegistry registry.PluginRegistry,
-	gateway *gwv1.Gateway,
+	consolidatedGateway *types.ConsolidatedGateway,
 	routesForGw *query.RoutesForGwResult,
 	reporter reports.Reporter,
 ) []*v1.Listener {
-	validatedListeners := validateListeners(gateway, reporter.Gateway(gateway))
+	validatedConsolidatedListeners := validateAllListeners(consolidatedGateway, reporter)
+	fmt.Println("=========== validatedListeners : ", validatedConsolidatedListeners)
 
-	mergedListeners := mergeGWListeners(queries, gateway.Namespace, validatedListeners, *gateway, routesForGw, reporter.Gateway(gateway))
+	mergedListeners := mergeConsolidatedListeners(queries, consolidatedGateway.Gateway.Namespace, validatedConsolidatedListeners, consolidatedGateway, routesForGw, reporter)
+	fmt.Println("=========== mergedListeners : ", mergedListeners)
+
 	translatedListeners := mergedListeners.translateListeners(ctx, pluginRegistry, queries, reporter)
 	return translatedListeners
 }
 
-func mergeGWListeners(
+func mergeConsolidatedListeners(
 	queries query.GatewayQueries,
 	gatewayNamespace string,
-	listeners []gwv1.Listener,
-	parentGw gwv1.Gateway,
+	consolidatedListeners *types.ConsolidatedListeners,
+	consolidatedGateway *types.ConsolidatedGateway,
 	routesForGw *query.RoutesForGwResult,
-	reporter reports.GatewayReporter,
+	reporter reports.Reporter,
 ) *MergedListeners {
 	ml := &MergedListeners{
-		parentGw:         parentGw,
-		GatewayNamespace: gatewayNamespace,
-		Queries:          queries,
+		consolidatedGateway:   consolidatedGateway,
+		consolidatedListeners: consolidatedListeners,
+		GatewayNamespace:      gatewayNamespace,
+		Queries:               queries,
 	}
+
+	mergeGWListeners(ml, consolidatedListeners.GatewayListeners, routesForGw, reporter.Gateway(consolidatedGateway.Gateway), nil)
+	for _, ls := range consolidatedGateway.ListenerSets {
+		mergeGWListeners(ml, consolidatedListeners.GetListenerSetListeners(ls), routesForGw, reporter.ListenerSet(ls), ls)
+	}
+	return ml
+}
+
+func mergeGWListeners(
+	mergedListeners *MergedListeners,
+	listeners []gwv1.Listener,
+	routesForGw *query.RoutesForGwResult,
+	reporter reports.GatewayReporter,
+	parentListenerSet *gwxv1a1.XListenerSet,
+) {
 	for _, listener := range listeners {
 		result, ok := routesForGw.ListenerResults[string(listener.Name)]
 		if !ok || result.Error != nil {
@@ -66,38 +87,47 @@ func mergeGWListeners(
 			// TODO, if Error is not nil, this is a user-config error on selectors
 			// continue
 		}
+		if parentListenerSet != nil {
+			result, ok = routesForGw.ListenerResults[query.GenerateListenerSetListenerKey(parentListenerSet, string(listener.Name))]
+			if !ok || result.Error != nil {
+				// TODO report
+				// TODO, if Error is not nil, this is a user-config error on selectors
+				// continue
+			}
+		}
 		listenerReporter := reporter.Listener(&listener)
 		var routes []*query.RouteInfo
 		if result != nil {
 			routes = result.Routes
 		}
-		ml.AppendListener(listener, routes, listenerReporter)
+		mergedListeners.AppendListener(listener, routes, listenerReporter, parentListenerSet)
 	}
-	return ml
 }
 
 type MergedListeners struct {
-	GatewayNamespace string
-	parentGw         gwv1.Gateway
-	Listeners        []*MergedListener
-	Queries          query.GatewayQueries
+	GatewayNamespace      string
+	consolidatedListeners *types.ConsolidatedListeners
+	consolidatedGateway   *types.ConsolidatedGateway
+	Listeners             []*MergedListener
+	Queries               query.GatewayQueries
 }
 
 func (ml *MergedListeners) AppendListener(
 	listener gwv1.Listener,
 	routes []*query.RouteInfo,
 	reporter reports.ListenerReporter,
+	parentListenerSet *gwxv1a1.XListenerSet,
 ) error {
 	switch listener.Protocol {
 	case gwv1.HTTPProtocolType:
-		ml.appendHttpListener(listener, routes, reporter)
+		ml.appendHttpListener(listener, routes, reporter, parentListenerSet)
 	case gwv1.HTTPSProtocolType:
-		ml.appendHttpsListener(listener, routes, reporter)
+		ml.appendHttpsListener(listener, routes, reporter, parentListenerSet)
 	// TODO default handling
 	case gwv1.TCPProtocolType:
-		ml.AppendTcpListener(listener, routes, reporter)
+		ml.AppendTcpListener(listener, routes, reporter, parentListenerSet)
 	case gwv1.TLSProtocolType:
-		ml.AppendTlsListener(listener, routes, reporter)
+		ml.AppendTlsListener(listener, routes, reporter, parentListenerSet)
 	default:
 		return eris.Errorf("unsupported protocol: %v", listener.Protocol)
 	}
@@ -109,6 +139,7 @@ func (ml *MergedListeners) appendHttpListener(
 	listener gwv1.Listener,
 	routesWithHosts []*query.RouteInfo,
 	reporter reports.ListenerReporter,
+	parentListenerSet *gwxv1a1.XListenerSet,
 ) {
 	parent := httpFilterChainParent{
 		gatewayListenerName: string(listener.Name),
@@ -137,12 +168,13 @@ func (ml *MergedListeners) appendHttpListener(
 
 	// create a new filter chain for the listener
 	ml.Listeners = append(ml.Listeners, &MergedListener{
-		name:             listenerName,
-		gatewayNamespace: ml.GatewayNamespace,
-		port:             finalPort,
-		httpFilterChain:  fc,
-		listenerReporter: reporter,
-		listener:         listener,
+		name:              listenerName,
+		gatewayNamespace:  ml.GatewayNamespace,
+		port:              finalPort,
+		httpFilterChain:   fc,
+		listenerReporter:  reporter,
+		listener:          listener,
+		parentListenerSet: parentListenerSet,
 	})
 }
 
@@ -150,6 +182,7 @@ func (ml *MergedListeners) appendHttpsListener(
 	listener gwv1.Listener,
 	routesWithHosts []*query.RouteInfo,
 	reporter reports.ListenerReporter,
+	parentListenerSet *gwxv1a1.XListenerSet,
 ) {
 	// create a new filter chain for the listener
 	// protocol:            listener.Protocol,
@@ -182,6 +215,7 @@ func (ml *MergedListeners) appendHttpsListener(
 		httpsFilterChains: []httpsFilterChain{mfc},
 		listenerReporter:  reporter,
 		listener:          listener,
+		parentListenerSet: parentListenerSet,
 	})
 }
 
@@ -189,6 +223,7 @@ func (ml *MergedListeners) AppendTcpListener(
 	listener gwv1.Listener,
 	routeInfos []*query.RouteInfo,
 	reporter reports.ListenerReporter,
+	parentListenerSet *gwxv1a1.XListenerSet,
 ) {
 	var validRouteInfos []*query.RouteInfo
 
@@ -238,12 +273,13 @@ func (ml *MergedListeners) AppendTcpListener(
 
 	// create a new filter chain for the listener
 	ml.Listeners = append(ml.Listeners, &MergedListener{
-		name:             listenerName,
-		gatewayNamespace: ml.GatewayNamespace,
-		port:             finalPort,
-		TcpFilterChains:  []tcpFilterChain{fc},
-		listenerReporter: reporter,
-		listener:         listener,
+		name:              listenerName,
+		gatewayNamespace:  ml.GatewayNamespace,
+		port:              finalPort,
+		TcpFilterChains:   []tcpFilterChain{fc},
+		listenerReporter:  reporter,
+		listener:          listener,
+		parentListenerSet: parentListenerSet,
 	})
 }
 
@@ -348,6 +384,7 @@ func (ml *MergedListeners) AppendTlsListener(
 	listener gwv1.Listener,
 	routeInfos []*query.RouteInfo,
 	reporter reports.ListenerReporter,
+	parentListenerSet *gwxv1a1.XListenerSet,
 ) {
 	var validRouteInfos []*query.RouteInfo
 
@@ -399,12 +436,13 @@ func (ml *MergedListeners) AppendTlsListener(
 
 	// create a new filter chain for the listener
 	ml.Listeners = append(ml.Listeners, &MergedListener{
-		name:             listenerName,
-		gatewayNamespace: ml.GatewayNamespace,
-		port:             finalPort,
-		TcpFilterChains:  []tcpFilterChain{fc},
-		listenerReporter: reporter,
-		listener:         listener,
+		name:              listenerName,
+		gatewayNamespace:  ml.GatewayNamespace,
+		port:              finalPort,
+		TcpFilterChains:   []tcpFilterChain{fc},
+		listenerReporter:  reporter,
+		listener:          listener,
+		parentListenerSet: parentListenerSet,
 	})
 }
 
@@ -421,8 +459,9 @@ func (ml *MergedListeners) translateListeners(
 		// run listener plugins
 		for _, listenerPlugin := range pluginRegistry.GetListenerPlugins() {
 			err := listenerPlugin.ApplyListenerPlugin(ctx, &plugins.ListenerContext{
-				Gateway:    &ml.parentGw,
-				GwListener: &mergedListener.listener,
+				Gateway:           ml.consolidatedGateway.Gateway,
+				ParentListenerSet: mergedListener.parentListenerSet,
+				GwListener:        &mergedListener.listener,
 			}, listener)
 			if err != nil {
 				contextutils.LoggerFrom(ctx).Errorf("error in ListenerPlugin: %v", err)
@@ -443,6 +482,7 @@ type MergedListener struct {
 	TcpFilterChains   []tcpFilterChain
 	listenerReporter  reports.ListenerReporter
 	listener          gwv1.Listener
+	parentListenerSet *gwxv1a1.XListenerSet
 
 	// TODO(policy via http listener options)
 }

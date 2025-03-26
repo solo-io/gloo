@@ -16,10 +16,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
-	v1 "sigs.k8s.io/gateway-api/apis/v1"
 	apiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 var (
@@ -132,8 +132,9 @@ type GatewayQueries interface {
 	// GetRouteChain resolves backends and delegated routes for a the provided xRoute object
 	GetRouteChain(ctx context.Context, obj client.Object, hostnames []string, parentRef apiv1.ParentReference) *RouteInfo
 
-	GetListenerSetsForGateway(ctx context.Context, gw *gwv1.Gateway) (*ListenerSetsForGwResult, error)
+	GetListenerSetsForGateway(ctx context.Context, gw *gwv1.Gateway) ([]*gwxv1a1.XListenerSet, error)
 	GetRoutesForListenerSet(ctx context.Context, ls *apixv1a1.XListenerSet) (*RoutesForGwResult, error)
+	GetRoutesForGatewayWithListenerSets(ctx context.Context, gw *gwv1.Gateway) (*RoutesForGwResult, error)
 }
 
 type RoutesForGwResult struct {
@@ -258,30 +259,16 @@ func getParentRefsForResource(gw client.Object, obj client.Object) []apiv1.Paren
 	return ret
 }
 
-// isParentRefForResource checks if a ParentReference is associated with the provided Gateway.
-func isParentRefForResource(pRef *apiv1.ParentReference, gw client.Object, defaultNs string) bool {
+// isParentRefForGw checks if a ParentReference is associated with the provided Gateway.
+func isParentRefForGw(pRef *apiv1.ParentReference, gw *apiv1.Gateway, defaultNs string) bool {
 	if gw == nil || pRef == nil {
 		return false
 	}
 
-	var expectedGroupName gwv1.Group
-	var expectedKind v1.Kind
-	switch gw.(type) {
-	case *gwv1.Gateway:
-		expectedGroupName = apiv1.GroupName
-		expectedKind = wellknown.GatewayKind
-	case *apixv1a1.XListenerSet:
-		expectedGroupName = apixv1a1.GroupName
-		expectedKind = wellknown.XListenerSetKind
-	default:
-		// TODO: should we default to an error ?
-	}
-
-	// Changed to include listener sets as well
-	if pRef.Group != nil && *pRef.Group != expectedGroupName {
+	if pRef.Group != nil && *pRef.Group != apiv1.GroupName {
 		return false
 	}
-	if pRef.Kind != nil && *pRef.Kind != expectedKind {
+	if pRef.Kind != nil && *pRef.Kind != wellknown.GatewayKind {
 		return false
 	}
 
@@ -289,7 +276,64 @@ func isParentRefForResource(pRef *apiv1.ParentReference, gw client.Object, defau
 	if pRef.Namespace != nil {
 		ns = string(*pRef.Namespace)
 	}
-	return ns == gw.GetNamespace() && string(pRef.Name) == gw.GetName()
+
+	return ns == gw.Namespace && string(pRef.Name) == gw.Name
+}
+
+func getParentGatewayRef(ls *apixv1a1.XListenerSet) *types.NamespacedName {
+	ns := ls.Namespace
+	if ls.Spec.ParentRef.Namespace != nil && *ls.Spec.ParentRef.Namespace != "" {
+		ns = string(*ls.Spec.ParentRef.Namespace)
+	}
+
+	return &types.NamespacedName{
+		Namespace: ns,
+		Name:      string(ls.Spec.ParentRef.Name),
+	}
+}
+
+// isParentRefForResource checks if a ParentReference is associated with the provided Gateway.
+func isParentRefForResource(pRef *apiv1.ParentReference, gw client.Object, defaultNs string) bool {
+	if gw == nil || pRef == nil {
+		return false
+	}
+
+	ret := false
+	switch typed := gw.(type) {
+	case *gwv1.Gateway:
+		ret = isParentRefForGw(pRef, typed, defaultNs)
+	case *apixv1a1.XListenerSet:
+		// Check if the route belongs to the parent gateway. If so accept it
+		parentRef := getParentGatewayRef(typed)
+		parentGW := &gwv1.Gateway{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: parentRef.Namespace,
+				Name:      parentRef.Name,
+			},
+		}
+		ret = isParentRefForGw(pRef, parentGW, defaultNs)
+
+		// Maybe it was just attached to the listenerset and not the parent
+		if !ret {
+			if pRef.Group != nil && *pRef.Group != apixv1a1.GroupName {
+				return false
+			}
+			if pRef.Kind != nil && *pRef.Kind != wellknown.XListenerSetKind {
+				return false
+			}
+
+			ns := defaultNs
+			if pRef.Namespace != nil {
+				ns = string(*pRef.Namespace)
+			}
+			ret = ns == typed.Namespace && string(pRef.Name) == typed.Name
+		}
+	default:
+		return false
+	}
+
+	fmt.Println("========== isParentRefForResource : ", pRef)
+	return ret
 }
 
 func hostnameIntersect(l *apiv1.Listener, routeHostnames []apiv1.Hostname) (bool, []string) {

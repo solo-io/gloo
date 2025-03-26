@@ -6,6 +6,7 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
+	"github.com/solo-io/gloo/projects/gateway2/translator/types"
 	"github.com/solo-io/go-utils/contextutils"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
@@ -17,6 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 // K8sGwTranslator This translator Translates K8s Gateway resources into Gloo Edge Proxies.
@@ -44,6 +46,23 @@ type translator struct {
 	queries        query.GatewayQueries
 }
 
+func (t *translator) consolidateGateway(ctx context.Context, gateway *gwv1.Gateway) (*types.ConsolidatedGateway, error) {
+	ls, err := t.queries.GetListenerSetsForGateway(ctx, gateway)
+	if err != nil {
+		return nil, err
+	}
+
+	listenerSets := make([]*gwxv1a1.XListenerSet, 0, len(ls))
+	for _, v := range ls {
+		listenerSets = append(listenerSets, v)
+	}
+
+	return &types.ConsolidatedGateway{
+		Gateway:      gateway,
+		ListenerSets: listenerSets,
+	}, nil
+}
+
 func (t *translator) TranslateProxy(
 	ctx context.Context,
 	gateway *gwv1.Gateway,
@@ -56,12 +75,25 @@ func (t *translator) TranslateProxy(
 
 	ctx = contextutils.WithLogger(ctx, "k8s-gateway-translator")
 	logger := contextutils.LoggerFrom(ctx)
-	routesForGw, err := t.queries.GetRoutesForGateway(ctx, gateway)
+
+	consolidatedGateway, err := t.consolidateGateway(ctx, gateway)
+	if err != nil {
+		logger.Errorf("failed to consolidate gateway %s: %v", client.ObjectKeyFromObject(gateway), err)
+		// TODO: decide how/if to report this error on Gateway
+		// reporter.Gateway(gateway).Err(err.Error())
+		return nil
+	}
+
+	routesForGw, err := t.queries.GetRoutesForGatewayWithListenerSets(ctx, consolidatedGateway.Gateway)
+	fmt.Println("================ GetRoutesForGatewayWithListenerSets : ", routesForGw, err)
 	if err != nil {
 		logger.Errorf("failed to get routes for gateway %s: %v", client.ObjectKeyFromObject(gateway), err)
 		// TODO: decide how/if to report this error on Gateway
 		// reporter.Gateway(gateway).Err(err.Error())
 		return nil
+	}
+	for a, b := range routesForGw.ListenerResults {
+		fmt.Println("  ============== ListenerResults : ", a, b.Routes, len(b.Routes))
 	}
 
 	for _, rErr := range routesForGw.RouteErrors {
@@ -82,17 +114,30 @@ func (t *translator) TranslateProxy(
 		reporter.Gateway(gateway).Listener(&listener).SetAttachedRoutes(uint(availRoutes))
 	}
 
+	for _, ls := range consolidatedGateway.ListenerSets {
+		for _, listener := range consolidatedGateway.GetListeners(ls) {
+			availRoutes := 0
+			if res, ok := routesForGw.ListenerResults[query.GenerateListenerSetListenerKey(ls, string(listener.Name))]; ok {
+				// TODO we've never checked if the ListenerResult has an error.. is it already on RouteErrors?
+				availRoutes = len(res.Routes)
+			}
+			reporter.ListenerSet(ls).Listener(&listener).SetAttachedRoutes(uint(availRoutes))
+		}
+	}
+
 	listeners := listener.TranslateListeners(
 		ctx,
 		t.queries,
 		t.pluginRegistry,
-		gateway,
+		consolidatedGateway,
 		routesForGw,
 		reporter,
 	)
+	fmt.Println("================ TranslateListeners : ", listeners, len(listeners))
+	fmt.Println("================ routesForGw : ", routesForGw)
 
 	return &v1.Proxy{
-		Metadata:  proxyMetadata(gateway, writeNamespace),
+		Metadata:  proxyMetadata(consolidatedGateway.Gateway, writeNamespace),
 		Listeners: listeners,
 	}
 }

@@ -1,9 +1,11 @@
 package listener
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/solo-io/gloo/projects/gateway2/reports"
+	"github.com/solo-io/gloo/projects/gateway2/translator/types"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -118,12 +120,25 @@ func validateSupportedRoutes(listeners []gwv1.Listener, reporter reports.Gateway
 	return validListeners
 }
 
-func validateListeners(gw *gwv1.Gateway, reporter reports.GatewayReporter) []gwv1.Listener {
-	if len(gw.Spec.Listeners) == 0 {
-		// gwReporter.Err("gateway must contain at least 1 listener")
+func validateAllListeners(consolidatedGateway *types.ConsolidatedGateway, reporter reports.Reporter) *types.ConsolidatedListeners {
+	consolidatedListeners := &types.ConsolidatedListeners{}
+	consolidatedListeners.GatewayListeners = validateListeners(consolidatedGateway.Gateway.Spec.Listeners, reporter.Gateway(consolidatedGateway.Gateway))
+
+	for _, ls := range consolidatedGateway.ListenerSets {
+		consolidatedListeners.SetListenerSetListeners(ls, validateListeners(consolidatedGateway.GetListeners(ls), reporter.ListenerSet(ls)))
 	}
 
-	validListeners := validateSupportedRoutes(gw.Spec.Listeners, reporter)
+	return consolidatedListeners
+}
+
+func validateListeners(listeners []gwv1.Listener, reporter reports.GatewayReporter) []gwv1.Listener {
+	if len(listeners) == 0 {
+		// gwReporter.Err("gateway must contain at least 1 listener")
+	}
+	fmt.Println("=========== len(gw.Spec.Listeners) : ", len(listeners))
+
+	validListeners := validateSupportedRoutes(listeners, reporter)
+	fmt.Println("=========== validListeners : ", validListeners, len(validListeners))
 
 	portListeners := map[gwv1.PortNumber]*portProtocol{}
 	for _, listener := range validListeners {

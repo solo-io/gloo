@@ -64,6 +64,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 const gatewayV1A2Version = "v1alpha2"
@@ -241,6 +242,9 @@ func (p glooProxy) Equals(in glooProxy) bool {
 	if !maps.Equal(p.reportMap.Gateways, in.reportMap.Gateways) {
 		return false
 	}
+	if !maps.Equal(p.reportMap.ListenerSets, in.reportMap.ListenerSets) {
+		return false
+	}
 	if !maps.Equal(p.reportMap.HTTPRoutes, in.reportMap.HTTPRoutes) {
 		return false
 	}
@@ -268,6 +272,9 @@ func (r report) ResourceName() string {
 // do we really need this for a singleton?
 func (r report) Equals(in report) bool {
 	if !maps.Equal(r.ReportMap.Gateways, in.ReportMap.Gateways) {
+		return false
+	}
+	if !maps.Equal(r.ReportMap.ListenerSets, in.ReportMap.ListenerSets) {
 		return false
 	}
 	if !maps.Equal(r.ReportMap.HTTPRoutes, in.ReportMap.HTTPRoutes) {
@@ -472,7 +479,10 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 			// 1. merge GW Reports for all Proxies' status reports
 			maps.Copy(merged.Gateways, p.reportMap.Gateways)
 
-			// 2. merge httproute parentRefs into RouteReports
+			// 2. merge LS Reports for all Proxies' status reports
+			maps.Copy(merged.ListenerSets, p.reportMap.ListenerSets)
+
+			// 3. merge httproute parentRefs into RouteReports
 			for rnn, rr := range p.reportMap.HTTPRoutes {
 				// if we haven't encountered this route, just copy it over completely
 				old := merged.HTTPRoutes[rnn]
@@ -485,7 +495,7 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 				maps.Copy(p.reportMap.HTTPRoutes[rnn].Parents, rr.Parents)
 			}
 
-			// 3. merge tcproute parentRefs into RouteReports
+			// 4. merge tcproute parentRefs into RouteReports
 			for rnn, rr := range p.reportMap.TCPRoutes {
 				// if we haven't encountered this route, just copy it over completely
 				old := merged.TCPRoutes[rnn]
@@ -498,7 +508,7 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 				maps.Copy(p.reportMap.TCPRoutes[rnn].Parents, rr.Parents)
 			}
 
-			// 4. merge tlsroute parentRefs into RouteReports
+			// 5. merge tlsroute parentRefs into RouteReports
 			for rnn, rr := range p.reportMap.TLSRoutes {
 				// if we haven't encountered this route, just copy it over completely
 				old := merged.TLSRoutes[rnn]
@@ -651,6 +661,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 				return
 			}
 			s.syncGatewayStatus(ctx, latestReport)
+			s.syncListenerSetStatus(ctx, latestReport)
 			s.syncRouteStatus(ctx, latestReport)
 		}
 	}()
@@ -1011,6 +1022,53 @@ func (s *ProxySyncer) syncGatewayStatus(ctx context.Context, rm reports.ReportMa
 	logger.Debugf("synced gw status for %d gateways in %s", len(rm.Gateways), duration.String())
 }
 
+// syncGatewayStatus will build and update status for all Gateways in a reportMap
+func (s *ProxySyncer) syncListenerSetStatus(ctx context.Context, rm reports.ReportMap) {
+	ctx = contextutils.WithLogger(ctx, "statusSyncer")
+	logger := contextutils.LoggerFrom(ctx)
+	stopwatch := statsutils.NewTranslatorStopWatch("GatewayStatusSyncer")
+	stopwatch.Start()
+
+	// TODO: retry within loop per GW rathen that as a full block
+	err := retry.Do(func() error {
+		fmt.Println("========== syncListenerSetStatus")
+		fmt.Println("========== rm.ListenerSets", rm.ListenerSets)
+		for lsnn := range rm.ListenerSets {
+			fmt.Println("  ======== syncListenerSetStatus : ", lsnn)
+			ls := gwxv1a1.XListenerSet{}
+			err := s.mgr.GetClient().Get(ctx, lsnn, &ls)
+			if err != nil {
+				logger.Info("error getting ls", err.Error())
+				return err
+			}
+			gwStatusWithoutAddress := ls.Status
+			if status := rm.BuildListenerSetStatus(ctx, ls); status != nil {
+				if !isListenerSetStatusEqual(&gwStatusWithoutAddress, status) {
+					ls.Status = *status
+					if err := s.mgr.GetClient().Status().Patch(ctx, &ls, client.Merge); err != nil {
+						logger.Error(err)
+						return err
+					}
+					logger.Infof("patched ls '%s' status", lsnn.String())
+				} else {
+					logger.Infof("skipping k8s ls %s status update, status equal", lsnn.String())
+				}
+				fmt.Println("  ======== status : ", status)
+			}
+		}
+		return nil
+	},
+		retry.Attempts(5),
+		retry.Delay(100*time.Millisecond),
+		retry.DelayType(retry.BackOffDelay),
+	)
+	if err != nil {
+		logger.Errorw("all attempts failed at updating gateway statuses", "error", err)
+	}
+	duration := stopwatch.Stop(ctx)
+	logger.Debugf("synced ls status for %d ls in %s", len(rm.ListenerSets), duration.String())
+}
+
 // reconcileProxies persists the provided proxies by reconciling them with the proxyReconciler.
 // as the Kube GW impl does not support reading Proxies from etcd, the expectation is these prox ies are
 // written and persisted to the in-memory cache.
@@ -1047,6 +1105,10 @@ var opts = cmp.Options{
 }
 
 func isGatewayStatusEqual(objA, objB *gwv1.GatewayStatus) bool {
+	return cmp.Equal(objA, objB, opts)
+}
+
+func isListenerSetStatusEqual(objA, objB *gwxv1a1.ListenerSetStatus) bool {
 	return cmp.Equal(objA, objB, opts)
 }
 
