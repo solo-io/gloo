@@ -171,5 +171,3 @@ var (
 		proxyService2Fqdn: {gw2port1, gw2port2},
 	}
 )
-
-const ()
