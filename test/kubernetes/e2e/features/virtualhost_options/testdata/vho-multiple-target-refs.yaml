@@ -8,10 +8,14 @@ spec:
     kind: Gateway
     name: gw
     sectionName: http
+  # - group: gateway.networking.k8s.io
+  #   kind: Gateway
+  #   name: gw
+  #   sectionName: other
   - group: gateway.networking.k8s.io
     kind: Gateway
-    name: gw
-    sectionName: other
+    name: gw-2
+    sectionName: http
   options:
     headerManipulation:
       responseHeadersToAdd:

@@ -35,6 +35,23 @@ spec:
             value: "baz"
           append: false
 ---
+apiVersion: gateway.solo.io/v1
+kind: RouteOption
+metadata:
+  name: header-manipulation-2
+spec:
+  options:
+    headerManipulation:
+      responseHeadersToAdd:
+        - header:
+            key: "x-bar-2"
+            value: "bar-2"
+          append: false 
+        - header:
+            key: "x-baz-2"
+            value: "baz-2"
+          append: false
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -80,4 +97,44 @@ spec:
       ports:
         - containerPort: 80
           name: http-web-svc
+---
+kind: Gateway
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: gw-2
+spec:
+  gatewayClassName: gloo-gateway
+  listeners:
+    - protocol: HTTP
+      port: 8080
+      name: http
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - protocol: HTTP
+      port: 8081
+      name: other
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: example-route-2
+spec:
+  parentRefs:
+    - name: gw-2
+  hostnames:
+    - "example.com"
+  rules:
+    - filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.solo.io
+            kind: RouteOption
+            name: header-manipulation-2
+      backendRefs:
+        - name: example-svc
+          port: 8080
 ---

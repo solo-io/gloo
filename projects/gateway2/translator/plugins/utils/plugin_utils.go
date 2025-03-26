@@ -135,26 +135,38 @@ type PolicyWithSectionedTargetRefs[T client.Object] interface {
 func GetPrioritizedListenerPolicies[T client.Object](
 	items []PolicyWithSectionedTargetRefs[T],
 	listener *gwv1.Listener,
+	parentGwName string,
 ) []T {
 	var optsWithSectionName, optsWithoutSectionName []T
 	for i := range items {
 		item := items[i]
 
+		fmt.Println("GetPrioritizedListenerPolicies for listener name", listener.Name, " -- parentGwName", parentGwName)
 		// Loop over all targetRefs and check if any have a section name
 		appendOptsWithoutSectionName := false
 		for _, targetRef := range item.GetTargetRefs() {
-			fmt.Println("targetRef", targetRef, "-- sectionName", targetRef.GetSectionName())
+			// Check that this is the right gw
+			if targetRef.GetName() != parentGwName {
+				fmt.Println("targetRef name", targetRef.GetName(), " -- parentGwName", parentGwName, " -- should be skipping")
+				//continue
+			} else {
+				fmt.Println("targetRef name", targetRef.GetName(), " -- parentGwName", parentGwName, " -- should be included")
+			}
+
+			fmt.Println("listener name", listener.Name, "targetRef", targetRef, "-- sectionName", targetRef.GetSectionName())
 			if targetRef.GetSectionName() != nil {
 				fmt.Println("sectionNameValue", targetRef.GetSectionName().GetValue())
 			}
 
 			if sectionName := targetRef.GetSectionName(); sectionName != nil && sectionName.GetValue() != "" {
 				// we have a section name, now check if it matches the specific listener provided
-				fmt.Println("Have section name, checking if it matches listener name", string(listener.Name))
+				fmt.Println("Have section name, checking if it matches listener name", string(listener.Name), "and sectionName", sectionName.GetValue())
 				if sectionName.GetValue() == string(listener.Name) {
 					fmt.Println("Section name matches listener name")
 					optsWithSectionName = append(optsWithSectionName, item.GetObject())
 					// break?
+				} else {
+					fmt.Println("Section name does not match listener name")
 				}
 			} else {
 				appendOptsWithoutSectionName = true
