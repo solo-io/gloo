@@ -59,6 +59,11 @@ rules:
   - tlsroutes/status
   verbs: ["update", "patch"]
 - apiGroups:
+  - "gateway.networking.x-k8s.io"
+  resources:
+  - xlistenersets/status
+  verbs: ["update", "patch"]
+- apiGroups:
   - apiextensions.k8s.io
   resources:
   - customresourcedefinitions
