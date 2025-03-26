@@ -137,7 +137,7 @@ message VirtualHostOption {
   // When using Kubernetes Gateway API mode, targetRefs can be used to attach this VirtualHostOption
   // to a gateway.networking.k8s.io/Gateway object. The `options` specified will then be used
   // for all `Listeners` in the `Gateway` unless `targetRef.sectionName` is specified.
-  // NOTE: Limited to 16 targetRefs: https://github.com/kubernetes-sigs/gateway-api/blob/main/geps/gep-2648/index.md#target-references
+  // NOTE: TODO - update decsriptions
   repeated core.skv2.solo.io.PolicyTargetReferenceWithSectionName target_refs = 5;
 }
 
@@ -261,7 +261,8 @@ message RouteOption {
   // When using Kubernetes Gateway API mode, targetRefs can be used to attach this RouteOption
   // to a gateway.networking.k8s.io/HTTPRoute object. The `options` specified will then be used
   // for all `Rules` in the `HTTPRoute`.
-  // NOTE: Limited to 16 targetRefs: https://github.com/kubernetes-sigs/gateway-api/blob/main/geps/gep-2648/index.md#target-references
+  // NOTE: TODO - update decsriptions
+
   repeated core.skv2.solo.io.PolicyTargetReference target_refs = 5;
 }
 
@@ -278,7 +279,8 @@ message ListenerOption {
   // When using Kubernetes Gateway API mode, targetRefs can be used to attach this ListenerOption
   // to a gateway.networking.k8s.io/Gateway object. The `options` specified will then be used
   // for all `Listeners` in the `Gateway` unless `targetRef.sectionName` is specified.
-  // NOTE: Limited to 16 targetRefs: https://github.com/kubernetes-sigs/gateway-api/blob/main/geps/gep-2648/index.md#target-references
+  // NOTE: TODO - update decsriptions
+
   repeated core.skv2.solo.io.PolicyTargetReferenceWithSectionName target_refs = 3;
 }
 
@@ -295,6 +297,6 @@ message HttpListenerOption {
   // When using Kubernetes Gateway API mode, targetRef can be used to attach this VirtualHostOption
   // to a gateway.networking.k8s.io/Gateway object. The `options` specified will then be used
   // for all `Listeners` in the `Gateway` unless `targetRef.sectionName` is specified.
-  // NOTE: Limited to 16 targetRefs: https://github.com/kubernetes-sigs/gateway-api/blob/main/geps/gep-2648/index.md#target-references
+  // NOTE: TODO - update decsriptions
   repeated core.skv2.solo.io.PolicyTargetReferenceWithSectionName target_refs = 3;
 }

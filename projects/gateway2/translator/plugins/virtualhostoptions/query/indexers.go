@@ -30,28 +30,36 @@ func virtualHostOptionTargetRefIndexer(obj client.Object) []string {
 		return res
 	}
 
-	// use the first targetRef in the list as we only support one ref but have multiple in API for future-compatbility
-	// TODO: fix this as part of https://github.com/solo-io/solo-projects/issues/6286
-	targetRef := targetRefs[0]
+	foundNns := map[string]any{}
 
-	if targetRef == nil {
-		return res
-	}
-	if targetRef.GetGroup() != gwv1.GroupName {
-		return res
-	}
-	if targetRef.GetKind() != wellknown.GatewayKind {
-		return res
+	// TODO: fix up logic to be cleaner
+	for _, targetRef := range targetRefs {
+		if targetRef == nil {
+			continue
+		}
+		if targetRef.GetGroup() != gwv1.GroupName {
+			continue
+		}
+		if targetRef.GetKind() != wellknown.GatewayKind {
+			continue
+		}
+		ns := targetRef.GetNamespace().GetValue()
+		if ns == "" {
+			ns = vhOpt.GetNamespace()
+		}
+		targetNN := types.NamespacedName{
+			Namespace: ns,
+			Name:      targetRef.GetName(),
+		}
+
+		foundNns[targetNN.String()] = struct{}{}
 	}
 
-	ns := targetRef.GetNamespace().GetValue()
-	if ns == "" {
-		ns = vhOpt.GetNamespace()
+	for k := range foundNns {
+		res = append(res, k)
 	}
-	targetNN := types.NamespacedName{
-		Namespace: ns,
-		Name:      targetRef.GetName(),
-	}
-	res = append(res, targetNN.String())
+
+	fmt.Printf("virtualHostOptionTargetRefIndexer, %d items in list: %+v\n", len(res), res)
+
 	return res
 }

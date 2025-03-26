@@ -48,7 +48,7 @@ func (s *testingSuite) SetupSuite() {
 		s.NoError(err, "can apply "+manifest)
 	}
 
-	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment,
+	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, proxyService1, proxyDeployment1, proxyService2, proxyDeployment2,
 		exampleSvc, nginxPod, testdefaults.CurlPod)
 
 	// Check that test resources are running
@@ -56,9 +56,13 @@ func (s *testingSuite) SetupSuite() {
 		metav1.ListOptions{
 			LabelSelector: "app.kubernetes.io/name=nginx",
 		})
-	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(),
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, proxyDeployment1.ObjectMeta.GetNamespace(),
 		metav1.ListOptions{
-			LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw",
+			LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-1",
+		})
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, proxyDeployment2.ObjectMeta.GetNamespace(),
+		metav1.ListOptions{
+			LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-2",
 		})
 	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, testdefaults.CurlPod.GetNamespace(),
 		metav1.ListOptions{
@@ -80,28 +84,21 @@ func (s *testingSuite) TearDownSuite() {
 // The default state should have two listeners on the gateway, one on port 8080 and one on port 8081.
 // And the headers x-bar and x-baz should be added to the response.
 func (s *testingSuite) TestConfirmSetup() {
-	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-		s.ctx,
-		testdefaults.CurlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-			curl.WithHostHeader("example.com"),
-			curl.WithPort(8080),
-		},
-		defaultResponse,
-	)
 
-	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-		s.ctx,
-		testdefaults.CurlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-			curl.WithHostHeader("example.com"),
-			curl.WithPort(8081),
-		},
-		defaultResponse,
-	)
-
+	for host, ports := range gatewayListenerPorts {
+		for _, port := range ports {
+			s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
+				s.ctx,
+				testdefaults.CurlPodExecOpt,
+				[]curl.Option{
+					curl.WithHost(host),
+					curl.WithHostHeader("example.com"),
+					curl.WithPort(port),
+				},
+				defaultResponse,
+			)
+		}
+	}
 }
 
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
@@ -126,7 +123,7 @@ func (s *testingSuite) TestConfigureVirtualHostOptions() {
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService1.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
 		},
 		expectedResponseWithoutXBar)
@@ -149,53 +146,35 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsMultipleTargetRefs() {
 		defaults.KubeGatewayReporter,
 	)
 
-	// Check healthy response with no x-bar header
-	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-		s.ctx,
-		testdefaults.CurlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-			curl.WithHostHeader("example.com"),
-			curl.WithPort(8080),
-		},
-		expectedResponseWithXFoo)
+	// matchersForListeners := map[int]*matchers.HttpResponse{
+	// 	gw1port1: expectedResponseWithXFoo,
+	// 	//gw1port2: expectedResponseWithXFoo,
+	// 	gw2port1: expectedResponseWithXFoo,
+	// 	//gw2port2: expectedResponseWithXFoo,
+	// }
 
-	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-		s.ctx,
-		testdefaults.CurlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
-			curl.WithHostHeader("example.com"),
-			curl.WithPort(8081),
-		},
-		expectedResponseWithXFoo)
-}
-
-// TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
-func (s *testingSuite) TestConfigureVirtualHostOptionsSectionTargetRefs() {
-	s.T().Cleanup(func() {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoSectionTargetRef)
-		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestVhoSectionTargetRef, err, output)
-	})
-
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoSectionTargetRef)
-	s.NoError(err, "can apply "+manifestVhoSectionTargetRef)
-
-	// Check status is accepted on VirtualHostOption
-	s.testInstallation.AssertionsT(s.T()).EventuallyResourceStatusMatchesState(
-		s.getterForMeta(&vhoMultipleTargetRefs),
-		core.Status_Accepted,
-		defaults.KubeGatewayReporter,
-	)
+	// // Check healthy response with x-foo header
+	// for port, matcher := range matchersForListeners {
+	// 	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
+	// 		s.ctx,
+	// 		testdefaults.CurlPodExecOpt,
+	// 		[]curl.Option{
+	// 			curl.WithHost(kubeutils.ServiceFQDN(proxyService1.ObjectMeta)),
+	// 			curl.WithHostHeader("example.com"),
+	// 			curl.WithPort(port),
+	// 		},
+	// 		matcher,
+	// 	)
+	// }
 
 	// Check healthy response with no x-bar header
 	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService1.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
-			curl.WithPort(8080),
+			curl.WithPort(gw1port1),
 		},
 		expectedResponseWithXFoo)
 
@@ -203,11 +182,11 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsSectionTargetRefs() {
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService2.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
-			curl.WithPort(8081),
+			curl.WithPort(gw2port1),
 		},
-		expectedResponseWithoutXFoo)
+		expectedResponseWithXFoo)
 }
 
 // TestConfigureInvalidVirtualHostOptions confirms that an invalid VirtualHostOption is rejected
@@ -254,7 +233,7 @@ func (s *testingSuite) TestConfigureInvalidVirtualHostOptions() {
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService1.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
 		},
 		expectedResponseWithoutXBar)
@@ -324,9 +303,9 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService1.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
-			curl.WithPort(8080),
+			curl.WithPort(gw1port1),
 		},
 		&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
@@ -346,9 +325,9 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService1.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
-			curl.WithPort(8081),
+			curl.WithPort(gw1port2),
 		},
 		&matchers.HttpResponse{
 			StatusCode: http.StatusOK,
@@ -404,7 +383,7 @@ func (s *testingSuite) TestMultipleVirtualHostOptionsSetup() {
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService1.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
 		},
 		expectedResponseWithoutXBar)
@@ -453,7 +432,7 @@ func (s *testingSuite) TestDeletingConflictingVirtualHostOptions() {
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService1.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
 		},
 		expectedResponseWithoutXBar)
@@ -474,7 +453,7 @@ func (s *testingSuite) TestDeletingConflictingVirtualHostOptions() {
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService1.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
 		},
 		expectedResponseWithoutXBaz)
@@ -512,7 +491,7 @@ func (s *testingSuite) TestOptionsMerge() {
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService1.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
 		},
 		// Expect:

@@ -148,7 +148,7 @@ func GetPrioritizedListenerPolicies[T client.Object](
 			// Check that this is the right gw
 			if targetRef.GetName() != parentGwName {
 				fmt.Println("targetRef name", targetRef.GetName(), " -- parentGwName", parentGwName, " -- should be skipping")
-				//continue
+				continue
 			} else {
 				fmt.Println("targetRef name", targetRef.GetName(), " -- parentGwName", parentGwName, " -- should be included")
 			}
