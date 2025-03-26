@@ -7,6 +7,7 @@ import (
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
+	"github.com/solo-io/gloo/projects/gateway2/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -155,8 +156,8 @@ func GetPrioritizedListenerPolicies[T client.Object](
 		return nil
 	}
 
-	SortByCreationTime(optsWithSectionName)
-	SortByCreationTime(optsWithoutSectionName)
+	utils.SortByCreationTime(optsWithSectionName)
+	utils.SortByCreationTime(optsWithoutSectionName)
 	return append(optsWithSectionName, optsWithoutSectionName...)
 }
 

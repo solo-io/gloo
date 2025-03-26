@@ -18,6 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gwaxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	gatewaykubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/deployer"
@@ -297,6 +298,15 @@ func getGatewayCRDs(restConfig *rest.Config) (sets.Set[string], error) {
 
 	if tlsRouteExists {
 		crds.Insert(wellknown.TLSRouteCRDName)
+	}
+
+	xListenerSetExists, err := glooschemes.CRDExists(restConfig, gwaxv1a1.GroupVersion.Group, gwaxv1a1.GroupVersion.Version, wellknown.XListenerSetKind)
+	if err != nil {
+		return nil, err
+	}
+
+	if xListenerSetExists {
+		crds.Insert(wellknown.XListenerSetKind)
 	}
 
 	return crds, nil

@@ -16,7 +16,8 @@ import (
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	gwquery "github.com/solo-io/gloo/projects/gateway2/query"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
+	utils "github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
+	gwutils "github.com/solo-io/gloo/projects/gateway2/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
@@ -104,7 +105,7 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 	for i := range list.Items {
 		out[i] = &list.Items[i]
 	}
-	utils.SortByCreationTime(out)
+	gwutils.SortByCreationTime(out)
 	for _, opt := range out {
 		optionUsed := false
 		merged.Spec.Options, optionUsed = glooutils.ShallowMergeRouteOptions(merged.Spec.GetOptions(), opt.Spec.GetOptions())

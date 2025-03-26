@@ -12,6 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 // TODO: refactor this struct + methods to better reflect the usage now in proxy_syncer
@@ -69,6 +70,86 @@ func (r *ReportMap) BuildGWStatus(ctx context.Context, gw gwv1.Gateway) *gwv1.Ga
 	finalGwStatus := gwv1.GatewayStatus{}
 	finalGwStatus.Conditions = finalConditions
 	finalGwStatus.Listeners = finalListeners
+	return &finalGwStatus
+}
+
+func (r *ReportMap) BuildListenerSetStatus(ctx context.Context, ls gwxv1a1.XListenerSet) *gwxv1a1.ListenerSetStatus {
+	lsReport := r.ListenerSet(&ls)
+	if lsReport == nil {
+		return nil
+	}
+
+	toListener := func(le gwxv1a1.ListenerEntry) gwv1.Listener {
+		copy := le.DeepCopy()
+		return gwv1.Listener{
+			Name:          copy.Name,
+			Hostname:      copy.Hostname,
+			Port:          copy.Port,
+			Protocol:      copy.Protocol,
+			TLS:           copy.TLS,
+			AllowedRoutes: copy.AllowedRoutes,
+		}
+	}
+
+	finalListeners := make([]gwv1.ListenerStatus, 0, len(ls.Spec.Listeners))
+	for _, l := range ls.Spec.Listeners {
+		lis := toListener(l)
+		lisReport := lsReport.listener(&lis)
+		addMissingListenerConditions(lisReport)
+
+		finalConditions := make([]metav1.Condition, 0, len(lisReport.Status.Conditions))
+		oldLisStatusIndex := slices.IndexFunc(ls.Status.Listeners, func(l gwxv1a1.ListenerEntryStatus) bool {
+			return l.Name == lis.Name
+		})
+		for _, lisCondition := range lisReport.Status.Conditions {
+			lisCondition.ObservedGeneration = lsReport.observedGeneration
+
+			// copy old condition from gw so LastTransitionTime is set correctly below by SetStatusCondition()
+			if oldLisStatusIndex != -1 {
+				if cond := meta.FindStatusCondition(ls.Status.Listeners[oldLisStatusIndex].Conditions, lisCondition.Type); cond != nil {
+					finalConditions = append(finalConditions, *cond)
+				}
+			}
+			meta.SetStatusCondition(&finalConditions, lisCondition)
+		}
+		lisReport.Status.Conditions = finalConditions
+		finalListeners = append(finalListeners, lisReport.Status)
+		fmt.Println("========== finalListeners : ", finalListeners)
+	}
+
+	addMissingGatewayConditions(r.ListenerSet(&ls))
+
+	finalConditions := make([]metav1.Condition, 0)
+	for _, gwCondition := range lsReport.GetConditions() {
+		gwCondition.ObservedGeneration = lsReport.observedGeneration
+
+		// copy old condition from gw so LastTransitionTime is set correctly below by SetStatusCondition()
+		if cond := meta.FindStatusCondition(ls.Status.Conditions, gwCondition.Type); cond != nil {
+			finalConditions = append(finalConditions, *cond)
+		}
+		meta.SetStatusCondition(&finalConditions, gwCondition)
+	}
+	// If there are conditions on the Gateway that are not owned by our reporter, include
+	// them in the final list of conditions to preseve conditions we do not own
+	for _, condition := range ls.Status.Conditions {
+		if meta.FindStatusCondition(finalConditions, condition.Type) == nil {
+			finalConditions = append(finalConditions, condition)
+		}
+	}
+
+	finalGwStatus := gwxv1a1.ListenerSetStatus{}
+	finalGwStatus.Conditions = finalConditions
+	fl := make([]gwxv1a1.ListenerEntryStatus, 0, len(finalListeners))
+	for i, f := range finalListeners {
+		fl = append(fl, gwxv1a1.ListenerEntryStatus{
+			Name:           f.Name,
+			Port:           ls.Spec.Listeners[i].Port,
+			SupportedKinds: f.SupportedKinds,
+			AttachedRoutes: f.AttachedRoutes,
+			Conditions:     f.Conditions,
+		})
+	}
+	finalGwStatus.Listeners = fl
 	return &finalGwStatus
 }
 

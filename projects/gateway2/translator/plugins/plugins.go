@@ -12,6 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 // Plugin is an empty type for base plugins, currently no base methods.
@@ -67,6 +68,8 @@ type ListenerContext struct {
 	Gateway *gwv1.Gateway
 	// gw Listener being processed
 	GwListener *gwv1.Listener
+	// ListenerSet the listener belongs to. nil if directly listed in the gateway
+	ParentListenerSet *gwxv1a1.XListenerSet
 }
 type ListenerPlugin interface {
 	Plugin
