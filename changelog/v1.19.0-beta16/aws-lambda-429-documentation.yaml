@@ -1,0 +1,8 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7827#issuecomment-2729978355
+    resolvesIssue: false
+    description: >-
+      Update documentation to reflect Gloo Gateway's behaviour when requests to AWS Lambda upstreams are rate-limited.
+
+      skipCI-kube-tests:true
