@@ -81,10 +81,18 @@ func (s *testingSuite) TearDownSuite() {
 
 // TestConfirmSetup tests that the setup is correct
 //
-// The default state should have two listeners on the gateway, one on port 8080 and one on port 8081.
-// And the headers x-bar and x-baz should be added to the response.
+// The default state should have two gateways, each with two listeners.
+// The first gateway, gw-1, on ports 8080 and 8081, and the headers x-bar and x-baz should be added to the response
+// The second gateway, gw-2, on ports 8083 and 8084, and the headers x-bar-2 and x-baz-2 should be added to the response
 func (s *testingSuite) TestConfirmSetup() {
 
+	// Each gateway has different headers
+	responsesForGws := map[string]*matchers.HttpResponse{
+		proxyService1Fqdn: defaultResponseGw1,
+		proxyService2Fqdn: defaultResponseGw2,
+	}
+
+	// Test each listener on each gateway
 	for host, ports := range gatewayListenerPorts {
 		for _, port := range ports {
 			s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
@@ -95,7 +103,7 @@ func (s *testingSuite) TestConfirmSetup() {
 					curl.WithHostHeader("example.com"),
 					curl.WithPort(port),
 				},
-				defaultResponse,
+				responsesForGws[host],
 			)
 		}
 	}
@@ -148,8 +156,8 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsMultipleTargetRefs() {
 	)
 
 	// Setup the matchers for requests to the different listeners
-	// The first section of each listener is expected to have the x-foo header
-	// The second section of each listener is expected to not have the x-foo header
+	// The first section (http) of each listener is expected to have the x-foo header
+	// The second section (other) of each listener is expected to not have the x-foo header
 	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
 		proxyService1Fqdn: {
 			gw1port1: expectedResponseWithXFoo,
@@ -161,6 +169,7 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsMultipleTargetRefs() {
 		},
 	}
 
+	// Curl each listener a for which a matcher is defined
 	for host, ports := range matchersForListeners {
 		for port, matcher := range ports {
 			s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(

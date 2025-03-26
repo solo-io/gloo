@@ -99,11 +99,20 @@ var (
 	}
 
 	// Expects a 200 response with x-bar and x-baz headers
-	defaultResponse = &matchers.HttpResponse{
+	defaultResponseGw1 = &matchers.HttpResponse{
 		StatusCode: http.StatusOK,
 		Custom: gomega.And(
 			gomega.Not(matchers.ContainHeaderKeys([]string{"x-foo"})),
 			matchers.ContainHeaderKeys([]string{"x-bar", "x-baz"}),
+		),
+		Body: gstruct.Ignore(),
+	}
+
+	defaultResponseGw2 = &matchers.HttpResponse{
+		StatusCode: http.StatusOK,
+		Custom: gomega.And(
+			gomega.Not(matchers.ContainHeaderKeys([]string{"x-foo"})),
+			matchers.ContainHeaderKeys([]string{"x-bar-2", "x-baz-2"}),
 		),
 		Body: gstruct.Ignore(),
 	}
