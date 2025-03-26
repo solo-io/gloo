@@ -136,7 +136,7 @@ type ListenerEntry struct {
 	// +optional
 	TLS *v1.GatewayTLSConfig `json:"tls,omitempty"`
 
-	// AllowedRoutes defines the types of routes that MAY be attached to a
+	// AllowedRoutes defines the types of httpRoutes that MAY be attached to a
 	// Listener and the trusted namespaces where those Route resources MAY be
 	// present.
 	//

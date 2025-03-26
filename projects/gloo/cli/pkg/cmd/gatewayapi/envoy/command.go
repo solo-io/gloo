@@ -5,20 +5,17 @@ import (
 	"github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/external/envoy/extensions/waf"
 	"github.com/spf13/cobra"
 	"os"
-	"path/filepath"
-	"strings"
 	"time"
-
-	glooenvoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	_ "github.com/cncf/xds/go/udpa/type/v1"
 	udpav1 "github.com/cncf/xds/go/udpa/type/v1"
 	adminv3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	listenerv3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	envoy_matcher_v3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
-	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
+	glooenvoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -28,7 +25,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
-	"sigs.k8s.io/yaml"
 )
 
 func RootCmd() *cobra.Command {
@@ -47,6 +43,7 @@ func RootCmd() *cobra.Command {
 }
 
 func run(opts *Options) error {
+
 	msgs, err := load(opts.InputFile)
 	if err != nil {
 		return err
@@ -54,6 +51,8 @@ func run(opts *Options) error {
 	outputs := Outputs{
 		OutputDir:          opts.OutputDir,
 		FolderPerNamespace: opts.FolderPerNamespace,
+		Settings:           v1.Settings{},
+		Errors:             make([]error, 0),
 	}
 	if err := outputs.Convert(msgs); err != nil {
 		return err
@@ -65,6 +64,7 @@ func run(opts *Options) error {
 }
 
 func load(inputFile string) ([]proto.Message, error) {
+	fmt.Printf("Loading config file %s\n", inputFile)
 	// Read the Envoy configuration file
 	data, err := os.ReadFile(inputFile)
 	if err != nil {
@@ -88,110 +88,8 @@ func load(inputFile string) ([]proto.Message, error) {
 		}
 		msgs = append(msgs, msg)
 	}
-
+	fmt.Println("File loading complete")
 	return msgs, nil
-}
-
-type Outputs struct {
-	OutputDir          string
-	FolderPerNamespace bool
-	Gateway            *gwv1.Gateway
-	Routes             []gwv1.HTTPRoute
-	RouteOptions       []*gatewaykube.RouteOption
-	VhostOptions       []*gatewaykube.VirtualHostOption
-	Settings           v1.Settings
-
-	Errors []error
-}
-
-func removeNullYamlFields(yamlData []byte) []byte {
-	stringData := strings.ReplaceAll(string(yamlData), "  creationTimestamp: null\n", "")
-	stringData = strings.ReplaceAll(stringData, "status:\n", "")
-	stringData = strings.ReplaceAll(stringData, "parents: null\n", "")
-	stringData = strings.ReplaceAll(stringData, "status: {}\n", "")
-	stringData = strings.ReplaceAll(stringData, "\n\n\n", "\n")
-	stringData = strings.ReplaceAll(stringData, "\n\n", "\n")
-	stringData = strings.ReplaceAll(stringData, "spec: {}\n", "")
-	return []byte(stringData)
-}
-
-func (o Outputs) Write() error {
-	// Write Gateway
-	gwYaml, err := yaml.Marshal(o.Gateway)
-	if err != nil {
-		return err
-	}
-	folder := o.OutputDir
-	if o.FolderPerNamespace {
-		folder = filepath.Join(o.OutputDir, o.Gateway.Namespace)
-		err := os.MkdirAll(folder, os.ModePerm)
-		if err != nil {
-			return err
-		}
-	}
-	err = os.WriteFile(fmt.Sprintf("%s/gateway-%s.yaml", folder, o.Gateway.Name), removeNullYamlFields(gwYaml), 0644)
-	if err != nil {
-		return err
-	}
-
-	// Write Routes
-	for _, route := range o.Routes {
-		if o.FolderPerNamespace {
-			folder = filepath.Join(o.OutputDir, route.Namespace)
-			err := os.MkdirAll(folder, os.ModePerm)
-			if err != nil {
-				return err
-			}
-		}
-		routeYaml, err := yaml.Marshal(route)
-		if err != nil {
-			return err
-		}
-		err = os.WriteFile(fmt.Sprintf("%s/httproute-%s.yaml", folder, route.Name), removeNullYamlFields(routeYaml), 0644)
-		if err != nil {
-			return err
-		}
-	}
-	for _, routeOption := range o.RouteOptions {
-		if o.FolderPerNamespace {
-			folder = filepath.Join(o.OutputDir, routeOption.Namespace)
-			err := os.MkdirAll(folder, os.ModePerm)
-			if err != nil {
-				return err
-			}
-		}
-		routeOptionYaml, err := yaml.Marshal(routeOption)
-		if err != nil {
-			return err
-		}
-		err = os.WriteFile(fmt.Sprintf("%s/routeoption-%s.yaml", folder, routeOption.Name), removeNullYamlFields(routeOptionYaml), 0644)
-		if err != nil {
-			return err
-		}
-	}
-
-	f, err := os.Create(fmt.Sprintf("%s/errors.txt", o.OutputDir))
-	if err != nil {
-		return err
-	}
-	for _, err := range o.Errors {
-		f.WriteString(err.Error() + "\n")
-	}
-	f.Close()
-
-	// Write Settings
-	// Marshal Settings to JSON first, then convert to YAML
-	settingsJson, err := protojson.Marshal(&o.Settings)
-	if err != nil {
-		return err
-	}
-	settingsYaml, err := yaml.JSONToYAML(settingsJson)
-	if err != nil {
-		return err
-	}
-	err = os.WriteFile(fmt.Sprintf("%s/settings.yaml", o.OutputDir), settingsYaml, 0644)
-
-	return err
 }
 
 func (o *Outputs) Convert(msgs []proto.Message) error {
@@ -209,6 +107,10 @@ func (o *Outputs) Convert(msgs []proto.Message) error {
 			routes = m
 		case *adminv3.ClustersConfigDump:
 			clusters = m
+			err := o.AddClusters(clusters)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -228,6 +130,7 @@ func (o *Outputs) Convert(msgs []proto.Message) error {
 			Listeners:        []gwv1.Listener{},
 		},
 	}
+	fmt.Printf("Parsing %d listeners\n", len(listeners.DynamicListeners))
 	for _, dl := range listeners.DynamicListeners {
 		var l listenerv3.Listener
 		err := dl.GetActiveState().GetListener().UnmarshalTo(&l)
@@ -246,7 +149,7 @@ func (o *Outputs) Convert(msgs []proto.Message) error {
 		if len(l2) == 1 {
 			parentRef.SectionName = ptr.To(l2[0].Name)
 		}
-
+		fmt.Printf("\tParsing %d httpRoutes for listener\n", len(rds))
 		for _, r := range rds {
 			o.doRoutes(routes, parentRef, r)
 		}
@@ -254,11 +157,6 @@ func (o *Outputs) Convert(msgs []proto.Message) error {
 		o.Gateway.Spec.Listeners = append(o.Gateway.Spec.Listeners, l2...)
 	}
 
-	return o.doClusters(clusters)
-}
-
-func (o *Outputs) doClusters(routes *adminv3.ClustersConfigDump) error {
-	// do we need to do clusters? not sure?
 	return nil
 }
 

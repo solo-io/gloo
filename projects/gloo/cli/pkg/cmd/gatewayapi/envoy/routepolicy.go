@@ -143,7 +143,7 @@ func (o *Outputs) convertRoutePolicy(rt *envoy_config_route_v3.Route, filtersOnC
 			delete(rt.GetTypedPerFilterConfig(), k)
 		case *envoygloojwt.StagedJwtAuthnPerRoute:
 			listenerCfg := filtersOnChain[k]
-			cfg := convertJwtStaged(listenerCfg, v)
+			cfg := o.convertJwtStaged(listenerCfg, v)
 			opts.Spec.Options.JwtConfig = &v1.RouteOptions_JwtProvidersStaged{
 				JwtProvidersStaged: &jwt.JwtStagedRouteProvidersExtension{
 					BeforeExtAuth: cfg.JwtStaged.BeforeExtAuth,
@@ -218,7 +218,7 @@ func findJwtWithStage(listenerCfgProto []proto.Message, stage uint32) *envoygloo
 	}
 	return nil
 }
-func convertJwtStaged(listenerCfgProto []proto.Message, v *envoygloojwt.StagedJwtAuthnPerRoute) *v1.VirtualHostOptions_JwtStaged {
+func (o *Outputs) convertJwtStaged(listenerCfgProto []proto.Message, v *envoygloojwt.StagedJwtAuthnPerRoute) *v1.VirtualHostOptions_JwtStaged {
 	ret := &v1.VirtualHostOptions_JwtStaged{
 		JwtStaged: &jwt.JwtStagedVhostExtension{},
 	}
@@ -244,7 +244,7 @@ func convertJwtStaged(listenerCfgProto []proto.Message, v *envoygloojwt.StagedJw
 
 		jwtWithStage := findJwtWithStage(listenerCfgProto, stage)
 		if jwtWithStage == nil {
-			log.Printf("jwt with stage not found for stage %d", stage)
+			o.Errors = append(o.Errors, fmt.Errorf("jwt with stage not found for stage %d", stage))
 			continue
 		}
 
@@ -254,7 +254,7 @@ func convertJwtStaged(listenerCfgProto []proto.Message, v *envoygloojwt.StagedJw
 		providerNames := findProvider(req, &policy)
 		for _, providerName := range providerNames {
 			provider := jwtWithStage.GetJwtAuthn().GetProviders()[providerName]
-			outProvider := convertProvider(provider)
+			outProvider := o.convertProvider(provider)
 			// Convert ClaimsToHeaders from SoloJwtAuthnPerRoute to jwt.Provider format
 			if cfg.ClaimsToHeaders != nil {
 				outProvider.ClaimsToHeaders = make([]*jwt.ClaimToHeader, 0, len(cfg.ClaimsToHeaders))
@@ -298,20 +298,30 @@ func findProvider(req *jwtv3.JwtRequirement, policy *jwt.VhostExtension_Validati
 	return ret
 }
 
-func convertProvider(inProvider *jwtv3.JwtProvider) *jwt.Provider { // Convert the JWT provider from Envoy's format to Gloo's format
+func (o *Outputs) convertProvider(inProvider *jwtv3.JwtProvider) *jwt.Provider { // Convert the JWT provider from Envoy's format to Gloo's format
 	jwks := &jwt.Jwks{}
 
 	// Convert remote JWKS if present
 	if remoteJwks := inProvider.GetRemoteJwks(); remoteJwks != nil {
 		if httpUri := remoteJwks.GetHttpUri(); httpUri != nil {
+			cluster := o.GetClusterByName(httpUri.GetCluster())
+			if cluster == nil {
+				o.Errors = append(o.Errors, fmt.Errorf("cluster %s not found for jwt provider %s", httpUri.GetCluster(), inProvider.Issuer))
+			}
+			ref, err := o.convertExternalServices(cluster)
+			if err != nil {
+				o.Errors = append(o.Errors, fmt.Errorf("unable to convert external services for jwt provider %s", inProvider.Issuer))
+			}
+
 			jwks.Jwks = &jwt.Jwks_Remote{
 				Remote: &jwt.RemoteJwks{
 					CacheDuration: remoteJwks.CacheDuration,
 					Url:           httpUri.GetUri(),
-					UpstreamRef:   getRef(httpUri.GetCluster()),
+					UpstreamRef: &core.ResourceRef{
+						Name: string(ref.Name),
+					},
 				},
 			}
-
 		}
 	}
 
