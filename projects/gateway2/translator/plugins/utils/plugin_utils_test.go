@@ -175,6 +175,28 @@ func (m *mockPolicy) GetObject() client.Object {
 	return m.object
 }
 
+// basePolicyForGw returns a mock policy that matches the given gateway name
+func basePolicyForGw(gwName string) *mockPolicy {
+	return &mockPolicy{
+		targetRefs: []*skv2corev1.PolicyTargetReferenceWithSectionName{
+			{Name: gwName},
+		},
+		object: &gwv1.HTTPRoute{},
+	}
+}
+
+func (p *mockPolicy) withSectionName(sectionName string) *mockPolicy {
+	p.targetRefs[0].SectionName = &wrapperspb.StringValue{
+		Value: sectionName,
+	}
+	return p
+}
+
+func (p *mockPolicy) withCreationTimestamp(creationTimestamp time.Time) *mockPolicy {
+	p.object.SetCreationTimestamp(metav1.NewTime(creationTimestamp))
+	return p
+}
+
 func TestGetPrioritizedListenerPolicies(t *testing.T) {
 	g := NewWithT(t)
 
@@ -182,99 +204,33 @@ func TestGetPrioritizedListenerPolicies(t *testing.T) {
 		Name: "http",
 	}
 
-	// six policies:
-	//   four matching the gateway name:
-	//     one with no section name - should be third in the output
-	//     one with no section name but older - should be second in the output
-	//     one with section name "http" - should match and be first in the output
+	// seven policies:
+	//   five matching the gateway name:
+	//     one with no section name - should be fourth in the output
+	//     one with no section name but older - should be third in the output
+	//     one with section name "http" - should match and be second in the output
+	//     one with section name "http" but older  - should match and be first in the output
 	//     one targeting a different section name - should not match
 	//   two that don't match the listener name:
 	//     one with section name "http" - should not match
 	//     one without section name - should not match
 
 	// Matches on gateway name, no section name, newer than policy1
-	policy0 := &mockPolicy{
-		targetRefs: []*skv2corev1.PolicyTargetReferenceWithSectionName{
-			{
-				Name: "gw-1",
-			},
-		},
-		object: &gwv1.HTTPRoute{
-			ObjectMeta: metav1.ObjectMeta{
-				CreationTimestamp: metav1.NewTime(time.Now()),
-			},
-		},
-	}
+	policy0 := basePolicyForGw("gw-1").withCreationTimestamp(time.Now())
+	policy1 := basePolicyForGw("gw-1").withCreationTimestamp(time.Now().Add(-1 * time.Hour))
+	policy2 := basePolicyForGw("gw-1").withSectionName("http").withCreationTimestamp(time.Now())
+	policy3 := basePolicyForGw("gw-1").withSectionName("http").withCreationTimestamp(time.Now().Add(-1 * time.Hour))
+	policy4 := basePolicyForGw("gw-1").withSectionName("not-http")
+	policy5 := basePolicyForGw("gw-2")
+	policy6 := basePolicyForGw("gw-2").withSectionName("http")
 
-	// Matches on gateway name, no section name, older than policy0, so should come before it
-	policy1 := &mockPolicy{
-		targetRefs: []*skv2corev1.PolicyTargetReferenceWithSectionName{
-			{
-				Name: "gw-1",
-			},
-		},
-		object: &gwv1.HTTPRoute{
-			ObjectMeta: metav1.ObjectMeta{
-				CreationTimestamp: metav1.NewTime(time.Now().Add(-1 * time.Hour)),
-			},
-		},
-	}
-
-	// Macthes on gateway name and section name "http", so should come first
-	policy2 := &mockPolicy{
-		targetRefs: []*skv2corev1.PolicyTargetReferenceWithSectionName{
-			{
-				Name: "gw-1",
-				SectionName: &wrapperspb.StringValue{
-					Value: "http",
-				},
-			},
-		},
-		object: &gwv1.HTTPRoute{},
-	}
-
-	// Matches on gateway name but not section name "not-http", so should not be in the output
-	policy3 := &mockPolicy{
-		targetRefs: []*skv2corev1.PolicyTargetReferenceWithSectionName{
-			{
-				Name: "gw-1",
-				SectionName: &wrapperspb.StringValue{
-					Value: "not-http",
-				},
-			},
-		},
-		object: &gwv1.HTTPRoute{},
-	}
-
-	// Doesn't match on gateway name, so should not be in the output
-	policy4 := &mockPolicy{
-		targetRefs: []*skv2corev1.PolicyTargetReferenceWithSectionName{
-			{
-				Name: "gw-2",
-			},
-		},
-		object: &gwv1.HTTPRoute{},
-	}
-
-	// Does not match on gateway name, but matches on section name "http", and should not be in the output
-	policy5 := &mockPolicy{
-		targetRefs: []*skv2corev1.PolicyTargetReferenceWithSectionName{
-			{
-				Name: "gw-2",
-				SectionName: &wrapperspb.StringValue{
-					Value: "http",
-				},
-			},
-		},
-		object: &gwv1.HTTPRoute{},
-	}
-
-	policies := []utils.PolicyWithSectionedTargetRefs[client.Object]{policy0, policy1, policy2, policy3, policy4, policy5}
+	policies := []utils.PolicyWithSectionedTargetRefs[client.Object]{policy0, policy1, policy2, policy3, policy4, policy5, policy6}
 
 	prioritizedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, "gw-1")
 
-	g.Expect(prioritizedPolicies).To(HaveLen(3))
-	g.Expect(prioritizedPolicies[0]).To(Equal(policy2.object))
-	g.Expect(prioritizedPolicies[1]).To(Equal(policy1.object))
-	g.Expect(prioritizedPolicies[2]).To(Equal(policy0.object))
+	g.Expect(prioritizedPolicies).To(HaveLen(4))
+	g.Expect(prioritizedPolicies[0]).To(Equal(policy3.object))
+	g.Expect(prioritizedPolicies[1]).To(Equal(policy2.object))
+	g.Expect(prioritizedPolicies[2]).To(Equal(policy1.object))
+	g.Expect(prioritizedPolicies[3]).To(Equal(policy0.object))
 }
