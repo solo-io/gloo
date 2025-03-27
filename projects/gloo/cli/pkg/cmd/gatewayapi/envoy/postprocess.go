@@ -94,7 +94,7 @@ func (o *Outputs) PostProcess(routeTablesFile string) error {
 	// for every duplicate we need to create a new name and then do a replace
 	replacementMap := map[string]string{}
 	for primaryKey, dups := range duplicates {
-		newName := fmt.Sprintf("combined-%s", RandStringRunes(8))
+		newName := fmt.Sprintf("shared-%s", RandStringRunes(8))
 
 		replacementMap[primaryKey] = newName
 
