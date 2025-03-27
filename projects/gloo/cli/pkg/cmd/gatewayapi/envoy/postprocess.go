@@ -2,15 +2,33 @@ package envoy
 
 import (
 	"fmt"
+	"github.com/golang/protobuf/proto"
 	v2 "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/envoy/gloo-mesh-client-go/networking.gloo.solo.io/v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"log"
+	"math/rand"
 	"os"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	"strings"
 )
+
+const (
+	RandomSuffix = 4
+	RandomSeed   = 1
+)
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz")
+
+func RandStringRunes(n int) string {
+	r := rand.New(rand.NewSource(RandomSeed))
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[r.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
 
 var runtimeScheme *runtime.Scheme
 var codecs serializer.CodecFactory
@@ -40,8 +58,75 @@ func (o *Outputs) PostProcess(routeTablesFile string) error {
 		if err != nil {
 			return err
 		}
-
 	}
+	routeOptionKeys := []string{}
+	for key, _ := range o.routeOptions {
+		routeOptionKeys = append(routeOptionKeys, key)
+	}
+	duplicates := map[string][]string{}
+
+	for _, primaryKey := range routeOptionKeys {
+		for _, secondaryKey := range routeOptionKeys {
+			if primaryKey == secondaryKey {
+				// skip if its the same primaryKey
+				continue
+			}
+			ro, found1 := o.routeOptions[primaryKey]
+			if !found1 {
+				// this primary primaryKey has already been removed
+				//fmt.Printf("primary key %s not found\n", primaryKey)
+				break
+			}
+			ro2, found2 := o.routeOptions[secondaryKey]
+			if !found2 {
+				// move on to the next secondaryKey
+				continue
+			}
+
+			if proto.Equal(&ro.Spec, &ro2.Spec) {
+				duplicates[primaryKey] = append(duplicates[primaryKey], secondaryKey)
+				//fmt.Printf("Route Option %s matches %s\n", primaryKey, secondaryKey)
+				// remove both of them from the list
+				delete(o.routeOptions, secondaryKey)
+			}
+		}
+	}
+	// for every duplicate we need to create a new name and then do a replace
+	replacementMap := map[string]string{}
+	for primaryKey, dups := range duplicates {
+		newName := fmt.Sprintf("combined-%s", RandStringRunes(8))
+
+		replacementMap[primaryKey] = newName
+
+		//fmt.Printf("Duplicate Key: %s\n", primaryKey)
+		for _, dup := range dups {
+			//fmt.Printf("\t%d. Match: %s\n", i, dup)
+			replacementMap[dup] = newName
+		}
+	}
+
+	for key, route := range o.httpRoutes {
+		var newRules []gwv1.HTTPRouteRule
+		for _, rule := range route.Spec.Rules {
+			for _, filter := range rule.Filters {
+				if filter.ExtensionRef != nil && filter.ExtensionRef.Kind == "RouteOption" {
+					nameNamespace := fmt.Sprintf("%s/%s", route.Namespace, filter.ExtensionRef.Name)
+					newName, found := replacementMap[nameNamespace]
+					if found {
+						fmt.Printf("Updating route %s filter %s with  %s\n", route.Name, filter.ExtensionRef.Name, newName)
+						filter.ExtensionRef.Name = gwv1.ObjectName(newName)
+					} else {
+						fmt.Printf("no route option match for  %s\n", filter.ExtensionRef.Name)
+					}
+				}
+			}
+			newRules = append(newRules, rule)
+		}
+		route.Spec.Rules = newRules
+		o.httpRoutes[key] = route
+	}
+
+	fmt.Printf("New length of RouteOptions %d\n", len(o.routeOptions))
 
 	////Try and combine httproutes by domain
 	//if err := o.combineHTTPRoutes(4); err != nil {
