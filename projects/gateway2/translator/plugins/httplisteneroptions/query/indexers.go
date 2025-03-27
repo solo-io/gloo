@@ -18,6 +18,7 @@ func IterateIndices(f func(client.Object, string, client.IndexerFunc) error) err
 	return f(&solokubev1.HttpListenerOption{}, HttpListenerOptionTargetField, httpListenerOptionTargetRefIndexer)
 }
 
+// TODO: combine targetRefIndexers?
 func httpListenerOptionTargetRefIndexer(obj client.Object) []string {
 	lisOpt, ok := obj.(*solokubev1.HttpListenerOption)
 	if !ok {
@@ -30,29 +31,31 @@ func httpListenerOptionTargetRefIndexer(obj client.Object) []string {
 		return res
 	}
 
-	// only consider the first targetRef in the list as we only support one ref
-	// we only support a single ref but have multiple in API for future-compatbility
-	// https://github.com/solo-io/solo-projects/issues/6286
-	targetRef := targetRefs[0]
+	foundNns := map[string]any{}
 
-	if targetRef == nil {
-		return res
-	}
-	if targetRef.GetGroup() != gwv1.GroupName {
-		return res
-	}
-	if targetRef.GetKind() != wellknown.GatewayKind {
-		return res
+	for _, targetRef := range targetRefs {
+		if targetRef == nil ||
+			targetRef.GetGroup() != gwv1.GroupName ||
+			targetRef.GetKind() != wellknown.GatewayKind {
+			continue
+		}
+
+		ns := targetRef.GetNamespace().GetValue()
+		if ns == "" {
+			ns = lisOpt.GetNamespace()
+		}
+
+		targetNN := types.NamespacedName{
+			Namespace: ns,
+			Name:      targetRef.GetName(),
+		}
+		foundNns[targetNN.String()] = struct{}{}
 	}
 
-	ns := targetRef.GetNamespace().GetValue()
-	if ns == "" {
-		ns = lisOpt.GetNamespace()
+	for targetNN := range foundNns {
+		res = append(res, targetNN)
 	}
-	targetNN := types.NamespacedName{
-		Namespace: ns,
-		Name:      targetRef.GetName(),
-	}
-	res = append(res, targetNN.String())
+
 	return res
+
 }
