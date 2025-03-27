@@ -26,6 +26,7 @@ type Options struct {
 	*options.Options
 	InputFile          string
 	OutputDir          string
+	RouteTableFile     string
 	FolderPerNamespace bool
 	Stats              bool
 }
@@ -37,6 +38,8 @@ func (o *Options) addToFlags(flags *pflag.FlagSet) {
 		"Where to write files")
 	flags.BoolVar(&o.FolderPerNamespace, "folder-per-namespace", false,
 		"Organize files by namespace")
+	flags.StringVar(&o.RouteTableFile, "route-table-file", "",
+		"Organize HTTPRoutes with the same domains as the RouteTables")
 }
 
 type Outputs struct {
@@ -137,7 +140,6 @@ func removeNullYamlFields(yamlData []byte) []byte {
 
 func (o *Outputs) Write() error {
 	fmt.Printf("Writing files\n")
-	fmt.Printf("\tRoutes: %d\n", len(o.httpRoutes))
 	// Write Gateway
 	gwYaml, err := yaml.Marshal(o.Gateway)
 	if err != nil {
@@ -157,7 +159,7 @@ func (o *Outputs) Write() error {
 	}
 
 	// Write Routes
-	fmt.Printf("\tRoutes: %d\n", len(o.httpRoutes))
+	fmt.Printf("\tHTTPRoutes: %d\n", len(o.httpRoutes))
 	for _, route := range o.httpRoutes {
 		if o.FolderPerNamespace {
 			folder = filepath.Join(o.OutputDir, route.Namespace)

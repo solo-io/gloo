@@ -57,6 +57,9 @@ func run(opts *Options) error {
 	if err := outputs.Convert(msgs); err != nil {
 		return err
 	}
+	if err := outputs.PostProcess(opts.RouteTableFile); err != nil {
+		return err
+	}
 	if err := outputs.Write(); err != nil {
 		return err
 	}

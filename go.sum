@@ -1975,6 +1975,8 @@ github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/
 github.com/google/gofuzz v1.1.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/google/gofuzz v1.2.0 h1:xRy4A+RhZaiKjJ1bPfwQ8sedCA+YS2YcCHW6ec7JMi0=
 github.com/google/gofuzz v1.2.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
+github.com/google/gofuzz v1.2.1-0.20210504230335-f78f29fc09ea h1:VcIYpAGBae3Z6BVncE0OnTE/ZjlDXqtYhOZky88neLM=
+github.com/google/gofuzz v1.2.1-0.20210504230335-f78f29fc09ea/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/google/mako v0.0.0-20190821191249-122f8dcef9e3/go.mod h1:YzLcVlL+NqWnmUEPuhS1LxDDwGO9WNbVlEXaF4IH35g=
 github.com/google/martian v2.1.0+incompatible/go.mod h1:9I4somxYTbIHy5NJKHRl3wXiIaQGbYVAs8BPL6v8lEs=
 github.com/google/martian/v3 v3.0.0/go.mod h1:y5Zk1BBys9G+gd6Jrk0W3cC1+ELVxBWuIGO+w/tUAp0=
@@ -2710,6 +2712,8 @@ github.com/solo-io/skv2 v0.41.0 h1:NRZUe83LquB8zR++SY36JKhw1abRd+SBuGUGAHS9rWA=
 github.com/solo-io/skv2 v0.41.0/go.mod h1:GtEN0CCne94tm710YbefQh9YcMFcIu2X490g7Loq/Zs=
 github.com/solo-io/solo-apis v0.0.0-20240917212400-9103ca169358 h1:yNJpr6sKTBUJ0XbYEdOZuFEr+umyq4XgB/GR1cbhCCI=
 github.com/solo-io/solo-apis v0.0.0-20240917212400-9103ca169358/go.mod h1:xWaT1lP+nkAGYCuAtRdG1l4MsdKwphqeomC41AIsemY=
+github.com/solo-io/solo-apis v1.6.32-0.20250228225227-4f2a1f6a0232 h1:wfAHYpxiHsAJL2EuT3N08GNjiBVg8M6a1Xj2Na7IZoI=
+github.com/solo-io/solo-apis v1.6.32-0.20250228225227-4f2a1f6a0232/go.mod h1:pNhWNNmD+g0zgdd7onJRFefGOQn/XdtamS9zsyAiyhs=
 github.com/solo-io/solo-kit v0.36.4 h1:P1EsMDS81jNj2DK33GpKLxZ07vDmdZcGamKtenGIYuA=
 github.com/solo-io/solo-kit v0.36.4/go.mod h1:tLK3BllHZZUZsvgG3paVzux8ccmItKadqLSg7nOltDw=
 github.com/sourcegraph/conc v0.3.0 h1:OQTbbt6P72L20UqAkXXuLOj79LfEanQ+YQFNpLA9ySo=
@@ -2736,6 +2740,7 @@ github.com/spf13/jwalterweatherman v1.1.0/go.mod h1:aNWZUN0dPAAO/Ljvb5BEdw96iTZ0
 github.com/spf13/pflag v1.0.3/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=
 github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
+github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
 github.com/spf13/viper v1.4.0/go.mod h1:PTJ7Z/lr49W6bUbkmS1V3by4uWynFiR9p7+dSq/yZzE=
 github.com/spf13/viper v1.7.0/go.mod h1:8WkrPz2fc9jxqZNCJI/76HCieCp4Q8HaLFoCha5qpdg=
 github.com/spf13/viper v1.19.0 h1:RWq5SEjt8o25SROyN3z2OrDB9l7RPd3lwTWU8EcEdcI=
@@ -4072,6 +4077,7 @@ honnef.co/go/tools v0.0.1-2020.1.4/go.mod h1:X/FiERA/W4tHapMX5mGpAtMSVEeEUOyHaw9
 honnef.co/go/tools v0.1.3/go.mod h1:NgwopIslSNH47DimFoV78dnkksY2EFtX0ajyb3K/las=
 istio.io/api v1.25.0-alpha.0.0.20250210220544-0b64afd2de85 h1:KF66OoTkvx1Qj5DEQkLVd+X/Ido/P+do17FdpA4ODA8=
 istio.io/api v1.25.0-alpha.0.0.20250210220544-0b64afd2de85/go.mod h1:QFzEXv/IT582T0FHZVp1QoolvE4ws0zz/vVO55blmlE=
+istio.io/api v1.25.0-alpha.0.0.20250212060243-76cd29bc906f/go.mod h1:QFzEXv/IT582T0FHZVp1QoolvE4ws0zz/vVO55blmlE=
 istio.io/client-go v1.25.0-alpha.0.0.20250210220843-5a4065fded65 h1:JikKtnwGCV1hhTqmn5aOkC3CK4jZfpHQk6ZB40r/IMQ=
 istio.io/client-go v1.25.0-alpha.0.0.20250210220843-5a4065fded65/go.mod h1:40cl7CY83rmIUgLHYXNX5uGDhkx4tBZgzxqUpzTjV/A=
 istio.io/istio v0.0.0-20250212203644-c2ac935c5888 h1:4uIAapZvWqD/Vo8uLecH1hxC3EAE2aqUmq8rOzaXJws=
