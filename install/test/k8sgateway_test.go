@@ -3,6 +3,8 @@ package test
 import (
 	"fmt"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/install/utils/kuberesource"
@@ -537,6 +539,48 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 					Entry("Distroless variant", "distroless", "my-gloo-ee-envoy-wrapper-reg/gloo-ee-envoy-wrapper:my-gloo-ee-envoy-wrapper-tag-distroless"),
 					Entry("Fips-Distroless variant", "fips-distroless", "my-gloo-ee-envoy-wrapper-reg/gloo-ee-envoy-wrapper-fips:my-gloo-ee-envoy-wrapper-tag-distroless"))
 
+			})
+
+			// for managing tests for strategies such as tsc, affinity e.t.c
+			Context("override deployment strategy", func() {
+				When("no pod topology spread constraints are specified", func() {
+					It("does not render pod tsc", func() {
+						gwp := getDefaultGatewayParameters(testManifest)
+
+						gwpPT := gwp.Spec.Kube.PodTemplate
+						Expect(gwpPT).ToNot(BeNil())
+
+						Expect(gwpPT.TopologySpreadConstraints).To(BeNil())
+					})
+				})
+
+				When("pod tsc are defined", func() {
+					BeforeEach(func() {
+						extraValuesArgs := []string{
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[0].maxSkew=1",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[0].topologyKey=kubernetes.io/hostname",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[0].whenUnsatisfiable=DoNotSchedule",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[0].labelSelector.matchLabels.pod-label=default",
+						}
+
+						valuesArgs = append(valuesArgs, extraValuesArgs...)
+					})
+
+					It("given tsc configuration is rendered", func() {
+						gwp := getDefaultGatewayParameters(testManifest)
+						gwpPT := gwp.Spec.Kube.PodTemplate
+						Expect(gwpPT.TopologySpreadConstraints).To(BeEquivalentTo([]corev1.TopologySpreadConstraint{
+							{
+								MaxSkew:           1,
+								TopologyKey:       "kubernetes.io/hostname",
+								WhenUnsatisfiable: corev1.DoNotSchedule,
+								LabelSelector: &metav1.LabelSelector{
+									MatchLabels: map[string]string{"pod-label": "default"},
+								},
+							},
+						}))
+					})
+				})
 			})
 		})
 
