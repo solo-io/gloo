@@ -5,7 +5,8 @@ const (
 	RouteDelegationLabelSelector = "delegation.gateway.solo.io/label"
 
 	// RouteDelegationLabelSelectorWildcard wildcards the namespace to select delegatee routes by label
-	RouteDelegationLabelSelectorWildcardNamespace = "*"
+	// Note: this must be a valid RFC 1123 DNS label
+	RouteDelegationLabelSelectorWildcardNamespace = "all"
 
 	// InheritMatcherAnnotation is the annotation used on an child HTTPRoute that
 	// participates in a delegation chain to indicate that child route should inherit

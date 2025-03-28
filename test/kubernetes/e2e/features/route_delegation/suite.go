@@ -56,6 +56,7 @@ func (s *tsuite) SetupSuite() {
 		"TestUnresolvedChild":             {unresolvedChildManifest},
 		"TestRouteOptions":                {routeOptionsManifest},
 		"TestMatcherInheritance":          {matcherInheritanceManifest},
+		"TestLabelSelector":               {labelSelectorManifest},
 	}
 	// Not every resource that is applied needs to be verified. We are not testing `kubectl apply`,
 	// but the below code demonstrates how it can be done if necessary
@@ -70,6 +71,7 @@ func (s *tsuite) SetupSuite() {
 		unresolvedChildManifest:             {routeRoot},
 		routeOptionsManifest:                {routeRoot, routeTeam1, routeTeam2},
 		matcherInheritanceManifest:          {routeParent1, routeParent2, routeTeam1},
+		labelSelectorManifest:               {routeRoot, routeTeam1, routeTeam2},
 	}
 
 	s.commonResources = []client.Object{
@@ -82,6 +84,7 @@ func (s *tsuite) SetupSuite() {
 	// set up common resources once
 	err := s.ti.Actions.Kubectl().ApplyFile(s.ctx, commonManifest)
 	s.Require().NoError(err, "can apply common manifest")
+
 	s.ti.Assertions.EventuallyObjectsExist(s.ctx, s.commonResources...)
 	// make sure pods are running
 	s.ti.Assertions.EventuallyPodsRunning(s.ctx, httpbinTeam1Deployment.GetNamespace(), metav1.ListOptions{
@@ -319,4 +322,14 @@ func (s *tsuite) TestMatcherInheritance() {
 	s.ti.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, defaults.CurlPodExecOpt,
 		[]curl.Option{curl.WithHostPort(proxyHostPort), curl.WithPath("/anything/baz/child")},
 		&testmatchers.HttpResponse{StatusCode: http.StatusOK, Body: ContainSubstring("/anything/baz/child")})
+}
+
+func (s *tsuite) TestLabelSelector() {
+	// Assert traffic to team1 route
+	s.ti.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, defaults.CurlPodExecOpt, []curl.Option{curl.WithHostPort(proxyHostPort), curl.WithPath(pathTeam1)},
+		&testmatchers.HttpResponse{StatusCode: http.StatusOK, Body: ContainSubstring(pathTeam1)})
+
+	// Assert traffic to team2 route
+	s.ti.Assertions.AssertEventuallyConsistentCurlResponse(s.ctx, defaults.CurlPodExecOpt, []curl.Option{curl.WithHostPort(proxyHostPort), curl.WithPath(pathTeam2)},
+		&testmatchers.HttpResponse{StatusCode: http.StatusOK, Body: ContainSubstring(pathTeam2)})
 }
