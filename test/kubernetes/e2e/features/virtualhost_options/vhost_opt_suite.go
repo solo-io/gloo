@@ -156,16 +156,14 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsMultipleTargetRefs() {
 	)
 
 	// Setup the matchers for requests to the different listeners
-	// The first section (http) of each listener is expected to have the x-foo header
-	// The second section (other) of each listener is expected to not have the x-foo header
 	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
 		proxyService1Fqdn: {
 			gw1port1: expectedResponseWithXFoo,
 			gw1port2: expectedResponseWithoutXFoo,
 		},
 		proxyService2Fqdn: {
-			gw2port1: expectedResponseWithXFoo,
-			gw2port2: expectedResponseWithoutXFoo,
+			gw2port1: expectedResponseWithoutXFoo,
+			gw2port2: expectedResponseWithXFoo,
 		},
 	}
 

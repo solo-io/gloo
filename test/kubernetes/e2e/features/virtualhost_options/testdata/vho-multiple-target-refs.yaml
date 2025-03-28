@@ -11,7 +11,7 @@ spec:
   - group: gateway.networking.k8s.io
     kind: Gateway
     name: gw-2
-    sectionName: http
+    sectionName: other
   options:
     headerManipulation:
       responseHeadersToAdd:
