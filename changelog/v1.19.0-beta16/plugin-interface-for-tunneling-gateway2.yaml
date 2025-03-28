@@ -1,0 +1,8 @@
+changelog:
+- type: FIX
+  description: >-
+    To address clusters having their own lifecycle that differs from listeners in 
+    gateway2 causing issues with the HTTP tunneling configuration, we have added a
+    new plugin interface for creating additional clusters and listeners from Upstreams.
+    The additional clusters are and listeners are added to the snapshot near the 
+    end of the translations process.
