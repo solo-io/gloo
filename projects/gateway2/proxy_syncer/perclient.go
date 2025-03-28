@@ -52,19 +52,20 @@ func snapshotPerClient(l *zap.Logger, dbg *krt.DebugHandler, uccCol krt.Collecti
 		// add the clusters and the additional resources created for them
 		for _, ep := range clustersForUcc {
 			clustersProto = append(clustersProto, ep.Cluster)
-			clustersHash ^= ep.ClusterVersion
 
 			// add additional clusters
 			for _, additionalCluster := range ep.AdditionalClusters {
 				clustersProto = append(clustersProto, additionalCluster)
-				clustersHash ^= ep.AdditionalClustersVersion
 			}
 
 			// add additional listeners
 			for _, additionalListener := range ep.AdditionalListeners {
 				listenersProto = append(listenersProto, additionalListener)
-				listenersHash ^= ep.AdditionalListenersVersion
 			}
+
+			clustersHash ^= ep.ClusterVersion
+			clustersHash ^= ep.AdditionalClustersHash
+			listenersHash ^= ep.AdditionalListenersHash
 		}
 
 		clusterResources := envoycache.NewResources(fmt.Sprintf("%d", clustersHash), clustersProto)

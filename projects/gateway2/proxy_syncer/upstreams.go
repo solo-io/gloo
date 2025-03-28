@@ -25,13 +25,13 @@ import (
 )
 
 type uccWithCluster struct {
-	Client                     krtcollections.UniqlyConnectedClient
-	Cluster                    envoycache.Resource
-	ClusterVersion             uint64
-	AdditionalClusters         []envoycache.Resource
-	AdditionalClustersVersion  uint64
-	AdditionalListeners        []envoycache.Resource
-	AdditionalListenersVersion uint64
+	Client                  krtcollections.UniqlyConnectedClient
+	Cluster                 envoycache.Resource
+	ClusterVersion          uint64
+	AdditionalClusters      []envoycache.Resource
+	AdditionalClustersHash  uint64
+	AdditionalListeners     []envoycache.Resource
+	AdditionalListenersHash uint64
 
 	upstreamName string
 }
@@ -112,7 +112,6 @@ func NewPerClientEnvoyClusters(
 			for _, additionalCluster := range clusterResult.AdditionalClusters {
 				additionalClusters = append(additionalClusters, resource.NewEnvoyResource(additionalCluster))
 				additionalClustersVersion ^= ggv2utils.HashProto(additionalCluster)
-
 			}
 
 			additionalListeners := make([]envoycache.Resource, 0, len(clusterResult.AdditionalListeners))
@@ -123,14 +122,14 @@ func NewPerClientEnvoyClusters(
 			}
 
 			uccWithClusterRet = append(uccWithClusterRet, uccWithCluster{
-				Client:                     ucc,
-				Cluster:                    resource.NewEnvoyResource(c),
-				ClusterVersion:             version,
-				upstreamName:               up.ResourceName(),
-				AdditionalClusters:         additionalClusters,
-				AdditionalClustersVersion:  additionalClustersVersion,
-				AdditionalListeners:        additionalListeners,
-				AdditionalListenersVersion: additionalListenersVersion,
+				Client:                  ucc,
+				Cluster:                 resource.NewEnvoyResource(c),
+				ClusterVersion:          version,
+				upstreamName:            up.ResourceName(),
+				AdditionalClusters:      additionalClusters,
+				AdditionalClustersHash:  additionalClustersVersion,
+				AdditionalListeners:     additionalListeners,
+				AdditionalListenersHash: additionalListenersVersion,
 			})
 		}
 		return uccWithClusterRet
