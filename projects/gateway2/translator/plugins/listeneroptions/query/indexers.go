@@ -30,28 +30,30 @@ func listenerOptionTargetRefIndexer(obj client.Object) []string {
 		return res
 	}
 
-	// use the first targetRef in the list as we only support one ref but have multiple in API for future-compatbility
-	// TODO: fix this as part of https://github.com/solo-io/solo-projects/issues/6286
-	targetRef := targetRefs[0]
+	foundNns := map[string]any{}
 
-	if targetRef == nil {
-		return res
-	}
-	if targetRef.GetGroup() != gwv1.GroupName {
-		return res
-	}
-	if targetRef.GetKind() != wellknown.GatewayKind {
-		return res
+	for _, targetRef := range targetRefs {
+		if targetRef == nil ||
+			targetRef.GetGroup() != gwv1.GroupName ||
+			targetRef.GetKind() != wellknown.GatewayKind {
+			continue
+		}
+
+		ns := targetRef.GetNamespace().GetValue()
+		if ns == "" {
+			ns = lisOpt.GetNamespace()
+		}
+
+		targetNN := types.NamespacedName{
+			Namespace: ns,
+			Name:      targetRef.GetName(),
+		}
+		foundNns[targetNN.String()] = struct{}{}
 	}
 
-	ns := targetRef.GetNamespace().GetValue()
-	if ns == "" {
-		ns = lisOpt.GetNamespace()
+	for targetNN := range foundNns {
+		res = append(res, targetNN)
 	}
-	targetNN := types.NamespacedName{
-		Namespace: ns,
-		Name:      targetRef.GetName(),
-	}
-	res = append(res, targetNN.String())
+
 	return res
 }
