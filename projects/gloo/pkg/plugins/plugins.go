@@ -180,6 +180,7 @@ type VirtualHostPlugin interface {
 // ResourceGeneratorPlugin modifies a set of xDS resources before they are persisted as a Snapshot
 type ResourceGeneratorPlugin interface {
 	Plugin
+	// Deprecated: Implement with krt-safe methods (e.g. UpstreamGeneratedResources) instead.
 	GeneratedResources(
 		params Params,
 		proxy *v1.Proxy,

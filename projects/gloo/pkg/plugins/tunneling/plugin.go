@@ -48,6 +48,13 @@ func (p *plugin) Init(_ plugins.InitParams) {
 
 // UpstreamGeneratedResources checks the Upstream for a tunneling configuration
 // and sets up clusters and listeners to forward traffic to an HTTP CONNECT supporting proxy.
+//
+// HTTP CONNECT tunneling is provided by an Envoy Listener filter. To send traffic to the Listener,
+// we must generate a new forwarding Cluster. The generated Cluster sends traffic over
+// a pipe to the Listener which forwards the traffic to the original Upstream.
+//
+// The SSL configuration for the original cluster is copied to the generated cluster and the
+// supplied proxy SSL configuration is set on the original cluster.
 func (p *plugin) UpstreamGeneratedResources(
 	params plugins.Params,
 	upstream *v1.Upstream,
@@ -62,7 +69,7 @@ func (p *plugin) UpstreamGeneratedResources(
 		return nil, nil, nil
 	}
 
-	clusterName := inCluster.Name
+	clusterName := inCluster.GetName()
 
 	// change the original cluster name to avoid conflicts with the new cluster
 	newInClusterName := clusterName + OriginalClusterSuffix
@@ -109,6 +116,8 @@ func (p *plugin) UpstreamGeneratedResources(
 //
 // The SSL configuration for the original cluster is copied to the generated cluster and the
 // supplied proxy SSL configuration is set on the original cluster.
+//
+// Deprecated: This method is not safe for use with krt. Use UpstreamGeneratedResources instead.
 func (p *plugin) GeneratedResources(
 	params plugins.Params,
 	proxy *v1.Proxy,
