@@ -25,33 +25,35 @@ func routeOptionTargetRefIndexer(obj client.Object) []string {
 	}
 
 	var res []string
+	foundNns := map[string]any{}
+
 	targetRefs := rtOpt.Spec.GetTargetRefs()
 	if len(targetRefs) == 0 {
 		return res
 	}
 
-	// use the first targetRef in the list as we only support one ref but have multiple in API for future-compatbility
-	// TODO: fix this as part of https://github.com/solo-io/solo-projects/issues/6286
-	targetRef := targetRefs[0]
+	for _, targetRef := range targetRefs {
+		if targetRef == nil ||
+			targetRef.GetGroup() != gwv1.GroupName ||
+			targetRef.GetKind() != wellknown.HTTPRouteKind {
+			continue
+		}
 
-	if targetRef == nil {
-		return res
-	}
-	if targetRef.GetGroup() != gwv1.GroupName {
-		return res
-	}
-	if targetRef.GetKind() != wellknown.HTTPRouteKind {
-		return res
+		ns := targetRef.GetNamespace().GetValue()
+		if ns == "" {
+			ns = rtOpt.GetNamespace()
+		}
+		targetNN := types.NamespacedName{
+			Namespace: ns,
+			Name:      targetRef.GetName(),
+		}
+
+		foundNns[targetNN.String()] = struct{}{}
 	}
 
-	ns := targetRef.GetNamespace().GetValue()
-	if ns == "" {
-		ns = rtOpt.GetNamespace()
+	for k := range foundNns {
+		res = append(res, k)
 	}
-	targetNN := types.NamespacedName{
-		Namespace: ns,
-		Name:      targetRef.GetName(),
-	}
-	res = append(res, targetNN.String())
+
 	return res
 }
