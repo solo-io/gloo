@@ -12,6 +12,7 @@ import "validate/validate.proto";
 import "envoy/api/v2/route/route.proto";
 import "github.com/solo-io/solo-kit/api/external/envoy/type/percent.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/route/v3/route_components.proto";
+import "google/protobuf/struct.proto";
 
 
 message FilterTransformations {
@@ -121,6 +122,33 @@ message RegexAction {
     uint32 subgroup = 2;
 }
 
+message FieldDefault {
+    // The name of the field.
+    string field = 1;
+    // The field default value, which can be any JSON Data Type.
+    google.protobuf.Value value = 2;
+    // Whether to override the field's value if it already exists.
+    // Defaults to false.
+    bool override = 3;
+}
+
+message PromptEnrichment {
+    // An entry for a message to prepend or append to each prompt.
+    message Message {
+        // Role of the message. The available roles depend on the backend
+        // LLM provider model, such as `SYSTEM` or `USER` in the OpenAI API.
+        string role = 1;
+        // String content of the message.
+        string content = 2;
+    }
+    // A list of messages to be prepended to the prompt sent by the client.
+    repeated Message prepend = 2;
+    // A list of messages to be appended to the prompt sent by the client.
+    repeated Message append = 3;
+}
+
 message AiTransformation {
     bool enable_chat_streaming = 1;
+    repeated FieldDefault field_defaults = 2;
+    PromptEnrichment prompt_enrichment = 3;
 }

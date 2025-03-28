@@ -1677,7 +1677,7 @@ func (*UpstreamSpec_AzureOpenAI_AuthToken) isUpstreamSpec_AzureOpenAI_AuthTokenS
 type UpstreamSpec_Gemini struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The authorization token that the AI gateway uses to access the Gemini API.
-	// This token is automatically sent in the `key` query parameter of the request.
+	// This token is automatically sent in the `x-goog-api-key` header of the request.
 	//
 	// Types that are valid to be assigned to AuthTokenSource:
 	//
@@ -1759,7 +1759,7 @@ type isUpstreamSpec_Gemini_AuthTokenSource interface {
 
 type UpstreamSpec_Gemini_AuthToken struct {
 	// The authorization token that the AI gateway uses to access the Gemini API.
-	// This token is automatically sent in the `key` query parameter of the request.
+	// This token is automatically sent in the `x-goog-api-key` header of the request.
 	AuthToken *SingleAuthToken `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3,oneof"` // TODO: use oauth
 }
 

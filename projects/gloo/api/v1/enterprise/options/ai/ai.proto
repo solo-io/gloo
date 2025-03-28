@@ -121,10 +121,10 @@ message UpstreamSpec {
   // `https://generativelanguage.googleapis.com/{version}/models/{model}:generateContent?key={api_key}`.
   message Gemini {
     // The authorization token that the AI gateway uses to access the Gemini API.
-    // This token is automatically sent in the `key` query parameter of the request.
+    // This token is automatically sent in the `x-goog-api-key` header of the request.
     oneof auth_token_source {
       // The authorization token that the AI gateway uses to access the Gemini API.
-      // This token is automatically sent in the `key` query parameter of the request.
+      // This token is automatically sent in the `x-goog-api-key` header of the request.
       SingleAuthToken auth_token = 1;
       // TODO: use oauth
     }

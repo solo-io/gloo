@@ -244,7 +244,7 @@ To find the values for the model and API version, you can check the fields of an
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Gemini API. This token is automatically sent in the `key` query parameter of the request. |
+| `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Gemini API. This token is automatically sent in the `x-goog-api-key` header of the request. |
 | `model` | `string` | The Gemini model to use. For more information, see the [Gemini models docs](https://ai.google.dev/gemini-api/docs/models/gemini). |
 | `apiVersion` | `string` | The version of the Gemini API to use. For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions). |
 
