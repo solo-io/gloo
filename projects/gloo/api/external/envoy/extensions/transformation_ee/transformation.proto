@@ -19,6 +19,12 @@ message FilterTransformations {
     // Specifies transformations based on the route matches. The first matched transformation will be
     // applied. If there are overlapped match conditions, please put the most specific match first.
     repeated TransformationRule transformations = 1;
+
+    // Logs request/response sensitive information
+    // By default, this is false so no request or response sensitive information is logged.
+    // If set to true, the filter will log the request/response body and headers before and
+    // after any transformation is applied.
+    bool log_request_response_info = 2;
 }
 
 message TransformationRule {
