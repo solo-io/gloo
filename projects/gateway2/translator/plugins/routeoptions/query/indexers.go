@@ -4,10 +4,9 @@ import (
 	"fmt"
 
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
+	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
 const (
@@ -24,36 +23,5 @@ func routeOptionTargetRefIndexer(obj client.Object) []string {
 		panic(fmt.Sprintf("wrong type %T provided to indexer. expected gateway.solo.io.RouteOption", obj))
 	}
 
-	var res []string
-	foundNns := map[string]any{}
-
-	targetRefs := rtOpt.Spec.GetTargetRefs()
-	if len(targetRefs) == 0 {
-		return res
-	}
-
-	for _, targetRef := range targetRefs {
-		if targetRef == nil ||
-			targetRef.GetGroup() != gwv1.GroupName ||
-			targetRef.GetKind() != wellknown.HTTPRouteKind {
-			continue
-		}
-
-		ns := targetRef.GetNamespace().GetValue()
-		if ns == "" {
-			ns = rtOpt.GetNamespace()
-		}
-		targetNN := types.NamespacedName{
-			Namespace: ns,
-			Name:      targetRef.GetName(),
-		}
-
-		foundNns[targetNN.String()] = struct{}{}
-	}
-
-	for k := range foundNns {
-		res = append(res, k)
-	}
-
-	return res
+	return utils.IndexTargetRefs(rtOpt.Spec.GetTargetRefs(), rtOpt.GetNamespace(), wellknown.HTTPRouteKind)
 }
