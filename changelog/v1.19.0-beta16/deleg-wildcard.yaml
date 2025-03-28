@@ -1,0 +1,11 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8070
+    resolvesIssue: false
+    description: |
+      gateway2/delegation: use a wildcard namespace
+
+      Namespace type in Gateway API must be a valid RFC 1123 DNS label,
+      so we can't use '*' to wildcard the namespace. Instead, we use 'all'
+      to indicate all namespaced and return an error when the namespace 'all'
+      is actually present on the cluster.
