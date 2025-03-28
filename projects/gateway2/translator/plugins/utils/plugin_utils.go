@@ -7,7 +7,6 @@ import (
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
-	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
@@ -238,6 +237,7 @@ type policyTargetReference interface {
 	GetName() string
 }
 
+// IndexTargetRefs indexes a list of policy target references by namespace and name.
 func IndexTargetRefs[T policyTargetReference](targetRefs []T, namespace, kind string) []string {
 	var res []string
 
@@ -248,8 +248,7 @@ func IndexTargetRefs[T policyTargetReference](targetRefs []T, namespace, kind st
 	foundNns := map[string]any{}
 
 	for _, targetRef := range targetRefs {
-		if targetRef.GetGroup() != gwv1.GroupName ||
-			targetRef.GetKind() != wellknown.GatewayKind {
+		if targetRef.GetGroup() != gwv1.GroupName || targetRef.GetKind() != kind {
 			continue
 		}
 

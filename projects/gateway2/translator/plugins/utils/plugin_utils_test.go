@@ -3,6 +3,7 @@ package utils_test
 import (
 	"context"
 	"errors"
+	"sort"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection"
 
@@ -233,4 +235,52 @@ func TestGetPrioritizedListenerPolicies(t *testing.T) {
 	g.Expect(prioritizedPolicies[1]).To(Equal(policy2.object))
 	g.Expect(prioritizedPolicies[2]).To(Equal(policy1.object))
 	g.Expect(prioritizedPolicies[3]).To(Equal(policy0.object))
+}
+
+func TestIndexTargetRefs(t *testing.T) {
+	g := NewWithT(t)
+
+	targetRefs := []*skv2corev1.PolicyTargetReferenceWithSectionName{
+		{
+			Name:  "gw-1",
+			Group: gwv1.GroupName,
+			Kind:  wellknown.GatewayKind,
+		},
+		{
+			Name:        "gw-1",
+			Group:       gwv1.GroupName,
+			Kind:        wellknown.GatewayKind,
+			SectionName: &wrapperspb.StringValue{Value: "http"},
+		},
+		{
+			Name:  "gw-2",
+			Group: gwv1.GroupName,
+			Kind:  wellknown.GatewayKind,
+		},
+		{
+			Name:        "gw-2",
+			Group:       gwv1.GroupName,
+			Kind:        wellknown.GatewayKind,
+			SectionName: &wrapperspb.StringValue{Value: "http"},
+		},
+		// no match on Group
+		{
+			Name:  "gw-3",
+			Group: gwv1.GroupName + "-no-match",
+			Kind:  wellknown.GatewayKind,
+		},
+		// no match on Kind
+		{
+			Name:  "gw-3",
+			Group: gwv1.GroupName,
+			Kind:  wellknown.HTTPRouteKind,
+		},
+	}
+
+	indices := utils.IndexTargetRefs(targetRefs, "default", wellknown.GatewayKind)
+	expected := []string{"default/gw-1", "default/gw-2"}
+
+	sort.Strings(expected)
+	sort.Strings(indices)
+	g.Expect(indices).To(Equal(expected))
 }
