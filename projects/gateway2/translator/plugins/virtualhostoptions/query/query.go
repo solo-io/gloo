@@ -2,11 +2,11 @@ package query
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/rotisserie/eris"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
-	"github.com/solo-io/go-utils/contextutils"
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
@@ -65,6 +65,8 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 		Name:      parentGw.Name,
 	}
 	list := &solokubev1.VirtualHostOptionList{}
+
+	// TODO: check if this is correct, especially the matcher
 	if err := r.c.List(
 		ctx,
 		list,
@@ -79,7 +81,11 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 	}
 
 	policies := buildWrapperType(ctx, list)
-	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener)
+	fmt.Println("GetVirtualHostOptionsForListener  -- listener:", listener.Name, " -- parentGw:", parentGw.Name)
+	for _, policy := range policies {
+		fmt.Println("\tpolicy name:", policy.GetObject().GetName(), " -- targetRefs:", policy.GetTargetRefs())
+	}
+	orderedPolicies := utils.GetPrioritizedListenerPoliciesAllTargetRefs(policies, listener, parentGw.Name)
 	return orderedPolicies, nil
 }
 
@@ -90,12 +96,6 @@ func buildWrapperType(
 	policies := []utils.PolicyWithSectionedTargetRefs[*solokubev1.VirtualHostOption]{}
 	for i := range list.Items {
 		item := &list.Items[i]
-
-		// warn for multiple targetRefs until we actually support this
-		// TODO: remove this as part of https://github.com/solo-io/solo-projects/issues/6286
-		if len(item.Spec.GetTargetRefs()) > 1 {
-			contextutils.LoggerFrom(ctx).Warnf(utils.MultipleTargetRefErrStr, item.GetNamespace(), item.GetName())
-		}
 
 		policy := vhostOptionPolicy{
 			obj: item,

@@ -1,7 +1,12 @@
+# This manifest creates two gateways with two listeners each.
+# The first gateway has listeners "http" and "other" on ports 8080 and 8081.
+# The second gateway has listeners "http" and "other" on ports 8083 and 8084.
+# An HTTPRoute is created for each gateway for the host "example.com".
+# RouteOptionsfor header manipulation are created for each gateway and assigned in the HTTPRoute spec.
 kind: Gateway
 apiVersion: gateway.networking.k8s.io/v1
 metadata:
-  name: gw
+  name: gw-1
 spec:
   gatewayClassName: gloo-gateway
   listeners:
@@ -13,6 +18,26 @@ spec:
           from: Same
     - protocol: HTTP
       port: 8081
+      name: other
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+kind: Gateway
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: gw-2
+spec:
+  gatewayClassName: gloo-gateway
+  listeners:
+    - protocol: HTTP
+      port: 8083
+      name: http
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - protocol: HTTP
+      port: 8084
       name: other
       allowedRoutes:
         namespaces:
@@ -35,13 +60,30 @@ spec:
             value: "baz"
           append: false
 ---
+apiVersion: gateway.solo.io/v1
+kind: RouteOption
+metadata:
+  name: header-manipulation-2
+spec:
+  options:
+    headerManipulation:
+      responseHeadersToAdd:
+        - header:
+            key: "x-bar-2"
+            value: "bar-2"
+          append: false 
+        - header:
+            key: "x-baz-2"
+            value: "baz-2"
+          append: false
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: example-route
 spec:
   parentRefs:
-    - name: gw
+    - name: gw-1
   hostnames:
     - "example.com"
   rules:
@@ -80,4 +122,25 @@ spec:
       ports:
         - containerPort: 80
           name: http-web-svc
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: example-route-2
+spec:
+  parentRefs:
+    - name: gw-2
+  hostnames:
+    - "example.com"
+  rules:
+    - filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.solo.io
+            kind: RouteOption
+            name: header-manipulation-2
+      backendRefs:
+        - name: example-svc
+          port: 8080
 ---

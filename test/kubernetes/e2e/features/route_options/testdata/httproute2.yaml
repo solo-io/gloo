@@ -6,7 +6,7 @@ spec:
   parentRefs:
     - name: gw
   hostnames:
-    - "example.com"
+    - "example2.com"
   rules:
     - backendRefs:
         - name: example-svc

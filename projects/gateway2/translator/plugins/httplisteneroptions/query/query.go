@@ -7,7 +7,6 @@ import (
 
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
-	"github.com/solo-io/go-utils/contextutils"
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
@@ -87,7 +86,7 @@ func (q *queries) GetAttachedHttpListenerOptions(
 	}
 
 	policies := buildWrapperType(ctx, list)
-	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener)
+	orderedPolicies := utils.GetPrioritizedListenerPoliciesAllTargetRefs(policies, listener, parentGw.Name)
 	return orderedPolicies, nil
 }
 
@@ -98,12 +97,6 @@ func buildWrapperType(
 	policies := []utils.PolicyWithSectionedTargetRefs[*solokubev1.HttpListenerOption]{}
 	for i := range list.Items {
 		item := &list.Items[i]
-
-		// warn for multiple targetRefs until we actually support this
-		// TODO: remove this as part of https://github.com/solo-io/solo-projects/issues/6286
-		if len(item.Spec.GetTargetRefs()) > 1 {
-			contextutils.LoggerFrom(ctx).Warnf(utils.MultipleTargetRefErrStr, item.GetNamespace(), item.GetName())
-		}
 
 		policy := httpListenerOptionPolicy{
 			obj: item,
