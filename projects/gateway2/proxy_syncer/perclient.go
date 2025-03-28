@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	ggv2utils "github.com/solo-io/gloo/projects/gateway2/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
@@ -42,31 +43,41 @@ func snapshotPerClient(l *zap.Logger, dbg *krt.DebugHandler, uccCol krt.Collecti
 			return nil
 		}
 
+		listenersProto := make([]envoycache.Resource, 0)
 		clustersProto := make([]envoycache.Resource, 0, len(clustersForUcc))
+
 		var clustersHash uint64
+		var listenersHash uint64
+
+		// add the clusters and the additional resources created for them
 		for _, ep := range clustersForUcc {
 			clustersProto = append(clustersProto, ep.Cluster)
 			clustersHash ^= ep.ClusterVersion
+
+			// add additional clusters
+			for _, additionalCluster := range ep.AdditionalClusters {
+				clustersProto = append(clustersProto, additionalCluster)
+				clustersHash ^= ep.AdditionalClustersVersion
+			}
+
+			// add additional listeners
+			for _, additionalListener := range ep.AdditionalListeners {
+				listenersProto = append(listenersProto, additionalListener)
+				listenersHash ^= ep.AdditionalListenersVersion
+			}
 		}
-		clustersVersion := fmt.Sprintf("%d", clustersHash)
 
-		endpointsForUcc := endpoints.FetchEndpointsForClient(kctx, ucc)
-		endpointsProto := make([]envoycache.Resource, 0, len(endpointsForUcc))
-		var endpointsHash uint64
-		for _, ep := range endpointsForUcc {
-			endpointsProto = append(endpointsProto, ep.Endpoints)
-			endpointsHash ^= ep.EndpointsHash
-		}
+		clusterResources := envoycache.NewResources(fmt.Sprintf("%d", clustersHash), clustersProto)
 
-		mostlySnap := *maybeMostlySnap
-
-		clusterResources := envoycache.NewResources(clustersVersion, clustersProto)
 		// add missing generated resource from GeneratedResources plugins.
 		// To be able to do individual upstream translation, We need to redo the GeneratedResources,
 		// so they don't take as input the entire xds snapshot. the main offender is the tunneling plugin.
 		//
 		// for now, a manual audit showed that these only add clusters and listeners. As we don't touch the listeners,
 		// we just need to account for potentially missing clusters.
+		//
+		// This can be removed once we have moved off GeneratedResources in favor of
+		// UpstreamGeneratedResources which is krt-safe
 		for name, cluster := range genericSnap.Clusters.Items {
 			// only copy clusters that don't exist. as we do cluster translation per client,
 			// our clusters might be slightly different.
@@ -77,13 +88,37 @@ func snapshotPerClient(l *zap.Logger, dbg *krt.DebugHandler, uccCol krt.Collecti
 		}
 		clusterResources.Version = fmt.Sprintf("%d", clustersHash)
 
+		listenerResources := envoycache.NewResources(fmt.Sprintf("%d", listenersHash), listenersProto)
+
+		// add the snapshot listeners
+		for name, listener := range genericSnap.Listeners.Items {
+			// only copy listeners that don't exist. as we do cluster translation per client,
+			// our clusters might be slightly different.
+			if _, ok := listenerResources.Items[name]; !ok {
+				listenerResources.Items[name] = listener
+				listenersHash ^= ggv2utils.HashProto(listener.ResourceProto().(*envoy_config_listener_v3.Listener))
+			}
+		}
+		listenerResources.Version = fmt.Sprintf("%d", listenersHash)
+
+		endpointsForUcc := endpoints.FetchEndpointsForClient(kctx, ucc)
+		endpointsProto := make([]envoycache.Resource, 0, len(endpointsForUcc))
+		var endpointsHash uint64
+		for _, ep := range endpointsForUcc {
+			endpointsProto = append(endpointsProto, ep.Endpoints)
+			endpointsHash ^= ep.EndpointsHash
+		}
+		endpointResources := envoycache.NewResources(fmt.Sprintf("%d-%d", clustersHash, endpointsHash), endpointsProto)
+
+		mostlySnap := *maybeMostlySnap
 		mostlySnap.proxyKey = ucc.ResourceName()
 		mostlySnap.snap = &xds.EnvoySnapshot{
 			Clusters:  clusterResources,
-			Endpoints: envoycache.NewResources(fmt.Sprintf("%s-%d", clustersVersion, endpointsHash), endpointsProto),
+			Listeners: listenerResources,
+			Endpoints: endpointResources,
 			Routes:    genericSnap.Routes,
-			Listeners: genericSnap.Listeners,
 		}
+
 		l.Debug("snapshotPerClient", zap.String("proxyKey", mostlySnap.proxyKey),
 			zap.Stringer("Listeners", resourcesStringer(mostlySnap.snap.Listeners)),
 			zap.Stringer("Clusters", resourcesStringer(mostlySnap.snap.Clusters)),

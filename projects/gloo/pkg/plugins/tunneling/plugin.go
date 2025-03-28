@@ -46,6 +46,60 @@ func (p *plugin) Name() string {
 func (p *plugin) Init(_ plugins.InitParams) {
 }
 
+// UpstreamGeneratedResources checks the Upstream for a tunneling configuration
+// and sets up clusters and listeners to forward traffic to an HTTP CONNECT supporting proxy.
+func (p *plugin) UpstreamGeneratedResources(
+	params plugins.Params,
+	upstream *v1.Upstream,
+	inCluster *envoy_config_cluster_v3.Cluster,
+) ([]*envoy_config_cluster_v3.Cluster, []*envoy_config_listener_v3.Listener, error) {
+	var newClusters []*envoy_config_cluster_v3.Cluster
+	var newListeners []*envoy_config_listener_v3.Listener
+
+	// skip if the upstream does not have tunneling enabled
+	httpProxyHostname := upstream.GetHttpProxyHostname().GetValue()
+	if httpProxyHostname == "" {
+		return nil, nil, nil
+	}
+
+	clusterName := inCluster.Name
+
+	// change the original cluster name to avoid conflicts with the new cluster
+	newInClusterName := clusterName + OriginalClusterSuffix
+
+	// use an in-memory pipe to ourselves (only works on linux)
+	forwardingPipe := "@/" + clusterName
+
+	var originalTransportSocket *envoy_config_core_v3.TransportSocket
+	tunnelingHeaders := envoyHeadersFromHttpConnectHeaders(upstream)
+
+	newListener, err := generateForwardingTcpListener(clusterName, newInClusterName,
+		forwardingPipe, httpProxyHostname, tunnelingHeaders)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// TODO handle the SSL configuration
+
+	// when we encapsulate in HTTP Connect the tcp data being proxied will
+	// be encrypted (thus we don't need the original transport socket metadata here)
+	inCluster.TransportSocketMatches = nil
+
+	// generate new cluster with original cluster's name and transport socket that points to
+	// the new listener's pipe
+	newCluster := generateForwardingCluster(clusterName, forwardingPipe, originalTransportSocket)
+
+	// to avoid having to change the parent's reference to the new cluster, we change the name
+	// of the original cluster and use the original cluster name for the new cluster
+	// this saves this plugin having to know about every place a parent may reference a cluster
+	inCluster.Name = newInClusterName
+
+	newClusters = append(newClusters, newCluster)
+	newListeners = append(newListeners, newListener)
+
+	return newClusters, newListeners, nil
+}
+
 // GeneratedResources scans Upstreams for a tunneling configuration and sets up
 // clusters and listeners to forward traffic to an HTTP CONNECT supporting proxy.
 //

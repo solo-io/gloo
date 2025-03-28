@@ -51,7 +51,7 @@ type ClusterTranslator interface {
 	TranslateCluster(
 		params plugins.Params,
 		upstream *v1.Upstream,
-	) (*envoy_config_cluster_v3.Cluster, []error)
+	) (*ClusterResult, []error)
 }
 
 var (
