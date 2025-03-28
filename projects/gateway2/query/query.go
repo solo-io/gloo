@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	translator_types "github.com/solo-io/gloo/projects/gateway2/translator/types"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -134,7 +135,7 @@ type GatewayQueries interface {
 
 	GetListenerSetsForGateway(ctx context.Context, gw *gwv1.Gateway) ([]*gwxv1a1.XListenerSet, error)
 	GetRoutesForListenerSet(ctx context.Context, ls *apixv1a1.XListenerSet) (*RoutesForGwResult, error)
-	GetRoutesForGatewayWithListenerSets(ctx context.Context, gw *gwv1.Gateway) (*RoutesForGwResult, error)
+	GetRoutesForConsolidatedGateway(ctx context.Context, cgw *translator_types.ConsolidatedGateway) (*RoutesForGwResult, error)
 }
 
 type RoutesForGwResult struct {

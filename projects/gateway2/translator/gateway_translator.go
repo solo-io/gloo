@@ -84,7 +84,7 @@ func (t *translator) TranslateProxy(
 		return nil
 	}
 
-	routesForGw, err := t.queries.GetRoutesForGatewayWithListenerSets(ctx, consolidatedGateway.Gateway)
+	routesForGw, err := t.queries.GetRoutesForConsolidatedGateway(ctx, consolidatedGateway)
 	fmt.Println("================ GetRoutesForGatewayWithListenerSets : ", routesForGw, err)
 	if err != nil {
 		logger.Errorf("failed to get routes for gateway %s: %v", client.ObjectKeyFromObject(gateway), err)

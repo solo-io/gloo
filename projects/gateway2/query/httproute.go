@@ -14,10 +14,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
-	"sigs.k8s.io/gateway-api/apisx/v1alpha1"
 	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	"github.com/solo-io/gloo/projects/gateway2/translator/backendref"
+	translator_types "github.com/solo-io/gloo/projects/gateway2/translator/types"
+	"github.com/solo-io/gloo/projects/gateway2/utils"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 )
 
@@ -423,18 +424,13 @@ func (r *gatewayQueries) GetRoutesForListenerSet(ctx context.Context, ls *apixv1
 	return r.GetRoutesForResource(ctx, ls)
 }
 
-func (r *gatewayQueries) GetRoutesForGatewayWithListenerSets(ctx context.Context, gw *gwv1.Gateway) (*RoutesForGwResult, error) {
-	routes, err := r.GetRoutesForResource(ctx, gw)
+func (r *gatewayQueries) GetRoutesForConsolidatedGateway(ctx context.Context, cgw *translator_types.ConsolidatedGateway) (*RoutesForGwResult, error) {
+	routes, err := r.GetRoutesForResource(ctx, cgw.Gateway)
 	if err != nil {
 		return nil, err
 	}
 
-	listenerSets, err := r.GetListenerSetsForGateway(ctx, gw)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, ls := range listenerSets {
+	for _, ls := range cgw.ListenerSets {
 		lsRoutes, err := r.GetRoutesForResource(ctx, ls)
 
 		if err != nil {
@@ -494,21 +490,7 @@ func getListeners(resource client.Object) ([]gwv1.Listener, error) {
 	case *gwv1.Gateway:
 		listeners = typed.Spec.Listeners
 	case *apixv1a1.XListenerSet:
-		toListener := func(le v1alpha1.ListenerEntry) gwv1.Listener {
-			copy := le.DeepCopy()
-			return gwv1.Listener{
-				Name:          copy.Name,
-				Hostname:      copy.Hostname,
-				Port:          copy.Port,
-				Protocol:      copy.Protocol,
-				TLS:           copy.TLS,
-				AllowedRoutes: copy.AllowedRoutes,
-			}
-		}
-
-		for _, l := range typed.Spec.Listeners {
-			listeners = append(listeners, toListener(l))
-		}
+		listeners = utils.ToListenerSlice(typed.Spec.Listeners)
 	default:
 		return nil, fmt.Errorf("unknown type")
 	}
