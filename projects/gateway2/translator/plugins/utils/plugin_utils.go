@@ -132,7 +132,52 @@ type PolicyWithSectionedTargetRefs[T client.Object] interface {
 // 3. older without section name
 //
 // 4. newer without section name
+// Deprecated: use GetPrioritizedListenerPoliciesAllTargetRefs instead
+// This function will process only the first targetRefs for each policy
 func GetPrioritizedListenerPolicies[T client.Object](
+	items []PolicyWithSectionedTargetRefs[T],
+	listener *gwv1.Listener,
+) []T {
+	var optsWithSectionName, optsWithoutSectionName []T
+	for i := range items {
+		item := items[i]
+		// only use the first targetRef in the list for now; user should be warned by caller of this function
+		targetRef := item.GetTargetRefs()[0]
+		if sectionName := targetRef.GetSectionName(); sectionName != nil && sectionName.GetValue() != "" {
+			// we have a section name, now check if it matches the specific listener provided
+			if sectionName.GetValue() == string(listener.Name) {
+				optsWithSectionName = append(optsWithSectionName, item.GetObject())
+			}
+		} else {
+			// attach all matched items that do not have a section name and let the caller be discerning
+			optsWithoutSectionName = append(optsWithoutSectionName, item.GetObject())
+		}
+	}
+
+	// this can happen if the policy list only contains items targeting other Listeners by section name
+	if len(optsWithoutSectionName)+len(optsWithSectionName) == 0 {
+		return nil
+	}
+
+	SortByCreationTime(optsWithSectionName)
+	SortByCreationTime(optsWithoutSectionName)
+	return append(optsWithSectionName, optsWithoutSectionName...)
+}
+
+// GetPrioritizedListenerPoliciesAllTargetRefs accepts a slice of Gateway-attached policies (that may explicitly
+// target a specific Listener and returns a slice of these policies (or a subset) resources.
+// The returned policy list is sorted by specificity in the order of
+//
+// 1. older with section name
+//
+// 2. newer with section name
+//
+// 3. older without section name
+//
+// 4. newer without section name
+//
+// This function will process all targetRefs for each policy
+func GetPrioritizedListenerPoliciesAllTargetRefs[T client.Object](
 	items []PolicyWithSectionedTargetRefs[T],
 	listener *gwv1.Listener,
 	parentGwName string,

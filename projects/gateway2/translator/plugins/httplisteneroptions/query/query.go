@@ -87,7 +87,7 @@ func (q *queries) GetAttachedHttpListenerOptions(
 	}
 
 	policies := buildWrapperType(ctx, list)
-	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name)
+	orderedPolicies := utils.GetPrioritizedListenerPoliciesAllTargetRefs(policies, listener, parentGw.Name)
 	return orderedPolicies, nil
 }
 

@@ -86,7 +86,7 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 	for _, policy := range policies {
 		fmt.Println("\tpolicy name:", policy.GetObject().GetName(), " -- targetRefs:", policy.GetTargetRefs())
 	}
-	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name)
+	orderedPolicies := utils.GetPrioritizedListenerPoliciesAllTargetRefs(policies, listener, parentGw.Name)
 	return orderedPolicies, nil
 }
 
