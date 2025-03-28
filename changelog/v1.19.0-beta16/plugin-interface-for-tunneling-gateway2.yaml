@@ -6,3 +6,5 @@ changelog:
     new plugin interface for creating additional clusters and listeners from Upstreams.
     The additional clusters are and listeners are added to the snapshot near the 
     end of the translations process.
+  resolvesIssue: false
+  issueLink: https://github.com/solo-io/solo-projects/issues/7497
