@@ -29,8 +29,6 @@ spec:
                 properties:
                   anthropic:
                     properties:
-                      apiVersion:
-                        type: string
                       authToken:
                         properties:
                           inline:
@@ -58,6 +56,8 @@ spec:
                             type: integer
                         type: object
                       model:
+                        type: string
+                      version:
                         type: string
                     type: object
                   azureOpenai:
@@ -145,8 +145,6 @@ spec:
                                 properties:
                                   anthropic:
                                     properties:
-                                      apiVersion:
-                                        type: string
                                       authToken:
                                         properties:
                                           inline:
@@ -174,6 +172,8 @@ spec:
                                             type: integer
                                         type: object
                                       model:
+                                        type: string
+                                      version:
                                         type: string
                                     type: object
                                   azureOpenai:

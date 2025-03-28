@@ -1340,10 +1340,10 @@ func (m *UpstreamSpec_Anthropic) HashUnique(hasher hash.Hash64) (uint64, error) 
 		}
 	}
 
-	if _, err = hasher.Write([]byte("ApiVersion")); err != nil {
+	if _, err = hasher.Write([]byte("Version")); err != nil {
 		return 0, err
 	}
-	if _, err = hasher.Write([]byte(m.GetApiVersion())); err != nil {
+	if _, err = hasher.Write([]byte(m.GetVersion())); err != nil {
 		return 0, err
 	}
 

@@ -329,7 +329,7 @@ Settings for the [Anthropic](https://docs.anthropic.com/en/release-notes/api) LL
 ```yaml
 "authToken": .ai.options.gloo.solo.io.SingleAuthToken
 "customHost": .ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-"apiVersion": string
+"version": string
 "model": string
 
 ```
@@ -338,7 +338,7 @@ Settings for the [Anthropic](https://docs.anthropic.com/en/release-notes/api) LL
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Anthropic API. This token is automatically sent in the `x-api-key` header of the request. |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port, such as to proxy the request, or to use a different backend that is API-compliant with the upstream version. |
-| `apiVersion` | `string` | Optional: A api version header to pass to the Anthropic API. For more information, see the [Anthropic API versioning docs](https://docs.anthropic.com/en/api/versioning). |
+| `version` | `string` | Optional: The version string used to override the `anthropic-version` header to pass to the Anthropic API. Note: This does not control the api version (eg `/v1`) in the url. For more information, see the [Anthropic API versioning docs](https://docs.anthropic.com/en/api/versioning). |
 | `model` | `string` | Optional: Override the model name. If unset, the model name is taken from the request. This setting can be useful when testing model failover scenarios. |
 
 

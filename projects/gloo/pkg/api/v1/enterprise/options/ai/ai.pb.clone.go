@@ -621,7 +621,7 @@ func (m *UpstreamSpec_Anthropic) Clone() proto.Message {
 		target.CustomHost = proto.Clone(m.GetCustomHost()).(*UpstreamSpec_CustomHost)
 	}
 
-	target.ApiVersion = m.GetApiVersion()
+	target.Version = m.GetVersion()
 
 	target.Model = m.GetModel()
 
