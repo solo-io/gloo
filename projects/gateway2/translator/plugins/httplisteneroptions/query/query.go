@@ -7,7 +7,6 @@ import (
 
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
-	"github.com/solo-io/go-utils/contextutils"
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
@@ -98,10 +97,6 @@ func buildWrapperType(
 	policies := []utils.PolicyWithSectionedTargetRefs[*solokubev1.HttpListenerOption]{}
 	for i := range list.Items {
 		item := &list.Items[i]
-
-		if err := utils.CheckTargetRefCount(item.Spec.GetTargetRefs()); err != nil {
-			contextutils.LoggerFrom(ctx).Warnf(err.Error())
-		}
 
 		policy := httpListenerOptionPolicy{
 			obj: item,

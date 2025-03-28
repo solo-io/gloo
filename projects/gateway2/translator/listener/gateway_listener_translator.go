@@ -416,7 +416,6 @@ func (ml *MergedListeners) translateListeners(
 ) []*v1.Listener {
 	var listeners []*v1.Listener
 	for _, mergedListener := range ml.Listeners {
-		fmt.Printf("Translating listener %s, parent gw %s\n", mergedListener.name, ml.parentGw.Name)
 		listener := mergedListener.TranslateListener(ctx, pluginRegistry, queries, reporter)
 
 		// run listener plugins

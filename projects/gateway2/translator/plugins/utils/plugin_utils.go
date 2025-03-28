@@ -10,7 +10,6 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -244,17 +243,3 @@ var (
 		return fmt.Errorf("%w: expected AggregateListener, got %T", ErrUnexpectedListenerType, l.GetListenerType())
 	}
 )
-
-type getNameAndNamespacer interface {
-	GetNamespace() *wrapperspb.StringValue
-	GetName() string
-}
-
-// CheckTargetRefCount checks if the number of targetRefs exceeds the maximum allowed.
-// If so, it returns a TooManyTargetRefErrStr error.
-func CheckTargetRefCount[T getNameAndNamespacer](targetRefs []T) error {
-	if len(targetRefs) > MaxTargetRefs {
-		return fmt.Errorf(TooManyTargetRefErrStr, targetRefs[0].GetNamespace(), targetRefs[0].GetName(), len(targetRefs))
-	}
-	return nil
-}
