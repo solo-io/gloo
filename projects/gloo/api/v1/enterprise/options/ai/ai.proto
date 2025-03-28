@@ -114,8 +114,6 @@ message UpstreamSpec {
     // The version of the Azure OpenAI API to use.
     // For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
     string api_version = 4;
-
-
   }
 
   // Settings for the [Gemini](https://ai.google.dev/gemini-api/docs) LLM provider.
@@ -200,9 +198,10 @@ message UpstreamSpec {
     // Optional: Send requests to a custom host and port, such as to proxy the request,
     // or to use a different backend that is API-compliant with the upstream version.
     CustomHost custom_host = 2;
-    // Optional: A api version header to pass to the Anthropic API.
+    // Optional: The version string used to override the `anthropic-version` header to pass to the Anthropic API.
+    // Note: This does not control the api version (eg `/v1`) in the url.
     // For more information, see the [Anthropic API versioning docs](https://docs.anthropic.com/en/api/versioning).
-    string api_version = 3;
+    string version = 3;
     // Optional: Override the model name.
     // If unset, the model name is taken from the request.
     // This setting can be useful when testing model failover scenarios.
