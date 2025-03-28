@@ -127,4 +127,5 @@ var (
 	unresolvedChildManifest             = filepath.Join(util.MustGetThisDir(), "testdata", "unresolved_child.yaml")
 	routeOptionsManifest                = filepath.Join(util.MustGetThisDir(), "testdata", "route_options.yaml")
 	matcherInheritanceManifest          = filepath.Join(util.MustGetThisDir(), "testdata", "matcher_inheritance.yaml")
+	labelSelectorManifest               = filepath.Join(util.MustGetThisDir(), "testdata", "label_selector.yaml")
 )
