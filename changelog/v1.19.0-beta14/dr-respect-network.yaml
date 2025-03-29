@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink:
+    resolvesIssue: false
+    description: >-
+      Respect the explicit and inherited topology.istio.io/network labels
+      with respect to failoverPriority.

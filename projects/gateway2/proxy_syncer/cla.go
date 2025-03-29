@@ -104,16 +104,21 @@ func (ie *PerClientEnvoyEndpoints) FetchEndpointsForClient(kctx krt.HandlerConte
 	return krt.Fetch(kctx, ie.endpoints, krt.FilterIndex(ie.index, ucc.ResourceName()))
 }
 
-func NewPerClientEnvoyEndpoints(logger *zap.Logger, dbg *krt.DebugHandler, uccs krt.Collection[krtcollections.UniqlyConnectedClient],
+func NewPerClientEnvoyEndpoints(
+	logger *zap.Logger,
+	dbg *krt.DebugHandler,
+	uccs krt.Collection[krtcollections.UniqlyConnectedClient],
 	glooEndpoints krt.Collection[krtcollections.EndpointsForUpstream],
 	destinationRulesIndex DestinationRuleIndex,
+	istioNetwork istioNetworkSingleton,
 ) PerClientEnvoyEndpoints {
 	clas := krt.NewManyCollection(glooEndpoints, func(kctx krt.HandlerContext, ep krtcollections.EndpointsForUpstream) []UccWithEndpoints {
+		defaultNetwork := istioNetwork.Fetch(kctx)
 		uccs := krt.Fetch(kctx, uccs)
 		uccWithEndpointsRet := make([]UccWithEndpoints, 0, len(uccs))
 		for _, ucc := range uccs {
 			destrule := destinationRulesIndex.FetchDestRulesFor(kctx, ucc.Namespace, ep.Hostname, ucc.Labels)
-			uccWithEp := PrioritizeEndpoints(logger, destrule, ep, ucc)
+			uccWithEp := PrioritizeEndpoints(logger, destrule, ep, ucc, defaultNetwork)
 			uccWithEndpointsRet = append(uccWithEndpointsRet, uccWithEp)
 		}
 		return uccWithEndpointsRet
@@ -128,7 +133,13 @@ func NewPerClientEnvoyEndpoints(logger *zap.Logger, dbg *krt.DebugHandler, uccs 
 	}
 }
 
-func PrioritizeEndpoints(logger *zap.Logger, destrule *DestinationRuleWrapper, ep krtcollections.EndpointsForUpstream, ucc krtcollections.UniqlyConnectedClient) UccWithEndpoints {
+func PrioritizeEndpoints(
+	logger *zap.Logger,
+	destrule *DestinationRuleWrapper,
+	ep krtcollections.EndpointsForUpstream,
+	ucc krtcollections.UniqlyConnectedClient,
+	defaultNetwork string,
+) UccWithEndpoints {
 	var additionalHash uint64
 	var priorityInfo *PriorityInfo
 
@@ -140,13 +151,16 @@ func PrioritizeEndpoints(logger *zap.Logger, destrule *DestinationRuleWrapper, e
 			hasher := fnv.New64()
 			hasher.Write([]byte(destrule.UID))
 			hasher.Write([]byte(fmt.Sprintf("%v", destrule.Generation)))
+			hasher.Write([]byte("network:" + defaultNetwork))
 			additionalHash = hasher.Sum64()
 		}
 	}
+
 	lbInfo := LoadBalancingInfo{
-		PodLabels:    ucc.Labels,
-		PodLocality:  ucc.Locality,
-		PriorityInfo: priorityInfo,
+		PodLabels:      ucc.Labels,
+		PodLocality:    ucc.Locality,
+		PriorityInfo:   priorityInfo,
+		DefaultNetwork: defaultNetwork,
 	}
 
 	cla := prioritizeWithLbInfo(logger, ep, lbInfo)
