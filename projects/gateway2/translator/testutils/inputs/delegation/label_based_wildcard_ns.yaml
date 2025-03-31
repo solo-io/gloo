@@ -32,7 +32,7 @@ spec:
     - group: delegation.gateway.solo.io
       kind: label
       name: a-label
-      namespace: '*'
+      namespace: all # implies all namespaces
 ---
 apiVersion: v1
 kind: Service
