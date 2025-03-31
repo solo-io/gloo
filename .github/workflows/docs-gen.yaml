@@ -113,22 +113,24 @@ jobs:
       # Do not publish docs if this workflow was triggered by a pull request
       # Only deploy if this was triggered by a push to main, or a successful trivy workflow_run
       if: ${{ github.event_name != 'pull_request' }}
-      uses: FirebaseExtended/action-hosting-deploy@main
+      uses: FirebaseExtended/action-hosting-deploy@v0
       with:
         repoToken: ${{ secrets.GITHUB_TOKEN }}
         firebaseServiceAccount: ${{ secrets.GC_FIREBASE_GHA_SA_JSON_KEY }}
         projectId: ${{ secrets.GC_FIREBASE_GHA_PROJECT_ID }}
         channelId: live
         entryPoint: ./docs/ci
+        firebaseToolsVersion: v13
     - name: Deploy to Firebase (preview)
       # Generate live preview of docs for PRs to main
       if: ${{ github.event_name == 'pull_request' }}
-      uses: FirebaseExtended/action-hosting-deploy@main
+      uses: FirebaseExtended/action-hosting-deploy@v0
       with:
         repoToken: ${{ secrets.GITHUB_TOKEN }}
         firebaseServiceAccount: ${{ secrets.GC_FIREBASE_GHA_SA_JSON_KEY }}
         projectId: ${{ secrets.GC_FIREBASE_GHA_PROJECT_ID }}
         entryPoint: ./docs/ci
+        firebaseToolsVersion: v13
     - name: Notify On Failure
       id: notify-on-failure
       if: ${{ github.event_name != 'pull_request' && failure() }}
