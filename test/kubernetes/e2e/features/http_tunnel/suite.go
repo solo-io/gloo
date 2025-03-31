@@ -61,7 +61,7 @@ func (s *testingSuite) SetupSuite() {
 }
 
 func (s *testingSuite) BeforeTest(suiteName, testName string) {
-	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, squidYaml)
+	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, squidYaml)
 	s.Require().NoError(err)
 
 	if s.testInstallation.Metadata.K8sGatewayEnabled {
