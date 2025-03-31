@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Pin the version of the FirebaseExtended/action-hosting-deploy action to v0 to avoid unintended changes to the action.
+      Add the firebaseToolsVersion: v13 parameter to the action to avoid unintended changes to node version in the tools used by the action.
