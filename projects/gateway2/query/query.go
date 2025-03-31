@@ -21,14 +21,15 @@ import (
 )
 
 var (
-	ErrMissingReferenceGrant      = fmt.Errorf("missing reference grant")
-	ErrUnknownBackendKind         = fmt.Errorf("unknown backend kind")
-	ErrNoMatchingListenerHostname = fmt.Errorf("no matching listener hostname")
-	ErrNoMatchingParent           = fmt.Errorf("no matching parent")
-	ErrNotAllowedByListeners      = fmt.Errorf("not allowed by listeners")
-	ErrLocalObjRefMissingKind     = fmt.Errorf("localObjRef provided with empty kind")
-	ErrCyclicReference            = fmt.Errorf("cyclic reference detected while evaluating delegated routes")
-	ErrUnresolvedReference        = fmt.Errorf("unresolved reference")
+	ErrMissingReferenceGrant       = fmt.Errorf("missing reference grant")
+	ErrUnknownBackendKind          = fmt.Errorf("unknown backend kind")
+	ErrNoMatchingListenerHostname  = fmt.Errorf("no matching listener hostname")
+	ErrNoMatchingParent            = fmt.Errorf("no matching parent")
+	ErrNotAllowedByListeners       = fmt.Errorf("not allowed by listeners")
+	ErrLocalObjRefMissingKind      = fmt.Errorf("localObjRef provided with empty kind")
+	ErrCyclicReference             = fmt.Errorf("cyclic reference detected while evaluating delegated routes")
+	ErrUnresolvedReference         = fmt.Errorf("unresolved reference")
+	ErrWildcardNamespaceDisallowed = fmt.Errorf("wildcard namespace disallowed as namespace 'all' exists in the cluster")
 )
 
 type Error struct {
