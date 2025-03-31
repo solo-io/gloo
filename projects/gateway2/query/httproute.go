@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -346,6 +348,17 @@ func (r *gatewayQueries) fetchChildRoutes(
 		// If the namespace is not explicitly set to a wildcard, restrict the List to the delegated namespace
 		if delegatedNs != wellknown.RouteDelegationLabelSelectorWildcardNamespace {
 			opts = append(opts, client.InNamespace(delegatedNs))
+		} else {
+			// Wildcard namespace specified
+			// Validate that a Namespace matching the wildcard namespace does not actually exist
+			// as it would undesirably delegate to all namespaces would be a security risk if the user
+			// intended to delegate to a namespace called 'all.
+			exists, err := r.wildcardNamespaceExists(ctx)
+			if err != nil {
+				return nil, err
+			} else if exists {
+				return nil, ErrWildcardNamespaceDisallowed
+			}
 		}
 		err := r.client.List(ctx, &hrlist, opts...)
 		if err != nil {
@@ -406,6 +419,24 @@ func (r *gatewayQueries) GetRoutesForGateway(ctx context.Context, gw *gwv1.Gatew
 	}
 
 	return ret, nil
+}
+
+func (r *gatewayQueries) wildcardNamespaceExists(ctx context.Context) (bool, error) {
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: wellknown.RouteDelegationLabelSelectorWildcardNamespace,
+		},
+	}
+	err := r.client.Get(ctx, types.NamespacedName{Name: ns.Name}, ns)
+	if err == nil {
+		// Namespace exists
+		return true, nil
+	} else if k8serrors.IsNotFound(err) {
+		// Namespace does not exist
+		return false, nil
+	}
+	// Unexpected error
+	return false, err
 }
 
 // fetchRoutes is a helper function to fetch routes and add to the routes slice.
