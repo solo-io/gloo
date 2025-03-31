@@ -108,17 +108,17 @@ func NewPerClientEnvoyClusters(
 			}
 
 			additionalClusters := make([]envoycache.Resource, 0, len(clusterResult.AdditionalClusters))
-			additionalClustersVersion := uint64(0)
+			additionalClustersHash := uint64(0)
 			for _, additionalCluster := range clusterResult.AdditionalClusters {
 				additionalClusters = append(additionalClusters, resource.NewEnvoyResource(additionalCluster))
-				additionalClustersVersion ^= ggv2utils.HashProto(additionalCluster)
+				additionalClustersHash ^= ggv2utils.HashProto(additionalCluster)
 			}
 
 			additionalListeners := make([]envoycache.Resource, 0, len(clusterResult.AdditionalListeners))
-			additionalListenersVersion := uint64(0)
+			additionalListenersHash := uint64(0)
 			for _, additionalListener := range clusterResult.AdditionalListeners {
 				additionalListeners = append(additionalListeners, resource.NewEnvoyResource(additionalListener))
-				additionalListenersVersion ^= ggv2utils.HashProto(additionalListener)
+				additionalListenersHash ^= ggv2utils.HashProto(additionalListener)
 			}
 
 			uccWithClusterRet = append(uccWithClusterRet, uccWithCluster{
@@ -127,9 +127,9 @@ func NewPerClientEnvoyClusters(
 				ClusterVersion:          version,
 				upstreamName:            up.ResourceName(),
 				AdditionalClusters:      additionalClusters,
-				AdditionalClustersHash:  additionalClustersVersion,
+				AdditionalClustersHash:  additionalClustersHash,
 				AdditionalListeners:     additionalListeners,
-				AdditionalListenersHash: additionalListenersVersion,
+				AdditionalListenersHash: additionalListenersHash,
 			})
 		}
 		return uccWithClusterRet
