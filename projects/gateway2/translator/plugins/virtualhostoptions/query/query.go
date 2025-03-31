@@ -2,7 +2,6 @@ package query
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/rotisserie/eris"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
@@ -66,7 +65,6 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 	}
 	list := &solokubev1.VirtualHostOptionList{}
 
-	// TODO: check if this is correct, especially the matcher
 	if err := r.c.List(
 		ctx,
 		list,
@@ -81,10 +79,6 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 	}
 
 	policies := buildWrapperType(ctx, list)
-	fmt.Println("GetVirtualHostOptionsForListener  -- listener:", listener.Name, " -- parentGw:", parentGw.Name)
-	for _, policy := range policies {
-		fmt.Println("\tpolicy name:", policy.GetObject().GetName(), " -- targetRefs:", policy.GetTargetRefs())
-	}
 	orderedPolicies := utils.GetPrioritizedListenerPoliciesAllTargetRefs(policies, listener, parentGw.Name)
 	return orderedPolicies, nil
 }

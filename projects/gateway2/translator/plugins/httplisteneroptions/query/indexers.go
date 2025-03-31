@@ -17,7 +17,6 @@ func IterateIndices(f func(client.Object, string, client.IndexerFunc) error) err
 	return f(&solokubev1.HttpListenerOption{}, HttpListenerOptionTargetField, httpListenerOptionTargetRefIndexer)
 }
 
-// TODO: combine targetRefIndexers?
 func httpListenerOptionTargetRefIndexer(obj client.Object) []string {
 	lisOpt, ok := obj.(*solokubev1.HttpListenerOption)
 	if !ok {
