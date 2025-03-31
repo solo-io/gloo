@@ -4,5 +4,11 @@ changelog:
     Updated HTTP tunneling plugin to support HTTP CONNECT tunneling on all Upstreams, not just
     those bound to a Route. This allows Upstreams referenced by various settings (e.g. remote JWKS, 
     tracing, and more) to use a forward proxy without creating a Route for each Upstream.
+
+    To address clusters having their own lifecycle that differs from listeners in 
+    gateway2 causing issues with the HTTP tunneling configuration, a new plugin interface
+    for creating additional clusters and listeners from Upstreams has been added.
+    The additional clusters and listeners are added to the snapshot near the 
+    end of the gateway2 translations process.
   resolvesIssue: false
   issueLink: https://github.com/solo-io/solo-projects/issues/7497

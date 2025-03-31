@@ -29,9 +29,6 @@ var _ e2e.NewSuiteFunc = NewTestingSuite
 //go:embed testdata/squid.yaml
 var squidYaml []byte
 
-//go:embed testdata/proxy.yaml
-var proxyYaml []byte
-
 //go:embed testdata/edge.yaml
 var edgeYaml []byte
 
@@ -56,16 +53,15 @@ func NewTestingSuite(
 }
 
 func (s *testingSuite) SetupSuite() {
-	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, squidYaml)
-	s.Require().NoError(err)
-
-	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.HttpbinYaml)
+	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.HttpbinYaml)
 	s.Require().NoError(err)
 
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.CurlPodYaml)
 	s.Require().NoError(err)
+}
 
-	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, proxyYaml)
+func (s *testingSuite) BeforeTest(suiteName, testName string) {
+	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, squidYaml)
 	s.Require().NoError(err)
 
 	if s.testInstallation.Metadata.K8sGatewayEnabled {
@@ -77,7 +73,8 @@ func (s *testingSuite) SetupSuite() {
 	}
 }
 
-func (s *testingSuite) TearDownSuite() {
+// we have to tear down the envoy proxy to close the tunnel and get squid to write its logs
+func tearDown(s *testingSuite) {
 	if s.testInstallation.Metadata.K8sGatewayEnabled {
 		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, gatewayYaml)
 		s.Require().NoError(err)
@@ -85,26 +82,20 @@ func (s *testingSuite) TearDownSuite() {
 		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, edgeYaml)
 		s.Require().NoError(err)
 	}
+}
 
-	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, proxyYaml)
+func (s *testingSuite) AfterTest(suiteName, testName string) {
+	// cleanup squid after have a chance to get the logs
+	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, squidYaml)
 	s.Require().NoError(err)
+}
 
-	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.CurlPodYaml)
+func (s *testingSuite) TearDownSuite() {
+	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.CurlPodYaml)
 	s.Require().NoError(err)
 
 	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.HttpbinYaml)
 	s.Require().NoError(err)
-
-	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, squidYaml)
-	s.Require().NoError(err)
-}
-
-func (s *testingSuite) AfterTest(suiteName, testName string) {
-	if s.T().Failed() {
-		s.testInstallation.PreFailHandler(s.ctx, e2e.PreFailHandlerOption{
-			TestName: testName,
-		})
-	}
 }
 
 func (s *testingSuite) TestHttpTunnel() {
@@ -139,6 +130,9 @@ func (s *testingSuite) TestHttpTunnel() {
 			Body:       matchers.JSONContains([]byte(`{"headers":{"Host":["httpbin.example.com"]}}`)),
 		},
 	)
+
+	// tear down the envoy proxy to close the tunnel and get squid to write its logs
+	tearDown(s)
 
 	// confirm that the squid proxy connected to the httpbin service
 	s.testInstallation.AssertionsT(s.T()).Assert.Eventually(func() bool {

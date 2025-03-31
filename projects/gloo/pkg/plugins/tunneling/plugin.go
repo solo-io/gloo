@@ -148,7 +148,8 @@ func (p *plugin) UpstreamGeneratedResources(
 // GeneratedResources scans Upstreams for a tunneling configuration and sets up
 // clusters and listeners to forward traffic to an HTTP CONNECT supporting proxy.
 //
-// Deprecated: This method is not safe for use with krt. Use UpstreamGeneratedResources instead.
+// Deprecated: This methods is for the Edge (non-krt) translator and is not safe
+// to use with krt. Use UpstreamGeneratedResources instead.
 func (p *plugin) GeneratedResources(
 	params plugins.Params,
 	proxy *v1.Proxy,

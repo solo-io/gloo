@@ -1,4 +1,16 @@
 ---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: squid-proxy
+  namespace: default
+spec:
+  static:
+    hosts:
+    - addr: squid.default.svc.cluster.local
+      port: 3128
+  httpProxyHostname: "httpbin.httpbin.svc.cluster.local:8080"
+---
 apiVersion: v1
 kind: Pod
 metadata:
@@ -62,7 +74,7 @@ data:
     acl Safe_ports port 777		# multiling http
     acl CONNECT method CONNECT
     http_access deny !Safe_ports
-    #commented out to allow non-TSL connections
+    # commented out to allow non-TSL connections
     #http_access deny CONNECT !SSL_ports
     http_access allow localhost manager
     http_access deny manager
@@ -80,3 +92,5 @@ data:
     refresh_pattern \/(Translation-.*)(|\.bz2|\.gz|\.xz)$ 0 0% 0 refresh-ims
     refresh_pattern .		0	20%	4320
     logfile_rotate 0
+    # required to ensure the logs are flushed quickly and tests dont timeout
+    buffered_logs off

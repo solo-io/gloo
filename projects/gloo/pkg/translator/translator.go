@@ -133,7 +133,6 @@ func (t *translatorInstance) Translate(
 	routeConfigs, listeners := t.translateListenerSubsystemComponents(params, proxy, proxyReport)
 
 	// run Resource Generator Plugins
-	// TODO plugins using this interface should be updated to use the new UpstreamGeneratedResources interface
 	for _, plugin := range t.pluginRegistry.GetResourceGeneratorPlugins() {
 		newClusters, newEndpoints, newRouteConfigs, newListeners := plugin.GeneratedResources(params, proxy,
 			clusters, endpoints, routeConfigs, listeners, reports)
