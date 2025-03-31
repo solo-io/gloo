@@ -139,7 +139,7 @@ func TestUniqueClients(t *testing.T) {
 				g.Eventually(func() []krtcollections.UniqlyConnectedClient {
 					allUcc = ucc.List()
 					return allUcc
-				}, "1s").Should(HaveLen(len(tc.result)))
+				}, "1s").Should(HaveLen(len(tc.result) - (i + 1)))
 			}
 		})
 	}
