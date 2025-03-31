@@ -39,7 +39,7 @@ var _ = Describe("Reporting Infrastructure", func() {
 
 		It("should preserve conditions set externally", func() {
 			gw := gw()
-			gw.Status.Conditions = append(gw.Status.Conditions, metav1.Condition{
+			meta.SetStatusCondition(&gw.Status.Conditions, metav1.Condition{
 				Type:   "gloo.solo.io/SomeCondition",
 				Status: metav1.ConditionFalse,
 			})
