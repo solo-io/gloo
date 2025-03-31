@@ -230,11 +230,7 @@ func TestGetPrioritizedListenerPolicies(t *testing.T) {
 
 	prioritizedPolicies := utils.GetPrioritizedListenerPoliciesAllTargetRefs(policies, listener, "gw-1")
 
-	g.Expect(prioritizedPolicies).To(HaveLen(4))
-	g.Expect(prioritizedPolicies[0]).To(Equal(policy3.object))
-	g.Expect(prioritizedPolicies[1]).To(Equal(policy2.object))
-	g.Expect(prioritizedPolicies[2]).To(Equal(policy1.object))
-	g.Expect(prioritizedPolicies[3]).To(Equal(policy0.object))
+	g.Expect(prioritizedPolicies).To(BeEquivalentTo([]client.Object{policy3.object, policy2.object, policy1.object, policy0.object}))
 }
 
 func TestIndexTargetRefs(t *testing.T) {
