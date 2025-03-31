@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Pin the version of the FirebaseExtended/action-hosting-deploy action to v0.7.2, as the latest version is not compatible with our node version.
