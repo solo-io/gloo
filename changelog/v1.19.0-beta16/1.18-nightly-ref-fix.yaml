@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Fix the ref used for the scheduled weekly run of 1.18 e2e tests
+      
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
