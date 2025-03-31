@@ -431,7 +431,7 @@ func (r *gatewayQueries) wildcardNamespaceExists(ctx context.Context) (bool, err
 	if err == nil {
 		// Namespace exists
 		return true, nil
-	} else if err != nil && k8serrors.IsNotFound(err) {
+	} else if k8serrors.IsNotFound(err) {
 		// Namespace does not exist
 		return false, nil
 	}
