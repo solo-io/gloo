@@ -130,12 +130,19 @@ func TestUniqueClients(t *testing.T) {
 			}
 			g.Expect(fetchNames).To(Equal(tc.result))
 			g.Expect(names).To(Equal(tc.result))
+
+			// loop through i client
 			for i := range tc.requests {
+				// before calling OnStreamClosed we should still have n - i
+				// then we close the 10 connections we made for client `i`
 				for j := 0; j < 10; j++ {
 					g.Expect(ucc.List()).To(HaveLen(len(allUcc) - i))
 					cb.OnStreamClosed(int64(i*10 + j))
 				}
-				// propagating the event happens async
+
+				// now we've called OnStreamClosed for all 10 connections
+				// so we should have n - i - 1 remaining UCCs
+				// propagating the event happens async so use Eventually
 				g.Eventually(func() []krtcollections.UniqlyConnectedClient {
 					allUcc = ucc.List()
 					return allUcc
