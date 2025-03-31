@@ -180,6 +180,7 @@ type VirtualHostPlugin interface {
 // ResourceGeneratorPlugin modifies a set of xDS resources before they are persisted as a Snapshot
 type ResourceGeneratorPlugin interface {
 	Plugin
+	// Deprecated: Implement with krt-safe methods (e.g. UpstreamGeneratedResources) instead.
 	GeneratedResources(
 		params Params,
 		proxy *v1.Proxy,
@@ -189,6 +190,19 @@ type ResourceGeneratorPlugin interface {
 		inListeners []*envoy_config_listener_v3.Listener,
 		reports reporter.ResourceReports,
 	) ([]*envoy_config_cluster_v3.Cluster, []*envoy_config_endpoint_v3.ClusterLoadAssignment, []*envoy_config_route_v3.RouteConfiguration, []*envoy_config_listener_v3.Listener)
+}
+
+// UpstreamGeneratedResourcesPlugin creates additional xDS resources based on an upstream
+// before they are persisted as a Snapshot. This plugin intended to be used by Gloo/Edge
+// and krt based translation and not break the lifecycle differences between listeners and
+// clusters.
+type UpstreamGeneratedResourcesPlugin interface {
+	Plugin
+	UpstreamGeneratedResources(
+		params Params,
+		upstream *v1.Upstream,
+		inCluster *envoy_config_cluster_v3.Cluster,
+	) ([]*envoy_config_cluster_v3.Cluster, []*envoy_config_listener_v3.Listener, error)
 }
 
 // A PluginRegistry is used to provide Plugins to relevant translators
@@ -206,6 +220,7 @@ type PluginRegistry interface {
 	GetVirtualHostPlugins() []VirtualHostPlugin
 	GetResourceGeneratorPlugins() []ResourceGeneratorPlugin
 	GetUpstreamPlugins() []UpstreamPlugin
+	GetUpstreamGeneratedResourcesPlugins() []UpstreamGeneratedResourcesPlugin
 	GetEndpointPlugins() []EndpointPlugin
 	GetRoutePlugins() []RoutePlugin
 	GetRouteActionPlugins() []RouteActionPlugin

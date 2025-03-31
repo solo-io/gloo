@@ -22,8 +22,9 @@ import (
 )
 
 var (
-	_ plugins.Plugin                  = new(plugin)
-	_ plugins.ResourceGeneratorPlugin = new(plugin)
+	_ plugins.Plugin                           = new(plugin)
+	_ plugins.ResourceGeneratorPlugin          = new(plugin)
+	_ plugins.UpstreamGeneratedResourcesPlugin = new(plugin)
 )
 
 const (
@@ -46,8 +47,8 @@ func (p *plugin) Name() string {
 func (p *plugin) Init(_ plugins.InitParams) {
 }
 
-// GeneratedResources scans Upstreams for a tunneling configuration and sets up
-// clusters and listeners to forward traffic to an HTTP CONNECT supporting proxy.
+// UpstreamGeneratedResources checks the Upstream for a tunneling configuration
+// and sets up clusters and listeners to forward traffic to an HTTP CONNECT supporting proxy.
 //
 // HTTP CONNECT tunneling is provided by an Envoy Listener filter. To send traffic to the Listener,
 // we must generate a new forwarding Cluster. The generated Cluster sends traffic over
@@ -55,6 +56,99 @@ func (p *plugin) Init(_ plugins.InitParams) {
 //
 // The SSL configuration for the original cluster is copied to the generated cluster and the
 // supplied proxy SSL configuration is set on the original cluster.
+func (p *plugin) UpstreamGeneratedResources(
+	params plugins.Params,
+	in *v1.Upstream,
+	out *envoy_config_cluster_v3.Cluster,
+) ([]*envoy_config_cluster_v3.Cluster, []*envoy_config_listener_v3.Listener, error) {
+	var newClusters []*envoy_config_cluster_v3.Cluster
+	var newListeners []*envoy_config_listener_v3.Listener
+	var warning error
+
+	// skip if the upstream does not have tunneling enabled
+	httpProxyHostname := in.GetHttpProxyHostname().GetValue()
+	if httpProxyHostname == "" {
+		return nil, nil, nil
+	}
+
+	clusterName := out.GetName()
+
+	// change the original cluster name to avoid conflicts with the new cluster
+	newInClusterName := clusterName + OriginalClusterSuffix
+
+	// use an in-memory pipe to ourselves (only works on linux)
+	forwardingPipe := "@/" + clusterName
+
+	var originalTransportSocket *envoy_config_core_v3.TransportSocket
+	tunnelingHeaders := envoyHeadersFromHttpConnectHeaders(in)
+
+	newListener, err := generateForwardingTcpListener(clusterName, newInClusterName,
+		forwardingPipe, httpProxyHostname, tunnelingHeaders)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// we copy the transport socket to the generated cluster.
+	// the generated cluster will use upstream TLS context to leverage TLS origination;
+	if out.GetTransportSocket() != nil {
+		tmp := *out.GetTransportSocket()
+		originalTransportSocket = &tmp
+	}
+
+	// update the original cluster to use the new SSL configuration for the HTTP proxy, if provided
+	if in.GetHttpConnectSslConfig() != nil {
+		// user told us to configure ssl for the http connect proxy
+		cfg, err := utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(params.Snapshot.Secrets,
+			in.GetHttpConnectSslConfig())
+		if err != nil {
+			// if we are configured to warn on missing tls secret and we match that error, add a
+			// warning instead of error to the report.
+			if params.Settings.GetGateway().GetValidation().GetWarnMissingTlsSecret().GetValue() &&
+				errors.Is(err, utils.SslSecretNotFoundError) {
+				// return a warning that will get added to the report
+				warning = &translator.Warning{Message: err.Error()}
+			} else {
+				return nil, nil, err
+			}
+		} else {
+			typedConfig, err := utils.MessageToAny(cfg)
+			if err != nil {
+				return nil, nil, err
+			} else {
+				out.TransportSocket = &envoy_config_core_v3.TransportSocket{
+					Name:       wellknown.TransportSocketTls,
+					ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{TypedConfig: typedConfig},
+				}
+			}
+		}
+	} else {
+		// if no ssl config is provided, we need to remove the transport socket
+		out.TransportSocket = nil
+	}
+
+	// when we encapsulate in HTTP Connect the tcp data being proxied will
+	// be encrypted (thus we don't need the original transport socket metadata here)
+	out.TransportSocketMatches = nil
+
+	// generate new cluster with original cluster's name and transport socket that points to
+	// the new listener's pipe
+	newCluster := generateForwardingCluster(clusterName, forwardingPipe, originalTransportSocket)
+
+	// to avoid having to change the parent's reference to the new cluster, we change the name
+	// of the original cluster and use the original cluster name for the new cluster
+	// this saves this plugin having to know about every place a parent may reference a cluster
+	out.Name = newInClusterName
+
+	newClusters = append(newClusters, newCluster)
+	newListeners = append(newListeners, newListener)
+
+	return newClusters, newListeners, warning
+}
+
+// GeneratedResources scans Upstreams for a tunneling configuration and sets up
+// clusters and listeners to forward traffic to an HTTP CONNECT supporting proxy.
+//
+// Deprecated: This method is not safe for use with krt. Use UpstreamGeneratedResources instead.
 func (p *plugin) GeneratedResources(
 	params plugins.Params,
 	proxy *v1.Proxy,
@@ -87,117 +181,34 @@ func (p *plugin) GeneratedResources(
 		// regardless of whether we successfully process the upstream, mark it as processed
 		processedClusters.Insert(clusterName)
 
-		newCluster, newListener, warnings, err := processUpstream(params, us, inClusters)
-		// make sure to add warnings to the report before we handle the error
-		if len(warnings) > 0 {
-			for _, warning := range warnings {
-				reports.AddWarnings(us, warning.Error())
-			}
-		}
-
-		if err != nil {
-			reports.AddError(us, err)
+		// find the cluster to update
+		cluster := findClusters(inClusters, clusterName)
+		if cluster == nil {
+			reports.AddError(us, fmt.Errorf("The cluster for the %s Upstream was not found."+
+				"Check the status of the Upstream resources for errors.", clusterName))
 			continue
 		}
 
-		if newCluster != nil || newListener != nil {
-			newClusters = append(newClusters, newCluster)
-			newListeners = append(newListeners, newListener)
+		upstreamsClusters, upstreamsListeners, err := p.UpstreamGeneratedResources(params, us, cluster)
+		// make sure to add warnings to the report before we handle the error
+		if err != nil {
+			// check if err is a warning
+			var warning *translator.Warning
+			if errors.As(err, &warning) {
+				// add the warning to the report
+				reports.AddWarning(us, warning.Error())
+			} else {
+				// add the error to the report
+				reports.AddError(us, err)
+				continue
+			}
 		}
+
+		newClusters = append(newClusters, upstreamsClusters...)
+		newListeners = append(newListeners, upstreamsListeners...)
 	}
 
 	return newClusters, nil, nil, newListeners
-}
-
-func processUpstream(
-	params plugins.Params,
-	us *v1.Upstream,
-	inClusters []*envoy_config_cluster_v3.Cluster,
-) (*envoy_config_cluster_v3.Cluster, *envoy_config_listener_v3.Listener, []*translator.Warning, error) {
-	var warningList []*translator.Warning
-
-	// skip if the upstream does not have tunneling enabled
-	httpProxyHostname := us.GetHttpProxyHostname().GetValue()
-	if httpProxyHostname == "" {
-		return nil, nil, nil, nil
-	}
-
-	clusterName := translator.UpstreamToClusterName(us.GetMetadata().Ref())
-
-	// find the cluster to update
-	cluster := findClusters(inClusters, clusterName)
-	if cluster == nil {
-		return nil, nil, nil, fmt.Errorf("The cluster for the %s Upstream was not found."+
-			"Check the status of the Upstream resources for errors.", clusterName)
-	}
-
-	// change the original cluster name to avoid conflicts with the new cluster
-	newOriginalClusterName := clusterName + OriginalClusterSuffix
-
-	// use an in-memory pipe to ourselves (only works on linux)
-	forwardingPipe := "@/" + clusterName
-
-	var originalTransportSocket *envoy_config_core_v3.TransportSocket
-	tunnelingHeaders := envoyHeadersFromHttpConnectHeaders(us)
-
-	// create the listener with the tunneling configuration and point it the original clusters
-	newListener, err := generateForwardingTcpListener(clusterName, newOriginalClusterName,
-		forwardingPipe, httpProxyHostname, tunnelingHeaders)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	// we copy the transport socket to the generated cluster.
-	// the generated cluster will use upstream TLS context to leverage TLS origination;
-	if cluster.GetTransportSocket() != nil {
-		tmp := *cluster.GetTransportSocket()
-		originalTransportSocket = &tmp
-	}
-
-	// update the original cluster to use the new SSL configuration for the HTTP proxy, if provided
-	if us.GetHttpConnectSslConfig() != nil {
-		// user told us to configure ssl for the http connect proxy
-		cfg, err := utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(params.Snapshot.Secrets,
-			us.GetHttpConnectSslConfig())
-		if err != nil {
-			// if we are configured to warn on missing tls secret and we match that error, add a
-			// warning instead of error to the report.
-			if params.Settings.GetGateway().GetValidation().GetWarnMissingTlsSecret().GetValue() &&
-				errors.Is(err, utils.SslSecretNotFoundError) {
-				warningList = append(warningList, &translator.Warning{
-					Message: err.Error(),
-				})
-			} else {
-				return nil, nil, nil, err
-			}
-		} else {
-			typedConfig, err := utils.MessageToAny(cfg)
-			if err != nil {
-				return nil, nil, nil, err
-			} else {
-				cluster.TransportSocket = &envoy_config_core_v3.TransportSocket{
-					Name:       wellknown.TransportSocketTls,
-					ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{TypedConfig: typedConfig},
-				}
-			}
-		}
-	} else {
-		cluster.TransportSocket = nil
-	}
-
-	// when we encapsulate in HTTP Connect the tcp data being proxied will
-	// be encrypted (thus we don't need the original transport socket metadata here)
-	cluster.TransportSocketMatches = nil
-
-	// generate new cluster with original cluster's name and transport socket that points to
-	// the new listener's pipe
-	newCluster := generateForwardingCluster(clusterName, forwardingPipe, originalTransportSocket)
-
-	// to avoid having to change the parent's reference to the new cluster, we change the name
-	// of the original cluster and use the original cluster name for the new cluster
-	// this saves this plugin having to know about every place a parent may reference a cluster
-	cluster.Name = newOriginalClusterName
-
-	return newCluster, newListener, warningList, nil
 }
 
 // generateForwardingCluster generates a cluster will replace the original cluster and send
