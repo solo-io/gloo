@@ -39,7 +39,7 @@ func (r *ReportMap) BuildGWStatus(ctx context.Context, gw gwv1.Gateway) *gwv1.Ga
 			// copy old condition from gw so LastTransitionTime is set correctly below by SetStatusCondition()
 			if oldLisStatusIndex != -1 {
 				if cond := meta.FindStatusCondition(gw.Status.Listeners[oldLisStatusIndex].Conditions, lisCondition.Type); cond != nil {
-					finalConditions = append(finalConditions, *cond)
+					meta.SetStatusCondition(&finalConditions, *cond)
 				}
 			}
 			meta.SetStatusCondition(&finalConditions, lisCondition)
@@ -56,7 +56,7 @@ func (r *ReportMap) BuildGWStatus(ctx context.Context, gw gwv1.Gateway) *gwv1.Ga
 
 		// copy old condition from gw so LastTransitionTime is set correctly below by SetStatusCondition()
 		if cond := meta.FindStatusCondition(gw.Status.Conditions, gwCondition.Type); cond != nil {
-			finalConditions = append(finalConditions, *cond)
+			meta.SetStatusCondition(&finalConditions, *cond)
 		}
 		meta.SetStatusCondition(&finalConditions, gwCondition)
 	}
@@ -64,7 +64,7 @@ func (r *ReportMap) BuildGWStatus(ctx context.Context, gw gwv1.Gateway) *gwv1.Ga
 	// them in the final list of conditions to preseve conditions we do not own
 	for _, condition := range gw.Status.Conditions {
 		if meta.FindStatusCondition(finalConditions, condition.Type) == nil {
-			finalConditions = append(finalConditions, condition)
+			meta.SetStatusCondition(&finalConditions, condition)
 		}
 	}
 
@@ -221,7 +221,7 @@ func (r *ReportMap) BuildRouteStatus(ctx context.Context, obj client.Object, cNa
 
 			// Copy old condition to preserve LastTransitionTime, if it exists
 			if cond := meta.FindStatusCondition(currentParentRefConditions, pCondition.Type); cond != nil {
-				finalConditions = append(finalConditions, *cond)
+				meta.SetStatusCondition(&finalConditions, *cond)
 			}
 			meta.SetStatusCondition(&finalConditions, pCondition)
 		}
@@ -229,7 +229,7 @@ func (r *ReportMap) BuildRouteStatus(ctx context.Context, obj client.Object, cNa
 		// them in the final list of conditions to preseve conditions we do not own
 		for _, condition := range currentParentRefConditions {
 			if meta.FindStatusCondition(finalConditions, condition.Type) == nil {
-				finalConditions = append(finalConditions, condition)
+				meta.SetStatusCondition(&finalConditions, condition)
 			}
 		}
 

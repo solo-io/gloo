@@ -74,6 +74,7 @@ type Image struct {
 	FipsDigest           *string `json:"fipsDigest,omitempty"  desc:"The container image's hash digest (e.g. 'sha256:12345...'), consumed when variant=fips. If the image does not have a fips variant, this field will contain the digest for the standard image variant."`
 	DistrolessDigest     *string `json:"distrolessDigest,omitempty"  desc:"The container image's hash digest (e.g. 'sha256:12345...'), consumed when variant=distroless. If the image does not have a distroless variant, this field will contain the digest for the standard image variant."`
 	FipsDistrolessDigest *string `json:"fipsDistrolessDigest,omitempty"  desc:"The container image's hash digest (e.g. 'sha256:12345...'), consumed when variant=fips-distroless. If the image does not have a fips-distroless variant, this field will contain either the fips variant's digest (if supported), else the distroless variant's digest (if supported), else the standard variant's digest."`
+	DisableDigest        *bool   `json:"disableDigest,omitempty" desc:"Disables adding the container image's hash digest. Defaults to false"`
 	Registry             *string `json:"registry,omitempty" desc:"The image hostname prefix and registry, such as quay.io/solo-io."`
 	PullPolicy           *string `json:"pullPolicy,omitempty"  desc:"The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting"`
 	PullSecret           *string `json:"pullSecret,omitempty" desc:"The image pull secret to use for the container, in the same namespace as the container pod."`
@@ -345,11 +346,12 @@ type GatewayParameters struct {
 
 // GatewayProxyPodTemplate contains the Helm API available to configure the PodTemplate on the gateway Deployment
 type GatewayParamsPodTemplate struct {
-	GracefulShutdown              *GracefulShutdownSpec `json:"gracefulShutdown,omitempty" desc:"If enabled, it calls the /'healthcheck/fail' endpoint on the envoy container prior to shutdown. This is useful for draining a server prior to shutting it down or doing a full"`
-	TerminationGracePeriodSeconds *int                  `json:"terminationGracePeriodSeconds,omitempty" desc:"Time in seconds to wait for the pod to terminate gracefully. See [kubernetes docs](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#istio-lifecycle) for more info."`
-	Probes                        *bool                 `json:"probes,omitempty" desc:"Set to true to enable a readiness probe (default is false). Then, you can also enable a liveness probe."`
-	CustomReadinessProbe          *corev1.Probe         `json:"customReadinessProbe,omitempty" desc:"Defines a custom readiness probe. If not provided, a default one is set"`
-	CustomLivenessProbe           *corev1.Probe         `json:"customLivenessProbe,omitempty" desc:"Defines a custom liveness probe. If not specified, no default liveness probe is set"`
+	GracefulShutdown              *GracefulShutdownSpec             `json:"gracefulShutdown,omitempty" desc:"If enabled, it calls the /'healthcheck/fail' endpoint on the envoy container prior to shutdown. This is useful for draining a server prior to shutting it down or doing a full"`
+	TerminationGracePeriodSeconds *int                              `json:"terminationGracePeriodSeconds,omitempty" desc:"Time in seconds to wait for the pod to terminate gracefully. See [kubernetes docs](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#istio-lifecycle) for more info."`
+	Probes                        *bool                             `json:"probes,omitempty" desc:"Set to true to enable a readiness probe (default is false). Then, you can also enable a liveness probe."`
+	CustomReadinessProbe          *corev1.Probe                     `json:"customReadinessProbe,omitempty" desc:"Defines a custom readiness probe. If not provided, a default one is set."`
+	CustomLivenessProbe           *corev1.Probe                     `json:"customLivenessProbe,omitempty" desc:"Defines a custom liveness probe. If not specified, no default liveness probe is set."`
+	TopologySpreadConstraints     []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty" desc:"Default topology spread constraints. If not specified, pod topology spread constraints will be ignored."`
 }
 
 type GatewayParamsStatsConfig struct {

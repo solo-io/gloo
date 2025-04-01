@@ -181,7 +181,7 @@ func (d *Deployer) renderChartToObjects(gw *api.Gateway, vals map[string]any) ([
 	return objs, nil
 }
 
-// getGatewayParametersForGateway returns the a merged GatewayParameters object resulting from the default GwParams object and
+// getGatewayParametersForGateway returns the merged GatewayParameters object resulting from the default GwParams object and
 // the GwParam object specifically associated with the given Gateway (if one exists).
 func (d *Deployer) getGatewayParametersForGateway(ctx context.Context, gw *api.Gateway) (*v1alpha1.GatewayParameters, error) {
 	logger := log.FromContext(ctx)
@@ -347,6 +347,7 @@ func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway, gwParam *v1al
 	gateway.LivenessProbe = podConfig.GetLivenessProbe()
 	gateway.GracefulShutdown = podConfig.GetGracefulShutdown()
 	gateway.TerminationGracePeriodSeconds = podConfig.GetTerminationGracePeriodSeconds()
+	gateway.TopologySpreadConstraints = podConfig.GetTopologySpreadConstraints()
 
 	// envoy container values
 	logLevel := envoyContainerConfig.GetBootstrap().GetLogLevel()
