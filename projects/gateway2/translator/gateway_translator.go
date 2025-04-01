@@ -18,7 +18,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
-	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 // K8sGwTranslator This translator Translates K8s Gateway resources into Gloo Edge Proxies.
@@ -52,14 +51,10 @@ func (t *translator) consolidateGateway(ctx context.Context, gateway *gwv1.Gatew
 		return nil, err
 	}
 
-	listenerSets := make([]*gwxv1a1.XListenerSet, 0, len(ls))
-	for _, v := range ls {
-		listenerSets = append(listenerSets, v)
-	}
-
 	return &types.ConsolidatedGateway{
-		Gateway:      gateway,
-		ListenerSets: listenerSets,
+		Gateway:             gateway,
+		AllowedListenerSets: ls.AllowedListenerSets,
+		DeniedListenerSets:  ls.DeniedListenerSets,
 	}, nil
 }
 
@@ -114,7 +109,7 @@ func (t *translator) TranslateProxy(
 		reporter.Gateway(gateway).Listener(&listener).SetAttachedRoutes(uint(availRoutes))
 	}
 
-	for _, ls := range consolidatedGateway.ListenerSets {
+	for _, ls := range consolidatedGateway.AllowedListenerSets {
 		for _, listener := range consolidatedGateway.GetListeners(ls) {
 			availRoutes := 0
 			if res, ok := routesForGw.ListenerResults[query.GenerateListenerSetListenerKey(ls, string(listener.Name))]; ok {

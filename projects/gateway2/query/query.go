@@ -20,7 +20,6 @@ import (
 	apiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
-	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 var (
@@ -133,7 +132,7 @@ type GatewayQueries interface {
 	// GetRouteChain resolves backends and delegated routes for a the provided xRoute object
 	GetRouteChain(ctx context.Context, obj client.Object, hostnames []string, parentRef apiv1.ParentReference) *RouteInfo
 
-	GetListenerSetsForGateway(ctx context.Context, gw *gwv1.Gateway) ([]*gwxv1a1.XListenerSet, error)
+	GetListenerSetsForGateway(ctx context.Context, gw *gwv1.Gateway) (*ListenerSetsForGwResult, error)
 	GetRoutesForListenerSet(ctx context.Context, ls *apixv1a1.XListenerSet) (*RoutesForGwResult, error)
 	GetRoutesForConsolidatedGateway(ctx context.Context, cgw *translator_types.ConsolidatedGateway) (*RoutesForGwResult, error)
 }

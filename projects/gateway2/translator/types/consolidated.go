@@ -3,35 +3,30 @@ package types
 import (
 	"fmt"
 
+	"github.com/solo-io/gloo/projects/gateway2/utils"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 type ConsolidatedGateway struct {
-	Gateway      *gwv1.Gateway
-	ListenerSets []*gwxv1a1.XListenerSet
+	Gateway               *gwv1.Gateway
+	AllowedListenerSets   []*gwxv1a1.XListenerSet
+	DeniedListenerSets    []*gwxv1a1.XListenerSet
+	ListenerSetsListeners map[string][]gwv1.Listener
 }
 
 func (cgw *ConsolidatedGateway) GetListeners(ls *gwxv1a1.XListenerSet) []gwv1.Listener {
-	var listeners []gwv1.Listener
 
-	toListener := func(le *gwxv1a1.ListenerEntry) *gwv1.Listener {
-		copy := le.DeepCopy()
-		return &gwv1.Listener{
-			Name:          copy.Name,
-			Hostname:      copy.Hostname,
-			Port:          copy.Port,
-			Protocol:      copy.Protocol,
-			TLS:           copy.TLS,
-			AllowedRoutes: copy.AllowedRoutes,
-		}
+	if cgw.ListenerSetsListeners == nil {
+		cgw.ListenerSetsListeners = make(map[string][]gwv1.Listener)
 	}
 
-	for _, l := range ls.Spec.Listeners {
-		listeners = append(listeners, *toListener(&l))
+	if listeners, ok := cgw.ListenerSetsListeners[generateListenerSetKey(ls)]; ok {
+		return listeners
 	}
 
-	return listeners
+	cgw.ListenerSetsListeners[generateListenerSetKey(ls)] = utils.ToListenerSlice(ls.Spec.Listeners)
+	return cgw.ListenerSetsListeners[generateListenerSetKey(ls)]
 }
 
 type ConsolidatedListeners struct {
@@ -43,16 +38,16 @@ func (cl *ConsolidatedListeners) SetListenerSetListeners(ls *gwxv1a1.XListenerSe
 	if cl.ListenerSetListeners == nil {
 		cl.ListenerSetListeners = make(map[string][]gwv1.Listener)
 	}
-	cl.ListenerSetListeners[cl.ListenerSetListenersKey(ls)] = listeners
+	cl.ListenerSetListeners[generateListenerSetKey(ls)] = listeners
 }
 
 func (cl *ConsolidatedListeners) GetListenerSetListeners(ls *gwxv1a1.XListenerSet) []gwv1.Listener {
 	if cl.ListenerSetListeners == nil {
 		return nil
 	}
-	return cl.ListenerSetListeners[cl.ListenerSetListenersKey(ls)]
+	return cl.ListenerSetListeners[generateListenerSetKey(ls)]
 }
 
-func (cl *ConsolidatedListeners) ListenerSetListenersKey(ls *gwxv1a1.XListenerSet) string {
+func generateListenerSetKey(ls *gwxv1a1.XListenerSet) string {
 	return fmt.Sprintf("%s/%s", ls.GetNamespace(), ls.GetName())
 }

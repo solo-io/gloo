@@ -430,7 +430,7 @@ func (r *gatewayQueries) GetRoutesForConsolidatedGateway(ctx context.Context, cg
 		return nil, err
 	}
 
-	for _, ls := range cgw.ListenerSets {
+	for _, ls := range cgw.AllowedListenerSets {
 		lsRoutes, err := r.GetRoutesForResource(ctx, ls)
 
 		if err != nil {

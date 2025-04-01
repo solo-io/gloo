@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"slices"
 
+	"github.com/solo-io/gloo/projects/gateway2/utils"
 	"github.com/solo-io/go-utils/contextutils"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -79,45 +80,43 @@ func (r *ReportMap) BuildListenerSetStatus(ctx context.Context, ls gwxv1a1.XList
 		return nil
 	}
 
-	toListener := func(le gwxv1a1.ListenerEntry) gwv1.Listener {
-		copy := le.DeepCopy()
-		return gwv1.Listener{
-			Name:          copy.Name,
-			Hostname:      copy.Hostname,
-			Port:          copy.Port,
-			Protocol:      copy.Protocol,
-			TLS:           copy.TLS,
-			AllowedRoutes: copy.AllowedRoutes,
-		}
-	}
-
 	finalListeners := make([]gwv1.ListenerStatus, 0, len(ls.Spec.Listeners))
-	for _, l := range ls.Spec.Listeners {
-		lis := toListener(l)
-		lisReport := lsReport.listener(&lis)
-		addMissingListenerConditions(lisReport)
 
-		finalConditions := make([]metav1.Condition, 0, len(lisReport.Status.Conditions))
-		oldLisStatusIndex := slices.IndexFunc(ls.Status.Listeners, func(l gwxv1a1.ListenerEntryStatus) bool {
-			return l.Name == lis.Name
-		})
-		for _, lisCondition := range lisReport.Status.Conditions {
-			lisCondition.ObservedGeneration = lsReport.observedGeneration
-
-			// copy old condition from gw so LastTransitionTime is set correctly below by SetStatusCondition()
-			if oldLisStatusIndex != -1 {
-				if cond := meta.FindStatusCondition(ls.Status.Listeners[oldLisStatusIndex].Conditions, lisCondition.Type); cond != nil {
-					finalConditions = append(finalConditions, *cond)
-				}
-			}
-			meta.SetStatusCondition(&finalConditions, lisCondition)
+	listenerSetRejected := func(lsReport *ListenerSetReport) bool {
+		if cond := meta.FindStatusCondition(lsReport.GetConditions(), string(gwv1.GatewayConditionAccepted)); cond != nil {
+			return cond.Status == metav1.ConditionFalse
 		}
-		lisReport.Status.Conditions = finalConditions
-		finalListeners = append(finalListeners, lisReport.Status)
-		fmt.Println("========== finalListeners : ", finalListeners)
+		return false
 	}
 
-	addMissingGatewayConditions(r.ListenerSet(&ls))
+	if !listenerSetRejected(lsReport) {
+		for _, l := range ls.Spec.Listeners {
+			lis := utils.ToListener(l)
+			lisReport := lsReport.listener(&lis)
+			addMissingListenerConditions(lisReport)
+
+			finalConditions := make([]metav1.Condition, 0, len(lisReport.Status.Conditions))
+			oldLisStatusIndex := slices.IndexFunc(ls.Status.Listeners, func(l gwxv1a1.ListenerEntryStatus) bool {
+				return l.Name == lis.Name
+			})
+			for _, lisCondition := range lisReport.Status.Conditions {
+				lisCondition.ObservedGeneration = lsReport.observedGeneration
+
+				// copy old condition from gw so LastTransitionTime is set correctly below by SetStatusCondition()
+				if oldLisStatusIndex != -1 {
+					if cond := meta.FindStatusCondition(ls.Status.Listeners[oldLisStatusIndex].Conditions, lisCondition.Type); cond != nil {
+						finalConditions = append(finalConditions, *cond)
+					}
+				}
+				meta.SetStatusCondition(&finalConditions, lisCondition)
+			}
+			lisReport.Status.Conditions = finalConditions
+			finalListeners = append(finalListeners, lisReport.Status)
+			fmt.Println("========== finalListeners : ", finalListeners)
+		}
+	}
+
+	addMissingListenerSetConditions(r.ListenerSet(&ls))
 
 	finalConditions := make([]metav1.Condition, 0)
 	for _, gwCondition := range lsReport.GetConditions() {
@@ -258,6 +257,26 @@ func addMissingGatewayConditions(gwReport *GatewayReport) {
 	}
 	if cond := meta.FindStatusCondition(gwReport.GetConditions(), string(gwv1.GatewayConditionProgrammed)); cond == nil {
 		gwReport.SetCondition(GatewayCondition{
+			Type:   gwv1.GatewayConditionProgrammed,
+			Status: metav1.ConditionTrue,
+			Reason: gwv1.GatewayReasonProgrammed,
+		})
+	}
+}
+
+// Reports will initially only contain negative conditions found during translation,
+// so all missing conditions are assumed to be positive. Here we will add all missing conditions
+// to a given report, i.e. set healthy conditions
+func addMissingListenerSetConditions(lsReport *ListenerSetReport) {
+	if cond := meta.FindStatusCondition(lsReport.GetConditions(), string(gwv1.GatewayConditionAccepted)); cond == nil {
+		lsReport.SetCondition(GatewayCondition{
+			Type:   gwv1.GatewayConditionAccepted,
+			Status: metav1.ConditionTrue,
+			Reason: gwv1.GatewayReasonAccepted,
+		})
+	}
+	if cond := meta.FindStatusCondition(lsReport.GetConditions(), string(gwv1.GatewayConditionProgrammed)); cond == nil {
+		lsReport.SetCondition(GatewayCondition{
 			Type:   gwv1.GatewayConditionProgrammed,
 			Status: metav1.ConditionTrue,
 			Reason: gwv1.GatewayReasonProgrammed,

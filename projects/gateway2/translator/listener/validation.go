@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 const NormalizedHTTPSTLSType = "HTTPS/TLS"
@@ -124,11 +125,33 @@ func validateAllListeners(consolidatedGateway *types.ConsolidatedGateway, report
 	consolidatedListeners := &types.ConsolidatedListeners{}
 	consolidatedListeners.GatewayListeners = validateListeners(consolidatedGateway.Gateway.Spec.Listeners, reporter.Gateway(consolidatedGateway.Gateway))
 
-	for _, ls := range consolidatedGateway.ListenerSets {
+	validateListenerSets(consolidatedGateway, reporter)
+
+	for _, ls := range consolidatedGateway.AllowedListenerSets {
 		consolidatedListeners.SetListenerSetListeners(ls, validateListeners(consolidatedGateway.GetListeners(ls), reporter.ListenerSet(ls)))
 	}
 
 	return consolidatedListeners
+}
+
+func validateListenerSets(consolidatedGateway *types.ConsolidatedGateway, reporter reports.Reporter) {
+	for _, ls := range consolidatedGateway.DeniedListenerSets {
+		fmt.Println("============ consolidatedGateway.DeniedListenerSets : ", ls.Name, ls.Namespace)
+		rejectListenerSet(ls, reporter.ListenerSet(ls))
+	}
+}
+
+func rejectListenerSet(ls *gwxv1a1.XListenerSet, reporter reports.GatewayReporter) {
+	reporter.SetCondition(reports.GatewayCondition{
+		Type:   gwv1.GatewayConditionAccepted,
+		Status: metav1.ConditionFalse,
+		Reason: gwv1.GatewayConditionReason(gwxv1a1.ListenerSetReasonNotAllowed),
+	})
+	reporter.SetCondition(reports.GatewayCondition{
+		Type:   gwv1.GatewayConditionProgrammed,
+		Status: metav1.ConditionFalse,
+		Reason: gwv1.GatewayConditionReason(gwxv1a1.ListenerSetReasonNotAllowed),
+	})
 }
 
 func validateListeners(listeners []gwv1.Listener, reporter reports.GatewayReporter) []gwv1.Listener {

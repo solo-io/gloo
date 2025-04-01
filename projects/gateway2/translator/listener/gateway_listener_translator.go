@@ -67,7 +67,7 @@ func mergeConsolidatedListeners(
 	}
 
 	mergeGWListeners(ml, consolidatedListeners.GatewayListeners, routesForGw, reporter.Gateway(consolidatedGateway.Gateway), nil)
-	for _, ls := range consolidatedGateway.ListenerSets {
+	for _, ls := range consolidatedGateway.AllowedListenerSets {
 		mergeGWListeners(ml, consolidatedListeners.GetListenerSetListeners(ls), routesForGw, reporter.ListenerSet(ls), ls)
 	}
 	return ml
