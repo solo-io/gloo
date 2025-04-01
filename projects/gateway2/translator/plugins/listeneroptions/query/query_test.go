@@ -316,6 +316,8 @@ func attachedListenerOptionMultipleTargetRefHit() *solokubev1.ListenerOption {
 		},
 	}
 }
+
+// This is the same as attachedListenerOptionMultipleTargetRefHit, but the first targetRef is not the one that matches the listener
 func attachedListenerOptionMultipleTargetRefNotFirst() *solokubev1.ListenerOption {
 	now := metav1.Now()
 	return &solokubev1.ListenerOption{

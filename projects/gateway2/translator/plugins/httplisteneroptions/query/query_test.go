@@ -316,6 +316,8 @@ func attachedHttpListenerOptionMultipleTargetRefHit() *solokubev1.HttpListenerOp
 		},
 	}
 }
+
+// This is the same as attachedHttpListenerOptionMultipleTargetRefHit, but the first targetRef is not the one that matches the listener
 func attachedHttpListenerOptionMultipleTargetRefNotFirst() *solokubev1.HttpListenerOption {
 	now := metav1.Now()
 	return &solokubev1.HttpListenerOption{

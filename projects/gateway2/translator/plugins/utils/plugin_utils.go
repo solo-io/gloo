@@ -205,7 +205,6 @@ func GetPrioritizedListenerPoliciesAllTargetRefs[T client.Object](
 				// we have a section name, now check if it matches the specific listener provided
 				if sectionName.GetValue() == string(listener.Name) {
 					optsWithSectionName = append(optsWithSectionName, item.GetObject())
-					// break?
 				}
 			} else {
 				appendOptsWithoutSectionName = true
