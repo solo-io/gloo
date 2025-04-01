@@ -45,10 +45,12 @@ func (r *gatewayQueries) GetListenerSetsForGateway(ctx context.Context, gw *gwv1
 func (r *gatewayQueries) processListenerSets(ctx context.Context, gw *gwv1.Gateway, listenerSets []*gwxv1a1.XListenerSet, ret *ListenerSetsForGwResult) error {
 
 	for _, ls := range listenerSets {
+		fmt.Println("=============== processListenerSets", ls.Name)
 
 		allowedNs, err := r.allowedListenerSets(gw)
 		if err != nil {
 			// lr.Error = err
+			fmt.Println("=============== processListenerSets.err", err, ls.Name)
 			ret.DeniedListenerSets = append(ret.DeniedListenerSets, ls)
 			continue
 		}
@@ -59,6 +61,7 @@ func (r *gatewayQueries) processListenerSets(ctx context.Context, gw *gwv1.Gatew
 			continue
 		}
 
+		fmt.Println("=============== processListenerSets.allowed", ls.Name)
 		ret.AllowedListenerSets = append(ret.AllowedListenerSets, ls)
 	}
 
@@ -70,11 +73,10 @@ func (r *gatewayQueries) processListenerSets(ctx context.Context, gw *gwv1.Gatew
 
 func (r *gatewayQueries) allowedListenerSets(gw *gwv1.Gateway) (func(string) bool, error) {
 	// Default to None
-	allowedNs := func(_ string) bool {
-		return false
-	}
+	allowedNs := NoNamespace()
 
 	if al := gw.Spec.AllowedListeners; al != nil {
+		fmt.Println("================ allowedListenerSets", al)
 		// Determine the allowed namespaces if specified
 		if al.Namespaces != nil && al.Namespaces.From != nil {
 			switch *al.Namespaces.From {

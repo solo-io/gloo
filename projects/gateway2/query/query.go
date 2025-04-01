@@ -500,6 +500,12 @@ func AllNamespace() func(string) bool {
 	}
 }
 
+func NoNamespace() func(string) bool {
+	return func(s string) bool {
+		return false
+	}
+}
+
 func (r *gatewayQueries) NamespaceSelector(sel labels.Selector) func(string) bool {
 	return func(s string) bool {
 		var ns corev1.Namespace
