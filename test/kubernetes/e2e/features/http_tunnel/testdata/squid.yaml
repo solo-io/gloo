@@ -92,5 +92,3 @@ data:
     refresh_pattern \/(Translation-.*)(|\.bz2|\.gz|\.xz)$ 0 0% 0 refresh-ims
     refresh_pattern .		0	20%	4320
     logfile_rotate 0
-    # required to ensure the logs are flushed quickly and tests dont timeout
-    buffered_logs off

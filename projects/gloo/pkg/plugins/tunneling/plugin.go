@@ -56,6 +56,10 @@ func (p *plugin) Init(_ plugins.InitParams) {
 //
 // The SSL configuration for the original cluster is copied to the generated cluster and the
 // supplied proxy SSL configuration is set on the original cluster.
+//
+// It's important that this method not modify the original cluster UNTIL AFTER all possible
+// error cases have been checked. We don't want to partially transform the cluster and
+// the additional cluster/listener to be generated if we encounter an error.
 func (p *plugin) UpstreamGeneratedResources(
 	params plugins.Params,
 	in *v1.Upstream,
@@ -271,6 +275,8 @@ func generateForwardingTcpListener(
 		return nil, err
 	}
 
+	// FUTURE: considering using an internal listener
+	// https://www.envoyproxy.io/docs/envoy/latest/configuration/other_features/internal_listener
 	return &envoy_config_listener_v3.Listener{
 		Name: forwardingListenerPrefix + cluster,
 		Address: &envoy_config_core_v3.Address{

@@ -134,6 +134,12 @@ func (t *translatorInstance) Translate(
 
 	// run Resource Generator Plugins
 	for _, plugin := range t.pluginRegistry.GetResourceGeneratorPlugins() {
+		// GeneratedResources is deprecated and being replaced by UpstreamGeneratedResources
+		// The plan is to move the few remaining plugins in Gloo/EE to use the new
+		// interface. Once that is done and the new interface is called in the Gloo translation
+		// path, we can remove this code.
+		// During this transition period, gateway2 will call both interfaces and it's translator
+		// has (must have) checks that prevent duplicate resources from being added.
 		newClusters, newEndpoints, newRouteConfigs, newListeners := plugin.GeneratedResources(params, proxy,
 			clusters, endpoints, routeConfigs, listeners, reports)
 		clusters = append(clusters, newClusters...)
