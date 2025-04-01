@@ -99,6 +99,8 @@ type ProxySyncer struct {
 	allowedGatewayClasses sets.Set[string]
 
 	waitForSync []cache.InformerSynced
+
+	pluginRegistry registry.PluginRegistry
 }
 
 type GatewayInputChannels struct {
@@ -137,7 +139,7 @@ func NewProxySyncer(
 	proxyReconcileQueue ggv2utils.AsyncQueue[gloov1.ProxyList],
 	allowedGatewayClasses sets.Set[string],
 ) *ProxySyncer {
-	return &ProxySyncer{
+	s := &ProxySyncer{
 		initialSettings:     initialSettings,
 		controllerName:      controllerName,
 		writeNamespace:      writeNamespace,
@@ -160,6 +162,9 @@ func NewProxySyncer(
 		translator:            translator,
 		allowedGatewayClasses: allowedGatewayClasses,
 	}
+
+	s.pluginRegistry = s.k8sGwExtensions.CreatePluginRegistry(context.Background())
+	return s
 }
 
 type ProxyTranslator struct {
@@ -428,7 +433,7 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 		return proxy
 	}, withDebug, krt.WithName("GlooProxies"))
 	s.mostXdsSnapshots = krt.NewCollection(glooProxies, func(kctx krt.HandlerContext, proxy glooProxy) *XdsSnapWrapper {
-		// we are recomputing xds snapshots as proxies have changed, signal that we need to sync xds with these new snapshots
+		// We are recomputing xds snapshots as proxies have changed, signal that we need to sync xds with these new snapshots
 		xdsSnap := s.translateProxy(
 			ctx,
 			kctx,
@@ -577,7 +582,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		if o.Event != controllers.EventDelete {
 			l = o.Latest().list
 		}
-		s.reconcileProxies(l)
+		s.reconcileProxies(ctx, l)
 	})
 
 	go func() {
@@ -663,7 +668,8 @@ func (s *ProxySyncer) buildProxy(ctx context.Context, gw *gwv1.Gateway) *glooPro
 	stopwatch := statsutils.NewTranslatorStopWatch("ProxySyncer")
 	stopwatch.Start()
 
-	pluginRegistry := s.k8sGwExtensions.CreatePluginRegistry(ctx)
+	pluginRegistry := s.pluginRegistry
+	//pluginRegistry := s.k8sGwExtensions.CreatePluginRegistry(ctx)
 	rm := reports.NewReportMap()
 	r := reports.NewReporter(&rm)
 
@@ -1021,7 +1027,11 @@ func (s *ProxySyncer) syncGatewayStatus(ctx context.Context, rm reports.ReportMa
 // There are two reasons we must make these proxies available to legacy syncer:
 // 1. To allow Rate Limit extensions to work, as it only syncs RL configs it finds used on Proxies in the snapshots
 // 2. For debug tooling, notably the debug.ProxyEndpointServer
-func (s *ProxySyncer) reconcileProxies(proxyList gloov1.ProxyList) {
+func (s *ProxySyncer) reconcileProxies(ctx context.Context, proxyList gloov1.ProxyList) {
+	// Before we reconcile the proxies, we need to create a new plugin registry for the new set of proxies
+	// This is because the plugin registry is stored on the ProxySyncer struct in order to persist status messages across proxies
+	// and we need to make sure we have a new registry for the new set of proxies
+	s.pluginRegistry = s.k8sGwExtensions.CreatePluginRegistry(ctx)
 	// gloo edge v1 will read from this queue
 	s.proxyReconcileQueue.Enqueue(proxyList)
 }
