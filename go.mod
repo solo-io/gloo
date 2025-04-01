@@ -100,6 +100,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/mccutchen/go-httpbin/v2 v2.15.0
+	github.com/prometheus/client_golang v1.21.1
 	github.com/prometheus/client_model v0.6.1
 	github.com/prometheus/common v0.62.0
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22
@@ -401,6 +402,8 @@ replace (
 	k8s.io/kubectl => k8s.io/kubectl v0.32.2
 	k8s.io/metrics => k8s.io/metrics v0.32.2
 	k8s.io/utils => k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738
+
+	sigs.k8s.io/gateway-api => sigs.k8s.io/gateway-api v1.2.1-0.20250319182233-e68481c526a7
 )
 
 exclude (
