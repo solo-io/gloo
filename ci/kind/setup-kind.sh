@@ -18,7 +18,7 @@ IMAGE_VARIANT="${IMAGE_VARIANT:-standard}"
 # If true, run extra steps to set up k8s gateway api conformance test environment
 CONFORMANCE="${CONFORMANCE:-false}"
 # The version of the k8s gateway api conformance tests to run. Requires CONFORMANCE=true
-CONFORMANCE_VERSION="e68481c526a7cc0b1989914cad540f95aa6d4036"
+CONFORMANCE_VERSION="1.3.0-rc.1"
 # The channel of the k8s gateway api conformance tests to run. Requires CONFORMANCE=true
 CONFORMANCE_CHANNEL="${CONFORMANCE_CHANNEL:-"experimental"}"
 # The version of Cilium to install.
