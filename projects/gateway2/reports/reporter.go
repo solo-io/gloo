@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/solo-io/go-utils/contextutils"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
@@ -154,7 +155,7 @@ func (g *GatewayReport) SetCondition(gc GatewayCondition) {
 		Reason:  string(gc.Reason),
 		Message: gc.Message,
 	}
-	g.conditions = append(g.conditions, condition)
+	meta.SetStatusCondition(&g.conditions, condition)
 }
 
 func NewListenerReport(name string) *ListenerReport {
@@ -170,7 +171,7 @@ func (l *ListenerReport) SetCondition(lc ListenerCondition) {
 		Reason:  string(lc.Reason),
 		Message: lc.Message,
 	}
-	l.Status.Conditions = append(l.Status.Conditions, condition)
+	meta.SetStatusCondition(&l.Status.Conditions, condition)
 }
 
 func (l *ListenerReport) SetSupportedKinds(rgks []gwv1.RouteGroupKind) {
@@ -267,7 +268,7 @@ func (prr *ParentRefReport) SetCondition(rc RouteCondition) {
 		Reason:  string(rc.Reason),
 		Message: rc.Message,
 	}
-	prr.Conditions = append(prr.Conditions, condition)
+	meta.SetStatusCondition(&prr.Conditions, condition)
 }
 
 func NewReporter(reportMap *ReportMap) Reporter {
