@@ -1,0 +1,6 @@
+changelog:
+- type: NON_USER_FACING
+  description: >-
+    Fix a test flake for TestUniqueClients (not a bug).
+  issueLink: https://github.com/solo-io/solo-projects/issues/10720
+  resolvesIssue: true
