@@ -12,8 +12,8 @@ require (
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/cncf/xds/go v0.0.0-20250121191232-2f005788dc42
 	github.com/cratonica/2goarray v0.0.0-20190331194516-514510793eaa
-	github.com/envoyproxy/go-control-plane/contrib v1.32.5-0.20250308005450-523a3f773484
-	github.com/envoyproxy/go-control-plane/envoy v1.32.5-0.20250308005450-523a3f773484
+	github.com/envoyproxy/go-control-plane/contrib v1.32.5-0.20250328202736-d2aa792b145a
+	github.com/envoyproxy/go-control-plane/envoy v1.32.5-0.20250328202736-d2aa792b145a
 	github.com/envoyproxy/go-control-plane/ratelimit v0.1.0
 	github.com/envoyproxy/protoc-gen-validate v1.2.1
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible
@@ -70,23 +70,23 @@ require (
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.36.0
 	golang.org/x/sync v0.12.0
-	golang.org/x/tools v0.29.0
+	golang.org/x/tools v0.30.0
 	google.golang.org/grpc v1.71.0
-	google.golang.org/protobuf v1.36.5
+	google.golang.org/protobuf v1.36.6
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	helm.sh/helm/v3 v3.17.1
 	k8s.io/api v0.32.3
 	k8s.io/apiextensions-apiserver v0.32.3
 	k8s.io/apimachinery v0.32.3
 	k8s.io/client-go v0.32.3
-	k8s.io/code-generator v0.32.2
+	k8s.io/code-generator v0.32.3
 	k8s.io/component-base v0.32.3
 	k8s.io/kubectl v0.32.3
 	k8s.io/utils v0.0.0-20241210054802-24370beab758
 	knative.dev/networking v0.0.0-20211210083629-bace06e98aee
 	knative.dev/pkg v0.0.0-20211206113427-18589ac7627e
 	sigs.k8s.io/controller-runtime v0.20.3
-	sigs.k8s.io/gateway-api v1.2.1
+	sigs.k8s.io/gateway-api v1.3.0-rc.1.0.20250328231839-d923573c45ef
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -107,14 +107,14 @@ require (
 	github.com/stoewer/go-strcase v1.3.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20241215155358-4a5509556b9e
-	golang.org/x/mod v0.22.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20250311190419-81fb87f6b8bf
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250311190419-81fb87f6b8bf
-	istio.io/api v1.25.0-alpha.0.0.20250317161920-141038b5c1a3
-	istio.io/client-go v1.25.0-alpha.0.0.20250317162716-a00da0a87646
-	istio.io/istio v0.0.0-20250320163343-0f67335414a5
-	sigs.k8s.io/controller-tools v0.16.5
-	sigs.k8s.io/structured-merge-diff/v4 v4.5.0
+	golang.org/x/mod v0.23.0
+	google.golang.org/genproto/googleapis/api v0.0.0-20250324211829-b45e905df463
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463
+	istio.io/api v1.25.0-alpha.0.0.20250401070747-f55d9659dc27
+	istio.io/client-go v1.25.0-alpha.0.0.20250401071445-73edf716803d
+	istio.io/istio v0.0.0-20250401192846-53f0689d0df1
+	sigs.k8s.io/controller-tools v0.17.2
+	sigs.k8s.io/structured-merge-diff/v4 v4.6.0
 )
 
 require (
@@ -323,7 +323,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/net v0.37.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/oauth2 v0.28.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
@@ -402,7 +402,7 @@ replace (
 	k8s.io/metrics => k8s.io/metrics v0.32.2
 	k8s.io/utils => k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738
 
-	sigs.k8s.io/gateway-api => sigs.k8s.io/gateway-api v1.2.1-0.20250319182233-e68481c526a7
+	sigs.k8s.io/gateway-api => sigs.k8s.io/gateway-api v1.3.0-rc.1
 )
 
 exclude (
