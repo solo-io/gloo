@@ -60,20 +60,57 @@ func mergeConsolidatedListeners(
 	reporter reports.Reporter,
 ) *MergedListeners {
 	ml := &MergedListeners{
-		consolidatedGateway:   consolidatedGateway,
-		consolidatedListeners: consolidatedListeners,
-		GatewayNamespace:      gatewayNamespace,
-		Queries:               queries,
+		parentGw:         *consolidatedGateway.Gateway,
+		GatewayNamespace: gatewayNamespace,
+		Queries:          queries,
 	}
 
-	mergeGWListeners(ml, consolidatedListeners.GatewayListeners, routesForGw, reporter.Gateway(consolidatedGateway.Gateway), nil)
-	for _, ls := range consolidatedGateway.AllowedListenerSets {
-		mergeGWListeners(ml, consolidatedListeners.GetListenerSetListeners(ls), routesForGw, reporter.ListenerSet(ls), ls)
-	}
+	mergeListeners(ml, consolidatedListeners.GatewayListeners, routesForGw, reporter.Gateway(consolidatedGateway.Gateway), nil)
+	mergeListenerSetListeners(ml, consolidatedListeners, consolidatedGateway, routesForGw, reporter)
 	return ml
 }
 
-func mergeGWListeners(
+func mergeListenerSetListeners(
+	mergedListeners *MergedListeners,
+	consolidatedListeners *types.ConsolidatedListeners,
+	consolidatedGateway *types.ConsolidatedGateway,
+	routesForGw *query.RoutesForGwResult,
+	reporter reports.Reporter,
+) {
+
+	const AttachedListenerSetsConditionType = "AttachedListenerSets"
+
+	if consolidatedGateway.AllowedListenerSets == nil {
+		reporter.Gateway(consolidatedGateway.Gateway).SetCondition(reports.GatewayCondition{
+			Type:   AttachedListenerSetsConditionType,
+			Status: metav1.ConditionUnknown,
+			Reason: gwv1.GatewayReasonNoResources,
+		})
+		return
+	}
+
+	initialListenerCount := len(mergedListeners.Listeners)
+	for _, ls := range consolidatedGateway.AllowedListenerSets {
+		mergeListeners(mergedListeners, consolidatedListeners.GetListenerSetListeners(ls), routesForGw, reporter.ListenerSet(ls), ls)
+	}
+
+	finalListenerCount := len(mergedListeners.Listeners)
+	if finalListenerCount > initialListenerCount {
+		reporter.Gateway(consolidatedGateway.Gateway).SetCondition(reports.GatewayCondition{
+			Type:   AttachedListenerSetsConditionType,
+			Status: metav1.ConditionTrue,
+			Reason: gwv1.GatewayReasonAccepted,
+		})
+	} else {
+		reporter.Gateway(consolidatedGateway.Gateway).SetCondition(reports.GatewayCondition{
+			Type:   AttachedListenerSetsConditionType,
+			Status: metav1.ConditionFalse,
+			Reason: gwv1.GatewayReasonNoResources,
+		})
+	}
+}
+
+func mergeListeners(
 	mergedListeners *MergedListeners,
 	listeners []gwv1.Listener,
 	routesForGw *query.RoutesForGwResult,
@@ -105,11 +142,10 @@ func mergeGWListeners(
 }
 
 type MergedListeners struct {
-	GatewayNamespace      string
-	consolidatedListeners *types.ConsolidatedListeners
-	consolidatedGateway   *types.ConsolidatedGateway
-	Listeners             []*MergedListener
-	Queries               query.GatewayQueries
+	GatewayNamespace string
+	parentGw         gwv1.Gateway
+	Listeners        []*MergedListener
+	Queries          query.GatewayQueries
 }
 
 func (ml *MergedListeners) AppendListener(
@@ -459,7 +495,7 @@ func (ml *MergedListeners) translateListeners(
 		// run listener plugins
 		for _, listenerPlugin := range pluginRegistry.GetListenerPlugins() {
 			err := listenerPlugin.ApplyListenerPlugin(ctx, &plugins.ListenerContext{
-				Gateway:           ml.consolidatedGateway.Gateway,
+				Gateway:           &ml.parentGw,
 				ParentListenerSet: mergedListener.parentListenerSet,
 				GwListener:        &mergedListener.listener,
 			}, listener)
