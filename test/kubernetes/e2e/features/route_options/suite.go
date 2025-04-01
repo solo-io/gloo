@@ -63,7 +63,7 @@ func (s *testingSuite) SetupSuite() {
 	// We include tests with manual setup here because the cleanup is still automated via AfterTest
 	s.manifests = map[string][]string{
 		"TestConfigureRouteOptionsWithTargetRef":                          {httproute1Manifest, httproute2Manifest, basicRtoTargetRefManifest},
-		"TestConfigureRouteOptionsWithMultipleTargetRefs":                 {httproute1Manifest, httproute2Manifest, basicRtoMultipeTargetRefManifest},
+		"TestConfigureRouteOptionsWithMultipleTargetRefs":                 {httproute1Manifest, httproute2Manifest, basicRtoMultipleTargetRefManifest},
 		"TestConfigureRouteOptionsWithFilterExtension":                    {basicRtoManifest, httproute1ExtensionManifest},
 		"TestConfigureInvalidRouteOptionsWithTargetRef":                   {httproute1Manifest, badRtoTargetRefManifest},
 		"TestConfigureInvalidRouteOptionsWithFilterExtension":             {httproute1BadExtensionManifest, badRtoManifest},
