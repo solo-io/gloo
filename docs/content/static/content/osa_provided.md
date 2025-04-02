@@ -60,12 +60,12 @@ Name|Version|License
 [go.uber.org/zap](https://go.uber.org/zap)|v1.27.0|MIT License
 [x/crypto](https://golang.org/x/crypto)|v0.36.0|BSD 3-clause "New" or "Revised" License
 [x/exp](https://golang.org/x/exp)|v0.0.0-20241215155358-4a5509556b9e|BSD 3-clause "New" or "Revised" License
-[x/mod](https://golang.org/x/mod)|v0.23.0|BSD 3-clause "New" or "Revised" License
-[x/sync](https://golang.org/x/sync)|v0.12.0|BSD 3-clause "New" or "Revised" License
-[x/tools](https://golang.org/x/tools)|v0.30.0|BSD 3-clause "New" or "Revised" License
-[googleapis/api](https://google.golang.org/genproto/googleapis/api)|v0.0.0-20250324211829-b45e905df463|Apache License 2.0
-[googleapis/rpc](https://google.golang.org/genproto/googleapis/rpc)|v0.0.0-20250324211829-b45e905df463|Apache License 2.0
-[google.golang.org/grpc](https://google.golang.org/grpc)|v1.71.0|Apache License 2.0
+[x/mod](https://golang.org/x/mod)|v0.22.0|BSD 3-clause "New" or "Revised" License
+[x/sync](https://golang.org/x/sync)|v0.10.0|BSD 3-clause "New" or "Revised" License
+[x/tools](https://golang.org/x/tools)|v0.29.0|BSD 3-clause "New" or "Revised" License
+[googleapis/api](https://google.golang.org/genproto/googleapis/api)|v0.0.0-20250122153221-138b5a5a4fd4|Apache License 2.0
+[googleapis/rpc](https://google.golang.org/genproto/googleapis/rpc)|v0.0.0-20250122153221-138b5a5a4fd4|Apache License 2.0
+[google.golang.org/grpc](https://google.golang.org/grpc)|v1.70.0|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.36.6|BSD 3-clause "New" or "Revised" License
 [AlecAivazis/survey.v1](https://gopkg.in/AlecAivazis/survey.v1)|v1.8.7|MIT License
 [helm/v3](https://helm.sh/helm/v3)|v3.17.1|Apache License 2.0
