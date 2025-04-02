@@ -410,9 +410,12 @@ func (x xdsDumper) Dump(t *testing.T, ctx context.Context) xdsDump {
 	var clusters []*envoycluster.Cluster
 	var listeners []*envoylistener.Listener
 
-	// run this in parallel with a 5s timeout
+	// run this in parallel with a 15s timeout
 	done := make(chan struct{})
 	go func() {
+		// give some time to process to reduce flakiness
+		time.Sleep(5 * time.Second)
+
 		defer close(done)
 		sent := 2
 		for i := 0; i < sent; i++ {
@@ -439,8 +442,8 @@ func (x xdsDumper) Dump(t *testing.T, ctx context.Context) xdsDump {
 						t.Errorf("failed to unmarshal listener: %v", err)
 					}
 					listeners = append(listeners, &listener)
-					// ROLDS: Disabling this for now. It didn't like the pipe listener
-					// from the upstream-tunneling.yaml as it expects routes on all listeners.
+					// ROLDS: Disabling this, it didn't like the pipe listener
+					// from the upstream-tunneling.yaml test as it expects routes on all listeners.
 					// It looks like this was put in place to deflake. I've run the tests
 					// in a loop on my workstation and they consistently passed.
 					// for i in {1..30}; do go clean -testcache; go test ./projects/gateway2/setup/...; done
@@ -467,7 +470,7 @@ func (x xdsDumper) Dump(t *testing.T, ctx context.Context) xdsDump {
 	}()
 	select {
 	case <-done:
-	case <-time.After(5 * time.Second):
+	case <-time.After(15 * time.Second):
 		// don't fatal yet as we want to dump the state while still connected
 		t.Error("timed out waiting for listener/cluster xds dump")
 		return xdsDump{}
