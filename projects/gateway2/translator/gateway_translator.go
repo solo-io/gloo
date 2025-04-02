@@ -6,7 +6,6 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
-	"github.com/solo-io/gloo/projects/gateway2/translator/types"
 	"github.com/solo-io/go-utils/contextutils"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
@@ -45,19 +44,6 @@ type translator struct {
 	queries        query.GatewayQueries
 }
 
-func (t *translator) consolidateGateway(ctx context.Context, gateway *gwv1.Gateway) (*types.ConsolidatedGateway, error) {
-	ls, err := t.queries.GetListenerSetsForGateway(ctx, gateway)
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.ConsolidatedGateway{
-		Gateway:             gateway,
-		AllowedListenerSets: ls.AllowedListenerSets,
-		DeniedListenerSets:  ls.DeniedListenerSets,
-	}, nil
-}
-
 func (t *translator) TranslateProxy(
 	ctx context.Context,
 	gateway *gwv1.Gateway,
@@ -71,7 +57,7 @@ func (t *translator) TranslateProxy(
 	ctx = contextutils.WithLogger(ctx, "k8s-gateway-translator")
 	logger := contextutils.LoggerFrom(ctx)
 
-	consolidatedGateway, err := t.consolidateGateway(ctx, gateway)
+	consolidatedGateway, err := t.queries.ConsolidateGateway(ctx, gateway)
 	if err != nil {
 		logger.Errorf("failed to consolidate gateway %s: %v", client.ObjectKeyFromObject(gateway), err)
 		// TODO: decide how/if to report this error on Gateway

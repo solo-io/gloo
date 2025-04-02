@@ -219,7 +219,10 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 		IstioIntegrationEnabled: c.cfg.IstioIntegrationEnabled,
 		ControlPlane:            c.cfg.ControlPlane,
 		Aws:                     c.cfg.Aws,
-	})
+	}, query.NewData(
+		c.cfg.Mgr.GetClient(),
+		c.cfg.Mgr.GetScheme(),
+	))
 	if err != nil {
 		return err
 	}

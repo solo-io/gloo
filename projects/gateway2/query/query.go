@@ -132,9 +132,17 @@ type GatewayQueries interface {
 	// GetRouteChain resolves backends and delegated routes for a the provided xRoute object
 	GetRouteChain(ctx context.Context, obj client.Object, hostnames []string, parentRef apiv1.ParentReference) *RouteInfo
 
+	// GetListenerSetsForGateway returns the list of listener sets mapped to the given gateway
+	// It consists of the list of allowed listener sets and denied listener sets (based on the value of allowedListeners)
 	GetListenerSetsForGateway(ctx context.Context, gw *apiv1.Gateway) (*ListenerSetsForGwResult, error)
+	// GetRoutesForListenerSet finds the top level xRoutes attached to the provided ListenerSet.
+	// It also includes the routes mapped to the parent gateway
 	GetRoutesForListenerSet(ctx context.Context, ls *apixv1alpha1.XListenerSet) (*RoutesForGwResult, error)
+	// GetRoutesForConsolidatedGateway finds the top level xRoutes attached to the provided Gateway and associated ListenerSet
 	GetRoutesForConsolidatedGateway(ctx context.Context, cgw *translator_types.ConsolidatedGateway) (*RoutesForGwResult, error)
+
+	// ConsolidateGateway returns the consolidated gateway that includes the list of listener sets mapped to it
+	ConsolidateGateway(ctx context.Context, gateway *apiv1.Gateway) (*translator_types.ConsolidatedGateway, error)
 }
 
 type RoutesForGwResult struct {
