@@ -7,6 +7,7 @@ import (
 
 	envoy_config_bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/upstreams/http/v3"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
@@ -14,6 +15,8 @@ import (
 	"github.com/solo-io/gloo/pkg/version"
 	gw2_v1alpha1 "github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/deployer"
+	"github.com/solo-io/gloo/projects/gateway2/query/mocks"
+	translator_types "github.com/solo-io/gloo/projects/gateway2/translator/types"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	wellknownkube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/wellknown"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
@@ -42,6 +45,11 @@ import (
 	// There is some import within this package that this suite relies on. Chasing that down is
 	// *hard* tho due to the import tree, and best done in a followup.
 	_ "github.com/solo-io/gloo/projects/gloo/pkg/translator"
+)
+
+var (
+	ctrl    *gomock.Controller
+	queries *mocks.MockGatewayQueries
 )
 
 // testBootstrap implements resources.Resource in order to use protoutils.UnmarshalYAML
@@ -285,6 +293,21 @@ var _ = Describe("Deployer", func() {
 		}
 	)
 
+	BeforeEach(func() {
+		ctrl = gomock.NewController(GinkgoT())
+		queries = mocks.NewMockGatewayQueries(ctrl)
+
+		queries.EXPECT().
+			ConsolidateGateway(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, gw *api.Gateway) (*translator_types.ConsolidatedGateway, error) {
+				return &translator_types.ConsolidatedGateway{
+					Gateway: gw,
+				}, nil
+			}).
+			AnyTimes()
+
+	})
+
 	Context("default case", func() {
 
 		It("should work with empty params", func() {
@@ -320,7 +343,7 @@ var _ = Describe("Deployer", func() {
 				ControlPlane: deployer.ControlPlaneInfo{
 					XdsHost: "something.cluster.local", XdsPort: 1234,
 				},
-			})
+			}, queries)
 			Expect(err).NotTo(HaveOccurred())
 
 			gw := &api.Gateway{
@@ -365,7 +388,7 @@ var _ = Describe("Deployer", func() {
 					StsClusterName:                  stsClusterName,
 					StsUri:                          stsUri,
 				},
-			})
+			}, queries)
 			Expect(err).NotTo(HaveOccurred())
 
 			// run deployer and get the ConfigMap that was created
@@ -390,7 +413,7 @@ var _ = Describe("Deployer", func() {
 					XdsHost: "something.cluster.local", XdsPort: 1234,
 				},
 				Aws: nil,
-			})
+			}, queries)
 			Expect(err).NotTo(HaveOccurred())
 
 			// run deployer and get the ConfigMap that was created
@@ -419,7 +442,7 @@ var _ = Describe("Deployer", func() {
 					StsClusterName:                  stsClusterName,
 					StsUri:                          stsUri,
 				},
-			})
+			}, queries)
 			Expect(err).NotTo(HaveOccurred())
 
 			// run deployer and get the ConfigMap that was created
@@ -445,7 +468,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		DescribeTable("gets correct gvks", func(inputs *deployer.Inputs, expectedGvks []schema.GroupVersionKind) {
-			d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGatewayParams()), inputs)
+			d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGatewayParams()), inputs, queries)
 			Expect(err).NotTo(HaveOccurred())
 			gvks, err := d.GetGvksToWatch(context.Background())
 			Expect(err).NotTo(HaveOccurred())
@@ -500,7 +523,7 @@ var _ = Describe("Deployer", func() {
 				ControlPlane: deployer.ControlPlaneInfo{
 					XdsHost: "something.cluster.local", XdsPort: 1234,
 				},
-			})
+			}, queries)
 			Expect(err).NotTo(HaveOccurred())
 
 			d2, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGatewayParams()), &deployer.Inputs{
@@ -509,7 +532,7 @@ var _ = Describe("Deployer", func() {
 				ControlPlane: deployer.ControlPlaneInfo{
 					XdsHost: "something.cluster.local", XdsPort: 1234,
 				},
-			})
+			}, queries)
 			Expect(err).NotTo(HaveOccurred())
 
 			gw1 := &api.Gateway{
@@ -1256,7 +1279,7 @@ var _ = Describe("Deployer", func() {
 				Data: mtlsSecretData(),
 			}
 
-			d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGwp, overrideGwp, secret), inp.dInputs)
+			d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGwp, overrideGwp, secret), inp.dInputs, queries)
 			if checkErr(err, expected.newDeployerErr) {
 				return
 			}
