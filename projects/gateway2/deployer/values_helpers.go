@@ -3,6 +3,7 @@ package deployer
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -32,10 +33,15 @@ func getPortsValues(cgw *types.ConsolidatedGateway, gwp *v1alpha1.GatewayParamet
 	}
 	for _, ls := range cgw.AllowedListenerSets {
 		for _, l := range ls.Spec.Listeners {
-			gwPorts = appendPortValue(gwPorts, uint16(l.Port), string(l.Name), gwp)
+			gwPorts = appendPortValue(gwPorts, uint16(l.Port), fmt.Sprintf("%s--%s", ls.Name, l.Name), gwp)
 		}
 	}
 	return gwPorts
+}
+
+func sanitizePortName(name string) string {
+	nonAlphanumericRegex := regexp.MustCompile(`[^a-zA-Z0-9-]+`)
+	return nonAlphanumericRegex.ReplaceAllString(name, "-")
 }
 
 func appendPortValue(gwPorts []helmPort, port uint16, name string, gwp *v1alpha1.GatewayParameters) []helmPort {
@@ -45,7 +51,7 @@ func appendPortValue(gwPorts []helmPort, port uint16, name string, gwp *v1alpha1
 	}
 
 	targetPort := ports.TranslatePort(port)
-	portName := string(name)
+	portName := sanitizePortName(name)
 	protocol := "TCP"
 
 	// Search for static NodePort set from the GatewayParameters spec
