@@ -180,10 +180,10 @@ update_max_versions_env() {
 }
 
 # Download Gateway API CRDs (leave as is)
-# download_gateway_crd "$GATEWAY_CRD_URL" "${OUT_DIR}/${OUT_FILENAME}"
+download_gateway_crd "$GATEWAY_CRD_URL" "${OUT_DIR}/${OUT_FILENAME}"
 
 # Download TCPRoute CRD (manage header)
-# download_tcproute_crd "$TCPROUTE_CRD_URL" "${OUT_DIR}/${TCPROUTE_FILENAME}"
+download_tcproute_crd "$TCPROUTE_CRD_URL" "${OUT_DIR}/${TCPROUTE_FILENAME}"
 
 # Update dependencies and environment
 update_go_mod
