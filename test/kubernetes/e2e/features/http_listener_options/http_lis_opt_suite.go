@@ -40,34 +40,35 @@ func (s *testingSuite) SetupSuite() {
 	// Check that the common setup manifest is applied
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, setupManifest)
 	s.NoError(err, "can apply "+setupManifest)
-	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, exampleSvc, nginxPod)
+	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, exampleSvc, nginxPod)
 	// Check that test app is running
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, nginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, nginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/name=nginx",
 	})
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, testdefaults.CurlPod.GetNamespace(), metav1.ListOptions{
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, testdefaults.CurlPod.GetNamespace(), metav1.ListOptions{
 		LabelSelector: "app=curl",
 	})
-	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment)
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw",
+	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, proxy1Service, proxy1Deployment)
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, proxy1Deployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-1",
 	})
 
 	// include gateway manifests for the tests, so we recreate it for each test run
 	s.manifests = map[string][]string{
 		"TestConfigureHttpListenerOptions":            {basicLisOptManifest},
 		"TestConfigureNotAttachedHttpListenerOptions": {notAttachedLisOptManifest},
+		"TestConfigureHttpListenerOptionsWithSection": {basicLisOptSectionManifest},
 	}
 }
 
 func (s *testingSuite) TearDownSuite() {
 	// Check that the common setup manifest is deleted
 	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, setupManifest)
-	s.testInstallation.Assertions.ExpectObjectDeleted(setupManifest, err, output)
+	s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(setupManifest, err, output)
 
-	s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, proxyService, proxyDeployment)
-	s.testInstallation.Assertions.EventuallyPodsNotExist(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw",
+	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, proxy1Service, proxy1Deployment)
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsNotExist(s.ctx, proxy1Deployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-1",
 	})
 }
 
@@ -91,35 +92,75 @@ func (s *testingSuite) AfterTest(suiteName, testName string) {
 
 	for _, manifest := range manifests {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest)
-		s.testInstallation.Assertions.ExpectObjectDeleted(manifest, err, output)
+		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
 	}
 }
 
 func (s *testingSuite) TestConfigureHttpListenerOptions() {
 	// Check healthy response and response headers contain server name override from HttpListenerOption
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(proxy1Service.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
 		},
-		&matchers.HttpResponse{
-			StatusCode: http.StatusOK,
-			Body:       gomega.ContainSubstring("Welcome to nginx!"),
-			Headers: map[string]interface{}{
-				"server": "unit-test v4.19",
-			},
-		})
+		expectedResponseWithServer)
+
+}
+
+var expectedResponseWithoutServer = &matchers.HttpResponse{
+	StatusCode: http.StatusOK,
+	Custom: gomega.And(
+		gomega.Not(matchers.ContainHeaders(http.Header{"server": {"unit-test v4.19"}})),
+	),
+	Body: gomega.ContainSubstring("Welcome to nginx!"),
+}
+
+var expectedResponseWithServer = &matchers.HttpResponse{
+	StatusCode: http.StatusOK,
+	Body:       gomega.ContainSubstring("Welcome to nginx!"),
+	Headers: map[string]interface{}{
+		"server": "unit-test v4.19",
+	},
+}
+
+func (s *testingSuite) TestConfigureHttpListenerOptionsWithSection() {
+	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
+		proxyService1Fqdn: {
+			gw1port1: expectedResponseWithServer,
+			gw1port2: expectedResponseWithoutServer,
+		},
+		proxyService2Fqdn: {
+			gw2port1: expectedResponseWithoutServer,
+			gw2port2: expectedResponseWithServer,
+		},
+	}
+
+	// Curl each listener a for which a matcher is defined
+	for host, ports := range matchersForListeners {
+		for port, matcher := range ports {
+			s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
+				s.ctx,
+				testdefaults.CurlPodExecOpt,
+				[]curl.Option{
+					curl.WithHost(host),
+					curl.WithHostHeader("example.com"),
+					curl.WithPort(port),
+				},
+				matcher,
+			)
+		}
+	}
 }
 
 func (s *testingSuite) TestConfigureNotAttachedHttpListenerOptions() {
 	// Check healthy response and response headers contain default server name as HttpLisOpt isn't attached
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(kubeutils.ServiceFQDN(proxy1Service.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
 		},
 		&matchers.HttpResponse{

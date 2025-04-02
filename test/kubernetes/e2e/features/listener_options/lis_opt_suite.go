@@ -2,13 +2,13 @@ package listener_options
 
 import (
 	"context"
+	"testing"
 	"time"
 
 	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
@@ -42,20 +42,24 @@ func (s *testingSuite) SetupSuite() {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest)
 		s.NoError(err, "can apply "+manifest)
 	}
-	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment, exampleSvc, nginxPod, testdefaults.CurlPod)
+	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, proxy1Service, proxy1Deployment, exampleSvc, nginxPod, testdefaults.CurlPod)
 	// Check that test resources are running
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, nginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, nginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/name=nginx",
 	})
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, testdefaults.CurlPod.GetNamespace(), metav1.ListOptions{
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, testdefaults.CurlPod.GetNamespace(), metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/name=curl",
 	})
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw",
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, proxy1Deployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-1",
+	})
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, proxy2Deployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-2",
 	})
 
 	s.manifests = map[string][]string{
-		"TestConfigureListenerOptions": {basicLisOptManifest},
+		"TestConfigureListenerOptions":                        {basicLisOptManifest},
+		"TestConfigureListenerOptionsWithSectionedTargetRefs": {lisOptWithSectionedTargetRefsManifest},
 	}
 }
 
@@ -64,7 +68,7 @@ func (s *testingSuite) TearDownSuite() {
 	for _, manifest := range setupManifests {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest)
 		s.NoError(err, "can delete "+manifest)
-		s.testInstallation.Assertions.ExpectObjectDeleted(manifest, err, output)
+		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
 	}
 }
 
@@ -88,35 +92,97 @@ func (s *testingSuite) AfterTest(suiteName, testName string) {
 
 	for _, manifest := range manifests {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest)
-		s.testInstallation.Assertions.ExpectObjectDeleted(manifest, err, output)
+		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
 	}
 }
 
 func (s *testingSuite) TestConfigureListenerOptions() {
 	// Check healthy response
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHost(proxy1ServiceFqdn),
 			curl.WithHostHeader("example.com"),
 		},
 		expectedHealthyResponse)
 
 	// Check the buffer limit is set on the Listener via Envoy config dump
-	s.testInstallation.Assertions.AssertEnvoyAdminApi(
+	s.testInstallation.AssertionsT(s.T()).AssertEnvoyAdminApi(
 		s.ctx,
-		proxyDeployment.ObjectMeta,
-		listenerBufferLimitAssertion(s.testInstallation),
+		proxy1Deployment.ObjectMeta,
+		listenerBufferLimitAssertion(s.testInstallation, s.T()),
 	)
 }
 
-func listenerBufferLimitAssertion(testInstallation *e2e.TestInstallation) func(ctx context.Context, adminClient *admincli.Client) {
+func (s *testingSuite) TestConfigureListenerOptionsWithSectionedTargetRefs() {
+	type bufferLimitForListener struct {
+		sectionName string
+		port        int
+		limit       int
+	}
+
+	// Setup the expected buffer limits for each listener
+	bufferLimitsForListeners := map[string][]*bufferLimitForListener{
+		proxy1ServiceFqdn: {
+			{sectionName: "http", port: gw1port1, limit: 42000},
+			{sectionName: "other", port: gw1port2, limit: 0},
+		},
+		proxy2ServiceFqdn: {
+			{sectionName: "http", port: gw2port1, limit: 0},
+			{sectionName: "other", port: gw2port2, limit: 42000},
+		},
+	}
+
+	objectMetaForListener := map[string]metav1.ObjectMeta{
+		proxy1ServiceFqdn: proxy1Deployment.ObjectMeta,
+		proxy2ServiceFqdn: proxy2Deployment.ObjectMeta,
+	}
+
+	// Curl each listener for which a matcher is defined
+	for host, limits := range bufferLimitsForListeners {
+		for _, limit := range limits {
+			s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
+				s.ctx,
+				testdefaults.CurlPodExecOpt,
+				[]curl.Option{
+					curl.WithHost(host),
+					curl.WithHostHeader("example.com"),
+					curl.WithPort(limit.port),
+				},
+				expectedHealthyResponse,
+			)
+
+			// Check the buffer limit is set on the Listener via Envoy config dump
+			s.testInstallation.AssertionsT(s.T()).AssertEnvoyAdminApi(
+				s.ctx,
+				objectMetaForListener[host],
+				listenerBufferLimitAssertionForSection(s.testInstallation, s.T(), limit.sectionName, limit.limit),
+			)
+		}
+	}
+}
+
+func listenerBufferLimitAssertion(testInstallation *e2e.TestInstallation, t *testing.T) func(ctx context.Context, adminClient *admincli.Client) {
 	return func(ctx context.Context, adminClient *admincli.Client) {
-		testInstallation.Assertions.Gomega.Eventually(func(g gomega.Gomega) {
+		testInstallation.AssertionsT(t).Gomega.Eventually(func(g gomega.Gomega) {
 			listener, err := adminClient.GetSingleListenerFromDynamicListeners(ctx, "http")
 			g.Expect(err).NotTo(gomega.HaveOccurred(), "error getting listener")
 			g.Expect(listener.GetPerConnectionBufferLimitBytes().GetValue()).To(gomega.BeEquivalentTo(42000))
+		}).
+			WithContext(ctx).
+			WithTimeout(time.Second * 10).
+			WithPolling(time.Millisecond * 200).
+			Should(gomega.Succeed())
+	}
+}
+
+func listenerBufferLimitAssertionForSection(testInstallation *e2e.TestInstallation, t *testing.T, sectionName string, expectedValue int) func(ctx context.Context, adminClient *admincli.Client) {
+	return func(ctx context.Context, adminClient *admincli.Client) {
+		testInstallation.AssertionsT(t).Gomega.Eventually(func(g gomega.Gomega) {
+			listener, err := adminClient.GetSingleListenerFromDynamicListeners(ctx, sectionName)
+			g.Expect(err).NotTo(gomega.HaveOccurred(), "error getting listener")
+			g.Expect(listener.GetPerConnectionBufferLimitBytes().GetValue()).To(gomega.BeEquivalentTo(expectedValue))
 		}).
 			WithContext(ctx).
 			WithTimeout(time.Second * 10).
