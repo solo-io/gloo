@@ -58,6 +58,8 @@ var _ = BeforeSuite(StartTestHelper)
 var _ = AfterSuite(TearDownTestHelper)
 
 func StartTestHelper() {
+	Fail("INTENTIONALLY FAILING")
+
 	var err error
 	ctx, cancel = context.WithCancel(context.Background())
 
