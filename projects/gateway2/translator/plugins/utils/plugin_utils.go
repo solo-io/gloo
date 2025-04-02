@@ -223,8 +223,8 @@ func GetPrioritizedListenerPoliciesAllTargetRefs[T client.Object](
 		return nil
 	}
 
-	SortByCreationTime(optsWithSectionName)
-	SortByCreationTime(optsWithoutSectionName)
+	utils.SortByCreationTime(optsWithSectionName)
+	utils.SortByCreationTime(optsWithoutSectionName)
 	return append(optsWithSectionName, optsWithoutSectionName...)
 }
 
