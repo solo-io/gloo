@@ -36,6 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	api "sigs.k8s.io/gateway-api/apis/v1"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	// TODO BML tests in this suite fail if this no-op import is not imported first.
 	//
@@ -305,7 +306,6 @@ var _ = Describe("Deployer", func() {
 				}, nil
 			}).
 			AnyTimes()
-
 	})
 
 	Context("default case", func() {
@@ -1617,6 +1617,101 @@ var _ = Describe("Deployer", func() {
 				validationFunc: validateGatewayParamsWithTopologySpreadConstraints,
 			}),
 		)
+	})
+
+	Context("with listener sets", func() {
+
+		var (
+			listenerSetName string = "ls-1"
+			listenerName    string = "listener-1"
+			listenerSetPort int32  = 4567
+			listenerPort    int32  = 1234
+		)
+
+		BeforeEach(func() {
+			queries = mocks.NewMockGatewayQueries(ctrl)
+			queries.EXPECT().
+				ConsolidateGateway(gomock.Any(), gomock.Any()).
+				DoAndReturn(func(ctx context.Context, gw *api.Gateway) (*translator_types.ConsolidatedGateway, error) {
+					return &translator_types.ConsolidatedGateway{
+						Gateway: gw,
+						AllowedListenerSets: []*gwxv1a1.XListenerSet{
+							{
+								ObjectMeta: metav1.ObjectMeta{
+									Name:      listenerSetName,
+									Namespace: defaultNamespace,
+								},
+								Spec: gwxv1a1.ListenerSetSpec{
+									Listeners: []gwxv1a1.ListenerEntry{
+										{
+											Name: api.SectionName(listenerName),
+											Port: gwxv1a1.PortNumber(listenerSetPort),
+										},
+									},
+								},
+							},
+						},
+					}, nil
+				}).
+				AnyTimes()
+		})
+
+		It("exposes all necessary ports", func() {
+			d, err := deployer.NewDeployer(newFakeClientWithObjs(defaultGatewayClass(), defaultGatewayParams()), &deployer.Inputs{
+				ControllerName: wellknown.GatewayControllerName,
+				Dev:            false,
+				ControlPlane: deployer.ControlPlaneInfo{
+					XdsHost: "something.cluster.local", XdsPort: 1234,
+				},
+			}, queries)
+			Expect(err).NotTo(HaveOccurred())
+
+			allNamespaces := api.NamespacesFromAll
+			gw := &api.Gateway{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "foo",
+					Namespace: defaultNamespace,
+					UID:       "1235",
+				},
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Gateway",
+					APIVersion: "gateway.solo.io/v1beta1",
+				},
+				Spec: api.GatewaySpec{
+					GatewayClassName: wellknown.GatewayClassName,
+					AllowedListeners: &api.AllowedListeners{
+						Namespaces: &api.ListenerNamespaces{
+							From: &allNamespaces,
+						},
+					},
+					Listeners: []api.Listener{
+						{
+							Name: api.SectionName(listenerName),
+							Port: api.PortNumber(listenerPort),
+						},
+					},
+				},
+			}
+
+			var objs clientObjects
+			objs, err = d.GetObjsToDeploy(context.Background(), gw)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(objs).To(HaveLen(4))
+			Expect(objs.findConfigMap(defaultNamespace, proxyName(gw.Name))).ToNot(BeNil())
+			Expect(objs.findServiceAccount(defaultNamespace, proxyName(gw.Name))).ToNot(BeNil())
+
+			servicePorts := objs.findService(defaultNamespace, proxyName(gw.Name)).Spec.Ports
+			Expect(servicePorts[0].Name).To(Equal(listenerName))
+			Expect(servicePorts[0].Port).To(Equal(listenerPort))
+			Expect(servicePorts[1].Name).To(Equal(fmt.Sprintf("%s--%s", listenerSetName, listenerName)))
+			Expect(servicePorts[1].Port).To(Equal(listenerSetPort))
+
+			deploymentPorts := objs.findDeployment(defaultNamespace, proxyName(gw.Name)).Spec.Template.Spec.Containers[0].Ports
+			Expect(deploymentPorts[0].Name).To(Equal(listenerName))
+			Expect(deploymentPorts[0].ContainerPort).To(Equal(listenerPort))
+			Expect(deploymentPorts[1].Name).To(Equal(fmt.Sprintf("%s--%s", listenerSetName, listenerName)))
+			Expect(deploymentPorts[1].ContainerPort).To(Equal(listenerSetPort))
+		})
 	})
 })
 
