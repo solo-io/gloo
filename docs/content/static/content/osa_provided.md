@@ -71,7 +71,7 @@ Name|Version|License
 [helm/v3](https://helm.sh/helm/v3)|v3.17.1|Apache License 2.0
 [istio.io/api](https://istio.io/api)|v1.25.0-alpha.0.0.20250401070747-f55d9659dc27|Apache License 2.0
 [istio.io/client-go](https://istio.io/client-go)|v1.25.0-alpha.0.0.20250401071445-73edf716803d|Apache License 2.0
-[istio.io/istio](https://istio.io/istio)|v0.0.0-20250401192846-53f0689d0df1|Apache License 2.0
+[istio.io/istio](https://istio.io/istio)|v0.0.0-20250402001246-35d49311419e|Apache License 2.0
 [k8s.io/api](https://k8s.io/api)|v0.32.2|Apache License 2.0
 [k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.32.2|Apache License 2.0
 [k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.32.2|Apache License 2.0
@@ -84,7 +84,7 @@ Name|Version|License
 [knative.dev/pkg](https://knative.dev/pkg)|v0.0.0-20211206113427-18589ac7627e|Apache License 2.0
 [sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.20.3|Apache License 2.0
 [sigs.k8s.io/controller-tools](https://sigs.k8s.io/controller-tools)|v0.17.2|Apache License 2.0
-[sigs.k8s.io/gateway-api](https://sigs.k8s.io/gateway-api)|v1.3.0-rc.1|Apache License 2.0
+[sigs.k8s.io/gateway-api](https://sigs.k8s.io/gateway-api)|v1.3.0-rc.1.0.20250328231839-d923573c45ef|Apache License 2.0
 [structured-merge-diff/v4](https://sigs.k8s.io/structured-merge-diff/v4)|v4.6.0|Apache License 2.0
 [sigs.k8s.io/yaml](https://sigs.k8s.io/yaml)|v1.4.0|MIT License
 [cmd/goimports](https://golang.org/x/tools/cmd/goimports)|latest|MIT License
