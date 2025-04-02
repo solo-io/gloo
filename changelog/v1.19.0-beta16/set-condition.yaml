@@ -1,0 +1,12 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8098
+    resolvesIssue: false
+    description: |
+      gateway2/status: use SetStatusCondition to prevent duplicate conditions
+
+      Currently, we append() Conditions while building the status reports.
+      This can result in duplicate Condition.Type in the list that is
+      incorrect and will lead to API errors. This change uses
+      SetStatusCondition API that correctly updates the condition if the
+      same Type already exists in the list.
