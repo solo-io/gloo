@@ -6,14 +6,14 @@ import (
 )
 
 func ToListener(listenerEntry gwxv1a1.ListenerEntry) gwv1.Listener {
-	copy := listenerEntry.DeepCopy()
+	duplicate := listenerEntry.DeepCopy()
 	return gwv1.Listener{
-		Name:          copy.Name,
-		Hostname:      copy.Hostname,
-		Port:          copy.Port,
-		Protocol:      copy.Protocol,
-		TLS:           copy.TLS,
-		AllowedRoutes: copy.AllowedRoutes,
+		Name:          duplicate.Name,
+		Hostname:      duplicate.Hostname,
+		Port:          duplicate.Port,
+		Protocol:      duplicate.Protocol,
+		TLS:           duplicate.TLS,
+		AllowedRoutes: duplicate.AllowedRoutes,
 	}
 }
 
