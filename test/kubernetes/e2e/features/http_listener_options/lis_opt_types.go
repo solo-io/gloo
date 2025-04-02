@@ -11,7 +11,6 @@ import (
 
 var (
 	setupManifest             = filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml")
-	gatewayManifest           = filepath.Join(util.MustGetThisDir(), "testdata", "gateway.yaml")
 	basicLisOptManifest       = filepath.Join(util.MustGetThisDir(), "testdata", "basic-http-lis-opt.yaml")
 	notAttachedLisOptManifest = filepath.Join(util.MustGetThisDir(), "testdata", "not-attached-http-lis-opt.yaml")
 
