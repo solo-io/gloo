@@ -45,11 +45,15 @@ func (s *testingSuite) SetupSuite() {
 	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, nginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/name=nginx",
 	})
+	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment)
+	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw",
+	})
 
 	// include gateway manifests for the tests, so we recreate it for each test run
 	s.manifests = map[string][]string{
-		"TestConfigureHttpListenerOptions":            {gatewayManifest, basicLisOptManifest},
-		"TestConfigureNotAttachedHttpListenerOptions": {gatewayManifest, notAttachedLisOptManifest},
+		"TestConfigureHttpListenerOptions":            {basicLisOptManifest},
+		"TestConfigureNotAttachedHttpListenerOptions": {notAttachedLisOptManifest},
 	}
 }
 
@@ -57,6 +61,11 @@ func (s *testingSuite) TearDownSuite() {
 	// Check that the common setup manifest is deleted
 	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, setupManifest)
 	s.testInstallation.Assertions.ExpectObjectDeleted(setupManifest, err, output)
+
+	s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, proxyService, proxyDeployment)
+	s.testInstallation.Assertions.EventuallyPodsNotExist(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw",
+	})
 }
 
 func (s *testingSuite) BeforeTest(suiteName, testName string) {
@@ -69,13 +78,6 @@ func (s *testingSuite) BeforeTest(suiteName, testName string) {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest)
 		s.Assert().NoError(err, "can apply manifest "+manifest)
 	}
-
-	// we recreate the `Gateway` resource (and thus dynamically provision the proxy pod) for each test run
-	// so let's assert the proxy svc and pod is ready before moving on
-	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment)
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw",
-	})
 }
 
 func (s *testingSuite) AfterTest(suiteName, testName string) {
