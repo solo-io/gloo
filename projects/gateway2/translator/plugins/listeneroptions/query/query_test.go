@@ -140,13 +140,16 @@ var _ = Describe("Query Get ListenerOptions", func() {
 			BeforeEach(func() {
 				deps = []client.Object{
 					gw,
-					attachedListenerOptionMultipleTargetRefMiss(),
+					attachedListenerOptionMultipleTargetRefNotFirst(),
 				}
 			})
-			It("should not find an attached option", func() {
+			It("should find the attached option that matches", func() {
 				listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(listenerOptions).To(BeNil())
+				Expect(listenerOptions).NotTo(BeNil())
+				Expect(listenerOptions).To(HaveLen(1))
+				Expect(listenerOptions[0].GetName()).To(Equal("good-policy"))
+				Expect(listenerOptions[0].GetNamespace()).To(Equal("default"))
 			})
 		})
 	})
@@ -313,7 +316,9 @@ func attachedListenerOptionMultipleTargetRefHit() *solokubev1.ListenerOption {
 		},
 	}
 }
-func attachedListenerOptionMultipleTargetRefMiss() *solokubev1.ListenerOption {
+
+// This is the same as attachedListenerOptionMultipleTargetRefHit, but the first targetRef is not the one that matches the listener
+func attachedListenerOptionMultipleTargetRefNotFirst() *solokubev1.ListenerOption {
 	now := metav1.Now()
 	return &solokubev1.ListenerOption{
 		ObjectMeta: metav1.ObjectMeta{

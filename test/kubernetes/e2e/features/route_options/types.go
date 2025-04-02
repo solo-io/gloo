@@ -17,6 +17,7 @@ var (
 	setupManifest                        = filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml")
 	basicRtoManifest                     = filepath.Join(util.MustGetThisDir(), "testdata", "basic-rto.yaml")
 	basicRtoTargetRefManifest            = filepath.Join(util.MustGetThisDir(), "testdata", "basic-rto-targetref.yaml")
+	basicRtoMultipleTargetRefManifest    = filepath.Join(util.MustGetThisDir(), "testdata", "basic-rto-multiple-targetref.yaml")
 	extraRtoManifest                     = filepath.Join(util.MustGetThisDir(), "testdata", "extra-rto.yaml")
 	extraRtoTargetRefManifest            = filepath.Join(util.MustGetThisDir(), "testdata", "extra-rto-targetref.yaml")
 	badRtoManifest                       = filepath.Join(util.MustGetThisDir(), "testdata", "bad-rto.yaml")
@@ -59,6 +60,14 @@ var (
 	expectedResponseWithBasicTargetRefHeader = expectedResponseWithFooHeader("basic-rto-targetref")
 	expectedResponseWithExtraHeader          = expectedResponseWithFooHeader("extra-rto")
 	expectedResponseWithExtraTargetRefHeader = expectedResponseWithFooHeader("extra-rto-targetref")
+
+	expectedResponseWithoutFooHeader = &matchers.HttpResponse{
+		StatusCode: http.StatusOK,
+		Custom: gomega.And(
+			gomega.Not(matchers.ContainHeaderKeys([]string{"foo"})),
+		),
+		Body: gstruct.Ignore(),
+	}
 )
 
 func objectMetaInDefault(name string) metav1.ObjectMeta {
