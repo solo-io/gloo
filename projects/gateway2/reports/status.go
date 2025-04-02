@@ -82,6 +82,7 @@ func (r *ReportMap) BuildListenerSetStatus(ctx context.Context, ls gwxv1a1.XList
 
 	finalListeners := make([]gwv1.ListenerStatus, 0, len(ls.Spec.Listeners))
 
+	// We check if the ls has been rejected since no status implies that it will be accepted later on
 	listenerSetRejected := func(lsReport *ListenerSetReport) bool {
 		if cond := meta.FindStatusCondition(lsReport.GetConditions(), string(gwv1.GatewayConditionAccepted)); cond != nil {
 			return cond.Status == metav1.ConditionFalse
@@ -102,7 +103,7 @@ func (r *ReportMap) BuildListenerSetStatus(ctx context.Context, ls gwxv1a1.XList
 			for _, lisCondition := range lisReport.Status.Conditions {
 				lisCondition.ObservedGeneration = lsReport.observedGeneration
 
-				// copy old condition from gw so LastTransitionTime is set correctly below by SetStatusCondition()
+				// copy old condition from ls so LastTransitionTime is set correctly below by SetStatusCondition()
 				if oldLisStatusIndex != -1 {
 					if cond := meta.FindStatusCondition(ls.Status.Listeners[oldLisStatusIndex].Conditions, lisCondition.Type); cond != nil {
 						finalConditions = append(finalConditions, *cond)
@@ -112,23 +113,22 @@ func (r *ReportMap) BuildListenerSetStatus(ctx context.Context, ls gwxv1a1.XList
 			}
 			lisReport.Status.Conditions = finalConditions
 			finalListeners = append(finalListeners, lisReport.Status)
-			fmt.Println("========== finalListeners : ", finalListeners)
 		}
 	}
 
 	addMissingListenerSetConditions(r.ListenerSet(&ls))
 
 	finalConditions := make([]metav1.Condition, 0)
-	for _, gwCondition := range lsReport.GetConditions() {
-		gwCondition.ObservedGeneration = lsReport.observedGeneration
+	for _, lsCondition := range lsReport.GetConditions() {
+		lsCondition.ObservedGeneration = lsReport.observedGeneration
 
-		// copy old condition from gw so LastTransitionTime is set correctly below by SetStatusCondition()
-		if cond := meta.FindStatusCondition(ls.Status.Conditions, gwCondition.Type); cond != nil {
+		// copy old condition from ls so LastTransitionTime is set correctly below by SetStatusCondition()
+		if cond := meta.FindStatusCondition(ls.Status.Conditions, lsCondition.Type); cond != nil {
 			finalConditions = append(finalConditions, *cond)
 		}
-		meta.SetStatusCondition(&finalConditions, gwCondition)
+		meta.SetStatusCondition(&finalConditions, lsCondition)
 	}
-	// If there are conditions on the Gateway that are not owned by our reporter, include
+	// If there are conditions on the Listener Set that are not owned by our reporter, include
 	// them in the final list of conditions to preseve conditions we do not own
 	for _, condition := range ls.Status.Conditions {
 		if meta.FindStatusCondition(finalConditions, condition.Type) == nil {
@@ -136,8 +136,8 @@ func (r *ReportMap) BuildListenerSetStatus(ctx context.Context, ls gwxv1a1.XList
 		}
 	}
 
-	finalGwStatus := gwxv1a1.ListenerSetStatus{}
-	finalGwStatus.Conditions = finalConditions
+	finalLsStatus := gwxv1a1.ListenerSetStatus{}
+	finalLsStatus.Conditions = finalConditions
 	fl := make([]gwxv1a1.ListenerEntryStatus, 0, len(finalListeners))
 	for i, f := range finalListeners {
 		fl = append(fl, gwxv1a1.ListenerEntryStatus{
@@ -148,8 +148,8 @@ func (r *ReportMap) BuildListenerSetStatus(ctx context.Context, ls gwxv1a1.XList
 			Conditions:     f.Conditions,
 		})
 	}
-	finalGwStatus.Listeners = fl
-	return &finalGwStatus
+	finalLsStatus.Listeners = fl
+	return &finalLsStatus
 }
 
 // BuildRouteStatus returns a newly constructed and fully defined RouteStatus for the supplied route object

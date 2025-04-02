@@ -11,7 +11,7 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwv1b1 "sigs.k8s.io/gateway-api/apis/v1beta1"
-	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	sologatewayv1alpha1 "github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
@@ -27,7 +27,7 @@ var SchemeBuilder = runtime.SchemeBuilder{
 	// K8s Gateway API resources
 	gwv1.Install,
 	gwv1b1.Install,
-	apixv1a1.Install,
+	gwxv1a1.Install,
 
 	// Kubernetes Core resources
 	corev1.AddToScheme,

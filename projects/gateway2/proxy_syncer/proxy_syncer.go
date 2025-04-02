@@ -1022,28 +1022,25 @@ func (s *ProxySyncer) syncGatewayStatus(ctx context.Context, rm reports.ReportMa
 	logger.Debugf("synced gw status for %d gateways in %s", len(rm.Gateways), duration.String())
 }
 
-// syncGatewayStatus will build and update status for all Gateways in a reportMap
+// syncListenerSetStatus will build and update status for all Listener Sets in a reportMap
 func (s *ProxySyncer) syncListenerSetStatus(ctx context.Context, rm reports.ReportMap) {
 	ctx = contextutils.WithLogger(ctx, "statusSyncer")
 	logger := contextutils.LoggerFrom(ctx)
-	stopwatch := statsutils.NewTranslatorStopWatch("GatewayStatusSyncer")
+	stopwatch := statsutils.NewTranslatorStopWatch("ListenerSetStatusSyncer")
 	stopwatch.Start()
 
-	// TODO: retry within loop per GW rathen that as a full block
+	// TODO: retry within loop per LS rathen that as a full block
 	err := retry.Do(func() error {
-		fmt.Println("========== syncListenerSetStatus")
-		fmt.Println("========== rm.ListenerSets", rm.ListenerSets)
 		for lsnn := range rm.ListenerSets {
-			fmt.Println("  ======== syncListenerSetStatus : ", lsnn)
 			ls := gwxv1a1.XListenerSet{}
 			err := s.mgr.GetClient().Get(ctx, lsnn, &ls)
 			if err != nil {
 				logger.Info("error getting ls", err.Error())
 				return err
 			}
-			gwStatusWithoutAddress := ls.Status
+			lsStatus := ls.Status
 			if status := rm.BuildListenerSetStatus(ctx, ls); status != nil {
-				if !isListenerSetStatusEqual(&gwStatusWithoutAddress, status) {
+				if !isListenerSetStatusEqual(&lsStatus, status) {
 					ls.Status = *status
 					if err := s.mgr.GetClient().Status().Patch(ctx, &ls, client.Merge); err != nil {
 						logger.Error(err)
@@ -1053,7 +1050,6 @@ func (s *ProxySyncer) syncListenerSetStatus(ctx context.Context, rm reports.Repo
 				} else {
 					logger.Infof("skipping k8s ls %s status update, status equal", lsnn.String())
 				}
-				fmt.Println("  ======== status : ", status)
 			}
 		}
 		return nil
@@ -1063,10 +1059,10 @@ func (s *ProxySyncer) syncListenerSetStatus(ctx context.Context, rm reports.Repo
 		retry.DelayType(retry.BackOffDelay),
 	)
 	if err != nil {
-		logger.Errorw("all attempts failed at updating gateway statuses", "error", err)
+		logger.Errorw("all attempts failed at updating listener set statuses", "error", err)
 	}
 	duration := stopwatch.Stop(ctx)
-	logger.Debugf("synced ls status for %d ls in %s", len(rm.ListenerSets), duration.String())
+	logger.Debugf("synced listener sets status for %d listener set in %s", len(rm.ListenerSets), duration.String())
 }
 
 // reconcileProxies persists the provided proxies by reconciling them with the proxyReconciler.

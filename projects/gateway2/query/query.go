@@ -16,10 +16,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
-	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	apiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
-	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
+	apixv1alpha1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 var (
@@ -133,8 +132,8 @@ type GatewayQueries interface {
 	// GetRouteChain resolves backends and delegated routes for a the provided xRoute object
 	GetRouteChain(ctx context.Context, obj client.Object, hostnames []string, parentRef apiv1.ParentReference) *RouteInfo
 
-	GetListenerSetsForGateway(ctx context.Context, gw *gwv1.Gateway) (*ListenerSetsForGwResult, error)
-	GetRoutesForListenerSet(ctx context.Context, ls *apixv1a1.XListenerSet) (*RoutesForGwResult, error)
+	GetListenerSetsForGateway(ctx context.Context, gw *apiv1.Gateway) (*ListenerSetsForGwResult, error)
+	GetRoutesForListenerSet(ctx context.Context, ls *apixv1alpha1.XListenerSet) (*RoutesForGwResult, error)
 	GetRoutesForConsolidatedGateway(ctx context.Context, cgw *translator_types.ConsolidatedGateway) (*RoutesForGwResult, error)
 }
 
@@ -223,7 +222,8 @@ func parentRefMatchListener(ref *apiv1.ParentReference, l *apiv1.Listener) bool 
 	return true
 }
 
-// getParentRefsForResource extracts the ParentReferences from the provided object for the provided Gateway.
+// getParentRefsForResource extracts the ParentReferences from the provided object for the provided resource.
+// The resource must either be a Gateway or a ListenerSet
 // Supported object types are:
 //
 //   - HTTPRoute
@@ -281,7 +281,7 @@ func isParentRefForGw(pRef *apiv1.ParentReference, gw *apiv1.Gateway, defaultNs 
 	return ns == gw.Namespace && string(pRef.Name) == gw.Name
 }
 
-func getParentGatewayRef(ls *apixv1a1.XListenerSet) *types.NamespacedName {
+func getParentGatewayRef(ls *apixv1alpha1.XListenerSet) *types.NamespacedName {
 	ns := ls.Namespace
 	if ls.Spec.ParentRef.Namespace != nil && *ls.Spec.ParentRef.Namespace != "" {
 		ns = string(*ls.Spec.ParentRef.Namespace)
@@ -293,20 +293,21 @@ func getParentGatewayRef(ls *apixv1a1.XListenerSet) *types.NamespacedName {
 	}
 }
 
-// isParentRefForResource checks if a ParentReference is associated with the provided Gateway.
-func isParentRefForResource(pRef *apiv1.ParentReference, gw client.Object, defaultNs string) bool {
-	if gw == nil || pRef == nil {
+// isParentRefForResource checks if a ParentReference is associated with the provided resource.
+// The resource must either be a Gateway or a ListenerSet
+func isParentRefForResource(pRef *apiv1.ParentReference, resource client.Object, defaultNs string) bool {
+	if resource == nil || pRef == nil {
 		return false
 	}
 
 	ret := false
-	switch typed := gw.(type) {
-	case *gwv1.Gateway:
+	switch typed := resource.(type) {
+	case *apiv1.Gateway:
 		ret = isParentRefForGw(pRef, typed, defaultNs)
-	case *apixv1a1.XListenerSet:
+	case *apixv1alpha1.XListenerSet:
 		// Check if the route belongs to the parent gateway. If so accept it
 		parentRef := getParentGatewayRef(typed)
-		parentGW := &gwv1.Gateway{
+		parentGW := &apiv1.Gateway{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: parentRef.Namespace,
 				Name:      parentRef.Name,
@@ -314,9 +315,9 @@ func isParentRefForResource(pRef *apiv1.ParentReference, gw client.Object, defau
 		}
 		ret = isParentRefForGw(pRef, parentGW, defaultNs)
 
-		// Maybe it was just attached to the listenerset and not the parent
+		// Maybe it was just attached to the listener set and not the gateway
 		if !ret {
-			if pRef.Group != nil && *pRef.Group != apixv1a1.GroupName {
+			if pRef.Group != nil && *pRef.Group != apixv1alpha1.GroupName {
 				return false
 			}
 			if pRef.Kind != nil && *pRef.Kind != wellknown.XListenerSetKind {
@@ -333,7 +334,6 @@ func isParentRefForResource(pRef *apiv1.ParentReference, gw client.Object, defau
 		return false
 	}
 
-	fmt.Println("========== isParentRefForResource : ", pRef)
 	return ret
 }
 

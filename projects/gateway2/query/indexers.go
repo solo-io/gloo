@@ -8,7 +8,6 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwv1b1 "sigs.k8s.io/gateway-api/apis/v1beta1"
-	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
@@ -50,7 +49,7 @@ func isGateway(pRef gwv1.ParentReference) bool {
 }
 
 func isListenerSet(pRef gwv1.ParentReference) bool {
-	return matchesGK(pRef, apixv1a1.GroupName, wellknown.XListenerSetKind)
+	return matchesGK(pRef, gwxv1a1.GroupName, wellknown.XListenerSetKind)
 }
 
 // IndexerByObjType indexes objects based on the provided object type. The following object types are supported:
@@ -58,6 +57,7 @@ func isListenerSet(pRef gwv1.ParentReference) bool {
 //   - HTTPRoute
 //   - TCPRoute
 //   - TLSRoute
+//   - XListenerSet
 //   - ReferenceGrant
 func IndexerByObjType(obj client.Object) []string {
 	var results []string

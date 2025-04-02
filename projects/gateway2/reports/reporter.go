@@ -2,7 +2,6 @@ package reports
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/solo-io/go-utils/contextutils"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -231,7 +230,6 @@ func NewListenerReport(name string) *ListenerReport {
 }
 
 func (l *ListenerReport) SetCondition(lc ListenerCondition) {
-	fmt.Println("============ SetCondition : ", lc)
 	condition := metav1.Condition{
 		Type:    string(lc.Type),
 		Status:  lc.Status,
@@ -266,7 +264,6 @@ func (r *reporter) ListenerSet(listenerSet *gwxv1alpha1.XListenerSet) ListenerSe
 	if lsr == nil {
 		lsr = r.report.newListenerSetReport(listenerSet)
 	}
-	fmt.Println("========== ListenerSet : ", r.report.ListenerSets)
 	return lsr
 }
 

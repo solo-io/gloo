@@ -80,15 +80,11 @@ func (t *translator) TranslateProxy(
 	}
 
 	routesForGw, err := t.queries.GetRoutesForConsolidatedGateway(ctx, consolidatedGateway)
-	fmt.Println("================ GetRoutesForGatewayWithListenerSets : ", routesForGw, err)
 	if err != nil {
 		logger.Errorf("failed to get routes for gateway %s: %v", client.ObjectKeyFromObject(gateway), err)
 		// TODO: decide how/if to report this error on Gateway
 		// reporter.Gateway(gateway).Err(err.Error())
 		return nil
-	}
-	for a, b := range routesForGw.ListenerResults {
-		fmt.Println("  ============== ListenerResults : ", a, b.Routes, len(b.Routes))
 	}
 
 	for _, rErr := range routesForGw.RouteErrors {
@@ -128,8 +124,6 @@ func (t *translator) TranslateProxy(
 		routesForGw,
 		reporter,
 	)
-	fmt.Println("================ TranslateListeners : ", listeners, len(listeners))
-	fmt.Println("================ routesForGw : ", routesForGw)
 
 	return &v1.Proxy{
 		Metadata:  proxyMetadata(consolidatedGateway.Gateway, writeNamespace),

@@ -42,11 +42,7 @@ func TranslateListeners(
 	reporter reports.Reporter,
 ) []*v1.Listener {
 	validatedConsolidatedListeners := validateAllListeners(consolidatedGateway, reporter)
-	fmt.Println("=========== validatedListeners : ", validatedConsolidatedListeners)
-
 	mergedListeners := mergeConsolidatedListeners(queries, consolidatedGateway.Gateway.Namespace, validatedConsolidatedListeners, consolidatedGateway, routesForGw, reporter)
-	fmt.Println("=========== mergedListeners : ", mergedListeners)
-
 	translatedListeners := mergedListeners.translateListeners(ctx, pluginRegistry, queries, reporter)
 	return translatedListeners
 }
@@ -77,9 +73,7 @@ func mergeListenerSetListeners(
 	routesForGw *query.RoutesForGwResult,
 	reporter reports.Reporter,
 ) {
-
 	const AttachedListenerSetsConditionType = "AttachedListenerSets"
-
 	if consolidatedGateway.AllowedListenerSets == nil {
 		reporter.Gateway(consolidatedGateway.Gateway).SetCondition(reports.GatewayCondition{
 			Type:   AttachedListenerSetsConditionType,
