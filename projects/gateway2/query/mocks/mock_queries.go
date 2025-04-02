@@ -39,6 +39,21 @@ func (m *MockGatewayQueries) EXPECT() *MockGatewayQueriesMockRecorder {
 	return m.recorder
 }
 
+// ConsolidateGateway mocks base method.
+func (m *MockGatewayQueries) ConsolidateGateway(arg0 context.Context, arg1 *v1.Gateway) (*types.ConsolidatedGateway, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConsolidateGateway", arg0, arg1)
+	ret0, _ := ret[0].(*types.ConsolidatedGateway)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ConsolidateGateway indicates an expected call of ConsolidateGateway.
+func (mr *MockGatewayQueriesMockRecorder) ConsolidateGateway(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsolidateGateway", reflect.TypeOf((*MockGatewayQueries)(nil).ConsolidateGateway), arg0, arg1)
+}
+
 // GetBackendForRef mocks base method.
 func (m *MockGatewayQueries) GetBackendForRef(arg0 context.Context, arg1 query.From, arg2 *v1.BackendObjectReference) (client.Object, error) {
 	m.ctrl.T.Helper()
