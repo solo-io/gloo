@@ -83,9 +83,11 @@ type ClusterResult struct {
 func (t *translatorInstance) TranslateCluster(
 	params plugins.Params,
 	upstream *v1.Upstream,
-) (*ClusterResult, []error) {
+) (*ClusterResult, reporter.ResourceReports) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
+
+	reports := reporter.ResourceReports{}
 
 	// prepare the normal upstream plugins for calling
 	for _, p := range t.pluginRegistry.GetUpstreamPlugins() {
@@ -101,7 +103,12 @@ func (t *translatorInstance) TranslateCluster(
 	// as we don't know if we have endpoints for this upstream,
 	// we will let the upstream plugins set the cluster type
 	eds := false
-	c, err := t.computeCluster(params, upstream, eds)
+	c, errs := t.computeCluster(params, upstream, eds)
+	if errs != nil {
+		reports.AddErrors(upstream, errs...)
+		return nil, reports
+	}
+
 	if c != nil && c.GetEdsClusterConfig() != nil {
 		endpointClusterName, err2 := GetEndpointClusterName(c.GetName(), upstream)
 		if err2 == nil {
@@ -115,22 +122,19 @@ func (t *translatorInstance) TranslateCluster(
 		AdditionalListeners: []*envoy_config_listener_v3.Listener{},
 	}
 
-	if err != nil {
-		return clusterResult, err
-	}
-
 	// call the upstream generated resources plugins
 	for _, p := range t.pluginRegistry.GetUpstreamGeneratedResourcesPlugins() {
 		additionalClusters, additionalListeners, err := p.UpstreamGeneratedResources(
-			params, upstream, c)
+			params, upstream, c, reports)
 		if err != nil {
-			return clusterResult, []error{err}
+			reports.AddError(upstream, err)
+			return nil, reports
 		}
 		clusterResult.AdditionalClusters = append(clusterResult.AdditionalClusters, additionalClusters...)
 		clusterResult.AdditionalListeners = append(clusterResult.AdditionalListeners, additionalListeners...)
 	}
 
-	return clusterResult, err
+	return clusterResult, reports
 }
 
 func (t *translatorInstance) computeCluster(

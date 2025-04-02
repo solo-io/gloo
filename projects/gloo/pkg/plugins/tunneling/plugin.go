@@ -64,6 +64,7 @@ func (p *plugin) UpstreamGeneratedResources(
 	params plugins.Params,
 	in *v1.Upstream,
 	out *envoy_config_cluster_v3.Cluster,
+	reports reporter.ResourceReports,
 ) ([]*envoy_config_cluster_v3.Cluster, []*envoy_config_listener_v3.Listener, error) {
 	var newClusters []*envoy_config_cluster_v3.Cluster
 	var newListeners []*envoy_config_listener_v3.Listener
@@ -109,8 +110,7 @@ func (p *plugin) UpstreamGeneratedResources(
 			// warning instead of error to the report.
 			if params.Settings.GetGateway().GetValidation().GetWarnMissingTlsSecret().GetValue() &&
 				errors.Is(err, utils.SslSecretNotFoundError) {
-				// return a warning that will get added to the report
-				warning = &translator.Warning{Message: err.Error()}
+				reports.AddWarning(in, err.Error())
 			} else {
 				return nil, nil, err
 			}
@@ -154,6 +154,9 @@ func (p *plugin) UpstreamGeneratedResources(
 //
 // Deprecated: This methods is for the Edge (non-krt) translator and is not safe
 // to use with krt. Use UpstreamGeneratedResources instead.
+//
+// Before this can be removed, the stubbed error/warning handling in the krt path
+// must be resolved.
 func (p *plugin) GeneratedResources(
 	params plugins.Params,
 	proxy *v1.Proxy,
@@ -194,19 +197,10 @@ func (p *plugin) GeneratedResources(
 			continue
 		}
 
-		upstreamsClusters, upstreamsListeners, err := p.UpstreamGeneratedResources(params, us, cluster)
-		// make sure to add warnings to the report before we handle the error
+		upstreamsClusters, upstreamsListeners, err := p.UpstreamGeneratedResources(params, us, cluster, reports)
 		if err != nil {
-			// check if err is a warning
-			var warning *translator.Warning
-			if errors.As(err, &warning) {
-				// add the warning to the report
-				reports.AddWarning(us, warning.Error())
-			} else {
-				// add the error to the report
-				reports.AddError(us, err)
-				continue
-			}
+			reports.AddError(us, err)
+			continue
 		}
 
 		newClusters = append(newClusters, upstreamsClusters...)

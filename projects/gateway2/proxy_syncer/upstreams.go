@@ -162,6 +162,9 @@ func translate(
 	// false here should be ok - plugins should set eds on eds clusters.
 	clusterResult, _ := translator.NewClusterTranslator(ctx, settings).TranslateCluster(params, up)
 	if clusterResult == nil {
+		// TODO: handle the reports coming from the translator
+		// this is a loose end that likely will not need to be resolved before the kgateway rebase
+		// as the Gloo translator is still used and remitting the reports
 		return nil, 0
 	}
 

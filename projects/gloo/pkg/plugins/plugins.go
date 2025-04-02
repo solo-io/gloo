@@ -202,6 +202,7 @@ type UpstreamGeneratedResourcesPlugin interface {
 		params Params,
 		upstream *v1.Upstream,
 		inCluster *envoy_config_cluster_v3.Cluster,
+		reports reporter.ResourceReports,
 	) ([]*envoy_config_cluster_v3.Cluster, []*envoy_config_listener_v3.Listener, error)
 }
 

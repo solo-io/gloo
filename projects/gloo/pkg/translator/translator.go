@@ -46,12 +46,11 @@ type Translator interface {
 }
 type ClusterTranslator interface {
 	// Translate converts a Upstream CR into an xDS Snapshot
-	// Any errors or warnings that are encountered during translation are returned, along with the
-	// envoy cluster.
+	// Any errors that are encountered during translation are appended to the ResourceReports
 	TranslateCluster(
 		params plugins.Params,
 		upstream *v1.Upstream,
-	) (*ClusterResult, []error)
+	) (*ClusterResult, reporter.ResourceReports)
 }
 
 var (
