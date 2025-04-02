@@ -140,13 +140,16 @@ var _ = Describe("Query Get HttpListenerOptions", func() {
 			BeforeEach(func() {
 				deps = []client.Object{
 					gw,
-					attachedHttpListenerOptionMultipleTargetRefMiss(),
+					attachedHttpListenerOptionMultipleTargetRefNotFirst(),
 				}
 			})
-			It("should not find an attached option", func() {
+			It("should still find an attached option", func() {
 				httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(httpListenerOptions).To(BeNil())
+				Expect(httpListenerOptions).NotTo(BeNil())
+				Expect(httpListenerOptions).To(HaveLen(1))
+				Expect(httpListenerOptions[0].GetName()).To(Equal("good-policy"))
+				Expect(httpListenerOptions[0].GetNamespace()).To(Equal("default"))
 			})
 		})
 	})
@@ -313,7 +316,9 @@ func attachedHttpListenerOptionMultipleTargetRefHit() *solokubev1.HttpListenerOp
 		},
 	}
 }
-func attachedHttpListenerOptionMultipleTargetRefMiss() *solokubev1.HttpListenerOption {
+
+// This is the same as attachedHttpListenerOptionMultipleTargetRefHit, but the first targetRef is not the one that matches the listener
+func attachedHttpListenerOptionMultipleTargetRefNotFirst() *solokubev1.HttpListenerOption {
 	now := metav1.Now()
 	return &solokubev1.HttpListenerOption{
 		ObjectMeta: metav1.ObjectMeta{

@@ -150,8 +150,6 @@ type VirtualHostOption struct {
 	// When using Kubernetes Gateway API mode, targetRefs can be used to attach this VirtualHostOption
 	// to a gateway.networking.k8s.io/Gateway object. The `options` specified will then be used
 	// for all `Listeners` in the `Gateway` unless `targetRef.sectionName` is specified.
-	// NOTE: This is a repeated field but currently ONLY supports a single targetRef.
-	// If multiple targetRefs are provided, only the first in the list will be used.
 	TargetRefs    []*v11.PolicyTargetReferenceWithSectionName `protobuf:"bytes,5,rep,name=target_refs,json=targetRefs,proto3" json:"target_refs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -339,8 +337,6 @@ type RouteOption struct {
 	// When using Kubernetes Gateway API mode, targetRefs can be used to attach this RouteOption
 	// to a gateway.networking.k8s.io/HTTPRoute object. The `options` specified will then be used
 	// for all `Rules` in the `HTTPRoute`.
-	// NOTE: This is a repeated field but currently ONLY supports a single targetRef.
-	// If multiple targetRefs are provided, only the first in the list will be used.
 	TargetRefs    []*v11.PolicyTargetReference `protobuf:"bytes,5,rep,name=target_refs,json=targetRefs,proto3" json:"target_refs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -413,8 +409,6 @@ type ListenerOption struct {
 	// When using Kubernetes Gateway API mode, targetRefs can be used to attach this ListenerOption
 	// to a gateway.networking.k8s.io/Gateway object. The `options` specified will then be used
 	// for all `Listeners` in the `Gateway` unless `targetRef.sectionName` is specified.
-	// NOTE: This is a repeated field but currently ONLY supports a single targetRef.
-	// If multiple targetRefs are provided, only the first in the list will be used.
 	TargetRefs    []*v11.PolicyTargetReferenceWithSectionName `protobuf:"bytes,3,rep,name=target_refs,json=targetRefs,proto3" json:"target_refs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -480,8 +474,6 @@ type HttpListenerOption struct {
 	// When using Kubernetes Gateway API mode, targetRef can be used to attach this VirtualHostOption
 	// to a gateway.networking.k8s.io/Gateway object. The `options` specified will then be used
 	// for all `Listeners` in the `Gateway` unless `targetRef.sectionName` is specified.
-	// NOTE: This is a repeated field but currently ONLY supports a single targetRef.
-	// If multiple targetRefs are provided, only the first in the list will be used.
 	TargetRefs    []*v11.PolicyTargetReferenceWithSectionName `protobuf:"bytes,3,rep,name=target_refs,json=targetRefs,proto3" json:"target_refs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

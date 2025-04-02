@@ -20,7 +20,6 @@ import (
 	gwutils "github.com/solo-io/gloo/projects/gateway2/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -90,15 +89,6 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 
 	if len(list.Items) == 0 {
 		return nilOptionIfEmpty(merged), sources, nil
-	}
-
-	// warn for multiple targetRefs until we actually support this
-	// TODO: remove this as part of https://github.com/solo-io/solo-projects/issues/6286
-	for i := range list.Items {
-		item := &list.Items[i]
-		if len(item.Spec.GetTargetRefs()) > 1 {
-			contextutils.LoggerFrom(ctx).Warnf(utils.MultipleTargetRefErrStr, item.GetNamespace(), item.GetName())
-		}
 	}
 
 	out := make([]*solokubev1.RouteOption, len(list.Items))

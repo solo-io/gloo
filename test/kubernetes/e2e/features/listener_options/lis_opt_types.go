@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/onsi/gomega"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/skv2/codegen/util"
@@ -18,17 +19,30 @@ var (
 		filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml"),
 		e2edefaults.CurlPodManifest,
 	}
-	basicLisOptManifest = filepath.Join(util.MustGetThisDir(), "testdata", "basic-lisopt.yaml")
-
+	basicLisOptManifest                   = filepath.Join(util.MustGetThisDir(), "testdata", "basic-lisopt.yaml")
+	lisOptWithSectionedTargetRefsManifest = filepath.Join(util.MustGetThisDir(), "testdata", "listopt-with-sectioned-target-refs.yaml")
 	// When we apply the setup file, we expect resources to be created with this metadata
-	glooProxyObjectMeta = metav1.ObjectMeta{
-		Name:      "gloo-proxy-gw",
+	glooProxy1ObjectMeta = metav1.ObjectMeta{
+		Name:      "gloo-proxy-gw-1",
 		Namespace: "default",
 	}
-	proxyService    = &corev1.Service{ObjectMeta: glooProxyObjectMeta}
-	proxyDeployment = &appsv1.Deployment{
+	proxy1Service     = &corev1.Service{ObjectMeta: glooProxy1ObjectMeta}
+	proxy1ServiceFqdn = kubeutils.ServiceFQDN(proxy1Service.ObjectMeta)
+	proxy1Deployment  = &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "gloo-proxy-gw",
+			Name:      "gloo-proxy-gw-1",
+			Namespace: "default",
+		},
+	}
+	glooProxy2ObjectMeta = metav1.ObjectMeta{
+		Name:      "gloo-proxy-gw-2",
+		Namespace: "default",
+	}
+	proxy2Service     = &corev1.Service{ObjectMeta: glooProxy2ObjectMeta}
+	proxy2ServiceFqdn = kubeutils.ServiceFQDN(proxy2Service.ObjectMeta)
+	proxy2Deployment  = &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "gloo-proxy-gw-2",
 			Namespace: "default",
 		},
 	}
@@ -48,5 +62,19 @@ var (
 	expectedHealthyResponse = &matchers.HttpResponse{
 		StatusCode: http.StatusOK,
 		Body:       gomega.ContainSubstring("Welcome to nginx!"),
+	}
+
+	// Port numbers and mappings match the ports in the setup.yaml file
+	gw1port1 = 8080
+	gw1port2 = 8081
+	// port 8082 is used by envoy's readiness probe
+	gw2port1 = 8083
+	gw2port2 = 8084
+
+	// The keys in this map are the FQDNs of the gateway services
+	// The values are the ports on which the gateway services are listening
+	gatewayListenerPorts = map[string][]int{
+		proxy1ServiceFqdn: {gw1port1, gw1port2},
+		proxy2ServiceFqdn: {gw2port1, gw2port2},
 	}
 )
