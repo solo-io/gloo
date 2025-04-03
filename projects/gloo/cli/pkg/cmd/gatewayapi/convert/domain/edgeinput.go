@@ -153,7 +153,7 @@ func (g *GlooEdgeCache) AddAuthConfig(a *AuthConfigWrapper) {
 }
 
 func NameNamespaceIndex(name string, namespace string) string {
-	return fmt.Sprintf("%s-%s", namespace, name)
+	return fmt.Sprintf("%s/%s", namespace, name)
 }
 
 func (g *GlooEdgeCache) GetUpstream(name string, namespace string) *UpstreamWrapper {

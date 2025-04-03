@@ -16,7 +16,6 @@ const (
 	ERROR_TYPE_NOT_SUPPORTED           = "NOT_SUPPORTED"
 	ERROR_TYPE_IGNORED                 = "IGNORED"
 	ERROR_UNKNOWN_REFERENCE            = "UNKNOWN_REFERENCE"
-	ERROR_PARSE_ERROR                  = "PARSE_ERROR"
 )
 
 type Options struct {
@@ -30,6 +29,7 @@ type Options struct {
 	RetainFolderStructure   bool
 	IncludeUnknownResources bool
 	DeleteOutputDir         bool
+	CreateNamespaces        bool
 }
 
 func (opts *Options) validate() error {
@@ -70,6 +70,7 @@ func (o *Options) addToFlags(flags *pflag.FlagSet) {
 	flags.BoolVar(&o.RetainFolderStructure, "retain-input-folder-structure", false, "When writing the output write the Gateway API configurations in the same folder structure they were read from (input-dir only)")
 	flags.BoolVar(&o.IncludeUnknownResources, "include-unknown", false, "Copy unknown resources to output files (if files contain resources that are not Gloo APIs)")
 	flags.BoolVar(&o.DeleteOutputDir, "delete-output-dir", false, "Delete the output directory if it already exists")
+	flags.BoolVar(&o.CreateNamespaces, "create-namespaces", false, "Create namespaces for the objects in a file")
 }
 
 type GatewayAPIOutput struct {
