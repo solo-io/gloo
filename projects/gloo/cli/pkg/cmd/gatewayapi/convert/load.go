@@ -3,10 +3,11 @@ package convert
 import (
 	"encoding/json"
 	"fmt"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1/kube/apis/enterprise.gloo.solo.io/v1"
 	"log"
 	"os"
 	"strings"
+
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1/kube/apis/enterprise.gloo.solo.io/v1"
 
 	"github.com/solo-io/gloo/pkg/schemes"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
