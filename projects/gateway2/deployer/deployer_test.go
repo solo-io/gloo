@@ -1703,13 +1703,13 @@ var _ = Describe("Deployer", func() {
 			servicePorts := objs.findService(defaultNamespace, proxyName(gw.Name)).Spec.Ports
 			Expect(servicePorts[0].Name).To(Equal(listenerName))
 			Expect(servicePorts[0].Port).To(Equal(listenerPort))
-			Expect(servicePorts[1].Name).To(Equal(fmt.Sprintf("%s--%s", listenerSetName, listenerName)))
+			Expect(servicePorts[1].Name).To(Equal(fmt.Sprintf("%s-%s", listenerSetName, listenerName)))
 			Expect(servicePorts[1].Port).To(Equal(listenerSetPort))
 
 			deploymentPorts := objs.findDeployment(defaultNamespace, proxyName(gw.Name)).Spec.Template.Spec.Containers[0].Ports
 			Expect(deploymentPorts[0].Name).To(Equal(listenerName))
 			Expect(deploymentPorts[0].ContainerPort).To(Equal(listenerPort))
-			Expect(deploymentPorts[1].Name).To(Equal(fmt.Sprintf("%s--%s", listenerSetName, listenerName)))
+			Expect(deploymentPorts[1].Name).To(Equal(fmt.Sprintf("%s-%s", listenerSetName, listenerName)))
 			Expect(deploymentPorts[1].ContainerPort).To(Equal(listenerSetPort))
 		})
 	})

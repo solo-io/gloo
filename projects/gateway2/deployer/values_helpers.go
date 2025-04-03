@@ -31,9 +31,9 @@ func getPortsValues(cgw *types.ConsolidatedGateway, gwp *v1alpha1.GatewayParamet
 	for _, l := range cgw.Gateway.Spec.Listeners {
 		gwPorts = appendPortValue(gwPorts, uint16(l.Port), string(l.Name), gwp)
 	}
-	for _, ls := range cgw.AllowedListenerSets {
+	for i, ls := range cgw.AllowedListenerSets {
 		for _, l := range ls.Spec.Listeners {
-			gwPorts = appendPortValue(gwPorts, uint16(l.Port), fmt.Sprintf("%s--%s", ls.Name, l.Name), gwp)
+			gwPorts = appendPortValue(gwPorts, uint16(l.Port), fmt.Sprintf("%d-%s", i, l.Name), gwp)
 		}
 	}
 	return gwPorts
@@ -41,7 +41,15 @@ func getPortsValues(cgw *types.ConsolidatedGateway, gwp *v1alpha1.GatewayParamet
 
 func sanitizePortName(name string) string {
 	nonAlphanumericRegex := regexp.MustCompile(`[^a-zA-Z0-9-]+`)
-	return nonAlphanumericRegex.ReplaceAllString(name, "-")
+	str := nonAlphanumericRegex.ReplaceAllString(name, "-")
+	doubleHyphen := regexp.MustCompile(`-{2,}`)
+	str = doubleHyphen.ReplaceAllString(str, "-")
+
+	maxPortNameLength := 15
+	if len(str) > maxPortNameLength {
+		str = str[:maxPortNameLength]
+	}
+	return str
 }
 
 func appendPortValue(gwPorts []helmPort, port uint16, name string, gwp *v1alpha1.GatewayParameters) []helmPort {
