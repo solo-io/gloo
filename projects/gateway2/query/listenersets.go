@@ -50,6 +50,7 @@ func (r *gatewayQueries) processListenerSets(ctx context.Context, gw *gwv1.Gatew
 		}
 
 		// Check if the namespace of the listenerSet is allowed by the gateway
+		// We return the denied list of ls to have their status set to rejected during validation
 		if !allowedNs(ls.GetNamespace()) {
 			ret.DeniedListenerSets = append(ret.DeniedListenerSets, ls)
 			continue
