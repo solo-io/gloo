@@ -112,7 +112,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463
 	istio.io/api v1.25.0-alpha.0.0.20250401070747-f55d9659dc27
 	istio.io/client-go v1.25.0-alpha.0.0.20250401071445-73edf716803d
-	istio.io/istio v0.0.0-20250402001246-35d49311419e
+	istio.io/istio v0.0.0-20250403014247-c046f0578118
 	sigs.k8s.io/controller-tools v0.17.2
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0
 )
