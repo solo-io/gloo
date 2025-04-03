@@ -2,6 +2,7 @@ package als
 
 import (
 	"context"
+	"fmt"
 
 	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
@@ -42,38 +43,47 @@ func (p *plugin) Init(params plugins.InitParams) {
 }
 
 // ProcessHcmNetworkFilter will configure access logging for the hcm.
-// This delegates most of its logic to ProcessAccessLogPlugins, which is also used by the TCP plugin and the listener level configuration.
-func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parentListener *v1.Listener, _ *v1.HttpListener, out *envoyhttp.HttpConnectionManager) error {
+// This delegates most of its logic to ProcessAccessLogPlugins, which is also used by
+// the TCP plugin and the listener level configuration.
+func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parentListener *v1.Listener,
+	_ *v1.HttpListener, out *envoyhttp.HttpConnectionManager) error {
 	if out == nil {
 		return nil
 	}
+
 	// AccessLog settings are defined on the root listener, and applied to each HCM instance
 	alsSettings := parentListener.GetOptions().GetAccessLoggingService()
 	if alsSettings == nil {
 		return nil
 	}
 
+	fmt.Printf("hcm filter %v\n", alsSettings)
+
 	var err error
 	out.AccessLog, err = ProcessAccessLogPlugins(alsSettings, out.GetAccessLog())
-
 	if err := DetectUnusefulCmds(Hcm, out.GetAccessLog()); err != nil {
-		contextutils.LoggerFrom(p.ctx).Warnf("warning non-useful access log operator on %s's hcm: %s", parentListener.GetName(), err.Error())
+		contextutils.LoggerFrom(p.ctx).Warnf("warning non-useful access log operator on %s's hcm: %s",
+			parentListener.GetName(), err.Error())
 	}
 	return err
 }
 
 // ProcessListener will configure access logging at the listener level.
-func (p *plugin) ProcessListener(params plugins.Params, parentListener *v1.Listener, out *envoy_config_listener_v3.Listener) error {
+func (p *plugin) ProcessListener(params plugins.Params, parentListener *v1.Listener,
+	out *envoy_config_listener_v3.Listener) error {
 
 	alsSettings := parentListener.GetOptions().GetListenerAccessLoggingService()
 	if alsSettings == nil {
 		return nil
 	}
+
+	fmt.Printf("listener filter %v\n", alsSettings)
+
 	var err error
 	out.AccessLog, err = ProcessAccessLogPlugins(alsSettings, out.GetAccessLog())
-
 	if err := DetectUnusefulCmds(HttpListener, out.GetAccessLog()); err != nil {
-		contextutils.LoggerFrom(p.ctx).Warnf("non-useful access log operator configured on %s: %s", parentListener.GetName(), err.Error())
+		contextutils.LoggerFrom(p.ctx).Warnf("non-useful access log operator configured on %s: %s",
+			parentListener.GetName(), err.Error())
 	}
 
 	return err

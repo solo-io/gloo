@@ -15,6 +15,7 @@ weight: 5
 - [AccessLog](#accesslog)
 - [FileSink](#filesink)
 - [GrpcService](#grpcservice)
+- [OpenTelemetryService](#opentelemetryservice)
 - [AccessLogFilter](#accesslogfilter)
 - [ComparisonFilter](#comparisonfilter)
 - [Op](#op)
@@ -66,14 +67,16 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v
 ```yaml
 "fileSink": .als.options.gloo.solo.io.FileSink
 "grpcService": .als.options.gloo.solo.io.GrpcService
+"openTelemetryService": .als.options.gloo.solo.io.OpenTelemetryService
 "filter": .als.options.gloo.solo.io.AccessLogFilter
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `fileSink` | [.als.options.gloo.solo.io.FileSink](../als.proto.sk/#filesink) | Output access logs to local file. Only one of `fileSink` or `grpcService` can be set. |
-| `grpcService` | [.als.options.gloo.solo.io.GrpcService](../als.proto.sk/#grpcservice) | Send access logs to gRPC service. Only one of `grpcService` or `fileSink` can be set. |
+| `fileSink` | [.als.options.gloo.solo.io.FileSink](../als.proto.sk/#filesink) | Output access logs to local file. Only one of `fileSink`, `grpcService`, or `openTelemetryService` can be set. |
+| `grpcService` | [.als.options.gloo.solo.io.GrpcService](../als.proto.sk/#grpcservice) | Send access logs to gRPC service. Only one of `grpcService`, `fileSink`, or `openTelemetryService` can be set. |
+| `openTelemetryService` | [.als.options.gloo.solo.io.OpenTelemetryService](../als.proto.sk/#opentelemetryservice) | Send access logs to OpenTelemetry service. Only one of `openTelemetryService`, `fileSink`, or `grpcService` can be set. |
 | `filter` | [.als.options.gloo.solo.io.AccessLogFilter](../als.proto.sk/#accesslogfilter) |  |
 
 
@@ -123,6 +126,37 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v
 | `additionalResponseHeadersToLog` | `[]string` |  |
 | `additionalResponseTrailersToLog` | `[]string` |  |
 | `filterStateObjectsToLog` | `[]string` | Additional filter state objects to log in filter_state_objects. Logger will call FilterState::Object::serializeAsProto to serialize the filter state object. See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/access_loggers/grpc/v3/als.proto#extensions-access-loggers-grpc-v3-commongrpcaccesslogconfig. |
+
+
+
+
+---
+### OpenTelemetryService
+
+
+
+```yaml
+"logName": string
+"staticClusterName": string
+"filterStateObjectsToLog": []string
+"disableBuiltinLabels": bool
+"resourceAttributes": .solo.io.opentelemetry.common.v1.KeyValueList
+"body": .solo.io.opentelemetry.common.v1.AnyValue
+"attributes": .solo.io.opentelemetry.common.v1.KeyValueList
+"statPrefix": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `logName` | `string` | name of log stream. |
+| `staticClusterName` | `string` |  |
+| `filterStateObjectsToLog` | `[]string` | Additional filter state objects to log in filter_state_objects. Logger will call FilterState::Object::serializeAsProto to serialize the filter state object. See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/access_loggers/grpc/v3/als.proto#extensions-access-loggers-grpc-v3-commongrpcaccesslogconfig. |
+| `disableBuiltinLabels` | `bool` | If true, Envoy logger will not generate built-in resource labels like log_name, zone_name, cluster_name, node_name. |
+| `resourceAttributes` | .solo.io.opentelemetry.common.v1.KeyValueList | OpenTelemetry Resource attributes are filled with Envoy node info. |
+| `body` | .solo.io.opentelemetry.common.v1.AnyValue | A value containing the body of the log record. Can be for example a human-readable string message (including multi-line) describing the event in a free form or it can be a structured data composed of arrays and maps of other values. |
+| `attributes` | .solo.io.opentelemetry.common.v1.KeyValueList | Additional attributes that describe the specific event occurrence. [Optional]. Attribute keys MUST be unique (it is not allowed to have more than one attribute with the same key). |
+| `statPrefix` | `string` | Additional prefix to use on OpenTelemetry access logger stats. If empty, the stats will be rooted at `access_logs.open_telemetry_access_log`. |
 
 
 

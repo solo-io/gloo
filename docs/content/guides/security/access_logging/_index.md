@@ -358,11 +358,62 @@ config (that Gloo Gateway stores in `gateway-proxy-envoy-config`) will need to i
 custom access log server. Once you have a named static cluster in your envoy config, you can reference it in 
 your **gateway** CRD. 
 
-The Gloo Gateway access logger was written to be customizable with callbacks, so it may provide a useful starting point. Feel free
-to open an issue in the Gloo Gateway repo to track improvements to the existing implementation. 
+The Gloo Gateway access logger was written to be customizable with callbacks, so it may provide a useful starting
+point. Feel free to open an issue in the Gloo Gateway repo to track improvements to the existing implementation. 
 
 To verify your Envoy access logging configuration, use `glooctl check`. If there is a problem configuring the Envoy 
 listener with your custom access logging server, it should be reported there. 
+
+## OpenTelemetry Access Logging
+
+Gloo Gateway also supports OpenTelemetry access logging. This feature is available in Gloo Gateway Enterprise starting in `1.19.0`. 
+
+### Configuring the OpenTelemetry access logger
+
+```yaml
+...
+      - name: access_log_cluster
+        connect_timeout: 5.000s
+        load_assignment:
+            cluster_name: access_log_cluster
+            endpoints:
+            - lb_endpoints:
+              - endpoint:
+                    address:
+                        socket_address:
+                            address: gateway-proxy-access-logger.gloo-system.svc.cluster.local
+                            port_value: 8083
+        http2_protocol_options: {}
+        type: STRICT_DNS
+...
+```
+
+This access logging service can now be used by configuring the **gateway** CRD:
+
+```yaml
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  name: gateway-proxy
+  namespace: gloo-system
+spec:
+  bindAddress: '::'
+  bindPort: 8080
+  httpGateway: {}
+  proxyNames:
+  - gateway-proxy
+  useProxyProto: false
+  options:
+    accessLoggingService:
+      accessLog:
+        - grpcService:
+            logName: example
+            staticClusterName: access_log_cluster
+```
+
+{{% notice note %}}
+You may want to add additional configuration for the {{% protobuf name="als.options.gloo.solo.io.GrpcService" display="OpenTelemetryService"%}}.
+{{% /notice %}}
 
 ## Configuring multiple access logs 
 

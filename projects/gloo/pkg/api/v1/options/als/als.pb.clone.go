@@ -19,6 +19,8 @@ import (
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_external_envoy_type_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
 
+	github_com_solo_io_gloo_projects_gloo_pkg_api_external_opentelemetry_common_v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/opentelemetry/common/v1"
+
 	google_golang_org_protobuf_types_known_structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -94,6 +96,18 @@ func (m *AccessLog) Clone() proto.Message {
 		} else {
 			target.OutputDestination = &AccessLog_GrpcService{
 				GrpcService: proto.Clone(m.GetGrpcService()).(*GrpcService),
+			}
+		}
+
+	case *AccessLog_OpenTelemetryService:
+
+		if h, ok := interface{}(m.GetOpenTelemetryService()).(clone.Cloner); ok {
+			target.OutputDestination = &AccessLog_OpenTelemetryService{
+				OpenTelemetryService: h.Clone().(*OpenTelemetryService),
+			}
+		} else {
+			target.OutputDestination = &AccessLog_OpenTelemetryService{
+				OpenTelemetryService: proto.Clone(m.GetOpenTelemetryService()).(*OpenTelemetryService),
 			}
 		}
 
@@ -188,6 +202,60 @@ func (m *GrpcService) Clone() proto.Message {
 	case *GrpcService_StaticClusterName:
 
 		target.ServiceRef = &GrpcService_StaticClusterName{
+			StaticClusterName: m.GetStaticClusterName(),
+		}
+
+	}
+
+	return target
+}
+
+// Clone function
+func (m *OpenTelemetryService) Clone() proto.Message {
+	var target *OpenTelemetryService
+	if m == nil {
+		return target
+	}
+	target = &OpenTelemetryService{}
+
+	target.LogName = m.GetLogName()
+
+	if m.GetFilterStateObjectsToLog() != nil {
+		target.FilterStateObjectsToLog = make([]string, len(m.GetFilterStateObjectsToLog()))
+		for idx, v := range m.GetFilterStateObjectsToLog() {
+
+			target.FilterStateObjectsToLog[idx] = v
+
+		}
+	}
+
+	target.DisableBuiltinLabels = m.GetDisableBuiltinLabels()
+
+	if h, ok := interface{}(m.GetResourceAttributes()).(clone.Cloner); ok {
+		target.ResourceAttributes = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_external_opentelemetry_common_v1.KeyValueList)
+	} else {
+		target.ResourceAttributes = proto.Clone(m.GetResourceAttributes()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_external_opentelemetry_common_v1.KeyValueList)
+	}
+
+	if h, ok := interface{}(m.GetBody()).(clone.Cloner); ok {
+		target.Body = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_external_opentelemetry_common_v1.AnyValue)
+	} else {
+		target.Body = proto.Clone(m.GetBody()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_external_opentelemetry_common_v1.AnyValue)
+	}
+
+	if h, ok := interface{}(m.GetAttributes()).(clone.Cloner); ok {
+		target.Attributes = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_external_opentelemetry_common_v1.KeyValueList)
+	} else {
+		target.Attributes = proto.Clone(m.GetAttributes()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_external_opentelemetry_common_v1.KeyValueList)
+	}
+
+	target.StatPrefix = m.GetStatPrefix()
+
+	switch m.ServiceRef.(type) {
+
+	case *OpenTelemetryService_StaticClusterName:
+
+		target.ServiceRef = &OpenTelemetryService_StaticClusterName{
 			StaticClusterName: m.GetStaticClusterName(),
 		}
 

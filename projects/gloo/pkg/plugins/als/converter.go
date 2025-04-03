@@ -9,6 +9,7 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoyalfile "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/file/v3"
 	envoygrpc "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/grpc/v3"
+	envoyotel "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/open_telemetry/v3"
 	envoy_metadata_formatter "github.com/envoyproxy/go-control-plane/envoy/extensions/formatter/metadata/v3"
 	envoy_req_without_query "github.com/envoyproxy/go-control-plane/envoy/extensions/formatter/req_without_query/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
@@ -19,6 +20,11 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
 	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+)
+
+const (
+	// OpenTelemetryAccessLog sink for the OpenTelemetry access log service
+	OpenTelemetryAccessLog = "envoy.access_loggers.open_telemetry"
 )
 
 var (
@@ -121,6 +127,16 @@ func ProcessAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoya
 			}
 
 			newAlsCfg, err = translatorutil.NewAccessLogWithConfig(wellknown.HTTPGRPCAccessLog, &cfg)
+			if err != nil {
+				return nil, err
+			}
+		case *als.AccessLog_OpenTelemetryService:
+			var cfg envoyotel.OpenTelemetryAccessLogConfig
+			if err = copyOtelSettings(&cfg, cfgType); err != nil {
+				return nil, err
+			}
+
+			newAlsCfg, err = translatorutil.NewAccessLogWithConfig(OpenTelemetryAccessLog, &cfg)
 			if err != nil {
 				return nil, err
 			}
@@ -259,6 +275,36 @@ func copyGrpcSettings(cfg *envoygrpc.HttpGrpcAccessLogConfig, alsSettings *als.A
 	return cfg.Validate()
 }
 
+func copyOtelSettings(cfg *envoyotel.OpenTelemetryAccessLogConfig,
+	alsSettings *als.AccessLog_OpenTelemetryService) error {
+	if alsSettings.OpenTelemetryService == nil {
+		return eris.New("OpenTelemetry service object cannot be nil")
+	}
+
+	svc := &envoycore.GrpcService{
+		TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+			EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+				ClusterName: alsSettings.OpenTelemetryService.GetStaticClusterName(),
+			},
+		},
+	}
+
+	cfg.CommonConfig = &envoygrpc.CommonGrpcAccessLogConfig{
+		LogName:                 alsSettings.OpenTelemetryService.GetLogName(),
+		GrpcService:             svc,
+		TransportApiVersion:     envoycore.ApiVersion_V3,
+		FilterStateObjectsToLog: alsSettings.OpenTelemetryService.GetFilterStateObjectsToLog(),
+	}
+	cfg.DisableBuiltinLabels = alsSettings.OpenTelemetryService.GetDisableBuiltinLabels()
+	//cfg.ResourceAttributes = alsSettings.OpenTelemetryService.GetResourceAttributes()
+	//cfg.Body = alsSettings.OpenTelemetryService.GetBody()
+	//cfg.Attributes = alsSettings.OpenTelemetryService.GetAttributes()
+	cfg.StatPrefix = alsSettings.OpenTelemetryService.GetStatPrefix()
+	//cfg.Formatters = alsSettings.OpenTelemetryService.GetFormatters()
+
+	return nil
+}
+
 func copyFileSettings(cfg *envoyalfile.FileAccessLog, alsSettings *als.AccessLog_FileSink) error {
 	cfg.Path = alsSettings.FileSink.GetPath()
 
@@ -315,5 +361,4 @@ func getFormatterExtensions() ([]*envoycore.TypedExtensionConfig, error) {
 			TypedConfig: mdFormatterTc,
 		},
 	}, nil
-
 }
