@@ -24,6 +24,11 @@ var (
 	ErrUnexpectedListener     = func(l *gloov1.Listener) error {
 		return fmt.Errorf("%w: expected AggregateListener, got %T", ErrUnexpectedListenerType, l.GetListenerType())
 	}
+
+	ListenerTargetRefGVKs = []schema.GroupVersionKind{
+		wellknown.GatewayGVK,
+		wellknown.XListenerSetGVK,
+	}
 )
 
 // FindAppliedRouteFilters finds all instances of the supplied filterTypes for the Rule supplied in the RouteContext.
