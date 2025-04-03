@@ -228,7 +228,7 @@ func TestGetPrioritizedListenerPolicies(t *testing.T) {
 
 	policies := []utils.PolicyWithSectionedTargetRefs[client.Object]{policy0, policy1, policy2, policy3, policy4, policy5, policy6}
 
-	prioritizedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, "gw-1")
+	prioritizedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, "gw-1", nil)
 
 	g.Expect(prioritizedPolicies).To(BeEquivalentTo([]client.Object{policy3.object, policy2.object, policy1.object, policy0.object}))
 }
@@ -259,6 +259,11 @@ func TestIndexTargetRefs(t *testing.T) {
 			Kind:        wellknown.GatewayKind,
 			SectionName: &wrapperspb.StringValue{Value: "http"},
 		},
+		{
+			Name:  "ls-1",
+			Group: wellknown.XListenerSetGVK.Group,
+			Kind:  wellknown.XListenerSetGVK.Kind,
+		},
 		// no match on Group
 		{
 			Name:  "gw-3",
@@ -273,8 +278,8 @@ func TestIndexTargetRefs(t *testing.T) {
 		},
 	}
 
-	indices := utils.IndexTargetRefs(targetRefs, "default", []string{wellknown.GatewayKind})
-	expected := []string{"default/gw-1", "default/gw-2"}
+	indices := utils.IndexTargetRefs(targetRefs, "default", utils.ListenerTargetRefGVKs)
+	expected := []string{"default/gw-1", "default/gw-2", "default/ls-1"}
 
 	sort.Strings(expected)
 	sort.Strings(indices)

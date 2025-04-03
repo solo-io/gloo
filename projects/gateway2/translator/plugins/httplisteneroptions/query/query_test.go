@@ -63,7 +63,7 @@ var _ = Describe("Query Get HttpListenerOptions", func() {
 			}
 		})
 		It("should find the only attached option", func() {
-			httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw)
+			httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(httpListenerOptions).NotTo(BeNil())
 			Expect(httpListenerOptions).To(HaveLen(1))
@@ -80,7 +80,7 @@ var _ = Describe("Query Get HttpListenerOptions", func() {
 			}
 		})
 		It("should not find an attached option", func() {
-			httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw)
+			httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(httpListenerOptions).To(BeNil())
 		})
@@ -95,7 +95,7 @@ var _ = Describe("Query Get HttpListenerOptions", func() {
 			}
 		})
 		It("should find the attached option", func() {
-			httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw)
+			httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(httpListenerOptions).NotTo(BeNil())
 			Expect(httpListenerOptions).To(HaveLen(1))
@@ -113,7 +113,7 @@ var _ = Describe("Query Get HttpListenerOptions", func() {
 			}
 		})
 		It("should not find an attached option", func() {
-			httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw)
+			httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(httpListenerOptions).To(BeNil())
 		})
@@ -128,7 +128,7 @@ var _ = Describe("Query Get HttpListenerOptions", func() {
 				}
 			})
 			It("should find the only attached option", func() {
-				httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw)
+				httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(httpListenerOptions).NotTo(BeNil())
 				Expect(httpListenerOptions).To(HaveLen(1))
@@ -144,7 +144,7 @@ var _ = Describe("Query Get HttpListenerOptions", func() {
 				}
 			})
 			It("should still find an attached option", func() {
-				httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw)
+				httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(httpListenerOptions).NotTo(BeNil())
 				Expect(httpListenerOptions).To(HaveLen(1))
@@ -163,7 +163,7 @@ var _ = Describe("Query Get HttpListenerOptions", func() {
 				}
 			})
 			It("should find the attached option specified by section name", func() {
-				httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw)
+				httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(httpListenerOptions).NotTo(BeNil())
 				Expect(httpListenerOptions).To(HaveLen(1))
@@ -181,7 +181,7 @@ var _ = Describe("Query Get HttpListenerOptions", func() {
 				}
 			})
 			It("should find the attached option with and without section name", func() {
-				httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw)
+				httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(httpListenerOptions).NotTo(BeNil())
 
@@ -202,7 +202,7 @@ var _ = Describe("Query Get HttpListenerOptions", func() {
 					}
 				})
 				It("should not find any attached options", func() {
-					httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw)
+					httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw, nil)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(httpListenerOptions).To(BeNil())
 				})
@@ -216,7 +216,7 @@ var _ = Describe("Query Get HttpListenerOptions", func() {
 					}
 				})
 				It("should find the gateway-level attached options", func() {
-					httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw)
+					httpListenerOptions, err := qry.GetAttachedHttpListenerOptions(ctx, listener, gw, nil)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(httpListenerOptions).NotTo(BeNil())
 					Expect(httpListenerOptions).To(HaveLen(1))

@@ -63,7 +63,7 @@ var _ = Describe("Query Get VirtualHostOptions", func() {
 			}
 		})
 		It("should find the only attached option", func() {
-			virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw)
+			virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(virtualHostOptions).NotTo(BeNil())
 			Expect(virtualHostOptions).To(HaveLen(1))
@@ -80,7 +80,7 @@ var _ = Describe("Query Get VirtualHostOptions", func() {
 			}
 		})
 		It("should not find an attached option", func() {
-			virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw)
+			virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(virtualHostOptions).To(BeNil())
 		})
@@ -95,7 +95,7 @@ var _ = Describe("Query Get VirtualHostOptions", func() {
 			}
 		})
 		It("should find the attached option", func() {
-			virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw)
+			virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(virtualHostOptions).NotTo(BeNil())
 			Expect(virtualHostOptions).To(HaveLen(1))
@@ -113,7 +113,7 @@ var _ = Describe("Query Get VirtualHostOptions", func() {
 			}
 		})
 		It("should not find an attached option", func() {
-			virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw)
+			virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(virtualHostOptions).To(BeNil())
 		})
@@ -127,7 +127,7 @@ var _ = Describe("Query Get VirtualHostOptions", func() {
 				}
 			})
 			It("should find the attached option specified by section name", func() {
-				virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw)
+				virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(virtualHostOptions).NotTo(BeNil())
 				Expect(virtualHostOptions).To(HaveLen(1))
@@ -145,7 +145,7 @@ var _ = Describe("Query Get VirtualHostOptions", func() {
 				}
 			})
 			It("should find the attached option with and without section name", func() {
-				virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw)
+				virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(virtualHostOptions).NotTo(BeNil())
 
@@ -166,7 +166,7 @@ var _ = Describe("Query Get VirtualHostOptions", func() {
 					}
 				})
 				It("should not find any attached options", func() {
-					virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw)
+					virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw, nil)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(virtualHostOptions).To(BeNil())
 				})
@@ -180,7 +180,7 @@ var _ = Describe("Query Get VirtualHostOptions", func() {
 					}
 				})
 				It("should find the gateway-level attached options", func() {
-					virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw)
+					virtualHostOptions, err := qry.GetVirtualHostOptionsForListener(ctx, listener, gw, nil)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(virtualHostOptions).NotTo(BeNil())
 					Expect(virtualHostOptions).To(HaveLen(1))

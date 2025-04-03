@@ -63,7 +63,7 @@ var _ = Describe("Query Get ListenerOptions", func() {
 			}
 		})
 		It("should find the only attached option", func() {
-			listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw)
+			listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(listenerOptions).NotTo(BeNil())
 			Expect(listenerOptions).To(HaveLen(1))
@@ -80,7 +80,7 @@ var _ = Describe("Query Get ListenerOptions", func() {
 			}
 		})
 		It("should not find an attached option", func() {
-			listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw)
+			listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(listenerOptions).To(BeNil())
 		})
@@ -95,7 +95,7 @@ var _ = Describe("Query Get ListenerOptions", func() {
 			}
 		})
 		It("should find the attached option", func() {
-			listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw)
+			listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(listenerOptions).NotTo(BeNil())
 			Expect(listenerOptions).To(HaveLen(1))
@@ -113,7 +113,7 @@ var _ = Describe("Query Get ListenerOptions", func() {
 			}
 		})
 		It("should not find an attached option", func() {
-			listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw)
+			listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(listenerOptions).To(BeNil())
 		})
@@ -128,7 +128,7 @@ var _ = Describe("Query Get ListenerOptions", func() {
 				}
 			})
 			It("should find the only attached option", func() {
-				listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw)
+				listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(listenerOptions).NotTo(BeNil())
 				Expect(listenerOptions).To(HaveLen(1))
@@ -144,7 +144,7 @@ var _ = Describe("Query Get ListenerOptions", func() {
 				}
 			})
 			It("should find the attached option that matches", func() {
-				listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw)
+				listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(listenerOptions).NotTo(BeNil())
 				Expect(listenerOptions).To(HaveLen(1))
@@ -163,7 +163,7 @@ var _ = Describe("Query Get ListenerOptions", func() {
 				}
 			})
 			It("should find the attached option specified by section name", func() {
-				listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw)
+				listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(listenerOptions).NotTo(BeNil())
 				Expect(listenerOptions).To(HaveLen(1))
@@ -181,7 +181,7 @@ var _ = Describe("Query Get ListenerOptions", func() {
 				}
 			})
 			It("should find the attached option with and without section name", func() {
-				listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw)
+				listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(listenerOptions).NotTo(BeNil())
 
@@ -202,7 +202,7 @@ var _ = Describe("Query Get ListenerOptions", func() {
 					}
 				})
 				It("should not find any attached options", func() {
-					listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw)
+					listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw, nil)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(listenerOptions).To(BeNil())
 				})
@@ -216,7 +216,7 @@ var _ = Describe("Query Get ListenerOptions", func() {
 					}
 				})
 				It("should find the gateway-level attached options", func() {
-					listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw)
+					listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw, nil)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(listenerOptions).NotTo(BeNil())
 					Expect(listenerOptions).To(HaveLen(1))
