@@ -59,8 +59,6 @@ var (
 )
 
 var _ = BeforeSuite(func() {
-	Fail("INTENTIONALLY FAILING")
-
 	var err error
 
 	// This line prevents controller-runtime from complaining about log.SetLogger never being called
