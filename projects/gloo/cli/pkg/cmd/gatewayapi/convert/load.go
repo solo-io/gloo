@@ -3,6 +3,7 @@ package convert
 import (
 	"encoding/json"
 	"fmt"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1/kube/apis/enterprise.gloo.solo.io/v1"
 	"log"
 	"os"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/convert/domain"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
-	v2 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -181,11 +181,12 @@ func (g *GatewayAPIOutput) parseObjects(item unstructured.Unstructured, k *schem
 	}
 	gvk := item.GroupVersionKind()
 	obj, err := runtimeScheme.New(gvk)
-	if err != nil {
-		return err
-	}
 	if runtime.IsNotRegisteredError(err) {
 		// we just want to add the yaml and move on
+		if strings.Contains(gvk.Group, "solo.io") {
+			g.AddError(ERROR_TYPE_NOT_SUPPORTED, "solo resource [%s] %s/%s ignored in conversion", gvk.String(), item.GetNamespace(), item.GetName())
+		}
+
 		g.edgeCache.AddYamlObject(&domain.YAMLWrapper{Yaml: string(resourceYaml), OriginalFileName: fileName})
 		return nil
 	} else if err != nil {
@@ -202,7 +203,10 @@ func (g *GatewayAPIOutput) parseObjects(item unstructured.Unstructured, k *schem
 
 func (g *GatewayAPIOutput) AddObjectToGatewayAPIOutput(obj runtime.Object, fileName string, k *schema.GroupVersionKind, resourceYaml string) {
 	switch o := obj.(type) {
-	case *v2.AuthConfig:
+	case *glookube.Settings:
+		glooConfigMetric.WithLabelValues("Settings").Inc()
+		g.edgeCache.AddSettings(&domain.SettingsWrapper{Settings: o, OriginalFileName: fileName})
+	case *v1.AuthConfig:
 		glooConfigMetric.WithLabelValues("AuthConfig").Inc()
 		g.edgeCache.AddAuthConfig(&domain.AuthConfigWrapper{AuthConfig: o, OriginalFileName: fileName})
 	case *glookube.Upstream:

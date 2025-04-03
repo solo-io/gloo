@@ -10,6 +10,7 @@ import (
 
 type GlooEdgeCache struct {
 	YamlObjects         []*YAMLWrapper
+	Settings            map[string]*SettingsWrapper
 	RouteTables         map[string]*RouteTableWrapper
 	RouteOptions        map[string]*RouteOptionWrapper
 	ListenerOptions     map[string]*ListenerOptionWrapper
@@ -88,6 +89,12 @@ func (g *GlooEdgeCache) AddYamlObject(w *YAMLWrapper) {
 		g.YamlObjects = []*YAMLWrapper{}
 	}
 	g.YamlObjects = append(g.YamlObjects, w)
+}
+func (g *GlooEdgeCache) AddSettings(s *SettingsWrapper) {
+	if g.Settings == nil {
+		g.Settings = map[string]*SettingsWrapper{}
+	}
+	g.Settings[s.NameIndex()] = s
 }
 func (g *GlooEdgeCache) AddRouteTable(r *RouteTableWrapper) {
 	if g.RouteTables == nil {

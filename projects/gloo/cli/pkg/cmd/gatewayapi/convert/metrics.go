@@ -40,6 +40,7 @@ func init() {
 	glooConfigMetric.WithLabelValues("HTTPListenerOption").Inc()
 	glooConfigMetric.WithLabelValues("Unknown").Inc()
 	glooConfigMetric.WithLabelValues("Gateway").Inc()
+	glooConfigMetric.WithLabelValues("Settings").Inc()
 
 	gatewayAPIConfigMetrics.WithLabelValues("Gateway").Inc()
 	gatewayAPIConfigMetrics.WithLabelValues("AuthConfig").Inc()

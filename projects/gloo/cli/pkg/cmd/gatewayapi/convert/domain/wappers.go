@@ -5,8 +5,8 @@ import (
 
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1/kube/apis/enterprise.gloo.solo.io/v1"
 	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
-	v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -54,6 +54,19 @@ func (w *HTTPRouteWrapper) NameIndex() string {
 }
 
 func (w *HTTPRouteWrapper) GetOriginalFileName() string {
+	return w.OriginalFileName
+}
+
+type SettingsWrapper struct {
+	*glookube.Settings
+	OriginalFileName string
+}
+
+func (w *SettingsWrapper) NameIndex() string {
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+}
+
+func (w *SettingsWrapper) GetOriginalFileName() string {
 	return w.OriginalFileName
 }
 

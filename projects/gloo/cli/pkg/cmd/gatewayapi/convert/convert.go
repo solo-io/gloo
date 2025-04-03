@@ -13,7 +13,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
 	v3 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
-	v2 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
@@ -45,7 +44,11 @@ func (g *GatewayAPIOutput) Convert() error {
 			g.gatewayAPICache.AddUpstream(upstream)
 		}
 	}
+	for _, settings := range g.edgeCache.Settings {
+		g.gatewayAPICache.AddSettings(settings)
+	}
 
+	// copy over any existing options
 	return nil
 }
 
@@ -256,12 +259,7 @@ func (g *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *domain.Gl
 				Spec: gwv1.GatewaySpec{
 					AllowedListeners: &gwv1.AllowedListeners{
 						Namespaces: &gwv1.ListenerNamespaces{
-							From: ptr.To(gwv1.NamespacesFromSelector),
-							Selector: &v1.LabelSelector{
-								MatchLabels: map[string]string{
-									"proxy-name": proxyName,
-								},
-							},
+							From: ptr.To(gwv1.NamespacesFromAll),
 						},
 					},
 					GatewayClassName: "gloo-gateway",
@@ -342,17 +340,6 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(glooGateway *domain.GlooGa
 	})
 }
 
-func authConfigContainsGCPAuth(config *v2.AuthConfig) bool {
-	if len(config.Spec.Configs) > 0 {
-		for _, config := range config.Spec.Configs {
-			if config.GetPluginAuth() != nil && config.GetPluginAuth().Name == "gcp_auth" {
-				return true
-			}
-		}
-	}
-	return false
-}
-
 func (g *GatewayAPIOutput) convertVirtualServiceHTTPRoutes(vs *domain.VirtualServiceWrapper, glooGateway *domain.GlooGatewayWrapper, listenerName string) error {
 
 	hr := &gwv1.HTTPRoute{
@@ -397,10 +384,10 @@ func (g *GatewayAPIOutput) convertVirtualServiceHTTPRoutes(vs *domain.VirtualSer
 	return nil
 }
 
-func convertRouteOptions(
+func (g *GatewayAPIOutput) convertRouteOptions(
 	options *gloov1.RouteOptions,
 	routeName string,
-	routeTableNamespace string,
+	wrapper domain.Wrapper,
 ) (*gatewaykube.RouteOption, *gwv1.HTTPRouteFilter) {
 
 	var ro *gatewaykube.RouteOption
@@ -420,7 +407,7 @@ func convertRouteOptions(
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Name:      associationName,
-				Namespace: routeTableNamespace,
+				Namespace: wrapper.GetNamespace(),
 			},
 			Spec: gloogwv1.RouteOption{
 				Options: options,
@@ -439,6 +426,15 @@ func convertRouteOptions(
 				Kind:  "RouteOption",
 				Name:  gwv1.ObjectName(associationName),
 			},
+		}
+		if options.GetExtauth() != nil && options.GetExtauth().GetConfigRef() != nil {
+			// we need to copy over the auth config ref if it exists
+			ref := options.GetExtauth().GetConfigRef()
+			ac, exists := g.edgeCache.AuthConfigs[domain.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
+			if !exists {
+				g.AddErrorFromWrapper(ERROR_UNKNOWN_REFERENCE, wrapper, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
+			}
+			g.gatewayAPICache.AddAuthConfig(ac)
 		}
 	}
 	return ro, filter
@@ -478,7 +474,7 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 			}
 		}
 
-		ro, filter := convertRouteOptions(options, r.Name, wrapper.GetNamespace())
+		ro, filter := g.convertRouteOptions(options, r.Name, wrapper)
 		if filter != nil {
 			rr.Filters = append(rr.Filters, *filter)
 		}
@@ -574,6 +570,22 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 					Name:  gwv1.ObjectName(delegateOptions.Name),
 				},
 			})
+			// grab that route option and add it to the cache
+			ro, exists := g.edgeCache.RouteOptions[domain.NameNamespaceIndex(delegateOptions.GetName(), delegateOptions.GetNamespace())]
+			if !exists {
+				g.AddErrorFromWrapper(ERROR_UNKNOWN_REFERENCE, wrapper, "did not find RouteOption %s/%s for delegated route option reference", delegateOptions.GetNamespace(), delegateOptions.GetName())
+			}
+			g.gatewayAPICache.AddRouteOption(ro)
+
+			if ro.Spec.GetOptions() != nil && ro.Spec.GetOptions().GetExtauth() != nil && ro.Spec.GetOptions().GetExtauth().GetConfigRef() != nil {
+				// we need to copy over the auth config ref if it exists
+				ref := ro.Spec.GetOptions().GetExtauth().GetConfigRef()
+				ac, exists := g.edgeCache.AuthConfigs[domain.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
+				if !exists {
+					g.AddErrorFromWrapper(ERROR_UNKNOWN_REFERENCE, ro, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
+				}
+				g.gatewayAPICache.AddAuthConfig(ac)
+			}
 		}
 	}
 
@@ -857,7 +869,7 @@ func (g *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper domain.Wrap
 		for _, h := range m.Headers {
 			// support invert header match https://github.com/solo-io/gloo/blob/main/projects/gateway2/translator/httproute/gateway_http_route_translator.go#L274
 			if h.InvertMatch == true {
-				return hrm, fmt.Errorf("invert match not currently supported")
+				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "invert match not currently supported")
 			}
 			if h.Regex {
 				hrm.Headers = append(hrm.Headers, gwv1.HTTPHeaderMatch{

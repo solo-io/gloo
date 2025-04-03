@@ -136,6 +136,8 @@ func namespaceMatch(namespace string, namespaces []string) bool {
 	}
 	return false
 }
+
+// TODO we should only combine route options in the same namespace
 func (g *GatewayAPIOutput) combineRouteOptions() {
 	var routeOptionKeys []string
 	for key, _ := range g.gatewayAPICache.RouteOptions {
