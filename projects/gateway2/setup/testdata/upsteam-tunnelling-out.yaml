@@ -1,0 +1,97 @@
+clusters:
+- connectTimeout: 5s
+  loadAssignment:
+    clusterName: squid-proxy_gwtest
+    endpoints:
+    - lbEndpoints:
+      - endpoint:
+          address:
+            pipe:
+              path: '@/squid-proxy_gwtest'
+  name: squid-proxy_gwtest
+  type: STATIC
+- connectTimeout: 5s
+  dnsLookupFamily: V4_ONLY
+  loadAssignment:
+    clusterName: squid-proxy_gwtest
+    endpoints:
+    - lbEndpoints:
+      - endpoint:
+          address:
+            socketAddress:
+              address: reviews.gwtest.svc.cluster.local
+              portValue: 8080
+          healthCheckConfig:
+            hostname: reviews.gwtest.svc.cluster.local
+          hostname: reviews.gwtest.svc.cluster.local
+        metadata:
+          filterMetadata:
+            envoy.transport_socket_match:
+              reviews.gwtest.svc.cluster.local;reviews.gwtest.svc.cluster.local:8080: true
+  metadata: {}
+  name: squid-proxy_gwtest_original
+  type: STRICT_DNS
+- connectTimeout: 5s
+  edsClusterConfig:
+    edsConfig:
+      ads: {}
+      resourceApiVersion: V3
+    serviceName: kube-svc:default-kubernetes-443_default-8057429479812104425
+  metadata: {}
+  name: kube-svc:default-kubernetes-443_default
+  transportSocketMatches:
+  - match:
+      tlsMode: istio
+    name: tlsMode-istio
+    transportSocket:
+      name: envoy.transport_sockets.tls
+      typedConfig:
+        '@type': type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+        commonTlsContext:
+          alpnProtocols:
+          - istio
+          tlsCertificateSdsSecretConfigs:
+          - name: istio_server_cert
+            sdsConfig:
+              apiConfigSource:
+                apiType: GRPC
+                grpcServices:
+                - envoyGrpc:
+                    clusterName: gateway_proxy_sds
+                setNodeOnFirstMessageOnly: true
+                transportApiVersion: V3
+              resourceApiVersion: V3
+          tlsParams: {}
+          validationContextSdsSecretConfig:
+            name: istio_validation_context
+            sdsConfig:
+              apiConfigSource:
+                apiType: GRPC
+                grpcServices:
+                - envoyGrpc:
+                    clusterName: gateway_proxy_sds
+                setNodeOnFirstMessageOnly: true
+                transportApiVersion: V3
+              resourceApiVersion: V3
+        sni: outbound_.443_._.kubernetes.default.svc.cluster.local
+  - match: {}
+    name: tlsMode-disabled
+    transportSocket:
+      name: envoy.transport_sockets.raw_buffer
+      typedConfig:
+        '@type': type.googleapis.com/envoy.extensions.transport_sockets.raw_buffer.v3.RawBuffer
+  type: EDS
+listeners:
+- address:
+    pipe:
+      path: '@/squid-proxy_gwtest'
+  filterChains:
+  - filters:
+    - name: tcp
+      typedConfig:
+        '@type': type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+        cluster: squid-proxy_gwtest_original
+        statPrefix: soloioTcpStatssquid-proxy_gwtest
+        tunnelingConfig:
+          hostname: reviews.example.com:8080
+  name: solo_io_generated_self_listener_squid-proxy_gwtest

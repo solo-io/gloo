@@ -10,6 +10,7 @@ import (
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
 	"github.com/rotisserie/eris"
 
@@ -50,24 +51,28 @@ type plugin struct {
 	filterHashMap map[string]*dynamic_forward_proxy.FilterConfig
 }
 
-func (p *plugin) GeneratedResources(params plugins.Params,
+func (p *plugin) GeneratedResources(
+	params plugins.Params,
+	proxy *v1.Proxy,
 	_ []*envoy_config_cluster_v3.Cluster,
 	_ []*envoy_config_endpoint_v3.ClusterLoadAssignment,
 	_ []*envoy_config_route_v3.RouteConfiguration,
-	_ []*envoy_config_listener_v3.Listener) (
+	_ []*envoy_config_listener_v3.Listener,
+	reporter reporter.ResourceReports) (
 	[]*envoy_config_cluster_v3.Cluster,
 	[]*envoy_config_endpoint_v3.ClusterLoadAssignment,
 	[]*envoy_config_route_v3.RouteConfiguration,
-	[]*envoy_config_listener_v3.Listener, error) {
+	[]*envoy_config_listener_v3.Listener) {
 	var generatedClusters []*envoy_config_cluster_v3.Cluster
 	for _, lCfg := range p.filterHashMap {
 		generatedCluster, err := generateCustomDynamicForwardProxyCluster(lCfg, params)
 		if err != nil {
-			return nil, nil, nil, nil, err
+			reporter.AddError(proxy, err)
+			return nil, nil, nil, nil
 		}
 		generatedClusters = append(generatedClusters, generatedCluster)
 	}
-	return generatedClusters, nil, nil, nil, nil
+	return generatedClusters, nil, nil, nil
 }
 
 // envoy is silly and thus dynamic forward proxy DNS config must be identical across HTTP filter and cluster config,
