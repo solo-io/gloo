@@ -111,6 +111,15 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
+	for _, r := range g.gatewayAPICache.Settings {
+		yml, err := yaml.Marshal(r.Settings)
+		if err != nil {
+			return err
+		}
+		if err := writeObjectToFile(opts, r, yml); err != nil {
+			return err
+		}
+	}
 	for _, r := range g.gatewayAPICache.YamlObjects {
 		yml, err := yaml.Marshal(r.Object)
 		if err != nil {

@@ -19,8 +19,15 @@ type GatewayAPICache struct {
 	AuthConfigs  map[string]*AuthConfigWrapper
 	Gateways     map[string]*GatewayWrapper
 	ListenerSets map[string]*ListenerSetWrapper
+	Settings     map[string]*SettingsWrapper
 }
 
+func (g *GatewayAPICache) AddSettings(s *SettingsWrapper) {
+	if g.Settings == nil {
+		g.Settings = make(map[string]*SettingsWrapper)
+	}
+	g.Settings[s.NameIndex()] = s
+}
 func (g *GatewayAPICache) GetGateway(name string, namespace string) *GatewayWrapper {
 	if g.Gateways == nil {
 		return nil
