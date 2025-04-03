@@ -76,5 +76,8 @@ func GatewayScheme() *runtime.Scheme {
 	if err := gwv1b1.Install(s); err != nil {
 		panic(fmt.Sprintf("Failed to install gateway v1beta1 scheme: %v", err))
 	}
+	if err := gwxv1a1.Install(s); err != nil {
+		panic(fmt.Sprintf("Failed to install gateway experimental v1alpha1 scheme: %v", err))
+	}
 	return s
 }

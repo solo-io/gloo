@@ -27,7 +27,7 @@ func (r *gatewayQueries) GetListenerSetsForGateway(ctx context.Context, gw *gwv1
 	listenerSetListTypes := &gwxv1a1.XListenerSetList{}
 
 	if err := r.client.List(ctx, listenerSetListTypes, client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(ListenerSetTargetField, nns.String())}); err != nil {
-		return nil, fmt.Errorf("failed to list routes: %w", err)
+		return nil, fmt.Errorf("failed to list listener sets: %w", err)
 	}
 
 	listenerSets := make([]*gwxv1a1.XListenerSet, len(listenerSetListTypes.Items))
