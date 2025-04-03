@@ -50,7 +50,7 @@ type HTTPRouteWrapper struct {
 }
 
 func (w *HTTPRouteWrapper) NameIndex() string {
-	return fmt.Sprintf("%s-%s", w.Namespace, w.Name)
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
 }
 
 func (w *HTTPRouteWrapper) GetOriginalFileName() string {
@@ -89,7 +89,7 @@ type VirtualHostOptionWrapper struct {
 }
 
 func (w *VirtualHostOptionWrapper) NameIndex() string {
-	return fmt.Sprintf("%s-%s", w.Namespace, w.Name)
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
 }
 func (w *VirtualHostOptionWrapper) GetOriginalFileName() string {
 	return w.OriginalFileName
@@ -101,7 +101,7 @@ type ListenerOptionWrapper struct {
 }
 
 func (w *ListenerOptionWrapper) NameIndex() string {
-	return fmt.Sprintf("%s-%s", w.Namespace, w.Name)
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
 }
 func (w *ListenerOptionWrapper) GetOriginalFileName() string {
 	return w.OriginalFileName
@@ -113,7 +113,7 @@ type HTTPListenerOptionWrapper struct {
 }
 
 func (w *HTTPListenerOptionWrapper) NameIndex() string {
-	return fmt.Sprintf("%s-%s", w.Namespace, w.Name)
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
 }
 func (w *HTTPListenerOptionWrapper) GetOriginalFileName() string {
 	return w.OriginalFileName
@@ -125,7 +125,7 @@ type UpstreamWrapper struct {
 }
 
 func (w *UpstreamWrapper) NameIndex() string {
-	return fmt.Sprintf("%s-%s", w.Namespace, w.Name)
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
 }
 func (w *UpstreamWrapper) GetOriginalFileName() string {
 	return w.OriginalFileName
@@ -137,7 +137,7 @@ type AuthConfigWrapper struct {
 }
 
 func (w *AuthConfigWrapper) NameIndex() string {
-	return fmt.Sprintf("%s-%s", w.Namespace, w.Name)
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
 }
 func (w *AuthConfigWrapper) GetOriginalFileName() string {
 	return w.OriginalFileName
@@ -149,7 +149,7 @@ type GatewayWrapper struct {
 }
 
 func (w *GatewayWrapper) NameIndex() string {
-	return fmt.Sprintf("%s-%s", w.Namespace, w.Name)
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
 }
 func (w *GatewayWrapper) GetOriginalFileName() string {
 	return w.OriginalFileName
@@ -161,7 +161,7 @@ type ListenerSetWrapper struct {
 }
 
 func (w *ListenerSetWrapper) NameIndex() string {
-	return fmt.Sprintf("%s-%s", w.Namespace, w.Name)
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
 }
 func (w *ListenerSetWrapper) GetOriginalFileName() string {
 	return w.OriginalFileName
@@ -173,7 +173,7 @@ type RouteTableWrapper struct {
 }
 
 func (w *RouteTableWrapper) NameIndex() string {
-	return fmt.Sprintf("%s-%s", w.Namespace, w.Name)
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
 }
 func (w *RouteTableWrapper) GetOriginalFileName() string {
 	return w.OriginalFileName
@@ -185,7 +185,7 @@ type VirtualServiceWrapper struct {
 }
 
 func (w *VirtualServiceWrapper) NameIndex() string {
-	return fmt.Sprintf("%s-%s", w.Namespace, w.Name)
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
 }
 func (w *VirtualServiceWrapper) GetOriginalFileName() string {
 	return w.OriginalFileName
@@ -197,7 +197,7 @@ type GlooGatewayWrapper struct {
 }
 
 func (w *GlooGatewayWrapper) NameIndex() string {
-	return fmt.Sprintf("%s-%s", w.Namespace, w.Name)
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
 }
 func (w *GlooGatewayWrapper) GetOriginalFileName() string {
 	return w.OriginalFileName
@@ -209,7 +209,7 @@ type DirectResponseWrapper struct {
 }
 
 func (w *DirectResponseWrapper) NameIndex() string {
-	return fmt.Sprintf("%s-%s", w.Namespace, w.Name)
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
 }
 func (w *DirectResponseWrapper) GetOriginalFileName() string {
 	return w.OriginalFileName

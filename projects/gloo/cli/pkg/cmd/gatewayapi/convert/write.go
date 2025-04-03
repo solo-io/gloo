@@ -6,6 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	v2 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/convert/domain"
 	"sigs.k8s.io/yaml"
 )
@@ -174,6 +177,61 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 	}
 	fmt.Printf("Files succesfully written to %s\n", opts.OutputDir)
 
+	if opts.CreateNamespaces {
+		if err := g.createNamespaces(opts.OutputDir); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (g *GatewayAPIOutput) createNamespaces(dir string) error {
+	namespaces := map[string]bool{}
+	// iterate through all main objects and find unique namespaces, references shouldnt be needed
+	for namespaceName := range g.gatewayAPICache.Gateways {
+		namespace := strings.Split(namespaceName, "/")[0]
+		namespaces[namespace] = true
+	}
+	for namespaceName := range g.gatewayAPICache.ListenerSets {
+		namespace := strings.Split(namespaceName, "/")[0]
+		namespaces[namespace] = true
+	}
+	for namespaceName := range g.gatewayAPICache.HTTPRoutes {
+		namespace := strings.Split(namespaceName, "/")[0]
+		namespaces[namespace] = true
+	}
+	for namespaceName := range g.gatewayAPICache.Upstreams {
+		namespace := strings.Split(namespaceName, "/")[0]
+		namespaces[namespace] = true
+	}
+	f, err := os.Create(fmt.Sprintf("%s/namespaces.yaml", dir))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	for namespace := range namespaces {
+		// create a namespace object
+		ns := v2.Namespace{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Namespace",
+				APIVersion: "v1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: namespace,
+			},
+		}
+
+		yml, err := yaml.Marshal(ns)
+		if err != nil {
+			return err
+		}
+		_, err = f.WriteString("\n---\n" + string(yml))
+		if err != nil {
+			return err
+		}
+	}
+	fmt.Printf("Generated %s/namespaces.yaml \n", dir)
 	return nil
 }
 

@@ -18,14 +18,16 @@ func (g *GatewayAPIOutput) PostProcess(opts *Options) error {
 	}
 
 	if opts.CombineRouteOptions {
-		fmt.Printf("Combining route options: %v\n", opts.CombineRouteOptions)
+		fmt.Printf("Combining route options...\n")
 		g.combineRouteOptions()
 	}
 	if opts.IncludeUnknownResources {
 		g.gatewayAPICache.YamlObjects = g.edgeCache.YamlObjects
 	}
+
 	return nil
 }
+
 func (g *GatewayAPIOutput) finishDelegation() error {
 
 	// for all edge routetables we need to go and update labels on the httproutes to support delegation
@@ -141,6 +143,7 @@ func namespaceMatch(namespace string, namespaces []string) bool {
 
 // TODO we should only combine route options in the same namespace
 func (g *GatewayAPIOutput) combineRouteOptions() {
+	totalRouteOptions := len(g.gatewayAPICache.RouteOptions)
 	var routeOptionKeys []string
 	for key, _ := range g.gatewayAPICache.RouteOptions {
 		routeOptionKeys = append(routeOptionKeys, key)
@@ -184,6 +187,7 @@ func (g *GatewayAPIOutput) combineRouteOptions() {
 
 	// for every duplicate we need to create a new name and then do a replace
 	replacementMap := map[string]string{}
+	combined := 0
 	for primaryKey, dups := range duplicates {
 		newName := fmt.Sprintf("shared-%s", RandStringRunes(8))
 
@@ -200,6 +204,7 @@ func (g *GatewayAPIOutput) combineRouteOptions() {
 		existingRO.Name = newName
 		g.gatewayAPICache.AddRouteOption(existingRO)
 		delete(g.gatewayAPICache.RouteOptions, primaryKey)
+		combined++
 	}
 
 	for key, route := range g.gatewayAPICache.HTTPRoutes {
@@ -219,4 +224,5 @@ func (g *GatewayAPIOutput) combineRouteOptions() {
 		route.Spec.Rules = newRules
 		g.gatewayAPICache.HTTPRoutes[key] = route
 	}
+	fmt.Printf("Initial %d RouteOptions combined to %d\n", totalRouteOptions, combined)
 }

@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -77,6 +78,7 @@ func run(opts *Options) error {
 		return err
 	}
 
+	fmt.Printf("Successfully loaded %d files\n", len(foundFiles))
 	// preprocessing
 	if err := output.PreProcess(true); err != nil {
 		return err
@@ -87,12 +89,14 @@ func run(opts *Options) error {
 	if err := output.Convert(); err != nil {
 		return err
 	}
+	fmt.Printf("Processing complete, entering post processing...\n")
 
 	// now we need to convert the easy stuff like route tables
 	// preprocessing
 	if err := output.PostProcess(opts); err != nil {
 		return err
 	}
+	fmt.Printf("Post processing complete, writing to files...\n")
 
 	// now we need to convert the easy stuff like route tables
 	// preprocessing
