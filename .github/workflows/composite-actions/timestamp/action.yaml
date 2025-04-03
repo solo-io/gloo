@@ -9,9 +9,9 @@ outputs:
 
 runs:
   using: "composite"
-  shell: bash
   steps:
     - name: Generate timestamp
+      shell: bash
       id: generate-timestamp
       run: |
         echo "timestamp=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
