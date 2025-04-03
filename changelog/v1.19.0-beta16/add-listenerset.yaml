@@ -1,5 +1,0 @@
-changelog:
-- type: NEW_FEATURE
-  issueLink: https://github.com/solo-io/solo-projects/issues/7886
-  resolvesIssue: false
-  description: Adds support for more than 64 listenersets for a kube gateway by implementing ListenerSets.
