@@ -20,13 +20,16 @@ type ListenerOptionQueries interface {
 	// the listener resides and have either targeted the listener with section name or omitted section name.
 	// The returned ListenerOption list is sorted by specificity in the order of
 	//
-	// - older with section name
-	//
-	// - newer with section name
-	//
-	// - older without section name
-	//
-	// - newer without section name
+	// ListenerSet targets:
+	//     - older with section name
+	//     - newer with section name
+	//     - older without section name
+	//     - newer without section name
+	// Gateway targets:
+	//     - older with section name
+	//     - newer with section name
+	//     - older without section name
+	//     - newer without section name
 	//
 	// Note that currently, only ListenerOptions in the same namespace as the Gateway can be attached.
 	GetAttachedListenerOptions(ctx context.Context, listener *gwv1.Listener, parentGw *gwv1.Gateway, parentListenerSet *apixv1a1.XListenerSet) ([]*solokubev1.ListenerOption, error)

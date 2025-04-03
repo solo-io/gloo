@@ -20,14 +20,17 @@ type HttpListenerOptionQueries interface {
 	// GetAttachedHttpListenerOptions returns a slice of HttpListenerOption resources attached to a gateway on which
 	// the listener resides and have either targeted the listener with section name or omitted section name.
 	// The returned HttpListenerOption list is sorted by specificity in the order of
+	// ListenerSet targets:
+	//     - older with section name
+	//     - newer with section name
+	//     - older without section name
+	//     - newer without section name
+	// Gateway targets:
+	//     - older with section name
+	//     - newer with section name
+	//     - older without section name
+	//     - newer without section name
 	//
-	// - older with section name
-	//
-	// - newer with section name
-	//
-	// - older without section name
-	//
-	// - newer without section name
 	//
 	// Note that currently, only HttpListenerOptions in the same namespace as the Gateway can be attached.
 	GetAttachedHttpListenerOptions(
