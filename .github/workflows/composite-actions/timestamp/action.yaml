@@ -9,6 +9,7 @@ outputs:
 
 runs:
   using: "composite"
+  shell: bash
   steps:
     - name: Generate timestamp
       id: generate-timestamp
