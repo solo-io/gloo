@@ -15,5 +15,5 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.name }}-${{ github.run_id }}-${{ github.run_number }}
-        path: ${{ inputs.path}}
+        path: ${{ inputs.path }}
         if-no-files-found: warn
