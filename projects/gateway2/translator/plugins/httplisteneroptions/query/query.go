@@ -70,36 +70,60 @@ func (q *queries) GetAttachedHttpListenerOptions(
 	if parentGw.GetName() == "" || parentGw.GetNamespace() == "" {
 		return nil, fmt.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
 	}
+
+	parentListenerSetName := ""
+	if parentListenerSet != nil {
+		parentListenerSetName = parentListenerSet.GetName()
+	}
+
 	nn := types.NamespacedName{
 		Namespace: parentGw.Namespace,
 		Name:      parentGw.Name,
 	}
-	list := &solokubev1.HttpListenerOptionList{}
+
+	nnListenerSet := types.NamespacedName{
+		Namespace: parentGw.Namespace,
+		Name:      parentListenerSetName,
+	}
+
+	listGw := &solokubev1.HttpListenerOptionList{}
 	if err := q.c.List(
 		ctx,
-		list,
+		listGw,
 		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(HttpListenerOptionTargetField, nn.String())},
 		client.InNamespace(parentGw.GetNamespace()),
 	); err != nil {
 		return nil, err
 	}
 
-	if len(list.Items) == 0 {
+	listListenerSet := &solokubev1.HttpListenerOptionList{}
+	if parentListenerSet != nil {
+		if err := q.c.List(
+			ctx,
+			listListenerSet,
+			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(HttpListenerOptionTargetField, nnListenerSet.String())},
+			client.InNamespace(parentGw.GetNamespace()),
+		); err != nil {
+			return nil, err
+		}
+	}
+
+	allItems := append(listGw.Items, listListenerSet.Items...)
+	if len(allItems) == 0 {
 		return nil, nil
 	}
 
-	policies := buildWrapperType(ctx, list)
+	policies := buildWrapperType(allItems)
 	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
 	return orderedPolicies, nil
 }
 
 func buildWrapperType(
-	ctx context.Context,
-	list *solokubev1.HttpListenerOptionList,
+	list []solokubev1.HttpListenerOption,
 ) []utils.PolicyWithSectionedTargetRefs[*solokubev1.HttpListenerOption] {
 	policies := []utils.PolicyWithSectionedTargetRefs[*solokubev1.HttpListenerOption]{}
-	for i := range list.Items {
-		item := &list.Items[i]
+	for i := range list {
+		item := &list[i]
 
 		policy := httpListenerOptionPolicy{
 			obj: item,

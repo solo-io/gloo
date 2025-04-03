@@ -2,7 +2,6 @@ package query
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/rotisserie/eris"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
@@ -68,9 +67,6 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 		parentListenerSetName = parentListenerSet.GetName()
 	}
 
-	fmt.Printf("GetVirtualHostOptionsForListener - parentGw: %s\n", parentGw.GetName())
-	fmt.Printf("GetVirtualHostOptionsForListener - parentListenerSet: %s\n", parentListenerSetName)
-	fmt.Printf("GetVirtualHostOptionsForListener - listener: %s\n", listener.Name)
 	nn := types.NamespacedName{
 		Namespace: parentGw.Namespace,
 		Name:      parentGw.Name,
@@ -82,18 +78,15 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 	}
 
 	listGw := &solokubev1.VirtualHostOptionList{}
-	fmt.Printf("GetVirtualHostOptionsForListener - listing virtual host options for parentGw: %s\n", nn.String())
 	if err := r.c.List(
 		ctx,
 		listGw,
 		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(VirtualHostOptionTargetField, nn.String())},
 		client.InNamespace(parentGw.GetNamespace()),
 	); err != nil {
-		fmt.Printf("GetVirtualHostOptionsForListener - error listing virtual host options: %v\n", err)
 		return nil, err
 	}
 
-	fmt.Printf("GetVirtualHostOptionsForListener - listing virtual host options for parentListener: %s\n", nnListenerSet.String())
 	listListenerSet := &solokubev1.VirtualHostOptionList{}
 	if parentListenerSet != nil {
 		if err := r.c.List(
@@ -101,25 +94,21 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 			listListenerSet,
 			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(VirtualHostOptionTargetField, nnListenerSet.String())},
 		); err != nil {
-			fmt.Printf("GetVirtualHostOptionsForListener - error listing virtual host options: %v\n", err)
 			return nil, err
 		}
 	}
 
 	allItems := append(listGw.Items, listListenerSet.Items...)
 	if len(allItems) == 0 {
-		fmt.Printf("GetVirtualHostOptionsForListener - no virtual host options found\n")
 		return nil, nil
 	}
 
-	policies := buildWrapperType(ctx, allItems)
-	fmt.Printf("GetVirtualHostOptionsForListener - policies: %+v\n", policies)
+	policies := buildWrapperType(allItems)
 	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
 	return orderedPolicies, nil
 }
 
 func buildWrapperType(
-	_ context.Context,
 	items []solokubev1.VirtualHostOption,
 ) []utils.PolicyWithSectionedTargetRefs[*solokubev1.VirtualHostOption] {
 	policies := []utils.PolicyWithSectionedTargetRefs[*solokubev1.VirtualHostOption]{}

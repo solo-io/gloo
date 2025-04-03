@@ -61,11 +61,24 @@ func (r *listenerOptionQueries) GetAttachedListenerOptions(
 	if parentGw.GetName() == "" || parentGw.GetNamespace() == "" {
 		return nil, fmt.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
 	}
+
+	parentListenerSetName := ""
+	if parentListenerSet != nil {
+		parentListenerSetName = parentListenerSet.GetName()
+	}
+	//fmt.Printf("GetAttachedListenerOptions - parentGw, parentListenerSet: %s, %s\n", parentGw.GetName(), parentListenerSetName)
 	nn := types.NamespacedName{
 		Namespace: parentGw.Namespace,
 		Name:      parentGw.Name,
 	}
+
+	nnListenerSet := types.NamespacedName{
+		Namespace: parentGw.Namespace,
+		Name:      parentListenerSetName,
+	}
+
 	list := &solokubev1.ListenerOptionList{}
+	fmt.Printf("GetAttachedListenerOptions - listing gw: %s\n", nn.String())
 	if err := r.c.List(
 		ctx,
 		list,
@@ -75,22 +88,37 @@ func (r *listenerOptionQueries) GetAttachedListenerOptions(
 		return nil, err
 	}
 
-	if len(list.Items) == 0 {
-		return nil, nil
+	listListenerSet := &solokubev1.ListenerOptionList{}
+	if parentListenerSet != nil {
+		fmt.Printf("GetAttachedListenerOptions - listing listener set: %s\n", nnListenerSet.String())
+		if err := r.c.List(
+			ctx,
+			listListenerSet,
+			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(ListenerOptionTargetField, nnListenerSet.String())},
+			client.InNamespace(parentGw.GetNamespace()),
+		); err != nil {
+			return nil, err
+		}
 	}
 
-	policies := buildWrapperType(ctx, list)
+	allItems := append(list.Items, listListenerSet.Items...)
+	if len(allItems) == 0 {
+		fmt.Printf("GetAttachedListenerOptions - no listener options found\n")
+		return nil, nil
+	}
+	fmt.Printf("GetAttachedListenerOptions - list size: %+d\n", len(allItems))
+
+	policies := buildWrapperType(allItems)
 	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
 	return orderedPolicies, nil
 }
 
 func buildWrapperType(
-	ctx context.Context,
-	list *solokubev1.ListenerOptionList,
+	items []solokubev1.ListenerOption,
 ) []utils.PolicyWithSectionedTargetRefs[*solokubev1.ListenerOption] {
 	policies := []utils.PolicyWithSectionedTargetRefs[*solokubev1.ListenerOption]{}
-	for i := range list.Items {
-		item := &list.Items[i]
+	for i := range items {
+		item := &items[i]
 
 		policy := listenerOptionPolicy{
 			obj: item,
