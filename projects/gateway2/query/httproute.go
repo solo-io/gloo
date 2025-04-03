@@ -533,11 +533,11 @@ func getListeners(resource client.Object) ([]gwv1.Listener, error) {
 	return listeners, nil
 }
 
-func (r *gatewayQueries) processRoute(ctx context.Context, gw client.Object, route client.Object, ret *RoutesForGwResult) error {
-	refs := getParentRefsForResource(gw, route)
+func (r *gatewayQueries) processRoute(ctx context.Context, resource client.Object, route client.Object, ret *RoutesForGwResult) error {
+	refs := getParentRefsForResource(resource, route)
 	routeKind := route.GetObjectKind().GroupVersionKind().Kind
 
-	listeners, err := getListeners(gw)
+	listeners, err := getListeners(resource)
 	if err != nil {
 		return err
 	}
@@ -554,7 +554,7 @@ func (r *gatewayQueries) processRoute(ctx context.Context, gw client.Object, rou
 				ret.ListenerResults[string(l.Name)] = lr
 			}
 
-			allowedNs, allowedKinds, err := r.allowedRoutes(gw, &l)
+			allowedNs, allowedKinds, err := r.allowedRoutes(resource, &l)
 			if err != nil {
 				lr.Error = err
 				continue

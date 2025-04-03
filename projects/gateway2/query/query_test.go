@@ -18,6 +18,7 @@ import (
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
 	apiv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
@@ -1080,6 +1081,104 @@ var _ = Describe("Query", func() {
 			Expect(err).To(MatchError(query.ErrMissingReferenceGrant))
 			Expect(backend).To(BeNil())
 		})
+
+		It("should get http routes for a listener set", func() {
+			gwWithListener := gw()
+			gwWithListener.Spec.Listeners = []apiv1.Listener{
+				{
+					Name:     "foo",
+					Protocol: apiv1.HTTPProtocolType,
+				},
+			}
+			allNamespaces := apiv1.NamespacesFromAll
+			gwWithListener.Spec.AllowedListeners = &apiv1.AllowedListeners{
+				Namespaces: &apiv1.ListenerNamespaces{
+					From: &allNamespaces,
+				},
+			}
+
+			lsWithListener := ls()
+			gwHR := httpRoute()
+			gwHR.Spec.ParentRefs = []apiv1.ParentReference{
+				{
+					Name: "test",
+				},
+			}
+
+			lsHR := httpRoute()
+			lsHR.Name = "ls-route"
+			lsKind := apiv1.Kind(wellknown.XListenerSetKind)
+			lsHR.Spec.ParentRefs = []apiv1.ParentReference{
+				{
+					Kind: &lsKind,
+					Name: "ls",
+				},
+			}
+
+			fakeClient := builder.WithObjects(gwWithListener, lsWithListener, gwHR, lsHR).Build()
+			gq := query.NewData(fakeClient, scheme)
+			routes, err := gq.GetRoutesForListenerSet(context.Background(), lsWithListener)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(routes.RouteErrors).To(BeEmpty())
+			Expect(routes.ListenerResults["bar"].Error).NotTo(HaveOccurred())
+			Expect(routes.ListenerResults["bar"].Routes).To(HaveLen(2))
+			// The first route should be the one mapped to the parent gateway
+			Expect(routes.ListenerResults["bar"].Routes[0].GetName()).To(Equal("test"))
+			// The second should be the one mapped to the listener set
+			Expect(routes.ListenerResults["bar"].Routes[1].GetName()).To(Equal("ls-route"))
+		})
+
+		It("should get http routes for a consolidated gateway", func() {
+			gwWithListener := gw()
+			gwWithListener.Spec.Listeners = []apiv1.Listener{
+				{
+					Name:     "foo",
+					Protocol: apiv1.HTTPProtocolType,
+				},
+			}
+			allNamespaces := apiv1.NamespacesFromAll
+			gwWithListener.Spec.AllowedListeners = &apiv1.AllowedListeners{
+				Namespaces: &apiv1.ListenerNamespaces{
+					From: &allNamespaces,
+				},
+			}
+
+			lsWithListener := ls()
+			gwHR := httpRoute()
+			gwHR.Spec.ParentRefs = []apiv1.ParentReference{
+				{
+					Name: "test",
+				},
+			}
+
+			lsHR := httpRoute()
+			lsHR.Name = "ls-route"
+			lsKind := apiv1.Kind(wellknown.XListenerSetKind)
+			lsHR.Spec.ParentRefs = []apiv1.ParentReference{
+				{
+					Kind: &lsKind,
+					Name: "ls",
+				},
+			}
+
+			fakeClient := builder.WithObjects(gwWithListener, lsWithListener, gwHR, lsHR).Build()
+			gq := query.NewData(fakeClient, scheme)
+			cgw, err := gq.ConsolidateGateway(context.Background(), gwWithListener)
+			Expect(err).NotTo(HaveOccurred())
+
+			routes, err := gq.GetRoutesForConsolidatedGateway(context.Background(), cgw)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(routes.RouteErrors).To(BeEmpty())
+			Expect(routes.ListenerResults["foo"].Error).NotTo(HaveOccurred())
+			Expect(routes.ListenerResults["foo"].Routes).To(HaveLen(1))
+			Expect(routes.ListenerResults["default/ls/bar"].Error).NotTo(HaveOccurred())
+			Expect(routes.ListenerResults["default/ls/bar"].Routes).To(HaveLen(2))
+			// The first route should be the route mapped to the parent gateway
+			Expect(routes.ListenerResults[query.GenerateListenerSetListenerKey(lsWithListener, string(lsWithListener.Spec.Listeners[0].Name))].Routes[0].GetName()).To(Equal("test"))
+			// The second should be the route mapped to the listener set
+			Expect(routes.ListenerResults[query.GenerateListenerSetListenerKey(lsWithListener, string(lsWithListener.Spec.Listeners[0].Name))].Routes[1].GetName()).To(Equal("ls-route"))
+		})
 	})
 })
 
@@ -1149,6 +1248,26 @@ func gw() *apiv1.Gateway {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "default",
 			Name:      "test",
+		},
+	}
+}
+
+func ls() *apixv1a1.XListenerSet {
+	return &apixv1a1.XListenerSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "default",
+			Name:      "ls",
+		},
+		Spec: apixv1a1.ListenerSetSpec{
+			Listeners: []apixv1a1.ListenerEntry{
+				{
+					Name:     "bar",
+					Protocol: apiv1.HTTPProtocolType,
+				},
+			},
+			ParentRef: apixv1a1.ParentGatewayReference{
+				Name: "test",
+			},
 		},
 	}
 }

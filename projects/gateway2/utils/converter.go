@@ -19,8 +19,8 @@ func ToListener(listenerEntry gwxv1a1.ListenerEntry) gwv1.Listener {
 
 func ToListenerSlice(listenerEntries []gwxv1a1.ListenerEntry) []gwv1.Listener {
 	listeners := make([]gwv1.Listener, len(listenerEntries))
-	for _, l := range listenerEntries {
-		listeners = append(listeners, ToListener(l))
+	for i, l := range listenerEntries {
+		listeners[i] = ToListener(l)
 	}
 	return listeners
 }
