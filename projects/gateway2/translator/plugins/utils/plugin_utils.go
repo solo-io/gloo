@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/utils"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
@@ -15,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 var (
@@ -140,57 +142,21 @@ type PolicyWithSectionedTargetRefs[T client.Object] interface {
 // 3. older without section name
 //
 // 4. newer without section name
-// Deprecated: use GetPrioritizedListenerPoliciesAllTargetRefs instead
-// This function will process only the first targetRefs for each policy
+//
+// This function will process all targetRefs for each policy
 func GetPrioritizedListenerPolicies[T client.Object](
 	items []PolicyWithSectionedTargetRefs[T],
 	listener *gwv1.Listener,
-) []T {
-	var optsWithSectionName, optsWithoutSectionName []T
-	for i := range items {
-		item := items[i]
-		// only use the first targetRef in the list for now; user should be warned by caller of this function
-		targetRef := item.GetTargetRefs()[0]
-		if sectionName := targetRef.GetSectionName(); sectionName != nil && sectionName.GetValue() != "" {
-			// we have a section name, now check if it matches the specific listener provided
-			if sectionName.GetValue() == string(listener.Name) {
-				optsWithSectionName = append(optsWithSectionName, item.GetObject())
-			}
-		} else {
-			// attach all matched items that do not have a section name and let the caller be discerning
-			optsWithoutSectionName = append(optsWithoutSectionName, item.GetObject())
-		}
-	}
-
-	// this can happen if the policy list only contains items targeting other Listeners by section name
-	if len(optsWithoutSectionName)+len(optsWithSectionName) == 0 {
-		return nil
-	}
-
-	utils.SortByCreationTime(optsWithSectionName)
-	utils.SortByCreationTime(optsWithoutSectionName)
-	return append(optsWithSectionName, optsWithoutSectionName...)
-}
-
-// GetPrioritizedListenerPoliciesAllTargetRefs accepts a slice of Gateway-attached policies (that may explicitly
-// target a specific Listener and returns a slice of these policies (or a subset) resources.
-// The returned policy list is sorted by specificity in the order of
-//
-// 1. older with section name
-//
-// 2. newer with section name
-//
-// 3. older without section name
-//
-// 4. newer without section name
-//
-// This function will process all targetRefs for each policy
-func GetPrioritizedListenerPoliciesAllTargetRefs[T client.Object](
-	items []PolicyWithSectionedTargetRefs[T],
-	listener *gwv1.Listener,
 	parentGwName string,
+	parentListenerSet *apixv1a1.XListenerSet,
 ) []T {
-	var optsWithSectionName, optsWithoutSectionName []T
+	parentListenerSetName := ""
+	if parentListenerSet != nil {
+		parentListenerSetName = parentListenerSet.GetName()
+	}
+	fmt.Printf("GetPrioritizedListenerPolicies - listener: %s with parentGwName: %s and parentListenerSetName: %s\n", listener.Name, parentGwName, parentListenerSetName)
+	// gw - gateway, ls - listener set
+	var gwOptsWithSectionName, gwOptsWithoutSectionName, lsOptsWithSectionName, lsOptsWithoutSectionName []T
 	for i := range items {
 		item := items[i]
 
@@ -198,34 +164,74 @@ func GetPrioritizedListenerPoliciesAllTargetRefs[T client.Object](
 		appendOptsWithoutSectionName := false
 		for _, targetRef := range item.GetTargetRefs() {
 			// Check that this is the right gw
-			if targetRef.GetName() != parentGwName {
-				continue
+			fmt.Printf("GetPrioritizedListenerPolicies - targetRef- name: %s, group: %s, kind: %s\n", targetRef.GetName(), targetRef.GetGroup(), targetRef.GetKind())
+			fmt.Printf("GetPrioritizedListenerPolicies - gatewayMatch - name: %s, group: %s, kind: %s\n", parentGwName, gwv1.GroupName, wellknown.GatewayKind)
+			fmt.Printf("GetPrioritizedListenerPolicies - listenerSetMatch - name: %s, group: %s, kind: %s\n", parentListenerSetName, apixv1a1.GroupName, wellknown.XListenerSetKind)
+
+			gwMatch := (targetRef.GetGroup() == gwv1.GroupName && targetRef.GetKind() == wellknown.GatewayKind && targetRef.GetName() == parentGwName)
+			lsMatch := (targetRef.GetGroup() == apixv1a1.GroupName && targetRef.GetKind() == wellknown.XListenerSetKind && targetRef.GetName() == parentListenerSetName)
+			fmt.Printf("GetPrioritizedListenerPolicies - gwMatch: %t, lsMatch: %t\n", gwMatch, lsMatch)
+			targetRefMatch := gwMatch || lsMatch
+
+			if parentListenerSetName == "second-workload-listeners" {
+				fmt.Printf("targetRef.GetGroup() (%s) == apixv1a1.GroupName (%s): %t\n", targetRef.GetGroup(), apixv1a1.GroupName, targetRef.GetGroup() == apixv1a1.GroupName)
+				fmt.Printf("targetRef.GetKind() (%s) == wellknown.XListenerSetKind (%s): %t\n", targetRef.GetKind(), wellknown.XListenerSetKind, targetRef.GetKind() == wellknown.XListenerSetKind)
+				fmt.Printf("targetRef.GetName() (%s) == parentListenerSetName (%s): %t\n", targetRef.GetName(), parentListenerSetName, targetRef.GetName() == parentListenerSetName)
 			}
 
-			if sectionName := targetRef.GetSectionName(); sectionName != nil && sectionName.GetValue() != "" {
+			if !targetRefMatch {
+				fmt.Printf("GetPrioritizedListenerPolicies - targetRefMatch - false\n")
+				continue
+			}
+			fmt.Printf("GetPrioritizedListenerPolicies - targetRefMatch - true\n")
+
+			sectionName := targetRef.GetSectionName()
+			fmt.Printf("GetPrioritizedListenerPolicies - sectionName: %s on listener: %s\n", sectionName, listener.Name)
+
+			// TODO: Defaults ?
+			if sectionName != nil && sectionName.GetValue() != "" {
 				// we have a section name, now check if it matches the specific listener provided
 				if sectionName.GetValue() == string(listener.Name) {
-					optsWithSectionName = append(optsWithSectionName, item.GetObject())
+					switch {
+					case gwMatch:
+						fmt.Printf("GetPrioritizedListenerPolicies - appending to gwOptsWithSectionName\n")
+						gwOptsWithSectionName = append(gwOptsWithSectionName, item.GetObject())
+					case lsMatch:
+						fmt.Printf("GetPrioritizedListenerPolicies - appending to lsOptsWithSectionName\n")
+						lsOptsWithSectionName = append(lsOptsWithSectionName, item.GetObject())
+					}
 				}
 			} else {
 				appendOptsWithoutSectionName = true
 			}
-		}
 
-		if appendOptsWithoutSectionName {
-			// attach all matched items that do not have a section name and let the caller be discerning
-			optsWithoutSectionName = append(optsWithoutSectionName, item.GetObject())
+			if appendOptsWithoutSectionName {
+				// attach all matched items that do not have a section name and let the caller be discerning
+				switch {
+				case gwMatch:
+					fmt.Printf("GetPrioritizedListenerPolicies - appending to gwOptsWithoutSectionName\n")
+					gwOptsWithoutSectionName = append(gwOptsWithoutSectionName, item.GetObject())
+				case lsMatch:
+					fmt.Printf("GetPrioritizedListenerPolicies - appending to lsOptsWithoutSectionName\n")
+					lsOptsWithoutSectionName = append(lsOptsWithoutSectionName, item.GetObject())
+				}
+			}
 		}
 	}
 
 	// this can happen if the policy list only contains items targeting other Listeners by section name
-	if len(optsWithoutSectionName)+len(optsWithSectionName) == 0 {
+	if len(gwOptsWithoutSectionName)+len(gwOptsWithSectionName)+len(lsOptsWithSectionName)+len(lsOptsWithoutSectionName) == 0 {
+		fmt.Printf("GetPrioritizedListenerPolicies - no policies found\n")
 		return nil
 	}
 
-	utils.SortByCreationTime(optsWithSectionName)
-	utils.SortByCreationTime(optsWithoutSectionName)
-	return append(optsWithSectionName, optsWithoutSectionName...)
+	utils.SortByCreationTime(gwOptsWithSectionName)
+	utils.SortByCreationTime(gwOptsWithoutSectionName)
+	utils.SortByCreationTime(lsOptsWithSectionName)
+	utils.SortByCreationTime(lsOptsWithoutSectionName)
+	sortedPolicies := append(append(append(lsOptsWithSectionName, lsOptsWithoutSectionName...), gwOptsWithSectionName...), gwOptsWithoutSectionName...)
+	fmt.Printf("GetPrioritizedListenerPolicies - found %d policies: %v\n", len(sortedPolicies), sortedPolicies)
+	return sortedPolicies
 }
 
 // policyTargetReference is an interface that represents a policy target reference, and is used to consolidate
@@ -238,8 +244,14 @@ type policyTargetReference interface {
 }
 
 // IndexTargetRefs indexes a list of policy target references by namespace and name.
-func IndexTargetRefs[T policyTargetReference](targetRefs []T, namespace, kind string) []string {
+// The kinds parameter is a list of GroupVersionKinds that are allowed to be indexed, though version is ignored.
+func IndexTargetRefs[T policyTargetReference](targetRefs []T, namespace string, gvks []schema.GroupVersionKind) []string {
 	var res []string
+
+	kindMap := map[string]any{}
+	for _, kind := range gvks {
+		kindMap[kind.Kind] = struct{}{}
+	}
 
 	if len(targetRefs) == 0 {
 		return res
@@ -248,7 +260,19 @@ func IndexTargetRefs[T policyTargetReference](targetRefs []T, namespace, kind st
 	foundNns := map[string]any{}
 
 	for _, targetRef := range targetRefs {
-		if targetRef.GetGroup() != gwv1.GroupName || targetRef.GetKind() != kind {
+		fmt.Printf("targetRef- name: %s, namespace: %s, group: %s, kind: %s\n", targetRef.GetName(), targetRef.GetNamespace().GetValue(), targetRef.GetGroup(), targetRef.GetKind())
+		_, allowedKind := kindMap[targetRef.GetKind()]
+		fmt.Printf("targetRefKind: %s, allowedKind: %t, targetRefGroup: %s, gwv1GRoup: %s\n", targetRef.GetKind(), allowedKind, targetRef.GetGroup(), gwv1.GroupName)
+
+		matchGroupKind := false
+		for _, kind := range gvks {
+			if targetRef.GetGroup() == kind.Group && targetRef.GetKind() == kind.Kind {
+				matchGroupKind = true
+				break
+			}
+		}
+
+		if !matchGroupKind {
 			continue
 		}
 
@@ -268,5 +292,6 @@ func IndexTargetRefs[T policyTargetReference](targetRefs []T, namespace, kind st
 		res = append(res, k)
 	}
 
+	fmt.Println("Indexed target refs:", res)
 	return res
 }

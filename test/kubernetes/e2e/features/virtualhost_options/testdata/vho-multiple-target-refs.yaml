@@ -4,14 +4,18 @@ metadata:
   name: add-x-foo-header-multiple-target-refs
 spec:
   targetRefs:
-  - group: gateway.networking.k8s.io
-    kind: Gateway
-    name: gw-1
-    sectionName: http
+  # - group: gateway.networking.k8s.io
+  #   kind: Gateway
+  #   name: gw-1
+  #   sectionName: http
   - group: gateway.networking.k8s.io
     kind: Gateway
     name: gw-2
     sectionName: other
+  - group: gateway.networking.x-k8s.io
+    kind: XListenerSet
+    name: second-workload-listeners
+    sectionName: second
   options:
     headerManipulation:
       responseHeadersToAdd:
