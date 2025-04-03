@@ -2,6 +2,7 @@ package convert
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -17,6 +18,7 @@ func (g *GatewayAPIOutput) PostProcess(opts *Options) error {
 	}
 
 	if opts.CombineRouteOptions {
+		fmt.Printf("Combining route options: %v\n", opts.CombineRouteOptions)
 		g.combineRouteOptions()
 	}
 	if opts.IncludeUnknownResources {
@@ -145,8 +147,16 @@ func (g *GatewayAPIOutput) combineRouteOptions() {
 	}
 	duplicates := map[string][]string{}
 
+	// go through each namespace and only work on ones that match
 	for _, primaryKey := range routeOptionKeys {
+		primaryKeyNs := strings.Split(primaryKey, "/")
+
 		for _, secondaryKey := range routeOptionKeys {
+			secondaryKeyNs := strings.Split(secondaryKey, "/")
+			if primaryKeyNs[0] != secondaryKeyNs[0] {
+				// skip all keys not in the same namespace
+				continue
+			}
 			if primaryKey == secondaryKey {
 				// skip if its the same primaryKey
 				continue
@@ -171,6 +181,7 @@ func (g *GatewayAPIOutput) combineRouteOptions() {
 			}
 		}
 	}
+
 	// for every duplicate we need to create a new name and then do a replace
 	replacementMap := map[string]string{}
 	for primaryKey, dups := range duplicates {

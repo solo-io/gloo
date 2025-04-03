@@ -135,7 +135,7 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 		// allowed routes
 		entry.AllowedRoutes = &gwv1.AllowedRoutes{
 			Namespaces: &gwv1.RouteNamespaces{
-				From: ptr.To(gwv1.NamespacesFromSame),
+				From: ptr.To(gwv1.NamespacesFromAll),
 			},
 		}
 		listenerSet.Spec.Listeners = append(listenerSet.Spec.Listeners, entry)
@@ -206,6 +206,7 @@ func (g *GatewayAPIOutput) generateTLSConfiguration(vs *domain.VirtualServiceWra
 	if vs.Spec.SslConfig.GetSecretRef() != nil {
 		tlsConfig.CertificateRefs = []gwv1.SecretObjectReference{
 			{
+				Group:     ptr.To(gwv1.Group("")),
 				Kind:      ptr.To(gwv1.Kind("Secret")),
 				Name:      gwv1.ObjectName(vs.Spec.SslConfig.GetSecretRef().Name),
 				Namespace: ptr.To(gwv1.Namespace(vs.Spec.SslConfig.GetSecretRef().Namespace)),
