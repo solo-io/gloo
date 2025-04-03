@@ -12,4 +12,3 @@ runs:
     with:
       name: performance-dump-attempt-${{ github.run_attempt }}
       path: "_output/performance-artifacts"
-      if-no-files-found: warn
