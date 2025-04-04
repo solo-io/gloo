@@ -9,4 +9,4 @@ spec:
     name: missing-gw
   options:
     httpConnectionManagerSettings:
-      serverName: "unit-test v4.19"
+      serverName: "should-not-attach"

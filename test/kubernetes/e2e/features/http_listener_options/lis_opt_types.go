@@ -1,9 +1,12 @@
 package http_listener_options
 
 import (
+	"net/http"
 	"path/filepath"
 
+	"github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
+	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/skv2/codegen/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -11,11 +14,13 @@ import (
 )
 
 var (
-	setupManifest              = filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml")
-	gatewayManifest            = filepath.Join(util.MustGetThisDir(), "testdata", "gateway.yaml")
-	basicLisOptManifest        = filepath.Join(util.MustGetThisDir(), "testdata", "basic-http-lis-opt.yaml")
-	notAttachedLisOptManifest  = filepath.Join(util.MustGetThisDir(), "testdata", "not-attached-http-lis-opt.yaml")
-	basicLisOptSectionManifest = filepath.Join(util.MustGetThisDir(), "testdata", "basic-http-lis-opt-section.yaml")
+	setupManifest                         = filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml")
+	gatewayManifest                       = filepath.Join(util.MustGetThisDir(), "testdata", "gateway.yaml")
+	basicLisOptManifest                   = filepath.Join(util.MustGetThisDir(), "testdata", "basic-http-lis-opt.yaml")
+	notAttachedLisOptManifest             = filepath.Join(util.MustGetThisDir(), "testdata", "not-attached-http-lis-opt.yaml")
+	basicLisOptSectionManifest            = filepath.Join(util.MustGetThisDir(), "testdata", "basic-http-lis-opt-section.yaml")
+	basicLisOptListenerSetManifest        = filepath.Join(util.MustGetThisDir(), "testdata", "basic-http-lis-opt-listener-set.yaml")
+	basicLisOptListenerSetSectionManifest = filepath.Join(util.MustGetThisDir(), "testdata", "basic-http-lis-opt-listener-set-section.yaml")
 
 	// When we apply the setup file, we expect resources to be created with this metadata
 	glooProxy1ObjectMeta = metav1.ObjectMeta{
@@ -57,16 +62,31 @@ var (
 		},
 	}
 
+	expectedResponseWithServer = func(serverName string) *matchers.HttpResponse {
+		return &matchers.HttpResponse{
+			StatusCode: http.StatusOK,
+			Body:       gomega.ContainSubstring("Welcome to nginx!"),
+			Headers: map[string]interface{}{
+				"server": serverName,
+			},
+		}
+	}
+
+	defaultExpectedResponseWithServer = expectedResponseWithServer("server-override")
+
+	expectedResponseWithoutServer = &matchers.HttpResponse{
+		StatusCode: http.StatusOK,
+		Custom: gomega.And(
+			gomega.Not(matchers.ContainHeaders(http.Header{"server": {"should-not-attach"}})),
+		),
+		Body: gomega.ContainSubstring("Welcome to nginx!"),
+	}
+
 	gw1port1 = 8080
 	gw1port2 = 8081
 	// port 8082 is used by envoy's readiness probe
 	gw2port1 = 8083
 	gw2port2 = 8084
-
-	// The keys in this map are the FQDNs of the gateway services
-	// The values are the ports on which the gateway services are listening
-	gatewayListenerPorts = map[string][]int{
-		proxyService1Fqdn: {gw1port1, gw1port2},
-		proxyService2Fqdn: {gw2port1, gw2port2},
-	}
+	lsPort1  = 8085
+	lsPort2  = 8086
 )

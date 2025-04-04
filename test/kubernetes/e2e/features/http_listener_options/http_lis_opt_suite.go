@@ -2,9 +2,7 @@ package http_listener_options
 
 import (
 	"context"
-	"net/http"
 
-	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
@@ -55,9 +53,10 @@ func (s *testingSuite) SetupSuite() {
 
 	// include gateway manifests for the tests, so we recreate it for each test run
 	s.manifests = map[string][]string{
-		"TestConfigureHttpListenerOptions":            {basicLisOptManifest},
-		"TestConfigureNotAttachedHttpListenerOptions": {notAttachedLisOptManifest},
-		"TestConfigureHttpListenerOptionsWithSection": {basicLisOptSectionManifest},
+		"TestConfigureHttpListenerOptions":                           {basicLisOptManifest},
+		"TestConfigureNotAttachedHttpListenerOptions":                {notAttachedLisOptManifest},
+		"TestConfigureHttpListenerOptionsWithSection":                {basicLisOptSectionManifest},
+		"TestConfigureHttpListenerOptionsWithListenerSetsAndSection": {basicLisOptManifest, basicLisOptSectionManifest, basicLisOptListenerSetSectionManifest, basicLisOptListenerSetManifest},
 	}
 }
 
@@ -105,39 +104,69 @@ func (s *testingSuite) TestConfigureHttpListenerOptions() {
 			curl.WithHost(kubeutils.ServiceFQDN(proxy1Service.ObjectMeta)),
 			curl.WithHostHeader("example.com"),
 		},
-		expectedResponseWithServer)
-
-}
-
-var expectedResponseWithoutServer = &matchers.HttpResponse{
-	StatusCode: http.StatusOK,
-	Custom: gomega.And(
-		gomega.Not(matchers.ContainHeaders(http.Header{"server": {"unit-test v4.19"}})),
-	),
-	Body: gomega.ContainSubstring("Welcome to nginx!"),
-}
-
-var expectedResponseWithServer = &matchers.HttpResponse{
-	StatusCode: http.StatusOK,
-	Body:       gomega.ContainSubstring("Welcome to nginx!"),
-	Headers: map[string]interface{}{
-		"server": "unit-test v4.19",
-	},
+		expectedResponseWithServer("server-override-gw-1"),
+	)
 }
 
 func (s *testingSuite) TestConfigureHttpListenerOptionsWithSection() {
 	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
 		proxyService1Fqdn: {
-			gw1port1: expectedResponseWithServer,
+			gw1port1: defaultExpectedResponseWithServer,
 			gw1port2: expectedResponseWithoutServer,
+			lsPort1:  expectedResponseWithoutServer,
+			lsPort2:  expectedResponseWithoutServer,
 		},
 		proxyService2Fqdn: {
 			gw2port1: expectedResponseWithoutServer,
-			gw2port2: expectedResponseWithServer,
+			gw2port2: defaultExpectedResponseWithServer,
 		},
 	}
 
-	// Curl each listener a for which a matcher is defined
+	s.testExpectedResponses(matchersForListeners)
+}
+
+func (s *testingSuite) TestConfigureNotAttachedHttpListenerOptions() {
+	// Check healthy response and response headers contain default server name as HttpLisOpt isn't attached
+
+	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
+		proxyService1Fqdn: {
+			gw1port1: expectedResponseWithServer("envoy"),
+			gw1port2: expectedResponseWithServer("envoy"),
+			lsPort1:  expectedResponseWithServer("envoy"),
+			lsPort2:  expectedResponseWithServer("envoy"),
+		},
+		proxyService2Fqdn: {
+			gw2port1: expectedResponseWithServer("envoy"),
+			gw2port2: expectedResponseWithServer("envoy"),
+		},
+	}
+
+	s.testExpectedResponses(matchersForListeners)
+}
+
+func (s *testingSuite) TestConfigureHttpListenerOptionsWithListenerSetsAndSection() {
+
+	// Expected server strings are based on the HttpListenerOption manifests
+	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
+		proxyService1Fqdn: {
+			gw1port1: defaultExpectedResponseWithServer,
+			gw1port2: expectedResponseWithServer("server-override-gw-1"),
+			lsPort1:  expectedResponseWithServer("server-override-ls-1-listener-1"),
+			lsPort2:  expectedResponseWithServer("server-override-ls-1"),
+		},
+		proxyService2Fqdn: {
+			gw2port1: expectedResponseWithServer("envoy"),
+			gw2port2: defaultExpectedResponseWithServer,
+		},
+	}
+
+	s.testExpectedResponses(matchersForListeners)
+}
+
+// testExpectedResponses tests is a utility function that runs a set of curls with defined matchers
+// matchersForListeners is map of service fqdn to map of port to matcher
+func (s *testingSuite) testExpectedResponses(matchersForListeners map[string]map[int]*matchers.HttpResponse) {
+
 	for host, ports := range matchersForListeners {
 		for port, matcher := range ports {
 			s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
@@ -152,22 +181,4 @@ func (s *testingSuite) TestConfigureHttpListenerOptionsWithSection() {
 			)
 		}
 	}
-}
-
-func (s *testingSuite) TestConfigureNotAttachedHttpListenerOptions() {
-	// Check healthy response and response headers contain default server name as HttpLisOpt isn't attached
-	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-		s.ctx,
-		testdefaults.CurlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxy1Service.ObjectMeta)),
-			curl.WithHostHeader("example.com"),
-		},
-		&matchers.HttpResponse{
-			StatusCode: http.StatusOK,
-			Body:       gomega.ContainSubstring("Welcome to nginx!"),
-			Headers: map[string]interface{}{
-				"server": "envoy",
-			},
-		})
 }

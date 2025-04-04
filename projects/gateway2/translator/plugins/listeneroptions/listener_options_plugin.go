@@ -36,7 +36,7 @@ func (p *plugin) ApplyListenerPlugin(
 ) error {
 	// attachedOption represents the ListenerOptions targeting the Gateway on which this listener resides, and/or
 	// the ListenerOptions which specifies this listener in section name
-	attachedOptions, err := p.lisOptQueries.GetAttachedListenerOptions(ctx, listenerCtx.GwListener, listenerCtx.Gateway)
+	attachedOptions, err := p.lisOptQueries.GetAttachedListenerOptions(ctx, listenerCtx.GwListener, listenerCtx.Gateway, listenerCtx.ParentListenerSet)
 	if err != nil {
 		return err
 	}

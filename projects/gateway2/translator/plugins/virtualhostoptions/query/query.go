@@ -9,6 +9,7 @@ import (
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
+	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -18,17 +19,19 @@ type VirtualHostOptionQueries interface {
 	// GetVirtualHostOptionsForListener returns a slice of VirtualHostOption resources attached to a gateway on which
 	// the listener resides and have either targeted the listener with section name or omitted section name.
 	// The returned VirtualHostOption list is sorted by specificity in the order of
-	//
-	// - older with section name
-	//
-	// - newer with section name
-	//
-	// - older without section name
-	//
-	// - newer without section name
+	// ListenerSet targets:
+	//     - older with section name
+	//     - newer with section name
+	//     - older without section name
+	//     - newer without section name
+	// Gateway targets:
+	//     - older with section name
+	//     - newer with section name
+	//     - older without section name
+	//     - newer without section name
 	//
 	// Note that currently, only VirtualHostOptions in the same namespace as the Gateway can be attached.
-	GetVirtualHostOptionsForListener(ctx context.Context, listener *gwv1.Listener, parentGw *gwv1.Gateway) ([]*solokubev1.VirtualHostOption, error)
+	GetVirtualHostOptionsForListener(ctx context.Context, listener *gwv1.Listener, parentGw *gwv1.Gateway, parentListenerSet *apixv1a1.XListenerSet) ([]*solokubev1.VirtualHostOption, error)
 }
 
 type virtualHostOptionQueries struct {
@@ -55,41 +58,64 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 	ctx context.Context,
 	listener *gwv1.Listener,
 	parentGw *gwv1.Gateway,
+	parentListenerSet *apixv1a1.XListenerSet,
 ) ([]*solokubev1.VirtualHostOption, error) {
 	if parentGw.GetName() == "" || parentGw.GetNamespace() == "" {
 		return nil, eris.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
 	}
+
+	parentListenerSetName := ""
+	if parentListenerSet != nil {
+		parentListenerSetName = parentListenerSet.GetName()
+	}
+
 	nn := types.NamespacedName{
 		Namespace: parentGw.Namespace,
 		Name:      parentGw.Name,
 	}
-	list := &solokubev1.VirtualHostOptionList{}
 
+	nnListenerSet := types.NamespacedName{
+		Namespace: parentGw.Namespace,
+		Name:      parentListenerSetName,
+	}
+
+	listGw := &solokubev1.VirtualHostOptionList{}
 	if err := r.c.List(
 		ctx,
-		list,
+		listGw,
 		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(VirtualHostOptionTargetField, nn.String())},
 		client.InNamespace(parentGw.GetNamespace()),
 	); err != nil {
 		return nil, err
 	}
 
-	if len(list.Items) == 0 {
+	listListenerSet := &solokubev1.VirtualHostOptionList{}
+	if parentListenerSet != nil {
+		if err := r.c.List(
+			ctx,
+			listListenerSet,
+			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(VirtualHostOptionTargetField, nnListenerSet.String())},
+		); err != nil {
+			return nil, err
+		}
+	}
+
+	allItems := append(listGw.Items, listListenerSet.Items...)
+	if len(allItems) == 0 {
 		return nil, nil
 	}
 
-	policies := buildWrapperType(ctx, list)
-	orderedPolicies := utils.GetPrioritizedListenerPoliciesAllTargetRefs(policies, listener, parentGw.Name)
+	policies := buildWrapperType(allItems)
+	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
 	return orderedPolicies, nil
 }
 
 func buildWrapperType(
-	ctx context.Context,
-	list *solokubev1.VirtualHostOptionList,
+	items []solokubev1.VirtualHostOption,
 ) []utils.PolicyWithSectionedTargetRefs[*solokubev1.VirtualHostOption] {
 	policies := []utils.PolicyWithSectionedTargetRefs[*solokubev1.VirtualHostOption]{}
-	for i := range list.Items {
-		item := &list.Items[i]
+	for i := range items {
+		item := &items[i]
 
 		policy := vhostOptionPolicy{
 			obj: item,
@@ -98,3 +124,79 @@ func buildWrapperType(
 	}
 	return policies
 }
+
+// type OptionsList interface {
+// 	client.ObjectList
+// }
+
+// func GetVirtualHostOptionsForListener2() ([]*solokubev1.VirtualHostOption, error) {
+// 	createList := func() *solokubev1.VirtualHostOptionList {
+// 		return &solokubev1.VirtualHostOptionList{}
+// 	}
+// 	return GetOptionsForListener[*solokubev1.VirtualHostOption](context.Background(), &gwv1.Listener{}, &gwv1.Gateway{}, nil, nil, createList)
+// }
+
+// func GetOptionsForListener[T client.Object, T2 client.ObjectList](
+// 	ctx context.Context,
+// 	listener *gwv1.Listener,
+// 	parentGw *gwv1.Gateway,
+// 	parentListenerSet *apixv1a1.XListenerSet,
+// 	c client.Client,
+// 	createList func() T2,
+// ) ([]*solokubev1.VirtualHostOption, error) {
+// 	if parentGw.GetName() == "" || parentGw.GetNamespace() == "" {
+// 		return nil, eris.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
+// 	}
+
+// 	parentListenerSetName := ""
+// 	if parentListenerSet != nil {
+// 		parentListenerSetName = parentListenerSet.GetName()
+// 	}
+
+// 	nn := types.NamespacedName{
+// 		Namespace: parentGw.Namespace,
+// 		Name:      parentGw.Name,
+// 	}
+
+// 	nnListenerSet := types.NamespacedName{
+// 		Namespace: parentGw.Namespace,
+// 		Name:      parentListenerSetName,
+// 	}
+
+// 	listGw := createList()
+// 	if err := c.List(
+// 		ctx,
+// 		listGw,
+// 		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(VirtualHostOptionTargetField, nn.String())},
+// 		client.InNamespace(parentGw.GetNamespace()),
+// 	); err != nil {
+// 		return nil, err
+// 	}
+
+// 	listListenerSet := createList()
+// 	if parentListenerSet != nil {
+// 		if err := c.List(
+// 			ctx,
+// 			listListenerSet,
+// 			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(VirtualHostOptionTargetField, nnListenerSet.String())},
+// 		); err != nil {
+// 			return nil, err
+// 		}
+// 	}
+
+// 	allItems := []T{}
+
+// 	switch list := listGw.(type) {
+// 	case solokubev1.VirtualHostOptionList:
+// 		allItems = append(allItems, list.Items...)
+// 	}
+
+// 	allItems := append(listGw.Items, listListenerSet.Items...)
+// 	if len(allItems) == 0 {
+// 		return nil, nil
+// 	}
+
+// 	policies := buildWrapperType(allItems)
+// 	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
+// 	return orderedPolicies, nil
+// }

@@ -12,6 +12,7 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 type ListenerOptionQueries interface {
@@ -19,16 +20,19 @@ type ListenerOptionQueries interface {
 	// the listener resides and have either targeted the listener with section name or omitted section name.
 	// The returned ListenerOption list is sorted by specificity in the order of
 	//
-	// - older with section name
-	//
-	// - newer with section name
-	//
-	// - older without section name
-	//
-	// - newer without section name
+	// ListenerSet targets:
+	//     - older with section name
+	//     - newer with section name
+	//     - older without section name
+	//     - newer without section name
+	// Gateway targets:
+	//     - older with section name
+	//     - newer with section name
+	//     - older without section name
+	//     - newer without section name
 	//
 	// Note that currently, only ListenerOptions in the same namespace as the Gateway can be attached.
-	GetAttachedListenerOptions(ctx context.Context, listener *gwv1.Listener, parentGw *gwv1.Gateway) ([]*solokubev1.ListenerOption, error)
+	GetAttachedListenerOptions(ctx context.Context, listener *gwv1.Listener, parentGw *gwv1.Gateway, parentListenerSet *apixv1a1.XListenerSet) ([]*solokubev1.ListenerOption, error)
 }
 
 type listenerOptionQueries struct {
@@ -55,14 +59,27 @@ func (r *listenerOptionQueries) GetAttachedListenerOptions(
 	ctx context.Context,
 	listener *gwv1.Listener,
 	parentGw *gwv1.Gateway,
+	parentListenerSet *apixv1a1.XListenerSet,
 ) ([]*solokubev1.ListenerOption, error) {
 	if parentGw.GetName() == "" || parentGw.GetNamespace() == "" {
 		return nil, fmt.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
 	}
+
+	parentListenerSetName := ""
+	if parentListenerSet != nil {
+		parentListenerSetName = parentListenerSet.GetName()
+	}
+
 	nn := types.NamespacedName{
 		Namespace: parentGw.Namespace,
 		Name:      parentGw.Name,
 	}
+
+	nnListenerSet := types.NamespacedName{
+		Namespace: parentGw.Namespace,
+		Name:      parentListenerSetName,
+	}
+
 	list := &solokubev1.ListenerOptionList{}
 	if err := r.c.List(
 		ctx,
@@ -73,22 +90,35 @@ func (r *listenerOptionQueries) GetAttachedListenerOptions(
 		return nil, err
 	}
 
-	if len(list.Items) == 0 {
+	listListenerSet := &solokubev1.ListenerOptionList{}
+	if parentListenerSet != nil {
+		fmt.Printf("GetAttachedListenerOptions - listing listener set: %s\n", nnListenerSet.String())
+		if err := r.c.List(
+			ctx,
+			listListenerSet,
+			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(ListenerOptionTargetField, nnListenerSet.String())},
+			client.InNamespace(parentGw.GetNamespace()),
+		); err != nil {
+			return nil, err
+		}
+	}
+
+	allItems := append(list.Items, listListenerSet.Items...)
+	if len(allItems) == 0 {
 		return nil, nil
 	}
 
-	policies := buildWrapperType(ctx, list)
-	orderedPolicies := utils.GetPrioritizedListenerPoliciesAllTargetRefs(policies, listener, parentGw.Name)
+	policies := buildWrapperType(allItems)
+	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
 	return orderedPolicies, nil
 }
 
 func buildWrapperType(
-	ctx context.Context,
-	list *solokubev1.ListenerOptionList,
+	items []solokubev1.ListenerOption,
 ) []utils.PolicyWithSectionedTargetRefs[*solokubev1.ListenerOption] {
 	policies := []utils.PolicyWithSectionedTargetRefs[*solokubev1.ListenerOption]{}
-	for i := range list.Items {
-		item := &list.Items[i]
+	for i := range items {
+		item := &items[i]
 
 		policy := listenerOptionPolicy{
 			obj: item,
