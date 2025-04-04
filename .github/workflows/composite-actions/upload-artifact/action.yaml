@@ -1,4 +1,4 @@
-name: "Upload artifact"
+name: Upload artifact
 
 inputs:
   path:
@@ -11,6 +11,8 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # Job ID is required to ensure the name of the artifact is unique, as any other component can collide
+    # It's not always possible to derive Job ID, however, so we fall back to timestamp which is highly likely to be unique
     - name: Get Job ID from GH API
       shell: bash
       id: get-job-id

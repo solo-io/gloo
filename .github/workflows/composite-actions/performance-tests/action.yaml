@@ -10,5 +10,5 @@ runs:
   - uses: ./.github/workflows/composite-actions/upload-artifact
     if: ${{ failure() }}
     with:
-      name: performance-dump-attempt-${{ github.run_attempt }}
+      name: performance-dump
       path: "_output/performance-artifacts"
