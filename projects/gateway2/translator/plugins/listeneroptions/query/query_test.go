@@ -19,16 +19,18 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 var _ = Describe("Query Get ListenerOptions", func() {
 
 	var (
-		ctx      context.Context
-		deps     []client.Object
-		gw       *gwv1.Gateway
-		listener *gwv1.Listener
-		qry      query.ListenerOptionQueries
+		ctx         context.Context
+		deps        []client.Object
+		gw          *gwv1.Gateway
+		listener    *gwv1.Listener
+		qry         query.ListenerOptionQueries
+		listenerSet *apixv1a1.XListenerSet
 	)
 
 	BeforeEach(func() {
@@ -41,6 +43,12 @@ var _ = Describe("Query Get ListenerOptions", func() {
 		}
 		listener = &gwv1.Listener{
 			Name: "test-listener",
+		}
+		listenerSet = &apixv1a1.XListenerSet{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: "default",
+				Name:      "test-listener-set",
+			},
 		}
 	})
 
@@ -55,20 +63,40 @@ var _ = Describe("Query Get ListenerOptions", func() {
 	})
 
 	When("targetRef fully present without sectionName", func() {
-		BeforeEach(func() {
-			deps = []client.Object{
-				gw,
-				attachedListenerOption(),
-				diffNamespaceListenerOption(),
-			}
+		When("targetRef is a gateway", func() {
+			BeforeEach(func() {
+				deps = []client.Object{
+					gw,
+					attachedListenerOption(),
+					diffNamespaceListenerOption(),
+				}
+			})
+			It("should find the only attached option", func() {
+				listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw, nil)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(listenerOptions).NotTo(BeNil())
+				Expect(listenerOptions).To(HaveLen(1))
+				Expect(listenerOptions[0].GetName()).To(Equal("good-policy"))
+				Expect(listenerOptions[0].GetNamespace()).To(Equal("default"))
+			})
 		})
-		It("should find the only attached option", func() {
-			listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw, nil)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(listenerOptions).NotTo(BeNil())
-			Expect(listenerOptions).To(HaveLen(1))
-			Expect(listenerOptions[0].GetName()).To(Equal("good-policy"))
-			Expect(listenerOptions[0].GetNamespace()).To(Equal("default"))
+		When("targetRef is a listenerSet", func() {
+			BeforeEach(func() {
+				deps = []client.Object{
+					gw,
+					listenerSet,
+					attachedListenerSetListenerOption(),
+					diffNamespaceListenerOption(),
+				}
+			})
+			It("should find the only attached option", func() {
+				listenerOptions, err := qry.GetAttachedListenerOptions(ctx, listener, gw, listenerSet)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(listenerOptions).NotTo(BeNil())
+				Expect(listenerOptions).To(HaveLen(1))
+				Expect(listenerOptions[0].GetName()).To(Equal("good-ls-policy"))
+				Expect(listenerOptions[0].GetNamespace()).To(Equal("default"))
+			})
 		})
 	})
 
@@ -344,4 +372,14 @@ func attachedListenerOptionMultipleTargetRefNotFirst() *solokubev1.ListenerOptio
 			Options: &v1.ListenerOptions{},
 		},
 	}
+}
+
+func attachedListenerSetListenerOption() *solokubev1.ListenerOption {
+	opt := attachedListenerOption()
+	opt.ObjectMeta.Name = "good-ls-policy"
+	opt.Spec.TargetRefs[0].Group = wellknown.XListenerSetGVK.Group
+	opt.Spec.TargetRefs[0].Kind = wellknown.XListenerSetGVK.Kind
+	opt.Spec.TargetRefs[0].Name = "test-listener-set"
+	opt.Spec.TargetRefs[0].Namespace = nil
+	return opt
 }
