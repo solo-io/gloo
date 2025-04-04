@@ -2,8 +2,9 @@ package domain
 
 import (
 	"fmt"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"strings"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	"sigs.k8s.io/yaml"
