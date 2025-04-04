@@ -17,7 +17,6 @@ import (
 	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"sigs.k8s.io/yaml"
 )
@@ -124,7 +123,7 @@ func (g *GatewayAPIOutput) translateSnapshotToEdgeInput(jsonData string, fileNam
 		obj := unstructured.Unstructured{
 			Object: objMap,
 		}
-		if err := g.parseObjects(obj, &schema.GroupVersionKind{}, fileName); err != nil {
+		if err := g.parseObjects(obj, fileName); err != nil {
 			return err
 		}
 	}
@@ -161,7 +160,7 @@ func (g *GatewayAPIOutput) translateFileToEdgeInput(yamlData string, fileName st
 			}
 
 			for _, item := range list.Items {
-				err := g.parseObjects(item, k, fileName)
+				err := g.parseObjects(item, fileName)
 				if err != nil {
 					return err
 				}
@@ -169,12 +168,12 @@ func (g *GatewayAPIOutput) translateFileToEdgeInput(yamlData string, fileName st
 			}
 			continue
 		}
-		g.AddObjectToGatewayAPIOutput(obj, fileName, k, resourceYAML)
+		g.AddObjectToGatewayAPIOutput(obj, fileName, resourceYAML)
 	}
 	return nil
 }
 
-func (g *GatewayAPIOutput) parseObjects(item unstructured.Unstructured, k *schema.GroupVersionKind, fileName string) error {
+func (g *GatewayAPIOutput) parseObjects(item unstructured.Unstructured, fileName string) error {
 
 	resourceYaml, err := yaml.Marshal(item)
 	if err != nil {
@@ -198,35 +197,51 @@ func (g *GatewayAPIOutput) parseObjects(item unstructured.Unstructured, k *schem
 		return fmt.Errorf("error converting unstructured to typed: %v", err)
 	}
 
-	g.AddObjectToGatewayAPIOutput(obj, fileName, k, string(resourceYaml))
+	g.AddObjectToGatewayAPIOutput(obj, fileName, string(resourceYaml))
 	return nil
 }
 
-func (g *GatewayAPIOutput) AddObjectToGatewayAPIOutput(obj runtime.Object, fileName string, k *schema.GroupVersionKind, resourceYaml string) {
+func (g *GatewayAPIOutput) AddObjectToGatewayAPIOutput(obj runtime.Object, fileName string, resourceYaml string) {
 	switch o := obj.(type) {
 	case *glookube.Settings:
 		glooConfigMetric.WithLabelValues("Settings").Inc()
+		//clear status
+		o.Status.Reset()
 		g.edgeCache.AddSettings(&domain.SettingsWrapper{Settings: o, OriginalFileName: fileName})
 	case *v1.AuthConfig:
 		glooConfigMetric.WithLabelValues("AuthConfig").Inc()
+		//clear status
+		o.Status.Reset()
 		g.edgeCache.AddAuthConfig(&domain.AuthConfigWrapper{AuthConfig: o, OriginalFileName: fileName})
 	case *glookube.Upstream:
 		glooConfigMetric.WithLabelValues("Upstream").Inc()
+		//clear status
+		o.Status.Reset()
 		g.edgeCache.AddUpstream(&domain.UpstreamWrapper{Upstream: o, OriginalFileName: fileName})
 	case *gatewaykube.RouteTable:
 		glooConfigMetric.WithLabelValues("RouteTable").Inc()
+		//clear status
+		o.Status.Reset()
 		g.edgeCache.AddRouteTable(&domain.RouteTableWrapper{RouteTable: o, OriginalFileName: fileName})
 	case *gatewaykube.VirtualService:
 		glooConfigMetric.WithLabelValues("VirtualService").Inc()
+		//clear status
+		o.Status.Reset()
 		g.edgeCache.AddVirtualService(&domain.VirtualServiceWrapper{VirtualService: o, OriginalFileName: fileName})
 	case *gatewaykube.RouteOption:
 		glooConfigMetric.WithLabelValues("RouteOption").Inc()
+		//clear status
+		o.Status.Reset()
 		g.edgeCache.AddRouteOption(&domain.RouteOptionWrapper{RouteOption: o, OriginalFileName: fileName})
 	case *gatewaykube.VirtualHostOption:
 		glooConfigMetric.WithLabelValues("VirtualHostOption").Inc()
+		//clear status
+		o.Status.Reset()
 		g.edgeCache.AddVirtualHostOption(&domain.VirtualHostOptionWrapper{VirtualHostOption: o, OriginalFileName: fileName})
 	case *gatewaykube.Gateway:
 		glooConfigMetric.WithLabelValues("Gateway").Inc()
+		//clear status
+		o.Status.Reset()
 		g.edgeCache.AddGlooGateway(&domain.GlooGatewayWrapper{Gateway: o, OriginalFileName: fileName})
 	case *gatewaykube.HttpListenerOption:
 		glooConfigMetric.WithLabelValues("HttpListenerOption").Inc()

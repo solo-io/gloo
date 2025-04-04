@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"strings"
 
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
@@ -57,25 +58,19 @@ func (g *GlooEdgeCache) GlooGatewayContainsVirtualService(gateway *GlooGatewayWr
 
 		var matches bool
 		var err error
-		if gateway.Gateway.Spec.GetHttpGateway() != nil && len(gateway.Gateway.Spec.GetHttpGateway().GetVirtualServiceNamespaces()) > 0 {
-			// the HttpGatewayContainsVirtualService function requires the VS to have a namespace and metadata on the inner object which we don't have. So we do the namespace lookup ourselves
-			for _, ns := range gateway.Gateway.Spec.GetHttpGateway().GetVirtualServiceNamespaces() {
-				if ns == "*" {
-					matches = true
-					break
-				}
-				if ns == virtualService.Namespace {
-					matches = true
-					break
-				}
-			}
-		} else {
-			// this logic reqires the VS to have a namespace and metadata on the inner object which we dont have. So we do the namespace lookup ourselves
-			matches, err = translator.HttpGatewayContainsVirtualService(gateway.Gateway.Spec.GetHttpGateway(), &virtualService.Spec, gateway.Gateway.Spec.Ssl)
-			if err != nil {
-				return nil, err
-			}
+		// this logic reqires the VS to have a namespace and metadata on the inner object which we dont have. So we do the namespace lookup ourselves
+		vs := &virtualService.Spec
+		vs.SetMetadata(&core.Metadata{
+			Name:        virtualService.Name,
+			Namespace:   virtualService.Namespace,
+			Labels:      virtualService.Labels,
+			Annotations: virtualService.Annotations,
+		})
+		matches, err = translator.HttpGatewayContainsVirtualService(gateway.Gateway.Spec.GetHttpGateway(), vs, gateway.Gateway.Spec.Ssl)
+		if err != nil {
+			return nil, err
 		}
+		//}
 
 		if matches {
 			response = append(response, virtualService)
