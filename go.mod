@@ -72,7 +72,7 @@ require (
 	golang.org/x/sync v0.10.0
 	golang.org/x/tools v0.29.0
 	google.golang.org/grpc v1.70.0
-	google.golang.org/protobuf v1.36.5
+	google.golang.org/protobuf v1.36.6
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	helm.sh/helm/v3 v3.17.0
 	k8s.io/api v0.32.2
