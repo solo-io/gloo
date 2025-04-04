@@ -186,6 +186,35 @@ func (p *plugin) InitStatusPlugin(ctx context.Context, statusCtx *plugins.Status
 	return nil
 }
 
+// MergeStatusPlugin merges the status of the current plugin with the status of another plugin.
+func (p *plugin) MergeStatusPlugin(ctx context.Context, source any) error {
+	sourceStatusPlugin, ok := source.(*plugin)
+	if !ok {
+		return nil
+	}
+
+	// merge the status cache
+	for key, sourceStatus := range sourceStatusPlugin.classicStatusCache {
+		if destStatus, ok := p.classicStatusCache[key]; ok {
+			destStatus.virtualHostErrors = append(destStatus.virtualHostErrors, sourceStatus.virtualHostErrors...)
+			destStatus.warnings = append(destStatus.warnings, sourceStatus.warnings...)
+			for k, v := range sourceStatus.subresourceStatus {
+				if _, ok := destStatus.subresourceStatus[k]; !ok {
+					destStatus.subresourceStatus[k] = v
+				}
+			}
+
+			// update the cache
+			p.classicStatusCache[key] = destStatus
+		} else {
+			// this is a new status entry, so just copy it over
+			p.classicStatusCache[key] = sourceStatus
+		}
+	}
+
+	return nil
+}
+
 // Add all statuses for processed VirtualHostOptions. These could come from the VHO itself or
 // or any VH to which it is attached.
 // It returns the aggregated errors reading the VirtualHostOptions if any.
@@ -193,6 +222,8 @@ func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx *plugins.Statu
 	logger := contextutils.LoggerFrom(ctx)
 	// gather all VirtualHostOptions we need to report status for
 	for _, proxyWithReport := range statusCtx.ProxiesWithReports {
+		fmt.Printf("proxyWithReport: %v\n", proxyWithReport)
+
 		proxy := proxyWithReport.Proxy
 		if proxy == nil {
 			// we should never have this occur
@@ -201,9 +232,15 @@ func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx *plugins.Statu
 		// get proxy status to use for VirtualHostOption status
 		proxyStatus := p.statusReporter.StatusFromReport(proxyWithReport.Reports.ResourceReports[proxy], nil)
 
+		fmt.Printf("proxyStatus: %v\n", proxyStatus)
+
 		// for this specific proxy, get all the virtualHost errors and their associated VirtualHostOption sources
 		virtualHostErrors := extractVirtualHostErrors(proxyWithReport.Reports.ProxyReport)
+		fmt.Printf("virtualHostErrors: %v\n", virtualHostErrors)
 		for vhKey, errs := range virtualHostErrors {
+			fmt.Printf("vhKey: %v\n", vhKey)
+			fmt.Printf("errs: %v\n", errs)
+
 			// grab the existing status object for this VirtualHostOption
 			statusForVhO, ok := p.classicStatusCache[vhKey]
 			if !ok {
@@ -221,13 +258,18 @@ func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx *plugins.Statu
 			statusForVhO.virtualHostErrors = append(statusForVhO.virtualHostErrors, errs...)
 
 			// update the cache
+			fmt.Printf("statusForVhO: %v\n", statusForVhO)
 			p.classicStatusCache[vhKey] = statusForVhO
 		}
 	}
+
 	virtualHostOptionReport := make(reporter.ResourceReports)
 	// Loop through vhostopts we processed and have a status for
 	var multierr *multierror.Error
 	for vhOptKey, status := range p.classicStatusCache {
+		fmt.Printf("vhOptKey: %s\n", vhOptKey)
+		fmt.Printf("status: %v\n", status)
+
 		// get the obj by namespacedName
 		maybeVhOptObj := p.virtualHostOptionCollection.GetKey(krt.Named{Namespace: vhOptKey.Namespace, Name: vhOptKey.Name}.ResourceName())
 		if maybeVhOptObj == nil {

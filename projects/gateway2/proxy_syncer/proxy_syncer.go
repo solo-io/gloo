@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"reflect"
 	"slices"
 	"time"
 
@@ -588,23 +589,45 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 				logger.Debug("context done, stopping proxy syncer")
 				return
 			case <-timer.C:
+				// build a list of reports to feed the status plugins
+				var proxiesWithReports []translatorutils.ProxyWithReports
+				var snapPlugins []registry.PluginRegistry
+
 				snaps := s.mostXdsSnapshots.List()
 				for _, snapWrap := range snaps {
-					var proxiesWithReports []translatorutils.ProxyWithReports
 					proxiesWithReports = append(proxiesWithReports, snapWrap.proxyWithReport)
+					snapPlugins = append(snapPlugins, snapWrap.pluginRegistry)
 
-					initStatusPlugins(ctx, proxiesWithReports, snapWrap.pluginRegistry)
-				}
-				for _, snapWrap := range snaps {
 					err := s.proxyTranslator.syncStatus(ctx, snapWrap.proxyKey, snapWrap.fullReports)
 					if err != nil {
 						logger.Errorf("error while syncing proxy '%s': %s", snapWrap.proxyKey, err.Error())
 					}
-
-					var proxiesWithReports []translatorutils.ProxyWithReports
-					proxiesWithReports = append(proxiesWithReports, snapWrap.proxyWithReport)
-					applyStatusPlugins(ctx, proxiesWithReports, snapWrap.pluginRegistry)
 				}
+
+				// fmt.Printf("proxiesWithReports: %v\n", proxiesWithReports)
+
+				pluginRegistry := s.k8sGwExtensions.CreatePluginRegistry(ctx)
+				initStatusPlugins(ctx, proxiesWithReports, pluginRegistry)
+				mergeStatusPlugins(ctx, pluginRegistry, snapPlugins)
+				applyStatusPlugins(ctx, proxiesWithReports, pluginRegistry)
+
+				// snaps := s.mostXdsSnapshots.List()
+				// for _, snapWrap := range snaps {
+				// 	var proxiesWithReports []translatorutils.ProxyWithReports
+				// 	proxiesWithReports = append(proxiesWithReports, snapWrap.proxyWithReport)
+
+				// 	initStatusPlugins(ctx, proxiesWithReports, snapWrap.pluginRegistry)
+				// }
+				// for _, snapWrap := range snaps {
+				// 	err := s.proxyTranslator.syncStatus(ctx, snapWrap.proxyKey, snapWrap.fullReports)
+				// 	if err != nil {
+				// 		logger.Errorf("error while syncing proxy '%s': %s", snapWrap.proxyKey, err.Error())
+				// 	}
+
+				// 	var proxiesWithReports []translatorutils.ProxyWithReports
+				// 	proxiesWithReports = append(proxiesWithReports, snapWrap.proxyWithReport)
+				// 	applyStatusPlugins(ctx, proxiesWithReports, snapWrap.pluginRegistry)
+				// }
 			}
 		}
 	}()
@@ -852,6 +875,30 @@ func applyStatusPlugins(
 		if err != nil {
 			logger.Errorf("Error applying status plugin: %v", err)
 			continue
+		}
+	}
+}
+
+func mergeStatusPlugins(
+	ctx context.Context,
+	dest registry.PluginRegistry,
+	sources []registry.PluginRegistry,
+) {
+	ctx = contextutils.WithLogger(ctx, "k8sGatewayStatusPlugins")
+	logger := contextutils.LoggerFrom(ctx)
+
+	for _, destPlugin := range dest.GetStatusPlugins() {
+		for _, source := range sources {
+			for _, sourcePlugin := range source.GetStatusPlugins() {
+				if reflect.TypeOf(destPlugin) == reflect.TypeOf(sourcePlugin) {
+					// merge the status plugin
+					err := destPlugin.MergeStatusPlugin(ctx, sourcePlugin)
+					if err != nil {
+						logger.Errorf("Error merging status plugin: %v", err)
+						continue
+					}
+				}
+			}
 		}
 	}
 }

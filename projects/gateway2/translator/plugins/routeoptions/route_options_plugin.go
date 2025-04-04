@@ -174,6 +174,29 @@ func (p *plugin) InitStatusPlugin(ctx context.Context, statusCtx *plugins.Status
 	return nil
 }
 
+// MergeStatusPlugin merges the status of the current plugin with the status of another plugin.
+func (p *plugin) MergeStatusPlugin(ctx context.Context, source any) error {
+	sourceStatusPlugin, ok := source.(*plugin)
+	if !ok {
+		return nil
+	}
+
+	// merge the status caches
+	for cacheKey, status := range sourceStatusPlugin.legacyStatusCache {
+		if destStatus, ok := p.legacyStatusCache[cacheKey]; ok {
+			destStatus.routeErrors = append(destStatus.routeErrors, status.routeErrors...)
+			for subresourceKey, subresourceStatus := range status.subresourceStatus {
+				destStatus.subresourceStatus[subresourceKey] = subresourceStatus
+			}
+			p.legacyStatusCache[cacheKey] = destStatus
+		} else {
+			p.legacyStatusCache[cacheKey] = status
+		}
+	}
+
+	return nil
+}
+
 func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx *plugins.StatusContext) error {
 	logger := contextutils.LoggerFrom(ctx).Desugar()
 	// gather all RouteOptions we need to report status for
