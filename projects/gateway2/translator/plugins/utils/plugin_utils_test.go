@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 func TestExtensionRef(t *testing.T) {
@@ -181,7 +182,24 @@ func (m *mockPolicy) GetObject() client.Object {
 func basePolicyForGw(gwName string) *mockPolicy {
 	return &mockPolicy{
 		targetRefs: []*skv2corev1.PolicyTargetReferenceWithSectionName{
-			{Name: gwName},
+			{
+				Name:  gwName,
+				Group: gwv1.GroupName,
+				Kind:  wellknown.GatewayKind,
+			},
+		},
+		object: &gwv1.HTTPRoute{},
+	}
+}
+
+func basePolicyForLs(lsName string) *mockPolicy {
+	return &mockPolicy{
+		targetRefs: []*skv2corev1.PolicyTargetReferenceWithSectionName{
+			{
+				Name:  lsName,
+				Group: wellknown.XListenerSetGVK.Group,
+				Kind:  wellknown.XListenerSetGVK.Kind,
+			},
 		},
 		object: &gwv1.HTTPRoute{},
 	}
@@ -206,7 +224,14 @@ func TestGetPrioritizedListenerPolicies(t *testing.T) {
 		Name: "http",
 	}
 
-	// seven policies:
+	parentListenerSet := &apixv1a1.XListenerSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ls-1",
+			Namespace: "default",
+		},
+	}
+
+	// policies:
 	//   five matching the gateway name:
 	//     one with no section name - should be fourth in the output
 	//     one with no section name but older - should be third in the output
@@ -216,6 +241,10 @@ func TestGetPrioritizedListenerPolicies(t *testing.T) {
 	//   two that don't match the listener name:
 	//     one with section name "http" - should not match
 	//     one without section name - should not match
+	//   three that match on ListenerSet - should be applied when the parent listener set is specified
+	//     one with no section name but matching listener name - should apply when the parent listener set is specified
+	//     one with section name "http" - should match and be first in the output when the parent listener set is specified
+	//     one with section name "not-http" - should not match when the parent listener set is specified
 
 	// Matches on gateway name, no section name, newer than policy1
 	policy0 := basePolicyForGw("gw-1").withCreationTimestamp(time.Now())
@@ -225,12 +254,18 @@ func TestGetPrioritizedListenerPolicies(t *testing.T) {
 	policy4 := basePolicyForGw("gw-1").withSectionName("not-http")
 	policy5 := basePolicyForGw("gw-2")
 	policy6 := basePolicyForGw("gw-2").withSectionName("http")
+	policy7 := basePolicyForLs("ls-1")
+	policy8 := basePolicyForLs("ls-1").withSectionName("http")
+	policy9 := basePolicyForLs("ls-1").withSectionName("not-http")
+	policies := []utils.PolicyWithSectionedTargetRefs[client.Object]{policy0, policy1, policy2, policy3, policy4, policy5, policy6, policy7, policy8, policy9}
 
-	policies := []utils.PolicyWithSectionedTargetRefs[client.Object]{policy0, policy1, policy2, policy3, policy4, policy5, policy6}
-
+	// No parent listenerset, so the listener policies do not match
 	prioritizedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, "gw-1", nil)
-
 	g.Expect(prioritizedPolicies).To(BeEquivalentTo([]client.Object{policy3.object, policy2.object, policy1.object, policy0.object}))
+
+	// With a parent listener set, the listener policies match and are prioritized
+	prioritizedPolicies = utils.GetPrioritizedListenerPolicies(policies, listener, "gw-1", parentListenerSet)
+	g.Expect(prioritizedPolicies).To(BeEquivalentTo([]client.Object{policy8.object, policy7.object, policy3.object, policy2.object, policy1.object, policy0.object}))
 }
 
 func TestIndexTargetRefs(t *testing.T) {
