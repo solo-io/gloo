@@ -18,6 +18,8 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/plugins/dynamic_forward_proxy"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"github.com/solo-io/solo-kit/test/matchers"
 )
 
@@ -158,8 +160,17 @@ var _ = Describe("dynamic forward proxy plugin", func() {
 		})
 
 		It("Translates SslConfig", func() {
+			proxy := &v1.Proxy{
+				Metadata: &core.Metadata{
+					Name:      "proxy",
+					Namespace: "gloo-system",
+				},
+			}
+
 			// create dummy snapshot
 			params.Snapshot = &gloosnapshot.ApiSnapshot{}
+
+			reports := reporter.ResourceReports{}
 
 			// create plugin
 			p := NewPlugin()
@@ -172,7 +183,8 @@ var _ = Describe("dynamic forward proxy plugin", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// use plugin to compute expected envoy cluster
-			clusters, _, _, _, _ := p.GeneratedResources(params, nil, nil, nil, nil)
+			clusters, _, _, _ := p.GeneratedResources(params, proxy, nil, nil, nil, nil, reports)
+			Expect(reports).To(BeEmpty())
 			Expect(clusters).To(HaveLen(1))
 
 			// evaluate contents of generated cluster
