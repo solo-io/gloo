@@ -47,6 +47,8 @@ var (
 )
 
 var _ = BeforeSuite(func() {
+	Fail("INTENTIONALLY FAILING")
+
 	suiteCtx, suiteCancel = context.WithCancel(context.Background())
 
 	testHelper, err := kube2e.GetTestHelper(suiteCtx, namespace)
