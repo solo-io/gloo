@@ -46,7 +46,7 @@ func (cgw *ConsolidatedGateway) GetConsolidatedListeners() []ConsolidatedListene
 				consolidatedListeners = append(consolidatedListeners, ConsolidatedListener{
 					Listener:    &listener,
 					Gateway:     cgw.Gateway,
-					ListenerSet: nil,
+					ListenerSet: ls,
 				})
 			}
 		}
